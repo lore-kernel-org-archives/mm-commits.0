@@ -1,121 +1,504 @@
 From: akpm@linux-foundation.org
-Subject: - coredump-format_corename-fix-the-core_uses_pid-logic.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:00:07 -0700
-Message-ID: <200807252300.m6PN07oS003558@imap1.linux-foundation.org>
+Subject: - gpio-max732x-driver.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:56:09 -0700
+Message-ID: <200807252256.m6PMu9x2003064@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34856 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37268 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755486AbYGYXHR (ORCPT
+	by vger.kernel.org with ESMTP id S1755412AbYGYXHO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:07:17 -0400
+	Fri, 25 Jul 2008 19:07:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, roland@redhat.com, mm-commits@vger.kernel.org
+To: eric.miao@marvell.com, dbrownell@users.sourceforge.net, jack.ren@marvell.com, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     coredump: format_corename: fix the "core_uses_pid" logic
+     gpio: max732x driver
 has been removed from the -mm tree.  Its filename was
-     coredump-format_corename-fix-the-core_uses_pid-logic.patch
+     gpio-max732x-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump: format_corename: fix the "core_uses_pid" logic
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: gpio: max732x driver
+From: Eric Miao <eric.miao@marvell.com>
 
-I don't understand why the multi-thread coredump implies the core_uses_pid
-behaviour, but we shouldn't use mm->mm_users for that.  This counter can
-be incremented by get_task_mm().  Use the valued returned by
-coredump_wait() instead.
+This adds a driver supporting a family of I2C port expanders from Maxim,
+which includes the MAX7319 and MAX7320-7327 chips.
 
-Also, remove the "const char *pattern" argument, format_corename() can use
-core_pattern directly.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Andi Kleen <andi@firstfloor.org>
+[dbrownell@users.sourceforge.net: minor fixes]
+Signed-off-by: Jack Ren <jack.ren@marvell.com>
+Signed-off-by: Eric Miao <eric.miao@marvell.com>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ drivers/gpio/Kconfig        |   19 +
+ drivers/gpio/Makefile       |    1 
+ drivers/gpio/max732x.c      |  385 ++++++++++++++++++++++++++++++++++
+ include/linux/i2c/max732x.h |   19 +
+ 4 files changed, 424 insertions(+)
 
-diff -puN fs/exec.c~coredump-format_corename-fix-the-core_uses_pid-logic fs/exec.c
---- a/fs/exec.c~coredump-format_corename-fix-the-core_uses_pid-logic
-+++ a/fs/exec.c
-@@ -1379,17 +1379,14 @@ EXPORT_SYMBOL(set_binfmt);
-  * name into corename, which must have space for at least
-  * CORENAME_MAX_SIZE bytes plus one byte for the zero terminator.
-  */
--static int format_corename(char *corename, const char *pattern, long signr)
-+static int format_corename(char *corename, int nr_threads, long signr)
- {
--	const char *pat_ptr = pattern;
-+	const char *pat_ptr = core_pattern;
-+	int ispipe = (*pat_ptr == '|');
- 	char *out_ptr = corename;
- 	char *const out_end = corename + CORENAME_MAX_SIZE;
- 	int rc;
- 	int pid_in_pattern = 0;
--	int ispipe = 0;
--
--	if (*pattern == '|')
--		ispipe = 1;
+diff -puN drivers/gpio/Kconfig~gpio-max732x-driver drivers/gpio/Kconfig
+--- a/drivers/gpio/Kconfig~gpio-max732x-driver
++++ a/drivers/gpio/Kconfig
+@@ -67,6 +67,25 @@ config GPIO_SYSFS
  
- 	/* Repeat as long as we have more pattern to process and more output
- 	   space */
-@@ -1490,7 +1487,7 @@ static int format_corename(char *corenam
- 	 * and core_uses_pid is set, then .%pid will be appended to
- 	 * the filename. Do not do this for piped commands. */
- 	if (!ispipe && !pid_in_pattern
--            && (core_uses_pid || atomic_read(&current->mm->mm_users) != 1)) {
-+	    && (core_uses_pid || nr_threads)) {
- 		rc = snprintf(out_ptr, out_end - out_ptr,
- 			      ".%d", task_tgid_vnr(current));
- 		if (rc > out_end - out_ptr)
-@@ -1753,7 +1750,7 @@ int do_coredump(long signr, int exit_cod
- 	 * uses lock_kernel()
- 	 */
-  	lock_kernel();
--	ispipe = format_corename(corename, core_pattern, signr);
-+	ispipe = format_corename(corename, retval, signr);
- 	unlock_kernel();
- 	/*
- 	 * Don't bother to check the RLIMIT_CORE value if core_pattern points
+ comment "I2C GPIO expanders:"
+ 
++config GPIO_MAX732X
++	tristate "MAX7319, MAX7320-7327 I2C Port Expanders"
++	depends on I2C
++	help
++	  Say yes here to support the MAX7319, MAX7320-7327 series of I2C
++	  Port Expanders. Each IO port on these chips has a fixed role of
++	  Input (designated by 'I'), Push-Pull Output ('O'), or Open-Drain
++	  Input and Output (designed by 'P'). The combinations are listed
++	  below:
++
++	  8 bits:	max7319 (8I), max7320 (8O), max7321 (8P),
++		  	max7322 (4I4O), max7323 (4P4O)
++
++	  16 bits:	max7324 (8I8O), max7325 (8P8O),
++		  	max7326 (4I12O), max7327 (4P12O)
++
++	  Board setup code must specify the model to use, and the start
++	  number for these GPIOs.
++
+ config GPIO_PCA953X
+ 	tristate "PCA953x, PCA955x, and MAX7310 I/O ports"
+ 	depends on I2C
+diff -puN drivers/gpio/Makefile~gpio-max732x-driver drivers/gpio/Makefile
+--- a/drivers/gpio/Makefile~gpio-max732x-driver
++++ a/drivers/gpio/Makefile
+@@ -5,6 +5,7 @@ ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
+ obj-$(CONFIG_GPIOLIB)		+= gpiolib.o
+ 
+ obj-$(CONFIG_GPIO_MAX7301)	+= max7301.o
++obj-$(CONFIG_GPIO_MAX732X)	+= max732x.o
+ obj-$(CONFIG_GPIO_MCP23S08)	+= mcp23s08.o
+ obj-$(CONFIG_GPIO_PCA953X)	+= pca953x.o
+ obj-$(CONFIG_GPIO_PCF857X)	+= pcf857x.o
+diff -puN /dev/null drivers/gpio/max732x.c
+--- /dev/null
++++ a/drivers/gpio/max732x.c
+@@ -0,0 +1,385 @@
++/*
++ *  max732x.c - I2C Port Expander with 8/16 I/O
++ *
++ *  Copyright (C) 2007 Marvell International Ltd.
++ *  Copyright (C) 2008 Jack Ren <jack.ren@marvell.com>
++ *  Copyright (C) 2008 Eric Miao <eric.miao@marvell.com>
++ *
++ *  Derived from drivers/gpio/pca953x.c
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; version 2 of the License.
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/string.h>
++#include <linux/gpio.h>
++
++#include <linux/i2c.h>
++#include <linux/i2c/max732x.h>
++
++
++/*
++ * Each port of MAX732x (including MAX7319) falls into one of the
++ * following three types:
++ *
++ *   - Push Pull Output
++ *   - Input
++ *   - Open Drain I/O
++ *
++ * designated by 'O', 'I' and 'P' individually according to MAXIM's
++ * datasheets.
++ *
++ * There are two groups of I/O ports, each group usually includes
++ * up to 8 I/O ports, and is accessed by a specific I2C address:
++ *
++ *   - Group A : by I2C address 0b'110xxxx
++ *   - Group B : by I2C address 0b'101xxxx
++ *
++ * where 'xxxx' is decided by the connections of pin AD2/AD0.  The
++ * address used also affects the initial state of output signals.
++ *
++ * Within each group of ports, there are five known combinations of
++ * I/O ports: 4I4O, 4P4O, 8I, 8P, 8O, see the definitions below for
++ * the detailed organization of these ports.
++ *
++ * GPIO numbers start from 'gpio_base + 0' to 'gpio_base + 8/16',
++ * and GPIOs from GROUP_A are numbered before those from GROUP_B
++ * (if there are two groups).
++ *
++ * NOTE: MAX7328/MAX7329 are drop-in replacements for PCF8574/a, so
++ * they are not supported by this driver.
++ */
++
++#define PORT_NONE	0x0	/* '/' No Port */
++#define PORT_OUTPUT	0x1	/* 'O' Push-Pull, Output Only */
++#define PORT_INPUT	0x2	/* 'I' Input Only */
++#define PORT_OPENDRAIN	0x3	/* 'P' Open-Drain, I/O */
++
++#define IO_4I4O		0x5AA5	/* O7 O6 I5 I4 I3 I2 O1 O0 */
++#define IO_4P4O		0x5FF5	/* O7 O6 P5 P4 P3 P2 O1 O0 */
++#define IO_8I		0xAAAA	/* I7 I6 I5 I4 I3 I2 I1 I0 */
++#define IO_8P		0xFFFF	/* P7 P6 P5 P4 P3 P2 P1 P0 */
++#define IO_8O		0x5555	/* O7 O6 O5 O4 O3 O2 O1 O0 */
++
++#define GROUP_A(x)	((x) & 0xffff)	/* I2C Addr: 0b'110xxxx */
++#define GROUP_B(x)	((x) << 16)	/* I2C Addr: 0b'101xxxx */
++
++static const struct i2c_device_id max732x_id[] = {
++	{ "max7319", GROUP_A(IO_8I) },
++	{ "max7320", GROUP_B(IO_8O) },
++	{ "max7321", GROUP_A(IO_8P) },
++	{ "max7322", GROUP_A(IO_4I4O) },
++	{ "max7323", GROUP_A(IO_4P4O) },
++	{ "max7324", GROUP_A(IO_8I) | GROUP_B(IO_8O) },
++	{ "max7325", GROUP_A(IO_8P) | GROUP_B(IO_8O) },
++	{ "max7326", GROUP_A(IO_4I4O) | GROUP_B(IO_8O) },
++	{ "max7327", GROUP_A(IO_4P4O) | GROUP_B(IO_8O) },
++	{ },
++};
++MODULE_DEVICE_TABLE(i2c, max732x_id);
++
++struct max732x_chip {
++	struct gpio_chip gpio_chip;
++
++	struct i2c_client *client;	/* "main" client */
++	struct i2c_client *client_dummy;
++	struct i2c_client *client_group_a;
++	struct i2c_client *client_group_b;
++
++	unsigned int	mask_group_a;
++	unsigned int	dir_input;
++	unsigned int	dir_output;
++
++	struct mutex	lock;
++	uint8_t		reg_out[2];
++};
++
++static int max732x_write(struct max732x_chip *chip, int group_a, uint8_t val)
++{
++	struct i2c_client *client;
++	int ret;
++
++	client = group_a ? chip->client_group_a : chip->client_group_b;
++	ret = i2c_smbus_write_byte(client, val);
++	if (ret < 0) {
++		dev_err(&client->dev, "failed writing\n");
++		return ret;
++	}
++
++	return 0;
++}
++
++static int max732x_read(struct max732x_chip *chip, int group_a, uint8_t *val)
++{
++	struct i2c_client *client;
++	int ret;
++
++	client = group_a ? chip->client_group_a : chip->client_group_b;
++	ret = i2c_smbus_read_byte(client);
++	if (ret < 0) {
++		dev_err(&client->dev, "failed reading\n");
++		return ret;
++	}
++
++	*val = (uint8_t)ret;
++	return 0;
++}
++
++static inline int is_group_a(struct max732x_chip *chip, unsigned off)
++{
++	return (1u << off) & chip->mask_group_a;
++}
++
++static int max732x_gpio_get_value(struct gpio_chip *gc, unsigned off)
++{
++	struct max732x_chip *chip;
++	uint8_t reg_val;
++	int ret;
++
++	chip = container_of(gc, struct max732x_chip, gpio_chip);
++
++	ret = max732x_read(chip, is_group_a(chip, off), &reg_val);
++	if (ret < 0)
++		return 0;
++
++	return reg_val & (1u << (off & 0x7));
++}
++
++static void max732x_gpio_set_value(struct gpio_chip *gc, unsigned off, int val)
++{
++	struct max732x_chip *chip;
++	uint8_t reg_out, mask = 1u << (off & 0x7);
++	int ret;
++
++	chip = container_of(gc, struct max732x_chip, gpio_chip);
++
++	mutex_lock(&chip->lock);
++
++	reg_out = (off > 7) ? chip->reg_out[1] : chip->reg_out[0];
++	reg_out = (val) ? reg_out | mask : reg_out & ~mask;
++
++	ret = max732x_write(chip, is_group_a(chip, off), reg_out);
++	if (ret < 0)
++		goto out;
++
++	/* update the shadow register then */
++	if (off > 7)
++		chip->reg_out[1] = reg_out;
++	else
++		chip->reg_out[0] = reg_out;
++out:
++	mutex_unlock(&chip->lock);
++}
++
++static int max732x_gpio_direction_input(struct gpio_chip *gc, unsigned off)
++{
++	struct max732x_chip *chip;
++	unsigned int mask = 1u << off;
++
++	chip = container_of(gc, struct max732x_chip, gpio_chip);
++
++	if ((mask & chip->dir_input) == 0) {
++		dev_dbg(&chip->client->dev, "%s port %d is output only\n",
++			chip->client->name, off);
++		return -EACCES;
++	}
++
++	return 0;
++}
++
++static int max732x_gpio_direction_output(struct gpio_chip *gc,
++		unsigned off, int val)
++{
++	struct max732x_chip *chip;
++	unsigned int mask = 1u << off;
++
++	chip = container_of(gc, struct max732x_chip, gpio_chip);
++
++	if ((mask & chip->dir_output) == 0) {
++		dev_dbg(&chip->client->dev, "%s port %d is input only\n",
++			chip->client->name, off);
++		return -EACCES;
++	}
++
++	max732x_gpio_set_value(gc, off, val);
++	return 0;
++}
++
++static int __devinit max732x_setup_gpio(struct max732x_chip *chip,
++					const struct i2c_device_id *id,
++					unsigned gpio_start)
++{
++	struct gpio_chip *gc = &chip->gpio_chip;
++	uint32_t id_data = id->driver_data;
++	int i, port = 0;
++
++	for (i = 0; i < 16; i++, id_data >>= 2) {
++		unsigned int mask = 1 << port;
++
++		switch (id_data & 0x3) {
++		case PORT_OUTPUT:
++			chip->dir_output |= mask;
++			break;
++		case PORT_INPUT:
++			chip->dir_input |= mask;
++			break;
++		case PORT_OPENDRAIN:
++			chip->dir_output |= mask;
++			chip->dir_input |= mask;
++			break;
++		default:
++			continue;
++		}
++
++		if (i < 8)
++			chip->mask_group_a |= mask;
++		port++;
++	}
++
++	if (chip->dir_input)
++		gc->direction_input = max732x_gpio_direction_input;
++	if (chip->dir_output) {
++		gc->direction_output = max732x_gpio_direction_output;
++		gc->set = max732x_gpio_set_value;
++	}
++	gc->get = max732x_gpio_get_value;
++	gc->can_sleep = 1;
++
++	gc->base = gpio_start;
++	gc->ngpio = port;
++	gc->label = chip->client->name;
++	gc->owner = THIS_MODULE;
++
++	return port;
++}
++
++static int __devinit max732x_probe(struct i2c_client *client,
++				   const struct i2c_device_id *id)
++{
++	struct max732x_platform_data *pdata;
++	struct max732x_chip *chip;
++	struct i2c_client *c;
++	uint16_t addr_a, addr_b;
++	int ret, nr_port;
++
++	pdata = client->dev.platform_data;
++	if (pdata == NULL)
++		return -ENODEV;
++
++	chip = kzalloc(sizeof(struct max732x_chip), GFP_KERNEL);
++	if (chip == NULL)
++		return -ENOMEM;
++	chip->client = client;
++
++	nr_port = max732x_setup_gpio(chip, id, pdata->gpio_base);
++
++	addr_a = (client->addr & 0x0f) | 0x60;
++	addr_b = (client->addr & 0x0f) | 0x50;
++
++	switch (client->addr & 0x70) {
++	case 0x60:
++		chip->client_group_a = client;
++		if (nr_port > 7) {
++			c = i2c_new_dummy(client->adapter, addr_b);
++			chip->client_group_b = chip->client_dummy = c;
++		}
++		break;
++	case 0x50:
++		chip->client_group_b = client;
++		if (nr_port > 7) {
++			c = i2c_new_dummy(client->adapter, addr_a);
++			chip->client_group_a = chip->client_dummy = c;
++		}
++		break;
++	default:
++		dev_err(&client->dev, "invalid I2C address specified %02x\n",
++				client->addr);
++		ret = -EINVAL;
++		goto out_failed;
++	}
++
++	mutex_init(&chip->lock);
++
++	max732x_read(chip, is_group_a(chip, 0), &chip->reg_out[0]);
++	if (nr_port > 7)
++		max732x_read(chip, is_group_a(chip, 8), &chip->reg_out[1]);
++
++	ret = gpiochip_add(&chip->gpio_chip);
++	if (ret)
++		goto out_failed;
++
++	if (pdata->setup) {
++		ret = pdata->setup(client, chip->gpio_chip.base,
++				chip->gpio_chip.ngpio, pdata->context);
++		if (ret < 0)
++			dev_warn(&client->dev, "setup failed, %d\n", ret);
++	}
++
++	i2c_set_clientdata(client, chip);
++	return 0;
++
++out_failed:
++	kfree(chip);
++	return ret;
++}
++
++static int __devexit max732x_remove(struct i2c_client *client)
++{
++	struct max732x_platform_data *pdata = client->dev.platform_data;
++	struct max732x_chip *chip = i2c_get_clientdata(client);
++	int ret;
++
++	if (pdata->teardown) {
++		ret = pdata->teardown(client, chip->gpio_chip.base,
++				chip->gpio_chip.ngpio, pdata->context);
++		if (ret < 0) {
++			dev_err(&client->dev, "%s failed, %d\n",
++					"teardown", ret);
++			return ret;
++		}
++	}
++
++	ret = gpiochip_remove(&chip->gpio_chip);
++	if (ret) {
++		dev_err(&client->dev, "%s failed, %d\n",
++				"gpiochip_remove()", ret);
++		return ret;
++	}
++
++	/* unregister any dummy i2c_client */
++	if (chip->client_dummy)
++		i2c_unregister_device(chip->client_dummy);
++
++	kfree(chip);
++	return 0;
++}
++
++static struct i2c_driver max732x_driver = {
++	.driver = {
++		.name	= "max732x",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= max732x_probe,
++	.remove		= __devexit_p(max732x_remove),
++	.id_table	= max732x_id,
++};
++
++static int __init max732x_init(void)
++{
++	return i2c_add_driver(&max732x_driver);
++}
++module_init(max732x_init);
++
++static void __exit max732x_exit(void)
++{
++	i2c_del_driver(&max732x_driver);
++}
++module_exit(max732x_exit);
++
++MODULE_AUTHOR("Eric Miao <eric.miao@marvell.com>");
++MODULE_DESCRIPTION("GPIO expander driver for MAX732X");
++MODULE_LICENSE("GPL");
+diff -puN /dev/null include/linux/i2c/max732x.h
+--- /dev/null
++++ a/include/linux/i2c/max732x.h
+@@ -0,0 +1,19 @@
++#ifndef __LINUX_I2C_MAX732X_H
++#define __LINUX_I2C_MAX732X_H
++
++/* platform data for the MAX732x 8/16-bit I/O expander driver */
++
++struct max732x_platform_data {
++	/* number of the first GPIO */
++	unsigned	gpio_base;
++
++	void		*context;	/* param to setup/teardown */
++
++	int		(*setup)(struct i2c_client *client,
++				unsigned gpio, unsigned ngpio,
++				void *context);
++	int		(*teardown)(struct i2c_client *client,
++				unsigned gpio, unsigned ngpio,
++				void *context);
++};
++#endif /* __LINUX_I2C_MAX732X_H */
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from eric.miao@marvell.com are
 
 origin.patch
-linux-next.patch
-migrate_timers-add-comment-use-spinlock_irq.patch
-tracehook-add-linux-tracehookh.patch
-tracehook-exec.patch
-tracehook-unexport-ptrace_notify.patch
-tracehook-exit.patch
-tracehook-clone.patch
-tracehook-vfork-done.patch
-tracehook-release_task.patch
-tracehook-tracehook_tracer_task.patch
-tracehook-tracehook_expect_breakpoints.patch
-tracehook-tracehook_signal_handler.patch
-tracehook-tracehook_consider_ignored_signal.patch
-tracehook-tracehook_consider_fatal_signal.patch
-tracehook-syscall.patch
-tracehook-get_signal_to_deliver.patch
-tracehook-job-control.patch
-tracehook-death.patch
-tracehook-force-signal_pending.patch
-tracehook-tif_notify_resume.patch
-tracehook-asm-syscallh.patch
-tracehook-config_have_arch_tracehook.patch
-tracehook-wait_task_inactive.patch
-task_current_syscall.patch
-proc-pid-syscall.patch
 
