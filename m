@@ -1,129 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-handle-corrupted-orphan-list-at-mount.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:56:36 -0700
-Message-ID: <200807252256.m6PMuabW003104__1445.92996589399$1217026711$gmane$org@imap1.linux-foundation.org>
+Subject: - ext3-kill-2-useless-magic-numbers.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:56:50 -0700
+Message-ID: <200807252256.m6PMuogW003120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47332 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58588 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753517AbYGYW5K (ORCPT
+	by vger.kernel.org with ESMTP id S1755306AbYGYW5Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:57:10 -0400
+	Fri, 25 Jul 2008 18:57:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: duaneg@dghda.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, adilger@sun.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: handle corrupted orphan list at mount
+     ext3: kill 2 useless magic numbers
 has been removed from the -mm tree.  Its filename was
-     ext3-handle-corrupted-orphan-list-at-mount.patch
+     ext3-kill-2-useless-magic-numbers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: handle corrupted orphan list at mount
-From: "Duane Griffin" <duaneg@dghda.com>
+Subject: ext3: kill 2 useless magic numbers
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-If the orphan node list includes valid, untruncatable nodes with nlink > 0
-the ext3_orphan_cleanup loop which attempts to delete them will not do so,
-causing it to loop forever. Fix by checking for such nodes in the
-ext3_orphan_get function.
+dx_root_limit() will never return 20, and I can't figure out what 20
+stands for.  This function has never changed since htree directory
+indexing was merged.
 
-This patch fixes the second case (image hdb.20000009.softlockup.gz)
-reported in http://bugzilla.kernel.org/show_bug.cgi?id=10882.
+Similar for dx_node_limit() and the magic 22.
 
-[akpm@linux-foundation.org: coding-style fixes]
-[akpm@linux-foundation.org: printk warning fix]
-Signed-off-by: Duane Griffin <duaneg@dghda.com>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Andreas Dilger <adilger@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/ialloc.c        |    9 +++++++++
- fs/ext3/inode.c         |   20 ++++++++++++++------
- include/linux/ext3_fs.h |    1 +
- 3 files changed, 24 insertions(+), 6 deletions(-)
+ fs/ext3/namei.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ext3/ialloc.c~ext3-handle-corrupted-orphan-list-at-mount fs/ext3/ialloc.c
---- a/fs/ext3/ialloc.c~ext3-handle-corrupted-orphan-list-at-mount
-+++ a/fs/ext3/ialloc.c
-@@ -669,6 +669,14 @@ struct inode *ext3_orphan_get(struct sup
- 	if (IS_ERR(inode))
- 		goto iget_failed;
- 
-+	/*
-+	 * If the orphans has i_nlinks > 0 then it should be able to be
-+	 * truncated, otherwise it won't be removed from the orphan list
-+	 * during processing and an infinite loop will result.
-+	 */
-+	if (inode->i_nlink && !ext3_can_truncate(inode))
-+		goto bad_orphan;
-+
- 	if (NEXT_ORPHAN(inode) > max_ino)
- 		goto bad_orphan;
- 	brelse(bitmap_bh);
-@@ -690,6 +698,7 @@ bad_orphan:
- 		printk(KERN_NOTICE "NEXT_ORPHAN(inode)=%u\n",
- 		       NEXT_ORPHAN(inode));
- 		printk(KERN_NOTICE "max_ino=%lu\n", max_ino);
-+		printk(KERN_NOTICE "i_nlink=%u\n", inode->i_nlink);
- 		/* Avoid freeing blocks if we got a bad deleted inode */
- 		if (inode->i_nlink == 0)
- 			inode->i_blocks = 0;
-diff -puN fs/ext3/inode.c~ext3-handle-corrupted-orphan-list-at-mount fs/ext3/inode.c
---- a/fs/ext3/inode.c~ext3-handle-corrupted-orphan-list-at-mount
-+++ a/fs/ext3/inode.c
-@@ -2253,6 +2253,19 @@ static void ext3_free_branches(handle_t 
- 	}
+diff -puN fs/ext3/namei.c~ext3-kill-2-useless-magic-numbers fs/ext3/namei.c
+--- a/fs/ext3/namei.c~ext3-kill-2-useless-magic-numbers
++++ a/fs/ext3/namei.c
+@@ -240,13 +240,13 @@ static inline unsigned dx_root_limit (st
+ {
+ 	unsigned entry_space = dir->i_sb->s_blocksize - EXT3_DIR_REC_LEN(1) -
+ 		EXT3_DIR_REC_LEN(2) - infosize;
+-	return 0? 20: entry_space / sizeof(struct dx_entry);
++	return entry_space / sizeof(struct dx_entry);
  }
  
-+int ext3_can_truncate(struct inode *inode)
-+{
-+	if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
-+		return 0;
-+	if (S_ISREG(inode->i_mode))
-+		return 1;
-+	if (S_ISDIR(inode->i_mode))
-+		return 1;
-+	if (S_ISLNK(inode->i_mode))
-+		return !ext3_inode_is_fast_symlink(inode);
-+	return 0;
-+}
-+
+ static inline unsigned dx_node_limit (struct inode *dir)
+ {
+ 	unsigned entry_space = dir->i_sb->s_blocksize - EXT3_DIR_REC_LEN(0);
+-	return 0? 22: entry_space / sizeof(struct dx_entry);
++	return entry_space / sizeof(struct dx_entry);
+ }
+ 
  /*
-  * ext3_truncate()
-  *
-@@ -2297,12 +2310,7 @@ void ext3_truncate(struct inode *inode)
- 	unsigned blocksize = inode->i_sb->s_blocksize;
- 	struct page *page;
- 
--	if (!(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode) ||
--	    S_ISLNK(inode->i_mode)))
--		return;
--	if (ext3_inode_is_fast_symlink(inode))
--		return;
--	if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
-+	if (!ext3_can_truncate(inode))
- 		return;
- 
- 	/*
-diff -puN include/linux/ext3_fs.h~ext3-handle-corrupted-orphan-list-at-mount include/linux/ext3_fs.h
---- a/include/linux/ext3_fs.h~ext3-handle-corrupted-orphan-list-at-mount
-+++ a/include/linux/ext3_fs.h
-@@ -832,6 +832,7 @@ extern void ext3_discard_reservation (st
- extern void ext3_dirty_inode(struct inode *);
- extern int ext3_change_inode_journal_flag(struct inode *, int);
- extern int ext3_get_inode_loc(struct inode *, struct ext3_iloc *);
-+extern int ext3_can_truncate(struct inode *inode);
- extern void ext3_truncate (struct inode *);
- extern void ext3_set_inode_flags(struct inode *);
- extern void ext3_get_inode_flags(struct ext3_inode_info *);
 _
 
-Patches currently in -mm which might be from duaneg@dghda.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
+linux-next.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+introduce-__get_user_pages.patch
+introduce-__get_user_pages-fix.patch
+split-lru-munlock-rework.patch
+revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch
 
