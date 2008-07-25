@@ -1,158 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: - edac-core-fix-to-use-dynamic-kobject.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:03:59 -0700
-Message-ID: <200807252303.m6PN3xBw004003@imap1.linux-foundation.org>
+Subject: - edac-e752x-fix-too-loud-on-nonmemory-errors.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:04:10 -0700
+Message-ID: <200807252304.m6PN4AEi004025@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57773 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38906 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753980AbYGYXEe (ORCPT
+	by vger.kernel.org with ESMTP id S1754050AbYGYXEh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:04:34 -0400
+	Fri, 25 Jul 2008 19:04:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ajones@riverbed.com, dougthompson@xmission.com, greg@kroah.com, gregkh@suse.de, mm-commits@vger.kernel.org
+To: dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac: core fix to use dynamic kobject
+     edac: e752x fix too loud on nonmemory errors
 has been removed from the -mm tree.  Its filename was
-     edac-core-fix-to-use-dynamic-kobject.patch
+     edac-e752x-fix-too-loud-on-nonmemory-errors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: core fix to use dynamic kobject
-From: Arthur Jones <ajones@riverbed.com>
+Subject: edac: e752x fix too loud on nonmemory errors
+From: Doug Thompson <dougthompson@xmission.com>
 
-Static kobjects are not supported in linux kernel.  Convert the
-edac_pci_top_main_kobj from static to dynamic.  This avoids the double
-free of the edac_pci_top_main_kobj.name that we see on module reload of
-the e752x edac driver (and probably others as well).
+This module harvests more than just memory errors, it also harvests
+various bus and dma errors that the Chipset detects.  Previously, it would
+report all such errors, which would cause output to be TOO loud.
 
-In addition Greg KH <greg@kroah.com> has pointed out that this code may be
-cleaned up significantly.  I will look at that as a follow-on patch, for
-now, I just want the minimum fix to get this double-free oops bug
-squashed...
+This patches therefore adds a parameter which is used to turn off
+NON-MEMORY error reports by default.  Or the reporting can be enabled via
+the parameter
 
-Many thanks to Greg KH for his patience in showing me what the
-Documentation/kobject.txt already said (oops)...
+Also did code style cleanup: less than 80 characters per line rule
 
-Signed-off-by: Arthur Jones <ajones@riverbed.com>
 Signed-off-by: Doug Thompson <dougthompson@xmission.com>
-Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_pci_sysfs.c |   30 +++++++++++++++++++++---------
- 1 file changed, 21 insertions(+), 9 deletions(-)
+ drivers/edac/e752x_edac.c |   59 +++++++++++++++++++++++++-----------
+ 1 file changed, 42 insertions(+), 17 deletions(-)
 
-diff -puN drivers/edac/edac_pci_sysfs.c~edac-core-fix-to-use-dynamic-kobject drivers/edac/edac_pci_sysfs.c
---- a/drivers/edac/edac_pci_sysfs.c~edac-core-fix-to-use-dynamic-kobject
-+++ a/drivers/edac/edac_pci_sysfs.c
-@@ -28,7 +28,7 @@ static int edac_pci_poll_msec = 1000;	/*
- static atomic_t pci_parity_count = ATOMIC_INIT(0);
- static atomic_t pci_nonparity_count = ATOMIC_INIT(0);
+diff -puN drivers/edac/e752x_edac.c~edac-e752x-fix-too-loud-on-nonmemory-errors drivers/edac/e752x_edac.c
+--- a/drivers/edac/e752x_edac.c~edac-e752x-fix-too-loud-on-nonmemory-errors
++++ a/drivers/edac/e752x_edac.c
+@@ -28,6 +28,7 @@
+ #define E752X_REVISION	" Ver: 2.0.2 " __DATE__
+ #define EDAC_MOD_STR	"e752x_edac"
  
--static struct kobject edac_pci_top_main_kobj;
-+static struct kobject *edac_pci_top_main_kobj;
- static atomic_t edac_pci_sysfs_refcount = ATOMIC_INIT(0);
++static int report_non_memory_errors;
+ static int force_function_unhide;
+ static int sysbus_parity = -1;
  
- /* getter functions for the data variables */
-@@ -83,7 +83,7 @@ static void edac_pci_instance_release(st
- 	pci = to_instance(kobj);
+@@ -117,7 +118,7 @@ static struct edac_pci_ctl_info *e752x_p
+ #define E752X_BUF_FERR		0x70	/* Memory buffer first error reg (8b) */
+ #define E752X_BUF_NERR		0x72	/* Memory buffer next error reg (8b) */
+ #define E752X_BUF_ERRMASK	0x74	/* Memory buffer error mask reg (8b) */
+-#define E752X_BUF_SMICMD	0x7A	/* Memory buffer SMI command reg (8b) */
++#define E752X_BUF_SMICMD	0x7A	/* Memory buffer SMI cmd reg (8b) */
+ #define E752X_DRAM_FERR		0x80	/* DRAM first error register (16b) */
+ #define E752X_DRAM_NERR		0x82	/* DRAM next error register (16b) */
+ #define E752X_DRAM_ERRMASK	0x84	/* DRAM error mask register (8b) */
+@@ -127,7 +128,7 @@ static struct edac_pci_ctl_info *e752x_p
+ 					/*     error address register (32b) */
+ 					/*
+ 					 * 31    Reserved
+-					 * 30:2  CE address (64 byte block 34:6)
++					 * 30:2  CE address (64 byte block 34:6
+ 					 * 1     Reserved
+ 					 * 0     HiLoCS
+ 					 */
+@@ -147,11 +148,11 @@ static struct edac_pci_ctl_info *e752x_p
+ 					 * 1     Reserved
+ 					 * 0     HiLoCS
+ 					 */
+-#define E752X_DRAM_SCRB_ADD	0xA8	/* DRAM first uncorrectable scrub memory */
++#define E752X_DRAM_SCRB_ADD	0xA8	/* DRAM 1st uncorrectable scrub mem */
+ 					/*     error address register (32b) */
+ 					/*
+ 					 * 31    Reserved
+-					 * 30:2  CE address (64 byte block 34:6)
++					 * 30:2  CE address (64 byte block 34:6
+ 					 * 1     Reserved
+ 					 * 0     HiLoCS
+ 					 */
+@@ -394,9 +395,12 @@ static void do_process_ded_retry(struct 
+ 	struct e752x_pvt *pvt = (struct e752x_pvt *)mci->pvt_info;
  
- 	/* decrement reference count on top main kobj */
--	kobject_put(&edac_pci_top_main_kobj);
-+	kobject_put(edac_pci_top_main_kobj);
- 
- 	kfree(pci);	/* Free the control struct */
- }
-@@ -166,7 +166,7 @@ static int edac_pci_create_instance_kobj
- 	 * track the number of PCI instances we have, and thus nest
- 	 * properly on keeping the module loaded
- 	 */
--	main_kobj = kobject_get(&edac_pci_top_main_kobj);
-+	main_kobj = kobject_get(edac_pci_top_main_kobj);
- 	if (!main_kobj) {
- 		err = -ENODEV;
- 		goto error_out;
-@@ -174,11 +174,11 @@ static int edac_pci_create_instance_kobj
- 
- 	/* And now register this new kobject under the main kobj */
- 	err = kobject_init_and_add(&pci->kobj, &ktype_pci_instance,
--				   &edac_pci_top_main_kobj, "pci%d", idx);
-+				   edac_pci_top_main_kobj, "pci%d", idx);
- 	if (err != 0) {
- 		debugf2("%s() failed to register instance pci%d\n",
- 			__func__, idx);
--		kobject_put(&edac_pci_top_main_kobj);
-+		kobject_put(edac_pci_top_main_kobj);
- 		goto error_out;
- 	}
- 
-@@ -316,9 +316,10 @@ static struct edac_pci_dev_attribute *ed
-  */
- static void edac_pci_release_main_kobj(struct kobject *kobj)
- {
--
- 	debugf0("%s() here to module_put(THIS_MODULE)\n", __func__);
- 
-+	kfree(kobj);
+ 	error_1b = retry_add;
+-	page = error_1b >> (PAGE_SHIFT - 4);	/* convert the addr to 4k page */
+-	row = pvt->mc_symmetric ? ((page >> 1) & 3) :	/* chip select are bits 14 & 13 */
++	page = error_1b >> (PAGE_SHIFT - 4);  /* convert the addr to 4k page */
 +
- 	/* last reference to top EDAC PCI kobject has been removed,
- 	 * NOW release our ref count on the core module
- 	 */
-@@ -369,8 +370,16 @@ static int edac_pci_main_kobj_setup(void
- 		goto decrement_count_fail;
- 	}
- 
-+	edac_pci_top_main_kobj = kzalloc(sizeof(struct kobject), GFP_KERNEL);
-+	if (!edac_pci_top_main_kobj) {
-+		debugf1("Failed to allocate\n");
-+		err = -ENOMEM;
-+		goto kzalloc_fail;
-+	}
++	/* chip select are bits 14 & 13 */
++	row = pvt->mc_symmetric ? ((page >> 1) & 3) :
+ 		edac_mc_find_csrow_by_page(mci, page);
 +
- 	/* Instanstiate the pci object */
--	err = kobject_init_and_add(&edac_pci_top_main_kobj, &ktype_edac_pci_main_kobj,
-+	err = kobject_init_and_add(edac_pci_top_main_kobj,
-+				   &ktype_edac_pci_main_kobj,
- 				   &edac_class->kset.kobj, "pci");
- 	if (err) {
- 		debugf1("Failed to register '.../edac/pci'\n");
-@@ -381,13 +390,16 @@ static int edac_pci_main_kobj_setup(void
- 	 * for EDAC PCI, then edac_pci_main_kobj_teardown()
- 	 * must be used, for resources to be cleaned up properly
- 	 */
--	kobject_uevent(&edac_pci_top_main_kobj, KOBJ_ADD);
-+	kobject_uevent(edac_pci_top_main_kobj, KOBJ_ADD);
- 	debugf1("Registered '.../edac/pci' kobject\n");
- 
- 	return 0;
- 
- 	/* Error unwind statck */
- kobject_init_and_add_fail:
-+	kfree(edac_pci_top_main_kobj);
-+
-+kzalloc_fail:
- 	module_put(THIS_MODULE);
- 
- decrement_count_fail:
-@@ -414,7 +426,7 @@ static void edac_pci_main_kobj_teardown(
- 	if (atomic_dec_return(&edac_pci_sysfs_refcount) == 0) {
- 		debugf0("%s() called kobject_put on main kobj\n",
- 			__func__);
--		kobject_put(&edac_pci_top_main_kobj);
-+		kobject_put(edac_pci_top_main_kobj);
- 	}
+ 	e752x_mc_printk(mci, KERN_WARNING,
+ 			"CE page 0x%lx, row %d : Memory read retry\n",
+ 			(long unsigned int)page, row);
+@@ -422,12 +426,21 @@ static inline void process_threshold_ce(
  }
  
+ static char *global_message[11] = {
+-	"PCI Express C1", "PCI Express C", "PCI Express B1",
+-	"PCI Express B", "PCI Express A1", "PCI Express A",
+-	"DMA Controler", "HUB or NS Interface", "System Bus",
+-	"DRAM Controler", "Internal Buffer"
++	"PCI Express C1",
++	"PCI Express C",
++	"PCI Express B1",
++	"PCI Express B",
++	"PCI Express A1",
++	"PCI Express A",
++	"DMA Controller",
++	"HUB or NS Interface",
++	"System Bus",
++	"DRAM Controller",  /* 9th entry */
++	"Internal Buffer"
+ };
+ 
++#define DRAM_ENTRY	9
++
+ static char *fatal_message[2] = { "Non-Fatal ", "Fatal " };
+ 
+ static void do_global_error(int fatal, u32 errors)
+@@ -435,9 +448,16 @@ static void do_global_error(int fatal, u
+ 	int i;
+ 
+ 	for (i = 0; i < 11; i++) {
+-		if (errors & (1 << i))
+-			e752x_printk(KERN_WARNING, "%sError %s\n",
+-				fatal_message[fatal], global_message[i]);
++		if (errors & (1 << i)) {
++			/* If the error is from DRAM Controller OR
++			 * we are to report ALL errors, then
++			 * report the error
++			 */
++			if ((i == DRAM_ENTRY) || report_non_memory_errors)
++				e752x_printk(KERN_WARNING, "%sError %s\n",
++					fatal_message[fatal],
++					global_message[i]);
++		}
+ 	}
+ }
+ 
+@@ -1021,7 +1041,7 @@ static int e752x_get_devs(struct pci_dev
+ 	struct pci_dev *dev;
+ 
+ 	pvt->bridge_ck = pci_get_device(PCI_VENDOR_ID_INTEL,
+-					pvt->dev_info->err_dev, pvt->bridge_ck);
++				pvt->dev_info->err_dev, pvt->bridge_ck);
+ 
+ 	if (pvt->bridge_ck == NULL)
+ 		pvt->bridge_ck = pci_scan_single_device(pdev->bus,
+@@ -1034,8 +1054,9 @@ static int e752x_get_devs(struct pci_dev
+ 		return 1;
+ 	}
+ 
+-	dev = pci_get_device(PCI_VENDOR_ID_INTEL, e752x_devs[dev_idx].ctl_dev,
+-			NULL);
++	dev = pci_get_device(PCI_VENDOR_ID_INTEL,
++				e752x_devs[dev_idx].ctl_dev,
++				NULL);
+ 
+ 	if (dev == NULL)
+ 		goto fail;
+@@ -1316,7 +1337,8 @@ MODULE_DESCRIPTION("MC support for Intel
+ 
+ module_param(force_function_unhide, int, 0444);
+ MODULE_PARM_DESC(force_function_unhide, "if BIOS sets Dev0:Fun1 up as hidden:"
+-		 " 1=force unhide and hope BIOS doesn't fight driver for Dev0:Fun1 access");
++		 " 1=force unhide and hope BIOS doesn't fight driver for "
++		"Dev0:Fun1 access");
+ 
+ module_param(edac_op_state, int, 0444);
+ MODULE_PARM_DESC(edac_op_state, "EDAC Error Reporting state: 0=Poll,1=NMI");
+@@ -1324,3 +1346,6 @@ MODULE_PARM_DESC(edac_op_state, "EDAC Er
+ module_param(sysbus_parity, int, 0444);
+ MODULE_PARM_DESC(sysbus_parity, "0=disable system bus parity checking,"
+ 		" 1=enable system bus parity checking, default=auto-detect");
++module_param(report_non_memory_errors, int, 0644);
++MODULE_PARM_DESC(report_non_memory_errors, "0=disable non-memory error "
++		"reporting, 1=enable non-memory error reporting");
 _
 
-Patches currently in -mm which might be from ajones@riverbed.com are
+Patches currently in -mm which might be from dougthompson@xmission.com are
 
 origin.patch
 
