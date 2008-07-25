@@ -1,79 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-make-global-var-read_mostly.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:58:35 -0700
-Message-ID: <200807252258.m6PMwZxH003302@imap1.linux-foundation.org>
+Subject: - coredump-elf_core_dump-skip-kernel-threads.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:59:52 -0700
+Message-ID: <200807252259.m6PMxqhp003427@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50044 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53866 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754753AbYGYXGq (ORCPT
+	by vger.kernel.org with ESMTP id S1754881AbYGYXGt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:06:46 -0400
+	Fri, 25 Jul 2008 19:06:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: make global var read_mostly
+     coredump: elf_core_dump: skip kernel threads
 has been removed from the -mm tree.  Its filename was
-     memcg-make-global-var-read_mostly.patch
+     coredump-elf_core_dump-skip-kernel-threads.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: make global var read_mostly
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: coredump: elf_core_dump: skip kernel threads
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-mem_cgroup_subsys and page_cgroup_cache should be read_mostly and
-MEM_CGROUP_RECLAIM_RETRIES can be just a fixed number.
+linux_binfmt->core_dump() runs before the process does exit_aio(), this
+means that we can hit the kernel thread which shares the same ->mm. 
+Afaics, nothing really bad can happen, but perhaps it makes sense to fix
+this minor bug.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Acked-by: Pavel Emelyanov <xemul@openvz.org>
+It is sad we have to iterate over all threads in system and use
+GFP_ATOMIC.  Hopefully we can kill theses ugly do_each_thread()s, but this
+needs some nontrivial changes in mm_struct and do_coredump.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/binfmt_elf.c       |    6 ++++++
+ fs/binfmt_elf_fdpic.c |    3 +++
+ 2 files changed, 9 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-make-global-var-read_mostly mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-make-global-var-read_mostly
-+++ a/mm/memcontrol.c
-@@ -35,9 +35,9 @@
- 
- #include <asm/uaccess.h>
- 
--struct cgroup_subsys mem_cgroup_subsys;
--static const int MEM_CGROUP_RECLAIM_RETRIES = 5;
--static struct kmem_cache *page_cgroup_cache;
-+struct cgroup_subsys mem_cgroup_subsys __read_mostly;
-+static struct kmem_cache *page_cgroup_cache __read_mostly;
-+#define MEM_CGROUP_RECLAIM_RETRIES	5
- 
- /*
-  * Statistics for memory cgroup.
+diff -puN fs/binfmt_elf.c~coredump-elf_core_dump-skip-kernel-threads fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~coredump-elf_core_dump-skip-kernel-threads
++++ a/fs/binfmt_elf.c
+@@ -1520,6 +1520,9 @@ static int fill_note_info(struct elfhdr 
+ 	rcu_read_lock();
+ 	do_each_thread(g, p)
+ 		if (p->mm == dump_task->mm) {
++			if (p->flags & PF_KTHREAD)
++				continue;
++
+ 			t = kzalloc(offsetof(struct elf_thread_core_info,
+ 					     notes[info->thread_notes]),
+ 				    GFP_ATOMIC);
+@@ -1724,6 +1727,9 @@ static int fill_note_info(struct elfhdr 
+ 		rcu_read_lock();
+ 		do_each_thread(g, p)
+ 			if (current->mm == p->mm && current != p) {
++				if (p->flags & PF_KTHREAD)
++					continue;
++
+ 				ets = kzalloc(sizeof(*ets), GFP_ATOMIC);
+ 				if (!ets) {
+ 					rcu_read_unlock();
+diff -puN fs/binfmt_elf_fdpic.c~coredump-elf_core_dump-skip-kernel-threads fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~coredump-elf_core_dump-skip-kernel-threads
++++ a/fs/binfmt_elf_fdpic.c
+@@ -1626,6 +1626,9 @@ static int elf_fdpic_core_dump(long sign
+ 		rcu_read_lock();
+ 		do_each_thread(g,p)
+ 			if (current->mm == p->mm && current != p) {
++				if (p->flags & PF_KTHREAD)
++					continue;
++
+ 				tmp = kzalloc(sizeof(*tmp), GFP_ATOMIC);
+ 				if (!tmp) {
+ 					rcu_read_unlock();
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
-define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
-vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
-vmscan-second-chance-replacement-for-anonymous-pages-fix.patch
-vmscan-second-chance-replacement-for-anonymous-pages-memcg-lru-scan-fix.patch
-unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework.patch
-mlock-mlocked-pages-are-unevictable-fix-truncate-race-and-sevaral-comments.patch
-fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
-restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch
+linux-next.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
+tracehook-add-linux-tracehookh.patch
+tracehook-exec.patch
+tracehook-unexport-ptrace_notify.patch
+tracehook-exit.patch
+tracehook-clone.patch
+tracehook-vfork-done.patch
+tracehook-release_task.patch
+tracehook-tracehook_tracer_task.patch
+tracehook-tracehook_expect_breakpoints.patch
+tracehook-tracehook_signal_handler.patch
+tracehook-tracehook_consider_ignored_signal.patch
+tracehook-tracehook_consider_fatal_signal.patch
+tracehook-syscall.patch
+tracehook-get_signal_to_deliver.patch
+tracehook-job-control.patch
+tracehook-death.patch
+tracehook-force-signal_pending.patch
+tracehook-tif_notify_resume.patch
+tracehook-asm-syscallh.patch
+tracehook-config_have_arch_tracehook.patch
+tracehook-wait_task_inactive.patch
+task_current_syscall.patch
+proc-pid-syscall.patch
 
