@@ -1,78 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - edac-i5100-fix-missing-bits.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:03:50 -0700
-Message-ID: <200807252303.m6PN3oCY003988@imap1.linux-foundation.org>
+Subject: - ext3-handle-deleting-corrupted-indirect-blocks.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:56:41 -0700
+Message-ID: <200807252256.m6PMuflC003110@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41345 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37355 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753608AbYGYXGa (ORCPT
+	by vger.kernel.org with ESMTP id S1754302AbYGYXGd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:06:30 -0400
+	Fri, 25 Jul 2008 19:06:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ajones@riverbed.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: duaneg@dghda.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac: i5100 fix missing bits
+     ext3: handle deleting corrupted indirect blocks
 has been removed from the -mm tree.  Its filename was
-     edac-i5100-fix-missing-bits.patch
+     ext3-handle-deleting-corrupted-indirect-blocks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: i5100 fix missing bits
-From: Arthur Jones <ajones@riverbed.com>
+Subject: ext3: handle deleting corrupted indirect blocks
+From: "Duane Griffin" <duaneg@dghda.com>
 
-The error mask we use to trigger ECC notifications is missing many bits of
-interest.  We add these bits here so that all possible ECC errors can be
-reported.
+While freeing indirect blocks we attach a journal head to the parent
+buffer head, free the blocks, then journal the parent.  If the indirect
+block list is corrupted and points to the parent the journal head will be
+detached when the block is cleared, causing an OOPS.
 
-Signed-off-by: Arthur Jones <ajones@riverbed.com>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Check for that explicitly and handle it gracefully.
+
+This patch fixes the third case (image hdb.20000057.nullderef.gz)
+reported in http://bugzilla.kernel.org/show_bug.cgi?id=10882.
+
+Immediately above the change, in the ext3_free_data function, we call
+ext3_clear_blocks to clear the indirect blocks in this parent block.  If
+one of those blocks happens to actually be the parent block it will clear
+b_private / BH_JBD.
+
+I did the check at the end rather than earlier as it seemed more elegant. 
+I don't think there should be much practical difference, although it is
+possible the FS may not be quite so badly corrupted if we did it the other
+way (and didn't clear the block at all).  To be honest, I'm not convinced
+there aren't other similar failure modes lurking in this code, although I
+couldn't find any with a quick review.
+
+[akpm@linux-foundation.org: fix printk warning]
+Signed-off-by: Duane Griffin <duaneg@dghda.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i5100_edac.c |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ fs/ext3/inode.c |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-diff -puN drivers/edac/i5100_edac.c~edac-i5100-fix-missing-bits drivers/edac/i5100_edac.c
---- a/drivers/edac/i5100_edac.c~edac-i5100-fix-missing-bits
-+++ a/drivers/edac/i5100_edac.c
-@@ -52,12 +52,24 @@
- #define		I5100_FERR_NF_MEM_M16ERR_MASK	(1 << 16)
- #define		I5100_FERR_NF_MEM_M15ERR_MASK	(1 << 15)
- #define		I5100_FERR_NF_MEM_M14ERR_MASK	(1 << 14)
--#define		I5100_FERR_NF_MEM_
--#define		I5100_FERR_NF_MEM_
-+#define		I5100_FERR_NF_MEM_M12ERR_MASK	(1 << 12)
-+#define		I5100_FERR_NF_MEM_M11ERR_MASK	(1 << 11)
-+#define		I5100_FERR_NF_MEM_M10ERR_MASK	(1 << 10)
-+#define		I5100_FERR_NF_MEM_M6ERR_MASK	(1 << 6)
-+#define		I5100_FERR_NF_MEM_M5ERR_MASK	(1 << 5)
-+#define		I5100_FERR_NF_MEM_M4ERR_MASK	(1 << 4)
-+#define		I5100_FERR_NF_MEM_M1ERR_MASK	1
- #define		I5100_FERR_NF_MEM_ANY_MASK	\
- 			(I5100_FERR_NF_MEM_M16ERR_MASK | \
- 			I5100_FERR_NF_MEM_M15ERR_MASK | \
--			I5100_FERR_NF_MEM_M14ERR_MASK)
-+			I5100_FERR_NF_MEM_M14ERR_MASK | \
-+			I5100_FERR_NF_MEM_M12ERR_MASK | \
-+			I5100_FERR_NF_MEM_M11ERR_MASK | \
-+			I5100_FERR_NF_MEM_M10ERR_MASK | \
-+			I5100_FERR_NF_MEM_M6ERR_MASK | \
-+			I5100_FERR_NF_MEM_M5ERR_MASK | \
-+			I5100_FERR_NF_MEM_M4ERR_MASK | \
-+			I5100_FERR_NF_MEM_M1ERR_MASK)
- #define		I5100_FERR_NF_MEM_ANY(a)  ((a) & I5100_FERR_NF_MEM_ANY_MASK)
- #define	I5100_NERR_NF_MEM	0xa4	/* MC Next Non-Fatal Errors */
- #define		I5100_NERR_NF_MEM_ANY(a)  I5100_FERR_NF_MEM_ANY(a)
+diff -puN fs/ext3/inode.c~ext3-handle-deleting-corrupted-indirect-blocks fs/ext3/inode.c
+--- a/fs/ext3/inode.c~ext3-handle-deleting-corrupted-indirect-blocks
++++ a/fs/ext3/inode.c
+@@ -2127,7 +2127,21 @@ static void ext3_free_data(handle_t *han
+ 
+ 	if (this_bh) {
+ 		BUFFER_TRACE(this_bh, "call ext3_journal_dirty_metadata");
+-		ext3_journal_dirty_metadata(handle, this_bh);
++
++		/*
++		 * The buffer head should have an attached journal head at this
++		 * point. However, if the data is corrupted and an indirect
++		 * block pointed to itself, it would have been detached when
++		 * the block was cleared. Check for this instead of OOPSing.
++		 */
++		if (bh2jh(this_bh))
++			ext3_journal_dirty_metadata(handle, this_bh);
++		else
++			ext3_error(inode->i_sb, "ext3_free_data",
++				   "circular indirect block detected, "
++				   "inode=%lu, block=%llu",
++				   inode->i_ino,
++				   (unsigned long long)this_bh->b_blocknr);
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from ajones@riverbed.com are
+Patches currently in -mm which might be from duaneg@dghda.com are
 
 origin.patch
 
