@@ -1,231 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - workqueues-make-get_online_cpus-useable-for-work-func.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:00:17 -0700
-Message-ID: <200807252300.m6PN0H54003572@imap1.linux-foundation.org>
+Subject: - markers-use-rcu_barrier_sched-and-call_rcu_sched.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:02:37 -0700
+Message-ID: <200807252302.m6PN2bTZ003840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59699 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35046 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753475AbYGYXDS (ORCPT
+	by vger.kernel.org with ESMTP id S1753564AbYGYXD3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:03:18 -0400
+	Fri, 25 Jul 2008 19:03:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, ego@in.ibm.com, heiko.carstens@de.ibm.com, maxk@qualcomm.com, menage@google.com, mingo@elte.hu, peterz@infradead.org, pj@sgi.com, schwidefsky@de.ibm.com, vegard.nossu
+To: mathieu.desnoyers@polymtl.ca, mingo@elte.hu, paulmck@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     workqueues: make get_online_cpus() useable for work->func()
+     markers: use rcu_barrier_sched() and call_rcu_sched()
 has been removed from the -mm tree.  Its filename was
-     workqueues-make-get_online_cpus-useable-for-work-func.patch
+     markers-use-rcu_barrier_sched-and-call_rcu_sched.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: workqueues: make get_online_cpus() useable for work->func()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: markers: use rcu_barrier_sched() and call_rcu_sched()
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-workqueue_cpu_callback(CPU_DEAD) flushes cwq->thread under
-cpu_maps_update_begin().  This means that the multithreaded workqueues
-can't use get_online_cpus() due to the possible deadlock, very bad and
-very old problem.
+rcu_barrier_sched() and call_rcu_sched() were introduced in 2.6.26 for the
+Markers.  Change the marker code to use them.
 
-Introduce the new state, CPU_POST_DEAD, which is called after
-cpu_hotplug_done() but before cpu_maps_update_done().
+It can be seen as a fix since the marker code was using an ugly,
+temporary, #ifdef hack to work around CONFIG_PREEMPT_RCU.
 
-Change workqueue_cpu_callback() to use CPU_POST_DEAD instead of CPU_DEAD. 
-This means that create/destroy functions can't rely on get_online_cpus()
-any longer and should take cpu_add_remove_lock instead.
-
-[akpm@linux-foundation.org: fix CONFIG_SMP=n]
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Max Krasnyansky <maxk@qualcomm.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Vegard Nossum <vegard.nossum@gmail.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Acked-by: Paul McKenney <paulmck@us.ibm.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpu.h      |   15 +++++++++++----
- include/linux/notifier.h |    2 ++
- kernel/cpu.c             |    5 +++++
- kernel/workqueue.c       |   18 +++++++++---------
- 4 files changed, 27 insertions(+), 13 deletions(-)
+ kernel/marker.c |   25 ++++++++-----------------
+ 1 file changed, 8 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/cpu.h~workqueues-make-get_online_cpus-useable-for-work-func include/linux/cpu.h
---- a/include/linux/cpu.h~workqueues-make-get_online_cpus-useable-for-work-func
-+++ a/include/linux/cpu.h
-@@ -69,10 +69,11 @@ static inline void unregister_cpu_notifi
- #endif
- 
- int cpu_up(unsigned int cpu);
--
- extern void cpu_hotplug_init(void);
-+extern void cpu_maps_update_begin(void);
-+extern void cpu_maps_update_done(void);
- 
--#else
-+#else	/* CONFIG_SMP */
- 
- static inline int register_cpu_notifier(struct notifier_block *nb)
- {
-@@ -87,10 +88,16 @@ static inline void cpu_hotplug_init(void
- {
+diff -puN kernel/marker.c~markers-use-rcu_barrier_sched-and-call_rcu_sched kernel/marker.c
+--- a/kernel/marker.c~markers-use-rcu_barrier_sched-and-call_rcu_sched
++++ a/kernel/marker.c
+@@ -441,7 +441,7 @@ static int remove_marker(const char *nam
+ 	hlist_del(&e->hlist);
+ 	/* Make sure the call_rcu has been executed */
+ 	if (e->rcu_pending)
+-		rcu_barrier();
++		rcu_barrier_sched();
+ 	kfree(e);
+ 	return 0;
  }
- 
-+static inline void cpu_maps_update_begin(void)
-+{
-+}
-+
-+static inline void cpu_maps_update_done(void)
-+{
-+}
-+
- #endif /* CONFIG_SMP */
- extern struct sysdev_class cpu_sysdev_class;
--extern void cpu_maps_update_begin(void);
--extern void cpu_maps_update_done(void);
- 
- #ifdef CONFIG_HOTPLUG_CPU
- /* Stop CPUs going up and down. */
-diff -puN include/linux/notifier.h~workqueues-make-get_online_cpus-useable-for-work-func include/linux/notifier.h
---- a/include/linux/notifier.h~workqueues-make-get_online_cpus-useable-for-work-func
-+++ a/include/linux/notifier.h
-@@ -214,6 +214,8 @@ static inline int notifier_to_errno(int 
- #define CPU_DEAD		0x0007 /* CPU (unsigned)v dead */
- #define CPU_DYING		0x0008 /* CPU (unsigned)v not running any task,
- 				        * not handling interrupts, soon dead */
-+#define CPU_POST_DEAD		0x0009 /* CPU (unsigned)v dead, cpu_hotplug
-+					* lock is dropped */
- 
- /* Used for CPU hotplug events occuring while tasks are frozen due to a suspend
-  * operation in progress
-diff -puN kernel/cpu.c~workqueues-make-get_online_cpus-useable-for-work-func kernel/cpu.c
---- a/kernel/cpu.c~workqueues-make-get_online_cpus-useable-for-work-func
-+++ a/kernel/cpu.c
-@@ -285,6 +285,11 @@ out_allowed:
- 	set_cpus_allowed_ptr(current, &old_allowed);
- out_release:
- 	cpu_hotplug_done();
-+	if (!err) {
-+		if (raw_notifier_call_chain(&cpu_chain, CPU_POST_DEAD | mod,
-+					    hcpu) == NOTIFY_BAD)
-+			BUG();
-+	}
- 	return err;
- }
- 
-diff -puN kernel/workqueue.c~workqueues-make-get_online_cpus-useable-for-work-func kernel/workqueue.c
---- a/kernel/workqueue.c~workqueues-make-get_online_cpus-useable-for-work-func
-+++ a/kernel/workqueue.c
-@@ -828,7 +828,7 @@ struct workqueue_struct *__create_workqu
- 		err = create_workqueue_thread(cwq, singlethread_cpu);
- 		start_workqueue_thread(cwq, -1);
- 	} else {
--		get_online_cpus();
-+		cpu_maps_update_begin();
- 		spin_lock(&workqueue_lock);
- 		list_add(&wq->list, &workqueues);
- 		spin_unlock(&workqueue_lock);
-@@ -840,7 +840,7 @@ struct workqueue_struct *__create_workqu
- 			err = create_workqueue_thread(cwq, cpu);
- 			start_workqueue_thread(cwq, cpu);
- 		}
--		put_online_cpus();
-+		cpu_maps_update_done();
- 	}
- 
- 	if (err) {
-@@ -854,8 +854,8 @@ EXPORT_SYMBOL_GPL(__create_workqueue_key
- static void cleanup_workqueue_thread(struct cpu_workqueue_struct *cwq)
- {
- 	/*
--	 * Our caller is either destroy_workqueue() or CPU_DEAD,
--	 * get_online_cpus() protects cwq->thread.
-+	 * Our caller is either destroy_workqueue() or CPU_POST_DEAD,
-+	 * cpu_add_remove_lock protects cwq->thread.
+@@ -476,7 +476,7 @@ static int marker_set_format(struct mark
+ 	hlist_del(&(*entry)->hlist);
+ 	/* Make sure the call_rcu has been executed */
+ 	if ((*entry)->rcu_pending)
+-		rcu_barrier();
++		rcu_barrier_sched();
+ 	kfree(*entry);
+ 	*entry = e;
+ 	trace_mark(core_marker_format, "name %s format %s",
+@@ -655,7 +655,7 @@ int marker_probe_register(const char *na
+ 	 * make sure it's executed now.
  	 */
- 	if (cwq->thread == NULL)
- 		return;
-@@ -865,7 +865,7 @@ static void cleanup_workqueue_thread(str
- 
- 	flush_cpu_workqueue(cwq);
- 	/*
--	 * If the caller is CPU_DEAD and cwq->worklist was not empty,
-+	 * If the caller is CPU_POST_DEAD and cwq->worklist was not empty,
- 	 * a concurrent flush_workqueue() can insert a barrier after us.
- 	 * However, in that case run_workqueue() won't return and check
- 	 * kthread_should_stop() until it flushes all work_struct's.
-@@ -889,14 +889,14 @@ void destroy_workqueue(struct workqueue_
- 	const cpumask_t *cpu_map = wq_cpu_map(wq);
- 	int cpu;
- 
--	get_online_cpus();
-+	cpu_maps_update_begin();
- 	spin_lock(&workqueue_lock);
- 	list_del(&wq->list);
- 	spin_unlock(&workqueue_lock);
- 
- 	for_each_cpu_mask_nr(cpu, *cpu_map)
- 		cleanup_workqueue_thread(per_cpu_ptr(wq->cpu_wq, cpu));
--	put_online_cpus();
-+ 	cpu_maps_update_done();
- 
- 	free_percpu(wq->cpu_wq);
- 	kfree(wq);
-@@ -935,7 +935,7 @@ static int __devinit workqueue_cpu_callb
- 
- 		case CPU_UP_CANCELED:
- 			start_workqueue_thread(cwq, -1);
--		case CPU_DEAD:
-+		case CPU_POST_DEAD:
- 			cleanup_workqueue_thread(cwq);
- 			break;
- 		}
-@@ -943,7 +943,7 @@ static int __devinit workqueue_cpu_callb
- 
- 	switch (action) {
- 	case CPU_UP_CANCELED:
--	case CPU_DEAD:
-+	case CPU_POST_DEAD:
- 		cpu_clear(cpu, cpu_populated_map);
+ 	if (entry->rcu_pending)
+-		rcu_barrier();
++		rcu_barrier_sched();
+ 	old = marker_entry_add_probe(entry, probe, probe_private);
+ 	if (IS_ERR(old)) {
+ 		ret = PTR_ERR(old);
+@@ -670,10 +670,7 @@ int marker_probe_register(const char *na
+ 	entry->rcu_pending = 1;
+ 	/* write rcu_pending before calling the RCU callback */
+ 	smp_wmb();
+-#ifdef CONFIG_PREEMPT_RCU
+-	synchronize_sched();	/* Until we have the call_rcu_sched() */
+-#endif
+-	call_rcu(&entry->rcu, free_old_closure);
++	call_rcu_sched(&entry->rcu, free_old_closure);
+ end:
+ 	mutex_unlock(&markers_mutex);
+ 	return ret;
+@@ -704,7 +701,7 @@ int marker_probe_unregister(const char *
+ 	if (!entry)
+ 		goto end;
+ 	if (entry->rcu_pending)
+-		rcu_barrier();
++		rcu_barrier_sched();
+ 	old = marker_entry_remove_probe(entry, probe, probe_private);
+ 	mutex_unlock(&markers_mutex);
+ 	marker_update_probes();		/* may update entry */
+@@ -716,10 +713,7 @@ int marker_probe_unregister(const char *
+ 	entry->rcu_pending = 1;
+ 	/* write rcu_pending before calling the RCU callback */
+ 	smp_wmb();
+-#ifdef CONFIG_PREEMPT_RCU
+-	synchronize_sched();	/* Until we have the call_rcu_sched() */
+-#endif
+-	call_rcu(&entry->rcu, free_old_closure);
++	call_rcu_sched(&entry->rcu, free_old_closure);
+ 	remove_marker(name);	/* Ignore busy error message */
+ 	ret = 0;
+ end:
+@@ -786,7 +780,7 @@ int marker_probe_unregister_private_data
+ 		goto end;
  	}
- 
+ 	if (entry->rcu_pending)
+-		rcu_barrier();
++		rcu_barrier_sched();
+ 	old = marker_entry_remove_probe(entry, NULL, probe_private);
+ 	mutex_unlock(&markers_mutex);
+ 	marker_update_probes();		/* may update entry */
+@@ -797,10 +791,7 @@ int marker_probe_unregister_private_data
+ 	entry->rcu_pending = 1;
+ 	/* write rcu_pending before calling the RCU callback */
+ 	smp_wmb();
+-#ifdef CONFIG_PREEMPT_RCU
+-	synchronize_sched();	/* Until we have the call_rcu_sched() */
+-#endif
+-	call_rcu(&entry->rcu, free_old_closure);
++	call_rcu_sched(&entry->rcu, free_old_closure);
+ 	remove_marker(entry->name);	/* Ignore busy error message */
+ end:
+ 	mutex_unlock(&markers_mutex);
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
 
 origin.patch
 linux-next.patch
-migrate_timers-add-comment-use-spinlock_irq.patch
-tracehook-add-linux-tracehookh.patch
-tracehook-exec.patch
-tracehook-unexport-ptrace_notify.patch
-tracehook-exit.patch
-tracehook-clone.patch
-tracehook-vfork-done.patch
-tracehook-release_task.patch
-tracehook-tracehook_tracer_task.patch
-tracehook-tracehook_expect_breakpoints.patch
-tracehook-tracehook_signal_handler.patch
-tracehook-tracehook_consider_ignored_signal.patch
-tracehook-tracehook_consider_fatal_signal.patch
-tracehook-syscall.patch
-tracehook-get_signal_to_deliver.patch
-tracehook-job-control.patch
-tracehook-death.patch
-tracehook-force-signal_pending.patch
-tracehook-tif_notify_resume.patch
-tracehook-asm-syscallh.patch
-tracehook-config_have_arch_tracehook.patch
-tracehook-wait_task_inactive.patch
-task_current_syscall.patch
-proc-pid-syscall.patch
 
