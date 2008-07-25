@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 17:15:04 -0700
-Message-ID: <200807250015.m6P0F5J5013564@imap1.linux-foundation.org>
+Subject: - gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 17:15:08 -0700
+Message-ID: <200807250015.m6P0F8sk013567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35114 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53916 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752557AbYGYAPT (ORCPT
+	by vger.kernel.org with ESMTP id S1752564AbYGYAPZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 20:15:19 -0400
+	Thu, 24 Jul 2008 20:15:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, david-b@pacbell.net, mb@bu3sch.de, mchehab@infradead.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix
+     gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup
 has been removed from the -mm tree.  Its filename was
-     gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
+     gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
 
 This patch was dropped because it was folded into gpio-add-bt8xxgpio-driver.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix
+Subject: gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-give up in horror.
+Be conventional.
 
 Cc: David Brownell <david-b@pacbell.net>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
@@ -36,22 +36,33 @@ Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/bt8xxgpio.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/gpio/bt8xxgpio.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpio/bt8xxgpio.c~gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix drivers/gpio/bt8xxgpio.c
---- a/drivers/gpio/bt8xxgpio.c~gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix
+diff -puN drivers/gpio/bt8xxgpio.c~gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup drivers/gpio/bt8xxgpio.c
+--- a/drivers/gpio/bt8xxgpio.c~gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup
 +++ a/drivers/gpio/bt8xxgpio.c
-@@ -46,7 +46,8 @@
- #include <linux/module.h>
- #include <linux/pci.h>
- #include <linux/spinlock.h>
--#include <linux/gpio.h>
-+
-+#include <asm/gpio.h>
+@@ -308,6 +308,9 @@ static int bt8xxgpio_resume(struct pci_d
  
- /* Steal the hardware definitions from the bttv driver. */
- #include "../media/video/bt8xx/bt848.h"
+ 	return 0;
+ }
++#else
++#define bt8xxgpio_suspend NULL
++#define bt8xxgpio_resume NULL
+ #endif /* CONFIG_PM */
+ 
+ static struct pci_device_id bt8xxgpio_pci_tbl[] = {
+@@ -324,10 +327,8 @@ static struct pci_driver bt8xxgpio_pci_d
+ 	.id_table	= bt8xxgpio_pci_tbl,
+ 	.probe		= bt8xxgpio_probe,
+ 	.remove		= bt8xxgpio_remove,
+-#ifdef CONFIG_PM
+ 	.suspend	= bt8xxgpio_suspend,
+ 	.resume		= bt8xxgpio_resume,
+-#endif
+ };
+ 
+ static int bt8xxgpio_init(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,7 +80,6 @@ drivers-misc-hpiloc-needs-config_pci.patch
 add-a-warn-macro-this-is-warn_on-printk-arguments.patch
 gpio-sysfs-interface-updated.patch
 gpio-add-bt8xxgpio-driver.patch
-gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes-cleanup.patch
 jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes.patch
 jbd-fix-race-between-free-buffer-and-commit-trasanction-checkpatch-fixes-fix.patch
