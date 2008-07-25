@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - eink_apollofb-new-driver-for-apollo-eink-controller-fix.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:31:54 -0700
-Message-ID: <200807252331.m6PNVsuS005221@imap1.linux-foundation.org>
+Subject: - eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:31:51 -0700
+Message-ID: <200807252331.m6PNVpHs005218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58191 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56963 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752853AbYGYXcC (ORCPT
+	by vger.kernel.org with ESMTP id S1752183AbYGYXcC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 25 Jul 2008 19:32:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,19 +15,17 @@ To: akpm@linux-foundation.org, adaplas@pol.net, jekhor@gmail.com, krzysztof.h1@p
 
 
 The patch titled
-     eink_apollofb-new-driver-for-apollo-eink-controller-fix
+     eink_apollofb-new-driver-for-apollo-eink-controller-cleanup
 has been removed from the -mm tree.  Its filename was
-     eink_apollofb-new-driver-for-apollo-eink-controller-fix.patch
+     eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
 
 This patch was dropped because it was folded into eink_apollofb-new-driver-for-apollo-eink-controller.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eink_apollofb-new-driver-for-apollo-eink-controller-fix
+Subject: eink_apollofb-new-driver-for-apollo-eink-controller-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
-
-kconfig uses tabs
 
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
@@ -35,39 +33,45 @@ Cc: Yauhen Kharuzhy <jekhor@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |   16 ++++++++--------
- linux/eink_apollofb.h |    0 
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/video/Kconfig         |    2 +-
+ drivers/video/eink_apollofb.c |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/Kconfig~eink_apollofb-new-driver-for-apollo-eink-controller-fix drivers/video/Kconfig
---- a/drivers/video/Kconfig~eink_apollofb-new-driver-for-apollo-eink-controller-fix
+diff -puN drivers/video/Kconfig~eink_apollofb-new-driver-for-apollo-eink-controller-cleanup drivers/video/Kconfig
+--- a/drivers/video/Kconfig~eink_apollofb-new-driver-for-apollo-eink-controller-cleanup
 +++ a/drivers/video/Kconfig
-@@ -719,14 +719,14 @@ config FB_N411
-          Hecuba form using the n411 devkit.
- 
- config FB_EINK_APOLLO
--       tristate "Apollo eInk display controller support"
--       depends on EXPERIMENTAL && FB && MMU
--       select FB_SYS_FILLRECT
--       select FB_SYS_COPYAREA
--       select FB_SYS_IMAGEBLIT
--       select FB_SYS_FOPS
--       select FB_DEFERRED_IO
--       help
-+	tristate "Apollo eInk display controller support"
-+	depends on EXPERIMENTAL && FB && MMU
-+	select FB_SYS_FILLRECT
-+	select FB_SYS_COPYAREA
-+	select FB_SYS_IMAGEBLIT
-+	select FB_SYS_FOPS
-+	select FB_DEFERRED_IO
-+	help
- 	 This enables support for Apollo eInk display controller.
+@@ -727,7 +727,7 @@ config FB_EINK_APOLLO
+        select FB_SYS_FOPS
+        select FB_DEFERRED_IO
+        help
+-         This enables support for Apollo eInk display controller.
++	 This enables support for Apollo eInk display controller.
  	 Includes support of deferred IO and 2-bit grayscale mode.
  
-diff -puN drivers/video/Makefile~eink_apollofb-new-driver-for-apollo-eink-controller-fix drivers/video/Makefile
-diff -puN drivers/video/eink_apollofb.c~eink_apollofb-new-driver-for-apollo-eink-controller-fix drivers/video/eink_apollofb.c
-diff -puN include/linux/eink_apollofb.h~eink_apollofb-new-driver-for-apollo-eink-controller-fix include/linux/eink_apollofb.h
+ 	 Hardware-specific functions have been moved to platform data.
+diff -puN drivers/video/eink_apollofb.c~eink_apollofb-new-driver-for-apollo-eink-controller-cleanup drivers/video/eink_apollofb.c
+--- a/drivers/video/eink_apollofb.c~eink_apollofb-new-driver-for-apollo-eink-controller-cleanup
++++ a/drivers/video/eink_apollofb.c
+@@ -82,8 +82,8 @@ static struct fb_var_screeninfo apollofb
+ 	.nonstd		= 1,
+ };
+ 
+-static inline int apollo_wait_for_ack_value(struct apollofb_par *par,
+-		unsigned int value)
++static int apollo_wait_for_ack_value(struct apollofb_par *par,
++					unsigned int value)
+ {
+ 	unsigned long timeout = jiffies + 2 * HZ;
+ 
+@@ -324,7 +324,7 @@ static void apollofb_imageblit(struct fb
+ 	schedule_delayed_work(&par->deferred_work, info->fbdefio->delay);
+ }
+ 
+-int apollofb_cursor(struct fb_info *info, struct fb_cursor *cursor)
++static int apollofb_cursor(struct fb_info *info, struct fb_cursor *cursor)
+ {
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,6 +79,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 uninline-arch_pick_mmap_layout.patch
 eink_apollofb-new-driver-for-apollo-eink-controller.patch
+eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
 eink_apollofb-new-driver-for-apollo-eink-controller-fix.patch
 eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2.patch
 getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
