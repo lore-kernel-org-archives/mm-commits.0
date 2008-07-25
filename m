@@ -1,230 +1,222 @@
 From: akpm@linux-foundation.org
-Subject: - quota-implement-sending-information-via-netlink-about-user-below-quota.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:57:55 -0700
-Message-ID: <200807252257.m6PMvt7e003237@imap1.linux-foundation.org>
+Subject: - cgroup-list_for_each-cleanup-v2.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:58:05 -0700
+Message-ID: <200807252258.m6PMw5Bx003256@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58404 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57538 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751670AbYGYW6k (ORCPT
+	by vger.kernel.org with ESMTP id S1756703AbYGYW6o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:58:40 -0400
+	Fri, 25 Jul 2008 18:58:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, slava@nsys.by, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quota: implement sending information via netlink about user below quota
+     cgroup: list_for_each cleanup
 has been removed from the -mm tree.  Its filename was
-     quota-implement-sending-information-via-netlink-about-user-below-quota.patch
+     cgroup-list_for_each-cleanup-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota: implement sending information via netlink about user below quota
-From: Jan Kara <jack@suse.cz>
+Subject: cgroup: list_for_each cleanup
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Sometimes it may be useful for userspace to know (e.g.  for some hosting
-guys) that some user stopped exceeding his hardlimit or softlimit in
-quotas.  Implement sending of such events to userspace via quota netlink
-protocol so that they don't have to poll for such events.  Based on idea
-and initial implementation by Vladislav Bogdanov.
+--------------------------
+while() {
+	list_entry();
+	...
+}
+--------------------------
 
-Cc: Vladislav Bogdanov <slava@nsys.by>
-Signed-off-by: Jan Kara <jack@suse.cz>
+is equivalent to following code.
+
+--------------------------
+list_for_each_entry(){
+	...
+}
+--------------------------
+
+later can review easily more.
+
+this patch is just clean up.
+it doesn't have any behavor change.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dquot.c            |   60 ++++++++++++++++++++++++++++++++++++----
- include/linux/quota.h |    4 ++
- 2 files changed, 58 insertions(+), 6 deletions(-)
+ kernel/cgroup.c |   44 +++++++++++++++++++++-----------------------
+ 1 file changed, 21 insertions(+), 23 deletions(-)
 
-diff -puN fs/dquot.c~quota-implement-sending-information-via-netlink-about-user-below-quota fs/dquot.c
---- a/fs/dquot.c~quota-implement-sending-information-via-netlink-about-user-below-quota
-+++ a/fs/dquot.c
-@@ -889,7 +889,10 @@ static void print_warning(struct dquot *
- 	char *msg = NULL;
- 	struct tty_struct *tty;
- 
--	if (!need_print_warning(dquot))
-+	if (warntype == QUOTA_NL_IHARDBELOW ||
-+	    warntype == QUOTA_NL_ISOFTBELOW ||
-+	    warntype == QUOTA_NL_BHARDBELOW ||
-+	    warntype == QUOTA_NL_BSOFTBELOW || !need_print_warning(dquot))
- 		return;
- 
- 	mutex_lock(&tty_mutex);
-@@ -1097,6 +1100,35 @@ static int check_bdq(struct dquot *dquot
- 	return QUOTA_OK;
- }
- 
-+static int info_idq_free(struct dquot *dquot, ulong inodes)
-+{
-+	if (test_bit(DQ_FAKE_B, &dquot->dq_flags) ||
-+	    dquot->dq_dqb.dqb_curinodes <= dquot->dq_dqb.dqb_isoftlimit)
-+		return QUOTA_NL_NOWARN;
-+
-+	if (dquot->dq_dqb.dqb_curinodes - inodes <= dquot->dq_dqb.dqb_isoftlimit)
-+		return QUOTA_NL_ISOFTBELOW;
-+	if (dquot->dq_dqb.dqb_curinodes >= dquot->dq_dqb.dqb_ihardlimit &&
-+	    dquot->dq_dqb.dqb_curinodes - inodes < dquot->dq_dqb.dqb_ihardlimit)
-+		return QUOTA_NL_IHARDBELOW;
-+	return QUOTA_NL_NOWARN;
-+}
-+
-+static int info_bdq_free(struct dquot *dquot, qsize_t space)
-+{
-+	if (test_bit(DQ_FAKE_B, &dquot->dq_flags) ||
-+	    toqb(dquot->dq_dqb.dqb_curspace) <= dquot->dq_dqb.dqb_bsoftlimit)
-+		return QUOTA_NL_NOWARN;
-+
-+	if (toqb(dquot->dq_dqb.dqb_curspace - space) <=
-+	    dquot->dq_dqb.dqb_bsoftlimit)
-+		return QUOTA_NL_BSOFTBELOW;
-+	if (toqb(dquot->dq_dqb.dqb_curspace) >= dquot->dq_dqb.dqb_bhardlimit &&
-+	    toqb(dquot->dq_dqb.dqb_curspace - space) <
-+						dquot->dq_dqb.dqb_bhardlimit)
-+		return QUOTA_NL_BHARDBELOW;
-+	return QUOTA_NL_NOWARN;
-+}
- /*
-  *	Initialize quota pointers in inode
-  *	Transaction must be started at entry
-@@ -1284,6 +1316,7 @@ warn_put_all:
- int dquot_free_space(struct inode *inode, qsize_t number)
+diff -puN kernel/cgroup.c~cgroup-list_for_each-cleanup-v2 kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-list_for_each-cleanup-v2
++++ a/kernel/cgroup.c
+@@ -241,17 +241,20 @@ static int use_task_css_set_links;
+  */
+ static void unlink_css_set(struct css_set *cg)
  {
- 	unsigned int cnt;
-+	char warntype[MAXQUOTAS];
- 
- 	/* First test before acquiring mutex - solves deadlocks when we
-          * re-enter the quota code and are already holding the mutex */
-@@ -1292,6 +1325,7 @@ out_sub:
- 		inode_sub_bytes(inode, number);
- 		return QUOTA_OK;
++	struct cg_cgroup_link *link;
++	struct cg_cgroup_link *saved_link;
++
+ 	write_lock(&css_set_lock);
+ 	hlist_del(&cg->hlist);
+ 	css_set_count--;
+-	while (!list_empty(&cg->cg_links)) {
+-		struct cg_cgroup_link *link;
+-		link = list_entry(cg->cg_links.next,
+-				  struct cg_cgroup_link, cg_link_list);
++
++	list_for_each_entry_safe(link, saved_link, &cg->cg_links,
++				 cg_link_list) {
+ 		list_del(&link->cg_link_list);
+ 		list_del(&link->cgrp_link_list);
+ 		kfree(link);
  	}
 +
- 	down_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
- 	/* Now recheck reliably when holding dqptr_sem */
- 	if (IS_NOQUOTA(inode)) {
-@@ -1302,6 +1336,7 @@ out_sub:
- 	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
- 		if (inode->i_dquot[cnt] == NODQUOT)
- 			continue;
-+		warntype[cnt] = info_bdq_free(inode->i_dquot[cnt], number);
- 		dquot_decr_space(inode->i_dquot[cnt], number);
- 	}
- 	inode_sub_bytes(inode, number);
-@@ -1310,6 +1345,7 @@ out_sub:
- 	for (cnt = 0; cnt < MAXQUOTAS; cnt++)
- 		if (inode->i_dquot[cnt])
- 			mark_dquot_dirty(inode->i_dquot[cnt]);
-+	flush_warnings(inode->i_dquot, warntype);
- 	up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
- 	return QUOTA_OK;
+ 	write_unlock(&css_set_lock);
  }
-@@ -1320,11 +1356,13 @@ out_sub:
- int dquot_free_inode(const struct inode *inode, unsigned long number)
+ 
+@@ -363,15 +366,14 @@ static struct css_set *find_existing_css
+ static int allocate_cg_links(int count, struct list_head *tmp)
  {
- 	unsigned int cnt;
-+	char warntype[MAXQUOTAS];
+ 	struct cg_cgroup_link *link;
++	struct cg_cgroup_link *saved_link;
+ 	int i;
+ 	INIT_LIST_HEAD(tmp);
+ 	for (i = 0; i < count; i++) {
+ 		link = kmalloc(sizeof(*link), GFP_KERNEL);
+ 		if (!link) {
+-			while (!list_empty(tmp)) {
+-				link = list_entry(tmp->next,
+-						  struct cg_cgroup_link,
+-						  cgrp_link_list);
++			list_for_each_entry_safe(link, saved_link, tmp,
++						 cgrp_link_list) {
+ 				list_del(&link->cgrp_link_list);
+ 				kfree(link);
+ 			}
+@@ -384,11 +386,10 @@ static int allocate_cg_links(int count, 
  
- 	/* First test before acquiring mutex - solves deadlocks when we
-          * re-enter the quota code and are already holding the mutex */
- 	if (IS_NOQUOTA(inode))
- 		return QUOTA_OK;
+ static void free_cg_links(struct list_head *tmp)
+ {
+-	while (!list_empty(tmp)) {
+-		struct cg_cgroup_link *link;
+-		link = list_entry(tmp->next,
+-				  struct cg_cgroup_link,
+-				  cgrp_link_list);
++	struct cg_cgroup_link *link;
++	struct cg_cgroup_link *saved_link;
 +
- 	down_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
- 	/* Now recheck reliably when holding dqptr_sem */
- 	if (IS_NOQUOTA(inode)) {
-@@ -1335,6 +1373,7 @@ int dquot_free_inode(const struct inode 
- 	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
- 		if (inode->i_dquot[cnt] == NODQUOT)
- 			continue;
-+		warntype[cnt] = info_idq_free(inode->i_dquot[cnt], number);
- 		dquot_decr_inodes(inode->i_dquot[cnt], number);
++	list_for_each_entry_safe(link, saved_link, tmp, cgrp_link_list) {
+ 		list_del(&link->cgrp_link_list);
+ 		kfree(link);
  	}
- 	spin_unlock(&dq_data_lock);
-@@ -1342,6 +1381,7 @@ int dquot_free_inode(const struct inode 
- 	for (cnt = 0; cnt < MAXQUOTAS; cnt++)
- 		if (inode->i_dquot[cnt])
- 			mark_dquot_dirty(inode->i_dquot[cnt]);
-+	flush_warnings(inode->i_dquot, warntype);
- 	up_read(&sb_dqopt(inode->i_sb)->dqptr_sem);
- 	return QUOTA_OK;
- }
-@@ -1359,7 +1399,8 @@ int dquot_transfer(struct inode *inode, 
- 	struct dquot *transfer_to[MAXQUOTAS];
- 	int cnt, ret = NO_QUOTA, chuid = (iattr->ia_valid & ATTR_UID) && inode->i_uid != iattr->ia_uid,
- 	    chgid = (iattr->ia_valid & ATTR_GID) && inode->i_gid != iattr->ia_gid;
--	char warntype[MAXQUOTAS];
-+	char warntype_to[MAXQUOTAS];
-+	char warntype_from_inodes[MAXQUOTAS], warntype_from_space[MAXQUOTAS];
+@@ -1093,6 +1094,8 @@ static void cgroup_kill_sb(struct super_
+ 	struct cgroupfs_root *root = sb->s_fs_info;
+ 	struct cgroup *cgrp = &root->top_cgroup;
+ 	int ret;
++	struct cg_cgroup_link *link;
++	struct cg_cgroup_link *saved_link;
  
- 	/* First test before acquiring mutex - solves deadlocks when we
-          * re-enter the quota code and are already holding the mutex */
-@@ -1368,7 +1409,7 @@ int dquot_transfer(struct inode *inode, 
- 	/* Clear the arrays */
- 	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
- 		transfer_to[cnt] = transfer_from[cnt] = NODQUOT;
--		warntype[cnt] = QUOTA_NL_NOWARN;
-+		warntype_to[cnt] = QUOTA_NL_NOWARN;
+ 	BUG_ON(!root);
+ 
+@@ -1112,10 +1115,9 @@ static void cgroup_kill_sb(struct super_
+ 	 * root cgroup
+ 	 */
+ 	write_lock(&css_set_lock);
+-	while (!list_empty(&cgrp->css_sets)) {
+-		struct cg_cgroup_link *link;
+-		link = list_entry(cgrp->css_sets.next,
+-				  struct cg_cgroup_link, cgrp_link_list);
++
++	list_for_each_entry_safe(link, saved_link, &cgrp->css_sets,
++				 cgrp_link_list) {
+ 		list_del(&link->cg_link_list);
+ 		list_del(&link->cgrp_link_list);
+ 		kfree(link);
+@@ -1756,15 +1758,11 @@ int cgroup_add_files(struct cgroup *cgrp
+ int cgroup_task_count(const struct cgroup *cgrp)
+ {
+ 	int count = 0;
+-	struct list_head *l;
++	struct cg_cgroup_link *link;
+ 
+ 	read_lock(&css_set_lock);
+-	l = cgrp->css_sets.next;
+-	while (l != &cgrp->css_sets) {
+-		struct cg_cgroup_link *link =
+-			list_entry(l, struct cg_cgroup_link, cgrp_link_list);
++	list_for_each_entry(link, &cgrp->css_sets, cgrp_link_list) {
+ 		count += atomic_read(&link->cg->ref.refcount);
+-		l = l->next;
  	}
- 	down_write(&sb_dqopt(inode->i_sb)->dqptr_sem);
- 	/* Now recheck reliably when holding dqptr_sem */
-@@ -1400,8 +1441,9 @@ int dquot_transfer(struct inode *inode, 
- 		if (transfer_to[cnt] == NODQUOT)
- 			continue;
- 		transfer_from[cnt] = inode->i_dquot[cnt];
--		if (check_idq(transfer_to[cnt], 1, warntype+cnt) == NO_QUOTA ||
--		    check_bdq(transfer_to[cnt], space, 0, warntype+cnt) == NO_QUOTA)
-+		if (check_idq(transfer_to[cnt], 1, warntype_to + cnt) ==
-+		    NO_QUOTA || check_bdq(transfer_to[cnt], space, 0,
-+		    warntype_to + cnt) == NO_QUOTA)
- 			goto warn_put_all;
- 	}
- 
-@@ -1417,6 +1459,10 @@ int dquot_transfer(struct inode *inode, 
- 
- 		/* Due to IO error we might not have transfer_from[] structure */
- 		if (transfer_from[cnt]) {
-+			warntype_from_inodes[cnt] =
-+				info_idq_free(transfer_from[cnt], 1);
-+			warntype_from_space[cnt] =
-+				info_bdq_free(transfer_from[cnt], space);
- 			dquot_decr_inodes(transfer_from[cnt], 1);
- 			dquot_decr_space(transfer_from[cnt], space);
- 		}
-@@ -1436,7 +1482,9 @@ warn_put_all:
- 		if (transfer_to[cnt])
- 			mark_dquot_dirty(transfer_to[cnt]);
- 	}
--	flush_warnings(transfer_to, warntype);
-+	flush_warnings(transfer_to, warntype_to);
-+	flush_warnings(transfer_from, warntype_from_inodes);
-+	flush_warnings(transfer_from, warntype_from_space);
- 	
- 	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
- 		if (ret == QUOTA_OK && transfer_from[cnt] != NODQUOT)
-diff -puN include/linux/quota.h~quota-implement-sending-information-via-netlink-about-user-below-quota include/linux/quota.h
---- a/include/linux/quota.h~quota-implement-sending-information-via-netlink-about-user-below-quota
-+++ a/include/linux/quota.h
-@@ -135,6 +135,10 @@ struct if_dqinfo {
- #define QUOTA_NL_BHARDWARN 4		/* Block hardlimit reached */
- #define QUOTA_NL_BSOFTLONGWARN 5	/* Block grace time expired */
- #define QUOTA_NL_BSOFTWARN 6		/* Block softlimit reached */
-+#define QUOTA_NL_IHARDBELOW 7		/* Usage got below inode hardlimit */
-+#define QUOTA_NL_ISOFTBELOW 8		/* Usage got below inode softlimit */
-+#define QUOTA_NL_BHARDBELOW 9		/* Usage got below block hardlimit */
-+#define QUOTA_NL_BSOFTBELOW 10		/* Usage got below block softlimit */
- 
- enum {
- 	QUOTA_NL_C_UNSPEC,
+ 	read_unlock(&css_set_lock);
+ 	return count;
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
+full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch
+relay-add-buffer-only-channels-useful-for-early-logging-fix.patch
+mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
+define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
+vmscan-split-lru-lists-into-anon-file-sets-collect-lru-meminfo-statistics-from-correct-offset.patch
+vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru.patch
+vmscan-split-lru-lists-into-anon-file-sets-split_lru-fix-pagevec_move_tail-doesnt-treat-unevictable-page.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
+vmscan-second-chance-replacement-for-anonymous-pages-fix.patch
+vmscan-second-chance-replacement-for-anonymous-pages-memcg-lru-scan-fix.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-infrastructure-fix.patch
+unevictable-lru-infrastructure-remove-redundant-page-mapping-check.patch
+unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework.patch
+unevictable-lru-infrastructure-kill-unnecessary-lock_page-in-vmscanc.patch
+unevictable-lru-infrastructure-revert-migration-change-of-unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+unevictable-lru-page-statistics-fix-printk-in-show_free_areas.patch
+unevictable-lru-page-statistics-units-fix.patch
+shm_locked-pages-are-unevictable.patch
+shm_locked-pages-are-unevictable-revert-shm-change-of-shm_locked-pages-are-unevictable-patch.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
+mlock-mlocked-pages-are-unevictable-restore-patch-failure-hunk-of-mlock-mlocked-pages-are-unevictablepatch.patch
+mlock-mlocked-pages-are-unevictable-fix-truncate-race-and-sevaral-comments.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
+introduce-__get_user_pages.patch
+introduce-__get_user_pages-fix.patch
+split-lru-munlock-rework.patch
+revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+vmstat-mlocked-pages-statistics-fix.patch
+swap-cull-unevictable-pages-in-fault-path-fix.patch
+vmstat-unevictable-and-mlocked-pages-vm-events.patch
+restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter.patch
+vmscam-kill-unused-lru-functions.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
