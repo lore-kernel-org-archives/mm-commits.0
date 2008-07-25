@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - signals-collect_signal-simplify-the-still_pending-logic.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:59:22 -0700
-Message-ID: <200807252259.m6PMxMjR003380@imap1.linux-foundation.org>
+Subject: - signals-do_signal_stop-kill-the-signal_unkillable-check.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:59:29 -0700
+Message-ID: <200807252259.m6PMxTSc003394@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35778 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57388 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752001AbYGYXAS (ORCPT
+	by vger.kernel.org with ESMTP id S1751786AbYGYXAS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 25 Jul 2008 19:00:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,72 +15,45 @@ To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signals: collect_signal: simplify the "still_pending" logic
+     signals: do_signal_stop: kill the SIGNAL_UNKILLABLE check
 has been removed from the -mm tree.  Its filename was
-     signals-collect_signal-simplify-the-still_pending-logic.patch
+     signals-do_signal_stop-kill-the-signal_unkillable-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: collect_signal: simplify the "still_pending" logic
+Subject: signals: do_signal_stop: kill the SIGNAL_UNKILLABLE check
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Factor out sigdelset() calls and remove the "still_pending" variable.
+fae5fa44f1fd079ffbed8e0add929dd7bbd1347f changed do_signal_stop() to check
+SIGNAL_UNKILLABLE, this wasn't needed.  If signal_group_exit() == F, the
+signal sent to SIGNAL_UNKILLABLE task must be already filtered out by the
+caller, get_signal_to_deliver().  And if signal_group_exit() == T we are
+not going to stop.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Acked-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ kernel/signal.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/signal.c~signals-collect_signal-simplify-the-still_pending-logic kernel/signal.c
---- a/kernel/signal.c~signals-collect_signal-simplify-the-still_pending-logic
+diff -puN kernel/signal.c~signals-do_signal_stop-kill-the-signal_unkillable-check kernel/signal.c
+--- a/kernel/signal.c~signals-do_signal_stop-kill-the-signal_unkillable-check
 +++ a/kernel/signal.c
-@@ -341,7 +341,6 @@ unblock_all_signals(void)
- static int collect_signal(int sig, struct sigpending *list, siginfo_t *info)
- {
- 	struct sigqueue *q, *first = NULL;
--	int still_pending = 0;
- 
- 	/*
- 	 * Collect the siginfo appropriate to this signal.  Check if
-@@ -349,26 +348,24 @@ static int collect_signal(int sig, struc
- 	*/
- 	list_for_each_entry(q, &list->list, list) {
- 		if (q->info.si_signo == sig) {
--			if (first) {
--				still_pending = 1;
--				break;
--			}
-+			if (first)
-+				goto still_pending;
- 			first = q;
- 		}
- 	}
-+
-+	sigdelset(&list->signal, sig);
-+
- 	if (first) {
-+still_pending:
- 		list_del_init(&first->list);
- 		copy_siginfo(info, &first->info);
- 		__sigqueue_free(first);
--		if (!still_pending)
--			sigdelset(&list->signal, sig);
+@@ -1649,8 +1649,7 @@ static int do_signal_stop(int signr)
  	} else {
--
- 		/* Ok, it wasn't in the queue.  This must be
- 		   a fast-pathed signal or we must have been
- 		   out of queue space.  So zero out the info.
- 		 */
--		sigdelset(&list->signal, sig);
- 		info->si_signo = sig;
- 		info->si_errno = 0;
- 		info->si_code = 0;
+ 		struct task_struct *t;
+ 
+-		if (unlikely((sig->flags & (SIGNAL_STOP_DEQUEUED | SIGNAL_UNKILLABLE))
+-					 != SIGNAL_STOP_DEQUEUED) ||
++		if (!likely(sig->flags & SIGNAL_STOP_DEQUEUED) ||
+ 		    unlikely(signal_group_exit(sig)))
+ 			return 0;
+ 		/*
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
