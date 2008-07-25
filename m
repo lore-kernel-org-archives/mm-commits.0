@@ -1,61 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 17:11:23 -0700
-Message-ID: <200807250011.m6P0BNBD013381@imap1.linux-foundation.org>
+Subject: - exec-remove-some-includes-fix.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 17:11:51 -0700
+Message-ID: <200807250011.m6P0Bpns013384@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43913 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42910 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752183AbYGYALz (ORCPT
+	by vger.kernel.org with ESMTP id S1752471AbYGYAM2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 20:11:55 -0400
+	Thu, 24 Jul 2008 20:12:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, biannm@cn.fujitsu.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     seq_file-fix-bug-when-seq_read-reads-nothing-fix
+     exec-remove-some-includes-fix
 has been removed from the -mm tree.  Its filename was
-     seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+     exec-remove-some-includes-fix.patch
 
-This patch was dropped because it was folded into seq_file-fix-bug-when-seq_read-reads-nothing.patch
+This patch was dropped because it was folded into exec-remove-some-includes.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: seq_file-fix-bug-when-seq_read-reads-nothing-fix
+Subject: exec-remove-some-includes-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-tidy that comment
+arm:
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Bian Naimeng <biannm@cn.fujitsu.com>
+fs/exec.c: In function `shift_arg_pages':
+fs/exec.c:535: error: implicit declaration of function `lru_add_drain'
+
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ fs/exec.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/seq_file.c~seq_file-fix-bug-when-seq_read-reads-nothing-fix fs/seq_file.c
---- a/fs/seq_file.c~seq_file-fix-bug-when-seq_read-reads-nothing-fix
-+++ a/fs/seq_file.c
-@@ -148,10 +148,11 @@ Fill:
- 			m->count = offs;
- 			if (err < 0)
- 				break;
--			/* If no data flush to the user buf and nothing was read
--			 * by show() before,it should increase the m->buf until
--			 * it can read this element.
--			*/
-+			/*
-+			 * If no data was flushed to the user buf and nothing
-+			 * was read by show() beforehand, we should advance the
-+			 * m->buf until it can read this element.
-+			 */
- 			if (err == 0 && m->count == 0 && copied == 0) {
- 				m->index = next;
- 				m->op->stop(m, p);
+diff -puN fs/exec.c~exec-remove-some-includes-fix fs/exec.c
+--- a/fs/exec.c~exec-remove-some-includes-fix
++++ a/fs/exec.c
+@@ -29,6 +29,7 @@
+ #include <linux/stat.h>
+ #include <linux/fcntl.h>
+ #include <linux/smp_lock.h>
++#include <linux/swap.h>
+ #include <linux/string.h>
+ #include <linux/init.h>
+ #include <linux/highmem.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,7 +61,7 @@ remove-apparently-unused-fd1772h-header-file.patch
 lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
 build-kernel-profileo-only-when-requested-cleanups.patch
 seq_file-fix-bug-when-seq_read-reads-nothing.patch
-seq_file-fix-bug-when-seq_read-reads-nothing-fix.patch
+exec-remove-some-includes.patch
 exec-remove-some-includes-fix.patch
 inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
 drivers-misc-hpiloc-needs-config_pci.patch
