@@ -1,83 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - remove-some-more-tipar-bits.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:54:39 -0700
-Message-ID: <200807252254.m6PMsdBg002840@imap1.linux-foundation.org>
+Subject: - asm-generic-int-ll64h-always-provide-__su64.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:54:36 -0700
+Message-ID: <200807252254.m6PMsaRq002837@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35335 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52634 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752539AbYGYWzR (ORCPT
+	by vger.kernel.org with ESMTP id S1752187AbYGYWzQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:55:17 -0400
+	Fri, 25 Jul 2008 18:55:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mm-commits@vger.kernel.org
+To: bunk@kernel.org, harvey.harrison@gmail.com, hpa@zytor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove some more tipar bits
+     asm-generic/int-ll64.h: always provide __{s,u}64
 has been removed from the -mm tree.  Its filename was
-     remove-some-more-tipar-bits.patch
+     asm-generic-int-ll64h-always-provide-__su64.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove some more tipar bits
+Subject: asm-generic/int-ll64.h: always provide __{s,u}64
 From: Adrian Bunk <bunk@kernel.org>
 
-Some bits were missed when the tipar driver was removed.
+Several compilers offer "long long" without claiming to support C99.
+
+Considering how frequent __s64/__u64 are used our userspace headers are
+anyway unusable without __s64/__u64 available.
+
+Always offer __s64/__u64 to non-gcc non-C99 compilers - if they provide
+"long long" that makes the headers compiling and if they don't they are
+anyway screwed.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: H. Peter Anvin <hpa@zytor.com>
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/00-INDEX              |    2 --
- Documentation/kernel-parameters.txt |    7 -------
- drivers/char/Makefile               |    1 -
- 3 files changed, 10 deletions(-)
+ include/asm-generic/int-ll64.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/00-INDEX~remove-some-more-tipar-bits Documentation/00-INDEX
---- a/Documentation/00-INDEX~remove-some-more-tipar-bits
-+++ a/Documentation/00-INDEX
-@@ -361,8 +361,6 @@ telephony/
- 	- directory with info on telephony (e.g. voice over IP) support.
- time_interpolators.txt
- 	- info on time interpolators.
--tipar.txt
--	- information about Parallel link cable for Texas Instruments handhelds.
- tty.txt
- 	- guide to the locking policies of the tty layer.
- uml/
-diff -puN Documentation/kernel-parameters.txt~remove-some-more-tipar-bits Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~remove-some-more-tipar-bits
-+++ a/Documentation/kernel-parameters.txt
-@@ -2159,13 +2159,6 @@ and is between 256 and 4096 characters. 
- 			<deci-seconds>: poll all this frequency
- 			0: no polling (default)
- 
--	tipar.timeout=	[HW,PPT]
--			Set communications timeout in tenths of a second
--			(default 15).
--
--	tipar.delay=	[HW,PPT]
--			Set inter-bit delay in microseconds (default 10).
--
- 	tmscsim=	[HW,SCSI]
- 			See comment before function dc390_setup() in
- 			drivers/scsi/tmscsim.c.
-diff -puN drivers/char/Makefile~remove-some-more-tipar-bits drivers/char/Makefile
---- a/drivers/char/Makefile~remove-some-more-tipar-bits
-+++ a/drivers/char/Makefile
-@@ -63,7 +63,6 @@ obj-$(CONFIG_BRIQ_PANEL)	+= briq_panel.o
- obj-$(CONFIG_BFIN_OTP)		+= bfin-otp.o
- 
- obj-$(CONFIG_PRINTER)		+= lp.o
--obj-$(CONFIG_TIPAR)		+= tipar.o
- 
- obj-$(CONFIG_APM_EMULATION)	+= apm-emulation.o
- 
+diff -puN include/asm-generic/int-ll64.h~asm-generic-int-ll64h-always-provide-__su64 include/asm-generic/int-ll64.h
+--- a/include/asm-generic/int-ll64.h~asm-generic-int-ll64h-always-provide-__su64
++++ a/include/asm-generic/int-ll64.h
+@@ -26,7 +26,7 @@ typedef unsigned int __u32;
+ #ifdef __GNUC__
+ __extension__ typedef __signed__ long long __s64;
+ __extension__ typedef unsigned long long __u64;
+-#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
++#else
+ typedef __signed__ long long __s64;
+ typedef unsigned long long __u64;
+ #endif
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
