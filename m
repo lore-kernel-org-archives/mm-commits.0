@@ -1,62 +1,220 @@
 From: akpm@linux-foundation.org
-Subject: - dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:39:52 -0700
-Message-ID: <200807252339.m6PNdqER005488@imap1.linux-foundation.org>
+Subject: - dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:39:36 -0700
+Message-ID: <200807252339.m6PNda0P005464@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54804 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48786 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752381AbYGYXj4 (ORCPT
+	by vger.kernel.org with ESMTP id S1754126AbYGYXjs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:39:56 -0400
+	Fri, 25 Jul 2008 19:39:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Sivakumar.Subramani@neterion.com, Sreenivasa.Honnur@neterion.com, fujita.tomonori@lab.ntt.co.jp, jgarzik@pobox.com, ravinandan.arakali@neterion.com, sivakum
 
 
 The patch titled
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io
 has been removed from the -mm tree.  Its filename was
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
 
 This patch was dropped because it was folded into dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix
+Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io
 From: Andrew Morton <akpm@linux-foundation.org>
 
-this patch is killing me.
-
 Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Jeff Garzik <jgarzik@pobox.com>
+Cc: Sivakumar Subramani <sivakumar.subramani@neterion.com>
+Cc: Sreenivasa Honnur <Sreenivasa.Honnur@neterion.com>
+Cc: Sreenivasa Honnur <sreenivasa.honnur@neterion.com>
+Cc: Ravinandan Arakali <ravinandan.arakali@neterion.com>
+Cc: Surjit Reang <surjit.reang@neterion.com>
+Cc: Sivakumar Subramani <Sivakumar.Subramani@neterion.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/s2io.c |   48 ++++++++++++++++++++++++-------------------
+ 1 file changed, 27 insertions(+), 21 deletions(-)
 
-diff -puN drivers/mmc/host/sdhci.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix drivers/mmc/host/sdhci.c
---- a/drivers/mmc/host/sdhci.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix
-+++ a/drivers/mmc/host/sdhci.c
-@@ -360,7 +360,7 @@ static int sdhci_adma_table_pre(struct s
+diff -puN drivers/net/s2io.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io drivers/net/s2io.c
+--- a/drivers/net/s2io.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io
++++ a/drivers/net/s2io.c
+@@ -2512,8 +2512,8 @@ static void stop_nic(struct s2io_nic *ni
+  *   Return Value:
+  *  SUCCESS on success or an appropriate -ve value on failure.
+  */
+-
+-static int fill_rx_buffers(struct ring_info *ring, int from_card_up)
++static int fill_rx_buffers(struct s2io_nic *nic, struct ring_info *ring,
++				int from_card_up)
+ {
+ 	struct sk_buff *skb;
+ 	struct RxD_t *rxdp;
+@@ -2602,7 +2602,8 @@ static int fill_rx_buffers(struct ring_i
+ 			rxdp1->Buffer0_ptr = pci_map_single
+ 			    (ring->pdev, skb->data, size - NET_IP_ALIGN,
+ 				PCI_DMA_FROMDEVICE);
+-			if(pci_dma_mapping_error(rxdp1->Buffer0_ptr))
++			if (pci_dma_mapping_error(nic->pdev,
++						rxdp1->Buffer0_ptr))
+ 				goto pci_map_failed;
  
- 	host->align_addr = dma_map_single(mmc_dev(host->mmc),
- 		host->align_buffer, 128 * 4, direction);
--	if (dma_mapping_error(host->align_addr))
-+	if (dma_mapping_error(mmc_dev(host->mmc), host->align_addr))
- 		goto fail;
- 	BUG_ON(host->align_addr & 0x3);
+ 			rxdp->Control_2 =
+@@ -2636,7 +2637,8 @@ static int fill_rx_buffers(struct ring_i
+ 				rxdp3->Buffer0_ptr =
+ 				   pci_map_single(ring->pdev, ba->ba_0,
+ 					BUF0_LEN, PCI_DMA_FROMDEVICE);
+-				if (pci_dma_mapping_error(rxdp3->Buffer0_ptr))
++			if (pci_dma_mapping_error(nic->pdev,
++						rxdp3->Buffer0_ptr))
+ 					goto pci_map_failed;
+ 			} else
+ 				pci_dma_sync_single_for_device(ring->pdev,
+@@ -2655,7 +2657,8 @@ static int fill_rx_buffers(struct ring_i
+ 				(ring->pdev, skb->data, ring->mtu + 4,
+ 						PCI_DMA_FROMDEVICE);
  
-@@ -461,7 +461,7 @@ static int sdhci_adma_table_pre(struct s
+-				if (pci_dma_mapping_error(rxdp3->Buffer2_ptr))
++				if (pci_dma_mapping_error(nic->pdev,
++							rxdp3->Buffer2_ptr))
+ 					goto pci_map_failed;
  
- 	host->adma_addr = dma_map_single(mmc_dev(host->mmc),
- 		host->adma_desc, (128 * 2 + 1) * 4, DMA_TO_DEVICE);
--	if (dma_mapping_error(host->align_addr))
-+	if (dma_mapping_error(mmc_dev(host->mmc), host->align_addr))
- 		goto unmap_entries;
- 	BUG_ON(host->adma_addr & 0x3);
+ 				if (from_card_up) {
+@@ -2664,8 +2667,8 @@ static int fill_rx_buffers(struct ring_i
+ 						ba->ba_1, BUF1_LEN,
+ 						PCI_DMA_FROMDEVICE);
  
+-					if (pci_dma_mapping_error
+-						(rxdp3->Buffer1_ptr)) {
++					if (pci_dma_mapping_error(nic->pdev,
++						rxdp3->Buffer1_ptr)) {
+ 						pci_unmap_single
+ 							(ring->pdev,
+ 						    (dma_addr_t)(unsigned long)
+@@ -2806,9 +2809,9 @@ static void free_rx_buffers(struct s2io_
+ 	}
+ }
+ 
+-static int s2io_chk_rx_buffers(struct ring_info *ring)
++static int s2io_chk_rx_buffers(struct s2io_nic *nic, struct ring_info *ring)
+ {
+-	if (fill_rx_buffers(ring, 0) == -ENOMEM) {
++	if (fill_rx_buffers(nic, ring, 0) == -ENOMEM) {
+ 		DBG_PRINT(INFO_DBG, "%s:Out of memory", ring->dev->name);
+ 		DBG_PRINT(INFO_DBG, " in Rx Intr!!\n");
+ 	}
+@@ -2848,7 +2851,7 @@ static int s2io_poll_msix(struct napi_st
+ 		return 0;
+ 
+ 	pkts_processed = rx_intr_handler(ring, budget);
+-	s2io_chk_rx_buffers(ring);
++	s2io_chk_rx_buffers(nic, ring);
+ 
+ 	if (pkts_processed < budget_org) {
+ 		netif_rx_complete(dev, napi);
+@@ -2882,7 +2885,7 @@ static int s2io_poll_inta(struct napi_st
+ 	for (i = 0; i < config->rx_ring_num; i++) {
+ 		ring = &mac_control->rings[i];
+ 		ring_pkts_processed = rx_intr_handler(ring, budget);
+-		s2io_chk_rx_buffers(ring);
++		s2io_chk_rx_buffers(nic, ring);
+ 		pkts_processed += ring_pkts_processed;
+ 		budget -= ring_pkts_processed;
+ 		if (budget <= 0)
+@@ -2939,7 +2942,8 @@ static void s2io_netpoll(struct net_devi
+ 		rx_intr_handler(&mac_control->rings[i], 0);
+ 
+ 	for (i = 0; i < config->rx_ring_num; i++) {
+-		if (fill_rx_buffers(&mac_control->rings[i], 0) == -ENOMEM) {
++		if (fill_rx_buffers(nic, &mac_control->rings[i], 0) ==
++				-ENOMEM) {
+ 			DBG_PRINT(INFO_DBG, "%s:Out of memory", dev->name);
+ 			DBG_PRINT(INFO_DBG, " in Rx Netpoll!!\n");
+ 			break;
+@@ -4235,14 +4239,14 @@ static int s2io_xmit(struct sk_buff *skb
+ 		txdp->Buffer_Pointer = pci_map_single(sp->pdev,
+ 					fifo->ufo_in_band_v,
+ 					sizeof(u64), PCI_DMA_TODEVICE);
+-		if (pci_dma_mapping_error(txdp->Buffer_Pointer))
++		if (pci_dma_mapping_error(sp->pdev, txdp->Buffer_Pointer))
+ 			goto pci_map_failed;
+ 		txdp++;
+ 	}
+ 
+ 	txdp->Buffer_Pointer = pci_map_single
+ 	    (sp->pdev, skb->data, frg_len, PCI_DMA_TODEVICE);
+-	if (pci_dma_mapping_error(txdp->Buffer_Pointer))
++	if (pci_dma_mapping_error(sp->pdev, txdp->Buffer_Pointer))
+ 		goto pci_map_failed;
+ 
+ 	txdp->Host_Control = (unsigned long) skb;
+@@ -4345,7 +4349,7 @@ static irqreturn_t s2io_msix_ring_handle
+ 		netif_rx_schedule(dev, &ring->napi);
+ 	} else {
+ 		rx_intr_handler(ring, 0);
+-		s2io_chk_rx_buffers(ring);
++		s2io_chk_rx_buffers(sp, ring);
+ 	}
+ 
+ 	return IRQ_HANDLED;
+@@ -4826,7 +4830,7 @@ static irqreturn_t s2io_isr(int irq, voi
+ 		 */
+ 		if (!config->napi) {
+ 			for (i = 0; i < config->rx_ring_num; i++)
+-				s2io_chk_rx_buffers(&mac_control->rings[i]);
++				s2io_chk_rx_buffers(sp, &mac_control->rings[i]);
+ 		}
+ 		writeq(sp->general_int_mask, &bar0->general_int_mask);
+ 		readl(&bar0->general_int_status);
+@@ -6859,7 +6863,7 @@ static int set_rxd_buffer_pointer(struct
+ 				pci_map_single( sp->pdev, (*skb)->data,
+ 					size - NET_IP_ALIGN,
+ 					PCI_DMA_FROMDEVICE);
+-			if (pci_dma_mapping_error(rxdp1->Buffer0_ptr))
++			if (pci_dma_mapping_error(sp->pdev, rxdp1->Buffer0_ptr))
+ 				goto memalloc_failed;
+ 			rxdp->Host_Control = (unsigned long) (*skb);
+ 		}
+@@ -6886,12 +6890,13 @@ static int set_rxd_buffer_pointer(struct
+ 				pci_map_single(sp->pdev, (*skb)->data,
+ 					       dev->mtu + 4,
+ 					       PCI_DMA_FROMDEVICE);
+-			if (pci_dma_mapping_error(rxdp3->Buffer2_ptr))
++			if (pci_dma_mapping_error(sp->pdev, rxdp3->Buffer2_ptr))
+ 				goto memalloc_failed;
+ 			rxdp3->Buffer0_ptr = *temp0 =
+ 				pci_map_single( sp->pdev, ba->ba_0, BUF0_LEN,
+ 						PCI_DMA_FROMDEVICE);
+-			if (pci_dma_mapping_error(rxdp3->Buffer0_ptr)) {
++			if (pci_dma_mapping_error(sp->pdev,
++						rxdp3->Buffer0_ptr)) {
+ 				pci_unmap_single (sp->pdev,
+ 					(dma_addr_t)rxdp3->Buffer2_ptr,
+ 					dev->mtu + 4, PCI_DMA_FROMDEVICE);
+@@ -6903,7 +6908,8 @@ static int set_rxd_buffer_pointer(struct
+ 			rxdp3->Buffer1_ptr = *temp1 =
+ 				pci_map_single(sp->pdev, ba->ba_1, BUF1_LEN,
+ 						PCI_DMA_FROMDEVICE);
+-			if (pci_dma_mapping_error(rxdp3->Buffer1_ptr)) {
++			if (pci_dma_mapping_error(sp->pdev,
++						rxdp3->Buffer1_ptr)) {
+ 				pci_unmap_single (sp->pdev,
+ 					(dma_addr_t)rxdp3->Buffer0_ptr,
+ 					BUF0_LEN, PCI_DMA_FROMDEVICE);
+@@ -7187,7 +7193,7 @@ static int s2io_card_up(struct s2io_nic 
+ 
+ 	for (i = 0; i < config->rx_ring_num; i++) {
+ 		mac_control->rings[i].mtu = dev->mtu;
+-		ret = fill_rx_buffers(&mac_control->rings[i], 1);
++		ret = fill_rx_buffers(sp, &mac_control->rings[i], 1);
+ 		if (ret) {
+ 			DBG_PRINT(ERR_DBG, "%s: Out of memory in Open\n",
+ 				  dev->name);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,6 +222,9 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 uninline-arch_pick_mmap_layout.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
+dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
