@@ -1,97 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-fix-typos-in-messages-and-comments-journalled-journaled.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:56:21 -0700
-Message-ID: <200807252256.m6PMuLbo003079__28155.2742155784$1217026695$gmane$org@imap1.linux-foundation.org>
+Subject: - ext3-fix-synchronization-of-quota-files-in-journal=data-mode.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:56:18 -0700
+Message-ID: <200807252256.m6PMuID7003076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43340 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58571 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753194AbYGYW4z (ORCPT
+	by vger.kernel.org with ESMTP id S1753422AbYGYW4z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 25 Jul 2008 18:56:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: jack@suse.cz, gentuu@gmail.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: fix typos in messages and comments (journalled -> journaled)
+     ext3: fix synchronization of quota files in journal=data mode
 has been removed from the -mm tree.  Its filename was
-     ext3-fix-typos-in-messages-and-comments-journalled-journaled.patch
+     ext3-fix-synchronization-of-quota-files-in-journal=data-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: fix typos in messages and comments (journalled -> journaled)
+Subject: ext3: fix synchronization of quota files in journal=data mode
 From: Jan Kara <jack@suse.cz>
 
+In journal=data mode, it is not enough to do write_inode_now as done in
+vfs_quota_on() to write all data to their final location (which is needed for
+quota_read to work correctly).  Calling journal_flush() does its job.
+
+Reported-by: Nick <gentuu@gmail.com>
 Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/ext3/super.c |   35 +++++++++++++++++++++++++++--------
+ 1 file changed, 27 insertions(+), 8 deletions(-)
 
-diff -puN fs/ext3/super.c~ext3-fix-typos-in-messages-and-comments-journalled-journaled fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-fix-typos-in-messages-and-comments-journalled-journaled
+diff -puN fs/ext3/super.c~ext3-fix-synchronization-of-quota-files-in-journal=data-mode fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-fix-synchronization-of-quota-files-in-journal=data-mode
 +++ a/fs/ext3/super.c
-@@ -1020,7 +1020,7 @@ static int parse_options (char *options,
- set_qf_name:
- 			if (sb_any_quota_enabled(sb)) {
- 				printk(KERN_ERR
--					"EXT3-fs: Cannot change journalled "
-+					"EXT3-fs: Cannot change journaled "
- 					"quota options when quota turned on.\n");
- 				return 0;
- 			}
-@@ -1058,7 +1058,7 @@ set_qf_name:
- clear_qf_name:
- 			if (sb_any_quota_enabled(sb)) {
- 				printk(KERN_ERR "EXT3-fs: Cannot change "
--					"journalled quota options when "
-+					"journaled quota options when "
- 					"quota turned on.\n");
- 				return 0;
- 			}
-@@ -1169,14 +1169,14 @@ clear_qf_name:
- 		}
+@@ -2759,23 +2759,42 @@ static int ext3_quota_on(struct super_bl
  
- 		if (!sbi->s_jquota_fmt) {
--			printk(KERN_ERR "EXT3-fs: journalled quota format "
-+			printk(KERN_ERR "EXT3-fs: journaled quota format "
- 					"not specified.\n");
- 			return 0;
- 		}
- 	} else {
- 		if (sbi->s_jquota_fmt) {
--			printk(KERN_ERR "EXT3-fs: journalled quota format "
--					"specified with no journalling "
-+			printk(KERN_ERR "EXT3-fs: journaled quota format "
-+					"specified with no journaling "
- 					"enabled.\n");
- 			return 0;
- 		}
-@@ -1370,7 +1370,7 @@ static void ext3_orphan_cleanup (struct 
- 			int ret = ext3_quota_on_mount(sb, i);
- 			if (ret < 0)
- 				printk(KERN_ERR
--					"EXT3-fs: Cannot turn on journalled "
-+					"EXT3-fs: Cannot turn on journaled "
- 					"quota: error %d\n", ret);
- 		}
+ 	if (!test_opt(sb, QUOTA))
+ 		return -EINVAL;
+-	/* Not journalling quota or remount? */
+-	if ((!EXT3_SB(sb)->s_qf_names[USRQUOTA] &&
+-	    !EXT3_SB(sb)->s_qf_names[GRPQUOTA]) || remount)
++	/* When remounting, no checks are needed and in fact, path is NULL */
++	if (remount)
+ 		return vfs_quota_on(sb, type, format_id, path, remount);
++
+ 	err = path_lookup(path, LOOKUP_FOLLOW, &nd);
+ 	if (err)
+ 		return err;
++
+ 	/* Quotafile not on the same filesystem? */
+ 	if (nd.path.mnt->mnt_sb != sb) {
+ 		path_put(&nd.path);
+ 		return -EXDEV;
  	}
-@@ -2712,7 +2712,7 @@ static int ext3_release_dquot(struct dqu
- 
- static int ext3_mark_dquot_dirty(struct dquot *dquot)
- {
--	/* Are we journalling quotas? */
-+	/* Are we journaling quotas? */
- 	if (EXT3_SB(dquot->dq_sb)->s_qf_names[USRQUOTA] ||
- 	    EXT3_SB(dquot->dq_sb)->s_qf_names[GRPQUOTA]) {
- 		dquot_mark_dquot_dirty(dquot);
+-	/* Quotafile not in fs root? */
+-	if (nd.path.dentry->d_parent->d_inode != sb->s_root->d_inode)
+-		printk(KERN_WARNING
+-			"EXT3-fs: Quota file not on filesystem root. "
+-			"Journalled quota will not work.\n");
++	/* Journaling quota? */
++	if (EXT3_SB(sb)->s_qf_names[type]) {
++		/* Quotafile not of fs root? */
++		if (nd.path.dentry->d_parent->d_inode != sb->s_root->d_inode)
++			printk(KERN_WARNING
++				"EXT3-fs: Quota file not on filesystem root. "
++				"Journaled quota will not work.\n");
++	}
++
++	/*
++	 * When we journal data on quota file, we have to flush journal to see
++	 * all updates to the file when we bypass pagecache...
++	 */
++	if (ext3_should_journal_data(nd.path.dentry->d_inode)) {
++		/*
++		 * We don't need to lock updates but journal_flush() could
++		 * otherwise be livelocked...
++		 */
++		journal_lock_updates(EXT3_SB(sb)->s_journal);
++		journal_flush(EXT3_SB(sb)->s_journal);
++		journal_unlock_updates(EXT3_SB(sb)->s_journal);
++	}
++
+ 	path_put(&nd.path);
+ 	return vfs_quota_on(sb, type, format_id, path, remount);
+ }
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
