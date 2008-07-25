@@ -1,105 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - cgroup-files-move-notify_on_release-file-to-separate-write-handler.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:58:18 -0700
-Message-ID: <200807252258.m6PMwIkE003275@imap1.linux-foundation.org>
+Subject: - posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:59:18 -0700
+Message-ID: <200807252259.m6PMxIf4003368@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37961 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54784 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757850AbYGYXMp (ORCPT
+	by vger.kernel.org with ESMTP id S1757909AbYGYXNN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:12:45 -0400
+	Fri, 25 Jul 2008 19:13:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, pj@sgi.com, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, johnstul@us.ibm.com, roland@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroup files: move notify_on_release file to separate write handler
+     posix timers: release_posix_timer: kill the bogus put_task_struct(->it_process);
 has been removed from the -mm tree.  Its filename was
-     cgroup-files-move-notify_on_release-file-to-separate-write-handler.patch
+     posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup files: move notify_on_release file to separate write handler
-From: Paul Menage <menage@google.com>
+Subject: posix timers: release_posix_timer: kill the bogus put_task_struct(->it_process);
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-This patch moves the write handler for the cgroups notify_on_release
-file into a separate handler. This handler requires no cgroups locking
-since it relies on atomic bitops for synchronization.
+release_posix_timer() can't be called with ->it_process != NULL.  Once
+sys_timer_create() sets ->it_process it must not call
+release_posix_timer(), otherwise we can race with another thread doing
+sys_timer_delete(), this timer is visible to idr_find() and unlocked.
 
-Signed-off-by: Paul Menage <menage@google.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+The same is true for two other callers (actually, for any possible
+caller), sys_timer_delete() and itimer_delete().  They must clear
+->it_process before unlock_timer() + release_posix_timer().
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Roland McGrath <roland@redhat.com>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ kernel/posix-timers.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroup-files-move-notify_on_release-file-to-separate-write-handler kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-files-move-notify_on_release-file-to-separate-write-handler
-+++ a/kernel/cgroup.c
-@@ -1474,13 +1474,6 @@ static ssize_t cgroup_common_file_write(
- 	case FILE_TASKLIST:
- 		retval = attach_task_by_pid(cgrp, buffer);
- 		break;
--	case FILE_NOTIFY_ON_RELEASE:
--		clear_bit(CGRP_RELEASABLE, &cgrp->flags);
--		if (simple_strtoul(buffer, NULL, 10) != 0)
--			set_bit(CGRP_NOTIFY_ON_RELEASE, &cgrp->flags);
--		else
--			clear_bit(CGRP_NOTIFY_ON_RELEASE, &cgrp->flags);
--		break;
- 	default:
- 		retval = -EINVAL;
- 		goto out2;
-@@ -2252,6 +2245,18 @@ static u64 cgroup_read_notify_on_release
- 	return notify_on_release(cgrp);
+diff -puN kernel/posix-timers.c~posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process kernel/posix-timers.c
+--- a/kernel/posix-timers.c~posix-timers-release_posix_timer-kill-the-bogus-put_task_struct-it_process
++++ a/kernel/posix-timers.c
+@@ -449,9 +449,6 @@ static void release_posix_timer(struct k
+ 		spin_unlock_irqrestore(&idr_lock, flags);
+ 	}
+ 	sigqueue_free(tmr->sigq);
+-	if (unlikely(tmr->it_process) &&
+-	    tmr->it_sigev_notify == (SIGEV_SIGNAL|SIGEV_THREAD_ID))
+-		put_task_struct(tmr->it_process);
+ 	kmem_cache_free(posix_timers_cache, tmr);
  }
  
-+static int cgroup_write_notify_on_release(struct cgroup *cgrp,
-+					  struct cftype *cft,
-+					  u64 val)
-+{
-+	clear_bit(CGRP_RELEASABLE, &cgrp->flags);
-+	if (val)
-+		set_bit(CGRP_NOTIFY_ON_RELEASE, &cgrp->flags);
-+	else
-+		clear_bit(CGRP_NOTIFY_ON_RELEASE, &cgrp->flags);
-+	return 0;
-+}
-+
- /*
-  * for the common functions, 'private' gives the type of file
-  */
-@@ -2268,7 +2273,7 @@ static struct cftype files[] = {
- 	{
- 		.name = "notify_on_release",
- 		.read_u64 = cgroup_read_notify_on_release,
--		.write = cgroup_common_file_write,
-+		.write_u64 = cgroup_write_notify_on_release,
- 		.private = FILE_NOTIFY_ON_RELEASE,
- 	},
- };
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-make-cgroup_seqfile_release-static.patch
-add-a-refcount-check-in-dput.patch
+linux-next.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
+tracehook-add-linux-tracehookh.patch
+tracehook-exec.patch
+tracehook-unexport-ptrace_notify.patch
+tracehook-exit.patch
+tracehook-clone.patch
+tracehook-vfork-done.patch
+tracehook-release_task.patch
+tracehook-tracehook_tracer_task.patch
+tracehook-tracehook_expect_breakpoints.patch
+tracehook-tracehook_signal_handler.patch
+tracehook-tracehook_consider_ignored_signal.patch
+tracehook-tracehook_consider_fatal_signal.patch
+tracehook-syscall.patch
+tracehook-get_signal_to_deliver.patch
+tracehook-job-control.patch
+tracehook-death.patch
+tracehook-force-signal_pending.patch
+tracehook-tif_notify_resume.patch
+tracehook-asm-syscallh.patch
+tracehook-config_have_arch_tracehook.patch
+tracehook-wait_task_inactive.patch
+task_current_syscall.patch
+proc-pid-syscall.patch
 
