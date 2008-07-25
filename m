@@ -1,51 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - inith-remove-obsolete-content-from.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:55:08 -0700
-Message-ID: <200807252255.m6PMt8AY002951@imap1.linux-foundation.org>
+Subject: - drivers-power-fix-platform-driver-hotplug-coldplug.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:54:59 -0700
+Message-ID: <200807252255.m6PMsxtE002864@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37577 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56654 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752316AbYGYWzn (ORCPT
+	by vger.kernel.org with ESMTP id S1752897AbYGYWzt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:55:43 -0400
+	Fri, 25 Jul 2008 18:55:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@crashcourse.ca, mm-commits@vger.kernel.org
+To: kay.sievers@vrfy.org, dbrownell@users.sourceforge.net, greg@kroah.com, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     init.h: remove obsolete content
+     drivers/power: fix platform driver hotplug/coldplug
 has been removed from the -mm tree.  Its filename was
-     inith-remove-obsolete-content-from.patch
+     drivers-power-fix-platform-driver-hotplug-coldplug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init.h: remove obsolete content
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: drivers/power: fix platform driver hotplug/coldplug
+From: Kay Sievers <kay.sievers@vrfy.org>
 
-Remove apparently obsolete content from init.h referring to gcc 2.9x
-and to "no_module_init".
+Since 43cc71eed1250755986da4c0f9898f9a635cb3bf ("platform: prefix MODALIAS
+with "platform:"), the platform modalias is prefixed with "platform:". 
+Add MODULE_ALIAS() to the hotpluggable "power" drivers drivers, to
+re-enable auto loading.
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+[dbrownell@users.sourceforge.net: one was missing]
+Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init.h |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ drivers/power/ds2760_battery.c |    2 ++
+ drivers/power/pda_power.c      |    2 ++
+ 2 files changed, 4 insertions(+)
 
-diff -puN include/linux/init.h~inith-remove-obsolete-content-from include/linux/init.h
---- a/include/linux/init.h~inith-remove-obsolete-content-from
-+++ a/include/linux/init.h
-@@ -275,13 +275,7 @@ void __init parse_early_param(void);
+diff -puN drivers/power/ds2760_battery.c~drivers-power-fix-platform-driver-hotplug-coldplug drivers/power/ds2760_battery.c
+--- a/drivers/power/ds2760_battery.c~drivers-power-fix-platform-driver-hotplug-coldplug
++++ a/drivers/power/ds2760_battery.c
+@@ -433,6 +433,8 @@ static int ds2760_battery_resume(struct 
  
- #define security_initcall(fn)		module_init(fn)
+ #endif /* CONFIG_PM */
  
--/* These macros create a dummy inline: gcc 2.9x does not count alias
-- as usage, hence the `unused function' warning when __init functions
-- are declared static. We use the dummy __*_module_inline functions
-- both to kill the warning and check the type of the init/cleanup
-- function. */
++MODULE_ALIAS("platform:ds2760-battery");
++
+ static struct platform_driver ds2760_battery_driver = {
+ 	.driver = {
+ 		.name = "ds2760-battery",
+diff -puN drivers/power/pda_power.c~drivers-power-fix-platform-driver-hotplug-coldplug drivers/power/pda_power.c
+--- a/drivers/power/pda_power.c~drivers-power-fix-platform-driver-hotplug-coldplug
++++ a/drivers/power/pda_power.c
+@@ -362,6 +362,8 @@ static int pda_power_resume(struct platf
+ #define pda_power_resume NULL
+ #endif /* CONFIG_PM */
+ 
++MODULE_ALIAS("platform:pda-power");
++
+ static struct platform_driver pda_power_pdrv = {
+ 	.driver = {
+ 		.name = "pda-power",
+_
+
+Patches currently in -mm which might be from kay.sievers@vrfy.org are
+
+origin.patch
+linux-next.patch
+use-warn-in-drivers-base.patch
+
