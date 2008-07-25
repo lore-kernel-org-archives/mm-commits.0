@@ -1,58 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - taskstats-remove-initialization-of-static-per-cpu-variable.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:03:23 -0700
-Message-ID: <200807252303.m6PN3NBN003950@imap1.linux-foundation.org>
+Subject: - edac-i5100-fix-unmask-ecc-bits.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:03:54 -0700
+Message-ID: <200807252303.m6PN3s61003994@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54580 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40902 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753614AbYGYXD5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753980AbYGYXEg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:03:57 -0400
+	Fri, 25 Jul 2008 19:04:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vegard.nossum@gmail.com, balbir@in.ibm.com, nagar@watson.ibm.com, mm-commits@vger.kernel.org
+To: ajones@riverbed.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     taskstats: remove initialization of static per-cpu variable
+     edac: i5100 fix unmask ecc bits
 has been removed from the -mm tree.  Its filename was
-     taskstats-remove-initialization-of-static-per-cpu-variable.patch
+     edac-i5100-fix-unmask-ecc-bits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: taskstats: remove initialization of static per-cpu variable
-From: Vegard Nossum <vegard.nossum@gmail.com>
+Subject: edac: i5100 fix unmask ecc bits
+From: Arthur Jones <ajones@riverbed.com>
 
-Cc: Shailabh Nagar <nagar@watson.ibm.com>
-Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Explicitly unmask ECC errors we are interested in reporting.
+
+Signed-off-by: Arthur Jones <ajones@riverbed.com>
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/edac/i5100_edac.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN kernel/taskstats.c~taskstats-remove-initialization-of-static-per-cpu-variable kernel/taskstats.c
---- a/kernel/taskstats.c~taskstats-remove-initialization-of-static-per-cpu-variable
-+++ a/kernel/taskstats.c
-@@ -35,7 +35,7 @@
-  */
- #define TASKSTATS_CPUMASK_MAXLEN	(100+6*NR_CPUS)
+diff -puN drivers/edac/i5100_edac.c~edac-i5100-fix-unmask-ecc-bits drivers/edac/i5100_edac.c
+--- a/drivers/edac/i5100_edac.c~edac-i5100-fix-unmask-ecc-bits
++++ a/drivers/edac/i5100_edac.c
+@@ -75,6 +75,7 @@
+ #define		I5100_FERR_NF_MEM_ANY(a)  ((a) & I5100_FERR_NF_MEM_ANY_MASK)
+ #define	I5100_NERR_NF_MEM	0xa4	/* MC Next Non-Fatal Errors */
+ #define		I5100_NERR_NF_MEM_ANY(a)  I5100_FERR_NF_MEM_ANY(a)
++#define I5100_EMASK_MEM		0xa8	/* MC Error Mask Register */
  
--static DEFINE_PER_CPU(__u32, taskstats_seqnum) = { 0 };
-+static DEFINE_PER_CPU(__u32, taskstats_seqnum);
- static int family_registered;
- struct kmem_cache *taskstats_cache;
+ /* device 21 and 22, func 0 */
+ #define I5100_MTR_0	0x154	/* Memory Technology Registers 0-3 */
+@@ -709,6 +710,11 @@ static int __devinit i5100_init_one(stru
+ 		goto bail;
+ 	}
  
++	/* enable error reporting... */
++	pci_read_config_dword(pdev, I5100_EMASK_MEM, &dw);
++	dw &= ~I5100_FERR_NF_MEM_ANY_MASK;
++	pci_write_config_dword(pdev, I5100_EMASK_MEM, dw);
++
+ 	/* device 21, func 0, Channel 0 Memory Map, Error Flag/Mask, etc... */
+ 	ch0mm = pci_get_device_func(PCI_VENDOR_ID_INTEL,
+ 				    PCI_DEVICE_ID_INTEL_5100_21, 0);
 _
 
-Patches currently in -mm which might be from vegard.nossum@gmail.com are
+Patches currently in -mm which might be from ajones@riverbed.com are
 
 origin.patch
-linux-next.patch
-parisc-fix-incomplete-header-guard.patch
 
