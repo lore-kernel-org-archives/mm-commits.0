@@ -1,190 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - idr-rename-some-of-the-idr-apis-internal-routines.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:00:37 -0700
-Message-ID: <200807252300.m6PN0bG5003600@imap1.linux-foundation.org>
+Subject: - rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:01:24 -0700
+Message-ID: <200807252301.m6PN1O78003705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48253 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43618 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752909AbYGYXCN (ORCPT
+	by vger.kernel.org with ESMTP id S1753047AbYGYXCT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:02:13 -0400
+	Fri, 25 Jul 2008 19:02:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Nadia.Derbey@bull.net, jim.houston@comcast.net, manfred@colorfullife.com, paulmck@us.ibm.com, peifferp@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     idr: rename some of the idr APIs internal routines
+     rio: push down the BKL into the firmware ioctl handler
 has been removed from the -mm tree.  Its filename was
-     idr-rename-some-of-the-idr-apis-internal-routines.patch
+     rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: idr: rename some of the idr APIs internal routines
-From: Nadia Derbey <Nadia.Derbey@bull.net>
+Subject: rio: push down the BKL into the firmware ioctl handler
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-This is a trivial patch that renames:
+TTY side is already done.
 
-   . alloc_layer to get_from_free_list since it idr_pre_get that actually
-     allocates memory.
-   . free_layer to move_to_free_list since memory is not actually freed there.
-
-This makes things more clear for the next patches.
-
-Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
-Reviewed-by: "Paul E. McKenney" <paulmck@us.ibm.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Jim Houston <jim.houston@comcast.net>
-Cc: Pierre Peiffer <peifferp@gmail.com>
-Acked-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |   31 ++++++++++++++++---------------
- 1 file changed, 16 insertions(+), 15 deletions(-)
+ drivers/char/rio/rio_linux.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN lib/idr.c~idr-rename-some-of-the-idr-apis-internal-routines lib/idr.c
---- a/lib/idr.c~idr-rename-some-of-the-idr-apis-internal-routines
-+++ a/lib/idr.c
-@@ -35,7 +35,7 @@
+diff -puN drivers/char/rio/rio_linux.c~rio-push-down-the-bkl-into-the-firmware-ioctl-handler drivers/char/rio/rio_linux.c
+--- a/drivers/char/rio/rio_linux.c~rio-push-down-the-bkl-into-the-firmware-ioctl-handler
++++ a/drivers/char/rio/rio_linux.c
+@@ -179,7 +179,7 @@ static int rio_set_real_termios(void *pt
+ static void rio_hungup(void *ptr);
+ static void rio_close(void *ptr);
+ static int rio_chars_in_buffer(void *ptr);
+-static int rio_fw_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsigned long arg);
++static long rio_fw_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+ static int rio_init_drivers(void);
  
- static struct kmem_cache *idr_layer_cache;
+ static void my_hd(void *addr, int len);
+@@ -240,7 +240,7 @@ static struct real_driver rio_real_drive
  
--static struct idr_layer *alloc_layer(struct idr *idp)
-+static struct idr_layer *get_from_free_list(struct idr *idp)
+ static const struct file_operations rio_fw_fops = {
+ 	.owner = THIS_MODULE,
+-	.ioctl = rio_fw_ioctl,
++	.unlocked_ioctl = rio_fw_ioctl,
+ };
+ 
+ static struct miscdevice rio_fw_device = {
+@@ -560,13 +560,15 @@ static void rio_close(void *ptr)
+ 
+ 
+ 
+-static int rio_fw_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, unsigned long arg)
++static long rio_fw_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
  {
- 	struct idr_layer *p;
- 	unsigned long flags;
-@@ -51,14 +51,14 @@ static struct idr_layer *alloc_layer(str
- }
+ 	int rc = 0;
+ 	func_enter();
  
- /* only called when idp->lock is held */
--static void __free_layer(struct idr *idp, struct idr_layer *p)
-+static void __move_to_free_list(struct idr *idp, struct idr_layer *p)
- {
- 	p->ary[0] = idp->id_free;
- 	idp->id_free = p;
- 	idp->id_free_cnt++;
- }
+ 	/* The "dev" argument isn't used. */
++	lock_kernel();
+ 	rc = riocontrol(p, 0, cmd, arg, capable(CAP_SYS_ADMIN));
++	unlock_kernel();
  
--static void free_layer(struct idr *idp, struct idr_layer *p)
-+static void move_to_free_list(struct idr *idp, struct idr_layer *p)
- {
- 	unsigned long flags;
- 
-@@ -66,7 +66,7 @@ static void free_layer(struct idr *idp, 
- 	 * Depends on the return element being zeroed.
- 	 */
- 	spin_lock_irqsave(&idp->lock, flags);
--	__free_layer(idp, p);
-+	__move_to_free_list(idp, p);
- 	spin_unlock_irqrestore(&idp->lock, flags);
- }
- 
-@@ -109,7 +109,7 @@ int idr_pre_get(struct idr *idp, gfp_t g
- 		new = kmem_cache_alloc(idr_layer_cache, gfp_mask);
- 		if (new == NULL)
- 			return (0);
--		free_layer(idp, new);
-+		move_to_free_list(idp, new);
- 	}
- 	return 1;
- }
-@@ -167,7 +167,8 @@ static int sub_alloc(struct idr *idp, in
- 		 * Create the layer below if it is missing.
- 		 */
- 		if (!p->ary[m]) {
--			if (!(new = alloc_layer(idp)))
-+			new = get_from_free_list(idp);
-+			if (!new)
- 				return -1;
- 			p->ary[m] = new;
- 			p->count++;
-@@ -192,7 +193,7 @@ build_up:
- 	p = idp->top;
- 	layers = idp->layers;
- 	if (unlikely(!p)) {
--		if (!(p = alloc_layer(idp)))
-+		if (!(p = get_from_free_list(idp)))
- 			return -1;
- 		layers = 1;
- 	}
-@@ -204,7 +205,7 @@ build_up:
- 		layers++;
- 		if (!p->count)
- 			continue;
--		if (!(new = alloc_layer(idp))) {
-+		if (!(new = get_from_free_list(idp))) {
- 			/*
- 			 * The allocation failed.  If we built part of
- 			 * the structure tear it down.
-@@ -214,7 +215,7 @@ build_up:
- 				p = p->ary[0];
- 				new->ary[0] = NULL;
- 				new->bitmap = new->count = 0;
--				__free_layer(idp, new);
-+				__move_to_free_list(idp, new);
- 			}
- 			spin_unlock_irqrestore(&idp->lock, flags);
- 			return -1;
-@@ -351,7 +352,7 @@ static void sub_remove(struct idr *idp, 
- 		__clear_bit(n, &p->bitmap);
- 		p->ary[n] = NULL;
- 		while(*paa && ! --((**paa)->count)){
--			free_layer(idp, **paa);
-+			move_to_free_list(idp, **paa);
- 			**paa-- = NULL;
- 		}
- 		if (!*paa)
-@@ -378,12 +379,12 @@ void idr_remove(struct idr *idp, int id)
- 
- 		p = idp->top->ary[0];
- 		idp->top->bitmap = idp->top->count = 0;
--		free_layer(idp, idp->top);
-+		move_to_free_list(idp, idp->top);
- 		idp->top = p;
- 		--idp->layers;
- 	}
- 	while (idp->id_free_cnt >= IDR_FREE_MAX) {
--		p = alloc_layer(idp);
-+		p = get_from_free_list(idp);
- 		kmem_cache_free(idr_layer_cache, p);
- 	}
- 	return;
-@@ -426,7 +427,7 @@ void idr_remove_all(struct idr *idp)
- 		while (n < fls(id)) {
- 			if (p) {
- 				memset(p, 0, sizeof *p);
--				free_layer(idp, p);
-+				move_to_free_list(idp, p);
- 			}
- 			n += IDR_BITS;
- 			p = *--paa;
-@@ -444,7 +445,7 @@ EXPORT_SYMBOL(idr_remove_all);
- void idr_destroy(struct idr *idp)
- {
- 	while (idp->id_free_cnt) {
--		struct idr_layer *p = alloc_layer(idp);
-+		struct idr_layer *p = get_from_free_list(idp);
- 		kmem_cache_free(idr_layer_cache, p);
- 	}
- }
-@@ -749,7 +750,7 @@ int ida_get_new_above(struct ida *ida, i
- 	 * allocation.
- 	 */
- 	if (ida->idr.id_free_cnt || ida->free_bitmap) {
--		struct idr_layer *p = alloc_layer(&ida->idr);
-+		struct idr_layer *p = get_from_free_list(&ida->idr);
- 		if (p)
- 			kmem_cache_free(idr_layer_cache, p);
- 	}
+ 	func_exit();
+ 	return rc;
 _
 
-Patches currently in -mm which might be from Nadia.Derbey@bull.net are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
+hugetlb-fix-config_sysctl=n-build.patch
+add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets.patch
+pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
+isa-set-24-bit-dma_mask-for-isa-devices.patch
+char-merge-ip2main-and-ip2base.patch
+char-ip2-cleanup-globals.patch
+char-ip2-fix-sparse-warnings.patch
+char-ip2-init-deinit-cleanup.patch
+ip2-avoid-add_timer-with-pending-timer.patch
 
