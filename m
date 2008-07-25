@@ -1,91 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - res_counter-limit-change-support-ebusy.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:59:00 -0700
-Message-ID: <200807252259.m6PMx0jY003335@imap1.linux-foundation.org>
+Subject: - cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:59:05 -0700
+Message-ID: <200807252259.m6PMx5d6003350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47691 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39758 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754690AbYGYXG6 (ORCPT
+	by vger.kernel.org with ESMTP id S1755317AbYGYXHE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:06:58 -0400
+	Fri, 25 Jul 2008 19:07:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, menage@google.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: miaox@cn.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, pj@sgi.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     res_counter: limit change support ebusy
+     cpusets: update task's cpus_allowed and mems_allowed after CPU/NODE offline/online
 has been removed from the -mm tree.  Its filename was
-     res_counter-limit-change-support-ebusy.patch
+     cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: res_counter: limit change support ebusy
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: cpusets: update task's cpus_allowed and mems_allowed after CPU/NODE offline/online
+From: Miao Xie <miaox@cn.fujitsu.com>
 
-Add an interface to set limit.  This is necessary to memory resource
-controller because it shrinks usage at set limit.
+The bug is that a task may run on the cpu/node which is not in its
+cpuset.cpus/ cpuset.mems.
 
-Other controllers may not need this interface to shrink usage because
-shrinking is not necessary or impossible.
+It can be reproduced by the following commands:
+-----------------------------------
+# mkdir /dev/cpuset
+# mount -t cpuset xxx /dev/cpuset
+# mkdir /dev/cpuset/0
+# echo 0-1 > /dev/cpuset/0/cpus
+# echo 0 > /dev/cpuset/0/mems
+# echo $$ > /dev/cpuset/0/tasks
+# echo 0 > /sys/devices/system/cpu/cpu1/online
+# echo 1 > /sys/devices/system/cpu/cpu1/online
+-----------------------------------
 
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Acked-by: Pavel Emelyanov <xemul@openvz.org>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+There is only CPU0 in cpuset.cpus, but the task in this cpuset runs on
+both CPU0 and CPU1.
+
+It is because the task's cpu_allowed didn't get updated after we did CPU
+offline/online manipulation.  Similar for mem_allowed.
+
+This patch fixes this bug expect for root cpuset.  Because there is a
+problem about root cpuset, in that whether it is necessary to update all
+the tasks in root cpuset or not after cpu/node offline/online.
+
+If updating, some kernel threads which is bound into a specified cpu will
+be unbound.
+
+If not updating, there is a bug in root cpuset.  This bug is also caused
+by offline/online manipulation.  For example, there is a dual-cpu machine.
+ we create a sub cpuset in root cpuset and assign 1 to its cpus.  And then
+we attach some tasks into this sub cpuset.  After this, we offline CPU1. 
+Now, the tasks in this new cpuset are moved into root cpuset automatically
+because there is no cpu in sub cpuset.  Then we online CPU1, we find all
+the tasks which doesn't belong to root cpuset originally just run on CPU0.
+
+Maybe we need to add a flag in the task_struct to mark which task can't be
+unbound?
+
+Signed-off-by: Miao Xie <miaox@cn.fujitsu.com>
+Acked-by: Paul Jackson <pj@sgi.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Jackson <pj@sgi.com>
 Cc: Paul Menage <menage@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/res_counter.h |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ kernel/cpuset.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN include/linux/res_counter.h~res_counter-limit-change-support-ebusy include/linux/res_counter.h
---- a/include/linux/res_counter.h~res_counter-limit-change-support-ebusy
-+++ a/include/linux/res_counter.h
-@@ -158,4 +158,20 @@ static inline void res_counter_reset_fai
- 	cnt->failcnt = 0;
- 	spin_unlock_irqrestore(&cnt->lock, flags);
+diff -puN kernel/cpuset.c~cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online kernel/cpuset.c
+--- a/kernel/cpuset.c~cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online
++++ a/kernel/cpuset.c
+@@ -1851,6 +1851,7 @@ static void scan_for_empty_cpusets(const
+ 	struct cpuset *child;	/* scans child cpusets of cp */
+ 	struct list_head queue;
+ 	struct cgroup *cont;
++	nodemask_t oldmems;
+ 
+ 	INIT_LIST_HEAD(&queue);
+ 
+@@ -1870,6 +1871,8 @@ static void scan_for_empty_cpusets(const
+ 		    nodes_subset(cp->mems_allowed, node_states[N_HIGH_MEMORY]))
+ 			continue;
+ 
++		oldmems = cp->mems_allowed;
++
+ 		/* Remove offline cpus and mems from this cpuset. */
+ 		mutex_lock(&callback_mutex);
+ 		cpus_and(cp->cpus_allowed, cp->cpus_allowed, cpu_online_map);
+@@ -1881,6 +1884,10 @@ static void scan_for_empty_cpusets(const
+ 		if (cpus_empty(cp->cpus_allowed) ||
+ 		     nodes_empty(cp->mems_allowed))
+ 			remove_tasks_in_empty_cpuset(cp);
++		else {
++			update_tasks_cpumask(cp);
++			update_tasks_nodemask(cp, &oldmems);
++		}
+ 	}
  }
-+
-+static inline int res_counter_set_limit(struct res_counter *cnt,
-+		unsigned long long limit)
-+{
-+	unsigned long flags;
-+	int ret = -EBUSY;
-+
-+	spin_lock_irqsave(&cnt->lock, flags);
-+	if (cnt->usage < limit) {
-+		cnt->limit = limit;
-+		ret = 0;
-+	}
-+	spin_unlock_irqrestore(&cnt->lock, flags);
-+	return ret;
-+}
-+
- #endif
+ 
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from miaox@cn.fujitsu.com are
 
 origin.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
-define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
-vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
-vmscan-second-chance-replacement-for-anonymous-pages-fix.patch
-vmscan-second-chance-replacement-for-anonymous-pages-memcg-lru-scan-fix.patch
-unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework.patch
-mlock-mlocked-pages-are-unevictable-fix-truncate-race-and-sevaral-comments.patch
-fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
-restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch
 
