@@ -1,156 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - coredump-elf_core_dump-use-core_state-dumper-list.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:00:02 -0700
-Message-ID: <200807252300.m6PN02ie003545@imap1.linux-foundation.org>
+Subject: - coredump-turn-mm-core_startup_done-into-the-pointer-to-struct-core_state.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:59:54 -0700
+Message-ID: <200807252259.m6PMxsJO003432@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41729 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40879 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752573AbYGYXAv (ORCPT
+	by vger.kernel.org with ESMTP id S1752573AbYGYXAo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:00:51 -0400
+	Fri, 25 Jul 2008 19:00:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     coredump: elf_core_dump: use core_state->dumper list
+     coredump: turn mm->core_startup_done into the pointer to struct core_state
 has been removed from the -mm tree.  Its filename was
-     coredump-elf_core_dump-use-core_state-dumper-list.patch
+     coredump-turn-mm-core_startup_done-into-the-pointer-to-struct-core_state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump: elf_core_dump: use core_state->dumper list
+Subject: coredump: turn mm->core_startup_done into the pointer to struct core_state
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Kill the nasty rcu_read_lock() + do_each_thread() loop, use the list
-encoded in mm->core_state instead, s/GFP_ATOMIC/GFP_KERNEL/.
+mm->core_startup_done points to "struct completion startup_done" allocated
+on the coredump_wait()'s stack.  Introduce the new structure, core_state,
+which holds this "struct completion".  This way we can add more info
+visible to the threads participating in coredump without enlarging
+mm_struct.
 
-This patch allows futher cleanups in binfmt_elf.c, in particular we can
-kill the parallel info->threads list.
+No changes in affected .o files.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Roland McGrath <roland@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |   77 +++++++++++++++++++---------------------------
- 1 file changed, 32 insertions(+), 45 deletions(-)
+ fs/exec.c                |    8 ++++----
+ include/linux/mm_types.h |    7 ++++++-
+ kernel/exit.c            |    2 +-
+ 3 files changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN fs/binfmt_elf.c~coredump-elf_core_dump-use-core_state-dumper-list fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~coredump-elf_core_dump-use-core_state-dumper-list
-+++ a/fs/binfmt_elf.c
-@@ -1478,7 +1478,7 @@ static int fill_note_info(struct elfhdr 
- 	const struct user_regset_view *view = task_user_regset_view(dump_task);
- 	struct elf_thread_core_info *t;
- 	struct elf_prpsinfo *psinfo;
--	struct task_struct *g, *p;
-+	struct core_thread *ct;
- 	unsigned int i;
- 
- 	info->size = 0;
-@@ -1517,34 +1517,26 @@ static int fill_note_info(struct elfhdr 
- 	/*
- 	 * Allocate a structure for each thread.
- 	 */
--	rcu_read_lock();
--	do_each_thread(g, p)
--		if (p->mm == dump_task->mm) {
--			if (p->flags & PF_KTHREAD)
--				continue;
--
--			t = kzalloc(offsetof(struct elf_thread_core_info,
--					     notes[info->thread_notes]),
--				    GFP_ATOMIC);
--			if (unlikely(!t)) {
--				rcu_read_unlock();
--				return 0;
--			}
--			t->task = p;
--			if (p == dump_task || !info->thread) {
--				t->next = info->thread;
--				info->thread = t;
--			} else {
--				/*
--				 * Make sure to keep the original task at
--				 * the head of the list.
--				 */
--				t->next = info->thread->next;
--				info->thread->next = t;
--			}
-+	for (ct = &dump_task->mm->core_state->dumper; ct; ct = ct->next) {
-+		t = kzalloc(offsetof(struct elf_thread_core_info,
-+				     notes[info->thread_notes]),
-+			    GFP_KERNEL);
-+		if (unlikely(!t))
-+			return 0;
-+
-+		t->task = ct->task;
-+		if (ct->task == dump_task || !info->thread) {
-+			t->next = info->thread;
-+			info->thread = t;
-+		} else {
-+			/*
-+			 * Make sure to keep the original task at
-+			 * the head of the list.
-+			 */
-+			t->next = info->thread->next;
-+			info->thread->next = t;
- 		}
--	while_each_thread(g, p);
--	rcu_read_unlock();
-+	}
- 
- 	/*
- 	 * Now fill in each thread's information.
-@@ -1691,7 +1683,6 @@ static int fill_note_info(struct elfhdr 
+diff -puN fs/exec.c~coredump-turn-mm-core_startup_done-into-the-pointer-to-struct-core_state fs/exec.c
+--- a/fs/exec.c~coredump-turn-mm-core_startup_done-into-the-pointer-to-struct-core_state
++++ a/fs/exec.c
+@@ -1597,13 +1597,13 @@ static int coredump_wait(int exit_code)
  {
- #define	NUM_NOTES	6
- 	struct list_head *t;
--	struct task_struct *g, *p;
+ 	struct task_struct *tsk = current;
+ 	struct mm_struct *mm = tsk->mm;
+-	struct completion startup_done;
++	struct core_state core_state;
+ 	struct completion *vfork_done;
+ 	int core_waiters;
  
- 	info->notes = NULL;
- 	info->prstatus = NULL;
-@@ -1723,23 +1714,19 @@ static int fill_note_info(struct elfhdr 
+ 	init_completion(&mm->core_done);
+-	init_completion(&startup_done);
+-	mm->core_startup_done = &startup_done;
++	init_completion(&core_state.startup);
++	mm->core_state = &core_state;
  
- 	info->thread_status_size = 0;
- 	if (signr) {
-+		struct core_thread *ct;
- 		struct elf_thread_status *ets;
--		rcu_read_lock();
--		do_each_thread(g, p)
--			if (current->mm == p->mm && current != p) {
--				if (p->flags & PF_KTHREAD)
--					continue;
--
--				ets = kzalloc(sizeof(*ets), GFP_ATOMIC);
--				if (!ets) {
--					rcu_read_unlock();
--					return 0;
--				}
--				ets->thread = p;
--				list_add(&ets->list, &info->thread_list);
--			}
--		while_each_thread(g, p);
--		rcu_read_unlock();
-+
-+		for (ct = current->mm->core_state->dumper.next;
-+						ct; ct = ct->next) {
-+			ets = kzalloc(sizeof(*ets), GFP_KERNEL);
-+			if (!ets)
-+				return 0;
-+
-+			ets->thread = ct->task;
-+			list_add(&ets->list, &info->thread_list);
-+		}
-+
- 		list_for_each(t, &info->thread_list) {
- 			int sz;
+ 	core_waiters = zap_threads(tsk, mm, exit_code);
+ 	up_write(&mm->mmap_sem);
+@@ -1622,7 +1622,7 @@ static int coredump_wait(int exit_code)
+ 	}
  
+ 	if (core_waiters)
+-		wait_for_completion(&startup_done);
++		wait_for_completion(&core_state.startup);
+ fail:
+ 	BUG_ON(mm->core_waiters);
+ 	return core_waiters;
+diff -puN include/linux/mm_types.h~coredump-turn-mm-core_startup_done-into-the-pointer-to-struct-core_state include/linux/mm_types.h
+--- a/include/linux/mm_types.h~coredump-turn-mm-core_startup_done-into-the-pointer-to-struct-core_state
++++ a/include/linux/mm_types.h
+@@ -159,6 +159,10 @@ struct vm_area_struct {
+ #endif
+ };
+ 
++struct core_state {
++	struct completion startup;
++};
++
+ struct mm_struct {
+ 	struct vm_area_struct * mmap;		/* list of VMAs */
+ 	struct rb_root mm_rb;
+@@ -220,7 +224,8 @@ struct mm_struct {
+ 	unsigned long flags; /* Must use atomic bitops to access the bits */
+ 
+ 	/* coredumping support */
+-	struct completion *core_startup_done, core_done;
++	struct core_state *core_state;
++	struct completion core_done;
+ 
+ 	/* aio bits */
+ 	rwlock_t		ioctx_list_lock;	/* aio lock */
+diff -puN kernel/exit.c~coredump-turn-mm-core_startup_done-into-the-pointer-to-struct-core_state kernel/exit.c
+--- a/kernel/exit.c~coredump-turn-mm-core_startup_done-into-the-pointer-to-struct-core_state
++++ a/kernel/exit.c
+@@ -680,7 +680,7 @@ static void exit_mm(struct task_struct *
+ 		up_read(&mm->mmap_sem);
+ 		down_write(&mm->mmap_sem);
+ 		if (!--mm->core_waiters)
+-			complete(mm->core_startup_done);
++			complete(&mm->core_state->startup);
+ 		up_write(&mm->mmap_sem);
+ 
+ 		wait_for_completion(&mm->core_done);
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
