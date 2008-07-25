@@ -1,504 +1,381 @@
 From: akpm@linux-foundation.org
-Subject: - gpio-max732x-driver.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:56:09 -0700
-Message-ID: <200807252256.m6PMu9x2003064@imap1.linux-foundation.org>
+Subject: - ipc-semc-convert-undo-structures-to-struct-list_head.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:00:52 -0700
+Message-ID: <200807252300.m6PN0qFF003630@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37268 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43600 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755412AbYGYXHO (ORCPT
+	by vger.kernel.org with ESMTP id S1755506AbYGYXHU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:07:14 -0400
+	Fri, 25 Jul 2008 19:07:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eric.miao@marvell.com, dbrownell@users.sourceforge.net, jack.ren@marvell.com, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: manfred@colorfullife.com, Nadia.Derbey@bull.net, peifferp@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio: max732x driver
+     ipc/sem.c: convert undo structures to struct list_head
 has been removed from the -mm tree.  Its filename was
-     gpio-max732x-driver.patch
+     ipc-semc-convert-undo-structures-to-struct-list_head.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: max732x driver
-From: Eric Miao <eric.miao@marvell.com>
+Subject: ipc/sem.c: convert undo structures to struct list_head
+From: Manfred Spraul <manfred@colorfullife.com>
 
-This adds a driver supporting a family of I2C port expanders from Maxim,
-which includes the MAX7319 and MAX7320-7327 chips.
+The undo structures contain two linked lists, the attached patch replaces
+them with generic struct list_head lists.
 
-[dbrownell@users.sourceforge.net: minor fixes]
-Signed-off-by: Jack Ren <jack.ren@marvell.com>
-Signed-off-by: Eric Miao <eric.miao@marvell.com>
-Acked-by: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Nadia Derbey <Nadia.Derbey@bull.net>
+Cc: Pierre Peiffer <peifferp@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/Kconfig        |   19 +
- drivers/gpio/Makefile       |    1 
- drivers/gpio/max732x.c      |  385 ++++++++++++++++++++++++++++++++++
- include/linux/i2c/max732x.h |   19 +
- 4 files changed, 424 insertions(+)
+ include/linux/sem.h |   12 +--
+ ipc/sem.c           |  161 ++++++++++++++++++++++--------------------
+ 2 files changed, 94 insertions(+), 79 deletions(-)
 
-diff -puN drivers/gpio/Kconfig~gpio-max732x-driver drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~gpio-max732x-driver
-+++ a/drivers/gpio/Kconfig
-@@ -67,6 +67,25 @@ config GPIO_SYSFS
+diff -puN include/linux/sem.h~ipc-semc-convert-undo-structures-to-struct-list_head include/linux/sem.h
+--- a/include/linux/sem.h~ipc-semc-convert-undo-structures-to-struct-list_head
++++ a/include/linux/sem.h
+@@ -95,7 +95,7 @@ struct sem_array {
+ 	struct sem		*sem_base;	/* ptr to first semaphore in array */
+ 	struct sem_queue	*sem_pending;	/* pending operations to be processed */
+ 	struct sem_queue	**sem_pending_last; /* last pending operation */
+-	struct sem_undo		*undo;		/* undo requests on this array */
++	struct list_head	list_id;	/* undo requests on this array */
+ 	unsigned long		sem_nsems;	/* no. of semaphores in array */
+ };
  
- comment "I2C GPIO expanders:"
+@@ -118,8 +118,8 @@ struct sem_queue {
+  * when the process exits.
+  */
+ struct sem_undo {
+-	struct sem_undo *	proc_next;	/* next entry on this process */
+-	struct sem_undo *	id_next;	/* next entry on this semaphore set */
++	struct list_head	list_proc;	/* per-process list: all undos from one process */
++	struct list_head	list_id;	/* per semaphore array list: all undos for one array */
+ 	int			semid;		/* semaphore set identifier */
+ 	short *			semadj;		/* array of adjustments, one per semaphore */
+ };
+@@ -128,9 +128,9 @@ struct sem_undo {
+  * that may be shared among all a CLONE_SYSVSEM task group.
+  */ 
+ struct sem_undo_list {
+-	atomic_t	refcnt;
+-	spinlock_t	lock;
+-	struct sem_undo	*proc_list;
++	atomic_t		refcnt;
++	spinlock_t		lock;
++	struct list_head	list_proc;
+ };
  
-+config GPIO_MAX732X
-+	tristate "MAX7319, MAX7320-7327 I2C Port Expanders"
-+	depends on I2C
-+	help
-+	  Say yes here to support the MAX7319, MAX7320-7327 series of I2C
-+	  Port Expanders. Each IO port on these chips has a fixed role of
-+	  Input (designated by 'I'), Push-Pull Output ('O'), or Open-Drain
-+	  Input and Output (designed by 'P'). The combinations are listed
-+	  below:
-+
-+	  8 bits:	max7319 (8I), max7320 (8O), max7321 (8P),
-+		  	max7322 (4I4O), max7323 (4P4O)
-+
-+	  16 bits:	max7324 (8I8O), max7325 (8P8O),
-+		  	max7326 (4I12O), max7327 (4P12O)
-+
-+	  Board setup code must specify the model to use, and the start
-+	  number for these GPIOs.
-+
- config GPIO_PCA953X
- 	tristate "PCA953x, PCA955x, and MAX7310 I/O ports"
- 	depends on I2C
-diff -puN drivers/gpio/Makefile~gpio-max732x-driver drivers/gpio/Makefile
---- a/drivers/gpio/Makefile~gpio-max732x-driver
-+++ a/drivers/gpio/Makefile
-@@ -5,6 +5,7 @@ ccflags-$(CONFIG_DEBUG_GPIO)	+= -DDEBUG
- obj-$(CONFIG_GPIOLIB)		+= gpiolib.o
+ struct sysv_sem {
+diff -puN ipc/sem.c~ipc-semc-convert-undo-structures-to-struct-list_head ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-convert-undo-structures-to-struct-list_head
++++ a/ipc/sem.c
+@@ -274,7 +274,7 @@ static int newary(struct ipc_namespace *
+ 	sma->sem_base = (struct sem *) &sma[1];
+ 	/* sma->sem_pending = NULL; */
+ 	sma->sem_pending_last = &sma->sem_pending;
+-	/* sma->undo = NULL; */
++	INIT_LIST_HEAD(&sma->list_id);
+ 	sma->sem_nsems = nsems;
+ 	sma->sem_ctime = get_seconds();
+ 	sem_unlock(sma);
+@@ -536,7 +536,8 @@ static void freeary(struct ipc_namespace
+ 	 * (They will be freed without any further action in exit_sem()
+ 	 * or during the next semop.)
+ 	 */
+-	for (un = sma->undo; un; un = un->id_next)
++	assert_spin_locked(&sma->sem_perm.lock);
++	list_for_each_entry(un, &sma->list_id, list_id)
+ 		un->semid = -1;
  
- obj-$(CONFIG_GPIO_MAX7301)	+= max7301.o
-+obj-$(CONFIG_GPIO_MAX732X)	+= max732x.o
- obj-$(CONFIG_GPIO_MCP23S08)	+= mcp23s08.o
- obj-$(CONFIG_GPIO_PCA953X)	+= pca953x.o
- obj-$(CONFIG_GPIO_PCF857X)	+= pcf857x.o
-diff -puN /dev/null drivers/gpio/max732x.c
---- /dev/null
-+++ a/drivers/gpio/max732x.c
-@@ -0,0 +1,385 @@
-+/*
-+ *  max732x.c - I2C Port Expander with 8/16 I/O
+ 	/* Wake up all pending processes and let them fail with EIDRM. */
+@@ -763,9 +764,12 @@ static int semctl_main(struct ipc_namesp
+ 
+ 		for (i = 0; i < nsems; i++)
+ 			sma->sem_base[i].semval = sem_io[i];
+-		for (un = sma->undo; un; un = un->id_next)
++
++		assert_spin_locked(&sma->sem_perm.lock);
++		list_for_each_entry(un, &sma->list_id, list_id) {
+ 			for (i = 0; i < nsems; i++)
+ 				un->semadj[i] = 0;
++		}
+ 		sma->sem_ctime = get_seconds();
+ 		/* maybe some queued-up processes were waiting for this */
+ 		update_queue(sma);
+@@ -797,12 +801,15 @@ static int semctl_main(struct ipc_namesp
+ 	{
+ 		int val = arg.val;
+ 		struct sem_undo *un;
++
+ 		err = -ERANGE;
+ 		if (val > SEMVMX || val < 0)
+ 			goto out_unlock;
+ 
+-		for (un = sma->undo; un; un = un->id_next)
++		assert_spin_locked(&sma->sem_perm.lock);
++		list_for_each_entry(un, &sma->list_id, list_id)
+ 			un->semadj[semnum] = 0;
++
+ 		curr->semval = val;
+ 		curr->sempid = task_tgid_vnr(current);
+ 		sma->sem_ctime = get_seconds();
+@@ -952,6 +959,8 @@ static inline int get_undo_list(struct s
+ 			return -ENOMEM;
+ 		spin_lock_init(&undo_list->lock);
+ 		atomic_set(&undo_list->refcnt, 1);
++		INIT_LIST_HEAD(&undo_list->list_proc);
++
+ 		current->sysvsem.undo_list = undo_list;
+ 	}
+ 	*undo_listp = undo_list;
+@@ -960,25 +969,30 @@ static inline int get_undo_list(struct s
+ 
+ static struct sem_undo *lookup_undo(struct sem_undo_list *ulp, int semid)
+ {
+-	struct sem_undo **last, *un;
++	struct sem_undo *walk, *tmp;
+ 
+-	last = &ulp->proc_list;
+-	un = *last;
+-	while(un != NULL) {
+-		if(un->semid==semid)
+-			break;
+-		if(un->semid==-1) {
+-			*last=un->proc_next;
+-			kfree(un);
+-		} else {
+-			last=&un->proc_next;
++	assert_spin_locked(&ulp->lock);
++	list_for_each_entry_safe(walk, tmp, &ulp->list_proc, list_proc) {
++		if (walk->semid == semid)
++			return walk;
++		if (walk->semid == -1) {
++			list_del(&walk->list_proc);
++			kfree(walk);
+ 		}
+-		un=*last;
+ 	}
+-	return un;
++	return NULL;
+ }
+ 
+-static struct sem_undo *find_undo(struct ipc_namespace *ns, int semid)
++/**
++ * find_alloc_undo - Lookup (and if not present create) undo array
++ * @ns: namespace
++ * @semid: semaphore array id
 + *
-+ *  Copyright (C) 2007 Marvell International Ltd.
-+ *  Copyright (C) 2008 Jack Ren <jack.ren@marvell.com>
-+ *  Copyright (C) 2008 Eric Miao <eric.miao@marvell.com>
-+ *
-+ *  Derived from drivers/gpio/pca953x.c
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; version 2 of the License.
++ * The function looks up (and if not present creates) the undo structure.
++ * The size of the undo structure depends on the size of the semaphore
++ * array, thus the alloc path is not that straightforward.
 + */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/string.h>
-+#include <linux/gpio.h>
-+
-+#include <linux/i2c.h>
-+#include <linux/i2c/max732x.h>
-+
-+
-+/*
-+ * Each port of MAX732x (including MAX7319) falls into one of the
-+ * following three types:
-+ *
-+ *   - Push Pull Output
-+ *   - Input
-+ *   - Open Drain I/O
-+ *
-+ * designated by 'O', 'I' and 'P' individually according to MAXIM's
-+ * datasheets.
-+ *
-+ * There are two groups of I/O ports, each group usually includes
-+ * up to 8 I/O ports, and is accessed by a specific I2C address:
-+ *
-+ *   - Group A : by I2C address 0b'110xxxx
-+ *   - Group B : by I2C address 0b'101xxxx
-+ *
-+ * where 'xxxx' is decided by the connections of pin AD2/AD0.  The
-+ * address used also affects the initial state of output signals.
-+ *
-+ * Within each group of ports, there are five known combinations of
-+ * I/O ports: 4I4O, 4P4O, 8I, 8P, 8O, see the definitions below for
-+ * the detailed organization of these ports.
-+ *
-+ * GPIO numbers start from 'gpio_base + 0' to 'gpio_base + 8/16',
-+ * and GPIOs from GROUP_A are numbered before those from GROUP_B
-+ * (if there are two groups).
-+ *
-+ * NOTE: MAX7328/MAX7329 are drop-in replacements for PCF8574/a, so
-+ * they are not supported by this driver.
-+ */
-+
-+#define PORT_NONE	0x0	/* '/' No Port */
-+#define PORT_OUTPUT	0x1	/* 'O' Push-Pull, Output Only */
-+#define PORT_INPUT	0x2	/* 'I' Input Only */
-+#define PORT_OPENDRAIN	0x3	/* 'P' Open-Drain, I/O */
-+
-+#define IO_4I4O		0x5AA5	/* O7 O6 I5 I4 I3 I2 O1 O0 */
-+#define IO_4P4O		0x5FF5	/* O7 O6 P5 P4 P3 P2 O1 O0 */
-+#define IO_8I		0xAAAA	/* I7 I6 I5 I4 I3 I2 I1 I0 */
-+#define IO_8P		0xFFFF	/* P7 P6 P5 P4 P3 P2 P1 P0 */
-+#define IO_8O		0x5555	/* O7 O6 O5 O4 O3 O2 O1 O0 */
-+
-+#define GROUP_A(x)	((x) & 0xffff)	/* I2C Addr: 0b'110xxxx */
-+#define GROUP_B(x)	((x) << 16)	/* I2C Addr: 0b'101xxxx */
-+
-+static const struct i2c_device_id max732x_id[] = {
-+	{ "max7319", GROUP_A(IO_8I) },
-+	{ "max7320", GROUP_B(IO_8O) },
-+	{ "max7321", GROUP_A(IO_8P) },
-+	{ "max7322", GROUP_A(IO_4I4O) },
-+	{ "max7323", GROUP_A(IO_4P4O) },
-+	{ "max7324", GROUP_A(IO_8I) | GROUP_B(IO_8O) },
-+	{ "max7325", GROUP_A(IO_8P) | GROUP_B(IO_8O) },
-+	{ "max7326", GROUP_A(IO_4I4O) | GROUP_B(IO_8O) },
-+	{ "max7327", GROUP_A(IO_4P4O) | GROUP_B(IO_8O) },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(i2c, max732x_id);
-+
-+struct max732x_chip {
-+	struct gpio_chip gpio_chip;
-+
-+	struct i2c_client *client;	/* "main" client */
-+	struct i2c_client *client_dummy;
-+	struct i2c_client *client_group_a;
-+	struct i2c_client *client_group_b;
-+
-+	unsigned int	mask_group_a;
-+	unsigned int	dir_input;
-+	unsigned int	dir_output;
-+
-+	struct mutex	lock;
-+	uint8_t		reg_out[2];
-+};
-+
-+static int max732x_write(struct max732x_chip *chip, int group_a, uint8_t val)
-+{
-+	struct i2c_client *client;
-+	int ret;
-+
-+	client = group_a ? chip->client_group_a : chip->client_group_b;
-+	ret = i2c_smbus_write_byte(client, val);
-+	if (ret < 0) {
-+		dev_err(&client->dev, "failed writing\n");
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static int max732x_read(struct max732x_chip *chip, int group_a, uint8_t *val)
-+{
-+	struct i2c_client *client;
-+	int ret;
-+
-+	client = group_a ? chip->client_group_a : chip->client_group_b;
-+	ret = i2c_smbus_read_byte(client);
-+	if (ret < 0) {
-+		dev_err(&client->dev, "failed reading\n");
-+		return ret;
-+	}
-+
-+	*val = (uint8_t)ret;
-+	return 0;
-+}
-+
-+static inline int is_group_a(struct max732x_chip *chip, unsigned off)
-+{
-+	return (1u << off) & chip->mask_group_a;
-+}
-+
-+static int max732x_gpio_get_value(struct gpio_chip *gc, unsigned off)
-+{
-+	struct max732x_chip *chip;
-+	uint8_t reg_val;
-+	int ret;
-+
-+	chip = container_of(gc, struct max732x_chip, gpio_chip);
-+
-+	ret = max732x_read(chip, is_group_a(chip, off), &reg_val);
-+	if (ret < 0)
-+		return 0;
-+
-+	return reg_val & (1u << (off & 0x7));
-+}
-+
-+static void max732x_gpio_set_value(struct gpio_chip *gc, unsigned off, int val)
-+{
-+	struct max732x_chip *chip;
-+	uint8_t reg_out, mask = 1u << (off & 0x7);
-+	int ret;
-+
-+	chip = container_of(gc, struct max732x_chip, gpio_chip);
-+
-+	mutex_lock(&chip->lock);
-+
-+	reg_out = (off > 7) ? chip->reg_out[1] : chip->reg_out[0];
-+	reg_out = (val) ? reg_out | mask : reg_out & ~mask;
-+
-+	ret = max732x_write(chip, is_group_a(chip, off), reg_out);
-+	if (ret < 0)
-+		goto out;
-+
-+	/* update the shadow register then */
-+	if (off > 7)
-+		chip->reg_out[1] = reg_out;
-+	else
-+		chip->reg_out[0] = reg_out;
-+out:
-+	mutex_unlock(&chip->lock);
-+}
-+
-+static int max732x_gpio_direction_input(struct gpio_chip *gc, unsigned off)
-+{
-+	struct max732x_chip *chip;
-+	unsigned int mask = 1u << off;
-+
-+	chip = container_of(gc, struct max732x_chip, gpio_chip);
-+
-+	if ((mask & chip->dir_input) == 0) {
-+		dev_dbg(&chip->client->dev, "%s port %d is output only\n",
-+			chip->client->name, off);
-+		return -EACCES;
-+	}
-+
-+	return 0;
-+}
-+
-+static int max732x_gpio_direction_output(struct gpio_chip *gc,
-+		unsigned off, int val)
-+{
-+	struct max732x_chip *chip;
-+	unsigned int mask = 1u << off;
-+
-+	chip = container_of(gc, struct max732x_chip, gpio_chip);
-+
-+	if ((mask & chip->dir_output) == 0) {
-+		dev_dbg(&chip->client->dev, "%s port %d is input only\n",
-+			chip->client->name, off);
-+		return -EACCES;
-+	}
-+
-+	max732x_gpio_set_value(gc, off, val);
-+	return 0;
-+}
-+
-+static int __devinit max732x_setup_gpio(struct max732x_chip *chip,
-+					const struct i2c_device_id *id,
-+					unsigned gpio_start)
-+{
-+	struct gpio_chip *gc = &chip->gpio_chip;
-+	uint32_t id_data = id->driver_data;
-+	int i, port = 0;
-+
-+	for (i = 0; i < 16; i++, id_data >>= 2) {
-+		unsigned int mask = 1 << port;
-+
-+		switch (id_data & 0x3) {
-+		case PORT_OUTPUT:
-+			chip->dir_output |= mask;
-+			break;
-+		case PORT_INPUT:
-+			chip->dir_input |= mask;
-+			break;
-+		case PORT_OPENDRAIN:
-+			chip->dir_output |= mask;
-+			chip->dir_input |= mask;
-+			break;
-+		default:
-+			continue;
-+		}
-+
-+		if (i < 8)
-+			chip->mask_group_a |= mask;
-+		port++;
-+	}
-+
-+	if (chip->dir_input)
-+		gc->direction_input = max732x_gpio_direction_input;
-+	if (chip->dir_output) {
-+		gc->direction_output = max732x_gpio_direction_output;
-+		gc->set = max732x_gpio_set_value;
-+	}
-+	gc->get = max732x_gpio_get_value;
-+	gc->can_sleep = 1;
-+
-+	gc->base = gpio_start;
-+	gc->ngpio = port;
-+	gc->label = chip->client->name;
-+	gc->owner = THIS_MODULE;
-+
-+	return port;
-+}
-+
-+static int __devinit max732x_probe(struct i2c_client *client,
-+				   const struct i2c_device_id *id)
-+{
-+	struct max732x_platform_data *pdata;
-+	struct max732x_chip *chip;
-+	struct i2c_client *c;
-+	uint16_t addr_a, addr_b;
-+	int ret, nr_port;
-+
-+	pdata = client->dev.platform_data;
-+	if (pdata == NULL)
-+		return -ENODEV;
-+
-+	chip = kzalloc(sizeof(struct max732x_chip), GFP_KERNEL);
-+	if (chip == NULL)
-+		return -ENOMEM;
-+	chip->client = client;
-+
-+	nr_port = max732x_setup_gpio(chip, id, pdata->gpio_base);
-+
-+	addr_a = (client->addr & 0x0f) | 0x60;
-+	addr_b = (client->addr & 0x0f) | 0x50;
-+
-+	switch (client->addr & 0x70) {
-+	case 0x60:
-+		chip->client_group_a = client;
-+		if (nr_port > 7) {
-+			c = i2c_new_dummy(client->adapter, addr_b);
-+			chip->client_group_b = chip->client_dummy = c;
-+		}
-+		break;
-+	case 0x50:
-+		chip->client_group_b = client;
-+		if (nr_port > 7) {
-+			c = i2c_new_dummy(client->adapter, addr_a);
-+			chip->client_group_a = chip->client_dummy = c;
-+		}
-+		break;
-+	default:
-+		dev_err(&client->dev, "invalid I2C address specified %02x\n",
-+				client->addr);
-+		ret = -EINVAL;
-+		goto out_failed;
-+	}
-+
-+	mutex_init(&chip->lock);
-+
-+	max732x_read(chip, is_group_a(chip, 0), &chip->reg_out[0]);
-+	if (nr_port > 7)
-+		max732x_read(chip, is_group_a(chip, 8), &chip->reg_out[1]);
-+
-+	ret = gpiochip_add(&chip->gpio_chip);
-+	if (ret)
-+		goto out_failed;
-+
-+	if (pdata->setup) {
-+		ret = pdata->setup(client, chip->gpio_chip.base,
-+				chip->gpio_chip.ngpio, pdata->context);
-+		if (ret < 0)
-+			dev_warn(&client->dev, "setup failed, %d\n", ret);
-+	}
-+
-+	i2c_set_clientdata(client, chip);
-+	return 0;
-+
-+out_failed:
-+	kfree(chip);
-+	return ret;
-+}
-+
-+static int __devexit max732x_remove(struct i2c_client *client)
-+{
-+	struct max732x_platform_data *pdata = client->dev.platform_data;
-+	struct max732x_chip *chip = i2c_get_clientdata(client);
-+	int ret;
-+
-+	if (pdata->teardown) {
-+		ret = pdata->teardown(client, chip->gpio_chip.base,
-+				chip->gpio_chip.ngpio, pdata->context);
-+		if (ret < 0) {
-+			dev_err(&client->dev, "%s failed, %d\n",
-+					"teardown", ret);
-+			return ret;
-+		}
-+	}
-+
-+	ret = gpiochip_remove(&chip->gpio_chip);
-+	if (ret) {
-+		dev_err(&client->dev, "%s failed, %d\n",
-+				"gpiochip_remove()", ret);
-+		return ret;
-+	}
-+
-+	/* unregister any dummy i2c_client */
-+	if (chip->client_dummy)
-+		i2c_unregister_device(chip->client_dummy);
-+
-+	kfree(chip);
-+	return 0;
-+}
-+
-+static struct i2c_driver max732x_driver = {
-+	.driver = {
-+		.name	= "max732x",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= max732x_probe,
-+	.remove		= __devexit_p(max732x_remove),
-+	.id_table	= max732x_id,
-+};
-+
-+static int __init max732x_init(void)
-+{
-+	return i2c_add_driver(&max732x_driver);
-+}
-+module_init(max732x_init);
-+
-+static void __exit max732x_exit(void)
-+{
-+	i2c_del_driver(&max732x_driver);
-+}
-+module_exit(max732x_exit);
-+
-+MODULE_AUTHOR("Eric Miao <eric.miao@marvell.com>");
-+MODULE_DESCRIPTION("GPIO expander driver for MAX732X");
-+MODULE_LICENSE("GPL");
-diff -puN /dev/null include/linux/i2c/max732x.h
---- /dev/null
-+++ a/include/linux/i2c/max732x.h
-@@ -0,0 +1,19 @@
-+#ifndef __LINUX_I2C_MAX732X_H
-+#define __LINUX_I2C_MAX732X_H
-+
-+/* platform data for the MAX732x 8/16-bit I/O expander driver */
-+
-+struct max732x_platform_data {
-+	/* number of the first GPIO */
-+	unsigned	gpio_base;
-+
-+	void		*context;	/* param to setup/teardown */
-+
-+	int		(*setup)(struct i2c_client *client,
-+				unsigned gpio, unsigned ngpio,
-+				void *context);
-+	int		(*teardown)(struct i2c_client *client,
-+				unsigned gpio, unsigned ngpio,
-+				void *context);
-+};
-+#endif /* __LINUX_I2C_MAX732X_H */
++static struct sem_undo *find_alloc_undo(struct ipc_namespace *ns, int semid)
+ {
+ 	struct sem_array *sma;
+ 	struct sem_undo_list *ulp;
+@@ -997,6 +1011,7 @@ static struct sem_undo *find_undo(struct
+ 		goto out;
+ 
+ 	/* no undo structure around - allocate one. */
++	/* step 1: figure out the size of the semaphore array */
+ 	sma = sem_lock_check(ns, semid);
+ 	if (IS_ERR(sma))
+ 		return ERR_PTR(PTR_ERR(sma));
+@@ -1004,15 +1019,19 @@ static struct sem_undo *find_undo(struct
+ 	nsems = sma->sem_nsems;
+ 	sem_getref_and_unlock(sma);
+ 
++	/* step 2: allocate new undo structure */
+ 	new = kzalloc(sizeof(struct sem_undo) + sizeof(short)*nsems, GFP_KERNEL);
+ 	if (!new) {
+ 		sem_putref(sma);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+-	new->semadj = (short *) &new[1];
+-	new->semid = semid;
+ 
++	/* step 3: Acquire the lock on the undo list pointer */
+ 	spin_lock(&ulp->lock);
++
++	/* step 4: check for races: someone else allocated the undo struct,
++	 *         semaphore array was destroyed.
++	 */
+ 	un = lookup_undo(ulp, semid);
+ 	if (un) {
+ 		spin_unlock(&ulp->lock);
+@@ -1028,13 +1047,17 @@ static struct sem_undo *find_undo(struct
+ 		un = ERR_PTR(-EIDRM);
+ 		goto out;
+ 	}
+-	new->proc_next = ulp->proc_list;
+-	ulp->proc_list = new;
+-	new->id_next = sma->undo;
+-	sma->undo = new;
++	/* step 5: initialize & link new undo structure */
++	new->semadj = (short *) &new[1];
++	new->semid = semid;
++	assert_spin_locked(&ulp->lock);
++	list_add(&new->list_proc, &ulp->list_proc);
++	assert_spin_locked(&sma->sem_perm.lock);
++	list_add(&new->list_id, &sma->list_id);
++
+ 	sem_unlock(sma);
+-	un = new;
+ 	spin_unlock(&ulp->lock);
++	un = new;
+ out:
+ 	return un;
+ }
+@@ -1090,9 +1113,8 @@ asmlinkage long sys_semtimedop(int semid
+ 			alter = 1;
+ 	}
+ 
+-retry_undos:
+ 	if (undos) {
+-		un = find_undo(ns, semid);
++		un = find_alloc_undo(ns, semid);
+ 		if (IS_ERR(un)) {
+ 			error = PTR_ERR(un);
+ 			goto out_free;
+@@ -1107,14 +1129,14 @@ retry_undos:
+ 	}
+ 
+ 	/*
+-	 * semid identifiers are not unique - find_undo may have
++	 * semid identifiers are not unique - find_alloc_undo may have
+ 	 * allocated an undo structure, it was invalidated by an RMID
+-	 * and now a new array with received the same id. Check and retry.
++	 * and now a new array with received the same id. Check and fail.
+ 	 */
+-	if (un && un->semid == -1) {
+-		sem_unlock(sma);
+-		goto retry_undos;
+-	}
++	error = -EIDRM;
++	if (un && un->semid == -1)
++		goto out_unlock_free;
++
+ 	error = -EFBIG;
+ 	if (max >= sma->sem_nsems)
+ 		goto out_unlock_free;
+@@ -1243,56 +1265,44 @@ int copy_semundo(unsigned long clone_fla
+  */
+ void exit_sem(struct task_struct *tsk)
+ {
+-	struct sem_undo_list *undo_list;
+-	struct sem_undo *u, **up;
+-	struct ipc_namespace *ns;
++	struct sem_undo_list *ulp;
++	struct sem_undo *un, *tmp;
+ 
+-	undo_list = tsk->sysvsem.undo_list;
+-	if (!undo_list)
++	ulp = tsk->sysvsem.undo_list;
++	if (!ulp)
+ 		return;
+ 	tsk->sysvsem.undo_list = NULL;
+ 
+-	if (!atomic_dec_and_test(&undo_list->refcnt))
++	if (!atomic_dec_and_test(&ulp->refcnt))
+ 		return;
+ 
+-	ns = tsk->nsproxy->ipc_ns;
+-	/* There's no need to hold the semundo list lock, as current
+-         * is the last task exiting for this undo list.
+-	 */
+-	for (up = &undo_list->proc_list; (u = *up); *up = u->proc_next, kfree(u)) {
++	spin_lock(&ulp->lock);
++
++	list_for_each_entry_safe(un, tmp, &ulp->list_proc, list_proc) {
+ 		struct sem_array *sma;
+-		int nsems, i;
+-		struct sem_undo *un, **unp;
+-		int semid;
+-	       
+-		semid = u->semid;
+-
+-		if(semid == -1)
+-			continue;
+-		sma = sem_lock(ns, semid);
++		int i;
++
++		if (un->semid == -1)
++			goto free;
++
++		sma = sem_lock(tsk->nsproxy->ipc_ns, un->semid);
+ 		if (IS_ERR(sma))
+-			continue;
++			goto free;
+ 
+-		if (u->semid == -1)
+-			goto next_entry;
++		if (un->semid == -1)
++			goto unlock_free;
+ 
+-		BUG_ON(sem_checkid(sma, u->semid));
++		BUG_ON(sem_checkid(sma, un->semid));
+ 
+-		/* remove u from the sma->undo list */
+-		for (unp = &sma->undo; (un = *unp); unp = &un->id_next) {
+-			if (u == un)
+-				goto found;
+-		}
+-		printk ("exit_sem undo list error id=%d\n", u->semid);
+-		goto next_entry;
+-found:
+-		*unp = un->id_next;
+-		/* perform adjustments registered in u */
+-		nsems = sma->sem_nsems;
+-		for (i = 0; i < nsems; i++) {
++		/* remove un from sma->list_id */
++		assert_spin_locked(&sma->sem_perm.lock);
++		list_del(&un->list_id);
++
++		/* perform adjustments registered in un */
++		for (i = 0; i < sma->sem_nsems; i++) {
+ 			struct sem * semaphore = &sma->sem_base[i];
+-			if (u->semadj[i]) {
+-				semaphore->semval += u->semadj[i];
++			if (un->semadj[i]) {
++				semaphore->semval += un->semadj[i];
+ 				/*
+ 				 * Range checks of the new semaphore value,
+ 				 * not defined by sus:
+@@ -1316,10 +1326,15 @@ found:
+ 		sma->sem_otime = get_seconds();
+ 		/* maybe some queued-up processes were waiting for this */
+ 		update_queue(sma);
+-next_entry:
++unlock_free:
+ 		sem_unlock(sma);
++free:
++		assert_spin_locked(&ulp->lock);
++		list_del(&un->list_proc);
++		kfree(un);
+ 	}
+-	kfree(undo_list);
++	spin_unlock(&ulp->lock);
++	kfree(ulp);
+ }
+ 
+ #ifdef CONFIG_PROC_FS
 _
 
-Patches currently in -mm which might be from eric.miao@marvell.com are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
 origin.patch
+repeatable-slab-corruption-with-ltp-msgctl08.patch
+mm-debug-dump-pageframes-on-bad_page.patch
+slab-leaks3-default-y.patch
 
