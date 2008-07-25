@@ -1,143 +1,188 @@
 From: akpm@linux-foundation.org
-Subject: - fat-use-same-logic-in-fat_search_long-and-__fat_readdir.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:57:31 -0700
-Message-ID: <200807252257.m6PMvVRT003195@imap1.linux-foundation.org>
+Subject: - proc-move-kconfig-to-fs-proc-kconfig.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:02:15 -0700
+Message-ID: <200807252302.m6PN2FcF003810@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59563 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59458 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751545AbYGYXG2 (ORCPT
+	by vger.kernel.org with ESMTP id S1751989AbYGYXG2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 25 Jul 2008 19:06:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fat: use same logic in fat_search_long() and __fat_readdir()
+     proc: move Kconfig to fs/proc/Kconfig
 has been removed from the -mm tree.  Its filename was
-     fat-use-same-logic-in-fat_search_long-and-__fat_readdir.patch
+     proc-move-kconfig-to-fs-proc-kconfig.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fat: use same logic in fat_search_long() and __fat_readdir()
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: proc: move Kconfig to fs/proc/Kconfig
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-This uses uses stack for shortname, and uses __getname() for longname in
-fat_search_long() and __fat_readdir().  By this, it removes unneeded
-__getname() for shortname.
-
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/dir.c |   42 ++++++++++++++++++++++++++----------------
- 1 file changed, 26 insertions(+), 16 deletions(-)
+ fs/Kconfig      |   60 ----------------------------------------------
+ fs/proc/Kconfig |   59 +++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 60 insertions(+), 59 deletions(-)
 
-diff -puN fs/fat/dir.c~fat-use-same-logic-in-fat_search_long-and-__fat_readdir fs/fat/dir.c
---- a/fs/fat/dir.c~fat-use-same-logic-in-fat_search_long-and-__fat_readdir
-+++ a/fs/fat/dir.c
-@@ -325,6 +325,19 @@ parse_long:
- }
+diff -puN fs/Kconfig~proc-move-kconfig-to-fs-proc-kconfig fs/Kconfig
+--- a/fs/Kconfig~proc-move-kconfig-to-fs-proc-kconfig
++++ a/fs/Kconfig
+@@ -902,65 +902,7 @@ endif # BLOCK
  
- /*
-+ * Maximum buffer size of short name.
-+ * [(MSDOS_NAME + '.') * max one char + nul]
-+ * For msdos style, ['.' (hidden) + MSDOS_NAME + '.' + nul]
-+ */
-+#define FAT_MAX_SHORT_SIZE	((MSDOS_NAME + 1) * NLS_MAX_CHARSET_SIZE + 1)
-+/*
-+ * Maximum buffer size of unicode chars from slots.
-+ * [(max longname slots * 13 (size in a slot) + nul) * sizeof(wchar_t)]
-+ */
-+#define FAT_MAX_UNI_CHARS	((MSDOS_SLOTS - 1) * 13 + 1)
-+#define FAT_MAX_UNI_SIZE	(FAT_MAX_UNI_CHARS * sizeof(wchar_t))
-+
-+/*
-  * Return values: negative -> error, 0 -> not found, positive -> found,
-  * value is the total amount of slots, including the shortname entry.
-  */
-@@ -340,15 +353,11 @@ int fat_search_long(struct inode *inode,
- 	wchar_t bufuname[14];
- 	wchar_t *unicode = NULL;
- 	unsigned char work[MSDOS_NAME];
--	unsigned char *bufname = NULL;
-+	unsigned char bufname[FAT_MAX_SHORT_SIZE];
- 	unsigned short opt_shortname = sbi->options.shortname;
- 	loff_t cpos = 0;
- 	int chl, i, j, last_u, err, len;
+ menu "Pseudo filesystems"
  
--	bufname = __getname();
--	if (!bufname)
--		return -ENOMEM;
+-config PROC_FS
+-	bool "/proc file system support" if EMBEDDED
+-	default y
+-	help
+-	  This is a virtual file system providing information about the status
+-	  of the system. "Virtual" means that it doesn't take up any space on
+-	  your hard disk: the files are created on the fly by the kernel when
+-	  you try to access them. Also, you cannot read the files with older
+-	  version of the program less: you need to use more or cat.
 -
- 	err = -ENOENT;
- 	while (1) {
- 		if (fat_get_entry(inode, &cpos, &bh, &de) == -1)
-@@ -414,14 +423,17 @@ parse_record:
+-	  It's totally cool; for example, "cat /proc/interrupts" gives
+-	  information about what the different IRQs are used for at the moment
+-	  (there is a small number of Interrupt ReQuest lines in your computer
+-	  that are used by the attached devices to gain the CPU's attention --
+-	  often a source of trouble if two devices are mistakenly configured
+-	  to use the same IRQ). The program procinfo to display some
+-	  information about your system gathered from the /proc file system.
+-
+-	  Before you can use the /proc file system, it has to be mounted,
+-	  meaning it has to be given a location in the directory hierarchy.
+-	  That location should be /proc. A command such as "mount -t proc proc
+-	  /proc" or the equivalent line in /etc/fstab does the job.
+-
+-	  The /proc file system is explained in the file
+-	  <file:Documentation/filesystems/proc.txt> and on the proc(5) manpage
+-	  ("man 5 proc").
+-
+-	  This option will enlarge your kernel by about 67 KB. Several
+-	  programs depend on this, so everyone should say Y here.
+-
+-config PROC_KCORE
+-	bool "/proc/kcore support" if !ARM
+-	depends on PROC_FS && MMU
+-
+-config PROC_VMCORE
+-        bool "/proc/vmcore support (EXPERIMENTAL)"
+-        depends on PROC_FS && CRASH_DUMP
+-	default y
+-        help
+-        Exports the dump image of crashed kernel in ELF format.
+-
+-config PROC_SYSCTL
+-	bool "Sysctl support (/proc/sys)" if EMBEDDED
+-	depends on PROC_FS
+-	select SYSCTL
+-	default y
+-	---help---
+-	  The sysctl interface provides a means of dynamically changing
+-	  certain kernel parameters and variables on the fly without requiring
+-	  a recompile of the kernel or reboot of the system.  The primary
+-	  interface is through /proc/sys.  If you say Y here a tree of
+-	  modifiable sysctl entries will be generated beneath the
+-          /proc/sys directory. They are explained in the files
+-	  in <file:Documentation/sysctl/>.  Note that enabling this
+-	  option will enlarge the kernel by at least 8 KB.
+-
+-	  As it is generally a good thing, you should say Y here unless
+-	  building a kernel for install/rescue disks or your system is very
+-	  limited in memory.
++source "fs/proc/Kconfig"
  
- 		/* Compare shortname */
- 		bufuname[last_u] = 0x0000;
--		len = fat_uni_to_x8(sbi, bufuname, bufname, PATH_MAX);
-+		len = fat_uni_to_x8(sbi, bufuname, bufname, sizeof(bufname));
- 		if (fat_name_match(sbi, name, name_len, bufname, len))
- 			goto found;
- 
- 		if (nr_slots) {
-+			void *longname = unicode + FAT_MAX_UNI_CHARS;
-+			int size = PATH_MAX - FAT_MAX_UNI_SIZE;
+ config SYSFS
+ 	bool "sysfs file system support" if EMBEDDED
+diff -puN /dev/null fs/proc/Kconfig
+--- /dev/null
++++ a/fs/proc/Kconfig
+@@ -0,0 +1,59 @@
++config PROC_FS
++	bool "/proc file system support" if EMBEDDED
++	default y
++	help
++	  This is a virtual file system providing information about the status
++	  of the system. "Virtual" means that it doesn't take up any space on
++	  your hard disk: the files are created on the fly by the kernel when
++	  you try to access them. Also, you cannot read the files with older
++	  version of the program less: you need to use more or cat.
 +
- 			/* Compare longname */
--			len = fat_uni_to_x8(sbi, unicode, bufname, PATH_MAX);
--			if (fat_name_match(sbi, name, name_len, bufname, len))
-+			len = fat_uni_to_x8(sbi, unicode, longname, size);
-+			if (fat_name_match(sbi, name, name_len, longname, len))
- 				goto found;
- 		}
- 	}
-@@ -435,8 +447,6 @@ found:
- 	sinfo->i_pos = fat_make_i_pos(sb, sinfo->bh, sinfo->de);
- 	err = 0;
- end_of_dir:
--	if (bufname)
--		__putname(bufname);
- 	if (unicode)
- 		__putname(unicode);
- 
-@@ -466,7 +476,8 @@ static int __fat_readdir(struct inode *i
- 	unsigned char nr_slots;
- 	wchar_t bufuname[14];
- 	wchar_t *unicode = NULL;
--	unsigned char c, work[MSDOS_NAME], bufname[56], *ptname = bufname;
-+	unsigned char c, work[MSDOS_NAME];
-+	unsigned char bufname[FAT_MAX_SHORT_SIZE], *ptname = bufname;
- 	unsigned short opt_shortname = sbi->options.shortname;
- 	int isvfat = sbi->options.isvfat;
- 	int nocase = sbi->options.nocase;
-@@ -620,11 +631,10 @@ parse_record:
- 	fill_name = bufname;
- 	fill_len = i;
- 	if (!short_only && nr_slots) {
--		/* convert the unicode long name. 261 is maximum size
--		 * of unicode buffer. (13 * slots + nul) */
--		void *longname = unicode + 261;
--		int buf_size = PATH_MAX - (261 * sizeof(unicode[0]));
--		int long_len = fat_uni_to_x8(sbi, unicode, longname, buf_size);
-+		void *longname = unicode + FAT_MAX_UNI_CHARS;
-+		int long_len, size = PATH_MAX - FAT_MAX_UNI_SIZE;
++	  It's totally cool; for example, "cat /proc/interrupts" gives
++	  information about what the different IRQs are used for at the moment
++	  (there is a small number of Interrupt ReQuest lines in your computer
++	  that are used by the attached devices to gain the CPU's attention --
++	  often a source of trouble if two devices are mistakenly configured
++	  to use the same IRQ). The program procinfo to display some
++	  information about your system gathered from the /proc file system.
 +
-+		long_len = fat_uni_to_x8(sbi, unicode, longname, size);
- 
- 		if (!both) {
- 			fill_name = longname;
++	  Before you can use the /proc file system, it has to be mounted,
++	  meaning it has to be given a location in the directory hierarchy.
++	  That location should be /proc. A command such as "mount -t proc proc
++	  /proc" or the equivalent line in /etc/fstab does the job.
++
++	  The /proc file system is explained in the file
++	  <file:Documentation/filesystems/proc.txt> and on the proc(5) manpage
++	  ("man 5 proc").
++
++	  This option will enlarge your kernel by about 67 KB. Several
++	  programs depend on this, so everyone should say Y here.
++
++config PROC_KCORE
++	bool "/proc/kcore support" if !ARM
++	depends on PROC_FS && MMU
++
++config PROC_VMCORE
++        bool "/proc/vmcore support (EXPERIMENTAL)"
++        depends on PROC_FS && CRASH_DUMP
++	default y
++        help
++        Exports the dump image of crashed kernel in ELF format.
++
++config PROC_SYSCTL
++	bool "Sysctl support (/proc/sys)" if EMBEDDED
++	depends on PROC_FS
++	select SYSCTL
++	default y
++	---help---
++	  The sysctl interface provides a means of dynamically changing
++	  certain kernel parameters and variables on the fly without requiring
++	  a recompile of the kernel or reboot of the system.  The primary
++	  interface is through /proc/sys.  If you say Y here a tree of
++	  modifiable sysctl entries will be generated beneath the
++          /proc/sys directory. They are explained in the files
++	  in <file:Documentation/sysctl/>.  Note that enabling this
++	  option will enlarge the kernel by at least 8 KB.
++
++	  As it is generally a good thing, you should say Y here unless
++	  building a kernel for install/rescue disks or your system is very
++	  limited in memory.
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
 linux-next.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+cdc-acm-dont-unlock-acm-mutex-on-error-path.patch
+slb-drop-kmem-cache-argument-from-constructor.patch
+slb-drop-kmem-cache-argument-from-constructor-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
+use-warn-in-fs-proc.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+likely_prof-changed-to-use-proc_create.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
 
