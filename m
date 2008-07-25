@@ -1,37 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:39:55 -0700
-Message-ID: <200807252339.m6PNdtrQ005491@imap1.linux-foundation.org>
+Subject: - dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:39:58 -0700
+Message-ID: <200807252339.m6PNdwTv005494@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39668 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53241 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751487AbYGYXkX (ORCPT
+	by vger.kernel.org with ESMTP id S1754141AbYGYXk0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:40:23 -0400
+	Fri, 25 Jul 2008 19:40:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, andi@firstfloor.org, avi@qumranet.com, davem@davemloft.net, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de, mm-commits@vge
 
 
 The patch titled
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc-fix
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc
 has been removed from the -mm tree.  Its filename was
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
 
 This patch was dropped because it was folded into dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc-fix
+Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc
 From: Andrew Morton <akpm@linux-foundation.org>
-
-In file included from include/linux/sunrpc/svc_rdma.h:47,
-                 from net/sunrpc/xprtrdma/svc_rdma.c:47:
-include/rdma/ib_verbs.h: In function `ib_dma_mapping_error':
-include/rdma/ib_verbs.h:1637: warning: passing arg 1 of `dma_mapping_error' makes integer from pointer without a cast
-include/rdma/ib_verbs.h:1637: error: too many arguments to function `dma_mapping_error'
 
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Avi Kivity <avi@qumranet.com>
@@ -43,21 +37,21 @@ Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-sparc/dma-mapping_64.h |    2 +-
+ include/asm-sparc/pci_64.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-sparc/dma-mapping_64.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband include/asm-sparc/dma-mapping_64.h
---- a/include/asm-sparc/dma-mapping_64.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband
-+++ a/include/asm-sparc/dma-mapping_64.h
-@@ -135,7 +135,7 @@ static inline void dma_sync_sg_for_devic
- 	/* No flushing needed to sync cpu writes to the device.  */
+diff -puN include/asm-sparc/pci_64.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc include/asm-sparc/pci_64.h
+--- a/include/asm-sparc/pci_64.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc
++++ a/include/asm-sparc/pci_64.h
+@@ -143,7 +143,7 @@ extern int pci_dma_supported(struct pci_
+ static inline int pci_dma_mapping_error(struct pci_dev *pdev,
+ 					dma_addr_t dma_addr)
+ {
+-	return dma_mapping_error(dma_addr);
++	return dma_mapping_error(&pdev->dev, dma_addr);
  }
  
--static inline int dma_mapping_error(dma_addr_t dma_addr)
-+static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
- {
- 	return (dma_addr == DMA_ERROR_CODE);
- }
+ #ifdef CONFIG_PCI
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,7 +59,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 uninline-arch_pick_mmap_layout.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch
 x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
