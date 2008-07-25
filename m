@@ -1,91 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - workqueues-queue_work-can-use-queue_work_on.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:00:25 -0700
-Message-ID: <200807252300.m6PN0P39003584@imap1.linux-foundation.org>
+Subject: - jbd-tidy-up-revoke-cache-initialisation-and-destruction.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:56:28 -0700
+Message-ID: <200807252256.m6PMuSFj003092__36698.2023850598$1217027275$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46648 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41275 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754295AbYGYXGe (ORCPT
+	by vger.kernel.org with ESMTP id S1754369AbYGYXGd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:06:34 -0400
+	Fri, 25 Jul 2008 19:06:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: duaneg@dghda.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     workqueues: queue_work() can use queue_work_on()
+     jbd: tidy up revoke cache initialisation and destruction
 has been removed from the -mm tree.  Its filename was
-     workqueues-queue_work-can-use-queue_work_on.patch
+     jbd-tidy-up-revoke-cache-initialisation-and-destruction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: workqueues: queue_work() can use queue_work_on()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: jbd: tidy up revoke cache initialisation and destruction
+From: "Duane Griffin" <duaneg@dghda.com>
 
-queue_work() can use queue_work_on() to avoid the code duplication.
+Make revocation cache destruction safe to call if initialisation fails
+partially or entirely.  This allows it to be used to cleanup in the case
+of initialisation failure, simplifying that code slightly.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Duane Griffin <duaneg@dghda.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ fs/jbd/revoke.c |   36 +++++++++++++++++++++++-------------
+ 1 file changed, 23 insertions(+), 13 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueues-queue_work-can-use-queue_work_on kernel/workqueue.c
---- a/kernel/workqueue.c~workqueues-queue_work-can-use-queue_work_on
-+++ a/kernel/workqueue.c
-@@ -159,14 +159,11 @@ static void __queue_work(struct cpu_work
-  */
- int queue_work(struct workqueue_struct *wq, struct work_struct *work)
- {
--	int ret = 0;
-+	int ret;
-+
-+	ret = queue_work_on(get_cpu(), wq, work);
-+	put_cpu();
- 
--	if (!test_and_set_bit(WORK_STRUCT_PENDING, work_data_bits(work))) {
--		BUG_ON(!list_empty(&work->entry));
--		__queue_work(wq_per_cpu(wq, get_cpu()), work);
--		put_cpu();
--		ret = 1;
--	}
- 	return ret;
+diff -puN fs/jbd/revoke.c~jbd-tidy-up-revoke-cache-initialisation-and-destruction fs/jbd/revoke.c
+--- a/fs/jbd/revoke.c~jbd-tidy-up-revoke-cache-initialisation-and-destruction
++++ a/fs/jbd/revoke.c
+@@ -166,33 +166,43 @@ static struct jbd_revoke_record_s *find_
+ 	return NULL;
  }
- EXPORT_SYMBOL_GPL(queue_work);
+ 
++void journal_destroy_revoke_caches(void)
++{
++	if (revoke_record_cache) {
++		kmem_cache_destroy(revoke_record_cache);
++		revoke_record_cache = NULL;
++	}
++	if (revoke_table_cache) {
++		kmem_cache_destroy(revoke_table_cache);
++		revoke_table_cache = NULL;
++	}
++}
++
+ int __init journal_init_revoke_caches(void)
+ {
++	J_ASSERT(!revoke_record_cache);
++	J_ASSERT(!revoke_table_cache);
++
+ 	revoke_record_cache = kmem_cache_create("revoke_record",
+ 					   sizeof(struct jbd_revoke_record_s),
+ 					   0,
+ 					   SLAB_HWCACHE_ALIGN|SLAB_TEMPORARY,
+ 					   NULL);
+ 	if (!revoke_record_cache)
+-		return -ENOMEM;
++		goto record_cache_failure;
+ 
+ 	revoke_table_cache = kmem_cache_create("revoke_table",
+ 					   sizeof(struct jbd_revoke_table_s),
+ 					   0, SLAB_TEMPORARY, NULL);
+-	if (!revoke_table_cache) {
+-		kmem_cache_destroy(revoke_record_cache);
+-		revoke_record_cache = NULL;
+-		return -ENOMEM;
+-	}
++	if (!revoke_table_cache)
++		goto table_cache_failure;
++
+ 	return 0;
+-}
+ 
+-void journal_destroy_revoke_caches(void)
+-{
+-	kmem_cache_destroy(revoke_record_cache);
+-	revoke_record_cache = NULL;
+-	kmem_cache_destroy(revoke_table_cache);
+-	revoke_table_cache = NULL;
++table_cache_failure:
++	journal_destroy_revoke_caches();
++record_cache_failure:
++	return -ENOMEM;
+ }
+ 
+ static struct jbd_revoke_table_s *journal_init_revoke_table(int hash_size)
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from duaneg@dghda.com are
 
 origin.patch
-linux-next.patch
-migrate_timers-add-comment-use-spinlock_irq.patch
-tracehook-add-linux-tracehookh.patch
-tracehook-exec.patch
-tracehook-unexport-ptrace_notify.patch
-tracehook-exit.patch
-tracehook-clone.patch
-tracehook-vfork-done.patch
-tracehook-release_task.patch
-tracehook-tracehook_tracer_task.patch
-tracehook-tracehook_expect_breakpoints.patch
-tracehook-tracehook_signal_handler.patch
-tracehook-tracehook_consider_ignored_signal.patch
-tracehook-tracehook_consider_fatal_signal.patch
-tracehook-syscall.patch
-tracehook-get_signal_to_deliver.patch
-tracehook-job-control.patch
-tracehook-death.patch
-tracehook-force-signal_pending.patch
-tracehook-tif_notify_resume.patch
-tracehook-asm-syscallh.patch
-tracehook-config_have_arch_tracehook.patch
-tracehook-wait_task_inactive.patch
-task_current_syscall.patch
-proc-pid-syscall.patch
 
