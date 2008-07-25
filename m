@@ -1,33 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: - dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:39:33 -0700
-Message-ID: <200807252339.m6PNdXAW005461@imap1.linux-foundation.org>
+Subject: - dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:39:55 -0700
+Message-ID: <200807252339.m6PNdtrQ005491@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38555 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39668 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753547AbYGYXkI (ORCPT
+	by vger.kernel.org with ESMTP id S1751487AbYGYXkX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:40:08 -0400
+	Fri, 25 Jul 2008 19:40:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, avi@qumranet.com, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andi@firstfloor.org, avi@qumranet.com, davem@davemloft.net, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de, mm-commits@vge
 
 
 The patch titled
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc-fix
 has been removed from the -mm tree.  Its filename was
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
 
 This patch was dropped because it was folded into dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x
+Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error-sparc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-this is getting a bit boring.
+In file included from include/linux/sunrpc/svc_rdma.h:47,
+                 from net/sunrpc/xprtrdma/svc_rdma.c:47:
+include/rdma/ib_verbs.h: In function `ib_dma_mapping_error':
+include/rdma/ib_verbs.h:1637: warning: passing arg 1 of `dma_mapping_error' makes integer from pointer without a cast
+include/rdma/ib_verbs.h:1637: error: too many arguments to function `dma_mapping_error'
 
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Avi Kivity <avi@qumranet.com>
@@ -35,35 +39,25 @@ Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Muli Ben-Yehuda <muli@il.ibm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/bnx2x_main.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/asm-sparc/dma-mapping_64.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN /dev/null /dev/null
-diff -puN drivers/net/bnx2.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x drivers/net/bnx2.c
-diff -puN drivers/net/bnx2x_main.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x drivers/net/bnx2x_main.c
---- a/drivers/net/bnx2x_main.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x
-+++ a/drivers/net/bnx2x_main.c
-@@ -1020,7 +1020,7 @@ static inline int bnx2x_alloc_rx_sge(str
+diff -puN include/asm-sparc/dma-mapping_64.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband include/asm-sparc/dma-mapping_64.h
+--- a/include/asm-sparc/dma-mapping_64.h~dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband
++++ a/include/asm-sparc/dma-mapping_64.h
+@@ -135,7 +135,7 @@ static inline void dma_sync_sg_for_devic
+ 	/* No flushing needed to sync cpu writes to the device.  */
+ }
  
- 	mapping = pci_map_page(bp->pdev, page, 0, BCM_PAGE_SIZE*PAGES_PER_SGE,
- 			       PCI_DMA_FROMDEVICE);
--	if (unlikely(dma_mapping_error(mapping))) {
-+	if (unlikely(dma_mapping_error(&bp->pdev->dev, mapping))) {
- 		__free_pages(page, PAGES_PER_SGE_SHIFT);
- 		return -ENOMEM;
- 	}
-@@ -1048,7 +1048,7 @@ static inline int bnx2x_alloc_rx_skb(str
- 
- 	mapping = pci_map_single(bp->pdev, skb->data, bp->rx_buf_use_size,
- 				 PCI_DMA_FROMDEVICE);
--	if (unlikely(dma_mapping_error(mapping))) {
-+	if (unlikely(dma_mapping_error(&bp->pdev->dev, mapping))) {
- 		dev_kfree_skb(skb);
- 		return -ENOMEM;
- 	}
+-static inline int dma_mapping_error(dma_addr_t dma_addr)
++static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+ {
+ 	return (dma_addr == DMA_ERROR_CODE);
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,11 +65,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 uninline-arch_pick_mmap_layout.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch
