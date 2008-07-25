@@ -1,53 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:39:28 -0700
-Message-ID: <200807252339.m6PNdS6t005455@imap1.linux-foundation.org>
+Subject: - dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:39:31 -0700
+Message-ID: <200807252339.m6PNdVL7005458@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57527 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33049 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752967AbYGYXjb (ORCPT
+	by vger.kernel.org with ESMTP id S1753620AbYGYXje (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:39:31 -0400
+	Fri, 25 Jul 2008 19:39:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dma-mapping-add-the-device-argument-to-dma_mapping_error sge fix
+     dma-mapping-add-the-device-argument-to-dma_mapping_error svc_rdma fix
 has been removed from the -mm tree.  Its filename was
-     dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
 
 This patch was dropped because it was folded into dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error sge fix
+Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error svc_rdma fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-catch up with netdev patches
 
 Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/cxgb3/sge.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/cxgb3/sge.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix drivers/net/cxgb3/sge.c
---- a/drivers/net/cxgb3/sge.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix
-+++ a/drivers/net/cxgb3/sge.c
-@@ -386,7 +386,7 @@ static inline int add_one_rx_buf(void *v
- 	dma_addr_t mapping;
- 
- 	mapping = pci_map_single(pdev, va, len, PCI_DMA_FROMDEVICE);
--	if (unlikely(pci_dma_mapping_error(mapping)))
-+	if (unlikely(pci_dma_mapping_error(pdev, mapping)))
- 		return -ENOMEM;
- 
- 	pci_unmap_addr_set(sd, dma_addr, mapping);
+diff -puN net/sunrpc/xprtrdma/svc_rdma_sendto.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix net/sunrpc/xprtrdma/svc_rdma_sendto.c
+--- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix
++++ a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+@@ -169,7 +169,8 @@ static int send_write(struct svcxprt_rdm
+ 					  (void *)
+ 					  vec->sge[xdr_sge_no].iov_base + sge_off,
+ 					  sge_bytes, DMA_TO_DEVICE);
+-		if (dma_mapping_error(sge[sge_no].addr))
++		if (dma_mapping_error(xprt->sc_cm_id->device->dma_device,
++					sge[sge_no].addr))
+ 			goto err;
+ 		sge_off = 0;
+ 		sge_no++;
+diff -puN drivers/net/bnx2.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix drivers/net/bnx2.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -55,7 +55,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 uninline-arch_pick_mmap_layout.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
