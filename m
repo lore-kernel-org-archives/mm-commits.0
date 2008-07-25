@@ -1,66 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:31:57 -0700
-Message-ID: <200807252331.m6PNVvAL005228@imap1.linux-foundation.org>
+Subject: - dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:39:28 -0700
+Message-ID: <200807252339.m6PNdS6t005455@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52623 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57527 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753732AbYGYXcD (ORCPT
+	by vger.kernel.org with ESMTP id S1752967AbYGYXjb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:32:03 -0400
+	Fri, 25 Jul 2008 19:39:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adaplas@pol.net, jekhor@gmail.com, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fujita.tomonori@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2
+     dma-mapping-add-the-device-argument-to-dma_mapping_error sge fix
 has been removed from the -mm tree.  Its filename was
-     eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2.patch
+     dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
 
-This patch was dropped because it was folded into eink_apollofb-new-driver-for-apollo-eink-controller.patch
+This patch was dropped because it was folded into dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2
+Subject: dma-mapping-add-the-device-argument-to-dma_mapping_error sge fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386:
+catch up with netdev patches
 
-drivers/video/eink_apollofb.c:36:32: error: asm/arch/regs-gpio.h: No such file or directory
-drivers/video/eink_apollofb.c:37:26: error: asm/hardware.h: No such file or directory
-
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Yauhen Kharuzhy <jekhor@gmail.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/cxgb3/sge.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/Kconfig~eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2 drivers/video/Kconfig
---- a/drivers/video/Kconfig~eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2
-+++ a/drivers/video/Kconfig
-@@ -721,6 +721,7 @@ config FB_N411
- config FB_EINK_APOLLO
- 	tristate "Apollo eInk display controller support"
- 	depends on EXPERIMENTAL && FB && MMU
-+	depends on ARM
- 	select FB_SYS_FILLRECT
- 	select FB_SYS_COPYAREA
- 	select FB_SYS_IMAGEBLIT
+diff -puN drivers/net/cxgb3/sge.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix drivers/net/cxgb3/sge.c
+--- a/drivers/net/cxgb3/sge.c~dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix
++++ a/drivers/net/cxgb3/sge.c
+@@ -386,7 +386,7 @@ static inline int add_one_rx_buf(void *v
+ 	dma_addr_t mapping;
+ 
+ 	mapping = pci_map_single(pdev, va, len, PCI_DMA_FROMDEVICE);
+-	if (unlikely(pci_dma_mapping_error(mapping)))
++	if (unlikely(pci_dma_mapping_error(pdev, mapping)))
+ 		return -ENOMEM;
+ 
+ 	pci_unmap_addr_set(sd, dma_addr, mapping);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 uninline-arch_pick_mmap_layout.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
