@@ -1,663 +1,230 @@
 From: akpm@linux-foundation.org
-Subject: - edac-i5100-cleanup.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:03:56 -0700
-Message-ID: <200807252303.m6PN3umW003998@imap1.linux-foundation.org>
+Subject: - fuse-add-fuse_lookup_name-helper.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:03:40 -0700
+Message-ID: <200807252303.m6PN3evf003971@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42798 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45914 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754649AbYGYXGj (ORCPT
+	by vger.kernel.org with ESMTP id S1754309AbYGYXGp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:06:39 -0400
+	Fri, 25 Jul 2008 19:06:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ajones@riverbed.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac: i5100: cleanup
+     fuse: add fuse_lookup_name() helper
 has been removed from the -mm tree.  Its filename was
-     edac-i5100-cleanup.patch
+     fuse-add-fuse_lookup_name-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: i5100: cleanup
-From: Arthur Jones <ajones@riverbed.com>
+Subject: fuse: add fuse_lookup_name() helper
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Some code cleanliness issues found by Andrew Morton (thanks!) which should
-not affect functionality, but which should help make the code more
-maintainable.
+Add a new helper function which sends a LOOKUP request with the supplied
+name.  This will be used by the next patch to send special LOOKUP requests
+with "." and ".." as the name.
 
-In particular, we now:
-
-* convert all #define's w/ a parameter to static inlines
-* use 1UL rather than 1ULL when calculating an unsigned long
-* use pci_disable_device
-
-The resulting code is tested and seems to work fine...
-
-Signed-off-by: Arthur Jones <ajones@riverbed.com>
-Cc: Doug Thompson <dougthompson@xmission.com>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i5100_edac.c |  396 +++++++++++++++++++++++-------------
- 1 file changed, 261 insertions(+), 135 deletions(-)
+ fs/fuse/dir.c |  117 +++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 77 insertions(+), 40 deletions(-)
 
-diff -puN drivers/edac/i5100_edac.c~edac-i5100-cleanup drivers/edac/i5100_edac.c
---- a/drivers/edac/i5100_edac.c~edac-i5100-cleanup
-+++ a/drivers/edac/i5100_edac.c
-@@ -21,36 +21,19 @@
- 
- #include "edac_core.h"
- 
--/* register addresses and bit field accessors... */
-+/* register addresses */
- 
- /* device 16, func 1 */
- #define I5100_MC		0x40	/* Memory Control Register */
--#define		I5100_MC_ERRDETEN(a)	((a) >> 5 & 1)
- #define I5100_MS		0x44	/* Memory Status Register */
- #define I5100_SPDDATA		0x48	/* Serial Presence Detect Status Reg */
--#define		I5100_SPDDATA_RDO(a)	((a) >> 15 & 1)
--#define		I5100_SPDDATA_SBE(a)	((a) >> 13 & 1)
--#define		I5100_SPDDATA_BUSY(a)	((a) >> 12 & 1)
--#define		I5100_SPDDATA_DATA(a)	((a)       & ((1 << 8) - 1))
- #define I5100_SPDCMD		0x4c	/* Serial Presence Detect Command Reg */
--#define		I5100_SPDCMD_DTI(a)	(((a) & ((1 << 4) - 1)) << 28)
--#define		I5100_SPDCMD_CKOVRD(a)	(((a) & 1)              << 27)
--#define		I5100_SPDCMD_SA(a)	(((a) & ((1 << 3) - 1)) << 24)
--#define		I5100_SPDCMD_BA(a)	(((a) & ((1 << 8) - 1)) << 16)
--#define		I5100_SPDCMD_DATA(a)	(((a) & ((1 << 8) - 1)) <<  8)
--#define		I5100_SPDCMD_CMD(a)	((a) & 1)
- #define I5100_TOLM		0x6c	/* Top of Low Memory */
--#define		I5100_TOLM_TOLM(a)	((a) >> 12 & ((1 << 4) - 1))
- #define I5100_MIR0		0x80	/* Memory Interleave Range 0 */
- #define I5100_MIR1		0x84	/* Memory Interleave Range 1 */
- #define I5100_AMIR_0		0x8c	/* Adjusted Memory Interleave Range 0 */
- #define I5100_AMIR_1		0x90	/* Adjusted Memory Interleave Range 1 */
--#define		I5100_MIR_LIMIT(a)	((a) >> 4 & ((1 << 12) - 1))
--#define		I5100_MIR_WAY1(a)	((a) >> 1 & 1)
--#define		I5100_MIR_WAY0(a)	((a)      & 1)
- #define I5100_FERR_NF_MEM	0xa0	/* MC First Non Fatal Errors */
--#define		I5100_FERR_NF_MEM_CHAN_INDX(a)	((a) >> 28 & 1)
--#define		I5100_FERR_NF_MEM_SPD_MASK	(1 << 18)
- #define		I5100_FERR_NF_MEM_M16ERR_MASK	(1 << 16)
- #define		I5100_FERR_NF_MEM_M15ERR_MASK	(1 << 15)
- #define		I5100_FERR_NF_MEM_M14ERR_MASK	(1 << 14)
-@@ -72,47 +55,214 @@
- 			I5100_FERR_NF_MEM_M5ERR_MASK | \
- 			I5100_FERR_NF_MEM_M4ERR_MASK | \
- 			I5100_FERR_NF_MEM_M1ERR_MASK)
--#define		I5100_FERR_NF_MEM_ANY(a)  ((a) & I5100_FERR_NF_MEM_ANY_MASK)
- #define	I5100_NERR_NF_MEM	0xa4	/* MC Next Non-Fatal Errors */
--#define		I5100_NERR_NF_MEM_ANY(a)  I5100_FERR_NF_MEM_ANY(a)
- #define I5100_EMASK_MEM		0xa8	/* MC Error Mask Register */
- 
- /* device 21 and 22, func 0 */
- #define I5100_MTR_0	0x154	/* Memory Technology Registers 0-3 */
- #define I5100_DMIR	0x15c	/* DIMM Interleave Range */
--#define		I5100_DMIR_LIMIT(a)	((a) >> 16 & ((1 << 11) - 1))
--#define		I5100_DMIR_RANK(a, i)	((a) >> (4 * i) & ((1 <<  2) - 1))
--#define I5100_MTR_4	0x1b0	/* Memory Technology Registers 4,5 */
--#define		I5100_MTR_PRESENT(a)	((a) >> 10 & 1)
--#define		I5100_MTR_ETHROTTLE(a)	((a) >>  9 & 1)
--#define		I5100_MTR_WIDTH(a)	((a) >>  8 & 1)
--#define		I5100_MTR_NUMBANK(a)	((a) >>  6 & 1)
--#define		I5100_MTR_NUMROW(a)	((a) >>  2 & ((1 << 2) - 1))
--#define		I5100_MTR_NUMCOL(a)	((a)       & ((1 << 2) - 1))
- #define	I5100_VALIDLOG	0x18c	/* Valid Log Markers */
--#define		I5100_VALIDLOG_REDMEMVALID(a)	((a) >> 2 & 1)
--#define		I5100_VALIDLOG_RECMEMVALID(a)	((a) >> 1 & 1)
--#define		I5100_VALIDLOG_NRECMEMVALID(a)	((a)      & 1)
- #define	I5100_NRECMEMA	0x190	/* Non-Recoverable Memory Error Log Reg A */
--#define		I5100_NRECMEMA_MERR(a)		((a) >> 15 & ((1 << 5) - 1))
--#define		I5100_NRECMEMA_BANK(a)		((a) >> 12 & ((1 << 3) - 1))
--#define		I5100_NRECMEMA_RANK(a)		((a) >>  8 & ((1 << 3) - 1))
--#define		I5100_NRECMEMA_DM_BUF_ID(a)	((a)       & ((1 << 8) - 1))
- #define	I5100_NRECMEMB	0x194	/* Non-Recoverable Memory Error Log Reg B */
--#define		I5100_NRECMEMB_CAS(a)		((a) >> 16 & ((1 << 13) - 1))
--#define		I5100_NRECMEMB_RAS(a)		((a)       & ((1 << 16) - 1))
- #define	I5100_REDMEMA	0x198	/* Recoverable Memory Data Error Log Reg A */
--#define		I5100_REDMEMA_SYNDROME(a)	(a)
- #define	I5100_REDMEMB	0x19c	/* Recoverable Memory Data Error Log Reg B */
--#define		I5100_REDMEMB_ECC_LOCATOR(a)	((a) & ((1 << 18) - 1))
- #define	I5100_RECMEMA	0x1a0	/* Recoverable Memory Error Log Reg A */
--#define		I5100_RECMEMA_MERR(a)		I5100_NRECMEMA_MERR(a)
--#define		I5100_RECMEMA_BANK(a)		I5100_NRECMEMA_BANK(a)
--#define		I5100_RECMEMA_RANK(a)		I5100_NRECMEMA_RANK(a)
--#define		I5100_RECMEMA_DM_BUF_ID(a)	I5100_NRECMEMA_DM_BUF_ID(a)
- #define	I5100_RECMEMB	0x1a4	/* Recoverable Memory Error Log Reg B */
--#define		I5100_RECMEMB_CAS(a)		I5100_NRECMEMB_CAS(a)
--#define		I5100_RECMEMB_RAS(a)		I5100_NRECMEMB_RAS(a)
-+#define I5100_MTR_4	0x1b0	/* Memory Technology Registers 4,5 */
-+
-+/* bit field accessors */
-+
-+static inline u32 i5100_mc_errdeten(u32 mc)
-+{
-+	return mc >> 5 & 1;
-+}
-+
-+static inline u16 i5100_spddata_rdo(u16 a)
-+{
-+	return a >> 15 & 1;
-+}
-+
-+static inline u16 i5100_spddata_sbe(u16 a)
-+{
-+	return a >> 13 & 1;
-+}
-+
-+static inline u16 i5100_spddata_busy(u16 a)
-+{
-+	return a >> 12 & 1;
-+}
-+
-+static inline u16 i5100_spddata_data(u16 a)
-+{
-+	return a & ((1 << 8) - 1);
-+}
-+
-+static inline u32 i5100_spdcmd_create(u32 dti, u32 ckovrd, u32 sa, u32 ba,
-+				      u32 data, u32 cmd)
-+{
-+	return	((dti & ((1 << 4) - 1))  << 28) |
-+		((ckovrd & 1)            << 27) |
-+		((sa & ((1 << 3) - 1))   << 24) |
-+		((ba & ((1 << 8) - 1))   << 16) |
-+		((data & ((1 << 8) - 1)) <<  8) |
-+		(cmd & 1);
-+}
-+
-+static inline u16 i5100_tolm_tolm(u16 a)
-+{
-+	return a >> 12 & ((1 << 4) - 1);
-+}
-+
-+static inline u16 i5100_mir_limit(u16 a)
-+{
-+	return a >> 4 & ((1 << 12) - 1);
-+}
-+
-+static inline u16 i5100_mir_way1(u16 a)
-+{
-+	return a >> 1 & 1;
-+}
-+
-+static inline u16 i5100_mir_way0(u16 a)
-+{
-+	return a & 1;
-+}
-+
-+static inline u32 i5100_ferr_nf_mem_chan_indx(u32 a)
-+{
-+	return a >> 28 & 1;
-+}
-+
-+static inline u32 i5100_ferr_nf_mem_any(u32 a)
-+{
-+	return a & I5100_FERR_NF_MEM_ANY_MASK;
-+}
-+
-+static inline u32 i5100_nerr_nf_mem_any(u32 a)
-+{
-+	return i5100_ferr_nf_mem_any(a);
-+}
-+
-+static inline u32 i5100_dmir_limit(u32 a)
-+{
-+	return a >> 16 & ((1 << 11) - 1);
-+}
-+
-+static inline u32 i5100_dmir_rank(u32 a, u32 i)
-+{
-+	return a >> (4 * i) & ((1 << 2) - 1);
-+}
-+
-+static inline u16 i5100_mtr_present(u16 a)
-+{
-+	return a >> 10 & 1;
-+}
-+
-+static inline u16 i5100_mtr_ethrottle(u16 a)
-+{
-+	return a >> 9 & 1;
-+}
-+
-+static inline u16 i5100_mtr_width(u16 a)
-+{
-+	return a >> 8 & 1;
-+}
-+
-+static inline u16 i5100_mtr_numbank(u16 a)
-+{
-+	return a >> 6 & 1;
-+}
-+
-+static inline u16 i5100_mtr_numrow(u16 a)
-+{
-+	return a >> 2 & ((1 << 2) - 1);
-+}
-+
-+static inline u16 i5100_mtr_numcol(u16 a)
-+{
-+	return a & ((1 << 2) - 1);
-+}
-+
-+
-+static inline u32 i5100_validlog_redmemvalid(u32 a)
-+{
-+	return a >> 2 & 1;
-+}
-+
-+static inline u32 i5100_validlog_recmemvalid(u32 a)
-+{
-+	return a >> 1 & 1;
-+}
-+
-+static inline u32 i5100_validlog_nrecmemvalid(u32 a)
-+{
-+	return a & 1;
-+}
-+
-+static inline u32 i5100_nrecmema_merr(u32 a)
-+{
-+	return a >> 15 & ((1 << 5) - 1);
-+}
-+
-+static inline u32 i5100_nrecmema_bank(u32 a)
-+{
-+	return a >> 12 & ((1 << 3) - 1);
-+}
-+
-+static inline u32 i5100_nrecmema_rank(u32 a)
-+{
-+	return a >>  8 & ((1 << 3) - 1);
-+}
-+
-+static inline u32 i5100_nrecmema_dm_buf_id(u32 a)
-+{
-+	return a & ((1 << 8) - 1);
-+}
-+
-+static inline u32 i5100_nrecmemb_cas(u32 a)
-+{
-+	return a >> 16 & ((1 << 13) - 1);
-+}
-+
-+static inline u32 i5100_nrecmemb_ras(u32 a)
-+{
-+	return a & ((1 << 16) - 1);
-+}
-+
-+static inline u32 i5100_redmemb_ecc_locator(u32 a)
-+{
-+	return a & ((1 << 18) - 1);
-+}
-+
-+static inline u32 i5100_recmema_merr(u32 a)
-+{
-+	return i5100_nrecmema_merr(a);
-+}
-+
-+static inline u32 i5100_recmema_bank(u32 a)
-+{
-+	return i5100_nrecmema_bank(a);
-+}
-+
-+static inline u32 i5100_recmema_rank(u32 a)
-+{
-+	return i5100_nrecmema_rank(a);
-+}
-+
-+static inline u32 i5100_recmema_dm_buf_id(u32 a)
-+{
-+	return i5100_nrecmema_dm_buf_id(a);
-+}
-+
-+static inline u32 i5100_recmemb_cas(u32 a)
-+{
-+	return i5100_nrecmemb_cas(a);
-+}
-+
-+static inline u32 i5100_recmemb_ras(u32 a)
-+{
-+	return i5100_nrecmemb_ras(a);
-+}
- 
- /* some generic limits */
- #define I5100_MAX_RANKS_PER_CTLR	6
-@@ -189,42 +339,9 @@ static int i5100_rank_to_slot(const stru
- 	return -1;
+diff -puN fs/fuse/dir.c~fuse-add-fuse_lookup_name-helper fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-add-fuse_lookup_name-helper
++++ a/fs/fuse/dir.c
+@@ -112,18 +112,16 @@ static void fuse_invalidate_entry(struct
+ 	fuse_invalidate_entry_cache(entry);
  }
  
--/*
-- * The processor bus memory addresses are broken into three
-- * pieces, whereas the controller addresses are contiguous.
-- *
-- * here we map from the controller address space to the
-- * processor address space:
-- *
-- *    Processor Address Space
-- * +-----------------------------+
-- * |                             |
-- * |  "high" memory addresses    |
-- * |                             |
-- * +-----------------------------+ <- 4GB on the i5100
-- * |                             |
-- * |  other non-memory addresses |
-- * |                             |
-- * +-----------------------------+ <- top of low memory
-- * |                             |
-- * | "low" memory addresses      |
-- * |                             |
-- * +-----------------------------+
-- */
--static unsigned long i5100_ctl_page_to_phys(struct mem_ctl_info *mci,
--					    unsigned long cntlr_addr)
--{
--	const struct i5100_priv *priv = mci->pvt_info;
--
--	if (cntlr_addr < priv->tolm)
--		return cntlr_addr;
--
--	return (1ULL << 32) + (cntlr_addr - priv->tolm);
--}
--
- static const char *i5100_err_msg(unsigned err)
+-static void fuse_lookup_init(struct fuse_req *req, struct inode *dir,
+-			     struct dentry *entry,
++static void fuse_lookup_init(struct fuse_conn *fc, struct fuse_req *req,
++			     u64 nodeid, struct qstr *name,
+ 			     struct fuse_entry_out *outarg)
  {
--	const char *merrs[] = {
-+	static const char *merrs[] = {
- 		"unknown", /* 0 */
- 		"uncorrectable data ECC on replay", /* 1 */
- 		"unknown", /* 2 */
-@@ -341,24 +458,24 @@ static void i5100_read_log(struct mem_ct
+-	struct fuse_conn *fc = get_fuse_conn(dir);
+-
+ 	memset(outarg, 0, sizeof(struct fuse_entry_out));
+ 	req->in.h.opcode = FUSE_LOOKUP;
+-	req->in.h.nodeid = get_node_id(dir);
++	req->in.h.nodeid = nodeid;
+ 	req->in.numargs = 1;
+-	req->in.args[0].size = entry->d_name.len + 1;
+-	req->in.args[0].value = entry->d_name.name;
++	req->in.args[0].size = name->len + 1;
++	req->in.args[0].value = name->name;
+ 	req->out.numargs = 1;
+ 	if (fc->minor < 9)
+ 		req->out.args[0].size = FUSE_COMPAT_ENTRY_OUT_SIZE;
+@@ -189,7 +187,8 @@ static int fuse_dentry_revalidate(struct
+ 		attr_version = fuse_get_attr_version(fc);
  
- 	pci_read_config_dword(pdev, I5100_VALIDLOG, &dw);
- 
--	if (I5100_VALIDLOG_REDMEMVALID(dw)) {
-+	if (i5100_validlog_redmemvalid(dw)) {
- 		pci_read_config_dword(pdev, I5100_REDMEMA, &dw2);
--		syndrome = I5100_REDMEMA_SYNDROME(dw2);
-+		syndrome = dw2;
- 		pci_read_config_dword(pdev, I5100_REDMEMB, &dw2);
--		ecc_loc = I5100_REDMEMB_ECC_LOCATOR(dw2);
-+		ecc_loc = i5100_redmemb_ecc_locator(dw2);
- 	}
- 
--	if (I5100_VALIDLOG_RECMEMVALID(dw)) {
-+	if (i5100_validlog_recmemvalid(dw)) {
- 		const char *msg;
- 
- 		pci_read_config_dword(pdev, I5100_RECMEMA, &dw2);
--		merr = I5100_RECMEMA_MERR(dw2);
--		bank = I5100_RECMEMA_BANK(dw2);
--		rank = I5100_RECMEMA_RANK(dw2);
-+		merr = i5100_recmema_merr(dw2);
-+		bank = i5100_recmema_bank(dw2);
-+		rank = i5100_recmema_rank(dw2);
- 
- 		pci_read_config_dword(pdev, I5100_RECMEMB, &dw2);
--		cas = I5100_RECMEMB_CAS(dw2);
--		ras = I5100_RECMEMB_RAS(dw2);
-+		cas = i5100_recmemb_cas(dw2);
-+		ras = i5100_recmemb_ras(dw2);
- 
- 		/* FIXME:  not really sure if this is what merr is...
- 		 */
-@@ -370,17 +487,17 @@ static void i5100_read_log(struct mem_ct
- 		i5100_handle_ce(mci, ctlr, bank, rank, syndrome, cas, ras, msg);
- 	}
- 
--	if (I5100_VALIDLOG_NRECMEMVALID(dw)) {
-+	if (i5100_validlog_nrecmemvalid(dw)) {
- 		const char *msg;
- 
- 		pci_read_config_dword(pdev, I5100_NRECMEMA, &dw2);
--		merr = I5100_NRECMEMA_MERR(dw2);
--		bank = I5100_NRECMEMA_BANK(dw2);
--		rank = I5100_NRECMEMA_RANK(dw2);
-+		merr = i5100_nrecmema_merr(dw2);
-+		bank = i5100_nrecmema_bank(dw2);
-+		rank = i5100_nrecmema_rank(dw2);
- 
- 		pci_read_config_dword(pdev, I5100_NRECMEMB, &dw2);
--		cas = I5100_NRECMEMB_CAS(dw2);
--		ras = I5100_NRECMEMB_RAS(dw2);
-+		cas = i5100_nrecmemb_cas(dw2);
-+		ras = i5100_nrecmemb_ras(dw2);
- 
- 		/* FIXME:  not really sure if this is what merr is...
- 		 */
-@@ -402,7 +519,7 @@ static void i5100_check_error(struct mem
- 
- 
- 	pci_read_config_dword(priv->mc, I5100_FERR_NF_MEM, &dw);
--	if (I5100_FERR_NF_MEM_ANY(dw)) {
-+	if (i5100_ferr_nf_mem_any(dw)) {
- 		u32 dw2;
- 
- 		pci_read_config_dword(priv->mc, I5100_NERR_NF_MEM, &dw2);
-@@ -411,9 +528,9 @@ static void i5100_check_error(struct mem
- 					       dw2);
- 		pci_write_config_dword(priv->mc, I5100_FERR_NF_MEM, dw);
- 
--		i5100_read_log(mci, I5100_FERR_NF_MEM_CHAN_INDX(dw),
--			       I5100_FERR_NF_MEM_ANY(dw),
--			       I5100_NERR_NF_MEM_ANY(dw2));
-+		i5100_read_log(mci, i5100_ferr_nf_mem_chan_indx(dw),
-+			       i5100_ferr_nf_mem_any(dw),
-+			       i5100_nerr_nf_mem_any(dw2));
- 	}
+ 		parent = dget_parent(entry);
+-		fuse_lookup_init(req, parent->d_inode, entry, &outarg);
++		fuse_lookup_init(fc, req, get_node_id(parent->d_inode),
++				 &entry->d_name, &outarg);
+ 		request_send(fc, req);
+ 		dput(parent);
+ 		err = req->out.h.error;
+@@ -255,73 +254,111 @@ static struct dentry *fuse_d_add_directo
+ 	return d_splice_alias(inode, entry);
  }
  
-@@ -476,12 +593,12 @@ static void __devinit i5100_init_mtr(str
- 
- 			pci_read_config_word(pdev, addr, &w);
- 
--			priv->mtr[i][j].present = I5100_MTR_PRESENT(w);
--			priv->mtr[i][j].ethrottle = I5100_MTR_ETHROTTLE(w);
--			priv->mtr[i][j].width = 4 + 4 * I5100_MTR_WIDTH(w);
--			priv->mtr[i][j].numbank = 2 + I5100_MTR_NUMBANK(w);
--			priv->mtr[i][j].numrow = 13 + I5100_MTR_NUMROW(w);
--			priv->mtr[i][j].numcol = 10 + I5100_MTR_NUMCOL(w);
-+			priv->mtr[i][j].present = i5100_mtr_present(w);
-+			priv->mtr[i][j].ethrottle = i5100_mtr_ethrottle(w);
-+			priv->mtr[i][j].width = 4 + 4 * i5100_mtr_width(w);
-+			priv->mtr[i][j].numbank = 2 + i5100_mtr_numbank(w);
-+			priv->mtr[i][j].numrow = 13 + i5100_mtr_numrow(w);
-+			priv->mtr[i][j].numcol = 10 + i5100_mtr_numcol(w);
- 		}
- 	}
- }
-@@ -495,35 +612,30 @@ static int i5100_read_spd_byte(const str
+-static struct dentry *fuse_lookup(struct inode *dir, struct dentry *entry,
+-				  struct nameidata *nd)
++int fuse_lookup_name(struct super_block *sb, u64 nodeid, struct qstr *name,
++		     struct fuse_entry_out *outarg, struct inode **inode)
  {
- 	struct i5100_priv *priv = mci->pvt_info;
- 	u16 w;
--	u32 dw;
- 	unsigned long et;
+-	int err;
+-	struct fuse_entry_out outarg;
+-	struct inode *inode = NULL;
+-	struct dentry *newent;
+-	struct fuse_conn *fc = get_fuse_conn(dir);
++	struct fuse_conn *fc = get_fuse_conn_super(sb);
+ 	struct fuse_req *req;
+ 	struct fuse_req *forget_req;
+ 	u64 attr_version;
++	int err;
  
- 	pci_read_config_word(priv->mc, I5100_SPDDATA, &w);
--	if (I5100_SPDDATA_BUSY(w))
-+	if (i5100_spddata_busy(w))
- 		return -1;
+-	if (entry->d_name.len > FUSE_NAME_MAX)
+-		return ERR_PTR(-ENAMETOOLONG);
++	*inode = NULL;
++	err = -ENAMETOOLONG;
++	if (name->len > FUSE_NAME_MAX)
++		goto out;
  
--	dw =	I5100_SPDCMD_DTI(0xa) |
--		I5100_SPDCMD_CKOVRD(1) |
--		I5100_SPDCMD_SA(ch * 4 + slot) |
--		I5100_SPDCMD_BA(addr) |
--		I5100_SPDCMD_DATA(0) |
--		I5100_SPDCMD_CMD(0);
--	pci_write_config_dword(priv->mc, I5100_SPDCMD, dw);
-+	pci_write_config_dword(priv->mc, I5100_SPDCMD,
-+			       i5100_spdcmd_create(0xa, 1, ch * 4 + slot, addr,
-+						   0, 0));
+ 	req = fuse_get_req(fc);
++	err = PTR_ERR(req);
+ 	if (IS_ERR(req))
+-		return ERR_CAST(req);
++		goto out;
  
- 	/* wait up to 100ms */
- 	et = jiffies + HZ / 10;
- 	udelay(100);
- 	while (1) {
- 		pci_read_config_word(priv->mc, I5100_SPDDATA, &w);
--		if (!I5100_SPDDATA_BUSY(w))
-+		if (!i5100_spddata_busy(w))
- 			break;
- 		udelay(100);
+ 	forget_req = fuse_get_req(fc);
++	err = PTR_ERR(forget_req);
+ 	if (IS_ERR(forget_req)) {
+ 		fuse_put_request(fc, req);
+-		return ERR_CAST(forget_req);
++		goto out;
  	}
  
--	if (!I5100_SPDDATA_RDO(w) || I5100_SPDDATA_SBE(w))
-+	if (!i5100_spddata_rdo(w) || i5100_spddata_sbe(w))
- 		return -1;
+ 	attr_version = fuse_get_attr_version(fc);
  
--	*byte = I5100_SPDDATA_DATA(w);
-+	*byte = i5100_spddata_data(w);
- 
- 	return 0;
- }
-@@ -591,17 +703,17 @@ static void __devinit i5100_init_interle
- 	int i;
- 
- 	pci_read_config_word(pdev, I5100_TOLM, &w);
--	priv->tolm = (u64) I5100_TOLM_TOLM(w) * 256 * 1024 * 1024;
-+	priv->tolm = (u64) i5100_tolm_tolm(w) * 256 * 1024 * 1024;
- 
- 	pci_read_config_word(pdev, I5100_MIR0, &w);
--	priv->mir[0].limit = (u64) I5100_MIR_LIMIT(w) << 28;
--	priv->mir[0].way[1] = I5100_MIR_WAY1(w);
--	priv->mir[0].way[0] = I5100_MIR_WAY0(w);
-+	priv->mir[0].limit = (u64) i5100_mir_limit(w) << 28;
-+	priv->mir[0].way[1] = i5100_mir_way1(w);
-+	priv->mir[0].way[0] = i5100_mir_way0(w);
- 
- 	pci_read_config_word(pdev, I5100_MIR1, &w);
--	priv->mir[1].limit = (u64) I5100_MIR_LIMIT(w) << 28;
--	priv->mir[1].way[1] = I5100_MIR_WAY1(w);
--	priv->mir[1].way[0] = I5100_MIR_WAY0(w);
-+	priv->mir[1].limit = (u64) i5100_mir_limit(w) << 28;
-+	priv->mir[1].way[1] = i5100_mir_way1(w);
-+	priv->mir[1].way[0] = i5100_mir_way0(w);
- 
- 	pci_read_config_word(pdev, I5100_AMIR_0, &w);
- 	priv->amir[0] = w;
-@@ -617,10 +729,10 @@ static void __devinit i5100_init_interle
- 			pci_read_config_dword(mms[i], I5100_DMIR + j * 4, &dw);
- 
- 			priv->dmir[i][j].limit =
--				(u64) I5100_DMIR_LIMIT(dw) << 28;
-+				(u64) i5100_dmir_limit(dw) << 28;
- 			for (k = 0; k < I5100_MAX_RANKS_PER_DIMM; k++)
- 				priv->dmir[i][j].rank[k] =
--					I5100_DMIR_RANK(dw, k);
-+					i5100_dmir_rank(dw, k);
- 		}
+-	fuse_lookup_init(req, dir, entry, &outarg);
++	fuse_lookup_init(fc, req, nodeid, name, outarg);
+ 	request_send(fc, req);
+ 	err = req->out.h.error;
+ 	fuse_put_request(fc, req);
+ 	/* Zero nodeid is same as -ENOENT, but with valid timeout */
+-	if (!err && outarg.nodeid &&
+-	    (invalid_nodeid(outarg.nodeid) ||
+-	     !fuse_valid_type(outarg.attr.mode)))
+-		err = -EIO;
+-	if (!err && outarg.nodeid) {
+-		inode = fuse_iget(dir->i_sb, outarg.nodeid, outarg.generation,
+-				  &outarg.attr, entry_attr_timeout(&outarg),
+-				  attr_version);
+-		if (!inode) {
+-			fuse_send_forget(fc, forget_req, outarg.nodeid, 1);
+-			return ERR_PTR(-ENOMEM);
+-		}
++	if (err || !outarg->nodeid)
++		goto out_put_forget;
++
++	err = -EIO;
++	if (!outarg->nodeid)
++		goto out_put_forget;
++	if (!fuse_valid_type(outarg->attr.mode))
++		goto out_put_forget;
++
++	*inode = fuse_iget(sb, outarg->nodeid, outarg->generation,
++			   &outarg->attr, entry_attr_timeout(outarg),
++			   attr_version);
++	err = -ENOMEM;
++	if (!*inode) {
++		fuse_send_forget(fc, forget_req, outarg->nodeid, 1);
++		goto out;
  	}
++	err = 0;
++
++ out_put_forget:
+ 	fuse_put_request(fc, forget_req);
+-	if (err && err != -ENOENT)
+-		return ERR_PTR(err);
++ out:
++	return err;
++}
++
++static struct dentry *fuse_lookup(struct inode *dir, struct dentry *entry,
++				  struct nameidata *nd)
++{
++	int err;
++	struct fuse_entry_out outarg;
++	struct inode *inode;
++	struct dentry *newent;
++	struct fuse_conn *fc = get_fuse_conn(dir);
++	bool outarg_valid = true;
++
++	err = fuse_lookup_name(dir->i_sb, get_node_id(dir), &entry->d_name,
++			       &outarg, &inode);
++	if (err == -ENOENT) {
++		outarg_valid = false;
++		err = 0;
++	}
++	if (err)
++		goto out_err;
++
++	err = -EIO;
++	if (inode && get_node_id(inode) == FUSE_ROOT_ID)
++		goto out_iput;
  
-@@ -693,10 +805,10 @@ static int __devinit i5100_init_one(stru
- 
- 	/* ECC enabled? */
- 	pci_read_config_dword(pdev, I5100_MC, &dw);
--	if (!I5100_MC_ERRDETEN(dw)) {
-+	if (!i5100_mc_errdeten(dw)) {
- 		printk(KERN_INFO "i5100_edac: ECC not enabled.\n");
- 		ret = -ENODEV;
--		goto bail;
-+		goto bail_pdev;
- 	}
- 
- 	/* figure out how many ranks, from strapped state of 48GB_Mode input */
-@@ -707,7 +819,7 @@ static int __devinit i5100_init_one(stru
- 		/* FIXME: get 6 ranks / controller to work - need hw... */
- 		printk(KERN_INFO "i5100_edac: unsupported configuration.\n");
- 		ret = -ENODEV;
--		goto bail;
-+		goto bail_pdev;
- 	}
- 
- 	/* enable error reporting... */
-@@ -718,8 +830,10 @@ static int __devinit i5100_init_one(stru
- 	/* device 21, func 0, Channel 0 Memory Map, Error Flag/Mask, etc... */
- 	ch0mm = pci_get_device_func(PCI_VENDOR_ID_INTEL,
- 				    PCI_DEVICE_ID_INTEL_5100_21, 0);
--	if (!ch0mm)
--		return -ENODEV;
-+	if (!ch0mm) {
-+		ret = -ENODEV;
-+		goto bail_pdev;
+ 	if (inode && S_ISDIR(inode->i_mode)) {
+ 		mutex_lock(&fc->inst_mutex);
+ 		newent = fuse_d_add_directory(entry, inode);
+ 		mutex_unlock(&fc->inst_mutex);
+-		if (IS_ERR(newent)) {
+-			iput(inode);
+-			return newent;
+-		}
+-	} else
++		err = PTR_ERR(newent);
++		if (IS_ERR(newent))
++			goto out_iput;
++	} else {
+ 		newent = d_splice_alias(inode, entry);
 +	}
  
- 	rc = pci_enable_device(ch0mm);
- 	if (rc < 0) {
-@@ -732,7 +846,7 @@ static int __devinit i5100_init_one(stru
- 				    PCI_DEVICE_ID_INTEL_5100_22, 0);
- 	if (!ch1mm) {
- 		ret = -ENODEV;
--		goto bail_ch0;
-+		goto bail_disable_ch0;
- 	}
- 
- 	rc = pci_enable_device(ch1mm);
-@@ -744,7 +858,7 @@ static int __devinit i5100_init_one(stru
- 	mci = edac_mc_alloc(sizeof(*priv), ranksperch * 2, 1, 0);
- 	if (!mci) {
- 		ret = -ENOMEM;
--		goto bail_ch1;
-+		goto bail_disable_ch1;
- 	}
- 
- 	mci->dev = &pdev->dev;
-@@ -765,7 +879,7 @@ static int __devinit i5100_init_one(stru
- 	mci->mod_ver = "not versioned";
- 	mci->ctl_name = "i5100";
- 	mci->dev_name = pci_name(pdev);
--	mci->ctl_page_to_phys = i5100_ctl_page_to_phys;
-+	mci->ctl_page_to_phys = NULL;
- 
- 	mci->edac_check = i5100_check_error;
- 
-@@ -786,17 +900,26 @@ static int __devinit i5100_init_one(stru
- 		goto bail_mc;
- 	}
- 
--	goto bail;
-+	return ret;
- 
- bail_mc:
- 	edac_mc_free(mci);
- 
-+bail_disable_ch1:
-+	pci_disable_device(ch1mm);
+ 	entry = newent ? newent : entry;
+ 	entry->d_op = &fuse_dentry_operations;
+-	if (!err)
++	if (outarg_valid)
+ 		fuse_change_entry_timeout(entry, &outarg);
+ 	else
+ 		fuse_invalidate_entry_cache(entry);
 +
- bail_ch1:
- 	pci_dev_put(ch1mm);
- 
-+bail_disable_ch0:
-+	pci_disable_device(ch0mm);
+ 	return newent;
 +
- bail_ch0:
- 	pci_dev_put(ch0mm);
- 
-+bail_pdev:
-+	pci_disable_device(pdev);
-+
- bail:
- 	return ret;
++ out_iput:
++	iput(inode);
++ out_err:
++	return ERR_PTR(err);
  }
-@@ -812,6 +935,9 @@ static void __devexit i5100_remove_one(s
- 		return;
  
- 	priv = mci->pvt_info;
-+	pci_disable_device(pdev);
-+	pci_disable_device(priv->ch0mm);
-+	pci_disable_device(priv->ch1mm);
- 	pci_dev_put(priv->ch0mm);
- 	pci_dev_put(priv->ch1mm);
- 
+ /*
 _
 
-Patches currently in -mm which might be from ajones@riverbed.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
+linux-next.patch
+git-unprivileged-mounts.patch
 
