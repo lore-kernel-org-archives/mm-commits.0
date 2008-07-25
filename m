@@ -1,209 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: - call_usermodehelper-increase-reliability.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:54:41 -0700
-Message-ID: <200807252254.m6PMsfca002846@imap1.linux-foundation.org>
+Subject: - introduce-have_efficient_unaligned_access-kconfig-symbol.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:54:26 -0700
+Message-ID: <200807252254.m6PMsQKM002818__40963.0137299702$1217026613$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59660 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53914 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752623AbYGYWze (ORCPT
+	by vger.kernel.org with ESMTP id S1752623AbYGYWzf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:55:34 -0400
+	Fri, 25 Jul 2008 18:55:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, andi@firstfloor.org, jeremy@xensource.com, lizf@cn.fujitsu.com, menage@google.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: johannes@sipsolutions.net, linux-arch@vger.kernel.org, mingo@elte.hu, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     call_usermodehelper(): increase reliability
+     introduce HAVE_EFFICIENT_UNALIGNED_ACCESS Kconfig symbol
 has been removed from the -mm tree.  Its filename was
-     call_usermodehelper-increase-reliability.patch
+     introduce-have_efficient_unaligned_access-kconfig-symbol.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: call_usermodehelper(): increase reliability
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: introduce HAVE_EFFICIENT_UNALIGNED_ACCESS Kconfig symbol
+From: Johannes Berg <johannes@sipsolutions.net>
 
-Presently call_usermodehelper_setup() uses GFP_ATOMIC.  but it can return
-NULL _very_ easily.
+In many cases, especially in networking, it can be beneficial to know at
+compile time whether the architecture can do unaligned accesses efficiently. 
+This patch introduces a new Kconfig symbol
 
-GFP_ATOMIC is needed only when we can't sleep.  and, GFP_KERNEL is robust
-and better.
+	HAVE_EFFICIENT_UNALIGNED_ACCESS
 
-thus, I add gfp_mask argument to call_usermodehelper_setup().
+for that purpose and adds it to the powerpc and x86 architectures.  Also add
+some documentation about alignment and networking, and especially one intended
+use of this symbol.
 
-So, its callers pass the gfp_t as below:
-
-call_usermodehelper() and call_usermodehelper_keys():
-	depend on 'wait' argument.
-call_usermodehelper_pipe():
-	always GFP_KERNEL because always run under process context.
-orderly_poweroff():
-	pass to GFP_ATOMIC because may run under interrupt context.
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: "Paul Menage" <menage@google.com>
-Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Jeremy Fitzhardinge <jeremy@xensource.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Johannes Berg <johannes@sipsolutions.net>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Acked-by: Ingo Molnar <mingo@elte.hu> [x86 architecture part]
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmod.h |   11 +++++++----
- kernel/kmod.c        |    9 +++++----
- kernel/sys.c         |    2 +-
- 3 files changed, 13 insertions(+), 9 deletions(-)
+ Documentation/unaligned-memory-access.txt |   32 ++++++++++++++++++--
+ arch/Kconfig                              |   19 +++++++++++
+ arch/powerpc/Kconfig                      |    1 
+ arch/x86/Kconfig                          |    1 
+ 4 files changed, 50 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/kmod.h~call_usermodehelper-increase-reliability include/linux/kmod.h
---- a/include/linux/kmod.h~call_usermodehelper-increase-reliability
-+++ a/include/linux/kmod.h
-@@ -19,6 +19,7 @@
-  *      Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
+diff -puN Documentation/unaligned-memory-access.txt~introduce-have_efficient_unaligned_access-kconfig-symbol Documentation/unaligned-memory-access.txt
+--- a/Documentation/unaligned-memory-access.txt~introduce-have_efficient_unaligned_access-kconfig-symbol
++++ a/Documentation/unaligned-memory-access.txt
+@@ -218,9 +218,35 @@ If use of such macros is not convenient,
+ where the source or destination (or both) are of type u8* or unsigned char*.
+ Due to the byte-wise nature of this operation, unaligned accesses are avoided.
  
-+#include <linux/gfp.h>
- #include <linux/stddef.h>
- #include <linux/errno.h>
- #include <linux/compiler.h>
-@@ -41,8 +42,8 @@ struct file;
- struct subprocess_info;
++
++Alignment vs. Networking
++========================
++
++On architectures that require aligned loads, networking requires that the IP
++header is aligned on a four-byte boundary to optimise the IP stack. For
++regular ethernet hardware, the constant NET_IP_ALIGN is used. On most
++architectures this constant has the value 2 because the normal ethernet
++header is 14 bytes long, so in order to get proper alignment one needs to
++DMA to an address which can be expressed as 4*n + 2. One notable exception
++here is powerpc which defines NET_IP_ALIGN to 0 because DMA to unaligned
++addresses can be very expensive and dwarf the cost of unaligned loads.
++
++For some ethernet hardware that cannot DMA to unaligned addresses like
++4*n+2 or non-ethernet hardware, this can be a problem, and it is then
++required to copy the incoming frame into an aligned buffer. Because this is
++unnecessary on architectures that can do unaligned accesses, the code can be
++made dependent on CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS like so:
++
++#ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
++	skb = original skb
++#else
++	skb = copy skb
++#endif
++
+ --
+-Author: Daniel Drake <dsd@gentoo.org>
++Authors: Daniel Drake <dsd@gentoo.org>,
++         Johannes Berg <johannes@sipsolutions.net>
+ With help from: Alan Cox, Avuton Olrich, Heikki Orsila, Jan Engelhardt,
+-Johannes Berg, Kyle McMartin, Kyle Moffett, Randy Dunlap, Robert Hancock,
+-Uli Kunitz, Vadim Lobanov
++Kyle McMartin, Kyle Moffett, Randy Dunlap, Robert Hancock, Uli Kunitz,
++Vadim Lobanov
  
- /* Allocate a subprocess_info structure */
--struct subprocess_info *call_usermodehelper_setup(char *path,
--						  char **argv, char **envp);
-+struct subprocess_info *call_usermodehelper_setup(char *path, char **argv,
-+						  char **envp, gfp_t gfp_mask);
+diff -puN arch/Kconfig~introduce-have_efficient_unaligned_access-kconfig-symbol arch/Kconfig
+--- a/arch/Kconfig~introduce-have_efficient_unaligned_access-kconfig-symbol
++++ a/arch/Kconfig
+@@ -27,6 +27,25 @@ config KPROBES
+ 	  for kernel debugging, non-intrusive instrumentation and testing.
+ 	  If in doubt, say "N".
  
- /* Set various pieces of state into the subprocess_info structure */
- void call_usermodehelper_setkeys(struct subprocess_info *info,
-@@ -69,8 +70,9 @@ static inline int
- call_usermodehelper(char *path, char **argv, char **envp, enum umh_wait wait)
- {
- 	struct subprocess_info *info;
-+	gfp_t gfp_mask = (wait == UMH_NO_WAIT) ? GFP_ATOMIC : GFP_KERNEL;
++config HAVE_EFFICIENT_UNALIGNED_ACCESS
++	def_bool n
++	help
++	  Some architectures are unable to perform unaligned accesses
++	  without the use of get_unaligned/put_unaligned. Others are
++	  unable to perform such accesses efficiently (e.g. trap on
++	  unaligned access and require fixing it up in the exception
++	  handler.)
++
++	  This symbol should be selected by an architecture if it can
++	  perform unaligned accesses efficiently to allow different
++	  code paths to be selected for these cases. Some network
++	  drivers, for example, could opt to not fix up alignment
++	  problems with received packets if doing so would not help
++	  much.
++
++	  See Documentation/unaligned-memory-access.txt for more
++	  information on the topic of unaligned memory accesses.
++
+ config KRETPROBES
+ 	def_bool y
+ 	depends on KPROBES && HAVE_KRETPROBES
+diff -puN arch/powerpc/Kconfig~introduce-have_efficient_unaligned_access-kconfig-symbol arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~introduce-have_efficient_unaligned_access-kconfig-symbol
++++ a/arch/powerpc/Kconfig
+@@ -112,6 +112,7 @@ config PPC
+ 	select HAVE_FTRACE
+ 	select HAVE_IDE
+ 	select HAVE_IOREMAP_PROT
++	select HAVE_EFFICIENT_UNALIGNED_ACCESS
+ 	select HAVE_KPROBES
+ 	select HAVE_ARCH_KGDB
+ 	select HAVE_KRETPROBES
+diff -puN arch/x86/Kconfig~introduce-have_efficient_unaligned_access-kconfig-symbol arch/x86/Kconfig
+--- a/arch/x86/Kconfig~introduce-have_efficient_unaligned_access-kconfig-symbol
++++ a/arch/x86/Kconfig
+@@ -28,6 +28,7 @@ config X86
+ 	select HAVE_FTRACE
+ 	select HAVE_KVM if ((X86_32 && !X86_VOYAGER && !X86_VISWS && !X86_NUMAQ) || X86_64)
+ 	select HAVE_ARCH_KGDB if !X86_VOYAGER
++	select HAVE_EFFICIENT_UNALIGNED_ACCESS
  
--	info = call_usermodehelper_setup(path, argv, envp);
-+	info = call_usermodehelper_setup(path, argv, envp, gfp_mask);
- 	if (info == NULL)
- 		return -ENOMEM;
- 	return call_usermodehelper_exec(info, wait);
-@@ -81,8 +83,9 @@ call_usermodehelper_keys(char *path, cha
- 			 struct key *session_keyring, enum umh_wait wait)
- {
- 	struct subprocess_info *info;
-+	gfp_t gfp_mask = (wait == UMH_NO_WAIT) ? GFP_ATOMIC : GFP_KERNEL;
- 
--	info = call_usermodehelper_setup(path, argv, envp);
-+	info = call_usermodehelper_setup(path, argv, envp, gfp_mask);
- 	if (info == NULL)
- 		return -ENOMEM;
- 
-diff -puN kernel/kmod.c~call_usermodehelper-increase-reliability kernel/kmod.c
---- a/kernel/kmod.c~call_usermodehelper-increase-reliability
-+++ a/kernel/kmod.c
-@@ -352,16 +352,17 @@ static inline void register_pm_notifier_
-  * @path: path to usermode executable
-  * @argv: arg vector for process
-  * @envp: environment for process
-+ * @gfp_mask: gfp mask for memory allocation
-  *
-  * Returns either %NULL on allocation failure, or a subprocess_info
-  * structure.  This should be passed to call_usermodehelper_exec to
-  * exec the process and free the structure.
-  */
--struct subprocess_info *call_usermodehelper_setup(char *path,
--						  char **argv, char **envp)
-+struct subprocess_info *call_usermodehelper_setup(char *path, char **argv,
-+						  char **envp, gfp_t gfp_mask)
- {
- 	struct subprocess_info *sub_info;
--	sub_info = kzalloc(sizeof(struct subprocess_info),  GFP_ATOMIC);
-+	sub_info = kzalloc(sizeof(struct subprocess_info), gfp_mask);
- 	if (!sub_info)
- 		goto out;
- 
-@@ -494,7 +495,7 @@ int call_usermodehelper_pipe(char *path,
- 	struct subprocess_info *sub_info;
- 	int ret;
- 
--	sub_info = call_usermodehelper_setup(path, argv, envp);
-+	sub_info = call_usermodehelper_setup(path, argv, envp, GFP_KERNEL);
- 	if (sub_info == NULL)
- 		return -ENOMEM;
- 
-diff -puN kernel/sys.c~call_usermodehelper-increase-reliability kernel/sys.c
---- a/kernel/sys.c~call_usermodehelper-increase-reliability
-+++ a/kernel/sys.c
-@@ -1795,7 +1795,7 @@ int orderly_poweroff(bool force)
- 		goto out;
- 	}
- 
--	info = call_usermodehelper_setup(argv[0], argv, envp);
-+	info = call_usermodehelper_setup(argv[0], argv, envp, GFP_ATOMIC);
- 	if (info == NULL) {
- 		argv_free(argv);
- 		goto out;
+ config ARCH_DEFCONFIG
+ 	string
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from johannes@sipsolutions.net are
 
 origin.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix-fix-fix.patch
-relay-add-buffer-only-channels-useful-for-early-logging-fix.patch
-mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
-vmscan-use-an-indexed-array-for-lru-variables.patch
-swap-use-an-array-for-the-lru-pagevecs.patch
-define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
-vmscan-split-lru-lists-into-anon-file-sets-collect-lru-meminfo-statistics-from-correct-offset.patch
-vmscan-split-lru-lists-into-anon-file-sets-prevent-incorrect-oom-under-split_lru.patch
-vmscan-split-lru-lists-into-anon-file-sets-split_lru-fix-pagevec_move_tail-doesnt-treat-unevictable-page.patch
-vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
-vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
-vmscan-second-chance-replacement-for-anonymous-pages.patch
-vmscan-second-chance-replacement-for-anonymous-pages-fix.patch
-vmscan-second-chance-replacement-for-anonymous-pages-memcg-lru-scan-fix.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-infrastructure-remove-redundant-page-mapping-check.patch
-unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework.patch
-unevictable-lru-infrastructure-kill-unnecessary-lock_page-in-vmscanc.patch
-unevictable-lru-infrastructure-revert-migration-change-of-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-unevictable-lru-page-statistics-fix-printk-in-show_free_areas.patch
-unevictable-lru-page-statistics-units-fix.patch
-shm_locked-pages-are-unevictable.patch
-shm_locked-pages-are-unevictable-revert-shm-change-of-shm_locked-pages-are-unevictable-patch.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
-mlock-mlocked-pages-are-unevictable-restore-patch-failure-hunk-of-mlock-mlocked-pages-are-unevictablepatch.patch
-mlock-mlocked-pages-are-unevictable-fix-truncate-race-and-sevaral-comments.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
-introduce-__get_user_pages.patch
-introduce-__get_user_pages-fix.patch
-split-lru-munlock-rework.patch
-revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch
-vmstat-mlocked-pages-statistics.patch
-vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
-vmstat-mlocked-pages-statistics-fix.patch
-swap-cull-unevictable-pages-in-fault-path-fix.patch
-vmstat-unevictable-and-mlocked-pages-vm-events.patch
-restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter.patch
-vmscam-kill-unused-lru-functions.patch
-mm-more-likely-reclaim-madv_sequential-mappings.patch
-make-mm-memoryc-print_bad_pte-static.patch
-mm-swapfilec-make-code-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
+input-bcm5974-055-smoother-motion-irq-simplification.patch
+ath5k-fix-beacon-update-deadlock.patch
+mac80211-tx-use-dev_kfree_skb_any-for-beacon_get.patch
+mac80211-return-correct-error-return-from-ieee80211_wep_init.patch
 
