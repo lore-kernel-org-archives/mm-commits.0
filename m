@@ -1,135 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - cgroup-files-clean-up-whitespace-in-struct-cftype.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:58:09 -0700
-Message-ID: <200807252258.m6PMw9u1003262@imap1.linux-foundation.org>
+Subject: - tsacct-fix-bacct_add_tsks-use-of-do_div.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:03:12 -0700
+Message-ID: <200807252303.m6PN3CjX003935@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43720 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40835 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753851AbYGYXEM (ORCPT
+	by vger.kernel.org with ESMTP id S1751898AbYGYXEW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:04:12 -0400
+	Fri, 25 Jul 2008 19:04:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, pj@sgi.com, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, jlan@engr.sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroup files: clean up whitespace in struct cftype
+     tsacct: fix bacct_add_tsk()'s use of do_div()
 has been removed from the -mm tree.  Its filename was
-     cgroup-files-clean-up-whitespace-in-struct-cftype.patch
+     tsacct-fix-bacct_add_tsks-use-of-do_div.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup files: clean up whitespace in struct cftype
-From: Paul Menage <menage@google.com>
+Subject: tsacct: fix bacct_add_tsk()'s use of do_div()
+From: David Howells <dhowells@redhat.com>
 
-This patch removes some extraneous spaces from method declarations in
-struct cftype, to fit in with conventional kernel style.
+Fix bacct_add_tsk()'s use of do_div() on an s64 by making ac_etime a u64
+instead and dividing that.
 
-Signed-off-by: Paul Menage <menage@google.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Possibly this should be guarded lest the interval calculation turn up
+negative, but the possible negativity of the result of the division is
+cast away, and it shouldn't end up negative anyway.
+
+This was introduced by patch f3cef7a99469afc159fec3a61b42dc7ca5b6824f.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Jay Lan <jlan@engr.sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |   32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ kernel/tsacct.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroup-files-clean-up-whitespace-in-struct-cftype include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroup-files-clean-up-whitespace-in-struct-cftype
-+++ a/include/linux/cgroup.h
-@@ -205,48 +205,48 @@ struct cftype {
- 	 * subsystem, followed by a period */
- 	char name[MAX_CFTYPE_NAME];
- 	int private;
--	int (*open) (struct inode *inode, struct file *file);
--	ssize_t (*read) (struct cgroup *cgrp, struct cftype *cft,
--			 struct file *file,
--			 char __user *buf, size_t nbytes, loff_t *ppos);
-+	int (*open)(struct inode *inode, struct file *file);
-+	ssize_t (*read)(struct cgroup *cgrp, struct cftype *cft,
-+			struct file *file,
-+			char __user *buf, size_t nbytes, loff_t *ppos);
- 	/*
- 	 * read_u64() is a shortcut for the common case of returning a
- 	 * single integer. Use it in place of read()
- 	 */
--	u64 (*read_u64) (struct cgroup *cgrp, struct cftype *cft);
-+	u64 (*read_u64)(struct cgroup *cgrp, struct cftype *cft);
- 	/*
- 	 * read_s64() is a signed version of read_u64()
- 	 */
--	s64 (*read_s64) (struct cgroup *cgrp, struct cftype *cft);
-+	s64 (*read_s64)(struct cgroup *cgrp, struct cftype *cft);
- 	/*
- 	 * read_map() is used for defining a map of key/value
- 	 * pairs. It should call cb->fill(cb, key, value) for each
- 	 * entry. The key/value pairs (and their ordering) should not
- 	 * change between reboots.
- 	 */
--	int (*read_map) (struct cgroup *cont, struct cftype *cft,
--			 struct cgroup_map_cb *cb);
-+	int (*read_map)(struct cgroup *cont, struct cftype *cft,
-+			struct cgroup_map_cb *cb);
- 	/*
- 	 * read_seq_string() is used for outputting a simple sequence
- 	 * using seqfile.
- 	 */
--	int (*read_seq_string) (struct cgroup *cont, struct cftype *cft,
--			 struct seq_file *m);
-+	int (*read_seq_string)(struct cgroup *cont, struct cftype *cft,
-+			       struct seq_file *m);
+diff -puN kernel/tsacct.c~tsacct-fix-bacct_add_tsks-use-of-do_div kernel/tsacct.c
+--- a/kernel/tsacct.c~tsacct-fix-bacct_add_tsks-use-of-do_div
++++ a/kernel/tsacct.c
+@@ -28,14 +28,14 @@
+ void bacct_add_tsk(struct taskstats *stats, struct task_struct *tsk)
+ {
+ 	struct timespec uptime, ts;
+-	s64 ac_etime;
++	u64 ac_etime;
  
--	ssize_t (*write) (struct cgroup *cgrp, struct cftype *cft,
--			  struct file *file,
--			  const char __user *buf, size_t nbytes, loff_t *ppos);
-+	ssize_t (*write)(struct cgroup *cgrp, struct cftype *cft,
-+			 struct file *file,
-+			 const char __user *buf, size_t nbytes, loff_t *ppos);
+ 	BUILD_BUG_ON(TS_COMM_LEN < TASK_COMM_LEN);
  
- 	/*
- 	 * write_u64() is a shortcut for the common case of accepting
- 	 * a single integer (as parsed by simple_strtoull) from
- 	 * userspace. Use in place of write(); return 0 or error.
- 	 */
--	int (*write_u64) (struct cgroup *cgrp, struct cftype *cft, u64 val);
-+	int (*write_u64)(struct cgroup *cgrp, struct cftype *cft, u64 val);
- 	/*
- 	 * write_s64() is a signed version of write_u64()
- 	 */
--	int (*write_s64) (struct cgroup *cgrp, struct cftype *cft, s64 val);
-+	int (*write_s64)(struct cgroup *cgrp, struct cftype *cft, s64 val);
- 
- 	/*
- 	 * trigger() callback can be used to get some kick from the
-@@ -256,7 +256,7 @@ struct cftype {
- 	 */
- 	int (*trigger)(struct cgroup *cgrp, unsigned int event);
- 
--	int (*release) (struct inode *inode, struct file *file);
-+	int (*release)(struct inode *inode, struct file *file);
- };
- 
- struct cgroup_scanner {
+ 	/* calculate task elapsed time in timespec */
+ 	do_posix_clock_monotonic_gettime(&uptime);
+ 	ts = timespec_sub(uptime, tsk->start_time);
+-	/* rebase elapsed time to usec */
++	/* rebase elapsed time to usec (should never be negative) */
+ 	ac_etime = timespec_to_ns(&ts);
+ 	do_div(ac_etime, NSEC_PER_USEC);
+ 	stats->ac_etime = ac_etime;
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-make-cgroup_seqfile_release-static.patch
-add-a-refcount-check-in-dput.patch
+linux-next.patch
+calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
+cifs-fix-range-check.patch
+sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module.patch
+sis-drm-fix-a-pointer-cast-warning.patch
+atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch
+atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch
+hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
+git-unionfs.patch
+clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
+pnp-fix-the-fcpnp_driver-declaration-to-only-exist-if-config_pnp=y.patch
+ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
+mm-print-swapcache-page-count-in-show_swap_cache_info.patch
+lib-generic-show_mem.patch
+mn10300-use-generic-show_mem.patch
+frv-use-generic-show_mem.patch
+mutex-subsystem-synchro-test-module.patch
 
