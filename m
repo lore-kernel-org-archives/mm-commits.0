@@ -1,126 +1,210 @@
 From: akpm@linux-foundation.org
-Subject: - idr-make-idr_find-rcu-safe.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:00:45 -0700
-Message-ID: <200807252300.m6PN0jYw003615@imap1.linux-foundation.org>
+Subject: - calgary-iommu-use-the-first-kernels-tce-tables-in-kdump.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:00:31 -0700
+Message-ID: <200807252300.m6PN0VaC003593@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60300 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56279 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754216AbYGYXIn (ORCPT
+	by vger.kernel.org with ESMTP id S1754425AbYGYXIu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:08:43 -0400
+	Fri, 25 Jul 2008 19:08:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Nadia.Derbey@bull.net, jim.houston@comcast.net, manfred@colorfullife.com, paulmck@us.ibm.com, peifferp@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: chandru@in.ibm.com, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     idr: make idr_find rcu-safe
+     calgary iommu: use the first kernels TCE tables in kdump
 has been removed from the -mm tree.  Its filename was
-     idr-make-idr_find-rcu-safe.patch
+     calgary-iommu-use-the-first-kernels-tce-tables-in-kdump.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: idr: make idr_find rcu-safe
-From: Nadia Derbey <Nadia.Derbey@bull.net>
+Subject: calgary iommu: use the first kernels TCE tables in kdump
+From: Chandru <chandru@in.ibm.com>
 
-Make idr_find rcu-safe: it can now be called inside an rcu_read critical
-section.
+kdump kernel fails to boot with calgary iommu and aacraid driver on a x366
+box.  The ongoing dma's of aacraid from the first kernel continue to exist
+until the driver is loaded in the kdump kernel.  Calgary is initialized
+prior to aacraid and creation of new tce tables causes wrong dma's to
+occur.  Here we try to get the tce tables of the first kernel in kdump
+kernel and use them.  While in the kdump kernel we do not allocate new tce
+tables but instead read the base address register contents of calgary
+iommu and use the tables that the registers point to.  With these changes
+the kdump kernel and hence aacraid now boots normally.
 
-Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
-Reviewed-by: "Paul E. McKenney" <paulmck@us.ibm.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Jim Houston <jim.houston@comcast.net>
-Cc: Pierre Peiffer <peifferp@gmail.com>
-Acked-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: Chandru Siddalingappa <chandru@in.ibm.com>
+Acked-by: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/idr.h |   16 ++++++++++++++++
- lib/idr.c           |   11 ++++++-----
- 2 files changed, 22 insertions(+), 5 deletions(-)
+ arch/x86/kernel/pci-calgary_64.c |   85 ++++++++++++++++++++++++++---
+ include/linux/crash_dump.h       |    8 ++
+ 2 files changed, 87 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/idr.h~idr-make-idr_find-rcu-safe include/linux/idr.h
---- a/include/linux/idr.h~idr-make-idr_find-rcu-safe
-+++ a/include/linux/idr.h
-@@ -79,6 +79,22 @@ struct idr {
+diff -puN arch/x86/kernel/pci-calgary_64.c~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump arch/x86/kernel/pci-calgary_64.c
+--- a/arch/x86/kernel/pci-calgary_64.c~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump
++++ a/arch/x86/kernel/pci-calgary_64.c
+@@ -29,6 +29,7 @@
+ #include <linux/mm.h>
+ #include <linux/spinlock.h>
+ #include <linux/string.h>
++#include <linux/crash_dump.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/bitops.h>
+ #include <linux/pci_ids.h>
+@@ -167,6 +168,8 @@ static void calgary_dump_error_regs(stru
+ static void calioc2_handle_quirks(struct iommu_table *tbl, struct pci_dev *dev);
+ static void calioc2_tce_cache_blast(struct iommu_table *tbl);
+ static void calioc2_dump_error_regs(struct iommu_table *tbl);
++static void calgary_init_bitmap_from_tce_table(struct iommu_table *tbl);
++static void get_tce_space_from_tar(void);
  
- #define _idr_rc_to_errno(rc) ((rc) == -1 ? -EAGAIN : -ENOSPC)
+ static struct cal_chipset_ops calgary_chip_ops = {
+ 	.handle_quirks = calgary_handle_quirks,
+@@ -830,7 +833,11 @@ static int __init calgary_setup_tar(stru
  
-+/**
-+ * idr synchronization (stolen from radix-tree.h)
-+ *
-+ * idr_find() is able to be called locklessly, using RCU. The caller must
-+ * ensure calls to this function are made within rcu_read_lock() regions.
-+ * Other readers (lock-free or otherwise) and modifications may be running
-+ * concurrently.
-+ *
-+ * It is still required that the caller manage the synchronization and
-+ * lifetimes of the items. So if RCU lock-free lookups are used, typically
-+ * this would mean that the items have their own locks, or are amenable to
-+ * lock-free access; and that the items are freed by RCU (or only freed after
-+ * having been deleted from the idr tree *and* a synchronize_rcu() grace
-+ * period).
-+ */
+ 	tbl = pci_iommu(dev->bus);
+ 	tbl->it_base = (unsigned long)bus_info[dev->bus->number].tce_space;
+-	tce_free(tbl, 0, tbl->it_size);
 +
- /*
-  * This is what we export.
-  */
-diff -puN lib/idr.c~idr-make-idr_find-rcu-safe lib/idr.c
---- a/lib/idr.c~idr-make-idr_find-rcu-safe
-+++ a/lib/idr.c
-@@ -456,7 +456,8 @@ EXPORT_SYMBOL(idr_destroy);
-  * return indicates that @id is not valid or you passed %NULL in
-  * idr_get_new().
-  *
-- * The caller must serialize idr_find() vs idr_get_new() and idr_remove().
-+ * This function can be called under rcu_read_lock(), given that the leaf
-+ * pointers lifetimes are correctly managed.
-  */
- void *idr_find(struct idr *idp, int id)
- {
-@@ -464,7 +465,7 @@ void *idr_find(struct idr *idp, int id)
- 	struct idr_layer *p;
++	if (is_kdump_kernel())
++		calgary_init_bitmap_from_tce_table(tbl);
++	else
++		tce_free(tbl, 0, tbl->it_size);
  
- 	n = idp->layers * IDR_BITS;
--	p = idp->top;
-+	p = rcu_dereference(idp->top);
+ 	if (is_calgary(dev->device))
+ 		tbl->chip_ops = &calgary_chip_ops;
+@@ -1209,6 +1216,10 @@ static int __init calgary_init(void)
+ 	if (ret)
+ 		return ret;
  
- 	/* Mask off upper bits we don't use for the search. */
- 	id &= MAX_ID_MASK;
-@@ -474,7 +475,7 @@ void *idr_find(struct idr *idp, int id)
- 
- 	while (n > 0 && p) {
- 		n -= IDR_BITS;
--		p = p->ary[(id >> n) & IDR_MASK];
-+		p = rcu_dereference(p->ary[(id >> n) & IDR_MASK]);
- 	}
- 	return((void *)p);
++	/* Purely for kdump kernel case */
++	if (is_kdump_kernel())
++		get_tce_space_from_tar();
++
+ 	do {
+ 		dev = pci_get_device(PCI_VENDOR_ID_IBM, PCI_ANY_ID, dev);
+ 		if (!dev)
+@@ -1339,6 +1350,61 @@ static int __init calgary_bus_has_device
+ 	return (val != 0xffffffff);
  }
-@@ -507,7 +508,7 @@ int idr_for_each(struct idr *idp,
- 	struct idr_layer **paa = &pa[0];
  
- 	n = idp->layers * IDR_BITS;
--	p = idp->top;
-+	p = rcu_dereference(idp->top);
- 	max = 1 << n;
++/*
++ * calgary_init_bitmap_from_tce_table():
++ * Funtion for kdump case. In the second/kdump kernel initialize
++ * the bitmap based on the tce table entries obtained from first kernel
++ */
++static void calgary_init_bitmap_from_tce_table(struct iommu_table *tbl)
++{
++	u64 *tp;
++	unsigned int index;
++	tp = ((u64 *)tbl->it_base);
++	for (index = 0 ; index < tbl->it_size; index++) {
++		if (*tp != 0x0)
++			set_bit(index, tbl->it_map);
++		tp++;
++	}
++}
++
++/*
++ * get_tce_space_from_tar():
++ * Function for kdump case. Get the tce tables from first kernel
++ * by reading the contents of the base adress register of calgary iommu
++ */
++static void get_tce_space_from_tar()
++{
++	int bus;
++	void __iomem *target;
++	unsigned long tce_space;
++
++	for (bus = 0; bus < MAX_PHB_BUS_NUM; bus++) {
++		struct calgary_bus_info *info = &bus_info[bus];
++		unsigned short pci_device;
++		u32 val;
++
++		val = read_pci_config(bus, 0, 0, 0);
++		pci_device = (val & 0xFFFF0000) >> 16;
++
++		if (!is_cal_pci_dev(pci_device))
++			continue;
++		if (info->translation_disabled)
++			continue;
++
++		if (calgary_bus_has_devices(bus, pci_device) ||
++						translate_empty_slots) {
++			target = calgary_reg(bus_info[bus].bbar,
++						tar_offset(bus));
++			tce_space = be64_to_cpu(readq(target));
++			tce_space = tce_space & TAR_SW_BITS;
++
++			tce_space = tce_space & (~specified_table_size);
++			info->tce_space = (u64 *)__va(tce_space);
++		}
++	}
++	return;
++}
++
+ void __init detect_calgary(void)
+ {
+ 	int bus;
+@@ -1394,7 +1460,8 @@ void __init detect_calgary(void)
+ 		return;
+ 	}
  
- 	id = 0;
-@@ -515,7 +516,7 @@ int idr_for_each(struct idr *idp,
- 		while (n > 0 && p) {
- 			n -= IDR_BITS;
- 			*paa++ = p;
--			p = p->ary[(id >> n) & IDR_MASK];
-+			p = rcu_dereference(p->ary[(id >> n) & IDR_MASK]);
+-	specified_table_size = determine_tce_table_size(max_pfn * PAGE_SIZE);
++	specified_table_size = determine_tce_table_size((is_kdump_kernel() ?
++					saved_max_pfn : max_pfn) * PAGE_SIZE);
+ 
+ 	for (bus = 0; bus < MAX_PHB_BUS_NUM; bus++) {
+ 		struct calgary_bus_info *info = &bus_info[bus];
+@@ -1412,10 +1479,16 @@ void __init detect_calgary(void)
+ 
+ 		if (calgary_bus_has_devices(bus, pci_device) ||
+ 		    translate_empty_slots) {
+-			tbl = alloc_tce_table();
+-			if (!tbl)
+-				goto cleanup;
+-			info->tce_space = tbl;
++			/*
++			 * If it is kdump kernel, find and use tce tables
++			 * from first kernel, else allocate tce tables here
++			 */
++			if (!is_kdump_kernel()) {
++				tbl = alloc_tce_table();
++				if (!tbl)
++					goto cleanup;
++				info->tce_space = tbl;
++			}
+ 			calgary_found = 1;
  		}
+ 	}
+diff -puN include/linux/crash_dump.h~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump include/linux/crash_dump.h
+--- a/include/linux/crash_dump.h~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump
++++ a/include/linux/crash_dump.h
+@@ -22,5 +22,13 @@ extern struct proc_dir_entry *proc_vmcor
  
- 		if (p) {
+ #define vmcore_elf_check_arch(x) (elf_check_arch(x) || vmcore_elf_check_arch_cross(x))
+ 
++static inline int is_kdump_kernel(void)
++{
++	return (elfcorehdr_addr != ELFCORE_ADDR_MAX) ? 1 : 0;
++}
++#else /* !CONFIG_CRASH_DUMP */
++static inline int is_kdump_kernel(void) { return 0; }
+ #endif /* CONFIG_CRASH_DUMP */
++
++extern unsigned long saved_max_pfn;
+ #endif /* LINUX_CRASHDUMP_H */
 _
 
-Patches currently in -mm which might be from Nadia.Derbey@bull.net are
+Patches currently in -mm which might be from chandru@in.ibm.com are
 
 origin.patch
 
