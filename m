@@ -1,206 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: - cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:58:25 -0700
-Message-ID: <200807252258.m6PMwP7a003290@imap1.linux-foundation.org>
+Subject: - devcgroup-relax-white-list-protection-down-to-rcu.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:58:30 -0700
+Message-ID: <200807252258.m6PMwUfr003296@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59678 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59108 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754116AbYGYW7R (ORCPT
+	by vger.kernel.org with ESMTP id S1752785AbYGYW7X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:59:17 -0400
+	Fri, 25 Jul 2008 18:59:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, pj@sgi.com, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: xemul@openvz.org, balbir@in.ibm.com, menage@google.com, paulmck@us.ibm.com, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroup files: convert res_counter_write() to be a cgroups write_string() handler
+     devcgroup: relax white-list protection down to RCU
 has been removed from the -mm tree.  Its filename was
-     cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler.patch
+     devcgroup-relax-white-list-protection-down-to-rcu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup files: convert res_counter_write() to be a cgroups write_string() handler
-From: Paul Menage <menage@google.com>
+Subject: devcgroup: relax white-list protection down to RCU
+From: Pavel Emelyanov <xemul@openvz.org>
 
-Currently res_counter_write() is a raw file handler even though it's
-ultimately taking a number, since in some cases it wants to
-pre-process the string when converting it to a number.
+Currently this list is protected with a simple spinlock, even for reading
+from one.  This is OK, but can be better.
 
-This patch converts res_counter_write() from a raw file handler to a
-write_string() handler; this allows some of the boilerplate
-copying/locking/checking to be removed, and simplies the cleanup path,
-since these functions are now performed by the cgroups framework.
+Actually I want it to be better very much, since after replacing the
+OpenVZ device permissions engine with the cgroup-based one I noticed, that
+we set 12 default device permissions for each newly created container (for
+/dev/null, full, terminals, ect devices), and people sometimes have up to
+20 perms more, so traversing the ~30-40 elements list under a spinlock
+doesn't seem very good.
 
-[lizf@cn.fujitsu.com: build fix]
-Signed-off-by: Paul Menage <menage@google.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+Here's the RCU protection for white-list - dev_whitelist_item-s are added
+and removed under the devcg->lock, but are looked up in permissions
+checking under the rcu_read_lock.
+
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/res_counter.h |   11 +++++--
- kernel/res_counter.c        |   48 ++++++++++++++--------------------
- mm/memcontrol.c             |   24 +++--------------
- 3 files changed, 34 insertions(+), 49 deletions(-)
+ security/device_cgroup.c |   35 ++++++++++++++++++++++-------------
+ 1 file changed, 22 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/res_counter.h~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler include/linux/res_counter.h
---- a/include/linux/res_counter.h~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler
-+++ a/include/linux/res_counter.h
-@@ -63,9 +63,14 @@ u64 res_counter_read_u64(struct res_coun
- ssize_t res_counter_read(struct res_counter *counter, int member,
- 		const char __user *buf, size_t nbytes, loff_t *pos,
- 		int (*read_strategy)(unsigned long long val, char *s));
--ssize_t res_counter_write(struct res_counter *counter, int member,
--		const char __user *buf, size_t nbytes, loff_t *pos,
--		int (*write_strategy)(char *buf, unsigned long long *val));
-+
-+typedef int (*write_strategy_fn)(const char *buf, unsigned long long *val);
-+
-+int res_counter_memparse_write_strategy(const char *buf,
-+					unsigned long long *res);
-+
-+int res_counter_write(struct res_counter *counter, int member,
-+		      const char *buffer, write_strategy_fn write_strategy);
+diff -puN security/device_cgroup.c~devcgroup-relax-white-list-protection-down-to-rcu security/device_cgroup.c
+--- a/security/device_cgroup.c~devcgroup-relax-white-list-protection-down-to-rcu
++++ a/security/device_cgroup.c
+@@ -41,6 +41,7 @@ struct dev_whitelist_item {
+ 	short type;
+ 	short access;
+ 	struct list_head list;
++	struct rcu_head rcu;
+ };
  
- /*
-  * the field descriptors. one for each member of res_counter
-diff -puN kernel/res_counter.c~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler kernel/res_counter.c
---- a/kernel/res_counter.c~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler
-+++ a/kernel/res_counter.c
-@@ -13,6 +13,7 @@
- #include <linux/slab.h>
- #include <linux/res_counter.h>
- #include <linux/uaccess.h>
-+#include <linux/mm.h>
- 
- void res_counter_init(struct res_counter *counter)
- {
-@@ -102,44 +103,37 @@ u64 res_counter_read_u64(struct res_coun
- 	return *res_counter_member(counter, member);
- }
- 
--ssize_t res_counter_write(struct res_counter *counter, int member,
--		const char __user *userbuf, size_t nbytes, loff_t *pos,
--		int (*write_strategy)(char *st_buf, unsigned long long *val))
-+int res_counter_memparse_write_strategy(const char *buf,
-+					unsigned long long *res)
- {
--	int ret;
--	char *buf, *end;
--	unsigned long flags;
--	unsigned long long tmp, *val;
-+	char *end;
-+	/* FIXME - make memparse() take const char* args */
-+	*res = memparse((char *)buf, &end);
-+	if (*end != '\0')
-+		return -EINVAL;
- 
--	buf = kmalloc(nbytes + 1, GFP_KERNEL);
--	ret = -ENOMEM;
--	if (buf == NULL)
--		goto out;
--
--	buf[nbytes] = '\0';
--	ret = -EFAULT;
--	if (copy_from_user(buf, userbuf, nbytes))
--		goto out_free;
-+	*res = PAGE_ALIGN(*res);
-+	return 0;
-+}
- 
--	ret = -EINVAL;
-+int res_counter_write(struct res_counter *counter, int member,
-+		      const char *buf, write_strategy_fn write_strategy)
-+{
-+	char *end;
-+	unsigned long flags;
-+	unsigned long long tmp, *val;
- 
--	strstrip(buf);
- 	if (write_strategy) {
--		if (write_strategy(buf, &tmp)) {
--			goto out_free;
--		}
-+		if (write_strategy(buf, &tmp))
-+			return -EINVAL;
- 	} else {
- 		tmp = simple_strtoull(buf, &end, 10);
- 		if (*end != '\0')
--			goto out_free;
-+			return -EINVAL;
+ struct dev_cgroup {
+@@ -133,11 +134,19 @@ static int dev_whitelist_add(struct dev_
  	}
- 	spin_lock_irqsave(&counter->lock, flags);
- 	val = res_counter_member(counter, member);
- 	*val = tmp;
- 	spin_unlock_irqrestore(&counter->lock, flags);
--	ret = nbytes;
--out_free:
--	kfree(buf);
--out:
--	return ret;
-+	return 0;
- }
-diff -puN mm/memcontrol.c~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler mm/memcontrol.c
---- a/mm/memcontrol.c~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler
-+++ a/mm/memcontrol.c
-@@ -838,32 +838,18 @@ out:
- 	return ret;
+ 
+ 	if (whcopy != NULL)
+-		list_add_tail(&whcopy->list, &dev_cgroup->whitelist);
++		list_add_tail_rcu(&whcopy->list, &dev_cgroup->whitelist);
+ 	spin_unlock(&dev_cgroup->lock);
+ 	return 0;
  }
  
--static int mem_cgroup_write_strategy(char *buf, unsigned long long *tmp)
--{
--	*tmp = memparse(buf, &buf);
--	if (*buf != '\0')
--		return -EINVAL;
--
--	/*
--	 * Round up the value to the closest page size
--	 */
--	*tmp = ((*tmp + PAGE_SIZE - 1) >> PAGE_SHIFT) << PAGE_SHIFT;
--	return 0;
--}
--
- static u64 mem_cgroup_read(struct cgroup *cont, struct cftype *cft)
- {
- 	return res_counter_read_u64(&mem_cgroup_from_cont(cont)->res,
- 				    cft->private);
- }
++static void whitelist_item_free(struct rcu_head *rcu)
++{
++	struct dev_whitelist_item *item;
++
++	item = container_of(rcu, struct dev_whitelist_item, rcu);
++	kfree(item);
++}
++
+ /*
+  * called under cgroup_lock()
+  * since the list is visible to other tasks, we need the spinlock also
+@@ -161,8 +170,8 @@ static void dev_whitelist_rm(struct dev_
+ remove:
+ 		walk->access &= ~wh->access;
+ 		if (!walk->access) {
+-			list_del(&walk->list);
+-			kfree(walk);
++			list_del_rcu(&walk->list);
++			call_rcu(&walk->rcu, whitelist_item_free);
+ 		}
+ 	}
+ 	spin_unlock(&dev_cgroup->lock);
+@@ -269,15 +278,15 @@ static int devcgroup_seq_read(struct cgr
+ 	struct dev_whitelist_item *wh;
+ 	char maj[MAJMINLEN], min[MAJMINLEN], acc[ACCLEN];
  
--static ssize_t mem_cgroup_write(struct cgroup *cont, struct cftype *cft,
--				struct file *file, const char __user *userbuf,
--				size_t nbytes, loff_t *ppos)
-+static int mem_cgroup_write(struct cgroup *cont, struct cftype *cft,
-+			    const char *buffer)
- {
- 	return res_counter_write(&mem_cgroup_from_cont(cont)->res,
--				cft->private, userbuf, nbytes, ppos,
--				mem_cgroup_write_strategy);
-+				 cft->private, buffer,
-+				 res_counter_memparse_write_strategy);
- }
+-	spin_lock(&devcgroup->lock);
+-	list_for_each_entry(wh, &devcgroup->whitelist, list) {
++	rcu_read_lock();
++	list_for_each_entry_rcu(wh, &devcgroup->whitelist, list) {
+ 		set_access(acc, wh->access);
+ 		set_majmin(maj, wh->major);
+ 		set_majmin(min, wh->minor);
+ 		seq_printf(m, "%c %s:%s %s\n", type_to_char(wh->type),
+ 			   maj, min, acc);
+ 	}
+-	spin_unlock(&devcgroup->lock);
++	rcu_read_unlock();
  
- static int mem_cgroup_reset(struct cgroup *cont, unsigned int event)
-@@ -940,7 +926,7 @@ static struct cftype mem_cgroup_files[] 
- 	{
- 		.name = "limit_in_bytes",
- 		.private = RES_LIMIT,
--		.write = mem_cgroup_write,
-+		.write_string = mem_cgroup_write,
- 		.read_u64 = mem_cgroup_read,
- 	},
- 	{
+ 	return 0;
+ }
+@@ -510,8 +519,8 @@ int devcgroup_inode_permission(struct in
+ 	if (!dev_cgroup)
+ 		return 0;
+ 
+-	spin_lock(&dev_cgroup->lock);
+-	list_for_each_entry(wh, &dev_cgroup->whitelist, list) {
++	rcu_read_lock();
++	list_for_each_entry_rcu(wh, &dev_cgroup->whitelist, list) {
+ 		if (wh->type & DEV_ALL)
+ 			goto acc_check;
+ 		if ((wh->type & DEV_BLOCK) && !S_ISBLK(inode->i_mode))
+@@ -527,10 +536,10 @@ acc_check:
+ 			continue;
+ 		if ((mask & MAY_READ) && !(wh->access & ACC_READ))
+ 			continue;
+-		spin_unlock(&dev_cgroup->lock);
++		rcu_read_unlock();
+ 		return 0;
+ 	}
+-	spin_unlock(&dev_cgroup->lock);
++	rcu_read_unlock();
+ 
+ 	return -EPERM;
+ }
+@@ -545,7 +554,7 @@ int devcgroup_inode_mknod(int mode, dev_
+ 	if (!dev_cgroup)
+ 		return 0;
+ 
+-	spin_lock(&dev_cgroup->lock);
++	rcu_read_lock();
+ 	list_for_each_entry(wh, &dev_cgroup->whitelist, list) {
+ 		if (wh->type & DEV_ALL)
+ 			goto acc_check;
+@@ -560,9 +569,9 @@ int devcgroup_inode_mknod(int mode, dev_
+ acc_check:
+ 		if (!(wh->access & ACC_MKNOD))
+ 			continue;
+-		spin_unlock(&dev_cgroup->lock);
++		rcu_read_unlock();
+ 		return 0;
+ 	}
+-	spin_unlock(&dev_cgroup->lock);
++	rcu_read_unlock();
+ 	return -EPERM;
+ }
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
 origin.patch
 memrlimit-add-memrlimit-controller-documentation.patch
@@ -210,6 +171,5 @@ memrlimit-add-memrlimit-controller-accounting-and-control.patch
 memrlimit-improve-error-handling.patch
 memrlimit-improve-error-handling-update.patch
 memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-make-cgroup_seqfile_release-static.patch
-add-a-refcount-check-in-dput.patch
+reiser4.patch
 
