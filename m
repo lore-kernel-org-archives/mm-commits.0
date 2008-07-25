@@ -1,65 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - flag-parameters-fix-compile-error-of-sys_epoll_create1.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:53:58 -0700
-Message-ID: <200807252253.m6PMrwg9002767@imap1.linux-foundation.org>
+Subject: - find-dynamic-stack-allocations-in-checkstackpl.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:54:11 -0700
+Message-ID: <200807252254.m6PMsBrF002791@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56137 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47512 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752247AbYGYWy0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752247AbYGYWya (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:54:26 -0400
+	Fri, 25 Jul 2008 18:54:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wangchen@cn.fujitsu.com, davidel@xmailserver.org, drepper@redhat.com, mm-commits@vger.kernel.org
+To: sandeen@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     flag parameters: fix compile error of sys_epoll_create1
+     find dynamic stack allocations in checkstack.pl
 has been removed from the -mm tree.  Its filename was
-     flag-parameters-fix-compile-error-of-sys_epoll_create1.patch
+     find-dynamic-stack-allocations-in-checkstackpl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag parameters: fix compile error of sys_epoll_create1
-From: Wang Chen <wangchen@cn.fujitsu.com>
+Subject: find dynamic stack allocations in checkstack.pl
+From: Eric Sandeen <sandeen@redhat.com>
 
-  GEN     .version
-  CHK     include/linux/compile.h
-  UPD     include/linux/compile.h
-  CC      init/version.o
-  LD      init/built-in.o
-  LD      vmlinux
-arch/x86/kernel/built-in.o: In function `sys_call_table':
-(.rodata+0x8a4): undefined reference to `sys_epoll_create1'
-make: *** [vmlinux] Error 1
+Currently, checkstack.pl only looks for fixed subtractions from the stack
+pointer.  However, things like this:
 
-Signed-off-by: Wang Chen <wangchen@cn.fujitsu.com>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Davide Libenzi <davidel@xmailserver.org>
+void function(int size)
+{
+        char stackbuster[size << 2];
+...
+
+are certainly worth pointing out, I think.
+
+This could perhaps be done more cleanly, and the following patch only
+adds "dynamic" REs for x86 and x86_64, but it works:
+
+0x00b0 crypto_cbc_decrypt_inplace [cbc]:                Dynamic (%rax)
+0x00ad crypto_pcbc_decrypt_inplace [pcbc]:              Dynamic (%rax)
+0x02f6 crypto_pcbc_encrypt_inplace [pcbc]:              Dynamic (%rax)
+0x036c _crypto_xcbc_digest_setkey [xcbc]:               Dynamic (%rax)
+...
+
+(Inspired by Keith Owens' old stack-check script)
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys_ni.c |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/checkstack.pl |   24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sys_ni.c~flag-parameters-fix-compile-error-of-sys_epoll_create1 kernel/sys_ni.c
---- a/kernel/sys_ni.c~flag-parameters-fix-compile-error-of-sys_epoll_create1
-+++ a/kernel/sys_ni.c
-@@ -57,6 +57,7 @@ cond_syscall(compat_sys_set_robust_list)
- cond_syscall(sys_get_robust_list);
- cond_syscall(compat_sys_get_robust_list);
- cond_syscall(sys_epoll_create);
-+cond_syscall(sys_epoll_create1);
- cond_syscall(sys_epoll_ctl);
- cond_syscall(sys_epoll_wait);
- cond_syscall(sys_epoll_pwait);
+diff -puN scripts/checkstack.pl~find-dynamic-stack-allocations-in-checkstackpl scripts/checkstack.pl
+--- a/scripts/checkstack.pl~find-dynamic-stack-allocations-in-checkstackpl
++++ a/scripts/checkstack.pl
+@@ -26,8 +26,12 @@
+ # $& (whole re) matches the complete objdump line with the stack growth
+ # $1 (first bracket) matches the size of the stack growth
+ #
++# $dre is similar, but for dynamic stack redutions:
++# $& (whole re) matches the complete objdump line with the stack growth
++# $1 (first bracket) matches the dynamic amount of the stack growth
++#
+ # use anything else and feel the pain ;)
+-my (@stack, $re, $x, $xs);
++my (@stack, $re, $dre, $x, $xs);
+ {
+ 	my $arch = shift;
+ 	if ($arch eq "") {
+@@ -46,9 +50,11 @@ my (@stack, $re, $x, $xs);
+ 	} elsif ($arch =~ /^i[3456]86$/) {
+ 		#c0105234:       81 ec ac 05 00 00       sub    $0x5ac,%esp
+ 		$re = qr/^.*[as][du][db]    \$(0x$x{1,8}),\%esp$/o;
++		$dre = qr/^.*[as][du][db]    (%.*),\%esp$/o;
+ 	} elsif ($arch eq 'x86_64') {
+ 		#    2f60:	48 81 ec e8 05 00 00 	sub    $0x5e8,%rsp
+ 		$re = qr/^.*[as][du][db]    \$(0x$x{1,8}),\%rsp$/o;
++		$dre = qr/^.*[as][du][db]    (\%.*),\%rsp$/o;
+ 	} elsif ($arch eq 'ia64') {
+ 		#e0000000044011fc:       01 0f fc 8c     adds r12=-384,r12
+ 		$re = qr/.*adds.*r12=-(([0-9]{2}|[3-9])[0-9]{2}),r12/o;
+@@ -141,6 +147,22 @@ while (my $line = <STDIN>) {
+ 		next if ($size < 100);
+ 		push @stack, "$intro$size\n";
+ 	}
++	elsif (defined $dre && $line =~ m/$dre/) {
++		my $size = "Dynamic ($1)";
++
++		next if $line !~ m/^($xs*)/;
++		my $addr = $1;
++		$addr =~ s/ /0/g;
++		$addr = "0x$addr";
++
++		my $intro = "$addr $func [$file]:";
++		my $padlen = 56 - length($intro);
++		while ($padlen > 0) {
++			$intro .= '	';
++			$padlen -= 8;
++		}
++		push @stack, "$intro$size\n";
++	}
+ }
+ 
+ print sort bysize @stack;
 _
 
-Patches currently in -mm which might be from wangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
 origin.patch
+linux-next.patch
 
