@@ -1,63 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 17:31:25 -0700
-Message-ID: <200807250031.m6P0VPU7014309@imap1.linux-foundation.org>
+Subject: - workqueues-make-get_online_cpus-useable-for-work-func-fix.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 17:31:44 -0700
+Message-ID: <200807250031.m6P0Viqh014323@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37265 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39331 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752799AbYGYAbl (ORCPT
+	by vger.kernel.org with ESMTP id S1752632AbYGYAch (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 20:31:41 -0400
+	Thu, 24 Jul 2008 20:32:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ego@in.ibm.com, heiko.carstens@de.ibm.com, maxk@qualcomm.com, menage@google.com, mingo@elte.hu, oleg@tv-sign.ru, peterz@infradead.org, pj@sgi.com, schwidefs
 
 
 The patch titled
-     coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes
+     workqueues-make-get_online_cpus-useable-for-work-func-fix
 has been removed from the -mm tree.  Its filename was
-     coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
+     workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
 
-This patch was dropped because it was folded into coredump-format_corename-fix-the-core_uses_pid-logic.patch
+This patch was dropped because it was folded into workqueues-make-get_online_cpus-useable-for-work-func.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes
+Subject: workqueues-make-get_online_cpus-useable-for-work-func-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#50: FILE: fs/exec.c:1490:
-+            && (core_uses_pid || nr_threads)) {$
+Fix CONFIG_SMP=n.
 
-total: 1 errors, 0 warnings, 36 lines checked
-
-./patches/coredump-format_corename-fix-the-core_uses_pid-logic.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+Cc: Gautham R Shenoy <ego@in.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Max Krasnyansky <maxk@qualcomm.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Vegard Nossum <vegard.nossum@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/cpu.h |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN fs/exec.c~coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes fs/exec.c
---- a/fs/exec.c~coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes
-+++ a/fs/exec.c
-@@ -1487,7 +1487,7 @@ static int format_corename(char *corenam
- 	 * and core_uses_pid is set, then .%pid will be appended to
- 	 * the filename. Do not do this for piped commands. */
- 	if (!ispipe && !pid_in_pattern
--            && (core_uses_pid || nr_threads)) {
-+	    && (core_uses_pid || nr_threads)) {
- 		rc = snprintf(out_ptr, out_end - out_ptr,
- 			      ".%d", task_tgid_vnr(current));
- 		if (rc > out_end - out_ptr)
+diff -puN include/linux/cpu.h~workqueues-make-get_online_cpus-useable-for-work-func-fix include/linux/cpu.h
+--- a/include/linux/cpu.h~workqueues-make-get_online_cpus-useable-for-work-func-fix
++++ a/include/linux/cpu.h
+@@ -69,10 +69,11 @@ static inline void unregister_cpu_notifi
+ #endif
+ 
+ int cpu_up(unsigned int cpu);
+-
+ extern void cpu_hotplug_init(void);
++extern void cpu_maps_update_begin(void);
++extern void cpu_maps_update_done(void);
+ 
+-#else
++#else	/* CONFIG_SMP */
+ 
+ static inline int register_cpu_notifier(struct notifier_block *nb)
+ {
+@@ -87,10 +88,16 @@ static inline void cpu_hotplug_init(void
+ {
+ }
+ 
++static inline void cpu_maps_update_begin(void)
++{
++}
++
++static inline void cpu_maps_update_done(void)
++{
++}
++
+ #endif /* CONFIG_SMP */
+ extern struct sysdev_class cpu_sysdev_class;
+-extern void cpu_maps_update_begin(void);
+-extern void cpu_maps_update_done(void);
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+ /* Stop CPUs going up and down. */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,7 +110,7 @@ devcgroup-code-cleanup.patch
 memcg-remove-refcnt-from-page_cgroup.patch
 memcg-limit-change-shrink-usage.patch
 coredump-format_corename-fix-the-core_uses_pid-logic.patch
-coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
+workqueues-make-get_online_cpus-useable-for-work-func.patch
 workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
 ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
 ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
