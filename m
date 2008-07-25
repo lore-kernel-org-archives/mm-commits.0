@@ -1,164 +1,354 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-misc-hpiloc-needs-config_pci.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:55:17 -0700
-Message-ID: <200807252255.m6PMtHeL002965@imap1.linux-foundation.org>
+Subject: - ipc-semc-rewrite-undo-list-locking.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:00:58 -0700
+Message-ID: <200807252300.m6PN0w6T003646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53930 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58489 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755053AbYGYXHS (ORCPT
+	by vger.kernel.org with ESMTP id S1755508AbYGYXHU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:07:18 -0400
+	Fri, 25 Jul 2008 19:07:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david.altobelli@hp.com, gregkh@suse.de, mm-commits@vger.kernel.org
+To: manfred@colorfullife.com, Nadia.Derbey@bull.net, peifferp@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/misc/hpilo.c needs CONFIG_PCI
+     ipc/sem.c: rewrite undo list locking
 has been removed from the -mm tree.  Its filename was
-     drivers-misc-hpiloc-needs-config_pci.patch
+     ipc-semc-rewrite-undo-list-locking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/misc/hpilo.c needs CONFIG_PCI
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipc/sem.c: rewrite undo list locking
+From: Manfred Spraul <manfred@colorfullife.com>
 
-m68k allmodconfig:
+The attached patch:
+- reverses the locking order of ulp->lock and sem_lock:
+  Previously, it was first ulp->lock, then inside sem_lock.
+  Now it's the other way around.
+- converts the undo structure to rcu.
 
-drivers/misc/hpilo.c: In function 'ilo_ccb_close':
-drivers/misc/hpilo.c:225: error: implicit declaration of function 'pci_free_consistent'
-drivers/misc/hpilo.c: In function 'ilo_ccb_open':
-drivers/misc/hpilo.c:244: error: implicit declaration of function 'pci_alloc_consistent'
-drivers/misc/hpilo.c:245: warning: assignment makes pointer from integer without a cast
+Benefits:
+- With the old locking order, IPC_RMID could not kfree the undo structures.
+  The stale entries remained in the linked lists and were released later.
+- The patch fixes a a race in semtimedop(): if both IPC_RMID and a semget() that
+  recreates exactly the same id happen between find_alloc_undo() and sem_lock,
+  then semtimedop() would access already kfree'd memory.
 
-Cc: David Altobelli <david.altobelli@hp.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Reviewed-by: Nadia Derbey <Nadia.Derbey@bull.net>
+Cc: Pierre Peiffer <peifferp@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/sem.h |    6 +
+ ipc/sem.c           |  147 ++++++++++++++++++++++++++----------------
+ 2 files changed, 98 insertions(+), 55 deletions(-)
 
-diff -puN drivers/misc/Kconfig~drivers-misc-hpiloc-needs-config_pci drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~drivers-misc-hpiloc-needs-config_pci
-+++ a/drivers/misc/Kconfig
-@@ -436,6 +436,7 @@ config SGI_XP
+diff -puN include/linux/sem.h~ipc-semc-rewrite-undo-list-locking include/linux/sem.h
+--- a/include/linux/sem.h~ipc-semc-rewrite-undo-list-locking
++++ a/include/linux/sem.h
+@@ -78,6 +78,7 @@ struct  seminfo {
  
- config HP_ILO
- 	tristate "Channel interface driver for HP iLO/iLO2 processor"
-+	depends on PCI
- 	default n
- 	help
- 	  The channel interface driver allows applications to communicate
+ #ifdef __KERNEL__
+ #include <asm/atomic.h>
++#include <linux/rcupdate.h>
+ 
+ struct task_struct;
+ 
+@@ -114,7 +115,10 @@ struct sem_queue {
+  * when the process exits.
+  */
+ struct sem_undo {
+-	struct list_head	list_proc;	/* per-process list: all undos from one process */
++	struct list_head	list_proc;	/* per-process list: all undos from one process. */
++						/* rcu protected */
++	struct rcu_head		rcu;		/* rcu struct for sem_undo() */
++	struct sem_undo_list	*ulp;		/* sem_undo_list for the process */
+ 	struct list_head	list_id;	/* per semaphore array list: all undos for one array */
+ 	int			semid;		/* semaphore set identifier */
+ 	short *			semadj;		/* array of adjustments, one per semaphore */
+diff -puN ipc/sem.c~ipc-semc-rewrite-undo-list-locking ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-rewrite-undo-list-locking
++++ a/ipc/sem.c
+@@ -504,27 +504,35 @@ static int count_semzcnt (struct sem_arr
+ 	return semzcnt;
+ }
+ 
++void free_un(struct rcu_head *head)
++{
++	struct sem_undo *un = container_of(head, struct sem_undo, rcu);
++	kfree(un);
++}
++
+ /* Free a semaphore set. freeary() is called with sem_ids.rw_mutex locked
+  * as a writer and the spinlock for this semaphore set hold. sem_ids.rw_mutex
+  * remains locked on exit.
+  */
+ static void freeary(struct ipc_namespace *ns, struct kern_ipc_perm *ipcp)
+ {
+-	struct sem_undo *un;
+-	struct sem_queue *q, *t;
++	struct sem_undo *un, *tu;
++	struct sem_queue *q, *tq;
+ 	struct sem_array *sma = container_of(ipcp, struct sem_array, sem_perm);
+ 
+-	/* Invalidate the existing undo structures for this semaphore set.
+-	 * (They will be freed without any further action in exit_sem()
+-	 * or during the next semop.)
+-	 */
++	/* Free the existing undo structures for this semaphore set.  */
+ 	assert_spin_locked(&sma->sem_perm.lock);
+-	list_for_each_entry(un, &sma->list_id, list_id)
++	list_for_each_entry_safe(un, tu, &sma->list_id, list_id) {
++		list_del(&un->list_id);
++		spin_lock(&un->ulp->lock);
+ 		un->semid = -1;
++		list_del_rcu(&un->list_proc);
++		spin_unlock(&un->ulp->lock);
++		call_rcu(&un->rcu, free_un);
++	}
+ 
+ 	/* Wake up all pending processes and let them fail with EIDRM. */
+-
+-	list_for_each_entry_safe(q, t, &sma->sem_pending, list) {
++	list_for_each_entry_safe(q, tq, &sma->sem_pending, list) {
+ 		list_del(&q->list);
+ 
+ 		q->status = IN_WAKEUP;
+@@ -948,16 +956,11 @@ static inline int get_undo_list(struct s
+ 
+ static struct sem_undo *lookup_undo(struct sem_undo_list *ulp, int semid)
+ {
+-	struct sem_undo *walk, *tmp;
++	struct sem_undo *walk;
+ 
+-	assert_spin_locked(&ulp->lock);
+-	list_for_each_entry_safe(walk, tmp, &ulp->list_proc, list_proc) {
++	list_for_each_entry_rcu(walk, &ulp->list_proc, list_proc) {
+ 		if (walk->semid == semid)
+ 			return walk;
+-		if (walk->semid == -1) {
+-			list_del(&walk->list_proc);
+-			kfree(walk);
+-		}
+ 	}
+ 	return NULL;
+ }
+@@ -970,6 +973,8 @@ static struct sem_undo *lookup_undo(stru
+  * The function looks up (and if not present creates) the undo structure.
+  * The size of the undo structure depends on the size of the semaphore
+  * array, thus the alloc path is not that straightforward.
++ * Lifetime-rules: sem_undo is rcu-protected, on success, the function
++ * performs a rcu_read_lock().
+  */
+ static struct sem_undo *find_alloc_undo(struct ipc_namespace *ns, int semid)
+ {
+@@ -983,11 +988,13 @@ static struct sem_undo *find_alloc_undo(
+ 	if (error)
+ 		return ERR_PTR(error);
+ 
++	rcu_read_lock();
+ 	spin_lock(&ulp->lock);
+ 	un = lookup_undo(ulp, semid);
+ 	spin_unlock(&ulp->lock);
+ 	if (likely(un!=NULL))
+ 		goto out;
++	rcu_read_unlock();
+ 
+ 	/* no undo structure around - allocate one. */
+ 	/* step 1: figure out the size of the semaphore array */
+@@ -1005,38 +1012,38 @@ static struct sem_undo *find_alloc_undo(
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 
+-	/* step 3: Acquire the lock on the undo list pointer */
+-	spin_lock(&ulp->lock);
+-
+-	/* step 4: check for races: someone else allocated the undo struct,
+-	 *         semaphore array was destroyed.
+-	 */
+-	un = lookup_undo(ulp, semid);
+-	if (un) {
+-		spin_unlock(&ulp->lock);
+-		kfree(new);
+-		sem_putref(sma);
+-		goto out;
+-	}
++	/* step 3: Acquire the lock on semaphore array */
+ 	sem_lock_and_putref(sma);
+ 	if (sma->sem_perm.deleted) {
+ 		sem_unlock(sma);
+-		spin_unlock(&ulp->lock);
+ 		kfree(new);
+ 		un = ERR_PTR(-EIDRM);
+ 		goto out;
+ 	}
++	spin_lock(&ulp->lock);
++
++	/*
++	 * step 4: check for races: did someone else allocate the undo struct?
++	 */
++	un = lookup_undo(ulp, semid);
++	if (un) {
++		kfree(new);
++		goto success;
++	}
+ 	/* step 5: initialize & link new undo structure */
+ 	new->semadj = (short *) &new[1];
++	new->ulp = ulp;
+ 	new->semid = semid;
+ 	assert_spin_locked(&ulp->lock);
+-	list_add(&new->list_proc, &ulp->list_proc);
++	list_add_rcu(&new->list_proc, &ulp->list_proc);
+ 	assert_spin_locked(&sma->sem_perm.lock);
+ 	list_add(&new->list_id, &sma->list_id);
++	un = new;
+ 
+-	sem_unlock(sma);
++success:
+ 	spin_unlock(&ulp->lock);
+-	un = new;
++	rcu_read_lock();
++	sem_unlock(sma);
+ out:
+ 	return un;
+ }
+@@ -1103,6 +1110,8 @@ asmlinkage long sys_semtimedop(int semid
+ 
+ 	sma = sem_lock_check(ns, semid);
+ 	if (IS_ERR(sma)) {
++		if (un)
++			rcu_read_unlock();
+ 		error = PTR_ERR(sma);
+ 		goto out_free;
+ 	}
+@@ -1111,10 +1120,26 @@ asmlinkage long sys_semtimedop(int semid
+ 	 * semid identifiers are not unique - find_alloc_undo may have
+ 	 * allocated an undo structure, it was invalidated by an RMID
+ 	 * and now a new array with received the same id. Check and fail.
++	 * This case can be detected checking un->semid. The existance of
++	 * "un" itself is guaranteed by rcu.
+ 	 */
+ 	error = -EIDRM;
+-	if (un && un->semid == -1)
+-		goto out_unlock_free;
++	if (un) {
++		if (un->semid == -1) {
++			rcu_read_unlock();
++			goto out_unlock_free;
++		} else {
++			/*
++			 * rcu lock can be released, "un" cannot disappear:
++			 * - sem_lock is acquired, thus IPC_RMID is
++			 *   impossible.
++			 * - exit_sem is impossible, it always operates on
++			 *   current (or a dead task).
++			 */
++
++			rcu_read_unlock();
++		}
++	}
+ 
+ 	error = -EFBIG;
+ 	if (max >= sma->sem_nsems)
+@@ -1242,7 +1267,6 @@ int copy_semundo(unsigned long clone_fla
+ void exit_sem(struct task_struct *tsk)
+ {
+ 	struct sem_undo_list *ulp;
+-	struct sem_undo *un, *tmp;
+ 
+ 	ulp = tsk->sysvsem.undo_list;
+ 	if (!ulp)
+@@ -1252,28 +1276,47 @@ void exit_sem(struct task_struct *tsk)
+ 	if (!atomic_dec_and_test(&ulp->refcnt))
+ 		return;
+ 
+-	spin_lock(&ulp->lock);
+-
+-	list_for_each_entry_safe(un, tmp, &ulp->list_proc, list_proc) {
++	for (;;) {
+ 		struct sem_array *sma;
++		struct sem_undo *un;
++		int semid;
+ 		int i;
+ 
+-		if (un->semid == -1)
+-			goto free;
++		rcu_read_lock();
++		un = list_entry(rcu_dereference(ulp->list_proc.next),
++					struct sem_undo, list_proc);
++		if (&un->list_proc == &ulp->list_proc)
++			semid = -1;
++		 else
++			semid = un->semid;
++		rcu_read_unlock();
+ 
+-		sma = sem_lock(tsk->nsproxy->ipc_ns, un->semid);
+-		if (IS_ERR(sma))
+-			goto free;
++		if (semid == -1)
++			break;
++
++		sma = sem_lock_check(tsk->nsproxy->ipc_ns, un->semid);
+ 
+-		if (un->semid == -1)
+-			goto unlock_free;
++		/* exit_sem raced with IPC_RMID, nothing to do */
++		if (IS_ERR(sma))
++			continue;
+ 
+-		BUG_ON(sem_checkid(sma, un->semid));
++		un = lookup_undo(ulp, semid);
++		if (un == NULL) {
++			/* exit_sem raced with IPC_RMID+semget() that created
++			 * exactly the same semid. Nothing to do.
++			 */
++			sem_unlock(sma);
++			continue;
++		}
+ 
+-		/* remove un from sma->list_id */
++		/* remove un from the linked lists */
+ 		assert_spin_locked(&sma->sem_perm.lock);
+ 		list_del(&un->list_id);
+ 
++		spin_lock(&ulp->lock);
++		list_del_rcu(&un->list_proc);
++		spin_unlock(&ulp->lock);
++
+ 		/* perform adjustments registered in un */
+ 		for (i = 0; i < sma->sem_nsems; i++) {
+ 			struct sem * semaphore = &sma->sem_base[i];
+@@ -1302,14 +1345,10 @@ void exit_sem(struct task_struct *tsk)
+ 		sma->sem_otime = get_seconds();
+ 		/* maybe some queued-up processes were waiting for this */
+ 		update_queue(sma);
+-unlock_free:
+ 		sem_unlock(sma);
+-free:
+-		assert_spin_locked(&ulp->lock);
+-		list_del(&un->list_proc);
+-		kfree(un);
++
++		call_rcu(&un->rcu, free_un);
+ 	}
+-	spin_unlock(&ulp->lock);
+ 	kfree(ulp);
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
 origin.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-uninline-arch_pick_mmap_layout.patch
-linux-next.patch
-linux-next-fixups.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-drivers-mfd-tc6393xbc-doesnt-compile-on-i386.patch
-x86-pci-replace-dbg-with-pr_debug-fix.patch
-x86-pci-replace-dbg-with-pr_debug-fix-2.patch
-include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
-arch-x86-pci-i386c-fix-printk-warnings.patch
-drm-fix-sparc64-build.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-svc_rdma-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-bnx2x.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-s2io.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-pasemi_mac.patch
-dma-mapping-x86-per-device-dma_mapping_ops-support-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-sdhci-fix.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-infiniband.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-more-sparc.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error-ibmvscsi.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary-checkpatch-fixes.patch
-tpm-increase-size-of-internal-tpm-response-buffers-checkpatch-fixes.patch
-memstick-allow-set_param-method-to-return-an-error-code-checkpatch-fixes.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
-full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gru-driver-v3-hardware-data-structures-fix.patch
-gru-driver-v3-hardware-data-structures-fix-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-mm-introduce-get_user_pages_fast-fix.patch
-mm-introduce-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-checkpatch-fixes.patch
-x86-lockless-get_user_pages_fast-fix.patch
-x86-lockless-get_user_pages_fast-fix-2.patch
-x86-lockless-get_user_pages_fast-fix-2-fix-fix.patch
-x86-lockless-get_user_pages_fast-fix-warning.patch
-mm-speculative-page-references-fix-add_to_page_cache-fix.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-page-statistics-units-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-introduce-__get_user_pages-fix.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
+repeatable-slab-corruption-with-ltp-msgctl08.patch
+mm-debug-dump-pageframes-on-bad_page.patch
 slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
