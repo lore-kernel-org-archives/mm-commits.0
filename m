@@ -1,55 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - memstick-use-fully-asynchronous-request-processing-fix.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:47:09 -0700
-Message-ID: <200807252347.m6PNl9xm005804@imap1.linux-foundation.org>
+Subject: - full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:48:51 -0700
+Message-ID: <200807252348.m6PNmpKb005857@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41697 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34064 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752021AbYGYXrl (ORCPT
+	by vger.kernel.org with ESMTP id S1751286AbYGYXti (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:47:41 -0400
+	Fri, 25 Jul 2008 19:49:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, oakad@yahoo.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, eduard.munteanu@linux360.ro, tzanussi@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memstick-use-fully-asynchronous-request-processing-fix
+     full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
 has been removed from the -mm tree.  Its filename was
-     memstick-use-fully-asynchronous-request-processing-fix.patch
+     full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
 
-This patch was dropped because it was folded into memstick-use-fully-asynchronous-request-processing.patch
+This patch was dropped because it was folded into full-conversion-to-early_initcall-interface-remove-old-interface.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick-use-fully-asynchronous-request-processing-fix
+Subject: full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/memstick/core/mspro_block.c: In function 'mspro_block_complete_req':
-drivers/memstick/core/mspro_block.c:727: warning: comparison of distinct pointer types lacks a cast
-drivers/memstick/core/mspro_block.c:771: warning: comparison of distinct pointer types lacks a cast
+Somewhat more kernely coding style.
 
-Cc: Alex Dubov <oakad@yahoo.com>
+Cc: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
+Cc: Tom Zanussi <tzanussi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/mspro_block.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sched.c      |    1 -
+ kernel/softirq.c    |    1 -
+ kernel/softlockup.c |    2 --
+ 3 files changed, 4 deletions(-)
 
-diff -puN drivers/memstick/core/mspro_block.c~memstick-use-fully-asynchronous-request-processing-fix drivers/memstick/core/mspro_block.c
---- a/drivers/memstick/core/mspro_block.c~memstick-use-fully-asynchronous-request-processing-fix
-+++ a/drivers/memstick/core/mspro_block.c
-@@ -722,7 +722,7 @@ static int mspro_block_complete_req(stru
- 	struct mspro_block_data *msb = memstick_get_drvdata(card);
- 	int chunk, cnt;
- 	unsigned int t_len = 0;
--	unsigned int flags;
-+	unsigned long flags;
+diff -puN kernel/sched.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup kernel/sched.c
+--- a/kernel/sched.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
++++ a/kernel/sched.c
+@@ -6397,7 +6397,6 @@ static int __init migration_init(void)
  
- 	spin_lock_irqsave(&msb->q_lock, flags);
- 	dev_dbg(&card->dev, "complete %d, %d\n", msb->has_request ? 1 : 0,
+ 	return err;
+ }
+-
+ early_initcall(migration_init);
+ #endif
+ 
+diff -puN kernel/softirq.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup kernel/softirq.c
+--- a/kernel/softirq.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
++++ a/kernel/softirq.c
+@@ -651,7 +651,6 @@ static __init int spawn_ksoftirqd(void)
+ 	register_cpu_notifier(&cpu_nfb);
+ 	return 0;
+ }
+-
+ early_initcall(spawn_ksoftirqd);
+ 
+ #ifdef CONFIG_SMP
+diff -puN kernel/softlockup.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup kernel/softlockup.c
+--- a/kernel/softlockup.c~full-conversion-to-early_initcall-interface-remove-old-interface-cleanup
++++ a/kernel/softlockup.c
+@@ -367,6 +367,4 @@ static int __init spawn_softlockup_task(
+ 
+ 	return 0;
+ }
+-
+ early_initcall(spawn_softlockup_task);
+-
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -61,7 +82,7 @@ x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary.patch
 tpm-increase-size-of-internal-tpm-response-buffers.patch
 memstick-allow-set_param-method-to-return-an-error-code.patch
 memstick-use-fully-asynchronous-request-processing.patch
-memstick-use-fully-asynchronous-request-processing-fix.patch
+full-conversion-to-early_initcall-interface-remove-old-interface.patch
 full-conversion-to-early_initcall-interface-remove-old-interface-cleanup.patch
 full-conversion-to-early_initcall-interface-remove-old-interface-fix.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
