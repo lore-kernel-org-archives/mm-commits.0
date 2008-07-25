@@ -1,354 +1,477 @@
 From: akpm@linux-foundation.org
-Subject: - ipc-semc-rewrite-undo-list-locking.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:00:58 -0700
-Message-ID: <200807252300.m6PN0w6T003646@imap1.linux-foundation.org>
+Subject: - sm501-add-gpiolib-support.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:55:38 -0700
+Message-ID: <200807252255.m6PMtcBs002992@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58489 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43993 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755508AbYGYXHU (ORCPT
+	by vger.kernel.org with ESMTP id S1755687AbYGYXHj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:07:20 -0400
+	Fri, 25 Jul 2008 19:07:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manfred@colorfullife.com, Nadia.Derbey@bull.net, peifferp@gmail.com, mm-commits@vger.kernel.org
+To: ben-linux@fluff.org, apatard@mandriva.com, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc/sem.c: rewrite undo list locking
+     sm501: add gpiolib support
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-rewrite-undo-list-locking.patch
+     sm501-add-gpiolib-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc/sem.c: rewrite undo list locking
-From: Manfred Spraul <manfred@colorfullife.com>
+Subject: sm501: add gpiolib support
+From: Ben Dooks <ben-linux@fluff.org>
 
-The attached patch:
-- reverses the locking order of ulp->lock and sem_lock:
-  Previously, it was first ulp->lock, then inside sem_lock.
-  Now it's the other way around.
-- converts the undo structure to rcu.
+Add support for exporting the GPIOs on the SM501 via gpiolib.
 
-Benefits:
-- With the old locking order, IPC_RMID could not kfree the undo structures.
-  The stale entries remained in the linked lists and were released later.
-- The patch fixes a a race in semtimedop(): if both IPC_RMID and a semget() that
-  recreates exactly the same id happen between find_alloc_undo() and sem_lock,
-  then semtimedop() would access already kfree'd memory.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Reviewed-by: Nadia Derbey <Nadia.Derbey@bull.net>
-Cc: Pierre Peiffer <peifferp@gmail.com>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Cc: Arnaud Patard <apatard@mandriva.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sem.h |    6 +
- ipc/sem.c           |  147 ++++++++++++++++++++++++++----------------
- 2 files changed, 98 insertions(+), 55 deletions(-)
+ drivers/mfd/Kconfig   |    8 +
+ drivers/mfd/sm501.c   |  299 +++++++++++++++++++++++++++++++++-------
+ include/linux/sm501.h |   20 --
+ 3 files changed, 257 insertions(+), 70 deletions(-)
 
-diff -puN include/linux/sem.h~ipc-semc-rewrite-undo-list-locking include/linux/sem.h
---- a/include/linux/sem.h~ipc-semc-rewrite-undo-list-locking
-+++ a/include/linux/sem.h
-@@ -78,6 +78,7 @@ struct  seminfo {
+diff -puN drivers/mfd/Kconfig~sm501-add-gpiolib-support drivers/mfd/Kconfig
+--- a/drivers/mfd/Kconfig~sm501-add-gpiolib-support
++++ a/drivers/mfd/Kconfig
+@@ -19,6 +19,14 @@ config MFD_SM501
+ 	  interface. The device may be connected by PCI or local bus with
+ 	  varying functions enabled.
  
- #ifdef __KERNEL__
- #include <asm/atomic.h>
-+#include <linux/rcupdate.h>
++config MFD_SM501_GPIO
++	bool "Export GPIO via GPIO layer"
++	depends on MFD_SM501 && HAVE_GPIO_LIB
++	 ---help---
++	 This option uses the gpio library layer to export the 64 GPIO
++	 lines on the SM501. The platform data is used to supply the
++	 base number for the first GPIO line to register.
++
+ config MFD_ASIC3
+ 	bool "Support for Compaq ASIC3"
+ 	depends on GENERIC_HARDIRQS && HAVE_GPIO_LIB && ARM
+diff -puN drivers/mfd/sm501.c~sm501-add-gpiolib-support drivers/mfd/sm501.c
+--- a/drivers/mfd/sm501.c~sm501-add-gpiolib-support
++++ a/drivers/mfd/sm501.c
+@@ -19,6 +19,7 @@
+ #include <linux/device.h>
+ #include <linux/platform_device.h>
+ #include <linux/pci.h>
++#include <linux/gpio.h>
  
- struct task_struct;
+ #include <linux/sm501.h>
+ #include <linux/sm501-regs.h>
+@@ -31,10 +32,29 @@ struct sm501_device {
+ 	struct platform_device		pdev;
+ };
  
-@@ -114,7 +115,10 @@ struct sem_queue {
-  * when the process exits.
-  */
- struct sem_undo {
--	struct list_head	list_proc;	/* per-process list: all undos from one process */
-+	struct list_head	list_proc;	/* per-process list: all undos from one process. */
-+						/* rcu protected */
-+	struct rcu_head		rcu;		/* rcu struct for sem_undo() */
-+	struct sem_undo_list	*ulp;		/* sem_undo_list for the process */
- 	struct list_head	list_id;	/* per semaphore array list: all undos for one array */
- 	int			semid;		/* semaphore set identifier */
- 	short *			semadj;		/* array of adjustments, one per semaphore */
-diff -puN ipc/sem.c~ipc-semc-rewrite-undo-list-locking ipc/sem.c
---- a/ipc/sem.c~ipc-semc-rewrite-undo-list-locking
-+++ a/ipc/sem.c
-@@ -504,27 +504,35 @@ static int count_semzcnt (struct sem_arr
- 	return semzcnt;
++struct sm501_gpio;
++
++struct sm501_gpio_chip {
++	struct gpio_chip	gpio;
++	struct sm501_gpio	*ourgpio;	/* to get back to parent. */
++	void __iomem		*regbase;
++};
++
++struct sm501_gpio {
++	struct sm501_gpio_chip	low;
++	struct sm501_gpio_chip	high;
++	spinlock_t		lock;
++
++	unsigned int		 registered : 1;
++	void __iomem		*regs;
++	struct resource		*regs_res;
++};
++
+ struct sm501_devdata {
+ 	spinlock_t			 reg_lock;
+ 	struct mutex			 clock_lock;
+ 	struct list_head		 devices;
++	struct sm501_gpio		 gpio;
+ 
+ 	struct device			*dev;
+ 	struct resource			*io_res;
+@@ -42,6 +62,7 @@ struct sm501_devdata {
+ 	struct resource			*regs_claim;
+ 	struct sm501_platdata		*platdata;
+ 
++
+ 	unsigned int			 in_suspend;
+ 	unsigned long			 pm_misc;
+ 
+@@ -52,6 +73,7 @@ struct sm501_devdata {
+ 	unsigned int			 rev;
+ };
+ 
++
+ #define MHZ (1000 * 1000)
+ 
+ #ifdef DEBUG
+@@ -276,58 +298,6 @@ unsigned long sm501_modify_reg(struct de
+ 
+ EXPORT_SYMBOL_GPL(sm501_modify_reg);
+ 
+-unsigned long sm501_gpio_get(struct device *dev,
+-			     unsigned long gpio)
+-{
+-	struct sm501_devdata *sm = dev_get_drvdata(dev);
+-	unsigned long result;
+-	unsigned long reg;
+-
+-	reg = (gpio > 32) ? SM501_GPIO_DATA_HIGH : SM501_GPIO_DATA_LOW;
+-	result = readl(sm->regs + reg);
+-
+-	result >>= (gpio & 31);
+-	return result & 1UL;
+-}
+-
+-EXPORT_SYMBOL_GPL(sm501_gpio_get);
+-
+-void sm501_gpio_set(struct device *dev,
+-		    unsigned long gpio,
+-		    unsigned int to,
+-		    unsigned int dir)
+-{
+-	struct sm501_devdata *sm = dev_get_drvdata(dev);
+-
+-	unsigned long bit = 1 << (gpio & 31);
+-	unsigned long base;
+-	unsigned long save;
+-	unsigned long val;
+-
+-	base = (gpio > 32) ? SM501_GPIO_DATA_HIGH : SM501_GPIO_DATA_LOW;
+-	base += SM501_GPIO;
+-
+-	spin_lock_irqsave(&sm->reg_lock, save);
+-
+-	val = readl(sm->regs + base) & ~bit;
+-	if (to)
+-		val |= bit;
+-	writel(val, sm->regs + base);
+-
+-	val = readl(sm->regs + SM501_GPIO_DDR_LOW) & ~bit;
+-	if (dir)
+-		val |= bit;
+-
+-	writel(val, sm->regs + SM501_GPIO_DDR_LOW);
+-	sm501_sync_regs(sm);
+-
+-	spin_unlock_irqrestore(&sm->reg_lock, save);
+-
+-}
+-
+-EXPORT_SYMBOL_GPL(sm501_gpio_set);
+-
+-
+ /* sm501_unit_power
+  *
+  * alters the power active gate to set specific units on or off
+@@ -906,6 +876,226 @@ static int sm501_register_display(struct
+ 	return sm501_register_device(sm, pdev);
  }
  
-+void free_un(struct rcu_head *head)
++#ifdef CONFIG_MFD_SM501_GPIO
++
++static inline struct sm501_gpio_chip *to_sm501_gpio(struct gpio_chip *gc)
 +{
-+	struct sem_undo *un = container_of(head, struct sem_undo, rcu);
-+	kfree(un);
++	return container_of(gc, struct sm501_gpio_chip, gpio);
 +}
 +
- /* Free a semaphore set. freeary() is called with sem_ids.rw_mutex locked
-  * as a writer and the spinlock for this semaphore set hold. sem_ids.rw_mutex
-  * remains locked on exit.
-  */
- static void freeary(struct ipc_namespace *ns, struct kern_ipc_perm *ipcp)
- {
--	struct sem_undo *un;
--	struct sem_queue *q, *t;
-+	struct sem_undo *un, *tu;
-+	struct sem_queue *q, *tq;
- 	struct sem_array *sma = container_of(ipcp, struct sem_array, sem_perm);
- 
--	/* Invalidate the existing undo structures for this semaphore set.
--	 * (They will be freed without any further action in exit_sem()
--	 * or during the next semop.)
--	 */
-+	/* Free the existing undo structures for this semaphore set.  */
- 	assert_spin_locked(&sma->sem_perm.lock);
--	list_for_each_entry(un, &sma->list_id, list_id)
-+	list_for_each_entry_safe(un, tu, &sma->list_id, list_id) {
-+		list_del(&un->list_id);
-+		spin_lock(&un->ulp->lock);
- 		un->semid = -1;
-+		list_del_rcu(&un->list_proc);
-+		spin_unlock(&un->ulp->lock);
-+		call_rcu(&un->rcu, free_un);
++static inline struct sm501_devdata *sm501_gpio_to_dev(struct sm501_gpio *gpio)
++{
++	return container_of(gpio, struct sm501_devdata, gpio);
++}
++
++static int sm501_gpio_get(struct gpio_chip *chip, unsigned offset)
++
++{
++	struct sm501_gpio_chip *smgpio = to_sm501_gpio(chip);
++	unsigned long result;
++
++	result = readl(smgpio->regbase + SM501_GPIO_DATA_LOW);
++	result >>= offset;
++
++	return result & 1UL;
++}
++
++static void sm501_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
++
++{
++	struct sm501_gpio_chip *smchip = to_sm501_gpio(chip);
++	struct sm501_gpio *smgpio = smchip->ourgpio;
++	unsigned long bit = 1 << offset;
++	void __iomem *regs = smchip->regbase;
++	unsigned long save;
++	unsigned long val;
++
++	dev_dbg(sm501_gpio_to_dev(smgpio)->dev, "%s(%p,%d)\n",
++		__func__, chip, offset);
++
++	spin_lock_irqsave(&smgpio->lock, save);
++
++	val = readl(regs + SM501_GPIO_DATA_LOW) & ~bit;
++	if (value)
++		val |= bit;
++	writel(val, regs);
++
++	sm501_sync_regs(sm501_gpio_to_dev(smgpio));
++	spin_unlock_irqrestore(&smgpio->lock, save);
++}
++
++static int sm501_gpio_input(struct gpio_chip *chip, unsigned offset)
++{
++	struct sm501_gpio_chip *smchip = to_sm501_gpio(chip);
++	struct sm501_gpio *smgpio = smchip->ourgpio;
++	void __iomem *regs = smchip->regbase;
++	unsigned long bit = 1 << offset;
++	unsigned long save;
++	unsigned long ddr;
++
++	dev_info(sm501_gpio_to_dev(smgpio)->dev, "%s(%p,%d)\n",
++		 __func__, chip, offset);
++
++	spin_lock_irqsave(&smgpio->lock, save);
++
++	ddr = readl(regs + SM501_GPIO_DDR_LOW);
++	writel(ddr & ~bit, regs + SM501_GPIO_DDR_LOW);
++
++	sm501_sync_regs(sm501_gpio_to_dev(smgpio));
++	spin_unlock_irqrestore(&smgpio->lock, save);
++
++	return 0;
++}
++
++static int sm501_gpio_output(struct gpio_chip *chip,
++			     unsigned offset, int value)
++{
++	struct sm501_gpio_chip *smchip = to_sm501_gpio(chip);
++	struct sm501_gpio *smgpio = smchip->ourgpio;
++	unsigned long bit = 1 << offset;
++	void __iomem *regs = smchip->regbase;
++	unsigned long save;
++	unsigned long val;
++	unsigned long ddr;
++
++	dev_dbg(sm501_gpio_to_dev(smgpio)->dev, "%s(%p,%d,%d)\n",
++		__func__, chip, offset, value);
++
++	spin_lock_irqsave(&smgpio->lock, save);
++
++	val = readl(regs + SM501_GPIO_DATA_LOW);
++	if (value)
++		val |= bit;
++	else
++		val &= ~bit;
++	writel(val, regs);
++
++	ddr = readl(regs + SM501_GPIO_DDR_LOW);
++	writel(ddr | bit, regs + SM501_GPIO_DDR_LOW);
++
++	sm501_sync_regs(sm501_gpio_to_dev(smgpio));
++	writel(val, regs + SM501_GPIO_DATA_LOW);
++
++	sm501_sync_regs(sm501_gpio_to_dev(smgpio));
++	spin_unlock_irqrestore(&smgpio->lock, save);
++
++	return 0;
++}
++
++static struct gpio_chip gpio_chip_template = {
++	.ngpio			= 32,
++	.direction_input	= sm501_gpio_input,
++	.direction_output	= sm501_gpio_output,
++	.set			= sm501_gpio_set,
++	.get			= sm501_gpio_get,
++};
++
++static int __devinit sm501_gpio_register_chip(struct sm501_devdata *sm,
++					      struct sm501_gpio *gpio,
++					      struct sm501_gpio_chip *chip)
++{
++	struct sm501_platdata *pdata = sm->platdata;
++	struct gpio_chip *gchip = &chip->gpio;
++	unsigned base = pdata->gpio_base;
++
++	memcpy(chip, &gpio_chip_template, sizeof(struct gpio_chip));
++
++	if (chip == &gpio->high) {
++		base += 32;
++		chip->regbase = gpio->regs + SM501_GPIO_DATA_HIGH;
++		gchip->label  = "SM501-HIGH";
++	} else {
++		chip->regbase = gpio->regs + SM501_GPIO_DATA_LOW;
++		gchip->label  = "SM501-LOW";
 +	}
- 
- 	/* Wake up all pending processes and let them fail with EIDRM. */
--
--	list_for_each_entry_safe(q, t, &sma->sem_pending, list) {
-+	list_for_each_entry_safe(q, tq, &sma->sem_pending, list) {
- 		list_del(&q->list);
- 
- 		q->status = IN_WAKEUP;
-@@ -948,16 +956,11 @@ static inline int get_undo_list(struct s
- 
- static struct sem_undo *lookup_undo(struct sem_undo_list *ulp, int semid)
- {
--	struct sem_undo *walk, *tmp;
-+	struct sem_undo *walk;
- 
--	assert_spin_locked(&ulp->lock);
--	list_for_each_entry_safe(walk, tmp, &ulp->list_proc, list_proc) {
-+	list_for_each_entry_rcu(walk, &ulp->list_proc, list_proc) {
- 		if (walk->semid == semid)
- 			return walk;
--		if (walk->semid == -1) {
--			list_del(&walk->list_proc);
--			kfree(walk);
--		}
- 	}
- 	return NULL;
- }
-@@ -970,6 +973,8 @@ static struct sem_undo *lookup_undo(stru
-  * The function looks up (and if not present creates) the undo structure.
-  * The size of the undo structure depends on the size of the semaphore
-  * array, thus the alloc path is not that straightforward.
-+ * Lifetime-rules: sem_undo is rcu-protected, on success, the function
-+ * performs a rcu_read_lock().
-  */
- static struct sem_undo *find_alloc_undo(struct ipc_namespace *ns, int semid)
- {
-@@ -983,11 +988,13 @@ static struct sem_undo *find_alloc_undo(
- 	if (error)
- 		return ERR_PTR(error);
- 
-+	rcu_read_lock();
- 	spin_lock(&ulp->lock);
- 	un = lookup_undo(ulp, semid);
- 	spin_unlock(&ulp->lock);
- 	if (likely(un!=NULL))
- 		goto out;
-+	rcu_read_unlock();
- 
- 	/* no undo structure around - allocate one. */
- 	/* step 1: figure out the size of the semaphore array */
-@@ -1005,38 +1012,38 @@ static struct sem_undo *find_alloc_undo(
- 		return ERR_PTR(-ENOMEM);
- 	}
- 
--	/* step 3: Acquire the lock on the undo list pointer */
--	spin_lock(&ulp->lock);
--
--	/* step 4: check for races: someone else allocated the undo struct,
--	 *         semaphore array was destroyed.
--	 */
--	un = lookup_undo(ulp, semid);
--	if (un) {
--		spin_unlock(&ulp->lock);
--		kfree(new);
--		sem_putref(sma);
--		goto out;
--	}
-+	/* step 3: Acquire the lock on semaphore array */
- 	sem_lock_and_putref(sma);
- 	if (sma->sem_perm.deleted) {
- 		sem_unlock(sma);
--		spin_unlock(&ulp->lock);
- 		kfree(new);
- 		un = ERR_PTR(-EIDRM);
- 		goto out;
- 	}
-+	spin_lock(&ulp->lock);
 +
-+	/*
-+	 * step 4: check for races: did someone else allocate the undo struct?
-+	 */
-+	un = lookup_undo(ulp, semid);
-+	if (un) {
-+		kfree(new);
-+		goto success;
++	gchip->base   = base;
++	chip->ourgpio = gpio;
++
++	return gpiochip_add(gchip);
++}
++
++static int sm501_register_gpio(struct sm501_devdata *sm)
++{
++	struct sm501_gpio *gpio = &sm->gpio;
++	resource_size_t iobase = sm->io_res->start + SM501_GPIO;
++	int ret;
++	int tmp;
++
++	dev_dbg(sm->dev, "registering gpio block %08llx\n",
++		(unsigned long long)iobase);
++
++	spin_lock_init(&gpio->lock);
++
++	gpio->regs_res = request_mem_region(iobase, 0x20, "sm501-gpio");
++	if (gpio->regs_res == NULL) {
++		dev_err(sm->dev, "gpio: failed to request region\n");
++		return -ENXIO;
 +	}
- 	/* step 5: initialize & link new undo structure */
- 	new->semadj = (short *) &new[1];
-+	new->ulp = ulp;
- 	new->semid = semid;
- 	assert_spin_locked(&ulp->lock);
--	list_add(&new->list_proc, &ulp->list_proc);
-+	list_add_rcu(&new->list_proc, &ulp->list_proc);
- 	assert_spin_locked(&sma->sem_perm.lock);
- 	list_add(&new->list_id, &sma->list_id);
-+	un = new;
- 
--	sem_unlock(sma);
-+success:
- 	spin_unlock(&ulp->lock);
--	un = new;
-+	rcu_read_lock();
-+	sem_unlock(sma);
- out:
- 	return un;
- }
-@@ -1103,6 +1110,8 @@ asmlinkage long sys_semtimedop(int semid
- 
- 	sma = sem_lock_check(ns, semid);
- 	if (IS_ERR(sma)) {
-+		if (un)
-+			rcu_read_unlock();
- 		error = PTR_ERR(sma);
- 		goto out_free;
- 	}
-@@ -1111,10 +1120,26 @@ asmlinkage long sys_semtimedop(int semid
- 	 * semid identifiers are not unique - find_alloc_undo may have
- 	 * allocated an undo structure, it was invalidated by an RMID
- 	 * and now a new array with received the same id. Check and fail.
-+	 * This case can be detected checking un->semid. The existance of
-+	 * "un" itself is guaranteed by rcu.
- 	 */
- 	error = -EIDRM;
--	if (un && un->semid == -1)
--		goto out_unlock_free;
-+	if (un) {
-+		if (un->semid == -1) {
-+			rcu_read_unlock();
-+			goto out_unlock_free;
-+		} else {
-+			/*
-+			 * rcu lock can be released, "un" cannot disappear:
-+			 * - sem_lock is acquired, thus IPC_RMID is
-+			 *   impossible.
-+			 * - exit_sem is impossible, it always operates on
-+			 *   current (or a dead task).
-+			 */
 +
-+			rcu_read_unlock();
-+		}
++	gpio->regs = ioremap(iobase, 0x20);
++	if (gpio->regs == NULL) {
++		dev_err(sm->dev, "gpio: failed to remap registers\n");
++		ret = -ENXIO;
++		goto err_mapped;
 +	}
- 
- 	error = -EFBIG;
- 	if (max >= sma->sem_nsems)
-@@ -1242,7 +1267,6 @@ int copy_semundo(unsigned long clone_fla
- void exit_sem(struct task_struct *tsk)
- {
- 	struct sem_undo_list *ulp;
--	struct sem_undo *un, *tmp;
- 
- 	ulp = tsk->sysvsem.undo_list;
- 	if (!ulp)
-@@ -1252,28 +1276,47 @@ void exit_sem(struct task_struct *tsk)
- 	if (!atomic_dec_and_test(&ulp->refcnt))
- 		return;
- 
--	spin_lock(&ulp->lock);
--
--	list_for_each_entry_safe(un, tmp, &ulp->list_proc, list_proc) {
-+	for (;;) {
- 		struct sem_array *sma;
-+		struct sem_undo *un;
-+		int semid;
- 		int i;
- 
--		if (un->semid == -1)
--			goto free;
-+		rcu_read_lock();
-+		un = list_entry(rcu_dereference(ulp->list_proc.next),
-+					struct sem_undo, list_proc);
-+		if (&un->list_proc == &ulp->list_proc)
-+			semid = -1;
-+		 else
-+			semid = un->semid;
-+		rcu_read_unlock();
- 
--		sma = sem_lock(tsk->nsproxy->ipc_ns, un->semid);
--		if (IS_ERR(sma))
--			goto free;
-+		if (semid == -1)
-+			break;
 +
-+		sma = sem_lock_check(tsk->nsproxy->ipc_ns, un->semid);
- 
--		if (un->semid == -1)
--			goto unlock_free;
-+		/* exit_sem raced with IPC_RMID, nothing to do */
-+		if (IS_ERR(sma))
-+			continue;
- 
--		BUG_ON(sem_checkid(sma, un->semid));
-+		un = lookup_undo(ulp, semid);
-+		if (un == NULL) {
-+			/* exit_sem raced with IPC_RMID+semget() that created
-+			 * exactly the same semid. Nothing to do.
-+			 */
-+			sem_unlock(sma);
-+			continue;
-+		}
- 
--		/* remove un from sma->list_id */
-+		/* remove un from the linked lists */
- 		assert_spin_locked(&sma->sem_perm.lock);
- 		list_del(&un->list_id);
- 
-+		spin_lock(&ulp->lock);
-+		list_del_rcu(&un->list_proc);
-+		spin_unlock(&ulp->lock);
++	/* Register both our chips. */
 +
- 		/* perform adjustments registered in un */
- 		for (i = 0; i < sma->sem_nsems; i++) {
- 			struct sem * semaphore = &sma->sem_base[i];
-@@ -1302,14 +1345,10 @@ void exit_sem(struct task_struct *tsk)
- 		sma->sem_otime = get_seconds();
- 		/* maybe some queued-up processes were waiting for this */
- 		update_queue(sma);
--unlock_free:
- 		sem_unlock(sma);
--free:
--		assert_spin_locked(&ulp->lock);
--		list_del(&un->list_proc);
--		kfree(un);
++	ret = sm501_gpio_register_chip(sm, gpio, &gpio->low);
++	if (ret) {
++		dev_err(sm->dev, "failed to add low chip\n");
++		goto err_mapped;
++	}
 +
-+		call_rcu(&un->rcu, free_un);
++	ret = sm501_gpio_register_chip(sm, gpio, &gpio->high);
++	if (ret) {
++		dev_err(sm->dev, "failed to add high chip\n");
++		goto err_low_chip;
++	}
++
++	gpio->registered = 1;
++
++	return 0;
++
++ err_low_chip:
++	tmp = gpiochip_remove(&gpio->low.gpio);
++	if (tmp) {
++		dev_err(sm->dev, "cannot remove low chip, cannot tidy up\n");
++		return ret;
++	}
++
++ err_mapped:
++	release_resource(gpio->regs_res);
++	kfree(gpio->regs_res);
++
++	return ret;
++}
++
++static void sm501_gpio_remove(struct sm501_devdata *sm)
++{
++	int ret;
++
++	ret = gpiochip_remove(&sm->gpio.low.gpio);
++	if (ret)
++		dev_err(sm->dev, "cannot remove low chip, cannot tidy up\n");
++
++	ret = gpiochip_remove(&sm->gpio.high.gpio);
++	if (ret)
++		dev_err(sm->dev, "cannot remove high chip, cannot tidy up\n");
++}
++
++#else
++static int sm501_register_gpio(struct sm501_devdata *sm)
++{
++	return 0;
++}
++
++static void sm501_gpio_remove(struct sm501_devdata *sm)
++{
++}
++#endif
++
+ /* sm501_dbg_regs
+  *
+  * Debug attribute to attach to parent device to show core registers
+@@ -1059,6 +1249,8 @@ static int sm501_init_dev(struct sm501_d
+ 			sm501_register_usbhost(sm, &mem_avail);
+ 		if (idata->devices & (SM501_USE_UART0 | SM501_USE_UART1))
+ 			sm501_register_uart(sm, idata->devices);
++		if (idata->devices & SM501_USE_GPIO)
++			sm501_register_gpio(sm);
  	}
--	spin_unlock(&ulp->lock);
- 	kfree(ulp);
+ 
+ 	ret = sm501_check_clocks(sm);
+@@ -1366,6 +1558,9 @@ static void sm501_dev_remove(struct sm50
+ 		sm501_remove_sub(sm, smdev);
+ 
+ 	device_remove_file(sm->dev, &dev_attr_dbg_regs);
++
++	if (sm->gpio.registered)
++		sm501_gpio_remove(sm);
  }
  
+ static void sm501_pci_remove(struct pci_dev *dev)
+diff -puN include/linux/sm501.h~sm501-add-gpiolib-support include/linux/sm501.h
+--- a/include/linux/sm501.h~sm501-add-gpiolib-support
++++ a/include/linux/sm501.h
+@@ -46,24 +46,6 @@ extern unsigned long sm501_modify_reg(st
+ 				      unsigned long set,
+ 				      unsigned long clear);
+ 
+-/* sm501_gpio_set
+- *
+- * set the state of the given GPIO line
+-*/
+-
+-extern void sm501_gpio_set(struct device *dev,
+-			   unsigned long gpio,
+-			   unsigned int to,
+-			   unsigned int dir);
+-
+-/* sm501_gpio_get
+- *
+- * get the state of the given GPIO line
+-*/
+-
+-extern unsigned long sm501_gpio_get(struct device *dev,
+-				    unsigned long gpio);
+-
+ 
+ /* Platform data definitions */
+ 
+@@ -131,6 +113,7 @@ struct sm501_reg_init {
+ #define SM501_USE_FBACCEL	(1<<6)
+ #define SM501_USE_AC97		(1<<7)
+ #define SM501_USE_I2S		(1<<8)
++#define SM501_USE_GPIO		(1<<9)
+ 
+ #define SM501_USE_ALL		(0xffffffff)
+ 
+@@ -173,6 +156,7 @@ struct sm501_platdata {
+ 	struct sm501_platdata_fb	*fb;
+ 
+ 	int				 flags;
++	unsigned			 gpio_base;
+ 
+ 	int	(*get_power)(struct device *dev);
+ 	int	(*set_power)(struct device *dev, unsigned int on);
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
 origin.patch
-repeatable-slab-corruption-with-ltp-msgctl08.patch
-mm-debug-dump-pageframes-on-bad_page.patch
-slab-leaks3-default-y.patch
+linux-next.patch
+resource-add-resource_size.patch
+resource-add-resource_type-and-ioresource_type_bits.patch
+resource-add-new-ioresource_clk-type-v2.patch
+i2c-sh_mobile-ioresource_clk-support.patch
 
