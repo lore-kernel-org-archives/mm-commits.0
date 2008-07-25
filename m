@@ -1,51 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 17:33:12 -0700
-Message-ID: <200807250033.m6P0XCuh014451@imap1.linux-foundation.org>
+Subject: - ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 17:33:28 -0700
+Message-ID: <200807250033.m6P0XS1P014461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57461 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57915 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752518AbYGYAds (ORCPT
+	by vger.kernel.org with ESMTP id S1752858AbYGYAeE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 20:33:48 -0400
+	Thu, 24 Jul 2008 20:34:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, Nadia.Derbey@bull.net, manfred@colorfullife.com, peifferp@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes
+     ipc-semc-rewrite-undo-list-locking-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+     ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into ipc-semc-convert-sem_arraysem_pending-to-struct-list_head.patch
+This patch was dropped because it was folded into ipc-semc-rewrite-undo-list-locking.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes
+Subject: ipc-semc-rewrite-undo-list-locking-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 WARNING: line over 80 characters
-#25: FILE: include/linux/sem.h:96:
-+	struct list_head	sem_pending;	/* pending operations to be processed */
+#42: FILE: include/linux/sem.h:118:
++	struct list_head	list_proc;	/* per-process list: all undos from one process. */
+
+WARNING: line over 80 characters
+#45: FILE: include/linux/sem.h:121:
++	struct sem_undo_list	*ulp;		/* sem_undo_list for the process */
+
+WARNING: line over 80 characters
+#167: FILE: ipc/sem.c:1025:
++	/* step 4: check for races: did someone else allocate the undo struct? */
 
 ERROR: space required before the open parenthesis '('
-#105: FILE: ipc/sem.c:409:
-+	while(&q->list != &sma->sem_pending) {
+#213: FILE: ipc/sem.c:1126:
++		if(un->semid == -1) {
 
-WARNING: line over 80 characters
-#135: FILE: ipc/sem.c:436:
-+				n = list_entry(sma->sem_pending.next, struct sem_queue, list);
+ERROR: spaces required around that '=' (ctx:WxV)
+#255: FILE: ipc/sem.c:1284:
++		un =list_entry(rcu_dereference(ulp->list_proc.next),
+ 		   ^
 
-WARNING: line over 80 characters
-#137: FILE: ipc/sem.c:438:
-+				n = list_entry(q->list.next, struct sem_queue, list);
+ERROR: space required before the open parenthesis '('
+#266: FILE: ipc/sem.c:1292:
++		if(semid == -1)
 
-total: 1 errors, 3 warnings, 206 lines checked
+total: 3 errors, 3 warnings, 272 lines checked
 
-./patches/ipc-semc-convert-sem_arraysem_pending-to-struct-list_head.patch has style problems, please review.  If any of these errors
+./patches/ipc-semc-rewrite-undo-list-locking.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
@@ -57,35 +66,50 @@ Cc: Pierre Peiffer <peifferp@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ ipc/sem.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN ipc/sem.c~ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes ipc/sem.c
---- a/ipc/sem.c~ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes
+diff -puN ipc/sem.c~ipc-semc-rewrite-undo-list-locking-checkpatch-fixes ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-rewrite-undo-list-locking-checkpatch-fixes
 +++ a/ipc/sem.c
-@@ -406,7 +406,7 @@ static void update_queue (struct sem_arr
- 	struct sem_queue * q;
+@@ -1022,7 +1022,9 @@ static struct sem_undo *find_alloc_undo(
+ 	}
+ 	spin_lock(&ulp->lock);
  
- 	q = list_entry(sma->sem_pending.next, struct sem_queue, list);
--	while(&q->list != &sma->sem_pending) {
-+	while (&q->list != &sma->sem_pending) {
- 		error = try_atomic_semop(sma, q->sops, q->nsops,
- 					 q->undo, q->pid);
+-	/* step 4: check for races: did someone else allocate the undo struct? */
++	/*
++	 * step 4: check for races: did someone else allocate the undo struct?
++	 */
+ 	un = lookup_undo(ulp, semid);
+ 	if (un) {
+ 		kfree(new);
+@@ -1123,7 +1125,7 @@ asmlinkage long sys_semtimedop(int semid
+ 	 */
+ 	error = -EIDRM;
+ 	if (un) {
+-		if(un->semid == -1) {
++		if (un->semid == -1) {
+ 			rcu_read_unlock();
+ 			goto out_unlock_free;
+ 		} else {
+@@ -1281,7 +1283,7 @@ void exit_sem(struct task_struct *tsk)
+ 		int i;
  
-@@ -433,9 +433,11 @@ static void update_queue (struct sem_arr
- 			 */
- 			if (q->alter) {
- 				list_del(&q->list);
--				n = list_entry(sma->sem_pending.next, struct sem_queue, list);
-+				n = list_entry(sma->sem_pending.next,
-+						struct sem_queue, list);
- 			} else {
--				n = list_entry(q->list.next, struct sem_queue, list);
-+				n = list_entry(q->list.next, struct sem_queue,
-+						list);
- 				list_del(&q->list);
- 			}
+ 		rcu_read_lock();
+-		un =list_entry(rcu_dereference(ulp->list_proc.next),
++		un = list_entry(rcu_dereference(ulp->list_proc.next),
+ 					struct sem_undo, list_proc);
+ 		if (&un->list_proc == &ulp->list_proc)
+ 			semid = -1;
+@@ -1289,7 +1291,7 @@ void exit_sem(struct task_struct *tsk)
+ 			semid = un->semid;
+ 		rcu_read_unlock();
  
+-		if(semid == -1)
++		if (semid == -1)
+ 			break;
+ 
+ 		sma = sem_lock_check(tsk->nsproxy->ipc_ns, un->semid);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -118,7 +142,7 @@ coredump-format_corename-fix-the-core_uses_pid-logic.patch
 workqueues-make-get_online_cpus-useable-for-work-func.patch
 ipc-semc-convert-undo-structures-to-struct-list_head.patch
 ipc-semc-convert-sem_arraysem_pending-to-struct-list_head.patch
-ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking.patch
 ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
 fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
 block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
