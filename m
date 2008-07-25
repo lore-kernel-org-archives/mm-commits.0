@@ -1,68 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - bsdacct-stir-up-comments-around-acct_process.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:03:07 -0700
-Message-ID: <200807252303.m6PN37uJ003926@imap1.linux-foundation.org>
+Subject: - pidns-add-the-struct-bsd_acct_struct-pointer-on-pid_namespace-struct.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:02:51 -0700
+Message-ID: <200807252302.m6PN2pgE003861@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59450 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60916 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753670AbYGYXDq (ORCPT
+	by vger.kernel.org with ESMTP id S1753472AbYGYXD1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:03:46 -0400
+	Fri, 25 Jul 2008 19:03:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: xemul@openvz.org, balbir@in.ibm.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bsdacct: fix and add comments around acct_process()
+     pidns: add the struct bsd_acct_struct pointer on pid_namespace struct
 has been removed from the -mm tree.  Its filename was
-     bsdacct-stir-up-comments-around-acct_process.patch
+     pidns-add-the-struct-bsd_acct_struct-pointer-on-pid_namespace-struct.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bsdacct: fix and add comments around acct_process()
+Subject: pidns: add the struct bsd_acct_struct pointer on pid_namespace struct
 From: Pavel Emelyanov <xemul@openvz.org>
 
-Fix the one describing what this function is and add one more - about
-locking absence around pid namespaces loop.
+All the bsdacct-related info will be stored in the area, pointer by this
+one.
+
+It will be NULL automatically for all new namespaces.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/acct.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ include/linux/pid_namespace.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN kernel/acct.c~bsdacct-stir-up-comments-around-acct_process kernel/acct.c
---- a/kernel/acct.c~bsdacct-stir-up-comments-around-acct_process
-+++ a/kernel/acct.c
-@@ -657,7 +657,8 @@ static void acct_process_in_ns(struct pi
- }
+diff -puN include/linux/pid_namespace.h~pidns-add-the-struct-bsd_acct_struct-pointer-on-pid_namespace-struct include/linux/pid_namespace.h
+--- a/include/linux/pid_namespace.h~pidns-add-the-struct-bsd_acct_struct-pointer-on-pid_namespace-struct
++++ a/include/linux/pid_namespace.h
+@@ -14,6 +14,8 @@ struct pidmap {
  
- /**
-- * acct_process - now just a wrapper around do_acct_process
-+ * acct_process - now just a wrapper around acct_process_in_ns,
-+ * which in turn is a wrapper around do_acct_process.
-  *
-  * handles process accounting for an exiting task
-  */
-@@ -665,6 +666,11 @@ void acct_process(void)
- {
- 	struct pid_namespace *ns;
+ #define PIDMAP_ENTRIES         ((PID_MAX_LIMIT + 8*PAGE_SIZE - 1)/PAGE_SIZE/8)
  
-+	/*
-+	 * This loop is safe lockless, since current is still
-+	 * alive and holds its namespace, which in turn holds
-+	 * its parent.
-+	 */
- 	for (ns = task_active_pid_ns(current); ns != NULL; ns = ns->parent)
- 		acct_process_in_ns(ns);
- }
++struct bsd_acct_struct;
++
+ struct pid_namespace {
+ 	struct kref kref;
+ 	struct pidmap pidmap[PIDMAP_ENTRIES];
+@@ -25,6 +27,9 @@ struct pid_namespace {
+ #ifdef CONFIG_PROC_FS
+ 	struct vfsmount *proc_mnt;
+ #endif
++#ifdef CONFIG_BSD_PROCESS_ACCT
++	struct bsd_acct_struct *bacct;
++#endif
+ };
+ 
+ extern struct pid_namespace init_pid_ns;
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
