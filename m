@@ -1,122 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - accounting-account-for-user-time-when-updating-memory-integrals.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:02:44 -0700
-Message-ID: <200807252302.m6PN2iXS003850@imap1.linux-foundation.org>
+Subject: - per-task-delay-accounting-update-taskstats-for-memory-reclaim-delay.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:03:18 -0700
+Message-ID: <200807252303.m6PN3I7i003942@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59161 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39778 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753508AbYGYXDc (ORCPT
+	by vger.kernel.org with ESMTP id S1753875AbYGYXD6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:03:32 -0400
+	Fri, 25 Jul 2008 19:03:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jlim@sgi.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: kobayashi.kk@ncos.nec.co.jp, balbir@in.ibm.com, h-shimamoto@ct.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     accounting: account for user time when updating memory integrals
+     per-task-delay-accounting: update taskstats for memory reclaim delay
 has been removed from the -mm tree.  Its filename was
-     accounting-account-for-user-time-when-updating-memory-integrals.patch
+     per-task-delay-accounting-update-taskstats-for-memory-reclaim-delay.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: accounting: account for user time when updating memory integrals
-From: Jonathan Lim <jlim@sgi.com>
+Subject: per-task-delay-accounting: update taskstats for memory reclaim delay
+From: Keika Kobayashi <kobayashi.kk@ncos.nec.co.jp>
 
-Adapt acct_update_integrals() to include user time when calculating the time
-difference.  The units of acct_rss_mem1 and acct_vm_mem1 are also changed from
-pages-jiffies to pages-usecs to avoid calling jiffies_to_usecs() in
-xacct_add_tsk() which might overflow.
+Add members for memory reclaim delay to taskstats, and accumulate them in
+__delayacct_add_tsk() .
 
-Signed-off-by: Jonathan Lim <jlim@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Keika Kobayashi <kobayashi.kk@ncos.nec.co.jp>
+Cc: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 +-
- kernel/sched.c        |    2 ++
- kernel/tsacct.c       |   21 ++++++++++++++-------
- 3 files changed, 17 insertions(+), 8 deletions(-)
+ Documentation/accounting/taskstats-struct.txt |    7 +++++++
+ include/linux/taskstats.h                     |    6 +++++-
+ kernel/delayacct.c                            |    3 +++
+ 3 files changed, 15 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/sched.h~accounting-account-for-user-time-when-updating-memory-integrals include/linux/sched.h
---- a/include/linux/sched.h~accounting-account-for-user-time-when-updating-memory-integrals
-+++ a/include/linux/sched.h
-@@ -1257,7 +1257,7 @@ struct task_struct {
- #if defined(CONFIG_TASK_XACCT)
- 	u64 acct_rss_mem1;	/* accumulated rss usage */
- 	u64 acct_vm_mem1;	/* accumulated virtual memory usage */
--	cputime_t acct_stimexpd;/* stime since last update */
-+	cputime_t acct_timexpd;	/* stime + utime since last update */
- #endif
- #ifdef CONFIG_CPUSETS
- 	nodemask_t mems_allowed;
-diff -puN kernel/sched.c~accounting-account-for-user-time-when-updating-memory-integrals kernel/sched.c
---- a/kernel/sched.c~accounting-account-for-user-time-when-updating-memory-integrals
-+++ a/kernel/sched.c
-@@ -4046,6 +4046,8 @@ void account_user_time(struct task_struc
- 		cpustat->nice = cputime64_add(cpustat->nice, tmp);
- 	else
- 		cpustat->user = cputime64_add(cpustat->user, tmp);
-+	/* Account for user time used */
-+	acct_update_integrals(p);
- }
+diff -puN Documentation/accounting/taskstats-struct.txt~per-task-delay-accounting-update-taskstats-for-memory-reclaim-delay Documentation/accounting/taskstats-struct.txt
+--- a/Documentation/accounting/taskstats-struct.txt~per-task-delay-accounting-update-taskstats-for-memory-reclaim-delay
++++ a/Documentation/accounting/taskstats-struct.txt
+@@ -26,6 +26,8 @@ There are three different groups of fiel
  
- /*
-diff -puN kernel/tsacct.c~accounting-account-for-user-time-when-updating-memory-integrals kernel/tsacct.c
---- a/kernel/tsacct.c~accounting-account-for-user-time-when-updating-memory-integrals
-+++ a/kernel/tsacct.c
-@@ -84,9 +84,9 @@ void xacct_add_tsk(struct taskstats *sta
- {
- 	struct mm_struct *mm;
+ 5) Time accounting for SMT machines
  
--	/* convert pages-jiffies to Mbyte-usec */
--	stats->coremem = jiffies_to_usecs(p->acct_rss_mem1) * PAGE_SIZE / MB;
--	stats->virtmem = jiffies_to_usecs(p->acct_vm_mem1) * PAGE_SIZE / MB;
-+	/* convert pages-usec to Mbyte-usec */
-+	stats->coremem = p->acct_rss_mem1 * PAGE_SIZE / MB;
-+	stats->virtmem = p->acct_vm_mem1 * PAGE_SIZE / MB;
- 	mm = get_task_mm(p);
- 	if (mm) {
- 		/* adjust to KB unit */
-@@ -118,12 +118,19 @@ void xacct_add_tsk(struct taskstats *sta
- void acct_update_integrals(struct task_struct *tsk)
- {
- 	if (likely(tsk->mm)) {
--		long delta = cputime_to_jiffies(
--			cputime_sub(tsk->stime, tsk->acct_stimexpd));
-+		cputime_t time, dtime;
-+		struct timeval value;
-+		u64 delta;
++6) Extended delay accounting fields for memory reclaim
 +
-+		time = tsk->stime + tsk->utime;
-+		dtime = cputime_sub(time, tsk->acct_timexpd);
-+		jiffies_to_timeval(cputime_to_jiffies(dtime), &value);
-+		delta = value.tv_sec;
-+		delta = delta * USEC_PER_SEC + value.tv_usec;
+ Future extension should add fields to the end of the taskstats struct, and
+ should not change the relative position of each field within the struct.
  
- 		if (delta == 0)
- 			return;
--		tsk->acct_stimexpd = tsk->stime;
-+		tsk->acct_timexpd = time;
- 		tsk->acct_rss_mem1 += delta * get_mm_rss(tsk->mm);
- 		tsk->acct_vm_mem1 += delta * tsk->mm->total_vm;
- 	}
-@@ -135,7 +142,7 @@ void acct_update_integrals(struct task_s
-  */
- void acct_clear_integrals(struct task_struct *tsk)
- {
--	tsk->acct_stimexpd = 0;
-+	tsk->acct_timexpd = 0;
- 	tsk->acct_rss_mem1 = 0;
- 	tsk->acct_vm_mem1 = 0;
+@@ -170,4 +172,9 @@ struct taskstats {
+ 	__u64	ac_utimescaled;		/* utime scaled on frequency etc */
+ 	__u64	ac_stimescaled;		/* stime scaled on frequency etc */
+ 	__u64	cpu_scaled_run_real_total; /* scaled cpu_run_real_total */
++
++6) Extended delay accounting fields for memory reclaim
++	/* Delay waiting for memory reclaim */
++	__u64	freepages_count;
++	__u64	freepages_delay_total;
  }
+diff -puN include/linux/taskstats.h~per-task-delay-accounting-update-taskstats-for-memory-reclaim-delay include/linux/taskstats.h
+--- a/include/linux/taskstats.h~per-task-delay-accounting-update-taskstats-for-memory-reclaim-delay
++++ a/include/linux/taskstats.h
+@@ -31,7 +31,7 @@
+  */
+ 
+ 
+-#define TASKSTATS_VERSION	6
++#define TASKSTATS_VERSION	7
+ #define TS_COMM_LEN		32	/* should be >= TASK_COMM_LEN
+ 					 * in linux/sched.h */
+ 
+@@ -157,6 +157,10 @@ struct taskstats {
+ 	__u64	ac_utimescaled;		/* utime scaled on frequency etc */
+ 	__u64	ac_stimescaled;		/* stime scaled on frequency etc */
+ 	__u64	cpu_scaled_run_real_total; /* scaled cpu_run_real_total */
++
++	/* Delay waiting for memory reclaim */
++	__u64	freepages_count;
++	__u64	freepages_delay_total;
+ };
+ 
+ 
+diff -puN kernel/delayacct.c~per-task-delay-accounting-update-taskstats-for-memory-reclaim-delay kernel/delayacct.c
+--- a/kernel/delayacct.c~per-task-delay-accounting-update-taskstats-for-memory-reclaim-delay
++++ a/kernel/delayacct.c
+@@ -145,8 +145,11 @@ int __delayacct_add_tsk(struct taskstats
+ 	d->blkio_delay_total = (tmp < d->blkio_delay_total) ? 0 : tmp;
+ 	tmp = d->swapin_delay_total + tsk->delays->swapin_delay;
+ 	d->swapin_delay_total = (tmp < d->swapin_delay_total) ? 0 : tmp;
++	tmp = d->freepages_delay_total + tsk->delays->freepages_delay;
++	d->freepages_delay_total = (tmp < d->freepages_delay_total) ? 0 : tmp;
+ 	d->blkio_count += tsk->delays->blkio_count;
+ 	d->swapin_count += tsk->delays->swapin_count;
++	d->freepages_count += tsk->delays->freepages_count;
+ 	spin_unlock_irqrestore(&tsk->delays->lock, flags);
+ 
+ done:
 _
 
-Patches currently in -mm which might be from jlim@sgi.com are
+Patches currently in -mm which might be from kobayashi.kk@ncos.nec.co.jp are
 
 origin.patch
 
