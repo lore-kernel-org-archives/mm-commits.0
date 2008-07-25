@@ -1,234 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: - mwave-ioctl-bkl-pushdown.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:01:21 -0700
-Message-ID: <200807252301.m6PN1LtW003700@imap1.linux-foundation.org>
+Subject: - idr-rename-some-of-the-idr-apis-internal-routines.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:00:37 -0700
+Message-ID: <200807252300.m6PN0bG5003600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35708 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48253 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753012AbYGYXCS (ORCPT
+	by vger.kernel.org with ESMTP id S1752909AbYGYXCN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:02:18 -0400
+	Fri, 25 Jul 2008 19:02:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, snakebyte@gmx.de, yani.ioannou@gmail.com, mm-commits@vger.kernel.org
+To: Nadia.Derbey@bull.net, jim.houston@comcast.net, manfred@colorfullife.com, paulmck@us.ibm.com, peifferp@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mwave: ioctl BKL pushdown
+     idr: rename some of the idr APIs internal routines
 has been removed from the -mm tree.  Its filename was
-     mwave-ioctl-bkl-pushdown.patch
+     idr-rename-some-of-the-idr-apis-internal-routines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mwave: ioctl BKL pushdown
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: idr: rename some of the idr APIs internal routines
+From: Nadia Derbey <Nadia.Derbey@bull.net>
 
-Push the BKL down to the point it wraps the actual mwave method handlers
+This is a trivial patch that renames:
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Eric Sesterhenn <snakebyte@gmx.de>
-Cc: Yani Ioannou <yani.ioannou@gmail.com>
+   . alloc_layer to get_from_free_list since it idr_pre_get that actually
+     allocates memory.
+   . free_layer to move_to_free_list since memory is not actually freed there.
+
+This makes things more clear for the next patches.
+
+Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
+Reviewed-by: "Paul E. McKenney" <paulmck@us.ibm.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Jim Houston <jim.houston@comcast.net>
+Cc: Pierre Peiffer <peifferp@gmail.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mwave/mwavedd.c |   39 +++++++++++++++++++++++----------
- 1 file changed, 28 insertions(+), 11 deletions(-)
+ lib/idr.c |   31 ++++++++++++++++---------------
+ 1 file changed, 16 insertions(+), 15 deletions(-)
 
-diff -puN drivers/char/mwave/mwavedd.c~mwave-ioctl-bkl-pushdown drivers/char/mwave/mwavedd.c
---- a/drivers/char/mwave/mwavedd.c~mwave-ioctl-bkl-pushdown
-+++ a/drivers/char/mwave/mwavedd.c
-@@ -86,8 +86,8 @@ module_param(mwave_uart_io, int, 0);
+diff -puN lib/idr.c~idr-rename-some-of-the-idr-apis-internal-routines lib/idr.c
+--- a/lib/idr.c~idr-rename-some-of-the-idr-apis-internal-routines
++++ a/lib/idr.c
+@@ -35,7 +35,7 @@
  
- static int mwave_open(struct inode *inode, struct file *file);
- static int mwave_close(struct inode *inode, struct file *file);
--static int mwave_ioctl(struct inode *inode, struct file *filp,
--                       unsigned int iocmd, unsigned long ioarg);
-+static long mwave_ioctl(struct file *filp, unsigned int iocmd,
-+							unsigned long ioarg);
+ static struct kmem_cache *idr_layer_cache;
  
- MWAVE_DEVICE_DATA mwave_s_mdd;
- 
-@@ -119,16 +119,16 @@ static int mwave_close(struct inode *ino
- 	return retval;
+-static struct idr_layer *alloc_layer(struct idr *idp)
++static struct idr_layer *get_from_free_list(struct idr *idp)
+ {
+ 	struct idr_layer *p;
+ 	unsigned long flags;
+@@ -51,14 +51,14 @@ static struct idr_layer *alloc_layer(str
  }
  
--static int mwave_ioctl(struct inode *inode, struct file *file,
--                       unsigned int iocmd, unsigned long ioarg)
-+static long mwave_ioctl(struct file *file, unsigned int iocmd,
-+							unsigned long ioarg)
+ /* only called when idp->lock is held */
+-static void __free_layer(struct idr *idp, struct idr_layer *p)
++static void __move_to_free_list(struct idr *idp, struct idr_layer *p)
  {
- 	unsigned int retval = 0;
- 	pMWAVE_DEVICE_DATA pDrvData = &mwave_s_mdd;
- 	void __user *arg = (void __user *)ioarg;
+ 	p->ary[0] = idp->id_free;
+ 	idp->id_free = p;
+ 	idp->id_free_cnt++;
+ }
  
--	PRINTK_5(TRACE_MWAVE,
--		"mwavedd::mwave_ioctl, entry inode %p file %p cmd %x arg %x\n",
--		 inode,  file, iocmd, (int) ioarg);
-+	PRINTK_4(TRACE_MWAVE,
-+		"mwavedd::mwave_ioctl, entry file %p cmd %x arg %x\n",
-+		file, iocmd, (int) ioarg);
+-static void free_layer(struct idr *idp, struct idr_layer *p)
++static void move_to_free_list(struct idr *idp, struct idr_layer *p)
+ {
+ 	unsigned long flags;
  
- 	switch (iocmd) {
+@@ -66,7 +66,7 @@ static void free_layer(struct idr *idp, 
+ 	 * Depends on the return element being zeroed.
+ 	 */
+ 	spin_lock_irqsave(&idp->lock, flags);
+-	__free_layer(idp, p);
++	__move_to_free_list(idp, p);
+ 	spin_unlock_irqrestore(&idp->lock, flags);
+ }
  
-@@ -136,7 +136,9 @@ static int mwave_ioctl(struct inode *ino
- 			PRINTK_1(TRACE_MWAVE,
- 				"mwavedd::mwave_ioctl, IOCTL_MW_RESET"
- 				" calling tp3780I_ResetDSP\n");
-+			lock_kernel();
- 			retval = tp3780I_ResetDSP(&pDrvData->rBDData);
-+			unlock_kernel();
- 			PRINTK_2(TRACE_MWAVE,
- 				"mwavedd::mwave_ioctl, IOCTL_MW_RESET"
- 				" retval %x from tp3780I_ResetDSP\n",
-@@ -147,7 +149,9 @@ static int mwave_ioctl(struct inode *ino
- 			PRINTK_1(TRACE_MWAVE,
- 				"mwavedd::mwave_ioctl, IOCTL_MW_RUN"
- 				" calling tp3780I_StartDSP\n");
-+			lock_kernel();
- 			retval = tp3780I_StartDSP(&pDrvData->rBDData);
-+			unlock_kernel();
- 			PRINTK_2(TRACE_MWAVE,
- 				"mwavedd::mwave_ioctl, IOCTL_MW_RUN"
- 				" retval %x from tp3780I_StartDSP\n",
-@@ -161,8 +165,10 @@ static int mwave_ioctl(struct inode *ino
- 				"mwavedd::mwave_ioctl,"
- 				" IOCTL_MW_DSP_ABILITIES calling"
- 				" tp3780I_QueryAbilities\n");
-+			lock_kernel();
- 			retval = tp3780I_QueryAbilities(&pDrvData->rBDData,
- 					&rAbilities);
-+			unlock_kernel();
- 			PRINTK_2(TRACE_MWAVE,
- 				"mwavedd::mwave_ioctl, IOCTL_MW_DSP_ABILITIES"
- 				" retval %x from tp3780I_QueryAbilities\n",
-@@ -193,11 +199,13 @@ static int mwave_ioctl(struct inode *ino
- 				"mwavedd::mwave_ioctl IOCTL_MW_READ_DATA,"
- 				" size %lx, ioarg %lx pusBuffer %p\n",
- 				rReadData.ulDataLength, ioarg, pusBuffer);
-+			lock_kernel();
- 			retval = tp3780I_ReadWriteDspDStore(&pDrvData->rBDData,
- 					iocmd,
- 					pusBuffer,
- 					rReadData.ulDataLength,
- 					rReadData.usDspAddress);
-+			unlock_kernel();
- 		}
- 			break;
- 	
-@@ -215,10 +223,12 @@ static int mwave_ioctl(struct inode *ino
- 				" size %lx, ioarg %lx pusBuffer %p\n",
- 				rReadData.ulDataLength / 2, ioarg,
- 				pusBuffer);
-+			lock_kernel();
- 			retval = tp3780I_ReadWriteDspDStore(&pDrvData->rBDData,
- 				iocmd, pusBuffer,
- 				rReadData.ulDataLength / 2,
- 				rReadData.usDspAddress);
-+			unlock_kernel();
- 		}
- 			break;
- 	
-@@ -236,10 +246,12 @@ static int mwave_ioctl(struct inode *ino
- 				" size %lx, ioarg %lx pusBuffer %p\n",
- 				rWriteData.ulDataLength, ioarg,
- 				pusBuffer);
-+			lock_kernel();
- 			retval = tp3780I_ReadWriteDspDStore(&pDrvData->rBDData,
- 					iocmd, pusBuffer,
- 					rWriteData.ulDataLength,
- 					rWriteData.usDspAddress);
-+			unlock_kernel();
- 		}
- 			break;
- 	
-@@ -257,10 +269,12 @@ static int mwave_ioctl(struct inode *ino
- 				" size %lx, ioarg %lx pusBuffer %p\n",
- 				rWriteData.ulDataLength, ioarg,
- 				pusBuffer);
-+			lock_kernel();
- 			retval = tp3780I_ReadWriteDspIStore(&pDrvData->rBDData,
- 					iocmd, pusBuffer,
- 					rWriteData.ulDataLength,
- 					rWriteData.usDspAddress);
-+			unlock_kernel();
- 		}
- 			break;
- 	
-@@ -281,8 +295,10 @@ static int mwave_ioctl(struct inode *ino
- 						ipcnum);
- 				return -EINVAL;
+@@ -109,7 +109,7 @@ int idr_pre_get(struct idr *idp, gfp_t g
+ 		new = kmem_cache_alloc(idr_layer_cache, gfp_mask);
+ 		if (new == NULL)
+ 			return (0);
+-		free_layer(idp, new);
++		move_to_free_list(idp, new);
+ 	}
+ 	return 1;
+ }
+@@ -167,7 +167,8 @@ static int sub_alloc(struct idr *idp, in
+ 		 * Create the layer below if it is missing.
+ 		 */
+ 		if (!p->ary[m]) {
+-			if (!(new = alloc_layer(idp)))
++			new = get_from_free_list(idp);
++			if (!new)
+ 				return -1;
+ 			p->ary[m] = new;
+ 			p->count++;
+@@ -192,7 +193,7 @@ build_up:
+ 	p = idp->top;
+ 	layers = idp->layers;
+ 	if (unlikely(!p)) {
+-		if (!(p = alloc_layer(idp)))
++		if (!(p = get_from_free_list(idp)))
+ 			return -1;
+ 		layers = 1;
+ 	}
+@@ -204,7 +205,7 @@ build_up:
+ 		layers++;
+ 		if (!p->count)
+ 			continue;
+-		if (!(new = alloc_layer(idp))) {
++		if (!(new = get_from_free_list(idp))) {
+ 			/*
+ 			 * The allocation failed.  If we built part of
+ 			 * the structure tear it down.
+@@ -214,7 +215,7 @@ build_up:
+ 				p = p->ary[0];
+ 				new->ary[0] = NULL;
+ 				new->bitmap = new->count = 0;
+-				__free_layer(idp, new);
++				__move_to_free_list(idp, new);
  			}
-+			lock_kernel();
- 			pDrvData->IPCs[ipcnum].bIsHere = FALSE;
- 			pDrvData->IPCs[ipcnum].bIsEnabled = TRUE;
-+			unlock_kernel();
- 	
- 			PRINTK_2(TRACE_MWAVE,
- 				"mwavedd::mwave_ioctl IOCTL_MW_REGISTER_IPC"
-@@ -307,6 +323,7 @@ static int mwave_ioctl(struct inode *ino
- 				return -EINVAL;
- 			}
- 	
-+			lock_kernel();
- 			if (pDrvData->IPCs[ipcnum].bIsEnabled == TRUE) {
- 				DECLARE_WAITQUEUE(wait, current);
+ 			spin_unlock_irqrestore(&idp->lock, flags);
+ 			return -1;
+@@ -351,7 +352,7 @@ static void sub_remove(struct idr *idp, 
+ 		__clear_bit(n, &p->bitmap);
+ 		p->ary[n] = NULL;
+ 		while(*paa && ! --((**paa)->count)){
+-			free_layer(idp, **paa);
++			move_to_free_list(idp, **paa);
+ 			**paa-- = NULL;
+ 		}
+ 		if (!*paa)
+@@ -378,12 +379,12 @@ void idr_remove(struct idr *idp, int id)
  
-@@ -347,6 +364,7 @@ static int mwave_ioctl(struct inode *ino
- 					" processing\n",
- 					ipcnum);
+ 		p = idp->top->ary[0];
+ 		idp->top->bitmap = idp->top->count = 0;
+-		free_layer(idp, idp->top);
++		move_to_free_list(idp, idp->top);
+ 		idp->top = p;
+ 		--idp->layers;
+ 	}
+ 	while (idp->id_free_cnt >= IDR_FREE_MAX) {
+-		p = alloc_layer(idp);
++		p = get_from_free_list(idp);
+ 		kmem_cache_free(idr_layer_cache, p);
+ 	}
+ 	return;
+@@ -426,7 +427,7 @@ void idr_remove_all(struct idr *idp)
+ 		while (n < fls(id)) {
+ 			if (p) {
+ 				memset(p, 0, sizeof *p);
+-				free_layer(idp, p);
++				move_to_free_list(idp, p);
  			}
-+			unlock_kernel();
- 		}
- 			break;
- 	
-@@ -365,19 +383,18 @@ static int mwave_ioctl(struct inode *ino
- 						ipcnum);
- 				return -EINVAL;
- 			}
-+			lock_kernel();
- 			if (pDrvData->IPCs[ipcnum].bIsEnabled == TRUE) {
- 				pDrvData->IPCs[ipcnum].bIsEnabled = FALSE;
- 				if (pDrvData->IPCs[ipcnum].bIsHere == TRUE) {
- 					wake_up_interruptible(&pDrvData->IPCs[ipcnum].ipc_wait_queue);
- 				}
- 			}
-+			unlock_kernel();
- 		}
- 			break;
- 	
- 		default:
--			PRINTK_ERROR(KERN_ERR_MWAVE "mwavedd::mwave_ioctl:"
--					" Error: Unrecognized iocmd %x\n",
--					iocmd);
- 			return -ENOTTY;
- 			break;
- 	} /* switch */
-@@ -460,7 +477,7 @@ static const struct file_operations mwav
- 	.owner		= THIS_MODULE,
- 	.read		= mwave_read,
- 	.write		= mwave_write,
--	.ioctl		= mwave_ioctl,
-+	.unlocked_ioctl	= mwave_ioctl,
- 	.open		= mwave_open,
- 	.release	= mwave_close
- };
+ 			n += IDR_BITS;
+ 			p = *--paa;
+@@ -444,7 +445,7 @@ EXPORT_SYMBOL(idr_remove_all);
+ void idr_destroy(struct idr *idp)
+ {
+ 	while (idp->id_free_cnt) {
+-		struct idr_layer *p = alloc_layer(idp);
++		struct idr_layer *p = get_from_free_list(idp);
+ 		kmem_cache_free(idr_layer_cache, p);
+ 	}
+ }
+@@ -749,7 +750,7 @@ int ida_get_new_above(struct ida *ida, i
+ 	 * allocation.
+ 	 */
+ 	if (ida->idr.id_free_cnt || ida->free_bitmap) {
+-		struct idr_layer *p = alloc_layer(&ida->idr);
++		struct idr_layer *p = get_from_free_list(&ida->idr);
+ 		if (p)
+ 			kmem_cache_free(idr_layer_cache, p);
+ 	}
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from Nadia.Derbey@bull.net are
 
 origin.patch
-hugetlb-fix-config_sysctl=n-build.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets.patch
-pnp-set-the-pnp_card-dma_mask-for-use-by-isapnp-cards.patch
-isa-set-24-bit-dma_mask-for-isa-devices.patch
-char-merge-ip2main-and-ip2base.patch
-char-ip2-cleanup-globals.patch
-char-ip2-fix-sparse-warnings.patch
-char-ip2-init-deinit-cleanup.patch
-ip2-avoid-add_timer-with-pending-timer.patch
 
