@@ -1,31 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: - eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:31:51 -0700
-Message-ID: <200807252331.m6PNVpHs005218@imap1.linux-foundation.org>
+Subject: - eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:31:57 -0700
+Message-ID: <200807252331.m6PNVvAL005228@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56963 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52623 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752183AbYGYXcC (ORCPT
+	by vger.kernel.org with ESMTP id S1753732AbYGYXcD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:32:02 -0400
+	Fri, 25 Jul 2008 19:32:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, adaplas@pol.net, jekhor@gmail.com, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eink_apollofb-new-driver-for-apollo-eink-controller-cleanup
+     eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2
 has been removed from the -mm tree.  Its filename was
-     eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
+     eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2.patch
 
 This patch was dropped because it was folded into eink_apollofb-new-driver-for-apollo-eink-controller.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eink_apollofb-new-driver-for-apollo-eink-controller-cleanup
+Subject: eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
+
+i386:
+
+drivers/video/eink_apollofb.c:36:32: error: asm/arch/regs-gpio.h: No such file or directory
+drivers/video/eink_apollofb.c:37:26: error: asm/hardware.h: No such file or directory
 
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
@@ -33,45 +38,20 @@ Cc: Yauhen Kharuzhy <jekhor@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig         |    2 +-
- drivers/video/eink_apollofb.c |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/Kconfig~eink_apollofb-new-driver-for-apollo-eink-controller-cleanup drivers/video/Kconfig
---- a/drivers/video/Kconfig~eink_apollofb-new-driver-for-apollo-eink-controller-cleanup
+diff -puN drivers/video/Kconfig~eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2 drivers/video/Kconfig
+--- a/drivers/video/Kconfig~eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2
 +++ a/drivers/video/Kconfig
-@@ -727,7 +727,7 @@ config FB_EINK_APOLLO
-        select FB_SYS_FOPS
-        select FB_DEFERRED_IO
-        help
--         This enables support for Apollo eInk display controller.
-+	 This enables support for Apollo eInk display controller.
- 	 Includes support of deferred IO and 2-bit grayscale mode.
- 
- 	 Hardware-specific functions have been moved to platform data.
-diff -puN drivers/video/eink_apollofb.c~eink_apollofb-new-driver-for-apollo-eink-controller-cleanup drivers/video/eink_apollofb.c
---- a/drivers/video/eink_apollofb.c~eink_apollofb-new-driver-for-apollo-eink-controller-cleanup
-+++ a/drivers/video/eink_apollofb.c
-@@ -82,8 +82,8 @@ static struct fb_var_screeninfo apollofb
- 	.nonstd		= 1,
- };
- 
--static inline int apollo_wait_for_ack_value(struct apollofb_par *par,
--		unsigned int value)
-+static int apollo_wait_for_ack_value(struct apollofb_par *par,
-+					unsigned int value)
- {
- 	unsigned long timeout = jiffies + 2 * HZ;
- 
-@@ -324,7 +324,7 @@ static void apollofb_imageblit(struct fb
- 	schedule_delayed_work(&par->deferred_work, info->fbdefio->delay);
- }
- 
--int apollofb_cursor(struct fb_info *info, struct fb_cursor *cursor)
-+static int apollofb_cursor(struct fb_info *info, struct fb_cursor *cursor)
- {
- 	return 0;
- }
+@@ -721,6 +721,7 @@ config FB_N411
+ config FB_EINK_APOLLO
+ 	tristate "Apollo eInk display controller support"
+ 	depends on EXPERIMENTAL && FB && MMU
++	depends on ARM
+ 	select FB_SYS_FILLRECT
+ 	select FB_SYS_COPYAREA
+ 	select FB_SYS_IMAGEBLIT
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,8 +59,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 uninline-arch_pick_mmap_layout.patch
 eink_apollofb-new-driver-for-apollo-eink-controller.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-cleanup.patch
-eink_apollofb-new-driver-for-apollo-eink-controller-fix.patch
 eink_apollofb-new-driver-for-apollo-eink-controller-fix-fix-2.patch
 getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
 dma-mapping-add-the-device-argument-to-dma_mapping_error-sge-fix.patch
