@@ -1,237 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - locks-add-special-return-value-for-asynchronous-locks.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:03:29 -0700
-Message-ID: <200807252303.m6PN3T3g003956@imap1.linux-foundation.org>
+Subject: - memcg-limit-change-shrink-usage.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:59:02 -0700
+Message-ID: <200807252259.m6PMx2VS003344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38532 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37033 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752863AbYGYXFF (ORCPT
+	by vger.kernel.org with ESMTP id S1754084AbYGYXFJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:05:05 -0400
+	Fri, 25 Jul 2008 19:05:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, bfields@fieldses.org, hch@lst.de, matthew@wil.cx, teigland@redhat.com, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, menage@google.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     locks: add special return value for asynchronous locks
+     memcg: limit change shrink usage
 has been removed from the -mm tree.  Its filename was
-     locks-add-special-return-value-for-asynchronous-locks.patch
+     memcg-limit-change-shrink-usage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: locks: add special return value for asynchronous locks
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: memcg: limit change shrink usage
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Use a special error value FILE_LOCK_DEFERRED to mean that a locking
-operation returned asynchronously.  This is returned by
+Shrinking memory usage at limit change.
 
-  posix_lock_file() for sleeping locks to mean that the lock has been
-  queued on the block list, and will be woken up when it might become
-  available and needs to be retried (either fl_lmops->fl_notify() is
-  called or fl_wait is woken up).
-
-  f_op->lock() to mean either the above, or that the filesystem will
-  call back with fl_lmops->fl_grant() when the result of the locking
-  operation is known.  The filesystem can do this for sleeping as well
-  as non-sleeping locks.
-
-This is to make sure, that return values of -EAGAIN and -EINPROGRESS by
-filesystems are not mistaken to mean an asynchronous locking.
-
-This also makes error handling in fs/locks.c and lockd/svclock.c slightly
-cleaner.
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: David Teigland <teigland@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
+[akpm@linux-foundation.org: coding-style fixes]
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: Pavel Emelyanov <xemul@openvz.org>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/plock.c     |    2 +-
- fs/lockd/svclock.c |   13 ++++---------
- fs/locks.c         |   28 ++++++++++++++--------------
- include/linux/fs.h |    6 ++++++
- 4 files changed, 25 insertions(+), 24 deletions(-)
+ Documentation/controllers/memory.txt |    3 -
+ mm/memcontrol.c                      |   48 ++++++++++++++++++++++---
+ 2 files changed, 45 insertions(+), 6 deletions(-)
 
-diff -puN fs/dlm/plock.c~locks-add-special-return-value-for-asynchronous-locks fs/dlm/plock.c
---- a/fs/dlm/plock.c~locks-add-special-return-value-for-asynchronous-locks
-+++ a/fs/dlm/plock.c
-@@ -116,7 +116,7 @@ int dlm_posix_lock(dlm_lockspace_t *lock
- 	if (xop->callback == NULL)
- 		wait_event(recv_wq, (op->done != 0));
- 	else {
--		rv = -EINPROGRESS;
-+		rv = FILE_LOCK_DEFERRED;
- 		goto out;
- 	}
+diff -puN Documentation/controllers/memory.txt~memcg-limit-change-shrink-usage Documentation/controllers/memory.txt
+--- a/Documentation/controllers/memory.txt~memcg-limit-change-shrink-usage
++++ a/Documentation/controllers/memory.txt
+@@ -242,8 +242,7 @@ rmdir() if there are no tasks.
+ 1. Add support for accounting huge pages (as a separate controller)
+ 2. Make per-cgroup scanner reclaim not-shared pages first
+ 3. Teach controller to account for shared-pages
+-4. Start reclamation when the limit is lowered
+-5. Start reclamation in the background when the limit is
++4. Start reclamation in the background when the limit is
+    not yet hit but the usage is getting closer
  
-diff -puN fs/lockd/svclock.c~locks-add-special-return-value-for-asynchronous-locks fs/lockd/svclock.c
---- a/fs/lockd/svclock.c~locks-add-special-return-value-for-asynchronous-locks
-+++ a/fs/lockd/svclock.c
-@@ -418,8 +418,8 @@ nlmsvc_lock(struct svc_rqst *rqstp, stru
- 			goto out;
- 		case -EAGAIN:
- 			ret = nlm_lck_denied;
--			break;
--		case -EINPROGRESS:
-+			goto out;
-+		case FILE_LOCK_DEFERRED:
- 			if (wait)
- 				break;
- 			/* Filesystem lock operation is in progress
-@@ -434,10 +434,6 @@ nlmsvc_lock(struct svc_rqst *rqstp, stru
- 			goto out;
- 	}
+ Summary
+diff -puN mm/memcontrol.c~memcg-limit-change-shrink-usage mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-limit-change-shrink-usage
++++ a/mm/memcontrol.c
+@@ -812,6 +812,30 @@ int mem_cgroup_shrink_usage(struct mm_st
+ 	return 0;
+ }
  
--	ret = nlm_lck_denied;
--	if (!wait)
--		goto out;
--
- 	ret = nlm_lck_blocked;
- 
- 	/* Append to list of blocked */
-@@ -507,7 +503,7 @@ nlmsvc_testlock(struct svc_rqst *rqstp, 
- 	}
- 
- 	error = vfs_test_lock(file->f_file, &lock->fl);
--	if (error == -EINPROGRESS) {
-+	if (error == FILE_LOCK_DEFERRED) {
- 		ret = nlmsvc_defer_lock_rqst(rqstp, block);
- 		goto out;
- 	}
-@@ -731,8 +727,7 @@ nlmsvc_grant_blocked(struct nlm_block *b
- 	switch (error) {
- 	case 0:
- 		break;
--	case -EAGAIN:
--	case -EINPROGRESS:
-+	case FILE_LOCK_DEFERRED:
- 		dprintk("lockd: lock still blocked error %d\n", error);
- 		nlmsvc_insert_block(block, NLM_NEVER);
- 		nlmsvc_release_block(block);
-diff -puN fs/locks.c~locks-add-special-return-value-for-asynchronous-locks fs/locks.c
---- a/fs/locks.c~locks-add-special-return-value-for-asynchronous-locks
-+++ a/fs/locks.c
-@@ -779,8 +779,10 @@ find_conflict:
- 		if (!flock_locks_conflict(request, fl))
- 			continue;
- 		error = -EAGAIN;
--		if (request->fl_flags & FL_SLEEP)
--			locks_insert_block(fl, request);
-+		if (!(request->fl_flags & FL_SLEEP))
-+			goto out;
-+		error = FILE_LOCK_DEFERRED;
-+		locks_insert_block(fl, request);
- 		goto out;
- 	}
- 	if (request->fl_flags & FL_ACCESS)
-@@ -836,7 +838,7 @@ static int __posix_lock_file(struct inod
- 			error = -EDEADLK;
- 			if (posix_locks_deadlock(request, fl))
- 				goto out;
--			error = -EAGAIN;
-+			error = FILE_LOCK_DEFERRED;
- 			locks_insert_block(fl, request);
- 			goto out;
-   		}
-@@ -1035,7 +1037,7 @@ int posix_lock_file_wait(struct file *fi
- 	might_sleep ();
- 	for (;;) {
- 		error = posix_lock_file(filp, fl, NULL);
--		if ((error != -EAGAIN) || !(fl->fl_flags & FL_SLEEP))
-+		if (error != FILE_LOCK_DEFERRED)
- 			break;
- 		error = wait_event_interruptible(fl->fl_wait, !fl->fl_next);
- 		if (!error)
-@@ -1107,9 +1109,7 @@ int locks_mandatory_area(int read_write,
- 
- 	for (;;) {
- 		error = __posix_lock_file(inode, &fl, NULL);
--		if (error != -EAGAIN)
--			break;
--		if (!(fl.fl_flags & FL_SLEEP))
-+		if (error != FILE_LOCK_DEFERRED)
- 			break;
- 		error = wait_event_interruptible(fl.fl_wait, !fl.fl_next);
- 		if (!error) {
-@@ -1531,7 +1531,7 @@ int flock_lock_file_wait(struct file *fi
- 	might_sleep();
- 	for (;;) {
- 		error = flock_lock_file(filp, fl);
--		if ((error != -EAGAIN) || !(fl->fl_flags & FL_SLEEP))
-+		if (error != FILE_LOCK_DEFERRED)
- 			break;
- 		error = wait_event_interruptible(fl->fl_wait, !fl->fl_next);
- 		if (!error)
-@@ -1716,17 +1716,17 @@ out:
-  * fl_grant is set. Callers expecting ->lock() to return asynchronously
-  * will only use F_SETLK, not F_SETLKW; they will set FL_SLEEP if (and only if)
-  * the request is for a blocking lock. When ->lock() does return asynchronously,
-- * it must return -EINPROGRESS, and call ->fl_grant() when the lock
-+ * it must return FILE_LOCK_DEFERRED, and call ->fl_grant() when the lock
-  * request completes.
-  * If the request is for non-blocking lock the file system should return
-- * -EINPROGRESS then try to get the lock and call the callback routine with
-- * the result. If the request timed out the callback routine will return a
-+ * FILE_LOCK_DEFERRED then try to get the lock and call the callback routine
-+ * with the result. If the request timed out the callback routine will return a
-  * nonzero return code and the file system should release the lock. The file
-  * system is also responsible to keep a corresponding posix lock when it
-  * grants a lock so the VFS can find out which locks are locally held and do
-  * the correct lock cleanup when required.
-  * The underlying filesystem must not drop the kernel lock or call
-- * ->fl_grant() before returning to the caller with a -EINPROGRESS
-+ * ->fl_grant() before returning to the caller with a FILE_LOCK_DEFERRED
-  * return code.
-  */
- int vfs_lock_file(struct file *filp, unsigned int cmd, struct file_lock *fl, struct file_lock *conf)
-@@ -1804,7 +1804,7 @@ again:
- 	else {
- 		for (;;) {
- 			error = posix_lock_file(filp, file_lock, NULL);
--			if (error != -EAGAIN || cmd == F_SETLK)
-+			if (error != FILE_LOCK_DEFERRED)
- 				break;
- 			error = wait_event_interruptible(file_lock->fl_wait,
- 					!file_lock->fl_next);
-@@ -1941,7 +1941,7 @@ again:
- 	else {
- 		for (;;) {
- 			error = posix_lock_file(filp, file_lock, NULL);
--			if (error != -EAGAIN || cmd == F_SETLK64)
-+			if (error != FILE_LOCK_DEFERRED)
- 				break;
- 			error = wait_event_interruptible(file_lock->fl_wait,
- 					!file_lock->fl_next);
-diff -puN include/linux/fs.h~locks-add-special-return-value-for-asynchronous-locks include/linux/fs.h
---- a/include/linux/fs.h~locks-add-special-return-value-for-asynchronous-locks
-+++ a/include/linux/fs.h
-@@ -886,6 +886,12 @@ static inline int file_check_writeable(s
- #define FL_SLEEP	128	/* A blocking lock */
- 
- /*
-+ * Special return value from posix_lock_file() and vfs_lock_file() for
-+ * asynchronous locking.
-+ */
-+#define FILE_LOCK_DEFERRED 1
++int mem_cgroup_resize_limit(struct mem_cgroup *memcg, unsigned long long val)
++{
 +
++	int retry_count = MEM_CGROUP_RECLAIM_RETRIES;
++	int progress;
++	int ret = 0;
++
++	while (res_counter_set_limit(&memcg->res, val)) {
++		if (signal_pending(current)) {
++			ret = -EINTR;
++			break;
++		}
++		if (!retry_count) {
++			ret = -EBUSY;
++			break;
++		}
++		progress = try_to_free_mem_cgroup_pages(memcg, GFP_KERNEL);
++		if (!progress)
++			retry_count--;
++	}
++	return ret;
++}
++
++
+ /*
+  * This routine traverse page_cgroup in given list and drop them all.
+  * *And* this routine doesn't reclaim page itself, just removes page_cgroup.
+@@ -896,13 +920,29 @@ static u64 mem_cgroup_read(struct cgroup
+ 	return res_counter_read_u64(&mem_cgroup_from_cont(cont)->res,
+ 				    cft->private);
+ }
+-
 +/*
-  * The POSIX file lock owner is determined by
-  * the "struct files_struct" in the thread group
-  * (or NULL for no owner - BSD locks).
++ * The user of this function is...
++ * RES_LIMIT.
++ */
+ static int mem_cgroup_write(struct cgroup *cont, struct cftype *cft,
+ 			    const char *buffer)
+ {
+-	return res_counter_write(&mem_cgroup_from_cont(cont)->res,
+-				 cft->private, buffer,
+-				 res_counter_memparse_write_strategy);
++	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
++	unsigned long long val;
++	int ret;
++
++	switch (cft->private) {
++	case RES_LIMIT:
++		/* This function does all necessary parse...reuse it */
++		ret = res_counter_memparse_write_strategy(buffer, &val);
++		if (!ret)
++			ret = mem_cgroup_resize_limit(memcg, val);
++		break;
++	default:
++		ret = -EINVAL; /* should be BUG() ? */
++		break;
++	}
++	return ret;
+ }
+ 
+ static int mem_cgroup_reset(struct cgroup *cont, unsigned int event)
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-linux-next.patch
-git-unprivileged-mounts.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
+define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
+vmscan-second-chance-replacement-for-anonymous-pages-fix.patch
+vmscan-second-chance-replacement-for-anonymous-pages-memcg-lru-scan-fix.patch
+unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework.patch
+mlock-mlocked-pages-are-unevictable-fix-truncate-race-and-sevaral-comments.patch
+fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
+restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch
 
