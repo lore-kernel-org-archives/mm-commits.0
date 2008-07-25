@@ -1,210 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - calgary-iommu-use-the-first-kernels-tce-tables-in-kdump.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:00:31 -0700
-Message-ID: <200807252300.m6PN0VaC003593@imap1.linux-foundation.org>
+Subject: - s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:00:20 -0700
+Message-ID: <200807252300.m6PN0KXK003576@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56279 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37104 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754425AbYGYXIu (ORCPT
+	by vger.kernel.org with ESMTP id S1754935AbYGYXJN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:08:50 -0400
+	Fri, 25 Jul 2008 19:09:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chandru@in.ibm.com, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, ego@in.ibm.com, heiko.carstens@de.ibm.com, maxk@qualcomm.com, menage@google.com, mingo@elte.hu, peterz@infradead.org, pj@sgi.com, schwidefsky@de.ibm.com, vegard.nossu
 
 
 The patch titled
-     calgary iommu: use the first kernels TCE tables in kdump
+     S390 topology: don't use kthread() for arch_reinit_sched_domains()
 has been removed from the -mm tree.  Its filename was
-     calgary-iommu-use-the-first-kernels-tce-tables-in-kdump.patch
+     s390-topology-dont-use-kthread-for-arch_reinit_sched_domains.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: calgary iommu: use the first kernels TCE tables in kdump
-From: Chandru <chandru@in.ibm.com>
+Subject: S390 topology: don't use kthread() for arch_reinit_sched_domains()
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-kdump kernel fails to boot with calgary iommu and aacraid driver on a x366
-box.  The ongoing dma's of aacraid from the first kernel continue to exist
-until the driver is loaded in the kdump kernel.  Calgary is initialized
-prior to aacraid and creation of new tce tables causes wrong dma's to
-occur.  Here we try to get the tce tables of the first kernel in kdump
-kernel and use them.  While in the kdump kernel we do not allocate new tce
-tables but instead read the base address register contents of calgary
-iommu and use the tables that the registers point to.  With these changes
-the kdump kernel and hence aacraid now boots normally.
+Now that it is safe to use get_online_cpus() we can revert
 
-Signed-off-by: Chandru Siddalingappa <chandru@in.ibm.com>
-Acked-by: Muli Ben-Yehuda <muli@il.ibm.com>
+	[S390] cpu topology: Fix possible deadlock.
+	commit: fd781fa25c9e9c6fd1599df060b05e7c4ad724e5
+
+and call arch_reinit_sched_domains() directly from topology_work_fn().
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
+Tested-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Max Krasnyansky <maxk@qualcomm.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/pci-calgary_64.c |   85 ++++++++++++++++++++++++++---
- include/linux/crash_dump.h       |    8 ++
- 2 files changed, 87 insertions(+), 6 deletions(-)
+ arch/s390/kernel/topology.c |   14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff -puN arch/x86/kernel/pci-calgary_64.c~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump arch/x86/kernel/pci-calgary_64.c
---- a/arch/x86/kernel/pci-calgary_64.c~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump
-+++ a/arch/x86/kernel/pci-calgary_64.c
-@@ -29,6 +29,7 @@
- #include <linux/mm.h>
- #include <linux/spinlock.h>
- #include <linux/string.h>
-+#include <linux/crash_dump.h>
- #include <linux/dma-mapping.h>
- #include <linux/bitops.h>
- #include <linux/pci_ids.h>
-@@ -167,6 +168,8 @@ static void calgary_dump_error_regs(stru
- static void calioc2_handle_quirks(struct iommu_table *tbl, struct pci_dev *dev);
- static void calioc2_tce_cache_blast(struct iommu_table *tbl);
- static void calioc2_dump_error_regs(struct iommu_table *tbl);
-+static void calgary_init_bitmap_from_tce_table(struct iommu_table *tbl);
-+static void get_tce_space_from_tar(void);
- 
- static struct cal_chipset_ops calgary_chip_ops = {
- 	.handle_quirks = calgary_handle_quirks,
-@@ -830,7 +833,11 @@ static int __init calgary_setup_tar(stru
- 
- 	tbl = pci_iommu(dev->bus);
- 	tbl->it_base = (unsigned long)bus_info[dev->bus->number].tce_space;
--	tce_free(tbl, 0, tbl->it_size);
-+
-+	if (is_kdump_kernel())
-+		calgary_init_bitmap_from_tce_table(tbl);
-+	else
-+		tce_free(tbl, 0, tbl->it_size);
- 
- 	if (is_calgary(dev->device))
- 		tbl->chip_ops = &calgary_chip_ops;
-@@ -1209,6 +1216,10 @@ static int __init calgary_init(void)
- 	if (ret)
- 		return ret;
- 
-+	/* Purely for kdump kernel case */
-+	if (is_kdump_kernel())
-+		get_tce_space_from_tar();
-+
- 	do {
- 		dev = pci_get_device(PCI_VENDOR_ID_IBM, PCI_ANY_ID, dev);
- 		if (!dev)
-@@ -1339,6 +1350,61 @@ static int __init calgary_bus_has_device
- 	return (val != 0xffffffff);
+diff -puN arch/s390/kernel/topology.c~s390-topology-dont-use-kthread-for-arch_reinit_sched_domains arch/s390/kernel/topology.c
+--- a/arch/s390/kernel/topology.c~s390-topology-dont-use-kthread-for-arch_reinit_sched_domains
++++ a/arch/s390/kernel/topology.c
+@@ -9,7 +9,6 @@
+ #include <linux/device.h>
+ #include <linux/bootmem.h>
+ #include <linux/sched.h>
+-#include <linux/kthread.h>
+ #include <linux/workqueue.h>
+ #include <linux/cpu.h>
+ #include <linux/smp.h>
+@@ -230,20 +229,9 @@ void arch_update_cpu_topology(void)
+ 	}
  }
  
-+/*
-+ * calgary_init_bitmap_from_tce_table():
-+ * Funtion for kdump case. In the second/kdump kernel initialize
-+ * the bitmap based on the tce table entries obtained from first kernel
-+ */
-+static void calgary_init_bitmap_from_tce_table(struct iommu_table *tbl)
-+{
-+	u64 *tp;
-+	unsigned int index;
-+	tp = ((u64 *)tbl->it_base);
-+	for (index = 0 ; index < tbl->it_size; index++) {
-+		if (*tp != 0x0)
-+			set_bit(index, tbl->it_map);
-+		tp++;
-+	}
-+}
-+
-+/*
-+ * get_tce_space_from_tar():
-+ * Function for kdump case. Get the tce tables from first kernel
-+ * by reading the contents of the base adress register of calgary iommu
-+ */
-+static void get_tce_space_from_tar()
-+{
-+	int bus;
-+	void __iomem *target;
-+	unsigned long tce_space;
-+
-+	for (bus = 0; bus < MAX_PHB_BUS_NUM; bus++) {
-+		struct calgary_bus_info *info = &bus_info[bus];
-+		unsigned short pci_device;
-+		u32 val;
-+
-+		val = read_pci_config(bus, 0, 0, 0);
-+		pci_device = (val & 0xFFFF0000) >> 16;
-+
-+		if (!is_cal_pci_dev(pci_device))
-+			continue;
-+		if (info->translation_disabled)
-+			continue;
-+
-+		if (calgary_bus_has_devices(bus, pci_device) ||
-+						translate_empty_slots) {
-+			target = calgary_reg(bus_info[bus].bbar,
-+						tar_offset(bus));
-+			tce_space = be64_to_cpu(readq(target));
-+			tce_space = tce_space & TAR_SW_BITS;
-+
-+			tce_space = tce_space & (~specified_table_size);
-+			info->tce_space = (u64 *)__va(tce_space);
-+		}
-+	}
-+	return;
-+}
-+
- void __init detect_calgary(void)
+-static int topology_kthread(void *data)
+-{
+-	arch_reinit_sched_domains();
+-	return 0;
+-}
+-
+ static void topology_work_fn(struct work_struct *work)
  {
- 	int bus;
-@@ -1394,7 +1460,8 @@ void __init detect_calgary(void)
- 		return;
- 	}
+-	/* We can't call arch_reinit_sched_domains() from a multi-threaded
+-	 * workqueue context since it may deadlock in case of cpu hotplug.
+-	 * So we have to create a kernel thread in order to call
+-	 * arch_reinit_sched_domains().
+-	 */
+-	kthread_run(topology_kthread, NULL, "topology_update");
++	arch_reinit_sched_domains();
+ }
  
--	specified_table_size = determine_tce_table_size(max_pfn * PAGE_SIZE);
-+	specified_table_size = determine_tce_table_size((is_kdump_kernel() ?
-+					saved_max_pfn : max_pfn) * PAGE_SIZE);
- 
- 	for (bus = 0; bus < MAX_PHB_BUS_NUM; bus++) {
- 		struct calgary_bus_info *info = &bus_info[bus];
-@@ -1412,10 +1479,16 @@ void __init detect_calgary(void)
- 
- 		if (calgary_bus_has_devices(bus, pci_device) ||
- 		    translate_empty_slots) {
--			tbl = alloc_tce_table();
--			if (!tbl)
--				goto cleanup;
--			info->tce_space = tbl;
-+			/*
-+			 * If it is kdump kernel, find and use tce tables
-+			 * from first kernel, else allocate tce tables here
-+			 */
-+			if (!is_kdump_kernel()) {
-+				tbl = alloc_tce_table();
-+				if (!tbl)
-+					goto cleanup;
-+				info->tce_space = tbl;
-+			}
- 			calgary_found = 1;
- 		}
- 	}
-diff -puN include/linux/crash_dump.h~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump include/linux/crash_dump.h
---- a/include/linux/crash_dump.h~calgary-iommu-use-the-first-kernels-tce-tables-in-kdump
-+++ a/include/linux/crash_dump.h
-@@ -22,5 +22,13 @@ extern struct proc_dir_entry *proc_vmcor
- 
- #define vmcore_elf_check_arch(x) (elf_check_arch(x) || vmcore_elf_check_arch_cross(x))
- 
-+static inline int is_kdump_kernel(void)
-+{
-+	return (elfcorehdr_addr != ELFCORE_ADDR_MAX) ? 1 : 0;
-+}
-+#else /* !CONFIG_CRASH_DUMP */
-+static inline int is_kdump_kernel(void) { return 0; }
- #endif /* CONFIG_CRASH_DUMP */
-+
-+extern unsigned long saved_max_pfn;
- #endif /* LINUX_CRASHDUMP_H */
+ void topology_schedule_update(void)
 _
 
-Patches currently in -mm which might be from chandru@in.ibm.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
+linux-next.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
+tracehook-add-linux-tracehookh.patch
+tracehook-exec.patch
+tracehook-unexport-ptrace_notify.patch
+tracehook-exit.patch
+tracehook-clone.patch
+tracehook-vfork-done.patch
+tracehook-release_task.patch
+tracehook-tracehook_tracer_task.patch
+tracehook-tracehook_expect_breakpoints.patch
+tracehook-tracehook_signal_handler.patch
+tracehook-tracehook_consider_ignored_signal.patch
+tracehook-tracehook_consider_fatal_signal.patch
+tracehook-syscall.patch
+tracehook-get_signal_to_deliver.patch
+tracehook-job-control.patch
+tracehook-death.patch
+tracehook-force-signal_pending.patch
+tracehook-tif_notify_resume.patch
+tracehook-asm-syscallh.patch
+tracehook-config_have_arch_tracehook.patch
+tracehook-wait_task_inactive.patch
+task_current_syscall.patch
+proc-pid-syscall.patch
 
