@@ -1,140 +1,256 @@
 From: akpm@linux-foundation.org
-Subject: - remove-apparently-unused-fd1772h-header-file.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:54:17 -0700
-Message-ID: <200807252254.m6PMsHOI002800@imap1.linux-foundation.org>
+Subject: - locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:54:03 -0700
+Message-ID: <200807252254.m6PMs3hi002779@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40341 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39937 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752308AbYGYWyc (ORCPT
+	by vger.kernel.org with ESMTP id S1751098AbYGYWym (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:54:32 -0400
+	Fri, 25 Jul 2008 18:54:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@crashcourse.ca, akpm@linux-foundation.org, bunk@stusta.de, spyro@f2s.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: rostedt@goodmis.org, mingo@elte.hu, srostedt@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove apparently unused fd1772.h header file.
+     locking: add typecheck on irqsave and friends for correct flags
 has been removed from the -mm tree.  Its filename was
-     remove-apparently-unused-fd1772h-header-file.patch
+     locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Remove apparently unused fd1772.h header file.
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: locking: add typecheck on irqsave and friends for correct flags
+From: Steven Rostedt <rostedt@goodmis.org>
 
-This header file has been unused for quite some time, and the
-corresponding source files appear to have been removed back in commit
-99eb8a550d.
+There haave been several areas in the kernel where an int has been used for
+flags in local_irq_save() and friends instead of a long.  This can cause some
+hard to debug problems on some architectures.
 
-commit 99eb8a550dbccc0e1f6c7e866fe421810e0585f6
-Author: Adrian Bunk <bunk@stusta.de>
-Date:   Tue Jul 31 00:38:19 2007 -0700
+This patch adds a typecheck inside the irqsave and restore functions to flag
+these cases.
 
-    Remove the arm26 port
-
-    The arm26 port has been in a state where it was far from even compiling
-    for quite some time.
-
-    Ian Molton agreed with the removal.
-
-    Signed-off-by: Adrian Bunk <bunk@stusta.de>
-    Cc: Ian Molton <spyro@f2s.com>
-    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
-
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Cc: Adrian Bunk <bunk@stusta.de>
-Cc: Ian Molton <spyro@f2s.com>
+[akpm@linux-foundation.org: coding-style fixes]
+[akpm@linux-foundation.org: build fix]
+Signed-off-by: Steven Rostedt <srostedt@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fd1772.h |   80 ---------------------------------------
- 1 file changed, 80 deletions(-)
+ include/linux/irqflags.h |   54 ++++++++++++++++++++-------
+ include/linux/spinlock.h |   72 ++++++++++++++++++++++++++++---------
+ 2 files changed, 95 insertions(+), 31 deletions(-)
 
-diff -puN include/linux/fd1772.h~remove-apparently-unused-fd1772h-header-file /dev/null
---- a/include/linux/fd1772.h
-+++ /dev/null
-@@ -1,80 +0,0 @@
--#ifndef _LINUX_FD1772REG_H
--#define _LINUX_FD1772REG_H
--
--/*
--** WD1772 stuff - originally from the M68K Linux
-- * Modified for Archimedes by Dave Gilbert (gilbertd@cs.man.ac.uk)
-- */
--
--/* register codes */
--
--#define FDC1772SELREG_STP   (0x80)   /* command/status register */
--#define FDC1772SELREG_TRA   (0x82)   /* track register */
--#define FDC1772SELREG_SEC   (0x84)   /* sector register */
--#define FDC1772SELREG_DTA   (0x86)   /* data register */
--
--/* register names for FDC1772_READ/WRITE macros */
--
--#define FDC1772REG_CMD         0
--#define FDC1772REG_STATUS      0
--#define FDC1772REG_TRACK       2
--#define FDC1772REG_SECTOR      4
--#define FDC1772REG_DATA                6
--
--/* command opcodes */
--
--#define FDC1772CMD_RESTORE  (0x00)   /*  -                   */
--#define FDC1772CMD_SEEK     (0x10)   /*   |                  */
--#define FDC1772CMD_STEP     (0x20)   /*   |  TYP 1 Commands  */
--#define FDC1772CMD_STIN     (0x40)   /*   |                  */
--#define FDC1772CMD_STOT     (0x60)   /*  -                   */
--#define FDC1772CMD_RDSEC    (0x80)   /*  -   TYP 2 Commands  */
--#define FDC1772CMD_WRSEC    (0xa0)   /*  -          "        */
--#define FDC1772CMD_RDADR    (0xc0)   /*  -                   */
--#define FDC1772CMD_RDTRA    (0xe0)   /*   |  TYP 3 Commands  */
--#define FDC1772CMD_WRTRA    (0xf0)   /*  -                   */
--#define FDC1772CMD_FORCI    (0xd0)   /*  -   TYP 4 Command   */
--
--/* command modifier bits */
--
--#define FDC1772CMDADD_SR6   (0x00)   /* step rate settings */
--#define FDC1772CMDADD_SR12  (0x01)
--#define FDC1772CMDADD_SR2   (0x02)
--#define FDC1772CMDADD_SR3   (0x03)
--#define FDC1772CMDADD_V     (0x04)   /* verify */
--#define FDC1772CMDADD_H     (0x08)   /* wait for spin-up */
--#define FDC1772CMDADD_U     (0x10)   /* update track register */
--#define FDC1772CMDADD_M     (0x10)   /* multiple sector access */
--#define FDC1772CMDADD_E     (0x04)   /* head settling flag */
--#define FDC1772CMDADD_P     (0x02)   /* precompensation */
--#define FDC1772CMDADD_A0    (0x01)   /* DAM flag */
--
--/* status register bits */
--
--#define        FDC1772STAT_MOTORON     (0x80)   /* motor on */
--#define        FDC1772STAT_WPROT       (0x40)   /* write protected (FDC1772CMD_WR*) */
--#define        FDC1772STAT_SPINUP      (0x20)   /* motor speed stable (Type I) */
--#define        FDC1772STAT_DELDAM      (0x20)   /* sector has deleted DAM (Type II+III) */
--#define        FDC1772STAT_RECNF       (0x10)   /* record not found */
--#define        FDC1772STAT_CRC         (0x08)   /* CRC error */
--#define        FDC1772STAT_TR00        (0x04)   /* Track 00 flag (Type I) */
--#define        FDC1772STAT_LOST        (0x04)   /* Lost Data (Type II+III) */
--#define        FDC1772STAT_IDX         (0x02)   /* Index status (Type I) */
--#define        FDC1772STAT_DRQ         (0x02)   /* DRQ status (Type II+III) */
--#define        FDC1772STAT_BUSY        (0x01)   /* FDC1772 is busy */
--
--
--/* PSG Port A Bit Nr 0 .. Side Sel .. 0 -> Side 1  1 -> Side 2 */
--#define DSKSIDE     (0x01)
--        
--#define DSKDRVNONE  (0x06)
--#define DSKDRV0     (0x02)
--#define DSKDRV1     (0x04)
--
--/* step rates */
--#define        FDC1772STEP_6   0x00
--#define        FDC1772STEP_12  0x01
--#define        FDC1772STEP_2   0x02
--#define        FDC1772STEP_3   0x03
+diff -puN include/linux/irqflags.h~locking-add-typecheck-on-irqsave-and-friends-for-correct-flags include/linux/irqflags.h
+--- a/include/linux/irqflags.h~locking-add-typecheck-on-irqsave-and-friends-for-correct-flags
++++ a/include/linux/irqflags.h
+@@ -11,6 +11,8 @@
+ #ifndef _LINUX_TRACE_IRQFLAGS_H
+ #define _LINUX_TRACE_IRQFLAGS_H
+ 
++#include <linux/typecheck.h>
++
+ #ifdef CONFIG_TRACE_IRQFLAGS
+   extern void trace_softirqs_on(unsigned long ip);
+   extern void trace_softirqs_off(unsigned long ip);
+@@ -58,18 +60,24 @@
+ 	do { trace_hardirqs_on(); raw_local_irq_enable(); } while (0)
+ #define local_irq_disable() \
+ 	do { raw_local_irq_disable(); trace_hardirqs_off(); } while (0)
+-#define local_irq_save(flags) \
+-	do { raw_local_irq_save(flags); trace_hardirqs_off(); } while (0)
++#define local_irq_save(flags)				\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		raw_local_irq_save(flags);		\
++		trace_hardirqs_off();			\
++	} while (0)
+ 
+-#define local_irq_restore(flags)				\
+-	do {							\
+-		if (raw_irqs_disabled_flags(flags)) {		\
+-			raw_local_irq_restore(flags);		\
+-			trace_hardirqs_off();			\
+-		} else {					\
+-			trace_hardirqs_on();			\
+-			raw_local_irq_restore(flags);		\
+-		}						\
++
++#define local_irq_restore(flags)			\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		if (raw_irqs_disabled_flags(flags)) {	\
++			raw_local_irq_restore(flags);	\
++			trace_hardirqs_off();		\
++		} else {				\
++			trace_hardirqs_on();		\
++			raw_local_irq_restore(flags);	\
++		}					\
+ 	} while (0)
+ #else /* !CONFIG_TRACE_IRQFLAGS_SUPPORT */
+ /*
+@@ -78,8 +86,16 @@
+  */
+ # define raw_local_irq_disable()	local_irq_disable()
+ # define raw_local_irq_enable()		local_irq_enable()
+-# define raw_local_irq_save(flags)	local_irq_save(flags)
+-# define raw_local_irq_restore(flags)	local_irq_restore(flags)
++# define raw_local_irq_save(flags)			\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		local_irq_save(flags);			\
++	} while (0)
++# define raw_local_irq_restore(flags)			\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		local_irq_restore(flags);		\
++	} while (0)
+ #endif /* CONFIG_TRACE_IRQFLAGS_SUPPORT */
+ 
+ #ifdef CONFIG_TRACE_IRQFLAGS_SUPPORT
+@@ -89,7 +105,11 @@
+ 		raw_safe_halt();				\
+ 	} while (0)
+ 
+-#define local_save_flags(flags)		raw_local_save_flags(flags)
++#define local_save_flags(flags)				\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		raw_local_save_flags(flags);		\
++	} while (0)
+ 
+ #define irqs_disabled()						\
+ ({								\
+@@ -99,7 +119,11 @@
+ 	raw_irqs_disabled_flags(_flags);			\
+ })
+ 
+-#define irqs_disabled_flags(flags)	raw_irqs_disabled_flags(flags)
++#define irqs_disabled_flags(flags)		\
++({						\
++	typecheck(unsigned long, flags);	\
++	raw_irqs_disabled_flags(flags);		\
++})
+ #endif		/* CONFIG_X86 */
+ 
+ #endif
+diff -puN include/linux/spinlock.h~locking-add-typecheck-on-irqsave-and-friends-for-correct-flags include/linux/spinlock.h
+--- a/include/linux/spinlock.h~locking-add-typecheck-on-irqsave-and-friends-for-correct-flags
++++ a/include/linux/spinlock.h
+@@ -46,6 +46,7 @@
+  *  linux/spinlock.h:     builds the final spin_*() APIs.
+  */
+ 
++#include <linux/typecheck.h>
+ #include <linux/preempt.h>
+ #include <linux/linkage.h>
+ #include <linux/compiler.h>
+@@ -191,23 +192,53 @@ do {								\
+ 
+ #if defined(CONFIG_SMP) || defined(CONFIG_DEBUG_SPINLOCK)
+ 
+-#define spin_lock_irqsave(lock, flags)	flags = _spin_lock_irqsave(lock)
+-#define read_lock_irqsave(lock, flags)	flags = _read_lock_irqsave(lock)
+-#define write_lock_irqsave(lock, flags)	flags = _write_lock_irqsave(lock)
++#define spin_lock_irqsave(lock, flags)			\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		flags = _spin_lock_irqsave(lock);	\
++	} while (0)
++#define read_lock_irqsave(lock, flags)			\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		flags = _read_lock_irqsave(lock);	\
++	} while (0)
++#define write_lock_irqsave(lock, flags)			\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		flags = _write_lock_irqsave(lock);	\
++	} while (0)
+ 
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+-#define spin_lock_irqsave_nested(lock, flags, subclass) \
+-	flags = _spin_lock_irqsave_nested(lock, subclass)
++#define spin_lock_irqsave_nested(lock, flags, subclass)			\
++	do {								\
++		typecheck(unsigned long, flags);			\
++		flags = _spin_lock_irqsave_nested(lock, subclass);	\
++	} while (0)
+ #else
+-#define spin_lock_irqsave_nested(lock, flags, subclass) \
+-	flags = _spin_lock_irqsave(lock)
++#define spin_lock_irqsave_nested(lock, flags, subclass)			\
++	do {								\
++		typecheck(unsigned long, flags);			\
++		flags = _spin_lock_irqsave(lock);			\
++	} while (0)
+ #endif
+ 
+ #else
+ 
+-#define spin_lock_irqsave(lock, flags)	_spin_lock_irqsave(lock, flags)
+-#define read_lock_irqsave(lock, flags)	_read_lock_irqsave(lock, flags)
+-#define write_lock_irqsave(lock, flags)	_write_lock_irqsave(lock, flags)
++#define spin_lock_irqsave(lock, flags)			\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		_spin_lock_irqsave(lock, flags);	\
++	} while (0)
++#define read_lock_irqsave(lock, flags)			\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		_read_lock_irqsave(lock, flags);	\
++	} while (0)
++#define write_lock_irqsave(lock, flags)			\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		_write_lock_irqsave(lock, flags);	\
++	} while (0)
+ #define spin_lock_irqsave_nested(lock, flags, subclass)	\
+ 	spin_lock_irqsave(lock, flags)
+ 
+@@ -260,16 +291,25 @@ do {						\
+ } while (0)
+ #endif
+ 
+-#define spin_unlock_irqrestore(lock, flags) \
+-					_spin_unlock_irqrestore(lock, flags)
++#define spin_unlock_irqrestore(lock, flags)		\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		_spin_unlock_irqrestore(lock, flags);	\
++	} while (0)
+ #define spin_unlock_bh(lock)		_spin_unlock_bh(lock)
+ 
+-#define read_unlock_irqrestore(lock, flags) \
+-					_read_unlock_irqrestore(lock, flags)
++#define read_unlock_irqrestore(lock, flags)		\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		_read_unlock_irqrestore(lock, flags);	\
++	} while (0)
+ #define read_unlock_bh(lock)		_read_unlock_bh(lock)
+ 
+-#define write_unlock_irqrestore(lock, flags) \
+-					_write_unlock_irqrestore(lock, flags)
++#define write_unlock_irqrestore(lock, flags)		\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		_write_unlock_irqrestore(lock, flags);	\
++	} while (0)
+ #define write_unlock_bh(lock)		_write_unlock_bh(lock)
+ 
+ #define spin_trylock_bh(lock)	__cond_lock(lock, _spin_trylock_bh(lock))
+_
+
+Patches currently in -mm which might be from rostedt@goodmis.org are
+
+origin.patch
+linux-next.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
+
