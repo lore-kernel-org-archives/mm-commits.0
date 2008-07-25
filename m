@@ -1,91 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:55:40 -0700
-Message-ID: <200807252355.m6PNtevx006096@imap1.linux-foundation.org>
+Subject: - mm-speculative-page-references-fix.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 16:55:30 -0700
+Message-ID: <200807252355.m6PNtUSC006087@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34388 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45843 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755701AbYGYX4G (ORCPT
+	by vger.kernel.org with ESMTP id S1752779AbYGYX4v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 19:56:06 -0400
+	Fri, 25 Jul 2008 19:56:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, nickpiggin@yahoo.com.au, nishimura@mxp.nes.nec.co.jp, riel@redhat.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, a.p.zijlstra@chello.nl, benh@kernel.crashing.org, hugh@veritas.com, jeff@garzik.org, paulmck@us.ibm.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix migration_entry_wait() for speculative page cache
+     mm-speculative-page-references fix
 has been removed from the -mm tree.  Its filename was
-     mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
+     mm-speculative-page-references-fix.patch
 
 This patch was dropped because it was folded into mm-speculative-page-references.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix migration_entry_wait() for speculative page cache
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: mm-speculative-page-references fix
+From: Nick Piggin <npiggin@suse.de>
 
-In speculative page cache lookup protocol, page_count(page) is set to 0
-while radix-tree modification is going on, truncation, migration, etc...
+As per the comment here, we can only use that shortcut if rcu_read_lock
+disabled preemption.  It would be somewhat annoying to have to put
+preempt_disable/preempt_enable around all callers in order to support
+this, but preempt RCU isn't going to be hugely performance critical
+anyway (and actually it actively trades performance for fewer preempt
+off sections), so it can use the slightly slower path quite happily.
 
-While page migration, a page fault to page under migration should wait
-unlock_page() and migration_entry_wait() waits for the page from its pte
-entry.  It does get_page() -> wait_on_page_locked() -> put_page() now.
-
-In page migration, page_freeze_refs() -> page_unfreeze_refs() is called.
-
-Here, page_unfreeze_refs() expects page_count(page) == 0 and panics if
-page_count(page) != 0.  To avoid this, we shouldn't touch page_count() if
-it is zero.  This patch uses page_cache_get_speculative() to avoid the
-panic.
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Reviewed-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ include/linux/pagemap.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache mm/migrate.c
---- a/mm/migrate.c~mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache
-+++ a/mm/migrate.c
-@@ -285,7 +285,15 @@ void migration_entry_wait(struct mm_stru
+diff -puN include/linux/pagemap.h~mm-speculative-page-references-fix include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-speculative-page-references-fix
++++ a/include/linux/pagemap.h
+@@ -112,7 +112,7 @@ static inline int page_cache_get_specula
+ {
+ 	VM_BUG_ON(in_interrupt());
  
- 	page = migration_entry_to_page(entry);
- 
--	get_page(page);
-+	/*
-+	 * Once radix-tree replacement of page migration started, page_count
-+	 * *must* be zero. And, we don't want to call wait_on_page_locked()
-+	 * against a page without get_page().
-+	 * So, we use get_page_unless_zero(), here. Even failed, page fault
-+	 * will occur again.
-+	 */
-+	if (!get_page_unless_zero(page))
-+		goto out;
- 	pte_unmap_unlock(ptep, ptl);
- 	wait_on_page_locked(page);
- 	put_page(page);
+-#ifndef CONFIG_SMP
++#if !defined(CONFIG_SMP) && defined(CONFIG_CLASSIC_RCU)
+ # ifdef CONFIG_PREEMPT
+ 	VM_BUG_ON(!in_atomic());
+ # endif
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
+x86-implement-pte_special.patch
+x86-implement-pte_special-fix.patch
+mm-introduce-get_user_pages_fast.patch
+x86-lockless-get_user_pages_fast.patch
+dio-use-get_user_pages_fast.patch
+splice-use-get_user_pages_fast.patch
+x86-support-1gb-hugepages-with-get_user_pages_lockless.patch
+mm-readahead-scan-lockless.patch
+radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
 mm-speculative-page-references.patch
-mm-speculative-page-references-fix-migration_entry_wait-for-speculative-page-cache.patch
-define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
-vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
-vmscan-second-chance-replacement-for-anonymous-pages-fix.patch
-vmscan-second-chance-replacement-for-anonymous-pages-memcg-lru-scan-fix.patch
-unevictable-lru-infrastructure-putback_lru_page-unevictable-page-handling-rework.patch
-mlock-mlocked-pages-are-unevictable-fix-truncate-race-and-sevaral-comments.patch
+mm-speculative-page-references-fix.patch
+mm-speculative-page-references-fix-add_to_page_cache.patch
+mm-speculative-page-references-fix-add_to_page_cache-fix.patch
+mm-lockless-pagecache.patch
+mm-spinlock-tree_lock.patch
+powerpc-implement-pte_special.patch
+powerpc-implement-pte_special-update.patch
+powerpc-lockless-get_user_pages.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
 fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
-restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+reiser4.patch
+likeliness-accounting-change-and-cleanup.patch
 
