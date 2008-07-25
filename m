@@ -1,89 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - kallsyms-unify-32-and-64-bit-code.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:55:31 -0700
-Message-ID: <200807252255.m6PMtVFR002983@imap1.linux-foundation.org>
+Subject: - reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:57:10 -0700
+Message-ID: <200807252257.m6PMvA1i003159@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58946 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33659 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755603AbYGYW5h (ORCPT
+	by vger.kernel.org with ESMTP id S1755955AbYGYW5m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:57:37 -0400
+	Fri, 25 Jul 2008 18:57:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vegard.nossum@gmail.com, arjan@infradead.org, heiko.carstens@de.ibm.com, randy.dunlap@oracle.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: jack@suse.cz, reiserfs-devel@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kallsyms: unify 32- and 64-bit code
+     reiserfs: fix typos in messages and comments (journalled -> journaled)
 has been removed from the -mm tree.  Its filename was
-     kallsyms-unify-32-and-64-bit-code.patch
+     reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kallsyms: unify 32- and 64-bit code
-From: Vegard Nossum <vegard.nossum@gmail.com>
+Subject: reiserfs: fix typos in messages and comments (journalled -> journaled)
+From: Jan Kara <jack@suse.cz>
 
-Use the %p format string which already accounts for the padding you need
-with a pointer type on a particular architecture.
-
-Also replace the macro with a static inline function to match the rest of
-the file.
-
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: <reiserfs-devel@vger.kernel.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kallsyms.h |   19 ++++++-------------
- 1 file changed, 6 insertions(+), 13 deletions(-)
+ fs/reiserfs/super.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/kallsyms.h~kallsyms-unify-32-and-64-bit-code include/linux/kallsyms.h
---- a/include/linux/kallsyms.h~kallsyms-unify-32-and-64-bit-code
-+++ a/include/linux/kallsyms.h
-@@ -6,6 +6,7 @@
- #define _LINUX_KALLSYMS_H
+diff -puN fs/reiserfs/super.c~reiserfs-fix-typos-in-messages-and-comments-journalled-journaled fs/reiserfs/super.c
+--- a/fs/reiserfs/super.c~reiserfs-fix-typos-in-messages-and-comments-journalled-journaled
++++ a/fs/reiserfs/super.c
+@@ -182,7 +182,7 @@ static int finish_unfinished(struct supe
+ 			int ret = reiserfs_quota_on_mount(s, i);
+ 			if (ret < 0)
+ 				reiserfs_warning(s,
+-						 "reiserfs: cannot turn on journalled quota: error %d",
++						 "reiserfs: cannot turn on journaled quota: error %d",
+ 						 ret);
+ 		}
+ 	}
+@@ -994,7 +994,7 @@ static int reiserfs_parse_options(struct
  
- #include <linux/errno.h>
-+#include <linux/kernel.h>
- #include <linux/stddef.h>
+ 			if (sb_any_quota_enabled(s)) {
+ 				reiserfs_warning(s,
+-						 "reiserfs_parse_options: cannot change journalled quota options when quota turned on.");
++						 "reiserfs_parse_options: cannot change journaled quota options when quota turned on.");
+ 				return 0;
+ 			}
+ 			if (*arg) {	/* Some filename specified? */
+@@ -1039,7 +1039,7 @@ static int reiserfs_parse_options(struct
+ #else
+ 		if (c == 'u' || c == 'g' || c == 'f') {
+ 			reiserfs_warning(s,
+-					 "reiserfs_parse_options: journalled quota options not supported.");
++					 "reiserfs_parse_options: journaled quota options not supported.");
+ 			return 0;
+ 		}
+ #endif
+@@ -1050,7 +1050,7 @@ static int reiserfs_parse_options(struct
+ 	    && (REISERFS_SB(s)->s_qf_names[USRQUOTA]
+ 		|| REISERFS_SB(s)->s_qf_names[GRPQUOTA])) {
+ 		reiserfs_warning(s,
+-				 "reiserfs_parse_options: journalled quota format not specified.");
++				 "reiserfs_parse_options: journaled quota format not specified.");
+ 		return 0;
+ 	}
+ 	/* This checking is not precise wrt the quota type but for our purposes it is sufficient */
+@@ -1980,7 +1980,7 @@ static int reiserfs_release_dquot(struct
  
- #define KSYM_NAME_LEN 128
-@@ -105,18 +106,10 @@ static inline void print_fn_descriptor_s
- 	print_symbol(fmt, (unsigned long)addr);
- }
- 
--#ifndef CONFIG_64BIT
--#define print_ip_sym(ip)		\
--do {					\
--	printk("[<%08lx>]", ip);	\
--	print_symbol(" %s\n", ip);	\
--} while(0)
--#else
--#define print_ip_sym(ip)		\
--do {					\
--	printk("[<%016lx>]", ip);	\
--	print_symbol(" %s\n", ip);	\
--} while(0)
--#endif
-+static inline void print_ip_sym(unsigned long ip)
-+{
-+	printk("[<%p>]", (void *) ip);
-+	print_symbol(" %s\n", ip);
-+}
- 
- #endif /*_LINUX_KALLSYMS_H*/
+ static int reiserfs_mark_dquot_dirty(struct dquot *dquot)
+ {
+-	/* Are we journalling quotas? */
++	/* Are we journaling quotas? */
+ 	if (REISERFS_SB(dquot->dq_sb)->s_qf_names[USRQUOTA] ||
+ 	    REISERFS_SB(dquot->dq_sb)->s_qf_names[GRPQUOTA]) {
+ 		dquot_mark_dquot_dirty(dquot);
 _
 
-Patches currently in -mm which might be from vegard.nossum@gmail.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-linux-next.patch
-parisc-fix-incomplete-header-guard.patch
 
