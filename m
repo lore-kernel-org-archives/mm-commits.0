@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + char-ds1286-eliminate-busy-waiting.patch added to -mm tree
-Date: Fri, 25 Jul 2008 14:30:46 -0700
-Message-ID: <200807252130.m6PLUklX032153@imap1.linux-foundation.org>
+Subject: + include-video-atmel_lcdch-must-include-linux-workqueueh.patch added to -mm tree
+Date: Fri, 25 Jul 2008 14:46:44 -0700
+Message-ID: <200807252146.m6PLkijR032763@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56223 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39148 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751357AbYGYVa5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751825AbYGYVrV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 17:30:57 -0400
+	Fri, 25 Jul 2008 17:47:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, ralf@linux-mips.org
+Cc: bunk@kernel.org
 
 
 The patch titled
-     Char: ds1286, eliminate busy waiting
+     include/video/atmel_lcdc.h must #include <linux/workqueue.h>
 has been added to the -mm tree.  Its filename is
-     char-ds1286-eliminate-busy-waiting.patch
+     include-video-atmel_lcdch-must-include-linux-workqueueh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: ds1286, eliminate busy waiting
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: include/video/atmel_lcdc.h must #include <linux/workqueue.h>
+From: Adrian Bunk <bunk@kernel.org>
 
-ds1286_get_time(); is not called from atomic context, sleep for 20 ms is
-better choice than a (home-made) busy waiting for such a situation.
+This patch fixes the following compile error caused by
+commit d22579b837358cbef12ccca5adaf7e93ae09ab7a
+(atmel_lcdfb: FIFO underflow management):
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+In file included from /home/bunk/linux/kernel-2.6/git/linux-2.6/arch/avr32/boards/atstk1000/atstk1004.c:21:
+/home/bunk/linux/kernel-2.6/git/linux-2.6/include/video/atmel_lcdc.h:40: error: field 'task' has incomplete type
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ds1286.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/video/atmel_lcdc.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/ds1286.c~char-ds1286-eliminate-busy-waiting drivers/char/ds1286.c
---- a/drivers/char/ds1286.c~char-ds1286-eliminate-busy-waiting
-+++ a/drivers/char/ds1286.c
-@@ -443,7 +443,6 @@ static void ds1286_get_time(struct rtc_t
- {
- 	unsigned char save_control;
- 	unsigned long flags;
--	unsigned long uip_watchdog = jiffies;
+diff -puN include/video/atmel_lcdc.h~include-video-atmel_lcdch-must-include-linux-workqueueh include/video/atmel_lcdc.h
+--- a/include/video/atmel_lcdc.h~include-video-atmel_lcdch-must-include-linux-workqueueh
++++ a/include/video/atmel_lcdc.h
+@@ -22,6 +22,7 @@
+ #ifndef __ATMEL_LCDC_H__
+ #define __ATMEL_LCDC_H__
  
- 	/*
- 	 * read RTC once any update in progress is done. The update
-@@ -456,8 +455,7 @@ static void ds1286_get_time(struct rtc_t
- 	 */
++#include <linux/workqueue.h>
  
- 	if (ds1286_is_updating() != 0)
--		while (time_before(jiffies, uip_watchdog + 2*HZ/100))
--			barrier();
-+		msleep(20);
- 
- 	/*
- 	 * Only the values that we read from the RTC are set. We leave
+ /* Way LCD wires are connected to the chip:
+  * Some Atmel chips use BGR color mode (instead of standard RGB)
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-ip2-push-bkl-down-for-the-firmware-interface.patch
-rio-push-down-the-bkl-into-the-firmware-ioctl-handler.patch
-sx-push-bkl-down-into-the-firmware-ioctl-handler.patch
-ppdev-wrap-ioctl-handler-in-driver-and-push-lock-down.patch
-dsp56k-bkl-pushdown.patch
-char-mxser-ioctl-cleanup.patch
-char-mxser-globals-cleanup.patch
-char-mxser-update-documentation.patch
-char-mxser-prints-cleanup.patch
-char-mxser-remove-predefined-isa-support.patch
-char-mxser-various-cleanups.patch
-drivers-misc-phantom-note-pci.patch
-ath5k-fix-memory-corruption.patch
-ath5k-kill-tasklets-on-shutdown.patch
-ath5k-flush-work.patch
-ath5k-fix-dma-operation.patch
-ath5k-suspend-resume-fixes.patch
-ath5k-fix-beacon-update-deadlock.patch
-ath5k-mask-out-unneeded-interrupts.patch
-ath5k-unify-resets.patch
-mac80211-tx-use-dev_kfree_skb_any-for-beacon_get.patch
-mac80211-return-correct-error-return-from-ieee80211_wep_init.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-char-merge-ip2main-and-ip2base.patch
-char-ip2-cleanup-globals.patch
-char-ip2-fix-sparse-warnings.patch
-char-ip2-init-deinit-cleanup.patch
-ip2-avoid-add_timer-with-pending-timer.patch
-char-ds1286-eliminate-busy-waiting.patch
+init-do_mountsc-should-include-linux-initrdh.patch
+build-kernel-profileo-only-when-requested.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+asm-generic-int-ll64h-always-provide-__su64.patch
+remove-some-more-tipar-bits.patch
+minix-remove-no_truncate-code.patch
+jbd-unexport-journal_update_superblock.patch
+coda-remove-coda_fs_old_api.patch
+fat-dirc-switch-to-struct-__fat_dirent.patch
+remove-the-in-kernel-struct-dirent64.patch
+remove-unused-include-linux-direnths.patch
+include-asm-ptraceh-userspace-headers-cleanup.patch
+pty-remove-unused-unix98_pty_count-options.patch
+proper-extern-for-mwave_s_mdd.patch
+if-0-hpet_unregister.patch
+unexport-proc_clear_tty.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proper-pidhashmap_init-prototypes.patch
+unexport-uts_sem.patch
+uninline-arch_pick_mmap_layout.patch
+include-video-atmel_lcdch-must-include-linux-workqueueh.patch
+linux-next.patch
+m32r-remove-the-unused-nohighmem-option.patch
+if-0-ses_match_host.patch
+git-xtensa.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+parport-sharec-proper-externs.patch
+tpm_biosc-make-2-structs-static.patch
+drm-make-drm_minors_cleanup-static.patch
+make-cgroup_seqfile_release-static.patch
+make-pnp_add_card_id-static.patch
+make-parport_cs_release-static.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+make-macfb_setup-static.patch
+video-console-sticonrec-make-code-static.patch
+video-console-sticonrec-make-code-static-checkpatch-fixes.patch
+video-stifbc-make-2-functions-static.patch
 reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
 
