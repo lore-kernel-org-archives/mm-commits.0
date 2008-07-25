@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + uninline-arch_pick_mmap_layout.patch added to -mm tree
-Date: Fri, 25 Jul 2008 01:56:31 -0700
-Message-ID: <200807250856.m6P8uVSh002432@imap1.linux-foundation.org>
+Date: Fri, 25 Jul 2008 02:35:02 -0700
+Message-ID: <200807250935.m6P9Z2JI004017@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44948 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55115 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752309AbYGYI5O (ORCPT
+	by vger.kernel.org with ESMTP id S1756180AbYGYJfp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 04:57:14 -0400
+	Fri, 25 Jul 2008 05:35:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -50,8 +50,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/linux/sched.h |    9 ---------
- mm/mmap.c             |    9 +++++++++
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ mm/util.c             |   10 ++++++++++
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
 diff -puN include/linux/sched.h~uninline-arch_pick_mmap_layout include/linux/sched.h
 --- a/include/linux/sched.h~uninline-arch_pick_mmap_layout
@@ -73,13 +73,18 @@ diff -puN include/linux/sched.h~uninline-arch_pick_mmap_layout include/linux/sch
  
  #ifdef CONFIG_TRACING
  extern void
-diff -puN mm/mmap.c~uninline-arch_pick_mmap_layout mm/mmap.c
---- a/mm/mmap.c~uninline-arch_pick_mmap_layout
-+++ a/mm/mmap.c
-@@ -2268,3 +2268,12 @@ int install_special_mapping(struct mm_st
- 
- 	return 0;
+diff -puN mm/util.c~uninline-arch_pick_mmap_layout mm/util.c
+--- a/mm/util.c~uninline-arch_pick_mmap_layout
++++ a/mm/util.c
+@@ -1,3 +1,4 @@
++#include <linux/mm.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
+ #include <linux/module.h>
+@@ -160,3 +161,12 @@ char *strndup_user(const char __user *s,
+ 	return p;
  }
+ EXPORT_SYMBOL(strndup_user);
 +
 +#ifndef HAVE_ARCH_PICK_MMAP_LAYOUT
 +void arch_pick_mmap_layout(struct mm_struct *mm)
@@ -126,6 +131,7 @@ ipc-semc-rewrite-undo-list-locking.patch
 fs-partition-checkc-fix-return-value-warning.patch
 block-ioctlc-and-fs-partition-checkc.patch
 edac-mpc85xx-fix-pci-ofdev-2nd-pass.patch
+uninline-arch_pick_mmap_layout.patch
 arm-fix-fls-for-64-bit-arguments.patch
 linux-next.patch
 linux-next-fixups.patch
@@ -227,5 +233,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-uninline-arch_pick_mmap_layout.patch
 
