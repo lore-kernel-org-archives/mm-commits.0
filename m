@@ -1,97 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler-fix.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 17:21:37 -0700
-Message-ID: <200807250021.m6P0LcAP013847@imap1.linux-foundation.org>
+Subject: - cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 17:22:07 -0700
+Message-ID: <200807250022.m6P0M73h013948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33196 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50071 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751610AbYGYAVs (ORCPT
+	by vger.kernel.org with ESMTP id S1752022AbYGYAWa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 20:21:48 -0400
+	Thu, 24 Jul 2008 20:22:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, balbir@in.ibm.com, danms@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, serge@us.ibm.com, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     res_counter: fix building failure
+     cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix
 has been removed from the -mm tree.  Its filename was
-     cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler-fix.patch
+     cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
 
-This patch was dropped because it was folded into cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler.patch
+This patch was dropped because it was folded into cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: res_counter: fix building failure
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/res_counter.c: In function 'res_counter_memparse_write_strategy':
-kernel/res_counter.c:115: error: implicit declaration of function 'PAGE_ALIGN'
+kernel/ns_cgroup.c: In function 'ns_cgroup_clone':
+kernel/ns_cgroup.c:29: error: 'PROC_NUMBUF' undeclared (first use in this function)
+kernel/ns_cgroup.c:29: error: (Each undeclared identifier is reported only once
+kernel/ns_cgroup.c:29: error: for each function it appears in.)
+kernel/ns_cgroup.c:29: warning: unused variable 'name'
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
+
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Dan Smith <danms@us.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Serge Hallyn <serge@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/res_counter.c |    1 +
+ kernel/ns_cgroup.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN kernel/res_counter.c~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler-fix kernel/res_counter.c
---- a/kernel/res_counter.c~cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler-fix
-+++ a/kernel/res_counter.c
-@@ -13,6 +13,7 @@
+diff -puN kernel/ns_cgroup.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix kernel/ns_cgroup.c
+--- a/kernel/ns_cgroup.c~cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix
++++ a/kernel/ns_cgroup.c
+@@ -7,6 +7,7 @@
+ #include <linux/module.h>
+ #include <linux/cgroup.h>
+ #include <linux/fs.h>
++#include <linux/proc_fs.h>
  #include <linux/slab.h>
- #include <linux/res_counter.h>
- #include <linux/uaccess.h>
-+#include <linux/mm.h>
+ #include <linux/nsproxy.h>
  
- void res_counter_init(struct res_counter *counter)
- {
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-call_usermodehelper-increase-reliability.patch
-mfd-sm501-build-fixes-when-config_mfd_sm501_gpio-unset.patch
-ext3-kill-2-useless-magic-numbers.patch
-cgroup-use-read-lock-to-guard-find_existing_css_set.patch
-cgroup-list_for_each-cleanup-v2.patch
-cgroup-anotate-two-variables-with-__read_mostly.patch
-cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler.patch
-cgroup-files-convert-res_counter_write-to-be-a-cgroups-write_string-handler-fix.patch
-devcgroup-code-cleanup.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
+build-kernel-profileo-only-when-requested-cleanups.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+exec-remove-some-includes.patch
+inflate-refactor-inflate-malloc-code.patch
+drivers-misc-hpiloc-needs-config_pci.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+gpio-sysfs-interface-updated.patch
+gpio-add-bt8xxgpio-driver.patch
+jbd-fix-race-between-free-buffer-and-commit-trasanction.patch
+ext3-handle-corrupted-orphan-list-at-mount.patch
+ext3-handle-deleting-corrupted-indirect-blocks.patch
+jbd-dont-abort-if-flushing-file-data-failed.patch
+reiserfs-convert-j_flush_sem-to-mutex.patch
+reiserfs-convert-j_commit_lock-to-mutex.patch
+quota-move-function-macros-from-quotah-to-quotaopsh.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-fix.patch
+cgroup_clone-use-pid-of-newly-created-task-for-new-cgroup-checkpatch-fixes.patch
 devcgroup-code-cleanup-fix.patch
-devcgroup-code-cleanup-fix-fix.patch
-memcg-avoid-unnecessary-initialization.patch
-memcg-better-migration-handling.patch
-memcg-remove-refcnt-from-page_cgroup.patch
-memcg-remove-refcnt-from-page_cgroup-fix.patch
 memcg-remove-refcnt-from-page_cgroup-fix-2.patch
-memcg-remove-refcnt-from-page_cgroup-fix-memcg-fix-mem_cgroup_end_migration-race.patch
-memcg-remove-refcnt-from-page_cgroup-memcg-fix-shmem_unuse_inode-charging.patch
-memcg-helper-function-for-relcaim-from-shmem.patch
-memcg-helper-function-for-relcaim-from-shmem-memcg-shmem_getpage-release-page-sooner.patch
-memcg-helper-function-for-relcaim-from-shmem-memcg-mem_cgroup_shrink_usage-css_put.patch
-memcg-add-hints-for-branch.patch
-memcg-remove-a-redundant-check.patch
-memcg-clean-up-checking-of-the-disabled-flag.patch
-memcg-clean-up-checking-of-the-disabled-flag-memcg-further-checking-of-disabled-flag.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-setup-the-memrlimit-controller-memrlimit-correct-mremap-and-move_vma-accounting.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-mmap_sem-deadlock.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info-memrlimit-fix-sleep-inside-sleeplock-in-mm_update_next_owner.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memrlimit-improve-fork-and-error-handling.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback-update.patch
-cpusets-restructure-the-function-update_cpumask-and-update_nodemask-fix.patch
-cpusets-update-tasks-cpus_allowed-and-mems_allowed-after-cpu-node-offline-online.patch
-cpuset-avoid-unnecessary-sched-domains-rebuilding.patch
+memcg-limit-change-shrink-usage-checkpatch-fixes.patch
+coredump-format_corename-fix-the-core_uses_pid-logic-checkpatch-fixes.patch
+workqueues-make-get_online_cpus-useable-for-work-func-fix.patch
+ipc-semc-convert-undo-structures-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-convert-sem_arraysem_pending-to-struct-list_head-checkpatch-fixes.patch
+ipc-semc-rewrite-undo-list-locking-checkpatch-fixes.patch
+fs-partition-checkc-fix-return-value-warning-v2-cleanup.patch
+block-ioctlc-and-fs-partition-checkc-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+edac-mpc85xx-fix-pci-ofdev-2nd-pass-checkpatch-fixes.patch
 
