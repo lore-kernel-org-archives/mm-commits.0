@@ -1,1074 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: - gpio-sysfs-interface-updated.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 15:55:56 -0700
-Message-ID: <200807252255.m6PMtu4K003023@imap1.linux-foundation.org>
+Subject: - sm501-gpio-i2c-support.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 15:55:42 -0700
+Message-ID: <200807252255.m6PMtgdX002998@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56319 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33205 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753336AbYGYW4v (ORCPT
+	by vger.kernel.org with ESMTP id S1753384AbYGYW44 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 18:56:51 -0400
+	Fri, 25 Jul 2008 18:56:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbrownell@users.sourceforge.net, g.liakhovetski@pengutronix.de, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
+To: ben-linux@fluff.org, apatard@mandriva.com, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio: sysfs interface
+     sm501: gpio I2C support
 has been removed from the -mm tree.  Its filename was
-     gpio-sysfs-interface-updated.patch
+     sm501-gpio-i2c-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: sysfs interface
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: sm501: gpio I2C support
+From: Ben Dooks <ben-linux@fluff.org>
 
-This adds a simple sysfs interface for GPIOs.
+Add support for adding the GPIO based I2C resources.
 
-    /sys/class/gpio
-    	/export ... asks the kernel to export a GPIO to userspace
-    	/unexport ... to return a GPIO to the kernel
-        /gpioN ... for each exported GPIO #N
-	    /value ... always readable, writes fail for input GPIOs
-	    /direction ... r/w as: in, out (default low); write high, low
-	/gpiochipN ... for each gpiochip; #N is its first GPIO
-	    /base ... (r/o) same as N
-	    /label ... (r/o) descriptive, not necessarily unique
-	    /ngpio ... (r/o) number of GPIOs; numbered N .. N+(ngpio - 1)
-
-GPIOs claimed by kernel code may be exported by its owner using a new
-gpio_export() call, which should be most useful for driver debugging.
-Such exports may optionally be done without a "direction" attribute.
-
-Userspace may ask to take over a GPIO by writing to a sysfs control file,
-helping to cope with incomplete board support or other "one-off"
-requirements that don't merit full kernel support:
-
-  echo 23 > /sys/class/gpio/export
-	... will gpio_request(23, "sysfs") and gpio_export(23);
-	use /sys/class/gpio/gpio-23/direction to (re)configure it,
-	when that GPIO can be used as both input and output.
-  echo 23 > /sys/class/gpio/unexport
-	... will gpio_free(23), when it was exported as above
-
-The extra D-space footprint is a few hundred bytes, except for the sysfs
-resources associated with each exported GPIO.  The additional I-space
-footprint is about two thirds of the current size of gpiolib (!).  Since
-no /dev node creation is involved, no "udev" support is needed.
-
-Related changes:
-
-  * This adds a device pointer to "struct gpio_chip".  When GPIO
-    providers initialize that, sysfs gpio class devices become children of
-    that device instead of being "virtual" devices.
-
-  * The (few) gpio_chip providers which have such a device node have
-    been updated.
-
-  * Some gpio_chip drivers also needed to update their module "owner"
-    field ...  for which missing kerneldoc was added.
-
-  * Some gpio_chips don't support input GPIOs.  Those GPIOs are now
-    flagged appropriately when the chip is registered.
-
-Based on previous patches, and discussion both on and off LKML.
-
-A Documentation/ABI/testing/sysfs-gpio update is ready to submit once this
-merges to mainline.
-
-[akpm@linux-foundation.org: a few maintenance build fixes]
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Cc: Arnaud Patard <apatard@mandriva.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/gpio.txt       |  123 +++++++
- arch/arm/plat-omap/gpio.c    |    3 
- arch/avr32/mach-at32ap/pio.c |    2 
- drivers/gpio/Kconfig         |   15 
- drivers/gpio/gpiolib.c       |  536 ++++++++++++++++++++++++++++++++-
- drivers/gpio/mcp23s08.c      |    1 
- drivers/gpio/pca953x.c       |    1 
- drivers/gpio/pcf857x.c       |    1 
- drivers/i2c/chips/tps65010.c |    2 
- drivers/mfd/htc-egpio.c      |    2 
- include/asm-generic/gpio.h   |   33 +-
- include/linux/gpio.h         |   13 
- 12 files changed, 712 insertions(+), 20 deletions(-)
+ drivers/mfd/sm501.c   |   76 +++++++++++++++++++++++++++++++++++++++-
+ include/linux/sm501.h |   10 ++++-
+ 2 files changed, 84 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/gpio.txt~gpio-sysfs-interface-updated Documentation/gpio.txt
---- a/Documentation/gpio.txt~gpio-sysfs-interface-updated
-+++ a/Documentation/gpio.txt
-@@ -347,15 +347,12 @@ necessarily be nonportable.
- Dynamic definition of GPIOs is not currently standard; for example, as
- a side effect of configuring an add-on board with some GPIO expanders.
+diff -puN drivers/mfd/sm501.c~sm501-gpio-i2c-support drivers/mfd/sm501.c
+--- a/drivers/mfd/sm501.c~sm501-gpio-i2c-support
++++ a/drivers/mfd/sm501.c
+@@ -20,6 +20,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/pci.h>
+ #include <linux/gpio.h>
++#include <linux/i2c-gpio.h>
  
--These calls are purely for kernel space, but a userspace API could be built
--on top of them.
--
- 
- GPIO implementor's framework (OPTIONAL)
- =======================================
- As noted earlier, there is an optional implementation framework making it
- easier for platforms to support different kinds of GPIO controller using
--the same programming interface.
-+the same programming interface.  This framework is called "gpiolib".
- 
- As a debugging aid, if debugfs is available a /sys/kernel/debug/gpio file
- will be found there.  That will list all the controllers registered through
-@@ -439,4 +436,120 @@ becomes available.  That may mean the de
- calls for that GPIO can work.  One way to address such dependencies is for
- such gpio_chip controllers to provide setup() and teardown() callbacks to
- board specific code; those board specific callbacks would register devices
--once all the necessary resources are available.
-+once all the necessary resources are available, and remove them later when
-+the GPIO controller device becomes unavailable.
-+
-+
-+Sysfs Interface for Userspace (OPTIONAL)
-+========================================
-+Platforms which use the "gpiolib" implementors framework may choose to
-+configure a sysfs user interface to GPIOs.  This is different from the
-+debugfs interface, since it provides control over GPIO direction and
-+value instead of just showing a gpio state summary.  Plus, it could be
-+present on production systems without debugging support.
-+
-+Given approprate hardware documentation for the system, userspace could
-+know for example that GPIO #23 controls the write protect line used to
-+protect boot loader segments in flash memory.  System upgrade procedures
-+may need to temporarily remove that protection, first importing a GPIO,
-+then changing its output state, then updating the code before re-enabling
-+the write protection.  In normal use, GPIO #23 would never be touched,
-+and the kernel would have no need to know about it.
-+
-+Again depending on appropriate hardware documentation, on some systems
-+userspace GPIO can be used to determine system configuration data that
-+standard kernels won't know about.  And for some tasks, simple userspace
-+GPIO drivers could be all that the system really needs.
-+
-+Note that standard kernel drivers exist for common "LEDs and Buttons"
-+GPIO tasks:  "leds-gpio" and "gpio_keys", respectively.  Use those
-+instead of talking directly to the GPIOs; they integrate with kernel
-+frameworks better than your userspace code could.
-+
-+
-+Paths in Sysfs
-+--------------
-+There are three kinds of entry in /sys/class/gpio:
-+
-+   -	Control interfaces used to get userspace control over GPIOs;
-+
-+   -	GPIOs themselves; and
-+
-+   -	GPIO controllers ("gpio_chip" instances).
-+
-+That's in addition to standard files including the "device" symlink.
-+
-+The control interfaces are write-only:
-+
-+    /sys/class/gpio/
-+
-+    	"export" ... Userspace may ask the kernel to export control of
-+		a GPIO to userspace by writing its number to this file.
-+
-+		Example:  "echo 19 > export" will create a "gpio19" node
-+		for GPIO #19, if that's not requested by kernel code.
-+
-+    	"unexport" ... Reverses the effect of exporting to userspace.
-+
-+		Example:  "echo 19 > unexport" will remove a "gpio19"
-+		node exported using the "export" file.
-+
-+GPIO signals have paths like /sys/class/gpio/gpio42/ (for GPIO #42)
-+and have the following read/write attributes:
-+
-+    /sys/class/gpio/gpioN/
-+
-+	"direction" ... reads as either "in" or "out".  This value may
-+		normally be written.  Writing as "out" defaults to
-+		initializing the value as low.  To ensure glitch free
-+		operation, values "low" and "high" may be written to
-+		configure the GPIO as an output with that initial value.
-+
-+		Note that this attribute *will not exist* if the kernel
-+		doesn't support changing the direction of a GPIO, or
-+		it was exported by kernel code that didn't explicitly
-+		allow userspace to reconfigure this GPIO's direction.
-+
-+	"value" ... reads as either 0 (low) or 1 (high).  If the GPIO
-+		is configured as an output, this value may be written;
-+		any nonzero value is treated as high.
-+
-+GPIO controllers have paths like /sys/class/gpio/chipchip42/ (for the
-+controller implementing GPIOs starting at #42) and have the following
-+read-only attributes:
-+
-+    /sys/class/gpio/gpiochipN/
-+
-+    	"base" ... same as N, the first GPIO managed by this chip
-+
-+    	"label" ... provided for diagnostics (not always unique)
-+
-+    	"ngpio" ... how many GPIOs this manges (N to N + ngpio - 1)
-+
-+Board documentation should in most cases cover what GPIOs are used for
-+what purposes.  However, those numbers are not always stable; GPIOs on
-+a daughtercard might be different depending on the base board being used,
-+or other cards in the stack.  In such cases, you may need to use the
-+gpiochip nodes (possibly in conjunction with schematics) to determine
-+the correct GPIO number to use for a given signal.
-+
-+
-+Exporting from Kernel code
-+--------------------------
-+Kernel code can explicitly manage exports of GPIOs which have already been
-+requested using gpio_request():
-+
-+	/* export the GPIO to userspace */
-+	int gpio_export(unsigned gpio, bool direction_may_change);
-+
-+	/* reverse gpio_export() */
-+	void gpio_unexport();
-+
-+After a kernel driver requests a GPIO, it may only be made available in
-+the sysfs interface by gpio_export().  The driver can control whether the
-+signal direction may change.  This helps drivers prevent userspace code
-+from accidentally clobbering important system state.
-+
-+This explicit exporting can help with debugging (by making some kinds
-+of experiments easier), or can provide an always-there interface that's
-+suitable for documenting as part of a board support package.
-diff -puN arch/arm/plat-omap/gpio.c~gpio-sysfs-interface-updated arch/arm/plat-omap/gpio.c
---- a/arch/arm/plat-omap/gpio.c~gpio-sysfs-interface-updated
-+++ a/arch/arm/plat-omap/gpio.c
-@@ -1488,6 +1488,9 @@ static int __init _omap_gpio_init(void)
- 		bank->chip.set = gpio_set;
- 		if (bank_is_mpuio(bank)) {
- 			bank->chip.label = "mpuio";
-+#ifdef CONFIG_ARCH_OMAP1
-+			bank->chip.dev = &omap_mpuio_device.dev;
-+#endif
- 			bank->chip.base = OMAP_MPUIO(0);
- 		} else {
- 			bank->chip.label = "gpio";
-diff -puN arch/avr32/mach-at32ap/pio.c~gpio-sysfs-interface-updated arch/avr32/mach-at32ap/pio.c
---- a/arch/avr32/mach-at32ap/pio.c~gpio-sysfs-interface-updated
-+++ a/arch/avr32/mach-at32ap/pio.c
-@@ -360,6 +360,8 @@ static int __init pio_probe(struct platf
- 	pio->chip.label = pio->name;
- 	pio->chip.base = pdev->id * 32;
- 	pio->chip.ngpio = 32;
-+	pio->chip.dev = &pdev->dev;
-+	pio->chip.owner = THIS_MODULE;
- 
- 	pio->chip.direction_input = direction_input;
- 	pio->chip.get = gpio_get;
-diff -puN drivers/gpio/Kconfig~gpio-sysfs-interface-updated drivers/gpio/Kconfig
---- a/drivers/gpio/Kconfig~gpio-sysfs-interface-updated
-+++ a/drivers/gpio/Kconfig
-@@ -23,6 +23,21 @@ config DEBUG_GPIO
- 	  slower.  The diagnostics help catch the type of setup errors
- 	  that are most common when setting up new platforms or boards.
- 
-+config GPIO_SYSFS
-+	bool "/sys/class/gpio/... (sysfs interface)"
-+	depends on SYSFS && EXPERIMENTAL
-+	help
-+	  Say Y here to add a sysfs interface for GPIOs.
-+
-+	  This is mostly useful to work around omissions in a system's
-+	  kernel support.  Those are common in custom and semicustom
-+	  hardware assembled using standard kernels with a minimum of
-+	  custom patches.  In those cases, userspace code may import
-+	  a given GPIO from the kernel, if no kernel driver requested it.
-+
-+	  Kernel drivers may also request that a particular GPIO be
-+	  exported to userspace; this can be useful when debugging.
-+
- # put expanders in the right section, in alphabetical order
- 
- comment "I2C GPIO expanders:"
-diff -puN drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated
-+++ a/drivers/gpio/gpiolib.c
-@@ -2,8 +2,11 @@
- #include <linux/module.h>
- #include <linux/irq.h>
- #include <linux/spinlock.h>
--
--#include <asm/gpio.h>
-+#include <linux/device.h>
-+#include <linux/err.h>
-+#include <linux/debugfs.h>
-+#include <linux/seq_file.h>
-+#include <linux/gpio.h>
- 
- 
- /* Optional implementation infrastructure for GPIO interfaces.
-@@ -44,6 +47,8 @@ struct gpio_desc {
- #define FLAG_REQUESTED	0
- #define FLAG_IS_OUT	1
- #define FLAG_RESERVED	2
-+#define FLAG_EXPORT	3	/* protected by sysfs_lock */
-+#define FLAG_SYSFS	4	/* exported via /sys/class/gpio/control */
- 
- #ifdef CONFIG_DEBUG_FS
- 	const char		*label;
-@@ -151,6 +156,482 @@ err:
- 	return ret;
+ #include <linux/sm501.h>
+ #include <linux/sm501-regs.h>
+@@ -1086,6 +1087,11 @@ static void sm501_gpio_remove(struct sm5
+ 		dev_err(sm->dev, "cannot remove high chip, cannot tidy up\n");
  }
  
-+#ifdef CONFIG_GPIO_SYSFS
-+
-+/* lock protects against unexport_gpio() being called while
-+ * sysfs files are active.
-+ */
-+static DEFINE_MUTEX(sysfs_lock);
-+
-+/*
-+ * /sys/class/gpio/gpioN... only for GPIOs that are exported
-+ *   /direction
-+ *      * MAY BE OMITTED if kernel won't allow direction changes
-+ *      * is read/write as "in" or "out"
-+ *      * may also be written as "high" or "low", initializing
-+ *        output value as specified ("out" implies "low")
-+ *   /value
-+ *      * always readable, subject to hardware behavior
-+ *      * may be writable, as zero/nonzero
-+ *
-+ * REVISIT there will likely be an attribute for configuring async
-+ * notifications, e.g. to specify polling interval or IRQ trigger type
-+ * that would for example trigger a poll() on the "value".
-+ */
-+
-+static ssize_t gpio_direction_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
++static int sm501_gpio_pin2nr(struct sm501_devdata *sm, unsigned int pin)
 +{
-+	const struct gpio_desc	*desc = dev_get_drvdata(dev);
-+	ssize_t			status;
-+
-+	mutex_lock(&sysfs_lock);
-+
-+	if (!test_bit(FLAG_EXPORT, &desc->flags))
-+		status = -EIO;
-+	else
-+		status = sprintf(buf, "%s\n",
-+			test_bit(FLAG_IS_OUT, &desc->flags)
-+				? "out" : "in");
-+
-+	mutex_unlock(&sysfs_lock);
-+	return status;
++	struct sm501_gpio *gpio = &sm->gpio;
++	return pin + (pin < 32) ? gpio->low.gpio.base : gpio->high.gpio.base;
 +}
+ #else
+ static int sm501_register_gpio(struct sm501_devdata *sm)
+ {
+@@ -1095,8 +1101,66 @@ static int sm501_register_gpio(struct sm
+ static void sm501_gpio_remove(struct sm501_devdata *sm)
+ {
+ }
 +
-+static ssize_t gpio_direction_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t size)
++static int sm501_gpio_pin2nr(struct sm501_devdata *sm, unsigned int pin)
 +{
-+	const struct gpio_desc	*desc = dev_get_drvdata(dev);
-+	unsigned		gpio = desc - gpio_desc;
-+	ssize_t			status;
-+
-+	mutex_lock(&sysfs_lock);
-+
-+	if (!test_bit(FLAG_EXPORT, &desc->flags))
-+		status = -EIO;
-+	else if (sysfs_streq(buf, "high"))
-+		status = gpio_direction_output(gpio, 1);
-+	else if (sysfs_streq(buf, "out") || sysfs_streq(buf, "low"))
-+		status = gpio_direction_output(gpio, 0);
-+	else if (sysfs_streq(buf, "in"))
-+		status = gpio_direction_input(gpio);
-+	else
-+		status = -EINVAL;
-+
-+	mutex_unlock(&sysfs_lock);
-+	return status ? : size;
++	return -1;
 +}
-+
-+static const DEVICE_ATTR(direction, 0644,
-+		gpio_direction_show, gpio_direction_store);
-+
-+static ssize_t gpio_value_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
+ #endif
+ 
++static int sm501_register_gpio_i2c_instance(struct sm501_devdata *sm,
++					    struct sm501_platdata_gpio_i2c *iic)
 +{
-+	const struct gpio_desc	*desc = dev_get_drvdata(dev);
-+	unsigned		gpio = desc - gpio_desc;
-+	ssize_t			status;
++	struct i2c_gpio_platform_data *icd;
++	struct platform_device *pdev;
 +
-+	mutex_lock(&sysfs_lock);
++	pdev = sm501_create_subdev(sm, "i2c-gpio", 0,
++				   sizeof(struct i2c_gpio_platform_data));
++	if (!pdev)
++		return -ENOMEM;
 +
-+	if (!test_bit(FLAG_EXPORT, &desc->flags))
-+		status = -EIO;
-+	else
-+		status = sprintf(buf, "%d\n", gpio_get_value_cansleep(gpio));
++	icd = pdev->dev.platform_data;
 +
-+	mutex_unlock(&sysfs_lock);
-+	return status;
-+}
-+
-+static ssize_t gpio_value_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t size)
-+{
-+	const struct gpio_desc	*desc = dev_get_drvdata(dev);
-+	unsigned		gpio = desc - gpio_desc;
-+	ssize_t			status;
-+
-+	mutex_lock(&sysfs_lock);
-+
-+	if (!test_bit(FLAG_EXPORT, &desc->flags))
-+		status = -EIO;
-+	else if (!test_bit(FLAG_IS_OUT, &desc->flags))
-+		status = -EPERM;
-+	else {
-+		long		value;
-+
-+		status = strict_strtol(buf, 0, &value);
-+		if (status == 0) {
-+			gpio_set_value_cansleep(gpio, value != 0);
-+			status = size;
-+		}
-+	}
-+
-+	mutex_unlock(&sysfs_lock);
-+	return status;
-+}
-+
-+static /*const*/ DEVICE_ATTR(value, 0644,
-+		gpio_value_show, gpio_value_store);
-+
-+static const struct attribute *gpio_attrs[] = {
-+	&dev_attr_direction.attr,
-+	&dev_attr_value.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group gpio_attr_group = {
-+	.attrs = (struct attribute **) gpio_attrs,
-+};
-+
-+/*
-+ * /sys/class/gpio/gpiochipN/
-+ *   /base ... matching gpio_chip.base (N)
-+ *   /label ... matching gpio_chip.label
-+ *   /ngpio ... matching gpio_chip.ngpio
-+ */
-+
-+static ssize_t chip_base_show(struct device *dev,
-+			       struct device_attribute *attr, char *buf)
-+{
-+	const struct gpio_chip	*chip = dev_get_drvdata(dev);
-+
-+	return sprintf(buf, "%d\n", chip->base);
-+}
-+static DEVICE_ATTR(base, 0444, chip_base_show, NULL);
-+
-+static ssize_t chip_label_show(struct device *dev,
-+			       struct device_attribute *attr, char *buf)
-+{
-+	const struct gpio_chip	*chip = dev_get_drvdata(dev);
-+
-+	return sprintf(buf, "%s\n", chip->label ? : "");
-+}
-+static DEVICE_ATTR(label, 0444, chip_label_show, NULL);
-+
-+static ssize_t chip_ngpio_show(struct device *dev,
-+			       struct device_attribute *attr, char *buf)
-+{
-+	const struct gpio_chip	*chip = dev_get_drvdata(dev);
-+
-+	return sprintf(buf, "%u\n", chip->ngpio);
-+}
-+static DEVICE_ATTR(ngpio, 0444, chip_ngpio_show, NULL);
-+
-+static const struct attribute *gpiochip_attrs[] = {
-+	&dev_attr_base.attr,
-+	&dev_attr_label.attr,
-+	&dev_attr_ngpio.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group gpiochip_attr_group = {
-+	.attrs = (struct attribute **) gpiochip_attrs,
-+};
-+
-+/*
-+ * /sys/class/gpio/export ... write-only
-+ *	integer N ... number of GPIO to export (full access)
-+ * /sys/class/gpio/unexport ... write-only
-+ *	integer N ... number of GPIO to unexport
-+ */
-+static ssize_t export_store(struct class *class, const char *buf, size_t len)
-+{
-+	long	gpio;
-+	int	status;
-+
-+	status = strict_strtol(buf, 0, &gpio);
-+	if (status < 0)
-+		goto done;
-+
-+	/* No extra locking here; FLAG_SYSFS just signifies that the
-+	 * request and export were done by on behalf of userspace, so
-+	 * they may be undone on its behalf too.
++	/* We keep the pin_sda and pin_scl fields relative in case the
++	 * same platform data is passed to >1 SM501.
 +	 */
 +
-+	status = gpio_request(gpio, "sysfs");
-+	if (status < 0)
-+		goto done;
++	icd->sda_pin = sm501_gpio_pin2nr(sm, iic->pin_sda);
++	icd->scl_pin = sm501_gpio_pin2nr(sm, iic->pin_scl);
++	icd->timeout = iic->timeout;
++	icd->udelay = iic->udelay;
 +
-+	status = gpio_export(gpio, true);
-+	if (status < 0)
-+		gpio_free(gpio);
-+	else
-+		set_bit(FLAG_SYSFS, &gpio_desc[gpio].flags);
++	/* note, we can't use either of the pin numbers, as the i2c-gpio
++	 * driver uses the platform.id field to generate the bus number
++	 * to register with the i2c core; The i2c core doesn't have enough
++	 * entries to deal with anything we currently use.
++	*/
 +
-+done:
-+	if (status)
-+		pr_debug("%s: status %d\n", __func__, status);
-+	return status ? : len;
++	pdev->id = iic->bus_num;
++
++	dev_info(sm->dev, "registering i2c-%d: sda=%d (%d), scl=%d (%d)\n",
++		 iic->bus_num,
++		 icd->sda_pin, iic->pin_sda, icd->scl_pin, iic->pin_scl);
++
++	return sm501_register_device(sm, pdev);
 +}
 +
-+static ssize_t unexport_store(struct class *class, const char *buf, size_t len)
++static int sm501_register_gpio_i2c(struct sm501_devdata *sm,
++				   struct sm501_platdata *pdata)
 +{
-+	long	gpio;
-+	int	status;
++	struct sm501_platdata_gpio_i2c *iic = pdata->gpio_i2c;
++	int index;
++	int ret;
 +
-+	status = strict_strtol(buf, 0, &gpio);
-+	if (status < 0)
-+		goto done;
-+
-+	status = -EINVAL;
-+
-+	/* reject bogus commands (gpio_unexport ignores them) */
-+	if (!gpio_is_valid(gpio))
-+		goto done;
-+
-+	/* No extra locking here; FLAG_SYSFS just signifies that the
-+	 * request and export were done by on behalf of userspace, so
-+	 * they may be undone on its behalf too.
-+	 */
-+	if (test_and_clear_bit(FLAG_SYSFS, &gpio_desc[gpio].flags)) {
-+		status = 0;
-+		gpio_free(gpio);
-+	}
-+done:
-+	if (status)
-+		pr_debug("%s: status %d\n", __func__, status);
-+	return status ? : len;
-+}
-+
-+static struct class_attribute gpio_class_attrs[] = {
-+	__ATTR(export, 0200, NULL, export_store),
-+	__ATTR(unexport, 0200, NULL, unexport_store),
-+	__ATTR_NULL,
-+};
-+
-+static struct class gpio_class = {
-+	.name =		"gpio",
-+	.owner =	THIS_MODULE,
-+
-+	.class_attrs =	gpio_class_attrs,
-+};
-+
-+
-+/**
-+ * gpio_export - export a GPIO through sysfs
-+ * @gpio: gpio to make available, already requested
-+ * @direction_may_change: true if userspace may change gpio direction
-+ * Context: arch_initcall or later
-+ *
-+ * When drivers want to make a GPIO accessible to userspace after they
-+ * have requested it -- perhaps while debugging, or as part of their
-+ * public interface -- they may use this routine.  If the GPIO can
-+ * change direction (some can't) and the caller allows it, userspace
-+ * will see "direction" sysfs attribute which may be used to change
-+ * the gpio's direction.  A "value" attribute will always be provided.
-+ *
-+ * Returns zero on success, else an error.
-+ */
-+int gpio_export(unsigned gpio, bool direction_may_change)
-+{
-+	unsigned long		flags;
-+	struct gpio_desc	*desc;
-+	int			status = -EINVAL;
-+
-+	/* can't export until sysfs is available ... */
-+	if (!gpio_class.p) {
-+		pr_debug("%s: called too early!\n", __func__);
-+		return -ENOENT;
++	for (index = 0; index < pdata->gpio_i2c_nr; index++, iic++) {
++		ret = sm501_register_gpio_i2c_instance(sm, iic);
++		if (ret < 0)
++			return ret;
 +	}
 +
-+	if (!gpio_is_valid(gpio))
-+		goto done;
-+
-+	mutex_lock(&sysfs_lock);
-+
-+	spin_lock_irqsave(&gpio_lock, flags);
-+	desc = &gpio_desc[gpio];
-+	if (test_bit(FLAG_REQUESTED, &desc->flags)
-+			&& !test_bit(FLAG_EXPORT, &desc->flags)) {
-+		status = 0;
-+		if (!desc->chip->direction_input
-+				|| !desc->chip->direction_output)
-+			direction_may_change = false;
-+	}
-+	spin_unlock_irqrestore(&gpio_lock, flags);
-+
-+	if (status == 0) {
-+		struct device	*dev;
-+
-+		dev = device_create(&gpio_class, desc->chip->dev, MKDEV(0, 0),
-+					desc, "gpio%d", gpio);
-+		if (dev) {
-+			if (direction_may_change)
-+				status = sysfs_create_group(&dev->kobj,
-+						&gpio_attr_group);
-+			else
-+				status = device_create_file(dev,
-+						&dev_attr_value);
-+			if (status != 0)
-+				device_unregister(dev);
-+		} else
-+			status = -ENODEV;
-+		if (status == 0)
-+			set_bit(FLAG_EXPORT, &desc->flags);
-+	}
-+
-+	mutex_unlock(&sysfs_lock);
-+
-+done:
-+	if (status)
-+		pr_debug("%s: gpio%d status %d\n", __func__, gpio, status);
-+
-+	return status;
-+}
-+EXPORT_SYMBOL_GPL(gpio_export);
-+
-+static int match_export(struct device *dev, void *data)
-+{
-+	return dev_get_drvdata(dev) == data;
-+}
-+
-+/**
-+ * gpio_unexport - reverse effect of gpio_export()
-+ * @gpio: gpio to make unavailable
-+ *
-+ * This is implicit on gpio_free().
-+ */
-+void gpio_unexport(unsigned gpio)
-+{
-+	struct gpio_desc	*desc;
-+	int			status = -EINVAL;
-+
-+	if (!gpio_is_valid(gpio))
-+		goto done;
-+
-+	mutex_lock(&sysfs_lock);
-+
-+	desc = &gpio_desc[gpio];
-+	if (test_bit(FLAG_EXPORT, &desc->flags)) {
-+		struct device	*dev = NULL;
-+
-+		dev = class_find_device(&gpio_class, NULL, desc, match_export);
-+		if (dev) {
-+			clear_bit(FLAG_EXPORT, &desc->flags);
-+			put_device(dev);
-+			device_unregister(dev);
-+			status = 0;
-+		} else
-+			status = -ENODEV;
-+	}
-+
-+	mutex_unlock(&sysfs_lock);
-+done:
-+	if (status)
-+		pr_debug("%s: gpio%d status %d\n", __func__, gpio, status);
-+}
-+EXPORT_SYMBOL_GPL(gpio_unexport);
-+
-+static int gpiochip_export(struct gpio_chip *chip)
-+{
-+	int		status;
-+	struct device	*dev;
-+
-+	/* Many systems register gpio chips for SOC support very early,
-+	 * before driver model support is available.  In those cases we
-+	 * export this later, in gpiolib_sysfs_init() ... here we just
-+	 * verify that _some_ field of gpio_class got initialized.
-+	 */
-+	if (!gpio_class.p)
-+		return 0;
-+
-+	/* use chip->base for the ID; it's already known to be unique */
-+	mutex_lock(&sysfs_lock);
-+	dev = device_create(&gpio_class, chip->dev, MKDEV(0, 0), chip,
-+				"gpiochip%d", chip->base);
-+	if (dev) {
-+		status = sysfs_create_group(&dev->kobj,
-+				&gpiochip_attr_group);
-+	} else
-+		status = -ENODEV;
-+	chip->exported = (status == 0);
-+	mutex_unlock(&sysfs_lock);
-+
-+	if (status) {
-+		unsigned long	flags;
-+		unsigned	gpio;
-+
-+		spin_lock_irqsave(&gpio_lock, flags);
-+		gpio = chip->base;
-+		while (gpio_desc[gpio].chip == chip)
-+			gpio_desc[gpio++].chip = NULL;
-+		spin_unlock_irqrestore(&gpio_lock, flags);
-+
-+		pr_debug("%s: chip %s status %d\n", __func__,
-+				chip->label, status);
-+	}
-+
-+	return status;
-+}
-+
-+static void gpiochip_unexport(struct gpio_chip *chip)
-+{
-+	int			status;
-+	struct device		*dev;
-+
-+	mutex_lock(&sysfs_lock);
-+	dev = class_find_device(&gpio_class, NULL, chip, match_export);
-+	if (dev) {
-+		put_device(dev);
-+		device_unregister(dev);
-+		chip->exported = 0;
-+		status = 0;
-+	} else
-+		status = -ENODEV;
-+	mutex_unlock(&sysfs_lock);
-+
-+	if (status)
-+		pr_debug("%s: chip %s status %d\n", __func__,
-+				chip->label, status);
-+}
-+
-+static int __init gpiolib_sysfs_init(void)
-+{
-+	int		status;
-+	unsigned long	flags;
-+	unsigned	gpio;
-+
-+	status = class_register(&gpio_class);
-+	if (status < 0)
-+		return status;
-+
-+	/* Scan and register the gpio_chips which registered very
-+	 * early (e.g. before the class_register above was called).
-+	 *
-+	 * We run before arch_initcall() so chip->dev nodes can have
-+	 * registered, and so arch_initcall() can always gpio_export().
-+	 */
-+	spin_lock_irqsave(&gpio_lock, flags);
-+	for (gpio = 0; gpio < ARCH_NR_GPIOS; gpio++) {
-+		struct gpio_chip	*chip;
-+
-+		chip = gpio_desc[gpio].chip;
-+		if (!chip || chip->exported)
-+			continue;
-+
-+		spin_unlock_irqrestore(&gpio_lock, flags);
-+		status = gpiochip_export(chip);
-+		spin_lock_irqsave(&gpio_lock, flags);
-+	}
-+	spin_unlock_irqrestore(&gpio_lock, flags);
-+
-+
-+	return status;
-+}
-+postcore_initcall(gpiolib_sysfs_init);
-+
-+#else
-+static inline int gpiochip_export(struct gpio_chip *chip)
-+{
 +	return 0;
 +}
 +
-+static inline void gpiochip_unexport(struct gpio_chip *chip)
-+{
-+}
-+
-+#endif /* CONFIG_GPIO_SYSFS */
-+
- /**
-  * gpiochip_add() - register a gpio_chip
-  * @chip: the chip to register, with chip->base initialized
-@@ -160,6 +641,11 @@ err:
-  * because the chip->base is invalid or already associated with a
-  * different chip.  Otherwise it returns zero as a success code.
+ /* sm501_dbg_regs
   *
-+ * When gpiochip_add() is called very early during boot, so that GPIOs
-+ * can be freely used, the chip->dev device must be registered before
-+ * the gpio framework's arch_initcall().  Otherwise sysfs initialization
-+ * for GPIOs will fail rudely.
-+ *
-  * If chip->base is negative, this requests dynamic assignment of
-  * a range of valid GPIOs.
-  */
-@@ -182,7 +668,7 @@ int gpiochip_add(struct gpio_chip *chip)
- 		base = gpiochip_find_base(chip->ngpio);
- 		if (base < 0) {
- 			status = base;
--			goto fail_unlock;
-+			goto unlock;
- 		}
- 		chip->base = base;
- 	}
-@@ -197,12 +683,23 @@ int gpiochip_add(struct gpio_chip *chip)
- 	if (status == 0) {
- 		for (id = base; id < base + chip->ngpio; id++) {
- 			gpio_desc[id].chip = chip;
--			gpio_desc[id].flags = 0;
-+
-+			/* REVISIT:  most hardware initializes GPIOs as
-+			 * inputs (often with pullups enabled) so power
-+			 * usage is minimized.  Linux code should set the
-+			 * gpio direction first thing; but until it does,
-+			 * we may expose the wrong direction in sysfs.
-+			 */
-+			gpio_desc[id].flags = !chip->direction_input
-+				? (1 << FLAG_IS_OUT)
-+				: 0;
- 		}
- 	}
- 
--fail_unlock:
-+unlock:
- 	spin_unlock_irqrestore(&gpio_lock, flags);
-+	if (status == 0)
-+		status = gpiochip_export(chip);
- fail:
- 	/* failures here can mean systems won't boot... */
- 	if (status)
-@@ -239,6 +736,10 @@ int gpiochip_remove(struct gpio_chip *ch
- 	}
- 
- 	spin_unlock_irqrestore(&gpio_lock, flags);
-+
-+	if (status == 0)
-+		gpiochip_unexport(chip);
-+
- 	return status;
- }
- EXPORT_SYMBOL_GPL(gpiochip_remove);
-@@ -296,6 +797,8 @@ void gpio_free(unsigned gpio)
- 		return;
- 	}
- 
-+	gpio_unexport(gpio);
-+
- 	spin_lock_irqsave(&gpio_lock, flags);
- 
- 	desc = &gpio_desc[gpio];
-@@ -534,10 +1037,6 @@ EXPORT_SYMBOL_GPL(gpio_set_value_canslee
- 
- #ifdef CONFIG_DEBUG_FS
- 
--#include <linux/debugfs.h>
--#include <linux/seq_file.h>
--
--
- static void gpiolib_dbg_show(struct seq_file *s, struct gpio_chip *chip)
+  * Debug attribute to attach to parent device to show core registers
+@@ -1204,6 +1268,7 @@ static unsigned int sm501_mem_local[] = 
+ static int sm501_init_dev(struct sm501_devdata *sm)
  {
- 	unsigned		i;
-@@ -614,17 +1113,28 @@ static int gpiolib_show(struct seq_file 
- 	/* REVISIT this isn't locked against gpio_chip removal ... */
+ 	struct sm501_initdata *idata;
++	struct sm501_platdata *pdata;
+ 	resource_size_t mem_avail;
+ 	unsigned long dramctrl;
+ 	unsigned long devid;
+@@ -1242,7 +1307,9 @@ static int sm501_init_dev(struct sm501_d
  
- 	for (gpio = 0; gpio_is_valid(gpio); gpio++) {
-+		struct device *dev;
+ 	/* check to see if we have some device initialisation */
+ 
+-	idata = sm->platdata ? sm->platdata->init : NULL;
++	pdata = sm->platdata;
++	idata = pdata ? pdata->init : NULL;
 +
- 		if (chip == gpio_desc[gpio].chip)
- 			continue;
- 		chip = gpio_desc[gpio].chip;
- 		if (!chip)
- 			continue;
+ 	if (idata) {
+ 		sm501_init_regs(sm, idata);
  
--		seq_printf(s, "%sGPIOs %d-%d, %s%s:\n",
-+		seq_printf(s, "%sGPIOs %d-%d",
- 				started ? "\n" : "",
--				chip->base, chip->base + chip->ngpio - 1,
--				chip->label ? : "generic",
--				chip->can_sleep ? ", can sleep" : "");
-+				chip->base, chip->base + chip->ngpio - 1);
-+		dev = chip->dev;
-+		if (dev)
-+			seq_printf(s, ", %s/%s",
-+				dev->bus ? dev->bus->name : "no-bus",
-+				dev->bus_id);
-+		if (chip->label)
-+			seq_printf(s, ", %s", chip->label);
-+		if (chip->can_sleep)
-+			seq_printf(s, ", can sleep");
-+		seq_printf(s, ":\n");
+@@ -1254,6 +1321,13 @@ static int sm501_init_dev(struct sm501_d
+ 			sm501_register_gpio(sm);
+ 	}
+ 
++	if (pdata->gpio_i2c != NULL && pdata->gpio_i2c_nr > 0) {
++		if (!sm->gpio.registered)
++			dev_err(sm->dev, "no gpio registered for i2c gpio.\n");
++		else
++			sm501_register_gpio_i2c(sm, pdata);
++	}
 +
- 		started = 1;
- 		if (chip->dbg_show)
- 			chip->dbg_show(s, chip);
-diff -puN drivers/gpio/mcp23s08.c~gpio-sysfs-interface-updated drivers/gpio/mcp23s08.c
---- a/drivers/gpio/mcp23s08.c~gpio-sysfs-interface-updated
-+++ a/drivers/gpio/mcp23s08.c
-@@ -239,6 +239,7 @@ static int mcp23s08_probe(struct spi_dev
- 	mcp->chip.base = pdata->base;
- 	mcp->chip.ngpio = 8;
- 	mcp->chip.can_sleep = 1;
-+	mcp->chip.dev = &spi->dev;
- 	mcp->chip.owner = THIS_MODULE;
- 
- 	spi_set_drvdata(spi, mcp);
-diff -puN drivers/gpio/pca953x.c~gpio-sysfs-interface-updated drivers/gpio/pca953x.c
---- a/drivers/gpio/pca953x.c~gpio-sysfs-interface-updated
-+++ a/drivers/gpio/pca953x.c
-@@ -188,6 +188,7 @@ static void pca953x_setup_gpio(struct pc
- 	gc->base = chip->gpio_start;
- 	gc->ngpio = gpios;
- 	gc->label = chip->client->name;
-+	gc->dev = &chip->client->dev;
- 	gc->owner = THIS_MODULE;
- }
- 
-diff -puN drivers/gpio/pcf857x.c~gpio-sysfs-interface-updated drivers/gpio/pcf857x.c
---- a/drivers/gpio/pcf857x.c~gpio-sysfs-interface-updated
-+++ a/drivers/gpio/pcf857x.c
-@@ -200,6 +200,7 @@ static int pcf857x_probe(struct i2c_clie
- 
- 	gpio->chip.base = pdata->gpio_base;
- 	gpio->chip.can_sleep = 1;
-+	gpio->chip.dev = &client->dev;
- 	gpio->chip.owner = THIS_MODULE;
- 
- 	/* NOTE:  the OnSemi jlc1562b is also largely compatible with
-diff -puN drivers/i2c/chips/tps65010.c~gpio-sysfs-interface-updated drivers/i2c/chips/tps65010.c
---- a/drivers/i2c/chips/tps65010.c~gpio-sysfs-interface-updated
-+++ a/drivers/i2c/chips/tps65010.c
-@@ -636,6 +636,8 @@ static int tps65010_probe(struct i2c_cli
- 		tps->outmask = board->outmask;
- 
- 		tps->chip.label = client->name;
-+		tps->chip.dev = &client->dev;
-+		tps->chip.owner = THIS_MODULE;
- 
- 		tps->chip.set = tps65010_gpio_set;
- 		tps->chip.direction_output = tps65010_output;
-diff -puN drivers/mfd/htc-egpio.c~gpio-sysfs-interface-updated drivers/mfd/htc-egpio.c
---- a/drivers/mfd/htc-egpio.c~gpio-sysfs-interface-updated
-+++ a/drivers/mfd/htc-egpio.c
-@@ -318,6 +318,8 @@ static int __init egpio_probe(struct pla
- 		ei->chip[i].dev = &(pdev->dev);
- 		chip = &(ei->chip[i].chip);
- 		chip->label           = "htc-egpio";
-+		chip->dev             = &pdev->dev;
-+		chip->owner           = THIS_MODULE;
- 		chip->get             = egpio_get;
- 		chip->set             = egpio_set;
- 		chip->direction_input = egpio_direction_input;
-diff -puN include/asm-generic/gpio.h~gpio-sysfs-interface-updated include/asm-generic/gpio.h
---- a/include/asm-generic/gpio.h~gpio-sysfs-interface-updated
-+++ a/include/asm-generic/gpio.h
-@@ -32,6 +32,8 @@ struct module;
- /**
-  * struct gpio_chip - abstract a GPIO controller
-  * @label: for diagnostics
-+ * @dev: optional device providing the GPIOs
-+ * @owner: helps prevent removal of modules exporting active GPIOs
-  * @direction_input: configures signal "offset" as input, or returns error
-  * @get: returns value for signal "offset"; for output signals this
-  *	returns either the value actually sensed, or zero
-@@ -59,6 +61,7 @@ struct module;
-  */
- struct gpio_chip {
- 	char			*label;
-+	struct device		*dev;
- 	struct module		*owner;
- 
- 	int			(*direction_input)(struct gpio_chip *chip,
-@@ -74,6 +77,7 @@ struct gpio_chip {
- 	int			base;
- 	u16			ngpio;
- 	unsigned		can_sleep:1;
-+	unsigned		exported:1;
+ 	ret = sm501_check_clocks(sm);
+ 	if (ret) {
+ 		dev_err(sm->dev, "M1X and M clocks sourced from different "
+diff -puN include/linux/sm501.h~sm501-gpio-i2c-support include/linux/sm501.h
+--- a/include/linux/sm501.h~sm501-gpio-i2c-support
++++ a/include/linux/sm501.h
+@@ -86,11 +86,19 @@ struct sm501_platdata_fb {
+ 	struct sm501_platdata_fbsub	*fb_pnl;
  };
  
- extern const char *gpiochip_is_requested(struct gpio_chip *chip,
-@@ -108,7 +112,18 @@ extern void __gpio_set_value(unsigned gp
- extern int __gpio_cansleep(unsigned gpio);
+-/* gpio i2c */
++/* gpio i2c
++ *
++ * Note, we have to pass in the bus number, as the number used will be
++ * passed to the i2c-gpio driver's platform_device.id, subsequently used
++ * to register the i2c bus.
++*/
  
+ struct sm501_platdata_gpio_i2c {
++	unsigned int		bus_num;
+ 	unsigned int		pin_sda;
+ 	unsigned int		pin_scl;
++	int			udelay;
++	int			timeout;
+ };
  
--#else
-+#ifdef CONFIG_GPIO_SYSFS
-+
-+/*
-+ * A sysfs interface can be exported by individual drivers if they want,
-+ * but more typically is configured entirely from userspace.
-+ */
-+extern int gpio_export(unsigned gpio, bool direction_may_change);
-+extern void gpio_unexport(unsigned gpio);
-+
-+#endif	/* CONFIG_GPIO_SYSFS */
-+
-+#else	/* !CONFIG_HAVE_GPIO_LIB */
- 
- static inline int gpio_is_valid(int number)
- {
-@@ -137,6 +152,20 @@ static inline void gpio_set_value_cansle
- 	gpio_set_value(gpio, value);
- }
- 
--#endif
-+#endif /* !CONFIG_HAVE_GPIO_LIB */
-+
-+#ifndef CONFIG_GPIO_SYSFS
-+
-+/* sysfs support is only available with gpiolib, where it's optional */
-+
-+static inline int gpio_export(unsigned gpio, bool direction_may_change)
-+{
-+	return -ENOSYS;
-+}
-+
-+static inline void gpio_unexport(unsigned gpio)
-+{
-+}
-+#endif	/* CONFIG_GPIO_SYSFS */
- 
- #endif /* _ASM_GENERIC_GPIO_H */
-diff -puN include/linux/gpio.h~gpio-sysfs-interface-updated include/linux/gpio.h
---- a/include/linux/gpio.h~gpio-sysfs-interface-updated
-+++ a/include/linux/gpio.h
-@@ -79,6 +79,19 @@ static inline void gpio_set_value_cansle
- 	WARN_ON(1);
- }
- 
-+static inline int gpio_export(unsigned gpio, bool direction_may_change)
-+{
-+	/* GPIO can never have been requested or set as {in,out}put */
-+	WARN_ON(1);
-+	return -EINVAL;
-+}
-+
-+static inline void gpio_unexport(unsigned gpio)
-+{
-+	/* GPIO can never have been exported */
-+	WARN_ON(1);
-+}
-+
- static inline int gpio_to_irq(unsigned gpio)
- {
- 	/* GPIO can never have been requested or set as input */
+ /* sm501_initdata
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
 origin.patch
-pm-selftest-rtc-paranoia.patch
 linux-next.patch
+resource-add-resource_size.patch
+resource-add-resource_type-and-ioresource_type_bits.patch
+resource-add-new-ioresource_clk-type-v2.patch
+i2c-sh_mobile-ioresource_clk-support.patch
 
