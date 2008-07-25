@@ -1,162 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 24 Jul 2008 17:12:18 -0700
-Message-ID: <200807250012.m6P0CIVT013489@imap1.linux-foundation.org>
+Subject: - gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix.patch removed from -mm tree
+Date: Thu, 24 Jul 2008 17:14:02 -0700
+Message-ID: <200807250014.m6P0E2iu013539@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60929 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34624 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752350AbYGYAOA (ORCPT
+	by vger.kernel.org with ESMTP id S1750991AbYGYAOY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 24 Jul 2008 20:14:00 -0400
+	Thu, 24 Jul 2008 20:14:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, dhowells@redhat.com, hpa@zytor.com, hskinnemoen@atmel.com, ink@jurassic.park.msu.ru, jesper.nilsson@axis.com, lethal@linux-sh.org, mika
+To: akpm@linux-foundation.org, dbrownell@users.sourceforge.net, greg@kroah.com, mb@bu3sch.de, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     inflate-refactor-inflate-malloc-code-checkpatch-fixes
+     gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix
 has been removed from the -mm tree.  Its filename was
-     inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
+     gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix.patch
 
-This patch was dropped because it was folded into inflate-refactor-inflate-malloc-code.patch
+This patch was dropped because it was folded into gpio-sysfs-interface-updated.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: inflate-refactor-inflate-malloc-code-checkpatch-fixes
+Subject: gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: do not initialise statics to 0 or NULL
-#257: FILE: arch/cris/arch-v10/boot/compressed/misc.c:102:
-+static long free_mem_end_ptr = 0;
-
-ERROR: do not initialise statics to 0 or NULL
-#320: FILE: arch/cris/arch-v32/boot/compressed/misc.c:107:
-+static long free_mem_end_ptr = 0;
-
-ERROR: spaces required around that '<' (ctx:WxV)
-#825: FILE: lib/inflate.c:245:
-+       if (size <0)
-                 ^
-
-ERROR: code indent should use tabs where possible
-#826: FILE: lib/inflate.c:246:
-+               error("Malloc error");$
-
-ERROR: code indent should use tabs where possible
-#828: FILE: lib/inflate.c:248:
-+               malloc_ptr = free_mem_ptr;$
-
-ERROR: code indent should use tabs where possible
-#836: FILE: lib/inflate.c:256:
-+               error("Out of memory");$
-
-ERROR: code indent should use tabs where possible
-#846: FILE: lib/inflate.c:266:
-+               malloc_ptr = free_mem_ptr;$
-
-total: 7 errors, 0 warnings, 745 lines checked
-
-./patches/inflate-refactor-inflate-malloc-code.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Mikael Starvik <mikael.starvik@axis.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/boot/compressed/misc.c |    2 +-
- arch/cris/arch-v32/boot/compressed/misc.c |    6 +++---
- lib/inflate.c                             |   10 +++++-----
- 3 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/gpio/gpiolib.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/cris/arch-v10/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code-checkpatch-fixes arch/cris/arch-v10/boot/compressed/misc.c
---- a/arch/cris/arch-v10/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code-checkpatch-fixes
-+++ a/arch/cris/arch-v10/boot/compressed/misc.c
-@@ -108,7 +108,7 @@ static void puts(const char *);
+diff -puN drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix
++++ a/drivers/gpio/gpiolib.c
+@@ -453,8 +453,8 @@ int gpio_export(unsigned gpio, bool dire
+ 	if (status == 0) {
+ 		struct device	*dev;
  
- extern int _end;
- static long free_mem_ptr = (long)&_end;
--static long free_mem_end_ptr = 0;
-+static long free_mem_end_ptr;
+-		dev = device_create(&gpio_class, desc->chip->dev, 0, desc,
+-					"gpio%d", gpio);
++		dev = device_create(&gpio_class, desc->chip->dev, MKDEV(0, 0),
++					desc, "gpio%d", gpio);
+ 		if (dev) {
+ 			if (direction_may_change)
+ 				status = sysfs_create_group(&dev->kobj,
+@@ -537,8 +537,8 @@ static int gpiochip_export(struct gpio_c
  
- #include "../../../../../lib/inflate.c"
- 
-diff -puN arch/cris/arch-v32/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code-checkpatch-fixes arch/cris/arch-v32/boot/compressed/misc.c
---- a/arch/cris/arch-v32/boot/compressed/misc.c~inflate-refactor-inflate-malloc-code-checkpatch-fixes
-+++ a/arch/cris/arch-v32/boot/compressed/misc.c
-@@ -92,9 +92,9 @@ static void error(char *m);
- 
- extern char *input_data;  /* lives in head.S */
- 
--static long bytes_out = 0;
-+static long bytes_out;
- static uch *output_data;
--static unsigned long output_ptr = 0;
-+static unsigned long output_ptr;
- 
- static void error(char *m);
- 
-@@ -104,7 +104,7 @@ static void puts(const char *);
- 
- extern int _end;
- static long free_mem_ptr = (long)&_end;
--static long free_mem_end_ptr = 0;
-+static long free_mem_end_ptr;
- 
- #include "../../../../../lib/inflate.c"
- 
-diff -puN lib/inflate.c~inflate-refactor-inflate-malloc-code-checkpatch-fixes lib/inflate.c
---- a/lib/inflate.c~inflate-refactor-inflate-malloc-code-checkpatch-fixes
-+++ a/lib/inflate.c
-@@ -242,10 +242,10 @@ static void *malloc(int size)
- {
-        void *p;
- 
--       if (size <0)
--               error("Malloc error");
-+       if (size < 0)
-+		error("Malloc error");
-        if (!malloc_ptr)
--               malloc_ptr = free_mem_ptr;
-+		malloc_ptr = free_mem_ptr;
- 
-        malloc_ptr = (malloc_ptr + 3) & ~3;     /* Align */
- 
-@@ -253,7 +253,7 @@ static void *malloc(int size)
-        malloc_ptr += size;
- 
-        if (free_mem_end_ptr && malloc_ptr >= free_mem_end_ptr)
--               error("Out of memory");
-+		error("Out of memory");
- 
-        malloc_count++;
-        return p;
-@@ -263,7 +263,7 @@ static void free(void *where)
- {
-        malloc_count--;
-        if (!malloc_count)
--               malloc_ptr = free_mem_ptr;
-+		malloc_ptr = free_mem_ptr;
- }
- #else
- #define malloc(a) kmalloc(a, GFP_KERNEL)
+ 	/* use chip->base for the ID; it's already known to be unique */
+ 	mutex_lock(&sysfs_lock);
+-	dev = device_create(&gpio_class, chip->dev, 0, chip, "gpiochip%d",
+-				chip->base);
++	dev = device_create(&gpio_class, chip->dev, MKDEV(0, 0), chip,
++				"gpiochip%d", chip->base);
+ 	if (dev) {
+ 		status = sysfs_create_group(&dev->kobj,
+ 				&gpiochip_attr_group);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -170,11 +75,9 @@ build-kernel-profileo-only-when-requested-cleanups.patch
 seq_file-fix-bug-when-seq_read-reads-nothing.patch
 exec-remove-some-includes.patch
 inflate-refactor-inflate-malloc-code.patch
-inflate-refactor-inflate-malloc-code-checkpatch-fixes.patch
 drivers-misc-hpiloc-needs-config_pci.patch
 add-a-warn-macro-this-is-warn_on-printk-arguments.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix.patch
-gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix.patch
+gpio-sysfs-interface-updated.patch
 gpio-sysfs-interface-updated-gpio-linux-next-fixes-for-sysfs-support-fix-fix-fix.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes.patch
 gpio-add-bt8xxgpio-driver-checkpatch-fixes-fix.patch
