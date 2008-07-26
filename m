@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmu-notifiers-add-list_del_init_rcu-update.patch added to -mm tree
-Date: Sat, 26 Jul 2008 12:37:45 -0700
-Message-ID: <200807261937.m6QJbjr1016037@imap1.linux-foundation.org>
+Subject: + task-io-accounting-correctly-account-threads-io-statistics.patch added to -mm tree
+Date: Sat, 26 Jul 2008 12:38:25 -0700
+Message-ID: <200807261938.m6QJcP37016050@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41412 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58892 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751706AbYGZTiZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751865AbYGZTii (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 15:38:25 -0400
+	Sat, 26 Jul 2008 15:38:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andrea@qumranet.com, paulmck@us.ibm.com
+Cc: righi.andrea@gmail.com, oleg@tv-sign.ru
 
 
 The patch titled
-     move hlist_del_init_rcu from list.h to rculist.h
+     task IO accounting: correctly account threads IO statistics
 has been added to the -mm tree.  Its filename is
-     mmu-notifiers-add-list_del_init_rcu-update.patch
+     task-io-accounting-correctly-account-threads-io-statistics.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,104 +34,113 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: move hlist_del_init_rcu from list.h to rculist.h
-From: Andrea Arcangeli <andrea@qumranet.com>
+Subject: task IO accounting: correctly account threads IO statistics
+From: Andrea Righi <righi.andrea@gmail.com>
 
-This moves the _rcu method in the right file.
+Oleg Nesterov points out that we should check that the task is still alive
+before we iterate over the threads.  This patch includes a fixup for this.
 
-Signed-off-by: Andrea Arcangeli <andrea@qumranet.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Also simplify do_io_accounting() implementation.
+
+Signed-off-by: Andrea Righi <righi.andrea@gmail.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list.h    |   28 ----------------------------
- include/linux/rculist.h |   28 ++++++++++++++++++++++++++++
- 2 files changed, 28 insertions(+), 28 deletions(-)
+ fs/proc/base.c |   56 ++++++++++++++++++-----------------------------
+ 1 file changed, 22 insertions(+), 34 deletions(-)
 
-diff -puN include/linux/list.h~mmu-notifiers-add-list_del_init_rcu-update include/linux/list.h
---- a/include/linux/list.h~mmu-notifiers-add-list_del_init_rcu-update
-+++ a/include/linux/list.h
-@@ -519,34 +519,6 @@ static inline void hlist_del_init(struct
- 	}
- }
+diff -puN fs/proc/base.c~task-io-accounting-correctly-account-threads-io-statistics fs/proc/base.c
+--- a/fs/proc/base.c~task-io-accounting-correctly-account-threads-io-statistics
++++ a/fs/proc/base.c
+@@ -2406,35 +2406,18 @@ static int do_io_accounting(struct task_
+ 	u64 rchar, wchar, syscr, syscw;
+ 	struct task_io_accounting ioac;
  
--/**
-- * hlist_del_init_rcu - deletes entry from hash list with re-initialization
-- * @n: the element to delete from the hash list.
-- *
-- * Note: list_unhashed() on the node return true after this. It is
-- * useful for RCU based read lockfree traversal if the writer side
-- * must know if the list entry is still hashed or already unhashed.
-- *
-- * In particular, it means that we can not poison the forward pointers
-- * that may still be used for walking the hash list and we can only
-- * zero the pprev pointer so list_unhashed() will return true after
-- * this.
-- *
-- * The caller must take whatever precautions are necessary (such as
-- * holding appropriate locks) to avoid racing with another
-- * list-mutation primitive, such as hlist_add_head_rcu() or
-- * hlist_del_rcu(), running on this same list.  However, it is
-- * perfectly legal to run concurrently with the _rcu list-traversal
-- * primitives, such as hlist_for_each_entry_rcu().
-- */
--static inline void hlist_del_init_rcu(struct hlist_node *n)
--{
--	if (!hlist_unhashed(n)) {
--		__hlist_del(n);
--		n->pprev = NULL;
--	}
--}
+-	if (!whole) {
+-		rchar = task->rchar;
+-		wchar = task->wchar;
+-		syscr = task->syscr;
+-		syscw = task->syscw;
+-		memcpy(&ioac, &task->ioac, sizeof(ioac));
+-	} else {
+-		unsigned long flags;
+-		struct task_struct *t = task;
+-		rchar = wchar = syscr = syscw = 0;
+-		memset(&ioac, 0, sizeof(ioac));
 -
- static inline void hlist_add_head(struct hlist_node *n, struct hlist_head *h)
- {
- 	struct hlist_node *first = h->first;
-diff -puN include/linux/rculist.h~mmu-notifiers-add-list_del_init_rcu-update include/linux/rculist.h
---- a/include/linux/rculist.h~mmu-notifiers-add-list_del_init_rcu-update
-+++ a/include/linux/rculist.h
-@@ -98,6 +98,34 @@ static inline void list_del_rcu(struct l
+-		rcu_read_lock();
+-		do {
+-			rchar += t->rchar;
+-			wchar += t->wchar;
+-			syscr += t->syscr;
+-			syscw += t->syscw;
++	rchar = task->rchar;
++	wchar = task->wchar;
++	syscr = task->syscr;
++	syscw = task->syscw;
++	memcpy(&ioac, &task->ioac, sizeof(ioac));
+ 
+-			ioac.read_bytes += t->ioac.read_bytes;
+-			ioac.write_bytes += t->ioac.write_bytes;
+-			ioac.cancelled_write_bytes +=
+-					t->ioac.cancelled_write_bytes;
+-			t = next_thread(t);
+-		} while (t != task);
+-		rcu_read_unlock();
++	if (whole) {
++		unsigned long flags;
+ 
+ 		if (lock_task_sighand(task, &flags)) {
+ 			struct signal_struct *sig = task->signal;
++			struct task_struct *t = task;
+ 
+ 			rchar += sig->rchar;
+ 			wchar += sig->wchar;
+@@ -2445,11 +2428,20 @@ static int do_io_accounting(struct task_
+ 			ioac.write_bytes += sig->ioac.write_bytes;
+ 			ioac.cancelled_write_bytes +=
+ 					sig->ioac.cancelled_write_bytes;
+-
++			while_each_thread(task, t) {
++				rchar += t->rchar;
++				wchar += t->wchar;
++				syscr += t->syscr;
++				syscw += t->syscw;
++
++				ioac.read_bytes += t->ioac.read_bytes;
++				ioac.write_bytes += t->ioac.write_bytes;
++				ioac.cancelled_write_bytes +=
++					t->ioac.cancelled_write_bytes;
++			}
+ 			unlock_task_sighand(task, &flags);
+ 		}
+ 	}
+-
+ 	return sprintf(buffer,
+ 			"rchar: %llu\n"
+ 			"wchar: %llu\n"
+@@ -2458,13 +2450,9 @@ static int do_io_accounting(struct task_
+ 			"read_bytes: %llu\n"
+ 			"write_bytes: %llu\n"
+ 			"cancelled_write_bytes: %llu\n",
+-			(unsigned long long)rchar,
+-			(unsigned long long)wchar,
+-			(unsigned long long)syscr,
+-			(unsigned long long)syscw,
+-			(unsigned long long)ioac.read_bytes,
+-			(unsigned long long)ioac.write_bytes,
+-			(unsigned long long)ioac.cancelled_write_bytes);
++			rchar, wchar, syscr, syscw,
++			ioac.read_bytes, ioac.write_bytes,
++			ioac.cancelled_write_bytes);
  }
  
- /**
-+ * hlist_del_init_rcu - deletes entry from hash list with re-initialization
-+ * @n: the element to delete from the hash list.
-+ *
-+ * Note: list_unhashed() on the node return true after this. It is
-+ * useful for RCU based read lockfree traversal if the writer side
-+ * must know if the list entry is still hashed or already unhashed.
-+ *
-+ * In particular, it means that we can not poison the forward pointers
-+ * that may still be used for walking the hash list and we can only
-+ * zero the pprev pointer so list_unhashed() will return true after
-+ * this.
-+ *
-+ * The caller must take whatever precautions are necessary (such as
-+ * holding appropriate locks) to avoid racing with another
-+ * list-mutation primitive, such as hlist_add_head_rcu() or
-+ * hlist_del_rcu(), running on this same list.  However, it is
-+ * perfectly legal to run concurrently with the _rcu list-traversal
-+ * primitives, such as hlist_for_each_entry_rcu().
-+ */
-+static inline void hlist_del_init_rcu(struct hlist_node *n)
-+{
-+	if (!hlist_unhashed(n)) {
-+		__hlist_del(n);
-+		n->pprev = NULL;
-+	}
-+}
-+
-+/**
-  * list_replace_rcu - replace old entry by new one
-  * @old : the element to be replaced
-  * @new : the new element to insert
+ static int proc_tid_io_accounting(struct task_struct *task, char *buffer)
 _
 
-Patches currently in -mm which might be from andrea@qumranet.com are
+Patches currently in -mm which might be from righi.andrea@gmail.com are
 
 origin.patch
-linux-next.patch
-mmu-notifiers-add-list_del_init_rcu.patch
-mmu-notifiers-add-list_del_init_rcu-update.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
+task-io-accounting-correctly-account-threads-io-statistics.patch
 
