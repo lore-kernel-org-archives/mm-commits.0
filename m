@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - tracehook-job-control.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:16:59 -0700
-Message-ID: <200807262116.m6QLGxJX019887@imap1.linux-foundation.org>
+Subject: - tracehook-tracehook_signal_handler.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:16:51 -0700
+Message-ID: <200807262116.m6QLGpvD019871@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40297 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46318 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757889AbYGZVRc (ORCPT
+	by vger.kernel.org with ESMTP id S1757758AbYGZVRX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:17:32 -0400
+	Sat, 26 Jul 2008 17:17:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: roland@redhat.com, mingo@elte.hu, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tracehook: job control
+     tracehook: tracehook_signal_handler
 has been removed from the -mm tree.  Its filename was
-     tracehook-job-control.patch
+     tracehook-tracehook_signal_handler.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracehook: job control
+Subject: tracehook: tracehook_signal_handler
 From: Roland McGrath <roland@redhat.com>
 
-This defines the tracehook_notify_jctl() hook to formalize the ptrace
-effects on the job control notifications.  There is no change, only
-cleanup.
+This defines tracehook_signal_handler() as a hook for the arch signal
+handling code to call.  It gives ptrace the opportunity to stop for a
+pseudo-single-step trap immediately after signal handler setup is done.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
@@ -37,79 +37,40 @@ Reviewed-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |   20 ++++++++++++++++++++
- kernel/signal.c           |   10 +++++-----
- 2 files changed, 25 insertions(+), 5 deletions(-)
+ include/linux/tracehook.h |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN include/linux/tracehook.h~tracehook-job-control include/linux/tracehook.h
---- a/include/linux/tracehook.h~tracehook-job-control
+diff -puN include/linux/tracehook.h~tracehook-tracehook_signal_handler include/linux/tracehook.h
+--- a/include/linux/tracehook.h~tracehook-tracehook_signal_handler
 +++ a/include/linux/tracehook.h
-@@ -451,4 +451,24 @@ static inline int tracehook_get_signal(s
- 	return 0;
+@@ -289,4 +289,27 @@ static inline void tracehook_finish_rele
+ 	ptrace_release_task(task);
  }
  
 +/**
-+ * tracehook_notify_jctl - report about job control stop/continue
-+ * @notify:		nonzero if this is the last thread in the group to stop
-+ * @why:		%CLD_STOPPED or %CLD_CONTINUED
++ * tracehook_signal_handler - signal handler setup is complete
++ * @sig:		number of signal being delivered
++ * @info:		siginfo_t of signal being delivered
++ * @ka:			sigaction setting that chose the handler
++ * @regs:		user register state
++ * @stepping:		nonzero if debugger single-step or block-step in use
 + *
-+ * This is called when we might call do_notify_parent_cldstop().
-+ * It's called when about to stop for job control; we are already in
-+ * %TASK_STOPPED state, about to call schedule().  It's also called when
-+ * a delayed %CLD_STOPPED or %CLD_CONTINUED report is ready to be made.
++ * Called by the arch code after a signal handler has been set up.
++ * Register and stack state reflects the user handler about to run.
++ * Signal mask changes have already been made.
 + *
-+ * Return nonzero to generate a %SIGCHLD with @why, which is
-+ * normal if @notify is nonzero.
-+ *
-+ * Called with no locks held.
++ * Called without locks, shortly before returning to user mode
++ * (or handling more signals).
 + */
-+static inline int tracehook_notify_jctl(int notify, int why)
++static inline void tracehook_signal_handler(int sig, siginfo_t *info,
++					    const struct k_sigaction *ka,
++					    struct pt_regs *regs, int stepping)
 +{
-+	return notify || (current->ptrace & PT_PTRACED);
++	if (stepping)
++		ptrace_notify(SIGTRAP);
 +}
 +
  #endif	/* <linux/tracehook.h> */
-diff -puN kernel/signal.c~tracehook-job-control kernel/signal.c
---- a/kernel/signal.c~tracehook-job-control
-+++ a/kernel/signal.c
-@@ -596,9 +596,6 @@ static int check_kill_permission(int sig
- 	return security_task_kill(t, info, sig, 0);
- }
- 
--/* forward decl */
--static void do_notify_parent_cldstop(struct task_struct *tsk, int why);
--
- /*
-  * Handle magic process-wide effects of stop/continue signals. Unlike
-  * the signal actions, these happen immediately at signal-generation
-@@ -1605,7 +1602,7 @@ finish_stop(int stop_count)
- 	 * a group stop in progress and we are the last to stop,
- 	 * report to the parent.  When ptraced, every thread reports itself.
- 	 */
--	if (stop_count == 0 || (current->ptrace & PT_PTRACED)) {
-+	if (tracehook_notify_jctl(stop_count == 0, CLD_STOPPED)) {
- 		read_lock(&tasklist_lock);
- 		do_notify_parent_cldstop(current, CLD_STOPPED);
- 		read_unlock(&tasklist_lock);
-@@ -1741,6 +1738,9 @@ relock:
- 		signal->flags &= ~SIGNAL_CLD_MASK;
- 		spin_unlock_irq(&sighand->siglock);
- 
-+		if (unlikely(!tracehook_notify_jctl(1, why)))
-+			goto relock;
-+
- 		read_lock(&tasklist_lock);
- 		do_notify_parent_cldstop(current->group_leader, why);
- 		read_unlock(&tasklist_lock);
-@@ -1906,7 +1906,7 @@ void exit_signals(struct task_struct *ts
- out:
- 	spin_unlock_irq(&tsk->sighand->siglock);
- 
--	if (unlikely(group_stop)) {
-+	if (unlikely(group_stop) && tracehook_notify_jctl(1, CLD_STOPPED)) {
- 		read_lock(&tasklist_lock);
- 		do_notify_parent_cldstop(tsk, CLD_STOPPED);
- 		read_unlock(&tasklist_lock);
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
