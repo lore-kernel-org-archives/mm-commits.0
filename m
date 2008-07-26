@@ -1,150 +1,354 @@
 From: akpm@linux-foundation.org
-Subject: - git-block-ia64-build-fix.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:18:30 -0700
-Message-ID: <200807262118.m6QLIU2s020098@imap1.linux-foundation.org>
+Subject: - tpm-increase-size-of-internal-tpm-response-buffers.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:13:56 -0700
+Message-ID: <200807262113.m6QLDumV019639@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48435 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42502 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757719AbYGZVT2 (ORCPT
+	by vger.kernel.org with ESMTP id S1756400AbYGZVTx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:19:28 -0400
+	Sat, 26 Jul 2008 17:19:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: marcin_obara@users.sourceforge.net, kjhall@us.ibm.com, tpm@selhorst.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block: ia64 build fix
+     tpm: increase size of internal TPM response buffers
 has been removed from the -mm tree.  Its filename was
-     git-block-ia64-build-fix.patch
+     tpm-increase-size-of-internal-tpm-response-buffers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-block: ia64 build fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tpm: increase size of internal TPM response buffers
+From: Marcin Obara <marcin_obara@users.sourceforge.net>
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+This patch increases size of driver internal response buffers.  Some TPM
+responses defined in TCG TPM Specification Version 1.2 Revision 103 have
+increased size and do not fit previously defined buffers.  Some TPM
+responses do not have fixed size, so bigger response buffers have to be
+allocated.  200B buffers should be enough.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Marcin Obara <marcin_obara@users.sourceforge.net>
+Cc: Marcel Selhorst <tpm@selhorst.net>
+Cc: Kylene Jo Hall <kjhall@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/smp.c |   25 -------------------------
- 1 file changed, 25 deletions(-)
+ drivers/char/tpm/tpm.c |  124 +++++++++++++++++++++++++++++----------
+ 1 file changed, 93 insertions(+), 31 deletions(-)
 
-diff -puN arch/ia64/kernel/smp.c~git-block-ia64-build-fix arch/ia64/kernel/smp.c
---- a/arch/ia64/kernel/smp.c~git-block-ia64-build-fix
-+++ a/arch/ia64/kernel/smp.c
-@@ -82,31 +82,6 @@ unlock_ipi_calllock(void)
- 	spin_unlock_irq(&call_function_lock);
+diff -puN drivers/char/tpm/tpm.c~tpm-increase-size-of-internal-tpm-response-buffers drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~tpm-increase-size-of-internal-tpm-response-buffers
++++ a/drivers/char/tpm/tpm.c
+@@ -580,91 +580,133 @@ void tpm_continue_selftest(struct tpm_ch
  }
+ EXPORT_SYMBOL_GPL(tpm_continue_selftest);
  
--static inline void
--handle_call_data(void)
--{
--	struct call_data_struct *data;
--	void (*func)(void *info);
--	void *info;
--	int wait;
--
--	/* release the 'pointer lock' */
--	data = (struct call_data_struct *)call_data;
--	func = data->func;
--	info = data->info;
--	wait = data->wait;
--
--	mb();
--	atomic_inc(&data->started);
--	/* At this point the structure may be gone unless wait is true. */
--	(*func)(info);
--
--	/* Notify the sending CPU that the task is done. */
--	mb();
--	if (wait)
--		atomic_inc(&data->finished);
--}
--
- static void
- stop_this_cpu(void)
++#define  TPM_INTERNAL_RESULT_SIZE 200
++
+ ssize_t tpm_show_enabled(struct device * dev, struct device_attribute * attr,
+ 			char *buf)
  {
+-	u8 data[max_t(int, ARRAY_SIZE(tpm_cap), 35)];
++	u8 *data;
+ 	ssize_t rc;
+ 
+ 	struct tpm_chip *chip = dev_get_drvdata(dev);
+ 	if (chip == NULL)
+ 		return -ENODEV;
+ 
++	data = kzalloc(TPM_INTERNAL_RESULT_SIZE, GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
+ 	memcpy(data, tpm_cap, sizeof(tpm_cap));
+ 	data[TPM_CAP_IDX] = TPM_CAP_FLAG;
+ 	data[TPM_CAP_SUBCAP_IDX] = TPM_CAP_FLAG_PERM;
+ 
+-	rc = transmit_cmd(chip, data, sizeof(data),
+-			"attemtping to determine the permanent state");
+-	if (rc)
++	rc = transmit_cmd(chip, data, TPM_INTERNAL_RESULT_SIZE,
++			"attemtping to determine the permanent enabled state");
++	if (rc) {
++		kfree(data);
+ 		return 0;
+-	return sprintf(buf, "%d\n", !data[TPM_GET_CAP_PERM_DISABLE_IDX]);
++	}
++
++	rc = sprintf(buf, "%d\n", !data[TPM_GET_CAP_PERM_DISABLE_IDX]);
++
++	kfree(data);
++	return rc;
+ }
+ EXPORT_SYMBOL_GPL(tpm_show_enabled);
+ 
+ ssize_t tpm_show_active(struct device * dev, struct device_attribute * attr,
+ 			char *buf)
+ {
+-	u8 data[max_t(int, ARRAY_SIZE(tpm_cap), 35)];
++	u8 *data;
+ 	ssize_t rc;
+ 
+ 	struct tpm_chip *chip = dev_get_drvdata(dev);
+ 	if (chip == NULL)
+ 		return -ENODEV;
+ 
++	data = kzalloc(TPM_INTERNAL_RESULT_SIZE, GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
+ 	memcpy(data, tpm_cap, sizeof(tpm_cap));
+ 	data[TPM_CAP_IDX] = TPM_CAP_FLAG;
+ 	data[TPM_CAP_SUBCAP_IDX] = TPM_CAP_FLAG_PERM;
+ 
+-	rc = transmit_cmd(chip, data, sizeof(data),
+-			"attemtping to determine the permanent state");
+-	if (rc)
++	rc = transmit_cmd(chip, data, TPM_INTERNAL_RESULT_SIZE,
++			"attemtping to determine the permanent active state");
++	if (rc) {
++		kfree(data);
+ 		return 0;
+-	return sprintf(buf, "%d\n", !data[TPM_GET_CAP_PERM_INACTIVE_IDX]);
++	}
++
++	rc = sprintf(buf, "%d\n", !data[TPM_GET_CAP_PERM_INACTIVE_IDX]);
++
++	kfree(data);
++	return rc;
+ }
+ EXPORT_SYMBOL_GPL(tpm_show_active);
+ 
+ ssize_t tpm_show_owned(struct device * dev, struct device_attribute * attr,
+ 			char *buf)
+ {
+-	u8 data[sizeof(tpm_cap)];
++	u8 *data;
+ 	ssize_t rc;
+ 
+ 	struct tpm_chip *chip = dev_get_drvdata(dev);
+ 	if (chip == NULL)
+ 		return -ENODEV;
+ 
++	data = kzalloc(TPM_INTERNAL_RESULT_SIZE, GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
+ 	memcpy(data, tpm_cap, sizeof(tpm_cap));
+ 	data[TPM_CAP_IDX] = TPM_CAP_PROP;
+ 	data[TPM_CAP_SUBCAP_IDX] = TPM_CAP_PROP_OWNER;
+ 
+-	rc = transmit_cmd(chip, data, sizeof(data),
++	rc = transmit_cmd(chip, data, TPM_INTERNAL_RESULT_SIZE,
+ 			"attempting to determine the owner state");
+-	if (rc)
++	if (rc) {
++		kfree(data);
+ 		return 0;
+-	return sprintf(buf, "%d\n", data[TPM_GET_CAP_RET_BOOL_1_IDX]);
++	}
++
++	rc = sprintf(buf, "%d\n", data[TPM_GET_CAP_RET_BOOL_1_IDX]);
++
++	kfree(data);
++	return rc;
+ }
+ EXPORT_SYMBOL_GPL(tpm_show_owned);
+ 
+ ssize_t tpm_show_temp_deactivated(struct device * dev,
+ 				struct device_attribute * attr, char *buf)
+ {
+-	u8 data[sizeof(tpm_cap)];
++	u8 *data;
+ 	ssize_t rc;
+ 
+ 	struct tpm_chip *chip = dev_get_drvdata(dev);
+ 	if (chip == NULL)
+ 		return -ENODEV;
+ 
++	data = kzalloc(TPM_INTERNAL_RESULT_SIZE, GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
+ 	memcpy(data, tpm_cap, sizeof(tpm_cap));
+ 	data[TPM_CAP_IDX] = TPM_CAP_FLAG;
+ 	data[TPM_CAP_SUBCAP_IDX] = TPM_CAP_FLAG_VOL;
+ 
+-	rc = transmit_cmd(chip, data, sizeof(data),
++	rc = transmit_cmd(chip, data, TPM_INTERNAL_RESULT_SIZE,
+ 			"attempting to determine the temporary state");
+-	if (rc)
++	if (rc) {
++		kfree(data);
+ 		return 0;
+-	return sprintf(buf, "%d\n", data[TPM_GET_CAP_TEMP_INACTIVE_IDX]);
++	}
++
++	rc = sprintf(buf, "%d\n", data[TPM_GET_CAP_TEMP_INACTIVE_IDX]);
++
++	kfree(data);
++	return rc;
+ }
+ EXPORT_SYMBOL_GPL(tpm_show_temp_deactivated);
+ 
+@@ -678,7 +720,7 @@ static const u8 pcrread[] = {
+ ssize_t tpm_show_pcrs(struct device *dev, struct device_attribute *attr,
+ 		      char *buf)
+ {
+-	u8 data[max_t(int, max(ARRAY_SIZE(tpm_cap), ARRAY_SIZE(pcrread)), 30)];
++	u8 *data;
+ 	ssize_t rc;
+ 	int i, j, num_pcrs;
+ 	__be32 index;
+@@ -688,21 +730,27 @@ ssize_t tpm_show_pcrs(struct device *dev
+ 	if (chip == NULL)
+ 		return -ENODEV;
+ 
++	data = kzalloc(TPM_INTERNAL_RESULT_SIZE, GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
+ 	memcpy(data, tpm_cap, sizeof(tpm_cap));
+ 	data[TPM_CAP_IDX] = TPM_CAP_PROP;
+ 	data[TPM_CAP_SUBCAP_IDX] = TPM_CAP_PROP_PCR;
+ 
+-	rc = transmit_cmd(chip, data, sizeof(data),
++	rc = transmit_cmd(chip, data, TPM_INTERNAL_RESULT_SIZE,
+ 			"attempting to determine the number of PCRS");
+-	if (rc)
++	if (rc) {
++		kfree(data);
+ 		return 0;
++	}
+ 
+ 	num_pcrs = be32_to_cpu(*((__be32 *) (data + 14)));
+ 	for (i = 0; i < num_pcrs; i++) {
+ 		memcpy(data, pcrread, sizeof(pcrread));
+ 		index = cpu_to_be32(i);
+ 		memcpy(data + 10, &index, 4);
+-		rc = transmit_cmd(chip, data, sizeof(data),
++		rc = transmit_cmd(chip, data, TPM_INTERNAL_RESULT_SIZE,
+ 				"attempting to read a PCR");
+ 		if (rc)
+ 			goto out;
+@@ -712,6 +760,7 @@ ssize_t tpm_show_pcrs(struct device *dev
+ 		str += sprintf(str, "\n");
+ 	}
+ out:
++	kfree(data);
+ 	return str - buf;
+ }
+ EXPORT_SYMBOL_GPL(tpm_show_pcrs);
+@@ -795,7 +844,7 @@ static const u8 cap_version[] = {
+ ssize_t tpm_show_caps(struct device *dev, struct device_attribute *attr,
+ 		      char *buf)
+ {
+-	u8 data[max_t(int, max(ARRAY_SIZE(tpm_cap), ARRAY_SIZE(cap_version)), 30)];
++	u8 *data;
+ 	ssize_t rc;
+ 	char *str = buf;
+ 
+@@ -803,21 +852,27 @@ ssize_t tpm_show_caps(struct device *dev
+ 	if (chip == NULL)
+ 		return -ENODEV;
+ 
++	data = kzalloc(TPM_INTERNAL_RESULT_SIZE, GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
+ 	memcpy(data, tpm_cap, sizeof(tpm_cap));
+ 	data[TPM_CAP_IDX] = TPM_CAP_PROP;
+ 	data[TPM_CAP_SUBCAP_IDX] = TPM_CAP_PROP_MANUFACTURER;
+ 
+-	rc = transmit_cmd(chip, data, sizeof(data),
++	rc = transmit_cmd(chip, data, TPM_INTERNAL_RESULT_SIZE,
+ 			"attempting to determine the manufacturer");
+-	if (rc)
++	if (rc) {
++		kfree(data);
+ 		return 0;
++	}
+ 
+ 	str += sprintf(str, "Manufacturer: 0x%x\n",
+ 		       be32_to_cpu(*((__be32 *) (data + TPM_GET_CAP_RET_UINT32_1_IDX))));
+ 
+ 	memcpy(data, cap_version, sizeof(cap_version));
+ 	data[CAP_VERSION_IDX] = CAP_VERSION_1_1;
+-	rc = transmit_cmd(chip, data, sizeof(data),
++	rc = transmit_cmd(chip, data, TPM_INTERNAL_RESULT_SIZE,
+ 			"attempting to determine the 1.1 version");
+ 	if (rc)
+ 		goto out;
+@@ -828,6 +883,7 @@ ssize_t tpm_show_caps(struct device *dev
+ 		       (int) data[17]);
+ 
+ out:
++	kfree(data);
+ 	return str - buf;
+ }
+ EXPORT_SYMBOL_GPL(tpm_show_caps);
+@@ -835,7 +891,7 @@ EXPORT_SYMBOL_GPL(tpm_show_caps);
+ ssize_t tpm_show_caps_1_2(struct device * dev,
+ 			  struct device_attribute * attr, char *buf)
+ {
+-	u8 data[max_t(int, max(ARRAY_SIZE(tpm_cap), ARRAY_SIZE(cap_version)), 30)];
++	u8 *data;
+ 	ssize_t len;
+ 	char *str = buf;
+ 
+@@ -843,15 +899,20 @@ ssize_t tpm_show_caps_1_2(struct device 
+ 	if (chip == NULL)
+ 		return -ENODEV;
+ 
++	data = kzalloc(TPM_INTERNAL_RESULT_SIZE, GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
+ 	memcpy(data, tpm_cap, sizeof(tpm_cap));
+ 	data[TPM_CAP_IDX] = TPM_CAP_PROP;
+ 	data[TPM_CAP_SUBCAP_IDX] = TPM_CAP_PROP_MANUFACTURER;
+ 
+-	if ((len = tpm_transmit(chip, data, sizeof(data))) <=
+-	    TPM_ERROR_SIZE) {
++	len = tpm_transmit(chip, data, TPM_INTERNAL_RESULT_SIZE);
++	if (len <= TPM_ERROR_SIZE) {
+ 		dev_dbg(chip->dev, "A TPM error (%d) occurred "
+ 			"attempting to determine the manufacturer\n",
+ 			be32_to_cpu(*((__be32 *) (data + TPM_RET_CODE_IDX))));
++		kfree(data);
+ 		return 0;
+ 	}
+ 
+@@ -861,8 +922,8 @@ ssize_t tpm_show_caps_1_2(struct device 
+ 	memcpy(data, cap_version, sizeof(cap_version));
+ 	data[CAP_VERSION_IDX] = CAP_VERSION_1_2;
+ 
+-	if ((len = tpm_transmit(chip, data, sizeof(data))) <=
+-	    TPM_ERROR_SIZE) {
++	len = tpm_transmit(chip, data, TPM_INTERNAL_RESULT_SIZE);
++	if (len <= TPM_ERROR_SIZE) {
+ 		dev_err(chip->dev, "A TPM error (%d) occurred "
+ 			"attempting to determine the 1.2 version\n",
+ 			be32_to_cpu(*((__be32 *) (data + TPM_RET_CODE_IDX))));
+@@ -874,6 +935,7 @@ ssize_t tpm_show_caps_1_2(struct device 
+ 		       (int) data[19]);
+ 
+ out:
++	kfree(data);
+ 	return str - buf;
+ }
+ EXPORT_SYMBOL_GPL(tpm_show_caps_1_2);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from marcin_obara@users.sourceforge.net are
 
 origin.patch
-hugetlb-remove-unused-variable-warning-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-linux-next-fixups.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-x86-pci-replace-dbg-with-pr_debug-fix.patch
-x86-pci-replace-dbg-with-pr_debug-fix-2.patch
-include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
-arch-x86-pci-i386c-fix-printk-warnings.patch
-drm-fix-sparc64-build.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-git-ubi-git-rejects.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gru-driver-v3-hardware-data-structures-fix.patch
-gru-driver-v3-hardware-data-structures-fix-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-page-statistics-units-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-introduce-__get_user_pages-fix.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+tpm-correct-tpm-timeouts-to-jiffies-conversion.patch
 
