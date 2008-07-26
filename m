@@ -1,53 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - drm-make-drm_minors_cleanup-static.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:18:04 -0700
-Message-ID: <200807262118.m6QLI4s9020057@imap1.linux-foundation.org>
+Subject: - make-cgroup_seqfile_release-static.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:18:06 -0700
+Message-ID: <200807262118.m6QLI6Ui020060@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50483 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52769 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758026AbYGZVSN (ORCPT
+	by vger.kernel.org with ESMTP id S1758030AbYGZVSV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:18:13 -0400
+	Sat, 26 Jul 2008 17:18:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mm-commits@vger.kernel.org
+To: bunk@kernel.org, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drm: make drm_minors_cleanup() static
+     make cgroup_seqfile_release() static
 has been removed from the -mm tree.  Its filename was
-     drm-make-drm_minors_cleanup-static.patch
+     make-cgroup_seqfile_release-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm: make drm_minors_cleanup() static
+Subject: make cgroup_seqfile_release() static
 From: Adrian Bunk <bunk@kernel.org>
 
-Male the needlessly global drm_minors_cleanup() static.
+cgroup_seqfile_release() can become static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_drv.c |    2 +-
+ kernel/cgroup.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/drm_drv.c~drm-make-drm_minors_cleanup-static drivers/gpu/drm/drm_drv.c
---- a/drivers/gpu/drm/drm_drv.c~drm-make-drm_minors_cleanup-static
-+++ a/drivers/gpu/drm/drm_drv.c
-@@ -318,7 +318,7 @@ static void drm_cleanup(struct drm_devic
- 		DRM_ERROR("Cannot unload module\n");
+diff -puN kernel/cgroup.c~make-cgroup_seqfile_release-static kernel/cgroup.c
+--- a/kernel/cgroup.c~make-cgroup_seqfile_release-static
++++ a/kernel/cgroup.c
+@@ -1529,7 +1529,7 @@ static int cgroup_seqfile_show(struct se
+ 	return cft->read_seq_string(state->cgroup, cft, m);
  }
  
--int drm_minors_cleanup(int id, void *ptr, void *data)
-+static int drm_minors_cleanup(int id, void *ptr, void *data)
+-int cgroup_seqfile_release(struct inode *inode, struct file *file)
++static int cgroup_seqfile_release(struct inode *inode, struct file *file)
  {
- 	struct drm_minor *minor = ptr;
- 	struct drm_device *dev;
+ 	struct seq_file *seq = file->private_data;
+ 	kfree(seq->private);
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
