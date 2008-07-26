@@ -1,398 +1,284 @@
 From: akpm@linux-foundation.org
-Subject: - omfs-add-file-routines.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:15:21 -0700
-Message-ID: <200807262115.m6QLFLOE019739@imap1.linux-foundation.org>
+Subject: - mn10300-use-the-common-ascii-hex-helpers.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:15:39 -0700
+Message-ID: <200807262115.m6QLFdbE019757@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43600 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53403 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757663AbYGZVPx (ORCPT
+	by vger.kernel.org with ESMTP id S1757672AbYGZVP6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:15:53 -0400
+	Sat, 26 Jul 2008 17:15:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: me@bobcopeland.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     omfs: add file routines
+     mn10300: use the common ascii hex helpers
 has been removed from the -mm tree.  Its filename was
-     omfs-add-file-routines.patch
+     mn10300-use-the-common-ascii-hex-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omfs: add file routines
-From: Bob Copeland <me@bobcopeland.com>
+Subject: mn10300: use the common ascii hex helpers
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Add functions for reading and manipulating the storage of file data in
-the extent-based OMFS.
-
-Signed-off-by: Bob Copeland <me@bobcopeland.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/omfs/file.c |  346 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 346 insertions(+)
+ arch/mn10300/kernel/gdb-stub.c |  108 +++++++++++++------------------
+ 1 file changed, 46 insertions(+), 62 deletions(-)
 
-diff -puN /dev/null fs/omfs/file.c
---- /dev/null
-+++ a/fs/omfs/file.c
-@@ -0,0 +1,346 @@
-+/*
-+ * OMFS (as used by RIO Karma) file operations.
-+ * Copyright (C) 2005 Bob Copeland <me@bobcopeland.com>
-+ * Released under GPL v2.
-+ */
-+
-+#include <linux/version.h>
-+#include <linux/module.h>
-+#include <linux/fs.h>
-+#include <linux/buffer_head.h>
-+#include <linux/mpage.h>
-+#include "omfs.h"
-+
-+static int omfs_sync_file(struct file *file, struct dentry *dentry,
-+		int datasync)
-+{
-+	struct inode *inode = dentry->d_inode;
-+	int err;
-+
-+	err = sync_mapping_buffers(inode->i_mapping);
-+	if (!(inode->i_state & I_DIRTY))
-+		return err;
-+	if (datasync && !(inode->i_state & I_DIRTY_DATASYNC))
-+		return err;
-+	err |= omfs_sync_inode(inode);
-+	return err ? -EIO : 0;
-+}
-+
-+void omfs_make_empty_table(struct buffer_head *bh, int offset)
-+{
-+	struct omfs_extent *oe = (struct omfs_extent *) &bh->b_data[offset];
-+
-+	oe->e_next = ~0ULL;
-+	oe->e_extent_count = cpu_to_be32(1),
-+	oe->e_fill = cpu_to_be32(0x22),
-+	oe->e_entry.e_cluster = ~0ULL;
-+	oe->e_entry.e_blocks = ~0ULL;
-+}
-+
-+int omfs_shrink_inode(struct inode *inode)
-+{
-+	struct omfs_sb_info *sbi = OMFS_SB(inode->i_sb);
-+	struct omfs_extent *oe;
-+	struct omfs_extent_entry *entry;
-+	struct buffer_head *bh;
-+	u64 next, last;
-+	u32 extent_count;
-+	int ret;
-+
-+	/* traverse extent table, freeing each entry that is greater
-+	 * than inode->i_size;
-+	 */
-+	next = inode->i_ino;
-+
-+	/* only support truncate -> 0 for now */
-+	ret = -EIO;
-+	if (inode->i_size != 0)
-+		goto out;
-+
-+	bh = sb_bread(inode->i_sb, clus_to_blk(sbi, next));
-+	if (!bh)
-+		goto out;
-+
-+	oe = (struct omfs_extent *)(&bh->b_data[OMFS_EXTENT_START]);
-+
-+	for (;;) {
-+
-+		if (omfs_is_bad(sbi, (struct omfs_header *) bh->b_data, next)) {
-+			brelse(bh);
-+			goto out;
-+		}
-+
-+		extent_count = be32_to_cpu(oe->e_extent_count);
-+		last = next;
-+		next = be64_to_cpu(oe->e_next);
-+		entry = &oe->e_entry;
-+
-+		/* ignore last entry as it is the terminator */
-+		for (; extent_count > 1; extent_count--) {
-+			u64 start, count;
-+			start = be64_to_cpu(entry->e_cluster);
-+			count = be64_to_cpu(entry->e_blocks);
-+
-+			omfs_clear_range(inode->i_sb, start, (int) count);
-+			entry++;
-+		}
-+		omfs_make_empty_table(bh, (char *) oe - bh->b_data);
-+		mark_buffer_dirty(bh);
-+		brelse(bh);
-+
-+		if (last != inode->i_ino)
-+			omfs_clear_range(inode->i_sb, last, sbi->s_mirrors);
-+
-+		if (next == ~0)
-+			break;
-+
-+		bh = sb_bread(inode->i_sb, clus_to_blk(sbi, next));
-+		if (!bh)
-+			goto out;
-+		oe = (struct omfs_extent *) (&bh->b_data[OMFS_EXTENT_CONT]);
-+	}
-+	ret = 0;
-+out:
-+	return ret;
-+}
-+
-+static void omfs_truncate(struct inode *inode)
-+{
-+	omfs_shrink_inode(inode);
-+	mark_inode_dirty(inode);
-+}
-+
-+/*
-+ * Add new blocks to the current extent, or create new entries/continuations
-+ * as necessary.
-+ */
-+static int omfs_grow_extent(struct inode *inode, struct omfs_extent *oe,
-+			u64 *ret_block)
-+{
-+	struct omfs_extent_entry *terminator;
-+	struct omfs_extent_entry *entry = &oe->e_entry;
-+	struct omfs_sb_info *sbi = OMFS_SB(inode->i_sb);
-+	u32 extent_count = be32_to_cpu(oe->e_extent_count);
-+	u64 new_block = 0;
-+	u32 max_count;
-+	int new_count;
-+	int ret = 0;
-+
-+	/* reached the end of the extent table with no blocks mapped.
-+	 * there are three possibilities for adding: grow last extent,
-+	 * add a new extent to the current extent table, and add a
-+	 * continuation inode.  in last two cases need an allocator for
-+	 * sbi->s_cluster_size
-+	 */
-+
-+	/* TODO: handle holes */
-+
-+	/* should always have a terminator */
-+	if (extent_count < 1)
-+		return -EIO;
-+
-+	/* trivially grow current extent, if next block is not taken */
-+	terminator = entry + extent_count - 1;
-+	if (extent_count > 1) {
-+		entry = terminator-1;
-+		new_block = be64_to_cpu(entry->e_cluster) +
-+			be64_to_cpu(entry->e_blocks);
-+
-+		if (omfs_allocate_block(inode->i_sb, new_block)) {
-+			entry->e_blocks =
-+				cpu_to_be64(be64_to_cpu(entry->e_blocks) + 1);
-+			terminator->e_blocks = ~(cpu_to_be64(
-+				be64_to_cpu(~terminator->e_blocks) + 1));
-+			goto out;
-+		}
-+	}
-+	max_count = (sbi->s_sys_blocksize - OMFS_EXTENT_START -
-+		sizeof(struct omfs_extent)) /
-+		sizeof(struct omfs_extent_entry) + 1;
-+
-+	/* TODO: add a continuation block here */
-+	if (be32_to_cpu(oe->e_extent_count) > max_count-1)
-+		return -EIO;
-+
-+	/* try to allocate a new cluster */
-+	ret = omfs_allocate_range(inode->i_sb, 1, sbi->s_clustersize,
-+		&new_block, &new_count);
-+	if (ret)
-+		goto out_fail;
-+
-+	/* copy terminator down an entry */
-+	entry = terminator;
-+	terminator++;
-+	memcpy(terminator, entry, sizeof(struct omfs_extent_entry));
-+
-+	entry->e_cluster = cpu_to_be64(new_block);
-+	entry->e_blocks = cpu_to_be64((u64) new_count);
-+
-+	terminator->e_blocks = ~(cpu_to_be64(
-+		be64_to_cpu(~terminator->e_blocks) + (u64) new_count));
-+
-+	/* write in new entry */
-+	oe->e_extent_count = cpu_to_be32(1 + be32_to_cpu(oe->e_extent_count));
-+
-+out:
-+	*ret_block = new_block;
-+out_fail:
-+	return ret;
-+}
-+
-+/*
-+ * Scans across the directory table for a given file block number.
-+ * If block not found, return 0.
-+ */
-+static sector_t find_block(struct inode *inode, struct omfs_extent_entry *ent,
-+			sector_t block, int count, int *left)
-+{
-+	/* count > 1 because of terminator */
-+	sector_t searched = 0;
-+	for (; count > 1; count--) {
-+		int numblocks = clus_to_blk(OMFS_SB(inode->i_sb),
-+			be64_to_cpu(ent->e_blocks));
-+
-+		if (block >= searched  &&
-+		    block < searched + numblocks) {
-+			/*
-+			 * found it at cluster + (block - searched)
-+			 * numblocks - (block - searched) is remainder
-+			 */
-+			*left = numblocks - (block - searched);
-+			return clus_to_blk(OMFS_SB(inode->i_sb),
-+				be64_to_cpu(ent->e_cluster)) +
-+				block - searched;
-+		}
-+		searched += numblocks;
-+		ent++;
-+	}
-+	return 0;
-+}
-+
-+static int omfs_get_block(struct inode *inode, sector_t block,
-+			  struct buffer_head *bh_result, int create)
-+{
-+	struct buffer_head *bh;
-+	sector_t next, offset;
-+	int ret;
-+	u64 new_block;
-+	int extent_count;
-+	struct omfs_extent *oe;
-+	struct omfs_extent_entry *entry;
-+	struct omfs_sb_info *sbi = OMFS_SB(inode->i_sb);
-+	int max_blocks = bh_result->b_size >> inode->i_blkbits;
-+	int remain;
-+
-+	ret = -EIO;
-+	bh = sb_bread(inode->i_sb, clus_to_blk(sbi, inode->i_ino));
-+	if (!bh)
-+		goto out;
-+
-+	oe = (struct omfs_extent *)(&bh->b_data[OMFS_EXTENT_START]);
-+	next = inode->i_ino;
-+
-+	for (;;) {
-+
-+		if (omfs_is_bad(sbi, (struct omfs_header *) bh->b_data, next))
-+			goto out_brelse;
-+
-+		extent_count = be32_to_cpu(oe->e_extent_count);
-+		next = be64_to_cpu(oe->e_next);
-+		entry = &oe->e_entry;
-+
-+		offset = find_block(inode, entry, block, extent_count, &remain);
-+		if (offset > 0) {
-+			ret = 0;
-+			map_bh(bh_result, inode->i_sb, offset);
-+			if (remain > max_blocks)
-+				remain = max_blocks;
-+			bh_result->b_size = (remain << inode->i_blkbits);
-+			goto out_brelse;
-+		}
-+		if (next == ~0)
-+			break;
-+
-+		brelse(bh);
-+		bh = sb_bread(inode->i_sb, clus_to_blk(sbi, next));
-+		if (!bh)
-+			goto out;
-+		oe = (struct omfs_extent *) (&bh->b_data[OMFS_EXTENT_CONT]);
-+	}
-+	if (create) {
-+		ret = omfs_grow_extent(inode, oe, &new_block);
-+		if (ret == 0) {
-+			mark_buffer_dirty(bh);
-+			mark_inode_dirty(inode);
-+			map_bh(bh_result, inode->i_sb,
-+					clus_to_blk(sbi, new_block));
-+		}
-+	}
-+out_brelse:
-+	brelse(bh);
-+out:
-+	return ret;
-+}
-+
-+static int omfs_readpage(struct file *file, struct page *page)
-+{
-+	return block_read_full_page(page, omfs_get_block);
-+}
-+
-+static int omfs_readpages(struct file *file, struct address_space *mapping,
-+		struct list_head *pages, unsigned nr_pages)
-+{
-+	return mpage_readpages(mapping, pages, nr_pages, omfs_get_block);
-+}
-+
-+static int omfs_writepage(struct page *page, struct writeback_control *wbc)
-+{
-+	return block_write_full_page(page, omfs_get_block, wbc);
-+}
-+
-+static int
-+omfs_writepages(struct address_space *mapping, struct writeback_control *wbc)
-+{
-+	return mpage_writepages(mapping, wbc, omfs_get_block);
-+}
-+
-+static int omfs_write_begin(struct file *file, struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned flags,
-+			struct page **pagep, void **fsdata)
-+{
-+	*pagep = NULL;
-+	return block_write_begin(file, mapping, pos, len, flags,
-+				pagep, fsdata, omfs_get_block);
-+}
-+
-+static sector_t omfs_bmap(struct address_space *mapping, sector_t block)
-+{
-+	return generic_block_bmap(mapping, block, omfs_get_block);
-+}
-+
-+struct file_operations omfs_file_operations = {
-+	.llseek = generic_file_llseek,
-+	.read = do_sync_read,
-+	.write = do_sync_write,
-+	.aio_read = generic_file_aio_read,
-+	.aio_write = generic_file_aio_write,
-+	.mmap = generic_file_mmap,
-+	.fsync = omfs_sync_file,
-+	.splice_read = generic_file_splice_read,
-+};
-+
-+struct inode_operations omfs_file_inops = {
-+	.truncate = omfs_truncate
-+};
-+
-+struct address_space_operations omfs_aops = {
-+	.readpage = omfs_readpage,
-+	.readpages = omfs_readpages,
-+	.writepage = omfs_writepage,
-+	.writepages = omfs_writepages,
-+	.sync_page = block_sync_page,
-+	.write_begin = omfs_write_begin,
-+	.write_end = generic_write_end,
-+	.bmap = omfs_bmap,
-+};
-+
+diff -puN arch/mn10300/kernel/gdb-stub.c~mn10300-use-the-common-ascii-hex-helpers arch/mn10300/kernel/gdb-stub.c
+--- a/arch/mn10300/kernel/gdb-stub.c~mn10300-use-the-common-ascii-hex-helpers
++++ a/arch/mn10300/kernel/gdb-stub.c
+@@ -163,8 +163,6 @@ static char	input_buffer[BUFMAX];
+ static char	output_buffer[BUFMAX];
+ static char	trans_buffer[BUFMAX];
+ 
+-static const char hexchars[] = "0123456789abcdef";
+-
+ struct gdbstub_bkpt {
+ 	u8	*addr;		/* address of breakpoint */
+ 	u8	len;		/* size of breakpoint */
+@@ -363,8 +361,8 @@ static int putpacket(char *buffer)
+ 		}
+ 
+ 		gdbstub_io_tx_char('#');
+-		gdbstub_io_tx_char(hexchars[checksum >> 4]);
+-		gdbstub_io_tx_char(hexchars[checksum & 0xf]);
++		gdbstub_io_tx_char(hex_asc_hi(checksum));
++		gdbstub_io_tx_char(hex_asc_lo(checksum));
+ 
+ 	} while (gdbstub_io_rx_char(&ch, 0),
+ 		 ch == '-' && (gdbstub_io("### GDB Rx NAK\n"), 0),
+@@ -822,8 +820,7 @@ unsigned char *mem2hex(const void *_mem,
+ 	if ((u32) mem & 1 && count >= 1) {
+ 		if (gdbstub_read_byte(mem, ch) != 0)
+ 			return 0;
+-		*buf++ = hexchars[ch[0] >> 4];
+-		*buf++ = hexchars[ch[0] & 0xf];
++		buf = pack_hex_byte(buf, ch[0]);
+ 		mem++;
+ 		count--;
+ 	}
+@@ -831,10 +828,8 @@ unsigned char *mem2hex(const void *_mem,
+ 	if ((u32) mem & 3 && count >= 2) {
+ 		if (gdbstub_read_word(mem, ch) != 0)
+ 			return 0;
+-		*buf++ = hexchars[ch[0] >> 4];
+-		*buf++ = hexchars[ch[0] & 0xf];
+-		*buf++ = hexchars[ch[1] >> 4];
+-		*buf++ = hexchars[ch[1] & 0xf];
++		buf = pack_hex_byte(buf, ch[0]);
++		buf = pack_hex_byte(buf, ch[1]);
+ 		mem += 2;
+ 		count -= 2;
+ 	}
+@@ -842,14 +837,10 @@ unsigned char *mem2hex(const void *_mem,
+ 	while (count >= 4) {
+ 		if (gdbstub_read_dword(mem, ch) != 0)
+ 			return 0;
+-		*buf++ = hexchars[ch[0] >> 4];
+-		*buf++ = hexchars[ch[0] & 0xf];
+-		*buf++ = hexchars[ch[1] >> 4];
+-		*buf++ = hexchars[ch[1] & 0xf];
+-		*buf++ = hexchars[ch[2] >> 4];
+-		*buf++ = hexchars[ch[2] & 0xf];
+-		*buf++ = hexchars[ch[3] >> 4];
+-		*buf++ = hexchars[ch[3] & 0xf];
++		buf = pack_hex_byte(buf, ch[0]);
++		buf = pack_hex_byte(buf, ch[1]);
++		buf = pack_hex_byte(buf, ch[2]);
++		buf = pack_hex_byte(buf, ch[3]);
+ 		mem += 4;
+ 		count -= 4;
+ 	}
+@@ -857,10 +848,8 @@ unsigned char *mem2hex(const void *_mem,
+ 	if (count >= 2) {
+ 		if (gdbstub_read_word(mem, ch) != 0)
+ 			return 0;
+-		*buf++ = hexchars[ch[0] >> 4];
+-		*buf++ = hexchars[ch[0] & 0xf];
+-		*buf++ = hexchars[ch[1] >> 4];
+-		*buf++ = hexchars[ch[1] & 0xf];
++		buf = pack_hex_byte(buf, ch[0]);
++		buf = pack_hex_byte(buf, ch[1]);
+ 		mem += 2;
+ 		count -= 2;
+ 	}
+@@ -868,8 +857,7 @@ unsigned char *mem2hex(const void *_mem,
+ 	if (count >= 1) {
+ 		if (gdbstub_read_byte(mem, ch) != 0)
+ 			return 0;
+-		*buf++ = hexchars[ch[0] >> 4];
+-		*buf++ = hexchars[ch[0] & 0xf];
++		buf = pack_hex_byte(buf, ch[0]);
+ 	}
+ 
+ 	*buf = 0;
+@@ -1304,14 +1292,14 @@ static int gdbstub(struct pt_regs *regs,
+ 		*ptr++ = 'O';
+ 		ptr = mem2hex(title, ptr, sizeof(title) - 1, 0);
+ 
+-		hx = hexchars[(excep & 0xf000) >> 12];
+-		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
+-		hx = hexchars[(excep & 0x0f00) >> 8];
+-		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
+-		hx = hexchars[(excep & 0x00f0) >> 4];
+-		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
+-		hx = hexchars[(excep & 0x000f)];
+-		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
++		hx = hex_asc_hi(excep >> 8);
++		ptr = pack_hex_byte(ptr, hx);
++		hx = hex_asc_lo(excep >> 8);
++		ptr = pack_hex_byte(ptr, hx);
++		hx = hex_asc_hi(excep);
++		ptr = pack_hex_byte(ptr, hx);
++		hx = hex_asc_lo(excep);
++		ptr = pack_hex_byte(ptr, hx);
+ 
+ 		ptr = mem2hex(crlf, ptr, sizeof(crlf) - 1, 0);
+ 		*ptr = 0;
+@@ -1322,22 +1310,22 @@ static int gdbstub(struct pt_regs *regs,
+ 		*ptr++ = 'O';
+ 		ptr = mem2hex(tbcberr, ptr, sizeof(tbcberr) - 1, 0);
+ 
+-		hx = hexchars[(bcberr & 0xf0000000) >> 28];
+-		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
+-		hx = hexchars[(bcberr & 0x0f000000) >> 24];
+-		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
+-		hx = hexchars[(bcberr & 0x00f00000) >> 20];
+-		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
+-		hx = hexchars[(bcberr & 0x000f0000) >> 16];
+-		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
+-		hx = hexchars[(bcberr & 0x0000f000) >> 12];
+-		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
+-		hx = hexchars[(bcberr & 0x00000f00) >> 8];
+-		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
+-		hx = hexchars[(bcberr & 0x000000f0) >> 4];
+-		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
+-		hx = hexchars[(bcberr & 0x0000000f)];
+-		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
++		hx = hex_asc_hi(bcberr >> 24);
++		ptr = pack_hex_byte(ptr, hx);
++		hx = hex_asc_lo(bcberr >> 24);
++		ptr = pack_hex_byte(ptr, hx);
++		hx = hex_asc_hi(bcberr >> 16);
++		ptr = pack_hex_byte(ptr, hx);
++		hx = hex_asc_lo(bcberr >> 16);
++		ptr = pack_hex_byte(ptr, hx);
++		hx = hex_asc_hi(bcberr >> 8);
++		ptr = pack_hex_byte(ptr, hx);
++		hx = hex_asc_lo(bcberr >> 8);
++		ptr = pack_hex_byte(ptr, hx);
++		hx = hex_asc_hi(bcberr);
++		ptr = pack_hex_byte(ptr, hx);
++		hx = hex_asc_lo(bcberr);
++		ptr = pack_hex_byte(ptr, hx);
+ 
+ 		ptr = mem2hex(crlf, ptr, sizeof(crlf) - 1, 0);
+ 		*ptr = 0;
+@@ -1353,14 +1341,12 @@ static int gdbstub(struct pt_regs *regs,
+ 	 * Send trap type (converted to signal)
+ 	 */
+ 	*ptr++ = 'T';
+-	*ptr++ = hexchars[sigval >> 4];
+-	*ptr++ = hexchars[sigval & 0xf];
++	ptr = pack_hex_byte(ptr, sigval);
+ 
+ 	/*
+ 	 * Send Error PC
+ 	 */
+-	*ptr++ = hexchars[GDB_REGID_PC >> 4];
+-	*ptr++ = hexchars[GDB_REGID_PC & 0xf];
++	ptr = pack_hex_byte(ptr, GDB_REGID_PC);
+ 	*ptr++ = ':';
+ 	ptr = mem2hex(&regs->pc, ptr, 4, 0);
+ 	*ptr++ = ';';
+@@ -1368,8 +1354,7 @@ static int gdbstub(struct pt_regs *regs,
+ 	/*
+ 	 * Send frame pointer
+ 	 */
+-	*ptr++ = hexchars[GDB_REGID_FP >> 4];
+-	*ptr++ = hexchars[GDB_REGID_FP & 0xf];
++	ptr = pack_hex_byte(ptr, GDB_REGID_FP);
+ 	*ptr++ = ':';
+ 	ptr = mem2hex(&regs->a3, ptr, 4, 0);
+ 	*ptr++ = ';';
+@@ -1378,8 +1363,7 @@ static int gdbstub(struct pt_regs *regs,
+ 	 * Send stack pointer
+ 	 */
+ 	ssp = (unsigned long) (regs + 1);
+-	*ptr++ = hexchars[GDB_REGID_SP >> 4];
+-	*ptr++ = hexchars[GDB_REGID_SP & 0xf];
++	ptr = pack_hex_byte(ptr, GDB_REGID_SP);
+ 	*ptr++ = ':';
+ 	ptr = mem2hex(&ssp, ptr, 4, 0);
+ 	*ptr++ = ';';
+@@ -1399,8 +1383,8 @@ packet_waiting:
+ 			/* request repeat of last signal number */
+ 		case '?':
+ 			output_buffer[0] = 'S';
+-			output_buffer[1] = hexchars[sigval >> 4];
+-			output_buffer[2] = hexchars[sigval & 0xf];
++			output_buffer[1] = hex_asc_hi(sigval);
++			output_buffer[2] = hex_asc_lo(sigval);
+ 			output_buffer[3] = 0;
+ 			break;
+ 
+@@ -1838,8 +1822,8 @@ void gdbstub_exit(int status)
+ 
+ 	gdbstub_busy = 1;
+ 	output_buffer[0] = 'W';
+-	output_buffer[1] = hexchars[(status >> 4) & 0x0F];
+-	output_buffer[2] = hexchars[status & 0x0F];
++	output_buffer[1] = hex_asc_hi(status);
++	output_buffer[2] = hex_asc_lo(status);
+ 	output_buffer[3] = 0;
+ 
+ 	gdbstub_io_tx_char('$');
+@@ -1853,8 +1837,8 @@ void gdbstub_exit(int status)
+ 	}
+ 
+ 	gdbstub_io_tx_char('#');
+-	gdbstub_io_tx_char(hexchars[checksum >> 4]);
+-	gdbstub_io_tx_char(hexchars[checksum & 0xf]);
++	gdbstub_io_tx_char(hex_asc_hi(checksum));
++	gdbstub_io_tx_char(hex_asc_lo(checksum));
+ 
+ 	/* make sure the output is flushed, or else RedBoot might clobber it */
+ 	gdbstub_io_tx_flush();
 _
 
-Patches currently in -mm which might be from me@bobcopeland.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-ath5k-fix-beacon-update-deadlock.patch
-ath5k-mask-out-unneeded-interrupts.patch
-ath5k-unify-resets.patch
+linux-next.patch
+cifs-remove-global_extern-macro.patch
+input-ads7846c-sparse-lock-annotation.patch
+mtd-diskonchipc-fix-sparse-endian-warnings.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+olpc-olpc_batteryc-sparse-endian-annotations.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+isdn-use-the-common-ascii-hex-helpers.patch
+net-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
+byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
 
