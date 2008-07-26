@@ -1,60 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - git-block-fix-s390-build.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:06:25 -0700
-Message-ID: <200807262106.m6QL6PR2019281@imap1.linux-foundation.org>
+Subject: - uninline-arch_pick_mmap_layout.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:13:03 -0700
+Message-ID: <200807262113.m6QLD38U019567@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51479 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57240 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757240AbYGZVGg (ORCPT
+	by vger.kernel.org with ESMTP id S1757313AbYGZVNO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:06:36 -0400
+	Sat, 26 Jul 2008 17:13:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bunk@kernel.org, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block: fix s390 build
+     uninline arch_pick_mmap_layout()
 has been removed from the -mm tree.  Its filename was
-     git-block-fix-s390-build.patch
+     uninline-arch_pick_mmap_layout.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-block: fix s390 build
+Subject: uninline arch_pick_mmap_layout()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-init/main.c: In function 'do_pre_smp_initcalls':
-init/main.c:777: error: implicit declaration of function 'init_call_single_data'
+Fix this, on avr32:
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+/home/bunk/linux/kernel-2.6/git/linux-2.6/include/linux/utsname.h:35,
+                 from /home/bunk/linux/kernel-2.6/git/linux-2.6/init/main.c:20:
+/home/bunk/linux/kernel-2.6/git/linux-2.6/include/linux/sched.h: In function 'arch_pick_mmap_layout':
+/home/bunk/linux/kernel-2.6/git/linux-2.6/include/linux/sched.h:2149: error: implicit declaration of function 'PAGE_ALIGN'
+
+Reported-by: Adrian Bunk <bunk@kernel.org>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/sched.h |    9 ---------
+ mm/util.c             |   10 ++++++++++
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/smp.h~git-block-fix-s390-build include/linux/smp.h
---- a/include/linux/smp.h~git-block-fix-s390-build
-+++ a/include/linux/smp.h
-@@ -136,10 +136,13 @@ static inline void smp_send_reschedule(i
- })
- #define smp_call_function_mask(mask, func, info, wait) \
- 			(up_smp_call_function(func, info))
-+#endif /* !SMP */
-+
-+#if !defined(CONFIG_SMP) || !defined(CONFIG_USE_GENERIC_SMP_HELPERS)
- static inline void init_call_single_data(void)
- {
- }
--#endif /* !SMP */
-+#endif
+diff -puN include/linux/sched.h~uninline-arch_pick_mmap_layout include/linux/sched.h
+--- a/include/linux/sched.h~uninline-arch_pick_mmap_layout
++++ a/include/linux/sched.h
+@@ -2139,16 +2139,7 @@ static inline void set_task_cpu(struct t
  
- /*
-  * smp_processor_id(): get the current CPU ID.
+ #endif /* CONFIG_SMP */
+ 
+-#ifdef HAVE_ARCH_PICK_MMAP_LAYOUT
+ extern void arch_pick_mmap_layout(struct mm_struct *mm);
+-#else
+-static inline void arch_pick_mmap_layout(struct mm_struct *mm)
+-{
+-	mm->mmap_base = TASK_UNMAPPED_BASE;
+-	mm->get_unmapped_area = arch_get_unmapped_area;
+-	mm->unmap_area = arch_unmap_area;
+-}
+-#endif
+ 
+ #ifdef CONFIG_TRACING
+ extern void
+diff -puN mm/util.c~uninline-arch_pick_mmap_layout mm/util.c
+--- a/mm/util.c~uninline-arch_pick_mmap_layout
++++ a/mm/util.c
+@@ -1,3 +1,4 @@
++#include <linux/mm.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
+ #include <linux/module.h>
+@@ -136,3 +137,12 @@ char *strndup_user(const char __user *s,
+ 	return p;
+ }
+ EXPORT_SYMBOL(strndup_user);
++
++#ifndef HAVE_ARCH_PICK_MMAP_LAYOUT
++void arch_pick_mmap_layout(struct mm_struct *mm)
++{
++	mm->mmap_base = TASK_UNMAPPED_BASE;
++	mm->get_unmapped_area = arch_get_unmapped_area;
++	mm->unmap_area = arch_unmap_area;
++}
++#endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,7 +113,6 @@ update-smc91x-driver-with-arm-versatile-board-info.patch
 drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
 scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
 git-block-git-rejects.patch
-git-block-fix-s390-build.patch
 git-unionfs.patch
 git-logfs-git-rejects.patch
 git-logfs-fixup.patch
