@@ -1,34 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:15:59 -0700
-Message-ID: <200807262115.m6QLFxln019788@imap1.linux-foundation.org>
+Subject: - mm-readahead-scan-lockless.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:15:57 -0700
+Message-ID: <200807262115.m6QLFvI1019780@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48075 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34105 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757695AbYGZVQ3 (ORCPT
+	by vger.kernel.org with ESMTP id S1757703AbYGZVQb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:16:29 -0400
+	Sat, 26 Jul 2008 17:16:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@suse.de, a.p.zijlstra@chello.nl, benh@kernel.crashing.org, hugh@veritas.com, paulmck@us.ibm.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     radix-tree: add gang_lookup_slot, gang_lookup_slot_tag
+     mm: readahead scan lockless
 has been removed from the -mm tree.  Its filename was
-     radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
+     mm-readahead-scan-lockless.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: radix-tree: add gang_lookup_slot, gang_lookup_slot_tag
+Subject: mm: readahead scan lockless
 From: Nick Piggin <npiggin@suse.de>
 
-Introduce gang_lookup_slot() and gang_lookup_slot_tag() functions, which
-are used by lockless pagecache.
+radix_tree_next_hole() is implemented as a series of radix_tree_lookup()s.
+ So it can be called locklessly, under rcu_read_lock().
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -39,326 +39,25 @@ Reviewed-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |   12 ++
- lib/radix-tree.c           |  178 ++++++++++++++++++++++++++++++-----
- 2 files changed, 166 insertions(+), 24 deletions(-)
+ mm/readahead.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/radix-tree.h~radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag
-+++ a/include/linux/radix-tree.h
-@@ -99,12 +99,15 @@ do {									\
-  *
-  * The notable exceptions to this rule are the following functions:
-  * radix_tree_lookup
-+ * radix_tree_lookup_slot
-  * radix_tree_tag_get
-  * radix_tree_gang_lookup
-+ * radix_tree_gang_lookup_slot
-  * radix_tree_gang_lookup_tag
-+ * radix_tree_gang_lookup_tag_slot
-  * radix_tree_tagged
-  *
-- * The first 4 functions are able to be called locklessly, using RCU. The
-+ * The first 7 functions are able to be called locklessly, using RCU. The
-  * caller must ensure calls to these functions are made within rcu_read_lock()
-  * regions. Other readers (lock-free or otherwise) and modifications may be
-  * running concurrently.
-@@ -159,6 +162,9 @@ void *radix_tree_delete(struct radix_tre
- unsigned int
- radix_tree_gang_lookup(struct radix_tree_root *root, void **results,
- 			unsigned long first_index, unsigned int max_items);
-+unsigned int
-+radix_tree_gang_lookup_slot(struct radix_tree_root *root, void ***results,
-+			unsigned long first_index, unsigned int max_items);
- unsigned long radix_tree_next_hole(struct radix_tree_root *root,
- 				unsigned long index, unsigned long max_scan);
- int radix_tree_preload(gfp_t gfp_mask);
-@@ -173,6 +179,10 @@ unsigned int
- radix_tree_gang_lookup_tag(struct radix_tree_root *root, void **results,
- 		unsigned long first_index, unsigned int max_items,
- 		unsigned int tag);
-+unsigned int
-+radix_tree_gang_lookup_tag_slot(struct radix_tree_root *root, void ***results,
-+		unsigned long first_index, unsigned int max_items,
-+		unsigned int tag);
- int radix_tree_tagged(struct radix_tree_root *root, unsigned int tag);
+diff -puN mm/readahead.c~mm-readahead-scan-lockless mm/readahead.c
+--- a/mm/readahead.c~mm-readahead-scan-lockless
++++ a/mm/readahead.c
+@@ -382,9 +382,9 @@ ondemand_readahead(struct address_space 
+ 	if (hit_readahead_marker) {
+ 		pgoff_t start;
  
- static inline void radix_tree_preload_end(void)
-diff -puN lib/radix-tree.c~radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag
-+++ a/lib/radix-tree.c
-@@ -359,18 +359,17 @@ EXPORT_SYMBOL(radix_tree_insert);
-  *	Returns:  the slot corresponding to the position @index in the
-  *	radix tree @root. This is useful for update-if-exists operations.
-  *
-- *	This function cannot be called under rcu_read_lock, it must be
-- *	excluded from writers, as must the returned slot for subsequent
-- *	use by radix_tree_deref_slot() and radix_tree_replace slot.
-- *	Caller must hold tree write locked across slot lookup and
-- *	replace.
-+ *	This function can be called under rcu_read_lock iff the slot is not
-+ *	modified by radix_tree_replace_slot, otherwise it must be called
-+ *	exclusive from other writers. Any dereference of the slot must be done
-+ *	using radix_tree_deref_slot.
-  */
- void **radix_tree_lookup_slot(struct radix_tree_root *root, unsigned long index)
- {
- 	unsigned int height, shift;
- 	struct radix_tree_node *node, **slot;
+-		read_lock_irq(&mapping->tree_lock);
+-		start = radix_tree_next_hole(&mapping->page_tree, offset, max+1);
+-		read_unlock_irq(&mapping->tree_lock);
++		rcu_read_lock();
++		start = radix_tree_next_hole(&mapping->page_tree, offset,max+1);
++		rcu_read_unlock();
  
--	node = root->rnode;
-+	node = rcu_dereference(root->rnode);
- 	if (node == NULL)
- 		return NULL;
- 
-@@ -390,7 +389,7 @@ void **radix_tree_lookup_slot(struct rad
- 	do {
- 		slot = (struct radix_tree_node **)
- 			(node->slots + ((index>>shift) & RADIX_TREE_MAP_MASK));
--		node = *slot;
-+		node = rcu_dereference(*slot);
- 		if (node == NULL)
- 			return NULL;
- 
-@@ -667,7 +666,7 @@ unsigned long radix_tree_next_hole(struc
- EXPORT_SYMBOL(radix_tree_next_hole);
- 
- static unsigned int
--__lookup(struct radix_tree_node *slot, void **results, unsigned long index,
-+__lookup(struct radix_tree_node *slot, void ***results, unsigned long index,
- 	unsigned int max_items, unsigned long *next_index)
- {
- 	unsigned int nr_found = 0;
-@@ -701,11 +700,9 @@ __lookup(struct radix_tree_node *slot, v
- 
- 	/* Bottom level: grab some items */
- 	for (i = index & RADIX_TREE_MAP_MASK; i < RADIX_TREE_MAP_SIZE; i++) {
--		struct radix_tree_node *node;
- 		index++;
--		node = slot->slots[i];
--		if (node) {
--			results[nr_found++] = rcu_dereference(node);
-+		if (slot->slots[i]) {
-+			results[nr_found++] = &(slot->slots[i]);
- 			if (nr_found == max_items)
- 				goto out;
- 		}
-@@ -759,13 +756,22 @@ radix_tree_gang_lookup(struct radix_tree
- 
- 	ret = 0;
- 	while (ret < max_items) {
--		unsigned int nr_found;
-+		unsigned int nr_found, slots_found, i;
- 		unsigned long next_index;	/* Index of next search */
- 
- 		if (cur_index > max_index)
- 			break;
--		nr_found = __lookup(node, results + ret, cur_index,
-+		slots_found = __lookup(node, (void ***)results + ret, cur_index,
- 					max_items - ret, &next_index);
-+		nr_found = 0;
-+		for (i = 0; i < slots_found; i++) {
-+			struct radix_tree_node *slot;
-+			slot = *(((void ***)results)[ret + i]);
-+			if (!slot)
-+				continue;
-+			results[ret + nr_found] = rcu_dereference(slot);
-+			nr_found++;
-+		}
- 		ret += nr_found;
- 		if (next_index == 0)
- 			break;
-@@ -776,12 +782,71 @@ radix_tree_gang_lookup(struct radix_tree
- }
- EXPORT_SYMBOL(radix_tree_gang_lookup);
- 
-+/**
-+ *	radix_tree_gang_lookup_slot - perform multiple slot lookup on radix tree
-+ *	@root:		radix tree root
-+ *	@results:	where the results of the lookup are placed
-+ *	@first_index:	start the lookup from this key
-+ *	@max_items:	place up to this many items at *results
-+ *
-+ *	Performs an index-ascending scan of the tree for present items.  Places
-+ *	their slots at *@results and returns the number of items which were
-+ *	placed at *@results.
-+ *
-+ *	The implementation is naive.
-+ *
-+ *	Like radix_tree_gang_lookup as far as RCU and locking goes. Slots must
-+ *	be dereferenced with radix_tree_deref_slot, and if using only RCU
-+ *	protection, radix_tree_deref_slot may fail requiring a retry.
-+ */
-+unsigned int
-+radix_tree_gang_lookup_slot(struct radix_tree_root *root, void ***results,
-+			unsigned long first_index, unsigned int max_items)
-+{
-+	unsigned long max_index;
-+	struct radix_tree_node *node;
-+	unsigned long cur_index = first_index;
-+	unsigned int ret;
-+
-+	node = rcu_dereference(root->rnode);
-+	if (!node)
-+		return 0;
-+
-+	if (!radix_tree_is_indirect_ptr(node)) {
-+		if (first_index > 0)
-+			return 0;
-+		results[0] = (void **)&root->rnode;
-+		return 1;
-+	}
-+	node = radix_tree_indirect_to_ptr(node);
-+
-+	max_index = radix_tree_maxindex(node->height);
-+
-+	ret = 0;
-+	while (ret < max_items) {
-+		unsigned int slots_found;
-+		unsigned long next_index;	/* Index of next search */
-+
-+		if (cur_index > max_index)
-+			break;
-+		slots_found = __lookup(node, results + ret, cur_index,
-+					max_items - ret, &next_index);
-+		ret += slots_found;
-+		if (next_index == 0)
-+			break;
-+		cur_index = next_index;
-+	}
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(radix_tree_gang_lookup_slot);
-+
- /*
-  * FIXME: the two tag_get()s here should use find_next_bit() instead of
-  * open-coding the search.
-  */
- static unsigned int
--__lookup_tag(struct radix_tree_node *slot, void **results, unsigned long index,
-+__lookup_tag(struct radix_tree_node *slot, void ***results, unsigned long index,
- 	unsigned int max_items, unsigned long *next_index, unsigned int tag)
- {
- 	unsigned int nr_found = 0;
-@@ -811,11 +876,9 @@ __lookup_tag(struct radix_tree_node *slo
- 			unsigned long j = index & RADIX_TREE_MAP_MASK;
- 
- 			for ( ; j < RADIX_TREE_MAP_SIZE; j++) {
--				struct radix_tree_node *node;
- 				index++;
- 				if (!tag_get(slot, tag, j))
- 					continue;
--				node = slot->slots[j];
- 				/*
- 				 * Even though the tag was found set, we need to
- 				 * recheck that we have a non-NULL node, because
-@@ -826,9 +889,8 @@ __lookup_tag(struct radix_tree_node *slo
- 				 * lookup ->slots[x] without a lock (ie. can't
- 				 * rely on its value remaining the same).
- 				 */
--				if (node) {
--					node = rcu_dereference(node);
--					results[nr_found++] = node;
-+				if (slot->slots[j]) {
-+					results[nr_found++] = &(slot->slots[j]);
- 					if (nr_found == max_items)
- 						goto out;
- 				}
-@@ -887,13 +949,22 @@ radix_tree_gang_lookup_tag(struct radix_
- 
- 	ret = 0;
- 	while (ret < max_items) {
--		unsigned int nr_found;
-+		unsigned int nr_found, slots_found, i;
- 		unsigned long next_index;	/* Index of next search */
- 
- 		if (cur_index > max_index)
- 			break;
--		nr_found = __lookup_tag(node, results + ret, cur_index,
--					max_items - ret, &next_index, tag);
-+		slots_found = __lookup_tag(node, (void ***)results + ret,
-+				cur_index, max_items - ret, &next_index, tag);
-+		nr_found = 0;
-+		for (i = 0; i < slots_found; i++) {
-+			struct radix_tree_node *slot;
-+			slot = *(((void ***)results)[ret + i]);
-+			if (!slot)
-+				continue;
-+			results[ret + nr_found] = rcu_dereference(slot);
-+			nr_found++;
-+		}
- 		ret += nr_found;
- 		if (next_index == 0)
- 			break;
-@@ -905,6 +976,67 @@ radix_tree_gang_lookup_tag(struct radix_
- EXPORT_SYMBOL(radix_tree_gang_lookup_tag);
- 
- /**
-+ *	radix_tree_gang_lookup_tag_slot - perform multiple slot lookup on a
-+ *					  radix tree based on a tag
-+ *	@root:		radix tree root
-+ *	@results:	where the results of the lookup are placed
-+ *	@first_index:	start the lookup from this key
-+ *	@max_items:	place up to this many items at *results
-+ *	@tag:		the tag index (< RADIX_TREE_MAX_TAGS)
-+ *
-+ *	Performs an index-ascending scan of the tree for present items which
-+ *	have the tag indexed by @tag set.  Places the slots at *@results and
-+ *	returns the number of slots which were placed at *@results.
-+ */
-+unsigned int
-+radix_tree_gang_lookup_tag_slot(struct radix_tree_root *root, void ***results,
-+		unsigned long first_index, unsigned int max_items,
-+		unsigned int tag)
-+{
-+	struct radix_tree_node *node;
-+	unsigned long max_index;
-+	unsigned long cur_index = first_index;
-+	unsigned int ret;
-+
-+	/* check the root's tag bit */
-+	if (!root_tag_get(root, tag))
-+		return 0;
-+
-+	node = rcu_dereference(root->rnode);
-+	if (!node)
-+		return 0;
-+
-+	if (!radix_tree_is_indirect_ptr(node)) {
-+		if (first_index > 0)
-+			return 0;
-+		results[0] = (void **)&root->rnode;
-+		return 1;
-+	}
-+	node = radix_tree_indirect_to_ptr(node);
-+
-+	max_index = radix_tree_maxindex(node->height);
-+
-+	ret = 0;
-+	while (ret < max_items) {
-+		unsigned int slots_found;
-+		unsigned long next_index;	/* Index of next search */
-+
-+		if (cur_index > max_index)
-+			break;
-+		slots_found = __lookup_tag(node, results + ret,
-+				cur_index, max_items - ret, &next_index, tag);
-+		ret += slots_found;
-+		if (next_index == 0)
-+			break;
-+		cur_index = next_index;
-+	}
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(radix_tree_gang_lookup_tag_slot);
-+
-+
-+/**
-  *	radix_tree_shrink    -    shrink height of a radix tree to minimal
-  *	@root		radix tree root
-  */
+ 		if (!start || start - offset > max)
+ 			return 0;
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
