@@ -1,40 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: - tracehook-exec.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:16:35 -0700
-Message-ID: <200807262116.m6QLGZFa019843@imap1.linux-foundation.org>
+Subject: - tracehook-force-signal_pending.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:17:03 -0700
+Message-ID: <200807262117.m6QLH3sS019901@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57180 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42850 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757777AbYGZVRQ (ORCPT
+	by vger.kernel.org with ESMTP id S1757884AbYGZVRd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:17:16 -0400
+	Sat, 26 Jul 2008 17:17:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: roland@redhat.com, mingo@elte.hu, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tracehook: exec
+     tracehook: force signal_pending()
 has been removed from the -mm tree.  Its filename was
-     tracehook-exec.patch
+     tracehook-force-signal_pending.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracehook: exec
+Subject: tracehook: force signal_pending()
 From: Roland McGrath <roland@redhat.com>
 
-This moves all the ptrace hooks related to exec into tracehook.h inlines.
+This defines a new hook tracehook_force_sigpending() that lets tracing
+code decide to force TIF_SIGPENDING on in recalc_sigpending().
 
-This also lifts the calls for tracing out of the binfmt load_binary hooks
-into search_binary_handler() after it calls into the binfmt module.  This
-change has no effect, since all the binfmt modules' load_binary functions
-did the call at the end on success, and now search_binary_handler() does
-it immediately after return if successful.  We consolidate the repeated
-code, and binfmt modules no longer need to import ptrace_notify().
+This is not used yet, so it compiles away to nothing for now.  It lays the
+groundwork for new tracing code that can interrupt a task synthetically
+without actually sending a signal.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
@@ -42,203 +40,48 @@ Reviewed-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/ia32/ia32_aout.c |    6 ----
- fs/binfmt_aout.c          |    6 ----
- fs/binfmt_elf.c           |    6 ----
- fs/binfmt_elf_fdpic.c     |    7 -----
- fs/binfmt_flat.c          |    3 --
- fs/binfmt_som.c           |    2 -
- fs/exec.c                 |   12 +++------
- include/linux/tracehook.h |   46 ++++++++++++++++++++++++++++++++++++
- 8 files changed, 50 insertions(+), 38 deletions(-)
+ include/linux/tracehook.h |   14 ++++++++++++++
+ kernel/signal.c           |    4 +++-
+ 2 files changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/ia32/ia32_aout.c~tracehook-exec arch/x86/ia32/ia32_aout.c
---- a/arch/x86/ia32/ia32_aout.c~tracehook-exec
-+++ a/arch/x86/ia32/ia32_aout.c
-@@ -441,12 +441,6 @@ beyond_if:
- 	regs->r8 = regs->r9 = regs->r10 = regs->r11 =
- 	regs->r12 = regs->r13 = regs->r14 = regs->r15 = 0;
- 	set_fs(USER_DS);
--	if (unlikely(current->ptrace & PT_PTRACED)) {
--		if (current->ptrace & PT_TRACE_EXEC)
--			ptrace_notify((PTRACE_EVENT_EXEC << 8) | SIGTRAP);
--		else
--			send_sig(SIGTRAP, current, 0);
--	}
- 	return 0;
- }
- 
-diff -puN fs/binfmt_aout.c~tracehook-exec fs/binfmt_aout.c
---- a/fs/binfmt_aout.c~tracehook-exec
-+++ a/fs/binfmt_aout.c
-@@ -444,12 +444,6 @@ beyond_if:
- 	regs->gp = ex.a_gpvalue;
- #endif
- 	start_thread(regs, ex.a_entry, current->mm->start_stack);
--	if (unlikely(current->ptrace & PT_PTRACED)) {
--		if (current->ptrace & PT_TRACE_EXEC)
--			ptrace_notify ((PTRACE_EVENT_EXEC << 8) | SIGTRAP);
--		else
--			send_sig(SIGTRAP, current, 0);
--	}
- 	return 0;
- }
- 
-diff -puN fs/binfmt_elf.c~tracehook-exec fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~tracehook-exec
-+++ a/fs/binfmt_elf.c
-@@ -1003,12 +1003,6 @@ static int load_elf_binary(struct linux_
- #endif
- 
- 	start_thread(regs, elf_entry, bprm->p);
--	if (unlikely(current->ptrace & PT_PTRACED)) {
--		if (current->ptrace & PT_TRACE_EXEC)
--			ptrace_notify ((PTRACE_EVENT_EXEC << 8) | SIGTRAP);
--		else
--			send_sig(SIGTRAP, current, 0);
--	}
- 	retval = 0;
- out:
- 	kfree(loc);
-diff -puN fs/binfmt_elf_fdpic.c~tracehook-exec fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~tracehook-exec
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -433,13 +433,6 @@ static int load_elf_fdpic_binary(struct 
- 	entryaddr = interp_params.entry_addr ?: exec_params.entry_addr;
- 	start_thread(regs, entryaddr, current->mm->start_stack);
- 
--	if (unlikely(current->ptrace & PT_PTRACED)) {
--		if (current->ptrace & PT_TRACE_EXEC)
--			ptrace_notify((PTRACE_EVENT_EXEC << 8) | SIGTRAP);
--		else
--			send_sig(SIGTRAP, current, 0);
--	}
--
- 	retval = 0;
- 
- error:
-diff -puN fs/binfmt_flat.c~tracehook-exec fs/binfmt_flat.c
---- a/fs/binfmt_flat.c~tracehook-exec
-+++ a/fs/binfmt_flat.c
-@@ -920,9 +920,6 @@ static int load_flat_binary(struct linux
- 	
- 	start_thread(regs, start_addr, current->mm->start_stack);
- 
--	if (current->ptrace & PT_PTRACED)
--		send_sig(SIGTRAP, current, 0);
--
- 	return 0;
- }
- 
-diff -puN fs/binfmt_som.c~tracehook-exec fs/binfmt_som.c
---- a/fs/binfmt_som.c~tracehook-exec
-+++ a/fs/binfmt_som.c
-@@ -274,8 +274,6 @@ load_som_binary(struct linux_binprm * bp
- 	map_hpux_gateway_page(current,current->mm);
- 
- 	start_thread_som(regs, som_entry, bprm->p);
--	if (current->ptrace & PT_PTRACED)
--		send_sig(SIGTRAP, current, 0);
- 	return 0;
- 
- 	/* error cleanup */
-diff -puN fs/exec.c~tracehook-exec fs/exec.c
---- a/fs/exec.c~tracehook-exec
-+++ a/fs/exec.c
-@@ -42,13 +42,13 @@
- #include <linux/module.h>
- #include <linux/namei.h>
- #include <linux/proc_fs.h>
--#include <linux/ptrace.h>
- #include <linux/mount.h>
- #include <linux/security.h>
- #include <linux/syscalls.h>
- #include <linux/tsacct_kern.h>
- #include <linux/cn_proc.h>
- #include <linux/audit.h>
-+#include <linux/tracehook.h>
- 
- #include <asm/uaccess.h>
- #include <asm/mmu_context.h>
-@@ -1071,13 +1071,8 @@ EXPORT_SYMBOL(prepare_binprm);
- 
- static int unsafe_exec(struct task_struct *p)
- {
--	int unsafe = 0;
--	if (p->ptrace & PT_PTRACED) {
--		if (p->ptrace & PT_PTRACE_CAP)
--			unsafe |= LSM_UNSAFE_PTRACE_CAP;
--		else
--			unsafe |= LSM_UNSAFE_PTRACE;
--	}
-+	int unsafe = tracehook_unsafe_exec(p);
-+
- 	if (atomic_read(&p->fs->count) > 1 ||
- 	    atomic_read(&p->files->count) > 1 ||
- 	    atomic_read(&p->sighand->count) > 1)
-@@ -1214,6 +1209,7 @@ int search_binary_handler(struct linux_b
- 			read_unlock(&binfmt_lock);
- 			retval = fn(bprm, regs);
- 			if (retval >= 0) {
-+				tracehook_report_exec(fmt, bprm, regs);
- 				put_binfmt(fmt);
- 				allow_write_access(bprm->file);
- 				if (bprm->file)
-diff -puN include/linux/tracehook.h~tracehook-exec include/linux/tracehook.h
---- a/include/linux/tracehook.h~tracehook-exec
+diff -puN include/linux/tracehook.h~tracehook-force-signal_pending include/linux/tracehook.h
+--- a/include/linux/tracehook.h~tracehook-force-signal_pending
 +++ a/include/linux/tracehook.h
-@@ -48,5 +48,51 @@
+@@ -423,6 +423,20 @@ static inline int tracehook_consider_fat
+ }
  
- #include <linux/sched.h>
- #include <linux/ptrace.h>
-+#include <linux/security.h>
-+struct linux_binprm;
-+
-+/**
-+ * tracehook_unsafe_exec - check for exec declared unsafe due to tracing
-+ * @task:		current task doing exec
+ /**
++ * tracehook_force_sigpending - let tracing force signal_pending(current) on
 + *
-+ * Return %LSM_UNSAFE_* bits applied to an exec because of tracing.
++ * Called when recomputing our signal_pending() flag.  Return nonzero
++ * to force the signal_pending() flag on, so that tracehook_get_signal()
++ * will be called before the next return to user mode.
 + *
-+ * Called with task_lock() held on @task.
++ * Called with @current->sighand->siglock held.
 + */
-+static inline int tracehook_unsafe_exec(struct task_struct *task)
++static inline int tracehook_force_sigpending(void)
 +{
-+	int unsafe = 0;
-+	int ptrace = task_ptrace(task);
-+	if (ptrace & PT_PTRACED) {
-+		if (ptrace & PT_PTRACE_CAP)
-+			unsafe |= LSM_UNSAFE_PTRACE_CAP;
-+		else
-+			unsafe |= LSM_UNSAFE_PTRACE;
-+	}
-+	return unsafe;
++	return 0;
 +}
 +
 +/**
-+ * tracehook_report_exec - a successful exec was completed
-+ * @fmt:		&struct linux_binfmt that performed the exec
-+ * @bprm:		&struct linux_binprm containing exec details
-+ * @regs:		user-mode register state
-+ *
-+ * An exec just completed, we are shortly going to return to user mode.
-+ * The freshly initialized register state can be seen and changed in @regs.
-+ * The name, file and other pointers in @bprm are still on hand to be
-+ * inspected, but will be freed as soon as this returns.
-+ *
-+ * Called with no locks, but with some kernel resources held live
-+ * and a reference on @fmt->module.
-+ */
-+static inline void tracehook_report_exec(struct linux_binfmt *fmt,
-+					 struct linux_binprm *bprm,
-+					 struct pt_regs *regs)
-+{
-+	if (!ptrace_event(PT_TRACE_EXEC, PTRACE_EVENT_EXEC, 0) &&
-+	    unlikely(task_ptrace(current) & PT_PTRACED))
-+		send_sig(SIGTRAP, current, 0);
-+}
+  * tracehook_get_signal - deliver synthetic signal to traced task
+  * @task:		@current
+  * @regs:		task_pt_regs(@current)
+diff -puN kernel/signal.c~tracehook-force-signal_pending kernel/signal.c
+--- a/kernel/signal.c~tracehook-force-signal_pending
++++ a/kernel/signal.c
+@@ -134,7 +134,9 @@ void recalc_sigpending_and_wake(struct t
  
- #endif	/* <linux/tracehook.h> */
+ void recalc_sigpending(void)
+ {
+-	if (!recalc_sigpending_tsk(current) && !freezing(current))
++	if (unlikely(tracehook_force_sigpending()))
++		set_thread_flag(TIF_SIGPENDING);
++	else if (!recalc_sigpending_tsk(current) && !freezing(current))
+ 		clear_thread_flag(TIF_SIGPENDING);
+ 
+ }
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
