@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-remove-unused-variable-warning-checkpatch-fixes.patch added to -mm tree
-Date: Sat, 26 Jul 2008 12:44:37 -0700
-Message-ID: <200807261944.m6QJibuv016268@imap1.linux-foundation.org>
+Subject: + git-block-git-rejects.patch added to -mm tree
+Date: Sat, 26 Jul 2008 14:05:53 -0700
+Message-ID: <200807262105.m6QL5rjs019260@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35040 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51553 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752183AbYGZTok (ORCPT
+	by vger.kernel.org with ESMTP id S1755202AbYGZVF4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 15:44:40 -0400
+	Sat, 26 Jul 2008 17:05:56 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6QL5rWl001047
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sat, 26 Jul 2008 14:05:54 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, righi.andrea@gmail.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     hugetlb-remove-unused-variable-warning-checkpatch-fixes
+     git-block-git-rejects
 has been added to the -mm tree.  Its filename is
-     hugetlb-remove-unused-variable-warning-checkpatch-fixes.patch
+     git-block-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +38,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb-remove-unused-variable-warning-checkpatch-fixes
+Subject: git-block-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#25: FILE: include/linux/hugetlb.h:278:
-+        return 1;$
-
-total: 1 errors, 0 warnings, 11 lines checked
-
-./patches/hugetlb-remove-unused-variable-warning.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andrea Righi <righi.andrea@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/splice.c |   33 ---------------------------------
+ 1 file changed, 33 deletions(-)
 
-diff -puN include/linux/hugetlb.h~hugetlb-remove-unused-variable-warning-checkpatch-fixes include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-remove-unused-variable-warning-checkpatch-fixes
-+++ a/include/linux/hugetlb.h
-@@ -275,7 +275,7 @@ struct hstate {};
- #define huge_page_shift(h) PAGE_SHIFT
- static inline unsigned int pages_per_huge_page(struct hstate *h)
- {
--        return 1;
-+	return 1;
+diff -puN fs/splice.c~git-block-git-rejects fs/splice.c
+--- a/fs/splice.c~git-block-git-rejects
++++ a/fs/splice.c
+@@ -1162,38 +1162,6 @@ static long do_splice(struct file *in, l
  }
- #endif
  
+ /*
+-<<<<<<< HEAD:fs/splice.c
+-=======
+- * Do a copy-from-user while holding the mmap_semaphore for reading, in a
+- * manner safe from deadlocking with simultaneous mmap() (grabbing mmap_sem
+- * for writing) and page faulting on the user memory pointed to by src.
+- * This assumes that we will very rarely hit the partial != 0 path, or this
+- * will not be a win.
+- */
+-static int copy_from_user_mmap_sem(void *dst, const void __user *src, size_t n)
+-{
+-	int partial;
+-
+-	if (!access_ok(VERIFY_READ, src, n))
+-		return -EFAULT;
+-
+-	pagefault_disable();
+-	partial = __copy_from_user_inatomic(dst, src, n);
+-	pagefault_enable();
+-
+-	/*
+-	 * Didn't copy everything, drop the mmap_sem and do a faulting copy
+-	 */
+-	if (unlikely(partial)) {
+-		up_read(&current->mm->mmap_sem);
+-		partial = copy_from_user(dst, src, n);
+-		down_read(&current->mm->mmap_sem);
+-	}
+-
+-	return partial;
+-}
+-
+-/*
+  * Just copy the data to user space
+  */
+ static int pipe_to_user_copy(struct pipe_inode_info *pipe,
+@@ -1413,7 +1381,6 @@ static long vmsplice_to_user(struct file
+ }
+ 
+ /*
+->>>>>>> FETCH_HEAD:fs/splice.c
+  * Map an iov into an array of pages and offset/length tupples. With the
+  * partial_page structure, we can map several non-contiguous ranges into
+  * our ones pages[] map instead of splitting that operation into pieces.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-drivers-mmc-host-sdhcih-needs-scatterlisth.patch
-uninline-arch_pick_mmap_layout.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary.patch
-tpm-increase-size-of-internal-tpm-response-buffers.patch
-memstick-allow-set_param-method-to-return-an-error-code.patch
-memstick-use-fully-asynchronous-request-processing.patch
-full-conversion-to-early_initcall-interface-remove-old-interface.patch
-mm-introduce-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast.patch
-mm-speculative-page-references.patch
-slb-drop-kmem-cache-argument-from-constructor.patch
-video-console-sticonrec-make-code-static.patch
 hugetlb-remove-unused-variable-warning-checkpatch-fixes.patch
 seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
@@ -109,12 +125,16 @@ sundance-set-carrier-status-on-link-change-events.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
 scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
+git-block-git-rejects.patch
+git-block-ia64-build-fix.patch
+git-block-fix-s390-build.patch
 git-unionfs.patch
 git-logfs-git-rejects.patch
 git-logfs-fixup.patch
 drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
 drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
 drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
+git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
 mmu-notifiers-add-mm_take_all_locks-operation.patch
