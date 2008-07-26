@@ -1,160 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: - use-warn-in-lib.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:16:24 -0700
-Message-ID: <200807262116.m6QLGOBV019827@imap1.linux-foundation.org>
+Subject: - x86-support-1gb-hugepages-with-get_user_pages_lockless.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:15:55 -0700
+Message-ID: <200807262115.m6QLFtpL019777@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46136 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54649 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757686AbYGZVQ0 (ORCPT
+	by vger.kernel.org with ESMTP id S1757672AbYGZVQU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:16:26 -0400
+	Sat, 26 Jul 2008 17:16:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arjan@linux.intel.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, andi@firstfloor.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Use WARN() in lib/
+     x86: support 1GB hugepages with get_user_pages_lockless()
 has been removed from the -mm tree.  Its filename was
-     use-warn-in-lib.patch
+     x86-support-1gb-hugepages-with-get_user_pages_lockless.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use WARN() in lib/
-From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: x86: support 1GB hugepages with get_user_pages_lockless()
+From: Nick Piggin <npiggin@suse.de>
 
-Use WARN() instead of a printk+WARN_ON() pair; this way the message becomes
-part of the warning section for better reporting/collection.  In addition, one
-of the if() clauses collapes into the WARN() entirely now.
-
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/debugobjects.c   |   15 +++++----------
- lib/iomap.c          |    3 +--
- lib/kobject_uevent.c |    6 ++----
- lib/plist.c          |   13 +++++++------
- 4 files changed, 15 insertions(+), 22 deletions(-)
+ arch/x86/mm/gup.c |   43 ++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 40 insertions(+), 3 deletions(-)
 
-diff -puN lib/debugobjects.c~use-warn-in-lib lib/debugobjects.c
---- a/lib/debugobjects.c~use-warn-in-lib
-+++ a/lib/debugobjects.c
-@@ -205,9 +205,8 @@ static void debug_print_object(struct de
+diff -puN arch/x86/mm/gup.c~x86-support-1gb-hugepages-with-get_user_pages_lockless arch/x86/mm/gup.c
+--- a/arch/x86/mm/gup.c~x86-support-1gb-hugepages-with-get_user_pages_lockless
++++ a/arch/x86/mm/gup.c
+@@ -124,7 +124,7 @@ static noinline int gup_huge_pmd(pmd_t p
  
- 	if (limit < 5 && obj->descr != descr_test) {
- 		limit++;
--		printk(KERN_ERR "ODEBUG: %s %s object type: %s\n", msg,
-+		WARN(1, KERN_ERR "ODEBUG: %s %s object type: %s\n", msg,
- 		       obj_states[obj->state], obj->descr->name);
--		WARN_ON(1);
- 	}
- 	debug_objects_warnings++;
- }
-@@ -733,26 +732,22 @@ check_results(void *addr, enum debug_obj
- 
- 	obj = lookup_object(addr, db);
- 	if (!obj && state != ODEBUG_STATE_NONE) {
--		printk(KERN_ERR "ODEBUG: selftest object not found\n");
--		WARN_ON(1);
-+		WARN(1, KERN_ERR "ODEBUG: selftest object not found\n");
- 		goto out;
- 	}
- 	if (obj && obj->state != state) {
--		printk(KERN_ERR "ODEBUG: selftest wrong state: %d != %d\n",
-+		WARN(1, KERN_ERR "ODEBUG: selftest wrong state: %d != %d\n",
- 		       obj->state, state);
--		WARN_ON(1);
- 		goto out;
- 	}
- 	if (fixups != debug_objects_fixups) {
--		printk(KERN_ERR "ODEBUG: selftest fixups failed %d != %d\n",
-+		WARN(1, KERN_ERR "ODEBUG: selftest fixups failed %d != %d\n",
- 		       fixups, debug_objects_fixups);
--		WARN_ON(1);
- 		goto out;
- 	}
- 	if (warnings != debug_objects_warnings) {
--		printk(KERN_ERR "ODEBUG: selftest warnings failed %d != %d\n",
-+		WARN(1, KERN_ERR "ODEBUG: selftest warnings failed %d != %d\n",
- 		       warnings, debug_objects_warnings);
--		WARN_ON(1);
- 		goto out;
- 	}
- 	res = 0;
-diff -puN lib/iomap.c~use-warn-in-lib lib/iomap.c
---- a/lib/iomap.c~use-warn-in-lib
-+++ a/lib/iomap.c
-@@ -40,8 +40,7 @@ static void bad_io_access(unsigned long 
- 	static int count = 10;
- 	if (count) {
- 		count--;
--		printk(KERN_ERR "Bad IO access at port %#lx (%s)\n", port, access);
--		WARN_ON(1);
-+		WARN(1, KERN_ERR "Bad IO access at port %#lx (%s)\n", port, access);
- 	}
+ 	refs = 0;
+ 	head = pte_page(pte);
+-	page = head + ((addr & ~HPAGE_MASK) >> PAGE_SHIFT);
++	page = head + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
+ 	do {
+ 		VM_BUG_ON(compound_head(page) != head);
+ 		pages[*nr] = page;
+@@ -162,6 +162,38 @@ static int gup_pmd_range(pud_t pud, unsi
+ 	return 1;
  }
  
-diff -puN lib/kobject_uevent.c~use-warn-in-lib lib/kobject_uevent.c
---- a/lib/kobject_uevent.c~use-warn-in-lib
-+++ a/lib/kobject_uevent.c
-@@ -285,8 +285,7 @@ int add_uevent_var(struct kobj_uevent_en
- 	int len;
- 
- 	if (env->envp_idx >= ARRAY_SIZE(env->envp)) {
--		printk(KERN_ERR "add_uevent_var: too many keys\n");
--		WARN_ON(1);
-+		WARN(1, KERN_ERR "add_uevent_var: too many keys\n");
- 		return -ENOMEM;
- 	}
- 
-@@ -297,8 +296,7 @@ int add_uevent_var(struct kobj_uevent_en
- 	va_end(args);
- 
- 	if (len >= (sizeof(env->buf) - env->buflen)) {
--		printk(KERN_ERR "add_uevent_var: buffer size too small\n");
--		WARN_ON(1);
-+		WARN(1, KERN_ERR "add_uevent_var: buffer size too small\n");
- 		return -ENOMEM;
- 	}
- 
-diff -puN lib/plist.c~use-warn-in-lib lib/plist.c
---- a/lib/plist.c~use-warn-in-lib
-+++ a/lib/plist.c
-@@ -31,12 +31,13 @@
- static void plist_check_prev_next(struct list_head *t, struct list_head *p,
- 				  struct list_head *n)
++static noinline int gup_huge_pud(pud_t pud, unsigned long addr,
++		unsigned long end, int write, struct page **pages, int *nr)
++{
++	unsigned long mask;
++	pte_t pte = *(pte_t *)&pud;
++	struct page *head, *page;
++	int refs;
++
++	mask = _PAGE_PRESENT|_PAGE_USER;
++	if (write)
++		mask |= _PAGE_RW;
++	if ((pte_val(pte) & mask) != mask)
++		return 0;
++	/* hugepages are never "special" */
++	VM_BUG_ON(pte_val(pte) & _PAGE_SPECIAL);
++	VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
++
++	refs = 0;
++	head = pte_page(pte);
++	page = head + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
++	do {
++		VM_BUG_ON(compound_head(page) != head);
++		pages[*nr] = page;
++		(*nr)++;
++		page++;
++		refs++;
++	} while (addr += PAGE_SIZE, addr != end);
++	get_head_page_multiple(head, refs);
++
++	return 1;
++}
++
+ static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end,
+ 			int write, struct page **pages, int *nr)
  {
--	if (n->prev != p || p->next != n) {
--		printk("top: %p, n: %p, p: %p\n", t, t->next, t->prev);
--		printk("prev: %p, n: %p, p: %p\n", p, p->next, p->prev);
--		printk("next: %p, n: %p, p: %p\n", n, n->next, n->prev);
--		WARN_ON(1);
--	}
-+	WARN(n->prev != p || p->next != n,
-+			"top: %p, n: %p, p: %p\n"
-+			"prev: %p, n: %p, p: %p\n"
-+			"next: %p, n: %p, p: %p\n",
-+			 t, t->next, t->prev,
-+			p, p->next, p->prev,
-+			n, n->next, n->prev);
- }
+@@ -175,8 +207,13 @@ static int gup_pud_range(pgd_t pgd, unsi
+ 		next = pud_addr_end(addr, end);
+ 		if (pud_none(pud))
+ 			return 0;
+-		if (!gup_pmd_range(pud, addr, next, write, pages, nr))
+-			return 0;
++		if (unlikely(pud_large(pud))) {
++			if (!gup_huge_pud(pud, addr, next, write, pages, nr))
++				return 0;
++		} else {
++			if (!gup_pmd_range(pud, addr, next, write, pages, nr))
++				return 0;
++		}
+ 	} while (pudp++, addr = next, addr != end);
  
- static void plist_check_list(struct list_head *top)
+ 	return 1;
 _
 
-Patches currently in -mm which might be from arjan@linux.intel.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
 linux-next.patch
-via-velocity-fix-sleep-with-spinlock-bug-during-mtu-change.patch
-modules-extend-initcall_debug-functionality-to-the-module-loader.patch
-use-warn-in-kernel-lockdepc.patch
-use-warn-in-arch-x86-mm-ioremapc.patch
-use-warn-in-arch-x86-mm-pageattrc.patch
-use-warn-in-arch-x86-kernel.patch
+mmu-notifiers-add-list_del_init_rcu.patch
+mmu-notifiers-add-mm_take_all_locks-operation.patch
+mmu-notifier-core.patch
+powerpc-implement-pte_special.patch
+powerpc-implement-pte_special-update.patch
+powerpc-lockless-get_user_pages.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-fix.patch
+mlock-mlocked-pages-are-unevictable-fix-3.patch
+mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+reiser4.patch
+likeliness-accounting-change-and-cleanup.patch
 
