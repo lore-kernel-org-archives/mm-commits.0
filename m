@@ -1,82 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-mfd-tc6393xbc-doesnt-compile-on-i386.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 19:10:38 -0700
-Message-ID: <200807260223.m6Q2NK7l011222@imap1.linux-foundation.org>
+Subject: + drivers-mmc-host-sdhcih-needs-scatterlisth.patch added to -mm tree
+Date: Fri, 25 Jul 2008 19:28:37 -0700
+Message-ID: <200807260228.m6Q2SbVG011382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37281 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49937 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752316AbYGZCXi (ORCPT
+	by vger.kernel.org with ESMTP id S1752464AbYGZC2o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 22:23:38 -0400
+	Fri, 25 Jul 2008 22:28:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dbaryshkov@gmail.com, rmk@arm.linux.org.uk, sameo@openedhand.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, drzeus@drzeus.cx
 
 
 The patch titled
-     drivers/mfd/tc6393xb.c doesn't compile on i386
-has been removed from the -mm tree.  Its filename was
-     drivers-mfd-tc6393xbc-doesnt-compile-on-i386.patch
+     drivers/mmc/host/sdhci.h needs scatterlist.h
+has been added to the -mm tree.  Its filename is
+     drivers-mmc-host-sdhcih-needs-scatterlisth.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mfd/tc6393xb.c doesn't compile on i386
+Subject: drivers/mmc/host/sdhci.h needs scatterlist.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mfd/tc6393xb.c:93: error: field 'gpio' has incomplete type
-drivers/mfd/tc6393xb.c: In function 'tc6393xb_gpio_get':
-drivers/mfd/tc6393xb.c:171: warning: type defaults to 'int' in declaration of '__mptr'
-drivers/mfd/tc6393xb.c:171: warning: initialization from incompatible pointer type
-drivers/mfd/tc6393xb.c: In function '__tc6393xb_gpio_set':
-drivers/mfd/tc6393xb.c:181: warning: type defaults to 'int' in declaration of '__mptr'
-drivers/mfd/tc6393xb.c:181: warning: initialization from incompatible pointer type
-drivers/mfd/tc6393xb.c: In function 'tc6393xb_gpio_set':
-drivers/mfd/tc6393xb.c:196: warning: type defaults to 'int' in declaration of '__mptr'
-drivers/mfd/tc6393xb.c:196: warning: initialization from incompatible pointer type
-drivers/mfd/tc6393xb.c: In function 'tc6393xb_gpio_direction_input':
-drivers/mfd/tc6393xb.c:209: warning: type defaults to 'int' in declaration of '__mptr'
-drivers/mfd/tc6393xb.c:209: warning: initialization from incompatible pointer type
-drivers/mfd/tc6393xb.c: In function 'tc6393xb_gpio_direction_output':
-drivers/mfd/tc6393xb.c:227: warning: type defaults to 'int' in declaration of '__mptr'
-drivers/mfd/tc6393xb.c:227: warning: initialization from incompatible pointer type
-drivers/mfd/tc6393xb.c: In function 'tc6393xb_register_gpio':
-drivers/mfd/tc6393xb.c:254: error: implicit declaration of function 'gpiochip_add'
-drivers/mfd/tc6393xb.c: In function 'tc6393xb_attach_irq':
-drivers/mfd/tc6393xb.c:324: error: implicit declaration of function 'set_irq_flags'
-drivers/mfd/tc6393xb.c:324: error: 'IRQF_VALID' undeclared (first use in this function)
-drivers/mfd/tc6393xb.c:324: error: (Each undeclared identifier is reported only once
-drivers/mfd/tc6393xb.c:324: error: for each function it appears in.)
-drivers/mfd/tc6393xb.c:324: error: 'IRQF_PROBE' undeclared (first use in this function)
-drivers/mfd/tc6393xb.c:327: error: 'IRQT_FALLING' undeclared (first use in this function)
-drivers/mfd/tc6393xb.c: In function 'tc6393xb_probe':
-drivers/mfd/tc6393xb.c:481: error: implicit declaration of function 'gpiochip_remove'
+alpha:
 
-Something like this...
+drivers/mmc/host/sdhci.h:242: error: field 'sg_miter' has incomplete type
 
-Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Samuel Ortiz <sameo@openedhand.com>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/mmc/host/sdhci.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/mfd/Kconfig~drivers-mfd-tc6393xbc-doesnt-compile-on-i386 drivers/mfd/Kconfig
---- a/drivers/mfd/Kconfig~drivers-mfd-tc6393xbc-doesnt-compile-on-i386
-+++ a/drivers/mfd/Kconfig
-@@ -44,6 +44,7 @@ config HTC_EGPIO
+diff -puN drivers/mmc/host/sdhci.h~drivers-mmc-host-sdhcih-needs-scatterlisth drivers/mmc/host/sdhci.h
+--- a/drivers/mmc/host/sdhci.h~drivers-mmc-host-sdhcih-needs-scatterlisth
++++ a/drivers/mmc/host/sdhci.h
+@@ -9,6 +9,8 @@
+  * your option) any later version.
+  */
  
- config HTC_PASIC3
- 	tristate "HTC PASIC3 LED/DS1WM chip support"
-+	depends on ARM
- 	help
- 	  This core driver provides register access for the LED/DS1WM
- 	  chips labeled "AIC2" and "AIC3", found on HTC Blueangel and
++#include <linux/scatterlist.h>
++
+ /*
+  * Controller registers
+  */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -164,4 +147,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+drivers-mmc-host-sdhcih-needs-scatterlisth.patch
 
