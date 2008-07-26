@@ -1,127 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: - x86-implement-pte_special.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:15:40 -0700
-Message-ID: <200807262115.m6QLFe2T019760@imap1.linux-foundation.org>
+Subject: - hugetlb-remove-unused-variable-warning-checkpatch-fixes.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 15:01:24 -0700
+Message-ID: <200807262201.m6QM1Ors021579@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45417 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757779AbYGZV12 (ORCPT
+	by vger.kernel.org with ESMTP id S1756109AbYGZWB1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:27:28 -0400
+	Sat, 26 Jul 2008 18:01:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, a.p.zijlstra@chello.nl, andi@firstfloor.org, apw@shadowen.org, hugh@veritas.com, jens.axboe@oracle.com, mingo@elte.hu, pbadari@us.ibm.com, shaggy@austin.ibm.com, tglx
+To: akpm@linux-foundation.org, righi.andrea@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: implement pte_special
+     hugetlb-remove-unused-variable-warning-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     x86-implement-pte_special.patch
+     hugetlb-remove-unused-variable-warning-checkpatch-fixes.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into hugetlb-remove-unused-variable-warning.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: implement pte_special
-From: Nick Piggin <npiggin@suse.de>
+Subject: hugetlb-remove-unused-variable-warning-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Implement the pte_special bit for x86.  This is required to support
-lockless get_user_pages, because we need to know whether or not we can
-refcount a particular page given only its pte (and no vma).
+ERROR: code indent should use tabs where possible
+#25: FILE: include/linux/hugetlb.h:278:
++        return 1;$
 
-[hugh@veritas.com: fix a BUG]
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Zach Brown <zach.brown@oracle.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Reviewed-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
+total: 1 errors, 0 warnings, 11 lines checked
+
+./patches/hugetlb-remove-unused-variable-warning.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andrea Righi <righi.andrea@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/pgtable.h |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ include/linux/hugetlb.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-x86/pgtable.h~x86-implement-pte_special include/asm-x86/pgtable.h
---- a/include/asm-x86/pgtable.h~x86-implement-pte_special
-+++ a/include/asm-x86/pgtable.h
-@@ -18,6 +18,7 @@
- #define _PAGE_BIT_UNUSED2	10
- #define _PAGE_BIT_UNUSED3	11
- #define _PAGE_BIT_PAT_LARGE	12	/* On 2MB or 1GB pages */
-+#define _PAGE_BIT_SPECIAL	_PAGE_BIT_UNUSED1
- #define _PAGE_BIT_NX           63       /* No execute: only valid after cpuid check */
- 
- #define _PAGE_PRESENT	(_AT(pteval_t, 1) << _PAGE_BIT_PRESENT)
-@@ -34,6 +35,8 @@
- #define _PAGE_UNUSED3	(_AT(pteval_t, 1) << _PAGE_BIT_UNUSED3)
- #define _PAGE_PAT	(_AT(pteval_t, 1) << _PAGE_BIT_PAT)
- #define _PAGE_PAT_LARGE (_AT(pteval_t, 1) << _PAGE_BIT_PAT_LARGE)
-+#define _PAGE_SPECIAL	(_AT(pteval_t, 1) << _PAGE_BIT_SPECIAL)
-+#define __HAVE_ARCH_PTE_SPECIAL
- 
- #if defined(CONFIG_X86_64) || defined(CONFIG_X86_PAE)
- #define _PAGE_NX	(_AT(pteval_t, 1) << _PAGE_BIT_NX)
-@@ -54,7 +57,7 @@
- 
- /* Set of bits not changed in pte_modify */
- #define _PAGE_CHG_MASK	(PTE_PFN_MASK | _PAGE_PCD | _PAGE_PWT |		\
--			 _PAGE_ACCESSED | _PAGE_DIRTY)
-+			 _PAGE_SPECIAL | _PAGE_ACCESSED | _PAGE_DIRTY)
- 
- #define _PAGE_CACHE_MASK	(_PAGE_PCD | _PAGE_PWT)
- #define _PAGE_CACHE_WB		(0)
-@@ -180,7 +183,7 @@ static inline int pte_exec(pte_t pte)
- 
- static inline int pte_special(pte_t pte)
+diff -puN include/linux/hugetlb.h~hugetlb-remove-unused-variable-warning-checkpatch-fixes include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-remove-unused-variable-warning-checkpatch-fixes
++++ a/include/linux/hugetlb.h
+@@ -275,7 +275,7 @@ struct hstate {};
+ #define huge_page_shift(h) PAGE_SHIFT
+ static inline unsigned int pages_per_huge_page(struct hstate *h)
  {
--	return 0;
-+	return pte_val(pte) & _PAGE_SPECIAL;
+-        return 1;
++	return 1;
  }
+ #endif
  
- static inline int pmd_large(pmd_t pte)
-@@ -246,7 +249,7 @@ static inline pte_t pte_clrglobal(pte_t 
- 
- static inline pte_t pte_mkspecial(pte_t pte)
- {
--	return pte;
-+	return __pte(pte_val(pte) | _PAGE_SPECIAL);
- }
- 
- extern pteval_t __supported_pte_mask;
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+hugetlb-remove-unused-variable-warning.patch
+hugetlb-remove-unused-variable-warning-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-mmu-notifiers-add-list_del_init_rcu.patch
+linux-next-fixups.patch
+linux-next-rejects.patch
+next-remove-localversion.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+pci-make-pci_register_driver-a-macro.patch
+x86-pci-replace-dbg-with-pr_debug-fix.patch
+x86-pci-replace-dbg-with-pr_debug-fix-2.patch
+include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
+arch-x86-pci-i386c-fix-printk-warnings.patch
+drm-fix-sparc64-build.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+git-jg-misc.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+git-ubi-git-rejects.patch
+bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
 mmu-notifiers-add-mm_take_all_locks-operation.patch
 mmu-notifier-core.patch
-powerpc-implement-pte_special.patch
-powerpc-implement-pte_special-update.patch
-powerpc-lockless-get_user_pages.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+gru-driver-v3-hardware-data-structures-fix.patch
+gru-driver-v3-hardware-data-structures-fix-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
 vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
-mlock-mlocked-pages-are-unevictable.patch
+define-page_file_cache-function-fix.patch
+vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
+unevictable-lru-infrastructure-fix.patch
+unevictable-lru-page-statistics-units-fix.patch
 mlock-mlocked-pages-are-unevictable-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-3.patch
-mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
-vmstat-mlocked-pages-statistics.patch
-vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+introduce-__get_user_pages-fix.patch
+vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
 reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
