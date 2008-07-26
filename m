@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + task-io-accounting-correctly-account-threads-io-statistics.patch added to -mm tree
-Date: Sat, 26 Jul 2008 12:38:25 -0700
-Message-ID: <200807261938.m6QJcP37016050@imap1.linux-foundation.org>
+Subject: + hugetlb-remove-unused-variable-warning.patch added to -mm tree
+Date: Sat, 26 Jul 2008 12:39:28 -0700
+Message-ID: <200807261939.m6QJdSg3016064@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58892 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36200 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751865AbYGZTii (ORCPT
+	by vger.kernel.org with ESMTP id S1751866AbYGZTja (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 15:38:38 -0400
+	Sat, 26 Jul 2008 15:39:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: righi.andrea@gmail.com, oleg@tv-sign.ru
+Cc: righi.andrea@gmail.com
 
 
 The patch titled
-     task IO accounting: correctly account threads IO statistics
+     hugetlb: remove unused variable warning
 has been added to the -mm tree.  Its filename is
-     task-io-accounting-correctly-account-threads-io-statistics.patch
+     hugetlb-remove-unused-variable-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,113 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: task IO accounting: correctly account threads IO statistics
+Subject: hugetlb: remove unused variable warning
 From: Andrea Righi <righi.andrea@gmail.com>
 
-Oleg Nesterov points out that we should check that the task is still alive
-before we iterate over the threads.  This patch includes a fixup for this.
+Remove the following warning when CONFIG_HUGETLB_PAGE is not set:
 
-Also simplify do_io_accounting() implementation.
+	ipc/shm.c: In function `shm_get_stat':
+	ipc/shm.c:565: warning: unused variable `h'
 
 Signed-off-by: Andrea Righi <righi.andrea@gmail.com>
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   56 ++++++++++++++++++-----------------------------
- 1 file changed, 22 insertions(+), 34 deletions(-)
+ include/linux/hugetlb.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/base.c~task-io-accounting-correctly-account-threads-io-statistics fs/proc/base.c
---- a/fs/proc/base.c~task-io-accounting-correctly-account-threads-io-statistics
-+++ a/fs/proc/base.c
-@@ -2406,35 +2406,18 @@ static int do_io_accounting(struct task_
- 	u64 rchar, wchar, syscr, syscw;
- 	struct task_io_accounting ioac;
+diff -puN include/linux/hugetlb.h~hugetlb-remove-unused-variable-warning include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-remove-unused-variable-warning
++++ a/include/linux/hugetlb.h
+@@ -273,7 +273,10 @@ struct hstate {};
+ #define huge_page_mask(h) PAGE_MASK
+ #define huge_page_order(h) 0
+ #define huge_page_shift(h) PAGE_SHIFT
+-#define pages_per_huge_page(h) 1
++static inline unsigned int pages_per_huge_page(struct hstate *h)
++{
++        return 1;
++}
+ #endif
  
--	if (!whole) {
--		rchar = task->rchar;
--		wchar = task->wchar;
--		syscr = task->syscr;
--		syscw = task->syscw;
--		memcpy(&ioac, &task->ioac, sizeof(ioac));
--	} else {
--		unsigned long flags;
--		struct task_struct *t = task;
--		rchar = wchar = syscr = syscw = 0;
--		memset(&ioac, 0, sizeof(ioac));
--
--		rcu_read_lock();
--		do {
--			rchar += t->rchar;
--			wchar += t->wchar;
--			syscr += t->syscr;
--			syscw += t->syscw;
-+	rchar = task->rchar;
-+	wchar = task->wchar;
-+	syscr = task->syscr;
-+	syscw = task->syscw;
-+	memcpy(&ioac, &task->ioac, sizeof(ioac));
- 
--			ioac.read_bytes += t->ioac.read_bytes;
--			ioac.write_bytes += t->ioac.write_bytes;
--			ioac.cancelled_write_bytes +=
--					t->ioac.cancelled_write_bytes;
--			t = next_thread(t);
--		} while (t != task);
--		rcu_read_unlock();
-+	if (whole) {
-+		unsigned long flags;
- 
- 		if (lock_task_sighand(task, &flags)) {
- 			struct signal_struct *sig = task->signal;
-+			struct task_struct *t = task;
- 
- 			rchar += sig->rchar;
- 			wchar += sig->wchar;
-@@ -2445,11 +2428,20 @@ static int do_io_accounting(struct task_
- 			ioac.write_bytes += sig->ioac.write_bytes;
- 			ioac.cancelled_write_bytes +=
- 					sig->ioac.cancelled_write_bytes;
--
-+			while_each_thread(task, t) {
-+				rchar += t->rchar;
-+				wchar += t->wchar;
-+				syscr += t->syscr;
-+				syscw += t->syscw;
-+
-+				ioac.read_bytes += t->ioac.read_bytes;
-+				ioac.write_bytes += t->ioac.write_bytes;
-+				ioac.cancelled_write_bytes +=
-+					t->ioac.cancelled_write_bytes;
-+			}
- 			unlock_task_sighand(task, &flags);
- 		}
- 	}
--
- 	return sprintf(buffer,
- 			"rchar: %llu\n"
- 			"wchar: %llu\n"
-@@ -2458,13 +2450,9 @@ static int do_io_accounting(struct task_
- 			"read_bytes: %llu\n"
- 			"write_bytes: %llu\n"
- 			"cancelled_write_bytes: %llu\n",
--			(unsigned long long)rchar,
--			(unsigned long long)wchar,
--			(unsigned long long)syscr,
--			(unsigned long long)syscw,
--			(unsigned long long)ioac.read_bytes,
--			(unsigned long long)ioac.write_bytes,
--			(unsigned long long)ioac.cancelled_write_bytes);
-+			rchar, wchar, syscr, syscw,
-+			ioac.read_bytes, ioac.write_bytes,
-+			ioac.cancelled_write_bytes);
- }
- 
- static int proc_tid_io_accounting(struct task_struct *task, char *buffer)
+ #endif /* _LINUX_HUGETLB_H */
 _
 
 Patches currently in -mm which might be from righi.andrea@gmail.com are
 
 origin.patch
 task-io-accounting-correctly-account-threads-io-statistics.patch
+hugetlb-remove-unused-variable-warning.patch
 
