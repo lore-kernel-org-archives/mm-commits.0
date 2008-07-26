@@ -1,354 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: - tpm-increase-size-of-internal-tpm-response-buffers.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:13:56 -0700
-Message-ID: <200807262113.m6QLDumV019639@imap1.linux-foundation.org>
+Subject: - lib-generic-show_mem.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:17:25 -0700
+Message-ID: <200807262117.m6QLHPYY019925@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42502 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54275 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756400AbYGZVTx (ORCPT
+	by vger.kernel.org with ESMTP id S1757943AbYGZVUV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:19:53 -0400
+	Sat, 26 Jul 2008 17:20:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marcin_obara@users.sourceforge.net, kjhall@us.ibm.com, tpm@selhorst.net, mm-commits@vger.kernel.org
+To: hannes@saeurebad.de, benh@kernel.crashing.org, chris@zankel.net, cooloney@kernel.org, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, heiko.carstens@d
 
 
 The patch titled
-     tpm: increase size of internal TPM response buffers
+     lib: generic show_mem()
 has been removed from the -mm tree.  Its filename was
-     tpm-increase-size-of-internal-tpm-response-buffers.patch
+     lib-generic-show_mem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tpm: increase size of internal TPM response buffers
-From: Marcin Obara <marcin_obara@users.sourceforge.net>
+Subject: lib: generic show_mem()
+From: Johannes Weiner <hannes@saeurebad.de>
 
-This patch increases size of driver internal response buffers.  Some TPM
-responses defined in TCG TPM Specification Version 1.2 Revision 103 have
-increased size and do not fit previously defined buffers.  Some TPM
-responses do not have fixed size, so bigger response buffers have to be
-allocated.  200B buffers should be enough.
+This implements a platform-independent version of show_mem().
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Marcin Obara <marcin_obara@users.sourceforge.net>
-Cc: Marcel Selhorst <tpm@selhorst.net>
-Cc: Kylene Jo Hall <kjhall@us.ibm.com>
+Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Bryan Wu <cooloney@kernel.org>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Greg Ungerer <gerg@uclinux.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Mikael Starvik <starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm.c |  124 +++++++++++++++++++++++++++++----------
- 1 file changed, 93 insertions(+), 31 deletions(-)
+ lib/Makefile   |    2 -
+ lib/show_mem.c |   63 +++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 64 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/tpm/tpm.c~tpm-increase-size-of-internal-tpm-response-buffers drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~tpm-increase-size-of-internal-tpm-response-buffers
-+++ a/drivers/char/tpm/tpm.c
-@@ -580,91 +580,133 @@ void tpm_continue_selftest(struct tpm_ch
- }
- EXPORT_SYMBOL_GPL(tpm_continue_selftest);
+diff -puN lib/Makefile~lib-generic-show_mem lib/Makefile
+--- a/lib/Makefile~lib-generic-show_mem
++++ a/lib/Makefile
+@@ -11,7 +11,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
+ 	 rbtree.o radix-tree.o dump_stack.o \
+ 	 idr.o int_sqrt.o extable.o prio_tree.o \
+ 	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
+-	 proportions.o prio_heap.o ratelimit.o
++	 proportions.o prio_heap.o ratelimit.o show_mem.o
  
-+#define  TPM_INTERNAL_RESULT_SIZE 200
+ lib-$(CONFIG_MMU) += ioremap.o
+ lib-$(CONFIG_SMP) += cpumask.o
+diff -puN /dev/null lib/show_mem.c
+--- /dev/null
++++ a/lib/show_mem.c
+@@ -0,0 +1,63 @@
++/*
++ * Generic show_mem() implementation
++ *
++ * Copyright (C) 2008 Johannes Weiner <hannes@saeurebad.de>
++ * All code subject to the GPL version 2.
++ */
 +
- ssize_t tpm_show_enabled(struct device * dev, struct device_attribute * attr,
- 			char *buf)
- {
--	u8 data[max_t(int, ARRAY_SIZE(tpm_cap), 35)];
-+	u8 *data;
- 	ssize_t rc;
- 
- 	struct tpm_chip *chip = dev_get_drvdata(dev);
- 	if (chip == NULL)
- 		return -ENODEV;
- 
-+	data = kzalloc(TPM_INTERNAL_RESULT_SIZE, GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
++#include <linux/mm.h>
++#include <linux/nmi.h>
++#include <linux/quicklist.h>
 +
- 	memcpy(data, tpm_cap, sizeof(tpm_cap));
- 	data[TPM_CAP_IDX] = TPM_CAP_FLAG;
- 	data[TPM_CAP_SUBCAP_IDX] = TPM_CAP_FLAG_PERM;
- 
--	rc = transmit_cmd(chip, data, sizeof(data),
--			"attemtping to determine the permanent state");
--	if (rc)
-+	rc = transmit_cmd(chip, data, TPM_INTERNAL_RESULT_SIZE,
-+			"attemtping to determine the permanent enabled state");
-+	if (rc) {
-+		kfree(data);
- 		return 0;
--	return sprintf(buf, "%d\n", !data[TPM_GET_CAP_PERM_DISABLE_IDX]);
++void show_mem(void)
++{
++	pg_data_t *pgdat;
++	unsigned long total = 0, reserved = 0, shared = 0,
++		nonshared = 0, highmem = 0;
++
++	printk(KERN_INFO "Mem-Info:\n");
++	show_free_areas();
++
++	for_each_online_pgdat(pgdat) {
++		unsigned long i, flags;
++
++		pgdat_resize_lock(pgdat, &flags);
++		for (i = 0; i < pgdat->node_spanned_pages; i++) {
++			struct page *page;
++			unsigned long pfn = pgdat->node_start_pfn + i;
++
++			if (unlikely(!(i % MAX_ORDER_NR_PAGES)))
++				touch_nmi_watchdog();
++
++			if (!pfn_valid(pfn))
++				continue;
++
++			page = pfn_to_page(pfn);
++
++			if (PageHighMem(page))
++				highmem++;
++
++			if (PageReserved(page))
++				reserved++;
++			else if (page_count(page) == 1)
++				nonshared++;
++			else if (page_count(page) > 1)
++				shared += page_count(page) - 1;
++
++			total++;
++		}
++		pgdat_resize_unlock(pgdat, &flags);
 +	}
 +
-+	rc = sprintf(buf, "%d\n", !data[TPM_GET_CAP_PERM_DISABLE_IDX]);
-+
-+	kfree(data);
-+	return rc;
- }
- EXPORT_SYMBOL_GPL(tpm_show_enabled);
- 
- ssize_t tpm_show_active(struct device * dev, struct device_attribute * attr,
- 			char *buf)
- {
--	u8 data[max_t(int, ARRAY_SIZE(tpm_cap), 35)];
-+	u8 *data;
- 	ssize_t rc;
- 
- 	struct tpm_chip *chip = dev_get_drvdata(dev);
- 	if (chip == NULL)
- 		return -ENODEV;
- 
-+	data = kzalloc(TPM_INTERNAL_RESULT_SIZE, GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+
- 	memcpy(data, tpm_cap, sizeof(tpm_cap));
- 	data[TPM_CAP_IDX] = TPM_CAP_FLAG;
- 	data[TPM_CAP_SUBCAP_IDX] = TPM_CAP_FLAG_PERM;
- 
--	rc = transmit_cmd(chip, data, sizeof(data),
--			"attemtping to determine the permanent state");
--	if (rc)
-+	rc = transmit_cmd(chip, data, TPM_INTERNAL_RESULT_SIZE,
-+			"attemtping to determine the permanent active state");
-+	if (rc) {
-+		kfree(data);
- 		return 0;
--	return sprintf(buf, "%d\n", !data[TPM_GET_CAP_PERM_INACTIVE_IDX]);
-+	}
-+
-+	rc = sprintf(buf, "%d\n", !data[TPM_GET_CAP_PERM_INACTIVE_IDX]);
-+
-+	kfree(data);
-+	return rc;
- }
- EXPORT_SYMBOL_GPL(tpm_show_active);
- 
- ssize_t tpm_show_owned(struct device * dev, struct device_attribute * attr,
- 			char *buf)
- {
--	u8 data[sizeof(tpm_cap)];
-+	u8 *data;
- 	ssize_t rc;
- 
- 	struct tpm_chip *chip = dev_get_drvdata(dev);
- 	if (chip == NULL)
- 		return -ENODEV;
- 
-+	data = kzalloc(TPM_INTERNAL_RESULT_SIZE, GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+
- 	memcpy(data, tpm_cap, sizeof(tpm_cap));
- 	data[TPM_CAP_IDX] = TPM_CAP_PROP;
- 	data[TPM_CAP_SUBCAP_IDX] = TPM_CAP_PROP_OWNER;
- 
--	rc = transmit_cmd(chip, data, sizeof(data),
-+	rc = transmit_cmd(chip, data, TPM_INTERNAL_RESULT_SIZE,
- 			"attempting to determine the owner state");
--	if (rc)
-+	if (rc) {
-+		kfree(data);
- 		return 0;
--	return sprintf(buf, "%d\n", data[TPM_GET_CAP_RET_BOOL_1_IDX]);
-+	}
-+
-+	rc = sprintf(buf, "%d\n", data[TPM_GET_CAP_RET_BOOL_1_IDX]);
-+
-+	kfree(data);
-+	return rc;
- }
- EXPORT_SYMBOL_GPL(tpm_show_owned);
- 
- ssize_t tpm_show_temp_deactivated(struct device * dev,
- 				struct device_attribute * attr, char *buf)
- {
--	u8 data[sizeof(tpm_cap)];
-+	u8 *data;
- 	ssize_t rc;
- 
- 	struct tpm_chip *chip = dev_get_drvdata(dev);
- 	if (chip == NULL)
- 		return -ENODEV;
- 
-+	data = kzalloc(TPM_INTERNAL_RESULT_SIZE, GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+
- 	memcpy(data, tpm_cap, sizeof(tpm_cap));
- 	data[TPM_CAP_IDX] = TPM_CAP_FLAG;
- 	data[TPM_CAP_SUBCAP_IDX] = TPM_CAP_FLAG_VOL;
- 
--	rc = transmit_cmd(chip, data, sizeof(data),
-+	rc = transmit_cmd(chip, data, TPM_INTERNAL_RESULT_SIZE,
- 			"attempting to determine the temporary state");
--	if (rc)
-+	if (rc) {
-+		kfree(data);
- 		return 0;
--	return sprintf(buf, "%d\n", data[TPM_GET_CAP_TEMP_INACTIVE_IDX]);
-+	}
-+
-+	rc = sprintf(buf, "%d\n", data[TPM_GET_CAP_TEMP_INACTIVE_IDX]);
-+
-+	kfree(data);
-+	return rc;
- }
- EXPORT_SYMBOL_GPL(tpm_show_temp_deactivated);
- 
-@@ -678,7 +720,7 @@ static const u8 pcrread[] = {
- ssize_t tpm_show_pcrs(struct device *dev, struct device_attribute *attr,
- 		      char *buf)
- {
--	u8 data[max_t(int, max(ARRAY_SIZE(tpm_cap), ARRAY_SIZE(pcrread)), 30)];
-+	u8 *data;
- 	ssize_t rc;
- 	int i, j, num_pcrs;
- 	__be32 index;
-@@ -688,21 +730,27 @@ ssize_t tpm_show_pcrs(struct device *dev
- 	if (chip == NULL)
- 		return -ENODEV;
- 
-+	data = kzalloc(TPM_INTERNAL_RESULT_SIZE, GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+
- 	memcpy(data, tpm_cap, sizeof(tpm_cap));
- 	data[TPM_CAP_IDX] = TPM_CAP_PROP;
- 	data[TPM_CAP_SUBCAP_IDX] = TPM_CAP_PROP_PCR;
- 
--	rc = transmit_cmd(chip, data, sizeof(data),
-+	rc = transmit_cmd(chip, data, TPM_INTERNAL_RESULT_SIZE,
- 			"attempting to determine the number of PCRS");
--	if (rc)
-+	if (rc) {
-+		kfree(data);
- 		return 0;
-+	}
- 
- 	num_pcrs = be32_to_cpu(*((__be32 *) (data + 14)));
- 	for (i = 0; i < num_pcrs; i++) {
- 		memcpy(data, pcrread, sizeof(pcrread));
- 		index = cpu_to_be32(i);
- 		memcpy(data + 10, &index, 4);
--		rc = transmit_cmd(chip, data, sizeof(data),
-+		rc = transmit_cmd(chip, data, TPM_INTERNAL_RESULT_SIZE,
- 				"attempting to read a PCR");
- 		if (rc)
- 			goto out;
-@@ -712,6 +760,7 @@ ssize_t tpm_show_pcrs(struct device *dev
- 		str += sprintf(str, "\n");
- 	}
- out:
-+	kfree(data);
- 	return str - buf;
- }
- EXPORT_SYMBOL_GPL(tpm_show_pcrs);
-@@ -795,7 +844,7 @@ static const u8 cap_version[] = {
- ssize_t tpm_show_caps(struct device *dev, struct device_attribute *attr,
- 		      char *buf)
- {
--	u8 data[max_t(int, max(ARRAY_SIZE(tpm_cap), ARRAY_SIZE(cap_version)), 30)];
-+	u8 *data;
- 	ssize_t rc;
- 	char *str = buf;
- 
-@@ -803,21 +852,27 @@ ssize_t tpm_show_caps(struct device *dev
- 	if (chip == NULL)
- 		return -ENODEV;
- 
-+	data = kzalloc(TPM_INTERNAL_RESULT_SIZE, GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+
- 	memcpy(data, tpm_cap, sizeof(tpm_cap));
- 	data[TPM_CAP_IDX] = TPM_CAP_PROP;
- 	data[TPM_CAP_SUBCAP_IDX] = TPM_CAP_PROP_MANUFACTURER;
- 
--	rc = transmit_cmd(chip, data, sizeof(data),
-+	rc = transmit_cmd(chip, data, TPM_INTERNAL_RESULT_SIZE,
- 			"attempting to determine the manufacturer");
--	if (rc)
-+	if (rc) {
-+		kfree(data);
- 		return 0;
-+	}
- 
- 	str += sprintf(str, "Manufacturer: 0x%x\n",
- 		       be32_to_cpu(*((__be32 *) (data + TPM_GET_CAP_RET_UINT32_1_IDX))));
- 
- 	memcpy(data, cap_version, sizeof(cap_version));
- 	data[CAP_VERSION_IDX] = CAP_VERSION_1_1;
--	rc = transmit_cmd(chip, data, sizeof(data),
-+	rc = transmit_cmd(chip, data, TPM_INTERNAL_RESULT_SIZE,
- 			"attempting to determine the 1.1 version");
- 	if (rc)
- 		goto out;
-@@ -828,6 +883,7 @@ ssize_t tpm_show_caps(struct device *dev
- 		       (int) data[17]);
- 
- out:
-+	kfree(data);
- 	return str - buf;
- }
- EXPORT_SYMBOL_GPL(tpm_show_caps);
-@@ -835,7 +891,7 @@ EXPORT_SYMBOL_GPL(tpm_show_caps);
- ssize_t tpm_show_caps_1_2(struct device * dev,
- 			  struct device_attribute * attr, char *buf)
- {
--	u8 data[max_t(int, max(ARRAY_SIZE(tpm_cap), ARRAY_SIZE(cap_version)), 30)];
-+	u8 *data;
- 	ssize_t len;
- 	char *str = buf;
- 
-@@ -843,15 +899,20 @@ ssize_t tpm_show_caps_1_2(struct device 
- 	if (chip == NULL)
- 		return -ENODEV;
- 
-+	data = kzalloc(TPM_INTERNAL_RESULT_SIZE, GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+
- 	memcpy(data, tpm_cap, sizeof(tpm_cap));
- 	data[TPM_CAP_IDX] = TPM_CAP_PROP;
- 	data[TPM_CAP_SUBCAP_IDX] = TPM_CAP_PROP_MANUFACTURER;
- 
--	if ((len = tpm_transmit(chip, data, sizeof(data))) <=
--	    TPM_ERROR_SIZE) {
-+	len = tpm_transmit(chip, data, TPM_INTERNAL_RESULT_SIZE);
-+	if (len <= TPM_ERROR_SIZE) {
- 		dev_dbg(chip->dev, "A TPM error (%d) occurred "
- 			"attempting to determine the manufacturer\n",
- 			be32_to_cpu(*((__be32 *) (data + TPM_RET_CODE_IDX))));
-+		kfree(data);
- 		return 0;
- 	}
- 
-@@ -861,8 +922,8 @@ ssize_t tpm_show_caps_1_2(struct device 
- 	memcpy(data, cap_version, sizeof(cap_version));
- 	data[CAP_VERSION_IDX] = CAP_VERSION_1_2;
- 
--	if ((len = tpm_transmit(chip, data, sizeof(data))) <=
--	    TPM_ERROR_SIZE) {
-+	len = tpm_transmit(chip, data, TPM_INTERNAL_RESULT_SIZE);
-+	if (len <= TPM_ERROR_SIZE) {
- 		dev_err(chip->dev, "A TPM error (%d) occurred "
- 			"attempting to determine the 1.2 version\n",
- 			be32_to_cpu(*((__be32 *) (data + TPM_RET_CODE_IDX))));
-@@ -874,6 +935,7 @@ ssize_t tpm_show_caps_1_2(struct device 
- 		       (int) data[19]);
- 
- out:
-+	kfree(data);
- 	return str - buf;
- }
- EXPORT_SYMBOL_GPL(tpm_show_caps_1_2);
++	printk(KERN_INFO "%lu pages RAM\n", total);
++#ifdef CONFIG_HIGHMEM
++	printk(KERN_INFO "%lu pages HighMem\n", highmem);
++#endif
++	printk(KERN_INFO "%lu pages reserved\n", reserved);
++	printk(KERN_INFO "%lu pages shared\n", shared);
++	printk(KERN_INFO "%lu pages non-shared\n", nonshared);
++#ifdef CONFIG_QUICKLIST
++	printk(KERN_INFO "%lu pages in pagetable cache\n",
++		quicklist_total_size());
++#endif
++}
 _
 
-Patches currently in -mm which might be from marcin_obara@users.sourceforge.net are
+Patches currently in -mm which might be from hannes@saeurebad.de are
 
 origin.patch
-tpm-correct-tpm-timeouts-to-jiffies-conversion.patch
+linux-next.patch
+git-xtensa.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
 
