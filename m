@@ -1,159 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - splice-use-get_user_pages_fast.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:15:52 -0700
-Message-ID: <200807262115.m6QLFqxH019774@imap1.linux-foundation.org>
+Subject: - tracehook-exit.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:16:39 -0700
+Message-ID: <200807262116.m6QLGdoG019849@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44210 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57727 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757696AbYGZVQ6 (ORCPT
+	by vger.kernel.org with ESMTP id S1757713AbYGZVRI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:16:58 -0400
+	Sat, 26 Jul 2008 17:17:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, a.p.zijlstra@chello.nl, andi@firstfloor.org, apw@shadowen.org, jens.axboe@oracle.com, mingo@elte.hu, pbadari@us.ibm.com, shaggy@austin.ibm.com, tglx@linutronix.de, za
+To: roland@redhat.com, mingo@elte.hu, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     splice: use get_user_pages_fast
+     tracehook: exit
 has been removed from the -mm tree.  Its filename was
-     splice-use-get_user_pages_fast.patch
+     tracehook-exit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: splice: use get_user_pages_fast
-From: Nick Piggin <npiggin@suse.de>
+Subject: tracehook: exit
+From: Roland McGrath <roland@redhat.com>
 
-Use get_user_pages_fast in splice.  This reverts some mmap_sem batching
-there, however the biggest problem with mmap_sem tends to be hold times
-blocking out other threads rather than cacheline bouncing.  Further: on
-architectures that implement get_user_pages_fast without locks, mmap_sem
-can be avoided completely anyway.
+This moves the PTRACE_EVENT_EXIT tracing into a tracehook.h inline,
+tracehook_report_exec().  The change has no effect, just clean-up.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Zach Brown <zach.brown@oracle.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Reviewed-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Reviewed-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |   41 +++--------------------------------------
- 1 file changed, 3 insertions(+), 38 deletions(-)
+ include/linux/tracehook.h |   15 +++++++++++++++
+ kernel/exit.c             |    6 ++----
+ 2 files changed, 17 insertions(+), 4 deletions(-)
 
-diff -puN fs/splice.c~splice-use-get_user_pages_fast fs/splice.c
---- a/fs/splice.c~splice-use-get_user_pages_fast
-+++ a/fs/splice.c
-@@ -1161,36 +1161,6 @@ static long do_splice(struct file *in, l
+diff -puN include/linux/tracehook.h~tracehook-exit include/linux/tracehook.h
+--- a/include/linux/tracehook.h~tracehook-exit
++++ a/include/linux/tracehook.h
+@@ -95,4 +95,19 @@ static inline void tracehook_report_exec
+ 		send_sig(SIGTRAP, current, 0);
  }
  
- /*
-- * Do a copy-from-user while holding the mmap_semaphore for reading, in a
-- * manner safe from deadlocking with simultaneous mmap() (grabbing mmap_sem
-- * for writing) and page faulting on the user memory pointed to by src.
-- * This assumes that we will very rarely hit the partial != 0 path, or this
-- * will not be a win.
-- */
--static int copy_from_user_mmap_sem(void *dst, const void __user *src, size_t n)
--{
--	int partial;
--
--	if (!access_ok(VERIFY_READ, src, n))
--		return -EFAULT;
--
--	pagefault_disable();
--	partial = __copy_from_user_inatomic(dst, src, n);
--	pagefault_enable();
--
--	/*
--	 * Didn't copy everything, drop the mmap_sem and do a faulting copy
--	 */
--	if (unlikely(partial)) {
--		up_read(&current->mm->mmap_sem);
--		partial = copy_from_user(dst, src, n);
--		down_read(&current->mm->mmap_sem);
++/**
++ * tracehook_report_exit - task has begun to exit
++ * @exit_code:		pointer to value destined for @current->exit_code
++ *
++ * @exit_code points to the value passed to do_exit(), which tracing
++ * might change here.  This is almost the first thing in do_exit(),
++ * before freeing any resources or setting the %PF_EXITING flag.
++ *
++ * Called with no locks held.
++ */
++static inline void tracehook_report_exit(long *exit_code)
++{
++	ptrace_event(PT_TRACE_EXIT, PTRACE_EVENT_EXIT, *exit_code);
++}
++
+ #endif	/* <linux/tracehook.h> */
+diff -puN kernel/exit.c~tracehook-exit kernel/exit.c
+--- a/kernel/exit.c~tracehook-exit
++++ a/kernel/exit.c
+@@ -46,6 +46,7 @@
+ #include <linux/resource.h>
+ #include <linux/blkdev.h>
+ #include <linux/task_io_accounting_ops.h>
++#include <linux/tracehook.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/unistd.h>
+@@ -1029,10 +1030,7 @@ NORET_TYPE void do_exit(long code)
+ 	if (unlikely(!tsk->pid))
+ 		panic("Attempted to kill the idle task!");
+ 
+-	if (unlikely(current->ptrace & PT_TRACE_EXIT)) {
+-		current->ptrace_message = code;
+-		ptrace_notify((PTRACE_EVENT_EXIT << 8) | SIGTRAP);
 -	}
--
--	return partial;
--}
--
--/*
-  * Map an iov into an array of pages and offset/length tupples. With the
-  * partial_page structure, we can map several non-contiguous ranges into
-  * our ones pages[] map instead of splitting that operation into pieces.
-@@ -1203,8 +1173,6 @@ static int get_iovec_page_array(const st
- {
- 	int buffers = 0, error = 0;
++	tracehook_report_exit(&code);
  
--	down_read(&current->mm->mmap_sem);
--
- 	while (nr_vecs) {
- 		unsigned long off, npages;
- 		struct iovec entry;
-@@ -1213,7 +1181,7 @@ static int get_iovec_page_array(const st
- 		int i;
- 
- 		error = -EFAULT;
--		if (copy_from_user_mmap_sem(&entry, iov, sizeof(entry)))
-+		if (copy_from_user(&entry, iov, sizeof(entry)))
- 			break;
- 
- 		base = entry.iov_base;
-@@ -1247,9 +1215,8 @@ static int get_iovec_page_array(const st
- 		if (npages > PIPE_BUFFERS - buffers)
- 			npages = PIPE_BUFFERS - buffers;
- 
--		error = get_user_pages(current, current->mm,
--				       (unsigned long) base, npages, 0, 0,
--				       &pages[buffers], NULL);
-+		error = get_user_pages_fast((unsigned long)base, npages,
-+					0, &pages[buffers]);
- 
- 		if (unlikely(error <= 0))
- 			break;
-@@ -1288,8 +1255,6 @@ static int get_iovec_page_array(const st
- 		iov++;
- 	}
- 
--	up_read(&current->mm->mmap_sem);
--
- 	if (buffers)
- 		return buffers;
- 
+ 	/*
+ 	 * We're taking recursive faults here in do_exit. Safest is to just
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-linux-next.patch
-mmu-notifiers-add-list_del_init_rcu.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
-powerpc-implement-pte_special.patch
-powerpc-implement-pte_special-update.patch
-powerpc-lockless-get_user_pages.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mlock-mlocked-pages-are-unevictable-fix-fix-munlock-page-table-walk-now-requires-mm.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
-vmstat-mlocked-pages-statistics.patch
-vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+tracehook-syscall.patch
+tracehook-config_have_arch_tracehook.patch
+x86-tracehook_signal_handler.patch
+x86-tracehook-syscall.patch
+x86-tracehook-asm-syscallh.patch
+x86-signals-use-asm-syscallh.patch
+x86-tracehook-tif_notify_resume.patch
+x86-tracehook-config_have_arch_tracehook.patch
 
