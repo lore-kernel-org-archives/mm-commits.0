@@ -1,396 +1,558 @@
 From: akpm@linux-foundation.org
-Subject: - cris-use-the-common-ascii-hex-helpers.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:15:35 -0700
-Message-ID: <200807262115.m6QLFZWi019751@imap1.linux-foundation.org>
+Subject: - omfs-add-directory-routines.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:15:11 -0700
+Message-ID: <200807262115.m6QLFBb1019736@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40482 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42294 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757615AbYGZVPm (ORCPT
+	by vger.kernel.org with ESMTP id S1757632AbYGZVPp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:15:42 -0400
+	Sat, 26 Jul 2008 17:15:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, starvik@axis.com, mm-commits@vger.kernel.org
+To: me@bobcopeland.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cris: use the common ascii hex helpers
+     omfs: add directory routines
 has been removed from the -mm tree.  Its filename was
-     cris-use-the-common-ascii-hex-helpers.patch
+     omfs-add-directory-routines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cris: use the common ascii hex helpers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: omfs: add directory routines
+From: Bob Copeland <me@bobcopeland.com>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Mikael Starvik <starvik@axis.com>
+Add lookup and directory management routines for OMFS.  The filesystem uses
+hashing based on the filename and stores collisions, unordered, in siblings
+of files' inode structures.  To support telldir, the current position in
+the hash table is encoded in fpos.
+
+Signed-off-by: Bob Copeland <me@bobcopeland.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/kernel/kgdb.c |   79 ++++++++---------------------
- arch/cris/arch-v32/kernel/kgdb.c |   60 ++++------------------
- 2 files changed, 37 insertions(+), 102 deletions(-)
+ fs/omfs/dir.c |  504 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 504 insertions(+)
 
-diff -puN arch/cris/arch-v10/kernel/kgdb.c~cris-use-the-common-ascii-hex-helpers arch/cris/arch-v10/kernel/kgdb.c
---- a/arch/cris/arch-v10/kernel/kgdb.c~cris-use-the-common-ascii-hex-helpers
-+++ a/arch/cris/arch-v10/kernel/kgdb.c
-@@ -278,14 +278,6 @@ void putDebugChar (int val);
- 
- void enableDebugIRQ (void);
- 
--/* Returns the character equivalent of a nibble, bit 7, 6, 5, and 4 of a byte,
--   represented by int x. */
--static char highhex (int x);
--
--/* Returns the character equivalent of a nibble, bit 3, 2, 1, and 0 of a byte,
--   represented by int x. */
--static char lowhex (int x);
--
- /* Returns the integer equivalent of a hexadecimal character. */
- static int hex (char ch);
- 
-@@ -356,9 +348,6 @@ extern unsigned char executing_task;
- /* Run-length encoding maximum length. Send 64 at most. */
- #define RUNLENMAX 64
- 
--/* Definition of all valid hexadecimal characters */
--static const char hexchars[] = "0123456789abcdef";
--
- /* The inbound/outbound buffers used in packet I/O */
- static char remcomInBuffer[BUFMAX];
- static char remcomOutBuffer[BUFMAX];
-@@ -499,8 +488,8 @@ gdb_cris_strtol (const char *s, char **e
- 	char *sd;
- 	int x = 0;
- 	
--	for (s1 = (char*)s; (sd = gdb_cris_memchr(hexchars, *s1, base)) != NULL; ++s1)
--		x = x * base + (sd - hexchars);
-+	for (s1 = (char*)s; (sd = gdb_cris_memchr(hex_asc, *s1, base)) != NULL; ++s1)
-+		x = x * base + (sd - hex_asc);
-         
-         if (endptr)
-         {
-@@ -670,22 +659,6 @@ read_register (char regno, unsigned int 
- }
- 
- /********************************** Packet I/O ******************************/
--/* Returns the character equivalent of a nibble, bit 7, 6, 5, and 4 of a byte,
--   represented by int x. */
--static inline char
--highhex(int x)
--{
--	return hexchars[(x >> 4) & 0xf];
--}
--
--/* Returns the character equivalent of a nibble, bit 3, 2, 1, and 0 of a byte,
--   represented by int x. */
--static inline char
--lowhex(int x)
--{
--	return hexchars[x & 0xf];
--}
--
- /* Returns the integer equivalent of a hexadecimal character. */
- static int
- hex (char ch)
-@@ -721,8 +694,7 @@ mem2hex(char *buf, unsigned char *mem, i
-                 /* Valid mem address. */
-                 for (i = 0; i < count; i++) {
-                         ch = *mem++;
--                        *buf++ = highhex (ch);
--                        *buf++ = lowhex (ch);
-+			buf = pack_hex_byte(buf, ch);
-                 }
-         }
-         
-@@ -857,9 +829,9 @@ putpacket(char *buffer)
- 				src++;
- 			}
- 		}
--		putDebugChar ('#');
--		putDebugChar (highhex (checksum));
--		putDebugChar (lowhex (checksum));
-+		putDebugChar('#');
-+		putDebugChar(hex_asc_hi(checksum));
-+		putDebugChar(hex_asc_lo(checksum));
- 	} while(kgdb_started && (getDebugChar() != '+'));
- }
- 
-@@ -895,9 +867,8 @@ stub_is_stopped(int sigval)
-         
- 	/* Send trap type (converted to signal) */
- 
--	*ptr++ = 'T';	
--	*ptr++ = highhex (sigval);
--	*ptr++ = lowhex (sigval);
-+	*ptr++ = 'T';
-+	ptr = pack_hex_byte(ptr, sigval);
- 
- 	/* Send register contents. We probably only need to send the
- 	 * PC, frame pointer and stack pointer here. Other registers will be
-@@ -910,9 +881,7 @@ stub_is_stopped(int sigval)
-                 status = read_register (regno, &reg_cont);
-                 
- 		if (status == SUCCESS) {
--                        
--                        *ptr++ = highhex (regno);
--                        *ptr++ = lowhex (regno);
-+			ptr = pack_hex_byte(ptr, regno);
-                         *ptr++ = ':';
- 
-                         ptr = mem2hex(ptr, (unsigned char *)&reg_cont,
-@@ -937,8 +906,8 @@ stub_is_stopped(int sigval)
- 	/* Store thread:r...; with the executing task TID. */
- 	gdb_cris_strcpy (&remcomOutBuffer[pos], "thread:");
- 	pos += gdb_cris_strlen ("thread:");
--	remcomOutBuffer[pos++] = highhex (executing_task);
--	remcomOutBuffer[pos++] = lowhex (executing_task);
-+	remcomOutBuffer[pos++] = hex_asc_hi(executing_task);
-+	remcomOutBuffer[pos++] = hex_asc_lo(executing_task);
- 	gdb_cris_strcpy (&remcomOutBuffer[pos], ";");
- #endif
- 
-@@ -1126,8 +1095,8 @@ handle_exception (int sigval)
- 				   Success: SAA, where AA is the signal number.
- 				   Failure: void. */
- 				remcomOutBuffer[0] = 'S';
--				remcomOutBuffer[1] = highhex (sigval);
--				remcomOutBuffer[2] = lowhex (sigval);
-+				remcomOutBuffer[1] = hex_asc_hi(sigval);
-+				remcomOutBuffer[2] = hex_asc_lo(sigval);
- 				remcomOutBuffer[3] = 0;
- 				break;
- 				
-@@ -1224,23 +1193,23 @@ handle_exception (int sigval)
- 						case 'C':
- 							/* Identify the remote current thread. */
- 							gdb_cris_strcpy (&remcomOutBuffer[0], "QC");
--							remcomOutBuffer[2] = highhex (current_thread_c);
--							remcomOutBuffer[3] = lowhex (current_thread_c);
-+							remcomOutBuffer[2] = hex_asc_hi(current_thread_c);
-+							remcomOutBuffer[3] = hex_asc_lo(current_thread_c);
- 							remcomOutBuffer[4] = '\0';
- 							break;
- 						case 'L':
- 							gdb_cris_strcpy (&remcomOutBuffer[0], "QM");
- 							/* Reply with number of threads. */
- 							if (os_is_started()) {
--								remcomOutBuffer[2] = highhex (number_of_tasks);
--								remcomOutBuffer[3] = lowhex (number_of_tasks);
-+								remcomOutBuffer[2] = hex_asc_hi(number_of_tasks);
-+								remcomOutBuffer[3] = hex_asc_lo(number_of_tasks);
- 							}
- 							else {
--								remcomOutBuffer[2] = highhex (0);
--								remcomOutBuffer[3] = lowhex (1);
-+								remcomOutBuffer[2] = hex_asc_hi(0);
-+								remcomOutBuffer[3] = hex_asc_lo(1);
- 							}
- 							/* Done with the reply. */
--							remcomOutBuffer[4] = lowhex (1);
-+							remcomOutBuffer[4] = hex_asc_lo(1);
- 							pos = 5;
- 							/* Expects the argument thread id. */
- 							for (; pos < (5 + HEXCHARS_IN_THREAD_ID); pos++)
-@@ -1251,16 +1220,16 @@ handle_exception (int sigval)
- 								for (thread_id = 0; thread_id < number_of_tasks; thread_id++) {
- 									nextpos = pos + HEXCHARS_IN_THREAD_ID - 1;
- 									for (; pos < nextpos; pos ++)
--										remcomOutBuffer[pos] = lowhex (0);
--									remcomOutBuffer[pos++] = lowhex (thread_id);
-+										remcomOutBuffer[pos] = hex_asc_lo(0);
-+									remcomOutBuffer[pos++] = hex_asc_lo(thread_id);
- 								}
- 							}
- 							else {
- 								/* Store the thread identifier of the boot task. */
- 								nextpos = pos + HEXCHARS_IN_THREAD_ID - 1;
- 								for (; pos < nextpos; pos ++)
--									remcomOutBuffer[pos] = lowhex (0);
--								remcomOutBuffer[pos++] = lowhex (current_thread_c);
-+									remcomOutBuffer[pos] = hex_asc_lo(0);
-+								remcomOutBuffer[pos++] = hex_asc_lo(current_thread_c);
- 							}
- 							remcomOutBuffer[pos] = '\0';
- 							break;
-diff -puN arch/cris/arch-v32/kernel/kgdb.c~cris-use-the-common-ascii-hex-helpers arch/cris/arch-v32/kernel/kgdb.c
---- a/arch/cris/arch-v32/kernel/kgdb.c~cris-use-the-common-ascii-hex-helpers
-+++ a/arch/cris/arch-v32/kernel/kgdb.c
-@@ -398,14 +398,6 @@ void putDebugChar(int val)
- }
- #endif
- 
--/* Returns the character equivalent of a nibble, bit 7, 6, 5, and 4 of a byte,
--   represented by int x. */
--static char highhex(int x);
--
--/* Returns the character equivalent of a nibble, bit 3, 2, 1, and 0 of a byte,
--   represented by int x. */
--static char lowhex(int x);
--
- /* Returns the integer equivalent of a hexadecimal character. */
- static int hex(char ch);
- 
-@@ -464,9 +456,6 @@ void breakpoint(void);
- /* Run-length encoding maximum length. Send 64 at most. */
- #define RUNLENMAX 64
- 
--/* Definition of all valid hexadecimal characters */
--static const char hexchars[] = "0123456789abcdef";
--
- /* The inbound/outbound buffers used in packet I/O */
- static char input_buffer[BUFMAX];
- static char output_buffer[BUFMAX];
-@@ -550,8 +539,8 @@ gdb_cris_strtol(const char *s, char **en
- 	char *sd;
- 	int x = 0;
- 
--	for (s1 = (char*)s; (sd = gdb_cris_memchr(hexchars, *s1, base)) != NULL; ++s1)
--		x = x * base + (sd - hexchars);
-+	for (s1 = (char*)s; (sd = gdb_cris_memchr(hex_asc, *s1, base)) != NULL; ++s1)
-+		x = x * base + (sd - hex_asc);
- 
-         if (endptr) {
-                 /* Unconverted suffix is stored in endptr unless endptr is NULL. */
-@@ -655,22 +644,6 @@ read_register(char regno, unsigned int *
- }
- 
- /********************************** Packet I/O ******************************/
--/* Returns the character equivalent of a nibble, bit 7, 6, 5, and 4 of a byte,
--   represented by int x. */
--static inline char
--highhex(int x)
--{
--	return hexchars[(x >> 4) & 0xf];
--}
--
--/* Returns the character equivalent of a nibble, bit 3, 2, 1, and 0 of a byte,
--   represented by int x. */
--static inline char
--lowhex(int x)
--{
--	return hexchars[x & 0xf];
--}
--
- /* Returns the integer equivalent of a hexadecimal character. */
- static int
- hex(char ch)
-@@ -704,8 +677,7 @@ mem2hex(char *buf, unsigned char *mem, i
-                 /* Valid mem address. */
- 		for (i = 0; i < count; i++) {
- 			ch = *mem++;
--			*buf++ = highhex (ch);
--			*buf++ = lowhex (ch);
-+			buf = pack_hex_byte(buf, ch);
- 		}
-         }
-         /* Terminate properly. */
-@@ -723,8 +695,7 @@ mem2hex_nbo(char *buf, unsigned char *me
- 	mem += count - 1;
- 	for (i = 0; i < count; i++) {
- 		ch = *mem--;
--		*buf++ = highhex (ch);
--		*buf++ = lowhex (ch);
-+		buf = pack_hex_byte(buf, ch);
-         }
- 
-         /* Terminate properly. */
-@@ -862,8 +833,8 @@ putpacket(char *buffer)
- 			}
- 		}
- 		putDebugChar('#');
--		putDebugChar(highhex (checksum));
--		putDebugChar(lowhex (checksum));
-+		putDebugChar(hex_asc_hi(checksum));
-+		putDebugChar(hex_asc_lo(checksum));
- 	} while(kgdb_started && (getDebugChar() != '+'));
- }
- 
-@@ -909,8 +880,7 @@ stub_is_stopped(int sigval)
- 	/* Send trap type (converted to signal) */
- 
- 	*ptr++ = 'T';
--	*ptr++ = highhex(sigval);
--	*ptr++ = lowhex(sigval);
-+	ptr = pack_hex_byte(ptr, sigval);
- 
- 	if (((reg.exs & 0xff00) >> 8) == 0xc) {
- 
-@@ -1018,30 +988,26 @@ stub_is_stopped(int sigval)
- 	}
- 	/* Only send PC, frame and stack pointer. */
- 	read_register(PC, &reg_cont);
--	*ptr++ = highhex(PC);
--	*ptr++ = lowhex(PC);
-+	ptr = pack_hex_byte(PC);
- 	*ptr++ = ':';
- 	ptr = mem2hex(ptr, (unsigned char *)&reg_cont, register_size[PC]);
- 	*ptr++ = ';';
- 
- 	read_register(R8, &reg_cont);
--	*ptr++ = highhex(R8);
--	*ptr++ = lowhex(R8);
-+	ptr = pack_hex_byte(R8);
- 	*ptr++ = ':';
- 	ptr = mem2hex(ptr, (unsigned char *)&reg_cont, register_size[R8]);
- 	*ptr++ = ';';
- 
- 	read_register(SP, &reg_cont);
--	*ptr++ = highhex(SP);
--	*ptr++ = lowhex(SP);
-+	ptr = pack_hex_byte(SP);
- 	*ptr++ = ':';
- 	ptr = mem2hex(ptr, (unsigned char *)&reg_cont, register_size[SP]);
- 	*ptr++ = ';';
- 
- 	/* Send ERP as well; this will save us an entire register fetch in some cases. */
-         read_register(ERP, &reg_cont);
--        *ptr++ = highhex(ERP);
--        *ptr++ = lowhex(ERP);
-+	ptr = pack_hex_byte(ERP);
-         *ptr++ = ':';
-         ptr = mem2hex(ptr, (unsigned char *)&reg_cont, register_size[ERP]);
-         *ptr++ = ';';
-@@ -1533,8 +1499,8 @@ handle_exception(int sigval)
- 				   Success: SAA, where AA is the signal number.
- 				   Failure: void. */
- 				output_buffer[0] = 'S';
--				output_buffer[1] = highhex(sigval);
--				output_buffer[2] = lowhex(sigval);
-+				output_buffer[1] = hex_asc_hi(sigval);
-+				output_buffer[2] = hex_asc_lo(sigval);
- 				output_buffer[3] = 0;
- 				break;
- 
+diff -puN /dev/null fs/omfs/dir.c
+--- /dev/null
++++ a/fs/omfs/dir.c
+@@ -0,0 +1,504 @@
++/*
++ * OMFS (as used by RIO Karma) directory operations.
++ * Copyright (C) 2005 Bob Copeland <me@bobcopeland.com>
++ * Released under GPL v2.
++ */
++
++#include <linux/fs.h>
++#include <linux/ctype.h>
++#include <linux/buffer_head.h>
++#include "omfs.h"
++
++static int omfs_hash(const char *name, int namelen, int mod)
++{
++	int i, hash = 0;
++	for (i = 0; i < namelen; i++)
++		hash ^= tolower(name[i]) << (i % 24);
++	return hash % mod;
++}
++
++/*
++ * Finds the bucket for a given name and reads the containing block;
++ * *ofs is set to the offset of the first list entry.
++ */
++static struct buffer_head *omfs_get_bucket(struct inode *dir,
++		const char *name, int namelen, int *ofs)
++{
++	int nbuckets = (dir->i_size - OMFS_DIR_START)/8;
++	int block = clus_to_blk(OMFS_SB(dir->i_sb), dir->i_ino);
++	int bucket = omfs_hash(name, namelen, nbuckets);
++
++	*ofs = OMFS_DIR_START + bucket * 8;
++	return sb_bread(dir->i_sb, block);
++}
++
++static struct buffer_head *omfs_scan_list(struct inode *dir, u64 block,
++				const char *name, int namelen,
++				u64 *prev_block)
++{
++	struct buffer_head *bh;
++	struct omfs_inode *oi;
++	int err = -ENOENT;
++	*prev_block = ~0;
++
++	while (block != ~0) {
++		bh = sb_bread(dir->i_sb,
++			clus_to_blk(OMFS_SB(dir->i_sb), block));
++		if (!bh) {
++			err = -EIO;
++			goto err;
++		}
++
++		oi = (struct omfs_inode *) bh->b_data;
++		if (omfs_is_bad(OMFS_SB(dir->i_sb), &oi->i_head, block)) {
++			brelse(bh);
++			goto err;
++		}
++
++		if (strncmp(oi->i_name, name, namelen) == 0)
++			return bh;
++
++		*prev_block = block;
++		block = be64_to_cpu(oi->i_sibling);
++		brelse(bh);
++	}
++err:
++	return ERR_PTR(err);
++}
++
++static struct buffer_head *omfs_find_entry(struct inode *dir,
++					   const char *name, int namelen)
++{
++	struct buffer_head *bh;
++	int ofs;
++	u64 block, dummy;
++
++	bh = omfs_get_bucket(dir, name, namelen, &ofs);
++	if (!bh)
++		return ERR_PTR(-EIO);
++
++	block = be64_to_cpu(*((__be64 *) &bh->b_data[ofs]));
++	brelse(bh);
++
++	return omfs_scan_list(dir, block, name, namelen, &dummy);
++}
++
++int omfs_make_empty(struct inode *inode, struct super_block *sb)
++{
++	struct omfs_sb_info *sbi = OMFS_SB(sb);
++	int block = clus_to_blk(sbi, inode->i_ino);
++	struct buffer_head *bh;
++	struct omfs_inode *oi;
++
++	bh = sb_bread(sb, block);
++	if (!bh)
++		return -ENOMEM;
++
++	memset(bh->b_data, 0, sizeof(struct omfs_inode));
++
++	if (inode->i_mode & S_IFDIR) {
++		memset(&bh->b_data[OMFS_DIR_START], 0xff,
++			sbi->s_sys_blocksize - OMFS_DIR_START);
++	} else
++		omfs_make_empty_table(bh, OMFS_EXTENT_START);
++
++	oi = (struct omfs_inode *) bh->b_data;
++	oi->i_head.h_self = cpu_to_be64(inode->i_ino);
++	oi->i_sibling = ~0ULL;
++
++	mark_buffer_dirty(bh);
++	brelse(bh);
++	return 0;
++}
++
++static int omfs_add_link(struct dentry *dentry, struct inode *inode)
++{
++	struct inode *dir = dentry->d_parent->d_inode;
++	const char *name = dentry->d_name.name;
++	int namelen = dentry->d_name.len;
++	struct omfs_inode *oi;
++	struct buffer_head *bh;
++	u64 block;
++	__be64 *entry;
++	int ofs;
++
++	/* just prepend to head of queue in proper bucket */
++	bh = omfs_get_bucket(dir, name, namelen, &ofs);
++	if (!bh)
++		goto out;
++
++	entry = (__be64 *) &bh->b_data[ofs];
++	block = be64_to_cpu(*entry);
++	*entry = cpu_to_be64(inode->i_ino);
++	mark_buffer_dirty(bh);
++	brelse(bh);
++
++	/* now set the sibling and parent pointers on the new inode */
++	bh = sb_bread(dir->i_sb, clus_to_blk(OMFS_SB(dir->i_sb), inode->i_ino));
++	if (!bh)
++		goto out;
++
++	oi = (struct omfs_inode *) bh->b_data;
++	memcpy(oi->i_name, name, namelen);
++	memset(oi->i_name + namelen, 0, OMFS_NAMELEN - namelen);
++	oi->i_sibling = cpu_to_be64(block);
++	oi->i_parent = cpu_to_be64(dir->i_ino);
++	mark_buffer_dirty(bh);
++	brelse(bh);
++
++	dir->i_ctime = CURRENT_TIME_SEC;
++
++	/* mark affected inodes dirty to rebuild checksums */
++	mark_inode_dirty(dir);
++	mark_inode_dirty(inode);
++	return 0;
++out:
++	return -ENOMEM;
++}
++
++static int omfs_delete_entry(struct dentry *dentry)
++{
++	struct inode *dir = dentry->d_parent->d_inode;
++	struct inode *dirty;
++	const char *name = dentry->d_name.name;
++	int namelen = dentry->d_name.len;
++	struct omfs_inode *oi;
++	struct buffer_head *bh, *bh2;
++	__be64 *entry, next;
++	u64 block, prev;
++	int ofs;
++	int err = -ENOMEM;
++
++	/* delete the proper node in the bucket's linked list */
++	bh = omfs_get_bucket(dir, name, namelen, &ofs);
++	if (!bh)
++		goto out;
++
++	entry = (__be64 *) &bh->b_data[ofs];
++	block = be64_to_cpu(*entry);
++
++	bh2 = omfs_scan_list(dir, block, name, namelen, &prev);
++	if (IS_ERR(bh2)) {
++		err = PTR_ERR(bh2);
++		goto out_free_bh;
++	}
++
++	oi = (struct omfs_inode *) bh2->b_data;
++	next = oi->i_sibling;
++	brelse(bh2);
++
++	if (prev != ~0) {
++		/* found in middle of list, get list ptr */
++		brelse(bh);
++		bh = sb_bread(dir->i_sb,
++			clus_to_blk(OMFS_SB(dir->i_sb), prev));
++		if (!bh)
++			goto out;
++
++		oi = (struct omfs_inode *) bh->b_data;
++		entry = &oi->i_sibling;
++	}
++
++	*entry = next;
++	mark_buffer_dirty(bh);
++
++	if (prev != ~0) {
++		dirty = omfs_iget(dir->i_sb, prev);
++		if (!IS_ERR(dirty)) {
++			mark_inode_dirty(dirty);
++			iput(dirty);
++		}
++	}
++
++	err = 0;
++out_free_bh:
++	brelse(bh);
++out:
++	return err;
++}
++
++static int omfs_dir_is_empty(struct inode *inode)
++{
++	int nbuckets = (inode->i_size - OMFS_DIR_START) / 8;
++	struct buffer_head *bh;
++	u64 *ptr;
++	int i;
++
++	bh = sb_bread(inode->i_sb, clus_to_blk(OMFS_SB(inode->i_sb),
++			inode->i_ino));
++
++	if (!bh)
++		return 0;
++
++	ptr = (u64 *) &bh->b_data[OMFS_DIR_START];
++
++	for (i = 0; i < nbuckets; i++, ptr++)
++		if (*ptr != ~0)
++			break;
++
++	brelse(bh);
++	return *ptr != ~0;
++}
++
++static int omfs_unlink(struct inode *dir, struct dentry *dentry)
++{
++	int ret;
++	struct inode *inode = dentry->d_inode;
++
++	ret = omfs_delete_entry(dentry);
++	if (ret)
++		goto end_unlink;
++
++	inode_dec_link_count(inode);
++	mark_inode_dirty(dir);
++
++end_unlink:
++	return ret;
++}
++
++static int omfs_rmdir(struct inode *dir, struct dentry *dentry)
++{
++	int err = -ENOTEMPTY;
++	struct inode *inode = dentry->d_inode;
++
++	if (omfs_dir_is_empty(inode)) {
++		err = omfs_unlink(dir, dentry);
++		if (!err)
++			inode_dec_link_count(inode);
++	}
++	return err;
++}
++
++static int omfs_add_node(struct inode *dir, struct dentry *dentry, int mode)
++{
++	int err;
++	struct inode *inode = omfs_new_inode(dir, mode);
++
++	if (IS_ERR(inode))
++		return PTR_ERR(inode);
++
++	err = omfs_make_empty(inode, dir->i_sb);
++	if (err)
++		goto out_free_inode;
++
++	err = omfs_add_link(dentry, inode);
++	if (err)
++		goto out_free_inode;
++
++	d_instantiate(dentry, inode);
++	return 0;
++
++out_free_inode:
++	iput(inode);
++	return err;
++}
++
++static int omfs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++{
++	return omfs_add_node(dir, dentry, mode | S_IFDIR);
++}
++
++static int omfs_create(struct inode *dir, struct dentry *dentry, int mode,
++		struct nameidata *nd)
++{
++	return omfs_add_node(dir, dentry, mode | S_IFREG);
++}
++
++static struct dentry *omfs_lookup(struct inode *dir, struct dentry *dentry,
++				  struct nameidata *nd)
++{
++	struct buffer_head *bh;
++	struct inode *inode = NULL;
++
++	if (dentry->d_name.len > OMFS_NAMELEN)
++		return ERR_PTR(-ENAMETOOLONG);
++
++	bh = omfs_find_entry(dir, dentry->d_name.name, dentry->d_name.len);
++	if (!IS_ERR(bh)) {
++		struct omfs_inode *oi = (struct omfs_inode *)bh->b_data;
++		ino_t ino = be64_to_cpu(oi->i_head.h_self);
++		brelse(bh);
++		inode = omfs_iget(dir->i_sb, ino);
++		if (IS_ERR(inode))
++			return ERR_CAST(inode);
++	}
++	d_add(dentry, inode);
++	return NULL;
++}
++
++/* sanity check block's self pointer */
++int omfs_is_bad(struct omfs_sb_info *sbi, struct omfs_header *header,
++	u64 fsblock)
++{
++	int is_bad;
++	u64 ino = be64_to_cpu(header->h_self);
++	is_bad = ((ino != fsblock) || (ino < sbi->s_root_ino) ||
++		(ino > sbi->s_num_blocks));
++
++	if (is_bad)
++		printk(KERN_WARNING "omfs: bad hash chain detected\n");
++
++	return is_bad;
++}
++
++static int omfs_fill_chain(struct file *filp, void *dirent, filldir_t filldir,
++		u64 fsblock, int hindex)
++{
++	struct inode *dir = filp->f_dentry->d_inode;
++	struct buffer_head *bh;
++	struct omfs_inode *oi;
++	u64 self;
++	int res = 0;
++	unsigned char d_type;
++
++	/* follow chain in this bucket */
++	while (fsblock != ~0) {
++		bh = sb_bread(dir->i_sb, clus_to_blk(OMFS_SB(dir->i_sb),
++				fsblock));
++		if (!bh)
++			goto out;
++
++		oi = (struct omfs_inode *) bh->b_data;
++		if (omfs_is_bad(OMFS_SB(dir->i_sb), &oi->i_head, fsblock)) {
++			brelse(bh);
++			goto out;
++		}
++
++		self = fsblock;
++		fsblock = be64_to_cpu(oi->i_sibling);
++
++		/* skip visited nodes */
++		if (hindex) {
++			hindex--;
++			brelse(bh);
++			continue;
++		}
++
++		d_type = (oi->i_type == OMFS_DIR) ? DT_DIR : DT_REG;
++
++		res = filldir(dirent, oi->i_name, strnlen(oi->i_name,
++			OMFS_NAMELEN), filp->f_pos, self, d_type);
++		if (res == 0)
++			filp->f_pos++;
++		brelse(bh);
++	}
++out:
++	return res;
++}
++
++static int omfs_rename(struct inode *old_dir, struct dentry *old_dentry,
++		struct inode *new_dir, struct dentry *new_dentry)
++{
++	struct inode *new_inode = new_dentry->d_inode;
++	struct inode *old_inode = old_dentry->d_inode;
++	struct buffer_head *bh;
++	int is_dir;
++	int err;
++
++	is_dir = S_ISDIR(old_inode->i_mode);
++
++	if (new_inode) {
++		/* overwriting existing file/dir */
++		err = -ENOTEMPTY;
++		if (is_dir && !omfs_dir_is_empty(new_inode))
++			goto out;
++
++		err = -ENOENT;
++		bh = omfs_find_entry(new_dir, new_dentry->d_name.name,
++			new_dentry->d_name.len);
++		if (IS_ERR(bh))
++			goto out;
++		brelse(bh);
++
++		err = omfs_unlink(new_dir, new_dentry);
++		if (err)
++			goto out;
++	}
++
++	/* since omfs locates files by name, we need to unlink _before_
++	 * adding the new link or we won't find the old one */
++	inode_inc_link_count(old_inode);
++	err = omfs_unlink(old_dir, old_dentry);
++	if (err) {
++		inode_dec_link_count(old_inode);
++		goto out;
++	}
++
++	err = omfs_add_link(new_dentry, old_inode);
++	if (err)
++		goto out;
++
++	old_inode->i_ctime = CURRENT_TIME_SEC;
++out:
++	return err;
++}
++
++static int omfs_readdir(struct file *filp, void *dirent, filldir_t filldir)
++{
++	struct inode *dir = filp->f_dentry->d_inode;
++	struct buffer_head *bh;
++	loff_t offset, res;
++	unsigned int hchain, hindex;
++	int nbuckets;
++	u64 fsblock;
++	int ret = -EINVAL;
++
++	if (filp->f_pos >> 32)
++		goto success;
++
++	switch ((unsigned long) filp->f_pos) {
++	case 0:
++		if (filldir(dirent, ".", 1, 0, dir->i_ino, DT_DIR) < 0)
++			goto success;
++		filp->f_pos++;
++		/* fall through */
++	case 1:
++		if (filldir(dirent, "..", 2, 1,
++		    parent_ino(filp->f_dentry), DT_DIR) < 0)
++			goto success;
++		filp->f_pos = 1 << 20;
++		/* fall through */
++	}
++
++	nbuckets = (dir->i_size - OMFS_DIR_START) / 8;
++
++	/* high 12 bits store bucket + 1 and low 20 bits store hash index */
++	hchain = (filp->f_pos >> 20) - 1;
++	hindex = filp->f_pos & 0xfffff;
++
++	bh = sb_bread(dir->i_sb, clus_to_blk(OMFS_SB(dir->i_sb), dir->i_ino));
++	if (!bh)
++		goto out;
++
++	offset = OMFS_DIR_START + hchain * 8;
++
++	for (; hchain < nbuckets; hchain++, offset += 8) {
++		fsblock = be64_to_cpu(*((__be64 *) &bh->b_data[offset]));
++
++		res = omfs_fill_chain(filp, dirent, filldir, fsblock, hindex);
++		hindex = 0;
++		if (res < 0)
++			break;
++
++		filp->f_pos = (hchain+2) << 20;
++	}
++	brelse(bh);
++success:
++	ret = 0;
++out:
++	return ret;
++}
++
++struct inode_operations omfs_dir_inops = {
++	.lookup = omfs_lookup,
++	.mkdir = omfs_mkdir,
++	.rename = omfs_rename,
++	.create = omfs_create,
++	.unlink = omfs_unlink,
++	.rmdir = omfs_rmdir,
++};
++
++struct file_operations omfs_dir_operations = {
++	.read = generic_read_dir,
++	.readdir = omfs_readdir,
++};
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from me@bobcopeland.com are
 
 origin.patch
-linux-next.patch
-cifs-remove-global_extern-macro.patch
-input-ads7846c-sparse-lock-annotation.patch
-mtd-diskonchipc-fix-sparse-endian-warnings.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-net-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
+ath5k-fix-beacon-update-deadlock.patch
+ath5k-mask-out-unneeded-interrupts.patch
+ath5k-unify-resets.patch
 
