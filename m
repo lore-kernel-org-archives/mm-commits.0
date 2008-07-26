@@ -1,131 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-mmc-host-sdhcih-needs-scatterlisth.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:13:00 -0700
-Message-ID: <200807262113.m6QLD0F5019558@imap1.linux-foundation.org>
+Subject: - include-video-atmel_lcdch-must-include-linux-workqueueh.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:13:08 -0700
+Message-ID: <200807262113.m6QLD8Oe019573@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40307 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43195 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757302AbYGZVNM (ORCPT
+	by vger.kernel.org with ESMTP id S1757400AbYGZVNQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:13:12 -0400
+	Sat, 26 Jul 2008 17:13:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, drzeus@drzeus.cx, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/mmc/host/sdhci.h needs scatterlist.h
+     include/video/atmel_lcdc.h must #include <linux/workqueue.h>
 has been removed from the -mm tree.  Its filename was
-     drivers-mmc-host-sdhcih-needs-scatterlisth.patch
+     include-video-atmel_lcdch-must-include-linux-workqueueh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mmc/host/sdhci.h needs scatterlist.h
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: include/video/atmel_lcdc.h must #include <linux/workqueue.h>
+From: Adrian Bunk <bunk@kernel.org>
 
-alpha:
+This patch fixes the following compile error caused by
+commit d22579b837358cbef12ccca5adaf7e93ae09ab7a
+(atmel_lcdfb: FIFO underflow management):
 
-drivers/mmc/host/sdhci.h:242: error: field 'sg_miter' has incomplete type
+In file included from /home/bunk/linux/kernel-2.6/git/linux-2.6/arch/avr32/boards/atstk1000/atstk1004.c:21:
+/home/bunk/linux/kernel-2.6/git/linux-2.6/include/video/atmel_lcdc.h:40: error: field 'task' has incomplete type
 
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/video/atmel_lcdc.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/mmc/host/sdhci.h~drivers-mmc-host-sdhcih-needs-scatterlisth drivers/mmc/host/sdhci.h
---- a/drivers/mmc/host/sdhci.h~drivers-mmc-host-sdhcih-needs-scatterlisth
-+++ a/drivers/mmc/host/sdhci.h
-@@ -9,6 +9,8 @@
-  * your option) any later version.
-  */
+diff -puN include/video/atmel_lcdc.h~include-video-atmel_lcdch-must-include-linux-workqueueh include/video/atmel_lcdc.h
+--- a/include/video/atmel_lcdc.h~include-video-atmel_lcdch-must-include-linux-workqueueh
++++ a/include/video/atmel_lcdc.h
+@@ -22,6 +22,7 @@
+ #ifndef __ATMEL_LCDC_H__
+ #define __ATMEL_LCDC_H__
  
-+#include <linux/scatterlist.h>
-+
- /*
-  * Controller registers
-  */
++#include <linux/workqueue.h>
+ 
+ /* Way LCD wires are connected to the chip:
+  * Some Atmel chips use BGR color mode (instead of standard RGB)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-hugetlb-remove-unused-variable-warning-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-linux-next-fixups.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-x86-pci-replace-dbg-with-pr_debug-fix.patch
-x86-pci-replace-dbg-with-pr_debug-fix-2.patch
-include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
-arch-x86-pci-i386c-fix-printk-warnings.patch
-drm-fix-sparc64-build.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-git-ubi-git-rejects.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
+m32r-remove-the-unused-nohighmem-option.patch
+if-0-ses_match_host.patch
 git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gru-driver-v3-hardware-data-structures-fix.patch
-gru-driver-v3-hardware-data-structures-fix-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-page-statistics-units-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-introduce-__get_user_pages-fix.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
