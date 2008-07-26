@@ -1,552 +1,392 @@
 From: akpm@linux-foundation.org
-Subject: - omfs-add-directory-routines.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:15:11 -0700
-Message-ID: <200807262115.m6QLFBb1019736@imap1.linux-foundation.org>
+Subject: - omfs-add-file-routines.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:15:21 -0700
+Message-ID: <200807262115.m6QLFLOE019739@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42294 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43600 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757632AbYGZVPp (ORCPT
+	by vger.kernel.org with ESMTP id S1757663AbYGZVPx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:15:45 -0400
+	Sat, 26 Jul 2008 17:15:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: me@bobcopeland.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     omfs: add directory routines
+     omfs: add file routines
 has been removed from the -mm tree.  Its filename was
-     omfs-add-directory-routines.patch
+     omfs-add-file-routines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omfs: add directory routines
+Subject: omfs: add file routines
 From: Bob Copeland <me@bobcopeland.com>
 
-Add lookup and directory management routines for OMFS.  The filesystem uses
-hashing based on the filename and stores collisions, unordered, in siblings
-of files' inode structures.  To support telldir, the current position in
-the hash table is encoded in fpos.
+Add functions for reading and manipulating the storage of file data in
+the extent-based OMFS.
 
 Signed-off-by: Bob Copeland <me@bobcopeland.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/omfs/dir.c |  504 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 504 insertions(+)
+ fs/omfs/file.c |  346 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 346 insertions(+)
 
-diff -puN /dev/null fs/omfs/dir.c
+diff -puN /dev/null fs/omfs/file.c
 --- /dev/null
-+++ a/fs/omfs/dir.c
-@@ -0,0 +1,504 @@
++++ a/fs/omfs/file.c
+@@ -0,0 +1,346 @@
 +/*
-+ * OMFS (as used by RIO Karma) directory operations.
++ * OMFS (as used by RIO Karma) file operations.
 + * Copyright (C) 2005 Bob Copeland <me@bobcopeland.com>
 + * Released under GPL v2.
 + */
 +
++#include <linux/version.h>
++#include <linux/module.h>
 +#include <linux/fs.h>
-+#include <linux/ctype.h>
 +#include <linux/buffer_head.h>
++#include <linux/mpage.h>
 +#include "omfs.h"
 +
-+static int omfs_hash(const char *name, int namelen, int mod)
++static int omfs_sync_file(struct file *file, struct dentry *dentry,
++		int datasync)
 +{
-+	int i, hash = 0;
-+	for (i = 0; i < namelen; i++)
-+		hash ^= tolower(name[i]) << (i % 24);
-+	return hash % mod;
++	struct inode *inode = dentry->d_inode;
++	int err;
++
++	err = sync_mapping_buffers(inode->i_mapping);
++	if (!(inode->i_state & I_DIRTY))
++		return err;
++	if (datasync && !(inode->i_state & I_DIRTY_DATASYNC))
++		return err;
++	err |= omfs_sync_inode(inode);
++	return err ? -EIO : 0;
 +}
 +
-+/*
-+ * Finds the bucket for a given name and reads the containing block;
-+ * *ofs is set to the offset of the first list entry.
-+ */
-+static struct buffer_head *omfs_get_bucket(struct inode *dir,
-+		const char *name, int namelen, int *ofs)
++void omfs_make_empty_table(struct buffer_head *bh, int offset)
 +{
-+	int nbuckets = (dir->i_size - OMFS_DIR_START)/8;
-+	int block = clus_to_blk(OMFS_SB(dir->i_sb), dir->i_ino);
-+	int bucket = omfs_hash(name, namelen, nbuckets);
++	struct omfs_extent *oe = (struct omfs_extent *) &bh->b_data[offset];
 +
-+	*ofs = OMFS_DIR_START + bucket * 8;
-+	return sb_bread(dir->i_sb, block);
++	oe->e_next = ~0ULL;
++	oe->e_extent_count = cpu_to_be32(1),
++	oe->e_fill = cpu_to_be32(0x22),
++	oe->e_entry.e_cluster = ~0ULL;
++	oe->e_entry.e_blocks = ~0ULL;
 +}
 +
-+static struct buffer_head *omfs_scan_list(struct inode *dir, u64 block,
-+				const char *name, int namelen,
-+				u64 *prev_block)
++int omfs_shrink_inode(struct inode *inode)
 +{
++	struct omfs_sb_info *sbi = OMFS_SB(inode->i_sb);
++	struct omfs_extent *oe;
++	struct omfs_extent_entry *entry;
 +	struct buffer_head *bh;
-+	struct omfs_inode *oi;
-+	int err = -ENOENT;
-+	*prev_block = ~0;
-+
-+	while (block != ~0) {
-+		bh = sb_bread(dir->i_sb,
-+			clus_to_blk(OMFS_SB(dir->i_sb), block));
-+		if (!bh) {
-+			err = -EIO;
-+			goto err;
-+		}
-+
-+		oi = (struct omfs_inode *) bh->b_data;
-+		if (omfs_is_bad(OMFS_SB(dir->i_sb), &oi->i_head, block)) {
-+			brelse(bh);
-+			goto err;
-+		}
-+
-+		if (strncmp(oi->i_name, name, namelen) == 0)
-+			return bh;
-+
-+		*prev_block = block;
-+		block = be64_to_cpu(oi->i_sibling);
-+		brelse(bh);
-+	}
-+err:
-+	return ERR_PTR(err);
-+}
-+
-+static struct buffer_head *omfs_find_entry(struct inode *dir,
-+					   const char *name, int namelen)
-+{
-+	struct buffer_head *bh;
-+	int ofs;
-+	u64 block, dummy;
-+
-+	bh = omfs_get_bucket(dir, name, namelen, &ofs);
-+	if (!bh)
-+		return ERR_PTR(-EIO);
-+
-+	block = be64_to_cpu(*((__be64 *) &bh->b_data[ofs]));
-+	brelse(bh);
-+
-+	return omfs_scan_list(dir, block, name, namelen, &dummy);
-+}
-+
-+int omfs_make_empty(struct inode *inode, struct super_block *sb)
-+{
-+	struct omfs_sb_info *sbi = OMFS_SB(sb);
-+	int block = clus_to_blk(sbi, inode->i_ino);
-+	struct buffer_head *bh;
-+	struct omfs_inode *oi;
-+
-+	bh = sb_bread(sb, block);
-+	if (!bh)
-+		return -ENOMEM;
-+
-+	memset(bh->b_data, 0, sizeof(struct omfs_inode));
-+
-+	if (inode->i_mode & S_IFDIR) {
-+		memset(&bh->b_data[OMFS_DIR_START], 0xff,
-+			sbi->s_sys_blocksize - OMFS_DIR_START);
-+	} else
-+		omfs_make_empty_table(bh, OMFS_EXTENT_START);
-+
-+	oi = (struct omfs_inode *) bh->b_data;
-+	oi->i_head.h_self = cpu_to_be64(inode->i_ino);
-+	oi->i_sibling = ~0ULL;
-+
-+	mark_buffer_dirty(bh);
-+	brelse(bh);
-+	return 0;
-+}
-+
-+static int omfs_add_link(struct dentry *dentry, struct inode *inode)
-+{
-+	struct inode *dir = dentry->d_parent->d_inode;
-+	const char *name = dentry->d_name.name;
-+	int namelen = dentry->d_name.len;
-+	struct omfs_inode *oi;
-+	struct buffer_head *bh;
-+	u64 block;
-+	__be64 *entry;
-+	int ofs;
-+
-+	/* just prepend to head of queue in proper bucket */
-+	bh = omfs_get_bucket(dir, name, namelen, &ofs);
-+	if (!bh)
-+		goto out;
-+
-+	entry = (__be64 *) &bh->b_data[ofs];
-+	block = be64_to_cpu(*entry);
-+	*entry = cpu_to_be64(inode->i_ino);
-+	mark_buffer_dirty(bh);
-+	brelse(bh);
-+
-+	/* now set the sibling and parent pointers on the new inode */
-+	bh = sb_bread(dir->i_sb, clus_to_blk(OMFS_SB(dir->i_sb), inode->i_ino));
-+	if (!bh)
-+		goto out;
-+
-+	oi = (struct omfs_inode *) bh->b_data;
-+	memcpy(oi->i_name, name, namelen);
-+	memset(oi->i_name + namelen, 0, OMFS_NAMELEN - namelen);
-+	oi->i_sibling = cpu_to_be64(block);
-+	oi->i_parent = cpu_to_be64(dir->i_ino);
-+	mark_buffer_dirty(bh);
-+	brelse(bh);
-+
-+	dir->i_ctime = CURRENT_TIME_SEC;
-+
-+	/* mark affected inodes dirty to rebuild checksums */
-+	mark_inode_dirty(dir);
-+	mark_inode_dirty(inode);
-+	return 0;
-+out:
-+	return -ENOMEM;
-+}
-+
-+static int omfs_delete_entry(struct dentry *dentry)
-+{
-+	struct inode *dir = dentry->d_parent->d_inode;
-+	struct inode *dirty;
-+	const char *name = dentry->d_name.name;
-+	int namelen = dentry->d_name.len;
-+	struct omfs_inode *oi;
-+	struct buffer_head *bh, *bh2;
-+	__be64 *entry, next;
-+	u64 block, prev;
-+	int ofs;
-+	int err = -ENOMEM;
-+
-+	/* delete the proper node in the bucket's linked list */
-+	bh = omfs_get_bucket(dir, name, namelen, &ofs);
-+	if (!bh)
-+		goto out;
-+
-+	entry = (__be64 *) &bh->b_data[ofs];
-+	block = be64_to_cpu(*entry);
-+
-+	bh2 = omfs_scan_list(dir, block, name, namelen, &prev);
-+	if (IS_ERR(bh2)) {
-+		err = PTR_ERR(bh2);
-+		goto out_free_bh;
-+	}
-+
-+	oi = (struct omfs_inode *) bh2->b_data;
-+	next = oi->i_sibling;
-+	brelse(bh2);
-+
-+	if (prev != ~0) {
-+		/* found in middle of list, get list ptr */
-+		brelse(bh);
-+		bh = sb_bread(dir->i_sb,
-+			clus_to_blk(OMFS_SB(dir->i_sb), prev));
-+		if (!bh)
-+			goto out;
-+
-+		oi = (struct omfs_inode *) bh->b_data;
-+		entry = &oi->i_sibling;
-+	}
-+
-+	*entry = next;
-+	mark_buffer_dirty(bh);
-+
-+	if (prev != ~0) {
-+		dirty = omfs_iget(dir->i_sb, prev);
-+		if (!IS_ERR(dirty)) {
-+			mark_inode_dirty(dirty);
-+			iput(dirty);
-+		}
-+	}
-+
-+	err = 0;
-+out_free_bh:
-+	brelse(bh);
-+out:
-+	return err;
-+}
-+
-+static int omfs_dir_is_empty(struct inode *inode)
-+{
-+	int nbuckets = (inode->i_size - OMFS_DIR_START) / 8;
-+	struct buffer_head *bh;
-+	u64 *ptr;
-+	int i;
-+
-+	bh = sb_bread(inode->i_sb, clus_to_blk(OMFS_SB(inode->i_sb),
-+			inode->i_ino));
-+
-+	if (!bh)
-+		return 0;
-+
-+	ptr = (u64 *) &bh->b_data[OMFS_DIR_START];
-+
-+	for (i = 0; i < nbuckets; i++, ptr++)
-+		if (*ptr != ~0)
-+			break;
-+
-+	brelse(bh);
-+	return *ptr != ~0;
-+}
-+
-+static int omfs_unlink(struct inode *dir, struct dentry *dentry)
-+{
++	u64 next, last;
++	u32 extent_count;
 +	int ret;
-+	struct inode *inode = dentry->d_inode;
 +
-+	ret = omfs_delete_entry(dentry);
-+	if (ret)
-+		goto end_unlink;
++	/* traverse extent table, freeing each entry that is greater
++	 * than inode->i_size;
++	 */
++	next = inode->i_ino;
 +
-+	inode_dec_link_count(inode);
-+	mark_inode_dirty(dir);
-+
-+end_unlink:
-+	return ret;
-+}
-+
-+static int omfs_rmdir(struct inode *dir, struct dentry *dentry)
-+{
-+	int err = -ENOTEMPTY;
-+	struct inode *inode = dentry->d_inode;
-+
-+	if (omfs_dir_is_empty(inode)) {
-+		err = omfs_unlink(dir, dentry);
-+		if (!err)
-+			inode_dec_link_count(inode);
-+	}
-+	return err;
-+}
-+
-+static int omfs_add_node(struct inode *dir, struct dentry *dentry, int mode)
-+{
-+	int err;
-+	struct inode *inode = omfs_new_inode(dir, mode);
-+
-+	if (IS_ERR(inode))
-+		return PTR_ERR(inode);
-+
-+	err = omfs_make_empty(inode, dir->i_sb);
-+	if (err)
-+		goto out_free_inode;
-+
-+	err = omfs_add_link(dentry, inode);
-+	if (err)
-+		goto out_free_inode;
-+
-+	d_instantiate(dentry, inode);
-+	return 0;
-+
-+out_free_inode:
-+	iput(inode);
-+	return err;
-+}
-+
-+static int omfs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
-+{
-+	return omfs_add_node(dir, dentry, mode | S_IFDIR);
-+}
-+
-+static int omfs_create(struct inode *dir, struct dentry *dentry, int mode,
-+		struct nameidata *nd)
-+{
-+	return omfs_add_node(dir, dentry, mode | S_IFREG);
-+}
-+
-+static struct dentry *omfs_lookup(struct inode *dir, struct dentry *dentry,
-+				  struct nameidata *nd)
-+{
-+	struct buffer_head *bh;
-+	struct inode *inode = NULL;
-+
-+	if (dentry->d_name.len > OMFS_NAMELEN)
-+		return ERR_PTR(-ENAMETOOLONG);
-+
-+	bh = omfs_find_entry(dir, dentry->d_name.name, dentry->d_name.len);
-+	if (!IS_ERR(bh)) {
-+		struct omfs_inode *oi = (struct omfs_inode *)bh->b_data;
-+		ino_t ino = be64_to_cpu(oi->i_head.h_self);
-+		brelse(bh);
-+		inode = omfs_iget(dir->i_sb, ino);
-+		if (IS_ERR(inode))
-+			return ERR_CAST(inode);
-+	}
-+	d_add(dentry, inode);
-+	return NULL;
-+}
-+
-+/* sanity check block's self pointer */
-+int omfs_is_bad(struct omfs_sb_info *sbi, struct omfs_header *header,
-+	u64 fsblock)
-+{
-+	int is_bad;
-+	u64 ino = be64_to_cpu(header->h_self);
-+	is_bad = ((ino != fsblock) || (ino < sbi->s_root_ino) ||
-+		(ino > sbi->s_num_blocks));
-+
-+	if (is_bad)
-+		printk(KERN_WARNING "omfs: bad hash chain detected\n");
-+
-+	return is_bad;
-+}
-+
-+static int omfs_fill_chain(struct file *filp, void *dirent, filldir_t filldir,
-+		u64 fsblock, int hindex)
-+{
-+	struct inode *dir = filp->f_dentry->d_inode;
-+	struct buffer_head *bh;
-+	struct omfs_inode *oi;
-+	u64 self;
-+	int res = 0;
-+	unsigned char d_type;
-+
-+	/* follow chain in this bucket */
-+	while (fsblock != ~0) {
-+		bh = sb_bread(dir->i_sb, clus_to_blk(OMFS_SB(dir->i_sb),
-+				fsblock));
-+		if (!bh)
-+			goto out;
-+
-+		oi = (struct omfs_inode *) bh->b_data;
-+		if (omfs_is_bad(OMFS_SB(dir->i_sb), &oi->i_head, fsblock)) {
-+			brelse(bh);
-+			goto out;
-+		}
-+
-+		self = fsblock;
-+		fsblock = be64_to_cpu(oi->i_sibling);
-+
-+		/* skip visited nodes */
-+		if (hindex) {
-+			hindex--;
-+			brelse(bh);
-+			continue;
-+		}
-+
-+		d_type = (oi->i_type == OMFS_DIR) ? DT_DIR : DT_REG;
-+
-+		res = filldir(dirent, oi->i_name, strnlen(oi->i_name,
-+			OMFS_NAMELEN), filp->f_pos, self, d_type);
-+		if (res == 0)
-+			filp->f_pos++;
-+		brelse(bh);
-+	}
-+out:
-+	return res;
-+}
-+
-+static int omfs_rename(struct inode *old_dir, struct dentry *old_dentry,
-+		struct inode *new_dir, struct dentry *new_dentry)
-+{
-+	struct inode *new_inode = new_dentry->d_inode;
-+	struct inode *old_inode = old_dentry->d_inode;
-+	struct buffer_head *bh;
-+	int is_dir;
-+	int err;
-+
-+	is_dir = S_ISDIR(old_inode->i_mode);
-+
-+	if (new_inode) {
-+		/* overwriting existing file/dir */
-+		err = -ENOTEMPTY;
-+		if (is_dir && !omfs_dir_is_empty(new_inode))
-+			goto out;
-+
-+		err = -ENOENT;
-+		bh = omfs_find_entry(new_dir, new_dentry->d_name.name,
-+			new_dentry->d_name.len);
-+		if (IS_ERR(bh))
-+			goto out;
-+		brelse(bh);
-+
-+		err = omfs_unlink(new_dir, new_dentry);
-+		if (err)
-+			goto out;
-+	}
-+
-+	/* since omfs locates files by name, we need to unlink _before_
-+	 * adding the new link or we won't find the old one */
-+	inode_inc_link_count(old_inode);
-+	err = omfs_unlink(old_dir, old_dentry);
-+	if (err) {
-+		inode_dec_link_count(old_inode);
-+		goto out;
-+	}
-+
-+	err = omfs_add_link(new_dentry, old_inode);
-+	if (err)
++	/* only support truncate -> 0 for now */
++	ret = -EIO;
++	if (inode->i_size != 0)
 +		goto out;
 +
-+	old_inode->i_ctime = CURRENT_TIME_SEC;
-+out:
-+	return err;
-+}
-+
-+static int omfs_readdir(struct file *filp, void *dirent, filldir_t filldir)
-+{
-+	struct inode *dir = filp->f_dentry->d_inode;
-+	struct buffer_head *bh;
-+	loff_t offset, res;
-+	unsigned int hchain, hindex;
-+	int nbuckets;
-+	u64 fsblock;
-+	int ret = -EINVAL;
-+
-+	if (filp->f_pos >> 32)
-+		goto success;
-+
-+	switch ((unsigned long) filp->f_pos) {
-+	case 0:
-+		if (filldir(dirent, ".", 1, 0, dir->i_ino, DT_DIR) < 0)
-+			goto success;
-+		filp->f_pos++;
-+		/* fall through */
-+	case 1:
-+		if (filldir(dirent, "..", 2, 1,
-+		    parent_ino(filp->f_dentry), DT_DIR) < 0)
-+			goto success;
-+		filp->f_pos = 1 << 20;
-+		/* fall through */
-+	}
-+
-+	nbuckets = (dir->i_size - OMFS_DIR_START) / 8;
-+
-+	/* high 12 bits store bucket + 1 and low 20 bits store hash index */
-+	hchain = (filp->f_pos >> 20) - 1;
-+	hindex = filp->f_pos & 0xfffff;
-+
-+	bh = sb_bread(dir->i_sb, clus_to_blk(OMFS_SB(dir->i_sb), dir->i_ino));
++	bh = sb_bread(inode->i_sb, clus_to_blk(sbi, next));
 +	if (!bh)
 +		goto out;
 +
-+	offset = OMFS_DIR_START + hchain * 8;
++	oe = (struct omfs_extent *)(&bh->b_data[OMFS_EXTENT_START]);
 +
-+	for (; hchain < nbuckets; hchain++, offset += 8) {
-+		fsblock = be64_to_cpu(*((__be64 *) &bh->b_data[offset]));
++	for (;;) {
 +
-+		res = omfs_fill_chain(filp, dirent, filldir, fsblock, hindex);
-+		hindex = 0;
-+		if (res < 0)
++		if (omfs_is_bad(sbi, (struct omfs_header *) bh->b_data, next)) {
++			brelse(bh);
++			goto out;
++		}
++
++		extent_count = be32_to_cpu(oe->e_extent_count);
++		last = next;
++		next = be64_to_cpu(oe->e_next);
++		entry = &oe->e_entry;
++
++		/* ignore last entry as it is the terminator */
++		for (; extent_count > 1; extent_count--) {
++			u64 start, count;
++			start = be64_to_cpu(entry->e_cluster);
++			count = be64_to_cpu(entry->e_blocks);
++
++			omfs_clear_range(inode->i_sb, start, (int) count);
++			entry++;
++		}
++		omfs_make_empty_table(bh, (char *) oe - bh->b_data);
++		mark_buffer_dirty(bh);
++		brelse(bh);
++
++		if (last != inode->i_ino)
++			omfs_clear_range(inode->i_sb, last, sbi->s_mirrors);
++
++		if (next == ~0)
 +			break;
 +
-+		filp->f_pos = (hchain+2) << 20;
++		bh = sb_bread(inode->i_sb, clus_to_blk(sbi, next));
++		if (!bh)
++			goto out;
++		oe = (struct omfs_extent *) (&bh->b_data[OMFS_EXTENT_CONT]);
 +	}
-+	brelse(bh);
-+success:
 +	ret = 0;
 +out:
 +	return ret;
 +}
 +
-+struct inode_operations omfs_dir_inops = {
-+	.lookup = omfs_lookup,
-+	.mkdir = omfs_mkdir,
-+	.rename = omfs_rename,
-+	.create = omfs_create,
-+	.unlink = omfs_unlink,
-+	.rmdir = omfs_rmdir,
++static void omfs_truncate(struct inode *inode)
++{
++	omfs_shrink_inode(inode);
++	mark_inode_dirty(inode);
++}
++
++/*
++ * Add new blocks to the current extent, or create new entries/continuations
++ * as necessary.
++ */
++static int omfs_grow_extent(struct inode *inode, struct omfs_extent *oe,
++			u64 *ret_block)
++{
++	struct omfs_extent_entry *terminator;
++	struct omfs_extent_entry *entry = &oe->e_entry;
++	struct omfs_sb_info *sbi = OMFS_SB(inode->i_sb);
++	u32 extent_count = be32_to_cpu(oe->e_extent_count);
++	u64 new_block = 0;
++	u32 max_count;
++	int new_count;
++	int ret = 0;
++
++	/* reached the end of the extent table with no blocks mapped.
++	 * there are three possibilities for adding: grow last extent,
++	 * add a new extent to the current extent table, and add a
++	 * continuation inode.  in last two cases need an allocator for
++	 * sbi->s_cluster_size
++	 */
++
++	/* TODO: handle holes */
++
++	/* should always have a terminator */
++	if (extent_count < 1)
++		return -EIO;
++
++	/* trivially grow current extent, if next block is not taken */
++	terminator = entry + extent_count - 1;
++	if (extent_count > 1) {
++		entry = terminator-1;
++		new_block = be64_to_cpu(entry->e_cluster) +
++			be64_to_cpu(entry->e_blocks);
++
++		if (omfs_allocate_block(inode->i_sb, new_block)) {
++			entry->e_blocks =
++				cpu_to_be64(be64_to_cpu(entry->e_blocks) + 1);
++			terminator->e_blocks = ~(cpu_to_be64(
++				be64_to_cpu(~terminator->e_blocks) + 1));
++			goto out;
++		}
++	}
++	max_count = (sbi->s_sys_blocksize - OMFS_EXTENT_START -
++		sizeof(struct omfs_extent)) /
++		sizeof(struct omfs_extent_entry) + 1;
++
++	/* TODO: add a continuation block here */
++	if (be32_to_cpu(oe->e_extent_count) > max_count-1)
++		return -EIO;
++
++	/* try to allocate a new cluster */
++	ret = omfs_allocate_range(inode->i_sb, 1, sbi->s_clustersize,
++		&new_block, &new_count);
++	if (ret)
++		goto out_fail;
++
++	/* copy terminator down an entry */
++	entry = terminator;
++	terminator++;
++	memcpy(terminator, entry, sizeof(struct omfs_extent_entry));
++
++	entry->e_cluster = cpu_to_be64(new_block);
++	entry->e_blocks = cpu_to_be64((u64) new_count);
++
++	terminator->e_blocks = ~(cpu_to_be64(
++		be64_to_cpu(~terminator->e_blocks) + (u64) new_count));
++
++	/* write in new entry */
++	oe->e_extent_count = cpu_to_be32(1 + be32_to_cpu(oe->e_extent_count));
++
++out:
++	*ret_block = new_block;
++out_fail:
++	return ret;
++}
++
++/*
++ * Scans across the directory table for a given file block number.
++ * If block not found, return 0.
++ */
++static sector_t find_block(struct inode *inode, struct omfs_extent_entry *ent,
++			sector_t block, int count, int *left)
++{
++	/* count > 1 because of terminator */
++	sector_t searched = 0;
++	for (; count > 1; count--) {
++		int numblocks = clus_to_blk(OMFS_SB(inode->i_sb),
++			be64_to_cpu(ent->e_blocks));
++
++		if (block >= searched  &&
++		    block < searched + numblocks) {
++			/*
++			 * found it at cluster + (block - searched)
++			 * numblocks - (block - searched) is remainder
++			 */
++			*left = numblocks - (block - searched);
++			return clus_to_blk(OMFS_SB(inode->i_sb),
++				be64_to_cpu(ent->e_cluster)) +
++				block - searched;
++		}
++		searched += numblocks;
++		ent++;
++	}
++	return 0;
++}
++
++static int omfs_get_block(struct inode *inode, sector_t block,
++			  struct buffer_head *bh_result, int create)
++{
++	struct buffer_head *bh;
++	sector_t next, offset;
++	int ret;
++	u64 new_block;
++	int extent_count;
++	struct omfs_extent *oe;
++	struct omfs_extent_entry *entry;
++	struct omfs_sb_info *sbi = OMFS_SB(inode->i_sb);
++	int max_blocks = bh_result->b_size >> inode->i_blkbits;
++	int remain;
++
++	ret = -EIO;
++	bh = sb_bread(inode->i_sb, clus_to_blk(sbi, inode->i_ino));
++	if (!bh)
++		goto out;
++
++	oe = (struct omfs_extent *)(&bh->b_data[OMFS_EXTENT_START]);
++	next = inode->i_ino;
++
++	for (;;) {
++
++		if (omfs_is_bad(sbi, (struct omfs_header *) bh->b_data, next))
++			goto out_brelse;
++
++		extent_count = be32_to_cpu(oe->e_extent_count);
++		next = be64_to_cpu(oe->e_next);
++		entry = &oe->e_entry;
++
++		offset = find_block(inode, entry, block, extent_count, &remain);
++		if (offset > 0) {
++			ret = 0;
++			map_bh(bh_result, inode->i_sb, offset);
++			if (remain > max_blocks)
++				remain = max_blocks;
++			bh_result->b_size = (remain << inode->i_blkbits);
++			goto out_brelse;
++		}
++		if (next == ~0)
++			break;
++
++		brelse(bh);
++		bh = sb_bread(inode->i_sb, clus_to_blk(sbi, next));
++		if (!bh)
++			goto out;
++		oe = (struct omfs_extent *) (&bh->b_data[OMFS_EXTENT_CONT]);
++	}
++	if (create) {
++		ret = omfs_grow_extent(inode, oe, &new_block);
++		if (ret == 0) {
++			mark_buffer_dirty(bh);
++			mark_inode_dirty(inode);
++			map_bh(bh_result, inode->i_sb,
++					clus_to_blk(sbi, new_block));
++		}
++	}
++out_brelse:
++	brelse(bh);
++out:
++	return ret;
++}
++
++static int omfs_readpage(struct file *file, struct page *page)
++{
++	return block_read_full_page(page, omfs_get_block);
++}
++
++static int omfs_readpages(struct file *file, struct address_space *mapping,
++		struct list_head *pages, unsigned nr_pages)
++{
++	return mpage_readpages(mapping, pages, nr_pages, omfs_get_block);
++}
++
++static int omfs_writepage(struct page *page, struct writeback_control *wbc)
++{
++	return block_write_full_page(page, omfs_get_block, wbc);
++}
++
++static int
++omfs_writepages(struct address_space *mapping, struct writeback_control *wbc)
++{
++	return mpage_writepages(mapping, wbc, omfs_get_block);
++}
++
++static int omfs_write_begin(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned flags,
++			struct page **pagep, void **fsdata)
++{
++	*pagep = NULL;
++	return block_write_begin(file, mapping, pos, len, flags,
++				pagep, fsdata, omfs_get_block);
++}
++
++static sector_t omfs_bmap(struct address_space *mapping, sector_t block)
++{
++	return generic_block_bmap(mapping, block, omfs_get_block);
++}
++
++struct file_operations omfs_file_operations = {
++	.llseek = generic_file_llseek,
++	.read = do_sync_read,
++	.write = do_sync_write,
++	.aio_read = generic_file_aio_read,
++	.aio_write = generic_file_aio_write,
++	.mmap = generic_file_mmap,
++	.fsync = omfs_sync_file,
++	.splice_read = generic_file_splice_read,
 +};
 +
-+struct file_operations omfs_dir_operations = {
-+	.read = generic_read_dir,
-+	.readdir = omfs_readdir,
++struct inode_operations omfs_file_inops = {
++	.truncate = omfs_truncate
 +};
++
++struct address_space_operations omfs_aops = {
++	.readpage = omfs_readpage,
++	.readpages = omfs_readpages,
++	.writepage = omfs_writepage,
++	.writepages = omfs_writepages,
++	.sync_page = block_sync_page,
++	.write_begin = omfs_write_begin,
++	.write_end = generic_write_end,
++	.bmap = omfs_bmap,
++};
++
 _
 
 Patches currently in -mm which might be from me@bobcopeland.com are
