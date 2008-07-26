@@ -1,140 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-remove-unused-variable-warning-checkpatch-fixes.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 15:01:24 -0700
-Message-ID: <200807262201.m6QM1Ors021579@imap1.linux-foundation.org>
+Subject: - tracehook-syscall.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 15:04:21 -0700
+Message-ID: <200807262204.m6QM4L9K021678@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49031 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60411 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756109AbYGZWB1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755333AbYGZWFD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 18:01:27 -0400
+	Sat, 26 Jul 2008 18:05:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, righi.andrea@gmail.com, mm-commits@vger.kernel.org
+To: roland@redhat.com, mingo@elte.hu, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb-remove-unused-variable-warning-checkpatch-fixes
+     tracehook: syscall
 has been removed from the -mm tree.  Its filename was
-     hugetlb-remove-unused-variable-warning-checkpatch-fixes.patch
+     tracehook-syscall.patch
 
-This patch was dropped because it was folded into hugetlb-remove-unused-variable-warning.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb-remove-unused-variable-warning-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tracehook: syscall
+From: Roland McGrath <roland@redhat.com>
 
-ERROR: code indent should use tabs where possible
-#25: FILE: include/linux/hugetlb.h:278:
-+        return 1;$
+This adds standard tracehook.h inlines for arch code to call when
+TIF_SYSCALL_TRACE has been set.  This replaces having each arch implement
+the ptrace guts for its syscall tracing support.
 
-total: 1 errors, 0 warnings, 11 lines checked
-
-./patches/hugetlb-remove-unused-variable-warning.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andrea Righi <righi.andrea@gmail.com>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Reviewed-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/tracehook.h |   70 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 70 insertions(+)
 
-diff -puN include/linux/hugetlb.h~hugetlb-remove-unused-variable-warning-checkpatch-fixes include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-remove-unused-variable-warning-checkpatch-fixes
-+++ a/include/linux/hugetlb.h
-@@ -275,7 +275,7 @@ struct hstate {};
- #define huge_page_shift(h) PAGE_SHIFT
- static inline unsigned int pages_per_huge_page(struct hstate *h)
- {
--        return 1;
-+	return 1;
+diff -puN include/linux/tracehook.h~tracehook-syscall include/linux/tracehook.h
+--- a/include/linux/tracehook.h~tracehook-syscall
++++ a/include/linux/tracehook.h
+@@ -66,6 +66,76 @@ static inline int tracehook_expect_break
+ 	return (task_ptrace(task) & PT_PTRACED) != 0;
  }
- #endif
  
++/*
++ * ptrace report for syscall entry and exit looks identical.
++ */
++static inline void ptrace_report_syscall(struct pt_regs *regs)
++{
++	int ptrace = task_ptrace(current);
++
++	if (!(ptrace & PT_PTRACED))
++		return;
++
++	ptrace_notify(SIGTRAP | ((ptrace & PT_TRACESYSGOOD) ? 0x80 : 0));
++
++	/*
++	 * this isn't the same as continuing with a signal, but it will do
++	 * for normal use.  strace only continues with a signal if the
++	 * stopping signal is not SIGTRAP.  -brl
++	 */
++	if (current->exit_code) {
++		send_sig(current->exit_code, current, 1);
++		current->exit_code = 0;
++	}
++}
++
++/**
++ * tracehook_report_syscall_entry - task is about to attempt a system call
++ * @regs:		user register state of current task
++ *
++ * This will be called if %TIF_SYSCALL_TRACE has been set, when the
++ * current task has just entered the kernel for a system call.
++ * Full user register state is available here.  Changing the values
++ * in @regs can affect the system call number and arguments to be tried.
++ * It is safe to block here, preventing the system call from beginning.
++ *
++ * Returns zero normally, or nonzero if the calling arch code should abort
++ * the system call.  That must prevent normal entry so no system call is
++ * made.  If @task ever returns to user mode after this, its register state
++ * is unspecified, but should be something harmless like an %ENOSYS error
++ * return.
++ *
++ * Called without locks, just after entering kernel mode.
++ */
++static inline __must_check int tracehook_report_syscall_entry(
++	struct pt_regs *regs)
++{
++	ptrace_report_syscall(regs);
++	return 0;
++}
++
++/**
++ * tracehook_report_syscall_exit - task has just finished a system call
++ * @regs:		user register state of current task
++ * @step:		nonzero if simulating single-step or block-step
++ *
++ * This will be called if %TIF_SYSCALL_TRACE has been set, when the
++ * current task has just finished an attempted system call.  Full
++ * user register state is available here.  It is safe to block here,
++ * preventing signals from being processed.
++ *
++ * If @step is nonzero, this report is also in lieu of the normal
++ * trap that would follow the system call instruction because
++ * user_enable_block_step() or user_enable_single_step() was used.
++ * In this case, %TIF_SYSCALL_TRACE might not be set.
++ *
++ * Called without locks, just before checking for pending signals.
++ */
++static inline void tracehook_report_syscall_exit(struct pt_regs *regs, int step)
++{
++	ptrace_report_syscall(regs);
++}
++
+ /**
+  * tracehook_unsafe_exec - check for exec declared unsafe due to tracing
+  * @task:		current task doing exec
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
-hugetlb-remove-unused-variable-warning.patch
-hugetlb-remove-unused-variable-warning-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-linux-next-fixups.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-x86-pci-replace-dbg-with-pr_debug-fix.patch
-x86-pci-replace-dbg-with-pr_debug-fix-2.patch
-include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
-arch-x86-pci-i386c-fix-printk-warnings.patch
-drm-fix-sparc64-build.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-git-ubi-git-rejects.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gru-driver-v3-hardware-data-structures-fix.patch
-gru-driver-v3-hardware-data-structures-fix-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-page-statistics-units-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-introduce-__get_user_pages-fix.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+tracehook-syscall.patch
+tracehook-config_have_arch_tracehook.patch
+x86-tracehook_signal_handler.patch
+x86-tracehook-syscall.patch
+x86-tracehook-asm-syscallh.patch
+x86-signals-use-asm-syscallh.patch
+x86-tracehook-tif_notify_resume.patch
+x86-tracehook-config_have_arch_tracehook.patch
 
