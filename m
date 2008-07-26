@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + x86-tracehook_signal_handler.patch added to -mm tree
-Date: Sat, 26 Jul 2008 00:09:07 -0700
-Message-ID: <200807260709.m6Q7972S021409@imap1.linux-foundation.org>
+Subject: + x86-tracehook-syscall.patch added to -mm tree
+Date: Sat, 26 Jul 2008 00:09:09 -0700
+Message-ID: <200807260709.m6Q799B3021412@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57388 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48209 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752086AbYGZHKQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752214AbYGZHKR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 03:10:16 -0400
+	Sat, 26 Jul 2008 03:10:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: roland@redhat.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     x86: tracehook_signal_handler
+     x86: tracehook syscall
 has been added to the -mm tree.  Its filename is
-     x86-tracehook_signal_handler.patch
+     x86-tracehook-syscall.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: tracehook_signal_handler
+Subject: x86: tracehook syscall
 From: Roland McGrath <roland@redhat.com>
 
-This makes the x86 signal handling code use tracehook_signal_handler() in
-place of calling into ptrace guts.  The call is moved after the sa_mask
-processing, but there is no other change.  This cleanup doesn't matter to
-existing debuggers, but is the sensible thing: have all facets of the
-handler setup complete before the debugger inspects the task again.
+This changes x86 syscall tracing to use the new tracehook.h entry points. 
+There is no change, only cleanup.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -49,70 +46,80 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/signal_32.c |    6 ++++--
- arch/x86/kernel/signal_64.c |    6 ++++--
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ arch/x86/kernel/ptrace.c |   34 ++++++----------------------------
+ 1 file changed, 6 insertions(+), 28 deletions(-)
 
-diff -puN arch/x86/kernel/signal_32.c~x86-tracehook_signal_handler arch/x86/kernel/signal_32.c
---- a/arch/x86/kernel/signal_32.c~x86-tracehook_signal_handler
-+++ a/arch/x86/kernel/signal_32.c
-@@ -17,6 +17,7 @@
+diff -puN arch/x86/kernel/ptrace.c~x86-tracehook-syscall arch/x86/kernel/ptrace.c
+--- a/arch/x86/kernel/ptrace.c~x86-tracehook-syscall
++++ a/arch/x86/kernel/ptrace.c
+@@ -14,6 +14,7 @@
  #include <linux/errno.h>
- #include <linux/sched.h>
- #include <linux/wait.h>
+ #include <linux/ptrace.h>
+ #include <linux/regset.h>
 +#include <linux/tracehook.h>
+ #include <linux/user.h>
  #include <linux/elf.h>
- #include <linux/smp.h>
- #include <linux/mm.h>
-@@ -558,8 +559,6 @@ handle_signal(unsigned long sig, siginfo
- 	 * handler too.
- 	 */
- 	regs->flags &= ~X86_EFLAGS_TF;
--	if (test_thread_flag(TIF_SINGLESTEP))
--		ptrace_notify(SIGTRAP);
- 
- 	spin_lock_irq(&current->sighand->siglock);
- 	sigorsets(&current->blocked, &current->blocked, &ka->sa.sa_mask);
-@@ -568,6 +567,9 @@ handle_signal(unsigned long sig, siginfo
- 	recalc_sigpending();
- 	spin_unlock_irq(&current->sighand->siglock);
- 
-+	tracehook_signal_handler(sig, info, ka, regs,
-+				 test_thread_flag(TIF_SINGLESTEP));
-+
- 	return 0;
+ #include <linux/security.h>
+@@ -1375,30 +1376,6 @@ void send_sigtrap(struct task_struct *ts
+ 	force_sig_info(SIGTRAP, &info, tsk);
  }
  
-diff -puN arch/x86/kernel/signal_64.c~x86-tracehook_signal_handler arch/x86/kernel/signal_64.c
---- a/arch/x86/kernel/signal_64.c~x86-tracehook_signal_handler
-+++ a/arch/x86/kernel/signal_64.c
-@@ -15,6 +15,7 @@
- #include <linux/errno.h>
- #include <linux/wait.h>
- #include <linux/ptrace.h>
-+#include <linux/tracehook.h>
- #include <linux/unistd.h>
- #include <linux/stddef.h>
- #include <linux/personality.h>
-@@ -444,8 +445,6 @@ handle_signal(unsigned long sig, siginfo
- 		 * handler too.
- 		 */
- 		regs->flags &= ~X86_EFLAGS_TF;
--		if (test_thread_flag(TIF_SINGLESTEP))
--			ptrace_notify(SIGTRAP);
+-static void syscall_trace(struct pt_regs *regs)
+-{
+-	if (!(current->ptrace & PT_PTRACED))
+-		return;
+-
+-#if 0
+-	printk("trace %s ip %lx sp %lx ax %d origrax %d caller %lx tiflags %x ptrace %x\n",
+-	       current->comm,
+-	       regs->ip, regs->sp, regs->ax, regs->orig_ax, __builtin_return_address(0),
+-	       current_thread_info()->flags, current->ptrace);
+-#endif
+-
+-	ptrace_notify(SIGTRAP | ((current->ptrace & PT_TRACESYSGOOD)
+-				? 0x80 : 0));
+-	/*
+-	 * this isn't the same as continuing with a signal, but it will do
+-	 * for normal use.  strace only continues with a signal if the
+-	 * stopping signal is not SIGTRAP.  -brl
+-	 */
+-	if (current->exit_code) {
+-		send_sig(current->exit_code, current, 1);
+-		current->exit_code = 0;
+-	}
+-}
  
- 		spin_lock_irq(&current->sighand->siglock);
- 		sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
-@@ -453,6 +452,9 @@ handle_signal(unsigned long sig, siginfo
- 			sigaddset(&current->blocked,sig);
- 		recalc_sigpending();
- 		spin_unlock_irq(&current->sighand->siglock);
-+
-+		tracehook_signal_handler(sig, info, ka, regs,
-+					 test_thread_flag(TIF_SINGLESTEP));
- 	}
+ #ifdef CONFIG_X86_32
+ # define IS_IA32	1
+@@ -1432,8 +1409,9 @@ asmregparm long syscall_trace_enter(stru
+ 	if (unlikely(test_thread_flag(TIF_SYSCALL_EMU)))
+ 		ret = -1L;
  
- 	return ret;
+-	if (ret || test_thread_flag(TIF_SYSCALL_TRACE))
+-		syscall_trace(regs);
++	if ((ret || test_thread_flag(TIF_SYSCALL_TRACE)) &&
++	    tracehook_report_syscall_entry(regs))
++		ret = -1L;
+ 
+ 	if (unlikely(current->audit_context)) {
+ 		if (IS_IA32)
+@@ -1459,7 +1437,7 @@ asmregparm void syscall_trace_leave(stru
+ 		audit_syscall_exit(AUDITSC_RESULT(regs->ax), regs->ax);
+ 
+ 	if (test_thread_flag(TIF_SYSCALL_TRACE))
+-		syscall_trace(regs);
++		tracehook_report_syscall_exit(regs, 0);
+ 
+ 	/*
+ 	 * If TIF_SYSCALL_EMU is set, we only get here because of
+@@ -1475,6 +1453,6 @@ asmregparm void syscall_trace_leave(stru
+ 	 * system call instruction.
+ 	 */
+ 	if (test_thread_flag(TIF_SINGLESTEP) &&
+-	    (current->ptrace & PT_PTRACED))
++	    tracehook_consider_fatal_signal(current, SIGTRAP, SIG_DFL))
+ 		send_sigtrap(current, regs, 0);
+ }
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
