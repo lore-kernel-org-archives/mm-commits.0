@@ -1,181 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-fixups.patch added to -mm tree
-Date: Fri, 25 Jul 2008 17:14:06 -0700
-Message-ID: <200807260014.m6Q0E6jE006788@imap1.linux-foundation.org>
+Subject: - x86-implement-pte_special-fix.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 17:28:23 -0700
+Message-ID: <200807260028.m6Q0SN48007294@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53517 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55396 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751151AbYGZAO6 (ORCPT
+	by vger.kernel.org with ESMTP id S1753646AbYGZAbP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 20:14:58 -0400
+	Fri, 25 Jul 2008 20:31:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, vegard.nossum@gmail.com
+To: hugh@veritas.com, a.p.zijlstra@chello.nl, andi@firstfloor.org, apw@shadowen.org, jens.axboe@oracle.com, mingo@elte.hu, npiggin@suse.de, pbadari@us.ibm.com, rmh3093@gmail.com, shaggy@a
 
 
 The patch titled
-     linux-next-fixups
-has been added to the -mm tree.  Its filename is
-     linux-next-fixups.patch
+     Lockless/Get_User_Pages_Fast causes Xorg 1.4.99.* to lock
+has been removed from the -mm tree.  Its filename was
+     x86-implement-pte_special-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into x86-implement-pte_special.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-fixups
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Lockless/Get_User_Pages_Fast causes Xorg 1.4.99.* to lock
+From: Hugh Dickins <hugh@veritas.com>
 
+On Fri, 4 Jul 2008, Zan Lynx wrote:
+> Ryan Hope wrote:
+> > I have tested this with 2.6.26-rc5-mm3 and with 2.6.26-rc8 w/ the
+> > get_user_pages_fast patches from -rc5-mm3... Xorg 1.4.99.* will start
+> > to load but hangs at a black screen. At this point, I can not switch
+> > to another tty. When I try pressing ctrl+alt+del the kernel ooopses
+> > and the caps lock led starts to blink. This happens using the nv,
+> > radeon and radeonhd drivers (the nv was tested on another box
+> > obviously). I have also tried to unselect HAVE_GET_USER_PAGES_FAST in
+> > my kernel config but this does not help. I can not figure out where or
+> > what the bug is. I can provide any other info you guys need to figure
+> > this out. Let me know what I can do.
+>
+> I think that I've seen this too on 2.6.26-rc8 on my laptop.  It's 64-bit
+
+Your attachment tells us it's actually 2.6.26-rc8-mm1, less of a worry.
+
+> AMD-64 single core (although I run a SMP-alternatives kernel on it) and I was
+> using the nv driver.
+>
+> The symptoms are the same.  Everything was working great until I started X.  I
+> SSH'd in and got the dmesg after X locked up.  The full dmesg and config are
+> attached because Thunderbird is a very stupid program and won't let me paste
+> without wrapping.
+>
+> Here is a bit of what I got though.
+>
+> [  269.224276] BUG: unable to handle kernel paging request at ffffe20003480000
+> [  269.224291] IP: [<ffffffff80297e30>] copy_page_range+0x520/0x760
+> [  269.224306] PGD 1102067 PUD 1103067 PMD 0
+> [  269.224315] Oops: 0000 [1] SMP
+>
+> [  269.224473] Call Trace:
+> [  269.224495]  [<ffffffff80239a9b>] dup_mm+0x26b/0x3c0
+> [  269.224507]  [<ffffffff8023a84c>] copy_process+0xc2c/0x1210
+> [  269.224518]  [<ffffffff8023aea3>] do_fork+0x73/0x310
+> [  269.224526]  [<ffffffff8024719e>] sys_rt_sigaction+0x8e/0xd0
+> [  269.224536]  [<ffffffff8020c2db>] system_call_after_swapgs+0x7b/0x80
+> [  269.224542]  [<ffffffff8020c5d7>] ptregscall_common+0x67/0xb0
+
+Useful info, thank you; even more useful was the Code line in your attachment
+
+> [  269.224557] Code: 00 00 48 b9 00 00 00 00 00 e2 ff ff 48 21 d8 48 c1 e8 0c 48 8d 14 c5 00 00 00 00 48 c1 e0 06 48 29 d0 48 01 c1 0f 84 10 ff ff ff <48> 8b 01 48 89 ca f6 c4 40 74 04 48 8b 51 10 90 ff 42 08 90 ff
+
+which is enough to identify the oops as in copy_one_pte's get_page(page).
+Here's a patch I think we need, which I'm hoping will fix both your
+crashes - please let us know - thanks a lot.
+
+Stop mprotect's pte_modify from wiping out the x86 pte_special bit, which
+caused oops thereafter when vm_normal_page thought X's abnormal was normal.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Reported-by: "Ryan Hope" <rmh3093@gmail.com>
+Tested-by: "Ryan Hope" <rmh3093@gmail.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Tested-by: Zan Lynx <zlynx@acm.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/kmemcheck/kmemcheck.c |    3 ++-
- include/linux/kmemcheck.h         |    2 --
- mm/Makefile                       |    1 +
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ include/asm-x86/pgtable.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/kmemcheck/kmemcheck.c~linux-next-fixups arch/x86/mm/kmemcheck/kmemcheck.c
---- a/arch/x86/mm/kmemcheck/kmemcheck.c~linux-next-fixups
-+++ a/arch/x86/mm/kmemcheck/kmemcheck.c
-@@ -32,7 +32,7 @@
- #include "shadow.h"
- #include "smp.h"
+diff -puN include/asm-x86/pgtable.h~x86-implement-pte_special-fix include/asm-x86/pgtable.h
+--- a/include/asm-x86/pgtable.h~x86-implement-pte_special-fix
++++ a/include/asm-x86/pgtable.h
+@@ -57,7 +57,7 @@
  
--void __init kmemcheck_init(void)
-+static int __init kmemcheck_init(void)
- {
- 	printk(KERN_INFO "kmemcheck: \"Bugs, beware!\"\n");
+ /* Set of bits not changed in pte_modify */
+ #define _PAGE_CHG_MASK	(PTE_PFN_MASK | _PAGE_PCD | _PAGE_PWT |		\
+-			 _PAGE_ACCESSED | _PAGE_DIRTY)
++			 _PAGE_SPECIAL | _PAGE_ACCESSED | _PAGE_DIRTY)
  
-@@ -50,6 +50,7 @@ void __init kmemcheck_init(void)
- 	}
- #endif
- }
-+early_initcall(kmemcheck_init);
- 
- #ifdef CONFIG_KMEMCHECK_DISABLED_BY_DEFAULT
- int kmemcheck_enabled = 0;
-diff -puN include/linux/kmemcheck.h~linux-next-fixups include/linux/kmemcheck.h
---- a/include/linux/kmemcheck.h~linux-next-fixups
-+++ a/include/linux/kmemcheck.h
-@@ -7,8 +7,6 @@
- #ifdef CONFIG_KMEMCHECK
- extern int kmemcheck_enabled;
- 
--void kmemcheck_init(void);
--
- /* The slab-related functions. */
- void kmemcheck_alloc_shadow(struct kmem_cache *s, gfp_t flags, int node,
- 			    struct page *page, int order);
-diff -puN mm/Makefile~linux-next-fixups mm/Makefile
---- a/mm/Makefile~linux-next-fixups
-+++ a/mm/Makefile
-@@ -24,6 +24,7 @@ obj-$(CONFIG_SPARSEMEM_VMEMMAP) += spars
- obj-$(CONFIG_SHMEM) += shmem.o
- obj-$(CONFIG_TMPFS_POSIX_ACL) += shmem_acl.o
- obj-$(CONFIG_TINY_SHMEM) += tiny-shmem.o
-+obj-$(CONFIG_KMEMCHECK) += kmemcheck.o
- obj-$(CONFIG_SLOB) += slob.o
- obj-$(CONFIG_SLAB) += slab.o
- obj-$(CONFIG_SLUB) += slub.o
+ #define _PAGE_CACHE_MASK	(_PAGE_PCD | _PAGE_PWT)
+ #define _PAGE_CACHE_WB		(0)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-uninline-arch_pick_mmap_layout.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary.patch
-tpm-increase-size-of-internal-tpm-response-buffers.patch
-memstick-allow-set_param-method-to-return-an-error-code.patch
-memstick-use-fully-asynchronous-request-processing.patch
-full-conversion-to-early_initcall-interface-remove-old-interface.patch
-mm-introduce-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast.patch
+x86-implement-pte_special.patch
+x86-implement-pte_special-fix.patch
+mm-readahead-scan-lockless.patch
+radix-tree-add-gang_lookup_slot-gang_lookup_slot_tag.patch
 mm-speculative-page-references.patch
-slb-drop-kmem-cache-argument-from-constructor.patch
-video-console-sticonrec-make-code-static.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-linux-next-fixups.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-drivers-mfd-tc6393xbc-doesnt-compile-on-i386.patch
-x86-pci-replace-dbg-with-pr_debug-fix.patch
-x86-pci-replace-dbg-with-pr_debug-fix-2.patch
-include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
-arch-x86-pci-i386c-fix-printk-warnings.patch
-drm-fix-sparc64-build.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
+mm-lockless-pagecache.patch
+mm-spinlock-tree_lock.patch
+mm-print-swapcache-page-count-in-show_swap_cache_info.patch
 git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
+mmu-notifiers-add-list_del_init_rcu.patch
 mmu-notifiers-add-mm_take_all_locks-operation.patch
 mmu-notifier-core.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gru-driver-v3-hardware-data-structures-fix.patch
-gru-driver-v3-hardware-data-structures-fix-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-page-statistics-units-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes.patch
+gru-driver-v3-resource-management-unmap-driver-ptes-gru.patch
+powerpc-implement-pte_special.patch
+powerpc-implement-pte_special-update.patch
+powerpc-lockless-get_user_pages.patch
+define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
+mlock-mlocked-pages-are-unevictable-fix-4.patch
+introduce-__get_user_pages.patch
 introduce-__get_user_pages-fix.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+split-lru-munlock-rework.patch
+revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch
+vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter.patch
+mmapc-deinline-a-few-functions.patch
+prio_tree-debugging-patch.patch
 
