@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mmc-host-sdhcih-needs-scatterlisth.patch added to -mm tree
-Date: Fri, 25 Jul 2008 19:28:37 -0700
-Message-ID: <200807260228.m6Q2SbVG011382@imap1.linux-foundation.org>
+Subject: + vfs-increase-pseudo-filesystem-block-size-to-page_size.patch added to -mm tree
+Date: Fri, 25 Jul 2008 23:58:12 -0700
+Message-ID: <200807260658.m6Q6wC7O021048@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49937 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55502 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752464AbYGZC2o (ORCPT
+	by vger.kernel.org with ESMTP id S1752746AbYGZHAn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 22:28:44 -0400
+	Sat, 26 Jul 2008 03:00:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, drzeus@drzeus.cx
+Cc: alex.nixon@citrix.com, Alex.Nixon@citrix.com, Ian.Campbell@eu.citrix.com, andi@firstfloor.org, hugh@veritas.com, jens.axboe@oracle.com, jeremy@goop.org, mingo@elte.hu, peterz@infradead.org, stable@kernel.org, tytso@mit.edu, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     drivers/mmc/host/sdhci.h needs scatterlist.h
+     VFS: increase pseudo-filesystem block size to PAGE_SIZE
 has been added to the -mm tree.  Its filename is
-     drivers-mmc-host-sdhcih-needs-scatterlisth.patch
+     vfs-increase-pseudo-filesystem-block-size-to-page_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,118 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mmc/host/sdhci.h needs scatterlist.h
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: VFS: increase pseudo-filesystem block size to PAGE_SIZE
+From: Alex Nixon <alex.nixon@citrix.com>
 
-alpha:
+This commit:
 
-drivers/mmc/host/sdhci.h:242: error: field 'sg_miter' has incomplete type
+    commit ba52de123d454b57369f291348266d86f4b35070
+    Author: Theodore Ts'o <tytso@mit.edu>
+    Date:   Wed Sep 27 01:50:49 2006 -0700
 
-Cc: Pierre Ossman <drzeus@drzeus.cx>
+        [PATCH] inode-diet: Eliminate i_blksize from the inode structure
+    
+
+caused the block size used by pseudo-filesystems to decrease from
+PAGE_SIZE to 1024 leading to a doubling of the number of context switches
+during a kernbench run.
+
+Signed-off-by: Alex Nixon <Alex.Nixon@citrix.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ian Campbell <Ian.Campbell@eu.citrix.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci.h |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/libfs.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mmc/host/sdhci.h~drivers-mmc-host-sdhcih-needs-scatterlisth drivers/mmc/host/sdhci.h
---- a/drivers/mmc/host/sdhci.h~drivers-mmc-host-sdhcih-needs-scatterlisth
-+++ a/drivers/mmc/host/sdhci.h
-@@ -9,6 +9,8 @@
-  * your option) any later version.
-  */
+diff -puN fs/libfs.c~vfs-increase-pseudo-filesystem-block-size-to-page_size fs/libfs.c
+--- a/fs/libfs.c~vfs-increase-pseudo-filesystem-block-size-to-page_size
++++ a/fs/libfs.c
+@@ -216,8 +216,8 @@ int get_sb_pseudo(struct file_system_typ
  
-+#include <linux/scatterlist.h>
-+
- /*
-  * Controller registers
-  */
+ 	s->s_flags = MS_NOUSER;
+ 	s->s_maxbytes = ~0ULL;
+-	s->s_blocksize = 1024;
+-	s->s_blocksize_bits = 10;
++	s->s_blocksize = PAGE_SIZE;
++	s->s_blocksize_bits = PAGE_SHIFT;
+ 	s->s_magic = magic;
+ 	s->s_op = ops ? ops : &simple_super_operations;
+ 	s->s_time_gran = 1;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from alex.nixon@citrix.com are
 
-origin.patch
-uninline-arch_pick_mmap_layout.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary.patch
-tpm-increase-size-of-internal-tpm-response-buffers.patch
-memstick-allow-set_param-method-to-return-an-error-code.patch
-memstick-use-fully-asynchronous-request-processing.patch
-full-conversion-to-early_initcall-interface-remove-old-interface.patch
-mm-introduce-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast.patch
-mm-speculative-page-references.patch
-slb-drop-kmem-cache-argument-from-constructor.patch
-video-console-sticonrec-make-code-static.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-linux-next-fixups.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-drivers-mfd-tc6393xbc-doesnt-compile-on-i386.patch
-x86-pci-replace-dbg-with-pr_debug-fix.patch
-x86-pci-replace-dbg-with-pr_debug-fix-2.patch
-include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
-arch-x86-pci-i386c-fix-printk-warnings.patch
-drm-fix-sparc64-build.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gru-driver-v3-hardware-data-structures-fix.patch
-gru-driver-v3-hardware-data-structures-fix-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-page-statistics-units-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
-introduce-__get_user_pages-fix.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
-drivers-mmc-host-sdhcih-needs-scatterlisth.patch
+vfs-increase-pseudo-filesystem-block-size-to-page_size.patch
 
