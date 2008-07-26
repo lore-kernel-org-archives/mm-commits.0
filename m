@@ -1,710 +1,604 @@
 From: akpm@linux-foundation.org
-Subject: - kexec-jump.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:14:09 -0700
-Message-ID: <200807262114.m6QLE9Dg019675@imap1.linux-foundation.org>
+Subject: - omfs-add-inode-routines.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:14:58 -0700
+Message-ID: <200807262115.m6QLEwRX019699@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57507 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58890 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757580AbYGZVPO (ORCPT
+	by vger.kernel.org with ESMTP id S1757590AbYGZVPf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:15:14 -0400
+	Sat, 26 Jul 2008 17:15:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, ebiederm@xmission.com, mingo@elte.hu, nigel@nigel.suspend2.net, pavel@ucw.cz, rjw@sisk.pl, tglx@linutronix.de, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: me@bobcopeland.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kexec jump
+     omfs: add inode routines
 has been removed from the -mm tree.  Its filename was
-     kexec-jump.patch
+     omfs-add-inode-routines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec jump
-From: Huang Ying <ying.huang@intel.com>
+Subject: omfs: add inode routines
+From: Bob Copeland <me@bobcopeland.com>
 
-This patch provides an enhancement to kexec/kdump.  It implements the
-following features:
+Add basic superblock and inode handling routines for OMFS
 
-- Backup/restore memory used by the original kernel before/after
-  kexec.
-
-- Save/restore CPU state before/after kexec.
-
-The features of this patch can be used as a general method to call program in
-physical mode (paging turning off).  This can be used to call BIOS code under
-Linux.
-
-kexec-tools needs to be patched to support kexec jump. The patches and
-the precompiled kexec can be download from the following URL:
-
-       source: http://khibernation.sourceforge.net/download/release_v10/kexec-tools/kexec-tools-src_git_kh10.tar.bz2
-       patches: http://khibernation.sourceforge.net/download/release_v10/kexec-tools/kexec-tools-patches_git_kh10.tar.bz2
-       binary: http://khibernation.sourceforge.net/download/release_v10/kexec-tools/kexec_git_kh10
-
-Usage example of calling some physical mode code and return:
-
-1. Compile and install patched kernel with following options selected:
-
-CONFIG_X86_32=y
-CONFIG_KEXEC=y
-CONFIG_PM=y
-CONFIG_KEXEC_JUMP=y
-
-2. Build patched kexec-tool or download the pre-built one.
-
-3. Build some physical mode executable named such as "phy_mode"
-
-4. Boot kernel compiled in step 1.
-
-5. Load physical mode executable with /sbin/kexec. The shell command
-   line can be as follow:
-
-   /sbin/kexec --load-preserve-context --args-none phy_mode
-
-6. Call physical mode executable with following shell command line:
-
-   /sbin/kexec -e
-
-Implementation point:
-
-To support jumping without reserving memory.  One shadow backup page (source
-page) is allocated for each page used by kexeced code image (destination
-page).  When do kexec_load, the image of kexeced code is loaded into source
-pages, and before executing, the destination pages and the source pages are
-swapped, so the contents of destination pages are backupped.  Before jumping
-to the kexeced code image and after jumping back to the original kernel, the
-destination pages and the source pages are swapped too.
-
-C ABI (calling convention) is used as communication protocol between
-kernel and called code.
-
-A flag named KEXEC_PRESERVE_CONTEXT for sys_kexec_load is added to
-indicate that the loaded kernel image is used for jumping back.
-
-Now, only the i386 architecture is supported.
-
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Acked-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Bob Copeland <me@bobcopeland.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/machine_kexec.c  |    2 
- arch/sh/kernel/machine_kexec.c       |    2 
- arch/x86/Kconfig                     |    7 +
- arch/x86/kernel/machine_kexec_32.c   |   27 +++
- arch/x86/kernel/machine_kexec_64.c   |    2 
- arch/x86/kernel/relocate_kernel_32.S |  174 +++++++++++++++++++++----
- include/asm-x86/kexec.h              |   18 +-
- include/linux/kexec.h                |   17 +-
- kernel/kexec.c                       |   57 ++++++++
- kernel/sys.c                         |   31 +---
- 10 files changed, 269 insertions(+), 68 deletions(-)
+ fs/omfs/inode.c |  553 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 553 insertions(+)
 
-diff -puN arch/powerpc/kernel/machine_kexec.c~kexec-jump arch/powerpc/kernel/machine_kexec.c
---- a/arch/powerpc/kernel/machine_kexec.c~kexec-jump
-+++ a/arch/powerpc/kernel/machine_kexec.c
-@@ -48,7 +48,7 @@ void machine_kexec_cleanup(struct kimage
-  * Do not allocate memory (or fail in any way) in machine_kexec().
-  * We are past the point of no return, committed to rebooting now.
-  */
--NORET_TYPE void machine_kexec(struct kimage *image)
-+void machine_kexec(struct kimage *image)
- {
- 	if (ppc_md.machine_kexec)
- 		ppc_md.machine_kexec(image);
-diff -puN arch/sh/kernel/machine_kexec.c~kexec-jump arch/sh/kernel/machine_kexec.c
---- a/arch/sh/kernel/machine_kexec.c~kexec-jump
-+++ a/arch/sh/kernel/machine_kexec.c
-@@ -70,7 +70,7 @@ static void kexec_info(struct kimage *im
-  * Do not allocate memory (or fail in any way) in machine_kexec().
-  * We are past the point of no return, committed to rebooting now.
-  */
--NORET_TYPE void machine_kexec(struct kimage *image)
-+void machine_kexec(struct kimage *image)
- {
- 
- 	unsigned long page_list;
-diff -puN arch/x86/Kconfig~kexec-jump arch/x86/Kconfig
---- a/arch/x86/Kconfig~kexec-jump
-+++ a/arch/x86/Kconfig
-@@ -1279,6 +1279,13 @@ config CRASH_DUMP
- 	  (CONFIG_RELOCATABLE=y).
- 	  For more details see Documentation/kdump/kdump.txt
- 
-+config KEXEC_JUMP
-+	bool "kexec jump (EXPERIMENTAL)"
-+	depends on EXPERIMENTAL
-+	depends on KEXEC && PM_SLEEP && X86_32
-+	help
-+	  Invoke code in physical address mode via KEXEC
-+
- config PHYSICAL_START
- 	hex "Physical address where the kernel is loaded" if (EMBEDDED || CRASH_DUMP)
- 	default "0x1000000" if X86_NUMAQ
-diff -puN arch/x86/kernel/machine_kexec_32.c~kexec-jump arch/x86/kernel/machine_kexec_32.c
---- a/arch/x86/kernel/machine_kexec_32.c~kexec-jump
-+++ a/arch/x86/kernel/machine_kexec_32.c
-@@ -22,6 +22,7 @@
- #include <asm/cpufeature.h>
- #include <asm/desc.h>
- #include <asm/system.h>
-+#include <asm/cacheflush.h>
- 
- #define PAGE_ALIGNED __attribute__ ((__aligned__(PAGE_SIZE)))
- static u32 kexec_pgd[1024] PAGE_ALIGNED;
-@@ -85,10 +86,12 @@ static void load_segments(void)
-  * reboot code buffer to allow us to avoid allocations
-  * later.
-  *
-- * Currently nothing.
-+ * Make control page executable.
-  */
- int machine_kexec_prepare(struct kimage *image)
- {
-+	if (nx_enabled)
-+		set_pages_x(image->control_code_page, 1);
- 	return 0;
- }
- 
-@@ -98,16 +101,24 @@ int machine_kexec_prepare(struct kimage 
-  */
- void machine_kexec_cleanup(struct kimage *image)
- {
-+	if (nx_enabled)
-+		set_pages_nx(image->control_code_page, 1);
- }
- 
- /*
-  * Do not allocate memory (or fail in any way) in machine_kexec().
-  * We are past the point of no return, committed to rebooting now.
-  */
--NORET_TYPE void machine_kexec(struct kimage *image)
-+void machine_kexec(struct kimage *image)
- {
- 	unsigned long page_list[PAGES_NR];
- 	void *control_page;
-+	asmlinkage unsigned long
-+		(*relocate_kernel_ptr)(unsigned long indirection_page,
-+				       unsigned long control_page,
-+				       unsigned long start_address,
-+				       unsigned int has_pae,
-+				       unsigned int preserve_context);
- 
- 	tracer_disable();
- 
-@@ -115,10 +126,11 @@ NORET_TYPE void machine_kexec(struct kim
- 	local_irq_disable();
- 
- 	control_page = page_address(image->control_code_page);
--	memcpy(control_page, relocate_kernel, PAGE_SIZE);
-+	memcpy(control_page, relocate_kernel, PAGE_SIZE/2);
- 
-+	relocate_kernel_ptr = control_page;
- 	page_list[PA_CONTROL_PAGE] = __pa(control_page);
--	page_list[VA_CONTROL_PAGE] = (unsigned long)relocate_kernel;
-+	page_list[VA_CONTROL_PAGE] = (unsigned long)control_page;
- 	page_list[PA_PGD] = __pa(kexec_pgd);
- 	page_list[VA_PGD] = (unsigned long)kexec_pgd;
- #ifdef CONFIG_X86_PAE
-@@ -131,6 +143,7 @@ NORET_TYPE void machine_kexec(struct kim
- 	page_list[VA_PTE_0] = (unsigned long)kexec_pte0;
- 	page_list[PA_PTE_1] = __pa(kexec_pte1);
- 	page_list[VA_PTE_1] = (unsigned long)kexec_pte1;
-+	page_list[PA_SWAP_PAGE] = (page_to_pfn(image->swap_page) << PAGE_SHIFT);
- 
- 	/* The segment registers are funny things, they have both a
- 	 * visible and an invisible part.  Whenever the visible part is
-@@ -149,8 +162,10 @@ NORET_TYPE void machine_kexec(struct kim
- 	set_idt(phys_to_virt(0),0);
- 
- 	/* now call it */
--	relocate_kernel((unsigned long)image->head, (unsigned long)page_list,
--			image->start, cpu_has_pae);
-+	image->start = relocate_kernel_ptr((unsigned long)image->head,
-+					   (unsigned long)page_list,
-+					   image->start, cpu_has_pae,
-+					   image->preserve_context);
- }
- 
- void arch_crash_save_vmcoreinfo(void)
-diff -puN arch/x86/kernel/machine_kexec_64.c~kexec-jump arch/x86/kernel/machine_kexec_64.c
---- a/arch/x86/kernel/machine_kexec_64.c~kexec-jump
-+++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -181,7 +181,7 @@ void machine_kexec_cleanup(struct kimage
-  * Do not allocate memory (or fail in any way) in machine_kexec().
-  * We are past the point of no return, committed to rebooting now.
-  */
--NORET_TYPE void machine_kexec(struct kimage *image)
-+void machine_kexec(struct kimage *image)
- {
- 	unsigned long page_list[PAGES_NR];
- 	void *control_page;
-diff -puN arch/x86/kernel/relocate_kernel_32.S~kexec-jump arch/x86/kernel/relocate_kernel_32.S
---- a/arch/x86/kernel/relocate_kernel_32.S~kexec-jump
-+++ a/arch/x86/kernel/relocate_kernel_32.S
-@@ -20,11 +20,44 @@
- #define PAGE_ATTR (_PAGE_PRESENT | _PAGE_RW | _PAGE_ACCESSED | _PAGE_DIRTY)
- #define PAE_PGD_ATTR (_PAGE_PRESENT)
- 
-+/* control_page + PAGE_SIZE/2 ~ control_page + PAGE_SIZE * 3/4 are
-+ * used to save some data for jumping back
+diff -puN /dev/null fs/omfs/inode.c
+--- /dev/null
++++ a/fs/omfs/inode.c
+@@ -0,0 +1,553 @@
++/*
++ * Optimized MPEG FS - inode and super operations.
++ * Copyright (C) 2006 Bob Copeland <me@bobcopeland.com>
++ * Released under GPL v2.
 + */
-+#define DATA(offset)		(PAGE_SIZE/2+(offset))
++#include <linux/version.h>
++#include <linux/module.h>
++#include <linux/sched.h>
++#include <linux/fs.h>
++#include <linux/vfs.h>
++#include <linux/parser.h>
++#include <linux/buffer_head.h>
++#include <linux/vmalloc.h>
++#include <linux/crc-itu-t.h>
++#include "omfs.h"
 +
-+/* Minimal CPU state */
-+#define ESP			DATA(0x0)
-+#define CR0			DATA(0x4)
-+#define CR3			DATA(0x8)
-+#define CR4			DATA(0xc)
++MODULE_AUTHOR("Bob Copeland <me@bobcopeland.com>");
++MODULE_DESCRIPTION("OMFS (ReplayTV/Karma) Filesystem for Linux");
++MODULE_LICENSE("GPL");
 +
-+/* other data */
-+#define CP_VA_CONTROL_PAGE	DATA(0x10)
-+#define CP_PA_PGD		DATA(0x14)
-+#define CP_PA_SWAP_PAGE		DATA(0x18)
-+#define CP_PA_BACKUP_PAGES_MAP	DATA(0x1c)
-+
- 	.text
- 	.align PAGE_SIZE
- 	.globl relocate_kernel
- relocate_kernel:
--	movl	8(%esp), %ebp /* list of pages */
-+	/* Save the CPU context, used for jumping back */
-+
-+	pushl	%ebx
-+	pushl	%esi
-+	pushl	%edi
-+	pushl	%ebp
-+	pushf
-+
-+	movl	20+8(%esp), %ebp /* list of pages */
-+	movl	PTR(VA_CONTROL_PAGE)(%ebp), %edi
-+	movl	%esp, ESP(%edi)
-+	movl	%cr0, %eax
-+	movl	%eax, CR0(%edi)
-+	movl	%cr3, %eax
-+	movl	%eax, CR3(%edi)
-+	movl	%cr4, %eax
-+	movl	%eax, CR4(%edi)
- 
- #ifdef CONFIG_X86_PAE
- 	/* map the control page at its virtual address */
-@@ -138,15 +171,25 @@ relocate_kernel:
- 
- relocate_new_kernel:
- 	/* read the arguments and say goodbye to the stack */
--	movl  4(%esp), %ebx /* page_list */
--	movl  8(%esp), %ebp /* list of pages */
--	movl  12(%esp), %edx /* start address */
--	movl  16(%esp), %ecx /* cpu_has_pae */
-+	movl  20+4(%esp), %ebx /* page_list */
-+	movl  20+8(%esp), %ebp /* list of pages */
-+	movl  20+12(%esp), %edx /* start address */
-+	movl  20+16(%esp), %ecx /* cpu_has_pae */
-+	movl  20+20(%esp), %esi /* preserve_context */
- 
- 	/* zero out flags, and disable interrupts */
- 	pushl $0
- 	popfl
- 
-+	/* save some information for jumping back */
-+	movl	PTR(VA_CONTROL_PAGE)(%ebp), %edi
-+	movl	%edi, CP_VA_CONTROL_PAGE(%edi)
-+	movl	PTR(PA_PGD)(%ebp), %eax
-+	movl	%eax, CP_PA_PGD(%edi)
-+	movl	PTR(PA_SWAP_PAGE)(%ebp), %eax
-+	movl	%eax, CP_PA_SWAP_PAGE(%edi)
-+	movl	%ebx, CP_PA_BACKUP_PAGES_MAP(%edi)
-+
- 	/* get physical address of control page now */
- 	/* this is impossible after page table switch */
- 	movl	PTR(PA_CONTROL_PAGE)(%ebp), %edi
-@@ -197,8 +240,90 @@ identity_mapped:
- 	xorl	%eax, %eax
- 	movl	%eax, %cr3
- 
-+	movl	CP_PA_SWAP_PAGE(%edi), %eax
-+	pushl	%eax
-+	pushl	%ebx
-+	call	swap_pages
-+	addl	$8, %esp
-+
-+	/* To be certain of avoiding problems with self-modifying code
-+	 * I need to execute a serializing instruction here.
-+	 * So I flush the TLB, it's handy, and not processor dependent.
-+	 */
-+	xorl	%eax, %eax
-+	movl	%eax, %cr3
-+
-+	/* set all of the registers to known values */
-+	/* leave %esp alone */
-+
-+	testl	%esi, %esi
-+	jnz 1f
-+	xorl	%edi, %edi
-+	xorl	%eax, %eax
-+	xorl	%ebx, %ebx
-+	xorl    %ecx, %ecx
-+	xorl    %edx, %edx
-+	xorl    %esi, %esi
-+	xorl    %ebp, %ebp
-+	ret
-+1:
-+	popl	%edx
-+	movl	CP_PA_SWAP_PAGE(%edi), %esp
-+	addl	$PAGE_SIZE, %esp
-+2:
-+	call	*%edx
-+
-+	/* get the re-entry point of the peer system */
-+	movl	0(%esp), %ebp
-+	call	1f
-+1:
-+	popl	%ebx
-+	subl	$(1b - relocate_kernel), %ebx
-+	movl	CP_VA_CONTROL_PAGE(%ebx), %edi
-+	lea	PAGE_SIZE(%ebx), %esp
-+	movl	CP_PA_SWAP_PAGE(%ebx), %eax
-+	movl	CP_PA_BACKUP_PAGES_MAP(%ebx), %edx
-+	pushl	%eax
-+	pushl	%edx
-+	call	swap_pages
-+	addl	$8, %esp
-+	movl	CP_PA_PGD(%ebx), %eax
-+	movl	%eax, %cr3
-+	movl	%cr0, %eax
-+	orl	$(1<<31), %eax
-+	movl	%eax, %cr0
-+	lea	PAGE_SIZE(%edi), %esp
-+	movl	%edi, %eax
-+	addl	$(virtual_mapped - relocate_kernel), %eax
-+	pushl	%eax
-+	ret
-+
-+virtual_mapped:
-+	movl	CR4(%edi), %eax
-+	movl	%eax, %cr4
-+	movl	CR3(%edi), %eax
-+	movl	%eax, %cr3
-+	movl	CR0(%edi), %eax
-+	movl	%eax, %cr0
-+	movl	ESP(%edi), %esp
-+	movl	%ebp, %eax
-+
-+	popf
-+	popl	%ebp
-+	popl	%edi
-+	popl	%esi
-+	popl	%ebx
-+	ret
-+
- 	/* Do the copies */
--	movl	%ebx, %ecx
-+swap_pages:
-+	movl	8(%esp), %edx
-+	movl	4(%esp), %ecx
-+	pushl	%ebp
-+	pushl	%ebx
-+	pushl	%edi
-+	pushl	%esi
-+	movl	%ecx, %ebx
- 	jmp	1f
- 
- 0:	/* top, read another word from the indirection page */
-@@ -226,27 +351,28 @@ identity_mapped:
- 	movl    %ecx,   %esi /* For every source page do a copy */
- 	andl    $0xfffff000, %esi
- 
-+	movl	%edi, %eax
-+	movl	%esi, %ebp
-+
-+	movl	%edx, %edi
- 	movl    $1024, %ecx
- 	rep ; movsl
--	jmp     0b
--
--3:
- 
--	/* To be certain of avoiding problems with self-modifying code
--	 * I need to execute a serializing instruction here.
--	 * So I flush the TLB, it's handy, and not processor dependent.
--	 */
--	xorl	%eax, %eax
--	movl	%eax, %cr3
-+	movl	%ebp, %edi
-+	movl	%eax, %esi
-+	movl	$1024, %ecx
-+	rep ; movsl
- 
--	/* set all of the registers to known values */
--	/* leave %esp alone */
-+	movl	%eax, %edi
-+	movl	%edx, %esi
-+	movl	$1024, %ecx
-+	rep ; movsl
- 
--	xorl	%eax, %eax
--	xorl	%ebx, %ebx
--	xorl    %ecx, %ecx
--	xorl    %edx, %edx
--	xorl    %esi, %esi
--	xorl    %edi, %edi
--	xorl    %ebp, %ebp
-+	lea	PAGE_SIZE(%ebp), %esi
-+	jmp     0b
-+3:
-+	popl	%esi
-+	popl	%edi
-+	popl	%ebx
-+	popl	%ebp
- 	ret
-diff -puN include/asm-x86/kexec.h~kexec-jump include/asm-x86/kexec.h
---- a/include/asm-x86/kexec.h~kexec-jump
-+++ a/include/asm-x86/kexec.h
-@@ -10,14 +10,15 @@
- # define VA_PTE_0		5
- # define PA_PTE_1		6
- # define VA_PTE_1		7
-+# define PA_SWAP_PAGE		8
- # ifdef CONFIG_X86_PAE
--#  define PA_PMD_0		8
--#  define VA_PMD_0		9
--#  define PA_PMD_1		10
--#  define VA_PMD_1		11
--#  define PAGES_NR		12
-+#  define PA_PMD_0		9
-+#  define VA_PMD_0		10
-+#  define PA_PMD_1		11
-+#  define VA_PMD_1		12
-+#  define PAGES_NR		13
- # else
--#  define PAGES_NR		8
-+#  define PAGES_NR		9
- # endif
- #else
- # define PA_CONTROL_PAGE	0
-@@ -152,11 +153,12 @@ static inline void crash_setup_regs(stru
- }
- 
- #ifdef CONFIG_X86_32
--asmlinkage NORET_TYPE void
-+asmlinkage unsigned long
- relocate_kernel(unsigned long indirection_page,
- 		unsigned long control_page,
- 		unsigned long start_address,
--		unsigned int has_pae) ATTRIB_NORET;
-+		unsigned int has_pae,
-+		unsigned int preserve_context);
- #else
- NORET_TYPE void
- relocate_kernel(unsigned long indirection_page,
-diff -puN include/linux/kexec.h~kexec-jump include/linux/kexec.h
---- a/include/linux/kexec.h~kexec-jump
-+++ a/include/linux/kexec.h
-@@ -83,6 +83,7 @@ struct kimage {
- 
- 	unsigned long start;
- 	struct page *control_code_page;
-+	struct page *swap_page;
- 
- 	unsigned long nr_segments;
- 	struct kexec_segment segment[KEXEC_SEGMENT_MAX];
-@@ -98,18 +99,20 @@ struct kimage {
- 	unsigned int type : 1;
- #define KEXEC_TYPE_DEFAULT 0
- #define KEXEC_TYPE_CRASH   1
-+	unsigned int preserve_context : 1;
- };
- 
- 
- 
- /* kexec interface functions */
--extern NORET_TYPE void machine_kexec(struct kimage *image) ATTRIB_NORET;
-+extern void machine_kexec(struct kimage *image);
- extern int machine_kexec_prepare(struct kimage *image);
- extern void machine_kexec_cleanup(struct kimage *image);
- extern asmlinkage long sys_kexec_load(unsigned long entry,
- 					unsigned long nr_segments,
- 					struct kexec_segment __user *segments,
- 					unsigned long flags);
-+extern int kernel_kexec(void);
- #ifdef CONFIG_COMPAT
- extern asmlinkage long compat_sys_kexec_load(unsigned long entry,
- 				unsigned long nr_segments,
-@@ -156,8 +159,9 @@ extern struct kimage *kexec_crash_image;
- #define kexec_flush_icache_page(page)
- #endif
- 
--#define KEXEC_ON_CRASH  0x00000001
--#define KEXEC_ARCH_MASK 0xffff0000
-+#define KEXEC_ON_CRASH		0x00000001
-+#define KEXEC_PRESERVE_CONTEXT	0x00000002
-+#define KEXEC_ARCH_MASK		0xffff0000
- 
- /* These values match the ELF architecture values.
-  * Unless there is a good reason that should continue to be the case.
-@@ -174,7 +178,12 @@ extern struct kimage *kexec_crash_image;
- #define KEXEC_ARCH_MIPS_LE (10 << 16)
- #define KEXEC_ARCH_MIPS    ( 8 << 16)
- 
--#define KEXEC_FLAGS    (KEXEC_ON_CRASH)  /* List of defined/legal kexec flags */
-+/* List of defined/legal kexec flags */
-+#ifndef CONFIG_KEXEC_JUMP
-+#define KEXEC_FLAGS    KEXEC_ON_CRASH
-+#else
-+#define KEXEC_FLAGS    (KEXEC_ON_CRASH | KEXEC_PRESERVE_CONTEXT)
-+#endif
- 
- #define VMCOREINFO_BYTES           (4096)
- #define VMCOREINFO_NOTE_NAME       "VMCOREINFO"
-diff -puN kernel/kexec.c~kexec-jump kernel/kexec.c
---- a/kernel/kexec.c~kexec-jump
-+++ a/kernel/kexec.c
-@@ -24,6 +24,8 @@
- #include <linux/utsrelease.h>
- #include <linux/utsname.h>
- #include <linux/numa.h>
-+#include <linux/suspend.h>
-+#include <linux/device.h>
- 
- #include <asm/page.h>
- #include <asm/uaccess.h>
-@@ -242,6 +244,12 @@ static int kimage_normal_alloc(struct ki
- 		goto out;
- 	}
- 
-+	image->swap_page = kimage_alloc_control_pages(image, 0);
-+	if (!image->swap_page) {
-+		printk(KERN_ERR "Could not allocate swap buffer\n");
-+		goto out;
-+	}
-+
- 	result = 0;
-  out:
- 	if (result == 0)
-@@ -986,6 +994,8 @@ asmlinkage long sys_kexec_load(unsigned 
- 		if (result)
- 			goto out;
- 
-+		if (flags & KEXEC_PRESERVE_CONTEXT)
-+			image->preserve_context = 1;
- 		result = machine_kexec_prepare(image);
- 		if (result)
- 			goto out;
-@@ -1411,3 +1421,50 @@ static int __init crash_save_vmcoreinfo_
- }
- 
- module_init(crash_save_vmcoreinfo_init)
-+
-+/**
-+ *	kernel_kexec - reboot the system
-+ *
-+ *	Move into place and start executing a preloaded standalone
-+ *	executable.  If nothing was preloaded return an error.
-+ */
-+int kernel_kexec(void)
++struct inode *omfs_new_inode(struct inode *dir, int mode)
 +{
-+	int error = 0;
++	struct inode *inode;
++	u64 new_block;
++	int err;
++	int len;
++	struct omfs_sb_info *sbi = OMFS_SB(dir->i_sb);
 +
-+	if (xchg(&kexec_lock, 1))
-+		return -EBUSY;
-+	if (!kexec_image) {
-+		error = -EINVAL;
-+		goto Unlock;
++	inode = new_inode(dir->i_sb);
++	if (!inode)
++		return ERR_PTR(-ENOMEM);
++
++	err = omfs_allocate_range(dir->i_sb, sbi->s_mirrors, sbi->s_mirrors,
++			&new_block, &len);
++	if (err)
++		goto fail;
++
++	inode->i_ino = new_block;
++	inode->i_mode = mode;
++	inode->i_uid = current->fsuid;
++	inode->i_gid = current->fsgid;
++	inode->i_blocks = 0;
++	inode->i_mapping->a_ops = &omfs_aops;
++
++	inode->i_atime = inode->i_mtime = inode->i_ctime = CURRENT_TIME;
++	switch (mode & S_IFMT) {
++	case S_IFDIR:
++		inode->i_op = &omfs_dir_inops;
++		inode->i_fop = &omfs_dir_operations;
++		inode->i_size = sbi->s_sys_blocksize;
++		inc_nlink(inode);
++		break;
++	case S_IFREG:
++		inode->i_op = &omfs_file_inops;
++		inode->i_fop = &omfs_file_operations;
++		inode->i_size = 0;
++		break;
 +	}
 +
-+	if (kexec_image->preserve_context) {
-+#ifdef CONFIG_KEXEC_JUMP
-+		local_irq_disable();
-+		save_processor_state();
-+#endif
-+	} else {
-+		blocking_notifier_call_chain(&reboot_notifier_list,
-+					     SYS_RESTART, NULL);
-+		system_state = SYSTEM_RESTART;
-+		device_shutdown();
-+		sysdev_shutdown();
-+		printk(KERN_EMERG "Starting new kernel\n");
-+		machine_shutdown();
-+	}
-+
-+	machine_kexec(kexec_image);
-+
-+	if (kexec_image->preserve_context) {
-+#ifdef CONFIG_KEXEC_JUMP
-+		restore_processor_state();
-+		local_irq_enable();
-+#endif
-+	}
-+
-+ Unlock:
-+	xchg(&kexec_lock, 0);
-+
-+	return error;
++	insert_inode_hash(inode);
++	mark_inode_dirty(inode);
++	return inode;
++fail:
++	make_bad_inode(inode);
++	iput(inode);
++	return ERR_PTR(err);
 +}
-diff -puN kernel/sys.c~kexec-jump kernel/sys.c
---- a/kernel/sys.c~kexec-jump
-+++ a/kernel/sys.c
-@@ -301,26 +301,6 @@ void kernel_restart(char *cmd)
- }
- EXPORT_SYMBOL_GPL(kernel_restart);
- 
--/**
-- *	kernel_kexec - reboot the system
-- *
-- *	Move into place and start executing a preloaded standalone
-- *	executable.  If nothing was preloaded return an error.
-- */
--static void kernel_kexec(void)
--{
--#ifdef CONFIG_KEXEC
--	struct kimage *image;
--	image = xchg(&kexec_image, NULL);
--	if (!image)
--		return;
--	kernel_restart_prepare(NULL);
--	printk(KERN_EMERG "Starting new kernel\n");
--	machine_shutdown();
--	machine_kexec(image);
--#endif
--}
--
- static void kernel_shutdown_prepare(enum system_states state)
- {
- 	blocking_notifier_call_chain(&reboot_notifier_list,
-@@ -425,10 +405,15 @@ asmlinkage long sys_reboot(int magic1, i
- 		kernel_restart(buffer);
- 		break;
- 
-+#ifdef CONFIG_KEXEC
- 	case LINUX_REBOOT_CMD_KEXEC:
--		kernel_kexec();
--		unlock_kernel();
--		return -EINVAL;
-+		{
-+			int ret;
-+			ret = kernel_kexec();
-+			unlock_kernel();
-+			return ret;
++
++/*
++ * Update the header checksums for a dirty inode based on its contents.
++ * Caller is expected to hold the buffer head underlying oi and mark it
++ * dirty.
++ */
++static void omfs_update_checksums(struct omfs_inode *oi)
++{
++	int xor, i, ofs = 0, count;
++	u16 crc = 0;
++	unsigned char *ptr = (unsigned char *) oi;
++
++	count = be32_to_cpu(oi->i_head.h_body_size);
++	ofs = sizeof(struct omfs_header);
++
++	crc = crc_itu_t(crc, ptr + ofs, count);
++	oi->i_head.h_crc = cpu_to_be16(crc);
++
++	xor = ptr[0];
++	for (i = 1; i < OMFS_XOR_COUNT; i++)
++		xor ^= ptr[i];
++
++	oi->i_head.h_check_xor = xor;
++}
++
++static int omfs_write_inode(struct inode *inode, int wait)
++{
++	struct omfs_inode *oi;
++	struct omfs_sb_info *sbi = OMFS_SB(inode->i_sb);
++	struct buffer_head *bh, *bh2;
++	unsigned int block;
++	u64 ctime;
++	int i;
++	int ret = -EIO;
++	int sync_failed = 0;
++
++	/* get current inode since we may have written sibling ptrs etc. */
++	block = clus_to_blk(sbi, inode->i_ino);
++	bh = sb_bread(inode->i_sb, block);
++	if (!bh)
++		goto out;
++
++	oi = (struct omfs_inode *) bh->b_data;
++
++	oi->i_head.h_self = cpu_to_be64(inode->i_ino);
++	if (S_ISDIR(inode->i_mode))
++		oi->i_type = OMFS_DIR;
++	else if (S_ISREG(inode->i_mode))
++		oi->i_type = OMFS_FILE;
++	else {
++		printk(KERN_WARNING "omfs: unknown file type: %d\n",
++			inode->i_mode);
++		goto out_brelse;
++	}
++
++	oi->i_head.h_body_size = cpu_to_be32(sbi->s_sys_blocksize -
++		sizeof(struct omfs_header));
++	oi->i_head.h_version = 1;
++	oi->i_head.h_type = OMFS_INODE_NORMAL;
++	oi->i_head.h_magic = OMFS_IMAGIC;
++	oi->i_size = cpu_to_be64(inode->i_size);
++
++	ctime = inode->i_ctime.tv_sec * 1000LL +
++		((inode->i_ctime.tv_nsec + 999)/1000);
++	oi->i_ctime = cpu_to_be64(ctime);
++
++	omfs_update_checksums(oi);
++
++	mark_buffer_dirty(bh);
++	if (wait) {
++		sync_dirty_buffer(bh);
++		if (buffer_req(bh) && !buffer_uptodate(bh))
++			sync_failed = 1;
++	}
++
++	/* if mirroring writes, copy to next fsblock */
++	for (i = 1; i < sbi->s_mirrors; i++) {
++		bh2 = sb_bread(inode->i_sb, block + i *
++			(sbi->s_blocksize / sbi->s_sys_blocksize));
++		if (!bh2)
++			goto out_brelse;
++
++		memcpy(bh2->b_data, bh->b_data, bh->b_size);
++		mark_buffer_dirty(bh2);
++		if (wait) {
++			sync_dirty_buffer(bh2);
++			if (buffer_req(bh2) && !buffer_uptodate(bh2))
++				sync_failed = 1;
 +		}
-+#endif
- 
- #ifdef CONFIG_HIBERNATION
- 	case LINUX_REBOOT_CMD_SW_SUSPEND:
++		brelse(bh2);
++	}
++	ret = (sync_failed) ? -EIO : 0;
++out_brelse:
++	brelse(bh);
++out:
++	return ret;
++}
++
++int omfs_sync_inode(struct inode *inode)
++{
++	return omfs_write_inode(inode, 1);
++}
++
++/*
++ * called when an entry is deleted, need to clear the bits in the
++ * bitmaps.
++ */
++static void omfs_delete_inode(struct inode *inode)
++{
++	truncate_inode_pages(&inode->i_data, 0);
++
++	if (S_ISREG(inode->i_mode)) {
++		inode->i_size = 0;
++		omfs_shrink_inode(inode);
++	}
++
++	omfs_clear_range(inode->i_sb, inode->i_ino, 2);
++	clear_inode(inode);
++}
++
++struct inode *omfs_iget(struct super_block *sb, ino_t ino)
++{
++	struct omfs_sb_info *sbi = OMFS_SB(sb);
++	struct omfs_inode *oi;
++	struct buffer_head *bh;
++	unsigned int block;
++	u64 ctime;
++	unsigned long nsecs;
++	struct inode *inode;
++
++	inode = iget_locked(sb, ino);
++	if (!inode)
++		return ERR_PTR(-ENOMEM);
++	if (!(inode->i_state & I_NEW))
++		return inode;
++
++	block = clus_to_blk(sbi, ino);
++	bh = sb_bread(inode->i_sb, block);
++	if (!bh)
++		goto iget_failed;
++
++	oi = (struct omfs_inode *)bh->b_data;
++
++	/* check self */
++	if (ino != be64_to_cpu(oi->i_head.h_self))
++		goto fail_bh;
++
++	inode->i_uid = sbi->s_uid;
++	inode->i_gid = sbi->s_gid;
++
++	ctime = be64_to_cpu(oi->i_ctime);
++	nsecs = do_div(ctime, 1000) * 1000L;
++
++	inode->i_atime.tv_sec = ctime;
++	inode->i_mtime.tv_sec = ctime;
++	inode->i_ctime.tv_sec = ctime;
++	inode->i_atime.tv_nsec = nsecs;
++	inode->i_mtime.tv_nsec = nsecs;
++	inode->i_ctime.tv_nsec = nsecs;
++
++	inode->i_mapping->a_ops = &omfs_aops;
++
++	switch (oi->i_type) {
++	case OMFS_DIR:
++		inode->i_mode = S_IFDIR | (S_IRWXUGO & ~sbi->s_dmask);
++		inode->i_op = &omfs_dir_inops;
++		inode->i_fop = &omfs_dir_operations;
++		inode->i_size = be32_to_cpu(oi->i_head.h_body_size) +
++			sizeof(struct omfs_header);
++		inc_nlink(inode);
++		break;
++	case OMFS_FILE:
++		inode->i_mode = S_IFREG | (S_IRWXUGO & ~sbi->s_fmask);
++		inode->i_fop = &omfs_file_operations;
++		inode->i_size = be64_to_cpu(oi->i_size);
++		break;
++	}
++	brelse(bh);
++	unlock_new_inode(inode);
++	return inode;
++fail_bh:
++	brelse(bh);
++iget_failed:
++	iget_failed(inode);
++	return ERR_PTR(-EIO);
++}
++
++static void omfs_put_super(struct super_block *sb)
++{
++	struct omfs_sb_info *sbi = OMFS_SB(sb);
++	kfree(sbi->s_imap);
++	kfree(sbi);
++	sb->s_fs_info = NULL;
++}
++
++static int omfs_statfs(struct dentry *dentry, struct kstatfs *buf)
++{
++	struct super_block *s = dentry->d_sb;
++	struct omfs_sb_info *sbi = OMFS_SB(s);
++	buf->f_type = OMFS_MAGIC;
++	buf->f_bsize = sbi->s_blocksize;
++	buf->f_blocks = sbi->s_num_blocks;
++	buf->f_files = sbi->s_num_blocks;
++	buf->f_namelen = OMFS_NAMELEN;
++
++	buf->f_bfree = buf->f_bavail = buf->f_ffree =
++		omfs_count_free(s);
++	return 0;
++}
++
++static struct super_operations omfs_sops = {
++	.write_inode	= omfs_write_inode,
++	.delete_inode	= omfs_delete_inode,
++	.put_super	= omfs_put_super,
++	.statfs		= omfs_statfs,
++	.show_options	= generic_show_options,
++};
++
++/*
++ * For Rio Karma, there is an on-disk free bitmap whose location is
++ * stored in the root block.  For ReplayTV, there is no such free bitmap
++ * so we have to walk the tree.  Both inodes and file data are allocated
++ * from the same map.  This array can be big (300k) so we allocate
++ * in units of the blocksize.
++ */
++static int omfs_get_imap(struct super_block *sb)
++{
++	int bitmap_size;
++	int array_size;
++	int count;
++	struct omfs_sb_info *sbi = OMFS_SB(sb);
++	struct buffer_head *bh;
++	unsigned long **ptr;
++	sector_t block;
++
++	bitmap_size = DIV_ROUND_UP(sbi->s_num_blocks, 8);
++	array_size = DIV_ROUND_UP(bitmap_size, sb->s_blocksize);
++
++	if (sbi->s_bitmap_ino == ~0ULL)
++		goto out;
++
++	sbi->s_imap_size = array_size;
++	sbi->s_imap = kzalloc(array_size * sizeof(unsigned long *), GFP_KERNEL);
++	if (!sbi->s_imap)
++		goto nomem;
++
++	block = clus_to_blk(sbi, sbi->s_bitmap_ino);
++	ptr = sbi->s_imap;
++	for (count = bitmap_size; count > 0; count -= sb->s_blocksize) {
++		bh = sb_bread(sb, block++);
++		if (!bh)
++			goto nomem_free;
++		*ptr = kmalloc(sb->s_blocksize, GFP_KERNEL);
++		if (!*ptr) {
++			brelse(bh);
++			goto nomem_free;
++		}
++		memcpy(*ptr, bh->b_data, sb->s_blocksize);
++		if (count < sb->s_blocksize)
++			memset((void *)*ptr + count, 0xff,
++				sb->s_blocksize - count);
++		brelse(bh);
++		ptr++;
++	}
++out:
++	return 0;
++
++nomem_free:
++	for (count = 0; count < array_size; count++)
++		kfree(sbi->s_imap[count]);
++
++	kfree(sbi->s_imap);
++nomem:
++	sbi->s_imap = NULL;
++	sbi->s_imap_size = 0;
++	return -ENOMEM;
++}
++
++enum {
++	Opt_uid, Opt_gid, Opt_umask, Opt_dmask, Opt_fmask
++};
++
++static match_table_t tokens = {
++	{Opt_uid, "uid=%u"},
++	{Opt_gid, "gid=%u"},
++	{Opt_umask, "umask=%o"},
++	{Opt_dmask, "dmask=%o"},
++	{Opt_fmask, "fmask=%o"},
++};
++
++static int parse_options(char *options, struct omfs_sb_info *sbi)
++{
++	char *p;
++	substring_t args[MAX_OPT_ARGS];
++	int option;
++
++	if (!options)
++		return 1;
++
++	while ((p = strsep(&options, ",")) != NULL) {
++		int token;
++		if (!*p)
++			continue;
++
++		token = match_token(p, tokens, args);
++		switch (token) {
++		case Opt_uid:
++			if (match_int(&args[0], &option))
++				return 0;
++			sbi->s_uid = option;
++			break;
++		case Opt_gid:
++			if (match_int(&args[0], &option))
++				return 0;
++			sbi->s_gid = option;
++			break;
++		case Opt_umask:
++			if (match_octal(&args[0], &option))
++				return 0;
++			sbi->s_fmask = sbi->s_dmask = option;
++			break;
++		case Opt_dmask:
++			if (match_octal(&args[0], &option))
++				return 0;
++			sbi->s_dmask = option;
++			break;
++		case Opt_fmask:
++			if (match_octal(&args[0], &option))
++				return 0;
++			sbi->s_fmask = option;
++			break;
++		default:
++			return 0;
++		}
++	}
++	return 1;
++}
++
++static int omfs_fill_super(struct super_block *sb, void *data, int silent)
++{
++	struct buffer_head *bh, *bh2;
++	struct omfs_super_block *omfs_sb;
++	struct omfs_root_block *omfs_rb;
++	struct omfs_sb_info *sbi;
++	struct inode *root;
++	sector_t start;
++	int ret = -EINVAL;
++
++	save_mount_options(sb, (char *) data);
++
++	sbi = kzalloc(sizeof(struct omfs_sb_info), GFP_KERNEL);
++	if (!sbi)
++		return -ENOMEM;
++
++	sb->s_fs_info = sbi;
++
++	sbi->s_uid = current->uid;
++	sbi->s_gid = current->gid;
++	sbi->s_dmask = sbi->s_fmask = current->fs->umask;
++
++	if (!parse_options((char *) data, sbi))
++		goto end;
++
++	sb->s_maxbytes = 0xffffffff;
++
++	sb_set_blocksize(sb, 0x200);
++
++	bh = sb_bread(sb, 0);
++	if (!bh)
++		goto end;
++
++	omfs_sb = (struct omfs_super_block *)bh->b_data;
++
++	if (omfs_sb->s_magic != cpu_to_be32(OMFS_MAGIC)) {
++		if (!silent)
++			printk(KERN_ERR "omfs: Invalid superblock (%x)\n",
++				   omfs_sb->s_magic);
++		goto out_brelse_bh;
++	}
++	sb->s_magic = OMFS_MAGIC;
++
++	sbi->s_num_blocks = be64_to_cpu(omfs_sb->s_num_blocks);
++	sbi->s_blocksize = be32_to_cpu(omfs_sb->s_blocksize);
++	sbi->s_mirrors = be32_to_cpu(omfs_sb->s_mirrors);
++	sbi->s_root_ino = be64_to_cpu(omfs_sb->s_root_block);
++	sbi->s_sys_blocksize = be32_to_cpu(omfs_sb->s_sys_blocksize);
++	mutex_init(&sbi->s_bitmap_lock);
++
++	if (sbi->s_sys_blocksize > PAGE_SIZE) {
++		printk(KERN_ERR "omfs: sysblock size (%d) is out of range\n",
++			sbi->s_sys_blocksize);
++		goto out_brelse_bh;
++	}
++
++	if (sbi->s_blocksize < sbi->s_sys_blocksize ||
++	    sbi->s_blocksize > OMFS_MAX_BLOCK_SIZE) {
++		printk(KERN_ERR "omfs: block size (%d) is out of range\n",
++			sbi->s_blocksize);
++		goto out_brelse_bh;
++	}
++
++	/*
++	 * Use sys_blocksize as the fs block since it is smaller than a
++	 * page while the fs blocksize can be larger.
++	 */
++	sb_set_blocksize(sb, sbi->s_sys_blocksize);
++
++	/*
++	 * ...and the difference goes into a shift.  sys_blocksize is always
++	 * a power of two factor of blocksize.
++	 */
++	sbi->s_block_shift = get_bitmask_order(sbi->s_blocksize) -
++		get_bitmask_order(sbi->s_sys_blocksize);
++
++	start = clus_to_blk(sbi, be64_to_cpu(omfs_sb->s_root_block));
++	bh2 = sb_bread(sb, start);
++	if (!bh2)
++		goto out_brelse_bh;
++
++	omfs_rb = (struct omfs_root_block *)bh2->b_data;
++
++	sbi->s_bitmap_ino = be64_to_cpu(omfs_rb->r_bitmap);
++	sbi->s_clustersize = be32_to_cpu(omfs_rb->r_clustersize);
++
++	if (sbi->s_num_blocks != be64_to_cpu(omfs_rb->r_num_blocks)) {
++		printk(KERN_ERR "omfs: block count discrepancy between "
++			"super and root blocks (%llx, %llx)\n",
++			sbi->s_num_blocks, be64_to_cpu(omfs_rb->r_num_blocks));
++		goto out_brelse_bh2;
++	}
++
++	ret = omfs_get_imap(sb);
++	if (ret)
++		goto out_brelse_bh2;
++
++	sb->s_op = &omfs_sops;
++
++	root = omfs_iget(sb, be64_to_cpu(omfs_rb->r_root_dir));
++	if (IS_ERR(root)) {
++		ret = PTR_ERR(root);
++		goto out_brelse_bh2;
++	}
++
++	sb->s_root = d_alloc_root(root);
++	if (!sb->s_root) {
++		iput(root);
++		goto out_brelse_bh2;
++	}
++	printk(KERN_DEBUG "omfs: Mounted volume %s\n", omfs_rb->r_name);
++
++	ret = 0;
++out_brelse_bh2:
++	brelse(bh2);
++out_brelse_bh:
++	brelse(bh);
++end:
++	return ret;
++}
++
++static int omfs_get_sb(struct file_system_type *fs_type,
++			int flags, const char *dev_name,
++			void *data, struct vfsmount *m)
++{
++	return get_sb_bdev(fs_type, flags, dev_name, data, omfs_fill_super, m);
++}
++
++static struct file_system_type omfs_fs_type = {
++	.owner = THIS_MODULE,
++	.name = "omfs",
++	.get_sb = omfs_get_sb,
++	.kill_sb = kill_block_super,
++	.fs_flags = FS_REQUIRES_DEV,
++};
++
++static int __init init_omfs_fs(void)
++{
++	return register_filesystem(&omfs_fs_type);
++}
++
++static void __exit exit_omfs_fs(void)
++{
++	unregister_filesystem(&omfs_fs_type);
++}
++
++module_init(init_omfs_fs);
++module_exit(exit_omfs_fs);
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from me@bobcopeland.com are
 
 origin.patch
-aes-x86_64-asm-implementation-optimization.patch
+ath5k-fix-beacon-update-deadlock.patch
+ath5k-mask-out-unneeded-interrupts.patch
+ath5k-unify-resets.patch
 
