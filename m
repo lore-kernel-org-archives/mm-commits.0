@@ -1,65 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - omfs-add-maintainers-entry.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:15:33 -0700
-Message-ID: <200807262115.m6QLFXV6019748@imap1.linux-foundation.org>
+Subject: - use-warn-in-drivers-base.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:16:22 -0700
+Message-ID: <200807262116.m6QLGMur019824@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51565 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44552 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757676AbYGZVQC (ORCPT
+	by vger.kernel.org with ESMTP id S1757680AbYGZVQY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:16:02 -0400
+	Sat, 26 Jul 2008 17:16:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: me@bobcopeland.com, mm-commits@vger.kernel.org
+To: arjan@linux.intel.com, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     omfs: add MAINTAINERS entry
+     Use WARN() in drivers/base/
 has been removed from the -mm tree.  Its filename was
-     omfs-add-maintainers-entry.patch
+     use-warn-in-drivers-base.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omfs: add MAINTAINERS entry
-From: Bob Copeland <me@bobcopeland.com>
+Subject: Use WARN() in drivers/base/
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-omfs: add MAINTAINERS entry
+Use WARN() instead of a printk+WARN_ON() pair; this way the message
+becomes part of the warning section for better reporting/collection.
 
-Add the MAINTAINERS entry for OMFS.
-
-Signed-off-by: Bob Copeland <me@bobcopeland.com>
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/base/core.c   |    6 ++----
+ drivers/base/memory.c |    3 +--
+ drivers/base/sys.c    |   12 ++++--------
+ 3 files changed, 7 insertions(+), 14 deletions(-)
 
-diff -puN MAINTAINERS~omfs-add-maintainers-entry MAINTAINERS
---- a/MAINTAINERS~omfs-add-maintainers-entry
-+++ a/MAINTAINERS
-@@ -3123,6 +3123,12 @@ W:	http://oss.oracle.com/projects/ocfs2/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mfasheh/ocfs2.git
- S:	Supported
+diff -puN drivers/base/core.c~use-warn-in-drivers-base drivers/base/core.c
+--- a/drivers/base/core.c~use-warn-in-drivers-base
++++ a/drivers/base/core.c
+@@ -116,12 +116,10 @@ static void device_release(struct kobjec
+ 		dev->type->release(dev);
+ 	else if (dev->class && dev->class->dev_release)
+ 		dev->class->dev_release(dev);
+-	else {
+-		printk(KERN_ERR "Device '%s' does not have a release() "
++	else
++		WARN(1, KERN_ERR "Device '%s' does not have a release() "
+ 			"function, it is broken and must be fixed.\n",
+ 			dev->bus_id);
+-		WARN_ON(1);
+-	}
+ }
  
-+OMFS FILESYSTEM
-+P:	Bob Copeland
-+M:	me@bobcopeland.com
-+L:	linux-karma-devel@lists.sourceforge.net
-+S:	Maintained
-+
- OMNIKEY CARDMAN 4000 DRIVER
- P:	Harald Welte
- M:	laforge@gnumonks.org
+ static struct kobj_type device_ktype = {
+diff -puN drivers/base/memory.c~use-warn-in-drivers-base drivers/base/memory.c
+--- a/drivers/base/memory.c~use-warn-in-drivers-base
++++ a/drivers/base/memory.c
+@@ -204,9 +204,8 @@ memory_block_action(struct memory_block 
+ 			}
+ 			break;
+ 		default:
+-			printk(KERN_WARNING "%s(%p, %ld) unknown action: %ld\n",
++			WARN(1, KERN_WARNING "%s(%p, %ld) unknown action: %ld\n",
+ 					__func__, mem, action, action);
+-			WARN_ON(1);
+ 			ret = -EINVAL;
+ 	}
+ 
+diff -puN drivers/base/sys.c~use-warn-in-drivers-base drivers/base/sys.c
+--- a/drivers/base/sys.c~use-warn-in-drivers-base
++++ a/drivers/base/sys.c
+@@ -168,19 +168,16 @@ int sysdev_driver_register(struct sysdev
+ 	int err = 0;
+ 
+ 	if (!cls) {
+-		printk(KERN_WARNING "sysdev: invalid class passed to "
++		WARN(1, KERN_WARNING "sysdev: invalid class passed to "
+ 			"sysdev_driver_register!\n");
+-		WARN_ON(1);
+ 		return -EINVAL;
+ 	}
+ 
+ 	/* Check whether this driver has already been added to a class. */
+-	if (drv->entry.next && !list_empty(&drv->entry)) {
+-		printk(KERN_WARNING "sysdev: class %s: driver (%p) has already"
++	if (drv->entry.next && !list_empty(&drv->entry))
++		WARN(1, KERN_WARNING "sysdev: class %s: driver (%p) has already"
+ 			" been registered to a class, something is wrong, but "
+ 			"will forge on!\n", cls->name, drv);
+-		WARN_ON(1);
+-	}
+ 
+ 	mutex_lock(&sysdev_drivers_lock);
+ 	if (cls && kset_get(&cls->kset)) {
+@@ -194,8 +191,7 @@ int sysdev_driver_register(struct sysdev
+ 		}
+ 	} else {
+ 		err = -EINVAL;
+-		printk(KERN_ERR "%s: invalid device class\n", __func__);
+-		WARN_ON(1);
++		WARN(1, KERN_ERR "%s: invalid device class\n", __func__);
+ 	}
+ 	mutex_unlock(&sysdev_drivers_lock);
+ 	return err;
 _
 
-Patches currently in -mm which might be from me@bobcopeland.com are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
 origin.patch
-ath5k-fix-beacon-update-deadlock.patch
-ath5k-mask-out-unneeded-interrupts.patch
-ath5k-unify-resets.patch
+linux-next.patch
+via-velocity-fix-sleep-with-spinlock-bug-during-mtu-change.patch
+modules-extend-initcall_debug-functionality-to-the-module-loader.patch
+use-warn-in-kernel-lockdepc.patch
+use-warn-in-arch-x86-mm-ioremapc.patch
+use-warn-in-arch-x86-mm-pageattrc.patch
+use-warn-in-arch-x86-kernel.patch
 
