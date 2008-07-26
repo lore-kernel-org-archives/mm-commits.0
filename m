@@ -1,55 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - mm-introduce-get_user_pages_fast.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:15:43 -0700
-Message-ID: <200807262115.m6QLFhDJ019763@imap1.linux-foundation.org>
+Subject: - dio-use-get_user_pages_fast.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:15:49 -0700
+Message-ID: <200807262115.m6QLFndD019769@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53318 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36450 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757738AbYGZVWT (ORCPT
+	by vger.kernel.org with ESMTP id S1758067AbYGZVW2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:22:19 -0400
+	Sat, 26 Jul 2008 17:22:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: npiggin@suse.de, a.p.zijlstra@chello.nl, andi@firstfloor.org, apw@shadowen.org, jens.axboe@oracle.com, mingo@elte.hu, pbadari@us.ibm.com, shaggy@austin.ibm.com, tglx@linutronix.de, za
 
 
 The patch titled
-     mm: introduce get_user_pages_fast
+     dio: use get_user_pages_fast
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-get_user_pages_fast.patch
+     dio-use-get_user_pages_fast.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: introduce get_user_pages_fast
+Subject: dio: use get_user_pages_fast
 From: Nick Piggin <npiggin@suse.de>
 
-Introduce a new get_user_pages_fast mm API, which is basically a
-get_user_pages with a less general API (but still tends to be suited to
-the common case):
+Use get_user_pages_fast in the common/generic block and fs direct IO paths.
 
-- task and mm are always current and current->mm
-- force is always 0
-- pages is always non-NULL
-- don't pass back vmas
-
-This restricted API can be implemented in a much more scalable way on many
-architectures when the ptes are present, by walking the page tables
-locklessly (no mmap_sem or page table locks).  When the ptes are not
-populated, get_user_pages_fast() could be slower.
-
-This is implemented locklessly on x86, and used in some key direct IO call
-sites, in later patches, which provides nearly 10% performance improvement
-on a threaded database workload.
-
-Lots of other code could use this too, depending on use cases (eg.  grep
-drivers/).  And it might inspire some new and clever ways to use it.
-
-[akpm@linux-foundation.org: build fix]
-[akpm@linux-foundation.org: coding-style fixes]
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Cc: Dave Kleikamp <shaggy@austin.ibm.com>
 Cc: Andy Whitcroft <apw@shadowen.org>
@@ -64,52 +43,51 @@ Reviewed-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   33 +++++++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+ fs/bio.c       |    8 ++------
+ fs/direct-io.c |   10 ++--------
+ 2 files changed, 4 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/mm.h~mm-introduce-get_user_pages_fast include/linux/mm.h
---- a/include/linux/mm.h~mm-introduce-get_user_pages_fast
-+++ a/include/linux/mm.h
-@@ -833,6 +833,39 @@ extern int mprotect_fixup(struct vm_area
- 			  struct vm_area_struct **pprev, unsigned long start,
- 			  unsigned long end, unsigned long newflags);
+diff -puN fs/bio.c~dio-use-get_user_pages_fast fs/bio.c
+--- a/fs/bio.c~dio-use-get_user_pages_fast
++++ a/fs/bio.c
+@@ -721,12 +721,8 @@ static struct bio *__bio_map_user_iov(st
+ 		const int local_nr_pages = end - start;
+ 		const int page_limit = cur_page + local_nr_pages;
+ 		
+-		down_read(&current->mm->mmap_sem);
+-		ret = get_user_pages(current, current->mm, uaddr,
+-				     local_nr_pages,
+-				     write_to_vm, 0, &pages[cur_page], NULL);
+-		up_read(&current->mm->mmap_sem);
+-
++		ret = get_user_pages_fast(uaddr, local_nr_pages,
++				write_to_vm, &pages[cur_page]);
+ 		if (ret < local_nr_pages) {
+ 			ret = -EFAULT;
+ 			goto out_unmap;
+diff -puN fs/direct-io.c~dio-use-get_user_pages_fast fs/direct-io.c
+--- a/fs/direct-io.c~dio-use-get_user_pages_fast
++++ a/fs/direct-io.c
+@@ -150,17 +150,11 @@ static int dio_refill_pages(struct dio *
+ 	int nr_pages;
  
-+#ifdef CONFIG_HAVE_GET_USER_PAGES_FAST
-+/*
-+ * get_user_pages_fast provides equivalent functionality to get_user_pages,
-+ * operating on current and current->mm (force=0 and doesn't return any vmas).
-+ *
-+ * get_user_pages_fast may take mmap_sem and page tables, so no assumptions
-+ * can be made about locking. get_user_pages_fast is to be implemented in a
-+ * way that is advantageous (vs get_user_pages()) when the user memory area is
-+ * already faulted in and present in ptes. However if the pages have to be
-+ * faulted in, it may turn out to be slightly slower).
-+ */
-+int get_user_pages_fast(unsigned long start, int nr_pages, int write,
-+			struct page **pages);
-+
-+#else
-+/*
-+ * Should probably be moved to asm-generic, and architectures can include it if
-+ * they don't implement their own get_user_pages_fast.
-+ */
-+#define get_user_pages_fast(start, nr_pages, write, pages)	\
-+({								\
-+	struct mm_struct *mm = current->mm;			\
-+	int ret;						\
-+								\
-+	down_read(&mm->mmap_sem);				\
-+	ret = get_user_pages(current, mm, start, nr_pages,	\
-+					write, 0, pages, NULL);	\
-+	up_read(&mm->mmap_sem);					\
-+								\
-+	ret;							\
-+})
-+#endif
-+
- /*
-  * A callback you can register to apply pressure to ageable caches.
-  *
+ 	nr_pages = min(dio->total_pages - dio->curr_page, DIO_PAGES);
+-	down_read(&current->mm->mmap_sem);
+-	ret = get_user_pages(
+-		current,			/* Task for fault acounting */
+-		current->mm,			/* whose pages? */
++	ret = get_user_pages_fast(
+ 		dio->curr_user_address,		/* Where from? */
+ 		nr_pages,			/* How many pages? */
+ 		dio->rw == READ,		/* Write to memory? */
+-		0,				/* force (?) */
+-		&dio->pages[0],
+-		NULL);				/* vmas */
+-	up_read(&current->mm->mmap_sem);
++		&dio->pages[0]);		/* Put results here */
+ 
+ 	if (ret < 0 && dio->blocks_available && (dio->rw & WRITE)) {
+ 		struct page *page = ZERO_PAGE(0);
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
