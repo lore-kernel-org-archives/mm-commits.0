@@ -1,91 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: - slb-drop-kmem-cache-argument-from-constructor-ubifs.patch removed from -mm tree
-Date: Fri, 25 Jul 2008 16:59:46 -0700
-Message-ID: <200807252359.m6PNxkbv006276@imap1.linux-foundation.org>
+Subject: - byteorder-add-include-linux-byteorderh-to-define-endian-helpers-update.patch removed from -mm tree
+Date: Fri, 25 Jul 2008 17:04:37 -0700
+Message-ID: <200807260004.m6Q04cRm006466@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40294 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47657 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752538AbYGZAAm (ORCPT
+	by vger.kernel.org with ESMTP id S1752915AbYGZAEl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 25 Jul 2008 20:00:42 -0400
+	Fri, 25 Jul 2008 20:04:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Artem.Bityutskiy@nokia.com, adobriyan@gmail.com, cl@linux-foundation.org, kniht@linux.vnet.ibm.com, mpm@selenic.com, nickpiggin@yahoo.com.au, penberg@cs.hel
+To: harvey.harrison@gmail.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slb-drop-kmem-cache-argument-from-constructor-ubifs
+     Update byteorder helpers to always evaluate args
 has been removed from the -mm tree.  Its filename was
-     slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
+     byteorder-add-include-linux-byteorderh-to-define-endian-helpers-update.patch
 
-This patch was dropped because it was folded into slb-drop-kmem-cache-argument-from-constructor.patch
+This patch was dropped because it was folded into byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: slb-drop-kmem-cache-argument-from-constructor-ubifs
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Update byteorder helpers to always evaluate args
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Jon Tollefson <kniht@linux.vnet.ibm.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Update for byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
+
+David Miller noticed a regression in IDE recently because I switched it over
+to use the in-place byteswapping which doesn't evaluate arguments in some
+endianesses (defined as do {} while(0))
+
+Make them all functions to avoid this.
+
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ubifs/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/byteorder.h |  108 ++++++++++++++++++++++++++++--------
+ 1 file changed, 84 insertions(+), 24 deletions(-)
 
-diff -puN fs/ubifs/super.c~slb-drop-kmem-cache-argument-from-constructor-ubifs fs/ubifs/super.c
---- a/fs/ubifs/super.c~slb-drop-kmem-cache-argument-from-constructor-ubifs
-+++ a/fs/ubifs/super.c
-@@ -1843,7 +1843,7 @@ static struct file_system_type ubifs_fs_
+diff -puN include/linux/byteorder.h~byteorder-add-include-linux-byteorderh-to-define-endian-helpers-update include/linux/byteorder.h
+--- a/include/linux/byteorder.h~byteorder-add-include-linux-byteorderh-to-define-endian-helpers-update
++++ a/include/linux/byteorder.h
+@@ -37,12 +37,6 @@
+ # define __cpu_to_le16(x) ((__force __le16)(__u16)(x))
+ # define __cpu_to_le32(x) ((__force __le32)(__u32)(x))
+ # define __cpu_to_le64(x) ((__force __le64)(__u64)(x))
+-# define __le16_to_cpus(x) do {} while (0)
+-# define __le32_to_cpus(x) do {} while (0)
+-# define __le64_to_cpus(x) do {} while (0)
+-# define __cpu_to_le16s(x) do {} while (0)
+-# define __cpu_to_le32s(x) do {} while (0)
+-# define __cpu_to_le64s(x) do {} while (0)
+ 
+ # define __be16_to_cpu(x) __swab16((__force __u16)(__be16)(x))
+ # define __be32_to_cpu(x) __swab32((__force __u32)(__be32)(x))
+@@ -50,12 +44,6 @@
+ # define __cpu_to_be16(x) ((__force __be16)__swab16(x))
+ # define __cpu_to_be32(x) ((__force __be32)__swab32(x))
+ # define __cpu_to_be64(x) ((__force __be64)__swab64(x))
+-# define __be16_to_cpus(x) __swab16s(x)
+-# define __be32_to_cpus(x) __swab32s(x)
+-# define __be64_to_cpus(x) __swab64s(x)
+-# define __cpu_to_be16s(x) __swab16s(x)
+-# define __cpu_to_be32s(x) __swab32s(x)
+-# define __cpu_to_be64s(x) __swab64s(x)
+ #endif
+ 
+ #ifdef __BIG_ENDIAN
+@@ -65,12 +53,6 @@
+ # define __cpu_to_be16(x) ((__force __be16)(__u16)(x))
+ # define __cpu_to_be32(x) ((__force __be32)(__u32)(x))
+ # define __cpu_to_be64(x) ((__force __be64)(__u64)(x))
+-# define __be16_to_cpus(x) do {} while (0)
+-# define __be32_to_cpus(x) do {} while (0)
+-# define __be64_to_cpus(x) do {} while (0)
+-# define __cpu_to_be16s(x) do {} while (0)
+-# define __cpu_to_be32s(x) do {} while (0)
+-# define __cpu_to_be64s(x) do {} while (0)
+ 
+ # define __le16_to_cpu(x) __swab16((__force __u16)(__le16)(x))
+ # define __le32_to_cpu(x) __swab32((__force __u32)(__le32)(x))
+@@ -78,12 +60,6 @@
+ # define __cpu_to_le16(x) ((__force __le16)__swab16(x))
+ # define __cpu_to_le32(x) ((__force __le32)__swab32(x))
+ # define __cpu_to_le64(x) ((__force __le64)__swab64(x))
+-# define __le16_to_cpus(x) __swab16s(x)
+-# define __le32_to_cpus(x) __swab32s(x)
+-# define __le64_to_cpus(x) __swab64s(x)
+-# define __cpu_to_le16s(x) __swab16s(x)
+-# define __cpu_to_le32s(x) __swab32s(x)
+-# define __cpu_to_le64s(x) __swab64s(x)
+ #endif
+ 
  /*
-  * Inode slab cache constructor.
-  */
--static void inode_slab_ctor(struct kmem_cache *cachep, void *obj)
-+static void inode_slab_ctor(void *obj)
+@@ -109,6 +85,90 @@
+ #define __constant_cpu_to_be32(x) __cpu_to_be32(x)
+ #define __constant_cpu_to_be64(x) __cpu_to_be64(x)
+ 
++static inline void __le16_to_cpus(__u16 *p)
++{
++#ifdef __BIG_ENDIAN
++	__swab16s(p);
++#endif
++}
++
++static inline void __cpu_to_le16s(__u16 *p)
++{
++#ifdef __BIG_ENDIAN
++	__swab16s(p);
++#endif
++}
++
++static inline void __le32_to_cpus(__u32 *p)
++{
++#ifdef __BIG_ENDIAN
++	__swab32s(p);
++#endif
++}
++
++static inline void __cpu_to_le32s(__u32 *p)
++{
++#ifdef __BIG_ENDIAN
++	__swab32s(p);
++#endif
++}
++
++static inline void __le64_to_cpus(__u64 *p)
++{
++#ifdef __BIG_ENDIAN
++	__swab64s(p);
++#endif
++}
++
++static inline void __cpu_to_le64s(__u64 *p)
++{
++#ifdef __BIG_ENDIAN
++	__swab64s(p);
++#endif
++}
++
++static inline void __be16_to_cpus(__u16 *p)
++{
++#ifdef __LITTLE_ENDIAN
++	__swab16s(p);
++#endif
++}
++
++static inline void __cpu_to_be16s(__u16 *p)
++{
++#ifdef __LITTLE_ENDIAN
++	__swab16s(p);
++#endif
++}
++
++static inline void __be32_to_cpus(__u32 *p)
++{
++#ifdef __LITTLE_ENDIAN
++	__swab32s(p);
++#endif
++}
++
++static inline void __cpu_to_be32s(__u32 *p)
++{
++#ifdef __LITTLE_ENDIAN
++	__swab32s(p);
++#endif
++}
++
++static inline void __be64_to_cpus(__u64 *p)
++{
++#ifdef __LITTLE_ENDIAN
++	__swab64s(p);
++#endif
++}
++
++static inline void __cpu_to_be64s(__u64 *p)
++{
++#ifdef __LITTLE_ENDIAN
++	__swab64s(p);
++#endif
++}
++
+ static inline __u16 __le16_to_cpup(const __le16 *p)
  {
- 	struct ubifs_inode *ui = obj;
- 	inode_init_once(&ui->vfs_inode);
+ #ifdef __LITTLE_ENDIAN
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-uninline-arch_pick_mmap_layout.patch
-dma-mapping-add-the-device-argument-to-dma_mapping_error.patch
-x86-calgary-fix-handling-of-devices-that-arent-behind-the-calgary.patch
-tpm-increase-size-of-internal-tpm-response-buffers.patch
-memstick-allow-set_param-method-to-return-an-error-code.patch
-memstick-use-fully-asynchronous-request-processing.patch
-full-conversion-to-early_initcall-interface-remove-old-interface.patch
-mm-introduce-get_user_pages_fast.patch
-x86-lockless-get_user_pages_fast.patch
-mm-speculative-page-references.patch
-slb-drop-kmem-cache-argument-from-constructor.patch
-slb-drop-kmem-cache-argument-from-constructor-ubifs.patch
-video-console-sticonrec-make-code-static-checkpatch-fixes.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+cris-use-the-common-ascii-hex-helpers.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
+byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
+byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
+byteorder-add-include-linux-byteorderh-to-define-endian-helpers-update.patch
 
