@@ -1,102 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-git-rejects.patch added to -mm tree
-Date: Sat, 26 Jul 2008 14:05:53 -0700
-Message-ID: <200807262105.m6QL5rjs019260@imap1.linux-foundation.org>
+Subject: - git-block-fix-s390-build.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:06:25 -0700
+Message-ID: <200807262106.m6QL6PR2019281@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51553 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51479 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755202AbYGZVF4 (ORCPT
+	by vger.kernel.org with ESMTP id S1757240AbYGZVGg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:05:56 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6QL5rWl001047
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 26 Jul 2008 14:05:54 -0700
+	Sat, 26 Jul 2008 17:06:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block-git-rejects
-has been added to the -mm tree.  Its filename is
-     git-block-git-rejects.patch
+     git-block: fix s390 build
+has been removed from the -mm tree.  Its filename was
+     git-block-fix-s390-build.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-block-git-rejects
+Subject: git-block: fix s390 build
 From: Andrew Morton <akpm@linux-foundation.org>
 
+init/main.c: In function 'do_pre_smp_initcalls':
+init/main.c:777: error: implicit declaration of function 'init_call_single_data'
+
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |   33 ---------------------------------
- 1 file changed, 33 deletions(-)
+ include/linux/smp.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/splice.c~git-block-git-rejects fs/splice.c
---- a/fs/splice.c~git-block-git-rejects
-+++ a/fs/splice.c
-@@ -1162,38 +1162,6 @@ static long do_splice(struct file *in, l
+diff -puN include/linux/smp.h~git-block-fix-s390-build include/linux/smp.h
+--- a/include/linux/smp.h~git-block-fix-s390-build
++++ a/include/linux/smp.h
+@@ -136,10 +136,13 @@ static inline void smp_send_reschedule(i
+ })
+ #define smp_call_function_mask(mask, func, info, wait) \
+ 			(up_smp_call_function(func, info))
++#endif /* !SMP */
++
++#if !defined(CONFIG_SMP) || !defined(CONFIG_USE_GENERIC_SMP_HELPERS)
+ static inline void init_call_single_data(void)
+ {
  }
+-#endif /* !SMP */
++#endif
  
  /*
--<<<<<<< HEAD:fs/splice.c
--=======
-- * Do a copy-from-user while holding the mmap_semaphore for reading, in a
-- * manner safe from deadlocking with simultaneous mmap() (grabbing mmap_sem
-- * for writing) and page faulting on the user memory pointed to by src.
-- * This assumes that we will very rarely hit the partial != 0 path, or this
-- * will not be a win.
-- */
--static int copy_from_user_mmap_sem(void *dst, const void __user *src, size_t n)
--{
--	int partial;
--
--	if (!access_ok(VERIFY_READ, src, n))
--		return -EFAULT;
--
--	pagefault_disable();
--	partial = __copy_from_user_inatomic(dst, src, n);
--	pagefault_enable();
--
--	/*
--	 * Didn't copy everything, drop the mmap_sem and do a faulting copy
--	 */
--	if (unlikely(partial)) {
--		up_read(&current->mm->mmap_sem);
--		partial = copy_from_user(dst, src, n);
--		down_read(&current->mm->mmap_sem);
--	}
--
--	return partial;
--}
--
--/*
-  * Just copy the data to user space
-  */
- static int pipe_to_user_copy(struct pipe_inode_info *pipe,
-@@ -1413,7 +1381,6 @@ static long vmsplice_to_user(struct file
- }
- 
- /*
-->>>>>>> FETCH_HEAD:fs/splice.c
-  * Map an iov into an array of pages and offset/length tupples. With the
-  * partial_page structure, we can map several non-contiguous ranges into
-  * our ones pages[] map instead of splitting that operation into pieces.
+  * smp_processor_id(): get the current CPU ID.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -126,7 +84,6 @@ update-smc91x-driver-with-arm-versatile-board-info.patch
 drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
 scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
 git-block-git-rejects.patch
-git-block-ia64-build-fix.patch
 git-block-fix-s390-build.patch
 git-unionfs.patch
 git-logfs-git-rejects.patch
