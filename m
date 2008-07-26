@@ -1,203 +1,283 @@
 From: akpm@linux-foundation.org
-Subject: - omfs-define-filesystem-structures.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:14:43 -0700
-Message-ID: <200807262114.m6QLEhDc019696@imap1.linux-foundation.org>
+Subject: - kexec-jump-save-restore-device-state.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:14:13 -0700
+Message-ID: <200807262114.m6QLEDWG019678@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34580 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38381 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757582AbYGZVPV (ORCPT
+	by vger.kernel.org with ESMTP id S1757576AbYGZVPO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:15:21 -0400
+	Sat, 26 Jul 2008 17:15:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: me@bobcopeland.com, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, ebiederm@xmission.com, mingo@elte.hu, nigel@nigel.suspend2.net, pavel@ucw.cz, rjw@sisk.pl, tglx@linutronix.de, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     omfs: define filesystem structures
+     kexec jump: save/restore device state
 has been removed from the -mm tree.  Its filename was
-     omfs-define-filesystem-structures.patch
+     kexec-jump-save-restore-device-state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omfs: define filesystem structures
-From: Bob Copeland <me@bobcopeland.com>
+Subject: kexec jump: save/restore device state
+From: Huang Ying <ying.huang@intel.com>
 
-Add header files containing OMFS on-disk and memory structures.
+This patch implements devices state save/restore before after kexec.
 
-Signed-off-by: Bob Copeland <me@bobcopeland.com>
+This patch together with features in kexec_jump patch can be used for
+following:
+
+- A simple hibernation implementation without ACPI support.  You can kexec a
+  hibernating kernel, save the memory image of original system and shutdown
+  the system.  When resuming, you restore the memory image of original system
+  via ordinary kexec load then jump back.
+
+- Kernel/system debug through making system snapshot.  You can make system
+  snapshot, jump back, do some thing and make another system snapshot.
+
+- Cooperative multi-kernel/system.  With kexec jump, you can switch between
+  several kernels/systems quickly without boot process except the first time. 
+  This appears like swap a whole kernel/system out/in.
+
+- A general method to call program in physical mode (paging turning
+  off). This can be used to invoke BIOS code under Linux.
+
+The following user-space tools can be used with kexec jump:
+
+- kexec-tools needs to be patched to support kexec jump. The patches
+  and the precompiled kexec can be download from the following URL:
+       source: http://khibernation.sourceforge.net/download/release_v10/kexec-tools/kexec-tools-src_git_kh10.tar.bz2
+       patches: http://khibernation.sourceforge.net/download/release_v10/kexec-tools/kexec-tools-patches_git_kh10.tar.bz2
+       binary: http://khibernation.sourceforge.net/download/release_v10/kexec-tools/kexec_git_kh10
+
+- makedumpfile with patches are used as memory image saving tool, it
+  can exclude free pages from original kernel memory image file. The
+  patches and the precompiled makedumpfile can be download from the
+  following URL:
+       source: http://khibernation.sourceforge.net/download/release_v10/makedumpfile/makedumpfile-src_cvs_kh10.tar.bz2
+       patches: http://khibernation.sourceforge.net/download/release_v10/makedumpfile/makedumpfile-patches_cvs_kh10.tar.bz2
+       binary: http://khibernation.sourceforge.net/download/release_v10/makedumpfile/makedumpfile_cvs_kh10
+
+- An initramfs image can be used as the root file system of kexeced
+  kernel. An initramfs image built with "BuildRoot" can be downloaded
+  from the following URL:
+       initramfs image: http://khibernation.sourceforge.net/download/release_v10/initramfs/rootfs_cvs_kh10.gz
+  All user space tools above are included in the initramfs image.
+
+Usage example of simple hibernation:
+
+1. Compile and install patched kernel with following options selected:
+
+CONFIG_X86_32=y
+CONFIG_RELOCATABLE=y
+CONFIG_KEXEC=y
+CONFIG_CRASH_DUMP=y
+CONFIG_PM=y
+CONFIG_HIBERNATION=y
+CONFIG_KEXEC_JUMP=y
+
+2. Build an initramfs image contains kexec-tool and makedumpfile, or
+   download the pre-built initramfs image, called rootfs.gz in
+   following text.
+
+3. Prepare a partition to save memory image of original kernel, called
+   hibernating partition in following text.
+
+4. Boot kernel compiled in step 1 (kernel A).
+
+5. In the kernel A, load kernel compiled in step 1 (kernel B) with
+   /sbin/kexec. The shell command line can be as follow:
+
+   /sbin/kexec --load-preserve-context /boot/bzImage --mem-min=0x100000
+     --mem-max=0xffffff --initrd=rootfs.gz
+
+6. Boot the kernel B with following shell command line:
+
+   /sbin/kexec -e
+
+7. The kernel B will boot as normal kexec. In kernel B the memory
+   image of kernel A can be saved into hibernating partition as
+   follow:
+
+   jump_back_entry=`cat /proc/cmdline | tr ' ' '\n' | grep kexec_jump_back_entry | cut -d '='`
+   echo $jump_back_entry > kexec_jump_back_entry
+   cp /proc/vmcore dump.elf
+
+   Then you can shutdown the machine as normal.
+
+8. Boot kernel compiled in step 1 (kernel C). Use the rootfs.gz as
+   root file system.
+
+9. In kernel C, load the memory image of kernel A as follow:
+
+   /sbin/kexec -l --args-none --entry=`cat kexec_jump_back_entry` dump.elf
+
+10. Jump back to the kernel A as follow:
+
+   /sbin/kexec -e
+
+   Then, kernel A is resumed.
+
+Implementation point:
+
+To support jumping between two kernels, before jumping to (executing)
+the new kernel and jumping back to the original kernel, the devices
+are put into quiescent state, and the state of devices and CPU is
+saved. After jumping back from kexeced kernel and jumping to the new
+kernel, the state of devices and CPU are restored accordingly. The
+devices/CPU state save/restore code of software suspend is called to
+implement corresponding function.
+
+Known issues:
+
+- Because the segment number supported by sys_kexec_load is limited,
+  hibernation image with many segments may not be load. This is
+  planned to be eliminated by adding a new flag to sys_kexec_load to
+  make a image can be loaded with multiple sys_kexec_load invoking.
+
+Now, only the i386 architecture is supported.
+
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Nigel Cunningham <nigel@nigel.suspend2.net>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/omfs/omfs.h    |   67 ++++++++++++++++++++++++++++++++++++
- fs/omfs/omfs_fs.h |   80 ++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 147 insertions(+)
+ arch/x86/Kconfig                   |    5 ++-
+ arch/x86/kernel/machine_kexec_32.c |   12 ++++++++
+ include/linux/suspend.h            |    2 +
+ kernel/kexec.c                     |   39 +++++++++++++++++++++++++++
+ kernel/power/power.h               |    2 -
+ 5 files changed, 56 insertions(+), 4 deletions(-)
 
-diff -puN /dev/null fs/omfs/omfs.h
---- /dev/null
-+++ a/fs/omfs/omfs.h
-@@ -0,0 +1,67 @@
-+#ifndef _OMFS_H
-+#define _OMFS_H
-+
-+#include <linux/module.h>
-+#include <linux/fs.h>
-+
-+#include "omfs_fs.h"
-+
-+/* In-memory structures */
-+struct omfs_sb_info {
-+	u64 s_num_blocks;
-+	u64 s_bitmap_ino;
-+	u64 s_root_ino;
-+	u32 s_blocksize;
-+	u32 s_mirrors;
-+	u32 s_sys_blocksize;
-+	u32 s_clustersize;
-+	int s_block_shift;
-+	unsigned long **s_imap;
-+	int s_imap_size;
-+	struct mutex s_bitmap_lock;
-+	int s_uid;
-+	int s_gid;
-+	int s_dmask;
-+	int s_fmask;
-+};
-+
-+/* convert a cluster number to a scaled block number */
-+static inline sector_t clus_to_blk(struct omfs_sb_info *sbi, sector_t block)
-+{
-+	return block << sbi->s_block_shift;
-+}
-+
-+static inline struct omfs_sb_info *OMFS_SB(struct super_block *sb)
-+{
-+	return sb->s_fs_info;
-+}
-+
-+/* bitmap.c */
-+extern unsigned long omfs_count_free(struct super_block *sb);
-+extern int omfs_allocate_block(struct super_block *sb, u64 block);
-+extern int omfs_allocate_range(struct super_block *sb, int min_request,
-+			int max_request, u64 *return_block, int *return_size);
-+extern int omfs_clear_range(struct super_block *sb, u64 block, int count);
-+
-+/* dir.c */
-+extern struct file_operations omfs_dir_operations;
-+extern struct inode_operations omfs_dir_inops;
-+extern int omfs_make_empty(struct inode *inode, struct super_block *sb);
-+extern int omfs_is_bad(struct omfs_sb_info *sbi, struct omfs_header *header,
-+			u64 fsblock);
-+
-+/* file.c */
-+extern struct file_operations omfs_file_operations;
-+extern struct inode_operations omfs_file_inops;
-+extern struct address_space_operations omfs_aops;
-+extern void omfs_make_empty_table(struct buffer_head *bh, int offset);
-+extern int omfs_shrink_inode(struct inode *inode);
-+
-+/* inode.c */
-+extern struct inode *omfs_iget(struct super_block *sb, ino_t inode);
-+extern struct inode *omfs_new_inode(struct inode *dir, int mode);
-+extern int omfs_reserve_block(struct super_block *sb, sector_t block);
-+extern int omfs_find_empty_block(struct super_block *sb, int mode, ino_t *ino);
-+extern int omfs_sync_inode(struct inode *inode);
-+
+diff -puN arch/x86/Kconfig~kexec-jump-save-restore-device-state arch/x86/Kconfig
+--- a/arch/x86/Kconfig~kexec-jump-save-restore-device-state
++++ a/arch/x86/Kconfig
+@@ -1282,9 +1282,10 @@ config CRASH_DUMP
+ config KEXEC_JUMP
+ 	bool "kexec jump (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
+-	depends on KEXEC && PM_SLEEP && X86_32
++	depends on KEXEC && HIBERNATION && X86_32
+ 	help
+-	  Invoke code in physical address mode via KEXEC
++	  Jump between original kernel and kexeced kernel and invoke
++	  code in physical address mode via KEXEC
+ 
+ config PHYSICAL_START
+ 	hex "Physical address where the kernel is loaded" if (EMBEDDED || CRASH_DUMP)
+diff -puN arch/x86/kernel/machine_kexec_32.c~kexec-jump-save-restore-device-state arch/x86/kernel/machine_kexec_32.c
+--- a/arch/x86/kernel/machine_kexec_32.c~kexec-jump-save-restore-device-state
++++ a/arch/x86/kernel/machine_kexec_32.c
+@@ -125,6 +125,18 @@ void machine_kexec(struct kimage *image)
+ 	/* Interrupts aren't acceptable while we reboot */
+ 	local_irq_disable();
+ 
++	if (image->preserve_context) {
++#ifdef CONFIG_X86_IO_APIC
++		/* We need to put APICs in legacy mode so that we can
++		 * get timer interrupts in second kernel. kexec/kdump
++		 * paths already have calls to disable_IO_APIC() in
++		 * one form or other. kexec jump path also need
++		 * one.
++		 */
++		disable_IO_APIC();
 +#endif
-diff -puN /dev/null fs/omfs/omfs_fs.h
---- /dev/null
-+++ a/fs/omfs/omfs_fs.h
-@@ -0,0 +1,80 @@
-+#ifndef _OMFS_FS_H
-+#define _OMFS_FS_H
++	}
 +
-+/* OMFS On-disk structures */
+ 	control_page = page_address(image->control_code_page);
+ 	memcpy(control_page, relocate_kernel, PAGE_SIZE/2);
+ 
+diff -puN include/linux/suspend.h~kexec-jump-save-restore-device-state include/linux/suspend.h
+--- a/include/linux/suspend.h~kexec-jump-save-restore-device-state
++++ a/include/linux/suspend.h
+@@ -278,4 +278,6 @@ static inline void register_nosave_regio
+ }
+ #endif
+ 
++extern struct mutex pm_mutex;
 +
-+#define OMFS_MAGIC 0xC2993D87
-+#define OMFS_IMAGIC 0xD2
-+
-+#define OMFS_DIR 'D'
-+#define OMFS_FILE 'F'
-+#define OMFS_INODE_NORMAL 'e'
-+#define OMFS_INODE_CONTINUATION 'c'
-+#define OMFS_INODE_SYSTEM 's'
-+#define OMFS_NAMELEN 256
-+#define OMFS_DIR_START 0x1b8
-+#define OMFS_EXTENT_START 0x1d0
-+#define OMFS_EXTENT_CONT 0x40
-+#define OMFS_XOR_COUNT 19
-+#define OMFS_MAX_BLOCK_SIZE 8192
-+
-+struct omfs_super_block {
-+	char s_fill1[256];
-+	__be64 s_root_block;		/* block number of omfs_root_block */
-+	__be64 s_num_blocks;		/* total number of FS blocks */
-+	__be32 s_magic;			/* OMFS_MAGIC */
-+	__be32 s_blocksize;		/* size of a block */
-+	__be32 s_mirrors;		/* # of mirrors of system blocks */
-+	__be32 s_sys_blocksize;		/* size of non-data blocks */
-+};
-+
-+struct omfs_header {
-+	__be64 h_self;			/* FS block where this is located */
-+	__be32 h_body_size;		/* size of useful data after header */
-+	__be16 h_crc;			/* crc-ccitt of body_size bytes */
-+	char h_fill1[2];
-+	u8 h_version;			/* version, always 1 */
-+	char h_type;			/* OMFS_INODE_X */
-+	u8 h_magic;			/* OMFS_IMAGIC */
-+	u8 h_check_xor;			/* XOR of header bytes before this */
-+	__be32 h_fill2;
-+};
-+
-+struct omfs_root_block {
-+	struct omfs_header r_head;	/* header */
-+	__be64 r_fill1;
-+	__be64 r_num_blocks;		/* total number of FS blocks */
-+	__be64 r_root_dir;		/* block # of root directory */
-+	__be64 r_bitmap;		/* block # of free space bitmap */
-+	__be32 r_blocksize;		/* size of a block */
-+	__be32 r_clustersize;		/* size allocated for data blocks */
-+	__be64 r_mirrors;		/* # of mirrors of system blocks */
-+	char r_name[OMFS_NAMELEN];	/* partition label */
-+};
-+
-+struct omfs_inode {
-+	struct omfs_header i_head;	/* header */
-+	__be64 i_parent;		/* parent containing this inode */
-+	__be64 i_sibling;		/* next inode in hash bucket */
-+	__be64 i_ctime;			/* ctime, in milliseconds */
-+	char i_fill1[35];
-+	char i_type;			/* OMFS_[DIR,FILE] */
-+	__be32 i_fill2;
-+	char i_fill3[64];
-+	char i_name[OMFS_NAMELEN];	/* filename */
-+	__be64 i_size;			/* size of file, in bytes */
-+};
-+
-+struct omfs_extent_entry {
-+	__be64 e_cluster;		/* start location of a set of blocks */
-+	__be64 e_blocks;		/* number of blocks after e_cluster */
-+};
-+
-+struct omfs_extent {
-+	__be64 e_next;			/* next extent table location */
-+	__be32 e_extent_count;		/* total # extents in this table */
-+	__be32 e_fill;
-+	struct omfs_extent_entry e_entry;	/* start of extent entries */
-+};
-+
-+#endif
-_
-
-Patches currently in -mm which might be from me@bobcopeland.com are
-
-origin.patch
-ath5k-fix-beacon-update-deadlock.patch
-ath5k-mask-out-unneeded-interrupts.patch
-ath5k-unify-resets.patch
-
+ #endif /* _LINUX_SUSPEND_H */
+diff -puN kernel/kexec.c~kexec-jump-save-restore-device-state kernel/kexec.c
+--- a/kernel/kexec.c~kexec-jump-save-restore-device-state
++++ a/kernel/kexec.c
+@@ -26,6 +26,10 @@
+ #include <linux/numa.h>
+ #include <linux/suspend.h>
+ #include <linux/device.h>
++#include <linux/freezer.h>
++#include <linux/pm.h>
++#include <linux/cpu.h>
++#include <linux/console.h>
+ 
+ #include <asm/page.h>
+ #include <asm/uaccess.h>
+@@ -1441,7 +1445,31 @@ int kernel_kexec(void)
+ 
+ 	if (kexec_image->preserve_context) {
+ #ifdef CONFIG_KEXEC_JUMP
++		mutex_lock(&pm_mutex);
++		pm_prepare_console();
++		error = freeze_processes();
++		if (error) {
++			error = -EBUSY;
++			goto Restore_console;
++		}
++		suspend_console();
++		error = device_suspend(PMSG_FREEZE);
++		if (error)
++			goto Resume_console;
++		error = disable_nonboot_cpus();
++		if (error)
++			goto Resume_devices;
+ 		local_irq_disable();
++		/* At this point, device_suspend() has been called,
++		 * but *not* device_power_down(). We *must*
++		 * device_power_down() now.  Otherwise, drivers for
++		 * some devices (e.g. interrupt controllers) become
++		 * desynchronized with the actual state of the
++		 * hardware at resume time, and evil weirdness ensues.
++		 */
++		error = device_power_down(PMSG_FREEZE);
++		if (error)
++			goto Enable_irqs;
+ 		save_processor_state();
+ #endif
+ 	} else {
+@@ -1459,7 +1487,18 @@ int kernel_kexec(void)
+ 	if (kexec_image->preserve_context) {
+ #ifdef CONFIG_KEXEC_JUMP
+ 		restore_processor_state();
++		device_power_up(PMSG_RESTORE);
++ Enable_irqs:
+ 		local_irq_enable();
++		enable_nonboot_cpus();
++ Resume_devices:
++		device_resume(PMSG_RESTORE);
++ Resume_console:
++		resume_console();
++		thaw_processes();
++ Restore_console:
++		pm_restore_console();
++		mutex_unlock(&pm_mutex);
+ #endif
+ 	}
+ 
+diff -puN kernel/power/power.h~kexec-jump-save-restore-device-state kernel/power/power.h
+--- a/kernel/power/power.h~kexec-jump-save-restore-device-state
++++ a/kernel/power/power.h
+@@ -53,8 +53,6 @@ extern int hibernation_platform_enter(vo
+ 
+ extern int pfn_is_nosave(unsigned long);
+ 
+-extern struct mutex pm_mutex;
