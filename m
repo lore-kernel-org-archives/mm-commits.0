@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + x86-tracehook-syscall.patch added to -mm tree
-Date: Sat, 26 Jul 2008 00:09:09 -0700
-Message-ID: <200807260709.m6Q799B3021412@imap1.linux-foundation.org>
+Subject: + x86-signals-use-asm-syscallh.patch added to -mm tree
+Date: Sat, 26 Jul 2008 00:09:13 -0700
+Message-ID: <200807260709.m6Q79D7n021418@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48209 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35035 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752214AbYGZHKR (ORCPT
+	by vger.kernel.org with ESMTP id S1752230AbYGZHKX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 03:10:17 -0400
+	Sat, 26 Jul 2008 03:10:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: roland@redhat.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     x86: tracehook syscall
+     x86 signals: use asm/syscall.h
 has been added to the -mm tree.  Its filename is
-     x86-tracehook-syscall.patch
+     x86-signals-use-asm-syscallh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: tracehook syscall
+Subject: x86 signals: use asm/syscall.h
 From: Roland McGrath <roland@redhat.com>
 
-This changes x86 syscall tracing to use the new tracehook.h entry points. 
-There is no change, only cleanup.
+Replace local inlines with the asm/syscall.h interfaces that do the same
+things.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -46,80 +46,80 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/ptrace.c |   34 ++++++----------------------------
- 1 file changed, 6 insertions(+), 28 deletions(-)
+ arch/x86/kernel/signal_64.c |   38 ++++------------------------------
+ 1 file changed, 5 insertions(+), 33 deletions(-)
 
-diff -puN arch/x86/kernel/ptrace.c~x86-tracehook-syscall arch/x86/kernel/ptrace.c
---- a/arch/x86/kernel/ptrace.c~x86-tracehook-syscall
-+++ a/arch/x86/kernel/ptrace.c
-@@ -14,6 +14,7 @@
- #include <linux/errno.h>
- #include <linux/ptrace.h>
- #include <linux/regset.h>
-+#include <linux/tracehook.h>
- #include <linux/user.h>
- #include <linux/elf.h>
- #include <linux/security.h>
-@@ -1375,30 +1376,6 @@ void send_sigtrap(struct task_struct *ts
- 	force_sig_info(SIGTRAP, &info, tsk);
+diff -puN arch/x86/kernel/signal_64.c~x86-signals-use-asm-syscallh arch/x86/kernel/signal_64.c
+--- a/arch/x86/kernel/signal_64.c~x86-signals-use-asm-syscallh
++++ a/arch/x86/kernel/signal_64.c
+@@ -27,6 +27,7 @@
+ #include <asm/proto.h>
+ #include <asm/ia32_unistd.h>
+ #include <asm/mce.h>
++#include <asm/syscall.h>
+ #include "sigframe.h"
+ 
+ #define _BLOCKABLE (~(sigmask(SIGKILL) | sigmask(SIGSTOP)))
+@@ -347,35 +348,6 @@ give_sigsegv:
  }
  
--static void syscall_trace(struct pt_regs *regs)
+ /*
+- * Return -1L or the syscall number that @regs is executing.
+- */
+-static long current_syscall(struct pt_regs *regs)
 -{
--	if (!(current->ptrace & PT_PTRACED))
--		return;
--
--#if 0
--	printk("trace %s ip %lx sp %lx ax %d origrax %d caller %lx tiflags %x ptrace %x\n",
--	       current->comm,
--	       regs->ip, regs->sp, regs->ax, regs->orig_ax, __builtin_return_address(0),
--	       current_thread_info()->flags, current->ptrace);
--#endif
--
--	ptrace_notify(SIGTRAP | ((current->ptrace & PT_TRACESYSGOOD)
--				? 0x80 : 0));
 -	/*
--	 * this isn't the same as continuing with a signal, but it will do
--	 * for normal use.  strace only continues with a signal if the
--	 * stopping signal is not SIGTRAP.  -brl
+-	 * We always sign-extend a -1 value being set here,
+-	 * so this is always either -1L or a syscall number.
 -	 */
--	if (current->exit_code) {
--		send_sig(current->exit_code, current, 1);
--		current->exit_code = 0;
--	}
+-	return regs->orig_ax;
 -}
+-
+-/*
+- * Return a value that is -EFOO if the system call in @regs->orig_ax
+- * returned an error.  This only works for @regs from @current.
+- */
+-static long current_syscall_ret(struct pt_regs *regs)
+-{
+-#ifdef CONFIG_IA32_EMULATION
+-	if (test_thread_flag(TIF_IA32))
+-		/*
+-		 * Sign-extend the value so (int)-EFOO becomes (long)-EFOO
+-		 * and will match correctly in comparisons.
+-		 */
+-		return (int) regs->ax;
+-#endif
+-	return regs->ax;
+-}
+-
+-/*
+  * OK, we're invoking a handler
+  */	
  
- #ifdef CONFIG_X86_32
- # define IS_IA32	1
-@@ -1432,8 +1409,9 @@ asmregparm long syscall_trace_enter(stru
- 	if (unlikely(test_thread_flag(TIF_SYSCALL_EMU)))
- 		ret = -1L;
+@@ -386,9 +358,9 @@ handle_signal(unsigned long sig, siginfo
+ 	int ret;
  
--	if (ret || test_thread_flag(TIF_SYSCALL_TRACE))
--		syscall_trace(regs);
-+	if ((ret || test_thread_flag(TIF_SYSCALL_TRACE)) &&
-+	    tracehook_report_syscall_entry(regs))
-+		ret = -1L;
+ 	/* Are we from a system call? */
+-	if (current_syscall(regs) >= 0) {
++	if (syscall_get_nr(current, regs) >= 0) {
+ 		/* If so, check system call restarting.. */
+-		switch (current_syscall_ret(regs)) {
++		switch (syscall_get_error(current, regs)) {
+ 		case -ERESTART_RESTARTBLOCK:
+ 		case -ERESTARTNOHAND:
+ 			regs->ax = -EINTR;
+@@ -511,9 +483,9 @@ static void do_signal(struct pt_regs *re
+ 	}
  
- 	if (unlikely(current->audit_context)) {
- 		if (IS_IA32)
-@@ -1459,7 +1437,7 @@ asmregparm void syscall_trace_leave(stru
- 		audit_syscall_exit(AUDITSC_RESULT(regs->ax), regs->ax);
- 
- 	if (test_thread_flag(TIF_SYSCALL_TRACE))
--		syscall_trace(regs);
-+		tracehook_report_syscall_exit(regs, 0);
- 
- 	/*
- 	 * If TIF_SYSCALL_EMU is set, we only get here because of
-@@ -1475,6 +1453,6 @@ asmregparm void syscall_trace_leave(stru
- 	 * system call instruction.
- 	 */
- 	if (test_thread_flag(TIF_SINGLESTEP) &&
--	    (current->ptrace & PT_PTRACED))
-+	    tracehook_consider_fatal_signal(current, SIGTRAP, SIG_DFL))
- 		send_sigtrap(current, regs, 0);
- }
+ 	/* Did we come from a system call? */
+-	if (current_syscall(regs) >= 0) {
++	if (syscall_get_nr(current, regs) >= 0) {
+ 		/* Restart the system call - no handlers present */
+-		switch (current_syscall_ret(regs)) {
++		switch (syscall_get_error(current, regs)) {
+ 		case -ERESTARTNOHAND:
+ 		case -ERESTARTSYS:
+ 		case -ERESTARTNOINTR:
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
