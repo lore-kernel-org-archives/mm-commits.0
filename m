@@ -1,53 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - make-macfb_setup-static.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:18:24 -0700
-Message-ID: <200807262118.m6QLIO92020088@imap1.linux-foundation.org>
+Subject: - video-stifbc-make-2-functions-static.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:18:28 -0700
+Message-ID: <200807262118.m6QLIS4Y020095@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52036 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38382 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757950AbYGZVSe (ORCPT
+	by vger.kernel.org with ESMTP id S1758054AbYGZVSh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:18:34 -0400
+	Sat, 26 Jul 2008 17:18:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make macfb_setup() static
+     video/stifb.c: make 2 functions static
 has been removed from the -mm tree.  Its filename was
-     make-macfb_setup-static.patch
+     video-stifbc-make-2-functions-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make macfb_setup() static
+Subject: video/stifb.c: make 2 functions static
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch makes the needlessly global macfb_setup() static.
+This patch makes the following needlessly global functions static:
+- stifb_init_fb()
+- stifb_init()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/macfb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/stifb.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/macfb.c~make-macfb_setup-static drivers/video/macfb.c
---- a/drivers/video/macfb.c~make-macfb_setup-static
-+++ a/drivers/video/macfb.c
-@@ -596,7 +596,7 @@ static struct fb_ops macfb_ops = {
- 	.fb_imageblit	= cfb_imageblit,
- };
+diff -puN drivers/video/stifb.c~video-stifbc-make-2-functions-static drivers/video/stifb.c
+--- a/drivers/video/stifb.c~video-stifbc-make-2-functions-static
++++ a/drivers/video/stifb.c
+@@ -1078,8 +1078,7 @@ static struct fb_ops stifb_ops = {
+  *  Initialization
+  */
  
--void __init macfb_setup(char *options)
-+static void __init macfb_setup(char *options)
+-int __init
+-stifb_init_fb(struct sti_struct *sti, int bpp_pref)
++static int __init stifb_init_fb(struct sti_struct *sti, int bpp_pref)
  {
- 	char *this_opt;
- 	
+ 	struct fb_fix_screeninfo *fix;
+ 	struct fb_var_screeninfo *var;
+@@ -1315,8 +1314,7 @@ static int stifb_disabled __initdata;
+ int __init
+ stifb_setup(char *options);
+ 
+-int __init
+-stifb_init(void)
++static int __init stifb_init(void)
+ {
+ 	struct sti_struct *sti;
+ 	struct sti_struct *def_sti;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
