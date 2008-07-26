@@ -1,165 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: - omfs-add-filesystem-documentation.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:14:34 -0700
-Message-ID: <200807262114.m6QLEYtn019693@imap1.linux-foundation.org>
+Subject: - omfs-define-filesystem-structures.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:14:43 -0700
+Message-ID: <200807262114.m6QLEhDc019696@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60931 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34580 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757566AbYGZVPJ (ORCPT
+	by vger.kernel.org with ESMTP id S1757582AbYGZVPV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:15:09 -0400
+	Sat, 26 Jul 2008 17:15:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: me@bobcopeland.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     omfs: add filesystem documentation
+     omfs: define filesystem structures
 has been removed from the -mm tree.  Its filename was
-     omfs-add-filesystem-documentation.patch
+     omfs-define-filesystem-structures.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omfs: add filesystem documentation
+Subject: omfs: define filesystem structures
 From: Bob Copeland <me@bobcopeland.com>
 
-These patches add the Optimized MPEG Filesystem, a proprietary filesystem used
-by the embedded devices Rio Karma and ReplayTV, which are no longer
-manufactured.  This filesystem module enables people to access files on these
-devices.  
-
-
-This patch:
-
-OMFS is a proprietary filesystem created for the ReplayTV and also used by the
-Rio Karma.  It uses hash tables with unordered, unbounded lists in each bucket
-for directories, extents for data blocks, 64-bit addressing for blocks, with
-up to 8K blocks (only 2K of a given block is ever used for metadata, so the FS
-still works with 4K pages).
-
-Document the filesystem usage and structures.
+Add header files containing OMFS on-disk and memory structures.
 
 Signed-off-by: Bob Copeland <me@bobcopeland.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/omfs.txt |  106 +++++++++++++++++++++++++++
- 1 file changed, 106 insertions(+)
+ fs/omfs/omfs.h    |   67 ++++++++++++++++++++++++++++++++++++
+ fs/omfs/omfs_fs.h |   80 ++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 147 insertions(+)
 
-diff -puN /dev/null Documentation/filesystems/omfs.txt
+diff -puN /dev/null fs/omfs/omfs.h
 --- /dev/null
-+++ a/Documentation/filesystems/omfs.txt
-@@ -0,0 +1,106 @@
-+Optimized MPEG Filesystem (OMFS)
++++ a/fs/omfs/omfs.h
+@@ -0,0 +1,67 @@
++#ifndef _OMFS_H
++#define _OMFS_H
 +
-+Overview
-+========
++#include <linux/module.h>
++#include <linux/fs.h>
 +
-+OMFS is a filesystem created by SonicBlue for use in the ReplayTV DVR
-+and Rio Karma MP3 player.  The filesystem is extent-based, utilizing
-+block sizes from 2k to 8k, with hash-based directories.  This
-+filesystem driver may be used to read and write disks from these
-+devices.
++#include "omfs_fs.h"
 +
-+Note, it is not recommended that this FS be used in place of a general
-+filesystem for your own streaming media device.  Native Linux filesystems
-+will likely perform better.
++/* In-memory structures */
++struct omfs_sb_info {
++	u64 s_num_blocks;
++	u64 s_bitmap_ino;
++	u64 s_root_ino;
++	u32 s_blocksize;
++	u32 s_mirrors;
++	u32 s_sys_blocksize;
++	u32 s_clustersize;
++	int s_block_shift;
++	unsigned long **s_imap;
++	int s_imap_size;
++	struct mutex s_bitmap_lock;
++	int s_uid;
++	int s_gid;
++	int s_dmask;
++	int s_fmask;
++};
 +
-+More information is available at:
++/* convert a cluster number to a scaled block number */
++static inline sector_t clus_to_blk(struct omfs_sb_info *sbi, sector_t block)
++{
++	return block << sbi->s_block_shift;
++}
 +
-+    http://linux-karma.sf.net/
++static inline struct omfs_sb_info *OMFS_SB(struct super_block *sb)
++{
++	return sb->s_fs_info;
++}
 +
-+Various utilities, including mkomfs and omfsck, are included with
-+omfsprogs, available at:
++/* bitmap.c */
++extern unsigned long omfs_count_free(struct super_block *sb);
++extern int omfs_allocate_block(struct super_block *sb, u64 block);
++extern int omfs_allocate_range(struct super_block *sb, int min_request,
++			int max_request, u64 *return_block, int *return_size);
++extern int omfs_clear_range(struct super_block *sb, u64 block, int count);
 +
-+    http://bobcopeland.com/karma/
++/* dir.c */
++extern struct file_operations omfs_dir_operations;
++extern struct inode_operations omfs_dir_inops;
++extern int omfs_make_empty(struct inode *inode, struct super_block *sb);
++extern int omfs_is_bad(struct omfs_sb_info *sbi, struct omfs_header *header,
++			u64 fsblock);
 +
-+Instructions are included in its README.
++/* file.c */
++extern struct file_operations omfs_file_operations;
++extern struct inode_operations omfs_file_inops;
++extern struct address_space_operations omfs_aops;
++extern void omfs_make_empty_table(struct buffer_head *bh, int offset);
++extern int omfs_shrink_inode(struct inode *inode);
 +
-+Options
-+=======
++/* inode.c */
++extern struct inode *omfs_iget(struct super_block *sb, ino_t inode);
++extern struct inode *omfs_new_inode(struct inode *dir, int mode);
++extern int omfs_reserve_block(struct super_block *sb, sector_t block);
++extern int omfs_find_empty_block(struct super_block *sb, int mode, ino_t *ino);
++extern int omfs_sync_inode(struct inode *inode);
 +
-+OMFS supports the following mount-time options:
++#endif
+diff -puN /dev/null fs/omfs/omfs_fs.h
+--- /dev/null
++++ a/fs/omfs/omfs_fs.h
+@@ -0,0 +1,80 @@
++#ifndef _OMFS_FS_H
++#define _OMFS_FS_H
 +
-+    uid=n        - make all files owned by specified user
-+    gid=n        - make all files owned by specified group
-+    umask=xxx    - set permission umask to xxx
-+    fmask=xxx    - set umask to xxx for files
-+    dmask=xxx    - set umask to xxx for directories
++/* OMFS On-disk structures */
 +
-+Disk format
-+===========
++#define OMFS_MAGIC 0xC2993D87
++#define OMFS_IMAGIC 0xD2
 +
-+OMFS discriminates between "sysblocks" and normal data blocks.  The sysblock
-+group consists of super block information, file metadata, directory structures,
-+and extents.  Each sysblock has a header containing CRCs of the entire
-+sysblock, and may be mirrored in successive blocks on the disk.  A sysblock may
-+have a smaller size than a data block, but since they are both addressed by the
-+same 64-bit block number, any remaining space in the smaller sysblock is
-+unused.
++#define OMFS_DIR 'D'
++#define OMFS_FILE 'F'
++#define OMFS_INODE_NORMAL 'e'
++#define OMFS_INODE_CONTINUATION 'c'
++#define OMFS_INODE_SYSTEM 's'
++#define OMFS_NAMELEN 256
++#define OMFS_DIR_START 0x1b8
++#define OMFS_EXTENT_START 0x1d0
++#define OMFS_EXTENT_CONT 0x40
++#define OMFS_XOR_COUNT 19
++#define OMFS_MAX_BLOCK_SIZE 8192
 +
-+Sysblock header information:
++struct omfs_super_block {
++	char s_fill1[256];
++	__be64 s_root_block;		/* block number of omfs_root_block */
++	__be64 s_num_blocks;		/* total number of FS blocks */
++	__be32 s_magic;			/* OMFS_MAGIC */
++	__be32 s_blocksize;		/* size of a block */
++	__be32 s_mirrors;		/* # of mirrors of system blocks */
++	__be32 s_sys_blocksize;		/* size of non-data blocks */
++};
 +
 +struct omfs_header {
-+        __be64 h_self;                  /* FS block where this is located */
-+        __be32 h_body_size;             /* size of useful data after header */
-+        __be16 h_crc;                   /* crc-ccitt of body_size bytes */
-+        char h_fill1[2];
-+        u8 h_version;                   /* version, always 1 */
-+        char h_type;                    /* OMFS_INODE_X */
-+        u8 h_magic;                     /* OMFS_IMAGIC */
-+        u8 h_check_xor;                 /* XOR of header bytes before this */
-+        __be32 h_fill2;
++	__be64 h_self;			/* FS block where this is located */
++	__be32 h_body_size;		/* size of useful data after header */
++	__be16 h_crc;			/* crc-ccitt of body_size bytes */
++	char h_fill1[2];
++	u8 h_version;			/* version, always 1 */
++	char h_type;			/* OMFS_INODE_X */
++	u8 h_magic;			/* OMFS_IMAGIC */
++	u8 h_check_xor;			/* XOR of header bytes before this */
++	__be32 h_fill2;
 +};
 +
-+Files and directories are both represented by omfs_inode:
++struct omfs_root_block {
++	struct omfs_header r_head;	/* header */
++	__be64 r_fill1;
++	__be64 r_num_blocks;		/* total number of FS blocks */
++	__be64 r_root_dir;		/* block # of root directory */
++	__be64 r_bitmap;		/* block # of free space bitmap */
++	__be32 r_blocksize;		/* size of a block */
++	__be32 r_clustersize;		/* size allocated for data blocks */
++	__be64 r_mirrors;		/* # of mirrors of system blocks */
++	char r_name[OMFS_NAMELEN];	/* partition label */
++};
 +
 +struct omfs_inode {
-+        struct omfs_header i_head;      /* header */
-+        __be64 i_parent;                /* parent containing this inode */
-+        __be64 i_sibling;               /* next inode in hash bucket */
-+        __be64 i_ctime;                 /* ctime, in milliseconds */
-+        char i_fill1[35];
-+        char i_type;                    /* OMFS_[DIR,FILE] */
-+        __be32 i_fill2;
-+        char i_fill3[64];
-+        char i_name[OMFS_NAMELEN];      /* filename */
-+        __be64 i_size;                  /* size of file, in bytes */
++	struct omfs_header i_head;	/* header */
++	__be64 i_parent;		/* parent containing this inode */
++	__be64 i_sibling;		/* next inode in hash bucket */
++	__be64 i_ctime;			/* ctime, in milliseconds */
++	char i_fill1[35];
++	char i_type;			/* OMFS_[DIR,FILE] */
++	__be32 i_fill2;
++	char i_fill3[64];
++	char i_name[OMFS_NAMELEN];	/* filename */
++	__be64 i_size;			/* size of file, in bytes */
 +};
 +
-+Directories in OMFS are implemented as a large hash table.  Filenames are
-+hashed then prepended into the bucket list beginning at OMFS_DIR_START.
-+Lookup requires hashing the filename, then seeking across i_sibling pointers
-+until a match is found on i_name.  Empty buckets are represented by block
-+pointers with all-1s (~0).
-+
-+A file is an omfs_inode structure followed by an extent table beginning at
-+OMFS_EXTENT_START:
-+
 +struct omfs_extent_entry {
-+        __be64 e_cluster;               /* start location of a set of blocks */
-+        __be64 e_blocks;                /* number of blocks after e_cluster */
++	__be64 e_cluster;		/* start location of a set of blocks */
++	__be64 e_blocks;		/* number of blocks after e_cluster */
 +};
 +
 +struct omfs_extent {
-+        __be64 e_next;                  /* next extent table location */
-+        __be32 e_extent_count;          /* total # extents in this table */
-+        __be32 e_fill;
-+        struct omfs_extent_entry e_entry;       /* start of extent entries */
++	__be64 e_next;			/* next extent table location */
++	__be32 e_extent_count;		/* total # extents in this table */
++	__be32 e_fill;
++	struct omfs_extent_entry e_entry;	/* start of extent entries */
 +};
 +
-+Each extent holds the block offset followed by number of blocks allocated to
-+the extent.  The final extent in each table is a terminator with e_cluster
-+being ~0 and e_blocks being ones'-complement of the total number of blocks
-+in the table.
-+
-+If this table overflows, a continuation inode is written and pointed to by
-+e_next.  These have a header but lack the rest of the inode structure.
-+
++#endif
 _
 
 Patches currently in -mm which might be from me@bobcopeland.com are
