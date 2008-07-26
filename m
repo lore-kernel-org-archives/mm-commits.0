@@ -1,54 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - tpm-add-support-for-broadcom-tpm-tis-device-hid.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:13:51 -0700
-Message-ID: <200807262113.m6QLDpoq019631@imap1.linux-foundation.org>
+Subject: - kernel-kexecc-make-kimage_terminate-void.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:14:06 -0700
+Message-ID: <200807262114.m6QLE61M019670@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43709 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46242 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757526AbYGZVOK (ORCPT
+	by vger.kernel.org with ESMTP id S1757508AbYGZVOJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:14:10 -0400
+	Sat, 26 Jul 2008 17:14:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eledisez@grounation.org, srajiv@linux.vnet.ibm.com, tpm@selhorst.net, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, ebiederm@xmission.com, wangcong@zeuux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tpm: add support for Broadcom TPM TIS device HID
+     kernel/kexec.c: make 'kimage_terminate' void
 has been removed from the -mm tree.  Its filename was
-     tpm-add-support-for-broadcom-tpm-tis-device-hid.patch
+     kernel-kexecc-make-kimage_terminate-void.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tpm: add support for Broadcom TPM TIS device HID
-From: LE DISEZ Erwan <eledisez@grounation.org>
+Subject: kernel/kexec.c: make 'kimage_terminate' void
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-Signed-off-by: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
-Cc: Marcel Selhorst <tpm@selhorst.net>
+Since kimage_terminate() always returns 0, make it void.
+
+Signed-off-by: WANG Cong <wangcong@zeuux.org>
+Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm_tis.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/kexec.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/tpm/tpm_tis.c~tpm-add-support-for-broadcom-tpm-tis-device-hid drivers/char/tpm/tpm_tis.c
---- a/drivers/char/tpm/tpm_tis.c~tpm-add-support-for-broadcom-tpm-tis-device-hid
-+++ a/drivers/char/tpm/tpm_tis.c
-@@ -622,6 +622,7 @@ static struct pnp_device_id tpm_pnp_tbl[
- 	{"ATM1200", 0},		/* Atmel */
- 	{"IFX0102", 0},		/* Infineon */
- 	{"BCM0101", 0},		/* Broadcom */
-+	{"BCM0102", 0},		/* Broadcom */
- 	{"NSC1200", 0},		/* National */
- 	{"ICO0102", 0},		/* Intel */
- 	/* Add new here */
-_
-
-Patches currently in -mm which might be from eledisez@grounation.org are
-
-origin.patch
-
+diff -puN kernel/kexec.c~kernel-kexecc-make-kimage_terminate-void kernel/kexec.c
+--- a/kernel/kexec.c~kernel-kexecc-make-kimage_terminate-void
++++ a/kernel/kexec.c
+@@ -589,14 +589,12 @@ static void kimage_free_extra_pages(stru
+ 	kimage_free_page_list(&image->unuseable_pages);
+ 
+ }
+-static int kimage_terminate(struct kimage *image)
++static void kimage_terminate(struct kimage *image)
+ {
+ 	if (*image->entry != 0)
+ 		image->entry++;
+ 
+ 	*image->entry = IND_DONE;
