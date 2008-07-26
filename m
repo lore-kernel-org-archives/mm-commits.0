@@ -1,284 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - mn10300-use-the-common-ascii-hex-helpers.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:15:39 -0700
-Message-ID: <200807262115.m6QLFdbE019757@imap1.linux-foundation.org>
+Subject: - omfs-update-kbuild-to-include-omfs.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:15:31 -0700
+Message-ID: <200807262115.m6QLFVcq019745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53403 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55957 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757672AbYGZVP6 (ORCPT
+	by vger.kernel.org with ESMTP id S1757672AbYGZVP7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:15:58 -0400
+	Sat, 26 Jul 2008 17:15:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: me@bobcopeland.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mn10300: use the common ascii hex helpers
+     omfs: update kbuild to include OMFS
 has been removed from the -mm tree.  Its filename was
-     mn10300-use-the-common-ascii-hex-helpers.patch
+     omfs-update-kbuild-to-include-omfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mn10300: use the common ascii hex helpers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: omfs: update kbuild to include OMFS
+From: Bob Copeland <me@bobcopeland.com>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Acked-by: David Howells <dhowells@redhat.com>
+Adds OMFS to the fs Kconfig and Makefile
+
+Signed-off-by: Bob Copeland <me@bobcopeland.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/kernel/gdb-stub.c |  108 +++++++++++++------------------
- 1 file changed, 46 insertions(+), 62 deletions(-)
+ fs/Kconfig       |   13 +++++++++++++
+ fs/Makefile      |    1 +
+ fs/omfs/Makefile |    4 ++++
+ 3 files changed, 18 insertions(+)
 
-diff -puN arch/mn10300/kernel/gdb-stub.c~mn10300-use-the-common-ascii-hex-helpers arch/mn10300/kernel/gdb-stub.c
---- a/arch/mn10300/kernel/gdb-stub.c~mn10300-use-the-common-ascii-hex-helpers
-+++ a/arch/mn10300/kernel/gdb-stub.c
-@@ -163,8 +163,6 @@ static char	input_buffer[BUFMAX];
- static char	output_buffer[BUFMAX];
- static char	trans_buffer[BUFMAX];
+diff -puN fs/Kconfig~omfs-update-kbuild-to-include-omfs fs/Kconfig
+--- a/fs/Kconfig~omfs-update-kbuild-to-include-omfs
++++ a/fs/Kconfig
+@@ -1383,6 +1383,19 @@ config MINIX_FS
+ 	  partition (the one containing the directory /) cannot be compiled as
+ 	  a module.
  
--static const char hexchars[] = "0123456789abcdef";
--
- struct gdbstub_bkpt {
- 	u8	*addr;		/* address of breakpoint */
- 	u8	len;		/* size of breakpoint */
-@@ -363,8 +361,8 @@ static int putpacket(char *buffer)
- 		}
++config OMFS_FS
++	tristate "SonicBlue Optimized MPEG File System support"
++	depends on BLOCK
++	select CRC_ITU_T
++	help
++	  This is the proprietary file system used by the Rio Karma music
++	  player and ReplayTV DVR.  Despite the name, this filesystem is not
++	  more efficient than a standard FS for MPEG files, in fact likely
++	  the opposite is true.  Say Y if you have either of these devices
++	  and wish to mount its disk.
++
++	  To compile this file system support as a module, choose M here: the
++	  module will be called omfs.  If unsure, say N.
  
- 		gdbstub_io_tx_char('#');
--		gdbstub_io_tx_char(hexchars[checksum >> 4]);
--		gdbstub_io_tx_char(hexchars[checksum & 0xf]);
-+		gdbstub_io_tx_char(hex_asc_hi(checksum));
-+		gdbstub_io_tx_char(hex_asc_lo(checksum));
- 
- 	} while (gdbstub_io_rx_char(&ch, 0),
- 		 ch == '-' && (gdbstub_io("### GDB Rx NAK\n"), 0),
-@@ -822,8 +820,7 @@ unsigned char *mem2hex(const void *_mem,
- 	if ((u32) mem & 1 && count >= 1) {
- 		if (gdbstub_read_byte(mem, ch) != 0)
- 			return 0;
--		*buf++ = hexchars[ch[0] >> 4];
--		*buf++ = hexchars[ch[0] & 0xf];
-+		buf = pack_hex_byte(buf, ch[0]);
- 		mem++;
- 		count--;
- 	}
-@@ -831,10 +828,8 @@ unsigned char *mem2hex(const void *_mem,
- 	if ((u32) mem & 3 && count >= 2) {
- 		if (gdbstub_read_word(mem, ch) != 0)
- 			return 0;
--		*buf++ = hexchars[ch[0] >> 4];
--		*buf++ = hexchars[ch[0] & 0xf];
--		*buf++ = hexchars[ch[1] >> 4];
--		*buf++ = hexchars[ch[1] & 0xf];
-+		buf = pack_hex_byte(buf, ch[0]);
-+		buf = pack_hex_byte(buf, ch[1]);
- 		mem += 2;
- 		count -= 2;
- 	}
-@@ -842,14 +837,10 @@ unsigned char *mem2hex(const void *_mem,
- 	while (count >= 4) {
- 		if (gdbstub_read_dword(mem, ch) != 0)
- 			return 0;
--		*buf++ = hexchars[ch[0] >> 4];
--		*buf++ = hexchars[ch[0] & 0xf];
--		*buf++ = hexchars[ch[1] >> 4];
--		*buf++ = hexchars[ch[1] & 0xf];
--		*buf++ = hexchars[ch[2] >> 4];
--		*buf++ = hexchars[ch[2] & 0xf];
--		*buf++ = hexchars[ch[3] >> 4];
--		*buf++ = hexchars[ch[3] & 0xf];
-+		buf = pack_hex_byte(buf, ch[0]);
-+		buf = pack_hex_byte(buf, ch[1]);
-+		buf = pack_hex_byte(buf, ch[2]);
-+		buf = pack_hex_byte(buf, ch[3]);
- 		mem += 4;
- 		count -= 4;
- 	}
-@@ -857,10 +848,8 @@ unsigned char *mem2hex(const void *_mem,
- 	if (count >= 2) {
- 		if (gdbstub_read_word(mem, ch) != 0)
- 			return 0;
--		*buf++ = hexchars[ch[0] >> 4];
--		*buf++ = hexchars[ch[0] & 0xf];
--		*buf++ = hexchars[ch[1] >> 4];
--		*buf++ = hexchars[ch[1] & 0xf];
-+		buf = pack_hex_byte(buf, ch[0]);
-+		buf = pack_hex_byte(buf, ch[1]);
- 		mem += 2;
- 		count -= 2;
- 	}
-@@ -868,8 +857,7 @@ unsigned char *mem2hex(const void *_mem,
- 	if (count >= 1) {
- 		if (gdbstub_read_byte(mem, ch) != 0)
- 			return 0;
--		*buf++ = hexchars[ch[0] >> 4];
--		*buf++ = hexchars[ch[0] & 0xf];
-+		buf = pack_hex_byte(buf, ch[0]);
- 	}
- 
- 	*buf = 0;
-@@ -1304,14 +1292,14 @@ static int gdbstub(struct pt_regs *regs,
- 		*ptr++ = 'O';
- 		ptr = mem2hex(title, ptr, sizeof(title) - 1, 0);
- 
--		hx = hexchars[(excep & 0xf000) >> 12];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(excep & 0x0f00) >> 8];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(excep & 0x00f0) >> 4];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(excep & 0x000f)];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
-+		hx = hex_asc_hi(excep >> 8);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_lo(excep >> 8);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_hi(excep);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_lo(excep);
-+		ptr = pack_hex_byte(ptr, hx);
- 
- 		ptr = mem2hex(crlf, ptr, sizeof(crlf) - 1, 0);
- 		*ptr = 0;
-@@ -1322,22 +1310,22 @@ static int gdbstub(struct pt_regs *regs,
- 		*ptr++ = 'O';
- 		ptr = mem2hex(tbcberr, ptr, sizeof(tbcberr) - 1, 0);
- 
--		hx = hexchars[(bcberr & 0xf0000000) >> 28];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(bcberr & 0x0f000000) >> 24];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(bcberr & 0x00f00000) >> 20];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(bcberr & 0x000f0000) >> 16];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(bcberr & 0x0000f000) >> 12];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(bcberr & 0x00000f00) >> 8];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(bcberr & 0x000000f0) >> 4];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(bcberr & 0x0000000f)];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
-+		hx = hex_asc_hi(bcberr >> 24);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_lo(bcberr >> 24);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_hi(bcberr >> 16);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_lo(bcberr >> 16);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_hi(bcberr >> 8);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_lo(bcberr >> 8);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_hi(bcberr);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_lo(bcberr);
-+		ptr = pack_hex_byte(ptr, hx);
- 
- 		ptr = mem2hex(crlf, ptr, sizeof(crlf) - 1, 0);
- 		*ptr = 0;
-@@ -1353,14 +1341,12 @@ static int gdbstub(struct pt_regs *regs,
- 	 * Send trap type (converted to signal)
- 	 */
- 	*ptr++ = 'T';
--	*ptr++ = hexchars[sigval >> 4];
--	*ptr++ = hexchars[sigval & 0xf];
-+	ptr = pack_hex_byte(ptr, sigval);
- 
- 	/*
- 	 * Send Error PC
- 	 */
--	*ptr++ = hexchars[GDB_REGID_PC >> 4];
--	*ptr++ = hexchars[GDB_REGID_PC & 0xf];
-+	ptr = pack_hex_byte(ptr, GDB_REGID_PC);
- 	*ptr++ = ':';
- 	ptr = mem2hex(&regs->pc, ptr, 4, 0);
- 	*ptr++ = ';';
-@@ -1368,8 +1354,7 @@ static int gdbstub(struct pt_regs *regs,
- 	/*
- 	 * Send frame pointer
- 	 */
--	*ptr++ = hexchars[GDB_REGID_FP >> 4];
--	*ptr++ = hexchars[GDB_REGID_FP & 0xf];
-+	ptr = pack_hex_byte(ptr, GDB_REGID_FP);
- 	*ptr++ = ':';
- 	ptr = mem2hex(&regs->a3, ptr, 4, 0);
- 	*ptr++ = ';';
-@@ -1378,8 +1363,7 @@ static int gdbstub(struct pt_regs *regs,
- 	 * Send stack pointer
- 	 */
- 	ssp = (unsigned long) (regs + 1);
--	*ptr++ = hexchars[GDB_REGID_SP >> 4];
--	*ptr++ = hexchars[GDB_REGID_SP & 0xf];
-+	ptr = pack_hex_byte(ptr, GDB_REGID_SP);
- 	*ptr++ = ':';
- 	ptr = mem2hex(&ssp, ptr, 4, 0);
- 	*ptr++ = ';';
-@@ -1399,8 +1383,8 @@ packet_waiting:
- 			/* request repeat of last signal number */
- 		case '?':
- 			output_buffer[0] = 'S';
--			output_buffer[1] = hexchars[sigval >> 4];
--			output_buffer[2] = hexchars[sigval & 0xf];
-+			output_buffer[1] = hex_asc_hi(sigval);
-+			output_buffer[2] = hex_asc_lo(sigval);
- 			output_buffer[3] = 0;
- 			break;
- 
-@@ -1838,8 +1822,8 @@ void gdbstub_exit(int status)
- 
- 	gdbstub_busy = 1;
- 	output_buffer[0] = 'W';
--	output_buffer[1] = hexchars[(status >> 4) & 0x0F];
--	output_buffer[2] = hexchars[status & 0x0F];
-+	output_buffer[1] = hex_asc_hi(status);
-+	output_buffer[2] = hex_asc_lo(status);
- 	output_buffer[3] = 0;
- 
- 	gdbstub_io_tx_char('$');
-@@ -1853,8 +1837,8 @@ void gdbstub_exit(int status)
- 	}
- 
- 	gdbstub_io_tx_char('#');
--	gdbstub_io_tx_char(hexchars[checksum >> 4]);
--	gdbstub_io_tx_char(hexchars[checksum & 0xf]);
-+	gdbstub_io_tx_char(hex_asc_hi(checksum));
-+	gdbstub_io_tx_char(hex_asc_lo(checksum));
- 
- 	/* make sure the output is flushed, or else RedBoot might clobber it */
- 	gdbstub_io_tx_flush();
+ config HPFS_FS
+ 	tristate "OS/2 HPFS file system support"
+diff -puN fs/Makefile~omfs-update-kbuild-to-include-omfs fs/Makefile
+--- a/fs/Makefile~omfs-update-kbuild-to-include-omfs
++++ a/fs/Makefile
+@@ -111,6 +111,7 @@ obj-$(CONFIG_ADFS_FS)		+= adfs/
+ obj-$(CONFIG_FUSE_FS)		+= fuse/
+ obj-$(CONFIG_UDF_FS)		+= udf/
+ obj-$(CONFIG_SUN_OPENPROMFS)	+= openpromfs/
++obj-$(CONFIG_OMFS_FS)		+= omfs/
+ obj-$(CONFIG_JFS_FS)		+= jfs/
+ obj-$(CONFIG_XFS_FS)		+= xfs/
+ obj-$(CONFIG_9P_FS)		+= 9p/
+diff -puN /dev/null fs/omfs/Makefile
+--- /dev/null
++++ a/fs/omfs/Makefile
+@@ -0,0 +1,4 @@
++
++obj-$(CONFIG_OMFS_FS) += omfs.o
++
++omfs-y := bitmap.o dir.o file.o inode.o
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from me@bobcopeland.com are
 
 origin.patch
-linux-next.patch
-cifs-remove-global_extern-macro.patch
-input-ads7846c-sparse-lock-annotation.patch
-mtd-diskonchipc-fix-sparse-endian-warnings.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-net-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
+ath5k-fix-beacon-update-deadlock.patch
+ath5k-mask-out-unneeded-interrupts.patch
+ath5k-unify-resets.patch
 
