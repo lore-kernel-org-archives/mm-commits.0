@@ -1,38 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - tracehook-force-signal_pending.patch removed from -mm tree
-Date: Sat, 26 Jul 2008 14:17:03 -0700
-Message-ID: <200807262117.m6QLH3sS019901@imap1.linux-foundation.org>
+Subject: - tracehook-job-control.patch removed from -mm tree
+Date: Sat, 26 Jul 2008 14:16:59 -0700
+Message-ID: <200807262116.m6QLGxJX019887@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42850 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40297 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757884AbYGZVRd (ORCPT
+	by vger.kernel.org with ESMTP id S1757889AbYGZVRc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Jul 2008 17:17:33 -0400
+	Sat, 26 Jul 2008 17:17:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: roland@redhat.com, mingo@elte.hu, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tracehook: force signal_pending()
+     tracehook: job control
 has been removed from the -mm tree.  Its filename was
-     tracehook-force-signal_pending.patch
+     tracehook-job-control.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracehook: force signal_pending()
+Subject: tracehook: job control
 From: Roland McGrath <roland@redhat.com>
 
-This defines a new hook tracehook_force_sigpending() that lets tracing
-code decide to force TIF_SIGPENDING on in recalc_sigpending().
-
-This is not used yet, so it compiles away to nothing for now.  It lays the
-groundwork for new tracing code that can interrupt a task synthetically
-without actually sending a signal.
+This defines the tracehook_notify_jctl() hook to formalize the ptrace
+effects on the job control notifications.  There is no change, only
+cleanup.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
@@ -40,48 +37,79 @@ Reviewed-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |   14 ++++++++++++++
- kernel/signal.c           |    4 +++-
- 2 files changed, 17 insertions(+), 1 deletion(-)
+ include/linux/tracehook.h |   20 ++++++++++++++++++++
+ kernel/signal.c           |   10 +++++-----
+ 2 files changed, 25 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/tracehook.h~tracehook-force-signal_pending include/linux/tracehook.h
---- a/include/linux/tracehook.h~tracehook-force-signal_pending
+diff -puN include/linux/tracehook.h~tracehook-job-control include/linux/tracehook.h
+--- a/include/linux/tracehook.h~tracehook-job-control
 +++ a/include/linux/tracehook.h
-@@ -423,6 +423,20 @@ static inline int tracehook_consider_fat
+@@ -451,4 +451,24 @@ static inline int tracehook_get_signal(s
+ 	return 0;
  }
  
- /**
-+ * tracehook_force_sigpending - let tracing force signal_pending(current) on
++/**
++ * tracehook_notify_jctl - report about job control stop/continue
++ * @notify:		nonzero if this is the last thread in the group to stop
++ * @why:		%CLD_STOPPED or %CLD_CONTINUED
 + *
-+ * Called when recomputing our signal_pending() flag.  Return nonzero
-+ * to force the signal_pending() flag on, so that tracehook_get_signal()
-+ * will be called before the next return to user mode.
++ * This is called when we might call do_notify_parent_cldstop().
++ * It's called when about to stop for job control; we are already in
++ * %TASK_STOPPED state, about to call schedule().  It's also called when
++ * a delayed %CLD_STOPPED or %CLD_CONTINUED report is ready to be made.
 + *
-+ * Called with @current->sighand->siglock held.
++ * Return nonzero to generate a %SIGCHLD with @why, which is
++ * normal if @notify is nonzero.
++ *
++ * Called with no locks held.
 + */
-+static inline int tracehook_force_sigpending(void)
++static inline int tracehook_notify_jctl(int notify, int why)
 +{
-+	return 0;
++	return notify || (current->ptrace & PT_PTRACED);
 +}
 +
-+/**
-  * tracehook_get_signal - deliver synthetic signal to traced task
-  * @task:		@current
-  * @regs:		task_pt_regs(@current)
-diff -puN kernel/signal.c~tracehook-force-signal_pending kernel/signal.c
---- a/kernel/signal.c~tracehook-force-signal_pending
+ #endif	/* <linux/tracehook.h> */
+diff -puN kernel/signal.c~tracehook-job-control kernel/signal.c
+--- a/kernel/signal.c~tracehook-job-control
 +++ a/kernel/signal.c
-@@ -134,7 +134,9 @@ void recalc_sigpending_and_wake(struct t
- 
- void recalc_sigpending(void)
- {
--	if (!recalc_sigpending_tsk(current) && !freezing(current))
-+	if (unlikely(tracehook_force_sigpending()))
-+		set_thread_flag(TIF_SIGPENDING);
-+	else if (!recalc_sigpending_tsk(current) && !freezing(current))
- 		clear_thread_flag(TIF_SIGPENDING);
- 
+@@ -596,9 +596,6 @@ static int check_kill_permission(int sig
+ 	return security_task_kill(t, info, sig, 0);
  }
+ 
+-/* forward decl */
+-static void do_notify_parent_cldstop(struct task_struct *tsk, int why);
+-
+ /*
+  * Handle magic process-wide effects of stop/continue signals. Unlike
+  * the signal actions, these happen immediately at signal-generation
+@@ -1605,7 +1602,7 @@ finish_stop(int stop_count)
+ 	 * a group stop in progress and we are the last to stop,
+ 	 * report to the parent.  When ptraced, every thread reports itself.
+ 	 */
+-	if (stop_count == 0 || (current->ptrace & PT_PTRACED)) {
++	if (tracehook_notify_jctl(stop_count == 0, CLD_STOPPED)) {
+ 		read_lock(&tasklist_lock);
+ 		do_notify_parent_cldstop(current, CLD_STOPPED);
+ 		read_unlock(&tasklist_lock);
+@@ -1741,6 +1738,9 @@ relock:
+ 		signal->flags &= ~SIGNAL_CLD_MASK;
+ 		spin_unlock_irq(&sighand->siglock);
+ 
++		if (unlikely(!tracehook_notify_jctl(1, why)))
++			goto relock;
++
+ 		read_lock(&tasklist_lock);
+ 		do_notify_parent_cldstop(current->group_leader, why);
+ 		read_unlock(&tasklist_lock);
+@@ -1906,7 +1906,7 @@ void exit_signals(struct task_struct *ts
+ out:
+ 	spin_unlock_irq(&tsk->sighand->siglock);
+ 
+-	if (unlikely(group_stop)) {
++	if (unlikely(group_stop) && tracehook_notify_jctl(1, CLD_STOPPED)) {
+ 		read_lock(&tasklist_lock);
+ 		do_notify_parent_cldstop(tsk, CLD_STOPPED);
+ 		read_unlock(&tasklist_lock);
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
