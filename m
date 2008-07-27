@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lost-sysctl-fix.patch added to -mm tree
-Date: Sat, 26 Jul 2008 23:25:21 -0700
-Message-ID: <200807270625.m6R6PLmi006138@imap1.linux-foundation.org>
+Subject: + drivers-base-memoryc-fix-fallout-from-sysdev-api-changes.patch added to -mm tree
+Date: Sat, 26 Jul 2008 23:29:21 -0700
+Message-ID: <200807270629.m6R6TLtE006287@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54128 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33460 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752051AbYG0GZY (ORCPT
+	by vger.kernel.org with ESMTP id S1757641AbYG0GaE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jul 2008 02:25:24 -0400
+	Sun, 27 Jul 2008 02:30:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: viro@ZenIV.linux.org.ukviro@ZenIV.linux.org.uk
+Cc: ntl@pobox.com, andi@firstfloor.org, pbadari@us.ibm.com
 
 
 The patch titled
-     lost sysctl fix
+     drivers/base/memory.c: fix fallout from sysdev API changes
 has been added to the -mm tree.  Its filename is
-     lost-sysctl-fix.patch
+     drivers-base-memoryc-fix-fallout-from-sysdev-api-changes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lost sysctl fix
-From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: drivers/base/memory.c: fix fallout from sysdev API changes
+From: Nathan Lynch <ntl@pobox.com>
 
-try_attach() should walk into the matching subdirectory, not the first one...
+drivers/base/memory.c:280: warning: initialization from incompatible pointer type
 
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Nathan Lynch <ntl@pobox.com>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ drivers/base/memory.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sysctl.c~lost-sysctl-fix kernel/sysctl.c
---- a/kernel/sysctl.c~lost-sysctl-fix
-+++ a/kernel/sysctl.c
-@@ -1704,43 +1704,45 @@ static __init int sysctl_init(void)
- 
- core_initcall(sysctl_init);
- 
--static int is_branch_in(struct ctl_table *branch, struct ctl_table *table)
-+static struct ctl_table *is_branch_in(struct ctl_table *branch,
-+				      struct ctl_table *table)
+diff -puN drivers/base/memory.c~drivers-base-memoryc-fix-fallout-from-sysdev-api-changes drivers/base/memory.c
+--- a/drivers/base/memory.c~drivers-base-memoryc-fix-fallout-from-sysdev-api-changes
++++ a/drivers/base/memory.c
+@@ -103,7 +103,8 @@ static ssize_t show_mem_phys_index(struc
+ /*
+  * Show whether the section of memory is likely to be hot-removable
+  */
+-static ssize_t show_mem_removable(struct sys_device *dev, char *buf)
++static ssize_t show_mem_removable(struct sys_device *dev,
++			struct sysdev_attribute *attr, char *buf)
  {
- 	struct ctl_table *p;
- 	const char *s = branch->procname;
- 
- 	/* branch should have named subdirectory as its first element */
- 	if (!s || !branch->child)
--		return 0;
-+		return NULL;
- 
- 	/* ... and nothing else */
- 	if (branch[1].procname || branch[1].ctl_name)
--		return 0;
-+		return NULL;
- 
- 	/* table should contain subdirectory with the same name */
- 	for (p = table; p->procname || p->ctl_name; p++) {
- 		if (!p->child)
- 			continue;
- 		if (p->procname && strcmp(p->procname, s) == 0)
--			return 1;
-+			return p;
- 	}
--	return 0;
-+	return NULL;
- }
- 
- /* see if attaching q to p would be an improvement */
- static void try_attach(struct ctl_table_header *p, struct ctl_table_header *q)
- {
- 	struct ctl_table *to = p->ctl_table, *by = q->ctl_table;
-+	struct ctl_table *next;
- 	int is_better = 0;
- 	int not_in_parent = !p->attached_by;
- 
--	while (is_branch_in(by, to)) {
-+	while ((next = is_branch_in(by, to)) != NULL) {
- 		if (by == q->attached_by)
- 			is_better = 1;
- 		if (to == p->attached_by)
- 			not_in_parent = 1;
- 		by = by->child;
--		to = to->child;
-+		to = next->child;
- 	}
- 
- 	if (is_better && not_in_parent) {
+ 	unsigned long start_pfn;
+ 	int ret;
 _
 
-Patches currently in -mm which might be from viro@ZenIV.linux.org.uk are
+Patches currently in -mm which might be from ntl@pobox.com are
 
 origin.patch
-linux-next.patch
-lost-sysctl-fix.patch
+drivers-base-memoryc-fix-fallout-from-sysdev-api-changes.patch
 
