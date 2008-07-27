@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmu-notifiers-add-mm_take_all_locks-operation-fix.patch added to -mm tree
-Date: Sun, 27 Jul 2008 03:15:54 -0700
-Message-ID: <200807271016.m6RAFsSa013994@imap1.linux-foundation.org>
+Subject: + exec-include-pagemaph-again-to-fix-build.patch added to -mm tree
+Date: Sun, 27 Jul 2008 12:18:41 -0700
+Message-ID: <200807271918.m6RJIfL1000807@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38360 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55826 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751228AbYG0KRr (ORCPT
+	by vger.kernel.org with ESMTP id S1752705AbYG0TTA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jul 2008 06:17:47 -0400
+	Sun, 27 Jul 2008 15:19:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, aliguori@us.ibm.com, andrea@qumranet.com, avi@qumranet.com, chrisw@redhat.com, cl@linux-foundation.org, dada1@cosmosbay.com, holt@sgi.com, hugh@veritas.com, izike@qumranet.com, kanojsarcar@yahoo.com, marcelo@kvack.org, npiggin@suse.de, paulmck@us.ibm.com, rdreier@cisco.com, riel@redhat.com, rusty@rustcorp.com.au, steiner@sgi.com, swise@opengridcomputing.com, torvalds@linux-foundation.org
+Cc: hugh@veritas.com, bunk@kernel.org, haavard.skinnemoen@atmel.com, yoichi_yuasa@tripeaks.co.jp
 
 
 The patch titled
-     mmu-notifiers-add-mm_take_all_locks-operation-fix
+     exec: include pagemap.h again to fix build
 has been added to the -mm tree.  Its filename is
-     mmu-notifiers-add-mm_take_all_locks-operation-fix.patch
+     exec-include-pagemaph-again-to-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,127 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmu-notifiers-add-mm_take_all_locks-operation-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: exec: include pagemap.h again to fix build
+From: Hugh Dickins <hugh@veritas.com>
 
-yes?
+Fix compilation errors on avr32 and without CONFIG_SWAP, introduced by
+ba92a43dbaee339cf5915ef766d3d3ffbaaf103c exec: remove some includes
 
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
-Cc: Andrea Arcangeli <andrea@qumranet.com>
-Cc: Anthony Liguori <aliguori@us.ibm.com>
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: Chris Wright <chrisw@redhat.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Eric Dumazet <dada1@cosmosbay.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Izik Eidus <izike@qumranet.com>
-Cc: Jack Steiner <steiner@sgi.com>
-Cc: Kanoj Sarcar <kanojsarcar@yahoo.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Marcelo Tosatti <marcelo@kvack.org>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Robin Holt <holt@sgi.com>
-Cc: Roland Dreier <rdreier@cisco.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Steve Wise <swise@opengridcomputing.com>
+In file included from include/asm/tlb.h:24,
+                 from fs/exec.c:55:
+include/asm-generic/tlb.h: In function 'tlb_flush_mmu':
+include/asm-generic/tlb.h:76: error: implicit declaration of function 'release_pages'
+include/asm-generic/tlb.h: In function 'tlb_remove_page':
+include/asm-generic/tlb.h:105: error: implicit declaration of function 'page_cache_release'
+make[1]: *** [fs/exec.o] Error 1
+
+This straightforward part-revert is nobody's favourite patch to address
+the underlying tlb.h needs swap.h needs pagemap.h (but sparc won't like
+that) mess; but appropriate to fix the build now before any overhaul.
+
+Reviewed-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Reviewed-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Tested-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/exec.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/mmap.c~mmu-notifiers-add-mm_take_all_locks-operation-fix mm/mmap.c
---- a/mm/mmap.c~mmu-notifiers-add-mm_take_all_locks-operation-fix
-+++ a/mm/mmap.c
-@@ -2342,7 +2342,7 @@ static void vm_lock_mapping(struct addre
-  * against a concurrent mm_take_all_locks() by the mm_all_locks_mutex.
-  *
-  * mm_take_all_locks() and mm_drop_all_locks are expensive operations
-- * that may have to take thousand of locks.
-+ * that may have to take thousands of locks.
-  *
-  * mm_take_all_locks() can fail if it's interrupted by signals.
-  */
+diff -puN fs/exec.c~exec-include-pagemaph-again-to-fix-build fs/exec.c
+--- a/fs/exec.c~exec-include-pagemaph-again-to-fix-build
++++ a/fs/exec.c
+@@ -32,6 +32,7 @@
+ #include <linux/swap.h>
+ #include <linux/string.h>
+ #include <linux/init.h>
++#include <linux/pagemap.h>
+ #include <linux/highmem.h>
+ #include <linux/spinlock.h>
+ #include <linux/key.h>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-hugetlb-remove-unused-variable-warning.patch
+exec-include-pagemaph-again-to-fix-build.patch
+tmpfs-fix-kernel-bug-in-shmem_delete_inode.patch
+mmu-notifiers-add-list_del_init_rcu.patch
 mmu-notifiers-add-mm_take_all_locks-operation.patch
 mmu-notifier-core.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-linux-next-fixups.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-x86-pci-replace-dbg-with-pr_debug-fix.patch
-x86-pci-replace-dbg-with-pr_debug-fix-2.patch
-include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
-arch-x86-pci-i386c-fix-printk-warnings.patch
-drm-fix-sparc64-build.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-git-ubi-git-rejects.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-kernel-trace-tracec-remove-unused-variable.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-git-block-git-rejects.patch
+netns-fix-ip_rt_frag_needed-rt_is_expired.patch
 git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
+vfs-increase-pseudo-filesystem-block-size-to-page_size.patch
 mmu-notifiers-add-mm_take_all_locks-operation-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-gru-driver-v3-hardware-data-structures-fix.patch
-gru-driver-v3-hardware-data-structures-fix-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
-define-page_file_cache-function-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
-unevictable-lru-infrastructure-fix.patch
-unevictable-lru-page-statistics-units-fix.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-fix.patch
-mlock-mlocked-pages-are-unevictable-fix-3.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes.patch
+gru-driver-v3-resource-management-unmap-driver-ptes-gru.patch
+powerpc-implement-pte_special.patch
+powerpc-implement-pte_special-update.patch
+powerpc-lockless-get_user_pages.patch
+define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
+mlock-mlocked-pages-are-unevictable-fix-4.patch
+introduce-__get_user_pages.patch
 introduce-__get_user_pages-fix.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+split-lru-munlock-rework.patch
+revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch
+vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter.patch
+mmapc-deinline-a-few-functions.patch
+prio_tree-debugging-patch.patch
 
