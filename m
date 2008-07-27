@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlbc-must-include-asm-ioh.patch added to -mm tree
-Date: Sun, 27 Jul 2008 12:19:42 -0700
-Message-ID: <200807271919.m6RJJgtU000816@imap1.linux-foundation.org>
+Subject: + powerpc-ibmveth-fix-multiple-errors-with-dma_mapping_error-conversion.patch added to -mm tree
+Date: Sun, 27 Jul 2008 12:22:47 -0700
+Message-ID: <200807271922.m6RJMl8u000971@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34884 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45492 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757508AbYG0TUD (ORCPT
+	by vger.kernel.org with ESMTP id S1754361AbYG0TWy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jul 2008 15:20:03 -0400
+	Sun, 27 Jul 2008 15:22:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, takata@linux-m32r.org
+Cc: sfr@canb.auug.org.au
 
 
 The patch titled
-     mm/hugetlb.c must #include <asm/io.h>
+     powerpc/ibmveth: fix multiple errors with dma_mapping_error conversion
 has been added to the -mm tree.  Its filename is
-     mm-hugetlbc-must-include-asm-ioh.patch
+     powerpc-ibmveth-fix-multiple-errors-with-dma_mapping_error-conversion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/hugetlb.c must #include <asm/io.h>
-From: Adrian Bunk <bunk@kernel.org>
+Subject: powerpc/ibmveth: fix multiple errors with dma_mapping_error conversion
+From: Stephen Rothwell <sfr@canb.auug.org.au>
 
-This patch fixes the following build error on sh caused by
-commit aa888a74977a8f2120ae9332376e179c39a6b07d
-(hugetlb: support larger than MAX_ORDER):
+The addition of an argument to dma_mapping_error() in commit
+8d8bb39b9eba32dd70e87fd5ad5c5dd4ba118e06 "dma-mapping: add the device
+argument to dma_mapping_error()" left a bit of fallout:
 
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/hugetlb.c: In function 'alloc_bootmem_huge_page':
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/hugetlb.c:958: error: implicit declaration of function 'virt_to_phys'
+drivers/net/ibmveth.c:263: error: too few arguments to function 'dma_mapping_error'
+drivers/net/ibmveth.c:264: error: expected ')' before 'goto'
+drivers/net/ibmveth.c:284: error: expected expression before '}' token
+drivers/net/ibmveth.c:297: error: too few arguments to function 'dma_mapping_error'
+drivers/net/ibmveth.c:298: error: expected ')' before 'dma_unmap_single'
+drivers/net/ibmveth.c:306: error: expected expression before '}' token
+drivers/net/ibmveth.c:491: error: too few arguments to function 'dma_mapping_error'
+drivers/net/ibmveth.c:927: error: too few arguments to function 'dma_mapping_error'
+drivers/net/ibmveth.c:927: error: expected ')' before '{' token
+drivers/net/ibmveth.c:974: error: expected expression before '}' token
+drivers/net/ibmveth.c:914: error: label 'out' used but not defined m
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/ibmveth.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlbc-must-include-asm-ioh mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbc-must-include-asm-ioh
-+++ a/mm/hugetlb.c
-@@ -20,6 +20,7 @@
+diff -puN drivers/net/ibmveth.c~powerpc-ibmveth-fix-multiple-errors-with-dma_mapping_error-conversion drivers/net/ibmveth.c
+--- a/drivers/net/ibmveth.c~powerpc-ibmveth-fix-multiple-errors-with-dma_mapping_error-conversion
++++ a/drivers/net/ibmveth.c
+@@ -260,7 +260,7 @@ static void ibmveth_replenish_buffer_poo
+ 		dma_addr = dma_map_single(&adapter->vdev->dev, skb->data,
+ 				pool->buff_size, DMA_FROM_DEVICE);
  
- #include <asm/page.h>
- #include <asm/pgtable.h>
-+#include <asm/io.h>
+-		if (dma_mapping_error((&adapter->vdev->dev, dma_addr))
++		if (dma_mapping_error(&adapter->vdev->dev, dma_addr))
+ 			goto failure;
  
- #include <linux/hugetlb.h>
- #include "internal.h"
+ 		pool->free_map[free_index] = IBM_VETH_INVALID_MAP;
+@@ -294,7 +294,7 @@ failure:
+ 		pool->consumer_index = pool->size - 1;
+ 	else
+ 		pool->consumer_index--;
+-	if (!dma_mapping_error((&adapter->vdev->dev, dma_addr))
++	if (!dma_mapping_error(&adapter->vdev->dev, dma_addr))
+ 		dma_unmap_single(&adapter->vdev->dev,
+ 		                 pool->dma_addr[index], pool->buff_size,
+ 		                 DMA_FROM_DEVICE);
+@@ -488,7 +488,7 @@ static void ibmveth_cleanup(struct ibmve
+ 						 &adapter->rx_buff_pool[i]);
+ 
+ 	if (adapter->bounce_buffer != NULL) {
+-		if (!dma_mapping_error(adapter->bounce_buffer_dma)) {
++		if (!dma_mapping_error(dev, adapter->bounce_buffer_dma)) {
+ 			dma_unmap_single(&adapter->vdev->dev,
+ 					adapter->bounce_buffer_dma,
+ 					adapter->netdev->mtu + IBMVETH_BUFF_OH,
+@@ -924,7 +924,7 @@ static int ibmveth_start_xmit(struct sk_
+ 		buf[1] = 0;
+ 	}
+ 
+-	if (dma_mapping_error((&adapter->vdev->dev, data_dma_addr)) {
++	if (dma_mapping_error(&adapter->vdev->dev, data_dma_addr)) {
+ 		if (!firmware_has_feature(FW_FEATURE_CMO))
+ 			ibmveth_error_printk("tx: unable to map xmit buffer\n");
+ 		skb_copy_from_linear_data(skb, adapter->bounce_buffer,
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
 origin.patch
-exec-include-pagemaph-again-to-fix-build.patch
-mm-utilc-must-include-linux-schedh.patch
-mm-hugetlbc-must-include-asm-ioh.patch
+powerpc-ibmveth-fix-multiple-errors-with-dma_mapping_error-conversion.patch
+powerpc-vio-more-fallout-from-dma_mapping_error-api-change.patch
 linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-if-0-ses_match_host.patch
-git-xtensa.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-reiser4.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
 
