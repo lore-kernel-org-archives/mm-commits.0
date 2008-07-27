@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + mmu-notifiers-add-mm_take_all_locks-operation-fix.patch added to -mm tree
-Date: Sun, 27 Jul 2008 02:38:29 -0700
-Message-ID: <200807270938.m6R9cTjd012660@imap1.linux-foundation.org>
+Date: Sun, 27 Jul 2008 03:15:54 -0700
+Message-ID: <200807271016.m6RAFsSa013994@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37579 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38360 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751142AbYG0Jk0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751228AbYG0KRr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jul 2008 05:40:26 -0400
+	Sun, 27 Jul 2008 06:17:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -62,36 +62,29 @@ Cc: Steve Wise <swise@opengridcomputing.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff -puN mm/mmap.c~mmu-notifiers-add-mm_take_all_locks-operation-fix mm/mmap.c
 --- a/mm/mmap.c~mmu-notifiers-add-mm_take_all_locks-operation-fix
 +++ a/mm/mmap.c
-@@ -2340,7 +2340,7 @@ static void vm_lock_mapping(struct addre
+@@ -2342,7 +2342,7 @@ static void vm_lock_mapping(struct addre
   * against a concurrent mm_take_all_locks() by the mm_all_locks_mutex.
   *
   * mm_take_all_locks() and mm_drop_all_locks are expensive operations
 - * that may have to take thousand of locks.
-+ * that may have to take thousandw of locks.
++ * that may have to take thousands of locks.
   *
   * mm_take_all_locks() can fail if it's interrupted by signals.
   */
-@@ -2349,7 +2349,7 @@ int mm_take_all_locks(struct mm_struct *
- 	struct vm_area_struct *vma;
- 	int ret = -EINTR;
- 
--	BUG_ON(down_read_trylock(&mm->mmap_sem));
-+	BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
- 
- 	mutex_lock(&mm_all_locks_mutex);
- 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 hugetlb-remove-unused-variable-warning.patch
+mmu-notifiers-add-mm_take_all_locks-operation.patch
+mmu-notifier-core.patch
 seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
 linux-next-fixups.patch
@@ -125,9 +118,7 @@ drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
 mmu-notifiers-add-mm_take_all_locks-operation-fix.patch
-mmu-notifier-core.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 eink_apollofb-new-driver-for-apollo-eink-controller.patch
