@@ -1,99 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-ibmveth-fix-multiple-errors-with-dma_mapping_error-conversion.patch removed from -mm tree
-Date: Mon, 28 Jul 2008 14:11:07 -0700
-Message-ID: <200807282111.m6SLB7sO027642@imap1.linux-foundation.org>
+Subject: - firmware-fix-memmap-printk-format-warnings.patch removed from -mm tree
+Date: Mon, 28 Jul 2008 14:10:58 -0700
+Message-ID: <200807282110.m6SLAwC1027615@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36343 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57132 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760894AbYG1VRq (ORCPT
+	by vger.kernel.org with ESMTP id S1761517AbYG1VTE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jul 2008 17:17:46 -0400
+	Mon, 28 Jul 2008 17:19:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, bwalle@suse.de, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc/ibmveth: fix multiple errors with dma_mapping_error conversion
+     firmware: fix memmap printk format warnings
 has been removed from the -mm tree.  Its filename was
-     powerpc-ibmveth-fix-multiple-errors-with-dma_mapping_error-conversion.patch
+     firmware-fix-memmap-printk-format-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc/ibmveth: fix multiple errors with dma_mapping_error conversion
-From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: firmware: fix memmap printk format warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-The addition of an argument to dma_mapping_error() in commit
-8d8bb39b9eba32dd70e87fd5ad5c5dd4ba118e06 "dma-mapping: add the device
-argument to dma_mapping_error()" left a bit of fallout:
+Fix firmware/memmap printk format warnings:
 
-drivers/net/ibmveth.c:263: error: too few arguments to function 'dma_mapping_error'
-drivers/net/ibmveth.c:264: error: expected ')' before 'goto'
-drivers/net/ibmveth.c:284: error: expected expression before '}' token
-drivers/net/ibmveth.c:297: error: too few arguments to function 'dma_mapping_error'
-drivers/net/ibmveth.c:298: error: expected ')' before 'dma_unmap_single'
-drivers/net/ibmveth.c:306: error: expected expression before '}' token
-drivers/net/ibmveth.c:491: error: too few arguments to function 'dma_mapping_error'
-drivers/net/ibmveth.c:927: error: too few arguments to function 'dma_mapping_error'
-drivers/net/ibmveth.c:927: error: expected ')' before '{' token
-drivers/net/ibmveth.c:974: error: expected expression before '}' token
-drivers/net/ibmveth.c:914: error: label 'out' used but not defined m
+linux-next-20080711/drivers/firmware/memmap.c:156: warning: format '%llx' expects type 'long long unsigned int', but argument 4 has type 'resource_size_t'
+linux-next-20080711/drivers/firmware/memmap.c:161: warning: format '%llx' expects type 'long long unsigned int', but argument 4 has type 'resource_size_t'
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Bernhard Walle <bwalle@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ibmveth.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/firmware/memmap.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/ibmveth.c~powerpc-ibmveth-fix-multiple-errors-with-dma_mapping_error-conversion drivers/net/ibmveth.c
---- a/drivers/net/ibmveth.c~powerpc-ibmveth-fix-multiple-errors-with-dma_mapping_error-conversion
-+++ a/drivers/net/ibmveth.c
-@@ -260,7 +260,7 @@ static void ibmveth_replenish_buffer_poo
- 		dma_addr = dma_map_single(&adapter->vdev->dev, skb->data,
- 				pool->buff_size, DMA_FROM_DEVICE);
+diff -puN drivers/firmware/memmap.c~firmware-fix-memmap-printk-format-warnings drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~firmware-fix-memmap-printk-format-warnings
++++ a/drivers/firmware/memmap.c
+@@ -153,12 +153,14 @@ int __init firmware_map_add_early(resour
  
--		if (dma_mapping_error((&adapter->vdev->dev, dma_addr))
-+		if (dma_mapping_error(&adapter->vdev->dev, dma_addr))
- 			goto failure;
+ static ssize_t start_show(struct firmware_map_entry *entry, char *buf)
+ {
+-	return snprintf(buf, PAGE_SIZE, "0x%llx\n", entry->start);
++	return snprintf(buf, PAGE_SIZE, "0x%llx\n",
++		(unsigned long long)entry->start);
+ }
  
- 		pool->free_map[free_index] = IBM_VETH_INVALID_MAP;
-@@ -294,7 +294,7 @@ failure:
- 		pool->consumer_index = pool->size - 1;
- 	else
- 		pool->consumer_index--;
--	if (!dma_mapping_error((&adapter->vdev->dev, dma_addr))
-+	if (!dma_mapping_error(&adapter->vdev->dev, dma_addr))
- 		dma_unmap_single(&adapter->vdev->dev,
- 		                 pool->dma_addr[index], pool->buff_size,
- 		                 DMA_FROM_DEVICE);
-@@ -488,7 +488,7 @@ static void ibmveth_cleanup(struct ibmve
- 						 &adapter->rx_buff_pool[i]);
+ static ssize_t end_show(struct firmware_map_entry *entry, char *buf)
+ {
+-	return snprintf(buf, PAGE_SIZE, "0x%llx\n", entry->end);
++	return snprintf(buf, PAGE_SIZE, "0x%llx\n",
++		(unsigned long long)entry->end);
+ }
  
- 	if (adapter->bounce_buffer != NULL) {
--		if (!dma_mapping_error(adapter->bounce_buffer_dma)) {
-+		if (!dma_mapping_error(dev, adapter->bounce_buffer_dma)) {
- 			dma_unmap_single(&adapter->vdev->dev,
- 					adapter->bounce_buffer_dma,
- 					adapter->netdev->mtu + IBMVETH_BUFF_OH,
-@@ -924,7 +924,7 @@ static int ibmveth_start_xmit(struct sk_
- 		buf[1] = 0;
- 	}
- 
--	if (dma_mapping_error((&adapter->vdev->dev, data_dma_addr)) {
-+	if (dma_mapping_error(&adapter->vdev->dev, data_dma_addr)) {
- 		if (!firmware_has_feature(FW_FEATURE_CMO))
- 			ibmveth_error_printk("tx: unable to map xmit buffer\n");
- 		skb_copy_from_linear_data(skb, adapter->bounce_buffer,
+ static ssize_t type_show(struct firmware_map_entry *entry, char *buf)
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 linux-next.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+lkdtm-fix-for-config_scsi=n.patch
+git-unionfs.patch
+profile-likely-unlikely-macros.patch
 
