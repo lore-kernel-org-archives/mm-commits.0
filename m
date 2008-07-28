@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: - unevictable-lru-infrastructure-kill-unnecessary-lock_page-in-vmscanc.patch removed from -mm tree
-Date: Mon, 28 Jul 2008 16:53:26 -0700
-Message-ID: <200807282353.m6SNrQOf002620@imap1.linux-foundation.org>
+Subject: - unevictable-lru-infrastructure-revert-migration-change-of-unevictable-lru-infrastructure.patch removed from -mm tree
+Date: Mon, 28 Jul 2008 16:53:34 -0700
+Message-ID: <200807282353.m6SNrYMP002624@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33638 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59948 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751975AbYG1Xx5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752003AbYG1XyF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jul 2008 19:53:57 -0400
+	Mon, 28 Jul 2008 19:54:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unevictable-lru-infrastructure: kill unnecessary lock_page() in vmscan.c
+     unevictable-lru-infrastructure: revert migration change of unevictable lru infrastructure
 has been removed from the -mm tree.  Its filename was
-     unevictable-lru-infrastructure-kill-unnecessary-lock_page-in-vmscanc.patch
+     unevictable-lru-infrastructure-revert-migration-change-of-unevictable-lru-infrastructure.patch
 
 This patch was dropped because it was folded into unevictable-lru-infrastructure.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unevictable-lru-infrastructure: kill unnecessary lock_page() in vmscan.c
+Subject: unevictable-lru-infrastructure: revert migration change of unevictable lru infrastructure
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Old version putback_lru_page need() page lock held.  but current one
-doesn't.
+Unevictable LRU Infrastructure patch changed several migration code
+because Old version putback_lru_page() had needed to page lock.
 
-So, several lock_page() can be removeed.
+It has little performance regression and isn't necessary now.  So,
+reverting is better.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
@@ -38,53 +39,112 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   20 ++------------------
- 1 file changed, 2 insertions(+), 18 deletions(-)
+ mm/migrate.c |   38 +++++++++++---------------------------
+ 1 file changed, 11 insertions(+), 27 deletions(-)
 
-diff -puN mm/vmscan.c~unevictable-lru-infrastructure-kill-unnecessary-lock_page-in-vmscanc mm/vmscan.c
---- a/mm/vmscan.c~unevictable-lru-infrastructure-kill-unnecessary-lock_page-in-vmscanc
-+++ a/mm/vmscan.c
-@@ -545,22 +545,6 @@ void putback_lru_page(struct page *page)
+diff -puN mm/migrate.c~unevictable-lru-infrastructure-revert-migration-change-of-unevictable-lru-infrastructure mm/migrate.c
+--- a/mm/migrate.c~unevictable-lru-infrastructure-revert-migration-change-of-unevictable-lru-infrastructure
++++ a/mm/migrate.c
+@@ -67,11 +67,7 @@ int putback_lru_pages(struct list_head *
  
- 
- /*
-- * Cull page that shrink_*_list() has detected to be unevictable
-- * under page lock to close races with other tasks that might be making
-- * the page evictable.  Avoid stranding an evictable page on the
-- * unevictable list.
-- */
--static void cull_unevictable_page(struct page *page)
--{
--	get_page(page);
--	lock_page(page);
--	putback_lru_page(page);
--	unlock_page(page);
--	put_page(page);
--}
--
--
--/*
-  * shrink_page_list() returns the number of reclaimed pages
-  */
- static unsigned long shrink_page_list(struct list_head *page_list,
-@@ -1119,7 +1103,7 @@ static unsigned long shrink_inactive_lis
- 			list_del(&page->lru);
- 			if (unlikely(!page_evictable(page, NULL))) {
- 				spin_unlock_irq(&zone->lru_lock);
--				cull_unevictable_page(page);
-+				putback_lru_page(page);
- 				spin_lock_irq(&zone->lru_lock);
- 				continue;
- 			}
-@@ -1223,7 +1207,7 @@ static void shrink_active_list(unsigned 
+ 	list_for_each_entry_safe(page, page2, l, lru) {
  		list_del(&page->lru);
+-		get_page(page);
+-		lock_page(page);
+ 		putback_lru_page(page);
+-		unlock_page(page);
+-		put_page(page);
+ 		count++;
+ 	}
+ 	return count;
+@@ -566,8 +562,6 @@ static int move_to_new_page(struct page 
+ 	struct address_space *mapping;
+ 	int rc;
  
- 		if (unlikely(!page_evictable(page, NULL))) {
--			cull_unevictable_page(page);
-+			putback_lru_page(page);
- 			continue;
- 		}
+-	get_page(newpage); /* for prevent page release under lock_page() */
+-
+ 	/*
+ 	 * Block others from accessing the page when we get around to
+ 	 * establishing additional references. We are the only one
+@@ -600,12 +594,10 @@ static int move_to_new_page(struct page 
  
+ 	if (!rc) {
+ 		remove_migration_ptes(page, newpage);
+-		putback_lru_page(newpage);
+ 	} else
+ 		newpage->mapping = NULL;
+ 
+ 	unlock_page(newpage);
+-	put_page(newpage);
+ 
+ 	return rc;
+ }
+@@ -628,16 +620,13 @@ static int unmap_and_move(new_page_t get
+ 
+ 	if (page_count(page) == 1) {
+ 		/* page was freed from under us. So we are done. */
+-		get_page(page);
+-		goto end_migration;
++		goto move_newpage;
+ 	}
+ 
+-	get_page(page);
+-
+ 	charge = mem_cgroup_prepare_migration(page, newpage);
+ 	if (charge == -ENOMEM) {
+ 		rc = -ENOMEM;
+-		goto end_migration;
++		goto move_newpage;
+ 	}
+ 	/* prepare cgroup just returns 0 or -ENOMEM */
+ 	BUG_ON(charge);
+@@ -645,7 +634,7 @@ static int unmap_and_move(new_page_t get
+ 	rc = -EAGAIN;
+ 	if (TestSetPageLocked(page)) {
+ 		if (!force)
+-			goto end_migration;
++			goto move_newpage;
+ 		lock_page(page);
+ 	}
+ 
+@@ -706,6 +695,7 @@ rcu_unlock:
+ 		rcu_read_unlock();
+ 
+ unlock:
++	unlock_page(page);
+ 
+ 	if (rc != -EAGAIN) {
+  		/*
+@@ -718,22 +708,16 @@ unlock:
+ 		putback_lru_page(page);
+ 	}
+ 
+-	unlock_page(page);
+-
+-end_migration:
+-	put_page(page);
+-
++move_newpage:
+ 	if (!charge)
+ 		mem_cgroup_end_migration(newpage);
+ 
+-	if (!newpage->mapping) {
+-		/*
+-		 * Migration failed or was never attempted.
+-		 * Free the newpage.
+-		 */
+-		VM_BUG_ON(page_count(newpage) != 1);
+-		put_page(newpage);
+-	}
++	/*
++	 * Move the new page to the LRU. If migration was not successful
++	 * then this will free the page.
++	 */
++	putback_lru_page(newpage);
++
+ 	if (result) {
+ 		if (rc)
+ 			*result = rc;
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -95,7 +155,6 @@ swap-use-an-array-for-the-lru-pagevecs.patch
 vmscan-split-lru-lists-into-anon-file-sets.patch
 vmscan-second-chance-replacement-for-anonymous-pages.patch
 unevictable-lru-infrastructure.patch
-unevictable-lru-infrastructure-kill-unnecessary-lock_page-in-vmscanc.patch
 unevictable-lru-infrastructure-revert-migration-change-of-unevictable-lru-infrastructure.patch
 unevictable-lru-page-statistics.patch
 unevictable-lru-page-statistics-fix-printk-in-show_free_areas.patch
