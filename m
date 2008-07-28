@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-fix-possible-memory-leak.patch added to -mm tree
-Date: Sun, 27 Jul 2008 20:24:05 -0700
-Message-ID: <200807280324.m6S3O5v1017784@imap1.linux-foundation.org>
+Subject: + memcg-remove-redundant-check-in-move_task.patch added to -mm tree
+Date: Sun, 27 Jul 2008 20:24:11 -0700
+Message-ID: <200807280324.m6S3OBYG017793@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53706 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60316 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751667AbYG1DYw (ORCPT
+	by vger.kernel.org with ESMTP id S1751717AbYG1DYz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jul 2008 23:24:52 -0400
+	Sun, 27 Jul 2008 23:24:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lizf@cn.fujitsu.com, balbir@in.ibm.com, clg@fr.ibm.com, kamezawa.hiroyu@jp.f
 
 
 The patch titled
-     cgroup: fix possible memory leak
+     memcg: remove redundant check in move_task()
 has been added to the -mm tree.  Its filename is
-     cgroup-fix-possible-memory-leak.patch
+     memcg-remove-redundant-check-in-move_task.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup: fix possible memory leak
+Subject: memcg: remove redundant check in move_task()
 From: Li Zefan <lizf@cn.fujitsu.com>
 
-There's a leak if copy_from_user() returns failure.
+It's guaranteed by cgroup that old_cgrp != cgrp.
 
 Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
@@ -47,32 +47,22 @@ Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroup-fix-possible-memory-leak kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-fix-possible-memory-leak
-+++ a/kernel/cgroup.c
-@@ -1423,14 +1423,17 @@ static ssize_t cgroup_write_string(struc
- 		if (buffer == NULL)
- 			return -ENOMEM;
- 	}
--	if (nbytes && copy_from_user(buffer, userbuf, nbytes))
--		return -EFAULT;
-+	if (nbytes && copy_from_user(buffer, userbuf, nbytes)) {
-+		retval = -EFAULT;
-+		goto out;
-+	}
+diff -puN mm/memcontrol.c~memcg-remove-redundant-check-in-move_task mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-redundant-check-in-move_task
++++ a/mm/memcontrol.c
+@@ -1168,9 +1168,6 @@ static void mem_cgroup_move_task(struct 
+ 	mem = mem_cgroup_from_cont(cont);
+ 	old_mem = mem_cgroup_from_cont(old_cont);
  
- 	buffer[nbytes] = 0;     /* nul-terminate */
- 	strstrip(buffer);
- 	retval = cft->write_string(cgrp, cft, buffer);
- 	if (!retval)
- 		retval = nbytes;
-+out:
- 	if (buffer != local_buffer)
- 		kfree(buffer);
- 	return retval;
+-	if (mem == old_mem)
+-		goto out;
+-
+ 	/*
+ 	 * Only thread group leaders are allowed to migrate, the mm_struct is
+ 	 * in effect owned by the leader
 _
 
 Patches currently in -mm which might be from lizf@cn.fujitsu.com are
