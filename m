@@ -1,85 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - linux-next-fixups.patch removed from -mm tree
-Date: Mon, 28 Jul 2008 14:00:37 -0700
-Message-ID: <200807282100.m6SL0c1p027189@imap1.linux-foundation.org>
+Subject: - drm-fix-sparc64-build.patch removed from -mm tree
+Date: Mon, 28 Jul 2008 14:05:04 -0700
+Message-ID: <200807282105.m6SL54cE027360@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37140 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36189 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751991AbYG1VAu (ORCPT
+	by vger.kernel.org with ESMTP id S1751391AbYG1VFq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jul 2008 17:00:50 -0400
+	Mon, 28 Jul 2008 17:05:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, vegard.nossum@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, airlied@linux.ie, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-fixups
+     drm: fix sparc64 build
 has been removed from the -mm tree.  Its filename was
-     linux-next-fixups.patch
+     drm-fix-sparc64-build.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because that file disappeared
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-fixups
+Subject: drm: fix sparc64 build
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Vegard Nossum <vegard.nossum@gmail.com>
+drivers/gpu/drm/drm_memory.c: In function `drm_core_ioremap_wc':
+drivers/gpu/drm/drm_memory.c:172: error: implicit declaration of function `ioremap_wc'
+drivers/gpu/drm/drm_memory.c:172: warning: assignment makes pointer from integer without a cast
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/kmemcheck/kmemcheck.c |    3 ++-
- include/linux/kmemcheck.h         |    2 --
- mm/Makefile                       |    1 +
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ include/asm-sparc/io.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/x86/mm/kmemcheck/kmemcheck.c~linux-next-fixups arch/x86/mm/kmemcheck/kmemcheck.c
---- a/arch/x86/mm/kmemcheck/kmemcheck.c~linux-next-fixups
-+++ a/arch/x86/mm/kmemcheck/kmemcheck.c
-@@ -32,7 +32,7 @@
- #include "shadow.h"
- #include "smp.h"
- 
--void __init kmemcheck_init(void)
-+static int __init kmemcheck_init(void)
- {
- 	printk(KERN_INFO "kmemcheck: \"Bugs, beware!\"\n");
- 
-@@ -50,6 +50,7 @@ void __init kmemcheck_init(void)
- 	}
+diff -puN include/asm-sparc/io.h~drm-fix-sparc64-build include/asm-sparc/io.h
+--- a/include/asm-sparc/io.h~drm-fix-sparc64-build
++++ a/include/asm-sparc/io.h
+@@ -5,4 +5,7 @@
+ #else
+ #include <asm-sparc/io_32.h>
  #endif
- }
-+early_initcall(kmemcheck_init);
- 
- #ifdef CONFIG_KMEMCHECK_DISABLED_BY_DEFAULT
- int kmemcheck_enabled = 0;
-diff -puN include/linux/kmemcheck.h~linux-next-fixups include/linux/kmemcheck.h
---- a/include/linux/kmemcheck.h~linux-next-fixups
-+++ a/include/linux/kmemcheck.h
-@@ -7,8 +7,6 @@
- #ifdef CONFIG_KMEMCHECK
- extern int kmemcheck_enabled;
- 
--void kmemcheck_init(void);
--
- /* The slab-related functions. */
- void kmemcheck_alloc_shadow(struct kmem_cache *s, gfp_t flags, int node,
- 			    struct page *page, int order);
-diff -puN mm/Makefile~linux-next-fixups mm/Makefile
---- a/mm/Makefile~linux-next-fixups
-+++ a/mm/Makefile
-@@ -24,6 +24,7 @@ obj-$(CONFIG_SPARSEMEM_VMEMMAP) += spars
- obj-$(CONFIG_SHMEM) += shmem.o
- obj-$(CONFIG_TMPFS_POSIX_ACL) += shmem_acl.o
- obj-$(CONFIG_TINY_SHMEM) += tiny-shmem.o
-+obj-$(CONFIG_KMEMCHECK) += kmemcheck.o
- obj-$(CONFIG_SLOB) += slob.o
- obj-$(CONFIG_MMU_NOTIFIER) += mmu_notifier.o
- obj-$(CONFIG_SLAB) += slab.o
++
++#define ioremap_wc ioremap_nocache
++
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,12 +60,10 @@ mmu-notifier-core.patch
 include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
 seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-linux-next-fixups.patch
 linux-next-rejects.patch
 next-remove-localversion.patch
 drivers-mtd-nand-nandsimc-needs-div64h.patch
 pci-make-pci_register_driver-a-macro.patch
-git-acpi.patch
 x86-pci-replace-dbg-with-pr_debug-fix.patch
 x86-pci-replace-dbg-with-pr_debug-fix-2.patch
 arch-x86-pci-i386c-fix-printk-warnings.patch
