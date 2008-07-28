@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + cpuset-speed-up-sched-domain-partition.patch added to -mm tree
-Date: Sun, 27 Jul 2008 20:27:00 -0700
-Message-ID: <200807280327.m6S3R0Wv017926@imap1.linux-foundation.org>
+Date: Sun, 27 Jul 2008 20:50:21 -0700
+Message-ID: <200807280350.m6S3oLL6018766@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50656 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59619 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752429AbYG1D2M (ORCPT
+	by vger.kernel.org with ESMTP id S1752404AbYG1DwJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jul 2008 23:28:12 -0400
+	Sun, 27 Jul 2008 23:52:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, balbir@in.ibm.com, clg@fr.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, laijs@cn.fujitsu.com, menage@google.com, pj@sgi.com
+Cc: laijs@cn.fujitsu.com, balbir@in.ibm.com, clg@fr.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, pj@sgi.com
 
 
 The patch titled
@@ -35,7 +35,7 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 Subject: cpuset: speed up sched domain partition
-From: Li Zefan <lizf@cn.fujitsu.com>
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
 
 Date: Mon, 28 Jul 2008 10:38:22 +0800
 Subject: [PATCH 2/3] cpuset: speed up sched domain partition
@@ -130,27 +130,11 @@ diff -puN kernel/cpuset.c~cpuset-speed-up-sched-domain-partition kernel/cpuset.c
  			}
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from laijs@cn.fujitsu.com are
 
 origin.patch
 linux-next.patch
-cgroup-fix-possible-memory-leak.patch
-cgroup-remove-duplicate-code-in-allocate_cg_link.patch
-cgroup-uninline-cgroup_has_css_refs.patch
-memcg-remove-redundant-check-in-move_task.patch
-cpuset-a-bit-cleanup-for-scan_for_empty_cpusets.patch
 cpuset-clean-up-cpuset-hierarchy-traversal-code.patch
 cpuset-speed-up-sched-domain-partition.patch
 cpuset-fix-wrong-calculation-of-relax-domain-level.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-introduce-__get_user_pages.patch
-introduce-__get_user_pages-fix.patch
-split-lru-munlock-rework.patch
-revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch
 
