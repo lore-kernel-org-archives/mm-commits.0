@@ -1,155 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - slab-add-__krealloc-for-netfilter.patch removed from -mm tree
-Date: Mon, 28 Jul 2008 14:11:15 -0700
-Message-ID: <200807282111.m6SLBFxv027660@imap1.linux-foundation.org>
+Subject: - netns-fix-ip_rt_frag_needed-rt_is_expired.patch removed from -mm tree
+Date: Mon, 28 Jul 2008 14:11:35 -0700
+Message-ID: <200807282111.m6SLBZXH027690@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47342 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47427 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760333AbYG1VSJ (ORCPT
+	by vger.kernel.org with ESMTP id S1762123AbYG1VRa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jul 2008 17:18:09 -0400
+	Mon, 28 Jul 2008 17:17:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@cs.helsinki.fi, cl@linux-foundation.org, davem@davemloft.net, kaber@trash.net, mm-commits@vger.kernel.org
+To: hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab: add __krealloc() for netfilter
+     netns: fix ip_rt_frag_needed rt_is_expired
 has been removed from the -mm tree.  Its filename was
-     slab-add-__krealloc-for-netfilter.patch
+     netns-fix-ip_rt_frag_needed-rt_is_expired.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: slab: add __krealloc() for netfilter
-From: Pekka Enberg <penberg@cs.helsinki.fi>
+Subject: netns: fix ip_rt_frag_needed rt_is_expired
+From: Hugh Dickins <hugh@veritas.com>
 
-Fix a double-free and use-after-free in netfilter
+Running recent kernels, and using a particular vpn gateway, I've been
+having to edit my mails down to get them accepted by the smtp server.
 
-As suggested by Patrick McHardy, introduce a __krealloc() that doesn't
-free the original buffer to fix a double-free and use-after-free bug
-introduced by me in netfilter that uses RCU.
+Git bisect led to commit e84f84f276473dcc673f360e8ff3203148bdf0e2 -
+netns: place rt_genid into struct net.  The conversion from a != test
+to rt_is_expired() put one negative too many: and now my mail works.
 
-Reviewed-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h                |    1 
- mm/util.c                           |   44 ++++++++++++++++++++------
- net/netfilter/nf_conntrack_extend.c |    2 -
- 3 files changed, 36 insertions(+), 11 deletions(-)
+ net/ipv4/route.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/slab.h~slab-add-__krealloc-for-netfilter include/linux/slab.h
---- a/include/linux/slab.h~slab-add-__krealloc-for-netfilter
-+++ a/include/linux/slab.h
-@@ -96,6 +96,7 @@ int kmem_ptr_validate(struct kmem_cache 
- /*
-  * Common kmalloc functions provided by all allocators
-  */
-+void * __must_check __krealloc(const void *, size_t, gfp_t);
- void * __must_check krealloc(const void *, size_t, gfp_t);
- void kfree(const void *);
- size_t ksize(const void *);
-diff -puN mm/util.c~slab-add-__krealloc-for-netfilter mm/util.c
---- a/mm/util.c~slab-add-__krealloc-for-netfilter
-+++ a/mm/util.c
-@@ -68,25 +68,22 @@ void *kmemdup(const void *src, size_t le
- EXPORT_SYMBOL(kmemdup);
+diff -puN net/ipv4/route.c~netns-fix-ip_rt_frag_needed-rt_is_expired net/ipv4/route.c
+--- a/net/ipv4/route.c~netns-fix-ip_rt_frag_needed-rt_is_expired
++++ a/net/ipv4/route.c
+@@ -1502,7 +1502,7 @@ unsigned short ip_rt_frag_needed(struct 
+ 				    rth->fl.iif != 0 ||
+ 				    dst_metric_locked(&rth->u.dst, RTAX_MTU) ||
+ 				    !net_eq(dev_net(rth->u.dst.dev), net) ||
+-				    !rt_is_expired(rth))
++				    rt_is_expired(rth))
+ 					continue;
  
- /**
-- * krealloc - reallocate memory. The contents will remain unchanged.
-+ * __krealloc - like krealloc() but don't free @p.
-  * @p: object to reallocate memory for.
-  * @new_size: how many bytes of memory are required.
-  * @flags: the type of memory to allocate.
-  *
-- * The contents of the object pointed to are preserved up to the
-- * lesser of the new and old sizes.  If @p is %NULL, krealloc()
-- * behaves exactly like kmalloc().  If @size is 0 and @p is not a
-- * %NULL pointer, the object pointed to is freed.
-+ * This function is like krealloc() except it never frees the originally
-+ * allocated buffer. Use this if you don't want to free the buffer immediately
-+ * like, for example, with RCU.
-  */
--void *krealloc(const void *p, size_t new_size, gfp_t flags)
-+void *__krealloc(const void *p, size_t new_size, gfp_t flags)
- {
- 	void *ret;
- 	size_t ks = 0;
- 
--	if (unlikely(!new_size)) {
--		kfree(p);
-+	if (unlikely(!new_size))
- 		return ZERO_SIZE_PTR;
--	}
- 
- 	if (p)
- 		ks = ksize(p);
-@@ -95,10 +92,37 @@ void *krealloc(const void *p, size_t new
- 		return (void *)p;
- 
- 	ret = kmalloc_track_caller(new_size, flags);
--	if (ret && p) {
-+	if (ret && p)
- 		memcpy(ret, p, ks);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(__krealloc);
-+
-+/**
-+ * krealloc - reallocate memory. The contents will remain unchanged.
-+ * @p: object to reallocate memory for.
-+ * @new_size: how many bytes of memory are required.
-+ * @flags: the type of memory to allocate.
-+ *
-+ * The contents of the object pointed to are preserved up to the
-+ * lesser of the new and old sizes.  If @p is %NULL, krealloc()
-+ * behaves exactly like kmalloc().  If @size is 0 and @p is not a
-+ * %NULL pointer, the object pointed to is freed.
-+ */
-+void *krealloc(const void *p, size_t new_size, gfp_t flags)
-+{
-+	void *ret;
-+
-+	if (unlikely(!new_size)) {
- 		kfree(p);
-+		return ZERO_SIZE_PTR;
- 	}
-+
-+	ret = __krealloc(p, new_size, flags);
-+	if (ret && p != ret)
-+		kfree(p);
-+
- 	return ret;
- }
- EXPORT_SYMBOL(krealloc);
-diff -puN net/netfilter/nf_conntrack_extend.c~slab-add-__krealloc-for-netfilter net/netfilter/nf_conntrack_extend.c
---- a/net/netfilter/nf_conntrack_extend.c~slab-add-__krealloc-for-netfilter
-+++ a/net/netfilter/nf_conntrack_extend.c
-@@ -95,7 +95,7 @@ void *__nf_ct_ext_add(struct nf_conn *ct
- 	newlen = newoff + t->len;
- 	rcu_read_unlock();
- 
--	new = krealloc(ct->ext, newlen, gfp);
-+	new = __krealloc(ct->ext, newlen, gfp);
- 	if (!new)
- 		return NULL;
- 
+ 				if (new_mtu < 68 || new_mtu >= old_mtu) {
 _
 
-Patches currently in -mm which might be from penberg@cs.helsinki.fi are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-repeatable-slab-corruption-with-ltp-msgctl08.patch
-linux-next.patch
+exec-include-pagemaph-again-to-fix-build.patch
+tmpfs-fix-kernel-bug-in-shmem_delete_inode.patch
+mmu-notifiers-add-list_del_init_rcu.patch
+mmu-notifiers-add-mm_take_all_locks-operation.patch
+mmu-notifier-core.patch
 git-unionfs.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-slab-leaks3-default-y.patch
+vfs-increase-pseudo-filesystem-block-size-to-page_size.patch
+mmu-notifiers-add-mm_take_all_locks-operation-fix.patch
+powerpc-lockless-get_user_pages.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes.patch
+gru-driver-v3-resource-management-unmap-driver-ptes-gru.patch
+define-page_file_cache-function-fix-splitlru-shmem_getpage-setpageswapbacked-sooner.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-memcg-swapbacked-pages-active.patch
+vmscan-split-lru-lists-into-anon-file-sets-splitlru-bdi_cap_swap_backed.patch
+mlock-mlocked-pages-are-unevictable-fix-4.patch
+introduce-__get_user_pages.patch
+introduce-__get_user_pages-fix.patch
+split-lru-munlock-rework.patch
+revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch
+vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter.patch
+mmapc-deinline-a-few-functions.patch
+prio_tree-debugging-patch.patch
 
