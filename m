@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi_s3c24xx-really-assign-busnum.patch added to -mm tree
-Date: Sun, 27 Jul 2008 19:44:42 -0700
-Message-ID: <200807280244.m6S2igwm016311@imap1.linux-foundation.org>
+Subject: + mm-remove-find_max_pfn_with_active_regions.patch added to -mm tree
+Date: Sun, 27 Jul 2008 20:13:17 -0700
+Message-ID: <200807280313.m6S3DHDk017400@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40619 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46328 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753946AbYG1Cp1 (ORCPT
+	by vger.kernel.org with ESMTP id S1751160AbYG1DNz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jul 2008 22:45:27 -0400
+	Sun, 27 Jul 2008 23:13:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben-linux@fluff.org, dbrownell@users.sourceforge.net
+Cc: yhlu.kernel@gmail.com, mel@csn.ul.ie
 
 
 The patch titled
-     spi_s3c24xx: really assign busnum
+     mm: remove find_max_pfn_with_active_regions
 has been added to the -mm tree.  Its filename is
-     spi_s3c24xx-really-assign-busnum.patch
+     mm-remove-find_max_pfn_with_active_regions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi_s3c24xx: really assign busnum
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: mm: remove find_max_pfn_with_active_regions
+From: Yinghai Lu <yhlu.kernel@gmail.com>
 
-The original "Pass the bus number we expect the S3C24XX SPI driver to
-attach to via the platform data." [1] patch was mis-sent, and missed two
-important parts of the diff, which was to actually set the bus_num field
-and add the relevant field to the platform data.
+It has no user now
 
-[1] git commit 50f426b55d919dd017af35bb6a08753d1f262920
+Also print out info about adding/removing active regions.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_s3c24xx.c          |    1 +
- include/asm-arm/arch-s3c2410/spi.h |    1 +
- 2 files changed, 2 insertions(+)
+ include/linux/mm.h |    1 -
+ mm/page_alloc.c    |   22 ++--------------------
+ 2 files changed, 2 insertions(+), 21 deletions(-)
 
-diff -puN drivers/spi/spi_s3c24xx.c~spi_s3c24xx-really-assign-busnum drivers/spi/spi_s3c24xx.c
---- a/drivers/spi/spi_s3c24xx.c~spi_s3c24xx-really-assign-busnum
-+++ a/drivers/spi/spi_s3c24xx.c
-@@ -270,6 +270,7 @@ static int __init s3c24xx_spi_probe(stru
- 	/* setup the master state. */
+diff -puN include/linux/mm.h~mm-remove-find_max_pfn_with_active_regions include/linux/mm.h
+--- a/include/linux/mm.h~mm-remove-find_max_pfn_with_active_regions
++++ a/include/linux/mm.h
+@@ -1041,7 +1041,6 @@ extern unsigned long absent_pages_in_ran
+ extern void get_pfn_range_for_nid(unsigned int nid,
+ 			unsigned long *start_pfn, unsigned long *end_pfn);
+ extern unsigned long find_min_pfn_with_active_regions(void);
+-extern unsigned long find_max_pfn_with_active_regions(void);
+ extern void free_bootmem_with_active_regions(int nid,
+ 						unsigned long max_low_pfn);
+ typedef int (*work_fn_t)(unsigned long, unsigned long, void *);
+diff -puN mm/page_alloc.c~mm-remove-find_max_pfn_with_active_regions mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-remove-find_max_pfn_with_active_regions
++++ a/mm/page_alloc.c
+@@ -3572,8 +3572,7 @@ void __init add_active_range(unsigned in
+ {
+ 	int i;
  
- 	master->num_chipselect = hw->pdata->num_cs;
-+	master->bus_num = pdata->bus_num;
+-	mminit_dprintk(MMINIT_TRACE, "memory_register",
+-			"Entering add_active_range(%d, %#lx, %#lx) "
++	printk(KERN_INFO "Adding active range (%d, %#lx, %#lx) "
+ 			"%d entries of %d used\n",
+ 			nid, start_pfn, end_pfn,
+ 			nr_nodemap_entries, MAX_ACTIVE_REGIONS);
+@@ -3635,7 +3634,7 @@ void __init remove_active_range(unsigned
+ 	int i, j;
+ 	int removed = 0;
  
- 	/* setup the state for the bitbang driver */
+-	printk(KERN_DEBUG "remove_active_range (%d, %lu, %lu)\n",
++	printk(KERN_INFO "Removing active range (%d, %#lx, %#lx)\n",
+ 			  nid, start_pfn, end_pfn);
  
-diff -puN include/asm-arm/arch-s3c2410/spi.h~spi_s3c24xx-really-assign-busnum include/asm-arm/arch-s3c2410/spi.h
---- a/include/asm-arm/arch-s3c2410/spi.h~spi_s3c24xx-really-assign-busnum
-+++ a/include/asm-arm/arch-s3c2410/spi.h
-@@ -16,6 +16,7 @@
- struct s3c2410_spi_info {
- 	unsigned long		 pin_cs;	/* simple gpio cs */
- 	unsigned int		 num_cs;	/* total chipselects */
-+	int			 bus_num;       /* bus number to use. */
+ 	/* Find the old active region end and shrink */
+@@ -3753,23 +3752,6 @@ unsigned long __init find_min_pfn_with_a
+ 	return find_min_pfn_for_node(MAX_NUMNODES);
+ }
  
- 	void (*set_cs)(struct s3c2410_spi_info *spi, int cs, int pol);
- };
-_
-
-Patches currently in -mm which might be from ben-linux@fluff.org are
-
-origin.patch
-spi_s3c24xx-really-assign-busnum.patch
-linux-next.patch
-resource-add-resource_size.patch
-resource-add-resource_type-and-ioresource_type_bits.patch
-resource-add-new-ioresource_clk-type-v2.patch
-i2c-sh_mobile-ioresource_clk-support.patch
-
+-/**
+- * find_max_pfn_with_active_regions - Find the maximum PFN registered
+- *
+- * It returns the maximum PFN based on information provided via
+- * add_active_range().
+- */
+-unsigned long __init find_max_pfn_with_active_regions(void)
+-{
+-	int i;
+-	unsigned long max_pfn = 0;
+-
+-	for (i = 0; i < nr_nodemap_entries; i++)
+-		max_pfn = max(max_pfn, early_node_map[i].end_pfn);
+-
+-	return max_pfn;
+-}
