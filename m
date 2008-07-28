@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kdump-update-kdump-documentation-as-kexec-tools-resting-has-been-renamed-kexec-tools.patch added to -mm tree
-Date: Sun, 27 Jul 2008 20:22:14 -0700
-Message-ID: <200807280322.m6S3ME1C017762@imap1.linux-foundation.org>
+Subject: + cgroup-fix-possible-memory-leak.patch added to -mm tree
+Date: Sun, 27 Jul 2008 20:24:05 -0700
+Message-ID: <200807280324.m6S3O5v1017784@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50905 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53706 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750867AbYG1DXu (ORCPT
+	by vger.kernel.org with ESMTP id S1751667AbYG1DYw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jul 2008 23:23:50 -0400
+	Sun, 27 Jul 2008 23:24:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: horms@verge.net.au, vgoyal@redhat.com
+Cc: lizf@cn.fujitsu.com, balbir@in.ibm.com, clg@fr.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com
 
 
 The patch titled
-     kdump: update kdump documentation as kexec-tools-resting has been renamed kexec-tools
+     cgroup: fix possible memory leak
 has been added to the -mm tree.  Its filename is
-     kdump-update-kdump-documentation-as-kexec-tools-resting-has-been-renamed-kexec-tools.patch
+     cgroup-fix-possible-memory-leak.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kdump: update kdump documentation as kexec-tools-resting has been renamed kexec-tools
-From: Simon Horman <horms@verge.net.au>
+Subject: cgroup: fix possible memory leak
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-Signed-off-by: Simon Horman <horms@verge.net.au>
-Acked-by: Vivek Goyal <vgoyal@redhat.com>
+There's a leak if copy_from_user() returns failure.
+
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kdump/kdump.txt |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ kernel/cgroup.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/kdump/kdump.txt~kdump-update-kdump-documentation-as-kexec-tools-resting-has-been-renamed-kexec-tools Documentation/kdump/kdump.txt
---- a/Documentation/kdump/kdump.txt~kdump-update-kdump-documentation-as-kexec-tools-resting-has-been-renamed-kexec-tools
-+++ a/Documentation/kdump/kdump.txt
-@@ -65,26 +65,26 @@ Install kexec-tools
+diff -puN kernel/cgroup.c~cgroup-fix-possible-memory-leak kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-fix-possible-memory-leak
++++ a/kernel/cgroup.c
+@@ -1423,14 +1423,17 @@ static ssize_t cgroup_write_string(struc
+ 		if (buffer == NULL)
+ 			return -ENOMEM;
+ 	}
+-	if (nbytes && copy_from_user(buffer, userbuf, nbytes))
+-		return -EFAULT;
++	if (nbytes && copy_from_user(buffer, userbuf, nbytes)) {
++		retval = -EFAULT;
++		goto out;
++	}
  
- 2) Download the kexec-tools user-space package from the following URL:
- 
--http://www.kernel.org/pub/linux/kernel/people/horms/kexec-tools/kexec-tools-testing.tar.gz
-+http://www.kernel.org/pub/linux/kernel/people/horms/kexec-tools/kexec-tools.tar.gz
- 
--This is a symlink to the latest version, which at the time of writing is
--20061214, the only release of kexec-tools-testing so far. As other versions
--are released, the older ones will remain available at
--http://www.kernel.org/pub/linux/kernel/people/horms/kexec-tools/
-+This is a symlink to the latest version.
- 
--Note: Latest kexec-tools-testing git tree is available at
-+The latest kexec-tools git tree is available at:
- 
--git://git.kernel.org/pub/scm/linux/kernel/git/horms/kexec-tools-testing.git
-+git://git.kernel.org/pub/scm/linux/kernel/git/horms/kexec-tools.git
- or
--http://www.kernel.org/git/?p=linux/kernel/git/horms/kexec-tools-testing.git;a=summary
-+http://www.kernel.org/git/?p=linux/kernel/git/horms/kexec-tools.git
-+
-+More information about kexec-tools can be found at
-+http://www.kernel.org/pub/linux/kernel/people/horms/kexec-tools/README.html
- 
- 3) Unpack the tarball with the tar command, as follows:
- 
--   tar xvpzf kexec-tools-testing.tar.gz
-+   tar xvpzf kexec-tools.tar.gz
- 
- 4) Change to the kexec-tools directory, as follows:
- 
--   cd kexec-tools-testing-VERSION
-+   cd kexec-tools-VERSION
- 
- 5) Configure the package, as follows:
- 
+ 	buffer[nbytes] = 0;     /* nul-terminate */
+ 	strstrip(buffer);
+ 	retval = cft->write_string(cgrp, cft, buffer);
+ 	if (!retval)
+ 		retval = nbytes;
++out:
+ 	if (buffer != local_buffer)
+ 		kfree(buffer);
+ 	return retval;
 _
 
-Patches currently in -mm which might be from horms@verge.net.au are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
-kdump-update-kdump-documentation-as-kexec-tools-resting-has-been-renamed-kexec-tools.patch
+linux-next.patch
+cgroup-fix-possible-memory-leak.patch
+cgroup-remove-duplicate-code-in-allocate_cg_link.patch
+cgroup-uninline-cgroup_has_css_refs.patch
+memcg-remove-redundant-check-in-move_task.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+introduce-__get_user_pages.patch
+introduce-__get_user_pages-fix.patch
+split-lru-munlock-rework.patch
+revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch
 
