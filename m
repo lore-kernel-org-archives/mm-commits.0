@@ -1,77 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - firmware-fix-memmap-printk-format-warnings.patch removed from -mm tree
-Date: Mon, 28 Jul 2008 14:10:58 -0700
-Message-ID: <200807282110.m6SLAwC1027615@imap1.linux-foundation.org>
+Subject: - mtd-jedec_probe-fix-sst-16-bit-chip-detection.patch removed from -mm tree
+Date: Mon, 28 Jul 2008 14:11:23 -0700
+Message-ID: <200807282111.m6SLBN5D027670@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57132 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55103 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761517AbYG1VTE (ORCPT
+	by vger.kernel.org with ESMTP id S1761550AbYG1VTG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jul 2008 17:19:04 -0400
+	Mon, 28 Jul 2008 17:19:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, bwalle@suse.de, mingo@elte.hu, mm-commits@vger.kernel.org
+To: anemo@mba.ocn.ne.jp, dwmw2@infradead.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     firmware: fix memmap printk format warnings
+     mtd: jedec_probe: fix SST 16-bit chip detection
 has been removed from the -mm tree.  Its filename was
-     firmware-fix-memmap-printk-format-warnings.patch
+     mtd-jedec_probe-fix-sst-16-bit-chip-detection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: firmware: fix memmap printk format warnings
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: mtd: jedec_probe: fix SST 16-bit chip detection
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-Fix firmware/memmap printk format warnings:
+The unlock_addr rework in kernel 2.6.25 breaks 16-bit SST chips.  SST
+39LF160 and SST 39VF1601 are both 16-bit only chip (do not have BYTE# pin)
+and new uaddr value is not correct for them.  Add MTD_UADDR_0xAAAA_0x5555
+for those chips.  Tested with SST 39VF1601 chip.
 
-linux-next-20080711/drivers/firmware/memmap.c:156: warning: format '%llx' expects type 'long long unsigned int', but argument 4 has type 'resource_size_t'
-linux-next-20080711/drivers/firmware/memmap.c:161: warning: format '%llx' expects type 'long long unsigned int', but argument 4 has type 'resource_size_t'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Bernhard Walle <bwalle@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: <stable@kernel.org> [2.6.25.x, 2.6.26.x, subject to dwmw2 ack]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/memmap.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/mtd/chips/jedec_probe.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN drivers/firmware/memmap.c~firmware-fix-memmap-printk-format-warnings drivers/firmware/memmap.c
---- a/drivers/firmware/memmap.c~firmware-fix-memmap-printk-format-warnings
-+++ a/drivers/firmware/memmap.c
-@@ -153,12 +153,14 @@ int __init firmware_map_add_early(resour
+diff -puN drivers/mtd/chips/jedec_probe.c~mtd-jedec_probe-fix-sst-16-bit-chip-detection drivers/mtd/chips/jedec_probe.c
+--- a/drivers/mtd/chips/jedec_probe.c~mtd-jedec_probe-fix-sst-16-bit-chip-detection
++++ a/drivers/mtd/chips/jedec_probe.c
+@@ -200,6 +200,7 @@ enum uaddr {
+ 	MTD_UADDR_0x0555_0x0AAA,
+ 	MTD_UADDR_0x5555_0x2AAA,
+ 	MTD_UADDR_0x0AAA_0x0555,
++	MTD_UADDR_0xAAAA_0x5555,
+ 	MTD_UADDR_DONT_CARE,		/* Requires an arbitrary address */
+ 	MTD_UADDR_UNNECESSARY,		/* Does not require any address */
+ };
+@@ -247,6 +248,11 @@ static const struct unlock_addr  unlock_
+ 		.addr2 = 0x0555
+ 	},
  
- static ssize_t start_show(struct firmware_map_entry *entry, char *buf)
- {
--	return snprintf(buf, PAGE_SIZE, "0x%llx\n", entry->start);
-+	return snprintf(buf, PAGE_SIZE, "0x%llx\n",
-+		(unsigned long long)entry->start);
- }
- 
- static ssize_t end_show(struct firmware_map_entry *entry, char *buf)
- {
--	return snprintf(buf, PAGE_SIZE, "0x%llx\n", entry->end);
-+	return snprintf(buf, PAGE_SIZE, "0x%llx\n",
-+		(unsigned long long)entry->end);
- }
- 
- static ssize_t type_show(struct firmware_map_entry *entry, char *buf)
++	[MTD_UADDR_0xAAAA_0x5555] = {
++		.addr1 = 0xaaaa,
++		.addr2 = 0x5555
++	},
++
+ 	[MTD_UADDR_DONT_CARE] = {
+ 		.addr1 = 0x0000,      /* Doesn't matter which address */
+ 		.addr2 = 0x0000       /* is used - must be last entry */
+@@ -1461,8 +1467,8 @@ static const struct amd_flash_info jedec
+ 		.mfr_id		= MANUFACTURER_SST,     /* should be CFI */
+ 		.dev_id		= SST39LF160,
+ 		.name		= "SST 39LF160",
+-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+-		.uaddr		= MTD_UADDR_0x5555_0x2AAA,	/* ???? */
++		.devtypes	= CFI_DEVICETYPE_X16,
++		.uaddr		= MTD_UADDR_0xAAAA_0x5555,
+ 		.dev_size	= SIZE_2MiB,
+ 		.cmd_set	= P_ID_AMD_STD,
+ 		.nr_regions	= 2,
+@@ -1474,8 +1480,8 @@ static const struct amd_flash_info jedec
+ 		.mfr_id		= MANUFACTURER_SST,     /* should be CFI */
+ 		.dev_id		= SST39VF1601,
+ 		.name		= "SST 39VF1601",
+-		.devtypes	= CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
+-		.uaddr		= MTD_UADDR_0x5555_0x2AAA,	/* ???? */
++		.devtypes	= CFI_DEVICETYPE_X16,
++		.uaddr		= MTD_UADDR_0xAAAA_0x5555,
+ 		.dev_size	= SIZE_2MiB,
+ 		.cmd_set	= P_ID_AMD_STD,
+ 		.nr_regions	= 2,
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
 origin.patch
+gpio-fix-build-on-config_gpio_sysfs=n.patch
 linux-next.patch
-documentation-build-source-files-in-documentation-sub-dir.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-netfilter-conntrack_helper-needs-to-include-rculisth.patch
-lkdtm-fix-for-config_scsi=n.patch
-git-unionfs.patch
-profile-likely-unlikely-macros.patch
+mtdpart-handle-remaining-checkpatch-findings.patch
 
