@@ -1,130 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - qla2xxx-use-memory_read_from_buffer.patch removed from -mm tree
-Date: Mon, 28 Jul 2008 14:11:46 -0700
-Message-ID: <200807282111.m6SLBkwv027716@imap1.linux-foundation.org>
+Subject: - acpi-cpuidle-prevent-setting-pm_idle-to-null.patch removed from -mm tree
+Date: Mon, 28 Jul 2008 14:11:12 -0700
+Message-ID: <200807282111.m6SLBCkx027655@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58441 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762434AbYG1VTg (ORCPT
+	by vger.kernel.org with ESMTP id S1762597AbYG1VUK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jul 2008 17:19:36 -0400
+	Mon, 28 Jul 2008 17:20:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, James.Bottomley@HansenPartnership.com, andrew.vasquez@qlogic.com, linux-driver@qlogic.com, seokmann.ju@qlogic.com, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, andi@firstfloor.org, dhaval@linux.vnet.ibm.com, lenb@kernel.org, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     qla2xxx: use memory_read_from_buffer()
+     ACPI/CPUIDLE: prevent setting pm_idle to NULL
 has been removed from the -mm tree.  Its filename was
-     qla2xxx-use-memory_read_from_buffer.patch
+     acpi-cpuidle-prevent-setting-pm_idle-to-null.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: qla2xxx: use memory_read_from_buffer()
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: ACPI/CPUIDLE: prevent setting pm_idle to NULL
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Andrew Vasquez <linux-driver@qlogic.com>
-Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
-Tested-by: Andrew Vasquez <andrew.vasquez@qlogic.com>
-Cc: Seokmann Ju <seokmann.ju@qlogic.com>
+pm_idle_save resp.  pm_idle_old can be NULL when the restore code in
+acpi_processor_cst_has_changed() resp.  cpuidle_uninstall_idle_handler()
+is called.  This can set pm_idle unconditinally to NULL, which causes the
+kernel to panic when calling pm_idle in the x86 idle code.  This was
+covered by an extra check for !pm_idle in the x86 idle code, which was
+removed during the x86 idle code refactoring.
+
+Instead of restoring the pm_idle check in the x86 code prevent the
+acpi/cpuidle code to set pm_idle to NULL.
+
+Based on a debug patch from Ingo Molnar
+
+Reported-by: Dhaval Giani <dhaval@linux.vnet.ibm.com> [http://lkml.org/lkml/2008/7/2/309]
+Venkatesch Pallipadi <venkatesh.pallipadi@intel.com>
+Len Brown <lenb@kernel.org>
+Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/qla2xxx/qla_attr.c |   45 ++++++------------------------
- 1 file changed, 10 insertions(+), 35 deletions(-)
+ drivers/acpi/processor_idle.c |   15 +++++++++++----
+ drivers/cpuidle/cpuidle.c     |    2 +-
+ 2 files changed, 12 insertions(+), 5 deletions(-)
 
-diff -puN drivers/scsi/qla2xxx/qla_attr.c~qla2xxx-use-memory_read_from_buffer drivers/scsi/qla2xxx/qla_attr.c
---- a/drivers/scsi/qla2xxx/qla_attr.c~qla2xxx-use-memory_read_from_buffer
-+++ a/drivers/scsi/qla2xxx/qla_attr.c
-@@ -8,6 +8,7 @@
+diff -puN drivers/acpi/processor_idle.c~acpi-cpuidle-prevent-setting-pm_idle-to-null drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-cpuidle-prevent-setting-pm_idle-to-null
++++ a/drivers/acpi/processor_idle.c
+@@ -1332,9 +1332,15 @@ int acpi_processor_cst_has_changed(struc
+ 	if (!pr->flags.power_setup_done)
+ 		return -ENODEV;
  
- #include <linux/kthread.h>
- #include <linux/vmalloc.h>
-+#include <linux/fs.h>
+-	/* Fall back to the default idle loop */
+-	pm_idle = pm_idle_save;
+-	synchronize_sched();	/* Relies on interrupts forcing exit from idle. */
++	/*
++	 * Fall back to the default idle loop, when pm_idle_save had
++	 * been initialized.
++	 */
++	if (pm_idle_save) {
++		pm_idle = pm_idle_save;
++		/* Relies on interrupts forcing exit from idle. */
++		synchronize_sched();
++	}
  
- static int qla24xx_vport_disable(struct fc_vport *, bool);
+ 	pr->flags.power = 0;
+ 	result = acpi_processor_get_power_info(pr);
+@@ -1896,7 +1902,8 @@ int acpi_processor_power_exit(struct acp
  
-@@ -20,18 +21,12 @@ qla2x00_sysfs_read_fw_dump(struct kobjec
+ 	/* Unregister the idle handler when processor #0 is removed. */
+ 	if (pr->id == 0) {
+-		pm_idle = pm_idle_save;
++		if (pm_idle_save)
++			pm_idle = pm_idle_save;
+ 
+ 		/*
+ 		 * We are about to unload the current idle thread pm callback
+diff -puN drivers/cpuidle/cpuidle.c~acpi-cpuidle-prevent-setting-pm_idle-to-null drivers/cpuidle/cpuidle.c
+--- a/drivers/cpuidle/cpuidle.c~acpi-cpuidle-prevent-setting-pm_idle-to-null
++++ a/drivers/cpuidle/cpuidle.c
+@@ -94,7 +94,7 @@ void cpuidle_install_idle_handler(void)
+  */
+ void cpuidle_uninstall_idle_handler(void)
  {
- 	struct scsi_qla_host *ha = shost_priv(dev_to_shost(container_of(kobj,
- 	    struct device, kobj)));
--	char *rbuf = (char *)ha->fw_dump;
- 
- 	if (ha->fw_dump_reading == 0)
- 		return 0;
--	if (off > ha->fw_dump_len)
--                return 0;
--	if (off + count > ha->fw_dump_len)
--		count = ha->fw_dump_len - off;
- 
--	memcpy(buf, &rbuf[off], count);
--
--	return (count);
-+	return memory_read_from_buffer(buf, count, &off, ha->fw_dump,
-+					ha->fw_dump_len);
- }
- 
- static ssize_t
-@@ -94,20 +89,13 @@ qla2x00_sysfs_read_nvram(struct kobject 
- {
- 	struct scsi_qla_host *ha = shost_priv(dev_to_shost(container_of(kobj,
- 	    struct device, kobj)));
--	int		size = ha->nvram_size;
--	char		*nvram_cache = ha->nvram;
- 
--	if (!capable(CAP_SYS_ADMIN) || off > size || count == 0)
-+	if (!capable(CAP_SYS_ADMIN))
- 		return 0;
--	if (off + count > size) {
--		size -= off;
--		count = size;
--	}
- 
- 	/* Read NVRAM data from cache. */
--	memcpy(buf, &nvram_cache[off], count);
--
--	return count;
-+	return memory_read_from_buffer(buf, count, &off, ha->nvram,
-+					ha->nvram_size);
- }
- 
- static ssize_t
-@@ -175,14 +163,9 @@ qla2x00_sysfs_read_optrom(struct kobject
- 
- 	if (ha->optrom_state != QLA_SREADING)
- 		return 0;
--	if (off > ha->optrom_region_size)
--		return 0;
--	if (off + count > ha->optrom_region_size)
--		count = ha->optrom_region_size - off;
- 
--	memcpy(buf, &ha->optrom_buffer[off], count);
--
--	return count;
-+	return memory_read_from_buffer(buf, count, &off, ha->optrom_buffer,
-+					ha->optrom_region_size);
- }
- 
- static ssize_t
-@@ -374,20 +357,12 @@ qla2x00_sysfs_read_vpd(struct kobject *k
- {
- 	struct scsi_qla_host *ha = shost_priv(dev_to_shost(container_of(kobj,
- 	    struct device, kobj)));
--	int           size = ha->vpd_size;
--	char          *vpd_cache = ha->vpd;
- 
--	if (!capable(CAP_SYS_ADMIN) || off > size || count == 0)
-+	if (!capable(CAP_SYS_ADMIN))
- 		return 0;
--	if (off + count > size) {
--		size -= off;
--		count = size;
--	}
- 
- 	/* Read NVRAM data from cache. */
--	memcpy(buf, &vpd_cache[off], count);
+-	if (enabled_devices && (pm_idle != pm_idle_old)) {
++	if (enabled_devices && pm_idle_old && (pm_idle != pm_idle_old)) {
+ 		pm_idle = pm_idle_old;
+ 		cpuidle_kick_cpus();
+ 	}
+_
+
+Patches currently in -mm which might be from tglx@linutronix.de are
+
+origin.patch
+include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
+linux-next.patch
+x86-pci-replace-dbg-with-pr_debug.patch
+x86-pci-replace-dbg-with-pr_debug-fix.patch
+x86-pci-replace-dbg-with-pr_debug-fix-2.patch
+calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
+x86-remove-init_mm-export-as-planned-for-2626.patch
+arch-x86-pci-i386c-fix-printk-warnings.patch
+x86-tracehook_signal_handler.patch
+x86-tracehook-syscall.patch
+x86-tracehook-asm-syscallh.patch
+x86-signals-use-asm-syscallh.patch
+x86-tracehook-tif_notify_resume.patch
+x86-tracehook-config_have_arch_tracehook.patch
+add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+ntp-let-update_persistent_clock-sleep.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+timekeeping-fix-rounding-problem-during-clock-update.patch
+aes-x86_64-asm-implementation-optimization.patch
+ntp-fix-calculation-of-the-next-jiffie-to-trigger-rtc-sync.patch
+clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
+clocksource-keep-track-of-original-clocksource-frequency.patch
+clocksource-introduce-clocksource_forward_now.patch
+clocksource-introduce-clock_monotonic_raw.patch
+
