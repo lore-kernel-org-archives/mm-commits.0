@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-cpuidle-prevent-setting-pm_idle-to-null.patch added to -mm tree
-Date: Sun, 27 Jul 2008 19:38:02 -0700
-Message-ID: <200807280238.m6S2c2kt016114@imap1.linux-foundation.org>
+Subject: + mpc52xx_psc_spi-fix-block-transfer.patch added to -mm tree
+Date: Sun, 27 Jul 2008 19:41:02 -0700
+Message-ID: <200807280241.m6S2f2do016261@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51954 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36719 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752724AbYG1Cii (ORCPT
+	by vger.kernel.org with ESMTP id S1753146AbYG1ClY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jul 2008 22:38:38 -0400
+	Sun, 27 Jul 2008 22:41:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tglx@linutronix.de, andi@firstfloor.org, dhaval@linux.vnet.ibm.com, lenb@kernel.org, venkatesh.pallipadi@intel.com
+Cc: l.fu@pengutronix.de, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     ACPI/CPUIDLE: prevent setting pm_idle to NULL
+     mpc52xx_psc_spi: fix block transfer
 has been added to the -mm tree.  Its filename is
-     acpi-cpuidle-prevent-setting-pm_idle-to-null.patch
+     mpc52xx_psc_spi-fix-block-transfer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,106 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ACPI/CPUIDLE: prevent setting pm_idle to NULL
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: mpc52xx_psc_spi: fix block transfer
+From: Luotao Fu <l.fu@pengutronix.de>
 
-pm_idle_save resp.  pm_idle_old can be NULL when the restore code in
-acpi_processor_cst_has_changed() resp.  cpuidle_uninstall_idle_handler()
-is called.  This can set pm_idle unconditinally to NULL, which causes the
-kernel to panic when calling pm_idle in the x86 idle code.  This was
-covered by an extra check for !pm_idle in the x86 idle code, which was
-removed during the x86 idle code refactoring.
+The block transfer routine in the mpc52xx psc spi driver misinterpret the
+datasheet.  According to the processor datasheet the chipselect is held as
+long as the EOF is not written.  Theoretically block of any sizes can be
+transferred in this way.  The old routine however writes an EOF after
+every word, which has the size of size_of_word.  This makes the transfer
+slow.  Also fixed some duplicate code.
 
-Instead of restoring the pm_idle check in the x86 code prevent the
-acpi/cpuidle code to set pm_idle to NULL.
-
-Based on a debug patch from Ingo Molnar
-
-Reported-by: Dhaval Giani <dhaval@linux.vnet.ibm.com> [http://lkml.org/lkml/2008/7/2/309]
-Venkatesch Pallipadi <venkatesh.pallipadi@intel.com>
-Len Brown <lenb@kernel.org>
-Andi Kleen <andi@firstfloor.org>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Luotao Fu <l.fu@pengutronix.de>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_idle.c |   15 +++++++++++----
- drivers/cpuidle/cpuidle.c     |    2 +-
- 2 files changed, 12 insertions(+), 5 deletions(-)
+ drivers/spi/mpc52xx_psc_spi.c |   22 +++++++---------------
+ 1 file changed, 7 insertions(+), 15 deletions(-)
 
-diff -puN drivers/acpi/processor_idle.c~acpi-cpuidle-prevent-setting-pm_idle-to-null drivers/acpi/processor_idle.c
---- a/drivers/acpi/processor_idle.c~acpi-cpuidle-prevent-setting-pm_idle-to-null
-+++ a/drivers/acpi/processor_idle.c
-@@ -1332,9 +1332,15 @@ int acpi_processor_cst_has_changed(struc
- 	if (!pr->flags.power_setup_done)
- 		return -ENODEV;
+diff -puN drivers/spi/mpc52xx_psc_spi.c~mpc52xx_psc_spi-fix-block-transfer drivers/spi/mpc52xx_psc_spi.c
+--- a/drivers/spi/mpc52xx_psc_spi.c~mpc52xx_psc_spi-fix-block-transfer
++++ a/drivers/spi/mpc52xx_psc_spi.c
+@@ -148,7 +148,6 @@ static int mpc52xx_psc_spi_transfer_rxtx
+ 	unsigned rfalarm;
+ 	unsigned send_at_once = MPC52xx_PSC_BUFSIZE;
+ 	unsigned recv_at_once;
+-	unsigned bpw = mps->bits_per_word / 8;
  
--	/* Fall back to the default idle loop */
--	pm_idle = pm_idle_save;
--	synchronize_sched();	/* Relies on interrupts forcing exit from idle. */
-+	/*
-+	 * Fall back to the default idle loop, when pm_idle_save had
-+	 * been initialized.
-+	 */
-+	if (pm_idle_save) {
-+		pm_idle = pm_idle_save;
-+		/* Relies on interrupts forcing exit from idle. */
-+		synchronize_sched();
-+	}
+ 	if (!t->tx_buf && !t->rx_buf && t->len)
+ 		return -EINVAL;
+@@ -164,22 +163,15 @@ static int mpc52xx_psc_spi_transfer_rxtx
+ 		}
  
- 	pr->flags.power = 0;
- 	result = acpi_processor_get_power_info(pr);
-@@ -1896,7 +1902,8 @@ int acpi_processor_power_exit(struct acp
+ 		dev_dbg(&spi->dev, "send %d bytes...\n", send_at_once);
+-		if (tx_buf) {
+-			for (; send_at_once; sb++, send_at_once--) {
+-				/* set EOF flag */
+-				if (mps->bits_per_word
+-						&& (sb + 1) % bpw == 0)
+-					out_8(&psc->ircr2, 0x01);
++		for (; send_at_once; sb++, send_at_once--) {
++			/* set EOF flag before the last word is sent */
++			if (send_at_once == 1)
++				out_8(&psc->ircr2, 0x01);
++
++			if (tx_buf)
+ 				out_8(&psc->mpc52xx_psc_buffer_8, tx_buf[sb]);
+-			}
+-		} else {
+-			for (; send_at_once; sb++, send_at_once--) {
+-				/* set EOF flag */
+-				if (mps->bits_per_word
+-						&& ((sb + 1) % bpw) == 0)
+-					out_8(&psc->ircr2, 0x01);
++			else
+ 				out_8(&psc->mpc52xx_psc_buffer_8, 0);
+-			}
+ 		}
  
- 	/* Unregister the idle handler when processor #0 is removed. */
- 	if (pr->id == 0) {
--		pm_idle = pm_idle_save;
-+		if (pm_idle_save)
-+			pm_idle = pm_idle_save;
  
- 		/*
- 		 * We are about to unload the current idle thread pm callback
-diff -puN drivers/cpuidle/cpuidle.c~acpi-cpuidle-prevent-setting-pm_idle-to-null drivers/cpuidle/cpuidle.c
---- a/drivers/cpuidle/cpuidle.c~acpi-cpuidle-prevent-setting-pm_idle-to-null
-+++ a/drivers/cpuidle/cpuidle.c
-@@ -94,7 +94,7 @@ void cpuidle_install_idle_handler(void)
-  */
- void cpuidle_uninstall_idle_handler(void)
- {
--	if (enabled_devices && (pm_idle != pm_idle_old)) {
-+	if (enabled_devices && pm_idle_old && (pm_idle != pm_idle_old)) {
- 		pm_idle = pm_idle_old;
- 		cpuidle_kick_cpus();
- 	}
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from l.fu@pengutronix.de are
 
-origin.patch
-acpi-cpuidle-prevent-setting-pm_idle-to-null.patch
-linux-next.patch
-x86-pci-replace-dbg-with-pr_debug.patch
-x86-pci-replace-dbg-with-pr_debug-fix.patch
-x86-pci-replace-dbg-with-pr_debug-fix-2.patch
-calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
-x86-remove-init_mm-export-as-planned-for-2626.patch
-include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
-arch-x86-pci-i386c-fix-printk-warnings.patch
-x86-tracehook_signal_handler.patch
-x86-tracehook-syscall.patch
-x86-tracehook-asm-syscallh.patch
-x86-signals-use-asm-syscallh.patch
-x86-tracehook-tif_notify_resume.patch
-x86-tracehook-config_have_arch_tracehook.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-ntp-let-update_persistent_clock-sleep.patch
-migrate_timers-add-comment-use-spinlock_irq.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-timekeeping-fix-rounding-problem-during-clock-update.patch
-aes-x86_64-asm-implementation-optimization.patch
-ntp-fix-calculation-of-the-next-jiffie-to-trigger-rtc-sync.patch
-clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
-clocksource-keep-track-of-original-clocksource-frequency.patch
-clocksource-introduce-clocksource_forward_now.patch
-clocksource-introduce-clock_monotonic_raw.patch
+mpc52xx_psc_spi-fix-block-transfer.patch
 
