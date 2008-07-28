@@ -1,57 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - vmscan-move-isolate_lru_page-to-vmscanc-fix.patch removed from -mm tree
-Date: Mon, 28 Jul 2008 16:46:06 -0700
-Message-ID: <200807282346.m6SNk6jA002293@imap1.linux-foundation.org>
+Subject: - define-page_file_cache-function-fix.patch removed from -mm tree
+Date: Mon, 28 Jul 2008 16:46:56 -0700
+Message-ID: <200807282346.m6SNkvBc002307@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60399 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44619 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751632AbYG1Xqt (ORCPT
+	by vger.kernel.org with ESMTP id S1751639AbYG1Xr2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jul 2008 19:46:49 -0400
+	Mon, 28 Jul 2008 19:47:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Lee.Schermerhorn@hp.com, npiggin@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lee.schermerhorn@hp.com, minchan.kim@gmail.com, riel@redhat.com, rja@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan-move-isolate_lru_page-to-vmscanc-fix
+     define-page_file_cache-function-fix
 has been removed from the -mm tree.  Its filename was
-     vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+     define-page_file_cache-function-fix.patch
 
-This patch was dropped because it was folded into vmscan-move-isolate_lru_page-to-vmscanc.patch
+This patch was dropped because it was folded into define-page_file_cache-function.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan-move-isolate_lru_page-to-vmscanc-fix
+Subject: define-page_file_cache-function-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-grep is good stuff!
+a) Russ copying Linus on unimportant MM patches and ignoring all the
+   pending MM work.
 
-Cc: Nick Piggin <npiggin@suse.de>
+b) Linus making my life harder by merging it.
+
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: MinChan Kim <minchan.kim@gmail.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Russ Anderson <rja@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    3 ++-
+ include/linux/page-flags.h |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~vmscan-move-isolate_lru_page-to-vmscanc-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~vmscan-move-isolate_lru_page-to-vmscanc-fix
-+++ a/mm/memory_hotplug.c
-@@ -657,8 +657,9 @@ do_migrate_range(unsigned long start_pfn
- 		 * We can skip free pages. And we can only deal with pages on
- 		 * LRU.
- 		 */
--		ret = isolate_lru_page(page, &source);
-+		ret = isolate_lru_page(page);
- 		if (!ret) { /* Success */
-+			list_add_tail(&page->lru, &source);
- 			move_pages--;
- 		} else {
- 			/* Becasue we don't have big zone->lock. we should
+diff -puN include/linux/page-flags.h~define-page_file_cache-function-fix include/linux/page-flags.h
+--- a/include/linux/page-flags.h~define-page_file_cache-function-fix
++++ a/include/linux/page-flags.h
+@@ -333,7 +333,8 @@ static inline void __ClearPageTail(struc
+ 
+ #define PAGE_FLAGS	(1 << PG_lru   | 1 << PG_private   | 1 << PG_locked | \
+ 			 1 << PG_buddy | 1 << PG_writeback | \
+-			 1 << PG_slab  | 1 << PG_swapcache | 1 << PG_active)
++			 1 << PG_slab  | 1 << PG_swapcache | 1 << PG_active | \
++			 1 << PG_swapbacked)
+ 
+ /*
+  * Flags checked in bad_page().  Pages on the free list should not have
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -92,7 +95,7 @@ ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 vmscan-move-isolate_lru_page-to-vmscanc.patch
-vmscan-move-isolate_lru_page-to-vmscanc-fix.patch
+define-page_file_cache-function.patch
 define-page_file_cache-function-fix.patch
 vmscan-split-lru-lists-into-anon-file-sets-units-fix.patch
 unevictable-lru-infrastructure-fix.patch
