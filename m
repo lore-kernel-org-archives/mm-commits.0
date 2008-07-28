@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-remove-redundant-check-in-move_task.patch added to -mm tree
-Date: Sun, 27 Jul 2008 20:24:11 -0700
-Message-ID: <200807280324.m6S3OBYG017793@imap1.linux-foundation.org>
+Subject: + cgroup-remove-duplicate-code-in-allocate_cg_link.patch added to -mm tree
+Date: Sun, 27 Jul 2008 20:24:07 -0700
+Message-ID: <200807280324.m6S3O7Cx017787@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60316 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49696 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751717AbYG1DYz (ORCPT
+	by vger.kernel.org with ESMTP id S1752002AbYG1DZH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jul 2008 23:24:55 -0400
+	Sun, 27 Jul 2008 23:25:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lizf@cn.fujitsu.com, balbir@in.ibm.com, clg@fr.ibm.com, kamezawa.hiroyu@jp.f
 
 
 The patch titled
-     memcg: remove redundant check in move_task()
+     cgroup: remove duplicate code in allocate_cg_link()
 has been added to the -mm tree.  Its filename is
-     memcg-remove-redundant-check-in-move_task.patch
+     cgroup-remove-duplicate-code-in-allocate_cg_link.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: remove redundant check in move_task()
+Subject: cgroup: remove duplicate code in allocate_cg_link()
 From: Li Zefan <lizf@cn.fujitsu.com>
 
-It's guaranteed by cgroup that old_cgrp != cgrp.
+- just call free_cg_links() in allocate_cg_links()
+- the list will get initialized in allocate_cg_links(), so don't init
+  it twice
 
 Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
@@ -47,22 +49,75 @@ Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ---
- 1 file changed, 3 deletions(-)
+ kernel/cgroup.c |   30 ++++++++++++------------------
+ 1 file changed, 12 insertions(+), 18 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-remove-redundant-check-in-move_task mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-redundant-check-in-move_task
-+++ a/mm/memcontrol.c
-@@ -1168,9 +1168,6 @@ static void mem_cgroup_move_task(struct 
- 	mem = mem_cgroup_from_cont(cont);
- 	old_mem = mem_cgroup_from_cont(old_cont);
+diff -puN kernel/cgroup.c~cgroup-remove-duplicate-code-in-allocate_cg_link kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-remove-duplicate-code-in-allocate_cg_link
++++ a/kernel/cgroup.c
+@@ -354,6 +354,17 @@ static struct css_set *find_existing_css
+ 	return NULL;
+ }
  
--	if (mem == old_mem)
--		goto out;
++static void free_cg_links(struct list_head *tmp)
++{
++	struct cg_cgroup_link *link;
++	struct cg_cgroup_link *saved_link;
++
++	list_for_each_entry_safe(link, saved_link, tmp, cgrp_link_list) {
++		list_del(&link->cgrp_link_list);
++		kfree(link);
++	}
++}
++
+ /*
+  * allocate_cg_links() allocates "count" cg_cgroup_link structures
+  * and chains them on tmp through their cgrp_link_list fields. Returns 0 on
+@@ -362,17 +373,12 @@ static struct css_set *find_existing_css
+ static int allocate_cg_links(int count, struct list_head *tmp)
+ {
+ 	struct cg_cgroup_link *link;
+-	struct cg_cgroup_link *saved_link;
+ 	int i;
+ 	INIT_LIST_HEAD(tmp);
+ 	for (i = 0; i < count; i++) {
+ 		link = kmalloc(sizeof(*link), GFP_KERNEL);
+ 		if (!link) {
+-			list_for_each_entry_safe(link, saved_link, tmp,
+-						 cgrp_link_list) {
+-				list_del(&link->cgrp_link_list);
+-				kfree(link);
+-			}
++			free_cg_links(tmp);
+ 			return -ENOMEM;
+ 		}
+ 		list_add(&link->cgrp_link_list, tmp);
+@@ -380,17 +386,6 @@ static int allocate_cg_links(int count, 
+ 	return 0;
+ }
+ 
+-static void free_cg_links(struct list_head *tmp)
+-{
+-	struct cg_cgroup_link *link;
+-	struct cg_cgroup_link *saved_link;
 -
- 	/*
- 	 * Only thread group leaders are allowed to migrate, the mm_struct is
- 	 * in effect owned by the leader
+-	list_for_each_entry_safe(link, saved_link, tmp, cgrp_link_list) {
+-		list_del(&link->cgrp_link_list);
+-		kfree(link);
+-	}
+-}
+-
+ /*
+  * find_css_set() takes an existing cgroup group and a
+  * cgroup object, and returns a css_set object that's
+@@ -955,7 +950,6 @@ static int cgroup_get_sb(struct file_sys
+ 	struct super_block *sb;
+ 	struct cgroupfs_root *root;
+ 	struct list_head tmp_cg_links;
+-	INIT_LIST_HEAD(&tmp_cg_links);
+ 
+ 	/* First find the desired set of subsystems */
+ 	ret = parse_cgroupfs_options(data, &opts);
 _
 
 Patches currently in -mm which might be from lizf@cn.fujitsu.com are
