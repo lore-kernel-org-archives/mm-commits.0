@@ -1,57 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - mlock-mlocked-pages-are-unevictable-fix-fix.patch removed from -mm tree
-Date: Mon, 28 Jul 2008 16:58:49 -0700
-Message-ID: <200807282358.m6SNwnMg002861@imap1.linux-foundation.org>
+Subject: - mlock-mlocked-pages-are-unevictable-fix.patch removed from -mm tree
+Date: Mon, 28 Jul 2008 16:58:45 -0700
+Message-ID: <200807282358.m6SNwkxD002855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54775 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48525 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752062AbYG1X7y (ORCPT
+	by vger.kernel.org with ESMTP id S1752193AbYG1X76 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jul 2008 19:59:54 -0400
+	Mon, 28 Jul 2008 19:59:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, mpm@selenic.com, npiggin@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mlock-mlocked-pages-are-unevictable-fix-fix
+     mlock-mlocked-pages-are-unevictable-fix
 has been removed from the -mm tree.  Its filename was
-     mlock-mlocked-pages-are-unevictable-fix-fix.patch
+     mlock-mlocked-pages-are-unevictable-fix.patch
 
 This patch was dropped because it was folded into mlock-mlocked-pages-are-unevictable.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlock-mlocked-pages-are-unevictable-fix-fix
+Subject: mlock-mlocked-pages-are-unevictable-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-put this back - we'll use it later.
+Fix this patch for pagemap-pass-mm-into-pagewalkers.patch.
 
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Matt Mackall <mpm@selenic.com>
 Cc: Nick Piggin <npiggin@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/mlock.c |   25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN mm/mlock.c~mlock-mlocked-pages-are-unevictable-fix-fix mm/mlock.c
---- a/mm/mlock.c~mlock-mlocked-pages-are-unevictable-fix-fix
+diff -puN mm/mlock.c~mlock-mlocked-pages-are-unevictable-fix mm/mlock.c
+--- a/mm/mlock.c~mlock-mlocked-pages-are-unevictable-fix
 +++ a/mm/mlock.c
-@@ -262,6 +262,7 @@ static int __munlock_pmd_handler(pmd_t *
+@@ -202,9 +202,9 @@ struct munlock_page_walk {
+  * munlock normal pages for present ptes
+  */
+ static int __munlock_pte_handler(pte_t *ptep, unsigned long addr,
+-				   unsigned long end, void *private)
++				   unsigned long end, struct mm_walk *walk)
+ {
+-	struct munlock_page_walk *mpw = private;
++	struct munlock_page_walk *mpw = walk->private;
+ 	swp_entry_t entry;
+ 	struct page *page;
+ 	pte_t pte;
+@@ -245,18 +245,14 @@ out:
+  * Save pmd for pte handler for waiting on migration entries
+  */
+ static int __munlock_pmd_handler(pmd_t *pmd, unsigned long addr,
+-				 unsigned long end, void *private)
++				 unsigned long end, struct mm_walk *walk)
+ {
+-	struct munlock_page_walk *mpw = private;
++	struct munlock_page_walk *mpw = walk->private;
+ 
+ 	mpw->pmd = pmd;
+ 	return 0;
+ }
+ 
+-static struct mm_walk munlock_page_walk = {
+-	.pmd_entry = __munlock_pmd_handler,
+-	.pte_entry = __munlock_pte_handler,
+-};
+ 
+ /*
+  * munlock a range of pages in the vma using standard page table walk.
+@@ -266,8 +262,14 @@ static struct mm_walk munlock_page_walk 
  static void __munlock_vma_pages_range(struct vm_area_struct *vma,
  			      unsigned long start, unsigned long end)
  {
-+	struct mm_struct *mm = vma->vm_mm;
- 	struct munlock_page_walk mpw = {
- 		.vma = vma,
- 	};
+-	struct mm_struct *mm = vma->vm_mm;
+-	struct munlock_page_walk mpw;
++	struct munlock_page_walk mpw = {
++		.vma = vma,
++	};
++	struct mm_walk munlock_page_walk = {
++		.pmd_entry = __munlock_pmd_handler,
++		.pte_entry = __munlock_pte_handler,
++		.private = &mpw,
++	};
+ 
+ 	VM_BUG_ON(start & ~PAGE_MASK || end & ~PAGE_MASK);
+ 	VM_BUG_ON(!rwsem_is_locked(&vma->vm_mm->mmap_sem));
+@@ -275,8 +277,7 @@ static void __munlock_vma_pages_range(st
+ 	VM_BUG_ON(end > vma->vm_end);
+ 
+ 	lru_add_drain_all();	/* push cached pages to LRU */
+-	mpw.vma = vma;
+-	walk_page_range(mm, start, end, &munlock_page_walk, &mpw);
++	walk_page_range(start, end, &munlock_page_walk);
+ 	lru_add_drain_all();	/* to update stats */
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,6 +149,7 @@ vmscan-split-lru-lists-into-anon-file-sets.patch
 unevictable-lru-infrastructure.patch
 unevictable-lru-page-statistics.patch
 mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-fix.patch
 mlock-mlocked-pages-are-unevictable-fix-3.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
