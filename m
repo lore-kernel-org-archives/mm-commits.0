@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-find_max_pfn_with_active_regions.patch added to -mm tree
-Date: Sun, 27 Jul 2008 20:13:17 -0700
-Message-ID: <200807280313.m6S3DHDk017400@imap1.linux-foundation.org>
+Subject: + kdump-update-kdump-documentation-as-kexec-tools-resting-has-been-renamed-kexec-tools.patch added to -mm tree
+Date: Sun, 27 Jul 2008 20:22:14 -0700
+Message-ID: <200807280322.m6S3ME1C017762@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46328 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50905 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751160AbYG1DNz (ORCPT
+	by vger.kernel.org with ESMTP id S1750867AbYG1DXu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Jul 2008 23:13:55 -0400
+	Sun, 27 Jul 2008 23:23:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yhlu.kernel@gmail.com, mel@csn.ul.ie
+Cc: horms@verge.net.au, vgoyal@redhat.com
 
 
 The patch titled
-     mm: remove find_max_pfn_with_active_regions
+     kdump: update kdump documentation as kexec-tools-resting has been renamed kexec-tools
 has been added to the -mm tree.  Its filename is
-     mm-remove-find_max_pfn_with_active_regions.patch
+     kdump-update-kdump-documentation-as-kexec-tools-resting-has-been-renamed-kexec-tools.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove find_max_pfn_with_active_regions
-From: Yinghai Lu <yhlu.kernel@gmail.com>
+Subject: kdump: update kdump documentation as kexec-tools-resting has been renamed kexec-tools
+From: Simon Horman <horms@verge.net.au>
 
-It has no user now
-
-Also print out info about adding/removing active regions.
-
-Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 -
- mm/page_alloc.c    |   22 ++--------------------
- 2 files changed, 2 insertions(+), 21 deletions(-)
+ Documentation/kdump/kdump.txt |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/mm.h~mm-remove-find_max_pfn_with_active_regions include/linux/mm.h
---- a/include/linux/mm.h~mm-remove-find_max_pfn_with_active_regions
-+++ a/include/linux/mm.h
-@@ -1041,7 +1041,6 @@ extern unsigned long absent_pages_in_ran
- extern void get_pfn_range_for_nid(unsigned int nid,
- 			unsigned long *start_pfn, unsigned long *end_pfn);
- extern unsigned long find_min_pfn_with_active_regions(void);
--extern unsigned long find_max_pfn_with_active_regions(void);
- extern void free_bootmem_with_active_regions(int nid,
- 						unsigned long max_low_pfn);
- typedef int (*work_fn_t)(unsigned long, unsigned long, void *);
-diff -puN mm/page_alloc.c~mm-remove-find_max_pfn_with_active_regions mm/page_alloc.c
---- a/mm/page_alloc.c~mm-remove-find_max_pfn_with_active_regions
-+++ a/mm/page_alloc.c
-@@ -3572,8 +3572,7 @@ void __init add_active_range(unsigned in
- {
- 	int i;
+diff -puN Documentation/kdump/kdump.txt~kdump-update-kdump-documentation-as-kexec-tools-resting-has-been-renamed-kexec-tools Documentation/kdump/kdump.txt
+--- a/Documentation/kdump/kdump.txt~kdump-update-kdump-documentation-as-kexec-tools-resting-has-been-renamed-kexec-tools
++++ a/Documentation/kdump/kdump.txt
+@@ -65,26 +65,26 @@ Install kexec-tools
  
--	mminit_dprintk(MMINIT_TRACE, "memory_register",
--			"Entering add_active_range(%d, %#lx, %#lx) "
-+	printk(KERN_INFO "Adding active range (%d, %#lx, %#lx) "
- 			"%d entries of %d used\n",
- 			nid, start_pfn, end_pfn,
- 			nr_nodemap_entries, MAX_ACTIVE_REGIONS);
-@@ -3635,7 +3634,7 @@ void __init remove_active_range(unsigned
- 	int i, j;
- 	int removed = 0;
+ 2) Download the kexec-tools user-space package from the following URL:
  
--	printk(KERN_DEBUG "remove_active_range (%d, %lu, %lu)\n",
-+	printk(KERN_INFO "Removing active range (%d, %#lx, %#lx)\n",
- 			  nid, start_pfn, end_pfn);
+-http://www.kernel.org/pub/linux/kernel/people/horms/kexec-tools/kexec-tools-testing.tar.gz
++http://www.kernel.org/pub/linux/kernel/people/horms/kexec-tools/kexec-tools.tar.gz
  
- 	/* Find the old active region end and shrink */
-@@ -3753,23 +3752,6 @@ unsigned long __init find_min_pfn_with_a
- 	return find_min_pfn_for_node(MAX_NUMNODES);
- }
+-This is a symlink to the latest version, which at the time of writing is
+-20061214, the only release of kexec-tools-testing so far. As other versions
+-are released, the older ones will remain available at
+-http://www.kernel.org/pub/linux/kernel/people/horms/kexec-tools/
++This is a symlink to the latest version.
  
--/**
-- * find_max_pfn_with_active_regions - Find the maximum PFN registered
-- *
-- * It returns the maximum PFN based on information provided via
-- * add_active_range().
-- */
--unsigned long __init find_max_pfn_with_active_regions(void)
--{
--	int i;
--	unsigned long max_pfn = 0;
--
--	for (i = 0; i < nr_nodemap_entries; i++)
--		max_pfn = max(max_pfn, early_node_map[i].end_pfn);
--
--	return max_pfn;
--}
+-Note: Latest kexec-tools-testing git tree is available at
++The latest kexec-tools git tree is available at:
+ 
+-git://git.kernel.org/pub/scm/linux/kernel/git/horms/kexec-tools-testing.git
++git://git.kernel.org/pub/scm/linux/kernel/git/horms/kexec-tools.git
+ or
+-http://www.kernel.org/git/?p=linux/kernel/git/horms/kexec-tools-testing.git;a=summary
++http://www.kernel.org/git/?p=linux/kernel/git/horms/kexec-tools.git
++
++More information about kexec-tools can be found at
++http://www.kernel.org/pub/linux/kernel/people/horms/kexec-tools/README.html
+ 
+ 3) Unpack the tarball with the tar command, as follows:
+ 
+-   tar xvpzf kexec-tools-testing.tar.gz
++   tar xvpzf kexec-tools.tar.gz
+ 
+ 4) Change to the kexec-tools directory, as follows:
+ 
+-   cd kexec-tools-testing-VERSION
++   cd kexec-tools-VERSION
+ 
+ 5) Configure the package, as follows:
+ 
+_
+
+Patches currently in -mm which might be from horms@verge.net.au are
+
+origin.patch
+kdump-update-kdump-documentation-as-kexec-tools-resting-has-been-renamed-kexec-tools.patch
+
