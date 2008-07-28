@@ -1,68 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - ide-cd-use-the-new-object_is_in_stack-helper.patch removed from -mm tree
-Date: Mon, 28 Jul 2008 14:11:20 -0700
-Message-ID: <200807282111.m6SLBKDq027666@imap1.linux-foundation.org>
+Subject: - nfs-fix-nfs_remount-oops-when-rebooting.patch removed from -mm tree
+Date: Mon, 28 Jul 2008 14:11:50 -0700
+Message-ID: <200807282111.m6SLBob7027724@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56197 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52382 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762070AbYG1VUr (ORCPT
+	by vger.kernel.org with ESMTP id S1762607AbYG1VUQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jul 2008 17:20:47 -0400
+	Mon, 28 Jul 2008 17:20:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fujita.tomonori@lab.ntt.co.jp, James.Bottomley@HansenPartnership.com, bzolnier@gmail.com, htejun@gmail.com, jens.axboe@oracle.com, petkovbb@gmail.com, tsbogend@alpha.franken.de, mm-co
+To: maz@misterjones.org, bfields@fieldses.org, jlayton@redhat.com, marc.zyngier@altran.com, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ide-cd: use the new object_is_in_stack() helper
+     nfs: fix nfs_remount oops when rebooting
 has been removed from the -mm tree.  Its filename was
-     ide-cd-use-the-new-object_is_in_stack-helper.patch
+     nfs-fix-nfs_remount-oops-when-rebooting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ide-cd: use the new object_is_in_stack() helper
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: nfs: fix nfs_remount oops when rebooting
+From: Marc Zyngier <maz@misterjones.org>
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Borislav Petkov <petkovbb@gmail.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+The commit
+
+    commit 48b605f83c920d8daa50e43fc2c7f718e04c7bfa
+    Author: Jeff Layton <jlayton@redhat.com>
+    Date:   Tue Jun 10 15:38:39 2008 -0400
+
+        NFS: implement option checking when remounting NFS filesystems (resend)
+
+generates an Oops on my platform when rebooting while its root FS on an
+NFS share (NFSv3, TCP).
+
+The new super.c:nfs_remount function doesn't check the validity of the
+options/options4 pointers.  Unfortunately, this seems to happen.  The
+obvious patch seems to check the pointers, and not to do anything if the
+happend to be NULL.
+
+Signed-off-by: Marc Zyngier <marc.zyngier@altran.com>
+Acked-by: Jeff Layton <jlayton@redhat.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-cd.c |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ fs/nfs/super.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ide/ide-cd.c~ide-cd-use-the-new-object_is_in_stack-helper drivers/ide/ide-cd.c
---- a/drivers/ide/ide-cd.c~ide-cd-use-the-new-object_is_in_stack-helper
-+++ a/drivers/ide/ide-cd.c
-@@ -1162,13 +1162,12 @@ static void cdrom_do_block_pc(ide_drive_
- 	if (rq->bio || ((rq->cmd_type == REQ_TYPE_ATA_PC) && rq->data_len)) {
- 		struct request_queue *q = drive->queue;
- 		unsigned int alignment;
--		unsigned long addr;
--		unsigned long stack_mask = ~(THREAD_SIZE - 1);
-+		char *buf;
+diff -puN fs/nfs/super.c~nfs-fix-nfs_remount-oops-when-rebooting fs/nfs/super.c
+--- a/fs/nfs/super.c~nfs-fix-nfs_remount-oops-when-rebooting
++++ a/fs/nfs/super.c
+@@ -1718,9 +1718,10 @@ nfs_remount(struct super_block *sb, int 
+ 	 * ones were explicitly specified. Fall back to legacy behavior and
+ 	 * just return success.
+ 	 */
+-	if ((nfsvers == 4 && options4->version == 1) ||
+-	    (nfsvers <= 3 && options->version >= 1 &&
+-	     options->version <= 6))
++
++	if ((nfsvers == 4 && (!options4 || options4->version == 1)) ||
++	    (nfsvers <= 3 && (!options || (options->version >= 1 &&
++					   options->version <= 6))))
+ 		return 0;
  
- 		if (rq->bio)
--			addr = (unsigned long)bio_data(rq->bio);
-+			buf = bio_data(rq->bio);
- 		else
--			addr = (unsigned long)rq->data;
-+			buf = rq->data;
- 
- 		info->dma = drive->using_dma;
- 
-@@ -1179,11 +1178,8 @@ static void cdrom_do_block_pc(ide_drive_
- 		 * separate masks.
- 		 */
- 		alignment = queue_dma_alignment(q) | q->dma_pad_mask;
--		if (addr & alignment || rq->data_len & alignment)
--			info->dma = 0;
+ 	data = kzalloc(sizeof(*data), GFP_KERNEL);
+_
+
+Patches currently in -mm which might be from maz@misterjones.org are
+
+origin.patch
+linux-next.patch
+
