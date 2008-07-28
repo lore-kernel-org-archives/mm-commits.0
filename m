@@ -1,420 +1,577 @@
 From: akpm@linux-foundation.org
-Subject: - mtdpart-handle-most-checkpatch-findings.patch removed from -mm tree
-Date: Mon, 28 Jul 2008 14:11:29 -0700
-Message-ID: <200807282111.m6SLBTIp027681@imap1.linux-foundation.org>
+Subject: - fusion-replace-remaining-__function__-occurrences.patch removed from -mm tree
+Date: Mon, 28 Jul 2008 14:11:41 -0700
+Message-ID: <200807282111.m6SLBfHV027700@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45857 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52903 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761238AbYG1VMQ (ORCPT
+	by vger.kernel.org with ESMTP id S1760907AbYG1VMP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jul 2008 17:12:16 -0400
+	Mon, 28 Jul 2008 17:12:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, dwmw2@infradead.org, joern@logfs.org, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, Eric.Moore@lsil.com, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtdpart: handle most checkpatch findings
+     fusion: replace remaining __FUNCTION__ occurrences
 has been removed from the -mm tree.  Its filename was
-     mtdpart-handle-most-checkpatch-findings.patch
+     fusion-replace-remaining-__function__-occurrences.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtdpart: handle most checkpatch findings
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: fusion: replace remaining __FUNCTION__ occurrences
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Remaining are 12 warnings about long lines and 1 about braces that could
-be argued about.
+__FUNCTION__ is gcc-specific, use __func__
 
-Signed-off-by: Joern Engel <joern@logfs.org>
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdpart.c |  129 ++++++++++++++++++++--------------------
- 1 file changed, 65 insertions(+), 64 deletions(-)
+ drivers/message/fusion/mptbase.c  |   18 ++++-----
+ drivers/message/fusion/mptctl.c   |    4 +-
+ drivers/message/fusion/mptfc.c    |    8 ++--
+ drivers/message/fusion/mptlan.c   |   26 ++++++-------
+ drivers/message/fusion/mptsas.c   |   54 ++++++++++++++--------------
+ drivers/message/fusion/mptscsih.c |    4 +-
+ 6 files changed, 57 insertions(+), 57 deletions(-)
 
-diff -puN drivers/mtd/mtdpart.c~mtdpart-handle-most-checkpatch-findings drivers/mtd/mtdpart.c
---- a/drivers/mtd/mtdpart.c~mtdpart-handle-most-checkpatch-findings
-+++ a/drivers/mtd/mtdpart.c
-@@ -44,8 +44,8 @@ struct mtd_part {
-  * to the _real_ device.
-  */
+diff -puN drivers/message/fusion/mptbase.c~fusion-replace-remaining-__function__-occurrences drivers/message/fusion/mptbase.c
+--- a/drivers/message/fusion/mptbase.c~fusion-replace-remaining-__function__-occurrences
++++ a/drivers/message/fusion/mptbase.c
+@@ -356,7 +356,7 @@ mpt_turbo_reply(MPT_ADAPTER *ioc, u32 pa
+ 	if (!cb_idx || cb_idx >= MPT_MAX_PROTOCOL_DRIVERS ||
+ 		MptCallbacks[cb_idx] == NULL) {
+ 		printk(MYIOC_s_WARN_FMT "%s: Invalid cb_idx (%d)!\n",
+-				__FUNCTION__, ioc->name, cb_idx);
++				__func__, ioc->name, cb_idx);
+ 		goto out;
+ 	}
  
--static int part_read (struct mtd_info *mtd, loff_t from, size_t len,
--			size_t *retlen, u_char *buf)
-+static int part_read(struct mtd_info *mtd, loff_t from, size_t len,
-+		size_t *retlen, u_char *buf)
- {
- 	struct mtd_part *part = PART(mtd);
- 	int res;
-@@ -54,7 +54,7 @@ static int part_read (struct mtd_info *m
- 		len = 0;
- 	else if (from + len > mtd->size)
- 		len = mtd->size - from;
--	res = part->master->read (part->master, from + part->offset,
-+	res = part->master->read(part->master, from + part->offset,
- 				   len, retlen, buf);
- 	if (unlikely(res)) {
- 		if (res == -EUCLEAN)
-@@ -65,8 +65,8 @@ static int part_read (struct mtd_info *m
- 	return res;
- }
+@@ -420,7 +420,7 @@ mpt_reply(MPT_ADAPTER *ioc, u32 pa)
+ 	if (!cb_idx || cb_idx >= MPT_MAX_PROTOCOL_DRIVERS ||
+ 		MptCallbacks[cb_idx] == NULL) {
+ 		printk(MYIOC_s_WARN_FMT "%s: Invalid cb_idx (%d)!\n",
+-				__FUNCTION__, ioc->name, cb_idx);
++				__func__, ioc->name, cb_idx);
+ 		freeme = 0;
+ 		goto out;
+ 	}
+@@ -2434,7 +2434,7 @@ mpt_adapter_disable(MPT_ADAPTER *ioc)
  
--static int part_point (struct mtd_info *mtd, loff_t from, size_t len,
--			size_t *retlen, void **virt, resource_size_t *phys)
-+static int part_point(struct mtd_info *mtd, loff_t from, size_t len,
-+		size_t *retlen, void **virt, resource_size_t *phys)
- {
- 	struct mtd_part *part = PART(mtd);
- 	if (from >= mtd->size)
-@@ -85,7 +85,7 @@ static void part_unpoint(struct mtd_info
- }
+ 	if (ioc->cached_fw != NULL) {
+ 		ddlprintk(ioc, printk(MYIOC_s_DEBUG_FMT "%s: Pushing FW onto "
+-		    "adapter\n", __FUNCTION__, ioc->name));
++		    "adapter\n", __func__, ioc->name));
+ 		if ((ret = mpt_downloadboot(ioc, (MpiFwHeader_t *)
+ 		    ioc->cached_fw, CAN_SLEEP)) < 0) {
+ 			printk(MYIOC_s_WARN_FMT
+@@ -3693,7 +3693,7 @@ mpt_diag_reset(MPT_ADAPTER *ioc, int ign
  
- static int part_read_oob(struct mtd_info *mtd, loff_t from,
--			 struct mtd_oob_ops *ops)
-+		struct mtd_oob_ops *ops)
- {
- 	struct mtd_part *part = PART(mtd);
- 	int res;
-@@ -105,38 +105,38 @@ static int part_read_oob(struct mtd_info
- 	return res;
- }
+ 	if (ioc->pcidev->device == MPI_MANUFACTPAGE_DEVID_SAS1078) {
+ 		drsprintk(ioc, printk(MYIOC_s_WARN_FMT "%s: Doorbell=%p; 1078 reset "
+-			"address=%p\n",  ioc->name, __FUNCTION__,
++			"address=%p\n",  ioc->name, __func__,
+ 			&ioc->chip->Doorbell, &ioc->chip->Reset_1078));
+ 		CHIPREG_WRITE32(&ioc->chip->Reset_1078, 0x07);
+ 		if (sleepFlag == CAN_SLEEP)
+@@ -4742,12 +4742,12 @@ mptbase_sas_persist_operation(MPT_ADAPTE
+ 		break;
+ 	}
  
--static int part_read_user_prot_reg (struct mtd_info *mtd, loff_t from, size_t len,
--			size_t *retlen, u_char *buf)
-+static int part_read_user_prot_reg(struct mtd_info *mtd, loff_t from,
-+		size_t len, size_t *retlen, u_char *buf)
- {
- 	struct mtd_part *part = PART(mtd);
--	return part->master->read_user_prot_reg (part->master, from,
-+	return part->master->read_user_prot_reg(part->master, from,
- 					len, retlen, buf);
- }
+-	printk("%s: persist_opcode=%x\n",__FUNCTION__, persist_opcode);
++	printk("%s: persist_opcode=%x\n",__func__, persist_opcode);
  
--static int part_get_user_prot_info (struct mtd_info *mtd,
--				    struct otp_info *buf, size_t len)
-+static int part_get_user_prot_info(struct mtd_info *mtd,
-+		struct otp_info *buf, size_t len)
- {
- 	struct mtd_part *part = PART(mtd);
--	return part->master->get_user_prot_info (part->master, buf, len);
-+	return part->master->get_user_prot_info(part->master, buf, len);
- }
+ 	/* Get a MF for this command.
+ 	 */
+ 	if ((mf = mpt_get_msg_frame(mpt_base_index, ioc)) == NULL) {
+-		printk("%s: no msg frames!\n",__FUNCTION__);
++		printk("%s: no msg frames!\n",__func__);
+ 		return -1;
+         }
  
--static int part_read_fact_prot_reg (struct mtd_info *mtd, loff_t from, size_t len,
--			size_t *retlen, u_char *buf)
-+static int part_read_fact_prot_reg(struct mtd_info *mtd, loff_t from,
-+		size_t len, size_t *retlen, u_char *buf)
- {
- 	struct mtd_part *part = PART(mtd);
--	return part->master->read_fact_prot_reg (part->master, from,
-+	return part->master->read_fact_prot_reg(part->master, from,
- 					len, retlen, buf);
- }
+@@ -4771,13 +4771,13 @@ mptbase_sas_persist_operation(MPT_ADAPTE
+ 	    (SasIoUnitControlReply_t *)ioc->persist_reply_frame;
+ 	if (le16_to_cpu(sasIoUnitCntrReply->IOCStatus) != MPI_IOCSTATUS_SUCCESS) {
+ 		printk("%s: IOCStatus=0x%X IOCLogInfo=0x%X\n",
+-		    __FUNCTION__,
++		    __func__,
+ 		    sasIoUnitCntrReply->IOCStatus,
+ 		    sasIoUnitCntrReply->IOCLogInfo);
+ 		return -1;
+ 	}
  
--static int part_get_fact_prot_info (struct mtd_info *mtd,
--				    struct otp_info *buf, size_t len)
-+static int part_get_fact_prot_info(struct mtd_info *mtd, struct otp_info *buf,
-+		size_t len)
- {
- 	struct mtd_part *part = PART(mtd);
--	return part->master->get_fact_prot_info (part->master, buf, len);
-+	return part->master->get_fact_prot_info(part->master, buf, len);
- }
- 
--static int part_write (struct mtd_info *mtd, loff_t to, size_t len,
--			size_t *retlen, const u_char *buf)
-+static int part_write(struct mtd_info *mtd, loff_t to, size_t len,
-+		size_t *retlen, const u_char *buf)
- {
- 	struct mtd_part *part = PART(mtd);
- 	if (!(mtd->flags & MTD_WRITEABLE))
-@@ -145,12 +145,12 @@ static int part_write (struct mtd_info *
- 		len = 0;
- 	else if (to + len > mtd->size)
- 		len = mtd->size - to;
--	return part->master->write (part->master, to + part->offset,
-+	return part->master->write(part->master, to + part->offset,
- 				    len, retlen, buf);
- }
- 
--static int part_panic_write (struct mtd_info *mtd, loff_t to, size_t len,
--			size_t *retlen, const u_char *buf)
-+static int part_panic_write(struct mtd_info *mtd, loff_t to, size_t len,
-+		size_t *retlen, const u_char *buf)
- {
- 	struct mtd_part *part = PART(mtd);
- 	if (!(mtd->flags & MTD_WRITEABLE))
-@@ -159,12 +159,12 @@ static int part_panic_write (struct mtd_
- 		len = 0;
- 	else if (to + len > mtd->size)
- 		len = mtd->size - to;
--	return part->master->panic_write (part->master, to + part->offset,
-+	return part->master->panic_write(part->master, to + part->offset,
- 				    len, retlen, buf);
- }
- 
- static int part_write_oob(struct mtd_info *mtd, loff_t to,
--			 struct mtd_oob_ops *ops)
-+		struct mtd_oob_ops *ops)
- {
- 	struct mtd_part *part = PART(mtd);
- 
-@@ -178,31 +178,32 @@ static int part_write_oob(struct mtd_inf
- 	return part->master->write_oob(part->master, to + part->offset, ops);
- }
- 
--static int part_write_user_prot_reg (struct mtd_info *mtd, loff_t from, size_t len,
--			size_t *retlen, u_char *buf)
-+static int part_write_user_prot_reg(struct mtd_info *mtd, loff_t from,
-+		size_t len, size_t *retlen, u_char *buf)
- {
- 	struct mtd_part *part = PART(mtd);
--	return part->master->write_user_prot_reg (part->master, from,
-+	return part->master->write_user_prot_reg(part->master, from,
- 					len, retlen, buf);
- }
- 
--static int part_lock_user_prot_reg (struct mtd_info *mtd, loff_t from, size_t len)
-+static int part_lock_user_prot_reg(struct mtd_info *mtd, loff_t from,
-+		size_t len)
- {
- 	struct mtd_part *part = PART(mtd);
--	return part->master->lock_user_prot_reg (part->master, from, len);
-+	return part->master->lock_user_prot_reg(part->master, from, len);
- }
- 
--static int part_writev (struct mtd_info *mtd,  const struct kvec *vecs,
--			 unsigned long count, loff_t to, size_t *retlen)
-+static int part_writev(struct mtd_info *mtd, const struct kvec *vecs,
-+		unsigned long count, loff_t to, size_t *retlen)
- {
- 	struct mtd_part *part = PART(mtd);
- 	if (!(mtd->flags & MTD_WRITEABLE))
- 		return -EROFS;
--	return part->master->writev (part->master, vecs, count,
-+	return part->master->writev(part->master, vecs, count,
- 					to + part->offset, retlen);
- }
- 
--static int part_erase (struct mtd_info *mtd, struct erase_info *instr)
-+static int part_erase(struct mtd_info *mtd, struct erase_info *instr)
- {
- 	struct mtd_part *part = PART(mtd);
- 	int ret;
-@@ -234,7 +235,7 @@ void mtd_erase_callback(struct erase_inf
- }
- EXPORT_SYMBOL_GPL(mtd_erase_callback);
- 
--static int part_lock (struct mtd_info *mtd, loff_t ofs, size_t len)
-+static int part_lock(struct mtd_info *mtd, loff_t ofs, size_t len)
- {
- 	struct mtd_part *part = PART(mtd);
- 	if ((len + ofs) > mtd->size)
-@@ -242,7 +243,7 @@ static int part_lock (struct mtd_info *m
- 	return part->master->lock(part->master, ofs + part->offset, len);
- }
- 
--static int part_unlock (struct mtd_info *mtd, loff_t ofs, size_t len)
-+static int part_unlock(struct mtd_info *mtd, loff_t ofs, size_t len)
- {
- 	struct mtd_part *part = PART(mtd);
- 	if ((len + ofs) > mtd->size)
-@@ -268,7 +269,7 @@ static void part_resume(struct mtd_info 
- 	part->master->resume(part->master);
- }
- 
--static int part_block_isbad (struct mtd_info *mtd, loff_t ofs)
-+static int part_block_isbad(struct mtd_info *mtd, loff_t ofs)
- {
- 	struct mtd_part *part = PART(mtd);
- 	if (ofs >= mtd->size)
-@@ -277,7 +278,7 @@ static int part_block_isbad (struct mtd_
- 	return part->master->block_isbad(part->master, ofs);
- }
- 
--static int part_block_markbad (struct mtd_info *mtd, loff_t ofs)
-+static int part_block_markbad(struct mtd_info *mtd, loff_t ofs)
- {
- 	struct mtd_part *part = PART(mtd);
- 	int res;
-@@ -305,13 +306,14 @@ int del_mtd_partitions(struct mtd_info *
- 	list_for_each_entry_safe(slave, next, &mtd_partitions, list)
- 		if (slave->master == master) {
- 			list_del(&slave->list);
--			if(slave->registered)
-+			if (slave->registered)
- 				del_mtd_device(&slave->mtd);
- 			kfree(slave);
- 		}
- 
+-	printk("%s: success\n",__FUNCTION__);
++	printk("%s: success\n",__func__);
  	return 0;
  }
-+EXPORT_SYMBOL(del_mtd_partitions);
  
- static struct mtd_part *add_one_partition(struct mtd_info *master,
- 		const struct mtd_partition *part, int partno,
-@@ -320,9 +322,9 @@ static struct mtd_part *add_one_partitio
- 	struct mtd_part *slave;
+@@ -5784,7 +5784,7 @@ SendEventAck(MPT_ADAPTER *ioc, EventNoti
  
- 	/* allocate the partition structure */
--	slave = kzalloc (sizeof(*slave), GFP_KERNEL);
-+	slave = kzalloc(sizeof(*slave), GFP_KERNEL);
- 	if (!slave) {
--		printk("memory allocation error while creating partitions for \"%s\"\n",
-+		printk(KERN_ERR"memory allocation error while creating partitions for \"%s\"\n",
- 			master->name);
- 		del_mtd_partitions(master);
- 		return NULL;
-@@ -347,7 +349,7 @@ static struct mtd_part *add_one_partitio
- 	if (master->panic_write)
- 		slave->mtd.panic_write = part_panic_write;
- 
--	if(master->point && master->unpoint){
-+	if (master->point && master->unpoint) {
- 		slave->mtd.point = part_point;
- 		slave->mtd.unpoint = part_unpoint;
- 	}
-@@ -356,17 +358,17 @@ static struct mtd_part *add_one_partitio
- 		slave->mtd.read_oob = part_read_oob;
- 	if (master->write_oob)
- 		slave->mtd.write_oob = part_write_oob;
--	if(master->read_user_prot_reg)
-+	if (master->read_user_prot_reg)
- 		slave->mtd.read_user_prot_reg = part_read_user_prot_reg;
--	if(master->read_fact_prot_reg)
-+	if (master->read_fact_prot_reg)
- 		slave->mtd.read_fact_prot_reg = part_read_fact_prot_reg;
--	if(master->write_user_prot_reg)
-+	if (master->write_user_prot_reg)
- 		slave->mtd.write_user_prot_reg = part_write_user_prot_reg;
--	if(master->lock_user_prot_reg)
-+	if (master->lock_user_prot_reg)
- 		slave->mtd.lock_user_prot_reg = part_lock_user_prot_reg;
--	if(master->get_user_prot_info)
-+	if (master->get_user_prot_info)
- 		slave->mtd.get_user_prot_info = part_get_user_prot_info;
--	if(master->get_fact_prot_info)
-+	if (master->get_fact_prot_info)
- 		slave->mtd.get_fact_prot_info = part_get_fact_prot_info;
- 	if (master->sync)
- 		slave->mtd.sync = part_sync;
-@@ -404,7 +406,7 @@ static struct mtd_part *add_one_partitio
- 	if (slave->mtd.size == MTDPART_SIZ_FULL)
- 		slave->mtd.size = master->size - slave->offset;
- 
--	printk (KERN_NOTICE "0x%08x-0x%08x : \"%s\"\n", slave->offset,
-+	printk(KERN_NOTICE "0x%08x-0x%08x : \"%s\"\n", slave->offset,
- 		slave->offset + slave->mtd.size, slave->mtd.name);
- 
- 	/* let's do some sanity checks */
-@@ -412,21 +414,21 @@ static struct mtd_part *add_one_partitio
- 			/* let's register it anyway to preserve ordering */
- 		slave->offset = 0;
- 		slave->mtd.size = 0;
--		printk ("mtd: partition \"%s\" is out of reach -- disabled\n",
-+		printk(KERN_ERR"mtd: partition \"%s\" is out of reach -- disabled\n",
- 			part->name);
- 	}
- 	if (slave->offset + slave->mtd.size > master->size) {
- 		slave->mtd.size = master->size - slave->offset;
--		printk ("mtd: partition \"%s\" extends beyond the end of device \"%s\" -- size truncated to %#x\n",
-+		printk(KERN_WARNING"mtd: partition \"%s\" extends beyond the end of device \"%s\" -- size truncated to %#x\n",
- 			part->name, master->name, slave->mtd.size);
- 	}
--	if (master->numeraseregions>1) {
-+	if (master->numeraseregions > 1) {
- 		/* Deal with variable erase size stuff */
- 		int i;
- 		struct mtd_erase_region_info *regions = master->eraseregions;
- 
- 		/* Find the first erase regions which is part of this partition. */
--		for (i=0; i < master->numeraseregions && regions[i].offset <= slave->offset; i++)
-+		for (i = 0; i < master->numeraseregions && regions[i].offset <= slave->offset; i++)
- 			;
- 
- 		for (i--; i < master->numeraseregions && regions[i].offset < slave->offset + slave->mtd.size; i++) {
-@@ -442,15 +444,16 @@ static struct mtd_part *add_one_partitio
- 	if ((slave->mtd.flags & MTD_WRITEABLE) &&
- 	    (slave->offset % slave->mtd.erasesize)) {
- 		/* Doesn't start on a boundary of major erase size */
--		/* FIXME: Let it be writable if it is on a boundary of _minor_ erase size though */
-+		/* FIXME: Let it be writable if it is on a boundary of
-+		 * _minor_ erase size though */
- 		slave->mtd.flags &= ~MTD_WRITEABLE;
--		printk ("mtd: partition \"%s\" doesn't start on an erase block boundary -- force read-only\n",
-+		printk(KERN_WARNING"mtd: partition \"%s\" doesn't start on an erase block boundary -- force read-only\n",
- 			part->name);
- 	}
- 	if ((slave->mtd.flags & MTD_WRITEABLE) &&
- 	    (slave->mtd.size % slave->mtd.erasesize)) {
- 		slave->mtd.flags &= ~MTD_WRITEABLE;
--		printk ("mtd: partition \"%s\" doesn't end on an erase block -- force read-only\n",
-+		printk(KERN_WARNING"mtd: partition \"%s\" doesn't end on an erase block -- force read-only\n",
- 			part->name);
+ 	if ((pAck = (EventAck_t *) mpt_get_msg_frame(mpt_base_index, ioc)) == NULL) {
+ 		dfailprintk(ioc, printk(MYIOC_s_WARN_FMT "%s, no msg frames!!\n",
+-		    ioc->name,__FUNCTION__));
++		    ioc->name,__func__));
+ 		return -1;
  	}
  
-@@ -458,7 +461,7 @@ static struct mtd_part *add_one_partitio
- 	if (master->block_isbad) {
- 		uint32_t offs = 0;
+diff -puN drivers/message/fusion/mptctl.c~fusion-replace-remaining-__function__-occurrences drivers/message/fusion/mptctl.c
+--- a/drivers/message/fusion/mptctl.c~fusion-replace-remaining-__function__-occurrences
++++ a/drivers/message/fusion/mptctl.c
+@@ -505,7 +505,7 @@ mptctl_event_process(MPT_ADAPTER *ioc, E
+ 	event = le32_to_cpu(pEvReply->Event) & 0xFF;
  
--		while(offs < slave->mtd.size) {
-+		while (offs < slave->mtd.size) {
- 			if (master->block_isbad(master,
- 						offs + slave->offset))
- 				slave->mtd.ecc_stats.badblocks++;
-@@ -466,7 +469,8 @@ static struct mtd_part *add_one_partitio
+ 	dctlprintk(ioc, printk(MYIOC_s_DEBUG_FMT "%s() called\n",
+-	    ioc->name, __FUNCTION__));
++	    ioc->name, __func__));
+ 	if(async_queue == NULL)
+ 		return 1;
+ 
+@@ -2482,7 +2482,7 @@ mptctl_hp_hostinfo(unsigned long arg, un
+ 	 */
+ 	if ((mf = mpt_get_msg_frame(mptctl_id, ioc)) == NULL) {
+ 		dfailprintk(ioc, printk(MYIOC_s_WARN_FMT "%s, no msg frames!!\n",
+-		    ioc->name,__FUNCTION__));
++		    ioc->name,__func__));
+ 		goto out;
+ 	}
+ 
+diff -puN drivers/message/fusion/mptfc.c~fusion-replace-remaining-__function__-occurrences drivers/message/fusion/mptfc.c
+--- a/drivers/message/fusion/mptfc.c~fusion-replace-remaining-__function__-occurrences
++++ a/drivers/message/fusion/mptfc.c
+@@ -231,28 +231,28 @@ static int
+ mptfc_abort(struct scsi_cmnd *SCpnt)
+ {
+ 	return
+-	    mptfc_block_error_handler(SCpnt, mptscsih_abort, __FUNCTION__);
++	    mptfc_block_error_handler(SCpnt, mptscsih_abort, __func__);
+ }
+ 
+ static int
+ mptfc_dev_reset(struct scsi_cmnd *SCpnt)
+ {
+ 	return
+-	    mptfc_block_error_handler(SCpnt, mptscsih_dev_reset, __FUNCTION__);
++	    mptfc_block_error_handler(SCpnt, mptscsih_dev_reset, __func__);
+ }
+ 
+ static int
+ mptfc_bus_reset(struct scsi_cmnd *SCpnt)
+ {
+ 	return
+-	    mptfc_block_error_handler(SCpnt, mptscsih_bus_reset, __FUNCTION__);
++	    mptfc_block_error_handler(SCpnt, mptscsih_bus_reset, __func__);
+ }
+ 
+ static int
+ mptfc_host_reset(struct scsi_cmnd *SCpnt)
+ {
+ 	return
+-	    mptfc_block_error_handler(SCpnt, mptscsih_host_reset, __FUNCTION__);
++	    mptfc_block_error_handler(SCpnt, mptscsih_host_reset, __func__);
+ }
+ 
+ static void
+diff -puN drivers/message/fusion/mptlan.c~fusion-replace-remaining-__function__-occurrences drivers/message/fusion/mptlan.c
+--- a/drivers/message/fusion/mptlan.c~fusion-replace-remaining-__function__-occurrences
++++ a/drivers/message/fusion/mptlan.c
+@@ -610,7 +610,7 @@ mpt_lan_send_turbo(struct net_device *de
+ 
+ 	dioprintk((KERN_INFO MYNAM ": %s/%s: @%s, skb %p sent.\n",
+ 			IOC_AND_NETDEV_NAMES_s_s(dev),
+-			__FUNCTION__, sent));
++			__func__, sent));
+ 
+ 	priv->SendCtl[ctx].skb = NULL;
+ 	pci_unmap_single(mpt_dev->pcidev, priv->SendCtl[ctx].dma,
+@@ -676,7 +676,7 @@ mpt_lan_send_reply(struct net_device *de
+ 
+ 		dioprintk((KERN_INFO MYNAM ": %s/%s: @%s, skb %p sent.\n",
+ 				IOC_AND_NETDEV_NAMES_s_s(dev),
+-				__FUNCTION__, sent));
++				__func__, sent));
+ 
+ 		priv->SendCtl[ctx].skb = NULL;
+ 		pci_unmap_single(mpt_dev->pcidev, priv->SendCtl[ctx].dma,
+@@ -715,7 +715,7 @@ mpt_lan_sdu_send (struct sk_buff *skb, s
+ 	u16 cur_naa = 0x1000;
+ 
+ 	dioprintk((KERN_INFO MYNAM ": %s called, skb_addr = %p\n",
+-			__FUNCTION__, skb));
++			__func__, skb));
+ 
+ 	spin_lock_irqsave(&priv->txfidx_lock, flags);
+ 	if (priv->mpt_txfidx_tail < 0) {
+@@ -723,7 +723,7 @@ mpt_lan_sdu_send (struct sk_buff *skb, s
+ 		spin_unlock_irqrestore(&priv->txfidx_lock, flags);
+ 
+ 		printk (KERN_ERR "%s: no tx context available: %u\n",
+-			__FUNCTION__, priv->mpt_txfidx_tail);
++			__func__, priv->mpt_txfidx_tail);
+ 		return 1;
+ 	}
+ 
+@@ -733,7 +733,7 @@ mpt_lan_sdu_send (struct sk_buff *skb, s
+ 		spin_unlock_irqrestore(&priv->txfidx_lock, flags);
+ 
+ 		printk (KERN_ERR "%s: Unable to alloc request frame\n",
+-			__FUNCTION__);
++			__func__);
+ 		return 1;
+ 	}
+ 
+@@ -1208,7 +1208,7 @@ mpt_lan_post_receive_buckets(struct mpt_
+ 
+ 	dioprintk((KERN_INFO MYNAM ": %s/%s: @%s, Start_buckets = %u, buckets_out = %u\n",
+ 			IOC_AND_NETDEV_NAMES_s_s(dev),
+-			__FUNCTION__, buckets, curr));
++			__func__, buckets, curr));
+ 
+ 	max = (mpt_dev->req_sz - MPT_LAN_RECEIVE_POST_REQUEST_SIZE) /
+ 			(MPT_LAN_TRANSACTION32_SIZE + sizeof(SGESimple64_t));
+@@ -1217,9 +1217,9 @@ mpt_lan_post_receive_buckets(struct mpt_
+ 		mf = mpt_get_msg_frame(LanCtx, mpt_dev);
+ 		if (mf == NULL) {
+ 			printk (KERN_ERR "%s: Unable to alloc request frame\n",
+-				__FUNCTION__);
++				__func__);
+ 			dioprintk((KERN_ERR "%s: %u buckets remaining\n",
+-				 __FUNCTION__, buckets));
++				 __func__, buckets));
+ 			goto out;
  		}
+ 		pRecvReq = (LANReceivePostRequest_t *) mf;
+@@ -1244,7 +1244,7 @@ mpt_lan_post_receive_buckets(struct mpt_
+ 			spin_lock_irqsave(&priv->rxfidx_lock, flags);
+ 			if (priv->mpt_rxfidx_tail < 0) {
+ 				printk (KERN_ERR "%s: Can't alloc context\n",
+-					__FUNCTION__);
++					__func__);
+ 				spin_unlock_irqrestore(&priv->rxfidx_lock,
+ 						       flags);
+ 				break;
+@@ -1267,7 +1267,7 @@ mpt_lan_post_receive_buckets(struct mpt_
+ 				if (skb == NULL) {
+ 					printk (KERN_WARNING
+ 						MYNAM "/%s: Can't alloc skb\n",
+-						__FUNCTION__);
++						__func__);
+ 					priv->mpt_rxfidx[++priv->mpt_rxfidx_tail] = ctx;
+ 					spin_unlock_irqrestore(&priv->rxfidx_lock, flags);
+ 					break;
+@@ -1305,7 +1305,7 @@ mpt_lan_post_receive_buckets(struct mpt_
+ 
+ 		if (pSimple == NULL) {
+ /**/			printk (KERN_WARNING MYNAM "/%s: No buckets posted\n",
+-/**/				__FUNCTION__);
++/**/				__func__);
+ 			mpt_free_msg_frame(mpt_dev, mf);
+ 			goto out;
+ 		}
+@@ -1329,9 +1329,9 @@ mpt_lan_post_receive_buckets(struct mpt_
+ 
+ out:
+ 	dioprintk((KERN_INFO MYNAM "/%s: End_buckets = %u, priv->buckets_out = %u\n",
+-		  __FUNCTION__, buckets, atomic_read(&priv->buckets_out)));
++		  __func__, buckets, atomic_read(&priv->buckets_out)));
+ 	dioprintk((KERN_INFO MYNAM "/%s: Posted %u buckets and received %u back\n",
+-	__FUNCTION__, priv->total_posted, priv->total_received));
++	__func__, priv->total_posted, priv->total_received));
+ 
+ 	clear_bit(0, &priv->post_buckets_active);
+ }
+diff -puN drivers/message/fusion/mptsas.c~fusion-replace-remaining-__function__-occurrences drivers/message/fusion/mptsas.c
+--- a/drivers/message/fusion/mptsas.c~fusion-replace-remaining-__function__-occurrences
++++ a/drivers/message/fusion/mptsas.c
+@@ -300,7 +300,7 @@ mptsas_port_delete(MPT_ADAPTER *ioc, str
+ 	phy_info = port_info->phy_info;
+ 
+ 	dsaswideprintk(ioc, printk(MYIOC_s_DEBUG_FMT "%s: [%p]: num_phys=%02d "
+-	    "bitmask=0x%016llX\n", ioc->name, __FUNCTION__, port_details,
++	    "bitmask=0x%016llX\n", ioc->name, __func__, port_details,
+ 	    port_details->num_phys, (unsigned long long)
+ 	    port_details->phy_bitmask));
+ 
+@@ -411,7 +411,7 @@ mptsas_setup_wide_ports(MPT_ADAPTER *ioc
+ 		 */
+ 		dsaswideprintk(ioc, printk(MYIOC_s_DEBUG_FMT
+ 		    "%s: [%p]: deleting phy = %d\n",
+-		    ioc->name, __FUNCTION__, port_details, i));
++		    ioc->name, __func__, port_details, i));
+ 		port_details->num_phys--;
+ 		port_details->phy_bitmask &= ~ (1 << phy_info->phy_id);
+ 		memset(&phy_info->attached, 0, sizeof(struct mptsas_devinfo));
+@@ -497,7 +497,7 @@ mptsas_setup_wide_ports(MPT_ADAPTER *ioc
+ 			continue;
+ 		dsaswideprintk(ioc, printk(MYIOC_s_DEBUG_FMT
+ 		    "%s: [%p]: phy_id=%02d num_phys=%02d "
+-		    "bitmask=0x%016llX\n", ioc->name, __FUNCTION__,
++		    "bitmask=0x%016llX\n", ioc->name, __func__,
+ 		    port_details, i, port_details->num_phys,
+ 		    (unsigned long long)port_details->phy_bitmask));
+ 		dsaswideprintk(ioc, printk(MYIOC_s_DEBUG_FMT "\t\tport = %p rphy=%p\n",
+@@ -553,7 +553,7 @@ mptsas_target_reset(MPT_ADAPTER *ioc, u8
+ 
+ 	if ((mf = mpt_get_msg_frame(ioc->TaskCtx, ioc)) == NULL) {
+ 		dfailprintk(ioc, printk(MYIOC_s_WARN_FMT "%s, no msg frames @%d!!\n",
+-		    ioc->name,__FUNCTION__, __LINE__));
++		    ioc->name,__func__, __LINE__));
+ 		return 0;
  	}
  
--	if(part->mtdp) {	/* store the object pointer (caller may or may not register it */
-+	if (part->mtdp) {
-+		/* store the object pointer (caller may or may not register it*/
- 		*part->mtdp = &slave->mtd;
- 		slave->registered = 0;
+@@ -606,7 +606,7 @@ mptsas_target_reset_queue(MPT_ADAPTER *i
+ 	    GFP_ATOMIC);
+ 	if (!target_reset_list) {
+ 		dfailprintk(ioc, printk(MYIOC_s_WARN_FMT "%s, failed to allocate mem @%d..!!\n",
+-		    ioc->name,__FUNCTION__, __LINE__));
++		    ioc->name,__func__, __LINE__));
+ 		return;
+ 	}
+ 
+@@ -673,7 +673,7 @@ mptsas_dev_reset_complete(MPT_ADAPTER *i
+ 	ev = kzalloc(sizeof(*ev), GFP_ATOMIC);
+ 	if (!ev) {
+ 		dfailprintk(ioc, printk(MYIOC_s_WARN_FMT "%s, failed to allocate mem @%d..!!\n",
+-		    ioc->name,__FUNCTION__, __LINE__));
++		    ioc->name,__func__, __LINE__));
+ 		return;
+ 	}
+ 
+@@ -1183,7 +1183,7 @@ static int mptsas_phy_reset(struct sas_p
+ 	reply = (SasIoUnitControlReply_t *)ioc->sas_mgmt.reply;
+ 	if (reply->IOCStatus != MPI_IOCSTATUS_SUCCESS) {
+ 		printk(MYIOC_s_INFO_FMT "%s: IOCStatus=0x%X IOCLogInfo=0x%X\n",
+-		    ioc->name, __FUNCTION__, reply->IOCStatus, reply->IOCLogInfo);
++		    ioc->name, __func__, reply->IOCStatus, reply->IOCLogInfo);
+ 		error = -ENXIO;
+ 		goto out_unlock;
+ 	}
+@@ -1270,14 +1270,14 @@ static int mptsas_smp_handler(struct Scs
+ 
+ 	if (!rsp) {
+ 		printk(MYIOC_s_ERR_FMT "%s: the smp response space is missing\n",
+-		    ioc->name, __FUNCTION__);
++		    ioc->name, __func__);
+ 		return -EINVAL;
+ 	}
+ 
+ 	/* do we need to support multiple segments? */
+ 	if (req->bio->bi_vcnt > 1 || rsp->bio->bi_vcnt > 1) {
+ 		printk(MYIOC_s_ERR_FMT "%s: multiple segments req %u %u, rsp %u %u\n",
+-		    ioc->name, __FUNCTION__, req->bio->bi_vcnt, req->data_len,
++		    ioc->name, __func__, req->bio->bi_vcnt, req->data_len,
+ 		    rsp->bio->bi_vcnt, rsp->data_len);
+ 		return -EINVAL;
+ 	}
+@@ -1343,7 +1343,7 @@ static int mptsas_smp_handler(struct Scs
+ 
+ 	timeleft = wait_for_completion_timeout(&ioc->sas_mgmt.done, 10 * HZ);
+ 	if (!timeleft) {
+-		printk(MYIOC_s_ERR_FMT "%s: smp timeout!\n", ioc->name, __FUNCTION__);
++		printk(MYIOC_s_ERR_FMT "%s: smp timeout!\n", ioc->name, __func__);
+ 		/* On timeout reset the board */
+ 		mpt_HardResetHandler(ioc, CAN_SLEEP);
+ 		ret = -ETIMEDOUT;
+@@ -1361,7 +1361,7 @@ static int mptsas_smp_handler(struct Scs
+ 		rsp->data_len -= smprep->ResponseDataLength;
  	} else {
-@@ -492,7 +496,7 @@ int add_mtd_partitions(struct mtd_info *
- 	u_int32_t cur_offset = 0;
- 	int i;
- 
--	printk (KERN_NOTICE "Creating %d MTD partitions on \"%s\":\n", nbparts, master->name);
-+	printk(KERN_NOTICE "Creating %d MTD partitions on \"%s\":\n", nbparts, master->name);
- 
- 	for (i = 0; i < nbparts; i++) {
- 		slave = add_one_partition(master, parts + i, i, cur_offset);
-@@ -503,9 +507,7 @@ int add_mtd_partitions(struct mtd_info *
- 
- 	return 0;
- }
--
- EXPORT_SYMBOL(add_mtd_partitions);
--EXPORT_SYMBOL(del_mtd_partitions);
- 
- static DEFINE_SPINLOCK(part_parser_lock);
- static LIST_HEAD(part_parsers);
-@@ -535,6 +537,7 @@ int register_mtd_parser(struct mtd_part_
- 
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(register_mtd_parser);
- 
- int deregister_mtd_parser(struct mtd_part_parser *p)
- {
-@@ -543,6 +546,7 @@ int deregister_mtd_parser(struct mtd_par
- 	spin_unlock(&part_parser_lock);
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(deregister_mtd_parser);
- 
- int parse_mtd_partitions(struct mtd_info *master, const char **types,
- 			 struct mtd_partition **pparts, unsigned long origin)
-@@ -570,7 +574,4 @@ int parse_mtd_partitions(struct mtd_info
+ 		printk(MYIOC_s_ERR_FMT "%s: smp passthru reply failed to be returned\n",
+-		    ioc->name, __FUNCTION__);
++		    ioc->name, __func__);
+ 		ret = -ENXIO;
  	}
- 	return ret;
- }
+ unmap:
+@@ -2006,7 +2006,7 @@ static int mptsas_probe_one_phy(struct d
+ 			if (error) {
+ 				dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
+ 					"%s: exit at line=%d\n", ioc->name,
+-					__FUNCTION__, __LINE__));
++					__func__, __LINE__));
+ 				goto out;
+ 			}
+ 			mptsas_set_port(ioc, phy_info, port);
+@@ -2076,7 +2076,7 @@ static int mptsas_probe_one_phy(struct d
+ 		if (!rphy) {
+ 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
+ 				"%s: exit at line=%d\n", ioc->name,
+-				__FUNCTION__, __LINE__));
++				__func__, __LINE__));
+ 			goto out;
+ 		}
+ 
+@@ -2085,7 +2085,7 @@ static int mptsas_probe_one_phy(struct d
+ 		if (error) {
+ 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
+ 				"%s: exit at line=%d\n", ioc->name,
+-				__FUNCTION__, __LINE__));
++				__func__, __LINE__));
+ 			sas_rphy_free(rphy);
+ 			goto out;
+ 		}
+@@ -2613,7 +2613,7 @@ mptsas_hotplug_work(struct work_struct *
+ 				    (ev->channel << 8) + ev->id)) {
+ 					dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
+ 					"%s: exit at line=%d\n", ioc->name,
+-						__FUNCTION__, __LINE__));
++						__func__, __LINE__));
+ 					break;
+ 				}
+ 				phy_info = mptsas_find_phyinfo_by_sas_address(
+@@ -2633,20 +2633,20 @@ mptsas_hotplug_work(struct work_struct *
+ 		if (!phy_info){
+ 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
+ 				"%s: exit at line=%d\n", ioc->name,
+-				__FUNCTION__, __LINE__));
++				__func__, __LINE__));
+ 			break;
+ 		}
+ 		if (!phy_info->port_details) {
+ 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
+ 				"%s: exit at line=%d\n", ioc->name,
+-			       	__FUNCTION__, __LINE__));
++			       	__func__, __LINE__));
+ 			break;
+ 		}
+ 		rphy = mptsas_get_rphy(phy_info);
+ 		if (!rphy) {
+ 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
+ 				"%s: exit at line=%d\n", ioc->name,
+-			       	__FUNCTION__, __LINE__));
++			       	__func__, __LINE__));
+ 			break;
+ 		}
+ 
+@@ -2654,7 +2654,7 @@ mptsas_hotplug_work(struct work_struct *
+ 		if (!port) {
+ 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
+ 				"%s: exit at line=%d\n", ioc->name,
+-			       	__FUNCTION__, __LINE__));
++			       	__func__, __LINE__));
+ 			break;
+ 		}
+ 
+@@ -2665,7 +2665,7 @@ mptsas_hotplug_work(struct work_struct *
+ 			if (!vtarget) {
+ 				dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
+ 					"%s: exit at line=%d\n", ioc->name,
+-					__FUNCTION__, __LINE__));
++					__func__, __LINE__));
+ 				break;
+ 			}
+ 
+@@ -2720,7 +2720,7 @@ mptsas_hotplug_work(struct work_struct *
+ 			(ev->channel << 8) + ev->id)) {
+ 				dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
+ 					"%s: exit at line=%d\n", ioc->name,
+-					__FUNCTION__, __LINE__));
++					__func__, __LINE__));
+ 			break;
+ 		}
+ 
+@@ -2732,7 +2732,7 @@ mptsas_hotplug_work(struct work_struct *
+ 		if (!phy_info || !phy_info->port_details) {
+ 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
+ 				"%s: exit at line=%d\n", ioc->name,
+-			       	__FUNCTION__, __LINE__));
++			       	__func__, __LINE__));
+ 			break;
+ 		}
+ 
+@@ -2744,7 +2744,7 @@ mptsas_hotplug_work(struct work_struct *
+ 			if (!vtarget) {
+ 				dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
+ 				    "%s: exit at line=%d\n", ioc->name,
+-				    __FUNCTION__, __LINE__));
++				    __func__, __LINE__));
+ 				break;
+ 			}
+ 			/*
+@@ -2767,7 +2767,7 @@ mptsas_hotplug_work(struct work_struct *
+ 		if (mptsas_get_rphy(phy_info)) {
+ 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
+ 				"%s: exit at line=%d\n", ioc->name,
+-			       	__FUNCTION__, __LINE__));
++			       	__func__, __LINE__));
+ 			if (ev->channel) printk("%d\n", __LINE__);
+ 			break;
+ 		}
+@@ -2776,7 +2776,7 @@ mptsas_hotplug_work(struct work_struct *
+ 		if (!port) {
+ 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
+ 				"%s: exit at line=%d\n", ioc->name,
+-			       	__FUNCTION__, __LINE__));
++			       	__func__, __LINE__));
+ 			break;
+ 		}
+ 		memcpy(&phy_info->attached, &sas_device,
+@@ -2801,7 +2801,7 @@ mptsas_hotplug_work(struct work_struct *
+ 		if (!rphy) {
+ 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
+ 				"%s: exit at line=%d\n", ioc->name,
+-			       	__FUNCTION__, __LINE__));
++			       	__func__, __LINE__));
+ 			break; /* non-fatal: an rphy can be added later */
+ 		}
+ 
+@@ -2809,7 +2809,7 @@ mptsas_hotplug_work(struct work_struct *
+ 		if (sas_rphy_add(rphy)) {
+ 			dfailprintk(ioc, printk(MYIOC_s_ERR_FMT
+ 				"%s: exit at line=%d\n", ioc->name,
+-			       	__FUNCTION__, __LINE__));
++			       	__func__, __LINE__));
+ 			sas_rphy_free(rphy);
+ 			break;
+ 		}
+diff -puN drivers/message/fusion/mptscsih.c~fusion-replace-remaining-__function__-occurrences drivers/message/fusion/mptscsih.c
+--- a/drivers/message/fusion/mptscsih.c~fusion-replace-remaining-__function__-occurrences
++++ a/drivers/message/fusion/mptscsih.c
+@@ -461,7 +461,7 @@ mptscsih_issue_sep_command(MPT_ADAPTER *
+ 
+ 	if ((mf = mpt_get_msg_frame(ioc->InternalCtx, ioc)) == NULL) {
+ 		dfailprintk(ioc, printk(MYIOC_s_WARN_FMT "%s: no msg frames!!\n",
+-		    ioc->name,__FUNCTION__));
++		    ioc->name,__func__));
+ 		return;
+ 	}
+ 
+@@ -2187,7 +2187,7 @@ mptscsih_taskmgmt_complete(MPT_ADAPTER *
+ 				(ioc->debug_level & MPT_DEBUG_TM ))
+ 		printk("%s: ha=%d [%d:%d:0] task_type=0x%02X "
+ 			"iocstatus=0x%04X\n\tloginfo=0x%08X response_code=0x%02X "
+-			"term_cmnds=%d\n", __FUNCTION__, ioc->id, pScsiTmReply->Bus,
++			"term_cmnds=%d\n", __func__, ioc->id, pScsiTmReply->Bus,
+ 			 pScsiTmReply->TargetID, pScsiTmReq->TaskType,
+ 			le16_to_cpu(pScsiTmReply->IOCStatus),
+ 			le32_to_cpu(pScsiTmReply->IOCLogInfo),pScsiTmReply->ResponseCode,
+_
+
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
+
+origin.patch
+linux-next.patch
+cifs-remove-global_extern-macro.patch
+input-ads7846c-sparse-lock-annotation.patch
+mtd-diskonchipc-fix-sparse-endian-warnings.patch
+scsi-replace-__inline-with-inline.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+olpc-olpc_batteryc-sparse-endian-annotations.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+isdn-use-the-common-ascii-hex-helpers.patch
+net-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
+byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
+
