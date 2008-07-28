@@ -1,101 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - lost-sysctl-fix.patch removed from -mm tree
-Date: Mon, 28 Jul 2008 14:11:18 -0700
-Message-ID: <200807282111.m6SLBIAM027663@imap1.linux-foundation.org>
+Subject: - task-io-accounting-correctly-account-threads-io-statistics.patch removed from -mm tree
+Date: Mon, 28 Jul 2008 14:10:52 -0700
+Message-ID: <200807282110.m6SLAqn2027605@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42311 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38695 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761224AbYG1VL6 (ORCPT
+	by vger.kernel.org with ESMTP id S1761105AbYG1VLr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jul 2008 17:11:58 -0400
+	Mon, 28 Jul 2008 17:11:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: viro@ZenIV.linux.org.uk, mingo@elte.huviro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: righi.andrea@gmail.com, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lost sysctl fix
+     task IO accounting: correctly account threads IO statistics
 has been removed from the -mm tree.  Its filename was
-     lost-sysctl-fix.patch
+     task-io-accounting-correctly-account-threads-io-statistics.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lost sysctl fix
-From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: task IO accounting: correctly account threads IO statistics
+From: Andrea Righi <righi.andrea@gmail.com>
 
-try_attach() should walk into the matching subdirectory, not the first one...
+Oleg Nesterov points out that we should check that the task is still alive
+before we iterate over the threads.  This patch includes a fixup for this.
 
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Also simplify do_io_accounting() implementation.
+
+Signed-off-by: Andrea Righi <righi.andrea@gmail.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ fs/proc/base.c |   56 ++++++++++++++++++-----------------------------
+ 1 file changed, 22 insertions(+), 34 deletions(-)
 
-diff -puN kernel/sysctl.c~lost-sysctl-fix kernel/sysctl.c
---- a/kernel/sysctl.c~lost-sysctl-fix
-+++ a/kernel/sysctl.c
-@@ -1704,43 +1704,45 @@ static __init int sysctl_init(void)
+diff -puN fs/proc/base.c~task-io-accounting-correctly-account-threads-io-statistics fs/proc/base.c
+--- a/fs/proc/base.c~task-io-accounting-correctly-account-threads-io-statistics
++++ a/fs/proc/base.c
+@@ -2406,35 +2406,18 @@ static int do_io_accounting(struct task_
+ 	u64 rchar, wchar, syscr, syscw;
+ 	struct task_io_accounting ioac;
  
- core_initcall(sysctl_init);
+-	if (!whole) {
+-		rchar = task->rchar;
+-		wchar = task->wchar;
+-		syscr = task->syscr;
+-		syscw = task->syscw;
+-		memcpy(&ioac, &task->ioac, sizeof(ioac));
+-	} else {
+-		unsigned long flags;
+-		struct task_struct *t = task;
+-		rchar = wchar = syscr = syscw = 0;
+-		memset(&ioac, 0, sizeof(ioac));
+-
+-		rcu_read_lock();
+-		do {
+-			rchar += t->rchar;
+-			wchar += t->wchar;
+-			syscr += t->syscr;
+-			syscw += t->syscw;
++	rchar = task->rchar;
++	wchar = task->wchar;
++	syscr = task->syscr;
++	syscw = task->syscw;
++	memcpy(&ioac, &task->ioac, sizeof(ioac));
  
--static int is_branch_in(struct ctl_table *branch, struct ctl_table *table)
-+static struct ctl_table *is_branch_in(struct ctl_table *branch,
-+				      struct ctl_table *table)
- {
- 	struct ctl_table *p;
- 	const char *s = branch->procname;
+-			ioac.read_bytes += t->ioac.read_bytes;
+-			ioac.write_bytes += t->ioac.write_bytes;
+-			ioac.cancelled_write_bytes +=
+-					t->ioac.cancelled_write_bytes;
+-			t = next_thread(t);
+-		} while (t != task);
+-		rcu_read_unlock();
++	if (whole) {
++		unsigned long flags;
  
- 	/* branch should have named subdirectory as its first element */
- 	if (!s || !branch->child)
--		return 0;
-+		return NULL;
+ 		if (lock_task_sighand(task, &flags)) {
+ 			struct signal_struct *sig = task->signal;
++			struct task_struct *t = task;
  
- 	/* ... and nothing else */
- 	if (branch[1].procname || branch[1].ctl_name)
--		return 0;
-+		return NULL;
- 
- 	/* table should contain subdirectory with the same name */
- 	for (p = table; p->procname || p->ctl_name; p++) {
- 		if (!p->child)
- 			continue;
- 		if (p->procname && strcmp(p->procname, s) == 0)
--			return 1;
-+			return p;
+ 			rchar += sig->rchar;
+ 			wchar += sig->wchar;
+@@ -2445,11 +2428,20 @@ static int do_io_accounting(struct task_
+ 			ioac.write_bytes += sig->ioac.write_bytes;
+ 			ioac.cancelled_write_bytes +=
+ 					sig->ioac.cancelled_write_bytes;
+-
++			while_each_thread(task, t) {
++				rchar += t->rchar;
++				wchar += t->wchar;
++				syscr += t->syscr;
++				syscw += t->syscw;
++
++				ioac.read_bytes += t->ioac.read_bytes;
++				ioac.write_bytes += t->ioac.write_bytes;
++				ioac.cancelled_write_bytes +=
++					t->ioac.cancelled_write_bytes;
++			}
+ 			unlock_task_sighand(task, &flags);
+ 		}
  	}
--	return 0;
-+	return NULL;
+-
+ 	return sprintf(buffer,
+ 			"rchar: %llu\n"
+ 			"wchar: %llu\n"
+@@ -2458,13 +2450,9 @@ static int do_io_accounting(struct task_
+ 			"read_bytes: %llu\n"
+ 			"write_bytes: %llu\n"
+ 			"cancelled_write_bytes: %llu\n",
+-			(unsigned long long)rchar,
+-			(unsigned long long)wchar,
+-			(unsigned long long)syscr,
+-			(unsigned long long)syscw,
+-			(unsigned long long)ioac.read_bytes,
+-			(unsigned long long)ioac.write_bytes,
+-			(unsigned long long)ioac.cancelled_write_bytes);
++			rchar, wchar, syscr, syscw,
++			ioac.read_bytes, ioac.write_bytes,
++			ioac.cancelled_write_bytes);
  }
  
- /* see if attaching q to p would be an improvement */
- static void try_attach(struct ctl_table_header *p, struct ctl_table_header *q)
- {
- 	struct ctl_table *to = p->ctl_table, *by = q->ctl_table;
-+	struct ctl_table *next;
- 	int is_better = 0;
- 	int not_in_parent = !p->attached_by;
- 
--	while (is_branch_in(by, to)) {
-+	while ((next = is_branch_in(by, to)) != NULL) {
- 		if (by == q->attached_by)
- 			is_better = 1;
- 		if (to == p->attached_by)
- 			not_in_parent = 1;
- 		by = by->child;
--		to = to->child;
-+		to = next->child;
- 	}
- 
- 	if (is_better && not_in_parent) {
+ static int proc_tid_io_accounting(struct task_struct *task, char *buffer)
 _
 
-Patches currently in -mm which might be from viro@ZenIV.linux.org.uk are
+Patches currently in -mm which might be from righi.andrea@gmail.com are
 
 origin.patch
-linux-next.patch
 
