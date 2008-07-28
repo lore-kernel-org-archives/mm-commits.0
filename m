@@ -1,53 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-trace-tracec-remove-unused-variable.patch removed from -mm tree
-Date: Mon, 28 Jul 2008 14:11:37 -0700
-Message-ID: <200807282111.m6SLBbY0027693@imap1.linux-foundation.org>
+Subject: - drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch removed from -mm tree
+Date: Mon, 28 Jul 2008 14:11:44 -0700
+Message-ID: <200807282111.m6SLBiph027707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55007 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36518 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761005AbYG1VRE (ORCPT
+	by vger.kernel.org with ESMTP id S1762048AbYG1VRG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jul 2008 17:17:04 -0400
+	Mon, 28 Jul 2008 17:17:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andrew.vasquez@qlogic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/trace/trace.c: remove unused variable
+     drivers/scsi/qla2xxx/qla_os.c: suppress uninitialized-var warning
 has been removed from the -mm tree.  Its filename was
-     kernel-trace-tracec-remove-unused-variable.patch
+     drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/trace/trace.c: remove unused variable
+Subject: drivers/scsi/qla2xxx/qla_os.c: suppress uninitialized-var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/trace/trace.c: In function 's_next':
-kernel/trace/trace.c:1186: warning: unused variable 'last_ent'
+drivers/scsi/qla2xxx/qla_os.c: In function 'qla2x00_post_work':
+drivers/scsi/qla2xxx/qla_os.c:2158: warning: 'flags' may be used uninitialized in this function
 
-Cc: Ingo Molnar <mingo@elte.hu>
+Acked-by: Andrew Vasquez <andrew.vasquez@qlogic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/trace.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/scsi/qla2xxx/qla_os.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/trace/trace.c~kernel-trace-tracec-remove-unused-variable kernel/trace/trace.c
---- a/kernel/trace/trace.c~kernel-trace-tracec-remove-unused-variable
-+++ a/kernel/trace/trace.c
-@@ -1183,7 +1183,6 @@ static void *find_next_entry_inc(struct 
- static void *s_next(struct seq_file *m, void *v, loff_t *pos)
+diff -puN drivers/scsi/qla2xxx/qla_os.c~drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning drivers/scsi/qla2xxx/qla_os.c
+--- a/drivers/scsi/qla2xxx/qla_os.c~drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning
++++ a/drivers/scsi/qla2xxx/qla_os.c
+@@ -2178,7 +2178,7 @@ qla2x00_alloc_work(struct scsi_qla_host 
+ static int
+ qla2x00_post_work(struct scsi_qla_host *ha, struct qla_work_evt *e, int locked)
  {
- 	struct trace_iterator *iter = m->private;
--	void *last_ent = iter->ent;
- 	int i = (int)*pos;
- 	void *ent;
+-	unsigned long flags;
++	unsigned long uninitialized_var(flags);
+ 	scsi_qla_host_t *pha = to_qla_parent(ha);
  
+ 	if (!locked)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
