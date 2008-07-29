@@ -1,144 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: + introduce-down_try-so-we-can-move-away-from-down_trylock-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 28 Jul 2008 17:20:13 -0700
-Message-ID: <200807290020.m6T0KD3k003880@imap1.linux-foundation.org>
+Subject: - revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch removed from -mm tree
+Date: Mon, 28 Jul 2008 17:26:23 -0700
+Message-ID: <200807290026.m6T0QNYY004104@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39923 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38121 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752188AbYG2AUs (ORCPT
+	by vger.kernel.org with ESMTP id S1753077AbYG2A1E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jul 2008 20:20:48 -0400
+	Mon, 28 Jul 2008 20:27:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rusty@rustcorp.com.au
+To: kosaki.motohiro@jp.fujitsu.com, Lee.Schermerhorn@hp.com, hugh@veritas.com, lizf@cn.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     introduce-down_try-so-we-can-move-away-from-down_trylock-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     introduce-down_try-so-we-can-move-away-from-down_trylock-checkpatch-fixes.patch
+     splitlru: revert to unevictable-lru-infrastructure-kconfig-fix.patch
+has been removed from the -mm tree.  Its filename was
+     revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into unevictable-lru-infrastructure.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: introduce-down_try-so-we-can-move-away-from-down_trylock-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: splitlru: revert to unevictable-lru-infrastructure-kconfig-fix.patch
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-ERROR: code indent should use tabs where possible
-#39: FILE: include/linux/semaphore.h:61:
-+        return !down_trylock(sem);$
+CONFIG_UNEVICTABLE_LRU automatically turn on CONFIG_PAGE_WALKER.  It
+causes a build error on nommu machines.
 
-total: 1 errors, 0 warnings, 18 lines checked
+Now, it is unnecessary because munlock was rewritten.
 
-./patches/introduce-down_try-so-we-can-move-away-from-down_trylock.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/semaphore.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/Kconfig |    1 -
+ mm/Kconfig   |    5 -----
+ mm/Makefile  |    2 +-
+ 3 files changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN include/linux/semaphore.h~introduce-down_try-so-we-can-move-away-from-down_trylock-checkpatch-fixes include/linux/semaphore.h
---- a/include/linux/semaphore.h~introduce-down_try-so-we-can-move-away-from-down_trylock-checkpatch-fixes
-+++ a/include/linux/semaphore.h
-@@ -58,6 +58,6 @@ extern void up(struct semaphore *sem);
-  */
- static inline int __must_check down_try(struct semaphore *sem)
- {
--        return !down_trylock(sem);
-+	return !down_trylock(sem);
- }
- #endif /* __LINUX_SEMAPHORE_H */
+diff -puN init/Kconfig~revert-to-unevictable-lru-infrastructure-kconfig-fixpatch init/Kconfig
+--- a/init/Kconfig~revert-to-unevictable-lru-infrastructure-kconfig-fixpatch
++++ a/init/Kconfig
+@@ -793,7 +793,6 @@ source "arch/Kconfig"
+ config PROC_PAGE_MONITOR
+  	default y
+ 	depends on PROC_FS && MMU
+-	select PAGE_WALKER
+ 	bool "Enable /proc page monitoring" if EMBEDDED
+  	help
+ 	  Various /proc files exist to monitor process memory utilization:
+diff -puN mm/Kconfig~revert-to-unevictable-lru-infrastructure-kconfig-fixpatch mm/Kconfig
+--- a/mm/Kconfig~revert-to-unevictable-lru-infrastructure-kconfig-fixpatch
++++ a/mm/Kconfig
+@@ -209,14 +209,9 @@ config VIRT_TO_BUS
+ 	def_bool y
+ 	depends on !ARCH_NO_VIRT_TO_BUS
+ 
+-# automatically selected by UNEVICTABLE_LRU or PROC_PAGE_MONITOR
+-config PAGE_WALKER
+-	def_bool n
+-
+ config UNEVICTABLE_LRU
+ 	bool "Add LRU list to track non-evictable pages"
+ 	default y
+-	select PAGE_WALKER
+ 	help
+ 	  Keeps unevictable pages off of the active and inactive pageout
+ 	  lists, so kswapd will not waste CPU time or have its balancing
+diff -puN mm/Makefile~revert-to-unevictable-lru-infrastructure-kconfig-fixpatch mm/Makefile
+--- a/mm/Makefile~revert-to-unevictable-lru-infrastructure-kconfig-fixpatch
++++ a/mm/Makefile
+@@ -13,7 +13,7 @@ obj-y			:= bootmem.o filemap.o mempool.o
+ 			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
+ 			   page_isolation.o mm_init.o $(mmu-y)
+ 
+-obj-$(CONFIG_PAGE_WALKER) += pagewalk.o
++obj-$(CONFIG_PROC_PAGE_MONITOR) += pagewalk.o
+ obj-$(CONFIG_BOUNCE)	+= bounce.o
+ obj-$(CONFIG_SWAP)	+= page_io.o swap_state.o swapfile.o thrash.o
+ obj-$(CONFIG_HAS_DMA)	+= dmapool.o
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
-include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
-introduce-down_try-so-we-can-move-away-from-down_trylock-checkpatch-fixes.patch
-drivers-char-pcmcia-ipwireless-networkc-build-fix.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-x86-pci-replace-dbg-with-pr_debug-fix.patch
-x86-pci-replace-dbg-with-pr_debug-fix-2.patch
-arch-x86-pci-i386c-fix-printk-warnings.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-git-ubi-git-rejects.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
 vmscan-split-lru-lists-into-anon-file-sets.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
 unevictable-lru-infrastructure.patch
+revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch
 unevictable-lru-page-statistics.patch
+shm_locked-pages-are-unevictable.patch
 mlock-mlocked-pages-are-unevictable.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap.patch
 introduce-__get_user_pages.patch
+split-lru-munlock-rework.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
+vmstat-mlocked-pages-statistics-fix.patch
+swap-cull-unevictable-pages-in-fault-path-fix.patch
+vmstat-unevictable-and-mlocked-pages-vm-events.patch
+restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch
+vmscan-unevictable-lru-scan-sysctl.patch
 vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-gru-driver-v3-hardware-data-structures-fix.patch
-gru-driver-v3-hardware-data-structures-fix-fix.patch
-gru-driver-v3-fixes-to-resolve-code-review-comments-checkpatch-fixes.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+vmscan-unevictable-lru-scan-sysctl-add-sys_device-parameter.patch
+vmscam-kill-unused-lru-functions.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
