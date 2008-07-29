@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-switch-inode-number-allocation-to-ida.patch added to -mm tree
-Date: Tue, 29 Jul 2008 15:03:15 -0700
-Message-ID: <200807292203.m6TM3FB6023952@imap1.linux-foundation.org>
+Subject: + devpts-switch-to-ida.patch added to -mm tree
+Date: Tue, 29 Jul 2008 15:04:06 -0700
+Message-ID: <200807292204.m6TM46H4023977@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60613 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42438 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753332AbYG2WDr (ORCPT
+	by vger.kernel.org with ESMTP id S1753962AbYG2WEn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 18:03:47 -0400
+	Tue, 29 Jul 2008 18:04:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, viro@zeniv.linux.org.uk
+Cc: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, hpa@zytor.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     proc: switch inode number allocation to IDA
+     devpts: switch to IDA
 has been added to the -mm tree.  Its filename is
-     proc-switch-inode-number-allocation-to-ida.patch
+     devpts-switch-to-ida.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: switch inode number allocation to IDA
+Subject: devpts: switch to IDA
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
-proc doesn't use "associate pointer with id" feature of IDR, so switch to
-IDA.
+Devpts code wants just numbers for tty indexes.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/devpts/inode.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/proc/generic.c~proc-switch-inode-number-allocation-to-ida fs/proc/generic.c
---- a/fs/proc/generic.c~proc-switch-inode-number-allocation-to-ida
-+++ a/fs/proc/generic.c
-@@ -300,7 +300,7 @@ out:
- 	return rtn;
- }
+diff -puN fs/devpts/inode.c~devpts-switch-to-ida fs/devpts/inode.c
+--- a/fs/devpts/inode.c~devpts-switch-to-ida
++++ a/fs/devpts/inode.c
+@@ -29,7 +29,7 @@
+ #define DEVPTS_DEFAULT_MODE 0600
  
--static DEFINE_IDR(proc_inum_idr);
-+static DEFINE_IDA(proc_inum_ida);
- static DEFINE_SPINLOCK(proc_inum_lock); /* protects the above */
+ extern int pty_limit;			/* Config limit on Unix98 ptys */
+-static DEFINE_IDR(allocated_ptys);
++static DEFINE_IDA(allocated_ptys);
+ static DEFINE_MUTEX(allocated_ptys_lock);
  
- #define PROC_DYNAMIC_FIRST 0xF0000000U
-@@ -315,11 +315,11 @@ static unsigned int get_inode_number(voi
- 	int error;
+ static struct vfsmount *devpts_mnt;
+@@ -180,24 +180,24 @@ static struct dentry *get_node(int num)
+ int devpts_new_index(void)
+ {
+ 	int index;
+-	int idr_ret;
++	int ida_ret;
  
  retry:
--	if (idr_pre_get(&proc_inum_idr, GFP_KERNEL) == 0)
-+	if (ida_pre_get(&proc_inum_ida, GFP_KERNEL) == 0)
- 		return 0;
- 
- 	spin_lock(&proc_inum_lock);
--	error = idr_get_new(&proc_inum_idr, NULL, &i);
-+	error = ida_get_new(&proc_inum_ida, &i);
- 	spin_unlock(&proc_inum_lock);
- 	if (error == -EAGAIN)
- 		goto retry;
-@@ -328,7 +328,7 @@ retry:
- 
- 	if (i > UINT_MAX - PROC_DYNAMIC_FIRST) {
- 		spin_lock(&proc_inum_lock);
--		idr_remove(&proc_inum_idr, i);
-+		ida_remove(&proc_inum_ida, i);
- 		spin_unlock(&proc_inum_lock);
+-	if (!idr_pre_get(&allocated_ptys, GFP_KERNEL)) {
++	if (!ida_pre_get(&allocated_ptys, GFP_KERNEL)) {
+ 		return -ENOMEM;
  	}
- 	return PROC_DYNAMIC_FIRST + i;
-@@ -337,7 +337,7 @@ retry:
- static void release_inode_number(unsigned int inum)
+ 
+ 	mutex_lock(&allocated_ptys_lock);
+-	idr_ret = idr_get_new(&allocated_ptys, NULL, &index);
+-	if (idr_ret < 0) {
++	ida_ret = ida_get_new(&allocated_ptys, &index);
++	if (ida_ret < 0) {
+ 		mutex_unlock(&allocated_ptys_lock);
+-		if (idr_ret == -EAGAIN)
++		if (ida_ret == -EAGAIN)
+ 			goto retry;
+ 		return -EIO;
+ 	}
+ 
+ 	if (index >= pty_limit) {
+-		idr_remove(&allocated_ptys, index);
++		ida_remove(&allocated_ptys, index);
+ 		mutex_unlock(&allocated_ptys_lock);
+ 		return -EIO;
+ 	}
+@@ -208,7 +208,7 @@ retry:
+ void devpts_kill_index(int idx)
  {
- 	spin_lock(&proc_inum_lock);
--	idr_remove(&proc_inum_idr, inum - PROC_DYNAMIC_FIRST);
-+	ida_remove(&proc_inum_ida, inum - PROC_DYNAMIC_FIRST);
- 	spin_unlock(&proc_inum_lock);
+ 	mutex_lock(&allocated_ptys_lock);
+-	idr_remove(&allocated_ptys, idx);
++	ida_remove(&allocated_ptys, idx);
+ 	mutex_unlock(&allocated_ptys_lock);
  }
  
 _
@@ -104,6 +113,7 @@ vt8623fb-fix-kernel-oops.patch
 proc-fix-inode-number-bogorithmetic.patch
 proc-switch-inode-number-allocation-to-ida.patch
 slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+devpts-switch-to-ida.patch
 proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
 likely_prof-changed-to-use-proc_create.patch
 proc-remove-proc_root-from-drivers-likelyprof.patch
