@@ -1,64 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - remove-export_symbol-for-bio_integrity_init_slab.patch removed from -mm tree
-Date: Tue, 29 Jul 2008 13:30:08 -0700
-Message-ID: <200807292030.m6TKU853019774@imap1.linux-foundation.org>
+Subject: - spi_s3c24xx-really-assign-busnum.patch removed from -mm tree
+Date: Tue, 29 Jul 2008 13:29:59 -0700
+Message-ID: <200807292029.m6TKTxtD019745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56022 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48385 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753437AbYG2Uab (ORCPT
+	by vger.kernel.org with ESMTP id S1752050AbYG2Uar (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 16:30:31 -0400
+	Tue, 29 Jul 2008 16:30:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yoichi_yuasa@tripeaks.co.jp, jens.axboe@oracle.com, martin.petersen@oracle.com, mm-commits@vger.kernel.org
+To: ben-linux@fluff.org, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bio-integrity: remove EXPORT_SYMBOL for bio_integrity_init_slab()
+     spi_s3c24xx: really assign busnum
 has been removed from the -mm tree.  Its filename was
-     remove-export_symbol-for-bio_integrity_init_slab.patch
+     spi_s3c24xx-really-assign-busnum.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bio-integrity: remove EXPORT_SYMBOL for bio_integrity_init_slab()
-From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Subject: spi_s3c24xx: really assign busnum
+From: Ben Dooks <ben-linux@fluff.org>
 
-I got section mismatch message about bio_integrity_init_slab().
+The original "Pass the bus number we expect the S3C24XX SPI driver to
+attach to via the platform data." [1] patch was mis-sent, and missed two
+important parts of the diff, which was to actually set the bus_num field
+and add the relevant field to the platform data.
 
-WARNING: fs/built-in.o(__ksymtab+0xb60): Section mismatch in reference from the variable __ksymtab_bio_integrity_init_slab to the function .init.text:bio_integrity_init_slab()
+The previous commit 50f426b55d919dd017af35bb6a08753d1f262920 promised to
+add a bus_num field, but failed to include the two hunks that added this
+field to include/asm-arm/arch-s3c2410/spi.h and then pass it to the spi
+core when creating the new master field in drivers/spi/spi_s3c24xx.c.
 
-The symbol bio_integrity_init_slab is exported and annotated __init Fix
-this by removing the __init annotation of bio_integrity_init_slab or drop
-the export.
+[1] git commit 50f426b55d919dd017af35bb6a08753d1f262920
 
-It only call from init_bio().  The EXPORT_SYMBOL() can be removed.
-
-Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
-Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bio-integrity.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/spi/spi_s3c24xx.c          |    1 +
+ include/asm-arm/arch-s3c2410/spi.h |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN fs/bio-integrity.c~remove-export_symbol-for-bio_integrity_init_slab fs/bio-integrity.c
---- a/fs/bio-integrity.c~remove-export_symbol-for-bio_integrity_init_slab
-+++ a/fs/bio-integrity.c
-@@ -705,7 +705,6 @@ void __init bio_integrity_init_slab(void
- 	bio_integrity_slab = KMEM_CACHE(bio_integrity_payload,
- 					SLAB_HWCACHE_ALIGN|SLAB_PANIC);
- }
--EXPORT_SYMBOL(bio_integrity_init_slab);
+diff -puN drivers/spi/spi_s3c24xx.c~spi_s3c24xx-really-assign-busnum drivers/spi/spi_s3c24xx.c
+--- a/drivers/spi/spi_s3c24xx.c~spi_s3c24xx-really-assign-busnum
++++ a/drivers/spi/spi_s3c24xx.c
+@@ -270,6 +270,7 @@ static int __init s3c24xx_spi_probe(stru
+ 	/* setup the master state. */
  
- static int __init integrity_init(void)
- {
+ 	master->num_chipselect = hw->pdata->num_cs;
++	master->bus_num = pdata->bus_num;
+ 
+ 	/* setup the state for the bitbang driver */
+ 
+diff -puN include/asm-arm/arch-s3c2410/spi.h~spi_s3c24xx-really-assign-busnum include/asm-arm/arch-s3c2410/spi.h
+--- a/include/asm-arm/arch-s3c2410/spi.h~spi_s3c24xx-really-assign-busnum
++++ a/include/asm-arm/arch-s3c2410/spi.h
+@@ -16,6 +16,7 @@
+ struct s3c2410_spi_info {
+ 	unsigned long		 pin_cs;	/* simple gpio cs */
+ 	unsigned int		 num_cs;	/* total chipselects */
++	int			 bus_num;       /* bus number to use. */
+ 
+ 	void (*set_cs)(struct s3c2410_spi_info *spi, int cs, int pol);
+ };
 _
 
-Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
+backlight-give-platform_lcd-the-same-name-as-the-platform-device.patch
+resource-add-resource_size.patch
+backlight-ensure-platform_lcd-on-by-default.patch
+linux-next.patch
+resource-add-resource_type-and-ioresource_type_bits.patch
+resource-add-new-ioresource_clk-type-v2.patch
+i2c-sh_mobile-ioresource_clk-support.patch
 
