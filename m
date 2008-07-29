@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nsc-ircc-default-to-dongle-type-9-on-ibm-hardware.patch added to -mm tree
-Date: Mon, 28 Jul 2008 19:46:31 -0700
-Message-ID: <200807290246.m6T2kVPS010273@imap1.linux-foundation.org>
+Subject: + bluetooth-add-quirks-for-a-few-hci_usb-devices.patch added to -mm tree
+Date: Mon, 28 Jul 2008 19:49:25 -0700
+Message-ID: <200807290249.m6T2nP1J010409@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35440 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47753 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754233AbYG2CrK (ORCPT
+	by vger.kernel.org with ESMTP id S1752391AbYG2CuX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jul 2008 22:47:10 -0400
+	Mon, 28 Jul 2008 22:50:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben.collins@canonical.com, mjg59@srcf.ucam.org, samuel@sortiz.org
+Cc: ben.collins@canonical.com, Mario_Limonciello@Dell.com, hidave.darkstar@gmail.com, marcel@holtmann.org, michael.frey@canonical.com, tim.gardner@canonical.com
 
 
 The patch titled
-     nsc-ircc: default to dongle type 9 on IBM hardware
+     bluetooth: add quirks for a few hci_usb devices
 has been added to the -mm tree.  Its filename is
-     nsc-ircc-default-to-dongle-type-9-on-ibm-hardware.patch
+     bluetooth-add-quirks-for-a-few-hci_usb-devices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nsc-ircc: default to dongle type 9 on IBM hardware
+Subject: bluetooth: add quirks for a few hci_usb devices
 From: Ben Collins <ben.collins@canonical.com>
 
-Cc: Samuel Ortiz <samuel@sortiz.org>
-Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+Preface: The "Broadcom" device is on unreleased hardware, so I can't
+disclose the actual model.
+
+When the Dell 370 and 410 BT adapters are put into BT radio mode, they
+need to be prepared like many other Broadcom adapters.
+
+Also, add quirk Broadcom 2046 devices with HCI_RESET.  Reference for this
+bug: https://launchpad.net/bugs/249448
+
+Signed-off-by: Michael Frey <michael.frey@canonical.com>
+Signed-off-by: Mario Limonciello <Mario_Limonciello@Dell.com>
+Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
 Signed-off-by: Ben Collins <ben.collins@canonical.com>
+Acked-by: Marcel Holtmann <marcel@holtmann.org>
+Cc: Dave Young <hidave.darkstar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/irda/nsc-ircc.c |    7 +++++--
- drivers/net/irda/nsc-ircc.h |    3 +++
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/bluetooth/hci_usb.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/net/irda/nsc-ircc.c~nsc-ircc-default-to-dongle-type-9-on-ibm-hardware drivers/net/irda/nsc-ircc.c
---- a/drivers/net/irda/nsc-ircc.c~nsc-ircc-default-to-dongle-type-9-on-ibm-hardware
-+++ a/drivers/net/irda/nsc-ircc.c
-@@ -151,8 +151,8 @@ static char *dongle_types[] = {
- static chipio_t pnp_info;
- static const struct pnp_device_id nsc_ircc_pnp_table[] = {
- 	{ .id = "NSC6001", .driver_data = 0 },
--	{ .id = "IBM0071", .driver_data = 0 },
- 	{ .id = "HWPC224", .driver_data = 0 },
-+	{ .id = "IBM0071", .driver_data = NSC_FORCE_DONGLE_TYPE9 },
- 	{ }
- };
+diff -puN drivers/bluetooth/hci_usb.c~bluetooth-add-quirks-for-a-few-hci_usb-devices drivers/bluetooth/hci_usb.c
+--- a/drivers/bluetooth/hci_usb.c~bluetooth-add-quirks-for-a-few-hci_usb-devices
++++ a/drivers/bluetooth/hci_usb.c
+@@ -134,6 +134,13 @@ static struct usb_device_id blacklist_id
  
-@@ -930,7 +930,10 @@ static int nsc_ircc_pnp_probe(struct pnp
- 	pnp_info.dma = -1;
- 	pnp_succeeded = 1;
- 
--	/* There don't seem to be any way to get the cfg_base.
-+	if (id->driver_data & NSC_FORCE_DONGLE_TYPE9)
-+		dongle_id = 0x9;
+ 	/* Dell laptop with Broadcom chip */
+ 	{ USB_DEVICE(0x413c, 0x8126), .driver_info = HCI_RESET | HCI_WRONG_SCO_MTU },
++	/* Dell Wireless 370 */
++	{ USB_DEVICE(0x413c, 0x8156), .driver_info = HCI_RESET | HCI_WRONG_SCO_MTU },
++	/* Dell Wireless 410 */
++	{ USB_DEVICE(0x413c, 0x8152), .driver_info = HCI_RESET | HCI_WRONG_SCO_MTU },
 +
-+	/* There doesn't seem to be any way of getting the cfg_base.
- 	 * On my box, cfg_base is in the PnP descriptor of the
- 	 * motherboard. Oh well... Jean II */
++	/* Broadcom 2046 */
++	{ USB_DEVICE(0x0a5c, 0x2151), .driver_info = HCI_RESET },
  
-diff -puN drivers/net/irda/nsc-ircc.h~nsc-ircc-default-to-dongle-type-9-on-ibm-hardware drivers/net/irda/nsc-ircc.h
---- a/drivers/net/irda/nsc-ircc.h~nsc-ircc-default-to-dongle-type-9-on-ibm-hardware
-+++ a/drivers/net/irda/nsc-ircc.h
-@@ -35,6 +35,9 @@
- #include <linux/types.h>
- #include <asm/io.h>
- 
-+/* Features for chips (set in driver_data) */
-+#define NSC_FORCE_DONGLE_TYPE9	0x00000001
-+
- /* DMA modes needed */
- #define DMA_TX_MODE     0x08    /* Mem to I/O, ++, demand. */
- #define DMA_RX_MODE     0x04    /* I/O to mem, ++, demand. */
+ 	/* Microsoft Wireless Transceiver for Bluetooth 2.0 */
+ 	{ USB_DEVICE(0x045e, 0x009c), .driver_info = HCI_RESET },
 _
 
 Patches currently in -mm which might be from ben.collins@canonical.com are
 
 origin.patch
+bluetooth-add-quirks-for-a-few-hci_usb-devices.patch
 nsc-ircc-default-to-dongle-type-9-on-ibm-hardware.patch
 
