@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + madvise-update-function-comment-of-madvise_dontneed.patch added to -mm tree
-Date: Tue, 29 Jul 2008 15:31:16 -0700
-Message-ID: <200807292231.m6TMVGJq025240@imap1.linux-foundation.org>
+Subject: + swapfile-vmscan-update-comments-related-to-vmscan-functions.patch added to -mm tree
+Date: Tue, 29 Jul 2008 15:31:20 -0700
+Message-ID: <200807292231.m6TMVKlE025249@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41828 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59807 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755139AbYG2WcK (ORCPT
+	by vger.kernel.org with ESMTP id S1755391AbYG2WcP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 18:32:10 -0400
+	Tue, 29 Jul 2008 18:32:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: fernando@oss.ntt.co.jp, hugh@veritas.com, nickpiggin@yahoo.com.au, riel@redh
 
 
 The patch titled
-     madvise: update function comment of madvise_dontneed
+     swapfile/vmscan: update comments related to vmscan functions
 has been added to the -mm tree.  Its filename is
-     madvise-update-function-comment-of-madvise_dontneed.patch
+     swapfile-vmscan-update-comments-related-to-vmscan-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: madvise: update function comment of madvise_dontneed
+Subject: swapfile/vmscan: update comments related to vmscan functions
 From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
 
 Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
@@ -44,25 +44,36 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/swapfile.c |    4 ++--
+ mm/vmscan.c   |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/madvise.c~madvise-update-function-comment-of-madvise_dontneed mm/madvise.c
---- a/mm/madvise.c~madvise-update-function-comment-of-madvise_dontneed
-+++ a/mm/madvise.c
-@@ -132,10 +132,10 @@ static long madvise_willneed(struct vm_a
-  * Application no longer needs these pages.  If the pages are dirty,
-  * it's OK to just throw them away.  The app will be more careful about
-  * data it wants to keep.  Be sure to free swap resources too.  The
-- * zap_page_range call sets things up for refill_inactive to actually free
-+ * zap_page_range call sets things up for shrink_active_list to actually free
-  * these pages later if no one else has touched them in the meantime,
-  * although we could add these pages to a global reuse list for
-- * refill_inactive to pick up before reclaiming other pages.
-+ * shrink_active_list to pick up before reclaiming other pages.
-  *
-  * NB: This interface discards data rather than pushes it out to swap,
-  * as some implementations do.  This has performance implications for
+diff -puN mm/swapfile.c~swapfile-vmscan-update-comments-related-to-vmscan-functions mm/swapfile.c
+--- a/mm/swapfile.c~swapfile-vmscan-update-comments-related-to-vmscan-functions
++++ a/mm/swapfile.c
+@@ -656,8 +656,8 @@ static int unuse_mm(struct mm_struct *mm
+ 
+ 	if (!down_read_trylock(&mm->mmap_sem)) {
+ 		/*
+-		 * Activate page so shrink_cache is unlikely to unmap its
+-		 * ptes while lock is dropped, so swapoff can make progress.
++		 * Activate page so shrink_inactive_list is unlikely to unmap
++		 * its ptes while lock is dropped, so swapoff can make progress.
+ 		 */
+ 		activate_page(page);
+ 		unlock_page(page);
+diff -puN mm/vmscan.c~swapfile-vmscan-update-comments-related-to-vmscan-functions mm/vmscan.c
+--- a/mm/vmscan.c~swapfile-vmscan-update-comments-related-to-vmscan-functions
++++ a/mm/vmscan.c
+@@ -1979,7 +1979,7 @@ module_init(kswapd_init)
+ int zone_reclaim_mode __read_mostly;
+ 
+ #define RECLAIM_OFF 0
+-#define RECLAIM_ZONE (1<<0)	/* Run shrink_cache on the zone */
++#define RECLAIM_ZONE (1<<0)	/* Run shrink_inactive_list on the zone */
+ #define RECLAIM_WRITE (1<<1)	/* Writeout pages during reclaim */
+ #define RECLAIM_SWAP (1<<2)	/* Swap pages out during reclaim */
+ 
 _
 
 Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
