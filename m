@@ -1,137 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-__get_user_pages-fix.patch removed from -mm tree
-Date: Mon, 28 Jul 2008 17:04:26 -0700
-Message-ID: <200807290004.m6T04RDr003140@imap1.linux-foundation.org>
+Subject: - fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch removed from -mm tree
+Date: Mon, 28 Jul 2008 17:03:34 -0700
+Message-ID: <200807290003.m6T03ZHc003108@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52727 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59277 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752423AbYG2AFA (ORCPT
+	by vger.kernel.org with ESMTP id S1752413AbYG2AEl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jul 2008 20:05:00 -0400
+	Mon, 28 Jul 2008 20:04:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Lee.Schermerhorn@hp.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, kamewzawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, npiggin@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     introduce-__get_user_pages-fix
+     fix double unlock_page() in 2.6.26-rc5-mm3 kernel BUG at mm/filemap.c:575!
 has been removed from the -mm tree.  Its filename was
-     introduce-__get_user_pages-fix.patch
+     fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
 
-This patch was dropped because it was folded into introduce-__get_user_pages.patch
+This patch was dropped because it was folded into mmap-handle-mlocked-pages-during-map-remap-unmap.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: introduce-__get_user_pages-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fix double unlock_page() in 2.6.26-rc5-mm3 kernel BUG at mm/filemap.c:575!
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-mm/nommu.c: In function `__get_user_pages':
-mm/nommu.c:138: error: `GUP_FLAGS_WRITE' undeclared (first use in this function)
-mm/nommu.c:138: error: (Each undeclared identifier is reported only once
-mm/nommu.c:138: error: for each function it appears in.)
-mm/nommu.c:139: error: `GUP_FLAGS_FORCE' undeclared (first use in this function)
-mm/nommu.c:140: error: `GUP_FLAGS_IGNORE_VMA_PERMISSIONS' undeclared (first use in this function)
-mm/nommu.c: In function `get_user_pages':
-mm/nommu.c:189: error: `GUP_FLAGS_WRITE' undeclared (first use in this function)
-mm/nommu.c:191: error: `GUP_FLAGS_FORCE' undeclared (first use in this function)
+This is reproducer of panic. "quick fix" is attached.
+But I think putback_lru_page() should be re-designed.
 
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
+==
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <errno.h>
+
+int main(int argc, char *argv[])
+{
+        int fd;
+        char *filename = argv[1];
+        char buffer[4096];
+        char *addr;
+        int len;
+
+        fd = open(filename, O_CREAT | O_EXCL | O_RDWR, S_IRWXU);
+
+        if (fd < 0) {
+                perror("open");
+                exit(1);
+        }
+        len = write(fd, buffer, sizeof(buffer));
+
+        if (len < 0) {
+                perror("write");
+                exit(1);
+        }
+
+        addr = mmap(NULL, 4096, PROT_WRITE, MAP_SHARED|MAP_LOCKED, fd, 0);
+        if (addr == MAP_FAILED) {
+                perror("mmap");
+                exit(1);
+        }
+        munmap(addr, 4096);
+        close(fd);
+
+        unlink(filename);
+}
+==
+you'll see panic.
+
+Fix is here
+==
+
+quick fix for double unlock_page();
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamewzawa.hiroyu@jp.fujitsu.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/truncate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/nommu.c~introduce-__get_user_pages-fix mm/nommu.c
---- a/mm/nommu.c~introduce-__get_user_pages-fix
-+++ a/mm/nommu.c
-@@ -34,6 +34,8 @@
- #include <asm/tlb.h>
- #include <asm/tlbflush.h>
+diff -puN mm/truncate.c~fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575 mm/truncate.c
+--- a/mm/truncate.c~fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575
++++ a/mm/truncate.c
+@@ -104,8 +104,8 @@ truncate_complete_page(struct address_sp
  
-+#include "internal.h"
-+
- void *high_memory;
- struct page *mem_map;
- unsigned long max_mapnr;
+ 	cancel_dirty_page(page, PAGE_CACHE_SIZE);
+ 
+-	remove_from_page_cache(page);
+ 	clear_page_mlock(page);
++	remove_from_page_cache(page);
+ 	ClearPageUptodate(page);
+ 	ClearPageMappedToDisk(page);
+ 	page_cache_release(page);	/* pagecache ref */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
 origin.patch
-mmu-notifiers-add-mm_take_all_locks-operation.patch
-mmu-notifier-core.patch
-include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
-drivers-char-pcmcia-ipwireless-networkc-build-fix.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-x86-pci-replace-dbg-with-pr_debug-fix.patch
-x86-pci-replace-dbg-with-pr_debug-fix-2.patch
-arch-x86-pci-i386c-fix-printk-warnings.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-git-ubi-git-rejects.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
+cgroup-fix-possible-memory-leak.patch
+cgroup-remove-duplicate-code-in-allocate_cg_link.patch
+cgroup-uninline-cgroup_has_css_refs.patch
+memcg-remove-redundant-check-in-move_task.patch
+cpuset-a-bit-cleanup-for-scan_for_empty_cpusets.patch
+cpuset-speed-up-sched-domain-partition.patch
+cpuset-fix-wrong-calculation-of-relax-domain-level.patch
+cpuset-clean-up-cpuset-hierarchy-traversal-code.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-introduce-__get_user_pages.patch
-introduce-__get_user_pages-fix.patch
-vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-gru-driver-v3-hardware-data-structures-fix.patch
-gru-driver-v3-hardware-data-structures-fix-fix.patch
-gru-driver-v3-fixes-to-resolve-code-review-comments-checkpatch-fixes.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+fix-double-unlock_page-in-2626-rc5-mm3-kernel-bug-at-mm-filemapc-575.patch
+restore-patch-failure-of-vmstat-unevictable-and-mlocked-pages-vm-eventspatch.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
 
