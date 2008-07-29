@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-rtc-driver-wait-for-the-write-complete-interrupt-complete-before-sleeping.patch added to -mm tree
-Date: Tue, 29 Jul 2008 15:20:42 -0700
-Message-ID: <200807292220.m6TMKgMY024689@imap1.linux-foundation.org>
+Subject: + blackfin-rtc-driver-convert-pie-handling-to-irq_set_state-as-pointed-out-by-david-brownell.patch added to -mm tree
+Date: Tue, 29 Jul 2008 15:20:44 -0700
+Message-ID: <200807292220.m6TMKiJI024692@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43510 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49723 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752817AbYG2WU7 (ORCPT
+	by vger.kernel.org with ESMTP id S1754006AbYG2WVF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 18:20:59 -0400
+	Tue, 29 Jul 2008 18:21:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: vapier.adi@gmail.com, a.zummo@towertech.it, cooloney@kernel.org, david-b@pac
 
 
 The patch titled
-     blackfin RTC driver: wait for the write complete interrupt complete before sleeping
+     blackfin RTC driver: convert PIE handling to irq_set_state() as pointed out by David Brownell
 has been added to the -mm tree.  Its filename is
-     blackfin-rtc-driver-wait-for-the-write-complete-interrupt-complete-before-sleeping.patch
+     blackfin-rtc-driver-convert-pie-handling-to-irq_set_state-as-pointed-out-by-david-brownell.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blackfin RTC driver: wait for the write complete interrupt complete before sleeping
+Subject: blackfin RTC driver: convert PIE handling to irq_set_state() as pointed out by David Brownell
 From: Mike Frysinger <vapier.adi@gmail.com>
-
-Since we use the write complete interrupt, wait for it
-to complete before sleeping so we don't wake right back up due to it
 
 Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Bryan Wu <cooloney@kernel.org>
@@ -47,25 +44,61 @@ Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-bfin.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-bfin.c |   28 ++++++++++++++++++----------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
 
-diff -puN drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-wait-for-the-write-complete-interrupt-complete-before-sleeping drivers/rtc/rtc-bfin.c
---- a/drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-wait-for-the-write-complete-interrupt-complete-before-sleeping
+diff -puN drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-convert-pie-handling-to-irq_set_state-as-pointed-out-by-david-brownell drivers/rtc/rtc-bfin.c
+--- a/drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-convert-pie-handling-to-irq_set_state-as-pointed-out-by-david-brownell
 +++ a/drivers/rtc/rtc-bfin.c
-@@ -435,9 +435,10 @@ static int __devexit bfin_rtc_remove(str
- #ifdef CONFIG_PM
- static int bfin_rtc_suspend(struct platform_device *pdev, pm_message_t state)
- {
--	if (device_may_wakeup(&pdev->dev))
-+	if (device_may_wakeup(&pdev->dev)) {
- 		enable_irq_wake(IRQ_RTC);
--	else
-+		bfin_rtc_sync_pending(&pdev->dev);
-+	} else
- 		bfin_rtc_int_clear(-1);
+@@ -264,16 +264,6 @@ static int bfin_rtc_ioctl(struct device 
+ 	bfin_rtc_sync_pending(dev);
  
- 	return 0;
+ 	switch (cmd) {
+-	case RTC_PIE_ON:
+-		dev_dbg_stamp(dev);
+-		bfin_rtc_int_set(RTC_ISTAT_STOPWATCH);
+-		bfin_write_RTC_SWCNT(rtc->rtc_dev->irq_freq);
+-		break;
+-	case RTC_PIE_OFF:
+-		dev_dbg_stamp(dev);
+-		bfin_rtc_int_clear(~RTC_ISTAT_STOPWATCH);
+-		break;
+-
+ 	case RTC_UIE_ON:
+ 		dev_dbg_stamp(dev);
+ 		bfin_rtc_int_set(RTC_ISTAT_SEC);
+@@ -381,6 +371,23 @@ static int bfin_rtc_proc(struct device *
+ #undef yesno
+ }
+ 
++static int bfin_irq_set_state(struct device *dev, int enabled)
++{
++	struct bfin_rtc *rtc = dev_get_drvdata(dev);
++
++	dev_dbg_stamp(dev);
++
++	bfin_rtc_sync_pending(dev);
++
++	if (enabled) {
++		bfin_rtc_int_set(RTC_ISTAT_STOPWATCH);
++		bfin_write_RTC_SWCNT(rtc->rtc_dev->irq_freq);
++	} else
++		bfin_rtc_int_clear(~RTC_ISTAT_STOPWATCH);
++
++	return 0;
++}
++
+ static struct rtc_class_ops bfin_rtc_ops = {
+ 	.open          = bfin_rtc_open,
+ 	.release       = bfin_rtc_release,
+@@ -390,6 +397,7 @@ static struct rtc_class_ops bfin_rtc_ops
+ 	.read_alarm    = bfin_rtc_read_alarm,
+ 	.set_alarm     = bfin_rtc_set_alarm,
+ 	.proc          = bfin_rtc_proc,
++	.irq_set_state = bfin_irq_set_state,
+ };
+ 
+ static int __devinit bfin_rtc_probe(struct platform_device *pdev)
 _
 
 Patches currently in -mm which might be from vapier.adi@gmail.com are
