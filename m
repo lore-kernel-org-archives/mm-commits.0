@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-replace-__function__-with-__func__.patch added to -mm tree
-Date: Tue, 29 Jul 2008 16:46:03 -0700
-Message-ID: <200807292346.m6TNk3Jl028455@imap1.linux-foundation.org>
+Subject: + powerpc-replace-__function__-with-__func__-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 29 Jul 2008 16:47:04 -0700
+Message-ID: <200807292347.m6TNl5g2028469@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58191 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53288 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752841AbYG2XqH (ORCPT
+	by vger.kernel.org with ESMTP id S1752455AbYG2XrI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 19:46:07 -0400
+	Tue, 29 Jul 2008 19:47:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, benh@kernel.crashing.org
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, harvey.harrison@gmail.com
 
 
 The patch titled
-     powerpc: replace __FUNCTION__ with __func__
+     powerpc-replace-__function__-with-__func__-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     powerpc-replace-__function__-with-__func__.patch
+     powerpc-replace-__function__-with-__func__-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,101 +34,137 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: replace __FUNCTION__ with __func__
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: powerpc-replace-__function__-with-__func__-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-__FUNCTION__ is gcc-specific, use __func__
+ERROR: code indent should use tabs where possible
+#22: FILE: arch/powerpc/kernel/lparcfg.c:508:
++^I         __func__, ppp_data.entitlement, ppp_data.weight);$
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+ERROR: code indent should use tabs where possible
+#35: FILE: arch/powerpc/kernel/lparcfg.c:554:
++^I         __func__, mpp_data.entitled_mem, mpp_data.mem_weight);$
+
+ERROR: code indent should use tabs where possible
+#39: FILE: arch/powerpc/kernel/lparcfg.c:557:
++^I         __func__, new_entitled, new_weight);$
+
+WARNING: line over 80 characters
+#51: FILE: arch/powerpc/platforms/pseries/cmm.c:124:
++				pr_info("%s: Can not allocate new page list\n", __func__);
+
+WARNING: line over 80 characters
+#60: FILE: arch/powerpc/platforms/pseries/cmm.c:141:
++			pr_err("%s: Can not set page to loaned. rc=%ld\n", __func__, rc);
+
+total: 3 errors, 2 warnings, 40 lines checked
+
+./patches/powerpc-replace-__function__-with-__func__.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/lparcfg.c        |    8 ++++----
- arch/powerpc/platforms/pseries/cmm.c |    4 ++--
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ arch/powerpc/kernel/lparcfg.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/kernel/lparcfg.c~powerpc-replace-__function__-with-__func__ arch/powerpc/kernel/lparcfg.c
---- a/arch/powerpc/kernel/lparcfg.c~powerpc-replace-__function__-with-__func__
+diff -puN arch/powerpc/kernel/lparcfg.c~powerpc-replace-__function__-with-__func__-checkpatch-fixes arch/powerpc/kernel/lparcfg.c
+--- a/arch/powerpc/kernel/lparcfg.c~powerpc-replace-__function__-with-__func__-checkpatch-fixes
 +++ a/arch/powerpc/kernel/lparcfg.c
-@@ -505,10 +505,10 @@ static ssize_t update_ppp(u64 *entitleme
+@@ -505,7 +505,7 @@ static ssize_t update_ppp(u64 *entitleme
  		return -EINVAL;
  
  	pr_debug("%s: current_entitled = %lu, current_weight = %u\n",
--	         __FUNCTION__, ppp_data.entitlement, ppp_data.weight);
-+	         __func__, ppp_data.entitlement, ppp_data.weight);
+-	         __func__, ppp_data.entitlement, ppp_data.weight);
++		 __func__, ppp_data.entitlement, ppp_data.weight);
  
  	pr_debug("%s: new_entitled = %lu, new_weight = %u\n",
--		 __FUNCTION__, new_entitled, new_weight);
+ 		 __func__, new_entitled, new_weight);
+@@ -554,7 +554,7 @@ static ssize_t update_mpp(u64 *entitleme
+ 	         __func__, mpp_data.entitled_mem, mpp_data.mem_weight);
+ 
+ 	pr_debug("%s: new_entitled = %lu, new_weight = %u\n",
+-	         __func__, new_entitled, new_weight);
 +		 __func__, new_entitled, new_weight);
- 
- 	retval = plpar_hcall_norets(H_SET_PPP, new_entitled, new_weight);
- 	return retval;
-@@ -551,10 +551,10 @@ static ssize_t update_mpp(u64 *entitleme
- 		return -EINVAL;
- 
- 	pr_debug("%s: current_entitled = %lu, current_weight = %u\n",
--	         __FUNCTION__, mpp_data.entitled_mem, mpp_data.mem_weight);
-+	         __func__, mpp_data.entitled_mem, mpp_data.mem_weight);
- 
- 	pr_debug("%s: new_entitled = %lu, new_weight = %u\n",
--	         __FUNCTION__, new_entitled, new_weight);
-+	         __func__, new_entitled, new_weight);
  
  	rc = plpar_hcall_norets(H_SET_MPP, new_entitled, new_weight);
  	return rc;
-diff -puN arch/powerpc/platforms/pseries/cmm.c~powerpc-replace-__function__-with-__func__ arch/powerpc/platforms/pseries/cmm.c
---- a/arch/powerpc/platforms/pseries/cmm.c~powerpc-replace-__function__-with-__func__
-+++ a/arch/powerpc/platforms/pseries/cmm.c
-@@ -121,7 +121,7 @@ static long cmm_alloc_pages(long nr)
- 			npa = (struct cmm_page_array *)__get_free_page(GFP_NOIO | __GFP_NOWARN |
- 								       __GFP_NORETRY | __GFP_NOMEMALLOC);
- 			if (!npa) {
--				pr_info("%s: Can not allocate new page list\n", __FUNCTION__);
-+				pr_info("%s: Can not allocate new page list\n", __func__);
- 				free_page(addr);
- 				break;
- 			}
-@@ -138,7 +138,7 @@ static long cmm_alloc_pages(long nr)
- 		}
- 
- 		if ((rc = plpar_page_set_loaned(__pa(addr)))) {
--			pr_err("%s: Can not set page to loaned. rc=%ld\n", __FUNCTION__, rc);
-+			pr_err("%s: Can not set page to loaned. rc=%ld\n", __func__, rc);
- 			spin_unlock(&cmm_lock);
- 			free_page(addr);
- 			break;
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-omfs-sparse-annotations.patch
+connector-add-a-blackboard-user-to-connector-fix.patch
+gru-driver-v3-hardware-data-structures-fix.patch
+gru-driver-v3-hardware-data-structures-fix-fix.patch
+gru-driver-v3-fixes-to-resolve-code-review-comments-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-cifs-remove-global_extern-macro.patch
-ppc-use-the-common-ascii-hex-helpers.patch
+linux-next-rejects.patch
+next-remove-localversion.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+pci-make-pci_register_driver-a-macro.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
-powerpc-replace-__function__-with-__func__.patch
-v4l-drx397xdc-sparse-annotations.patch
-v4l-drx397xdc-replace-__function__-occurrences.patch
-input-ads7846c-sparse-lock-annotation.patch
-mtd-diskonchipc-fix-sparse-endian-warnings.patch
-net-use-the-common-ascii-hex-helpers.patch
-irda-replace-__function__-with-__func__.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-drivers-net-replace-__function__-with-__func__.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
+powerpc-replace-__function__-with-__func__-checkpatch-fixes.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+git-jg-misc.patch
+git-ubi-git-rejects.patch
+bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
 scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-wireless-replace-__function__-with-__func__.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-include-replace-__function__-with-__func__.patch
-befs-annotate-fs32-on-tests-for-superblock-endianness.patch
-byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
-misc-replace-__function__-with-__func__.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works-comment.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+w1-feature-enable-hardware-strong-pullup-checkpatch-fixes.patch
+w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes.patch
+w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
