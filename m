@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + wireless-replace-__function__-with-__func__.patch added to -mm tree
-Date: Tue, 29 Jul 2008 16:42:53 -0700
-Message-ID: <200807292342.m6TNgrov028259@imap1.linux-foundation.org>
+Subject: + include-replace-__function__-with-__func__.patch added to -mm tree
+Date: Tue, 29 Jul 2008 16:44:46 -0700
+Message-ID: <200807292344.m6TNil8Y028315@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59316 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44823 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756869AbYG2Xo3 (ORCPT
+	by vger.kernel.org with ESMTP id S1752107AbYG2Xot (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 19:44:29 -0400
+	Tue, 29 Jul 2008 19:44:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, linville@tuxdriver.com
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     wireless: replace __FUNCTION__ with __func__
+     include: replace __FUNCTION__ with __func__
 has been added to the -mm tree.  Its filename is
-     wireless-replace-__function__-with-__func__.patch
+     include-replace-__function__-with-__func__.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,327 +34,478 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wireless: replace __FUNCTION__ with __func__
+Subject: include: replace __FUNCTION__ with __func__
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 __FUNCTION__ is gcc-specific, use __func__
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/airo.c                   |   16 ++++++++--------
- drivers/net/wireless/hermes.c                 |    2 +-
- drivers/net/wireless/ipw2100.c                |    2 +-
- drivers/net/wireless/ipw2200.h                |    4 ++--
- drivers/net/wireless/iwlwifi/iwl-3945-debug.h |    4 ++--
- drivers/net/wireless/iwlwifi/iwl-debug.h      |    4 ++--
- drivers/net/wireless/iwlwifi/iwl3945-base.c   |    4 ++--
- drivers/net/wireless/iwlwifi/iwl4965-base.c   |    4 ++--
- drivers/net/wireless/libertas/if_cs.c         |    2 +-
- drivers/net/wireless/prism54/isl_ioctl.c      |    8 ++++----
- drivers/net/wireless/rt2x00/rt2x00.h          |    4 ++--
- drivers/net/wireless/wl3501_cs.c              |    8 ++++----
- 12 files changed, 31 insertions(+), 31 deletions(-)
+ include/acpi/acmacros.h                 |    6 +++---
+ include/acpi/platform/acgcc.h           |    2 +-
+ include/asm-arm/arch-iop13xx/time.h     |    4 ++--
+ include/asm-arm/arch-pxa/zylonite.h     |    4 ++--
+ include/asm-generic/bug.h               |    2 +-
+ include/asm-powerpc/ptrace.h            |    2 +-
+ include/asm-x86/mach-es7000/mach_apic.h |    2 +-
+ include/asm-x86/mach-summit/mach_apic.h |    2 +-
+ include/linux/ext2_fs.h                 |    2 +-
+ include/linux/ext3_fs.h                 |    4 ++--
+ include/linux/ext3_jbd.h                |   14 +++++++-------
+ include/linux/jbd.h                     |    4 ++--
+ include/linux/jbd2.h                    |    4 ++--
+ include/linux/kernel.h                  |    4 ++--
+ include/linux/libata.h                  |    6 +++---
+ include/linux/pm.h                      |    2 +-
+ include/linux/reiserfs_fs.h             |    2 +-
+ include/linux/rtmutex.h                 |    2 +-
+ include/media/saa7146.h                 |    4 ++--
+ include/net/9p/9p.h                     |    4 ++--
+ include/net/bluetooth/bluetooth.h       |    4 ++--
+ include/net/ieee80211.h                 |    2 +-
+ include/net/ip_vs.h                     |    4 ++--
+ include/net/irda/irda.h                 |    2 +-
+ include/net/sctp/sctp.h                 |    2 +-
+ include/video/cyblafb.h                 |    2 +-
+ 26 files changed, 46 insertions(+), 46 deletions(-)
 
-diff -puN drivers/net/wireless/airo.c~wireless-replace-__function__-with-__func__ drivers/net/wireless/airo.c
---- a/drivers/net/wireless/airo.c~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/airo.c
-@@ -1915,7 +1915,7 @@ static int mpi_start_xmit(struct sk_buff
- 	struct airo_info *ai = dev->priv;
+diff -puN include/acpi/acmacros.h~include-replace-__function__-with-__func__ include/acpi/acmacros.h
+--- a/include/acpi/acmacros.h~include-replace-__function__-with-__func__
++++ a/include/acpi/acmacros.h
+@@ -467,7 +467,7 @@ struct acpi_integer_overlay {
+ /*
+  * If ACPI_GET_FUNCTION_NAME was not defined in the compiler-dependent header,
+  * define it now. This is the case where there the compiler does not support
+- * a __FUNCTION__ macro or equivalent.
++ * a __func__ macro or equivalent.
+  */
+ #ifndef ACPI_GET_FUNCTION_NAME
+ #define ACPI_GET_FUNCTION_NAME          _acpi_function_name
+@@ -475,12 +475,12 @@ struct acpi_integer_overlay {
+  * The Name parameter should be the procedure name as a quoted string.
+  * The function name is also used by the function exit macros below.
+  * Note: (const char) is used to be compatible with the debug interfaces
+- * and macros such as __FUNCTION__.
++ * and macros such as __func__.
+  */
+ #define ACPI_FUNCTION_NAME(name)	static const char _acpi_function_name[] = #name;
  
- 	if (!skb) {
--		airo_print_err(dev->name, "%s: skb == NULL!",__FUNCTION__);
-+		airo_print_err(dev->name, "%s: skb == NULL!",__func__);
- 		return 0;
- 	}
- 	npacks = skb_queue_len (&ai->txq);
-@@ -1964,7 +1964,7 @@ static int mpi_send_packet (struct net_d
- 	if ((skb = skb_dequeue(&ai->txq)) == NULL) {
- 		airo_print_err(dev->name,
- 			"%s: Dequeue'd zero in send_packet()",
+ #else
+-/* Compiler supports __FUNCTION__ (or equivalent) -- Ignore this macro */
++/* Compiler supports __func__ (or equivalent) -- Ignore this macro */
+ 
+ #define ACPI_FUNCTION_NAME(name)
+ #endif
+diff -puN include/acpi/platform/acgcc.h~include-replace-__function__-with-__func__ include/acpi/platform/acgcc.h
+--- a/include/acpi/platform/acgcc.h~include-replace-__function__-with-__func__
++++ a/include/acpi/platform/acgcc.h
+@@ -46,7 +46,7 @@
+ 
+ /* Function name is used for debug output. Non-ANSI, compiler-dependent */
+ 
+-#define ACPI_GET_FUNCTION_NAME          __FUNCTION__
++#define ACPI_GET_FUNCTION_NAME          __func__
+ 
+ /*
+  * This macro is used to tag functions as "printf-like" because
+diff -puN include/asm-arm/arch-iop13xx/time.h~include-replace-__function__-with-__func__ include/asm-arm/arch-iop13xx/time.h
+--- a/include/asm-arm/arch-iop13xx/time.h~include-replace-__function__-with-__func__
++++ a/include/asm-arm/arch-iop13xx/time.h
+@@ -41,7 +41,7 @@ static inline unsigned long iop13xx_core
+ 		return 1200000000;
+ 	default:
+ 		printk("%s: warning unknown frequency, defaulting to 800Mhz\n",
 -			__FUNCTION__);
 +			__func__);
- 		return 0;
  	}
  
-@@ -2115,7 +2115,7 @@ static int airo_start_xmit(struct sk_buf
- 	u32 *fids = priv->fids;
- 
- 	if ( skb == NULL ) {
--		airo_print_err(dev->name, "%s: skb == NULL!", __FUNCTION__);
-+		airo_print_err(dev->name, "%s: skb == NULL!", __func__);
- 		return 0;
+ 	return 800000000;
+@@ -60,7 +60,7 @@ static inline unsigned long iop13xx_xsi_
+ 		return 4;
+ 	default:
+ 		printk("%s: warning unknown ratio, defaulting to 2\n",
+-			__FUNCTION__);
++			__func__);
  	}
  
-@@ -2186,7 +2186,7 @@ static int airo_start_xmit11(struct sk_b
- 	}
- 
- 	if ( skb == NULL ) {
--		airo_print_err(dev->name, "%s: skb == NULL!", __FUNCTION__);
-+		airo_print_err(dev->name, "%s: skb == NULL!", __func__);
- 		return 0;
- 	}
- 
-@@ -4127,7 +4127,7 @@ static int PC4500_writerid(struct airo_i
- 		if (test_bit(FLAG_ENABLED, &ai->flags) && (RID_WEP_TEMP != rid))
- 			airo_print_err(ai->dev->name,
- 				"%s: MAC should be disabled (rid=%04x)",
--				__FUNCTION__, rid);
-+				__func__, rid);
- 		memset(&cmd, 0, sizeof(cmd));
- 		memset(&rsp, 0, sizeof(rsp));
- 
-@@ -4142,7 +4142,7 @@ static int PC4500_writerid(struct airo_i
- 			&ai->config_desc.rid_desc, sizeof(Rid));
- 
- 		if (len < 4 || len > 2047) {
--			airo_print_err(ai->dev->name, "%s: len=%d", __FUNCTION__, len);
-+			airo_print_err(ai->dev->name, "%s: len=%d", __func__, len);
- 			rc = -1;
- 		} else {
- 			memcpy((char *)ai->config_desc.virtual_host_addr,
-@@ -4151,9 +4151,9 @@ static int PC4500_writerid(struct airo_i
- 			rc = issuecommand(ai, &cmd, &rsp);
- 			if ((rc & 0xff00) != 0) {
- 				airo_print_err(ai->dev->name, "%s: Write rid Error %d",
--						__FUNCTION__, rc);
-+						__func__, rc);
- 				airo_print_err(ai->dev->name, "%s: Cmd=%04x",
--						__FUNCTION__, cmd.cmd);
-+						__func__, cmd.cmd);
- 			}
- 
- 			if ((rsp.status & 0x7f00))
-diff -puN drivers/net/wireless/hermes.c~wireless-replace-__function__-with-__func__ drivers/net/wireless/hermes.c
---- a/drivers/net/wireless/hermes.c~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/hermes.c
-@@ -463,7 +463,7 @@ int hermes_read_ltv(hermes_t *hw, int ba
- 	if (rtype != rid)
- 		printk(KERN_WARNING "hermes @ %p: %s(): "
- 		       "rid (0x%04x) does not match type (0x%04x)\n",
--		       hw->iobase, __FUNCTION__, rid, rtype);
-+		       hw->iobase, __func__, rid, rtype);
- 	if (HERMES_RECLEN_TO_BYTES(rlength) > bufsize)
- 		printk(KERN_WARNING "hermes @ %p: "
- 		       "Truncating LTV record from %d to %d bytes. "
-diff -puN drivers/net/wireless/ipw2100.c~wireless-replace-__function__-with-__func__ drivers/net/wireless/ipw2100.c
---- a/drivers/net/wireless/ipw2100.c~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/ipw2100.c
-@@ -212,7 +212,7 @@ static u32 ipw2100_debug_level = IPW_DL_
- do { \
- 	if (ipw2100_debug_level & (level)) { \
- 		printk(KERN_DEBUG "ipw2100: %c %s ", \
--                       in_interrupt() ? 'I' : 'U',  __FUNCTION__); \
-+                       in_interrupt() ? 'I' : 'U',  __func__); \
- 		printk(message); \
- 	} \
- } while (0)
-diff -puN drivers/net/wireless/ipw2200.h~wireless-replace-__function__-with-__func__ drivers/net/wireless/ipw2200.h
---- a/drivers/net/wireless/ipw2200.h~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/ipw2200.h
-@@ -1394,13 +1394,13 @@ BIT_ARG16(x)
- #define IPW_DEBUG(level, fmt, args...) \
- do { if (ipw_debug_level & (level)) \
-   printk(KERN_DEBUG DRV_NAME": %c %s " fmt, \
--         in_interrupt() ? 'I' : 'U', __FUNCTION__ , ## args); } while (0)
-+         in_interrupt() ? 'I' : 'U', __func__ , ## args); } while (0)
- 
- #ifdef CONFIG_IPW2200_DEBUG
- #define IPW_LL_DEBUG(level, fmt, args...) \
- do { if (ipw_debug_level & (level)) \
-   printk(KERN_DEBUG DRV_NAME": %c %s " fmt, \
--         in_interrupt() ? 'I' : 'U', __FUNCTION__ , ## args); } while (0)
-+         in_interrupt() ? 'I' : 'U', __func__ , ## args); } while (0)
- #else
- #define IPW_LL_DEBUG(level, fmt, args...) do {} while (0)
- #endif				/* CONFIG_IPW2200_DEBUG */
-diff -puN drivers/net/wireless/iwlwifi/iwl-3945-debug.h~wireless-replace-__function__-with-__func__ drivers/net/wireless/iwlwifi/iwl-3945-debug.h
---- a/drivers/net/wireless/iwlwifi/iwl-3945-debug.h~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/iwlwifi/iwl-3945-debug.h
-@@ -34,12 +34,12 @@ extern u32 iwl3945_debug_level;
- #define IWL_DEBUG(level, fmt, args...) \
- do { if (iwl3945_debug_level & (level)) \
-   printk(KERN_ERR DRV_NAME": %c %s " fmt, \
--	 in_interrupt() ? 'I' : 'U', __FUNCTION__ , ## args); } while (0)
-+	 in_interrupt() ? 'I' : 'U', __func__ , ## args); } while (0)
- 
- #define IWL_DEBUG_LIMIT(level, fmt, args...) \
- do { if ((iwl3945_debug_level & (level)) && net_ratelimit()) \
-   printk(KERN_ERR DRV_NAME": %c %s " fmt, \
--	 in_interrupt() ? 'I' : 'U', __FUNCTION__ , ## args); } while (0)
-+	 in_interrupt() ? 'I' : 'U', __func__ , ## args); } while (0)
- 
- static inline void iwl3945_print_hex_dump(int level, void *p, u32 len)
+ 	return 2;
+diff -puN include/asm-arm/arch-pxa/zylonite.h~include-replace-__function__-with-__func__ include/asm-arm/arch-pxa/zylonite.h
+--- a/include/asm-arm/arch-pxa/zylonite.h~include-replace-__function__-with-__func__
++++ a/include/asm-arm/arch-pxa/zylonite.h
+@@ -30,7 +30,7 @@ extern void zylonite_pxa300_init(void);
+ static inline void zylonite_pxa300_init(void)
  {
-diff -puN drivers/net/wireless/iwlwifi/iwl-debug.h~wireless-replace-__function__-with-__func__ drivers/net/wireless/iwlwifi/iwl-debug.h
---- a/drivers/net/wireless/iwlwifi/iwl-debug.h~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/iwlwifi/iwl-debug.h
-@@ -33,12 +33,12 @@
- #define IWL_DEBUG(level, fmt, args...) \
- do { if (priv->debug_level & (level)) \
-   dev_printk(KERN_ERR, &(priv->hw->wiphy->dev), "%c %s " fmt, \
--	 in_interrupt() ? 'I' : 'U', __FUNCTION__ , ## args); } while (0)
-+	 in_interrupt() ? 'I' : 'U', __func__ , ## args); } while (0)
- 
- #define IWL_DEBUG_LIMIT(level, fmt, args...) \
- do { if ((priv->debug_level & (level)) && net_ratelimit()) \
-   dev_printk(KERN_ERR, &(priv->hw->wiphy->dev), "%c %s " fmt, \
--	 in_interrupt() ? 'I' : 'U', __FUNCTION__ , ## args); } while (0)
-+	 in_interrupt() ? 'I' : 'U', __func__ , ## args); } while (0)
- 
- #ifdef CONFIG_IWLWIFI_DEBUGFS
- struct iwl_debugfs {
-diff -puN drivers/net/wireless/iwlwifi/iwl3945-base.c~wireless-replace-__function__-with-__func__ drivers/net/wireless/iwlwifi/iwl3945-base.c
---- a/drivers/net/wireless/iwlwifi/iwl3945-base.c~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/iwlwifi/iwl3945-base.c
-@@ -6336,7 +6336,7 @@ static void iwl3945_bg_post_associate(st
- 	DECLARE_MAC_BUF(mac);
- 
- 	if (priv->iw_mode == IEEE80211_IF_TYPE_AP) {
--		IWL_ERROR("%s Should not be called in AP mode\n", __FUNCTION__);
-+		IWL_ERROR("%s Should not be called in AP mode\n", __func__);
- 		return;
- 	}
- 
-@@ -6417,7 +6417,7 @@ static void iwl3945_bg_post_associate(st
- 
- 	default:
- 		 IWL_ERROR("%s Should not be called in %d mode\n",
--			   __FUNCTION__, priv->iw_mode);
-+			   __func__, priv->iw_mode);
- 		break;
- 	}
- 
-diff -puN drivers/net/wireless/iwlwifi/iwl4965-base.c~wireless-replace-__function__-with-__func__ drivers/net/wireless/iwlwifi/iwl4965-base.c
---- a/drivers/net/wireless/iwlwifi/iwl4965-base.c~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/iwlwifi/iwl4965-base.c
-@@ -2415,7 +2415,7 @@ static void iwl4965_post_associate(struc
- 	unsigned long flags;
- 
- 	if (priv->iw_mode == IEEE80211_IF_TYPE_AP) {
--		IWL_ERROR("%s Should not be called in AP mode\n", __FUNCTION__);
-+		IWL_ERROR("%s Should not be called in AP mode\n", __func__);
- 		return;
- 	}
- 
-@@ -2491,7 +2491,7 @@ static void iwl4965_post_associate(struc
- 
- 	default:
- 		IWL_ERROR("%s Should not be called in %d mode\n",
--				__FUNCTION__, priv->iw_mode);
-+				__func__, priv->iw_mode);
- 		break;
- 	}
- 
-diff -puN drivers/net/wireless/libertas/if_cs.c~wireless-replace-__function__-with-__func__ drivers/net/wireless/libertas/if_cs.c
---- a/drivers/net/wireless/libertas/if_cs.c~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/libertas/if_cs.c
-@@ -720,7 +720,7 @@ static int if_cs_host_to_card(struct lbs
- 		ret = if_cs_send_cmd(priv, buf, nb);
- 		break;
- 	default:
--		lbs_pr_err("%s: unsupported type %d\n", __FUNCTION__, type);
-+		lbs_pr_err("%s: unsupported type %d\n", __func__, type);
- 	}
- 
- 	lbs_deb_leave_args(LBS_DEB_CS, "ret %d", ret);
-diff -puN drivers/net/wireless/prism54/isl_ioctl.c~wireless-replace-__function__-with-__func__ drivers/net/wireless/prism54/isl_ioctl.c
---- a/drivers/net/wireless/prism54/isl_ioctl.c~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/prism54/isl_ioctl.c
-@@ -71,7 +71,7 @@ prism54_mib_mode_helper(islpci_private *
- 	if (iw_mode == IW_MODE_REPEAT || iw_mode == IW_MODE_SECOND) {
- 		printk(KERN_DEBUG
- 		       "%s(): Sorry, Repeater mode and Secondary mode "
--		       "are not yet supported by this driver.\n", __FUNCTION__);
-+		       "are not yet supported by this driver.\n", __func__);
- 		return -EINVAL;
- 	}
- 
-@@ -333,7 +333,7 @@ prism54_set_mode(struct net_device *ndev
- 	if (*uwrq > IW_MODE_MONITOR || *uwrq < IW_MODE_AUTO) {
- 		printk(KERN_DEBUG
- 		       "%s: %s() You passed a non-valid init_mode.\n",
--		       priv->ndev->name, __FUNCTION__);
-+		       priv->ndev->name, __func__);
- 		return -EINVAL;
- 	}
- 
-@@ -1234,7 +1234,7 @@ prism54_set_txpower(struct net_device *n
- 		/* don't know how to disable radio */
- 		printk(KERN_DEBUG
- 		       "%s: %s() disabling radio is not yet supported.\n",
--		       priv->ndev->name, __FUNCTION__);
-+		       priv->ndev->name, __func__);
- 		return -ENOTSUPP;
- 	} else if (vwrq->fixed)
- 		/* currently only fixed value is supported */
-@@ -1242,7 +1242,7 @@ prism54_set_txpower(struct net_device *n
- 	else {
- 		printk(KERN_DEBUG
- 		       "%s: %s() auto power will be implemented later.\n",
--		       priv->ndev->name, __FUNCTION__);
-+		       priv->ndev->name, __func__);
- 		return -ENOTSUPP;
- 	}
+ 	if (cpu_is_pxa300() || cpu_is_pxa310())
+-		panic("%s: PXA300/PXA310 not supported\n", __FUNCTION__);
++		panic("%s: PXA300/PXA310 not supported\n", __func__);
  }
-diff -puN drivers/net/wireless/rt2x00/rt2x00.h~wireless-replace-__function__-with-__func__ drivers/net/wireless/rt2x00/rt2x00.h
---- a/drivers/net/wireless/rt2x00/rt2x00.h~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/rt2x00/rt2x00.h
-@@ -53,11 +53,11 @@
-  */
- #define DEBUG_PRINTK_MSG(__dev, __kernlvl, __lvl, __msg, __args...)	\
- 	printk(__kernlvl "%s -> %s: %s - " __msg,			\
--	       wiphy_name((__dev)->hw->wiphy), __FUNCTION__, __lvl, ##__args)
-+	       wiphy_name((__dev)->hw->wiphy), __func__, __lvl, ##__args)
- 
- #define DEBUG_PRINTK_PROBE(__kernlvl, __lvl, __msg, __args...)	\
- 	printk(__kernlvl "%s -> %s: %s - " __msg,		\
--	       KBUILD_MODNAME, __FUNCTION__, __lvl, ##__args)
-+	       KBUILD_MODNAME, __func__, __lvl, ##__args)
- 
- #ifdef CONFIG_RT2X00_DEBUG
- #define DEBUG_PRINTK(__dev, __kernlvl, __lvl, __msg, __args...)	\
-diff -puN drivers/net/wireless/wl3501_cs.c~wireless-replace-__function__-with-__func__ drivers/net/wireless/wl3501_cs.c
---- a/drivers/net/wireless/wl3501_cs.c~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/wl3501_cs.c
-@@ -79,7 +79,7 @@ static int pc_debug = PCMCIA_DEBUG;
- module_param(pc_debug, int, 0);
- #define dprintk(n, format, args...) \
- 	{ if (pc_debug > (n)) \
--		printk(KERN_INFO "%s: " format "\n", __FUNCTION__ , ##args); }
-+		printk(KERN_INFO "%s: " format "\n", __func__ , ##args); }
- #else
- #define dprintk(n, format, args...)
  #endif
-@@ -470,7 +470,7 @@ static int wl3501_pwr_mgmt(struct wl3501
- 			spin_unlock_irqrestore(&this->lock, flags);
- 			rc = wait_event_interruptible(this->wait,
- 				this->sig_pwr_mgmt_confirm.status != 255);
--			printk(KERN_INFO "%s: %s status=%d\n", __FUNCTION__,
-+			printk(KERN_INFO "%s: %s status=%d\n", __func__,
- 			       suspend ? "suspend" : "resume",
- 			       this->sig_pwr_mgmt_confirm.status);
- 			goto out;
-@@ -1199,7 +1199,7 @@ static int wl3501_reset_board(struct wl3
- 		}
- 		WL3501_NOPLOOP(10);
- 	}
--	printk(KERN_WARNING "%s: failed to reset the board!\n", __FUNCTION__);
-+	printk(KERN_WARNING "%s: failed to reset the board!\n", __func__);
- 	rc = -ENODEV;
- out:
- 	return rc;
-@@ -1250,7 +1250,7 @@ static int wl3501_init_firmware(struct w
- out:
- 	return rc;
- fail:
--	printk(KERN_WARNING "%s: failed!\n", __FUNCTION__);
-+	printk(KERN_WARNING "%s: failed!\n", __func__);
- 	goto out;
+ 
+@@ -40,7 +40,7 @@ extern void zylonite_pxa320_init(void);
+ static inline void zylonite_pxa320_init(void)
+ {
+ 	if (cpu_is_pxa320())
+-		panic("%s: PXA320 not supported\n", __FUNCTION__);
++		panic("%s: PXA320 not supported\n", __func__);
+ }
+ #endif
+ 
+diff -puN include/asm-generic/bug.h~include-replace-__function__-with-__func__ include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~include-replace-__function__-with-__func__
++++ a/include/asm-generic/bug.h
+@@ -22,7 +22,7 @@ struct bug_entry {
+ 
+ #ifndef HAVE_ARCH_BUG
+ #define BUG() do { \
+-	printk("BUG: failure at %s:%d/%s()!\n", __FILE__, __LINE__, __FUNCTION__); \
++	printk("BUG: failure at %s:%d/%s()!\n", __FILE__, __LINE__, __func__); \
+ 	panic("BUG!"); \
+ } while (0)
+ #endif
+diff -puN include/asm-powerpc/ptrace.h~include-replace-__function__-with-__func__ include/asm-powerpc/ptrace.h
+--- a/include/asm-powerpc/ptrace.h~include-replace-__function__-with-__func__
++++ a/include/asm-powerpc/ptrace.h
+@@ -129,7 +129,7 @@ extern int ptrace_put_reg(struct task_st
+ #define CHECK_FULL_REGS(regs)						      \
+ do {									      \
+ 	if ((regs)->trap & 1)						      \
+-		printk(KERN_CRIT "%s: partial register set\n", __FUNCTION__); \
++		printk(KERN_CRIT "%s: partial register set\n", __func__); \
+ } while (0)
+ #endif /* __powerpc64__ */
+ 
+diff -puN include/asm-x86/mach-es7000/mach_apic.h~include-replace-__function__-with-__func__ include/asm-x86/mach-es7000/mach_apic.h
+--- a/include/asm-x86/mach-es7000/mach_apic.h~include-replace-__function__-with-__func__
++++ a/include/asm-x86/mach-es7000/mach_apic.h
+@@ -171,7 +171,7 @@ static inline unsigned int cpu_mask_to_a
+ 			int new_apicid = cpu_to_logical_apicid(cpu);
+ 			if (apicid_cluster(apicid) != 
+ 					apicid_cluster(new_apicid)){
+-				printk ("%s: Not a valid mask!\n",__FUNCTION__);
++				printk ("%s: Not a valid mask!\n",__func__);
+ #if defined CONFIG_ES7000_CLUSTERED_APIC
+ 				return 0xFF;
+ #else
+diff -puN include/asm-x86/mach-summit/mach_apic.h~include-replace-__function__-with-__func__ include/asm-x86/mach-summit/mach_apic.h
+--- a/include/asm-x86/mach-summit/mach_apic.h~include-replace-__function__-with-__func__
++++ a/include/asm-x86/mach-summit/mach_apic.h
+@@ -160,7 +160,7 @@ static inline unsigned int cpu_mask_to_a
+ 			int new_apicid = cpu_to_logical_apicid(cpu);
+ 			if (apicid_cluster(apicid) != 
+ 					apicid_cluster(new_apicid)){
+-				printk ("%s: Not a valid mask!\n",__FUNCTION__);
++				printk ("%s: Not a valid mask!\n",__func__);
+ 				return 0xFF;
+ 			}
+ 			apicid = apicid | new_apicid;
+diff -puN include/linux/ext2_fs.h~include-replace-__function__-with-__func__ include/linux/ext2_fs.h
+--- a/include/linux/ext2_fs.h~include-replace-__function__-with-__func__
++++ a/include/linux/ext2_fs.h
+@@ -47,7 +47,7 @@
+ #ifdef EXT2FS_DEBUG
+ #	define ext2_debug(f, a...)	{ \
+ 					printk ("EXT2-fs DEBUG (%s, %d): %s:", \
+-						__FILE__, __LINE__, __FUNCTION__); \
++						__FILE__, __LINE__, __func__); \
+ 				  	printk (f, ## a); \
+ 					}
+ #else
+diff -puN include/linux/ext3_fs.h~include-replace-__function__-with-__func__ include/linux/ext3_fs.h
+--- a/include/linux/ext3_fs.h~include-replace-__function__-with-__func__
++++ a/include/linux/ext3_fs.h
+@@ -43,7 +43,7 @@
+ #define ext3_debug(f, a...)						\
+ 	do {								\
+ 		printk (KERN_DEBUG "EXT3-fs DEBUG (%s, %d): %s:",	\
+-			__FILE__, __LINE__, __FUNCTION__);		\
++			__FILE__, __LINE__, __func__);		\
+ 		printk (KERN_DEBUG f, ## a);				\
+ 	} while (0)
+ #else
+@@ -869,7 +869,7 @@ extern void ext3_update_dynamic_rev (str
+ #define ext3_std_error(sb, errno)				\
+ do {								\
+ 	if ((errno))						\
+-		__ext3_std_error((sb), __FUNCTION__, (errno));	\
++		__ext3_std_error((sb), __func__, (errno));	\
+ } while (0)
+ 
+ /*
+diff -puN include/linux/ext3_jbd.h~include-replace-__function__-with-__func__ include/linux/ext3_jbd.h
+--- a/include/linux/ext3_jbd.h~include-replace-__function__-with-__func__
++++ a/include/linux/ext3_jbd.h
+@@ -137,17 +137,17 @@ int __ext3_journal_dirty_metadata(const 
+ 				handle_t *handle, struct buffer_head *bh);
+ 
+ #define ext3_journal_get_undo_access(handle, bh) \
+-	__ext3_journal_get_undo_access(__FUNCTION__, (handle), (bh))
++	__ext3_journal_get_undo_access(__func__, (handle), (bh))
+ #define ext3_journal_get_write_access(handle, bh) \
+-	__ext3_journal_get_write_access(__FUNCTION__, (handle), (bh))
++	__ext3_journal_get_write_access(__func__, (handle), (bh))
+ #define ext3_journal_revoke(handle, blocknr, bh) \
+-	__ext3_journal_revoke(__FUNCTION__, (handle), (blocknr), (bh))
++	__ext3_journal_revoke(__func__, (handle), (blocknr), (bh))
+ #define ext3_journal_get_create_access(handle, bh) \
+-	__ext3_journal_get_create_access(__FUNCTION__, (handle), (bh))
++	__ext3_journal_get_create_access(__func__, (handle), (bh))
+ #define ext3_journal_dirty_metadata(handle, bh) \
+-	__ext3_journal_dirty_metadata(__FUNCTION__, (handle), (bh))
++	__ext3_journal_dirty_metadata(__func__, (handle), (bh))
+ #define ext3_journal_forget(handle, bh) \
+-	__ext3_journal_forget(__FUNCTION__, (handle), (bh))
++	__ext3_journal_forget(__func__, (handle), (bh))
+ 
+ int ext3_journal_dirty_data(handle_t *handle, struct buffer_head *bh);
+ 
+@@ -160,7 +160,7 @@ static inline handle_t *ext3_journal_sta
  }
  
+ #define ext3_journal_stop(handle) \
+-	__ext3_journal_stop(__FUNCTION__, (handle))
++	__ext3_journal_stop(__func__, (handle))
+ 
+ static inline handle_t *ext3_journal_current_handle(void)
+ {
+diff -puN include/linux/jbd.h~include-replace-__function__-with-__func__ include/linux/jbd.h
+--- a/include/linux/jbd.h~include-replace-__function__-with-__func__
++++ a/include/linux/jbd.h
+@@ -61,7 +61,7 @@ extern u8 journal_enable_debug;
+ 	do {								\
+ 		if ((n) <= journal_enable_debug) {			\
+ 			printk (KERN_DEBUG "(%s, %d): %s: ",		\
+-				__FILE__, __LINE__, __FUNCTION__);	\
++				__FILE__, __LINE__, __func__);	\
+ 			printk (f, ## a);				\
+ 		}							\
+ 	} while (0)
+@@ -984,7 +984,7 @@ extern int	cleanup_journal_tail(journal_
+ 
+ #define jbd_ENOSYS() \
+ do {								           \
+-	printk (KERN_ERR "JBD unimplemented function %s\n", __FUNCTION__); \
++	printk (KERN_ERR "JBD unimplemented function %s\n", __func__); \
+ 	current->state = TASK_UNINTERRUPTIBLE;			           \
+ 	schedule();						           \
+ } while (1)
+diff -puN include/linux/jbd2.h~include-replace-__function__-with-__func__ include/linux/jbd2.h
+--- a/include/linux/jbd2.h~include-replace-__function__-with-__func__
++++ a/include/linux/jbd2.h
+@@ -61,7 +61,7 @@ extern u8 jbd2_journal_enable_debug;
+ 	do {								\
+ 		if ((n) <= jbd2_journal_enable_debug) {			\
+ 			printk (KERN_DEBUG "(%s, %d): %s: ",		\
+-				__FILE__, __LINE__, __FUNCTION__);	\
++				__FILE__, __LINE__, __func__);	\
+ 			printk (f, ## a);				\
+ 		}							\
+ 	} while (0)
+@@ -1139,7 +1139,7 @@ extern int	jbd2_cleanup_journal_tail(jou
+ 
+ #define jbd_ENOSYS() \
+ do {								           \
+-	printk (KERN_ERR "JBD unimplemented function %s\n", __FUNCTION__); \
++	printk (KERN_ERR "JBD unimplemented function %s\n", __func__); \
+ 	current->state = TASK_UNINTERRUPTIBLE;			           \
+ 	schedule();						           \
+ } while (1)
+diff -puN include/linux/kernel.h~include-replace-__function__-with-__func__ include/linux/kernel.h
+--- a/include/linux/kernel.h~include-replace-__function__-with-__func__
++++ a/include/linux/kernel.h
+@@ -456,8 +456,8 @@ extern int do_sysinfo(struct sysinfo *in
+    aren't permitted). */
+ #define BUILD_BUG_ON_ZERO(e) (sizeof(char[1 - 2 * !!(e)]) - 1)
+ 
+-/* Trap pasters of __FUNCTION__ at compile-time */
+-#define __FUNCTION__ (__func__)
++/* Trap pasters of __func__ at compile-time */
++#define __func__ (__func__)
+ 
+ /* This helps us to avoid #ifdef CONFIG_NUMA */
+ #ifdef CONFIG_NUMA
+diff -puN include/linux/libata.h~include-replace-__function__-with-__func__ include/linux/libata.h
+--- a/include/linux/libata.h~include-replace-__function__-with-__func__
++++ a/include/linux/libata.h
+@@ -60,9 +60,9 @@
+ 
+ /* note: prints function name for you */
+ #ifdef ATA_DEBUG
+-#define DPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __FUNCTION__, ## args)
++#define DPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __func__, ## args)
+ #ifdef ATA_VERBOSE_DEBUG
+-#define VPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __FUNCTION__, ## args)
++#define VPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __func__, ## args)
+ #else
+ #define VPRINTK(fmt, args...)
+ #endif	/* ATA_VERBOSE_DEBUG */
+@@ -71,7 +71,7 @@
+ #define VPRINTK(fmt, args...)
+ #endif	/* ATA_DEBUG */
+ 
+-#define BPRINTK(fmt, args...) if (ap->flags & ATA_FLAG_DEBUGMSG) printk(KERN_ERR "%s: " fmt, __FUNCTION__, ## args)
++#define BPRINTK(fmt, args...) if (ap->flags & ATA_FLAG_DEBUGMSG) printk(KERN_ERR "%s: " fmt, __func__, ## args)
+ 
+ /* NEW: debug levels */
+ #define HAVE_LIBATA_MSG 1
+diff -puN include/linux/pm.h~include-replace-__function__-with-__func__ include/linux/pm.h
+--- a/include/linux/pm.h~include-replace-__function__-with-__func__
++++ a/include/linux/pm.h
+@@ -419,7 +419,7 @@ extern void __suspend_report_result(cons
+ 
+ #define suspend_report_result(fn, ret)					\
+ 	do {								\
+-		__suspend_report_result(__FUNCTION__, fn, ret);		\
++		__suspend_report_result(__func__, fn, ret);		\
+ 	} while (0)
+ 
+ #else /* !CONFIG_PM_SLEEP */
+diff -puN include/linux/reiserfs_fs.h~include-replace-__function__-with-__func__ include/linux/reiserfs_fs.h
+--- a/include/linux/reiserfs_fs.h~include-replace-__function__-with-__func__
++++ a/include/linux/reiserfs_fs.h
+@@ -87,7 +87,7 @@ void reiserfs_warning(struct super_block
+ if( !( cond ) ) 								\
+   reiserfs_panic( NULL, "reiserfs[%i]: assertion " scond " failed at "	\
+ 		  __FILE__ ":%i:%s: " format "\n",		\
+-		  in_interrupt() ? -1 : task_pid_nr(current), __LINE__ , __FUNCTION__ , ##args )
++		  in_interrupt() ? -1 : task_pid_nr(current), __LINE__ , __func__ , ##args )
+ 
+ #define RASSERT(cond, format, args...) __RASSERT(cond, #cond, format, ##args)
+ 
+diff -puN include/linux/rtmutex.h~include-replace-__function__-with-__func__ include/linux/rtmutex.h
+--- a/include/linux/rtmutex.h~include-replace-__function__-with-__func__
++++ a/include/linux/rtmutex.h
+@@ -54,7 +54,7 @@ struct hrtimer_sleeper;
+ #ifdef CONFIG_DEBUG_RT_MUTEXES
+ # define __DEBUG_RT_MUTEX_INITIALIZER(mutexname) \
+ 	, .name = #mutexname, .file = __FILE__, .line = __LINE__
+-# define rt_mutex_init(mutex)			__rt_mutex_init(mutex, __FUNCTION__)
++# define rt_mutex_init(mutex)			__rt_mutex_init(mutex, __func__)
+  extern void rt_mutex_debug_task_free(struct task_struct *tsk);
+ #else
+ # define __DEBUG_RT_MUTEX_INITIALIZER(mutexname)
+diff -puN include/media/saa7146.h~include-replace-__function__-with-__func__ include/media/saa7146.h
+--- a/include/media/saa7146.h~include-replace-__function__-with-__func__
++++ a/include/media/saa7146.h
+@@ -24,13 +24,13 @@
+ 
+ extern unsigned int saa7146_debug;
+ 
+-//#define DEBUG_PROLOG printk("(0x%08x)(0x%08x) %s: %s(): ",(dev==0?-1:(dev->mem==0?-1:saa7146_read(dev,RPS_ADDR0))),(dev==0?-1:(dev->mem==0?-1:saa7146_read(dev,IER))),KBUILD_MODNAME,__FUNCTION__)
++//#define DEBUG_PROLOG printk("(0x%08x)(0x%08x) %s: %s(): ",(dev==0?-1:(dev->mem==0?-1:saa7146_read(dev,RPS_ADDR0))),(dev==0?-1:(dev->mem==0?-1:saa7146_read(dev,IER))),KBUILD_MODNAME,__func__)
+ 
+ #ifndef DEBUG_VARIABLE
+ 	#define DEBUG_VARIABLE saa7146_debug
+ #endif
+ 
+-#define DEBUG_PROLOG printk("%s: %s(): ",KBUILD_MODNAME,__FUNCTION__)
++#define DEBUG_PROLOG printk("%s: %s(): ",KBUILD_MODNAME,__func__)
+ #define INFO(x) { printk("%s: ",KBUILD_MODNAME); printk x; }
+ 
+ #define ERR(x) { DEBUG_PROLOG; printk x; }
+diff -puN include/net/9p/9p.h~include-replace-__function__-with-__func__ include/net/9p/9p.h
+--- a/include/net/9p/9p.h~include-replace-__function__-with-__func__
++++ a/include/net/9p/9p.h
+@@ -61,7 +61,7 @@ extern unsigned int p9_debug_level;
+ do {  \
+ 	if ((p9_debug_level & level) == level) \
+ 		printk(KERN_NOTICE "-- %s (%d): " \
+-		format , __FUNCTION__, task_pid_nr(current) , ## arg); \
++		format , __func__, task_pid_nr(current) , ## arg); \
+ } while (0)
+ 
+ #define PRINT_FCALL_ERROR(s, fcall) P9_DPRINTK(P9_DEBUG_ERROR,   \
+@@ -76,7 +76,7 @@ do {  \
+ #define P9_EPRINTK(level, format, arg...) \
+ do { \
+ 	printk(level "9p: %s (%d): " \
+-		format , __FUNCTION__, task_pid_nr(current), ## arg); \
++		format , __func__, task_pid_nr(current), ## arg); \
+ } while (0)
+ 
+ /**
+diff -puN include/net/bluetooth/bluetooth.h~include-replace-__function__-with-__func__ include/net/bluetooth/bluetooth.h
+--- a/include/net/bluetooth/bluetooth.h~include-replace-__function__-with-__func__
++++ a/include/net/bluetooth/bluetooth.h
+@@ -54,8 +54,8 @@
+ #define SOL_RFCOMM	18
+ 
+ #define BT_INFO(fmt, arg...) printk(KERN_INFO "Bluetooth: " fmt "\n" , ## arg)
+-#define BT_DBG(fmt, arg...)  printk(KERN_INFO "%s: " fmt "\n" , __FUNCTION__ , ## arg)
+-#define BT_ERR(fmt, arg...)  printk(KERN_ERR  "%s: " fmt "\n" , __FUNCTION__ , ## arg)
++#define BT_DBG(fmt, arg...)  printk(KERN_INFO "%s: " fmt "\n" , __func__ , ## arg)
++#define BT_ERR(fmt, arg...)  printk(KERN_ERR  "%s: " fmt "\n" , __func__ , ## arg)
+ 
+ /* Connection and socket states */
+ enum {
+diff -puN include/net/ieee80211.h~include-replace-__function__-with-__func__ include/net/ieee80211.h
+--- a/include/net/ieee80211.h~include-replace-__function__-with-__func__
++++ a/include/net/ieee80211.h
+@@ -114,7 +114,7 @@ extern u32 ieee80211_debug_level;
+ #define IEEE80211_DEBUG(level, fmt, args...) \
+ do { if (ieee80211_debug_level & (level)) \
+   printk(KERN_DEBUG "ieee80211: %c %s " fmt, \
+-         in_interrupt() ? 'I' : 'U', __FUNCTION__ , ## args); } while (0)
++         in_interrupt() ? 'I' : 'U', __func__ , ## args); } while (0)
+ static inline bool ieee80211_ratelimit_debug(u32 level)
+ {
+ 	return (ieee80211_debug_level & level) && net_ratelimit();
+diff -puN include/net/ip_vs.h~include-replace-__function__-with-__func__ include/net/ip_vs.h
+--- a/include/net/ip_vs.h~include-replace-__function__-with-__func__
++++ a/include/net/ip_vs.h
+@@ -307,13 +307,13 @@ extern int ip_vs_get_debug_level(void);
+     do {								\
+ 	    if (level <= ip_vs_get_debug_level())			\
+ 		    printk(KERN_DEBUG "Enter: %s, %s line %i\n",	\
+-			   __FUNCTION__, __FILE__, __LINE__);		\
++			   __func__, __FILE__, __LINE__);		\
+     } while (0)
+ #define LeaveFunction(level)                                            \
+     do {                                                                \
+ 	    if (level <= ip_vs_get_debug_level())                       \
+ 			printk(KERN_DEBUG "Leave: %s, %s line %i\n",    \
+-			       __FUNCTION__, __FILE__, __LINE__);       \
++			       __func__, __FILE__, __LINE__);       \
+     } while (0)
+ #else
+ #define EnterFunction(level)   do {} while (0)
+diff -puN include/net/irda/irda.h~include-replace-__function__-with-__func__ include/net/irda/irda.h
+--- a/include/net/irda/irda.h~include-replace-__function__-with-__func__
++++ a/include/net/irda/irda.h
+@@ -72,7 +72,7 @@ do {	if (irda_debug >= (n)) \
+ #define IRDA_ASSERT(expr, func) \
+ do { if(!(expr)) { \
+ 	printk( "Assertion failed! %s:%s:%d %s\n", \
+-		__FILE__,__FUNCTION__,__LINE__,(#expr) ); \
++		__FILE__,__func__,__LINE__,(#expr) ); \
+ 	func } } while (0)
+ #define IRDA_ASSERT_LABEL(label)	label
+ #else
+diff -puN include/net/sctp/sctp.h~include-replace-__function__-with-__func__ include/net/sctp/sctp.h
+--- a/include/net/sctp/sctp.h~include-replace-__function__-with-__func__
++++ a/include/net/sctp/sctp.h
+@@ -303,7 +303,7 @@ extern int sctp_debug_flag;
+ #define SCTP_ASSERT(expr, str, func) \
+ 	if (!(expr)) { \
+ 		SCTP_DEBUG_PRINTK("Assertion Failed: %s(%s) at %s:%s:%d\n", \
+-			str, (#expr), __FILE__, __FUNCTION__, __LINE__); \
++			str, (#expr), __FILE__, __func__, __LINE__); \
+ 		func; \
+ 	}
+ 
+diff -puN include/video/cyblafb.h~include-replace-__function__-with-__func__ include/video/cyblafb.h
+--- a/include/video/cyblafb.h~include-replace-__function__-with-__func__
++++ a/include/video/cyblafb.h
+@@ -4,7 +4,7 @@
+ #endif
+ 
+ #if CYBLAFB_DEBUG
+-#define debug(f,a...)	printk("%s:" f,  __FUNCTION__ , ## a);
++#define debug(f,a...)	printk("%s:" f,  __func__ , ## a);
+ #else
+ #define debug(f,a...)
+ #endif
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -371,6 +522,7 @@ mtd-diskonchipc-fix-sparse-endian-warnings.patch
 net-use-the-common-ascii-hex-helpers.patch
 irda-replace-__function__-with-__func__.patch
 isdn-use-the-common-ascii-hex-helpers.patch
+drivers-net-replace-__function__-with-__func__.patch
 scsi-replace-__inline-with-inline.patch
 scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
 scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
@@ -381,12 +533,10 @@ wireless-replace-__function__-with-__func__.patch
 xfs-use-get_unaligned_-helpers.patch
 xtensa-replace-remaining-__function__-occurences.patch
 olpc-olpc_batteryc-sparse-endian-annotations.patch
+include-replace-__function__-with-__func__.patch
 befs-annotate-fs32-on-tests-for-superblock-endianness.patch
 byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
 byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
-drivers-net-replace-__function__-with-__func__.patch
-media-drx397xd-replace-__function__-with-__func__.patch
-include-replace-__function__-with-__func__.patch
 powerpc-replace-__function__-with-__func__.patch
 misc-replace-__function__-with-__func__.patch
 
