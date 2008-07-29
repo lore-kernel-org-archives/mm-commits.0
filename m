@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + w1-w1_intc-use-first-available-master-number.patch added to -mm tree
-Date: Tue, 29 Jul 2008 16:14:57 -0700
-Message-ID: <200807292314.m6TNEvM1027018@imap1.linux-foundation.org>
+Subject: + w1-ds2490c-ds_write_bit-grouping-error-disable-readback.patch added to -mm tree
+Date: Tue, 29 Jul 2008 16:15:09 -0700
+Message-ID: <200807292315.m6TNF9V9027073@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47941 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34978 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751320AbYG2XPH (ORCPT
+	by vger.kernel.org with ESMTP id S1752886AbYG2XPN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 19:15:07 -0400
+	Tue, 29 Jul 2008 19:15:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david@fries.net, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     w1: w1_int.c use first available master number
+     w1: ds2490.c ds_write_bit, grouping error, disable readback
 has been added to the -mm tree.  Its filename is
-     w1-w1_intc-use-first-available-master-number.patch
+     w1-ds2490c-ds_write_bit-grouping-error-disable-readback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,92 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: w1_int.c use first available master number
+Subject: w1: ds2490.c ds_write_bit, grouping error, disable readback
 From: David Fries <david@fries.net>
 
-Follow the example of other devices (like the joystick device).  Pick the
-first available id for each detected device.  Currently for USB devices,
-suspending and resuming would cause the number to increment.
+ds_write_bit doesn't read the input buffer, so add COMM_ICP and a comment
+that it will no longer generate a read back data byte.  If there is an
+extra data byte later on then it will cause an error and discard what data
+was there.  Corrected operator ordering for ds_send_control.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1_int.c |   32 ++++++++++++++++++++++++++------
- 1 file changed, 26 insertions(+), 6 deletions(-)
+ drivers/w1/masters/ds2490.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/w1/w1_int.c~w1-w1_intc-use-first-available-master-number drivers/w1/w1_int.c
---- a/drivers/w1/w1_int.c~w1-w1_intc-use-first-available-master-number
-+++ a/drivers/w1/w1_int.c
-@@ -29,7 +29,6 @@
- #include "w1_netlink.h"
- #include "w1_int.h"
+diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-ds_write_bit-grouping-error-disable-readback drivers/w1/masters/ds2490.c
+--- a/drivers/w1/masters/ds2490.c~w1-ds2490c-ds_write_bit-grouping-error-disable-readback
++++ a/drivers/w1/masters/ds2490.c
+@@ -525,7 +525,12 @@ static int ds_write_bit(struct ds_device
+ 	int err;
+ 	struct ds_status st;
  
--static u32 w1_ids = 1;
- static int w1_search_count = -1; /* Default is continual scan */
- module_param_named(search_count, w1_search_count, int, 0);
- 
-@@ -102,9 +101,10 @@ static void w1_free_dev(struct w1_master
- 
- int w1_add_master_device(struct w1_bus_master *master)
- {
--	struct w1_master *dev;
-+	struct w1_master *dev, *entry;
- 	int retval = 0;
- 	struct w1_netlink_msg msg;
-+	int id, found;
- 
-         /* validate minimum functionality */
-         if (!(master->touch_bit && master->reset_bus) &&
-@@ -126,13 +126,33 @@ int w1_add_master_device(struct w1_bus_m
- 		master->set_pullup = NULL;
- 	}
- 
--	dev = w1_alloc_dev(w1_ids++, w1_max_slave_count, w1_max_slave_ttl, &w1_master_driver, &w1_master_device);
--	if (!dev)
-+	/* Lock until the device is added (or not) to w1_masters. */
-+	mutex_lock(&w1_mlock);
-+	/* Search for the first available id (starting at 1). */
-+	id = 0;
-+	do {
-+		++id;
-+		found = 0;
-+		list_for_each_entry(entry, &w1_masters, w1_master_entry) {
-+			if (entry->id == id) {
-+				found = 1;
-+				break;
-+			}
-+		}
-+	} while (found);
-+
-+	dev = w1_alloc_dev(id, w1_max_slave_count, w1_max_slave_ttl,
-+		&w1_master_driver, &w1_master_device);
-+	if (!dev) {
-+		mutex_unlock(&w1_mlock);
- 		return -ENOMEM;
-+	}
- 
- 	retval =  w1_create_master_attributes(dev);
--	if (retval)
-+	if (retval) {
-+		mutex_unlock(&w1_mlock);
- 		goto err_out_free_dev;
-+	}
- 
- 	memcpy(dev->bus_master, master, sizeof(struct w1_bus_master));
- 
-@@ -144,10 +164,10 @@ int w1_add_master_device(struct w1_bus_m
- 		dev_err(&dev->dev,
- 			 "Failed to create new kernel thread. err=%d\n",
- 			 retval);
-+		mutex_unlock(&w1_mlock);
- 		goto err_out_rm_attr;
- 	}
- 
--	mutex_lock(&w1_mlock);
- 	list_add(&dev->w1_master_entry, &w1_masters);
- 	mutex_unlock(&w1_mlock);
+-	err = ds_send_control(dev, COMM_BIT_IO | COMM_IM | (bit) ? COMM_D : 0, 0);
++	/* Set COMM_ICP to write without a readback.  Note, this will
++	 * produce one time slot, a down followed by an up with COMM_D
++	 * only determing the timing.
++	 */
++	err = ds_send_control(dev, COMM_BIT_IO | COMM_IM | COMM_ICP |
++		(bit ? COMM_D : 0), 0);
+ 	if (err)
+ 		return err;
  
 _
 
