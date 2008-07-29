@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-remove-the-dead-tty_log-code.patch added to -mm tree
-Date: Tue, 29 Jul 2008 15:53:44 -0700
-Message-ID: <200807292253.m6TMriNx026171@imap1.linux-foundation.org>
+Subject: + remove-drivers-serial-v850e_uartc.patch added to -mm tree
+Date: Tue, 29 Jul 2008 15:53:04 -0700
+Message-ID: <200807292253.m6TMr4mr026158@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35943 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34464 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754023AbYG2WyB (ORCPT
+	by vger.kernel.org with ESMTP id S1753116AbYG2Wyt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 18:54:01 -0400
+	Tue, 29 Jul 2008 18:54:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, jdike@addtoit.com, rpjday@crashcourse.ca
+Cc: bunk@kernel.org, alan@redhat.com, rpjday@crashcourse.ca
 
 
 The patch titled
-     uml: remove the dead TTY_LOG code
+     remove drivers/serial/v850e_uart.c
 has been added to the -mm tree.  Its filename is
-     uml-remove-the-dead-tty_log-code.patch
+     remove-drivers-serial-v850e_uartc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,273 +34,578 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: remove the dead TTY_LOG code
+Subject: remove drivers/serial/v850e_uart.c
 From: Adrian Bunk <bunk@kernel.org>
 
-Remove the dead CONFIG_TTY_LOG (no kconfig option).
+The removal of drivers/serial/v850e_uart.c originally was in my v850
+removal patch, but it seems it got lost somewhere.
 
 Reported-by: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Jeff Dike <jdike@addtoit.com>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/exec.c      |   12 -
- arch/um/os-Linux/Makefile  |    3 
- arch/um/os-Linux/tty_log.c |  217 -----------------------------------
- 3 files changed, 232 deletions(-)
+ drivers/serial/Makefile     |    1 
+ drivers/serial/v850e_uart.c |  548 ----------------------------------
+ 2 files changed, 549 deletions(-)
 
-diff -puN arch/um/kernel/exec.c~uml-remove-the-dead-tty_log-code arch/um/kernel/exec.c
---- a/arch/um/kernel/exec.c~uml-remove-the-dead-tty_log-code
-+++ a/arch/um/kernel/exec.c
-@@ -42,23 +42,11 @@ void start_thread(struct pt_regs *regs, 
- 	PT_REGS_SP(regs) = esp;
- }
- 
--#ifdef CONFIG_TTY_LOG
--extern void log_exec(char **argv, void *tty);
--#endif
--
- static long execve1(char *file, char __user * __user *argv,
- 		    char __user *__user *env)
- {
- 	long error;
--#ifdef CONFIG_TTY_LOG
--	struct tty_struct *tty;
- 
--	mutex_lock(&tty_mutex);
--	tty = get_current_tty();
--	if (tty)
--		log_exec(argv, tty);
--	mutex_unlock(&tty_mutex);
--#endif
- 	error = do_execve(file, argv, env, &current->thread.regs);
- 	if (error == 0) {
- 		task_lock(current);
-diff -puN arch/um/os-Linux/Makefile~uml-remove-the-dead-tty_log-code arch/um/os-Linux/Makefile
---- a/arch/um/os-Linux/Makefile~uml-remove-the-dead-tty_log-code
-+++ a/arch/um/os-Linux/Makefile
-@@ -7,9 +7,6 @@ obj-y = aio.o elf_aux.o execvp.o file.o 
- 	registers.o sigio.o signal.o start_up.o time.o tty.o uaccess.o \
- 	umid.o tls.o user_syms.o util.o drivers/ sys-$(SUBARCH)/ skas/
- 
--obj-$(CONFIG_TTY_LOG) += tty_log.o
--user-objs-$(CONFIG_TTY_LOG) += tty_log.o
--
- USER_OBJS := $(user-objs-y) aio.o elf_aux.o execvp.o file.o helper.o irq.o \
- 	main.o mem.o process.o registers.o sigio.o signal.o start_up.o time.o \
- 	tty.o tls.o uaccess.o umid.o util.o
-diff -puN arch/um/os-Linux/tty_log.c~uml-remove-the-dead-tty_log-code /dev/null
---- a/arch/um/os-Linux/tty_log.c
+diff -puN drivers/serial/Makefile~remove-drivers-serial-v850e_uartc drivers/serial/Makefile
+--- a/drivers/serial/Makefile~remove-drivers-serial-v850e_uartc
++++ a/drivers/serial/Makefile
+@@ -42,7 +42,6 @@ obj-$(CONFIG_SERIAL_68328) += 68328seria
+ obj-$(CONFIG_SERIAL_68360) += 68360serial.o
+ obj-$(CONFIG_SERIAL_COLDFIRE) += mcfserial.o
+ obj-$(CONFIG_SERIAL_MCF) += mcf.o
+-obj-$(CONFIG_V850E_UART) += v850e_uart.o
+ obj-$(CONFIG_SERIAL_PMACZILOG) += pmac_zilog.o
+ obj-$(CONFIG_SERIAL_LH7A40X) += serial_lh7a40x.o
+ obj-$(CONFIG_SERIAL_DZ) += dz.o
+diff -puN drivers/serial/v850e_uart.c~remove-drivers-serial-v850e_uartc /dev/null
+--- a/drivers/serial/v850e_uart.c
 +++ /dev/null
-@@ -1,217 +0,0 @@
+@@ -1,548 +0,0 @@
 -/*
-- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com) and
-- * geoffrey hing <ghing@net.ohio-state.edu>
-- * Licensed under the GPL
+- * drivers/serial/v850e_uart.c -- Serial I/O using V850E on-chip UART or UARTB
+- *
+- *  Copyright (C) 2001,02,03  NEC Electronics Corporation
+- *  Copyright (C) 2001,02,03  Miles Bader <miles@gnu.org>
+- *
+- * This file is subject to the terms and conditions of the GNU General
+- * Public License.  See the file COPYING in the main directory of this
+- * archive for more details.
+- *
+- * Written by Miles Bader <miles@gnu.org>
 - */
 -
--#include <errno.h>
--#include <string.h>
--#include <stdio.h>
--#include <stdlib.h>
--#include <unistd.h>
--#include <sys/time.h>
--#include "init.h"
--#include "user.h"
--#include "os.h"
+-/* This driver supports both the original V850E UART interface (called
+-   merely `UART' in the docs) and the newer `UARTB' interface, which is
+-   roughly a superset of the first one.  The selection is made at
+-   configure time -- if CONFIG_V850E_UARTB is defined, then UARTB is
+-   presumed, otherwise the old UART -- as these are on-CPU UARTS, a system
+-   can never have both.
 -
--#define TTY_LOG_DIR "./"
+-   The UARTB interface also has a 16-entry FIFO mode, which is not
+-   yet supported by this driver.  */
 -
--/* Set early in boot and then unchanged */
--static char *tty_log_dir = TTY_LOG_DIR;
--static int tty_log_fd = -1;
+-#include <linux/kernel.h>
+-#include <linux/init.h>
+-#include <linux/module.h>
+-#include <linux/console.h>
+-#include <linux/tty.h>
+-#include <linux/tty_flip.h>
+-#include <linux/serial.h>
+-#include <linux/serial_core.h>
 -
--#define TTY_LOG_OPEN 1
--#define TTY_LOG_CLOSE 2
--#define TTY_LOG_WRITE 3
--#define TTY_LOG_EXEC 4
+-#include <asm/v850e_uart.h>
 -
--#define TTY_READ 1
--#define TTY_WRITE 2
+-/* Initial UART state.  This may be overridden by machine-dependent headers. */
+-#ifndef V850E_UART_INIT_BAUD
+-#define V850E_UART_INIT_BAUD	115200
+-#endif
+-#ifndef V850E_UART_INIT_CFLAGS
+-#define V850E_UART_INIT_CFLAGS	(B115200 | CS8 | CREAD)
+-#endif
 -
--struct tty_log_buf {
--	int what;
--	unsigned long tty;
--	int len;
--	int direction;
--	unsigned long sec;
--	unsigned long usec;
+-/* A string used for prefixing printed descriptions; since the same UART
+-   macro is actually used on other chips than the V850E.  This must be a
+-   constant string.  */
+-#ifndef V850E_UART_CHIP_NAME
+-#define V850E_UART_CHIP_NAME	"V850E"
+-#endif
+-
+-#define V850E_UART_MINOR_BASE	64	   /* First tty minor number */
+-
+-
+-/* Low-level UART functions.  */
+-
+-/* Configure and turn on uart channel CHAN, using the termios `control
+-   modes' bits in CFLAGS, and a baud-rate of BAUD.  */
+-void v850e_uart_configure (unsigned chan, unsigned cflags, unsigned baud)
+-{
+-	int flags;
+-	v850e_uart_speed_t old_speed;
+-	v850e_uart_config_t old_config;
+-	v850e_uart_speed_t new_speed = v850e_uart_calc_speed (baud);
+-	v850e_uart_config_t new_config = v850e_uart_calc_config (cflags);
+-
+-	/* Disable interrupts while we're twiddling the hardware.  */
+-	local_irq_save (flags);
+-
+-#ifdef V850E_UART_PRE_CONFIGURE
+-	V850E_UART_PRE_CONFIGURE (chan, cflags, baud);
+-#endif
+-
+-	old_config = V850E_UART_CONFIG (chan);
+-	old_speed = v850e_uart_speed (chan);
+-
+-	if (! v850e_uart_speed_eq (old_speed, new_speed)) {
+-		/* The baud rate has changed.  First, disable the UART.  */
+-		V850E_UART_CONFIG (chan) = V850E_UART_CONFIG_FINI;
+-		old_config = 0;	/* Force the uart to be re-initialized. */
+-
+-		/* Reprogram the baud-rate generator.  */
+-		v850e_uart_set_speed (chan, new_speed);
+-	}
+-
+-	if (! (old_config & V850E_UART_CONFIG_ENABLED)) {
+-		/* If we are using the uart for the first time, start by
+-		   enabling it, which must be done before turning on any
+-		   other bits.  */
+-		V850E_UART_CONFIG (chan) = V850E_UART_CONFIG_INIT;
+-		/* See the initial state.  */
+-		old_config = V850E_UART_CONFIG (chan);
+-	}
+-
+-	if (new_config != old_config) {
+-		/* Which of the TXE/RXE bits we'll temporarily turn off
+-		   before changing other control bits.  */
+-		unsigned temp_disable = 0;
+-		/* Which of the TXE/RXE bits will be enabled.  */
+-		unsigned enable = 0;
+-		unsigned changed_bits = new_config ^ old_config;
+-
+-		/* Which of RX/TX will be enabled in the new configuration.  */
+-		if (new_config & V850E_UART_CONFIG_RX_BITS)
+-			enable |= (new_config & V850E_UART_CONFIG_RX_ENABLE);
+-		if (new_config & V850E_UART_CONFIG_TX_BITS)
+-			enable |= (new_config & V850E_UART_CONFIG_TX_ENABLE);
+-
+-		/* Figure out which of RX/TX needs to be disabled; note
+-		   that this will only happen if they're not already
+-		   disabled.  */
+-		if (changed_bits & V850E_UART_CONFIG_RX_BITS)
+-			temp_disable
+-				|= (old_config & V850E_UART_CONFIG_RX_ENABLE);
+-		if (changed_bits & V850E_UART_CONFIG_TX_BITS)
+-			temp_disable
+-				|= (old_config & V850E_UART_CONFIG_TX_ENABLE);
+-
+-		/* We have to turn off RX and/or TX mode before changing
+-		   any associated control bits.  */
+-		if (temp_disable)
+-			V850E_UART_CONFIG (chan) = old_config & ~temp_disable;
+-
+-		/* Write the new control bits, while RX/TX are disabled. */ 
+-		if (changed_bits & ~enable)
+-			V850E_UART_CONFIG (chan) = new_config & ~enable;
+-
+-		v850e_uart_config_delay (new_config, new_speed);
+-
+-		/* Write the final version, with enable bits turned on.  */
+-		V850E_UART_CONFIG (chan) = new_config;
+-	}
+-
+-	local_irq_restore (flags);
+-}
+-
+-
+-/*  Low-level console. */
+-
+-#ifdef CONFIG_V850E_UART_CONSOLE
+-
+-static void v850e_uart_cons_write (struct console *co,
+-				   const char *s, unsigned count)
+-{
+-	if (count > 0) {
+-		unsigned chan = co->index;
+-		unsigned irq = V850E_UART_TX_IRQ (chan);
+-		int irq_was_enabled, irq_was_pending, flags;
+-
+-		/* We don't want to get `transmission completed'
+-		   interrupts, since we're busy-waiting, so we disable them
+-		   while sending (we don't disable interrupts entirely
+-		   because sending over a serial line is really slow).  We
+-		   save the status of the tx interrupt and restore it when
+-		   we're done so that using printk doesn't interfere with
+-		   normal serial transmission (other than interleaving the
+-		   output, of course!).  This should work correctly even if
+-		   this function is interrupted and the interrupt printks
+-		   something.  */
+-
+-		/* Disable interrupts while fiddling with tx interrupt.  */
+-		local_irq_save (flags);
+-		/* Get current tx interrupt status.  */
+-		irq_was_enabled = v850e_intc_irq_enabled (irq);
+-		irq_was_pending = v850e_intc_irq_pending (irq);
+-		/* Disable tx interrupt if necessary.  */
+-		if (irq_was_enabled)
+-			v850e_intc_disable_irq (irq);
+-		/* Turn interrupts back on.  */
+-		local_irq_restore (flags);
+-
+-		/* Send characters.  */
+-		while (count > 0) {
+-			int ch = *s++;
+-
+-			if (ch == '\n') {
+-				/* We don't have the benefit of a tty
+-				   driver, so translate NL into CR LF.  */
+-				v850e_uart_wait_for_xmit_ok (chan);
+-				v850e_uart_putc (chan, '\r');
+-			}
+-
+-			v850e_uart_wait_for_xmit_ok (chan);
+-			v850e_uart_putc (chan, ch);
+-
+-			count--;
+-		}
+-
+-		/* Restore saved tx interrupt status.  */
+-		if (irq_was_enabled) {
+-			/* Wait for the last character we sent to be
+-			   completely transmitted (as we'll get an
+-			   interrupt interrupt at that point).  */
+-			v850e_uart_wait_for_xmit_done (chan);
+-			/* Clear pending interrupts received due
+-			   to our transmission, unless there was already
+-			   one pending, in which case we want the
+-			   handler to be called.  */
+-			if (! irq_was_pending)
+-				v850e_intc_clear_pending_irq (irq);
+-			/* ... and then turn back on handling.  */
+-			v850e_intc_enable_irq (irq);
+-		}
+-	}
+-}
+-
+-extern struct uart_driver v850e_uart_driver;
+-static struct console v850e_uart_cons =
+-{
+-    .name	= "ttyS",
+-    .write	= v850e_uart_cons_write,
+-    .device	= uart_console_device,
+-    .flags	= CON_PRINTBUFFER,
+-    .cflag	= V850E_UART_INIT_CFLAGS,
+-    .index	= -1,
+-    .data	= &v850e_uart_driver,
 -};
 -
--int open_tty_log(void *tty, void *current_tty)
+-void v850e_uart_cons_init (unsigned chan)
 -{
--	struct timeval tv;
--	struct tty_log_buf data;
--	char buf[strlen(tty_log_dir) + sizeof("01234567890-01234567\0")];
--	int fd;
--
--	gettimeofday(&tv, NULL);
--	if(tty_log_fd != -1){
--		data = ((struct tty_log_buf) { .what 	= TTY_LOG_OPEN,
--					       .tty  = (unsigned long) tty,
--					       .len  = sizeof(current_tty),
--					       .direction = 0,
--					       .sec = tv.tv_sec,
--					       .usec = tv.tv_usec } );
--		write(tty_log_fd, &data, sizeof(data));
--		write(tty_log_fd, &current_tty, data.len);
--		return tty_log_fd;
--	}
--
--	sprintf(buf, "%s/%0u-%0u", tty_log_dir, (unsigned int) tv.tv_sec,
-- 		(unsigned int) tv.tv_usec);
--
--	fd = os_open_file(buf, of_append(of_create(of_rdwr(OPENFLAGS()))),
--			  0644);
--	if(fd < 0){
--		printk("open_tty_log : couldn't open '%s', errno = %d\n",
--		       buf, -fd);
--	}
--	return fd;
+-	v850e_uart_configure (chan, V850E_UART_INIT_CFLAGS,
+-			      V850E_UART_INIT_BAUD);
+-	v850e_uart_cons.index = chan;
+-	register_console (&v850e_uart_cons);
+-	printk ("Console: %s on-chip UART channel %d\n",
+-		V850E_UART_CHIP_NAME, chan);
 -}
 -
--void close_tty_log(int fd, void *tty)
+-/* This is what the init code actually calls.  */
+-static int v850e_uart_console_init (void)
 -{
--	struct tty_log_buf data;
--	struct timeval tv;
+-	v850e_uart_cons_init (V850E_UART_CONSOLE_CHANNEL);
+-	return 0;
+-}
+-console_initcall(v850e_uart_console_init);
 -
--	if(tty_log_fd != -1){
--		gettimeofday(&tv, NULL);
--		data = ((struct tty_log_buf) { .what 	= TTY_LOG_CLOSE,
--					       .tty  = (unsigned long) tty,
--					       .len  = 0,
--					       .direction = 0,
--					       .sec = tv.tv_sec,
--					       .usec = tv.tv_usec } );
--		write(tty_log_fd, &data, sizeof(data));
--		return;
+-#define V850E_UART_CONSOLE &v850e_uart_cons
+-
+-#else /* !CONFIG_V850E_UART_CONSOLE */
+-#define V850E_UART_CONSOLE 0
+-#endif /* CONFIG_V850E_UART_CONSOLE */
+-
+-/* TX/RX interrupt handlers.  */
+-
+-static void v850e_uart_stop_tx (struct uart_port *port);
+-
+-void v850e_uart_tx (struct uart_port *port)
+-{
+-	struct circ_buf *xmit = &port->info->xmit;
+-	int stopped = uart_tx_stopped (port);
+-
+-	if (v850e_uart_xmit_ok (port->line)) {
+-		int tx_ch;
+-
+-		if (port->x_char) {
+-			tx_ch = port->x_char;
+-			port->x_char = 0;
+-		} else if (!uart_circ_empty (xmit) && !stopped) {
+-			tx_ch = xmit->buf[xmit->tail];
+-			xmit->tail = (xmit->tail + 1) & (UART_XMIT_SIZE - 1);
+-		} else
+-			goto no_xmit;
+-
+-		v850e_uart_putc (port->line, tx_ch);
+-		port->icount.tx++;
+-
+-		if (uart_circ_chars_pending (xmit) < WAKEUP_CHARS)
+-			uart_write_wakeup (port);
 -	}
--	os_close_file(fd);
+-
+- no_xmit:
+-	if (uart_circ_empty (xmit) || stopped)
+-		v850e_uart_stop_tx (port, stopped);
 -}
 -
--static int log_chunk(int fd, const char *buf, int len)
+-static irqreturn_t v850e_uart_tx_irq(int irq, void *data)
 -{
--	int total = 0, try, missed, n;
--	char chunk[64];
+-	struct uart_port *port = data;
+-	v850e_uart_tx (port);
+-	return IRQ_HANDLED;
+-}
 -
--	while(len > 0){
--		try = (len > sizeof(chunk)) ? sizeof(chunk) : len;
--		missed = copy_from_user_proc(chunk, (char *) buf, try);
--		try -= missed;
--		n = write(fd, chunk, try);
--		if(n != try) {
--			if(n < 0)
--				return -errno;
--			return -EIO;
+-static irqreturn_t v850e_uart_rx_irq(int irq, void *data)
+-{
+-	struct uart_port *port = data;
+-	unsigned ch_stat = TTY_NORMAL;
+-	unsigned ch = v850e_uart_getc (port->line);
+-	unsigned err = v850e_uart_err (port->line);
+-
+-	if (err) {
+-		if (err & V850E_UART_ERR_OVERRUN) {
+-			ch_stat = TTY_OVERRUN;
+-			port->icount.overrun++;
+-		} else if (err & V850E_UART_ERR_FRAME) {
+-			ch_stat = TTY_FRAME;
+-			port->icount.frame++;
+-		} else if (err & V850E_UART_ERR_PARITY) {
+-			ch_stat = TTY_PARITY;
+-			port->icount.parity++;
 -		}
--		if(missed != 0)
--			return -EFAULT;
--
--		len -= try;
--		total += try;
--		buf += try;
 -	}
 -
--	return total;
+-	port->icount.rx++;
+-
+-	tty_insert_flip_char (port->info->port.tty, ch, ch_stat);
+-	tty_schedule_flip (port->info->port.tty);
+-
+-	return IRQ_HANDLED;
 -}
 -
--int write_tty_log(int fd, const char *buf, int len, void *tty, int is_read)
+-
+-/* Control functions for the serial framework.  */
+-
+-static void v850e_uart_nop (struct uart_port *port) { }
+-static int v850e_uart_success (struct uart_port *port) { return 0; }
+-
+-static unsigned v850e_uart_tx_empty (struct uart_port *port)
 -{
--	struct timeval tv;
--	struct tty_log_buf data;
--	int direction;
--
--	if(fd == tty_log_fd){
--		gettimeofday(&tv, NULL);
--		direction = is_read ? TTY_READ : TTY_WRITE;
--		data = ((struct tty_log_buf) { .what 	= TTY_LOG_WRITE,
--					       .tty  = (unsigned long) tty,
--					       .len  = len,
--					       .direction = direction,
--					       .sec = tv.tv_sec,
--					       .usec = tv.tv_usec } );
--		write(tty_log_fd, &data, sizeof(data));
--	}
--
--	return log_chunk(fd, buf, len);
+-	return TIOCSER_TEMT;	/* Can't detect.  */
 -}
 -
--void log_exec(char **argv, void *tty)
+-static void v850e_uart_set_mctrl (struct uart_port *port, unsigned mctrl)
 -{
--	struct timeval tv;
--	struct tty_log_buf data;
--	char **ptr,*arg;
--	int len;
--
--	if(tty_log_fd == -1) return;
--
--	gettimeofday(&tv, NULL);
--
--	len = 0;
--	for(ptr = argv; ; ptr++){
--		if(copy_from_user_proc(&arg, ptr, sizeof(arg)))
--			return;
--		if(arg == NULL) break;
--		len += strlen_user_proc(arg);
--	}
--
--	data = ((struct tty_log_buf) { .what 	= TTY_LOG_EXEC,
--				       .tty  = (unsigned long) tty,
--				       .len  = len,
--				       .direction = 0,
--				       .sec = tv.tv_sec,
--				       .usec = tv.tv_usec } );
--	write(tty_log_fd, &data, sizeof(data));
--
--	for(ptr = argv; ; ptr++){
--		if(copy_from_user_proc(&arg, ptr, sizeof(arg)))
--			return;
--		if(arg == NULL) break;
--		log_chunk(tty_log_fd, arg, strlen_user_proc(arg));
--	}
+-#ifdef V850E_UART_SET_RTS
+-	V850E_UART_SET_RTS (port->line, (mctrl & TIOCM_RTS));
+-#endif
 -}
 -
--extern void register_tty_logger(int (*opener)(void *, void *),
--				int (*writer)(int, const char *, int,
--					      void *, int),
--				void (*closer)(int, void *));
--
--static int register_logger(void)
+-static unsigned v850e_uart_get_mctrl (struct uart_port *port)
 -{
--	register_tty_logger(open_tty_log, write_tty_log, close_tty_log);
+-	/* We don't support DCD or DSR, so consider them permanently active. */
+-	int mctrl = TIOCM_CAR | TIOCM_DSR;
+-
+-	/* We may support CTS.  */
+-#ifdef V850E_UART_CTS
+-	mctrl |= V850E_UART_CTS(port->line) ? TIOCM_CTS : 0;
+-#else
+-	mctrl |= TIOCM_CTS;
+-#endif
+-
+-	return mctrl;
+-}
+-
+-static void v850e_uart_start_tx (struct uart_port *port)
+-{
+-	v850e_intc_disable_irq (V850E_UART_TX_IRQ (port->line));
+-	v850e_uart_tx (port);
+-	v850e_intc_enable_irq (V850E_UART_TX_IRQ (port->line));
+-}
+-
+-static void v850e_uart_stop_tx (struct uart_port *port)
+-{
+-	v850e_intc_disable_irq (V850E_UART_TX_IRQ (port->line));
+-}
+-
+-static void v850e_uart_start_rx (struct uart_port *port)
+-{
+-	v850e_intc_enable_irq (V850E_UART_RX_IRQ (port->line));
+-}
+-
+-static void v850e_uart_stop_rx (struct uart_port *port)
+-{
+-	v850e_intc_disable_irq (V850E_UART_RX_IRQ (port->line));
+-}
+-
+-static void v850e_uart_break_ctl (struct uart_port *port, int break_ctl)
+-{
+-	/* Umm, do this later.  */
+-}
+-
+-static int v850e_uart_startup (struct uart_port *port)
+-{
+-	int err;
+-
+-	/* Alloc RX irq.  */
+-	err = request_irq (V850E_UART_RX_IRQ (port->line), v850e_uart_rx_irq,
+-			   IRQF_DISABLED, "v850e_uart", port);
+-	if (err)
+-		return err;
+-
+-	/* Alloc TX irq.  */
+-	err = request_irq (V850E_UART_TX_IRQ (port->line), v850e_uart_tx_irq,
+-			   IRQF_DISABLED, "v850e_uart", port);
+-	if (err) {
+-		free_irq (V850E_UART_RX_IRQ (port->line), port);
+-		return err;
+-	}
+-
+-	v850e_uart_start_rx (port);
+-
 -	return 0;
 -}
 -
--__uml_initcall(register_logger);
--
--static int __init set_tty_log_dir(char *name, int *add)
+-static void v850e_uart_shutdown (struct uart_port *port)
 -{
--	tty_log_dir = name;
+-	/* Disable port interrupts.  */
+-	free_irq (V850E_UART_TX_IRQ (port->line), port);
+-	free_irq (V850E_UART_RX_IRQ (port->line), port);
+-
+-	/* Turn off xmit/recv enable bits.  */
+-	V850E_UART_CONFIG (port->line)
+-		&= ~(V850E_UART_CONFIG_TX_ENABLE
+-		     | V850E_UART_CONFIG_RX_ENABLE);
+-	/* Then reset the channel.  */
+-	V850E_UART_CONFIG (port->line) = 0;
+-}
+-
+-static void
+-v850e_uart_set_termios (struct uart_port *port, struct ktermios *termios,
+-		        struct ktermios *old)
+-{
+-	unsigned cflags = termios->c_cflag;
+-
+-	/* Restrict flags to legal values.  */
+-	if ((cflags & CSIZE) != CS7 && (cflags & CSIZE) != CS8)
+-		/* The new value of CSIZE is invalid, use the old value.  */
+-		cflags = (cflags & ~CSIZE)
+-			| (old ? (old->c_cflag & CSIZE) : CS8);
+-
+-	termios->c_cflag = cflags;
+-
+-	v850e_uart_configure (port->line, cflags,
+-			      uart_get_baud_rate (port, termios, old,
+-						  v850e_uart_min_baud(),
+-						  v850e_uart_max_baud()));
+-}
+-
+-static const char *v850e_uart_type (struct uart_port *port)
+-{
+-	return port->type == PORT_V850E_UART ? "v850e_uart" : 0;
+-}
+-
+-static void v850e_uart_config_port (struct uart_port *port, int flags)
+-{
+-	if (flags & UART_CONFIG_TYPE)
+-		port->type = PORT_V850E_UART;
+-}
+-
+-static int
+-v850e_uart_verify_port (struct uart_port *port, struct serial_struct *ser)
+-{
+-	if (ser->type != PORT_UNKNOWN && ser->type != PORT_V850E_UART)
+-		return -EINVAL;
+-	if (ser->irq != V850E_UART_TX_IRQ (port->line))
+-		return -EINVAL;
 -	return 0;
 -}
 -
--__uml_setup("tty_log_dir=", set_tty_log_dir,
--"tty_log_dir=<directory>\n"
--"    This is used to specify the directory where the logs of all pty\n"
--"    data from this UML machine will be written.\n\n"
--);
+-static struct uart_ops v850e_uart_ops = {
+-	.tx_empty	= v850e_uart_tx_empty,
+-	.get_mctrl	= v850e_uart_get_mctrl,
+-	.set_mctrl	= v850e_uart_set_mctrl,
+-	.start_tx	= v850e_uart_start_tx,
+-	.stop_tx	= v850e_uart_stop_tx,
+-	.stop_rx	= v850e_uart_stop_rx,
+-	.enable_ms	= v850e_uart_nop,
+-	.break_ctl	= v850e_uart_break_ctl,
+-	.startup	= v850e_uart_startup,
+-	.shutdown	= v850e_uart_shutdown,
+-	.set_termios	= v850e_uart_set_termios,
+-	.type		= v850e_uart_type,
+-	.release_port	= v850e_uart_nop,
+-	.request_port	= v850e_uart_success,
+-	.config_port	= v850e_uart_config_port,
+-	.verify_port	= v850e_uart_verify_port,
+-};
+-
+-/* Initialization and cleanup.  */
 -
--static int __init set_tty_log_fd(char *name, int *add)
+-static struct uart_driver v850e_uart_driver = {
+-	.owner			= THIS_MODULE,
+-	.driver_name		= "v850e_uart",
+-	.dev_name		= "ttyS",
+-	.major			= TTY_MAJOR,
+-	.minor			= V850E_UART_MINOR_BASE,
+-	.nr			= V850E_UART_NUM_CHANNELS,
+-	.cons			= V850E_UART_CONSOLE,
+-};
+-
+-
+-static struct uart_port v850e_uart_ports[V850E_UART_NUM_CHANNELS];
+-
+-static int __init v850e_uart_init (void)
 -{
--	char *end;
+-	int rval;
 -
--	tty_log_fd = strtoul(name, &end, 0);
--	if((*end != '\0') || (end == name)){
--		printf("set_tty_log_fd - strtoul failed on '%s'\n", name);
--		tty_log_fd = -1;
+-	printk (KERN_INFO "%s on-chip UART\n", V850E_UART_CHIP_NAME);
+-
+-	rval = uart_register_driver (&v850e_uart_driver);
+-	if (rval == 0) {
+-		unsigned chan;
+-
+-		for (chan = 0; chan < V850E_UART_NUM_CHANNELS; chan++) {
+-			struct uart_port *port = &v850e_uart_ports[chan];
+-			
+-			memset (port, 0, sizeof *port);
+-
+-			port->ops = &v850e_uart_ops;
+-			port->line = chan;
+-			port->iotype = UPIO_MEM;
+-			port->flags = UPF_BOOT_AUTOCONF;
+-
+-			/* We actually use multiple IRQs, but the serial
+-			   framework seems to mainly use this for
+-			   informational purposes anyway.  Here we use the TX
+-			   irq.  */
+-			port->irq = V850E_UART_TX_IRQ (chan);
+-
+-			/* The serial framework doesn't really use these
+-			   membase/mapbase fields for anything useful, but
+-			   it requires that they be something non-zero to
+-			   consider the port `valid', and also uses them
+-			   for informational purposes.  */
+-			port->membase = (void *)V850E_UART_BASE_ADDR (chan);
+-			port->mapbase = V850E_UART_BASE_ADDR (chan);
+-
+-			/* The framework insists on knowing the uart's master
+-			   clock freq, though it doesn't seem to do anything
+-			   useful for us with it.  We must make it at least
+-			   higher than (the maximum baud rate * 16), otherwise
+-			   the framework will puke during its internal
+-			   calculations, and force the baud rate to be 9600.
+-			   To be accurate though, just repeat the calculation
+-			   we use when actually setting the speed.  */
+-			port->uartclk = v850e_uart_max_clock() * 16;
+-
+-			uart_add_one_port (&v850e_uart_driver, port);
+-		}
 -	}
 -
--	*add = 0;
--	return 0;
+-	return rval;
 -}
+-
+-static void __exit v850e_uart_exit (void)
+-{
+-	unsigned chan;
+-
+-	for (chan = 0; chan < V850E_UART_NUM_CHANNELS; chan++)
+-		uart_remove_one_port (&v850e_uart_driver,
+-				      &v850e_uart_ports[chan]);
+-
+-	uart_unregister_driver (&v850e_uart_driver);
+-}
+-
+-module_init (v850e_uart_init);
+-module_exit (v850e_uart_exit);
