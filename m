@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + kthread_bind-use-wait_task_inactivetask_uninterruptible.patch added to -mm tree
-Date: Tue, 29 Jul 2008 15:23:52 -0700
-Message-ID: <200807292223.m6TMNqYb024835@imap1.linux-foundation.org>
+Subject: + wait_task_inactive-dont-consider-task-nivcsw.patch added to -mm tree
+Date: Tue, 29 Jul 2008 15:23:17 -0700
+Message-ID: <200807292223.m6TMNHqp024822@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38121 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54340 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751665AbYG2WYT (ORCPT
+	by vger.kernel.org with ESMTP id S1753457AbYG2WYX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 18:24:19 -0400
+	Tue, 29 Jul 2008 18:24:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@tv-sign.ru, mingo@elte.hu, roland@redhat.com
 
 
 The patch titled
-     kthread_bind: use wait_task_inactive(TASK_UNINTERRUPTIBLE)
+     wait_task_inactive(): don't consider task->nivcsw
 has been added to the -mm tree.  Its filename is
-     kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
+     wait_task_inactive-dont-consider-task-nivcsw.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,20 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kthread_bind: use wait_task_inactive(TASK_UNINTERRUPTIBLE)
+Subject: wait_task_inactive(): don't consider task->nivcsw
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Now that wait_task_inactive(task, state) checks task->state == state,
-we can simplify the code and make this debugging check more robust.
+If wait_task_inactive() returns success the task was deactivated.  In that
+case schedule() always increments ->nvcsw which alone can be used as a
+"generation counter".
+
+If the next call returns the same number, we can be sure that the task was
+unscheduled.  Otherwise, because we know that .on_rq == 0 again, ->nvcsw
+should have been changed in between.
+
+Q: perhaps it is better to do "ncsw = (p->nvcsw << 1) | 1" ?  This
+decreases the possibility of "was it unscheduled" false positive when
+->nvcsw == 0.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
@@ -46,27 +55,26 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ kernel/sched.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN kernel/kthread.c~kthread_bind-use-wait_task_inactivetask_uninterruptible kernel/kthread.c
---- a/kernel/kthread.c~kthread_bind-use-wait_task_inactivetask_uninterruptible
-+++ a/kernel/kthread.c
-@@ -152,12 +152,11 @@ EXPORT_SYMBOL(__kthread_create);
-  */
- void kthread_bind(struct task_struct *k, unsigned int cpu)
- {
--	if (k->state != TASK_UNINTERRUPTIBLE) {
-+	/* Must have done schedule() in kthread() before we set_task_cpu */
-+	if (!wait_task_inactive(k, TASK_UNINTERRUPTIBLE)) {
- 		WARN_ON(1);
- 		return;
- 	}
--	/* Must have done schedule() in kthread() before we set_task_cpu */
--	wait_task_inactive(k, 0);
- 	set_task_cpu(k, cpu);
- 	k->cpus_allowed = cpumask_of_cpu(cpu);
- 	k->rt.nr_cpus_allowed = 1;
+diff -puN kernel/sched.c~wait_task_inactive-dont-consider-task-nivcsw kernel/sched.c
+--- a/kernel/sched.c~wait_task_inactive-dont-consider-task-nivcsw
++++ a/kernel/sched.c
+@@ -1922,11 +1922,8 @@ unsigned long wait_task_inactive(struct 
+ 		running = task_running(rq, p);
+ 		on_rq = p->se.on_rq;
+ 		ncsw = 0;
+-		if (!match_state || p->state == match_state) {
+-			ncsw = p->nivcsw + p->nvcsw;
+-			if (unlikely(!ncsw))
+-				ncsw = 1;
+-		}
++		if (!match_state || p->state == match_state)
++			ncsw = p->nvcsw ?: 1;
+ 		task_rq_unlock(rq, &flags);
+ 
+ 		/*
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -79,5 +87,4 @@ semaphore-__down_common-use-signal_pending_state.patch
 posix-timers-fix-posix_timer_event-vs-dequeue_signal-race.patch
 posix-timers-do_schedule_next_timer-fix-the-setting-of-si_overrun.patch
 coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
-kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
 
