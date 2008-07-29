@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + befs-annotate-fs32-on-tests-for-superblock-endianness.patch added to -mm tree
-Date: Mon, 28 Jul 2008 22:46:04 -0700
-Message-ID: <200807290546.m6T5k4GE016991@imap1.linux-foundation.org>
+Subject: + relay-fix-4-off-by-one-errors-occuring-when-writing-to-a-cpu-buffer.patch added to -mm tree
+Date: Mon, 28 Jul 2008 22:54:52 -0700
+Message-ID: <200807290554.m6T5sq9s017412@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51175 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51984 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752715AbYG2Fqk (ORCPT
+	by vger.kernel.org with ESMTP id S1753842AbYG2Fzf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 01:46:40 -0400
+	Tue, 29 Jul 2008 01:55:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, rathamahata@php4.ru, viro@zeniv.linux.org.uk
+Cc: tzanussi@gmail.com, compudj@krystal.dyndns.org, eduard.munteanu@linux360.ro, jens.axboe@oracle.com, penberg@cs.helsinki.fi, righi.andrea@gmail.com
 
 
 The patch titled
-     befs: annotate fs32 on tests for superblock endianness
+     relay: fix 4 off-by-one errors occuring when writing to a CPU buffer
 has been added to the -mm tree.  Its filename is
-     befs-annotate-fs32-on-tests-for-superblock-endianness.patch
+     relay-fix-4-off-by-one-errors-occuring-when-writing-to-a-cpu-buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: befs: annotate fs32 on tests for superblock endianness
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: relay: fix 4 off-by-one errors occuring when writing to a CPU buffer
+From: Tom Zanussi <tzanussi@gmail.com>
 
-Does compile-time byteswapping rather than runtime.
+In relay's current read implementation, if the buffer is completely full
+but hasn't triggered the buffer-full condition (i.e. the last write
+didn't cross the subbuffer boundary) and the last subbuffer is exactly
+full, the subbuffer accounting code erroneously finds nothing available.
+This patch fixes the problem.
 
-Noticed by sparse:
-fs/befs/super.c:29:6: warning: cast to restricted __le32
-fs/befs/super.c:29:6: warning: cast from restricted fs32
-fs/befs/super.c:31:11: warning: cast to restricted __be32
-fs/befs/super.c:31:11: warning: cast from restricted fs32
-fs/befs/super.c:31:11: warning: cast to restricted __be32
-fs/befs/super.c:31:11: warning: cast from restricted fs32
-fs/befs/super.c:31:11: warning: cast to restricted __be32
-fs/befs/super.c:31:11: warning: cast from restricted fs32
-fs/befs/super.c:31:11: warning: cast to restricted __be32
-fs/befs/super.c:31:11: warning: cast from restricted fs32
-fs/befs/super.c:31:11: warning: cast to restricted __be32
-fs/befs/super.c:31:11: warning: cast from restricted fs32
-fs/befs/super.c:31:11: warning: cast to restricted __be32
-fs/befs/super.c:31:11: warning: cast from restricted fs32
-fs/befs/linuxvfs.c:811:7: warning: cast to restricted __le32
-fs/befs/linuxvfs.c:811:7: warning: cast from restricted fs32
-fs/befs/linuxvfs.c:812:7: warning: cast to restricted __be32
-fs/befs/linuxvfs.c:812:7: warning: cast from restricted fs32
-fs/befs/linuxvfs.c:812:7: warning: cast to restricted __be32
-fs/befs/linuxvfs.c:812:7: warning: cast from restricted fs32
-fs/befs/linuxvfs.c:812:7: warning: cast to restricted __be32
-fs/befs/linuxvfs.c:812:7: warning: cast from restricted fs32
-fs/befs/linuxvfs.c:812:7: warning: cast to restricted __be32
-fs/befs/linuxvfs.c:812:7: warning: cast from restricted fs32
-fs/befs/linuxvfs.c:812:7: warning: cast to restricted __be32
-fs/befs/linuxvfs.c:812:7: warning: cast from restricted fs32
-fs/befs/linuxvfs.c:812:7: warning: cast to restricted __be32
-fs/befs/linuxvfs.c:812:7: warning: cast from restricted fs32
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: "Sergey S. Kostyliov" <rathamahata@php4.ru>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Tom Zanussi <tzanussi@gmail.com> 
+Cc: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Mathieu Desnoyers <compudj@krystal.dyndns.org>
+Cc: Andrea Righi <righi.andrea@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/befs/befs_fs_types.h |    4 ++++
- fs/befs/linuxvfs.c      |    4 ++--
- fs/befs/super.c         |    6 +++---
- 3 files changed, 9 insertions(+), 5 deletions(-)
+ kernel/relay.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN fs/befs/befs_fs_types.h~befs-annotate-fs32-on-tests-for-superblock-endianness fs/befs/befs_fs_types.h
---- a/fs/befs/befs_fs_types.h~befs-annotate-fs32-on-tests-for-superblock-endianness
-+++ a/fs/befs/befs_fs_types.h
-@@ -55,8 +55,12 @@ enum super_flags {
- };
+diff -puN kernel/relay.c~relay-fix-4-off-by-one-errors-occuring-when-writing-to-a-cpu-buffer kernel/relay.c
+--- a/kernel/relay.c~relay-fix-4-off-by-one-errors-occuring-when-writing-to-a-cpu-buffer
++++ a/kernel/relay.c
+@@ -944,6 +944,10 @@ static void relay_file_read_consume(stru
+ 	size_t n_subbufs = buf->chan->n_subbufs;
+ 	size_t read_subbuf;
  
- #define BEFS_BYTEORDER_NATIVE 0x42494745
-+#define BEFS_BYTEORDER_NATIVE_LE (__force fs32)cpu_to_le32(BEFS_BYTEORDER_NATIVE)
-+#define BEFS_BYTEORDER_NATIVE_BE (__force fs32)cpu_to_be32(BEFS_BYTEORDER_NATIVE)
++	if (buf->subbufs_produced == buf->subbufs_consumed &&
++	    buf->offset == buf->bytes_consumed)
++		return;
++
+ 	if (buf->bytes_consumed + bytes_consumed > subbuf_size) {
+ 		relay_subbufs_consumed(buf->chan, buf->cpu, 1);
+ 		buf->bytes_consumed = 0;
+@@ -975,6 +979,8 @@ static int relay_file_read_avail(struct 
  
- #define BEFS_SUPER_MAGIC BEFS_SUPER_MAGIC1
-+#define BEFS_SUPER_MAGIC1_LE (__force fs32)cpu_to_le32(BEFS_SUPER_MAGIC1)
-+#define BEFS_SUPER_MAGIC1_BE (__force fs32)cpu_to_be32(BEFS_SUPER_MAGIC1)
+ 	relay_file_read_consume(buf, read_pos, 0);
  
- /*
-  * Flags of inode
-diff -puN fs/befs/linuxvfs.c~befs-annotate-fs32-on-tests-for-superblock-endianness fs/befs/linuxvfs.c
---- a/fs/befs/linuxvfs.c~befs-annotate-fs32-on-tests-for-superblock-endianness
-+++ a/fs/befs/linuxvfs.c
-@@ -808,8 +808,8 @@ befs_fill_super(struct super_block *sb, 
++	consumed = buf->subbufs_consumed;
++
+ 	if (unlikely(buf->offset > subbuf_size)) {
+ 		if (produced == consumed)
+ 			return 0;
+@@ -993,8 +999,12 @@ static int relay_file_read_avail(struct 
+ 	if (consumed > produced)
+ 		produced += n_subbufs * subbuf_size;
  
- 	/* account for offset of super block on x86 */
- 	disk_sb = (befs_super_block *) bh->b_data;
--	if ((le32_to_cpu(disk_sb->magic1) == BEFS_SUPER_MAGIC1) ||
--	    (be32_to_cpu(disk_sb->magic1) == BEFS_SUPER_MAGIC1)) {
-+	if ((disk_sb->magic1 == BEFS_SUPER_MAGIC1_LE) ||
-+	    (disk_sb->magic1 == BEFS_SUPER_MAGIC1_BE)) {
- 		befs_debug(sb, "Using PPC superblock location");
- 	} else {
- 		befs_debug(sb, "Using x86 superblock location");
-diff -puN fs/befs/super.c~befs-annotate-fs32-on-tests-for-superblock-endianness fs/befs/super.c
---- a/fs/befs/super.c~befs-annotate-fs32-on-tests-for-superblock-endianness
-+++ a/fs/befs/super.c
-@@ -26,10 +26,10 @@ befs_load_sb(struct super_block *sb, bef
- 	befs_sb_info *befs_sb = BEFS_SB(sb);
+-	if (consumed == produced)
++	if (consumed == produced) {
++		if (buf->offset == subbuf_size &&
++		    buf->subbufs_produced > buf->subbufs_consumed)
++			return 1;
+ 		return 0;
++	}
  
- 	/* Check the byte order of the filesystem */
--	if (le32_to_cpu(disk_sb->fs_byte_order) == BEFS_BYTEORDER_NATIVE)
-+	if (disk_sb->fs_byte_order == BEFS_BYTEORDER_NATIVE_LE)
- 	    befs_sb->byte_order = BEFS_BYTESEX_LE;
--	else if (be32_to_cpu(disk_sb->fs_byte_order) == BEFS_BYTEORDER_NATIVE)
--	    befs_sb->byte_order = BEFS_BYTESEX_BE;	
-+	else if (disk_sb->fs_byte_order == BEFS_BYTEORDER_NATIVE_BE)
-+	    befs_sb->byte_order = BEFS_BYTESEX_BE;
- 
- 	befs_sb->magic1 = fs32_to_cpu(sb, disk_sb->magic1);
- 	befs_sb->magic2 = fs32_to_cpu(sb, disk_sb->magic2);
+ 	return 1;
+ }
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from tzanussi@gmail.com are
 
 origin.patch
-linux-next.patch
-cifs-remove-global_extern-macro.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-input-ads7846c-sparse-lock-annotation.patch
-mtd-diskonchipc-fix-sparse-endian-warnings.patch
-net-use-the-common-ascii-hex-helpers.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-befs-annotate-fs32-on-tests-for-superblock-endianness.patch
-byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
+relay-fix-4-off-by-one-errors-occuring-when-writing-to-a-cpu-buffer.patch
 
