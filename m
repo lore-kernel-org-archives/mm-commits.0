@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch added to -mm tree
-Date: Tue, 29 Jul 2008 15:37:19 -0700
-Message-ID: <200807292237.m6TMbJF5025505@imap1.linux-foundation.org>
+Subject: + v4l-fix-kernel-doc-warning-function-name-and-docbook-filename.patch added to -mm tree
+Date: Tue, 29 Jul 2008 15:37:57 -0700
+Message-ID: <200807292237.m6TMbvxs025517@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58661 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43773 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753823AbYG2Whm (ORCPT
+	by vger.kernel.org with ESMTP id S1752015AbYG2WiJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 18:37:42 -0400
+	Tue, 29 Jul 2008 18:38:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org, dhowells@redhat.com, dwmw2@infradead.org, p_gortmaker@yahoo.com
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     binfmt_elf_fdpic: wire up AT_EXECFD, AT_EXECFN, AT_SECURE
+     v4l: fix kernel-doc warning, function name, and docbook filename
 has been added to the -mm tree.  Its filename is
-     binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch
+     v4l-fix-kernel-doc-warning-function-name-and-docbook-filename.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: binfmt_elf_fdpic: wire up AT_EXECFD, AT_EXECFN, AT_SECURE
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: v4l: fix kernel-doc warning, function name, and docbook filename
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-These auxvec entries are the only ones left unhandled out of the current
-base implementation.  This syncs up binfmt_elf_fdpic with linux/auxvec.h
-and current binfmt_elf.
+Change function name in kernel-doc and add kernel-doc for parameter @index:
+Warning(linhead//drivers/media/video/videodev.c:2090): No description found for parameter 'index'
 
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
+Also change source file name in DocBook/videobook.tmpl to match the new
+source file name.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf_fdpic.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ Documentation/DocBook/videobook.tmpl |    2 +-
+ drivers/media/video/v4l2-dev.c       |    4 +++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -25,6 +25,7 @@
- #include <linux/fcntl.h>
- #include <linux/slab.h>
- #include <linux/pagemap.h>
-+#include <linux/security.h>
- #include <linux/highmem.h>
- #include <linux/highuid.h>
- #include <linux/personality.h>
-@@ -562,11 +563,14 @@ static int create_elf_fdpic_tables(struc
- 	}
+diff -puN Documentation/DocBook/videobook.tmpl~v4l-fix-kernel-doc-warning-function-name-and-docbook-filename Documentation/DocBook/videobook.tmpl
+--- a/Documentation/DocBook/videobook.tmpl~v4l-fix-kernel-doc-warning-function-name-and-docbook-filename
++++ a/Documentation/DocBook/videobook.tmpl
+@@ -1648,7 +1648,7 @@ static struct video_buffer capture_fb;
  
- 	/* force 16 byte _final_ alignment here for generality */
--#define DLINFO_ITEMS 13
-+#define DLINFO_ITEMS 15
+   <chapter id="pubfunctions">
+      <title>Public Functions Provided</title>
+-!Edrivers/media/video/videodev.c
++!Edrivers/media/video/v4l2-dev.c
+   </chapter>
  
- 	nitems = 1 + DLINFO_ITEMS + (k_platform ? 1 : 0) + \
- 		(k_base_platform ? 1 : 0) + AT_VECTOR_SIZE_ARCH;
+ </book>
+diff -puN drivers/media/video/v4l2-dev.c~v4l-fix-kernel-doc-warning-function-name-and-docbook-filename drivers/media/video/v4l2-dev.c
+--- a/drivers/media/video/v4l2-dev.c~v4l-fix-kernel-doc-warning-function-name-and-docbook-filename
++++ a/drivers/media/video/v4l2-dev.c
+@@ -222,11 +222,13 @@ int video_register_device(struct video_d
+ EXPORT_SYMBOL(video_register_device);
  
-+	if (bprm->interp_flags & BINPRM_FLAGS_EXECFD)
-+		nitems++;
-+
- 	csp = sp;
- 	sp -= nitems * 2 * sizeof(unsigned long);
- 	sp -= (bprm->envc + 1) * sizeof(char *);	/* envv[] */
-@@ -604,6 +608,12 @@ static int create_elf_fdpic_tables(struc
- 			    (elf_addr_t) (unsigned long) u_base_platform);
- 	}
- 
-+	if (bprm->interp_flags & BINPRM_FLAGS_EXECFD) {
-+		nr = 0;
-+		csp -= 2 * sizeof(unsigned long);
-+		NEW_AUX_ENT(AT_EXECFD, bprm->interp_data);
-+	}
-+
- 	nr = 0;
- 	csp -= DLINFO_ITEMS * 2 * sizeof(unsigned long);
- 	NEW_AUX_ENT(AT_HWCAP,	hwcap);
-@@ -619,6 +629,8 @@ static int create_elf_fdpic_tables(struc
- 	NEW_AUX_ENT(AT_EUID,	(elf_addr_t) current->euid);
- 	NEW_AUX_ENT(AT_GID,	(elf_addr_t) current->gid);
- 	NEW_AUX_ENT(AT_EGID,	(elf_addr_t) current->egid);
-+	NEW_AUX_ENT(AT_SECURE,	security_bprm_secureexec(bprm));
-+	NEW_AUX_ENT(AT_EXECFN,	bprm->exec);
- 
- #ifdef ARCH_DLINFO
- 	nr = 0;
+ /**
+- *	video_register_device - register video4linux devices
++ *	video_register_device_index - register video4linux devices
+  *	@vfd:  video device structure we want to register
+  *	@type: type of device to register
+  *	@nr:   which device number (0 == /dev/video0, 1 == /dev/video1, ...
+  *             -1 == first free)
++ *	@index: stream number based on parent device;
++ *		-1 if auto assign, requested number otherwise
+  *
+  *	The registration code assigns minor numbers based on the type
+  *	requested. -ENFILE is returned in all the device slots for this
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-resource-add-resource_size.patch
-usb-m66592-udc-fix-up-dev_set_name-badness.patch
 linux-next.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-maple-allow-removal-and-reinsertion-of-keyboard-driver-module.patch
-rtc-rtc-rs5c372-smbus-conversion-support.patch
-rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
-binfmt_elf_fdpic-support-auxvec-base-platform-string.patch
-binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack.patch
-binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch
-resource-add-resource_type-and-ioresource_type_bits.patch
-resource-add-new-ioresource_clk-type-v2.patch
-i2c-sh_mobile-ioresource_clk-support.patch
+v4l-fix-kernel-doc-warning-function-name-and-docbook-filename.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
+genksyms-parser-fix-the-__attribute__-rule.patch
+genksyms-include-extern-information-in-dumps.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+lkdtm-fix-for-config_scsi=n.patch
+git-unionfs.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works-comment.patch
+profile-likely-unlikely-macros.patch
 
