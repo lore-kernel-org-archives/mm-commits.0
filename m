@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + w1-ds2490c-correct-print-message.patch added to -mm tree
-Date: Tue, 29 Jul 2008 16:15:05 -0700
-Message-ID: <200807292315.m6TNF51l027041@imap1.linux-foundation.org>
+Subject: + w1-ds2490c-simplify-and-fix-ds_touch_bit.patch added to -mm tree
+Date: Tue, 29 Jul 2008 16:15:13 -0700
+Message-ID: <200807292315.m6TNFExh027085@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46307 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58257 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752924AbYG2XPJ (ORCPT
+	by vger.kernel.org with ESMTP id S1752825AbYG2XPS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 19:15:09 -0400
+	Tue, 29 Jul 2008 19:15:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david@fries.net, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     w1: ds2490.c correct print message
+     w1: ds2490.c simplify and fix ds_touch_bit
 has been added to the -mm tree.  Its filename is
-     w1-ds2490c-correct-print-message.patch
+     w1-ds2490c-simplify-and-fix-ds_touch_bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: ds2490.c correct print message
+Subject: w1: ds2490.c simplify and fix ds_touch_bit
 From: David Fries <david@fries.net>
 
-Corrected print message, it was writing not reading, this also prints the
-endpoint used for the write instead of hardcoding it.
+Simplify and fix ds_touch_bit.  If a device is attached in the middle of a
+bus search the status register will return more than the default 16 bytes.
+ The additional bytes indicate that it has detected a new device.  The way
+ds_wait_status is coded, if it doesn't read 16 status bytes it returns an
+error value.  ds_touch_bit then will detect that error and return an
+error.  In that case it doesn't read the input buffer and returns
+uninitialized data.  It doesn't stop there.  The next transaction will not
+expect the extra byte in the input buffer and the short read will cause an
+error and clear out both the old byte and new data in the input buffer.
 
-        Failed to write 1-wire data to ep0x%x: err=3D%d.
+Just ignore the value of ds_wait_status.  It is still required to wait
+until ds2490 is again idle and there is data to read when ds_recv_data is
+called.  This also removes the while loop.  None of the other commands
+wait and verify that the issued command is in the status register.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds2490.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/w1/masters/ds2490.c |   21 ++++-----------------
+ 1 file changed, 4 insertions(+), 17 deletions(-)
 
-diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-correct-print-message drivers/w1/masters/ds2490.c
---- a/drivers/w1/masters/ds2490.c~w1-ds2490c-correct-print-message
+diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-simplify-and-fix-ds_touch_bit drivers/w1/masters/ds2490.c
+--- a/drivers/w1/masters/ds2490.c~w1-ds2490c-simplify-and-fix-ds_touch_bit
 +++ a/drivers/w1/masters/ds2490.c
-@@ -341,7 +341,8 @@ static int ds_send_data(struct ds_device
- 	count = 0;
- 	err = usb_bulk_msg(dev->udev, usb_sndbulkpipe(dev->udev, dev->ep[EP_DATA_OUT]), buf, len, &count, 1000);
- 	if (err < 0) {
--		printk(KERN_ERR "Failed to read 1-wire data from 0x02: err=%d.\n", err);
-+		printk(KERN_ERR "Failed to write 1-wire data to ep0x%x: "
-+			"err=%d.\n", dev->ep[EP_DATA_OUT], err);
- 		return err;
- 	}
+@@ -490,28 +490,15 @@ static int ds_set_pullup(struct ds_devic
  
+ static int ds_touch_bit(struct ds_device *dev, u8 bit, u8 *tbit)
+ {
+-	int err, count;
++	int err;
+ 	struct ds_status st;
+-	u16 value = (COMM_BIT_IO | COMM_IM) | ((bit) ? COMM_D : 0);
+-	u16 cmd;
+ 
+-	err = ds_send_control(dev, value, 0);
++	err = ds_send_control(dev, COMM_BIT_IO | COMM_IM | (bit ? COMM_D : 0),
++		0);
+ 	if (err)
+ 		return err;
+ 
+-	count = 0;
+-	do {
+-		err = ds_wait_status(dev, &st);
+-		if (err)
+-			return err;
+-
+-		cmd = st.command0 | (st.command1 << 8);
+-	} while (cmd != value && ++count < 10);
+-
+-	if (err < 0 || count >= 10) {
+-		printk(KERN_ERR "Failed to obtain status.\n");
+-		return -EINVAL;
+-	}
++	ds_wait_status(dev, &st);
+ 
+ 	err = ds_recv_data(dev, tbit, sizeof(*tbit));
+ 	if (err < 0)
 _
 
 Patches currently in -mm which might be from david@fries.net are
