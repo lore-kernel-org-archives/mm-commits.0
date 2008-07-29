@@ -1,73 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: + char-mxser-ratelimit-ioctl-warning.patch added to -mm tree
-Date: Tue, 29 Jul 2008 00:23:36 -0700
-Message-ID: <200807290723.m6T7NaXP020761@imap1.linux-foundation.org>
+Subject: - drm-dont-enable-irqs-in-locking.patch removed from -mm tree
+Date: Tue, 29 Jul 2008 00:24:21 -0700
+Message-ID: <200807290724.m6T7OLMk020851@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58097 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35735 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752340AbYG2HXp (ORCPT
+	by vger.kernel.org with ESMTP id S1752961AbYG2HY0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 03:23:45 -0400
+	Tue, 29 Jul 2008 03:24:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, alan@lxorguk.ukuu.org.uk
+To: jirislaby@gmail.com, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: mxser, ratelimit ioctl warning
-has been added to the -mm tree.  Its filename is
-     char-mxser-ratelimit-ioctl-warning.patch
+     drm: don't enable irqs in locking
+has been removed from the -mm tree.  Its filename was
+     drm-dont-enable-irqs-in-locking.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: mxser, ratelimit ioctl warning
+Subject: drm: don't enable irqs in locking
 From: Jiri Slaby <jirislaby@gmail.com>
 
-The GET_MAJOR ioctl prints out a warning, make it ratelimited.
+drm_lock_take(); and drm_lock_free(); are called from
+drm_locked_tasklet_func(); which disables interrupts when grabbing its
+spinlock.
+
+Don't allow these locking functions to re-enable interrupts when the
+tasklet expects them disabled.  I.e.  use spin_lock_irqsave instead of
+spin_lock_bh (with their unlock opposites).
+
+We will get such a warnings otherwise:
+------------[ cut here ]------------
+WARNING: at kernel/softirq.c:136 local_bh_enable_ip+0x8b/0xb0()
+Modules linked in: arc4 ecb crypto_blkcipher cryptomgr crypto_algapi ath5k usbhid mac80211 ohci1394 hid led_class floppy cfg80211 ff_memless ieee1394 rtc_cmos evdev [last unloaded: freq_table]
+Pid: 0, comm: swapper Not tainted 2.6.26-rc8-mm1_64 #427
+
+Call Trace:
+ <IRQ>  [<ffffffff8023813f>] warn_on_slowpath+0x5f/0x90
+[...]
+ [<ffffffff8023e1fb>] local_bh_enable_ip+0x8b/0xb0
+ [<ffffffff8055b2cf>] _spin_unlock_bh+0xf/0x20
+ [<ffffffff803b0bd1>] drm_lock_take+0x81/0xe0
+ [<ffffffff803b006b>] drm_locked_tasklet_func+0x4b/0xb0
+ [<ffffffff8023daf9>] tasklet_hi_action+0x69/0xf0
+ [<ffffffff8023e3e4>] __do_softirq+0x84/0xf0
+[stack snipped]
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/drm_lock.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN drivers/char/mxser.c~char-mxser-ratelimit-ioctl-warning drivers/char/mxser.c
---- a/drivers/char/mxser.c~char-mxser-ratelimit-ioctl-warning
-+++ a/drivers/char/mxser.c
-@@ -1612,8 +1612,10 @@ static int mxser_ioctl_special(unsigned 
+diff -puN drivers/gpu/drm/drm_lock.c~drm-dont-enable-irqs-in-locking drivers/gpu/drm/drm_lock.c
+--- a/drivers/gpu/drm/drm_lock.c~drm-dont-enable-irqs-in-locking
++++ a/drivers/gpu/drm/drm_lock.c
+@@ -196,10 +196,11 @@ int drm_unlock(struct drm_device *dev, v
+ int drm_lock_take(struct drm_lock_data *lock_data,
+ 		  unsigned int context)
+ {
++	unsigned long flags;
+ 	unsigned int old, new, prev;
+ 	volatile unsigned int *lock = &lock_data->hw_lock->lock;
  
- 	switch (cmd) {
- 	case MOXA_GET_MAJOR:
--		printk(KERN_WARNING "mxser: '%s' uses deprecated ioctl %x, fix "
--				"your userspace\n", current->comm, cmd);
-+		if (printk_ratelimit())
-+			printk(KERN_WARNING "mxser: '%s' uses deprecated ioctl "
-+					"%x (GET_MAJOR), fix your userspace\n",
-+					current->comm, cmd);
- 		return put_user(ttymajor, (int __user *)argp);
+-	spin_lock_bh(&lock_data->spinlock);
++	spin_lock_irqsave(&lock_data->spinlock, flags);
+ 	do {
+ 		old = *lock;
+ 		if (old & _DRM_LOCK_HELD)
+@@ -211,7 +212,7 @@ int drm_lock_take(struct drm_lock_data *
+ 		}
+ 		prev = cmpxchg(lock, old, new);
+ 	} while (prev != old);
+-	spin_unlock_bh(&lock_data->spinlock);
++	spin_unlock_irqrestore(&lock_data->spinlock, flags);
  
- 	case MOXA_CHKPORTENABLE:
+ 	if (_DRM_LOCKING_CONTEXT(old) == context) {
+ 		if (old & _DRM_LOCK_HELD) {
+@@ -270,17 +271,18 @@ static int drm_lock_transfer(struct drm_
+  */
+ int drm_lock_free(struct drm_lock_data *lock_data, unsigned int context)
+ {
++	unsigned long flags;
+ 	unsigned int old, new, prev;
+ 	volatile unsigned int *lock = &lock_data->hw_lock->lock;
+ 
+-	spin_lock_bh(&lock_data->spinlock);
++	spin_lock_irqsave(&lock_data->spinlock, flags);
+ 	if (lock_data->kernel_waiters != 0) {
+ 		drm_lock_transfer(lock_data, 0);
+ 		lock_data->idle_has_lock = 1;
+-		spin_unlock_bh(&lock_data->spinlock);
++		spin_unlock_irqrestore(&lock_data->spinlock, flags);
+ 		return 1;
+ 	}
+-	spin_unlock_bh(&lock_data->spinlock);
++	spin_unlock_irqrestore(&lock_data->spinlock, flags);
+ 
+ 	do {
+ 		old = *lock;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
+char-mxser-ratelimit-ioctl-warning.patch
 ath5k-fix-memory-corruption.patch
 ath5k-kill-tasklets-on-shutdown.patch
 ath5k-flush-work.patch
@@ -88,5 +133,4 @@ ip2-avoid-add_timer-with-pending-timer.patch
 char-ds1286-eliminate-busy-waiting.patch
 reiser4.patch
 shrink_slab-handle-bad-shrinkers.patch
-char-mxser-ratelimit-ioctl-warning.patch
 
