@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + w1-ds2490c-magic-number-work.patch added to -mm tree
-Date: Tue, 29 Jul 2008 16:15:21 -0700
-Message-ID: <200807292315.m6TNFLxP027100@imap1.linux-foundation.org>
+Subject: + w1-documentation-w1-masters-ds2490-update.patch added to -mm tree
+Date: Tue, 29 Jul 2008 16:15:25 -0700
+Message-ID: <200807292315.m6TNFPIp027106@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49981 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48507 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753285AbYG2XQm (ORCPT
+	by vger.kernel.org with ESMTP id S1752494AbYG2XQz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 19:16:42 -0400
+	Tue, 29 Jul 2008 19:16:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david@fries.net, johnpol@2ka.mipt.ru
+Cc: david@fries.net, johnpol@2ka.mipt.ru, randy.dunlap@oracle.com
 
 
 The patch titled
-     w1: ds2490.c magic number work
+     w1: Documentation/w1/masters/ds2490 update
 has been added to the -mm tree.  Its filename is
-     w1-ds2490c-magic-number-work.patch
+     w1-documentation-w1-masters-ds2490-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: ds2490.c magic number work
+Subject: w1: Documentation/w1/masters/ds2490 update
 From: David Fries <david@fries.net>
 
-This replaces some magic numbers with marcos and corrects one marco.
+Provide some additional details about the status of the driver and the
+ds2490 hardware.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds2490.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ Documentation/w1/masters/ds2490 |   52 ++++++++++++++++++++++++++++++
+ 1 file changed, 52 insertions(+)
 
-diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-magic-number-work drivers/w1/masters/ds2490.c
---- a/drivers/w1/masters/ds2490.c~w1-ds2490c-magic-number-work
-+++ a/drivers/w1/masters/ds2490.c
-@@ -88,7 +88,7 @@
- #define COMM_DT				0x2000
- #define COMM_SPU			0x1000
- #define COMM_F				0x0800
--#define COMM_NTP			0x0400
-+#define COMM_NTF			0x0400
- #define COMM_ICP			0x0200
- #define COMM_RST			0x0100
- 
-@@ -440,7 +440,7 @@ static int ds_wait_status(struct ds_devi
- 			printk("\n");
- 		}
- #endif
--	} while(!(buf[0x08] & 0x20) && !(err < 0) && ++count < 100);
-+	} while (!(buf[0x08] & ST_IDLE) && !(err < 0) && ++count < 100);
- 
- 	if (err >= 16 && st->status & ST_EPOF) {
- 		printk(KERN_INFO "Resetting device after ST_EPOF.\n");
-@@ -470,8 +470,16 @@ static int ds_reset(struct ds_device *de
- {
- 	int err;
- 
--	//err = ds_send_control(dev, COMM_1_WIRE_RESET | COMM_F | COMM_IM | COMM_SE, SPEED_FLEXIBLE);
--	err = ds_send_control(dev, 0x43, SPEED_NORMAL);
-+	/* Other potentionally interesting flags for reset.
-+	 *
-+	 * COMM_NTF: Return result register feedback.  This could be used to
-+	 * detect some conditions such as short, alarming presence, or
-+	 * detect if a new device was detected.
-+	 *
-+	 * COMM_SE which allows SPEED_NORMAL, SPEED_FLEXIBLE, SPEED_OVERDRIVE:
-+	 * Select the data transfer rate.
-+	 */
-+	err = ds_send_control(dev, COMM_1_WIRE_RESET | COMM_IM, SPEED_NORMAL);
- 	if (err)
- 		return err;
- 
+diff -puN Documentation/w1/masters/ds2490~w1-documentation-w1-masters-ds2490-update Documentation/w1/masters/ds2490
+--- a/Documentation/w1/masters/ds2490~w1-documentation-w1-masters-ds2490-update
++++ a/Documentation/w1/masters/ds2490
+@@ -16,3 +16,55 @@ which allows to build USB <-> W1 bridges
+ DS9490(R) is a USB <-> W1 bus master device
+ which has 0x81 family ID integrated chip and DS2490
+ low-level operational chip.
++
++Notes and limitations.
++- The weak pullup current is a minimum of 0.9mA and maximum of 6.0mA.
++- The 5V strong pullup is supported with a minimum of 5.9mA and a
++  maximum of 30.4 mA.  (From DS2490.pdf)
++- While the ds2490 supports a hardware search the code doesn't take
++  advantage of it (in tested case it only returned first device).
++- The hardware will detect when devices are attached to the bus on the
++  next bus (reset?) operation, however only a message is printed as
++  the core w1 code doesn't make use of the information.  Connecting
++  one device tends to give multiple new device notifications.
++- The number of USB bus transactions could be reduced if w1_reset_send
++  was added to the API.  The name is just a suggestion.  It would take
++  a write buffer and a read buffer (along with sizes) as arguments.
++  The ds2490 block I/O command supports reset, write buffer, read
++  buffer, and strong pullup all in one command, instead of the current
++  1 reset bus, 2 write the match rom command and slave rom id, 3 block
++  write and read data.  The write buffer needs to have the match rom
++  command and slave rom id prepended to the front of the requested
++  write buffer, both of which are known to the driver.
++- The hardware supports normal, flexible, and overdrive bus
++  communication speeds, but only the normal is supported.
++- The registered w1_bus_master functions don't define error
++  conditions.  If a bus search is in progress and the ds2490 is
++  removed it can produce a good amount of error output before the bus
++  search finishes.
++- The hardware supports detecting some error conditions, such as
++  short, alarming presence on reset, and no presence on reset, but the
++  driver doesn't query those values.
++- The ds2490 specification doesn't cover short bulk in reads in
++  detail, but my observation is if fewer bytes are requested than are
++  available, the bulk read will return an error and the hardware will
++  clear the entire bulk in buffer.  It would be possible to read the
++  maximum buffer size to not run into this error condition, only extra
++  bytes in the buffer is a logic error in the driver.  The code should
++  should match reads and writes as well as data sizes.  Reads and
++  writes are serialized and the status verifies that the chip is idle
++  (and data is available) before the read is executed, so it should
++  not happen.
++- Running x86_64 2.6.24 UHCI under qemu 0.9.0 under x86_64 2.6.22-rc6
++  with a OHCI controller, ds2490 running in the guest would operate
++  normally the first time the module was loaded after qemu attached
++  the ds2490 hardware, but if the module was unloaded, then reloaded
++  most of the time one of the bulk out or in, and usually the bulk in
++  would fail.  qemu sets a 50ms timeout and the bulk in would timeout
++  even when the status shows data available.  A bulk out write would
++  show a successful completion, but the ds2490 status register would
++  show 0 bytes written.  Detaching qemu from the ds2490 hardware and
++  reattaching would clear the problem.  usbmon output in the guest and
++  host did not explain the problem.  My guess is a bug in either qemu
++  or the host OS and more likely the host OS.
++-- 03-06-2008 David Fries <David@Fries.net>
 _
 
 Patches currently in -mm which might be from david@fries.net are
