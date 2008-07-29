@@ -1,69 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - mm-hugetlbc-must-include-asm-ioh.patch removed from -mm tree
-Date: Tue, 29 Jul 2008 13:29:53 -0700
-Message-ID: <200807292029.m6TKTrZ4019732@imap1.linux-foundation.org>
+Subject: - kdump-update-kdump-documentation-as-kexec-tools-resting-has-been-renamed-kexec-tools.patch removed from -mm tree
+Date: Tue, 29 Jul 2008 13:30:02 -0700
+Message-ID: <200807292030.m6TKU25t019754@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39943 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752579AbYG2UaL (ORCPT
+	by vger.kernel.org with ESMTP id S1752594AbYG2UaS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 16:30:11 -0400
+	Tue, 29 Jul 2008 16:30:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, takata@linux-m32r.org, mm-commits@vger.kernel.org
+To: horms@verge.net.au, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/hugetlb.c must #include <asm/io.h>
+     kdump: update kdump documentation as kexec-tools-resting has been renamed kexec-tools
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlbc-must-include-asm-ioh.patch
+     kdump-update-kdump-documentation-as-kexec-tools-resting-has-been-renamed-kexec-tools.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/hugetlb.c must #include <asm/io.h>
-From: Adrian Bunk <bunk@kernel.org>
+Subject: kdump: update kdump documentation as kexec-tools-resting has been renamed kexec-tools
+From: Simon Horman <horms@verge.net.au>
 
-This patch fixes the following build error on sh caused by
-commit aa888a74977a8f2120ae9332376e179c39a6b07d
-(hugetlb: support larger than MAX_ORDER):
-
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/hugetlb.c: In function 'alloc_bootmem_huge_page':
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/hugetlb.c:958: error: implicit declaration of function 'virt_to_phys'
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/kdump/kdump.txt |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlbc-must-include-asm-ioh mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbc-must-include-asm-ioh
-+++ a/mm/hugetlb.c
-@@ -20,6 +20,7 @@
+diff -puN Documentation/kdump/kdump.txt~kdump-update-kdump-documentation-as-kexec-tools-resting-has-been-renamed-kexec-tools Documentation/kdump/kdump.txt
+--- a/Documentation/kdump/kdump.txt~kdump-update-kdump-documentation-as-kexec-tools-resting-has-been-renamed-kexec-tools
++++ a/Documentation/kdump/kdump.txt
+@@ -65,26 +65,26 @@ Install kexec-tools
  
- #include <asm/page.h>
- #include <asm/pgtable.h>
-+#include <asm/io.h>
+ 2) Download the kexec-tools user-space package from the following URL:
  
- #include <linux/hugetlb.h>
- #include "internal.h"
+-http://www.kernel.org/pub/linux/kernel/people/horms/kexec-tools/kexec-tools-testing.tar.gz
++http://www.kernel.org/pub/linux/kernel/people/horms/kexec-tools/kexec-tools.tar.gz
+ 
+-This is a symlink to the latest version, which at the time of writing is
+-20061214, the only release of kexec-tools-testing so far. As other versions
+-are released, the older ones will remain available at
+-http://www.kernel.org/pub/linux/kernel/people/horms/kexec-tools/
++This is a symlink to the latest version.
+ 
+-Note: Latest kexec-tools-testing git tree is available at
++The latest kexec-tools git tree is available at:
+ 
+-git://git.kernel.org/pub/scm/linux/kernel/git/horms/kexec-tools-testing.git
++git://git.kernel.org/pub/scm/linux/kernel/git/horms/kexec-tools.git
+ or
+-http://www.kernel.org/git/?p=linux/kernel/git/horms/kexec-tools-testing.git;a=summary
++http://www.kernel.org/git/?p=linux/kernel/git/horms/kexec-tools.git
++
++More information about kexec-tools can be found at
++http://www.kernel.org/pub/linux/kernel/people/horms/kexec-tools/README.html
+ 
+ 3) Unpack the tarball with the tar command, as follows:
+ 
+-   tar xvpzf kexec-tools-testing.tar.gz
++   tar xvpzf kexec-tools.tar.gz
+ 
+ 4) Change to the kexec-tools directory, as follows:
+ 
+-   cd kexec-tools-testing-VERSION
++   cd kexec-tools-VERSION
+ 
+ 5) Configure the package, as follows:
+ 
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from horms@verge.net.au are
 
-linux-next.patch
-git-alsa-tiwai.patch
-m32r-remove-the-unused-nohighmem-option.patch
-git-security-testing.patch
-if-0-ses_match_host.patch
-git-xtensa.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-reiser4.patch
 
