@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + w1-ds2490c-ds_reset-remove-ds_wait_status.patch added to -mm tree
-Date: Tue, 29 Jul 2008 16:15:17 -0700
-Message-ID: <200807292315.m6TNFHcZ027092@imap1.linux-foundation.org>
+Subject: + w1-ds2490c-reset-ds2490-in-init.patch added to -mm tree
+Date: Tue, 29 Jul 2008 16:15:19 -0700
+Message-ID: <200807292315.m6TNFKZQ027095@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46015 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36975 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754190AbYG2XPV (ORCPT
+	by vger.kernel.org with ESMTP id S1753645AbYG2XPX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 19:15:21 -0400
+	Tue, 29 Jul 2008 19:15:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david@fries.net, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     w1: ds2490.c ds_reset remove ds_wait_status
+     w1: ds2490.c reset ds2490 in init
 has been added to the -mm tree.  Its filename is
-     w1-ds2490c-ds_reset-remove-ds_wait_status.patch
+     w1-ds2490c-reset-ds2490-in-init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: ds2490.c ds_reset remove ds_wait_status
+Subject: w1: ds2490.c reset ds2490 in init
 From: David Fries <david@fries.net>
 
-ds_reset no longer calls ds_wait_status, the result wasn't used and it
-would only delay the following data operations.
+Reset the device in init as it can be in a bad state.  This is necessary
+because a block write will wait for data to be placed in the output buffer
+and block any later commands which will keep accumulating and the device
+will not be idle.  Another case is removing the ds2490 module while a bus
+search is in progress, somehow a few commands get through, but the input
+transfers fail leaving data in the input buffer.  This will cause the next
+read to fail see the note in ds_recv_data.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds2490.c |   15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+ drivers/w1/masters/ds2490.c |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-ds_reset-remove-ds_wait_status drivers/w1/masters/ds2490.c
---- a/drivers/w1/masters/ds2490.c~w1-ds2490c-ds_reset-remove-ds_wait_status
+diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-reset-ds2490-in-init drivers/w1/masters/ds2490.c
+--- a/drivers/w1/masters/ds2490.c~w1-ds2490c-reset-ds2490-in-init
 +++ a/drivers/w1/masters/ds2490.c
-@@ -457,7 +457,7 @@ static int ds_wait_status(struct ds_devi
- 		return 0;
- }
+@@ -316,6 +316,15 @@ static int ds_recv_data(struct ds_device
+ 	int count, err;
+ 	struct ds_status st;
  
--static int ds_reset(struct ds_device *dev, struct ds_status *st)
-+static int ds_reset(struct ds_device *dev)
++	/* Careful on size.  If size is less than what is available in
++	 * the input buffer, the device fails the bulk transfer and
++	 * clears the input buffer.  It could read the maximum size of
++	 * the data buffer, but then do you return the first, last, or
++	 * some set of the middle size bytes?  As long as the rest of
++	 * the code is correct there will be size bytes waiting.  A
++	 * call to ds_wait_status will wait until the device is idle
++	 * and any data to be received would have been available.
++	 */
+ 	count = 0;
+ 	err = usb_bulk_msg(dev->udev, usb_rcvbulkpipe(dev->udev, dev->ep[EP_DATA_IN]),
+ 				buf, size, &count, 1000);
+@@ -824,6 +833,18 @@ static int ds_w1_init(struct ds_device *
  {
- 	int err;
+ 	memset(&dev->master, 0, sizeof(struct w1_bus_master));
  
-@@ -466,14 +466,6 @@ static int ds_reset(struct ds_device *de
- 	if (err)
- 		return err;
- 
--	ds_wait_status(dev, st);
--#if 0
--	if (st->command_buffer_status) {
--		printk(KERN_INFO "Short circuit.\n");
--		return -EIO;
--	}
--#endif
--
- 	return 0;
- }
- 
-@@ -809,12 +801,9 @@ static u8 ds9490r_read_block(void *data,
- static u8 ds9490r_reset(void *data)
- {
- 	struct ds_device *dev = data;
--	struct ds_status st;
- 	int err;
- 
--	memset(&st, 0, sizeof(st));
--
--	err = ds_reset(dev, &st);
-+	err = ds_reset(dev);
- 	if (err)
- 		return 1;
- 
++	/* Reset the device as it can be in a bad state.
++	 * This is necessary because a block write will wait for data
++	 * to be placed in the output buffer and block any later
++	 * commands which will keep accumulating and the device will
++	 * not be idle.  Another case is removing the ds2490 module
++	 * while a bus search is in progress, somehow a few commands
++	 * get through, but the input transfers fail leaving data in
++	 * the input buffer.  This will cause the next read to fail
++	 * see the note in ds_recv_data.
++	 */
++	ds_send_control_cmd(dev, CTL_RESET_DEVICE, 0);
++
+ 	dev->master.data	= dev;
+ 	dev->master.touch_bit	= &ds9490r_touch_bit;
+ 	/* read_bit and write_bit in w1_bus_master are expected to set and
 _
 
 Patches currently in -mm which might be from david@fries.net are
