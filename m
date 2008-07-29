@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + w1-document-add-remove-search_count-and-pullup.patch added to -mm tree
-Date: Tue, 29 Jul 2008 16:14:47 -0700
-Message-ID: <200807292314.m6TNElYM027003@imap1.linux-foundation.org>
+Subject: + w1-w1_slave_read_id-read-bug-use-device_attribute.patch added to -mm tree
+Date: Tue, 29 Jul 2008 16:14:49 -0700
+Message-ID: <200807292314.m6TNEnGZ027006@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42566 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39867 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752825AbYG2XQX (ORCPT
+	by vger.kernel.org with ESMTP id S1753164AbYG2XQ2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 19:16:23 -0400
+	Tue, 29 Jul 2008 19:16:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david@fries.net, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     w1: Document add, remove, search_count, and pullup.
+     w1: w1_slave_read_id read bug, use device_attribute
 has been added to the -mm tree.  Its filename is
-     w1-document-add-remove-search_count-and-pullup.patch
+     w1-w1_slave_read_id-read-bug-use-device_attribute.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: Document add, remove, search_count, and pullup.
+Subject: w1: w1_slave_read_id read bug, use device_attribute
 From: David Fries <david@fries.net>
 
-Document w1_master_add, w1_master_remove, search_count, and pullup.
+Fix bug reading the id sysfs file.  If less than the full 8 bytes were
+read, the next read would start at the first byte instead of continuing. 
+It needed the offset added to memcpy, or the better solution was to
+replace it with the device attribute instead of bin attribute.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/w1/w1.generic |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/w1/w1.c |   35 ++++++++++-------------------------
+ 1 file changed, 10 insertions(+), 25 deletions(-)
 
-diff -puN Documentation/w1/w1.generic~w1-document-add-remove-search_count-and-pullup Documentation/w1/w1.generic
---- a/Documentation/w1/w1.generic~w1-document-add-remove-search_count-and-pullup
-+++ a/Documentation/w1/w1.generic
-@@ -79,10 +79,13 @@ w1 master sysfs interface
- <xx-xxxxxxxxxxxxx> - a directory for a found device. The format is family-serial
- bus                - (standard) symlink to the w1 bus
- driver             - (standard) symlink to the w1 driver
-+w1_master_add      - Manually register a slave device
- w1_master_attempts - the number of times a search was attempted
- w1_master_max_slave_count
-                    - the maximum slaves that may be attached to a master
- w1_master_name     - the name of the device (w1_bus_masterX)
-+w1_master_pullup   - 5V strong pullup 0 enabled, 1 disabled
-+w1_master_remove   - Manually remove a slave device
- w1_master_search   - the number of searches left to do, -1=continual (default)
- w1_master_slave_count
-                    - the number of slaves found
-@@ -90,7 +93,13 @@ w1_master_slaves   - the names of the sl
- w1_master_timeout  - the delay in seconds between searches
+diff -puN drivers/w1/w1.c~w1-w1_slave_read_id-read-bug-use-device_attribute drivers/w1/w1.c
+--- a/drivers/w1/w1.c~w1-w1_slave_read_id-read-bug-use-device_attribute
++++ a/drivers/w1/w1.c
+@@ -103,35 +103,20 @@ static ssize_t w1_slave_read_name(struct
+ 	return sprintf(buf, "%s\n", sl->name);
+ }
  
- If you have a w1 bus that never changes (you don't add or remove devices),
--you can set w1_master_search to a positive value to disable searches.
-+you can set the module parameter search_count to a small positive number
-+for an initially small number of bus searches.  Alternatively it could be
-+set to zero, then manually add the slave device serial numbers by
-+w1_master_add device file.  The w1_master_add and w1_master_remove files
-+generally only make sense when searching is disabled, as a search will
-+redetect manually removed devices that are present and timeout manually
-+added devices that aren't on the bus.
+-static ssize_t w1_slave_read_id(struct kobject *kobj,
+-				struct bin_attribute *bin_attr,
+-				char *buf, loff_t off, size_t count)
++static ssize_t w1_slave_read_id(struct device *dev,
++	struct device_attribute *attr, char *buf)
+ {
+-	struct w1_slave *sl = kobj_to_w1_slave(kobj);
+-
+-	if (off > 8) {
+-		count = 0;
+-	} else {
+-		if (off + count > 8)
+-			count = 8 - off;
+-
+-		memcpy(buf, (u8 *)&sl->reg_num, count);
+-	}
++	struct w1_slave *sl = dev_to_w1_slave(dev);
++	ssize_t count = sizeof(sl->reg_num);
  
++	memcpy(buf, (u8 *)&sl->reg_num, count);
+ 	return count;
+ }
  
- w1 slave sysfs interface
+ static struct device_attribute w1_slave_attr_name =
+ 	__ATTR(name, S_IRUGO, w1_slave_read_name, NULL);
+-
+-static struct bin_attribute w1_slave_attr_bin_id = {
+-      .attr = {
+-              .name = "id",
+-              .mode = S_IRUGO,
+-      },
+-      .size = 8,
+-      .read = w1_slave_read_id,
+-};
++static struct device_attribute w1_slave_attr_id =
++	__ATTR(id, S_IRUGO, w1_slave_read_id, NULL);
+ 
+ /* Default family */
+ 
+@@ -641,7 +626,7 @@ static int __w1_attach_slave_device(stru
+ 	}
+ 
+ 	/* Create "id" entry */
+-	err = sysfs_create_bin_file(&sl->dev.kobj, &w1_slave_attr_bin_id);
++	err = device_create_file(&sl->dev, &w1_slave_attr_id);
+ 	if (err < 0) {
+ 		dev_err(&sl->dev,
+ 			"sysfs file creation for [%s] failed. err=%d\n",
+@@ -663,7 +648,7 @@ static int __w1_attach_slave_device(stru
+ 	return 0;
+ 
+ out_rem2:
+-	sysfs_remove_bin_file(&sl->dev.kobj, &w1_slave_attr_bin_id);
++	device_remove_file(&sl->dev, &w1_slave_attr_id);
+ out_rem1:
+ 	device_remove_file(&sl->dev, &w1_slave_attr_name);
+ out_unreg:
+@@ -745,7 +730,7 @@ void w1_slave_detach(struct w1_slave *sl
+ 	msg.type = W1_SLAVE_REMOVE;
+ 	w1_netlink_send(sl->master, &msg);
+ 
+-	sysfs_remove_bin_file(&sl->dev.kobj, &w1_slave_attr_bin_id);
++	device_remove_file(&sl->dev, &w1_slave_attr_id);
+ 	device_remove_file(&sl->dev, &w1_slave_attr_name);
+ 	device_unregister(&sl->dev);
+ 
 _
 
 Patches currently in -mm which might be from david@fries.net are
