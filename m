@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + w1-feature-w1_thermc-use-strong-pullup-and-documentation.patch added to -mm tree
-Date: Tue, 29 Jul 2008 16:14:18 -0700
-Message-ID: <200807292314.m6TNEIOw026979@imap1.linux-foundation.org>
+Subject: + w1-ds1wmc-msleep-for-reset.patch added to -mm tree
+Date: Tue, 29 Jul 2008 16:15:03 -0700
+Message-ID: <200807292315.m6TNF3mJ027036@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54480 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47270 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753344AbYG2XPP (ORCPT
+	by vger.kernel.org with ESMTP id S1752669AbYG2XPH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 19:15:15 -0400
+	Tue, 29 Jul 2008 19:15:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david@fries.net, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     w1: feature, w1_therm.c use strong pullup and documentation
+     w1: ds1wm.c msleep for reset
 has been added to the -mm tree.  Its filename is
-     w1-feature-w1_thermc-use-strong-pullup-and-documentation.patch
+     w1-ds1wmc-msleep-for-reset.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,120 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: feature, w1_therm.c use strong pullup and documentation
+Subject: w1: ds1wm.c msleep for reset
 From: David Fries <david@fries.net>
 
-Added strong pullup to thermal sensor driver and general documentation on
-the sensor.
+Like the previous w1_io.c reset coments and msleep patch, I don't have the
+hardware to verify the change, but I think it is safe.  It also helps to
+see a comment like this in the code.
+
+"We'll wait a bit longer just to be sure."
+
+If they are going to calculate delaying 324.9us, but actually delay 500us,
+why not just give up the CPU and sleep?  This is designed for a battery
+powered ARM system, avoiding busywaiting has to be good for battery life.
+
+I sent a request for testers March 7, 2008 to the Linux kernel mailing
+list and two developers who have patches for ds1wm.c, but I didn't get any
+respons.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/w1/00-INDEX        |    2 +
- Documentation/w1/slaves/00-INDEX |    4 ++
- Documentation/w1/slaves/w1_therm |   41 +++++++++++++++++++++++++++++
- drivers/w1/slaves/w1_therm.c     |   15 +++++++++-
- 4 files changed, 60 insertions(+), 2 deletions(-)
+ drivers/w1/masters/ds1wm.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/w1/00-INDEX~w1-feature-w1_thermc-use-strong-pullup-and-documentation Documentation/w1/00-INDEX
---- a/Documentation/w1/00-INDEX~w1-feature-w1_thermc-use-strong-pullup-and-documentation
-+++ a/Documentation/w1/00-INDEX
-@@ -1,5 +1,7 @@
- 00-INDEX
- 	- This file
-+slaves/
-+	- Drivers that provide support for specific family codes.
- masters/
- 	- Individual chips providing 1-wire busses.
- w1.generic
-diff -puN /dev/null Documentation/w1/slaves/00-INDEX
---- /dev/null
-+++ a/Documentation/w1/slaves/00-INDEX
-@@ -0,0 +1,4 @@
-+00-INDEX
-+	- This file
-+w1_therm
-+	- The Maxim/Dallas Semiconductor ds18*20 temperature sensor.
-diff -puN /dev/null Documentation/w1/slaves/w1_therm
---- /dev/null
-+++ a/Documentation/w1/slaves/w1_therm
-@@ -0,0 +1,41 @@
-+Kernel driver w1_therm
-+====================
-+
-+Supported chips:
-+  * Maxim ds18*20 based temperature sensors.
-+
-+Author: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+
-+
-+Description
-+-----------
-+
-+w1_therm provides basic temperature conversion for ds18*20 devices.
-+supported family codes:
-+W1_THERM_DS18S20	0x10
-+W1_THERM_DS1822		0x22
-+W1_THERM_DS18B20	0x28
-+
-+Support is provided through the sysfs w1_slave file.  Each open and
-+read sequence will initiate a temperature conversion then provide two
-+lines of ASCII output.  The first line contains the nine hex bytes
-+read along with a calculated crc value and YES or NO if it matched.
-+If the crc matched the returned values are retained.  The second line
-+displays the retained values along with a temperature in millidegrees
-+Centigrade after t=.
-+
-+Parasite powered devices are limited to one slave performing a
-+temperature conversion at a time.  If none of the devices are parasite
-+powered it would be possible to convert all the devices at the same
-+time and then go back to read individual sensors.  That isn't
-+currently supported.  The driver also doesn't support reduced
-+precision (which would also reduce the conversion time).
-+
-+The module parameter strong_pullup can be set to 0 to disable the
-+strong pullup or 1 to enable.  If enabled the 5V strong pullup will be
-+enabled when the conversion is taking place provided the master driver
-+must support the strong pullup (or it falls back to a pullup
-+resistor).  The DS18b20 temperature sensor specification lists a
-+maximum current draw of 1.5mA and that a 5k pullup resistor is not
-+sufficient.  The strong pullup is designed to provide the additional
-+current required.
-diff -puN drivers/w1/slaves/w1_therm.c~w1-feature-w1_thermc-use-strong-pullup-and-documentation drivers/w1/slaves/w1_therm.c
---- a/drivers/w1/slaves/w1_therm.c~w1-feature-w1_thermc-use-strong-pullup-and-documentation
-+++ a/drivers/w1/slaves/w1_therm.c
-@@ -37,6 +37,14 @@ MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Evgeniy Polyakov <johnpol@2ka.mipt.ru>");
- MODULE_DESCRIPTION("Driver for 1-wire Dallas network protocol, temperature family.");
+diff -puN drivers/w1/masters/ds1wm.c~w1-ds1wmc-msleep-for-reset drivers/w1/masters/ds1wm.c
+--- a/drivers/w1/masters/ds1wm.c~w1-ds1wmc-msleep-for-reset
++++ a/drivers/w1/masters/ds1wm.c
+@@ -160,8 +160,10 @@ static int ds1wm_reset(struct ds1wm_data
+ 	 *     625 us - 60 us - 240 us - 100 ns = 324.9 us
+ 	 *
+ 	 * We'll wait a bit longer just to be sure.
++	 * Was udelay(500), but if it is going to busywait the cpu that long,
++	 * might as well come back later.
+ 	 */
+-	udelay(500);
++	msleep(1);
  
-+/* Allow the strong pullup to be disabled, but default to enabled.
-+ * If it was disabled a parasite powered device might not get the require
-+ * current to do a temperature conversion.  If it is enabled parasite powered
-+ * devices have a better chance of getting the current required.
-+ */
-+static int w1_strong_pullup = 1;
-+module_param_named(strong_pullup, w1_strong_pullup, int, 0);
-+
- static u8 bad_roms[][9] = {
- 				{0xaa, 0x00, 0x4b, 0x46, 0xff, 0xff, 0x0c, 0x10, 0x87},
- 				{}
-@@ -192,9 +200,12 @@ static ssize_t w1_therm_read_bin(struct 
- 			int count = 0;
- 			unsigned int tm = 750;
- 
-+			/* 750ms strong pullup (or delay) after the convert */
-+			if (w1_strong_pullup)
-+				w1_next_pullup(dev, tm);
- 			w1_write_8(dev, W1_CONVERT_TEMP);
--
--			msleep(tm);
-+			if (!w1_strong_pullup)
-+				msleep(tm);
- 
- 			if (!w1_reset_select_slave(sl)) {
- 
+ 	ds1wm_write_register(ds1wm_data, DS1WM_INT_EN,
+ 		DS1WM_INTEN_ERBF | DS1WM_INTEN_ETMT | DS1WM_INTEN_EPD |
 _
 
 Patches currently in -mm which might be from david@fries.net are
