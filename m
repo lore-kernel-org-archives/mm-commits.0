@@ -1,91 +1,279 @@
 From: akpm@linux-foundation.org
-Subject: - revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch removed from -mm tree
-Date: Mon, 28 Jul 2008 17:26:23 -0700
-Message-ID: <200807290026.m6T0QNYY004104@imap1.linux-foundation.org>
+Subject: - split-lru-munlock-rework.patch removed from -mm tree
+Date: Mon, 28 Jul 2008 17:27:34 -0700
+Message-ID: <200807290027.m6T0RYEN004146@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38121 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46821 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753077AbYG2A1E (ORCPT
+	by vger.kernel.org with ESMTP id S1752011AbYG2A2M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jul 2008 20:27:04 -0400
+	Mon, 28 Jul 2008 20:28:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kosaki.motohiro@jp.fujitsu.com, Lee.Schermerhorn@hp.com, hugh@veritas.com, lizf@cn.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     splitlru: revert to unevictable-lru-infrastructure-kconfig-fix.patch
+     splitlru: split LRU: munlock rework
 has been removed from the -mm tree.  Its filename was
-     revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch
+     split-lru-munlock-rework.patch
 
-This patch was dropped because it was folded into unevictable-lru-infrastructure.patch
+This patch was dropped because it was folded into mmap-handle-mlocked-pages-during-map-remap-unmap.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: splitlru: revert to unevictable-lru-infrastructure-kconfig-fix.patch
+Subject: splitlru: split LRU: munlock rework
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-CONFIG_UNEVICTABLE_LRU automatically turn on CONFIG_PAGE_WALKER.  It
-causes a build error on nommu machines.
+current munlock processing use to pagewalk.
+its cause two problems.
+  - build error on nommu machine
+  - runtime error on HIGHPTE machine.
 
-Now, it is unnecessary because munlock was rewritten.
+This patch fixes it.
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Hugh Dickins <hugh@veritas.com>
 Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    1 -
- mm/Kconfig   |    5 -----
- mm/Makefile  |    2 +-
- 3 files changed, 1 insertion(+), 7 deletions(-)
+ mm/mlock.c |  152 +++++++++++----------------------------------------
+ 1 file changed, 35 insertions(+), 117 deletions(-)
 
-diff -puN init/Kconfig~revert-to-unevictable-lru-infrastructure-kconfig-fixpatch init/Kconfig
---- a/init/Kconfig~revert-to-unevictable-lru-infrastructure-kconfig-fixpatch
-+++ a/init/Kconfig
-@@ -793,7 +793,6 @@ source "arch/Kconfig"
- config PROC_PAGE_MONITOR
-  	default y
- 	depends on PROC_FS && MMU
--	select PAGE_WALKER
- 	bool "Enable /proc page monitoring" if EMBEDDED
-  	help
- 	  Various /proc files exist to monitor process memory utilization:
-diff -puN mm/Kconfig~revert-to-unevictable-lru-infrastructure-kconfig-fixpatch mm/Kconfig
---- a/mm/Kconfig~revert-to-unevictable-lru-infrastructure-kconfig-fixpatch
-+++ a/mm/Kconfig
-@@ -209,14 +209,9 @@ config VIRT_TO_BUS
- 	def_bool y
- 	depends on !ARCH_NO_VIRT_TO_BUS
+diff -puN mm/mlock.c~split-lru-munlock-rework mm/mlock.c
+--- a/mm/mlock.c~split-lru-munlock-rework
++++ a/mm/mlock.c
+@@ -120,18 +120,33 @@ static void munlock_vma_page(struct page
+  * vma->vm_mm->mmap_sem must be held for write.
+  */
+ static int __mlock_vma_pages_range(struct vm_area_struct *vma,
+-			unsigned long start, unsigned long end)
++				   unsigned long start, unsigned long end,
++				   int mlock)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long addr = start;
+ 	struct page *pages[16]; /* 16 gives a reasonable batch */
+-	int write = !!(vma->vm_flags & VM_WRITE);
+ 	int nr_pages = (end - start) / PAGE_SIZE;
+ 	int ret;
++	int gup_flags = 0;
++
++	VM_BUG_ON(start & ~PAGE_MASK);
++	VM_BUG_ON(end   & ~PAGE_MASK);
++	VM_BUG_ON(start < vma->vm_start);
++	VM_BUG_ON(end   > vma->vm_end);
++	VM_BUG_ON((!rwsem_is_locked(&mm->mmap_sem)) &&
++		  (atomic_read(&mm->mm_users) != 0));
++
++	/*
++	 * mlock:   don't page populate if page has PROT_NONE permission.
++	 * munlock: the pages always do munlock althrough
++	 *          its has PROT_NONE permission.
++	 */
++	if (!mlock)
++		gup_flags |= GUP_FLAGS_IGNORE_VMA_PERMISSIONS;
  
--# automatically selected by UNEVICTABLE_LRU or PROC_PAGE_MONITOR
--config PAGE_WALKER
--	def_bool n
+-	VM_BUG_ON(start & ~PAGE_MASK || end & ~PAGE_MASK);
+-	VM_BUG_ON(start < vma->vm_start || end > vma->vm_end);
+-	VM_BUG_ON(!rwsem_is_locked(&vma->vm_mm->mmap_sem));
++	if (vma->vm_flags & VM_WRITE)
++		gup_flags |= GUP_FLAGS_WRITE;
+ 
+ 	lru_add_drain_all();	/* push cached pages to LRU */
+ 
+@@ -146,9 +161,9 @@ static int __mlock_vma_pages_range(struc
+ 		 * disable migration of this page.  However, page may
+ 		 * still be truncated out from under us.
+ 		 */
+-		ret = get_user_pages(current, mm, addr,
++		ret = __get_user_pages(current, mm, addr,
+ 				min_t(int, nr_pages, ARRAY_SIZE(pages)),
+-				write, 0, pages, NULL);
++				gup_flags, pages, NULL);
+ 		/*
+ 		 * This can happen for, e.g., VM_NONLINEAR regions before
+ 		 * a page has been allocated and mapped at a given offset,
+@@ -178,8 +193,12 @@ static int __mlock_vma_pages_range(struc
+ 			 * by the elevated reference, we need only check for
+ 			 * page truncation (file-cache only).
+ 			 */
+-			if (page->mapping)
+-				mlock_vma_page(page);
++			if (page->mapping) {
++				if (mlock)
++					mlock_vma_page(page);
++				else
++					munlock_vma_page(page);
++			}
+ 			unlock_page(page);
+ 			put_page(page);		/* ref from get_user_pages() */
+ 
+@@ -197,120 +216,19 @@ static int __mlock_vma_pages_range(struc
+ 	return 0;	/* count entire vma as locked_vm */
+ }
+ 
+-/*
+- * private structure for munlock page table walk
+- */
+-struct munlock_page_walk {
+-	struct vm_area_struct *vma;
+-	pmd_t                 *pmd; /* for migration_entry_wait() */
+-};
 -
- config UNEVICTABLE_LRU
- 	bool "Add LRU list to track non-evictable pages"
- 	default y
--	select PAGE_WALKER
- 	help
- 	  Keeps unevictable pages off of the active and inactive pageout
- 	  lists, so kswapd will not waste CPU time or have its balancing
-diff -puN mm/Makefile~revert-to-unevictable-lru-infrastructure-kconfig-fixpatch mm/Makefile
---- a/mm/Makefile~revert-to-unevictable-lru-infrastructure-kconfig-fixpatch
-+++ a/mm/Makefile
-@@ -13,7 +13,7 @@ obj-y			:= bootmem.o filemap.o mempool.o
- 			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
- 			   page_isolation.o mm_init.o $(mmu-y)
+-/*
+- * munlock normal pages for present ptes
+- */
+-static int __munlock_pte_handler(pte_t *ptep, unsigned long addr,
+-				   unsigned long end, struct mm_walk *walk)
+-{
+-	struct munlock_page_walk *mpw = walk->private;
+-	swp_entry_t entry;
+-	struct page *page;
+-	pte_t pte;
+-
+-retry:
+-	pte = *ptep;
+-	/*
+-	 * If it's a swap pte, we might be racing with page migration.
+-	 */
+-	if (unlikely(!pte_present(pte))) {
+-		if (!is_swap_pte(pte))
+-			goto out;
+-		entry = pte_to_swp_entry(pte);
+-		if (is_migration_entry(entry)) {
+-			migration_entry_wait(mpw->vma->vm_mm, mpw->pmd, addr);
+-			goto retry;
+-		}
+-		goto out;
+-	}
+-
+-	page = vm_normal_page(mpw->vma, addr, pte);
+-	if (!page)
+-		goto out;
+-
+-	lock_page(page);
+-	if (!page->mapping) {
+-		unlock_page(page);
+-		goto retry;
+-	}
+-	munlock_vma_page(page);
+-	unlock_page(page);
+-
+-out:
+-	return 0;
+-}
+-
+-/*
+- * Save pmd for pte handler for waiting on migration entries
+- */
+-static int __munlock_pmd_handler(pmd_t *pmd, unsigned long addr,
+-				 unsigned long end, struct mm_walk *walk)
+-{
+-	struct munlock_page_walk *mpw = walk->private;
+-
+-	mpw->pmd = pmd;
+-	return 0;
+-}
+-
+-
+-/*
+- * munlock a range of pages in the vma using standard page table walk.
+- *
+- * vma->vm_mm->mmap_sem must be held for write.
+- */
+-static void __munlock_vma_pages_range(struct vm_area_struct *vma,
+-			      unsigned long start, unsigned long end)
+-{
+-	struct mm_struct *mm = vma->vm_mm;
+-	struct munlock_page_walk mpw = {
+-		.vma = vma,
+-	};
+-	struct mm_walk munlock_page_walk = {
+-		.pmd_entry = __munlock_pmd_handler,
+-		.pte_entry = __munlock_pte_handler,
+-		.private = &mpw,
+-		.mm = mm,
+-	};
+-
+-	VM_BUG_ON(start & ~PAGE_MASK || end & ~PAGE_MASK);
+-	VM_BUG_ON((!rwsem_is_locked(&mm->mmap_sem)) &&
+-		  (atomic_read(&mm->mm_users) != 0));
+-	VM_BUG_ON(start < vma->vm_start);
+-	VM_BUG_ON(end > vma->vm_end);
+-
+-	lru_add_drain_all();	/* push cached pages to LRU */
+-	walk_page_range(start, end, &munlock_page_walk);
+-	lru_add_drain_all();	/* to update stats */
+-}
+-
+ #else /* CONFIG_UNEVICTABLE_LRU */
  
--obj-$(CONFIG_PAGE_WALKER) += pagewalk.o
-+obj-$(CONFIG_PROC_PAGE_MONITOR) += pagewalk.o
- obj-$(CONFIG_BOUNCE)	+= bounce.o
- obj-$(CONFIG_SWAP)	+= page_io.o swap_state.o swapfile.o thrash.o
- obj-$(CONFIG_HAS_DMA)	+= dmapool.o
+ /*
+  * Just make pages present if VM_LOCKED.  No-op if unlocking.
+  */
+ static int __mlock_vma_pages_range(struct vm_area_struct *vma,
+-			unsigned long start, unsigned long end)
++				   unsigned long start, unsigned long end,
++				   int mlock)
+ {
+-	if (vma->vm_flags & VM_LOCKED)
++	if (mlock && (vma->vm_flags & VM_LOCKED))
+ 		make_pages_present(start, end);
+ 	return 0;
+ }
+-
+-/*
+- * munlock a range of pages in the vma -- no-op.
+- */
+-static void __munlock_vma_pages_range(struct vm_area_struct *vma,
+-			      unsigned long start, unsigned long end)
+-{
+-}
+ #endif /* CONFIG_UNEVICTABLE_LRU */
+ 
+ /*
+@@ -333,7 +251,7 @@ int mlock_vma_pages_range(struct vm_area
+ 			is_vm_hugetlb_page(vma) ||
+ 			vma == get_gate_vma(current))) {
+ 		downgrade_write(&mm->mmap_sem);
+-		nr_pages = __mlock_vma_pages_range(vma, start, end);
++		nr_pages = __mlock_vma_pages_range(vma, start, end, 1);
+ 
+ 		up_read(&mm->mmap_sem);
+ 		/* vma can change or disappear */
+@@ -368,7 +286,7 @@ void munlock_vma_pages_range(struct vm_a
+ 			   unsigned long start, unsigned long end)
+ {
+ 	vma->vm_flags &= ~VM_LOCKED;
+-	__munlock_vma_pages_range(vma, start, end);
++	__mlock_vma_pages_range(vma, start, end, 0);
+ }
+ 
+ /*
+@@ -445,7 +363,7 @@ success:
+ 		 */
+ 		downgrade_write(&mm->mmap_sem);
+ 
+-		ret = __mlock_vma_pages_range(vma, start, end);
++		ret = __mlock_vma_pages_range(vma, start, end, 1);
+ 		if (ret > 0) {
+ 			mm->locked_vm -= ret;
+ 			ret = 0;
+@@ -471,7 +389,7 @@ success:
+ 		 * while.  Should we downgrade the semaphore for both lock
+ 		 * AND unlock ?
+ 		 */
+-		__munlock_vma_pages_range(vma, start, end);
++		__mlock_vma_pages_range(vma, start, end, 0);
+ 	}
+ 
+ out:
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -96,13 +284,12 @@ swap-use-an-array-for-the-lru-pagevecs.patch
 vmscan-split-lru-lists-into-anon-file-sets.patch
 vmscan-second-chance-replacement-for-anonymous-pages.patch
 unevictable-lru-infrastructure.patch
-revert-to-unevictable-lru-infrastructure-kconfig-fixpatch.patch
 unevictable-lru-page-statistics.patch
 shm_locked-pages-are-unevictable.patch
 mlock-mlocked-pages-are-unevictable.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-introduce-__get_user_pages.patch
 split-lru-munlock-rework.patch
+introduce-__get_user_pages.patch
 vmstat-mlocked-pages-statistics.patch
 vmstat-mlocked-pages-statistics-fix-incorrect-mlocked-field-of-proc-meminfo.patch
 vmstat-mlocked-pages-statistics-fix.patch
