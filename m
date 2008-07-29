@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-replace-__function__-with-__func__-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 29 Jul 2008 16:47:04 -0700
-Message-ID: <200807292347.m6TNl5g2028469@imap1.linux-foundation.org>
+Subject: + misc-replace-__function__-with-__func__.patch added to -mm tree
+Date: Tue, 29 Jul 2008 16:47:54 -0700
+Message-ID: <200807292347.m6TNlsNX028492@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53288 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41603 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752455AbYG2XrI (ORCPT
+	by vger.kernel.org with ESMTP id S1753027AbYG2Xr5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 19:47:08 -0400
+	Tue, 29 Jul 2008 19:47:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, harvey.harrison@gmail.com
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     powerpc-replace-__function__-with-__func__-checkpatch-fixes
+     misc: replace __FUNCTION__ with __func__
 has been added to the -mm tree.  Its filename is
-     powerpc-replace-__function__-with-__func__-checkpatch-fixes.patch
+     misc-replace-__function__-with-__func__.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,137 +34,179 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc-replace-__function__-with-__func__-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: misc: replace __FUNCTION__ with __func__
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-ERROR: code indent should use tabs where possible
-#22: FILE: arch/powerpc/kernel/lparcfg.c:508:
-+^I         __func__, ppp_data.entitlement, ppp_data.weight);$
+__FUNCTION__ is gcc-specific, use __func__
 
-ERROR: code indent should use tabs where possible
-#35: FILE: arch/powerpc/kernel/lparcfg.c:554:
-+^I         __func__, mpp_data.entitled_mem, mpp_data.mem_weight);$
-
-ERROR: code indent should use tabs where possible
-#39: FILE: arch/powerpc/kernel/lparcfg.c:557:
-+^I         __func__, new_entitled, new_weight);$
-
-WARNING: line over 80 characters
-#51: FILE: arch/powerpc/platforms/pseries/cmm.c:124:
-+				pr_info("%s: Can not allocate new page list\n", __func__);
-
-WARNING: line over 80 characters
-#60: FILE: arch/powerpc/platforms/pseries/cmm.c:141:
-+			pr_err("%s: Can not set page to loaned. rc=%ld\n", __func__, rc);
-
-total: 3 errors, 2 warnings, 40 lines checked
-
-./patches/powerpc-replace-__function__-with-__func__.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/lparcfg.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/m32r/kernel/process.c                 |    2 +-
+ arch/x86/kvm/x86.c                         |    2 +-
+ drivers/gpu/drm/i915/i915_dma.c            |    4 ++--
+ drivers/gpu/drm/i915/i915_irq.c            |    2 +-
+ drivers/input/joystick/xpad.c              |    4 ++--
+ drivers/media/video/cx23885/cx23885-core.c |    2 +-
+ drivers/pci/hotplug/pciehp_hpc.c           |    2 +-
+ drivers/s390/net/ctcm_mpc.c                |    2 +-
+ mm/bootmem.c                               |    2 +-
+ 9 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN arch/powerpc/kernel/lparcfg.c~powerpc-replace-__function__-with-__func__-checkpatch-fixes arch/powerpc/kernel/lparcfg.c
---- a/arch/powerpc/kernel/lparcfg.c~powerpc-replace-__function__-with-__func__-checkpatch-fixes
-+++ a/arch/powerpc/kernel/lparcfg.c
-@@ -505,7 +505,7 @@ static ssize_t update_ppp(u64 *entitleme
- 		return -EINVAL;
+diff -puN arch/m32r/kernel/process.c~misc-replace-__function__-with-__func__ arch/m32r/kernel/process.c
+--- a/arch/m32r/kernel/process.c~misc-replace-__function__-with-__func__
++++ a/arch/m32r/kernel/process.c
+@@ -11,7 +11,7 @@
+ #undef DEBUG_PROCESS
+ #ifdef DEBUG_PROCESS
+ #define DPRINTK(fmt, args...)  printk("%s:%d:%s: " fmt, __FILE__, __LINE__, \
+-  __FUNCTION__, ##args)
++  __func__, ##args)
+ #else
+ #define DPRINTK(fmt, args...)
+ #endif
+diff -puN arch/x86/kvm/x86.c~misc-replace-__function__-with-__func__ arch/x86/kvm/x86.c
+--- a/arch/x86/kvm/x86.c~misc-replace-__function__-with-__func__
++++ a/arch/x86/kvm/x86.c
+@@ -567,7 +567,7 @@ static void kvm_set_time_scale(uint32_t 
+ 	hv_clock->tsc_to_system_mul = div_frac(nsecs, tps32);
  
- 	pr_debug("%s: current_entitled = %lu, current_weight = %u\n",
--	         __func__, ppp_data.entitlement, ppp_data.weight);
-+		 __func__, ppp_data.entitlement, ppp_data.weight);
+ 	pr_debug("%s: tsc_khz %u, tsc_shift %d, tsc_mul %u\n",
+-		 __FUNCTION__, tsc_khz, hv_clock->tsc_shift,
++		 __func__, tsc_khz, hv_clock->tsc_shift,
+ 		 hv_clock->tsc_to_system_mul);
+ }
  
- 	pr_debug("%s: new_entitled = %lu, new_weight = %u\n",
- 		 __func__, new_entitled, new_weight);
-@@ -554,7 +554,7 @@ static ssize_t update_mpp(u64 *entitleme
- 	         __func__, mpp_data.entitled_mem, mpp_data.mem_weight);
+diff -puN drivers/gpu/drm/i915/i915_dma.c~misc-replace-__function__-with-__func__ drivers/gpu/drm/i915/i915_dma.c
+--- a/drivers/gpu/drm/i915/i915_dma.c~misc-replace-__function__-with-__func__
++++ a/drivers/gpu/drm/i915/i915_dma.c
+@@ -517,7 +517,7 @@ static int i915_dispatch_flip(struct drm
+ 	RING_LOCALS;
  
- 	pr_debug("%s: new_entitled = %lu, new_weight = %u\n",
--	         __func__, new_entitled, new_weight);
-+		 __func__, new_entitled, new_weight);
+ 	DRM_DEBUG("%s: page=%d pfCurrentPage=%d\n",
+-		  __FUNCTION__,
++		  __func__,
+ 		  dev_priv->current_page,
+ 		  dev_priv->sarea_priv->pf_current_page);
  
- 	rc = plpar_hcall_norets(H_SET_MPP, new_entitled, new_weight);
- 	return rc;
+@@ -642,7 +642,7 @@ static int i915_cmdbuffer(struct drm_dev
+ static int i915_flip_bufs(struct drm_device *dev, void *data,
+ 			  struct drm_file *file_priv)
+ {
+-	DRM_DEBUG("%s\n", __FUNCTION__);
++	DRM_DEBUG("%s\n", __func__);
+ 
+ 	LOCK_TEST_WITH_RETURN(dev, file_priv);
+ 
+diff -puN drivers/gpu/drm/i915/i915_irq.c~misc-replace-__function__-with-__func__ drivers/gpu/drm/i915/i915_irq.c
+--- a/drivers/gpu/drm/i915/i915_irq.c~misc-replace-__function__-with-__func__
++++ a/drivers/gpu/drm/i915/i915_irq.c
+@@ -243,7 +243,7 @@ irqreturn_t i915_driver_irq_handler(DRM_
+ 
+ 	temp &= (USER_INT_FLAG | VSYNC_PIPEA_FLAG | VSYNC_PIPEB_FLAG);
+ 
+-	DRM_DEBUG("%s flag=%08x\n", __FUNCTION__, temp);
++	DRM_DEBUG("%s flag=%08x\n", __func__, temp);
+ 
+ 	if (temp == 0)
+ 		return IRQ_NONE;
+diff -puN drivers/input/joystick/xpad.c~misc-replace-__function__-with-__func__ drivers/input/joystick/xpad.c
+--- a/drivers/input/joystick/xpad.c~misc-replace-__function__-with-__func__
++++ a/drivers/input/joystick/xpad.c
+@@ -454,10 +454,10 @@ static void xpad_bulk_out(struct urb *ur
+ 	case -ENOENT:
+ 	case -ESHUTDOWN:
+ 		/* this urb is terminated, clean up */
+-		dbg("%s - urb shutting down with status: %d", __FUNCTION__, urb->status);
++		dbg("%s - urb shutting down with status: %d", __func__, urb->status);
+ 		break;
+ 	default:
+-		dbg("%s - nonzero urb status received: %d", __FUNCTION__, urb->status);
++		dbg("%s - nonzero urb status received: %d", __func__, urb->status);
+ 	}
+ }
+ 
+diff -puN drivers/media/video/cx23885/cx23885-core.c~misc-replace-__function__-with-__func__ drivers/media/video/cx23885/cx23885-core.c
+--- a/drivers/media/video/cx23885/cx23885-core.c~misc-replace-__function__-with-__func__
++++ a/drivers/media/video/cx23885/cx23885-core.c
+@@ -1442,7 +1442,7 @@ void cx23885_cancel_buffers(struct cx238
+ 	struct cx23885_dev *dev = port->dev;
+ 	struct cx23885_dmaqueue *q = &port->mpegq;
+ 
+-	dprintk(1, "%s()\n", __FUNCTION__);
++	dprintk(1, "%s()\n", __func__);
+ 	del_timer_sync(&q->timeout);
+ 	cx23885_stop_dma(port);
+ 	do_cancel_buffers(port, "cancel", 0);
+diff -puN drivers/pci/hotplug/pciehp_hpc.c~misc-replace-__function__-with-__func__ drivers/pci/hotplug/pciehp_hpc.c
+--- a/drivers/pci/hotplug/pciehp_hpc.c~misc-replace-__function__-with-__func__
++++ a/drivers/pci/hotplug/pciehp_hpc.c
+@@ -765,7 +765,7 @@ static irqreturn_t pcie_isr(int irq, voi
+ 		}
+ 	} while (detected);
+ 
+-	dbg("%s: intr_loc %x\n", __FUNCTION__, intr_loc);
++	dbg("%s: intr_loc %x\n", __func__, intr_loc);
+ 
+ 	/* Check Command Complete Interrupt Pending */
+ 	if (intr_loc & CMD_COMPLETED) {
+diff -puN drivers/s390/net/ctcm_mpc.c~misc-replace-__function__-with-__func__ drivers/s390/net/ctcm_mpc.c
+--- a/drivers/s390/net/ctcm_mpc.c~misc-replace-__function__-with-__func__
++++ a/drivers/s390/net/ctcm_mpc.c
+@@ -1674,7 +1674,7 @@ static int mpc_validate_xid(struct mpcg_
+ 
+ done:
+ 	if (rc) {
+-		ctcm_pr_info("ctcmpc	   :  %s() failed\n", __FUNCTION__);
++		ctcm_pr_info("ctcmpc	   :  %s() failed\n", __func__);
+ 		priv->xid->xid2_flag2 = 0x40;
+ 		grp->saved_xid2->xid2_flag2 = 0x40;
+ 	}
+diff -puN mm/bootmem.c~misc-replace-__function__-with-__func__ mm/bootmem.c
+--- a/mm/bootmem.c~misc-replace-__function__-with-__func__
++++ a/mm/bootmem.c
+@@ -48,7 +48,7 @@ early_param("bootmem_debug", bootmem_deb
+ 	if (unlikely(bootmem_debug))			\
+ 		printk(KERN_INFO			\
+ 			"bootmem::%s " fmt,		\
+-			__FUNCTION__, ## args);		\
++			__func__, ## args);		\
+ })
+ 
+ static unsigned long __init bootmap_bytes(unsigned long pages)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-connector-add-a-blackboard-user-to-connector-fix.patch
-gru-driver-v3-hardware-data-structures-fix.patch
-gru-driver-v3-hardware-data-structures-fix-fix.patch
-gru-driver-v3-fixes-to-resolve-code-review-comments-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
+omfs-sparse-annotations.patch
 linux-next.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+cifs-remove-global_extern-macro.patch
+ppc-use-the-common-ascii-hex-helpers.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
+powerpc-replace-__function__-with-__func__.patch
 powerpc-replace-__function__-with-__func__-checkpatch-fixes.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-git-ubi-git-rejects.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
+v4l-drx397xdc-sparse-annotations.patch
+v4l-drx397xdc-replace-__function__-occurrences.patch
+input-ads7846c-sparse-lock-annotation.patch
+mtd-diskonchipc-fix-sparse-endian-warnings.patch
+net-use-the-common-ascii-hex-helpers.patch
+irda-replace-__function__-with-__func__.patch
+isdn-use-the-common-ascii-hex-helpers.patch
+drivers-net-replace-__function__-with-__func__.patch
+scsi-replace-__inline-with-inline.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
 scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works-comment.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-devpts-switch-to-ida-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-w1-feature-enable-hardware-strong-pullup-checkpatch-fixes.patch
-w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes.patch
-w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+wireless-replace-__function__-with-__func__.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+olpc-olpc_batteryc-sparse-endian-annotations.patch
+include-replace-__function__-with-__func__.patch
+misc-replace-__function__-with-__func__.patch
+befs-annotate-fs32-on-tests-for-superblock-endianness.patch
+byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
+byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
 
