@@ -1,56 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch removed from -mm tree
-Date: Mon, 28 Jul 2008 17:02:51 -0700
-Message-ID: <200807290002.m6T02pVs003017@imap1.linux-foundation.org>
+Subject: - introduce-__get_user_pages-fix.patch removed from -mm tree
+Date: Mon, 28 Jul 2008 17:04:26 -0700
+Message-ID: <200807290004.m6T04RDr003140@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58688 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52727 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752250AbYG2ADu (ORCPT
+	by vger.kernel.org with ESMTP id S1752423AbYG2AFA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jul 2008 20:03:50 -0400
+	Mon, 28 Jul 2008 20:05:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, npiggin@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Lee.Schermerhorn@hp.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, lizf@cn.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup
+     introduce-__get_user_pages-fix
 has been removed from the -mm tree.  Its filename was
-     mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+     introduce-__get_user_pages-fix.patch
 
-This patch was dropped because it was folded into mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+This patch was dropped because it was folded into introduce-__get_user_pages.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup
+Subject: introduce-__get_user_pages-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Use the local
+mm/nommu.c: In function `__get_user_pages':
+mm/nommu.c:138: error: `GUP_FLAGS_WRITE' undeclared (first use in this function)
+mm/nommu.c:138: error: (Each undeclared identifier is reported only once
+mm/nommu.c:138: error: for each function it appears in.)
+mm/nommu.c:139: error: `GUP_FLAGS_FORCE' undeclared (first use in this function)
+mm/nommu.c:140: error: `GUP_FLAGS_IGNORE_VMA_PERMISSIONS' undeclared (first use in this function)
+mm/nommu.c: In function `get_user_pages':
+mm/nommu.c:189: error: `GUP_FLAGS_WRITE' undeclared (first use in this function)
+mm/nommu.c:191: error: `GUP_FLAGS_FORCE' undeclared (first use in this function)
 
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/nommu.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/mlock.c~mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup mm/mlock.c
---- a/mm/mlock.c~mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup
-+++ a/mm/mlock.c
-@@ -281,7 +281,7 @@ static void __munlock_vma_pages_range(st
- 	};
+diff -puN mm/nommu.c~introduce-__get_user_pages-fix mm/nommu.c
+--- a/mm/nommu.c~introduce-__get_user_pages-fix
++++ a/mm/nommu.c
+@@ -34,6 +34,8 @@
+ #include <asm/tlb.h>
+ #include <asm/tlbflush.h>
  
- 	VM_BUG_ON(start & ~PAGE_MASK || end & ~PAGE_MASK);
--	VM_BUG_ON((!rwsem_is_locked(&vma->vm_mm->mmap_sem)) &&
-+	VM_BUG_ON((!rwsem_is_locked(&mm->mmap_sem)) &&
- 		  (atomic_read(&mm->mm_users) != 0));
- 	VM_BUG_ON(start < vma->vm_start);
- 	VM_BUG_ON(end > vma->vm_end);
++#include "internal.h"
++
+ void *high_memory;
+ struct page *mem_map;
+ unsigned long max_mapnr;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,7 +106,7 @@ unevictable-lru-infrastructure.patch
 unevictable-lru-page-statistics.patch
 mlock-mlocked-pages-are-unevictable.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-cleanup.patch
+introduce-__get_user_pages.patch
 introduce-__get_user_pages-fix.patch
 vmscan-unevictable-lru-scan-sysctl-nommu-fix.patch
 slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
