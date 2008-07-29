@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack.patch added to -mm tree
-Date: Tue, 29 Jul 2008 15:37:17 -0700
-Message-ID: <200807292237.m6TMbHFQ025502@imap1.linux-foundation.org>
+Subject: + binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch added to -mm tree
+Date: Tue, 29 Jul 2008 15:37:19 -0700
+Message-ID: <200807292237.m6TMbJF5025505@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59226 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58661 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753718AbYG2Whl (ORCPT
+	by vger.kernel.org with ESMTP id S1753823AbYG2Whm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 18:37:41 -0400
+	Tue, 29 Jul 2008 18:37:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lethal@linux-sh.org, dhowells@redhat.com, dwmw2@infradead.org, p_gortmaker@y
 
 
 The patch titled
-     binfmt_elf_fdpic: convert initial stack alignment to arch_align_stack()
+     binfmt_elf_fdpic: wire up AT_EXECFD, AT_EXECFN, AT_SECURE
 has been added to the -mm tree.  Its filename is
-     binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack.patch
+     binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,18 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: binfmt_elf_fdpic: convert initial stack alignment to arch_align_stack()
+Subject: binfmt_elf_fdpic: wire up AT_EXECFD, AT_EXECFN, AT_SECURE
 From: Paul Mundt <lethal@linux-sh.org>
 
-binfmt_elf_fdpic seems to have grabbed a hard-coded hack from an ancient
-version of binfmt_elf in order to try and fix up initial stack alignment
-on multi-threaded x86, which while in addition to being unused, was also
-pushed down beyond the first set of operations on the stack pointer,
-negating the entire purpose.
-
-These days, we have an architecture independent arch_align_stack(), so we
-switch to using that instead.  Move the initial alignment up before the
-initial stores while we're at it.
+These auxvec entries are the only ones left unhandled out of the current
+base implementation.  This syncs up binfmt_elf_fdpic with linux/auxvec.h
+and current binfmt_elf.
 
 Signed-off-by: Paul Mundt <lethal@linux-sh.org>
 Cc: David Howells <dhowells@redhat.com>
@@ -54,48 +48,73 @@ Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf_fdpic.c |   27 ++++++++++-----------------
- 1 file changed, 10 insertions(+), 17 deletions(-)
+ fs/binfmt_elf_fdpic.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack
+diff -puN fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure
 +++ a/fs/binfmt_elf_fdpic.c
-@@ -482,11 +482,18 @@ static int create_elf_fdpic_tables(struc
- 	int loop;
- 	int nr;	/* reset for each csp adjustment */
- 
--	/* we're going to shovel a whole load of stuff onto the stack */
-+	/*
-+	 * we're going to shovel a whole load of stuff onto the stack
-+	 *
-+	 * In some cases (e.g. Hyper-Threading), we want to avoid L1
-+	 * evictions by the processes running on the same package. One
-+	 * thing we can do is to shuffle the initial stack for them, so
-+	 * we give the architecture an opportunity to do so here.
-+	 */
- #ifdef CONFIG_MMU
--	sp = bprm->p;
-+	sp = arch_align_stack(bprm->p);
- #else
--	sp = mm->start_stack;
-+	sp = arch_align_stack(mm->start_stack);
- 
- 	/* stack the program arguments and environment */
- 	if (elf_fdpic_transfer_args_to_stack(bprm, &sp) < 0)
-@@ -527,20 +534,6 @@ static int create_elf_fdpic_tables(struc
- 			return -EFAULT;
+@@ -25,6 +25,7 @@
+ #include <linux/fcntl.h>
+ #include <linux/slab.h>
+ #include <linux/pagemap.h>
++#include <linux/security.h>
+ #include <linux/highmem.h>
+ #include <linux/highuid.h>
+ #include <linux/personality.h>
+@@ -562,11 +563,14 @@ static int create_elf_fdpic_tables(struc
  	}
  
--#if defined(__i386__) && defined(CONFIG_SMP)
--	/* in some cases (e.g. Hyper-Threading), we want to avoid L1 evictions
--	 * by the processes running on the same package. One thing we can do is
--	 * to shuffle the initial stack for them.
--	 *
--	 * the conditionals here are unneeded, but kept in to make the code
--	 * behaviour the same as pre change unless we have hyperthreaded
--	 * processors. This keeps Mr Marcelo Person happier but should be
--	 * removed for 2.5
--	 */
--	if (smp_num_siblings > 1)
--		sp = sp - ((current->pid % 64) << 7);
--#endif
+ 	/* force 16 byte _final_ alignment here for generality */
+-#define DLINFO_ITEMS 13
++#define DLINFO_ITEMS 15
+ 
+ 	nitems = 1 + DLINFO_ITEMS + (k_platform ? 1 : 0) + \
+ 		(k_base_platform ? 1 : 0) + AT_VECTOR_SIZE_ARCH;
+ 
++	if (bprm->interp_flags & BINPRM_FLAGS_EXECFD)
++		nitems++;
++
+ 	csp = sp;
+ 	sp -= nitems * 2 * sizeof(unsigned long);
+ 	sp -= (bprm->envc + 1) * sizeof(char *);	/* envv[] */
+@@ -604,6 +608,12 @@ static int create_elf_fdpic_tables(struc
+ 			    (elf_addr_t) (unsigned long) u_base_platform);
+ 	}
+ 
++	if (bprm->interp_flags & BINPRM_FLAGS_EXECFD) {
++		nr = 0;
++		csp -= 2 * sizeof(unsigned long);
++		NEW_AUX_ENT(AT_EXECFD, bprm->interp_data);
++	}
++
+ 	nr = 0;
+ 	csp -= DLINFO_ITEMS * 2 * sizeof(unsigned long);
+ 	NEW_AUX_ENT(AT_HWCAP,	hwcap);
+@@ -619,6 +629,8 @@ static int create_elf_fdpic_tables(struc
+ 	NEW_AUX_ENT(AT_EUID,	(elf_addr_t) current->euid);
+ 	NEW_AUX_ENT(AT_GID,	(elf_addr_t) current->gid);
+ 	NEW_AUX_ENT(AT_EGID,	(elf_addr_t) current->egid);
++	NEW_AUX_ENT(AT_SECURE,	security_bprm_secureexec(bprm));
++	NEW_AUX_ENT(AT_EXECFN,	bprm->exec);
+ 
+ #ifdef ARCH_DLINFO
+ 	nr = 0;
+_
+
+Patches currently in -mm which might be from lethal@linux-sh.org are
+
+resource-add-resource_size.patch
+usb-m66592-udc-fix-up-dev_set_name-badness.patch
+linux-next.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+maple-allow-removal-and-reinsertion-of-keyboard-driver-module.patch
+rtc-rtc-rs5c372-smbus-conversion-support.patch
+rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
+binfmt_elf_fdpic-support-auxvec-base-platform-string.patch
+binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack.patch
+binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch
+resource-add-resource_type-and-ioresource_type_bits.patch
+resource-add-new-ioresource_clk-type-v2.patch
+i2c-sh_mobile-ioresource_clk-support.patch
+
