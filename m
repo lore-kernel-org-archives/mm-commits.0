@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + w1-ds2490c-ds_write_bit-grouping-error-disable-readback.patch added to -mm tree
-Date: Tue, 29 Jul 2008 16:15:09 -0700
-Message-ID: <200807292315.m6TNF9V9027073@imap1.linux-foundation.org>
+Subject: + w1-w1_ioc-reset-comments-and-msleep.patch added to -mm tree
+Date: Tue, 29 Jul 2008 16:15:01 -0700
+Message-ID: <200807292315.m6TNF1tD027030@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34978 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55469 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752886AbYG2XPN (ORCPT
+	by vger.kernel.org with ESMTP id S1752825AbYG2XPM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 19:15:13 -0400
+	Tue, 29 Jul 2008 19:15:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david@fries.net, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     w1: ds2490.c ds_write_bit, grouping error, disable readback
+     w1: w1_io.c reset comments and msleep
 has been added to the -mm tree.  Its filename is
-     w1-ds2490c-ds_write_bit-grouping-error-disable-readback.patch
+     w1-w1_ioc-reset-comments-and-msleep.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: ds2490.c ds_write_bit, grouping error, disable readback
+Subject: w1: w1_io.c reset comments and msleep
 From: David Fries <david@fries.net>
 
-ds_write_bit doesn't read the input buffer, so add COMM_ICP and a comment
-that it will no longer generate a read back data byte.  If there is an
-extra data byte later on then it will cause an error and discard what data
-was there.  Corrected operator ordering for ds_send_control.
+w1_reset_bus, added some comments about the timing and switched to msleep
+for the later delay.  I don't have the hardware to test the sleep after
+reset change.  The one wire doesn't have a timing = requirement between
+commands so it is fine.  I do have the USB = hardware and it would be in
+big trouble with 10ms interrupt trans= fers to find that the reset
+completed.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds2490.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/w1/w1_io.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-ds_write_bit-grouping-error-disable-readback drivers/w1/masters/ds2490.c
---- a/drivers/w1/masters/ds2490.c~w1-ds2490c-ds_write_bit-grouping-error-disable-readback
-+++ a/drivers/w1/masters/ds2490.c
-@@ -525,7 +525,12 @@ static int ds_write_bit(struct ds_device
- 	int err;
- 	struct ds_status st;
+diff -puN drivers/w1/w1_io.c~w1-w1_ioc-reset-comments-and-msleep drivers/w1/w1_io.c
+--- a/drivers/w1/w1_io.c~w1-w1_ioc-reset-comments-and-msleep
++++ a/drivers/w1/w1_io.c
+@@ -293,12 +293,24 @@ int w1_reset_bus(struct w1_master *dev)
+ 		result = dev->bus_master->reset_bus(dev->bus_master->data) & 0x1;
+ 	else {
+ 		dev->bus_master->write_bit(dev->bus_master->data, 0);
++		/* minimum 480, max ? us
++		 * be nice and sleep, except 18b20 spec lists 960us maximum,
++		 * so until we can sleep with microsecond accuracy, spin.
++		 * Feel free to come up with some other way to give up the
++		 * cpu for such a short amount of time AND get it back in
++		 * the maximum amount of time.
++		 */
+ 		w1_delay(480);
+ 		dev->bus_master->write_bit(dev->bus_master->data, 1);
+ 		w1_delay(70);
  
--	err = ds_send_control(dev, COMM_BIT_IO | COMM_IM | (bit) ? COMM_D : 0, 0);
-+	/* Set COMM_ICP to write without a readback.  Note, this will
-+	 * produce one time slot, a down followed by an up with COMM_D
-+	 * only determing the timing.
-+	 */
-+	err = ds_send_control(dev, COMM_BIT_IO | COMM_IM | COMM_ICP |
-+		(bit ? COMM_D : 0), 0);
- 	if (err)
- 		return err;
+ 		result = dev->bus_master->read_bit(dev->bus_master->data) & 0x1;
+-		w1_delay(410);
++		/* minmum 70 (above) + 410 = 480 us
++		 * There aren't any timing requirements between a reset and
++		 * the following transactions.  Sleeping is safe here.
++		 */
++		/* w1_delay(410); min required time */
++		msleep(1);
+ 	}
  
+ 	return result;
 _
 
 Patches currently in -mm which might be from david@fries.net are
