@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + semaphore-__down_common-use-signal_pending_state.patch added to -mm tree
-Date: Tue, 29 Jul 2008 00:11:08 -0700
-Message-ID: <200807290711.m6T7B8qP020351@imap1.linux-foundation.org>
+Subject: + kmemcheck-include-moduleh-to-prevent-warnings.patch added to -mm tree
+Date: Tue, 29 Jul 2008 00:13:22 -0700
+Message-ID: <200807290713.m6T7DMdc020383@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60658 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48171 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752388AbYG2HMC (ORCPT
+	by vger.kernel.org with ESMTP id S1753129AbYG2HOn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 03:12:02 -0400
+	Tue, 29 Jul 2008 03:14:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, matthew@wil.cx, mingo@elte.hu, roland@redhat.com
+Cc: randy.dunlap@oracle.com, mingo@elte.hu, penberg@cs.helsinki.fi, vegard.nossum@gmail.com
 
 
 The patch titled
-     semaphore: __down_common: use signal_pending_state()
+     kmemcheck: include module.h to prevent warnings
 has been added to the -mm tree.  Its filename is
-     semaphore-__down_common-use-signal_pending_state.patch
+     kmemcheck-include-moduleh-to-prevent-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: semaphore: __down_common: use signal_pending_state()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: kmemcheck: include module.h to prevent warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Change __down_common() to use signal_pending_state() instead of open
-coding.
+kmemcheck/shadow.c needs to include <linux/module.h> to prevent
+the following warnings:
 
-The changes in kernel/semaphore.o are just artifacts, the state checks are
-optimized away.
+linux-next-20080724/arch/x86/mm/kmemcheck/shadow.c:64: warning : data definition has no type or storage class
+linux-next-20080724/arch/x86/mm/kmemcheck/shadow.c:64: warning : type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+linux-next-20080724/arch/x86/mm/kmemcheck/shadow.c:64: warning : parameter names (without types) in function declaration
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Vegard Nossum <vegard.nossum@gmail.com>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/semaphore.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/x86/mm/kmemcheck/shadow.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/semaphore.c~semaphore-__down_common-use-signal_pending_state kernel/semaphore.c
---- a/kernel/semaphore.c~semaphore-__down_common-use-signal_pending_state
-+++ a/kernel/semaphore.c
-@@ -211,9 +211,7 @@ static inline int __sched __down_common(
- 	waiter.up = 0;
+diff -puN arch/x86/mm/kmemcheck/shadow.c~kmemcheck-include-moduleh-to-prevent-warnings arch/x86/mm/kmemcheck/shadow.c
+--- a/arch/x86/mm/kmemcheck/shadow.c~kmemcheck-include-moduleh-to-prevent-warnings
++++ a/arch/x86/mm/kmemcheck/shadow.c
+@@ -1,5 +1,6 @@
+ #include <linux/kmemcheck.h>
+ #include <linux/mm.h>
++#include <linux/module.h>
  
- 	for (;;) {
--		if (state == TASK_INTERRUPTIBLE && signal_pending(task))
--			goto interrupted;
--		if (state == TASK_KILLABLE && fatal_signal_pending(task))
-+		if (signal_pending_state(state, task))
- 			goto interrupted;
- 		if (timeout <= 0)
- 			goto timed_out;
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 linux-next.patch
-migrate_timers-add-comment-use-spinlock_irq.patch
-sched-do_wait_for_common-use-signal_pending_state.patch
-semaphore-__down_common-use-signal_pending_state.patch
-posix-timers-fix-posix_timer_event-vs-dequeue_signal-race.patch
-posix-timers-do_schedule_next_timer-fix-the-setting-of-si_overrun.patch
-coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
+kmemcheck-include-moduleh-to-prevent-warnings.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
+genksyms-parser-fix-the-__attribute__-rule.patch
+genksyms-include-extern-information-in-dumps.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+lkdtm-fix-for-config_scsi=n.patch
+git-unionfs.patch
+profile-likely-unlikely-macros.patch
 
