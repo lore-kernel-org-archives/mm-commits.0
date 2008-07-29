@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + w1-ds2490c-disable-bit-read-and-write.patch added to -mm tree
-Date: Tue, 29 Jul 2008 16:15:11 -0700
-Message-ID: <200807292315.m6TNFBZF027080@imap1.linux-foundation.org>
+Subject: + w1-ds2490c-correct-print-message.patch added to -mm tree
+Date: Tue, 29 Jul 2008 16:15:05 -0700
+Message-ID: <200807292315.m6TNF51l027041@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57936 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46307 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753331AbYG2XPP (ORCPT
+	by vger.kernel.org with ESMTP id S1752924AbYG2XPJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 19:15:15 -0400
+	Tue, 29 Jul 2008 19:15:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david@fries.net, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     w1: ds2490.c disable bit read and write
+     w1: ds2490.c correct print message
 has been added to the -mm tree.  Its filename is
-     w1-ds2490c-disable-bit-read-and-write.patch
+     w1-ds2490c-correct-print-message.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,95 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: ds2490.c disable bit read and write
+Subject: w1: ds2490.c correct print message
 From: David Fries <david@fries.net>
 
-Don't export read and write bit operations, they didn't work, they weren't
-used, and they can't be made to work.  The one wire low level bit
-operations expect to set high or low levels, the ds2490 hardware only
-supports complete read or write time slots, better to just comment them
-out.
+Corrected print message, it was writing not reading, this also prints the
+endpoint used for the write instead of hardcoding it.
+
+        Failed to write 1-wire data to ep0x%x: err=3D%d.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds2490.c |   25 ++++++++++++++++++-------
- 1 file changed, 18 insertions(+), 7 deletions(-)
+ drivers/w1/masters/ds2490.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-disable-bit-read-and-write drivers/w1/masters/ds2490.c
---- a/drivers/w1/masters/ds2490.c~w1-ds2490c-disable-bit-read-and-write
+diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-correct-print-message drivers/w1/masters/ds2490.c
+--- a/drivers/w1/masters/ds2490.c~w1-ds2490c-correct-print-message
 +++ a/drivers/w1/masters/ds2490.c
-@@ -520,6 +520,7 @@ static int ds_touch_bit(struct ds_device
- 	return 0;
- }
+@@ -341,7 +341,8 @@ static int ds_send_data(struct ds_device
+ 	count = 0;
+ 	err = usb_bulk_msg(dev->udev, usb_sndbulkpipe(dev->udev, dev->ep[EP_DATA_OUT]), buf, len, &count, 1000);
+ 	if (err < 0) {
+-		printk(KERN_ERR "Failed to read 1-wire data from 0x02: err=%d.\n", err);
++		printk(KERN_ERR "Failed to write 1-wire data to ep0x%x: "
++			"err=%d.\n", dev->ep[EP_DATA_OUT], err);
+ 		return err;
+ 	}
  
-+#if 0
- static int ds_write_bit(struct ds_device *dev, u8 bit)
- {
- 	int err;
-@@ -538,6 +539,7 @@ static int ds_write_bit(struct ds_device
- 
- 	return 0;
- }
-+#endif
- 
- static int ds_write_byte(struct ds_device *dev, u8 byte)
- {
-@@ -722,6 +724,7 @@ static u8 ds9490r_touch_bit(void *data, 
- 	return ret;
- }
- 
-+#if 0
- static void ds9490r_write_bit(void *data, u8 bit)
- {
- 	struct ds_device *dev = data;
-@@ -729,13 +732,6 @@ static void ds9490r_write_bit(void *data
- 	ds_write_bit(dev, bit);
- }
- 
--static void ds9490r_write_byte(void *data, u8 byte)
--{
--	struct ds_device *dev = data;
--
--	ds_write_byte(dev, byte);
--}
--
- static u8 ds9490r_read_bit(void *data)
- {
- 	struct ds_device *dev = data;
-@@ -748,6 +744,14 @@ static u8 ds9490r_read_bit(void *data)
- 
- 	return bit & 1;
- }
-+#endif
-+
-+static void ds9490r_write_byte(void *data, u8 byte)
-+{
-+	struct ds_device *dev = data;
-+
-+	ds_write_byte(dev, byte);
-+}
- 
- static u8 ds9490r_read_byte(void *data)
- {
-@@ -812,8 +816,15 @@ static int ds_w1_init(struct ds_device *
- 
- 	dev->master.data	= dev;
- 	dev->master.touch_bit	= &ds9490r_touch_bit;
-+	/* read_bit and write_bit in w1_bus_master are expected to set and
-+	 * sample the line level.  For write_bit that means it is expected to
-+	 * set it to that value and leave it there.  ds2490 only supports an
-+	 * individual time slot at the lowest level.  The requirement from
-+	 * pulling the bus state down to reading the state is 15us, something
-+	 * that isn't realistic on the USB bus anyway.
- 	dev->master.read_bit	= &ds9490r_read_bit;
- 	dev->master.write_bit	= &ds9490r_write_bit;
-+	*/
- 	dev->master.read_byte	= &ds9490r_read_byte;
- 	dev->master.write_byte	= &ds9490r_write_byte;
- 	dev->master.read_block	= &ds9490r_read_block;
 _
 
 Patches currently in -mm which might be from david@fries.net are
