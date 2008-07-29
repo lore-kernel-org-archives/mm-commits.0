@@ -1,559 +1,445 @@
 From: akpm@linux-foundation.org
-Subject: - winchiphead-ch340-1-support-modem-control-and-status-lines-more-baudrates.patch removed from -mm tree
-Date: Tue, 29 Jul 2008 03:24:20 -0700
-Message-ID: <200807291024.m6TAOK1G027764@imap1.linux-foundation.org>
+Subject: mmotm 2008-07-29-04-05 uploaded
+Date: Tue, 29 Jul 2008 04:11:48 -0700
+Message-ID: <200807291111.m6TBBmRG029429@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37833 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60770 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754410AbYG2KZJ (ORCPT
+	by vger.kernel.org with ESMTP id S1754735AbYG2LLv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 06:25:09 -0400
+	Tue, 29 Jul 2008 07:11:51 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6TBBmlH008421
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 29 Jul 2008 04:11:49 -0700
+Received: from localhost.localdomain (localhost [127.0.0.1])
+	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6TBBmRG029429
+	for <mm-commits@vger.kernel.org>; Tue, 29 Jul 2008 04:11:48 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tfheen@err.no, alan@lxorguk.ukuu.org.uk, frank@kingswood-consulting.co.uk, gregkh@suse.de, werner@cornelius-consult.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 
+The mm-of-the-moment snapshot 2008-07-29-04-05 has been uploaded to
 
-The patch titled
-     Winchiphead CH340/1: support modem control and status lines, more baudrates
-has been removed from the -mm tree.  Its filename was
-     winchiphead-ch340-1-support-modem-control-and-status-lines-more-baudrates.patch
+   http://userweb.kernel.org/~akpm/mmotm/
 
-This patch was dropped because an updated version will be merged
+It contains the following patches against 2.6.26:
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
-
-------------------------------------------------------
-Subject: Winchiphead CH340/1: support modem control and status lines, more baudrates
-From: Tollef Fog Heen <tfheen@err.no>
-
-* Add support for all baudrates, not just a hard coded set.
-* Make it possible to control modem control and status lines.
-
-This is a cleanup of Werner Conelius' patch in
-http://kerneltrap.org/mailarchive/linux-kernel/2007/9/21/265323 which
-should be more acceptable to mainline.
-
-Signed-off-by: Tollef Fog Heen <tfheen@err.no>
-Cc: Werner Conelius <werner@cornelius-consult.de>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Frank A Kingswood <frank@kingswood-consulting.co.uk>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/usb/serial/ch341.c |  369 ++++++++++++++++++++++++++++-------
- 1 file changed, 298 insertions(+), 71 deletions(-)
-
-diff -puN drivers/usb/serial/ch341.c~winchiphead-ch340-1-support-modem-control-and-status-lines-more-baudrates drivers/usb/serial/ch341.c
---- a/drivers/usb/serial/ch341.c~winchiphead-ch340-1-support-modem-control-and-status-lines-more-baudrates
-+++ a/drivers/usb/serial/ch341.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright 2007, Frank A Kingswood <frank@kingswood-consulting.co.uk>
-+ * Copyright 2007, Werner Cornelius <werner <at> cornelius-consult.de>
-  *
-  * ch341.c implements a serial port driver for the Winchiphead CH341.
-  *
-@@ -24,6 +25,36 @@
- #define DEFAULT_BAUD_RATE 2400
- #define DEFAULT_TIMEOUT   1000
- 
-+/* flags for IO-Bits */
-+#define CH341_BIT_RTS (1 << 6)
-+#define CH341_BIT_DTR (1 << 5)
-+
-+/******************************/
-+/* interrupt pipe definitions */
-+/******************************/
-+/* always 4 interrupt bytes */
-+/* first irq byte normally 0x08 */
-+/* second irq byte base 0x7d + below */
-+/* third irq byte base 0x94 + below */
-+/* fourth irq byte normally 0xee */
-+
-+/* second interrupt byte */
-+#define CH341_MULT_STAT 0x04 /* multiple status since last interrupt event */
-+
-+/* status returned in third interrupt answer byte, inverted in data
-+   from irq */
-+#define CH341_BIT_CTS 0x01
-+#define CH341_BIT_DSR 0x02
-+#define CH341_BIT_RI  0x04
-+#define CH341_BIT_DCD 0x08
-+#define CH341_BITS_MODEM_STAT 0x0f /* all bits */
-+
-+/*******************************/
-+/* baudrate calculation factor */
-+/*******************************/
-+#define CH341_BAUDBASE_FACTOR 1532620800
-+#define CH341_BAUDBASE_DIVMAX 3
-+
- static int debug;
- 
- static struct usb_device_id id_table [] = {
-@@ -34,9 +65,12 @@ static struct usb_device_id id_table [] 
- MODULE_DEVICE_TABLE(usb, id_table);
- 
- struct ch341_private {
--	unsigned baud_rate;
--	u8 dtr;
--	u8 rts;
-+	spinlock_t lock; /* access lock */
-+	wait_queue_head_t delta_msr_wait; /* wait queue for modem status */
-+	unsigned baud_rate; /* set baud rate */
-+	u8 line_control; /* set line control value RTS/DTR */
-+	u8 line_status; /* active status of modem control inputs */
-+	u8 multi_status_change; /* status changed multiple since last call */
- };
- 
- static int ch341_control_out(struct usb_device *dev, u8 request,
-@@ -72,37 +106,28 @@ static int ch341_set_baudrate(struct usb
- {
- 	short a, b;
- 	int r;
-+	unsigned long factor;
-+	short divisor;
- 
- 	dbg("ch341_set_baudrate(%d)", priv->baud_rate);
--	switch (priv->baud_rate) {
--	case 2400:
--		a = 0xd901;
--		b = 0x0038;
--		break;
--	case 4800:
--		a = 0x6402;
--		b = 0x001f;
--		break;
--	case 9600:
--		a = 0xb202;
--		b = 0x0013;
--		break;
--	case 19200:
--		a = 0xd902;
--		b = 0x000d;
--		break;
--	case 38400:
--		a = 0x6403;
--		b = 0x000a;
--		break;
--	case 115200:
--		a = 0xcc03;
--		b = 0x0008;
--		break;
--	default:
-+
-+	if (!priv->baud_rate)
- 		return -EINVAL;
-+	factor = (CH341_BAUDBASE_FACTOR / priv->baud_rate);
-+	divisor = CH341_BAUDBASE_DIVMAX;
-+
-+	while ((factor > 0xfff0) && divisor) {
-+		factor >>= 3;
-+		divisor--;
- 	}
- 
-+	if (factor > 0xfff0)
-+		return -EINVAL;
-+
-+	factor = 0x10000 - factor;
-+	a = (factor & 0xff00) | divisor;
-+	b = factor & 0xff;
-+
- 	r = ch341_control_out(dev, 0x9a, 0x1312, a);
- 	if (!r)
- 		r = ch341_control_out(dev, 0x9a, 0x0f2c, b);
-@@ -110,19 +135,18 @@ static int ch341_set_baudrate(struct usb
- 	return r;
- }
- 
--static int ch341_set_handshake(struct usb_device *dev,
--			       struct ch341_private *priv)
-+static int ch341_set_handshake(struct usb_device *dev, u8 control)
- {
--	dbg("ch341_set_handshake(%d,%d)", priv->dtr, priv->rts);
--	return ch341_control_out(dev, 0xa4,
--		~((priv->dtr?1<<5:0)|(priv->rts?1<<6:0)), 0);
-+	dbg("ch341_set_handshake(0x%02x)", control);
-+	return ch341_control_out(dev, 0xa4, ~control, 0);
- }
- 
--static int ch341_get_status(struct usb_device *dev)
-+static int ch341_get_status(struct usb_device *dev, struct ch341_private *priv)
- {
- 	char *buffer;
- 	int r;
- 	const unsigned size = 8;
-+	unsigned long flags;
- 
- 	dbg("ch341_get_status()");
- 
-@@ -134,10 +158,15 @@ static int ch341_get_status(struct usb_d
- 	if (r < 0)
- 		goto out;
- 
--	/* Not having the datasheet for the CH341, we ignore the bytes returned
--	 * from the device. Return error if the device did not respond in time.
--	 */
--	r = 0;
-+	/* setup the private status if available */
-+	if (r == 2) {
-+		r = 0;
-+		spin_lock_irqsave(&priv->lock, flags);
-+		priv->line_status = (~(*buffer)) & CH341_BITS_MODEM_STAT;
-+		priv->multi_status_change = 0;
-+		spin_unlock_irqrestore(&priv->lock, flags);
-+	} else
-+		r = -EPROTO;
- 
- out:	kfree(buffer);
- 	return r;
-@@ -180,7 +209,7 @@ static int ch341_configure(struct usb_de
- 		goto out;
- 
- 	/* expect 0xff 0xee */
--	r = ch341_get_status(dev);
-+	r = ch341_get_status(dev, priv);
- 	if (r < 0)
- 		goto out;
- 
-@@ -192,12 +221,12 @@ static int ch341_configure(struct usb_de
- 	if (r < 0)
- 		goto out;
- 
--	r = ch341_set_handshake(dev, priv);
-+	r = ch341_set_handshake(dev, priv->line_control);
- 	if (r < 0)
- 		goto out;
- 
- 	/* expect 0x9f 0xee */
--	r = ch341_get_status(dev);
-+	r = ch341_get_status(dev, priv);
- 
- out:	kfree(buffer);
- 	return r;
-@@ -216,9 +245,10 @@ static int ch341_attach(struct usb_seria
- 	if (!priv)
- 		return -ENOMEM;
- 
-+	spin_lock_init(&priv->lock);
-+	init_waitqueue_head(&priv->delta_msr_wait);
- 	priv->baud_rate = DEFAULT_BAUD_RATE;
--	priv->dtr = 1;
--	priv->rts = 1;
-+	priv->line_control = CH341_BIT_RTS | CH341_BIT_DTR;
- 
- 	r = ch341_configure(serial->dev, priv);
- 	if (r < 0)
-@@ -231,6 +261,34 @@ error:	kfree(priv);
- 	return r;
- }
- 
-+static void ch341_close(struct usb_serial_port *port, struct file *filp)
-+{
-+	struct ch341_private *priv = usb_get_serial_port_data(port);
-+	unsigned long flags;
-+	unsigned int c_cflag;
-+
-+	dbg("%s - port %d", __func__, port->number);
-+
-+	/* shutdown our urbs */
-+	dbg("%s - shutting down urbs", __func__);
-+	usb_kill_urb(port->write_urb);
-+	usb_kill_urb(port->read_urb);
-+	usb_kill_urb(port->interrupt_in_urb);
-+
-+	if (port->tty) {
-+		c_cflag = port->tty->termios->c_cflag;
-+		if (c_cflag & HUPCL) {
-+			/* drop DTR and RTS */
-+			spin_lock_irqsave(&priv->lock, flags);
-+			priv->line_control = 0;
-+			spin_unlock_irqrestore(&priv->lock, flags);
-+			ch341_set_handshake(port->serial->dev, 0);
-+		}
-+	}
-+	wake_up_interruptible(&priv->delta_msr_wait);
-+}
-+
-+
- /* open this device, set default parameters */
- static int ch341_open(struct tty_struct *tty, struct usb_serial_port *port,
- 				struct file *filp)
-@@ -242,14 +300,13 @@ static int ch341_open(struct tty_struct 
- 	dbg("ch341_open()");
- 
- 	priv->baud_rate = DEFAULT_BAUD_RATE;
--	priv->dtr = 1;
--	priv->rts = 1;
-+	priv->line_control = CH341_BIT_RTS | CH341_BIT_DTR;
- 
- 	r = ch341_configure(serial->dev, priv);
- 	if (r)
- 		goto out;
- 
--	r = ch341_set_handshake(serial->dev, priv);
-+	r = ch341_set_handshake(serial->dev, priv->line_control);
- 	if (r)
- 		goto out;
- 
-@@ -257,6 +314,16 @@ static int ch341_open(struct tty_struct 
- 	if (r)
- 		goto out;
- 
-+	dbg("%s - submitting interrupt urb", __func__);
-+	port->interrupt_in_urb->dev = serial->dev;
-+	r = usb_submit_urb(port->interrupt_in_urb, GFP_KERNEL);
-+	if (r) {
-+		dev_err(&port->dev, "%s - failed submitting interrupt urb,"
-+			" error %d\n", __func__, r);
-+		ch341_close(port, NULL);
-+		return -EPROTO;
-+	}
-+
- 	r = usb_serial_generic_open(tty, port, filp);
- 
- out:	return r;
-@@ -270,38 +337,190 @@ static void ch341_set_termios(struct tty
- {
- 	struct ch341_private *priv = usb_get_serial_port_data(port);
- 	unsigned baud_rate;
-+	unsigned long flags;
- 
- 	dbg("ch341_set_termios()");
- 
-+	if (!tty || !tty->termios)
-+		return;
-+
- 	baud_rate = tty_get_baud_rate(tty);
- 
--	switch (baud_rate) {
--	case 2400:
--	case 4800:
--	case 9600:
--	case 19200:
--	case 38400:
--	case 115200:
--		priv->baud_rate = baud_rate;
--		break;
--	default:
--		dbg("Rate %d not supported, using %d",
--			baud_rate, DEFAULT_BAUD_RATE);
--		priv->baud_rate = DEFAULT_BAUD_RATE;
-+	priv->baud_rate = baud_rate;
-+
-+	if (baud_rate) {
-+		spin_lock_irqsave(&priv->lock, flags);
-+		priv->line_control |= (CH341_BIT_DTR | CH341_BIT_RTS);
-+		spin_unlock_irqrestore(&priv->lock, flags);
-+		ch341_set_baudrate(port->serial->dev, priv);
-+	} else {
-+		spin_lock_irqsave(&priv->lock, flags);
-+		priv->line_control &= ~(CH341_BIT_DTR | CH341_BIT_RTS);
-+		spin_unlock_irqrestore(&priv->lock, flags);
- 	}
- 
--	ch341_set_baudrate(port->serial->dev, priv);
-+	ch341_set_handshake(port->serial->dev, priv->line_control);
- 
- 	/* Unimplemented:
- 	 * (cflag & CSIZE) : data bits [5, 8]
- 	 * (cflag & PARENB) : parity {NONE, EVEN, ODD}
- 	 * (cflag & CSTOPB) : stop bits [1, 2]
- 	 */
-+}
-+
-+static int ch341_tiocmset(struct usb_serial_port *port, struct file *file,
-+			  unsigned int set, unsigned int clear)
-+{
-+	struct ch341_private *priv = usb_get_serial_port_data(port);
-+	unsigned long flags;
-+	u8 control;
-+
-+	spin_lock_irqsave(&priv->lock, flags);
-+	if (set & TIOCM_RTS)
-+		priv->line_control |= CH341_BIT_RTS;
-+	if (set & TIOCM_DTR)
-+		priv->line_control |= CH341_BIT_DTR;
-+	if (clear & TIOCM_RTS)
-+		priv->line_control &= ~CH341_BIT_RTS;
-+	if (clear & TIOCM_DTR)
-+		priv->line_control &= ~CH341_BIT_DTR;
-+	control = priv->line_control;
-+	spin_unlock_irqrestore(&priv->lock, flags);
-+
-+	return ch341_set_handshake(port->serial->dev, control);
-+}
-+
-+static void ch341_read_int_callback(struct urb *urb)
-+{
-+	struct usb_serial_port *port = (struct usb_serial_port *) urb->context;
-+	unsigned char *data = urb->transfer_buffer;
-+	unsigned int actual_length = urb->actual_length;
-+	int status;
-+
-+	dbg("%s (%d)", __func__, port->number);
-+
-+	switch (urb->status) {
-+	case 0:
-+		/* success */
-+		break;
-+	case -ECONNRESET:
-+	case -ENOENT:
-+	case -ESHUTDOWN:
-+		/* this urb is terminated, clean up */
-+		dbg("%s - urb shutting down with status: %d", __func__,
-+		    urb->status);
-+		return;
-+	default:
-+		dbg("%s - nonzero urb status received: %d", __func__,
-+		    urb->status);
-+		goto exit;
-+	}
-+
-+	usb_serial_debug_data(debug, &port->dev, __func__,
-+			      urb->actual_length, urb->transfer_buffer);
-+
-+	if (actual_length >= 4) {
-+		struct ch341_private *priv = usb_get_serial_port_data(port);
-+		unsigned long flags;
-+
-+		spin_lock_irqsave(&priv->lock, flags);
-+		priv->line_status = (~(data[2])) & CH341_BITS_MODEM_STAT;
-+		if ((data[1] & CH341_MULT_STAT))
-+			priv->multi_status_change = 1;
-+		spin_unlock_irqrestore(&priv->lock, flags);
-+		wake_up_interruptible(&priv->delta_msr_wait);
-+	}
-+
-+exit:
-+	status = usb_submit_urb(urb, GFP_ATOMIC);
-+	if (status)
-+		dev_err(&urb->dev->dev,
-+			"%s - usb_submit_urb failed with result %d\n",
-+			__func__, status);
-+}
-+
-+static int wait_modem_info(struct usb_serial_port *port, unsigned int arg)
-+{
-+	struct ch341_private *priv = usb_get_serial_port_data(port);
-+	unsigned long flags;
-+	u8 prevstatus;
-+	u8 status;
-+	u8 changed;
-+	u8 multi_change = 0;
-+
-+	spin_lock_irqsave(&priv->lock, flags);
-+	prevstatus = priv->line_status;
-+	priv->multi_status_change = 0;
-+	spin_unlock_irqrestore(&priv->lock, flags);
-+
-+	while (!multi_change) {
-+		interruptible_sleep_on(&priv->delta_msr_wait);
-+		/* see if a signal did it */
-+		if (signal_pending(current))
-+			return -ERESTARTSYS;
-+
-+		spin_lock_irqsave(&priv->lock, flags);
-+		status = priv->line_status;
-+		multi_change = priv->multi_status_change;
-+		spin_unlock_irqrestore(&priv->lock, flags);
-+
-+		changed = prevstatus ^ status;
-+
-+		if (((arg & TIOCM_RNG) && (changed & CH341_BIT_RI)) ||
-+		    ((arg & TIOCM_DSR) && (changed & CH341_BIT_DSR)) ||
-+		    ((arg & TIOCM_CD)  && (changed & CH341_BIT_DCD)) ||
-+		    ((arg & TIOCM_CTS) && (changed & CH341_BIT_CTS))) {
-+			return 0;
-+		}
-+		prevstatus = status;
-+	}
-+
-+	return 0;
-+}
-+
-+static int ch341_ioctl(struct usb_serial_port *port, struct file *file,
-+			unsigned int cmd, unsigned long arg)
-+{
-+	dbg("%s (%d) cmd = 0x%04x", __func__, port->number, cmd);
-+
-+	switch (cmd) {
-+	case TIOCMIWAIT:
-+		dbg("%s (%d) TIOCMIWAIT", __func__,  port->number);
-+		return wait_modem_info(port, arg);
-+
-+	default:
-+		dbg("%s not supported = 0x%04x", __func__, cmd);
-+		break;
-+	}
-+
-+	return -ENOIOCTLCMD;
-+}
-+
-+static int ch341_tiocmget(struct usb_serial_port *port, struct file *file)
-+{
-+	struct ch341_private *priv = usb_get_serial_port_data(port);
-+	unsigned long flags;
-+	u8 mcr;
-+	u8 status;
-+	unsigned int result;
-+
-+	dbg("%s (%d)", __func__, port->number);
-+
-+	spin_lock_irqsave(&priv->lock, flags);
-+	mcr = priv->line_control;
-+	status = priv->line_status;
-+	spin_unlock_irqrestore(&priv->lock, flags);
-+
-+	result = ((mcr & CH341_BIT_DTR)		? TIOCM_DTR : 0)
-+		  | ((mcr & CH341_BIT_RTS)	? TIOCM_RTS : 0)
-+		  | ((status & CH341_BIT_CTS)	? TIOCM_CTS : 0)
-+		  | ((status & CH341_BIT_DSR)	? TIOCM_DSR : 0)
-+		  | ((status & CH341_BIT_RI)	? TIOCM_RI  : 0)
-+		  | ((status & CH341_BIT_DCD)	? TIOCM_CD  : 0);
-+
-+	dbg("%s - result = %x", __func__, result);
- 
--	 /* Copy back the old hardware settings */
--	 tty_termios_copy_hw(tty->termios, old_termios);
--	 /* And re-encode with the new baud */
--	 tty_encode_baud_rate(tty, baud_rate, baud_rate);
-+	return result;
- }
- 
- static struct usb_driver ch341_driver = {
-@@ -317,12 +536,20 @@ static struct usb_serial_driver ch341_de
- 		.owner	= THIS_MODULE,
- 		.name	= "ch341-uart",
- 	},
--	.id_table         = id_table,
--	.usb_driver       = &ch341_driver,
--	.num_ports        = 1,
--	.open             = ch341_open,
--	.set_termios      = ch341_set_termios,
--	.attach           = ch341_attach,
-+	.id_table          = id_table,
-+	.usb_driver        = &ch341_driver,
-+	.num_interrupt_in  = 1,
-+	.num_bulk_in       = 1,
-+	.num_bulk_out      = 1,
-+	.num_ports         = 1,
-+	.open              = ch341_open,
-+	.close             = ch341_close,
-+	.ioctl             = ch341_ioctl,
-+	.set_termios       = ch341_set_termios,
-+	.tiocmget          = ch341_tiocmget,
-+	.tiocmset          = ch341_tiocmset,
-+	.read_int_callback = ch341_read_int_callback,
-+	.attach            = ch341_attach,
- };
- 
- static int __init ch341_init(void)
-_
-
-Patches currently in -mm which might be from tfheen@err.no are
-
-winchiphead-ch340-1-support-modem-control-and-status-lines-more-baudrates.patch
+origin.patch
+exec-include-pagemaph-again-to-fix-build.patch
+tmpfs-fix-kernel-bug-in-shmem_delete_inode.patch
+fix-__ratelimit-re-flags-cant-be-static.patch
+arm-fix-have_clk-merge-goof.patch
+mmu-notifiers-add-list_del_init_rcu.patch
+mmu-notifiers-add-mm_take_all_locks-operation.patch
+mmu-notifier-core.patch
+mm-hugetlbc-must-include-asm-ioh.patch
+mpc52xx_psc_spi-fix-block-transfer.patch
+spi_s3c24xx-really-assign-busnum.patch
+kdump-update-kdump-documentation-as-kexec-tools-resting-has-been-renamed-kexec-tools.patch
+vfs-pagecache-usage-optimization-onpagesize=blocksize-environment.patch
+remove-export_symbol-for-bio_integrity_init_slab.patch
+gpio-fix-build-on-config_gpio_sysfs=n.patch
+ecryptfs-use-page_alloc-not-kmalloc-to-get-a-page-of-memory.patch
+sh7760fb-write-colormap-value-to-hardware.patch
+include-asm-generic-pgtable-nopmdh-macros-are-noxious-reason-435.patch
+backlight-give-platform_lcd-the-same-name-as-the-platform-device.patch
+resource-add-resource_size.patch
+cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already.patch
+acpi-cpufreq-cleanup-move-bailing-out-of-function-before-locking-the-mutex.patch
+sticore-dont-activate-unsupported-gsc-sti-cards-on-hppa.patch
+vfs-increase-pseudo-filesystem-block-size-to-page_size.patch
+mm-remove-find_max_pfn_with_active_regions.patch
+cgroup-fix-possible-memory-leak.patch
+cgroup-remove-duplicate-code-in-allocate_cg_link.patch
+cgroup-uninline-cgroup_has_css_refs.patch
+memcg-remove-redundant-check-in-move_task.patch
+cpuset-a-bit-cleanup-for-scan_for_empty_cpusets.patch
+cpuset-speed-up-sched-domain-partition.patch
+cpuset-fix-wrong-calculation-of-relax-domain-level.patch
+backlight-ensure-platform_lcd-on-by-default.patch
+introduce-down_try-so-we-can-move-away-from-down_trylock.patch
+introduce-down_try-so-we-can-move-away-from-down_trylock-checkpatch-fixes.patch
+iscsi_ibft_find-fix-modpost-warning.patch
+hpwdt-dont-use-static-flags.patch
+drivers-video-release-mutex-in-error-handling-code.patch
+rtc-dont-return-ebusy-when-mutex_lock_interruptible-fails.patch
+markers-fix-markers-read-barrier-for-multiple-probes.patch
+8250c-portlock-is-irq-safe.patch
+print_ip_sym-use-%ps.patch
+connector-add-a-blackboard-user-to-connector.patch
+connector-add-a-blackboard-user-to-connector-fix.patch
+uml-fix-tty-related-build-error.patch
+initrd-cast-initrd_start-to-void.patch
+char-mxser-ratelimit-ioctl-warning.patch
+printk-fix-comment-for-printk-ratelimiting.patch
+drivers-char-pcmcia-ipwireless-networkc-build-fix.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+repeatable-slab-corruption-with-ltp-msgctl08.patch
+linux-next.patch
+linux-next-rejects.patch
+next-remove-localversion.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+pci-make-pci_register_driver-a-macro.patch
+acpi-add-checking-for-null-early-param.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
+x86-remove-init_mm-export-as-planned-for-2626.patch
+x86-tracehook_signal_handler.patch
+x86-tracehook-syscall.patch
+x86-tracehook-asm-syscallh.patch
+x86-signals-use-asm-syscallh.patch
+x86-tracehook-tif_notify_resume.patch
+x86-tracehook-config_have_arch_tracehook.patch
+use-warn-in-arch-x86-mm-ioremapc.patch
+use-warn-in-arch-x86-mm-pageattrc.patch
+use-warn-in-arch-x86-kernel.patch
+x86-pci-use-dev_printk-when-possible.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+kmemcheck-include-moduleh-to-prevent-warnings.patch
+intel_agp-official-name-for-gm45-chipset.patch
+cifs-remove-global_extern-macro.patch
+cifs-fix-range-check.patch
+git-pcmcia.patch
+pcmcia-pccard-deadlock-fix.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+powerpc-lockless-get_user_pages.patch
+drivers-base-driverc-remove-unused-to_dev-macro.patch
+dev_printk-constify-the-dev-argument.patch
+drm-remove-defines-for-non-linux-systems.patch
+sis-drm-fix-the-memory-allocator-if-the-sis-fb-is-built-as-a-module.patch
+sis-drm-fix-a-pointer-cast-warning.patch
+v4l-link-tuner-before-saa7134.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+hid-wellspring-device-quirks.patch
+add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+ntp-let-update_persistent_clock-sleep.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+timekeeping-fix-rounding-problem-during-clock-update.patch
+git-input.patch
+wistron_btns-add-support-for-fujitsu-siemens-amilo-pro-edition-v3505.patch
+elantech-touchpad-driver.patch
+maple-allow-removal-and-reinsertion-of-keyboard-driver-module.patch
+input-touchscreen-driver-add-support-ad7877-touchscreen-driver.patch
+input-i8042-add-dritek-quirk-for-acer-travelmate-660.patch
+input-bcm5974-055-smoother-motion-irq-simplification.patch
+input-ads7846c-sparse-lock-annotation.patch
+git-jg-misc.patch
+kbuild-remove-final-references-to-deprecated-unreferenced-topdir.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
+genksyms-parser-fix-the-__attribute__-rule.patch
+genksyms-include-extern-information-in-dumps.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+git-libata-all.patch
+libata-scsi-dont-start-hotplug-work-queue-if-hotplug-is-disabled.patch
+sata_viac-add-support-for-vt8251-fix-the-internal-chips-issue-and.patch
+pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets.patch
+cdrom-dont-check-cdc_play_audio-in-cdrom_count_tracks.patch
+m32r-remove-the-unused-nohighmem-option.patch
+mmc-fix-clock-off-in-pxa255-270.patch
+jffs2-summary-allocation-dont-use-vmalloc.patch
+mtd-diskonchipc-fix-sparse-endian-warnings.patch
+mtdpart-handle-remaining-checkpatch-findings.patch
+git-ubi.patch
+git-ubi-git-rejects.patch
+random32-seeding-improvement.patch
+random32-seeding-improvement-v2.patch
+bridge-send-correct-mtu-value-in-pmtu.patch
+bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
+net-use-the-common-ascii-hex-helpers.patch
+acpi-compal-laptop-use-rfkill-switch-subsystem.patch
+atm-fix-const-assignment-discard-warnings-in-the-atm-networking-driver.patch
+atm-fix-direct-casts-of-pointers-to-u32-in-the-interphase-driver.patch
+bluetooth-add-quirks-for-a-few-hci_usb-devices.patch
+nsc-ircc-default-to-dongle-type-9-on-ibm-hardware.patch
+hysdn-remove-the-packed-attribute-from-poftimstamp_tag.patch
+isdn-use-the-common-ascii-hex-helpers.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+sundance-set-carrier-status-on-link-change-events.patch
+via-velocity-give-a-structure-to-the-rx-tx-fields.patch
+via-velocity-fix-sleep-with-spinlock-bug-during-mtu-change.patch
+hamradio-add-missing-sanity-check-to-tty-operation.patch
+skge-adapt-skge-to-use-reworked-pci-pm.patch
+sky2-adapt-to-use-reworked-pci-pm-code.patch
+cassini-use-request_firmware.patch
+pegasus-add-blacklist-support-to-fix-belkin-bluetooth-dongle.patch
+drivers-net-ehea-ehea_mainc-release-mutex-in-error-handling-code.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+3x59x-fix-pci-resource-management.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+smc-ultra-get-rid-of-eth%d-message.patch
+parisc-fix-incomplete-header-guard.patch
+git-pci-current.patch
+tg3-adapt-tg3-to-use-reworked-pci-pm-code.patch
+use-warn-in-kernel-lockdepc.patch
+sched-do_wait_for_common-use-signal_pending_state.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+aic7xxx-introduce-dont_generate_debug_code-keyword-in-aicasm-parser.patch
+aic7xxx-update-reg-files.patch
+aic7xxx-update-_shipped-files.patch
+if-0-ses_match_host.patch
+scsi-replace-__inline-with-inline.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+ipr-use-memory_read_from_buffer.patch
+lkdtm-fix-for-config_scsi=n.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+git-block.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-logfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+cxacru-fix-printk-format-flag-in-error-message.patch
+cdc-acm-dont-unlock-acm-mutex-on-error-path.patch
+usb-move-usb-mon-up-to-misc-options-in-kconfig.patch
 pl2023-remove-usb-id-4348-5523-handled-by-ch341.patch
-
+git-unprivileged-mounts.patch
+powerpc-86xx-mpc8610_hpcd-add-watchdog-node.patch
+ath5k-fix-memory-corruption.patch
+ath5k-kill-tasklets-on-shutdown.patch
+ath5k-flush-work.patch
+ath5k-fix-dma-operation.patch
+ath5k-suspend-resume-fixes.patch
+ath5k-fix-beacon-update-deadlock.patch
+ath5k-mask-out-unneeded-interrupts.patch
+ath5k-unify-resets.patch
+mac80211-tx-use-dev_kfree_skb_any-for-beacon_get.patch
+mac80211-return-correct-error-return-from-ieee80211_wep_init.patch
+drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
+net-ieee80211-adjust-error-handling.patch
+drivers-net-wireless-b43legacy-mainc-release-mutex-in-error-handling-code.patch
+drivers-net-wireless-ipw2100c-release-mutex-in-error-handling-code.patch
+xfs-use-get_unaligned_-helpers.patch
+xfs-clean-up-stale-references-to-semaphores.patch
+xfs-replace-the-xfs-buf-iodone-semaphore-with-a-completion.patch
+xfs-extend-completions-to-provide-xfs-object-flush-requirements.patch
+xfs-replace-inode-flush-semaphore-with-a-completion.patch
+xfs-replace-dquot-flush-semaphore-with-a-completion.patch
+xfs-remove-the-sema_t-from-xfs.patch
+aes-x86_64-asm-implementation-optimization.patch
+git-xtensa.patch
+xtensa-warn-about-including-asm-rwsemh-directly.patch
+xtensa-replace-remaining-__function__-occurences.patch
+xtensa-use-newer-__spin_lock_unlocked-macro.patch
+modules-extend-initcall_debug-functionality-to-the-module-loader.patch
+mm.patch
+kdump-report-actual-value-of-vmcoreinfo_osrelease-in-vmcoreinfo.patch
+vt8623fb-fix-kernel-oops.patch
+block-ccissc-remove-pointless-curr_queue-calculation.patch
+spi-new-orion_spi-driver.patch
+relay-fix-4-off-by-one-errors-occuring-when-writing-to-a-cpu-buffer.patch
+semaphore-__down_common-use-signal_pending_state.patch
+genirq-better-warning-on-irqchip-set_type-failure.patch
+cpuset-clean-up-cpuset-hierarchy-traversal-code.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+applesmc-support-for-intel-imac.patch
+drivers-mtd-chips-jedec_probec-fix-am29dl800bb-device-id.patch
+maintainers-mention-lockd-and-sunrpc-in-nfs-entries.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works-comment.patch
+rtc-pcf8563-remove-client-validation.patch
+rtc-m48t59-reduce-structure-m48t59_private.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
+hptiop-add-more-pci-device-ids.patch
+ntp-fix-calculation-of-the-next-jiffie-to-trigger-rtc-sync.patch
+clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
+clocksource-keep-track-of-original-clocksource-frequency.patch
+clocksource-introduce-clocksource_forward_now.patch
+clocksource-introduce-clock_monotonic_raw.patch
+posix-timers-fix-posix_timer_event-vs-dequeue_signal-race.patch
+posix-timers-do_schedule_next_timer-fix-the-setting-of-si_overrun.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+ali-m7101-pmu-also-available-on-sun-netras-too.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
+vmscan-free-swap-space-on-swap-in-activation.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
+vmscan-fix-pagecache-reclaim-referenced-bit-check.patch
+vmscan-add-newly-swapped-in-pages-to-the-inactive-list.patch
+more-aggressively-use-lumpy-reclaim.patch
+pageflag-helpers-for-configed-out-flags.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-infrastructure-nommu-fix.patch
+unevictable-lru-page-statistics.patch
+ramfs-and-ram-disk-pages-are-unevictable.patch
+shm_locked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable.patch
+doc-unevictable-lru-and-mlocked-pages-documentation.patch
+mlock-downgrade-mmap-sem-while-populating-mlocked-regions.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmstat-mlocked-pages-statistics.patch
+swap-cull-unevictable-pages-in-fault-path.patch
+vmstat-unevictable-and-mlocked-pages-vm-events.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-count-attempts-to-free-mlocked-page.patch
+vmscam-kill-unused-lru-functions.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+mmapc-deinline-a-few-functions.patch
+arch-m68k-bvme6000-rtcc-remove-duplicated-include.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+olpc-olpc_batteryc-sparse-endian-annotations.patch
+altix-serial-fix.patch
+kprobes-indirectly-call-kprobe_target.patch
+kprobes-add-tests-for-register_kprobes.patch
+rtc-ds1374-wakup-support.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip.patch
+rtc-rtc-rs5c372-smbus-conversion-support.patch
+rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
+spi-add-spi-over-gpio-driver.patch
+spi-add-spi-over-gpio-driver-fix-returned-error-code.patch
+mmc-add-gpio-based-mmc-sd-driver.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+jbd-abort-when-failed-to-log-metadata-buffers.patch
+jbd-fix-error-handling-for-checkpoint-io.patch
+ext3-abort-ext3-if-the-journal-has-aborted.patch
+jbd-dont-dirty-original-metadata-buffer-on-abort.patch
+befs-annotate-fs32-on-tests-for-superblock-endianness.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
+ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
+char-merge-ip2main-and-ip2base.patch
+char-ip2-cleanup-globals.patch
+char-ip2-fix-sparse-warnings.patch
+char-ip2-init-deinit-cleanup.patch
+ip2-avoid-add_timer-with-pending-timer.patch
+char-ds1286-eliminate-busy-waiting.patch
+getdelaysc-add-a-usr1-signal-handler.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+relay-reset-consumed.patch
+trace-code-and-documentation.patch
+trace-sample.patch
+tpm-correct-tpm-timeouts-to-jiffies-conversion.patch
+mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes.patch
+gru-driver-v3-hardware-data-structures.patch
+gru-driver-v3-hardware-data-structures-fix.patch
+gru-driver-v3-hardware-data-structures-fix-fix.patch
+gru-driver-v3-gru-instructions-macros.patch
+gru-driver-v3-driver-internal-header-files.patch
+gru-driver-v3-kernel-services-header-files.patch
+gru-driver-v3-driver-initialization-file-vma-ops.patch
+gru-driver-v3-page-faults-exceptions.patch
+gru-driver-v3-page-faults-exceptions-gru-virtual-physical-translation.patch
+gru-driver-v3-kernel-services-provide-by-driver.patch
+gru-driver-v3-resource-management.patch
+gru-driver-v3-resource-management-unmap-driver-ptes-gru.patch
+gru-driver-v3-proc-interfaces.patch
+gru-driver-v3-tlb-flushing-mmuops-callouts.patch
+gru-driver-v3-driver-makefile.patch
+gru-driver-v3-export-is_uv_system-zap_page_range-follow_page.patch
+gru-driver-v3-driver-misc-makefile-kconfig-changes.patch
+gru-driver-v3-fixes-to-resolve-code-review-comments.patch
+gru-driver-v3-fixes-to-resolve-code-review-comments-checkpatch-fixes.patch
+sgi-xp-define-is_shub-and-is_uv-macros.patch
+sgi-xp-define-xpsalerror-reason-code.patch
+sgi-xp-define-bytes_per_word.patch
+sgi-xp-support-runtime-selection-of-xp_max_npartitions.patch
+sgi-xp-create-a-common-xp_remote_memcpy-function.patch
+sgi-xp-prepare-xpc_rsvd_page-to-work-on-either-sn2-or-uv-hardware.patch
+sgi-xp-isolate-xpc_vars_part-structure-to-sn2-only.patch
+sgi-xp-isolate-xpc_vars-structure-to-sn2-only.patch
+sgi-xp-base-xpc_rsvd_pages-timestamp-on-jiffies.patch
+sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify.patch
+sgi-xp-isolate-activate-irqs-hardware-specific-components.patch
+sgi-xp-isolate-additional-sn2-specific-code.patch
+sgi-xp-separate-chctl_flags-from-xpcs-notify-irq.patch
+sgi-xp-replace-amo_t-typedef-by-struct-amo.patch
+sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only.patch
+sgi-xp-enable-xpnet-to-handle-more-than-64-partitions.patch
+sgi-xp-isolate-remote-copy-buffer-to-sn2-only.patch
+sgi-xp-add-_sn2-suffix-to-a-few-variables.patch
+sgi-xp-eliminate-in-comments.patch
+sgi-xp-use-standard-bitops-macros-and-functions.patch
+sgi-xp-add-jiffies-to-reserved-pages-timestamp-name.patch
+sgi-xp-enable-building-of-xpc-xpnet-on-x86_64.patch
+sgi-xp-add-usage-of-gru-driver-by-xpc_remote_memcpy.patch
+sgi-xp-move-xpc_check_remote_hb-to-support-both-sn2-and-uv.patch
+sgi-xp-cleanup-naming-of-partition-defines.patch
+sgi-xp-setup-the-activate-gru-message-queue.patch
+sgi-xp-setup-the-notify-gru-message-queue.patch
+kernel-call-constructors.patch
+kernel-call-constructors-uml-fix-1.patch
+kernel-call-constructors-uml-fix-2.patch
+kernel-introduce-gcc_version_lower-macro.patch
+seq_file-add-function-to-write-binary-data.patch
+gcov-add-gcov-profiling-infrastructure.patch
+gcov-add-gcov-profiling-infrastructure-revert-link-changes.patch
+gcov-create-links-to-gcda-files-in-build-directory.patch
+gcov-architecture-specific-compile-flag-adjustments.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-x86_64-fix.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+resource-add-resource_type-and-ioresource_type_bits.patch
+resource-add-new-ioresource_clk-type-v2.patch
+i2c-sh_mobile-ioresource_clk-support.patch
+powerpc-hugetlb-pgtable-cache-access-cleanup.patch
+byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
+byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+reiser4-vfs-add-super_operationssync_inodes-2.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-fix-handling-enospc-cryptcompress.patch
+reiser4-fix-handling-enospc-unix_file.patch
+reiser4-fix-kill_hook_internal.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+make-sure-nobodys-leaking-resources.patch
+journal_add_journal_head-debug.patch
+page-owner-tracking-leak-detector.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+releasing-resources-with-children.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+detect-atomic-counter-underflows.patch
+mm-debug-dump-pageframes-on-bad_page.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
+shrink_slab-handle-bad-shrinkers.patch
+keep-track-of-network-interface-renaming.patch
+workaround-for-a-pci-restoring-bug.patch
+prio_tree-debugging-patch.patch
+single_open-seq_release-leak-diagnostics.patch
+add-a-refcount-check-in-dput.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+tg3-debugging.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+likely_prof-changed-to-use-proc_create.patch
+likeliness-accounting-change-and-cleanup.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
+likely_prof-update-to-test_and_set_bit_lock-clear_bit_unlock.patch
+likely-profiling-disable-ftrace.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
