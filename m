@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + w1-ds2490c-add-support-for-strong-pullup.patch added to -mm tree
-Date: Tue, 29 Jul 2008 16:15:07 -0700
-Message-ID: <200807292315.m6TNF7rO027049@imap1.linux-foundation.org>
+Subject: + w1-feature-w1_thermc-use-strong-pullup-and-documentation.patch added to -mm tree
+Date: Tue, 29 Jul 2008 16:14:18 -0700
+Message-ID: <200807292314.m6TNEIOw026979@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50205 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54480 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752938AbYG2XPL (ORCPT
+	by vger.kernel.org with ESMTP id S1753344AbYG2XPP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 19:15:11 -0400
+	Tue, 29 Jul 2008 19:15:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david@fries.net, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     w1: ds2490.c add support for strong pullup
+     w1: feature, w1_therm.c use strong pullup and documentation
 has been added to the -mm tree.  Its filename is
-     w1-ds2490c-add-support-for-strong-pullup.patch
+     w1-feature-w1_thermc-use-strong-pullup-and-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,210 +34,120 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: ds2490.c add support for strong pullup
+Subject: w1: feature, w1_therm.c use strong pullup and documentation
 From: David Fries <david@fries.net>
 
-Add strong pullup support for ds2490 driver, also drop mdelay(750), which
-busy waits, usage in favour of msleep for long delays.  Now with msleep
-only being called when the strong pullup is active, one wire bus
-operations are only taking minimal system overhead.
-
-The new set_pullup will only enable the strong pullup when requested,
-which is expected to be the only write operation that will benefit from
-a strong pullup.
+Added strong pullup to thermal sensor driver and general documentation on
+the sensor.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds2490.c |   76 +++++++++++++++++-----------------
- 1 file changed, 38 insertions(+), 38 deletions(-)
+ Documentation/w1/00-INDEX        |    2 +
+ Documentation/w1/slaves/00-INDEX |    4 ++
+ Documentation/w1/slaves/w1_therm |   41 +++++++++++++++++++++++++++++
+ drivers/w1/slaves/w1_therm.c     |   15 +++++++++-
+ 4 files changed, 60 insertions(+), 2 deletions(-)
 
-diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-add-support-for-strong-pullup drivers/w1/masters/ds2490.c
---- a/drivers/w1/masters/ds2490.c~w1-ds2490c-add-support-for-strong-pullup
-+++ a/drivers/w1/masters/ds2490.c
-@@ -98,11 +98,6 @@
- #define BRANCH_MAIN			0xCC
- #define BRANCH_AUX			0x33
+diff -puN Documentation/w1/00-INDEX~w1-feature-w1_thermc-use-strong-pullup-and-documentation Documentation/w1/00-INDEX
+--- a/Documentation/w1/00-INDEX~w1-feature-w1_thermc-use-strong-pullup-and-documentation
++++ a/Documentation/w1/00-INDEX
+@@ -1,5 +1,7 @@
+ 00-INDEX
+ 	- This file
++slaves/
++	- Drivers that provide support for specific family codes.
+ masters/
+ 	- Individual chips providing 1-wire busses.
+ w1.generic
+diff -puN /dev/null Documentation/w1/slaves/00-INDEX
+--- /dev/null
++++ a/Documentation/w1/slaves/00-INDEX
+@@ -0,0 +1,4 @@
++00-INDEX
++	- This file
++w1_therm
++	- The Maxim/Dallas Semiconductor ds18*20 temperature sensor.
+diff -puN /dev/null Documentation/w1/slaves/w1_therm
+--- /dev/null
++++ a/Documentation/w1/slaves/w1_therm
+@@ -0,0 +1,41 @@
++Kernel driver w1_therm
++====================
++
++Supported chips:
++  * Maxim ds18*20 based temperature sensors.
++
++Author: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
++
++
++Description
++-----------
++
++w1_therm provides basic temperature conversion for ds18*20 devices.
++supported family codes:
++W1_THERM_DS18S20	0x10
++W1_THERM_DS1822		0x22
++W1_THERM_DS18B20	0x28
++
++Support is provided through the sysfs w1_slave file.  Each open and
++read sequence will initiate a temperature conversion then provide two
++lines of ASCII output.  The first line contains the nine hex bytes
++read along with a calculated crc value and YES or NO if it matched.
++If the crc matched the returned values are retained.  The second line
++displays the retained values along with a temperature in millidegrees
++Centigrade after t=.
++
++Parasite powered devices are limited to one slave performing a
++temperature conversion at a time.  If none of the devices are parasite
++powered it would be possible to convert all the devices at the same
++time and then go back to read individual sensors.  That isn't
++currently supported.  The driver also doesn't support reduced
++precision (which would also reduce the conversion time).
++
++The module parameter strong_pullup can be set to 0 to disable the
++strong pullup or 1 to enable.  If enabled the 5V strong pullup will be
++enabled when the conversion is taking place provided the master driver
++must support the strong pullup (or it falls back to a pullup
++resistor).  The DS18b20 temperature sensor specification lists a
++maximum current draw of 1.5mA and that a 5k pullup resistor is not
++sufficient.  The strong pullup is designed to provide the additional
++current required.
+diff -puN drivers/w1/slaves/w1_therm.c~w1-feature-w1_thermc-use-strong-pullup-and-documentation drivers/w1/slaves/w1_therm.c
+--- a/drivers/w1/slaves/w1_therm.c~w1-feature-w1_thermc-use-strong-pullup-and-documentation
++++ a/drivers/w1/slaves/w1_therm.c
+@@ -37,6 +37,14 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Evgeniy Polyakov <johnpol@2ka.mipt.ru>");
+ MODULE_DESCRIPTION("Driver for 1-wire Dallas network protocol, temperature family.");
  
--/*
-- * Duration of the strong pull-up pulse in milliseconds.
-- */
--#define PULLUP_PULSE_DURATION		750
++/* Allow the strong pullup to be disabled, but default to enabled.
++ * If it was disabled a parasite powered device might not get the require
++ * current to do a temperature conversion.  If it is enabled parasite powered
++ * devices have a better chance of getting the current required.
++ */
++static int w1_strong_pullup = 1;
++module_param_named(strong_pullup, w1_strong_pullup, int, 0);
++
+ static u8 bad_roms[][9] = {
+ 				{0xaa, 0x00, 0x4b, 0x46, 0xff, 0xff, 0x0c, 0x10, 0x87},
+ 				{}
+@@ -192,9 +200,12 @@ static ssize_t w1_therm_read_bin(struct 
+ 			int count = 0;
+ 			unsigned int tm = 750;
+ 
++			/* 750ms strong pullup (or delay) after the convert */
++			if (w1_strong_pullup)
++				w1_next_pullup(dev, tm);
+ 			w1_write_8(dev, W1_CONVERT_TEMP);
 -
- /* Status flags */
- #define ST_SPUA				0x01  /* Strong Pull-up is active */
- #define ST_PRGA				0x02  /* 12V programming pulse is being generated */
-@@ -131,6 +126,11 @@ struct ds_device
+-			msleep(tm);
++			if (!w1_strong_pullup)
++				msleep(tm);
  
- 	int			ep[NUM_EP];
+ 			if (!w1_reset_select_slave(sl)) {
  
-+	/* Strong PullUp
-+	 * 0: pullup not active, else duration in milliseconds
-+	 */
-+	int			spu_sleep;
-+
- 	struct w1_bus_master	master;
- };
- 
-@@ -192,7 +192,7 @@ static int ds_send_control_cmd(struct ds
- 
- 	return err;
- }
--#if 0
-+
- static int ds_send_control_mode(struct ds_device *dev, u16 value, u16 index)
- {
- 	int err;
-@@ -207,7 +207,7 @@ static int ds_send_control_mode(struct d
- 
- 	return err;
- }
--#endif
-+
- static int ds_send_control(struct ds_device *dev, u16 value, u16 index)
- {
- 	int err;
-@@ -294,14 +294,6 @@ static int ds_recv_status(struct ds_devi
- 		if (count < 0)
- 			return err;
- 	}
--#if 0
--	if (st->status & ST_IDLE) {
--		printk(KERN_INFO "Resetting pulse after ST_IDLE.\n");
--		err = ds_start_pulse(dev, PULLUP_PULSE_DURATION);
--		if (err)
--			return err;
--	}
--#endif
- 
- 	return err;
- }
-@@ -472,32 +464,26 @@ static int ds_set_speed(struct ds_device
- }
- #endif  /*  0  */
- 
--static int ds_start_pulse(struct ds_device *dev, int delay)
-+static int ds_set_pullup(struct ds_device *dev, int delay)
- {
- 	int err;
- 	u8 del = 1 + (u8)(delay >> 4);
--	struct ds_status st;
--
--#if 0
--	err = ds_stop_pulse(dev, 10);
--	if (err)
--		return err;
--
--	err = ds_send_control_mode(dev, MOD_PULSE_EN, PULSE_SPUE);
--	if (err)
--		return err;
--#endif
--	err = ds_send_control(dev, COMM_SET_DURATION | COMM_IM, del);
--	if (err)
--		return err;
- 
--	err = ds_send_control(dev, COMM_PULSE | COMM_IM | COMM_F, 0);
-+	dev->spu_sleep = 0;
-+	err = ds_send_control_mode(dev, MOD_PULSE_EN, delay?PULSE_SPUE:0);
- 	if (err)
- 		return err;
- 
--	mdelay(delay);
-+	if (delay) {
-+		err = ds_send_control(dev, COMM_SET_DURATION | COMM_IM, del);
-+		if (err)
-+			return err;
- 
--	ds_wait_status(dev, &st);
-+		/* Just storing delay would not get the trunication and
-+		 * roundup.
-+		 */
-+		dev->spu_sleep = del<<4;
-+	}
- 
- 	return err;
- }
-@@ -558,6 +544,9 @@ static int ds_write_byte(struct ds_devic
- 	if (err)
- 		return err;
- 
-+	if (dev->spu_sleep)
-+		msleep(dev->spu_sleep);
-+
- 	err = ds_wait_status(dev, &st);
- 	if (err)
- 		return err;
-@@ -566,8 +555,6 @@ static int ds_write_byte(struct ds_devic
- 	if (err < 0)
- 		return err;
- 
--	ds_start_pulse(dev, PULLUP_PULSE_DURATION);
--
- 	return !(byte == rbyte);
- }
- 
-@@ -603,7 +590,7 @@ static int ds_read_block(struct ds_devic
- 	if (err < 0)
- 		return err;
- 
--	err = ds_send_control(dev, COMM_BLOCK_IO | COMM_IM | COMM_SPU, len);
-+	err = ds_send_control(dev, COMM_BLOCK_IO | COMM_IM, len);
- 	if (err)
- 		return err;
- 
-@@ -630,14 +617,15 @@ static int ds_write_block(struct ds_devi
- 	if (err)
- 		return err;
- 
-+	if (dev->spu_sleep)
-+		msleep(dev->spu_sleep);
-+
- 	ds_wait_status(dev, &st);
- 
- 	err = ds_recv_data(dev, buf, len);
- 	if (err < 0)
- 		return err;
- 
--	ds_start_pulse(dev, PULLUP_PULSE_DURATION);
--
- 	return !(err == len);
- }
- 
-@@ -803,6 +791,16 @@ static u8 ds9490r_reset(void *data)
- 	return 0;
- }
- 
-+static u8 ds9490r_set_pullup(void *data, int delay)
-+{
-+	struct ds_device *dev = data;
-+
-+	if (ds_set_pullup(dev, delay))
-+		return 1;
-+
-+	return 0;
-+}
-+
- static int ds_w1_init(struct ds_device *dev)
- {
- 	memset(&dev->master, 0, sizeof(struct w1_bus_master));
-@@ -816,6 +814,7 @@ static int ds_w1_init(struct ds_device *
- 	dev->master.read_block	= &ds9490r_read_block;
- 	dev->master.write_block	= &ds9490r_write_block;
- 	dev->master.reset_bus	= &ds9490r_reset;
-+	dev->master.set_pullup	= &ds9490r_set_pullup;
- 
- 	return w1_add_master_device(&dev->master);
- }
-@@ -839,6 +838,7 @@ static int ds_probe(struct usb_interface
- 		printk(KERN_INFO "Failed to allocate new DS9490R structure.\n");
- 		return -ENOMEM;
- 	}
-+	dev->spu_sleep = 0;
- 	dev->udev = usb_get_dev(udev);
- 	if (!dev->udev) {
- 		err = -ENOMEM;
 _
 
 Patches currently in -mm which might be from david@fries.net are
