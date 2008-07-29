@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + w1-ds2490c-ds_write_block-remove-extra-ds_wait_status.patch added to -mm tree
-Date: Tue, 29 Jul 2008 16:15:23 -0700
-Message-ID: <200807292315.m6TNFNal027103@imap1.linux-foundation.org>
+Subject: + w1-recode-w1_slave_found-logic.patch added to -mm tree
+Date: Tue, 29 Jul 2008 16:14:43 -0700
+Message-ID: <200807292314.m6TNEhNv026997@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57593 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50024 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752623AbYG2XPu (ORCPT
+	by vger.kernel.org with ESMTP id S1754772AbYG2XQU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 19:15:50 -0400
+	Tue, 29 Jul 2008 19:16:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david@fries.net, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     w1: ds2490.c ds_write_block remove extra ds_wait_status
+     w1: recode w1_slave_found logic
 has been added to the -mm tree.  Its filename is
-     w1-ds2490c-ds_write_block-remove-extra-ds_wait_status.patch
+     w1-recode-w1_slave_found-logic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: ds2490.c ds_write_block remove extra ds_wait_status
+Subject: w1: recode w1_slave_found logic
 From: David Fries <david@fries.net>
 
-Drop the extra ds_wait_status() in ds_write_block().
+Simplified the logic in w1_slave_found by using the new
+w1_attach_slave_device function to find a slave and mark it as active or
+add the device if the crc checks.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds2490.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/w1/w1.c |   26 ++++++--------------------
+ 1 file changed, 6 insertions(+), 20 deletions(-)
 
-diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-ds_write_block-remove-extra-ds_wait_status drivers/w1/masters/ds2490.c
---- a/drivers/w1/masters/ds2490.c~w1-ds2490c-ds_write_block-remove-extra-ds_wait_status
-+++ a/drivers/w1/masters/ds2490.c
-@@ -648,8 +648,6 @@ static int ds_write_block(struct ds_devi
- 	if (err < 0)
- 		return err;
+diff -puN drivers/w1/w1.c~w1-recode-w1_slave_found-logic drivers/w1/w1.c
+--- a/drivers/w1/w1.c~w1-recode-w1_slave_found-logic
++++ a/drivers/w1/w1.c
+@@ -836,9 +836,7 @@ void w1_reconnect_slaves(struct w1_famil
  
--	ds_wait_status(dev, &st);
+ static void w1_slave_found(struct w1_master *dev, u64 rn)
+ {
+-	int slave_count;
+ 	struct w1_slave *sl;
+-	struct list_head *ent;
+ 	struct w1_reg_num *tmp;
+ 	u64 rn_le = cpu_to_le64(rn);
+ 
+@@ -846,24 +844,12 @@ static void w1_slave_found(struct w1_mas
+ 
+ 	tmp = (struct w1_reg_num *) &rn;
+ 
+-	slave_count = 0;
+-	list_for_each(ent, &dev->slist) {
 -
- 	err = ds_send_control(dev, COMM_BLOCK_IO | COMM_IM | COMM_SPU, len);
- 	if (err)
- 		return err;
+-		sl = list_entry(ent, struct w1_slave, w1_slave_entry);
+-
+-		if (sl->reg_num.family == tmp->family &&
+-		    sl->reg_num.id == tmp->id &&
+-		    sl->reg_num.crc == tmp->crc) {
+-			set_bit(W1_SLAVE_ACTIVE, (long *)&sl->flags);
+-			break;
+-		}
+-
+-		slave_count++;
+-	}
+-
+-	if (slave_count == dev->slave_count &&
+-		rn && ((rn >> 56) & 0xff) == w1_calc_crc8((u8 *)&rn_le, 7)) {
+-		w1_attach_slave_device(dev, tmp);
++	sl = w1_slave_search_device(dev, tmp);
++	if (sl) {
++		set_bit(W1_SLAVE_ACTIVE, (long *)&sl->flags);
++	} else {
++		if (rn && tmp->crc == w1_calc_crc8((u8 *)&rn_le, 7))
++			w1_attach_slave_device(dev, tmp);
+ 	}
+ 
+ 	atomic_dec(&dev->refcnt);
 _
 
 Patches currently in -mm which might be from david@fries.net are
