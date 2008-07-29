@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-dont-offer-config_isa.patch added to -mm tree
-Date: Tue, 29 Jul 2008 15:24:40 -0700
-Message-ID: <200807292224.m6TMOe0e024853@imap1.linux-foundation.org>
+Subject: + dvb-usb-fix-crash-in-drivers-media-dvb-dvb-usb-cxusbc.patch added to -mm tree
+Date: Tue, 29 Jul 2008 15:29:01 -0700
+Message-ID: <200807292229.m6TMT1bs025069@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36704 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32891 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754542AbYG2WY6 (ORCPT
+	by vger.kernel.org with ESMTP id S1755147AbYG2W3x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 18:24:58 -0400
+	Tue, 29 Jul 2008 18:29:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, takata@linux-m32r.org
+Cc: rglowery@exemail.com.au, c.pascoe@itee.uq.edu.au, mchehab@infradead.org, stable@kernel.org
 
 
 The patch titled
-     m32r: don't offer CONFIG_ISA
+     dvb-usb: fix crash in drivers/media/dvb/dvb-usb/cxusb.c
 has been added to the -mm tree.  Its filename is
-     m32r-dont-offer-config_isa.patch
+     dvb-usb-fix-crash-in-drivers-media-dvb-dvb-usb-cxusbc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m32r: don't offer CONFIG_ISA
-From: Adrian Bunk <bunk@kernel.org>
+Subject: dvb-usb: fix crash in drivers/media/dvb/dvb-usb/cxusb.c
+From: "Robert Lowery" <rglowery@exemail.com.au>
 
-As far as I know no M32R hardware actually has ISA slots.
+fe->dvb->priv is a dvb_usb_adapter, but the callback is expecting a
+dvb_usb_device.  I'm not sure the best way to handle this as
+tuner-xc2028.c does not know about any dvb-usb code currently.
 
-And ISA drivers don't compile on M32R.
+In any case, the following patch seems to get it past the oops until the
+proper fix is in place.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Chris Pascoe <c.pascoe@itee.uq.edu.au>
+Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/Kconfig |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/media/dvb/dvb-usb/cxusb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/m32r/Kconfig~m32r-dont-offer-config_isa arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~m32r-dont-offer-config_isa
-+++ a/arch/m32r/Kconfig
-@@ -406,11 +406,7 @@ config PCI_DIRECT
- source "drivers/pci/Kconfig"
+diff -puN drivers/media/dvb/dvb-usb/cxusb.c~dvb-usb-fix-crash-in-drivers-media-dvb-dvb-usb-cxusbc drivers/media/dvb/dvb-usb/cxusb.c
+--- a/drivers/media/dvb/dvb-usb/cxusb.c~dvb-usb-fix-crash-in-drivers-media-dvb-dvb-usb-cxusbc
++++ a/drivers/media/dvb/dvb-usb/cxusb.c
+@@ -565,7 +565,7 @@ static int cxusb_lgh064f_tuner_attach(st
  
- config ISA
--	bool "ISA support"
--	help
--	  Find out whether you have ISA slots on your motherboard.  ISA is the
--	  name of a bus system, i.e. the way the CPU talks to the other stuff
--	  inside your box.  If you have ISA, say Y, otherwise N.
-+	bool
+ static int dvico_bluebird_xc2028_callback(void *ptr, int command, int arg)
+ {
+-	struct dvb_usb_device *d = ptr;
++	struct dvb_usb_device *d = ((struct dvb_usb_adapter *)ptr)->dev;
  
- source "drivers/pcmcia/Kconfig"
- 
+ 	switch (command) {
+ 	case XC2028_TUNER_RESET:
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from rglowery@exemail.com.au are
 
-linux-next.patch
-git-alsa-tiwai.patch
-m32r-remove-the-unused-nohighmem-option.patch
-m32r-dont-offer-config_isa.patch
-git-security-testing.patch
-if-0-ses_match_host.patch
-git-xtensa.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-reiser4.patch
+dvb-usb-fix-crash-in-drivers-media-dvb-dvb-usb-cxusbc.patch
 
