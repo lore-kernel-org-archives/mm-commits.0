@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kdump-report-actual-value-of-vmcoreinfo_osrelease-in-vmcoreinfo.patch added to -mm tree
-Date: Mon, 28 Jul 2008 20:40:07 -0700
-Message-ID: <200807290340.m6T3e7XP012293@imap1.linux-foundation.org>
+Subject: + net-ieee80211-adjust-error-handling.patch added to -mm tree
+Date: Mon, 28 Jul 2008 20:42:47 -0700
+Message-ID: <200807290342.m6T3glaU012357@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47090 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39209 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753186AbYG2Dkf (ORCPT
+	by vger.kernel.org with ESMTP id S1751084AbYG2DnU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Jul 2008 23:40:35 -0400
+	Mon, 28 Jul 2008 23:43:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bwalle@suse.de, oomichi@mxs.nes.nec.co.jp, vgoyal@redhat.com
+Cc: julia@diku.dk, Larry.Finger@lwfinger.net, jbenc@suse.cz, jketreno@linux.intel.com, linville@tuxdriver.com, yi.zhu@intel.com
 
 
 The patch titled
-     kdump: report actual value of VMCOREINFO_OSRELEASE in VMCOREINFO
+     net/ieee80211: adjust error handling
 has been added to the -mm tree.  Its filename is
-     kdump-report-actual-value-of-vmcoreinfo_osrelease-in-vmcoreinfo.patch
+     net-ieee80211-adjust-error-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kdump: report actual value of VMCOREINFO_OSRELEASE in VMCOREINFO
-From: Bernhard Walle <bwalle@suse.de>
+Subject: net/ieee80211: adjust error handling
+From: Julia Lawall <julia@diku.dk>
 
-The current implementation reports the structure name as
-VMCOREINFO_OSRELEASE in VMCOREINFO, e.g.
+Converts a test in error handling code to a sequence of labels.
 
-        VMCOREINFO_OSRELEASE=init_uts_ns.name.release
+The semantic match that found the problem is:
+(http://www.emn.fr/x-info/coccinelle/)
 
-That doesn't make sense because it's always the same. Instead, use the
-value, e.g.
+// <smpl>
+@@
+expression E,E1,E2;
+@@
 
-        VMCOREINFO_OSRELEASE=2.6.26-rc3
+E = alloc_etherdev(...)
+... when != E = E1
+if (...) { ... free_netdev(E); ... return ...; }
+... when != E = E2
+(
+  if (...)
+   {
+   ... when != free_netdev(E);
+   return dev; }
+|
+* if (...)
+   {
+   ... when != free_netdev(E);
+   return ...; }
+|
+register_netdev(E)
+)
 
-That's also what the 'makedumpfile -g' does.
+// </smpl>
 
-Signed-off-by: Bernhard Walle <bwalle@suse.de>
-Cc: "Ken'ichi Ohmichi" <oomichi@mxs.nes.nec.co.jp>
-Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: James Ketrenos <jketreno@linux.intel.com>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Jiri Benc <jbenc@suse.cz>
+Cc: Zhu Yi <yi.zhu@intel.com>
+Cc: Larry Finger <Larry.Finger@lwfinger.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/ieee80211/ieee80211_module.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/kexec.h~kdump-report-actual-value-of-vmcoreinfo_osrelease-in-vmcoreinfo include/linux/kexec.h
---- a/include/linux/kexec.h~kdump-report-actual-value-of-vmcoreinfo_osrelease-in-vmcoreinfo
-+++ a/include/linux/kexec.h
-@@ -130,8 +130,8 @@ void vmcoreinfo_append_str(const char *f
- 	__attribute__ ((format (printf, 1, 2)));
- unsigned long paddr_vmcoreinfo_note(void);
+diff -puN net/ieee80211/ieee80211_module.c~net-ieee80211-adjust-error-handling net/ieee80211/ieee80211_module.c
+--- a/net/ieee80211/ieee80211_module.c~net-ieee80211-adjust-error-handling
++++ a/net/ieee80211/ieee80211_module.c
+@@ -157,7 +157,7 @@ struct net_device *alloc_ieee80211(int s
+ 	err = ieee80211_networks_allocate(ieee);
+ 	if (err) {
+ 		IEEE80211_ERROR("Unable to allocate beacon storage: %d\n", err);
+-		goto failed;
++		goto failed_free_netdev;
+ 	}
+ 	ieee80211_networks_initialize(ieee);
  
--#define VMCOREINFO_OSRELEASE(name) \
--	vmcoreinfo_append_str("OSRELEASE=%s\n", #name)
-+#define VMCOREINFO_OSRELEASE(value) \
-+	vmcoreinfo_append_str("OSRELEASE=%s\n", value)
- #define VMCOREINFO_PAGESIZE(value) \
- 	vmcoreinfo_append_str("PAGESIZE=%ld\n", value)
- #define VMCOREINFO_SYMBOL(name) \
+@@ -193,9 +193,9 @@ struct net_device *alloc_ieee80211(int s
+ 
+ 	return dev;
+ 
+-      failed:
+-	if (dev)
+-		free_netdev(dev);
++failed_free_netdev:
++	free_netdev(dev);
++failed:
+ 	return NULL;
+ }
+ 
 _
 
-Patches currently in -mm which might be from bwalle@suse.de are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
 linux-next.patch
-kdump-report-actual-value-of-vmcoreinfo_osrelease-in-vmcoreinfo.patch
+net-ieee80211-adjust-error-handling.patch
 
