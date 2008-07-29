@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + w1-feature-enable-hardware-strong-pullup-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 29 Jul 2008 16:23:29 -0700
-Message-ID: <200807292323.m6TNNTVO027509@imap1.linux-foundation.org>
+Subject: + w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 29 Jul 2008 16:23:41 -0700
+Message-ID: <200807292323.m6TNNfkn027519@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33465 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57199 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752330AbYG2XYX (ORCPT
+	by vger.kernel.org with ESMTP id S1751043AbYG2XYk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 19:24:23 -0400
+	Tue, 29 Jul 2008 19:24:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, david@fries.net, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     w1-feature-enable-hardware-strong-pullup-checkpatch-fixes
+     w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     w1-feature-enable-hardware-strong-pullup-checkpatch-fixes.patch
+     w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,25 +34,22 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1-feature-enable-hardware-strong-pullup-checkpatch-fixes
+Subject: w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: consider using strict_strtol in preference to simple_strtol
-#49: FILE: drivers/w1/w1.c:280:
-+	md->enable_pullup = simple_strtol(buf, NULL, 0);
+ERROR: spaces required around that '?' (ctx:VxV)
+#83: FILE: drivers/w1/masters/ds2490.c:541:
++	dev->spu_bit = delay?COMM_SPU:0;
+ 	                    ^
 
-ERROR: spaces required around that '==' (ctx:VxV)
-#221: FILE: drivers/w1/w1_io.c:145:
-+			if (i==7)
- 			     ^
+ERROR: spaces required around that ':' (ctx:VxV)
+#83: FILE: drivers/w1/masters/ds2490.c:541:
++	dev->spu_bit = delay?COMM_SPU:0;
+ 	                             ^
 
-ERROR: do not use C99 // comments
-#241: FILE: drivers/w1/w1_io.c:252:
-+			w1_write_8(dev, buf[i]); // calls w1_pre_write
+total: 2 errors, 0 warnings, 123 lines checked
 
-total: 2 errors, 1 warnings, 207 lines checked
-
-./patches/w1-feature-enable-hardware-strong-pullup.patch has style problems, please review.  If any of these errors
+./patches/w1-ds2490c-optimize-ds_set_pullup.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
@@ -63,30 +60,21 @@ Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1_io.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/w1/masters/ds2490.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/w1/w1_io.c~w1-feature-enable-hardware-strong-pullup-checkpatch-fixes drivers/w1/w1_io.c
---- a/drivers/w1/w1_io.c~w1-feature-enable-hardware-strong-pullup-checkpatch-fixes
-+++ a/drivers/w1/w1_io.c
-@@ -142,7 +142,7 @@ void w1_write_8(struct w1_master *dev, u
- 	}
- 	else
- 		for (i = 0; i < 8; ++i) {
--			if (i==7)
-+			if (i == 7)
- 				w1_pre_write(dev);
- 			w1_touch_bit(dev, (byte >> i) & 0x1);
- 		}
-@@ -249,7 +249,7 @@ void w1_write_block(struct w1_master *de
- 	}
- 	else
- 		for (i = 0; i < len; ++i)
--			w1_write_8(dev, buf[i]); // calls w1_pre_write
-+			w1_write_8(dev, buf[i]);  /* calls w1_pre_write */
- 	w1_post_write(dev);
- }
- EXPORT_SYMBOL_GPL(w1_write_block);
+diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes drivers/w1/masters/ds2490.c
+--- a/drivers/w1/masters/ds2490.c~w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes
++++ a/drivers/w1/masters/ds2490.c
+@@ -538,7 +538,7 @@ static int ds_set_pullup(struct ds_devic
+ 	int ms = del<<4;
+ 
+ 	/* Enable spu_bit if a delay is set. */
+-	dev->spu_bit = delay?COMM_SPU:0;
++	dev->spu_bit = delay ? COMM_SPU : 0;
+ 	/* If delay is zero, it has already been disabled, if the time is
+ 	 * the same as the hardware was last programmed to, there is also
+ 	 * nothing more to do.  Compare with the recalculated value ms
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
