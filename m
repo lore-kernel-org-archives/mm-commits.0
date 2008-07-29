@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + relay-fix-4-off-by-one-errors-occuring-when-writing-to-a-cpu-buffer.patch added to -mm tree
-Date: Mon, 28 Jul 2008 22:54:52 -0700
-Message-ID: <200807290554.m6T5sq9s017412@imap1.linux-foundation.org>
+Subject: + unevictable-lru-infrastructure-nommu-fix.patch added to -mm tree
+Date: Mon, 28 Jul 2008 23:51:26 -0700
+Message-ID: <200807290651.m6T6pQ3h019642@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51984 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42265 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753842AbYG2Fzf (ORCPT
+	by vger.kernel.org with ESMTP id S1751246AbYG2Gwb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 01:55:35 -0400
+	Tue, 29 Jul 2008 02:52:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tzanussi@gmail.com, compudj@krystal.dyndns.org, eduard.munteanu@linux360.ro, jens.axboe@oracle.com, penberg@cs.helsinki.fi, righi.andrea@gmail.com
+Cc: kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com
 
 
 The patch titled
-     relay: fix 4 off-by-one errors occuring when writing to a CPU buffer
+     unevictable-lru-infrastructure-nommu-fix
 has been added to the -mm tree.  Its filename is
-     relay-fix-4-off-by-one-errors-occuring-when-writing-to-a-cpu-buffer.patch
+     unevictable-lru-infrastructure-nommu-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: relay: fix 4 off-by-one errors occuring when writing to a CPU buffer
-From: Tom Zanussi <tzanussi@gmail.com>
+Subject: unevictable-lru-infrastructure-nommu-fix
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-In relay's current read implementation, if the buffer is completely full
-but hasn't triggered the buffer-full condition (i.e. the last write
-didn't cross the subbuffer boundary) and the last subbuffer is exactly
-full, the subbuffer accounting code erroneously finds nothing available.
-This patch fixes the problem.
+Current unevictable infrastructure code depend on MMU.  Then, nommu build
+cause following error.
 
-Signed-off-by: Tom Zanussi <tzanussi@gmail.com> 
-Cc: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Mathieu Desnoyers <compudj@krystal.dyndns.org>
-Cc: Andrea Righi <righi.andrea@gmail.com>
+mm/built-in.o(.text+0x1bb70): In function `truncate_complete_page':
+: undefined reference to `__clear_page_mlock'
+mm/built-in.o(.text+0x1ca90): In function `__invalidate_mapping_pages':
+: undefined reference to `__clear_page_mlock'
+mm/built-in.o(.text+0x1d29c): In function `invalidate_inode_pages2_range':
+: undefined reference to `__clear_page_mlock'
+
+So, adding dependency to Kconfig is better.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ mm/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/relay.c~relay-fix-4-off-by-one-errors-occuring-when-writing-to-a-cpu-buffer kernel/relay.c
---- a/kernel/relay.c~relay-fix-4-off-by-one-errors-occuring-when-writing-to-a-cpu-buffer
-+++ a/kernel/relay.c
-@@ -944,6 +944,10 @@ static void relay_file_read_consume(stru
- 	size_t n_subbufs = buf->chan->n_subbufs;
- 	size_t read_subbuf;
- 
-+	if (buf->subbufs_produced == buf->subbufs_consumed &&
-+	    buf->offset == buf->bytes_consumed)
-+		return;
-+
- 	if (buf->bytes_consumed + bytes_consumed > subbuf_size) {
- 		relay_subbufs_consumed(buf->chan, buf->cpu, 1);
- 		buf->bytes_consumed = 0;
-@@ -975,6 +979,8 @@ static int relay_file_read_avail(struct 
- 
- 	relay_file_read_consume(buf, read_pos, 0);
- 
-+	consumed = buf->subbufs_consumed;
-+
- 	if (unlikely(buf->offset > subbuf_size)) {
- 		if (produced == consumed)
- 			return 0;
-@@ -993,8 +999,12 @@ static int relay_file_read_avail(struct 
- 	if (consumed > produced)
- 		produced += n_subbufs * subbuf_size;
- 
--	if (consumed == produced)
-+	if (consumed == produced) {
-+		if (buf->offset == subbuf_size &&
-+		    buf->subbufs_produced > buf->subbufs_consumed)
-+			return 1;
- 		return 0;
-+	}
- 
- 	return 1;
- }
+diff -puN mm/Kconfig~unevictable-lru-infrastructure-nommu-fix mm/Kconfig
+--- a/mm/Kconfig~unevictable-lru-infrastructure-nommu-fix
++++ a/mm/Kconfig
+@@ -212,6 +212,7 @@ config VIRT_TO_BUS
+ config UNEVICTABLE_LRU
+ 	bool "Add LRU list to track non-evictable pages"
+ 	default y
++	depends on MMU
+ 	help
+ 	  Keeps unevictable pages off of the active and inactive pageout
+ 	  lists, so kswapd will not waste CPU time or have its balancing
 _
 
-Patches currently in -mm which might be from tzanussi@gmail.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-relay-fix-4-off-by-one-errors-occuring-when-writing-to-a-cpu-buffer.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-infrastructure-nommu-fix.patch
+unevictable-lru-page-statistics.patch
+shm_locked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmstat-mlocked-pages-statistics.patch
+swap-cull-unevictable-pages-in-fault-path.patch
+vmstat-unevictable-and-mlocked-pages-vm-events.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+vmscam-kill-unused-lru-functions.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
