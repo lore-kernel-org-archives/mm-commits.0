@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-dev-stop-periodic-interrupts-on-device-release.patch added to -mm tree
-Date: Tue, 29 Jul 2008 17:40:07 -0700
-Message-ID: <200807300040.m6U0e7tl030488@imap1.linux-foundation.org>
+Subject: + relay-fix-4-off-by-one-errors-occuring-when-writing-to-a-cpu-buffer.patch added to -mm tree
+Date: Tue, 29 Jul 2008 17:53:06 -0700
+Message-ID: <200807300053.m6U0r6Gw031028@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41343 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40795 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753484AbYG3AlA (ORCPT
+	by vger.kernel.org with ESMTP id S1751246AbYG3Axv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 20:41:00 -0400
+	Tue, 29 Jul 2008 20:53:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tomi@nomi.cz, a.zummo@towertech.it, dbrownell@users.sourceforge.net
+Cc: tzanussi@gmail.com, compudj@krystal.dyndns.org, eduard.munteanu@linux360.ro, jens.axboe@oracle.com, penberg@cs.helsinki.fi, righi.andrea@gmail.com
 
 
 The patch titled
-     rtc-dev: stop periodic interrupts on device release
+     relay: fix "full buffer with exactly full last subbuffer" accounting problem
 has been added to the -mm tree.  Its filename is
-     rtc-dev-stop-periodic-interrupts-on-device-release.patch
+     relay-fix-4-off-by-one-errors-occuring-when-writing-to-a-cpu-buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-dev: stop periodic interrupts on device release
-From: Tomas Janousek <tomi@nomi.cz>
+Subject: relay: fix "full buffer with exactly full last subbuffer" accounting problem
+From: Tom Zanussi <tzanussi@gmail.com>
 
-Solves http://bugzilla.kernel.org/show_bug.cgi?id=11127
+In relay's current read implementation, if the buffer is completely full
+but hasn't triggered the buffer-full condition (i.e. the last write
+didn't cross the subbuffer boundary) and the last subbuffer is exactly
+full, the subbuffer accounting code erroneously finds nothing available.
+This patch fixes the problem.
 
-The old rtc.c driver did it and some drivers (like rtc-sh) do it in their
-release function, though they should not -- because they should provide
-the irq_set_state op and the rtc framework itself should care about it. 
-This patch makes it do so.
-
-I am aware that some drivers, like rtc-sh, handle userspace PIE sets in
-their ioctl op (instead of having the framework call the op), exporting
-the irq_set_state op at the same time.  The logic in rtc_irq_set_state
-should make sure it doesn't matter and the driver should not need to care
-stopping periodic interrupts in its release routine any more.
-
-The correct way, in my opinion, should be this:
-1) The driver provides the irq_set_state op and does not care closing the
-   interrupts in its release op.
-2) If the driver does not provide the op and handles PIE in the ioctl op, it's
-   reponsible for closing them in its release op.
-3) Something similar for other IRQs, like UIE -- if there's no in-kernel API
-   like irq_set_state, handle it in ioctl and release ops. The framework will
-   be responsible either for everything or for nothing. (This will probably
-   change later.)
-
-Signed-off-by: Tomas Janousek <tomi@nomi.cz>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Tom Zanussi <tzanussi@gmail.com> 
+Cc: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Mathieu Desnoyers <compudj@krystal.dyndns.org>
+Cc: Andrea Righi <righi.andrea@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-dev.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/relay.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-dev.c~rtc-dev-stop-periodic-interrupts-on-device-release drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~rtc-dev-stop-periodic-interrupts-on-device-release
-+++ a/drivers/rtc/rtc-dev.c
-@@ -432,6 +432,8 @@ static int rtc_dev_release(struct inode 
- #ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
- 	clear_uie(rtc);
- #endif
-+	rtc_irq_set_state(rtc, NULL, 0);
-+
- 	if (rtc->ops->release)
- 		rtc->ops->release(rtc->dev.parent);
+diff -puN kernel/relay.c~relay-fix-4-off-by-one-errors-occuring-when-writing-to-a-cpu-buffer kernel/relay.c
+--- a/kernel/relay.c~relay-fix-4-off-by-one-errors-occuring-when-writing-to-a-cpu-buffer
++++ a/kernel/relay.c
+@@ -944,6 +944,10 @@ static void relay_file_read_consume(stru
+ 	size_t n_subbufs = buf->chan->n_subbufs;
+ 	size_t read_subbuf;
  
++	if (buf->subbufs_produced == buf->subbufs_consumed &&
++	    buf->offset == buf->bytes_consumed)
++		return;
++
+ 	if (buf->bytes_consumed + bytes_consumed > subbuf_size) {
+ 		relay_subbufs_consumed(buf->chan, buf->cpu, 1);
+ 		buf->bytes_consumed = 0;
+@@ -975,6 +979,8 @@ static int relay_file_read_avail(struct 
+ 
+ 	relay_file_read_consume(buf, read_pos, 0);
+ 
++	consumed = buf->subbufs_consumed;
++
+ 	if (unlikely(buf->offset > subbuf_size)) {
+ 		if (produced == consumed)
+ 			return 0;
+@@ -993,8 +999,12 @@ static int relay_file_read_avail(struct 
+ 	if (consumed > produced)
+ 		produced += n_subbufs * subbuf_size;
+ 
+-	if (consumed == produced)
++	if (consumed == produced) {
++		if (buf->offset == subbuf_size &&
++		    buf->subbufs_produced > buf->subbufs_consumed)
++			return 1;
+ 		return 0;
++	}
+ 
+ 	return 1;
+ }
 _
 
-Patches currently in -mm which might be from tomi@nomi.cz are
+Patches currently in -mm which might be from tzanussi@gmail.com are
 
-rtc-dev-stop-periodic-interrupts-on-device-release.patch
+relay-fix-4-off-by-one-errors-occuring-when-writing-to-a-cpu-buffer.patch
 
