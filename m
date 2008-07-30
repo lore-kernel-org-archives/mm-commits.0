@@ -1,56 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - git-ubi-git-rejects.patch removed from -mm tree
-Date: Tue, 29 Jul 2008 21:26:04 -0700
-Message-ID: <200807300438.m6U4comw007266@imap1.linux-foundation.org>
+Subject: + drivers-mtd-nand-fsl_elbc_nandc-fix-printk-warning.patch added to -mm tree
+Date: Tue, 29 Jul 2008 21:27:14 -0700
+Message-ID: <200807300440.m6U4e0hZ007291@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42595 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47796 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751171AbYG3Eiw (ORCPT
+	by vger.kernel.org with ESMTP id S1751261AbYG3EkE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 00:38:52 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6U4coxI021235
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 29 Jul 2008 21:38:51 -0700
+	Wed, 30 Jul 2008 00:40:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org
 
 
 The patch titled
-     git-ubi-git-rejects
-has been removed from the -mm tree.  Its filename was
-     git-ubi-git-rejects.patch
+     drivers/mtd/nand/fsl_elbc_nand.c: fix printk warning
+has been added to the -mm tree.  Its filename is
+     drivers-mtd-nand-fsl_elbc_nandc-fix-printk-warning.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-ubi-git-rejects
+Subject: drivers/mtd/nand/fsl_elbc_nand.c: fix printk warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
+drivers/mtd/nand/fsl_elbc_nand.c:890: warning: format '%x' expects type 'unsigned int', but argument 3 has type 'resource_size_t'
+
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/ubi/cdev.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/mtd/nand/fsl_elbc_nand.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/ubi/cdev.c~git-ubi-git-rejects drivers/mtd/ubi/cdev.c
---- a/drivers/mtd/ubi/cdev.c~git-ubi-git-rejects
-+++ a/drivers/mtd/ubi/cdev.c
-@@ -40,10 +40,6 @@
- #include <linux/ioctl.h>
- #include <linux/capability.h>
- #include <linux/uaccess.h>
--<<<<<<< HEAD:drivers/mtd/ubi/cdev.c
--#include <linux/smp_lock.h>
--=======
-->>>>>>> FETCH_HEAD:drivers/mtd/ubi/cdev.c
- #include <mtd/ubi-user.h>
- #include <asm/div64.h>
- #include "ubi.h"
+diff -puN drivers/mtd/nand/fsl_elbc_nand.c~drivers-mtd-nand-fsl_elbc_nandc-fix-printk-warning drivers/mtd/nand/fsl_elbc_nand.c
+--- a/drivers/mtd/nand/fsl_elbc_nand.c~drivers-mtd-nand-fsl_elbc_nandc-fix-printk-warning
++++ a/drivers/mtd/nand/fsl_elbc_nand.c
+@@ -887,7 +887,7 @@ static int __devinit fsl_elbc_chip_probe
+ 		goto err;
+ 	}
+ 
+-	priv->mtd.name = kasprintf(GFP_KERNEL, "%x.flash", res.start);
++	priv->mtd.name = kasprintf(GFP_KERNEL, "%x.flash", (unsigned)res.start);
+ 	if (!priv->mtd.name) {
+ 		ret = -ENOMEM;
+ 		goto err;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,7 +81,6 @@ tick-schedc-suppress-needless-timer-reprogramming.patch
 drivers-input-serio-xilinx_ps2c-fix-warning.patch
 git-jg-misc.patch
 drivers-mtd-nand-nandsimc-fix-printk-warnings.patch
-git-ubi-git-rejects.patch
 bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
 sundance-set-carrier-status-on-link-change-events.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
@@ -128,4 +134,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+drivers-mtd-nand-fsl_elbc_nandc-fix-printk-warning.patch
 
