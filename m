@@ -1,58 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - cassini-use-request_firmware-fix.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:38:02 -0700
-Message-ID: <200807301938.m6UJc252012483@imap1.linux-foundation.org>
+Subject: - scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:43:33 -0700
+Message-ID: <200807301943.m6UJhY4d012791@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50195 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50578 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754232AbYG3TjA (ORCPT
+	by vger.kernel.org with ESMTP id S1752531AbYG3To0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:39:00 -0400
+	Wed, 30 Jul 2008 15:44:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dwmw2@infradead.org, jaswinder@infradead.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cassini-use-request_firmware-fix
+     scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     cassini-use-request_firmware-fix.patch
+     scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into cassini-use-request_firmware.patch
+This patch was dropped because it was folded into scsi-gdthc-use-unaligned-access-helpers.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cassini-use-request_firmware-fix
+Subject: scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/cassini.c: In function 'cas_saturn_firmware_init':
-drivers/net/cassini.c:840: error: implicit declaration of function 'vmalloc'
-drivers/net/cassini.c:840: warning: assignment makes pointer from integer without a cast
-drivers/net/cassini.c: In function 'cas_remove_one':
-drivers/net/cassini.c:5259: error: implicit declaration of function 'vfree'
+ERROR: spaces required around that '=' (ctx:VxW)
+#59: FILE: drivers/scsi/gdth.c:2522:
++		blockcnt= scp->cmnd[4]==0 ? 0x100 : scp->cmnd[4];
+ 		        ^
 
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Jaswinder Singh <jaswinder@infradead.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+ERROR: spaces required around that '==' (ctx:VxV)
+#59: FILE: drivers/scsi/gdth.c:2522:
++		blockcnt= scp->cmnd[4]==0 ? 0x100 : scp->cmnd[4];
+ 		                      ^
+
+total: 2 errors, 0 warnings, 43 lines checked
+
+./patches/scsi-gdthc-use-unaligned-access-helpers.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/cassini.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/scsi/gdth.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/cassini.c~cassini-use-request_firmware-fix drivers/net/cassini.c
---- a/drivers/net/cassini.c~cassini-use-request_firmware-fix
-+++ a/drivers/net/cassini.c
-@@ -74,6 +74,7 @@
- #include <linux/slab.h>
- #include <linux/delay.h>
- #include <linux/init.h>
-+#include <linux/vmalloc.h>
- #include <linux/ioport.h>
- #include <linux/pci.h>
- #include <linux/mm.h>
+diff -puN drivers/scsi/gdth.c~scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes drivers/scsi/gdth.c
+--- a/drivers/scsi/gdth.c~scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes
++++ a/drivers/scsi/gdth.c
+@@ -2519,7 +2519,7 @@ static int gdth_fill_cache_cmd(gdth_ha_s
+         } else {
+ 		blockno = get_unaligned_be32(&scp->cmnd[2]);
+ 		blockno &= 0x001fffffUL;
+-		blockcnt= scp->cmnd[4]==0 ? 0x100 : scp->cmnd[4];
++		blockcnt = scp->cmnd[4] == 0 ? 0x100 : scp->cmnd[4];
+         }
+         if (mode64) {
+             cmdp->u.cache64.BlockNo = blockno;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,9 +88,9 @@ git-ubi-git-rejects.patch
 bridge-send-correct-mtu-value-in-pmtu.patch
 sundance-set-carrier-status-on-link-change-events.patch
 cassini-use-request_firmware.patch
-cassini-use-request_firmware-fix.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 sched-type-fix.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
 scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
 git-block-git-rejects.patch
 git-unionfs.patch
