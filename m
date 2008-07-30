@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + firmware-use-dev_printk-when-possible.patch added to -mm tree
-Date: Tue, 29 Jul 2008 17:39:13 -0700
-Message-ID: <200807300039.m6U0dDG2030450@imap1.linux-foundation.org>
+Subject: + gbefb-cmap-fifo-timeout.patch added to -mm tree
+Date: Tue, 29 Jul 2008 17:37:52 -0700
+Message-ID: <200807300037.m6U0bq3I030419@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39702 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42579 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753406AbYG3Ajz (ORCPT
+	by vger.kernel.org with ESMTP id S1752705AbYG3AkP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 20:39:55 -0400
+	Tue, 29 Jul 2008 20:40:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, dwmw2@infradead.org
+Cc: tsbogend@alpha.franken.de, adaplas@pol.net, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     firmware: use dev_printk when possible
+     gbefb: cmap FIFO timeout
 has been added to the -mm tree.  Its filename is
-     firmware-use-dev_printk-when-possible.patch
+     gbefb-cmap-fifo-timeout.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,106 +34,124 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: firmware: use dev_printk when possible
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: gbefb: cmap FIFO timeout
+From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 
-Convert printks to use dev_printk().
+Writes to the cmap fifo while the display is blanked caused cmap FIFO
+timeout messages and a wrong colormap.  To avoid this the driver now
+maintains a colormap in memory and updates the colormap after the display
+is unblanked.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/firmware_class.c |   24 ++++++++++--------------
- 1 file changed, 10 insertions(+), 14 deletions(-)
+ drivers/video/gbefb.c |   50 +++++++++++++++++++++++++++-------------
+ 1 file changed, 34 insertions(+), 16 deletions(-)
 
-diff -puN drivers/base/firmware_class.c~firmware-use-dev_printk-when-possible drivers/base/firmware_class.c
---- a/drivers/base/firmware_class.c~firmware-use-dev_printk-when-possible
-+++ a/drivers/base/firmware_class.c
-@@ -164,8 +164,7 @@ static ssize_t firmware_loading_store(st
+diff -puN drivers/video/gbefb.c~gbefb-cmap-fifo-timeout drivers/video/gbefb.c
+--- a/drivers/video/gbefb.c~gbefb-cmap-fifo-timeout
++++ a/drivers/video/gbefb.c
+@@ -87,6 +87,8 @@ static int gbe_revision;
+ static int ypan, ywrap;
+ 
+ static uint32_t pseudo_palette[16];
++static uint32_t gbe_cmap[256];
++static int gbe_turned_on; /* 0 turned off, 1 turned on */
+ 
+ static char *mode_option __initdata = NULL;
+ 
+@@ -208,6 +210,8 @@ void gbe_turn_off(void)
+ 	int i;
+ 	unsigned int val, x, y, vpixen_off;
+ 
++	gbe_turned_on = 0;
++
+ 	/* check if pixel counter is on */
+ 	val = gbe->vt_xy;
+ 	if (GET_GBE_FIELD(VT_XY, FREEZE, val) == 1)
+@@ -371,6 +375,22 @@ static void gbe_turn_on(void)
+ 	}
+ 	if (i == 10000)
+ 		printk(KERN_ERR "gbefb: turn on DMA timed out\n");
++
++	gbe_turned_on = 1;
++}
++
++static void gbe_loadcmap(void)
++{
++	int i, j;
++
++	for (i = 0; i < 256; i++) {
++		for (j = 0; j < 1000 && gbe->cm_fifo >= 63; j++)
++			udelay(10);
++		if (j == 1000)
++			printk(KERN_ERR "gbefb: cmap FIFO timeout\n");
++
++		gbe->cmap[i] = gbe_cmap[i];
++	}
+ }
+ 
+ /*
+@@ -382,6 +402,7 @@ static int gbefb_blank(int blank, struct
+ 	switch (blank) {
+ 	case FB_BLANK_UNBLANK:		/* unblank */
+ 		gbe_turn_on();
++		gbe_loadcmap();
+ 		break;
+ 
+ 	case FB_BLANK_NORMAL:		/* blank */
+@@ -796,16 +817,10 @@ static int gbefb_set_par(struct fb_info 
+ 		gbe->gmap[i] = (i << 24) | (i << 16) | (i << 8);
+ 
+ 	/* Initialize the color map */
+-	for (i = 0; i < 256; i++) {
+-		int j;
+-
+-		for (j = 0; j < 1000 && gbe->cm_fifo >= 63; j++)
+-			udelay(10);
+-		if (j == 1000)
+-			printk(KERN_ERR "gbefb: cmap FIFO timeout\n");
++	for (i = 0; i < 256; i++)
++		gbe_cmap[i] = (i << 8) | (i << 16) | (i << 24);
+ 
+-		gbe->cmap[i] = (i << 8) | (i << 16) | (i << 24);
+-	}
++	gbe_loadcmap();
+ 
+ 	return 0;
+ }
+@@ -855,14 +870,17 @@ static int gbefb_setcolreg(unsigned regn
+ 	blue >>= 8;
+ 
+ 	if (info->var.bits_per_pixel <= 8) {
+-		/* wait for the color map FIFO to have a free entry */
+-		for (i = 0; i < 1000 && gbe->cm_fifo >= 63; i++)
+-			udelay(10);
+-		if (i == 1000) {
+-			printk(KERN_ERR "gbefb: cmap FIFO timeout\n");
+-			return 1;
++		gbe_cmap[regno] = (red << 24) | (green << 16) | (blue << 8);
++		if (gbe_turned_on) {
++			/* wait for the color map FIFO to have a free entry */
++			for (i = 0; i < 1000 && gbe->cm_fifo >= 63; i++)
++				udelay(10);
++			if (i == 1000) {
++				printk(KERN_ERR "gbefb: cmap FIFO timeout\n");
++				return 1;
++			}
++			gbe->cmap[regno] = gbe_cmap[regno];
  		}
- 		/* fallthrough */
- 	default:
--		printk(KERN_ERR "%s: unexpected value (%d)\n", __func__,
--		       loading);
-+		dev_err(dev, "%s: unexpected value (%d)\n", __func__, loading);
- 		/* fallthrough */
- 	case -1:
- 		fw_load_abort(fw_priv);
-@@ -309,7 +308,7 @@ static int fw_register_device(struct dev
- 	*dev_p = NULL;
- 
- 	if (!fw_priv || !f_dev) {
--		printk(KERN_ERR "%s: kmalloc failed\n", __func__);
-+		dev_err(device, "%s: kmalloc failed\n", __func__);
- 		retval = -ENOMEM;
- 		goto error_kfree;
- 	}
-@@ -329,8 +328,7 @@ static int fw_register_device(struct dev
- 	f_dev->uevent_suppress = 1;
- 	retval = device_register(f_dev);
- 	if (retval) {
--		printk(KERN_ERR "%s: device_register failed\n",
--		       __func__);
-+		dev_err(device, "%s: device_register failed\n", __func__);
- 		goto error_kfree;
- 	}
- 	*dev_p = f_dev;
-@@ -363,15 +361,13 @@ static int fw_setup_device(struct firmwa
- 	fw_priv->fw = fw;
- 	retval = sysfs_create_bin_file(&f_dev->kobj, &fw_priv->attr_data);
- 	if (retval) {
--		printk(KERN_ERR "%s: sysfs_create_bin_file failed\n",
--		       __func__);
-+		dev_err(device, "%s: sysfs_create_bin_file failed\n", __func__);
- 		goto error_unreg;
- 	}
- 
- 	retval = device_create_file(f_dev, &dev_attr_loading);
- 	if (retval) {
--		printk(KERN_ERR "%s: device_create_file failed\n",
--		       __func__);
-+		dev_err(device, "%s: device_create_file failed\n", __func__);
- 		goto error_unreg;
- 	}
- 
-@@ -401,8 +397,8 @@ _request_firmware(const struct firmware 
- 
- 	*firmware_p = firmware = kzalloc(sizeof(*firmware), GFP_KERNEL);
- 	if (!firmware) {
--		printk(KERN_ERR "%s: kmalloc(struct firmware) failed\n",
--		       __func__);
-+		dev_err(device, "%s: kmalloc(struct firmware) failed\n",
-+			__func__);
- 		retval = -ENOMEM;
- 		goto out;
- 	}
-@@ -411,15 +407,15 @@ _request_firmware(const struct firmware 
- 	     builtin++) {
- 		if (strcmp(name, builtin->name))
- 			continue;
--		printk(KERN_INFO "firmware: using built-in firmware %s\n",
--		       name);
-+		dev_info(device, "firmware: using built-in firmware %s\n",
-+			 name);
- 		firmware->size = builtin->size;
- 		firmware->data = builtin->data;
- 		return 0;
- 	}
- 
- 	if (uevent)
--		printk(KERN_INFO "firmware: requesting %s\n", name);
-+		dev_info(device, "firmware: requesting %s\n", name);
- 
- 	retval = fw_setup_device(firmware, &f_dev, name, device, uevent);
- 	if (retval)
+-		gbe->cmap[regno] = (red << 24) | (green << 16) | (blue << 8);
+ 	} else if (regno < 16) {
+ 		switch (info->var.bits_per_pixel) {
+ 		case 15:
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from tsbogend@alpha.franken.de are
 
-mm-only-enforce-acpi-resource-conflict-checks.patch
-amd64-agp-run-fallback-when-no-bridges-found-not-when-driver-registration-fails.patch
-agp-use-dev_printk-when-possible.patch
-firmware-use-dev_printk-when-possible.patch
-resources-tidy-__request_region.patch
+gbefb-cmap-fifo-timeout.patch
+linux-next.patch
 
