@@ -1,59 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - documentation-build-source-files-in-documentation-sub-dir.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 00:20:11 -0700
-Message-ID: <200807300720.m6U7KB7Z013583@imap1.linux-foundation.org>
+Subject: + docsrc-build-documentation-sources.patch added to -mm tree
+Date: Wed, 30 Jul 2008 00:20:33 -0700
+Message-ID: <200807300720.m6U7KXih013597@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56785 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46420 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751841AbYG3HUx (ORCPT
+	by vger.kernel.org with ESMTP id S1758960AbYG3HWE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 03:20:53 -0400
+	Wed, 30 Jul 2008 03:22:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: randy.dunlap@oracle.com, sam@ravnborg.org
 
 
 The patch titled
-     documentation: build source files in Documentation sub-dir
-has been removed from the -mm tree.  Its filename was
-     documentation-build-source-files-in-documentation-sub-dir.patch
+     docsrc: build Documentation/ sources
+has been added to the -mm tree.  Its filename is
+     docsrc-build-documentation-sources.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: documentation: build source files in Documentation sub-dir
+Subject: docsrc: build Documentation/ sources
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Currently source files in the Documentation/ sub-dir can easily bit-rot since
-they are not generally buildable, either because they are hidden in text files
-or because there are no Makefile rules for them.  This needs to be fixed so
-that the source files remain usable and good examples of code instead of bad
-examples.
+Currently source files in the Documentation/ sub-dir can easily bit-rot
+since they are not generally buildable, either because they are hidden in
+text files or because there are no Makefile rules for them.  This needs to
+be fixed so that the source files remain usable and good examples of code
+instead of bad examples.
 
-Add the ability to build source files that are in the Documentation/ dir.  Add
-to Kconfig as "BUILD_DOCSRC" config symbol.
+Add the ability to build source files that are in the Documentation/ dir. 
+Add to Kconfig as "BUILD_DOCSRC" config symbol.
 
-Use "CONFIG_BUILD_DOCSRC=1 make ..." to build objects from the Documentation/
-sources.  Or enable BUILD_DOCSRC in the *config system.
+Use "CONFIG_BUILD_DOCSRC=1 make ..." to build objects from the
+Documentation/ sources.  Or enable BUILD_DOCSRC in the *config system. 
+However, this symbol depends on HEADERS_CHECK since the header files need
+to be installed (for userspace builds).
 
-The Makefiles use $objdir/usr/include for header files, so doing
-"make headers_install" is required.  This is done for you if you enable
-CONFIG_HEADERS_CHECK=y.
+Built (using cross-tools) for x86-64, i386, alpha, ia64, sparc32,
+sparc64, powerpc, sh, m68k, & mips.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
-DESC
-documentation: build source files in Documentation sub-dir (update)
-EDESC
-
-Change all -I$(srctree) in Makefiles to -I$(objtree).
-New (full) patch file with only that change is below.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -61,8 +63,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  Documentation/Makefile                      |    3 +++
  Documentation/accounting/Makefile           |   10 ++++++++++
  Documentation/auxdisplay/Makefile           |   10 ++++++++++
- Documentation/connector/Makefile            |    9 +++++++++
- Documentation/filesystems/configfs/Makefile |    1 +
+ Documentation/connector/Makefile            |   11 +++++++++++
+ Documentation/filesystems/configfs/Makefile |    3 +++
  Documentation/ia64/Makefile                 |    8 ++++++++
  Documentation/networking/Makefile           |    8 ++++++++
  Documentation/pcmcia/Makefile               |   10 ++++++++++
@@ -71,11 +73,11 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  Documentation/vm/Makefile                   |    8 ++++++++
  Documentation/watchdog/src/Makefile         |    8 ++++++++
  Makefile                                    |    5 ++++-
- lib/Kconfig.debug                           |    8 ++++++++
- 15 files changed, 113 insertions(+), 1 deletion(-)
+ lib/Kconfig.debug                           |    9 +++++++++
+ 15 files changed, 118 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/DocBook/Makefile~documentation-build-source-files-in-documentation-sub-dir Documentation/DocBook/Makefile
---- a/Documentation/DocBook/Makefile~documentation-build-source-files-in-documentation-sub-dir
+diff -puN Documentation/DocBook/Makefile~docsrc-build-documentation-sources Documentation/DocBook/Makefile
+--- a/Documentation/DocBook/Makefile~docsrc-build-documentation-sources
 +++ a/Documentation/DocBook/Makefile
 @@ -102,6 +102,13 @@ C-procfs-example = procfs_example.xml
  C-procfs-example2 = $(addprefix $(obj)/,$(C-procfs-example))
@@ -129,8 +131,10 @@ diff -puN /dev/null Documentation/auxdisplay/Makefile
 diff -puN /dev/null Documentation/connector/Makefile
 --- /dev/null
 +++ a/Documentation/connector/Makefile
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,11 @@
++ifneq ($(CONFIG_CONNECTOR),)
 +obj-m += cn_test.o
++endif
 +
 +# List of programs to build
 +hostprogs-y := ucon
@@ -142,8 +146,10 @@ diff -puN /dev/null Documentation/connector/Makefile
 diff -puN /dev/null Documentation/filesystems/configfs/Makefile
 --- /dev/null
 +++ a/Documentation/filesystems/configfs/Makefile
-@@ -0,0 +1 @@
-+obj-m += configfs_example.o
+@@ -0,0 +1,3 @@
++ifneq ($(CONFIG_CONFIGFS_FS),)
++obj-m += configfs_example_explicit.o configfs_example_macros.o
++endif
 diff -puN /dev/null Documentation/ia64/Makefile
 --- /dev/null
 +++ a/Documentation/ia64/Makefile
@@ -233,10 +239,10 @@ diff -puN /dev/null Documentation/watchdog/src/Makefile
 +
 +# Tell kbuild to always build the programs
 +always := $(hostprogs-y)
-diff -puN Makefile~documentation-build-source-files-in-documentation-sub-dir Makefile
---- a/Makefile~documentation-build-source-files-in-documentation-sub-dir
+diff -puN Makefile~docsrc-build-documentation-sources Makefile
+--- a/Makefile~docsrc-build-documentation-sources
 +++ a/Makefile
-@@ -817,6 +817,9 @@ endif
+@@ -821,6 +821,9 @@ endif
  ifdef CONFIG_SAMPLES
  	$(Q)$(MAKE) $(build)=samples
  endif
@@ -246,7 +252,7 @@ diff -puN Makefile~documentation-build-source-files-in-documentation-sub-dir Mak
  	$(call vmlinux-modpost)
  	$(call if_changed_rule,vmlinux__)
  	$(Q)rm -f .old_version
-@@ -1160,7 +1163,7 @@ MRPROPER_FILES += .config .config.old in
+@@ -1165,7 +1168,7 @@ MRPROPER_FILES += .config .config.old in
  #
  clean: rm-dirs  := $(CLEAN_DIRS)
  clean: rm-files := $(CLEAN_FILES)
@@ -255,15 +261,16 @@ diff -puN Makefile~documentation-build-source-files-in-documentation-sub-dir Mak
  
  PHONY += $(clean-dirs) clean archclean
  $(clean-dirs):
-diff -puN lib/Kconfig.debug~documentation-build-source-files-in-documentation-sub-dir lib/Kconfig.debug
---- a/lib/Kconfig.debug~documentation-build-source-files-in-documentation-sub-dir
+diff -puN lib/Kconfig.debug~docsrc-build-documentation-sources lib/Kconfig.debug
+--- a/lib/Kconfig.debug~docsrc-build-documentation-sources
 +++ a/lib/Kconfig.debug
-@@ -632,6 +632,14 @@ config FIREWIRE_OHCI_REMOTE_DMA
+@@ -644,6 +644,15 @@ config FIREWIRE_OHCI_REMOTE_DMA
  
  	  If unsure, say N.
  
 +menuconfig BUILD_DOCSRC
 +	bool "Build targets in Documentation/ tree"
++	depends on HEADERS_CHECK
 +	help
 +	  This option attempts to build objects from the source files in the
 +	  kernel Documentation/ tree.
@@ -287,7 +294,6 @@ e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
 netfilter-conntrack_helper-needs-to-include-rculisth.patch
 lkdtm-fix-for-config_scsi=n.patch
 git-unionfs.patch
-documentation-build-source-files-in-documentation-sub-dir.patch
 docsrc-build-documentation-sources.patch
 docsrc-fix-procfs-example.patch
 docsrc-fix-ifenslave-type.patch
