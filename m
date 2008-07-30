@@ -1,207 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: - sgi-xp-move-xpc_check_remote_hb-to-support-both-sn2-and-uv.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:17:10 -0700
-Message-ID: <200807301917.m6UJHAeh011192@imap1.linux-foundation.org>
+Subject: - gbefb-cmap-fifo-timeout.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:15:35 -0700
+Message-ID: <200807301915.m6UJFZNE011036@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32989 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35147 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753005AbYG3TSB (ORCPT
+	by vger.kernel.org with ESMTP id S1752678AbYG3TRf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:18:01 -0400
+	Wed, 30 Jul 2008 15:17:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dcn@sgi.com, steiner@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: tsbogend@alpha.franken.de, adaplas@pol.net, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgi-xp: move xpc_check_remote_hb() to support both SN2 and UV
+     gbefb: cmap FIFO timeout
 has been removed from the -mm tree.  Its filename was
-     sgi-xp-move-xpc_check_remote_hb-to-support-both-sn2-and-uv.patch
+     gbefb-cmap-fifo-timeout.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-xp: move xpc_check_remote_hb() to support both SN2 and UV
-From: Dean Nelson <dcn@sgi.com>
+Subject: gbefb: cmap FIFO timeout
+From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 
-Move xpc_check_remote_hb() so it can support both SN2 and UV.
+Writes to the cmap fifo while the display is blanked caused cmap FIFO
+timeout messages and a wrong colormap.  To avoid this the driver now
+maintains a colormap in memory and updates the colormap after the display
+is unblanked.
 
-Signed-off-by: Dean Nelson <dcn@sgi.com>
-Cc: Jack Steiner <steiner@sgi.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xpc.h      |    2 
- drivers/misc/sgi-xp/xpc_main.c |   34 ++++++++++++++-
- drivers/misc/sgi-xp/xpc_sn2.c  |   70 ++++++++++---------------------
- 3 files changed, 57 insertions(+), 49 deletions(-)
+ drivers/video/gbefb.c |   50 +++++++++++++++++++++++++++-------------
+ 1 file changed, 34 insertions(+), 16 deletions(-)
 
-diff -puN drivers/misc/sgi-xp/xpc.h~sgi-xp-move-xpc_check_remote_hb-to-support-both-sn2-and-uv drivers/misc/sgi-xp/xpc.h
---- a/drivers/misc/sgi-xp/xpc.h~sgi-xp-move-xpc_check_remote_hb-to-support-both-sn2-and-uv
-+++ a/drivers/misc/sgi-xp/xpc.h
-@@ -632,7 +632,7 @@ extern void (*xpc_heartbeat_exit) (void)
- extern void (*xpc_increment_heartbeat) (void);
- extern void (*xpc_offline_heartbeat) (void);
- extern void (*xpc_online_heartbeat) (void);
--extern void (*xpc_check_remote_hb) (void);
-+extern enum xp_retval (*xpc_get_remote_heartbeat) (struct xpc_partition *);
- extern enum xp_retval (*xpc_make_first_contact) (struct xpc_partition *);
- extern u64 (*xpc_get_chctl_all_flags) (struct xpc_partition *);
- extern enum xp_retval (*xpc_allocate_msgqueues) (struct xpc_channel *);
-diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-move-xpc_check_remote_hb-to-support-both-sn2-and-uv drivers/misc/sgi-xp/xpc_main.c
---- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-move-xpc_check_remote_hb-to-support-both-sn2-and-uv
-+++ a/drivers/misc/sgi-xp/xpc_main.c
-@@ -178,7 +178,7 @@ void (*xpc_heartbeat_exit) (void);
- void (*xpc_increment_heartbeat) (void);
- void (*xpc_offline_heartbeat) (void);
- void (*xpc_online_heartbeat) (void);
--void (*xpc_check_remote_hb) (void);
-+enum xp_retval (*xpc_get_remote_heartbeat) (struct xpc_partition *part);
+diff -puN drivers/video/gbefb.c~gbefb-cmap-fifo-timeout drivers/video/gbefb.c
+--- a/drivers/video/gbefb.c~gbefb-cmap-fifo-timeout
++++ a/drivers/video/gbefb.c
+@@ -87,6 +87,8 @@ static int gbe_revision;
+ static int ypan, ywrap;
  
- enum xp_retval (*xpc_make_first_contact) (struct xpc_partition *part);
- void (*xpc_notify_senders_of_disconnect) (struct xpc_channel *ch);
-@@ -270,6 +270,38 @@ xpc_stop_hb_beater(void)
- }
+ static uint32_t pseudo_palette[16];
++static uint32_t gbe_cmap[256];
++static int gbe_turned_on; /* 0 turned off, 1 turned on */
  
- /*
-+ * At periodic intervals, scan through all active partitions and ensure
-+ * their heartbeat is still active.  If not, the partition is deactivated.
-+ */
-+static void
-+xpc_check_remote_hb(void)
-+{
-+	struct xpc_partition *part;
-+	short partid;
-+	enum xp_retval ret;
+ static char *mode_option __initdata = NULL;
+ 
+@@ -208,6 +210,8 @@ void gbe_turn_off(void)
+ 	int i;
+ 	unsigned int val, x, y, vpixen_off;
+ 
++	gbe_turned_on = 0;
 +
-+	for (partid = 0; partid < xp_max_npartitions; partid++) {
+ 	/* check if pixel counter is on */
+ 	val = gbe->vt_xy;
+ 	if (GET_GBE_FIELD(VT_XY, FREEZE, val) == 1)
+@@ -371,6 +375,22 @@ static void gbe_turn_on(void)
+ 	}
+ 	if (i == 10000)
+ 		printk(KERN_ERR "gbefb: turn on DMA timed out\n");
 +
-+		if (xpc_exiting)
-+			break;
-+
-+		if (partid == xp_partition_id)
-+			continue;
-+
-+		part = &xpc_partitions[partid];
-+
-+		if (part->act_state == XPC_P_INACTIVE ||
-+		    part->act_state == XPC_P_DEACTIVATING) {
-+			continue;
-+		}
-+
-+		ret = xpc_get_remote_heartbeat(part);
-+		if (ret != xpSuccess)
-+			XPC_DEACTIVATE_PARTITION(part, ret);
-+	}
++	gbe_turned_on = 1;
 +}
 +
-+/*
-  * This thread is responsible for nearly all of the partition
-  * activation/deactivation.
-  */
-diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-move-xpc_check_remote_hb-to-support-both-sn2-and-uv drivers/misc/sgi-xp/xpc_sn2.c
---- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-move-xpc_check_remote_hb-to-support-both-sn2-and-uv
-+++ a/drivers/misc/sgi-xp/xpc_sn2.c
-@@ -704,61 +704,37 @@ xpc_heartbeat_exit_sn2(void)
- 	xpc_offline_heartbeat_sn2();
- }
- 
--/*
-- * At periodic intervals, scan through all active partitions and ensure
-- * their heartbeat is still active.  If not, the partition is deactivated.
-- */
--static void
--xpc_check_remote_hb_sn2(void)
-+static enum xp_retval
-+xpc_get_remote_heartbeat_sn2(struct xpc_partition *part)
- {
- 	struct xpc_vars_sn2 *remote_vars;
--	struct xpc_partition *part;
--	short partid;
- 	enum xp_retval ret;
- 
- 	remote_vars = (struct xpc_vars_sn2 *)xpc_remote_copy_buffer_sn2;
- 
--	for (partid = 0; partid < XP_MAX_NPARTITIONS_SN2; partid++) {
--
--		if (xpc_exiting)
--			break;
--
--		if (partid == sn_partition_id)
--			continue;
--
--		part = &xpc_partitions[partid];
--
--		if (part->act_state == XPC_P_INACTIVE ||
--		    part->act_state == XPC_P_DEACTIVATING) {
--			continue;
--		}
--
--		/* pull the remote_hb cache line */
--		ret = xp_remote_memcpy(xp_pa(remote_vars),
--				       part->sn.sn2.remote_vars_pa,
--				       XPC_RP_VARS_SIZE);
--		if (ret != xpSuccess) {
--			XPC_DEACTIVATE_PARTITION(part, ret);
--			continue;
--		}
--
--		dev_dbg(xpc_part, "partid = %d, heartbeat = %ld, last_heartbeat"
--			" = %ld, heartbeat_offline = %ld, HB_mask[0] = 0x%lx\n",
--			partid, remote_vars->heartbeat, part->last_heartbeat,
--			remote_vars->heartbeat_offline,
--			remote_vars->heartbeating_to_mask[0]);
--
--		if (((remote_vars->heartbeat == part->last_heartbeat) &&
--		     (remote_vars->heartbeat_offline == 0)) ||
--		    !xpc_hb_allowed(sn_partition_id,
--				    &remote_vars->heartbeating_to_mask)) {
--
--			XPC_DEACTIVATE_PARTITION(part, xpNoHeartbeat);
--			continue;
--		}
-+	/* pull the remote vars structure that contains the heartbeat */
-+	ret = xp_remote_memcpy(xp_pa(remote_vars),
-+			       part->sn.sn2.remote_vars_pa,
-+			       XPC_RP_VARS_SIZE);
-+	if (ret != xpSuccess)
-+		return ret;
- 
-+	dev_dbg(xpc_part, "partid=%d, heartbeat=%ld, last_heartbeat=%ld, "
-+		"heartbeat_offline=%ld, HB_mask[0]=0x%lx\n", XPC_PARTID(part),
-+		remote_vars->heartbeat, part->last_heartbeat,
-+		remote_vars->heartbeat_offline,
-+		remote_vars->heartbeating_to_mask[0]);
++static void gbe_loadcmap(void)
++{
++	int i, j;
 +
-+	if ((remote_vars->heartbeat == part->last_heartbeat &&
-+	    remote_vars->heartbeat_offline == 0) ||
-+	    !xpc_hb_allowed(sn_partition_id,
-+			    &remote_vars->heartbeating_to_mask)) {
-+		ret = xpNoHeartbeat;
-+	} else {
- 		part->last_heartbeat = remote_vars->heartbeat;
- 	}
++	for (i = 0; i < 256; i++) {
++		for (j = 0; j < 1000 && gbe->cm_fifo >= 63; j++)
++			udelay(10);
++		if (j == 1000)
++			printk(KERN_ERR "gbefb: cmap FIFO timeout\n");
 +
-+	return ret;
++		gbe->cmap[i] = gbe_cmap[i];
++	}
  }
  
  /*
-@@ -2416,7 +2392,7 @@ xpc_init_sn2(void)
- 	xpc_online_heartbeat = xpc_online_heartbeat_sn2;
- 	xpc_heartbeat_init = xpc_heartbeat_init_sn2;
- 	xpc_heartbeat_exit = xpc_heartbeat_exit_sn2;
--	xpc_check_remote_hb = xpc_check_remote_hb_sn2;
-+	xpc_get_remote_heartbeat = xpc_get_remote_heartbeat_sn2;
+@@ -382,6 +402,7 @@ static int gbefb_blank(int blank, struct
+ 	switch (blank) {
+ 	case FB_BLANK_UNBLANK:		/* unblank */
+ 		gbe_turn_on();
++		gbe_loadcmap();
+ 		break;
  
- 	xpc_request_partition_activation = xpc_request_partition_activation_sn2;
- 	xpc_request_partition_reactivation =
+ 	case FB_BLANK_NORMAL:		/* blank */
+@@ -796,16 +817,10 @@ static int gbefb_set_par(struct fb_info 
+ 		gbe->gmap[i] = (i << 24) | (i << 16) | (i << 8);
+ 
+ 	/* Initialize the color map */
+-	for (i = 0; i < 256; i++) {
+-		int j;
+-
+-		for (j = 0; j < 1000 && gbe->cm_fifo >= 63; j++)
+-			udelay(10);
+-		if (j == 1000)
+-			printk(KERN_ERR "gbefb: cmap FIFO timeout\n");
++	for (i = 0; i < 256; i++)
++		gbe_cmap[i] = (i << 8) | (i << 16) | (i << 24);
+ 
+-		gbe->cmap[i] = (i << 8) | (i << 16) | (i << 24);
+-	}
++	gbe_loadcmap();
+ 
+ 	return 0;
+ }
+@@ -855,14 +870,17 @@ static int gbefb_setcolreg(unsigned regn
+ 	blue >>= 8;
+ 
+ 	if (info->var.bits_per_pixel <= 8) {
+-		/* wait for the color map FIFO to have a free entry */
+-		for (i = 0; i < 1000 && gbe->cm_fifo >= 63; i++)
+-			udelay(10);
+-		if (i == 1000) {
+-			printk(KERN_ERR "gbefb: cmap FIFO timeout\n");
+-			return 1;
++		gbe_cmap[regno] = (red << 24) | (green << 16) | (blue << 8);
++		if (gbe_turned_on) {
++			/* wait for the color map FIFO to have a free entry */
++			for (i = 0; i < 1000 && gbe->cm_fifo >= 63; i++)
++				udelay(10);
++			if (i == 1000) {
++				printk(KERN_ERR "gbefb: cmap FIFO timeout\n");
++				return 1;
++			}
++			gbe->cmap[regno] = gbe_cmap[regno];
+ 		}
+-		gbe->cmap[regno] = (red << 24) | (green << 16) | (blue << 8);
+ 	} else if (regno < 16) {
+ 		switch (info->var.bits_per_pixel) {
+ 		case 15:
 _
 
-Patches currently in -mm which might be from dcn@sgi.com are
+Patches currently in -mm which might be from tsbogend@alpha.franken.de are
 
 origin.patch
+linux-next.patch
 
