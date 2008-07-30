@@ -1,59 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - gru-driver-v3-hardware-data-structures-fix-fix.patch removed from -mm tree
-Date: Tue, 29 Jul 2008 22:26:35 -0700
-Message-ID: <200807300526.m6U5QZKt009064@imap1.linux-foundation.org>
+Subject: - sched-make-scheduler-sysfs-attributes-sysdev-class-devices-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 29 Jul 2008 22:26:05 -0700
+Message-ID: <200807300526.m6U5Q5tc009052@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52748 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50792 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751665AbYG3F1F (ORCPT
+	by vger.kernel.org with ESMTP id S1751550AbYG3F1H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 01:27:05 -0400
+	Wed, 30 Jul 2008 01:27:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, steiner@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@linux.intel.com, andi@firstfloor.org, drzeus-list@drzeus.cx, gregkh@suse.de, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gru-driver-v3-hardware-data-structures-fix-fix
+     sched-make-scheduler-sysfs-attributes-sysdev-class-devices-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     gru-driver-v3-hardware-data-structures-fix-fix.patch
+     sched-make-scheduler-sysfs-attributes-sysdev-class-devices-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into gru-driver-v3-hardware-data-structures.patch
+This patch was dropped because it was folded into sched-make-scheduler-sysfs-attributes-sysdev-class-devices.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru-driver-v3-hardware-data-structures-fix-fix
+Subject: sched-make-scheduler-sysfs-attributes-sysdev-class-devices-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Jack Steiner <steiner@sgi.com>
+ERROR: trailing whitespace
+#40: FILE: kernel/sched.c:7673:
++static SYSDEV_CLASS_ATTR(sched_mc_power_savings, 0644, $
+
+ERROR: code indent should use tabs where possible
+#42: FILE: kernel/sched.c:7675:
++^I^I         sched_mc_power_savings_store);$
+
+ERROR: trailing whitespace
+#61: FILE: kernel/sched.c:7689:
++static SYSDEV_CLASS_ATTR(sched_smt_power_savings, 0644, $
+
+total: 3 errors, 0 warnings, 45 lines checked
+
+./patches/sched-make-scheduler-sysfs-attributes-sysdev-class-devices.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Pierre Ossman <drzeus-list@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/hugetlbpage.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sched.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/ia64/mm/hugetlbpage.c~gru-driver-v3-hardware-data-structures-fix-fix arch/ia64/mm/hugetlbpage.c
---- a/arch/ia64/mm/hugetlbpage.c~gru-driver-v3-hardware-data-structures-fix-fix
-+++ a/arch/ia64/mm/hugetlbpage.c
-@@ -13,7 +13,7 @@
- #include <linux/mm.h>
- #include <linux/hugetlb.h>
- #include <linux/pagemap.h>
--#include <linux/modulel.h>
-+#include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/sysctl.h>
- #include <linux/log2.h>
+diff -puN kernel/sched.c~sched-make-scheduler-sysfs-attributes-sysdev-class-devices-checkpatch-fixes kernel/sched.c
+--- a/kernel/sched.c~sched-make-scheduler-sysfs-attributes-sysdev-class-devices-checkpatch-fixes
++++ a/kernel/sched.c
+@@ -7681,9 +7681,9 @@ static ssize_t sched_mc_power_savings_st
+ {
+ 	return sched_power_savings_store(buf, count, 0);
+ }
+-static SYSDEV_CLASS_ATTR(sched_mc_power_savings, 0644, 
++static SYSDEV_CLASS_ATTR(sched_mc_power_savings, 0644,
+ 			 sched_mc_power_savings_show,
+-		         sched_mc_power_savings_store);
++			 sched_mc_power_savings_store);
+ #endif
+ 
+ #ifdef CONFIG_SCHED_SMT
+@@ -7697,7 +7697,7 @@ static ssize_t sched_smt_power_savings_s
+ {
+ 	return sched_power_savings_store(buf, count, 1);
+ }
+-static SYSDEV_CLASS_ATTR(sched_smt_power_savings, 0644, 
++static SYSDEV_CLASS_ATTR(sched_smt_power_savings, 0644,
+ 		   sched_smt_power_savings_show,
+ 		   sched_smt_power_savings_store);
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 connector-add-a-blackboard-user-to-connector.patch
 sched-make-scheduler-sysfs-attributes-sysdev-class-devices.patch
-gru-driver-v3-hardware-data-structures.patch
+sched-make-scheduler-sysfs-attributes-sysdev-class-devices-checkpatch-fixes.patch
+gru-driver-v3-hardware-data-structures-fix.patch
 gru-driver-v3-hardware-data-structures-fix-fix.patch
 gru-driver-v3-fixes-to-resolve-code-review-comments-checkpatch-fixes.patch
 seq_file-fix-bug-when-seq_read-reads-nothing.patch
