@@ -1,153 +1,350 @@
 From: akpm@linux-foundation.org
-Subject: - omfs-sparse-annotations.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:15:27 -0700
-Message-ID: <200807301915.m6UJFRRX011025@imap1.linux-foundation.org>
+Subject: - gru-driver-v3-fixes-to-resolve-code-review-comments.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:16:15 -0700
+Message-ID: <200807301916.m6UJGFVr011109@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60233 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56167 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753684AbYG3TYo (ORCPT
+	by vger.kernel.org with ESMTP id S1754848AbYG3TYh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:24:44 -0400
+	Wed, 30 Jul 2008 15:24:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, me@bobcopeland.com, mm-commits@vger.kernel.org
+To: steiner@sgi.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     omfs: sparse annotations
+     GRU Driver V3: fixes to resolve code review comments
 has been removed from the -mm tree.  Its filename was
-     omfs-sparse-annotations.patch
+     gru-driver-v3-fixes-to-resolve-code-review-comments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omfs: sparse annotations
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: GRU Driver V3: fixes to resolve code review comments
+From: Jack Steiner <steiner@sgi.com>
 
-Missing cpu_to_be64 on some constant assignments.
-fs/omfs/dir.c:107:16: warning: incorrect type in assignment (different base types)
-fs/omfs/dir.c:107:16:    expected restricted __be64 [usertype] i_sibling
-fs/omfs/dir.c:107:16:    got unsigned long long
-fs/omfs/file.c:33:13: warning: incorrect type in assignment (different base types)
-fs/omfs/file.c:33:13:    expected restricted __be64 [usertype] e_next
-fs/omfs/file.c:33:13:    got unsigned long long
-fs/omfs/file.c:36:24: warning: incorrect type in assignment (different base types)
-fs/omfs/file.c:36:24:    expected restricted __be64 [usertype] e_cluster
-fs/omfs/file.c:36:24:    got unsigned long long
-fs/omfs/file.c:37:23: warning: incorrect type in assignment (different base types)
-fs/omfs/file.c:37:23:    expected restricted __be64 [usertype] e_blocks
-fs/omfs/file.c:37:23:    got unsigned long long
+Fixes problems identified in a code review:
+	- add comment with high level dscription of the GRU
+	- prepend "gru_" to all global names
+	- delete unused function
+	- couple of trivial bug fixes
 
-fs/omfs/bitmap.c:74:18: warning: incorrect type in argument 2 (different signedness)
-fs/omfs/bitmap.c:74:18:    expected unsigned long volatile *addr
-fs/omfs/bitmap.c:74:18:    got long *<noident>
-fs/omfs/bitmap.c:77:20: warning: incorrect type in argument 2 (different signedness)
-fs/omfs/bitmap.c:77:20:    expected unsigned long volatile *addr
-fs/omfs/bitmap.c:77:20:    got long *<noident>
-fs/omfs/bitmap.c:112:17: warning: incorrect type in argument 2 (different signedness)
-fs/omfs/bitmap.c:112:17:    expected unsigned long volatile *addr
-fs/omfs/bitmap.c:112:17:    got long *<noident>
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Acked-by: Bob Copeland <me@bobcopeland.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Jack Steiner <steiner@sgi.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/omfs/bitmap.c |    6 +++---
- fs/omfs/dir.c    |    2 +-
- fs/omfs/file.c   |    6 +++---
- 3 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/misc/sgi-gru/gru_instructions.h |   10 --
+ drivers/misc/sgi-gru/grufile.c          |    8 +-
+ drivers/misc/sgi-gru/grukservices.c     |    6 -
+ drivers/misc/sgi-gru/grumain.c          |   16 ++--
+ drivers/misc/sgi-gru/gruprocfs.c        |    4 -
+ drivers/misc/sgi-gru/grutables.h        |   74 ++++++++++++++++++++--
+ drivers/misc/sgi-gru/grutlbpurge.c      |    4 -
+ 7 files changed, 93 insertions(+), 29 deletions(-)
 
-diff -puN fs/omfs/bitmap.c~omfs-sparse-annotations fs/omfs/bitmap.c
---- a/fs/omfs/bitmap.c~omfs-sparse-annotations
-+++ a/fs/omfs/bitmap.c
-@@ -71,10 +71,10 @@ static int set_run(struct super_block *s
- 		}
- 		if (set) {
- 			set_bit(bit, sbi->s_imap[map]);
--			set_bit(bit, (long *) bh->b_data);
-+			set_bit(bit, (unsigned long *)bh->b_data);
- 		} else {
- 			clear_bit(bit, sbi->s_imap[map]);
--			clear_bit(bit, (long *) bh->b_data);
-+			clear_bit(bit, (unsigned long *)bh->b_data);
- 		}
- 	}
- 	mark_buffer_dirty(bh);
-@@ -109,7 +109,7 @@ int omfs_allocate_block(struct super_blo
- 		if (!bh)
- 			goto out;
- 
--		set_bit(bit, (long *) bh->b_data);
-+		set_bit(bit, (unsigned long *)bh->b_data);
- 		mark_buffer_dirty(bh);
- 		brelse(bh);
- 	}
-diff -puN fs/omfs/dir.c~omfs-sparse-annotations fs/omfs/dir.c
---- a/fs/omfs/dir.c~omfs-sparse-annotations
-+++ a/fs/omfs/dir.c
-@@ -104,7 +104,7 @@ int omfs_make_empty(struct inode *inode,
- 
- 	oi = (struct omfs_inode *) bh->b_data;
- 	oi->i_head.h_self = cpu_to_be64(inode->i_ino);
--	oi->i_sibling = ~0ULL;
-+	oi->i_sibling = ~cpu_to_be64(0ULL);
- 
- 	mark_buffer_dirty(bh);
- 	brelse(bh);
-diff -puN fs/omfs/file.c~omfs-sparse-annotations fs/omfs/file.c
---- a/fs/omfs/file.c~omfs-sparse-annotations
-+++ a/fs/omfs/file.c
-@@ -30,11 +30,11 @@ void omfs_make_empty_table(struct buffer
- {
- 	struct omfs_extent *oe = (struct omfs_extent *) &bh->b_data[offset];
- 
--	oe->e_next = ~0ULL;
-+	oe->e_next = ~cpu_to_be64(0ULL);
- 	oe->e_extent_count = cpu_to_be32(1),
- 	oe->e_fill = cpu_to_be32(0x22),
--	oe->e_entry.e_cluster = ~0ULL;
--	oe->e_entry.e_blocks = ~0ULL;
-+	oe->e_entry.e_cluster = ~cpu_to_be64(0ULL);
-+	oe->e_entry.e_blocks = ~cpu_to_be64(0ULL);
+diff -puN drivers/misc/sgi-gru/gru_instructions.h~gru-driver-v3-fixes-to-resolve-code-review-comments drivers/misc/sgi-gru/gru_instructions.h
+--- a/drivers/misc/sgi-gru/gru_instructions.h~gru-driver-v3-fixes-to-resolve-code-review-comments
++++ a/drivers/misc/sgi-gru/gru_instructions.h
+@@ -285,16 +285,6 @@ __opword(unsigned char opcode, unsigned 
  }
  
- int omfs_shrink_inode(struct inode *inode)
+ /*
+- * Prefetch a cacheline. Fetch is unconditional. Must page fault if
+- * no valid TLB entry is found.
+- * 	??? should I use actual "load" or hardware prefetch???
+- */
+-static inline void gru_prefetch(void *p)
+-{
+-	*(volatile char *)p;
+-}
+-
+-/*
+  * Architecture specific intrinsics
+  */
+ static inline void gru_flush_cache(void *p)
+diff -puN drivers/misc/sgi-gru/grufile.c~gru-driver-v3-fixes-to-resolve-code-review-comments drivers/misc/sgi-gru/grufile.c
+--- a/drivers/misc/sgi-gru/grufile.c~gru-driver-v3-fixes-to-resolve-code-review-comments
++++ a/drivers/misc/sgi-gru/grufile.c
+@@ -112,6 +112,10 @@ static int gru_file_mmap(struct file *fi
+ 	if ((vma->vm_flags & (VM_SHARED | VM_WRITE)) != (VM_SHARED | VM_WRITE))
+ 		return -EPERM;
+ 
++	if (vma->vm_start & (GRU_GSEG_PAGESIZE - 1) ||
++			vma->vm_end & (GRU_GSEG_PAGESIZE - 1))
++		return -EINVAL;
++
+ 	vma->vm_flags |=
+ 	    (VM_IO | VM_DONTCOPY | VM_LOCKED | VM_DONTEXPAND | VM_PFNMAP |
+ 			VM_RESERVED);
+@@ -471,8 +475,8 @@ struct vm_operations_struct gru_vm_ops =
+ module_init(gru_init);
+ module_exit(gru_exit);
+ 
+-module_param(options, ulong, 0644);
+-MODULE_PARM_DESC(options, "Various debug options");
++module_param(gru_options, ulong, 0644);
++MODULE_PARM_DESC(gru_options, "Various debug options");
+ 
+ MODULE_AUTHOR("Silicon Graphics, Inc.");
+ MODULE_LICENSE("GPL");
+diff -puN drivers/misc/sgi-gru/grukservices.c~gru-driver-v3-fixes-to-resolve-code-review-comments drivers/misc/sgi-gru/grukservices.c
+--- a/drivers/misc/sgi-gru/grukservices.c~gru-driver-v3-fixes-to-resolve-code-review-comments
++++ a/drivers/misc/sgi-gru/grukservices.c
+@@ -638,11 +638,11 @@ int gru_kservices_init(struct gru_state 
+ 	cpus_possible = uv_blade_nr_possible_cpus(gru->gs_blade_id);
+ 
+ 	num = GRU_NUM_KERNEL_CBR * cpus_possible;
+-	cbr_map = reserve_gru_cb_resources(gru, GRU_CB_COUNT_TO_AU(num), NULL);
++	cbr_map = gru_reserve_cb_resources(gru, GRU_CB_COUNT_TO_AU(num), NULL);
+ 	gru->gs_reserved_cbrs += num;
+ 
+ 	num = GRU_NUM_KERNEL_DSR_BYTES * cpus_possible;
+-	dsr_map = reserve_gru_ds_resources(gru, GRU_DS_BYTES_TO_AU(num), NULL);
++	dsr_map = gru_reserve_ds_resources(gru, GRU_DS_BYTES_TO_AU(num), NULL);
+ 	gru->gs_reserved_dsr_bytes += num;
+ 
+ 	gru->gs_active_contexts++;
+@@ -673,7 +673,7 @@ int gru_kservices_init(struct gru_state 
+ 	}
+ 	unlock_cch_handle(cch);
+ 
+-	if (options & GRU_QUICKLOOK)
++	if (gru_options & GRU_QUICKLOOK)
+ 		quicktest(gru);
+ 	return 0;
+ }
+diff -puN drivers/misc/sgi-gru/grumain.c~gru-driver-v3-fixes-to-resolve-code-review-comments drivers/misc/sgi-gru/grumain.c
+--- a/drivers/misc/sgi-gru/grumain.c~gru-driver-v3-fixes-to-resolve-code-review-comments
++++ a/drivers/misc/sgi-gru/grumain.c
+@@ -22,7 +22,7 @@
+ #include "grutables.h"
+ #include "gruhandles.h"
+ 
+-unsigned long options __read_mostly;
++unsigned long gru_options __read_mostly;
+ 
+ static struct device_driver gru_driver = {
+ 	.name = "gru"
+@@ -163,14 +163,14 @@ static unsigned long reserve_resources(u
+ 	return bits;
+ }
+ 
+-unsigned long reserve_gru_cb_resources(struct gru_state *gru, int cbr_au_count,
++unsigned long gru_reserve_cb_resources(struct gru_state *gru, int cbr_au_count,
+ 				       char *cbmap)
+ {
+ 	return reserve_resources(&gru->gs_cbr_map, cbr_au_count, GRU_CBR_AU,
+ 				 cbmap);
+ }
+ 
+-unsigned long reserve_gru_ds_resources(struct gru_state *gru, int dsr_au_count,
++unsigned long gru_reserve_ds_resources(struct gru_state *gru, int dsr_au_count,
+ 				       char *dsmap)
+ {
+ 	return reserve_resources(&gru->gs_dsr_map, dsr_au_count, GRU_DSR_AU,
+@@ -182,10 +182,10 @@ static void reserve_gru_resources(struct
+ {
+ 	gru->gs_active_contexts++;
+ 	gts->ts_cbr_map =
+-	    reserve_gru_cb_resources(gru, gts->ts_cbr_au_count,
++	    gru_reserve_cb_resources(gru, gts->ts_cbr_au_count,
+ 				     gts->ts_cbr_idx);
+ 	gts->ts_dsr_map =
+-	    reserve_gru_ds_resources(gru, gts->ts_dsr_au_count, NULL);
++	    gru_reserve_ds_resources(gru, gts->ts_dsr_au_count, NULL);
+ }
+ 
+ static void free_gru_resources(struct gru_state *gru,
+@@ -416,6 +416,7 @@ static void gru_free_gru_context(struct 
+ 
+ /*
+  * Prefetching cachelines help hardware performance.
++ * (Strictly a performance enhancement. Not functionally required).
+  */
+ static void prefetch_data(void *p, int num, int stride)
+ {
+@@ -746,6 +747,8 @@ again:
+  * gru_nopage
+  *
+  * Map the user's GRU segment
++ *
++ * 	Note: gru segments alway mmaped on GRU_GSEG_PAGESIZE boundaries.
+  */
+ int gru_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+@@ -757,6 +760,7 @@ int gru_fault(struct vm_area_struct *vma
+ 		vma, vaddr, GSEG_BASE(vaddr));
+ 	STAT(nopfn);
+ 
++	/* The following check ensures vaddr is a valid address in the VMA */
+ 	gts = gru_find_thread_state(vma, TSID(vaddr, vma));
+ 	if (!gts)
+ 		return VM_FAULT_SIGBUS;
+@@ -775,7 +779,7 @@ again:
+ 	}
+ 
+ 	if (!gts->ts_gru) {
+-		while (!gru_assign_gru_context(gts)) {
++		if (!gru_assign_gru_context(gts)) {
+ 			mutex_unlock(&gts->ts_ctxlock);
+ 			preempt_enable();
+ 			schedule_timeout(GRU_ASSIGN_DELAY);  /* true hack ZZZ */
+diff -puN drivers/misc/sgi-gru/gruprocfs.c~gru-driver-v3-fixes-to-resolve-code-review-comments drivers/misc/sgi-gru/gruprocfs.c
+--- a/drivers/misc/sgi-gru/gruprocfs.c~gru-driver-v3-fixes-to-resolve-code-review-comments
++++ a/drivers/misc/sgi-gru/gruprocfs.c
+@@ -122,7 +122,7 @@ static ssize_t statistics_write(struct f
+ 
+ static int options_show(struct seq_file *s, void *p)
+ {
+-	seq_printf(s, "0x%lx\n", options);
++	seq_printf(s, "0x%lx\n", gru_options);
+ 	return 0;
+ }
+ 
+@@ -136,7 +136,7 @@ static ssize_t options_write(struct file
+ 	    (buf, userbuf, count < sizeof(buf) ? count : sizeof(buf)))
+ 		return -EFAULT;
+ 	if (!strict_strtoul(buf, 10, &val))
+-		options = val;
++		gru_options = val;
+ 
+ 	return count;
+ }
+diff -puN drivers/misc/sgi-gru/grutables.h~gru-driver-v3-fixes-to-resolve-code-review-comments drivers/misc/sgi-gru/grutables.h
+--- a/drivers/misc/sgi-gru/grutables.h~gru-driver-v3-fixes-to-resolve-code-review-comments
++++ a/drivers/misc/sgi-gru/grutables.h
+@@ -24,6 +24,70 @@
+ #define __GRUTABLES_H__
+ 
+ /*
++ * GRU Chiplet:
++ *   The GRU is a user addressible memory accelerator. It provides
++ *   several forms of load, store, memset, bcopy instructions. In addition, it
++ *   contains special instructions for AMOs, sending messages to message
++ *   queues, etc.
++ *
++ *   The GRU is an integral part of the node controller. It connects
++ *   directly to the cpu socket. In its current implementation, there are 2
++ *   GRU chiplets in the node controller on each blade (~node).
++ *
++ *   The entire GRU memory space is fully coherent and cacheable by the cpus.
++ *
++ *   Each GRU chiplet has a physical memory map that looks like the following:
++ *
++ *   	+-----------------+
++ *   	|/////////////////|
++ *   	|/////////////////|
++ *   	|/////////////////|
++ *   	|/////////////////|
++ *   	|/////////////////|
++ *   	|/////////////////|
++ *   	|/////////////////|
++ *   	|/////////////////|
++ *   	+-----------------+
++ *   	|  system control |
++ *   	+-----------------+        _______ +-------------+
++ *   	|/////////////////|       /        |             |
++ *   	|/////////////////|      /         |             |
++ *   	|/////////////////|     /          | instructions|
++ *   	|/////////////////|    /           |             |
++ *   	|/////////////////|   /            |             |
++ *   	|/////////////////|  /             |-------------|
++ *   	|/////////////////| /              |             |
++ *   	+-----------------+                |             |
++ *   	|   context 15    |                |  data       |
++ *   	+-----------------+                |             |
++ *   	|    ......       | \              |             |
++ *   	+-----------------+  \____________ +-------------+
++ *   	|   context 1     |
++ *   	+-----------------+
++ *   	|   context 0     |
++ *   	+-----------------+
++ *
++ *   Each of the "contexts" is a chunk of memory that can be mmaped into user
++ *   space. The context consists of 2 parts:
++ *
++ *  	- an instruction space that can be directly accessed by the user
++ *  	  to issue GRU instructions and to check instruction status.
++ *
++ *  	- a data area that acts as normal RAM.
++ *
++ *   User instructions contain virtual addresses of data to be accessed by the
++ *   GRU. The GRU contains a TLB that is used to convert these user virtual
++ *   addresses to physical addresses.
++ *
++ *   The "system control" area of the GRU chiplet is used by the kernel driver
++ *   to manage user contexts and to perform functions such as TLB dropin and
++ *   purging.
++ *
++ *   One context may be reserved for the kernel and used for cross-partition
++ *   communication. The GRU will also be used to asynchronously zero out
++ *   large blocks of memory (not currently implemented).
++ *
++ *
+  * Tables:
+  *
+  * 	VDATA-VMA Data		- Holds a few parameters. Head of linked list of
+@@ -190,14 +254,14 @@ struct gru_stats_s {
+ #define GRU_STEAL_DELAY		((HZ * 200) / 1000)
+ 
+ #define STAT(id)	do {						\
+-				if (options & OPT_STATS)		\
++				if (gru_options & OPT_STATS)		\
+ 					atomic_long_inc(&gru_stats.id);	\
+ 			} while (0)
+ 
+ #ifdef CONFIG_SGI_GRU_DEBUG
+ #define gru_dbg(dev, fmt, x...)						\
+ 	do {								\
+-		if (options & OPT_DPRINT)				\
++		if (gru_options & OPT_DPRINT)				\
+ 			dev_dbg(dev, "%s: " fmt, __func__, x);		\
+ 	} while (0)
+ #else
+@@ -529,9 +593,9 @@ extern void gru_flush_all_tlb(struct gru
+ extern int gru_proc_init(void);
+ extern void gru_proc_exit(void);
+ 
+-extern unsigned long reserve_gru_cb_resources(struct gru_state *gru,
++extern unsigned long gru_reserve_cb_resources(struct gru_state *gru,
+ 		int cbr_au_count, char *cbmap);
+-extern unsigned long reserve_gru_ds_resources(struct gru_state *gru,
++extern unsigned long gru_reserve_ds_resources(struct gru_state *gru,
+ 		int dsr_au_count, char *dsmap);
+ extern int gru_fault(struct vm_area_struct *, struct vm_fault *vmf);
+ extern struct gru_mm_struct *gru_register_mmu_notifier(void);
+@@ -540,6 +604,6 @@ extern void gru_drop_mmu_notifier(struct
+ extern void gru_flush_tlb_range(struct gru_mm_struct *gms, unsigned long start,
+ 					unsigned long len);
+ 
+-extern unsigned long options;
++extern unsigned long gru_options;
+ 
+ #endif /* __GRUTABLES_H__ */
+diff -puN drivers/misc/sgi-gru/grutlbpurge.c~gru-driver-v3-fixes-to-resolve-code-review-comments drivers/misc/sgi-gru/grutlbpurge.c
+--- a/drivers/misc/sgi-gru/grutlbpurge.c~gru-driver-v3-fixes-to-resolve-code-review-comments
++++ a/drivers/misc/sgi-gru/grutlbpurge.c
+@@ -242,7 +242,9 @@ static void gru_invalidate_range_end(str
+ 	struct gru_mm_struct *gms = container_of(mn, struct gru_mm_struct,
+ 						 ms_notifier);
+ 
+-	atomic_dec(&gms->ms_range_active);
++	/* ..._and_test() provides needed barrier */
++	(void)atomic_dec_and_test(&gms->ms_range_active);
++
+ 	wake_up_all(&gms->ms_wait_queue);
+ 	gru_dbg(grudev, "gms %p, start 0x%lx, end 0x%lx\n", gms, start, end);
+ }
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from steiner@sgi.com are
 
 origin.patch
 linux-next.patch
-cifs-remove-global_extern-macro.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-powerpc-replace-__function__-with-__func__.patch
-powerpc-replace-__function__-with-__func__-checkpatch-fixes.patch
-v4l-drx397xdc-sparse-annotations.patch
-v4l-drx397xdc-replace-__function__-occurrences.patch
-input-ads7846c-sparse-lock-annotation.patch
-mtd-diskonchipc-fix-sparse-endian-warnings.patch
-net-use-the-common-ascii-hex-helpers.patch
-irda-replace-__function__-with-__func__.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-drivers-net-replace-__function__-with-__func__.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-wireless-replace-__function__-with-__func__.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-include-replace-__function__-with-__func__.patch
-misc-replace-__function__-with-__func__.patch
-befs-annotate-fs32-on-tests-for-superblock-endianness.patch
-byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
 
