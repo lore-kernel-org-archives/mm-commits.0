@@ -1,237 +1,240 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-fix-formatting-of-dbg_pnp_show_resources-output.patch added to -mm tree
-Date: Wed, 30 Jul 2008 11:22:26 -0700
-Message-ID: <200807301822.m6UIMQI2008695@imap1.linux-foundation.org>
+Subject: - linux-next-rejects.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:04:37 -0700
+Message-ID: <200807301904.m6UJ4c8Q010479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46081 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38506 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754415AbYG3SWo (ORCPT
+	by vger.kernel.org with ESMTP id S1753994AbYG3TEk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 14:22:44 -0400
+	Wed, 30 Jul 2008 15:04:40 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6UJ4cji020809
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2008 12:04:39 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, clem@clem.clem-digital.net, rene.herman@keyaccess.nl
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PNP: fix formatting of dbg_pnp_show_resources() output
-has been added to the -mm tree.  Its filename is
-     pnp-fix-formatting-of-dbg_pnp_show_resources-output.patch
+     linux-next-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PNP: fix formatting of dbg_pnp_show_resources() output
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: linux-next-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Each resource should be printed on its own line, so start snprintf'ing
-at the beginning of the buffer every time through the loop.
-
-Also, use scnprintf() rather than snprintf() when building up the
-buffer to print.  scnprintf() returns the number of characters actually
-written into the buffer (not including the trailing NULL).
-
-snprintf() returns the number of characters that *would be* written,
-assuming everything would fit in the buffer.  That's nice if we want to
-resize the buffer to make sure everything fits, but in this case, I
-just want to keep from overflowing the buffer, and it's OK if the
-output is truncated.
-
-Using snprintf() meant that my "len" could grow to be more than the
-the buffer size, which makes "sizeof(buf) - len" negative, which causes
-this alarming WARN_ON:
-    http://marc.info/?l=linux-kernel&m=121736480005656&w=2
-
-More useful snprintf/scnprintf discussion:
-    http://lwn.net/Articles/69419/
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Reported-by: Pete Clements <clem@clem.clem-digital.net>
-Cc: Rene Herman <rene.herman@keyaccess.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/support.c |   96 ++++++++++++++++++++--------------------
- 1 file changed, 49 insertions(+), 47 deletions(-)
+ arch/x86/kernel/genapic_64.c |   84 ++++++++++-----------------------
+ 1 file changed, 27 insertions(+), 57 deletions(-)
 
-diff -puN drivers/pnp/support.c~pnp-fix-formatting-of-dbg_pnp_show_resources-output drivers/pnp/support.c
---- a/drivers/pnp/support.c~pnp-fix-formatting-of-dbg_pnp_show_resources-output
-+++ a/drivers/pnp/support.c
-@@ -77,7 +77,7 @@ void dbg_pnp_show_resources(struct pnp_d
+diff -puN drivers/media/dvb/ttpci/Kconfig~linux-next-rejects drivers/media/dvb/ttpci/Kconfig
+diff -puN include/linux/stop_machine.h~linux-next-rejects include/linux/stop_machine.h
+diff -puN kernel/stop_machine.c~linux-next-rejects kernel/stop_machine.c
+diff -puN arch/x86/kernel/genapic_64.c~linux-next-rejects arch/x86/kernel/genapic_64.c
+--- a/arch/x86/kernel/genapic_64.c~linux-next-rejects
++++ a/arch/x86/kernel/genapic_64.c
+@@ -21,82 +21,52 @@
+ #include <asm/ipi.h>
+ #include <asm/genapic.h>
+ 
+-#ifdef CONFIG_ACPI
+-#include <acpi/acpi_bus.h>
+-#endif
+-
+-DEFINE_PER_CPU(int, x2apic_extra_bits);
++extern struct genapic apic_flat;
++extern struct genapic apic_physflat;
++extern struct genapic apic_x2xpic_uv_x;
++extern struct genapic apic_x2apic_phys;
++extern struct genapic apic_x2apic_cluster;
+ 
+ struct genapic __read_mostly *genapic = &apic_flat;
+ 
+-static enum uv_system_type uv_system_type;
++static struct genapic *apic_probe[] __initdata = {
++	&apic_x2apic_uv_x,
++	&apic_x2apic_phys,
++	&apic_x2apic_cluster,
++	&apic_physflat,
++	NULL,
++};
+ 
+ /*
+  * Check the APIC IDs in bios_cpu_apicid and choose the APIC mode.
+  */
+ void __init setup_apic_routing(void)
  {
- #ifdef DEBUG
- 	char buf[128];
--	int len = 0;
-+	int len;
- 	struct pnp_resource *pnp_res;
- 	struct resource *res;
+-	if (uv_system_type == UV_NON_UNIQUE_APIC)
+-		genapic = &apic_x2apic_uv_x;
+-	else
+-#ifdef CONFIG_ACPI
+-	/*
+-	 * Quirk: some x86_64 machines can only use physical APIC mode
+-	 * regardless of how many processors are present (x86_64 ES7000
+-	 * is an example).
+-	 */
+-	if (acpi_gbl_FADT.header.revision > FADT2_REVISION_ID &&
+-			(acpi_gbl_FADT.flags & ACPI_FADT_APIC_PHYSICAL))
+-		genapic = &apic_physflat;
+-	else
+-#endif
+-
+-	if (max_physical_apicid < 8)
+-		genapic = &apic_flat;
+-	else
+-		genapic = &apic_physflat;
+-
+-	printk(KERN_INFO "Setting APIC routing to %s\n", genapic->name);
++	if (genapic == &apic_flat) {
++		if (max_physical_apicid >= 8)
++			genapic = &apic_physflat;
++		printk(KERN_INFO "Setting APIC routing to %s\n", genapic->name);
++	}
+ }
  
-@@ -89,9 +89,10 @@ void dbg_pnp_show_resources(struct pnp_d
- 	dev_dbg(&dev->dev, "%s: current resources:\n", desc);
- 	list_for_each_entry(pnp_res, &dev->resources, list) {
- 		res = &pnp_res->res;
-+		len = 0;
+ /* Same for both flat and physical. */
  
--		len += snprintf(buf + len, sizeof(buf) - len, "  %-3s ",
--				pnp_resource_type_name(res));
-+		len += scnprintf(buf + len, sizeof(buf) - len, "  %-3s ",
-+				 pnp_resource_type_name(res));
+-void send_IPI_self(int vector)
++void apic_send_IPI_self(int vector)
+ {
+ 	__send_IPI_shortcut(APIC_DEST_SELF, vector, APIC_DEST_PHYSICAL);
+ }
  
- 		if (res->flags & IORESOURCE_DISABLED) {
- 			dev_dbg(&dev->dev, "%sdisabled\n", buf);
-@@ -101,18 +102,18 @@ void dbg_pnp_show_resources(struct pnp_d
- 		switch (pnp_resource_type(res)) {
- 		case IORESOURCE_IO:
- 		case IORESOURCE_MEM:
--			len += snprintf(buf + len, sizeof(buf) - len,
--					"%#llx-%#llx flags %#lx",
--					(unsigned long long) res->start,
--					(unsigned long long) res->end,
--					res->flags);
-+			len += scnprintf(buf + len, sizeof(buf) - len,
-+					 "%#llx-%#llx flags %#lx",
-+					 (unsigned long long) res->start,
-+					 (unsigned long long) res->end,
-+					 res->flags);
- 			break;
- 		case IORESOURCE_IRQ:
- 		case IORESOURCE_DMA:
--			len += snprintf(buf + len, sizeof(buf) - len,
--					"%lld flags %#lx",
--					(unsigned long long) res->start,
--					res->flags);
-+			len += scnprintf(buf + len, sizeof(buf) - len,
-+					 "%lld flags %#lx",
-+					 (unsigned long long) res->start,
-+					 res->flags);
- 			break;
- 		}
- 		dev_dbg(&dev->dev, "%s\n", buf);
-@@ -144,66 +145,67 @@ void dbg_pnp_show_option(struct pnp_dev 
- 	struct pnp_dma *dma;
- 
- 	if (pnp_option_is_dependent(option))
--		len += snprintf(buf + len, sizeof(buf) - len,
--				"  dependent set %d (%s) ",
--				pnp_option_set(option),
--				pnp_option_priority_name(option));
-+		len += scnprintf(buf + len, sizeof(buf) - len,
-+				 "  dependent set %d (%s) ",
-+				 pnp_option_set(option),
-+				 pnp_option_priority_name(option));
- 	else
--		len += snprintf(buf + len, sizeof(buf) - len, "  independent ");
-+		len += scnprintf(buf + len, sizeof(buf) - len,
-+				 "  independent ");
- 
- 	switch (option->type) {
- 	case IORESOURCE_IO:
- 		port = &option->u.port;
--		len += snprintf(buf + len, sizeof(buf) - len, "io  min %#llx "
--				"max %#llx align %lld size %lld flags %#x",
--				(unsigned long long) port->min,
--				(unsigned long long) port->max,
--				(unsigned long long) port->align,
--				(unsigned long long) port->size, port->flags);
-+		len += scnprintf(buf + len, sizeof(buf) - len, "io  min %#llx "
-+				 "max %#llx align %lld size %lld flags %#x",
-+				 (unsigned long long) port->min,
-+				 (unsigned long long) port->max,
-+				 (unsigned long long) port->align,
-+				 (unsigned long long) port->size, port->flags);
- 		break;
- 	case IORESOURCE_MEM:
- 		mem = &option->u.mem;
--		len += snprintf(buf + len, sizeof(buf) - len, "mem min %#llx "
--				"max %#llx align %lld size %lld flags %#x",
--				(unsigned long long) mem->min,
--				(unsigned long long) mem->max,
--				(unsigned long long) mem->align,
--				(unsigned long long) mem->size, mem->flags);
-+		len += scnprintf(buf + len, sizeof(buf) - len, "mem min %#llx "
-+				 "max %#llx align %lld size %lld flags %#x",
-+				 (unsigned long long) mem->min,
-+				 (unsigned long long) mem->max,
-+				 (unsigned long long) mem->align,
-+				 (unsigned long long) mem->size, mem->flags);
- 		break;
- 	case IORESOURCE_IRQ:
- 		irq = &option->u.irq;
--		len += snprintf(buf + len, sizeof(buf) - len, "irq");
-+		len += scnprintf(buf + len, sizeof(buf) - len, "irq");
- 		if (bitmap_empty(irq->map.bits, PNP_IRQ_NR))
--			len += snprintf(buf + len, sizeof(buf) - len,
--					" <none>");
-+			len += scnprintf(buf + len, sizeof(buf) - len,
-+					 " <none>");
- 		else {
- 			for (i = 0; i < PNP_IRQ_NR; i++)
- 				if (test_bit(i, irq->map.bits))
--					len += snprintf(buf + len,
--							sizeof(buf) - len,
--							" %d", i);
-+					len += scnprintf(buf + len,
-+							 sizeof(buf) - len,
-+							 " %d", i);
- 		}
--		len += snprintf(buf + len, sizeof(buf) - len, " flags %#x",
--				irq->flags);
-+		len += scnprintf(buf + len, sizeof(buf) - len, " flags %#x",
-+				 irq->flags);
- 		if (irq->flags & IORESOURCE_IRQ_OPTIONAL)
--			len += snprintf(buf + len, sizeof(buf) - len,
--					" (optional)");
-+			len += scnprintf(buf + len, sizeof(buf) - len,
-+					 " (optional)");
- 		break;
- 	case IORESOURCE_DMA:
- 		dma = &option->u.dma;
--		len += snprintf(buf + len, sizeof(buf) - len, "dma");
-+		len += scnprintf(buf + len, sizeof(buf) - len, "dma");
- 		if (!dma->map)
--			len += snprintf(buf + len, sizeof(buf) - len,
--					" <none>");
-+			len += scnprintf(buf + len, sizeof(buf) - len,
-+					 " <none>");
- 		else {
- 			for (i = 0; i < 8; i++)
- 				if (dma->map & (1 << i))
--					len += snprintf(buf + len,
--							sizeof(buf) - len,
--							" %d", i);
-+					len += scnprintf(buf + len,
-+							 sizeof(buf) - len,
-+							 " %d", i);
- 		}
--		len += snprintf(buf + len, sizeof(buf) - len, " (bitmask %#x) "
--				"flags %#x", dma->map, dma->flags);
-+		len += scnprintf(buf + len, sizeof(buf) - len, " (bitmask %#x) "
-+				 "flags %#x", dma->map, dma->flags);
- 		break;
+ int __init acpi_madt_oem_check(char *oem_id, char *oem_table_id)
+ {
+-	if (!strcmp(oem_id, "SGI")) {
+-		if (!strcmp(oem_table_id, "UVL"))
+-			uv_system_type = UV_LEGACY_APIC;
+-		else if (!strcmp(oem_table_id, "UVX"))
+-			uv_system_type = UV_X2APIC;
+-		else if (!strcmp(oem_table_id, "UVH"))
+-			uv_system_type = UV_NON_UNIQUE_APIC;
++	int i;
++
++	for (i = 0; apic_probe[i]; ++i) {
++		if (apic_probe[i]->acpi_madt_oem_check(oem_id, oem_table_id)) {
++			genapic = apic_probe[i];
++			printk(KERN_INFO "Setting APIC routing to %s.\n",
++				genapic->name);
++			return 1;
++		}
  	}
- 	dev_dbg(&dev->dev, "%s\n", buf);
+ 	return 0;
+ }
+-
+-unsigned int read_apic_id(void)
+-{
+-	unsigned int id;
+-
+-	WARN_ON(preemptible() && num_online_cpus() > 1);
+-	id = apic_read(APIC_ID);
+-	if (uv_system_type >= UV_X2APIC)
+-		id  |= __get_cpu_var(x2apic_extra_bits);
+-	return id;
+-}
+-
+-enum uv_system_type get_uv_system_type(void)
+-{
+-	return uv_system_type;
+-}
+-
+-int is_uv_system(void)
+-{
+-	return uv_system_type != UV_NONE;
+-}
+-EXPORT_SYMBOL_GPL(is_uv_system);
+diff -puN include/linux/semaphore.h~linux-next-rejects include/linux/semaphore.h
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-pnp-fix-formatting-of-dbg_pnp_show_resources-output.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-amd64-agp-run-fallback-when-no-bridges-found-not-when-driver-registration-fails.patch
-agp-use-dev_printk-when-possible.patch
+origin.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+linux-next.patch
+linux-next-rejects.patch
+next-remove-localversion.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+pci-make-pci_register_driver-a-macro.patch
+git-acpi.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+powerpc-replace-__function__-with-__func__-checkpatch-fixes.patch
+verify_dynamic_kobject_allocation-dont-use-kmalloc.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+git-kvm.patch
+git-mtd.patch
+drivers-mtd-nand-nandsimc-fix-printk-warnings.patch
+drivers-mtd-nand-fsl_elbc_nandc-fix-printk-warning.patch
+bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+git-nfsd.patch
+sched-type-fix.patch
+scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
+git-xtensa.patch
 drivers-telephony-ixjc-depends-on-pnp.patch
-firmware-use-dev_printk-when-possible.patch
-resources-tidy-__request_region.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works-comment.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+w1-feature-enable-hardware-strong-pullup-checkpatch-fixes.patch
+w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes.patch
+w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
