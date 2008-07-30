@@ -1,851 +1,784 @@
 From: akpm@linux-foundation.org
-Subject: - gru-driver-v3-resource-management.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:16:02 -0700
-Message-ID: <200807301916.m6UJG21f011081@imap1.linux-foundation.org>
+Subject: - sgi-xp-enable-building-of-xpc-xpnet-on-x86_64.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:17:04 -0700
+Message-ID: <200807301917.m6UJH4I5011186@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38793 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55351 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753145AbYG3T1u (ORCPT
+	by vger.kernel.org with ESMTP id S1754877AbYG3T2F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:27:50 -0400
+	Wed, 30 Jul 2008 15:28:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: steiner@sgi.com, hugh@veritas.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: dcn@sgi.com, steiner@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     GRU Driver: resource management
+     sgi-xp: enable building of XPC/XPNET on x86_64
 has been removed from the -mm tree.  Its filename was
-     gru-driver-v3-resource-management.patch
+     sgi-xp-enable-building-of-xpc-xpnet-on-x86_64.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: GRU Driver: resource management
-From: Jack Steiner <steiner@sgi.com>
+Subject: sgi-xp: enable building of XPC/XPNET on x86_64
+From: Dean Nelson <dcn@sgi.com>
 
-This file contains functions realted to managing GRU resources provided to
-the user.  Examples include GRU context assignment, load, unload,
-migration, etc..
+Get XPC/XPNET to build on x86_64.  Trying to modprobe them up on a non-UV
+or sn2 system will result in a -ENODEV.
 
-Signed-off-by: Jack Steiner <steiner@sgi.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Dean Nelson <dcn@sgi.com>
+Cc: Jack Steiner <steiner@sgi.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grumain.c |  798 +++++++++++++++++++++++++++++++
- 1 file changed, 798 insertions(+)
+ drivers/misc/Kconfig                |    2 -
+ drivers/misc/sgi-xp/Makefile        |   14 +++++--
+ drivers/misc/sgi-xp/xp.h            |   32 +++++++++++-----
+ drivers/misc/sgi-xp/xp_main.c       |   10 ++++-
+ drivers/misc/sgi-xp/xp_sn2.c        |   10 +++++
+ drivers/misc/sgi-xp/xpc.h           |   34 +++++++-----------
+ drivers/misc/sgi-xp/xpc_channel.c   |   18 +++------
+ drivers/misc/sgi-xp/xpc_main.c      |   49 +++++++++++++-------------
+ drivers/misc/sgi-xp/xpc_partition.c |   47 ++++++++++--------------
+ drivers/misc/sgi-xp/xpc_sn2.c       |   30 +++++++++++++--
+ drivers/misc/sgi-xp/xpc_uv.c        |    7 +--
+ drivers/misc/sgi-xp/xpnet.c         |   28 +++++---------
+ 12 files changed, 155 insertions(+), 126 deletions(-)
 
-diff -puN /dev/null drivers/misc/sgi-gru/grumain.c
---- /dev/null
-+++ a/drivers/misc/sgi-gru/grumain.c
-@@ -0,0 +1,798 @@
-+/*
-+ * SN Platform GRU Driver
-+ *
-+ *            DRIVER TABLE MANAGER + GRU CONTEXT LOAD/UNLOAD
-+ *
-+ * This file is subject to the terms and conditions of the GNU General Public
-+ * License.  See the file "COPYING" in the main directory of this archive
-+ * for more details.
-+ *
-+ * Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
-+ */
+diff -puN drivers/misc/Kconfig~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64 drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64
++++ a/drivers/misc/Kconfig
+@@ -426,7 +426,7 @@ config ENCLOSURE_SERVICES
+ 
+ config SGI_XP
+ 	tristate "Support communication between SGI SSIs"
+-	depends on IA64_GENERIC || IA64_SGI_SN2
++	depends on IA64_GENERIC || IA64_SGI_SN2 || IA64_SGI_UV || (X86_64 && SMP)
+ 	select IA64_UNCACHED_ALLOCATOR if IA64_GENERIC || IA64_SGI_SN2
+ 	select GENERIC_ALLOCATOR if IA64_GENERIC || IA64_SGI_SN2
+ 	---help---
+diff -puN drivers/misc/sgi-xp/Makefile~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64 drivers/misc/sgi-xp/Makefile
+--- a/drivers/misc/sgi-xp/Makefile~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64
++++ a/drivers/misc/sgi-xp/Makefile
+@@ -3,11 +3,17 @@
+ #
+ 
+ obj-$(CONFIG_SGI_XP)		+= xp.o
+-xp-y				:= xp_main.o xp_uv.o
+-xp-$(CONFIG_IA64)		+= xp_sn2.o xp_nofault.o
++xp-y				:= xp_main.o
++xp-$(CONFIG_IA64_SGI_SN2)	+= xp_sn2.o xp_nofault.o
++xp-$(CONFIG_IA64_GENERIC)	+= xp_sn2.o xp_nofault.o xp_uv.o
++xp-$(CONFIG_IA64_SGI_UV)	+= xp_uv.o
++xp-$(CONFIG_X86_64)		+= xp_uv.o
+ 
+ obj-$(CONFIG_SGI_XP)		+= xpc.o
+-xpc-y				:= xpc_main.o xpc_uv.o xpc_channel.o xpc_partition.o
+-xpc-$(CONFIG_IA64)		+= xpc_sn2.o
++xpc-y				:= xpc_main.o xpc_channel.o xpc_partition.o
++xpc-$(CONFIG_IA64_SGI_SN2)	+= xpc_sn2.o
++xpc-$(CONFIG_IA64_GENERIC)	+= xpc_sn2.o xpc_uv.o
++xpc-$(CONFIG_IA64_SGI_UV) 	+= xpc_uv.o
++xpc-$(CONFIG_X86_64)		+= xpc_uv.o
+ 
+ obj-$(CONFIG_SGI_XP)		+= xpnet.o
+diff -puN drivers/misc/sgi-xp/xp.h~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64 drivers/misc/sgi-xp/xp.h
+--- a/drivers/misc/sgi-xp/xp.h~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64
++++ a/drivers/misc/sgi-xp/xp.h
+@@ -13,18 +13,17 @@
+ #ifndef _DRIVERS_MISC_SGIXP_XP_H
+ #define _DRIVERS_MISC_SGIXP_XP_H
+ 
+-#include <linux/cache.h>
+-#include <linux/hardirq.h>
+ #include <linux/mutex.h>
+-#include <asm/sn/types.h>
 +
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
-+#include <linux/mm.h>
-+#include <linux/spinlock.h>
+ #ifdef CONFIG_IA64
+-#include <asm/sn/arch.h>
++#include <asm/system.h>
++#include <asm/sn/arch.h>	/* defines is_shub1() and is_shub2() */
++#define is_shub()	ia64_platform_is("sn2")
++#define is_uv()		ia64_platform_is("uv")
+ #endif
+-
+-#ifdef USE_DBUG_ON
+-#define DBUG_ON(condition)	BUG_ON(condition)
+-#else
+-#define DBUG_ON(condition)
++#ifdef CONFIG_X86_64
++#include <asm/genapic.h>
++#define is_uv()		is_uv_system()
+ #endif
+ 
+ #ifndef is_shub1
+@@ -36,13 +35,19 @@
+ #endif
+ 
+ #ifndef is_shub
+-#define is_shub()	(is_shub1() || is_shub2())
++#define is_shub()	0
+ #endif
+ 
+ #ifndef is_uv
+ #define is_uv()		0
+ #endif
+ 
++#ifdef USE_DBUG_ON
++#define DBUG_ON(condition)	BUG_ON(condition)
++#else
++#define DBUG_ON(condition)
++#endif
++
+ /*
+  * Define the maximum number of partitions the system can possibly support.
+  * It is based on the maximum number of hardware partitionable regions. The
+@@ -200,7 +205,9 @@ enum xp_retval {
+ 	xpPayloadTooBig,	/* 55: payload too large for message slot */
+ 
+ 	xpUnsupported,		/* 56: unsupported functionality or resource */
+-	xpUnknownReason		/* 57: unknown reason - must be last in enum */
++	xpNeedMoreInfo,		/* 57: more info is needed by SAL */
++
++	xpUnknownReason		/* 58: unknown reason - must be last in enum */
+ };
+ 
+ /*
+@@ -339,8 +346,11 @@ xpc_partid_to_nasids(short partid, void 
+ }
+ 
+ extern short xp_max_npartitions;
++extern short xp_partition_id;
++extern u8 xp_region_size;
+ 
+ extern enum xp_retval (*xp_remote_memcpy) (void *, const void *, size_t);
++extern int (*xp_cpu_to_nasid) (int);
+ 
+ extern u64 xp_nofault_PIOR_target;
+ extern int xp_nofault_PIOR(void *);
+diff -puN drivers/misc/sgi-xp/xp_main.c~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64 drivers/misc/sgi-xp/xp_main.c
+--- a/drivers/misc/sgi-xp/xp_main.c~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64
++++ a/drivers/misc/sgi-xp/xp_main.c
+@@ -14,7 +14,6 @@
+  *
+  */
+ 
+-#include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/device.h>
+ #include "xp.h"
+@@ -36,9 +35,18 @@ struct device *xp = &xp_dbg_subname;
+ short xp_max_npartitions;
+ EXPORT_SYMBOL_GPL(xp_max_npartitions);
+ 
++short xp_partition_id;
++EXPORT_SYMBOL_GPL(xp_partition_id);
++
++u8 xp_region_size;
++EXPORT_SYMBOL_GPL(xp_region_size);
++
+ enum xp_retval (*xp_remote_memcpy) (void *dst, const void *src, size_t len);
+ EXPORT_SYMBOL_GPL(xp_remote_memcpy);
+ 
++int (*xp_cpu_to_nasid) (int cpuid);
++EXPORT_SYMBOL_GPL(xp_cpu_to_nasid);
++
+ /*
+  * xpc_registrations[] keeps track of xpc_connect()'s done by the kernel-level
+  * users of XPC.
+diff -puN drivers/misc/sgi-xp/xp_sn2.c~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64 drivers/misc/sgi-xp/xp_sn2.c
+--- a/drivers/misc/sgi-xp/xp_sn2.c~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64
++++ a/drivers/misc/sgi-xp/xp_sn2.c
+@@ -12,6 +12,7 @@
+  *      Architecture specific implementation of common functions.
+  */
+ 
++#include <linux/module.h>
+ #include <linux/device.h>
+ #include <asm/sn/bte.h>
+ #include <asm/sn/sn_sal.h>
+@@ -116,14 +117,23 @@ xp_remote_memcpy_sn2(void *vdst, const v
+ 	return xpBteCopyError;
+ }
+ 
++static int
++xp_cpu_to_nasid_sn2(int cpuid)
++{
++	return cpuid_to_nasid(cpuid);
++}
++
+ enum xp_retval
+ xp_init_sn2(void)
+ {
+ 	BUG_ON(!is_shub());
+ 
+ 	xp_max_npartitions = XP_MAX_NPARTITIONS_SN2;
++	xp_partition_id = sn_partition_id;
++	xp_region_size = sn_region_size;
+ 
+ 	xp_remote_memcpy = xp_remote_memcpy_sn2;
++	xp_cpu_to_nasid = xp_cpu_to_nasid_sn2;
+ 
+ 	return xp_register_nofault_code_sn2();
+ }
+diff -puN drivers/misc/sgi-xp/xpc.h~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64 drivers/misc/sgi-xp/xpc.h
+--- a/drivers/misc/sgi-xp/xpc.h~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64
++++ a/drivers/misc/sgi-xp/xpc.h
+@@ -13,17 +13,10 @@
+ #ifndef _DRIVERS_MISC_SGIXP_XPC_H
+ #define _DRIVERS_MISC_SGIXP_XPC_H
+ 
+-#include <linux/interrupt.h>
+-#include <linux/sysctl.h>
+-#include <linux/device.h>
+-#include <linux/mutex.h>
++#include <linux/wait.h>
+ #include <linux/completion.h>
+-#include <asm/pgtable.h>
+-#include <asm/processor.h>
+-#include <asm/sn/clksupport.h>
+-#include <asm/sn/addrs.h>
+-#include <asm/sn/mspec.h>
+-#include <asm/sn/shub_mmr.h>
++#include <linux/timer.h>
 +#include <linux/sched.h>
+ #include "xp.h"
+ 
+ /*
+@@ -179,7 +172,8 @@ struct xpc_vars_part_sn2 {
+ #define XPC_RP_HEADER_SIZE	L1_CACHE_ALIGN(sizeof(struct xpc_rsvd_page))
+ #define XPC_RP_VARS_SIZE	L1_CACHE_ALIGN(sizeof(struct xpc_vars_sn2))
+ 
+-#define XPC_RP_PART_NASIDS(_rp) ((u64 *)((u8 *)(_rp) + XPC_RP_HEADER_SIZE))
++#define XPC_RP_PART_NASIDS(_rp) ((unsigned long *)((u8 *)(_rp) + \
++				 XPC_RP_HEADER_SIZE))
+ #define XPC_RP_MACH_NASIDS(_rp) (XPC_RP_PART_NASIDS(_rp) + \
+ 				 xpc_nasid_mask_nlongs)
+ #define XPC_RP_VARS(_rp)	((struct xpc_vars_sn2 *) \
+@@ -202,13 +196,13 @@ struct xpc_vars_part_sn2 {
+ /*
+  * Define a Get/Put value pair (pointers) used with a message queue.
+  */
+-struct xpc_gp {
++struct xpc_gp_sn2 {
+ 	s64 get;		/* Get value */
+ 	s64 put;		/* Put value */
+ };
+ 
+ #define XPC_GP_SIZE \
+-		L1_CACHE_ALIGN(sizeof(struct xpc_gp) * XPC_MAX_NCHANNELS)
++		L1_CACHE_ALIGN(sizeof(struct xpc_gp_sn2) * XPC_MAX_NCHANNELS)
+ 
+ /*
+  * Define a structure that contains arguments associated with opening and
+@@ -340,10 +334,10 @@ struct xpc_channel_sn2 {
+ 
+ 	/* various flavors of local and remote Get/Put values */
+ 
+-	struct xpc_gp *local_GP;	/* local Get/Put values */
+-	struct xpc_gp remote_GP;	/* remote Get/Put values */
+-	struct xpc_gp w_local_GP;	/* working local Get/Put values */
+-	struct xpc_gp w_remote_GP;	/* working remote Get/Put values */
++	struct xpc_gp_sn2 *local_GP;	/* local Get/Put values */
++	struct xpc_gp_sn2 remote_GP;	/* remote Get/Put values */
++	struct xpc_gp_sn2 w_local_GP;	/* working local Get/Put values */
++	struct xpc_gp_sn2 w_remote_GP;	/* working remote Get/Put values */
+ 	s64 next_msg_to_pull;	/* Put value of next msg to pull */
+ 
+ 	struct mutex msg_to_pull_mutex;	/* next msg to pull serialization */
+@@ -506,9 +500,9 @@ struct xpc_partition_sn2 {
+ 	u8 remote_vars_version;	/* version# of partition's vars */
+ 
+ 	void *local_GPs_base;	/* base address of kmalloc'd space */
+-	struct xpc_gp *local_GPs;	/* local Get/Put values */
++	struct xpc_gp_sn2 *local_GPs;	/* local Get/Put values */
+ 	void *remote_GPs_base;	/* base address of kmalloc'd space */
+-	struct xpc_gp *remote_GPs;	/* copy of remote partition's local */
++	struct xpc_gp_sn2 *remote_GPs;	/* copy of remote partition's local */
+ 					/* Get/Put values */
+ 	u64 remote_GPs_pa;	/* phys address of remote partition's local */
+ 				/* Get/Put values */
+@@ -629,6 +623,8 @@ extern void xpc_activate_partition(struc
+ extern void xpc_activate_kthreads(struct xpc_channel *, int);
+ extern void xpc_create_kthreads(struct xpc_channel *, int, int);
+ extern void xpc_disconnect_wait(int);
++extern enum xp_retval (*xpc_get_partition_rsvd_page_pa) (u64, u64 *, u64 *,
++							 size_t *);
+ extern enum xp_retval (*xpc_rsvd_page_init) (struct xpc_rsvd_page *);
+ extern void (*xpc_heartbeat_init) (void);
+ extern void (*xpc_heartbeat_exit) (void);
+diff -puN drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64 drivers/misc/sgi-xp/xpc_channel.c
+--- a/drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64
++++ a/drivers/misc/sgi-xp/xpc_channel.c
+@@ -14,14 +14,7 @@
+  *
+  */
+ 
+-#include <linux/kernel.h>
+-#include <linux/init.h>
+-#include <linux/sched.h>
+-#include <linux/cache.h>
+-#include <linux/interrupt.h>
+-#include <linux/mutex.h>
+-#include <linux/completion.h>
+-#include <asm/sn/sn_sal.h>
 +#include <linux/device.h>
-+#include <linux/list.h>
-+#include <asm/uv/uv_hub.h>
-+#include "gru.h"
-+#include "grutables.h"
-+#include "gruhandles.h"
+ #include "xpc.h"
+ 
+ /*
+@@ -373,8 +366,9 @@ again:
+ 		dev_dbg(xpc_chan, "XPC_CHCTL_OPENREPLY (local_msgqueue_pa="
+ 			"0x%lx, local_nentries=%d, remote_nentries=%d) "
+ 			"received from partid=%d, channel=%d\n",
+-			args->local_msgqueue_pa, args->local_nentries,
+-			args->remote_nentries, ch->partid, ch->number);
++			(unsigned long)args->local_msgqueue_pa,
++			args->local_nentries, args->remote_nentries,
++			ch->partid, ch->number);
+ 
+ 		if (ch->flags & (XPC_C_DISCONNECTING | XPC_C_DISCONNECTED)) {
+ 			spin_unlock_irqrestore(&ch->lock, irq_flags);
+@@ -940,7 +934,7 @@ xpc_deliver_msg(struct xpc_channel *ch)
+ 		if (ch->func != NULL) {
+ 			dev_dbg(xpc_chan, "ch->func() called, msg=0x%p, "
+ 				"msg_number=%ld, partid=%d, channel=%d\n",
+-				(void *)msg, msg->number, ch->partid,
++				msg, (signed long)msg->number, ch->partid,
+ 				ch->number);
+ 
+ 			/* deliver the message to its intended recipient */
+@@ -949,7 +943,7 @@ xpc_deliver_msg(struct xpc_channel *ch)
+ 
+ 			dev_dbg(xpc_chan, "ch->func() returned, msg=0x%p, "
+ 				"msg_number=%ld, partid=%d, channel=%d\n",
+-				(void *)msg, msg->number, ch->partid,
++				msg, (signed long)msg->number, ch->partid,
+ 				ch->number);
+ 		}
+ 
+diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64 drivers/misc/sgi-xp/xpc_main.c
+--- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64
++++ a/drivers/misc/sgi-xp/xpc_main.c
+@@ -43,19 +43,13 @@
+  *
+  */
+ 
+-#include <linux/kernel.h>
+ #include <linux/module.h>
+-#include <linux/init.h>
+-#include <linux/cache.h>
+-#include <linux/interrupt.h>
++#include <linux/sysctl.h>
++#include <linux/device.h>
+ #include <linux/delay.h>
+ #include <linux/reboot.h>
+-#include <linux/completion.h>
+ #include <linux/kdebug.h>
+ #include <linux/kthread.h>
+-#include <linux/uaccess.h>
+-#include <asm/sn/intr.h>
+-#include <asm/sn/sn_sal.h>
+ #include "xpc.h"
+ 
+ /* define two XPC debug device structures to be used with dev_dbg() et al */
+@@ -175,6 +169,8 @@ static struct notifier_block xpc_die_not
+ 	.notifier_call = xpc_system_die,
+ };
+ 
++enum xp_retval (*xpc_get_partition_rsvd_page_pa) (u64 buf, u64 *cookie,
++						  u64 *paddr, size_t *len);
+ enum xp_retval (*xpc_rsvd_page_init) (struct xpc_rsvd_page *rp);
+ void (*xpc_heartbeat_init) (void);
+ void (*xpc_heartbeat_exit) (void);
+@@ -920,7 +916,8 @@ xpc_die_deactivate(void)
+ 	struct xpc_partition *part;
+ 	short partid;
+ 	int any_engaged;
+-	long time, printmsg_time, disengage_timeout;
++	long keep_waiting;
++	long wait_to_print;
+ 
+ 	/* keep xpc_hb_checker thread from doing anything (just in case) */
+ 	xpc_exiting = 1;
+@@ -937,16 +934,17 @@ xpc_die_deactivate(void)
+ 		}
+ 	}
+ 
+-	time = rtc_time();
+-	printmsg_time = time +
+-	    (XPC_DEACTIVATE_PRINTMSG_INTERVAL * sn_rtc_cycles_per_second);
+-	disengage_timeout = time +
+-	    (xpc_disengage_timelimit * sn_rtc_cycles_per_second);
+-
+ 	/*
+ 	 * Though we requested that all other partitions deactivate from us,
+-	 * we only wait until they've all disengaged.
++	 * we only wait until they've all disengaged or we've reached the
++	 * defined timelimit.
++	 *
++	 * Given that one iteration through the following while-loop takes
++	 * approximately 200 microseconds, calculate the #of loops to take
++	 * before bailing and the #of loops before printing a waiting message.
+ 	 */
++	keep_waiting = xpc_disengage_timelimit * 1000 * 5;
++	wait_to_print = XPC_DEACTIVATE_PRINTMSG_INTERVAL * 1000 * 5;
+ 
+ 	while (1) {
+ 		any_engaged = xpc_any_partition_engaged();
+@@ -955,8 +953,7 @@ xpc_die_deactivate(void)
+ 			break;
+ 		}
+ 
+-		time = rtc_time();
+-		if (time >= disengage_timeout) {
++		if (!keep_waiting--) {
+ 			for (partid = 0; partid < xp_max_npartitions;
+ 			     partid++) {
+ 				if (xpc_partition_engaged(partid)) {
+@@ -968,15 +965,15 @@ xpc_die_deactivate(void)
+ 			break;
+ 		}
+ 
+-		if (time >= printmsg_time) {
++		if (!wait_to_print--) {
+ 			dev_info(xpc_part, "waiting for remote partitions to "
+ 				 "deactivate, timeout in %ld seconds\n",
+-				 (disengage_timeout - time) /
+-				 sn_rtc_cycles_per_second);
+-			printmsg_time = time +
+-			    (XPC_DEACTIVATE_PRINTMSG_INTERVAL *
+-			     sn_rtc_cycles_per_second);
++				 keep_waiting / (1000 * 5));
++			wait_to_print = XPC_DEACTIVATE_PRINTMSG_INTERVAL *
++			    1000 * 5;
+ 		}
 +
-+unsigned long options __read_mostly;
-+
-+static struct device_driver gru_driver = {
-+	.name = "gru"
-+};
-+
-+static struct device gru_device = {
-+	.bus_id = {0},
-+	.driver = &gru_driver,
-+};
-+
-+struct device *grudev = &gru_device;
-+
-+/*
-+ * Select a gru fault map to be used by the current cpu. Note that
-+ * multiple cpus may be using the same map.
-+ *	ZZZ should "shift" be used?? Depends on HT cpu numbering
-+ *	ZZZ should be inline but did not work on emulator
-+ */
-+int gru_cpu_fault_map_id(void)
++		udelay(200);
+ 	}
+ }
+ 
+@@ -991,6 +988,7 @@ xpc_die_deactivate(void)
+ static int
+ xpc_system_die(struct notifier_block *nb, unsigned long event, void *unused)
+ {
++#ifdef CONFIG_IA64		/* !!! temporary kludge */
+ 	switch (event) {
+ 	case DIE_MACHINE_RESTART:
+ 	case DIE_MACHINE_HALT:
+@@ -1019,6 +1017,9 @@ xpc_system_die(struct notifier_block *nb
+ 		xpc_online_heartbeat();
+ 		break;
+ 	}
++#else
++	xpc_die_deactivate();
++#endif
+ 
+ 	return NOTIFY_DONE;
+ }
+diff -puN drivers/misc/sgi-xp/xpc_partition.c~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64 drivers/misc/sgi-xp/xpc_partition.c
+--- a/drivers/misc/sgi-xp/xpc_partition.c~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64
++++ a/drivers/misc/sgi-xp/xpc_partition.c
+@@ -15,15 +15,8 @@
+  *
+  */
+ 
+-#include <linux/kernel.h>
+-#include <linux/sysctl.h>
+-#include <linux/cache.h>
+-#include <linux/mmzone.h>
+-#include <linux/nodemask.h>
+-#include <asm/sn/intr.h>
+-#include <asm/sn/sn_sal.h>
+-#include <asm/sn/nodepda.h>
+-#include <asm/sn/addrs.h>
++#include <linux/device.h>
++#include <linux/hardirq.h>
+ #include "xpc.h"
+ 
+ /* XPC is exiting flag */
+@@ -71,24 +64,23 @@ static u64
+ xpc_get_rsvd_page_pa(int nasid)
+ {
+ 	enum xp_retval ret;
+-	s64 status;
+ 	u64 cookie = 0;
+ 	u64 rp_pa = nasid;	/* seed with nasid */
+-	u64 len = 0;
++	size_t len = 0;
+ 	u64 buf = buf;
+ 	u64 buf_len = 0;
+ 	void *buf_base = NULL;
+ 
+ 	while (1) {
+ 
+-		status = sn_partition_reserved_page_pa(buf, &cookie, &rp_pa,
+-						       &len);
++		ret = xpc_get_partition_rsvd_page_pa(buf, &cookie, &rp_pa,
++						     &len);
+ 
+-		dev_dbg(xpc_part, "SAL returned with status=%li, cookie="
+-			"0x%016lx, address=0x%016lx, len=0x%016lx\n",
+-			status, cookie, rp_pa, len);
++		dev_dbg(xpc_part, "SAL returned with ret=%d, cookie=0x%016lx, "
++			"address=0x%016lx, len=0x%016lx\n", ret,
++			(unsigned long)cookie, (unsigned long)rp_pa, len);
+ 
+-		if (status != SALRET_MORE_PASSES)
++		if (ret != xpNeedMoreInfo)
+ 			break;
+ 
+ 		/* !!! L1_CACHE_ALIGN() is only a sn2-bte_copy requirement */
+@@ -100,8 +92,9 @@ xpc_get_rsvd_page_pa(int nasid)
+ 								 &buf_base);
+ 			if (buf_base == NULL) {
+ 				dev_err(xpc_part, "unable to kmalloc "
+-					"len=0x%016lx\n", buf_len);
+-				status = SALRET_ERROR;
++					"len=0x%016lx\n",
++					(unsigned long)buf_len);
++				ret = xpNoMemory;
+ 				break;
+ 			}
+ 		}
+@@ -109,17 +102,17 @@ xpc_get_rsvd_page_pa(int nasid)
+ 		ret = xp_remote_memcpy((void *)buf, (void *)rp_pa, buf_len);
+ 		if (ret != xpSuccess) {
+ 			dev_dbg(xpc_part, "xp_remote_memcpy failed %d\n", ret);
+-			status = SALRET_ERROR;
+ 			break;
+ 		}
+ 	}
+ 
+ 	kfree(buf_base);
+ 
+-	if (status != SALRET_OK)
++	if (ret != xpSuccess)
+ 		rp_pa = 0;
+ 
+-	dev_dbg(xpc_part, "reserved page at phys address 0x%016lx\n", rp_pa);
++	dev_dbg(xpc_part, "reserved page at phys address 0x%016lx\n",
++		(unsigned long)rp_pa);
+ 	return rp_pa;
+ }
+ 
+@@ -138,7 +131,7 @@ xpc_setup_rsvd_page(void)
+ 	/* get the local reserved page's address */
+ 
+ 	preempt_disable();
+-	rp_pa = xpc_get_rsvd_page_pa(cpuid_to_nasid(smp_processor_id()));
++	rp_pa = xpc_get_rsvd_page_pa(xp_cpu_to_nasid(smp_processor_id()));
+ 	preempt_enable();
+ 	if (rp_pa == 0) {
+ 		dev_err(xpc_part, "SAL failed to locate the reserved page\n");
+@@ -150,7 +143,7 @@ xpc_setup_rsvd_page(void)
+ 		/* SAL_versions < 3 had a SAL_partid defined as a u8 */
+ 		rp->SAL_partid &= 0xff;
+ 	}
+-	BUG_ON(rp->SAL_partid != sn_partition_id);
++	BUG_ON(rp->SAL_partid != xp_partition_id);
+ 
+ 	if (rp->SAL_partid < 0 || rp->SAL_partid >= xp_max_npartitions) {
+ 		dev_err(xpc_part, "the reserved page's partid of %d is outside "
+@@ -237,11 +230,11 @@ xpc_get_remote_rp(int nasid, unsigned lo
+ 	/* check that both remote and local partids are valid for each side */
+ 	if (remote_rp->SAL_partid < 0 ||
+ 	    remote_rp->SAL_partid >= xp_max_npartitions ||
+-	    remote_rp->max_npartitions <= sn_partition_id) {
++	    remote_rp->max_npartitions <= xp_partition_id) {
+ 		return xpInvalidPartid;
+ 	}
+ 
+-	if (remote_rp->SAL_partid == sn_partition_id)
++	if (remote_rp->SAL_partid == xp_partition_id)
+ 		return xpLocalPartid;
+ 
+ 	return xpSuccess;
+@@ -426,7 +419,7 @@ xpc_discovery(void)
+ 	 * protection is in regards to memory, IOI and IPI.
+ 	 */
+ 	max_regions = 64;
+-	region_size = sn_region_size;
++	region_size = xp_region_size;
+ 
+ 	switch (region_size) {
+ 	case 128:
+diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64 drivers/misc/sgi-xp/xpc_sn2.c
+--- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64
++++ a/drivers/misc/sgi-xp/xpc_sn2.c
+@@ -13,9 +13,9 @@
+  *
+  */
+ 
+-#include <linux/kernel.h>
+ #include <linux/delay.h>
+ #include <asm/uncached.h>
++#include <asm/sn/mspec.h>
+ #include <asm/sn/sn_sal.h>
+ #include "xpc.h"
+ 
+@@ -176,7 +176,7 @@ xpc_send_IRQ_sn2(struct amo *amo, u64 fl
+ 
+ 	local_irq_restore(irq_flags);
+ 
+-	return ((ret == 0) ? xpSuccess : xpPioReadError);
++	return (ret == 0) ? xpSuccess : xpPioReadError;
+ }
+ 
+ static struct amo *
+@@ -284,7 +284,7 @@ xpc_handle_notify_IRQ_sn2(int irq, void 
+ 	short partid = (short)(u64)dev_id;
+ 	struct xpc_partition *part = &xpc_partitions[partid];
+ 
+-	DBUG_ON(partid < 0 || partid >= xp_max_npartitions);
++	DBUG_ON(partid < 0 || partid >= XP_MAX_NPARTITIONS_SN2);
+ 
+ 	if (xpc_part_ref(part)) {
+ 		xpc_check_for_sent_chctl_flags_sn2(part);
+@@ -577,6 +577,25 @@ xpc_allow_amo_ops_shub_wars_1_1_sn2(void
+ }
+ 
+ static enum xp_retval
++xpc_get_partition_rsvd_page_pa_sn2(u64 buf, u64 *cookie, u64 *paddr,
++				   size_t *len)
 +{
-+	return uv_blade_processor_id() % GRU_NUM_TFM;
-+}
++	s64 status;
++	enum xp_retval ret;
++
++	status = sn_partition_reserved_page_pa(buf, cookie, paddr, len);
++	if (status == SALRET_OK)
++		ret = xpSuccess;
++	else if (status == SALRET_MORE_PASSES)
++		ret = xpNeedMoreInfo;
++	else
++		ret = xpSalError;
 +
-+/*--------- ASID Management -------------------------------------------
-+ *
-+ *  Initially, assign asids sequentially from MIN_ASID .. MAX_ASID.
-+ *  Once MAX is reached, flush the TLB & start over. However,
-+ *  some asids may still be in use. There won't be many (percentage wise) still
-+ *  in use. Search active contexts & determine the value of the first
-+ *  asid in use ("x"s below). Set "limit" to this value.
-+ *  This defines a block of assignable asids.
-+ *
-+ *  When "limit" is reached, search forward from limit+1 and determine the
-+ *  next block of assignable asids.
-+ *
-+ *  Repeat until MAX_ASID is reached, then start over again.
-+ *
-+ *  Each time MAX_ASID is reached, increment the asid generation. Since
-+ *  the search for in-use asids only checks contexts with GRUs currently
-+ *  assigned, asids in some contexts will be missed. Prior to loading
-+ *  a context, the asid generation of the GTS asid is rechecked. If it
-+ *  doesn't match the current generation, a new asid will be assigned.
-+ *
-+ *   	0---------------x------------x---------------------x----|
-+ *	  ^-next	^-limit	   				^-MAX_ASID
-+ *
-+ * All asid manipulation & context loading/unloading is protected by the
-+ * gs_lock.
-+ */
-+
-+/* Hit the asid limit. Start over */
-+static int gru_wrap_asid(struct gru_state *gru)
-+{
-+	gru_dbg(grudev, "gru %p\n", gru);
-+	STAT(asid_wrap);
-+	gru->gs_asid_gen++;
-+	gru_flush_all_tlb(gru);
-+	return MIN_ASID;
-+}
-+
-+/* Find the next chunk of unused asids */
-+static int gru_reset_asid_limit(struct gru_state *gru, int asid)
-+{
-+	int i, gid, inuse_asid, limit;
-+
-+	gru_dbg(grudev, "gru %p, asid 0x%x\n", gru, asid);
-+	STAT(asid_next);
-+	limit = MAX_ASID;
-+	if (asid >= limit)
-+		asid = gru_wrap_asid(gru);
-+	gid = gru->gs_gid;
-+again:
-+	for (i = 0; i < GRU_NUM_CCH; i++) {
-+		if (!gru->gs_gts[i])
-+			continue;
-+		inuse_asid = gru->gs_gts[i]->ts_gms->ms_asids[gid].mt_asid;
-+		gru_dbg(grudev, "gru %p, inuse_asid 0x%x, cxtnum %d, gts %p\n",
-+			gru, inuse_asid, i, gru->gs_gts[i]);
-+		if (inuse_asid == asid) {
-+			asid += ASID_INC;
-+			if (asid >= limit) {
-+				/*
-+				 * empty range: reset the range limit and
-+				 * start over
-+				 */
-+				limit = MAX_ASID;
-+				if (asid >= MAX_ASID)
-+					asid = gru_wrap_asid(gru);
-+				goto again;
-+			}
-+		}
-+
-+		if ((inuse_asid > asid) && (inuse_asid < limit))
-+			limit = inuse_asid;
-+	}
-+	gru->gs_asid_limit = limit;
-+	gru->gs_asid = asid;
-+	gru_dbg(grudev, "gru %p, new asid 0x%x, new_limit 0x%x\n", gru, asid,
-+		limit);
-+	return asid;
-+}
-+
-+/* Assign a new ASID to a thread context.  */
-+static int gru_assign_asid(struct gru_state *gru)
-+{
-+	int asid;
-+
-+	spin_lock(&gru->gs_asid_lock);
-+	gru->gs_asid += ASID_INC;
-+	asid = gru->gs_asid;
-+	if (asid >= gru->gs_asid_limit)
-+		asid = gru_reset_asid_limit(gru, asid);
-+	spin_unlock(&gru->gs_asid_lock);
-+
-+	gru_dbg(grudev, "gru %p, asid 0x%x\n", gru, asid);
-+	return asid;
-+}
-+
-+/*
-+ * Clear n bits in a word. Return a word indicating the bits that were cleared.
-+ * Optionally, build an array of chars that contain the bit numbers allocated.
-+ */
-+static unsigned long reserve_resources(unsigned long *p, int n, int mmax,
-+				       char *idx)
-+{
-+	unsigned long bits = 0;
-+	int i;
-+
-+	do {
-+		i = find_first_bit(p, mmax);
-+		if (i == mmax)
-+			BUG();
-+		__clear_bit(i, p);
-+		__set_bit(i, &bits);
-+		if (idx)
-+			*idx++ = i;
-+	} while (--n);
-+	return bits;
-+}
-+
-+unsigned long reserve_gru_cb_resources(struct gru_state *gru, int cbr_au_count,
-+				       char *cbmap)
-+{
-+	return reserve_resources(&gru->gs_cbr_map, cbr_au_count, GRU_CBR_AU,
-+				 cbmap);
-+}
-+
-+unsigned long reserve_gru_ds_resources(struct gru_state *gru, int dsr_au_count,
-+				       char *dsmap)
-+{
-+	return reserve_resources(&gru->gs_dsr_map, dsr_au_count, GRU_DSR_AU,
-+				 dsmap);
-+}
-+
-+static void reserve_gru_resources(struct gru_state *gru,
-+				  struct gru_thread_state *gts)
-+{
-+	gru->gs_active_contexts++;
-+	gts->ts_cbr_map =
-+	    reserve_gru_cb_resources(gru, gts->ts_cbr_au_count,
-+				     gts->ts_cbr_idx);
-+	gts->ts_dsr_map =
-+	    reserve_gru_ds_resources(gru, gts->ts_dsr_au_count, NULL);
-+}
-+
-+static void free_gru_resources(struct gru_state *gru,
-+			       struct gru_thread_state *gts)
-+{
-+	gru->gs_active_contexts--;
-+	gru->gs_cbr_map |= gts->ts_cbr_map;
-+	gru->gs_dsr_map |= gts->ts_dsr_map;
-+}
-+
-+/*
-+ * Check if a GRU has sufficient free resources to satisfy an allocation
-+ * request. Note: GRU locks may or may not be held when this is called. If
-+ * not held, recheck after acquiring the appropriate locks.
-+ *
-+ * Returns 1 if sufficient resources, 0 if not
-+ */
-+static int check_gru_resources(struct gru_state *gru, int cbr_au_count,
-+			       int dsr_au_count, int max_active_contexts)
-+{
-+	return hweight64(gru->gs_cbr_map) >= cbr_au_count
-+		&& hweight64(gru->gs_dsr_map) >= dsr_au_count
-+		&& gru->gs_active_contexts < max_active_contexts;
-+}
-+
-+/*
-+ * TLB manangment requires tracking all GRU chiplets that have loaded a GSEG
-+ * context.
-+ */
-+static int gru_load_mm_tracker(struct gru_state *gru, struct gru_mm_struct *gms,
-+			       int ctxnum)
-+{
-+	struct gru_mm_tracker *asids = &gms->ms_asids[gru->gs_gid];
-+	unsigned short ctxbitmap = (1 << ctxnum);
-+	int asid;
-+
-+	spin_lock(&gms->ms_asid_lock);
-+	asid = asids->mt_asid;
-+
-+	if (asid == 0 || asids->mt_asid_gen != gru->gs_asid_gen) {
-+		asid = gru_assign_asid(gru);
-+		asids->mt_asid = asid;
-+		asids->mt_asid_gen = gru->gs_asid_gen;
-+		STAT(asid_new);
-+	} else {
-+		STAT(asid_reuse);
-+	}
-+
-+	BUG_ON(asids->mt_ctxbitmap & ctxbitmap);
-+	asids->mt_ctxbitmap |= ctxbitmap;
-+	if (!test_bit(gru->gs_gid, gms->ms_asidmap))
-+		__set_bit(gru->gs_gid, gms->ms_asidmap);
-+	spin_unlock(&gms->ms_asid_lock);
-+
-+	gru_dbg(grudev,
-+		"gru %x, gms %p, ctxnum 0x%d, asid 0x%x, asidmap 0x%lx\n",
-+		gru->gs_gid, gms, ctxnum, asid, gms->ms_asidmap[0]);
-+	return asid;
-+}
-+
-+static void gru_unload_mm_tracker(struct gru_state *gru,
-+				  struct gru_mm_struct *gms, int ctxnum)
-+{
-+	struct gru_mm_tracker *asids;
-+	unsigned short ctxbitmap;
-+
-+	asids = &gms->ms_asids[gru->gs_gid];
-+	ctxbitmap = (1 << ctxnum);
-+	spin_lock(&gms->ms_asid_lock);
-+	BUG_ON((asids->mt_ctxbitmap & ctxbitmap) != ctxbitmap);
-+	asids->mt_ctxbitmap ^= ctxbitmap;
-+	gru_dbg(grudev, "gru %x, gms %p, ctxnum 0x%d, asidmap 0x%lx\n",
-+		gru->gs_gid, gms, ctxnum, gms->ms_asidmap[0]);
-+	spin_unlock(&gms->ms_asid_lock);
-+}
-+
-+/*
-+ * Decrement the reference count on a GTS structure. Free the structure
-+ * if the reference count goes to zero.
-+ */
-+void gts_drop(struct gru_thread_state *gts)
-+{
-+	if (gts && atomic_dec_return(&gts->ts_refcnt) == 0) {
-+		gru_drop_mmu_notifier(gts->ts_gms);
-+		kfree(gts);
-+		STAT(gts_free);
-+	}
-+}
-+
-+/*
-+ * Locate the GTS structure for the current thread.
-+ */
-+static struct gru_thread_state *gru_find_current_gts_nolock(struct gru_vma_data
-+			    *vdata, int tsid)
-+{
-+	struct gru_thread_state *gts;
-+
-+	list_for_each_entry(gts, &vdata->vd_head, ts_next)
-+	    if (gts->ts_tsid == tsid)
-+		return gts;
-+	return NULL;
-+}
-+
-+/*
-+ * Allocate a thread state structure.
-+ */
-+static struct gru_thread_state *gru_alloc_gts(struct vm_area_struct *vma,
-+					      struct gru_vma_data *vdata,
-+					      int tsid)
-+{
-+	struct gru_thread_state *gts;
-+	int bytes;
-+
-+	bytes = DSR_BYTES(vdata->vd_dsr_au_count) +
-+				CBR_BYTES(vdata->vd_cbr_au_count);
-+	bytes += sizeof(struct gru_thread_state);
-+	gts = kzalloc(bytes, GFP_KERNEL);
-+	if (!gts)
-+		return NULL;
-+
-+	STAT(gts_alloc);
-+	atomic_set(&gts->ts_refcnt, 1);
-+	mutex_init(&gts->ts_ctxlock);
-+	gts->ts_cbr_au_count = vdata->vd_cbr_au_count;
-+	gts->ts_dsr_au_count = vdata->vd_dsr_au_count;
-+	gts->ts_user_options = vdata->vd_user_options;
-+	gts->ts_tsid = tsid;
-+	gts->ts_user_options = vdata->vd_user_options;
-+	gts->ts_ctxnum = NULLCTX;
-+	gts->ts_mm = current->mm;
-+	gts->ts_vma = vma;
-+	gts->ts_tlb_int_select = -1;
-+	gts->ts_gms = gru_register_mmu_notifier();
-+	if (!gts->ts_gms)
-+		goto err;
-+
-+	gru_dbg(grudev, "alloc vdata %p, new gts %p\n", vdata, gts);
-+	return gts;
-+
-+err:
-+	gts_drop(gts);
-+	return NULL;
-+}
-+
-+/*
-+ * Allocate a vma private data structure.
-+ */
-+struct gru_vma_data *gru_alloc_vma_data(struct vm_area_struct *vma, int tsid)
-+{
-+	struct gru_vma_data *vdata = NULL;
-+
-+	vdata = kmalloc(sizeof(*vdata), GFP_KERNEL);
-+	if (!vdata)
-+		return NULL;
-+
-+	INIT_LIST_HEAD(&vdata->vd_head);
-+	spin_lock_init(&vdata->vd_lock);
-+	gru_dbg(grudev, "alloc vdata %p\n", vdata);
-+	return vdata;
-+}
-+
-+/*
-+ * Find the thread state structure for the current thread.
-+ */
-+struct gru_thread_state *gru_find_thread_state(struct vm_area_struct *vma,
-+					int tsid)
-+{
-+	struct gru_vma_data *vdata = vma->vm_private_data;
-+	struct gru_thread_state *gts;
-+
-+	spin_lock(&vdata->vd_lock);
-+	gts = gru_find_current_gts_nolock(vdata, tsid);
-+	spin_unlock(&vdata->vd_lock);
-+	gru_dbg(grudev, "vma %p, gts %p\n", vma, gts);
-+	return gts;
-+}
-+
-+/*
-+ * Allocate a new thread state for a GSEG. Note that races may allow
-+ * another thread to race to create a gts.
-+ */
-+struct gru_thread_state *gru_alloc_thread_state(struct vm_area_struct *vma,
-+					int tsid)
-+{
-+	struct gru_vma_data *vdata = vma->vm_private_data;
-+	struct gru_thread_state *gts, *ngts;
-+
-+	gts = gru_alloc_gts(vma, vdata, tsid);
-+	if (!gts)
-+		return NULL;
-+
-+	spin_lock(&vdata->vd_lock);
-+	ngts = gru_find_current_gts_nolock(vdata, tsid);
-+	if (ngts) {
-+		gts_drop(gts);
-+		gts = ngts;
-+		STAT(gts_double_allocate);
-+	} else {
-+		list_add(&gts->ts_next, &vdata->vd_head);
-+	}
-+	spin_unlock(&vdata->vd_lock);
-+	gru_dbg(grudev, "vma %p, gts %p\n", vma, gts);
-+	return gts;
-+}
-+
-+/*
-+ * Free the GRU context assigned to the thread state.
-+ */
-+static void gru_free_gru_context(struct gru_thread_state *gts)
-+{
-+	struct gru_state *gru;
-+
-+	gru = gts->ts_gru;
-+	gru_dbg(grudev, "gts %p, gru %p\n", gts, gru);
-+
-+	spin_lock(&gru->gs_lock);
-+	gru->gs_gts[gts->ts_ctxnum] = NULL;
-+	free_gru_resources(gru, gts);
-+	BUG_ON(test_bit(gts->ts_ctxnum, &gru->gs_context_map) == 0);
-+	__clear_bit(gts->ts_ctxnum, &gru->gs_context_map);
-+	gts->ts_ctxnum = NULLCTX;
-+	gts->ts_gru = NULL;
-+	spin_unlock(&gru->gs_lock);
-+
-+	gts_drop(gts);
-+	STAT(free_context);
-+}
-+
-+/*
-+ * Prefetching cachelines help hardware performance.
-+ */
-+static void prefetch_data(void *p, int num, int stride)
-+{
-+	while (num-- > 0) {
-+		prefetchw(p);
-+		p += stride;
-+	}
-+}
-+
-+static inline long gru_copy_handle(void *d, void *s)
-+{
-+	memcpy(d, s, GRU_HANDLE_BYTES);
-+	return GRU_HANDLE_BYTES;
-+}
-+
-+/* rewrite in assembly & use lots of prefetch */
-+static void gru_load_context_data(void *save, void *grubase, int ctxnum,
-+				  unsigned long cbrmap, unsigned long dsrmap)
-+{
-+	void *gseg, *cb, *cbe;
-+	unsigned long length;
-+	int i, scr;
-+
-+	gseg = grubase + ctxnum * GRU_GSEG_STRIDE;
-+	length = hweight64(dsrmap) * GRU_DSR_AU_BYTES;
-+	prefetch_data(gseg + GRU_DS_BASE, length / GRU_CACHE_LINE_BYTES,
-+		      GRU_CACHE_LINE_BYTES);
-+
-+	cb = gseg + GRU_CB_BASE;
-+	cbe = grubase + GRU_CBE_BASE;
-+	for_each_cbr_in_allocation_map(i, &cbrmap, scr) {
-+		prefetch_data(cb, 1, GRU_CACHE_LINE_BYTES);
-+		prefetch_data(cbe + i * GRU_HANDLE_STRIDE, 1,
-+			      GRU_CACHE_LINE_BYTES);
-+		cb += GRU_HANDLE_STRIDE;
-+	}
-+
-+	cb = gseg + GRU_CB_BASE;
-+	for_each_cbr_in_allocation_map(i, &cbrmap, scr) {
-+		save += gru_copy_handle(cb, save);
-+		save += gru_copy_handle(cbe + i * GRU_HANDLE_STRIDE, save);
-+		cb += GRU_HANDLE_STRIDE;
-+	}
-+
-+	memcpy(gseg + GRU_DS_BASE, save, length);
-+}
-+
-+static void gru_unload_context_data(void *save, void *grubase, int ctxnum,
-+				    unsigned long cbrmap, unsigned long dsrmap)
-+{
-+	void *gseg, *cb, *cbe;
-+	unsigned long length;
-+	int i, scr;
-+
-+	gseg = grubase + ctxnum * GRU_GSEG_STRIDE;
-+
-+	cb = gseg + GRU_CB_BASE;
-+	cbe = grubase + GRU_CBE_BASE;
-+	for_each_cbr_in_allocation_map(i, &cbrmap, scr) {
-+		save += gru_copy_handle(save, cb);
-+		save += gru_copy_handle(save, cbe + i * GRU_HANDLE_STRIDE);
-+		cb += GRU_HANDLE_STRIDE;
-+	}
-+	length = hweight64(dsrmap) * GRU_DSR_AU_BYTES;
-+	memcpy(save, gseg + GRU_DS_BASE, length);
-+}
-+
-+void gru_unload_context(struct gru_thread_state *gts, int savestate)
-+{
-+	struct gru_state *gru = gts->ts_gru;
-+	struct gru_context_configuration_handle *cch;
-+	int ctxnum = gts->ts_ctxnum;
-+
-+	zap_vma_ptes(gts->ts_vma, UGRUADDR(gts), GRU_GSEG_PAGESIZE);
-+	cch = get_cch(gru->gs_gru_base_vaddr, ctxnum);
-+
-+	lock_cch_handle(cch);
-+	if (cch_interrupt_sync(cch))
-+		BUG();
-+	gru_dbg(grudev, "gts %p\n", gts);
-+
-+	gru_unload_mm_tracker(gru, gts->ts_gms, gts->ts_ctxnum);
-+	if (savestate)
-+		gru_unload_context_data(gts->ts_gdata, gru->gs_gru_base_vaddr,
-+					ctxnum, gts->ts_cbr_map,
-+					gts->ts_dsr_map);
-+
-+	if (cch_deallocate(cch))
-+		BUG();
-+	gts->ts_force_unload = 0;	/* ts_force_unload locked by CCH lock */
-+	unlock_cch_handle(cch);
-+
-+	gru_free_gru_context(gts);
-+	STAT(unload_context);
-+}
-+
-+/*
-+ * Load a GRU context by copying it from the thread data structure in memory
-+ * to the GRU.
-+ */
-+static void gru_load_context(struct gru_thread_state *gts)
-+{
-+	struct gru_state *gru = gts->ts_gru;
-+	struct gru_context_configuration_handle *cch;
-+	int err, asid, ctxnum = gts->ts_ctxnum;
-+
-+	gru_dbg(grudev, "gts %p\n", gts);
-+	cch = get_cch(gru->gs_gru_base_vaddr, ctxnum);
-+
-+	lock_cch_handle(cch);
-+	asid = gru_load_mm_tracker(gru, gts->ts_gms, gts->ts_ctxnum);
-+	cch->tfm_fault_bit_enable =
-+	    (gts->ts_user_options == GRU_OPT_MISS_FMM_POLL
-+	     || gts->ts_user_options == GRU_OPT_MISS_FMM_INTR);
-+	cch->tlb_int_enable = (gts->ts_user_options == GRU_OPT_MISS_FMM_INTR);
-+	if (cch->tlb_int_enable) {
-+		gts->ts_tlb_int_select = gru_cpu_fault_map_id();
-+		cch->tlb_int_select = gts->ts_tlb_int_select;
-+	}
-+	cch->tfm_done_bit_enable = 0;
-+	err = cch_allocate(cch, asid, gts->ts_cbr_map, gts->ts_dsr_map);
-+	if (err) {
-+		gru_dbg(grudev,
-+			"err %d: cch %p, gts %p, cbr 0x%lx, dsr 0x%lx\n",
-+			err, cch, gts, gts->ts_cbr_map, gts->ts_dsr_map);
-+		BUG();
-+	}
-+
-+	gru_load_context_data(gts->ts_gdata, gru->gs_gru_base_vaddr, ctxnum,
-+			      gts->ts_cbr_map, gts->ts_dsr_map);
-+
-+	if (cch_start(cch))
-+		BUG();
-+	unlock_cch_handle(cch);
-+
-+	STAT(load_context);
-+}
-+
-+/*
-+ * Update fields in an active CCH:
-+ * 	- retarget interrupts on local blade
-+ * 	- force a delayed context unload by clearing the CCH asids. This
-+ * 	  forces TLB misses for new GRU instructions. The context is unloaded
-+ * 	  when the next TLB miss occurs.
-+ */
-+static int gru_update_cch(struct gru_thread_state *gts, int int_select)
-+{
-+	struct gru_context_configuration_handle *cch;
-+	struct gru_state *gru = gts->ts_gru;
-+	int i, ctxnum = gts->ts_ctxnum, ret = 0;
-+
-+	cch = get_cch(gru->gs_gru_base_vaddr, ctxnum);
-+
-+	lock_cch_handle(cch);
-+	if (cch->state == CCHSTATE_ACTIVE) {
-+		if (gru->gs_gts[gts->ts_ctxnum] != gts)
-+			goto exit;
-+		if (cch_interrupt(cch))
-+			BUG();
-+		if (int_select >= 0) {
-+			gts->ts_tlb_int_select = int_select;
-+			cch->tlb_int_select = int_select;
-+		} else {
-+			for (i = 0; i < 8; i++)
-+				cch->asid[i] = 0;
-+			cch->tfm_fault_bit_enable = 0;
-+			cch->tlb_int_enable = 0;
-+			gts->ts_force_unload = 1;
-+		}
-+		if (cch_start(cch))
-+			BUG();
-+		ret = 1;
-+	}
-+exit:
-+	unlock_cch_handle(cch);
 +	return ret;
 +}
 +
-+/*
-+ * Update CCH tlb interrupt select. Required when all the following is true:
-+ * 	- task's GRU context is loaded into a GRU
-+ * 	- task is using interrupt notification for TLB faults
-+ * 	- task has migrated to a different cpu on the same blade where
-+ * 	  it was previously running.
-+ */
-+static int gru_retarget_intr(struct gru_thread_state *gts)
-+{
-+	if (gts->ts_tlb_int_select < 0
-+	    || gts->ts_tlb_int_select == gru_cpu_fault_map_id())
-+		return 0;
 +
-+	gru_dbg(grudev, "retarget from %d to %d\n", gts->ts_tlb_int_select,
-+		gru_cpu_fault_map_id());
-+	return gru_update_cch(gts, gru_cpu_fault_map_id());
-+}
-+
-+
-+/*
-+ * Insufficient GRU resources available on the local blade. Steal a context from
-+ * a process. This is a hack until a _real_ resource scheduler is written....
-+ */
-+#define next_ctxnum(n)	((n) <  GRU_NUM_CCH - 2 ? (n) + 1 : 0)
-+#define next_gru(b, g)	(((g) < &(b)->bs_grus[GRU_CHIPLETS_PER_BLADE - 1]) ?  \
-+				 ((g)+1) : &(b)->bs_grus[0])
-+
-+static void gru_steal_context(struct gru_thread_state *gts)
-+{
-+	struct gru_blade_state *blade;
-+	struct gru_state *gru, *gru0;
-+	struct gru_thread_state *ngts = NULL;
-+	int ctxnum, ctxnum0, flag = 0, cbr, dsr;
-+
-+	cbr = gts->ts_cbr_au_count;
-+	dsr = gts->ts_dsr_au_count;
-+
-+	preempt_disable();
-+	blade = gru_base[uv_numa_blade_id()];
-+	spin_lock(&blade->bs_lock);
-+
-+	ctxnum = next_ctxnum(blade->bs_lru_ctxnum);
-+	gru = blade->bs_lru_gru;
-+	if (ctxnum == 0)
-+		gru = next_gru(blade, gru);
-+	ctxnum0 = ctxnum;
-+	gru0 = gru;
-+	while (1) {
-+		if (check_gru_resources(gru, cbr, dsr, GRU_NUM_CCH))
-+			break;
-+		spin_lock(&gru->gs_lock);
-+		for (; ctxnum < GRU_NUM_CCH; ctxnum++) {
-+			if (flag && gru == gru0 && ctxnum == ctxnum0)
-+				break;
-+			ngts = gru->gs_gts[ctxnum];
-+			/*
-+			 * We are grabbing locks out of order, so trylock is
-+			 * needed. GTSs are usually not locked, so the odds of
-+			 * success are high. If trylock fails, try to steal a
-+			 * different GSEG.
-+			 */
-+			if (ngts && mutex_trylock(&ngts->ts_ctxlock))
-+				break;
-+			ngts = NULL;
-+			flag = 1;
-+		}
-+		spin_unlock(&gru->gs_lock);
-+		if (ngts || (flag && gru == gru0 && ctxnum == ctxnum0))
-+			break;
-+		ctxnum = 0;
-+		gru = next_gru(blade, gru);
-+	}
-+	blade->bs_lru_gru = gru;
-+	blade->bs_lru_ctxnum = ctxnum;
-+	spin_unlock(&blade->bs_lock);
-+	preempt_enable();
-+
-+	if (ngts) {
-+		STAT(steal_context);
-+		ngts->ts_steal_jiffies = jiffies;
-+		gru_unload_context(ngts, 1);
-+		mutex_unlock(&ngts->ts_ctxlock);
-+	} else {
-+		STAT(steal_context_failed);
-+	}
-+	gru_dbg(grudev,
-+		"stole gru %x, ctxnum %d from gts %p. Need cb %d, ds %d;"
-+		" avail cb %ld, ds %ld\n",
-+		gru->gs_gid, ctxnum, ngts, cbr, dsr, hweight64(gru->gs_cbr_map),
-+		hweight64(gru->gs_dsr_map));
-+}
-+
-+/*
-+ * Scan the GRUs on the local blade & assign a GRU context.
-+ */
-+static struct gru_state *gru_assign_gru_context(struct gru_thread_state *gts)
-+{
-+	struct gru_state *gru, *grux;
-+	int i, max_active_contexts;
-+
-+	preempt_disable();
-+
-+again:
-+	gru = NULL;
-+	max_active_contexts = GRU_NUM_CCH;
-+	for_each_gru_on_blade(grux, uv_numa_blade_id(), i) {
-+		if (check_gru_resources(grux, gts->ts_cbr_au_count,
-+					gts->ts_dsr_au_count,
-+					max_active_contexts)) {
-+			gru = grux;
-+			max_active_contexts = grux->gs_active_contexts;
-+			if (max_active_contexts == 0)
-+				break;
-+		}
-+	}
-+
-+	if (gru) {
-+		spin_lock(&gru->gs_lock);
-+		if (!check_gru_resources(gru, gts->ts_cbr_au_count,
-+					 gts->ts_dsr_au_count, GRU_NUM_CCH)) {
-+			spin_unlock(&gru->gs_lock);
-+			goto again;
-+		}
-+		reserve_gru_resources(gru, gts);
-+		gts->ts_gru = gru;
-+		gts->ts_ctxnum =
-+		    find_first_zero_bit(&gru->gs_context_map, GRU_NUM_CCH);
-+		BUG_ON(gts->ts_ctxnum == GRU_NUM_CCH);
-+		atomic_inc(&gts->ts_refcnt);
-+		gru->gs_gts[gts->ts_ctxnum] = gts;
-+		__set_bit(gts->ts_ctxnum, &gru->gs_context_map);
-+		spin_unlock(&gru->gs_lock);
-+
-+		STAT(assign_context);
-+		gru_dbg(grudev,
-+			"gseg %p, gts %p, gru %x, ctx %d, cbr %d, dsr %d\n",
-+			gseg_virtual_address(gts->ts_gru, gts->ts_ctxnum), gts,
-+			gts->ts_gru->gs_gid, gts->ts_ctxnum,
-+			gts->ts_cbr_au_count, gts->ts_dsr_au_count);
-+	} else {
-+		gru_dbg(grudev, "failed to allocate a GTS %s\n", "");
-+		STAT(assign_context_failed);
-+	}
-+
-+	preempt_enable();
-+	return gru;
-+}
-+
-+/*
-+ * gru_nopage
-+ *
-+ * Map the user's GRU segment
-+ */
-+int gru_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
-+{
-+	struct gru_thread_state *gts;
-+	unsigned long paddr, vaddr;
-+
-+	vaddr = (unsigned long)vmf->virtual_address;
-+	gru_dbg(grudev, "vma %p, vaddr 0x%lx (0x%lx)\n",
-+		vma, vaddr, GSEG_BASE(vaddr));
-+	STAT(nopfn);
-+
-+	gts = gru_find_thread_state(vma, TSID(vaddr, vma));
-+	if (!gts)
-+		return VM_FAULT_SIGBUS;
-+
-+again:
-+	preempt_disable();
-+	mutex_lock(&gts->ts_ctxlock);
-+	if (gts->ts_gru) {
-+		if (gts->ts_gru->gs_blade_id != uv_numa_blade_id()) {
-+			STAT(migrated_nopfn_unload);
-+			gru_unload_context(gts, 1);
-+		} else {
-+			if (gru_retarget_intr(gts))
-+				STAT(migrated_nopfn_retarget);
-+		}
-+	}
-+
-+	if (!gts->ts_gru) {
-+		while (!gru_assign_gru_context(gts)) {
-+			mutex_unlock(&gts->ts_ctxlock);
-+			preempt_enable();
-+			schedule_timeout(GRU_ASSIGN_DELAY);  /* true hack ZZZ */
-+			if (gts->ts_steal_jiffies + GRU_STEAL_DELAY < jiffies)
-+				gru_steal_context(gts);
-+			goto again;
-+		}
-+		gru_load_context(gts);
-+		paddr = gseg_physical_address(gts->ts_gru, gts->ts_ctxnum);
-+		remap_pfn_range(vma, vaddr & ~(GRU_GSEG_PAGESIZE - 1),
-+				paddr >> PAGE_SHIFT, GRU_GSEG_PAGESIZE,
-+				vma->vm_page_prot);
-+	}
-+
-+	mutex_unlock(&gts->ts_ctxlock);
-+	preempt_enable();
-+
-+	return VM_FAULT_NOPAGE;
-+}
-+
++static enum xp_retval
+ xpc_rsvd_page_init_sn2(struct xpc_rsvd_page *rp)
+ {
+ 	struct amo *amos_page;
+@@ -636,7 +655,7 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
+ 
+ 	/* clear xpc_vars_part_sn2 */
+ 	memset((u64 *)xpc_vars_part_sn2, 0, sizeof(struct xpc_vars_part_sn2) *
+-	       xp_max_npartitions);
++	       XP_MAX_NPARTITIONS_SN2);
+ 
+ 	/* initialize the activate IRQ related amo variables */
+ 	for (i = 0; i < xpc_nasid_mask_nlongs; i++)
+@@ -699,7 +718,7 @@ xpc_check_remote_hb_sn2(void)
+ 
+ 	remote_vars = (struct xpc_vars_sn2 *)xpc_remote_copy_buffer_sn2;
+ 
+-	for (partid = 0; partid < xp_max_npartitions; partid++) {
++	for (partid = 0; partid < XP_MAX_NPARTITIONS_SN2; partid++) {
+ 
+ 		if (xpc_exiting)
+ 			break;
+@@ -2386,6 +2405,7 @@ xpc_init_sn2(void)
+ 	int ret;
+ 	size_t buf_size;
+ 
++	xpc_get_partition_rsvd_page_pa = xpc_get_partition_rsvd_page_pa_sn2;
+ 	xpc_rsvd_page_init = xpc_rsvd_page_init_sn2;
+ 	xpc_increment_heartbeat = xpc_increment_heartbeat_sn2;
+ 	xpc_offline_heartbeat = xpc_offline_heartbeat_sn2;
+diff -puN drivers/misc/sgi-xp/xpc_uv.c~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64 drivers/misc/sgi-xp/xpc_uv.c
+--- a/drivers/misc/sgi-xp/xpc_uv.c~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64
++++ a/drivers/misc/sgi-xp/xpc_uv.c
+@@ -14,11 +14,8 @@
+  */
+ 
+ #include <linux/kernel.h>
+-
+-/* !!! #include <gru/grukservices.h> */
+-/* !!! uv_gpa() is defined in <gru/grukservices.h> */
+-#define uv_gpa(_a)		((unsigned long)_a)
+-
++#include <asm/uv/uv_hub.h>
++#include "../sgi-gru/grukservices.h"
+ #include "xpc.h"
+ 
+ static DECLARE_BITMAP(xpc_heartbeating_to_mask_uv, XP_MAX_NPARTITIONS_UV);
+diff -puN drivers/misc/sgi-xp/xpnet.c~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64 drivers/misc/sgi-xp/xpnet.c
+--- a/drivers/misc/sgi-xp/xpnet.c~sgi-xp-enable-building-of-xpc-xpnet-on-x86_64
++++ a/drivers/misc/sgi-xp/xpnet.c
+@@ -21,17 +21,8 @@
+  */
+ 
+ #include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/init.h>
+-#include <linux/ioport.h>
+ #include <linux/netdevice.h>
+ #include <linux/etherdevice.h>
+-#include <linux/delay.h>
+-#include <linux/ethtool.h>
+-#include <linux/mii.h>
+-#include <linux/smp.h>
+-#include <linux/string.h>
+-#include <asm/atomic.h>
+ #include "xp.h"
+ 
+ /*
+@@ -175,8 +166,9 @@ xpnet_receive(short partid, int channel,
+ 
+ 		return;
+ 	}
+-	dev_dbg(xpnet, "received 0x%lx, %d, %d, %d\n", msg->buf_pa, msg->size,
+-		msg->leadin_ignore, msg->tailout_ignore);
++	dev_dbg(xpnet, "received 0x%lx, %d, %d, %d\n",
++		(unsigned long)msg->buf_pa, msg->size, msg->leadin_ignore,
++		msg->tailout_ignore);
+ 
+ 	/* reserve an extra cache line */
+ 	skb = dev_alloc_skb(msg->size + L1_CACHE_BYTES);
+@@ -320,8 +312,10 @@ xpnet_dev_open(struct net_device *dev)
+ 
+ 	dev_dbg(xpnet, "calling xpc_connect(%d, 0x%p, NULL, %ld, %ld, %ld, "
+ 		"%ld)\n", XPC_NET_CHANNEL, xpnet_connection_activity,
+-		XPNET_MSG_SIZE, XPNET_MSG_NENTRIES, XPNET_MAX_KTHREADS,
+-		XPNET_MAX_IDLE_KTHREADS);
++		(unsigned long)XPNET_MSG_SIZE,
++		(unsigned long)XPNET_MSG_NENTRIES,
++		(unsigned long)XPNET_MAX_KTHREADS,
++		(unsigned long)XPNET_MAX_IDLE_KTHREADS);
+ 
+ 	ret = xpc_connect(XPC_NET_CHANNEL, xpnet_connection_activity, NULL,
+ 			  XPNET_MSG_SIZE, XPNET_MSG_NENTRIES,
+@@ -439,8 +433,8 @@ xpnet_send(struct sk_buff *skb, struct x
+ 	dev_dbg(xpnet, "sending XPC message to %d:%d\n"
+ 		KERN_DEBUG "msg->buf_pa=0x%lx, msg->size=%u, "
+ 		"msg->leadin_ignore=%u, msg->tailout_ignore=%u\n",
+-		dest_partid, XPC_NET_CHANNEL, msg->buf_pa, msg->size,
+-		msg->leadin_ignore, msg->tailout_ignore);
++		dest_partid, XPC_NET_CHANNEL, (unsigned long)msg->buf_pa,
++		msg->size, msg->leadin_ignore, msg->tailout_ignore);
+ 
+ 	atomic_inc(&queued_msg->use_count);
+ 
+@@ -602,8 +596,8 @@ xpnet_init(void)
+ 	 */
+ 	xpnet_device->dev_addr[0] = 0x02;     /* locally administered, no OUI */
+ 
+-	xpnet_device->dev_addr[XPNET_PARTID_OCTET + 1] = sn_partition_id;
+-	xpnet_device->dev_addr[XPNET_PARTID_OCTET + 0] = (sn_partition_id >> 8);
++	xpnet_device->dev_addr[XPNET_PARTID_OCTET + 1] = xp_partition_id;
++	xpnet_device->dev_addr[XPNET_PARTID_OCTET + 0] = (xp_partition_id >> 8);
+ 
+ 	/*
+ 	 * ether_setup() sets this to a multicast device.  We are
 _
 
-Patches currently in -mm which might be from steiner@sgi.com are
+Patches currently in -mm which might be from dcn@sgi.com are
 
 origin.patch
-linux-next.patch
 
