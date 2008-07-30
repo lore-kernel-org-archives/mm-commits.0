@@ -1,579 +1,684 @@
 From: akpm@linux-foundation.org
-Subject: - sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:16:36 -0700
-Message-ID: <200807301916.m6UJGar9011139@imap1.linux-foundation.org>
+Subject: - gru-driver-v3-page-faults-exceptions.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:15:56 -0700
+Message-ID: <200807301915.m6UJFuCO011069@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40005 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48781 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753470AbYG3TYN (ORCPT
+	by vger.kernel.org with ESMTP id S1755292AbYG3TZF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:24:13 -0400
+	Wed, 30 Jul 2008 15:25:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dcn@sgi.com, mm-commits@vger.kernel.org
+To: steiner@sgi.com, hch@lst.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgi-xp: move xpc_allocate() into xpc_send()/xpc_send_notify()
+     GRU Driver: page faults & exceptions
 has been removed from the -mm tree.  Its filename was
-     sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify.patch
+     gru-driver-v3-page-faults-exceptions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-xp: move xpc_allocate() into xpc_send()/xpc_send_notify()
-From: Dean Nelson <dcn@sgi.com>
+Subject: GRU Driver: page faults & exceptions
+From: Jack Steiner <steiner@sgi.com>
 
-Move xpc_allocate() functionality into xpc_send()/xpc_send_notify() so
-xpc_allocate() no longer needs to be called by XPNET.
+This file contains the functions that manage GRU page faults and
+exceptions.
 
-Signed-off-by: Dean Nelson <dcn@sgi.com>
+Signed-off-by: Jack Steiner <steiner@sgi.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xp.h          |   44 ++++-------
- drivers/misc/sgi-xp/xp_main.c     |   23 ++---
- drivers/misc/sgi-xp/xpc.h         |    9 --
- drivers/misc/sgi-xp/xpc_channel.c |  112 +++++++++-------------------
- drivers/misc/sgi-xp/xpc_main.c    |   14 +--
- drivers/misc/sgi-xp/xpc_sn2.c     |   64 +++++++---------
- drivers/misc/sgi-xp/xpnet.c       |   11 +-
- 7 files changed, 106 insertions(+), 171 deletions(-)
+ drivers/misc/sgi-gru/grufault.c |  633 ++++++++++++++++++++++++++++++
+ 1 file changed, 633 insertions(+)
 
-diff -puN drivers/misc/sgi-xp/xp.h~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify drivers/misc/sgi-xp/xp.h
---- a/drivers/misc/sgi-xp/xp.h~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify
-+++ a/drivers/misc/sgi-xp/xp.h
-@@ -116,12 +116,6 @@
-  * The size of the payload is defined by the user via xpc_connect(). A user-
-  * defined message resides in the payload area.
-  *
-- * The user should have no dealings with the message header, but only the
-- * message's payload. When a message entry is allocated (via xpc_allocate())
-- * a pointer to the payload area is returned and not the actual beginning of
-- * the XPC message. The user then constructs a message in the payload area
-- * and passes that pointer as an argument on xpc_send() or xpc_send_notify().
-- *
-  * The size of a message entry (within a message queue) must be a cacheline
-  * sized multiple in order to facilitate the BTE transfer of messages from one
-  * message queue to another. A macro, XPC_MSG_SIZE(), is provided for the user
-@@ -221,9 +215,10 @@ enum xp_retval {
- 	xpBteCopyError,		/* 52: bte_copy() returned error */
- 	xpSalError,		/* 53: sn SAL error */
- 	xpRsvdPageNotSet,	/* 54: the reserved page is not set up */
-+	xpPayloadTooBig,	/* 55: payload too large for message slot */
- 
--	xpUnsupported,		/* 55: unsupported functionality or resource */
--	xpUnknownReason		/* 56: unknown reason - must be last in enum */
-+	xpUnsupported,		/* 56: unsupported functionality or resource */
-+	xpUnknownReason		/* 57: unknown reason - must be last in enum */
- };
- 
- /*
-@@ -304,16 +299,15 @@ struct xpc_registration {
- 
- #define XPC_CHANNEL_REGISTERED(_c)	(xpc_registrations[_c].func != NULL)
- 
--/* the following are valid xpc_allocate() flags */
-+/* the following are valid xpc_send() or xpc_send_notify() flags */
- #define XPC_WAIT	0	/* wait flag */
- #define XPC_NOWAIT	1	/* no wait flag */
- 
- struct xpc_interface {
- 	void (*connect) (int);
- 	void (*disconnect) (int);
--	enum xp_retval (*allocate) (short, int, u32, void **);
--	enum xp_retval (*send) (short, int, void *);
--	enum xp_retval (*send_notify) (short, int, void *,
-+	enum xp_retval (*send) (short, int, u32, void *, u16);
-+	enum xp_retval (*send_notify) (short, int, u32, void *, u16,
- 					xpc_notify_func, void *);
- 	void (*received) (short, int, void *);
- 	enum xp_retval (*partid_to_nasids) (short, void *);
-@@ -323,10 +317,9 @@ extern struct xpc_interface xpc_interfac
- 
- extern void xpc_set_interface(void (*)(int),
- 			      void (*)(int),
--			      enum xp_retval (*)(short, int, u32, void **),
--			      enum xp_retval (*)(short, int, void *),
--			      enum xp_retval (*)(short, int, void *,
--						  xpc_notify_func, void *),
-+			      enum xp_retval (*)(short, int, u32, void *, u16),
-+			      enum xp_retval (*)(short, int, u32, void *, u16,
-+						 xpc_notify_func, void *),
- 			      void (*)(short, int, void *),
- 			      enum xp_retval (*)(short, void *));
- extern void xpc_clear_interface(void);
-@@ -336,22 +329,19 @@ extern enum xp_retval xpc_connect(int, x
- extern void xpc_disconnect(int);
- 
- static inline enum xp_retval
--xpc_allocate(short partid, int ch_number, u32 flags, void **payload)
--{
--	return xpc_interface.allocate(partid, ch_number, flags, payload);
--}
--
--static inline enum xp_retval
--xpc_send(short partid, int ch_number, void *payload)
-+xpc_send(short partid, int ch_number, u32 flags, void *payload,
-+	 u16 payload_size)
- {
--	return xpc_interface.send(partid, ch_number, payload);
-+	return xpc_interface.send(partid, ch_number, flags, payload,
-+				  payload_size);
- }
- 
- static inline enum xp_retval
--xpc_send_notify(short partid, int ch_number, void *payload,
--		xpc_notify_func func, void *key)
-+xpc_send_notify(short partid, int ch_number, u32 flags, void *payload,
-+		u16 payload_size, xpc_notify_func func, void *key)
- {
--	return xpc_interface.send_notify(partid, ch_number, payload, func, key);
-+	return xpc_interface.send_notify(partid, ch_number, flags, payload,
-+					 payload_size, func, key);
- }
- 
- static inline void
-diff -puN drivers/misc/sgi-xp/xp_main.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify drivers/misc/sgi-xp/xp_main.c
---- a/drivers/misc/sgi-xp/xp_main.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify
-+++ a/drivers/misc/sgi-xp/xp_main.c
-@@ -58,10 +58,9 @@ xpc_notloaded(void)
- struct xpc_interface xpc_interface = {
- 	(void (*)(int))xpc_notloaded,
- 	(void (*)(int))xpc_notloaded,
--	(enum xp_retval(*)(short, int, u32, void **))xpc_notloaded,
--	(enum xp_retval(*)(short, int, void *))xpc_notloaded,
--	(enum xp_retval(*)(short, int, void *, xpc_notify_func, void *))
--	    xpc_notloaded,
-+	(enum xp_retval(*)(short, int, u32, void *, u16))xpc_notloaded,
-+	(enum xp_retval(*)(short, int, u32, void *, u16, xpc_notify_func,
-+			   void *))xpc_notloaded,
- 	(void (*)(short, int, void *))xpc_notloaded,
- 	(enum xp_retval(*)(short, void *))xpc_notloaded
- };
-@@ -73,16 +72,14 @@ EXPORT_SYMBOL_GPL(xpc_interface);
- void
- xpc_set_interface(void (*connect) (int),
- 		  void (*disconnect) (int),
--		  enum xp_retval (*allocate) (short, int, u32, void **),
--		  enum xp_retval (*send) (short, int, void *),
--		  enum xp_retval (*send_notify) (short, int, void *,
-+		  enum xp_retval (*send) (short, int, u32, void *, u16),
-+		  enum xp_retval (*send_notify) (short, int, u32, void *, u16,
- 						  xpc_notify_func, void *),
- 		  void (*received) (short, int, void *),
- 		  enum xp_retval (*partid_to_nasids) (short, void *))
- {
- 	xpc_interface.connect = connect;
- 	xpc_interface.disconnect = disconnect;
--	xpc_interface.allocate = allocate;
- 	xpc_interface.send = send;
- 	xpc_interface.send_notify = send_notify;
- 	xpc_interface.received = received;
-@@ -98,13 +95,11 @@ xpc_clear_interface(void)
- {
- 	xpc_interface.connect = (void (*)(int))xpc_notloaded;
- 	xpc_interface.disconnect = (void (*)(int))xpc_notloaded;
--	xpc_interface.allocate = (enum xp_retval(*)(short, int, u32,
--						     void **))xpc_notloaded;
--	xpc_interface.send = (enum xp_retval(*)(short, int, void *))
-+	xpc_interface.send = (enum xp_retval(*)(short, int, u32, void *, u16))
- 	    xpc_notloaded;
--	xpc_interface.send_notify = (enum xp_retval(*)(short, int, void *,
--							xpc_notify_func,
--							void *))xpc_notloaded;
-+	xpc_interface.send_notify = (enum xp_retval(*)(short, int, u32, void *,
-+						       u16, xpc_notify_func,
-+						       void *))xpc_notloaded;
- 	xpc_interface.received = (void (*)(short, int, void *))
- 	    xpc_notloaded;
- 	xpc_interface.partid_to_nasids = (enum xp_retval(*)(short, void *))
-diff -puN drivers/misc/sgi-xp/xpc.h~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify drivers/misc/sgi-xp/xpc.h
---- a/drivers/misc/sgi-xp/xpc.h~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify
-+++ a/drivers/misc/sgi-xp/xpc.h
-@@ -624,9 +624,7 @@ extern void (*xpc_IPI_send_closereply) (
- extern void (*xpc_IPI_send_openrequest) (struct xpc_channel *, unsigned long *);
- extern void (*xpc_IPI_send_openreply) (struct xpc_channel *, unsigned long *);
- 
--extern enum xp_retval (*xpc_allocate_msg) (struct xpc_channel *, u32,
--					   struct xpc_msg **);
--extern enum xp_retval (*xpc_send_msg) (struct xpc_channel *, struct xpc_msg *,
-+extern enum xp_retval (*xpc_send_msg) (struct xpc_channel *, u32, void *, u16,
- 				       u8, xpc_notify_func, void *);
- extern void (*xpc_received_msg) (struct xpc_channel *, struct xpc_msg *);
- 
-@@ -664,9 +662,8 @@ extern void *xpc_kzalloc_cacheline_align
- extern void xpc_initiate_connect(int);
- extern void xpc_initiate_disconnect(int);
- extern enum xp_retval xpc_allocate_msg_wait(struct xpc_channel *);
--extern enum xp_retval xpc_initiate_allocate(short, int, u32, void **);
--extern enum xp_retval xpc_initiate_send(short, int, void *);
--extern enum xp_retval xpc_initiate_send_notify(short, int, void *,
-+extern enum xp_retval xpc_initiate_send(short, int, u32, void *, u16);
-+extern enum xp_retval xpc_initiate_send_notify(short, int, u32, void *, u16,
- 					       xpc_notify_func, void *);
- extern void xpc_initiate_received(short, int, void *);
- extern void xpc_process_channel_activity(struct xpc_partition *);
-diff -puN drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify drivers/misc/sgi-xp/xpc_channel.c
---- a/drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify
-+++ a/drivers/misc/sgi-xp/xpc_channel.c
-@@ -1192,87 +1192,54 @@ xpc_allocate_msg_wait(struct xpc_channel
- }
- 
- /*
-- * Allocate an entry for a message from the message queue associated with the
-- * specified channel. NOTE that this routine can sleep waiting for a message
-- * entry to become available. To not sleep, pass in the XPC_NOWAIT flag.
-+ * Send a message that contains the user's payload on the specified channel
-+ * connected to the specified partition.
-  *
-- * Arguments:
-+ * NOTE that this routine can sleep waiting for a message entry to become
-+ * available. To not sleep, pass in the XPC_NOWAIT flag.
-  *
-- *	partid - ID of partition to which the channel is connected.
-- *	ch_number - channel #.
-- *	flags - see xpc.h for valid flags.
-- *	payload - address of the allocated payload area pointer (filled in on
-- * 	          return) in which the user-defined message is constructed.
-- */
--enum xp_retval
--xpc_initiate_allocate(short partid, int ch_number, u32 flags, void **payload)
--{
--	struct xpc_partition *part = &xpc_partitions[partid];
--	enum xp_retval ret = xpUnknownReason;
--	struct xpc_msg *msg = NULL;
--
--	DBUG_ON(partid < 0 || partid >= xp_max_npartitions);
--	DBUG_ON(ch_number < 0 || ch_number >= part->nchannels);
--
--	*payload = NULL;
--
--	if (xpc_part_ref(part)) {
--		ret = xpc_allocate_msg(&part->channels[ch_number], flags, &msg);
--		xpc_part_deref(part);
--
--		if (msg != NULL)
--			*payload = &msg->payload;
--	}
--
--	return ret;
--}
--
--/*
-- * Send a message previously allocated using xpc_initiate_allocate() on the
-- * specified channel connected to the specified partition.
-- *
-- * This routine will not wait for the message to be received, nor will
-- * notification be given when it does happen. Once this routine has returned
-- * the message entry allocated via xpc_initiate_allocate() is no longer
-- * accessable to the caller.
-- *
-- * This routine, although called by users, does not call xpc_part_ref() to
-- * ensure that the partition infrastructure is in place. It relies on the
-- * fact that we called xpc_msgqueue_ref() in xpc_allocate_msg().
-+ * Once sent, this routine will not wait for the message to be received, nor
-+ * will notification be given when it does happen.
-  *
-  * Arguments:
-  *
-  *	partid - ID of partition to which the channel is connected.
-  *	ch_number - channel # to send message on.
-- *	payload - pointer to the payload area allocated via
-- *			xpc_initiate_allocate().
-+ *	flags - see xp.h for valid flags.
-+ *	payload - pointer to the payload which is to be sent.
-+ *	payload_size - size of the payload in bytes.
-  */
- enum xp_retval
--xpc_initiate_send(short partid, int ch_number, void *payload)
-+xpc_initiate_send(short partid, int ch_number, u32 flags, void *payload,
-+		  u16 payload_size)
- {
- 	struct xpc_partition *part = &xpc_partitions[partid];
--	struct xpc_msg *msg = XPC_MSG_ADDRESS(payload);
--	enum xp_retval ret;
-+	enum xp_retval ret = xpUnknownReason;
- 
--	dev_dbg(xpc_chan, "msg=0x%p, partid=%d, channel=%d\n", (void *)msg,
-+	dev_dbg(xpc_chan, "payload=0x%p, partid=%d, channel=%d\n", payload,
- 		partid, ch_number);
- 
- 	DBUG_ON(partid < 0 || partid >= xp_max_npartitions);
- 	DBUG_ON(ch_number < 0 || ch_number >= part->nchannels);
--	DBUG_ON(msg == NULL);
-+	DBUG_ON(payload == NULL);
- 
--	ret = xpc_send_msg(&part->channels[ch_number], msg, 0, NULL, NULL);
-+	if (xpc_part_ref(part)) {
-+		ret = xpc_send_msg(&part->channels[ch_number], flags, payload,
-+				   payload_size, 0, NULL, NULL);
-+		xpc_part_deref(part);
-+	}
- 
- 	return ret;
- }
- 
- /*
-- * Send a message previously allocated using xpc_initiate_allocate on the
-- * specified channel connected to the specified partition.
-+ * Send a message that contains the user's payload on the specified channel
-+ * connected to the specified partition.
-  *
-- * This routine will not wait for the message to be sent. Once this routine
-- * has returned the message entry allocated via xpc_initiate_allocate() is no
-- * longer accessable to the caller.
-+ * NOTE that this routine can sleep waiting for a message entry to become
-+ * available. To not sleep, pass in the XPC_NOWAIT flag.
+diff -puN /dev/null drivers/misc/sgi-gru/grufault.c
+--- /dev/null
++++ a/drivers/misc/sgi-gru/grufault.c
+@@ -0,0 +1,633 @@
++/*
++ * SN Platform GRU Driver
 + *
-+ * This routine will not wait for the message to be sent or received.
-  *
-  * Once the remote end of the channel has received the message, the function
-  * passed as an argument to xpc_initiate_send_notify() will be called. This
-@@ -1282,38 +1249,37 @@ xpc_initiate_send(short partid, int ch_n
-  *
-  * If this routine returns an error, the caller's function will NOT be called.
-  *
-- * This routine, although called by users, does not call xpc_part_ref() to
-- * ensure that the partition infrastructure is in place. It relies on the
-- * fact that we called xpc_msgqueue_ref() in xpc_allocate_msg().
-- *
-  * Arguments:
-  *
-  *	partid - ID of partition to which the channel is connected.
-  *	ch_number - channel # to send message on.
-- *	payload - pointer to the payload area allocated via
-- *			xpc_initiate_allocate().
-+ *	flags - see xp.h for valid flags.
-+ *	payload - pointer to the payload which is to be sent.
-+ *	payload_size - size of the payload in bytes.
-  *	func - function to call with asynchronous notification of message
-  *		  receipt. THIS FUNCTION MUST BE NON-BLOCKING.
-  *	key - user-defined key to be passed to the function when it's called.
-  */
- enum xp_retval
--xpc_initiate_send_notify(short partid, int ch_number, void *payload,
--			 xpc_notify_func func, void *key)
-+xpc_initiate_send_notify(short partid, int ch_number, u32 flags, void *payload,
-+			 u16 payload_size, xpc_notify_func func, void *key)
- {
- 	struct xpc_partition *part = &xpc_partitions[partid];
--	struct xpc_msg *msg = XPC_MSG_ADDRESS(payload);
--	enum xp_retval ret;
-+	enum xp_retval ret = xpUnknownReason;
- 
--	dev_dbg(xpc_chan, "msg=0x%p, partid=%d, channel=%d\n", (void *)msg,
-+	dev_dbg(xpc_chan, "payload=0x%p, partid=%d, channel=%d\n", payload,
- 		partid, ch_number);
- 
- 	DBUG_ON(partid < 0 || partid >= xp_max_npartitions);
- 	DBUG_ON(ch_number < 0 || ch_number >= part->nchannels);
--	DBUG_ON(msg == NULL);
-+	DBUG_ON(payload == NULL);
- 	DBUG_ON(func == NULL);
- 
--	ret = xpc_send_msg(&part->channels[ch_number], msg, XPC_N_CALL,
--			   func, key);
-+	if (xpc_part_ref(part)) {
-+		ret = xpc_send_msg(&part->channels[ch_number], flags, payload,
-+				   payload_size, XPC_N_CALL, func, key);
-+		xpc_part_deref(part);
-+	}
- 	return ret;
- }
- 
-@@ -1372,7 +1338,7 @@ xpc_deliver_msg(struct xpc_channel *ch)
-  *	partid - ID of partition to which the channel is connected.
-  *	ch_number - channel # message received on.
-  *	payload - pointer to the payload area allocated via
-- *			xpc_initiate_allocate().
-+ *			xpc_initiate_send() or xpc_initiate_send_notify().
-  */
- void
- xpc_initiate_received(short partid, int ch_number, void *payload)
-diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify drivers/misc/sgi-xp/xpc_main.c
---- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify
-+++ a/drivers/misc/sgi-xp/xpc_main.c
-@@ -217,12 +217,9 @@ void (*xpc_IPI_send_openrequest) (struct
- void (*xpc_IPI_send_openreply) (struct xpc_channel *ch,
- 				unsigned long *irq_flags);
- 
--enum xp_retval (*xpc_allocate_msg) (struct xpc_channel *ch, u32 flags,
--				    struct xpc_msg **address_of_msg);
--
--enum xp_retval (*xpc_send_msg) (struct xpc_channel *ch, struct xpc_msg *msg,
--				u8 notify_type, xpc_notify_func func,
--				void *key);
-+enum xp_retval (*xpc_send_msg) (struct xpc_channel *ch, u32 flags,
-+				void *payload, u16 payload_size, u8 notify_type,
-+				xpc_notify_func func, void *key);
- void (*xpc_received_msg) (struct xpc_channel *ch, struct xpc_msg *msg);
- 
- /*
-@@ -1286,9 +1283,8 @@ xpc_init(void)
- 
- 	/* set the interface to point at XPC's functions */
- 	xpc_set_interface(xpc_initiate_connect, xpc_initiate_disconnect,
--			  xpc_initiate_allocate, xpc_initiate_send,
--			  xpc_initiate_send_notify, xpc_initiate_received,
--			  xpc_initiate_partid_to_nasids);
-+			  xpc_initiate_send, xpc_initiate_send_notify,
-+			  xpc_initiate_received, xpc_initiate_partid_to_nasids);
- 
- 	return 0;
- 
-diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify drivers/misc/sgi-xp/xpc_sn2.c
---- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify
-+++ a/drivers/misc/sgi-xp/xpc_sn2.c
-@@ -1532,18 +1532,6 @@ xpc_allocate_msg_sn2(struct xpc_channel 
- 	enum xp_retval ret;
- 	s64 put;
- 
--	/* this reference will be dropped in xpc_send_msg_sn2() */
--	xpc_msgqueue_ref(ch);
--
--	if (ch->flags & XPC_C_DISCONNECTING) {
--		xpc_msgqueue_deref(ch);
--		return ch->reason;
--	}
--	if (!(ch->flags & XPC_C_CONNECTED)) {
--		xpc_msgqueue_deref(ch);
--		return xpNotConnected;
--	}
--
- 	/*
- 	 * Get the next available message entry from the local message queue.
- 	 * If none are available, we'll make sure that we grab the latest
-@@ -1582,16 +1570,12 @@ xpc_allocate_msg_sn2(struct xpc_channel 
- 		if (ret == xpTimeout)
- 			xpc_IPI_send_local_msgrequest_sn2(ch);
- 
--		if (flags & XPC_NOWAIT) {
--			xpc_msgqueue_deref(ch);
-+		if (flags & XPC_NOWAIT)
- 			return xpNoWait;
--		}
- 
- 		ret = xpc_allocate_msg_wait(ch);
--		if (ret != xpInterrupted && ret != xpTimeout) {
--			xpc_msgqueue_deref(ch);
-+		if (ret != xpInterrupted && ret != xpTimeout)
- 			return ret;
--		}
- 	}
- 
- 	/* get the message's address and initialize it */
-@@ -1606,7 +1590,6 @@ xpc_allocate_msg_sn2(struct xpc_channel 
- 		(void *)msg, msg->number, ch->partid, ch->number);
- 
- 	*address_of_msg = msg;
--
- 	return xpSuccess;
- }
- 
-@@ -1616,23 +1599,37 @@ xpc_allocate_msg_sn2(struct xpc_channel 
-  * message is being sent to.
-  */
- static enum xp_retval
--xpc_send_msg_sn2(struct xpc_channel *ch, struct xpc_msg *msg, u8 notify_type,
--		 xpc_notify_func func, void *key)
-+xpc_send_msg_sn2(struct xpc_channel *ch, u32 flags, void *payload,
-+		 u16 payload_size, u8 notify_type, xpc_notify_func func,
-+		 void *key)
- {
- 	enum xp_retval ret = xpSuccess;
-+	struct xpc_msg *msg = msg;
- 	struct xpc_notify *notify = notify;
--	s64 put, msg_number = msg->number;
-+	s64 msg_number;
-+	s64 put;
- 
- 	DBUG_ON(notify_type == XPC_N_CALL && func == NULL);
--	DBUG_ON((((u64)msg - (u64)ch->local_msgqueue) / ch->msg_size) !=
--		msg_number % ch->local_nentries);
--	DBUG_ON(msg->flags & XPC_M_READY);
++ *              FAULT HANDLER FOR GRU DETECTED TLB MISSES
++ *
++ * This file contains code that handles TLB misses within the GRU.
++ * These misses are reported either via interrupts or user polling of
++ * the user CB.
++ *
++ *  Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ */
 +
-+	if (XPC_MSG_SIZE(payload_size) > ch->msg_size)
-+		return xpPayloadTooBig;
++#include <linux/kernel.h>
++#include <linux/errno.h>
++#include <linux/spinlock.h>
++#include <linux/mm.h>
++#include <linux/hugetlb.h>
++#include <linux/device.h>
++#include <linux/io.h>
++#include <linux/uaccess.h>
++#include <asm/pgtable.h>
++#include "gru.h"
++#include "grutables.h"
++#include "grulib.h"
++#include "gru_instructions.h"
++#include <asm/uv/uv_hub.h>
 +
-+	xpc_msgqueue_ref(ch);
- 
- 	if (ch->flags & XPC_C_DISCONNECTING) {
--		/* drop the reference grabbed in xpc_allocate_msg_sn2() */
--		xpc_msgqueue_deref(ch);
--		return ch->reason;
-+		ret = ch->reason;
-+		goto out_1;
- 	}
-+	if (!(ch->flags & XPC_C_CONNECTED)) {
-+		ret = xpNotConnected;
-+		goto out_1;
++/*
++ * Test if a physical address is a valid GRU GSEG address
++ */
++static inline int is_gru_paddr(unsigned long paddr)
++{
++	return paddr >= gru_start_paddr && paddr < gru_end_paddr;
++}
++
++/*
++ * Find the vma of a GRU segment. Caller must hold mmap_sem.
++ */
++struct vm_area_struct *gru_find_vma(unsigned long vaddr)
++{
++	struct vm_area_struct *vma;
++
++	vma = find_vma(current->mm, vaddr);
++	if (vma && vma->vm_start <= vaddr && vma->vm_ops == &gru_vm_ops)
++		return vma;
++	return NULL;
++}
++
++/*
++ * Find and lock the gts that contains the specified user vaddr.
++ *
++ * Returns:
++ * 	- *gts with the mmap_sem locked for read and the GTS locked.
++ *	- NULL if vaddr invalid OR is not a valid GSEG vaddr.
++ */
++
++static struct gru_thread_state *gru_find_lock_gts(unsigned long vaddr)
++{
++	struct mm_struct *mm = current->mm;
++	struct vm_area_struct *vma;
++	struct gru_thread_state *gts = NULL;
++
++	down_read(&mm->mmap_sem);
++	vma = gru_find_vma(vaddr);
++	if (vma)
++		gts = gru_find_thread_state(vma, TSID(vaddr, vma));
++	if (gts)
++		mutex_lock(&gts->ts_ctxlock);
++	else
++		up_read(&mm->mmap_sem);
++	return gts;
++}
++
++static struct gru_thread_state *gru_alloc_locked_gts(unsigned long vaddr)
++{
++	struct mm_struct *mm = current->mm;
++	struct vm_area_struct *vma;
++	struct gru_thread_state *gts = NULL;
++
++	down_write(&mm->mmap_sem);
++	vma = gru_find_vma(vaddr);
++	if (vma)
++		gts = gru_alloc_thread_state(vma, TSID(vaddr, vma));
++	if (gts) {
++		mutex_lock(&gts->ts_ctxlock);
++		downgrade_write(&mm->mmap_sem);
++	} else {
++		up_write(&mm->mmap_sem);
 +	}
 +
-+	ret = xpc_allocate_msg_sn2(ch, flags, &msg);
-+	if (ret != xpSuccess)
-+		goto out_1;
++	return gts;
++}
 +
-+	msg_number = msg->number;
- 
- 	if (notify_type != 0) {
- 		/*
-@@ -1663,13 +1660,12 @@ xpc_send_msg_sn2(struct xpc_channel *ch,
- 				atomic_dec(&ch->n_to_notify);
- 				ret = ch->reason;
- 			}
--
--			/* drop reference grabbed in xpc_allocate_msg_sn2() */
--			xpc_msgqueue_deref(ch);
--			return ret;
-+			goto out_1;
- 		}
- 	}
- 
-+	memcpy(&msg->payload, payload, payload_size);
++/*
++ * Unlock a GTS that was previously locked with gru_find_lock_gts().
++ */
++static void gru_unlock_gts(struct gru_thread_state *gts)
++{
++	mutex_unlock(&gts->ts_ctxlock);
++	up_read(&current->mm->mmap_sem);
++}
 +
- 	msg->flags |= XPC_M_READY;
- 
- 	/*
-@@ -1684,7 +1680,7 @@ xpc_send_msg_sn2(struct xpc_channel *ch,
- 	if (put == msg_number)
- 		xpc_send_msgs_sn2(ch, put);
- 
--	/* drop the reference grabbed in xpc_allocate_msg_sn2() */
-+out_1:
- 	xpc_msgqueue_deref(ch);
- 	return ret;
- }
-@@ -1821,8 +1817,6 @@ xpc_init_sn2(void)
- 	xpc_IPI_send_openrequest = xpc_IPI_send_openrequest_sn2;
- 	xpc_IPI_send_openreply = xpc_IPI_send_openreply_sn2;
- 
--	xpc_allocate_msg = xpc_allocate_msg_sn2;
--
- 	xpc_send_msg = xpc_send_msg_sn2;
- 	xpc_received_msg = xpc_received_msg_sn2;
- }
-diff -puN drivers/misc/sgi-xp/xpnet.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify drivers/misc/sgi-xp/xpnet.c
---- a/drivers/misc/sgi-xp/xpnet.c~sgi-xp-move-xpc_allocate-into-xpc_send-xpc_send_notify
-+++ a/drivers/misc/sgi-xp/xpnet.c
-@@ -438,7 +438,8 @@ xpnet_dev_hard_start_xmit(struct sk_buff
- {
- 	struct xpnet_pending_msg *queued_msg;
- 	enum xp_retval ret;
--	struct xpnet_message *msg;
-+	u8 msg_buffer[XPNET_MSG_SIZE];
-+	struct xpnet_message *msg = (struct xpnet_message *)&msg_buffer[0];
- 	u64 start_addr, end_addr;
- 	long dp;
- 	u8 second_mac_octet;
-@@ -524,11 +525,6 @@ xpnet_dev_hard_start_xmit(struct sk_buff
- 
- 		/* found a partition to send to */
- 
--		ret = xpc_allocate(dest_partid, XPC_NET_CHANNEL,
--				   XPC_NOWAIT, (void **)&msg);
--		if (unlikely(ret != xpSuccess))
--			continue;
++/*
++ * Set a CB.istatus to active using a user virtual address. This must be done
++ * just prior to a TFH RESTART. The new cb.istatus is an in-cache status ONLY.
++ * If the line is evicted, the status may be lost. The in-cache update
++ * is necessary to prevent the user from seeing a stale cb.istatus that will
++ * change as soon as the TFH restart is complete. Races may cause an
++ * occasional failure to clear the cb.istatus, but that is ok.
++ *
++ * If the cb address is not valid (should not happen, but...), nothing
++ * bad will happen.. The get_user()/put_user() will fail but there
++ * are no bad side-effects.
++ */
++static void gru_cb_set_istatus_active(unsigned long __user *cb)
++{
++	union {
++		struct gru_instruction_bits bits;
++		unsigned long dw;
++	} u;
++
++	if (cb) {
++		get_user(u.dw, cb);
++		u.bits.istatus = CBS_ACTIVE;
++		put_user(u.dw, cb);
++	}
++}
++
++/*
++ * Convert a interrupt IRQ to a pointer to the GRU GTS that caused the
++ * interrupt. Interrupts are always sent to a cpu on the blade that contains the
++ * GRU (except for headless blades which are not currently supported). A blade
++ * has N grus; a block of N consecutive IRQs is assigned to the GRUs. The IRQ
++ * number uniquely identifies the GRU chiplet on the local blade that caused the
++ * interrupt. Always called in interrupt context.
++ */
++static inline struct gru_state *irq_to_gru(int irq)
++{
++	return &gru_base[uv_numa_blade_id()]->bs_grus[irq - IRQ_GRU];
++}
++
++/*
++ * Read & clear a TFM
++ *
++ * The GRU has an array of fault maps. A map is private to a cpu
++ * Only one cpu will be accessing a cpu's fault map.
++ *
++ * This function scans the cpu-private fault map & clears all bits that
++ * are set. The function returns a bitmap that indicates the bits that
++ * were cleared. Note that sense the maps may be updated asynchronously by
++ * the GRU, atomic operations must be used to clear bits.
++ */
++static void get_clear_fault_map(struct gru_state *gru,
++				struct gru_tlb_fault_map *map)
++{
++	unsigned long i, k;
++	struct gru_tlb_fault_map *tfm;
++
++	tfm = get_tfm_for_cpu(gru, gru_cpu_fault_map_id());
++	prefetchw(tfm);		/* Helps on hardware, required for emulator */
++	for (i = 0; i < BITS_TO_LONGS(GRU_NUM_CBE); i++) {
++		k = tfm->fault_bits[i];
++		if (k)
++			k = xchg(&tfm->fault_bits[i], 0UL);
++		map->fault_bits[i] = k;
++	}
++
++	/*
++	 * Not functionally required but helps performance. (Required
++	 * on emulator)
++	 */
++	gru_flush_cache(tfm);
++}
++
++/*
++ * Atomic (interrupt context) & non-atomic (user context) functions to
++ * convert a vaddr into a physical address. The size of the page
++ * is returned in pageshift.
++ * 	returns:
++ * 		  0 - successful
++ * 		< 0 - error code
++ * 		  1 - (atomic only) try again in non-atomic context
++ */
++static int non_atomic_pte_lookup(struct vm_area_struct *vma,
++				 unsigned long vaddr, int write,
++				 unsigned long *paddr, int *pageshift)
++{
++	struct page *page;
++
++	/* ZZZ Need to handle HUGE pages */
++	if (is_vm_hugetlb_page(vma))
++		return -EFAULT;
++	*pageshift = PAGE_SHIFT;
++	if (get_user_pages
++	    (current, current->mm, vaddr, 1, write, 0, &page, NULL) <= 0)
++		return -EFAULT;
++	*paddr = page_to_phys(page);
++	put_page(page);
++	return 0;
++}
++
++/*
++ *
++ * atomic_pte_lookup
++ *
++ * Convert a user virtual address to a physical address
++ * Only supports Intel large pages (2MB only) on x86_64.
++ *	ZZZ - hugepage support is incomplete
++ */
++static int atomic_pte_lookup(struct vm_area_struct *vma, unsigned long vaddr,
++	int write, unsigned long *paddr, int *pageshift)
++{
++	pgd_t *pgdp;
++	pmd_t *pmdp;
++	pud_t *pudp;
++	pte_t pte;
++
++	WARN_ON(irqs_disabled());		/* ZZZ debug */
++
++	local_irq_disable();
++	pgdp = pgd_offset(vma->vm_mm, vaddr);
++	if (unlikely(pgd_none(*pgdp)))
++		goto err;
++
++	pudp = pud_offset(pgdp, vaddr);
++	if (unlikely(pud_none(*pudp)))
++		goto err;
++
++	pmdp = pmd_offset(pudp, vaddr);
++	if (unlikely(pmd_none(*pmdp)))
++		goto err;
++#ifdef CONFIG_X86_64
++	if (unlikely(pmd_large(*pmdp)))
++		pte = *(pte_t *) pmdp;
++	else
++#endif
++		pte = *pte_offset_kernel(pmdp, vaddr);
++
++	local_irq_enable();
++
++	if (unlikely(!pte_present(pte) ||
++		     (write && (!pte_write(pte) || !pte_dirty(pte)))))
++		return 1;
++
++	*paddr = pte_pfn(pte) << PAGE_SHIFT;
++	*pageshift = is_vm_hugetlb_page(vma) ? HPAGE_SHIFT : PAGE_SHIFT;
++	return 0;
++
++err:
++	local_irq_enable();
++	return 1;
++}
++
++/*
++ * Drop a TLB entry into the GRU. The fault is described by info in an TFH.
++ *	Input:
++ *		cb    Address of user CBR. Null if not running in user context
++ * 	Return:
++ * 		  0 = dropin, exception, or switch to UPM successful
++ * 		  1 = range invalidate active
++ * 		< 0 = error code
++ *
++ */
++static int gru_try_dropin(struct gru_thread_state *gts,
++			  struct gru_tlb_fault_handle *tfh,
++			  unsigned long __user *cb)
++{
++	struct mm_struct *mm = gts->ts_mm;
++	struct vm_area_struct *vma;
++	int pageshift, asid, write, ret;
++	unsigned long paddr, gpa, vaddr;
++
++	/*
++	 * NOTE: The GRU contains magic hardware that eliminates races between
++	 * TLB invalidates and TLB dropins. If an invalidate occurs
++	 * in the window between reading the TFH and the subsequent TLB dropin,
++	 * the dropin is ignored. This eliminates the need for additional locks.
++	 */
++
++	/*
++	 * Error if TFH state is IDLE or FMM mode & the user issuing a UPM call.
++	 * Might be a hardware race OR a stupid user. Ignore FMM because FMM
++	 * is a transient state.
++	 */
++	if (tfh->state == TFHSTATE_IDLE)
++		goto failidle;
++	if (tfh->state == TFHSTATE_MISS_FMM && cb)
++		goto failfmm;
++
++	write = (tfh->cause & TFHCAUSE_TLB_MOD) != 0;
++	vaddr = tfh->missvaddr;
++	asid = tfh->missasid;
++	if (asid == 0)
++		goto failnoasid;
++
++	rmb();	/* TFH must be cache resident before reading ms_range_active */
++
++	/*
++	 * TFH is cache resident - at least briefly. Fail the dropin
++	 * if a range invalidate is active.
++	 */
++	if (atomic_read(&gts->ts_gms->ms_range_active))
++		goto failactive;
++
++	vma = find_vma(mm, vaddr);
++	if (!vma)
++		goto failinval;
++
++	/*
++	 * Atomic lookup is faster & usually works even if called in non-atomic
++	 * context.
++	 */
++	ret = atomic_pte_lookup(vma, vaddr, write, &paddr, &pageshift);
++	if (ret) {
++		if (!cb)
++			goto failupm;
++		if (non_atomic_pte_lookup(vma, vaddr, write, &paddr,
++					  &pageshift))
++			goto failinval;
++	}
++	if (is_gru_paddr(paddr))
++		goto failinval;
++
++	paddr = paddr & ~((1UL << pageshift) - 1);
++	gpa = uv_soc_phys_ram_to_gpa(paddr);
++	gru_cb_set_istatus_active(cb);
++	tfh_write_restart(tfh, gpa, GAA_RAM, vaddr, asid, write,
++			  GRU_PAGESIZE(pageshift));
++	STAT(tlb_dropin);
++	gru_dbg(grudev,
++		"%s: tfh 0x%p, vaddr 0x%lx, asid 0x%x, ps %d, gpa 0x%lx\n",
++		ret ? "non-atomic" : "atomic", tfh, vaddr, asid,
++		pageshift, gpa);
++	return 0;
++
++failnoasid:
++	/* No asid (delayed unload). */
++	STAT(tlb_dropin_fail_no_asid);
++	gru_dbg(grudev, "FAILED no_asid tfh: 0x%p, vaddr 0x%lx\n", tfh, vaddr);
++	if (!cb)
++		tfh_user_polling_mode(tfh);
++	else
++		gru_flush_cache(tfh);
++	return -EAGAIN;
++
++failupm:
++	/* Atomic failure switch CBR to UPM */
++	tfh_user_polling_mode(tfh);
++	STAT(tlb_dropin_fail_upm);
++	gru_dbg(grudev, "FAILED upm tfh: 0x%p, vaddr 0x%lx\n", tfh, vaddr);
++	return 1;
++
++failfmm:
++	/* FMM state on UPM call */
++	STAT(tlb_dropin_fail_fmm);
++	gru_dbg(grudev, "FAILED fmm tfh: 0x%p, state %d\n", tfh, tfh->state);
++	return 0;
++
++failidle:
++	/* TFH was idle  - no miss pending */
++	gru_flush_cache(tfh);
++	if (cb)
++		gru_flush_cache(cb);
++	STAT(tlb_dropin_fail_idle);
++	gru_dbg(grudev, "FAILED idle tfh: 0x%p, state %d\n", tfh, tfh->state);
++	return 0;
++
++failinval:
++	/* All errors (atomic & non-atomic) switch CBR to EXCEPTION state */
++	tfh_exception(tfh);
++	STAT(tlb_dropin_fail_invalid);
++	gru_dbg(grudev, "FAILED inval tfh: 0x%p, vaddr 0x%lx\n", tfh, vaddr);
++	return -EFAULT;
++
++failactive:
++	/* Range invalidate active. Switch to UPM iff atomic */
++	if (!cb)
++		tfh_user_polling_mode(tfh);
++	else
++		gru_flush_cache(tfh);
++	STAT(tlb_dropin_fail_range_active);
++	gru_dbg(grudev, "FAILED range active: tfh 0x%p, vaddr 0x%lx\n",
++		tfh, vaddr);
++	return 1;
++}
++
++/*
++ * Process an external interrupt from the GRU. This interrupt is
++ * caused by a TLB miss.
++ * Note that this is the interrupt handler that is registered with linux
++ * interrupt handlers.
++ */
++irqreturn_t gru_intr(int irq, void *dev_id)
++{
++	struct gru_state *gru;
++	struct gru_tlb_fault_map map;
++	struct gru_thread_state *gts;
++	struct gru_tlb_fault_handle *tfh = NULL;
++	int cbrnum, ctxnum;
++
++	STAT(intr);
++
++	gru = irq_to_gru(irq);
++	if (!gru) {
++		dev_err(grudev, "GRU: invalid interrupt: cpu %d, irq %d\n",
++			raw_smp_processor_id(), irq);
++		return IRQ_NONE;
++	}
++	get_clear_fault_map(gru, &map);
++	gru_dbg(grudev, "irq %d, gru %x, map 0x%lx\n", irq, gru->gs_gid,
++		map.fault_bits[0]);
++
++	for_each_cbr_in_tfm(cbrnum, map.fault_bits) {
++		tfh = get_tfh_by_index(gru, cbrnum);
++		prefetchw(tfh);	/* Helps on hdw, required for emulator */
++
++		/*
++		 * When hardware sets a bit in the faultmap, it implicitly
++		 * locks the GRU context so that it cannot be unloaded.
++		 * The gts cannot change until a TFH start/writestart command
++		 * is issued.
++		 */
++		ctxnum = tfh->ctxnum;
++		gts = gru->gs_gts[ctxnum];
++
++		/*
++		 * This is running in interrupt context. Trylock the mmap_sem.
++		 * If it fails, retry the fault in user context.
++		 */
++		if (down_read_trylock(&gts->ts_mm->mmap_sem)) {
++			gru_try_dropin(gts, tfh, NULL);
++			up_read(&gts->ts_mm->mmap_sem);
++		} else {
++			tfh_user_polling_mode(tfh);
++		}
++	}
++	return IRQ_HANDLED;
++}
++
++
++static int gru_user_dropin(struct gru_thread_state *gts,
++			   struct gru_tlb_fault_handle *tfh,
++			   unsigned long __user *cb)
++{
++	struct gru_mm_struct *gms = gts->ts_gms;
++	int ret;
++
++	while (1) {
++		wait_event(gms->ms_wait_queue,
++			   atomic_read(&gms->ms_range_active) == 0);
++		prefetchw(tfh);	/* Helps on hdw, required for emulator */
++		ret = gru_try_dropin(gts, tfh, cb);
++		if (ret <= 0)
++			return ret;
++		STAT(call_os_wait_queue);
++	}
++}
++
++/*
++ * This interface is called as a result of a user detecting a "call OS" bit
++ * in a user CB. Normally means that a TLB fault has occurred.
++ * 	cb - user virtual address of the CB
++ */
++int gru_handle_user_call_os(unsigned long cb)
++{
++	struct gru_tlb_fault_handle *tfh;
++	struct gru_thread_state *gts;
++	unsigned long __user *cbp;
++	int ucbnum, cbrnum, ret = -EINVAL;
++
++	STAT(call_os);
++	gru_dbg(grudev, "address 0x%lx\n", cb);
++
++	/* sanity check the cb pointer */
++	ucbnum = get_cb_number((void *)cb);
++	if ((cb & (GRU_HANDLE_STRIDE - 1)) || ucbnum >= GRU_NUM_CB)
++		return -EINVAL;
++	cbp = (unsigned long *)cb;
++
++	gts = gru_find_lock_gts(cb);
++	if (!gts)
++		return -EINVAL;
++
++	if (ucbnum >= gts->ts_cbr_au_count * GRU_CBR_AU_SIZE) {
++		ret = -EINVAL;
++		goto exit;
++	}
++
++	/*
++	 * If force_unload is set, the UPM TLB fault is phony. The task
++	 * has migrated to another node and the GSEG must be moved. Just
++	 * unload the context. The task will page fault and assign a new
++	 * context.
++	 */
++	ret = -EAGAIN;
++	cbrnum = thread_cbr_number(gts, ucbnum);
++	if (gts->ts_force_unload) {
++		gru_unload_context(gts, 1);
++	} else if (gts->ts_gru) {
++		tfh = get_tfh_by_index(gts->ts_gru, cbrnum);
++		ret = gru_user_dropin(gts, tfh, cbp);
++	}
++exit:
++	gru_unlock_gts(gts);
++	return ret;
++}
++
++/*
++ * Fetch the exception detail information for a CB that terminated with
++ * an exception.
++ */
++int gru_get_exception_detail(unsigned long arg)
++{
++	struct control_block_extended_exc_detail excdet;
++	struct gru_control_block_extended *cbe;
++	struct gru_thread_state *gts;
++	int ucbnum, cbrnum, ret;
++
++	STAT(user_exception);
++	if (copy_from_user(&excdet, (void __user *)arg, sizeof(excdet)))
++		return -EFAULT;
++
++	gru_dbg(grudev, "address 0x%lx\n", excdet.cb);
++	gts = gru_find_lock_gts(excdet.cb);
++	if (!gts)
++		return -EINVAL;
++
++	if (gts->ts_gru) {
++		ucbnum = get_cb_number((void *)excdet.cb);
++		cbrnum = thread_cbr_number(gts, ucbnum);
++		cbe = get_cbe_by_index(gts->ts_gru, cbrnum);
++		excdet.opc = cbe->opccpy;
++		excdet.exopc = cbe->exopccpy;
++		excdet.ecause = cbe->ecause;
++		excdet.exceptdet0 = cbe->idef1upd;
++		excdet.exceptdet1 = cbe->idef3upd;
++		ret = 0;
++	} else {
++		ret = -EAGAIN;
++	}
++	gru_unlock_gts(gts);
++
++	gru_dbg(grudev, "address 0x%lx, ecause 0x%x\n", excdet.cb,
++		excdet.ecause);
++	if (!ret && copy_to_user((void __user *)arg, &excdet, sizeof(excdet)))
++		ret = -EFAULT;
++	return ret;
++}
++
++/*
++ * User request to unload a context. Content is saved for possible reload.
++ */
++int gru_user_unload_context(unsigned long arg)
++{
++	struct gru_thread_state *gts;
++	struct gru_unload_context_req req;
++
++	STAT(user_unload_context);
++	if (copy_from_user(&req, (void __user *)arg, sizeof(req)))
++		return -EFAULT;
++
++	gru_dbg(grudev, "gseg 0x%lx\n", req.gseg);
++
++	gts = gru_find_lock_gts(req.gseg);
++	if (!gts)
++		return -EINVAL;
++
++	if (gts->ts_gru)
++		gru_unload_context(gts, 1);
++	gru_unlock_gts(gts);
++
++	return 0;
++}
++
++/*
++ * User request to flush a range of virtual addresses from the GRU TLB
++ * (Mainly for testing).
++ */
++int gru_user_flush_tlb(unsigned long arg)
++{
++	struct gru_thread_state *gts;
++	struct gru_flush_tlb_req req;
++
++	STAT(user_flush_tlb);
++	if (copy_from_user(&req, (void __user *)arg, sizeof(req)))
++		return -EFAULT;
++
++	gru_dbg(grudev, "gseg 0x%lx, vaddr 0x%lx, len 0x%lx\n", req.gseg,
++		req.vaddr, req.len);
++
++	gts = gru_find_lock_gts(req.gseg);
++	if (!gts)
++		return -EINVAL;
++
++	gru_flush_tlb_range(gts->ts_gms, req.vaddr, req.vaddr + req.len);
++	gru_unlock_gts(gts);
++
++	return 0;
++}
++
++/*
++ * Register the current task as the user of the GSEG slice.
++ * Needed for TLB fault interrupt targeting.
++ */
++int gru_set_task_slice(long address)
++{
++	struct gru_thread_state *gts;
++
++	STAT(set_task_slice);
++	gru_dbg(grudev, "address 0x%lx\n", address);
++	gts = gru_alloc_locked_gts(address);
++	if (!gts)
++		return -EINVAL;
++
++	gts->ts_tgid_owner = current->tgid;
++	gru_unlock_gts(gts);
++
++	return 0;
++}
+_
+
+Patches currently in -mm which might be from steiner@sgi.com are
+
+origin.patch
+linux-next.patch
+
