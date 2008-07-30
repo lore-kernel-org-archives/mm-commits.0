@@ -1,181 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - configure-out-ethtool-support.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 14:45:21 -0700
-Message-ID: <200807302145.m6ULjLQk018999@imap1.linux-foundation.org>
+Subject: - dvb-usb-fix-crash-in-drivers-media-dvb-dvb-usb-cxusbc.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 15:19:48 -0700
+Message-ID: <200807302219.m6UMJm8L020550@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49678 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46035 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754922AbYG3VqX (ORCPT
+	by vger.kernel.org with ESMTP id S1751587AbYG3WUW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 17:46:23 -0400
+	Wed, 30 Jul 2008 18:20:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: thomas.petazzoni@free-electrons.com, davem@davemloft.net, jeff@garzik.org, mpm@selenic.com, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
+To: rglowery@exemail.com.au, c.pascoe@itee.uq.edu.au, mchehab@infradead.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Configure out ethtool support
+     dvb-usb: fix crash in drivers/media/dvb/dvb-usb/cxusb.c
 has been removed from the -mm tree.  Its filename was
-     configure-out-ethtool-support.patch
+     dvb-usb-fix-crash-in-drivers-media-dvb-dvb-usb-cxusbc.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Configure out ethtool support
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: dvb-usb: fix crash in drivers/media/dvb/dvb-usb/cxusb.c
+From: "Robert Lowery" <rglowery@exemail.com.au>
 
-Add the CONFIG_ETHTOOL option which allows to remove support for ethtool,
-not necessarly used on embedded systems.  As this is a size-reduction
-option, it depends on CONFIG_EMBEDDED.  It allows to save ~6 kilobytes of
-kernel code:
+fe->dvb->priv is a dvb_usb_adapter, but the callback is expecting a
+dvb_usb_device.  I'm not sure the best way to handle this as
+tuner-xc2028.c does not know about any dvb-usb code currently.
 
-   text	   data	    bss	    dec	    hex	filename
-1258447	 123592	 212992	1595031	 185697	vmlinux
-1252147	 123592	 212992	1588731	 183dfb	vmlinux.new
-  -6300       0       0   -6300   -189C +/-
+In any case, the following patch seems to get it past the oops until the
+proper fix is in place.
 
-Question: should we also remove ethtool-related functions from all network
-drivers ?
-
-This patch has been originally written by Matt Mackall
-<mpm@selenic.com>, and is part of the Linux Tiny project.
-
-Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Stephen Hemminger <shemminger@linux-foundation.org>
+Chris Pascoe <c.pascoe@itee.uq.edu.au>
+Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/Kconfig     |    1 +
- include/linux/ethtool.h |   16 ++++++++++++++++
- init/Kconfig            |    8 ++++++++
- net/bridge/Kconfig      |    1 +
- net/core/Makefile       |    3 ++-
- net/core/dev.c          |    4 ++++
- 6 files changed, 32 insertions(+), 1 deletion(-)
+ drivers/media/dvb/dvb-usb/cxusb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/ethtool.h~configure-out-ethtool-support include/linux/ethtool.h
---- a/include/linux/ethtool.h~configure-out-ethtool-support
-+++ a/include/linux/ethtool.h
-@@ -283,6 +283,7 @@ struct ethtool_rxnfc {
- struct net_device;
+diff -puN drivers/media/dvb/dvb-usb/cxusb.c~dvb-usb-fix-crash-in-drivers-media-dvb-dvb-usb-cxusbc drivers/media/dvb/dvb-usb/cxusb.c
+--- a/drivers/media/dvb/dvb-usb/cxusb.c~dvb-usb-fix-crash-in-drivers-media-dvb-dvb-usb-cxusbc
++++ a/drivers/media/dvb/dvb-usb/cxusb.c
+@@ -565,7 +565,7 @@ static int cxusb_lgh064f_tuner_attach(st
  
- /* Some generic methods drivers may use in their ethtool_ops */
-+#ifdef CONFIG_ETHTOOL
- u32 ethtool_op_get_link(struct net_device *dev);
- u32 ethtool_op_get_tx_csum(struct net_device *dev);
- int ethtool_op_set_tx_csum(struct net_device *dev, u32 data);
-@@ -296,6 +297,21 @@ u32 ethtool_op_get_ufo(struct net_device
- int ethtool_op_set_ufo(struct net_device *dev, u32 data);
- u32 ethtool_op_get_flags(struct net_device *dev);
- int ethtool_op_set_flags(struct net_device *dev, u32 data);
-+#else
-+static inline u32 ethtool_op_get_link(struct net_device *dev) { return 0; }
-+static inline u32 ethtool_op_get_tx_csum(struct net_device *dev) { return 0; }
-+static inline int ethtool_op_set_tx_csum(struct net_device *dev, u32 data) { return 0; }
-+static inline int ethtool_op_set_tx_hw_csum(struct net_device *dev, u32 data) { return 0; }
-+static inline int ethtool_op_set_tx_ipv6_csum(struct net_device *dev, u32 data) { return 0; }
-+static inline u32 ethtool_op_get_sg(struct net_device *dev) { return 0; }
-+static inline int ethtool_op_set_sg(struct net_device *dev, u32 data) { return 0; }
-+static inline u32 ethtool_op_get_tso(struct net_device *dev) { return 0; }
-+static inline int ethtool_op_set_tso(struct net_device *dev, u32 data) { return 0; }
-+static inline u32 ethtool_op_get_ufo(struct net_device *dev) { return 0; }
-+static inline int ethtool_op_set_ufo(struct net_device *dev, u32 data) { return 0; }
-+static inline u32 ethtool_op_get_flags(struct net_device *dev) { return 0; }
-+static inline int ethtool_op_set_flags(struct net_device *dev, u32 data) { return 0; }
-+#endif
+ static int dvico_bluebird_xc2028_callback(void *ptr, int command, int arg)
+ {
+-	struct dvb_usb_device *d = ptr;
++	struct dvb_usb_device *d = ((struct dvb_usb_adapter *)ptr)->dev;
  
- /**
-  * &ethtool_ops - Alter and report network device settings
-diff -puN init/Kconfig~configure-out-ethtool-support init/Kconfig
---- a/init/Kconfig~configure-out-ethtool-support
-+++ a/init/Kconfig
-@@ -732,6 +732,14 @@ config IGMP
- 	  Disabling this option removes support for the Internet group
-           management protocol, used for multicast. Saves about 10k.
- 
-+config ETHTOOL
-+	bool "Enable ethtool support" if EMBEDDED
-+	depends on NET
-+	default y
-+	help
-+	  Disabling this option removes support for configuring
-+	  ethernet device features via ethtool. Saves about 6k.
-+
- config VM_EVENT_COUNTERS
- 	default y
- 	bool "Enable VM event counters for /proc/vmstat" if EMBEDDED
-diff -puN net/core/Makefile~configure-out-ethtool-support net/core/Makefile
---- a/net/core/Makefile~configure-out-ethtool-support
-+++ a/net/core/Makefile
-@@ -7,10 +7,11 @@ obj-y := sock.o request_sock.o skbuff.o 
- 
- obj-$(CONFIG_SYSCTL) += sysctl_net_core.o
- 
--obj-y		     += dev.o ethtool.o dev_mcast.o dst.o netevent.o \
-+obj-y		     += dev.o dev_mcast.o dst.o netevent.o \
- 			neighbour.o rtnetlink.o utils.o link_watch.o filter.o
- 
- obj-$(CONFIG_XFRM) += flow.o
-+obj-$(CONFIG_ETHTOOL) += ethtool.o
- obj-y += net-sysfs.o
- obj-$(CONFIG_NET_PKTGEN) += pktgen.o
- obj-$(CONFIG_NETPOLL) += netpoll.o
-diff -puN net/core/dev.c~configure-out-ethtool-support net/core/dev.c
---- a/net/core/dev.c~configure-out-ethtool-support
-+++ a/net/core/dev.c
-@@ -3669,6 +3669,7 @@ int dev_ioctl(struct net *net, unsigned 
- 			return ret;
- 
- 		case SIOCETHTOOL:
-+#ifdef CONFIG_ETHTOOL
- 			dev_load(net, ifr.ifr_name);
- 			rtnl_lock();
- 			ret = dev_ethtool(net, &ifr);
-@@ -3681,6 +3682,9 @@ int dev_ioctl(struct net *net, unsigned 
- 					ret = -EFAULT;
- 			}
- 			return ret;
-+#else
-+			return -EINVAL;
-+#endif
- 
- 		/*
- 		 *	These ioctl calls:
-diff -puN drivers/net/Kconfig~configure-out-ethtool-support drivers/net/Kconfig
---- a/drivers/net/Kconfig~configure-out-ethtool-support
-+++ a/drivers/net/Kconfig
-@@ -61,6 +61,7 @@ config DUMMY
- config BONDING
- 	tristate "Bonding driver support"
- 	depends on INET
-+	select ETHTOOL
- 	---help---
- 	  Say 'Y' or 'M' if you wish to be able to 'bond' multiple Ethernet
- 	  Channels together. This is called 'Etherchannel' by Cisco,
-diff -puN net/bridge/Kconfig~configure-out-ethtool-support net/bridge/Kconfig
---- a/net/bridge/Kconfig~configure-out-ethtool-support
-+++ a/net/bridge/Kconfig
-@@ -6,6 +6,7 @@ config BRIDGE
- 	tristate "802.1d Ethernet Bridging"
- 	select LLC
- 	select STP
-+	select ETHTOOL
- 	---help---
- 	  If you say Y here, then your Linux box will be able to act as an
- 	  Ethernet bridge, which means that the different Ethernet segments it
+ 	switch (command) {
+ 	case XC2028_TUNER_RESET:
 _
 
-Patches currently in -mm which might be from thomas.petazzoni@free-electrons.com are
+Patches currently in -mm which might be from rglowery@exemail.com.au are
 
-origin.patch
-configure-out-igmp-support.patch
-configure-out-ethtool-support.patch
-configure-out-file-locking-features.patch
-configure-out-aio-support.patch
+dvb-usb-fix-crash-in-drivers-media-dvb-dvb-usb-cxusbc.patch
 
