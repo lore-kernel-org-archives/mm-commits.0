@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - configure-out-ethtool-support.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 13:51:31 -0700
-Message-ID: <200807302051.m6UKpV0G016383@imap1.linux-foundation.org>
+Subject: + configure-out-ethtool-support.patch added to -mm tree
+Date: Wed, 30 Jul 2008 14:00:30 -0700
+Message-ID: <200807302100.m6UL0UTG016806@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35506 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36383 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751638AbYG3Uw5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752071AbYG3VBV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 16:52:57 -0400
+	Wed, 30 Jul 2008 17:01:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: thomas.petazzoni@free-electrons.com, davem@davemloft.net, jeff@garzik.org, mpm@selenic.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: thomas.petazzoni@free-electrons.com, davem@davemloft.net, jeff@garzik.org, mpm@selenic.com, shemminger@linux-foundation.org
 
 
 The patch titled
      Configure out ethtool support
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      configure-out-ethtool-support.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -47,6 +57,7 @@ Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
 Cc: Matt Mackall <mpm@selenic.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
