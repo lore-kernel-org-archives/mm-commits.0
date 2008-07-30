@@ -1,218 +1,405 @@
 From: akpm@linux-foundation.org
-Subject: - ath5k-fix-memory-corruption.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:17:40 -0700
-Message-ID: <200807301917.m6UJHe79011235@imap1.linux-foundation.org>
+Subject: - sgi-xp-cleanup-naming-of-partition-defines.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:17:12 -0700
+Message-ID: <200807301917.m6UJHC5c011195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38345 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55530 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754099AbYG3T1I (ORCPT
+	by vger.kernel.org with ESMTP id S1754047AbYG3T10 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:27:08 -0400
+	Wed, 30 Jul 2008 15:27:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, mcgrof@gmail.com, mickflemm@gmail.com, mm-commits@vger.kernel.org
+To: dcn@sgi.com, steiner@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ath5k: fix memory corruption
+     sgi-xp: cleanup naming of partition defines
 has been removed from the -mm tree.  Its filename was
-     ath5k-fix-memory-corruption.patch
+     sgi-xp-cleanup-naming-of-partition-defines.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ath5k: fix memory corruption
-=46rom: Jiri Slaby <jirislaby@gmail.com>
+Subject: sgi-xp: cleanup naming of partition defines
+From: Dean Nelson <dcn@sgi.com>
 
-When signal is noisy, hardware can use all RX buffers and since the las=
-t
-entry in the list is self-linked, it overwrites the entry until we link
-new buffers.
+Cleanup naming of partition defines.
 
-Ensure that we don't free this last one until we are 100% sure that it
-is not used by the hardware anymore to not cause memory curruption as
-can be seen below.
-
-This is done by checking next buffer in the list. Even after that we
-know that the hardware refetched the new link and proceeded further
-(the next buffer is ready) we can finally free the overwritten buffer.
-
-We discard it since the status in its descriptor is overwritten (OR-ed
-by new status) too.
-
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D
-BUG kmalloc-4096: Poison overwritten
------------------------------------------------------------------------=
-------
-
-INFO: 0xffff810067419060-0xffff810067419667. First byte 0x8 instead of =
-0x6b
-INFO: Allocated in dev_alloc_skb+0x18/0x30 age=3D1118 cpu=3D1 pid=3D0
-INFO: Freed in skb_release_data+0x85/0xd0 age=3D1105 cpu=3D1 pid=3D3718
-INFO: Slab 0xffffe200019d0600 objects=3D7 used=3D0 fp=3D0xffff810067419=
-048 flags=3D0x40000000000020c3
-INFO: Object 0xffff810067419048 @offset=3D4168 fp=3D0xffff81006741c120
-
-Bytes b4 0xffff810067419038:  4f 0b 02 00 01 00 00 00 5a 5a 5a 5a 5a 5a=
- 5a 5a O.......ZZZZZZZZ
-  Object 0xffff810067419048:  6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b=
- 6b 6b kkkkkkkkkkkkkkkk
-  Object 0xffff810067419058:  6b 6b 6b 6b 6b 6b 6b 6b 08 42 30 00 00 0b=
- 6b 80 kkkkkkkk.B0...k.
-  Object 0xffff810067419068:  f0 5d 00 4f 62 08 a3 64 00 0c 42 16 52 e4=
- f0 5a 360].Ob.243d..B.R344360Z
-  Object 0xffff810067419078:  68 81 00 00 7b a5 b4 be 7d 3b 8f 53 cd d5=
- de 12 h...{245264276};.S315325336.
-  Object 0xffff810067419088:  96 10 0b 89 48 54 23 41 0f 4e 2d b9 37 c3=
- cb 29 ....HT#A.N-2717303313)
-  Object 0xffff810067419098:  d1 e0 de 14 8a 57 2a cc 3b 44 0d 78 7a 19=
- 12 15 321340336..W*314;D.xz...
-  Object 0xffff8100674190a8:  a9 ec d4 35 a8 10 ec 8c 40 a7 06 0a 51 a7=
- 48 bb 2513543245250.354.@247..Q247H273
-  Object 0xffff8100674190b8:  3e cf a1 c7 38 60 63 3f 51 15 c7 20 eb ba=
- 65 30 >=CF=A13078`c?Q.307.353272e0
- Redzone 0xffff81006741a048:  bb bb bb bb bb bb bb bb                  =
-       273273273273273273273273
- Padding 0xffff81006741a088:  5a 5a 5a 5a 5a 5a 5a 5a                  =
-       ZZZZZZZZ
-Pid: 3297, comm: ath5k_pci Not tainted 2.6.26-rc8-mm1_64 #427
-
-Call Trace:
- [<ffffffff802a7306>] print_trailer+0xf6/0x150
- [<ffffffff802a7485>] check_bytes_and_report+0x125/0x180
- [<ffffffff802a75dc>] check_object+0xac/0x260
- [<ffffffff802a9308>] __slab_alloc+0x368/0x6d0
- [<ffffffff80544f82>] ? wireless_send_event+0x142/0x310
- [<ffffffff804b1bd4>] ? __alloc_skb+0x44/0x150
- [<ffffffff80544f82>] ? wireless_send_event+0x142/0x310
- [<ffffffff802aa853>] __kmalloc_track_caller+0xc3/0xf0
- [<ffffffff804b1bfe>] __alloc_skb+0x6e/0x150
-[... stack snipped]
-
-=46IX kmalloc-4096: Restoring 0xffff810067419060-0xffff810067419667=3D0=
-x6b
-
-=46IX kmalloc-4096: Marking all objects used
-
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Nick Kossifidis <mickflemm@gmail.com>
-Cc: Luis R. Rodriguez <mcgrof@gmail.com>
+Signed-off-by: Dean Nelson <dcn@sgi.com>
+Cc: Jack Steiner <steiner@sgi.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k/base.c |   32 +++++++++++++++++++++-------
- drivers/net/wireless/ath5k/base.h |    2 -
- 2 files changed, 26 insertions(+), 8 deletions(-)
+ drivers/misc/sgi-xp/xpc.h           |   22 ++++++++---------
+ drivers/misc/sgi-xp/xpc_channel.c   |   10 ++++----
+ drivers/misc/sgi-xp/xpc_main.c      |   32 +++++++++++++-------------
+ drivers/misc/sgi-xp/xpc_partition.c |   18 +++++++-------
+ drivers/misc/sgi-xp/xpc_sn2.c       |   20 ++++++++--------
+ 5 files changed, 51 insertions(+), 51 deletions(-)
 
-diff -puN drivers/net/wireless/ath5k/base.c~ath5k-fix-memory-corruption=
- drivers/net/wireless/ath5k/base.c
---- a/drivers/net/wireless/ath5k/base.c~ath5k-fix-memory-corruption
-+++ a/drivers/net/wireless/ath5k/base.c
-@@ -1682,20 +1682,21 @@ ath5k_tasklet_rx(unsigned long data)
- 	struct ath5k_rx_status rs =3D {};
- 	struct sk_buff *skb;
- 	struct ath5k_softc *sc =3D (void *)data;
--	struct ath5k_buf *bf;
-+	struct ath5k_buf *bf, *bf_last;
- 	struct ath5k_desc *ds;
- 	int ret;
- 	int hdrlen;
- 	int pad;
-=20
- 	spin_lock(&sc->rxbuflock);
-+	if (list_empty(&sc->rxbuf)) {
-+		ATH5K_WARN(sc, "empty rx buf pool\n");
-+		goto unlock;
-+	}
-+	bf_last =3D list_entry(sc->rxbuf.prev, struct ath5k_buf, list);
- 	do {
- 		rxs.flag =3D 0;
-=20
--		if (unlikely(list_empty(&sc->rxbuf))) {
--			ATH5K_WARN(sc, "empty rx buf pool\n");
--			break;
--		}
- 		bf =3D list_first_entry(&sc->rxbuf, struct ath5k_buf, list);
- 		BUG_ON(bf->skb =3D=3D NULL);
- 		skb =3D bf->skb;
-@@ -1705,8 +1706,24 @@ ath5k_tasklet_rx(unsigned long data)
- 		pci_dma_sync_single_for_cpu(sc->pdev, sc->desc_daddr,
- 				sc->desc_len, PCI_DMA_FROMDEVICE);
-=20
--		if (unlikely(ds->ds_link =3D=3D bf->daddr)) /* this is the end */
--			break;
-+		/*
-+		 * last buffer must not be freed to ensure proper hardware
-+		 * function. When the hardware finishes also a packet next to
-+		 * it, we are sure, it doesn't use it anymore and we can go on.
-+		 */
-+		if (bf_last =3D=3D bf)
-+			bf->flags |=3D 1;
-+		if (bf->flags) {
-+			struct ath5k_buf *bf_next =3D list_entry(bf->list.next,
-+					struct ath5k_buf, list);
-+			ret =3D sc->ah->ah_proc_rx_desc(sc->ah, bf_next->desc,
-+					&rs);
-+			if (ret)
-+				break;
-+			bf->flags &=3D ~1;
-+			/* skip the overwritten one (even status is martian) */
-+			goto next;
-+		}
-=20
- 		ret =3D sc->ah->ah_proc_rx_desc(sc->ah, ds, &rs);
- 		if (unlikely(ret =3D=3D -EINPROGRESS))
-@@ -1816,6 +1833,7 @@ accept:
- next:
- 		list_move_tail(&bf->list, &sc->rxbuf);
- 	} while (ath5k_rxbuf_setup(sc, bf) =3D=3D 0);
-+unlock:
- 	spin_unlock(&sc->rxbuflock);
+diff -puN drivers/misc/sgi-xp/xpc.h~sgi-xp-cleanup-naming-of-partition-defines drivers/misc/sgi-xp/xpc.h
+--- a/drivers/misc/sgi-xp/xpc.h~sgi-xp-cleanup-naming-of-partition-defines
++++ a/drivers/misc/sgi-xp/xpc.h
+@@ -576,21 +576,21 @@ struct xpc_partition {
+ 
+ /* struct xpc_partition act_state values (for XPC HB) */
+ 
+-#define	XPC_P_INACTIVE		0x00	/* partition is not active */
+-#define XPC_P_ACTIVATION_REQ	0x01	/* created thread to activate */
+-#define XPC_P_ACTIVATING	0x02	/* activation thread started */
+-#define XPC_P_ACTIVE		0x03	/* xpc_partition_up() was called */
+-#define XPC_P_DEACTIVATING	0x04	/* partition deactivation initiated */
++#define	XPC_P_AS_INACTIVE	0x00	/* partition is not active */
++#define XPC_P_AS_ACTIVATION_REQ	0x01	/* created thread to activate */
++#define XPC_P_AS_ACTIVATING	0x02	/* activation thread started */
++#define XPC_P_AS_ACTIVE		0x03	/* xpc_partition_up() was called */
++#define XPC_P_AS_DEACTIVATING	0x04	/* partition deactivation initiated */
+ 
+ #define XPC_DEACTIVATE_PARTITION(_p, _reason) \
+ 			xpc_deactivate_partition(__LINE__, (_p), (_reason))
+ 
+ /* struct xpc_partition setup_state values */
+ 
+-#define XPC_P_UNSET		0x00	/* infrastructure was never setup */
+-#define XPC_P_SETUP		0x01	/* infrastructure is setup */
+-#define XPC_P_WTEARDOWN		0x02	/* waiting to teardown infrastructure */
+-#define XPC_P_TORNDOWN		0x03	/* infrastructure is torndown */
++#define XPC_P_SS_UNSET		0x00	/* infrastructure was never setup */
++#define XPC_P_SS_SETUP		0x01	/* infrastructure is setup */
++#define XPC_P_SS_WTEARDOWN	0x02	/* waiting to teardown infrastructure */
++#define XPC_P_SS_TORNDOWN	0x03	/* infrastructure is torndown */
+ 
+ /*
+  * struct xpc_partition_sn2's dropped notify IRQ timer is set to wait the
+@@ -787,7 +787,7 @@ xpc_part_deref(struct xpc_partition *par
+ 	s32 refs = atomic_dec_return(&part->references);
+ 
+ 	DBUG_ON(refs < 0);
+-	if (refs == 0 && part->setup_state == XPC_P_WTEARDOWN)
++	if (refs == 0 && part->setup_state == XPC_P_SS_WTEARDOWN)
+ 		wake_up(&part->teardown_wq);
  }
-=20
-diff -puN drivers/net/wireless/ath5k/base.h~ath5k-fix-memory-corruption=
- drivers/net/wireless/ath5k/base.h
---- a/drivers/net/wireless/ath5k/base.h~ath5k-fix-memory-corruption
-+++ a/drivers/net/wireless/ath5k/base.h
-@@ -56,7 +56,7 @@
-=20
- struct ath5k_buf {
- 	struct list_head	list;
--	unsigned int		flags;	/* tx descriptor flags */
-+	unsigned int		flags;	/* rx descriptor flags */
- 	struct ath5k_desc	*desc;	/* virtual addr of desc */
- 	dma_addr_t		daddr;	/* physical addr of desc */
- 	struct sk_buff		*skb;	/* skbuff for buf */
+ 
+@@ -797,7 +797,7 @@ xpc_part_ref(struct xpc_partition *part)
+ 	int setup;
+ 
+ 	atomic_inc(&part->references);
+-	setup = (part->setup_state == XPC_P_SETUP);
++	setup = (part->setup_state == XPC_P_SS_SETUP);
+ 	if (!setup)
+ 		xpc_part_deref(part);
+ 
+diff -puN drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-cleanup-naming-of-partition-defines drivers/misc/sgi-xp/xpc_channel.c
+--- a/drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-cleanup-naming-of-partition-defines
++++ a/drivers/misc/sgi-xp/xpc_channel.c
+@@ -99,7 +99,7 @@ xpc_process_disconnect(struct xpc_channe
+ 	DBUG_ON((ch->flags & XPC_C_CONNECTEDCALLOUT_MADE) &&
+ 		!(ch->flags & XPC_C_DISCONNECTINGCALLOUT_MADE));
+ 
+-	if (part->act_state == XPC_P_DEACTIVATING) {
++	if (part->act_state == XPC_P_AS_DEACTIVATING) {
+ 		/* can't proceed until the other side disengages from us */
+ 		if (xpc_partition_engaged(ch->partid))
+ 			return;
+@@ -155,7 +155,7 @@ xpc_process_disconnect(struct xpc_channe
+ 		/* we won't lose the CPU since we're holding ch->lock */
+ 		complete(&ch->wdisconnect_wait);
+ 	} else if (ch->delayed_chctl_flags) {
+-		if (part->act_state != XPC_P_DEACTIVATING) {
++		if (part->act_state != XPC_P_AS_DEACTIVATING) {
+ 			/* time to take action on any delayed chctl flags */
+ 			spin_lock(&part->chctl_lock);
+ 			part->chctl.flags[ch->number] |=
+@@ -276,7 +276,7 @@ again:
+ 			"%d, channel=%d\n", ch->partid, ch->number);
+ 
+ 		if (ch->flags & XPC_C_DISCONNECTED) {
+-			DBUG_ON(part->act_state != XPC_P_DEACTIVATING);
++			DBUG_ON(part->act_state != XPC_P_AS_DEACTIVATING);
+ 			spin_unlock_irqrestore(&ch->lock, irq_flags);
+ 			return;
+ 		}
+@@ -312,7 +312,7 @@ again:
+ 			"channel=%d\n", args->msg_size, args->local_nentries,
+ 			ch->partid, ch->number);
+ 
+-		if (part->act_state == XPC_P_DEACTIVATING ||
++		if (part->act_state == XPC_P_AS_DEACTIVATING ||
+ 		    (ch->flags & XPC_C_ROPENREQUEST)) {
+ 			spin_unlock_irqrestore(&ch->lock, irq_flags);
+ 			return;
+@@ -546,7 +546,7 @@ xpc_process_sent_chctl_flags(struct xpc_
+ 			continue;
+ 		}
+ 
+-		if (part->act_state == XPC_P_DEACTIVATING)
++		if (part->act_state == XPC_P_AS_DEACTIVATING)
+ 			continue;
+ 
+ 		if (!(ch_flags & XPC_C_CONNECTED)) {
+diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-cleanup-naming-of-partition-defines drivers/misc/sgi-xp/xpc_main.c
+--- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-cleanup-naming-of-partition-defines
++++ a/drivers/misc/sgi-xp/xpc_main.c
+@@ -290,8 +290,8 @@ xpc_check_remote_hb(void)
+ 
+ 		part = &xpc_partitions[partid];
+ 
+-		if (part->act_state == XPC_P_INACTIVE ||
+-		    part->act_state == XPC_P_DEACTIVATING) {
++		if (part->act_state == XPC_P_AS_INACTIVE ||
++		    part->act_state == XPC_P_AS_DEACTIVATING) {
+ 			continue;
+ 		}
+ 
+@@ -406,7 +406,7 @@ xpc_initiate_discovery(void *ignore)
+ static void
+ xpc_channel_mgr(struct xpc_partition *part)
+ {
+-	while (part->act_state != XPC_P_DEACTIVATING ||
++	while (part->act_state != XPC_P_AS_DEACTIVATING ||
+ 	       atomic_read(&part->nchannels_active) > 0 ||
+ 	       !xpc_partition_disengaged(part)) {
+ 
+@@ -429,7 +429,7 @@ xpc_channel_mgr(struct xpc_partition *pa
+ 		(void)wait_event_interruptible(part->channel_mgr_wq,
+ 				(atomic_read(&part->channel_mgr_requests) > 0 ||
+ 				 part->chctl.all_flags != 0 ||
+-				 (part->act_state == XPC_P_DEACTIVATING &&
++				 (part->act_state == XPC_P_AS_DEACTIVATING &&
+ 				 atomic_read(&part->nchannels_active) == 0 &&
+ 				 xpc_partition_disengaged(part))));
+ 		atomic_set(&part->channel_mgr_requests, 1);
+@@ -458,16 +458,16 @@ xpc_activating(void *__partid)
+ 
+ 	spin_lock_irqsave(&part->act_lock, irq_flags);
+ 
+-	if (part->act_state == XPC_P_DEACTIVATING) {
+-		part->act_state = XPC_P_INACTIVE;
++	if (part->act_state == XPC_P_AS_DEACTIVATING) {
++		part->act_state = XPC_P_AS_INACTIVE;
+ 		spin_unlock_irqrestore(&part->act_lock, irq_flags);
+ 		part->remote_rp_pa = 0;
+ 		return 0;
+ 	}
+ 
+ 	/* indicate the thread is activating */
+-	DBUG_ON(part->act_state != XPC_P_ACTIVATION_REQ);
+-	part->act_state = XPC_P_ACTIVATING;
++	DBUG_ON(part->act_state != XPC_P_AS_ACTIVATION_REQ);
++	part->act_state = XPC_P_AS_ACTIVATING;
+ 
+ 	XPC_SET_REASON(part, 0, 0);
+ 	spin_unlock_irqrestore(&part->act_lock, irq_flags);
+@@ -509,9 +509,9 @@ xpc_activate_partition(struct xpc_partit
+ 
+ 	spin_lock_irqsave(&part->act_lock, irq_flags);
+ 
+-	DBUG_ON(part->act_state != XPC_P_INACTIVE);
++	DBUG_ON(part->act_state != XPC_P_AS_INACTIVE);
+ 
+-	part->act_state = XPC_P_ACTIVATION_REQ;
++	part->act_state = XPC_P_AS_ACTIVATION_REQ;
+ 	XPC_SET_REASON(part, xpCloneKThread, __LINE__);
+ 
+ 	spin_unlock_irqrestore(&part->act_lock, irq_flags);
+@@ -520,7 +520,7 @@ xpc_activate_partition(struct xpc_partit
+ 			      partid);
+ 	if (IS_ERR(kthread)) {
+ 		spin_lock_irqsave(&part->act_lock, irq_flags);
+-		part->act_state = XPC_P_INACTIVE;
++		part->act_state = XPC_P_AS_INACTIVE;
+ 		XPC_SET_REASON(part, xpCloneKThreadFailed, __LINE__);
+ 		spin_unlock_irqrestore(&part->act_lock, irq_flags);
+ 	}
+@@ -786,7 +786,7 @@ xpc_disconnect_wait(int ch_number)
+ 		wakeup_channel_mgr = 0;
+ 
+ 		if (ch->delayed_chctl_flags) {
+-			if (part->act_state != XPC_P_DEACTIVATING) {
++			if (part->act_state != XPC_P_AS_DEACTIVATING) {
+ 				spin_lock(&part->chctl_lock);
+ 				part->chctl.flags[ch->number] |=
+ 				    ch->delayed_chctl_flags;
+@@ -846,7 +846,7 @@ xpc_do_exit(enum xp_retval reason)
+ 			part = &xpc_partitions[partid];
+ 
+ 			if (xpc_partition_disengaged(part) &&
+-			    part->act_state == XPC_P_INACTIVE) {
++			    part->act_state == XPC_P_AS_INACTIVE) {
+ 				continue;
+ 			}
+ 
+@@ -962,7 +962,7 @@ xpc_die_deactivate(void)
+ 		part = &xpc_partitions[partid];
+ 
+ 		if (xpc_partition_engaged(partid) ||
+-		    part->act_state != XPC_P_INACTIVE) {
++		    part->act_state != XPC_P_AS_INACTIVE) {
+ 			xpc_request_partition_deactivation(part);
+ 			xpc_indicate_partition_disengaged(part);
+ 		}
+@@ -1113,7 +1113,7 @@ xpc_init(void)
+ 
+ 		part->activate_IRQ_rcvd = 0;
+ 		spin_lock_init(&part->act_lock);
+-		part->act_state = XPC_P_INACTIVE;
++		part->act_state = XPC_P_AS_INACTIVE;
+ 		XPC_SET_REASON(part, 0, 0);
+ 
+ 		init_timer(&part->disengage_timer);
+@@ -1121,7 +1121,7 @@ xpc_init(void)
+ 		    xpc_timeout_partition_disengage;
+ 		part->disengage_timer.data = (unsigned long)part;
+ 
+-		part->setup_state = XPC_P_UNSET;
++		part->setup_state = XPC_P_SS_UNSET;
+ 		init_waitqueue_head(&part->teardown_wq);
+ 		atomic_set(&part->references, 0);
+ 	}
+diff -puN drivers/misc/sgi-xp/xpc_partition.c~sgi-xp-cleanup-naming-of-partition-defines drivers/misc/sgi-xp/xpc_partition.c
+--- a/drivers/misc/sgi-xp/xpc_partition.c~sgi-xp-cleanup-naming-of-partition-defines
++++ a/drivers/misc/sgi-xp/xpc_partition.c
+@@ -273,9 +273,9 @@ xpc_partition_disengaged(struct xpc_part
+ 		if (!in_interrupt())
+ 			del_singleshot_timer_sync(&part->disengage_timer);
+ 
+-		DBUG_ON(part->act_state != XPC_P_DEACTIVATING &&
+-			part->act_state != XPC_P_INACTIVE);
+-		if (part->act_state != XPC_P_INACTIVE)
++		DBUG_ON(part->act_state != XPC_P_AS_DEACTIVATING &&
++			part->act_state != XPC_P_AS_INACTIVE);
++		if (part->act_state != XPC_P_AS_INACTIVE)
+ 			xpc_wakeup_channel_mgr(part);
+ 
+ 		xpc_cancel_partition_deactivation_request(part);
+@@ -295,8 +295,8 @@ xpc_mark_partition_active(struct xpc_par
+ 	dev_dbg(xpc_part, "setting partition %d to ACTIVE\n", XPC_PARTID(part));
+ 
+ 	spin_lock_irqsave(&part->act_lock, irq_flags);
+-	if (part->act_state == XPC_P_ACTIVATING) {
+-		part->act_state = XPC_P_ACTIVE;
++	if (part->act_state == XPC_P_AS_ACTIVATING) {
++		part->act_state = XPC_P_AS_ACTIVE;
+ 		ret = xpSuccess;
+ 	} else {
+ 		DBUG_ON(part->reason == xpSuccess);
+@@ -318,7 +318,7 @@ xpc_deactivate_partition(const int line,
+ 
+ 	spin_lock_irqsave(&part->act_lock, irq_flags);
+ 
+-	if (part->act_state == XPC_P_INACTIVE) {
++	if (part->act_state == XPC_P_AS_INACTIVE) {
+ 		XPC_SET_REASON(part, reason, line);
+ 		spin_unlock_irqrestore(&part->act_lock, irq_flags);
+ 		if (reason == xpReactivating) {
+@@ -327,7 +327,7 @@ xpc_deactivate_partition(const int line,
+ 		}
+ 		return;
+ 	}
+-	if (part->act_state == XPC_P_DEACTIVATING) {
++	if (part->act_state == XPC_P_AS_DEACTIVATING) {
+ 		if ((part->reason == xpUnloading && reason != xpUnloading) ||
+ 		    reason == xpReactivating) {
+ 			XPC_SET_REASON(part, reason, line);
+@@ -336,7 +336,7 @@ xpc_deactivate_partition(const int line,
+ 		return;
+ 	}
+ 
+-	part->act_state = XPC_P_DEACTIVATING;
++	part->act_state = XPC_P_AS_DEACTIVATING;
+ 	XPC_SET_REASON(part, reason, line);
+ 
+ 	spin_unlock_irqrestore(&part->act_lock, irq_flags);
+@@ -367,7 +367,7 @@ xpc_mark_partition_inactive(struct xpc_p
+ 		XPC_PARTID(part));
+ 
+ 	spin_lock_irqsave(&part->act_lock, irq_flags);
+-	part->act_state = XPC_P_INACTIVE;
++	part->act_state = XPC_P_AS_INACTIVE;
+ 	spin_unlock_irqrestore(&part->act_lock, irq_flags);
+ 	part->remote_rp_pa = 0;
+ }
+diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-cleanup-naming-of-partition-defines drivers/misc/sgi-xp/xpc_sn2.c
+--- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-cleanup-naming-of-partition-defines
++++ a/drivers/misc/sgi-xp/xpc_sn2.c
+@@ -327,7 +327,7 @@ xpc_send_notify_IRQ_sn2(struct xpc_chann
+ 	union xpc_channel_ctl_flags chctl = { 0 };
+ 	enum xp_retval ret;
+ 
+-	if (likely(part->act_state != XPC_P_DEACTIVATING)) {
++	if (likely(part->act_state != XPC_P_AS_DEACTIVATING)) {
+ 		chctl.flags[ch->number] = chctl_flag;
+ 		ret = xpc_send_IRQ_sn2(part_sn2->remote_chctl_amo_va,
+ 				       chctl.all_flags,
+@@ -975,7 +975,7 @@ xpc_identify_activate_IRQ_req_sn2(int na
+ 		remote_vars->heartbeat, remote_vars->heartbeating_to_mask[0]);
+ 
+ 	if (xpc_partition_disengaged(part) &&
+-	    part->act_state == XPC_P_INACTIVE) {
++	    part->act_state == XPC_P_AS_INACTIVE) {
+ 
+ 		xpc_update_partition_info_sn2(part, remote_rp_version,
+ 					      &remote_rp_ts_jiffies,
+@@ -1257,10 +1257,10 @@ xpc_setup_infrastructure_sn2(struct xpc_
+ 	}
+ 
+ 	/*
+-	 * With the setting of the partition setup_state to XPC_P_SETUP, we're
+-	 * declaring that this partition is ready to go.
++	 * With the setting of the partition setup_state to XPC_P_SS_SETUP,
++	 * we're declaring that this partition is ready to go.
+ 	 */
+-	part->setup_state = XPC_P_SETUP;
++	part->setup_state = XPC_P_SS_SETUP;
+ 
+ 	/*
+ 	 * Setup the per partition specific variables required by the
+@@ -1323,8 +1323,8 @@ xpc_teardown_infrastructure_sn2(struct x
+ 
+ 	DBUG_ON(atomic_read(&part->nchannels_engaged) != 0);
+ 	DBUG_ON(atomic_read(&part->nchannels_active) != 0);
+-	DBUG_ON(part->setup_state != XPC_P_SETUP);
+-	part->setup_state = XPC_P_WTEARDOWN;
++	DBUG_ON(part->setup_state != XPC_P_SS_SETUP);
++	part->setup_state = XPC_P_SS_WTEARDOWN;
+ 
+ 	xpc_vars_part_sn2[partid].magic = 0;
+ 
+@@ -1338,7 +1338,7 @@ xpc_teardown_infrastructure_sn2(struct x
+ 
+ 	/* now we can begin tearing down the infrastructure */
+ 
+-	part->setup_state = XPC_P_TORNDOWN;
++	part->setup_state = XPC_P_SS_TORNDOWN;
+ 
+ 	/* in case we've still got outstanding timers registered... */
+ 	del_timer_sync(&part_sn2->dropped_notify_IRQ_timer);
+@@ -1375,7 +1375,7 @@ xpc_pull_remote_cachelines_sn2(struct xp
+ 	DBUG_ON((unsigned long)dst != L1_CACHE_ALIGN((unsigned long)dst));
+ 	DBUG_ON(cnt != L1_CACHE_ALIGN(cnt));
+ 
+-	if (part->act_state == XPC_P_DEACTIVATING)
++	if (part->act_state == XPC_P_AS_DEACTIVATING)
+ 		return part->reason;
+ 
+ 	ret = xp_remote_memcpy(xp_pa(dst), src_pa, cnt);
+@@ -1534,7 +1534,7 @@ xpc_make_first_contact_sn2(struct xpc_pa
+ 		/* wait a 1/4 of a second or so */
+ 		(void)msleep_interruptible(250);
+ 
+-		if (part->act_state == XPC_P_DEACTIVATING)
++		if (part->act_state == XPC_P_AS_DEACTIVATING)
+ 			return part->reason;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from dcn@sgi.com are
 
 origin.patch
-ath5k-mask-out-unneeded-interrupts.patch
-ath5k-unify-resets.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-char-merge-ip2main-and-ip2base.patch
-char-ip2-cleanup-globals.patch
-char-ip2-fix-sparse-warnings.patch
-char-ip2-init-deinit-cleanup.patch
-ip2-avoid-add_timer-with-pending-timer.patch
-char-ds1286-eliminate-busy-waiting.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
