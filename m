@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mtd-nand-fsl_elbc_nandc-fix-printk-warning.patch added to -mm tree
-Date: Tue, 29 Jul 2008 21:27:14 -0700
-Message-ID: <200807300440.m6U4e0hZ007291@imap1.linux-foundation.org>
+Subject: + drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch added to -mm tree
+Date: Tue, 29 Jul 2008 21:31:16 -0700
+Message-ID: <200807300444.m6U4i2IE007482@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47796 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55372 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751261AbYG3EkE (ORCPT
+	by vger.kernel.org with ESMTP id S1751080AbYG3Eoh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 00:40:04 -0400
+	Wed, 30 Jul 2008 00:44:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwmw2@infradead.org
+Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     drivers/mtd/nand/fsl_elbc_nand.c: fix printk warning
+     drivers/net/netxen/netxen_nic_hw.c: fix printk warnings
 has been added to the -mm tree.  Its filename is
-     drivers-mtd-nand-fsl_elbc_nandc-fix-printk-warning.patch
+     drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mtd/nand/fsl_elbc_nand.c: fix printk warning
+Subject: drivers/net/netxen/netxen_nic_hw.c: fix printk warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mtd/nand/fsl_elbc_nand.c:890: warning: format '%x' expects type 'unsigned int', but argument 3 has type 'resource_size_t'
+drivers/net/netxen/netxen_nic_hw.c: In function 'netxen_nic_pci_mem_read_direct':
+drivers/net/netxen/netxen_nic_hw.c:1414: warning: format '%llx' expects type 'long long unsigned int', but argument 3 has type 'u64'
+drivers/net/netxen/netxen_nic_hw.c: In function 'netxen_nic_pci_mem_write_direct':
+drivers/net/netxen/netxen_nic_hw.c:1487: warning: format '%llx' expects type 'long long unsigned int', but argument 3 has type 'u64'
 
-Cc: David Woodhouse <dwmw2@infradead.org>
+You don't know what type was used for u64 hence they cannot be printed without
+casting.
+
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/fsl_elbc_nand.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/netxen/netxen_nic_hw.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/nand/fsl_elbc_nand.c~drivers-mtd-nand-fsl_elbc_nandc-fix-printk-warning drivers/mtd/nand/fsl_elbc_nand.c
---- a/drivers/mtd/nand/fsl_elbc_nand.c~drivers-mtd-nand-fsl_elbc_nandc-fix-printk-warning
-+++ a/drivers/mtd/nand/fsl_elbc_nand.c
-@@ -887,7 +887,7 @@ static int __devinit fsl_elbc_chip_probe
- 		goto err;
+diff -puN drivers/net/netxen/netxen_nic_hw.c~drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings drivers/net/netxen/netxen_nic_hw.c
+--- a/drivers/net/netxen/netxen_nic_hw.c~drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings
++++ a/drivers/net/netxen/netxen_nic_hw.c
+@@ -1411,7 +1411,8 @@ static int netxen_nic_pci_mem_read_direc
+ 		(netxen_nic_pci_is_same_window(adapter, off+size-1) == 0)) {
+ 		write_unlock_irqrestore(&adapter->adapter_lock, flags);
+ 		printk(KERN_ERR "%s out of bound pci memory access. "
+-			"offset is 0x%llx\n", netxen_nic_driver_name, off);
++			"offset is 0x%llx\n", netxen_nic_driver_name,
++			(unsigned long long)off);
+ 		return -1;
  	}
  
--	priv->mtd.name = kasprintf(GFP_KERNEL, "%x.flash", res.start);
-+	priv->mtd.name = kasprintf(GFP_KERNEL, "%x.flash", (unsigned)res.start);
- 	if (!priv->mtd.name) {
- 		ret = -ENOMEM;
- 		goto err;
+@@ -1484,7 +1485,8 @@ netxen_nic_pci_mem_write_direct(struct n
+ 		(netxen_nic_pci_is_same_window(adapter, off+size-1) == 0)) {
+ 		write_unlock_irqrestore(&adapter->adapter_lock, flags);
+ 		printk(KERN_ERR "%s out of bound pci memory access. "
+-			"offset is 0x%llx\n", netxen_nic_driver_name, off);
++			"offset is 0x%llx\n", netxen_nic_driver_name,
++			(unsigned long long)off);
+ 		return -1;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,6 +98,7 @@ tick-schedc-suppress-needless-timer-reprogramming.patch
 drivers-input-serio-xilinx_ps2c-fix-warning.patch
 git-jg-misc.patch
 drivers-mtd-nand-nandsimc-fix-printk-warnings.patch
+drivers-mtd-nand-fsl_elbc_nandc-fix-printk-warning.patch
 bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
 sundance-set-carrier-status-on-link-change-events.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
@@ -95,6 +113,7 @@ drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
 drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
 rcu-fix-synchronize_rcu-so-that-kernel-doc-works-comment.patch
 ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
 unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
@@ -134,5 +153,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-mtd-nand-fsl_elbc_nandc-fix-printk-warning.patch
 
