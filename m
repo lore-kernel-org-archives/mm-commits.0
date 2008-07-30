@@ -1,75 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - initrd-cast-initrd_start-to-void.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:14:57 -0700
-Message-ID: <200807301914.m6UJEv6T010943@imap1.linux-foundation.org>
+Subject: - backlight-ensure-platform_lcd-on-by-default.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:14:27 -0700
+Message-ID: <200807301914.m6UJER3F010907@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33835 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40699 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752593AbYG3TPw (ORCPT
+	by vger.kernel.org with ESMTP id S1752579AbYG3TPj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:15:52 -0400
+	Wed, 30 Jul 2008 15:15:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, anemo@mba.ocn.ne.jp, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: ben-linux@fluff.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     initrd: cast `initrd_start' to `void *'
+     backlight: ensure platform_lcd on by default
 has been removed from the -mm tree.  Its filename was
-     initrd-cast-initrd_start-to-void.patch
+     backlight-ensure-platform_lcd-on-by-default.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: initrd: cast `initrd_start' to `void *'
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: backlight: ensure platform_lcd on by default
+From: Ben Dooks <ben-linux@fluff.org>
 
-commit fb6624ebd912e3d6907ca6490248e73368223da9 (initrd: Fix virtual/physical
-mix-up in overwrite test) introduced the compiler warning below on mips,
-as its virt_to_page() doesn't cast the passed address to unsigned long
-internally, unlike on most other architectures:
+It seems that we need to ensure that the lcd is powered up at start,
+otherwise we do not see a display.
 
-init/main.c: In function `start_kernel':
-init/main.c:633: warning: passing argument 1 of `virt_to_phys' makes pointer from integer without a cast
-init/main.c:636: warning: passing argument 1 of `virt_to_phys' makes pointer from integer without a cast
-
-For now, kill the warning by explicitly casting initrd_start to `void *', as
-that's the type it should really be.
-
-Reported-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/video/backlight/platform_lcd.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN init/main.c~initrd-cast-initrd_start-to-void init/main.c
---- a/init/main.c~initrd-cast-initrd_start-to-void
-+++ a/init/main.c
-@@ -635,10 +635,11 @@ asmlinkage void __init start_kernel(void
- 
- #ifdef CONFIG_BLK_DEV_INITRD
- 	if (initrd_start && !initrd_below_start_ok &&
--	    page_to_pfn(virt_to_page(initrd_start)) < min_low_pfn) {
-+	    page_to_pfn(virt_to_page((void *)initrd_start)) < min_low_pfn) {
- 		printk(KERN_CRIT "initrd overwritten (0x%08lx < 0x%08lx) - "
- 		    "disabling it.\n",
--		    page_to_pfn(virt_to_page(initrd_start)), min_low_pfn);
-+		    page_to_pfn(virt_to_page((void *)initrd_start)),
-+		    min_low_pfn);
- 		initrd_start = 0;
+diff -puN drivers/video/backlight/platform_lcd.c~backlight-ensure-platform_lcd-on-by-default drivers/video/backlight/platform_lcd.c
+--- a/drivers/video/backlight/platform_lcd.c~backlight-ensure-platform_lcd-on-by-default
++++ a/drivers/video/backlight/platform_lcd.c
+@@ -101,6 +101,8 @@ static int __devinit platform_lcd_probe(
  	}
- #endif
+ 
+ 	platform_set_drvdata(pdev, plcd);
++	platform_lcd_set_power(plcd->lcd, FB_BLANK_NORMAL);
++
+ 	return 0;
+ 
+  err_mem:
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
 origin.patch
 linux-next.patch
-arch-m68k-bvme6000-rtcc-remove-duplicated-include.patch
+backlight-add-more-information-output-to-pwm_backlight.patch
+backlight-add-module_alias-to-pwm_backlight-driver.patch
+resource-add-resource_type-and-ioresource_type_bits.patch
+resource-add-new-ioresource_clk-type-v2.patch
+i2c-sh_mobile-ioresource_clk-support.patch
 
