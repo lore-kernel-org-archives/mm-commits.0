@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mlock-count-attempts-to-free-mlocked-page-2.patch added to -mm tree
-Date: Wed, 30 Jul 2008 13:26:31 -0700
-Message-ID: <200807302026.m6UKQVR4015254@imap1.linux-foundation.org>
+Subject: - mlock-count-attempts-to-free-mlocked-page.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 13:26:36 -0700
+Message-ID: <200807302026.m6UKQaPm015259@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45382 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35100 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752919AbYG3U1r (ORCPT
+	by vger.kernel.org with ESMTP id S1753177AbYG3U2A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 16:27:47 -0400
+	Wed, 30 Jul 2008 16:28:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: lee.schermerhorn@hp.com, riel@redhat.com
+To: lee.schermerhorn@hp.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      mlock: count attempts to free mlocked page
-has been added to the -mm tree.  Its filename is
-     mlock-count-attempts-to-free-mlocked-page-2.patch
+has been removed from the -mm tree.  Its filename was
+     mlock-count-attempts-to-free-mlocked-page.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -54,19 +44,19 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/vmstat.c            |    1 +
  4 files changed, 20 insertions(+)
 
-diff -puN include/linux/vmstat.h~mlock-count-attempts-to-free-mlocked-page-2 include/linux/vmstat.h
---- a/include/linux/vmstat.h~mlock-count-attempts-to-free-mlocked-page-2
+diff -puN include/linux/vmstat.h~mlock-count-attempts-to-free-mlocked-page include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mlock-count-attempts-to-free-mlocked-page
 +++ a/include/linux/vmstat.h
 @@ -49,6 +49,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		UNEVICTABLE_PGMUNLOCKED,
- 		UNEVICTABLE_PGCLEARED,	/* on COW, page truncate */
- 		UNEVICTABLE_PGSTRANDED,	/* unable to isolate on unlock */
-+		UNEVICTABLE_MLOCKFREED,
+ 		NORECL_PGMUNLOCKED,
+ 		NORECL_PGCLEARED,
+ 		NORECL_PGSTRANDED,	/* unable to isolate on unlock */
++		NORECL_MLOCKFREED,
  #endif
  		NR_VM_EVENT_ITEMS
  };
-diff -puN mm/internal.h~mlock-count-attempts-to-free-mlocked-page-2 mm/internal.h
---- a/mm/internal.h~mlock-count-attempts-to-free-mlocked-page-2
+diff -puN mm/internal.h~mlock-count-attempts-to-free-mlocked-page mm/internal.h
+--- a/mm/internal.h~mlock-count-attempts-to-free-mlocked-page
 +++ a/mm/internal.h
 @@ -146,6 +146,22 @@ static inline void mlock_migrate_page(st
  	}
@@ -84,7 +74,7 @@ diff -puN mm/internal.h~mlock-count-attempts-to-free-mlocked-page-2 mm/internal.
 +
 +		local_irq_save(flags);
 +		__dec_zone_page_state(page, NR_MLOCK);
-+		__count_vm_event(UNEVICTABLE_MLOCKFREED);
++		__count_vm_event(NORECL_MLOCKFREED);
 +		local_irq_restore(flags);
 +	}
 +}
@@ -99,8 +89,8 @@ diff -puN mm/internal.h~mlock-count-attempts-to-free-mlocked-page-2 mm/internal.
  
  #endif /* CONFIG_UNEVICTABLE_LRU */
  
-diff -puN mm/page_alloc.c~mlock-count-attempts-to-free-mlocked-page-2 mm/page_alloc.c
---- a/mm/page_alloc.c~mlock-count-attempts-to-free-mlocked-page-2
+diff -puN mm/page_alloc.c~mlock-count-attempts-to-free-mlocked-page mm/page_alloc.c
+--- a/mm/page_alloc.c~mlock-count-attempts-to-free-mlocked-page
 +++ a/mm/page_alloc.c
 @@ -451,6 +451,7 @@ static inline void __free_one_page(struc
  
@@ -110,14 +100,14 @@ diff -puN mm/page_alloc.c~mlock-count-attempts-to-free-mlocked-page-2 mm/page_al
  	if (unlikely(page_mapcount(page) |
  		(page->mapping != NULL)  |
  		(page_get_page_cgroup(page) != NULL) |
-diff -puN mm/vmstat.c~mlock-count-attempts-to-free-mlocked-page-2 mm/vmstat.c
---- a/mm/vmstat.c~mlock-count-attempts-to-free-mlocked-page-2
+diff -puN mm/vmstat.c~mlock-count-attempts-to-free-mlocked-page mm/vmstat.c
+--- a/mm/vmstat.c~mlock-count-attempts-to-free-mlocked-page
 +++ a/mm/vmstat.c
-@@ -672,6 +672,7 @@ static const char * const vmstat_text[] 
- 	"unevictable_pgs_munlocked",
- 	"unevictable_pgs_cleared",
- 	"unevictable_pgs_stranded",
-+	"unevictable_pgs_mlockfreed",
+@@ -673,6 +673,7 @@ static const char * const vmstat_text[] 
+ 	"noreclaim_pgs_munlocked",
+ 	"noreclaim_pgs_cleared",
+ 	"noreclaim_pgs_stranded",
++	"noreclaim_pgs_mlockfreed",
  #endif
  #endif
  };
