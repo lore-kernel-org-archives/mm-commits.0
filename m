@@ -1,142 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: + sched-type-fix.patch added to -mm tree
-Date: Tue, 29 Jul 2008 21:07:31 -0700
-Message-ID: <200807300420.m6U4KHeD006630@imap1.linux-foundation.org>
+Subject: - introduce-down_try-so-we-can-move-away-from-down_trylock.patch removed from -mm tree
+Date: Tue, 29 Jul 2008 21:12:57 -0700
+Message-ID: <200807300425.m6U4PhSB006794@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42106 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60599 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750767AbYG3EUf (ORCPT
+	by vger.kernel.org with ESMTP id S1751010AbYG3EZ5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 00:20:35 -0400
+	Wed, 30 Jul 2008 00:25:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mingo@elte.hu
+To: rusty@rustcorp.com.au, hch@infradead.org, matthew@wil.cx, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: type fix
-has been added to the -mm tree.  Its filename is
-     sched-type-fix.patch
+     semaphores: introduce down_try() so we can move away from down_trylock()
+has been removed from the -mm tree.  Its filename was
+     introduce-down_try-so-we-can-move-away-from-down_trylock.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because of pain integrating it with linux-next. Sorry.
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched: type fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: semaphores: introduce down_try() so we can move away from down_trylock()
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-powerpc:
+I planned on removing the much-disliked down_trylock() (with its backwards
+return codes) in 2.6.27, but it's creating something of a logjam with
+other patches in -mm and linux-next.
 
-kernel/sched_fair.c: In function 'hrtick_start_fair':
-kernel/sched_fair.c:902: warning: comparison of distinct pointer types lacks a cast
+Andrew suggested introducing "down_try" as a wrapper now, to make the
+transition easier.
 
-we don't know what type the arch uses for s64 and friends.  Still.
-
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched_fair.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/semaphore.h |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff -puN kernel/sched_fair.c~sched-type-fix kernel/sched_fair.c
---- a/kernel/sched_fair.c~sched-type-fix
-+++ a/kernel/sched_fair.c
-@@ -899,7 +899,7 @@ static void hrtick_start_fair(struct rq 
- 		 * doesn't make sense. Rely on vruntime for fairness.
- 		 */
- 		if (rq->curr != p)
--			delta = max(10000LL, delta);
-+			delta = max_t(s64, 10000, delta);
+diff -puN include/linux/semaphore.h~introduce-down_try-so-we-can-move-away-from-down_trylock include/linux/semaphore.h
+--- a/include/linux/semaphore.h~introduce-down_try-so-we-can-move-away-from-down_trylock
++++ a/include/linux/semaphore.h
+@@ -46,4 +46,18 @@ extern int __must_check down_trylock(str
+ extern int __must_check down_timeout(struct semaphore *sem, long jiffies);
+ extern void up(struct semaphore *sem);
  
- 		hrtick_start(rq, delta);
- 	}
++/**
++ * down_try - try to down a semaphore, but don't block
++ * @sem: the semaphore
++ *
++ * This is equivalent to down_trylock(), but has the same return codes as
++ * spin_trylock and mutex_trylock: 1 if semaphore acquired, 0 if not.
++ *
++ * down_trylock() with its confusing return codes will be deprecated
++ * soon.  It will not be missed.
++ */
++static inline bool __must_check down_try(struct semaphore *sem)
++{
++	return !down_trylock(sem);
++}
+ #endif /* __LINUX_SEMAPHORE_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
-connector-add-a-blackboard-user-to-connector-fix.patch
-sched-make-scheduler-sysfs-attributes-sysdev-class-devices-checkpatch-fixes.patch
-gru-driver-v3-hardware-data-structures-fix.patch
-gru-driver-v3-hardware-data-structures-fix-fix.patch
-gru-driver-v3-fixes-to-resolve-code-review-comments-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
+introduce-down_try-so-we-can-move-away-from-down_trylock.patch
+scripts-mod-modpostc-fix-spelling-of-module-and-happens.patch
 linux-next.patch
-linux-next-rejects.patch
-next-remove-localversion.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-pci-make-pci_register_driver-a-macro.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-ppc-use-the-common-ascii-hex-helpers-fix.patch
-powerpc-replace-__function__-with-__func__-checkpatch-fixes.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-git-ubi-git-rejects.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works-comment.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-devpts-switch-to-ida-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-w1-feature-enable-hardware-strong-pullup-checkpatch-fixes.patch
-w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes.patch
-w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes.patch
+modules-extend-initcall_debug-functionality-to-the-module-loader.patch
+kernel-call-constructors.patch
+kernel-introduce-gcc_version_lower-macro.patch
+seq_file-add-function-to-write-binary-data.patch
+gcov-add-gcov-profiling-infrastructure.patch
+gcov-add-gcov-profiling-infrastructure-revert-link-changes.patch
+gcov-create-links-to-gcda-files-in-build-directory.patch
+gcov-architecture-specific-compile-flag-adjustments.patch
 gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
 reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
-sched-type-fix.patch
 
