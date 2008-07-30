@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sched-make-scheduler-sysfs-attributes-sysdev-class-devices-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 29 Jul 2008 21:07:54 -0700
-Message-ID: <200807300407.m6U47sbi006215@imap1.linux-foundation.org>
+Subject: + sched-type-fix.patch added to -mm tree
+Date: Tue, 29 Jul 2008 21:07:31 -0700
+Message-ID: <200807300420.m6U4KHeD006630@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59927 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42106 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750804AbYG3EIU (ORCPT
+	by vger.kernel.org with ESMTP id S1750767AbYG3EUf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 00:08:20 -0400
+	Wed, 30 Jul 2008 00:20:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@linux.intel.com, andi@firstfloor.org, drzeus-list@drzeus.cx, gregkh@suse.de, mingo@elte.hu
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mingo@elte.hu
 
 
 The patch titled
-     sched-make-scheduler-sysfs-attributes-sysdev-class-devices-checkpatch-fixes
+     sched: type fix
 has been added to the -mm tree.  Its filename is
-     sched-make-scheduler-sysfs-attributes-sysdev-class-devices-checkpatch-fixes.patch
+     sched-type-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,69 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched-make-scheduler-sysfs-attributes-sysdev-class-devices-checkpatch-fixes
+Subject: sched: type fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: trailing whitespace
-#40: FILE: kernel/sched.c:7673:
-+static SYSDEV_CLASS_ATTR(sched_mc_power_savings, 0644, $
+powerpc:
 
-ERROR: code indent should use tabs where possible
-#42: FILE: kernel/sched.c:7675:
-+^I^I         sched_mc_power_savings_store);$
+kernel/sched_fair.c: In function 'hrtick_start_fair':
+kernel/sched_fair.c:902: warning: comparison of distinct pointer types lacks a cast
 
-ERROR: trailing whitespace
-#61: FILE: kernel/sched.c:7689:
-+static SYSDEV_CLASS_ATTR(sched_smt_power_savings, 0644, $
+we don't know what type the arch uses for s64 and friends.  Still.
 
-total: 3 errors, 0 warnings, 45 lines checked
-
-./patches/sched-make-scheduler-sysfs-attributes-sysdev-class-devices.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Pierre Ossman <drzeus-list@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/sched_fair.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sched.c~sched-make-scheduler-sysfs-attributes-sysdev-class-devices-checkpatch-fixes kernel/sched.c
---- a/kernel/sched.c~sched-make-scheduler-sysfs-attributes-sysdev-class-devices-checkpatch-fixes
-+++ a/kernel/sched.c
-@@ -7670,9 +7670,9 @@ static ssize_t sched_mc_power_savings_st
- {
- 	return sched_power_savings_store(buf, count, 0);
- }
--static SYSDEV_CLASS_ATTR(sched_mc_power_savings, 0644, 
-+static SYSDEV_CLASS_ATTR(sched_mc_power_savings, 0644,
- 			 sched_mc_power_savings_show,
--		         sched_mc_power_savings_store);
-+			 sched_mc_power_savings_store);
- #endif
+diff -puN kernel/sched_fair.c~sched-type-fix kernel/sched_fair.c
+--- a/kernel/sched_fair.c~sched-type-fix
++++ a/kernel/sched_fair.c
+@@ -899,7 +899,7 @@ static void hrtick_start_fair(struct rq 
+ 		 * doesn't make sense. Rely on vruntime for fairness.
+ 		 */
+ 		if (rq->curr != p)
+-			delta = max(10000LL, delta);
++			delta = max_t(s64, 10000, delta);
  
- #ifdef CONFIG_SCHED_SMT
-@@ -7686,7 +7686,7 @@ static ssize_t sched_smt_power_savings_s
- {
- 	return sched_power_savings_store(buf, count, 1);
- }
--static SYSDEV_CLASS_ATTR(sched_smt_power_savings, 0644, 
-+static SYSDEV_CLASS_ATTR(sched_smt_power_savings, 0644,
- 		   sched_smt_power_savings_show,
- 		   sched_smt_power_savings_store);
- #endif
+ 		hrtick_start(rq, delta);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 connector-add-a-blackboard-user-to-connector-fix.patch
+sched-make-scheduler-sysfs-attributes-sysdev-class-devices-checkpatch-fixes.patch
 gru-driver-v3-hardware-data-structures-fix.patch
 gru-driver-v3-hardware-data-structures-fix-fix.patch
 gru-driver-v3-fixes-to-resolve-code-review-comments-checkpatch-fixes.patch
@@ -128,7 +101,6 @@ git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 rcu-fix-synchronize_rcu-so-that-kernel-doc-works-comment.patch
 ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
-sched-make-scheduler-sysfs-attributes-sysdev-class-devices-checkpatch-fixes.patch
 unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
@@ -166,4 +138,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+sched-type-fix.patch
 
