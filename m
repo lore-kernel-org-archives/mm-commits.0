@@ -1,361 +1,386 @@
 From: akpm@linux-foundation.org
-Subject: - sgi-xp-eliminate-in-comments.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:16:57 -0700
-Message-ID: <200807301916.m6UJGvg8011166@imap1.linux-foundation.org>
+Subject: - gru-driver-v3-proc-interfaces.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:16:04 -0700
+Message-ID: <200807301916.m6UJG44j011084@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39004 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54272 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753501AbYG3TYK (ORCPT
+	by vger.kernel.org with ESMTP id S1753445AbYG3TYJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:24:10 -0400
+	Wed, 30 Jul 2008 15:24:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dcn@sgi.com, mm-commits@vger.kernel.org
+To: steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgi-xp: eliminate '>>>' in comments
+     GRU Driver: /proc interfaces
 has been removed from the -mm tree.  Its filename was
-     sgi-xp-eliminate-in-comments.patch
+     gru-driver-v3-proc-interfaces.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-xp: eliminate '>>>' in comments
-From: Dean Nelson <dcn@sgi.com>
+Subject: GRU Driver: /proc interfaces
+From: Jack Steiner <steiner@sgi.com>
 
-Comments in /drivers/misc/sgi-xp has been using '>>>' as a means to draw
-attention to something that needs to be done or considered.  To avoid
-colliding with git rejects, '>>>' will now be replaced by '!!!' to
-indicate something to do, and by '???' to indicate something to be
-considered.
+This file externalizes some GRU state & statistics to the user using the
+/proc file system.
 
-Signed-off-by: Dean Nelson <dcn@sgi.com>
+Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xp.h            |   11 ++------
- drivers/misc/sgi-xp/xp_sn2.c        |   10 ++++----
- drivers/misc/sgi-xp/xp_uv.c         |    2 -
- drivers/misc/sgi-xp/xpc.h           |   14 +++++++----
- drivers/misc/sgi-xp/xpc_channel.c   |    2 -
- drivers/misc/sgi-xp/xpc_partition.c |    2 -
- drivers/misc/sgi-xp/xpc_sn2.c       |    8 +++---
- drivers/misc/sgi-xp/xpc_uv.c        |   32 +++++++++++++-------------
- drivers/misc/sgi-xp/xpnet.c         |    6 ++--
- 9 files changed, 43 insertions(+), 44 deletions(-)
+ drivers/misc/sgi-gru/gruprocfs.c |  336 +++++++++++++++++++++++++++++
+ 1 file changed, 336 insertions(+)
 
-diff -puN drivers/misc/sgi-xp/xp.h~sgi-xp-eliminate-in-comments drivers/misc/sgi-xp/xp.h
---- a/drivers/misc/sgi-xp/xp.h~sgi-xp-eliminate-in-comments
-+++ a/drivers/misc/sgi-xp/xp.h
-@@ -21,7 +21,7 @@
- #include <asm/sn/arch.h>
- #endif
- 
--/* >>> Add this #define to some linux header file some day. */
-+/* ??? Add this #define to some linux header file some day? */
- #define BYTES_PER_WORD	sizeof(void *)
- 
- #ifdef USE_DBUG_ON
-@@ -65,18 +65,13 @@
-  * other partition that is currently up. Over these channels, kernel-level
-  * `users' can communicate with their counterparts on the other partitions.
-  *
-->>> The following described limitation of a max of eight channels possible
-->>> pertains only to ia64-sn2. THIS ISN'T TRUE SINCE I'M PLANNING TO JUST
-->>> TIE INTO THE EXISTING MECHANISM ONCE THE CHANNEL MESSAGES ARE RECEIVED.
-->>> THE 128-BYTE CACHELINE PERFORMANCE ISSUE IS TIED TO IA64-SN2.
-- *
-  * If the need for additional channels arises, one can simply increase
-  * XPC_MAX_NCHANNELS accordingly. If the day should come where that number
-  * exceeds the absolute MAXIMUM number of channels possible (eight), then one
-  * will need to make changes to the XPC code to accommodate for this.
-  *
-- * The absolute maximum number of channels possible is currently limited to
-- * eight for performance reasons. The internal cross partition structures
-+ * The absolute maximum number of channels possible is limited to eight for
-+ * performance reasons on sn2 hardware. The internal cross partition structures
-  * require sixteen bytes per channel, and eight allows all of this
-  * interface-shared info to fit in one 128-byte cacheline.
-  */
-diff -puN drivers/misc/sgi-xp/xp_sn2.c~sgi-xp-eliminate-in-comments drivers/misc/sgi-xp/xp_sn2.c
---- a/drivers/misc/sgi-xp/xp_sn2.c~sgi-xp-eliminate-in-comments
-+++ a/drivers/misc/sgi-xp/xp_sn2.c
-@@ -87,11 +87,11 @@ xp_remote_memcpy_sn2(void *vdst, const v
- {
- 	bte_result_t ret;
- 	u64 pdst = ia64_tpa(vdst);
--	/* >>> What are the rules governing the src and dst addresses passed in?
--	 * >>> Currently we're assuming that dst is a virtual address and src
--	 * >>> is a physical address, is this appropriate? Can we allow them to
--	 * >>> be whatever and we make the change here without damaging the
--	 * >>> addresses?
-+	/* ??? What are the rules governing the src and dst addresses passed in?
-+	 * ??? Currently we're assuming that dst is a virtual address and src
-+	 * ??? is a physical address, is this appropriate? Can we allow them to
-+	 * ??? be whatever and we make the change here without damaging the
-+	 * ??? addresses?
- 	 */
- 
- 	/*
-diff -puN drivers/misc/sgi-xp/xp_uv.c~sgi-xp-eliminate-in-comments drivers/misc/sgi-xp/xp_uv.c
---- a/drivers/misc/sgi-xp/xp_uv.c~sgi-xp-eliminate-in-comments
-+++ a/drivers/misc/sgi-xp/xp_uv.c
-@@ -18,7 +18,7 @@
- static enum xp_retval
- xp_remote_memcpy_uv(void *vdst, const void *psrc, size_t len)
- {
--	/* >>> this function needs fleshing out */
-+	/* !!! this function needs fleshing out */
- 	return xpUnsupported;
- }
- 
-diff -puN drivers/misc/sgi-xp/xpc.h~sgi-xp-eliminate-in-comments drivers/misc/sgi-xp/xpc.h
---- a/drivers/misc/sgi-xp/xpc.h~sgi-xp-eliminate-in-comments
-+++ a/drivers/misc/sgi-xp/xpc.h
-@@ -276,9 +276,12 @@ struct xpc_notify {
-  * There is an array of these structures for each remote partition. It is
-  * allocated at the time a partition becomes active. The array contains one
-  * of these structures for each potential channel connection to that partition.
+diff -puN /dev/null drivers/misc/sgi-gru/gruprocfs.c
+--- /dev/null
++++ a/drivers/misc/sgi-gru/gruprocfs.c
+@@ -0,0 +1,336 @@
++/*
++ * SN Platform GRU Driver
++ *
++ *              PROC INTERFACES
++ *
++ * This file supports the /proc interfaces for the GRU driver
++ *
++ *  Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 + */
 +
-+/*
-+ * The following is sn2 only.
-  *
-->>> sn2 only!!!
-- * Each of these structures manages two message queues (circular buffers).
-+ * Each channel structure manages two message queues (circular buffers).
-  * They are allocated at the time a channel connection is made. One of
-  * these message queues (local_msgqueue) holds the locally created messages
-  * that are destined for the remote partition. The other of these message
-@@ -345,6 +348,7 @@ struct xpc_notify {
-  *	new messages, by the clearing of the message flags of the acknowledged
-  *	messages.
-  */
++#include <linux/proc_fs.h>
++#include <linux/device.h>
++#include <linux/seq_file.h>
++#include <linux/uaccess.h>
++#include "gru.h"
++#include "grulib.h"
++#include "grutables.h"
 +
- struct xpc_channel_sn2 {
- 
- 	/* various flavors of local and remote Get/Put values */
-@@ -359,7 +363,7 @@ struct xpc_channel_sn2 {
- };
- 
- struct xpc_channel_uv {
--	/* >>> code is coming */
-+	/* !!! code is coming */
- };
- 
- struct xpc_channel {
-@@ -500,7 +504,7 @@ xpc_any_msg_chctl_flags_set(union xpc_ch
- }
- 
- /*
-- * Manages channels on a partition basis. There is one of these structures
-+ * Manage channels on a partition basis. There is one of these structures
-  * for each partition (a partition will never utilize the structure that
-  * represents itself).
-  */
-@@ -535,7 +539,7 @@ struct xpc_partition_sn2 {
- };
- 
- struct xpc_partition_uv {
--	/* >>> code is coming */
-+	/* !!! code is coming */
- };
- 
- struct xpc_partition {
-diff -puN drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-eliminate-in-comments drivers/misc/sgi-xp/xpc_channel.c
---- a/drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-eliminate-in-comments
-+++ a/drivers/misc/sgi-xp/xpc_channel.c
-@@ -129,7 +129,7 @@ xpc_process_disconnect(struct xpc_channe
- 
- 	/* wake those waiting for notify completion */
- 	if (atomic_read(&ch->n_to_notify) > 0) {
--		/* >>> we do callout while holding ch->lock */
-+		/* we do callout while holding ch->lock, callout can't block */
- 		xpc_notify_senders_of_disconnect(ch);
- 	}
- 
-diff -puN drivers/misc/sgi-xp/xpc_partition.c~sgi-xp-eliminate-in-comments drivers/misc/sgi-xp/xpc_partition.c
---- a/drivers/misc/sgi-xp/xpc_partition.c~sgi-xp-eliminate-in-comments
-+++ a/drivers/misc/sgi-xp/xpc_partition.c
-@@ -91,7 +91,7 @@ xpc_get_rsvd_page_pa(int nasid)
- 		if (status != SALRET_MORE_PASSES)
- 			break;
- 
--		/* >>> L1_CACHE_ALIGN() is only a sn2-bte_copy requirement */
-+		/* !!! L1_CACHE_ALIGN() is only a sn2-bte_copy requirement */
- 		if (L1_CACHE_ALIGN(len) > buf_len) {
- 			kfree(buf_base);
- 			buf_len = L1_CACHE_ALIGN(len);
-diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-eliminate-in-comments drivers/misc/sgi-xp/xpc_sn2.c
---- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-eliminate-in-comments
-+++ a/drivers/misc/sgi-xp/xpc_sn2.c
-@@ -75,7 +75,7 @@ xpc_allow_IPI_ops_sn2(void)
- 	int node;
- 	int nasid;
- 
--	/* >>> The following should get moved into SAL. */
-+	/* !!! The following should get moved into SAL. */
- 	if (is_shub2()) {
- 		xpc_sh2_IPI_access0_sn2 =
- 		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS0));
-@@ -118,7 +118,7 @@ xpc_disallow_IPI_ops_sn2(void)
- 	int node;
- 	int nasid;
- 
--	/* >>> The following should get moved into SAL. */
-+	/* !!! The following should get moved into SAL. */
- 	if (is_shub2()) {
- 		for_each_online_node(node) {
- 			nasid = cnodeid_to_nasid(node);
-@@ -1360,7 +1360,7 @@ xpc_teardown_infrastructure_sn2(struct x
-  * dst must be a cacheline aligned virtual address on this partition.
-  * cnt must be cacheline sized
-  */
--/* >>> Replace this function by call to xp_remote_memcpy() or bte_copy()? */
-+/* ??? Replace this function by call to xp_remote_memcpy() or bte_copy()? */
- static enum xp_retval
- xpc_pull_remote_cachelines_sn2(struct xpc_partition *part, void *dst,
- 			       const void *src, size_t cnt)
-@@ -2242,7 +2242,7 @@ xpc_send_msg_sn2(struct xpc_channel *ch,
- 		notify->key = key;
- 		notify->type = notify_type;
- 
--		/* >>> is a mb() needed here? */
-+		/* ??? Is a mb() needed here? */
- 
- 		if (ch->flags & XPC_C_DISCONNECTING) {
- 			/*
-diff -puN drivers/misc/sgi-xp/xpc_uv.c~sgi-xp-eliminate-in-comments drivers/misc/sgi-xp/xpc_uv.c
---- a/drivers/misc/sgi-xp/xpc_uv.c~sgi-xp-eliminate-in-comments
-+++ a/drivers/misc/sgi-xp/xpc_uv.c
-@@ -15,8 +15,8 @@
- 
- #include <linux/kernel.h>
- 
--/* >>> #include <gru/grukservices.h> */
--/* >>> uv_gpa() is defined in <gru/grukservices.h> */
-+/* !!! #include <gru/grukservices.h> */
-+/* !!! uv_gpa() is defined in <gru/grukservices.h> */
- #define uv_gpa(_a)		((unsigned long)_a)
- 
- #include "xpc.h"
-@@ -29,16 +29,16 @@ static void
- xpc_send_local_activate_IRQ_uv(struct xpc_partition *part)
- {
- 	/*
--	 * >>> make our side think that the remote parition sent an activate
--	 * >>> message our way. Also do what the activate IRQ handler would
--	 * >>> do had one really been sent.
-+	 * !!! Make our side think that the remote parition sent an activate
-+	 * !!! message our way. Also do what the activate IRQ handler would
-+	 * !!! do had one really been sent.
- 	 */
- }
- 
- static enum xp_retval
- xpc_rsvd_page_init_uv(struct xpc_rsvd_page *rp)
- {
--	/* >>> need to have established xpc_activate_mq earlier */
-+	/* !!! need to have established xpc_activate_mq earlier */
- 	rp->sn.activate_mq_gpa = uv_gpa(xpc_activate_mq);
- 	return xpSuccess;
- }
-@@ -46,7 +46,7 @@ xpc_rsvd_page_init_uv(struct xpc_rsvd_pa
- static void
- xpc_increment_heartbeat_uv(void)
- {
--	/* >>> send heartbeat msg to xpc_heartbeating_to_mask partids */
-+	/* !!! send heartbeat msg to xpc_heartbeating_to_mask partids */
- }
- 
- static void
-@@ -59,7 +59,7 @@ xpc_heartbeat_init_uv(void)
- static void
- xpc_heartbeat_exit_uv(void)
- {
--	/* >>> send heartbeat_offline msg to xpc_heartbeating_to_mask partids */
-+	/* !!! send heartbeat_offline msg to xpc_heartbeating_to_mask partids */
- }
- 
- static void
-@@ -70,9 +70,9 @@ xpc_request_partition_activation_uv(stru
- 	struct xpc_partition *part = &xpc_partitions[partid];
- 
- /*
-- * >>> setup part structure with the bits of info we can glean from the rp
-- * >>>	part->remote_rp_pa = remote_rp_pa;
-- * >>>	part->sn.uv.activate_mq_gpa = remote_rp->sn.activate_mq_gpa;
-+ * !!! Setup part structure with the bits of info we can glean from the rp:
-+ * !!!	part->remote_rp_pa = remote_rp_pa;
-+ * !!!	part->sn.uv.activate_mq_gpa = remote_rp->sn.activate_mq_gpa;
-  */
- 
- 	xpc_send_local_activate_IRQ_uv(part);
-@@ -91,7 +91,7 @@ xpc_request_partition_reactivation_uv(st
- static enum xp_retval
- xpc_setup_infrastructure_uv(struct xpc_partition *part)
- {
--	/* >>> this function needs fleshing out */
-+	/* !!! this function needs fleshing out */
- 	return xpUnsupported;
- }
- 
-@@ -102,28 +102,28 @@ xpc_setup_infrastructure_uv(struct xpc_p
- static void
- xpc_teardown_infrastructure_uv(struct xpc_partition *part)
- {
--	/* >>> this function needs fleshing out */
-+	/* !!! this function needs fleshing out */
- 	return;
- }
- 
- static enum xp_retval
- xpc_make_first_contact_uv(struct xpc_partition *part)
- {
--	/* >>> this function needs fleshing out */
-+	/* !!! this function needs fleshing out */
- 	return xpUnsupported;
- }
- 
- static u64
- xpc_get_chctl_all_flags_uv(struct xpc_partition *part)
- {
--	/* >>> this function needs fleshing out */
-+	/* !!! this function needs fleshing out */
- 	return 0UL;
- }
- 
- static struct xpc_msg *
- xpc_get_deliverable_msg_uv(struct xpc_channel *ch)
- {
--	/* >>> this function needs fleshing out */
-+	/* !!! this function needs fleshing out */
- 	return NULL;
- }
- 
-diff -puN drivers/misc/sgi-xp/xpnet.c~sgi-xp-eliminate-in-comments drivers/misc/sgi-xp/xpnet.c
---- a/drivers/misc/sgi-xp/xpnet.c~sgi-xp-eliminate-in-comments
-+++ a/drivers/misc/sgi-xp/xpnet.c
-@@ -229,9 +229,9 @@ xpnet_receive(short partid, int channel,
- 
- 		if (ret != xpSuccess) {
- 			/*
--			 * >>> Need better way of cleaning skb.  Currently skb
--			 * >>> appears in_use and we can't just call
--			 * >>> dev_kfree_skb.
-+			 * !!! Need better way of cleaning skb.  Currently skb
-+			 * !!! appears in_use and we can't just call
-+			 * !!! dev_kfree_skb.
- 			 */
- 			dev_err(xpnet, "xp_remote_memcpy(0x%p, 0x%p, 0x%hx) "
- 				"returned error=0x%x\n", (void *)
++#define printstat(s, f)		printstat_val(s, &gru_stats.f, #f)
++
++static void printstat_val(struct seq_file *s, atomic_long_t *v, char *id)
++{
++	unsigned long val = atomic_long_read(v);
++
++	if (val)
++		seq_printf(s, "%16lu %s\n", val, id);
++}
++
++static int statistics_show(struct seq_file *s, void *p)
++{
++	printstat(s, vdata_alloc);
++	printstat(s, vdata_free);
++	printstat(s, gts_alloc);
++	printstat(s, gts_free);
++	printstat(s, vdata_double_alloc);
++	printstat(s, gts_double_allocate);
++	printstat(s, assign_context);
++	printstat(s, assign_context_failed);
++	printstat(s, free_context);
++	printstat(s, load_context);
++	printstat(s, unload_context);
++	printstat(s, steal_context);
++	printstat(s, steal_context_failed);
++	printstat(s, nopfn);
++	printstat(s, break_cow);
++	printstat(s, asid_new);
++	printstat(s, asid_next);
++	printstat(s, asid_wrap);
++	printstat(s, asid_reuse);
++	printstat(s, intr);
++	printstat(s, call_os);
++	printstat(s, call_os_check_for_bug);
++	printstat(s, call_os_wait_queue);
++	printstat(s, user_flush_tlb);
++	printstat(s, user_unload_context);
++	printstat(s, user_exception);
++	printstat(s, set_task_slice);
++	printstat(s, migrate_check);
++	printstat(s, migrated_retarget);
++	printstat(s, migrated_unload);
++	printstat(s, migrated_unload_delay);
++	printstat(s, migrated_nopfn_retarget);
++	printstat(s, migrated_nopfn_unload);
++	printstat(s, tlb_dropin);
++	printstat(s, tlb_dropin_fail_no_asid);
++	printstat(s, tlb_dropin_fail_upm);
++	printstat(s, tlb_dropin_fail_invalid);
++	printstat(s, tlb_dropin_fail_range_active);
++	printstat(s, tlb_dropin_fail_idle);
++	printstat(s, tlb_dropin_fail_fmm);
++	printstat(s, mmu_invalidate_range);
++	printstat(s, mmu_invalidate_page);
++	printstat(s, mmu_clear_flush_young);
++	printstat(s, flush_tlb);
++	printstat(s, flush_tlb_gru);
++	printstat(s, flush_tlb_gru_tgh);
++	printstat(s, flush_tlb_gru_zero_asid);
++	printstat(s, copy_gpa);
++	printstat(s, mesq_receive);
++	printstat(s, mesq_receive_none);
++	printstat(s, mesq_send);
++	printstat(s, mesq_send_failed);
++	printstat(s, mesq_noop);
++	printstat(s, mesq_send_unexpected_error);
++	printstat(s, mesq_send_lb_overflow);
++	printstat(s, mesq_send_qlimit_reached);
++	printstat(s, mesq_send_amo_nacked);
++	printstat(s, mesq_send_put_nacked);
++	printstat(s, mesq_qf_not_full);
++	printstat(s, mesq_qf_locked);
++	printstat(s, mesq_qf_noop_not_full);
++	printstat(s, mesq_qf_switch_head_failed);
++	printstat(s, mesq_qf_unexpected_error);
++	printstat(s, mesq_noop_unexpected_error);
++	printstat(s, mesq_noop_lb_overflow);
++	printstat(s, mesq_noop_qlimit_reached);
++	printstat(s, mesq_noop_amo_nacked);
++	printstat(s, mesq_noop_put_nacked);
++	return 0;
++}
++
++static ssize_t statistics_write(struct file *file, const char __user *userbuf,
++				size_t count, loff_t *data)
++{
++	memset(&gru_stats, 0, sizeof(gru_stats));
++	return count;
++}
++
++static int options_show(struct seq_file *s, void *p)
++{
++	seq_printf(s, "0x%lx\n", options);
++	return 0;
++}
++
++static ssize_t options_write(struct file *file, const char __user *userbuf,
++			     size_t count, loff_t *data)
++{
++	unsigned long val;
++	char buf[80];
++
++	if (copy_from_user
++	    (buf, userbuf, count < sizeof(buf) ? count : sizeof(buf)))
++		return -EFAULT;
++	if (!strict_strtoul(buf, 10, &val))
++		options = val;
++
++	return count;
++}
++
++static int cch_seq_show(struct seq_file *file, void *data)
++{
++	long gid = *(long *)data;
++	int i;
++	struct gru_state *gru = GID_TO_GRU(gid);
++	struct gru_thread_state *ts;
++	const char *mode[] = { "??", "UPM", "INTR", "OS_POLL" };
++
++	if (gid == 0)
++		seq_printf(file, "#%5s%5s%6s%9s%6s%8s%8s\n", "gid", "bid",
++			   "ctx#", "pid", "cbrs", "dsbytes", "mode");
++	if (gru)
++		for (i = 0; i < GRU_NUM_CCH; i++) {
++			ts = gru->gs_gts[i];
++			if (!ts)
++				continue;
++			seq_printf(file, " %5d%5d%6d%9d%6d%8d%8s\n",
++				   gru->gs_gid, gru->gs_blade_id, i,
++				   ts->ts_tgid_owner,
++				   ts->ts_cbr_au_count * GRU_CBR_AU_SIZE,
++				   ts->ts_cbr_au_count * GRU_DSR_AU_BYTES,
++				   mode[ts->ts_user_options &
++					GRU_OPT_MISS_MASK]);
++		}
++
++	return 0;
++}
++
++static int gru_seq_show(struct seq_file *file, void *data)
++{
++	long gid = *(long *)data, ctxfree, cbrfree, dsrfree;
++	struct gru_state *gru = GID_TO_GRU(gid);
++
++	if (gid == 0) {
++		seq_printf(file, "#%5s%5s%7s%6s%6s%8s%6s%6s\n", "gid", "nid",
++			   "ctx", "cbr", "dsr", "ctx", "cbr", "dsr");
++		seq_printf(file, "#%5s%5s%7s%6s%6s%8s%6s%6s\n", "", "", "busy",
++			   "busy", "busy", "free", "free", "free");
++	}
++	if (gru) {
++		ctxfree = GRU_NUM_CCH - gru->gs_active_contexts;
++		cbrfree = hweight64(gru->gs_cbr_map) * GRU_CBR_AU_SIZE;
++		dsrfree = hweight64(gru->gs_dsr_map) * GRU_DSR_AU_BYTES;
++		seq_printf(file, " %5d%5d%7ld%6ld%6ld%8ld%6ld%6ld\n",
++			   gru->gs_gid, gru->gs_blade_id, GRU_NUM_CCH - ctxfree,
++			   GRU_NUM_CBE - cbrfree, GRU_NUM_DSR_BYTES - dsrfree,
++			   ctxfree, cbrfree, dsrfree);
++	}
++
++	return 0;
++}
++
++static void seq_stop(struct seq_file *file, void *data)
++{
++}
++
++static void *seq_start(struct seq_file *file, loff_t *gid)
++{
++	if (*gid < GRU_MAX_GRUS)
++		return gid;
++	return NULL;
++}
++
++static void *seq_next(struct seq_file *file, void *data, loff_t *gid)
++{
++	(*gid)++;
++	if (*gid < GRU_MAX_GRUS)
++		return gid;
++	return NULL;
++}
++
++static const struct seq_operations cch_seq_ops = {
++	.start	= seq_start,
++	.next	= seq_next,
++	.stop	= seq_stop,
++	.show	= cch_seq_show
++};
++
++static const struct seq_operations gru_seq_ops = {
++	.start	= seq_start,
++	.next	= seq_next,
++	.stop	= seq_stop,
++	.show	= gru_seq_show
++};
++
++static int statistics_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, statistics_show, NULL);
++}
++
++static int options_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, options_show, NULL);
++}
++
++static int cch_open(struct inode *inode, struct file *file)
++{
++	return seq_open(file, &cch_seq_ops);
++}
++
++static int gru_open(struct inode *inode, struct file *file)
++{
++	return seq_open(file, &gru_seq_ops);
++}
++
++/* *INDENT-OFF* */
++static const struct file_operations statistics_fops = {
++	.open 		= statistics_open,
++	.read 		= seq_read,
++	.write 		= statistics_write,
++	.llseek 	= seq_lseek,
++	.release 	= single_release,
++};
++
++static const struct file_operations options_fops = {
++	.open 		= options_open,
++	.read 		= seq_read,
++	.write 		= options_write,
++	.llseek 	= seq_lseek,
++	.release 	= single_release,
++};
++
++static const struct file_operations cch_fops = {
++	.open 		= cch_open,
++	.read 		= seq_read,
++	.llseek 	= seq_lseek,
++	.release 	= seq_release,
++};
++static const struct file_operations gru_fops = {
++	.open 		= gru_open,
++	.read 		= seq_read,
++	.llseek 	= seq_lseek,
++	.release 	= seq_release,
++};
++
++static struct proc_entry {
++	char *name;
++	int mode;
++	const struct file_operations *fops;
++	struct proc_dir_entry *entry;
++} proc_files[] = {
++	{"statistics", 0644, &statistics_fops},
++	{"debug_options", 0644, &options_fops},
++	{"cch_status", 0444, &cch_fops},
++	{"gru_status", 0444, &gru_fops},
++	{NULL}
++};
++/* *INDENT-ON* */
++
++static struct proc_dir_entry *proc_gru __read_mostly;
++
++static int create_proc_file(struct proc_entry *p)
++{
++	p->entry = create_proc_entry(p->name, p->mode, proc_gru);
++	if (!p->entry)
++		return -1;
++	p->entry->proc_fops = p->fops;
++	return 0;
++}
++
++static void delete_proc_files(void)
++{
++	struct proc_entry *p;
++
++	if (proc_gru) {
++		for (p = proc_files; p->name; p++)
++			if (p->entry)
++				remove_proc_entry(p->name, proc_gru);
++		remove_proc_entry("gru", NULL);
++	}
++}
++
++int gru_proc_init(void)
++{
++	struct proc_entry *p;
++
++	proc_mkdir("sgi_uv", NULL);
++	proc_gru = proc_mkdir("sgi_uv/gru", NULL);
++
++	for (p = proc_files; p->name; p++)
++		if (create_proc_file(p))
++			goto err;
++	return 0;
++
++err:
++	delete_proc_files();
++	return -1;
++}
++
++void gru_proc_exit(void)
++{
++	delete_proc_files();
++}
 _
 
-Patches currently in -mm which might be from dcn@sgi.com are
+Patches currently in -mm which might be from steiner@sgi.com are
 
 origin.patch
+linux-next.patch
 
