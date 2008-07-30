@@ -1,64 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - backlight-ensure-platform_lcd-on-by-default.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:14:27 -0700
-Message-ID: <200807301914.m6UJER3F010907@imap1.linux-foundation.org>
+Subject: - do_try_to_free_page-update-comments-related-to-vmscan-functions.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:15:13 -0700
+Message-ID: <200807301915.m6UJFDwG011005@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40699 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752579AbYG3TPj (ORCPT
+	by vger.kernel.org with ESMTP id S1752647AbYG3TQI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:15:39 -0400
+	Wed, 30 Jul 2008 15:16:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben-linux@fluff.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: fernando@oss.ntt.co.jp, hugh@veritas.com, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     backlight: ensure platform_lcd on by default
+     do_try_to_free_page: update comments related to vmscan functions
 has been removed from the -mm tree.  Its filename was
-     backlight-ensure-platform_lcd-on-by-default.patch
+     do_try_to_free_page-update-comments-related-to-vmscan-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight: ensure platform_lcd on by default
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: do_try_to_free_page: update comments related to vmscan functions
+From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
 
-It seems that we need to ensure that the lcd is powered up at start,
-otherwise we do not see a display.
-
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/platform_lcd.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/platform_lcd.c~backlight-ensure-platform_lcd-on-by-default drivers/video/backlight/platform_lcd.c
---- a/drivers/video/backlight/platform_lcd.c~backlight-ensure-platform_lcd-on-by-default
-+++ a/drivers/video/backlight/platform_lcd.c
-@@ -101,6 +101,8 @@ static int __devinit platform_lcd_probe(
+diff -puN mm/vmscan.c~do_try_to_free_page-update-comments-related-to-vmscan-functions mm/vmscan.c
+--- a/mm/vmscan.c~do_try_to_free_page-update-comments-related-to-vmscan-functions
++++ a/mm/vmscan.c
+@@ -1408,7 +1408,7 @@ static unsigned long do_try_to_free_page
+ 		if (sc->nr_scanned && priority < DEF_PRIORITY - 2)
+ 			congestion_wait(WRITE, HZ/10);
  	}
- 
- 	platform_set_drvdata(pdev, plcd);
-+	platform_lcd_set_power(plcd->lcd, FB_BLANK_NORMAL);
-+
- 	return 0;
- 
-  err_mem:
+-	/* top priority shrink_caches still had more to do? don't OOM, then */
++	/* top priority shrink_zones still had more to do? don't OOM, then */
+ 	if (!sc->all_unreclaimable && scan_global_lru(sc))
+ 		ret = nr_reclaimed;
+ out:
 _
 
-Patches currently in -mm which might be from ben-linux@fluff.org are
+Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
 
 origin.patch
-linux-next.patch
-backlight-add-more-information-output-to-pwm_backlight.patch
-backlight-add-module_alias-to-pwm_backlight-driver.patch
-resource-add-resource_type-and-ioresource_type_bits.patch
-resource-add-new-ioresource_clk-type-v2.patch
-i2c-sh_mobile-ioresource_clk-support.patch
 
