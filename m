@@ -1,1533 +1,504 @@
 From: akpm@linux-foundation.org
-Subject: - sgi-xp-isolate-xpc_vars_part-structure-to-sn2-only.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:16:29 -0700
-Message-ID: <200807301916.m6UJGTcg011130@imap1.linux-foundation.org>
+Subject: - sgi-xp-create-a-common-xp_remote_memcpy-function.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:16:25 -0700
+Message-ID: <200807301916.m6UJGPU8011124@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57611 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55991 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752938AbYG3TRV (ORCPT
+	by vger.kernel.org with ESMTP id S1752892AbYG3TRO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:17:21 -0400
+	Wed, 30 Jul 2008 15:17:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dcn@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgi-xp: isolate xpc_vars_part structure to sn2 only
+     sgi-xp: create a common xp_remote_memcpy() function
 has been removed from the -mm tree.  Its filename was
-     sgi-xp-isolate-xpc_vars_part-structure-to-sn2-only.patch
+     sgi-xp-create-a-common-xp_remote_memcpy-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-xp: isolate xpc_vars_part structure to sn2 only
+Subject: sgi-xp: create a common xp_remote_memcpy() function
 From: Dean Nelson <dcn@sgi.com>
 
-Isolate the xpc_vars_part structure of XPC's reserved page to sn2 only.
+Create a common remote memcpy function that maps to what the hardware
+booted supports.
 
 Signed-off-by: Dean Nelson <dcn@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xpc.h           |   26 -
- drivers/misc/sgi-xp/xpc_channel.c   |  538 ------------------------
- drivers/misc/sgi-xp/xpc_main.c      |   97 +---
- drivers/misc/sgi-xp/xpc_partition.c |    1 
- drivers/misc/sgi-xp/xpc_sn2.c       |  563 +++++++++++++++++++++++++-
- drivers/misc/sgi-xp/xpc_uv.c        |   48 ++
- 6 files changed, 644 insertions(+), 629 deletions(-)
+ drivers/misc/sgi-xp/xp.h            |   43 --------------------
+ drivers/misc/sgi-xp/xp_main.c       |    3 +
+ drivers/misc/sgi-xp/xp_sn2.c        |   46 +++++++++++++++++++++
+ drivers/misc/sgi-xp/xp_uv.c         |   11 +++++
+ drivers/misc/sgi-xp/xpc.h           |    7 ---
+ drivers/misc/sgi-xp/xpc_channel.c   |   20 +++------
+ drivers/misc/sgi-xp/xpc_partition.c |   55 +++++++++++---------------
+ drivers/misc/sgi-xp/xpnet.c         |   30 ++++++--------
+ 8 files changed, 108 insertions(+), 107 deletions(-)
 
-diff -puN drivers/misc/sgi-xp/xpc.h~sgi-xp-isolate-xpc_vars_part-structure-to-sn2-only drivers/misc/sgi-xp/xpc.h
---- a/drivers/misc/sgi-xp/xpc.h~sgi-xp-isolate-xpc_vars_part-structure-to-sn2-only
-+++ a/drivers/misc/sgi-xp/xpc.h
-@@ -227,9 +227,9 @@ xpc_disallow_hb(short partid, struct xpc
-  * itself from that partition. It is desirable that the size of this structure
-  * evenly divides into a 128-byte cacheline, such that none of the entries in
-  * this array crosses a 128-byte cacheline boundary. As it is now, each entry
-- * occupies a 64-byte cacheline.
-+ * occupies 64-bytes.
-  */
--struct xpc_vars_part {
-+struct xpc_vars_part_sn2 {
- 	u64 magic;
- 
- 	u64 openclose_args_pa;	/* physical address of open and close args */
-@@ -265,8 +265,6 @@ struct xpc_vars_part {
- #define XPC_RP_MACH_NASIDS(_rp) (XPC_RP_PART_NASIDS(_rp) + xp_nasid_mask_words)
- #define XPC_RP_VARS(_rp)	((struct xpc_vars *)(XPC_RP_MACH_NASIDS(_rp) + \
- 				    xp_nasid_mask_words))
--#define XPC_RP_VARS_PART(_rp)	((struct xpc_vars_part *) \
--				    ((u8 *)XPC_RP_VARS(_rp) + XPC_RP_VARS_SIZE))
+diff -puN drivers/misc/sgi-xp/xp.h~sgi-xp-create-a-common-xp_remote_memcpy-function drivers/misc/sgi-xp/xp.h
+--- a/drivers/misc/sgi-xp/xp.h~sgi-xp-create-a-common-xp_remote_memcpy-function
++++ a/drivers/misc/sgi-xp/xp.h
+@@ -17,7 +17,6 @@
+ #include <linux/hardirq.h>
+ #include <linux/mutex.h>
+ #include <asm/sn/types.h>
+-#include <asm/sn/bte.h>
+ #ifdef CONFIG_IA64
+ #include <asm/sn/arch.h>
+ #endif
+@@ -72,46 +71,6 @@
+ #define XP_NASID_MASK_WORDS	((XP_MAX_PHYSNODE_ID + 63) / 64)
  
  /*
-  * Functions registered by add_timer() or called by kernel_thread() only
-@@ -541,13 +539,6 @@ struct xpc_partition {
- 	wait_queue_head_t teardown_wq;	/* kthread waiting to teardown infra */
- 	atomic_t references;	/* #of references to infrastructure */
- 
--	/*
--	 * NONE OF THE PRECEDING FIELDS OF THIS STRUCTURE WILL BE CLEARED WHEN
--	 * XPC SETS UP THE NECESSARY INFRASTRUCTURE TO SUPPORT CROSS PARTITION
--	 * COMMUNICATION. ALL OF THE FOLLOWING FIELDS WILL BE CLEARED. (THE
--	 * 'nchannels' FIELD MUST BE THE FIRST OF THE FIELDS TO BE CLEARED.)
--	 */
--
- 	u8 nchannels;		/* #of defined channels supported */
- 	atomic_t nchannels_active;  /* #of channels that are not DISCONNECTED */
- 	atomic_t nchannels_engaged;  /* #of channels engaged with remote part */
-@@ -613,7 +604,7 @@ struct xpc_partition {
-  * dropped IPIs. These occur whenever an IPI amo write doesn't complete until
-  * after the IPI was received.
-  */
--#define XPC_P_DROPPED_IPI_WAIT	(0.25 * HZ)
-+#define XPC_P_DROPPED_IPI_WAIT_INTERVAL	(0.25 * HZ)
- 
- /* number of seconds to wait for other partitions to disengage */
- #define XPC_DISENGAGE_REQUEST_DEFAULT_TIMELIMIT	90
-@@ -637,13 +628,16 @@ extern void xpc_activate_partition(struc
- extern void xpc_activate_kthreads(struct xpc_channel *, int);
- extern void xpc_create_kthreads(struct xpc_channel *, int, int);
- extern void xpc_disconnect_wait(int);
--
- extern enum xp_retval (*xpc_rsvd_page_init) (struct xpc_rsvd_page *);
-+extern enum xp_retval (*xpc_make_first_contact) (struct xpc_partition *);
-+extern u64 (*xpc_get_IPI_flags) (struct xpc_partition *);
-+extern struct xpc_msg *(*xpc_get_deliverable_msg) (struct xpc_channel *);
-+extern enum xp_retval (*xpc_setup_infrastructure) (struct xpc_partition *);
-+extern void (*xpc_teardown_infrastructure) (struct xpc_partition *);
- 
- /* found in xpc_sn2.c */
- extern void xpc_init_sn2(void);
- extern struct xpc_vars *xpc_vars;		/*>>> eliminate from here */
--extern struct xpc_vars_part *xpc_vars_part;	/*>>> eliminate from here */
- 
- /* found in xpc_uv.c */
- extern void xpc_init_uv(void);
-@@ -670,6 +664,7 @@ extern void xpc_deactivate_partition(con
- extern enum xp_retval xpc_initiate_partid_to_nasids(short, void *);
- 
- /* found in xpc_channel.c */
-+extern void *xpc_kzalloc_cacheline_aligned(size_t, gfp_t, void **);
- extern void xpc_initiate_connect(int);
- extern void xpc_initiate_disconnect(int);
- extern enum xp_retval xpc_initiate_allocate(short, int, u32, void **);
-@@ -677,8 +672,6 @@ extern enum xp_retval xpc_initiate_send(
- extern enum xp_retval xpc_initiate_send_notify(short, int, void *,
- 					       xpc_notify_func, void *);
- extern void xpc_initiate_received(short, int, void *);
--extern enum xp_retval xpc_setup_infrastructure(struct xpc_partition *);
--extern enum xp_retval xpc_pull_remote_vars_part(struct xpc_partition *);
- extern void xpc_process_channel_activity(struct xpc_partition *);
- extern void xpc_connected_callout(struct xpc_channel *);
- extern void xpc_deliver_msg(struct xpc_channel *);
-@@ -686,7 +679,6 @@ extern void xpc_disconnect_channel(const
- 				   enum xp_retval, unsigned long *);
- extern void xpc_disconnect_callout(struct xpc_channel *, enum xp_retval);
- extern void xpc_partition_going_down(struct xpc_partition *, enum xp_retval);
--extern void xpc_teardown_infrastructure(struct xpc_partition *);
- 
- static inline void
- xpc_wakeup_channel_mgr(struct xpc_partition *part)
-diff -puN drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-isolate-xpc_vars_part-structure-to-sn2-only drivers/misc/sgi-xp/xpc_channel.c
---- a/drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-isolate-xpc_vars_part-structure-to-sn2-only
-+++ a/drivers/misc/sgi-xp/xpc_channel.c
-@@ -27,7 +27,7 @@
- /*
-  * Guarantee that the kzalloc'd memory is cacheline aligned.
-  */
--static void *
-+void *
- xpc_kzalloc_cacheline_aligned(size_t size, gfp_t flags, void **base)
- {
- 	/* see if kzalloc will give us cachline aligned memory by default */
-@@ -49,382 +49,6 @@ xpc_kzalloc_cacheline_aligned(size_t siz
- }
- 
- /*
-- * Set up the initial values for the XPartition Communication channels.
-- */
--static void
--xpc_initialize_channels(struct xpc_partition *part, short partid)
--{
--	int ch_number;
--	struct xpc_channel *ch;
--
--	for (ch_number = 0; ch_number < part->nchannels; ch_number++) {
--		ch = &part->channels[ch_number];
--
--		ch->partid = partid;
--		ch->number = ch_number;
--		ch->flags = XPC_C_DISCONNECTED;
--
--		ch->local_GP = &part->local_GPs[ch_number];
--		ch->local_openclose_args =
--		    &part->local_openclose_args[ch_number];
--
--		atomic_set(&ch->kthreads_assigned, 0);
--		atomic_set(&ch->kthreads_idle, 0);
--		atomic_set(&ch->kthreads_active, 0);
--
--		atomic_set(&ch->references, 0);
--		atomic_set(&ch->n_to_notify, 0);
--
--		spin_lock_init(&ch->lock);
--		mutex_init(&ch->msg_to_pull_mutex);
--		init_completion(&ch->wdisconnect_wait);
--
--		atomic_set(&ch->n_on_msg_allocate_wq, 0);
--		init_waitqueue_head(&ch->msg_allocate_wq);
--		init_waitqueue_head(&ch->idle_wq);
--	}
--}
--
--/*
-- * Setup the infrastructure necessary to support XPartition Communication
-- * between the specified remote partition and the local one.
-- */
--enum xp_retval
--xpc_setup_infrastructure(struct xpc_partition *part)
--{
--	int ret, cpuid;
--	struct timer_list *timer;
--	short partid = XPC_PARTID(part);
--
--	/*
--	 * Zero out MOST of the entry for this partition. Only the fields
--	 * starting with `nchannels' will be zeroed. The preceding fields must
--	 * remain `viable' across partition ups and downs, since they may be
--	 * referenced during this memset() operation.
--	 */
--	memset(&part->nchannels, 0, sizeof(struct xpc_partition) -
--	       offsetof(struct xpc_partition, nchannels));
--
--	/*
--	 * Allocate all of the channel structures as a contiguous chunk of
--	 * memory.
--	 */
--	part->channels = kzalloc(sizeof(struct xpc_channel) * XPC_MAX_NCHANNELS,
--				 GFP_KERNEL);
--	if (part->channels == NULL) {
--		dev_err(xpc_chan, "can't get memory for channels\n");
--		return xpNoMemory;
--	}
--
--	part->nchannels = XPC_MAX_NCHANNELS;
--
--	/* allocate all the required GET/PUT values */
--
--	part->local_GPs = xpc_kzalloc_cacheline_aligned(XPC_GP_SIZE,
--							GFP_KERNEL,
--							&part->local_GPs_base);
--	if (part->local_GPs == NULL) {
--		kfree(part->channels);
--		part->channels = NULL;
--		dev_err(xpc_chan, "can't get memory for local get/put "
--			"values\n");
--		return xpNoMemory;
--	}
--
--	part->remote_GPs = xpc_kzalloc_cacheline_aligned(XPC_GP_SIZE,
--							 GFP_KERNEL,
--							 &part->
--							 remote_GPs_base);
--	if (part->remote_GPs == NULL) {
--		dev_err(xpc_chan, "can't get memory for remote get/put "
--			"values\n");
--		kfree(part->local_GPs_base);
--		part->local_GPs = NULL;
--		kfree(part->channels);
--		part->channels = NULL;
--		return xpNoMemory;
--	}
--
--	/* allocate all the required open and close args */
--
--	part->local_openclose_args =
--	    xpc_kzalloc_cacheline_aligned(XPC_OPENCLOSE_ARGS_SIZE, GFP_KERNEL,
--					  &part->local_openclose_args_base);
--	if (part->local_openclose_args == NULL) {
--		dev_err(xpc_chan, "can't get memory for local connect args\n");
--		kfree(part->remote_GPs_base);
--		part->remote_GPs = NULL;
--		kfree(part->local_GPs_base);
--		part->local_GPs = NULL;
--		kfree(part->channels);
--		part->channels = NULL;
--		return xpNoMemory;
--	}
--
--	part->remote_openclose_args =
--	    xpc_kzalloc_cacheline_aligned(XPC_OPENCLOSE_ARGS_SIZE, GFP_KERNEL,
--					  &part->remote_openclose_args_base);
--	if (part->remote_openclose_args == NULL) {
--		dev_err(xpc_chan, "can't get memory for remote connect args\n");
--		kfree(part->local_openclose_args_base);
--		part->local_openclose_args = NULL;
--		kfree(part->remote_GPs_base);
--		part->remote_GPs = NULL;
--		kfree(part->local_GPs_base);
--		part->local_GPs = NULL;
--		kfree(part->channels);
--		part->channels = NULL;
--		return xpNoMemory;
--	}
--
--	xpc_initialize_channels(part, partid);
--
--	atomic_set(&part->nchannels_active, 0);
--	atomic_set(&part->nchannels_engaged, 0);
--
--	/* local_IPI_amo were set to 0 by an earlier memset() */
--
--	/* Initialize this partitions AMO_t structure */
--	part->local_IPI_amo_va = xpc_IPI_init(partid);
--
--	spin_lock_init(&part->IPI_lock);
--
--	atomic_set(&part->channel_mgr_requests, 1);
--	init_waitqueue_head(&part->channel_mgr_wq);
--
--	sprintf(part->IPI_owner, "xpc%02d", partid);
--	ret = request_irq(SGI_XPC_NOTIFY, xpc_notify_IRQ_handler, IRQF_SHARED,
--			  part->IPI_owner, (void *)(u64)partid);
--	if (ret != 0) {
--		dev_err(xpc_chan, "can't register NOTIFY IRQ handler, "
--			"errno=%d\n", -ret);
--		kfree(part->remote_openclose_args_base);
--		part->remote_openclose_args = NULL;
--		kfree(part->local_openclose_args_base);
--		part->local_openclose_args = NULL;
--		kfree(part->remote_GPs_base);
--		part->remote_GPs = NULL;
--		kfree(part->local_GPs_base);
--		part->local_GPs = NULL;
--		kfree(part->channels);
--		part->channels = NULL;
--		return xpLackOfResources;
--	}
--
--	/* Setup a timer to check for dropped IPIs */
--	timer = &part->dropped_IPI_timer;
--	init_timer(timer);
--	timer->function = (void (*)(unsigned long))xpc_dropped_IPI_check;
--	timer->data = (unsigned long)part;
--	timer->expires = jiffies + XPC_P_DROPPED_IPI_WAIT;
--	add_timer(timer);
--
--	/*
--	 * With the setting of the partition setup_state to XPC_P_SETUP, we're
--	 * declaring that this partition is ready to go.
--	 */
--	part->setup_state = XPC_P_SETUP;
--
--	/*
--	 * Setup the per partition specific variables required by the
--	 * remote partition to establish channel connections with us.
--	 *
--	 * The setting of the magic # indicates that these per partition
--	 * specific variables are ready to be used.
--	 */
--	xpc_vars_part[partid].GPs_pa = __pa(part->local_GPs);
--	xpc_vars_part[partid].openclose_args_pa =
--	    __pa(part->local_openclose_args);
--	xpc_vars_part[partid].IPI_amo_pa = __pa(part->local_IPI_amo_va);
--	cpuid = raw_smp_processor_id();	/* any CPU in this partition will do */
--	xpc_vars_part[partid].IPI_nasid = cpuid_to_nasid(cpuid);
--	xpc_vars_part[partid].IPI_phys_cpuid = cpu_physical_id(cpuid);
--	xpc_vars_part[partid].nchannels = part->nchannels;
--	xpc_vars_part[partid].magic = XPC_VP_MAGIC1;
--
--	return xpSuccess;
--}
--
--/*
-- * Create a wrapper that hides the underlying mechanism for pulling a cacheline
-- * (or multiple cachelines) from a remote partition.
+- * Wrapper for bte_copy() that should it return a failure status will retry
+- * the bte_copy() once in the hope that the failure was due to a temporary
+- * aberration (i.e., the link going down temporarily).
 - *
-- * src must be a cacheline aligned physical address on the remote partition.
-- * dst must be a cacheline aligned virtual address on this partition.
-- * cnt must be cacheline sized
+- * 	src - physical address of the source of the transfer.
+- *	vdst - virtual address of the destination of the transfer.
+- *	len - number of bytes to transfer from source to destination.
+- *	mode - see bte_copy() for definition.
+- *	notification - see bte_copy() for definition.
+- *
+- * Note: xp_bte_copy() should never be called while holding a spinlock.
 - */
--static enum xp_retval
--xpc_pull_remote_cachelines(struct xpc_partition *part, void *dst,
--			   const void *src, size_t cnt)
+-static inline bte_result_t
+-xp_bte_copy(u64 src, u64 vdst, u64 len, u64 mode, void *notification)
 -{
--	enum xp_retval ret;
+-	bte_result_t ret;
+-	u64 pdst = ia64_tpa(vdst);
 -
--	DBUG_ON((u64)src != L1_CACHE_ALIGN((u64)src));
--	DBUG_ON((u64)dst != L1_CACHE_ALIGN((u64)dst));
--	DBUG_ON(cnt != L1_CACHE_ALIGN(cnt));
+-	/*
+-	 * Ensure that the physically mapped memory is contiguous.
+-	 *
+-	 * We do this by ensuring that the memory is from region 7 only.
+-	 * If the need should arise to use memory from one of the other
+-	 * regions, then modify the BUG_ON() statement to ensure that the
+-	 * memory from that region is always physically contiguous.
+-	 */
+-	BUG_ON(REGION_NUMBER(vdst) != RGN_KERNEL);
 -
--	if (part->act_state == XPC_P_DEACTIVATING)
--		return part->reason;
+-	ret = bte_copy(src, pdst, len, mode, notification);
+-	if ((ret != BTE_SUCCESS) && BTE_ERROR_RETRY(ret)) {
+-		if (!in_interrupt())
+-			cond_resched();
 -
--	ret = xp_remote_memcpy(dst, src, cnt);
--	if (ret != xpSuccess) {
--		dev_dbg(xpc_chan, "xp_remote_memcpy() from partition %d failed,"
--			" ret=%d\n", XPC_PARTID(part), ret);
+-		ret = bte_copy(src, pdst, len, mode, notification);
 -	}
+-
 -	return ret;
 -}
 -
 -/*
-- * Pull the remote per partition specific variables from the specified
-- * partition.
-- */
--enum xp_retval
--xpc_pull_remote_vars_part(struct xpc_partition *part)
--{
--	u8 buffer[L1_CACHE_BYTES * 2];
--	struct xpc_vars_part *pulled_entry_cacheline =
--	    (struct xpc_vars_part *)L1_CACHE_ALIGN((u64)buffer);
--	struct xpc_vars_part *pulled_entry;
--	u64 remote_entry_cacheline_pa, remote_entry_pa;
--	short partid = XPC_PARTID(part);
--	enum xp_retval ret;
--
--	/* pull the cacheline that contains the variables we're interested in */
--
--	DBUG_ON(part->remote_vars_part_pa !=
--		L1_CACHE_ALIGN(part->remote_vars_part_pa));
--	DBUG_ON(sizeof(struct xpc_vars_part) != L1_CACHE_BYTES / 2);
--
--	remote_entry_pa = part->remote_vars_part_pa +
--	    sn_partition_id * sizeof(struct xpc_vars_part);
--
--	remote_entry_cacheline_pa = (remote_entry_pa & ~(L1_CACHE_BYTES - 1));
--
--	pulled_entry = (struct xpc_vars_part *)((u64)pulled_entry_cacheline +
--						(remote_entry_pa &
--						 (L1_CACHE_BYTES - 1)));
--
--	ret = xpc_pull_remote_cachelines(part, pulled_entry_cacheline,
--					 (void *)remote_entry_cacheline_pa,
--					 L1_CACHE_BYTES);
--	if (ret != xpSuccess) {
--		dev_dbg(xpc_chan, "failed to pull XPC vars_part from "
--			"partition %d, ret=%d\n", partid, ret);
--		return ret;
--	}
--
--	/* see if they've been set up yet */
--
--	if (pulled_entry->magic != XPC_VP_MAGIC1 &&
--	    pulled_entry->magic != XPC_VP_MAGIC2) {
--
--		if (pulled_entry->magic != 0) {
--			dev_dbg(xpc_chan, "partition %d's XPC vars_part for "
--				"partition %d has bad magic value (=0x%lx)\n",
--				partid, sn_partition_id, pulled_entry->magic);
--			return xpBadMagic;
--		}
--
--		/* they've not been initialized yet */
--		return xpRetry;
--	}
--
--	if (xpc_vars_part[partid].magic == XPC_VP_MAGIC1) {
--
--		/* validate the variables */
--
--		if (pulled_entry->GPs_pa == 0 ||
--		    pulled_entry->openclose_args_pa == 0 ||
--		    pulled_entry->IPI_amo_pa == 0) {
--
--			dev_err(xpc_chan, "partition %d's XPC vars_part for "
--				"partition %d are not valid\n", partid,
--				sn_partition_id);
--			return xpInvalidAddress;
--		}
--
--		/* the variables we imported look to be valid */
--
--		part->remote_GPs_pa = pulled_entry->GPs_pa;
--		part->remote_openclose_args_pa =
--		    pulled_entry->openclose_args_pa;
--		part->remote_IPI_amo_va =
--		    (AMO_t *)__va(pulled_entry->IPI_amo_pa);
--		part->remote_IPI_nasid = pulled_entry->IPI_nasid;
--		part->remote_IPI_phys_cpuid = pulled_entry->IPI_phys_cpuid;
--
--		if (part->nchannels > pulled_entry->nchannels)
--			part->nchannels = pulled_entry->nchannels;
--
--		/* let the other side know that we've pulled their variables */
--
--		xpc_vars_part[partid].magic = XPC_VP_MAGIC2;
--	}
--
--	if (pulled_entry->magic == XPC_VP_MAGIC1)
--		return xpRetry;
--
--	return xpSuccess;
--}
--
--/*
-- * Get the IPI flags and pull the openclose args and/or remote GPs as needed.
-- */
--static u64
--xpc_get_IPI_flags(struct xpc_partition *part)
--{
--	unsigned long irq_flags;
--	u64 IPI_amo;
--	enum xp_retval ret;
--
--	/*
--	 * See if there are any IPI flags to be handled.
--	 */
--
--	spin_lock_irqsave(&part->IPI_lock, irq_flags);
--	IPI_amo = part->local_IPI_amo;
--	if (IPI_amo != 0)
--		part->local_IPI_amo = 0;
--
--	spin_unlock_irqrestore(&part->IPI_lock, irq_flags);
--
--	if (XPC_ANY_OPENCLOSE_IPI_FLAGS_SET(IPI_amo)) {
--		ret = xpc_pull_remote_cachelines(part,
--						 part->remote_openclose_args,
--						 (void *)part->
--						 remote_openclose_args_pa,
--						 XPC_OPENCLOSE_ARGS_SIZE);
--		if (ret != xpSuccess) {
--			XPC_DEACTIVATE_PARTITION(part, ret);
--
--			dev_dbg(xpc_chan, "failed to pull openclose args from "
--				"partition %d, ret=%d\n", XPC_PARTID(part),
--				ret);
--
--			/* don't bother processing IPIs anymore */
--			IPI_amo = 0;
--		}
--	}
--
--	if (XPC_ANY_MSG_IPI_FLAGS_SET(IPI_amo)) {
--		ret = xpc_pull_remote_cachelines(part, part->remote_GPs,
--						 (void *)part->remote_GPs_pa,
--						 XPC_GP_SIZE);
--		if (ret != xpSuccess) {
--			XPC_DEACTIVATE_PARTITION(part, ret);
--
--			dev_dbg(xpc_chan, "failed to pull GPs from partition "
--				"%d, ret=%d\n", XPC_PARTID(part), ret);
--
--			/* don't bother processing IPIs anymore */
--			IPI_amo = 0;
--		}
--	}
--
--	return IPI_amo;
--}
--
--/*
-  * Allocate the local message queue and the notify queue.
-  */
- static enum xp_retval
-@@ -1365,59 +989,6 @@ xpc_partition_going_down(struct xpc_part
- }
+  * XPC establishes channel connections between the local partition and any
+  * other partition that is currently up. Over these channels, kernel-level
+  * `users' can communicate with their counterparts on the other partitions.
+@@ -408,6 +367,8 @@ xpc_partid_to_nasids(short partid, void 
  
- /*
-- * Teardown the infrastructure necessary to support XPartition Communication
-- * between the specified remote partition and the local one.
-- */
--void
--xpc_teardown_infrastructure(struct xpc_partition *part)
--{
--	short partid = XPC_PARTID(part);
--
--	/*
--	 * We start off by making this partition inaccessible to local
--	 * processes by marking it as no longer setup. Then we make it
--	 * inaccessible to remote processes by clearing the XPC per partition
--	 * specific variable's magic # (which indicates that these variables
--	 * are no longer valid) and by ignoring all XPC notify IPIs sent to
--	 * this partition.
--	 */
--
--	DBUG_ON(atomic_read(&part->nchannels_engaged) != 0);
--	DBUG_ON(atomic_read(&part->nchannels_active) != 0);
--	DBUG_ON(part->setup_state != XPC_P_SETUP);
--	part->setup_state = XPC_P_WTEARDOWN;
--
--	xpc_vars_part[partid].magic = 0;
--
--	free_irq(SGI_XPC_NOTIFY, (void *)(u64)partid);
--
--	/*
--	 * Before proceeding with the teardown we have to wait until all
--	 * existing references cease.
--	 */
--	wait_event(part->teardown_wq, (atomic_read(&part->references) == 0));
--
--	/* now we can begin tearing down the infrastructure */
--
--	part->setup_state = XPC_P_TORNDOWN;
--
--	/* in case we've still got outstanding timers registered... */
--	del_timer_sync(&part->dropped_IPI_timer);
--
--	kfree(part->remote_openclose_args_base);
--	part->remote_openclose_args = NULL;
--	kfree(part->local_openclose_args_base);
--	part->local_openclose_args = NULL;
--	kfree(part->remote_GPs_base);
--	part->remote_GPs = NULL;
--	kfree(part->local_GPs_base);
--	part->local_GPs = NULL;
--	kfree(part->channels);
--	part->channels = NULL;
--	part->local_IPI_amo_va = NULL;
--}
--
--/*
-  * Called by XP at the time of channel connection registration to cause
-  * XPC to establish connections to all currently active partitions.
-  */
-@@ -1974,113 +1545,6 @@ xpc_initiate_send_notify(short partid, i
- 	return ret;
- }
+ extern short xp_max_npartitions;
  
--static struct xpc_msg *
--xpc_pull_remote_msg(struct xpc_channel *ch, s64 get)
--{
--	struct xpc_partition *part = &xpc_partitions[ch->partid];
--	struct xpc_msg *remote_msg, *msg;
--	u32 msg_index, nmsgs;
--	u64 msg_offset;
--	enum xp_retval ret;
--
--	if (mutex_lock_interruptible(&ch->msg_to_pull_mutex) != 0) {
--		/* we were interrupted by a signal */
--		return NULL;
--	}
--
--	while (get >= ch->next_msg_to_pull) {
--
--		/* pull as many messages as are ready and able to be pulled */
--
--		msg_index = ch->next_msg_to_pull % ch->remote_nentries;
--
--		DBUG_ON(ch->next_msg_to_pull >= ch->w_remote_GP.put);
--		nmsgs = ch->w_remote_GP.put - ch->next_msg_to_pull;
--		if (msg_index + nmsgs > ch->remote_nentries) {
--			/* ignore the ones that wrap the msg queue for now */
--			nmsgs = ch->remote_nentries - msg_index;
--		}
--
--		msg_offset = msg_index * ch->msg_size;
--		msg = (struct xpc_msg *)((u64)ch->remote_msgqueue + msg_offset);
--		remote_msg = (struct xpc_msg *)(ch->remote_msgqueue_pa +
--						msg_offset);
--
--		ret = xpc_pull_remote_cachelines(part, msg, remote_msg,
--						 nmsgs * ch->msg_size);
--		if (ret != xpSuccess) {
--
--			dev_dbg(xpc_chan, "failed to pull %d msgs starting with"
--				" msg %ld from partition %d, channel=%d, "
--				"ret=%d\n", nmsgs, ch->next_msg_to_pull,
--				ch->partid, ch->number, ret);
--
--			XPC_DEACTIVATE_PARTITION(part, ret);
--
--			mutex_unlock(&ch->msg_to_pull_mutex);
--			return NULL;
--		}
--
--		ch->next_msg_to_pull += nmsgs;
--	}
--
--	mutex_unlock(&ch->msg_to_pull_mutex);
--
--	/* return the message we were looking for */
--	msg_offset = (get % ch->remote_nentries) * ch->msg_size;
--	msg = (struct xpc_msg *)((u64)ch->remote_msgqueue + msg_offset);
--
--	return msg;
--}
--
--/*
-- * Get a message to be delivered.
-- */
--static struct xpc_msg *
--xpc_get_deliverable_msg(struct xpc_channel *ch)
--{
--	struct xpc_msg *msg = NULL;
--	s64 get;
--
--	do {
--		if (ch->flags & XPC_C_DISCONNECTING)
--			break;
--
--		get = ch->w_local_GP.get;
--		rmb();	/* guarantee that .get loads before .put */
--		if (get == ch->w_remote_GP.put)
--			break;
--
--		/* There are messages waiting to be pulled and delivered.
--		 * We need to try to secure one for ourselves. We'll do this
--		 * by trying to increment w_local_GP.get and hope that no one
--		 * else beats us to it. If they do, we'll we'll simply have
--		 * to try again for the next one.
--		 */
--
--		if (cmpxchg(&ch->w_local_GP.get, get, get + 1) == get) {
--			/* we got the entry referenced by get */
--
--			dev_dbg(xpc_chan, "w_local_GP.get changed to %ld, "
--				"partid=%d, channel=%d\n", get + 1,
--				ch->partid, ch->number);
--
--			/* pull the message from the remote partition */
--
--			msg = xpc_pull_remote_msg(ch, get);
--
--			DBUG_ON(msg != NULL && msg->number != get);
--			DBUG_ON(msg != NULL && (msg->flags & XPC_M_DONE));
--			DBUG_ON(msg != NULL && !(msg->flags & XPC_M_READY));
--
--			break;
--		}
--
--	} while (1);
--
--	return msg;
--}
--
- /*
-  * Deliver a message to its intended recipient.
-  */
-diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-isolate-xpc_vars_part-structure-to-sn2-only drivers/misc/sgi-xp/xpc_main.c
---- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-isolate-xpc_vars_part-structure-to-sn2-only
-+++ a/drivers/misc/sgi-xp/xpc_main.c
-@@ -176,6 +176,12 @@ static struct notifier_block xpc_die_not
- };
- 
- enum xp_retval (*xpc_rsvd_page_init) (struct xpc_rsvd_page *rp);
-+enum xp_retval (*xpc_make_first_contact) (struct xpc_partition *part);
-+u64 (*xpc_get_IPI_flags) (struct xpc_partition *part);
-+struct xpc_msg *(*xpc_get_deliverable_msg) (struct xpc_channel *ch);
-+enum xp_retval (*xpc_setup_infrastructure) (struct xpc_partition *part);
-+void (*xpc_teardown_infrastructure) (struct xpc_partition *part);
++extern enum xp_retval (*xp_remote_memcpy) (void *, const void *, size_t);
 +
+ extern u64 xp_nofault_PIOR_target;
+ extern int xp_nofault_PIOR(void *);
+ extern int xp_error_PIOR(void);
+diff -puN drivers/misc/sgi-xp/xp_main.c~sgi-xp-create-a-common-xp_remote_memcpy-function drivers/misc/sgi-xp/xp_main.c
+--- a/drivers/misc/sgi-xp/xp_main.c~sgi-xp-create-a-common-xp_remote_memcpy-function
++++ a/drivers/misc/sgi-xp/xp_main.c
+@@ -36,6 +36,9 @@ struct device *xp = &xp_dbg_subname;
+ short xp_max_npartitions;
+ EXPORT_SYMBOL_GPL(xp_max_npartitions);
  
++enum xp_retval (*xp_remote_memcpy) (void *dst, const void *src, size_t len);
++EXPORT_SYMBOL_GPL(xp_remote_memcpy);
++
  /*
-  * Timer function to enforce the timelimit on the partition disengage request.
-@@ -313,37 +319,8 @@ xpc_initiate_discovery(void *ignore)
+  * xpc_registrations[] keeps track of xpc_connect()'s done by the kernel-level
+  * users of XPC.
+diff -puN drivers/misc/sgi-xp/xp_sn2.c~sgi-xp-create-a-common-xp_remote_memcpy-function drivers/misc/sgi-xp/xp_sn2.c
+--- a/drivers/misc/sgi-xp/xp_sn2.c~sgi-xp-create-a-common-xp_remote_memcpy-function
++++ a/drivers/misc/sgi-xp/xp_sn2.c
+@@ -13,6 +13,7 @@
+  */
+ 
+ #include <linux/device.h>
++#include <asm/sn/bte.h>
+ #include <asm/sn/sn_sal.h>
+ #include "xp.h"
+ 
+@@ -72,6 +73,49 @@ xp_unregister_nofault_code_sn2(void)
+ 				       err_func_addr, 1, 0);
  }
  
- /*
-- * Establish first contact with the remote partititon. This involves pulling
-- * the XPC per partition variables from the remote partition and waiting for
-- * the remote partition to pull ours.
-- */
--static enum xp_retval
--xpc_make_first_contact(struct xpc_partition *part)
--{
--	enum xp_retval ret;
--
--	while ((ret = xpc_pull_remote_vars_part(part)) != xpSuccess) {
--		if (ret != xpRetry) {
--			XPC_DEACTIVATE_PARTITION(part, ret);
--			return ret;
--		}
--
--		dev_dbg(xpc_chan, "waiting to make first contact with "
--			"partition %d\n", XPC_PARTID(part));
--
--		/* wait a 1/4 of a second or so */
--		(void)msleep_interruptible(250);
--
--		if (part->act_state == XPC_P_DEACTIVATING)
--			return part->reason;
--	}
--
--	return xpc_mark_partition_active(part);
--}
--
--/*
-  * The first kthread assigned to a newly activated partition is the one
-- * created by XPC HB with which it calls xpc_partition_up(). XPC hangs on to
-+ * created by XPC HB with which it calls xpc_activating(). XPC hangs on to
-  * that kthread until the partition is brought down, at which time that kthread
-  * returns back to XPC HB. (The return of that kthread will signify to XPC HB
-  * that XPC has dismantled all communication infrastructure for the associated
-@@ -393,41 +370,10 @@ xpc_channel_mgr(struct xpc_partition *pa
-  * upped partition.
-  *
-  * The kthread that was created by XPC HB and which setup the XPC
-- * infrastructure will remain assigned to the partition until the partition
-- * goes down. At which time the kthread will teardown the XPC infrastructure
-- * and then exit.
-- *
-- * XPC HB will put the remote partition's XPC per partition specific variables
-- * physical address into xpc_partitions[partid].remote_vars_part_pa prior to
-- * calling xpc_partition_up().
-+ * infrastructure will remain assigned to the partition becoming the channel
-+ * manager for that partition until the partition is deactivating, at which
-+ * time the kthread will teardown the XPC infrastructure and then exit.
-  */
--static void
--xpc_partition_up(struct xpc_partition *part)
--{
--	DBUG_ON(part->channels != NULL);
--
--	dev_dbg(xpc_chan, "activating partition %d\n", XPC_PARTID(part));
--
--	if (xpc_setup_infrastructure(part) != xpSuccess)
--		return;
--
--	/*
--	 * The kthread that XPC HB called us with will become the
--	 * channel manager for this partition. It will not return
--	 * back to XPC HB until the partition's XPC infrastructure
--	 * has been dismantled.
--	 */
--
--	(void)xpc_part_ref(part);	/* this will always succeed */
--
--	if (xpc_make_first_contact(part) == xpSuccess)
--		xpc_channel_mgr(part);
--
--	xpc_part_deref(part);
--
--	xpc_teardown_infrastructure(part);
--}
--
- static int
- xpc_activating(void *__partid)
++/*
++ * Wrapper for bte_copy().
++ *
++ *	vdst - virtual address of the destination of the transfer.
++ *	psrc - physical address of the source of the transfer.
++ *	len - number of bytes to transfer from source to destination.
++ *
++ * Note: xp_remote_memcpy_sn2() should never be called while holding a spinlock.
++ */
++static enum xp_retval
++xp_remote_memcpy_sn2(void *vdst, const void *psrc, size_t len)
++{
++	bte_result_t ret;
++	u64 pdst = ia64_tpa(vdst);
++	/* >>> What are the rules governing the src and dst addresses passed in?
++	 * >>> Currently we're assuming that dst is a virtual address and src
++	 * >>> is a physical address, is this appropriate? Can we allow them to
++	 * >>> be whatever and we make the change here without damaging the
++	 * >>> addresses?
++	 */
++
++	/*
++	 * Ensure that the physically mapped memory is contiguous.
++	 *
++	 * We do this by ensuring that the memory is from region 7 only.
++	 * If the need should arise to use memory from one of the other
++	 * regions, then modify the BUG_ON() statement to ensure that the
++	 * memory from that region is always physically contiguous.
++	 */
++	BUG_ON(REGION_NUMBER(vdst) != RGN_KERNEL);
++
++	ret = bte_copy((u64)psrc, pdst, len, (BTE_NOTIFY | BTE_WACQUIRE), NULL);
++	if (ret == BTE_SUCCESS)
++		return xpSuccess;
++
++	if (is_shub2())
++		dev_err(xp, "bte_copy() on shub2 failed, error=0x%x\n", ret);
++	else
++		dev_err(xp, "bte_copy() failed, error=%d\n", ret);
++
++	return xpBteCopyError;
++}
++
+ enum xp_retval
+ xp_init_sn2(void)
  {
-@@ -453,7 +399,7 @@ xpc_activating(void *__partid)
- 	XPC_SET_REASON(part, 0, 0);
- 	spin_unlock_irqrestore(&part->act_lock, irq_flags);
+@@ -79,6 +123,8 @@ xp_init_sn2(void)
  
--	dev_dbg(xpc_part, "bringing partition %d up\n", partid);
-+	dev_dbg(xpc_part, "activating partition %d\n", partid);
+ 	xp_max_npartitions = XP_MAX_NPARTITIONS_SN2;
  
- 	/*
- 	 * Register the remote partition's AMOs with SAL so it can handle
-@@ -467,7 +413,7 @@ xpc_activating(void *__partid)
- 	 */
- 	if (sn_register_xp_addr_region(part->remote_amos_page_pa,
- 				       PAGE_SIZE, 1) < 0) {
--		dev_warn(xpc_part, "xpc_partition_up(%d) failed to register "
-+		dev_warn(xpc_part, "xpc_activating(%d) failed to register "
- 			 "xp_addr region\n", partid);
- 
- 		spin_lock_irqsave(&part->act_lock, irq_flags);
-@@ -481,11 +427,18 @@ xpc_activating(void *__partid)
- 	xpc_allow_hb(partid, xpc_vars);
- 	xpc_IPI_send_activated(part);
- 
--	/*
--	 * xpc_partition_up() holds this thread and marks this partition as
--	 * XPC_P_ACTIVE by calling xpc_hb_mark_active().
--	 */
--	(void)xpc_partition_up(part);
-+	if (xpc_setup_infrastructure(part) == xpSuccess) {
-+		(void)xpc_part_ref(part);	/* this will always succeed */
++	xp_remote_memcpy = xp_remote_memcpy_sn2;
 +
-+		if (xpc_make_first_contact(part) == xpSuccess) {
-+			xpc_mark_partition_active(part);
-+			xpc_channel_mgr(part);
-+			/* won't return until partition is deactivating */
-+		}
+ 	return xp_register_nofault_code_sn2();
+ }
+ 
+diff -puN drivers/misc/sgi-xp/xp_uv.c~sgi-xp-create-a-common-xp_remote_memcpy-function drivers/misc/sgi-xp/xp_uv.c
+--- a/drivers/misc/sgi-xp/xp_uv.c~sgi-xp-create-a-common-xp_remote_memcpy-function
++++ a/drivers/misc/sgi-xp/xp_uv.c
+@@ -15,12 +15,23 @@
+ 
+ #include "xp.h"
+ 
++static enum xp_retval
++xp_remote_memcpy_uv(void *vdst, const void *psrc, size_t len)
++{
++	/* >>> this function needs fleshing out */
++	return xpUnsupported;
++}
 +
-+		xpc_part_deref(part);
-+		xpc_teardown_infrastructure(part);
-+	}
+ enum xp_retval
+ xp_init_uv(void)
+ {
+ 	BUG_ON(!is_uv());
  
- 	xpc_disallow_hb(partid, xpc_vars);
- 	xpc_mark_partition_inactive(part);
-@@ -568,7 +521,7 @@ xpc_dropped_IPI_check(struct xpc_partiti
- 		xpc_check_for_channel_activity(part);
+ 	xp_max_npartitions = XP_MAX_NPARTITIONS_UV;
++
++	xp_remote_memcpy = xp_remote_memcpy_uv;
++
++	return xpSuccess;
+ }
  
- 		part->dropped_IPI_timer.expires = jiffies +
--		    XPC_P_DROPPED_IPI_WAIT;
-+		    XPC_P_DROPPED_IPI_WAIT_INTERVAL;
- 		add_timer(&part->dropped_IPI_timer);
- 		xpc_part_deref(part);
- 	}
-diff -puN drivers/misc/sgi-xp/xpc_partition.c~sgi-xp-isolate-xpc_vars_part-structure-to-sn2-only drivers/misc/sgi-xp/xpc_partition.c
---- a/drivers/misc/sgi-xp/xpc_partition.c~sgi-xp-isolate-xpc_vars_part-structure-to-sn2-only
-+++ a/drivers/misc/sgi-xp/xpc_partition.c
-@@ -486,6 +486,7 @@ xpc_update_partition_info(struct xpc_par
- 	dev_dbg(xpc_part, "  last_heartbeat = 0x%016lx\n",
- 		part->last_heartbeat);
+ void
+diff -puN drivers/misc/sgi-xp/xpc.h~sgi-xp-create-a-common-xp_remote_memcpy-function drivers/misc/sgi-xp/xpc.h
+--- a/drivers/misc/sgi-xp/xpc.h~sgi-xp-create-a-common-xp_remote_memcpy-function
++++ a/drivers/misc/sgi-xp/xpc.h
+@@ -20,7 +20,6 @@
+ #include <linux/completion.h>
+ #include <asm/pgtable.h>
+ #include <asm/processor.h>
+-#include <asm/sn/bte.h>
+ #include <asm/sn/clksupport.h>
+ #include <asm/sn/addrs.h>
+ #include <asm/sn/mspec.h>
+@@ -1125,12 +1124,6 @@ xpc_IPI_init(int index)
+ 	return amo;
+ }
  
-+/* >>> remote_vars_part_pa and vars_part_pa are sn2 only!!! */
- 	part->remote_vars_part_pa = remote_vars->vars_part_pa;
- 	dev_dbg(xpc_part, "  remote_vars_part_pa = 0x%016lx\n",
- 		part->remote_vars_part_pa);
-diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-isolate-xpc_vars_part-structure-to-sn2-only drivers/misc/sgi-xp/xpc_sn2.c
---- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-isolate-xpc_vars_part-structure-to-sn2-only
-+++ a/drivers/misc/sgi-xp/xpc_sn2.c
-@@ -14,12 +14,13 @@
-  */
- 
- #include <linux/kernel.h>
-+#include <linux/delay.h>
- #include <asm/uncached.h>
+-static inline enum xp_retval
+-xpc_map_bte_errors(bte_result_t error)
+-{
+-	return ((error == BTE_SUCCESS) ? xpSuccess : xpBteCopyError);
+-}
+-
+ /*
+  * Check to see if there is any channel activity to/from the specified
+  * partition.
+diff -puN drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-create-a-common-xp_remote_memcpy-function drivers/misc/sgi-xp/xpc_channel.c
+--- a/drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-create-a-common-xp_remote_memcpy-function
++++ a/drivers/misc/sgi-xp/xpc_channel.c
+@@ -21,7 +21,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/mutex.h>
+ #include <linux/completion.h>
+-#include <asm/sn/bte.h>
  #include <asm/sn/sn_sal.h>
  #include "xpc.h"
  
- struct xpc_vars *xpc_vars;
--struct xpc_vars_part *xpc_vars_part;
-+static struct xpc_vars_part_sn2 *xpc_vars_part; /* >>> Add _sn2 suffix? */
- 
- static enum xp_retval
- xpc_rsvd_page_init_sn2(struct xpc_rsvd_page *rp)
-@@ -33,7 +34,10 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
- 
- 	rp->sn.vars_pa = __pa(xpc_vars);
- 
--	xpc_vars_part = XPC_RP_VARS_PART(rp);
-+	/* vars_part array follows immediately after vars */
-+	xpc_vars_part = (struct xpc_vars_part_sn2 *)((u8 *)XPC_RP_VARS(rp) +
-+						     XPC_RP_VARS_SIZE);
-+
- 
- 	/*
- 	 * Before clearing xpc_vars, see if a page of AMOs had been previously
-@@ -85,7 +89,7 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
- 	xpc_vars->amos_page = amos_page;	/* save for next load of XPC */
- 
- 	/* clear xpc_vars_part */
--	memset((u64 *)xpc_vars_part, 0, sizeof(struct xpc_vars_part) *
-+	memset((u64 *)xpc_vars_part, 0, sizeof(struct xpc_vars_part_sn2) *
- 	       xp_max_npartitions);
- 
- 	/* initialize the activate IRQ related AMO variables */
-@@ -99,10 +103,563 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
- 	return xpSuccess;
- }
- 
-+/*
-+ * Setup the infrastructure necessary to support XPartition Communication
-+ * between the specified remote partition and the local one.
-+ */
-+static enum xp_retval
-+xpc_setup_infrastructure_sn2(struct xpc_partition *part)
-+{
-+	enum xp_retval retval;
-+	int ret;
-+	int cpuid;
-+	int ch_number;
-+	struct xpc_channel *ch;
-+	struct timer_list *timer;
-+	short partid = XPC_PARTID(part);
-+
-+	/*
-+	 * Allocate all of the channel structures as a contiguous chunk of
-+	 * memory.
-+	 */
-+	DBUG_ON(part->channels != NULL);
-+	part->channels = kzalloc(sizeof(struct xpc_channel) * XPC_MAX_NCHANNELS,
-+				 GFP_KERNEL);
-+	if (part->channels == NULL) {
-+		dev_err(xpc_chan, "can't get memory for channels\n");
-+		return xpNoMemory;
-+	}
-+
-+	/* allocate all the required GET/PUT values */
-+
-+	part->local_GPs = xpc_kzalloc_cacheline_aligned(XPC_GP_SIZE,
-+							GFP_KERNEL,
-+							&part->local_GPs_base);
-+	if (part->local_GPs == NULL) {
-+		dev_err(xpc_chan, "can't get memory for local get/put "
-+			"values\n");
-+		retval = xpNoMemory;
-+		goto out_1;
-+	}
-+
-+	part->remote_GPs = xpc_kzalloc_cacheline_aligned(XPC_GP_SIZE,
-+							 GFP_KERNEL,
-+							 &part->
-+							 remote_GPs_base);
-+	if (part->remote_GPs == NULL) {
-+		dev_err(xpc_chan, "can't get memory for remote get/put "
-+			"values\n");
-+		retval = xpNoMemory;
-+		goto out_2;
-+	}
-+
-+	part->remote_GPs_pa = 0;
-+
-+	/* allocate all the required open and close args */
-+
-+	part->local_openclose_args =
-+	    xpc_kzalloc_cacheline_aligned(XPC_OPENCLOSE_ARGS_SIZE, GFP_KERNEL,
-+					  &part->local_openclose_args_base);
-+	if (part->local_openclose_args == NULL) {
-+		dev_err(xpc_chan, "can't get memory for local connect args\n");
-+		retval = xpNoMemory;
-+		goto out_3;
-+	}
-+
-+	part->remote_openclose_args =
-+	    xpc_kzalloc_cacheline_aligned(XPC_OPENCLOSE_ARGS_SIZE, GFP_KERNEL,
-+					  &part->remote_openclose_args_base);
-+	if (part->remote_openclose_args == NULL) {
-+		dev_err(xpc_chan, "can't get memory for remote connect args\n");
-+		retval = xpNoMemory;
-+		goto out_4;
-+	}
-+
-+	part->remote_openclose_args_pa = 0;
-+
-+	part->local_IPI_amo_va = xpc_IPI_init(partid);
-+	part->local_IPI_amo = 0;
-+	spin_lock_init(&part->IPI_lock);
-+
-+	part->remote_IPI_nasid = 0;
-+	part->remote_IPI_phys_cpuid = 0;
-+	part->remote_IPI_amo_va = NULL;
-+
-+	atomic_set(&part->channel_mgr_requests, 1);
-+	init_waitqueue_head(&part->channel_mgr_wq);
-+
-+	sprintf(part->IPI_owner, "xpc%02d", partid);
-+	ret = request_irq(SGI_XPC_NOTIFY, xpc_notify_IRQ_handler, IRQF_SHARED,
-+			  part->IPI_owner, (void *)(u64)partid);
-+	if (ret != 0) {
-+		dev_err(xpc_chan, "can't register NOTIFY IRQ handler, "
-+			"errno=%d\n", -ret);
-+		retval = xpLackOfResources;
-+		goto out_5;
-+	}
-+
-+	/* Setup a timer to check for dropped IPIs */
-+	timer = &part->dropped_IPI_timer;
-+	init_timer(timer);
-+	timer->function = (void (*)(unsigned long))xpc_dropped_IPI_check;
-+	timer->data = (unsigned long)part;
-+	timer->expires = jiffies + XPC_P_DROPPED_IPI_WAIT_INTERVAL;
-+	add_timer(timer);
-+
-+	part->nchannels = XPC_MAX_NCHANNELS;
-+
-+	atomic_set(&part->nchannels_active, 0);
-+	atomic_set(&part->nchannels_engaged, 0);
-+
-+	for (ch_number = 0; ch_number < part->nchannels; ch_number++) {
-+		ch = &part->channels[ch_number];
-+
-+		ch->partid = partid;
-+		ch->number = ch_number;
-+		ch->flags = XPC_C_DISCONNECTED;
-+
-+		ch->local_GP = &part->local_GPs[ch_number];
-+		ch->local_openclose_args =
-+		    &part->local_openclose_args[ch_number];
-+
-+		atomic_set(&ch->kthreads_assigned, 0);
-+		atomic_set(&ch->kthreads_idle, 0);
-+		atomic_set(&ch->kthreads_active, 0);
-+
-+		atomic_set(&ch->references, 0);
-+		atomic_set(&ch->n_to_notify, 0);
-+
-+		spin_lock_init(&ch->lock);
-+		mutex_init(&ch->msg_to_pull_mutex);
-+		init_completion(&ch->wdisconnect_wait);
-+
-+		atomic_set(&ch->n_on_msg_allocate_wq, 0);
-+		init_waitqueue_head(&ch->msg_allocate_wq);
-+		init_waitqueue_head(&ch->idle_wq);
-+	}
-+
-+	/*
-+	 * With the setting of the partition setup_state to XPC_P_SETUP, we're
-+	 * declaring that this partition is ready to go.
-+	 */
-+	part->setup_state = XPC_P_SETUP;
-+
-+	/*
-+	 * Setup the per partition specific variables required by the
-+	 * remote partition to establish channel connections with us.
-+	 *
-+	 * The setting of the magic # indicates that these per partition
-+	 * specific variables are ready to be used.
-+	 */
-+	xpc_vars_part[partid].GPs_pa = __pa(part->local_GPs);
-+	xpc_vars_part[partid].openclose_args_pa =
-+	    __pa(part->local_openclose_args);
-+	xpc_vars_part[partid].IPI_amo_pa = __pa(part->local_IPI_amo_va);
-+	cpuid = raw_smp_processor_id();	/* any CPU in this partition will do */
-+	xpc_vars_part[partid].IPI_nasid = cpuid_to_nasid(cpuid);
-+	xpc_vars_part[partid].IPI_phys_cpuid = cpu_physical_id(cpuid);
-+	xpc_vars_part[partid].nchannels = part->nchannels;
-+	xpc_vars_part[partid].magic = XPC_VP_MAGIC1;
-+
-+	return xpSuccess;
-+
-+	/* setup of infrastructure failed */
-+out_5:
-+	kfree(part->remote_openclose_args_base);
-+	part->remote_openclose_args = NULL;
-+out_4:
-+	kfree(part->local_openclose_args_base);
-+	part->local_openclose_args = NULL;
-+out_3:
-+	kfree(part->remote_GPs_base);
-+	part->remote_GPs = NULL;
-+out_2:
-+	kfree(part->local_GPs_base);
-+	part->local_GPs = NULL;
-+out_1:
-+	kfree(part->channels);
-+	part->channels = NULL;
-+	return retval;
-+}
-+
-+/*
-+ * Teardown the infrastructure necessary to support XPartition Communication
-+ * between the specified remote partition and the local one.
-+ */
-+static void
-+xpc_teardown_infrastructure_sn2(struct xpc_partition *part)
-+{
-+	short partid = XPC_PARTID(part);
-+
-+	/*
-+	 * We start off by making this partition inaccessible to local
-+	 * processes by marking it as no longer setup. Then we make it
-+	 * inaccessible to remote processes by clearing the XPC per partition
-+	 * specific variable's magic # (which indicates that these variables
-+	 * are no longer valid) and by ignoring all XPC notify IPIs sent to
-+	 * this partition.
-+	 */
-+
-+	DBUG_ON(atomic_read(&part->nchannels_engaged) != 0);
-+	DBUG_ON(atomic_read(&part->nchannels_active) != 0);
-+	DBUG_ON(part->setup_state != XPC_P_SETUP);
-+	part->setup_state = XPC_P_WTEARDOWN;
-+
-+	xpc_vars_part[partid].magic = 0;
-+
-+	free_irq(SGI_XPC_NOTIFY, (void *)(u64)partid);
-+
-+	/*
-+	 * Before proceeding with the teardown we have to wait until all
-+	 * existing references cease.
-+	 */
-+	wait_event(part->teardown_wq, (atomic_read(&part->references) == 0));
-+
-+	/* now we can begin tearing down the infrastructure */
-+
-+	part->setup_state = XPC_P_TORNDOWN;
-+
-+	/* in case we've still got outstanding timers registered... */
-+	del_timer_sync(&part->dropped_IPI_timer);
-+
-+	kfree(part->remote_openclose_args_base);
-+	part->remote_openclose_args = NULL;
-+	kfree(part->local_openclose_args_base);
-+	part->local_openclose_args = NULL;
-+	kfree(part->remote_GPs_base);
-+	part->remote_GPs = NULL;
-+	kfree(part->local_GPs_base);
-+	part->local_GPs = NULL;
-+	kfree(part->channels);
-+	part->channels = NULL;
-+	part->local_IPI_amo_va = NULL;
-+}
-+
-+/*
-+ * Create a wrapper that hides the underlying mechanism for pulling a cacheline
-+ * (or multiple cachelines) from a remote partition.
-+ *
-+ * src must be a cacheline aligned physical address on the remote partition.
-+ * dst must be a cacheline aligned virtual address on this partition.
+@@ -252,13 +251,13 @@ xpc_setup_infrastructure(struct xpc_part
+  *
+  * src must be a cacheline aligned physical address on the remote partition.
+  * dst must be a cacheline aligned virtual address on this partition.
+- * cnt must be an cacheline sized
 + * cnt must be cacheline sized
-+ */
-+/* >>> Replace this function by call to xp_remote_memcpy() or bte_copy()? */
-+static enum xp_retval
-+xpc_pull_remote_cachelines_sn2(struct xpc_partition *part, void *dst,
-+			       const void *src, size_t cnt)
-+{
+  */
+ static enum xp_retval
+ xpc_pull_remote_cachelines(struct xpc_partition *part, void *dst,
+ 			   const void *src, size_t cnt)
+ {
+-	bte_result_t bte_ret;
 +	enum xp_retval ret;
-+
-+	DBUG_ON((u64)src != L1_CACHE_ALIGN((u64)src));
-+	DBUG_ON((u64)dst != L1_CACHE_ALIGN((u64)dst));
-+	DBUG_ON(cnt != L1_CACHE_ALIGN(cnt));
-+
-+	if (part->act_state == XPC_P_DEACTIVATING)
-+		return part->reason;
-+
+ 
+ 	DBUG_ON((u64)src != L1_CACHE_ALIGN((u64)src));
+ 	DBUG_ON((u64)dst != L1_CACHE_ALIGN((u64)dst));
+@@ -267,15 +266,12 @@ xpc_pull_remote_cachelines(struct xpc_pa
+ 	if (part->act_state == XPC_P_DEACTIVATING)
+ 		return part->reason;
+ 
+-	bte_ret = xp_bte_copy((u64)src, (u64)dst, (u64)cnt,
+-			      (BTE_NORMAL | BTE_WACQUIRE), NULL);
+-	if (bte_ret == BTE_SUCCESS)
+-		return xpSuccess;
+-
+-	dev_dbg(xpc_chan, "xp_bte_copy() from partition %d failed, ret=%d\n",
+-		XPC_PARTID(part), bte_ret);
+-
+-	return xpc_map_bte_errors(bte_ret);
 +	ret = xp_remote_memcpy(dst, src, cnt);
 +	if (ret != xpSuccess) {
 +		dev_dbg(xpc_chan, "xp_remote_memcpy() from partition %d failed,"
 +			" ret=%d\n", XPC_PARTID(part), ret);
 +	}
 +	return ret;
-+}
-+
-+/*
-+ * Pull the remote per partition specific variables from the specified
-+ * partition.
-+ */
-+static enum xp_retval
-+xpc_pull_remote_vars_part_sn2(struct xpc_partition *part)
-+{
-+	u8 buffer[L1_CACHE_BYTES * 2];
-+	struct xpc_vars_part_sn2 *pulled_entry_cacheline =
-+	    (struct xpc_vars_part_sn2 *)L1_CACHE_ALIGN((u64)buffer);
-+	struct xpc_vars_part_sn2 *pulled_entry;
-+	u64 remote_entry_cacheline_pa, remote_entry_pa;
-+	short partid = XPC_PARTID(part);
+ }
+ 
+ /*
+diff -puN drivers/misc/sgi-xp/xpc_partition.c~sgi-xp-create-a-common-xp_remote_memcpy-function drivers/misc/sgi-xp/xpc_partition.c
+--- a/drivers/misc/sgi-xp/xpc_partition.c~sgi-xp-create-a-common-xp_remote_memcpy-function
++++ a/drivers/misc/sgi-xp/xpc_partition.c
+@@ -21,7 +21,6 @@
+ #include <linux/mmzone.h>
+ #include <linux/nodemask.h>
+ #include <asm/uncached.h>
+-#include <asm/sn/bte.h>
+ #include <asm/sn/intr.h>
+ #include <asm/sn/sn_sal.h>
+ #include <asm/sn/nodepda.h>
+@@ -92,7 +91,7 @@ xpc_kmalloc_cacheline_aligned(size_t siz
+ static u64
+ xpc_get_rsvd_page_pa(int nasid)
+ {
+-	bte_result_t bte_res;
 +	enum xp_retval ret;
-+
-+	/* pull the cacheline that contains the variables we're interested in */
-+
-+	DBUG_ON(part->remote_vars_part_pa !=
-+		L1_CACHE_ALIGN(part->remote_vars_part_pa));
-+	DBUG_ON(sizeof(struct xpc_vars_part_sn2) != L1_CACHE_BYTES / 2);
-+
-+	remote_entry_pa = part->remote_vars_part_pa +
-+	    sn_partition_id * sizeof(struct xpc_vars_part_sn2);
-+
-+	remote_entry_cacheline_pa = (remote_entry_pa & ~(L1_CACHE_BYTES - 1));
-+
-+	pulled_entry = (struct xpc_vars_part_sn2 *)((u64)pulled_entry_cacheline
-+						    + (remote_entry_pa &
-+						    (L1_CACHE_BYTES - 1)));
-+
-+	ret = xpc_pull_remote_cachelines_sn2(part, pulled_entry_cacheline,
-+					     (void *)remote_entry_cacheline_pa,
-+					     L1_CACHE_BYTES);
-+	if (ret != xpSuccess) {
-+		dev_dbg(xpc_chan, "failed to pull XPC vars_part from "
-+			"partition %d, ret=%d\n", partid, ret);
+ 	s64 status;
+ 	u64 cookie = 0;
+ 	u64 rp_pa = nasid;	/* seed with nasid */
+@@ -113,6 +112,7 @@ xpc_get_rsvd_page_pa(int nasid)
+ 		if (status != SALRET_MORE_PASSES)
+ 			break;
+ 
++		/* >>> L1_CACHE_ALIGN() is only a sn2-bte_copy requirement */
+ 		if (L1_CACHE_ALIGN(len) > buf_len) {
+ 			kfree(buf_base);
+ 			buf_len = L1_CACHE_ALIGN(len);
+@@ -127,10 +127,9 @@ xpc_get_rsvd_page_pa(int nasid)
+ 			}
+ 		}
+ 
+-		bte_res = xp_bte_copy(rp_pa, buf, buf_len,
+-				      (BTE_NOTIFY | BTE_WACQUIRE), NULL);
+-		if (bte_res != BTE_SUCCESS) {
+-			dev_dbg(xpc_part, "xp_bte_copy failed %i\n", bte_res);
++		ret = xp_remote_memcpy((void *)buf, (void *)rp_pa, buf_len);
++		if (ret != xpSuccess) {
++			dev_dbg(xpc_part, "xp_remote_memcpy failed %d\n", ret);
+ 			status = SALRET_ERROR;
+ 			break;
+ 		}
+@@ -398,7 +397,7 @@ xpc_check_remote_hb(void)
+ 	struct xpc_vars *remote_vars;
+ 	struct xpc_partition *part;
+ 	short partid;
+-	bte_result_t bres;
++	enum xp_retval ret;
+ 
+ 	remote_vars = (struct xpc_vars *)xpc_remote_copy_buffer;
+ 
+@@ -418,13 +417,11 @@ xpc_check_remote_hb(void)
+ 		}
+ 
+ 		/* pull the remote_hb cache line */
+-		bres = xp_bte_copy(part->remote_vars_pa,
+-				   (u64)remote_vars,
+-				   XPC_RP_VARS_SIZE,
+-				   (BTE_NOTIFY | BTE_WACQUIRE), NULL);
+-		if (bres != BTE_SUCCESS) {
+-			XPC_DEACTIVATE_PARTITION(part,
+-						 xpc_map_bte_errors(bres));
++		ret = xp_remote_memcpy(remote_vars,
++				       (void *)part->remote_vars_pa,
++				       XPC_RP_VARS_SIZE);
++		if (ret != xpSuccess) {
++			XPC_DEACTIVATE_PARTITION(part, ret);
+ 			continue;
+ 		}
+ 
+@@ -457,7 +454,8 @@ static enum xp_retval
+ xpc_get_remote_rp(int nasid, u64 *discovered_nasids,
+ 		  struct xpc_rsvd_page *remote_rp, u64 *remote_rp_pa)
+ {
+-	int bres, i;
++	int i;
++	enum xp_retval ret;
+ 
+ 	/* get the reserved page's physical address */
+ 
+@@ -466,11 +464,10 @@ xpc_get_remote_rp(int nasid, u64 *discov
+ 		return xpNoRsvdPageAddr;
+ 
+ 	/* pull over the reserved page header and part_nasids mask */
+-	bres = xp_bte_copy(*remote_rp_pa, (u64)remote_rp,
+-			   XPC_RP_HEADER_SIZE + xp_nasid_mask_bytes,
+-			   (BTE_NOTIFY | BTE_WACQUIRE), NULL);
+-	if (bres != BTE_SUCCESS)
+-		return xpc_map_bte_errors(bres);
++	ret = xp_remote_memcpy(remote_rp, (void *)*remote_rp_pa,
++			       XPC_RP_HEADER_SIZE + xp_nasid_mask_bytes);
++	if (ret != xpSuccess)
 +		return ret;
-+	}
-+
-+	/* see if they've been set up yet */
-+
-+	if (pulled_entry->magic != XPC_VP_MAGIC1 &&
-+	    pulled_entry->magic != XPC_VP_MAGIC2) {
-+
-+		if (pulled_entry->magic != 0) {
-+			dev_dbg(xpc_chan, "partition %d's XPC vars_part for "
-+				"partition %d has bad magic value (=0x%lx)\n",
-+				partid, sn_partition_id, pulled_entry->magic);
-+			return xpBadMagic;
-+		}
-+
-+		/* they've not been initialized yet */
-+		return xpRetry;
-+	}
-+
-+	if (xpc_vars_part[partid].magic == XPC_VP_MAGIC1) {
-+
-+		/* validate the variables */
-+
-+		if (pulled_entry->GPs_pa == 0 ||
-+		    pulled_entry->openclose_args_pa == 0 ||
-+		    pulled_entry->IPI_amo_pa == 0) {
-+
-+			dev_err(xpc_chan, "partition %d's XPC vars_part for "
-+				"partition %d are not valid\n", partid,
-+				sn_partition_id);
-+			return xpInvalidAddress;
-+		}
-+
-+		/* the variables we imported look to be valid */
-+
-+		part->remote_GPs_pa = pulled_entry->GPs_pa;
-+		part->remote_openclose_args_pa =
-+		    pulled_entry->openclose_args_pa;
-+		part->remote_IPI_amo_va =
-+		    (AMO_t *)__va(pulled_entry->IPI_amo_pa);
-+		part->remote_IPI_nasid = pulled_entry->IPI_nasid;
-+		part->remote_IPI_phys_cpuid = pulled_entry->IPI_phys_cpuid;
-+
-+		if (part->nchannels > pulled_entry->nchannels)
-+			part->nchannels = pulled_entry->nchannels;
-+
-+		/* let the other side know that we've pulled their variables */
-+
-+		xpc_vars_part[partid].magic = XPC_VP_MAGIC2;
-+	}
-+
-+	if (pulled_entry->magic == XPC_VP_MAGIC1)
-+		return xpRetry;
-+
-+	return xpSuccess;
-+}
-+
-+/*
-+ * Establish first contact with the remote partititon. This involves pulling
-+ * the XPC per partition variables from the remote partition and waiting for
-+ * the remote partition to pull ours.
-+ */
-+static enum xp_retval
-+xpc_make_first_contact_sn2(struct xpc_partition *part)
-+{
-+	enum xp_retval ret;
-+
-+	while ((ret = xpc_pull_remote_vars_part_sn2(part)) != xpSuccess) {
-+		if (ret != xpRetry) {
-+			XPC_DEACTIVATE_PARTITION(part, ret);
-+			return ret;
-+		}
-+
-+		dev_dbg(xpc_part, "waiting to make first contact with "
-+			"partition %d\n", XPC_PARTID(part));
-+
-+		/* wait a 1/4 of a second or so */
-+		(void)msleep_interruptible(250);
-+
-+		if (part->act_state == XPC_P_DEACTIVATING)
-+			return part->reason;
-+	}
-+
-+	return xpSuccess;
-+}
-+
-+/*
-+ * Get the IPI flags and pull the openclose args and/or remote GPs as needed.
-+ */
-+static u64
-+xpc_get_IPI_flags_sn2(struct xpc_partition *part)
-+{
-+	unsigned long irq_flags;
-+	u64 IPI_amo;
-+	enum xp_retval ret;
-+
-+	/*
-+	 * See if there are any IPI flags to be handled.
-+	 */
-+
-+	spin_lock_irqsave(&part->IPI_lock, irq_flags);
-+	IPI_amo = part->local_IPI_amo;
-+	if (IPI_amo != 0)
-+		part->local_IPI_amo = 0;
-+
-+	spin_unlock_irqrestore(&part->IPI_lock, irq_flags);
-+
-+	if (XPC_ANY_OPENCLOSE_IPI_FLAGS_SET(IPI_amo)) {
-+		ret = xpc_pull_remote_cachelines_sn2(part,
-+						    part->remote_openclose_args,
-+						     (void *)part->
-+						     remote_openclose_args_pa,
-+						     XPC_OPENCLOSE_ARGS_SIZE);
-+		if (ret != xpSuccess) {
-+			XPC_DEACTIVATE_PARTITION(part, ret);
-+
-+			dev_dbg(xpc_chan, "failed to pull openclose args from "
-+				"partition %d, ret=%d\n", XPC_PARTID(part),
-+				ret);
-+
-+			/* don't bother processing IPIs anymore */
-+			IPI_amo = 0;
-+		}
-+	}
-+
-+	if (XPC_ANY_MSG_IPI_FLAGS_SET(IPI_amo)) {
-+		ret = xpc_pull_remote_cachelines_sn2(part, part->remote_GPs,
-+						    (void *)part->remote_GPs_pa,
-+						     XPC_GP_SIZE);
-+		if (ret != xpSuccess) {
-+			XPC_DEACTIVATE_PARTITION(part, ret);
-+
-+			dev_dbg(xpc_chan, "failed to pull GPs from partition "
-+				"%d, ret=%d\n", XPC_PARTID(part), ret);
-+
-+			/* don't bother processing IPIs anymore */
-+			IPI_amo = 0;
-+		}
-+	}
-+
-+	return IPI_amo;
-+}
-+
-+static struct xpc_msg *
-+xpc_pull_remote_msg_sn2(struct xpc_channel *ch, s64 get)
-+{
-+	struct xpc_partition *part = &xpc_partitions[ch->partid];
-+	struct xpc_msg *remote_msg, *msg;
-+	u32 msg_index, nmsgs;
-+	u64 msg_offset;
-+	enum xp_retval ret;
-+
-+	if (mutex_lock_interruptible(&ch->msg_to_pull_mutex) != 0) {
-+		/* we were interrupted by a signal */
-+		return NULL;
-+	}
-+
-+	while (get >= ch->next_msg_to_pull) {
-+
-+		/* pull as many messages as are ready and able to be pulled */
-+
-+		msg_index = ch->next_msg_to_pull % ch->remote_nentries;
-+
-+		DBUG_ON(ch->next_msg_to_pull >= ch->w_remote_GP.put);
-+		nmsgs = ch->w_remote_GP.put - ch->next_msg_to_pull;
-+		if (msg_index + nmsgs > ch->remote_nentries) {
-+			/* ignore the ones that wrap the msg queue for now */
-+			nmsgs = ch->remote_nentries - msg_index;
-+		}
-+
-+		msg_offset = msg_index * ch->msg_size;
-+		msg = (struct xpc_msg *)((u64)ch->remote_msgqueue + msg_offset);
-+		remote_msg = (struct xpc_msg *)(ch->remote_msgqueue_pa +
-+						msg_offset);
-+
-+		ret = xpc_pull_remote_cachelines_sn2(part, msg, remote_msg,
-+						     nmsgs * ch->msg_size);
-+		if (ret != xpSuccess) {
-+
-+			dev_dbg(xpc_chan, "failed to pull %d msgs starting with"
-+				" msg %ld from partition %d, channel=%d, "
-+				"ret=%d\n", nmsgs, ch->next_msg_to_pull,
-+				ch->partid, ch->number, ret);
-+
-+			XPC_DEACTIVATE_PARTITION(part, ret);
-+
-+			mutex_unlock(&ch->msg_to_pull_mutex);
-+			return NULL;
-+		}
-+
-+		ch->next_msg_to_pull += nmsgs;
-+	}
-+
-+	mutex_unlock(&ch->msg_to_pull_mutex);
-+
-+	/* return the message we were looking for */
-+	msg_offset = (get % ch->remote_nentries) * ch->msg_size;
-+	msg = (struct xpc_msg *)((u64)ch->remote_msgqueue + msg_offset);
-+
-+	return msg;
-+}
-+
-+/*
-+ * Get a message to be delivered.
-+ */
-+static struct xpc_msg *
-+xpc_get_deliverable_msg_sn2(struct xpc_channel *ch)
-+{
-+	struct xpc_msg *msg = NULL;
-+	s64 get;
-+
-+	do {
-+		if (ch->flags & XPC_C_DISCONNECTING)
-+			break;
-+
-+		get = ch->w_local_GP.get;
-+		rmb();	/* guarantee that .get loads before .put */
-+		if (get == ch->w_remote_GP.put)
-+			break;
-+
-+		/* There are messages waiting to be pulled and delivered.
-+		 * We need to try to secure one for ourselves. We'll do this
-+		 * by trying to increment w_local_GP.get and hope that no one
-+		 * else beats us to it. If they do, we'll we'll simply have
-+		 * to try again for the next one.
-+		 */
-+
-+		if (cmpxchg(&ch->w_local_GP.get, get, get + 1) == get) {
-+			/* we got the entry referenced by get */
-+
-+			dev_dbg(xpc_chan, "w_local_GP.get changed to %ld, "
-+				"partid=%d, channel=%d\n", get + 1,
-+				ch->partid, ch->number);
-+
-+			/* pull the message from the remote partition */
-+
-+			msg = xpc_pull_remote_msg_sn2(ch, get);
-+
-+			DBUG_ON(msg != NULL && msg->number != get);
-+			DBUG_ON(msg != NULL && (msg->flags & XPC_M_DONE));
-+			DBUG_ON(msg != NULL && !(msg->flags & XPC_M_READY));
-+
-+			break;
-+		}
-+
-+	} while (1);
-+
-+	return msg;
-+}
-+
- void
- xpc_init_sn2(void)
+ 
+ 	if (discovered_nasids != NULL) {
+ 		u64 *remote_part_nasids = XPC_RP_PART_NASIDS(remote_rp);
+@@ -504,16 +501,16 @@ xpc_get_remote_rp(int nasid, u64 *discov
+ static enum xp_retval
+ xpc_get_remote_vars(u64 remote_vars_pa, struct xpc_vars *remote_vars)
  {
- 	xpc_rsvd_page_init = xpc_rsvd_page_init_sn2;
-+	xpc_setup_infrastructure = xpc_setup_infrastructure_sn2;
-+	xpc_teardown_infrastructure = xpc_teardown_infrastructure_sn2;
-+	xpc_make_first_contact = xpc_make_first_contact_sn2;
-+	xpc_get_IPI_flags = xpc_get_IPI_flags_sn2;
-+	xpc_get_deliverable_msg = xpc_get_deliverable_msg_sn2;
- }
+-	int bres;
++	enum xp_retval ret;
  
- void
-diff -puN drivers/misc/sgi-xp/xpc_uv.c~sgi-xp-isolate-xpc_vars_part-structure-to-sn2-only drivers/misc/sgi-xp/xpc_uv.c
---- a/drivers/misc/sgi-xp/xpc_uv.c~sgi-xp-isolate-xpc_vars_part-structure-to-sn2-only
-+++ a/drivers/misc/sgi-xp/xpc_uv.c
-@@ -36,10 +36,58 @@ xpc_rsvd_page_init_uv(struct xpc_rsvd_pa
- 	return xpSuccess;
- }
+ 	if (remote_vars_pa == 0)
+ 		return xpVarsNotSet;
  
-+/*
-+ * Setup the infrastructure necessary to support XPartition Communication
-+ * between the specified remote partition and the local one.
-+ */
-+static enum xp_retval
-+xpc_setup_infrastructure_uv(struct xpc_partition *part)
-+{
-+	/* >>> this function needs fleshing out */
-+	return xpUnsupported;
-+}
-+
-+/*
-+ * Teardown the infrastructure necessary to support XPartition Communication
-+ * between the specified remote partition and the local one.
-+ */
-+static void
-+xpc_teardown_infrastructure_uv(struct xpc_partition *part)
-+{
-+	/* >>> this function needs fleshing out */
-+	return;
-+}
-+
-+static enum xp_retval
-+xpc_make_first_contact_uv(struct xpc_partition *part)
-+{
-+	/* >>> this function needs fleshing out */
-+	return xpUnsupported;
-+}
-+
-+static u64
-+xpc_get_IPI_flags_uv(struct xpc_partition *part)
-+{
-+	/* >>> this function needs fleshing out */
-+	return 0UL;
-+}
-+
-+static struct xpc_msg *
-+xpc_get_deliverable_msg_uv(struct xpc_channel *ch)
-+{
-+	/* >>> this function needs fleshing out */
-+	return NULL;
-+}
-+
- void
- xpc_init_uv(void)
+ 	/* pull over the cross partition variables */
+-	bres = xp_bte_copy(remote_vars_pa, (u64)remote_vars, XPC_RP_VARS_SIZE,
+-			   (BTE_NOTIFY | BTE_WACQUIRE), NULL);
+-	if (bres != BTE_SUCCESS)
+-		return xpc_map_bte_errors(bres);
++	ret = xp_remote_memcpy(remote_vars, (void *)remote_vars_pa,
++			       XPC_RP_VARS_SIZE);
++	if (ret != xpSuccess)
++		return ret;
+ 
+ 	if (XPC_VERSION_MAJOR(remote_vars->version) !=
+ 	    XPC_VERSION_MAJOR(XPC_V_VERSION)) {
+@@ -1148,7 +1145,6 @@ xpc_initiate_partid_to_nasids(short part
  {
- 	xpc_rsvd_page_init = xpc_rsvd_page_init_uv;
-+	xpc_setup_infrastructure = xpc_setup_infrastructure_uv;
-+	xpc_teardown_infrastructure = xpc_teardown_infrastructure_uv;
-+	xpc_make_first_contact = xpc_make_first_contact_uv;
-+	xpc_get_IPI_flags = xpc_get_IPI_flags_uv;
-+	xpc_get_deliverable_msg = xpc_get_deliverable_msg_uv;
- }
+ 	struct xpc_partition *part;
+ 	u64 part_nasid_pa;
+-	int bte_res;
  
- void
+ 	part = &xpc_partitions[partid];
+ 	if (part->remote_rp_pa == 0)
+@@ -1158,9 +1154,6 @@ xpc_initiate_partid_to_nasids(short part
+ 
+ 	part_nasid_pa = (u64)XPC_RP_PART_NASIDS(part->remote_rp_pa);
+ 
+-	bte_res = xp_bte_copy(part_nasid_pa, (u64)nasid_mask,
+-			      xp_nasid_mask_bytes, (BTE_NOTIFY | BTE_WACQUIRE),
+-			      NULL);
+-
+-	return xpc_map_bte_errors(bte_res);
++	return xp_remote_memcpy(nasid_mask, (void *)part_nasid_pa,
++				xp_nasid_mask_bytes);
+ }
+diff -puN drivers/misc/sgi-xp/xpnet.c~sgi-xp-create-a-common-xp_remote_memcpy-function drivers/misc/sgi-xp/xpnet.c
+--- a/drivers/misc/sgi-xp/xpnet.c~sgi-xp-create-a-common-xp_remote_memcpy-function
++++ a/drivers/misc/sgi-xp/xpnet.c
+@@ -32,7 +32,6 @@
+ #include <linux/mii.h>
+ #include <linux/smp.h>
+ #include <linux/string.h>
+-#include <asm/sn/bte.h>
+ #include <asm/sn/io.h>
+ #include <asm/sn/sn_sal.h>
+ #include <asm/atomic.h>
+@@ -169,7 +168,7 @@ static void
+ xpnet_receive(short partid, int channel, struct xpnet_message *msg)
+ {
+ 	struct sk_buff *skb;
+-	bte_result_t bret;
++	enum xp_retval ret;
+ 	struct xpnet_dev_private *priv =
+ 	    (struct xpnet_dev_private *)xpnet_device->priv;
+ 
+@@ -201,7 +200,7 @@ xpnet_receive(short partid, int channel,
+ 
+ 	/*
+ 	 * The allocated skb has some reserved space.
+-	 * In order to use bte_copy, we need to get the
++	 * In order to use xp_remote_memcpy(), we need to get the
+ 	 * skb->data pointer moved forward.
+ 	 */
+ 	skb_reserve(skb, (L1_CACHE_BYTES - ((u64)skb->data &
+@@ -227,25 +226,24 @@ xpnet_receive(short partid, int channel,
+ 					(size_t)msg->embedded_bytes);
+ 	} else {
+ 		dev_dbg(xpnet, "transferring buffer to the skb->data area;\n\t"
+-			"bte_copy(0x%p, 0x%p, %hu)\n", (void *)msg->buf_pa,
+-			(void *)__pa((u64)skb->data & ~(L1_CACHE_BYTES - 1)),
+-			msg->size);
+-
+-		bret = bte_copy(msg->buf_pa,
+-				__pa((u64)skb->data & ~(L1_CACHE_BYTES - 1)),
+-				msg->size, (BTE_NOTIFY | BTE_WACQUIRE), NULL);
++			"xp_remote_memcpy(0x%p, 0x%p, %hu)\n", (void *)
++				       ((u64)skb->data & ~(L1_CACHE_BYTES - 1)),
++					  (void *)msg->buf_pa, msg->size);
++
++		ret = xp_remote_memcpy((void *)((u64)skb->data &
++				                ~(L1_CACHE_BYTES - 1)),
++				       (void *)msg->buf_pa, msg->size);
+ 
+-		if (bret != BTE_SUCCESS) {
++		if (ret != xpSuccess) {
+ 			/*
+ 			 * >>> Need better way of cleaning skb.  Currently skb
+ 			 * >>> appears in_use and we can't just call
+ 			 * >>> dev_kfree_skb.
+ 			 */
+-			dev_err(xpnet, "bte_copy(0x%p, 0x%p, 0x%hx) returned "
+-				"error=0x%x\n", (void *)msg->buf_pa,
+-				(void *)__pa((u64)skb->data &
+-					     ~(L1_CACHE_BYTES - 1)),
+-				msg->size, bret);
++			dev_err(xpnet, "xp_remote_memcpy(0x%p, 0x%p, 0x%hx) "
++				"returned error=0x%x\n", (void *)
++				((u64)skb->data & ~(L1_CACHE_BYTES - 1)),
++				(void *)msg->buf_pa, msg->size, ret);
+ 
+ 			xpc_received(partid, channel, (void *)msg);
+ 
 _
 
 Patches currently in -mm which might be from dcn@sgi.com are
