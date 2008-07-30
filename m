@@ -1,73 +1,3187 @@
 From: akpm@linux-foundation.org
-Subject: - gru-driver-v3-export-is_uv_system-zap_page_range-follow_page.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:16:11 -0700
-Message-ID: <200807301916.m6UJGBv6011103@imap1.linux-foundation.org>
+Subject: - sgi-xp-isolate-xpc_vars-structure-to-sn2-only.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:16:31 -0700
+Message-ID: <200807301916.m6UJGVhX011133@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58465 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34864 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752861AbYG3TRG (ORCPT
+	by vger.kernel.org with ESMTP id S1752932AbYG3TRV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:17:06 -0400
+	Wed, 30 Jul 2008 15:17:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: steiner@sgi.com, mm-commits@vger.kernel.org
+To: dcn@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     GRU Driver: export is_uv_system(), zap_page_range() & follow_page()
+     sgi-xp: isolate xpc_vars structure to sn2 only
 has been removed from the -mm tree.  Its filename was
-     gru-driver-v3-export-is_uv_system-zap_page_range-follow_page.patch
+     sgi-xp-isolate-xpc_vars-structure-to-sn2-only.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: GRU Driver: export is_uv_system(), zap_page_range() & follow_page()
-From: Jack Steiner <steiner@sgi.com>
+Subject: sgi-xp: isolate xpc_vars structure to sn2 only
+From: Dean Nelson <dcn@sgi.com>
 
-Exports needed by the GRU driver.
+Isolate the xpc_vars structure of XPC's reserved page to sn2 only.
 
-Signed-off-by: Jack Steiner <steiner@sgi.com>
+Signed-off-by: Dean Nelson <dcn@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/genapic_64.c |    1 +
- mm/memory.c                  |    2 ++
- 2 files changed, 3 insertions(+)
+ drivers/misc/sgi-xp/xpc.h           |  529 ++---------
+ drivers/misc/sgi-xp/xpc_channel.c   |  315 ------
+ drivers/misc/sgi-xp/xpc_main.c      |  152 ++-
+ drivers/misc/sgi-xp/xpc_partition.c |  454 ---------
+ drivers/misc/sgi-xp/xpc_sn2.c       | 1181 +++++++++++++++++++++++++-
+ drivers/misc/sgi-xp/xpc_uv.c        |   57 +
+ 6 files changed, 1433 insertions(+), 1255 deletions(-)
 
-diff -puN arch/x86/kernel/genapic_64.c~gru-driver-v3-export-is_uv_system-zap_page_range-follow_page arch/x86/kernel/genapic_64.c
---- a/arch/x86/kernel/genapic_64.c~gru-driver-v3-export-is_uv_system-zap_page_range-follow_page
-+++ a/arch/x86/kernel/genapic_64.c
-@@ -99,3 +99,4 @@ int is_uv_system(void)
+diff -puN drivers/misc/sgi-xp/xpc.h~sgi-xp-isolate-xpc_vars-structure-to-sn2-only drivers/misc/sgi-xp/xpc.h
+--- a/drivers/misc/sgi-xp/xpc.h~sgi-xp-isolate-xpc_vars-structure-to-sn2-only
++++ a/drivers/misc/sgi-xp/xpc.h
+@@ -159,10 +159,10 @@ xpc_compare_stamps(struct timespec *stam
+  * reflected by incrementing either the major or minor version numbers
+  * of struct xpc_vars.
+  */
+-struct xpc_vars {
++struct xpc_vars_sn2 {
+ 	u8 version;
+ 	u64 heartbeat;
+-	u64 heartbeating_to_mask;
++	DECLARE_BITMAP(heartbeating_to_mask, XP_MAX_NPARTITIONS_SN2);
+ 	u64 heartbeat_offline;	/* if 0, heartbeat should be changing */
+ 	int act_nasid;
+ 	int act_phys_cpuid;
+@@ -176,46 +176,23 @@ struct xpc_vars {
+ #define XPC_SUPPORTS_DISENGAGE_REQUEST(_version) \
+ 			(_version >= _XPC_VERSION(3, 1))
+ 
+-static inline int
+-xpc_hb_allowed(short partid, struct xpc_vars *vars)
+-{
+-	return ((vars->heartbeating_to_mask & (1UL << partid)) != 0);
+-}
+-
+-static inline void
+-xpc_allow_hb(short partid, struct xpc_vars *vars)
+-{
+-	u64 old_mask, new_mask;
+-
+-	do {
+-		old_mask = vars->heartbeating_to_mask;
+-		new_mask = (old_mask | (1UL << partid));
+-	} while (cmpxchg(&vars->heartbeating_to_mask, old_mask, new_mask) !=
+-		 old_mask);
+-}
+-
+-static inline void
+-xpc_disallow_hb(short partid, struct xpc_vars *vars)
+-{
+-	u64 old_mask, new_mask;
+-
+-	do {
+-		old_mask = vars->heartbeating_to_mask;
+-		new_mask = (old_mask & ~(1UL << partid));
+-	} while (cmpxchg(&vars->heartbeating_to_mask, old_mask, new_mask) !=
+-		 old_mask);
+-}
+-
+ /*
+- * The AMOs page consists of a number of AMO variables which are divided into
+- * four groups, The first two groups are used to identify an IRQ's sender.
+- * These two groups consist of 64 and 128 AMO variables respectively. The last
+- * two groups, consisting of just one AMO variable each, are used to identify
+- * the remote partitions that are currently engaged (from the viewpoint of
+- * the XPC running on the remote partition).
++ * The following pertains to ia64-sn2 only.
++ *
++ * Memory for XPC's AMO variables is allocated by the MSPEC driver. These
++ * pages are located in the lowest granule. The lowest granule uses 4k pages
++ * for cached references and an alternate TLB handler to never provide a
++ * cacheable mapping for the entire region. This will prevent speculative
++ * reading of cached copies of our lines from being issued which will cause
++ * a PI FSB Protocol error to be generated by the SHUB. For XPC, we need 64
++ * AMO variables (based on XP_MAX_NPARTITIONS_SN2) to identify the senders of
++ * NOTIFY IRQs, 128 AMO variables (based on XP_NASID_MASK_WORDS) to identify
++ * the senders of ACTIVATE IRQs, and 2 AMO variables to identify which remote
++ * partitions (i.e., XPCs) consider themselves currently engaged with the
++ * local XPC.
+  */
+-#define XPC_NOTIFY_IRQ_AMOS	   0
+-#define XPC_ACTIVATE_IRQ_AMOS	   (XPC_NOTIFY_IRQ_AMOS + XP_MAX_NPARTITIONS_SN2)
++#define XPC_NOTIFY_IRQ_AMOS	0
++#define XPC_ACTIVATE_IRQ_AMOS	(XPC_NOTIFY_IRQ_AMOS + XP_MAX_NPARTITIONS_SN2)
+ #define XPC_ENGAGED_PARTITIONS_AMO (XPC_ACTIVATE_IRQ_AMOS + XP_NASID_MASK_WORDS)
+ #define XPC_DISENGAGE_REQUEST_AMO  (XPC_ENGAGED_PARTITIONS_AMO + 1)
+ 
+@@ -259,11 +236,11 @@ struct xpc_vars_part_sn2 {
+ /* the reserved page sizes and offsets */
+ 
+ #define XPC_RP_HEADER_SIZE	L1_CACHE_ALIGN(sizeof(struct xpc_rsvd_page))
+-#define XPC_RP_VARS_SIZE	L1_CACHE_ALIGN(sizeof(struct xpc_vars))
++#define XPC_RP_VARS_SIZE	L1_CACHE_ALIGN(sizeof(struct xpc_vars_sn2))
+ 
+ #define XPC_RP_PART_NASIDS(_rp) ((u64 *)((u8 *)(_rp) + XPC_RP_HEADER_SIZE))
+ #define XPC_RP_MACH_NASIDS(_rp) (XPC_RP_PART_NASIDS(_rp) + xp_nasid_mask_words)
+-#define XPC_RP_VARS(_rp)	((struct xpc_vars *)(XPC_RP_MACH_NASIDS(_rp) + \
++#define XPC_RP_VARS(_rp)	((struct xpc_vars_sn2 *)(XPC_RP_MACH_NASIDS(_rp) + \
+ 				    xp_nasid_mask_words))
+ 
+ /*
+@@ -344,6 +321,7 @@ struct xpc_notify {
+  * allocated at the time a partition becomes active. The array contains one
+  * of these structures for each potential channel connection to that partition.
+  *
++>>> sn2 only!!!
+  * Each of these structures manages two message queues (circular buffers).
+  * They are allocated at the time a channel connection is made. One of
+  * these message queues (local_msgqueue) holds the locally created messages
+@@ -622,6 +600,9 @@ extern struct device *xpc_part;
+ extern struct device *xpc_chan;
+ extern int xpc_disengage_request_timelimit;
+ extern int xpc_disengage_request_timedout;
++extern atomic_t xpc_act_IRQ_rcvd;
++extern wait_queue_head_t xpc_act_IRQ_wq;
++extern void *xpc_heartbeating_to_mask;
+ extern irqreturn_t xpc_notify_IRQ_handler(int, void *);
+ extern void xpc_dropped_IPI_check(struct xpc_partition *);
+ extern void xpc_activate_partition(struct xpc_partition *);
+@@ -629,15 +610,48 @@ extern void xpc_activate_kthreads(struct
+ extern void xpc_create_kthreads(struct xpc_channel *, int, int);
+ extern void xpc_disconnect_wait(int);
+ extern enum xp_retval (*xpc_rsvd_page_init) (struct xpc_rsvd_page *);
++extern void (*xpc_heartbeat_init) (void);
++extern void (*xpc_heartbeat_exit) (void);
++extern void (*xpc_increment_heartbeat) (void);
++extern void (*xpc_offline_heartbeat) (void);
++extern void (*xpc_online_heartbeat) (void);
++extern void (*xpc_check_remote_hb) (void);
+ extern enum xp_retval (*xpc_make_first_contact) (struct xpc_partition *);
+ extern u64 (*xpc_get_IPI_flags) (struct xpc_partition *);
+ extern struct xpc_msg *(*xpc_get_deliverable_msg) (struct xpc_channel *);
++extern void (*xpc_initiate_partition_activation) (struct xpc_rsvd_page *, u64,
++						  int);
++extern void (*xpc_process_act_IRQ_rcvd) (int);
+ extern enum xp_retval (*xpc_setup_infrastructure) (struct xpc_partition *);
+ extern void (*xpc_teardown_infrastructure) (struct xpc_partition *);
++extern void (*xpc_mark_partition_engaged) (struct xpc_partition *);
++extern void (*xpc_mark_partition_disengaged) (struct xpc_partition *);
++extern void (*xpc_request_partition_disengage) (struct xpc_partition *);
++extern void (*xpc_cancel_partition_disengage_request) (struct xpc_partition *);
++extern u64 (*xpc_partition_engaged) (u64);
++extern u64 (*xpc_partition_disengage_requested) (u64);;
++extern void (*xpc_clear_partition_engaged) (u64);
++extern void (*xpc_clear_partition_disengage_request) (u64);
++
++extern void (*xpc_IPI_send_local_activate) (int);
++extern void (*xpc_IPI_send_activated) (struct xpc_partition *);
++extern void (*xpc_IPI_send_local_reactivate) (int);
++extern void (*xpc_IPI_send_disengage) (struct xpc_partition *);
++
++extern void (*xpc_IPI_send_closerequest) (struct xpc_channel *,
++					  unsigned long *);
++extern void (*xpc_IPI_send_closereply) (struct xpc_channel *, unsigned long *);
++extern void (*xpc_IPI_send_openrequest) (struct xpc_channel *, unsigned long *);
++extern void (*xpc_IPI_send_openreply) (struct xpc_channel *, unsigned long *);
++
++extern enum xp_retval (*xpc_allocate_msg) (struct xpc_channel *, u32,
++					   struct xpc_msg **);
++extern enum xp_retval (*xpc_send_msg) (struct xpc_channel *, struct xpc_msg *,
++				       u8, xpc_notify_func, void *);
++extern void (*xpc_received_msg) (struct xpc_channel *, struct xpc_msg *);
+ 
+ /* found in xpc_sn2.c */
+ extern void xpc_init_sn2(void);
+-extern struct xpc_vars *xpc_vars;		/*>>> eliminate from here */
+ 
+ /* found in xpc_uv.c */
+ extern void xpc_init_uv(void);
+@@ -646,6 +660,7 @@ extern void xpc_init_uv(void);
+ extern int xpc_exiting;
+ extern int xp_nasid_mask_words;
+ extern struct xpc_rsvd_page *xpc_rsvd_page;
++extern u64 *xpc_mach_nasids;
+ extern struct xpc_partition *xpc_partitions;
+ extern char *xpc_remote_copy_buffer;
+ extern void *xpc_remote_copy_buffer_base;
+@@ -658,7 +673,8 @@ extern int xpc_partition_disengaged(stru
+ extern enum xp_retval xpc_mark_partition_active(struct xpc_partition *);
+ extern void xpc_mark_partition_inactive(struct xpc_partition *);
+ extern void xpc_discovery(void);
+-extern void xpc_check_remote_hb(void);
++extern enum xp_retval xpc_get_remote_rp(int, u64 *, struct xpc_rsvd_page *,
++					u64 *);
+ extern void xpc_deactivate_partition(const int, struct xpc_partition *,
+ 				     enum xp_retval);
+ extern enum xp_retval xpc_initiate_partid_to_nasids(short, void *);
+@@ -667,6 +683,7 @@ extern enum xp_retval xpc_initiate_parti
+ extern void *xpc_kzalloc_cacheline_aligned(size_t, gfp_t, void **);
+ extern void xpc_initiate_connect(int);
+ extern void xpc_initiate_disconnect(int);
++extern enum xp_retval xpc_allocate_msg_wait(struct xpc_channel *);
+ extern enum xp_retval xpc_initiate_allocate(short, int, u32, void **);
+ extern enum xp_retval xpc_initiate_send(short, int, void *);
+ extern enum xp_retval xpc_initiate_send_notify(short, int, void *,
+@@ -680,6 +697,40 @@ extern void xpc_disconnect_channel(const
+ extern void xpc_disconnect_callout(struct xpc_channel *, enum xp_retval);
+ extern void xpc_partition_going_down(struct xpc_partition *, enum xp_retval);
+ 
++static inline int
++xpc_hb_allowed(short partid, void *heartbeating_to_mask)
++{
++	return test_bit(partid, heartbeating_to_mask);
++}
++
++static inline int
++xpc_any_hbs_allowed(void)
++{
++	DBUG_ON(xpc_heartbeating_to_mask == NULL);
++	return !bitmap_empty(xpc_heartbeating_to_mask, xp_max_npartitions);
++}
++
++static inline void
++xpc_allow_hb(short partid)
++{
++	DBUG_ON(xpc_heartbeating_to_mask == NULL);
++	set_bit(partid, xpc_heartbeating_to_mask);
++}
++
++static inline void
++xpc_disallow_hb(short partid)
++{
++	DBUG_ON(xpc_heartbeating_to_mask == NULL);
++	clear_bit(partid, xpc_heartbeating_to_mask);
++}
++
++static inline void
++xpc_disallow_all_hbs(void)
++{
++	DBUG_ON(xpc_heartbeating_to_mask == NULL);
++	bitmap_zero(xpc_heartbeating_to_mask, xp_max_npartitions);
++}
++
+ static inline void
+ xpc_wakeup_channel_mgr(struct xpc_partition *part)
  {
- 	return uv_system_type != UV_NONE;
- }
-+EXPORT_SYMBOL_GPL(is_uv_system);
-diff -puN mm/memory.c~gru-driver-v3-export-is_uv_system-zap_page_range-follow_page mm/memory.c
---- a/mm/memory.c~gru-driver-v3-export-is_uv_system-zap_page_range-follow_page
-+++ a/mm/memory.c
-@@ -993,6 +993,7 @@ unsigned long zap_page_range(struct vm_a
- 		tlb_finish_mmu(tlb, address, end);
- 	return end;
- }
-+EXPORT_SYMBOL_GPL(zap_page_range);
- 
- /**
-  * zap_vma_ptes - remove ptes mapping the vma
-@@ -1110,6 +1111,7 @@ no_page_table:
+@@ -749,297 +800,7 @@ xpc_part_ref(struct xpc_partition *part)
  	}
- 	return page;
- }
-+EXPORT_SYMBOL_GPL(follow_page);
  
- /* Can we do the FOLL_ANON optimization? */
- static inline int use_zero_page(struct vm_area_struct *vma)
+ /*
+- * This next set of inlines are used to keep track of when a partition is
+- * potentially engaged in accessing memory belonging to another partition.
+- */
+-
+-static inline void
+-xpc_mark_partition_engaged(struct xpc_partition *part)
+-{
+-	unsigned long irq_flags;
+-	AMO_t *amo = (AMO_t *)__va(part->remote_amos_page_pa +
+-				   (XPC_ENGAGED_PARTITIONS_AMO *
+-				    sizeof(AMO_t)));
+-
+-	local_irq_save(irq_flags);
+-
+-	/* set bit corresponding to our partid in remote partition's AMO */
+-	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_OR,
+-			 (1UL << sn_partition_id));
+-	/*
+-	 * We must always use the nofault function regardless of whether we
+-	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
+-	 * didn't, we'd never know that the other partition is down and would
+-	 * keep sending IPIs and AMOs to it until the heartbeat times out.
+-	 */
+-	(void)xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->
+-							       variable),
+-						     xp_nofault_PIOR_target));
+-
+-	local_irq_restore(irq_flags);
+-}
+-
+-static inline void
+-xpc_mark_partition_disengaged(struct xpc_partition *part)
+-{
+-	unsigned long irq_flags;
+-	AMO_t *amo = (AMO_t *)__va(part->remote_amos_page_pa +
+-				   (XPC_ENGAGED_PARTITIONS_AMO *
+-				    sizeof(AMO_t)));
+-
+-	local_irq_save(irq_flags);
+-
+-	/* clear bit corresponding to our partid in remote partition's AMO */
+-	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_AND,
+-			 ~(1UL << sn_partition_id));
+-	/*
+-	 * We must always use the nofault function regardless of whether we
+-	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
+-	 * didn't, we'd never know that the other partition is down and would
+-	 * keep sending IPIs and AMOs to it until the heartbeat times out.
+-	 */
+-	(void)xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->
+-							       variable),
+-						     xp_nofault_PIOR_target));
+-
+-	local_irq_restore(irq_flags);
+-}
+-
+-static inline void
+-xpc_request_partition_disengage(struct xpc_partition *part)
+-{
+-	unsigned long irq_flags;
+-	AMO_t *amo = (AMO_t *)__va(part->remote_amos_page_pa +
+-				   (XPC_DISENGAGE_REQUEST_AMO * sizeof(AMO_t)));
+-
+-	local_irq_save(irq_flags);
+-
+-	/* set bit corresponding to our partid in remote partition's AMO */
+-	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_OR,
+-			 (1UL << sn_partition_id));
+-	/*
+-	 * We must always use the nofault function regardless of whether we
+-	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
+-	 * didn't, we'd never know that the other partition is down and would
+-	 * keep sending IPIs and AMOs to it until the heartbeat times out.
+-	 */
+-	(void)xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->
+-							       variable),
+-						     xp_nofault_PIOR_target));
+-
+-	local_irq_restore(irq_flags);
+-}
+-
+-static inline void
+-xpc_cancel_partition_disengage_request(struct xpc_partition *part)
+-{
+-	unsigned long irq_flags;
+-	AMO_t *amo = (AMO_t *)__va(part->remote_amos_page_pa +
+-				   (XPC_DISENGAGE_REQUEST_AMO * sizeof(AMO_t)));
+-
+-	local_irq_save(irq_flags);
+-
+-	/* clear bit corresponding to our partid in remote partition's AMO */
+-	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_AND,
+-			 ~(1UL << sn_partition_id));
+-	/*
+-	 * We must always use the nofault function regardless of whether we
+-	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
+-	 * didn't, we'd never know that the other partition is down and would
+-	 * keep sending IPIs and AMOs to it until the heartbeat times out.
+-	 */
+-	(void)xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->
+-							       variable),
+-						     xp_nofault_PIOR_target));
+-
+-	local_irq_restore(irq_flags);
+-}
+-
+-static inline u64
+-xpc_partition_engaged(u64 partid_mask)
+-{
+-	AMO_t *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
+-
+-	/* return our partition's AMO variable ANDed with partid_mask */
+-	return (FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_LOAD) &
+-		partid_mask);
+-}
+-
+-static inline u64
+-xpc_partition_disengage_requested(u64 partid_mask)
+-{
+-	AMO_t *amo = xpc_vars->amos_page + XPC_DISENGAGE_REQUEST_AMO;
+-
+-	/* return our partition's AMO variable ANDed with partid_mask */
+-	return (FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_LOAD) &
+-		partid_mask);
+-}
+-
+-static inline void
+-xpc_clear_partition_engaged(u64 partid_mask)
+-{
+-	AMO_t *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
+-
+-	/* clear bit(s) based on partid_mask in our partition's AMO */
+-	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_AND,
+-			 ~partid_mask);
+-}
+-
+-static inline void
+-xpc_clear_partition_disengage_request(u64 partid_mask)
+-{
+-	AMO_t *amo = xpc_vars->amos_page + XPC_DISENGAGE_REQUEST_AMO;
+-
+-	/* clear bit(s) based on partid_mask in our partition's AMO */
+-	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_AND,
+-			 ~partid_mask);
+-}
+-
+-/*
+- * The following set of macros and inlines are used for the sending and
+- * receiving of IPIs (also known as IRQs). There are two flavors of IPIs,
+- * one that is associated with partition activity (SGI_XPC_ACTIVATE) and
+- * the other that is associated with channel activity (SGI_XPC_NOTIFY).
+- */
+-
+-static inline u64
+-xpc_IPI_receive(AMO_t *amo)
+-{
+-	return FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_CLEAR);
+-}
+-
+-static inline enum xp_retval
+-xpc_IPI_send(AMO_t *amo, u64 flag, int nasid, int phys_cpuid, int vector)
+-{
+-	int ret = 0;
+-	unsigned long irq_flags;
+-
+-	local_irq_save(irq_flags);
+-
+-	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_OR, flag);
+-	sn_send_IPI_phys(nasid, phys_cpuid, vector, 0);
+-
+-	/*
+-	 * We must always use the nofault function regardless of whether we
+-	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
+-	 * didn't, we'd never know that the other partition is down and would
+-	 * keep sending IPIs and AMOs to it until the heartbeat times out.
+-	 */
+-	ret = xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->variable),
+-						     xp_nofault_PIOR_target));
+-
+-	local_irq_restore(irq_flags);
+-
+-	return ((ret == 0) ? xpSuccess : xpPioReadError);
+-}
+-
+-/*
+- * IPIs associated with SGI_XPC_ACTIVATE IRQ.
+- */
+-
+-/*
+- * Flag the appropriate AMO variable and send an IPI to the specified node.
+- */
+-static inline void
+-xpc_activate_IRQ_send(u64 amos_page_pa, int from_nasid, int to_nasid,
+-		      int to_phys_cpuid)
+-{
+-	int w_index = XPC_NASID_W_INDEX(from_nasid);
+-	int b_index = XPC_NASID_B_INDEX(from_nasid);
+-	AMO_t *amos = (AMO_t *)__va(amos_page_pa +
+-				    (XPC_ACTIVATE_IRQ_AMOS * sizeof(AMO_t)));
+-
+-	(void)xpc_IPI_send(&amos[w_index], (1UL << b_index), to_nasid,
+-			   to_phys_cpuid, SGI_XPC_ACTIVATE);
+-}
+-
+-static inline void
+-xpc_IPI_send_activate(struct xpc_vars *vars)
+-{
+-	xpc_activate_IRQ_send(vars->amos_page_pa, cnodeid_to_nasid(0),
+-			      vars->act_nasid, vars->act_phys_cpuid);
+-}
+-
+-static inline void
+-xpc_IPI_send_activated(struct xpc_partition *part)
+-{
+-	xpc_activate_IRQ_send(part->remote_amos_page_pa, cnodeid_to_nasid(0),
+-			      part->remote_act_nasid,
+-			      part->remote_act_phys_cpuid);
+-}
+-
+-static inline void
+-xpc_IPI_send_reactivate(struct xpc_partition *part)
+-{
+-	xpc_activate_IRQ_send(xpc_vars->amos_page_pa, part->reactivate_nasid,
+-			      xpc_vars->act_nasid, xpc_vars->act_phys_cpuid);
+-}
+-
+-static inline void
+-xpc_IPI_send_disengage(struct xpc_partition *part)
+-{
+-	xpc_activate_IRQ_send(part->remote_amos_page_pa, cnodeid_to_nasid(0),
+-			      part->remote_act_nasid,
+-			      part->remote_act_phys_cpuid);
+-}
+-
+-/*
+- * IPIs associated with SGI_XPC_NOTIFY IRQ.
+- */
+-
+-/*
+- * Send an IPI to the remote partition that is associated with the
+- * specified channel.
+- */
+-#define XPC_NOTIFY_IRQ_SEND(_ch, _ipi_f, _irq_f) \
+-		xpc_notify_IRQ_send(_ch, _ipi_f, #_ipi_f, _irq_f)
+-
+-static inline void
+-xpc_notify_IRQ_send(struct xpc_channel *ch, u8 ipi_flag, char *ipi_flag_string,
+-		    unsigned long *irq_flags)
+-{
+-	struct xpc_partition *part = &xpc_partitions[ch->partid];
+-	enum xp_retval ret;
+-
+-	if (likely(part->act_state != XPC_P_DEACTIVATING)) {
+-		ret = xpc_IPI_send(part->remote_IPI_amo_va,
+-				   (u64)ipi_flag << (ch->number * 8),
+-				   part->remote_IPI_nasid,
+-				   part->remote_IPI_phys_cpuid, SGI_XPC_NOTIFY);
+-		dev_dbg(xpc_chan, "%s sent to partid=%d, channel=%d, ret=%d\n",
+-			ipi_flag_string, ch->partid, ch->number, ret);
+-		if (unlikely(ret != xpSuccess)) {
+-			if (irq_flags != NULL)
+-				spin_unlock_irqrestore(&ch->lock, *irq_flags);
+-			XPC_DEACTIVATE_PARTITION(part, ret);
+-			if (irq_flags != NULL)
+-				spin_lock_irqsave(&ch->lock, *irq_flags);
+-		}
+-	}
+-}
+-
+-/*
+- * Make it look like the remote partition, which is associated with the
+- * specified channel, sent us an IPI. This faked IPI will be handled
+- * by xpc_dropped_IPI_check().
+- */
+-#define XPC_NOTIFY_IRQ_SEND_LOCAL(_ch, _ipi_f) \
+-		xpc_notify_IRQ_send_local(_ch, _ipi_f, #_ipi_f)
+-
+-static inline void
+-xpc_notify_IRQ_send_local(struct xpc_channel *ch, u8 ipi_flag,
+-			  char *ipi_flag_string)
+-{
+-	struct xpc_partition *part = &xpc_partitions[ch->partid];
+-
+-	FETCHOP_STORE_OP(TO_AMO((u64)&part->local_IPI_amo_va->variable),
+-			 FETCHOP_OR, ((u64)ipi_flag << (ch->number * 8)));
+-	dev_dbg(xpc_chan, "%s sent local from partid=%d, channel=%d\n",
+-		ipi_flag_string, ch->partid, ch->number);
+-}
+-
+-/*
+- * The sending and receiving of IPIs includes the setting of an AMO variable
++ * The sending and receiving of IPIs includes the setting of an >>>AMO variable
+  * to indicate the reason the IPI was sent. The 64-bit variable is divided
+  * up into eight bytes, ordered from right to left. Byte zero pertains to
+  * channel 0, byte one to channel 1, and so on. Each byte is described by
+@@ -1052,107 +813,11 @@ xpc_notify_IRQ_send_local(struct xpc_cha
+ #define	XPC_IPI_OPENREPLY	0x08
+ #define	XPC_IPI_MSGREQUEST	0x10
+ 
+-/* given an AMO variable and a channel#, get its associated IPI flags */
++/* given an >>>AMO variable and a channel#, get its associated IPI flags */
+ #define XPC_GET_IPI_FLAGS(_amo, _c)	((u8) (((_amo) >> ((_c) * 8)) & 0xff))
+ #define XPC_SET_IPI_FLAGS(_amo, _c, _f)	(_amo) |= ((u64) (_f) << ((_c) * 8))
+ 
+ #define	XPC_ANY_OPENCLOSE_IPI_FLAGS_SET(_amo) ((_amo) & 0x0f0f0f0f0f0f0f0fUL)
+ #define XPC_ANY_MSG_IPI_FLAGS_SET(_amo)       ((_amo) & 0x1010101010101010UL)
+ 
+-static inline void
+-xpc_IPI_send_closerequest(struct xpc_channel *ch, unsigned long *irq_flags)
+-{
+-	struct xpc_openclose_args *args = ch->local_openclose_args;
+-
+-	args->reason = ch->reason;
+-
+-	XPC_NOTIFY_IRQ_SEND(ch, XPC_IPI_CLOSEREQUEST, irq_flags);
+-}
+-
+-static inline void
+-xpc_IPI_send_closereply(struct xpc_channel *ch, unsigned long *irq_flags)
+-{
+-	XPC_NOTIFY_IRQ_SEND(ch, XPC_IPI_CLOSEREPLY, irq_flags);
+-}
+-
+-static inline void
+-xpc_IPI_send_openrequest(struct xpc_channel *ch, unsigned long *irq_flags)
+-{
+-	struct xpc_openclose_args *args = ch->local_openclose_args;
+-
+-	args->msg_size = ch->msg_size;
+-	args->local_nentries = ch->local_nentries;
+-
+-	XPC_NOTIFY_IRQ_SEND(ch, XPC_IPI_OPENREQUEST, irq_flags);
+-}
+-
+-static inline void
+-xpc_IPI_send_openreply(struct xpc_channel *ch, unsigned long *irq_flags)
+-{
+-	struct xpc_openclose_args *args = ch->local_openclose_args;
+-
+-	args->remote_nentries = ch->remote_nentries;
+-	args->local_nentries = ch->local_nentries;
+-	args->local_msgqueue_pa = __pa(ch->local_msgqueue);
+-
+-	XPC_NOTIFY_IRQ_SEND(ch, XPC_IPI_OPENREPLY, irq_flags);
+-}
+-
+-static inline void
+-xpc_IPI_send_msgrequest(struct xpc_channel *ch)
+-{
+-	XPC_NOTIFY_IRQ_SEND(ch, XPC_IPI_MSGREQUEST, NULL);
+-}
+-
+-static inline void
+-xpc_IPI_send_local_msgrequest(struct xpc_channel *ch)
+-{
+-	XPC_NOTIFY_IRQ_SEND_LOCAL(ch, XPC_IPI_MSGREQUEST);
+-}
+-
+-/*
+->>> this block comment needs to be moved and re-written.
+- * Memory for XPC's AMO variables is allocated by the MSPEC driver. These
+- * pages are located in the lowest granule. The lowest granule uses 4k pages
+- * for cached references and an alternate TLB handler to never provide a
+- * cacheable mapping for the entire region. This will prevent speculative
+- * reading of cached copies of our lines from being issued which will cause
+- * a PI FSB Protocol error to be generated by the SHUB. For XPC, we need 64
+- * AMO variables (based on xp_max_npartitions) for message notification and an
+- * additional 128 AMO variables (based on XP_NASID_MASK_WORDS) for partition
+- * activation and 2 AMO variables for partition deactivation.
+- */
+-static inline AMO_t *
+-xpc_IPI_init(int index)
+-{
+-	AMO_t *amo = xpc_vars->amos_page + index;
+-
+-	(void)xpc_IPI_receive(amo);	/* clear AMO variable */
+-	return amo;
+-}
+-
+-/*
+- * Check to see if there is any channel activity to/from the specified
+- * partition.
+- */
+-static inline void
+-xpc_check_for_channel_activity(struct xpc_partition *part)
+-{
+-	u64 IPI_amo;
+-	unsigned long irq_flags;
+-
+-	IPI_amo = xpc_IPI_receive(part->local_IPI_amo_va);
+-	if (IPI_amo == 0)
+-		return;
+-
+-	spin_lock_irqsave(&part->IPI_lock, irq_flags);
+-	part->local_IPI_amo |= IPI_amo;
+-	spin_unlock_irqrestore(&part->IPI_lock, irq_flags);
+-
+-	dev_dbg(xpc_chan, "received IPI from partid=%d, IPI_amo=0x%lx\n",
+-		XPC_PARTID(part), IPI_amo);
+-
+-	xpc_wakeup_channel_mgr(part);
+-}
+-
+ #endif /* _DRIVERS_MISC_SGIXP_XPC_H */
+diff -puN drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-isolate-xpc_vars-structure-to-sn2-only drivers/misc/sgi-xp/xpc_channel.c
+--- a/drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-isolate-xpc_vars-structure-to-sn2-only
++++ a/drivers/misc/sgi-xp/xpc_channel.c
+@@ -1165,7 +1165,7 @@ xpc_disconnect_callout(struct xpc_channe
+  * Wait for a message entry to become available for the specified channel,
+  * but don't wait any longer than 1 jiffy.
+  */
+-static enum xp_retval
++enum xp_retval
+ xpc_allocate_msg_wait(struct xpc_channel *ch)
+ {
+ 	enum xp_retval ret;
+@@ -1193,96 +1193,6 @@ xpc_allocate_msg_wait(struct xpc_channel
+ 
+ /*
+  * Allocate an entry for a message from the message queue associated with the
+- * specified channel.
+- */
+-static enum xp_retval
+-xpc_allocate_msg(struct xpc_channel *ch, u32 flags,
+-		 struct xpc_msg **address_of_msg)
+-{
+-	struct xpc_msg *msg;
+-	enum xp_retval ret;
+-	s64 put;
+-
+-	/* this reference will be dropped in xpc_send_msg() */
+-	xpc_msgqueue_ref(ch);
+-
+-	if (ch->flags & XPC_C_DISCONNECTING) {
+-		xpc_msgqueue_deref(ch);
+-		return ch->reason;
+-	}
+-	if (!(ch->flags & XPC_C_CONNECTED)) {
+-		xpc_msgqueue_deref(ch);
+-		return xpNotConnected;
+-	}
+-
+-	/*
+-	 * Get the next available message entry from the local message queue.
+-	 * If none are available, we'll make sure that we grab the latest
+-	 * GP values.
+-	 */
+-	ret = xpTimeout;
+-
+-	while (1) {
+-
+-		put = ch->w_local_GP.put;
+-		rmb();	/* guarantee that .put loads before .get */
+-		if (put - ch->w_remote_GP.get < ch->local_nentries) {
+-
+-			/* There are available message entries. We need to try
+-			 * to secure one for ourselves. We'll do this by trying
+-			 * to increment w_local_GP.put as long as someone else
+-			 * doesn't beat us to it. If they do, we'll have to
+-			 * try again.
+-			 */
+-			if (cmpxchg(&ch->w_local_GP.put, put, put + 1) == put) {
+-				/* we got the entry referenced by put */
+-				break;
+-			}
+-			continue;	/* try again */
+-		}
+-
+-		/*
+-		 * There aren't any available msg entries at this time.
+-		 *
+-		 * In waiting for a message entry to become available,
+-		 * we set a timeout in case the other side is not
+-		 * sending completion IPIs. This lets us fake an IPI
+-		 * that will cause the IPI handler to fetch the latest
+-		 * GP values as if an IPI was sent by the other side.
+-		 */
+-		if (ret == xpTimeout)
+-			xpc_IPI_send_local_msgrequest(ch);
+-
+-		if (flags & XPC_NOWAIT) {
+-			xpc_msgqueue_deref(ch);
+-			return xpNoWait;
+-		}
+-
+-		ret = xpc_allocate_msg_wait(ch);
+-		if (ret != xpInterrupted && ret != xpTimeout) {
+-			xpc_msgqueue_deref(ch);
+-			return ret;
+-		}
+-	}
+-
+-	/* get the message's address and initialize it */
+-	msg = (struct xpc_msg *)((u64)ch->local_msgqueue +
+-				 (put % ch->local_nentries) * ch->msg_size);
+-
+-	DBUG_ON(msg->flags != 0);
+-	msg->number = put;
+-
+-	dev_dbg(xpc_chan, "w_local_GP.put changed to %ld; msg=0x%p, "
+-		"msg_number=%ld, partid=%d, channel=%d\n", put + 1,
+-		(void *)msg, msg->number, ch->partid, ch->number);
+-
+-	*address_of_msg = msg;
+-
+-	return xpSuccess;
+-}
+-
+-/*
+- * Allocate an entry for a message from the message queue associated with the
+  * specified channel. NOTE that this routine can sleep waiting for a message
+  * entry to become available. To not sleep, pass in the XPC_NOWAIT flag.
+  *
+@@ -1318,144 +1228,6 @@ xpc_initiate_allocate(short partid, int 
+ }
+ 
+ /*
+- * Now we actually send the messages that are ready to be sent by advancing
+- * the local message queue's Put value and then send an IPI to the recipient
+- * partition.
+- */
+-static void
+-xpc_send_msgs(struct xpc_channel *ch, s64 initial_put)
+-{
+-	struct xpc_msg *msg;
+-	s64 put = initial_put + 1;
+-	int send_IPI = 0;
+-
+-	while (1) {
+-
+-		while (1) {
+-			if (put == ch->w_local_GP.put)
+-				break;
+-
+-			msg = (struct xpc_msg *)((u64)ch->local_msgqueue +
+-						 (put % ch->local_nentries) *
+-						 ch->msg_size);
+-
+-			if (!(msg->flags & XPC_M_READY))
+-				break;
+-
+-			put++;
+-		}
+-
+-		if (put == initial_put) {
+-			/* nothing's changed */
+-			break;
+-		}
+-
+-		if (cmpxchg_rel(&ch->local_GP->put, initial_put, put) !=
+-		    initial_put) {
+-			/* someone else beat us to it */
+-			DBUG_ON(ch->local_GP->put < initial_put);
+-			break;
+-		}
+-
+-		/* we just set the new value of local_GP->put */
+-
+-		dev_dbg(xpc_chan, "local_GP->put changed to %ld, partid=%d, "
+-			"channel=%d\n", put, ch->partid, ch->number);
+-
+-		send_IPI = 1;
+-
+-		/*
+-		 * We need to ensure that the message referenced by
+-		 * local_GP->put is not XPC_M_READY or that local_GP->put
+-		 * equals w_local_GP.put, so we'll go have a look.
+-		 */
+-		initial_put = put;
+-	}
+-
+-	if (send_IPI)
+-		xpc_IPI_send_msgrequest(ch);
+-}
+-
+-/*
+- * Common code that does the actual sending of the message by advancing the
+- * local message queue's Put value and sends an IPI to the partition the
+- * message is being sent to.
+- */
+-static enum xp_retval
+-xpc_send_msg(struct xpc_channel *ch, struct xpc_msg *msg, u8 notify_type,
+-	     xpc_notify_func func, void *key)
+-{
+-	enum xp_retval ret = xpSuccess;
+-	struct xpc_notify *notify = notify;
+-	s64 put, msg_number = msg->number;
+-
+-	DBUG_ON(notify_type == XPC_N_CALL && func == NULL);
+-	DBUG_ON((((u64)msg - (u64)ch->local_msgqueue) / ch->msg_size) !=
+-		msg_number % ch->local_nentries);
+-	DBUG_ON(msg->flags & XPC_M_READY);
+-
+-	if (ch->flags & XPC_C_DISCONNECTING) {
+-		/* drop the reference grabbed in xpc_allocate_msg() */
+-		xpc_msgqueue_deref(ch);
+-		return ch->reason;
+-	}
+-
+-	if (notify_type != 0) {
+-		/*
+-		 * Tell the remote side to send an ACK interrupt when the
+-		 * message has been delivered.
+-		 */
+-		msg->flags |= XPC_M_INTERRUPT;
+-
+-		atomic_inc(&ch->n_to_notify);
+-
+-		notify = &ch->notify_queue[msg_number % ch->local_nentries];
+-		notify->func = func;
+-		notify->key = key;
+-		notify->type = notify_type;
+-
+-		/* >>> is a mb() needed here? */
+-
+-		if (ch->flags & XPC_C_DISCONNECTING) {
+-			/*
+-			 * An error occurred between our last error check and
+-			 * this one. We will try to clear the type field from
+-			 * the notify entry. If we succeed then
+-			 * xpc_disconnect_channel() didn't already process
+-			 * the notify entry.
+-			 */
+-			if (cmpxchg(&notify->type, notify_type, 0) ==
+-			    notify_type) {
+-				atomic_dec(&ch->n_to_notify);
+-				ret = ch->reason;
+-			}
+-
+-			/* drop the reference grabbed in xpc_allocate_msg() */
+-			xpc_msgqueue_deref(ch);
+-			return ret;
+-		}
+-	}
+-
+-	msg->flags |= XPC_M_READY;
+-
+-	/*
+-	 * The preceding store of msg->flags must occur before the following
+-	 * load of ch->local_GP->put.
+-	 */
+-	mb();
+-
+-	/* see if the message is next in line to be sent, if so send it */
+-
+-	put = ch->local_GP->put;
+-	if (put == msg_number)
+-		xpc_send_msgs(ch, put);
+-
+-	/* drop the reference grabbed in xpc_allocate_msg() */
+-	xpc_msgqueue_deref(ch);
+-	return ret;
+-}
+-
+-/*
+  * Send a message previously allocated using xpc_initiate_allocate() on the
+  * specified channel connected to the specified partition.
+  *
+@@ -1586,66 +1358,6 @@ xpc_deliver_msg(struct xpc_channel *ch)
+ }
+ 
+ /*
+- * Now we actually acknowledge the messages that have been delivered and ack'd
+- * by advancing the cached remote message queue's Get value and if requested
+- * send an IPI to the message sender's partition.
+- */
+-static void
+-xpc_acknowledge_msgs(struct xpc_channel *ch, s64 initial_get, u8 msg_flags)
+-{
+-	struct xpc_msg *msg;
+-	s64 get = initial_get + 1;
+-	int send_IPI = 0;
+-
+-	while (1) {
+-
+-		while (1) {
+-			if (get == ch->w_local_GP.get)
+-				break;
+-
+-			msg = (struct xpc_msg *)((u64)ch->remote_msgqueue +
+-						 (get % ch->remote_nentries) *
+-						 ch->msg_size);
+-
+-			if (!(msg->flags & XPC_M_DONE))
+-				break;
+-
+-			msg_flags |= msg->flags;
+-			get++;
+-		}
+-
+-		if (get == initial_get) {
+-			/* nothing's changed */
+-			break;
+-		}
+-
+-		if (cmpxchg_rel(&ch->local_GP->get, initial_get, get) !=
+-		    initial_get) {
+-			/* someone else beat us to it */
+-			DBUG_ON(ch->local_GP->get <= initial_get);
+-			break;
+-		}
+-
+-		/* we just set the new value of local_GP->get */
+-
+-		dev_dbg(xpc_chan, "local_GP->get changed to %ld, partid=%d, "
+-			"channel=%d\n", get, ch->partid, ch->number);
+-
+-		send_IPI = (msg_flags & XPC_M_INTERRUPT);
+-
+-		/*
+-		 * We need to ensure that the message referenced by
+-		 * local_GP->get is not XPC_M_DONE or that local_GP->get
+-		 * equals w_local_GP.get, so we'll go have a look.
+-		 */
+-		initial_get = get;
+-	}
+-
+-	if (send_IPI)
+-		xpc_IPI_send_msgrequest(ch);
+-}
+-
+-/*
+  * Acknowledge receipt of a delivered message.
+  *
+  * If a message has XPC_M_INTERRUPT set, send an interrupt to the partition
+@@ -1668,35 +1380,12 @@ xpc_initiate_received(short partid, int 
+ 	struct xpc_partition *part = &xpc_partitions[partid];
+ 	struct xpc_channel *ch;
+ 	struct xpc_msg *msg = XPC_MSG_ADDRESS(payload);
+-	s64 get, msg_number = msg->number;
+ 
+ 	DBUG_ON(partid < 0 || partid >= xp_max_npartitions);
+ 	DBUG_ON(ch_number < 0 || ch_number >= part->nchannels);
+ 
+ 	ch = &part->channels[ch_number];
+-
+-	dev_dbg(xpc_chan, "msg=0x%p, msg_number=%ld, partid=%d, channel=%d\n",
+-		(void *)msg, msg_number, ch->partid, ch->number);
+-
+-	DBUG_ON((((u64)msg - (u64)ch->remote_msgqueue) / ch->msg_size) !=
+-		msg_number % ch->remote_nentries);
+-	DBUG_ON(msg->flags & XPC_M_DONE);
+-
+-	msg->flags |= XPC_M_DONE;
+-
+-	/*
+-	 * The preceding store of msg->flags must occur before the following
+-	 * load of ch->local_GP->get.
+-	 */
+-	mb();
+-
+-	/*
+-	 * See if this message is next in line to be acknowledged as having
+-	 * been delivered.
+-	 */
+-	get = ch->local_GP->get;
+-	if (get == msg_number)
+-		xpc_acknowledge_msgs(ch, get, msg->flags);
++	xpc_received_msg(ch, msg);
+ 
+ 	/* the call to xpc_msgqueue_ref() was done by xpc_deliver_msg()  */
+ 	xpc_msgqueue_deref(ch);
+diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-isolate-xpc_vars-structure-to-sn2-only drivers/misc/sgi-xp/xpc_main.c
+--- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-isolate-xpc_vars-structure-to-sn2-only
++++ a/drivers/misc/sgi-xp/xpc_main.c
+@@ -148,12 +148,14 @@ static struct ctl_table_header *xpc_sysc
+ int xpc_disengage_request_timedout;
+ 
+ /* #of IRQs received */
+-static atomic_t xpc_act_IRQ_rcvd;
++atomic_t xpc_act_IRQ_rcvd;
+ 
+ /* IRQ handler notifies this wait queue on receipt of an IRQ */
+-static DECLARE_WAIT_QUEUE_HEAD(xpc_act_IRQ_wq);
++DECLARE_WAIT_QUEUE_HEAD(xpc_act_IRQ_wq);
+ 
+ static unsigned long xpc_hb_check_timeout;
++static struct timer_list xpc_hb_timer;
++void *xpc_heartbeating_to_mask;
+ 
+ /* notification that the xpc_hb_checker thread has exited */
+ static DECLARE_COMPLETION(xpc_hb_checker_exited);
+@@ -161,8 +163,6 @@ static DECLARE_COMPLETION(xpc_hb_checker
+ /* notification that the xpc_discovery thread has exited */
+ static DECLARE_COMPLETION(xpc_discovery_exited);
+ 
+-static struct timer_list xpc_hb_timer;
+-
+ static void xpc_kthread_waitmsgs(struct xpc_partition *, struct xpc_channel *);
+ 
+ static int xpc_system_reboot(struct notifier_block *, unsigned long, void *);
+@@ -176,12 +176,54 @@ static struct notifier_block xpc_die_not
+ };
+ 
+ enum xp_retval (*xpc_rsvd_page_init) (struct xpc_rsvd_page *rp);
++void (*xpc_heartbeat_init) (void);
++void (*xpc_heartbeat_exit) (void);
++void (*xpc_increment_heartbeat) (void);
++void (*xpc_offline_heartbeat) (void);
++void (*xpc_online_heartbeat) (void);
++void (*xpc_check_remote_hb) (void);
++
+ enum xp_retval (*xpc_make_first_contact) (struct xpc_partition *part);
+ u64 (*xpc_get_IPI_flags) (struct xpc_partition *part);
+ struct xpc_msg *(*xpc_get_deliverable_msg) (struct xpc_channel *ch);
++
++void (*xpc_initiate_partition_activation) (struct xpc_rsvd_page *remote_rp,
++					   u64 remote_rp_pa, int nasid);
++
++void (*xpc_process_act_IRQ_rcvd) (int n_IRQs_expected);
+ enum xp_retval (*xpc_setup_infrastructure) (struct xpc_partition *part);
+ void (*xpc_teardown_infrastructure) (struct xpc_partition *part);
+ 
++void (*xpc_mark_partition_engaged) (struct xpc_partition *part);
++void (*xpc_mark_partition_disengaged) (struct xpc_partition *part);
++void (*xpc_request_partition_disengage) (struct xpc_partition *part);
++void (*xpc_cancel_partition_disengage_request) (struct xpc_partition *part);
++u64 (*xpc_partition_engaged) (u64 partid_mask);
++u64 (*xpc_partition_disengage_requested) (u64 partid_mask);
++void (*xpc_clear_partition_engaged) (u64 partid_mask);
++void (*xpc_clear_partition_disengage_request) (u64 partid_mask);
++
++void (*xpc_IPI_send_local_activate) (int from_nasid);
++void (*xpc_IPI_send_activated) (struct xpc_partition *part);
++void (*xpc_IPI_send_local_reactivate) (int from_nasid);
++void (*xpc_IPI_send_disengage) (struct xpc_partition *part);
++
++void (*xpc_IPI_send_closerequest) (struct xpc_channel *ch,
++				   unsigned long *irq_flags);
++void (*xpc_IPI_send_closereply) (struct xpc_channel *ch,
++				 unsigned long *irq_flags);
++void (*xpc_IPI_send_openrequest) (struct xpc_channel *ch,
++				  unsigned long *irq_flags);
++void (*xpc_IPI_send_openreply) (struct xpc_channel *ch,
++				unsigned long *irq_flags);
++
++enum xp_retval (*xpc_allocate_msg) (struct xpc_channel *ch, u32 flags,
++				    struct xpc_msg **address_of_msg);
++
++enum xp_retval (*xpc_send_msg) (struct xpc_channel *ch, struct xpc_msg *msg,
++				u8 notify_type, xpc_notify_func func,
++				void *key);
++void (*xpc_received_msg) (struct xpc_channel *ch, struct xpc_msg *msg);
+ 
+ /*
+  * Timer function to enforce the timelimit on the partition disengage request.
+@@ -218,7 +260,7 @@ xpc_act_IRQ_handler(int irq, void *dev_i
+ static void
+ xpc_hb_beater(unsigned long dummy)
+ {
+-	xpc_vars->heartbeat++;
++	xpc_increment_heartbeat();
+ 
+ 	if (time_after_eq(jiffies, xpc_hb_check_timeout))
+ 		wake_up_interruptible(&xpc_act_IRQ_wq);
+@@ -227,6 +269,22 @@ xpc_hb_beater(unsigned long dummy)
+ 	add_timer(&xpc_hb_timer);
+ }
+ 
++static void
++xpc_start_hb_beater(void)
++{
++	xpc_heartbeat_init();
++	init_timer(&xpc_hb_timer);
++	xpc_hb_timer.function = xpc_hb_beater;
++	xpc_hb_beater(0);
++}
++
++static void
++xpc_stop_hb_beater(void)
++{
++	del_timer_sync(&xpc_hb_timer);
++	xpc_heartbeat_exit();
++}
++
+ /*
+  * This thread is responsible for nearly all of the partition
+  * activation/deactivation.
+@@ -244,7 +302,7 @@ xpc_hb_checker(void *ignore)
+ 
+ 	/* set our heartbeating to other partitions into motion */
+ 	xpc_hb_check_timeout = jiffies + (xpc_hb_check_interval * HZ);
+-	xpc_hb_beater(0);
++	xpc_start_hb_beater();
+ 
+ 	while (!xpc_exiting) {
+ 
+@@ -274,11 +332,8 @@ xpc_hb_checker(void *ignore)
+ 			dev_dbg(xpc_part, "found an IRQ to process; will be "
+ 				"resetting xpc_hb_check_timeout\n");
+ 
+-			last_IRQ_count += xpc_identify_act_IRQ_sender();
+-			if (last_IRQ_count < new_IRQ_count) {
+-				/* retry once to help avoid missing AMO */
+-				(void)xpc_identify_act_IRQ_sender();
+-			}
++			xpc_process_act_IRQ_rcvd(new_IRQ_count -
++						 last_IRQ_count);
+ 			last_IRQ_count = new_IRQ_count;
+ 
+ 			xpc_hb_check_timeout = jiffies +
+@@ -294,6 +349,8 @@ xpc_hb_checker(void *ignore)
+ 						xpc_exiting));
+ 	}
+ 
++	xpc_stop_hb_beater();
++
+ 	dev_dbg(xpc_part, "heartbeat checker is exiting\n");
+ 
+ 	/* mark this thread as having exited */
+@@ -401,31 +458,7 @@ xpc_activating(void *__partid)
+ 
+ 	dev_dbg(xpc_part, "activating partition %d\n", partid);
+ 
+-	/*
+-	 * Register the remote partition's AMOs with SAL so it can handle
+-	 * and cleanup errors within that address range should the remote
+-	 * partition go down. We don't unregister this range because it is
+-	 * difficult to tell when outstanding writes to the remote partition
+-	 * are finished and thus when it is safe to unregister. This should
+-	 * not result in wasted space in the SAL xp_addr_region table because
+-	 * we should get the same page for remote_amos_page_pa after module
+-	 * reloads and system reboots.
+-	 */
+-	if (sn_register_xp_addr_region(part->remote_amos_page_pa,
+-				       PAGE_SIZE, 1) < 0) {
+-		dev_warn(xpc_part, "xpc_activating(%d) failed to register "
+-			 "xp_addr region\n", partid);
+-
+-		spin_lock_irqsave(&part->act_lock, irq_flags);
+-		part->act_state = XPC_P_INACTIVE;
+-		XPC_SET_REASON(part, xpPhysAddrRegFailed, __LINE__);
+-		spin_unlock_irqrestore(&part->act_lock, irq_flags);
+-		part->remote_rp_pa = 0;
+-		return 0;
+-	}
+-
+-	xpc_allow_hb(partid, xpc_vars);
+-	xpc_IPI_send_activated(part);
++	xpc_allow_hb(partid);
+ 
+ 	if (xpc_setup_infrastructure(part) == xpSuccess) {
+ 		(void)xpc_part_ref(part);	/* this will always succeed */
+@@ -440,12 +473,12 @@ xpc_activating(void *__partid)
+ 		xpc_teardown_infrastructure(part);
+ 	}
+ 
+-	xpc_disallow_hb(partid, xpc_vars);
++	xpc_disallow_hb(partid);
+ 	xpc_mark_partition_inactive(part);
+ 
+ 	if (part->reason == xpReactivating) {
+ 		/* interrupting ourselves results in activating partition */
+-		xpc_IPI_send_reactivate(part);
++		xpc_IPI_send_local_reactivate(part->reactivate_nasid);
+ 	}
+ 
+ 	return 0;
+@@ -478,6 +511,32 @@ xpc_activate_partition(struct xpc_partit
+ }
+ 
+ /*
++ * Check to see if there is any channel activity to/from the specified
++ * partition.
++ */
++static void
++xpc_check_for_channel_activity(struct xpc_partition *part)
++{
++	u64 IPI_amo;
++	unsigned long irq_flags;
++
++/* this needs to be uncommented, but I'm thinking this function and the */
++/* ones that call it need to be moved into xpc_sn2.c... */
++	IPI_amo = 0; /* = xpc_IPI_receive(part->local_IPI_amo_va); */
++	if (IPI_amo == 0)
++		return;
++
++	spin_lock_irqsave(&part->IPI_lock, irq_flags);
++	part->local_IPI_amo |= IPI_amo;
++	spin_unlock_irqrestore(&part->IPI_lock, irq_flags);
++
++	dev_dbg(xpc_chan, "received IPI from partid=%d, IPI_amo=0x%lx\n",
++		XPC_PARTID(part), IPI_amo);
++
++	xpc_wakeup_channel_mgr(part);
++}
++
++/*
+  * Handle the receipt of a SGI_XPC_NOTIFY IRQ by seeing whether the specified
+  * partition actually sent it. Since SGI_XPC_NOTIFY IRQs may be shared by more
+  * than one partition, we use an AMO_t structure per partition to indicate
+@@ -902,14 +961,11 @@ xpc_do_exit(enum xp_retval reason)
+ 	} while (1);
+ 
+ 	DBUG_ON(xpc_partition_engaged(-1UL));
++	DBUG_ON(xpc_any_hbs_allowed() != 0);
+ 
+ 	/* indicate to others that our reserved page is uninitialized */
+ 	xpc_rsvd_page->stamp = ZERO_STAMP;
+ 
+-	/* now it's time to eliminate our heartbeat */
+-	del_timer_sync(&xpc_hb_timer);
+-	DBUG_ON(xpc_vars->heartbeating_to_mask != 0);
+-
+ 	if (reason == xpUnloading) {
+ 		(void)unregister_die_notifier(&xpc_die_notifier);
+ 		(void)unregister_reboot_notifier(&xpc_reboot_notifier);
+@@ -968,7 +1024,7 @@ xpc_die_disengage(void)
+ 	/* keep xpc_hb_checker thread from doing anything (just in case) */
+ 	xpc_exiting = 1;
+ 
+-	xpc_vars->heartbeating_to_mask = 0;	/* indicate we're deactivated */
++	xpc_disallow_all_hbs();	/*indicate we're deactivated */
+ 
+ 	for (partid = 0; partid < xp_max_npartitions; partid++) {
+ 		part = &xpc_partitions[partid];
+@@ -1054,8 +1110,7 @@ xpc_system_die(struct notifier_block *nb
+ 		/* fall through */
+ 	case DIE_MCA_MONARCH_ENTER:
+ 	case DIE_INIT_MONARCH_ENTER:
+-		xpc_vars->heartbeat++;
+-		xpc_vars->heartbeat_offline = 1;
++		xpc_offline_heartbeat();
+ 		break;
+ 
+ 	case DIE_KDEBUG_LEAVE:
+@@ -1066,8 +1121,7 @@ xpc_system_die(struct notifier_block *nb
+ 		/* fall through */
+ 	case DIE_MCA_MONARCH_LEAVE:
+ 	case DIE_INIT_MONARCH_LEAVE:
+-		xpc_vars->heartbeat++;
+-		xpc_vars->heartbeat_offline = 0;
++		xpc_online_heartbeat();
+ 		break;
+ 	}
+ 
+@@ -1202,9 +1256,6 @@ xpc_init(void)
+ 	if (ret != 0)
+ 		dev_warn(xpc_part, "can't register die notifier\n");
+ 
+-	init_timer(&xpc_hb_timer);
+-	xpc_hb_timer.function = xpc_hb_beater;
+-
+ 	/*
+ 	 * The real work-horse behind xpc.  This processes incoming
+ 	 * interrupts and monitors remote heartbeats.
+@@ -1246,7 +1297,6 @@ out_4:
+ 	/* indicate to others that our reserved page is uninitialized */
+ 	xpc_rsvd_page->stamp = ZERO_STAMP;
+ 
+-	del_timer_sync(&xpc_hb_timer);
+ 	(void)unregister_die_notifier(&xpc_die_notifier);
+ 	(void)unregister_reboot_notifier(&xpc_reboot_notifier);
+ out_3:
+diff -puN drivers/misc/sgi-xp/xpc_partition.c~sgi-xp-isolate-xpc_vars-structure-to-sn2-only drivers/misc/sgi-xp/xpc_partition.c
+--- a/drivers/misc/sgi-xp/xpc_partition.c~sgi-xp-isolate-xpc_vars-structure-to-sn2-only
++++ a/drivers/misc/sgi-xp/xpc_partition.c
+@@ -42,7 +42,7 @@ u64 xpc_prot_vec[MAX_NUMNODES];
+ /* this partition's reserved page pointers */
+ struct xpc_rsvd_page *xpc_rsvd_page;
+ static u64 *xpc_part_nasids;
+-static u64 *xpc_mach_nasids;
++u64 *xpc_mach_nasids;
+ 
+ /* >>> next two variables should be 'xpc_' if they remain here */
+ static int xp_sizeof_nasid_mask;	/* actual size in bytes of nasid mask */
+@@ -318,69 +318,13 @@ xpc_restrict_IPI_ops(void)
+ }
+ 
+ /*
+- * At periodic intervals, scan through all active partitions and ensure
+- * their heartbeat is still active.  If not, the partition is deactivated.
+- */
+-void
+-xpc_check_remote_hb(void)
+-{
+-	struct xpc_vars *remote_vars;
+-	struct xpc_partition *part;
+-	short partid;
+-	enum xp_retval ret;
+-
+-	remote_vars = (struct xpc_vars *)xpc_remote_copy_buffer;
+-
+-	for (partid = 0; partid < xp_max_npartitions; partid++) {
+-
+-		if (xpc_exiting)
+-			break;
+-
+-		if (partid == sn_partition_id)
+-			continue;
+-
+-		part = &xpc_partitions[partid];
+-
+-		if (part->act_state == XPC_P_INACTIVE ||
+-		    part->act_state == XPC_P_DEACTIVATING) {
+-			continue;
+-		}
+-
+-		/* pull the remote_hb cache line */
+-		ret = xp_remote_memcpy(remote_vars,
+-				       (void *)part->remote_vars_pa,
+-				       XPC_RP_VARS_SIZE);
+-		if (ret != xpSuccess) {
+-			XPC_DEACTIVATE_PARTITION(part, ret);
+-			continue;
+-		}
+-
+-		dev_dbg(xpc_part, "partid = %d, heartbeat = %ld, last_heartbeat"
+-			" = %ld, heartbeat_offline = %ld, HB_mask = 0x%lx\n",
+-			partid, remote_vars->heartbeat, part->last_heartbeat,
+-			remote_vars->heartbeat_offline,
+-			remote_vars->heartbeating_to_mask);
+-
+-		if (((remote_vars->heartbeat == part->last_heartbeat) &&
+-		     (remote_vars->heartbeat_offline == 0)) ||
+-		    !xpc_hb_allowed(sn_partition_id, remote_vars)) {
+-
+-			XPC_DEACTIVATE_PARTITION(part, xpNoHeartbeat);
+-			continue;
+-		}
+-
+-		part->last_heartbeat = remote_vars->heartbeat;
+-	}
+-}
+-
+-/*
+  * Get a copy of a portion of the remote partition's rsvd page.
+  *
+  * remote_rp points to a buffer that is cacheline aligned for BTE copies and
+  * is large enough to contain a copy of their reserved page header and
+  * part_nasids mask.
+  */
+-static enum xp_retval
++enum xp_retval
+ xpc_get_remote_rp(int nasid, u64 *discovered_nasids,
+ 		  struct xpc_rsvd_page *remote_rp, u64 *remote_rp_pa)
+ {
+@@ -432,322 +376,6 @@ xpc_get_remote_rp(int nasid, u64 *discov
+ }
+ 
+ /*
+- * Get a copy of the remote partition's XPC variables from the reserved page.
+- *
+- * remote_vars points to a buffer that is cacheline aligned for BTE copies and
+- * assumed to be of size XPC_RP_VARS_SIZE.
+- */
+-static enum xp_retval
+-xpc_get_remote_vars(u64 remote_vars_pa, struct xpc_vars *remote_vars)
+-{
+-	enum xp_retval ret;
+-
+-	if (remote_vars_pa == 0)
+-		return xpVarsNotSet;
+-
+-	/* pull over the cross partition variables */
+-	ret = xp_remote_memcpy(remote_vars, (void *)remote_vars_pa,
+-			       XPC_RP_VARS_SIZE);
+-	if (ret != xpSuccess)
+-		return ret;
+-
+-	if (XPC_VERSION_MAJOR(remote_vars->version) !=
+-	    XPC_VERSION_MAJOR(XPC_V_VERSION)) {
+-		return xpBadVersion;
+-	}
+-
+-	return xpSuccess;
+-}
+-
+-/*
+- * Update the remote partition's info.
+- */
+-static void
+-xpc_update_partition_info(struct xpc_partition *part, u8 remote_rp_version,
+-			  struct timespec *remote_rp_stamp, u64 remote_rp_pa,
+-			  u64 remote_vars_pa, struct xpc_vars *remote_vars)
+-{
+-	part->remote_rp_version = remote_rp_version;
+-	dev_dbg(xpc_part, "  remote_rp_version = 0x%016x\n",
+-		part->remote_rp_version);
+-
+-	part->remote_rp_stamp = *remote_rp_stamp;
+-	dev_dbg(xpc_part, "  remote_rp_stamp (tv_sec = 0x%lx tv_nsec = 0x%lx\n",
+-		part->remote_rp_stamp.tv_sec, part->remote_rp_stamp.tv_nsec);
+-
+-	part->remote_rp_pa = remote_rp_pa;
+-	dev_dbg(xpc_part, "  remote_rp_pa = 0x%016lx\n", part->remote_rp_pa);
+-
+-	part->remote_vars_pa = remote_vars_pa;
+-	dev_dbg(xpc_part, "  remote_vars_pa = 0x%016lx\n",
+-		part->remote_vars_pa);
+-
+-	part->last_heartbeat = remote_vars->heartbeat;
+-	dev_dbg(xpc_part, "  last_heartbeat = 0x%016lx\n",
+-		part->last_heartbeat);
+-
+-/* >>> remote_vars_part_pa and vars_part_pa are sn2 only!!! */
+-	part->remote_vars_part_pa = remote_vars->vars_part_pa;
+-	dev_dbg(xpc_part, "  remote_vars_part_pa = 0x%016lx\n",
+-		part->remote_vars_part_pa);
+-
+-	part->remote_act_nasid = remote_vars->act_nasid;
+-	dev_dbg(xpc_part, "  remote_act_nasid = 0x%x\n",
+-		part->remote_act_nasid);
+-
+-	part->remote_act_phys_cpuid = remote_vars->act_phys_cpuid;
+-	dev_dbg(xpc_part, "  remote_act_phys_cpuid = 0x%x\n",
+-		part->remote_act_phys_cpuid);
+-
+-	part->remote_amos_page_pa = remote_vars->amos_page_pa;
+-	dev_dbg(xpc_part, "  remote_amos_page_pa = 0x%lx\n",
+-		part->remote_amos_page_pa);
+-
+-	part->remote_vars_version = remote_vars->version;
+-	dev_dbg(xpc_part, "  remote_vars_version = 0x%x\n",
+-		part->remote_vars_version);
+-}
+-
+-/*
+- * Prior code has determined the nasid which generated an IPI.  Inspect
+- * that nasid to determine if its partition needs to be activated or
+- * deactivated.
+- *
+- * A partition is consider "awaiting activation" if our partition
+- * flags indicate it is not active and it has a heartbeat.  A
+- * partition is considered "awaiting deactivation" if our partition
+- * flags indicate it is active but it has no heartbeat or it is not
+- * sending its heartbeat to us.
+- *
+- * To determine the heartbeat, the remote nasid must have a properly
+- * initialized reserved page.
+- */
+-static void
+-xpc_identify_act_IRQ_req(int nasid)
+-{
+-	struct xpc_rsvd_page *remote_rp;
+-	struct xpc_vars *remote_vars;
+-	u64 remote_rp_pa;
+-	u64 remote_vars_pa;
+-	int remote_rp_version;
+-	int reactivate = 0;
+-	int stamp_diff;
+-	struct timespec remote_rp_stamp = { 0, 0 }; /*>>> ZERO_STAMP */
+-	short partid;
+-	struct xpc_partition *part;
+-	enum xp_retval ret;
+-
+-	/* pull over the reserved page structure */
+-
+-	remote_rp = (struct xpc_rsvd_page *)xpc_remote_copy_buffer;
+-
+-	ret = xpc_get_remote_rp(nasid, NULL, remote_rp, &remote_rp_pa);
+-	if (ret != xpSuccess) {
+-		dev_warn(xpc_part, "unable to get reserved page from nasid %d, "
+-			 "which sent interrupt, reason=%d\n", nasid, ret);
+-		return;
+-	}
+-
+-	remote_vars_pa = remote_rp->sn.vars_pa;
+-	remote_rp_version = remote_rp->version;
+-	if (XPC_SUPPORTS_RP_STAMP(remote_rp_version))
+-		remote_rp_stamp = remote_rp->stamp;
+-
+-	partid = remote_rp->SAL_partid;
+-	part = &xpc_partitions[partid];
+-
+-	/* pull over the cross partition variables */
+-
+-	remote_vars = (struct xpc_vars *)xpc_remote_copy_buffer;
+-
+-	ret = xpc_get_remote_vars(remote_vars_pa, remote_vars);
+-	if (ret != xpSuccess) {
+-
+-		dev_warn(xpc_part, "unable to get XPC variables from nasid %d, "
+-			 "which sent interrupt, reason=%d\n", nasid, ret);
+-
+-		XPC_DEACTIVATE_PARTITION(part, ret);
+-		return;
+-	}
+-
+-	part->act_IRQ_rcvd++;
+-
+-	dev_dbg(xpc_part, "partid for nasid %d is %d; IRQs = %d; HB = "
+-		"%ld:0x%lx\n", (int)nasid, (int)partid, part->act_IRQ_rcvd,
+-		remote_vars->heartbeat, remote_vars->heartbeating_to_mask);
+-
+-	if (xpc_partition_disengaged(part) &&
+-	    part->act_state == XPC_P_INACTIVE) {
+-
+-		xpc_update_partition_info(part, remote_rp_version,
+-					  &remote_rp_stamp, remote_rp_pa,
+-					  remote_vars_pa, remote_vars);
+-
+-		if (XPC_SUPPORTS_DISENGAGE_REQUEST(part->remote_vars_version)) {
+-			if (xpc_partition_disengage_requested(1UL << partid)) {
+-				/*
+-				 * Other side is waiting on us to disengage,
+-				 * even though we already have.
+-				 */
+-				return;
+-			}
+-		} else {
+-			/* other side doesn't support disengage requests */
+-			xpc_clear_partition_disengage_request(1UL << partid);
+-		}
+-
+-		xpc_activate_partition(part);
+-		return;
+-	}
+-
+-	DBUG_ON(part->remote_rp_version == 0);
+-	DBUG_ON(part->remote_vars_version == 0);
+-
+-	if (!XPC_SUPPORTS_RP_STAMP(part->remote_rp_version)) {
+-		DBUG_ON(XPC_SUPPORTS_DISENGAGE_REQUEST(part->
+-						       remote_vars_version));
+-
+-		if (!XPC_SUPPORTS_RP_STAMP(remote_rp_version)) {
+-			DBUG_ON(XPC_SUPPORTS_DISENGAGE_REQUEST(remote_vars->
+-							       version));
+-			/* see if the other side rebooted */
+-			if (part->remote_amos_page_pa ==
+-			    remote_vars->amos_page_pa &&
+-			    xpc_hb_allowed(sn_partition_id, remote_vars)) {
+-				/* doesn't look that way, so ignore the IPI */
+-				return;
+-			}
+-		}
+-
+-		/*
+-		 * Other side rebooted and previous XPC didn't support the
+-		 * disengage request, so we don't need to do anything special.
+-		 */
+-
+-		xpc_update_partition_info(part, remote_rp_version,
+-					  &remote_rp_stamp, remote_rp_pa,
+-					  remote_vars_pa, remote_vars);
+-		part->reactivate_nasid = nasid;
+-		XPC_DEACTIVATE_PARTITION(part, xpReactivating);
+-		return;
+-	}
+-
+-	DBUG_ON(!XPC_SUPPORTS_DISENGAGE_REQUEST(part->remote_vars_version));
+-
+-	if (!XPC_SUPPORTS_RP_STAMP(remote_rp_version)) {
+-		DBUG_ON(!XPC_SUPPORTS_DISENGAGE_REQUEST(remote_vars->version));
+-
+-		/*
+-		 * Other side rebooted and previous XPC did support the
+-		 * disengage request, but the new one doesn't.
+-		 */
+-
+-		xpc_clear_partition_engaged(1UL << partid);
+-		xpc_clear_partition_disengage_request(1UL << partid);
+-
+-		xpc_update_partition_info(part, remote_rp_version,
+-					  &remote_rp_stamp, remote_rp_pa,
+-					  remote_vars_pa, remote_vars);
+-		reactivate = 1;
+-
+-	} else {
+-		DBUG_ON(!XPC_SUPPORTS_DISENGAGE_REQUEST(remote_vars->version));
+-
+-		stamp_diff = xpc_compare_stamps(&part->remote_rp_stamp,
+-						&remote_rp_stamp);
+-		if (stamp_diff != 0) {
+-			DBUG_ON(stamp_diff >= 0);
+-
+-			/*
+-			 * Other side rebooted and the previous XPC did support
+-			 * the disengage request, as does the new one.
+-			 */
+-
+-			DBUG_ON(xpc_partition_engaged(1UL << partid));
+-			DBUG_ON(xpc_partition_disengage_requested(1UL <<
+-								  partid));
+-
+-			xpc_update_partition_info(part, remote_rp_version,
+-						  &remote_rp_stamp,
+-						  remote_rp_pa, remote_vars_pa,
+-						  remote_vars);
+-			reactivate = 1;
+-		}
+-	}
+-
+-	if (part->disengage_request_timeout > 0 &&
+-	    !xpc_partition_disengaged(part)) {
+-		/* still waiting on other side to disengage from us */
+-		return;
+-	}
+-
+-	if (reactivate) {
+-		part->reactivate_nasid = nasid;
+-		XPC_DEACTIVATE_PARTITION(part, xpReactivating);
+-
+-	} else if (XPC_SUPPORTS_DISENGAGE_REQUEST(part->remote_vars_version) &&
+-		   xpc_partition_disengage_requested(1UL << partid)) {
+-		XPC_DEACTIVATE_PARTITION(part, xpOtherGoingDown);
+-	}
+-}
+-
+-/*
+- * Loop through the activation AMO variables and process any bits
+- * which are set.  Each bit indicates a nasid sending a partition
+- * activation or deactivation request.
+- *
+- * Return #of IRQs detected.
+- */
+-int
+-xpc_identify_act_IRQ_sender(void)
+-{
+-	int word, bit;
+-	u64 nasid_mask;
+-	u64 nasid;		/* remote nasid */
+-	int n_IRQs_detected = 0;
+-	AMO_t *act_amos;
+-
+-	act_amos = xpc_vars->amos_page + XPC_ACTIVATE_IRQ_AMOS;
+-
+-	/* scan through act AMO variable looking for non-zero entries */
+-	for (word = 0; word < xp_nasid_mask_words; word++) {
+-
+-		if (xpc_exiting)
+-			break;
+-
+-		nasid_mask = xpc_IPI_receive(&act_amos[word]);
+-		if (nasid_mask == 0) {
+-			/* no IRQs from nasids in this variable */
+-			continue;
+-		}
+-
+-		dev_dbg(xpc_part, "AMO[%d] gave back 0x%lx\n", word,
+-			nasid_mask);
+-
+-		/*
+-		 * If this nasid has been added to the machine since
+-		 * our partition was reset, this will retain the
+-		 * remote nasid in our reserved pages machine mask.
+-		 * This is used in the event of module reload.
+-		 */
+-		xpc_mach_nasids[word] |= nasid_mask;
+-
+-		/* locate the nasid(s) which sent interrupts */
+-
+-		for (bit = 0; bit < (8 * sizeof(u64)); bit++) {
+-			if (nasid_mask & (1UL << bit)) {
+-				n_IRQs_detected++;
+-				nasid = XPC_NASID_FROM_W_B(word, bit);
+-				dev_dbg(xpc_part, "interrupt from nasid %ld\n",
+-					nasid);
+-				xpc_identify_act_IRQ_req(nasid);
+-			}
+-		}
+-	}
+-	return n_IRQs_detected;
+-}
+-
+-/*
+  * See if the other side has responded to a partition disengage request
+  * from us.
+  */
+@@ -836,7 +464,7 @@ xpc_deactivate_partition(const int line,
+ 		spin_unlock_irqrestore(&part->act_lock, irq_flags);
+ 		if (reason == xpReactivating) {
+ 			/* we interrupt ourselves to reactivate partition */
+-			xpc_IPI_send_reactivate(part);
++			xpc_IPI_send_local_reactivate(part->reactivate_nasid);
+ 		}
+ 		return;
+ 	}
+@@ -903,16 +531,12 @@ xpc_discovery(void)
+ {
+ 	void *remote_rp_base;
+ 	struct xpc_rsvd_page *remote_rp;
+-	struct xpc_vars *remote_vars;
+ 	u64 remote_rp_pa;
+-	u64 remote_vars_pa;
+ 	int region;
+ 	int region_size;
+ 	int max_regions;
+ 	int nasid;
+ 	struct xpc_rsvd_page *rp;
+-	short partid;
+-	struct xpc_partition *part;
+ 	u64 *discovered_nasids;
+ 	enum xp_retval ret;
+ 
+@@ -922,8 +546,6 @@ xpc_discovery(void)
+ 	if (remote_rp == NULL)
+ 		return;
+ 
+-	remote_vars = (struct xpc_vars *)remote_rp;
+-
+ 	discovered_nasids = kzalloc(sizeof(u64) * xp_nasid_mask_words,
+ 				    GFP_KERNEL);
+ 	if (discovered_nasids == NULL) {
+@@ -988,7 +610,7 @@ xpc_discovery(void)
+ 				continue;
+ 			}
+ 
+-			/* pull over the reserved page structure */
++			/* pull over the rsvd page header & part_nasids mask */
+ 
+ 			ret = xpc_get_remote_rp(nasid, discovered_nasids,
+ 						remote_rp, &remote_rp_pa);
+@@ -1003,72 +625,8 @@ xpc_discovery(void)
+ 				continue;
+ 			}
+ 
+-			remote_vars_pa = remote_rp->sn.vars_pa;
+-
+-			partid = remote_rp->SAL_partid;
+-			part = &xpc_partitions[partid];
+-
+-			/* pull over the cross partition variables */
+-
+-			ret = xpc_get_remote_vars(remote_vars_pa, remote_vars);
+-			if (ret != xpSuccess) {
+-				dev_dbg(xpc_part, "unable to get XPC variables "
+-					"from nasid %d, reason=%d\n", nasid,
+-					ret);
+-
+-				XPC_DEACTIVATE_PARTITION(part, ret);
+-				continue;
+-			}
+-
+-			if (part->act_state != XPC_P_INACTIVE) {
+-				dev_dbg(xpc_part, "partition %d on nasid %d is "
+-					"already activating\n", partid, nasid);
+-				break;
+-			}
+-
+-			/*
+-			 * Register the remote partition's AMOs with SAL so it
+-			 * can handle and cleanup errors within that address
+-			 * range should the remote partition go down. We don't
+-			 * unregister this range because it is difficult to
+-			 * tell when outstanding writes to the remote partition
+-			 * are finished and thus when it is thus safe to
+-			 * unregister. This should not result in wasted space
+-			 * in the SAL xp_addr_region table because we should
+-			 * get the same page for remote_act_amos_pa after
+-			 * module reloads and system reboots.
+-			 */
+-			if (sn_register_xp_addr_region
+-			    (remote_vars->amos_page_pa, PAGE_SIZE, 1) < 0) {
+-				dev_dbg(xpc_part,
+-					"partition %d failed to "
+-					"register xp_addr region 0x%016lx\n",
+-					partid, remote_vars->amos_page_pa);
+-
+-				XPC_SET_REASON(part, xpPhysAddrRegFailed,
+-					       __LINE__);
+-				break;
+-			}
+-
+-			/*
+-			 * The remote nasid is valid and available.
+-			 * Send an interrupt to that nasid to notify
+-			 * it that we are ready to begin activation.
+-			 */
+-			dev_dbg(xpc_part, "sending an interrupt to AMO 0x%lx, "
+-				"nasid %d, phys_cpuid 0x%x\n",
+-				remote_vars->amos_page_pa,
+-				remote_vars->act_nasid,
+-				remote_vars->act_phys_cpuid);
+-
+-			if (XPC_SUPPORTS_DISENGAGE_REQUEST(remote_vars->
+-							   version)) {
+-				part->remote_amos_page_pa =
+-				    remote_vars->amos_page_pa;
+-				xpc_mark_partition_disengaged(part);
+-				xpc_cancel_partition_disengage_request(part);
+-			}
+-			xpc_IPI_send_activate(remote_vars);
++			xpc_initiate_partition_activation(remote_rp,
++							  remote_rp_pa, nasid);
+ 		}
+ 	}
+ 
+diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-isolate-xpc_vars-structure-to-sn2-only drivers/misc/sgi-xp/xpc_sn2.c
+--- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-isolate-xpc_vars-structure-to-sn2-only
++++ a/drivers/misc/sgi-xp/xpc_sn2.c
+@@ -19,9 +19,370 @@
+ #include <asm/sn/sn_sal.h>
+ #include "xpc.h"
+ 
+-struct xpc_vars *xpc_vars;
++static struct xpc_vars_sn2 *xpc_vars;	/* >>> Add _sn2 suffix? */
+ static struct xpc_vars_part_sn2 *xpc_vars_part; /* >>> Add _sn2 suffix? */
+ 
++/*
++ * The following set of macros and functions are used for the sending and
++ * receiving of IPIs (also known as IRQs). There are two flavors of IPIs,
++ * one that is associated with partition activity (SGI_XPC_ACTIVATE) and
++ * the other that is associated with channel activity (SGI_XPC_NOTIFY).
++ */
++
++static u64
++xpc_IPI_receive_sn2(AMO_t *amo)
++{
++	return FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_CLEAR);
++}
++
++static enum xp_retval
++xpc_IPI_send_sn2(AMO_t *amo, u64 flag, int nasid, int phys_cpuid, int vector)
++{
++	int ret = 0;
++	unsigned long irq_flags;
++
++	local_irq_save(irq_flags);
++
++	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_OR, flag);
++	sn_send_IPI_phys(nasid, phys_cpuid, vector, 0);
++
++	/*
++	 * We must always use the nofault function regardless of whether we
++	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
++	 * didn't, we'd never know that the other partition is down and would
++	 * keep sending IPIs and AMOs to it until the heartbeat times out.
++	 */
++	ret = xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->variable),
++						     xp_nofault_PIOR_target));
++
++	local_irq_restore(irq_flags);
++
++	return ((ret == 0) ? xpSuccess : xpPioReadError);
++}
++
++static AMO_t *
++xpc_IPI_init_sn2(int index)
++{
++	AMO_t *amo = xpc_vars->amos_page + index;
++
++	(void)xpc_IPI_receive_sn2(amo);	/* clear AMO variable */
++	return amo;
++}
++
++/*
++ * IPIs associated with SGI_XPC_ACTIVATE IRQ.
++ */
++
++/*
++ * Flag the appropriate AMO variable and send an IPI to the specified node.
++ */
++static void
++xpc_activate_IRQ_send_sn2(u64 amos_page_pa, int from_nasid, int to_nasid,
++		      int to_phys_cpuid)
++{
++	int w_index = XPC_NASID_W_INDEX(from_nasid);
++	int b_index = XPC_NASID_B_INDEX(from_nasid);
++	AMO_t *amos = (AMO_t *)__va(amos_page_pa +
++				    (XPC_ACTIVATE_IRQ_AMOS * sizeof(AMO_t)));
++
++	(void)xpc_IPI_send_sn2(&amos[w_index], (1UL << b_index), to_nasid,
++			       to_phys_cpuid, SGI_XPC_ACTIVATE);
++}
++
++static void
++xpc_activate_IRQ_send_local_sn2(int from_nasid)
++{
++	int w_index = XPC_NASID_W_INDEX(from_nasid);
++	int b_index = XPC_NASID_B_INDEX(from_nasid);
++	AMO_t *amos = (AMO_t *)__va(xpc_vars->amos_page_pa +
++				    (XPC_ACTIVATE_IRQ_AMOS * sizeof(AMO_t)));
++
++	/* fake the sending and receipt of an activate IRQ from remote nasid */
++	FETCHOP_STORE_OP(TO_AMO((u64)&amos[w_index].variable), FETCHOP_OR,
++			 (1UL << b_index));
++	atomic_inc(&xpc_act_IRQ_rcvd);
++	wake_up_interruptible(&xpc_act_IRQ_wq);
++}
++
++static void
++xpc_IPI_send_local_activate_sn2(int from_nasid)
++{
++	xpc_activate_IRQ_send_local_sn2(from_nasid);
++}
++
++static void
++xpc_IPI_send_activated_sn2(struct xpc_partition *part)
++{
++	xpc_activate_IRQ_send_sn2(part->remote_amos_page_pa,
++				  cnodeid_to_nasid(0), part->remote_act_nasid,
++				  part->remote_act_phys_cpuid);
++}
++
++static void
++xpc_IPI_send_local_reactivate_sn2(int from_nasid)
++{
++	xpc_activate_IRQ_send_local_sn2(from_nasid);
++}
++
++static void
++xpc_IPI_send_disengage_sn2(struct xpc_partition *part)
++{
++	xpc_activate_IRQ_send_sn2(part->remote_amos_page_pa,
++				  cnodeid_to_nasid(0), part->remote_act_nasid,
++				  part->remote_act_phys_cpuid);
++}
++
++/*
++ * IPIs associated with SGI_XPC_NOTIFY IRQ.
++ */
++
++/*
++ * Send an IPI to the remote partition that is associated with the
++ * specified channel.
++ */
++static void
++xpc_notify_IRQ_send_sn2(struct xpc_channel *ch, u8 ipi_flag,
++			char *ipi_flag_string, unsigned long *irq_flags)
++{
++	struct xpc_partition *part = &xpc_partitions[ch->partid];
++	enum xp_retval ret;
++
++	if (likely(part->act_state != XPC_P_DEACTIVATING)) {
++		ret = xpc_IPI_send_sn2(part->remote_IPI_amo_va,
++				       (u64)ipi_flag << (ch->number * 8),
++				       part->remote_IPI_nasid,
++				       part->remote_IPI_phys_cpuid,
++				       SGI_XPC_NOTIFY);
++		dev_dbg(xpc_chan, "%s sent to partid=%d, channel=%d, ret=%d\n",
++			ipi_flag_string, ch->partid, ch->number, ret);
++		if (unlikely(ret != xpSuccess)) {
++			if (irq_flags != NULL)
++				spin_unlock_irqrestore(&ch->lock, *irq_flags);
++			XPC_DEACTIVATE_PARTITION(part, ret);
++			if (irq_flags != NULL)
++				spin_lock_irqsave(&ch->lock, *irq_flags);
++		}
++	}
++}
++
++#define XPC_NOTIFY_IRQ_SEND_SN2(_ch, _ipi_f, _irq_f) \
++		xpc_notify_IRQ_send_sn2(_ch, _ipi_f, #_ipi_f, _irq_f)
++
++/*
++ * Make it look like the remote partition, which is associated with the
++ * specified channel, sent us an IPI. This faked IPI will be handled
++ * by xpc_dropped_IPI_check().
++ */
++static void
++xpc_notify_IRQ_send_local_sn2(struct xpc_channel *ch, u8 ipi_flag,
++			      char *ipi_flag_string)
++{
++	struct xpc_partition *part = &xpc_partitions[ch->partid];
++
++	FETCHOP_STORE_OP(TO_AMO((u64)&part->local_IPI_amo_va->variable),
++			 FETCHOP_OR, ((u64)ipi_flag << (ch->number * 8)));
++	dev_dbg(xpc_chan, "%s sent local from partid=%d, channel=%d\n",
++		ipi_flag_string, ch->partid, ch->number);
++}
++
++#define XPC_NOTIFY_IRQ_SEND_LOCAL_SN2(_ch, _ipi_f) \
++		xpc_notify_IRQ_send_local_sn2(_ch, _ipi_f, #_ipi_f)
++
++static void
++xpc_IPI_send_closerequest_sn2(struct xpc_channel *ch, unsigned long *irq_flags)
++{
++	struct xpc_openclose_args *args = ch->local_openclose_args;
++
++	args->reason = ch->reason;
++	XPC_NOTIFY_IRQ_SEND_SN2(ch, XPC_IPI_CLOSEREQUEST, irq_flags);
++}
++
++static void
++xpc_IPI_send_closereply_sn2(struct xpc_channel *ch, unsigned long *irq_flags)
++{
++	XPC_NOTIFY_IRQ_SEND_SN2(ch, XPC_IPI_CLOSEREPLY, irq_flags);
++}
++
++static void
++xpc_IPI_send_openrequest_sn2(struct xpc_channel *ch, unsigned long *irq_flags)
++{
++	struct xpc_openclose_args *args = ch->local_openclose_args;
++
++	args->msg_size = ch->msg_size;
++	args->local_nentries = ch->local_nentries;
++	XPC_NOTIFY_IRQ_SEND_SN2(ch, XPC_IPI_OPENREQUEST, irq_flags);
++}
++
++static void
++xpc_IPI_send_openreply_sn2(struct xpc_channel *ch, unsigned long *irq_flags)
++{
++	struct xpc_openclose_args *args = ch->local_openclose_args;
++
++	args->remote_nentries = ch->remote_nentries;
++	args->local_nentries = ch->local_nentries;
++	args->local_msgqueue_pa = __pa(ch->local_msgqueue);
++	XPC_NOTIFY_IRQ_SEND_SN2(ch, XPC_IPI_OPENREPLY, irq_flags);
++}
++
++static void
++xpc_IPI_send_msgrequest_sn2(struct xpc_channel *ch)
++{
++	XPC_NOTIFY_IRQ_SEND_SN2(ch, XPC_IPI_MSGREQUEST, NULL);
++}
++
++static void
++xpc_IPI_send_local_msgrequest_sn2(struct xpc_channel *ch)
++{
++	XPC_NOTIFY_IRQ_SEND_LOCAL_SN2(ch, XPC_IPI_MSGREQUEST);
++}
++
++/*
++ * This next set of functions are used to keep track of when a partition is
++ * potentially engaged in accessing memory belonging to another partition.
++ */
++
++static void
++xpc_mark_partition_engaged_sn2(struct xpc_partition *part)
++{
++	unsigned long irq_flags;
++	AMO_t *amo = (AMO_t *)__va(part->remote_amos_page_pa +
++				   (XPC_ENGAGED_PARTITIONS_AMO *
++				    sizeof(AMO_t)));
++
++	local_irq_save(irq_flags);
++
++	/* set bit corresponding to our partid in remote partition's AMO */
++	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_OR,
++			 (1UL << sn_partition_id));
++	/*
++	 * We must always use the nofault function regardless of whether we
++	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
++	 * didn't, we'd never know that the other partition is down and would
++	 * keep sending IPIs and AMOs to it until the heartbeat times out.
++	 */
++	(void)xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->
++							       variable),
++						     xp_nofault_PIOR_target));
++
++	local_irq_restore(irq_flags);
++}
++
++static void
++xpc_mark_partition_disengaged_sn2(struct xpc_partition *part)
++{
++	unsigned long irq_flags;
++	AMO_t *amo = (AMO_t *)__va(part->remote_amos_page_pa +
++				   (XPC_ENGAGED_PARTITIONS_AMO *
++				    sizeof(AMO_t)));
++
++	local_irq_save(irq_flags);
++
++	/* clear bit corresponding to our partid in remote partition's AMO */
++	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_AND,
++			 ~(1UL << sn_partition_id));
++	/*
++	 * We must always use the nofault function regardless of whether we
++	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
++	 * didn't, we'd never know that the other partition is down and would
++	 * keep sending IPIs and AMOs to it until the heartbeat times out.
++	 */
++	(void)xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->
++							       variable),
++						     xp_nofault_PIOR_target));
++
++	local_irq_restore(irq_flags);
++}
++
++static void
++xpc_request_partition_disengage_sn2(struct xpc_partition *part)
++{
++	unsigned long irq_flags;
++	AMO_t *amo = (AMO_t *)__va(part->remote_amos_page_pa +
++				   (XPC_DISENGAGE_REQUEST_AMO * sizeof(AMO_t)));
++
++	local_irq_save(irq_flags);
++
++	/* set bit corresponding to our partid in remote partition's AMO */
++	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_OR,
++			 (1UL << sn_partition_id));
++	/*
++	 * We must always use the nofault function regardless of whether we
++	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
++	 * didn't, we'd never know that the other partition is down and would
++	 * keep sending IPIs and AMOs to it until the heartbeat times out.
++	 */
++	(void)xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->
++							       variable),
++						     xp_nofault_PIOR_target));
++
++	local_irq_restore(irq_flags);
++}
++
++static void
++xpc_cancel_partition_disengage_request_sn2(struct xpc_partition *part)
++{
++	unsigned long irq_flags;
++	AMO_t *amo = (AMO_t *)__va(part->remote_amos_page_pa +
++				   (XPC_DISENGAGE_REQUEST_AMO * sizeof(AMO_t)));
++
++	local_irq_save(irq_flags);
++
++	/* clear bit corresponding to our partid in remote partition's AMO */
++	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_AND,
++			 ~(1UL << sn_partition_id));
++	/*
++	 * We must always use the nofault function regardless of whether we
++	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
++	 * didn't, we'd never know that the other partition is down and would
++	 * keep sending IPIs and AMOs to it until the heartbeat times out.
++	 */
++	(void)xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->
++							       variable),
++						     xp_nofault_PIOR_target));
++
++	local_irq_restore(irq_flags);
++}
++
++static u64
++xpc_partition_engaged_sn2(u64 partid_mask)
++{
++	AMO_t *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
++
++	/* return our partition's AMO variable ANDed with partid_mask */
++	return (FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_LOAD) &
++		partid_mask);
++}
++
++static u64
++xpc_partition_disengage_requested_sn2(u64 partid_mask)
++{
++	AMO_t *amo = xpc_vars->amos_page + XPC_DISENGAGE_REQUEST_AMO;
++
++	/* return our partition's AMO variable ANDed with partid_mask */
++	return (FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_LOAD) &
++		partid_mask);
++}
++
++static void
++xpc_clear_partition_engaged_sn2(u64 partid_mask)
++{
++	AMO_t *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
++
++	/* clear bit(s) based on partid_mask in our partition's AMO */
++	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_AND,
++			 ~partid_mask);
++}
++
++static void
++xpc_clear_partition_disengage_request_sn2(u64 partid_mask)
++{
++	AMO_t *amo = xpc_vars->amos_page + XPC_DISENGAGE_REQUEST_AMO;
++
++	/* clear bit(s) based on partid_mask in our partition's AMO */
++	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_AND,
++			 ~partid_mask);
++}
++
+ static enum xp_retval
+ xpc_rsvd_page_init_sn2(struct xpc_rsvd_page *rp)
+ {
+@@ -79,7 +440,7 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
+ 	}
+ 
+ 	/* clear xpc_vars */
+-	memset(xpc_vars, 0, sizeof(struct xpc_vars));
++	memset(xpc_vars, 0, sizeof(struct xpc_vars_sn2));
+ 
+ 	xpc_vars->version = XPC_V_VERSION;
+ 	xpc_vars->act_nasid = cpuid_to_nasid(0);
+@@ -94,15 +455,446 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
+ 
+ 	/* initialize the activate IRQ related AMO variables */
+ 	for (i = 0; i < xp_nasid_mask_words; i++)
+-		(void)xpc_IPI_init(XPC_ACTIVATE_IRQ_AMOS + i);
++		(void)xpc_IPI_init_sn2(XPC_ACTIVATE_IRQ_AMOS + i);
+ 
+ 	/* initialize the engaged remote partitions related AMO variables */
+-	(void)xpc_IPI_init(XPC_ENGAGED_PARTITIONS_AMO);
+-	(void)xpc_IPI_init(XPC_DISENGAGE_REQUEST_AMO);
++	(void)xpc_IPI_init_sn2(XPC_ENGAGED_PARTITIONS_AMO);
++	(void)xpc_IPI_init_sn2(XPC_DISENGAGE_REQUEST_AMO);
++
++	return xpSuccess;
++}
++
++static void
++xpc_increment_heartbeat_sn2(void)
++{
++	xpc_vars->heartbeat++;
++}
++
++static void
++xpc_offline_heartbeat_sn2(void)
++{
++	xpc_increment_heartbeat_sn2();
++	xpc_vars->heartbeat_offline = 1;
++}
++
++static void
++xpc_online_heartbeat_sn2(void)
++{
++	xpc_increment_heartbeat_sn2();
++	xpc_vars->heartbeat_offline = 0;
++}
++
++static void
++xpc_heartbeat_init_sn2(void)
++{
++	DBUG_ON(xpc_vars == NULL);
++
++	bitmap_zero(xpc_vars->heartbeating_to_mask, XP_MAX_NPARTITIONS_SN2);
++	xpc_heartbeating_to_mask = &xpc_vars->heartbeating_to_mask[0];
++	xpc_online_heartbeat_sn2();
++}
++
++static void
++xpc_heartbeat_exit_sn2(void)
++{
++	xpc_offline_heartbeat_sn2();
++}
++
++/*
++ * At periodic intervals, scan through all active partitions and ensure
++ * their heartbeat is still active.  If not, the partition is deactivated.
++ */
++static void
++xpc_check_remote_hb_sn2(void)
++{
++	struct xpc_vars_sn2 *remote_vars;
++	struct xpc_partition *part;
++	short partid;
++	enum xp_retval ret;
++
++	remote_vars = (struct xpc_vars_sn2 *)xpc_remote_copy_buffer;
++
++	for (partid = 0; partid < xp_max_npartitions; partid++) {
++
++		if (xpc_exiting)
++			break;
++
++		if (partid == sn_partition_id)
++			continue;
++
++		part = &xpc_partitions[partid];
++
++		if (part->act_state == XPC_P_INACTIVE ||
++		    part->act_state == XPC_P_DEACTIVATING) {
++			continue;
++		}
++
++		/* pull the remote_hb cache line */
++		ret = xp_remote_memcpy(remote_vars,
++				       (void *)part->remote_vars_pa,
++				       XPC_RP_VARS_SIZE);
++		if (ret != xpSuccess) {
++			XPC_DEACTIVATE_PARTITION(part, ret);
++			continue;
++		}
++
++		dev_dbg(xpc_part, "partid = %d, heartbeat = %ld, last_heartbeat"
++			" = %ld, heartbeat_offline = %ld, HB_mask[0] = 0x%lx\n",
++			partid, remote_vars->heartbeat, part->last_heartbeat,
++			remote_vars->heartbeat_offline,
++			remote_vars->heartbeating_to_mask[0]);
++
++		if (((remote_vars->heartbeat == part->last_heartbeat) &&
++		     (remote_vars->heartbeat_offline == 0)) ||
++		    !xpc_hb_allowed(sn_partition_id,
++				    &remote_vars->heartbeating_to_mask)) {
++
++			XPC_DEACTIVATE_PARTITION(part, xpNoHeartbeat);
++			continue;
++		}
++
++		part->last_heartbeat = remote_vars->heartbeat;
++	}
++}
++
++/*
++ * Get a copy of the remote partition's XPC variables from the reserved page.
++ *
++ * remote_vars points to a buffer that is cacheline aligned for BTE copies and
++ * assumed to be of size XPC_RP_VARS_SIZE.
++ */
++static enum xp_retval
++xpc_get_remote_vars_sn2(u64 remote_vars_pa, struct xpc_vars_sn2 *remote_vars)
++{
++	enum xp_retval ret;
++
++	if (remote_vars_pa == 0)
++		return xpVarsNotSet;
++
++	/* pull over the cross partition variables */
++	ret = xp_remote_memcpy(remote_vars, (void *)remote_vars_pa,
++			       XPC_RP_VARS_SIZE);
++	if (ret != xpSuccess)
++		return ret;
++
++	if (XPC_VERSION_MAJOR(remote_vars->version) !=
++	    XPC_VERSION_MAJOR(XPC_V_VERSION)) {
++		return xpBadVersion;
++	}
+ 
+ 	return xpSuccess;
+ }
+ 
++static void
++xpc_initiate_partition_activation_sn2(struct xpc_rsvd_page *remote_rp,
++				      u64 remote_rp_pa, int nasid)
++{
++	xpc_IPI_send_local_activate(nasid);
++}
++
++/*
++ * Update the remote partition's info.
++ */
++static void
++xpc_update_partition_info_sn2(struct xpc_partition *part, u8 remote_rp_version,
++			      struct timespec *remote_rp_stamp,
++			      u64 remote_rp_pa, u64 remote_vars_pa,
++			      struct xpc_vars_sn2 *remote_vars)
++{
++	part->remote_rp_version = remote_rp_version;
++	dev_dbg(xpc_part, "  remote_rp_version = 0x%016x\n",
++		part->remote_rp_version);
++
++	part->remote_rp_stamp = *remote_rp_stamp;
++	dev_dbg(xpc_part, "  remote_rp_stamp (tv_sec = 0x%lx tv_nsec = 0x%lx\n",
++		part->remote_rp_stamp.tv_sec, part->remote_rp_stamp.tv_nsec);
++
++	part->remote_rp_pa = remote_rp_pa;
++	dev_dbg(xpc_part, "  remote_rp_pa = 0x%016lx\n", part->remote_rp_pa);
++
++	part->remote_vars_pa = remote_vars_pa;
++	dev_dbg(xpc_part, "  remote_vars_pa = 0x%016lx\n",
++		part->remote_vars_pa);
++
++	part->last_heartbeat = remote_vars->heartbeat;
++	dev_dbg(xpc_part, "  last_heartbeat = 0x%016lx\n",
++		part->last_heartbeat);
++
++	part->remote_vars_part_pa = remote_vars->vars_part_pa;
++	dev_dbg(xpc_part, "  remote_vars_part_pa = 0x%016lx\n",
++		part->remote_vars_part_pa);
++
++	part->remote_act_nasid = remote_vars->act_nasid;
++	dev_dbg(xpc_part, "  remote_act_nasid = 0x%x\n",
++		part->remote_act_nasid);
++
++	part->remote_act_phys_cpuid = remote_vars->act_phys_cpuid;
++	dev_dbg(xpc_part, "  remote_act_phys_cpuid = 0x%x\n",
++		part->remote_act_phys_cpuid);
++
++	part->remote_amos_page_pa = remote_vars->amos_page_pa;
++	dev_dbg(xpc_part, "  remote_amos_page_pa = 0x%lx\n",
++		part->remote_amos_page_pa);
++
++	part->remote_vars_version = remote_vars->version;
++	dev_dbg(xpc_part, "  remote_vars_version = 0x%x\n",
++		part->remote_vars_version);
++}
++
++/*
++ * Prior code has determined the nasid which generated an IPI.  Inspect
++ * that nasid to determine if its partition needs to be activated or
++ * deactivated.
++ *
++ * A partition is consider "awaiting activation" if our partition
++ * flags indicate it is not active and it has a heartbeat.  A
++ * partition is considered "awaiting deactivation" if our partition
++ * flags indicate it is active but it has no heartbeat or it is not
++ * sending its heartbeat to us.
++ *
++ * To determine the heartbeat, the remote nasid must have a properly
++ * initialized reserved page.
++ */
++static void
++xpc_identify_act_IRQ_req_sn2(int nasid)
++{
++	struct xpc_rsvd_page *remote_rp;
++	struct xpc_vars_sn2 *remote_vars;
++	u64 remote_rp_pa;
++	u64 remote_vars_pa;
++	int remote_rp_version;
++	int reactivate = 0;
++	int stamp_diff;
++	struct timespec remote_rp_stamp = { 0, 0 }; /*>>> ZERO_STAMP */
++	short partid;
++	struct xpc_partition *part;
++	enum xp_retval ret;
++
++	/* pull over the reserved page structure */
++
++	remote_rp = (struct xpc_rsvd_page *)xpc_remote_copy_buffer;
++
++	ret = xpc_get_remote_rp(nasid, NULL, remote_rp, &remote_rp_pa);
++	if (ret != xpSuccess) {
++		dev_warn(xpc_part, "unable to get reserved page from nasid %d, "
++			 "which sent interrupt, reason=%d\n", nasid, ret);
++		return;
++	}
++
++	remote_vars_pa = remote_rp->sn.vars_pa;
++	remote_rp_version = remote_rp->version;
++	if (XPC_SUPPORTS_RP_STAMP(remote_rp_version))
++		remote_rp_stamp = remote_rp->stamp;
++
++	partid = remote_rp->SAL_partid;
++	part = &xpc_partitions[partid];
++
++	/* pull over the cross partition variables */
++
++	remote_vars = (struct xpc_vars_sn2 *)xpc_remote_copy_buffer;
++
++	ret = xpc_get_remote_vars_sn2(remote_vars_pa, remote_vars);
++	if (ret != xpSuccess) {
++
++		dev_warn(xpc_part, "unable to get XPC variables from nasid %d, "
++			 "which sent interrupt, reason=%d\n", nasid, ret);
++
++		XPC_DEACTIVATE_PARTITION(part, ret);
++		return;
++	}
++
++	part->act_IRQ_rcvd++;
++
++	dev_dbg(xpc_part, "partid for nasid %d is %d; IRQs = %d; HB = "
++		"%ld:0x%lx\n", (int)nasid, (int)partid, part->act_IRQ_rcvd,
++		remote_vars->heartbeat, remote_vars->heartbeating_to_mask[0]);
++
++	if (xpc_partition_disengaged(part) &&
++	    part->act_state == XPC_P_INACTIVE) {
++
++		xpc_update_partition_info_sn2(part, remote_rp_version,
++					      &remote_rp_stamp, remote_rp_pa,
++					      remote_vars_pa, remote_vars);
++
++		if (XPC_SUPPORTS_DISENGAGE_REQUEST(part->remote_vars_version)) {
++			if (xpc_partition_disengage_requested(1UL << partid)) {
++				/*
++				 * Other side is waiting on us to disengage,
++				 * even though we already have.
++				 */
++				return;
++			}
++
++		} else {
++			/* other side doesn't support disengage requests */
++			xpc_clear_partition_disengage_request(1UL << partid);
++		}
++
++		xpc_activate_partition(part);
++		return;
++	}
++
++	DBUG_ON(part->remote_rp_version == 0);
++	DBUG_ON(part->remote_vars_version == 0);
++
++	if (!XPC_SUPPORTS_RP_STAMP(part->remote_rp_version)) {
++		DBUG_ON(XPC_SUPPORTS_DISENGAGE_REQUEST(part->
++						       remote_vars_version));
++
++		if (!XPC_SUPPORTS_RP_STAMP(remote_rp_version)) {
++			DBUG_ON(XPC_SUPPORTS_DISENGAGE_REQUEST(remote_vars->
++							       version));
++			/* see if the other side rebooted */
++			if (part->remote_amos_page_pa ==
++			    remote_vars->amos_page_pa &&
++			    xpc_hb_allowed(sn_partition_id,
++					  &remote_vars->heartbeating_to_mask)) {
++				/* doesn't look that way, so ignore the IPI */
++				return;
++			}
++		}
++
++		/*
++		 * Other side rebooted and previous XPC didn't support the
++		 * disengage request, so we don't need to do anything special.
++		 */
++
++		xpc_update_partition_info_sn2(part, remote_rp_version,
++					      &remote_rp_stamp, remote_rp_pa,
++					      remote_vars_pa, remote_vars);
++		part->reactivate_nasid = nasid;
++		XPC_DEACTIVATE_PARTITION(part, xpReactivating);
++		return;
++	}
++
++	DBUG_ON(!XPC_SUPPORTS_DISENGAGE_REQUEST(part->remote_vars_version));
++
++	if (!XPC_SUPPORTS_RP_STAMP(remote_rp_version)) {
++		DBUG_ON(!XPC_SUPPORTS_DISENGAGE_REQUEST(remote_vars->version));
++
++		/*
++		 * Other side rebooted and previous XPC did support the
++		 * disengage request, but the new one doesn't.
++		 */
++
++		xpc_clear_partition_engaged(1UL << partid);
++		xpc_clear_partition_disengage_request(1UL << partid);
++
++		xpc_update_partition_info_sn2(part, remote_rp_version,
++					      &remote_rp_stamp, remote_rp_pa,
++					      remote_vars_pa, remote_vars);
++		reactivate = 1;
++
++	} else {
++		DBUG_ON(!XPC_SUPPORTS_DISENGAGE_REQUEST(remote_vars->version));
++
++		stamp_diff = xpc_compare_stamps(&part->remote_rp_stamp,
++						&remote_rp_stamp);
++		if (stamp_diff != 0) {
++			DBUG_ON(stamp_diff >= 0);
++
++			/*
++			 * Other side rebooted and the previous XPC did support
++			 * the disengage request, as does the new one.
++			 */
++
++			DBUG_ON(xpc_partition_engaged(1UL << partid));
++			DBUG_ON(xpc_partition_disengage_requested(1UL <<
++								  partid));
++
++			xpc_update_partition_info_sn2(part, remote_rp_version,
++						      &remote_rp_stamp,
++						      remote_rp_pa,
++						      remote_vars_pa,
++						      remote_vars);
++			reactivate = 1;
++		}
++	}
++
++	if (part->disengage_request_timeout > 0 &&
++	    !xpc_partition_disengaged(part)) {
++		/* still waiting on other side to disengage from us */
++		return;
++	}
++
++	if (reactivate) {
++		part->reactivate_nasid = nasid;
++		XPC_DEACTIVATE_PARTITION(part, xpReactivating);
++
++	} else if (XPC_SUPPORTS_DISENGAGE_REQUEST(part->remote_vars_version) &&
++		   xpc_partition_disengage_requested(1UL << partid)) {
++		XPC_DEACTIVATE_PARTITION(part, xpOtherGoingDown);
++	}
++}
++
++/*
++ * Loop through the activation AMO variables and process any bits
++ * which are set.  Each bit indicates a nasid sending a partition
++ * activation or deactivation request.
++ *
++ * Return #of IRQs detected.
++ */
++int
++xpc_identify_act_IRQ_sender_sn2(void)
++{
++	int word, bit;
++	u64 nasid_mask;
++	u64 nasid;		/* remote nasid */
++	int n_IRQs_detected = 0;
++	AMO_t *act_amos;
++
++	act_amos = xpc_vars->amos_page + XPC_ACTIVATE_IRQ_AMOS;
++
++	/* scan through act AMO variable looking for non-zero entries */
++	for (word = 0; word < xp_nasid_mask_words; word++) {
++
++		if (xpc_exiting)
++			break;
++
++		nasid_mask = xpc_IPI_receive_sn2(&act_amos[word]);
++		if (nasid_mask == 0) {
++			/* no IRQs from nasids in this variable */
++			continue;
++		}
++
++		dev_dbg(xpc_part, "AMO[%d] gave back 0x%lx\n", word,
++			nasid_mask);
++
++		/*
++		 * If this nasid has been added to the machine since
++		 * our partition was reset, this will retain the
++		 * remote nasid in our reserved pages machine mask.
++		 * This is used in the event of module reload.
++		 */
++		xpc_mach_nasids[word] |= nasid_mask;
++
++		/* locate the nasid(s) which sent interrupts */
++
++		for (bit = 0; bit < (8 * sizeof(u64)); bit++) {
++			if (nasid_mask & (1UL << bit)) {
++				n_IRQs_detected++;
++				nasid = XPC_NASID_FROM_W_B(word, bit);
++				dev_dbg(xpc_part, "interrupt from nasid %ld\n",
++					nasid);
++				xpc_identify_act_IRQ_req_sn2(nasid);
++			}
++		}
++	}
++	return n_IRQs_detected;
++}
++
++static void
++xpc_process_act_IRQ_rcvd_sn2(int n_IRQs_expected)
++{
++	int n_IRQs_detected;
++
++	n_IRQs_detected = xpc_identify_act_IRQ_sender_sn2();
++	if (n_IRQs_detected < n_IRQs_expected) {
++		/* retry once to help avoid missing AMO */
++		(void)xpc_identify_act_IRQ_sender_sn2();
++	}
++}
++
+ /*
+  * Setup the infrastructure necessary to support XPartition Communication
+  * between the specified remote partition and the local one.
+@@ -177,7 +969,7 @@ xpc_setup_infrastructure_sn2(struct xpc_
+ 
+ 	part->remote_openclose_args_pa = 0;
+ 
+-	part->local_IPI_amo_va = xpc_IPI_init(partid);
++	part->local_IPI_amo_va = xpc_IPI_init_sn2(partid);
+ 	part->local_IPI_amo = 0;
+ 	spin_lock_init(&part->IPI_lock);
+ 
+@@ -468,6 +1260,28 @@ xpc_make_first_contact_sn2(struct xpc_pa
+ {
+ 	enum xp_retval ret;
+ 
++	/*
++	 * Register the remote partition's AMOs with SAL so it can handle
++	 * and cleanup errors within that address range should the remote
++	 * partition go down. We don't unregister this range because it is
++	 * difficult to tell when outstanding writes to the remote partition
++	 * are finished and thus when it is safe to unregister. This should
++	 * not result in wasted space in the SAL xp_addr_region table because
++	 * we should get the same page for remote_amos_page_pa after module
++	 * reloads and system reboots.
++	 */
++	if (sn_register_xp_addr_region(part->remote_amos_page_pa,
++				       PAGE_SIZE, 1) < 0) {
++		dev_warn(xpc_part, "xpc_activating(%d) failed to register "
++			 "xp_addr region\n", XPC_PARTID(part));
++
++		ret = xpPhysAddrRegFailed;
++		XPC_DEACTIVATE_PARTITION(part, ret);
++		return ret;
++	}
++
++	xpc_IPI_send_activated(part);
++
+ 	while ((ret = xpc_pull_remote_vars_part_sn2(part)) != xpSuccess) {
+ 		if (ret != xpRetry) {
+ 			XPC_DEACTIVATE_PARTITION(part, ret);
+@@ -651,15 +1465,370 @@ xpc_get_deliverable_msg_sn2(struct xpc_c
+ 	return msg;
+ }
+ 
++/*
++ * Now we actually send the messages that are ready to be sent by advancing
++ * the local message queue's Put value and then send an IPI to the recipient
++ * partition.
++ */
++static void
++xpc_send_msgs_sn2(struct xpc_channel *ch, s64 initial_put)
++{
++	struct xpc_msg *msg;
++	s64 put = initial_put + 1;
++	int send_IPI = 0;
++
++	while (1) {
++
++		while (1) {
++			if (put == ch->w_local_GP.put)
++				break;
++
++			msg = (struct xpc_msg *)((u64)ch->local_msgqueue +
++						 (put % ch->local_nentries) *
++						 ch->msg_size);
++
++			if (!(msg->flags & XPC_M_READY))
++				break;
++
++			put++;
++		}
++
++		if (put == initial_put) {
++			/* nothing's changed */
++			break;
++		}
++
++		if (cmpxchg_rel(&ch->local_GP->put, initial_put, put) !=
++		    initial_put) {
++			/* someone else beat us to it */
++			DBUG_ON(ch->local_GP->put < initial_put);
++			break;
++		}
++
++		/* we just set the new value of local_GP->put */
++
++		dev_dbg(xpc_chan, "local_GP->put changed to %ld, partid=%d, "
++			"channel=%d\n", put, ch->partid, ch->number);
++
++		send_IPI = 1;
++
++		/*
++		 * We need to ensure that the message referenced by
++		 * local_GP->put is not XPC_M_READY or that local_GP->put
++		 * equals w_local_GP.put, so we'll go have a look.
++		 */
++		initial_put = put;
++	}
++
++	if (send_IPI)
++		xpc_IPI_send_msgrequest_sn2(ch);
++}
++
++/*
++ * Allocate an entry for a message from the message queue associated with the
++ * specified channel.
++ */
++static enum xp_retval
++xpc_allocate_msg_sn2(struct xpc_channel *ch, u32 flags,
++		     struct xpc_msg **address_of_msg)
++{
++	struct xpc_msg *msg;
++	enum xp_retval ret;
++	s64 put;
++
++	/* this reference will be dropped in xpc_send_msg_sn2() */
++	xpc_msgqueue_ref(ch);
++
++	if (ch->flags & XPC_C_DISCONNECTING) {
++		xpc_msgqueue_deref(ch);
++		return ch->reason;
++	}
++	if (!(ch->flags & XPC_C_CONNECTED)) {
++		xpc_msgqueue_deref(ch);
++		return xpNotConnected;
++	}
++
++	/*
++	 * Get the next available message entry from the local message queue.
++	 * If none are available, we'll make sure that we grab the latest
++	 * GP values.
++	 */
++	ret = xpTimeout;
++
++	while (1) {
++
++		put = ch->w_local_GP.put;
++		rmb();	/* guarantee that .put loads before .get */
++		if (put - ch->w_remote_GP.get < ch->local_nentries) {
++
++			/* There are available message entries. We need to try
++			 * to secure one for ourselves. We'll do this by trying
++			 * to increment w_local_GP.put as long as someone else
++			 * doesn't beat us to it. If they do, we'll have to
++			 * try again.
++			 */
++			if (cmpxchg(&ch->w_local_GP.put, put, put + 1) == put) {
++				/* we got the entry referenced by put */
++				break;
++			}
++			continue;	/* try again */
++		}
++
++		/*
++		 * There aren't any available msg entries at this time.
++		 *
++		 * In waiting for a message entry to become available,
++		 * we set a timeout in case the other side is not
++		 * sending completion IPIs. This lets us fake an IPI
++		 * that will cause the IPI handler to fetch the latest
++		 * GP values as if an IPI was sent by the other side.
++		 */
++		if (ret == xpTimeout)
++			xpc_IPI_send_local_msgrequest_sn2(ch);
++
++		if (flags & XPC_NOWAIT) {
++			xpc_msgqueue_deref(ch);
++			return xpNoWait;
++		}
++
++		ret = xpc_allocate_msg_wait(ch);
++		if (ret != xpInterrupted && ret != xpTimeout) {
++			xpc_msgqueue_deref(ch);
++			return ret;
++		}
++	}
++
++	/* get the message's address and initialize it */
++	msg = (struct xpc_msg *)((u64)ch->local_msgqueue +
++				 (put % ch->local_nentries) * ch->msg_size);
++
++	DBUG_ON(msg->flags != 0);
++	msg->number = put;
++
++	dev_dbg(xpc_chan, "w_local_GP.put changed to %ld; msg=0x%p, "
++		"msg_number=%ld, partid=%d, channel=%d\n", put + 1,
++		(void *)msg, msg->number, ch->partid, ch->number);
++
++	*address_of_msg = msg;
++
++	return xpSuccess;
++}
++
++/*
++ * Common code that does the actual sending of the message by advancing the
++ * local message queue's Put value and sends an IPI to the partition the
++ * message is being sent to.
++ */
++static enum xp_retval
++xpc_send_msg_sn2(struct xpc_channel *ch, struct xpc_msg *msg, u8 notify_type,
++		 xpc_notify_func func, void *key)
++{
++	enum xp_retval ret = xpSuccess;
++	struct xpc_notify *notify = notify;
++	s64 put, msg_number = msg->number;
++
++	DBUG_ON(notify_type == XPC_N_CALL && func == NULL);
++	DBUG_ON((((u64)msg - (u64)ch->local_msgqueue) / ch->msg_size) !=
++		msg_number % ch->local_nentries);
++	DBUG_ON(msg->flags & XPC_M_READY);
++
++	if (ch->flags & XPC_C_DISCONNECTING) {
++		/* drop the reference grabbed in xpc_allocate_msg_sn2() */
++		xpc_msgqueue_deref(ch);
++		return ch->reason;
++	}
++
++	if (notify_type != 0) {
++		/*
++		 * Tell the remote side to send an ACK interrupt when the
++		 * message has been delivered.
++		 */
++		msg->flags |= XPC_M_INTERRUPT;
++
++		atomic_inc(&ch->n_to_notify);
++
++		notify = &ch->notify_queue[msg_number % ch->local_nentries];
++		notify->func = func;
++		notify->key = key;
++		notify->type = notify_type;
++
++		/* >>> is a mb() needed here? */
++
++		if (ch->flags & XPC_C_DISCONNECTING) {
++			/*
++			 * An error occurred between our last error check and
++			 * this one. We will try to clear the type field from
++			 * the notify entry. If we succeed then
++			 * xpc_disconnect_channel() didn't already process
++			 * the notify entry.
++			 */
++			if (cmpxchg(&notify->type, notify_type, 0) ==
++			    notify_type) {
++				atomic_dec(&ch->n_to_notify);
++				ret = ch->reason;
++			}
++
++			/* drop reference grabbed in xpc_allocate_msg_sn2() */
++			xpc_msgqueue_deref(ch);
++			return ret;
++		}
++	}
++
++	msg->flags |= XPC_M_READY;
++
++	/*
++	 * The preceding store of msg->flags must occur before the following
++	 * load of ch->local_GP->put.
++	 */
++	mb();
++
++	/* see if the message is next in line to be sent, if so send it */
++
++	put = ch->local_GP->put;
++	if (put == msg_number)
++		xpc_send_msgs_sn2(ch, put);
++
++	/* drop the reference grabbed in xpc_allocate_msg_sn2() */
++	xpc_msgqueue_deref(ch);
++	return ret;
++}
++
++/*
++ * Now we actually acknowledge the messages that have been delivered and ack'd
++ * by advancing the cached remote message queue's Get value and if requested
++ * send an IPI to the message sender's partition.
++ */
++static void
++xpc_acknowledge_msgs_sn2(struct xpc_channel *ch, s64 initial_get, u8 msg_flags)
++{
++	struct xpc_msg *msg;
++	s64 get = initial_get + 1;
++	int send_IPI = 0;
++
++	while (1) {
++
++		while (1) {
++			if (get == ch->w_local_GP.get)
++				break;
++
++			msg = (struct xpc_msg *)((u64)ch->remote_msgqueue +
++						 (get % ch->remote_nentries) *
++						 ch->msg_size);
++
++			if (!(msg->flags & XPC_M_DONE))
++				break;
++
++			msg_flags |= msg->flags;
++			get++;
++		}
++
++		if (get == initial_get) {
++			/* nothing's changed */
++			break;
++		}
++
++		if (cmpxchg_rel(&ch->local_GP->get, initial_get, get) !=
++		    initial_get) {
++			/* someone else beat us to it */
++			DBUG_ON(ch->local_GP->get <= initial_get);
++			break;
++		}
++
++		/* we just set the new value of local_GP->get */
++
++		dev_dbg(xpc_chan, "local_GP->get changed to %ld, partid=%d, "
++			"channel=%d\n", get, ch->partid, ch->number);
++
++		send_IPI = (msg_flags & XPC_M_INTERRUPT);
++
++		/*
++		 * We need to ensure that the message referenced by
++		 * local_GP->get is not XPC_M_DONE or that local_GP->get
++		 * equals w_local_GP.get, so we'll go have a look.
++		 */
++		initial_get = get;
++	}
++
++	if (send_IPI)
++		xpc_IPI_send_msgrequest_sn2(ch);
++}
++
++static void
++xpc_received_msg_sn2(struct xpc_channel *ch, struct xpc_msg *msg)
++{
++	s64 get;
++	s64 msg_number = msg->number;
++
++	dev_dbg(xpc_chan, "msg=0x%p, msg_number=%ld, partid=%d, channel=%d\n",
++		(void *)msg, msg_number, ch->partid, ch->number);
++
++	DBUG_ON((((u64)msg - (u64)ch->remote_msgqueue) / ch->msg_size) !=
++		msg_number % ch->remote_nentries);
++	DBUG_ON(msg->flags & XPC_M_DONE);
++
++	msg->flags |= XPC_M_DONE;
++
++	/*
++	 * The preceding store of msg->flags must occur before the following
++	 * load of ch->local_GP->get.
++	 */
++	mb();
++
++	/*
++	 * See if this message is next in line to be acknowledged as having
++	 * been delivered.
++	 */
++	get = ch->local_GP->get;
++	if (get == msg_number)
++		xpc_acknowledge_msgs_sn2(ch, get, msg->flags);
++}
++
+ void
+ xpc_init_sn2(void)
+ {
+ 	xpc_rsvd_page_init = xpc_rsvd_page_init_sn2;
++	xpc_increment_heartbeat = xpc_increment_heartbeat_sn2;
++	xpc_offline_heartbeat = xpc_offline_heartbeat_sn2;
++	xpc_online_heartbeat = xpc_online_heartbeat_sn2;
++	xpc_heartbeat_init = xpc_heartbeat_init_sn2;
++	xpc_heartbeat_exit = xpc_heartbeat_exit_sn2;
++	xpc_check_remote_hb = xpc_check_remote_hb_sn2;
++
++	xpc_initiate_partition_activation =
++	    xpc_initiate_partition_activation_sn2;
++	xpc_process_act_IRQ_rcvd = xpc_process_act_IRQ_rcvd_sn2;
+ 	xpc_setup_infrastructure = xpc_setup_infrastructure_sn2;
+ 	xpc_teardown_infrastructure = xpc_teardown_infrastructure_sn2;
+ 	xpc_make_first_contact = xpc_make_first_contact_sn2;
+ 	xpc_get_IPI_flags = xpc_get_IPI_flags_sn2;
+ 	xpc_get_deliverable_msg = xpc_get_deliverable_msg_sn2;
++
++	xpc_mark_partition_engaged = xpc_mark_partition_engaged_sn2;
++	xpc_mark_partition_disengaged = xpc_mark_partition_disengaged_sn2;
++	xpc_request_partition_disengage = xpc_request_partition_disengage_sn2;
++	xpc_cancel_partition_disengage_request =
++	    xpc_cancel_partition_disengage_request_sn2;
++	xpc_partition_engaged = xpc_partition_engaged_sn2;
++	xpc_partition_disengage_requested =
++	    xpc_partition_disengage_requested_sn2;
++	xpc_clear_partition_engaged = xpc_clear_partition_engaged_sn2;
++	xpc_clear_partition_disengage_request =
++	    xpc_clear_partition_disengage_request_sn2;
++
++	xpc_IPI_send_local_activate = xpc_IPI_send_local_activate_sn2;
++	xpc_IPI_send_activated = xpc_IPI_send_activated_sn2;
++	xpc_IPI_send_local_reactivate = xpc_IPI_send_local_reactivate_sn2;
++	xpc_IPI_send_disengage = xpc_IPI_send_disengage_sn2;
++
++	xpc_IPI_send_closerequest = xpc_IPI_send_closerequest_sn2;
++	xpc_IPI_send_closereply = xpc_IPI_send_closereply_sn2;
++	xpc_IPI_send_openrequest = xpc_IPI_send_openrequest_sn2;
++	xpc_IPI_send_openreply = xpc_IPI_send_openreply_sn2;
++
++	xpc_allocate_msg = xpc_allocate_msg_sn2;
++
++	xpc_send_msg = xpc_send_msg_sn2;
++	xpc_received_msg = xpc_received_msg_sn2;
+ }
+ 
+ void
+diff -puN drivers/misc/sgi-xp/xpc_uv.c~sgi-xp-isolate-xpc_vars-structure-to-sn2-only drivers/misc/sgi-xp/xpc_uv.c
+--- a/drivers/misc/sgi-xp/xpc_uv.c~sgi-xp-isolate-xpc_vars-structure-to-sn2-only
++++ a/drivers/misc/sgi-xp/xpc_uv.c
+@@ -19,15 +19,22 @@
+ /* >>> uv_gpa() is defined in <gru/grukservices.h> */
+ #define uv_gpa(_a)		((unsigned long)_a)
+ 
+-/* >>> temporarily define next three items for xpc.h */
+-#define	SGI_XPC_ACTIVATE	23
+-#define	SGI_XPC_NOTIFY		24
+-#define sn_send_IPI_phys(_a, _b, _c, _d)
+-
+ #include "xpc.h"
+ 
++static DECLARE_BITMAP(xpc_heartbeating_to_mask_uv, XP_MAX_NPARTITIONS_UV);
++
+ static void *xpc_activate_mq;
+ 
++static void
++xpc_IPI_send_local_activate_uv(struct xpc_partition *part)
++{
++	/*
++	 * >>> make our side think that the remote parition sent an activate
++	 * >>> message our way. Also do what the activate IRQ handler would
++	 * >>> do had one really been sent.
++	 */
++}
++
+ static enum xp_retval
+ xpc_rsvd_page_init_uv(struct xpc_rsvd_page *rp)
+ {
+@@ -36,6 +43,41 @@ xpc_rsvd_page_init_uv(struct xpc_rsvd_pa
+ 	return xpSuccess;
+ }
+ 
++static void
++xpc_increment_heartbeat_uv(void)
++{
++	/* >>> send heartbeat msg to xpc_heartbeating_to_mask partids */
++}
++
++static void
++xpc_heartbeat_init_uv(void)
++{
++	bitmap_zero(xpc_heartbeating_to_mask_uv, XP_MAX_NPARTITIONS_UV);
++	xpc_heartbeating_to_mask = &xpc_heartbeating_to_mask_uv[0];
++}
++
++static void
++xpc_heartbeat_exit_uv(void)
++{
++	/* >>> send heartbeat_offline msg to xpc_heartbeating_to_mask partids */
++}
++
++static void
++xpc_initiate_partition_activation_uv(struct xpc_rsvd_page *remote_rp,
++				     u64 remote_rp_pa, int nasid)
++{
++	short partid = remote_rp->SAL_partid;
++	struct xpc_partition *part = &xpc_partitions[partid];
++
++/*
++ * >>> setup part structure with the bits of info we can glean from the rp
++ * >>>	part->remote_rp_pa = remote_rp_pa;
++ * >>>	part->sn.uv.activate_mq_gpa = remote_rp->sn.activate_mq_gpa;
++ */
++
++	xpc_IPI_send_local_activate_uv(part);
++}
++
+ /*
+  * Setup the infrastructure necessary to support XPartition Communication
+  * between the specified remote partition and the local one.
+@@ -83,6 +125,11 @@ void
+ xpc_init_uv(void)
+ {
+ 	xpc_rsvd_page_init = xpc_rsvd_page_init_uv;
++	xpc_increment_heartbeat = xpc_increment_heartbeat_uv;
++	xpc_heartbeat_init = xpc_heartbeat_init_uv;
++	xpc_heartbeat_exit = xpc_heartbeat_exit_uv;
++	xpc_initiate_partition_activation =
++	    xpc_initiate_partition_activation_uv;
+ 	xpc_setup_infrastructure = xpc_setup_infrastructure_uv;
+ 	xpc_teardown_infrastructure = xpc_teardown_infrastructure_uv;
+ 	xpc_make_first_contact = xpc_make_first_contact_uv;
 _
 
-Patches currently in -mm which might be from steiner@sgi.com are
+Patches currently in -mm which might be from dcn@sgi.com are
 
 origin.patch
-linux-next.patch
 
