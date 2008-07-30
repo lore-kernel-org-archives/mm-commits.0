@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-ioctlh-compatible-with-userland.patch added to -mm tree
-Date: Wed, 30 Jul 2008 01:10:57 -0700
-Message-ID: <200807300810.m6U8AvRc015471@imap1.linux-foundation.org>
+Subject: + x86-calgary-replace-num_dma_pages-with-iommu_num_pages.patch added to -mm tree
+Date: Wed, 30 Jul 2008 01:20:13 -0700
+Message-ID: <200807300820.m6U8KDVN015899@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39711 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49643 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758867AbYG3ILG (ORCPT
+	by vger.kernel.org with ESMTP id S1751688AbYG3IVO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 04:11:06 -0400
+	Wed, 30 Jul 2008 04:21:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: michael@araneidae.co.uk
+Cc: joerg.roedel@amd.com, muli@il.ibm.com
 
 
 The patch titled
-     Make ioctl.h compatible with userland
+     x86 calgary: replace num_dma_pages() with iommu_num_pages()
 has been added to the -mm tree.  Its filename is
-     make-ioctlh-compatible-with-userland.patch
+     x86-calgary-replace-num_dma_pages-with-iommu_num_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Make ioctl.h compatible with userland
-From: Michael Abbott <michael@araneidae.co.uk>
+Subject: x86 calgary: replace num_dma_pages() with iommu_num_pages()
+From: Joerg Roedel <joerg.roedel@amd.com>
 
-The attached patch seems to already exist in a number of branches -- it
-keeps popping up on Google for me, and is certainly already in Debian --
-but is strangely absent from mainstream.
+Remove the num_dma_pages() function from Calgary IOMMU code and replace
+it with the generic iommu_num_pages() function.
 
-The problem appears to be that the patched file ends up as part of the
-target toolchain, but unfortunately the gcc constant folding doesn't
-appear to eliminate the __invalid_size_argument_for_IOC value early
-enough.  Certainly compiling C++ programs which use _IO...  macros as
-constants fails without this patch.
-
-
-
+Acked-by: Muli Ben-Yehuda <muli@il.ibm.com>
+Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/ioctl.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/x86/kernel/pci-calgary_64.c |   18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
 
-diff -puN include/asm-generic/ioctl.h~make-ioctlh-compatible-with-userland include/asm-generic/ioctl.h
---- a/include/asm-generic/ioctl.h~make-ioctlh-compatible-with-userland
-+++ a/include/asm-generic/ioctl.h
-@@ -68,12 +68,16 @@
- 	 ((nr)   << _IOC_NRSHIFT) | \
- 	 ((size) << _IOC_SIZESHIFT))
+diff -puN arch/x86/kernel/pci-calgary_64.c~x86-calgary-replace-num_dma_pages-with-iommu_num_pages arch/x86/kernel/pci-calgary_64.c
+--- a/arch/x86/kernel/pci-calgary_64.c~x86-calgary-replace-num_dma_pages-with-iommu_num_pages
++++ a/arch/x86/kernel/pci-calgary_64.c
+@@ -217,16 +217,6 @@ static inline unsigned long verify_bit_r
  
-+#ifdef __KERNEL__
- /* provoke compile error for invalid uses of size argument */
- extern unsigned int __invalid_size_argument_for_IOC;
- #define _IOC_TYPECHECK(t) \
- 	((sizeof(t) == sizeof(t[1]) && \
- 	  sizeof(t) < (1 << _IOC_SIZEBITS)) ? \
- 	  sizeof(t) : __invalid_size_argument_for_IOC)
-+#else
-+#define _IOC_TYPECHECK(t) (sizeof(t))
-+#endif
+ #endif /* CONFIG_IOMMU_DEBUG */
  
- /* used to create numbers */
- #define _IO(type,nr)		_IOC(_IOC_NONE,(type),(nr),0)
+-static inline unsigned int num_dma_pages(unsigned long dma, unsigned int dmalen)
+-{
+-	unsigned int npages;
+-
+-	npages = PAGE_ALIGN(dma + dmalen) - (dma & PAGE_MASK);
+-	npages >>= PAGE_SHIFT;
+-
+-	return npages;
+-}
+-
+ static inline int translation_enabled(struct iommu_table *tbl)
+ {
+ 	/* only PHBs with translation enabled have an IOMMU table */
+@@ -408,7 +398,7 @@ static void calgary_unmap_sg(struct devi
+ 		if (dmalen == 0)
+ 			break;
+ 
+-		npages = num_dma_pages(dma, dmalen);
++		npages = iommu_num_pages(dma, dmalen);
+ 		iommu_free(tbl, dma, npages);
+ 	}
+ }
+@@ -427,7 +417,7 @@ static int calgary_map_sg(struct device 
+ 		BUG_ON(!sg_page(s));
+ 
+ 		vaddr = (unsigned long) sg_virt(s);
+-		npages = num_dma_pages(vaddr, s->length);
++		npages = iommu_num_pages(vaddr, s->length);
+ 
+ 		entry = iommu_range_alloc(dev, tbl, npages);
+ 		if (entry == bad_dma_address) {
+@@ -464,7 +454,7 @@ static dma_addr_t calgary_map_single(str
+ 	struct iommu_table *tbl = find_iommu_table(dev);
+ 
+ 	uaddr = (unsigned long)vaddr;
+-	npages = num_dma_pages(uaddr, size);
++	npages = iommu_num_pages(uaddr, size);
+ 
+ 	return iommu_alloc(dev, tbl, vaddr, npages, direction);
+ }
+@@ -475,7 +465,7 @@ static void calgary_unmap_single(struct 
+ 	struct iommu_table *tbl = find_iommu_table(dev);
+ 	unsigned int npages;
+ 
+-	npages = num_dma_pages(dma_handle, size);
++	npages = iommu_num_pages(dma_handle, size);
+ 	iommu_free(tbl, dma_handle, npages);
+ }
+ 
 _
 
-Patches currently in -mm which might be from michael@araneidae.co.uk are
+Patches currently in -mm which might be from joerg.roedel@amd.com are
 
-make-ioctlh-compatible-with-userland.patch
+introduce-lower_32_bits-macro.patch
+linux-next.patch
+x86-calgary-replace-num_dma_pages-with-iommu_num_pages.patch
 
