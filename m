@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-input-serio-xilinx_ps2c-fix-warning.patch added to -mm tree
-Date: Tue, 29 Jul 2008 21:17:35 -0700
-Message-ID: <200807300430.m6U4ULdE006970@imap1.linux-foundation.org>
+Subject: + drivers-mtd-nand-nandsimc-fix-printk-warnings.patch added to -mm tree
+Date: Tue, 29 Jul 2008 21:21:09 -0700
+Message-ID: <200807300433.m6U4XtjW007085@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36348 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37712 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751051AbYG3Ea0 (ORCPT
+	by vger.kernel.org with ESMTP id S1750902AbYG3EeA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 00:30:26 -0400
+	Wed, 30 Jul 2008 00:34:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dtor@mail.ru
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org
 
 
 The patch titled
-     drivers/input/serio/xilinx_ps2.c: fix warning
+     drivers/mtd/nand/nandsim.c: fix printk warnings
 has been added to the -mm tree.  Its filename is
-     drivers-input-serio-xilinx_ps2c-fix-warning.patch
+     drivers-mtd-nand-nandsimc-fix-printk-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/input/serio/xilinx_ps2.c: fix warning
+Subject: drivers/mtd/nand/nandsim.c: fix printk warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/input/serio/xilinx_ps2.c:272: warning: cast from pointer to integer of different size
-
-Also, it is fishy that phys_addr has a 32-bit type.
-
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/serio/xilinx_ps2.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mtd/nand/nandsim.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/input/serio/xilinx_ps2.c~drivers-input-serio-xilinx_ps2c-fix-warning drivers/input/serio/xilinx_ps2.c
---- a/drivers/input/serio/xilinx_ps2.c~drivers-input-serio-xilinx_ps2c-fix-warning
-+++ a/drivers/input/serio/xilinx_ps2.c
-@@ -269,8 +269,8 @@ static int xps2_setup(struct device *dev
- 	 * we have the PS2 in a good state */
- 	out_be32(drvdata->base_address + XPS2_SRST_OFFSET, XPS2_SRST_RESET);
+diff -puN drivers/mtd/nand/nandsim.c~drivers-mtd-nand-nandsimc-fix-printk-warnings drivers/mtd/nand/nandsim.c
+--- a/drivers/mtd/nand/nandsim.c~drivers-mtd-nand-nandsimc-fix-printk-warnings
++++ a/drivers/mtd/nand/nandsim.c
+@@ -580,7 +580,8 @@ static int init_nandsim(struct mtd_info 
+ 	if (ns->busw == 16)
+ 		NS_WARN("16-bit flashes support wasn't tested\n");
  
--	dev_info(dev, "Xilinx PS2 at 0x%08X mapped to 0x%08X, irq=%d\n",
--		drvdata->phys_addr, (u32)drvdata->base_address, drvdata->irq);
-+	dev_info(dev, "Xilinx PS2 at 0x%08X mapped to 0x%p, irq=%d\n",
-+		drvdata->phys_addr, drvdata->base_address, drvdata->irq);
- 
- 	serio = &drvdata->serio;
- 	serio->id.type = SERIO_8042;
+-	printk("flash size: %llu MiB\n",        ns->geom.totsz >> 20);
++	printk("flash size: %llu MiB\n",
++			(unsigned long long)ns->geom.totsz >> 20);
+ 	printk("page size: %u bytes\n",         ns->geom.pgsz);
+ 	printk("OOB area size: %u bytes\n",     ns->geom.oobsz);
+ 	printk("sector size: %u KiB\n",         ns->geom.secsz >> 10);
+@@ -589,8 +590,9 @@ static int init_nandsim(struct mtd_info 
+ 	printk("bus width: %u\n",               ns->busw);
+ 	printk("bits in sector size: %u\n",     ns->geom.secshift);
+ 	printk("bits in page size: %u\n",       ns->geom.pgshift);
+-	printk("bits in OOB size: %u\n",        ns->geom.oobshift);
+-	printk("flash size with OOB: %llu KiB\n", ns->geom.totszoob >> 10);
++	printk("bits in OOB size: %u\n",	ns->geom.oobshift);
++	printk("flash size with OOB: %llu KiB\n",
++			(unsigned long long)ns->geom.totszoob >> 10);
+ 	printk("page address bytes: %u\n",      ns->geom.pgaddrbytes);
+ 	printk("sector address bytes: %u\n",    ns->geom.secaddrbytes);
+ 	printk("options: %#x\n",                ns->options);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,6 +89,7 @@ ppc-use-the-common-ascii-hex-helpers-fix.patch
 powerpc-replace-__function__-with-__func__-checkpatch-fixes.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
 git-jg-misc.patch
 git-ubi-git-rejects.patch
 bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
@@ -137,5 +145,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-input-serio-xilinx_ps2c-fix-warning.patch
+drivers-mtd-nand-nandsimc-fix-printk-warnings.patch
 
