@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-adc124s501-generic-driver-cleanup.patch added to -mm tree
-Date: Wed, 30 Jul 2008 03:27:42 -0700
-Message-ID: <200807301027.m6UARg7t021263@imap1.linux-foundation.org>
+Subject: - hwmon-adc124s501-generic-driver-cleanup.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 03:46:12 -0700
+Message-ID: <200807301046.m6UAkCt2021976@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35062 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56876 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755924AbYG3K2C (ORCPT
+	by vger.kernel.org with ESMTP id S1753024AbYG3KrO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 06:28:02 -0400
+	Wed, 30 Jul 2008 06:47:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, david-b@pacbell.net, khali@linux-fr.org, marc.pignat@hevs.ch, mhoffman@lightlink.com, tobias@himmer-online.de
+To: akpm@linux-foundation.org, david-b@pacbell.net, khali@linux-fr.org, marc.pignat@hevs.ch, mhoffman@lightlink.com, tobias@himmer-online.de, mm-commits@vger.kernel.org
 
 
 The patch titled
      hwmon-adc124s501-generic-driver-cleanup
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      hwmon-adc124s501-generic-driver-cleanup.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into hwmon-adc124s501-generic-driver.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -115,6 +105,7 @@ drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
 git-xtensa.patch
 drivers-telephony-ixjc-depends-on-pnp.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
 hwmon-adc124s501-generic-driver-cleanup.patch
 drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
 rcu-fix-synchronize_rcu-so-that-kernel-doc-works-comment.patch
