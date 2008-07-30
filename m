@@ -1,88 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - cpuset-a-bit-cleanup-for-scan_for_empty_cpusets.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:14:17 -0700
-Message-ID: <200807301914.m6UJEHtm010895@imap1.linux-foundation.org>
+Subject: - random32-seeding-improvement-v2.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:35:24 -0700
+Message-ID: <200807301935.m6UJZPTf012326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39938 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34040 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753177AbYG3Tei (ORCPT
+	by vger.kernel.org with ESMTP id S1755506AbYG3Tfu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:34:38 -0400
+	Wed, 30 Jul 2008 15:35:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, balbir@in.ibm.com, clg@fr.ibm.com, cpw@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, pj@sgi.com, mm-commits@vger.kernel.org
+To: shemminger@linux-foundation.org, ak@suse.de, bboissin@gmail.com, davem@davemloft.net, lloyd@randombit.net, mpm@selenic.com, shemminger@vyatta.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpuset: a bit cleanup for scan_for_empty_cpusets()
+     random32: seeding improvement (v2)
 has been removed from the -mm tree.  Its filename was
-     cpuset-a-bit-cleanup-for-scan_for_empty_cpusets.patch
+     random32-seeding-improvement-v2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into random32-seeding-improvement.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset: a bit cleanup for scan_for_empty_cpusets()
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: random32: seeding improvement (v2)
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-clean up hierarchy traversal code
+Please consider this patch instead for fixing the seeding issue with random32.
+The rationale is:
+   * use u32 consistently
+   * no need to do LCG on values from (better) get_random_bytes
+   * use more data from get_random_bytes for secondary seeding
+   * don't reduce state space on srandom32()
+   * enforce state variable initialization restrictions
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Cliff Wickman <cpw@sgi.com>
+Note: the second paper has a version of random32() with even longer period
+and a version of random64() if needed.
+
+Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+Cc: Jack Lloyd <lloyd@randombit.net>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Benoit Boissinot <bboissin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ lib/random32.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/cpuset.c~cpuset-a-bit-cleanup-for-scan_for_empty_cpusets kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-a-bit-cleanup-for-scan_for_empty_cpusets
-+++ a/kernel/cpuset.c
-@@ -1833,24 +1833,21 @@ static void remove_tasks_in_empty_cpuset
-  */
- static void scan_for_empty_cpusets(const struct cpuset *root)
- {
-+	LIST_HEAD(queue);
- 	struct cpuset *cp;	/* scans cpusets being updated */
- 	struct cpuset *child;	/* scans child cpusets of cp */
--	struct list_head queue;
- 	struct cgroup *cont;
- 	nodemask_t oldmems;
+diff -puN lib/random32.c~random32-seeding-improvement-v2 lib/random32.c
+--- a/lib/random32.c~random32-seeding-improvement-v2
++++ a/lib/random32.c
+@@ -112,7 +112,7 @@ static int __init random32_init(void)
+ 	for_each_possible_cpu(i) {
+ 		struct rnd_state *state = &per_cpu(net_rand_state,i);
  
--	INIT_LIST_HEAD(&queue);
--
- 	list_add_tail((struct list_head *)&root->stack_list, &queue);
- 
- 	while (!list_empty(&queue)) {
--		cp = container_of(queue.next, struct cpuset, stack_list);
-+		cp = list_first_entry(&queue, struct cpuset, stack_list);
- 		list_del(queue.next);
- 		list_for_each_entry(cont, &cp->css.cgroup->children, sibling) {
- 			child = cgroup_cs(cont);
- 			list_add_tail(&child->stack_list, &queue);
- 		}
--		cont = cp->css.cgroup;
- 
- 		/* Continue past cpusets with all cpus, mems online */
- 		if (cpus_subset(cp->cpus_allowed, cpu_online_map) &&
+-#define LCG(x)	(x * 69069)	/* super-duper LCG */
++#define LCG(x)	((x) * 69069)	/* super-duper LCG */
+ 		state->s1 = __seed(LCG(i + jiffies), 1);
+ 		state->s2 = __seed(LCG(state->s1), 7);
+ 		state->s3 = __seed(LCG(state->s2), 15);
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
-origin.patch
-linux-next.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+random32-seeding-improvement.patch
+random32-seeding-improvement-v2.patch
+bridge-send-correct-mtu-value-in-pmtu.patch
+bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
+skge-adapt-skge-to-use-reworked-pci-pm.patch
+sky2-adapt-to-use-reworked-pci-pm-code.patch
+tg3-adapt-tg3-to-use-reworked-pci-pm-code.patch
 
