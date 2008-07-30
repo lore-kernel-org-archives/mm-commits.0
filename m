@@ -1,417 +1,729 @@
 From: akpm@linux-foundation.org
-Subject: - sgi-xp-enable-xpnet-to-handle-more-than-64-partitions.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:16:50 -0700
-Message-ID: <200807301916.m6UJGoUL011157@imap1.linux-foundation.org>
+Subject: - gru-driver-v3-kernel-services-provide-by-driver.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:15:59 -0700
+Message-ID: <200807301915.m6UJFxBO011072@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60292 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49765 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753508AbYG3TYK (ORCPT
+	by vger.kernel.org with ESMTP id S1753537AbYG3TYM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:24:10 -0400
+	Wed, 30 Jul 2008 15:24:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dcn@sgi.com, mm-commits@vger.kernel.org
+To: steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgi-xp: enable XPNET to handle more than 64 partitions
+     GRU Driver: kernel services provide by driver
 has been removed from the -mm tree.  Its filename was
-     sgi-xp-enable-xpnet-to-handle-more-than-64-partitions.patch
+     gru-driver-v3-kernel-services-provide-by-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-xp: enable XPNET to handle more than 64 partitions
-From: Dean Nelson <dcn@sgi.com>
+Subject: GRU Driver: kernel services provide by driver
+From: Jack Steiner <steiner@sgi.com>
 
-Enable XPNET to support more than 64 partitions.
+This file contains functions for handling services provided to other
+kernel modules that use the GRU.
 
-Signed-off-by: Dean Nelson <dcn@sgi.com>
+Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xpnet.c |  213 +++++++++++++++-------------------
- 1 file changed, 94 insertions(+), 119 deletions(-)
+ drivers/misc/sgi-gru/grukservices.c |  679 ++++++++++++++++++++++++++
+ 1 file changed, 679 insertions(+)
 
-diff -puN drivers/misc/sgi-xp/xpnet.c~sgi-xp-enable-xpnet-to-handle-more-than-64-partitions drivers/misc/sgi-xp/xpnet.c
---- a/drivers/misc/sgi-xp/xpnet.c~sgi-xp-enable-xpnet-to-handle-more-than-64-partitions
-+++ a/drivers/misc/sgi-xp/xpnet.c
-@@ -21,7 +21,6 @@
-  */
- 
- #include <linux/module.h>
--#include <linux/types.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/ioport.h>
-@@ -32,8 +31,6 @@
- #include <linux/mii.h>
- #include <linux/smp.h>
- #include <linux/string.h>
--#include <asm/sn/io.h>
--#include <asm/sn/sn_sal.h>
- #include <asm/atomic.h>
- #include "xp.h"
- 
-@@ -104,7 +101,6 @@ struct xpnet_message {
-  * then be released.
-  */
- struct xpnet_pending_msg {
--	struct list_head free_list;
- 	struct sk_buff *skb;
- 	atomic_t use_count;
- };
-@@ -120,7 +116,7 @@ struct net_device *xpnet_device;
-  * When we are notified of other partitions activating, we add them to
-  * our bitmask of partitions to which we broadcast.
-  */
--static u64 xpnet_broadcast_partitions;
-+static unsigned long *xpnet_broadcast_partitions;
- /* protect above */
- static DEFINE_SPINLOCK(xpnet_broadcast_lock);
- 
-@@ -140,16 +136,13 @@ static DEFINE_SPINLOCK(xpnet_broadcast_l
- #define XPNET_DEF_MTU (0x8000UL)
- 
- /*
-- * The partition id is encapsulated in the MAC address.  The following
-- * define locates the octet the partid is in.
-+ * The partid is encapsulated in the MAC address beginning in the following
-+ * octet and it consists of two octets.
-  */
--#define XPNET_PARTID_OCTET	1
--#define XPNET_LICENSE_OCTET	2
-+#define XPNET_PARTID_OCTET	2
+diff -puN /dev/null drivers/misc/sgi-gru/grukservices.c
+--- /dev/null
++++ a/drivers/misc/sgi-gru/grukservices.c
+@@ -0,0 +1,679 @@
++/*
++ * SN Platform GRU Driver
++ *
++ *              KERNEL SERVICES THAT USE THE GRU
++ *
++ *  Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ */
 +
-+/* Define the XPNET debug device structures to be used with dev_dbg() et al */
- 
--/*
-- * Define the XPNET debug device structure that is to be used with dev_dbg(),
-- * dev_err(), dev_warn(), and dev_info().
-- */
- struct device_driver xpnet_dbg_name = {
- 	.name = "xpnet"
- };
-@@ -231,7 +224,7 @@ xpnet_receive(short partid, int channel,
- 					  (void *)msg->buf_pa, msg->size);
- 
- 		ret = xp_remote_memcpy((void *)((u64)skb->data &
--				                ~(L1_CACHE_BYTES - 1)),
-+						~(L1_CACHE_BYTES - 1)),
- 				       (void *)msg->buf_pa, msg->size);
- 
- 		if (ret != xpSuccess) {
-@@ -283,8 +276,6 @@ static void
- xpnet_connection_activity(enum xp_retval reason, short partid, int channel,
- 			  void *data, void *key)
- {
--	long bp;
--
- 	DBUG_ON(partid < 0 || partid >= xp_max_npartitions);
- 	DBUG_ON(channel != XPC_NET_CHANNEL);
- 
-@@ -297,31 +288,28 @@ xpnet_connection_activity(enum xp_retval
- 
- 	case xpConnected:	/* connection completed to a partition */
- 		spin_lock_bh(&xpnet_broadcast_lock);
--		xpnet_broadcast_partitions |= 1UL << (partid - 1);
--		bp = xpnet_broadcast_partitions;
-+		__set_bit(partid, xpnet_broadcast_partitions);
- 		spin_unlock_bh(&xpnet_broadcast_lock);
- 
- 		netif_carrier_on(xpnet_device);
- 
--		dev_dbg(xpnet, "%s connection created to partition %d; "
--			"xpnet_broadcast_partitions=0x%lx\n",
--			xpnet_device->name, partid, bp);
-+		dev_dbg(xpnet, "%s connected to partition %d\n",
-+			xpnet_device->name, partid);
- 		break;
- 
- 	default:
- 		spin_lock_bh(&xpnet_broadcast_lock);
--		xpnet_broadcast_partitions &= ~(1UL << (partid - 1));
--		bp = xpnet_broadcast_partitions;
-+		__clear_bit(partid, xpnet_broadcast_partitions);
- 		spin_unlock_bh(&xpnet_broadcast_lock);
- 
--		if (bp == 0)
-+		if (bitmap_empty((unsigned long *)xpnet_broadcast_partitions,
-+				 xp_max_npartitions)) {
- 			netif_carrier_off(xpnet_device);
-+		}
- 
--		dev_dbg(xpnet, "%s disconnected from partition %d; "
--			"xpnet_broadcast_partitions=0x%lx\n",
--			xpnet_device->name, partid, bp);
-+		dev_dbg(xpnet, "%s disconnected from partition %d\n",
-+			xpnet_device->name, partid);
- 		break;
--
- 	}
- }
- 
-@@ -424,36 +412,72 @@ xpnet_send_completed(enum xp_retval reas
- 	}
- }
- 
-+static void
-+xpnet_send(struct sk_buff *skb, struct xpnet_pending_msg *queued_msg,
-+	   u64 start_addr, u64 end_addr, u16 embedded_bytes, int dest_partid)
++#include <linux/kernel.h>
++#include <linux/errno.h>
++#include <linux/slab.h>
++#include <linux/mm.h>
++#include <linux/smp_lock.h>
++#include <linux/spinlock.h>
++#include <linux/device.h>
++#include <linux/miscdevice.h>
++#include <linux/proc_fs.h>
++#include <linux/interrupt.h>
++#include <linux/uaccess.h>
++#include "gru.h"
++#include "grulib.h"
++#include "grutables.h"
++#include "grukservices.h"
++#include "gru_instructions.h"
++#include <asm/uv/uv_hub.h>
++
++/*
++ * Kernel GRU Usage
++ *
++ * The following is an interim algorithm for management of kernel GRU
++ * resources. This will likely be replaced when we better understand the
++ * kernel/user requirements.
++ *
++ * At boot time, the kernel permanently reserves a fixed number of
++ * CBRs/DSRs for each cpu to use. The resources are all taken from
++ * the GRU chiplet 1 on the blade. This leaves the full set of resources
++ * of chiplet 0 available to be allocated to a single user.
++ */
++
++/* Blade percpu resources PERMANENTLY reserved for kernel use */
++#define GRU_NUM_KERNEL_CBR      1
++#define GRU_NUM_KERNEL_DSR_BYTES 256
++#define KERNEL_CTXNUM           15
++
++/* GRU instruction attributes for all instructions */
++#define IMA			IMA_CB_DELAY
++
++/* GRU cacheline size is always 64 bytes - even on arches with 128 byte lines */
++#define __gru_cacheline_aligned__                               \
++	__attribute__((__aligned__(GRU_CACHE_LINE_BYTES)))
++
++#define MAGIC	0x1234567887654321UL
++
++/* Default retry count for GRU errors on kernel instructions */
++#define EXCEPTION_RETRY_LIMIT	3
++
++/* Status of message queue sections */
++#define MQS_EMPTY		0
++#define MQS_FULL		1
++#define MQS_NOOP		2
++
++/*----------------- RESOURCE MANAGEMENT -------------------------------------*/
++/* optimized for x86_64 */
++struct message_queue {
++	union gru_mesqhead	head __gru_cacheline_aligned__;	/* CL 0 */
++	int			qlines;				/* DW 1 */
++	long 			hstatus[2];
++	void 			*next __gru_cacheline_aligned__;/* CL 1 */
++	void 			*limit;
++	void 			*start;
++	void 			*start2;
++	char			data ____cacheline_aligned;	/* CL 2 */
++};
++
++/* First word in every message - used by mesq interface */
++struct message_header {
++	char	present;
++	char	present2;
++	char 	lines;
++	char	fill;
++};
++
++#define QLINES(mq)	((mq) + offsetof(struct message_queue, qlines))
++#define HSTATUS(mq, h)	((mq) + offsetof(struct message_queue, hstatus[h]))
++
++static int gru_get_cpu_resources(int dsr_bytes, void **cb, void **dsr)
 +{
-+	u8 msg_buffer[XPNET_MSG_SIZE];
-+	struct xpnet_message *msg = (struct xpnet_message *)&msg_buffer;
-+	enum xp_retval ret;
++	struct gru_blade_state *bs;
++	int lcpu;
 +
-+	msg->embedded_bytes = embedded_bytes;
-+	if (unlikely(embedded_bytes != 0)) {
-+		msg->version = XPNET_VERSION_EMBED;
-+		dev_dbg(xpnet, "calling memcpy(0x%p, 0x%p, 0x%lx)\n",
-+			&msg->data, skb->data, (size_t)embedded_bytes);
-+		skb_copy_from_linear_data(skb, &msg->data,
-+					  (size_t)embedded_bytes);
-+	} else {
-+		msg->version = XPNET_VERSION;
-+	}
-+	msg->magic = XPNET_MAGIC;
-+	msg->size = end_addr - start_addr;
-+	msg->leadin_ignore = (u64)skb->data - start_addr;
-+	msg->tailout_ignore = end_addr - (u64)skb_tail_pointer(skb);
-+	msg->buf_pa = __pa(start_addr);
-+
-+	dev_dbg(xpnet, "sending XPC message to %d:%d\n"
-+		KERN_DEBUG "msg->buf_pa=0x%lx, msg->size=%u, "
-+		"msg->leadin_ignore=%u, msg->tailout_ignore=%u\n",
-+		dest_partid, XPC_NET_CHANNEL, msg->buf_pa, msg->size,
-+		msg->leadin_ignore, msg->tailout_ignore);
-+
-+	atomic_inc(&queued_msg->use_count);
-+
-+	ret = xpc_send_notify(dest_partid, XPC_NET_CHANNEL, XPC_NOWAIT, msg,
-+			      XPNET_MSG_SIZE, xpnet_send_completed, queued_msg);
-+	if (unlikely(ret != xpSuccess))
-+		atomic_dec(&queued_msg->use_count);
++	BUG_ON(dsr_bytes > GRU_NUM_KERNEL_DSR_BYTES);
++	preempt_disable();
++	bs = gru_base[uv_numa_blade_id()];
++	lcpu = uv_blade_processor_id();
++	*cb = bs->kernel_cb + lcpu * GRU_HANDLE_STRIDE;
++	*dsr = bs->kernel_dsr + lcpu * GRU_NUM_KERNEL_DSR_BYTES;
++	return 0;
 +}
 +
- /*
-  * Network layer has formatted a packet (skb) and is ready to place it
-  * "on the wire".  Prepare and send an xpnet_message to all partitions
-  * which have connected with us and are targets of this packet.
-  *
-  * MAC-NOTE:  For the XPNET driver, the MAC address contains the
-- * destination partition_id.  If the destination partition id word
-- * is 0xff, this packet is to broadcast to all partitions.
-+ * destination partid.  If the destination partid octets are 0xffff,
-+ * this packet is to be broadcast to all connected partitions.
-  */
- static int
- xpnet_dev_hard_start_xmit(struct sk_buff *skb, struct net_device *dev)
- {
- 	struct xpnet_pending_msg *queued_msg;
--	enum xp_retval ret;
--	u8 msg_buffer[XPNET_MSG_SIZE];
--	struct xpnet_message *msg = (struct xpnet_message *)&msg_buffer[0];
- 	u64 start_addr, end_addr;
--	long dp;
--	u8 second_mac_octet;
- 	short dest_partid;
--	struct xpnet_dev_private *priv;
--	u16 embedded_bytes;
--
--	priv = (struct xpnet_dev_private *)dev->priv;
-+	struct xpnet_dev_private *priv = (struct xpnet_dev_private *)dev->priv;
-+	u16 embedded_bytes = 0;
- 
- 	dev_dbg(xpnet, ">skb->head=0x%p skb->data=0x%p skb->tail=0x%p "
- 		"skb->end=0x%p skb->len=%d\n", (void *)skb->head,
- 		(void *)skb->data, skb_tail_pointer(skb), skb_end_pointer(skb),
- 		skb->len);
- 
-+	if (skb->data[0] == 0x33) {
-+		dev_kfree_skb(skb);
-+		return 0;	/* nothing needed to be done */
-+	}
++static void gru_free_cpu_resources(void *cb, void *dsr)
++{
++	preempt_enable();
++}
 +
- 	/*
- 	 * The xpnet_pending_msg tracks how many outstanding
- 	 * xpc_send_notifies are relying on this skb.  When none
-@@ -465,7 +489,6 @@ xpnet_dev_hard_start_xmit(struct sk_buff
- 			 "packet\n", sizeof(struct xpnet_pending_msg));
- 
- 		priv->stats.tx_errors++;
--
- 		return -ENOMEM;
- 	}
- 
-@@ -474,7 +497,6 @@ xpnet_dev_hard_start_xmit(struct sk_buff
- 	end_addr = L1_CACHE_ALIGN((u64)skb_tail_pointer(skb));
- 
- 	/* calculate how many bytes to embed in the XPC message */
--	embedded_bytes = 0;
- 	if (unlikely(skb->len <= XPNET_MSG_DATA_MAX)) {
- 		/* skb->data does fit so embed */
- 		embedded_bytes = skb->len;
-@@ -490,78 +512,28 @@ xpnet_dev_hard_start_xmit(struct sk_buff
- 	atomic_set(&queued_msg->use_count, 1);
- 	queued_msg->skb = skb;
- 
--	second_mac_octet = skb->data[XPNET_PARTID_OCTET];
--	if (second_mac_octet == 0xff) {
-+	if (skb->data[0] == 0xff) {
- 		/* we are being asked to broadcast to all partitions */
--		dp = xpnet_broadcast_partitions;
--	} else if (second_mac_octet != 0) {
--		dp = xpnet_broadcast_partitions &
--		    (1UL << (second_mac_octet - 1));
--	} else {
--		/* 0 is an invalid partid.  Ignore */
--		dp = 0;
--	}
--	dev_dbg(xpnet, "destination Partitions mask (dp) = 0x%lx\n", dp);
--
--	/*
--	 * If we wanted to allow promiscuous mode to work like an
--	 * unswitched network, this would be a good point to OR in a
--	 * mask of partitions which should be receiving all packets.
--	 */
--
--	/*
--	 * Main send loop.
--	 */
--	for (dest_partid = 0; dp && dest_partid < xp_max_npartitions;
--	     dest_partid++) {
-+		for_each_bit(dest_partid, xpnet_broadcast_partitions,
-+			     xp_max_npartitions) {
- 
--		if (!(dp & (1UL << (dest_partid - 1)))) {
--			/* not destined for this partition */
--			continue;
-+			xpnet_send(skb, queued_msg, start_addr, end_addr,
-+				   embedded_bytes, dest_partid);
- 		}
++int gru_get_cb_exception_detail(void *cb,
++		struct control_block_extended_exc_detail *excdet)
++{
++	struct gru_control_block_extended *cbe;
++
++	cbe = get_cbe(GRUBASE(cb), get_cb_number(cb));
++	excdet->opc = cbe->opccpy;
++	excdet->exopc = cbe->exopccpy;
++	excdet->ecause = cbe->ecause;
++	excdet->exceptdet0 = cbe->idef1upd;
++	excdet->exceptdet1 = cbe->idef3upd;
++	return 0;
++}
++
++char *gru_get_cb_exception_detail_str(int ret, void *cb,
++				      char *buf, int size)
++{
++	struct gru_control_block_status *gen = (void *)cb;
++	struct control_block_extended_exc_detail excdet;
++
++	if (ret > 0 && gen->istatus == CBS_EXCEPTION) {
++		gru_get_cb_exception_detail(cb, &excdet);
++		snprintf(buf, size,
++			"GRU exception: cb %p, opc %d, exopc %d, ecause 0x%x,"
++			"excdet0 0x%lx, excdet1 0x%x",
++			gen, excdet.opc, excdet.exopc, excdet.ecause,
++			excdet.exceptdet0, excdet.exceptdet1);
 +	} else {
-+		dest_partid = (short)skb->data[XPNET_PARTID_OCTET + 1];
-+		dest_partid |= (short)skb->data[XPNET_PARTID_OCTET + 0] << 8;
- 
--		/* remove this partition from the destinations mask */
--		dp &= ~(1UL << (dest_partid - 1));
--
--		/* found a partition to send to */
-+		if (dest_partid >= 0 &&
-+		    dest_partid < xp_max_npartitions &&
-+		    test_bit(dest_partid, xpnet_broadcast_partitions) != 0) {
- 
--		msg->embedded_bytes = embedded_bytes;
--		if (unlikely(embedded_bytes != 0)) {
--			msg->version = XPNET_VERSION_EMBED;
--			dev_dbg(xpnet, "calling memcpy(0x%p, 0x%p, 0x%lx)\n",
--				&msg->data, skb->data, (size_t)embedded_bytes);
--			skb_copy_from_linear_data(skb, &msg->data,
--						  (size_t)embedded_bytes);
--		} else {
--			msg->version = XPNET_VERSION;
--		}
--		msg->magic = XPNET_MAGIC;
--		msg->size = end_addr - start_addr;
--		msg->leadin_ignore = (u64)skb->data - start_addr;
--		msg->tailout_ignore = end_addr - (u64)skb_tail_pointer(skb);
--		msg->buf_pa = __pa(start_addr);
--
--		dev_dbg(xpnet, "sending XPC message to %d:%d\n"
--			KERN_DEBUG "msg->buf_pa=0x%lx, msg->size=%u, "
--			"msg->leadin_ignore=%u, msg->tailout_ignore=%u\n",
--			dest_partid, XPC_NET_CHANNEL, msg->buf_pa, msg->size,
--			msg->leadin_ignore, msg->tailout_ignore);
--
--		atomic_inc(&queued_msg->use_count);
--
--		ret = xpc_send_notify(dest_partid, XPC_NET_CHANNEL, XPC_NOWAIT,
--				      &msg, sizeof(msg) + embedded_bytes - 1,
--				      xpnet_send_completed, queued_msg);
--		if (unlikely(ret != xpSuccess)) {
--			atomic_dec(&queued_msg->use_count);
--			continue;
-+			xpnet_send(skb, queued_msg, start_addr, end_addr,
-+				   embedded_bytes, dest_partid);
- 		}
- 	}
- 
- 	if (atomic_dec_return(&queued_msg->use_count) == 0) {
--		dev_dbg(xpnet, "no partitions to receive packet destined for "
--			"%d\n", dest_partid);
--
- 		dev_kfree_skb(skb);
- 		kfree(queued_msg);
- 	}
-@@ -589,23 +561,28 @@ xpnet_dev_tx_timeout(struct net_device *
- static int __init
- xpnet_init(void)
- {
--	int i;
--	u32 license_num;
--	int result = -ENOMEM;
-+	int result;
- 
--	if (!ia64_platform_is("sn2"))
-+	if (!is_shub() && !is_uv())
- 		return -ENODEV;
- 
- 	dev_info(xpnet, "registering network device %s\n", XPNET_DEVICE_NAME);
- 
-+	xpnet_broadcast_partitions = kzalloc(BITS_TO_LONGS(xp_max_npartitions) *
-+					     sizeof(long), GFP_KERNEL);
-+	if (xpnet_broadcast_partitions == NULL)
-+		return -ENOMEM;
-+
- 	/*
- 	 * use ether_setup() to init the majority of our device
- 	 * structure and then override the necessary pieces.
- 	 */
- 	xpnet_device = alloc_netdev(sizeof(struct xpnet_dev_private),
- 				    XPNET_DEVICE_NAME, ether_setup);
--	if (xpnet_device == NULL)
-+	if (xpnet_device == NULL) {
-+		kfree(xpnet_broadcast_partitions);
- 		return -ENOMEM;
++		snprintf(buf, size, "No exception");
 +	}
- 
- 	netif_carrier_off(xpnet_device);
- 
-@@ -623,14 +600,10 @@ xpnet_init(void)
- 	 * MAC addresses.  We chose the first octet of the MAC to be unlikely
- 	 * to collide with any vendor's officially issued MAC.
- 	 */
--	xpnet_device->dev_addr[0] = 0xfe;
--	xpnet_device->dev_addr[XPNET_PARTID_OCTET] = sn_partition_id;
--	license_num = sn_partition_serial_number_val();
--	for (i = 3; i >= 0; i--) {
--		xpnet_device->dev_addr[XPNET_LICENSE_OCTET + i] =
--		    license_num & 0xff;
--		license_num = license_num >> 8;
--	}
-+	xpnet_device->dev_addr[0] = 0x02;     /* locally administered, no OUI */
++	return buf;
++}
 +
-+	xpnet_device->dev_addr[XPNET_PARTID_OCTET + 1] = sn_partition_id;
-+	xpnet_device->dev_addr[XPNET_PARTID_OCTET + 0] = (sn_partition_id >> 8);
- 
- 	/*
- 	 * ether_setup() sets this to a multicast device.  We are
-@@ -646,8 +619,10 @@ xpnet_init(void)
- 	xpnet_device->features = NETIF_F_NO_CSUM;
- 
- 	result = register_netdev(xpnet_device);
--	if (result != 0)
-+	if (result != 0) {
- 		free_netdev(xpnet_device);
-+		kfree(xpnet_broadcast_partitions);
++static int gru_wait_idle_or_exception(struct gru_control_block_status *gen)
++{
++	while (gen->istatus >= CBS_ACTIVE) {
++		cpu_relax();
++		barrier();
 +	}
- 
- 	return result;
- }
-@@ -661,8 +636,8 @@ xpnet_exit(void)
- 		 xpnet_device[0].name);
- 
- 	unregister_netdev(xpnet_device);
++	return gen->istatus;
++}
++
++static int gru_retry_exception(void *cb)
++{
++	struct gru_control_block_status *gen = (void *)cb;
++	struct control_block_extended_exc_detail excdet;
++	int retry = EXCEPTION_RETRY_LIMIT;
++
++	while (1)  {
++		if (gru_get_cb_message_queue_substatus(cb))
++			break;
++		if (gru_wait_idle_or_exception(gen) == CBS_IDLE)
++			return CBS_IDLE;
++
++		gru_get_cb_exception_detail(cb, &excdet);
++		if (excdet.ecause & ~EXCEPTION_RETRY_BITS)
++			break;
++		if (retry-- == 0)
++			break;
++		gen->icmd = 1;
++		gru_flush_cache(gen);
++	}
++	return CBS_EXCEPTION;
++}
++
++int gru_check_status_proc(void *cb)
++{
++	struct gru_control_block_status *gen = (void *)cb;
++	int ret;
++
++	ret = gen->istatus;
++	if (ret != CBS_EXCEPTION)
++		return ret;
++	return gru_retry_exception(cb);
++
++}
++
++int gru_wait_proc(void *cb)
++{
++	struct gru_control_block_status *gen = (void *)cb;
++	int ret;
++
++	ret = gru_wait_idle_or_exception(gen);
++	if (ret == CBS_EXCEPTION)
++		ret = gru_retry_exception(cb);
++
++	return ret;
++}
++
++void gru_abort(int ret, void *cb, char *str)
++{
++	char buf[GRU_EXC_STR_SIZE];
++
++	panic("GRU FATAL ERROR: %s - %s\n", str,
++	      gru_get_cb_exception_detail_str(ret, cb, buf, sizeof(buf)));
++}
++
++void gru_wait_abort_proc(void *cb)
++{
++	int ret;
++
++	ret = gru_wait_proc(cb);
++	if (ret)
++		gru_abort(ret, cb, "gru_wait_abort");
++}
++
++
++/*------------------------------ MESSAGE QUEUES -----------------------------*/
++
++/* Internal status . These are NOT returned to the user. */
++#define MQIE_AGAIN		-1	/* try again */
++
++
++/*
++ * Save/restore the "present" flag that is in the second line of 2-line
++ * messages
++ */
++static inline int get_present2(void *p)
++{
++	struct message_header *mhdr = p + GRU_CACHE_LINE_BYTES;
++	return mhdr->present;
++}
++
++static inline void restore_present2(void *p, int val)
++{
++	struct message_header *mhdr = p + GRU_CACHE_LINE_BYTES;
++	mhdr->present = val;
++}
++
++/*
++ * Create a message queue.
++ * 	qlines - message queue size in cache lines. Includes 2-line header.
++ */
++int gru_create_message_queue(void *p, unsigned int bytes)
++{
++	struct message_queue *mq = p;
++	unsigned int qlines;
++
++	qlines = bytes / GRU_CACHE_LINE_BYTES - 2;
++	memset(mq, 0, bytes);
++	mq->start = &mq->data;
++	mq->start2 = &mq->data + (qlines / 2 - 1) * GRU_CACHE_LINE_BYTES;
++	mq->next = &mq->data;
++	mq->limit = &mq->data + (qlines - 2) * GRU_CACHE_LINE_BYTES;
++	mq->qlines = qlines;
++	mq->hstatus[0] = 0;
++	mq->hstatus[1] = 1;
++	mq->head = gru_mesq_head(2, qlines / 2 + 1);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(gru_create_message_queue);
++
++/*
++ * Send a NOOP message to a message queue
++ * 	Returns:
++ * 		 0 - if queue is full after the send. This is the normal case
++ * 		     but various races can change this.
++ *		-1 - if mesq sent successfully but queue not full
++ *		>0 - unexpected error. MQE_xxx returned
++ */
++static int send_noop_message(void *cb,
++				unsigned long mq, void *mesg)
++{
++	const struct message_header noop_header = {
++					.present = MQS_NOOP, .lines = 1};
++	unsigned long m;
++	int substatus, ret;
++	struct message_header save_mhdr, *mhdr = mesg;
++
++	STAT(mesq_noop);
++	save_mhdr = *mhdr;
++	*mhdr = noop_header;
++	gru_mesq(cb, mq, gru_get_tri(mhdr), 1, IMA);
++	ret = gru_wait(cb);
++
++	if (ret) {
++		substatus = gru_get_cb_message_queue_substatus(cb);
++		switch (substatus) {
++		case CBSS_NO_ERROR:
++			STAT(mesq_noop_unexpected_error);
++			ret = MQE_UNEXPECTED_CB_ERR;
++			break;
++		case CBSS_LB_OVERFLOWED:
++			STAT(mesq_noop_lb_overflow);
++			ret = MQE_CONGESTION;
++			break;
++		case CBSS_QLIMIT_REACHED:
++			STAT(mesq_noop_qlimit_reached);
++			ret = 0;
++			break;
++		case CBSS_AMO_NACKED:
++			STAT(mesq_noop_amo_nacked);
++			ret = MQE_CONGESTION;
++			break;
++		case CBSS_PUT_NACKED:
++			STAT(mesq_noop_put_nacked);
++			m = mq + (gru_get_amo_value_head(cb) << 6);
++			gru_vstore(cb, m, gru_get_tri(mesg), XTYPE_CL, 1, 1,
++						IMA);
++			if (gru_wait(cb) == CBS_IDLE)
++				ret = MQIE_AGAIN;
++			else
++				ret = MQE_UNEXPECTED_CB_ERR;
++			break;
++		case CBSS_PAGE_OVERFLOW:
++		default:
++			BUG();
++		}
++	}
++	*mhdr = save_mhdr;
++	return ret;
++}
++
++/*
++ * Handle a gru_mesq full.
++ */
++static int send_message_queue_full(void *cb,
++			   unsigned long mq, void *mesg, int lines)
++{
++	union gru_mesqhead mqh;
++	unsigned int limit, head;
++	unsigned long avalue;
++	int half, qlines, save;
++
++	/* Determine if switching to first/second half of q */
++	avalue = gru_get_amo_value(cb);
++	head = gru_get_amo_value_head(cb);
++	limit = gru_get_amo_value_limit(cb);
++
++	/*
++	 * Fetch "qlines" from the queue header. Since the queue may be
++	 * in memory that can't be accessed using socket addresses, use
++	 * the GRU to access the data. Use DSR space from the message.
++	 */
++	save = *(int *)mesg;
++	gru_vload(cb, QLINES(mq), gru_get_tri(mesg), XTYPE_W, 1, 1, IMA);
++	if (gru_wait(cb) != CBS_IDLE)
++		goto cberr;
++	qlines = *(int *)mesg;
++	*(int *)mesg = save;
++	half = (limit != qlines);
++
++	if (half)
++		mqh = gru_mesq_head(qlines / 2 + 1, qlines);
++	else
++		mqh = gru_mesq_head(2, qlines / 2 + 1);
++
++	/* Try to get lock for switching head pointer */
++	gru_gamir(cb, EOP_IR_CLR, HSTATUS(mq, half), XTYPE_DW, IMA);
++	if (gru_wait(cb) != CBS_IDLE)
++		goto cberr;
++	if (!gru_get_amo_value(cb)) {
++		STAT(mesq_qf_locked);
++		return MQE_QUEUE_FULL;
++	}
++
++	/* Got the lock. Send optional NOP if queue not full, */
++	if (head != limit) {
++		if (send_noop_message(cb, mq, mesg)) {
++			gru_gamir(cb, EOP_IR_INC, HSTATUS(mq, half),
++					XTYPE_DW, IMA);
++			if (gru_wait(cb) != CBS_IDLE)
++				goto cberr;
++			STAT(mesq_qf_noop_not_full);
++			return MQIE_AGAIN;
++		}
++		avalue++;
++	}
++
++	/* Then flip queuehead to other half of queue. */
++	gru_gamer(cb, EOP_ERR_CSWAP, mq, XTYPE_DW, mqh.val, avalue, IMA);
++	if (gru_wait(cb) != CBS_IDLE)
++		goto cberr;
++
++	/* If not successfully in swapping queue head, clear the hstatus lock */
++	if (gru_get_amo_value(cb) != avalue) {
++		STAT(mesq_qf_switch_head_failed);
++		gru_gamir(cb, EOP_IR_INC, HSTATUS(mq, half), XTYPE_DW, IMA);
++		if (gru_wait(cb) != CBS_IDLE)
++			goto cberr;
++	}
++	return MQIE_AGAIN;
++cberr:
++	STAT(mesq_qf_unexpected_error);
++	return MQE_UNEXPECTED_CB_ERR;
++}
++
++
++/*
++ * Handle a gru_mesq failure. Some of these failures are software recoverable
++ * or retryable.
++ */
++static int send_message_failure(void *cb,
++				unsigned long mq,
++				void *mesg,
++				int lines)
++{
++	int substatus, ret = 0;
++	unsigned long m;
++
++	substatus = gru_get_cb_message_queue_substatus(cb);
++	switch (substatus) {
++	case CBSS_NO_ERROR:
++		STAT(mesq_send_unexpected_error);
++		ret = MQE_UNEXPECTED_CB_ERR;
++		break;
++	case CBSS_LB_OVERFLOWED:
++		STAT(mesq_send_lb_overflow);
++		ret = MQE_CONGESTION;
++		break;
++	case CBSS_QLIMIT_REACHED:
++		STAT(mesq_send_qlimit_reached);
++		ret = send_message_queue_full(cb, mq, mesg, lines);
++		break;
++	case CBSS_AMO_NACKED:
++		STAT(mesq_send_amo_nacked);
++		ret = MQE_CONGESTION;
++		break;
++	case CBSS_PUT_NACKED:
++		STAT(mesq_send_put_nacked);
++		m =mq + (gru_get_amo_value_head(cb) << 6);
++		gru_vstore(cb, m, gru_get_tri(mesg), XTYPE_CL, lines, 1, IMA);
++		if (gru_wait(cb) == CBS_IDLE)
++			ret = MQE_OK;
++		else
++			ret = MQE_UNEXPECTED_CB_ERR;
++		break;
++	default:
++		BUG();
++	}
++	return ret;
++}
++
++/*
++ * Send a message to a message queue
++ * 	cb	GRU control block to use to send message
++ * 	mq	message queue
++ * 	mesg	message. ust be vaddr within a GSEG
++ * 	bytes	message size (<= 2 CL)
++ */
++int gru_send_message_gpa(unsigned long mq, void *mesg, unsigned int bytes)
++{
++	struct message_header *mhdr;
++	void *cb;
++	void *dsr;
++	int istatus, clines, ret;
++
++	STAT(mesq_send);
++	BUG_ON(bytes < sizeof(int) || bytes > 2 * GRU_CACHE_LINE_BYTES);
++
++	clines = (bytes + GRU_CACHE_LINE_BYTES - 1) / GRU_CACHE_LINE_BYTES;
++	if (gru_get_cpu_resources(bytes, &cb, &dsr))
++		return MQE_BUG_NO_RESOURCES;
++	memcpy(dsr, mesg, bytes);
++	mhdr = dsr;
++	mhdr->present = MQS_FULL;
++	mhdr->lines = clines;
++	if (clines == 2) {
++		mhdr->present2 = get_present2(mhdr);
++		restore_present2(mhdr, MQS_FULL);
++	}
++
++	do {
++		ret = MQE_OK;
++		gru_mesq(cb, mq, gru_get_tri(mhdr), clines, IMA);
++		istatus = gru_wait(cb);
++		if (istatus != CBS_IDLE)
++			ret = send_message_failure(cb, mq, dsr, clines);
++	} while (ret == MQIE_AGAIN);
++	gru_free_cpu_resources(cb, dsr);
++
++	if (ret)
++		STAT(mesq_send_failed);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(gru_send_message_gpa);
++
++/*
++ * Advance the receive pointer for the queue to the next message.
++ */
++void gru_free_message(void *rmq, void *mesg)
++{
++	struct message_queue *mq = rmq;
++	struct message_header *mhdr = mq->next;
++	void *next, *pnext;
++	int half = -1;
++	int lines = mhdr->lines;
++
++	if (lines == 2)
++		restore_present2(mhdr, MQS_EMPTY);
++	mhdr->present = MQS_EMPTY;
++
++	pnext = mq->next;
++	next = pnext + GRU_CACHE_LINE_BYTES * lines;
++	if (next == mq->limit) {
++		next = mq->start;
++		half = 1;
++	} else if (pnext < mq->start2 && next >= mq->start2) {
++		half = 0;
++	}
++
++	if (half >= 0)
++		mq->hstatus[half] = 1;
++	mq->next = next;
++}
++EXPORT_SYMBOL_GPL(gru_free_message);
++
++/*
++ * Get next message from message queue. Return NULL if no message
++ * present. User must call next_message() to move to next message.
++ * 	rmq	message queue
++ */
++void *gru_get_next_message(void *rmq)
++{
++	struct message_queue *mq = rmq;
++	struct message_header *mhdr = mq->next;
++	int present = mhdr->present;
++
++	/* skip NOOP messages */
++	STAT(mesq_receive);
++	while (present == MQS_NOOP) {
++		gru_free_message(rmq, mhdr);
++		mhdr = mq->next;
++		present = mhdr->present;
++	}
++
++	/* Wait for both halves of 2 line messages */
++	if (present == MQS_FULL && mhdr->lines == 2 &&
++				get_present2(mhdr) == MQS_EMPTY)
++		present = MQS_EMPTY;
++
++	if (!present) {
++		STAT(mesq_receive_none);
++		return NULL;
++	}
++
++	if (mhdr->lines == 2)
++		restore_present2(mhdr, mhdr->present2);
++
++	return mhdr;
++}
++EXPORT_SYMBOL_GPL(gru_get_next_message);
++
++/* ---------------------- GRU DATA COPY FUNCTIONS ---------------------------*/
++
++/*
++ * Copy a block of data using the GRU resources
++ */
++int gru_copy_gpa(unsigned long dest_gpa, unsigned long src_gpa,
++				unsigned int bytes)
++{
++	void *cb;
++	void *dsr;
++	int ret;
++
++	STAT(copy_gpa);
++	if (gru_get_cpu_resources(GRU_NUM_KERNEL_DSR_BYTES, &cb, &dsr))
++		return MQE_BUG_NO_RESOURCES;
++	gru_bcopy(cb, src_gpa, dest_gpa, gru_get_tri(dsr),
++		  XTYPE_B, bytes, GRU_NUM_KERNEL_DSR_BYTES, IMA);
++	ret = gru_wait(cb);
++	gru_free_cpu_resources(cb, dsr);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(gru_copy_gpa);
++
++/* ------------------- KERNEL QUICKTESTS RUN AT STARTUP ----------------*/
++/* 	Temp - will delete after we gain confidence in the GRU		*/
++static __cacheline_aligned unsigned long word0;
++static __cacheline_aligned unsigned long word1;
++
++static int quicktest(struct gru_state *gru)
++{
++	void *cb;
++	void *ds;
++	unsigned long *p;
++
++	cb = get_gseg_base_address_cb(gru->gs_gru_base_vaddr, KERNEL_CTXNUM, 0);
++	ds = get_gseg_base_address_ds(gru->gs_gru_base_vaddr, KERNEL_CTXNUM, 0);
++	p = ds;
++	word0 = MAGIC;
++
++	gru_vload(cb, uv_gpa(&word0), 0, XTYPE_DW, 1, 1, IMA);
++	if (gru_wait(cb) != CBS_IDLE)
++		BUG();
++
++	if (*(unsigned long *)ds != MAGIC)
++		BUG();
++	gru_vstore(cb, uv_gpa(&word1), 0, XTYPE_DW, 1, 1, IMA);
++	if (gru_wait(cb) != CBS_IDLE)
++		BUG();
++
++	if (word0 != word1 || word0 != MAGIC) {
++		printk
++		    ("GRU quicktest err: gru %d, found 0x%lx, expected 0x%lx\n",
++		     gru->gs_gid, word1, MAGIC);
++		BUG();		/* ZZZ should not be fatal */
++	}
++
++	return 0;
++}
++
++
++int gru_kservices_init(struct gru_state *gru)
++{
++	struct gru_blade_state *bs;
++	struct gru_context_configuration_handle *cch;
++	unsigned long cbr_map, dsr_map;
++	int err, num, cpus_possible;
++
++	/*
++	 * Currently, resources are reserved ONLY on the second chiplet
++	 * on each blade. This leaves ALL resources on chiplet 0 available
++	 * for user code.
++	 */
++	bs = gru->gs_blade;
++	if (gru != &bs->bs_grus[1])
++		return 0;
++
++	cpus_possible = uv_blade_nr_possible_cpus(gru->gs_blade_id);
++
++	num = GRU_NUM_KERNEL_CBR * cpus_possible;
++	cbr_map = reserve_gru_cb_resources(gru, GRU_CB_COUNT_TO_AU(num), NULL);
++	gru->gs_reserved_cbrs += num;
++
++	num = GRU_NUM_KERNEL_DSR_BYTES * cpus_possible;
++	dsr_map = reserve_gru_ds_resources(gru, GRU_DS_BYTES_TO_AU(num), NULL);
++	gru->gs_reserved_dsr_bytes += num;
++
++	gru->gs_active_contexts++;
++	__set_bit(KERNEL_CTXNUM, &gru->gs_context_map);
++	cch = get_cch(gru->gs_gru_base_vaddr, KERNEL_CTXNUM);
++
++	bs->kernel_cb = get_gseg_base_address_cb(gru->gs_gru_base_vaddr,
++					KERNEL_CTXNUM, 0);
++	bs->kernel_dsr = get_gseg_base_address_ds(gru->gs_gru_base_vaddr,
++					KERNEL_CTXNUM, 0);
++
++	lock_cch_handle(cch);
++	cch->tfm_fault_bit_enable = 0;
++	cch->tlb_int_enable = 0;
++	cch->tfm_done_bit_enable = 0;
++	cch->unmap_enable = 1;
++	err = cch_allocate(cch, 0, cbr_map, dsr_map);
++	if (err) {
++		gru_dbg(grudev,
++			"Unable to allocate kernel CCH: gru %d, err %d\n",
++			gru->gs_gid, err);
++		BUG();
++	}
++	if (cch_start(cch)) {
++		gru_dbg(grudev, "Unable to start kernel CCH: gru %d, err %d\n",
++			gru->gs_gid, err);
++		BUG();
++	}
++	unlock_cch_handle(cch);
++
++	if (options & GRU_QUICKLOOK)
++		quicktest(gru);
++	return 0;
++}
+_
+
+Patches currently in -mm which might be from steiner@sgi.com are
+
+origin.patch
+linux-next.patch
+
