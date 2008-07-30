@@ -1,350 +1,344 @@
 From: akpm@linux-foundation.org
-Subject: - gru-driver-v3-fixes-to-resolve-code-review-comments.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:16:15 -0700
-Message-ID: <200807301916.m6UJGFVr011109@imap1.linux-foundation.org>
+Subject: - sgi-xp-add-_sn2-suffix-to-a-few-variables.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:16:55 -0700
+Message-ID: <200807301916.m6UJGtd8011163@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56167 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33275 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754848AbYG3TYh (ORCPT
+	by vger.kernel.org with ESMTP id S1753499AbYG3TYK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:24:37 -0400
+	Wed, 30 Jul 2008 15:24:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: steiner@sgi.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: dcn@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     GRU Driver V3: fixes to resolve code review comments
+     sgi-xp: add _sn2 suffix to a few variables
 has been removed from the -mm tree.  Its filename was
-     gru-driver-v3-fixes-to-resolve-code-review-comments.patch
+     sgi-xp-add-_sn2-suffix-to-a-few-variables.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: GRU Driver V3: fixes to resolve code review comments
-From: Jack Steiner <steiner@sgi.com>
+Subject: sgi-xp: add _sn2 suffix to a few variables
+From: Dean Nelson <dcn@sgi.com>
 
-Fixes problems identified in a code review:
-	- add comment with high level dscription of the GRU
-	- prepend "gru_" to all global names
-	- delete unused function
-	- couple of trivial bug fixes
+Add an '_sn2' suffix to some variables found in xpc_sn2.c.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Jack Steiner <steiner@sgi.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Dean Nelson <dcn@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/gru_instructions.h |   10 --
- drivers/misc/sgi-gru/grufile.c          |    8 +-
- drivers/misc/sgi-gru/grukservices.c     |    6 -
- drivers/misc/sgi-gru/grumain.c          |   16 ++--
- drivers/misc/sgi-gru/gruprocfs.c        |    4 -
- drivers/misc/sgi-gru/grutables.h        |   74 ++++++++++++++++++++--
- drivers/misc/sgi-gru/grutlbpurge.c      |    4 -
- 7 files changed, 93 insertions(+), 29 deletions(-)
+ drivers/misc/sgi-xp/xpc_sn2.c |  124 ++++++++++++++++----------------
+ 1 file changed, 65 insertions(+), 59 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/gru_instructions.h~gru-driver-v3-fixes-to-resolve-code-review-comments drivers/misc/sgi-gru/gru_instructions.h
---- a/drivers/misc/sgi-gru/gru_instructions.h~gru-driver-v3-fixes-to-resolve-code-review-comments
-+++ a/drivers/misc/sgi-gru/gru_instructions.h
-@@ -285,16 +285,6 @@ __opword(unsigned char opcode, unsigned 
- }
+diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-add-_sn2-suffix-to-a-few-variables drivers/misc/sgi-xp/xpc_sn2.c
+--- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-add-_sn2-suffix-to-a-few-variables
++++ a/drivers/misc/sgi-xp/xpc_sn2.c
+@@ -56,15 +56,15 @@
+ static char *xpc_remote_copy_buffer_sn2;
+ static void *xpc_remote_copy_buffer_base_sn2;
+ 
+-static struct xpc_vars_sn2 *xpc_vars;	/* >>> Add _sn2 suffix? */
+-static struct xpc_vars_part_sn2 *xpc_vars_part; /* >>> Add _sn2 suffix? */
++static struct xpc_vars_sn2 *xpc_vars_sn2;
++static struct xpc_vars_part_sn2 *xpc_vars_part_sn2;
+ 
+ /* SH_IPI_ACCESS shub register value on startup */
+-static u64 xpc_sh1_IPI_access;
+-static u64 xpc_sh2_IPI_access0;
+-static u64 xpc_sh2_IPI_access1;
+-static u64 xpc_sh2_IPI_access2;
+-static u64 xpc_sh2_IPI_access3;
++static u64 xpc_sh1_IPI_access_sn2;
++static u64 xpc_sh2_IPI_access0_sn2;
++static u64 xpc_sh2_IPI_access1_sn2;
++static u64 xpc_sh2_IPI_access2_sn2;
++static u64 xpc_sh2_IPI_access3_sn2;
  
  /*
-- * Prefetch a cacheline. Fetch is unconditional. Must page fault if
-- * no valid TLB entry is found.
-- * 	??? should I use actual "load" or hardware prefetch???
-- */
--static inline void gru_prefetch(void *p)
--{
--	*(volatile char *)p;
--}
--
--/*
-  * Architecture specific intrinsics
-  */
- static inline void gru_flush_cache(void *p)
-diff -puN drivers/misc/sgi-gru/grufile.c~gru-driver-v3-fixes-to-resolve-code-review-comments drivers/misc/sgi-gru/grufile.c
---- a/drivers/misc/sgi-gru/grufile.c~gru-driver-v3-fixes-to-resolve-code-review-comments
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -112,6 +112,10 @@ static int gru_file_mmap(struct file *fi
- 	if ((vma->vm_flags & (VM_SHARED | VM_WRITE)) != (VM_SHARED | VM_WRITE))
- 		return -EPERM;
+  * Change protections to allow IPI operations.
+@@ -77,13 +77,13 @@ xpc_allow_IPI_ops_sn2(void)
  
-+	if (vma->vm_start & (GRU_GSEG_PAGESIZE - 1) ||
-+			vma->vm_end & (GRU_GSEG_PAGESIZE - 1))
-+		return -EINVAL;
-+
- 	vma->vm_flags |=
- 	    (VM_IO | VM_DONTCOPY | VM_LOCKED | VM_DONTEXPAND | VM_PFNMAP |
- 			VM_RESERVED);
-@@ -471,8 +475,8 @@ struct vm_operations_struct gru_vm_ops =
- module_init(gru_init);
- module_exit(gru_exit);
+ 	/* >>> The following should get moved into SAL. */
+ 	if (is_shub2()) {
+-		xpc_sh2_IPI_access0 =
++		xpc_sh2_IPI_access0_sn2 =
+ 		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS0));
+-		xpc_sh2_IPI_access1 =
++		xpc_sh2_IPI_access1_sn2 =
+ 		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS1));
+-		xpc_sh2_IPI_access2 =
++		xpc_sh2_IPI_access2_sn2 =
+ 		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS2));
+-		xpc_sh2_IPI_access3 =
++		xpc_sh2_IPI_access3_sn2 =
+ 		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS3));
  
--module_param(options, ulong, 0644);
--MODULE_PARM_DESC(options, "Various debug options");
-+module_param(gru_options, ulong, 0644);
-+MODULE_PARM_DESC(gru_options, "Various debug options");
+ 		for_each_online_node(node) {
+@@ -98,7 +98,7 @@ xpc_allow_IPI_ops_sn2(void)
+ 			      -1UL);
+ 		}
+ 	} else {
+-		xpc_sh1_IPI_access =
++		xpc_sh1_IPI_access_sn2 =
+ 		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH1_IPI_ACCESS));
  
- MODULE_AUTHOR("Silicon Graphics, Inc.");
- MODULE_LICENSE("GPL");
-diff -puN drivers/misc/sgi-gru/grukservices.c~gru-driver-v3-fixes-to-resolve-code-review-comments drivers/misc/sgi-gru/grukservices.c
---- a/drivers/misc/sgi-gru/grukservices.c~gru-driver-v3-fixes-to-resolve-code-review-comments
-+++ a/drivers/misc/sgi-gru/grukservices.c
-@@ -638,11 +638,11 @@ int gru_kservices_init(struct gru_state 
- 	cpus_possible = uv_blade_nr_possible_cpus(gru->gs_blade_id);
- 
- 	num = GRU_NUM_KERNEL_CBR * cpus_possible;
--	cbr_map = reserve_gru_cb_resources(gru, GRU_CB_COUNT_TO_AU(num), NULL);
-+	cbr_map = gru_reserve_cb_resources(gru, GRU_CB_COUNT_TO_AU(num), NULL);
- 	gru->gs_reserved_cbrs += num;
- 
- 	num = GRU_NUM_KERNEL_DSR_BYTES * cpus_possible;
--	dsr_map = reserve_gru_ds_resources(gru, GRU_DS_BYTES_TO_AU(num), NULL);
-+	dsr_map = gru_reserve_ds_resources(gru, GRU_DS_BYTES_TO_AU(num), NULL);
- 	gru->gs_reserved_dsr_bytes += num;
- 
- 	gru->gs_active_contexts++;
-@@ -673,7 +673,7 @@ int gru_kservices_init(struct gru_state 
+ 		for_each_online_node(node) {
+@@ -123,19 +123,19 @@ xpc_disallow_IPI_ops_sn2(void)
+ 		for_each_online_node(node) {
+ 			nasid = cnodeid_to_nasid(node);
+ 			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS0),
+-			      xpc_sh2_IPI_access0);
++			      xpc_sh2_IPI_access0_sn2);
+ 			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS1),
+-			      xpc_sh2_IPI_access1);
++			      xpc_sh2_IPI_access1_sn2);
+ 			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS2),
+-			      xpc_sh2_IPI_access2);
++			      xpc_sh2_IPI_access2_sn2);
+ 			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS3),
+-			      xpc_sh2_IPI_access3);
++			      xpc_sh2_IPI_access3_sn2);
+ 		}
+ 	} else {
+ 		for_each_online_node(node) {
+ 			nasid = cnodeid_to_nasid(node);
+ 			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH1_IPI_ACCESS),
+-			      xpc_sh1_IPI_access);
++			      xpc_sh1_IPI_access_sn2);
+ 		}
  	}
- 	unlock_cch_handle(cch);
- 
--	if (options & GRU_QUICKLOOK)
-+	if (gru_options & GRU_QUICKLOOK)
- 		quicktest(gru);
- 	return 0;
  }
-diff -puN drivers/misc/sgi-gru/grumain.c~gru-driver-v3-fixes-to-resolve-code-review-comments drivers/misc/sgi-gru/grumain.c
---- a/drivers/misc/sgi-gru/grumain.c~gru-driver-v3-fixes-to-resolve-code-review-comments
-+++ a/drivers/misc/sgi-gru/grumain.c
-@@ -22,7 +22,7 @@
- #include "grutables.h"
- #include "gruhandles.h"
- 
--unsigned long options __read_mostly;
-+unsigned long gru_options __read_mostly;
- 
- static struct device_driver gru_driver = {
- 	.name = "gru"
-@@ -163,14 +163,14 @@ static unsigned long reserve_resources(u
- 	return bits;
- }
- 
--unsigned long reserve_gru_cb_resources(struct gru_state *gru, int cbr_au_count,
-+unsigned long gru_reserve_cb_resources(struct gru_state *gru, int cbr_au_count,
- 				       char *cbmap)
+@@ -182,7 +182,7 @@ xpc_send_IRQ_sn2(struct amo *amo, u64 fl
+ static struct amo *
+ xpc_init_IRQ_amo_sn2(int index)
  {
- 	return reserve_resources(&gru->gs_cbr_map, cbr_au_count, GRU_CBR_AU,
- 				 cbmap);
- }
+-	struct amo *amo = xpc_vars->amos_page + index;
++	struct amo *amo = xpc_vars_sn2->amos_page + index;
  
--unsigned long reserve_gru_ds_resources(struct gru_state *gru, int dsr_au_count,
-+unsigned long gru_reserve_ds_resources(struct gru_state *gru, int dsr_au_count,
- 				       char *dsmap)
+ 	(void)xpc_receive_IRQ_amo_sn2(amo);	/* clear amo variable */
+ 	return amo;
+@@ -225,7 +225,7 @@ xpc_send_local_activate_IRQ_sn2(int from
  {
- 	return reserve_resources(&gru->gs_dsr_map, dsr_au_count, GRU_DSR_AU,
-@@ -182,10 +182,10 @@ static void reserve_gru_resources(struct
- {
- 	gru->gs_active_contexts++;
- 	gts->ts_cbr_map =
--	    reserve_gru_cb_resources(gru, gts->ts_cbr_au_count,
-+	    gru_reserve_cb_resources(gru, gts->ts_cbr_au_count,
- 				     gts->ts_cbr_idx);
- 	gts->ts_dsr_map =
--	    reserve_gru_ds_resources(gru, gts->ts_dsr_au_count, NULL);
-+	    gru_reserve_ds_resources(gru, gts->ts_dsr_au_count, NULL);
- }
+ 	int w_index = XPC_NASID_W_INDEX(from_nasid);
+ 	int b_index = XPC_NASID_B_INDEX(from_nasid);
+-	struct amo *amos = (struct amo *)__va(xpc_vars->amos_page_pa +
++	struct amo *amos = (struct amo *)__va(xpc_vars_sn2->amos_page_pa +
+ 					      (XPC_ACTIVATE_IRQ_AMOS_SN2 *
+ 					      sizeof(struct amo)));
  
- static void free_gru_resources(struct gru_state *gru,
-@@ -416,6 +416,7 @@ static void gru_free_gru_context(struct 
- 
- /*
-  * Prefetching cachelines help hardware performance.
-+ * (Strictly a performance enhancement. Not functionally required).
-  */
- static void prefetch_data(void *p, int num, int stride)
+@@ -492,7 +492,8 @@ xpc_indicate_partition_disengaged_sn2(st
+ static int
+ xpc_partition_engaged_sn2(short partid)
  {
-@@ -746,6 +747,8 @@ again:
-  * gru_nopage
-  *
-  * Map the user's GRU segment
-+ *
-+ * 	Note: gru segments alway mmaped on GRU_GSEG_PAGESIZE boundaries.
-  */
- int gru_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
-@@ -757,6 +760,7 @@ int gru_fault(struct vm_area_struct *vma
- 		vma, vaddr, GSEG_BASE(vaddr));
- 	STAT(nopfn);
+-	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO_SN2;
++	struct amo *amo = xpc_vars_sn2->amos_page +
++			  XPC_ENGAGED_PARTITIONS_AMO_SN2;
  
-+	/* The following check ensures vaddr is a valid address in the VMA */
- 	gts = gru_find_thread_state(vma, TSID(vaddr, vma));
- 	if (!gts)
- 		return VM_FAULT_SIGBUS;
-@@ -775,7 +779,7 @@ again:
+ 	/* our partition's amo variable ANDed with partid mask */
+ 	return (FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_LOAD) &
+@@ -502,7 +503,8 @@ xpc_partition_engaged_sn2(short partid)
+ static int
+ xpc_any_partition_engaged_sn2(void)
+ {
+-	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO_SN2;
++	struct amo *amo = xpc_vars_sn2->amos_page +
++			  XPC_ENGAGED_PARTITIONS_AMO_SN2;
+ 
+ 	/* our partition's amo variable */
+ 	return FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_LOAD) != 0;
+@@ -511,7 +513,8 @@ xpc_any_partition_engaged_sn2(void)
+ static void
+ xpc_assume_partition_disengaged_sn2(short partid)
+ {
+-	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO_SN2;
++	struct amo *amo = xpc_vars_sn2->amos_page +
++			  XPC_ENGAGED_PARTITIONS_AMO_SN2;
+ 
+ 	/* clear bit(s) based on partid mask in our partition's amo */
+ 	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_AND,
+@@ -580,27 +583,27 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
+ 	int i;
+ 	int ret;
+ 
+-	xpc_vars = XPC_RP_VARS(rp);
++	xpc_vars_sn2 = XPC_RP_VARS(rp);
+ 
+-	rp->sn.vars_pa = __pa(xpc_vars);
++	rp->sn.vars_pa = __pa(xpc_vars_sn2);
+ 
+ 	/* vars_part array follows immediately after vars */
+-	xpc_vars_part = (struct xpc_vars_part_sn2 *)((u8 *)XPC_RP_VARS(rp) +
+-						     XPC_RP_VARS_SIZE);
++	xpc_vars_part_sn2 = (struct xpc_vars_part_sn2 *)((u8 *)XPC_RP_VARS(rp) +
++							 XPC_RP_VARS_SIZE);
+ 
+ 	/*
+-	 * Before clearing xpc_vars, see if a page of amos had been previously
+-	 * allocated. If not we'll need to allocate one and set permissions
+-	 * so that cross-partition amos are allowed.
++	 * Before clearing xpc_vars_sn2, see if a page of amos had been
++	 * previously allocated. If not we'll need to allocate one and set
++	 * permissions so that cross-partition amos are allowed.
+ 	 *
+ 	 * The allocated amo page needs MCA reporting to remain disabled after
+ 	 * XPC has unloaded.  To make this work, we keep a copy of the pointer
+-	 * to this page (i.e., amos_page) in the struct xpc_vars structure,
++	 * to this page (i.e., amos_page) in the struct xpc_vars_sn2 structure,
+ 	 * which is pointed to by the reserved page, and re-use that saved copy
+ 	 * on subsequent loads of XPC. This amo page is never freed, and its
+ 	 * memory protections are never restricted.
+ 	 */
+-	amos_page = xpc_vars->amos_page;
++	amos_page = xpc_vars_sn2->amos_page;
+ 	if (amos_page == NULL) {
+ 		amos_page = (struct amo *)TO_AMO(uncached_alloc_page(0, 1));
+ 		if (amos_page == NULL) {
+@@ -621,18 +624,18 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
+ 		}
  	}
  
- 	if (!gts->ts_gru) {
--		while (!gru_assign_gru_context(gts)) {
-+		if (!gru_assign_gru_context(gts)) {
- 			mutex_unlock(&gts->ts_ctxlock);
- 			preempt_enable();
- 			schedule_timeout(GRU_ASSIGN_DELAY);  /* true hack ZZZ */
-diff -puN drivers/misc/sgi-gru/gruprocfs.c~gru-driver-v3-fixes-to-resolve-code-review-comments drivers/misc/sgi-gru/gruprocfs.c
---- a/drivers/misc/sgi-gru/gruprocfs.c~gru-driver-v3-fixes-to-resolve-code-review-comments
-+++ a/drivers/misc/sgi-gru/gruprocfs.c
-@@ -122,7 +122,7 @@ static ssize_t statistics_write(struct f
+-	/* clear xpc_vars */
+-	memset(xpc_vars, 0, sizeof(struct xpc_vars_sn2));
++	/* clear xpc_vars_sn2 */
++	memset(xpc_vars_sn2, 0, sizeof(struct xpc_vars_sn2));
  
- static int options_show(struct seq_file *s, void *p)
+-	xpc_vars->version = XPC_V_VERSION;
+-	xpc_vars->activate_IRQ_nasid = cpuid_to_nasid(0);
+-	xpc_vars->activate_IRQ_phys_cpuid = cpu_physical_id(0);
+-	xpc_vars->vars_part_pa = __pa(xpc_vars_part);
+-	xpc_vars->amos_page_pa = ia64_tpa((u64)amos_page);
+-	xpc_vars->amos_page = amos_page;	/* save for next load of XPC */
++	xpc_vars_sn2->version = XPC_V_VERSION;
++	xpc_vars_sn2->activate_IRQ_nasid = cpuid_to_nasid(0);
++	xpc_vars_sn2->activate_IRQ_phys_cpuid = cpu_physical_id(0);
++	xpc_vars_sn2->vars_part_pa = __pa(xpc_vars_part_sn2);
++	xpc_vars_sn2->amos_page_pa = ia64_tpa((u64)amos_page);
++	xpc_vars_sn2->amos_page = amos_page;	/* save for next load of XPC */
+ 
+-	/* clear xpc_vars_part */
+-	memset((u64 *)xpc_vars_part, 0, sizeof(struct xpc_vars_part_sn2) *
++	/* clear xpc_vars_part_sn2 */
++	memset((u64 *)xpc_vars_part_sn2, 0, sizeof(struct xpc_vars_part_sn2) *
+ 	       xp_max_npartitions);
+ 
+ 	/* initialize the activate IRQ related amo variables */
+@@ -649,30 +652,30 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
+ static void
+ xpc_increment_heartbeat_sn2(void)
  {
--	seq_printf(s, "0x%lx\n", options);
-+	seq_printf(s, "0x%lx\n", gru_options);
- 	return 0;
+-	xpc_vars->heartbeat++;
++	xpc_vars_sn2->heartbeat++;
  }
  
-@@ -136,7 +136,7 @@ static ssize_t options_write(struct file
- 	    (buf, userbuf, count < sizeof(buf) ? count : sizeof(buf)))
- 		return -EFAULT;
- 	if (!strict_strtoul(buf, 10, &val))
--		options = val;
-+		gru_options = val;
- 
- 	return count;
+ static void
+ xpc_offline_heartbeat_sn2(void)
+ {
+ 	xpc_increment_heartbeat_sn2();
+-	xpc_vars->heartbeat_offline = 1;
++	xpc_vars_sn2->heartbeat_offline = 1;
  }
-diff -puN drivers/misc/sgi-gru/grutables.h~gru-driver-v3-fixes-to-resolve-code-review-comments drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~gru-driver-v3-fixes-to-resolve-code-review-comments
-+++ a/drivers/misc/sgi-gru/grutables.h
-@@ -24,6 +24,70 @@
- #define __GRUTABLES_H__
  
- /*
-+ * GRU Chiplet:
-+ *   The GRU is a user addressible memory accelerator. It provides
-+ *   several forms of load, store, memset, bcopy instructions. In addition, it
-+ *   contains special instructions for AMOs, sending messages to message
-+ *   queues, etc.
-+ *
-+ *   The GRU is an integral part of the node controller. It connects
-+ *   directly to the cpu socket. In its current implementation, there are 2
-+ *   GRU chiplets in the node controller on each blade (~node).
-+ *
-+ *   The entire GRU memory space is fully coherent and cacheable by the cpus.
-+ *
-+ *   Each GRU chiplet has a physical memory map that looks like the following:
-+ *
-+ *   	+-----------------+
-+ *   	|/////////////////|
-+ *   	|/////////////////|
-+ *   	|/////////////////|
-+ *   	|/////////////////|
-+ *   	|/////////////////|
-+ *   	|/////////////////|
-+ *   	|/////////////////|
-+ *   	|/////////////////|
-+ *   	+-----------------+
-+ *   	|  system control |
-+ *   	+-----------------+        _______ +-------------+
-+ *   	|/////////////////|       /        |             |
-+ *   	|/////////////////|      /         |             |
-+ *   	|/////////////////|     /          | instructions|
-+ *   	|/////////////////|    /           |             |
-+ *   	|/////////////////|   /            |             |
-+ *   	|/////////////////|  /             |-------------|
-+ *   	|/////////////////| /              |             |
-+ *   	+-----------------+                |             |
-+ *   	|   context 15    |                |  data       |
-+ *   	+-----------------+                |             |
-+ *   	|    ......       | \              |             |
-+ *   	+-----------------+  \____________ +-------------+
-+ *   	|   context 1     |
-+ *   	+-----------------+
-+ *   	|   context 0     |
-+ *   	+-----------------+
-+ *
-+ *   Each of the "contexts" is a chunk of memory that can be mmaped into user
-+ *   space. The context consists of 2 parts:
-+ *
-+ *  	- an instruction space that can be directly accessed by the user
-+ *  	  to issue GRU instructions and to check instruction status.
-+ *
-+ *  	- a data area that acts as normal RAM.
-+ *
-+ *   User instructions contain virtual addresses of data to be accessed by the
-+ *   GRU. The GRU contains a TLB that is used to convert these user virtual
-+ *   addresses to physical addresses.
-+ *
-+ *   The "system control" area of the GRU chiplet is used by the kernel driver
-+ *   to manage user contexts and to perform functions such as TLB dropin and
-+ *   purging.
-+ *
-+ *   One context may be reserved for the kernel and used for cross-partition
-+ *   communication. The GRU will also be used to asynchronously zero out
-+ *   large blocks of memory (not currently implemented).
-+ *
-+ *
-  * Tables:
-  *
-  * 	VDATA-VMA Data		- Holds a few parameters. Head of linked list of
-@@ -190,14 +254,14 @@ struct gru_stats_s {
- #define GRU_STEAL_DELAY		((HZ * 200) / 1000)
- 
- #define STAT(id)	do {						\
--				if (options & OPT_STATS)		\
-+				if (gru_options & OPT_STATS)		\
- 					atomic_long_inc(&gru_stats.id);	\
- 			} while (0)
- 
- #ifdef CONFIG_SGI_GRU_DEBUG
- #define gru_dbg(dev, fmt, x...)						\
- 	do {								\
--		if (options & OPT_DPRINT)				\
-+		if (gru_options & OPT_DPRINT)				\
- 			dev_dbg(dev, "%s: " fmt, __func__, x);		\
- 	} while (0)
- #else
-@@ -529,9 +593,9 @@ extern void gru_flush_all_tlb(struct gru
- extern int gru_proc_init(void);
- extern void gru_proc_exit(void);
- 
--extern unsigned long reserve_gru_cb_resources(struct gru_state *gru,
-+extern unsigned long gru_reserve_cb_resources(struct gru_state *gru,
- 		int cbr_au_count, char *cbmap);
--extern unsigned long reserve_gru_ds_resources(struct gru_state *gru,
-+extern unsigned long gru_reserve_ds_resources(struct gru_state *gru,
- 		int dsr_au_count, char *dsmap);
- extern int gru_fault(struct vm_area_struct *, struct vm_fault *vmf);
- extern struct gru_mm_struct *gru_register_mmu_notifier(void);
-@@ -540,6 +604,6 @@ extern void gru_drop_mmu_notifier(struct
- extern void gru_flush_tlb_range(struct gru_mm_struct *gms, unsigned long start,
- 					unsigned long len);
- 
--extern unsigned long options;
-+extern unsigned long gru_options;
- 
- #endif /* __GRUTABLES_H__ */
-diff -puN drivers/misc/sgi-gru/grutlbpurge.c~gru-driver-v3-fixes-to-resolve-code-review-comments drivers/misc/sgi-gru/grutlbpurge.c
---- a/drivers/misc/sgi-gru/grutlbpurge.c~gru-driver-v3-fixes-to-resolve-code-review-comments
-+++ a/drivers/misc/sgi-gru/grutlbpurge.c
-@@ -242,7 +242,9 @@ static void gru_invalidate_range_end(str
- 	struct gru_mm_struct *gms = container_of(mn, struct gru_mm_struct,
- 						 ms_notifier);
- 
--	atomic_dec(&gms->ms_range_active);
-+	/* ..._and_test() provides needed barrier */
-+	(void)atomic_dec_and_test(&gms->ms_range_active);
-+
- 	wake_up_all(&gms->ms_wait_queue);
- 	gru_dbg(grudev, "gms %p, start 0x%lx, end 0x%lx\n", gms, start, end);
+ static void
+ xpc_online_heartbeat_sn2(void)
+ {
+ 	xpc_increment_heartbeat_sn2();
+-	xpc_vars->heartbeat_offline = 0;
++	xpc_vars_sn2->heartbeat_offline = 0;
  }
+ 
+ static void
+ xpc_heartbeat_init_sn2(void)
+ {
+-	DBUG_ON(xpc_vars == NULL);
++	DBUG_ON(xpc_vars_sn2 == NULL);
+ 
+-	bitmap_zero(xpc_vars->heartbeating_to_mask, XP_MAX_NPARTITIONS_SN2);
+-	xpc_heartbeating_to_mask = &xpc_vars->heartbeating_to_mask[0];
++	bitmap_zero(xpc_vars_sn2->heartbeating_to_mask, XP_MAX_NPARTITIONS_SN2);
++	xpc_heartbeating_to_mask = &xpc_vars_sn2->heartbeating_to_mask[0];
+ 	xpc_online_heartbeat_sn2();
+ }
+ 
+@@ -845,7 +848,8 @@ xpc_cancel_partition_deactivation_reques
+ static int
+ xpc_partition_deactivation_requested_sn2(short partid)
+ {
+-	struct amo *amo = xpc_vars->amos_page + XPC_DEACTIVATE_REQUEST_AMO_SN2;
++	struct amo *amo = xpc_vars_sn2->amos_page +
++			  XPC_DEACTIVATE_REQUEST_AMO_SN2;
+ 
+ 	/* our partition's amo variable ANDed with partid mask */
+ 	return (FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_LOAD) &
+@@ -1033,7 +1037,7 @@ xpc_identify_activate_IRQ_sender_sn2(voi
+ 	int n_IRQs_detected = 0;
+ 	struct amo *act_amos;
+ 
+-	act_amos = xpc_vars->amos_page + XPC_ACTIVATE_IRQ_AMOS_SN2;
++	act_amos = xpc_vars_sn2->amos_page + XPC_ACTIVATE_IRQ_AMOS_SN2;
+ 
+ 	/* scan through act amo variable looking for non-zero entries */
+ 	for (word = 0; word < xpc_nasid_mask_words; word++) {
+@@ -1261,15 +1265,17 @@ xpc_setup_infrastructure_sn2(struct xpc_
+ 	 * The setting of the magic # indicates that these per partition
+ 	 * specific variables are ready to be used.
+ 	 */
+-	xpc_vars_part[partid].GPs_pa = __pa(part_sn2->local_GPs);
+-	xpc_vars_part[partid].openclose_args_pa =
++	xpc_vars_part_sn2[partid].GPs_pa = __pa(part_sn2->local_GPs);
++	xpc_vars_part_sn2[partid].openclose_args_pa =
+ 	    __pa(part->local_openclose_args);
+-	xpc_vars_part[partid].chctl_amo_pa = __pa(part_sn2->local_chctl_amo_va);
++	xpc_vars_part_sn2[partid].chctl_amo_pa =
++	    __pa(part_sn2->local_chctl_amo_va);
+ 	cpuid = raw_smp_processor_id();	/* any CPU in this partition will do */
+-	xpc_vars_part[partid].notify_IRQ_nasid = cpuid_to_nasid(cpuid);
+-	xpc_vars_part[partid].notify_IRQ_phys_cpuid = cpu_physical_id(cpuid);
+-	xpc_vars_part[partid].nchannels = part->nchannels;
+-	xpc_vars_part[partid].magic = XPC_VP_MAGIC1;
++	xpc_vars_part_sn2[partid].notify_IRQ_nasid = cpuid_to_nasid(cpuid);
++	xpc_vars_part_sn2[partid].notify_IRQ_phys_cpuid =
++	    cpu_physical_id(cpuid);
++	xpc_vars_part_sn2[partid].nchannels = part->nchannels;
++	xpc_vars_part_sn2[partid].magic = XPC_VP_MAGIC1;
+ 
+ 	return xpSuccess;
+ 
+@@ -1316,7 +1322,7 @@ xpc_teardown_infrastructure_sn2(struct x
+ 	DBUG_ON(part->setup_state != XPC_P_SETUP);
+ 	part->setup_state = XPC_P_WTEARDOWN;
+ 
+-	xpc_vars_part[partid].magic = 0;
++	xpc_vars_part_sn2[partid].magic = 0;
+ 
+ 	free_irq(SGI_XPC_NOTIFY, (void *)(u64)partid);
+ 
+@@ -1432,7 +1438,7 @@ xpc_pull_remote_vars_part_sn2(struct xpc
+ 		return xpRetry;
+ 	}
+ 
+-	if (xpc_vars_part[partid].magic == XPC_VP_MAGIC1) {
++	if (xpc_vars_part_sn2[partid].magic == XPC_VP_MAGIC1) {
+ 
+ 		/* validate the variables */
+ 
+@@ -1462,7 +1468,7 @@ xpc_pull_remote_vars_part_sn2(struct xpc
+ 
+ 		/* let the other side know that we've pulled their variables */
+ 
+-		xpc_vars_part[partid].magic = XPC_VP_MAGIC2;
++		xpc_vars_part_sn2[partid].magic = XPC_VP_MAGIC2;
+ 	}
+ 
+ 	if (pulled_entry->magic == XPC_VP_MAGIC1)
 _
 
-Patches currently in -mm which might be from steiner@sgi.com are
+Patches currently in -mm which might be from dcn@sgi.com are
 
 origin.patch
-linux-next.patch
 
