@@ -1,104 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - sched-make-scheduler-sysfs-attributes-sysdev-class-devices.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:15:41 -0700
-Message-ID: <200807301915.m6UJFfDT011043@imap1.linux-foundation.org>
+Subject: - gru-driver-v3-export-is_uv_system-zap_page_range-follow_page.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:16:11 -0700
+Message-ID: <200807301916.m6UJGBv6011103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45560 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58465 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752815AbYG3TQz (ORCPT
+	by vger.kernel.org with ESMTP id S1752861AbYG3TRG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:16:55 -0400
+	Wed, 30 Jul 2008 15:17:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, drzeus-list@drzeus.cx, gregkh@suse.de, mingo@elte.hu, mm-commits@vger.kernel.org
+To: steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: make scheduler sysfs attributes sysdev class devices
+     GRU Driver: export is_uv_system(), zap_page_range() & follow_page()
 has been removed from the -mm tree.  Its filename was
-     sched-make-scheduler-sysfs-attributes-sysdev-class-devices.patch
+     gru-driver-v3-export-is_uv_system-zap_page_range-follow_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched: make scheduler sysfs attributes sysdev class devices
-From: Andi Kleen <andi@firstfloor.org>
+Subject: GRU Driver: export is_uv_system(), zap_page_range() & follow_page()
+From: Jack Steiner <steiner@sgi.com>
 
-They are really class devices, but were incorrectly declared.  This
-leads to crashes with the recent changes that makes non normal sysdevs
-use a different prototype.
+Exports needed by the GRU driver.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Pierre Ossman <drzeus-list@drzeus.cx>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ arch/x86/kernel/genapic_64.c |    1 +
+ mm/memory.c                  |    2 ++
+ 2 files changed, 3 insertions(+)
 
-diff -puN kernel/sched.c~sched-make-scheduler-sysfs-attributes-sysdev-class-devices kernel/sched.c
---- a/kernel/sched.c~sched-make-scheduler-sysfs-attributes-sysdev-class-devices
-+++ a/kernel/sched.c
-@@ -7671,34 +7671,34 @@ static ssize_t sched_power_savings_store
+diff -puN arch/x86/kernel/genapic_64.c~gru-driver-v3-export-is_uv_system-zap_page_range-follow_page arch/x86/kernel/genapic_64.c
+--- a/arch/x86/kernel/genapic_64.c~gru-driver-v3-export-is_uv_system-zap_page_range-follow_page
++++ a/arch/x86/kernel/genapic_64.c
+@@ -99,3 +99,4 @@ int is_uv_system(void)
+ {
+ 	return uv_system_type != UV_NONE;
  }
++EXPORT_SYMBOL_GPL(is_uv_system);
+diff -puN mm/memory.c~gru-driver-v3-export-is_uv_system-zap_page_range-follow_page mm/memory.c
+--- a/mm/memory.c~gru-driver-v3-export-is_uv_system-zap_page_range-follow_page
++++ a/mm/memory.c
+@@ -993,6 +993,7 @@ unsigned long zap_page_range(struct vm_a
+ 		tlb_finish_mmu(tlb, address, end);
+ 	return end;
+ }
++EXPORT_SYMBOL_GPL(zap_page_range);
  
- #ifdef CONFIG_SCHED_MC
--static ssize_t sched_mc_power_savings_show(struct sys_device *dev,
--				struct sysdev_attribute *attr, char *page)
-+static ssize_t sched_mc_power_savings_show(struct sysdev_class *class,
-+					   char *page)
- {
- 	return sprintf(page, "%u\n", sched_mc_power_savings);
+ /**
+  * zap_vma_ptes - remove ptes mapping the vma
+@@ -1110,6 +1111,7 @@ no_page_table:
+ 	}
+ 	return page;
  }
--static ssize_t sched_mc_power_savings_store(struct sys_device *dev,
--					    struct sysdev_attribute *attr,
-+static ssize_t sched_mc_power_savings_store(struct sysdev_class *class,
- 					    const char *buf, size_t count)
- {
- 	return sched_power_savings_store(buf, count, 0);
- }
--static SYSDEV_ATTR(sched_mc_power_savings, 0644, sched_mc_power_savings_show,
--		   sched_mc_power_savings_store);
-+static SYSDEV_CLASS_ATTR(sched_mc_power_savings, 0644,
-+			 sched_mc_power_savings_show,
-+			 sched_mc_power_savings_store);
- #endif
++EXPORT_SYMBOL_GPL(follow_page);
  
- #ifdef CONFIG_SCHED_SMT
--static ssize_t sched_smt_power_savings_show(struct sys_device *dev,
--				struct sysdev_attribute *attr, char *page)
-+static ssize_t sched_smt_power_savings_show(struct sysdev_class *dev,
-+					    char *page)
- {
- 	return sprintf(page, "%u\n", sched_smt_power_savings);
- }
--static ssize_t sched_smt_power_savings_store(struct sys_device *dev,
--					     struct sysdev_attribute *attr,
-+static ssize_t sched_smt_power_savings_store(struct sysdev_class *dev,
- 					     const char *buf, size_t count)
- {
- 	return sched_power_savings_store(buf, count, 1);
- }
--static SYSDEV_ATTR(sched_smt_power_savings, 0644, sched_smt_power_savings_show,
-+static SYSDEV_CLASS_ATTR(sched_smt_power_savings, 0644,
-+		   sched_smt_power_savings_show,
- 		   sched_smt_power_savings_store);
- #endif
- 
+ /* Can we do the FOLL_ANON optimization? */
+ static inline int use_zero_page(struct vm_area_struct *vma)
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from steiner@sgi.com are
 
 origin.patch
 linux-next.patch
-acpi-add-checking-for-null-early-param.patch
-acpi-compal-laptop-use-rfkill-switch-subsystem.patch
-coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
-profile-likely-unlikely-macros.patch
 
