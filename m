@@ -1,395 +1,531 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-lockless-get_user_pages.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:17:21 -0700
-Message-ID: <200807301917.m6UJHLAS011205@imap1.linux-foundation.org>
+Subject: - gru-driver-v3-driver-initialization-file-vma-ops.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:15:54 -0700
+Message-ID: <200807301915.m6UJFsZu011066@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38696 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35061 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753533AbYG3TYL (ORCPT
+	by vger.kernel.org with ESMTP id S1753521AbYG3TYL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 30 Jul 2008 15:24:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, a.p.zijlstra@chello.nl, benh@kernel.crashing.org, hugh@veritas.com, paulmck@us.ibm.com, paulus@samba.org, shaggy@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: lockless get_user_pages
+     GRU Driver: driver initialization, file & vma ops
 has been removed from the -mm tree.  Its filename was
-     powerpc-lockless-get_user_pages.patch
+     gru-driver-v3-driver-initialization-file-vma-ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: lockless get_user_pages
-From: Nick Piggin <npiggin@suse.de>
+Subject: GRU Driver: driver initialization, file & vma ops
+From: Jack Steiner <steiner@sgi.com>
 
-Implement lockless get_user_pages_fast for powerpc.  Page table existence
-is guaranteed with RCU, and speculative page references are used to take a
-reference to the pages without having a prior existence guarantee on them.
+This file contains the functions for initializing the driver, handling
+file & vma operations and for processing IOCTL requests from the user.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Signed-off-by: Dave Kleikamp <shaggy@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig                |    3 
- arch/powerpc/mm/Makefile            |    2 
- arch/powerpc/mm/gup.c               |  258 ++++++++++++++++++++++++++
- include/asm-powerpc/pgtable-ppc64.h |    2 
- include/linux/pagemap.h             |   23 ++
- 5 files changed, 287 insertions(+), 1 deletion(-)
+ drivers/misc/sgi-gru/grufile.c |  481 +++++++++++++++++++++++++++++++
+ 1 file changed, 481 insertions(+)
 
-diff -puN arch/powerpc/Kconfig~powerpc-lockless-get_user_pages arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~powerpc-lockless-get_user_pages
-+++ a/arch/powerpc/Kconfig
-@@ -42,6 +42,9 @@ config GENERIC_HARDIRQS
- 	bool
- 	default y
- 
-+config HAVE_GET_USER_PAGES_FAST
-+	def_bool PPC64
-+
- config HAVE_SETUP_PER_CPU_AREA
- 	def_bool PPC64
- 
-diff -puN arch/powerpc/mm/Makefile~powerpc-lockless-get_user_pages arch/powerpc/mm/Makefile
---- a/arch/powerpc/mm/Makefile~powerpc-lockless-get_user_pages
-+++ a/arch/powerpc/mm/Makefile
-@@ -6,7 +6,7 @@ ifeq ($(CONFIG_PPC64),y)
- EXTRA_CFLAGS	+= -mno-minimal-toc
- endif
- 
--obj-y				:= fault.o mem.o \
-+obj-y				:= fault.o mem.o gup.o \
- 				   init_$(CONFIG_WORD_SIZE).o \
- 				   pgtable_$(CONFIG_WORD_SIZE).o \
- 				   mmu_context_$(CONFIG_WORD_SIZE).o
-diff -puN /dev/null arch/powerpc/mm/gup.c
+diff -puN /dev/null drivers/misc/sgi-gru/grufile.c
 --- /dev/null
-+++ a/arch/powerpc/mm/gup.c
-@@ -0,0 +1,258 @@
++++ a/drivers/misc/sgi-gru/grufile.c
+@@ -0,0 +1,481 @@
 +/*
-+ * Lockless get_user_pages_fast for powerpc
++ * SN Platform GRU Driver
 + *
-+ * Copyright (C) 2008 Nick Piggin
-+ * Copyright (C) 2008 Novell Inc.
++ *              FILE OPERATIONS & DRIVER INITIALIZATION
++ *
++ * This file supports the user system call for file open, close, mmap, etc.
++ * This also incudes the driver initialization code.
++ *
++ *  Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 + */
-+#include <linux/sched.h>
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/errno.h>
++#include <linux/slab.h>
 +#include <linux/mm.h>
-+#include <linux/hugetlb.h>
-+#include <linux/vmstat.h>
-+#include <linux/pagemap.h>
-+#include <linux/rwsem.h>
-+#include <asm/pgtable.h>
++#include <linux/io.h>
++#include <linux/smp_lock.h>
++#include <linux/spinlock.h>
++#include <linux/device.h>
++#include <linux/miscdevice.h>
++#include <linux/interrupt.h>
++#include <linux/proc_fs.h>
++#include <linux/uaccess.h>
++#include "gru.h"
++#include "grulib.h"
++#include "grutables.h"
 +
-+/*
-+ * The performance critical leaf functions are made noinline otherwise gcc
-+ * inlines everything into a single function which results in too much
-+ * register pressure.
-+ */
-+static noinline int gup_pte_range(pmd_t pmd, unsigned long addr,
-+		unsigned long end, int write, struct page **pages, int *nr)
-+{
-+	unsigned long mask, result;
-+	pte_t *ptep;
-+
-+	result = _PAGE_PRESENT|_PAGE_USER;
-+	if (write)
-+		result |= _PAGE_RW;
-+	mask = result | _PAGE_SPECIAL;
-+
-+	ptep = pte_offset_kernel(&pmd, addr);
-+	do {
-+		pte_t pte = *ptep;
-+		struct page *page;
-+
-+		if ((pte_val(pte) & mask) != result)
-+			return 0;
-+		VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
-+		page = pte_page(pte);
-+		if (!page_cache_get_speculative(page))
-+			return 0;
-+		if (unlikely(pte != *ptep)) {
-+			put_page(page);
-+			return 0;
-+		}
-+		pages[*nr] = page;
-+		(*nr)++;
-+
-+	} while (ptep++, addr += PAGE_SIZE, addr != end);
-+
-+	return 1;
-+}
-+
-+static noinline int gup_huge_pte(pte_t *ptep, struct hstate *hstate,
-+				 unsigned long *addr, unsigned long end,
-+				 int write, struct page **pages, int *nr)
-+{
-+	unsigned long mask;
-+	unsigned long pte_end;
-+	struct page *head, *page;
-+	pte_t pte;
-+	int refs;
-+
-+	pte_end = (*addr + huge_page_size(hstate)) & huge_page_mask(hstate);
-+	if (pte_end < end)
-+		end = pte_end;
-+
-+	pte = *ptep;
-+	mask = _PAGE_PRESENT|_PAGE_USER;
-+	if (write)
-+		mask |= _PAGE_RW;
-+	if ((pte_val(pte) & mask) != mask)
-+		return 0;
-+	/* hugepages are never "special" */
-+	VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
-+
-+	refs = 0;
-+	head = pte_page(pte);
-+	page = head + ((*addr & ~huge_page_mask(hstate)) >> PAGE_SHIFT);
-+	do {
-+		VM_BUG_ON(compound_head(page) != head);
-+		pages[*nr] = page;
-+		(*nr)++;
-+		page++;
-+		refs++;
-+	} while (*addr += PAGE_SIZE, *addr != end);
-+
-+	if (!page_cache_add_speculative(head, refs)) {
-+		*nr -= refs;
-+		return 0;
-+	}
-+	if (unlikely(pte != *ptep)) {
-+		/* Could be optimized better */
-+		while (*nr) {
-+			put_page(page);
-+			(*nr)--;
-+		}
-+	}
-+
-+	return 1;
-+}
-+
-+static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
-+		int write, struct page **pages, int *nr)
-+{
-+	unsigned long next;
-+	pmd_t *pmdp;
-+
-+	pmdp = pmd_offset(&pud, addr);
-+	do {
-+		pmd_t pmd = *pmdp;
-+
-+		next = pmd_addr_end(addr, end);
-+		if (pmd_none(pmd))
-+			return 0;
-+		if (!gup_pte_range(pmd, addr, next, write, pages, nr))
-+			return 0;
-+	} while (pmdp++, addr = next, addr != end);
-+
-+	return 1;
-+}
-+
-+static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end,
-+		int write, struct page **pages, int *nr)
-+{
-+	unsigned long next;
-+	pud_t *pudp;
-+
-+	pudp = pud_offset(&pgd, addr);
-+	do {
-+		pud_t pud = *pudp;
-+
-+		next = pud_addr_end(addr, end);
-+		if (pud_none(pud))
-+			return 0;
-+		if (!gup_pmd_range(pud, addr, next, write, pages, nr))
-+			return 0;
-+	} while (pudp++, addr = next, addr != end);
-+
-+	return 1;
-+}
-+
-+int get_user_pages_fast(unsigned long start, int nr_pages, int write,
-+			struct page **pages)
-+{
-+	struct mm_struct *mm = current->mm;
-+	unsigned long end = start + (nr_pages << PAGE_SHIFT);
-+	unsigned long addr = start;
-+	unsigned long next;
-+	pgd_t *pgdp;
-+	int nr = 0;
-+	unsigned int shift;
-+
-+
-+	if (unlikely(!access_ok(write ? VERIFY_WRITE : VERIFY_READ,
-+					start, nr_pages*PAGE_SIZE)))
-+		goto slow_irqon;
-+
-+	/* Cross a slice boundary? */
-+	if (addr < SLICE_LOW_TOP) {
-+		if (end > SLICE_LOW_TOP)
-+			goto slow_irqon;
-+
-+		if (unlikely(GET_LOW_SLICE_INDEX(addr) !=
-+			     GET_LOW_SLICE_INDEX(end - 1)))
-+			goto slow_irqon;
-+	} else {
-+		if (unlikely(GET_HIGH_SLICE_INDEX(addr) !=
-+			     GET_HIGH_SLICE_INDEX(end - 1)))
-+			goto slow_irqon;
-+	}
-+
-+	/*
-+	 * XXX: batch / limit 'nr', to avoid large irq off latency
-+	 * needs some instrumenting to determine the common sizes used by
-+	 * important workloads (eg. DB2), and whether limiting the batch size
-+	 * will decrease performance.
-+	 *
-+	 * It seems like we're in the clear for the moment. Direct-IO is
-+	 * the main guy that batches up lots of get_user_pages, and even
-+	 * they are limited to 64-at-a-time which is not so many.
-+	 */
-+	/*
-+	 * This doesn't prevent pagetable teardown, but does prevent
-+	 * the pagetables from being freed on powerpc.
-+	 *
-+	 * So long as we atomically load page table pointers versus teardown,
-+	 * we can follow the address down to the the page and take a ref on it.
-+	 */
-+	local_irq_disable();
-+
-+	shift = mmu_psize_defs[get_slice_psize(mm, addr)].shift;
-+
-+	if (shift > PAGE_SHIFT) {
-+		pte_t *ptep;
-+		unsigned long a = addr;
-+		unsigned long sz = ((1UL) << shift);
-+		struct hstate *hstate = size_to_hstate(sz);
-+
-+		BUG_ON(!hstate);
-+		/*
-+		 * XXX: could be optimized to avoid hstate
-+		 * lookup entirely (just use shift)
-+		 */
-+
-+		ptep = huge_pte_offset(mm, a);
-+		do {
-+			VM_BUG_ON(shift != mmu_psize_defs[get_slice_psize(mm, a)].shift);
-+			if (!gup_huge_pte(ptep, hstate, &a, end, write, pages,
-+					  &nr))
-+				goto slow;
-+			ptep++;
-+		} while (a != end);
-+	} else {
-+		pgdp = pgd_offset(mm, addr);
-+		do {
-+			pgd_t pgd = *pgdp;
-+
-+			VM_BUG_ON(shift != mmu_psize_defs[get_slice_psize(mm, addr)].shift);
-+
-+			next = pgd_addr_end(addr, end);
-+			if (pgd_none(pgd))
-+				goto slow;
-+			if (!gup_pud_range(pgd, addr, next, write, pages, &nr))
-+				goto slow;
-+		} while (pgdp++, addr = next, addr != end);
-+	}
-+	local_irq_enable();
-+
-+	VM_BUG_ON(nr != (end - start) >> PAGE_SHIFT);
-+	return nr;
-+
-+	{
-+		int ret;
-+
-+slow:
-+		local_irq_enable();
-+slow_irqon:
-+		/* Try to get the remaining pages with get_user_pages */
-+		start += nr << PAGE_SHIFT;
-+		pages += nr;
-+
-+		down_read(&mm->mmap_sem);
-+		ret = get_user_pages(current, mm, start,
-+			(end - start) >> PAGE_SHIFT, write, 0, pages, NULL);
-+		up_read(&mm->mmap_sem);
-+
-+		/* Have to be a bit careful with return values */
-+		if (nr > 0) {
-+			if (ret < 0)
-+				ret = nr;
-+			else
-+				ret += nr;
-+		}
-+
-+		return ret;
-+	}
-+}
-diff -puN include/asm-powerpc/pgtable-ppc64.h~powerpc-lockless-get_user_pages include/asm-powerpc/pgtable-ppc64.h
---- a/include/asm-powerpc/pgtable-ppc64.h~powerpc-lockless-get_user_pages
-+++ a/include/asm-powerpc/pgtable-ppc64.h
-@@ -461,6 +461,8 @@ void pgtable_cache_init(void);
- 	return pt;
- }
- 
-+pte_t *huge_pte_offset(struct mm_struct *mm, unsigned long address);
-+
- #endif /* __ASSEMBLY__ */
- 
- #endif /* _ASM_POWERPC_PGTABLE_PPC64_H_ */
-diff -puN include/linux/pagemap.h~powerpc-lockless-get_user_pages include/linux/pagemap.h
---- a/include/linux/pagemap.h~powerpc-lockless-get_user_pages
-+++ a/include/linux/pagemap.h
-@@ -143,6 +143,29 @@ static inline int page_cache_get_specula
- 	return 1;
- }
- 
-+/*
-+ * Same as above, but add instead of inc (could just be merged)
-+ */
-+static inline int page_cache_add_speculative(struct page *page, int count)
-+{
-+	VM_BUG_ON(in_interrupt());
-+
-+#if !defined(CONFIG_SMP) && defined(CONFIG_CLASSIC_RCU)
-+# ifdef CONFIG_PREEMPT
-+	VM_BUG_ON(!in_atomic());
-+# endif
-+	VM_BUG_ON(page_count(page) == 0);
-+	atomic_add(count, &page->_count);
-+
++#if defined CONFIG_X86_64
++#include <asm/genapic.h>
++#include <asm/irq.h>
++#define IS_UV()		is_uv_system()
++#elif defined CONFIG_IA64
++#include <asm/system.h>
++#include <asm/sn/simulator.h>
++/* temp support for running on hardware simulator */
++#define IS_UV()		IS_MEDUSA() || ia64_platform_is("uv")
 +#else
-+	if (unlikely(!atomic_add_unless(&page->_count, count, 0)))
-+		return 0;
++#define IS_UV()		0
 +#endif
-+	VM_BUG_ON(PageCompound(page) && page != compound_head(page));
 +
-+	return 1;
++#include <asm/uv/uv_hub.h>
++#include <asm/uv/uv_mmrs.h>
++
++struct gru_blade_state *gru_base[GRU_MAX_BLADES] __read_mostly;
++unsigned long gru_start_paddr, gru_end_paddr __read_mostly;
++struct gru_stats_s gru_stats;
++
++/* Guaranteed user available resources on each node */
++static int max_user_cbrs, max_user_dsr_bytes;
++
++static struct file_operations gru_fops;
++static struct miscdevice gru_miscdev;
++
++
++/*
++ * gru_vma_close
++ *
++ * Called when unmapping a device mapping. Frees all gru resources
++ * and tables belonging to the vma.
++ */
++static void gru_vma_close(struct vm_area_struct *vma)
++{
++	struct gru_vma_data *vdata;
++	struct gru_thread_state *gts;
++	struct list_head *entry, *next;
++
++	if (!vma->vm_private_data)
++		return;
++
++	vdata = vma->vm_private_data;
++	vma->vm_private_data = NULL;
++	gru_dbg(grudev, "vma %p, file %p, vdata %p\n", vma, vma->vm_file,
++				vdata);
++	list_for_each_safe(entry, next, &vdata->vd_head) {
++		gts =
++		    list_entry(entry, struct gru_thread_state, ts_next);
++		list_del(&gts->ts_next);
++		mutex_lock(&gts->ts_ctxlock);
++		if (gts->ts_gru)
++			gru_unload_context(gts, 0);
++		mutex_unlock(&gts->ts_ctxlock);
++		gts_drop(gts);
++	}
++	kfree(vdata);
++	STAT(vdata_free);
 +}
 +
- static inline int page_freeze_refs(struct page *page, int count)
- {
- 	return likely(atomic_cmpxchg(&page->_count, count, 0) == count);
++/*
++ * gru_file_mmap
++ *
++ * Called when mmaping the device.  Initializes the vma with a fault handler
++ * and private data structure necessary to allocate, track, and free the
++ * underlying pages.
++ */
++static int gru_file_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	if ((vma->vm_flags & (VM_SHARED | VM_WRITE)) != (VM_SHARED | VM_WRITE))
++		return -EPERM;
++
++	vma->vm_flags |=
++	    (VM_IO | VM_DONTCOPY | VM_LOCKED | VM_DONTEXPAND | VM_PFNMAP |
++			VM_RESERVED);
++	vma->vm_page_prot = PAGE_SHARED;
++	vma->vm_ops = &gru_vm_ops;
++
++	vma->vm_private_data = gru_alloc_vma_data(vma, 0);
++	if (!vma->vm_private_data)
++		return -ENOMEM;
++
++	gru_dbg(grudev, "file %p, vaddr 0x%lx, vma %p, vdata %p\n",
++		file, vma->vm_start, vma, vma->vm_private_data);
++	return 0;
++}
++
++/*
++ * Create a new GRU context
++ */
++static int gru_create_new_context(unsigned long arg)
++{
++	struct gru_create_context_req req;
++	struct vm_area_struct *vma;
++	struct gru_vma_data *vdata;
++	int ret = -EINVAL;
++
++
++	if (copy_from_user(&req, (void __user *)arg, sizeof(req)))
++		return -EFAULT;
++
++	if (req.data_segment_bytes == 0 ||
++				req.data_segment_bytes > max_user_dsr_bytes)
++		return -EINVAL;
++	if (!req.control_blocks || !req.maximum_thread_count ||
++				req.control_blocks > max_user_cbrs)
++		return -EINVAL;
++
++	if (!(req.options & GRU_OPT_MISS_MASK))
++		req.options |= GRU_OPT_MISS_FMM_INTR;
++
++	down_write(&current->mm->mmap_sem);
++	vma = gru_find_vma(req.gseg);
++	if (vma) {
++		vdata = vma->vm_private_data;
++		vdata->vd_user_options = req.options;
++		vdata->vd_dsr_au_count =
++		    GRU_DS_BYTES_TO_AU(req.data_segment_bytes);
++		vdata->vd_cbr_au_count = GRU_CB_COUNT_TO_AU(req.control_blocks);
++		ret = 0;
++	}
++	up_write(&current->mm->mmap_sem);
++
++	return ret;
++}
++
++/*
++ * Get GRU configuration info (temp - for emulator testing)
++ */
++static long gru_get_config_info(unsigned long arg)
++{
++	struct gru_config_info info;
++	int nodesperblade;
++
++	if (num_online_nodes() > 1 &&
++			(uv_node_to_blade_id(1) == uv_node_to_blade_id(0)))
++		nodesperblade = 2;
++	else
++		nodesperblade = 1;
++	info.cpus = num_online_cpus();
++	info.nodes = num_online_nodes();
++	info.blades = info.nodes / nodesperblade;
++	info.chiplets = GRU_CHIPLETS_PER_BLADE * info.blades;
++
++	if (copy_to_user((void __user *)arg, &info, sizeof(info)))
++		return -EFAULT;
++	return 0;
++}
++
++/*
++ * Get GRU chiplet status
++ */
++static long gru_get_chiplet_status(unsigned long arg)
++{
++	struct gru_state *gru;
++	struct gru_chiplet_info info;
++
++	if (copy_from_user(&info, (void __user *)arg, sizeof(info)))
++		return -EFAULT;
++
++	if (info.node == -1)
++		info.node = numa_node_id();
++	if (info.node >= num_possible_nodes() ||
++			info.chiplet >= GRU_CHIPLETS_PER_HUB ||
++			info.node < 0 || info.chiplet < 0)
++		return -EINVAL;
++
++	info.blade = uv_node_to_blade_id(info.node);
++	gru = get_gru(info.blade, info.chiplet);
++
++	info.total_dsr_bytes = GRU_NUM_DSR_BYTES;
++	info.total_cbr = GRU_NUM_CB;
++	info.total_user_dsr_bytes = GRU_NUM_DSR_BYTES -
++		gru->gs_reserved_dsr_bytes;
++	info.total_user_cbr = GRU_NUM_CB - gru->gs_reserved_cbrs;
++	info.free_user_dsr_bytes = hweight64(gru->gs_dsr_map) *
++			GRU_DSR_AU_BYTES;
++	info.free_user_cbr = hweight64(gru->gs_cbr_map) * GRU_CBR_AU_SIZE;
++
++	if (copy_to_user((void __user *)arg, &info, sizeof(info)))
++		return -EFAULT;
++	return 0;
++}
++
++/*
++ * gru_file_unlocked_ioctl
++ *
++ * Called to update file attributes via IOCTL calls.
++ */
++static long gru_file_unlocked_ioctl(struct file *file, unsigned int req,
++				    unsigned long arg)
++{
++	int err = -EBADRQC;
++
++	gru_dbg(grudev, "file %p\n", file);
++
++	switch (req) {
++	case GRU_CREATE_CONTEXT:
++		err = gru_create_new_context(arg);
++		break;
++	case GRU_SET_TASK_SLICE:
++		err = gru_set_task_slice(arg);
++		break;
++	case GRU_USER_GET_EXCEPTION_DETAIL:
++		err = gru_get_exception_detail(arg);
++		break;
++	case GRU_USER_UNLOAD_CONTEXT:
++		err = gru_user_unload_context(arg);
++		break;
++	case GRU_GET_CHIPLET_STATUS:
++		err = gru_get_chiplet_status(arg);
++		break;
++	case GRU_USER_FLUSH_TLB:
++		err = gru_user_flush_tlb(arg);
++		break;
++	case GRU_USER_CALL_OS:
++		err = gru_handle_user_call_os(arg);
++		break;
++	case GRU_GET_CONFIG_INFO:
++		err = gru_get_config_info(arg);
++		break;
++	}
++	return err;
++}
++
++/*
++ * Called at init time to build tables for all GRUs that are present in the
++ * system.
++ */
++static void gru_init_chiplet(struct gru_state *gru, unsigned long paddr,
++			     void *vaddr, int nid, int bid, int grunum)
++{
++	spin_lock_init(&gru->gs_lock);
++	spin_lock_init(&gru->gs_asid_lock);
++	gru->gs_gru_base_paddr = paddr;
++	gru->gs_gru_base_vaddr = vaddr;
++	gru->gs_gid = bid * GRU_CHIPLETS_PER_BLADE + grunum;
++	gru->gs_blade = gru_base[bid];
++	gru->gs_blade_id = bid;
++	gru->gs_cbr_map = (GRU_CBR_AU == 64) ? ~0 : (1UL << GRU_CBR_AU) - 1;
++	gru->gs_dsr_map = (1UL << GRU_DSR_AU) - 1;
++	gru_tgh_flush_init(gru);
++	gru_dbg(grudev, "bid %d, nid %d, gru %x, vaddr %p (0x%lx)\n",
++		bid, nid, gru->gs_gid, gru->gs_gru_base_vaddr,
++		gru->gs_gru_base_paddr);
++	gru_kservices_init(gru);
++}
++
++static int gru_init_tables(unsigned long gru_base_paddr, void *gru_base_vaddr)
++{
++	int pnode, nid, bid, chip;
++	int cbrs, dsrbytes, n;
++	int order = get_order(sizeof(struct gru_blade_state));
++	struct page *page;
++	struct gru_state *gru;
++	unsigned long paddr;
++	void *vaddr;
++
++	max_user_cbrs = GRU_NUM_CB;
++	max_user_dsr_bytes = GRU_NUM_DSR_BYTES;
++	for_each_online_node(nid) {
++		bid = uv_node_to_blade_id(nid);
++		pnode = uv_node_to_pnode(nid);
++		if (gru_base[bid])
++			continue;
++		page = alloc_pages_node(nid, GFP_KERNEL, order);
++		if (!page)
++			goto fail;
++		gru_base[bid] = page_address(page);
++		memset(gru_base[bid], 0, sizeof(struct gru_blade_state));
++		gru_base[bid]->bs_lru_gru = &gru_base[bid]->bs_grus[0];
++		spin_lock_init(&gru_base[bid]->bs_lock);
++
++		dsrbytes = 0;
++		cbrs = 0;
++		for (gru = gru_base[bid]->bs_grus, chip = 0;
++		     		chip < GRU_CHIPLETS_PER_BLADE;
++				chip++, gru++) {
++			paddr = gru_chiplet_paddr(gru_base_paddr, pnode, chip);
++			vaddr = gru_chiplet_vaddr(gru_base_vaddr, pnode, chip);
++			gru_init_chiplet(gru, paddr, vaddr, bid, nid, chip);
++			n = hweight64(gru->gs_cbr_map) * GRU_CBR_AU_SIZE;
++			cbrs = max(cbrs, n);
++			n = hweight64(gru->gs_dsr_map) * GRU_DSR_AU_BYTES;
++			dsrbytes = max(dsrbytes, n);
++		}
++		max_user_cbrs = min(max_user_cbrs, cbrs);
++		max_user_dsr_bytes = min(max_user_dsr_bytes, dsrbytes);
++	}
++
++	return 0;
++
++fail:
++	for (nid--; nid >= 0; nid--)
++		free_pages((unsigned long)gru_base[nid], order);
++	return -ENOMEM;
++}
++
++#ifdef CONFIG_IA64
++
++static int get_base_irq(void)
++{
++	return IRQ_GRU;
++}
++
++#elif defined CONFIG_X86_64
++
++static void noop(unsigned int irq)
++{
++}
++
++static struct irq_chip gru_chip = {
++	.name		= "gru",
++	.mask		= noop,
++	.unmask		= noop,
++	.ack		= noop,
++};
++
++static int get_base_irq(void)
++{
++	set_irq_chip(IRQ_GRU, &gru_chip);
++	set_irq_chip(IRQ_GRU + 1, &gru_chip);
++	return IRQ_GRU;
++}
++#endif
++
++/*
++ * gru_init
++ *
++ * Called at boot or module load time to initialize the GRUs.
++ */
++static int __init gru_init(void)
++{
++	int ret, irq, chip;
++	char id[10];
++	void *gru_start_vaddr;
++
++	if (!IS_UV())
++		return 0;
++
++#if defined CONFIG_IA64
++	gru_start_paddr = 0xd000000000UL; /* ZZZZZZZZZZZZZZZZZZZ fixme */
++#else
++	gru_start_paddr = uv_read_local_mmr(UVH_RH_GAM_GRU_OVERLAY_CONFIG_MMR) &
++				0x7fffffffffffUL;
++
++#endif
++	gru_start_vaddr = __va(gru_start_paddr);
++	gru_end_paddr = gru_start_paddr + MAX_NUMNODES * GRU_SIZE;
++	printk(KERN_INFO "GRU space: 0x%lx - 0x%lx\n",
++	       gru_start_paddr, gru_end_paddr);
++	irq = get_base_irq();
++	for (chip = 0; chip < GRU_CHIPLETS_PER_BLADE; chip++) {
++		ret = request_irq(irq + chip, gru_intr, 0, id, NULL);
++		if (ret) {
++			printk(KERN_ERR "%s: request_irq failed\n",
++			       GRU_DRIVER_ID_STR);
++			goto exit1;
++		}
++	}
++
++	ret = misc_register(&gru_miscdev);
++	if (ret) {
++		printk(KERN_ERR "%s: misc_register failed\n",
++		       GRU_DRIVER_ID_STR);
++		goto exit1;
++	}
++
++	ret = gru_proc_init();
++	if (ret) {
++		printk(KERN_ERR "%s: proc init failed\n", GRU_DRIVER_ID_STR);
++		goto exit2;
++	}
++
++	ret = gru_init_tables(gru_start_paddr, gru_start_vaddr);
++	if (ret) {
++		printk(KERN_ERR "%s: init tables failed\n", GRU_DRIVER_ID_STR);
++		goto exit3;
++	}
++
++	printk(KERN_INFO "%s: v%s\n", GRU_DRIVER_ID_STR,
++	       GRU_DRIVER_VERSION_STR);
++	return 0;
++
++exit3:
++	gru_proc_exit();
++exit2:
++	misc_deregister(&gru_miscdev);
++exit1:
++	for (--chip; chip >= 0; chip--)
++		free_irq(irq + chip, NULL);
++	return ret;
++
++}
++
++static void __exit gru_exit(void)
++{
++	int i, bid;
++	int order = get_order(sizeof(struct gru_state) *
++			      GRU_CHIPLETS_PER_BLADE);
++
++	for (i = 0; i < GRU_CHIPLETS_PER_BLADE; i++)
++		free_irq(IRQ_GRU + i, NULL);
++
++	for (bid = 0; bid < GRU_MAX_BLADES; bid++)
++		free_pages((unsigned long)gru_base[bid], order);
++
++	misc_deregister(&gru_miscdev);
++	gru_proc_exit();
++}
++
++static struct file_operations gru_fops = {
++	.owner		= THIS_MODULE,
++	.unlocked_ioctl	= gru_file_unlocked_ioctl,
++	.mmap		= gru_file_mmap,
++};
++
++static struct miscdevice gru_miscdev = {
++	.minor		= MISC_DYNAMIC_MINOR,
++	.name		= "gru",
++	.fops		= &gru_fops,
++};
++
++struct vm_operations_struct gru_vm_ops = {
++	.close		= gru_vma_close,
++	.fault		= gru_fault,
++};
++
++module_init(gru_init);
++module_exit(gru_exit);
++
++module_param(options, ulong, 0644);
++MODULE_PARM_DESC(options, "Various debug options");
++
++MODULE_AUTHOR("Silicon Graphics, Inc.");
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION(GRU_DRIVER_ID_STR GRU_DRIVER_VERSION_STR);
++MODULE_VERSION(GRU_DRIVER_VERSION_STR);
++
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from steiner@sgi.com are
 
 origin.patch
 linux-next.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmstat-mlocked-pages-statistics.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
 
