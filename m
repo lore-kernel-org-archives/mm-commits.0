@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + docsrc-fix-procfs-example.patch added to -mm tree
-Date: Tue, 29 Jul 2008 17:31:29 -0700
-Message-ID: <200807300031.m6U0VTIp030209@imap1.linux-foundation.org>
+Subject: + docsrc-fix-crc32hash-type.patch added to -mm tree
+Date: Tue, 29 Jul 2008 17:31:34 -0700
+Message-ID: <200807300031.m6U0VY5M030215@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53303 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58322 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753484AbYG3Aby (ORCPT
+	by vger.kernel.org with ESMTP id S1753464AbYG3Aby (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 29 Jul 2008 20:31:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, J.A.K.Mouw@its.tudelft.nl, alan@lxorguk.ukuu.org.uk, sam@ravnborg.org
+Cc: randy.dunlap@oracle.com, linux@dominikbrodowski.net, sam@ravnborg.org
 
 
 The patch titled
-     docsrc: fix procfs example
+     docsrc: fix crc32hash type
 has been added to the -mm tree.  Its filename is
-     docsrc-fix-procfs-example.patch
+     docsrc-fix-crc32hash-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: docsrc: fix procfs example
+Subject: docsrc: fix crc32hash type
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Add MODULE_LICENSE() to DocBook/procfs_example.c since modpost complained
-about a missing license there.
+Fix differing signedness warning:
 
-Remove tty procfs removal since the creation was deleted long ago
-(http://git.kernel.org/?p=linux/kernel/git/tglx/history.git;a=commitdiff;h=5ad9cb65e9b15e5b83e2dd1c10a4bcaccc4ec644).
+Documentation/pcmcia/crc32hash.c:29: warning: pointer targets in passing argument 1 of 'crc32' differ in signedness
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: <J.A.K.Mouw@its.tudelft.nl>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/procfs_example.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ Documentation/pcmcia/crc32hash.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/DocBook/procfs_example.c~docsrc-fix-procfs-example Documentation/DocBook/procfs_example.c
---- a/Documentation/DocBook/procfs_example.c~docsrc-fix-procfs-example
-+++ a/Documentation/DocBook/procfs_example.c
-@@ -189,8 +189,6 @@ static int __init init_procfs_example(vo
+diff -puN Documentation/pcmcia/crc32hash.c~docsrc-fix-crc32hash-type Documentation/pcmcia/crc32hash.c
+--- a/Documentation/pcmcia/crc32hash.c~docsrc-fix-crc32hash-type
++++ a/Documentation/pcmcia/crc32hash.c
+@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
+ 		printf("no string passed as argument\n");
+ 		return -1;
+ 	}
+-	result = crc32(argv[1], strlen(argv[1]));
++	result = crc32((unsigned char const *)argv[1], strlen(argv[1]));
+ 	printf("0x%x\n", result);
  	return 0;
- 
- no_symlink:
--	remove_proc_entry("tty", example_dir);
--no_tty:
- 	remove_proc_entry("bar", example_dir);
- no_bar:
- 	remove_proc_entry("foo", example_dir);
-@@ -206,7 +204,6 @@ out:
- static void __exit cleanup_procfs_example(void)
- {
- 	remove_proc_entry("jiffies_too", example_dir);
--	remove_proc_entry("tty", example_dir);
- 	remove_proc_entry("bar", example_dir);
- 	remove_proc_entry("foo", example_dir);
- 	remove_proc_entry("jiffies", example_dir);
-@@ -222,3 +219,4 @@ module_exit(cleanup_procfs_example);
- 
- MODULE_AUTHOR("Erik Mouw");
- MODULE_DESCRIPTION("procfs examples");
-+MODULE_LICENSE("GPL");
+ }
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
