@@ -1,60 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - connector-add-a-blackboard-user-to-connector-fix.patch removed from -mm tree
-Date: Tue, 29 Jul 2008 22:25:37 -0700
-Message-ID: <200807300525.m6U5Pbak009029@imap1.linux-foundation.org>
+Subject: - gru-driver-v3-hardware-data-structures-fix.patch removed from -mm tree
+Date: Tue, 29 Jul 2008 22:26:33 -0700
+Message-ID: <200807300526.m6U5QXTB009061@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49395 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45236 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751964AbYG3F0S (ORCPT
+	by vger.kernel.org with ESMTP id S1751958AbYG3F1G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 01:26:18 -0400
+	Wed, 30 Jul 2008 01:27:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeromearbezgindre@gmail.com, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, steiner@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     connector-add-a-blackboard-user-to-connector-fix
+     gru-driver-v3-hardware-data-structures: export hpage_shift
 has been removed from the -mm tree.  Its filename was
-     connector-add-a-blackboard-user-to-connector-fix.patch
+     gru-driver-v3-hardware-data-structures-fix.patch
 
-This patch was dropped because it was folded into connector-add-a-blackboard-user-to-connector.patch
+This patch was dropped because it was folded into gru-driver-v3-hardware-data-structures.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: connector-add-a-blackboard-user-to-connector-fix
+Subject: gru-driver-v3-hardware-data-structures: export hpage_shift
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Jerome Arbez-Gindre" <jeromearbezgindre@gmail.com>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-Cc: Jerome Arbez-Gindre <jeromearbezgindre@gmail.com>
+ERROR: "hpage_shift" [drivers/misc/sgi-gru/gru.ko] undefined!                   
+
+Cc: Jack Steiner <steiner@sgi.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/connector.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/mm/hugetlbpage.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/connector.h~connector-add-a-blackboard-user-to-connector-fix include/linux/connector.h
---- a/include/linux/connector.h~connector-add-a-blackboard-user-to-connector-fix
-+++ a/include/linux/connector.h
-@@ -38,7 +38,7 @@
- #define CN_W1_VAL			0x1
- #define CN_IDX_V86D			0x4
- #define CN_VAL_V86D_UVESAFB		0x1
--#define CN_IDX_BB			0x5
-+#define CN_IDX_BB			0x5	/* BlackBoard, from the TSP GPL sampling framework */
+diff -puN arch/ia64/mm/hugetlbpage.c~gru-driver-v3-hardware-data-structures-fix arch/ia64/mm/hugetlbpage.c
+--- a/arch/ia64/mm/hugetlbpage.c~gru-driver-v3-hardware-data-structures-fix
++++ a/arch/ia64/mm/hugetlbpage.c
+@@ -13,6 +13,7 @@
+ #include <linux/mm.h>
+ #include <linux/hugetlb.h>
+ #include <linux/pagemap.h>
++#include <linux/modulel.h>
+ #include <linux/slab.h>
+ #include <linux/sysctl.h>
+ #include <linux/log2.h>
+@@ -21,7 +22,8 @@
+ #include <asm/tlb.h>
+ #include <asm/tlbflush.h>
  
- #define CN_NETLINK_USERS		6
+-unsigned int hpage_shift=HPAGE_SHIFT_DEFAULT;
++unsigned int hpage_shift = HPAGE_SHIFT_DEFAULT;
++EXPORT_SYMBOL(hpage_shift);
  
+ pte_t *
+ huge_pte_alloc(struct mm_struct *mm, unsigned long addr, unsigned long sz)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 connector-add-a-blackboard-user-to-connector.patch
-connector-add-a-blackboard-user-to-connector-fix.patch
-sched-make-scheduler-sysfs-attributes-sysdev-class-devices-checkpatch-fixes.patch
+sched-make-scheduler-sysfs-attributes-sysdev-class-devices.patch
+gru-driver-v3-hardware-data-structures.patch
 gru-driver-v3-hardware-data-structures-fix.patch
 gru-driver-v3-hardware-data-structures-fix-fix.patch
 gru-driver-v3-fixes-to-resolve-code-review-comments-checkpatch-fixes.patch
