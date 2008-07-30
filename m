@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gbefb-cmap-fifo-timeout.patch added to -mm tree
-Date: Tue, 29 Jul 2008 17:37:52 -0700
-Message-ID: <200807300037.m6U0bq3I030419@imap1.linux-foundation.org>
+Subject: + rtc-dev-stop-periodic-interrupts-on-device-release.patch added to -mm tree
+Date: Tue, 29 Jul 2008 17:40:07 -0700
+Message-ID: <200807300040.m6U0e7tl030488@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42579 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41343 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752705AbYG3AkP (ORCPT
+	by vger.kernel.org with ESMTP id S1753484AbYG3AlA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 20:40:15 -0400
+	Tue, 29 Jul 2008 20:41:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tsbogend@alpha.franken.de, adaplas@pol.net, krzysztof.h1@poczta.fm
+Cc: tomi@nomi.cz, a.zummo@towertech.it, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     gbefb: cmap FIFO timeout
+     rtc-dev: stop periodic interrupts on device release
 has been added to the -mm tree.  Its filename is
-     gbefb-cmap-fifo-timeout.patch
+     rtc-dev-stop-periodic-interrupts-on-device-release.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,124 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gbefb: cmap FIFO timeout
-From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Subject: rtc-dev: stop periodic interrupts on device release
+From: Tomas Janousek <tomi@nomi.cz>
 
-Writes to the cmap fifo while the display is blanked caused cmap FIFO
-timeout messages and a wrong colormap.  To avoid this the driver now
-maintains a colormap in memory and updates the colormap after the display
-is unblanked.
+Solves http://bugzilla.kernel.org/show_bug.cgi?id=11127
 
-Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+The old rtc.c driver did it and some drivers (like rtc-sh) do it in their
+release function, though they should not -- because they should provide
+the irq_set_state op and the rtc framework itself should care about it. 
+This patch makes it do so.
+
+I am aware that some drivers, like rtc-sh, handle userspace PIE sets in
+their ioctl op (instead of having the framework call the op), exporting
+the irq_set_state op at the same time.  The logic in rtc_irq_set_state
+should make sure it doesn't matter and the driver should not need to care
+stopping periodic interrupts in its release routine any more.
+
+The correct way, in my opinion, should be this:
+1) The driver provides the irq_set_state op and does not care closing the
+   interrupts in its release op.
+2) If the driver does not provide the op and handles PIE in the ioctl op, it's
+   reponsible for closing them in its release op.
+3) Something similar for other IRQs, like UIE -- if there's no in-kernel API
+   like irq_set_state, handle it in ioctl and release ops. The framework will
+   be responsible either for everything or for nothing. (This will probably
+   change later.)
+
+Signed-off-by: Tomas Janousek <tomi@nomi.cz>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/gbefb.c |   50 +++++++++++++++++++++++++++-------------
- 1 file changed, 34 insertions(+), 16 deletions(-)
+ drivers/rtc/rtc-dev.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/video/gbefb.c~gbefb-cmap-fifo-timeout drivers/video/gbefb.c
---- a/drivers/video/gbefb.c~gbefb-cmap-fifo-timeout
-+++ a/drivers/video/gbefb.c
-@@ -87,6 +87,8 @@ static int gbe_revision;
- static int ypan, ywrap;
- 
- static uint32_t pseudo_palette[16];
-+static uint32_t gbe_cmap[256];
-+static int gbe_turned_on; /* 0 turned off, 1 turned on */
- 
- static char *mode_option __initdata = NULL;
- 
-@@ -208,6 +210,8 @@ void gbe_turn_off(void)
- 	int i;
- 	unsigned int val, x, y, vpixen_off;
- 
-+	gbe_turned_on = 0;
+diff -puN drivers/rtc/rtc-dev.c~rtc-dev-stop-periodic-interrupts-on-device-release drivers/rtc/rtc-dev.c
+--- a/drivers/rtc/rtc-dev.c~rtc-dev-stop-periodic-interrupts-on-device-release
++++ a/drivers/rtc/rtc-dev.c
+@@ -432,6 +432,8 @@ static int rtc_dev_release(struct inode 
+ #ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
+ 	clear_uie(rtc);
+ #endif
++	rtc_irq_set_state(rtc, NULL, 0);
 +
- 	/* check if pixel counter is on */
- 	val = gbe->vt_xy;
- 	if (GET_GBE_FIELD(VT_XY, FREEZE, val) == 1)
-@@ -371,6 +375,22 @@ static void gbe_turn_on(void)
- 	}
- 	if (i == 10000)
- 		printk(KERN_ERR "gbefb: turn on DMA timed out\n");
-+
-+	gbe_turned_on = 1;
-+}
-+
-+static void gbe_loadcmap(void)
-+{
-+	int i, j;
-+
-+	for (i = 0; i < 256; i++) {
-+		for (j = 0; j < 1000 && gbe->cm_fifo >= 63; j++)
-+			udelay(10);
-+		if (j == 1000)
-+			printk(KERN_ERR "gbefb: cmap FIFO timeout\n");
-+
-+		gbe->cmap[i] = gbe_cmap[i];
-+	}
- }
+ 	if (rtc->ops->release)
+ 		rtc->ops->release(rtc->dev.parent);
  
- /*
-@@ -382,6 +402,7 @@ static int gbefb_blank(int blank, struct
- 	switch (blank) {
- 	case FB_BLANK_UNBLANK:		/* unblank */
- 		gbe_turn_on();
-+		gbe_loadcmap();
- 		break;
- 
- 	case FB_BLANK_NORMAL:		/* blank */
-@@ -796,16 +817,10 @@ static int gbefb_set_par(struct fb_info 
- 		gbe->gmap[i] = (i << 24) | (i << 16) | (i << 8);
- 
- 	/* Initialize the color map */
--	for (i = 0; i < 256; i++) {
--		int j;
--
--		for (j = 0; j < 1000 && gbe->cm_fifo >= 63; j++)
--			udelay(10);
--		if (j == 1000)
--			printk(KERN_ERR "gbefb: cmap FIFO timeout\n");
-+	for (i = 0; i < 256; i++)
-+		gbe_cmap[i] = (i << 8) | (i << 16) | (i << 24);
- 
--		gbe->cmap[i] = (i << 8) | (i << 16) | (i << 24);
--	}
-+	gbe_loadcmap();
- 
- 	return 0;
- }
-@@ -855,14 +870,17 @@ static int gbefb_setcolreg(unsigned regn
- 	blue >>= 8;
- 
- 	if (info->var.bits_per_pixel <= 8) {
--		/* wait for the color map FIFO to have a free entry */
--		for (i = 0; i < 1000 && gbe->cm_fifo >= 63; i++)
--			udelay(10);
--		if (i == 1000) {
--			printk(KERN_ERR "gbefb: cmap FIFO timeout\n");
--			return 1;
-+		gbe_cmap[regno] = (red << 24) | (green << 16) | (blue << 8);
-+		if (gbe_turned_on) {
-+			/* wait for the color map FIFO to have a free entry */
-+			for (i = 0; i < 1000 && gbe->cm_fifo >= 63; i++)
-+				udelay(10);
-+			if (i == 1000) {
-+				printk(KERN_ERR "gbefb: cmap FIFO timeout\n");
-+				return 1;
-+			}
-+			gbe->cmap[regno] = gbe_cmap[regno];
- 		}
--		gbe->cmap[regno] = (red << 24) | (green << 16) | (blue << 8);
- 	} else if (regno < 16) {
- 		switch (info->var.bits_per_pixel) {
- 		case 15:
 _
 
-Patches currently in -mm which might be from tsbogend@alpha.franken.de are
+Patches currently in -mm which might be from tomi@nomi.cz are
 
-gbefb-cmap-fifo-timeout.patch
-linux-next.patch
+rtc-dev-stop-periodic-interrupts-on-device-release.patch
 
