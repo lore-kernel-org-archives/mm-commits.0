@@ -1,77 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: - random32-seeding-improvement-v2.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:35:24 -0700
-Message-ID: <200807301935.m6UJZPTf012326@imap1.linux-foundation.org>
+Subject: - bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:36:10 -0700
+Message-ID: <200807301936.m6UJaATp012366@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34040 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34204 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755506AbYG3Tfu (ORCPT
+	by vger.kernel.org with ESMTP id S1752134AbYG3Tgg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:35:50 -0400
+	Wed, 30 Jul 2008 15:36:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shemminger@linux-foundation.org, ak@suse.de, bboissin@gmail.com, davem@davemloft.net, lloyd@randombit.net, mpm@selenic.com, shemminger@vyatta.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, shemminger@linux-foundation.org, simon.wunderlich@s2003.tu-chemnitz.de, siwu@hrz.tu-chemnitz.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     random32: seeding improvement (v2)
+     bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     random32-seeding-improvement-v2.patch
+     bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into random32-seeding-improvement.patch
+This patch was dropped because it was folded into bridge-send-correct-mtu-value-in-pmtu.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: random32: seeding improvement (v2)
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Please consider this patch instead for fixing the seeding issue with random32.
-The rationale is:
-   * use u32 consistently
-   * no need to do LCG on values from (better) get_random_bytes
-   * use more data from get_random_bytes for secondary seeding
-   * don't reduce state space on srandom32()
-   * enforce state variable initialization restrictions
+ERROR: spaces required around that ':' (ctx:VxW)
+#130: FILE: net/bridge/br_netfilter.c:108:
++	return port ? &port->br->fake_rtable: NULL;
+ 	                                    ^
 
-Note: the second paper has a version of random32() with even longer period
-and a version of random64() if needed.
+total: 1 errors, 0 warnings, 156 lines checked
 
-Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
-Cc: Jack Lloyd <lloyd@randombit.net>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Benoit Boissinot <bboissin@gmail.com>
+./patches/bridge-send-correct-mtu-value-in-pmtu.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Simon Wunderlich <simon.wunderlich@s2003.tu-chemnitz.de>
+Cc: Simon Wunderlich <siwu@hrz.tu-chemnitz.de>
+Cc: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/random32.c |    2 +-
+ net/bridge/br_netfilter.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/random32.c~random32-seeding-improvement-v2 lib/random32.c
---- a/lib/random32.c~random32-seeding-improvement-v2
-+++ a/lib/random32.c
-@@ -112,7 +112,7 @@ static int __init random32_init(void)
- 	for_each_possible_cpu(i) {
- 		struct rnd_state *state = &per_cpu(net_rand_state,i);
+diff -puN net/bridge/br_netfilter.c~bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes net/bridge/br_netfilter.c
+--- a/net/bridge/br_netfilter.c~bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes
++++ a/net/bridge/br_netfilter.c
+@@ -105,7 +105,7 @@ static inline struct rtable *bridge_pare
+ {
+ 	struct net_bridge_port *port = rcu_dereference(dev->br_port);
  
--#define LCG(x)	(x * 69069)	/* super-duper LCG */
-+#define LCG(x)	((x) * 69069)	/* super-duper LCG */
- 		state->s1 = __seed(LCG(i + jiffies), 1);
- 		state->s2 = __seed(LCG(state->s1), 7);
- 		state->s3 = __seed(LCG(state->s2), 15);
+-	return port ? &port->br->fake_rtable: NULL;
++	return port ? &port->br->fake_rtable : NULL;
+ }
+ 
+ static inline struct net_device *bridge_parent(const struct net_device *dev)
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-random32-seeding-improvement.patch
-random32-seeding-improvement-v2.patch
+origin.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+pci-make-pci_register_driver-a-macro.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+git-mtd.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+drivers-mtd-nand-nandsimc-fix-printk-warnings.patch
+git-ubi-git-rejects.patch
 bridge-send-correct-mtu-value-in-pmtu.patch
 bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
-skge-adapt-skge-to-use-reworked-pci-pm.patch
-sky2-adapt-to-use-reworked-pci-pm-code.patch
-tg3-adapt-tg3-to-use-reworked-pci-pm-code.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+sched-type-fix.patch
+scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+git-xtensa.patch
+drivers-telephony-ixjc-depends-on-pnp.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works-comment.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+w1-feature-enable-hardware-strong-pullup-checkpatch-fixes.patch
+w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes.patch
+w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
