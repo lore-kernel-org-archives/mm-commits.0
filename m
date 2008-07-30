@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch added to -mm tree
-Date: Tue, 29 Jul 2008 21:31:16 -0700
-Message-ID: <200807300444.m6U4i2IE007482@imap1.linux-foundation.org>
+Subject: + cassini-use-request_firmware-fix.patch added to -mm tree
+Date: Tue, 29 Jul 2008 21:32:40 -0700
+Message-ID: <200807300445.m6U4jQId007543@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55372 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37554 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751080AbYG3Eoh (ORCPT
+	by vger.kernel.org with ESMTP id S1751132AbYG3EqH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 00:44:37 -0400
+	Wed, 30 Jul 2008 00:46:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org
+Cc: akpm@linux-foundation.org, dwmw2@infradead.org, jaswinder@infradead.org, jeff@garzik.org
 
 
 The patch titled
-     drivers/net/netxen/netxen_nic_hw.c: fix printk warnings
+     cassini-use-request_firmware-fix
 has been added to the -mm tree.  Its filename is
-     drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
+     cassini-use-request_firmware-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/netxen/netxen_nic_hw.c: fix printk warnings
+Subject: cassini-use-request_firmware-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/netxen/netxen_nic_hw.c: In function 'netxen_nic_pci_mem_read_direct':
-drivers/net/netxen/netxen_nic_hw.c:1414: warning: format '%llx' expects type 'long long unsigned int', but argument 3 has type 'u64'
-drivers/net/netxen/netxen_nic_hw.c: In function 'netxen_nic_pci_mem_write_direct':
-drivers/net/netxen/netxen_nic_hw.c:1487: warning: format '%llx' expects type 'long long unsigned int', but argument 3 has type 'u64'
+drivers/net/cassini.c: In function 'cas_saturn_firmware_init':
+drivers/net/cassini.c:840: error: implicit declaration of function 'vmalloc'
+drivers/net/cassini.c:840: warning: assignment makes pointer from integer without a cast
+drivers/net/cassini.c: In function 'cas_remove_one':
+drivers/net/cassini.c:5259: error: implicit declaration of function 'vfree'
 
-You don't know what type was used for u64 hence they cannot be printed without
-casting.
-
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Jaswinder Singh <jaswinder@infradead.org>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/netxen/netxen_nic_hw.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/net/cassini.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/netxen/netxen_nic_hw.c~drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings drivers/net/netxen/netxen_nic_hw.c
---- a/drivers/net/netxen/netxen_nic_hw.c~drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings
-+++ a/drivers/net/netxen/netxen_nic_hw.c
-@@ -1411,7 +1411,8 @@ static int netxen_nic_pci_mem_read_direc
- 		(netxen_nic_pci_is_same_window(adapter, off+size-1) == 0)) {
- 		write_unlock_irqrestore(&adapter->adapter_lock, flags);
- 		printk(KERN_ERR "%s out of bound pci memory access. "
--			"offset is 0x%llx\n", netxen_nic_driver_name, off);
-+			"offset is 0x%llx\n", netxen_nic_driver_name,
-+			(unsigned long long)off);
- 		return -1;
- 	}
- 
-@@ -1484,7 +1485,8 @@ netxen_nic_pci_mem_write_direct(struct n
- 		(netxen_nic_pci_is_same_window(adapter, off+size-1) == 0)) {
- 		write_unlock_irqrestore(&adapter->adapter_lock, flags);
- 		printk(KERN_ERR "%s out of bound pci memory access. "
--			"offset is 0x%llx\n", netxen_nic_driver_name, off);
-+			"offset is 0x%llx\n", netxen_nic_driver_name,
-+			(unsigned long long)off);
- 		return -1;
- 	}
- 
+diff -puN drivers/net/cassini.c~cassini-use-request_firmware-fix drivers/net/cassini.c
+--- a/drivers/net/cassini.c~cassini-use-request_firmware-fix
++++ a/drivers/net/cassini.c
+@@ -74,6 +74,7 @@
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <linux/init.h>
++#include <linux/vmalloc.h>
+ #include <linux/ioport.h>
+ #include <linux/pci.h>
+ #include <linux/mm.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,6 +89,7 @@ drivers-mtd-nand-nandsimc-fix-printk-warnings.patch
 drivers-mtd-nand-fsl_elbc_nandc-fix-printk-warning.patch
 bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
 sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware-fix.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 sched-type-fix.patch
 scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
