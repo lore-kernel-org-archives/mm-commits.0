@@ -1,341 +1,641 @@
 From: akpm@linux-foundation.org
-Subject: - sgi-xp-add-_sn2-suffix-to-a-few-variables.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:16:55 -0700
-Message-ID: <200807301916.m6UJGtd8011163@imap1.linux-foundation.org>
+Subject: - sgi-xp-replace-amo_t-typedef-by-struct-amo.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:16:45 -0700
+Message-ID: <200807301916.m6UJGjqd011151@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33275 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50977 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753499AbYG3TYK (ORCPT
+	by vger.kernel.org with ESMTP id S1753686AbYG3TYQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:24:10 -0400
+	Wed, 30 Jul 2008 15:24:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dcn@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgi-xp: add _sn2 suffix to a few variables
+     sgi-xp: replace AMO_t typedef by struct amo
 has been removed from the -mm tree.  Its filename was
-     sgi-xp-add-_sn2-suffix-to-a-few-variables.patch
+     sgi-xp-replace-amo_t-typedef-by-struct-amo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-xp: add _sn2 suffix to a few variables
+Subject: sgi-xp: replace AMO_t typedef by struct amo
 From: Dean Nelson <dcn@sgi.com>
 
-Add an '_sn2' suffix to some variables found in xpc_sn2.c.
+Replace the AMO_t typedef by a direct reference to 'struct amo'.
 
 Signed-off-by: Dean Nelson <dcn@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xpc_sn2.c |  124 ++++++++++++++++----------------
- 1 file changed, 65 insertions(+), 59 deletions(-)
+ drivers/misc/sgi-xp/xp_sn2.c   |    2 
+ drivers/misc/sgi-xp/xpc.h      |   24 ++---
+ drivers/misc/sgi-xp/xpc_main.c |   16 +--
+ drivers/misc/sgi-xp/xpc_sn2.c  |  139 ++++++++++++++++---------------
+ include/asm-ia64/sn/mspec.h    |   16 +--
+ 5 files changed, 101 insertions(+), 96 deletions(-)
 
-diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-add-_sn2-suffix-to-a-few-variables drivers/misc/sgi-xp/xpc_sn2.c
---- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-add-_sn2-suffix-to-a-few-variables
-+++ a/drivers/misc/sgi-xp/xpc_sn2.c
-@@ -56,15 +56,15 @@
- static char *xpc_remote_copy_buffer_sn2;
- static void *xpc_remote_copy_buffer_base_sn2;
- 
--static struct xpc_vars_sn2 *xpc_vars;	/* >>> Add _sn2 suffix? */
--static struct xpc_vars_part_sn2 *xpc_vars_part; /* >>> Add _sn2 suffix? */
-+static struct xpc_vars_sn2 *xpc_vars_sn2;
-+static struct xpc_vars_part_sn2 *xpc_vars_part_sn2;
- 
- /* SH_IPI_ACCESS shub register value on startup */
--static u64 xpc_sh1_IPI_access;
--static u64 xpc_sh2_IPI_access0;
--static u64 xpc_sh2_IPI_access1;
--static u64 xpc_sh2_IPI_access2;
--static u64 xpc_sh2_IPI_access3;
-+static u64 xpc_sh1_IPI_access_sn2;
-+static u64 xpc_sh2_IPI_access0_sn2;
-+static u64 xpc_sh2_IPI_access1_sn2;
-+static u64 xpc_sh2_IPI_access2_sn2;
-+static u64 xpc_sh2_IPI_access3_sn2;
- 
+diff -puN drivers/misc/sgi-xp/xp_sn2.c~sgi-xp-replace-amo_t-typedef-by-struct-amo drivers/misc/sgi-xp/xp_sn2.c
+--- a/drivers/misc/sgi-xp/xp_sn2.c~sgi-xp-replace-amo_t-typedef-by-struct-amo
++++ a/drivers/misc/sgi-xp/xp_sn2.c
+@@ -32,7 +32,7 @@ EXPORT_SYMBOL_GPL(xp_nofault_PIOR_target
+  * If the PIO read times out, the MCA handler will consume the error and
+  * return to a kernel-provided instruction to indicate an error. This PIO read
+  * exists because it is guaranteed to timeout if the destination is down
+- * (AMO operations do not timeout on at least some CPUs on Shubs <= v1.2,
++ * (amo operations do not timeout on at least some CPUs on Shubs <= v1.2,
+  * which unfortunately we have to work around).
+  */
+ static enum xp_retval
+diff -puN drivers/misc/sgi-xp/xpc.h~sgi-xp-replace-amo_t-typedef-by-struct-amo drivers/misc/sgi-xp/xpc.h
+--- a/drivers/misc/sgi-xp/xpc.h~sgi-xp-replace-amo_t-typedef-by-struct-amo
++++ a/drivers/misc/sgi-xp/xpc.h
+@@ -38,8 +38,8 @@
  /*
-  * Change protections to allow IPI operations.
-@@ -77,13 +77,13 @@ xpc_allow_IPI_ops_sn2(void)
+  * The next macros define word or bit representations for given
+  * C-brick nasid in either the SAL provided bit array representing
+- * nasids in the partition/machine or the AMO_t array used for
+- * inter-partition initiation communications.
++ * nasids in the partition/machine or the array of amo structures used
++ * for inter-partition initiation communications.
+  *
+  * For SN2 machines, C-Bricks are alway even numbered NASIDs.  As
+  * such, some space will be saved by insisting that nasid information
+@@ -144,8 +144,8 @@ struct xpc_vars_sn2 {
+ 	int activate_IRQ_nasid;
+ 	int activate_IRQ_phys_cpuid;
+ 	u64 vars_part_pa;
+-	u64 amos_page_pa;	/* paddr of page of AMOs from MSPEC driver */
+-	AMO_t *amos_page;	/* vaddr of page of AMOs from MSPEC driver */
++	u64 amos_page_pa;	/* paddr of page of amos from MSPEC driver */
++	struct amo *amos_page;	/* vaddr of page of amos from MSPEC driver */
+ };
  
- 	/* >>> The following should get moved into SAL. */
- 	if (is_shub2()) {
--		xpc_sh2_IPI_access0 =
-+		xpc_sh2_IPI_access0_sn2 =
- 		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS0));
--		xpc_sh2_IPI_access1 =
-+		xpc_sh2_IPI_access1_sn2 =
- 		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS1));
--		xpc_sh2_IPI_access2 =
-+		xpc_sh2_IPI_access2_sn2 =
- 		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS2));
--		xpc_sh2_IPI_access3 =
-+		xpc_sh2_IPI_access3_sn2 =
- 		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH2_IPI_ACCESS3));
+ #define XPC_V_VERSION _XPC_VERSION(3, 1)    /* version 3.1 of the cross vars */
+@@ -153,17 +153,17 @@ struct xpc_vars_sn2 {
+ /*
+  * The following pertains to ia64-sn2 only.
+  *
+- * Memory for XPC's AMO variables is allocated by the MSPEC driver. These
++ * Memory for XPC's amo variables is allocated by the MSPEC driver. These
+  * pages are located in the lowest granule. The lowest granule uses 4k pages
+  * for cached references and an alternate TLB handler to never provide a
+  * cacheable mapping for the entire region. This will prevent speculative
+  * reading of cached copies of our lines from being issued which will cause
+  * a PI FSB Protocol error to be generated by the SHUB. For XPC, we need 64
+- * AMO variables (based on XP_MAX_NPARTITIONS_SN2) to identify the senders of
+- * NOTIFY IRQs, 128 AMO variables (based on XP_NASID_MASK_WORDS) to identify
+- * the senders of ACTIVATE IRQs, 1 AMO variable to identify which remote
++ * amo variables (based on XP_MAX_NPARTITIONS_SN2) to identify the senders of
++ * NOTIFY IRQs, 128 amo variables (based on XP_NASID_MASK_WORDS) to identify
++ * the senders of ACTIVATE IRQs, 1 amo variable to identify which remote
+  * partitions (i.e., XPCs) consider themselves currently engaged with the
+- * local XPC and 1 AMO variable to request partition deactivation.
++ * local XPC and 1 amo variable to request partition deactivation.
+  */
+ #define XPC_NOTIFY_IRQ_AMOS	0
+ #define XPC_ACTIVATE_IRQ_AMOS	(XPC_NOTIFY_IRQ_AMOS + XP_MAX_NPARTITIONS_SN2)
+@@ -186,7 +186,7 @@ struct xpc_vars_part_sn2 {
+ 	u64 openclose_args_pa;	/* physical address of open and close args */
+ 	u64 GPs_pa;		/* physical address of Get/Put values */
  
- 		for_each_online_node(node) {
-@@ -98,7 +98,7 @@ xpc_allow_IPI_ops_sn2(void)
- 			      -1UL);
- 		}
- 	} else {
--		xpc_sh1_IPI_access =
-+		xpc_sh1_IPI_access_sn2 =
- 		    (u64)HUB_L((u64 *)LOCAL_MMR_ADDR(SH1_IPI_ACCESS));
+-	u64 chctl_amo_pa;	/* physical address of chctl flags' AMO_t */
++	u64 chctl_amo_pa;	/* physical address of chctl flags' amo */
  
- 		for_each_online_node(node) {
-@@ -123,19 +123,19 @@ xpc_disallow_IPI_ops_sn2(void)
- 		for_each_online_node(node) {
- 			nasid = cnodeid_to_nasid(node);
- 			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS0),
--			      xpc_sh2_IPI_access0);
-+			      xpc_sh2_IPI_access0_sn2);
- 			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS1),
--			      xpc_sh2_IPI_access1);
-+			      xpc_sh2_IPI_access1_sn2);
- 			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS2),
--			      xpc_sh2_IPI_access2);
-+			      xpc_sh2_IPI_access2_sn2);
- 			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH2_IPI_ACCESS3),
--			      xpc_sh2_IPI_access3);
-+			      xpc_sh2_IPI_access3_sn2);
- 		}
- 	} else {
- 		for_each_online_node(node) {
- 			nasid = cnodeid_to_nasid(node);
- 			HUB_S((u64 *)GLOBAL_MMR_ADDR(nasid, SH1_IPI_ACCESS),
--			      xpc_sh1_IPI_access);
-+			      xpc_sh1_IPI_access_sn2);
- 		}
- 	}
+ 	int notify_IRQ_nasid;	/* nasid of where to send notify IRQs */
+ 	int notify_IRQ_phys_cpuid;	/* CPUID of where to send notify IRQs */
+@@ -547,8 +547,8 @@ struct xpc_partition_sn2 {
+ 	int notify_IRQ_phys_cpuid;	/* CPUID of where to send notify IRQs */
+ 	char notify_IRQ_owner[8];	/* notify IRQ's owner's name */
+ 
+-	AMO_t *remote_chctl_amo_va; /* address of remote chctl flags' AMO_t */
+-	AMO_t *local_chctl_amo_va;	/* address of chctl flags' AMO_t */
++	struct amo *remote_chctl_amo_va; /* addr of remote chctl flags' amo */
++	struct amo *local_chctl_amo_va;	/* address of chctl flags' amo */
+ 
+ 	struct timer_list dropped_notify_IRQ_timer;	/* dropped IRQ timer */
+ };
+diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-replace-amo_t-typedef-by-struct-amo drivers/misc/sgi-xp/xpc_main.c
+--- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-replace-amo_t-typedef-by-struct-amo
++++ a/drivers/misc/sgi-xp/xpc_main.c
+@@ -26,16 +26,16 @@
+  *	Caveats:
+  *
+  *	  . Currently on sn2, we have no way to determine which nasid an IRQ
+- *	    came from. Thus, xpc_send_IRQ_sn2() does a remote AMO write
+- *	    followed by an IPI. The AMO indicates where data is to be pulled
+- *	    from, so after the IPI arrives, the remote partition checks the AMO
+- *	    word. The IPI can actually arrive before the AMO however, so other
+- *	    code must periodically check for this case. Also, remote AMO
++ *	    came from. Thus, xpc_send_IRQ_sn2() does a remote amo write
++ *	    followed by an IPI. The amo indicates where data is to be pulled
++ *	    from, so after the IPI arrives, the remote partition checks the amo
++ *	    word. The IPI can actually arrive before the amo however, so other
++ *	    code must periodically check for this case. Also, remote amo
+  *	    operations do not reliably time out. Thus we do a remote PIO read
+  *	    solely to know whether the remote partition is down and whether we
+  *	    should stop sending IPIs to it. This remote PIO read operation is
+  *	    set up in a special nofault region so SAL knows to ignore (and
+- *	    cleanup) any errors due to the remote AMO write, PIO read, and/or
++ *	    cleanup) any errors due to the remote amo write, PIO read, and/or
+  *	    PIO write operations.
+  *
+  *	    If/when new hardware solves this IPI problem, we should abandon
+@@ -302,7 +302,7 @@ xpc_hb_checker(void *ignore)
+ 
+ 			/*
+ 			 * We need to periodically recheck to ensure no
+-			 * IRQ/AMO pairs have been missed.  That check
++			 * IRQ/amo pairs have been missed.  That check
+ 			 * must always reset xpc_hb_check_timeout.
+ 			 */
+ 			force_IRQ = 1;
+@@ -1034,7 +1034,7 @@ xpc_init(void)
+ 	if (is_shub()) {
+ 		/*
+ 		 * The ia64-sn2 architecture supports at most 64 partitions.
+-		 * And the inability to unregister remote AMOs restricts us
++		 * And the inability to unregister remote amos restricts us
+ 		 * further to only support exactly 64 partitions on this
+ 		 * architecture, no less.
+ 		 */
+diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-replace-amo_t-typedef-by-struct-amo drivers/misc/sgi-xp/xpc_sn2.c
+--- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-replace-amo_t-typedef-by-struct-amo
++++ a/drivers/misc/sgi-xp/xpc_sn2.c
+@@ -111,13 +111,14 @@ xpc_disallow_IPI_ops_sn2(void)
+  */
+ 
+ static u64
+-xpc_receive_IRQ_amo_sn2(AMO_t *amo)
++xpc_receive_IRQ_amo_sn2(struct amo *amo)
+ {
+ 	return FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_CLEAR);
  }
-@@ -182,7 +182,7 @@ xpc_send_IRQ_sn2(struct amo *amo, u64 fl
- static struct amo *
+ 
+ static enum xp_retval
+-xpc_send_IRQ_sn2(AMO_t *amo, u64 flag, int nasid, int phys_cpuid, int vector)
++xpc_send_IRQ_sn2(struct amo *amo, u64 flag, int nasid, int phys_cpuid,
++		 int vector)
+ {
+ 	int ret = 0;
+ 	unsigned long irq_flags;
+@@ -131,7 +132,7 @@ xpc_send_IRQ_sn2(AMO_t *amo, u64 flag, i
+ 	 * We must always use the nofault function regardless of whether we
+ 	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
+ 	 * didn't, we'd never know that the other partition is down and would
+-	 * keep sending IRQs and AMOs to it until the heartbeat times out.
++	 * keep sending IRQs and amos to it until the heartbeat times out.
+ 	 */
+ 	ret = xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->variable),
+ 						     xp_nofault_PIOR_target));
+@@ -141,12 +142,12 @@ xpc_send_IRQ_sn2(AMO_t *amo, u64 flag, i
+ 	return ((ret == 0) ? xpSuccess : xpPioReadError);
+ }
+ 
+-static AMO_t *
++static struct amo *
  xpc_init_IRQ_amo_sn2(int index)
  {
--	struct amo *amo = xpc_vars->amos_page + index;
-+	struct amo *amo = xpc_vars_sn2->amos_page + index;
+-	AMO_t *amo = xpc_vars->amos_page + index;
++	struct amo *amo = xpc_vars->amos_page + index;
  
- 	(void)xpc_receive_IRQ_amo_sn2(amo);	/* clear amo variable */
+-	(void)xpc_receive_IRQ_amo_sn2(amo);	/* clear AMO variable */
++	(void)xpc_receive_IRQ_amo_sn2(amo);	/* clear amo variable */
  	return amo;
-@@ -225,7 +225,7 @@ xpc_send_local_activate_IRQ_sn2(int from
+ }
+ 
+@@ -166,7 +167,7 @@ xpc_handle_activate_IRQ_sn2(int irq, voi
+ }
+ 
+ /*
+- * Flag the appropriate AMO variable and send an IRQ to the specified node.
++ * Flag the appropriate amo variable and send an IRQ to the specified node.
+  */
+ static void
+ xpc_send_activate_IRQ_sn2(u64 amos_page_pa, int from_nasid, int to_nasid,
+@@ -174,8 +175,9 @@ xpc_send_activate_IRQ_sn2(u64 amos_page_
  {
  	int w_index = XPC_NASID_W_INDEX(from_nasid);
  	int b_index = XPC_NASID_B_INDEX(from_nasid);
--	struct amo *amos = (struct amo *)__va(xpc_vars->amos_page_pa +
-+	struct amo *amos = (struct amo *)__va(xpc_vars_sn2->amos_page_pa +
- 					      (XPC_ACTIVATE_IRQ_AMOS_SN2 *
- 					      sizeof(struct amo)));
+-	AMO_t *amos = (AMO_t *)__va(amos_page_pa +
+-				    (XPC_ACTIVATE_IRQ_AMOS * sizeof(AMO_t)));
++	struct amo *amos = (struct amo *)__va(amos_page_pa +
++					      (XPC_ACTIVATE_IRQ_AMOS *
++					      sizeof(struct amo)));
  
-@@ -492,7 +492,8 @@ xpc_indicate_partition_disengaged_sn2(st
+ 	(void)xpc_send_IRQ_sn2(&amos[w_index], (1UL << b_index), to_nasid,
+ 			       to_phys_cpuid, SGI_XPC_ACTIVATE);
+@@ -186,8 +188,9 @@ xpc_send_local_activate_IRQ_sn2(int from
+ {
+ 	int w_index = XPC_NASID_W_INDEX(from_nasid);
+ 	int b_index = XPC_NASID_B_INDEX(from_nasid);
+-	AMO_t *amos = (AMO_t *)__va(xpc_vars->amos_page_pa +
+-				    (XPC_ACTIVATE_IRQ_AMOS * sizeof(AMO_t)));
++	struct amo *amos = (struct amo *)__va(xpc_vars->amos_page_pa +
++					      (XPC_ACTIVATE_IRQ_AMOS *
++					      sizeof(struct amo)));
+ 
+ 	/* fake the sending and receipt of an activate IRQ from remote nasid */
+ 	FETCHOP_STORE_OP(TO_AMO((u64)&amos[w_index].variable), FETCHOP_OR,
+@@ -227,7 +230,7 @@ xpc_check_for_sent_chctl_flags_sn2(struc
+ /*
+  * Handle the receipt of a SGI_XPC_NOTIFY IRQ by seeing whether the specified
+  * partition actually sent it. Since SGI_XPC_NOTIFY IRQs may be shared by more
+- * than one partition, we use an AMO_t structure per partition to indicate
++ * than one partition, we use an amo structure per partition to indicate
+  * whether a partition has sent an IRQ or not.  If it has, then wake up the
+  * associated kthread to handle it.
+  *
+@@ -391,20 +394,20 @@ static void
+ xpc_indicate_partition_engaged_sn2(struct xpc_partition *part)
+ {
+ 	unsigned long irq_flags;
+-	AMO_t *amo = (AMO_t *)__va(part->sn.sn2.remote_amos_page_pa +
+-				   (XPC_ENGAGED_PARTITIONS_AMO *
+-				    sizeof(AMO_t)));
++	struct amo *amo = (struct amo *)__va(part->sn.sn2.remote_amos_page_pa +
++					     (XPC_ENGAGED_PARTITIONS_AMO *
++					     sizeof(struct amo)));
+ 
+ 	local_irq_save(irq_flags);
+ 
+-	/* set bit corresponding to our partid in remote partition's AMO */
++	/* set bit corresponding to our partid in remote partition's amo */
+ 	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_OR,
+ 			 (1UL << sn_partition_id));
+ 	/*
+ 	 * We must always use the nofault function regardless of whether we
+ 	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
+ 	 * didn't, we'd never know that the other partition is down and would
+-	 * keep sending IRQs and AMOs to it until the heartbeat times out.
++	 * keep sending IRQs and amos to it until the heartbeat times out.
+ 	 */
+ 	(void)xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->
+ 							       variable),
+@@ -418,20 +421,20 @@ xpc_indicate_partition_disengaged_sn2(st
+ {
+ 	struct xpc_partition_sn2 *part_sn2 = &part->sn.sn2;
+ 	unsigned long irq_flags;
+-	AMO_t *amo = (AMO_t *)__va(part_sn2->remote_amos_page_pa +
+-				   (XPC_ENGAGED_PARTITIONS_AMO *
+-				    sizeof(AMO_t)));
++	struct amo *amo = (struct amo *)__va(part_sn2->remote_amos_page_pa +
++					     (XPC_ENGAGED_PARTITIONS_AMO *
++					     sizeof(struct amo)));
+ 
+ 	local_irq_save(irq_flags);
+ 
+-	/* clear bit corresponding to our partid in remote partition's AMO */
++	/* clear bit corresponding to our partid in remote partition's amo */
+ 	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_AND,
+ 			 ~(1UL << sn_partition_id));
+ 	/*
+ 	 * We must always use the nofault function regardless of whether we
+ 	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
+ 	 * didn't, we'd never know that the other partition is down and would
+-	 * keep sending IRQs and AMOs to it until the heartbeat times out.
++	 * keep sending IRQs and amos to it until the heartbeat times out.
+ 	 */
+ 	(void)xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->
+ 							       variable),
+@@ -441,7 +444,7 @@ xpc_indicate_partition_disengaged_sn2(st
+ 
+ 	/*
+ 	 * Send activate IRQ to get other side to see that we've cleared our
+-	 * bit in their engaged partitions AMO.
++	 * bit in their engaged partitions amo.
+ 	 */
+ 	xpc_send_activate_IRQ_sn2(part_sn2->remote_amos_page_pa,
+ 				  cnodeid_to_nasid(0),
+@@ -452,9 +455,9 @@ xpc_indicate_partition_disengaged_sn2(st
  static int
  xpc_partition_engaged_sn2(short partid)
  {
--	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO_SN2;
-+	struct amo *amo = xpc_vars_sn2->amos_page +
-+			  XPC_ENGAGED_PARTITIONS_AMO_SN2;
+-	AMO_t *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
++	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
  
- 	/* our partition's amo variable ANDed with partid mask */
+-	/* our partition's AMO variable ANDed with partid mask */
++	/* our partition's amo variable ANDed with partid mask */
  	return (FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_LOAD) &
-@@ -502,7 +503,8 @@ xpc_partition_engaged_sn2(short partid)
+ 		(1UL << partid)) != 0;
+ }
+@@ -462,18 +465,18 @@ xpc_partition_engaged_sn2(short partid)
  static int
  xpc_any_partition_engaged_sn2(void)
  {
--	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO_SN2;
-+	struct amo *amo = xpc_vars_sn2->amos_page +
-+			  XPC_ENGAGED_PARTITIONS_AMO_SN2;
+-	AMO_t *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
++	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
  
- 	/* our partition's amo variable */
+-	/* our partition's AMO variable */
++	/* our partition's amo variable */
  	return FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_LOAD) != 0;
-@@ -511,7 +513,8 @@ xpc_any_partition_engaged_sn2(void)
+ }
+ 
  static void
  xpc_assume_partition_disengaged_sn2(short partid)
  {
--	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO_SN2;
-+	struct amo *amo = xpc_vars_sn2->amos_page +
-+			  XPC_ENGAGED_PARTITIONS_AMO_SN2;
+-	AMO_t *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
++	struct amo *amo = xpc_vars->amos_page + XPC_ENGAGED_PARTITIONS_AMO;
  
- 	/* clear bit(s) based on partid mask in our partition's amo */
+-	/* clear bit(s) based on partid mask in our partition's AMO */
++	/* clear bit(s) based on partid mask in our partition's amo */
  	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_AND,
-@@ -580,27 +583,27 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
+ 			 ~(1UL << partid));
+ }
+@@ -482,10 +485,10 @@ xpc_assume_partition_disengaged_sn2(shor
+ static u64 xpc_prot_vec_sn2[MAX_NUMNODES];
+ 
+ /*
+- * Change protections to allow AMO operations on non-Shub 1.1 systems.
++ * Change protections to allow amo operations on non-Shub 1.1 systems.
+  */
+ static enum xp_retval
+-xpc_allow_AMO_ops_sn2(AMO_t *amos_page)
++xpc_allow_amo_ops_sn2(struct amo *amos_page)
+ {
+ 	u64 nasid_array = 0;
+ 	int ret;
+@@ -493,7 +496,7 @@ xpc_allow_AMO_ops_sn2(AMO_t *amos_page)
+ 	/*
+ 	 * On SHUB 1.1, we cannot call sn_change_memprotect() since the BIST
+ 	 * collides with memory operations. On those systems we call
+-	 * xpc_allow_AMO_ops_shub_wars_1_1_sn2() instead.
++	 * xpc_allow_amo_ops_shub_wars_1_1_sn2() instead.
+ 	 */
+ 	if (!enable_shub_wars_1_1()) {
+ 		ret = sn_change_memprotect(ia64_tpa((u64)amos_page), PAGE_SIZE,
+@@ -506,10 +509,10 @@ xpc_allow_AMO_ops_sn2(AMO_t *amos_page)
+ }
+ 
+ /*
+- * Change protections to allow AMO operations on Shub 1.1 systems.
++ * Change protections to allow amo operations on Shub 1.1 systems.
+  */
+ static void
+-xpc_allow_AMO_ops_shub_wars_1_1_sn2(void)
++xpc_allow_amo_ops_shub_wars_1_1_sn2(void)
+ {
+ 	int node;
+ 	int nasid;
+@@ -536,7 +539,7 @@ xpc_allow_AMO_ops_shub_wars_1_1_sn2(void
+ static enum xp_retval
+ xpc_rsvd_page_init_sn2(struct xpc_rsvd_page *rp)
+ {
+-	AMO_t *amos_page;
++	struct amo *amos_page;
  	int i;
  	int ret;
  
--	xpc_vars = XPC_RP_VARS(rp);
-+	xpc_vars_sn2 = XPC_RP_VARS(rp);
- 
--	rp->sn.vars_pa = __pa(xpc_vars);
-+	rp->sn.vars_pa = __pa(xpc_vars_sn2);
- 
- 	/* vars_part array follows immediately after vars */
--	xpc_vars_part = (struct xpc_vars_part_sn2 *)((u8 *)XPC_RP_VARS(rp) +
--						     XPC_RP_VARS_SIZE);
-+	xpc_vars_part_sn2 = (struct xpc_vars_part_sn2 *)((u8 *)XPC_RP_VARS(rp) +
-+							 XPC_RP_VARS_SIZE);
+@@ -549,32 +552,32 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
+ 						     XPC_RP_VARS_SIZE);
  
  	/*
--	 * Before clearing xpc_vars, see if a page of amos had been previously
--	 * allocated. If not we'll need to allocate one and set permissions
--	 * so that cross-partition amos are allowed.
-+	 * Before clearing xpc_vars_sn2, see if a page of amos had been
-+	 * previously allocated. If not we'll need to allocate one and set
-+	 * permissions so that cross-partition amos are allowed.
+-	 * Before clearing xpc_vars, see if a page of AMOs had been previously
++	 * Before clearing xpc_vars, see if a page of amos had been previously
+ 	 * allocated. If not we'll need to allocate one and set permissions
+-	 * so that cross-partition AMOs are allowed.
++	 * so that cross-partition amos are allowed.
  	 *
- 	 * The allocated amo page needs MCA reporting to remain disabled after
+-	 * The allocated AMO page needs MCA reporting to remain disabled after
++	 * The allocated amo page needs MCA reporting to remain disabled after
  	 * XPC has unloaded.  To make this work, we keep a copy of the pointer
--	 * to this page (i.e., amos_page) in the struct xpc_vars structure,
-+	 * to this page (i.e., amos_page) in the struct xpc_vars_sn2 structure,
+ 	 * to this page (i.e., amos_page) in the struct xpc_vars structure,
  	 * which is pointed to by the reserved page, and re-use that saved copy
- 	 * on subsequent loads of XPC. This amo page is never freed, and its
+-	 * on subsequent loads of XPC. This AMO page is never freed, and its
++	 * on subsequent loads of XPC. This amo page is never freed, and its
  	 * memory protections are never restricted.
  	 */
--	amos_page = xpc_vars->amos_page;
-+	amos_page = xpc_vars_sn2->amos_page;
+ 	amos_page = xpc_vars->amos_page;
  	if (amos_page == NULL) {
- 		amos_page = (struct amo *)TO_AMO(uncached_alloc_page(0, 1));
+-		amos_page = (AMO_t *)TO_AMO(uncached_alloc_page(0, 1));
++		amos_page = (struct amo *)TO_AMO(uncached_alloc_page(0, 1));
  		if (amos_page == NULL) {
-@@ -621,18 +624,18 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
+-			dev_err(xpc_part, "can't allocate page of AMOs\n");
++			dev_err(xpc_part, "can't allocate page of amos\n");
+ 			return xpNoMemory;
  		}
- 	}
  
--	/* clear xpc_vars */
--	memset(xpc_vars, 0, sizeof(struct xpc_vars_sn2));
-+	/* clear xpc_vars_sn2 */
-+	memset(xpc_vars_sn2, 0, sizeof(struct xpc_vars_sn2));
- 
--	xpc_vars->version = XPC_V_VERSION;
--	xpc_vars->activate_IRQ_nasid = cpuid_to_nasid(0);
--	xpc_vars->activate_IRQ_phys_cpuid = cpu_physical_id(0);
--	xpc_vars->vars_part_pa = __pa(xpc_vars_part);
--	xpc_vars->amos_page_pa = ia64_tpa((u64)amos_page);
--	xpc_vars->amos_page = amos_page;	/* save for next load of XPC */
-+	xpc_vars_sn2->version = XPC_V_VERSION;
-+	xpc_vars_sn2->activate_IRQ_nasid = cpuid_to_nasid(0);
-+	xpc_vars_sn2->activate_IRQ_phys_cpuid = cpu_physical_id(0);
-+	xpc_vars_sn2->vars_part_pa = __pa(xpc_vars_part_sn2);
-+	xpc_vars_sn2->amos_page_pa = ia64_tpa((u64)amos_page);
-+	xpc_vars_sn2->amos_page = amos_page;	/* save for next load of XPC */
- 
--	/* clear xpc_vars_part */
--	memset((u64 *)xpc_vars_part, 0, sizeof(struct xpc_vars_part_sn2) *
-+	/* clear xpc_vars_part_sn2 */
-+	memset((u64 *)xpc_vars_part_sn2, 0, sizeof(struct xpc_vars_part_sn2) *
+ 		/*
+-		 * Open up AMO-R/W to cpu.  This is done on Shub 1.1 systems
+-		 * when xpc_allow_AMO_ops_shub_wars_1_1_sn2() is called.
++		 * Open up amo-R/W to cpu.  This is done on Shub 1.1 systems
++		 * when xpc_allow_amo_ops_shub_wars_1_1_sn2() is called.
+ 		 */
+-		ret = xpc_allow_AMO_ops_sn2(amos_page);
++		ret = xpc_allow_amo_ops_sn2(amos_page);
+ 		if (ret != xpSuccess) {
+-			dev_err(xpc_part, "can't allow AMO operations\n");
++			dev_err(xpc_part, "can't allow amo operations\n");
+ 			uncached_free_page(__IA64_UNCACHED_OFFSET |
+ 					   TO_PHYS((u64)amos_page), 1);
+ 			return ret;
+@@ -595,11 +598,11 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
+ 	memset((u64 *)xpc_vars_part, 0, sizeof(struct xpc_vars_part_sn2) *
  	       xp_max_npartitions);
  
- 	/* initialize the activate IRQ related amo variables */
-@@ -649,30 +652,30 @@ xpc_rsvd_page_init_sn2(struct xpc_rsvd_p
- static void
- xpc_increment_heartbeat_sn2(void)
+-	/* initialize the activate IRQ related AMO variables */
++	/* initialize the activate IRQ related amo variables */
+ 	for (i = 0; i < xp_nasid_mask_words; i++)
+ 		(void)xpc_init_IRQ_amo_sn2(XPC_ACTIVATE_IRQ_AMOS + i);
+ 
+-	/* initialize the engaged remote partitions related AMO variables */
++	/* initialize the engaged remote partitions related amo variables */
+ 	(void)xpc_init_IRQ_amo_sn2(XPC_ENGAGED_PARTITIONS_AMO);
+ 	(void)xpc_init_IRQ_amo_sn2(XPC_DEACTIVATE_REQUEST_AMO);
+ 
+@@ -745,19 +748,20 @@ xpc_request_partition_deactivation_sn2(s
  {
--	xpc_vars->heartbeat++;
-+	xpc_vars_sn2->heartbeat++;
- }
+ 	struct xpc_partition_sn2 *part_sn2 = &part->sn.sn2;
+ 	unsigned long irq_flags;
+-	AMO_t *amo = (AMO_t *)__va(part_sn2->remote_amos_page_pa +
+-				  (XPC_DEACTIVATE_REQUEST_AMO * sizeof(AMO_t)));
++	struct amo *amo = (struct amo *)__va(part_sn2->remote_amos_page_pa +
++					     (XPC_DEACTIVATE_REQUEST_AMO *
++					     sizeof(struct amo)));
  
- static void
- xpc_offline_heartbeat_sn2(void)
+ 	local_irq_save(irq_flags);
+ 
+-	/* set bit corresponding to our partid in remote partition's AMO */
++	/* set bit corresponding to our partid in remote partition's amo */
+ 	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_OR,
+ 			 (1UL << sn_partition_id));
+ 	/*
+ 	 * We must always use the nofault function regardless of whether we
+ 	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
+ 	 * didn't, we'd never know that the other partition is down and would
+-	 * keep sending IRQs and AMOs to it until the heartbeat times out.
++	 * keep sending IRQs and amos to it until the heartbeat times out.
+ 	 */
+ 	(void)xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->
+ 							       variable),
+@@ -767,7 +771,7 @@ xpc_request_partition_deactivation_sn2(s
+ 
+ 	/*
+ 	 * Send activate IRQ to get other side to see that we've set our
+-	 * bit in their deactivate request AMO.
++	 * bit in their deactivate request amo.
+ 	 */
+ 	xpc_send_activate_IRQ_sn2(part_sn2->remote_amos_page_pa,
+ 				  cnodeid_to_nasid(0),
+@@ -779,19 +783,20 @@ static void
+ xpc_cancel_partition_deactivation_request_sn2(struct xpc_partition *part)
  {
- 	xpc_increment_heartbeat_sn2();
--	xpc_vars->heartbeat_offline = 1;
-+	xpc_vars_sn2->heartbeat_offline = 1;
- }
+ 	unsigned long irq_flags;
+-	AMO_t *amo = (AMO_t *)__va(part->sn.sn2.remote_amos_page_pa +
+-				  (XPC_DEACTIVATE_REQUEST_AMO * sizeof(AMO_t)));
++	struct amo *amo = (struct amo *)__va(part->sn.sn2.remote_amos_page_pa +
++					     (XPC_DEACTIVATE_REQUEST_AMO *
++					     sizeof(struct amo)));
  
- static void
- xpc_online_heartbeat_sn2(void)
- {
- 	xpc_increment_heartbeat_sn2();
--	xpc_vars->heartbeat_offline = 0;
-+	xpc_vars_sn2->heartbeat_offline = 0;
- }
+ 	local_irq_save(irq_flags);
  
- static void
- xpc_heartbeat_init_sn2(void)
- {
--	DBUG_ON(xpc_vars == NULL);
-+	DBUG_ON(xpc_vars_sn2 == NULL);
- 
--	bitmap_zero(xpc_vars->heartbeating_to_mask, XP_MAX_NPARTITIONS_SN2);
--	xpc_heartbeating_to_mask = &xpc_vars->heartbeating_to_mask[0];
-+	bitmap_zero(xpc_vars_sn2->heartbeating_to_mask, XP_MAX_NPARTITIONS_SN2);
-+	xpc_heartbeating_to_mask = &xpc_vars_sn2->heartbeating_to_mask[0];
- 	xpc_online_heartbeat_sn2();
- }
- 
-@@ -845,7 +848,8 @@ xpc_cancel_partition_deactivation_reques
+-	/* clear bit corresponding to our partid in remote partition's AMO */
++	/* clear bit corresponding to our partid in remote partition's amo */
+ 	FETCHOP_STORE_OP(TO_AMO((u64)&amo->variable), FETCHOP_AND,
+ 			 ~(1UL << sn_partition_id));
+ 	/*
+ 	 * We must always use the nofault function regardless of whether we
+ 	 * are on a Shub 1.1 system or a Shub 1.2 slice 0xc processor. If we
+ 	 * didn't, we'd never know that the other partition is down and would
+-	 * keep sending IRQs and AMOs to it until the heartbeat times out.
++	 * keep sending IRQs and amos to it until the heartbeat times out.
+ 	 */
+ 	(void)xp_nofault_PIOR((u64 *)GLOBAL_MMR_ADDR(NASID_GET(&amo->
+ 							       variable),
+@@ -803,9 +808,9 @@ xpc_cancel_partition_deactivation_reques
  static int
  xpc_partition_deactivation_requested_sn2(short partid)
  {
--	struct amo *amo = xpc_vars->amos_page + XPC_DEACTIVATE_REQUEST_AMO_SN2;
-+	struct amo *amo = xpc_vars_sn2->amos_page +
-+			  XPC_DEACTIVATE_REQUEST_AMO_SN2;
+-	AMO_t *amo = xpc_vars->amos_page + XPC_DEACTIVATE_REQUEST_AMO;
++	struct amo *amo = xpc_vars->amos_page + XPC_DEACTIVATE_REQUEST_AMO;
  
- 	/* our partition's amo variable ANDed with partid mask */
+-	/* our partition's AMO variable ANDed with partid mask */
++	/* our partition's amo variable ANDed with partid mask */
  	return (FETCHOP_LOAD_OP(TO_AMO((u64)&amo->variable), FETCHOP_LOAD) &
-@@ -1033,7 +1037,7 @@ xpc_identify_activate_IRQ_sender_sn2(voi
+ 		(1UL << partid)) != 0;
+ }
+@@ -976,7 +981,7 @@ xpc_identify_activate_IRQ_req_sn2(int na
+ }
+ 
+ /*
+- * Loop through the activation AMO variables and process any bits
++ * Loop through the activation amo variables and process any bits
+  * which are set.  Each bit indicates a nasid sending a partition
+  * activation or deactivation request.
+  *
+@@ -989,11 +994,11 @@ xpc_identify_activate_IRQ_sender_sn2(voi
+ 	u64 nasid_mask;
+ 	u64 nasid;		/* remote nasid */
  	int n_IRQs_detected = 0;
- 	struct amo *act_amos;
+-	AMO_t *act_amos;
++	struct amo *act_amos;
  
--	act_amos = xpc_vars->amos_page + XPC_ACTIVATE_IRQ_AMOS_SN2;
-+	act_amos = xpc_vars_sn2->amos_page + XPC_ACTIVATE_IRQ_AMOS_SN2;
+ 	act_amos = xpc_vars->amos_page + XPC_ACTIVATE_IRQ_AMOS;
  
- 	/* scan through act amo variable looking for non-zero entries */
- 	for (word = 0; word < xpc_nasid_mask_words; word++) {
-@@ -1261,15 +1265,17 @@ xpc_setup_infrastructure_sn2(struct xpc_
- 	 * The setting of the magic # indicates that these per partition
- 	 * specific variables are ready to be used.
- 	 */
--	xpc_vars_part[partid].GPs_pa = __pa(part_sn2->local_GPs);
--	xpc_vars_part[partid].openclose_args_pa =
-+	xpc_vars_part_sn2[partid].GPs_pa = __pa(part_sn2->local_GPs);
-+	xpc_vars_part_sn2[partid].openclose_args_pa =
- 	    __pa(part->local_openclose_args);
--	xpc_vars_part[partid].chctl_amo_pa = __pa(part_sn2->local_chctl_amo_va);
-+	xpc_vars_part_sn2[partid].chctl_amo_pa =
-+	    __pa(part_sn2->local_chctl_amo_va);
- 	cpuid = raw_smp_processor_id();	/* any CPU in this partition will do */
--	xpc_vars_part[partid].notify_IRQ_nasid = cpuid_to_nasid(cpuid);
--	xpc_vars_part[partid].notify_IRQ_phys_cpuid = cpu_physical_id(cpuid);
--	xpc_vars_part[partid].nchannels = part->nchannels;
--	xpc_vars_part[partid].magic = XPC_VP_MAGIC1;
-+	xpc_vars_part_sn2[partid].notify_IRQ_nasid = cpuid_to_nasid(cpuid);
-+	xpc_vars_part_sn2[partid].notify_IRQ_phys_cpuid =
-+	    cpu_physical_id(cpuid);
-+	xpc_vars_part_sn2[partid].nchannels = part->nchannels;
-+	xpc_vars_part_sn2[partid].magic = XPC_VP_MAGIC1;
+-	/* scan through act AMO variable looking for non-zero entries */
++	/* scan through act amo variable looking for non-zero entries */
+ 	for (word = 0; word < xp_nasid_mask_words; word++) {
  
- 	return xpSuccess;
+ 		if (xpc_exiting)
+@@ -1005,7 +1010,7 @@ xpc_identify_activate_IRQ_sender_sn2(voi
+ 			continue;
+ 		}
  
-@@ -1316,7 +1322,7 @@ xpc_teardown_infrastructure_sn2(struct x
- 	DBUG_ON(part->setup_state != XPC_P_SETUP);
- 	part->setup_state = XPC_P_WTEARDOWN;
+-		dev_dbg(xpc_part, "AMO[%d] gave back 0x%lx\n", word,
++		dev_dbg(xpc_part, "amo[%d] gave back 0x%lx\n", word,
+ 			nasid_mask);
  
--	xpc_vars_part[partid].magic = 0;
-+	xpc_vars_part_sn2[partid].magic = 0;
+ 		/*
+@@ -1038,7 +1043,7 @@ xpc_process_activate_IRQ_rcvd_sn2(int n_
  
- 	free_irq(SGI_XPC_NOTIFY, (void *)(u64)partid);
- 
-@@ -1432,7 +1438,7 @@ xpc_pull_remote_vars_part_sn2(struct xpc
- 		return xpRetry;
+ 	n_IRQs_detected = xpc_identify_activate_IRQ_sender_sn2();
+ 	if (n_IRQs_detected < n_IRQs_expected) {
+-		/* retry once to help avoid missing AMO */
++		/* retry once to help avoid missing amo */
+ 		(void)xpc_identify_activate_IRQ_sender_sn2();
  	}
+ }
+@@ -1386,7 +1391,7 @@ xpc_pull_remote_vars_part_sn2(struct xpc
+ 		part_sn2->remote_openclose_args_pa =
+ 		    pulled_entry->openclose_args_pa;
+ 		part_sn2->remote_chctl_amo_va =
+-		    (AMO_t *)__va(pulled_entry->chctl_amo_pa);
++		    (struct amo *)__va(pulled_entry->chctl_amo_pa);
+ 		part_sn2->notify_IRQ_nasid = pulled_entry->notify_IRQ_nasid;
+ 		part_sn2->notify_IRQ_phys_cpuid =
+ 		    pulled_entry->notify_IRQ_phys_cpuid;
+@@ -1417,7 +1422,7 @@ xpc_make_first_contact_sn2(struct xpc_pa
+ 	enum xp_retval ret;
  
--	if (xpc_vars_part[partid].magic == XPC_VP_MAGIC1) {
-+	if (xpc_vars_part_sn2[partid].magic == XPC_VP_MAGIC1) {
+ 	/*
+-	 * Register the remote partition's AMOs with SAL so it can handle
++	 * Register the remote partition's amos with SAL so it can handle
+ 	 * and cleanup errors within that address range should the remote
+ 	 * partition go down. We don't unregister this range because it is
+ 	 * difficult to tell when outstanding writes to the remote partition
+@@ -2192,9 +2197,9 @@ xpc_init_sn2(void)
+ 	xpc_send_msg = xpc_send_msg_sn2;
+ 	xpc_received_msg = xpc_received_msg_sn2;
  
- 		/* validate the variables */
+-	/* open up protections for IPI and [potentially] AMO operations */
++	/* open up protections for IPI and [potentially] amo operations */
+ 	xpc_allow_IPI_ops_sn2();
+-	xpc_allow_AMO_ops_shub_wars_1_1_sn2();
++	xpc_allow_amo_ops_shub_wars_1_1_sn2();
  
-@@ -1462,7 +1468,7 @@ xpc_pull_remote_vars_part_sn2(struct xpc
+ 	/*
+ 	 * This is safe to do before the xpc_hb_checker thread has started
+diff -puN include/asm-ia64/sn/mspec.h~sgi-xp-replace-amo_t-typedef-by-struct-amo include/asm-ia64/sn/mspec.h
+--- a/include/asm-ia64/sn/mspec.h~sgi-xp-replace-amo_t-typedef-by-struct-amo
++++ a/include/asm-ia64/sn/mspec.h
+@@ -4,7 +4,7 @@
+  * License.  See the file "COPYING" in the main directory of this archive
+  * for more details.
+  *
+- * Copyright (c) 2001-2004 Silicon Graphics, Inc.  All rights reserved.
++ * Copyright (c) 2001-2008 Silicon Graphics, Inc.  All rights reserved.
+  */
  
- 		/* let the other side know that we've pulled their variables */
+ #ifndef _ASM_IA64_SN_MSPEC_H
+@@ -32,26 +32,26 @@
+ #ifdef __KERNEL__
  
--		xpc_vars_part[partid].magic = XPC_VP_MAGIC2;
-+		xpc_vars_part_sn2[partid].magic = XPC_VP_MAGIC2;
- 	}
+ /*
+- * Each Atomic Memory Operation (AMO formerly known as fetchop)
++ * Each Atomic Memory Operation (amo, formerly known as fetchop)
+  * variable is 64 bytes long.  The first 8 bytes are used.  The
+  * remaining 56 bytes are unaddressable due to the operation taking
+  * that portion of the address.
+  *
+- * NOTE: The AMO_t _MUST_ be placed in either the first or second half
+- * of the cache line.  The cache line _MUST NOT_ be used for anything
+- * other than additional AMO_t entries.  This is because there are two
++ * NOTE: The amo structure _MUST_ be placed in either the first or second
++ * half of the cache line.  The cache line _MUST NOT_ be used for anything
++ * other than additional amo entries.  This is because there are two
+  * addresses which reference the same physical cache line.  One will
+  * be a cached entry with the memory type bits all set.  This address
+- * may be loaded into processor cache.  The AMO_t will be referenced
++ * may be loaded into processor cache.  The amo will be referenced
+  * uncached via the memory special memory type.  If any portion of the
+  * cached cache-line is modified, when that line is flushed, it will
+  * overwrite the uncached value in physical memory and lead to
+  * inconsistency.
+  */
+-typedef struct {
++struct amo {
+         u64 variable;
+         u64 unused[7];
+-} AMO_t;
++};
  
- 	if (pulled_entry->magic == XPC_VP_MAGIC1)
+ 
+ #endif /* __KERNEL__ */
 _
 
 Patches currently in -mm which might be from dcn@sgi.com are
