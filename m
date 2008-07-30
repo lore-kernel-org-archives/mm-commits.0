@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - swap-update-function-comment-of-release_pages.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:15:08 -0700
-Message-ID: <200807301915.m6UJF8Jm010968@imap1.linux-foundation.org>
+Subject: - madvise-update-function-comment-of-madvise_dontneed.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:15:06 -0700
+Message-ID: <200807301915.m6UJF6l9010963@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59106 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48005 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752682AbYG3TP6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752665AbYG3TP5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:15:58 -0400
+	Wed, 30 Jul 2008 15:15:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fernando@oss.ntt.co.jp, hugh@veritas.com, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swap: update function comment of release_pages
+     madvise: update function comment of madvise_dontneed
 has been removed from the -mm tree.  Its filename was
-     swap-update-function-comment-of-release_pages.patch
+     madvise-update-function-comment-of-madvise_dontneed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swap: update function comment of release_pages
+Subject: madvise: update function comment of madvise_dontneed
 From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
 
 Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
@@ -34,26 +34,25 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/madvise.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/swap.c~swap-update-function-comment-of-release_pages mm/swap.c
---- a/mm/swap.c~swap-update-function-comment-of-release_pages
-+++ a/mm/swap.c
-@@ -278,9 +278,10 @@ int lru_add_drain_all(void)
-  * Avoid taking zone->lru_lock if possible, but if it is taken, retain it
-  * for the remainder of the operation.
+diff -puN mm/madvise.c~madvise-update-function-comment-of-madvise_dontneed mm/madvise.c
+--- a/mm/madvise.c~madvise-update-function-comment-of-madvise_dontneed
++++ a/mm/madvise.c
+@@ -132,10 +132,10 @@ static long madvise_willneed(struct vm_a
+  * Application no longer needs these pages.  If the pages are dirty,
+  * it's OK to just throw them away.  The app will be more careful about
+  * data it wants to keep.  Be sure to free swap resources too.  The
+- * zap_page_range call sets things up for refill_inactive to actually free
++ * zap_page_range call sets things up for shrink_active_list to actually free
+  * these pages later if no one else has touched them in the meantime,
+  * although we could add these pages to a global reuse list for
+- * refill_inactive to pick up before reclaiming other pages.
++ * shrink_active_list to pick up before reclaiming other pages.
   *
-- * The locking in this function is against shrink_cache(): we recheck the
-- * page count inside the lock to see whether shrink_cache grabbed the page
-- * via the LRU.  If it did, give up: shrink_cache will free it.
-+ * The locking in this function is against shrink_inactive_list(): we recheck
-+ * the page count inside the lock to see whether shrink_inactive_list()
-+ * grabbed the page via the LRU.  If it did, give up: shrink_inactive_list()
-+ * will free it.
-  */
- void release_pages(struct page **pages, int nr, int cold)
- {
+  * NB: This interface discards data rather than pushes it out to swap,
+  * as some implementations do.  This has performance implications for
 _
 
 Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
