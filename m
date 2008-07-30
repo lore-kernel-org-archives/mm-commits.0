@@ -1,129 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:54:48 -0700
-Message-ID: <200807301954.m6UJsmtv013634@imap1.linux-foundation.org>
+Subject: - input-i8042-add-dritek-quirk-for-acer-travelmate-660.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 13:07:47 -0700
+Message-ID: <200807302007.m6UK7lPC014292@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51231 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41657 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753470AbYG3TzW (ORCPT
+	by vger.kernel.org with ESMTP id S1756007AbYG3UIp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:55:22 -0400
+	Wed, 30 Jul 2008 16:08:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: bonbons@linux-vserver.org, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ftrace-disable-function-tracing-bringing-up-new-cpu-fix
+     input: i8042: add Dritek quirk for Acer TravelMate 660
 has been removed from the -mm tree.  Its filename was
-     ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
+     input-i8042-add-dritek-quirk-for-acer-travelmate-660.patch
 
-This patch was dropped because it was folded into ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: ftrace-disable-function-tracing-bringing-up-new-cpu-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: input: i8042: add Dritek quirk for Acer TravelMate 660
+=46rom: Bruno Pr=E9mont <bonbons@linux-vserver.org>
 
-kernel/trace/ftrace.c: At top level:
-kernel/trace/ftrace.c:154: warning: 'ftrace_disabled_count' defined but not used
+The Acer TravelMate 660 series also requires the Dritek quirk to enable
+the extra scancodes.
 
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Bruno Pr=E9mont <bonbons@linux-vserver.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/ftrace.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/input/serio/i8042-x86ia64io.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN kernel/trace/ftrace.c~ftrace-disable-function-tracing-bringing-up-new-cpu-fix kernel/trace/ftrace.c
---- a/kernel/trace/ftrace.c~ftrace-disable-function-tracing-bringing-up-new-cpu-fix
-+++ a/kernel/trace/ftrace.c
-@@ -151,7 +151,6 @@ static int __unregister_ftrace_function(
- 	return ret;
- }
- 
--static int ftrace_disabled_count;
- static int save_ftrace_enabled;
- 
- void ftrace_disable(void)
+diff -puN drivers/input/serio/i8042-x86ia64io.h~input-i8042-add-dritek-=
+quirk-for-acer-travelmate-660 drivers/input/serio/i8042-x86ia64io.h
+--- a/drivers/input/serio/i8042-x86ia64io.h~input-i8042-add-dritek-quir=
+k-for-acer-travelmate-660
++++ a/drivers/input/serio/i8042-x86ia64io.h
+@@ -388,6 +388,13 @@ static struct dmi_system_id __initdata i
+ 		},
+ 	},
+ 	{
++		.ident =3D "Acer TravelMate 660",
++		.matches =3D {
++			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "TravelMate 660"),
++		},
++	},
++	{
+ 		.ident =3D "Acer TravelMate 2490",
+ 		.matches =3D {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "Acer"),
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bonbons@linux-vserver.org =
+are
 
-origin.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-pci-make-pci_register_driver-a-macro.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-serio-xilinx_ps2c-fix-warning.patch
-git-jg-misc.patch
-git-mtd.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-drivers-mtd-nand-nandsimc-fix-printk-warnings.patch
-git-ubi-git-rejects.patch
-bridge-send-correct-mtu-value-in-pmtu.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-sched-type-fix.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-git-xtensa.patch
-drivers-telephony-ixjc-depends-on-pnp.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-devpts-switch-to-ida-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-w1-feature-enable-hardware-strong-pullup-checkpatch-fixes.patch
-w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes.patch
-w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+input-i8042-add-dritek-quirk-for-acer-travelmate-660.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
