@@ -1,91 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-net-wireless-b43legacy-mainc-release-mutex-in-error-handling-code.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:18:02 -0700
-Message-ID: <200807301918.m6UJI28c011268@imap1.linux-foundation.org>
+Subject: - cpuset-a-bit-cleanup-for-scan_for_empty_cpusets.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:14:17 -0700
+Message-ID: <200807301914.m6UJEHtm010895@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55313 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39938 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753189AbYG3Tei (ORCPT
+	by vger.kernel.org with ESMTP id S1753177AbYG3Tei (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 30 Jul 2008 15:34:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, Larry.Finger@lwfinger.net, johannes@sipsolutions.net, linville@tuxdriver.com, mb@bu3sch.de, stefano.brivio@polimi.it, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, balbir@in.ibm.com, clg@fr.ibm.com, cpw@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, pj@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/net/wireless/b43legacy/main.c: release mutex in error handling code
+     cpuset: a bit cleanup for scan_for_empty_cpusets()
 has been removed from the -mm tree.  Its filename was
-     drivers-net-wireless-b43legacy-mainc-release-mutex-in-error-handling-code.patch
+     cpuset-a-bit-cleanup-for-scan_for_empty_cpusets.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/wireless/b43legacy/main.c: release mutex in error handling code
-From: Julia Lawall <julia@diku.dk>
+Subject: cpuset: a bit cleanup for scan_for_empty_cpusets()
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-The mutex is released on a successful return, so it would seem that it
-should be released on an error return as well.
+clean up hierarchy traversal code
 
-The semantic patch finds this problem is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@@
-expression l;
-@@
-
-mutex_lock(l);
-... when != mutex_unlock(l)
-    when any
-    when strict
-(
-if (...) { ... when != mutex_unlock(l)
-+   mutex_unlock(l);
-    return ...;
-}
-|
-mutex_unlock(l);
-)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Stefano Brivio <stefano.brivio@polimi.it>
-Cc: Larry Finger <Larry.Finger@lwfinger.net>
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: Johannes Berg <johannes@sipsolutions.net>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Cliff Wickman <cpw@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/b43legacy/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/cpuset.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/wireless/b43legacy/main.c~drivers-net-wireless-b43legacy-mainc-release-mutex-in-error-handling-code drivers/net/wireless/b43legacy/main.c
---- a/drivers/net/wireless/b43legacy/main.c~drivers-net-wireless-b43legacy-mainc-release-mutex-in-error-handling-code
-+++ a/drivers/net/wireless/b43legacy/main.c
-@@ -3846,10 +3846,10 @@ static int b43legacy_resume(struct ssb_d
- 			goto out;
+diff -puN kernel/cpuset.c~cpuset-a-bit-cleanup-for-scan_for_empty_cpusets kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-a-bit-cleanup-for-scan_for_empty_cpusets
++++ a/kernel/cpuset.c
+@@ -1833,24 +1833,21 @@ static void remove_tasks_in_empty_cpuset
+  */
+ static void scan_for_empty_cpusets(const struct cpuset *root)
+ {
++	LIST_HEAD(queue);
+ 	struct cpuset *cp;	/* scans cpusets being updated */
+ 	struct cpuset *child;	/* scans child cpusets of cp */
+-	struct list_head queue;
+ 	struct cgroup *cont;
+ 	nodemask_t oldmems;
+ 
+-	INIT_LIST_HEAD(&queue);
+-
+ 	list_add_tail((struct list_head *)&root->stack_list, &queue);
+ 
+ 	while (!list_empty(&queue)) {
+-		cp = container_of(queue.next, struct cpuset, stack_list);
++		cp = list_first_entry(&queue, struct cpuset, stack_list);
+ 		list_del(queue.next);
+ 		list_for_each_entry(cont, &cp->css.cgroup->children, sibling) {
+ 			child = cgroup_cs(cont);
+ 			list_add_tail(&child->stack_list, &queue);
  		}
- 	}
--	mutex_unlock(&wl->mutex);
+-		cont = cp->css.cgroup;
  
- 	b43legacydbg(wl, "Device resumed.\n");
- out:
-+	mutex_unlock(&wl->mutex);
- 	return err;
- }
- 
+ 		/* Continue past cpusets with all cpus, mems online */
+ 		if (cpus_subset(cp->cpus_allowed, cpu_online_map) &&
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
 linux-next.patch
-git-infiniband.patch
-drivers-net-ehea-ehea_mainc-release-mutex-in-error-handling-code.patch
-net-ieee80211-adjust-error-handling.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
 
