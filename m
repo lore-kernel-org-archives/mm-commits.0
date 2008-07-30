@@ -1,61 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - madvise-update-function-comment-of-madvise_dontneed.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:15:06 -0700
-Message-ID: <200807301915.m6UJF6l9010963@imap1.linux-foundation.org>
+Subject: - initrd-cast-initrd_start-to-void.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:14:57 -0700
+Message-ID: <200807301914.m6UJEv6T010943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48005 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33835 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752665AbYG3TP5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752593AbYG3TPw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:15:57 -0400
+	Wed, 30 Jul 2008 15:15:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fernando@oss.ntt.co.jp, hugh@veritas.com, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, anemo@mba.ocn.ne.jp, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     madvise: update function comment of madvise_dontneed
+     initrd: cast `initrd_start' to `void *'
 has been removed from the -mm tree.  Its filename was
-     madvise-update-function-comment-of-madvise_dontneed.patch
+     initrd-cast-initrd_start-to-void.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: madvise: update function comment of madvise_dontneed
-From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Subject: initrd: cast `initrd_start' to `void *'
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Rik van Riel <riel@redhat.com>
+commit fb6624ebd912e3d6907ca6490248e73368223da9 (initrd: Fix virtual/physical
+mix-up in overwrite test) introduced the compiler warning below on mips,
+as its virt_to_page() doesn't cast the passed address to unsigned long
+internally, unlike on most other architectures:
+
+init/main.c: In function `start_kernel':
+init/main.c:633: warning: passing argument 1 of `virt_to_phys' makes pointer from integer without a cast
+init/main.c:636: warning: passing argument 1 of `virt_to_phys' makes pointer from integer without a cast
+
+For now, kill the warning by explicitly casting initrd_start to `void *', as
+that's the type it should really be.
+
+Reported-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ init/main.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/madvise.c~madvise-update-function-comment-of-madvise_dontneed mm/madvise.c
---- a/mm/madvise.c~madvise-update-function-comment-of-madvise_dontneed
-+++ a/mm/madvise.c
-@@ -132,10 +132,10 @@ static long madvise_willneed(struct vm_a
-  * Application no longer needs these pages.  If the pages are dirty,
-  * it's OK to just throw them away.  The app will be more careful about
-  * data it wants to keep.  Be sure to free swap resources too.  The
-- * zap_page_range call sets things up for refill_inactive to actually free
-+ * zap_page_range call sets things up for shrink_active_list to actually free
-  * these pages later if no one else has touched them in the meantime,
-  * although we could add these pages to a global reuse list for
-- * refill_inactive to pick up before reclaiming other pages.
-+ * shrink_active_list to pick up before reclaiming other pages.
-  *
-  * NB: This interface discards data rather than pushes it out to swap,
-  * as some implementations do.  This has performance implications for
+diff -puN init/main.c~initrd-cast-initrd_start-to-void init/main.c
+--- a/init/main.c~initrd-cast-initrd_start-to-void
++++ a/init/main.c
+@@ -635,10 +635,11 @@ asmlinkage void __init start_kernel(void
+ 
+ #ifdef CONFIG_BLK_DEV_INITRD
+ 	if (initrd_start && !initrd_below_start_ok &&
+-	    page_to_pfn(virt_to_page(initrd_start)) < min_low_pfn) {
++	    page_to_pfn(virt_to_page((void *)initrd_start)) < min_low_pfn) {
+ 		printk(KERN_CRIT "initrd overwritten (0x%08lx < 0x%08lx) - "
+ 		    "disabling it.\n",
+-		    page_to_pfn(virt_to_page(initrd_start)), min_low_pfn);
++		    page_to_pfn(virt_to_page((void *)initrd_start)),
++		    min_low_pfn);
+ 		initrd_start = 0;
+ 	}
+ #endif
 _
 
-Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
+linux-next.patch
+arch-m68k-bvme6000-rtcc-remove-duplicated-include.patch
 
