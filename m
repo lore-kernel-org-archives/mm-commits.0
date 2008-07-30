@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + remove-the-deprecated-cli-sti-functions.patch added to -mm tree
-Date: Wed, 30 Jul 2008 02:50:44 -0700
-Message-ID: <200807300950.m6U9oi6d019608@imap1.linux-foundation.org>
+Subject: + drivers-telephony-ixjc-depends-on-pnp.patch added to -mm tree
+Date: Wed, 30 Jul 2008 03:04:00 -0700
+Message-ID: <200807301004.m6UA40rq020256@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56234 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55462 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752395AbYG3JvU (ORCPT
+	by vger.kernel.org with ESMTP id S1761818AbYG3KEp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 05:51:20 -0400
+	Wed, 30 Jul 2008 06:04:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mark.asselstine@windriver.com, alan@lxorguk.ukuu.org.uk, mingo@elte.hu, willy@linux.intel.com
+Cc: akpm@linux-foundation.org, bjorn.helgaas@hp.com, toralf.foerster@gmx.de
 
 
 The patch titled
-     Remove the deprecated cli() sti() functions
+     drivers/telephony/ixj.c depends on PNP
 has been added to the -mm tree.  Its filename is
-     remove-the-deprecated-cli-sti-functions.patch
+     drivers-telephony-ixjc-depends-on-pnp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,214 +29,131 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: Remove the deprecated cli() sti() functions
-From: Mark Asselstine <mark.asselstine@windriver.com>
+Subject: drivers/telephony/ixj.c depends on PNP
+=46rom: Andrew Morton <akpm@linux-foundation.org>
 
-These functions have been deprecated for some time now but remained until
-all legacy callers could be removed.  With a few commits in 2.6.26 this
-has happened so now we can remove these deprecated functions.
+drivers/built-in.o: In function `pnp_port_start':
+/home/tfoerste/devel/linux-2.6/include/linux/pnp.h:51: undefined refere=
+nce to `pnp_get_resource'
 
-Signed-off-by: Mark Asselstine <mark.asselstine@windriver.com>
-Reviewed-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
+Reported-by: Toralf F=F6rster <toralf.foerster@gmx.de>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/00-INDEX            |    2 
- Documentation/cli-sti-removal.txt |  133 ----------------------------
- include/linux/interrupt.h         |   29 ------
- 3 files changed, 164 deletions(-)
+ drivers/telephony/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/00-INDEX~remove-the-deprecated-cli-sti-functions Documentation/00-INDEX
---- a/Documentation/00-INDEX~remove-the-deprecated-cli-sti-functions
-+++ a/Documentation/00-INDEX
-@@ -89,8 +89,6 @@ cciss.txt
- 	- info, major/minor #'s for Compaq's SMART Array Controllers.
- cdrom/
- 	- directory with information on the CD-ROM drivers that Linux has.
--cli-sti-removal.txt
--	- cli()/sti() removal guide.
- computone.txt
- 	- info on Computone Intelliport II/Plus Multiport Serial Driver.
- connector/
-diff -puN Documentation/cli-sti-removal.txt~remove-the-deprecated-cli-sti-functions /dev/null
---- a/Documentation/cli-sti-removal.txt
-+++ /dev/null
-@@ -1,133 +0,0 @@
--
--#### cli()/sti() removal guide, started by Ingo Molnar <mingo@redhat.com>
--
--
--as of 2.5.28, five popular macros have been removed on SMP, and
--are being phased out on UP:
--
-- cli(), sti(), save_flags(flags), save_flags_cli(flags), restore_flags(flags)
--
--until now it was possible to protect driver code against interrupt
--handlers via a cli(), but from now on other, more lightweight methods
--have to be used for synchronization, such as spinlocks or semaphores.
--
--for example, driver code that used to do something like:
--
--	struct driver_data;
--
--	irq_handler (...)
--	{
--		....
--		driver_data.finish = 1;
--		driver_data.new_work = 0;
--		....
--	}
--
--	...
--
--	ioctl_func (...)
--	{
--		...
--		cli();
--		...
--		driver_data.finish = 0;
--		driver_data.new_work = 2;
--		...
--		sti();
--		...
--	}
--
--was SMP-correct because the cli() function ensured that no
--interrupt handler (amongst them the above irq_handler()) function
--would execute while the cli()-ed section is executing.
--
--but from now on a more direct method of locking has to be used:
--
--	DEFINE_SPINLOCK(driver_lock);
--	struct driver_data;
--
--	irq_handler (...)
--	{
--		unsigned long flags;
--		....
--		spin_lock_irqsave(&driver_lock, flags);
--		....
--		driver_data.finish = 1;
--		driver_data.new_work = 0;
--		....
--		spin_unlock_irqrestore(&driver_lock, flags);
--		....
--	}
--
--	...
--
--	ioctl_func (...)
--	{
--		...
--		spin_lock_irq(&driver_lock);
--		...
--		driver_data.finish = 0;
--		driver_data.new_work = 2;
--		...
--		spin_unlock_irq(&driver_lock);
--		...
--	}
--
--the above code has a number of advantages:
--
--- the locking relation is easier to understand - actual lock usage
--  pinpoints the critical sections. cli() usage is too opaque.
--  Easier to understand means it's easier to debug.
--
--- it's faster, because spinlocks are faster to acquire than the
--  potentially heavily-used IRQ lock. Furthermore, your driver does
--  not have to wait eg. for a big heavy SCSI interrupt to finish,
--  because the driver_lock spinlock is only used by your driver.
--  cli() on the other hand was used by many drivers, and extended
--  the critical section to the whole IRQ handler function - creating
--  serious lock contention.
--
-- 
--to make the transition easier, we've still kept the cli(), sti(),
--save_flags(), save_flags_cli() and restore_flags() macros defined
--on UP systems - but their usage will be phased out until 2.6 is
--released.
--
--drivers that want to disable local interrupts (interrupts on the
--current CPU), can use the following five macros:
--
--  local_irq_disable(), local_irq_enable(), local_save_flags(flags),
--  local_irq_save(flags), local_irq_restore(flags)
--
--but beware, their meaning and semantics are much simpler, far from
--that of the old cli(), sti(), save_flags(flags) and restore_flags(flags)
--SMP meaning:
--
--    local_irq_disable()       => turn local IRQs off
--
--    local_irq_enable()        => turn local IRQs on
--
--    local_save_flags(flags)   => save the current IRQ state into flags. The
--                                 state can be on or off. (on some
--                                 architectures there's even more bits in it.)
--
--    local_irq_save(flags)     => save the current IRQ state into flags and
--                                 disable interrupts.
--
--    local_irq_restore(flags)  => restore the IRQ state from flags.
--
--(local_irq_save can save both irqs on and irqs off state, and
--local_irq_restore can restore into both irqs on and irqs off state.)
--
--another related change is that synchronize_irq() now takes a parameter:
--synchronize_irq(irq). This change too has the purpose of making SMP
--synchronization more lightweight - this way you can wait for your own
--interrupt handler to finish, no need to wait for other IRQ sources.
--
--
--why were these changes done? The main reason was the architectural burden
--of maintaining the cli()/sti() interface - it became a real problem. The
--new interrupt system is much more streamlined, easier to understand, debug,
--and it's also a bit faster - the same happened to it that will happen to
--cli()/sti() using drivers once they convert to spinlocks :-)
--
-diff -puN include/linux/interrupt.h~remove-the-deprecated-cli-sti-functions include/linux/interrupt.h
---- a/include/linux/interrupt.h~remove-the-deprecated-cli-sti-functions
-+++ a/include/linux/interrupt.h
-@@ -223,35 +223,6 @@ static inline int disable_irq_wake(unsig
- #define or_softirq_pending(x)  (local_softirq_pending() |= (x))
- #endif
- 
--/*
-- * Temporary defines for UP kernels, until all code gets fixed.
-- */
--#ifndef CONFIG_SMP
--static inline void __deprecated cli(void)
--{
--	local_irq_disable();
--}
--static inline void __deprecated sti(void)
--{
--	local_irq_enable();
--}
--static inline void __deprecated save_flags(unsigned long *x)
--{
--	local_save_flags(*x);
--}
--#define save_flags(x) save_flags(&x)
--static inline void __deprecated restore_flags(unsigned long x)
--{
--	local_irq_restore(x);
--}
--
--static inline void __deprecated save_and_cli(unsigned long *x)
--{
--	local_irq_save(*x);
--}
--#define save_and_cli(x)	save_and_cli(&x)
--#endif /* CONFIG_SMP */
+diff -puN drivers/telephony/Kconfig~drivers-telephony-ixjc-depends-on-p=
+np drivers/telephony/Kconfig
+--- a/drivers/telephony/Kconfig~drivers-telephony-ixjc-depends-on-pnp
++++ a/drivers/telephony/Kconfig
+@@ -20,6 +20,7 @@ if PHONE
+ config PHONE_IXJ
+ 	tristate "QuickNet Internet LineJack/PhoneJack support"
+ 	depends on ISA || PCI
++	depends on PNP
+ 	---help---
+ 	  Say M if you have a telephony card manufactured by Quicknet
+ 	  Technologies, Inc.  These include the Internet PhoneJACK and
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org =
+are
+
+connector-add-a-blackboard-user-to-connector.patch
+sched-make-scheduler-sysfs-attributes-sysdev-class-devices.patch
+gru-driver-v3-hardware-data-structures.patch
+gru-driver-v3-fixes-to-resolve-code-review-comments.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+linux-next.patch
+linux-next-rejects.patch
+next-remove-localversion.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+pci-make-pci_register_driver-a-macro.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+powerpc-replace-__function__-with-__func__-checkpatch-fixes.patch
+verify_dynamic_kobject_allocation-dont-use-kmalloc.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+drivers-mtd-nand-nandsimc-fix-printk-warnings.patch
+drivers-mtd-nand-fsl_elbc_nandc-fix-printk-warning.patch
+bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+sched-type-fix.patch
+scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=3Dn.patch
+drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
+git-xtensa.patch
+drivers-telephony-ixjc-depends-on-pnp.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works-comment.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-t=
+he-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+w1-feature-enable-hardware-strong-pullup-checkpatch-fixes.patch
+w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes.patch
+w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff=
+=2Epatch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patc=
+h
+w1-build-fix.patch
+
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
