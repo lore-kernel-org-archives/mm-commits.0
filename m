@@ -1,66 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:36:10 -0700
-Message-ID: <200807301936.m6UJaATp012366@imap1.linux-foundation.org>
+Subject: - cassini-use-request_firmware-fix.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:38:02 -0700
+Message-ID: <200807301938.m6UJc252012483@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34204 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50195 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752134AbYG3Tgg (ORCPT
+	by vger.kernel.org with ESMTP id S1754232AbYG3TjA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:36:36 -0400
+	Wed, 30 Jul 2008 15:39:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, shemminger@linux-foundation.org, simon.wunderlich@s2003.tu-chemnitz.de, siwu@hrz.tu-chemnitz.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dwmw2@infradead.org, jaswinder@infradead.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes
+     cassini-use-request_firmware-fix
 has been removed from the -mm tree.  Its filename was
-     bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
+     cassini-use-request_firmware-fix.patch
 
-This patch was dropped because it was folded into bridge-send-correct-mtu-value-in-pmtu.patch
+This patch was dropped because it was folded into cassini-use-request_firmware.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes
+Subject: cassini-use-request_firmware-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: spaces required around that ':' (ctx:VxW)
-#130: FILE: net/bridge/br_netfilter.c:108:
-+	return port ? &port->br->fake_rtable: NULL;
- 	                                    ^
+drivers/net/cassini.c: In function 'cas_saturn_firmware_init':
+drivers/net/cassini.c:840: error: implicit declaration of function 'vmalloc'
+drivers/net/cassini.c:840: warning: assignment makes pointer from integer without a cast
+drivers/net/cassini.c: In function 'cas_remove_one':
+drivers/net/cassini.c:5259: error: implicit declaration of function 'vfree'
 
-total: 1 errors, 0 warnings, 156 lines checked
-
-./patches/bridge-send-correct-mtu-value-in-pmtu.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Simon Wunderlich <simon.wunderlich@s2003.tu-chemnitz.de>
-Cc: Simon Wunderlich <siwu@hrz.tu-chemnitz.de>
-Cc: Stephen Hemminger <shemminger@linux-foundation.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Jaswinder Singh <jaswinder@infradead.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bridge/br_netfilter.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/cassini.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN net/bridge/br_netfilter.c~bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes net/bridge/br_netfilter.c
---- a/net/bridge/br_netfilter.c~bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes
-+++ a/net/bridge/br_netfilter.c
-@@ -105,7 +105,7 @@ static inline struct rtable *bridge_pare
- {
- 	struct net_bridge_port *port = rcu_dereference(dev->br_port);
- 
--	return port ? &port->br->fake_rtable: NULL;
-+	return port ? &port->br->fake_rtable : NULL;
- }
- 
- static inline struct net_device *bridge_parent(const struct net_device *dev)
+diff -puN drivers/net/cassini.c~cassini-use-request_firmware-fix drivers/net/cassini.c
+--- a/drivers/net/cassini.c~cassini-use-request_firmware-fix
++++ a/drivers/net/cassini.c
+@@ -74,6 +74,7 @@
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <linux/init.h>
++#include <linux/vmalloc.h>
+ #include <linux/ioport.h>
+ #include <linux/pci.h>
+ #include <linux/mm.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,8 +75,8 @@ drivers-mtd-nand-nandsimc-needs-div64h.patch
 drivers-mtd-nand-nandsimc-fix-printk-warnings.patch
 git-ubi-git-rejects.patch
 bridge-send-correct-mtu-value-in-pmtu.patch
-bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
 sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
 cassini-use-request_firmware-fix.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 sched-type-fix.patch
