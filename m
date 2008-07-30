@@ -1,316 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - mtd-dataflash-bugfix-binary-page-sizes-now-handled-v3.patch removed from -mm tree
-Date: Tue, 29 Jul 2008 21:25:11 -0700
-Message-ID: <200807300437.m6U4bv9M007241@imap1.linux-foundation.org>
+Subject: - git-ubi-git-rejects.patch removed from -mm tree
+Date: Tue, 29 Jul 2008 21:26:04 -0700
+Message-ID: <200807300438.m6U4comw007266@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49031 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42595 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751120AbYG3EiR (ORCPT
+	by vger.kernel.org with ESMTP id S1751171AbYG3Eiw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 00:38:17 -0400
+	Wed, 30 Jul 2008 00:38:52 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6U4coxI021235
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 29 Jul 2008 21:38:51 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbrownell@users.sourceforge.net, cooloney@kernel.org, dwmw2@infradead.org, michael.hennerich@analog.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MTD DataFlash: bugfix, binary page sizes now handled
+     git-ubi-git-rejects
 has been removed from the -mm tree.  Its filename was
-     mtd-dataflash-bugfix-binary-page-sizes-now-handled-v3.patch
+     git-ubi-git-rejects.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MTD DataFlash: bugfix, binary page sizes now handled
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: git-ubi-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The wrong version of the "teach dataflash about binary density" patch
-just got merged (v2 not v3) ... this restores the missing updates:
-
-  * Fix the cmdlinepart *regression* that caused testing failures (!!)
-    by restoring the original part labels in relevant cases.
-
-  * Don't reference things that don't exist (!)
-	- An opcode that doesn't even exist for DataFlash
-	- The part is "at45db642" not "at45db641"
-	- ID zero in this JEDEC table
-
-  * Make the JEDEC probe routine report and handle errors better:
-	- If the SPI calls fail, return the error codes.
-	- Don't depend on ordering of table entries.
-	- Unrecognized ids are different from parts that have no ID.
-          We won't actually know how to handle them correctly; display
-	  the ID and ignore the chip.
-
-  * Move the original block comment about the "legacy" chip ID scheme
-    back next to the code to which it applies ... not next to the new
-    JEDEC query code, which uses an entirely different strategy.
-
-  * Don't print a guessed erasesize; /proc/mtd has the real value.
-
-And add a few more comments.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Bryan Wu <cooloney@kernel.org>
-Cc: Michael Hennerich <michael.hennerich@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/mtd_dataflash.c |  130 ++++++++++++++++----------
- 1 file changed, 83 insertions(+), 47 deletions(-)
+ drivers/mtd/ubi/cdev.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/mtd/devices/mtd_dataflash.c~mtd-dataflash-bugfix-binary-page-sizes-now-handled-v3 drivers/mtd/devices/mtd_dataflash.c
---- a/drivers/mtd/devices/mtd_dataflash.c~mtd-dataflash-bugfix-binary-page-sizes-now-handled-v3
-+++ a/drivers/mtd/devices/mtd_dataflash.c
-@@ -15,6 +15,8 @@
- #include <linux/delay.h>
- #include <linux/device.h>
- #include <linux/mutex.h>
-+#include <linux/err.h>
-+
- #include <linux/spi/spi.h>
- #include <linux/spi/flash.h>
- 
-@@ -487,9 +489,8 @@ add_dataflash(struct spi_device *spi, ch
- 	device->write = dataflash_write;
- 	device->priv = priv;
- 
--	dev_info(&spi->dev, "%s (%d KBytes) pagesize %d bytes, "
--		"erasesize %d bytes\n", name, device->size/1024,
--		 pagesize, pagesize * 8);	/* 8 pages = 1 block */
-+	dev_info(&spi->dev, "%s (%d KBytes) pagesize %d bytes\n",
-+			name, DIV_ROUND_UP(device->size, 1024), pagesize);
- 	dev_set_drvdata(&spi->dev, priv);
- 
- 	if (mtd_has_partitions()) {
-@@ -518,65 +519,57 @@ add_dataflash(struct spi_device *spi, ch
- 	return add_mtd_device(device) == 1 ? -ENODEV : 0;
- }
- 
--/*
-- * Detect and initialize DataFlash device:
-- *
-- *   Device      Density         ID code          #Pages PageSize  Offset
-- *   AT45DB011B  1Mbit   (128K)  xx0011xx (0x0c)    512    264      9
-- *   AT45DB021B  2Mbit   (256K)  xx0101xx (0x14)   1024    264      9
-- *   AT45DB041B  4Mbit   (512K)  xx0111xx (0x1c)   2048    264      9
-- *   AT45DB081B  8Mbit   (1M)    xx1001xx (0x24)   4096    264      9
-- *   AT45DB0161B 16Mbit  (2M)    xx1011xx (0x2c)   4096    528     10
-- *   AT45DB0321B 32Mbit  (4M)    xx1101xx (0x34)   8192    528     10
-- *   AT45DB0642  64Mbit  (8M)    xx111xxx (0x3c)   8192   1056     11
-- *   AT45DB1282  128Mbit (16M)   xx0100xx (0x10)  16384   1056     11
-- */
--
- struct flash_info {
- 	char		*name;
- 
--	/* JEDEC id zero means "no ID" (most older chips); otherwise it has
--	 * a high byte of zero plus three data bytes: the manufacturer id,
--	 * then a two byte device id.
-+	/* JEDEC id has a high byte of zero plus three data bytes:
-+	 * the manufacturer id, then a two byte device id.
- 	 */
- 	uint32_t	jedec_id;
- 
--	/* The size listed here is what works with OPCODE_SE, which isn't
--	 * necessarily called a "sector" by the vendor.
--	 */
-+	/* The size listed here is what works with OP_ERASE_PAGE. */
- 	unsigned	nr_pages;
- 	uint16_t	pagesize;
- 	uint16_t	pageoffset;
- 
- 	uint16_t	flags;
--#define	SUP_POW2PS	0x02
--#define	IS_POW2PS	0x01
-+#define SUP_POW2PS	0x0002		/* supports 2^N byte pages */
-+#define IS_POW2PS	0x0001		/* uses 2^N byte pages */
- };
- 
- static struct flash_info __devinitdata dataflash_data [] = {
- 
--	{ "at45db011d",  0x1f2200, 512, 264, 9, SUP_POW2PS},
-+	/*
-+	 * NOTE:  chips with SUP_POW2PS (rev D and up) need two entries,
-+	 * one with IS_POW2PS and the other without.  The entry with the
-+	 * non-2^N byte page size can't name exact chip revisions without
-+	 * losing backwards compatibility for cmdlinepart.
-+	 *
-+	 * These newer chips also support 128-byte security registers (with
-+	 * 64 bytes one-time-programmable) and software write-protection.
-+	 */
-+	{ "AT45DB011B",  0x1f2200, 512, 264, 9, SUP_POW2PS},
- 	{ "at45db011d",  0x1f2200, 512, 256, 8, SUP_POW2PS | IS_POW2PS},
- 
--	{ "at45db021d",  0x1f2300, 1024, 264, 9, SUP_POW2PS},
-+	{ "AT45DB021B",  0x1f2300, 1024, 264, 9, SUP_POW2PS},
- 	{ "at45db021d",  0x1f2300, 1024, 256, 8, SUP_POW2PS | IS_POW2PS},
- 
--	{ "at45db041d",  0x1f2400, 2048, 264, 9, SUP_POW2PS},
-+	{ "AT45DB041x",  0x1f2400, 2048, 264, 9, SUP_POW2PS},
- 	{ "at45db041d",  0x1f2400, 2048, 256, 8, SUP_POW2PS | IS_POW2PS},
- 
--	{ "at45db081d",  0x1f2500, 4096, 264, 9, SUP_POW2PS},
-+	{ "AT45DB081B",  0x1f2500, 4096, 264, 9, SUP_POW2PS},
- 	{ "at45db081d",  0x1f2500, 4096, 256, 8, SUP_POW2PS | IS_POW2PS},
- 
--	{ "at45db161d",  0x1f2600, 4096, 528, 10, SUP_POW2PS},
-+	{ "AT45DB161x",  0x1f2600, 4096, 528, 10, SUP_POW2PS},
- 	{ "at45db161d",  0x1f2600, 4096, 512, 9, SUP_POW2PS | IS_POW2PS},
- 
--	{ "at45db321c",  0x1f2700, 8192, 528, 10, },
-+	{ "AT45DB321x",  0x1f2700, 8192, 528, 10, 0},		/* rev C */
- 
--	{ "at45db321d",  0x1f2701, 8192, 528, 10, SUP_POW2PS},
-+	{ "AT45DB321x",  0x1f2701, 8192, 528, 10, SUP_POW2PS},
- 	{ "at45db321d",  0x1f2701, 8192, 512, 9, SUP_POW2PS | IS_POW2PS},
- 
--	{ "at45db641d",  0x1f2800, 8192, 1056, 11, SUP_POW2PS},
--	{ "at45db641d",  0x1f2800, 8192, 1024, 10, SUP_POW2PS | IS_POW2PS},
-+	{ "AT45DB642x",  0x1f2800, 8192, 1056, 11, SUP_POW2PS},
-+	{ "at45db642d",  0x1f2800, 8192, 1024, 10, SUP_POW2PS | IS_POW2PS},
- };
- 
- static struct flash_info *__devinit jedec_probe(struct spi_device *spi)
-@@ -588,17 +581,23 @@ static struct flash_info *__devinit jede
- 	struct flash_info	*info;
- 	int status;
- 
--
- 	/* JEDEC also defines an optional "extended device information"
- 	 * string for after vendor-specific data, after the three bytes
- 	 * we use here.  Supporting some chips might require using it.
-+	 *
-+	 * If the vendor ID isn't Atmel's (0x1f), assume this call failed.
-+	 * That's not an error; only rev C and newer chips handle it, and
-+	 * only Atmel sells these chips.
- 	 */
- 	tmp = spi_write_then_read(spi, &code, 1, id, 3);
- 	if (tmp < 0) {
- 		DEBUG(MTD_DEBUG_LEVEL0, "%s: error %d reading JEDEC ID\n",
- 			spi->dev.bus_id, tmp);
--		return NULL;
-+		return ERR_PTR(tmp);
- 	}
-+	if (id[0] != 0x1f)
-+		return NULL;
-+
- 	jedec = id[0];
- 	jedec = jedec << 8;
- 	jedec |= id[1];
-@@ -609,19 +608,53 @@ static struct flash_info *__devinit jede
- 			tmp < ARRAY_SIZE(dataflash_data);
- 			tmp++, info++) {
- 		if (info->jedec_id == jedec) {
-+			DEBUG(MTD_DEBUG_LEVEL1, "%s: OTP, sector protect%s\n",
-+				dev_name(spi->dev),
-+				(info->flags & SUP_POW2PS)
-+					? ", binary pagesize" : ""
-+				);
- 			if (info->flags & SUP_POW2PS) {
- 				status = dataflash_status(spi);
--				if (status & 0x1)
--					/* return power of 2 pagesize */
--					return ++info;
--				else
--					return info;
-+				if (status < 0) {
-+					DEBUG(MTD_DEBUG_LEVEL1,
-+						"%s: status error %d\n",
-+						dev_name(spi->dev), status);
-+					return ERR_PTR(status);
-+				}
-+				if (status & 0x1) {
-+					if (info->flags & IS_POW2PS)
-+						return info;
-+				} else {
-+					if (!(info->flags & IS_POW2PS))
-+						return info;
-+				}
- 			}
- 		}
- 	}
--	return NULL;
-+
-+	/*
-+	 * Treat other chips as errors ... we won't know the right page
-+	 * size (it might be binary) even when we can tell which density
-+	 * class is involved (legacy chip id scheme).
-+	 */
-+	dev_warn(&spi->dev, "JEDEC id %06x not handled\n", jedec);
-+	return ERR_PTR(-ENODEV);
- }
- 
-+/*
-+ * Detect and initialize DataFlash device, using JEDEC IDs on newer chips
-+ * or else the ID code embedded in the status bits:
-+ *
-+ *   Device      Density         ID code          #Pages PageSize  Offset
-+ *   AT45DB011B  1Mbit   (128K)  xx0011xx (0x0c)    512    264      9
-+ *   AT45DB021B  2Mbit   (256K)  xx0101xx (0x14)   1024    264      9
-+ *   AT45DB041B  4Mbit   (512K)  xx0111xx (0x1c)   2048    264      9
-+ *   AT45DB081B  8Mbit   (1M)    xx1001xx (0x24)   4096    264      9
-+ *   AT45DB0161B 16Mbit  (2M)    xx1011xx (0x2c)   4096    528     10
-+ *   AT45DB0321B 32Mbit  (4M)    xx1101xx (0x34)   8192    528     10
-+ *   AT45DB0642  64Mbit  (8M)    xx111xxx (0x3c)   8192   1056     11
-+ *   AT45DB1282  128Mbit (16M)   xx0100xx (0x10)  16384   1056     11
-+ */
- static int __devinit dataflash_probe(struct spi_device *spi)
- {
- 	int status;
-@@ -632,14 +665,17 @@ static int __devinit dataflash_probe(str
- 	 * If it succeeds we know we have either a C or D part.
- 	 * D will support power of 2 pagesize option.
- 	 */
--
- 	info = jedec_probe(spi);
--
-+	if (IS_ERR(info))
-+		return PTR_ERR(info);
- 	if (info != NULL)
- 		return add_dataflash(spi, info->name, info->nr_pages,
- 				 info->pagesize, info->pageoffset);
- 
--
-+	/*
-+	 * Older chips support only legacy commands, identifing
-+	 * capacity using bits in the status byte.
-+	 */
- 	status = dataflash_status(spi);
- 	if (status <= 0 || status == 0xff) {
- 		DEBUG(MTD_DEBUG_LEVEL1, "%s: status error %d\n",
-@@ -661,13 +697,13 @@ static int __devinit dataflash_probe(str
- 		status = add_dataflash(spi, "AT45DB021B", 1024, 264, 9);
- 		break;
- 	case 0x1c:	/* 0 1 1 1 x x */
--		status = add_dataflash(spi, "AT45DB041B", 2048, 264, 9);
-+		status = add_dataflash(spi, "AT45DB041x", 2048, 264, 9);
- 		break;
- 	case 0x24:	/* 1 0 0 1 x x */
- 		status = add_dataflash(spi, "AT45DB081B", 4096, 264, 9);
- 		break;
- 	case 0x2c:	/* 1 0 1 1 x x */
--		status = add_dataflash(spi, "AT45DB161B", 4096, 528, 10);
-+		status = add_dataflash(spi, "AT45DB161x", 4096, 528, 10);
- 		break;
- 	case 0x34:	/* 1 1 0 1 x x */
- 		status = add_dataflash(spi, "AT45DB321x", 8192, 528, 10);
+diff -puN drivers/mtd/ubi/cdev.c~git-ubi-git-rejects drivers/mtd/ubi/cdev.c
+--- a/drivers/mtd/ubi/cdev.c~git-ubi-git-rejects
++++ a/drivers/mtd/ubi/cdev.c
+@@ -40,10 +40,6 @@
+ #include <linux/ioctl.h>
+ #include <linux/capability.h>
+ #include <linux/uaccess.h>
+-<<<<<<< HEAD:drivers/mtd/ubi/cdev.c
+-#include <linux/smp_lock.h>
+-=======
+->>>>>>> FETCH_HEAD:drivers/mtd/ubi/cdev.c
+ #include <mtd/ubi-user.h>
+ #include <asm/div64.h>
+ #include "ubi.h"
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rtc-dont-return-ebusy-when-mutex_lock_interruptible-fails.patch
-rtc-dev-stop-periodic-interrupts-on-device-release.patch
+connector-add-a-blackboard-user-to-connector-fix.patch
+sched-make-scheduler-sysfs-attributes-sysdev-class-devices-checkpatch-fixes.patch
+gru-driver-v3-hardware-data-structures-fix.patch
+gru-driver-v3-hardware-data-structures-fix-fix.patch
+gru-driver-v3-fixes-to-resolve-code-review-comments-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-mtd-dataflash-bugfix-binary-page-sizes-now-handled-v3.patch
-mtd-dataflash-otp-support.patch
-spi-new-orion_spi-driver.patch
-genirq-better-warning-on-irqchip-set_type-failure.patch
-rtc-ds1307-alarm-support-for-ds1337-ds1339.patch
-rtc-remove-some-nop-open-release-methods.patch
-legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
+linux-next-rejects.patch
+next-remove-localversion.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+pci-make-pci_register_driver-a-macro.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+powerpc-replace-__function__-with-__func__-checkpatch-fixes.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+drivers-mtd-nand-nandsimc-fix-printk-warnings.patch
+git-ubi-git-rejects.patch
+bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+sched-type-fix.patch
+scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+drivers-net-wireless-iwlwifi-iwl-ledc-printk-fix.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works-comment.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+w1-feature-enable-hardware-strong-pullup-checkpatch-fixes.patch
+w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes.patch
+w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
