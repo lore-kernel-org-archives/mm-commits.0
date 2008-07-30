@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + libata-core-make-sure-that-ata_force_tbl-is-freed-in-case-of-an-error.patch added to -mm tree
-Date: Wed, 30 Jul 2008 00:32:24 -0700
-Message-ID: <200807300732.m6U7WOQE014068@imap1.linux-foundation.org>
+Subject: + drivers-hwmon-w83791dc-fix-unused-var-warning.patch added to -mm tree
+Date: Wed, 30 Jul 2008 00:34:18 -0700
+Message-ID: <200807300734.m6U7YIhk014101@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45936 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42546 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751556AbYG3HeI (ORCPT
+	by vger.kernel.org with ESMTP id S1751075AbYG3HfC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 03:34:08 -0400
+	Wed, 30 Jul 2008 03:35:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: eo@nebensachen.de, alan@lxorguk.ukuu.org.uk, jeff@garzik.org, tj@kernel.org
+Cc: niro@tut.by, mhoffman@lightlink.com
 
 
 The patch titled
-     libata-core: make sure that ata_force_tbl is freed in case of an error
+     drivers/hwmon/w83791d.c: fix unused var warning
 has been added to the -mm tree.  Its filename is
-     libata-core-make-sure-that-ata_force_tbl-is-freed-in-case-of-an-error.patch
+     drivers-hwmon-w83791dc-fix-unused-var-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libata-core: make sure that ata_force_tbl is freed in case of an error
-From: Elias Oltmanns <eo@nebensachen.de>
+Subject: drivers/hwmon/w83791d.c: fix unused var warning
+From: Michael Borisov <niro@tut.by>
 
-Fix a potential memory leak when ata_init() encounters an error.
+drivers/hwmon/w83791d.c: In function `w83791d_probe':
+drivers/hwmon/w83791d.c:1049: warning: unused variable `val1'
 
-Signed-off-by: Elias Oltmanns <eo@nebensachen.de>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Michael Borisov <niro@tut.by>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/hwmon/w83791d.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/libata-core.c~libata-core-make-sure-that-ata_force_tbl-is-freed-in-case-of-an-error drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-core-make-sure-that-ata_force_tbl-is-freed-in-case-of-an-error
-+++ a/drivers/ata/libata-core.c
-@@ -6088,16 +6088,20 @@ static int __init ata_init(void)
+diff -puN drivers/hwmon/w83791d.c~drivers-hwmon-w83791dc-fix-unused-var-warning drivers/hwmon/w83791d.c
+--- a/drivers/hwmon/w83791d.c~drivers-hwmon-w83791dc-fix-unused-var-warning
++++ a/drivers/hwmon/w83791d.c
+@@ -1046,9 +1046,10 @@ static int w83791d_probe(struct i2c_clie
+ {
+ 	struct w83791d_data *data;
+ 	struct device *dev = &client->dev;
+-	int i, val1, err;
++	int i, err;
  
- 	ata_wq = create_workqueue("ata");
- 	if (!ata_wq)
--		return -ENOMEM;
-+		goto free_force_tbl;
- 
- 	ata_aux_wq = create_singlethread_workqueue("ata_aux");
--	if (!ata_aux_wq) {
--		destroy_workqueue(ata_wq);
--		return -ENOMEM;
--	}
-+	if (!ata_aux_wq)
-+		goto free_wq;
- 
- 	printk(KERN_DEBUG "libata version " DRV_VERSION " loaded.\n");
- 	return 0;
-+
-+free_wq:
-+	destroy_workqueue(ata_wq);
-+free_force_tbl:
-+	kfree(ata_force_tbl);
-+	return -ENOMEM;
- }
- 
- static void __exit ata_exit(void)
+ #ifdef DEBUG
++	int val1;
+ 	val1 = w83791d_read(client, W83791D_REG_DID_VID4);
+ 	dev_dbg(dev, "Device ID version: %d.%d (0x%02x)\n",
+ 			(val1 >> 5) & 0x07, (val1 >> 1) & 0x0f, val1);
 _
 
-Patches currently in -mm which might be from eo@nebensachen.de are
+Patches currently in -mm which might be from niro@tut.by are
 
-libata-core-make-sure-that-ata_force_tbl-is-freed-in-case-of-an-error.patch
+drivers-hwmon-w83791dc-fix-unused-var-warning.patch
 
