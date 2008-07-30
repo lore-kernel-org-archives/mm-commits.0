@@ -1,79 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-dev-stop-periodic-interrupts-on-device-release.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:15:38 -0700
-Message-ID: <200807301915.m6UJFcx6011040@imap1.linux-foundation.org>
+Subject: - mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:15:43 -0700
+Message-ID: <200807301915.m6UJFhvc011049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33259 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39085 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752805AbYG3TQo (ORCPT
+	by vger.kernel.org with ESMTP id S1752774AbYG3TQf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:16:44 -0400
+	Wed, 30 Jul 2008 15:16:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tomi@nomi.cz, a.zummo@towertech.it, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: steiner@sgi.com, hugh@veritas.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-dev: stop periodic interrupts on device release
+     mm: add zap_vma_ptes(): a library function to unmap driver ptes
 has been removed from the -mm tree.  Its filename was
-     rtc-dev-stop-periodic-interrupts-on-device-release.patch
+     mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-dev: stop periodic interrupts on device release
-From: Tomas Janousek <tomi@nomi.cz>
+Subject: mm: add zap_vma_ptes(): a library function to unmap driver ptes
+From: Jack Steiner <steiner@sgi.com>
 
-Solves http://bugzilla.kernel.org/show_bug.cgi?id=11127
+zap_vma_ptes() is intended to be used by drivers to unmap ptes assigned to the
+driver private vmas.  This interface is similar to zap_page_range() but is
+less general & less likely to be abused.
 
-The old rtc.c driver did it and some drivers (like rtc-sh) do it in their
-release function, though they should not -- because they should provide
-the irq_set_state op and the rtc framework itself should care about it. 
-This patch makes it do so.
+Needed by the GRU driver.
 
-I am aware that some drivers, like rtc-sh, handle userspace PIE sets in
-their ioctl op (instead of having the framework call the op), exporting
-the irq_set_state op at the same time.  The logic in rtc_irq_set_state
-should make sure it doesn't matter and the driver should not need to care
-stopping periodic interrupts in its release routine any more.
-
-The correct way, in my opinion, should be this:
-1) The driver provides the irq_set_state op and does not care closing the
-   interrupts in its release op.
-2) If the driver does not provide the op and handles PIE in the ioctl op, it's
-   reponsible for closing them in its release op.
-3) Something similar for other IRQs, like UIE -- if there's no in-kernel API
-   like irq_set_state, handle it in ioctl and release ops. The framework will
-   be responsible either for everything or for nothing. (This will probably
-   change later.)
-
-Signed-off-by: Tomas Janousek <tomi@nomi.cz>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Jack Steiner <steiner@sgi.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-dev.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/mm.h |    2 ++
+ mm/memory.c        |   23 +++++++++++++++++++++++
+ 2 files changed, 25 insertions(+)
 
-diff -puN drivers/rtc/rtc-dev.c~rtc-dev-stop-periodic-interrupts-on-device-release drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~rtc-dev-stop-periodic-interrupts-on-device-release
-+++ a/drivers/rtc/rtc-dev.c
-@@ -432,6 +432,8 @@ static int rtc_dev_release(struct inode 
- #ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
- 	clear_uie(rtc);
- #endif
-+	rtc_irq_set_state(rtc, NULL, 0);
-+
- 	if (rtc->ops->release)
- 		rtc->ops->release(rtc->dev.parent);
+diff -puN include/linux/mm.h~mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes include/linux/mm.h
+--- a/include/linux/mm.h~mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes
++++ a/include/linux/mm.h
+@@ -744,6 +744,8 @@ struct zap_details {
+ struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
+ 		pte_t pte);
  
++int zap_vma_ptes(struct vm_area_struct *vma, unsigned long address,
++		unsigned long size);
+ unsigned long zap_page_range(struct vm_area_struct *vma, unsigned long address,
+ 		unsigned long size, struct zap_details *);
+ unsigned long unmap_vmas(struct mmu_gather **tlb,
+diff -puN mm/memory.c~mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes mm/memory.c
+--- a/mm/memory.c~mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes
++++ a/mm/memory.c
+@@ -994,6 +994,29 @@ unsigned long zap_page_range(struct vm_a
+ 	return end;
+ }
+ 
++/**
++ * zap_vma_ptes - remove ptes mapping the vma
++ * @vma: vm_area_struct holding ptes to be zapped
++ * @address: starting address of pages to zap
++ * @size: number of bytes to zap
++ *
++ * This function only unmaps ptes assigned to VM_PFNMAP vmas.
++ *
++ * The entire address range must be fully contained within the vma.
++ *
++ * Returns 0 if successful.
++ */
++int zap_vma_ptes(struct vm_area_struct *vma, unsigned long address,
++		unsigned long size)
++{
++	if (address < vma->vm_start || address + size > vma->vm_end ||
++	    		!(vma->vm_flags & VM_PFNMAP))
++		return -1;
++	zap_page_range(vma, address, size, NULL);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(zap_vma_ptes);
++
+ /*
+  * Do a quick page-table lookup for a single page.
+  */
 _
 
-Patches currently in -mm which might be from tomi@nomi.cz are
+Patches currently in -mm which might be from steiner@sgi.com are
 
 origin.patch
+linux-next.patch
 
