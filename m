@@ -1,72 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - mac80211-tx-use-dev_kfree_skb_any-for-beacon_get.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:17:55 -0700
-Message-ID: <200807301917.m6UJHtU7011253@imap1.linux-foundation.org>
+Subject: - mtd-dataflash-bugfix-binary-page-sizes-now-handled-v3-fix.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:17:30 -0700
+Message-ID: <200807301917.m6UJHUGo011215@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39991 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54320 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753278AbYG3T3n (ORCPT
+	by vger.kernel.org with ESMTP id S1752568AbYG3T3x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:29:43 -0400
+	Wed, 30 Jul 2008 15:29:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, flamingice@sourmilk.net, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, cooloney@kernel.org, dwmw2@infradead.org, michael.hennerich@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mac80211: tx, use dev_kfree_skb_any for beacon_get
+     mtd-dataflash-bugfix-binary-page-sizes-now-handled-v3-fix
 has been removed from the -mm tree.  Its filename was
-     mac80211-tx-use-dev_kfree_skb_any-for-beacon_get.patch
+     mtd-dataflash-bugfix-binary-page-sizes-now-handled-v3-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mac80211: tx, use dev_kfree_skb_any for beacon_get
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: mtd-dataflash-bugfix-binary-page-sizes-now-handled-v3-fix
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Use dev_kfree_skb_any(); instead of dev_kfree_skb();, since
-ieee80211_beacon_get function might be called from atomic.  (It's in a
-fail path.)
-
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Michael Wu <flamingice@sourmilk.net>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: Bryan Wu <cooloney@kernel.org>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Michael Hennerich <michael.hennerich@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/tx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mtd/devices/mtd_dataflash.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/mac80211/tx.c~mac80211-tx-use-dev_kfree_skb_any-for-beacon_get net/mac80211/tx.c
---- a/net/mac80211/tx.c~mac80211-tx-use-dev_kfree_skb_any-for-beacon_get
-+++ a/net/mac80211/tx.c
-@@ -1931,7 +1931,7 @@ struct sk_buff *ieee80211_beacon_get(str
- 			       "no rate found\n",
- 			       wiphy_name(local->hw.wiphy));
- 		}
--		dev_kfree_skb(skb);
-+		dev_kfree_skb_any(skb);
- 		skb = NULL;
- 		goto out;
- 	}
+diff -puN drivers/mtd/devices/mtd_dataflash.c~mtd-dataflash-bugfix-binary-page-sizes-now-handled-v3-fix drivers/mtd/devices/mtd_dataflash.c
+--- a/drivers/mtd/devices/mtd_dataflash.c~mtd-dataflash-bugfix-binary-page-sizes-now-handled-v3-fix
++++ a/drivers/mtd/devices/mtd_dataflash.c
+@@ -609,7 +609,7 @@ static struct flash_info *__devinit jede
+ 			tmp++, info++) {
+ 		if (info->jedec_id == jedec) {
+ 			DEBUG(MTD_DEBUG_LEVEL1, "%s: OTP, sector protect%s\n",
+-				dev_name(spi->dev),
++				dev_name(&spi->dev),
+ 				(info->flags & SUP_POW2PS)
+ 					? ", binary pagesize" : ""
+ 				);
+@@ -618,7 +618,7 @@ static struct flash_info *__devinit jede
+ 				if (status < 0) {
+ 					DEBUG(MTD_DEBUG_LEVEL1,
+ 						"%s: status error %d\n",
+-						dev_name(spi->dev), status);
++						dev_name(&spi->dev), status);
+ 					return ERR_PTR(status);
+ 				}
+ 				if (status & 0x1) {
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 origin.patch
-ath5k-mask-out-unneeded-interrupts.patch
-ath5k-unify-resets.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-char-merge-ip2main-and-ip2base.patch
-char-ip2-cleanup-globals.patch
-char-ip2-fix-sparse-warnings.patch
-char-ip2-init-deinit-cleanup.patch
-ip2-avoid-add_timer-with-pending-timer.patch
-char-ds1286-eliminate-busy-waiting.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+linux-next.patch
+git-mtd.patch
+mtd-dataflash-otp-support.patch
+spi-new-orion_spi-driver.patch
+spi-new-orion_spi-driver-fixes.patch
+genirq-better-warning-on-irqchip-set_type-failure.patch
+rtc-ds1307-alarm-support-for-ds1337-ds1339.patch
+rtc-remove-some-nop-open-release-methods.patch
+legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
 
