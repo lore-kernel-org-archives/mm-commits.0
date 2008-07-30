@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch added to -mm tree
-Date: Wed, 30 Jul 2008 13:22:16 -0700
-Message-ID: <200807302022.m6UKMG0j015048@imap1.linux-foundation.org>
+Subject: + mlock-count-attempts-to-free-mlocked-page-2.patch added to -mm tree
+Date: Wed, 30 Jul 2008 13:26:31 -0700
+Message-ID: <200807302026.m6UKQVR4015254@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55778 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45382 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757817AbYG3UWp (ORCPT
+	by vger.kernel.org with ESMTP id S1752919AbYG3U1r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 16:22:45 -0400
+	Wed, 30 Jul 2008 16:27:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lee.schermerhorn@hp.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
+Cc: lee.schermerhorn@hp.com, riel@redhat.com
 
 
 The patch titled
-     mlocked-pages: add event counting with statistics
+     mlock: count attempts to free mlocked page
 has been added to the -mm tree.  Its filename is
-     vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch
+     mlock-count-attempts-to-free-mlocked-page-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,134 +34,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlocked-pages: add event counting with statistics
+Subject: mlock: count attempts to free mlocked page
 From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-Fix to vmstat-mlocked-pages-statistics.patch
+Allow free of mlock()ed pages.  This shouldn't happen, but during
+developement, it occasionally did.
 
-Define mlocked pages vm events in the mlocked pages
-statistics patch.  Makes for easier incremental patching.
+This patch allows us to survive that condition, while keeping the
+statistics and events correct for debug.
 
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Kosaki Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    4 ++++
- mm/internal.h          |    4 +++-
- mm/mlock.c             |   33 +++++++++++++++++++++++++--------
- mm/vmstat.c            |    4 ++++
- 4 files changed, 36 insertions(+), 9 deletions(-)
+ include/linux/vmstat.h |    1 +
+ mm/internal.h          |   17 +++++++++++++++++
+ mm/page_alloc.c        |    1 +
+ mm/vmstat.c            |    1 +
+ 4 files changed, 20 insertions(+)
 
-diff -puN include/linux/vmstat.h~vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics include/linux/vmstat.h
---- a/include/linux/vmstat.h~vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics
+diff -puN include/linux/vmstat.h~mlock-count-attempts-to-free-mlocked-page-2 include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mlock-count-attempts-to-free-mlocked-page-2
 +++ a/include/linux/vmstat.h
-@@ -45,6 +45,10 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		UNEVICTABLE_PGCULLED,	/* culled to noreclaim list */
- 		UNEVICTABLE_PGSCANNED,	/* scanned for reclaimability */
- 		UNEVICTABLE_PGRESCUED,	/* rescued from noreclaim list */
-+		UNEVICTABLE_PGMLOCKED,
-+		UNEVICTABLE_PGMUNLOCKED,
-+		UNEVICTABLE_PGCLEARED,	/* on COW, page truncate */
-+		UNEVICTABLE_PGSTRANDED,	/* unable to isolate on unlock */
+@@ -49,6 +49,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		UNEVICTABLE_PGMUNLOCKED,
+ 		UNEVICTABLE_PGCLEARED,	/* on COW, page truncate */
+ 		UNEVICTABLE_PGSTRANDED,	/* unable to isolate on unlock */
++		UNEVICTABLE_MLOCKFREED,
  #endif
  		NR_VM_EVENT_ITEMS
  };
-diff -puN mm/internal.h~vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics mm/internal.h
---- a/mm/internal.h~vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics
+diff -puN mm/internal.h~mlock-count-attempts-to-free-mlocked-page-2 mm/internal.h
+--- a/mm/internal.h~mlock-count-attempts-to-free-mlocked-page-2
 +++ a/mm/internal.h
-@@ -101,8 +101,10 @@ static inline int is_mlocked_vma(struct 
- 	if (likely((vma->vm_flags & (VM_LOCKED | VM_SPECIAL)) != VM_LOCKED))
- 		return 0;
+@@ -146,6 +146,22 @@ static inline void mlock_migrate_page(st
+ 	}
+ }
  
--	if (!TestSetPageMlocked(page))
-+	if (!TestSetPageMlocked(page)) {
- 		inc_zone_page_state(page, NR_MLOCK);
-+		count_vm_event(UNEVICTABLE_PGMLOCKED);
++/*
++ * free_page_mlock() -- clean up attempts to free and mlocked() page.
++ * Page should not be on lru, so no need to fix that up.
++ * free_pages_check() will verify...
++ */
++static inline void free_page_mlock(struct page *page)
++{
++	if (unlikely(TestClearPageMlocked(page))) {
++		unsigned long flags;
++
++		local_irq_save(flags);
++		__dec_zone_page_state(page, NR_MLOCK);
++		__count_vm_event(UNEVICTABLE_MLOCKFREED);
++		local_irq_restore(flags);
 +	}
- 	return 1;
- }
++}
  
-diff -puN mm/mlock.c~vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics mm/mlock.c
---- a/mm/mlock.c~vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics
-+++ a/mm/mlock.c
-@@ -61,6 +61,7 @@ void __clear_page_mlock(struct page *pag
- 	}
+ #else /* CONFIG_UNEVICTABLE_LRU */
+ static inline int is_mlocked_vma(struct vm_area_struct *v, struct page *p)
+@@ -155,6 +171,7 @@ static inline int is_mlocked_vma(struct 
+ static inline void clear_page_mlock(struct page *page) { }
+ static inline void mlock_vma_page(struct page *page) { }
+ static inline void mlock_migrate_page(struct page *new, struct page *old) { }
++static inline void free_page_mlock(struct page *page) { }
  
- 	dec_zone_page_state(page, NR_MLOCK);
-+	count_vm_event(UNEVICTABLE_PGCLEARED);
- 	if (!isolate_lru_page(page)) {
- 		putback_lru_page(page);
- 	} else {
-@@ -70,6 +71,9 @@ void __clear_page_mlock(struct page *pag
- 		lru_add_drain_all();
- 		if (!isolate_lru_page(page))
- 			putback_lru_page(page);
-+		else if (PageUnevictable(page))
-+			count_vm_event(UNEVICTABLE_PGSTRANDED);
-+
- 	}
- }
+ #endif /* CONFIG_UNEVICTABLE_LRU */
  
-@@ -83,6 +87,7 @@ void mlock_vma_page(struct page *page)
+diff -puN mm/page_alloc.c~mlock-count-attempts-to-free-mlocked-page-2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mlock-count-attempts-to-free-mlocked-page-2
++++ a/mm/page_alloc.c
+@@ -451,6 +451,7 @@ static inline void __free_one_page(struc
  
- 	if (!TestSetPageMlocked(page)) {
- 		inc_zone_page_state(page, NR_MLOCK);
-+		count_vm_event(UNEVICTABLE_PGMLOCKED);
- 		if (!isolate_lru_page(page))
- 			putback_lru_page(page);
- 	}
-@@ -113,16 +118,28 @@ static void munlock_vma_page(struct page
- 	if (TestClearPageMlocked(page)) {
- 		dec_zone_page_state(page, NR_MLOCK);
- 		if (!isolate_lru_page(page)) {
--			try_to_munlock(page);	/* maybe relock the page */
-+			int ret = try_to_munlock(page);
-+			/*
-+			 * did try_to_unlock() succeed or punt?
-+			 */
-+			if (ret == SWAP_SUCCESS || ret == SWAP_AGAIN)
-+				count_vm_event(UNEVICTABLE_PGMUNLOCKED);
-+
- 			putback_lru_page(page);
-+		} else {
-+			/*
-+			 * We lost the race.  let try_to_unmap() deal
-+			 * with it.  At least we get the page state and
-+			 * mlock stats right.  However, page is still on
-+			 * the noreclaim list.  We'll fix that up when
-+			 * the page is eventually freed or we scan the
-+			 * noreclaim list.
-+			 */
-+			if (PageUnevictable(page))
-+				count_vm_event(UNEVICTABLE_PGSTRANDED);
-+			else
-+				count_vm_event(UNEVICTABLE_PGMUNLOCKED);
- 		}
--		/*
--		 * Else we lost the race.  let try_to_unmap() deal with it.
--		 * At least we get the page state and mlock stats right.
--		 * However, page is still on the noreclaim list.  We'll fix
--		 * that up when the page is eventually freed or we scan the
--		 * noreclaim list.
--		 */
- 	}
- }
- 
-diff -puN mm/vmstat.c~vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics mm/vmstat.c
---- a/mm/vmstat.c~vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics
+ static inline int free_pages_check(struct page *page)
+ {
++	free_page_mlock(page);
+ 	if (unlikely(page_mapcount(page) |
+ 		(page->mapping != NULL)  |
+ 		(page_get_page_cgroup(page) != NULL) |
+diff -puN mm/vmstat.c~mlock-count-attempts-to-free-mlocked-page-2 mm/vmstat.c
+--- a/mm/vmstat.c~mlock-count-attempts-to-free-mlocked-page-2
 +++ a/mm/vmstat.c
-@@ -668,6 +668,10 @@ static const char * const vmstat_text[] 
- 	"unevictable_pgs_culled",
- 	"unevictable_pgs_scanned",
- 	"unevictable_pgs_rescued",
-+	"unevictable_pgs_mlocked",
-+	"unevictable_pgs_munlocked",
-+	"unevictable_pgs_cleared",
-+	"unevictable_pgs_stranded",
+@@ -672,6 +672,7 @@ static const char * const vmstat_text[] 
+ 	"unevictable_pgs_munlocked",
+ 	"unevictable_pgs_cleared",
+ 	"unevictable_pgs_stranded",
++	"unevictable_pgs_mlockfreed",
  #endif
  #endif
  };
@@ -189,7 +145,7 @@ mmap-handle-mlocked-pages-during-map-remap-unmap.patch
 vmstat-mlocked-pages-statistics.patch
 vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch
 swap-cull-unevictable-pages-in-fault-path.patch
-vmstat-unevictable-and-mlocked-pages-vm-events.patch
 vmscan-unevictable-lru-scan-sysctl.patch
+mlock-count-attempts-to-free-mlocked-page-2.patch
 mlock-count-attempts-to-free-mlocked-page.patch
 
