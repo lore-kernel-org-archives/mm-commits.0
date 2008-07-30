@@ -1,420 +1,567 @@
 From: akpm@linux-foundation.org
-Subject: - gru-driver-v3-tlb-flushing-mmuops-callouts.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:16:06 -0700
-Message-ID: <200807301916.m6UJG6vE011087@imap1.linux-foundation.org>
+Subject: - sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:16:48 -0700
+Message-ID: <200807301916.m6UJGmdT011154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46295 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57700 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753506AbYG3TYK (ORCPT
+	by vger.kernel.org with ESMTP id S1753481AbYG3TYL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:24:10 -0400
+	Wed, 30 Jul 2008 15:24:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: steiner@sgi.com, mm-commits@vger.kernel.org
+To: dcn@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     GRU Driver: TLB flushing, MMUOPS callouts
+     sgi-xp: isolate allocation of XPC's msgqueues to sn2 only
 has been removed from the -mm tree.  Its filename was
-     gru-driver-v3-tlb-flushing-mmuops-callouts.patch
+     sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: GRU Driver: TLB flushing, MMUOPS callouts
-From: Jack Steiner <steiner@sgi.com>
+Subject: sgi-xp: isolate allocation of XPC's msgqueues to sn2 only
+From: Dean Nelson <dcn@sgi.com>
 
-This file contains the functions for handlinf GRU TLB flushing, This
-includes functions to handle the MMUOPS callouts.
+Move the allocation of XPC's msgqueues to xpc_sn2.c.
 
-Signed-off-by: Jack Steiner <steiner@sgi.com>
+Signed-off-by: Dean Nelson <dcn@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grutlbpurge.c |  370 +++++++++++++++++++++++++++
- 1 file changed, 370 insertions(+)
+ drivers/misc/sgi-xp/xpc.h         |    3 
+ drivers/misc/sgi-xp/xpc_channel.c |  197 --------------------------
+ drivers/misc/sgi-xp/xpc_main.c    |    2 
+ drivers/misc/sgi-xp/xpc_sn2.c     |  205 ++++++++++++++++++++++++++--
+ 4 files changed, 204 insertions(+), 203 deletions(-)
 
-diff -puN /dev/null drivers/misc/sgi-gru/grutlbpurge.c
---- /dev/null
-+++ a/drivers/misc/sgi-gru/grutlbpurge.c
-@@ -0,0 +1,370 @@
+diff -puN drivers/misc/sgi-xp/xpc.h~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only drivers/misc/sgi-xp/xpc.h
+--- a/drivers/misc/sgi-xp/xpc.h~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only
++++ a/drivers/misc/sgi-xp/xpc.h
+@@ -666,6 +666,8 @@ extern void (*xpc_online_heartbeat) (voi
+ extern void (*xpc_check_remote_hb) (void);
+ extern enum xp_retval (*xpc_make_first_contact) (struct xpc_partition *);
+ extern u64 (*xpc_get_chctl_all_flags) (struct xpc_partition *);
++extern enum xp_retval (*xpc_allocate_msgqueues) (struct xpc_channel *);
++extern void (*xpc_free_msgqueues) (struct xpc_channel *);
+ extern void (*xpc_notify_senders_of_disconnect) (struct xpc_channel *);
+ extern void (*xpc_process_msg_chctl_flags) (struct xpc_partition *, int);
+ extern int (*xpc_n_of_deliverable_msgs) (struct xpc_channel *);
+@@ -728,7 +730,6 @@ extern void xpc_deactivate_partition(con
+ extern enum xp_retval xpc_initiate_partid_to_nasids(short, void *);
+ 
+ /* found in xpc_channel.c */
+-extern void *xpc_kzalloc_cacheline_aligned(size_t, gfp_t, void **);
+ extern void xpc_initiate_connect(int);
+ extern void xpc_initiate_disconnect(int);
+ extern enum xp_retval xpc_allocate_msg_wait(struct xpc_channel *);
+diff -puN drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only drivers/misc/sgi-xp/xpc_channel.c
+--- a/drivers/misc/sgi-xp/xpc_channel.c~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only
++++ a/drivers/misc/sgi-xp/xpc_channel.c
+@@ -25,145 +25,6 @@
+ #include "xpc.h"
+ 
+ /*
+- * Guarantee that the kzalloc'd memory is cacheline aligned.
+- */
+-void *
+-xpc_kzalloc_cacheline_aligned(size_t size, gfp_t flags, void **base)
+-{
+-	/* see if kzalloc will give us cachline aligned memory by default */
+-	*base = kzalloc(size, flags);
+-	if (*base == NULL)
+-		return NULL;
+-
+-	if ((u64)*base == L1_CACHE_ALIGN((u64)*base))
+-		return *base;
+-
+-	kfree(*base);
+-
+-	/* nope, we'll have to do it ourselves */
+-	*base = kzalloc(size + L1_CACHE_BYTES, flags);
+-	if (*base == NULL)
+-		return NULL;
+-
+-	return (void *)L1_CACHE_ALIGN((u64)*base);
+-}
+-
+-/*
+- * Allocate the local message queue and the notify queue.
+- */
+-static enum xp_retval
+-xpc_allocate_local_msgqueue(struct xpc_channel *ch)
+-{
+-	unsigned long irq_flags;
+-	int nentries;
+-	size_t nbytes;
+-
+-	for (nentries = ch->local_nentries; nentries > 0; nentries--) {
+-
+-		nbytes = nentries * ch->msg_size;
+-		ch->local_msgqueue = xpc_kzalloc_cacheline_aligned(nbytes,
+-								   GFP_KERNEL,
+-						      &ch->local_msgqueue_base);
+-		if (ch->local_msgqueue == NULL)
+-			continue;
+-
+-		nbytes = nentries * sizeof(struct xpc_notify);
+-		ch->notify_queue = kzalloc(nbytes, GFP_KERNEL);
+-		if (ch->notify_queue == NULL) {
+-			kfree(ch->local_msgqueue_base);
+-			ch->local_msgqueue = NULL;
+-			continue;
+-		}
+-
+-		spin_lock_irqsave(&ch->lock, irq_flags);
+-		if (nentries < ch->local_nentries) {
+-			dev_dbg(xpc_chan, "nentries=%d local_nentries=%d, "
+-				"partid=%d, channel=%d\n", nentries,
+-				ch->local_nentries, ch->partid, ch->number);
+-
+-			ch->local_nentries = nentries;
+-		}
+-		spin_unlock_irqrestore(&ch->lock, irq_flags);
+-		return xpSuccess;
+-	}
+-
+-	dev_dbg(xpc_chan, "can't get memory for local message queue and notify "
+-		"queue, partid=%d, channel=%d\n", ch->partid, ch->number);
+-	return xpNoMemory;
+-}
+-
+-/*
+- * Allocate the cached remote message queue.
+- */
+-static enum xp_retval
+-xpc_allocate_remote_msgqueue(struct xpc_channel *ch)
+-{
+-	unsigned long irq_flags;
+-	int nentries;
+-	size_t nbytes;
+-
+-	DBUG_ON(ch->remote_nentries <= 0);
+-
+-	for (nentries = ch->remote_nentries; nentries > 0; nentries--) {
+-
+-		nbytes = nentries * ch->msg_size;
+-		ch->remote_msgqueue = xpc_kzalloc_cacheline_aligned(nbytes,
+-								    GFP_KERNEL,
+-						     &ch->remote_msgqueue_base);
+-		if (ch->remote_msgqueue == NULL)
+-			continue;
+-
+-		spin_lock_irqsave(&ch->lock, irq_flags);
+-		if (nentries < ch->remote_nentries) {
+-			dev_dbg(xpc_chan, "nentries=%d remote_nentries=%d, "
+-				"partid=%d, channel=%d\n", nentries,
+-				ch->remote_nentries, ch->partid, ch->number);
+-
+-			ch->remote_nentries = nentries;
+-		}
+-		spin_unlock_irqrestore(&ch->lock, irq_flags);
+-		return xpSuccess;
+-	}
+-
+-	dev_dbg(xpc_chan, "can't get memory for cached remote message queue, "
+-		"partid=%d, channel=%d\n", ch->partid, ch->number);
+-	return xpNoMemory;
+-}
+-
+-/*
+- * Allocate message queues and other stuff associated with a channel.
+- *
+- * Note: Assumes all of the channel sizes are filled in.
+- */
+-static enum xp_retval
+-xpc_allocate_msgqueues(struct xpc_channel *ch)
+-{
+-	unsigned long irq_flags;
+-	enum xp_retval ret;
+-
+-	DBUG_ON(ch->flags & XPC_C_SETUP);
+-
+-	ret = xpc_allocate_local_msgqueue(ch);
+-	if (ret != xpSuccess)
+-		return ret;
+-
+-	ret = xpc_allocate_remote_msgqueue(ch);
+-	if (ret != xpSuccess) {
+-		kfree(ch->local_msgqueue_base);
+-		ch->local_msgqueue = NULL;
+-		kfree(ch->notify_queue);
+-		ch->notify_queue = NULL;
+-		return ret;
+-	}
+-
+-	spin_lock_irqsave(&ch->lock, irq_flags);
+-	ch->flags |= XPC_C_SETUP;
+-	spin_unlock_irqrestore(&ch->lock, irq_flags);
+-
+-	return xpSuccess;
+-}
+-
+-/*
+  * Process a connect message from a remote partition.
+  *
+  * Note: xpc_process_connect() is expecting to be called with the
+@@ -191,10 +52,11 @@ xpc_process_connect(struct xpc_channel *
+ 		if (ret != xpSuccess)
+ 			XPC_DISCONNECT_CHANNEL(ch, ret, irq_flags);
+ 
++		ch->flags |= XPC_C_SETUP;
++
+ 		if (ch->flags & (XPC_C_CONNECTED | XPC_C_DISCONNECTING))
+ 			return;
+ 
+-		DBUG_ON(!(ch->flags & XPC_C_SETUP));
+ 		DBUG_ON(ch->local_msgqueue == NULL);
+ 		DBUG_ON(ch->remote_msgqueue == NULL);
+ 	}
+@@ -220,55 +82,6 @@ xpc_process_connect(struct xpc_channel *
+ }
+ 
+ /*
+- * Free up message queues and other stuff that were allocated for the specified
+- * channel.
+- *
+- * Note: ch->reason and ch->reason_line are left set for debugging purposes,
+- * they're cleared when XPC_C_DISCONNECTED is cleared.
+- */
+-static void
+-xpc_free_msgqueues(struct xpc_channel *ch)
+-{
+-	struct xpc_channel_sn2 *ch_sn2 = &ch->sn.sn2;
+-
+-	DBUG_ON(!spin_is_locked(&ch->lock));
+-	DBUG_ON(atomic_read(&ch->n_to_notify) != 0);
+-
+-	ch->remote_msgqueue_pa = 0;
+-	ch->func = NULL;
+-	ch->key = NULL;
+-	ch->msg_size = 0;
+-	ch->local_nentries = 0;
+-	ch->remote_nentries = 0;
+-	ch->kthreads_assigned_limit = 0;
+-	ch->kthreads_idle_limit = 0;
+-
+-	ch_sn2->local_GP->get = 0;
+-	ch_sn2->local_GP->put = 0;
+-	ch_sn2->remote_GP.get = 0;
+-	ch_sn2->remote_GP.put = 0;
+-	ch_sn2->w_local_GP.get = 0;
+-	ch_sn2->w_local_GP.put = 0;
+-	ch_sn2->w_remote_GP.get = 0;
+-	ch_sn2->w_remote_GP.put = 0;
+-	ch_sn2->next_msg_to_pull = 0;
+-
+-	if (ch->flags & XPC_C_SETUP) {
+-		ch->flags &= ~XPC_C_SETUP;
+-
+-		dev_dbg(xpc_chan, "ch->flags=0x%x, partid=%d, channel=%d\n",
+-			ch->flags, ch->partid, ch->number);
+-
+-		kfree(ch->local_msgqueue_base);
+-		ch->local_msgqueue = NULL;
+-		kfree(ch->remote_msgqueue_base);
+-		ch->remote_msgqueue = NULL;
+-		kfree(ch->notify_queue);
+-		ch->notify_queue = NULL;
+-	}
+-}
+-
+-/*
+  * spin_lock_irqsave() is expected to be held on entry.
+  */
+ static void
+@@ -331,7 +144,11 @@ xpc_process_disconnect(struct xpc_channe
+ 	/* it's now safe to free the channel's message queues */
+ 	xpc_free_msgqueues(ch);
+ 
+-	/* mark disconnected, clear all other flags except XPC_C_WDISCONNECT */
++	/*
++	 * Mark the channel disconnected and clear all other flags, including
++	 * XPC_C_SETUP (because of call to xpc_free_msgqueues()) but not
++	 * including XPC_C_WDISCONNECT (if it was set).
++	 */
+ 	ch->flags = (XPC_C_DISCONNECTED | (ch->flags & XPC_C_WDISCONNECT));
+ 
+ 	atomic_dec(&part->nchannels_active);
+diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only drivers/misc/sgi-xp/xpc_main.c
+--- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only
++++ a/drivers/misc/sgi-xp/xpc_main.c
+@@ -186,6 +186,8 @@ void (*xpc_check_remote_hb) (void);
+ enum xp_retval (*xpc_make_first_contact) (struct xpc_partition *part);
+ void (*xpc_notify_senders_of_disconnect) (struct xpc_channel *ch);
+ u64 (*xpc_get_chctl_all_flags) (struct xpc_partition *part);
++enum xp_retval (*xpc_allocate_msgqueues) (struct xpc_channel *ch);
++void (*xpc_free_msgqueues) (struct xpc_channel *ch);
+ void (*xpc_process_msg_chctl_flags) (struct xpc_partition *part, int ch_number);
+ int (*xpc_n_of_deliverable_msgs) (struct xpc_channel *ch);
+ struct xpc_msg *(*xpc_get_deliverable_msg) (struct xpc_channel *ch);
+diff -puN drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only drivers/misc/sgi-xp/xpc_sn2.c
+--- a/drivers/misc/sgi-xp/xpc_sn2.c~sgi-xp-isolate-allocation-of-xpcs-msgqueues-to-sn2-only
++++ a/drivers/misc/sgi-xp/xpc_sn2.c
+@@ -1049,6 +1049,30 @@ xpc_process_activate_IRQ_rcvd_sn2(int n_
+ }
+ 
+ /*
++ * Guarantee that the kzalloc'd memory is cacheline aligned.
++ */
++static void *
++xpc_kzalloc_cacheline_aligned_sn2(size_t size, gfp_t flags, void **base)
++{
++	/* see if kzalloc will give us cachline aligned memory by default */
++	*base = kzalloc(size, flags);
++	if (*base == NULL)
++		return NULL;
++
++	if ((u64)*base == L1_CACHE_ALIGN((u64)*base))
++		return *base;
++
++	kfree(*base);
++
++	/* nope, we'll have to do it ourselves */
++	*base = kzalloc(size + L1_CACHE_BYTES, flags);
++	if (*base == NULL)
++		return NULL;
++
++	return (void *)L1_CACHE_ALIGN((u64)*base);
++}
++
 +/*
-+ * SN Platform GRU Driver
-+ *
-+ * 		MMUOPS callbacks  + TLB flushing
-+ *
-+ * This file handles emu notifier callbacks from the core kernel. The callbacks
-+ * are used to update the TLB in the GRU as a result of changes in the
-+ * state of a process address space. This file also handles TLB invalidates
-+ * from the GRU driver.
-+ *
-+ *  Copyright (c) 2008 Silicon Graphics, Inc.  All Rights Reserved.
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+  * Setup the infrastructure necessary to support XPartition Communication
+  * between the specified remote partition and the local one.
+  */
+@@ -1078,10 +1102,9 @@ xpc_setup_infrastructure_sn2(struct xpc_
+ 
+ 	/* allocate all the required GET/PUT values */
+ 
+-	part_sn2->local_GPs = xpc_kzalloc_cacheline_aligned(XPC_GP_SIZE,
+-							    GFP_KERNEL,
+-							    &part_sn2->
+-							    local_GPs_base);
++	part_sn2->local_GPs =
++	    xpc_kzalloc_cacheline_aligned_sn2(XPC_GP_SIZE, GFP_KERNEL,
++					      &part_sn2->local_GPs_base);
+ 	if (part_sn2->local_GPs == NULL) {
+ 		dev_err(xpc_chan, "can't get memory for local get/put "
+ 			"values\n");
+@@ -1089,10 +1112,9 @@ xpc_setup_infrastructure_sn2(struct xpc_
+ 		goto out_1;
+ 	}
+ 
+-	part_sn2->remote_GPs = xpc_kzalloc_cacheline_aligned(XPC_GP_SIZE,
+-							     GFP_KERNEL,
+-							     &part_sn2->
+-							     remote_GPs_base);
++	part_sn2->remote_GPs =
++	    xpc_kzalloc_cacheline_aligned_sn2(XPC_GP_SIZE, GFP_KERNEL,
++					      &part_sn2->remote_GPs_base);
+ 	if (part_sn2->remote_GPs == NULL) {
+ 		dev_err(xpc_chan, "can't get memory for remote get/put "
+ 			"values\n");
+@@ -1105,8 +1127,9 @@ xpc_setup_infrastructure_sn2(struct xpc_
+ 	/* allocate all the required open and close args */
+ 
+ 	part->local_openclose_args =
+-	    xpc_kzalloc_cacheline_aligned(XPC_OPENCLOSE_ARGS_SIZE, GFP_KERNEL,
+-					  &part->local_openclose_args_base);
++	    xpc_kzalloc_cacheline_aligned_sn2(XPC_OPENCLOSE_ARGS_SIZE,
++					      GFP_KERNEL,
++					      &part->local_openclose_args_base);
+ 	if (part->local_openclose_args == NULL) {
+ 		dev_err(xpc_chan, "can't get memory for local connect args\n");
+ 		retval = xpNoMemory;
+@@ -1114,8 +1137,9 @@ xpc_setup_infrastructure_sn2(struct xpc_
+ 	}
+ 
+ 	part->remote_openclose_args =
+-	    xpc_kzalloc_cacheline_aligned(XPC_OPENCLOSE_ARGS_SIZE, GFP_KERNEL,
+-					  &part->remote_openclose_args_base);
++	    xpc_kzalloc_cacheline_aligned_sn2(XPC_OPENCLOSE_ARGS_SIZE,
++					      GFP_KERNEL,
++					     &part->remote_openclose_args_base);
+ 	if (part->remote_openclose_args == NULL) {
+ 		dev_err(xpc_chan, "can't get memory for remote connect args\n");
+ 		retval = xpNoMemory;
+@@ -1528,6 +1552,161 @@ xpc_get_chctl_all_flags_sn2(struct xpc_p
+ }
+ 
+ /*
++ * Allocate the local message queue and the notify queue.
 + */
-+
-+#include <linux/kernel.h>
-+#include <linux/list.h>
-+#include <linux/spinlock.h>
-+#include <linux/mm.h>
-+#include <linux/slab.h>
-+#include <linux/device.h>
-+#include <linux/hugetlb.h>
-+#include <linux/delay.h>
-+#include <linux/timex.h>
-+#include <linux/delay.h>
-+#include <linux/srcu.h>
-+#include <asm/processor.h>
-+#include "gru.h"
-+#include "grutables.h"
-+#include <asm/uv/uv_hub.h>
-+
-+#define gru_random()	get_cycles()
-+
-+/* ---------------------------------- TLB Invalidation functions --------
-+ * get_tgh_handle
-+ *
-+ * Find a TGH to use for issuing a TLB invalidate. For GRUs that are on the
-+ * local blade, use a fixed TGH that is a function of the blade-local cpu
-+ * number. Normally, this TGH is private to the cpu & no contention occurs for
-+ * the TGH. For offblade GRUs, select a random TGH in the range above the
-+ * private TGHs. A spinlock is required to access this TGH & the lock must be
-+ * released when the invalidate is completes. This sucks, but it is the best we
-+ * can do.
-+ *
-+ * Note that the spinlock is IN the TGH handle so locking does not involve
-+ * additional cache lines.
-+ *
-+ */
-+static inline int get_off_blade_tgh(struct gru_state *gru)
++static enum xp_retval
++xpc_allocate_local_msgqueue_sn2(struct xpc_channel *ch)
 +{
-+	int n;
++	unsigned long irq_flags;
++	int nentries;
++	size_t nbytes;
 +
-+	n = GRU_NUM_TGH - gru->gs_tgh_first_remote;
-+	n = gru_random() % n;
-+	n += gru->gs_tgh_first_remote;
-+	return n;
-+}
++	for (nentries = ch->local_nentries; nentries > 0; nentries--) {
 +
-+static inline int get_on_blade_tgh(struct gru_state *gru)
-+{
-+	return uv_blade_processor_id() >> gru->gs_tgh_local_shift;
-+}
++		nbytes = nentries * ch->msg_size;
++		ch->local_msgqueue =
++		    xpc_kzalloc_cacheline_aligned_sn2(nbytes, GFP_KERNEL,
++						      &ch->local_msgqueue_base);
++		if (ch->local_msgqueue == NULL)
++			continue;
 +
-+static struct gru_tlb_global_handle *get_lock_tgh_handle(struct gru_state
-+							 *gru)
-+{
-+	struct gru_tlb_global_handle *tgh;
-+	int n;
++		nbytes = nentries * sizeof(struct xpc_notify);
++		ch->notify_queue = kzalloc(nbytes, GFP_KERNEL);
++		if (ch->notify_queue == NULL) {
++			kfree(ch->local_msgqueue_base);
++			ch->local_msgqueue = NULL;
++			continue;
++		}
 +
-+	preempt_disable();
-+	if (uv_numa_blade_id() == gru->gs_blade_id)
-+		n = get_on_blade_tgh(gru);
-+	else
-+		n = get_off_blade_tgh(gru);
-+	tgh = get_tgh_by_index(gru, n);
-+	lock_tgh_handle(tgh);
++		spin_lock_irqsave(&ch->lock, irq_flags);
++		if (nentries < ch->local_nentries) {
++			dev_dbg(xpc_chan, "nentries=%d local_nentries=%d, "
++				"partid=%d, channel=%d\n", nentries,
++				ch->local_nentries, ch->partid, ch->number);
 +
-+	return tgh;
-+}
++			ch->local_nentries = nentries;
++		}
++		spin_unlock_irqrestore(&ch->lock, irq_flags);
++		return xpSuccess;
++	}
 +
-+static void get_unlock_tgh_handle(struct gru_tlb_global_handle *tgh)
-+{
-+	unlock_tgh_handle(tgh);
-+	preempt_enable();
++	dev_dbg(xpc_chan, "can't get memory for local message queue and notify "
++		"queue, partid=%d, channel=%d\n", ch->partid, ch->number);
++	return xpNoMemory;
 +}
 +
 +/*
-+ * gru_flush_tlb_range
-+ *
-+ * General purpose TLB invalidation function. This function scans every GRU in
-+ * the ENTIRE system (partition) looking for GRUs where the specified MM has
-+ * been accessed by the GRU. For each GRU found, the TLB must be invalidated OR
-+ * the ASID invalidated. Invalidating an ASID causes a new ASID to be assigned
-+ * on the next fault. This effectively flushes the ENTIRE TLB for the MM at the
-+ * cost of (possibly) a large number of future TLBmisses.
-+ *
-+ * The current algorithm is optimized based on the following (somewhat true)
-+ * assumptions:
-+ * 	- GRU contexts are not loaded into a GRU unless a reference is made to
-+ * 	  the data segment or control block (this is true, not an assumption).
-+ * 	  If a DS/CB is referenced, the user will also issue instructions that
-+ * 	  cause TLBmisses. It is not necessary to optimize for the case where
-+ * 	  contexts are loaded but no instructions cause TLB misses. (I know
-+ * 	  this will happen but I'm not optimizing for it).
-+ * 	- GRU instructions to invalidate TLB entries are SLOOOOWWW - normally
-+ * 	  a few usec but in unusual cases, it could be longer. Avoid if
-+ * 	  possible.
-+ * 	- intrablade process migration between cpus is not frequent but is
-+ * 	  common.
-+ * 	- a GRU context is not typically migrated to a different GRU on the
-+ * 	  blade because of intrablade migration
-+ *	- interblade migration is rare. Processes migrate their GRU context to
-+ *	  the new blade.
-+ *	- if interblade migration occurs, migration back to the original blade
-+ *	  is very very rare (ie., no optimization for this case)
-+ *	- most GRU instruction operate on a subset of the user REGIONS. Code
-+ *	  & shared library regions are not likely targets of GRU instructions.
-+ *
-+ * To help improve the efficiency of TLB invalidation, the GMS data
-+ * structure is maintained for EACH address space (MM struct). The GMS is
-+ * also the structure that contains the pointer to the mmu callout
-+ * functions. This structure is linked to the mm_struct for the address space
-+ * using the mmu "register" function. The mmu interfaces are used to
-+ * provide the callbacks for TLB invalidation. The GMS contains:
-+ *
-+ * 	- asid[maxgrus] array. ASIDs are assigned to a GRU when a context is
-+ * 	  loaded into the GRU.
-+ * 	- asidmap[maxgrus]. bitmap to make it easier to find non-zero asids in
-+ * 	  the above array
-+ *	- ctxbitmap[maxgrus]. Indicates the contexts that are currently active
-+ *	  in the GRU for the address space. This bitmap must be passed to the
-+ *	  GRU to do an invalidate.
-+ *
-+ * The current algorithm for invalidating TLBs is:
-+ * 	- scan the asidmap for GRUs where the context has been loaded, ie,
-+ * 	  asid is non-zero.
-+ * 	- for each gru found:
-+ * 		- if the ctxtmap is non-zero, there are active contexts in the
-+ * 		  GRU. TLB invalidate instructions must be issued to the GRU.
-+ *		- if the ctxtmap is zero, no context is active. Set the ASID to
-+ *		  zero to force a full TLB invalidation. This is fast but will
-+ *		  cause a lot of TLB misses if the context is reloaded onto the
-+ *		  GRU
-+ *
++ * Allocate the cached remote message queue.
 + */
-+
-+void gru_flush_tlb_range(struct gru_mm_struct *gms, unsigned long start,
-+			 unsigned long len)
++static enum xp_retval
++xpc_allocate_remote_msgqueue_sn2(struct xpc_channel *ch)
 +{
-+	struct gru_state *gru;
-+	struct gru_mm_tracker *asids;
-+	struct gru_tlb_global_handle *tgh;
-+	unsigned long num;
-+	int grupagesize, pagesize, pageshift, gid, asid;
++	unsigned long irq_flags;
++	int nentries;
++	size_t nbytes;
 +
-+	/* ZZZ TODO - handle huge pages */
-+	pageshift = PAGE_SHIFT;
-+	pagesize = (1UL << pageshift);
-+	grupagesize = GRU_PAGESIZE(pageshift);
-+	num = min(((len + pagesize - 1) >> pageshift), GRUMAXINVAL);
++	DBUG_ON(ch->remote_nentries <= 0);
 +
-+	STAT(flush_tlb);
-+	gru_dbg(grudev, "gms %p, start 0x%lx, len 0x%lx, asidmap 0x%lx\n", gms,
-+		start, len, gms->ms_asidmap[0]);
++	for (nentries = ch->remote_nentries; nentries > 0; nentries--) {
 +
-+	spin_lock(&gms->ms_asid_lock);
-+	for_each_gru_in_bitmap(gid, gms->ms_asidmap) {
-+		STAT(flush_tlb_gru);
-+		gru = GID_TO_GRU(gid);
-+		asids = gms->ms_asids + gid;
-+		asid = asids->mt_asid;
-+		if (asids->mt_ctxbitmap && asid) {
-+			STAT(flush_tlb_gru_tgh);
-+			asid = GRUASID(asid, start);
-+			gru_dbg(grudev,
-+	"  FLUSH gruid %d, asid 0x%x, num %ld, cbmap 0x%x\n",
-+				gid, asid, num, asids->mt_ctxbitmap);
-+			tgh = get_lock_tgh_handle(gru);
-+			tgh_invalidate(tgh, start, 0, asid, grupagesize, 0,
-+				       num - 1, asids->mt_ctxbitmap);
-+			get_unlock_tgh_handle(tgh);
-+		} else {
-+			STAT(flush_tlb_gru_zero_asid);
-+			asids->mt_asid = 0;
-+			__clear_bit(gru->gs_gid, gms->ms_asidmap);
-+			gru_dbg(grudev,
-+	"  CLEARASID gruid %d, asid 0x%x, cbtmap 0x%x, asidmap 0x%lx\n",
-+				gid, asid, asids->mt_ctxbitmap,
-+				gms->ms_asidmap[0]);
++		nbytes = nentries * ch->msg_size;
++		ch->remote_msgqueue =
++		    xpc_kzalloc_cacheline_aligned_sn2(nbytes, GFP_KERNEL,
++						     &ch->remote_msgqueue_base);
++		if (ch->remote_msgqueue == NULL)
++			continue;
++
++		spin_lock_irqsave(&ch->lock, irq_flags);
++		if (nentries < ch->remote_nentries) {
++			dev_dbg(xpc_chan, "nentries=%d remote_nentries=%d, "
++				"partid=%d, channel=%d\n", nentries,
++				ch->remote_nentries, ch->partid, ch->number);
++
++			ch->remote_nentries = nentries;
++		}
++		spin_unlock_irqrestore(&ch->lock, irq_flags);
++		return xpSuccess;
++	}
++
++	dev_dbg(xpc_chan, "can't get memory for cached remote message queue, "
++		"partid=%d, channel=%d\n", ch->partid, ch->number);
++	return xpNoMemory;
++}
++
++/*
++ * Allocate message queues and other stuff associated with a channel.
++ *
++ * Note: Assumes all of the channel sizes are filled in.
++ */
++static enum xp_retval
++xpc_allocate_msgqueues_sn2(struct xpc_channel *ch)
++{
++	enum xp_retval ret;
++
++	DBUG_ON(ch->flags & XPC_C_SETUP);
++
++	ret = xpc_allocate_local_msgqueue_sn2(ch);
++	if (ret == xpSuccess) {
++
++		ret = xpc_allocate_remote_msgqueue_sn2(ch);
++		if (ret != xpSuccess) {
++			kfree(ch->local_msgqueue_base);
++			ch->local_msgqueue = NULL;
++			kfree(ch->notify_queue);
++			ch->notify_queue = NULL;
 +		}
 +	}
-+	spin_unlock(&gms->ms_asid_lock);
++	return ret;
 +}
 +
 +/*
-+ * Flush the entire TLB on a chiplet.
-+ */
-+void gru_flush_all_tlb(struct gru_state *gru)
-+{
-+	struct gru_tlb_global_handle *tgh;
-+
-+	gru_dbg(grudev, "gru %p, gid %d\n", gru, gru->gs_gid);
-+	tgh = get_lock_tgh_handle(gru);
-+	tgh_invalidate(tgh, 0, ~0, 0, 1, 1, GRUMAXINVAL - 1, 0);
-+	get_unlock_tgh_handle(tgh);
-+	preempt_enable();
-+}
-+
-+/*
-+ * MMUOPS notifier callout functions
-+ */
-+static void gru_invalidate_range_start(struct mmu_notifier *mn,
-+				       struct mm_struct *mm,
-+				       unsigned long start, unsigned long end)
-+{
-+	struct gru_mm_struct *gms = container_of(mn, struct gru_mm_struct,
-+						 ms_notifier);
-+
-+	STAT(mmu_invalidate_range);
-+	atomic_inc(&gms->ms_range_active);
-+	gru_dbg(grudev, "gms %p, start 0x%lx, end 0x%lx, act %d\n", gms,
-+		start, end, atomic_read(&gms->ms_range_active));
-+	gru_flush_tlb_range(gms, start, end - start);
-+}
-+
-+static void gru_invalidate_range_end(struct mmu_notifier *mn,
-+				     struct mm_struct *mm, unsigned long start,
-+				     unsigned long end)
-+{
-+	struct gru_mm_struct *gms = container_of(mn, struct gru_mm_struct,
-+						 ms_notifier);
-+
-+	atomic_dec(&gms->ms_range_active);
-+	wake_up_all(&gms->ms_wait_queue);
-+	gru_dbg(grudev, "gms %p, start 0x%lx, end 0x%lx\n", gms, start, end);
-+}
-+
-+static void gru_invalidate_page(struct mmu_notifier *mn, struct mm_struct *mm,
-+				unsigned long address)
-+{
-+	struct gru_mm_struct *gms = container_of(mn, struct gru_mm_struct,
-+						 ms_notifier);
-+
-+	STAT(mmu_invalidate_page);
-+	gru_flush_tlb_range(gms, address, PAGE_SIZE);
-+	gru_dbg(grudev, "gms %p, address 0x%lx\n", gms, address);
-+}
-+
-+static void gru_release(struct mmu_notifier *mn, struct mm_struct *mm)
-+{
-+	struct gru_mm_struct *gms = container_of(mn, struct gru_mm_struct,
-+						 ms_notifier);
-+
-+	gms->ms_released = 1;
-+	gru_dbg(grudev, "gms %p\n", gms);
-+}
-+
-+
-+static const struct mmu_notifier_ops gru_mmuops = {
-+	.invalidate_page	= gru_invalidate_page,
-+	.invalidate_range_start	= gru_invalidate_range_start,
-+	.invalidate_range_end	= gru_invalidate_range_end,
-+	.release		= gru_release,
-+};
-+
-+/* Move this to the basic mmu_notifier file. But for now... */
-+static struct mmu_notifier *mmu_find_ops(struct mm_struct *mm,
-+			const struct mmu_notifier_ops *ops)
-+{
-+	struct mmu_notifier *mn, *gru_mn = NULL;
-+	struct hlist_node *n;
-+
-+	if (mm->mmu_notifier_mm) {
-+		rcu_read_lock();
-+		hlist_for_each_entry_rcu(mn, n, &mm->mmu_notifier_mm->list,
-+					 hlist)
-+		    if (mn->ops == ops) {
-+			gru_mn = mn;
-+			break;
-+		}
-+		rcu_read_unlock();
-+	}
-+	return gru_mn;
-+}
-+
-+struct gru_mm_struct *gru_register_mmu_notifier(void)
-+{
-+	struct gru_mm_struct *gms;
-+	struct mmu_notifier *mn;
-+
-+	mn = mmu_find_ops(current->mm, &gru_mmuops);
-+	if (mn) {
-+		gms = container_of(mn, struct gru_mm_struct, ms_notifier);
-+		atomic_inc(&gms->ms_refcnt);
-+	} else {
-+		gms = kzalloc(sizeof(*gms), GFP_KERNEL);
-+		if (gms) {
-+			spin_lock_init(&gms->ms_asid_lock);
-+			gms->ms_notifier.ops = &gru_mmuops;
-+			atomic_set(&gms->ms_refcnt, 1);
-+			init_waitqueue_head(&gms->ms_wait_queue);
-+			__mmu_notifier_register(&gms->ms_notifier, current->mm);
-+		}
-+	}
-+	gru_dbg(grudev, "gms %p, refcnt %d\n", gms,
-+		atomic_read(&gms->ms_refcnt));
-+	return gms;
-+}
-+
-+void gru_drop_mmu_notifier(struct gru_mm_struct *gms)
-+{
-+	gru_dbg(grudev, "gms %p, refcnt %d, released %d\n", gms,
-+		atomic_read(&gms->ms_refcnt), gms->ms_released);
-+	if (atomic_dec_return(&gms->ms_refcnt) == 0) {
-+		if (!gms->ms_released)
-+			mmu_notifier_unregister(&gms->ms_notifier, current->mm);
-+		kfree(gms);
-+	}
-+}
-+
-+/*
-+ * Setup TGH parameters. There are:
-+ * 	- 24 TGH handles per GRU chiplet
-+ * 	- a portion (MAX_LOCAL_TGH) of the handles are reserved for
-+ * 	  use by blade-local cpus
-+ * 	- the rest are used by off-blade cpus. This usage is
-+ * 	  less frequent than blade-local usage.
++ * Free up message queues and other stuff that were allocated for the specified
++ * channel.
 + *
-+ * For now, use 16 handles for local flushes, 8 for remote flushes. If the blade
-+ * has less tan or equal to 16 cpus, each cpu has a unique handle that it can
-+ * use.
++ * Note: ch->reason and ch->reason_line are left set for debugging purposes,
++ * they're cleared when XPC_C_DISCONNECTED is cleared.
 + */
-+#define MAX_LOCAL_TGH	16
-+
-+void gru_tgh_flush_init(struct gru_state *gru)
++static void
++xpc_free_msgqueues_sn2(struct xpc_channel *ch)
 +{
-+	int cpus, shift = 0, n;
++	struct xpc_channel_sn2 *ch_sn2 = &ch->sn.sn2;
 +
-+	cpus = uv_blade_nr_possible_cpus(gru->gs_blade_id);
++	DBUG_ON(!spin_is_locked(&ch->lock));
++	DBUG_ON(atomic_read(&ch->n_to_notify) != 0);
 +
-+	/* n = cpus rounded up to next power of 2 */
-+	if (cpus) {
-+		n = 1 << fls(cpus - 1);
++	ch->remote_msgqueue_pa = 0;
++	ch->func = NULL;
++	ch->key = NULL;
++	ch->msg_size = 0;
++	ch->local_nentries = 0;
++	ch->remote_nentries = 0;
++	ch->kthreads_assigned_limit = 0;
++	ch->kthreads_idle_limit = 0;
 +
-+		/*
-+		 * shift count for converting local cpu# to TGH index
-+		 *      0 if cpus <= MAX_LOCAL_TGH,
-+		 *      1 if cpus <= 2*MAX_LOCAL_TGH,
-+		 *      etc
-+		 */
-+		shift = max(0, fls(n - 1) - fls(MAX_LOCAL_TGH - 1));
++	ch_sn2->local_GP->get = 0;
++	ch_sn2->local_GP->put = 0;
++	ch_sn2->remote_GP.get = 0;
++	ch_sn2->remote_GP.put = 0;
++	ch_sn2->w_local_GP.get = 0;
++	ch_sn2->w_local_GP.put = 0;
++	ch_sn2->w_remote_GP.get = 0;
++	ch_sn2->w_remote_GP.put = 0;
++	ch_sn2->next_msg_to_pull = 0;
++
++	if (ch->flags & XPC_C_SETUP) {
++		dev_dbg(xpc_chan, "ch->flags=0x%x, partid=%d, channel=%d\n",
++			ch->flags, ch->partid, ch->number);
++
++		kfree(ch->local_msgqueue_base);
++		ch->local_msgqueue = NULL;
++		kfree(ch->remote_msgqueue_base);
++		ch->remote_msgqueue = NULL;
++		kfree(ch->notify_queue);
++		ch->notify_queue = NULL;
 +	}
-+	gru->gs_tgh_local_shift = shift;
-+
-+	/* first starting TGH index to use for remote purges */
-+	gru->gs_tgh_first_remote = (cpus + (1 << shift) - 1) >> shift;
-+
 +}
++
++/*
+  * Notify those who wanted to be notified upon delivery of their message.
+  */
+ static void
+@@ -2177,6 +2356,8 @@ xpc_init_sn2(void)
+ 	xpc_teardown_infrastructure = xpc_teardown_infrastructure_sn2;
+ 	xpc_make_first_contact = xpc_make_first_contact_sn2;
+ 	xpc_get_chctl_all_flags = xpc_get_chctl_all_flags_sn2;
++	xpc_allocate_msgqueues = xpc_allocate_msgqueues_sn2;
++	xpc_free_msgqueues = xpc_free_msgqueues_sn2;
+ 	xpc_notify_senders_of_disconnect = xpc_notify_senders_of_disconnect_sn2;
+ 	xpc_process_msg_chctl_flags = xpc_process_msg_chctl_flags_sn2;
+ 	xpc_n_of_deliverable_msgs = xpc_n_of_deliverable_msgs_sn2;
 _
 
-Patches currently in -mm which might be from steiner@sgi.com are
+Patches currently in -mm which might be from dcn@sgi.com are
 
 origin.patch
-linux-next.patch
 
