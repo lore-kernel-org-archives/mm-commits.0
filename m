@@ -1,171 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: + bridge-send-correct-mtu-value-in-pmtu-revised.patch added to -mm tree
-Date: Wed, 30 Jul 2008 13:50:21 -0700
-Message-ID: <200807302050.m6UKoLp0016361@imap1.linux-foundation.org>
+Subject: - configure-out-ethtool-support.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 13:51:31 -0700
+Message-ID: <200807302051.m6UKpV0G016383@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47164 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35506 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751704AbYG3Uu5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751638AbYG3Uw5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 16:50:57 -0400
+	Wed, 30 Jul 2008 16:52:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: shemminger@linux-foundation.org, siwu@hrz.tu-chemnitz.de
+To: thomas.petazzoni@free-electrons.com, davem@davemloft.net, jeff@garzik.org, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bridge: send correct MTU value in PMTU (revised)
-has been added to the -mm tree.  Its filename is
-     bridge-send-correct-mtu-value-in-pmtu-revised.patch
+     Configure out ethtool support
+has been removed from the -mm tree.  Its filename was
+     configure-out-ethtool-support.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bridge: send correct MTU value in PMTU (revised)
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: Configure out ethtool support
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
 
-When bridging interfaces with different MTUs, the bridge correctly chooses
-the minimum of the MTUs of the physical devices as the bridges MTU.  But
-when a frame is passed which fits through the incoming, but not through
-the outgoing interface, a "Fragmentation Needed" packet is generated.
+Add the CONFIG_ETHTOOL option which allows to remove support for ethtool,
+not necessarly used on embedded systems.  As this is a size-reduction
+option, it depends on CONFIG_EMBEDDED.  It allows to save ~6 kilobytes of
+kernel code:
 
-However, the propagated MTU is hardcoded to 1500, which is wrong in this
-situation.  The sender will repeat the packet again with the same frame
-size, and the same problem will occur again.
+   text	   data	    bss	    dec	    hex	filename
+1258447	 123592	 212992	1595031	 185697	vmlinux
+1252147	 123592	 212992	1588731	 183dfb	vmlinux.new
+  -6300       0       0   -6300   -189C +/-
 
-Instead of sending 1500, the (correct) MTU value of the bridge is now sent
-via PMTU.  To achieve this, the corresponding rtable structure is stored
-in its net_bridge structure.
+Question: should we also remove ethtool-related functions from all network
+drivers ?
 
-Modified to get rid of fake_net_device as well.
+This patch has been originally written by Matt Mackall
+<mpm@selenic.com>, and is part of the Linux Tiny project.
 
-Signed-off-by: Simon Wunderlich <siwu@hrz.tu-chemnitz.de>
-Signed-off-by: Stephen Hemminger <shemminger@linux-foundation.org>
+Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bridge/br_if.c        |   26 +-------------------------
- net/bridge/br_netfilter.c |   18 ++++++++++++++++++
- net/bridge/br_private.h   |    5 +++--
- 3 files changed, 22 insertions(+), 27 deletions(-)
+ include/linux/ethtool.h |   16 ++++++++++++++++
+ init/Kconfig            |    8 ++++++++
+ net/core/Makefile       |    3 ++-
+ net/core/dev.c          |    4 ++++
+ 4 files changed, 30 insertions(+), 1 deletion(-)
 
-diff -puN net/bridge/br_if.c~bridge-send-correct-mtu-value-in-pmtu-revised net/bridge/br_if.c
---- a/net/bridge/br_if.c~bridge-send-correct-mtu-value-in-pmtu-revised
-+++ a/net/bridge/br_if.c
-@@ -168,23 +168,6 @@ static void del_br(struct net_bridge *br
- 	unregister_netdevice(br->dev);
- }
+diff -puN include/linux/ethtool.h~configure-out-ethtool-support include/linux/ethtool.h
+--- a/include/linux/ethtool.h~configure-out-ethtool-support
++++ a/include/linux/ethtool.h
+@@ -283,6 +283,7 @@ struct ethtool_rxnfc {
+ struct net_device;
  
--#ifdef CONFIG_BRIDGE_NETFILTER
--/* We need these fake structures to make netfilter happy --
-- * lots of places assume that skb->dst != NULL, which isn't
-- * all that unreasonable.
-- *
-- * Currently, we fill in the PMTU entry because netfilter
-- * refragmentation needs it, and the rt_flags entry because
-- * ipt_REJECT needs it.  Future netfilter modules might
-- * require us to fill additional fields. */
--struct net_device __fake_net_device = {
--	.hard_header_len	= ETH_HLEN,
--#ifdef CONFIG_NET_NS
--	.nd_net			= &init_net,
--#endif
--};
--#endif
--
- static struct net_device *new_bridge_dev(const char *name)
- {
- 	struct net_bridge *br;
-@@ -220,14 +203,7 @@ static struct net_device *new_bridge_dev
- 	br->topology_change_detected = 0;
- 	br->ageing_time = 300 * HZ;
+ /* Some generic methods drivers may use in their ethtool_ops */
++#ifdef CONFIG_ETHTOOL
+ u32 ethtool_op_get_link(struct net_device *dev);
+ u32 ethtool_op_get_tx_csum(struct net_device *dev);
+ int ethtool_op_set_tx_csum(struct net_device *dev, u32 data);
+@@ -296,6 +297,21 @@ u32 ethtool_op_get_ufo(struct net_device
+ int ethtool_op_set_ufo(struct net_device *dev, u32 data);
+ u32 ethtool_op_get_flags(struct net_device *dev);
+ int ethtool_op_set_flags(struct net_device *dev, u32 data);
++#else
++static inline u32 ethtool_op_get_link(struct net_device *dev) { return 0; }
++static inline u32 ethtool_op_get_tx_csum(struct net_device *dev) { return 0; }
++static inline int ethtool_op_set_tx_csum(struct net_device *dev, u32 data) { return 0; }
++static inline int ethtool_op_set_tx_hw_csum(struct net_device *dev, u32 data) { return 0; }
++static inline int ethtool_op_set_tx_ipv6_csum(struct net_device *dev, u32 data) { return 0; }
++static inline u32 ethtool_op_get_sg(struct net_device *dev) { return 0; }
++static inline int ethtool_op_set_sg(struct net_device *dev, u32 data) { return 0; }
++static inline u32 ethtool_op_get_tso(struct net_device *dev) { return 0; }
++static inline int ethtool_op_set_tso(struct net_device *dev, u32 data) { return 0; }
++static inline u32 ethtool_op_get_ufo(struct net_device *dev) { return 0; }
++static inline int ethtool_op_set_ufo(struct net_device *dev, u32 data) { return 0; }
++static inline u32 ethtool_op_get_flags(struct net_device *dev) { return 0; }
++static inline int ethtool_op_set_flags(struct net_device *dev, u32 data) { return 0; }
++#endif
  
--#ifdef CONFIG_BRIDGE_NETFILTER
--	atomic_set(&br->fake_rtable.u.dst.__refcnt, 1);
--	br->fake_rtable.u.dst.dev = &__fake_net_device;
--	br->fake_rtable.u.dst.path = &br->fake_rtable.u.dst;
--	br->fake_rtable.u.dst.metrics[RTAX_MTU - 1] = 1500;
--	br->fake_rtable.u.dst.flags	= DST_NOXFRM;
--	br->fake_rtable.rt_flags = 0;
--#endif
-+	br_netfilter_rtable_init(br);
+ /**
+  * &ethtool_ops - Alter and report network device settings
+diff -puN init/Kconfig~configure-out-ethtool-support init/Kconfig
+--- a/init/Kconfig~configure-out-ethtool-support
++++ a/init/Kconfig
+@@ -732,6 +732,14 @@ config IGMP
+ 	  Disabling this option removes support for the Internet group
+           management protocol, used for multicast. Saves about 10k.
  
- 	INIT_LIST_HEAD(&br->age_list);
- 
-diff -puN net/bridge/br_netfilter.c~bridge-send-correct-mtu-value-in-pmtu-revised net/bridge/br_netfilter.c
---- a/net/bridge/br_netfilter.c~bridge-send-correct-mtu-value-in-pmtu-revised
-+++ a/net/bridge/br_netfilter.c
-@@ -101,6 +101,24 @@ static inline __be16 pppoe_proto(const s
- 	 pppoe_proto(skb) == htons(PPP_IPV6) && \
- 	 brnf_filter_pppoe_tagged)
- 
-+/*
-+ * Initialize bogus route table used to keep netfilter happy.
-+ * Currently, we fill in the PMTU entry because netfilter
-+ * refragmentation needs it, and the rt_flags entry because
-+ * ipt_REJECT needs it.  Future netfilter modules might
-+ * require us to fill additional fields.
-+ */
-+void br_netfilter_rtable_init(struct net_bridge *br)
-+{
-+	struct rtable *rt = &br->fake_rtable;
++config ETHTOOL
++	bool "Enable ethtool support" if EMBEDDED
++	depends on NET
++	default y
++	help
++	  Disabling this option removes support for configuring
++	  ethernet device features via ethtool. Saves about 6k.
 +
-+	atomic_set(&rt->u.dst.__refcnt, 1);
-+	rt->u.dst.dev = &br->dev;
-+	rt->u.dst.path = &rt->u.dst;
-+	rt->u.dst.metrics[RTAX_MTU - 1] = 1500;
-+	rt->u.dst.flags	= DST_NOXFRM;
-+}
-+
- static inline struct rtable *bridge_parent_rtable(const struct net_device *dev)
- {
- 	struct net_bridge_port *port = rcu_dereference(dev->br_port);
-diff -puN net/bridge/br_private.h~bridge-send-correct-mtu-value-in-pmtu-revised net/bridge/br_private.h
---- a/net/bridge/br_private.h~bridge-send-correct-mtu-value-in-pmtu-revised
-+++ a/net/bridge/br_private.h
-@@ -15,7 +15,7 @@
+ config VM_EVENT_COUNTERS
+ 	default y
+ 	bool "Enable VM event counters for /proc/vmstat" if EMBEDDED
+diff -puN net/core/Makefile~configure-out-ethtool-support net/core/Makefile
+--- a/net/core/Makefile~configure-out-ethtool-support
++++ a/net/core/Makefile
+@@ -7,10 +7,11 @@ obj-y := sock.o request_sock.o skbuff.o 
  
- #include <linux/netdevice.h>
- #include <linux/if_bridge.h>
--#include <net/route.h>	/* struct rtable, RTAX_MTU */
-+#include <net/route.h>
+ obj-$(CONFIG_SYSCTL) += sysctl_net_core.o
  
- #define BR_HASH_BITS 8
- #define BR_HASH_SIZE (1 << BR_HASH_BITS)
-@@ -201,10 +201,11 @@ extern int br_ioctl_deviceless_stub(stru
- #ifdef CONFIG_BRIDGE_NETFILTER
- extern int br_netfilter_init(void);
- extern void br_netfilter_fini(void);
-+extern void br_netfilter_rtable_init(struct net_bridge *);
- #else
- #define br_netfilter_init()	(0)
- #define br_netfilter_fini()	do { } while(0)
--extern struct net_device __fake_net_device;
-+#define br_netfilter_rtable_init(x)
- #endif
+-obj-y		     += dev.o ethtool.o dev_mcast.o dst.o netevent.o \
++obj-y		     += dev.o dev_mcast.o dst.o netevent.o \
+ 			neighbour.o rtnetlink.o utils.o link_watch.o filter.o
  
- /* br_stp.c */
+ obj-$(CONFIG_XFRM) += flow.o
++obj-$(CONFIG_ETHTOOL) += ethtool.o
+ obj-y += net-sysfs.o
+ obj-$(CONFIG_NET_PKTGEN) += pktgen.o
+ obj-$(CONFIG_NETPOLL) += netpoll.o
+diff -puN net/core/dev.c~configure-out-ethtool-support net/core/dev.c
+--- a/net/core/dev.c~configure-out-ethtool-support
++++ a/net/core/dev.c
+@@ -3669,6 +3669,7 @@ int dev_ioctl(struct net *net, unsigned 
+ 			return ret;
+ 
+ 		case SIOCETHTOOL:
++#ifdef CONFIG_ETHTOOL
+ 			dev_load(net, ifr.ifr_name);
+ 			rtnl_lock();
+ 			ret = dev_ethtool(net, &ifr);
+@@ -3681,6 +3682,9 @@ int dev_ioctl(struct net *net, unsigned 
+ 					ret = -EFAULT;
+ 			}
+ 			return ret;
++#else
++			return -EINVAL;
++#endif
+ 
+ 		/*
+ 		 *	These ioctl calls:
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from thomas.petazzoni@free-electrons.com are
 
-random32-seeding-improvement.patch
-bridge-send-correct-mtu-value-in-pmtu.patch
-bridge-send-correct-mtu-value-in-pmtu-revised.patch
-skge-adapt-skge-to-use-reworked-pci-pm.patch
-tg3-adapt-tg3-to-use-reworked-pci-pm-code.patch
-sky2-adapt-to-use-reworked-pci-pm-code.patch
+origin.patch
+configure-out-igmp-support.patch
+configure-out-ethtool-support.patch
+configure-out-file-locking-features.patch
+configure-out-aio-support.patch
 
