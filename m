@@ -1,79 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - vfs-increase-pseudo-filesystem-block-size-to-page_size.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:13:57 -0700
-Message-ID: <200807301913.m6UJDvoI010805@imap1.linux-foundation.org>
+Subject: - swap-update-function-comment-of-release_pages.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:15:08 -0700
+Message-ID: <200807301915.m6UJF8Jm010968@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48445 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59106 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752522AbYG3TPn (ORCPT
+	by vger.kernel.org with ESMTP id S1752682AbYG3TP6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:15:43 -0400
+	Wed, 30 Jul 2008 15:15:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.nixon@citrix.com, Alex.Nixon@citrix.com, Ian.Campbell@eu.citrix.com, andi@firstfloor.org, hugh@veritas.com, jens.axboe@oracle.com, jeremy@goop.org, mingo@elte.hu, peterz@infradea
+To: fernando@oss.ntt.co.jp, hugh@veritas.com, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     VFS: increase pseudo-filesystem block size to PAGE_SIZE
+     swap: update function comment of release_pages
 has been removed from the -mm tree.  Its filename was
-     vfs-increase-pseudo-filesystem-block-size-to-page_size.patch
+     swap-update-function-comment-of-release_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: VFS: increase pseudo-filesystem block size to PAGE_SIZE
-From: Alex Nixon <alex.nixon@citrix.com>
+Subject: swap: update function comment of release_pages
+From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
 
-This commit:
-
-    commit ba52de123d454b57369f291348266d86f4b35070
-    Author: Theodore Ts'o <tytso@mit.edu>
-    Date:   Wed Sep 27 01:50:49 2006 -0700
-
-        [PATCH] inode-diet: Eliminate i_blksize from the inode structure
-    
-
-caused the block size used by pseudo-filesystems to decrease from
-PAGE_SIZE to 1024 leading to a doubling of the number of context switches
-during a kernbench run.
-
-Signed-off-by: Alex Nixon <Alex.Nixon@citrix.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ian Campbell <Ian.Campbell@eu.citrix.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
 Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/libfs.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/swap.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/libfs.c~vfs-increase-pseudo-filesystem-block-size-to-page_size fs/libfs.c
---- a/fs/libfs.c~vfs-increase-pseudo-filesystem-block-size-to-page_size
-+++ a/fs/libfs.c
-@@ -216,8 +216,8 @@ int get_sb_pseudo(struct file_system_typ
- 
- 	s->s_flags = MS_NOUSER;
- 	s->s_maxbytes = ~0ULL;
--	s->s_blocksize = 1024;
--	s->s_blocksize_bits = 10;
-+	s->s_blocksize = PAGE_SIZE;
-+	s->s_blocksize_bits = PAGE_SHIFT;
- 	s->s_magic = magic;
- 	s->s_op = ops ? ops : &simple_super_operations;
- 	s->s_time_gran = 1;
+diff -puN mm/swap.c~swap-update-function-comment-of-release_pages mm/swap.c
+--- a/mm/swap.c~swap-update-function-comment-of-release_pages
++++ a/mm/swap.c
+@@ -278,9 +278,10 @@ int lru_add_drain_all(void)
+  * Avoid taking zone->lru_lock if possible, but if it is taken, retain it
+  * for the remainder of the operation.
+  *
+- * The locking in this function is against shrink_cache(): we recheck the
+- * page count inside the lock to see whether shrink_cache grabbed the page
+- * via the LRU.  If it did, give up: shrink_cache will free it.
++ * The locking in this function is against shrink_inactive_list(): we recheck
++ * the page count inside the lock to see whether shrink_inactive_list()
++ * grabbed the page via the LRU.  If it did, give up: shrink_inactive_list()
++ * will free it.
+  */
+ void release_pages(struct page **pages, int nr, int cold)
+ {
 _
 
-Patches currently in -mm which might be from alex.nixon@citrix.com are
+Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
 
 origin.patch
 
