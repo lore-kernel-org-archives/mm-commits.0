@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 30 Jul 2008 12:06:14 -0700
-Message-ID: <200807301906.m6UJ6EvL010538@imap1.linux-foundation.org>
+Subject: + git-ubi-git-rejects.patch added to -mm tree
+Date: Wed, 30 Jul 2008 12:11:05 -0700
+Message-ID: <200807301911.m6UJB59Z010724@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55011 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36643 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756528AbYG3TGe (ORCPT
+	by vger.kernel.org with ESMTP id S1751915AbYG3TLz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:06:34 -0400
+	Wed, 30 Jul 2008 15:11:55 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6UJ6EBj020967
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6UJB5n6021344
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2008 12:06:15 -0700
+	for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2008 12:11:06 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     linux-next-git-rejects
+     git-ubi-git-rejects
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     git-ubi-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,47 +38,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: git-ubi-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/genapic_64.c |   25 -------------------------
- 1 file changed, 25 deletions(-)
+ drivers/mtd/ubi/cdev.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN arch/x86/kernel/genapic_64.c~linux-next-git-rejects arch/x86/kernel/genapic_64.c
---- a/arch/x86/kernel/genapic_64.c~linux-next-git-rejects
-+++ a/arch/x86/kernel/genapic_64.c
-@@ -70,28 +70,3 @@ int __init acpi_madt_oem_check(char *oem
- 	}
- 	return 0;
- }
--<<<<<<< HEAD:arch/x86/kernel/genapic_64.c
--
--unsigned int read_apic_id(void)
--{
--	unsigned int id;
--
--	WARN_ON(preemptible() && num_online_cpus() > 1);
--	id = apic_read(APIC_ID);
--	if (uv_system_type >= UV_X2APIC)
--		id  |= __get_cpu_var(x2apic_extra_bits);
--	return id;
--}
--
--enum uv_system_type get_uv_system_type(void)
--{
--	return uv_system_type;
--}
--
--int is_uv_system(void)
--{
--	return uv_system_type != UV_NONE;
--}
--EXPORT_SYMBOL_GPL(is_uv_system);
+diff -puN drivers/mtd/ubi/cdev.c~git-ubi-git-rejects drivers/mtd/ubi/cdev.c
+--- a/drivers/mtd/ubi/cdev.c~git-ubi-git-rejects
++++ a/drivers/mtd/ubi/cdev.c
+@@ -40,10 +40,7 @@
+ #include <linux/ioctl.h>
+ #include <linux/capability.h>
+ #include <linux/uaccess.h>
+-<<<<<<< HEAD:drivers/mtd/ubi/cdev.c
+ #include <linux/smp_lock.h>
 -=======
-->>>>>>> FETCH_HEAD:arch/x86/kernel/genapic_64.c
+->>>>>>> FETCH_HEAD:drivers/mtd/ubi/cdev.c
+ #include <mtd/ubi-user.h>
+ #include <asm/div64.h>
+ #include "ubi.h"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,25 +72,20 @@ linux-next-git-rejects.patch
 next-remove-localversion.patch
 drivers-mtd-nand-nandsimc-needs-div64h.patch
 pci-make-pci_register_driver-a-macro.patch
-git-acpi.patch
 arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
 powerpc-replace-__function__-with-__func__-checkpatch-fixes.patch
-verify_dynamic_kobject_allocation-dont-use-kmalloc.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
 drivers-input-serio-xilinx_ps2c-fix-warning.patch
 git-jg-misc.patch
-git-kvm.patch
 git-mtd.patch
 drivers-mtd-nand-nandsimc-fix-printk-warnings.patch
-drivers-mtd-nand-fsl_elbc_nandc-fix-printk-warning.patch
+git-ubi-git-rejects.patch
 bridge-send-correct-mtu-value-in-pmtu-checkpatch-fixes.patch
 sundance-set-carrier-status-on-link-change-events.patch
 cassini-use-request_firmware-fix.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-git-nfsd.patch
 sched-type-fix.patch
 scsi-gdthc-use-unaligned-access-helpers-checkpatch-fixes.patch
 git-block-git-rejects.patch
