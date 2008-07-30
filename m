@@ -1,97 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:15:43 -0700
-Message-ID: <200807301915.m6UJFhvc011049@imap1.linux-foundation.org>
+Subject: - sched-make-scheduler-sysfs-attributes-sysdev-class-devices.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:15:41 -0700
+Message-ID: <200807301915.m6UJFfDT011043@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39085 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45560 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752774AbYG3TQf (ORCPT
+	by vger.kernel.org with ESMTP id S1752815AbYG3TQz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:16:35 -0400
+	Wed, 30 Jul 2008 15:16:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: steiner@sgi.com, hugh@veritas.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: andi@firstfloor.org, ak@linux.intel.com, drzeus-list@drzeus.cx, gregkh@suse.de, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: add zap_vma_ptes(): a library function to unmap driver ptes
+     sched: make scheduler sysfs attributes sysdev class devices
 has been removed from the -mm tree.  Its filename was
-     mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes.patch
+     sched-make-scheduler-sysfs-attributes-sysdev-class-devices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: add zap_vma_ptes(): a library function to unmap driver ptes
-From: Jack Steiner <steiner@sgi.com>
+Subject: sched: make scheduler sysfs attributes sysdev class devices
+From: Andi Kleen <andi@firstfloor.org>
 
-zap_vma_ptes() is intended to be used by drivers to unmap ptes assigned to the
-driver private vmas.  This interface is similar to zap_page_range() but is
-less general & less likely to be abused.
+They are really class devices, but were incorrectly declared.  This
+leads to crashes with the recent changes that makes non normal sysdevs
+use a different prototype.
 
-Needed by the GRU driver.
-
-Signed-off-by: Jack Steiner <steiner@sgi.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Hugh Dickins <hugh@veritas.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Pierre Ossman <drzeus-list@drzeus.cx>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 ++
- mm/memory.c        |   23 +++++++++++++++++++++++
- 2 files changed, 25 insertions(+)
+ kernel/sched.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/mm.h~mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes include/linux/mm.h
---- a/include/linux/mm.h~mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes
-+++ a/include/linux/mm.h
-@@ -744,6 +744,8 @@ struct zap_details {
- struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
- 		pte_t pte);
- 
-+int zap_vma_ptes(struct vm_area_struct *vma, unsigned long address,
-+		unsigned long size);
- unsigned long zap_page_range(struct vm_area_struct *vma, unsigned long address,
- 		unsigned long size, struct zap_details *);
- unsigned long unmap_vmas(struct mmu_gather **tlb,
-diff -puN mm/memory.c~mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes mm/memory.c
---- a/mm/memory.c~mm-add-zap_vma_ptes-a-library-function-to-unmap-driver-ptes
-+++ a/mm/memory.c
-@@ -994,6 +994,29 @@ unsigned long zap_page_range(struct vm_a
- 	return end;
+diff -puN kernel/sched.c~sched-make-scheduler-sysfs-attributes-sysdev-class-devices kernel/sched.c
+--- a/kernel/sched.c~sched-make-scheduler-sysfs-attributes-sysdev-class-devices
++++ a/kernel/sched.c
+@@ -7671,34 +7671,34 @@ static ssize_t sched_power_savings_store
  }
  
-+/**
-+ * zap_vma_ptes - remove ptes mapping the vma
-+ * @vma: vm_area_struct holding ptes to be zapped
-+ * @address: starting address of pages to zap
-+ * @size: number of bytes to zap
-+ *
-+ * This function only unmaps ptes assigned to VM_PFNMAP vmas.
-+ *
-+ * The entire address range must be fully contained within the vma.
-+ *
-+ * Returns 0 if successful.
-+ */
-+int zap_vma_ptes(struct vm_area_struct *vma, unsigned long address,
-+		unsigned long size)
-+{
-+	if (address < vma->vm_start || address + size > vma->vm_end ||
-+	    		!(vma->vm_flags & VM_PFNMAP))
-+		return -1;
-+	zap_page_range(vma, address, size, NULL);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(zap_vma_ptes);
-+
- /*
-  * Do a quick page-table lookup for a single page.
-  */
+ #ifdef CONFIG_SCHED_MC
+-static ssize_t sched_mc_power_savings_show(struct sys_device *dev,
+-				struct sysdev_attribute *attr, char *page)
++static ssize_t sched_mc_power_savings_show(struct sysdev_class *class,
++					   char *page)
+ {
+ 	return sprintf(page, "%u\n", sched_mc_power_savings);
+ }
+-static ssize_t sched_mc_power_savings_store(struct sys_device *dev,
+-					    struct sysdev_attribute *attr,
++static ssize_t sched_mc_power_savings_store(struct sysdev_class *class,
+ 					    const char *buf, size_t count)
+ {
+ 	return sched_power_savings_store(buf, count, 0);
+ }
+-static SYSDEV_ATTR(sched_mc_power_savings, 0644, sched_mc_power_savings_show,
+-		   sched_mc_power_savings_store);
++static SYSDEV_CLASS_ATTR(sched_mc_power_savings, 0644,
++			 sched_mc_power_savings_show,
++			 sched_mc_power_savings_store);
+ #endif
+ 
+ #ifdef CONFIG_SCHED_SMT
+-static ssize_t sched_smt_power_savings_show(struct sys_device *dev,
+-				struct sysdev_attribute *attr, char *page)
++static ssize_t sched_smt_power_savings_show(struct sysdev_class *dev,
++					    char *page)
+ {
+ 	return sprintf(page, "%u\n", sched_smt_power_savings);
+ }
+-static ssize_t sched_smt_power_savings_store(struct sys_device *dev,
+-					     struct sysdev_attribute *attr,
++static ssize_t sched_smt_power_savings_store(struct sysdev_class *dev,
+ 					     const char *buf, size_t count)
+ {
+ 	return sched_power_savings_store(buf, count, 1);
+ }
+-static SYSDEV_ATTR(sched_smt_power_savings, 0644, sched_smt_power_savings_show,
++static SYSDEV_CLASS_ATTR(sched_smt_power_savings, 0644,
++		   sched_smt_power_savings_show,
+ 		   sched_smt_power_savings_store);
+ #endif
+ 
 _
 
-Patches currently in -mm which might be from steiner@sgi.com are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
 origin.patch
 linux-next.patch
+acpi-add-checking-for-null-early-param.patch
+acpi-compal-laptop-use-rfkill-switch-subsystem.patch
+coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
+profile-likely-unlikely-macros.patch
 
