@@ -1,77 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: - mm-remove-find_max_pfn_with_active_regions.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:14:02 -0700
-Message-ID: <200807301914.m6UJE2q6010880@imap1.linux-foundation.org>
+Subject: - cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:13:45 -0700
+Message-ID: <200807301913.m6UJDjjp010783@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47136 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34882 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750848AbYG3TOt (ORCPT
+	by vger.kernel.org with ESMTP id S1751778AbYG3TOz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:14:49 -0400
+	Wed, 30 Jul 2008 15:14:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yhlu.kernel@gmail.com, mel@csn.ul.ie, mingo@elte.hu, mm-commits@vger.kernel.org
+To: trenn@suse.de, andi@firstfloor.org, davej@codemonkey.org.uk, lenb@kernel.org, mingo@elte.hu, stable@kernel.org, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: remove find_max_pfn_with_active_regions
+     cpufreq acpi: only call _PPC after cpufreq ACPI init funcs got called already
 has been removed from the -mm tree.  Its filename was
-     mm-remove-find_max_pfn_with_active_regions.patch
+     cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove find_max_pfn_with_active_regions
-From: Yinghai Lu <yhlu.kernel@gmail.com>
+Subject: cpufreq acpi: only call _PPC after cpufreq ACPI init funcs got called already
+From: Thomas Renninger <trenn@suse.de>
 
-It has no user now
+Ingo Molnar provided a fix to not call _PPC at processor driver
+initialization time.  Git commit #e4233dec749a3519069d9390561b5636a75c7579
 
-Also print out info about adding/removing active regions.
+But it can still happen that _PPC is called at processor driver
+initialization time.
 
-Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+This patch should make sure that this is not possible anymore.  I am not
+sure whether this covers all necessary low level drivers, only powernow-kX
+and acpi-cpufreq seem to call this function, but it should be fine to test
+for ThinkPad users.
+
+Signed-off-by: Thomas Renninger <trenn@suse.de>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 -
- mm/page_alloc.c    |   17 -----------------
- 2 files changed, 18 deletions(-)
+ arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c |    6 ++++++
+ drivers/acpi/processor_perflib.c              |   15 +++++++++++++--
+ drivers/cpufreq/cpufreq.c                     |    3 +++
+ include/linux/cpufreq.h                       |    1 +
+ 4 files changed, 23 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~mm-remove-find_max_pfn_with_active_regions include/linux/mm.h
---- a/include/linux/mm.h~mm-remove-find_max_pfn_with_active_regions
-+++ a/include/linux/mm.h
-@@ -1041,7 +1041,6 @@ extern unsigned long absent_pages_in_ran
- extern void get_pfn_range_for_nid(unsigned int nid,
- 			unsigned long *start_pfn, unsigned long *end_pfn);
- extern unsigned long find_min_pfn_with_active_regions(void);
--extern unsigned long find_max_pfn_with_active_regions(void);
- extern void free_bootmem_with_active_regions(int nid,
- 						unsigned long max_low_pfn);
- typedef int (*work_fn_t)(unsigned long, unsigned long, void *);
-diff -puN mm/page_alloc.c~mm-remove-find_max_pfn_with_active_regions mm/page_alloc.c
---- a/mm/page_alloc.c~mm-remove-find_max_pfn_with_active_regions
-+++ a/mm/page_alloc.c
-@@ -3753,23 +3753,6 @@ unsigned long __init find_min_pfn_with_a
- 	return find_min_pfn_for_node(MAX_NUMNODES);
- }
+diff -puN arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c
+--- a/arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
++++ a/arch/powerpc/platforms/cell/cbe_cpufreq_pmi.c
+@@ -96,6 +96,12 @@ static int pmi_notifier(struct notifier_
+ 	struct cpufreq_frequency_table *cbe_freqs;
+ 	u8 node;
  
--/**
-- * find_max_pfn_with_active_regions - Find the maximum PFN registered
-- *
-- * It returns the maximum PFN based on information provided via
-- * add_active_range().
-- */
--unsigned long __init find_max_pfn_with_active_regions(void)
--{
--	int i;
--	unsigned long max_pfn = 0;
--
--	for (i = 0; i < nr_nodemap_entries; i++)
--		max_pfn = max(max_pfn, early_node_map[i].end_pfn);
--
--	return max_pfn;
--}
++	/* Should this really be called for CPUFREQ_ADJUST, CPUFREQ_INCOMPATIBLE
++	 * and CPUFREQ_NOTIFY policy events?)
++	 */
++	if (event == CPUFREQ_START)
++		return 0;
++
+ 	cbe_freqs = cpufreq_frequency_get_table(policy->cpu);
+ 	node = cbe_cpu_to_node(policy->cpu);
+ 
+diff -puN drivers/acpi/processor_perflib.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already drivers/acpi/processor_perflib.c
+--- a/drivers/acpi/processor_perflib.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
++++ a/drivers/acpi/processor_perflib.c
+@@ -64,7 +64,13 @@ static DEFINE_MUTEX(performance_mutex);
+  * policy is adjusted accordingly.
+  */
+ 
+-static unsigned int ignore_ppc = 0;
++/* ignore_ppc:
++ * -1 -> cpufreq low level drivers not initialized -> _PSS, etc. not called yet
++ *       ignore _PPC
++ *  0 -> cpufreq low level drivers initialized -> consider _PPC values
++ *  1 -> ignore _PPC totally -> forced by user through boot param
++ */
++static unsigned int ignore_ppc = -1;
+ module_param(ignore_ppc, uint, 0644);
+ MODULE_PARM_DESC(ignore_ppc, "If the frequency of your machine gets wrongly" \
+ 		 "limited by BIOS, this should help");
+@@ -72,7 +78,7 @@ MODULE_PARM_DESC(ignore_ppc, "If the fre
+ #define PPC_REGISTERED   1
+ #define PPC_IN_USE       2
+ 
+-static int acpi_processor_ppc_status = 0;
++static int acpi_processor_ppc_status;
+ 
+ static int acpi_processor_ppc_notifier(struct notifier_block *nb,
+ 				       unsigned long event, void *data)
+@@ -81,6 +87,11 @@ static int acpi_processor_ppc_notifier(s
+ 	struct acpi_processor *pr;
+ 	unsigned int ppc = 0;
+ 
++	if (event == CPUFREQ_START && ignore_ppc <= 0) {
++		ignore_ppc = 0;
++		return 0;
++	}
++
+ 	if (ignore_ppc)
+ 		return 0;
+ 
+diff -puN drivers/cpufreq/cpufreq.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
++++ a/drivers/cpufreq/cpufreq.c
+@@ -825,6 +825,9 @@ static int cpufreq_add_dev(struct sys_de
+ 	policy->user_policy.min = policy->cpuinfo.min_freq;
+ 	policy->user_policy.max = policy->cpuinfo.max_freq;
+ 
++	blocking_notifier_call_chain(&cpufreq_policy_notifier_list,
++				     CPUFREQ_START, policy);
++
+ #ifdef CONFIG_SMP
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+diff -puN include/linux/cpufreq.h~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already include/linux/cpufreq.h
+--- a/include/linux/cpufreq.h~cpufreq-acpi-only-call-_ppc-after-cpufreq-acpi-init-funcs-got-called-already
++++ a/include/linux/cpufreq.h
+@@ -106,6 +106,7 @@ struct cpufreq_policy {
+ #define CPUFREQ_ADJUST		(0)
+ #define CPUFREQ_INCOMPATIBLE	(1)
+ #define CPUFREQ_NOTIFY		(2)
++#define CPUFREQ_START		(3)
+ 
+ #define CPUFREQ_SHARED_TYPE_NONE (0) /* None */
+ #define CPUFREQ_SHARED_TYPE_HW	 (1) /* HW does needed coordination */
+_
+
+Patches currently in -mm which might be from trenn@suse.de are
+
+origin.patch
+
