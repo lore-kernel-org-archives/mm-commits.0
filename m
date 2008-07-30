@@ -1,124 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - cgroup-remove-duplicate-code-in-allocate_cg_link.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:14:08 -0700
-Message-ID: <200807301914.m6UJE8XD010886@imap1.linux-foundation.org>
+Subject: - drivers-net-wireless-b43legacy-mainc-release-mutex-in-error-handling-code.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:18:02 -0700
+Message-ID: <200807301918.m6UJI28c011268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43471 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55313 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754135AbYG3TdP (ORCPT
+	by vger.kernel.org with ESMTP id S1753189AbYG3Tei (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:33:15 -0400
+	Wed, 30 Jul 2008 15:34:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, balbir@in.ibm.com, clg@fr.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
+To: julia@diku.dk, Larry.Finger@lwfinger.net, johannes@sipsolutions.net, linville@tuxdriver.com, mb@bu3sch.de, stefano.brivio@polimi.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroup: remove duplicate code in allocate_cg_link()
+     drivers/net/wireless/b43legacy/main.c: release mutex in error handling code
 has been removed from the -mm tree.  Its filename was
-     cgroup-remove-duplicate-code-in-allocate_cg_link.patch
+     drivers-net-wireless-b43legacy-mainc-release-mutex-in-error-handling-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup: remove duplicate code in allocate_cg_link()
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: drivers/net/wireless/b43legacy/main.c: release mutex in error handling code
+From: Julia Lawall <julia@diku.dk>
 
-- just call free_cg_links() in allocate_cg_links()
-- the list will get initialized in allocate_cg_links(), so don't init
-  it twice
+The mutex is released on a successful return, so it would seem that it
+should be released on an error return as well.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+The semantic patch finds this problem is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@@
+expression l;
+@@
+
+mutex_lock(l);
+... when != mutex_unlock(l)
+    when any
+    when strict
+(
+if (...) { ... when != mutex_unlock(l)
++   mutex_unlock(l);
+    return ...;
+}
+|
+mutex_unlock(l);
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Stefano Brivio <stefano.brivio@polimi.it>
+Cc: Larry Finger <Larry.Finger@lwfinger.net>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: Johannes Berg <johannes@sipsolutions.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   30 ++++++++++++------------------
- 1 file changed, 12 insertions(+), 18 deletions(-)
+ drivers/net/wireless/b43legacy/main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/cgroup.c~cgroup-remove-duplicate-code-in-allocate_cg_link kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-remove-duplicate-code-in-allocate_cg_link
-+++ a/kernel/cgroup.c
-@@ -355,6 +355,17 @@ static struct css_set *find_existing_css
- 	return NULL;
- }
- 
-+static void free_cg_links(struct list_head *tmp)
-+{
-+	struct cg_cgroup_link *link;
-+	struct cg_cgroup_link *saved_link;
-+
-+	list_for_each_entry_safe(link, saved_link, tmp, cgrp_link_list) {
-+		list_del(&link->cgrp_link_list);
-+		kfree(link);
-+	}
-+}
-+
- /*
-  * allocate_cg_links() allocates "count" cg_cgroup_link structures
-  * and chains them on tmp through their cgrp_link_list fields. Returns 0 on
-@@ -363,17 +374,12 @@ static struct css_set *find_existing_css
- static int allocate_cg_links(int count, struct list_head *tmp)
- {
- 	struct cg_cgroup_link *link;
--	struct cg_cgroup_link *saved_link;
- 	int i;
- 	INIT_LIST_HEAD(tmp);
- 	for (i = 0; i < count; i++) {
- 		link = kmalloc(sizeof(*link), GFP_KERNEL);
- 		if (!link) {
--			list_for_each_entry_safe(link, saved_link, tmp,
--						 cgrp_link_list) {
--				list_del(&link->cgrp_link_list);
--				kfree(link);
--			}
-+			free_cg_links(tmp);
- 			return -ENOMEM;
+diff -puN drivers/net/wireless/b43legacy/main.c~drivers-net-wireless-b43legacy-mainc-release-mutex-in-error-handling-code drivers/net/wireless/b43legacy/main.c
+--- a/drivers/net/wireless/b43legacy/main.c~drivers-net-wireless-b43legacy-mainc-release-mutex-in-error-handling-code
++++ a/drivers/net/wireless/b43legacy/main.c
+@@ -3846,10 +3846,10 @@ static int b43legacy_resume(struct ssb_d
+ 			goto out;
  		}
- 		list_add(&link->cgrp_link_list, tmp);
-@@ -381,17 +387,6 @@ static int allocate_cg_links(int count, 
- 	return 0;
+ 	}
+-	mutex_unlock(&wl->mutex);
+ 
+ 	b43legacydbg(wl, "Device resumed.\n");
+ out:
++	mutex_unlock(&wl->mutex);
+ 	return err;
  }
  
--static void free_cg_links(struct list_head *tmp)
--{
--	struct cg_cgroup_link *link;
--	struct cg_cgroup_link *saved_link;
--
--	list_for_each_entry_safe(link, saved_link, tmp, cgrp_link_list) {
--		list_del(&link->cgrp_link_list);
--		kfree(link);
--	}
--}
--
- /*
-  * find_css_set() takes an existing cgroup group and a
-  * cgroup object, and returns a css_set object that's
-@@ -956,7 +951,6 @@ static int cgroup_get_sb(struct file_sys
- 	struct super_block *sb;
- 	struct cgroupfs_root *root;
- 	struct list_head tmp_cg_links;
--	INIT_LIST_HEAD(&tmp_cg_links);
- 
- 	/* First find the desired set of subsystems */
- 	ret = parse_cgroupfs_options(data, &opts);
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
 linux-next.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+git-infiniband.patch
+drivers-net-ehea-ehea_mainc-release-mutex-in-error-handling-code.patch
+net-ieee80211-adjust-error-handling.patch
 
