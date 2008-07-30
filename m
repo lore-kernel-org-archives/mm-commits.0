@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + docsrc-fix-crc32hash-type.patch added to -mm tree
-Date: Tue, 29 Jul 2008 17:31:34 -0700
-Message-ID: <200807300031.m6U0VY5M030215@imap1.linux-foundation.org>
+Subject: + docsrc-fix-ifenslave-type.patch added to -mm tree
+Date: Tue, 29 Jul 2008 17:31:32 -0700
+Message-ID: <200807300031.m6U0VXZB030212@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58322 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55045 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753464AbYG3Aby (ORCPT
+	by vger.kernel.org with ESMTP id S1752923AbYG3Acf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Jul 2008 20:31:54 -0400
+	Tue, 29 Jul 2008 20:32:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, linux@dominikbrodowski.net, sam@ravnborg.org
+Cc: randy.dunlap@oracle.com, davem@davemloft.net, sam@ravnborg.org
 
 
 The patch titled
-     docsrc: fix crc32hash type
+     docsrc: fix ifenslave type
 has been added to the -mm tree.  Its filename is
-     docsrc-fix-crc32hash-type.patch
+     docsrc-fix-ifenslave-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: docsrc: fix crc32hash type
+Subject: docsrc: fix ifenslave type
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix differing signedness warning:
+Documentation/networking/ifenslave.c:1084: warning: pointer targets in assignment differ in signedness
 
-Documentation/pcmcia/crc32hash.c:29: warning: pointer targets in passing argument 1 of 'crc32' differ in signedness
+From include/linux/socket.h:
+ *	1003.1g requires sa_family_t and that sa_data is char.
+
+and from SUSv3:
+(http://www.opengroup.org/onlinepubs/009695399/basedefs/sys/socket.h.html)
+
+The <sys/socket.h> header shall define the sockaddr structure that includes at least the following members:
+
+sa_family_t  sa_family  Address family.
+char         sa_data[]  Socket address (variable-length data).
+<end SUSv3>
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/pcmcia/crc32hash.c |    2 +-
+ Documentation/networking/ifenslave.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/pcmcia/crc32hash.c~docsrc-fix-crc32hash-type Documentation/pcmcia/crc32hash.c
---- a/Documentation/pcmcia/crc32hash.c~docsrc-fix-crc32hash-type
-+++ a/Documentation/pcmcia/crc32hash.c
-@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
- 		printf("no string passed as argument\n");
- 		return -1;
- 	}
--	result = crc32(argv[1], strlen(argv[1]));
-+	result = crc32((unsigned char const *)argv[1], strlen(argv[1]));
- 	printf("0x%x\n", result);
- 	return 0;
- }
+diff -puN Documentation/networking/ifenslave.c~docsrc-fix-ifenslave-type Documentation/networking/ifenslave.c
+--- a/Documentation/networking/ifenslave.c~docsrc-fix-ifenslave-type
++++ a/Documentation/networking/ifenslave.c
+@@ -1081,7 +1081,7 @@ static int set_if_addr(char *master_ifna
+ 
+ 		}
+ 
+-		ipaddr = ifr.ifr_addr.sa_data;
++		ipaddr = (unsigned char *)ifr.ifr_addr.sa_data;
+ 		v_print("Interface '%s': set IP %s to %d.%d.%d.%d\n",
+ 			slave_ifname, ifra[i].desc,
+ 			ipaddr[0], ipaddr[1], ipaddr[2], ipaddr[3]);
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
