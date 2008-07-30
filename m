@@ -1,53 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - rcu-fix-synchronize_rcu-so-that-kernel-doc-works-comment.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 12:50:38 -0700
-Message-ID: <200807301950.m6UJocJi013269@imap1.linux-foundation.org>
+Subject: - ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 12:54:48 -0700
+Message-ID: <200807301954.m6UJsmtv013634@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35384 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51231 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755462AbYG3TwJ (ORCPT
+	by vger.kernel.org with ESMTP id S1753470AbYG3TzW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 15:52:09 -0400
+	Wed, 30 Jul 2008 15:55:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, paulmck@us.ibm.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rcu-fix-synchronize_rcu-so-that-kernel-doc-works-comment
+     ftrace-disable-function-tracing-bringing-up-new-cpu-fix
 has been removed from the -mm tree.  Its filename was
-     rcu-fix-synchronize_rcu-so-that-kernel-doc-works-comment.patch
+     ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
 
-This patch was dropped because it was folded into rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+This patch was dropped because it was folded into ftrace-disable-function-tracing-bringing-up-new-cpu.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rcu-fix-synchronize_rcu-so-that-kernel-doc-works-comment
+Subject: ftrace-disable-function-tracing-bringing-up-new-cpu-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+kernel/trace/ftrace.c: At top level:
+kernel/trace/ftrace.c:154: warning: 'ftrace_disabled_count' defined but not used
+
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcupdate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/trace/ftrace.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN kernel/rcupdate.c~rcu-fix-synchronize_rcu-so-that-kernel-doc-works-comment kernel/rcupdate.c
---- a/kernel/rcupdate.c~rcu-fix-synchronize_rcu-so-that-kernel-doc-works-comment
-+++ a/kernel/rcupdate.c
-@@ -77,7 +77,7 @@ void wakeme_after_rcu(struct rcu_head  *
-  * sections are delimited by rcu_read_lock() and rcu_read_unlock(),
-  * and may be nested.
-  */
--void synchronize_rcu(void);
-+void synchronize_rcu(void);	/* Makes kernel-doc tools happy */
- synchronize_rcu_xxx(synchronize_rcu, call_rcu)
- EXPORT_SYMBOL_GPL(synchronize_rcu);
+diff -puN kernel/trace/ftrace.c~ftrace-disable-function-tracing-bringing-up-new-cpu-fix kernel/trace/ftrace.c
+--- a/kernel/trace/ftrace.c~ftrace-disable-function-tracing-bringing-up-new-cpu-fix
++++ a/kernel/trace/ftrace.c
+@@ -151,7 +151,6 @@ static int __unregister_ftrace_function(
+ 	return ret;
+ }
  
+-static int ftrace_disabled_count;
+ static int save_ftrace_enabled;
+ 
+ void ftrace_disable(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,7 +87,7 @@ scsi-dpt_i2o-is-bust-on-ia64.patch
 hwmon-adc124s501-generic-driver.patch
 drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
 rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works-comment.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
 ftrace-disable-function-tracing-bringing-up-new-cpu-fix.patch
 unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
