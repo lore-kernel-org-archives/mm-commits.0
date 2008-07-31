@@ -1,248 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - w1-ds2490c-add-support-for-strong-pullup.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 20:02:11 -0700
-Message-ID: <200807310302.m6V32BGS000552@imap1.linux-foundation.org>
+Subject: - w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 20:02:13 -0700
+Message-ID: <200807310302.m6V32Dan000555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37030 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45392 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763119AbYGaDCQ (ORCPT
+	by vger.kernel.org with ESMTP id S1763255AbYGaDCS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 23:02:16 -0400
+	Wed, 30 Jul 2008 23:02:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1: ds2490.c add support for strong pullup
+     w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     w1-ds2490c-add-support-for-strong-pullup.patch
+     w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: ds2490.c add support for strong pullup
-From: David Fries <david@fries.net>
+Subject: w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add strong pullup support for ds2490 driver, also drop mdelay(750), which
-busy waits, usage in favour of msleep for long delays.  Now with msleep
-only being called when the strong pullup is active, one wire bus
-operations are only taking minimal system overhead.
+ERROR: spaces required around that '?' (ctx:VxV)
+#106: FILE: drivers/w1/masters/ds2490.c:473:
++	err = ds_send_control_mode(dev, MOD_PULSE_EN, delay?PULSE_SPUE:0);
+ 	                                                   ^
 
-The new set_pullup will only enable the strong pullup when requested,
-which is expected to be the only write operation that will benefit from
-a strong pullup.
+ERROR: spaces required around that ':' (ctx:VxV)
+#106: FILE: drivers/w1/masters/ds2490.c:473:
++	err = ds_send_control_mode(dev, MOD_PULSE_EN, delay?PULSE_SPUE:0);
+ 	                                                              ^
 
-Signed-off-by: David Fries <david@fries.net>
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+total: 2 errors, 0 warnings, 168 lines checked
+
+./patches/w1-ds2490c-add-support-for-strong-pullup.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: David Fries <david@fries.net>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds2490.c |   76 +++++++++++++++++-----------------
- 1 file changed, 38 insertions(+), 38 deletions(-)
+ drivers/w1/masters/ds2490.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-add-support-for-strong-pullup drivers/w1/masters/ds2490.c
---- a/drivers/w1/masters/ds2490.c~w1-ds2490c-add-support-for-strong-pullup
+diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes drivers/w1/masters/ds2490.c
+--- a/drivers/w1/masters/ds2490.c~w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes
 +++ a/drivers/w1/masters/ds2490.c
-@@ -98,11 +98,6 @@
- #define BRANCH_MAIN			0xCC
- #define BRANCH_AUX			0x33
- 
--/*
-- * Duration of the strong pull-up pulse in milliseconds.
-- */
--#define PULLUP_PULSE_DURATION		750
--
- /* Status flags */
- #define ST_SPUA				0x01  /* Strong Pull-up is active */
- #define ST_PRGA				0x02  /* 12V programming pulse is being generated */
-@@ -131,6 +126,11 @@ struct ds_device
- 
- 	int			ep[NUM_EP];
- 
-+	/* Strong PullUp
-+	 * 0: pullup not active, else duration in milliseconds
-+	 */
-+	int			spu_sleep;
-+
- 	struct w1_bus_master	master;
- };
- 
-@@ -192,7 +192,7 @@ static int ds_send_control_cmd(struct ds
- 
- 	return err;
- }
--#if 0
-+
- static int ds_send_control_mode(struct ds_device *dev, u16 value, u16 index)
- {
- 	int err;
-@@ -207,7 +207,7 @@ static int ds_send_control_mode(struct d
- 
- 	return err;
- }
--#endif
-+
- static int ds_send_control(struct ds_device *dev, u16 value, u16 index)
- {
- 	int err;
-@@ -294,14 +294,6 @@ static int ds_recv_status(struct ds_devi
- 		if (count < 0)
- 			return err;
- 	}
--#if 0
--	if (st->status & ST_IDLE) {
--		printk(KERN_INFO "Resetting pulse after ST_IDLE.\n");
--		err = ds_start_pulse(dev, PULLUP_PULSE_DURATION);
--		if (err)
--			return err;
--	}
--#endif
- 
- 	return err;
- }
-@@ -472,32 +464,26 @@ static int ds_set_speed(struct ds_device
- }
- #endif  /*  0  */
- 
--static int ds_start_pulse(struct ds_device *dev, int delay)
-+static int ds_set_pullup(struct ds_device *dev, int delay)
- {
- 	int err;
+@@ -470,7 +470,7 @@ static int ds_set_pullup(struct ds_devic
  	u8 del = 1 + (u8)(delay >> 4);
--	struct ds_status st;
--
--#if 0
--	err = ds_stop_pulse(dev, 10);
--	if (err)
--		return err;
--
--	err = ds_send_control_mode(dev, MOD_PULSE_EN, PULSE_SPUE);
--	if (err)
--		return err;
--#endif
--	err = ds_send_control(dev, COMM_SET_DURATION | COMM_IM, del);
--	if (err)
--		return err;
  
--	err = ds_send_control(dev, COMM_PULSE | COMM_IM | COMM_F, 0);
-+	dev->spu_sleep = 0;
-+	err = ds_send_control_mode(dev, MOD_PULSE_EN, delay?PULSE_SPUE:0);
+ 	dev->spu_sleep = 0;
+-	err = ds_send_control_mode(dev, MOD_PULSE_EN, delay?PULSE_SPUE:0);
++	err = ds_send_control_mode(dev, MOD_PULSE_EN, delay ? PULSE_SPUE : 0);
  	if (err)
  		return err;
  
--	mdelay(delay);
-+	if (delay) {
-+		err = ds_send_control(dev, COMM_SET_DURATION | COMM_IM, del);
-+		if (err)
-+			return err;
- 
--	ds_wait_status(dev, &st);
-+		/* Just storing delay would not get the trunication and
-+		 * roundup.
-+		 */
-+		dev->spu_sleep = del<<4;
-+	}
- 
- 	return err;
- }
-@@ -558,6 +544,9 @@ static int ds_write_byte(struct ds_devic
- 	if (err)
- 		return err;
- 
-+	if (dev->spu_sleep)
-+		msleep(dev->spu_sleep);
-+
- 	err = ds_wait_status(dev, &st);
- 	if (err)
- 		return err;
-@@ -566,8 +555,6 @@ static int ds_write_byte(struct ds_devic
- 	if (err < 0)
- 		return err;
- 
--	ds_start_pulse(dev, PULLUP_PULSE_DURATION);
--
- 	return !(byte == rbyte);
- }
- 
-@@ -603,7 +590,7 @@ static int ds_read_block(struct ds_devic
- 	if (err < 0)
- 		return err;
- 
--	err = ds_send_control(dev, COMM_BLOCK_IO | COMM_IM | COMM_SPU, len);
-+	err = ds_send_control(dev, COMM_BLOCK_IO | COMM_IM, len);
- 	if (err)
- 		return err;
- 
-@@ -630,14 +617,15 @@ static int ds_write_block(struct ds_devi
- 	if (err)
- 		return err;
- 
-+	if (dev->spu_sleep)
-+		msleep(dev->spu_sleep);
-+
- 	ds_wait_status(dev, &st);
- 
- 	err = ds_recv_data(dev, buf, len);
- 	if (err < 0)
- 		return err;
- 
--	ds_start_pulse(dev, PULLUP_PULSE_DURATION);
--
- 	return !(err == len);
- }
- 
-@@ -803,6 +791,16 @@ static u8 ds9490r_reset(void *data)
- 	return 0;
- }
- 
-+static u8 ds9490r_set_pullup(void *data, int delay)
-+{
-+	struct ds_device *dev = data;
-+
-+	if (ds_set_pullup(dev, delay))
-+		return 1;
-+
-+	return 0;
-+}
-+
- static int ds_w1_init(struct ds_device *dev)
- {
- 	memset(&dev->master, 0, sizeof(struct w1_bus_master));
-@@ -816,6 +814,7 @@ static int ds_w1_init(struct ds_device *
- 	dev->master.read_block	= &ds9490r_read_block;
- 	dev->master.write_block	= &ds9490r_write_block;
- 	dev->master.reset_bus	= &ds9490r_reset;
-+	dev->master.set_pullup	= &ds9490r_set_pullup;
- 
- 	return w1_add_master_device(&dev->master);
- }
-@@ -839,6 +838,7 @@ static int ds_probe(struct usb_interface
- 		printk(KERN_INFO "Failed to allocate new DS9490R structure.\n");
- 		return -ENOMEM;
- 	}
-+	dev->spu_sleep = 0;
- 	dev->udev = usb_get_dev(udev);
- 	if (!dev->udev) {
- 		err = -ENOMEM;
 _
 
-Patches currently in -mm which might be from david@fries.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-w1-ds2490c-add-support-for-strong-pullup.patch
+origin.patch
+missing-symbol-prefix-on-vmlinuxldsh-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+pci-make-pci_register_driver-a-macro.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+x86-export-is_uv_system.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+git-mtd.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+drivers-mtd-nand-nandsimc-fix-printk-warnings.patch
+git-ubi-git-rejects.patch
+bridge-send-correct-mtu-value-in-pmtu.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+sched-type-fix.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+usb-hubc-fix-build-with-config_pm=n.patch
+git-xtensa.patch
+drivers-telephony-ixjc-depends-on-pnp.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
 w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes.patch
-w1-ds2490c-ds_write_bit-grouping-error-disable-readback.patch
-w1-ds2490c-disable-bit-read-and-write.patch
-w1-ds2490c-simplify-and-fix-ds_touch_bit.patch
-w1-ds2490c-ds_dump_status-rework.patch
-w1-ds2490c-ds_reset-remove-ds_wait_status.patch
-w1-ds2490c-reset-ds2490-in-init.patch
-w1-ds2490c-magic-number-work.patch
-w1-ds2490c-ds_write_block-remove-extra-ds_wait_status.patch
-w1-documentation-w1-masters-ds2490-update.patch
-w1-ds2490c-optimize-ds_set_pullup.patch
 w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
