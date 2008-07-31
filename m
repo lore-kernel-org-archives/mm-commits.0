@@ -1,123 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: - w1-w1_slave_read_id-read-bug-use-device_attribute.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 20:01:52 -0700
-Message-ID: <200807310301.m6V31qY1000487@imap1.linux-foundation.org>
+Subject: - w1-w1_therm-fix-user-buffer-overflow-and-cat.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 20:01:54 -0700
+Message-ID: <200807310301.m6V31s4R000490@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32773 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60824 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763214AbYGaDB4 (ORCPT
+	by vger.kernel.org with ESMTP id S1763511AbYGaDB7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 23:01:56 -0400
+	Wed, 30 Jul 2008 23:01:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1: w1_slave_read_id read bug, use device_attribute
+     w1: w1_therm fix user buffer overflow and cat
 has been removed from the -mm tree.  Its filename was
-     w1-w1_slave_read_id-read-bug-use-device_attribute.patch
+     w1-w1_therm-fix-user-buffer-overflow-and-cat.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: w1_slave_read_id read bug, use device_attribute
+Subject: w1: w1_therm fix user buffer overflow and cat
 From: David Fries <david@fries.net>
 
-Fix bug reading the id sysfs file.  If less than the full 8 bytes were
-read, the next read would start at the first byte instead of continuing. 
-It needed the offset added to memcpy, or the better solution was to
-replace it with the device attribute instead of bin attribute.
+Fixed data reading bug by replacing binary attribute with device one.
+
+Switching the sysfs read from bin_attribute to device_attribute.  The data
+is far under PAGE_SIZE so the binary interface isn't required.  As the
+device_attribute interface will make one call to w1_therm_read per file
+open and buffer, the result is, the following problems go away.
+
+buffer overflow:
+	Execute a short read on w1_slave and w1_therm_read_bin would still
+	return the full string size worth of data clobbering the user space
+	buffer when it returned.  Switching to device_attribute avoids the
+	buffer overflow problems.  With the snprintf formatted output dealing
+	with short reads without doing a conversion per read would have
+	been difficult.
+bad behavior:
+	`cat w1_slave` would cause two temperature conversions to take place.
+	Previously the code assumed W1_SLAVE_DATA_SIZE would be returned with
+	each read.  It would not return 0 unless the offset was less
+	than W1_SLAVE_DATA_SIZE.  The result was the first read did a
+	temperature conversion, filled the buffer and returned, the
+	offset in the second read would be less than
+	W1_SLAVE_DATA_SIZE and also fill the buffer and return, the
+	third read would finnally have a big enough offset to return 0
+	and cause cat to stop.  Now w1_therm_read will be called at
+	most once per open.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1.c |   35 ++++++++++-------------------------
- 1 file changed, 10 insertions(+), 25 deletions(-)
+ drivers/w1/slaves/w1_therm.c |   55 ++++++++++++---------------------
+ drivers/w1/w1.h              |    1 
+ 2 files changed, 20 insertions(+), 36 deletions(-)
 
-diff -puN drivers/w1/w1.c~w1-w1_slave_read_id-read-bug-use-device_attribute drivers/w1/w1.c
---- a/drivers/w1/w1.c~w1-w1_slave_read_id-read-bug-use-device_attribute
-+++ a/drivers/w1/w1.c
-@@ -103,35 +103,20 @@ static ssize_t w1_slave_read_name(struct
- 	return sprintf(buf, "%s\n", sl->name);
+diff -puN drivers/w1/slaves/w1_therm.c~w1-w1_therm-fix-user-buffer-overflow-and-cat drivers/w1/slaves/w1_therm.c
+--- a/drivers/w1/slaves/w1_therm.c~w1-w1_therm-fix-user-buffer-overflow-and-cat
++++ a/drivers/w1/slaves/w1_therm.c
+@@ -50,26 +50,20 @@ static u8 bad_roms[][9] = {
+ 				{}
+ 			};
+ 
+-static ssize_t w1_therm_read_bin(struct kobject *, struct bin_attribute *,
+-				 char *, loff_t, size_t);
++static ssize_t w1_therm_read(struct device *device,
++	struct device_attribute *attr, char *buf);
+ 
+-static struct bin_attribute w1_therm_bin_attr = {
+-	.attr = {
+-		.name = "w1_slave",
+-		.mode = S_IRUGO,
+-	},
+-	.size = W1_SLAVE_DATA_SIZE,
+-	.read = w1_therm_read_bin,
+-};
++static struct device_attribute w1_therm_attr =
++	__ATTR(w1_slave, S_IRUGO, w1_therm_read, NULL);
+ 
+ static int w1_therm_add_slave(struct w1_slave *sl)
+ {
+-	return sysfs_create_bin_file(&sl->dev.kobj, &w1_therm_bin_attr);
++	return device_create_file(&sl->dev, &w1_therm_attr);
  }
  
--static ssize_t w1_slave_read_id(struct kobject *kobj,
--				struct bin_attribute *bin_attr,
--				char *buf, loff_t off, size_t count)
-+static ssize_t w1_slave_read_id(struct device *dev,
+ static void w1_therm_remove_slave(struct w1_slave *sl)
+ {
+-	sysfs_remove_bin_file(&sl->dev.kobj, &w1_therm_bin_attr);
++	device_remove_file(&sl->dev, &w1_therm_attr);
+ }
+ 
+ static struct w1_family_ops w1_therm_fops = {
+@@ -168,30 +162,19 @@ static int w1_therm_check_rom(u8 rom[9])
+ 	return 0;
+ }
+ 
+-static ssize_t w1_therm_read_bin(struct kobject *kobj,
+-				 struct bin_attribute *bin_attr,
+-				 char *buf, loff_t off, size_t count)
++static ssize_t w1_therm_read(struct device *device,
 +	struct device_attribute *attr, char *buf)
  {
 -	struct w1_slave *sl = kobj_to_w1_slave(kobj);
--
--	if (off > 8) {
++	struct w1_slave *sl = dev_to_w1_slave(device);
+ 	struct w1_master *dev = sl->master;
+ 	u8 rom[9], crc, verdict;
+ 	int i, max_trying = 10;
++	ssize_t c = PAGE_SIZE;
+ 
+ 	mutex_lock(&sl->master->mutex);
+ 
+-	if (off > W1_SLAVE_DATA_SIZE) {
 -		count = 0;
--	} else {
--		if (off + count > 8)
--			count = 8 - off;
--
--		memcpy(buf, (u8 *)&sl->reg_num, count);
+-		goto out;
 -	}
-+	struct w1_slave *sl = dev_to_w1_slave(dev);
-+	ssize_t count = sizeof(sl->reg_num);
- 
-+	memcpy(buf, (u8 *)&sl->reg_num, count);
- 	return count;
- }
- 
- static struct device_attribute w1_slave_attr_name =
- 	__ATTR(name, S_IRUGO, w1_slave_read_name, NULL);
+-	if (off + count > W1_SLAVE_DATA_SIZE) {
+-		count = 0;
+-		goto out;
+-	}
 -
--static struct bin_attribute w1_slave_attr_bin_id = {
--      .attr = {
--              .name = "id",
--              .mode = S_IRUGO,
--      },
--      .size = 8,
--      .read = w1_slave_read_id,
--};
-+static struct device_attribute w1_slave_attr_id =
-+	__ATTR(id, S_IRUGO, w1_slave_read_id, NULL);
+-	memset(buf, 0, count);
+ 	memset(rom, 0, sizeof(rom));
  
- /* Default family */
+-	count = 0;
+ 	verdict = 0;
+ 	crc = 0;
  
-@@ -641,7 +626,7 @@ static int __w1_attach_slave_device(stru
+@@ -211,7 +194,9 @@ static ssize_t w1_therm_read_bin(struct 
+ 
+ 				w1_write_8(dev, W1_READ_SCRATCHPAD);
+ 				if ((count = w1_read_block(dev, rom, 9)) != 9) {
+-					dev_warn(&dev->dev, "w1_read_block() returned %d instead of 9.\n", count);
++					dev_warn(device, "w1_read_block() "
++						"returned %u instead of 9.\n",
++						count);
+ 				}
+ 
+ 				crc = w1_calc_crc8(rom, 8);
+@@ -226,22 +211,22 @@ static ssize_t w1_therm_read_bin(struct 
  	}
  
- 	/* Create "id" entry */
--	err = sysfs_create_bin_file(&sl->dev.kobj, &w1_slave_attr_bin_id);
-+	err = device_create_file(&sl->dev, &w1_slave_attr_id);
- 	if (err < 0) {
- 		dev_err(&sl->dev,
- 			"sysfs file creation for [%s] failed. err=%d\n",
-@@ -663,7 +648,7 @@ static int __w1_attach_slave_device(stru
- 	return 0;
+ 	for (i = 0; i < 9; ++i)
+-		count += sprintf(buf + count, "%02x ", rom[i]);
+-	count += sprintf(buf + count, ": crc=%02x %s\n",
++		c -= snprintf(buf + PAGE_SIZE - c, c, "%02x ", rom[i]);
++	c -= snprintf(buf + PAGE_SIZE - c, c, ": crc=%02x %s\n",
+ 			   crc, (verdict) ? "YES" : "NO");
+ 	if (verdict)
+ 		memcpy(sl->rom, rom, sizeof(sl->rom));
+ 	else
+-		dev_warn(&dev->dev, "18S20 doesn't respond to CONVERT_TEMP.\n");
++		dev_warn(device, "18S20 doesn't respond to CONVERT_TEMP.\n");
  
- out_rem2:
--	sysfs_remove_bin_file(&sl->dev.kobj, &w1_slave_attr_bin_id);
-+	device_remove_file(&sl->dev, &w1_slave_attr_id);
- out_rem1:
- 	device_remove_file(&sl->dev, &w1_slave_attr_name);
- out_unreg:
-@@ -745,7 +730,7 @@ void w1_slave_detach(struct w1_slave *sl
- 	msg.type = W1_SLAVE_REMOVE;
- 	w1_netlink_send(sl->master, &msg);
+ 	for (i = 0; i < 9; ++i)
+-		count += sprintf(buf + count, "%02x ", sl->rom[i]);
++		c -= snprintf(buf + PAGE_SIZE - c, c, "%02x ", sl->rom[i]);
  
--	sysfs_remove_bin_file(&sl->dev.kobj, &w1_slave_attr_bin_id);
-+	device_remove_file(&sl->dev, &w1_slave_attr_id);
- 	device_remove_file(&sl->dev, &w1_slave_attr_name);
- 	device_unregister(&sl->dev);
+-	count += sprintf(buf + count, "t=%d\n", w1_convert_temp(rom, sl->family->fid));
+-out:
++	c -= snprintf(buf + PAGE_SIZE - c, c, "t=%d\n",
++		w1_convert_temp(rom, sl->family->fid));
+ 	mutex_unlock(&dev->mutex);
  
+-	return count;
++	return PAGE_SIZE - c;
+ }
+ 
+ static int __init w1_therm_init(void)
+diff -puN drivers/w1/w1.h~w1-w1_therm-fix-user-buffer-overflow-and-cat drivers/w1/w1.h
+--- a/drivers/w1/w1.h~w1-w1_therm-fix-user-buffer-overflow-and-cat
++++ a/drivers/w1/w1.h
+@@ -46,7 +46,6 @@ struct w1_reg_num
+ #include "w1_family.h"
+ 
+ #define W1_MAXNAMELEN		32
+-#define W1_SLAVE_DATA_SIZE	128
+ 
+ #define W1_SEARCH		0xF0
+ #define W1_ALARM_SEARCH		0xEC
 _
 
 Patches currently in -mm which might be from david@fries.net are
 
-w1-w1_slave_read_id-read-bug-use-device_attribute.patch
 w1-w1_therm-fix-user-buffer-overflow-and-cat.patch
 w1-w1_family-remove-unused-variable-need_exit.patch
 w1-w1_therm-consistent-mutex-access-code-cleanup.patch
