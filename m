@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i5k_amb-provide-labels-for-temperature-sensors.patch added to -mm tree
-Date: Wed, 30 Jul 2008 20:51:01 -0700
-Message-ID: <200807310351.m6V3p11Z002494@imap1.linux-foundation.org>
+Subject: + ftrace-make-output-nicely-spaced-for-up-to-999-cpus.patch added to -mm tree
+Date: Wed, 30 Jul 2008 21:01:52 -0700
+Message-ID: <200807310401.m6V41qTB002885@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44141 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57347 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760382AbYGaDv4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752052AbYGaECS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 23:51:56 -0400
+	Thu, 31 Jul 2008 00:02:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: djwong@us.ibm.com, khali@linux-fr.org, mhoffman@lightlink.com
+Cc: michael@ellerman.id.au, srostedt@redhat.com
 
 
 The patch titled
-     i5k_amb: provide labels for temperature sensors
+     ftrace: make output nicely spaced for up to 999 cpus
 has been added to the -mm tree.  Its filename is
-     i5k_amb-provide-labels-for-temperature-sensors.patch
+     ftrace-make-output-nicely-spaced-for-up-to-999-cpus.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i5k_amb: provide labels for temperature sensors
-From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: ftrace: make output nicely spaced for up to 999 cpus
+From: Michael Ellerman <michael@ellerman.id.au>
 
-Export the sensor -> channel/dimm mapping in tempX_label.
+Currently some of the ftrace output goes skewiff if you have more
+than 9 cpus, and some if you have more than 99.
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: Jean Delvare <khali@linux-fr.org>
+Twiddle with the headers and format strings to make up to 999 cpus
+display without causing spacing problems.
+
+Signed-off-by: Michael Ellerman <michael@ellerman.id.au>
+Acked-by: Steven Rostedt <srostedt@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/i5k_amb.c |   28 +++++++++++++++++++++++++++-
- 1 file changed, 27 insertions(+), 1 deletion(-)
+ kernel/trace/trace.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN drivers/hwmon/i5k_amb.c~i5k_amb-provide-labels-for-temperature-sensors drivers/hwmon/i5k_amb.c
---- a/drivers/hwmon/i5k_amb.c~i5k_amb-provide-labels-for-temperature-sensors
-+++ a/drivers/hwmon/i5k_amb.c
-@@ -81,6 +81,8 @@ static unsigned long amb_reg_temp(unsign
- #define MAX_AMBS_PER_CHANNEL		16
- #define MAX_AMBS			(MAX_MEM_CHANNELS * \
- 					 MAX_AMBS_PER_CHANNEL)
-+#define CHANNEL_SHIFT			4
-+#define DIMM_MASK			0xF
- /*
-  * Ugly hack: For some reason the highest bit is set if there
-  * are _any_ DIMMs in the channel.  Attempting to read from
-@@ -89,7 +91,7 @@ static unsigned long amb_reg_temp(unsign
-  * might prevent us from seeing the 16th DIMM in the channel.
-  */
- #define REAL_MAX_AMBS_PER_CHANNEL	15
--#define KNOBS_PER_AMB			5
-+#define KNOBS_PER_AMB			6
+diff -puN kernel/trace/trace.c~ftrace-make-output-nicely-spaced-for-up-to-999-cpus kernel/trace/trace.c
+--- a/kernel/trace/trace.c~ftrace-make-output-nicely-spaced-for-up-to-999-cpus
++++ a/kernel/trace/trace.c
+@@ -1330,21 +1330,21 @@ seq_print_ip_sym(struct trace_seq *s, un
  
- static unsigned long amb_num_from_reg(unsigned int byte_num, unsigned int bit)
+ static void print_lat_help_header(struct seq_file *m)
  {
-@@ -238,6 +240,16 @@ static ssize_t show_amb_temp(struct devi
- 		500 * amb_read_byte(data, amb_reg_temp(attr->index)));
+-	seq_puts(m, "#                _------=> CPU#            \n");
+-	seq_puts(m, "#               / _-----=> irqs-off        \n");
+-	seq_puts(m, "#              | / _----=> need-resched    \n");
+-	seq_puts(m, "#              || / _---=> hardirq/softirq \n");
+-	seq_puts(m, "#              ||| / _--=> preempt-depth   \n");
+-	seq_puts(m, "#              |||| /                      \n");
+-	seq_puts(m, "#              |||||     delay             \n");
+-	seq_puts(m, "#  cmd     pid ||||| time  |   caller      \n");
+-	seq_puts(m, "#     \\   /    |||||   \\   |   /           \n");
++	seq_puts(m, "#                  _------=> CPU#            \n");
++	seq_puts(m, "#                 / _-----=> irqs-off        \n");
++	seq_puts(m, "#                | / _----=> need-resched    \n");
++	seq_puts(m, "#                || / _---=> hardirq/softirq \n");
++	seq_puts(m, "#                ||| / _--=> preempt-depth   \n");
++	seq_puts(m, "#                |||| /                      \n");
++	seq_puts(m, "#                |||||     delay             \n");
++	seq_puts(m, "#  cmd     pid   ||||| time  |   caller      \n");
++	seq_puts(m, "#     \\   /      |||||   \\   |   /           \n");
  }
  
-+static ssize_t show_label(struct device *dev,
-+			  struct device_attribute *devattr,
-+			  char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+
-+	return sprintf(buf, "Ch. %d DIMM %d\n", attr->index >> CHANNEL_SHIFT,
-+		       attr->index & DIMM_MASK);
-+}
-+
- static int __devinit i5k_amb_hwmon_init(struct platform_device *pdev)
+ static void print_func_help_header(struct seq_file *m)
  {
- 	int i, j, k, d = 0;
-@@ -268,6 +280,20 @@ static int __devinit i5k_amb_hwmon_init(
- 				continue;
- 			d++;
+-	seq_puts(m, "#           TASK-PID   CPU#    TIMESTAMP  FUNCTION\n");
+-	seq_puts(m, "#              | |      |          |         |\n");
++	seq_puts(m, "#           TASK-PID    CPU#    TIMESTAMP  FUNCTION\n");
++	seq_puts(m, "#              | |       |          |         |\n");
+ }
  
-+			/* sysfs label */
-+			iattr = data->attrs + data->num_attrs;
-+			snprintf(iattr->name, AMB_SYSFS_NAME_LEN,
-+				 "temp%d_label", d);
-+			iattr->s_attr.dev_attr.attr.name = iattr->name;
-+			iattr->s_attr.dev_attr.attr.mode = S_IRUGO;
-+			iattr->s_attr.dev_attr.show = show_label;
-+			iattr->s_attr.index = k;
-+			res = device_create_file(&pdev->dev,
-+						 &iattr->s_attr.dev_attr);
-+			if (res)
-+				goto exit_remove;
-+			data->num_attrs++;
-+
- 			/* Temperature sysfs knob */
- 			iattr = data->attrs + data->num_attrs;
- 			snprintf(iattr->name, AMB_SYSFS_NAME_LEN,
+ 
+@@ -1428,7 +1428,7 @@ lat_print_generic(struct trace_seq *s, s
+ 	comm = trace_find_cmdline(entry->pid);
+ 
+ 	trace_seq_printf(s, "%8.8s-%-5d ", comm, entry->pid);
+-	trace_seq_printf(s, "%d", cpu);
++	trace_seq_printf(s, "%3d", cpu);
+ 	trace_seq_printf(s, "%c%c",
+ 			(entry->flags & TRACE_FLAG_IRQS_OFF) ? 'd' : '.',
+ 			((entry->flags & TRACE_FLAG_NEED_RESCHED) ? 'N' : '.'));
+@@ -1493,7 +1493,7 @@ print_lat_fmt(struct trace_iterator *ite
+ 
+ 	if (verbose) {
+ 		comm = trace_find_cmdline(entry->pid);
+-		trace_seq_printf(s, "%16s %5d %d %d %08x %08x [%08lx]"
++		trace_seq_printf(s, "%16s %5d %3d %d %08x %08x [%08lx]"
+ 				 " %ld.%03ldms (+%ld.%03ldms): ",
+ 				 comm,
+ 				 entry->pid, cpu, entry->flags,
+@@ -1576,7 +1576,7 @@ static int print_trace_fmt(struct trace_
+ 	ret = trace_seq_printf(s, "%16s-%-5d ", comm, entry->pid);
+ 	if (!ret)
+ 		return 0;
+-	ret = trace_seq_printf(s, "[%02d] ", iter->cpu);
++	ret = trace_seq_printf(s, "[%03d] ", iter->cpu);
+ 	if (!ret)
+ 		return 0;
+ 	ret = trace_seq_printf(s, "%5lu.%06lu: ", secs, usec_rem);
 _
 
-Patches currently in -mm which might be from djwong@us.ibm.com are
+Patches currently in -mm which might be from michael@ellerman.id.au are
 
-linux-next.patch
-i5k_amb-provide-labels-for-temperature-sensors.patch
+ftrace-make-output-nicely-spaced-for-up-to-999-cpus.patch
 
