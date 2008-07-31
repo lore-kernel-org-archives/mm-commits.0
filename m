@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + w1-feature-w1_thermc-use-strong-pullup-and-documentation.patch added to -mm tree
-Date: Wed, 30 Jul 2008 20:16:07 -0700
-Message-ID: <200807310316.m6V3G7GQ001141@imap1.linux-foundation.org>
+Subject: + w1-w1_slave_read_id-read-bug-use-device_attribute.patch added to -mm tree
+Date: Wed, 30 Jul 2008 20:16:16 -0700
+Message-ID: <200807310316.m6V3GG4b001161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48478 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59919 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756389AbYGaDR7 (ORCPT
+	by vger.kernel.org with ESMTP id S1756337AbYGaDSA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 23:17:59 -0400
+	Wed, 30 Jul 2008 23:18:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david@fries.net, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     W1: feature, w1_therm.c use strong pullup and documentation
+     W1: w1_slave_read_id read bug, use device_attribute
 has been added to the -mm tree.  Its filename is
-     w1-feature-w1_thermc-use-strong-pullup-and-documentation.patch
+     w1-w1_slave_read_id-read-bug-use-device_attribute.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,119 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: W1: feature, w1_therm.c use strong pullup and documentation
+Subject: W1: w1_slave_read_id read bug, use device_attribute
 From: David Fries <david@fries.net>
 
-Added strong pullup to thermal sensor driver and general documentation on
-the sensor.
+Fix bug reading the id sysfs file.  If less than the full 8 bytes were
+read, the next read would start at the first byte instead of continuing. 
+It needed the offset added to memcpy, or the better solution was to
+replace it with the device attribute instead of bin attribute.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/w1/00-INDEX        |    2 +
- Documentation/w1/slaves/00-INDEX |    4 ++
- Documentation/w1/slaves/w1_therm |   41 +++++++++++++++++++++++++++++
- drivers/w1/slaves/w1_therm.c     |   15 +++++++++-
- 4 files changed, 60 insertions(+), 2 deletions(-)
+ drivers/w1/w1.c |   35 ++++++++++-------------------------
+ 1 file changed, 10 insertions(+), 25 deletions(-)
 
-diff -puN Documentation/w1/00-INDEX~w1-feature-w1_thermc-use-strong-pullup-and-documentation Documentation/w1/00-INDEX
---- a/Documentation/w1/00-INDEX~w1-feature-w1_thermc-use-strong-pullup-and-documentation
-+++ a/Documentation/w1/00-INDEX
-@@ -1,5 +1,7 @@
- 00-INDEX
- 	- This file
-+slaves/
-+	- Drivers that provide support for specific family codes.
- masters/
- 	- Individual chips providing 1-wire busses.
- w1.generic
-diff -puN /dev/null Documentation/w1/slaves/00-INDEX
---- /dev/null
-+++ a/Documentation/w1/slaves/00-INDEX
-@@ -0,0 +1,4 @@
-+00-INDEX
-+	- This file
-+w1_therm
-+	- The Maxim/Dallas Semiconductor ds18*20 temperature sensor.
-diff -puN /dev/null Documentation/w1/slaves/w1_therm
---- /dev/null
-+++ a/Documentation/w1/slaves/w1_therm
-@@ -0,0 +1,41 @@
-+Kernel driver w1_therm
-+====================
-+
-+Supported chips:
-+  * Maxim ds18*20 based temperature sensors.
-+
-+Author: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+
-+
-+Description
-+-----------
-+
-+w1_therm provides basic temperature conversion for ds18*20 devices.
-+supported family codes:
-+W1_THERM_DS18S20	0x10
-+W1_THERM_DS1822		0x22
-+W1_THERM_DS18B20	0x28
-+
-+Support is provided through the sysfs w1_slave file.  Each open and
-+read sequence will initiate a temperature conversion then provide two
-+lines of ASCII output.  The first line contains the nine hex bytes
-+read along with a calculated crc value and YES or NO if it matched.
-+If the crc matched the returned values are retained.  The second line
-+displays the retained values along with a temperature in millidegrees
-+Centigrade after t=.
-+
-+Parasite powered devices are limited to one slave performing a
-+temperature conversion at a time.  If none of the devices are parasite
-+powered it would be possible to convert all the devices at the same
-+time and then go back to read individual sensors.  That isn't
-+currently supported.  The driver also doesn't support reduced
-+precision (which would also reduce the conversion time).
-+
-+The module parameter strong_pullup can be set to 0 to disable the
-+strong pullup or 1 to enable.  If enabled the 5V strong pullup will be
-+enabled when the conversion is taking place provided the master driver
-+must support the strong pullup (or it falls back to a pullup
-+resistor).  The DS18b20 temperature sensor specification lists a
-+maximum current draw of 1.5mA and that a 5k pullup resistor is not
-+sufficient.  The strong pullup is designed to provide the additional
-+current required.
-diff -puN drivers/w1/slaves/w1_therm.c~w1-feature-w1_thermc-use-strong-pullup-and-documentation drivers/w1/slaves/w1_therm.c
---- a/drivers/w1/slaves/w1_therm.c~w1-feature-w1_thermc-use-strong-pullup-and-documentation
-+++ a/drivers/w1/slaves/w1_therm.c
-@@ -37,6 +37,14 @@ MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Evgeniy Polyakov <johnpol@2ka.mipt.ru>");
- MODULE_DESCRIPTION("Driver for 1-wire Dallas network protocol, temperature family.");
+diff -puN drivers/w1/w1.c~w1-w1_slave_read_id-read-bug-use-device_attribute drivers/w1/w1.c
+--- a/drivers/w1/w1.c~w1-w1_slave_read_id-read-bug-use-device_attribute
++++ a/drivers/w1/w1.c
+@@ -103,35 +103,20 @@ static ssize_t w1_slave_read_name(struct
+ 	return sprintf(buf, "%s\n", sl->name);
+ }
  
-+/* Allow the strong pullup to be disabled, but default to enabled.
-+ * If it was disabled a parasite powered device might not get the require
-+ * current to do a temperature conversion.  If it is enabled parasite powered
-+ * devices have a better chance of getting the current required.
-+ */
-+static int w1_strong_pullup = 1;
-+module_param_named(strong_pullup, w1_strong_pullup, int, 0);
-+
- static u8 bad_roms[][9] = {
- 				{0xaa, 0x00, 0x4b, 0x46, 0xff, 0xff, 0x0c, 0x10, 0x87},
- 				{}
-@@ -192,9 +200,12 @@ static ssize_t w1_therm_read_bin(struct 
- 			int count = 0;
- 			unsigned int tm = 750;
- 
-+			/* 750ms strong pullup (or delay) after the convert */
-+			if (w1_strong_pullup)
-+				w1_next_pullup(dev, tm);
- 			w1_write_8(dev, W1_CONVERT_TEMP);
+-static ssize_t w1_slave_read_id(struct kobject *kobj,
+-				struct bin_attribute *bin_attr,
+-				char *buf, loff_t off, size_t count)
++static ssize_t w1_slave_read_id(struct device *dev,
++	struct device_attribute *attr, char *buf)
+ {
+-	struct w1_slave *sl = kobj_to_w1_slave(kobj);
 -
--			msleep(tm);
-+			if (!w1_strong_pullup)
-+				msleep(tm);
+-	if (off > 8) {
+-		count = 0;
+-	} else {
+-		if (off + count > 8)
+-			count = 8 - off;
+-
+-		memcpy(buf, (u8 *)&sl->reg_num, count);
+-	}
++	struct w1_slave *sl = dev_to_w1_slave(dev);
++	ssize_t count = sizeof(sl->reg_num);
  
- 			if (!w1_reset_select_slave(sl)) {
++	memcpy(buf, (u8 *)&sl->reg_num, count);
+ 	return count;
+ }
+ 
+ static struct device_attribute w1_slave_attr_name =
+ 	__ATTR(name, S_IRUGO, w1_slave_read_name, NULL);
+-
+-static struct bin_attribute w1_slave_attr_bin_id = {
+-      .attr = {
+-              .name = "id",
+-              .mode = S_IRUGO,
+-      },
+-      .size = 8,
+-      .read = w1_slave_read_id,
+-};
++static struct device_attribute w1_slave_attr_id =
++	__ATTR(id, S_IRUGO, w1_slave_read_id, NULL);
+ 
+ /* Default family */
+ 
+@@ -649,7 +634,7 @@ static int __w1_attach_slave_device(stru
+ 	}
+ 
+ 	/* Create "id" entry */
+-	err = sysfs_create_bin_file(&sl->dev.kobj, &w1_slave_attr_bin_id);
++	err = device_create_file(&sl->dev, &w1_slave_attr_id);
+ 	if (err < 0) {
+ 		dev_err(&sl->dev,
+ 			"sysfs file creation for [%s] failed. err=%d\n",
+@@ -671,7 +656,7 @@ static int __w1_attach_slave_device(stru
+ 	return 0;
+ 
+ out_rem2:
+-	sysfs_remove_bin_file(&sl->dev.kobj, &w1_slave_attr_bin_id);
++	device_remove_file(&sl->dev, &w1_slave_attr_id);
+ out_rem1:
+ 	device_remove_file(&sl->dev, &w1_slave_attr_name);
+ out_unreg:
+@@ -753,7 +738,7 @@ void w1_slave_detach(struct w1_slave *sl
+ 	msg.type = W1_SLAVE_REMOVE;
+ 	w1_netlink_send(sl->master, &msg);
+ 
+-	sysfs_remove_bin_file(&sl->dev.kobj, &w1_slave_attr_bin_id);
++	device_remove_file(&sl->dev, &w1_slave_attr_id);
+ 	device_remove_file(&sl->dev, &w1_slave_attr_name);
+ 	device_unregister(&sl->dev);
  
 _
 
