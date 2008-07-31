@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + w1-document-add-remove-search_count-and-pullup.patch added to -mm tree
-Date: Wed, 30 Jul 2008 20:16:15 -0700
-Message-ID: <200807310316.m6V3GFl3001158@imap1.linux-foundation.org>
+Subject: + w1-ds2490c-simplify-and-fix-ds_touch_bit.patch added to -mm tree
+Date: Wed, 30 Jul 2008 20:16:39 -0700
+Message-ID: <200807310316.m6V3Gda6001197@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43365 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45250 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751905AbYGaDRj (ORCPT
+	by vger.kernel.org with ESMTP id S1754223AbYGaDRr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 23:17:39 -0400
+	Wed, 30 Jul 2008 23:17:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david@fries.net, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     W1: Document add, remove, search_count, and pullup.
+     W1: ds2490.c simplify and fix ds_touch_bit
 has been added to the -mm tree.  Its filename is
-     w1-document-add-remove-search_count-and-pullup.patch
+     w1-ds2490c-simplify-and-fix-ds_touch_bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: W1: Document add, remove, search_count, and pullup.
+Subject: W1: ds2490.c simplify and fix ds_touch_bit
 From: David Fries <david@fries.net>
 
-Document w1_master_add, w1_master_remove, search_count, and pullup.
+Simplify and fix ds_touch_bit.  If a device is attached in the middle of a
+bus search the status register will return more than the default 16 bytes.
+ The additional bytes indicate that it has detected a new device.  The way
+ds_wait_status is coded, if it doesn't read 16 status bytes it returns an
+error value.  ds_touch_bit then will detect that error and return an
+error.  In that case it doesn't read the input buffer and returns
+uninitialized data.  It doesn't stop there.  The next transaction will not
+expect the extra byte in the input buffer and the short read will cause an
+error and clear out both the old byte and new data in the input buffer.
+
+Just ignore the value of ds_wait_status.  It is still required to wait
+until ds2490 is again idle and there is data to read when ds_recv_data is
+called.  This also removes the while loop.  None of the other commands
+wait and verify that the issued command is in the status register.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/w1/w1.generic |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/w1/masters/ds2490.c |   21 ++++-----------------
+ 1 file changed, 4 insertions(+), 17 deletions(-)
 
-diff -puN Documentation/w1/w1.generic~w1-document-add-remove-search_count-and-pullup Documentation/w1/w1.generic
---- a/Documentation/w1/w1.generic~w1-document-add-remove-search_count-and-pullup
-+++ a/Documentation/w1/w1.generic
-@@ -79,10 +79,13 @@ w1 master sysfs interface
- <xx-xxxxxxxxxxxxx> - a directory for a found device. The format is family-serial
- bus                - (standard) symlink to the w1 bus
- driver             - (standard) symlink to the w1 driver
-+w1_master_add      - Manually register a slave device
- w1_master_attempts - the number of times a search was attempted
- w1_master_max_slave_count
-                    - the maximum slaves that may be attached to a master
- w1_master_name     - the name of the device (w1_bus_masterX)
-+w1_master_pullup   - 5V strong pullup 0 enabled, 1 disabled
-+w1_master_remove   - Manually remove a slave device
- w1_master_search   - the number of searches left to do, -1=continual (default)
- w1_master_slave_count
-                    - the number of slaves found
-@@ -90,7 +93,13 @@ w1_master_slaves   - the names of the sl
- w1_master_timeout  - the delay in seconds between searches
+diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-simplify-and-fix-ds_touch_bit drivers/w1/masters/ds2490.c
+--- a/drivers/w1/masters/ds2490.c~w1-ds2490c-simplify-and-fix-ds_touch_bit
++++ a/drivers/w1/masters/ds2490.c
+@@ -490,28 +490,15 @@ static int ds_set_pullup(struct ds_devic
  
- If you have a w1 bus that never changes (you don't add or remove devices),
--you can set w1_master_search to a positive value to disable searches.
-+you can set the module parameter search_count to a small positive number
-+for an initially small number of bus searches.  Alternatively it could be
-+set to zero, then manually add the slave device serial numbers by
-+w1_master_add device file.  The w1_master_add and w1_master_remove files
-+generally only make sense when searching is disabled, as a search will
-+redetect manually removed devices that are present and timeout manually
-+added devices that aren't on the bus.
+ static int ds_touch_bit(struct ds_device *dev, u8 bit, u8 *tbit)
+ {
+-	int err, count;
++	int err;
+ 	struct ds_status st;
+-	u16 value = (COMM_BIT_IO | COMM_IM) | ((bit) ? COMM_D : 0);
+-	u16 cmd;
  
+-	err = ds_send_control(dev, value, 0);
++	err = ds_send_control(dev, COMM_BIT_IO | COMM_IM | (bit ? COMM_D : 0),
++		0);
+ 	if (err)
+ 		return err;
  
- w1 slave sysfs interface
+-	count = 0;
+-	do {
+-		err = ds_wait_status(dev, &st);
+-		if (err)
+-			return err;
+-
+-		cmd = st.command0 | (st.command1 << 8);
+-	} while (cmd != value && ++count < 10);
+-
+-	if (err < 0 || count >= 10) {
+-		printk(KERN_ERR "Failed to obtain status.\n");
+-		return -EINVAL;
+-	}
++	ds_wait_status(dev, &st);
+ 
+ 	err = ds_recv_data(dev, tbit, sizeof(*tbit));
+ 	if (err < 0)
 _
 
 Patches currently in -mm which might be from david@fries.net are
