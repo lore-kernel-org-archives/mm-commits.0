@@ -1,90 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: - getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 22:30:52 -0700
-Message-ID: <200807310530.m6V5Uq5c006104@imap1.linux-foundation.org>
+Subject: - getdelaysc-add-a-usr1-signal-handler.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 22:31:31 -0700
+Message-ID: <200807310531.m6V5VV2i006138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60074 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50318 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752131AbYGaFbL (ORCPT
+	by vger.kernel.org with ESMTP id S1752091AbYGaFbv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jul 2008 01:31:11 -0400
+	Thu, 31 Jul 2008 01:31:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@in.ibm.com, matt@bluehost.com, scott@perlcode.org, mm-commits@vger.kernel.org
+To: scott@perlcode.org, andi@firstfloor.org, balbir@in.ibm.com, matt@bluehost.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes
+     getdelays.c: signal handling for log rotation
 has been removed from the -mm tree.  Its filename was
-     getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+     getdelaysc-add-a-usr1-signal-handler.patch
 
-This patch was dropped because it was folded into getdelaysc-add-a-usr1-signal-handler.patch
+This patch was dropped because it didn't survive code-review
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: getdelays.c: signal handling for log rotation
+From: Scott Wiersdorf <scott@perlcode.org>
 
-ERROR: do not initialise externals to 0 or NULL
-#42: FILE: Documentation/accounting/getdelays.c:53:
-+volatile sig_atomic_t reopen_log = 0;
+Add a USR1 signal handler to getdelays.c, which causes getdelays to close
+its logfile and reopen it (if '-w logfile' is specified).  This is useful
+in situations when getdelays is running for a long time (i.e, the log file
+growing) and you need to rotate the logs but don't want to lose any log
+data.
 
-WARNING: Use of volatile is usually wrong: see Documentation/volatile-considered-harmful.txt
-#42: FILE: Documentation/accounting/getdelays.c:53:
-+volatile sig_atomic_t reopen_log = 0;
+Sample usage:
 
-WARNING: line over 80 characters
-#96: FILE: Documentation/accounting/getdelays.c:350:
-+		signal(SIGUSR1, catch_usr1); /* only set when write_file is set */
+1  # ./getdelays -m0,1,2,3 -l -w getdelays.log &
+   (time passes)
+2  # mv getdelays.log getdelays.log.1
+3  # kill -USR1 <getdelays pid>
 
-WARNING: braces {} are not necessary for single statement blocks
-#104: FILE: Documentation/accounting/getdelays.c:469:
-+						if (reopen_log) {
-+							fd = reopen_logfile(fd, logfile);
-+						}
+line 1: starts the program
+line 2: renames the logfile. The log descriptor is still open and data
+        being written to the log (assuming we didn't cross mountpoints)
+line 3: getdelays closes the old descriptor and reopens getdelays.log
 
-WARNING: line over 80 characters
-#105: FILE: Documentation/accounting/getdelays.c:470:
-+							fd = reopen_logfile(fd, logfile);
+Note on 'volatile' usage:
 
-total: 1 errors, 4 warnings, 67 lines checked
+I know this is generally frowned on, but I think it's needed here to avoid
+the compiler optimizing away the variable (it will appear as if it's never
+called, since its value only changes in the signal handler).
 
-./patches/getdelaysc-add-a-usr1-signal-handler.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Balbir Singh <balbir@in.ibm.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Scott Wiersdorf <scott@perlcode.org>
 Cc: Matt Heaton <matt@bluehost.com>
-Cc: Scott Wiersdorf <scott@perlcode.org>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/getdelays.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ Documentation/accounting/getdelays.c |   37 ++++++++++++++++++++-----
+ 1 file changed, 31 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/accounting/getdelays.c~getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes Documentation/accounting/getdelays.c
---- a/Documentation/accounting/getdelays.c~getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes
+diff -puN Documentation/accounting/getdelays.c~getdelaysc-add-a-usr1-signal-handler Documentation/accounting/getdelays.c
+--- a/Documentation/accounting/getdelays.c~getdelaysc-add-a-usr1-signal-handler
 +++ a/Documentation/accounting/getdelays.c
-@@ -50,7 +50,7 @@ int dbg;
+@@ -50,6 +50,7 @@ int dbg;
  int print_delays;
  int print_io_accounting;
  int print_task_context_switch_counts;
--volatile sig_atomic_t reopen_log = 0;
 +volatile sig_atomic_t reopen_log;
  __u64 stime, utime;
  
  #define PRINTF(fmt, arg...) {			\
-@@ -470,9 +470,9 @@ int main(int argc, char *argv[])
+@@ -80,6 +81,7 @@ static void usage(void)
+ 	fprintf(stderr, "  -l: listen forever\n");
+ 	fprintf(stderr, "  -v: debug on\n");
+ 	fprintf(stderr, "  -C: container path\n");
++	fprintf(stderr, "\nSend USR1 to reopen the logfile if -w is used.\n");
+ }
+ 
+ /*
+@@ -244,6 +246,30 @@ void print_ioacct(struct taskstats *t)
+ 		(unsigned long long)t->cancelled_write_bytes);
+ }
+ 
++void catch_usr1(int sig)
++{
++	reopen_log = 1;
++	signal(sig, catch_usr1);
++}
++
++int reopen_logfile(int fd, char *logfile)
++{
++	if (fd) {
++		PRINTF("USR1 received. Closing logfile.\n");
++		close(fd);
++	}
++	fd = open(logfile, O_WRONLY | O_CREAT | O_TRUNC,
++		  S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
++	if (fd == -1) {
++		perror("Cannot open output file\n");
++		exit(1);
++	}
++
++	reopen_log = 0;
++
++	return fd;
++}
++
+ int main(int argc, char *argv[])
+ {
+ 	int c, rc, rep_len, aggr_len, len2, cmd_type;
+@@ -333,12 +359,8 @@ int main(int argc, char *argv[])
+ 	}
+ 
+ 	if (write_file) {
+-		fd = open(logfile, O_WRONLY | O_CREAT | O_TRUNC,
+-			  S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+-		if (fd == -1) {
+-			perror("Cannot open output file\n");
+-			exit(1);
+-		}
++		fd = reopen_logfile(fd, logfile);
++		signal(SIGUSR1, catch_usr1); /* only set when write_file is set */
+ 	}
+ 
+ 	if ((nl_sd = create_nl_socket(NETLINK_GENERIC)) < 0)
+@@ -457,6 +479,9 @@ int main(int argc, char *argv[])
  								err(1,"write error\n");
  							}
  						}
--						if (reopen_log) {
--							fd = reopen_logfile(fd, logfile);
--						}
 +						if (reopen_log)
 +							fd = reopen_logfile(fd,
 +								logfile);
@@ -93,82 +139,7 @@ diff -puN Documentation/accounting/getdelays.c~getdelaysc-add-a-usr1-signal-hand
  						break;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from scott@perlcode.org are
 
-origin.patch
-missing-symbol-prefix-on-vmlinuxldsh-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-linux-next-git-rejects.patch
-linux-next-fixup.patch
-next-remove-localversion.patch
-pci-make-pci_register_driver-a-macro.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-x86-export-is_uv_system.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-drivers-media-video-vinoc-needs-v4l2-ioctlh.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-serio-xilinx_ps2c-fix-warning.patch
-git-jg-misc.patch
-git-mtd.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-drivers-mtd-nand-nandsimc-fix-printk-warnings.patch
-git-ubi-git-rejects.patch
-bridge-send-correct-mtu-value-in-pmtu.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-sched-type-fix.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-usb-hubc-fix-build-with-config_pm=n.patch
-git-xtensa.patch
-drivers-telephony-ixjc-depends-on-pnp.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-devpts-switch-to-ida-checkpatch-fixes.patch
 getdelaysc-add-a-usr1-signal-handler.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
