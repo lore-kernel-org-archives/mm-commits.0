@@ -1,78 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - w1-document-add-remove-search_count-and-pullup.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 20:01:50 -0700
-Message-ID: <200807310301.m6V31o4b000484@imap1.linux-foundation.org>
+Subject: - w1-new-module-parameter-search_count.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 20:01:48 -0700
+Message-ID: <200807310301.m6V31m5n000478@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37024 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57601 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757155AbYGaDBy (ORCPT
+	by vger.kernel.org with ESMTP id S1754724AbYGaDBw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 23:01:54 -0400
+	Wed, 30 Jul 2008 23:01:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1: Document add, remove, search_count, and pullup.
+     w1: new module parameter search_count
 has been removed from the -mm tree.  Its filename was
-     w1-document-add-remove-search_count-and-pullup.patch
+     w1-new-module-parameter-search_count.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: Document add, remove, search_count, and pullup.
+Subject: w1: new module parameter search_count
 From: David Fries <david@fries.net>
 
-Document w1_master_add, w1_master_remove, search_count, and pullup.
+Added a new module parameter search_count which allows overriding the
+default search count.  -1 continual, 0 disabled, N that many times.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/w1/w1.generic |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/w1/w1_int.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/w1/w1.generic~w1-document-add-remove-search_count-and-pullup Documentation/w1/w1.generic
---- a/Documentation/w1/w1.generic~w1-document-add-remove-search_count-and-pullup
-+++ a/Documentation/w1/w1.generic
-@@ -79,10 +79,13 @@ w1 master sysfs interface
- <xx-xxxxxxxxxxxxx> - a directory for a found device. The format is family-serial
- bus                - (standard) symlink to the w1 bus
- driver             - (standard) symlink to the w1 driver
-+w1_master_add      - Manually register a slave device
- w1_master_attempts - the number of times a search was attempted
- w1_master_max_slave_count
-                    - the maximum slaves that may be attached to a master
- w1_master_name     - the name of the device (w1_bus_masterX)
-+w1_master_pullup   - 5V strong pullup 0 enabled, 1 disabled
-+w1_master_remove   - Manually remove a slave device
- w1_master_search   - the number of searches left to do, -1=continual (default)
- w1_master_slave_count
-                    - the number of slaves found
-@@ -90,7 +93,13 @@ w1_master_slaves   - the names of the sl
- w1_master_timeout  - the delay in seconds between searches
+diff -puN drivers/w1/w1_int.c~w1-new-module-parameter-search_count drivers/w1/w1_int.c
+--- a/drivers/w1/w1_int.c~w1-new-module-parameter-search_count
++++ a/drivers/w1/w1_int.c
+@@ -30,6 +30,8 @@
+ #include "w1_int.h"
  
- If you have a w1 bus that never changes (you don't add or remove devices),
--you can set w1_master_search to a positive value to disable searches.
-+you can set the module parameter search_count to a small positive number
-+for an initially small number of bus searches.  Alternatively it could be
-+set to zero, then manually add the slave device serial numbers by
-+w1_master_add device file.  The w1_master_add and w1_master_remove files
-+generally only make sense when searching is disabled, as a search will
-+redetect manually removed devices that are present and timeout manually
-+added devices that aren't on the bus.
+ static u32 w1_ids = 1;
++static int w1_search_count = -1; /* Default is continual scan */
++module_param_named(search_count, w1_search_count, int, 0);
  
+ static int w1_enable_pullup = 1;
+ module_param_named(enable_pullup, w1_enable_pullup, int, 0);
+@@ -62,8 +64,8 @@ static struct w1_master * w1_alloc_dev(u
+ 	dev->initialized	= 0;
+ 	dev->id			= id;
+ 	dev->slave_ttl		= slave_ttl;
++	dev->search_count	= w1_search_count;
+ 	dev->enable_pullup	= w1_enable_pullup;
+-        dev->search_count	= -1; /* continual scan */
  
- w1 slave sysfs interface
+ 	/* 1 for w1_process to decrement
+ 	 * 1 for __w1_remove_master_device to decrement
 _
 
 Patches currently in -mm which might be from david@fries.net are
 
+w1-new-module-parameter-search_count.patch
 w1-document-add-remove-search_count-and-pullup.patch
 w1-w1_slave_read_id-read-bug-use-device_attribute.patch
 w1-w1_therm-fix-user-buffer-overflow-and-cat.patch
