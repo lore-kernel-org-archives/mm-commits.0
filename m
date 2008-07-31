@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dma-fix-order-calculation-in-dma_mark_declared_memory_occupied.patch added to -mm tree
-Date: Thu, 31 Jul 2008 14:32:27 -0700
-Message-ID: <200807312132.m6VLWRcX013294@imap1.linux-foundation.org>
+Subject: + x86-64-fix-overlap-of-modules-and-fixmap-areas.patch added to -mm tree
+Date: Thu, 31 Jul 2008 14:33:52 -0700
+Message-ID: <200807312133.m6VLXq5U013355@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40035 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43356 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753861AbYGaVco (ORCPT
+	by vger.kernel.org with ESMTP id S1754922AbYGaVeo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jul 2008 17:32:44 -0400
+	Thu, 31 Jul 2008 17:34:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbeulich@novell.com, James.Bottomley@HansenPartnership.com, dbaryshkov@gmail.com, jbarnes@virtuousgeek.org, mingo@elte.hu
+Cc: jbeulich@novell.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     dma: fix order calculation in dma_mark_declared_memory_occupied()
+     x86-64: fix overlap of modules and fixmap areas
 has been added to the -mm tree.  Its filename is
-     dma-fix-order-calculation-in-dma_mark_declared_memory_occupied.patch
+     x86-64-fix-overlap-of-modules-and-fixmap-areas.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma: fix order calculation in dma_mark_declared_memory_occupied()
+Subject: x86-64: fix overlap of modules and fixmap areas
 From: "Jan Beulich" <jbeulich@novell.com>
 
-get_order() takes byte-sized input, not a page-granular one.
-
-Irrespective of this fix I'm inclined to believe that this doesn't work
-right anyway - bitmap_allocate_region() has an implicit assumption of
-'pos' being suitable for 'order', which this function doesn't seem to
-enforce (and since it's being called with a byte-granular value there's no
-reason to believe that the callers would make sure device_addr is passed
-accordingly - it's also not documented that way).
+Plus add a build time check so this doesn't go unnoticed again.
 
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/dma-coherent.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/x86/kernel/head64.c     |    1 +
+ include/asm-x86/pgtable_64.h |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/dma-coherent.c~dma-fix-order-calculation-in-dma_mark_declared_memory_occupied kernel/dma-coherent.c
---- a/kernel/dma-coherent.c~dma-fix-order-calculation-in-dma_mark_declared_memory_occupied
-+++ a/kernel/dma-coherent.c
-@@ -77,15 +77,14 @@ void *dma_mark_declared_memory_occupied(
- {
- 	struct dma_coherent_mem *mem = dev->dma_mem;
- 	int pos, err;
--	int pages = (size + (device_addr & ~PAGE_MASK) + PAGE_SIZE - 1);
+diff -puN arch/x86/kernel/head64.c~x86-64-fix-overlap-of-modules-and-fixmap-areas arch/x86/kernel/head64.c
+--- a/arch/x86/kernel/head64.c~x86-64-fix-overlap-of-modules-and-fixmap-areas
++++ a/arch/x86/kernel/head64.c
+@@ -88,6 +88,7 @@ void __init x86_64_start_kernel(char * r
+ 	BUILD_BUG_ON(!(MODULES_VADDR > __START_KERNEL));
+ 	BUILD_BUG_ON(!(((MODULES_END - 1) & PGDIR_MASK) ==
+ 				(__START_KERNEL & PGDIR_MASK)));
++	BUILD_BUG_ON(__fix_to_virt(__end_of_fixed_addresses) <= MODULES_END);
  
--	pages >>= PAGE_SHIFT;
-+	size += device_addr & ~PAGE_MASK;
+ 	/* clear bss before set_intr_gate with early_idt_handler */
+ 	clear_bss();
+diff -puN include/asm-x86/pgtable_64.h~x86-64-fix-overlap-of-modules-and-fixmap-areas include/asm-x86/pgtable_64.h
+--- a/include/asm-x86/pgtable_64.h~x86-64-fix-overlap-of-modules-and-fixmap-areas
++++ a/include/asm-x86/pgtable_64.h
+@@ -151,7 +151,7 @@ static inline void native_pgd_clear(pgd_
+ #define VMALLOC_END      _AC(0xffffe1ffffffffff, UL)
+ #define VMEMMAP_START	 _AC(0xffffe20000000000, UL)
+ #define MODULES_VADDR    _AC(0xffffffffa0000000, UL)
+-#define MODULES_END      _AC(0xfffffffffff00000, UL)
++#define MODULES_END      _AC(0xffffffffff000000, UL)
+ #define MODULES_LEN   (MODULES_END - MODULES_VADDR)
  
- 	if (!mem)
- 		return ERR_PTR(-EINVAL);
- 
- 	pos = (device_addr - mem->device_base) >> PAGE_SHIFT;
--	err = bitmap_allocate_region(mem->bitmap, pos, get_order(pages));
-+	err = bitmap_allocate_region(mem->bitmap, pos, get_order(size));
- 	if (err != 0)
- 		return ERR_PTR(err);
- 	return mem->virt_base + (pos << PAGE_SHIFT);
+ #ifndef __ASSEMBLY__
 _
 
 Patches currently in -mm which might be from jbeulich@novell.com are
 
 origin.patch
+x86-64-fix-overlap-of-modules-and-fixmap-areas.patch
 dma-fix-order-calculation-in-dma_mark_declared_memory_occupied.patch
 
