@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + w1-w1_ioc-reset-comments-and-msleep.patch added to -mm tree
-Date: Wed, 30 Jul 2008 20:16:27 -0700
-Message-ID: <200807310316.m6V3GRHt001179@imap1.linux-foundation.org>
+Subject: + w1-w1_intc-use-first-available-master-number.patch added to -mm tree
+Date: Wed, 30 Jul 2008 20:16:24 -0700
+Message-ID: <200807310316.m6V3GODm001173@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56616 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47259 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755761AbYGaDXf (ORCPT
+	by vger.kernel.org with ESMTP id S1756096AbYGaDXi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 23:23:35 -0400
+	Wed, 30 Jul 2008 23:23:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david@fries.net, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     W1: w1_io.c reset comments and msleep
+     W1: w1_int.c use first available master number
 has been added to the -mm tree.  Its filename is
-     w1-w1_ioc-reset-comments-and-msleep.patch
+     w1-w1_intc-use-first-available-master-number.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: W1: w1_io.c reset comments and msleep
+Subject: W1: w1_int.c use first available master number
 From: David Fries <david@fries.net>
 
-w1_reset_bus, added some comments about the timing and switched to msleep
-for the later delay.  I don't have the hardware to test the sleep after
-reset change.  The one wire doesn't have a timing requirement between
-commands so it is fine.  I do have the USB hardware and it would be in big
-trouble with 10ms interrupt transfers to find that the reset completed.
+Follow the example of other devices (like the joystick device).  Pick the
+first available id for each detected device.  Currently for USB devices,
+suspending and resuming would cause the number to increment.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1_io.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ drivers/w1/w1_int.c |   32 ++++++++++++++++++++++++++------
+ 1 file changed, 26 insertions(+), 6 deletions(-)
 
-diff -puN drivers/w1/w1_io.c~w1-w1_ioc-reset-comments-and-msleep drivers/w1/w1_io.c
---- a/drivers/w1/w1_io.c~w1-w1_ioc-reset-comments-and-msleep
-+++ a/drivers/w1/w1_io.c
-@@ -293,12 +293,24 @@ int w1_reset_bus(struct w1_master *dev)
- 		result = dev->bus_master->reset_bus(dev->bus_master->data) & 0x1;
- 	else {
- 		dev->bus_master->write_bit(dev->bus_master->data, 0);
-+		/* minimum 480, max ? us
-+		 * be nice and sleep, except 18b20 spec lists 960us maximum,
-+		 * so until we can sleep with microsecond accuracy, spin.
-+		 * Feel free to come up with some other way to give up the
-+		 * cpu for such a short amount of time AND get it back in
-+		 * the maximum amount of time.
-+		 */
- 		w1_delay(480);
- 		dev->bus_master->write_bit(dev->bus_master->data, 1);
- 		w1_delay(70);
+diff -puN drivers/w1/w1_int.c~w1-w1_intc-use-first-available-master-number drivers/w1/w1_int.c
+--- a/drivers/w1/w1_int.c~w1-w1_intc-use-first-available-master-number
++++ a/drivers/w1/w1_int.c
+@@ -29,7 +29,6 @@
+ #include "w1_netlink.h"
+ #include "w1_int.h"
  
- 		result = dev->bus_master->read_bit(dev->bus_master->data) & 0x1;
--		w1_delay(410);
-+		/* minmum 70 (above) + 410 = 480 us
-+		 * There aren't any timing requirements between a reset and
-+		 * the following transactions.  Sleeping is safe here.
-+		 */
-+		/* w1_delay(410); min required time */
-+		msleep(1);
+-static u32 w1_ids = 1;
+ static int w1_search_count = -1; /* Default is continual scan */
+ module_param_named(search_count, w1_search_count, int, 0);
+ 
+@@ -102,9 +101,10 @@ static void w1_free_dev(struct w1_master
+ 
+ int w1_add_master_device(struct w1_bus_master *master)
+ {
+-	struct w1_master *dev;
++	struct w1_master *dev, *entry;
+ 	int retval = 0;
+ 	struct w1_netlink_msg msg;
++	int id, found;
+ 
+         /* validate minimum functionality */
+         if (!(master->touch_bit && master->reset_bus) &&
+@@ -126,13 +126,33 @@ int w1_add_master_device(struct w1_bus_m
+ 		master->set_pullup = NULL;
  	}
  
- 	return result;
+-	dev = w1_alloc_dev(w1_ids++, w1_max_slave_count, w1_max_slave_ttl, &w1_master_driver, &w1_master_device);
+-	if (!dev)
++	/* Lock until the device is added (or not) to w1_masters. */
++	mutex_lock(&w1_mlock);
++	/* Search for the first available id (starting at 1). */
++	id = 0;
++	do {
++		++id;
++		found = 0;
++		list_for_each_entry(entry, &w1_masters, w1_master_entry) {
++			if (entry->id == id) {
++				found = 1;
++				break;
++			}
++		}
++	} while (found);
++
++	dev = w1_alloc_dev(id, w1_max_slave_count, w1_max_slave_ttl,
++		&w1_master_driver, &w1_master_device);
++	if (!dev) {
++		mutex_unlock(&w1_mlock);
+ 		return -ENOMEM;
++	}
+ 
+ 	retval =  w1_create_master_attributes(dev);
+-	if (retval)
++	if (retval) {
++		mutex_unlock(&w1_mlock);
+ 		goto err_out_free_dev;
++	}
+ 
+ 	memcpy(dev->bus_master, master, sizeof(struct w1_bus_master));
+ 
+@@ -144,10 +164,10 @@ int w1_add_master_device(struct w1_bus_m
+ 		dev_err(&dev->dev,
+ 			 "Failed to create new kernel thread. err=%d\n",
+ 			 retval);
++		mutex_unlock(&w1_mlock);
+ 		goto err_out_rm_attr;
+ 	}
+ 
+-	mutex_lock(&w1_mlock);
+ 	list_add(&dev->w1_master_entry, &w1_masters);
+ 	mutex_unlock(&w1_mlock);
+ 
 _
 
 Patches currently in -mm which might be from david@fries.net are
