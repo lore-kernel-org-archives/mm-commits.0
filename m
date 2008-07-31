@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-export-is_uv_system.patch added to -mm tree
-Date: Wed, 30 Jul 2008 16:59:06 -0700
-Message-ID: <200807310011.m6V0BrWD025657@imap1.linux-foundation.org>
+Subject: + usb-hubc-fix-build-with-config_pm=n.patch added to -mm tree
+Date: Wed, 30 Jul 2008 17:57:18 -0700
+Message-ID: <200807310110.m6V1A5Bt028475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60793 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56029 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761159AbYGaAMV (ORCPT
+	by vger.kernel.org with ESMTP id S1753337AbYGaBKm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 20:12:21 -0400
+	Wed, 30 Jul 2008 21:10:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dcn@sgi.com, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, greg@kroah.com, stern@rowland.harvard.edu
 
 
 The patch titled
-     x86: export is_uv_system()
+     usb: hub.c: fix build with CONFIG_PM=n
 has been added to the -mm tree.  Its filename is
-     x86-export-is_uv_system.patch
+     usb-hubc-fix-build-with-config_pm=n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: export is_uv_system()
+Subject: usb: hub.c: fix build with CONFIG_PM=n
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "is_uv_system" [drivers/misc/sgi-xp/xpnet.ko] undefined!
-ERROR: "is_uv_system" [drivers/misc/sgi-xp/xpc.ko] undefined!
-ERROR: "is_uv_system" [drivers/misc/sgi-xp/xp.ko] undefined!
-ERROR: "is_uv_system" [drivers/misc/sgi-gru/gru.ko] undefined!
+alpha allmodconfig:
 
-(is sgi-xp an x86-64 driver?)
+ERROR: "usb_forced_unbind_intf" [drivers/usb/core/usbcore.ko] undefined!
+ERROR: "usb_rebind_intf" [drivers/usb/core/usbcore.ko] undefined!
 
-Cc: Dean Nelson <dcn@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/genx2apic_uv_x.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/usb/core/usb.h |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/genx2apic_uv_x.c~x86-export-is_uv_system arch/x86/kernel/genx2apic_uv_x.c
---- a/arch/x86/kernel/genx2apic_uv_x.c~x86-export-is_uv_system
-+++ a/arch/x86/kernel/genx2apic_uv_x.c
-@@ -53,6 +53,7 @@ int is_uv_system(void)
- {
- 	return uv_system_type != UV_NONE;
- }
-+EXPORT_SYMBOL(is_uv_system);
+diff -puN drivers/usb/core/usb.h~usb-hubc-fix-build-with-config_pm=n drivers/usb/core/usb.h
+--- a/drivers/usb/core/usb.h~usb-hubc-fix-build-with-config_pm=n
++++ a/drivers/usb/core/usb.h
+@@ -29,8 +29,6 @@ extern int usb_choose_configuration(stru
+ extern void usb_kick_khubd(struct usb_device *dev);
+ extern int usb_match_device(struct usb_device *dev,
+ 			    const struct usb_device_id *id);
+-extern void usb_forced_unbind_intf(struct usb_interface *intf);
+-extern void usb_rebind_intf(struct usb_interface *intf);
  
- DEFINE_PER_CPU(struct uv_hub_info_s, __uv_hub_info);
- EXPORT_PER_CPU_SYMBOL_GPL(__uv_hub_info);
+ extern int  usb_hub_init(void);
+ extern void usb_hub_cleanup(void);
+@@ -47,6 +45,8 @@ extern int usb_port_resume(struct usb_de
+ extern int usb_external_suspend_device(struct usb_device *udev,
+ 		pm_message_t msg);
+ extern int usb_external_resume_device(struct usb_device *udev);
++extern void usb_forced_unbind_intf(struct usb_interface *intf);
++extern void usb_rebind_intf(struct usb_interface *intf);
+ 
+ static inline void usb_pm_lock(struct usb_device *udev)
+ {
+@@ -70,6 +70,14 @@ static inline int usb_port_resume(struct
+ 	return 0;
+ }
+ 
++static inline void usb_forced_unbind_intf(struct usb_interface *intf)
++{
++}
++
++static inline void usb_rebind_intf(struct usb_interface *intf)
++{
++}
++
+ static inline void usb_pm_lock(struct usb_device *udev) {}
+ static inline void usb_pm_unlock(struct usb_device *udev) {}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,6 +97,7 @@ linux-next-git-rejects.patch
 next-remove-localversion.patch
 pci-make-pci_register_driver-a-macro.patch
 arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+x86-export-is_uv_system.patch
 ppc-use-the-common-ascii-hex-helpers.patch
 powerpc-replace-__function__-with-__func__.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
@@ -140,5 +163,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-x86-export-is_uv_system.patch
+usb-hubc-fix-build-with-config_pm=n.patch
 
