@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + w1-w1_process-block-or-sleep.patch added to -mm tree
-Date: Wed, 30 Jul 2008 20:16:03 -0700
-Message-ID: <200807310316.m6V3G3bc001133@imap1.linux-foundation.org>
+Subject: + w1-document-add-remove-search_count-and-pullup.patch added to -mm tree
+Date: Wed, 30 Jul 2008 20:16:15 -0700
+Message-ID: <200807310316.m6V3GFl3001158@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49354 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43365 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756072AbYGaDRG (ORCPT
+	by vger.kernel.org with ESMTP id S1751905AbYGaDRj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 23:17:06 -0400
+	Wed, 30 Jul 2008 23:17:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david@fries.net, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     W1: w1_process, block or sleep
+     W1: Document add, remove, search_count, and pullup.
 has been added to the -mm tree.  Its filename is
-     w1-w1_process-block-or-sleep.patch
+     w1-document-add-remove-search_count-and-pullup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,120 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: W1: w1_process, block or sleep
+Subject: W1: Document add, remove, search_count, and pullup.
 From: David Fries <david@fries.net>
 
-The w1_process thread's sleeping and termination has been modified. 
-msleep_interruptible was replaced by schedule_timeout and schedule to
-allow for kthread_stop and wake_up_process to interrupt the sleep and the
-unbounded sleeping when a bus search is disabled.  The W1_MASTER_NEED_EXIT
-and flags variable were removed as they were redundant with
-kthread_should_stop and kthread_stop.  If w1_process is sleeping,
-requesting a search will immediately wake it up rather than waiting for
-the end of msleep_interruptible previously.
+Document w1_master_add, w1_master_remove, search_count, and pullup.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1.c     |   20 +++++++++++++++++---
- drivers/w1/w1.h     |    4 ----
- drivers/w1/w1_int.c |    2 --
- 3 files changed, 17 insertions(+), 9 deletions(-)
+ Documentation/w1/w1.generic |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN drivers/w1/w1.c~w1-w1_process-block-or-sleep drivers/w1/w1.c
---- a/drivers/w1/w1.c~w1-w1_process-block-or-sleep
-+++ a/drivers/w1/w1.c
-@@ -251,6 +251,7 @@ static ssize_t w1_master_attribute_store
- 	mutex_lock(&md->mutex);
- 	md->search_count = simple_strtol(buf, NULL, 0);
- 	mutex_unlock(&md->mutex);
-+	wake_up_process(md->thread);
+diff -puN Documentation/w1/w1.generic~w1-document-add-remove-search_count-and-pullup Documentation/w1/w1.generic
+--- a/Documentation/w1/w1.generic~w1-document-add-remove-search_count-and-pullup
++++ a/Documentation/w1/w1.generic
+@@ -79,10 +79,13 @@ w1 master sysfs interface
+ <xx-xxxxxxxxxxxxx> - a directory for a found device. The format is family-serial
+ bus                - (standard) symlink to the w1 bus
+ driver             - (standard) symlink to the w1 driver
++w1_master_add      - Manually register a slave device
+ w1_master_attempts - the number of times a search was attempted
+ w1_master_max_slave_count
+                    - the maximum slaves that may be attached to a master
+ w1_master_name     - the name of the device (w1_bus_masterX)
++w1_master_pullup   - 5V strong pullup 0 enabled, 1 disabled
++w1_master_remove   - Manually remove a slave device
+ w1_master_search   - the number of searches left to do, -1=continual (default)
+ w1_master_slave_count
+                    - the number of slaves found
+@@ -90,7 +93,13 @@ w1_master_slaves   - the names of the sl
+ w1_master_timeout  - the delay in seconds between searches
  
- 	return count;
- }
-@@ -773,7 +774,7 @@ void w1_search(struct w1_master *dev, u8
- 			tmp64 = (triplet_ret >> 2);
- 			rn |= (tmp64 << i);
+ If you have a w1 bus that never changes (you don't add or remove devices),
+-you can set w1_master_search to a positive value to disable searches.
++you can set the module parameter search_count to a small positive number
++for an initially small number of bus searches.  Alternatively it could be
++set to zero, then manually add the slave device serial numbers by
++w1_master_add device file.  The w1_master_add and w1_master_remove files
++generally only make sense when searching is disabled, as a search will
++redetect manually removed devices that are present and timeout manually
++added devices that aren't on the bus.
  
--			if (test_bit(W1_MASTER_NEED_EXIT, &dev->flags)) {
-+			if (kthread_should_stop()) {
- 				printk(KERN_INFO "Abort w1_search (exiting)\n");
- 				return;
- 			}
-@@ -811,8 +812,12 @@ void w1_search_process(struct w1_master 
- int w1_process(void *data)
- {
- 	struct w1_master *dev = (struct w1_master *) data;
-+	/* As long as w1_timeout is only set by a module parameter the sleep
-+	 * time can be calculated in jiffies once.
-+	 */
-+	const unsigned long jtime = msecs_to_jiffies(w1_timeout * 1000);
  
--	while (!kthread_should_stop() && !test_bit(W1_MASTER_NEED_EXIT, &dev->flags)) {
-+	while (!kthread_should_stop()) {
- 		if (dev->search_count) {
- 			mutex_lock(&dev->mutex);
- 			w1_search_process(dev, W1_SEARCH);
-@@ -820,7 +825,16 @@ int w1_process(void *data)
- 		}
- 
- 		try_to_freeze();
--		msleep_interruptible(w1_timeout * 1000);
-+		__set_current_state(TASK_INTERRUPTIBLE);
-+
-+		if (kthread_should_stop())
-+			break;
-+
-+		/* Only sleep when the search is active. */
-+		if (dev->search_count)
-+			schedule_timeout(jtime);
-+		else
-+			schedule();
- 	}
- 
- 	atomic_dec(&dev->refcnt);
-diff -puN drivers/w1/w1.h~w1-w1_process-block-or-sleep drivers/w1/w1.h
---- a/drivers/w1/w1.h~w1-w1_process-block-or-sleep
-+++ a/drivers/w1/w1.h
-@@ -149,8 +149,6 @@ struct w1_bus_master
- 		u8, w1_slave_found_callback);
- };
- 
--#define W1_MASTER_NEED_EXIT		0
--
- struct w1_master
- {
- 	struct list_head	w1_master_entry;
-@@ -169,8 +167,6 @@ struct w1_master
- 	void			*priv;
- 	int			priv_size;
- 
--	long			flags;
--
- 	struct task_struct	*thread;
- 	struct mutex		mutex;
- 
-diff -puN drivers/w1/w1_int.c~w1-w1_process-block-or-sleep drivers/w1/w1_int.c
---- a/drivers/w1/w1_int.c~w1-w1_process-block-or-sleep
-+++ a/drivers/w1/w1_int.c
-@@ -142,7 +142,6 @@ int w1_add_master_device(struct w1_bus_m
- 
- #if 0 /* Thread cleanup code, not required currently. */
- err_out_kill_thread:
--	set_bit(W1_MASTER_NEED_EXIT, &dev->flags);
- 	kthread_stop(dev->thread);
- #endif
- err_out_rm_attr:
-@@ -158,7 +157,6 @@ void __w1_remove_master_device(struct w1
- 	struct w1_netlink_msg msg;
- 	struct w1_slave *sl, *sln;
- 
--	set_bit(W1_MASTER_NEED_EXIT, &dev->flags);
- 	kthread_stop(dev->thread);
- 
- 	mutex_lock(&w1_mlock);
+ w1 slave sysfs interface
 _
 
 Patches currently in -mm which might be from david@fries.net are
