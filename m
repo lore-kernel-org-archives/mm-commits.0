@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-fix-missing-posix_typesh.patch added to -mm tree
-Date: Thu, 31 Jul 2008 10:17:30 -0700
-Message-ID: <200807311717.m6VHHUR8002261@imap1.linux-foundation.org>
+Subject: + linux-next-revert-input-expand-keycode-space.patch added to -mm tree
+Date: Thu, 31 Jul 2008 12:37:09 -0700
+Message-ID: <200807311937.m6VJbAUj008029@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38148 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43959 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755838AbYGaRRz (ORCPT
+	by vger.kernel.org with ESMTP id S1751146AbYGaThv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jul 2008 13:17:55 -0400
+	Thu, 31 Jul 2008 15:37:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, jdike@addtoit.com, sam@ravnborg.org, wangcong@zeuux.org
+Cc: hugh@veritas.com
 
 
 The patch titled
-     UML: fix missing posix_types.h
+     linux-next: revert "Input: expand keycode space"
 has been added to the -mm tree.  Its filename is
-     uml-fix-missing-posix_typesh.patch
+     linux-next-revert-input-expand-keycode-space.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: UML: fix missing posix_types.h
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: linux-next: revert "Input: expand keycode space"
+From: Hugh Dickins <hugh@veritas.com>
 
-When building UML with 'O=foo' specified, I got:
+If you want to test 2.6.27-rc1-mm1, but your Synaptics pad is making X
+crash immediately, and like Aunt Tillie and me you're more comfortable
+patching your kernel than messing around in your userspace,
+then reverting back from 768 to 512 keys should help.
 
-CC      kernel/bounds.s
-  In file included from
-/home/wangcong/Projects/linux-2.6/include/linux/types.h:11,
-                 from
-/home/wangcong/Projects/linux-2.6/include/linux/page-flags.h:8,
-                 from
-/home/wangcong/Projects/linux-2.6/kernel/bounds.c:9:
-/home/wangcong/Projects/linux-2.6/include/linux/posix_types.h:47:29:
-error: asm/posix_types.h: No such file or directory
-In file included from
-/home/wangcong/Projects/linux-2.6/include/linux/page-flags.h:8,
-                 from
-/home/wangcong/Projects/linux-2.6/kernel/bounds.c:9:
-/home/wangcong/Projects/linux-2.6/include/linux/types.h:12:23: error:
-asm/types.h: No such file or directory
-In file included from
-/home/wangcong/Projects/linux-2.6/include/linux/page-flags.h:8,
-
-Below patch fixed it, note, it is only tested for x86 and um.
-
-Signed-off-by: WANG Cong <wangcong@zeuux.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/input.h           |    2 +-
+ include/linux/mod_devicetable.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Makefile~uml-fix-missing-posix_typesh Makefile
---- a/Makefile~uml-fix-missing-posix_typesh
-+++ a/Makefile
-@@ -931,7 +931,8 @@ ifneq ($(KBUILD_SRC),)
- 		/bin/false; \
- 	fi;
- 	$(Q)if [ ! -d include2 ]; then mkdir -p include2; fi;
--	$(Q)if [ -e $(srctree)/include/asm-$(SRCARCH)/system.h ]; then  \
-+	$(Q)if [ -e $(srctree)/include/asm-$(SRCARCH)/system.h -o \
-+		 -e $(objtree)/include/asm-$(SRCARCH)/system.h ] ; then \
- 	    ln -fsn $(srctree)/include/asm-$(SRCARCH) include2/asm;     \
- 	    fi
- endif
+diff -puN include/linux/input.h~linux-next-revert-input-expand-keycode-space include/linux/input.h
+--- a/include/linux/input.h~linux-next-revert-input-expand-keycode-space
++++ a/include/linux/input.h
+@@ -592,7 +592,7 @@ struct input_absinfo {
+ 
+ /* We avoid low common keys in module aliases so they don't get huge. */
+ #define KEY_MIN_INTERESTING	KEY_MUTE
+-#define KEY_MAX			0x2ff
++#define KEY_MAX			0x1ff
+ #define KEY_CNT			(KEY_MAX+1)
+ 
+ /*
+diff -puN include/linux/mod_devicetable.h~linux-next-revert-input-expand-keycode-space include/linux/mod_devicetable.h
+--- a/include/linux/mod_devicetable.h~linux-next-revert-input-expand-keycode-space
++++ a/include/linux/mod_devicetable.h
+@@ -274,7 +274,7 @@ struct pcmcia_device_id {
+ /* Input */
+ #define INPUT_DEVICE_ID_EV_MAX		0x1f
+ #define INPUT_DEVICE_ID_KEY_MIN_INTERESTING	0x71
+-#define INPUT_DEVICE_ID_KEY_MAX		0x2ff
++#define INPUT_DEVICE_ID_KEY_MAX		0x1ff
+ #define INPUT_DEVICE_ID_REL_MAX		0x0f
+ #define INPUT_DEVICE_ID_ABS_MAX		0x3f
+ #define INPUT_DEVICE_ID_MSC_MAX		0x07
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-uml-fix-missing-posix_typesh.patch
+linux-next-revert-input-expand-keycode-space.patch
+git-unionfs.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+mlock-mlocked-pages-are-unevictable.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mmapc-deinline-a-few-functions.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+prio_tree-debugging-patch.patch
 
