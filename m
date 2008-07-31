@@ -1,172 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: - w1-feature-w1_thermc-use-strong-pullup-and-documentation.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 20:01:42 -0700
-Message-ID: <200807310301.m6V31gCx000467@imap1.linux-foundation.org>
+Subject: - w1-feature-enable-hardware-strong-pullup-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 20:01:40 -0700
+Message-ID: <200807310301.m6V31eV2000464@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41892 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43262 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763265AbYGaDCm (ORCPT
+	by vger.kernel.org with ESMTP id S1763244AbYGaDCm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 30 Jul 2008 23:02:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1: feature, w1_therm.c use strong pullup and documentation
+     w1-feature-enable-hardware-strong-pullup-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     w1-feature-w1_thermc-use-strong-pullup-and-documentation.patch
+     w1-feature-enable-hardware-strong-pullup-checkpatch-fixes.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: feature, w1_therm.c use strong pullup and documentation
-From: David Fries <david@fries.net>
+Subject: w1-feature-enable-hardware-strong-pullup-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Added strong pullup to thermal sensor driver and general documentation on
-the sensor.
+WARNING: consider using strict_strtol in preference to simple_strtol
+#49: FILE: drivers/w1/w1.c:280:
++	md->enable_pullup = simple_strtol(buf, NULL, 0);
 
-Signed-off-by: David Fries <david@fries.net>
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+ERROR: spaces required around that '==' (ctx:VxV)
+#221: FILE: drivers/w1/w1_io.c:145:
++			if (i==7)
+ 			     ^
+
+ERROR: do not use C99 // comments
+#241: FILE: drivers/w1/w1_io.c:252:
++			w1_write_8(dev, buf[i]); // calls w1_pre_write
+
+total: 2 errors, 1 warnings, 207 lines checked
+
+./patches/w1-feature-enable-hardware-strong-pullup.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: David Fries <david@fries.net>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/w1/00-INDEX        |    2 +
- Documentation/w1/slaves/00-INDEX |    4 ++
- Documentation/w1/slaves/w1_therm |   41 +++++++++++++++++++++++++++++
- drivers/w1/slaves/w1_therm.c     |   15 +++++++++-
- 4 files changed, 60 insertions(+), 2 deletions(-)
+ drivers/w1/w1_io.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/w1/00-INDEX~w1-feature-w1_thermc-use-strong-pullup-and-documentation Documentation/w1/00-INDEX
---- a/Documentation/w1/00-INDEX~w1-feature-w1_thermc-use-strong-pullup-and-documentation
-+++ a/Documentation/w1/00-INDEX
-@@ -1,5 +1,7 @@
- 00-INDEX
- 	- This file
-+slaves/
-+	- Drivers that provide support for specific family codes.
- masters/
- 	- Individual chips providing 1-wire busses.
- w1.generic
-diff -puN /dev/null Documentation/w1/slaves/00-INDEX
---- /dev/null
-+++ a/Documentation/w1/slaves/00-INDEX
-@@ -0,0 +1,4 @@
-+00-INDEX
-+	- This file
-+w1_therm
-+	- The Maxim/Dallas Semiconductor ds18*20 temperature sensor.
-diff -puN /dev/null Documentation/w1/slaves/w1_therm
---- /dev/null
-+++ a/Documentation/w1/slaves/w1_therm
-@@ -0,0 +1,41 @@
-+Kernel driver w1_therm
-+====================
-+
-+Supported chips:
-+  * Maxim ds18*20 based temperature sensors.
-+
-+Author: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
-+
-+
-+Description
-+-----------
-+
-+w1_therm provides basic temperature conversion for ds18*20 devices.
-+supported family codes:
-+W1_THERM_DS18S20	0x10
-+W1_THERM_DS1822		0x22
-+W1_THERM_DS18B20	0x28
-+
-+Support is provided through the sysfs w1_slave file.  Each open and
-+read sequence will initiate a temperature conversion then provide two
-+lines of ASCII output.  The first line contains the nine hex bytes
-+read along with a calculated crc value and YES or NO if it matched.
-+If the crc matched the returned values are retained.  The second line
-+displays the retained values along with a temperature in millidegrees
-+Centigrade after t=.
-+
-+Parasite powered devices are limited to one slave performing a
-+temperature conversion at a time.  If none of the devices are parasite
-+powered it would be possible to convert all the devices at the same
-+time and then go back to read individual sensors.  That isn't
-+currently supported.  The driver also doesn't support reduced
-+precision (which would also reduce the conversion time).
-+
-+The module parameter strong_pullup can be set to 0 to disable the
-+strong pullup or 1 to enable.  If enabled the 5V strong pullup will be
-+enabled when the conversion is taking place provided the master driver
-+must support the strong pullup (or it falls back to a pullup
-+resistor).  The DS18b20 temperature sensor specification lists a
-+maximum current draw of 1.5mA and that a 5k pullup resistor is not
-+sufficient.  The strong pullup is designed to provide the additional
-+current required.
-diff -puN drivers/w1/slaves/w1_therm.c~w1-feature-w1_thermc-use-strong-pullup-and-documentation drivers/w1/slaves/w1_therm.c
---- a/drivers/w1/slaves/w1_therm.c~w1-feature-w1_thermc-use-strong-pullup-and-documentation
-+++ a/drivers/w1/slaves/w1_therm.c
-@@ -37,6 +37,14 @@ MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Evgeniy Polyakov <johnpol@2ka.mipt.ru>");
- MODULE_DESCRIPTION("Driver for 1-wire Dallas network protocol, temperature family.");
- 
-+/* Allow the strong pullup to be disabled, but default to enabled.
-+ * If it was disabled a parasite powered device might not get the require
-+ * current to do a temperature conversion.  If it is enabled parasite powered
-+ * devices have a better chance of getting the current required.
-+ */
-+static int w1_strong_pullup = 1;
-+module_param_named(strong_pullup, w1_strong_pullup, int, 0);
-+
- static u8 bad_roms[][9] = {
- 				{0xaa, 0x00, 0x4b, 0x46, 0xff, 0xff, 0x0c, 0x10, 0x87},
- 				{}
-@@ -192,9 +200,12 @@ static ssize_t w1_therm_read_bin(struct 
- 			int count = 0;
- 			unsigned int tm = 750;
- 
-+			/* 750ms strong pullup (or delay) after the convert */
-+			if (w1_strong_pullup)
-+				w1_next_pullup(dev, tm);
- 			w1_write_8(dev, W1_CONVERT_TEMP);
--
--			msleep(tm);
-+			if (!w1_strong_pullup)
-+				msleep(tm);
- 
- 			if (!w1_reset_select_slave(sl)) {
- 
+diff -puN drivers/w1/w1_io.c~w1-feature-enable-hardware-strong-pullup-checkpatch-fixes drivers/w1/w1_io.c
+--- a/drivers/w1/w1_io.c~w1-feature-enable-hardware-strong-pullup-checkpatch-fixes
++++ a/drivers/w1/w1_io.c
+@@ -142,7 +142,7 @@ void w1_write_8(struct w1_master *dev, u
+ 	}
+ 	else
+ 		for (i = 0; i < 8; ++i) {
+-			if (i==7)
++			if (i == 7)
+ 				w1_pre_write(dev);
+ 			w1_touch_bit(dev, (byte >> i) & 0x1);
+ 		}
+@@ -249,7 +249,7 @@ void w1_write_block(struct w1_master *de
+ 	}
+ 	else
+ 		for (i = 0; i < len; ++i)
+-			w1_write_8(dev, buf[i]); // calls w1_pre_write
++			w1_write_8(dev, buf[i]);  /* calls w1_pre_write */
+ 	w1_post_write(dev);
+ }
+ EXPORT_SYMBOL_GPL(w1_write_block);
 _
 
-Patches currently in -mm which might be from david@fries.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-w1-feature-w1_thermc-use-strong-pullup-and-documentation.patch
-w1-be-able-to-manually-add-and-remove-slaves.patch
-w1-recode-w1_slave_found-logic.patch
-w1-new-module-parameter-search_count.patch
-w1-document-add-remove-search_count-and-pullup.patch
-w1-w1_slave_read_id-read-bug-use-device_attribute.patch
-w1-w1_therm-fix-user-buffer-overflow-and-cat.patch
-w1-w1_family-remove-unused-variable-need_exit.patch
-w1-w1_therm-consistent-mutex-access-code-cleanup.patch
-w1-w1_intc-use-first-available-master-number.patch
-w1-w1c-s-printk-dev_dbg.patch
-w1-w1_ioc-reset-comments-and-msleep.patch
-w1-ds1wmc-msleep-for-reset.patch
-w1-ds2490c-correct-print-message.patch
-w1-ds2490c-add-support-for-strong-pullup.patch
+origin.patch
+missing-symbol-prefix-on-vmlinuxldsh-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+pci-make-pci_register_driver-a-macro.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+x86-export-is_uv_system.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+git-mtd.patch
+drivers-mtd-nand-nandsimc-needs-div64h.patch
+drivers-mtd-nand-nandsimc-fix-printk-warnings.patch
+git-ubi-git-rejects.patch
+bridge-send-correct-mtu-value-in-pmtu.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+sched-type-fix.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+usb-hubc-fix-build-with-config_pm=n.patch
+git-xtensa.patch
+drivers-telephony-ixjc-depends-on-pnp.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
+getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+w1-feature-enable-hardware-strong-pullup-checkpatch-fixes.patch
 w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes.patch
-w1-ds2490c-ds_write_bit-grouping-error-disable-readback.patch
-w1-ds2490c-disable-bit-read-and-write.patch
-w1-ds2490c-simplify-and-fix-ds_touch_bit.patch
-w1-ds2490c-ds_dump_status-rework.patch
-w1-ds2490c-ds_reset-remove-ds_wait_status.patch
-w1-ds2490c-reset-ds2490-in-init.patch
-w1-ds2490c-magic-number-work.patch
-w1-ds2490c-ds_write_block-remove-extra-ds_wait_status.patch
-w1-documentation-w1-masters-ds2490-update.patch
-w1-ds2490c-optimize-ds_set_pullup.patch
 w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
