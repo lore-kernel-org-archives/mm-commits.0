@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-64-fix-overlap-of-modules-and-fixmap-areas.patch added to -mm tree
-Date: Thu, 31 Jul 2008 14:33:52 -0700
-Message-ID: <200807312133.m6VLXq5U013355@imap1.linux-foundation.org>
+Subject: + x86-fdiv-bug-detection-fix.patch added to -mm tree
+Date: Thu, 31 Jul 2008 14:50:04 -0700
+Message-ID: <200807312150.m6VLo4gj014114@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43356 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56164 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754922AbYGaVeo (ORCPT
+	by vger.kernel.org with ESMTP id S1758822AbYGaVu5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jul 2008 17:34:44 -0400
+	Thu, 31 Jul 2008 17:50:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbeulich@novell.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+Cc: krzysztof.h1@wp.pl, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     x86-64: fix overlap of modules and fixmap areas
+     x86: fdiv bug detection fix
 has been added to the -mm tree.  Its filename is
-     x86-64-fix-overlap-of-modules-and-fixmap-areas.patch
+     x86-fdiv-bug-detection-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-64: fix overlap of modules and fixmap areas
-From: "Jan Beulich" <jbeulich@novell.com>
+Subject: x86: fdiv bug detection fix
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Plus add a build time check so this doesn't go unnoticed again.
+The fdiv detection code writes s32 integer into the
+boot_cpu_data.fdiv_bug.
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
+However, the boot_cpu_data.fdiv_bug is only char (s8) field so the
+detection overwrites already set fields for other bugs, e.g.  the f00f bug
+field.
+
+Use local s32 variable to achieve result.
+
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/head64.c     |    1 +
- include/asm-x86/pgtable_64.h |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ arch/x86/kernel/cpu/bugs.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/head64.c~x86-64-fix-overlap-of-modules-and-fixmap-areas arch/x86/kernel/head64.c
---- a/arch/x86/kernel/head64.c~x86-64-fix-overlap-of-modules-and-fixmap-areas
-+++ a/arch/x86/kernel/head64.c
-@@ -88,6 +88,7 @@ void __init x86_64_start_kernel(char * r
- 	BUILD_BUG_ON(!(MODULES_VADDR > __START_KERNEL));
- 	BUILD_BUG_ON(!(((MODULES_END - 1) & PGDIR_MASK) ==
- 				(__START_KERNEL & PGDIR_MASK)));
-+	BUILD_BUG_ON(__fix_to_virt(__end_of_fixed_addresses) <= MODULES_END);
- 
- 	/* clear bss before set_intr_gate with early_idt_handler */
- 	clear_bss();
-diff -puN include/asm-x86/pgtable_64.h~x86-64-fix-overlap-of-modules-and-fixmap-areas include/asm-x86/pgtable_64.h
---- a/include/asm-x86/pgtable_64.h~x86-64-fix-overlap-of-modules-and-fixmap-areas
-+++ a/include/asm-x86/pgtable_64.h
-@@ -151,7 +151,7 @@ static inline void native_pgd_clear(pgd_
- #define VMALLOC_END      _AC(0xffffe1ffffffffff, UL)
- #define VMEMMAP_START	 _AC(0xffffe20000000000, UL)
- #define MODULES_VADDR    _AC(0xffffffffa0000000, UL)
--#define MODULES_END      _AC(0xfffffffffff00000, UL)
-+#define MODULES_END      _AC(0xffffffffff000000, UL)
- #define MODULES_LEN   (MODULES_END - MODULES_VADDR)
- 
- #ifndef __ASSEMBLY__
+diff -puN arch/x86/kernel/cpu/bugs.c~x86-fdiv-bug-detection-fix arch/x86/kernel/cpu/bugs.c
+--- a/arch/x86/kernel/cpu/bugs.c~x86-fdiv-bug-detection-fix
++++ a/arch/x86/kernel/cpu/bugs.c
+@@ -50,6 +50,8 @@ static double __initdata y = 3145727.0;
+  */
+ static void __init check_fpu(void)
+ {
++	s32 fdiv_bug;
++
+ 	if (!boot_cpu_data.hard_math) {
+ #ifndef CONFIG_MATH_EMULATION
+ 		printk(KERN_EMERG "No coprocessor found and no math emulation present.\n");
+@@ -74,8 +76,10 @@ static void __init check_fpu(void)
+ 		"fistpl %0\n\t"
+ 		"fwait\n\t"
+ 		"fninit"
+-		: "=m" (*&boot_cpu_data.fdiv_bug)
++		: "=m" (*&fdiv_bug)
+ 		: "m" (*&x), "m" (*&y));
++
++	boot_cpu_data.fdiv_bug = fdiv_bug;
+ 	if (boot_cpu_data.fdiv_bug)
+ 		printk("Hmm, FPU with FDIV bug.\n");
+ }
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-x86-64-fix-overlap-of-modules-and-fixmap-areas.patch
-dma-fix-order-calculation-in-dma_mark_declared_memory_occupied.patch
+fbcon-fix-scrolling-after-logo-is-cleared.patch
+drivers-video-fsl-diu-fbc-add-missing-of_node_put.patch
+rtc-m48t59-reduce-structure-m48t59_private.patch
+x86-fdiv-bug-detection-fix.patch
 
