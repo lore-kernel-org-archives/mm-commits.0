@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + w1-abort-search-early-on-on-exit.patch added to -mm tree
-Date: Wed, 30 Jul 2008 20:15:59 -0700
-Message-ID: <200807310315.m6V3FxKZ001121@imap1.linux-foundation.org>
+Subject: + w1-recode-w1_slave_found-logic.patch added to -mm tree
+Date: Wed, 30 Jul 2008 20:16:11 -0700
+Message-ID: <200807310316.m6V3GB8R001152@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49303 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53709 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758555AbYGaDQc (ORCPT
+	by vger.kernel.org with ESMTP id S1752639AbYGaDQq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 23:16:32 -0400
+	Wed, 30 Jul 2008 23:16:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david@fries.net, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     W1: abort search early on on exit
+     W1: recode w1_slave_found logic
 has been added to the -mm tree.  Its filename is
-     w1-abort-search-early-on-on-exit.patch
+     w1-recode-w1_slave_found-logic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: W1: abort search early on on exit
+Subject: W1: recode w1_slave_found logic
 From: David Fries <david@fries.net>
 
-Early abort if the master driver or the hardware goes away in the middle
-of a bus search operation.  The alternative is to spam the print buffer up
-to 64*64 times with read errors in the case of USB.
+Simplified the logic in w1_slave_found by using the new
+w1_attach_slave_device function to find a slave and mark it as active or
+add the device if the crc checks.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/w1/w1.c |   26 ++++++--------------------
+ 1 file changed, 6 insertions(+), 20 deletions(-)
 
-diff -puN drivers/w1/w1.c~w1-abort-search-early-on-on-exit drivers/w1/w1.c
---- a/drivers/w1/w1.c~w1-abort-search-early-on-on-exit
+diff -puN drivers/w1/w1.c~w1-recode-w1_slave_found-logic drivers/w1/w1.c
+--- a/drivers/w1/w1.c~w1-recode-w1_slave_found-logic
 +++ a/drivers/w1/w1.c
-@@ -772,6 +772,11 @@ void w1_search(struct w1_master *dev, u8
- 			/* extract the direction taken & update the device number */
- 			tmp64 = (triplet_ret >> 2);
- 			rn |= (tmp64 << i);
-+
-+			if (test_bit(W1_MASTER_NEED_EXIT, &dev->flags)) {
-+				printk(KERN_INFO "Abort w1_search (exiting)\n");
-+				return;
-+			}
- 		}
+@@ -844,9 +844,7 @@ void w1_reconnect_slaves(struct w1_famil
  
- 		if ( (triplet_ret & 0x03) != 0x03 ) {
+ static void w1_slave_found(struct w1_master *dev, u64 rn)
+ {
+-	int slave_count;
+ 	struct w1_slave *sl;
+-	struct list_head *ent;
+ 	struct w1_reg_num *tmp;
+ 	u64 rn_le = cpu_to_le64(rn);
+ 
+@@ -854,24 +852,12 @@ static void w1_slave_found(struct w1_mas
+ 
+ 	tmp = (struct w1_reg_num *) &rn;
+ 
+-	slave_count = 0;
+-	list_for_each(ent, &dev->slist) {
+-
+-		sl = list_entry(ent, struct w1_slave, w1_slave_entry);
+-
+-		if (sl->reg_num.family == tmp->family &&
+-		    sl->reg_num.id == tmp->id &&
+-		    sl->reg_num.crc == tmp->crc) {
+-			set_bit(W1_SLAVE_ACTIVE, (long *)&sl->flags);
+-			break;
+-		}
+-
+-		slave_count++;
+-	}
+-
+-	if (slave_count == dev->slave_count &&
+-		rn && ((rn >> 56) & 0xff) == w1_calc_crc8((u8 *)&rn_le, 7)) {
+-		w1_attach_slave_device(dev, tmp);
++	sl = w1_slave_search_device(dev, tmp);
++	if (sl) {
++		set_bit(W1_SLAVE_ACTIVE, (long *)&sl->flags);
++	} else {
++		if (rn && tmp->crc == w1_calc_crc8((u8 *)&rn_le, 7))
++			w1_attach_slave_device(dev, tmp);
+ 	}
+ 
+ 	atomic_dec(&dev->refcnt);
 _
 
 Patches currently in -mm which might be from david@fries.net are
