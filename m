@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + w1-ds2490c-ds_write_bit-grouping-error-disable-readback.patch added to -mm tree
-Date: Wed, 30 Jul 2008 20:16:35 -0700
-Message-ID: <200807310316.m6V3GZRB001191@imap1.linux-foundation.org>
+Subject: + w1-ds2490c-disable-bit-read-and-write.patch added to -mm tree
+Date: Wed, 30 Jul 2008 20:16:37 -0700
+Message-ID: <200807310316.m6V3GbKl001194@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36484 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41722 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756599AbYGaDSJ (ORCPT
+	by vger.kernel.org with ESMTP id S1756878AbYGaDSO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 23:18:09 -0400
+	Wed, 30 Jul 2008 23:18:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david@fries.net, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     W1: ds2490.c ds_write_bit, grouping error, disable readback
+     W1: ds2490.c disable bit read and write
 has been added to the -mm tree.  Its filename is
-     w1-ds2490c-ds_write_bit-grouping-error-disable-readback.patch
+     w1-ds2490c-disable-bit-read-and-write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: W1: ds2490.c ds_write_bit, grouping error, disable readback
+Subject: W1: ds2490.c disable bit read and write
 From: David Fries <david@fries.net>
 
-ds_write_bit doesn't read the input buffer, so add COMM_ICP and a comment
-that it will no longer generate a read back data byte.  If there is an
-extra data byte later on then it will cause an error and discard what data
-was there.  Corrected operator ordering for ds_send_control.
+Don't export read and write bit operations, they didn't work, they weren't
+used, and they can't be made to work.  The one wire low level bit
+operations expect to set high or low levels, the ds2490 hardware only
+supports complete read or write time slots, better to just comment them
+out.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds2490.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/w1/masters/ds2490.c |   25 ++++++++++++++++++-------
+ 1 file changed, 18 insertions(+), 7 deletions(-)
 
-diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-ds_write_bit-grouping-error-disable-readback drivers/w1/masters/ds2490.c
---- a/drivers/w1/masters/ds2490.c~w1-ds2490c-ds_write_bit-grouping-error-disable-readback
+diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-disable-bit-read-and-write drivers/w1/masters/ds2490.c
+--- a/drivers/w1/masters/ds2490.c~w1-ds2490c-disable-bit-read-and-write
 +++ a/drivers/w1/masters/ds2490.c
-@@ -525,7 +525,12 @@ static int ds_write_bit(struct ds_device
+@@ -520,6 +520,7 @@ static int ds_touch_bit(struct ds_device
+ 	return 0;
+ }
+ 
++#if 0
+ static int ds_write_bit(struct ds_device *dev, u8 bit)
+ {
  	int err;
- 	struct ds_status st;
+@@ -538,6 +539,7 @@ static int ds_write_bit(struct ds_device
  
--	err = ds_send_control(dev, COMM_BIT_IO | COMM_IM | (bit) ? COMM_D : 0, 0);
-+	/* Set COMM_ICP to write without a readback.  Note, this will
-+	 * produce one time slot, a down followed by an up with COMM_D
-+	 * only determing the timing.
-+	 */
-+	err = ds_send_control(dev, COMM_BIT_IO | COMM_IM | COMM_ICP |
-+		(bit ? COMM_D : 0), 0);
- 	if (err)
- 		return err;
+ 	return 0;
+ }
++#endif
  
+ static int ds_write_byte(struct ds_device *dev, u8 byte)
+ {
+@@ -722,6 +724,7 @@ static u8 ds9490r_touch_bit(void *data, 
+ 	return ret;
+ }
+ 
++#if 0
+ static void ds9490r_write_bit(void *data, u8 bit)
+ {
+ 	struct ds_device *dev = data;
+@@ -729,13 +732,6 @@ static void ds9490r_write_bit(void *data
+ 	ds_write_bit(dev, bit);
+ }
+ 
+-static void ds9490r_write_byte(void *data, u8 byte)
+-{
+-	struct ds_device *dev = data;
+-
+-	ds_write_byte(dev, byte);
+-}
+-
+ static u8 ds9490r_read_bit(void *data)
+ {
+ 	struct ds_device *dev = data;
+@@ -748,6 +744,14 @@ static u8 ds9490r_read_bit(void *data)
+ 
+ 	return bit & 1;
+ }
++#endif
++
++static void ds9490r_write_byte(void *data, u8 byte)
++{
++	struct ds_device *dev = data;
++
++	ds_write_byte(dev, byte);
++}
+ 
+ static u8 ds9490r_read_byte(void *data)
+ {
+@@ -812,8 +816,15 @@ static int ds_w1_init(struct ds_device *
+ 
+ 	dev->master.data	= dev;
+ 	dev->master.touch_bit	= &ds9490r_touch_bit;
++	/* read_bit and write_bit in w1_bus_master are expected to set and
++	 * sample the line level.  For write_bit that means it is expected to
++	 * set it to that value and leave it there.  ds2490 only supports an
++	 * individual time slot at the lowest level.  The requirement from
++	 * pulling the bus state down to reading the state is 15us, something
++	 * that isn't realistic on the USB bus anyway.
+ 	dev->master.read_bit	= &ds9490r_read_bit;
+ 	dev->master.write_bit	= &ds9490r_write_bit;
++	*/
+ 	dev->master.read_byte	= &ds9490r_read_byte;
+ 	dev->master.write_byte	= &ds9490r_write_byte;
+ 	dev->master.read_block	= &ds9490r_read_block;
 _
 
 Patches currently in -mm which might be from david@fries.net are
