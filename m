@@ -1,146 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 20:02:13 -0700
-Message-ID: <200807310302.m6V32Dan000555@imap1.linux-foundation.org>
+Subject: - w1-ds2490c-ds_write_bit-grouping-error-disable-readback.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 20:02:15 -0700
+Message-ID: <200807310302.m6V32FNL000558@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45392 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51680 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763255AbYGaDCS (ORCPT
+	by vger.kernel.org with ESMTP id S1763243AbYGaDCT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 23:02:18 -0400
+	Wed, 30 Jul 2008 23:02:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes
+     w1: ds2490.c ds_write_bit, grouping error, disable readback
 has been removed from the -mm tree.  Its filename was
-     w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes.patch
+     w1-ds2490c-ds_write_bit-grouping-error-disable-readback.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: w1: ds2490.c ds_write_bit, grouping error, disable readback
+From: David Fries <david@fries.net>
 
-ERROR: spaces required around that '?' (ctx:VxV)
-#106: FILE: drivers/w1/masters/ds2490.c:473:
-+	err = ds_send_control_mode(dev, MOD_PULSE_EN, delay?PULSE_SPUE:0);
- 	                                                   ^
+ds_write_bit doesn't read the input buffer, so add COMM_ICP and a comment
+that it will no longer generate a read back data byte.  If there is an
+extra data byte later on then it will cause an error and discard what data
+was there.  Corrected operator ordering for ds_send_control.
 
-ERROR: spaces required around that ':' (ctx:VxV)
-#106: FILE: drivers/w1/masters/ds2490.c:473:
-+	err = ds_send_control_mode(dev, MOD_PULSE_EN, delay?PULSE_SPUE:0);
- 	                                                              ^
-
-total: 2 errors, 0 warnings, 168 lines checked
-
-./patches/w1-ds2490c-add-support-for-strong-pullup.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Fries <david@fries.net>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Signed-off-by: David Fries <david@fries.net>
+Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds2490.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/w1/masters/ds2490.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes drivers/w1/masters/ds2490.c
---- a/drivers/w1/masters/ds2490.c~w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes
+diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-ds_write_bit-grouping-error-disable-readback drivers/w1/masters/ds2490.c
+--- a/drivers/w1/masters/ds2490.c~w1-ds2490c-ds_write_bit-grouping-error-disable-readback
 +++ a/drivers/w1/masters/ds2490.c
-@@ -470,7 +470,7 @@ static int ds_set_pullup(struct ds_devic
- 	u8 del = 1 + (u8)(delay >> 4);
+@@ -525,7 +525,12 @@ static int ds_write_bit(struct ds_device
+ 	int err;
+ 	struct ds_status st;
  
- 	dev->spu_sleep = 0;
--	err = ds_send_control_mode(dev, MOD_PULSE_EN, delay?PULSE_SPUE:0);
-+	err = ds_send_control_mode(dev, MOD_PULSE_EN, delay ? PULSE_SPUE : 0);
+-	err = ds_send_control(dev, COMM_BIT_IO | COMM_IM | (bit) ? COMM_D : 0, 0);
++	/* Set COMM_ICP to write without a readback.  Note, this will
++	 * produce one time slot, a down followed by an up with COMM_D
++	 * only determing the timing.
++	 */
++	err = ds_send_control(dev, COMM_BIT_IO | COMM_IM | COMM_ICP |
++		(bit ? COMM_D : 0), 0);
  	if (err)
  		return err;
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from david@fries.net are
 
-origin.patch
-missing-symbol-prefix-on-vmlinuxldsh-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-pci-make-pci_register_driver-a-macro.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-x86-export-is_uv_system.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-serio-xilinx_ps2c-fix-warning.patch
-git-jg-misc.patch
-git-mtd.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-drivers-mtd-nand-nandsimc-fix-printk-warnings.patch
-git-ubi-git-rejects.patch
-bridge-send-correct-mtu-value-in-pmtu.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-sched-type-fix.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-usb-hubc-fix-build-with-config_pm=n.patch
-git-xtensa.patch
-drivers-telephony-ixjc-depends-on-pnp.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-devpts-switch-to-ida-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes.patch
+w1-ds2490c-ds_write_bit-grouping-error-disable-readback.patch
+w1-ds2490c-disable-bit-read-and-write.patch
+w1-ds2490c-simplify-and-fix-ds_touch_bit.patch
+w1-ds2490c-ds_dump_status-rework.patch
+w1-ds2490c-ds_reset-remove-ds_wait_status.patch
+w1-ds2490c-reset-ds2490-in-init.patch
+w1-ds2490c-magic-number-work.patch
+w1-ds2490c-ds_write_block-remove-extra-ds_wait_status.patch
+w1-documentation-w1-masters-ds2490-update.patch
+w1-ds2490c-optimize-ds_set_pullup.patch
 w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
