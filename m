@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-fix-loading-of-abituguru3-on-abit-ip35-pro-with-bios-17.patch added to -mm tree
-Date: Thu, 31 Jul 2008 09:48:45 -0700
-Message-ID: <200807311648.m6VGmjgb001057@imap1.linux-foundation.org>
+Subject: + uml-fix-missing-posix_typesh.patch added to -mm tree
+Date: Thu, 31 Jul 2008 10:17:30 -0700
+Message-ID: <200807311717.m6VHHUR8002261@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36936 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38148 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755084AbYGaQsz (ORCPT
+	by vger.kernel.org with ESMTP id S1755838AbYGaRRz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jul 2008 12:48:55 -0400
+	Thu, 31 Jul 2008 13:17:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alistair@devzero.co.uk, j.w.r.degoede@hhs.nl, mhoffman@lightlink.com
+Cc: xiyou.wangcong@gmail.com, jdike@addtoit.com, sam@ravnborg.org, wangcong@zeuux.org
 
 
 The patch titled
-     hwmon: fix loading of abituguru3 on Abit IP35 Pro with BIOS 17
+     UML: fix missing posix_types.h
 has been added to the -mm tree.  Its filename is
-     hwmon-fix-loading-of-abituguru3-on-abit-ip35-pro-with-bios-17.patch
+     uml-fix-missing-posix_typesh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: fix loading of abituguru3 on Abit IP35 Pro with BIOS 17
-From: Alistair John Strachan <alistair@devzero.co.uk>
+Subject: UML: fix missing posix_types.h
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-Fix loading of abituguru3 on Abit IP35 Pro with BIOS 17.  The magic
-bytes have changed value (again).
+When building UML with 'O=foo' specified, I got:
 
-Signed-off-by: Alistair John Strachan <alistair@devzero.co.uk>
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+CC      kernel/bounds.s
+  In file included from
+/home/wangcong/Projects/linux-2.6/include/linux/types.h:11,
+                 from
+/home/wangcong/Projects/linux-2.6/include/linux/page-flags.h:8,
+                 from
+/home/wangcong/Projects/linux-2.6/kernel/bounds.c:9:
+/home/wangcong/Projects/linux-2.6/include/linux/posix_types.h:47:29:
+error: asm/posix_types.h: No such file or directory
+In file included from
+/home/wangcong/Projects/linux-2.6/include/linux/page-flags.h:8,
+                 from
+/home/wangcong/Projects/linux-2.6/kernel/bounds.c:9:
+/home/wangcong/Projects/linux-2.6/include/linux/types.h:12:23: error:
+asm/types.h: No such file or directory
+In file included from
+/home/wangcong/Projects/linux-2.6/include/linux/page-flags.h:8,
+
+Below patch fixed it, note, it is only tested for x86 and um.
+
+Signed-off-by: WANG Cong <wangcong@zeuux.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/abituguru3.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Makefile |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/hwmon/abituguru3.c~hwmon-fix-loading-of-abituguru3-on-abit-ip35-pro-with-bios-17 drivers/hwmon/abituguru3.c
---- a/drivers/hwmon/abituguru3.c~hwmon-fix-loading-of-abituguru3-on-abit-ip35-pro-with-bios-17
-+++ a/drivers/hwmon/abituguru3.c
-@@ -1118,7 +1118,7 @@ static int __init abituguru3_detect(void
- 	u8 cmd_val = inb_p(ABIT_UGURU3_BASE + ABIT_UGURU3_CMD);
- 	if (((data_val == 0x00) || (data_val == 0x08)) &&
- 			((cmd_val == 0xAC) || (cmd_val == 0x05) ||
--			 (cmd_val == 0x55)))
-+			 (cmd_val == 0x55) || (cmd_val == 0xFF)))
- 		return ABIT_UGURU3_BASE;
- 
- 	ABIT_UGURU3_DEBUG("no Abit uGuru3 found, data = 0x%02X, cmd = "
+diff -puN Makefile~uml-fix-missing-posix_typesh Makefile
+--- a/Makefile~uml-fix-missing-posix_typesh
++++ a/Makefile
+@@ -931,7 +931,8 @@ ifneq ($(KBUILD_SRC),)
+ 		/bin/false; \
+ 	fi;
+ 	$(Q)if [ ! -d include2 ]; then mkdir -p include2; fi;
+-	$(Q)if [ -e $(srctree)/include/asm-$(SRCARCH)/system.h ]; then  \
++	$(Q)if [ -e $(srctree)/include/asm-$(SRCARCH)/system.h -o \
++		 -e $(objtree)/include/asm-$(SRCARCH)/system.h ] ; then \
+ 	    ln -fsn $(srctree)/include/asm-$(SRCARCH) include2/asm;     \
+ 	    fi
+ endif
 _
 
-Patches currently in -mm which might be from alistair@devzero.co.uk are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-hwmon-fix-loading-of-abituguru3-on-abit-ip35-pro-with-bios-17.patch
+origin.patch
+uml-fix-missing-posix_typesh.patch
 
