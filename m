@@ -1,127 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - w1-ds2490c-disable-bit-read-and-write.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 20:02:17 -0700
-Message-ID: <200807310302.m6V32HO0000561@imap1.linux-foundation.org>
+Subject: - w1-ds2490c-magic-number-work.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 20:02:28 -0700
+Message-ID: <200807310302.m6V32Se6000576@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42155 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36780 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761980AbYGaDCV (ORCPT
+	by vger.kernel.org with ESMTP id S1761663AbYGaDCc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 23:02:21 -0400
+	Wed, 30 Jul 2008 23:02:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1: ds2490.c disable bit read and write
+     w1: ds2490.c magic number work
 has been removed from the -mm tree.  Its filename was
-     w1-ds2490c-disable-bit-read-and-write.patch
+     w1-ds2490c-magic-number-work.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: ds2490.c disable bit read and write
+Subject: w1: ds2490.c magic number work
 From: David Fries <david@fries.net>
 
-Don't export read and write bit operations, they didn't work, they weren't
-used, and they can't be made to work.  The one wire low level bit
-operations expect to set high or low levels, the ds2490 hardware only
-supports complete read or write time slots, better to just comment them
-out.
+This replaces some magic numbers with marcos and corrects one marco.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds2490.c |   25 ++++++++++++++++++-------
- 1 file changed, 18 insertions(+), 7 deletions(-)
+ drivers/w1/masters/ds2490.c |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-disable-bit-read-and-write drivers/w1/masters/ds2490.c
---- a/drivers/w1/masters/ds2490.c~w1-ds2490c-disable-bit-read-and-write
+diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-magic-number-work drivers/w1/masters/ds2490.c
+--- a/drivers/w1/masters/ds2490.c~w1-ds2490c-magic-number-work
 +++ a/drivers/w1/masters/ds2490.c
-@@ -520,6 +520,7 @@ static int ds_touch_bit(struct ds_device
- 	return 0;
- }
+@@ -88,7 +88,7 @@
+ #define COMM_DT				0x2000
+ #define COMM_SPU			0x1000
+ #define COMM_F				0x0800
+-#define COMM_NTP			0x0400
++#define COMM_NTF			0x0400
+ #define COMM_ICP			0x0200
+ #define COMM_RST			0x0100
  
-+#if 0
- static int ds_write_bit(struct ds_device *dev, u8 bit)
+@@ -440,7 +440,7 @@ static int ds_wait_status(struct ds_devi
+ 			printk("\n");
+ 		}
+ #endif
+-	} while(!(buf[0x08] & 0x20) && !(err < 0) && ++count < 100);
++	} while (!(buf[0x08] & ST_IDLE) && !(err < 0) && ++count < 100);
+ 
+ 	if (err >= 16 && st->status & ST_EPOF) {
+ 		printk(KERN_INFO "Resetting device after ST_EPOF.\n");
+@@ -470,8 +470,16 @@ static int ds_reset(struct ds_device *de
  {
  	int err;
-@@ -538,6 +539,7 @@ static int ds_write_bit(struct ds_device
  
- 	return 0;
- }
-+#endif
+-	//err = ds_send_control(dev, COMM_1_WIRE_RESET | COMM_F | COMM_IM | COMM_SE, SPEED_FLEXIBLE);
+-	err = ds_send_control(dev, 0x43, SPEED_NORMAL);
++	/* Other potentionally interesting flags for reset.
++	 *
++	 * COMM_NTF: Return result register feedback.  This could be used to
++	 * detect some conditions such as short, alarming presence, or
++	 * detect if a new device was detected.
++	 *
++	 * COMM_SE which allows SPEED_NORMAL, SPEED_FLEXIBLE, SPEED_OVERDRIVE:
++	 * Select the data transfer rate.
++	 */
++	err = ds_send_control(dev, COMM_1_WIRE_RESET | COMM_IM, SPEED_NORMAL);
+ 	if (err)
+ 		return err;
  
- static int ds_write_byte(struct ds_device *dev, u8 byte)
- {
-@@ -722,6 +724,7 @@ static u8 ds9490r_touch_bit(void *data, 
- 	return ret;
- }
- 
-+#if 0
- static void ds9490r_write_bit(void *data, u8 bit)
- {
- 	struct ds_device *dev = data;
-@@ -729,13 +732,6 @@ static void ds9490r_write_bit(void *data
- 	ds_write_bit(dev, bit);
- }
- 
--static void ds9490r_write_byte(void *data, u8 byte)
--{
--	struct ds_device *dev = data;
--
--	ds_write_byte(dev, byte);
--}
--
- static u8 ds9490r_read_bit(void *data)
- {
- 	struct ds_device *dev = data;
-@@ -748,6 +744,14 @@ static u8 ds9490r_read_bit(void *data)
- 
- 	return bit & 1;
- }
-+#endif
-+
-+static void ds9490r_write_byte(void *data, u8 byte)
-+{
-+	struct ds_device *dev = data;
-+
-+	ds_write_byte(dev, byte);
-+}
- 
- static u8 ds9490r_read_byte(void *data)
- {
-@@ -812,8 +816,15 @@ static int ds_w1_init(struct ds_device *
- 
- 	dev->master.data	= dev;
- 	dev->master.touch_bit	= &ds9490r_touch_bit;
-+	/* read_bit and write_bit in w1_bus_master are expected to set and
-+	 * sample the line level.  For write_bit that means it is expected to
-+	 * set it to that value and leave it there.  ds2490 only supports an
-+	 * individual time slot at the lowest level.  The requirement from
-+	 * pulling the bus state down to reading the state is 15us, something
-+	 * that isn't realistic on the USB bus anyway.
- 	dev->master.read_bit	= &ds9490r_read_bit;
- 	dev->master.write_bit	= &ds9490r_write_bit;
-+	*/
- 	dev->master.read_byte	= &ds9490r_read_byte;
- 	dev->master.write_byte	= &ds9490r_write_byte;
- 	dev->master.read_block	= &ds9490r_read_block;
 _
 
 Patches currently in -mm which might be from david@fries.net are
 
-w1-ds2490c-disable-bit-read-and-write.patch
-w1-ds2490c-simplify-and-fix-ds_touch_bit.patch
-w1-ds2490c-ds_dump_status-rework.patch
-w1-ds2490c-ds_reset-remove-ds_wait_status.patch
-w1-ds2490c-reset-ds2490-in-init.patch
 w1-ds2490c-magic-number-work.patch
 w1-ds2490c-ds_write_block-remove-extra-ds_wait_status.patch
 w1-documentation-w1-masters-ds2490-update.patch
