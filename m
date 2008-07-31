@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-fixup.patch added to -mm tree
-Date: Wed, 30 Jul 2008 20:14:19 -0700
-Message-ID: <200807310314.m6V3EJPm001013@imap1.linux-foundation.org>
+Subject: + zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch added to -mm tree
+Date: Wed, 30 Jul 2008 20:14:32 -0700
+Message-ID: <200807310314.m6V3EWHe001016@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48315 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43917 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753000AbYGaDOV (ORCPT
+	by vger.kernel.org with ESMTP id S1754033AbYGaDOp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 23:14:21 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m6V3EJdY032553
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 30 Jul 2008 20:14:20 -0700
+	Wed, 30 Jul 2008 23:14:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, clameter@sgi.com, mingo@elte.hu, travis@sgi.com
 
 
 The patch titled
-     linux-next-fixup
+     Zero based percpu: use VMLINUX_SYMBOL in include/asm-generic/vmlinux.lds.h
 has been added to the -mm tree.  Its filename is
-     linux-next-fixup.patch
+     zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,47 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-fixup
+Subject: Zero based percpu: use VMLINUX_SYMBOL in include/asm-generic/vmlinux.lds.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
+might be wrong or incomplete or whatever...
+
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Mike Travis <travis@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/vmlinux.lds.h |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ include/asm-generic/vmlinux.lds.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-generic/vmlinux.lds.h~linux-next-fixup include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~linux-next-fixup
+diff -puN include/asm-generic/vmlinux.lds.h~zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh
 +++ a/include/asm-generic/vmlinux.lds.h
-@@ -381,11 +381,28 @@
-   	*(.initcall7.init)						\
-   	*(.initcall7s.init)
- 
-+#ifdef CONFIG_HAVE_ZERO_BASED_PER_CPU
-+#define PERCPU(align)							\
-+	. = ALIGN(align);						\
-+	percpu : { } :percpu						\
-+	__per_cpu_load = .;						\
-+	.data.percpu 0 : AT(__per_cpu_load - LOAD_OFFSET) {		\
-+		*(.data.percpu.first)					\
-+		*(.data.percpu.shared_aligned)				\
-+		*(.data.percpu)						\
-+		*(.data.percpu.page_aligned)				\
-+		____per_cpu_size = .;					\
-+	}								\
-+	. = __per_cpu_load + ____per_cpu_size;				\
-+	data : { } :data
-+#else
+@@ -385,15 +385,15 @@
  #define PERCPU(align)							\
  	. = ALIGN(align);						\
- 	VMLINUX_SYMBOL(__per_cpu_start) = .;				\
- 	.data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) {		\
-+		*(.data.percpu.page_aligned)				\
- 		*(.data.percpu)						\
+ 	percpu : { } :percpu						\
+-	__per_cpu_load = .;						\
+-	.data.percpu 0 : AT(__per_cpu_load - LOAD_OFFSET) {		\
++	VMLINUX_SYMBOL(__per_cpu_load) = .;				\
++	.data.percpu 0 : AT(VMLINUX_SYMBOL(__per_cpu_load) - LOAD_OFFSET) { \
+ 		*(.data.percpu.first)					\
  		*(.data.percpu.shared_aligned)				\
+ 		*(.data.percpu)						\
+ 		*(.data.percpu.page_aligned)				\
+-		____per_cpu_size = .;					\
++		VMLINUX_SYMBOL(____per_cpu_size) = .;			\
  	}								\
- 	VMLINUX_SYMBOL(__per_cpu_end) = .;
-+#endif
+-	. = __per_cpu_load + ____per_cpu_size;				\
++	. = VMLINUX_SYMBOL(__per_cpu_load) + VMLINUX_SYMBOL(____per_cpu_size); \
+ 	data : { } :data
+ #else
+ #define PERCPU(align)							\
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
