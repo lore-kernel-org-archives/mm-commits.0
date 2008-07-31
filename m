@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + w1-dont-delay-search-start.patch added to -mm tree
-Date: Wed, 30 Jul 2008 20:16:01 -0700
-Message-ID: <200807310316.m6V3G1UC001130@imap1.linux-foundation.org>
+Subject: + w1-ds2490c-optimize-ds_set_pullup.patch added to -mm tree
+Date: Wed, 30 Jul 2008 20:16:53 -0700
+Message-ID: <200807310316.m6V3Gr6C001230@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34418 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40128 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756005AbYGaDQv (ORCPT
+	by vger.kernel.org with ESMTP id S1756036AbYGaDQ5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 23:16:51 -0400
+	Wed, 30 Jul 2008 23:16:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: david@fries.net, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     W1: don't delay search start
+     W1: ds2490.c optimize ds_set_pullup
 has been added to the -mm tree.  Its filename is
-     w1-dont-delay-search-start.patch
+     w1-ds2490c-optimize-ds_set_pullup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,117 +34,160 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: W1: don't delay search start
+Subject: W1: ds2490.c optimize ds_set_pullup
 From: David Fries <david@fries.net>
 
-Move the creation of the w1_process thread to after the device has been
-initialized.  This way w1_process doesn't have to check to see if it has
-been initialized and the bus search can proceed without sleeping.  That
-also eliminates two checks in the w1_process loop.  The sleep now happens
-at the end of the loop not the beginning.
-
-Also added a comment for why the atomic_set was 2.
+Optimize the ds_set_pullup function.  For a strong pullup to be sent the
+ds2490 has to have both the strong pullup mode enabled, and the specific
+write operation has to have the SPU bit enabled.  Previously the write
+always had the SPU bit enabled and both the duration and model was set
+when a strong pullup was requested.  Now the strong pullup mode is enabled
+at initialization time, the delay is updated only when the value changes,
+and the write SPU bit is set only when a strong pullup is required.  This
+removes two or three bus transactions per strong pullup request.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1.c     |   19 ++++++-------------
- drivers/w1/w1_int.c |   26 +++++++++++++++++---------
- 2 files changed, 23 insertions(+), 22 deletions(-)
+ drivers/w1/masters/ds2490.c |   64 +++++++++++++++++++++++-----------
+ 1 file changed, 45 insertions(+), 19 deletions(-)
 
-diff -puN drivers/w1/w1.c~w1-dont-delay-search-start drivers/w1/w1.c
---- a/drivers/w1/w1.c~w1-dont-delay-search-start
-+++ a/drivers/w1/w1.c
-@@ -813,21 +813,14 @@ int w1_process(void *data)
- 	struct w1_master *dev = (struct w1_master *) data;
- 
- 	while (!kthread_should_stop() && !test_bit(W1_MASTER_NEED_EXIT, &dev->flags)) {
-+		if (dev->search_count) {
-+			mutex_lock(&dev->mutex);
-+			w1_search_process(dev, W1_SEARCH);
-+			mutex_unlock(&dev->mutex);
-+		}
-+
- 		try_to_freeze();
- 		msleep_interruptible(w1_timeout * 1000);
--
--		if (kthread_should_stop() || test_bit(W1_MASTER_NEED_EXIT, &dev->flags))
--			break;
--
--		if (!dev->initialized)
--			continue;
--
--		if (dev->search_count == 0)
--			continue;
--
--		mutex_lock(&dev->mutex);
--		w1_search_process(dev, W1_SEARCH);
--		mutex_unlock(&dev->mutex);
- 	}
- 
- 	atomic_dec(&dev->refcnt);
-diff -puN drivers/w1/w1_int.c~w1-dont-delay-search-start drivers/w1/w1_int.c
---- a/drivers/w1/w1_int.c~w1-dont-delay-search-start
-+++ a/drivers/w1/w1_int.c
-@@ -61,6 +61,9 @@ static struct w1_master * w1_alloc_dev(u
- 	dev->slave_ttl		= slave_ttl;
-         dev->search_count	= -1; /* continual scan */
- 
-+	/* 1 for w1_process to decrement
-+	 * 1 for __w1_remove_master_device to decrement
+diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-optimize-ds_set_pullup drivers/w1/masters/ds2490.c
+--- a/drivers/w1/masters/ds2490.c~w1-ds2490c-optimize-ds_set_pullup
++++ a/drivers/w1/masters/ds2490.c
+@@ -141,6 +141,10 @@ struct ds_device
+ 	 * 0: pullup not active, else duration in milliseconds
+ 	 */
+ 	int			spu_sleep;
++	/* spu_bit contains COMM_SPU or 0 depending on if the strong pullup
++	 * should be active or not for writes.
 +	 */
- 	atomic_set(&dev->refcnt, 2);
++	u16			spu_bit;
  
- 	INIT_LIST_HEAD(&dev->slist);
-@@ -109,23 +112,23 @@ int w1_add_master_device(struct w1_bus_m
- 	if (!dev)
- 		return -ENOMEM;
- 
-+	retval =  w1_create_master_attributes(dev);
-+	if (retval)
-+		goto err_out_free_dev;
-+
-+	memcpy(dev->bus_master, master, sizeof(struct w1_bus_master));
-+
-+	dev->initialized = 1;
-+
- 	dev->thread = kthread_run(&w1_process, dev, "%s", dev->name);
- 	if (IS_ERR(dev->thread)) {
- 		retval = PTR_ERR(dev->thread);
- 		dev_err(&dev->dev,
- 			 "Failed to create new kernel thread. err=%d\n",
- 			 retval);
--		goto err_out_free_dev;
-+		goto err_out_rm_attr;
+ 	struct w1_bus_master	master;
+ };
+@@ -311,6 +315,25 @@ static void ds_dump_status(struct ds_dev
  	}
+ }
  
--	retval =  w1_create_master_attributes(dev);
--	if (retval)
--		goto err_out_kill_thread;
--
--	memcpy(dev->bus_master, master, sizeof(struct w1_bus_master));
--
--	dev->initialized = 1;
--
- 	mutex_lock(&w1_mlock);
- 	list_add(&dev->w1_master_entry, &w1_masters);
- 	mutex_unlock(&w1_mlock);
-@@ -137,8 +140,13 @@ int w1_add_master_device(struct w1_bus_m
++static void ds_reset_device(struct ds_device *dev)
++{
++	ds_send_control_cmd(dev, CTL_RESET_DEVICE, 0);
++	/* Always allow strong pullup which allow individual writes to use
++	 * the strong pullup.
++	 */
++	if (ds_send_control_mode(dev, MOD_PULSE_EN, PULSE_SPUE))
++		printk(KERN_ERR "ds_reset_device: "
++			"Error allowing strong pullup\n");
++	/* Chip strong pullup time was cleared. */
++	if (dev->spu_sleep) {
++		/* lower 4 bits are 0, see ds_set_pullup */
++		u8 del = dev->spu_sleep>>4;
++		if (ds_send_control(dev, COMM_SET_DURATION | COMM_IM, del))
++			printk(KERN_ERR "ds_reset_device: "
++				"Error setting duration\n");
++	}
++}
++
+ static int ds_recv_data(struct ds_device *dev, unsigned char *buf, int size)
+ {
+ 	int count, err;
+@@ -444,7 +467,7 @@ static int ds_wait_status(struct ds_devi
  
- 	return 0;
+ 	if (err >= 16 && st->status & ST_EPOF) {
+ 		printk(KERN_INFO "Resetting device after ST_EPOF.\n");
+-		ds_send_control_cmd(dev, CTL_RESET_DEVICE, 0);
++		ds_reset_device(dev);
+ 		/* Always dump the device status. */
+ 		count = 101;
+ 	}
+@@ -509,24 +532,26 @@ static int ds_set_speed(struct ds_device
  
-+#if 0 /* Thread cleanup code, not required currently. */
- err_out_kill_thread:
-+	set_bit(W1_MASTER_NEED_EXIT, &dev->flags);
- 	kthread_stop(dev->thread);
-+#endif
-+err_out_rm_attr:
-+	w1_destroy_master_attributes(dev);
- err_out_free_dev:
- 	w1_free_dev(dev);
+ static int ds_set_pullup(struct ds_device *dev, int delay)
+ {
+-	int err;
++	int err = 0;
+ 	u8 del = 1 + (u8)(delay >> 4);
++	/* Just storing delay would not get the trunication and roundup. */
++	int ms = del<<4;
  
+-	dev->spu_sleep = 0;
+-	err = ds_send_control_mode(dev, MOD_PULSE_EN, delay ? PULSE_SPUE : 0);
+-	if (err)
++	/* Enable spu_bit if a delay is set. */
++	dev->spu_bit = delay ? COMM_SPU : 0;
++	/* If delay is zero, it has already been disabled, if the time is
++	 * the same as the hardware was last programmed to, there is also
++	 * nothing more to do.  Compare with the recalculated value ms
++	 * rather than del or delay which can have a different value.
++	 */
++	if (delay == 0 || ms == dev->spu_sleep)
+ 		return err;
+ 
+-	if (delay) {
+-		err = ds_send_control(dev, COMM_SET_DURATION | COMM_IM, del);
+-		if (err)
+-			return err;
++	err = ds_send_control(dev, COMM_SET_DURATION | COMM_IM, del);
++	if (err)
++		return err;
+ 
+-		/* Just storing delay would not get the trunication and
+-		 * roundup.
+-		 */
+-		dev->spu_sleep = del<<4;
+-	}
++	dev->spu_sleep = ms;
+ 
+ 	return err;
+ }
+@@ -577,11 +602,11 @@ static int ds_write_byte(struct ds_devic
+ 	struct ds_status st;
+ 	u8 rbyte;
+ 
+-	err = ds_send_control(dev, COMM_BYTE_IO | COMM_IM | COMM_SPU, byte);
++	err = ds_send_control(dev, COMM_BYTE_IO | COMM_IM | dev->spu_bit, byte);
+ 	if (err)
+ 		return err;
+ 
+-	if (dev->spu_sleep)
++	if (dev->spu_bit)
+ 		msleep(dev->spu_sleep);
+ 
+ 	err = ds_wait_status(dev, &st);
+@@ -648,11 +673,11 @@ static int ds_write_block(struct ds_devi
+ 	if (err < 0)
+ 		return err;
+ 
+-	err = ds_send_control(dev, COMM_BLOCK_IO | COMM_IM | COMM_SPU, len);
++	err = ds_send_control(dev, COMM_BLOCK_IO | COMM_IM | dev->spu_bit, len);
+ 	if (err)
+ 		return err;
+ 
+-	if (dev->spu_sleep)
++	if (dev->spu_bit)
+ 		msleep(dev->spu_sleep);
+ 
+ 	ds_wait_status(dev, &st);
+@@ -849,7 +874,7 @@ static int ds_w1_init(struct ds_device *
+ 	 * the input buffer.  This will cause the next read to fail
+ 	 * see the note in ds_recv_data.
+ 	 */
+-	ds_send_control_cmd(dev, CTL_RESET_DEVICE, 0);
++	ds_reset_device(dev);
+ 
+ 	dev->master.data	= dev;
+ 	dev->master.touch_bit	= &ds9490r_touch_bit;
+@@ -892,6 +917,7 @@ static int ds_probe(struct usb_interface
+ 		return -ENOMEM;
+ 	}
+ 	dev->spu_sleep = 0;
++	dev->spu_bit = 0;
+ 	dev->udev = usb_get_dev(udev);
+ 	if (!dev->udev) {
+ 		err = -ENOMEM;
 _
 
 Patches currently in -mm which might be from david@fries.net are
