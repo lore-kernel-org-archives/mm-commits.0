@@ -1,145 +1,247 @@
 From: akpm@linux-foundation.org
-Subject: - w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 20:02:35 -0700
-Message-ID: <200807310302.m6V32Zr4000590@imap1.linux-foundation.org>
+Subject: - w1-be-able-to-manually-add-and-remove-slaves.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 20:01:44 -0700
+Message-ID: <200807310301.m6V31iWY000472@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51586 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39186 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762955AbYGaDCk (ORCPT
+	by vger.kernel.org with ESMTP id S1756729AbYGaDCs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 23:02:40 -0400
+	Wed, 30 Jul 2008 23:02:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes
+     w1: be able to manually add and remove slaves
 has been removed from the -mm tree.  Its filename was
-     w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes.patch
+     w1-be-able-to-manually-add-and-remove-slaves.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: w1: be able to manually add and remove slaves
+From: David Fries <david@fries.net>
 
-ERROR: spaces required around that '?' (ctx:VxV)
-#83: FILE: drivers/w1/masters/ds2490.c:541:
-+	dev->spu_bit = delay?COMM_SPU:0;
- 	                    ^
+sysfs entries were added to manually add and remove slave devices.  This
+is useful if the automatic bus searching is disabled, and the device ids
+are already known.
 
-ERROR: spaces required around that ':' (ctx:VxV)
-#83: FILE: drivers/w1/masters/ds2490.c:541:
-+	dev->spu_bit = delay?COMM_SPU:0;
- 	                             ^
-
-total: 2 errors, 0 warnings, 123 lines checked
-
-./patches/w1-ds2490c-optimize-ds_set_pullup.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Fries <david@fries.net>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Signed-off-by: David Fries <david@fries.net>
+Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds2490.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/w1/w1.c |  137 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 136 insertions(+), 1 deletion(-)
 
-diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes drivers/w1/masters/ds2490.c
---- a/drivers/w1/masters/ds2490.c~w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes
-+++ a/drivers/w1/masters/ds2490.c
-@@ -538,7 +538,7 @@ static int ds_set_pullup(struct ds_devic
- 	int ms = del<<4;
+diff -puN drivers/w1/w1.c~w1-be-able-to-manually-add-and-remove-slaves drivers/w1/w1.c
+--- a/drivers/w1/w1.c~w1-be-able-to-manually-add-and-remove-slaves
++++ a/drivers/w1/w1.c
+@@ -56,6 +56,8 @@ module_param_named(slave_ttl, w1_max_sla
+ DEFINE_MUTEX(w1_mlock);
+ LIST_HEAD(w1_masters);
  
- 	/* Enable spu_bit if a delay is set. */
--	dev->spu_bit = delay?COMM_SPU:0;
-+	dev->spu_bit = delay ? COMM_SPU : 0;
- 	/* If delay is zero, it has already been disabled, if the time is
- 	 * the same as the hardware was last programmed to, there is also
- 	 * nothing more to do.  Compare with the recalculated value ms
++static int w1_attach_slave_device(struct w1_master *dev, struct w1_reg_num *rn);
++
+ static int w1_master_match(struct device *dev, struct device_driver *drv)
+ {
+ 	return 1;
+@@ -349,7 +351,8 @@ static ssize_t w1_master_attribute_show_
+ 	return count;
+ }
+ 
+-static ssize_t w1_master_attribute_show_slaves(struct device *dev, struct device_attribute *attr, char *buf)
++static ssize_t w1_master_attribute_show_slaves(struct device *dev,
++	struct device_attribute *attr, char *buf)
+ {
+ 	struct w1_master *md = dev_to_w1_master(dev);
+ 	int c = PAGE_SIZE;
+@@ -374,6 +377,134 @@ static ssize_t w1_master_attribute_show_
+ 	return PAGE_SIZE - c;
+ }
+ 
++static ssize_t w1_master_attribute_show_add(struct device *dev,
++	struct device_attribute *attr, char *buf)
++{
++	int c = PAGE_SIZE;
++	c -= snprintf(buf+PAGE_SIZE - c, c,
++		"write device id xx-xxxxxxxxxxxx to add slave\n");
++	return PAGE_SIZE - c;
++}
++
++static int w1_atoreg_num(struct device *dev, const char *buf, size_t count,
++	struct w1_reg_num *rn)
++{
++	unsigned int family;
++	u64 id;
++	int i;
++	u64 rn64_le;
++	/* The CRC value isn't read from the user because the sysfs directory
++	 * doesn't include it and most messages from the bus search don't
++	 * print it either.  It would be unreasonable for the user to then
++	 * provide it.
++	 */
++	const char *error_msg = "bad slave string format, expecting "
++		"ff-dddddddddddd\n";
++
++	if (buf[2] != '-') {
++		dev_err(dev, "%s", error_msg);
++		return -EINVAL;
++	}
++	i = sscanf(buf, "%02x-%012llx", &family, &id);
++	if (i != 2) {
++		dev_err(dev, "%s", error_msg);
++		return -EINVAL;
++	}
++	rn->family = family;
++	rn->id = id;
++
++	rn64_le = cpu_to_le64(*(u64 *)rn);
++	rn->crc = w1_calc_crc8((u8 *)&rn64_le, 7);
++
++	#if 0
++	dev_info(dev, "With CRC device is %02x.%012llx.%02x.\n",
++		  rn->family, (unsigned long long)rn->id, rn->crc);
++	#endif
++
++	return 0;
++}
++
++/* Searches the slaves in the w1_master and returns a pointer or NULL.
++ * Note: must hold the mutex
++ */
++static struct w1_slave *w1_slave_search_device(struct w1_master *dev,
++	struct w1_reg_num *rn)
++{
++	struct w1_slave *sl;
++	list_for_each_entry(sl, &dev->slist, w1_slave_entry) {
++		if (sl->reg_num.family == rn->family &&
++				sl->reg_num.id == rn->id &&
++				sl->reg_num.crc == rn->crc) {
++			return sl;
++		}
++	}
++	return NULL;
++}
++
++static ssize_t w1_master_attribute_store_add(struct device *dev,
++						struct device_attribute *attr,
++						const char *buf, size_t count)
++{
++	struct w1_master *md = dev_to_w1_master(dev);
++	struct w1_reg_num rn;
++	struct w1_slave *sl;
++	ssize_t result = count;
++
++	if (w1_atoreg_num(dev, buf, count, &rn))
++		return -EINVAL;
++
++	mutex_lock(&md->mutex);
++	sl = w1_slave_search_device(md, &rn);
++	/* It would be nice to do a targeted search one the one-wire bus
++	 * for the new device to see if it is out there or not.  But the
++	 * current search doesn't support that.
++	 */
++	if (sl) {
++		dev_info(dev, "Device %s already exists\n", sl->name);
++		result = -EINVAL;
++	} else {
++		w1_attach_slave_device(md, &rn);
++	}
++	mutex_unlock(&md->mutex);
++
++	return result;
++}
++
++static ssize_t w1_master_attribute_show_remove(struct device *dev,
++	struct device_attribute *attr, char *buf)
++{
++	int c = PAGE_SIZE;
++	c -= snprintf(buf+PAGE_SIZE - c, c,
++		"write device id xx-xxxxxxxxxxxx to remove slave\n");
++	return PAGE_SIZE - c;
++}
++
++static ssize_t w1_master_attribute_store_remove(struct device *dev,
++						struct device_attribute *attr,
++						const char *buf, size_t count)
++{
++	struct w1_master *md = dev_to_w1_master(dev);
++	struct w1_reg_num rn;
++	struct w1_slave *sl;
++	ssize_t result = count;
++
++	if (w1_atoreg_num(dev, buf, count, &rn))
++		return -EINVAL;
++
++	mutex_lock(&md->mutex);
++	sl = w1_slave_search_device(md, &rn);
++	if (sl) {
++		w1_slave_detach(sl);
++	} else {
++		dev_info(dev, "Device %02x-%012llx doesn't exists\n", rn.family,
++			(unsigned long long)rn.id);
++		result = -EINVAL;
++	}
++	mutex_unlock(&md->mutex);
++
++	return result;
++}
++
+ #define W1_MASTER_ATTR_RO(_name, _mode)				\
+ 	struct device_attribute w1_master_attribute_##_name =	\
+ 		__ATTR(w1_master_##_name, _mode,		\
+@@ -394,6 +525,8 @@ static W1_MASTER_ATTR_RO(timeout, S_IRUG
+ static W1_MASTER_ATTR_RO(pointer, S_IRUGO);
+ static W1_MASTER_ATTR_RW(search, S_IRUGO | S_IWUGO);
+ static W1_MASTER_ATTR_RW(pullup, S_IRUGO | S_IWUGO);
++static W1_MASTER_ATTR_RW(add, S_IRUGO | S_IWUGO);
++static W1_MASTER_ATTR_RW(remove, S_IRUGO | S_IWUGO);
+ 
+ static struct attribute *w1_master_default_attrs[] = {
+ 	&w1_master_attribute_name.attr,
+@@ -405,6 +538,8 @@ static struct attribute *w1_master_defau
+ 	&w1_master_attribute_pointer.attr,
+ 	&w1_master_attribute_search.attr,
+ 	&w1_master_attribute_pullup.attr,
++	&w1_master_attribute_add.attr,
++	&w1_master_attribute_remove.attr,
+ 	NULL
+ };
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from david@fries.net are
 
-origin.patch
-missing-symbol-prefix-on-vmlinuxldsh-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-pci-make-pci_register_driver-a-macro.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-x86-export-is_uv_system.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-serio-xilinx_ps2c-fix-warning.patch
-git-jg-misc.patch
-git-mtd.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-drivers-mtd-nand-nandsimc-fix-printk-warnings.patch
-git-ubi-git-rejects.patch
-bridge-send-correct-mtu-value-in-pmtu.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-sched-type-fix.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-usb-hubc-fix-build-with-config_pm=n.patch
-git-xtensa.patch
-drivers-telephony-ixjc-depends-on-pnp.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-devpts-switch-to-ida-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
+w1-be-able-to-manually-add-and-remove-slaves.patch
+w1-recode-w1_slave_found-logic.patch
+w1-new-module-parameter-search_count.patch
+w1-document-add-remove-search_count-and-pullup.patch
+w1-w1_slave_read_id-read-bug-use-device_attribute.patch
+w1-w1_therm-fix-user-buffer-overflow-and-cat.patch
+w1-w1_family-remove-unused-variable-need_exit.patch
+w1-w1_therm-consistent-mutex-access-code-cleanup.patch
+w1-w1_intc-use-first-available-master-number.patch
+w1-w1c-s-printk-dev_dbg.patch
+w1-w1_ioc-reset-comments-and-msleep.patch
+w1-ds1wmc-msleep-for-reset.patch
+w1-ds2490c-correct-print-message.patch
+w1-ds2490c-add-support-for-strong-pullup.patch
+w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes.patch
+w1-ds2490c-ds_write_bit-grouping-error-disable-readback.patch
+w1-ds2490c-disable-bit-read-and-write.patch
+w1-ds2490c-simplify-and-fix-ds_touch_bit.patch
+w1-ds2490c-ds_dump_status-rework.patch
+w1-ds2490c-ds_reset-remove-ds_wait_status.patch
+w1-ds2490c-reset-ds2490-in-init.patch
+w1-ds2490c-magic-number-work.patch
+w1-ds2490c-ds_write_block-remove-extra-ds_wait_status.patch
+w1-documentation-w1-masters-ds2490-update.patch
+w1-ds2490c-optimize-ds_set_pullup.patch
 w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
