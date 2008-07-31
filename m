@@ -1,223 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: - w1-be-able-to-manually-add-and-remove-slaves.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 20:01:44 -0700
-Message-ID: <200807310301.m6V31iWY000472@imap1.linux-foundation.org>
+Subject: - w1-feature-w1_thermc-use-strong-pullup-and-documentation.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 20:01:42 -0700
+Message-ID: <200807310301.m6V31gCx000467@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39186 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41892 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756729AbYGaDCs (ORCPT
+	by vger.kernel.org with ESMTP id S1763265AbYGaDCm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 23:02:48 -0400
+	Wed, 30 Jul 2008 23:02:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1: be able to manually add and remove slaves
+     w1: feature, w1_therm.c use strong pullup and documentation
 has been removed from the -mm tree.  Its filename was
-     w1-be-able-to-manually-add-and-remove-slaves.patch
+     w1-feature-w1_thermc-use-strong-pullup-and-documentation.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: be able to manually add and remove slaves
+Subject: w1: feature, w1_therm.c use strong pullup and documentation
 From: David Fries <david@fries.net>
 
-sysfs entries were added to manually add and remove slave devices.  This
-is useful if the automatic bus searching is disabled, and the device ids
-are already known.
+Added strong pullup to thermal sensor driver and general documentation on
+the sensor.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1.c |  137 +++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 136 insertions(+), 1 deletion(-)
+ Documentation/w1/00-INDEX        |    2 +
+ Documentation/w1/slaves/00-INDEX |    4 ++
+ Documentation/w1/slaves/w1_therm |   41 +++++++++++++++++++++++++++++
+ drivers/w1/slaves/w1_therm.c     |   15 +++++++++-
+ 4 files changed, 60 insertions(+), 2 deletions(-)
 
-diff -puN drivers/w1/w1.c~w1-be-able-to-manually-add-and-remove-slaves drivers/w1/w1.c
---- a/drivers/w1/w1.c~w1-be-able-to-manually-add-and-remove-slaves
-+++ a/drivers/w1/w1.c
-@@ -56,6 +56,8 @@ module_param_named(slave_ttl, w1_max_sla
- DEFINE_MUTEX(w1_mlock);
- LIST_HEAD(w1_masters);
+diff -puN Documentation/w1/00-INDEX~w1-feature-w1_thermc-use-strong-pullup-and-documentation Documentation/w1/00-INDEX
+--- a/Documentation/w1/00-INDEX~w1-feature-w1_thermc-use-strong-pullup-and-documentation
++++ a/Documentation/w1/00-INDEX
+@@ -1,5 +1,7 @@
+ 00-INDEX
+ 	- This file
++slaves/
++	- Drivers that provide support for specific family codes.
+ masters/
+ 	- Individual chips providing 1-wire busses.
+ w1.generic
+diff -puN /dev/null Documentation/w1/slaves/00-INDEX
+--- /dev/null
++++ a/Documentation/w1/slaves/00-INDEX
+@@ -0,0 +1,4 @@
++00-INDEX
++	- This file
++w1_therm
++	- The Maxim/Dallas Semiconductor ds18*20 temperature sensor.
+diff -puN /dev/null Documentation/w1/slaves/w1_therm
+--- /dev/null
++++ a/Documentation/w1/slaves/w1_therm
+@@ -0,0 +1,41 @@
++Kernel driver w1_therm
++====================
++
++Supported chips:
++  * Maxim ds18*20 based temperature sensors.
++
++Author: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
++
++
++Description
++-----------
++
++w1_therm provides basic temperature conversion for ds18*20 devices.
++supported family codes:
++W1_THERM_DS18S20	0x10
++W1_THERM_DS1822		0x22
++W1_THERM_DS18B20	0x28
++
++Support is provided through the sysfs w1_slave file.  Each open and
++read sequence will initiate a temperature conversion then provide two
++lines of ASCII output.  The first line contains the nine hex bytes
++read along with a calculated crc value and YES or NO if it matched.
++If the crc matched the returned values are retained.  The second line
++displays the retained values along with a temperature in millidegrees
++Centigrade after t=.
++
++Parasite powered devices are limited to one slave performing a
++temperature conversion at a time.  If none of the devices are parasite
++powered it would be possible to convert all the devices at the same
++time and then go back to read individual sensors.  That isn't
++currently supported.  The driver also doesn't support reduced
++precision (which would also reduce the conversion time).
++
++The module parameter strong_pullup can be set to 0 to disable the
++strong pullup or 1 to enable.  If enabled the 5V strong pullup will be
++enabled when the conversion is taking place provided the master driver
++must support the strong pullup (or it falls back to a pullup
++resistor).  The DS18b20 temperature sensor specification lists a
++maximum current draw of 1.5mA and that a 5k pullup resistor is not
++sufficient.  The strong pullup is designed to provide the additional
++current required.
+diff -puN drivers/w1/slaves/w1_therm.c~w1-feature-w1_thermc-use-strong-pullup-and-documentation drivers/w1/slaves/w1_therm.c
+--- a/drivers/w1/slaves/w1_therm.c~w1-feature-w1_thermc-use-strong-pullup-and-documentation
++++ a/drivers/w1/slaves/w1_therm.c
+@@ -37,6 +37,14 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Evgeniy Polyakov <johnpol@2ka.mipt.ru>");
+ MODULE_DESCRIPTION("Driver for 1-wire Dallas network protocol, temperature family.");
  
-+static int w1_attach_slave_device(struct w1_master *dev, struct w1_reg_num *rn);
-+
- static int w1_master_match(struct device *dev, struct device_driver *drv)
- {
- 	return 1;
-@@ -349,7 +351,8 @@ static ssize_t w1_master_attribute_show_
- 	return count;
- }
- 
--static ssize_t w1_master_attribute_show_slaves(struct device *dev, struct device_attribute *attr, char *buf)
-+static ssize_t w1_master_attribute_show_slaves(struct device *dev,
-+	struct device_attribute *attr, char *buf)
- {
- 	struct w1_master *md = dev_to_w1_master(dev);
- 	int c = PAGE_SIZE;
-@@ -374,6 +377,134 @@ static ssize_t w1_master_attribute_show_
- 	return PAGE_SIZE - c;
- }
- 
-+static ssize_t w1_master_attribute_show_add(struct device *dev,
-+	struct device_attribute *attr, char *buf)
-+{
-+	int c = PAGE_SIZE;
-+	c -= snprintf(buf+PAGE_SIZE - c, c,
-+		"write device id xx-xxxxxxxxxxxx to add slave\n");
-+	return PAGE_SIZE - c;
-+}
-+
-+static int w1_atoreg_num(struct device *dev, const char *buf, size_t count,
-+	struct w1_reg_num *rn)
-+{
-+	unsigned int family;
-+	u64 id;
-+	int i;
-+	u64 rn64_le;
-+	/* The CRC value isn't read from the user because the sysfs directory
-+	 * doesn't include it and most messages from the bus search don't
-+	 * print it either.  It would be unreasonable for the user to then
-+	 * provide it.
-+	 */
-+	const char *error_msg = "bad slave string format, expecting "
-+		"ff-dddddddddddd\n";
-+
-+	if (buf[2] != '-') {
-+		dev_err(dev, "%s", error_msg);
-+		return -EINVAL;
-+	}
-+	i = sscanf(buf, "%02x-%012llx", &family, &id);
-+	if (i != 2) {
-+		dev_err(dev, "%s", error_msg);
-+		return -EINVAL;
-+	}
-+	rn->family = family;
-+	rn->id = id;
-+
-+	rn64_le = cpu_to_le64(*(u64 *)rn);
-+	rn->crc = w1_calc_crc8((u8 *)&rn64_le, 7);
-+
-+	#if 0
-+	dev_info(dev, "With CRC device is %02x.%012llx.%02x.\n",
-+		  rn->family, (unsigned long long)rn->id, rn->crc);
-+	#endif
-+
-+	return 0;
-+}
-+
-+/* Searches the slaves in the w1_master and returns a pointer or NULL.
-+ * Note: must hold the mutex
++/* Allow the strong pullup to be disabled, but default to enabled.
++ * If it was disabled a parasite powered device might not get the require
++ * current to do a temperature conversion.  If it is enabled parasite powered
++ * devices have a better chance of getting the current required.
 + */
-+static struct w1_slave *w1_slave_search_device(struct w1_master *dev,
-+	struct w1_reg_num *rn)
-+{
-+	struct w1_slave *sl;
-+	list_for_each_entry(sl, &dev->slist, w1_slave_entry) {
-+		if (sl->reg_num.family == rn->family &&
-+				sl->reg_num.id == rn->id &&
-+				sl->reg_num.crc == rn->crc) {
-+			return sl;
-+		}
-+	}
-+	return NULL;
-+}
++static int w1_strong_pullup = 1;
++module_param_named(strong_pullup, w1_strong_pullup, int, 0);
 +
-+static ssize_t w1_master_attribute_store_add(struct device *dev,
-+						struct device_attribute *attr,
-+						const char *buf, size_t count)
-+{
-+	struct w1_master *md = dev_to_w1_master(dev);
-+	struct w1_reg_num rn;
-+	struct w1_slave *sl;
-+	ssize_t result = count;
-+
-+	if (w1_atoreg_num(dev, buf, count, &rn))
-+		return -EINVAL;
-+
-+	mutex_lock(&md->mutex);
-+	sl = w1_slave_search_device(md, &rn);
-+	/* It would be nice to do a targeted search one the one-wire bus
-+	 * for the new device to see if it is out there or not.  But the
-+	 * current search doesn't support that.
-+	 */
-+	if (sl) {
-+		dev_info(dev, "Device %s already exists\n", sl->name);
-+		result = -EINVAL;
-+	} else {
-+		w1_attach_slave_device(md, &rn);
-+	}
-+	mutex_unlock(&md->mutex);
-+
-+	return result;
-+}
-+
-+static ssize_t w1_master_attribute_show_remove(struct device *dev,
-+	struct device_attribute *attr, char *buf)
-+{
-+	int c = PAGE_SIZE;
-+	c -= snprintf(buf+PAGE_SIZE - c, c,
-+		"write device id xx-xxxxxxxxxxxx to remove slave\n");
-+	return PAGE_SIZE - c;
-+}
-+
-+static ssize_t w1_master_attribute_store_remove(struct device *dev,
-+						struct device_attribute *attr,
-+						const char *buf, size_t count)
-+{
-+	struct w1_master *md = dev_to_w1_master(dev);
-+	struct w1_reg_num rn;
-+	struct w1_slave *sl;
-+	ssize_t result = count;
-+
-+	if (w1_atoreg_num(dev, buf, count, &rn))
-+		return -EINVAL;
-+
-+	mutex_lock(&md->mutex);
-+	sl = w1_slave_search_device(md, &rn);
-+	if (sl) {
-+		w1_slave_detach(sl);
-+	} else {
-+		dev_info(dev, "Device %02x-%012llx doesn't exists\n", rn.family,
-+			(unsigned long long)rn.id);
-+		result = -EINVAL;
-+	}
-+	mutex_unlock(&md->mutex);
-+
-+	return result;
-+}
-+
- #define W1_MASTER_ATTR_RO(_name, _mode)				\
- 	struct device_attribute w1_master_attribute_##_name =	\
- 		__ATTR(w1_master_##_name, _mode,		\
-@@ -394,6 +525,8 @@ static W1_MASTER_ATTR_RO(timeout, S_IRUG
- static W1_MASTER_ATTR_RO(pointer, S_IRUGO);
- static W1_MASTER_ATTR_RW(search, S_IRUGO | S_IWUGO);
- static W1_MASTER_ATTR_RW(pullup, S_IRUGO | S_IWUGO);
-+static W1_MASTER_ATTR_RW(add, S_IRUGO | S_IWUGO);
-+static W1_MASTER_ATTR_RW(remove, S_IRUGO | S_IWUGO);
+ static u8 bad_roms[][9] = {
+ 				{0xaa, 0x00, 0x4b, 0x46, 0xff, 0xff, 0x0c, 0x10, 0x87},
+ 				{}
+@@ -192,9 +200,12 @@ static ssize_t w1_therm_read_bin(struct 
+ 			int count = 0;
+ 			unsigned int tm = 750;
  
- static struct attribute *w1_master_default_attrs[] = {
- 	&w1_master_attribute_name.attr,
-@@ -405,6 +538,8 @@ static struct attribute *w1_master_defau
- 	&w1_master_attribute_pointer.attr,
- 	&w1_master_attribute_search.attr,
- 	&w1_master_attribute_pullup.attr,
-+	&w1_master_attribute_add.attr,
-+	&w1_master_attribute_remove.attr,
- 	NULL
- };
++			/* 750ms strong pullup (or delay) after the convert */
++			if (w1_strong_pullup)
++				w1_next_pullup(dev, tm);
+ 			w1_write_8(dev, W1_CONVERT_TEMP);
+-
+-			msleep(tm);
++			if (!w1_strong_pullup)
++				msleep(tm);
+ 
+ 			if (!w1_reset_select_slave(sl)) {
  
 _
 
 Patches currently in -mm which might be from david@fries.net are
 
+w1-feature-w1_thermc-use-strong-pullup-and-documentation.patch
 w1-be-able-to-manually-add-and-remove-slaves.patch
 w1-recode-w1_slave_found-logic.patch
 w1-new-module-parameter-search_count.patch
