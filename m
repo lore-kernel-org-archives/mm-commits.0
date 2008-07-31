@@ -1,104 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - x86-calgary-replace-num_dma_pages-with-iommu_num_pages.patch removed from -mm tree
-Date: Thu, 31 Jul 2008 02:39:00 -0700
-Message-ID: <200807310939.m6V9d1Y1015614@imap1.linux-foundation.org>
+Subject: + hwmon-fix-loading-of-abituguru3-on-abit-ip35-pro-with-bios-17.patch added to -mm tree
+Date: Thu, 31 Jul 2008 09:48:45 -0700
+Message-ID: <200807311648.m6VGmjgb001057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32966 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36936 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755533AbYGaJkh (ORCPT
+	by vger.kernel.org with ESMTP id S1755084AbYGaQsz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jul 2008 05:40:37 -0400
+	Thu, 31 Jul 2008 12:48:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joerg.roedel@amd.com, muli@il.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: alistair@devzero.co.uk, j.w.r.degoede@hhs.nl, mhoffman@lightlink.com
 
 
 The patch titled
-     x86 calgary: replace num_dma_pages() with iommu_num_pages()
-has been removed from the -mm tree.  Its filename was
-     x86-calgary-replace-num_dma_pages-with-iommu_num_pages.patch
+     hwmon: fix loading of abituguru3 on Abit IP35 Pro with BIOS 17
+has been added to the -mm tree.  Its filename is
+     hwmon-fix-loading-of-abituguru3-on-abit-ip35-pro-with-bios-17.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86 calgary: replace num_dma_pages() with iommu_num_pages()
-From: Joerg Roedel <joerg.roedel@amd.com>
+Subject: hwmon: fix loading of abituguru3 on Abit IP35 Pro with BIOS 17
+From: Alistair John Strachan <alistair@devzero.co.uk>
 
-Remove the num_dma_pages() function from Calgary IOMMU code and replace
-it with the generic iommu_num_pages() function.
+Fix loading of abituguru3 on Abit IP35 Pro with BIOS 17.  The magic
+bytes have changed value (again).
 
-Acked-by: Muli Ben-Yehuda <muli@il.ibm.com>
-Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
+Signed-off-by: Alistair John Strachan <alistair@devzero.co.uk>
+Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/pci-calgary_64.c |   18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+ drivers/hwmon/abituguru3.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/pci-calgary_64.c~x86-calgary-replace-num_dma_pages-with-iommu_num_pages arch/x86/kernel/pci-calgary_64.c
---- a/arch/x86/kernel/pci-calgary_64.c~x86-calgary-replace-num_dma_pages-with-iommu_num_pages
-+++ a/arch/x86/kernel/pci-calgary_64.c
-@@ -217,16 +217,6 @@ static inline unsigned long verify_bit_r
+diff -puN drivers/hwmon/abituguru3.c~hwmon-fix-loading-of-abituguru3-on-abit-ip35-pro-with-bios-17 drivers/hwmon/abituguru3.c
+--- a/drivers/hwmon/abituguru3.c~hwmon-fix-loading-of-abituguru3-on-abit-ip35-pro-with-bios-17
++++ a/drivers/hwmon/abituguru3.c
+@@ -1118,7 +1118,7 @@ static int __init abituguru3_detect(void
+ 	u8 cmd_val = inb_p(ABIT_UGURU3_BASE + ABIT_UGURU3_CMD);
+ 	if (((data_val == 0x00) || (data_val == 0x08)) &&
+ 			((cmd_val == 0xAC) || (cmd_val == 0x05) ||
+-			 (cmd_val == 0x55)))
++			 (cmd_val == 0x55) || (cmd_val == 0xFF)))
+ 		return ABIT_UGURU3_BASE;
  
- #endif /* CONFIG_IOMMU_DEBUG */
- 
--static inline unsigned int num_dma_pages(unsigned long dma, unsigned int dmalen)
--{
--	unsigned int npages;
--
--	npages = PAGE_ALIGN(dma + dmalen) - (dma & PAGE_MASK);
--	npages >>= PAGE_SHIFT;
--
--	return npages;
--}
--
- static inline int translation_enabled(struct iommu_table *tbl)
- {
- 	/* only PHBs with translation enabled have an IOMMU table */
-@@ -408,7 +398,7 @@ static void calgary_unmap_sg(struct devi
- 		if (dmalen == 0)
- 			break;
- 
--		npages = num_dma_pages(dma, dmalen);
-+		npages = iommu_num_pages(dma, dmalen);
- 		iommu_free(tbl, dma, npages);
- 	}
- }
-@@ -427,7 +417,7 @@ static int calgary_map_sg(struct device 
- 		BUG_ON(!sg_page(s));
- 
- 		vaddr = (unsigned long) sg_virt(s);
--		npages = num_dma_pages(vaddr, s->length);
-+		npages = iommu_num_pages(vaddr, s->length);
- 
- 		entry = iommu_range_alloc(dev, tbl, npages);
- 		if (entry == bad_dma_address) {
-@@ -464,7 +454,7 @@ static dma_addr_t calgary_map_single(str
- 	struct iommu_table *tbl = find_iommu_table(dev);
- 
- 	uaddr = (unsigned long)vaddr;
--	npages = num_dma_pages(uaddr, size);
-+	npages = iommu_num_pages(uaddr, size);
- 
- 	return iommu_alloc(dev, tbl, vaddr, npages, direction);
- }
-@@ -475,7 +465,7 @@ static void calgary_unmap_single(struct 
- 	struct iommu_table *tbl = find_iommu_table(dev);
- 	unsigned int npages;
- 
--	npages = num_dma_pages(dma_handle, size);
-+	npages = iommu_num_pages(dma_handle, size);
- 	iommu_free(tbl, dma_handle, npages);
- }
- 
+ 	ABIT_UGURU3_DEBUG("no Abit uGuru3 found, data = 0x%02X, cmd = "
 _
 
-Patches currently in -mm which might be from joerg.roedel@amd.com are
+Patches currently in -mm which might be from alistair@devzero.co.uk are
 
-origin.patch
-linux-next.patch
-x86-calgary-replace-num_dma_pages-with-iommu_num_pages.patch
+hwmon-fix-loading-of-abituguru3-on-abit-ip35-pro-with-bios-17.patch
 
