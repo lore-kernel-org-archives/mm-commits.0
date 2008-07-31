@@ -1,159 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - w1-feature-enable-hardware-strong-pullup-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 30 Jul 2008 20:01:40 -0700
-Message-ID: <200807310301.m6V31eV2000464@imap1.linux-foundation.org>
+Subject: - w1-w1c-s-printk-dev_dbg.patch removed from -mm tree
+Date: Wed, 30 Jul 2008 20:02:03 -0700
+Message-ID: <200807310302.m6V323oS000513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43262 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56451 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763244AbYGaDCm (ORCPT
+	by vger.kernel.org with ESMTP id S1754724AbYGaDDU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Jul 2008 23:02:42 -0400
+	Wed, 30 Jul 2008 23:03:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1-feature-enable-hardware-strong-pullup-checkpatch-fixes
+     w1: w1.c s/printk/dev_dbg/
 has been removed from the -mm tree.  Its filename was
-     w1-feature-enable-hardware-strong-pullup-checkpatch-fixes.patch
+     w1-w1c-s-printk-dev_dbg.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1-feature-enable-hardware-strong-pullup-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: w1: w1.c s/printk/dev_dbg/
+From: David Fries <david@fries.net>
 
-WARNING: consider using strict_strtol in preference to simple_strtol
-#49: FILE: drivers/w1/w1.c:280:
-+	md->enable_pullup = simple_strtol(buf, NULL, 0);
+s/printk/dev_dbg/
 
-ERROR: spaces required around that '==' (ctx:VxV)
-#221: FILE: drivers/w1/w1_io.c:145:
-+			if (i==7)
- 			     ^
-
-ERROR: do not use C99 // comments
-#241: FILE: drivers/w1/w1_io.c:252:
-+			w1_write_8(dev, buf[i]); // calls w1_pre_write
-
-total: 2 errors, 1 warnings, 207 lines checked
-
-./patches/w1-feature-enable-hardware-strong-pullup.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Fries <david@fries.net>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Signed-off-by: David Fries <david@fries.net>
+Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1_io.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/w1/w1.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/w1/w1_io.c~w1-feature-enable-hardware-strong-pullup-checkpatch-fixes drivers/w1/w1_io.c
---- a/drivers/w1/w1_io.c~w1-feature-enable-hardware-strong-pullup-checkpatch-fixes
-+++ a/drivers/w1/w1_io.c
-@@ -142,7 +142,7 @@ void w1_write_8(struct w1_master *dev, u
- 	}
- 	else
- 		for (i = 0; i < 8; ++i) {
--			if (i==7)
-+			if (i == 7)
- 				w1_pre_write(dev);
- 			w1_touch_bit(dev, (byte >> i) & 0x1);
+diff -puN drivers/w1/w1.c~w1-w1c-s-printk-dev_dbg drivers/w1/w1.c
+--- a/drivers/w1/w1.c~w1-w1c-s-printk-dev_dbg
++++ a/drivers/w1/w1.c
+@@ -81,10 +81,10 @@ static void w1_slave_release(struct devi
+ {
+ 	struct w1_slave *sl = dev_to_w1_slave(dev);
+ 
+-	printk("%s: Releasing %s.\n", __func__, sl->name);
++	dev_dbg(dev, "%s: Releasing %s.\n", __func__, sl->name);
+ 
+ 	while (atomic_read(&sl->refcnt)) {
+-		printk("Waiting for %s to become free: refcnt=%d.\n",
++		dev_dbg(dev, "Waiting for %s to become free: refcnt=%d.\n",
+ 				sl->name, atomic_read(&sl->refcnt));
+ 		if (msleep_interruptible(1000))
+ 			flush_signals(current);
+@@ -911,7 +911,7 @@ void w1_search(struct w1_master *dev, u8
+ 			rn |= (tmp64 << i);
+ 
+ 			if (kthread_should_stop()) {
+-				printk(KERN_INFO "Abort w1_search (exiting)\n");
++				dev_dbg(&dev->dev, "Abort w1_search\n");
+ 				return;
+ 			}
  		}
-@@ -249,7 +249,7 @@ void w1_write_block(struct w1_master *de
- 	}
- 	else
- 		for (i = 0; i < len; ++i)
--			w1_write_8(dev, buf[i]); // calls w1_pre_write
-+			w1_write_8(dev, buf[i]);  /* calls w1_pre_write */
- 	w1_post_write(dev);
- }
- EXPORT_SYMBOL_GPL(w1_write_block);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from david@fries.net are
 
-origin.patch
-missing-symbol-prefix-on-vmlinuxldsh-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-pci-make-pci_register_driver-a-macro.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-x86-export-is_uv_system.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-serio-xilinx_ps2c-fix-warning.patch
-git-jg-misc.patch
-git-mtd.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-drivers-mtd-nand-nandsimc-fix-printk-warnings.patch
-git-ubi-git-rejects.patch
-bridge-send-correct-mtu-value-in-pmtu.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-sched-type-fix.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-usb-hubc-fix-build-with-config_pm=n.patch
-git-xtensa.patch
-drivers-telephony-ixjc-depends-on-pnp.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-devpts-switch-to-ida-checkpatch-fixes.patch
-getdelaysc-add-a-usr1-signal-handler-checkpatch-fixes.patch
-w1-feature-enable-hardware-strong-pullup-checkpatch-fixes.patch
+w1-w1c-s-printk-dev_dbg.patch
+w1-w1_ioc-reset-comments-and-msleep.patch
+w1-ds1wmc-msleep-for-reset.patch
+w1-ds2490c-correct-print-message.patch
+w1-ds2490c-add-support-for-strong-pullup.patch
 w1-ds2490c-add-support-for-strong-pullup-checkpatch-fixes.patch
+w1-ds2490c-ds_write_bit-grouping-error-disable-readback.patch
+w1-ds2490c-disable-bit-read-and-write.patch
+w1-ds2490c-simplify-and-fix-ds_touch_bit.patch
+w1-ds2490c-ds_dump_status-rework.patch
+w1-ds2490c-ds_reset-remove-ds_wait_status.patch
+w1-ds2490c-reset-ds2490-in-init.patch
+w1-ds2490c-magic-number-work.patch
+w1-ds2490c-ds_write_block-remove-extra-ds_wait_status.patch
+w1-documentation-w1-masters-ds2490-update.patch
+w1-ds2490c-optimize-ds_set_pullup.patch
 w1-ds2490c-optimize-ds_set_pullup-checkpatch-fixes.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
