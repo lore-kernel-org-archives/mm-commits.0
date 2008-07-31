@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atyfb_basec-fix-warning.patch added to -mm tree
-Date: Thu, 31 Jul 2008 02:15:58 -0700
-Message-ID: <200807310916.m6V9FweY014662@imap1.linux-foundation.org>
+Subject: + tracehook-fix-exit_signal=0-case.patch added to -mm tree
+Date: Thu, 31 Jul 2008 02:20:06 -0700
+Message-ID: <200807310920.m6V9K606014866@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36443 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56172 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752769AbYGaJQs (ORCPT
+	by vger.kernel.org with ESMTP id S1752632AbYGaJVS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 Jul 2008 05:16:48 -0400
+	Thu, 31 Jul 2008 05:21:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.beregalov@gmail.com, adaplas@pol.net, asselsm@gmail.com, syrjala@sci.fi
+Cc: roland@redhat.com, drepper@redhat.com, oleg@tv-sign.ru
 
 
 The patch titled
-     atyfb_base.c: fix warning
+     tracehook: fix exit_signal=0 case
 has been added to the -mm tree.  Its filename is
-     atyfb_basec-fix-warning.patch
+     tracehook-fix-exit_signal=0-case.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,124 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atyfb_base.c: fix warning
-From: Alexander Beregalov <a.beregalov@gmail.com>
+Subject: tracehook: fix exit_signal=0 case
+From: Roland McGrath <roland@redhat.com>
 
-drivers/video/aty/atyfb_base.c:2663: warning: 'aty_resume_chip' defined
-but not used
+My commit 2b2a1ff64afbadac842bbc58c5166962cf4f7664 introduced a regression
+(sorry about that) for the odd case of exit_signal=0 (e.g. clone_flags=0).
+This is not a normal use, but it's used by a case in the glibc test suite.
 
-Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
-Cc: Ville Syrjala <syrjala@sci.fi>
-Cc: Antonino A. Daplas <adaplas@pol.net>
-Cc: Mark Asselstine <asselsm@gmail.com>
+Dying with exit_signal=0 sends no signal, but it's supposed to wake up a
+parent's blocked wait*() calls (unlike the delayed_group_leader case). 
+This fixes tracehook_notify_death() and its caller to distinguish a
+"signal 0" wakeup from the delayed_group_leader case (with no wakeup).
+
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/atyfb_base.c |   29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+ include/linux/tracehook.h |   21 +++++++++++++--------
+ kernel/exit.c             |    6 +++---
+ 2 files changed, 16 insertions(+), 11 deletions(-)
 
-diff -puN drivers/video/aty/atyfb_base.c~atyfb_basec-fix-warning drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c~atyfb_basec-fix-warning
-+++ a/drivers/video/aty/atyfb_base.c
-@@ -244,7 +244,7 @@ static int atyfb_sync(struct fb_info *in
-      */
- 
- static int aty_init(struct fb_info *info);
--static void aty_resume_chip(struct fb_info *info);
-+
- #ifdef CONFIG_ATARI
- static int store_video_par(char *videopar, unsigned char m64_num);
- #endif
-@@ -2023,6 +2023,20 @@ static int atyfb_pci_suspend(struct pci_
- 	return 0;
- }
- 
-+static void aty_resume_chip(struct fb_info *info)
-+{
-+	struct atyfb_par *par = info->par;
-+
-+	aty_st_le32(MEM_CNTL, par->mem_cntl, par);
-+
-+	if (par->pll_ops->resume_pll)
-+		par->pll_ops->resume_pll(info, &par->pll);
-+
-+	if (par->aux_start)
-+		aty_st_le32(BUS_CNTL,
-+			aty_ld_le32(BUS_CNTL, par) | BUS_APER_REG_DIS, par);
-+}
-+
- static int atyfb_pci_resume(struct pci_dev *pdev)
+diff -puN include/linux/tracehook.h~tracehook-fix-exit_signal=0-case include/linux/tracehook.h
+--- a/include/linux/tracehook.h~tracehook-fix-exit_signal=0-case
++++ a/include/linux/tracehook.h
+@@ -493,16 +493,21 @@ static inline int tracehook_notify_jctl(
+  * @death_cookie:	value to pass to tracehook_report_death()
+  * @group_dead:		nonzero if this was the last thread in the group to die
+  *
+- * Return the signal number to send our parent with do_notify_parent(), or
+- * zero to send no signal and leave a zombie, or -1 to self-reap right now.
++ * A return value >= 0 means call do_notify_parent() with that signal
++ * number.  Negative return value can be %DEATH_REAP to self-reap right
++ * now, or %DEATH_DELAYED_GROUP_LEADER to a zombie without notifying our
++ * parent.  Note that a return value of 0 means a do_notify_parent() call
++ * that sends no signal, but still wakes up a parent blocked in wait*().
+  *
+  * Called with write_lock_irq(&tasklist_lock) held.
+  */
++#define DEATH_REAP			-1
++#define DEATH_DELAYED_GROUP_LEADER	-2
+ static inline int tracehook_notify_death(struct task_struct *task,
+ 					 void **death_cookie, int group_dead)
  {
- 	struct fb_info *info = pci_get_drvdata(pdev);
-@@ -2659,19 +2673,6 @@ aty_init_exit:
- 	return ret;
+ 	if (task->exit_signal == -1)
+-		return task->ptrace ? SIGCHLD : -1;
++		return task->ptrace ? SIGCHLD : DEATH_REAP;
+ 
+ 	/*
+ 	 * If something other than our normal parent is ptracing us, then
+@@ -512,21 +517,21 @@ static inline int tracehook_notify_death
+ 	if (thread_group_empty(task) && !ptrace_reparented(task))
+ 		return task->exit_signal;
+ 
+-	return task->ptrace ? SIGCHLD : 0;
++	return task->ptrace ? SIGCHLD : DEATH_DELAYED_GROUP_LEADER;
  }
  
--static void aty_resume_chip(struct fb_info *info)
--{
--	struct atyfb_par *par = info->par;
--
--	aty_st_le32(MEM_CNTL, par->mem_cntl, par);
--
--	if (par->pll_ops->resume_pll)
--		par->pll_ops->resume_pll(info, &par->pll);
--
--	if (par->aux_start)
--		aty_st_le32(BUS_CNTL, aty_ld_le32(BUS_CNTL, par) | BUS_APER_REG_DIS, par);
--}
+ /**
+  * tracehook_report_death - task is dead and ready to be reaped
+  * @task:		@current task now exiting
+- * @signal:		signal number sent to parent, or 0 or -1
++ * @signal:		return value from tracheook_notify_death()
+  * @death_cookie:	value passed back from tracehook_notify_death()
+  * @group_dead:		nonzero if this was the last thread in the group to die
+  *
+  * Thread has just become a zombie or is about to self-reap.  If positive,
+  * @signal is the signal number just sent to the parent (usually %SIGCHLD).
+- * If @signal is -1, this thread will self-reap.  If @signal is 0, this is
+- * a delayed_group_leader() zombie.  The @death_cookie was passed back by
+- * tracehook_notify_death().
++ * If @signal is %DEATH_REAP, this thread will self-reap.  If @signal is
++ * %DEATH_DELAYED_GROUP_LEADER, this is a delayed_group_leader() zombie.
++ * The @death_cookie was passed back by tracehook_notify_death().
+  *
+  * If normal reaping is not inhibited, @task->exit_state might be changing
+  * in parallel.
+diff -puN kernel/exit.c~tracehook-fix-exit_signal=0-case kernel/exit.c
+--- a/kernel/exit.c~tracehook-fix-exit_signal=0-case
++++ a/kernel/exit.c
+@@ -911,10 +911,10 @@ static void exit_notify(struct task_stru
+ 		tsk->exit_signal = SIGCHLD;
+ 
+ 	signal = tracehook_notify_death(tsk, &cookie, group_dead);
+-	if (signal > 0)
++	if (signal >= 0)
+ 		signal = do_notify_parent(tsk, signal);
+ 
+-	tsk->exit_state = signal < 0 ? EXIT_DEAD : EXIT_ZOMBIE;
++	tsk->exit_state = signal == DEATH_REAP ? EXIT_DEAD : EXIT_ZOMBIE;
+ 
+ 	/* mt-exec, de_thread() is waiting for us */
+ 	if (thread_group_leader(tsk) &&
+@@ -927,7 +927,7 @@ static void exit_notify(struct task_stru
+ 	tracehook_report_death(tsk, signal, cookie, group_dead);
+ 
+ 	/* If the process is dead, release it - nobody will wait for it */
+-	if (signal < 0)
++	if (signal == DEATH_REAP)
+ 		release_task(tsk);
+ }
+ 
+_
+
+Patches currently in -mm which might be from roland@redhat.com are
+
+tracehook-fix-exit_signal=0-case.patch
+x86-tracehook_signal_handler.patch
+x86-tracehook-syscall.patch
+x86-tracehook-asm-syscallh.patch
+x86-signals-use-asm-syscallh.patch
+x86-tracehook-tif_notify_resume.patch
+x86-tracehook-config_have_arch_tracehook.patch
+sched-do_wait_for_common-use-signal_pending_state.patch
+wait_task_inactive-dont-consider-task-nivcsw.patch
+semaphore-__down_common-use-signal_pending_state.patch
+posix-timers-fix-posix_timer_event-vs-dequeue_signal-race.patch
+posix-timers-do_schedule_next_timer-fix-the-setting-of-si_overrun.patch
+coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
+kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
+
