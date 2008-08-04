@@ -1,114 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - missing-symbol-prefix-on-vmlinuxldsh.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 13:05:54 -0700
-Message-ID: <200808042005.m74K5shH027630@imap1.linux-foundation.org>
+Subject: - amd64-agp-run-fallback-when-no-bridges-found-not-when-driver-registration-fails.patch removed from -mm tree
+Date: Mon, 04 Aug 2008 13:06:11 -0700
+Message-ID: <200808042006.m74K6BBC027660@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42972 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59465 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756953AbYHDUGM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:06:12 -0400
+	by vger.kernel.org with ESMTP id S1754614AbYHDUGo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:06:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ysato@users.sourceforge.jp, jeremy@goop.org, vapier.adi@gmail.com, mm-commits@vger.kernel.org
+To: bjorn.helgaas@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Missing symbol prefix on vmlinux.lds.h
+     amd64-agp: run fallback when no bridges found, not when driver registration fails
 has been removed from the -mm tree.  Its filename was
-     missing-symbol-prefix-on-vmlinuxldsh.patch
+     amd64-agp-run-fallback-when-no-bridges-found-not-when-driver-registration-fails.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Missing symbol prefix on vmlinux.lds.h
-From: Yoshinori Sato <ysato@users.sourceforge.jp>
+Subject: amd64-agp: run fallback when no bridges found, not when driver registration fails
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-ARCH=h8300:
+I think the intent was that if no bridges matched agp_amd64_pci_table[],
+we would fall back to checking for any bridge with the AGP capability. 
+But in the current code, we execute the fallback path only when
+pci_register_driver() itself fails, which is unrelated to whether any
+matching devices were found.
 
-init/main.c:781: undefined reference to `___early_initcall_end'
+This patch counts the AGP bridges found in the probe() method and executes
+the fallback path when none is found.
 
-Same problem have
-__start___bug_table
-__stop___bug_table
-__tracedata_start
-__tracedata_end
-__per_cpu_start
-__per_cpu_end
-
-When defining a symbol in vmlinux.lds, use the VMLINUX_SYMBOL macro. 
-VMLINUX_SYMBOL adds a prefix charactor.
-
-You can't just use straight symbol names in common header files as they
-dont take into consideration weird arch-specific ABI conventions.  in the
-case of Blackfin/h8300, the ABI dictates that any C-visible symbols have
-an underscore prefixed to them.  Thus all symbols in vmlinux.lds.h need to
-be wrapped in VMLINUX_SYMBOL() so that each arch can put hide this magic
-in their own files.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: "Mike Frysinger" <vapier.adi@gmail.com>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/vmlinux.lds.h |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/char/agp/amd64-agp.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-generic/vmlinux.lds.h~missing-symbol-prefix-on-vmlinuxldsh include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~missing-symbol-prefix-on-vmlinuxldsh
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -333,9 +333,9 @@
- #define BUG_TABLE							\
- 	. = ALIGN(8);							\
- 	__bug_table : AT(ADDR(__bug_table) - LOAD_OFFSET) {		\
--		__start___bug_table = .;				\
-+		VMLINUX_SYMBOL(__start___bug_table) = .;		\
- 		*(__bug_table)						\
--		__stop___bug_table = .;					\
-+		VMLINUX_SYMBOL(__stop___bug_table) = .;			\
- 	}
- #else
- #define BUG_TABLE
-@@ -345,9 +345,9 @@
- #define TRACEDATA							\
- 	. = ALIGN(4);							\
- 	.tracedata : AT(ADDR(.tracedata) - LOAD_OFFSET) {		\
--	  	__tracedata_start = .;					\
-+		VMLINUX_SYMBOL(__tracedata_start) = .;			\
- 		*(.tracedata)						\
--	  	__tracedata_end = .;					\
-+		VMLINUX_SYMBOL(__tracedata_end) = .;			\
- 	}
- #else
- #define TRACEDATA
-@@ -362,7 +362,7 @@
+diff -puN drivers/char/agp/amd64-agp.c~amd64-agp-run-fallback-when-no-bridges-found-not-when-driver-registration-fails drivers/char/agp/amd64-agp.c
+--- a/drivers/char/agp/amd64-agp.c~amd64-agp-run-fallback-when-no-bridges-found-not-when-driver-registration-fails
++++ a/drivers/char/agp/amd64-agp.c
+@@ -34,6 +34,7 @@
  
- #define INITCALLS							\
- 	*(.initcallearly.init)						\
--	__early_initcall_end = .;					\
-+	VMLINUX_SYMBOL(__early_initcall_end) = .;			\
-   	*(.initcall0.init)						\
-   	*(.initcall0s.init)						\
-   	*(.initcall1.init)						\
-@@ -383,9 +383,9 @@
+ static struct resource *aperture_resource;
+ static int __initdata agp_try_unsupported = 1;
++static int agp_bridges_found;
  
- #define PERCPU(align)							\
- 	. = ALIGN(align);						\
--	__per_cpu_start = .;						\
-+	VMLINUX_SYMBOL(__per_cpu_start) = .;				\
- 	.data.percpu  : AT(ADDR(.data.percpu) - LOAD_OFFSET) {		\
- 		*(.data.percpu)						\
- 		*(.data.percpu.shared_aligned)				\
- 	}								\
--	__per_cpu_end = .;
-+	VMLINUX_SYMBOL(__per_cpu_end) = .;
+ static void amd64_tlbflush(struct agp_memory *temp)
+ {
+@@ -489,6 +490,7 @@ static int __devinit agp_amd64_probe(str
+ {
+ 	struct agp_bridge_data *bridge;
+ 	u8 cap_ptr;
++	int err;
+ 
+ 	cap_ptr = pci_find_capability(pdev, PCI_CAP_ID_AGP);
+ 	if (!cap_ptr)
+@@ -536,7 +538,12 @@ static int __devinit agp_amd64_probe(str
+ 	}
+ 
+ 	pci_set_drvdata(pdev, bridge);
+-	return agp_add_bridge(bridge);
++	err = agp_add_bridge(bridge);
++	if (err < 0)
++		return err;
++
++	agp_bridges_found++;
++	return 0;
+ }
+ 
+ static void __devexit agp_amd64_remove(struct pci_dev *pdev)
+@@ -713,7 +720,11 @@ int __init agp_amd64_init(void)
+ 
+ 	if (agp_off)
+ 		return -EINVAL;
+-	if (pci_register_driver(&agp_amd64_pci_driver) < 0) {
++	err = pci_register_driver(&agp_amd64_pci_driver);
++	if (err < 0)
++		return err;
++
++	if (agp_bridges_found == 0) {
+ 		struct pci_dev *dev;
+ 		if (!agp_try_unsupported && !agp_try_unsupported_boot) {
+ 			printk(KERN_INFO PFX "No supported AGP bridge found.\n");
 _
 
-Patches currently in -mm which might be from ysato@users.sourceforge.jp are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
 origin.patch
+linux-next.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+firmware-use-dev_printk-when-possible.patch
+resources-tidy-__request_region.patch
 
