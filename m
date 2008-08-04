@@ -1,107 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - devpts-switch-to-ida.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 13:07:53 -0700
-Message-ID: <200808042007.m74K7rh6027859@imap1.linux-foundation.org>
+Subject: - nsc-ircc-default-to-dongle-type-9-on-ibm-hardware.patch removed from -mm tree
+Date: Mon, 04 Aug 2008 13:07:22 -0700
+Message-ID: <200808042007.m74K7MkQ027775@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56900 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55807 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760841AbYHDUID (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:08:03 -0400
+	by vger.kernel.org with ESMTP id S1761997AbYHDUHb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:07:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, hpa@zytor.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mjg59@srcf.ucam.org, ben.collins@canonical.com, samuel@sortiz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     devpts: switch to IDA
+     nsc-ircc: default to dongle type 9 on IBM hardware
 has been removed from the -mm tree.  Its filename was
-     devpts-switch-to-ida.patch
+     nsc-ircc-default-to-dongle-type-9-on-ibm-hardware.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devpts: switch to IDA
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: nsc-ircc: default to dongle type 9 on IBM hardware
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-Devpts code wants just numbers for tty indexes.
+This is necessary to set the dongle type on the nsc driver in order to get
+it to work correctly.  Thinkpads all appear to use dongle type 9.  This
+patch defaults nsc devices with an IBM PnP descriptor to use type 9.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Samuel Ortiz <samuel@sortiz.org>
+Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
+Signed-off-by: Ben Collins <ben.collins@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/devpts/inode.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/net/irda/nsc-ircc.c |    7 +++++--
+ drivers/net/irda/nsc-ircc.h |    3 +++
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN fs/devpts/inode.c~devpts-switch-to-ida fs/devpts/inode.c
---- a/fs/devpts/inode.c~devpts-switch-to-ida
-+++ a/fs/devpts/inode.c
-@@ -29,7 +29,7 @@
- #define DEVPTS_DEFAULT_MODE 0600
+diff -puN drivers/net/irda/nsc-ircc.c~nsc-ircc-default-to-dongle-type-9-on-ibm-hardware drivers/net/irda/nsc-ircc.c
+--- a/drivers/net/irda/nsc-ircc.c~nsc-ircc-default-to-dongle-type-9-on-ibm-hardware
++++ a/drivers/net/irda/nsc-ircc.c
+@@ -151,8 +151,8 @@ static char *dongle_types[] = {
+ static chipio_t pnp_info;
+ static const struct pnp_device_id nsc_ircc_pnp_table[] = {
+ 	{ .id = "NSC6001", .driver_data = 0 },
+-	{ .id = "IBM0071", .driver_data = 0 },
+ 	{ .id = "HWPC224", .driver_data = 0 },
++	{ .id = "IBM0071", .driver_data = NSC_FORCE_DONGLE_TYPE9 },
+ 	{ }
+ };
  
- extern int pty_limit;			/* Config limit on Unix98 ptys */
--static DEFINE_IDR(allocated_ptys);
-+static DEFINE_IDA(allocated_ptys);
- static DEFINE_MUTEX(allocated_ptys_lock);
+@@ -930,7 +930,10 @@ static int nsc_ircc_pnp_probe(struct pnp
+ 	pnp_info.dma = -1;
+ 	pnp_succeeded = 1;
  
- static struct vfsmount *devpts_mnt;
-@@ -180,24 +180,24 @@ static struct dentry *get_node(int num)
- int devpts_new_index(void)
- {
- 	int index;
--	int idr_ret;
-+	int ida_ret;
+-	/* There don't seem to be any way to get the cfg_base.
++	if (id->driver_data & NSC_FORCE_DONGLE_TYPE9)
++		dongle_id = 0x9;
++
++	/* There doesn't seem to be any way of getting the cfg_base.
+ 	 * On my box, cfg_base is in the PnP descriptor of the
+ 	 * motherboard. Oh well... Jean II */
  
- retry:
--	if (!idr_pre_get(&allocated_ptys, GFP_KERNEL)) {
-+	if (!ida_pre_get(&allocated_ptys, GFP_KERNEL)) {
- 		return -ENOMEM;
- 	}
+diff -puN drivers/net/irda/nsc-ircc.h~nsc-ircc-default-to-dongle-type-9-on-ibm-hardware drivers/net/irda/nsc-ircc.h
+--- a/drivers/net/irda/nsc-ircc.h~nsc-ircc-default-to-dongle-type-9-on-ibm-hardware
++++ a/drivers/net/irda/nsc-ircc.h
+@@ -35,6 +35,9 @@
+ #include <linux/types.h>
+ #include <asm/io.h>
  
- 	mutex_lock(&allocated_ptys_lock);
--	idr_ret = idr_get_new(&allocated_ptys, NULL, &index);
--	if (idr_ret < 0) {
-+	ida_ret = ida_get_new(&allocated_ptys, &index);
-+	if (ida_ret < 0) {
- 		mutex_unlock(&allocated_ptys_lock);
--		if (idr_ret == -EAGAIN)
-+		if (ida_ret == -EAGAIN)
- 			goto retry;
- 		return -EIO;
- 	}
- 
- 	if (index >= pty_limit) {
--		idr_remove(&allocated_ptys, index);
-+		ida_remove(&allocated_ptys, index);
- 		mutex_unlock(&allocated_ptys_lock);
- 		return -EIO;
- 	}
-@@ -208,7 +208,7 @@ retry:
- void devpts_kill_index(int idx)
- {
- 	mutex_lock(&allocated_ptys_lock);
--	idr_remove(&allocated_ptys, idx);
-+	ida_remove(&allocated_ptys, idx);
- 	mutex_unlock(&allocated_ptys_lock);
- }
- 
++/* Features for chips (set in driver_data) */
++#define NSC_FORCE_DONGLE_TYPE9	0x00000001
++
+ /* DMA modes needed */
+ #define DMA_TX_MODE     0x08    /* Mem to I/O, ++, demand. */
+ #define DMA_RX_MODE     0x04    /* I/O to mem, ++, demand. */
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from mjg59@srcf.ucam.org are
 
 origin.patch
 linux-next.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-cdc-acm-dont-unlock-acm-mutex-on-error-path.patch
-vt8623fb-fix-kernel-oops.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-devpts-switch-to-ida-checkpatch-fixes.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
 
