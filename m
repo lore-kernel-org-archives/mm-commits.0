@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tracehook-kerneldoc-fix.patch added to -mm tree
-Date: Mon, 04 Aug 2008 14:12:12 -0700
-Message-ID: <200808042112.m74LCCK9031085@imap1.linux-foundation.org>
+Subject: + sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages.patch added to -mm tree
+Date: Mon, 04 Aug 2008 14:22:02 -0700
+Message-ID: <200808042122.m74LM2rD031519@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58560 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40426 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754269AbYHDVNU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 17:13:20 -0400
+	by vger.kernel.org with ESMTP id S1757498AbYHDVWk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 17:22:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roland@redhat.com, randy.dunlap@oracle.com
+Cc: joerg.roedel@amd.com, davem@davemloft.net, fujita.tomonori@lab.ntt.co.jp, muli@il.ibm.com
 
 
 The patch titled
-     tracehook: kerneldoc fix
+     sparc64: rename iommu_num_pages function to iommu_nr_pages
 has been added to the -mm tree.  Its filename is
-     tracehook-kerneldoc-fix.patch
+     sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,118 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracehook: kerneldoc fix
-From: Roland McGrath <roland@redhat.com>
+Subject: sparc64: rename iommu_num_pages function to iommu_nr_pages
+From: Joerg Roedel <joerg.roedel@amd.com>
 
-My last change to tracehook.h made it confuse the kerneldoc parser.
-Move the #define's before the comment so it's happy again.
+This is a preparation patch for introducing a generic iommu_num_pages function.
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Muli Ben-Yehuda <muli@il.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tracehook.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/sparc64/kernel/iommu.c        |    6 +++---
+ arch/sparc64/kernel/iommu_common.h |    4 ++--
+ arch/sparc64/kernel/pci_sun4v.c    |    6 +++---
+ 3 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/tracehook.h~tracehook-kerneldoc-fix include/linux/tracehook.h
---- a/include/linux/tracehook.h~tracehook-kerneldoc-fix
-+++ a/include/linux/tracehook.h
-@@ -487,6 +487,9 @@ static inline int tracehook_notify_jctl(
- 	return notify || (current->ptrace & PT_PTRACED);
- }
+diff -puN arch/sparc64/kernel/iommu.c~sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages arch/sparc64/kernel/iommu.c
+--- a/arch/sparc64/kernel/iommu.c~sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages
++++ a/arch/sparc64/kernel/iommu.c
+@@ -575,7 +575,7 @@ static int dma_4u_map_sg(struct device *
+ 		}
+ 		/* Allocate iommu entries for that segment */
+ 		paddr = (unsigned long) SG_ENT_PHYS_ADDRESS(s);
+-		npages = iommu_num_pages(paddr, slen);
++		npages = iommu_nr_pages(paddr, slen);
+ 		entry = iommu_range_alloc(dev, iommu, npages, &handle);
  
-+#define DEATH_REAP			-1
-+#define DEATH_DELAYED_GROUP_LEADER	-2
-+
- /**
-  * tracehook_notify_death - task is dead, ready to notify parent
-  * @task:		@current task now exiting
-@@ -501,8 +504,6 @@ static inline int tracehook_notify_jctl(
-  *
-  * Called with write_lock_irq(&tasklist_lock) held.
-  */
--#define DEATH_REAP			-1
--#define DEATH_DELAYED_GROUP_LEADER	-2
- static inline int tracehook_notify_death(struct task_struct *task,
- 					 void **death_cookie, int group_dead)
+ 		/* Handle failure */
+@@ -647,7 +647,7 @@ iommu_map_failed:
+ 			iopte_t *base;
+ 
+ 			vaddr = s->dma_address & IO_PAGE_MASK;
+-			npages = iommu_num_pages(s->dma_address, s->dma_length);
++			npages = iommu_nr_pages(s->dma_address, s->dma_length);
+ 			iommu_range_free(iommu, vaddr, npages);
+ 
+ 			entry = (vaddr - iommu->page_table_map_base)
+@@ -715,7 +715,7 @@ static void dma_4u_unmap_sg(struct devic
+ 
+ 		if (!len)
+ 			break;
+-		npages = iommu_num_pages(dma_handle, len);
++		npages = iommu_nr_pages(dma_handle, len);
+ 		iommu_range_free(iommu, dma_handle, npages);
+ 
+ 		entry = ((dma_handle - iommu->page_table_map_base)
+diff -puN arch/sparc64/kernel/iommu_common.h~sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages arch/sparc64/kernel/iommu_common.h
+--- a/arch/sparc64/kernel/iommu_common.h~sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages
++++ a/arch/sparc64/kernel/iommu_common.h
+@@ -35,7 +35,7 @@
+ 
+ #define SG_ENT_PHYS_ADDRESS(SG)	(__pa(sg_virt((SG))))
+ 
+-static inline unsigned long iommu_num_pages(unsigned long vaddr,
++static inline unsigned long iommu_nr_pages(unsigned long vaddr,
+ 					    unsigned long slen)
  {
+ 	unsigned long npages;
+@@ -53,7 +53,7 @@ static inline int is_span_boundary(unsig
+ 				   struct scatterlist *sg)
+ {
+ 	unsigned long paddr = SG_ENT_PHYS_ADDRESS(outs);
+-	int nr = iommu_num_pages(paddr, outs->dma_length + sg->length);
++	int nr = iommu_nr_pages(paddr, outs->dma_length + sg->length);
+ 
+ 	return iommu_is_span_boundary(entry, nr, shift, boundary_size);
+ }
+diff -puN arch/sparc64/kernel/pci_sun4v.c~sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages arch/sparc64/kernel/pci_sun4v.c
+--- a/arch/sparc64/kernel/pci_sun4v.c~sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages
++++ a/arch/sparc64/kernel/pci_sun4v.c
+@@ -382,7 +382,7 @@ static int dma_4v_map_sg(struct device *
+ 		}
+ 		/* Allocate iommu entries for that segment */
+ 		paddr = (unsigned long) SG_ENT_PHYS_ADDRESS(s);
+-		npages = iommu_num_pages(paddr, slen);
++		npages = iommu_nr_pages(paddr, slen);
+ 		entry = iommu_range_alloc(dev, iommu, npages, &handle);
+ 
+ 		/* Handle failure */
+@@ -459,7 +459,7 @@ iommu_map_failed:
+ 			unsigned long vaddr, npages;
+ 
+ 			vaddr = s->dma_address & IO_PAGE_MASK;
+-			npages = iommu_num_pages(s->dma_address, s->dma_length);
++			npages = iommu_nr_pages(s->dma_address, s->dma_length);
+ 			iommu_range_free(iommu, vaddr, npages);
+ 			/* XXX demap? XXX */
+ 			s->dma_address = DMA_ERROR_CODE;
+@@ -498,7 +498,7 @@ static void dma_4v_unmap_sg(struct devic
+ 
+ 		if (!len)
+ 			break;
+-		npages = iommu_num_pages(dma_handle, len);
++		npages = iommu_nr_pages(dma_handle, len);
+ 		iommu_range_free(iommu, dma_handle, npages);
+ 
+ 		entry = ((dma_handle - iommu->page_table_map_base) >> IO_PAGE_SHIFT);
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from joerg.roedel@amd.com are
 
 origin.patch
-semaphore-__down_common-use-signal_pending_state.patch
-tracehook-kerneldoc-fix.patch
-x86-tracehook_signal_handler.patch
-x86-tracehook-syscall.patch
-x86-tracehook-asm-syscallh.patch
-x86-signals-use-asm-syscallh.patch
-x86-tracehook-tif_notify_resume.patch
-x86-tracehook-config_have_arch_tracehook.patch
-sched-do_wait_for_common-use-signal_pending_state.patch
-wait_task_inactive-dont-consider-task-nivcsw.patch
-posix-timers-fix-posix_timer_event-vs-dequeue_signal-race.patch
-posix-timers-do_schedule_next_timer-fix-the-setting-of-si_overrun.patch
-coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
-kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
+linux-next.patch
+x86-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
+sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
+powerpc-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
+introduce-generic-iommu_num_pages-function.patch
+x86-convert-gart-driver-to-generic-iommu_num_pages-function.patch
+x86-amd-iommu-convert-driver-to-generic-iommu_num_pages-function.patch
+x86-convert-calgary-iommu-driver-to-generic-iommu_num_pages-function.patch
+powerpc-use-iommu_num_pages-function-in-iommu-code.patch
+alpha-use-iommu_num_pages-function-in-iommu-code.patch
+sparc64-use-iommu_num_pages-function-in-iommu-code.patch
 
