@@ -1,119 +1,224 @@
 From: akpm@linux-foundation.org
-Subject: - mtd-diskonchipc-fix-sparse-endian-warnings.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 13:06:41 -0700
-Message-ID: <200808042006.m74K6fKH027709@imap1.linux-foundation.org>
+Subject: - pnp-fix-formatting-of-dbg_pnp_show_resources-output.patch removed from -mm tree
+Date: Mon, 04 Aug 2008 13:05:48 -0700
+Message-ID: <200808042005.m74K5mrV027624@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39987 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52015 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758173AbYHDUGp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:06:45 -0400
+	by vger.kernel.org with ESMTP id S1757944AbYHDUGi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:06:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, dwmw2@infradead.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: bjorn.helgaas@hp.com, clem@clem.clem-digital.net, rene.herman@keyaccess.nl, uwe.bugla@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: diskonchip.c fix sparse endian warnings
+     PNP: fix formatting of dbg_pnp_show_resources() output
 has been removed from the -mm tree.  Its filename was
-     mtd-diskonchipc-fix-sparse-endian-warnings.patch
+     pnp-fix-formatting-of-dbg_pnp_show_resources-output.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: diskonchip.c fix sparse endian warnings
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: PNP: fix formatting of dbg_pnp_show_resources() output
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Each resource should be printed on its own line, so start snprintf'ing
+at the beginning of the buffer every time through the loop.
+
+Also, use scnprintf() rather than snprintf() when building up the
+buffer to print.  scnprintf() returns the number of characters actually
+written into the buffer (not including the trailing NULL).
+
+snprintf() returns the number of characters that *would be* written,
+assuming everything would fit in the buffer.  That's nice if we want to
+resize the buffer to make sure everything fits, but in this case, I
+just want to keep from overflowing the buffer, and it's OK if the
+output is truncated.
+
+Using snprintf() meant that my "len" could grow to be more than the
+the buffer size, which makes "sizeof(buf) - len" negative, which causes
+this alarming WARN_ON:
+    http://marc.info/?l=linux-kernel&m=121736480005656&w=2
+
+More useful snprintf/scnprintf discussion:
+    http://lwn.net/Articles/69419/
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Reported-by: Pete Clements <clem@clem.clem-digital.net>
+Cc: Rene Herman <rene.herman@keyaccess.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/diskonchip.c |   30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ drivers/pnp/support.c |   96 ++++++++++++++++++++--------------------
+ 1 file changed, 49 insertions(+), 47 deletions(-)
 
-diff -puN drivers/mtd/nand/diskonchip.c~mtd-diskonchipc-fix-sparse-endian-warnings drivers/mtd/nand/diskonchip.c
---- a/drivers/mtd/nand/diskonchip.c~mtd-diskonchipc-fix-sparse-endian-warnings
-+++ a/drivers/mtd/nand/diskonchip.c
-@@ -1125,9 +1125,9 @@ static inline int __init nftl_partscan(s
- 		goto out;
- 	mh = (struct NFTLMediaHeader *)buf;
+diff -puN drivers/pnp/support.c~pnp-fix-formatting-of-dbg_pnp_show_resources-output drivers/pnp/support.c
+--- a/drivers/pnp/support.c~pnp-fix-formatting-of-dbg_pnp_show_resources-output
++++ a/drivers/pnp/support.c
+@@ -77,7 +77,7 @@ void dbg_pnp_show_resources(struct pnp_d
+ {
+ #ifdef DEBUG
+ 	char buf[128];
+-	int len = 0;
++	int len;
+ 	struct pnp_resource *pnp_res;
+ 	struct resource *res;
  
--	mh->NumEraseUnits = le16_to_cpu(mh->NumEraseUnits);
--	mh->FirstPhysicalEUN = le16_to_cpu(mh->FirstPhysicalEUN);
--	mh->FormattedSize = le32_to_cpu(mh->FormattedSize);
-+	le16_to_cpus(&mh->NumEraseUnits);
-+	le16_to_cpus(&mh->FirstPhysicalEUN);
-+	le32_to_cpus(&mh->FormattedSize);
+@@ -89,9 +89,10 @@ void dbg_pnp_show_resources(struct pnp_d
+ 	dev_dbg(&dev->dev, "%s: current resources:\n", desc);
+ 	list_for_each_entry(pnp_res, &dev->resources, list) {
+ 		res = &pnp_res->res;
++		len = 0;
  
- 	printk(KERN_INFO "    DataOrgID        = %s\n"
- 			 "    NumEraseUnits    = %d\n"
-@@ -1235,12 +1235,12 @@ static inline int __init inftl_partscan(
- 	doc->mh1_page = doc->mh0_page + (4096 >> this->page_shift);
- 	mh = (struct INFTLMediaHeader *)buf;
+-		len += snprintf(buf + len, sizeof(buf) - len, "  %-3s ",
+-				pnp_resource_type_name(res));
++		len += scnprintf(buf + len, sizeof(buf) - len, "  %-3s ",
++				 pnp_resource_type_name(res));
  
--	mh->NoOfBootImageBlocks = le32_to_cpu(mh->NoOfBootImageBlocks);
--	mh->NoOfBinaryPartitions = le32_to_cpu(mh->NoOfBinaryPartitions);
--	mh->NoOfBDTLPartitions = le32_to_cpu(mh->NoOfBDTLPartitions);
--	mh->BlockMultiplierBits = le32_to_cpu(mh->BlockMultiplierBits);
--	mh->FormatFlags = le32_to_cpu(mh->FormatFlags);
--	mh->PercentUsed = le32_to_cpu(mh->PercentUsed);
-+	le32_to_cpus(&mh->NoOfBootImageBlocks);
-+	le32_to_cpus(&mh->NoOfBinaryPartitions);
-+	le32_to_cpus(&mh->NoOfBDTLPartitions);
-+	le32_to_cpus(&mh->BlockMultiplierBits);
-+	le32_to_cpus(&mh->FormatFlags);
-+	le32_to_cpus(&mh->PercentUsed);
+ 		if (res->flags & IORESOURCE_DISABLED) {
+ 			dev_dbg(&dev->dev, "%sdisabled\n", buf);
+@@ -101,18 +102,18 @@ void dbg_pnp_show_resources(struct pnp_d
+ 		switch (pnp_resource_type(res)) {
+ 		case IORESOURCE_IO:
+ 		case IORESOURCE_MEM:
+-			len += snprintf(buf + len, sizeof(buf) - len,
+-					"%#llx-%#llx flags %#lx",
+-					(unsigned long long) res->start,
+-					(unsigned long long) res->end,
+-					res->flags);
++			len += scnprintf(buf + len, sizeof(buf) - len,
++					 "%#llx-%#llx flags %#lx",
++					 (unsigned long long) res->start,
++					 (unsigned long long) res->end,
++					 res->flags);
+ 			break;
+ 		case IORESOURCE_IRQ:
+ 		case IORESOURCE_DMA:
+-			len += snprintf(buf + len, sizeof(buf) - len,
+-					"%lld flags %#lx",
+-					(unsigned long long) res->start,
+-					res->flags);
++			len += scnprintf(buf + len, sizeof(buf) - len,
++					 "%lld flags %#lx",
++					 (unsigned long long) res->start,
++					 res->flags);
+ 			break;
+ 		}
+ 		dev_dbg(&dev->dev, "%s\n", buf);
+@@ -144,66 +145,67 @@ void dbg_pnp_show_option(struct pnp_dev 
+ 	struct pnp_dma *dma;
  
- 	printk(KERN_INFO "    bootRecordID          = %s\n"
- 			 "    NoOfBootImageBlocks   = %d\n"
-@@ -1277,12 +1277,12 @@ static inline int __init inftl_partscan(
- 	/* Scan the partitions */
- 	for (i = 0; (i < 4); i++) {
- 		ip = &(mh->Partitions[i]);
--		ip->virtualUnits = le32_to_cpu(ip->virtualUnits);
--		ip->firstUnit = le32_to_cpu(ip->firstUnit);
--		ip->lastUnit = le32_to_cpu(ip->lastUnit);
--		ip->flags = le32_to_cpu(ip->flags);
--		ip->spareUnits = le32_to_cpu(ip->spareUnits);
--		ip->Reserved0 = le32_to_cpu(ip->Reserved0);
-+		le32_to_cpus(&ip->virtualUnits);
-+		le32_to_cpus(&ip->firstUnit);
-+		le32_to_cpus(&ip->lastUnit);
-+		le32_to_cpus(&ip->flags);
-+		le32_to_cpus(&ip->spareUnits);
-+		le32_to_cpus(&ip->Reserved0);
+ 	if (pnp_option_is_dependent(option))
+-		len += snprintf(buf + len, sizeof(buf) - len,
+-				"  dependent set %d (%s) ",
+-				pnp_option_set(option),
+-				pnp_option_priority_name(option));
++		len += scnprintf(buf + len, sizeof(buf) - len,
++				 "  dependent set %d (%s) ",
++				 pnp_option_set(option),
++				 pnp_option_priority_name(option));
+ 	else
+-		len += snprintf(buf + len, sizeof(buf) - len, "  independent ");
++		len += scnprintf(buf + len, sizeof(buf) - len,
++				 "  independent ");
  
- 		printk(KERN_INFO	"    PARTITION[%d] ->\n"
- 			"        virtualUnits    = %d\n"
+ 	switch (option->type) {
+ 	case IORESOURCE_IO:
+ 		port = &option->u.port;
+-		len += snprintf(buf + len, sizeof(buf) - len, "io  min %#llx "
+-				"max %#llx align %lld size %lld flags %#x",
+-				(unsigned long long) port->min,
+-				(unsigned long long) port->max,
+-				(unsigned long long) port->align,
+-				(unsigned long long) port->size, port->flags);
++		len += scnprintf(buf + len, sizeof(buf) - len, "io  min %#llx "
++				 "max %#llx align %lld size %lld flags %#x",
++				 (unsigned long long) port->min,
++				 (unsigned long long) port->max,
++				 (unsigned long long) port->align,
++				 (unsigned long long) port->size, port->flags);
+ 		break;
+ 	case IORESOURCE_MEM:
+ 		mem = &option->u.mem;
+-		len += snprintf(buf + len, sizeof(buf) - len, "mem min %#llx "
+-				"max %#llx align %lld size %lld flags %#x",
+-				(unsigned long long) mem->min,
+-				(unsigned long long) mem->max,
+-				(unsigned long long) mem->align,
+-				(unsigned long long) mem->size, mem->flags);
++		len += scnprintf(buf + len, sizeof(buf) - len, "mem min %#llx "
++				 "max %#llx align %lld size %lld flags %#x",
++				 (unsigned long long) mem->min,
++				 (unsigned long long) mem->max,
++				 (unsigned long long) mem->align,
++				 (unsigned long long) mem->size, mem->flags);
+ 		break;
+ 	case IORESOURCE_IRQ:
+ 		irq = &option->u.irq;
+-		len += snprintf(buf + len, sizeof(buf) - len, "irq");
++		len += scnprintf(buf + len, sizeof(buf) - len, "irq");
+ 		if (bitmap_empty(irq->map.bits, PNP_IRQ_NR))
+-			len += snprintf(buf + len, sizeof(buf) - len,
+-					" <none>");
++			len += scnprintf(buf + len, sizeof(buf) - len,
++					 " <none>");
+ 		else {
+ 			for (i = 0; i < PNP_IRQ_NR; i++)
+ 				if (test_bit(i, irq->map.bits))
+-					len += snprintf(buf + len,
+-							sizeof(buf) - len,
+-							" %d", i);
++					len += scnprintf(buf + len,
++							 sizeof(buf) - len,
++							 " %d", i);
+ 		}
+-		len += snprintf(buf + len, sizeof(buf) - len, " flags %#x",
+-				irq->flags);
++		len += scnprintf(buf + len, sizeof(buf) - len, " flags %#x",
++				 irq->flags);
+ 		if (irq->flags & IORESOURCE_IRQ_OPTIONAL)
+-			len += snprintf(buf + len, sizeof(buf) - len,
+-					" (optional)");
++			len += scnprintf(buf + len, sizeof(buf) - len,
++					 " (optional)");
+ 		break;
+ 	case IORESOURCE_DMA:
+ 		dma = &option->u.dma;
+-		len += snprintf(buf + len, sizeof(buf) - len, "dma");
++		len += scnprintf(buf + len, sizeof(buf) - len, "dma");
+ 		if (!dma->map)
+-			len += snprintf(buf + len, sizeof(buf) - len,
+-					" <none>");
++			len += scnprintf(buf + len, sizeof(buf) - len,
++					 " <none>");
+ 		else {
+ 			for (i = 0; i < 8; i++)
+ 				if (dma->map & (1 << i))
+-					len += snprintf(buf + len,
+-							sizeof(buf) - len,
+-							" %d", i);
++					len += scnprintf(buf + len,
++							 sizeof(buf) - len,
++							 " %d", i);
+ 		}
+-		len += snprintf(buf + len, sizeof(buf) - len, " (bitmask %#x) "
+-				"flags %#x", dma->map, dma->flags);
++		len += scnprintf(buf + len, sizeof(buf) - len, " (bitmask %#x) "
++				 "flags %#x", dma->map, dma->flags);
+ 		break;
+ 	}
+ 	dev_dbg(&dev->dev, "%s\n", buf);
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
 origin.patch
 linux-next.patch
-cifs-remove-global_extern-macro.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-v4l-drx397xdc-sparse-annotations.patch
-v4l-drx397xdc-replace-__function__-occurrences.patch
-input-ads7846c-sparse-lock-annotation.patch
-drivers-net-replace-__function__-with-__func__.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-wireless-replace-__function__-with-__func__.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-include-replace-__function__-with-__func__.patch
-misc-replace-__function__-with-__func__.patch
-befs-annotate-fs32-on-tests-for-superblock-endianness.patch
-byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+firmware-use-dev_printk-when-possible.patch
+resources-tidy-__request_region.patch
 
