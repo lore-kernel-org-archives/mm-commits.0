@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + h8300-generic_bug-support.patch added to -mm tree
-Date: Mon, 04 Aug 2008 16:17:50 -0700
-Message-ID: <200808042317.m74NHo6g004931@imap1.linux-foundation.org>
+Subject: + h8300-kconfig-cleanup.patch added to -mm tree
+Date: Mon, 04 Aug 2008 16:17:49 -0700
+Message-ID: <200808042317.m74NHnnn004928@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39118 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40100 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755633AbYHDXSB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 19:18:01 -0400
+	by vger.kernel.org with ESMTP id S1756022AbYHDXSC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 19:18:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ysato@users.sourceforge.jp
 
 
 The patch titled
-     h8300: GENERIC_BUG support
+     h8300: Kconfig cleanup
 has been added to the -mm tree.  Its filename is
-     h8300-generic_bug-support.patch
+     h8300-kconfig-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,148 +33,135 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: h8300: GENERIC_BUG support
+Subject: h8300: Kconfig cleanup
 From: Yoshinori Sato <ysato@users.sourceforge.jp>
 
-CONFIG_GENERIC_BUG support.
+Use common Kconfig file.
 
 Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/Kconfig         |    4 ++++
- arch/h8300/kernel/module.c |    3 ++-
- arch/h8300/kernel/traps.c  |   17 +++++++++++------
- arch/h8300/mm/fault.c      |    5 ++---
- include/asm-h8300/bug.h    |    4 ++++
- include/asm-h8300/system.h |    2 ++
- 6 files changed, 25 insertions(+), 10 deletions(-)
+ arch/h8300/Kconfig |  116 -------------------------------------------
+ 1 file changed, 1 insertion(+), 115 deletions(-)
 
-diff -puN arch/h8300/Kconfig~h8300-generic_bug-support arch/h8300/Kconfig
---- a/arch/h8300/Kconfig~h8300-generic_bug-support
+diff -puN arch/h8300/Kconfig~h8300-kconfig-cleanup arch/h8300/Kconfig
+--- a/arch/h8300/Kconfig~h8300-kconfig-cleanup
 +++ a/arch/h8300/Kconfig
-@@ -62,6 +62,10 @@ config GENERIC_TIME
- 	bool
- 	default y
+@@ -99,121 +99,7 @@ endmenu
  
-+config GENERIC_BUG
-+        bool
-+        depends on BUG
-+
- config TIME_LOW_RES
- 	bool
- 	default y
-diff -puN arch/h8300/kernel/module.c~h8300-generic_bug-support arch/h8300/kernel/module.c
---- a/arch/h8300/kernel/module.c~h8300-generic_bug-support
-+++ a/arch/h8300/kernel/module.c
-@@ -114,9 +114,10 @@ int module_finalize(const Elf_Ehdr *hdr,
- 		    const Elf_Shdr *sechdrs,
- 		    struct module *me)
- {
--	return 0;
-+	return module_bug_finalize(hdr, sechdrs, me);
- }
+ source "net/Kconfig"
  
- void module_arch_cleanup(struct module *mod)
- {
-+	module_bug_cleanup(mod);
- }
-diff -puN arch/h8300/kernel/traps.c~h8300-generic_bug-support arch/h8300/kernel/traps.c
---- a/arch/h8300/kernel/traps.c~h8300-generic_bug-support
-+++ a/arch/h8300/kernel/traps.c
-@@ -20,12 +20,14 @@
- #include <linux/errno.h>
- #include <linux/init.h>
- #include <linux/module.h>
-+#include <linux/bug.h>
- 
- #include <asm/system.h>
- #include <asm/irq.h>
- #include <asm/traps.h>
- #include <asm/page.h>
--#include <asm/gpio.h>
-+
-+static DEFINE_SPINLOCK(die_lock);
- 
- /*
-  * this must be called very early as the kernel might
-@@ -94,16 +96,19 @@ static void dump(struct pt_regs *fp)
- 	printk("\n\n");
- }
- 
--void die_if_kernel (char *str, struct pt_regs *fp, int nr)
-+void die(char *str, struct pt_regs *fp, unsigned long err)
- {
--	extern int console_loglevel;
-+	static int diecount = 0;
- 
--	if (!(fp->ccr & PS_S))
--		return;
-+	oops_enter();
- 
--	console_loglevel = 15;
-+	console_verbose();
-+	spin_lock_irq(&die_lock);
-+	report_bug(fp->pc, fp);
-+	printk(KERN_EMERG "%s: %04lx [#%d] ", str, err & 0xffff, ++diecount);
- 	dump(fp);
- 
-+	spin_unlock_irq(&die_lock);
- 	do_exit(SIGSEGV);
- }
- 
-diff -puN arch/h8300/mm/fault.c~h8300-generic_bug-support arch/h8300/mm/fault.c
---- a/arch/h8300/mm/fault.c~h8300-generic_bug-support
-+++ a/arch/h8300/mm/fault.c
-@@ -20,8 +20,6 @@
- #include <asm/system.h>
- #include <asm/pgtable.h>
- 
--extern void die_if_kernel(char *, struct pt_regs *, long);
+-source "drivers/base/Kconfig"
 -
- /*
-  * This routine handles page faults.  It determines the problem, and
-  * then passes it off to one of the appropriate routines.
-@@ -50,7 +48,8 @@ asmlinkage int do_page_fault(struct pt_r
- 	} else
- 		printk(KERN_ALERT "Unable to handle kernel access");
- 	printk(" at virtual address %08lx\n",address);
--	die_if_kernel("Oops", regs, error_code);
-+	if (!user_mode(regs))
-+		die("Oops", regs, error_code);
- 	do_exit(SIGKILL);
- 
- 	return 1;
-diff -puN include/asm-h8300/bug.h~h8300-generic_bug-support include/asm-h8300/bug.h
---- a/include/asm-h8300/bug.h~h8300-generic_bug-support
-+++ a/include/asm-h8300/bug.h
-@@ -1,4 +1,8 @@
- #ifndef _H8300_BUG_H
- #define _H8300_BUG_H
-+
-+/* always true */
-+#define is_valid_bugaddr(addr) (1)
-+
- #include <asm-generic/bug.h>
- #endif
-diff -puN include/asm-h8300/system.h~h8300-generic_bug-support include/asm-h8300/system.h
---- a/include/asm-h8300/system.h~h8300-generic_bug-support
-+++ a/include/asm-h8300/system.h
-@@ -155,4 +155,6 @@ static inline unsigned long __xchg(unsig
- 
- #define arch_align_stack(x) (x)
- 
-+void die(char *str, struct pt_regs *fp, unsigned long err);
-+
- #endif /* _H8300_SYSTEM_H */
-_
-
-Patches currently in -mm which might be from ysato@users.sourceforge.jp are
-
-origin.patch
-h8300-update-timer-handler-delete-files.patch
-h8300-update-timer-handler-new-files.patch
-h8300-update-timer-handler-misc-update.patch
-h8300-kconfig-cleanup.patch
-h8300-generic_bug-support.patch
-
+-source "drivers/mtd/Kconfig"
+-
+-source "drivers/block/Kconfig"
+-
+-source "drivers/ide/Kconfig"
+-
+-source "arch/h8300/Kconfig.ide"
+-
+-source "drivers/net/Kconfig"
+-
+-#
+-# input - input/joystick depends on it. As does USB.
+-#
+-source "drivers/input/Kconfig"
+-
+-menu "Character devices"
+-
+-config VT
+-	bool "Virtual terminal"
+-	---help---
+-	  If you say Y here, you will get support for terminal devices with
+-	  display and keyboard devices. These are called "virtual" because you
+-	  can run several virtual terminals (also called virtual consoles) on
+-	  one physical terminal. This is rather useful, for example one
+-	  virtual terminal can collect system messages and warnings, another
+-	  one can be used for a text-mode user session, and a third could run
+-	  an X session, all in parallel. Switching between virtual terminals
+-	  is done with certain key combinations, usually Alt-<function key>.
+-
+-	  The setterm command ("man setterm") can be used to change the
+-	  properties (such as colors or beeping) of a virtual terminal. The
+-	  man page console_codes(4) ("man console_codes") contains the special
+-	  character sequences that can be used to change those properties
+-	  directly. The fonts used on virtual terminals can be changed with
+-	  the setfont ("man setfont") command and the key bindings are defined
+-	  with the loadkeys ("man loadkeys") command.
+-
+-	  You need at least one virtual terminal device in order to make use
+-	  of your keyboard and monitor. Therefore, only people configuring an
+-	  embedded system would want to say N here in order to save some
+-	  memory; the only way to log into such a system is then via a serial
+-	  or network connection.
+-
+-	  If unsure, say Y, or else you won't be able to do much with your new
+-	  shiny Linux system :-)
+-
+-config VT_CONSOLE
+-	bool "Support for console on virtual terminal"
+-	depends on VT
+-	---help---
+-	  The system console is the device which receives all kernel messages
+-	  and warnings and which allows logins in single user mode. If you
+-	  answer Y here, a virtual terminal (the device used to interact with
+-	  a physical terminal) can be used as system console. This is the most
+-	  common mode of operations, so you should say Y here unless you want
+-	  the kernel messages be output only to a serial port (in which case
+-	  you should say Y to "Console on serial port", below).
+-
+-	  If you do say Y here, by default the currently visible virtual
+-	  terminal (/dev/tty0) will be used as system console. You can change
+-	  that with a kernel command line option such as "console=tty3" which
+-	  would use the third virtual terminal as system console. (Try "man
+-	  bootparam" or see the documentation of your boot loader (lilo or
+-	  loadlin) about how to pass options to the kernel at boot time.)
+-
+-	  If unsure, say Y.
+-
+-config HW_CONSOLE
+-	bool
+-	depends on VT && !S390 && !UM
+-	default y
+-
+-comment "Unix98 PTY support"
+-
+-config UNIX98_PTYS
+-	bool "Unix98 PTY support"
+-	---help---
+-	  A pseudo terminal (PTY) is a software device consisting of two
+-	  halves: a master and a slave. The slave device behaves identical to
+-	  a physical terminal; the master device is used by a process to
+-	  read data from and write data to the slave, thereby emulating a
+-	  terminal. Typical programs for the master side are telnet servers
+-	  and xterms.
+-
+-	  Linux has traditionally used the BSD-like names /dev/ptyxx for
+-	  masters and /dev/ttyxx for slaves of pseudo terminals. This scheme
+-	  has a number of problems. The GNU C library glibc 2.1 and later,
+-	  however, supports the Unix98 naming standard: in order to acquire a
+-	  pseudo terminal, a process opens /dev/ptmx; the number of the pseudo
+-	  terminal is then made available to the process and the pseudo
+-	  terminal slave can be accessed as /dev/pts/<number>. What was
+-	  traditionally /dev/ttyp2 will then be /dev/pts/2, for example.
+-
+-	  The entries in /dev/pts/ are created on the fly by a virtual
+-	  file system; therefore, if you say Y here you should say Y to
+-	  "/dev/pts file system for Unix98 PTYs" as well.
+-
+-	  If you want to say Y here, you need to have the C library glibc 2.1
+-	  or later (equal to libc-6.1, check with "ls -l /lib/libc.so.*").
+-	  Read the instructions in <file:Documentation/Changes> pertaining to
+-	  pseudo terminals. It's safe to say N.
+-
+-source "drivers/char/pcmcia/Kconfig"
+-
+-source "drivers/serial/Kconfig"
+-
+-source "drivers/i2c/Kconfig"
+-
+-source "drivers/hwmon/Kconfig"
+-
+-source "drivers/usb/Kconfig"
