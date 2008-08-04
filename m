@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages.patch added to -mm tree
-Date: Mon, 04 Aug 2008 14:22:02 -0700
-Message-ID: <200808042122.m74LM2rD031519@imap1.linux-foundation.org>
+Subject: + x86-convert-gart-driver-to-generic-iommu_num_pages-function.patch added to -mm tree
+Date: Mon, 04 Aug 2008 14:22:08 -0700
+Message-ID: <200808042122.m74LM8AS031528@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40426 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57334 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757498AbYHDVWk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 17:22:40 -0400
+	by vger.kernel.org with ESMTP id S1757535AbYHDVXL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 17:23:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joerg.roedel@amd.com, davem@davemloft.net, fujita.tomonori@lab.ntt.co.jp, muli@il.ibm.com
+Cc: joerg.roedel@amd.com, airlied@linux.ie, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     sparc64: rename iommu_num_pages function to iommu_nr_pages
+     x86: convert GART driver to generic iommu_num_pages function
 has been added to the -mm tree.  Its filename is
-     sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
+     x86-convert-gart-driver-to-generic-iommu_num_pages-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,104 +33,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparc64: rename iommu_num_pages function to iommu_nr_pages
+Subject: x86: convert GART driver to generic iommu_num_pages function
 From: Joerg Roedel <joerg.roedel@amd.com>
 
-This is a preparation patch for introducing a generic iommu_num_pages function.
-
 Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/kernel/iommu.c        |    6 +++---
- arch/sparc64/kernel/iommu_common.h |    4 ++--
- arch/sparc64/kernel/pci_sun4v.c    |    6 +++---
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ arch/x86/kernel/pci-gart_64.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/sparc64/kernel/iommu.c~sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages arch/sparc64/kernel/iommu.c
---- a/arch/sparc64/kernel/iommu.c~sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages
-+++ a/arch/sparc64/kernel/iommu.c
-@@ -575,7 +575,7 @@ static int dma_4u_map_sg(struct device *
- 		}
- 		/* Allocate iommu entries for that segment */
- 		paddr = (unsigned long) SG_ENT_PHYS_ADDRESS(s);
--		npages = iommu_num_pages(paddr, slen);
-+		npages = iommu_nr_pages(paddr, slen);
- 		entry = iommu_range_alloc(dev, iommu, npages, &handle);
- 
- 		/* Handle failure */
-@@ -647,7 +647,7 @@ iommu_map_failed:
- 			iopte_t *base;
- 
- 			vaddr = s->dma_address & IO_PAGE_MASK;
--			npages = iommu_num_pages(s->dma_address, s->dma_length);
-+			npages = iommu_nr_pages(s->dma_address, s->dma_length);
- 			iommu_range_free(iommu, vaddr, npages);
- 
- 			entry = (vaddr - iommu->page_table_map_base)
-@@ -715,7 +715,7 @@ static void dma_4u_unmap_sg(struct devic
- 
- 		if (!len)
- 			break;
--		npages = iommu_num_pages(dma_handle, len);
-+		npages = iommu_nr_pages(dma_handle, len);
- 		iommu_range_free(iommu, dma_handle, npages);
- 
- 		entry = ((dma_handle - iommu->page_table_map_base)
-diff -puN arch/sparc64/kernel/iommu_common.h~sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages arch/sparc64/kernel/iommu_common.h
---- a/arch/sparc64/kernel/iommu_common.h~sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages
-+++ a/arch/sparc64/kernel/iommu_common.h
-@@ -35,7 +35,7 @@
- 
- #define SG_ENT_PHYS_ADDRESS(SG)	(__pa(sg_virt((SG))))
- 
--static inline unsigned long iommu_num_pages(unsigned long vaddr,
-+static inline unsigned long iommu_nr_pages(unsigned long vaddr,
- 					    unsigned long slen)
+diff -puN arch/x86/kernel/pci-gart_64.c~x86-convert-gart-driver-to-generic-iommu_num_pages-function arch/x86/kernel/pci-gart_64.c
+--- a/arch/x86/kernel/pci-gart_64.c~x86-convert-gart-driver-to-generic-iommu_num_pages-function
++++ a/arch/x86/kernel/pci-gart_64.c
+@@ -240,7 +240,7 @@ nonforced_iommu(struct device *dev, unsi
+ static dma_addr_t dma_map_area(struct device *dev, dma_addr_t phys_mem,
+ 			       size_t size, int dir, u64 align_mask)
  {
- 	unsigned long npages;
-@@ -53,7 +53,7 @@ static inline int is_span_boundary(unsig
- 				   struct scatterlist *sg)
- {
- 	unsigned long paddr = SG_ENT_PHYS_ADDRESS(outs);
--	int nr = iommu_num_pages(paddr, outs->dma_length + sg->length);
-+	int nr = iommu_nr_pages(paddr, outs->dma_length + sg->length);
+-	unsigned long npages = iommu_nr_pages(phys_mem, size);
++	unsigned long npages = iommu_num_pages(phys_mem, size, PAGE_SIZE);
+  	unsigned long palign_mask = align_mask >> PAGE_SHIFT;
+  	unsigned long iommu_page = alloc_iommu(dev, npages, palign_mask);
+ 	int i;
+@@ -305,7 +305,7 @@ static void gart_unmap_single(struct dev
+ 		return;
  
- 	return iommu_is_span_boundary(entry, nr, shift, boundary_size);
- }
-diff -puN arch/sparc64/kernel/pci_sun4v.c~sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages arch/sparc64/kernel/pci_sun4v.c
---- a/arch/sparc64/kernel/pci_sun4v.c~sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages
-+++ a/arch/sparc64/kernel/pci_sun4v.c
-@@ -382,7 +382,7 @@ static int dma_4v_map_sg(struct device *
+ 	iommu_page = (dma_addr - iommu_bus_base)>>PAGE_SHIFT;
+-	npages = iommu_nr_pages(dma_addr, size);
++	npages = iommu_num_pages(dma_addr, size, PAGE_SIZE);
+ 	for (i = 0; i < npages; i++) {
+ 		iommu_gatt_base[iommu_page + i] = gart_unmapped_entry;
+ 		CLEAR_LEAK(iommu_page + i);
+@@ -388,7 +388,7 @@ static int __dma_map_cont(struct device 
  		}
- 		/* Allocate iommu entries for that segment */
- 		paddr = (unsigned long) SG_ENT_PHYS_ADDRESS(s);
--		npages = iommu_num_pages(paddr, slen);
-+		npages = iommu_nr_pages(paddr, slen);
- 		entry = iommu_range_alloc(dev, iommu, npages, &handle);
  
- 		/* Handle failure */
-@@ -459,7 +459,7 @@ iommu_map_failed:
- 			unsigned long vaddr, npages;
+ 		addr = phys_addr;
+-		pages = iommu_nr_pages(s->offset, s->length);
++		pages = iommu_num_pages(s->offset, s->length, PAGE_SIZE);
+ 		while (pages--) {
+ 			iommu_gatt_base[iommu_page] = GPTE_ENCODE(addr);
+ 			SET_LEAK(iommu_page);
+@@ -471,7 +471,7 @@ gart_map_sg(struct device *dev, struct s
  
- 			vaddr = s->dma_address & IO_PAGE_MASK;
--			npages = iommu_num_pages(s->dma_address, s->dma_length);
-+			npages = iommu_nr_pages(s->dma_address, s->dma_length);
- 			iommu_range_free(iommu, vaddr, npages);
- 			/* XXX demap? XXX */
- 			s->dma_address = DMA_ERROR_CODE;
-@@ -498,7 +498,7 @@ static void dma_4v_unmap_sg(struct devic
- 
- 		if (!len)
- 			break;
--		npages = iommu_num_pages(dma_handle, len);
-+		npages = iommu_nr_pages(dma_handle, len);
- 		iommu_range_free(iommu, dma_handle, npages);
- 
- 		entry = ((dma_handle - iommu->page_table_map_base) >> IO_PAGE_SHIFT);
+ 		seg_size += s->length;
+ 		need = nextneed;
+-		pages += iommu_nr_pages(s->offset, s->length);
++		pages += iommu_num_pages(s->offset, s->length, PAGE_SIZE);
+ 		ps = s;
+ 	}
+ 	if (dma_map_cont(dev, start_sg, i - start, sgmap, pages, need) < 0)
 _
 
 Patches currently in -mm which might be from joerg.roedel@amd.com are
