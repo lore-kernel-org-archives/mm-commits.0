@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sparc64-use-iommu_num_pages-function-in-iommu-code.patch added to -mm tree
-Date: Mon, 04 Aug 2008 14:22:19 -0700
-Message-ID: <200808042122.m74LMJ0E031546@imap1.linux-foundation.org>
+Subject: + alpha-use-iommu_num_pages-function-in-iommu-code.patch added to -mm tree
+Date: Mon, 04 Aug 2008 14:22:17 -0700
+Message-ID: <200808042122.m74LMH5b031543@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49640 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47876 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757530AbYHDVbb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 17:31:31 -0400
+	by vger.kernel.org with ESMTP id S1764306AbYHDVc1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 17:32:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joerg.roedel@amd.com, davem@davemloft.net, fujita.tomonori@lab.ntt.co.jp, muli@il.ibm.com
+Cc: joerg.roedel@amd.com, fujita.tomonori@lab.ntt.co.jp, ink@jurassic.park.msu.ru, muli@il.ibm.com, rth@twiddle.net
 
 
 The patch titled
-     sparc64: use iommu_num_pages function in IOMMU code
+     alpha: use iommu_num_pages function in IOMMU code
 has been added to the -mm tree.  Its filename is
-     sparc64-use-iommu_num_pages-function-in-iommu-code.patch
+     alpha-use-iommu_num_pages-function-in-iommu-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,114 +33,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparc64: use iommu_num_pages function in IOMMU code
+Subject: alpha: use iommu_num_pages function in IOMMU code
 From: Joerg Roedel <joerg.roedel@amd.com>
 
 Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Cc: Muli Ben-Yehuda <muli@il.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/kernel/iommu.c        |    7 ++++---
- arch/sparc64/kernel/iommu_common.h |   14 ++------------
- arch/sparc64/kernel/pci_sun4v.c    |    7 ++++---
- 3 files changed, 10 insertions(+), 18 deletions(-)
+ arch/alpha/kernel/pci_iommu.c |   17 +++++------------
+ 1 file changed, 5 insertions(+), 12 deletions(-)
 
-diff -puN arch/sparc64/kernel/iommu.c~sparc64-use-iommu_num_pages-function-in-iommu-code arch/sparc64/kernel/iommu.c
---- a/arch/sparc64/kernel/iommu.c~sparc64-use-iommu_num_pages-function-in-iommu-code
-+++ a/arch/sparc64/kernel/iommu.c
-@@ -575,7 +575,7 @@ static int dma_4u_map_sg(struct device *
- 		}
- 		/* Allocate iommu entries for that segment */
- 		paddr = (unsigned long) SG_ENT_PHYS_ADDRESS(s);
--		npages = iommu_nr_pages(paddr, slen);
-+		npages = iommu_num_pages(paddr, slen, IO_PAGE_SIZE);
- 		entry = iommu_range_alloc(dev, iommu, npages, &handle);
- 
- 		/* Handle failure */
-@@ -647,7 +647,8 @@ iommu_map_failed:
- 			iopte_t *base;
- 
- 			vaddr = s->dma_address & IO_PAGE_MASK;
--			npages = iommu_nr_pages(s->dma_address, s->dma_length);
-+			npages = iommu_num_pages(s->dma_address, s->dma_length,
-+						 IO_PAGE_SIZE);
- 			iommu_range_free(iommu, vaddr, npages);
- 
- 			entry = (vaddr - iommu->page_table_map_base)
-@@ -715,7 +716,7 @@ static void dma_4u_unmap_sg(struct devic
- 
- 		if (!len)
- 			break;
--		npages = iommu_nr_pages(dma_handle, len);
-+		npages = iommu_num_pages(dma_handle, len, IO_PAGE_SIZE);
- 		iommu_range_free(iommu, dma_handle, npages);
- 
- 		entry = ((dma_handle - iommu->page_table_map_base)
-diff -puN arch/sparc64/kernel/iommu_common.h~sparc64-use-iommu_num_pages-function-in-iommu-code arch/sparc64/kernel/iommu_common.h
---- a/arch/sparc64/kernel/iommu_common.h~sparc64-use-iommu_num_pages-function-in-iommu-code
-+++ a/arch/sparc64/kernel/iommu_common.h
-@@ -35,17 +35,6 @@
- 
- #define SG_ENT_PHYS_ADDRESS(SG)	(__pa(sg_virt((SG))))
- 
--static inline unsigned long iommu_nr_pages(unsigned long vaddr,
--					    unsigned long slen)
--{
--	unsigned long npages;
--
--	npages = IO_PAGE_ALIGN(vaddr + slen) - (vaddr & IO_PAGE_MASK);
--	npages >>= IO_PAGE_SHIFT;
--
--	return npages;
--}
--
- static inline int is_span_boundary(unsigned long entry,
- 				   unsigned long shift,
- 				   unsigned long boundary_size,
-@@ -53,7 +42,8 @@ static inline int is_span_boundary(unsig
- 				   struct scatterlist *sg)
- {
- 	unsigned long paddr = SG_ENT_PHYS_ADDRESS(outs);
--	int nr = iommu_nr_pages(paddr, outs->dma_length + sg->length);
-+	int nr = iommu_num_pages(paddr, outs->dma_length + sg->length,
-+				 IO_PAGE_SIZE);
- 
- 	return iommu_is_span_boundary(entry, nr, shift, boundary_size);
+diff -puN arch/alpha/kernel/pci_iommu.c~alpha-use-iommu_num_pages-function-in-iommu-code arch/alpha/kernel/pci_iommu.c
+--- a/arch/alpha/kernel/pci_iommu.c~alpha-use-iommu_num_pages-function-in-iommu-code
++++ a/arch/alpha/kernel/pci_iommu.c
+@@ -41,13 +41,6 @@ mk_iommu_pte(unsigned long paddr)
+ 	return (paddr >> (PAGE_SHIFT-1)) | 1;
  }
-diff -puN arch/sparc64/kernel/pci_sun4v.c~sparc64-use-iommu_num_pages-function-in-iommu-code arch/sparc64/kernel/pci_sun4v.c
---- a/arch/sparc64/kernel/pci_sun4v.c~sparc64-use-iommu_num_pages-function-in-iommu-code
-+++ a/arch/sparc64/kernel/pci_sun4v.c
-@@ -382,7 +382,7 @@ static int dma_4v_map_sg(struct device *
+ 
+-static inline long
+-calc_npages(long bytes)
+-{
+-	return (bytes + PAGE_SIZE - 1) >> PAGE_SHIFT;
+-}
+-
+-
+ /* Return the minimum of MAX or the first power of two larger
+    than main memory.  */
+ 
+@@ -287,7 +280,7 @@ pci_map_single_1(struct pci_dev *pdev, v
+ 	if (!arena || arena->dma_base + arena->size - 1 > max_dma)
+ 		arena = hose->sg_isa;
+ 
+-	npages = calc_npages((paddr & ~PAGE_MASK) + size);
++	npages = iommu_num_pages(paddr, size, PAGE_SIZE);
+ 
+ 	/* Force allocation to 64KB boundary for ISA bridges. */
+ 	if (pdev && pdev == isa_bridge)
+@@ -387,7 +380,7 @@ pci_unmap_single(struct pci_dev *pdev, d
+ 		BUG();
+ 	}
+ 
+-	npages = calc_npages((dma_addr & ~PAGE_MASK) + size);
++	npages = iommu_num_pages(dma_addr, size, PAGE_SIZE);
+ 
+ 	spin_lock_irqsave(&arena->lock, flags);
+ 
+@@ -580,7 +573,7 @@ sg_fill(struct device *dev, struct scatt
+ 	   contiguous.  */
+ 
+ 	paddr &= ~PAGE_MASK;
+-	npages = calc_npages(paddr + size);
++	npages = iommu_num_pages(paddr, size, PAGE_SIZE);
+ 	dma_ofs = iommu_arena_alloc(dev, arena, npages, 0);
+ 	if (dma_ofs < 0) {
+ 		/* If we attempted a direct map above but failed, die.  */
+@@ -616,7 +609,7 @@ sg_fill(struct device *dev, struct scatt
+ 			sg++;
  		}
- 		/* Allocate iommu entries for that segment */
- 		paddr = (unsigned long) SG_ENT_PHYS_ADDRESS(s);
--		npages = iommu_nr_pages(paddr, slen);
-+		npages = iommu_num_pages(paddr, slen, IO_PAGE_SIZE);
- 		entry = iommu_range_alloc(dev, iommu, npages, &handle);
  
- 		/* Handle failure */
-@@ -459,7 +459,8 @@ iommu_map_failed:
- 			unsigned long vaddr, npages;
+-		npages = calc_npages((paddr & ~PAGE_MASK) + size);
++		npages = iommu_num_pages(paddr, size, PAGE_SIZE);
  
- 			vaddr = s->dma_address & IO_PAGE_MASK;
--			npages = iommu_nr_pages(s->dma_address, s->dma_length);
-+			npages = iommu_num_pages(s->dma_address, s->dma_length,
-+						 IO_PAGE_SIZE);
- 			iommu_range_free(iommu, vaddr, npages);
- 			/* XXX demap? XXX */
- 			s->dma_address = DMA_ERROR_CODE;
-@@ -498,7 +499,7 @@ static void dma_4v_unmap_sg(struct devic
+ 		paddr &= PAGE_MASK;
+ 		for (i = 0; i < npages; ++i, paddr += PAGE_SIZE)
+@@ -775,7 +768,7 @@ pci_unmap_sg(struct pci_dev *pdev, struc
+ 		DBGA("    (%ld) sg [%lx,%lx]\n",
+ 		     sg - end + nents, addr, size);
  
- 		if (!len)
- 			break;
--		npages = iommu_nr_pages(dma_handle, len);
-+		npages = iommu_num_pages(dma_handle, len, IO_PAGE_SIZE);
- 		iommu_range_free(iommu, dma_handle, npages);
+-		npages = calc_npages((addr & ~PAGE_MASK) + size);
++		npages = iommu_num_pages(addr, size, PAGE_SIZE);
+ 		ofs = (addr - arena->dma_base) >> PAGE_SHIFT;
+ 		iommu_arena_free(arena, ofs, npages);
  
- 		entry = ((dma_handle - iommu->page_table_map_base) >> IO_PAGE_SHIFT);
 _
 
 Patches currently in -mm which might be from joerg.roedel@amd.com are
