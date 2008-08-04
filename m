@@ -1,87 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - nsc-ircc-default-to-dongle-type-9-on-ibm-hardware.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 13:07:22 -0700
-Message-ID: <200808042007.m74K7MkQ027775@imap1.linux-foundation.org>
+Subject: - isdn-use-the-common-ascii-hex-helpers.patch removed from -mm tree
+Date: Mon, 04 Aug 2008 13:07:27 -0700
+Message-ID: <200808042007.m74K7RBV027785@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55807 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50093 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761997AbYHDUHb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:07:31 -0400
+	by vger.kernel.org with ESMTP id S1754751AbYHDUHd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:07:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mjg59@srcf.ucam.org, ben.collins@canonical.com, samuel@sortiz.org, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nsc-ircc: default to dongle type 9 on IBM hardware
+     isdn: use the common ascii hex helpers
 has been removed from the -mm tree.  Its filename was
-     nsc-ircc-default-to-dongle-type-9-on-ibm-hardware.patch
+     isdn-use-the-common-ascii-hex-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nsc-ircc: default to dongle type 9 on IBM hardware
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: isdn: use the common ascii hex helpers
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-This is necessary to set the dongle type on the nsc driver in order to get
-it to work correctly.  Thinkpads all appear to use dongle type 9.  This
-patch defaults nsc devices with an IBM PnP descriptor to use type 9.
-
-Cc: Samuel Ortiz <samuel@sortiz.org>
-Signed-off-by: Matthew Garrett <mjg59@srcf.ucam.org>
-Signed-off-by: Ben Collins <ben.collins@canonical.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/irda/nsc-ircc.c |    7 +++++--
- drivers/net/irda/nsc-ircc.h |    3 +++
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/isdn/gigaset/isocdata.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/irda/nsc-ircc.c~nsc-ircc-default-to-dongle-type-9-on-ibm-hardware drivers/net/irda/nsc-ircc.c
---- a/drivers/net/irda/nsc-ircc.c~nsc-ircc-default-to-dongle-type-9-on-ibm-hardware
-+++ a/drivers/net/irda/nsc-ircc.c
-@@ -151,8 +151,8 @@ static char *dongle_types[] = {
- static chipio_t pnp_info;
- static const struct pnp_device_id nsc_ircc_pnp_table[] = {
- 	{ .id = "NSC6001", .driver_data = 0 },
--	{ .id = "IBM0071", .driver_data = 0 },
- 	{ .id = "HWPC224", .driver_data = 0 },
-+	{ .id = "IBM0071", .driver_data = NSC_FORCE_DONGLE_TYPE9 },
- 	{ }
- };
- 
-@@ -930,7 +930,10 @@ static int nsc_ircc_pnp_probe(struct pnp
- 	pnp_info.dma = -1;
- 	pnp_succeeded = 1;
- 
--	/* There don't seem to be any way to get the cfg_base.
-+	if (id->driver_data & NSC_FORCE_DONGLE_TYPE9)
-+		dongle_id = 0x9;
-+
-+	/* There doesn't seem to be any way of getting the cfg_base.
- 	 * On my box, cfg_base is in the PnP descriptor of the
- 	 * motherboard. Oh well... Jean II */
- 
-diff -puN drivers/net/irda/nsc-ircc.h~nsc-ircc-default-to-dongle-type-9-on-ibm-hardware drivers/net/irda/nsc-ircc.h
---- a/drivers/net/irda/nsc-ircc.h~nsc-ircc-default-to-dongle-type-9-on-ibm-hardware
-+++ a/drivers/net/irda/nsc-ircc.h
-@@ -35,6 +35,9 @@
- #include <linux/types.h>
- #include <asm/io.h>
- 
-+/* Features for chips (set in driver_data) */
-+#define NSC_FORCE_DONGLE_TYPE9	0x00000001
-+
- /* DMA modes needed */
- #define DMA_TX_MODE     0x08    /* Mem to I/O, ++, demand. */
- #define DMA_RX_MODE     0x04    /* I/O to mem, ++, demand. */
+diff -puN drivers/isdn/gigaset/isocdata.c~isdn-use-the-common-ascii-hex-helpers drivers/isdn/gigaset/isocdata.c
+--- a/drivers/isdn/gigaset/isocdata.c~isdn-use-the-common-ascii-hex-helpers
++++ a/drivers/isdn/gigaset/isocdata.c
+@@ -247,7 +247,6 @@ static inline void dump_bytes(enum debug
+ #ifdef CONFIG_GIGASET_DEBUG
+ 	unsigned char c;
+ 	static char dbgline[3 * 32 + 1];
+-	static const char hexdigit[] = "0123456789abcdef";
+ 	int i = 0;
+ 	while (count-- > 0) {
+ 		if (i > sizeof(dbgline) - 4) {
+@@ -258,8 +257,8 @@ static inline void dump_bytes(enum debug
+ 		c = *bytes++;
+ 		dbgline[i] = (i && !(i % 12)) ? '-' : ' ';
+ 		i++;
+-		dbgline[i++] = hexdigit[(c >> 4) & 0x0f];
+-		dbgline[i++] = hexdigit[c & 0x0f];
++		dbgline[i++] = hex_asc_hi(c);
++		dbgline[i++] = hex_asc_lo(c);
+ 	}
+ 	dbgline[i] = '\0';
+ 	gig_dbg(level, "%s:%s", tag, dbgline);
 _
 
-Patches currently in -mm which might be from mjg59@srcf.ucam.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
 linux-next.patch
+cifs-remove-global_extern-macro.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+v4l-drx397xdc-sparse-annotations.patch
+v4l-drx397xdc-replace-__function__-occurrences.patch
+input-ads7846c-sparse-lock-annotation.patch
+drivers-net-replace-__function__-with-__func__.patch
+scsi-replace-__inline-with-inline.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+wireless-replace-__function__-with-__func__.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+olpc-olpc_batteryc-sparse-endian-annotations.patch
+include-replace-__function__-with-__func__.patch
+misc-replace-__function__-with-__func__.patch
+befs-annotate-fs32-on-tests-for-superblock-endianness.patch
+byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
+byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
 
