@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + x86-rename-iommu_num_pages-function-to-iommu_nr_pages.patch added to -mm tree
-Date: Mon, 04 Aug 2008 14:21:58 -0700
-Message-ID: <200808042121.m74LLwPS031510@imap1.linux-foundation.org>
+Date: Mon, 04 Aug 2008 14:22:27 -0700
+Message-ID: <200808042122.m74LMR37031555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35483 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37011 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758175AbYHDVXS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 17:23:18 -0400
+	by vger.kernel.org with ESMTP id S1758175AbYHDVXh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 17:23:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -35,6 +35,16 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 ------------------------------------------------------
 Subject: x86: rename iommu_num_pages function to iommu_nr_pages
 From: Joerg Roedel <joerg.roedel@amd.com>
+
+This series of patches re-introduces the iommu_num_pages function so that
+it can be used by each architecture specific IOMMU implementations.  The
+series also changes IOMMU implementations for X86, Alpha, PowerPC and
+UltraSparc.  The other implementations are not yet changed because the
+modifications required are not obvious and I can't test them on real
+hardware.
+
+
+This patch:
 
 This is a preparation patch for introducing a generic iommu_num_pages function.
 
