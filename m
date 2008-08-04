@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm_initc-avoid-ifdef-inside-macro-expansion.patch added to -mm tree
-Date: Mon, 04 Aug 2008 14:07:23 -0700
-Message-ID: <200808042107.m74L7Nj7030823@imap1.linux-foundation.org>
+Subject: + kbuild-extend-menuconfig-for-modules-to-simplify-kconfig-file.patch added to -mm tree
+Date: Mon, 04 Aug 2008 14:08:33 -0700
+Message-ID: <200808042108.m74L8Xbs030972@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43640 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45910 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753252AbYHDVIJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 17:08:09 -0400
+	by vger.kernel.org with ESMTP id S1758769AbYHDVIt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 17:08:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bunk@kernel.org, mel@csn.ul.ie
+Cc: rpjday@crashcourse.ca, randy.dunlap@oracle.com, sam@ravnborg.org
 
 
 The patch titled
-     mm_init.c: avoid ifdef-inside-macro-expansion
+     kbuild: extend "menuconfig" for modules to simplify Kconfig file
 has been added to the -mm tree.  Its filename is
-     mm_initc-avoid-ifdef-inside-macro-expansion.patch
+     kbuild-extend-menuconfig-for-modules-to-simplify-kconfig-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,133 +33,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm_init.c: avoid ifdef-inside-macro-expansion
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kbuild: extend "menuconfig" for modules to simplify Kconfig file
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-gcc-3.2:
+Given that the init/Kconfig file uses a "menuconfig" directive for modules
+already, might as well wrap all the submenu entries in an "if" to toss all
+those dependencies.
 
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c:77:1: directives may not be used inside a macro argument
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c:76:47: unterminated argument list invoking macro "mminit_dprintk"
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c: In function `mminit_verify_pageflags_layout':
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c:80: `mminit_dprintk' undeclared (first use in this function)
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c:80: (Each undeclared identifier is reported only once
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c:80: for each function it appears in.)
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c:80: syntax error before numeric constant
-
-Also fix a typo in a comment.
-
-Reported-by: Adrian Bunk <bunk@kernel.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Tested-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    3 ++-
- mm/mm_init.c           |    4 ----
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ init/Kconfig |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm_initc-avoid-ifdef-inside-macro-expansion include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm_initc-avoid-ifdef-inside-macro-expansion
-+++ a/include/linux/mmzone.h
-@@ -831,7 +831,7 @@ static inline unsigned long early_pfn_to
- #ifdef CONFIG_SPARSEMEM
+diff -puN init/Kconfig~kbuild-extend-menuconfig-for-modules-to-simplify-kconfig-file init/Kconfig
+--- a/init/Kconfig~kbuild-extend-menuconfig-for-modules-to-simplify-kconfig-file
++++ a/init/Kconfig
+@@ -845,9 +845,10 @@ menuconfig MODULES
  
- /*
-- * SECTION_SHIFT    		#bits space required to store a section #
-+ * SECTIONS_SHIFT    		#bits space required to store a section #
-  *
-  * PA_SECTION_SHIFT		physical address to/from section number
-  * PFN_SECTION_SHIFT		pfn to/from section number
-@@ -973,6 +973,7 @@ static inline int pfn_present(unsigned l
- #define early_pfn_valid(pfn)	pfn_valid(pfn)
- void sparse_init(void);
- #else
-+#define SECTIONS_SHIFT		0
- #define sparse_init()	do {} while (0)
- #define sparse_index_init(_sec, _nid)  do {} while (0)
- #endif /* CONFIG_SPARSEMEM */
-diff -puN mm/mm_init.c~mm_initc-avoid-ifdef-inside-macro-expansion mm/mm_init.c
---- a/mm/mm_init.c~mm_initc-avoid-ifdef-inside-macro-expansion
-+++ a/mm/mm_init.c
-@@ -74,11 +74,7 @@ void __init mminit_verify_pageflags_layo
- 		NR_PAGEFLAGS);
- 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_shifts",
- 		"Section %d Node %d Zone %d\n",
--#ifdef SECTIONS_SHIFT
- 		SECTIONS_SHIFT,
--#else
--		0,
--#endif
- 		NODES_SHIFT,
- 		ZONES_SHIFT);
- 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_offsets",
+ 	  If unsure, say Y.
+ 
++if MODULES
++
+ config MODULE_FORCE_LOAD
+ 	bool "Forced module loading"
+-	depends on MODULES
+ 	default n
+ 	help
+ 	  Allow loading of modules without version information (ie. modprobe
+@@ -856,7 +857,6 @@ config MODULE_FORCE_LOAD
+ 
+ config MODULE_UNLOAD
+ 	bool "Module unloading"
+-	depends on MODULES
+ 	help
+ 	  Without this option you will not be able to unload any
+ 	  modules (note that some modules may not be unloadable
+@@ -875,7 +875,6 @@ config MODULE_FORCE_UNLOAD
+ 
+ config MODVERSIONS
+ 	bool "Module versioning support"
+-	depends on MODULES
+ 	help
+ 	  Usually, you have to use modules compiled with your kernel.
+ 	  Saying Y here makes it sometimes possible to use modules
+@@ -886,7 +885,6 @@ config MODVERSIONS
+ 
+ config MODULE_SRCVERSION_ALL
+ 	bool "Source checksum for all modules"
+-	depends on MODULES
+ 	help
+ 	  Modules which contain a MODULE_VERSION get an extra "srcversion"
+ 	  field inserted into their modinfo section, which contains a
+@@ -898,11 +896,12 @@ config MODULE_SRCVERSION_ALL
+ 
+ config KMOD
+ 	def_bool y
+-	depends on MODULES
+ 	help
+ 	  This is being removed soon.  These days, CONFIG_MODULES
+ 	  implies CONFIG_KMOD, so use that instead.
+ 
++endif # MODULES
++
+ config STOP_MACHINE
+ 	bool
+ 	default y
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
 origin.patch
-mm_initc-avoid-ifdef-inside-macro-expansion.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-next-remove-localversion.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-drivers-media-video-vinoc-needs-v4l2-ioctlh.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-serio-xilinx_ps2c-fix-warning.patch
-git-jg-misc.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-sched-type-fix.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-usb-hubc-fix-build-with-config_pm=n.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-devpts-switch-to-ida-checkpatch-fixes.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+kbuild-extend-menuconfig-for-modules-to-simplify-kconfig-file.patch
+m32r-remove-the-unused-nohighmem-option.patch
+xtensa-warn-about-including-asm-rwsemh-directly.patch
+xtensa-use-newer-__spin_lock_unlocked-macro.patch
+uml-remove-the-dead-tty_log-code.patch
 
