@@ -1,75 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - libata-core-make-sure-that-ata_force_tbl-is-freed-in-case-of-an-error.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 13:06:30 -0700
-Message-ID: <200808042006.m74K6UUN027697@imap1.linux-foundation.org>
+Subject: - bluetooth-add-quirks-for-a-few-hci_usb-devices.patch removed from -mm tree
+Date: Mon, 04 Aug 2008 13:07:18 -0700
+Message-ID: <200808042007.m74K7IAZ027770@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58658 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58361 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760704AbYHDUHk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:07:40 -0400
+	by vger.kernel.org with ESMTP id S1762723AbYHDUHh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:07:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eo@nebensachen.de, alan@lxorguk.ukuu.org.uk, jeff@garzik.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: ben.collins@canonical.com, Mario_Limonciello@Dell.com, hidave.darkstar@gmail.com, marcel@holtmann.org, michael.frey@canonical.com, tim.gardner@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata-core: make sure that ata_force_tbl is freed in case of an error
+     bluetooth: add quirks for a few hci_usb devices
 has been removed from the -mm tree.  Its filename was
-     libata-core-make-sure-that-ata_force_tbl-is-freed-in-case-of-an-error.patch
+     bluetooth-add-quirks-for-a-few-hci_usb-devices.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libata-core: make sure that ata_force_tbl is freed in case of an error
-From: Elias Oltmanns <eo@nebensachen.de>
+Subject: bluetooth: add quirks for a few hci_usb devices
+From: Ben Collins <ben.collins@canonical.com>
 
-Fix a potential memory leak when ata_init() encounters an error.
+Preface: The "Broadcom" device is on unreleased hardware, so I can't
+disclose the actual model.
 
-Signed-off-by: Elias Oltmanns <eo@nebensachen.de>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+When the Dell 370 and 410 BT adapters are put into BT radio mode, they
+need to be prepared like many other Broadcom adapters.
+
+Also, add quirk Broadcom 2046 devices with HCI_RESET.  Reference for this
+bug: https://launchpad.net/bugs/249448
+
+Signed-off-by: Michael Frey <michael.frey@canonical.com>
+Signed-off-by: Mario Limonciello <Mario_Limonciello@Dell.com>
+Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
+Signed-off-by: Ben Collins <ben.collins@canonical.com>
+Acked-by: Marcel Holtmann <marcel@holtmann.org>
+Cc: Dave Young <hidave.darkstar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/bluetooth/hci_usb.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/ata/libata-core.c~libata-core-make-sure-that-ata_force_tbl-is-freed-in-case-of-an-error drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~libata-core-make-sure-that-ata_force_tbl-is-freed-in-case-of-an-error
-+++ a/drivers/ata/libata-core.c
-@@ -6088,16 +6088,20 @@ static int __init ata_init(void)
+diff -puN drivers/bluetooth/hci_usb.c~bluetooth-add-quirks-for-a-few-hci_usb-devices drivers/bluetooth/hci_usb.c
+--- a/drivers/bluetooth/hci_usb.c~bluetooth-add-quirks-for-a-few-hci_usb-devices
++++ a/drivers/bluetooth/hci_usb.c
+@@ -134,6 +134,13 @@ static struct usb_device_id blacklist_id
  
- 	ata_wq = create_workqueue("ata");
- 	if (!ata_wq)
--		return -ENOMEM;
-+		goto free_force_tbl;
- 
- 	ata_aux_wq = create_singlethread_workqueue("ata_aux");
--	if (!ata_aux_wq) {
--		destroy_workqueue(ata_wq);
--		return -ENOMEM;
--	}
-+	if (!ata_aux_wq)
-+		goto free_wq;
- 
- 	printk(KERN_DEBUG "libata version " DRV_VERSION " loaded.\n");
- 	return 0;
+ 	/* Dell laptop with Broadcom chip */
+ 	{ USB_DEVICE(0x413c, 0x8126), .driver_info = HCI_RESET | HCI_WRONG_SCO_MTU },
++	/* Dell Wireless 370 */
++	{ USB_DEVICE(0x413c, 0x8156), .driver_info = HCI_RESET | HCI_WRONG_SCO_MTU },
++	/* Dell Wireless 410 */
++	{ USB_DEVICE(0x413c, 0x8152), .driver_info = HCI_RESET | HCI_WRONG_SCO_MTU },
 +
-+free_wq:
-+	destroy_workqueue(ata_wq);
-+free_force_tbl:
-+	kfree(ata_force_tbl);
-+	return -ENOMEM;
- }
++	/* Broadcom 2046 */
++	{ USB_DEVICE(0x0a5c, 0x2151), .driver_info = HCI_RESET },
  
- static void __exit ata_exit(void)
+ 	/* Microsoft Wireless Transceiver for Bluetooth 2.0 */
+ 	{ USB_DEVICE(0x045e, 0x009c), .driver_info = HCI_RESET },
 _
 
-Patches currently in -mm which might be from eo@nebensachen.de are
+Patches currently in -mm which might be from ben.collins@canonical.com are
 
 origin.patch
+pegasus-add-blacklist-support-to-fix-belkin-bluetooth-dongle.patch
 
