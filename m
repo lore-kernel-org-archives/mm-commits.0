@@ -1,98 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - proc-switch-inode-number-allocation-to-ida.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 13:07:44 -0700
-Message-ID: <200808042007.m74K7i1s027839@imap1.linux-foundation.org>
+Subject: - pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets.patch removed from -mm tree
+Date: Mon, 04 Aug 2008 13:06:33 -0700
+Message-ID: <200808042006.m74K6XeZ027700@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48157 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37787 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761131AbYHDUHq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:07:46 -0400
+	by vger.kernel.org with ESMTP id S1761900AbYHDUHv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:07:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: JosephChan@via.com.tw, alan@lxorguk.ukuu.org.uk, jeff@garzik.org, josephchan@via.com.tw, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: switch inode number allocation to IDA
+     pata_via.c: add flag for VX800 and add a function for fixing internal bugs for VIA chipsets
 has been removed from the -mm tree.  Its filename was
-     proc-switch-inode-number-allocation-to-ida.patch
+     pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: switch inode number allocation to IDA
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: pata_via.c: add flag for VX800 and add a function for fixing internal bugs for VIA chipsets
+From: <JosephChan@via.com.tw>
 
-proc doesn't use "associate pointer with id" feature of IDR, so switch to
-IDA.
+Add flag VIA_SATA_PATA for vx800, VX800 uses the same
+chipset(0x0581/0x5324) as CX700, which has 1 PATA channel(Master/Slave)
+and 1 SATA channel(Master/Slave) Add function <via_ata_tf_load>.  This is
+to fix the internal bug of VIA chipsets, which will reset the device
+register after changing the IEN bit in CTL register
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Joseph Chan <josephchan@via.com.tw>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/ata/pata_via.c |   64 ++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 63 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/generic.c~proc-switch-inode-number-allocation-to-ida fs/proc/generic.c
---- a/fs/proc/generic.c~proc-switch-inode-number-allocation-to-ida
-+++ a/fs/proc/generic.c
-@@ -300,7 +300,7 @@ out:
- 	return rtn;
+diff -puN drivers/ata/pata_via.c~pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets drivers/ata/pata_via.c
+--- a/drivers/ata/pata_via.c~pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets
++++ a/drivers/ata/pata_via.c
+@@ -98,7 +98,8 @@ static const struct via_isa_bridge {
+ 	u8 rev_max;
+ 	u16 flags;
+ } via_isa_bridges[] = {
+-	{ "vx800",	PCI_DEVICE_ID_VIA_VX800,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
++	{ "vx800",	PCI_DEVICE_ID_VIA_VX800,    0x00, 0x2f, VIA_UDMA_133 |
++	VIA_BAD_AST | VIA_SATA_PATA },
+ 	{ "vt8237s",	PCI_DEVICE_ID_VIA_8237S,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
+ 	{ "vt8251",	PCI_DEVICE_ID_VIA_8251,     0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
+ 	{ "cx700",	PCI_DEVICE_ID_VIA_CX700,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST | VIA_SATA_PATA },
+@@ -322,6 +323,65 @@ static void via_set_dmamode(struct ata_p
+ 	via_do_set_mode(ap, adev, adev->dma_mode, tclock[mode], set_ast, udma[mode]);
  }
  
--static DEFINE_IDR(proc_inum_idr);
-+static DEFINE_IDA(proc_inum_ida);
- static DEFINE_SPINLOCK(proc_inum_lock); /* protects the above */
++/**
++ *	via_ata_sff_tf_load - send taskfile registers to host controller
++ *	@ap: Port to which output is sent
++ *	@tf: ATA taskfile register set
++ *
++ *	Outputs ATA taskfile to standard ATA host controller.
++ *
++ *	Note: This is to fix the internal bug of via chipsets, which
++ *  will reset the device register after changing the IEN bit on
++ *  ctl register
++ */
++static void via_ata_tf_load(struct ata_port *ap, const struct ata_taskfile *tf)
++{
++	struct ata_ioports *ioaddr = &ap->ioaddr;
++	unsigned int is_addr = tf->flags & ATA_TFLAG_ISADDR;
++
++	if (tf->ctl != ap->last_ctl) {
++		iowrite8(tf->ctl, ioaddr->ctl_addr);
++		iowrite8(tf->device, ioaddr->device_addr);
++		ap->last_ctl = tf->ctl;
++		ata_wait_idle(ap);
++	}
++
++	if (is_addr && (tf->flags & ATA_TFLAG_LBA48)) {
++		iowrite8(tf->hob_feature, ioaddr->feature_addr);
++		iowrite8(tf->hob_nsect, ioaddr->nsect_addr);
++		iowrite8(tf->hob_lbal, ioaddr->lbal_addr);
++		iowrite8(tf->hob_lbam, ioaddr->lbam_addr);
++		iowrite8(tf->hob_lbah, ioaddr->lbah_addr);
++		VPRINTK("hob: feat 0x%X nsect 0x%X, lba 0x%X 0x%X 0x%X\n",
++			tf->hob_feature,
++			tf->hob_nsect,
++			tf->hob_lbal,
++			tf->hob_lbam,
++			tf->hob_lbah);
++	}
++
++	if (is_addr) {
++		iowrite8(tf->feature, ioaddr->feature_addr);
++		iowrite8(tf->nsect, ioaddr->nsect_addr);
++		iowrite8(tf->lbal, ioaddr->lbal_addr);
++		iowrite8(tf->lbam, ioaddr->lbam_addr);
++		iowrite8(tf->lbah, ioaddr->lbah_addr);
++		VPRINTK("feat 0x%X nsect 0x%X lba 0x%X 0x%X 0x%X\n",
++			tf->feature,
++			tf->nsect,
++			tf->lbal,
++			tf->lbam,
++			tf->lbah);
++	}
++
++	if (tf->flags & ATA_TFLAG_DEVICE) {
++		iowrite8(tf->device, ioaddr->device_addr);
++		VPRINTK("device 0x%X\n", tf->device);
++	}
++
++	ata_wait_idle(ap);
++}
++
+ static struct scsi_host_template via_sht = {
+ 	ATA_BMDMA_SHT(DRV_NAME),
+ };
+@@ -332,11 +392,13 @@ static struct ata_port_operations via_po
+ 	.set_piomode	= via_set_piomode,
+ 	.set_dmamode	= via_set_dmamode,
+ 	.prereset	= via_pre_reset,
++	.sff_tf_load = via_ata_tf_load,
+ };
  
- #define PROC_DYNAMIC_FIRST 0xF0000000U
-@@ -315,11 +315,11 @@ static unsigned int get_inode_number(voi
- 	int error;
+ static struct ata_port_operations via_port_ops_noirq = {
+ 	.inherits	= &via_port_ops,
+ 	.sff_data_xfer	= ata_sff_data_xfer_noirq,
++	.sff_tf_load = via_ata_tf_load,
+ };
  
- retry:
--	if (idr_pre_get(&proc_inum_idr, GFP_KERNEL) == 0)
-+	if (ida_pre_get(&proc_inum_ida, GFP_KERNEL) == 0)
- 		return 0;
- 
- 	spin_lock(&proc_inum_lock);
--	error = idr_get_new(&proc_inum_idr, NULL, &i);
-+	error = ida_get_new(&proc_inum_ida, &i);
- 	spin_unlock(&proc_inum_lock);
- 	if (error == -EAGAIN)
- 		goto retry;
-@@ -328,7 +328,7 @@ retry:
- 
- 	if (i > UINT_MAX - PROC_DYNAMIC_FIRST) {
- 		spin_lock(&proc_inum_lock);
--		idr_remove(&proc_inum_idr, i);
-+		ida_remove(&proc_inum_ida, i);
- 		spin_unlock(&proc_inum_lock);
- 	}
- 	return PROC_DYNAMIC_FIRST + i;
-@@ -337,7 +337,7 @@ retry:
- static void release_inode_number(unsigned int inum)
- {
- 	spin_lock(&proc_inum_lock);
--	idr_remove(&proc_inum_idr, inum - PROC_DYNAMIC_FIRST);
-+	ida_remove(&proc_inum_ida, inum - PROC_DYNAMIC_FIRST);
- 	spin_unlock(&proc_inum_lock);
- }
- 
+ /**
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from JosephChan@via.com.tw are
 
 origin.patch
-linux-next.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-cdc-acm-dont-unlock-acm-mutex-on-error-path.patch
-vt8623fb-fix-kernel-oops.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-devpts-switch-to-ida-checkpatch-fixes.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
+sata_viac-add-support-for-vt8251-fix-the-internal-chips-issue-and.patch
 
