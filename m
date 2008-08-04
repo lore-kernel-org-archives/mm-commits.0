@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-use-iommu_num_pages-function-in-iommu-code.patch added to -mm tree
-Date: Mon, 04 Aug 2008 14:22:14 -0700
-Message-ID: <200808042122.m74LMEFL031540@imap1.linux-foundation.org>
+Subject: + lockdep-lock_set_subclass-reset-a-held-locks-subclass.patch added to -mm tree
+Date: Mon, 04 Aug 2008 14:35:04 -0700
+Message-ID: <200808042135.m74LZ4J8032197@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59637 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46047 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763706AbYHDVeS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 17:34:18 -0400
+	by vger.kernel.org with ESMTP id S1765036AbYHDVfu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 17:35:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joerg.roedel@amd.com, benh@kernel.crashing.org, fujita.tomonori@lab.ntt.co.jp, muli@il.ibm.com, paulus@samba.org
+Cc: a.p.zijlstra@chello.nl, mingo@elte.hu
 
 
 The patch titled
-     powerpc: use iommu_num_pages function in IOMMU code
+     lockdep: lock_set_subclass - reset a held locks subclass
 has been added to the -mm tree.  Its filename is
-     powerpc-use-iommu_num_pages-function-in-iommu-code.patch
+     lockdep-lock_set_subclass-reset-a-held-locks-subclass.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +33,139 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: use iommu_num_pages function in IOMMU code
-From: Joerg Roedel <joerg.roedel@amd.com>
+Subject: lockdep: lock_set_subclass - reset a held locks subclass
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Muli Ben-Yehuda <muli@il.ibm.com>
+This can be used to reset a held lock's subclass, for arbitrary-depth
+iterated data structures such as trees or lists which have per-node locks.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/iommu.c |   23 +++++++----------------
- 1 file changed, 7 insertions(+), 16 deletions(-)
+ include/linux/lockdep.h |    4 ++
+ kernel/lockdep.c        |   69 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 73 insertions(+)
 
-diff -puN arch/powerpc/kernel/iommu.c~powerpc-use-iommu_num_pages-function-in-iommu-code arch/powerpc/kernel/iommu.c
---- a/arch/powerpc/kernel/iommu.c~powerpc-use-iommu_num_pages-function-in-iommu-code
-+++ a/arch/powerpc/kernel/iommu.c
-@@ -51,17 +51,6 @@ static int protect4gb = 1;
+diff -puN include/linux/lockdep.h~lockdep-lock_set_subclass-reset-a-held-locks-subclass include/linux/lockdep.h
+--- a/include/linux/lockdep.h~lockdep-lock_set_subclass-reset-a-held-locks-subclass
++++ a/include/linux/lockdep.h
+@@ -300,6 +300,9 @@ extern void lock_acquire(struct lockdep_
+ extern void lock_release(struct lockdep_map *lock, int nested,
+ 			 unsigned long ip);
  
- static void __iommu_free(struct iommu_table *, dma_addr_t, unsigned int);
++extern void lock_set_subclass(struct lockdep_map *lock, unsigned int subclass,
++			      unsigned long ip);
++
+ # define INIT_LOCKDEP				.lockdep_recursion = 0,
  
--static inline unsigned long iommu_nr_pages(unsigned long vaddr,
--					    unsigned long slen)
--{
--	unsigned long npages;
--
--	npages = IOMMU_PAGE_ALIGN(vaddr + slen) - (vaddr & IOMMU_PAGE_MASK);
--	npages >>= IOMMU_PAGE_SHIFT;
--
--	return npages;
--}
--
- static int __init setup_protect4gb(char *str)
- {
- 	if (strcmp(str, "on") == 0)
-@@ -325,7 +314,7 @@ int iommu_map_sg(struct device *dev, str
- 		}
- 		/* Allocate iommu entries for that segment */
- 		vaddr = (unsigned long) sg_virt(s);
--		npages = iommu_nr_pages(vaddr, slen);
-+		npages = iommu_num_pages(vaddr, slen, IOMMU_PAGE_SIZE);
- 		align = 0;
- 		if (IOMMU_PAGE_SHIFT < PAGE_SHIFT && slen >= PAGE_SIZE &&
- 		    (vaddr & ~PAGE_MASK) == 0)
-@@ -418,7 +407,8 @@ int iommu_map_sg(struct device *dev, str
- 			unsigned long vaddr, npages;
+ #define lockdep_depth(tsk)	(debug_locks ? (tsk)->lockdep_depth : 0)
+@@ -316,6 +319,7 @@ static inline void lockdep_on(void)
  
- 			vaddr = s->dma_address & IOMMU_PAGE_MASK;
--			npages = iommu_nr_pages(s->dma_address, s->dma_length);
-+			npages = iommu_num_pages(s->dma_address, s->dma_length,
-+						 IOMMU_PAGE_SIZE);
- 			__iommu_free(tbl, vaddr, npages);
- 			s->dma_address = DMA_ERROR_CODE;
- 			s->dma_length = 0;
-@@ -452,7 +442,8 @@ void iommu_unmap_sg(struct iommu_table *
- 
- 		if (sg->dma_length == 0)
- 			break;
--		npages = iommu_nr_pages(dma_handle, sg->dma_length);
-+		npages = iommu_num_pages(dma_handle, sg->dma_length,
-+					 IOMMU_PAGE_SIZE);
- 		__iommu_free(tbl, dma_handle, npages);
- 		sg = sg_next(sg);
- 	}
-@@ -584,7 +575,7 @@ dma_addr_t iommu_map_single(struct devic
- 	BUG_ON(direction == DMA_NONE);
- 
- 	uaddr = (unsigned long)vaddr;
--	npages = iommu_nr_pages(uaddr, size);
-+	npages = iommu_num_pages(uaddr, size, IOMMU_PAGE_SIZE);
- 
- 	if (tbl) {
- 		align = 0;
-@@ -617,7 +608,7 @@ void iommu_unmap_single(struct iommu_tab
- 	BUG_ON(direction == DMA_NONE);
- 
- 	if (tbl) {
--		npages = iommu_nr_pages(dma_handle, size);
-+		npages = iommu_num_pages(dma_handle, size, IOMMU_PAGE_SIZE);
- 		iommu_free(tbl, dma_handle, npages);
- 	}
+ # define lock_acquire(l, s, t, r, c, i)		do { } while (0)
+ # define lock_release(l, n, i)			do { } while (0)
++# define lock_set_subclass(l, s, i)		do { } while (0)
+ # define lockdep_init()				do { } while (0)
+ # define lockdep_info()				do { } while (0)
+ # define lockdep_init_map(lock, name, key, sub)	do { (void)(key); } while (0)
+diff -puN kernel/lockdep.c~lockdep-lock_set_subclass-reset-a-held-locks-subclass kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-lock_set_subclass-reset-a-held-locks-subclass
++++ a/kernel/lockdep.c
+@@ -2658,6 +2658,55 @@ static int check_unlock(struct task_stru
+ 	return 1;
  }
+ 
++static int
++__lock_set_subclass(struct lockdep_map *lock,
++		    unsigned int subclass, unsigned long ip)
++{
++	struct task_struct *curr = current;
++	struct held_lock *hlock, *prev_hlock;
++	struct lock_class *class;
++	unsigned int depth;
++	int i;
++
++	depth = curr->lockdep_depth;
++	if (DEBUG_LOCKS_WARN_ON(!depth))
++		return 0;
++
++	prev_hlock = NULL;
++	for (i = depth-1; i >= 0; i--) {
++		hlock = curr->held_locks + i;
++		/*
++		 * We must not cross into another context:
++		 */
++		if (prev_hlock && prev_hlock->irq_context != hlock->irq_context)
++			break;
++		if (hlock->instance == lock)
++			goto found_it;
++		prev_hlock = hlock;
++	}
++	return print_unlock_inbalance_bug(curr, lock, ip);
++
++found_it:
++	class = register_lock_class(lock, subclass, 0);
++	hlock->class = class;
++
++	curr->lockdep_depth = i;
++	curr->curr_chain_key = hlock->prev_chain_key;
++
++	for (; i < depth; i++) {
++		hlock = curr->held_locks + i;
++		if (!__lock_acquire(hlock->instance,
++			hlock->class->subclass, hlock->trylock,
++				hlock->read, hlock->check, hlock->hardirqs_off,
++				hlock->acquire_ip))
++			return 0;
++	}
++
++	if (DEBUG_LOCKS_WARN_ON(curr->lockdep_depth != depth))
++		return 0;
++	return 1;
++}
++
+ /*
+  * Remove the lock to the list of currently held locks in a
+  * potentially non-nested (out of order) manner. This is a
+@@ -2822,6 +2871,26 @@ static void check_flags(unsigned long fl
+ #endif
+ }
+ 
++void
++lock_set_subclass(struct lockdep_map *lock,
++		  unsigned int subclass, unsigned long ip)
++{
++	unsigned long flags;
++
++	if (unlikely(current->lockdep_recursion))
++		return;
++
++	raw_local_irq_save(flags);
++	current->lockdep_recursion = 1;
++	check_flags(flags);
++	if (__lock_set_subclass(lock, subclass, ip))
++		check_chain_key(current);
++	current->lockdep_recursion = 0;
++	raw_local_irq_restore(flags);
++}
++
++EXPORT_SYMBOL_GPL(lock_set_subclass);
++
+ /*
+  * We are not always called with irqs disabled - do that here,
+  * and also avoid lockdep recursion:
 _
 
-Patches currently in -mm which might be from joerg.roedel@amd.com are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
-origin.patch
 linux-next.patch
-x86-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
-sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
-powerpc-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
-introduce-generic-iommu_num_pages-function.patch
-x86-convert-gart-driver-to-generic-iommu_num_pages-function.patch
-x86-amd-iommu-convert-driver-to-generic-iommu_num_pages-function.patch
-x86-convert-calgary-iommu-driver-to-generic-iommu_num_pages-function.patch
-powerpc-use-iommu_num_pages-function-in-iommu-code.patch
-alpha-use-iommu_num_pages-function-in-iommu-code.patch
-sparc64-use-iommu_num_pages-function-in-iommu-code.patch
+sched-type-fix.patch
+lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal.patch
+lockdep-lock_set_subclass-reset-a-held-locks-subclass.patch
+lockdep-re-annotate-scheduler-runqueues.patch
+lockdep-shrink-held_lock-structure.patch
+lockdep-map_acquire.patch
+lockdep-lock-protection-locks.patch
+lockdep-spin_lock_nest_lock.patch
 
