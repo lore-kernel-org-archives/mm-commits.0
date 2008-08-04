@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + posix-timers-move-the-initialization-of-timer-sigq-from-send-to-create-path.patch added to -mm tree
-Date: Mon, 04 Aug 2008 14:32:29 -0700
-Message-ID: <200808042132.m74LWTBj032015@imap1.linux-foundation.org>
+Subject: + posix-timers-sys_timer_create-remove-the-buggy-pf_exiting-check.patch added to -mm tree
+Date: Mon, 04 Aug 2008 14:32:25 -0700
+Message-ID: <200808042132.m74LWQfJ032008@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50238 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41722 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764681AbYHDVd1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 17:33:27 -0400
+	by vger.kernel.org with ESMTP id S1763948AbYHDVdf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 17:33:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru, roland@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     posix-timers: move the initialization of timer->sigq from send to create path
+     posix-timers: sys_timer_create: remove the buggy PF_EXITING check
 has been added to the -mm tree.  Its filename is
-     posix-timers-move-the-initialization-of-timer-sigq-from-send-to-create-path.patch
+     posix-timers-sys_timer_create-remove-the-buggy-pf_exiting-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,13 +33,20 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: posix-timers: move the initialization of timer->sigq from send to create path
+Subject: posix-timers: sys_timer_create: remove the buggy PF_EXITING check
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-posix_timer_event() always populates timer->sigq with the same numbers,
-move this code into sys_timer_create().
+sys_timer_create() return -EINVAL if the target thread has PF_EXITING.
 
-Note that with this patch we can kill it_sigev_signo and it_sigev_value.
+This doesn't really make sense, the sub-thread can die right after unlock.
+ And in fact, this is just wrong.  Without SIGEV_THREAD_ID good_sigevent()
+returns ->group_leader, and it is very possible that the leader is already
+dead.  This is OK, we shouldn't return the error in this case.
+
+Remove this check and the comment.  Note that the "process" was found
+under tasklist_lock, it must have ->sighand != NULL.
+
+Also, remove a couple of unneeded initializations.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
@@ -47,36 +54,62 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-timers.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ kernel/posix-timers.c |   34 +++++++---------------------------
+ 1 file changed, 7 insertions(+), 27 deletions(-)
 
-diff -puN kernel/posix-timers.c~posix-timers-move-the-initialization-of-timer-sigq-from-send-to-create-path kernel/posix-timers.c
---- a/kernel/posix-timers.c~posix-timers-move-the-initialization-of-timer-sigq-from-send-to-create-path
+diff -puN kernel/posix-timers.c~posix-timers-sys_timer_create-remove-the-buggy-pf_exiting-check kernel/posix-timers.c
+--- a/kernel/posix-timers.c~posix-timers-sys_timer_create-remove-the-buggy-pf_exiting-check
 +++ a/kernel/posix-timers.c
-@@ -327,11 +327,6 @@ int posix_timer_event(struct k_itimer *t
- 	 */
- 	timr->sigq->info.si_sys_private = si_private;
+@@ -475,9 +475,9 @@ sys_timer_create(const clockid_t which_c
+ 		 timer_t __user * created_timer_id)
+ {
+ 	int error = 0;
+-	struct k_itimer *new_timer = NULL;
++	struct k_itimer *new_timer;
+ 	int new_timer_id;
+-	struct task_struct *process = NULL;
++	struct task_struct *process;
+ 	unsigned long flags;
+ 	sigevent_t event;
+ 	int it_id_set = IT_ID_NOT_SET;
+@@ -538,32 +538,12 @@ sys_timer_create(const clockid_t which_c
  
--	timr->sigq->info.si_signo = timr->it_sigev_signo;
--	timr->sigq->info.si_code = SI_TIMER;
--	timr->sigq->info.si_tid = timr->it_id;
--	timr->sigq->info.si_value = timr->it_sigev_value;
--
- 	shared = !(timr->it_sigev_notify & SIGEV_THREAD_ID);
- 	ret = send_sigqueue(timr->sigq, timr->it_process, shared);
- 	/* If we failed to send the signal the timer stops. */
-@@ -552,6 +547,11 @@ sys_timer_create(const clockid_t which_c
- 		get_task_struct(process);
- 	}
- 
-+	new_timer->sigq->info.si_code  = SI_TIMER;
-+	new_timer->sigq->info.si_tid   = new_timer->it_id;
-+	new_timer->sigq->info.si_signo = new_timer->it_sigev_signo;
-+	new_timer->sigq->info.si_value = new_timer->it_sigev_value;
-+
- 	spin_lock_irq(&current->sighand->siglock);
- 	new_timer->it_process = process;
- 	list_add(&new_timer->list, &current->signal->posix_timers);
+ 		read_lock(&tasklist_lock);
+ 		if ((process = good_sigevent(&event))) {
+-			/*
+-			 * We may be setting up this process for another
+-			 * thread.  It may be exiting.  To catch this
+-			 * case the we check the PF_EXITING flag.  If
+-			 * the flag is not set, the siglock will catch
+-			 * him before it is too late (in exit_itimers).
+-			 *
+-			 * The exec case is a bit more invloved but easy
+-			 * to code.  If the process is in our thread
+-			 * group (and it must be or we would not allow
+-			 * it here) and is doing an exec, it will cause
+-			 * us to be killed.  In this case it will wait
+-			 * for us to die which means we can finish this
+-			 * linkage with our last gasp. I.e. no code :)
+-			 */
++			get_task_struct(process);
+ 			spin_lock_irqsave(&process->sighand->siglock, flags);
+-			if (!(process->flags & PF_EXITING)) {
+-				get_task_struct(process);
+-				new_timer->it_process = process;
+-				list_add(&new_timer->list,
+-					 &process->signal->posix_timers);
+-				spin_unlock_irqrestore(&process->sighand->siglock, flags);
+-			} else {
+-				spin_unlock_irqrestore(&process->sighand->siglock, flags);
+-				process = NULL;
+-			}
++			new_timer->it_process = process;
++			list_add(&new_timer->list,
++				&process->signal->posix_timers);
++			spin_unlock_irqrestore(&process->sighand->siglock, flags);
+ 		}
+ 		read_unlock(&tasklist_lock);
+ 		if (!process) {
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
