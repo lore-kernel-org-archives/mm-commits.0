@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + h8300-kconfig-cleanup.patch added to -mm tree
-Date: Mon, 04 Aug 2008 16:17:49 -0700
-Message-ID: <200808042317.m74NHnnn004928@imap1.linux-foundation.org>
+Subject: + h8300-generic_bug-support-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 04 Aug 2008 16:18:25 -0700
+Message-ID: <200808042318.m74NIPTZ004948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40100 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37210 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756022AbYHDXSC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 19:18:02 -0400
+	by vger.kernel.org with ESMTP id S1756182AbYHDXSk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 19:18:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ysato@users.sourceforge.jp
+Cc: akpm@linux-foundation.org, ysato@users.sourceforge.jp
 
 
 The patch titled
-     h8300: Kconfig cleanup
+     h8300-generic_bug-support-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     h8300-kconfig-cleanup.patch
+     h8300-generic_bug-support-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,135 +33,110 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: h8300: Kconfig cleanup
-From: Yoshinori Sato <ysato@users.sourceforge.jp>
+Subject: h8300-generic_bug-support-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Use common Kconfig file.
+ERROR: do not initialise statics to 0 or NULL
+#73: FILE: arch/h8300/kernel/traps.c:101:
++	static int diecount = 0;
 
-Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
+total: 1 errors, 0 warnings, 91 lines checked
+
+./patches/h8300-generic_bug-support.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/Kconfig |  116 -------------------------------------------
- 1 file changed, 1 insertion(+), 115 deletions(-)
+ arch/h8300/kernel/traps.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/h8300/Kconfig~h8300-kconfig-cleanup arch/h8300/Kconfig
---- a/arch/h8300/Kconfig~h8300-kconfig-cleanup
-+++ a/arch/h8300/Kconfig
-@@ -99,121 +99,7 @@ endmenu
+diff -puN arch/h8300/kernel/traps.c~h8300-generic_bug-support-checkpatch-fixes arch/h8300/kernel/traps.c
+--- a/arch/h8300/kernel/traps.c~h8300-generic_bug-support-checkpatch-fixes
++++ a/arch/h8300/kernel/traps.c
+@@ -98,7 +98,7 @@ static void dump(struct pt_regs *fp)
  
- source "net/Kconfig"
+ void die(char *str, struct pt_regs *fp, unsigned long err)
+ {
+-	static int diecount = 0;
++	static int diecount;
  
--source "drivers/base/Kconfig"
--
--source "drivers/mtd/Kconfig"
--
--source "drivers/block/Kconfig"
--
--source "drivers/ide/Kconfig"
--
--source "arch/h8300/Kconfig.ide"
--
--source "drivers/net/Kconfig"
--
--#
--# input - input/joystick depends on it. As does USB.
--#
--source "drivers/input/Kconfig"
--
--menu "Character devices"
--
--config VT
--	bool "Virtual terminal"
--	---help---
--	  If you say Y here, you will get support for terminal devices with
--	  display and keyboard devices. These are called "virtual" because you
--	  can run several virtual terminals (also called virtual consoles) on
--	  one physical terminal. This is rather useful, for example one
--	  virtual terminal can collect system messages and warnings, another
--	  one can be used for a text-mode user session, and a third could run
--	  an X session, all in parallel. Switching between virtual terminals
--	  is done with certain key combinations, usually Alt-<function key>.
--
--	  The setterm command ("man setterm") can be used to change the
--	  properties (such as colors or beeping) of a virtual terminal. The
--	  man page console_codes(4) ("man console_codes") contains the special
--	  character sequences that can be used to change those properties
--	  directly. The fonts used on virtual terminals can be changed with
--	  the setfont ("man setfont") command and the key bindings are defined
--	  with the loadkeys ("man loadkeys") command.
--
--	  You need at least one virtual terminal device in order to make use
--	  of your keyboard and monitor. Therefore, only people configuring an
--	  embedded system would want to say N here in order to save some
--	  memory; the only way to log into such a system is then via a serial
--	  or network connection.
--
--	  If unsure, say Y, or else you won't be able to do much with your new
--	  shiny Linux system :-)
--
--config VT_CONSOLE
--	bool "Support for console on virtual terminal"
--	depends on VT
--	---help---
--	  The system console is the device which receives all kernel messages
--	  and warnings and which allows logins in single user mode. If you
--	  answer Y here, a virtual terminal (the device used to interact with
--	  a physical terminal) can be used as system console. This is the most
--	  common mode of operations, so you should say Y here unless you want
--	  the kernel messages be output only to a serial port (in which case
--	  you should say Y to "Console on serial port", below).
--
--	  If you do say Y here, by default the currently visible virtual
--	  terminal (/dev/tty0) will be used as system console. You can change
--	  that with a kernel command line option such as "console=tty3" which
--	  would use the third virtual terminal as system console. (Try "man
--	  bootparam" or see the documentation of your boot loader (lilo or
--	  loadlin) about how to pass options to the kernel at boot time.)
--
--	  If unsure, say Y.
--
--config HW_CONSOLE
--	bool
--	depends on VT && !S390 && !UM
--	default y
--
--comment "Unix98 PTY support"
--
--config UNIX98_PTYS
--	bool "Unix98 PTY support"
--	---help---
--	  A pseudo terminal (PTY) is a software device consisting of two
--	  halves: a master and a slave. The slave device behaves identical to
--	  a physical terminal; the master device is used by a process to
--	  read data from and write data to the slave, thereby emulating a
--	  terminal. Typical programs for the master side are telnet servers
--	  and xterms.
--
--	  Linux has traditionally used the BSD-like names /dev/ptyxx for
--	  masters and /dev/ttyxx for slaves of pseudo terminals. This scheme
--	  has a number of problems. The GNU C library glibc 2.1 and later,
--	  however, supports the Unix98 naming standard: in order to acquire a
--	  pseudo terminal, a process opens /dev/ptmx; the number of the pseudo
--	  terminal is then made available to the process and the pseudo
--	  terminal slave can be accessed as /dev/pts/<number>. What was
--	  traditionally /dev/ttyp2 will then be /dev/pts/2, for example.
--
--	  The entries in /dev/pts/ are created on the fly by a virtual
--	  file system; therefore, if you say Y here you should say Y to
--	  "/dev/pts file system for Unix98 PTYs" as well.
--
--	  If you want to say Y here, you need to have the C library glibc 2.1
--	  or later (equal to libc-6.1, check with "ls -l /lib/libc.so.*").
--	  Read the instructions in <file:Documentation/Changes> pertaining to
--	  pseudo terminals. It's safe to say N.
--
--source "drivers/char/pcmcia/Kconfig"
--
--source "drivers/serial/Kconfig"
--
--source "drivers/i2c/Kconfig"
--
--source "drivers/hwmon/Kconfig"
--
--source "drivers/usb/Kconfig"
+ 	oops_enter();
+ 
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+mm_initc-avoid-ifdef-inside-macro-expansion.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+linux-next.patch
+next-remove-localversion.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+drivers-media-video-vinoc-needs-v4l2-ioctlh.patch
+drivers-media-video-gspca-zc3xxc-fix-oops-checkpatch-fixes.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+sched-type-fix.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+usb-hubc-fix-build-with-config_pm=n.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
+
