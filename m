@@ -1,73 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - bluetooth-add-quirks-for-a-few-hci_usb-devices.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 13:07:18 -0700
-Message-ID: <200808042007.m74K7IAZ027770@imap1.linux-foundation.org>
+Subject: - devpts-switch-to-ida.patch removed from -mm tree
+Date: Mon, 04 Aug 2008 13:07:53 -0700
+Message-ID: <200808042007.m74K7rh6027859@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58361 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56900 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762723AbYHDUHh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:07:37 -0400
+	by vger.kernel.org with ESMTP id S1760841AbYHDUID (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:08:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben.collins@canonical.com, Mario_Limonciello@Dell.com, hidave.darkstar@gmail.com, marcel@holtmann.org, michael.frey@canonical.com, tim.gardner@canonical.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk, hpa@zytor.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bluetooth: add quirks for a few hci_usb devices
+     devpts: switch to IDA
 has been removed from the -mm tree.  Its filename was
-     bluetooth-add-quirks-for-a-few-hci_usb-devices.patch
+     devpts-switch-to-ida.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth: add quirks for a few hci_usb devices
-From: Ben Collins <ben.collins@canonical.com>
+Subject: devpts: switch to IDA
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Preface: The "Broadcom" device is on unreleased hardware, so I can't
-disclose the actual model.
+Devpts code wants just numbers for tty indexes.
 
-When the Dell 370 and 410 BT adapters are put into BT radio mode, they
-need to be prepared like many other Broadcom adapters.
-
-Also, add quirk Broadcom 2046 devices with HCI_RESET.  Reference for this
-bug: https://launchpad.net/bugs/249448
-
-Signed-off-by: Michael Frey <michael.frey@canonical.com>
-Signed-off-by: Mario Limonciello <Mario_Limonciello@Dell.com>
-Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
-Signed-off-by: Ben Collins <ben.collins@canonical.com>
-Acked-by: Marcel Holtmann <marcel@holtmann.org>
-Cc: Dave Young <hidave.darkstar@gmail.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/bluetooth/hci_usb.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ fs/devpts/inode.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/bluetooth/hci_usb.c~bluetooth-add-quirks-for-a-few-hci_usb-devices drivers/bluetooth/hci_usb.c
---- a/drivers/bluetooth/hci_usb.c~bluetooth-add-quirks-for-a-few-hci_usb-devices
-+++ a/drivers/bluetooth/hci_usb.c
-@@ -134,6 +134,13 @@ static struct usb_device_id blacklist_id
+diff -puN fs/devpts/inode.c~devpts-switch-to-ida fs/devpts/inode.c
+--- a/fs/devpts/inode.c~devpts-switch-to-ida
++++ a/fs/devpts/inode.c
+@@ -29,7 +29,7 @@
+ #define DEVPTS_DEFAULT_MODE 0600
  
- 	/* Dell laptop with Broadcom chip */
- 	{ USB_DEVICE(0x413c, 0x8126), .driver_info = HCI_RESET | HCI_WRONG_SCO_MTU },
-+	/* Dell Wireless 370 */
-+	{ USB_DEVICE(0x413c, 0x8156), .driver_info = HCI_RESET | HCI_WRONG_SCO_MTU },
-+	/* Dell Wireless 410 */
-+	{ USB_DEVICE(0x413c, 0x8152), .driver_info = HCI_RESET | HCI_WRONG_SCO_MTU },
-+
-+	/* Broadcom 2046 */
-+	{ USB_DEVICE(0x0a5c, 0x2151), .driver_info = HCI_RESET },
+ extern int pty_limit;			/* Config limit on Unix98 ptys */
+-static DEFINE_IDR(allocated_ptys);
++static DEFINE_IDA(allocated_ptys);
+ static DEFINE_MUTEX(allocated_ptys_lock);
  
- 	/* Microsoft Wireless Transceiver for Bluetooth 2.0 */
- 	{ USB_DEVICE(0x045e, 0x009c), .driver_info = HCI_RESET },
+ static struct vfsmount *devpts_mnt;
+@@ -180,24 +180,24 @@ static struct dentry *get_node(int num)
+ int devpts_new_index(void)
+ {
+ 	int index;
+-	int idr_ret;
++	int ida_ret;
+ 
+ retry:
+-	if (!idr_pre_get(&allocated_ptys, GFP_KERNEL)) {
++	if (!ida_pre_get(&allocated_ptys, GFP_KERNEL)) {
+ 		return -ENOMEM;
+ 	}
+ 
+ 	mutex_lock(&allocated_ptys_lock);
+-	idr_ret = idr_get_new(&allocated_ptys, NULL, &index);
+-	if (idr_ret < 0) {
++	ida_ret = ida_get_new(&allocated_ptys, &index);
++	if (ida_ret < 0) {
+ 		mutex_unlock(&allocated_ptys_lock);
+-		if (idr_ret == -EAGAIN)
++		if (ida_ret == -EAGAIN)
+ 			goto retry;
+ 		return -EIO;
+ 	}
+ 
+ 	if (index >= pty_limit) {
+-		idr_remove(&allocated_ptys, index);
++		ida_remove(&allocated_ptys, index);
+ 		mutex_unlock(&allocated_ptys_lock);
+ 		return -EIO;
+ 	}
+@@ -208,7 +208,7 @@ retry:
+ void devpts_kill_index(int idx)
+ {
+ 	mutex_lock(&allocated_ptys_lock);
+-	idr_remove(&allocated_ptys, idx);
++	ida_remove(&allocated_ptys, idx);
+ 	mutex_unlock(&allocated_ptys_lock);
+ }
+ 
 _
 
-Patches currently in -mm which might be from ben.collins@canonical.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
-pegasus-add-blacklist-support-to-fix-belkin-bluetooth-dongle.patch
+linux-next.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+cdc-acm-dont-unlock-acm-mutex-on-error-path.patch
+vt8623fb-fix-kernel-oops.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+likely_prof-changed-to-use-proc_create.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
 
