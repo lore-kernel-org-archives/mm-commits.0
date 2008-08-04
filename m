@@ -1,143 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - random32-seeding-improvement.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 13:07:02 -0700
-Message-ID: <200808042007.m74K72Ad027748@imap1.linux-foundation.org>
+Subject: - drivers-net-ehea-ehea_mainc-release-mutex-in-error-handling-code.patch removed from -mm tree
+Date: Mon, 04 Aug 2008 13:07:28 -0700
+Message-ID: <200808042007.m74K7Sd1027788@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49577 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44471 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762691AbYHDUHa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:07:30 -0400
+	by vger.kernel.org with ESMTP id S1753359AbYHDUIb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:08:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shemminger@linux-foundation.org, ak@suse.de, bboissin@gmail.com, davem@davemloft.net, lloyd@randombit.net, mpm@selenic.com, shemminger@vyatta.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: julia@diku.dk, jeff@garzik.org, ossthema@de.ibm.com, themann@de.ibm.com, tklein@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     random32: seeding improvement
+     drivers/net/ehea/ehea_main.c: release mutex in error handling code
 has been removed from the -mm tree.  Its filename was
-     random32-seeding-improvement.patch
+     drivers-net-ehea-ehea_mainc-release-mutex-in-error-handling-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: random32: seeding improvement
-From: Stephen Hemminger <shemminger@linux-foundation.org>
+Subject: drivers/net/ehea/ehea_main.c: release mutex in error handling code
+From: Julia Lawall <julia@diku.dk>
 
-The rationale is:
-   * use u32 consistently
-   * no need to do LCG on values from (better) get_random_bytes
-   * use more data from get_random_bytes for secondary seeding
-   * don't reduce state space on srandom32()
-   * enforce state variable initialization restrictions
+The mutex is released on a successful return, so it would seem that it
+should be released on an error return as well.
 
-Note: the second paper has a version of random32() with even longer period
-and a version of random64() if needed.
+The semantic patch finds this problem is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
 
-Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
-Cc: Jack Lloyd <lloyd@randombit.net>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Benoit Boissinot <bboissin@gmail.com>
+// <smpl>
+@@
+expression l;
+@@
+
+mutex_lock(l);
+... when != mutex_unlock(l)
+    when any
+    when strict
+(
+if (...) { ... when != mutex_unlock(l)
++   mutex_unlock(l);
+    return ...;
+}
+|
+mutex_unlock(l);
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Jan-Bernd Themann <themann@de.ibm.com>
+Cc: Thomas Klein <tklein@de.ibm.com>
+Cc: Jan-Bernd Themann <ossthema@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/random32.c |   48 ++++++++++++++++++++++++++---------------------
- 1 file changed, 27 insertions(+), 21 deletions(-)
+ drivers/net/ehea/ehea_main.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/random32.c~random32-seeding-improvement lib/random32.c
---- a/lib/random32.c~random32-seeding-improvement
-+++ a/lib/random32.c
-@@ -56,23 +56,12 @@ static u32 __random32(struct rnd_state *
- 	return (state->s1 ^ state->s2 ^ state->s3);
+diff -puN drivers/net/ehea/ehea_main.c~drivers-net-ehea-ehea_mainc-release-mutex-in-error-handling-code drivers/net/ehea/ehea_main.c
+--- a/drivers/net/ehea/ehea_main.c~drivers-net-ehea-ehea_mainc-release-mutex-in-error-handling-code
++++ a/drivers/net/ehea/ehea_main.c
+@@ -2937,9 +2937,9 @@ static void ehea_rereg_mrs(struct work_s
+ 				}
+ 			}
+ 		}
+-       mutex_unlock(&dlpar_mem_lock);
+-       ehea_info("re-initializing driver complete");
++	ehea_info("re-initializing driver complete");
+ out:
++	mutex_unlock(&dlpar_mem_lock);
+ 	return;
  }
  
--static void __set_random32(struct rnd_state *state, unsigned long s)
-+/*
-+ * Handle minimum values for seeds
-+ */
-+static inline u32 __seed(u32 x, u32 m)
- {
--	if (s == 0)
--		s = 1;      /* default seed is 1 */
--
--#define LCG(n) (69069 * n)
--	state->s1 = LCG(s);
--	state->s2 = LCG(state->s1);
--	state->s3 = LCG(state->s2);
--
--	/* "warm it up" */
--	__random32(state);
--	__random32(state);
--	__random32(state);
--	__random32(state);
--	__random32(state);
--	__random32(state);
-+	return (x < m) ? x + m : x;
- }
- 
- /**
-@@ -107,7 +96,7 @@ void srandom32(u32 entropy)
- 	 */
- 	for_each_possible_cpu (i) {
- 		struct rnd_state *state = &per_cpu(net_rand_state, i);
--		__set_random32(state, state->s1 ^ entropy);
-+		state->s1 = __seed(state->s1 ^ entropy, 1);
- 	}
- }
- EXPORT_SYMBOL(srandom32);
-@@ -122,7 +111,19 @@ static int __init random32_init(void)
- 
- 	for_each_possible_cpu(i) {
- 		struct rnd_state *state = &per_cpu(net_rand_state,i);
--		__set_random32(state, i + jiffies);
-+
-+#define LCG(x)	((x) * 69069)	/* super-duper LCG */
-+		state->s1 = __seed(LCG(i + jiffies), 1);
-+		state->s2 = __seed(LCG(state->s1), 7);
-+		state->s3 = __seed(LCG(state->s2), 15);
-+
-+		/* "warm it up" */
-+		__random32(state);
-+		__random32(state);
-+		__random32(state);
-+		__random32(state);
-+		__random32(state);
-+		__random32(state);
- 	}
- 	return 0;
- }
-@@ -135,13 +136,18 @@ core_initcall(random32_init);
- static int __init random32_reseed(void)
- {
- 	int i;
--	unsigned long seed;
- 
- 	for_each_possible_cpu(i) {
- 		struct rnd_state *state = &per_cpu(net_rand_state,i);
-+		u32 seeds[3];
-+
-+		get_random_bytes(&seeds, sizeof(seeds));
-+		state->s1 = __seed(seeds[0], 1);
-+		state->s2 = __seed(seeds[1], 7);
-+		state->s3 = __seed(seeds[2], 15);
- 
--		get_random_bytes(&seed, sizeof(seed));
--		__set_random32(state, seed);
-+		/* mix it in */
-+		__random32(state);
- 	}
- 	return 0;
- }
 _
 
-Patches currently in -mm which might be from shemminger@linux-foundation.org are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
-skge-adapt-skge-to-use-reworked-pci-pm.patch
-sky2-adapt-to-use-reworked-pci-pm-code.patch
+linux-next.patch
+net-ieee80211-adjust-error-handling.patch
+drivers-video-fsl-diu-fbc-add-missing-of_node_put.patch
 
