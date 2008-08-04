@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + posix-timers-always-do-get_task_structtimer-it_process.patch added to -mm tree
-Date: Mon, 04 Aug 2008 14:32:23 -0700
-Message-ID: <200808042132.m74LWNLm032005@imap1.linux-foundation.org>
+Subject: + posix-timers-dont-switch-to-group_leader-if-it_process-dies.patch added to -mm tree
+Date: Mon, 04 Aug 2008 14:32:21 -0700
+Message-ID: <200808042132.m74LWLJi032002@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44913 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58625 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763061AbYHDVdx (ORCPT
+	by vger.kernel.org with ESMTP id S1765053AbYHDVdx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 17:33:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru, roland@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     posix-timers: always do get_task_struct(timer->it_process)
+     posix-timers: don't switch to ->group_leader if ->it_process dies
 has been added to the -mm tree.  Its filename is
-     posix-timers-always-do-get_task_structtimer-it_process.patch
+     posix-timers-dont-switch-to-group_leader-if-it_process-dies.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,21 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: posix-timers: always do get_task_struct(timer->it_process)
+Subject: posix-timers: don't switch to ->group_leader if ->it_process dies
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Change the code to get/put timer->it_process regardless of
-SIGEV_THREAD_ID.  This streamlines the create/destroy paths and allows us
-to simplify the usage of exit_itimers() in de_thread().
+posix_timer_event() drops SIGEV_THREAD_ID and switches to ->group_leader
+if send_sigqueue() fails.
+
+This is not very useful and doesn't work reliably.  send_sigqueue() can
+only fail if ->it_process is dead.  But it can die before it dequeues the
+SI_TIMER signal, in that case the timer stops anyway.
+
+Remove this code.  I guess it was needed a long ago to ensure that the
+timer is not destroyed when when its creator thread dies.
+
+Q: perhaps it makes sense to change sys_timer_settime() to return an error
+if ->it_process is dead?
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
@@ -46,53 +55,45 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-timers.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ kernel/posix-timers.c |   19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
 
-diff -puN kernel/posix-timers.c~posix-timers-always-do-get_task_structtimer-it_process kernel/posix-timers.c
---- a/kernel/posix-timers.c~posix-timers-always-do-get_task_structtimer-it_process
+diff -puN kernel/posix-timers.c~posix-timers-dont-switch-to-group_leader-if-it_process-dies kernel/posix-timers.c
+--- a/kernel/posix-timers.c~posix-timers-dont-switch-to-group_leader-if-it_process-dies
 +++ a/kernel/posix-timers.c
-@@ -555,11 +555,10 @@ sys_timer_create(const clockid_t which_c
- 			 */
- 			spin_lock_irqsave(&process->sighand->siglock, flags);
- 			if (!(process->flags & PF_EXITING)) {
-+				get_task_struct(process);
- 				new_timer->it_process = process;
- 				list_add(&new_timer->list,
- 					 &process->signal->posix_timers);
--				if (new_timer->it_sigev_notify == (SIGEV_SIGNAL|SIGEV_THREAD_ID))
--					get_task_struct(process);
- 				spin_unlock_irqrestore(&process->sighand->siglock, flags);
- 			} else {
- 				spin_unlock_irqrestore(&process->sighand->siglock, flags);
-@@ -576,6 +575,7 @@ sys_timer_create(const clockid_t which_c
- 		new_timer->it_sigev_signo = SIGALRM;
- 		new_timer->it_sigev_value.sival_int = new_timer->it_id;
- 		process = current->group_leader;
-+		get_task_struct(process);
- 		spin_lock_irqsave(&process->sighand->siglock, flags);
- 		new_timer->it_process = process;
- 		list_add(&new_timer->list, &process->signal->posix_timers);
-@@ -868,8 +868,7 @@ retry_delete:
- 	 * This keeps any tasks waiting on the spin lock from thinking
- 	 * they got something (see the lock code above).
- 	 */
--	if (timer->it_sigev_notify == (SIGEV_SIGNAL|SIGEV_THREAD_ID))
--		put_task_struct(timer->it_process);
-+	put_task_struct(timer->it_process);
- 	timer->it_process = NULL;
+@@ -313,6 +313,7 @@ void do_schedule_next_timer(struct sigin
  
- 	unlock_timer(timer, flags);
-@@ -896,8 +895,7 @@ retry_delete:
- 	 * This keeps any tasks waiting on the spin lock from thinking
- 	 * they got something (see the lock code above).
- 	 */
--	if (timer->it_sigev_notify == (SIGEV_SIGNAL|SIGEV_THREAD_ID))
--		put_task_struct(timer->it_process);
-+	put_task_struct(timer->it_process);
- 	timer->it_process = NULL;
+ int posix_timer_event(struct k_itimer *timr, int si_private)
+ {
++	int shared, ret;
+ 	/*
+ 	 * FIXME: if ->sigq is queued we can race with
+ 	 * dequeue_signal()->do_schedule_next_timer().
+@@ -331,20 +332,10 @@ int posix_timer_event(struct k_itimer *t
+ 	timr->sigq->info.si_tid = timr->it_id;
+ 	timr->sigq->info.si_value = timr->it_sigev_value;
  
- 	unlock_timer(timer, flags);
+-	if (timr->it_sigev_notify & SIGEV_THREAD_ID) {
+-		struct task_struct *leader;
+-		int ret = send_sigqueue(timr->sigq, timr->it_process, 0);
+-
+-		if (likely(ret >= 0))
+-			return ret;
+-
+-		timr->it_sigev_notify = SIGEV_SIGNAL;
+-		leader = timr->it_process->group_leader;
+-		put_task_struct(timr->it_process);
+-		timr->it_process = leader;
+-	}
+-
+-	return send_sigqueue(timr->sigq, timr->it_process, 1);
++	shared = !(timr->it_sigev_notify & SIGEV_THREAD_ID);
++	ret = send_sigqueue(timr->sigq, timr->it_process, shared);
++	/* If we failed to send the signal the timer stops. */
++	return ret > 0;
+ }
+ EXPORT_SYMBOL_GPL(posix_timer_event);
+ 
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
