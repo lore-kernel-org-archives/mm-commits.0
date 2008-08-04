@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs_mbcache-dont-needlessly-make-it-built-in.patch added to -mm tree
-Date: Mon, 04 Aug 2008 16:09:09 -0700
-Message-ID: <200808042309.m74N99rb004580@imap1.linux-foundation.org>
+Subject: + drivers-media-video-gspca-zc3xxc-fix-oops.patch added to -mm tree
+Date: Mon, 04 Aug 2008 16:12:25 -0700
+Message-ID: <200808042312.m74NCPIe004680@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44192 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38332 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756974AbYHDXJl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 19:09:41 -0400
+	by vger.kernel.org with ESMTP id S1753460AbYHDXMu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 19:12:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, agruen@suse.de, viro@zeniv.linux.org.uk
+Cc: parag.warudkar@gmail.com, mchehab@infradead.org
 
 
 The patch titled
-     FS_MBCACHE: don't needlessly make it built-in
+     drivers/media/video/gspca/zc3xx.c: fix oops
 has been added to the -mm tree.  Its filename is
-     fs_mbcache-dont-needlessly-make-it-built-in.patch
+     drivers-media-video-gspca-zc3xxc-fix-oops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,61 +33,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: FS_MBCACHE: don't needlessly make it built-in
-From: Adrian Bunk <bunk@kernel.org>
+Subject: drivers/media/video/gspca/zc3xx.c: fix oops
+From: "Parag Warudkar" <parag.warudkar@gmail.com>
 
-Assume you have:
-- one or more of ext2/3/4 statically built into your kernel
-- none of these with extended attributes enabled and
-- want to add onother one of ext2/3/4 modular and with
-  extended attributes enabled
+Fix a couple of NULL pointer dereferences in zc3xx.
 
-then you currently have to reboot to use it since this results in
-CONFIG_FS_MBCACHE=y.
+Without this patch my machine oopses as soon as I open Kopete-kde4. 
+Patch tested to work fine (no detectable differences in image rendered by
+camera - as crappy as ever, no more oopses ;) on x86 with a Creative
+Webcam Notebook.
 
-That's not a common issue, but I just ran into it and since there's no
-reason to get a built-in mbcache in this case this patch fixes it.
+OOPS Analysis
+-------------------
+http://marc.info/?l=linux-kernel&m=121769418920774&w=4
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Andreas Gruenbacher <agruen@suse.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+4575.306109] Code: 83 ec 04 0f b6 90 da 07 00 00 8b a8 04 02 00 00 0f
+b6 80 d9 07 00 00 8b 3c 95 f4 dc 15 f9 8b 14 95 d8 dc 15 f9 83 c0 80
+89 14 24 <0f> b6 37 0f af f0 8d b6 00 00 00 00 0f b6 83 00 dc 15 f9 0f
+af
+[ 4575.306133] EIP: [<f915c2d4>] setcontrast+0x34/0xf0 [gspca_zc3xx]
+SS:ESP 0068:da81bd64
+
+Which corresponds to -
+
+1374: 0f b6 37 movzbl (%edi),%esi
+--^^-- Faulting instruction
+1377: 0f af f0 imul %eax,%esi
+137a: 8d b6 00 00 00 00 lea 0x0(%esi),%esi
+
+That is this code in zc3xx.c -
+k = (sd->contrast - 128) /* -128 / 128 */
+                    * Tgamma[0];
+
+Where Tgamma = gamma_tb[sd->gamma];
+
+For sd->gamma=0 Tgamma is NULL -
+
+static const __u8 *gamma_tb[] = {
+NULL, ...
+
+Kopete seems to trigger the zero gamma on ioctl and we happily oops in
+that case.  Fix this by detecting the zero gamma case while trying to
+preserve intended effect of zero gamma.  On reviewing the code, the exact
+same problem exists for Tgradient where it is dereferenced when NULL.  Fix
+that too.
+
+Signed-off-by: Parag Warudkar <parag.warudkar@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/media/video/gspca/zc3xx.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN fs/Kconfig~fs_mbcache-dont-needlessly-make-it-built-in fs/Kconfig
---- a/fs/Kconfig~fs_mbcache-dont-needlessly-make-it-built-in
-+++ a/fs/Kconfig
-@@ -270,9 +270,10 @@ config JBD2_DEBUG
- config FS_MBCACHE
- # Meta block cache for Extended Attributes (ext2/ext3/ext4)
- 	tristate
--	depends on EXT2_FS_XATTR || EXT3_FS_XATTR || EXT4DEV_FS_XATTR
--	default y if EXT2_FS=y || EXT3_FS=y || EXT4DEV_FS=y
--	default m if EXT2_FS=m || EXT3_FS=m || EXT4DEV_FS=m
-+	default y if EXT2_FS=y && EXT2_FS_XATTR
-+	default y if EXT3_FS=y && EXT3_FS_XATTR
-+	default y if EXT4DEV_FS=y && EXT4DEV_FS_XATTR
-+	default m if EXT2_FS_XATTR || EXT3_FS_XATTR || EXT4DEV_FS_XATTR
+diff -puN drivers/media/video/gspca/zc3xx.c~drivers-media-video-gspca-zc3xxc-fix-oops drivers/media/video/gspca/zc3xx.c
+--- a/drivers/media/video/gspca/zc3xx.c~drivers-media-video-gspca-zc3xxc-fix-oops
++++ a/drivers/media/video/gspca/zc3xx.c
+@@ -6476,12 +6476,15 @@ static void setcontrast(struct gspca_dev
+ 	Tgamma = gamma_tb[sd->gamma];
+ 	Tgradient = gradient_tb[sd->gamma];
  
- config REISERFS_FS
- 	tristate "Reiserfs support"
+-	k = (sd->contrast - 128)		/* -128 / 128 */
++	if(!Tgamma)
++		k = 0;
++	else
++		k = (sd->contrast - 128)		/* -128 / 128 */
+ 			* Tgamma[0];
+ 	PDEBUG(D_CONF, "gamma:%d contrast:%d gamma coeff: %d/128",
+ 		sd->gamma, sd->contrast, k);
+ 	for (i = 0; i < 16; i++) {
+-		g = Tgamma[i] + kgamma_tb[i] * k / 128;
++		g = (Tgamma ? Tgamma[i] : 0) + kgamma_tb[i] * k / 128;
+ 		if (g > 0xff)
+ 			g = 0xff;
+ 		else if (g <= 0)
+@@ -6497,7 +6500,7 @@ static void setcontrast(struct gspca_dev
+ 	PDEBUG(D_CONF, "    %02x %02x %02x %02x %02x %02x %02x %02x",
+ 		v[8], v[9], v[10], v[11], v[12], v[13], v[14], v[15]);
+ 	for (i = 0; i < 16; i++) {
+-		g = Tgradient[i] - kgrad_tb[i] * k / 128;
++		g = (Tgradient ? Tgradient[i] : 0) - kgrad_tb[i] * k / 128;
+ 		if (g > 0xff)
+ 			g = 0xff;
+ 		else if (g <= 0) {
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from parag.warudkar@gmail.com are
 
-origin.patch
-mm_initc-avoid-ifdef-inside-macro-expansion.patch
-linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-m32r-dont-offer-config_isa.patch
-if-0-ses_match_host.patch
-fs_mbcache-dont-needlessly-make-it-built-in.patch
-git-xtensa.patch
-uml-remove-the-dead-tty_log-code.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-reiser4.patch
+drivers-media-video-gspca-zc3xxc-fix-oops.patch
 
