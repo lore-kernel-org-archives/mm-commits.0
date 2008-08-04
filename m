@@ -1,100 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - amd64-agp-run-fallback-when-no-bridges-found-not-when-driver-registration-fails.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 13:06:11 -0700
-Message-ID: <200808042006.m74K6BBC027660@imap1.linux-foundation.org>
+Subject: - mtd-diskonchipc-fix-sparse-endian-warnings.patch removed from -mm tree
+Date: Mon, 04 Aug 2008 13:06:41 -0700
+Message-ID: <200808042006.m74K6fKH027709@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59465 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39987 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754614AbYHDUGo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:06:44 -0400
+	by vger.kernel.org with ESMTP id S1758173AbYHDUGp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:06:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bjorn.helgaas@hp.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, dwmw2@infradead.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     amd64-agp: run fallback when no bridges found, not when driver registration fails
+     mtd: diskonchip.c fix sparse endian warnings
 has been removed from the -mm tree.  Its filename was
-     amd64-agp-run-fallback-when-no-bridges-found-not-when-driver-registration-fails.patch
+     mtd-diskonchipc-fix-sparse-endian-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: amd64-agp: run fallback when no bridges found, not when driver registration fails
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: mtd: diskonchip.c fix sparse endian warnings
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-I think the intent was that if no bridges matched agp_amd64_pci_table[],
-we would fall back to checking for any bridge with the AGP capability. 
-But in the current code, we execute the fallback path only when
-pci_register_driver() itself fails, which is unrelated to whether any
-matching devices were found.
-
-This patch counts the AGP bridges found in the probe() method and executes
-the fallback path when none is found.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/amd64-agp.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ drivers/mtd/nand/diskonchip.c |   30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
-diff -puN drivers/char/agp/amd64-agp.c~amd64-agp-run-fallback-when-no-bridges-found-not-when-driver-registration-fails drivers/char/agp/amd64-agp.c
---- a/drivers/char/agp/amd64-agp.c~amd64-agp-run-fallback-when-no-bridges-found-not-when-driver-registration-fails
-+++ a/drivers/char/agp/amd64-agp.c
-@@ -34,6 +34,7 @@
+diff -puN drivers/mtd/nand/diskonchip.c~mtd-diskonchipc-fix-sparse-endian-warnings drivers/mtd/nand/diskonchip.c
+--- a/drivers/mtd/nand/diskonchip.c~mtd-diskonchipc-fix-sparse-endian-warnings
++++ a/drivers/mtd/nand/diskonchip.c
+@@ -1125,9 +1125,9 @@ static inline int __init nftl_partscan(s
+ 		goto out;
+ 	mh = (struct NFTLMediaHeader *)buf;
  
- static struct resource *aperture_resource;
- static int __initdata agp_try_unsupported = 1;
-+static int agp_bridges_found;
+-	mh->NumEraseUnits = le16_to_cpu(mh->NumEraseUnits);
+-	mh->FirstPhysicalEUN = le16_to_cpu(mh->FirstPhysicalEUN);
+-	mh->FormattedSize = le32_to_cpu(mh->FormattedSize);
++	le16_to_cpus(&mh->NumEraseUnits);
++	le16_to_cpus(&mh->FirstPhysicalEUN);
++	le32_to_cpus(&mh->FormattedSize);
  
- static void amd64_tlbflush(struct agp_memory *temp)
- {
-@@ -489,6 +490,7 @@ static int __devinit agp_amd64_probe(str
- {
- 	struct agp_bridge_data *bridge;
- 	u8 cap_ptr;
-+	int err;
+ 	printk(KERN_INFO "    DataOrgID        = %s\n"
+ 			 "    NumEraseUnits    = %d\n"
+@@ -1235,12 +1235,12 @@ static inline int __init inftl_partscan(
+ 	doc->mh1_page = doc->mh0_page + (4096 >> this->page_shift);
+ 	mh = (struct INFTLMediaHeader *)buf;
  
- 	cap_ptr = pci_find_capability(pdev, PCI_CAP_ID_AGP);
- 	if (!cap_ptr)
-@@ -536,7 +538,12 @@ static int __devinit agp_amd64_probe(str
- 	}
+-	mh->NoOfBootImageBlocks = le32_to_cpu(mh->NoOfBootImageBlocks);
+-	mh->NoOfBinaryPartitions = le32_to_cpu(mh->NoOfBinaryPartitions);
+-	mh->NoOfBDTLPartitions = le32_to_cpu(mh->NoOfBDTLPartitions);
+-	mh->BlockMultiplierBits = le32_to_cpu(mh->BlockMultiplierBits);
+-	mh->FormatFlags = le32_to_cpu(mh->FormatFlags);
+-	mh->PercentUsed = le32_to_cpu(mh->PercentUsed);
++	le32_to_cpus(&mh->NoOfBootImageBlocks);
++	le32_to_cpus(&mh->NoOfBinaryPartitions);
++	le32_to_cpus(&mh->NoOfBDTLPartitions);
++	le32_to_cpus(&mh->BlockMultiplierBits);
++	le32_to_cpus(&mh->FormatFlags);
++	le32_to_cpus(&mh->PercentUsed);
  
- 	pci_set_drvdata(pdev, bridge);
--	return agp_add_bridge(bridge);
-+	err = agp_add_bridge(bridge);
-+	if (err < 0)
-+		return err;
-+
-+	agp_bridges_found++;
-+	return 0;
- }
+ 	printk(KERN_INFO "    bootRecordID          = %s\n"
+ 			 "    NoOfBootImageBlocks   = %d\n"
+@@ -1277,12 +1277,12 @@ static inline int __init inftl_partscan(
+ 	/* Scan the partitions */
+ 	for (i = 0; (i < 4); i++) {
+ 		ip = &(mh->Partitions[i]);
+-		ip->virtualUnits = le32_to_cpu(ip->virtualUnits);
+-		ip->firstUnit = le32_to_cpu(ip->firstUnit);
+-		ip->lastUnit = le32_to_cpu(ip->lastUnit);
+-		ip->flags = le32_to_cpu(ip->flags);
+-		ip->spareUnits = le32_to_cpu(ip->spareUnits);
+-		ip->Reserved0 = le32_to_cpu(ip->Reserved0);
++		le32_to_cpus(&ip->virtualUnits);
++		le32_to_cpus(&ip->firstUnit);
++		le32_to_cpus(&ip->lastUnit);
++		le32_to_cpus(&ip->flags);
++		le32_to_cpus(&ip->spareUnits);
++		le32_to_cpus(&ip->Reserved0);
  
- static void __devexit agp_amd64_remove(struct pci_dev *pdev)
-@@ -713,7 +720,11 @@ int __init agp_amd64_init(void)
- 
- 	if (agp_off)
- 		return -EINVAL;
--	if (pci_register_driver(&agp_amd64_pci_driver) < 0) {
-+	err = pci_register_driver(&agp_amd64_pci_driver);
-+	if (err < 0)
-+		return err;
-+
-+	if (agp_bridges_found == 0) {
- 		struct pci_dev *dev;
- 		if (!agp_try_unsupported && !agp_try_unsupported_boot) {
- 			printk(KERN_INFO PFX "No supported AGP bridge found.\n");
+ 		printk(KERN_INFO	"    PARTITION[%d] ->\n"
+ 			"        virtualUnits    = %d\n"
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
 linux-next.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-firmware-use-dev_printk-when-possible.patch
-resources-tidy-__request_region.patch
+cifs-remove-global_extern-macro.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+v4l-drx397xdc-sparse-annotations.patch
+v4l-drx397xdc-replace-__function__-occurrences.patch
+input-ads7846c-sparse-lock-annotation.patch
+drivers-net-replace-__function__-with-__func__.patch
+scsi-replace-__inline-with-inline.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+wireless-replace-__function__-with-__func__.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+olpc-olpc_batteryc-sparse-endian-annotations.patch
+include-replace-__function__-with-__func__.patch
+misc-replace-__function__-with-__func__.patch
+befs-annotate-fs32-on-tests-for-superblock-endianness.patch
+byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
+byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
 
