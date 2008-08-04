@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kbuild-extend-menuconfig-for-modules-to-simplify-kconfig-file.patch added to -mm tree
-Date: Mon, 04 Aug 2008 14:08:33 -0700
-Message-ID: <200808042108.m74L8Xbs030972@imap1.linux-foundation.org>
+Subject: + tty-revert-part-of-the-termios-locking.patch added to -mm tree
+Date: Mon, 04 Aug 2008 14:11:28 -0700
+Message-ID: <200808042111.m74LBSPk031065@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45910 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52959 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758769AbYHDVIt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 17:08:49 -0400
+	by vger.kernel.org with ESMTP id S1756706AbYHDVM3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 17:12:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@crashcourse.ca, randy.dunlap@oracle.com, sam@ravnborg.org
+Cc: alan@redhat.com, ckyoog@gmail.com
 
 
 The patch titled
-     kbuild: extend "menuconfig" for modules to simplify Kconfig file
+     tty: revert part of the termios locking
 has been added to the -mm tree.  Its filename is
-     kbuild-extend-menuconfig-for-modules-to-simplify-kconfig-file.patch
+     tty-revert-part-of-the-termios-locking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,84 +33,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kbuild: extend "menuconfig" for modules to simplify Kconfig file
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: tty: revert part of the termios locking
+From: Alan Cox <alan@redhat.com>
 
-Given that the init/Kconfig file uses a "menuconfig" directive for modules
-already, might as well wrap all the submenu entries in an "if" to toss all
-those dependencies.
+vt: deadlock workaround
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-Tested-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+2.6.26 corrected the mutex locking on tty resizing to fix the case where
+you could get the tty/vt sizing out of sync.  That turns out to have a
+deadlock.
+
+The actual fix is really major and I've got it lined up as part of the ops
+changes for 2.6.28 so for 2.6.26/2.6.27 it is safer to reintroduce this
+ages old minor bug.
+
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=11234
+
+Signed-off-by: Alan Cox <alan@redhat.com>
+Reported-by: kouyu <ckyoog@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/char/vt.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN init/Kconfig~kbuild-extend-menuconfig-for-modules-to-simplify-kconfig-file init/Kconfig
---- a/init/Kconfig~kbuild-extend-menuconfig-for-modules-to-simplify-kconfig-file
-+++ a/init/Kconfig
-@@ -845,9 +845,10 @@ menuconfig MODULES
+diff -puN drivers/char/vt.c~tty-revert-part-of-the-termios-locking drivers/char/vt.c
+--- a/drivers/char/vt.c~tty-revert-part-of-the-termios-locking
++++ a/drivers/char/vt.c
+@@ -916,7 +916,6 @@ int vc_resize(struct vc_data *vc, unsign
+ 		ws.ws_col = vc->vc_cols;
+ 		ws.ws_ypixel = vc->vc_scan_lines;
  
- 	  If unsure, say Y.
+-		mutex_lock(&vc->vc_tty->termios_mutex);
+ 		spin_lock_irq(&vc->vc_tty->ctrl_lock);
+ 		if ((ws.ws_row != cws->ws_row || ws.ws_col != cws->ws_col))
+ 			pgrp = get_pid(vc->vc_tty->pgrp);
+@@ -926,7 +925,6 @@ int vc_resize(struct vc_data *vc, unsign
+ 			put_pid(pgrp);
+ 		}
+ 		*cws = ws;
+-		mutex_unlock(&vc->vc_tty->termios_mutex);
+ 	}
  
-+if MODULES
-+
- config MODULE_FORCE_LOAD
- 	bool "Forced module loading"
--	depends on MODULES
- 	default n
- 	help
- 	  Allow loading of modules without version information (ie. modprobe
-@@ -856,7 +857,6 @@ config MODULE_FORCE_LOAD
- 
- config MODULE_UNLOAD
- 	bool "Module unloading"
--	depends on MODULES
- 	help
- 	  Without this option you will not be able to unload any
- 	  modules (note that some modules may not be unloadable
-@@ -875,7 +875,6 @@ config MODULE_FORCE_UNLOAD
- 
- config MODVERSIONS
- 	bool "Module versioning support"
--	depends on MODULES
- 	help
- 	  Usually, you have to use modules compiled with your kernel.
- 	  Saying Y here makes it sometimes possible to use modules
-@@ -886,7 +885,6 @@ config MODVERSIONS
- 
- config MODULE_SRCVERSION_ALL
- 	bool "Source checksum for all modules"
--	depends on MODULES
- 	help
- 	  Modules which contain a MODULE_VERSION get an extra "srcversion"
- 	  field inserted into their modinfo section, which contains a
-@@ -898,11 +896,12 @@ config MODULE_SRCVERSION_ALL
- 
- config KMOD
- 	def_bool y
--	depends on MODULES
- 	help
- 	  This is being removed soon.  These days, CONFIG_MODULES
- 	  implies CONFIG_KMOD, so use that instead.
- 
-+endif # MODULES
-+
- config STOP_MACHINE
- 	bool
- 	default y
+ 	if (CON_IS_VISIBLE(vc))
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from alan@redhat.com are
 
 origin.patch
-kbuild-extend-menuconfig-for-modules-to-simplify-kconfig-file.patch
-m32r-remove-the-unused-nohighmem-option.patch
-xtensa-warn-about-including-asm-rwsemh-directly.patch
-xtensa-use-newer-__spin_lock_unlocked-macro.patch
-uml-remove-the-dead-tty_log-code.patch
+tty-revert-part-of-the-termios-locking.patch
+hamradio-add-missing-sanity-check-to-tty-operation.patch
+fb-push-down-the-bkl-in-the-ioctl-handler.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
 
