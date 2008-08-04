@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + h8300-update-timer-handler-misc-update.patch added to -mm tree
-Date: Mon, 04 Aug 2008 16:15:03 -0700
-Message-ID: <200808042315.m74NF39S004834@imap1.linux-foundation.org>
+Subject: + h8300-generic_bug-support.patch added to -mm tree
+Date: Mon, 04 Aug 2008 16:17:50 -0700
+Message-ID: <200808042317.m74NHo6g004931@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45137 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39118 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755577AbYHDXPS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 19:15:18 -0400
+	by vger.kernel.org with ESMTP id S1755633AbYHDXSB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 19:18:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: ysato@users.sourceforge.jp
 
 
 The patch titled
-     h8300: update timer handler - misc update
+     h8300: GENERIC_BUG support
 has been added to the -mm tree.  Its filename is
-     h8300-update-timer-handler-misc-update.patch
+     h8300-generic_bug-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,346 +33,140 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: h8300: update timer handler - misc update
+Subject: h8300: GENERIC_BUG support
 From: Yoshinori Sato <ysato@users.sourceforge.jp>
 
-- Update selection
-- Update common timer handler
-- Add support functions
+CONFIG_GENERIC_BUG support.
 
 Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/Kconfig.cpu     |  123 +++++++++++++++--------------------
- arch/h8300/kernel/Makefile |    2 
- arch/h8300/kernel/time.c   |   29 +++-----
- include/asm-h8300/io.h     |   34 +++++++++
- 4 files changed, 101 insertions(+), 87 deletions(-)
+ arch/h8300/Kconfig         |    4 ++++
+ arch/h8300/kernel/module.c |    3 ++-
+ arch/h8300/kernel/traps.c  |   17 +++++++++++------
+ arch/h8300/mm/fault.c      |    5 ++---
+ include/asm-h8300/bug.h    |    4 ++++
+ include/asm-h8300/system.h |    2 ++
+ 6 files changed, 25 insertions(+), 10 deletions(-)
 
-diff -puN arch/h8300/Kconfig.cpu~h8300-update-timer-handler-misc-update arch/h8300/Kconfig.cpu
---- a/arch/h8300/Kconfig.cpu~h8300-update-timer-handler-misc-update
-+++ a/arch/h8300/Kconfig.cpu
-@@ -1,5 +1,7 @@
- menu "Processor type and features"
- 
-+source "kernel/time/Kconfig"
-+
- choice
- 	prompt "H8/300 platform"
- 	default H8300H_GENERIC
-@@ -11,6 +13,7 @@ config H8300H_GENERIC
- 
- config H8300H_AKI3068NET
- 	bool "AE-3068/69"
-+	select CONFIG_H83068
- 	help
- 	  AKI-H8/3068F / AKI-H8/3069F Flashmicom LAN Board Support
- 	  More Information. (Japanese Only)
-@@ -21,6 +24,7 @@ config H8300H_AKI3068NET
- 
- config H8300H_H8MAX
- 	bool "H8MAX"
-+	select CONFIG_H83068
- 	help
- 	  H8MAX Evaluation Board Support
- 	  More Information. (Japanese Only)
-@@ -28,6 +32,7 @@ config H8300H_H8MAX
- 
- config H8300H_SIM
- 	bool "H8/300H Simulator"
-+	select CONFIG_H83007
- 	help
- 	  GDB Simulator Support
- 	  More Information.
-@@ -40,6 +45,7 @@ config H8S_GENERIC
- 
- config H8S_EDOSK2674
- 	bool "EDOSK-2674"
-+	select CONFIG_H8S2768
- 	help
- 	  Renesas EDOSK-2674 Evaluation Board Support
- 	  More Information.
-@@ -55,44 +61,37 @@ config H8S_SIM
- 
- endchoice
- 
--if (H8300H_GENERIC || H8S_GENERIC)
--menu "Detail Selection"
--if (H8300H_GENERIC)
- choice
- 	prompt "CPU Selection"
- 
- config H83002
- 	bool "H8/3001,3002,3003"
-+	select CPU_H8300H
- 
- config H83007
- 	bool "H8/3006,3007"
-+	select CPU_H8300H
- 
- config H83048
- 	bool "H8/3044,3045,3046,3047,3048,3052"
-+	select CPU_H8300H
- 
- config H83068
- 	bool "H8/3065,3066,3067,3068,3069"
--endchoice
--endif
--
--if (H8S_GENERIC)
--choice
--	prompt "CPU Selection"
-+	select CPU_H8300H
- 
- config H8S2678
- 	bool "H8S/2670,2673,2674R,2675,2676"
-+	select CPU_H8S
-+
- endchoice
--endif
- 
- config CPU_CLOCK
- 	int "CPU Clock Frequency (/1KHz)"
- 	default "20000"
- 	help
- 	  CPU Clock Frequency divide to 1000
--endmenu
--endif
- 
--if (H8300H_GENERIC || H8S_GENERIC || H8300H_SIM || H8S_SIM || H8S_EDOSK2674)
- choice
- 	prompt "Kernel executes from"
- 	---help---
-@@ -107,75 +106,61 @@ config ROMKERNEL
- 	bool "ROM"
- 	help
- 	  The kernel will be resident in FLASH/ROM when running.
--
- endchoice
--endif
- 
--if (H8300H_AKI3068NET)
--config H83068
--	bool
--	default y
- 
--config CPU_CLOCK
--	int
--	default "20000"
--
--config RAMKERNEL
--	bool
--	default y
--endif
--
--if (H8300H_H8MAX)
--config H83068
--	bool
--	default y
--
--config CPU_CLOCK
--	int
--	default 25000
--
--config RAMKERNEL
-+config CPU_H8300H
+diff -puN arch/h8300/Kconfig~h8300-generic_bug-support arch/h8300/Kconfig
+--- a/arch/h8300/Kconfig~h8300-generic_bug-support
++++ a/arch/h8300/Kconfig
+@@ -62,6 +62,10 @@ config GENERIC_TIME
  	bool
-+	depends on (H83002 || H83007 || H83048 || H83068)
- 	default y
--endif
- 
--if (H8300H_SIM)
--config H83007
-+config CPU_H8S
- 	bool
-+	depends on H8S2678
  	default y
  
--config CPU_CLOCK
--	int
--	default "16000"
--endif
-+choice
-+	prompt "Timer"
-+config H8300_TIMER8
-+	bool "8bit timer (2ch cascade)"
-+	depends on (H83007 || H83068 || H8S2678)
++config GENERIC_BUG
++        bool
++        depends on BUG
 +
-+config H8300_TIMER16
-+	bool "16bit timer"
-+	depends on (H83007 || H83068)
-+
-+config H8300_ITU
-+	bool "ITU"
-+	depends on (H83002 || H83048)
- 
--if (H8S_EDOSK2674)
--config H8S2678
--	bool
--	default y
--config CPU_CLOCK
--	int
--	default 33000
--endif
-+config H8300_TPU
-+	bool "TPU"
-+	depends on H8S2678
-+endchoice
- 
--if (H8S_SIM)
--config H8S2678
--	bool
--	default y
--config CPU_CLOCK
--	int
--	default 33000
-+if H8300_TIMER8
-+choice
-+	prompt "Timer Channel"
-+config H8300_TIMER8_CH0
-+	bool "Channel 0"
-+config H8300_TIMER8_CH2
-+	bool "Channel 2"
-+	depends on CPU_H8300H
-+endchoice
- endif
- 
--config CPU_H8300H
--	bool
--	depends on (H83002 || H83007 || H83048 || H83068)
--	default y
--
--config CPU_H8S
--	bool
--	depends on H8S2678
--	default y
-+config H8300_TIMER16_CH
-+	int "16bit timer channel (0 - 2)"
-+	depends on H8300_TIMER16
-+	range 0 2
-+
-+config H8300_ITU_CH
-+	int "ITU channel"
-+	depends on H8300_ITU
-+
-+config H8300_TPU_CH
-+	int "TPU channel"
-+	depends on H8300_TPU
- 
- config PREEMPT
- 	bool "Preemptible Kernel"
-diff -puN arch/h8300/kernel/Makefile~h8300-update-timer-handler-misc-update arch/h8300/kernel/Makefile
---- a/arch/h8300/kernel/Makefile~h8300-update-timer-handler-misc-update
-+++ a/arch/h8300/kernel/Makefile
-@@ -7,6 +7,6 @@ extra-y := vmlinux.lds
- obj-y := process.o traps.o ptrace.o irq.o \
- 	 sys_h8300.o time.o signal.o \
-          setup.o gpio.o init_task.o syscalls.o \
--	 entry.o
-+	 entry.o timer/
- 
- obj-$(CONFIG_MODULES) += module.o h8300_ksyms.o 
-diff -puN arch/h8300/kernel/time.c~h8300-update-timer-handler-misc-update arch/h8300/kernel/time.c
---- a/arch/h8300/kernel/time.c~h8300-update-timer-handler-misc-update
-+++ a/arch/h8300/kernel/time.c
-@@ -27,27 +27,21 @@
- #include <linux/profile.h>
- 
- #include <asm/io.h>
--#include <asm/target_time.h>
-+#include <asm/timer.h>
- 
- #define	TICK_SIZE (tick_nsec / 1000)
- 
--/*
-- * timer_interrupt() needs to keep up the real-time clock,
-- * as well as call the "do_timer()" routine every clocktick
-- */
--static void timer_interrupt(int irq, void *dummy, struct pt_regs * regs)
-+void h8300_timer_tick(void)
+ config TIME_LOW_RES
+ 	bool
+ 	default y
+diff -puN arch/h8300/kernel/module.c~h8300-generic_bug-support arch/h8300/kernel/module.c
+--- a/arch/h8300/kernel/module.c~h8300-generic_bug-support
++++ a/arch/h8300/kernel/module.c
+@@ -114,9 +114,10 @@ int module_finalize(const Elf_Ehdr *hdr,
+ 		    const Elf_Shdr *sechdrs,
+ 		    struct module *me)
  {
--	/* may need to kick the hardware timer */
--	platform_timer_eoi();
--
-+	if (current->pid)
-+		profile_tick(CPU_PROFILING);
-+	write_seqlock(&xtime_lock);
- 	do_timer(1);
--#ifndef CONFIG_SMP
--	update_process_times(user_mode(regs));
--#endif
--	profile_tick(CPU_PROFILING);
-+	write_sequnlock(&xtime_lock);
-+	update_process_times(user_mode(get_irq_regs()));
+-	return 0;
++	return module_bug_finalize(hdr, sechdrs, me);
  }
  
--void time_init(void)
-+void __init time_init(void)
+ void module_arch_cleanup(struct module *mod)
  {
- 	unsigned int year, mon, day, hour, min, sec;
++	module_bug_cleanup(mod);
+ }
+diff -puN arch/h8300/kernel/traps.c~h8300-generic_bug-support arch/h8300/kernel/traps.c
+--- a/arch/h8300/kernel/traps.c~h8300-generic_bug-support
++++ a/arch/h8300/kernel/traps.c
+@@ -20,12 +20,14 @@
+ #include <linux/errno.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
++#include <linux/bug.h>
  
-@@ -57,12 +51,13 @@ void time_init(void)
- 	year = 1980;
- 	mon = day = 1;
- 	hour = min = sec = 0;
--	platform_gettod (&year, &mon, &day, &hour, &min, &sec);
+ #include <asm/system.h>
+ #include <asm/irq.h>
+ #include <asm/traps.h>
+ #include <asm/page.h>
+-#include <asm/gpio.h>
++
++static DEFINE_SPINLOCK(die_lock);
+ 
+ /*
+  * this must be called very early as the kernel might
+@@ -94,16 +96,19 @@ static void dump(struct pt_regs *fp)
+ 	printk("\n\n");
+ }
+ 
+-void die_if_kernel (char *str, struct pt_regs *fp, int nr)
++void die(char *str, struct pt_regs *fp, unsigned long err)
+ {
+-	extern int console_loglevel;
++	static int diecount = 0;
+ 
+-	if (!(fp->ccr & PS_S))
+-		return;
++	oops_enter();
+ 
+-	console_loglevel = 15;
++	console_verbose();
++	spin_lock_irq(&die_lock);
++	report_bug(fp->pc, fp);
++	printk(KERN_EMERG "%s: %04lx [#%d] ", str, err & 0xffff, ++diecount);
+ 	dump(fp);
+ 
++	spin_unlock_irq(&die_lock);
+ 	do_exit(SIGSEGV);
+ }
+ 
+diff -puN arch/h8300/mm/fault.c~h8300-generic_bug-support arch/h8300/mm/fault.c
+--- a/arch/h8300/mm/fault.c~h8300-generic_bug-support
++++ a/arch/h8300/mm/fault.c
+@@ -20,8 +20,6 @@
+ #include <asm/system.h>
+ #include <asm/pgtable.h>
+ 
+-extern void die_if_kernel(char *, struct pt_regs *, long);
 -
-+#ifdef CONFIG_H8300_GETTOD
-+	h8300_gettod (&year, &mon, &day, &hour, &min, &sec);
-+#endif
- 	if ((year += 1900) < 1970)
- 		year += 100;
- 	xtime.tv_sec = mktime(year, mon, day, hour, min, sec);
- 	xtime.tv_nsec = 0;
+ /*
+  * This routine handles page faults.  It determines the problem, and
+  * then passes it off to one of the appropriate routines.
+@@ -50,7 +48,8 @@ asmlinkage int do_page_fault(struct pt_r
+ 	} else
+ 		printk(KERN_ALERT "Unable to handle kernel access");
+ 	printk(" at virtual address %08lx\n",address);
+-	die_if_kernel("Oops", regs, error_code);
++	if (!user_mode(regs))
++		die("Oops", regs, error_code);
+ 	do_exit(SIGKILL);
  
--	platform_timer_setup(timer_interrupt);
-+	h8300_timer_setup();
- }
-diff -puN include/asm-h8300/io.h~h8300-update-timer-handler-misc-update include/asm-h8300/io.h
---- a/include/asm-h8300/io.h~h8300-update-timer-handler-misc-update
-+++ a/include/asm-h8300/io.h
-@@ -295,6 +295,40 @@ static __inline__ void ctrl_outl(unsigne
-         *(volatile unsigned long*)addr = b;
- }
+ 	return 1;
+diff -puN include/asm-h8300/bug.h~h8300-generic_bug-support include/asm-h8300/bug.h
+--- a/include/asm-h8300/bug.h~h8300-generic_bug-support
++++ a/include/asm-h8300/bug.h
+@@ -1,4 +1,8 @@
+ #ifndef _H8300_BUG_H
+ #define _H8300_BUG_H
++
++/* always true */
++#define is_valid_bugaddr(addr) (1)
++
+ #include <asm-generic/bug.h>
+ #endif
+diff -puN include/asm-h8300/system.h~h8300-generic_bug-support include/asm-h8300/system.h
+--- a/include/asm-h8300/system.h~h8300-generic_bug-support
++++ a/include/asm-h8300/system.h
+@@ -155,4 +155,6 @@ static inline unsigned long __xchg(unsig
  
-+static __inline__ void ctrl_bclr(int b, unsigned long addr)
-+{
-+	if (__builtin_constant_p(b))
-+		switch (b) {
-+		case 0: __asm__("bclr #0,@%0"::"r"(addr)); break;
-+		case 1: __asm__("bclr #1,@%0"::"r"(addr)); break;
-+		case 2: __asm__("bclr #2,@%0"::"r"(addr)); break;
-+		case 3: __asm__("bclr #3,@%0"::"r"(addr)); break;
-+		case 4: __asm__("bclr #4,@%0"::"r"(addr)); break;
-+		case 5: __asm__("bclr #5,@%0"::"r"(addr)); break;
-+		case 6: __asm__("bclr #6,@%0"::"r"(addr)); break;
-+		case 7: __asm__("bclr #7,@%0"::"r"(addr)); break;
-+		}
-+	else
-+		__asm__("bclr %w0,@%1"::"r"(b), "r"(addr));
-+}
+ #define arch_align_stack(x) (x)
+ 
++void die(char *str, struct pt_regs *fp, unsigned long err);
 +
-+static __inline__ void ctrl_bset(int b, unsigned long addr)
-+{
-+	if (__builtin_constant_p(b))
-+		switch (b) {
-+		case 0: __asm__("bset #0,@%0"::"r"(addr)); break;
-+		case 1: __asm__("bset #1,@%0"::"r"(addr)); break;
-+		case 2: __asm__("bset #2,@%0"::"r"(addr)); break;
-+		case 3: __asm__("bset #3,@%0"::"r"(addr)); break;
-+		case 4: __asm__("bset #4,@%0"::"r"(addr)); break;
-+		case 5: __asm__("bset #5,@%0"::"r"(addr)); break;
-+		case 6: __asm__("bset #6,@%0"::"r"(addr)); break;
-+		case 7: __asm__("bset #7,@%0"::"r"(addr)); break;
-+		}
-+	else
-+		__asm__("bset %w0,@%1"::"r"(b), "r"(addr));
-+}
-+
- /* Pages to physical address... */
- #define page_to_phys(page)      ((page - mem_map) << PAGE_SHIFT)
- #define page_to_bus(page)       ((page - mem_map) << PAGE_SHIFT)
+ #endif /* _H8300_SYSTEM_H */
 _
 
 Patches currently in -mm which might be from ysato@users.sourceforge.jp are
@@ -381,4 +175,6 @@ origin.patch
 h8300-update-timer-handler-delete-files.patch
 h8300-update-timer-handler-new-files.patch
 h8300-update-timer-handler-misc-update.patch
+h8300-kconfig-cleanup.patch
+h8300-generic_bug-support.patch
 
