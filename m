@@ -1,144 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 13:06:33 -0700
-Message-ID: <200808042006.m74K6XeZ027700@imap1.linux-foundation.org>
+Subject: - blackfin-nfc-driver-cleanup-the-error-exit-path-of-bf5xx_nand_probe-function.patch removed from -mm tree
+Date: Mon, 04 Aug 2008 13:06:55 -0700
+Message-ID: <200808042006.m74K6tOB027733@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37787 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48307 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761900AbYHDUHv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:07:51 -0400
+	by vger.kernel.org with ESMTP id S1759589AbYHDUHE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:07:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: JosephChan@via.com.tw, alan@lxorguk.ukuu.org.uk, jeff@garzik.org, josephchan@via.com.tw, tj@kernel.org, mm-commits@vger.kernel.org
+To: cooloney@kernel.org, vapier.adi@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_via.c: add flag for VX800 and add a function for fixing internal bugs for VIA chipsets
+     Blackfin NFC Driver: Cleanup the error exit path of bf5xx_nand_probe function
 has been removed from the -mm tree.  Its filename was
-     pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets.patch
+     blackfin-nfc-driver-cleanup-the-error-exit-path-of-bf5xx_nand_probe-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_via.c: add flag for VX800 and add a function for fixing internal bugs for VIA chipsets
-From: <JosephChan@via.com.tw>
+Subject: Blackfin NFC Driver: Cleanup the error exit path of bf5xx_nand_probe function
+From: Bryan Wu <cooloney@kernel.org>
 
-Add flag VIA_SATA_PATA for vx800, VX800 uses the same
-chipset(0x0581/0x5324) as CX700, which has 1 PATA channel(Master/Slave)
-and 1 SATA channel(Master/Slave) Add function <via_ata_tf_load>.  This is
-to fix the internal bug of VIA chipsets, which will reset the device
-register after changing the IEN bit in CTL register
-
-Signed-off-by: Joseph Chan <josephchan@via.com.tw>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Cc: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_via.c |   64 ++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 63 insertions(+), 1 deletion(-)
+ drivers/mtd/nand/bf5xx_nand.c |   38 ++++++++++++++++++++------------
+ 1 file changed, 24 insertions(+), 14 deletions(-)
 
-diff -puN drivers/ata/pata_via.c~pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets drivers/ata/pata_via.c
---- a/drivers/ata/pata_via.c~pata_viac-add-flag-for-vx800-and-add-a-function-for-fixing-internal-bugs-for-via-chipsets
-+++ a/drivers/ata/pata_via.c
-@@ -98,7 +98,8 @@ static const struct via_isa_bridge {
- 	u8 rev_max;
- 	u16 flags;
- } via_isa_bridges[] = {
--	{ "vx800",	PCI_DEVICE_ID_VIA_VX800,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
-+	{ "vx800",	PCI_DEVICE_ID_VIA_VX800,    0x00, 0x2f, VIA_UDMA_133 |
-+	VIA_BAD_AST | VIA_SATA_PATA },
- 	{ "vt8237s",	PCI_DEVICE_ID_VIA_8237S,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
- 	{ "vt8251",	PCI_DEVICE_ID_VIA_8251,     0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST },
- 	{ "cx700",	PCI_DEVICE_ID_VIA_CX700,    0x00, 0x2f, VIA_UDMA_133 | VIA_BAD_AST | VIA_SATA_PATA },
-@@ -322,6 +323,65 @@ static void via_set_dmamode(struct ata_p
- 	via_do_set_mode(ap, adev, adev->dma_mode, tclock[mode], set_ast, udma[mode]);
+diff -puN drivers/mtd/nand/bf5xx_nand.c~blackfin-nfc-driver-cleanup-the-error-exit-path-of-bf5xx_nand_probe-function drivers/mtd/nand/bf5xx_nand.c
+--- a/drivers/mtd/nand/bf5xx_nand.c~blackfin-nfc-driver-cleanup-the-error-exit-path-of-bf5xx_nand_probe-function
++++ a/drivers/mtd/nand/bf5xx_nand.c
+@@ -549,7 +549,6 @@ static void bf5xx_nand_dma_write_buf(str
+ /*
+  * System initialization functions
+  */
+-
+ static int bf5xx_nand_dma_init(struct bf5xx_nand_info *info)
+ {
+ 	int ret;
+@@ -582,6 +581,13 @@ static int bf5xx_nand_dma_init(struct bf
+ 	return 0;
  }
  
-+/**
-+ *	via_ata_sff_tf_load - send taskfile registers to host controller
-+ *	@ap: Port to which output is sent
-+ *	@tf: ATA taskfile register set
-+ *
-+ *	Outputs ATA taskfile to standard ATA host controller.
-+ *
-+ *	Note: This is to fix the internal bug of via chipsets, which
-+ *  will reset the device register after changing the IEN bit on
-+ *  ctl register
-+ */
-+static void via_ata_tf_load(struct ata_port *ap, const struct ata_taskfile *tf)
++static void bf5xx_nand_dma_remove(struct bf5xx_nand_info *info)
 +{
-+	struct ata_ioports *ioaddr = &ap->ioaddr;
-+	unsigned int is_addr = tf->flags & ATA_TFLAG_ISADDR;
-+
-+	if (tf->ctl != ap->last_ctl) {
-+		iowrite8(tf->ctl, ioaddr->ctl_addr);
-+		iowrite8(tf->device, ioaddr->device_addr);
-+		ap->last_ctl = tf->ctl;
-+		ata_wait_idle(ap);
-+	}
-+
-+	if (is_addr && (tf->flags & ATA_TFLAG_LBA48)) {
-+		iowrite8(tf->hob_feature, ioaddr->feature_addr);
-+		iowrite8(tf->hob_nsect, ioaddr->nsect_addr);
-+		iowrite8(tf->hob_lbal, ioaddr->lbal_addr);
-+		iowrite8(tf->hob_lbam, ioaddr->lbam_addr);
-+		iowrite8(tf->hob_lbah, ioaddr->lbah_addr);
-+		VPRINTK("hob: feat 0x%X nsect 0x%X, lba 0x%X 0x%X 0x%X\n",
-+			tf->hob_feature,
-+			tf->hob_nsect,
-+			tf->hob_lbal,
-+			tf->hob_lbam,
-+			tf->hob_lbah);
-+	}
-+
-+	if (is_addr) {
-+		iowrite8(tf->feature, ioaddr->feature_addr);
-+		iowrite8(tf->nsect, ioaddr->nsect_addr);
-+		iowrite8(tf->lbal, ioaddr->lbal_addr);
-+		iowrite8(tf->lbam, ioaddr->lbam_addr);
-+		iowrite8(tf->lbah, ioaddr->lbah_addr);
-+		VPRINTK("feat 0x%X nsect 0x%X lba 0x%X 0x%X 0x%X\n",
-+			tf->feature,
-+			tf->nsect,
-+			tf->lbal,
-+			tf->lbam,
-+			tf->lbah);
-+	}
-+
-+	if (tf->flags & ATA_TFLAG_DEVICE) {
-+		iowrite8(tf->device, ioaddr->device_addr);
-+		VPRINTK("device 0x%X\n", tf->device);
-+	}
-+
-+	ata_wait_idle(ap);
++	/* Free NFC DMA channel */
++	if (hardware_ecc)
++		free_dma(CH_NFC);
 +}
 +
- static struct scsi_host_template via_sht = {
- 	ATA_BMDMA_SHT(DRV_NAME),
- };
-@@ -332,11 +392,13 @@ static struct ata_port_operations via_po
- 	.set_piomode	= via_set_piomode,
- 	.set_dmamode	= via_set_dmamode,
- 	.prereset	= via_pre_reset,
-+	.sff_tf_load = via_ata_tf_load,
- };
+ /*
+  * BF5XX NFC hardware initialization
+  *  - pin mux setup
+@@ -658,6 +664,7 @@ static int __devexit bf5xx_nand_remove(s
+ 	}
  
- static struct ata_port_operations via_port_ops_noirq = {
- 	.inherits	= &via_port_ops,
- 	.sff_data_xfer	= ata_sff_data_xfer_noirq,
-+	.sff_tf_load = via_ata_tf_load,
- };
+ 	peripheral_free_list(bfin_nfc_pin_req);
++	bf5xx_nand_dma_remove(info);
  
- /**
+ 	/* free the common resources */
+ 	kfree(info);
+@@ -683,21 +690,21 @@ static int __devinit bf5xx_nand_probe(st
+ 
+ 	dev_dbg(&pdev->dev, "(%p)\n", pdev);
+ 
++	if (!plat) {
++		dev_err(&pdev->dev, "no platform specific information\n");
++		return -EINVAL;
++	}
++
+ 	if (peripheral_request_list(bfin_nfc_pin_req, DRV_NAME)) {
+ 		dev_err(&pdev->dev, "requesting Peripherals failed\n");
+ 		return -EFAULT;
+ 	}
+ 
+-	if (!plat) {
+-		dev_err(&pdev->dev, "no platform specific information\n");
+-		goto exit_error;
+-	}
+-
+ 	info = kzalloc(sizeof(*info), GFP_KERNEL);
+ 	if (info == NULL) {
+ 		dev_err(&pdev->dev, "no memory for flash info\n");
+ 		err = -ENOMEM;
+-		goto exit_error;
++		goto out_err_kzalloc;
+ 	}
+ 
+ 	platform_set_drvdata(pdev, info);
+@@ -741,8 +748,8 @@ static int __devinit bf5xx_nand_probe(st
+ 
+ 	/* initialise the hardware */
+ 	err = bf5xx_nand_hw_init(info);
+-	if (err != 0)
+-		goto exit_error;
++	if (err)
++		goto out_err_hw_init;
+ 
+ 	/* setup hardware ECC data struct */
+ 	if (hardware_ecc) {
+@@ -772,7 +779,7 @@ static int __devinit bf5xx_nand_probe(st
+ 	/* scan hardware nand chip and setup mtd info data struct */
+ 	if (nand_scan(mtd, 1)) {
+ 		err = -ENXIO;
+-		goto exit_error;
++		goto out_err_nand_scan;
+ 	}
+ 
+ 	/* add NAND partition */
+@@ -781,11 +788,14 @@ static int __devinit bf5xx_nand_probe(st
+ 	dev_dbg(&pdev->dev, "initialised ok\n");
+ 	return 0;
+ 
+-exit_error:
+-	bf5xx_nand_remove(pdev);
++out_err_nand_scan:
++	bf5xx_nand_dma_remove(info);
++out_err_hw_init:
++	platform_set_drvdata(pdev, NULL);
++	kfree(info);
++out_err_kzalloc:
++	peripheral_free_list(bfin_nfc_pin_req);
+ 
+-	if (err == 0)
+-		err = -EINVAL;
+ 	return err;
+ }
+ 
 _
 
-Patches currently in -mm which might be from JosephChan@via.com.tw are
+Patches currently in -mm which might be from cooloney@kernel.org are
 
 origin.patch
-sata_viac-add-support-for-vt8251-fix-the-internal-chips-issue-and.patch
+linux-next.patch
+git-alsa-tiwai.patch
+blackfin-rtc-driver-if-we-dont-define-irq_set_freq-the-common-rtc-dev-layer-will-give-us-the-same-behavior-of-returning-enotty.patch
+blackfin-rtc-driver-fix-bug-only-rtc-interrupt-can-wake-up-deeper-sleep-core.patch
+blackfin-rtc-driver-add-support-for-power-management-framework.patch
+blackfin-rtc-driver-dont-bother-passing-the-rtc-struct-down-to-bfin_rtc_int_setclear-since-it-isnt-needed-shaves-off-100bytes.patch
+blackfin-rtc-driver-disable-the-write-complete-irq-upon-close.patch
+blackfin-rtc-driver-wait-for-the-write-complete-interrupt-complete-before-sleeping.patch
+blackfin-rtc-driver-convert-pie-handling-to-irq_set_state-as-pointed-out-by-david-brownell.patch
+blackfin-rtc-driver-drop-pie-stopwatch-code-since-the-hardware-can-only-do-a-max-of-1hz-and-this-same-functionality-is-provided-by-uie.patch
 
