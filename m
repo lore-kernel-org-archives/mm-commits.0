@@ -1,151 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - forcedeth-bug-fix-realtek-phy-8211c-errata.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 13:07:48 -0700
-Message-ID: <200808042007.m74K7mDB027845@imap1.linux-foundation.org>
+Subject: - drivers-mtd-chips-jedec_probec-fix-am29dl800bb-device-id.patch removed from -mm tree
+Date: Mon, 04 Aug 2008 13:07:46 -0700
+Message-ID: <200808042007.m74K7kdV027842@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54891 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60907 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761991AbYHDUID (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:08:03 -0400
+	by vger.kernel.org with ESMTP id S1760960AbYHDUHw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:07:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aabdulla@nvidia.com, jgarzik@pobox.com, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: hickswgjr@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     forcedeth bug fix: realtek phy 8211c errata
+     drivers/mtd/chips/jedec_probe.c: fix Am29DL800BB device ID
 has been removed from the -mm tree.  Its filename was
-     forcedeth-bug-fix-realtek-phy-8211c-errata.patch
+     drivers-mtd-chips-jedec_probec-fix-am29dl800bb-device-id.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: forcedeth bug fix: realtek phy 8211c errata
-From: Ayaz Abdulla <aabdulla@nvidia.com>
+Subject: drivers/mtd/chips/jedec_probe.c: fix Am29DL800BB device ID
+From: Jerry Hicks <hickswgjr@gmail.com>
 
-This patch adds support for the realtek 8211c phy.  The driver must
-perform a hardware reset of the phy due to an errata where the phy could
-not detect the link.
+The device id for Am29DL800BB in jedec_probe.c is wrong.
 
-Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
-Cc: Jeff Garzik <jgarzik@pobox.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+Reference: http://www.spansion.com/datasheets/21519c4.pdf
+
+I discovered this while working with u-boot.
+
+The u-boot folks mentioned Linux as an upstream reference, thought I'd
+post a heads-up here too.
+
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |   64 ++++++++++++++++++++++++++++++++++----
- 1 file changed, 58 insertions(+), 6 deletions(-)
+ drivers/mtd/chips/jedec_probe.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-bug-fix-realtek-phy-8211c-errata drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-bug-fix-realtek-phy-8211c-errata
-+++ a/drivers/net/forcedeth.c
-@@ -333,6 +333,7 @@ enum {
- 	NvRegPowerState2 = 0x600,
- #define NVREG_POWERSTATE2_POWERUP_MASK		0x0F11
- #define NVREG_POWERSTATE2_POWERUP_REV_A3	0x0001
-+#define NVREG_POWERSTATE2_PHY_RESET		0x0004
- };
+diff -puN drivers/mtd/chips/jedec_probe.c~drivers-mtd-chips-jedec_probec-fix-am29dl800bb-device-id drivers/mtd/chips/jedec_probe.c
+--- a/drivers/mtd/chips/jedec_probe.c~drivers-mtd-chips-jedec_probec-fix-am29dl800bb-device-id
++++ a/drivers/mtd/chips/jedec_probe.c
+@@ -41,7 +41,7 @@
  
- /* Big endian: should work, but is untested */
-@@ -529,6 +530,7 @@ union ring_type {
- #define PHY_REALTEK_INIT_REG4	0x14
- #define PHY_REALTEK_INIT_REG5	0x18
- #define PHY_REALTEK_INIT_REG6	0x11
-+#define PHY_REALTEK_INIT_REG7	0x01
- #define PHY_REALTEK_INIT1	0x0000
- #define PHY_REALTEK_INIT2	0x8e00
- #define PHY_REALTEK_INIT3	0x0001
-@@ -537,6 +539,9 @@ union ring_type {
- #define PHY_REALTEK_INIT6	0xf5c7
- #define PHY_REALTEK_INIT7	0x1000
- #define PHY_REALTEK_INIT8	0x0003
-+#define PHY_REALTEK_INIT9	0x0008
-+#define PHY_REALTEK_INIT10	0x0005
-+#define PHY_REALTEK_INIT11	0x0200
- #define PHY_REALTEK_INIT_MSK1	0x0003
  
- #define PHY_GIGABIT	0x0100
-@@ -1149,6 +1154,42 @@ static int phy_init(struct net_device *d
- 				return PHY_ERROR;
- 			}
- 		}
-+		if (np->phy_model == PHY_MODEL_REALTEK_8211 &&
-+		    np->phy_rev == PHY_REV_REALTEK_8211C) {
-+			u32 powerstate = readl(base + NvRegPowerState2);
-+
-+			/* need to perform hw phy reset */
-+			powerstate |= NVREG_POWERSTATE2_PHY_RESET;
-+			writel(powerstate, base + NvRegPowerState2);
-+			msleep(25);
-+
-+			powerstate &= ~NVREG_POWERSTATE2_PHY_RESET;
-+			writel(powerstate, base + NvRegPowerState2);
-+			msleep(25);
-+
-+			reg = mii_rw(dev, np->phyaddr, PHY_REALTEK_INIT_REG6, MII_READ);
-+			reg |= PHY_REALTEK_INIT9;
-+			if (mii_rw(dev, np->phyaddr, PHY_REALTEK_INIT_REG6, reg)) {
-+				printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
-+				return PHY_ERROR;
-+			}
-+			if (mii_rw(dev, np->phyaddr, PHY_REALTEK_INIT_REG1, PHY_REALTEK_INIT10)) {
-+				printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
-+				return PHY_ERROR;
-+			}
-+			reg = mii_rw(dev, np->phyaddr, PHY_REALTEK_INIT_REG7, MII_READ);
-+			if (!(reg & PHY_REALTEK_INIT11)) {
-+				reg |= PHY_REALTEK_INIT11;
-+				if (mii_rw(dev, np->phyaddr, PHY_REALTEK_INIT_REG7, reg)) {
-+					printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
-+					return PHY_ERROR;
-+				}
-+			}
-+			if (mii_rw(dev, np->phyaddr, PHY_REALTEK_INIT_REG1, PHY_REALTEK_INIT1)) {
-+				printk(KERN_INFO "%s: phy init failed.\n", pci_name(np->pci_dev));
-+				return PHY_ERROR;
-+			}
-+		}
- 		if (np->phy_model == PHY_MODEL_REALTEK_8201) {
- 			if (np->device_id == PCI_DEVICE_ID_NVIDIA_NVENET_32 ||
- 			    np->device_id == PCI_DEVICE_ID_NVIDIA_NVENET_33 ||
-@@ -1201,12 +1242,23 @@ static int phy_init(struct net_device *d
- 	mii_control = mii_rw(dev, np->phyaddr, MII_BMCR, MII_READ);
- 	mii_control |= BMCR_ANENABLE;
+ /* AMD */
+-#define AM29DL800BB	0x22C8
++#define AM29DL800BB	0x22CB
+ #define AM29DL800BT	0x224A
  
--	/* reset the phy
--	 * (certain phys need bmcr to be setup with reset)
--	 */
--	if (phy_reset(dev, mii_control)) {
--		printk(KERN_INFO "%s: phy reset failed\n", pci_name(np->pci_dev));
--		return PHY_ERROR;
-+	if (np->phy_oui == PHY_OUI_REALTEK &&
-+	    np->phy_model == PHY_MODEL_REALTEK_8211 &&
-+	    np->phy_rev == PHY_REV_REALTEK_8211C) {
-+		/* start autoneg since we already performed hw reset above */
-+		mii_control |= BMCR_ANRESTART;
-+		if (mii_rw(dev, np->phyaddr, MII_BMCR, mii_control)) {
-+			printk(KERN_INFO "%s: phy init failed\n", pci_name(np->pci_dev));
-+			return PHY_ERROR;
-+		}
-+	} else {
-+		/* reset the phy
-+		 * (certain phys need bmcr to be setup with reset)
-+		 */
-+		if (phy_reset(dev, mii_control)) {
-+			printk(KERN_INFO "%s: phy reset failed\n", pci_name(np->pci_dev));
-+			return PHY_ERROR;
-+		}
- 	}
- 
- 	/* phy vendor specific configuration */
+ #define AM29F800BB	0x2258
 _
 
-Patches currently in -mm which might be from aabdulla@nvidia.com are
+Patches currently in -mm which might be from hickswgjr@gmail.com are
 
 origin.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
 
