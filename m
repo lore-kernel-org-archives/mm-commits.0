@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-doc-skip-nested-struct-union-cleanly.patch added to -mm tree
-Date: Mon, 04 Aug 2008 15:35:21 -0700
-Message-ID: <200808042235.m74MZLoV003093@imap1.linux-foundation.org>
+Subject: + fs_mbcache-dont-needlessly-make-it-built-in.patch added to -mm tree
+Date: Mon, 04 Aug 2008 16:09:09 -0700
+Message-ID: <200808042309.m74N99rb004580@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48919 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44192 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752730AbYHDWju (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 18:39:50 -0400
+	by vger.kernel.org with ESMTP id S1756974AbYHDXJl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 19:09:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: bunk@kernel.org, agruen@suse.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     kernel-doc: skip nested struct/union cleanly
+     FS_MBCACHE: don't needlessly make it built-in
 has been added to the -mm tree.  Its filename is
-     kernel-doc-skip-nested-struct-union-cleanly.patch
+     fs_mbcache-dont-needlessly-make-it-built-in.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,58 +33,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-doc: skip nested struct/union cleanly
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: FS_MBCACHE: don't needlessly make it built-in
+From: Adrian Bunk <bunk@kernel.org>
 
-Fix handling of nested structs or unions.  The regex to strip (eliminate)
-nested structs or unions was limited to only 0 or 1 matches.  This can
-cause an uneven number of left/right braces to be stripped, which causes
-this:
+Assume you have:
+- one or more of ext2/3/4 statically built into your kernel
+- none of these with extended attributes enabled and
+- want to add onother one of ext2/3/4 modular and with
+  extended attributes enabled
 
-Warning(linux-2.6.27-rc1-git2//include/net/mac80211.h:336): No description found for parameter '}'
+then you currently have to reboot to use it since this results in
+CONFIG_FS_MBCACHE=y.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+That's not a common issue, but I just ran into it and since there's no
+reason to get a built-in mbcache in this case this patch fixes it.
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Andreas Gruenbacher <agruen@suse.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/Kconfig |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN scripts/kernel-doc~kernel-doc-skip-nested-struct-union-cleanly scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-skip-nested-struct-union-cleanly
-+++ a/scripts/kernel-doc
-@@ -1403,7 +1403,7 @@ sub dump_struct($$) {
- 	my $members = $3;
+diff -puN fs/Kconfig~fs_mbcache-dont-needlessly-make-it-built-in fs/Kconfig
+--- a/fs/Kconfig~fs_mbcache-dont-needlessly-make-it-built-in
++++ a/fs/Kconfig
+@@ -270,9 +270,10 @@ config JBD2_DEBUG
+ config FS_MBCACHE
+ # Meta block cache for Extended Attributes (ext2/ext3/ext4)
+ 	tristate
+-	depends on EXT2_FS_XATTR || EXT3_FS_XATTR || EXT4DEV_FS_XATTR
+-	default y if EXT2_FS=y || EXT3_FS=y || EXT4DEV_FS=y
+-	default m if EXT2_FS=m || EXT3_FS=m || EXT4DEV_FS=m
++	default y if EXT2_FS=y && EXT2_FS_XATTR
++	default y if EXT3_FS=y && EXT3_FS_XATTR
++	default y if EXT4DEV_FS=y && EXT4DEV_FS_XATTR
++	default m if EXT2_FS_XATTR || EXT3_FS_XATTR || EXT4DEV_FS_XATTR
  
- 	# ignore embedded structs or unions
--	$members =~ s/{.*?}//g;
-+	$members =~ s/{.*}//g;
- 
- 	# ignore members marked private:
- 	$members =~ s/\/\*.*?private:.*?public:.*?\*\///gos;
+ config REISERFS_FS
+ 	tristate "Reiserfs support"
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-tracehook-kerneldoc-fix.patch
-kernel-doc-skip-nested-struct-union-cleanly.patch
+mm_initc-avoid-ifdef-inside-macro-expansion.patch
 linux-next.patch
-v4l-fix-kernel-doc-warning-function-name-and-docbook-filename.patch
-genksyms-track-symbol-checksum-changes.patch
-genksyms-allow-to-ignore-symbol-checksum-changes.patch
-lkdtm-fix-for-config_scsi=n.patch
-kbuild-extend-menuconfig-for-modules-to-simplify-kconfig-file.patch
-bugfix-for-scripts-patch-kernel-in-26-sublevel-stepping.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-netfilter-conntrack_helper-needs-to-include-rculisth.patch
-git-unionfs.patch
-docsrc-build-documentation-sources.patch
-docsrc-fix-procfs-example.patch
-docsrc-fix-ifenslave-type.patch
-docsrc-fix-crc32hash-type.patch
-docsrc-fix-getdelays-printk-formats.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-w1-documentation-w1-masters-ds2490-update.patch
-profile-likely-unlikely-macros.patch
+m32r-remove-the-unused-nohighmem-option.patch
+m32r-dont-offer-config_isa.patch
+if-0-ses_match_host.patch
+fs_mbcache-dont-needlessly-make-it-built-in.patch
+git-xtensa.patch
+uml-remove-the-dead-tty_log-code.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+reiser4.patch
 
