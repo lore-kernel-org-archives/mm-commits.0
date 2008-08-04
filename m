@@ -1,78 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-nfc-driver-add-proper-devinit-devexit-markings-to-probe-remove-functions.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 13:06:49 -0700
-Message-ID: <200808042006.m74K6nnL027724@imap1.linux-foundation.org>
+Subject: - random32-seeding-improvement.patch removed from -mm tree
+Date: Mon, 04 Aug 2008 13:07:02 -0700
+Message-ID: <200808042007.m74K72Ad027748@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60444 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49577 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759555AbYHDUG6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:06:58 -0400
+	by vger.kernel.org with ESMTP id S1762691AbYHDUHa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:07:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier.adi@gmail.com, cooloney@kernel.org, mm-commits@vger.kernel.org
+To: shemminger@linux-foundation.org, ak@suse.de, bboissin@gmail.com, davem@davemloft.net, lloyd@randombit.net, mpm@selenic.com, shemminger@vyatta.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Blackfin NFC Driver: add proper devinit/devexit markings to probe/remove functions
+     random32: seeding improvement
 has been removed from the -mm tree.  Its filename was
-     blackfin-nfc-driver-add-proper-devinit-devexit-markings-to-probe-remove-functions.patch
+     random32-seeding-improvement.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Blackfin NFC Driver: add proper devinit/devexit markings to probe/remove functions
-From: Mike Frysinger <vapier.adi@gmail.com>
+Subject: random32: seeding improvement
+From: Stephen Hemminger <shemminger@linux-foundation.org>
 
-Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
+The rationale is:
+   * use u32 consistently
+   * no need to do LCG on values from (better) get_random_bytes
+   * use more data from get_random_bytes for secondary seeding
+   * don't reduce state space on srandom32()
+   * enforce state variable initialization restrictions
+
+Note: the second paper has a version of random32() with even longer period
+and a version of random64() if needed.
+
+Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+Cc: Jack Lloyd <lloyd@randombit.net>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Benoit Boissinot <bboissin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/bf5xx_nand.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/random32.c |   48 ++++++++++++++++++++++++++---------------------
+ 1 file changed, 27 insertions(+), 21 deletions(-)
 
-diff -puN drivers/mtd/nand/bf5xx_nand.c~blackfin-nfc-driver-add-proper-devinit-devexit-markings-to-probe-remove-functions drivers/mtd/nand/bf5xx_nand.c
---- a/drivers/mtd/nand/bf5xx_nand.c~blackfin-nfc-driver-add-proper-devinit-devexit-markings-to-probe-remove-functions
-+++ a/drivers/mtd/nand/bf5xx_nand.c
-@@ -640,7 +640,7 @@ static int bf5xx_nand_add_partition(stru
- #endif
+diff -puN lib/random32.c~random32-seeding-improvement lib/random32.c
+--- a/lib/random32.c~random32-seeding-improvement
++++ a/lib/random32.c
+@@ -56,23 +56,12 @@ static u32 __random32(struct rnd_state *
+ 	return (state->s1 ^ state->s2 ^ state->s3);
  }
  
--static int bf5xx_nand_remove(struct platform_device *pdev)
-+static int __devexit bf5xx_nand_remove(struct platform_device *pdev)
+-static void __set_random32(struct rnd_state *state, unsigned long s)
++/*
++ * Handle minimum values for seeds
++ */
++static inline u32 __seed(u32 x, u32 m)
  {
- 	struct bf5xx_nand_info *info = to_nand_info(pdev);
- 	struct mtd_info *mtd = NULL;
-@@ -673,7 +673,7 @@ static int bf5xx_nand_remove(struct plat
-  * it can allocate all necessary resources then calls the
-  * nand layer to look for devices
-  */
--static int bf5xx_nand_probe(struct platform_device *pdev)
-+static int __devinit bf5xx_nand_probe(struct platform_device *pdev)
+-	if (s == 0)
+-		s = 1;      /* default seed is 1 */
+-
+-#define LCG(n) (69069 * n)
+-	state->s1 = LCG(s);
+-	state->s2 = LCG(state->s1);
+-	state->s3 = LCG(state->s2);
+-
+-	/* "warm it up" */
+-	__random32(state);
+-	__random32(state);
+-	__random32(state);
+-	__random32(state);
+-	__random32(state);
+-	__random32(state);
++	return (x < m) ? x + m : x;
+ }
+ 
+ /**
+@@ -107,7 +96,7 @@ void srandom32(u32 entropy)
+ 	 */
+ 	for_each_possible_cpu (i) {
+ 		struct rnd_state *state = &per_cpu(net_rand_state, i);
+-		__set_random32(state, state->s1 ^ entropy);
++		state->s1 = __seed(state->s1 ^ entropy, 1);
+ 	}
+ }
+ EXPORT_SYMBOL(srandom32);
+@@ -122,7 +111,19 @@ static int __init random32_init(void)
+ 
+ 	for_each_possible_cpu(i) {
+ 		struct rnd_state *state = &per_cpu(net_rand_state,i);
+-		__set_random32(state, i + jiffies);
++
++#define LCG(x)	((x) * 69069)	/* super-duper LCG */
++		state->s1 = __seed(LCG(i + jiffies), 1);
++		state->s2 = __seed(LCG(state->s1), 7);
++		state->s3 = __seed(LCG(state->s2), 15);
++
++		/* "warm it up" */
++		__random32(state);
++		__random32(state);
++		__random32(state);
++		__random32(state);
++		__random32(state);
++		__random32(state);
+ 	}
+ 	return 0;
+ }
+@@ -135,13 +136,18 @@ core_initcall(random32_init);
+ static int __init random32_reseed(void)
  {
- 	struct bf5xx_nand_platform *plat = to_nand_plat(pdev);
- 	struct bf5xx_nand_info *info = NULL;
-@@ -815,7 +815,7 @@ static int bf5xx_nand_resume(struct plat
- /* driver device registration */
- static struct platform_driver bf5xx_nand_driver = {
- 	.probe		= bf5xx_nand_probe,
--	.remove		= bf5xx_nand_remove,
-+	.remove		= __devexit_p(bf5xx_nand_remove),
- 	.suspend	= bf5xx_nand_suspend,
- 	.resume		= bf5xx_nand_resume,
- 	.driver		= {
+ 	int i;
+-	unsigned long seed;
+ 
+ 	for_each_possible_cpu(i) {
+ 		struct rnd_state *state = &per_cpu(net_rand_state,i);
++		u32 seeds[3];
++
++		get_random_bytes(&seeds, sizeof(seeds));
++		state->s1 = __seed(seeds[0], 1);
++		state->s2 = __seed(seeds[1], 7);
++		state->s3 = __seed(seeds[2], 15);
+ 
+-		get_random_bytes(&seed, sizeof(seed));
+-		__set_random32(state, seed);
++		/* mix it in */
++		__random32(state);
+ 	}
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from vapier.adi@gmail.com are
+Patches currently in -mm which might be from shemminger@linux-foundation.org are
 
 origin.patch
-blackfin-rtc-driver-add-support-for-power-management-framework.patch
-blackfin-rtc-driver-dont-bother-passing-the-rtc-struct-down-to-bfin_rtc_int_setclear-since-it-isnt-needed-shaves-off-100bytes.patch
-blackfin-rtc-driver-disable-the-write-complete-irq-upon-close.patch
-blackfin-rtc-driver-wait-for-the-write-complete-interrupt-complete-before-sleeping.patch
-blackfin-rtc-driver-convert-pie-handling-to-irq_set_state-as-pointed-out-by-david-brownell.patch
-blackfin-rtc-driver-drop-pie-stopwatch-code-since-the-hardware-can-only-do-a-max-of-1hz-and-this-same-functionality-is-provided-by-uie.patch
+skge-adapt-skge-to-use-reworked-pci-pm.patch
+sky2-adapt-to-use-reworked-pci-pm-code.patch
 
