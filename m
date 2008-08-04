@@ -1,78 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - linux-next-git-rejects.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 12:49:27 -0700
-Message-ID: <200808041949.m74JnR91026964@imap1.linux-foundation.org>
+Subject: - x86-export-is_uv_system.patch removed from -mm tree
+Date: Mon, 04 Aug 2008 12:50:56 -0700
+Message-ID: <200808041950.m74JouGH026995@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57937 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42499 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761220AbYHDTtb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 15:49:31 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m74JnRVM018145
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 4 Aug 2008 12:49:28 -0700
+	by vger.kernel.org with ESMTP id S1754336AbYHDTvS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 15:51:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dcn@sgi.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     x86: export is_uv_system()
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     x86-export-is_uv_system.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: x86: export is_uv_system()
 From: Andrew Morton <akpm@linux-foundation.org>
 
+ERROR: "is_uv_system" [drivers/misc/sgi-xp/xpnet.ko] undefined!
+ERROR: "is_uv_system" [drivers/misc/sgi-xp/xpc.ko] undefined!
+ERROR: "is_uv_system" [drivers/misc/sgi-xp/xp.ko] undefined!
+ERROR: "is_uv_system" [drivers/misc/sgi-gru/gru.ko] undefined!
+
+(is sgi-xp an x86-64 driver?)
+
+Cc: Dean Nelson <dcn@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/genapic_64.c |   16 ++--------------
- 1 file changed, 2 insertions(+), 14 deletions(-)
+ arch/x86/kernel/genx2apic_uv_x.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/kernel/genapic_64.c~linux-next-git-rejects arch/x86/kernel/genapic_64.c
---- a/arch/x86/kernel/genapic_64.c~linux-next-git-rejects
-+++ a/arch/x86/kernel/genapic_64.c
-@@ -29,6 +29,8 @@ extern struct genapic apic_x2apic_cluste
- 
- struct genapic __read_mostly *genapic = &apic_flat;
- 
-+static enum uv_system_type uv_system_type;
-+
- static struct genapic *apic_probe[] __initdata = {
- 	&apic_x2apic_uv_x,
- 	&apic_x2apic_phys,
-@@ -70,7 +72,6 @@ int __init acpi_madt_oem_check(char *oem
- 	}
- 	return 0;
- }
--<<<<<<< HEAD:arch/x86/kernel/genapic_64.c
- 
- unsigned int read_apic_id(void)
+diff -puN arch/x86/kernel/genx2apic_uv_x.c~x86-export-is_uv_system arch/x86/kernel/genx2apic_uv_x.c
+--- a/arch/x86/kernel/genx2apic_uv_x.c~x86-export-is_uv_system
++++ a/arch/x86/kernel/genx2apic_uv_x.c
+@@ -53,6 +53,7 @@ int is_uv_system(void)
  {
-@@ -82,16 +83,3 @@ unsigned int read_apic_id(void)
- 		id  |= __get_cpu_var(x2apic_extra_bits);
- 	return id;
+ 	return uv_system_type != UV_NONE;
  }
--
--enum uv_system_type get_uv_system_type(void)
--{
--	return uv_system_type;
--}
--
--int is_uv_system(void)
--{
--	return uv_system_type != UV_NONE;
--}
--EXPORT_SYMBOL_GPL(is_uv_system);
--=======
-->>>>>>> FETCH_HEAD:arch/x86/kernel/genapic_64.c
++EXPORT_SYMBOL(is_uv_system);
+ 
+ DEFINE_PER_CPU(struct uv_hub_info_s, __uv_hub_info);
+ EXPORT_PER_CPU_SYMBOL_GPL(__uv_hub_info);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,10 +60,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-linux-next-git-rejects.patch
-linux-next-fixup.patch
 next-remove-localversion.patch
-pci-make-pci_register_driver-a-macro.patch
 arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
 x86-export-is_uv_system.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
