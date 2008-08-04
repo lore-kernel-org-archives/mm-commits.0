@@ -1,68 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - sis-drm-fix-a-pointer-cast-warning.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 13:06:23 -0700
-Message-ID: <200808042006.m74K6NRx027686@imap1.linux-foundation.org>
+Subject: - usb-storage-unusual_devs-entries-for-iriver-t10-and-datafab-cfsm-reader.patch removed from -mm tree
+Date: Mon, 04 Aug 2008 13:07:36 -0700
+Message-ID: <200808042007.m74K7aH8027798@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50355 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54413 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760937AbYHDUHL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:07:11 -0400
+	by vger.kernel.org with ESMTP id S1761142AbYHDUHr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:07:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, airlied@linux.ie, mm-commits@vger.kernel.org
+To: stern@rowland.harvard.edu, greg@kroah.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     SiS DRM: fix a pointer cast warning
+     usb-storage: unusual_devs entries for iRiver T10 and Datafab CF+SM=
+ reader
 has been removed from the -mm tree.  Its filename was
-     sis-drm-fix-a-pointer-cast-warning.patch
+     usb-storage-unusual_devs-entries-for-iriver-t10-and-datafab-cfsm-r=
+eader.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: SiS DRM: fix a pointer cast warning
-From: David Howells <dhowells@redhat.com>
+Subject: usb-storage: unusual_devs entries for iRiver T10 and Datafab C=
+=46+SM reader
+=46rom: Alan Stern <stern@rowland.harvard.edu>
 
-Fix a pointer cast warning in the SIS DRM code.
+This patch (as1115) adds unusual_devs entries with the IGNORE_RESIDE fl=
+ag
+for the iRiver T10 and the Simple Tech/Datafab CF+SM card reader.=20
+Apparently these devices provide reasonable residue values for READ and
+WRITE operations, but not for others like INQUIRY or READ CAPACITY.
 
-This was introduced in patch ce65a44de07f73ceda1749812b75086b7add408d.
+This fixes the iRiver T10 problem reported in Bugzilla #11125.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/sis/sis_mm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/storage/unusual_devs.h |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff -puN drivers/gpu/drm/sis/sis_mm.c~sis-drm-fix-a-pointer-cast-warning drivers/gpu/drm/sis/sis_mm.c
---- a/drivers/gpu/drm/sis/sis_mm.c~sis-drm-fix-a-pointer-cast-warning
-+++ a/drivers/gpu/drm/sis/sis_mm.c
-@@ -57,7 +57,7 @@ static void *sis_sman_mm_allocate(void *
- 	if (req.size == 0)
- 		return NULL;
- 	else
--		return (void *)~req.offset;
-+		return (void *)(unsigned long)~req.offset;
- }
- 
- static void sis_sman_mm_free(void *private, void *ref)
+diff -puN drivers/usb/storage/unusual_devs.h~usb-storage-unusual_devs-e=
+ntries-for-iriver-t10-and-datafab-cfsm-reader drivers/usb/storage/unusu=
+al_devs.h
+--- a/drivers/usb/storage/unusual_devs.h~usb-storage-unusual_devs-entri=
+es-for-iriver-t10-and-datafab-cfsm-reader
++++ a/drivers/usb/storage/unusual_devs.h
+@@ -1185,6 +1185,13 @@ UNUSUAL_DEV(  0x07c4, 0xa400, 0x0000, 0x
+ 		US_SC_DEVICE, US_PR_DEVICE, NULL,
+ 		US_FL_FIX_INQUIRY ),
+=20
++/* Reported by Rauch Wolke <rauchwolke@gmx.net> */
++UNUSUAL_DEV(  0x07c4, 0xa4a5, 0x0000, 0xffff,
++		"Simple Tech/Datafab",
++		"CF+SM Reader",
++		US_SC_DEVICE, US_PR_DEVICE, NULL,
++		US_FL_IGNORE_RESIDUE ),
++
+ /* Casio QV 2x00/3x00/4000/8000 digital still cameras are not conforma=
+nt
+  * to the USB storage specification in two ways:
+  * - They tell us they are using transport protocol CBI. In reality th=
+ey
+@@ -1767,6 +1774,13 @@ UNUSUAL_DEV(  0x2770, 0x915d, 0x0010, 0x
+ 		US_SC_DEVICE, US_PR_DEVICE, NULL,
+ 		US_FL_FIX_CAPACITY ),
+=20
++/* Reported by Andrey Rahmatullin <wrar@altlinux.org> */
++UNUSUAL_DEV(  0x4102, 0x1020, 0x0100,  0x0100,
++		"iRiver",
++		"MP3 T10",
++		US_SC_DEVICE, US_PR_DEVICE, NULL,
++		US_FL_IGNORE_RESIDUE ),
++
+ /*
+  * David H=C3=A4rdeman <david@2gen.com>
+  * The key makes the SCSI stack print confusing (but harmless) message=
+s
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from stern@rowland.harvard.edu =
+are
 
-origin.patch
 linux-next.patch
-calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
-cifs-fix-range-check.patch
-git-unionfs.patch
-clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
-binfmt_elf_fdpic-support-auxvec-base-platform-string.patch
-binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack.patch
-binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-mutex-subsystem-synchro-test-module.patch
+usb-hubc-fix-build-with-config_pm=3Dn.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
