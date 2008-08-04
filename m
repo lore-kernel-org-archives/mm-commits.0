@@ -1,108 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: - intel_agp-official-name-for-gm45-chipset.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 13:06:09 -0700
-Message-ID: <200808042006.m74K69sr027657@imap1.linux-foundation.org>
+Subject: + mm_initc-avoid-ifdef-inside-macro-expansion.patch added to -mm tree
+Date: Mon, 04 Aug 2008 14:07:23 -0700
+Message-ID: <200808042107.m74L7Nj7030823@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55840 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43640 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757313AbYHDUKW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:10:22 -0400
+	by vger.kernel.org with ESMTP id S1753252AbYHDVIJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 17:08:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhenyu.z.wang@intel.com, airlied@linux.ie, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, bunk@kernel.org, mel@csn.ul.ie
 
 
 The patch titled
-     intel_agp: official name for GM45 chipset
-has been removed from the -mm tree.  Its filename was
-     intel_agp-official-name-for-gm45-chipset.patch
+     mm_init.c: avoid ifdef-inside-macro-expansion
+has been added to the -mm tree.  Its filename is
+     mm_initc-avoid-ifdef-inside-macro-expansion.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: intel_agp: official name for GM45 chipset
-=46rom: Zhenyu Wang <zhenyu.z.wang@intel.com>
+Subject: mm_init.c: avoid ifdef-inside-macro-expansion
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Zhenyu Wang <zhenyu.z.wang@intel.com>
-Cc: Dave Airlie <airlied@linux.ie>
+gcc-3.2:
+
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c:77:1: directives may not be used inside a macro argument
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c:76:47: unterminated argument list invoking macro "mminit_dprintk"
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c: In function `mminit_verify_pageflags_layout':
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c:80: `mminit_dprintk' undeclared (first use in this function)
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c:80: (Each undeclared identifier is reported only once
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c:80: for each function it appears in.)
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c:80: syntax error before numeric constant
+
+Also fix a typo in a comment.
+
+Reported-by: Adrian Bunk <bunk@kernel.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/intel-agp.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ include/linux/mmzone.h |    3 ++-
+ mm/mm_init.c           |    4 ----
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/char/agp/intel-agp.c~intel_agp-official-name-for-gm45=
--chipset drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~intel_agp-official-name-for-gm45-chi=
-pset
-+++ a/drivers/char/agp/intel-agp.c
-@@ -32,8 +32,8 @@
- #define PCI_DEVICE_ID_INTEL_Q35_IG          0x29B2
- #define PCI_DEVICE_ID_INTEL_Q33_HB          0x29D0
- #define PCI_DEVICE_ID_INTEL_Q33_IG          0x29D2
--#define PCI_DEVICE_ID_INTEL_IGD_HB          0x2A40
--#define PCI_DEVICE_ID_INTEL_IGD_IG          0x2A42
-+#define PCI_DEVICE_ID_INTEL_GM45_HB         0x2A40
-+#define PCI_DEVICE_ID_INTEL_GM45_IG         0x2A42
- #define PCI_DEVICE_ID_INTEL_IGD_E_HB        0x2E00
- #define PCI_DEVICE_ID_INTEL_IGD_E_IG        0x2E02
- #define PCI_DEVICE_ID_INTEL_Q45_HB          0x2E10
-@@ -55,7 +55,7 @@
- 		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_82965G_HB || \
- 		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_82965GM_HB || \
- 		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_82965GME_HB || \
--		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_IGD_HB)
-+		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_GM45_HB)
-=20
- #define IS_G33 (agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_G33=
-_HB || \
- 		agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_Q35_HB || \
-@@ -1182,7 +1182,7 @@ static unsigned long intel_i965_mask_mem
- static void intel_i965_get_gtt_range(int *gtt_offset, int *gtt_size)
- {
- 	switch (agp_bridge->dev->device) {
--	case PCI_DEVICE_ID_INTEL_IGD_HB:
-+	case PCI_DEVICE_ID_INTEL_GM45_HB:
- 	case PCI_DEVICE_ID_INTEL_IGD_E_HB:
- 	case PCI_DEVICE_ID_INTEL_Q45_HB:
- 	case PCI_DEVICE_ID_INTEL_G45_HB:
-@@ -2117,8 +2117,8 @@ static const struct intel_driver_descrip
- 		NULL, &intel_g33_driver },
- 	{ PCI_DEVICE_ID_INTEL_Q33_HB, PCI_DEVICE_ID_INTEL_Q33_IG, 0, "Q33",
- 		NULL, &intel_g33_driver },
--	{ PCI_DEVICE_ID_INTEL_IGD_HB, PCI_DEVICE_ID_INTEL_IGD_IG, 0,
--	    "Intel Integrated Graphics Device", NULL, &intel_i965_driver },
-+	{ PCI_DEVICE_ID_INTEL_GM45_HB, PCI_DEVICE_ID_INTEL_GM45_IG, 0,
-+	    "Mobile Intel=AE GM45 Express", NULL, &intel_i965_driver },
- 	{ PCI_DEVICE_ID_INTEL_IGD_E_HB, PCI_DEVICE_ID_INTEL_IGD_E_IG, 0,
- 	    "Intel Integrated Graphics Device", NULL, &intel_i965_driver },
- 	{ PCI_DEVICE_ID_INTEL_Q45_HB, PCI_DEVICE_ID_INTEL_Q45_IG, 0,
-@@ -2315,7 +2315,7 @@ static struct pci_device_id agp_intel_pc
- 	ID(PCI_DEVICE_ID_INTEL_G33_HB),
- 	ID(PCI_DEVICE_ID_INTEL_Q35_HB),
- 	ID(PCI_DEVICE_ID_INTEL_Q33_HB),
--	ID(PCI_DEVICE_ID_INTEL_IGD_HB),
-+	ID(PCI_DEVICE_ID_INTEL_GM45_HB),
- 	ID(PCI_DEVICE_ID_INTEL_IGD_E_HB),
- 	ID(PCI_DEVICE_ID_INTEL_Q45_HB),
- 	ID(PCI_DEVICE_ID_INTEL_G45_HB),
+diff -puN include/linux/mmzone.h~mm_initc-avoid-ifdef-inside-macro-expansion include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm_initc-avoid-ifdef-inside-macro-expansion
++++ a/include/linux/mmzone.h
+@@ -831,7 +831,7 @@ static inline unsigned long early_pfn_to
+ #ifdef CONFIG_SPARSEMEM
+ 
+ /*
+- * SECTION_SHIFT    		#bits space required to store a section #
++ * SECTIONS_SHIFT    		#bits space required to store a section #
+  *
+  * PA_SECTION_SHIFT		physical address to/from section number
+  * PFN_SECTION_SHIFT		pfn to/from section number
+@@ -973,6 +973,7 @@ static inline int pfn_present(unsigned l
+ #define early_pfn_valid(pfn)	pfn_valid(pfn)
+ void sparse_init(void);
+ #else
++#define SECTIONS_SHIFT		0
+ #define sparse_init()	do {} while (0)
+ #define sparse_index_init(_sec, _nid)  do {} while (0)
+ #endif /* CONFIG_SPARSEMEM */
+diff -puN mm/mm_init.c~mm_initc-avoid-ifdef-inside-macro-expansion mm/mm_init.c
+--- a/mm/mm_init.c~mm_initc-avoid-ifdef-inside-macro-expansion
++++ a/mm/mm_init.c
+@@ -74,11 +74,7 @@ void __init mminit_verify_pageflags_layo
+ 		NR_PAGEFLAGS);
+ 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_shifts",
+ 		"Section %d Node %d Zone %d\n",
+-#ifdef SECTIONS_SHIFT
+ 		SECTIONS_SHIFT,
+-#else
+-		0,
+-#endif
+ 		NODES_SHIFT,
+ 		ZONES_SHIFT);
+ 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_offsets",
 _
 
-Patches currently in -mm which might be from zhenyu.z.wang@intel.com ar=
-e
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+mm_initc-avoid-ifdef-inside-macro-expansion.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
+next-remove-localversion.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+drivers-media-video-vinoc-needs-v4l2-ioctlh.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+sched-type-fix.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+usb-hubc-fix-build-with-config_pm=n.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
