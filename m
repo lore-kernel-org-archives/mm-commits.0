@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-gspca-zc3xxc-fix-oops.patch added to -mm tree
-Date: Mon, 04 Aug 2008 16:12:25 -0700
-Message-ID: <200808042312.m74NCPIe004680@imap1.linux-foundation.org>
+Subject: + drivers-media-video-gspca-zc3xxc-fix-oops-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 04 Aug 2008 16:12:45 -0700
+Message-ID: <200808042312.m74NCj9j004706@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38332 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35879 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753460AbYHDXMu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 19:12:50 -0400
+	by vger.kernel.org with ESMTP id S1755416AbYHDXNF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 19:13:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: parag.warudkar@gmail.com, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, mchehab@infradead.org, parag.warudkar@gmail.com
 
 
 The patch titled
-     drivers/media/video/gspca/zc3xx.c: fix oops
+     drivers-media-video-gspca-zc3xxc-fix-oops-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-gspca-zc3xxc-fix-oops.patch
+     drivers-media-video-gspca-zc3xxc-fix-oops-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,92 +33,111 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/gspca/zc3xx.c: fix oops
-From: "Parag Warudkar" <parag.warudkar@gmail.com>
+Subject: drivers-media-video-gspca-zc3xxc-fix-oops-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix a couple of NULL pointer dereferences in zc3xx.
+ERROR: space required before the open parenthesis '('
+#61: FILE: drivers/media/video/gspca/zc3xx.c:6479:
++	if(!Tgamma)
 
-Without this patch my machine oopses as soon as I open Kopete-kde4. 
-Patch tested to work fine (no detectable differences in image rendered by
-camera - as crappy as ever, no more oopses ;) on x86 with a Creative
-Webcam Notebook.
+total: 1 errors, 0 warnings, 25 lines checked
 
-OOPS Analysis
--------------------
-http://marc.info/?l=linux-kernel&m=121769418920774&w=4
+./patches/drivers-media-video-gspca-zc3xxc-fix-oops.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-4575.306109] Code: 83 ec 04 0f b6 90 da 07 00 00 8b a8 04 02 00 00 0f
-b6 80 d9 07 00 00 8b 3c 95 f4 dc 15 f9 8b 14 95 d8 dc 15 f9 83 c0 80
-89 14 24 <0f> b6 37 0f af f0 8d b6 00 00 00 00 0f b6 83 00 dc 15 f9 0f
-af
-[ 4575.306133] EIP: [<f915c2d4>] setcontrast+0x34/0xf0 [gspca_zc3xx]
-SS:ESP 0068:da81bd64
+Please run checkpatch prior to sending patches
 
-Which corresponds to -
-
-1374: 0f b6 37 movzbl (%edi),%esi
---^^-- Faulting instruction
-1377: 0f af f0 imul %eax,%esi
-137a: 8d b6 00 00 00 00 lea 0x0(%esi),%esi
-
-That is this code in zc3xx.c -
-k = (sd->contrast - 128) /* -128 / 128 */
-                    * Tgamma[0];
-
-Where Tgamma = gamma_tb[sd->gamma];
-
-For sd->gamma=0 Tgamma is NULL -
-
-static const __u8 *gamma_tb[] = {
-NULL, ...
-
-Kopete seems to trigger the zero gamma on ioctl and we happily oops in
-that case.  Fix this by detecting the zero gamma case while trying to
-preserve intended effect of zero gamma.  On reviewing the code, the exact
-same problem exists for Tgradient where it is dereferenced when NULL.  Fix
-that too.
-
-Signed-off-by: Parag Warudkar <parag.warudkar@gmail.com>
+Cc: "Parag Warudkar" <parag.warudkar@gmail.com>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Parag Warudkar <parag.warudkar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/gspca/zc3xx.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/media/video/gspca/zc3xx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/gspca/zc3xx.c~drivers-media-video-gspca-zc3xxc-fix-oops drivers/media/video/gspca/zc3xx.c
---- a/drivers/media/video/gspca/zc3xx.c~drivers-media-video-gspca-zc3xxc-fix-oops
+diff -puN drivers/media/video/gspca/zc3xx.c~drivers-media-video-gspca-zc3xxc-fix-oops-checkpatch-fixes drivers/media/video/gspca/zc3xx.c
+--- a/drivers/media/video/gspca/zc3xx.c~drivers-media-video-gspca-zc3xxc-fix-oops-checkpatch-fixes
 +++ a/drivers/media/video/gspca/zc3xx.c
-@@ -6476,12 +6476,15 @@ static void setcontrast(struct gspca_dev
+@@ -6476,7 +6476,7 @@ static void setcontrast(struct gspca_dev
  	Tgamma = gamma_tb[sd->gamma];
  	Tgradient = gradient_tb[sd->gamma];
  
--	k = (sd->contrast - 128)		/* -128 / 128 */
-+	if(!Tgamma)
-+		k = 0;
-+	else
-+		k = (sd->contrast - 128)		/* -128 / 128 */
- 			* Tgamma[0];
- 	PDEBUG(D_CONF, "gamma:%d contrast:%d gamma coeff: %d/128",
- 		sd->gamma, sd->contrast, k);
- 	for (i = 0; i < 16; i++) {
--		g = Tgamma[i] + kgamma_tb[i] * k / 128;
-+		g = (Tgamma ? Tgamma[i] : 0) + kgamma_tb[i] * k / 128;
- 		if (g > 0xff)
- 			g = 0xff;
- 		else if (g <= 0)
-@@ -6497,7 +6500,7 @@ static void setcontrast(struct gspca_dev
- 	PDEBUG(D_CONF, "    %02x %02x %02x %02x %02x %02x %02x %02x",
- 		v[8], v[9], v[10], v[11], v[12], v[13], v[14], v[15]);
- 	for (i = 0; i < 16; i++) {
--		g = Tgradient[i] - kgrad_tb[i] * k / 128;
-+		g = (Tgradient ? Tgradient[i] : 0) - kgrad_tb[i] * k / 128;
- 		if (g > 0xff)
- 			g = 0xff;
- 		else if (g <= 0) {
+-	if(!Tgamma)
++	if (!Tgamma)
+ 		k = 0;
+ 	else
+ 		k = (sd->contrast - 128)		/* -128 / 128 */
 _
 
-Patches currently in -mm which might be from parag.warudkar@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-drivers-media-video-gspca-zc3xxc-fix-oops.patch
+origin.patch
+mm_initc-avoid-ifdef-inside-macro-expansion.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+linux-next.patch
+next-remove-localversion.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+drivers-media-video-vinoc-needs-v4l2-ioctlh.patch
+drivers-media-video-gspca-zc3xxc-fix-oops-checkpatch-fixes.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+sched-type-fix.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+usb-hubc-fix-build-with-config_pm=n.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
