@@ -1,161 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - pci-make-pci_register_driver-a-macro.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 13:06:04 -0700
-Message-ID: <200808042006.m74K64EF027649@imap1.linux-foundation.org>
+Subject: - intel_agp-official-name-for-gm45-chipset.patch removed from -mm tree
+Date: Mon, 04 Aug 2008 13:06:09 -0700
+Message-ID: <200808042006.m74K69sr027657@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:55840 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759237AbYHDUKX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:10:23 -0400
+	by vger.kernel.org with ESMTP id S1757313AbYHDUKW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:10:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, jbarnes@virtuousgeek.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: zhenyu.z.wang@intel.com, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci: make pci_register_driver() a macro
+     intel_agp: official name for GM45 chipset
 has been removed from the -mm tree.  Its filename was
-     pci-make-pci_register_driver-a-macro.patch
+     intel_agp-official-name-for-gm45-chipset.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: pci: make pci_register_driver() a macro
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: intel_agp: official name for GM45 chipset
+=46rom: Zhenyu Wang <zhenyu.z.wang@intel.com>
 
-alpha:
-
-CC [M]  drivers/usb/gadget/u_ether.o
-In file included from include/asm/dma-mapping.h:7,
-                 from include/linux/dma-mapping.h:52,
-                 from include/linux/dmaengine.h:29,
-                 from include/linux/skbuff.h:29,
-                 from include/linux/if_ether.h:114,
-                 from include/linux/etherdevice.h:27,
-                 from drivers/usb/gadget/u_ether.c:29:
-include/linux/pci.h: In function 'pci_register_driver':
-include/linux/pci.h:673: error: 'KBUILD_MODNAME' undeclared (first use in this function)
-include/linux/pci.h:673: error: (Each undeclared identifier is reported only once
-include/linux/pci.h:673: error: for each function it appears in.)
-
-
-Sam says:
-
-The problem is that u_ether.o is used by two modules so when we build it
-KBUILD_MODNAME is not defined because kbuild does not know what value to
-use.
-
-And in pci.h we have the following inline:
-
-static inline int __must_check pci_register_driver(struct pci_driver *driver)
-{
-        return __pci_register_driver(driver, THIS_MODULE, KBUILD_MODNAME);
-}
-
-And alpha uses dma-mapping.h to nullify a number of functions that seem to
-require something from pci.h.
-
-Making it a macro seems to fix this.
-
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Zhenyu Wang <zhenyu.z.wang@intel.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pci.h |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/char/agp/intel-agp.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/pci.h~pci-make-pci_register_driver-a-macro include/linux/pci.h
---- a/include/linux/pci.h~pci-make-pci_register_driver-a-macro
-+++ a/include/linux/pci.h
-@@ -680,10 +680,12 @@ void pci_enable_bridges(struct pci_bus *
- /* Proper probing supporting hot-pluggable devices */
- int __must_check __pci_register_driver(struct pci_driver *, struct module *,
- 				       const char *mod_name);
--static inline int __must_check pci_register_driver(struct pci_driver *driver)
--{
--	return __pci_register_driver(driver, THIS_MODULE, KBUILD_MODNAME);
--}
-+
-+/*
-+ * pci_register_driver must be a macro so that KBUILD_MODNAME can be expanded
-+ */
-+#define pci_register_driver(driver)		\
-+	__pci_register_driver(driver, THIS_MODULE, KBUILD_MODNAME)
- 
- void pci_unregister_driver(struct pci_driver *dev);
- void pci_remove_behind_bridge(struct pci_dev *dev);
+diff -puN drivers/char/agp/intel-agp.c~intel_agp-official-name-for-gm45=
+-chipset drivers/char/agp/intel-agp.c
+--- a/drivers/char/agp/intel-agp.c~intel_agp-official-name-for-gm45-chi=
+pset
++++ a/drivers/char/agp/intel-agp.c
+@@ -32,8 +32,8 @@
+ #define PCI_DEVICE_ID_INTEL_Q35_IG          0x29B2
+ #define PCI_DEVICE_ID_INTEL_Q33_HB          0x29D0
+ #define PCI_DEVICE_ID_INTEL_Q33_IG          0x29D2
+-#define PCI_DEVICE_ID_INTEL_IGD_HB          0x2A40
+-#define PCI_DEVICE_ID_INTEL_IGD_IG          0x2A42
++#define PCI_DEVICE_ID_INTEL_GM45_HB         0x2A40
++#define PCI_DEVICE_ID_INTEL_GM45_IG         0x2A42
+ #define PCI_DEVICE_ID_INTEL_IGD_E_HB        0x2E00
+ #define PCI_DEVICE_ID_INTEL_IGD_E_IG        0x2E02
+ #define PCI_DEVICE_ID_INTEL_Q45_HB          0x2E10
+@@ -55,7 +55,7 @@
+ 		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_82965G_HB || \
+ 		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_82965GM_HB || \
+ 		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_82965GME_HB || \
+-		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_IGD_HB)
++		 agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_GM45_HB)
+=20
+ #define IS_G33 (agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_G33=
+_HB || \
+ 		agp_bridge->dev->device =3D=3D PCI_DEVICE_ID_INTEL_Q35_HB || \
+@@ -1182,7 +1182,7 @@ static unsigned long intel_i965_mask_mem
+ static void intel_i965_get_gtt_range(int *gtt_offset, int *gtt_size)
+ {
+ 	switch (agp_bridge->dev->device) {
+-	case PCI_DEVICE_ID_INTEL_IGD_HB:
++	case PCI_DEVICE_ID_INTEL_GM45_HB:
+ 	case PCI_DEVICE_ID_INTEL_IGD_E_HB:
+ 	case PCI_DEVICE_ID_INTEL_Q45_HB:
+ 	case PCI_DEVICE_ID_INTEL_G45_HB:
+@@ -2117,8 +2117,8 @@ static const struct intel_driver_descrip
+ 		NULL, &intel_g33_driver },
+ 	{ PCI_DEVICE_ID_INTEL_Q33_HB, PCI_DEVICE_ID_INTEL_Q33_IG, 0, "Q33",
+ 		NULL, &intel_g33_driver },
+-	{ PCI_DEVICE_ID_INTEL_IGD_HB, PCI_DEVICE_ID_INTEL_IGD_IG, 0,
+-	    "Intel Integrated Graphics Device", NULL, &intel_i965_driver },
++	{ PCI_DEVICE_ID_INTEL_GM45_HB, PCI_DEVICE_ID_INTEL_GM45_IG, 0,
++	    "Mobile Intel=AE GM45 Express", NULL, &intel_i965_driver },
+ 	{ PCI_DEVICE_ID_INTEL_IGD_E_HB, PCI_DEVICE_ID_INTEL_IGD_E_IG, 0,
+ 	    "Intel Integrated Graphics Device", NULL, &intel_i965_driver },
+ 	{ PCI_DEVICE_ID_INTEL_Q45_HB, PCI_DEVICE_ID_INTEL_Q45_IG, 0,
+@@ -2315,7 +2315,7 @@ static struct pci_device_id agp_intel_pc
+ 	ID(PCI_DEVICE_ID_INTEL_G33_HB),
+ 	ID(PCI_DEVICE_ID_INTEL_Q35_HB),
+ 	ID(PCI_DEVICE_ID_INTEL_Q33_HB),
+-	ID(PCI_DEVICE_ID_INTEL_IGD_HB),
++	ID(PCI_DEVICE_ID_INTEL_GM45_HB),
+ 	ID(PCI_DEVICE_ID_INTEL_IGD_E_HB),
+ 	ID(PCI_DEVICE_ID_INTEL_Q45_HB),
+ 	ID(PCI_DEVICE_ID_INTEL_G45_HB),
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from zhenyu.z.wang@intel.com ar=
+e
 
-origin.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-next-remove-localversion.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-drivers-media-video-vinoc-needs-v4l2-ioctlh.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-serio-xilinx_ps2c-fix-warning.patch
-git-jg-misc.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-sched-type-fix.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-usb-hubc-fix-build-with-config_pm=n.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-devpts-switch-to-ida-checkpatch-fixes.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
