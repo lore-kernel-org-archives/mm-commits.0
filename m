@@ -1,153 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - mtdpart-handle-remaining-checkpatch-findings.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 12:54:53 -0700
-Message-ID: <200808041954.m74JsreI027181@imap1.linux-foundation.org>
+Subject: - jffs2-summary-allocation-dont-use-vmalloc.patch removed from -mm tree
+Date: Mon, 04 Aug 2008 12:54:38 -0700
+Message-ID: <200808041954.m74JscB2027178@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34041 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42218 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754998AbYHDTzU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 15:55:20 -0400
+	by vger.kernel.org with ESMTP id S1755382AbYHDTzL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 15:55:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, dwmw2@infradead.org, joern@logfs.org, mm-commits@vger.kernel.org
+To: trimarchimichael@yahoo.it, david-b@pacbell.net, dwmw2@infradead.org, jwboyer@gmail.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtdpart: handle remaining checkpatch findings
+     jffs2 summary allocation: don't use vmalloc()
 has been removed from the -mm tree.  Its filename was
-     mtdpart-handle-remaining-checkpatch-findings.patch
+     jffs2-summary-allocation-dont-use-vmalloc.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtdpart: handle remaining checkpatch findings
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: jffs2 summary allocation: don't use vmalloc()
+From: Michael Trimarchi <trimarchimichael@yahoo.it>
 
-Handle warnings about long lines and braces.  Now mtdpart.c is
-checkpatch-clean.
+arm:
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Joern Engel <joern@logfs.org>
+Unable to handle kernel NULL pointer dereference at virtual address 00000000
+pgd = c0004000
+[00000000] *pgd=00000000
+stopped custom tracer.
+Internal error: Oops: 817 [#1] PREEMPT
+Modules linked in:
+CPU: 0    Not tainted  (2.6.24-rc5-rt1 #37)
+PC is at dma_cache_maint+0x40/0x80
+LR is at atmel_spi_transfer+0x94/0x178
+
+This is because the SPI layer is using DMA transfers to support jffs2 I/O, and
+apparently jffs2 isn't used to having DMA done against this buffer.  DMA
+against vmalloced memory plain isn't allowed.
+
+This patch will probably break all sorts of things because that buffer is
+&*large*: up to half a meg.
+
+So this patch isn't mergeable.  I'll hang onto it to bug dmwm2 with when he
+reincarnates.
+
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Josh Boyer <jwboyer@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdpart.c |   38 +++++++++++++++++++++++++-------------
- 1 file changed, 25 insertions(+), 13 deletions(-)
+ fs/jffs2/summary.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/mtd/mtdpart.c~mtdpart-handle-remaining-checkpatch-findings drivers/mtd/mtdpart.c
---- a/drivers/mtd/mtdpart.c~mtdpart-handle-remaining-checkpatch-findings
-+++ a/drivers/mtd/mtdpart.c
-@@ -324,7 +324,9 @@ static struct mtd_part *add_one_partitio
- 	/* allocate the partition structure */
- 	slave = kzalloc(sizeof(*slave), GFP_KERNEL);
- 	if (!slave) {
--		printk(KERN_ERR"memory allocation error while creating partitions for \"%s\"\n",
-+		printk(KERN_ERR
-+			"memory allocation error while creating partitions for"
-+			" \"%s\"\n",
- 			master->name);
- 		del_mtd_partitions(master);
- 		return NULL;
-@@ -397,7 +399,9 @@ static struct mtd_part *add_one_partitio
- 		slave->offset = cur_offset;
- 		if ((cur_offset % master->erasesize) != 0) {
- 			/* Round up to next erasesize */
--			slave->offset = ((cur_offset / master->erasesize) + 1) * master->erasesize;
-+			slave->offset =
-+				((cur_offset / master->erasesize) + 1) *
-+				master->erasesize;
- 			printk(KERN_NOTICE "Moving partition %d: "
- 			       "0x%08x -> 0x%08x\n", partno,
- 			       cur_offset, slave->offset);
-@@ -414,13 +418,16 @@ static struct mtd_part *add_one_partitio
- 		/* let's register it anyway to preserve ordering */
- 		slave->offset = 0;
- 		slave->mtd.size = 0;
--		printk(KERN_ERR"mtd: partition \"%s\" is out of reach -- disabled\n",
-+		printk(KERN_ERR
-+			"mtd: partition \"%s\" is out of reach -- disabled\n",
- 			part->name);
- 		goto out_register;
- 	}
- 	if (slave->offset + slave->mtd.size > master->size) {
- 		slave->mtd.size = master->size - slave->offset;
--		printk(KERN_WARNING"mtd: partition \"%s\" extends beyond the end of device \"%s\" -- size truncated to %#x\n",
-+		printk(KERN_WARNING "mtd: partition \"%s\" "
-+			"extends beyond the end of device \"%s\""
-+			" -- size truncated to %#x\n",
- 			part->name, master->name, slave->mtd.size);
- 	}
- 	if (master->numeraseregions > 1) {
-@@ -438,9 +445,8 @@ static struct mtd_part *add_one_partitio
+diff -puN fs/jffs2/summary.c~jffs2-summary-allocation-dont-use-vmalloc fs/jffs2/summary.c
+--- a/fs/jffs2/summary.c~jffs2-summary-allocation-dont-use-vmalloc
++++ a/fs/jffs2/summary.c
+@@ -17,7 +17,6 @@
+ #include <linux/pagemap.h>
+ #include <linux/crc32.h>
+ #include <linux/compiler.h>
+-#include <linux/vmalloc.h>
+ #include "nodelist.h"
+ #include "debug.h"
  
- 		/* Pick biggest erasesize */
- 		for (; i < max && regions[i].offset < end; i++) {
--			if (slave->mtd.erasesize < regions[i].erasesize) {
-+			if (slave->mtd.erasesize < regions[i].erasesize)
- 				slave->mtd.erasesize = regions[i].erasesize;
--			}
- 		}
- 		BUG_ON(slave->mtd.erasesize == 0);
- 	} else {
-@@ -454,13 +460,16 @@ static struct mtd_part *add_one_partitio
- 		/* FIXME: Let it be writable if it is on a boundary of
- 		 * _minor_ erase size though */
- 		slave->mtd.flags &= ~MTD_WRITEABLE;
--		printk(KERN_WARNING"mtd: partition \"%s\" doesn't start on an erase block boundary -- force read-only\n",
-+		printk(KERN_WARNING "mtd: partition \"%s\""
-+			" doesn't start on an erase block boundary"
-+			" -- force read-only\n",
- 			part->name);
- 	}
- 	if ((slave->mtd.flags & MTD_WRITEABLE) &&
- 	    (slave->mtd.size % slave->mtd.erasesize)) {
- 		slave->mtd.flags &= ~MTD_WRITEABLE;
--		printk(KERN_WARNING"mtd: partition \"%s\" doesn't end on an erase block -- force read-only\n",
-+		printk(KERN_WARNING "mtd: partition \"%s\""
-+			" doesn't end on an erase block -- force read-only\n",
- 			part->name);
+@@ -30,7 +29,7 @@ int jffs2_sum_init(struct jffs2_sb_info 
+ 		return -ENOMEM;
  	}
  
-@@ -504,7 +513,8 @@ int add_mtd_partitions(struct mtd_info *
- 	u_int32_t cur_offset = 0;
- 	int i;
+-	c->summary->sum_buf = vmalloc(c->sector_size);
++	c->summary->sum_buf = kmalloc(c->sector_size, GFP_KERNEL);
  
--	printk(KERN_NOTICE "Creating %d MTD partitions on \"%s\":\n", nbparts, master->name);
-+	printk(KERN_NOTICE "Creating %d MTD partitions on \"%s\":\n",
-+		nbparts, master->name);
+ 	if (!c->summary->sum_buf) {
+ 		JFFS2_WARNING("Can't allocate buffer for writing out summary information!\n");
+@@ -49,7 +48,7 @@ void jffs2_sum_exit(struct jffs2_sb_info
  
- 	for (i = 0; i < nbparts; i++) {
- 		slave = add_one_partition(master, parts + i, i, cur_offset);
-@@ -569,14 +579,16 @@ int parse_mtd_partitions(struct mtd_info
- 				parser = get_partition_parser(*types);
- #endif
- 		if (!parser) {
--			printk(KERN_NOTICE "%s partition parsing not available\n",
--			       *types);
-+			printk(KERN_NOTICE
-+				"%s partition parsing not available\n",
-+				*types);
- 			continue;
- 		}
- 		ret = (*parser->parse_fn)(master, pparts, origin);
- 		if (ret > 0) {
--			printk(KERN_NOTICE "%d %s partitions found on MTD device %s\n",
--			       ret, parser->name, master->name);
-+			printk(KERN_NOTICE
-+				"%d %s partitions found on MTD device %s\n",
-+				ret, parser->name, master->name);
- 		}
- 		put_partition_parser(parser);
- 	}
+ 	jffs2_sum_disable_collecting(c->summary);
+ 
+-	vfree(c->summary->sum_buf);
++	kfree(c->summary->sum_buf);
+ 	c->summary->sum_buf = NULL;
+ 
+ 	kfree(c->summary);
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from trimarchimichael@yahoo.it are
 
-origin.patch
-linux-next.patch
-mtdpart-handle-remaining-checkpatch-findings.patch
+jffs2-summary-allocation-dont-use-vmalloc.patch
 
