@@ -1,69 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - ath5k-mask-out-unneeded-interrupts.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 13:07:40 -0700
-Message-ID: <200808042007.m74K7e6r027828@imap1.linux-foundation.org>
+Subject: - blackfin-nfc-driver-use-standard-dev_err-rather-than-printk.patch removed from -mm tree
+Date: Mon, 04 Aug 2008 13:06:53 -0700
+Message-ID: <200808042006.m74K6r3Y027730@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42076 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38895 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758747AbYHDUIK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:08:10 -0400
+	by vger.kernel.org with ESMTP id S1758295AbYHDUHD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 16:07:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, mcgrof@gmail.com, me@bobcopeland.com, mickflemm@gmail.com, mm-commits@vger.kernel.org
+To: vapier.adi@gmail.com, cooloney@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ath5k: mask out unneeded interrupts
+     Blackfin NFC Driver: use standard dev_err() rather than printk()
 has been removed from the -mm tree.  Its filename was
-     ath5k-mask-out-unneeded-interrupts.patch
+     blackfin-nfc-driver-use-standard-dev_err-rather-than-printk.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ath5k: mask out unneeded interrupts
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: Blackfin NFC Driver: use standard dev_err() rather than printk()
+From: Mike Frysinger <vapier.adi@gmail.com>
 
-Mask out previously demanded interrupt flags because we set new ones. 
-Don't allow mixing them after switch from sta to ibss and vice versa.
-
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Nick Kossifidis <mickflemm@gmail.com>
-Cc: Luis R. Rodriguez <mcgrof@gmail.com>
-Cc: "Bob Copeland" <me@bobcopeland.com>
+Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k/base.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/mtd/nand/bf5xx_nand.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/net/wireless/ath5k/base.c~ath5k-mask-out-unneeded-interrupts drivers/net/wireless/ath5k/base.c
---- a/drivers/net/wireless/ath5k/base.c~ath5k-mask-out-unneeded-interrupts
-+++ a/drivers/net/wireless/ath5k/base.c
-@@ -2170,6 +2170,7 @@ ath5k_beacon_config(struct ath5k_softc *
+diff -puN drivers/mtd/nand/bf5xx_nand.c~blackfin-nfc-driver-use-standard-dev_err-rather-than-printk drivers/mtd/nand/bf5xx_nand.c
+--- a/drivers/mtd/nand/bf5xx_nand.c~blackfin-nfc-driver-use-standard-dev_err-rather-than-printk
++++ a/drivers/mtd/nand/bf5xx_nand.c
+@@ -684,8 +684,7 @@ static int __devinit bf5xx_nand_probe(st
+ 	dev_dbg(&pdev->dev, "(%p)\n", pdev);
  
- 	ath5k_hw_set_intr(ah, 0);
- 	sc->bmisscount = 0;
-+	sc->imask &= ~(AR5K_INT_BMISS | AR5K_INT_SWBA);
+ 	if (peripheral_request_list(bfin_nfc_pin_req, DRV_NAME)) {
+-		printk(KERN_ERR DRV_NAME
+-		": Requesting Peripherals failed\n");
++		dev_err(&pdev->dev, "requesting Peripherals failed\n");
+ 		return -EFAULT;
+ 	}
  
- 	if (sc->opmode == IEEE80211_IF_TYPE_STA) {
- 		sc->imask |= AR5K_INT_BMISS;
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from vapier.adi@gmail.com are
 
 origin.patch
-linux-next.patch
-ath5k-unify-resets.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-char-merge-ip2main-and-ip2base.patch
-char-ip2-cleanup-globals.patch
-char-ip2-fix-sparse-warnings.patch
-char-ip2-init-deinit-cleanup.patch
-ip2-avoid-add_timer-with-pending-timer.patch
-char-ds1286-eliminate-busy-waiting.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+blackfin-rtc-driver-add-support-for-power-management-framework.patch
+blackfin-rtc-driver-dont-bother-passing-the-rtc-struct-down-to-bfin_rtc_int_setclear-since-it-isnt-needed-shaves-off-100bytes.patch
+blackfin-rtc-driver-disable-the-write-complete-irq-upon-close.patch
+blackfin-rtc-driver-wait-for-the-write-complete-interrupt-complete-before-sleeping.patch
+blackfin-rtc-driver-convert-pie-handling-to-irq_set_state-as-pointed-out-by-david-brownell.patch
+blackfin-rtc-driver-drop-pie-stopwatch-code-since-the-hardware-can-only-do-a-max-of-1hz-and-this-same-functionality-is-provided-by-uie.patch
 
