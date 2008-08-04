@@ -1,137 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: - x86-export-is_uv_system.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 12:50:56 -0700
-Message-ID: <200808041950.m74JouGH026995@imap1.linux-foundation.org>
+Subject: - mtdpart-handle-remaining-checkpatch-findings.patch removed from -mm tree
+Date: Mon, 04 Aug 2008 12:54:53 -0700
+Message-ID: <200808041954.m74JsreI027181@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42499 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34041 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754336AbYHDTvS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 15:51:18 -0400
+	by vger.kernel.org with ESMTP id S1754998AbYHDTzU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 15:55:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dcn@sgi.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: anemo@mba.ocn.ne.jp, dwmw2@infradead.org, joern@logfs.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: export is_uv_system()
+     mtdpart: handle remaining checkpatch findings
 has been removed from the -mm tree.  Its filename was
-     x86-export-is_uv_system.patch
+     mtdpart-handle-remaining-checkpatch-findings.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: export is_uv_system()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mtdpart: handle remaining checkpatch findings
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-ERROR: "is_uv_system" [drivers/misc/sgi-xp/xpnet.ko] undefined!
-ERROR: "is_uv_system" [drivers/misc/sgi-xp/xpc.ko] undefined!
-ERROR: "is_uv_system" [drivers/misc/sgi-xp/xp.ko] undefined!
-ERROR: "is_uv_system" [drivers/misc/sgi-gru/gru.ko] undefined!
+Handle warnings about long lines and braces.  Now mtdpart.c is
+checkpatch-clean.
 
-(is sgi-xp an x86-64 driver?)
-
-Cc: Dean Nelson <dcn@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Joern Engel <joern@logfs.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/genx2apic_uv_x.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/mtd/mtdpart.c |   38 +++++++++++++++++++++++++-------------
+ 1 file changed, 25 insertions(+), 13 deletions(-)
 
-diff -puN arch/x86/kernel/genx2apic_uv_x.c~x86-export-is_uv_system arch/x86/kernel/genx2apic_uv_x.c
---- a/arch/x86/kernel/genx2apic_uv_x.c~x86-export-is_uv_system
-+++ a/arch/x86/kernel/genx2apic_uv_x.c
-@@ -53,6 +53,7 @@ int is_uv_system(void)
- {
- 	return uv_system_type != UV_NONE;
- }
-+EXPORT_SYMBOL(is_uv_system);
+diff -puN drivers/mtd/mtdpart.c~mtdpart-handle-remaining-checkpatch-findings drivers/mtd/mtdpart.c
+--- a/drivers/mtd/mtdpart.c~mtdpart-handle-remaining-checkpatch-findings
++++ a/drivers/mtd/mtdpart.c
+@@ -324,7 +324,9 @@ static struct mtd_part *add_one_partitio
+ 	/* allocate the partition structure */
+ 	slave = kzalloc(sizeof(*slave), GFP_KERNEL);
+ 	if (!slave) {
+-		printk(KERN_ERR"memory allocation error while creating partitions for \"%s\"\n",
++		printk(KERN_ERR
++			"memory allocation error while creating partitions for"
++			" \"%s\"\n",
+ 			master->name);
+ 		del_mtd_partitions(master);
+ 		return NULL;
+@@ -397,7 +399,9 @@ static struct mtd_part *add_one_partitio
+ 		slave->offset = cur_offset;
+ 		if ((cur_offset % master->erasesize) != 0) {
+ 			/* Round up to next erasesize */
+-			slave->offset = ((cur_offset / master->erasesize) + 1) * master->erasesize;
++			slave->offset =
++				((cur_offset / master->erasesize) + 1) *
++				master->erasesize;
+ 			printk(KERN_NOTICE "Moving partition %d: "
+ 			       "0x%08x -> 0x%08x\n", partno,
+ 			       cur_offset, slave->offset);
+@@ -414,13 +418,16 @@ static struct mtd_part *add_one_partitio
+ 		/* let's register it anyway to preserve ordering */
+ 		slave->offset = 0;
+ 		slave->mtd.size = 0;
+-		printk(KERN_ERR"mtd: partition \"%s\" is out of reach -- disabled\n",
++		printk(KERN_ERR
++			"mtd: partition \"%s\" is out of reach -- disabled\n",
+ 			part->name);
+ 		goto out_register;
+ 	}
+ 	if (slave->offset + slave->mtd.size > master->size) {
+ 		slave->mtd.size = master->size - slave->offset;
+-		printk(KERN_WARNING"mtd: partition \"%s\" extends beyond the end of device \"%s\" -- size truncated to %#x\n",
++		printk(KERN_WARNING "mtd: partition \"%s\" "
++			"extends beyond the end of device \"%s\""
++			" -- size truncated to %#x\n",
+ 			part->name, master->name, slave->mtd.size);
+ 	}
+ 	if (master->numeraseregions > 1) {
+@@ -438,9 +445,8 @@ static struct mtd_part *add_one_partitio
  
- DEFINE_PER_CPU(struct uv_hub_info_s, __uv_hub_info);
- EXPORT_PER_CPU_SYMBOL_GPL(__uv_hub_info);
+ 		/* Pick biggest erasesize */
+ 		for (; i < max && regions[i].offset < end; i++) {
+-			if (slave->mtd.erasesize < regions[i].erasesize) {
++			if (slave->mtd.erasesize < regions[i].erasesize)
+ 				slave->mtd.erasesize = regions[i].erasesize;
+-			}
+ 		}
+ 		BUG_ON(slave->mtd.erasesize == 0);
+ 	} else {
+@@ -454,13 +460,16 @@ static struct mtd_part *add_one_partitio
+ 		/* FIXME: Let it be writable if it is on a boundary of
+ 		 * _minor_ erase size though */
+ 		slave->mtd.flags &= ~MTD_WRITEABLE;
+-		printk(KERN_WARNING"mtd: partition \"%s\" doesn't start on an erase block boundary -- force read-only\n",
++		printk(KERN_WARNING "mtd: partition \"%s\""
++			" doesn't start on an erase block boundary"
++			" -- force read-only\n",
+ 			part->name);
+ 	}
+ 	if ((slave->mtd.flags & MTD_WRITEABLE) &&
+ 	    (slave->mtd.size % slave->mtd.erasesize)) {
+ 		slave->mtd.flags &= ~MTD_WRITEABLE;
+-		printk(KERN_WARNING"mtd: partition \"%s\" doesn't end on an erase block -- force read-only\n",
++		printk(KERN_WARNING "mtd: partition \"%s\""
++			" doesn't end on an erase block -- force read-only\n",
+ 			part->name);
+ 	}
+ 
+@@ -504,7 +513,8 @@ int add_mtd_partitions(struct mtd_info *
+ 	u_int32_t cur_offset = 0;
+ 	int i;
+ 
+-	printk(KERN_NOTICE "Creating %d MTD partitions on \"%s\":\n", nbparts, master->name);
++	printk(KERN_NOTICE "Creating %d MTD partitions on \"%s\":\n",
++		nbparts, master->name);
+ 
+ 	for (i = 0; i < nbparts; i++) {
+ 		slave = add_one_partition(master, parts + i, i, cur_offset);
+@@ -569,14 +579,16 @@ int parse_mtd_partitions(struct mtd_info
+ 				parser = get_partition_parser(*types);
+ #endif
+ 		if (!parser) {
+-			printk(KERN_NOTICE "%s partition parsing not available\n",
+-			       *types);
++			printk(KERN_NOTICE
++				"%s partition parsing not available\n",
++				*types);
+ 			continue;
+ 		}
+ 		ret = (*parser->parse_fn)(master, pparts, origin);
+ 		if (ret > 0) {
+-			printk(KERN_NOTICE "%d %s partitions found on MTD device %s\n",
+-			       ret, parser->name, master->name);
++			printk(KERN_NOTICE
++				"%d %s partitions found on MTD device %s\n",
++				ret, parser->name, master->name);
+ 		}
+ 		put_partition_parser(parser);
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
 origin.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-next-remove-localversion.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-x86-export-is_uv_system.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-git-agpgart.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-git-drm.patch
-drivers-media-video-vinoc-needs-v4l2-ioctlh.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-dlm.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-serio-xilinx_ps2c-fix-warning.patch
-git-jg-misc.patch
-git-kvm.patch
-git-mtd.patch
-drivers-mtd-nand-nandsimc-needs-div64h.patch
-drivers-mtd-nand-nandsimc-fix-printk-warnings.patch
-git-ubi-git-rejects.patch
-bridge-send-correct-mtu-value-in-pmtu.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-git-nfsd.patch
-git-pci-current.patch
-sched-type-fix.patch
-git-sh.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-usb-hubc-fix-build-with-config_pm=n.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-devpts-switch-to-ida-checkpatch-fixes.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+mtdpart-handle-remaining-checkpatch-findings.patch
 
