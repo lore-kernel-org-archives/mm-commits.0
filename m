@@ -1,60 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - hwmon-fix-loading-of-abituguru3-on-abit-ip35-pro-with-bios-17.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 18:31:25 -0700
-Message-ID: <200808050131.m751VPdC010227@imap1.linux-foundation.org>
+Subject: + jbd-abort-instead-of-waiting-for-nonexistent-transactions.patch added to -mm tree
+Date: Mon, 04 Aug 2008 18:43:33 -0700
+Message-ID: <200808050143.m751hXgl010695__42760.2385440425$1217900696$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34918 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40864 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753280AbYHEBbg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 21:31:36 -0400
+	by vger.kernel.org with ESMTP id S1756918AbYHEBnj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 21:43:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alistair@devzero.co.uk, j.w.r.degoede@hhs.nl, mhoffman@lightlink.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: duaneg@dghda.com, linux-ext4@vger.kernel.org, sliedes@cc.hut.fi
 
 
 The patch titled
-     hwmon: fix loading of abituguru3 on Abit IP35 Pro with BIOS 17
-has been removed from the -mm tree.  Its filename was
-     hwmon-fix-loading-of-abituguru3-on-abit-ip35-pro-with-bios-17.patch
+     jbd: abort instead of waiting for nonexistent transactions
+has been added to the -mm tree.  Its filename is
+     jbd-abort-instead-of-waiting-for-nonexistent-transactions.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: fix loading of abituguru3 on Abit IP35 Pro with BIOS 17
-From: Alistair John Strachan <alistair@devzero.co.uk>
+Subject: jbd: abort instead of waiting for nonexistent transactions
+From: "Duane Griffin" <duaneg@dghda.com>
 
-Fix loading of abituguru3 on Abit IP35 Pro with BIOS 17.  The magic
-bytes have changed value (again).
+The __log_wait_for_space function sits in a loop checkpointing
+transactions until there is sufficient space free in the journal. 
+However, if there are no transactions to be processed (e.g.  because the
+free space calculation is wrong due to a corrupted filesystem) it will
+never progress.
 
-Signed-off-by: Alistair John Strachan <alistair@devzero.co.uk>
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Check for space being required when no transactions are outstanding and
+abort the journal instead of endlessly looping.
+
+This patch fixes the bug reported by Sami Liedes at:
+http://bugzilla.kernel.org/show_bug.cgi?id=10976
+
+Signed-off-by: Duane Griffin <duaneg@dghda.com>
+Tested-by: Sami Liedes <sliedes@cc.hut.fi>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/abituguru3.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/jbd/checkpoint.c |   19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-diff -puN drivers/hwmon/abituguru3.c~hwmon-fix-loading-of-abituguru3-on-abit-ip35-pro-with-bios-17 drivers/hwmon/abituguru3.c
---- a/drivers/hwmon/abituguru3.c~hwmon-fix-loading-of-abituguru3-on-abit-ip35-pro-with-bios-17
-+++ a/drivers/hwmon/abituguru3.c
-@@ -1170,7 +1170,7 @@ static int __init abituguru3_detect(void
- 	u8 cmd_val = inb_p(ABIT_UGURU3_BASE + ABIT_UGURU3_CMD);
- 	if (((data_val == 0x00) || (data_val == 0x08)) &&
- 			((cmd_val == 0xAC) || (cmd_val == 0x05) ||
--			 (cmd_val == 0x55)))
-+			 (cmd_val == 0x55) || (cmd_val == 0xFF)))
- 		return 0;
+diff -puN fs/jbd/checkpoint.c~jbd-abort-instead-of-waiting-for-nonexistent-transactions fs/jbd/checkpoint.c
+--- a/fs/jbd/checkpoint.c~jbd-abort-instead-of-waiting-for-nonexistent-transactions
++++ a/fs/jbd/checkpoint.c
+@@ -127,14 +127,29 @@ void __log_wait_for_space(journal_t *jou
  
- 	ABIT_UGURU3_DEBUG("no Abit uGuru3 found, data = 0x%02X, cmd = "
+ 		/*
+ 		 * Test again, another process may have checkpointed while we
+-		 * were waiting for the checkpoint lock
++		 * were waiting for the checkpoint lock. If there are no
++		 * outstanding transactions there is nothing to checkpoint and
++		 * we can't make progress. Abort the journal in this case.
+ 		 */
+ 		spin_lock(&journal->j_state_lock);
++		spin_lock(&journal->j_list_lock);
+ 		nblocks = jbd_space_needed(journal);
+ 		if (__log_space_left(journal) < nblocks) {
++			int chkpt = journal->j_checkpoint_transactions != NULL;
++
++			spin_unlock(&journal->j_list_lock);
+ 			spin_unlock(&journal->j_state_lock);
+-			log_do_checkpoint(journal);
++			if (chkpt) {
++				log_do_checkpoint(journal);
++			} else {
++				printk(KERN_ERR "%s: no transactions\n",
++				       __func__);
++				journal_abort(journal, 0);
++			}
++
+ 			spin_lock(&journal->j_state_lock);
++		} else {
++			spin_unlock(&journal->j_list_lock);
+ 		}
+ 		mutex_unlock(&journal->j_checkpoint_mutex);
+ 	}
 _
 
-Patches currently in -mm which might be from alistair@devzero.co.uk are
+Patches currently in -mm which might be from duaneg@dghda.com are
 
-abituguru3-update-maintainers.patch
-abituguru3-prefer-dmi-probing-to-manual-probing.patch
-hwmon-fix-loading-of-abituguru3-on-abit-ip35-pro-with-bios-17.patch
+jbd-abort-instead-of-waiting-for-nonexistent-transactions.patch
+jbd2-abort-instead-of-waiting-for-nonexistent-transactions.patch
 
