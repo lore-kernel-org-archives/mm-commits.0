@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + oss-remove-references-to-dead-sound-oss-vars-aedsp16_msssbpro.patch added to -mm tree
-Date: Tue, 05 Aug 2008 13:18:00 -0700
-Message-ID: <200808052018.m75KI0AW021337@imap1.linux-foundation.org>
+Subject: + cpuidle-make-sysfs-attributes-sysdev-class-attributes.patch added to -mm tree
+Date: Tue, 05 Aug 2008 13:18:53 -0700
+Message-ID: <200808052018.m75KIr3x021395@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33003 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54349 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764438AbYHEUSE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 16:18:04 -0400
+	by vger.kernel.org with ESMTP id S1764859AbYHEUTH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 16:19:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@crashcourse.ca
+Cc: rabin@rab.in, ak@linux.intel.com, shaohua.li@intel.com, snakebyte@gmx.de
 
 
 The patch titled
-     oss: remove references to dead sound/oss vars AEDSP16_{MSS,SBPRO}
+     cpuidle: make sysfs attributes sysdev class attributes
 has been added to the -mm tree.  Its filename is
-     oss-remove-references-to-dead-sound-oss-vars-aedsp16_msssbpro.patch
+     cpuidle-make-sysfs-attributes-sysdev-class-attributes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,71 +33,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oss: remove references to dead sound/oss vars AEDSP16_{MSS,SBPRO}
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: cpuidle: make sysfs attributes sysdev class attributes
+From: Rabin Vincent <rabin@rab.in>
 
-Remove the Kconfig definitions of unused variables AEDSP16_MSS and
-AEDSP16_SBPRO since they're:
+These attributes are really sysdev class attributes.  The incorrect
+definition leads to an oops because of recent changes which make sysdev
+attributes use a different prototype.
 
-1) unused, and
-2) referenced incorrectly anyway.
+Based on Andi's f718cd4add5aea9d379faff92f162571e356cc5f ("sched: make
+scheduler sysfs attributes sysdev class devices")
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Reported-by: Eric Sesterhenn <snakebyte@gmx.de>
+Signed-off-by: Rabin Vincent <rabin@rab.in>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: "Li, Shaohua" <shaohua.li@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/oss/Kconfig   |   28 ----------------------------
- sound/oss/aedsp16.c |    8 --------
- 2 files changed, 36 deletions(-)
+ drivers/cpuidle/sysfs.c |   29 +++++++++++++++--------------
+ 1 file changed, 15 insertions(+), 14 deletions(-)
 
-diff -puN sound/oss/Kconfig~oss-remove-references-to-dead-sound-oss-vars-aedsp16_msssbpro sound/oss/Kconfig
---- a/sound/oss/Kconfig~oss-remove-references-to-dead-sound-oss-vars-aedsp16_msssbpro
-+++ a/sound/oss/Kconfig
-@@ -546,34 +546,6 @@ config SC6600_CDROMBASE
- 	  Base I/O port address for the CD-ROM interface of the Audio Excel
- 	  DSP 16 card.
+diff -puN drivers/cpuidle/sysfs.c~cpuidle-make-sysfs-attributes-sysdev-class-attributes drivers/cpuidle/sysfs.c
+--- a/drivers/cpuidle/sysfs.c~cpuidle-make-sysfs-attributes-sysdev-class-attributes
++++ a/drivers/cpuidle/sysfs.c
+@@ -21,8 +21,8 @@ static int __init cpuidle_sysfs_setup(ch
+ }
+ __setup("cpuidle_sysfs_switch", cpuidle_sysfs_setup);
  
--choice
--	prompt "Audio Excel DSP 16"
--	optional
--	depends on SOUND_AEDSP16
--
--config AEDSP16_MSS
--	bool "MSS emulation"
--	depends on SOUND_MSS
--	help
--	  Answer Y if you want your audio card to emulate Microsoft Sound
--	  System. You should then say Y to "Microsoft Sound System support"
--	  and say N to "Audio Excel DSP 16 (SBPro emulation)".
--
--config AEDSP16_SBPRO
--	bool "SBPro emulation"
--	depends on SOUND_SB
--	help
--	  Answer Y if you want your audio card to emulate Sound Blaster Pro.
--	  You should then say Y to "100% Sound Blaster compatibles
--	  (SB16/32/64, ESS, Jazz16) support" and N to "Audio Excel DSP 16 (MSS
--	  emulation)".
--
--	  If you compile the driver into the kernel, you have to add
--	  "aedsp16=<io>,<irq>,<dma>,<mssio>,<mpuio>,<mouirq>" to the kernel
--	  command line.
--
--endchoice
--
- config SOUND_VIDC
- 	tristate "VIDC 16-bit sound"
- 	depends on ARM && (ARCH_ACORN || ARCH_CLPS7500)
-diff -puN sound/oss/aedsp16.c~oss-remove-references-to-dead-sound-oss-vars-aedsp16_msssbpro sound/oss/aedsp16.c
---- a/sound/oss/aedsp16.c~oss-remove-references-to-dead-sound-oss-vars-aedsp16_msssbpro
-+++ a/sound/oss/aedsp16.c
-@@ -29,14 +29,6 @@
- #include "sound_config.h"
+-static ssize_t show_available_governors(struct sys_device *dev,
+-		struct sysdev_attribute *attr, char *buf)
++static ssize_t show_available_governors(struct sysdev_class *class,
++					char *buf)
+ {
+ 	ssize_t i = 0;
+ 	struct cpuidle_governor *tmp;
+@@ -40,8 +40,8 @@ out:
+ 	return i;
+ }
  
- /*
-- * Sanity checks
-- */
--
--#if defined(CONFIG_SOUND_AEDSP16_SBPRO) && defined(CONFIG_SOUND_AEDSP16_MSS)
--#error You have to enable only one of the MSS and SBPRO emulations.
--#endif
+-static ssize_t show_current_driver(struct sys_device *dev,
+-		struct sysdev_attribute *attr, char *buf)
++static ssize_t show_current_driver(struct sysdev_class *class,
++				   char *buf)
+ {
+ 	ssize_t ret;
+ 
+@@ -55,8 +55,8 @@ static ssize_t show_current_driver(struc
+ 	return ret;
+ }
+ 
+-static ssize_t show_current_governor(struct sys_device *dev,
+-			struct sysdev_attribute *attr, char *buf)
++static ssize_t show_current_governor(struct sysdev_class *class,
++				     char *buf)
+ {
+ 	ssize_t ret;
+ 
+@@ -70,9 +70,8 @@ static ssize_t show_current_governor(str
+ 	return ret;
+ }
+ 
+-static ssize_t store_current_governor(struct sys_device *dev,
+-	struct sysdev_attribute *attr,
+-	const char *buf, size_t count)
++static ssize_t store_current_governor(struct sysdev_class *class,
++				      const char *buf, size_t count)
+ {
+ 	char gov_name[CPUIDLE_NAME_LEN];
+ 	int ret = -EINVAL;
+@@ -104,8 +103,9 @@ static ssize_t store_current_governor(st
+ 		return count;
+ }
+ 
+-static SYSDEV_ATTR(current_driver, 0444, show_current_driver, NULL);
+-static SYSDEV_ATTR(current_governor_ro, 0444, show_current_governor, NULL);
++static SYSDEV_CLASS_ATTR(current_driver, 0444, show_current_driver, NULL);
++static SYSDEV_CLASS_ATTR(current_governor_ro, 0444, show_current_governor,
++			 NULL);
+ 
+ static struct attribute *cpuclass_default_attrs[] = {
+ 	&attr_current_driver.attr,
+@@ -113,9 +113,10 @@ static struct attribute *cpuclass_defaul
+ 	NULL
+ };
+ 
+-static SYSDEV_ATTR(available_governors, 0444, show_available_governors, NULL);
+-static SYSDEV_ATTR(current_governor, 0644, show_current_governor,
+-	store_current_governor);
++static SYSDEV_CLASS_ATTR(available_governors, 0444, show_available_governors,
++			 NULL);
++static SYSDEV_CLASS_ATTR(current_governor, 0644, show_current_governor,
++			 store_current_governor);
+ 
+ static struct attribute *cpuclass_switch_attrs[] = {
+ 	&attr_available_governors.attr,
+_
+
+Patches currently in -mm which might be from rabin@rab.in are
+
+origin.patch
+cpuidle-make-sysfs-attributes-sysdev-class-attributes.patch
+
