@@ -1,455 +1,410 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-renesas-highlander-fpga-smbus-support-update.patch added to -mm tree
-Date: Tue, 05 Aug 2008 14:38:01 -0700
-Message-ID: <200808052138.m75Lc2i4024746@imap1.linux-foundation.org>
+Subject: - rtc-rtc-rs5c372-smbus-conversion-support.patch removed from -mm tree
+Date: Tue, 05 Aug 2008 14:39:55 -0700
+Message-ID: <200808052139.m75Ldtxj024797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44080 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40819 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757649AbYHEViq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 17:38:46 -0400
+	by vger.kernel.org with ESMTP id S1752401AbYHEVkl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 17:40:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org, khali@linux-fr.org, xyzzy@speakeasy.org
+To: lethal@linux-sh.org, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i2c: renesas Highlander FPGA SMBus support, v2
-has been added to the -mm tree.  Its filename is
-     i2c-renesas-highlander-fpga-smbus-support-update.patch
+     rtc: rtc-rs5c372: SMBus conversion/support
+has been removed from the -mm tree.  Its filename was
+     rtc-rtc-rs5c372-smbus-conversion-support.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i2c: renesas Highlander FPGA SMBus support, v2
+Subject: rtc: rtc-rs5c372: SMBus conversion/support
 From: Paul Mundt <lethal@linux-sh.org>
 
-This adds support for the SMBus adapter found in the various FPGAs on
-the Renesas Highlander platforms.  Particularly the R0P7780LC0011RL and
-R0P7785LC0011RL FPGAs.
+rtc-rs5c372 presently depends on I2C master mode transfers, despite the
+fact that these RTCs frequently find themselves on SMBus-only adapters.
 
-Functionality is fairly restricted, in that only byte and block data
-transfers are supported.  Normal/fast mode and IRQ/polling are also
-supported.  Primarily used for various RTCs and thermal sensors.
+Given that the only capabilities that were checked were for I2C_FUNC_I2C,
+it's assumed that most of the adapters that are currently using this
+driver are fairly sane, and are able to handle SMBus emulation (though we
+adjust the default capabilities to check for I2C_FUNC_SMBUS_EMUL anyways,
+which is the vast majority of them. The adapters that don't have their
+own ->smbus_xfer() fall back on the ->master_xfer() through the emulated
+transfer).
 
-This version incorporates all of the comments from Jean Delvare and
-Trent Piepho.
+The special case is iop3xx, which has more than its fair share of hacks
+within this driver, it remains untested -- though also claims to support
+emulated SMBus accesses. The corner case there is rs5c_get_regs() which
+uses access mode #3 for transferring the register state, while we use
+mode #1 for SMBus.
 
 Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Trent Piepho <xyzzy@speakeasy.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/Kconfig          |   24 +--
- drivers/i2c/busses/i2c-highlander.c |  159 ++++++++++++--------------
- 2 files changed, 89 insertions(+), 94 deletions(-)
+ drivers/rtc/rtc-rs5c372.c |  209 ++++++++++++++++++++++--------------
+ 1 file changed, 131 insertions(+), 78 deletions(-)
 
-diff -puN drivers/i2c/busses/Kconfig~i2c-renesas-highlander-fpga-smbus-support-update drivers/i2c/busses/Kconfig
---- a/drivers/i2c/busses/Kconfig~i2c-renesas-highlander-fpga-smbus-support-update
-+++ a/drivers/i2c/busses/Kconfig
-@@ -230,18 +230,6 @@ config I2C_VIAPRO
- comment "Mac SMBus host controller drivers"
- 	depends on PPC_CHRP || PPC_PMAC
+diff -puN drivers/rtc/rtc-rs5c372.c~rtc-rtc-rs5c372-smbus-conversion-support drivers/rtc/rtc-rs5c372.c
+--- a/drivers/rtc/rtc-rs5c372.c~rtc-rtc-rs5c372-smbus-conversion-support
++++ a/drivers/rtc/rtc-rs5c372.c
+@@ -3,6 +3,7 @@
+  *
+  * Copyright (C) 2005 Pavel Mironchik <pmironchik@optifacio.net>
+  * Copyright (C) 2006 Tower Technologies
++ * Copyright (C) 2008 Paul Mundt
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -13,7 +14,7 @@
+ #include <linux/rtc.h>
+ #include <linux/bcd.h>
  
--config I2C_HIGHLANDER
--	tristate "Highlander FPGA SMBus interface"
--	depends on SH_HIGHLANDER
--	help
--	  If you say yes to this option, support will be included for
--	  the SMBus interface located in the FPGA on various Highlander
--	  boards, particularly the R0P7780LC0011RL and R0P7785LC0011RL
--	  FPGAs. This is wholly unrelated to the SoC I2C.
--
--	  This driver can also be built as a module.  If so, the module
--	  will be called i2c-highlander.
--
- config I2C_HYDRA
- 	tristate "CHRP Apple Hydra Mac I/O I2C interface"
- 	depends on PCI && PPC_CHRP && EXPERIMENTAL
-@@ -342,6 +330,18 @@ config I2C_GPIO
- 	  This is a very simple bitbanging I2C driver utilizing the
- 	  arch-neutral GPIO API to control the SCL and SDA lines.
+-#define DRV_VERSION "0.5"
++#define DRV_VERSION "0.6"
  
-+config I2C_HIGHLANDER
-+	tristate "Highlander FPGA SMBus interface"
-+	depends on SH_HIGHLANDER
-+	help
-+	  If you say yes to this option, support will be included for
-+	  the SMBus interface located in the FPGA on various Highlander
-+	  boards, particularly the R0P7780LC0011RL and R0P7785LC0011RL
-+	  FPGAs. This is wholly unrelated to the SoC I2C.
-+
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called i2c-highlander.
-+
- config I2C_IBM_IIC
- 	tristate "IBM PPC 4xx on-chip I2C interface"
- 	depends on 4xx
-diff -puN drivers/i2c/busses/i2c-highlander.c~i2c-renesas-highlander-fpga-smbus-support-update drivers/i2c/busses/i2c-highlander.c
---- a/drivers/i2c/busses/i2c-highlander.c~i2c-renesas-highlander-fpga-smbus-support-update
-+++ a/drivers/i2c/busses/i2c-highlander.c
-@@ -45,12 +45,14 @@ struct highlander_i2c_dev {
- 	void __iomem		*base;
- 	struct i2c_adapter	adapter;
- 	struct completion	cmd_complete;
-+	unsigned long		last_read_time;
- 	int			irq;
- 	u8			*buf;
- 	size_t			buf_len;
+ 
+ /*
+@@ -89,6 +90,7 @@ struct rs5c372 {
+ 	enum rtc_type		type;
+ 	unsigned		time24:1;
+ 	unsigned		has_irq:1;
++	unsigned		smbus:1;
+ 	char			buf[17];
+ 	char			*regs;
  };
- 
--static int iic_force_poll, iic_force_normal, iic_timeout = 1000;
-+static int iic_force_poll, iic_force_normal;
-+static int iic_timeout = 1000, iic_read_delay = 0;
- 
- static inline void highlander_i2c_irq_enable(struct highlander_i2c_dev *dev)
- {
-@@ -72,7 +74,7 @@ static inline void highlander_i2c_done(s
- 	iowrite16(ioread16(dev->base + SMCR) | SMCR_IRIC, dev->base + SMCR);
- }
- 
--static inline void highlander_i2c_setup(struct highlander_i2c_dev *dev)
-+static void highlander_i2c_setup(struct highlander_i2c_dev *dev)
- {
- 	u16 smmr;
- 
-@@ -89,50 +91,36 @@ static inline void highlander_i2c_setup(
- 
- static void smbus_write_data(u8 *src, u16 *dst, int len)
- {
--	int i, j;
-+	for (; len > 1; len -= 2) {
-+		*dst++ = be16_to_cpup((u16 *)src);
-+		src += 2;
-+	}
- 
--	if (len == 1)
-+	if (len)
- 		*dst = *src << 8;
--	else {
--		j = 0;
--		for (i = 0; i < len; i += 2) {
--			*(dst + j) = *(src + i) << 8 | *(src + i + 1);
--			j++;
--		}
--	}
- }
- 
- static void smbus_read_data(u16 *src, u8 *dst, int len)
- {
--	int i, j;
-+	for (; len > 1; len -= 2) {
-+		*(u16 *)dst = cpu_to_be16p(src++);
-+		dst += 2;
-+	}
- 
--	if (len == 1)
-+	if (len)
- 		*dst = *src >> 8;
--	else {
--		j = 0;
--		for (i = 0; i < len; i += 2) {
--			*(dst + i) = *(src + j) >> 8;
--			*(dst + i + 1) = *(src + j) & 0x00ff;
--			j++;
--		}
--	}
- }
- 
- static void highlander_i2c_command(struct highlander_i2c_dev *dev, u8 command, int len)
- {
--	u16 cmd[32];
--	int i, j;
--
--	j = 0;
--	if (len == 1)
--		cmd[j++] = (command << 8);
--	else
--		for (i = 0; i < len; i += 2)
--			cmd[j++] = (command << 8) | command;
-+	unsigned int i;
-+	u16 cmd = (command << 8) | command;
- 
--	for (i = 0; i < j; i++) {
--		iowrite16(cmd[i], dev->base + SMSADR + (i * sizeof(u16)));
--		dev_dbg(dev->dev, "command data[%x] 0x%04x\n", i, cmd[i]);
-+	for (i = 0; i < len; i += 2) {
-+		if (len - i == 1)
-+			cmd = command << 8;
-+		iowrite16(cmd, dev->base + SMSADR + i);
-+		dev_dbg(dev->dev, "command data[%x] 0x%04x\n", i/2, cmd);
- 	}
- }
- 
-@@ -220,61 +208,66 @@ static inline int highlander_i2c_wait_xf
- 	return highlander_i2c_wait_for_ack(dev);
- }
- 
--static int highlander_i2c_read(struct highlander_i2c_dev *dev,
--			       u8 *buf, unsigned int len)
-+static int highlander_i2c_read(struct highlander_i2c_dev *dev)
- {
- 	int i, cnt;
- 	u16 data[16];
- 
--	if (highlander_i2c_wait_for_bbsy(dev)) {
--		dev_warn(dev->dev, "timed out\n");
-+	if (highlander_i2c_wait_for_bbsy(dev))
- 		return -EAGAIN;
--	}
- 
- 	highlander_i2c_start(dev);
- 
- 	if (highlander_i2c_wait_xfer_done(dev)) {
- 		dev_err(dev->dev, "Arbitration loss\n");
--		return -EIO;
-+		return -EAGAIN;
- 	}
- 
--	cnt = (len + 1) >> 1;
-+	/*
-+	 * The R0P7780LC0011RL FPGA needs a significant delay between
-+	 * data read cycles, otherwise the transciever gets confused and
-+	 * garbage is returned when the read is subsequently aborted.
+@@ -106,10 +108,25 @@ static int rs5c_get_regs(struct rs5c372 
+ 	 *
+ 	 * The first method doesn't work with the iop3xx adapter driver, on at
+ 	 * least 80219 chips; this works around that bug.
 +	 *
-+	 * It is not sufficient to wait for BBSY.
-+	 *
-+	 * While this generally only applies to the older SH7780-based
-+	 * Highlanders, the same issue can be observed on SH7785 ones,
-+	 * albeit less frequently. SH7780-based Highlanders may need
-+	 * this to be as high as 1000 ms.
-+	 */
-+	if (iic_read_delay && time_before(jiffies, dev->last_read_time +
-+				 msecs_to_jiffies(iic_read_delay)))
-+		msleep_interruptible(jiffies_to_msecs((dev->last_read_time +
-+				msecs_to_jiffies(iic_read_delay)) - jiffies));
-+
-+	cnt = (dev->buf_len + 1) >> 1;
- 	for (i = 0; i < cnt; i++) {
- 		data[i] = ioread16(dev->base + SMTRDR + (i * sizeof(u16)));
- 		dev_dbg(dev->dev, "read data[%x] 0x%04x\n", i, data[i]);
- 	}
- 
--	smbus_read_data(data, buf, len);
-+	smbus_read_data(data, dev->buf, dev->buf_len);
- 
--	/*
--	 * The R0P7780LC0011RL FPGA on the SH7780-based Highlanders
--	 * needs a significant delay in the read path. SH7785 Highlanders
--	 * don't have this issue, so restrict it entirely to those.
--	 */
--	if (mach_is_r7780rp() || mach_is_r7780mp())
--		mdelay(1000);
-+	dev->last_read_time = jiffies;
- 
- 	return 0;
- }
- 
--static int highlander_i2c_write(struct highlander_i2c_dev *dev,
--				u8 *buf, unsigned int len)
-+static int highlander_i2c_write(struct highlander_i2c_dev *dev)
- {
- 	int i, cnt;
- 	u16 data[16];
- 
--	smbus_write_data(buf, data, len);
-+	smbus_write_data(dev->buf, data, dev->buf_len);
- 
--	cnt = (len + 1) >> 1;
-+	cnt = (dev->buf_len + 1) >> 1;
- 	for (i = 0; i < cnt; i++) {
- 		iowrite16(data[i], dev->base + SMTRDR + (i * sizeof(u16)));
- 		dev_dbg(dev->dev, "write data[%x] 0x%04x\n", i, data[i]);
- 	}
- 
--	if (highlander_i2c_wait_for_bbsy(dev)) {
--		dev_warn(dev->dev, "timed out\n");
-+	if (highlander_i2c_wait_for_bbsy(dev))
- 		return -EAGAIN;
--	}
- 
- 	highlander_i2c_start(dev);
- 
-@@ -295,26 +288,20 @@ static int highlander_i2c_smbus_xfer(str
- 	dev_dbg(dev->dev, "addr %04x, command %02x, read_write %d, size %d\n",
- 		addr, command, read_write, size);
- 
--	/* Defaults */
--	dev->buf = NULL;
--	dev->buf_len = 0;
--
- 	/*
- 	 * Set up the buffer and transfer size
++	 * The third method on the other hand doesn't work for the SMBus-only
++	 * configurations, so we use the the first method there, stripping off
++	 * the extra register in the process.
  	 */
- 	switch (size) {
- 	case I2C_SMBUS_BYTE_DATA:
--		if (data)
--			dev->buf = &data->byte;
-+		dev->buf = &data->byte;
- 		dev->buf_len = 1;
- 		break;
--	case I2C_SMBUS_BLOCK_DATA:
- 	case I2C_SMBUS_I2C_BLOCK_DATA:
- 		dev->buf = &data->block[1];
- 		dev->buf_len = data->block[0];
- 		break;
- 	default:
--		dev_err(dev->dev, "bogus command %d\n", size);
-+		dev_err(dev->dev, "unsupported command %d\n", size);
- 		return -EINVAL;
+-	if ((i2c_transfer(client->adapter, msgs, 1)) != 1) {
+-		dev_warn(&client->dev, "can't read registers\n");
+-		return -EIO;
++	if (rs5c->smbus) {
++		int addr = RS5C_ADDR(RS5C372_REG_SECS);
++		int size = sizeof(rs5c->buf) - 1;
++
++		if (i2c_smbus_read_i2c_block_data(client, addr, size,
++						  rs5c->buf + 1) != size) {
++			dev_warn(&client->dev, "can't read registers\n");
++			return -EIO;
++		}
++	} else {
++		if ((i2c_transfer(client->adapter, msgs, 1)) != 1) {
++			dev_warn(&client->dev, "can't read registers\n");
++			return -EIO;
++		}
  	}
  
-@@ -338,7 +325,7 @@ static int highlander_i2c_smbus_xfer(str
- 		tmp |= (SMMR_MODE0 | SMMR_MODE1);
- 		break;
- 	default:
--		dev_err(dev->dev, "bogus xfer size %d\n", dev->buf_len);
-+		dev_err(dev->dev, "unsupported xfer size %d\n", dev->buf_len);
- 		return -EINVAL;
+ 	dev_dbg(&client->dev,
+@@ -187,6 +204,7 @@ static int rs5c372_set_datetime(struct i
+ {
+ 	struct rs5c372	*rs5c = i2c_get_clientdata(client);
+ 	unsigned char	buf[8];
++	int		addr;
+ 
+ 	dev_dbg(&client->dev, "%s: tm is secs=%d, mins=%d, hours=%d "
+ 		"mday=%d, mon=%d, year=%d, wday=%d\n",
+@@ -194,16 +212,16 @@ static int rs5c372_set_datetime(struct i
+ 		tm->tm_sec, tm->tm_min, tm->tm_hour,
+ 		tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
+ 
+-	buf[0] = RS5C_ADDR(RS5C372_REG_SECS);
+-	buf[1] = BIN2BCD(tm->tm_sec);
+-	buf[2] = BIN2BCD(tm->tm_min);
+-	buf[3] = rs5c_hr2reg(rs5c, tm->tm_hour);
+-	buf[4] = BIN2BCD(tm->tm_wday);
+-	buf[5] = BIN2BCD(tm->tm_mday);
+-	buf[6] = BIN2BCD(tm->tm_mon + 1);
+-	buf[7] = BIN2BCD(tm->tm_year - 100);
++	addr   = RS5C_ADDR(RS5C372_REG_SECS);
++	buf[0] = BIN2BCD(tm->tm_sec);
++	buf[1] = BIN2BCD(tm->tm_min);
++	buf[2] = rs5c_hr2reg(rs5c, tm->tm_hour);
++	buf[3] = BIN2BCD(tm->tm_wday);
++	buf[4] = BIN2BCD(tm->tm_mday);
++	buf[5] = BIN2BCD(tm->tm_mon + 1);
++	buf[6] = BIN2BCD(tm->tm_year - 100);
+ 
+-	if ((i2c_master_send(client, buf, 8)) != 8) {
++	if (i2c_smbus_write_i2c_block_data(client, addr, sizeof(buf), buf) < 0) {
+ 		dev_err(&client->dev, "%s: write error\n", __func__);
+ 		return -EIO;
  	}
+@@ -266,16 +284,16 @@ rs5c_rtc_ioctl(struct device *dev, unsig
+ {
+ 	struct i2c_client	*client = to_i2c_client(dev);
+ 	struct rs5c372		*rs5c = i2c_get_clientdata(client);
+-	unsigned char		buf[2];
+-	int			status;
++	unsigned char		buf;
++	int			status, addr;
  
-@@ -348,19 +335,19 @@ static int highlander_i2c_smbus_xfer(str
- 	highlander_i2c_done(dev);
+-	buf[1] = rs5c->regs[RS5C_REG_CTRL1];
++	buf = rs5c->regs[RS5C_REG_CTRL1];
+ 	switch (cmd) {
+ 	case RTC_UIE_OFF:
+ 	case RTC_UIE_ON:
+ 		/* some 327a modes use a different IRQ pin for 1Hz irqs */
+ 		if (rs5c->type == rtc_rs5c372a
+-				&& (buf[1] & RS5C372A_CTRL1_SL1))
++				&& (buf & RS5C372A_CTRL1_SL1))
+ 			return -ENOIOCTLCMD;
+ 	case RTC_AIE_OFF:
+ 	case RTC_AIE_ON:
+@@ -293,28 +311,30 @@ rs5c_rtc_ioctl(struct device *dev, unsig
+ 	if (status < 0)
+ 		return status;
  
- 	/* Set slave address */
--	iowrite16(((addr & 0x7f) << 1) | read, dev->base + SMSMADR);
-+	iowrite16((addr << 1) | read, dev->base + SMSMADR);
- 
- 	highlander_i2c_command(dev, command, dev->buf_len);
- 
- 	if (read)
--		return highlander_i2c_read(dev, dev->buf, dev->buf_len);
-+		return highlander_i2c_read(dev);
- 	else
--		return highlander_i2c_write(dev, dev->buf, dev->buf_len);
-+		return highlander_i2c_write(dev);
+-	buf[0] = RS5C_ADDR(RS5C_REG_CTRL1);
++	addr = RS5C_ADDR(RS5C_REG_CTRL1);
+ 	switch (cmd) {
+ 	case RTC_AIE_OFF:	/* alarm off */
+-		buf[1] &= ~RS5C_CTRL1_AALE;
++		buf &= ~RS5C_CTRL1_AALE;
+ 		break;
+ 	case RTC_AIE_ON:	/* alarm on */
+-		buf[1] |= RS5C_CTRL1_AALE;
++		buf |= RS5C_CTRL1_AALE;
+ 		break;
+ 	case RTC_UIE_OFF:	/* update off */
+-		buf[1] &= ~RS5C_CTRL1_CT_MASK;
++		buf &= ~RS5C_CTRL1_CT_MASK;
+ 		break;
+ 	case RTC_UIE_ON:	/* update on */
+-		buf[1] &= ~RS5C_CTRL1_CT_MASK;
+-		buf[1] |= RS5C_CTRL1_CT4;
++		buf &= ~RS5C_CTRL1_CT_MASK;
++		buf |= RS5C_CTRL1_CT4;
+ 		break;
+ 	}
+-	if ((i2c_master_send(client, buf, 2)) != 2) {
++
++	if (i2c_smbus_write_byte_data(client, addr, buf) < 0) {
+ 		printk(KERN_WARNING "%s: can't update alarm\n",
+ 			rs5c->rtc->name);
+ 		status = -EIO;
+ 	} else
+-		rs5c->regs[RS5C_REG_CTRL1] = buf[1];
++		rs5c->regs[RS5C_REG_CTRL1] = buf;
++
+ 	return status;
  }
  
- static u32 highlander_i2c_func(struct i2c_adapter *adapter)
+@@ -364,8 +384,8 @@ static int rs5c_set_alarm(struct device 
  {
--	return I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_BLOCK_DATA;
-+	return I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_I2C_BLOCK;
- }
+ 	struct i2c_client	*client = to_i2c_client(dev);
+ 	struct rs5c372		*rs5c = i2c_get_clientdata(client);
+-	int			status;
+-	unsigned char		buf[4];
++	int			status, addr, i;
++	unsigned char		buf[3];
  
- static const struct i2c_algorithm highlander_i2c_algo = {
-@@ -368,7 +355,7 @@ static const struct i2c_algorithm highla
- 	.functionality	= highlander_i2c_func,
- };
- 
--static int highlander_i2c_probe(struct platform_device *pdev)
-+static int __devinit highlander_i2c_probe(struct platform_device *pdev)
- {
- 	struct highlander_i2c_dev *dev;
- 	struct i2c_adapter *adap;
-@@ -385,7 +372,7 @@ static int highlander_i2c_probe(struct p
- 	if (unlikely(!dev))
- 		return -ENOMEM;
- 
--	dev->base = ioremap_nocache(res->start, res->end - res ->start + 1);
-+	dev->base = ioremap_nocache(res->start, res->end - res->start + 1);
- 	if (unlikely(!dev->base)) {
- 		ret = -ENXIO;
- 		goto err;
-@@ -395,7 +382,10 @@ static int highlander_i2c_probe(struct p
- 	platform_set_drvdata(pdev, dev);
- 
- 	dev->irq = platform_get_irq(pdev, 0);
--	if (dev->irq && !iic_force_poll) {
-+	if (iic_force_poll)
-+		dev->irq = 0;
-+
-+	if (dev->irq) {
- 		ret = request_irq(dev->irq, highlander_i2c_irq, IRQF_DISABLED,
- 				  pdev->name, dev);
- 		if (unlikely(ret))
-@@ -407,22 +397,18 @@ static int highlander_i2c_probe(struct p
- 		highlander_i2c_irq_disable(dev);
+ 	/* only handle up to 24 hours in the future, like RTC_ALM_SET */
+ 	if (t->time.tm_mday != -1
+@@ -380,33 +400,36 @@ static int rs5c_set_alarm(struct device 
+ 	if (status < 0)
+ 		return status;
+ 	if (rs5c->regs[RS5C_REG_CTRL1] & RS5C_CTRL1_AALE) {
+-		buf[0] = RS5C_ADDR(RS5C_REG_CTRL1);
+-		buf[1] = rs5c->regs[RS5C_REG_CTRL1] & ~RS5C_CTRL1_AALE;
+-		if (i2c_master_send(client, buf, 2) != 2) {
++		addr = RS5C_ADDR(RS5C_REG_CTRL1);
++		buf[0] = rs5c->regs[RS5C_REG_CTRL1] & ~RS5C_CTRL1_AALE;
++		if (i2c_smbus_write_byte_data(client, addr, buf[0]) < 0) {
+ 			pr_debug("%s: can't disable alarm\n", rs5c->rtc->name);
+ 			return -EIO;
+ 		}
+-		rs5c->regs[RS5C_REG_CTRL1] = buf[1];
++		rs5c->regs[RS5C_REG_CTRL1] = buf[0];
  	}
  
-+	dev->last_read_time = jiffies;	/* initial read jiffies */
+ 	/* set alarm */
+-	buf[0] = RS5C_ADDR(RS5C_REG_ALARM_A_MIN);
+-	buf[1] = BIN2BCD(t->time.tm_min);
+-	buf[2] = rs5c_hr2reg(rs5c, t->time.tm_hour);
+-	buf[3] = 0x7f;	/* any/all days */
+-	if ((i2c_master_send(client, buf, 4)) != 4) {
+-		pr_debug("%s: can't set alarm time\n", rs5c->rtc->name);
+-		return -EIO;
++	buf[0] = BIN2BCD(t->time.tm_min);
++	buf[1] = rs5c_hr2reg(rs5c, t->time.tm_hour);
++	buf[2] = 0x7f;	/* any/all days */
 +
- 	highlander_i2c_setup(dev);
- 
- 	adap = &dev->adapter;
- 	i2c_set_adapdata(adap, dev);
- 	adap->owner = THIS_MODULE;
- 	adap->class = I2C_CLASS_HWMON;
--	strncpy(adap->name, "HL FPGA I2C adapter", sizeof(adap->name));
-+	strlcpy(adap->name, "HL FPGA I2C adapter", I2C_NAME_SIZE);
- 	adap->algo = &highlander_i2c_algo;
- 	adap->dev.parent = &pdev->dev;
--
- 	adap->nr = pdev->id;
--	ret = i2c_add_numbered_adapter(adap);
--	if (unlikely(ret)) {
--		dev_err(&pdev->dev, "failure adding adapter\n");
--		goto err_free_irq;
--	}
- 
- 	/*
- 	 * Reset the adapter
-@@ -433,10 +419,17 @@ static int highlander_i2c_probe(struct p
- 		goto err_free_irq;
++	for (i = 0; i < sizeof(buf); i++) {
++		addr = RS5C_ADDR(RS5C_REG_ALARM_A_MIN + i);
++		if (i2c_smbus_write_byte_data(client, addr, buf[i]) < 0) {
++			pr_debug("%s: can't set alarm time\n", rs5c->rtc->name);
++			return -EIO;
++		}
  	}
  
-+	ret = i2c_add_numbered_adapter(adap);
-+	if (unlikely(ret)) {
-+		dev_err(&pdev->dev, "failure adding adapter\n");
-+		goto err_free_irq;
+ 	/* ... and maybe enable its irq */
+ 	if (t->enabled) {
+-		buf[0] = RS5C_ADDR(RS5C_REG_CTRL1);
+-		buf[1] = rs5c->regs[RS5C_REG_CTRL1] | RS5C_CTRL1_AALE;
+-		if ((i2c_master_send(client, buf, 2)) != 2)
++		addr = RS5C_ADDR(RS5C_REG_CTRL1);
++		buf[0] = rs5c->regs[RS5C_REG_CTRL1] | RS5C_CTRL1_AALE;
++		if (i2c_smbus_write_byte_data(client, addr, buf[0]) < 0)
+ 			printk(KERN_WARNING "%s: can't enable alarm\n",
+ 				rs5c->rtc->name);
+-		rs5c->regs[RS5C_REG_CTRL1] = buf[1];
++		rs5c->regs[RS5C_REG_CTRL1] = buf[0];
+ 	}
+ 
+ 	return 0;
+@@ -503,18 +526,74 @@ static void rs5c_sysfs_unregister(struct
+ 
+ static struct i2c_driver rs5c372_driver;
+ 
++static int rs5c_oscillator_setup(struct rs5c372 *rs5c372)
++{
++	unsigned char buf[2];
++	int addr, i, ret = 0;
++
++	if (!(rs5c372->regs[RS5C_REG_CTRL2] & RS5C_CTRL2_XSTP))
++		return ret;
++	rs5c372->regs[RS5C_REG_CTRL2] &= ~RS5C_CTRL2_XSTP;
++
++	addr   = RS5C_ADDR(RS5C_REG_CTRL1);
++	buf[0] = rs5c372->regs[RS5C_REG_CTRL1];
++	buf[1] = rs5c372->regs[RS5C_REG_CTRL2];
++
++	/* use 24hr mode */
++	switch (rs5c372->type) {
++	case rtc_rs5c372a:
++	case rtc_rs5c372b:
++		buf[1] |= RS5C372_CTRL2_24;
++		rs5c372->time24 = 1;
++		break;
++	case rtc_rv5c386:
++	case rtc_rv5c387a:
++		buf[0] |= RV5C387_CTRL1_24;
++		rs5c372->time24 = 1;
++		break;
++	default:
++		/* impossible */
++		break;
 +	}
 +
- 	return 0;
- 
- err_free_irq:
--	free_irq(dev->irq, dev);
-+	if (dev->irq)
-+		free_irq(dev->irq, dev);
- err_unmap:
- 	iounmap(dev->base);
- err:
-@@ -447,7 +440,7 @@ err:
- 	return ret;
- }
- 
--static int highlander_i2c_remove(struct platform_device *pdev)
-+static int __devexit highlander_i2c_remove(struct platform_device *pdev)
++	for (i = 0; i < sizeof(buf); i++) {
++		addr = RS5C_ADDR(RS5C_REG_CTRL1 + i);
++		ret = i2c_smbus_write_byte_data(rs5c372->client, addr, buf[i]);
++		if (unlikely(ret < 0))
++			return ret;
++	}
++
++	rs5c372->regs[RS5C_REG_CTRL1] = buf[0];
++	rs5c372->regs[RS5C_REG_CTRL2] = buf[1];
++
++	return 0;
++}
++
+ static int rs5c372_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
  {
- 	struct highlander_i2c_dev *dev = platform_get_drvdata(pdev);
+ 	int err = 0;
++	int smbus_mode = 0;
+ 	struct rs5c372 *rs5c372;
+ 	struct rtc_time tm;
  
-@@ -471,7 +464,7 @@ static struct platform_driver highlander
- 	},
+ 	dev_dbg(&client->dev, "%s\n", __func__);
  
- 	.probe		= highlander_i2c_probe,
--	.remove		= highlander_i2c_remove,
-+	.remove		= __devexit_p(highlander_i2c_remove),
- };
+-	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
+-		err = -ENODEV;
+-		goto exit;
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C |
++					I2C_FUNC_SMBUS_EMUL)) {
++		/*
++		 * If we don't have any master mode adapter, try breaking
++		 * it down in to the barest of capabilities.
++		 */
++		if (i2c_check_functionality(client->adapter,
++				I2C_FUNC_SMBUS_BYTE_DATA |
++				I2C_FUNC_SMBUS_BLOCK_DATA))
++			smbus_mode = 1;
++		else {
++			/* Still no good, give up */
++			err = -ENODEV;
++			goto exit;
++		}
+ 	}
  
- static int __init highlander_i2c_init(void)
-@@ -494,7 +487,9 @@ MODULE_LICENSE("GPL v2");
- module_param(iic_force_poll, bool, 0);
- module_param(iic_force_normal, bool, 0);
- module_param(iic_timeout, int, 0);
-+module_param(iic_read_delay, int, 0);
+ 	if (!(rs5c372 = kzalloc(sizeof(struct rs5c372), GFP_KERNEL))) {
+@@ -528,6 +607,7 @@ static int rs5c372_probe(struct i2c_clie
  
- MODULE_PARM_DESC(iic_force_poll, "Force polling mode");
- MODULE_PARM_DESC(iic_force_normal, "Force normal mode (100 kHz), default is fast mode (400 kHz)");
--MODULE_PARM_DESC(iic_timeout, "Force timeout value in msecs (default 1000 ms)");
-+MODULE_PARM_DESC(iic_timeout, "Set timeout value in msecs (default 1000 ms)");
-+MODULE_PARM_DESC(iic_read_delay, "Delay between data read cycles (default 0 ms)");
+ 	/* we read registers 0x0f then 0x00-0x0f; skip the first one */
+ 	rs5c372->regs = &rs5c372->buf[1];
++	rs5c372->smbus = smbus_mode;
+ 
+ 	err = rs5c_get_regs(rs5c372);
+ 	if (err < 0)
+@@ -559,38 +639,10 @@ static int rs5c372_probe(struct i2c_clie
+ 	/* if the oscillator lost power and no other software (like
+ 	 * the bootloader) set it up, do it here.
+ 	 */
+-	if (rs5c372->regs[RS5C_REG_CTRL2] & RS5C_CTRL2_XSTP) {
+-		unsigned char buf[3];
+-
+-		rs5c372->regs[RS5C_REG_CTRL2] &= ~RS5C_CTRL2_XSTP;
+-
+-		buf[0] = RS5C_ADDR(RS5C_REG_CTRL1);
+-		buf[1] = rs5c372->regs[RS5C_REG_CTRL1];
+-		buf[2] = rs5c372->regs[RS5C_REG_CTRL2];
+-
+-		/* use 24hr mode */
+-		switch (rs5c372->type) {
+-		case rtc_rs5c372a:
+-		case rtc_rs5c372b:
+-			buf[2] |= RS5C372_CTRL2_24;
+-			rs5c372->time24 = 1;
+-			break;
+-		case rtc_rv5c386:
+-		case rtc_rv5c387a:
+-			buf[1] |= RV5C387_CTRL1_24;
+-			rs5c372->time24 = 1;
+-			break;
+-		default:
+-			/* impossible */
+-			break;
+-		}
+-
+-		if ((i2c_master_send(client, buf, 3)) != 3) {
+-			dev_err(&client->dev, "setup error\n");
+-			goto exit_kfree;
+-		}
+-		rs5c372->regs[RS5C_REG_CTRL1] = buf[1];
+-		rs5c372->regs[RS5C_REG_CTRL2] = buf[2];
++	err = rs5c_oscillator_setup(rs5c372);
++	if (unlikely(err < 0)) {
++		dev_err(&client->dev, "setup error\n");
++		goto exit_kfree;
+ 	}
+ 
+ 	if (rs5c372_get_datetime(client, &tm) < 0)
+@@ -667,7 +719,8 @@ module_exit(rs5c372_exit);
+ 
+ MODULE_AUTHOR(
+ 		"Pavel Mironchik <pmironchik@optifacio.net>, "
+-		"Alessandro Zummo <a.zummo@towertech.it>");
++		"Alessandro Zummo <a.zummo@towertech.it>, "
++		"Paul Mundt <lethal@linux-sh.org>");
+ MODULE_DESCRIPTION("Ricoh RS5C372 RTC driver");
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION(DRV_VERSION);
 _
 
 Patches currently in -mm which might be from lethal@linux-sh.org are
