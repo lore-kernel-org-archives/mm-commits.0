@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sunrpc-do-not-pin-sunrpc-module-in-the-memory.patch added to -mm tree
-Date: Tue, 05 Aug 2008 14:43:45 -0700
-Message-ID: <200808052143.m75LhjrP025009@imap1.linux-foundation.org>
+Subject: + docbook-fix-s390-fatal-error-after-header-files-moved.patch added to -mm tree
+Date: Tue, 05 Aug 2008 15:13:57 -0700
+Message-ID: <200808052213.m75MDvlS026166@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41694 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42933 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757922AbYHEVok (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 17:44:40 -0400
+	by vger.kernel.org with ESMTP id S1751239AbYHEWPy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 18:15:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: den@openvz.org, bfields@fieldses.org, chuck.lever@oracle.com, davem@davemloft.net, trond.myklebust@fys.uio.no
+Cc: randy.dunlap@oracle.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     sunrpc: do not pin sunrpc module in the memory
+     docbook: fix s390 fatal error after header files moved
 has been added to the -mm tree.  Its filename is
-     sunrpc-do-not-pin-sunrpc-module-in-the-memory.patch
+     docbook-fix-s390-fatal-error-after-header-files-moved.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sunrpc: do not pin sunrpc module in the memory
-From: "Denis V. Lunev" <den@openvz.org>
+Subject: docbook: fix s390 fatal error after header files moved
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Basically, try_module_get here are pretty useless. Any other module using
-this API will pin sunrpc in memory due using exported symbols.
+Fix (fatal error) s390 docbook file to handle renamed header files.
 
-Signed-off-by: Denis V. Lunev <den@openvz.org>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Chuck Lever <chuck.lever@oracle.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sunrpc/xprt.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ Documentation/DocBook/s390-drivers.tmpl |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN net/sunrpc/xprt.c~sunrpc-do-not-pin-sunrpc-module-in-the-memory net/sunrpc/xprt.c
---- a/net/sunrpc/xprt.c~sunrpc-do-not-pin-sunrpc-module-in-the-memory
-+++ a/net/sunrpc/xprt.c
-@@ -108,13 +108,10 @@ int xprt_register_transport(struct xprt_
- 			goto out;
- 	}
- 
--	result = -EINVAL;
--	if (try_module_get(THIS_MODULE)) {
--		list_add_tail(&transport->list, &xprt_list);
--		printk(KERN_INFO "RPC: Registered %s transport module.\n",
--			transport->name);
--		result = 0;
--	}
-+	list_add_tail(&transport->list, &xprt_list);
-+	printk(KERN_INFO "RPC: Registered %s transport module.\n",
-+	       transport->name);
-+	result = 0;
- 
- out:
- 	spin_unlock(&xprt_list_lock);
-@@ -143,7 +140,6 @@ int xprt_unregister_transport(struct xpr
- 				"RPC: Unregistered %s transport module.\n",
- 				transport->name);
- 			list_del_init(&transport->list);
--			module_put(THIS_MODULE);
- 			goto out;
- 		}
- 	}
+diff -puN Documentation/DocBook/s390-drivers.tmpl~docbook-fix-s390-fatal-error-after-header-files-moved Documentation/DocBook/s390-drivers.tmpl
+--- a/Documentation/DocBook/s390-drivers.tmpl~docbook-fix-s390-fatal-error-after-header-files-moved
++++ a/Documentation/DocBook/s390-drivers.tmpl
+@@ -100,7 +100,7 @@
+       the hardware structures represented here, please consult the Principles
+       of Operation.
+     </para>
+-!Iinclude/asm-s390/cio.h
++!Iarch/s390/include/asm/cio.h
+     </sect1>
+     <sect1 id="ccwdev">
+      <title>ccw devices</title>
+@@ -114,7 +114,7 @@
+       ccw device structure. Device drivers must not bypass those functions
+       or strange side effects may happen.
+     </para>
+-!Iinclude/asm-s390/ccwdev.h
++!Iarch/s390/include/asm/ccwdev.h
+ !Edrivers/s390/cio/device.c
+ !Edrivers/s390/cio/device_ops.c
+     </sect1>
+@@ -125,7 +125,7 @@
+ 	measurement data which is made available by the channel subsystem
+ 	for each channel attached device.
+   </para>
+-!Iinclude/asm-s390/cmb.h
++!Iarch/s390/include/asm/cmb.h
+ !Edrivers/s390/cio/cmf.c
+     </sect1>
+   </chapter>
+@@ -142,7 +142,7 @@
+   </para>
+    <sect1 id="ccwgroupdevices">
+     <title>ccw group devices</title>
+-!Iinclude/asm-s390/ccwgroup.h
++!Iarch/s390/include/asm/ccwgroup.h
+ !Edrivers/s390/cio/ccwgroup.c
+    </sect1>
+   </chapter>
 _
 
-Patches currently in -mm which might be from den@openvz.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+kernel-doc-skip-nested-struct-union-cleanly.patch
+docbook-fix-s390-fatal-error-after-header-files-moved.patch
 linux-next.patch
-nfs-err_ptr-is-expected-on-failure-from-nfs_do_clone_mount.patch
-sunrpc-do-not-pin-sunrpc-module-in-the-memory.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+v4l-fix-kernel-doc-warning-function-name-and-docbook-filename.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+lkdtm-fix-for-config_scsi=n.patch
+kbuild-extend-menuconfig-for-modules-to-simplify-kconfig-file.patch
+bugfix-for-scripts-patch-kernel-in-26-sublevel-stepping.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+ftrace-printk-formatting-infrastructure-fix.patch
+git-unionfs.patch
+docsrc-build-documentation-sources.patch
+docsrc-fix-procfs-example.patch
+docsrc-fix-ifenslave-type.patch
+docsrc-fix-crc32hash-type.patch
+docsrc-fix-getdelays-printk-formats.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+w1-documentation-w1-masters-ds2490-update.patch
+profile-likely-unlikely-macros.patch
 
