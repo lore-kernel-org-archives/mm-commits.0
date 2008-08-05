@@ -1,94 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - spi-new-orion_spi-driver-fixes.patch removed from -mm tree
-Date: Tue, 05 Aug 2008 12:03:18 -0700
-Message-ID: <200808051916.m75JGER5018813@imap1.linux-foundation.org>
+Subject: - pm_qos-spelling-fixes-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 05 Aug 2008 12:04:05 -0700
+Message-ID: <200808051917.m75JH0MU018825@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44285 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57186 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755947AbYHETQo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 15:16:44 -0400
+	by vger.kernel.org with ESMTP id S1755199AbYHETRV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 15:17:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shadi@marvell.com, buytenh@marvell.com, dbrownell@users.sourceforge.net, saeed@marvell.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mgross@linux.intel.com, richard@hughsie.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: new orion_spi driver (fixes)
+     pm_qos-spelling-fixes-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     spi-new-orion_spi-driver-fixes.patch
+     pm_qos-spelling-fixes-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into spi-new-orion_spi-driver.patch
+This patch was dropped because it was folded into pm_qos-spelling-fixes.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: new orion_spi driver (fixes)
-From: Shadi Ammouri <shadi@marvell.com>
+Subject: pm_qos-spelling-fixes-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-added cancel_work_sync to cancel the work of the device when removing it, 
-and flush_workqueue on the driver's removal.
-here is the patch with the modifications needed by the two comments:
+WARNING: line over 80 characters
+#65: FILE: kernel/pm_qos_params.c:214:
++ * performance characteristics.  It recomputes the aggregate QoS expectations for
 
-Cc: Saeed Bishara <saeed@marvell.com>
-Cc: Lennert Buytenhek <buytenh@marvell.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
+total: 0 errors, 1 warnings, 77 lines checked
+
+./patches/pm_qos-spelling-fixes.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Richard Hughes <richard@hughsie.com>
+Cc: mark gross <mgross@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/orion_spi.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ kernel/pm_qos_params.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/spi/orion_spi.c~spi-new-orion_spi-driver-fixes drivers/spi/orion_spi.c
---- a/drivers/spi/orion_spi.c~spi-new-orion_spi-driver-fixes
-+++ a/drivers/spi/orion_spi.c
-@@ -138,6 +138,7 @@ orion_spi_setup_transfer(struct spi_devi
- 	struct orion_spi *orion_spi;
- 	unsigned int speed = spi->max_speed_hz;
- 	unsigned int bits_per_word = spi->bits_per_word;
-+	int	rc;
- 
- 	orion_spi = spi_master_get_devdata(spi->master);
- 
-@@ -147,13 +148,11 @@ orion_spi_setup_transfer(struct spi_devi
- 	if ((t != NULL) && t->bits_per_word)
- 		bits_per_word = t->bits_per_word;
- 
--	if (orion_spi_baudrate_set(spi, speed) != 0)
--		return -EINVAL;
--
--	if (orion_spi_set_transfer_size(orion_spi, bits_per_word) != 0)
--		return -EINVAL;
-+	rc = orion_spi_baudrate_set(spi, speed);
-+	if (rc)
-+		return rc;
- 
--	return 0;
-+	return orion_spi_set_transfer_size(orion_spi, bits_per_word);
- }
- 
- static void orion_spi_set_cs(struct orion_spi *orion_spi, int enable)
-@@ -530,6 +529,8 @@ static int __exit orion_spi_remove(struc
- 	master = dev_get_drvdata(&pdev->dev);
- 	spi = spi_master_get_devdata(master);
- 
-+	cancel_work_sync(&spi->work);
-+
- 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	release_mem_region(r->start, (r->end - r->start) + 1);
- 
-@@ -561,6 +562,7 @@ module_init(orion_spi_init);
- 
- static void __exit orion_spi_exit(void)
+diff -puN kernel/pm_qos_params.c~pm_qos-spelling-fixes-checkpatch-fixes kernel/pm_qos_params.c
+--- a/kernel/pm_qos_params.c~pm_qos-spelling-fixes-checkpatch-fixes
++++ a/kernel/pm_qos_params.c
+@@ -211,8 +211,8 @@ EXPORT_SYMBOL_GPL(pm_qos_requirement);
+  * @value: defines the qos request
+  *
+  * This function inserts a new entry in the pm_qos_class list of requested qos
+- * performance characteristics.  It recomputes the aggregate QoS expectations for
+- * the pm_qos_class of parameters.
++ * performance characteristics.  It recomputes the aggregate QoS expectations
++ * for the pm_qos_class of parameters.
+  */
+ int pm_qos_add_requirement(int pm_qos_class, char *name, s32 value)
  {
-+	flush_workqueue(orion_spi_wq);
- 	platform_driver_unregister(&orion_spi_driver);
- 
- 	destroy_workqueue(orion_spi_wq);
 _
 
-Patches currently in -mm which might be from shadi@marvell.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-spi-new-orion_spi-driver.patch
-spi-new-orion_spi-driver-fixes.patch
+origin.patch
+mm_initc-avoid-ifdef-inside-macro-expansion.patch
+pm_qos-spelling-fixes.patch
+pm_qos-spelling-fixes-checkpatch-fixes.patch
+drivers-media-video-vinoc-needs-v4l2-ioctlh.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+linux-next.patch
+next-remove-localversion.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
+sched-type-fix.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+usb-hubc-fix-build-with-config_pm=n.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+scsi-megaraid_sas-add-the-new-controllers-support-checkpatch-fixes.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
