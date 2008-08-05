@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-generic-weak-get_user_pages_fast-and-export_gpl-it.patch added to -mm tree
-Date: Tue, 05 Aug 2008 02:03:39 -0700
-Message-ID: <200808050903.m7593dFr026842@imap1.linux-foundation.org>
+Subject: + mm_initc-avoid-ifdef-inside-macro-expansion.patch added to -mm tree
+Date: Tue, 05 Aug 2008 02:11:45 -0700
+Message-ID: <200808050911.m759BjDO027069@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60689 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37665 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752312AbYHEJEW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 05:04:22 -0400
+	by vger.kernel.org with ESMTP id S1755603AbYHEJL6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 05:11:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rusty@rustcorp.com.au, benh@kernel.crashing.org, mingo@elte.hu, npiggin@suse.de, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, bunk@kernel.org, mel@csn.ul.ie
 
 
 The patch titled
-     mm: Make generic weak get_user_pages_fast and EXPORT_GPL it
+     mm_init.c: avoid ifdef-inside-macro-expansion
 has been added to the -mm tree.  Its filename is
-     mm-make-generic-weak-get_user_pages_fast-and-export_gpl-it.patch
+     mm_initc-avoid-ifdef-inside-macro-expansion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,152 +33,128 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: Make generic weak get_user_pages_fast and EXPORT_GPL it
-From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: mm_init.c: avoid ifdef-inside-macro-expansion
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Out of line get_user_pages_fast fallback implementation, make it a weak
-symbol, get rid of CONFIG_HAVE_GET_USER_PAGES_FAST.
+gcc-3.2:
 
-Export the symbol to modules so lguest can use it.
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c:77:1: directives may not be used inside a macro argument
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c:76:47: unterminated argument list invoking macro "mminit_dprintk"
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c: In function `mminit_verify_pageflags_layout':
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c:80: `mminit_dprintk' undeclared (first use in this function)
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c:80: (Each undeclared identifier is reported only once
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c:80: for each function it appears in.)
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/mm_init.c:80: syntax error before numeric constant
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Also fix a typo in a comment.
+
+Reported-by: Adrian Bunk <bunk@kernel.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig |    3 ---
- arch/x86/Kconfig     |    1 -
- arch/x86/mm/Makefile |    3 +--
- include/linux/mm.h   |   20 --------------------
- mm/Kconfig           |    3 ---
- mm/util.c            |   15 +++++++++++++++
- 6 files changed, 16 insertions(+), 29 deletions(-)
+ mm/mm_init.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/powerpc/Kconfig~mm-make-generic-weak-get_user_pages_fast-and-export_gpl-it arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~mm-make-generic-weak-get_user_pages_fast-and-export_gpl-it
-+++ a/arch/powerpc/Kconfig
-@@ -42,9 +42,6 @@ config GENERIC_HARDIRQS
- 	bool
- 	default y
+diff -puN include/linux/mmzone.h~mm_initc-avoid-ifdef-inside-macro-expansion include/linux/mmzone.h
+diff -puN mm/mm_init.c~mm_initc-avoid-ifdef-inside-macro-expansion mm/mm_init.c
+--- a/mm/mm_init.c~mm_initc-avoid-ifdef-inside-macro-expansion
++++ a/mm/mm_init.c
+@@ -14,6 +14,10 @@
+ #ifdef CONFIG_DEBUG_MEMORY_INIT
+ int __meminitdata mminit_loglevel;
  
--config HAVE_GET_USER_PAGES_FAST
--	def_bool PPC64
--
- config HAVE_SETUP_PER_CPU_AREA
- 	def_bool PPC64
- 
-diff -puN arch/x86/Kconfig~mm-make-generic-weak-get_user_pages_fast-and-export_gpl-it arch/x86/Kconfig
---- a/arch/x86/Kconfig~mm-make-generic-weak-get_user_pages_fast-and-export_gpl-it
-+++ a/arch/x86/Kconfig
-@@ -23,7 +23,6 @@ config X86
- 	select HAVE_OPROFILE
- 	select HAVE_ARCH_TRACEHOOK
- 	select HAVE_IOREMAP_PROT
--	select HAVE_GET_USER_PAGES_FAST
- 	select HAVE_KPROBES
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
- 	select HAVE_KRETPROBES
-diff -puN arch/x86/mm/Makefile~mm-make-generic-weak-get_user_pages_fast-and-export_gpl-it arch/x86/mm/Makefile
---- a/arch/x86/mm/Makefile~mm-make-generic-weak-get_user_pages_fast-and-export_gpl-it
-+++ a/arch/x86/mm/Makefile
-@@ -1,7 +1,6 @@
- obj-y	:=  init_$(BITS).o fault.o ioremap.o extable.o pageattr.o mmap.o \
--	    pat.o pgtable.o
-+	    pat.o pgtable.o gup.o
- 
--obj-$(CONFIG_HAVE_GET_USER_PAGES_FAST) += gup.o
- obj-$(CONFIG_X86_32)		+= pgtable_32.o
- 
- obj-$(CONFIG_HUGETLB_PAGE)	+= hugetlbpage.o
-diff -puN include/linux/mm.h~mm-make-generic-weak-get_user_pages_fast-and-export_gpl-it include/linux/mm.h
---- a/include/linux/mm.h~mm-make-generic-weak-get_user_pages_fast-and-export_gpl-it
-+++ a/include/linux/mm.h
-@@ -834,7 +834,6 @@ extern int mprotect_fixup(struct vm_area
- 			  struct vm_area_struct **pprev, unsigned long start,
- 			  unsigned long end, unsigned long newflags);
- 
--#ifdef CONFIG_HAVE_GET_USER_PAGES_FAST
- /*
-  * get_user_pages_fast provides equivalent functionality to get_user_pages,
-  * operating on current and current->mm (force=0 and doesn't return any vmas).
-@@ -848,25 +847,6 @@ extern int mprotect_fixup(struct vm_area
- int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 			struct page **pages);
- 
++#ifndef SECTIONS_SHIFT
++#define SECTIONS_SHIFT	0
++#endif
++
+ /* The zonelists are simply reported, validation is manual. */
+ void mminit_verify_zonelist(void)
+ {
+@@ -74,11 +78,7 @@ void __init mminit_verify_pageflags_layo
+ 		NR_PAGEFLAGS);
+ 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_shifts",
+ 		"Section %d Node %d Zone %d\n",
+-#ifdef SECTIONS_SHIFT
+ 		SECTIONS_SHIFT,
 -#else
--/*
-- * Should probably be moved to asm-generic, and architectures can include it if
-- * they don't implement their own get_user_pages_fast.
-- */
--#define get_user_pages_fast(start, nr_pages, write, pages)	\
--({								\
--	struct mm_struct *mm = current->mm;			\
--	int ret;						\
--								\
--	down_read(&mm->mmap_sem);				\
--	ret = get_user_pages(current, mm, start, nr_pages,	\
--					write, 0, pages, NULL);	\
--	up_read(&mm->mmap_sem);					\
--								\
--	ret;							\
--})
+-		0,
 -#endif
--
- /*
-  * A callback you can register to apply pressure to ageable caches.
-  *
-diff -puN mm/Kconfig~mm-make-generic-weak-get_user_pages_fast-and-export_gpl-it mm/Kconfig
---- a/mm/Kconfig~mm-make-generic-weak-get_user_pages_fast-and-export_gpl-it
-+++ a/mm/Kconfig
-@@ -77,9 +77,6 @@ config FLAT_NODE_MEM_MAP
- 	def_bool y
- 	depends on !SPARSEMEM
- 
--config HAVE_GET_USER_PAGES_FAST
--	bool
--
- #
- # Both the NUMA code and DISCONTIGMEM use arrays of pg_data_t's
- # to represent different areas of memory.  This variable allows
-diff -puN mm/util.c~mm-make-generic-weak-get_user_pages_fast-and-export_gpl-it mm/util.c
---- a/mm/util.c~mm-make-generic-weak-get_user_pages_fast-and-export_gpl-it
-+++ a/mm/util.c
-@@ -171,3 +171,18 @@ void arch_pick_mmap_layout(struct mm_str
- 	mm->unmap_area = arch_unmap_area;
- }
- #endif
-+
-+int __attribute__((weak)) get_user_pages_fast(unsigned long start,
-+				int nr_pages, int write, struct page **pages)
-+{
-+	struct mm_struct *mm = current->mm;
-+	int ret;
-+
-+	down_read(&mm->mmap_sem);
-+	ret = get_user_pages(current, mm, start, nr_pages,
-+					write, 0, pages, NULL);
-+	up_read(&mm->mmap_sem);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(get_user_pages_fast);
+ 		NODES_SHIFT,
+ 		ZONES_SHIFT);
+ 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_offsets",
 _
 
-Patches currently in -mm which might be from rusty@rustcorp.com.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+mm_initc-avoid-ifdef-inside-macro-expansion.patch
+pm_qos-spelling-fixes-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-modules-extend-initcall_debug-functionality-to-the-module-loader.patch
-mm-make-generic-weak-get_user_pages_fast-and-export_gpl-it.patch
-kernel-call-constructors.patch
-kernel-introduce-gcc_version_lower-macro.patch
-seq_file-add-function-to-write-binary-data.patch
-gcov-add-gcov-profiling-infrastructure.patch
-gcov-add-gcov-profiling-infrastructure-revert-link-changes.patch
-gcov-architecture-specific-compile-flag-adjustments.patch
+next-remove-localversion.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+drivers-media-video-vinoc-needs-v4l2-ioctlh.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
+sched-type-fix.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+usb-hubc-fix-build-with-config_pm=n.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+scsi-megaraid_sas-add-the-new-controllers-support-checkpatch-fixes.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
 gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
 reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
