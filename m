@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + posix-timers-lock_timer-kill-the-bogus-it_id-check.patch added to -mm tree
-Date: Tue, 05 Aug 2008 13:24:25 -0700
-Message-ID: <200808052024.m75KOQeu021687@imap1.linux-foundation.org>
+Subject: + posix-timers-kill-it_sigev_signo-and-it_sigev_value.patch added to -mm tree
+Date: Tue, 05 Aug 2008 13:24:56 -0700
+Message-ID: <200808052024.m75KOu9m021702@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55771 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55032 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761782AbYHEUZ0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 16:25:26 -0400
+	by vger.kernel.org with ESMTP id S1760854AbYHEU0A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 16:26:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: oleg@tv-sign.ru, roland@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     posix-timers: lock_timer: kill the bogus ->it_id check
+     posix-timers: kill ->it_sigev_signo and ->it_sigev_value
 has been added to the -mm tree.  Its filename is
-     posix-timers-lock_timer-kill-the-bogus-it_id-check.patch
+     posix-timers-kill-it_sigev_signo-and-it_sigev_value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,20 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: posix-timers: lock_timer: kill the bogus ->it_id check
+Subject: posix-timers: kill ->it_sigev_signo and ->it_sigev_value
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-lock_timer() checks that the timer found by idr_find(timer_id) has ->it_id
-== timer_id.  This buys nothing.  This check can fail only if
-sys_timer_create() unlocked idr_lock after idr_get_new(), but didn't set
-->it_id = new_timer_id yet.  But in that case ->it_process == NULL so
-lock_timer() can't succeed anyway.
-
-Also remove a couple of unneeded typecasts.
-
-Note that with or without this patch we have a small problem. 
-sys_timer_create() doesn't ensure that the result of setting (say)
-->it_sigev_notify must be visible if lock_timer() succeeds.
+With the recent changes ->it_sigev_signo and ->it_sigev_value are only
+used in sys_timer_create(), kill them.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
@@ -54,38 +45,61 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-timers.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ include/linux/posix-timers.h |    2 --
+ kernel/posix-timers.c        |   17 +++++++----------
+ 2 files changed, 7 insertions(+), 12 deletions(-)
 
-diff -puN kernel/posix-timers.c~posix-timers-lock_timer-kill-the-bogus-it_id-check kernel/posix-timers.c
---- a/kernel/posix-timers.c~posix-timers-lock_timer-kill-the-bogus-it_id-check
+diff -puN include/linux/posix-timers.h~posix-timers-kill-it_sigev_signo-and-it_sigev_value include/linux/posix-timers.h
+--- a/include/linux/posix-timers.h~posix-timers-kill-it_sigev_signo-and-it_sigev_value
++++ a/include/linux/posix-timers.h
+@@ -45,8 +45,6 @@ struct k_itimer {
+ 	int it_requeue_pending;		/* waiting to requeue this timer */
+ #define REQUEUE_PENDING 1
+ 	int it_sigev_notify;		/* notify word of sigevent struct */
+-	int it_sigev_signo;		/* signo word of sigevent struct */
+-	sigval_t it_sigev_value;	/* value word of sigevent struct */
+ 	struct task_struct *it_process;	/* process to send signal to */
+ 	struct sigqueue *sigq;		/* signal queue entry. */
+ 	union {
+diff -puN kernel/posix-timers.c~posix-timers-kill-it_sigev_signo-and-it_sigev_value kernel/posix-timers.c
+--- a/kernel/posix-timers.c~posix-timers-kill-it_sigev_signo-and-it_sigev_value
 +++ a/kernel/posix-timers.c
-@@ -490,8 +490,7 @@ sys_timer_create(const clockid_t which_c
- 		goto out;
+@@ -526,10 +526,6 @@ sys_timer_create(const clockid_t which_c
+ 			error = -EFAULT;
+ 			goto out;
+ 		}
+-		new_timer->it_sigev_notify = event.sigev_notify;
+-		new_timer->it_sigev_signo = event.sigev_signo;
+-		new_timer->it_sigev_value = event.sigev_value;
+-
+ 		rcu_read_lock();
+ 		process = good_sigevent(&event);
+ 		if (process)
+@@ -540,17 +536,18 @@ sys_timer_create(const clockid_t which_c
+ 			goto out;
+ 		}
+ 	} else {
+-		new_timer->it_sigev_notify = SIGEV_SIGNAL;
+-		new_timer->it_sigev_signo = SIGALRM;
+-		new_timer->it_sigev_value.sival_int = new_timer->it_id;
++		event.sigev_notify = SIGEV_SIGNAL;
++		event.sigev_signo = SIGALRM;
++		event.sigev_value.sival_int = new_timer->it_id;
+ 		process = current->group_leader;
+ 		get_task_struct(process);
  	}
- 	spin_lock_irq(&idr_lock);
--	error = idr_get_new(&posix_timers_id, (void *) new_timer,
--			    &new_timer_id);
-+	error = idr_get_new(&posix_timers_id, new_timer, &new_timer_id);
- 	spin_unlock_irq(&idr_lock);
- 	if (error) {
- 		if (error == -EAGAIN)
-@@ -586,12 +585,12 @@ static struct k_itimer * lock_timer(time
- 	 */
  
- 	spin_lock_irqsave(&idr_lock, *flags);
--	timr = (struct k_itimer *) idr_find(&posix_timers_id, (int) timer_id);
-+	timr = idr_find(&posix_timers_id, (int) timer_id);
- 	if (timr) {
- 		spin_lock(&timr->it_lock);
+-	new_timer->sigq->info.si_code  = SI_TIMER;
++	new_timer->it_sigev_notify     = event.sigev_notify;
++	new_timer->sigq->info.si_signo = event.sigev_signo;
++	new_timer->sigq->info.si_value = event.sigev_value;
+ 	new_timer->sigq->info.si_tid   = new_timer->it_id;
+-	new_timer->sigq->info.si_signo = new_timer->it_sigev_signo;
+-	new_timer->sigq->info.si_value = new_timer->it_sigev_value;
++	new_timer->sigq->info.si_code  = SI_TIMER;
  
--		if ((timr->it_id != timer_id) || !(timr->it_process) ||
--				!same_thread_group(timr->it_process, current)) {
-+		if (!timr->it_process ||
-+		    !same_thread_group(timr->it_process, current)) {
- 			spin_unlock(&timr->it_lock);
- 			spin_unlock_irqrestore(&idr_lock, *flags);
- 			timr = NULL;
+ 	spin_lock_irq(&current->sighand->siglock);
+ 	new_timer->it_process = process;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -105,6 +119,7 @@ posix-timers-sys_timer_create-remove-the-buggy-pf_exiting-check.patch
 posix-timers-sys_timer_create-simplify-and-s-tasklist-rcu.patch
 posix-timers-move-the-initialization-of-timer-sigq-from-send-to-create-path.patch
 posix-timers-sys_timer_create-cleanup-the-error-handling.patch
+posix-timers-kill-it_sigev_signo-and-it_sigev_value.patch
 posix-timers-lock_timer-kill-the-bogus-it_id-check.patch
 posix-timers-lock_timer-make-it-readable.patch
 coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
