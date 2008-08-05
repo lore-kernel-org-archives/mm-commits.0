@@ -1,83 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: + lockdep-shrink-held_lock-structure-fix.patch added to -mm tree
-Date: Tue, 05 Aug 2008 09:34:04 -0700
-Message-ID: <200808051634.m75GY429012160@imap1.linux-foundation.org>
+Subject: - spi-new-orion_spi-driver-fixes.patch removed from -mm tree
+Date: Tue, 05 Aug 2008 12:03:18 -0700
+Message-ID: <200808051916.m75JGER5018813@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35231 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44285 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756175AbYHEQfC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 12:35:02 -0400
+	by vger.kernel.org with ESMTP id S1755947AbYHETQo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 15:16:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl, davej@redhat.com, mingo@elte.hu
+To: shadi@marvell.com, buytenh@marvell.com, dbrownell@users.sourceforge.net, saeed@marvell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep: shrink held_lock structure (fix)
-has been added to the -mm tree.  Its filename is
-     lockdep-shrink-held_lock-structure-fix.patch
+     spi: new orion_spi driver (fixes)
+has been removed from the -mm tree.  Its filename was
+     spi-new-orion_spi-driver-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into spi-new-orion_spi-driver.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lockdep: shrink held_lock structure (fix)
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: spi: new orion_spi driver (fixes)
+From: Shadi Ammouri <shadi@marvell.com>
 
-Replacement patch - on account of the old one having a bug that
-basically disables lockdep.
+added cancel_work_sync to cancel the work of the device when removing it, 
+and flush_workqueue on the driver's removal.
+here is the patch with the modifications needed by the two comments:
 
-Cc: Dave Jones <davej@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Saeed Bishara <saeed@marvell.com>
+Cc: Lennert Buytenhek <buytenh@marvell.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lockdep.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/spi/orion_spi.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/lockdep.h~lockdep-shrink-held_lock-structure-fix include/linux/lockdep.h
---- a/include/linux/lockdep.h~lockdep-shrink-held_lock-structure-fix
-+++ a/include/linux/lockdep.h
-@@ -229,10 +229,10 @@ struct held_lock {
- 	 * The following field is used to detect when we cross into an
- 	 * interrupt context:
- 	 */
--	unsigned int irq_context:1;
-+	unsigned int irq_context:2; /* bit 0 - soft, bit 1 - hard */
- 	unsigned int trylock:1;
--	unsigned int read:2;
--	unsigned int check:1;
-+	unsigned int read:2;        /* see lock_acquire() comment */
-+	unsigned int check:2;       /* see lock_acquire() comment */
- 	unsigned int hardirqs_off:1;
- };
+diff -puN drivers/spi/orion_spi.c~spi-new-orion_spi-driver-fixes drivers/spi/orion_spi.c
+--- a/drivers/spi/orion_spi.c~spi-new-orion_spi-driver-fixes
++++ a/drivers/spi/orion_spi.c
+@@ -138,6 +138,7 @@ orion_spi_setup_transfer(struct spi_devi
+ 	struct orion_spi *orion_spi;
+ 	unsigned int speed = spi->max_speed_hz;
+ 	unsigned int bits_per_word = spi->bits_per_word;
++	int	rc;
  
+ 	orion_spi = spi_master_get_devdata(spi->master);
+ 
+@@ -147,13 +148,11 @@ orion_spi_setup_transfer(struct spi_devi
+ 	if ((t != NULL) && t->bits_per_word)
+ 		bits_per_word = t->bits_per_word;
+ 
+-	if (orion_spi_baudrate_set(spi, speed) != 0)
+-		return -EINVAL;
+-
+-	if (orion_spi_set_transfer_size(orion_spi, bits_per_word) != 0)
+-		return -EINVAL;
++	rc = orion_spi_baudrate_set(spi, speed);
++	if (rc)
++		return rc;
+ 
+-	return 0;
++	return orion_spi_set_transfer_size(orion_spi, bits_per_word);
+ }
+ 
+ static void orion_spi_set_cs(struct orion_spi *orion_spi, int enable)
+@@ -530,6 +529,8 @@ static int __exit orion_spi_remove(struc
+ 	master = dev_get_drvdata(&pdev->dev);
+ 	spi = spi_master_get_devdata(master);
+ 
++	cancel_work_sync(&spi->work);
++
+ 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	release_mem_region(r->start, (r->end - r->start) + 1);
+ 
+@@ -561,6 +562,7 @@ module_init(orion_spi_init);
+ 
+ static void __exit orion_spi_exit(void)
+ {
++	flush_workqueue(orion_spi_wq);
+ 	platform_driver_unregister(&orion_spi_driver);
+ 
+ 	destroy_workqueue(orion_spi_wq);
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from shadi@marvell.com are
 
-linux-next.patch
-sched-type-fix.patch
-lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal.patch
-lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal-fix.patch
-lockdep-lock_set_subclass-reset-a-held-locks-subclass.patch
-lockdep-re-annotate-scheduler-runqueues.patch
-lockdep-shrink-held_lock-structure.patch
-lockdep-shrink-held_lock-structure-fix.patch
-lockdep-map_acquire.patch
-lockdep-lock-protection-locks.patch
-lockdep-spin_lock_nest_lock.patch
+spi-new-orion_spi-driver.patch
+spi-new-orion_spi-driver-fixes.patch
 
