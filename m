@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + abituguru3-update-maintainers.patch added to -mm tree
-Date: Mon, 04 Aug 2008 17:18:54 -0700
-Message-ID: <200808050018.m750IsEG007310@imap1.linux-foundation.org>
+Subject: + pm_qos-spelling-fixes.patch added to -mm tree
+Date: Mon, 04 Aug 2008 17:22:56 -0700
+Message-ID: <200808050022.m750MuHu007521@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57633 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60504 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754155AbYHEATO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 20:19:14 -0400
+	by vger.kernel.org with ESMTP id S1758080AbYHEAW7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 20:22:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alistair@devzero.co.uk, j.w.r.degoede@hhs.nl, khali@linux-fr.org, mhoffman@lightlink.com
+Cc: richard@hughsie.com, mgross@linux.intel.com
 
 
 The patch titled
-     abituguru3: update MAINTAINERS
+     pm_qos: spelling fixes
 has been added to the -mm tree.  Its filename is
-     abituguru3-update-maintainers.patch
+     pm_qos-spelling-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,119 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: abituguru3: update MAINTAINERS
-From: Alistair John Strachan <alistair@devzero.co.uk>
+Subject: pm_qos: spelling fixes
+From: Richard Hughes <richard@hughsie.com>
 
-Hans passed maintainership of the abituguru3 hwmon driver onto me.  Add a
-new entry to the MAINTAINERS file for the abituguru3 driver and assign it
-to me.  Also update the existing UGURU entry to indicate that Hans is only
-responsible for the abituguru driver.
+A documentation cleanup patch.  With a minor tweak to clarify units for
+kbs.
 
-Signed-off-by: Alistair John Strachan <alistair@devzero.co.uk>
-Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Signed-off-by: mark gross <mgross@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ Documentation/power/pm_qos_interface.txt |    7 ++++++-
+ include/linux/pm_qos_params.h            |    2 +-
+ kernel/pm_qos_params.c                   |   16 ++++++++--------
+ 3 files changed, 15 insertions(+), 10 deletions(-)
 
-diff -puN MAINTAINERS~abituguru3-update-maintainers MAINTAINERS
---- a/MAINTAINERS~abituguru3-update-maintainers
-+++ a/MAINTAINERS
-@@ -175,12 +175,18 @@ M:	bcrl@kvack.org
- L:	linux-aio@kvack.org
- S:	Supported
+diff -puN Documentation/power/pm_qos_interface.txt~pm_qos-spelling-fixes Documentation/power/pm_qos_interface.txt
+--- a/Documentation/power/pm_qos_interface.txt~pm_qos-spelling-fixes
++++ a/Documentation/power/pm_qos_interface.txt
+@@ -1,4 +1,4 @@
+-PM quality of Service interface.
++PM Quality Of Service Interface.
  
--ABIT UGURU HARDWARE MONITOR DRIVER
-+ABIT UGURU 1,2 HARDWARE MONITOR DRIVER
- P:	Hans de Goede
- M:	j.w.r.degoede@hhs.nl
- L:	lm-sensors@lm-sensors.org
- S:	Maintained
+ This interface provides a kernel and user mode interface for registering
+ performance expectations by drivers, subsystems and user space applications on
+@@ -7,6 +7,11 @@ one of the parameters.
+ Currently we have {cpu_dma_latency, network_latency, network_throughput} as the
+ initial set of pm_qos parameters.
  
-+ABIT UGURU 3 HARDWARE MONITOR DRIVER
-+P:	Alistair John Strachan
-+M:	alistair@devzero.co.uk
-+L:	lm-sensors@lm-sensors.org
-+S:	Maintained
++Each parameters have defined units:
++ * latency: usec
++ * timeout: usec
++ * throughput: kbs (kilo bit / sec)
 +
- ACENIC DRIVER
- P:	Jes Sorensen
- M:	jes@trained-monkey.org
+ The infrastructure exposes multiple misc device nodes one per implemented
+ parameter.  The set of parameters implement is defined by pm_qos_power_init()
+ and pm_qos_params.h.  This is done because having the available parameters
+diff -puN include/linux/pm_qos_params.h~pm_qos-spelling-fixes include/linux/pm_qos_params.h
+--- a/include/linux/pm_qos_params.h~pm_qos-spelling-fixes
++++ a/include/linux/pm_qos_params.h
+@@ -1,6 +1,6 @@
+ /* interface for the pm_qos_power infrastructure of the linux kernel.
+  *
+- * Mark Gross
++ * Mark Gross <mgross@linux.intel.com>
+  */
+ #include <linux/list.h>
+ #include <linux/notifier.h>
+diff -puN kernel/pm_qos_params.c~pm_qos-spelling-fixes kernel/pm_qos_params.c
+--- a/kernel/pm_qos_params.c~pm_qos-spelling-fixes
++++ a/kernel/pm_qos_params.c
+@@ -24,7 +24,7 @@
+  * requirement that the application has is cleaned up when closes the file
+  * pointer or exits the pm_qos_object will get an opportunity to clean up.
+  *
+- * mark gross mgross@linux.intel.com
++ * Mark Gross <mgross@linux.intel.com>
+  */
+ 
+ #include <linux/pm_qos_params.h>
+@@ -211,8 +211,8 @@ EXPORT_SYMBOL_GPL(pm_qos_requirement);
+  * @value: defines the qos request
+  *
+  * This function inserts a new entry in the pm_qos_class list of requested qos
+- * performance charactoistics.  It recomputes the agregate QoS expectations for
+- * the pm_qos_class of parrameters.
++ * performance characteristics.  It recomputes the aggregate QoS expectations for
++ * the pm_qos_class of parameters.
+  */
+ int pm_qos_add_requirement(int pm_qos_class, char *name, s32 value)
+ {
+@@ -250,10 +250,10 @@ EXPORT_SYMBOL_GPL(pm_qos_add_requirement
+  * @name: identifies the request
+  * @value: defines the qos request
+  *
+- * Updates an existing qos requierement for the pm_qos_class of parameters along
++ * Updates an existing qos requirement for the pm_qos_class of parameters along
+  * with updating the target pm_qos_class value.
+  *
+- * If the named request isn't in the lest then no change is made.
++ * If the named request isn't in the list then no change is made.
+  */
+ int pm_qos_update_requirement(int pm_qos_class, char *name, s32 new_value)
+ {
+@@ -287,7 +287,7 @@ EXPORT_SYMBOL_GPL(pm_qos_update_requirem
+  * @pm_qos_class: identifies which list of qos request to us
+  * @name: identifies the request
+  *
+- * Will remove named qos request from pm_qos_class list of parrameters and
++ * Will remove named qos request from pm_qos_class list of parameters and
+  * recompute the current target value for the pm_qos_class.
+  */
+ void pm_qos_remove_requirement(int pm_qos_class, char *name)
+@@ -319,7 +319,7 @@ EXPORT_SYMBOL_GPL(pm_qos_remove_requirem
+  * @notifier: notifier block managed by caller.
+  *
+  * will register the notifier into a notification chain that gets called
+- * uppon changes to the pm_qos_class target value.
++ * upon changes to the pm_qos_class target value.
+  */
+  int pm_qos_add_notifier(int pm_qos_class, struct notifier_block *notifier)
+ {
+@@ -338,7 +338,7 @@ EXPORT_SYMBOL_GPL(pm_qos_add_notifier);
+  * @notifier: notifier block to be removed.
+  *
+  * will remove the notifier from the notification chain that gets called
+- * uppon changes to the pm_qos_class target value.
++ * upon changes to the pm_qos_class target value.
+  */
+ int pm_qos_remove_notifier(int pm_qos_class, struct notifier_block *notifier)
+ {
 _
 
-Patches currently in -mm which might be from alistair@devzero.co.uk are
+Patches currently in -mm which might be from richard@hughsie.com are
 
-abituguru3-update-maintainers.patch
-abituguru3-prefer-dmi-probing-to-manual-probing.patch
-hwmon-fix-loading-of-abituguru3-on-abit-ip35-pro-with-bios-17.patch
+pm_qos-spelling-fixes.patch
 
