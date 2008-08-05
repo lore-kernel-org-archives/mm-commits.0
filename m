@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + e1000e-fix-drv-load-issues.patch added to -mm tree
-Date: Mon, 04 Aug 2008 17:31:50 -0700
-Message-ID: <200808050031.m750VoEo007885@imap1.linux-foundation.org>
+Subject: + e1000e-remove-inapplicable-test-for-ioport.patch added to -mm tree
+Date: Mon, 04 Aug 2008 17:31:52 -0700
+Message-ID: <200808050031.m750VqPq007888@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39312 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52725 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756867AbYHEAbx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 20:31:53 -0400
+	by vger.kernel.org with ESMTP id S1756935AbYHEAby (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 20:31:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesse.brandeburg@intel.com, jeffrey.t.kirsher@intel.com
+Cc: bruce.w.allan@intel.com, jeffrey.t.kirsher@intel.com
 
 
 The patch titled
-     e1000e: fix drv load issues
+     e1000e: remove inapplicable test for ioport
 has been added to the -mm tree.  Its filename is
-     e1000e-fix-drv-load-issues.patch
+     e1000e-remove-inapplicable-test-for-ioport.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,96 +33,149 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: e1000e: fix drv load issues
-From: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Subject: e1000e: remove inapplicable test for ioport
+From: Bruce Allan <bruce.w.allan@intel.com>
 
-A few people seem to have problems maintaining gigabit link and it was
-root caused to an interaction between the managability firmware on the
-host and the driver, not communicating.
+There are currently no devices supported by the e1000e driver which need
+ioport resources, remove the test for it and all unnecessary code
+associated with it (struct e1000_adapter elements, local variables, etc.)
 
-The form of communication they use is the drv_load bit.
-
-Signed-off-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Signed-off-by: Bruce Allan <bruce.w.allan@intel.com>
 Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000e/netdev.c |   28 ++++++++++++----------------
- 1 file changed, 12 insertions(+), 16 deletions(-)
+ drivers/net/e1000e/e1000.h  |    4 --
+ drivers/net/e1000e/netdev.c |   48 +++++++---------------------------
+ 2 files changed, 10 insertions(+), 42 deletions(-)
 
-diff -puN drivers/net/e1000e/netdev.c~e1000e-fix-drv-load-issues drivers/net/e1000e/netdev.c
---- a/drivers/net/e1000e/netdev.c~e1000e-fix-drv-load-issues
+diff -puN drivers/net/e1000e/e1000.h~e1000e-remove-inapplicable-test-for-ioport drivers/net/e1000e/e1000.h
+--- a/drivers/net/e1000e/e1000.h~e1000e-remove-inapplicable-test-for-ioport
++++ a/drivers/net/e1000e/e1000.h
+@@ -284,10 +284,6 @@ struct e1000_adapter {
+ 	unsigned long led_status;
+ 
+ 	unsigned int flags;
+-
+-	/* for ioport free */
+-	int bars;
+-	int need_ioport;
+ };
+ 
+ struct e1000_info {
+diff -puN drivers/net/e1000e/netdev.c~e1000e-remove-inapplicable-test-for-ioport drivers/net/e1000e/netdev.c
+--- a/drivers/net/e1000e/netdev.c~e1000e-remove-inapplicable-test-for-ioport
 +++ a/drivers/net/e1000e/netdev.c
-@@ -2444,7 +2444,7 @@ void e1000e_reset(struct e1000_adapter *
- 	 * For parts with AMT enabled, let the firmware know
- 	 * that the network interface is in control
- 	 */
--	if ((adapter->flags & FLAG_HAS_AMT) && e1000e_check_mng_mode(hw))
-+	if (adapter->flags & FLAG_HAS_AMT)
- 		e1000_get_hw_control(adapter);
+@@ -3991,10 +3991,7 @@ static int e1000_resume(struct pci_dev *
+ 	pci_restore_state(pdev);
+ 	e1000e_disable_l1aspm(pdev);
  
- 	ew32(WUC, 0);
-@@ -2634,8 +2634,7 @@ static int e1000_open(struct net_device 
- 	 * If AMT is enabled, let the firmware know that the network
- 	 * interface is now open
- 	 */
--	if ((adapter->flags & FLAG_HAS_AMT) &&
--	    e1000e_check_mng_mode(&adapter->hw))
-+	if (adapter->flags & FLAG_HAS_AMT)
- 		e1000_get_hw_control(adapter);
+-	if (adapter->need_ioport)
+-		err = pci_enable_device(pdev);
+-	else
+-		err = pci_enable_device_mem(pdev);
++	err = pci_enable_device_mem(pdev);
+ 	if (err) {
+ 		dev_err(&pdev->dev,
+ 			"Cannot enable PCI device from suspend\n");
+@@ -4096,10 +4093,7 @@ static pci_ers_result_t e1000_io_slot_re
+ 	int err;
  
- 	/*
-@@ -2713,8 +2712,7 @@ static int e1000_close(struct net_device
- 	 * If AMT is enabled, let the firmware know that the network
- 	 * interface is now closed
- 	 */
--	if ((adapter->flags & FLAG_HAS_AMT) &&
--	    e1000e_check_mng_mode(&adapter->hw))
-+	if (adapter->flags & FLAG_HAS_AMT)
- 		e1000_release_hw_control(adapter);
- 
- 	return 0;
-@@ -4030,7 +4028,7 @@ static int e1000_resume(struct pci_dev *
- 	 * is up.  For all other cases, let the f/w know that the h/w is now
- 	 * under the control of the driver.
- 	 */
--	if (!(adapter->flags & FLAG_HAS_AMT) || !e1000e_check_mng_mode(&adapter->hw))
-+	if (!(adapter->flags & FLAG_HAS_AMT))
- 		e1000_get_hw_control(adapter);
- 
- 	return 0;
-@@ -4149,8 +4147,7 @@ static void e1000_io_resume(struct pci_d
- 	 * is up.  For all other cases, let the f/w know that the h/w is now
- 	 * under the control of the driver.
- 	 */
--	if (!(adapter->flags & FLAG_HAS_AMT) ||
--	    !e1000e_check_mng_mode(&adapter->hw))
-+	if (!(adapter->flags & FLAG_HAS_AMT))
- 		e1000_get_hw_control(adapter);
- 
+ 	e1000e_disable_l1aspm(pdev);
+-	if (adapter->need_ioport)
+-		err = pci_enable_device(pdev);
+-	else
+-		err = pci_enable_device_mem(pdev);
++	err = pci_enable_device_mem(pdev);
+ 	if (err) {
+ 		dev_err(&pdev->dev,
+ 			"Cannot re-enable PCI device after reset.\n");
+@@ -4197,21 +4191,6 @@ static void e1000_eeprom_checks(struct e
  }
-@@ -4505,8 +4502,7 @@ static int __devinit e1000_probe(struct 
- 	 * is up.  For all other cases, let the f/w know that the h/w is now
- 	 * under the control of the driver.
- 	 */
--	if (!(adapter->flags & FLAG_HAS_AMT) ||
--	    !e1000e_check_mng_mode(&adapter->hw))
-+	if (!(adapter->flags & FLAG_HAS_AMT))
- 		e1000_get_hw_control(adapter);
  
- 	/* tell the stack to leave us alone until e1000_open() is called */
-@@ -4523,19 +4519,19 @@ static int __devinit e1000_probe(struct 
- 	return 0;
+ /**
+- * e1000e_is_need_ioport - determine if an adapter needs ioport resources or not
+- * @pdev: PCI device information struct
+- *
+- * Returns true if an adapters needs ioport resources
+- **/
+-static int e1000e_is_need_ioport(struct pci_dev *pdev)
+-{
+-	switch (pdev->device) {
+-	/* Currently there are no adapters that need ioport resources */
+-	default:
+-		return false;
+-	}
+-}
+-
+-/**
+  * e1000_probe - Device Initialization Routine
+  * @pdev: PCI device information struct
+  * @ent: entry in e1000_pci_tbl
+@@ -4236,19 +4215,10 @@ static int __devinit e1000_probe(struct 
+ 	int i, err, pci_using_dac;
+ 	u16 eeprom_data = 0;
+ 	u16 eeprom_apme_mask = E1000_EEPROM_APME;
+-	int bars, need_ioport;
  
- err_register:
--err_hw_init:
--	e1000_release_hw_control(adapter);
-+	if (!(adapter->flags & FLAG_HAS_AMT))
-+		e1000_release_hw_control(adapter);
- err_eeprom:
- 	if (!e1000_check_reset_block(&adapter->hw))
- 		e1000_phy_hw_reset(&adapter->hw);
-+err_hw_init:
+ 	e1000e_disable_l1aspm(pdev);
  
--	if (adapter->hw.flash_address)
--		iounmap(adapter->hw.flash_address);
+-	/* do not allocate ioport bars when not needed */
+-	need_ioport = e1000e_is_need_ioport(pdev);
+-	if (need_ioport) {
+-		bars = pci_select_bars(pdev, IORESOURCE_MEM | IORESOURCE_IO);
+-		err = pci_enable_device(pdev);
+-	} else {
+-		bars = pci_select_bars(pdev, IORESOURCE_MEM);
+-		err = pci_enable_device_mem(pdev);
+-	}
++	err = pci_enable_device_mem(pdev);
+ 	if (err)
+ 		return err;
+ 
+@@ -4271,7 +4241,9 @@ static int __devinit e1000_probe(struct 
+ 		}
+ 	}
+ 
+-	err = pci_request_selected_regions(pdev, bars, e1000e_driver_name);
++	err = pci_request_selected_regions(pdev,
++	                                  pci_select_bars(pdev, IORESOURCE_MEM),
++	                                  e1000e_driver_name);
+ 	if (err)
+ 		goto err_pci_reg;
+ 
+@@ -4296,8 +4268,6 @@ static int __devinit e1000_probe(struct 
+ 	adapter->hw.adapter = adapter;
+ 	adapter->hw.mac.type = ei->mac;
+ 	adapter->msg_enable = (1 << NETIF_MSG_DRV | NETIF_MSG_PROBE) - 1;
+-	adapter->bars = bars;
+-	adapter->need_ioport = need_ioport;
+ 
+ 	mmio_start = pci_resource_start(pdev, 0);
+ 	mmio_len = pci_resource_len(pdev, 0);
+@@ -4536,7 +4506,8 @@ err_flashmap:
+ err_ioremap:
+ 	free_netdev(netdev);
+ err_alloc_etherdev:
+-	pci_release_selected_regions(pdev, bars);
++	pci_release_selected_regions(pdev,
++	                             pci_select_bars(pdev, IORESOURCE_MEM));
+ err_pci_reg:
+ err_dma:
+ 	pci_disable_device(pdev);
+@@ -4584,7 +4555,8 @@ static void __devexit e1000_remove(struc
+ 	iounmap(adapter->hw.hw_addr);
+ 	if (adapter->hw.flash_address)
+ 		iounmap(adapter->hw.flash_address);
+-	pci_release_selected_regions(pdev, adapter->bars);
++	pci_release_selected_regions(pdev,
++	                             pci_select_bars(pdev, IORESOURCE_MEM));
+ 
+ 	free_netdev(netdev);
+ 
+_
+
+Patches currently in -mm which might be from bruce.w.allan@intel.com are
+
+e1000e-remove-inapplicable-test-for-ioport.patch
+
