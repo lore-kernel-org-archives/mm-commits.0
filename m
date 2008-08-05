@@ -1,92 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-uninitialized-variables-for-find_vma_prepare-callers.patch added to -mm tree
-Date: Mon, 04 Aug 2008 21:17:07 -0700
-Message-ID: <200808050417.m754H7Y3016387@imap1.linux-foundation.org>
+Subject: - binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch removed from -mm tree
+Date: Mon, 04 Aug 2008 21:17:52 -0700
+Message-ID: <200808050417.m754Hq4l016425@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36347 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41589 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751512AbYHEESB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 00:18:01 -0400
+	by vger.kernel.org with ESMTP id S1754152AbYHEESl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 00:18:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: bhalevy@panasas.com, hugh@veritas.com, rmh3093@gmail.com
+To: lethal@linux-sh.org, dhowells@redhat.com, dwmw2@infradead.org, p_gortmaker@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: fix uninitialized variables for find_vma_prepare callers
-has been added to the -mm tree.  Its filename is
-     mm-fix-uninitialized-variables-for-find_vma_prepare-callers.patch
+     binfmt_elf_fdpic: wire up AT_EXECFD, AT_EXECFN, AT_SECURE
+has been removed from the -mm tree.  Its filename was
+     binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix uninitialized variables for find_vma_prepare callers
-From: Benny Halevy <bhalevy@panasas.com>
+Subject: binfmt_elf_fdpic: wire up AT_EXECFD, AT_EXECFN, AT_SECURE
+From: Paul Mundt <lethal@linux-sh.org>
 
-gcc 4.3.0 correctly emits the following warnings.
-When a vma covering addr is found, find_vma_prepare indeed returns without
-setting pprev, rb_link, and rb_parent.
+These auxvec entries are the only ones left unhandled out of the current
+base implementation.  This syncs up binfmt_elf_fdpic with linux/auxvec.h
+and current binfmt_elf.
 
-/usr0/export/dev/bhalevy/git/linux-pnfs-bh-nfs41/mm/mmap.c: In function `insert_vm_struct':
-/usr0/export/dev/bhalevy/git/linux-pnfs-bh-nfs41/mm/mmap.c:2085: warning: `rb_parent' may be used uninitialized in this function
-/usr0/export/dev/bhalevy/git/linux-pnfs-bh-nfs41/mm/mmap.c:2085: warning: `rb_link' may be used uninitialized in this function
-/usr0/export/dev/bhalevy/git/linux-pnfs-bh-nfs41/mm/mmap.c:2084: warning: `prev' may be used uninitialized in this function
-/usr0/export/dev/bhalevy/git/linux-pnfs-bh-nfs41/mm/mmap.c: In function `copy_vma':
-/usr0/export/dev/bhalevy/git/linux-pnfs-bh-nfs41/mm/mmap.c:2124: warning: `rb_parent' may be used uninitialized in this function
-/usr0/export/dev/bhalevy/git/linux-pnfs-bh-nfs41/mm/mmap.c:2124: warning: `rb_link' may be used uninitialized in this function
-/usr0/export/dev/bhalevy/git/linux-pnfs-bh-nfs41/mm/mmap.c:2123: warning: `prev' may be used uninitialized in this function
-/usr0/export/dev/bhalevy/git/linux-pnfs-bh-nfs41/mm/mmap.c: In function `do_brk':
-/usr0/export/dev/bhalevy/git/linux-pnfs-bh-nfs41/mm/mmap.c:1951: warning: `rb_parent' may be used uninitialized in this function
-/usr0/export/dev/bhalevy/git/linux-pnfs-bh-nfs41/mm/mmap.c:1951: warning: `rb_link' may be used uninitialized in this function
-/usr0/export/dev/bhalevy/git/linux-pnfs-bh-nfs41/mm/mmap.c:1949: warning: `prev' may be used uninitialized in this function
-/usr0/export/dev/bhalevy/git/linux-pnfs-bh-nfs41/mm/mmap.c: In function `mmap_region':
-/usr0/export/dev/bhalevy/git/linux-pnfs-bh-nfs41/mm/mmap.c:1092: warning: `rb_parent' may be used uninitialized in this function
-/usr0/export/dev/bhalevy/git/linux-pnfs-bh-nfs41/mm/mmap.c:1092: warning: `rb_link' may be used uninitialized in this function
-/usr0/export/dev/bhalevy/git/linux-pnfs-bh-nfs41/mm/mmap.c:1089: warning: `prev' may be used uninitialized in this function
-
-Hugh adds: in fact, none of find_vma_prepare's callers use those values
-when a vma is found to be already covering addr, it's either an error or
-an occasion to munmap and repeat.  Okay, let's quieten the compiler (but I
-would prefer it if pprev, rb_link and rb_parent were meaningful in that
-case, rather than whatever's in them from descending the tree).
-
-Signed-off-by: Benny Halevy <bhalevy@panasas.com>
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: "Ryan Hope" <rmh3093@gmail.com>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/binfmt_elf_fdpic.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN mm/mmap.c~mm-fix-uninitialized-variables-for-find_vma_prepare-callers mm/mmap.c
---- a/mm/mmap.c~mm-fix-uninitialized-variables-for-find_vma_prepare-callers
-+++ a/mm/mmap.c
-@@ -370,7 +370,7 @@ find_vma_prepare(struct mm_struct *mm, u
- 		if (vma_tmp->vm_end > addr) {
- 			vma = vma_tmp;
- 			if (vma_tmp->vm_start <= addr)
--				return vma;
-+				break;
- 			__rb_link = &__rb_parent->rb_left;
- 		} else {
- 			rb_prev = __rb_parent;
+diff -puN fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure
++++ a/fs/binfmt_elf_fdpic.c
+@@ -25,6 +25,7 @@
+ #include <linux/fcntl.h>
+ #include <linux/slab.h>
+ #include <linux/pagemap.h>
++#include <linux/security.h>
+ #include <linux/highmem.h>
+ #include <linux/highuid.h>
+ #include <linux/personality.h>
+@@ -562,11 +563,14 @@ static int create_elf_fdpic_tables(struc
+ 	}
+ 
+ 	/* force 16 byte _final_ alignment here for generality */
+-#define DLINFO_ITEMS 13
++#define DLINFO_ITEMS 15
+ 
+ 	nitems = 1 + DLINFO_ITEMS + (k_platform ? 1 : 0) + \
+ 		(k_base_platform ? 1 : 0) + AT_VECTOR_SIZE_ARCH;
+ 
++	if (bprm->interp_flags & BINPRM_FLAGS_EXECFD)
++		nitems++;
++
+ 	csp = sp;
+ 	sp -= nitems * 2 * sizeof(unsigned long);
+ 	sp -= (bprm->envc + 1) * sizeof(char *);	/* envv[] */
+@@ -604,6 +608,12 @@ static int create_elf_fdpic_tables(struc
+ 			    (elf_addr_t) (unsigned long) u_base_platform);
+ 	}
+ 
++	if (bprm->interp_flags & BINPRM_FLAGS_EXECFD) {
++		nr = 0;
++		csp -= 2 * sizeof(unsigned long);
++		NEW_AUX_ENT(AT_EXECFD, bprm->interp_data);
++	}
++
+ 	nr = 0;
+ 	csp -= DLINFO_ITEMS * 2 * sizeof(unsigned long);
+ 	NEW_AUX_ENT(AT_HWCAP,	hwcap);
+@@ -619,6 +629,8 @@ static int create_elf_fdpic_tables(struc
+ 	NEW_AUX_ENT(AT_EUID,	(elf_addr_t) current->euid);
+ 	NEW_AUX_ENT(AT_GID,	(elf_addr_t) current->gid);
+ 	NEW_AUX_ENT(AT_EGID,	(elf_addr_t) current->egid);
++	NEW_AUX_ENT(AT_SECURE,	security_bprm_secureexec(bprm));
++	NEW_AUX_ENT(AT_EXECFN,	bprm->exec);
+ 
+ #ifdef ARCH_DLINFO
+ 	nr = 0;
 _
 
-Patches currently in -mm which might be from bhalevy@panasas.com are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
-mm-fix-uninitialized-variables-for-find_vma_prepare-callers.patch
+origin.patch
+mn10300-fix-up-__bug_table-handling-in-module-loader.patch
+linux-next.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+maple-allow-removal-and-reinsertion-of-keyboard-driver-module.patch
+rtc-rtc-rs5c372-smbus-conversion-support.patch
+rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
+kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore.patch
+binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch
+resource-add-resource_type-and-ioresource_type_bits.patch
+resource-add-new-ioresource_clk-type-v2.patch
+i2c-sh_mobile-ioresource_clk-support.patch
 
