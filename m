@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usb-bandrich-bandluxe-c150-c250-hspa-data-card-driver.patch added to -mm tree
-Date: Tue, 05 Aug 2008 14:11:27 -0700
-Message-ID: <200808052111.m75LBRQo023683@imap1.linux-foundation.org>
+Subject: + x86_64-remove-empty-lines-from-stack-traces-oopses.patch added to -mm tree
+Date: Tue, 05 Aug 2008 14:13:54 -0700
+Message-ID: <200808052113.m75LDsvq023749@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60403 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33351 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761569AbYHEVMP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 17:12:15 -0400
+	by vger.kernel.org with ESMTP id S1751274AbYHEVO6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 17:14:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: upleong@bandrich.com, greg@kroah.com, smurf@smurf.noris.de
+Cc: adobriyan@gmail.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     usb: BandRich BandLuxe C150/C250 HSPA Data Card Driver
+     x86_64: remove empty lines from stack traces/oopses
 has been added to the -mm tree.  Its filename is
-     usb-bandrich-bandluxe-c150-c250-hspa-data-card-driver.patch
+     x86_64-remove-empty-lines-from-stack-traces-oopses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: BandRich BandLuxe C150/C250 HSPA Data Card Driver
-From: Leon Leong <upleong@bandrich.com>
+Subject: x86_64: remove empty lines from stack traces/oopses
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Add the Product ID for the BandLuxe C150/C250 3.5G data card series from
-BandRich Inc.  After detection, the data card works fine.
-
-Signed-off-by: Leon Leong <upleong@bandrich.com>
-Cc: Matthias Urlichs <smurf@smurf.noris.de>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/option.c |   32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
+ arch/x86/kernel/traps_64.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/usb/serial/option.c~usb-bandrich-bandluxe-c150-c250-hspa-data-card-driver drivers/usb/serial/option.c
---- a/drivers/usb/serial/option.c~usb-bandrich-bandluxe-c150-c250-hspa-data-card-driver
-+++ a/drivers/usb/serial/option.c
-@@ -186,6 +186,23 @@ static int  option_send_setup(struct tty
- #define BANDRICH_VENDOR_ID			0x1A8D
- #define BANDRICH_PRODUCT_C100_1			0x1002
- #define BANDRICH_PRODUCT_C100_2			0x1003
-+#define BANDRICH_PRODUCT_1004			0x1004
-+#define BANDRICH_PRODUCT_1005			0x1005
-+#define BANDRICH_PRODUCT_1006			0x1006
-+#define BANDRICH_PRODUCT_1007			0x1007
-+#define BANDRICH_PRODUCT_1008			0x1008
-+#define BANDRICH_PRODUCT_1009			0x1009
-+#define BANDRICH_PRODUCT_100A			0x100a
-+
-+#define BANDRICH_PRODUCT_100B			0x100b
-+#define BANDRICH_PRODUCT_100C			0x100c
-+#define BANDRICH_PRODUCT_100D			0x100d
-+#define BANDRICH_PRODUCT_100E			0x100e
-+
-+#define BANDRICH_PRODUCT_100F			0x100f
-+#define BANDRICH_PRODUCT_1010			0x1010
-+#define BANDRICH_PRODUCT_1011			0x1011
-+#define BANDRICH_PRODUCT_1012			0x1012
+diff -puN arch/x86/kernel/traps_64.c~x86_64-remove-empty-lines-from-stack-traces-oopses arch/x86/kernel/traps_64.c
+--- a/arch/x86/kernel/traps_64.c~x86_64-remove-empty-lines-from-stack-traces-oopses
++++ a/arch/x86/kernel/traps_64.c
+@@ -340,9 +340,8 @@ static void
+ show_trace_log_lvl(struct task_struct *task, struct pt_regs *regs,
+ 		unsigned long *stack, unsigned long bp, char *log_lvl)
+ {
+-	printk("\nCall Trace:\n");
++	printk("Call Trace:\n");
+ 	dump_trace(task, regs, stack, bp, &print_trace_ops, log_lvl);
+-	printk("\n");
+ }
  
- #define AMOI_VENDOR_ID			0x1614
- #define AMOI_PRODUCT_9508			0x0800
-@@ -302,6 +319,21 @@ static struct usb_device_id option_ids[]
- 	{ USB_DEVICE(ONDA_VENDOR_ID, ONDA_PRODUCT_ET502HS) },
- 	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_C100_1) },
- 	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_C100_2) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_1004) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_1005) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_1006) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_1007) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_1008) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_1009) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_100A) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_100B) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_100C) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_100D) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_100E) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_100F) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_1010) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_1011) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_1012) },
- 	{ USB_DEVICE(KYOCERA_VENDOR_ID, KYOCERA_PRODUCT_KPC650) },
- 	{ USB_DEVICE(KYOCERA_VENDOR_ID, KYOCERA_PRODUCT_KPC680) },
- 	{ USB_DEVICE(QUALCOMM_VENDOR_ID, 0x6000)}, /* ZTE AC8700 */
+ void show_trace(struct task_struct *task, struct pt_regs *regs,
+@@ -387,6 +386,7 @@ show_stack_log_lvl(struct task_struct *t
+ 		printk(" %016lx", *stack++);
+ 		touch_nmi_watchdog();
+ 	}
++	printk("\n");
+ 	show_trace_log_lvl(task, regs, sp, bp, log_lvl);
+ }
+ 
+@@ -444,7 +444,6 @@ void show_registers(struct pt_regs *regs
+ 		printk("Stack: ");
+ 		show_stack_log_lvl(NULL, regs, (unsigned long *)sp,
+ 				regs->bp, "");
+-		printk("\n");
+ 
+ 		printk(KERN_EMERG "Code: ");
+ 
 _
 
-Patches currently in -mm which might be from upleong@bandrich.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-usb-bandrich-bandluxe-c150-c250-hspa-data-card-driver.patch
+origin.patch
+vt8623fb-fix-kernel-oops.patch
+linux-next.patch
+x86_64-remove-empty-lines-from-stack-traces-oopses.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+cdc-acm-dont-unlock-acm-mutex-on-error-path.patch
+seq_file-add-seq_cpumask-seq_nodemask.patch
+switch-proc-irq-smp_affinity-et-al-to-seqfiles.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+cpuset-use-seq_cpumask-seq_nodemask.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+likely_prof-changed-to-use-proc_create.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
 
