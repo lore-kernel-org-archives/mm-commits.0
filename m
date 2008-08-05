@@ -1,135 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-media-video-gspca-zc3xxc-fix-oops-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 04 Aug 2008 17:31:29 -0700
-Message-ID: <200808050031.m750VTg2007876@imap1.linux-foundation.org>
+Subject: + e1000e-perform-basic-82573-eeprom-checks-for-known-issues.patch added to -mm tree
+Date: Mon, 04 Aug 2008 17:31:48 -0700
+Message-ID: <200808050031.m750Vm2x007882@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41703 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48513 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751679AbYHEAbd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 20:31:33 -0400
+	by vger.kernel.org with ESMTP id S1756771AbYHEAbu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 20:31:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mchehab@infradead.org, parag.warudkar@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: auke-jan.h.kok@intel.com, jeffrey.t.kirsher@intel.com
 
 
 The patch titled
-     drivers-media-video-gspca-zc3xxc-fix-oops-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     drivers-media-video-gspca-zc3xxc-fix-oops-checkpatch-fixes.patch
+     e1000e: perform basic 82573 EEPROM checks for known issues
+has been added to the -mm tree.  Its filename is
+     e1000e-perform-basic-82573-eeprom-checks-for-known-issues.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-media-video-gspca-zc3xxc-fix-oops-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: e1000e: perform basic 82573 EEPROM checks for known issues
+From: Auke Kok <auke-jan.h.kok@intel.com>
 
-ERROR: space required before the open parenthesis '('
-#61: FILE: drivers/media/video/gspca/zc3xx.c:6479:
-+	if(!Tgamma)
+82573 EEPROMs have been shipped out with known issues.  While most people
+will never see the issues some people do and we know how to address them. 
+Warn the user if we find one of these EEPROM issues.
 
-total: 1 errors, 0 warnings, 25 lines checked
-
-./patches/drivers-media-video-gspca-zc3xxc-fix-oops.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Parag Warudkar" <parag.warudkar@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Parag Warudkar <parag.warudkar@gmail.com>
+Signed-off-by: Auke Kok <auke-jan.h.kok@intel.com>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/gspca/zc3xx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/e1000e/netdev.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff -puN drivers/media/video/gspca/zc3xx.c~drivers-media-video-gspca-zc3xxc-fix-oops-checkpatch-fixes drivers/media/video/gspca/zc3xx.c
---- a/drivers/media/video/gspca/zc3xx.c~drivers-media-video-gspca-zc3xxc-fix-oops-checkpatch-fixes
-+++ a/drivers/media/video/gspca/zc3xx.c
-@@ -6476,7 +6476,7 @@ static void setcontrast(struct gspca_dev
- 	Tgamma = gamma_tb[sd->gamma];
- 	Tgradient = gradient_tb[sd->gamma];
+diff -puN drivers/net/e1000e/netdev.c~e1000e-perform-basic-82573-eeprom-checks-for-known-issues drivers/net/e1000e/netdev.c
+--- a/drivers/net/e1000e/netdev.c~e1000e-perform-basic-82573-eeprom-checks-for-known-issues
++++ a/drivers/net/e1000e/netdev.c
+@@ -4177,6 +4177,28 @@ static void e1000_print_device_info(stru
+ 	       hw->mac.type, hw->phy.type, (pba_num >> 8), (pba_num & 0xff));
+ }
  
--	if(!Tgamma)
-+	if (!Tgamma)
- 		k = 0;
- 	else
- 		k = (sd->contrast - 128)		/* -128 / 128 */
++static void e1000_eeprom_checks(struct e1000_adapter *adapter)
++{
++	struct e1000_hw *hw = &adapter->hw;
++	int ret_val;
++	u16 buf = 0;
++
++	if (hw->mac.type != e1000_82573)
++		return;
++
++	ret_val = e1000_read_nvm(hw, NVM_INIT_CONTROL2_REG, 1, &buf);
++	if (!(le16_to_cpu(buf) & (1 << 0))) {
++		/* Deep Smart Power Down (DSPD) */
++		e_warn("Warning: detected DSPD enabled in EEPROM\n");
++	}
++
++	ret_val = e1000_read_nvm(hw, NVM_INIT_3GIO_3, 1, &buf);
++	if (le16_to_cpu(buf) & (3 << 2)) {
++		/* ASPM enable */
++		e_warn("Warning: detected ASPM enabled in EEPROM\n");
++	}
++}
++
+ /**
+  * e1000e_is_need_ioport - determine if an adapter needs ioport resources or not
+  * @pdev: PCI device information struct
+@@ -4400,6 +4422,8 @@ static int __devinit e1000_probe(struct 
+ 		}
+ 	}
+ 
++	e1000_eeprom_checks(adapter);
++
+ 	/* copy the MAC address out of the NVM */
+ 	if (e1000e_read_mac_addr(&adapter->hw))
+ 		e_err("NVM Read Error while reading MAC address\n");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from auke-jan.h.kok@intel.com are
 
-origin.patch
-mm_initc-avoid-ifdef-inside-macro-expansion.patch
-pm_qos-spelling-fixes-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-next-remove-localversion.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-drivers-media-video-vinoc-needs-v4l2-ioctlh.patch
-drivers-media-video-gspca-zc3xxc-fix-oops-checkpatch-fixes.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-serio-xilinx_ps2c-fix-warning.patch
-git-jg-misc.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-sched-type-fix.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-usb-hubc-fix-build-with-config_pm=n.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-devpts-switch-to-ida-checkpatch-fixes.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+e1000e-convert-ndev_-printks-to-something-smaller.patch
+e1000e-perform-basic-82573-eeprom-checks-for-known-issues.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
 
