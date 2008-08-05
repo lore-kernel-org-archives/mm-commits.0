@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pm_qos-spelling-fixes.patch added to -mm tree
-Date: Mon, 04 Aug 2008 17:22:56 -0700
-Message-ID: <200808050022.m750MuHu007521@imap1.linux-foundation.org>
+Subject: + pm_qos-spelling-fixes-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 04 Aug 2008 17:23:45 -0700
+Message-ID: <200808050023.m750NjUe007555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60504 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48858 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758080AbYHEAW7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 20:22:59 -0400
+	by vger.kernel.org with ESMTP id S1754607AbYHEAXs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Aug 2008 20:23:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard@hughsie.com, mgross@linux.intel.com
+Cc: akpm@linux-foundation.org, mgross@linux.intel.com, richard@hughsie.com
 
 
 The patch titled
-     pm_qos: spelling fixes
+     pm_qos-spelling-fixes-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     pm_qos-spelling-fixes.patch
+     pm_qos-spelling-fixes-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,119 +33,114 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm_qos: spelling fixes
-From: Richard Hughes <richard@hughsie.com>
+Subject: pm_qos-spelling-fixes-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-A documentation cleanup patch.  With a minor tweak to clarify units for
-kbs.
+WARNING: line over 80 characters
+#65: FILE: kernel/pm_qos_params.c:214:
++ * performance characteristics.  It recomputes the aggregate QoS expectations for
 
-Signed-off-by: mark gross <mgross@linux.intel.com>
+total: 0 errors, 1 warnings, 77 lines checked
+
+./patches/pm_qos-spelling-fixes.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Richard Hughes <richard@hughsie.com>
+Cc: mark gross <mgross@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/power/pm_qos_interface.txt |    7 ++++++-
- include/linux/pm_qos_params.h            |    2 +-
- kernel/pm_qos_params.c                   |   16 ++++++++--------
- 3 files changed, 15 insertions(+), 10 deletions(-)
+ kernel/pm_qos_params.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/power/pm_qos_interface.txt~pm_qos-spelling-fixes Documentation/power/pm_qos_interface.txt
---- a/Documentation/power/pm_qos_interface.txt~pm_qos-spelling-fixes
-+++ a/Documentation/power/pm_qos_interface.txt
-@@ -1,4 +1,4 @@
--PM quality of Service interface.
-+PM Quality Of Service Interface.
- 
- This interface provides a kernel and user mode interface for registering
- performance expectations by drivers, subsystems and user space applications on
-@@ -7,6 +7,11 @@ one of the parameters.
- Currently we have {cpu_dma_latency, network_latency, network_throughput} as the
- initial set of pm_qos parameters.
- 
-+Each parameters have defined units:
-+ * latency: usec
-+ * timeout: usec
-+ * throughput: kbs (kilo bit / sec)
-+
- The infrastructure exposes multiple misc device nodes one per implemented
- parameter.  The set of parameters implement is defined by pm_qos_power_init()
- and pm_qos_params.h.  This is done because having the available parameters
-diff -puN include/linux/pm_qos_params.h~pm_qos-spelling-fixes include/linux/pm_qos_params.h
---- a/include/linux/pm_qos_params.h~pm_qos-spelling-fixes
-+++ a/include/linux/pm_qos_params.h
-@@ -1,6 +1,6 @@
- /* interface for the pm_qos_power infrastructure of the linux kernel.
-  *
-- * Mark Gross
-+ * Mark Gross <mgross@linux.intel.com>
-  */
- #include <linux/list.h>
- #include <linux/notifier.h>
-diff -puN kernel/pm_qos_params.c~pm_qos-spelling-fixes kernel/pm_qos_params.c
---- a/kernel/pm_qos_params.c~pm_qos-spelling-fixes
+diff -puN kernel/pm_qos_params.c~pm_qos-spelling-fixes-checkpatch-fixes kernel/pm_qos_params.c
+--- a/kernel/pm_qos_params.c~pm_qos-spelling-fixes-checkpatch-fixes
 +++ a/kernel/pm_qos_params.c
-@@ -24,7 +24,7 @@
-  * requirement that the application has is cleaned up when closes the file
-  * pointer or exits the pm_qos_object will get an opportunity to clean up.
-  *
-- * mark gross mgross@linux.intel.com
-+ * Mark Gross <mgross@linux.intel.com>
-  */
- 
- #include <linux/pm_qos_params.h>
 @@ -211,8 +211,8 @@ EXPORT_SYMBOL_GPL(pm_qos_requirement);
   * @value: defines the qos request
   *
   * This function inserts a new entry in the pm_qos_class list of requested qos
-- * performance charactoistics.  It recomputes the agregate QoS expectations for
-- * the pm_qos_class of parrameters.
-+ * performance characteristics.  It recomputes the aggregate QoS expectations for
-+ * the pm_qos_class of parameters.
+- * performance characteristics.  It recomputes the aggregate QoS expectations for
+- * the pm_qos_class of parameters.
++ * performance characteristics.  It recomputes the aggregate QoS expectations
++ * for the pm_qos_class of parameters.
   */
  int pm_qos_add_requirement(int pm_qos_class, char *name, s32 value)
  {
-@@ -250,10 +250,10 @@ EXPORT_SYMBOL_GPL(pm_qos_add_requirement
-  * @name: identifies the request
-  * @value: defines the qos request
-  *
-- * Updates an existing qos requierement for the pm_qos_class of parameters along
-+ * Updates an existing qos requirement for the pm_qos_class of parameters along
-  * with updating the target pm_qos_class value.
-  *
-- * If the named request isn't in the lest then no change is made.
-+ * If the named request isn't in the list then no change is made.
-  */
- int pm_qos_update_requirement(int pm_qos_class, char *name, s32 new_value)
- {
-@@ -287,7 +287,7 @@ EXPORT_SYMBOL_GPL(pm_qos_update_requirem
-  * @pm_qos_class: identifies which list of qos request to us
-  * @name: identifies the request
-  *
-- * Will remove named qos request from pm_qos_class list of parrameters and
-+ * Will remove named qos request from pm_qos_class list of parameters and
-  * recompute the current target value for the pm_qos_class.
-  */
- void pm_qos_remove_requirement(int pm_qos_class, char *name)
-@@ -319,7 +319,7 @@ EXPORT_SYMBOL_GPL(pm_qos_remove_requirem
-  * @notifier: notifier block managed by caller.
-  *
-  * will register the notifier into a notification chain that gets called
-- * uppon changes to the pm_qos_class target value.
-+ * upon changes to the pm_qos_class target value.
-  */
-  int pm_qos_add_notifier(int pm_qos_class, struct notifier_block *notifier)
- {
-@@ -338,7 +338,7 @@ EXPORT_SYMBOL_GPL(pm_qos_add_notifier);
-  * @notifier: notifier block to be removed.
-  *
-  * will remove the notifier from the notification chain that gets called
-- * uppon changes to the pm_qos_class target value.
-+ * upon changes to the pm_qos_class target value.
-  */
- int pm_qos_remove_notifier(int pm_qos_class, struct notifier_block *notifier)
- {
 _
 
-Patches currently in -mm which might be from richard@hughsie.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-pm_qos-spelling-fixes.patch
+origin.patch
+mm_initc-avoid-ifdef-inside-macro-expansion.patch
+pm_qos-spelling-fixes-checkpatch-fixes.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+linux-next.patch
+next-remove-localversion.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+drivers-media-video-vinoc-needs-v4l2-ioctlh.patch
+drivers-media-video-gspca-zc3xxc-fix-oops-checkpatch-fixes.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+sched-type-fix.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+usb-hubc-fix-build-with-config_pm=n.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
