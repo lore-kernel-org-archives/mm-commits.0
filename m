@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-miata-remove-dead-url.patch added to -mm tree
-Date: Wed, 06 Aug 2008 15:52:36 -0700
-Message-ID: <200808062252.m76MqaJj019752@imap1.linux-foundation.org>
+Subject: + drivers-scsi-a2091c-make-2-functions-static.patch added to -mm tree
+Date: Wed, 06 Aug 2008 15:52:44 -0700
+Message-ID: <200808062252.m76MqiwH019784@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56540 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57282 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754733AbYHFWw7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:59 -0400
+	by vger.kernel.org with ESMTP id S1754715AbYHFWwz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, ysato@users.sourceforge.jp
+Cc: bunk@kernel.org, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     Alpha Miata: remove dead URL
+     drivers/scsi/a2091.c: make 2 functions static
 has been added to the -mm tree.  Its filename is
-     alpha-miata-remove-dead-url.patch
+     drivers-scsi-a2091c-make-2-functions-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Alpha Miata: remove dead URL
+Subject: drivers/scsi/a2091.c: make 2 functions static
 From: Adrian Bunk <bunk@kernel.org>
 
-RemoveCc: Yoshinori Sato <ysato@users.sourceforge.jp>
- a dead URL.
+a2091_{detect,release}() can become static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/scsi/a2091.c |    6 ++++--
+ drivers/scsi/a2091.h |    3 ---
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN arch/alpha/Kconfig~alpha-miata-remove-dead-url arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~alpha-miata-remove-dead-url
-+++ a/arch/alpha/Kconfig
-@@ -224,8 +224,7 @@ config ALPHA_MIATA
- 	bool "Miata"
- 	help
- 	  The Digital PersonalWorkStation (PWS 433a, 433au, 500a, 500au, 600a,
--	  or 600au).  There is an Installation HOWTO for this hardware at
--	  <http://eijk.homelinux.org/~stefan/miata.html>.
-+	  or 600au).
+diff -puN drivers/scsi/a2091.c~drivers-scsi-a2091c-make-2-functions-static drivers/scsi/a2091.c
+--- a/drivers/scsi/a2091.c~drivers-scsi-a2091c-make-2-functions-static
++++ a/drivers/scsi/a2091.c
+@@ -23,6 +23,8 @@
+ #define DMA(ptr) ((a2091_scsiregs *)((ptr)->base))
+ #define HDATA(ptr) ((struct WD33C93_hostdata *)((ptr)->hostdata))
  
- config ALPHA_MIKASA
- 	bool "Mikasa"
++static int a2091_release(struct Scsi_Host *instance);
++
+ static irqreturn_t a2091_intr (int irq, void *_instance)
+ {
+     unsigned long flags;
+@@ -144,7 +146,7 @@ static void dma_stop(struct Scsi_Host *i
+     }
+ }
+ 
+-int __init a2091_detect(struct scsi_host_template *tpnt)
++static int __init a2091_detect(struct scsi_host_template *tpnt)
+ {
+     static unsigned char called = 0;
+     struct Scsi_Host *instance;
+@@ -227,7 +229,7 @@ static struct scsi_host_template driver_
+ 
+ #include "scsi_module.c"
+ 
+-int a2091_release(struct Scsi_Host *instance)
++static int a2091_release(struct Scsi_Host *instance)
+ {
+ #ifdef MODULE
+ 	DMA(instance)->CNTR = 0;
+diff -puN drivers/scsi/a2091.h~drivers-scsi-a2091c-make-2-functions-static drivers/scsi/a2091.h
+--- a/drivers/scsi/a2091.h~drivers-scsi-a2091c-make-2-functions-static
++++ a/drivers/scsi/a2091.h
+@@ -11,9 +11,6 @@
+ 
+ #include <linux/types.h>
+ 
+-int a2091_detect(struct scsi_host_template *);
+-int a2091_release(struct Scsi_Host *);
+-
+ #ifndef CMD_PER_LUN
+ #define CMD_PER_LUN 2
+ #endif
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
