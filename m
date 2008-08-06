@@ -1,66 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - bugfix-for-scripts-patch-kernel-in-26-sublevel-stepping.patch removed from -mm tree
-Date: Wed, 06 Aug 2008 13:57:30 -0700
-Message-ID: <200808062057.m76KvUpM014775@imap1.linux-foundation.org>
+Subject: - atyfb_basec-fix-warning.patch removed from -mm tree
+Date: Wed, 06 Aug 2008 13:57:00 -0700
+Message-ID: <200808062057.m76Kv0le014724@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56323 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46134 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756494AbYHFVBM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 17:01:12 -0400
+	by vger.kernel.org with ESMTP id S1755074AbYHFVFK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 17:05:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebirdie@iki.fi, randy.dunlap@oracle.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: a.beregalov@gmail.com, adaplas@pol.net, asselsm@gmail.com, syrjala@sci.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bugfix for scripts/patch-kernel in 2.6 sublevel stepping
+     atyfb_base.c: fix warning
 has been removed from the -mm tree.  Its filename was
-     bugfix-for-scripts-patch-kernel-in-26-sublevel-stepping.patch
+     atyfb_basec-fix-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bugfix for scripts/patch-kernel in 2.6 sublevel stepping
-From: Erkki Lintunen <ebirdie@iki.fi>
+Subject: atyfb_base.c: fix warning
+From: Alexander Beregalov <a.beregalov@gmail.com>
 
-scripts/patch-kernel script can't patch a tree, say, from 2.6.25 to
-2.6.26.1, because of a wrong comparison in context of patching 2.6.x base.
- Fix it.
+drivers/video/aty/atyfb_base.c:2663: warning: 'aty_resume_chip' defined
+but not used
 
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
+Cc: Ville Syrjala <syrjala@sci.fi>
+Cc: Antonino A. Daplas <adaplas@pol.net>
+Cc: Mark Asselstine <asselsm@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/patch-kernel |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/video/aty/atyfb_base.c |   29 +++++++++++++++--------------
+ 1 file changed, 15 insertions(+), 14 deletions(-)
 
-diff -puN scripts/patch-kernel~bugfix-for-scripts-patch-kernel-in-26-sublevel-stepping scripts/patch-kernel
---- a/scripts/patch-kernel~bugfix-for-scripts-patch-kernel-in-26-sublevel-stepping
-+++ a/scripts/patch-kernel
-@@ -213,6 +213,7 @@ fi
- if [ $stopvers != "default" ]; then
- 	STOPSUBLEVEL=`echo $stopvers | cut -d. -f3`
- 	STOPEXTRA=`echo $stopvers | cut -d. -f4`
-+	STOPFULLVERSION=${stopvers%%.$STOPEXTRA}
- 	#echo "#___STOPSUBLEVEL=/$STOPSUBLEVEL/, STOPEXTRA=/$STOPEXTRA/"
- else
- 	STOPSUBLEVEL=9999
-@@ -249,7 +250,7 @@ while :				# incrementing SUBLEVEL (s in
- do
-     CURRENTFULLVERSION="$VERSION.$PATCHLEVEL.$SUBLEVEL"
-     EXTRAVER=
--    if [ $stopvers = $CURRENTFULLVERSION ]; then
-+    if [ $STOPFULLVERSION = $CURRENTFULLVERSION ]; then
-         echo "Stopping at $CURRENTFULLVERSION base as requested."
-         break
-     fi
-_
-
-Patches currently in -mm which might be from ebirdie@iki.fi are
-
-git-kbuild-fixes.patch
-
+diff -puN drivers/video/aty/atyfb_base.c~atyfb_basec-fix-warning drivers/video/aty/atyfb_base.c
+--- a/drivers/video/aty/atyfb_base.c~atyfb_basec-fix-warning
++++ a/drivers/video/aty/atyfb_base.c
+@@ -244,7 +244,7 @@ static int atyfb_sync(struct fb_info *in
+      */
+ 
+ static int aty_init(struct fb_info *info);
+-static void aty_resume_chip(struct fb_info *info);
++
+ #ifdef CONFIG_ATARI
+ static int store_video_par(char *videopar, unsigned char m64_num);
+ #endif
+@@ -2023,6 +2023,20 @@ static int atyfb_pci_suspend(struct pci_
+ 	return 0;
+ }
+ 
++static void aty_resume_chip(struct fb_info *info)
++{
++	struct atyfb_par *par = info->par;
++
++	aty_st_le32(MEM_CNTL, par->mem_cntl, par);
++
++	if (par->pll_ops->resume_pll)
++		par->pll_ops->resume_pll(info, &par->pll);
++
++	if (par->aux_start)
++		aty_st_le32(BUS_CNTL,
++			aty_ld_le32(BUS_CNTL, par) | BUS_APER_REG_DIS, par);
++}
++
+ static int atyfb_pci_resume(struct pci_dev *pdev)
+ {
+ 	struct fb_info *info = pci_get_drvdata(pdev);
+@@ -2659,19 +2673,6 @@ aty_init_exit:
+ 	return ret;
+ }
+ 
+-static void aty_resume_chip(struct fb_info *info)
+-{
+-	struct atyfb_par *par = info->par;
+-
+-	aty_st_le32(MEM_CNTL, par->mem_cntl, par);
+-
+-	if (par->pll_ops->resume_pll)
+-		par->pll_ops->resume_pll(info, &par->pll);
+-
+-	if (par->aux_start)
+-		aty_st_le32(BUS_CNTL, aty_ld_le32(BUS_CNTL, par) | BUS_APER_REG_DIS, par);
+-}
