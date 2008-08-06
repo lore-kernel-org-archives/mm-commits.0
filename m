@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-probe_serial_gsc-static.patch added to -mm tree
-Date: Wed, 06 Aug 2008 15:53:03 -0700
-Message-ID: <200808062253.m76Mr367019814@imap1.linux-foundation.org>
+Subject: + m32r-export-empty_zero_page.patch added to -mm tree
+Date: Wed, 06 Aug 2008 15:52:48 -0700
+Message-ID: <200808062252.m76MqmW5019790@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44315 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44079 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754766AbYHFWxM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:53:12 -0400
+	by vger.kernel.org with ESMTP id S1754751AbYHFWxK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:53:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, takata@linux-m32r.org
 
 
 The patch titled
-     make probe_serial_gsc() static
+     m32r: export empty_zero_page
 has been added to the -mm tree.  Its filename is
-     make-probe_serial_gsc-static.patch
+     m32r-export-empty_zero_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make probe_serial_gsc() static
+Subject: m32r: export empty_zero_page
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch makes the needlessly global probe_serial_gsc() static.
+ERROR: "empty_zero_page" [fs/ext4/ext4dev.ko] undefined!
 
+Reported-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_gsc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/m32r/kernel/m32r_ksyms.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/serial/8250_gsc.c~make-probe_serial_gsc-static drivers/serial/8250_gsc.c
---- a/drivers/serial/8250_gsc.c~make-probe_serial_gsc-static
-+++ a/drivers/serial/8250_gsc.c
-@@ -111,7 +111,7 @@ static struct parisc_driver serial_drive
- 	.probe		= serial_init_chip,
- };
+diff -puN arch/m32r/kernel/m32r_ksyms.c~m32r-export-empty_zero_page arch/m32r/kernel/m32r_ksyms.c
+--- a/arch/m32r/kernel/m32r_ksyms.c~m32r-export-empty_zero_page
++++ a/arch/m32r/kernel/m32r_ksyms.c
+@@ -14,6 +14,7 @@
+ #include <asm/delay.h>
+ #include <asm/irq.h>
+ #include <asm/tlbflush.h>
++#include <asm/pgtable.h>
  
--int __init probe_serial_gsc(void)
-+static int __init probe_serial_gsc(void)
- {
- 	register_parisc_driver(&lasi_driver);
- 	register_parisc_driver(&serial_driver);
+ /* platform dependent support */
+ EXPORT_SYMBOL(boot_cpu_data);
+@@ -65,6 +66,7 @@ EXPORT_SYMBOL(memset);
+ EXPORT_SYMBOL(copy_page);
+ EXPORT_SYMBOL(clear_page);
+ EXPORT_SYMBOL(strlen);
++EXPORT_SYMBOL(empty_zero_page);
+ 
+ EXPORT_SYMBOL(_inb);
+ EXPORT_SYMBOL(_inw);
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
