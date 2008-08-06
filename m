@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-a2091c-make-2-functions-static.patch added to -mm tree
-Date: Wed, 06 Aug 2008 15:52:44 -0700
-Message-ID: <200808062252.m76MqiwH019784@imap1.linux-foundation.org>
+Subject: + pnp-remove-printk-with-outdated-version.patch added to -mm tree
+Date: Wed, 06 Aug 2008 15:52:20 -0700
+Message-ID: <200808062252.m76MqKFY019728@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57282 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50454 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754715AbYHFWwz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:55 -0400
+	by vger.kernel.org with ESMTP id S1754673AbYHFWwx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, James.Bottomley@HansenPartnership.com
+Cc: bunk@kernel.org, abelay@MIT.EDU, bjorn.helgaas@hp.com, rene.herman@gmail.com
 
 
 The patch titled
-     drivers/scsi/a2091.c: make 2 functions static
+     pnp: remove printk() with outdated version
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-a2091c-make-2-functions-static.patch
+     pnp-remove-printk-with-outdated-version.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,63 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/a2091.c: make 2 functions static
+Subject: pnp: remove printk() with outdated version
 From: Adrian Bunk <bunk@kernel.org>
 
-a2091_{detect,release}() can become static.
+There's no point in printing some ancient version number forever.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Acked-by; Rene Herman <rene.herman@gmail.com>
+Acked-by; Bjorn Helgaas <bjorn.helgaas@hp.com>
+Acked-by; Adam M Belay <abelay@MIT.EDU>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/a2091.c |    6 ++++--
- drivers/scsi/a2091.h |    3 ---
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ drivers/pnp/core.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/scsi/a2091.c~drivers-scsi-a2091c-make-2-functions-static drivers/scsi/a2091.c
---- a/drivers/scsi/a2091.c~drivers-scsi-a2091c-make-2-functions-static
-+++ a/drivers/scsi/a2091.c
-@@ -23,6 +23,8 @@
- #define DMA(ptr) ((a2091_scsiregs *)((ptr)->base))
- #define HDATA(ptr) ((struct WD33C93_hostdata *)((ptr)->hostdata))
+diff -puN drivers/pnp/core.c~pnp-remove-printk-with-outdated-version drivers/pnp/core.c
+--- a/drivers/pnp/core.c~pnp-remove-printk-with-outdated-version
++++ a/drivers/pnp/core.c
+@@ -218,7 +218,6 @@ void __pnp_remove_device(struct pnp_dev 
  
-+static int a2091_release(struct Scsi_Host *instance);
-+
- static irqreturn_t a2091_intr (int irq, void *_instance)
+ static int __init pnp_init(void)
  {
-     unsigned long flags;
-@@ -144,7 +146,7 @@ static void dma_stop(struct Scsi_Host *i
-     }
+-	printk(KERN_INFO "Linux Plug and Play Support v0.97 (c) Adam Belay\n");
+ 	return bus_register(&pnp_bus_type);
  }
  
--int __init a2091_detect(struct scsi_host_template *tpnt)
-+static int __init a2091_detect(struct scsi_host_template *tpnt)
- {
-     static unsigned char called = 0;
-     struct Scsi_Host *instance;
-@@ -227,7 +229,7 @@ static struct scsi_host_template driver_
- 
- #include "scsi_module.c"
- 
--int a2091_release(struct Scsi_Host *instance)
-+static int a2091_release(struct Scsi_Host *instance)
- {
- #ifdef MODULE
- 	DMA(instance)->CNTR = 0;
-diff -puN drivers/scsi/a2091.h~drivers-scsi-a2091c-make-2-functions-static drivers/scsi/a2091.h
---- a/drivers/scsi/a2091.h~drivers-scsi-a2091c-make-2-functions-static
-+++ a/drivers/scsi/a2091.h
-@@ -11,9 +11,6 @@
- 
- #include <linux/types.h>
- 
--int a2091_detect(struct scsi_host_template *);
--int a2091_release(struct Scsi_Host *);
--
- #ifndef CMD_PER_LUN
- #define CMD_PER_LUN 2
- #endif
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
