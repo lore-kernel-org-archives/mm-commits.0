@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + parport-remove-cvs-keywords.patch added to -mm tree
-Date: Wed, 06 Aug 2008 15:52:26 -0700
-Message-ID: <200808062252.m76MqQSC019737@imap1.linux-foundation.org>
+Subject: + kernel-dmac-remove-a-cvs-keyword.patch added to -mm tree
+Date: Wed, 06 Aug 2008 15:52:32 -0700
+Message-ID: <200808062252.m76MqWn3019746@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55772 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46123 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753725AbYHFWwf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:35 -0400
+	by vger.kernel.org with ESMTP id S1754210AbYHFWwl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org
 
 
 The patch titled
-     parport: remove CVS keywords
+     kernel/dma.c: remove a CVS keyword
 has been added to the -mm tree.  Its filename is
-     parport-remove-cvs-keywords.patch
+     kernel-dmac-remove-a-cvs-keyword.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +33,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parport: remove CVS keywords
+Subject: kernel/dma.c: remove a CVS keyword
 From: Adrian Bunk <bunk@kernel.org>
 
-Remove CVS keywords that weren't updated for a long time from comments.
+Remove a CVS keyword that wasn't updated for a long time from a comment.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/ieee1284.c |    2 +-
- drivers/parport/probe.c    |    2 +-
- drivers/parport/share.c    |    2 +-
- include/linux/parport.h    |    2 --
- 4 files changed, 3 insertions(+), 5 deletions(-)
+ kernel/dma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/parport/ieee1284.c~parport-remove-cvs-keywords drivers/parport/ieee1284.c
---- a/drivers/parport/ieee1284.c~parport-remove-cvs-keywords
-+++ a/drivers/parport/ieee1284.c
+diff -puN kernel/dma.c~kernel-dmac-remove-a-cvs-keyword kernel/dma.c
+--- a/kernel/dma.c~kernel-dmac-remove-a-cvs-keyword
++++ a/kernel/dma.c
 @@ -1,4 +1,4 @@
--/* $Id: parport_ieee1284.c,v 1.4 1997/10/19 21:37:21 philip Exp $
+-/* $Id: dma.c,v 1.7 1994/12/28 03:35:33 root Exp root $
 +/*
-  * IEEE-1284 implementation for parport.
+  * linux/kernel/dma.c: A DMA channel allocator. Inspired by linux/kernel/irq.c.
   *
-  * Authors: Phil Blundell <philb@gnu.org>
-diff -puN drivers/parport/probe.c~parport-remove-cvs-keywords drivers/parport/probe.c
---- a/drivers/parport/probe.c~parport-remove-cvs-keywords
-+++ a/drivers/parport/probe.c
-@@ -1,4 +1,4 @@
--/* $Id: parport_probe.c,v 1.1 1999/07/03 08:56:17 davem Exp $
-+/*
-  * Parallel port device probing code
-  *
-  * Authors:    Carsten Gross, carsten@sol.wohnheim.uni-ulm.de
-diff -puN drivers/parport/share.c~parport-remove-cvs-keywords drivers/parport/share.c
---- a/drivers/parport/share.c~parport-remove-cvs-keywords
-+++ a/drivers/parport/share.c
-@@ -1,4 +1,4 @@
--/* $Id: parport_share.c,v 1.15 1998/01/11 12:06:17 philip Exp $
-+/*
-  * Parallel-port resource manager code.
-  * 
-  * Authors: David Campbell <campbell@tirian.che.curtin.edu.au>
-diff -puN include/linux/parport.h~parport-remove-cvs-keywords include/linux/parport.h
---- a/include/linux/parport.h~parport-remove-cvs-keywords
-+++ a/include/linux/parport.h
-@@ -1,5 +1,3 @@
--/* $Id: parport.h,v 1.1 1998/05/17 10:57:52 andrea Exp andrea $ */
--
- /*
-  * Any part of this program may be used in documents licensed under
-  * the GNU Free Documentation License, Version 1.1 or any later version
+  * Written by Hennus Bergman, 1992.
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
