@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-hga-framebuffer-driver-entry.patch added to -mm tree
-Date: Wed, 06 Aug 2008 15:52:40 -0700
-Message-ID: <200808062252.m76MqeN5019758@imap1.linux-foundation.org>
+Subject: + binfmt_somc-add-module_license.patch added to -mm tree
+Date: Wed, 06 Aug 2008 15:52:55 -0700
+Message-ID: <200808062252.m76Mqt9L019799@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37588 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58415 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754513AbYHFWwu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:50 -0400
+	by vger.kernel.org with ESMTP id S1754700AbYHFWxE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:53:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org
 
 
 The patch titled
-     MAINTAINERS: remove HGA FRAMEBUFFER DRIVER entry
+     binfmt_som.c: add MODULE_LICENSE
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-hga-framebuffer-driver-entry.patch
+     binfmt_somc-add-module_license.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: remove HGA FRAMEBUFFER DRIVER entry
+Subject: binfmt_som.c: add MODULE_LICENSE
 From: Adrian Bunk <bunk@kernel.org>
 
-- maintainer has not been active for years
-- maintainer email bounces
-- URL no longer exists
-- covered by the FRAMEBUFFER LAYER entry
+Add the missing MODULE_LICENSE("GPL").
 
+Reported-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    7 -------
- 1 file changed, 7 deletions(-)
+ fs/binfmt_som.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-remove-hga-framebuffer-driver-entry MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-hga-framebuffer-driver-entry
-+++ a/MAINTAINERS
-@@ -1923,13 +1923,6 @@ M:	zippel@linux-m68k.org
- L:	linux-kernel@vger.kernel.org
- S:	Maintained
+diff -puN fs/binfmt_som.c~binfmt_somc-add-module_license fs/binfmt_som.c
+--- a/fs/binfmt_som.c~binfmt_somc-add-module_license
++++ a/fs/binfmt_som.c
+@@ -306,3 +306,5 @@ static void __exit exit_som_binfmt(void)
  
--HGA FRAMEBUFFER DRIVER
--P:	Ferenc Bakonyi
--M:	fero@drama.obuda.kando.hu
--L:	linux-nvidia@lists.surfsouth.com
--W:	http://drama.obuda.kando.hu/~fero/cgi-bin/hgafb.shtml
--S:	Maintained
--
- HID CORE LAYER
- P:	Jiri Kosina
- M:	jkosina@suse.cz
+ core_initcall(init_som_binfmt);
+ module_exit(exit_som_binfmt);
++
++MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
