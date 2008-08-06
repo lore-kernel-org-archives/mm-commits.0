@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-make-security_inode_setattr-calling-consistent.patch added to -mm tree
-Date: Tue, 05 Aug 2008 17:01:53 -0700
-Message-ID: <200808060001.m7601rKD030351@imap1.linux-foundation.org>
+Subject: + vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch added to -mm tree
+Date: Tue, 05 Aug 2008 17:04:42 -0700
+Message-ID: <200808060004.m7604gQq030408@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51316 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41622 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758715AbYHFACM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 20:02:12 -0400
+	by vger.kernel.org with ESMTP id S1754366AbYHFAFT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Aug 2008 20:05:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, jmorris@namei.org, sds@tycho.nsa.gov, viro@zeniv.linux.org.uk
+Cc: mszeredi@suse.cz, hch@lst.de, mark.fasheh@oracle.com, sage@newdream.net, trond.myklebust@fys.uio.no, viro@zeniv.linux.org.uk, zach.brown@oracle.com
 
 
 The patch titled
-     vfs: make security_inode_setattr() calling consistent
+     vfs: fix vfs_rename_dir for FS_RENAME_DOES_D_MOVE filesystems
 has been added to the -mm tree.  Its filename is
-     vfs-make-security_inode_setattr-calling-consistent.patch
+     vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: make security_inode_setattr() calling consistent
+Subject: vfs: fix vfs_rename_dir for FS_RENAME_DOES_D_MOVE filesystems
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Call security_inode_setattr() consistently before inode_change_ok().  It
-doesn't make sense to try to "optimize" the i_op->setattr == NULL case, as
-most filesystem do define their own setattr function.
+vfs_rename_dir() doesn't properly account for filesystems with
+FS_RENAME_DOES_D_MOVE.  If new_dentry has a target inode attached, it
+unhashes the new_dentry prior to the rename() iop and rehashes it after,
+but doesn't account for the possibility that rename() may have swapped
+{old,new}_dentry.  For FS_RENAME_DOES_D_MOVE filesystems, it rehashes
+new_dentry (now the old renamed-from name, which d_move() expected to go
+away), such that a subsequent lookup will find it.
 
+This was caught by the recently posted POSIX fstest suite, rename/10.t
+test 62 (and others) on ceph.
+
+The bug was introduced by: commit 349457ccf2592c14bdf13b6706170ae2e94931b1
+"[PATCH] Allow file systems to manually d_move() inside of ->rename()"
+
+Fix by not rehashing the new dentry.  Rehashing used to be needed by
+d_move() but isn't anymore.
+
+Reported-by: Sage Weil <sage@newdream.net>
+Cc: Zach Brown <zach.brown@oracle.com>
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Acked-by: Stephen Smalley <sds@tycho.nsa.gov>
-Acked-by: James Morris <jmorris@namei.org>
+Cc: Mark Fasheh <mark.fasheh@oracle.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/attr.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/namei.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/attr.c~vfs-make-security_inode_setattr-calling-consistent fs/attr.c
---- a/fs/attr.c~vfs-make-security_inode_setattr-calling-consistent
-+++ a/fs/attr.c
-@@ -159,17 +159,17 @@ int notify_change(struct dentry * dentry
- 	if (!(attr->ia_valid & ~(ATTR_KILL_SUID | ATTR_KILL_SGID)))
- 		return 0;
- 
-+	error = security_inode_setattr(dentry, attr);
-+	if (error)
-+		return error;
-+
- 	if (ia_valid & ATTR_SIZE)
- 		down_write(&dentry->d_inode->i_alloc_sem);
- 
- 	if (inode->i_op && inode->i_op->setattr) {
--		error = security_inode_setattr(dentry, attr);
--		if (!error)
--			error = inode->i_op->setattr(dentry, attr);
-+		error = inode->i_op->setattr(dentry, attr);
- 	} else {
- 		error = inode_change_ok(inode, attr);
--		if (!error)
--			error = security_inode_setattr(dentry, attr);
- 		if (!error) {
- 			if ((ia_valid & ATTR_UID && attr->ia_uid != inode->i_uid) ||
- 			    (ia_valid & ATTR_GID && attr->ia_gid != inode->i_gid))
+diff -puN fs/namei.c~vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems fs/namei.c
+--- a/fs/namei.c~vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems
++++ a/fs/namei.c
+@@ -2542,8 +2542,6 @@ static int vfs_rename_dir(struct inode *
+ 		if (!error)
+ 			target->i_flags |= S_DEAD;
+ 		mutex_unlock(&target->i_mutex);
+-		if (d_unhashed(new_dentry))
+-			d_rehash(new_dentry);
+ 		dput(new_dentry);
+ 	}
+ 	if (!error)
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
 vfs-make-security_inode_setattr-calling-consistent.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
 
