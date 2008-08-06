@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-partitions-acornc-remove-dead-code.patch added to -mm tree
-Date: Wed, 06 Aug 2008 15:52:14 -0700
-Message-ID: <200808062252.m76MqGCb019722@imap1.linux-foundation.org>
+Subject: + telephony-remove-cvs-keywords.patch added to -mm tree
+Date: Wed, 06 Aug 2008 15:52:22 -0700
+Message-ID: <200808062252.m76MqMr1019731@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46423 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39567 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753363AbYHFWw2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:28 -0400
+	by vger.kernel.org with ESMTP id S1753127AbYHFWwb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, rpjday@crashcourse.ca
+Cc: bunk@kernel.org
 
 
 The patch titled
-     fs/partitions/acorn.c: remove dead code
+     telephony: remove CVS keywords
 has been added to the -mm tree.  Its filename is
-     fs-partitions-acornc-remove-dead-code.patch
+     telephony-remove-cvs-keywords.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/partitions/acorn.c: remove dead code
+Subject: telephony: remove CVS keywords
 From: Adrian Bunk <bunk@kernel.org>
 
-I missed this when I did the arm26 removal.
+Remove CVS keywords that weren't updated for a long time from comments.
 
-Reported-by: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/acorn.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ drivers/telephony/ixj.c   |    2 --
+ include/linux/telephony.h |    4 ----
+ 2 files changed, 6 deletions(-)
 
-diff -puN fs/partitions/acorn.c~fs-partitions-acornc-remove-dead-code fs/partitions/acorn.c
---- a/fs/partitions/acorn.c~fs-partitions-acornc-remove-dead-code
-+++ a/fs/partitions/acorn.c
-@@ -275,16 +275,6 @@ adfspart_check_ADFS(struct parsed_partit
- 	id = data[0x1fc] & 15;
- 	put_dev_sector(sect);
+diff -puN drivers/telephony/ixj.c~telephony-remove-cvs-keywords drivers/telephony/ixj.c
+--- a/drivers/telephony/ixj.c~telephony-remove-cvs-keywords
++++ a/drivers/telephony/ixj.c
+@@ -42,8 +42,6 @@
+  ***************************************************************************/
  
--#ifdef CONFIG_BLK_DEV_MFM
--	if (MAJOR(bdev->bd_dev) == MFM_ACORN_MAJOR) {
--		extern void xd_set_geometry(struct block_device *,
--			unsigned char, unsigned char, unsigned int);
--		xd_set_geometry(bdev, dr->secspertrack, heads, 1);
--		invalidate_bh_lrus();
--		truncate_inode_pages(bdev->bd_inode->i_mapping, 0);
--	}
--#endif
--
- 	/*
- 	 * Work out start of non-adfs partition.
- 	 */
+ /*
+- * $Log: ixj.c,v $
+- *
+  * Revision 4.8  2003/07/09 19:39:00  Daniele Bellucci
+  * Audit some copy_*_user and minor cleanup.
+  *
+diff -puN include/linux/telephony.h~telephony-remove-cvs-keywords include/linux/telephony.h
+--- a/include/linux/telephony.h~telephony-remove-cvs-keywords
++++ a/include/linux/telephony.h
+@@ -28,10 +28,6 @@
+  * ON AN "AS IS" BASIS, AND QUICKNET TECHNOLOGIES, INC. HAS NO OBLIGATION
+  * TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+  *
+- * Version:       $Revision: 4.2 $
+- *
+- * $Id: telephony.h,v 4.2 2001/08/06 07:09:43 craigs Exp $
+- *
+  *****************************************************************************/
+ 
+ #ifndef TELEPHONY_H
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
