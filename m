@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-dmac-remove-a-cvs-keyword.patch added to -mm tree
-Date: Wed, 06 Aug 2008 15:52:32 -0700
-Message-ID: <200808062252.m76MqWn3019746@imap1.linux-foundation.org>
+Subject: + maintainers-remove-zf-machz-watchdog-entry.patch added to -mm tree
+Date: Wed, 06 Aug 2008 15:52:38 -0700
+Message-ID: <200808062252.m76Mqci2019755@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46123 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46946 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754210AbYHFWwl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:41 -0400
+	by vger.kernel.org with ESMTP id S1754486AbYHFWwt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org
 
 
 The patch titled
-     kernel/dma.c: remove a CVS keyword
+     MAINTAINERS: remove ZF MACHZ WATCHDOG entry
 has been added to the -mm tree.  Its filename is
-     kernel-dmac-remove-a-cvs-keyword.patch
+     maintainers-remove-zf-machz-watchdog-entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,27 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/dma.c: remove a CVS keyword
+Subject: MAINTAINERS: remove ZF MACHZ WATCHDOG entry
 From: Adrian Bunk <bunk@kernel.org>
 
-Remove a CVS keyword that wasn't updated for a long time from a comment.
+- maintainer has not been active for years
+- maintainer email bounces
+- URL no longer exists
+- covered by the WATCHDOG DEVICE DRIVERS entry
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/dma.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN kernel/dma.c~kernel-dmac-remove-a-cvs-keyword kernel/dma.c
---- a/kernel/dma.c~kernel-dmac-remove-a-cvs-keyword
-+++ a/kernel/dma.c
-@@ -1,4 +1,4 @@
--/* $Id: dma.c,v 1.7 1994/12/28 03:35:33 root Exp root $
-+/*
-  * linux/kernel/dma.c: A DMA channel allocator. Inspired by linux/kernel/irq.c.
-  *
-  * Written by Hennus Bergman, 1992.
+diff -puN MAINTAINERS~maintainers-remove-zf-machz-watchdog-entry MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-zf-machz-watchdog-entry
++++ a/MAINTAINERS
+@@ -4703,12 +4703,6 @@ L:	linux-wireless@vger.kernel.org
+ L:	zd1211-devs@lists.sourceforge.net (subscribers-only)
+ S:	Maintained
+ 
+-ZF MACHZ WATCHDOG
+-P:	Fernando Fuganti
+-M:	fuganti@netbank.com.br
+-W:	http://cvs.conectiva.com.br/drivers/ZFL-watchdog/
+-S:	Maintained
+-
+ ZR36067 VIDEO FOR LINUX DRIVER
+ P:	Ronald Bultje
+ M:	rbultje@ronald.bitfreak.net
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
