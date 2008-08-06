@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-zf-machz-watchdog-entry.patch added to -mm tree
-Date: Wed, 06 Aug 2008 15:52:38 -0700
-Message-ID: <200808062252.m76Mqci2019755@imap1.linux-foundation.org>
+Subject: + alpha-miata-remove-dead-url.patch added to -mm tree
+Date: Wed, 06 Aug 2008 15:52:36 -0700
+Message-ID: <200808062252.m76MqaJj019752@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46946 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56540 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754486AbYHFWwt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:49 -0400
+	by vger.kernel.org with ESMTP id S1754733AbYHFWw7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, ysato@users.sourceforge.jp
 
 
 The patch titled
-     MAINTAINERS: remove ZF MACHZ WATCHDOG entry
+     Alpha Miata: remove dead URL
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-zf-machz-watchdog-entry.patch
+     alpha-miata-remove-dead-url.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: remove ZF MACHZ WATCHDOG entry
+Subject: Alpha Miata: remove dead URL
 From: Adrian Bunk <bunk@kernel.org>
 
-- maintainer has not been active for years
-- maintainer email bounces
-- URL no longer exists
-- covered by the WATCHDOG DEVICE DRIVERS entry
+RemoveCc: Yoshinori Sato <ysato@users.sourceforge.jp>
+ a dead URL.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    6 ------
- 1 file changed, 6 deletions(-)
+ arch/alpha/Kconfig |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-remove-zf-machz-watchdog-entry MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-zf-machz-watchdog-entry
-+++ a/MAINTAINERS
-@@ -4703,12 +4703,6 @@ L:	linux-wireless@vger.kernel.org
- L:	zd1211-devs@lists.sourceforge.net (subscribers-only)
- S:	Maintained
+diff -puN arch/alpha/Kconfig~alpha-miata-remove-dead-url arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~alpha-miata-remove-dead-url
++++ a/arch/alpha/Kconfig
+@@ -224,8 +224,7 @@ config ALPHA_MIATA
+ 	bool "Miata"
+ 	help
+ 	  The Digital PersonalWorkStation (PWS 433a, 433au, 500a, 500au, 600a,
+-	  or 600au).  There is an Installation HOWTO for this hardware at
+-	  <http://eijk.homelinux.org/~stefan/miata.html>.
++	  or 600au).
  
--ZF MACHZ WATCHDOG
--P:	Fernando Fuganti
--M:	fuganti@netbank.com.br
--W:	http://cvs.conectiva.com.br/drivers/ZFL-watchdog/
--S:	Maintained
--
- ZR36067 VIDEO FOR LINUX DRIVER
- P:	Ronald Bultje
- M:	rbultje@ronald.bitfreak.net
+ config ALPHA_MIKASA
+ 	bool "Mikasa"
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
