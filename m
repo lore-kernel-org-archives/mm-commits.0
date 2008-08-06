@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-oops-in-mem_cgroup_shrink_usage.patch added to -mm tree
-Date: Wed, 06 Aug 2008 09:09:40 -0700
-Message-ID: <200808061609.m76G9eQ8002638@imap1.linux-foundation.org>
+Subject: + sm501-update-debugging-low-information-messages.patch added to -mm tree
+Date: Wed, 06 Aug 2008 09:10:52 -0700
+Message-ID: <200808061610.m76GAqFQ002665@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47073 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44345 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751803AbYHFQRf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 12:17:35 -0400
+	by vger.kernel.org with ESMTP id S1759288AbYHFQWG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 12:22:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
+Cc: ben-linux@fluff.org, sameo@openedhand.com
 
 
 The patch titled
-     memcg: fix oops in mem_cgroup_shrink_usage
+     sm501: update debugging/low information messages
 has been added to the -mm tree.  Its filename is
-     memcg-fix-oops-in-mem_cgroup_shrink_usage.patch
+     sm501-update-debugging-low-information-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix oops in mem_cgroup_shrink_usage
-From: Hugh Dickins <hugh@veritas.com>
+Subject: sm501: update debugging/low information messages
+From: Ben Dooks <ben-linux@fluff.org>
 
-Got an oops in mem_cgroup_shrink_usage() when testing loop over tmpfs:
-yes, of course, loop0 has no mm: other entry points check but this didn't.
+Make the default output of the SM501 driver to be less noisy wrt to
+message that have low informational value, or simply should be debug.
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Cc: Samuel Ortiz <sameo@openedhand.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/mfd/sm501.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-oops-in-mem_cgroup_shrink_usage mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-oops-in-mem_cgroup_shrink_usage
-+++ a/mm/memcontrol.c
-@@ -796,6 +796,8 @@ int mem_cgroup_shrink_usage(struct mm_st
+diff -puN drivers/mfd/sm501.c~sm501-update-debugging-low-information-messages drivers/mfd/sm501.c
+--- a/drivers/mfd/sm501.c~sm501-update-debugging-low-information-messages
++++ a/drivers/mfd/sm501.c
+@@ -623,8 +623,8 @@ unsigned long sm501_set_clock(struct dev
  
- 	if (mem_cgroup_subsys.disabled)
- 		return 0;
-+	if (!mm)
-+		return 0;
+ 	sm501_sync_regs(sm);
  
- 	rcu_read_lock();
- 	mem = mem_cgroup_from_task(rcu_dereference(mm->owner));
+-	dev_info(sm->dev, "gate %08lx, clock %08lx, mode %08lx\n",
+-		 gate, clock, mode);
++	dev_dbg(sm->dev, "gate %08lx, clock %08lx, mode %08lx\n",
++		gate, clock, mode);
+ 
+ 	sm501_mdelay(sm, 16);
+ 	mutex_unlock(&sm->clock_lock);
+@@ -742,7 +742,7 @@ static int sm501_register_device(struct 
+ 	int ret;
+ 
+ 	for (ptr = 0; ptr < pdev->num_resources; ptr++) {
+-		printk("%s[%d] flags %08lx: %08llx..%08llx\n",
++		printk(KERN_DEBUG "%s[%d] flags %08lx: %08llx..%08llx\n",
+ 		       pdev->name, ptr,
+ 		       pdev->resource[ptr].flags,
+ 		       (unsigned long long)pdev->resource[ptr].start,
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
 origin.patch
-mm-fix-uninitialized-variables-for-find_vma_prepare-callers.patch
-memcg-fix-oops-in-mem_cgroup_shrink_usage.patch
-git-unionfs.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-mlock-mlocked-pages-are-unevictable.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mmapc-deinline-a-few-functions.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-prio_tree-debugging-patch.patch
+backlight-add-more-information-output-to-pwm_backlight.patch
+backlight-add-module_alias-to-pwm_backlight-driver.patch
+sm501-update-debugging-low-information-messages.patch
+linux-next.patch
+resource-add-resource_type-and-ioresource_type_bits.patch
+resource-add-new-ioresource_clk-type-v2.patch
+i2c-sh_mobile-ioresource_clk-support.patch
 
