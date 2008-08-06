@@ -1,144 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_spi-fix-hang-due-to-missed-interrupt.patch removed from -mm tree
-Date: Wed, 06 Aug 2008 13:55:40 -0700
-Message-ID: <200808062055.m76Kte01014593@imap1.linux-foundation.org>
+Subject: - s3c24xx-reset-register-status-on-resume.patch removed from -mm tree
+Date: Wed, 06 Aug 2008 13:55:36 -0700
+Message-ID: <200808062055.m76KtaND014587@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48665 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35443 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756625AbYHFU4c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 16:56:32 -0400
+	by vger.kernel.org with ESMTP id S1758697AbYHFU4r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 16:56:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gerardk5@verizon.net, david-b@pacbell.net, haavard.skinnemoen@atmel.com, mm-commits@vger.kernel.org
+To: ben-linux@fluff.org, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_spi: fix hang due to missed interrupt
+     spi: S3C24XX: reset register status on resume.
 has been removed from the -mm tree.  Its filename was
-     atmel_spi-fix-hang-due-to-missed-interrupt.patch
+     s3c24xx-reset-register-status-on-resume.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_spi: fix hang due to missed interrupt
-From: Gerard Kam <gerardk5@verizon.net>
+Subject: spi: S3C24XX: reset register status on resume.
+From: Ben Dooks <ben-linux@fluff.org>
 
-For some time my at91sam9260 board with JFFS2 on serial flash (m25p80)
-would hang when accessing the serial flash and SPI bus.  Slowing the SPI
-clock down to 9 MHz reduced the occurrence of the hang from "always"
-during boot to a nuisance level that allowed other SW development to
-continue.  Finally had to address this issue when an application stresses
-the I/O to always cause a hang.
+Fix a bug in the spi_s3c24xx driver where it does not reset the registers
+of the hardware when resuming from suspend (this block has been reset over
+suspend).
 
-Hang seems to be caused by a missed SPI interrupt, so that the task ends
-up waiting forever after calling spi_sync().  The fix has 2 parts.  First
-is to halt the DMA engine before the "current" PDC registers are loaded. 
-This ensures that the "next" registers are loaded before the DMA operation
-takes off.  The second part of the fix is a kludge that adds a
-"completion" interrupt in case the ENDRX interrupt for the last segment of
-the DMA chaining operation was missed.
-
-The patch allows the SPI clock for the serial flash to be increased from 9
-MHz to 15 MHz (or more?).  No hangs or SPI overruns were encountered.
-
-Haavard: while this patch does indeed improve things, I still see overruns
-and CRC errors on my NGW100 board when running the DataFlash at 10 MHz. 
-However, I think some improvement is better than nothing, so I'm passing
-this on for inclusion in 2.6.27.
-
-Signed-off-by: Gerard Kam <gerardk5@verizon.net>
-Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/atmel_spi.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ drivers/spi/spi_s3c24xx.c |   25 +++++++++++++++----------
+ 1 file changed, 15 insertions(+), 10 deletions(-)
 
-diff -puN drivers/spi/atmel_spi.c~atmel_spi-fix-hang-due-to-missed-interrupt drivers/spi/atmel_spi.c
---- a/drivers/spi/atmel_spi.c~atmel_spi-fix-hang-due-to-missed-interrupt
-+++ a/drivers/spi/atmel_spi.c
-@@ -184,7 +184,8 @@ static void atmel_spi_next_xfer(struct s
- {
- 	struct atmel_spi	*as = spi_master_get_devdata(master);
- 	struct spi_transfer	*xfer;
--	u32			len, remaining, total;
-+	u32			len, remaining;
-+	u32			ieval;
- 	dma_addr_t		tx_dma, rx_dma;
- 
- 	if (!as->current_transfer)
-@@ -197,6 +198,8 @@ static void atmel_spi_next_xfer(struct s
- 		xfer = NULL;
- 
- 	if (xfer) {
-+		spi_writel(as, PTCR, SPI_BIT(RXTDIS) | SPI_BIT(TXTDIS));
-+
- 		len = xfer->len;
- 		atmel_spi_next_xfer_data(master, xfer, &tx_dma, &rx_dma, &len);
- 		remaining = xfer->len - len;
-@@ -234,6 +237,8 @@ static void atmel_spi_next_xfer(struct s
- 	as->next_transfer = xfer;
- 
- 	if (xfer) {
-+		u32	total;
-+
- 		total = len;
- 		atmel_spi_next_xfer_data(master, xfer, &tx_dma, &rx_dma, &len);
- 		as->next_remaining_bytes = total - len;
-@@ -250,9 +255,11 @@ static void atmel_spi_next_xfer(struct s
- 			"  next xfer %p: len %u tx %p/%08x rx %p/%08x\n",
- 			xfer, xfer->len, xfer->tx_buf, xfer->tx_dma,
- 			xfer->rx_buf, xfer->rx_dma);
-+		ieval = SPI_BIT(ENDRX) | SPI_BIT(OVRES);
- 	} else {
- 		spi_writel(as, RNCR, 0);
- 		spi_writel(as, TNCR, 0);
-+		ieval = SPI_BIT(RXBUFF) | SPI_BIT(ENDRX) | SPI_BIT(OVRES);
- 	}
- 
- 	/* REVISIT: We're waiting for ENDRX before we start the next
-@@ -265,7 +272,7 @@ static void atmel_spi_next_xfer(struct s
- 	 *
- 	 * It should be doable, though. Just not now...
- 	 */
--	spi_writel(as, IER, SPI_BIT(ENDRX) | SPI_BIT(OVRES));
-+	spi_writel(as, IER, ieval);
- 	spi_writel(as, PTCR, SPI_BIT(TXTEN) | SPI_BIT(RXTEN));
+diff -puN drivers/spi/spi_s3c24xx.c~s3c24xx-reset-register-status-on-resume drivers/spi/spi_s3c24xx.c
+--- a/drivers/spi/spi_s3c24xx.c~s3c24xx-reset-register-status-on-resume
++++ a/drivers/spi/spi_s3c24xx.c
+@@ -236,6 +236,19 @@ static irqreturn_t s3c24xx_spi_irq(int i
+ 	return IRQ_HANDLED;
  }
  
-@@ -396,7 +403,7 @@ atmel_spi_interrupt(int irq, void *dev_i
++static void s3c24xx_spi_initialsetup(struct s3c24xx_spi *hw)
++{
++	/* for the moment, permanently enable the clock */
++
++	clk_enable(hw->clk);
++
++	/* program defaults into the registers */
++
++	writeb(0xff, hw->regs + S3C2410_SPPRE);
++	writeb(SPPIN_DEFAULT, hw->regs + S3C2410_SPPIN);
++	writeb(SPCON_DEFAULT, hw->regs + S3C2410_SPCON);
++}
++
+ static int __init s3c24xx_spi_probe(struct platform_device *pdev)
+ {
+ 	struct s3c2410_spi_info *pdata;
+@@ -327,15 +340,7 @@ static int __init s3c24xx_spi_probe(stru
+ 		goto err_no_clk;
+ 	}
  
- 		ret = IRQ_HANDLED;
+-	/* for the moment, permanently enable the clock */
+-
+-	clk_enable(hw->clk);
+-
+-	/* program defaults into the registers */
+-
+-	writeb(0xff, hw->regs + S3C2410_SPPRE);
+-	writeb(SPPIN_DEFAULT, hw->regs + S3C2410_SPPIN);
+-	writeb(SPCON_DEFAULT, hw->regs + S3C2410_SPCON);
++	s3c24xx_spi_initialsetup(hw);
  
--		spi_writel(as, IDR, (SPI_BIT(ENDTX) | SPI_BIT(ENDRX)
-+		spi_writel(as, IDR, (SPI_BIT(RXBUFF) | SPI_BIT(ENDRX)
- 				     | SPI_BIT(OVRES)));
+ 	/* setup any gpio we can */
  
- 		/*
-@@ -418,7 +425,7 @@ atmel_spi_interrupt(int irq, void *dev_i
- 		if (xfer->delay_usecs)
- 			udelay(xfer->delay_usecs);
+@@ -415,7 +420,7 @@ static int s3c24xx_spi_resume(struct pla
+ {
+ 	struct s3c24xx_spi *hw = platform_get_drvdata(pdev);
  
--		dev_warn(master->dev.parent, "fifo overrun (%u/%u remaining)\n",
-+		dev_warn(master->dev.parent, "overrun (%u/%u remaining)\n",
- 			 spi_readl(as, TCR), spi_readl(as, RCR));
+-	clk_enable(hw->clk);
++	s3c24xx_spi_initialsetup(hw);
+ 	return 0;
+ }
  
- 		/*
-@@ -442,7 +449,7 @@ atmel_spi_interrupt(int irq, void *dev_i
- 		spi_readl(as, SR);
- 
- 		atmel_spi_msg_done(master, as, msg, -EIO, 0);
--	} else if (pending & SPI_BIT(ENDRX)) {
-+	} else if (pending & (SPI_BIT(RXBUFF) | SPI_BIT(ENDRX))) {
- 		ret = IRQ_HANDLED;
- 
- 		spi_writel(as, IDR, pending);
 _
 
-Patches currently in -mm which might be from gerardk5@verizon.net are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
+sm501-update-debugging-low-information-messages.patch
+linux-next.patch
+resource-add-resource_type-and-ioresource_type_bits.patch
+resource-add-new-ioresource_clk-type-v2.patch
+i2c-sh_mobile-ioresource_clk-support.patch
 
