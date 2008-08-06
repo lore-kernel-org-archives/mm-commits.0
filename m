@@ -1,107 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - kbuild-extend-menuconfig-for-modules-to-simplify-kconfig-file.patch removed from -mm tree
-Date: Wed, 06 Aug 2008 13:57:28 -0700
-Message-ID: <200808062057.m76KvSVK014772@imap1.linux-foundation.org>
+Subject: - blackfin-rtc-driver-disable-the-write-complete-irq-upon-close.patch removed from -mm tree
+Date: Wed, 06 Aug 2008 13:56:34 -0700
+Message-ID: <200808062056.m76KuYsD014681@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:59337 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756649AbYHFVKU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 17:10:20 -0400
+	by vger.kernel.org with ESMTP id S1752444AbYHFVKZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 17:10:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@crashcourse.ca, randy.dunlap@oracle.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: vapier.adi@gmail.com, a.zummo@towertech.it, cooloney@kernel.org, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kbuild: extend "menuconfig" for modules to simplify Kconfig file
+     blackfin RTC driver: disable the write complete irq upon close
 has been removed from the -mm tree.  Its filename was
-     kbuild-extend-menuconfig-for-modules-to-simplify-kconfig-file.patch
+     blackfin-rtc-driver-disable-the-write-complete-irq-upon-close.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kbuild: extend "menuconfig" for modules to simplify Kconfig file
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: blackfin RTC driver: disable the write complete irq upon close
+From: Mike Frysinger <vapier.adi@gmail.com>
 
-Given that the init/Kconfig file uses a "menuconfig" directive for modules
-already, might as well wrap all the submenu entries in an "if" to toss all
-those dependencies.
-
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-Tested-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-bfin.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN init/Kconfig~kbuild-extend-menuconfig-for-modules-to-simplify-kconfig-file init/Kconfig
---- a/init/Kconfig~kbuild-extend-menuconfig-for-modules-to-simplify-kconfig-file
-+++ a/init/Kconfig
-@@ -845,9 +845,10 @@ menuconfig MODULES
+diff -puN drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-disable-the-write-complete-irq-upon-close drivers/rtc/rtc-bfin.c
+--- a/drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-disable-the-write-complete-irq-upon-close
++++ a/drivers/rtc/rtc-bfin.c
+@@ -144,13 +144,13 @@ static void bfin_rtc_sync_pending(struct
+  * Initialize the RTC.  Enable pre-scaler to scale RTC clock
+  * to 1Hz and clear interrupt/status registers.
+  */
+-static void bfin_rtc_reset(struct device *dev)
++static void bfin_rtc_reset(struct device *dev, u16 rtc_ictl)
+ {
+ 	struct bfin_rtc *rtc = dev_get_drvdata(dev);
+ 	dev_dbg_stamp(dev);
+ 	bfin_rtc_sync_pending(dev);
+ 	bfin_write_RTC_PREN(0x1);
+-	bfin_write_RTC_ICTL(RTC_ISTAT_WRITE_COMPLETE);
++	bfin_write_RTC_ICTL(rtc_ictl);
+ 	bfin_write_RTC_SWCNT(0);
+ 	bfin_write_RTC_ALARM(0);
+ 	bfin_write_RTC_ISTAT(0xFFFF);
+@@ -226,7 +226,7 @@ static int bfin_rtc_open(struct device *
  
- 	  If unsure, say Y.
+ 	ret = request_irq(IRQ_RTC, bfin_rtc_interrupt, IRQF_SHARED, to_platform_device(dev)->name, dev);
+ 	if (!ret)
+-		bfin_rtc_reset(dev);
++		bfin_rtc_reset(dev, RTC_ISTAT_WRITE_COMPLETE);
  
-+if MODULES
-+
- config MODULE_FORCE_LOAD
- 	bool "Forced module loading"
--	depends on MODULES
- 	default n
- 	help
- 	  Allow loading of modules without version information (ie. modprobe
-@@ -856,7 +857,6 @@ config MODULE_FORCE_LOAD
+ 	return ret;
+ }
+@@ -234,7 +234,7 @@ static int bfin_rtc_open(struct device *
+ static void bfin_rtc_release(struct device *dev)
+ {
+ 	dev_dbg_stamp(dev);
+-	bfin_rtc_reset(dev);
++	bfin_rtc_reset(dev, 0);
+ 	free_irq(IRQ_RTC, dev);
+ }
  
- config MODULE_UNLOAD
- 	bool "Module unloading"
--	depends on MODULES
- 	help
- 	  Without this option you will not be able to unload any
- 	  modules (note that some modules may not be unloadable
-@@ -875,7 +875,6 @@ config MODULE_FORCE_UNLOAD
- 
- config MODVERSIONS
- 	bool "Module versioning support"
--	depends on MODULES
- 	help
- 	  Usually, you have to use modules compiled with your kernel.
- 	  Saying Y here makes it sometimes possible to use modules
-@@ -886,7 +885,6 @@ config MODVERSIONS
- 
- config MODULE_SRCVERSION_ALL
- 	bool "Source checksum for all modules"
--	depends on MODULES
- 	help
- 	  Modules which contain a MODULE_VERSION get an extra "srcversion"
- 	  field inserted into their modinfo section, which contains a
-@@ -898,11 +896,12 @@ config MODULE_SRCVERSION_ALL
- 
- config KMOD
- 	def_bool y
--	depends on MODULES
- 	help
- 	  This is being removed soon.  These days, CONFIG_MODULES
- 	  implies CONFIG_KMOD, so use that instead.
- 
-+endif # MODULES
-+
- config STOP_MACHINE
- 	bool
- 	default y
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from vapier.adi@gmail.com are
 
-git-kbuild-fixes.patch
-m32r-remove-the-unused-nohighmem-option.patch
-scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
-xtensa-warn-about-including-asm-rwsemh-directly.patch
-xtensa-use-newer-__spin_lock_unlocked-macro.patch
-uml-remove-the-dead-tty_log-code.patch
-oss-remove-references-to-dead-sound-oss-vars-aedsp16_msssbpro.patch
 
