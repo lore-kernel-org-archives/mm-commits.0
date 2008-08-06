@@ -1,160 +1,212 @@
 From: akpm@linux-foundation.org
-Subject: - git-block-git-rejects.patch removed from -mm tree
-Date: Wed, 06 Aug 2008 13:52:20 -0700
-Message-ID: <200808062052.m76KqKHJ014424@imap1.linux-foundation.org>
+Subject: - mlock-fix-return-values.patch removed from -mm tree
+Date: Wed, 06 Aug 2008 13:55:44 -0700
+Message-ID: <200808062055.m76Ktigb014599@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38786 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46847 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754758AbYHFUwv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 16:52:51 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m76KqLLR021949
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 6 Aug 2008 13:52:22 -0700
+	by vger.kernel.org with ESMTP id S1753098AbYHFU43 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 16:56:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, halesh.sadashiv@ap.sony.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block-git-rejects
+     mlock() fix return values
 has been removed from the -mm tree.  Its filename was
-     git-block-git-rejects.patch
+     mlock-fix-return-values.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-block-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mlock() fix return values
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
+Halesh says:
+
+Please find the below testcase provide to test mlock.
+
+Test Case :
+===========================
+
+#include <sys/resource.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <stdlib.h>
+
+int main(void)
+{
+  int fd,ret, i = 0;
+  char *addr, *addr1 = NULL;
+  unsigned int page_size;
+  struct rlimit rlim;
+
+  if (0 != geteuid()) 
+  {
+   printf("Execute this pgm as root\n");
+   exit(1);
+  }
+
+  /* create a file */
+  if ((fd = open("mmap_test.c",O_RDWR|O_CREAT,0755)) == -1)
+  {
+   printf("cant create test file\n");
+   exit(1);
+  }
+
+  page_size = sysconf(_SC_PAGE_SIZE);
+
+  /* set the MEMLOCK limit */
+  rlim.rlim_cur = 2000;
+  rlim.rlim_max = 2000;
+
+  if ((ret = setrlimit(RLIMIT_MEMLOCK,&rlim)) != 0)
+  {
+   printf("Cant change limit values\n");
+   exit(1);
+  }
+
+  addr = 0;
+  while (1)
+  {
+  /* map a page into memory each time*/ 
+  if ((addr = (char *) mmap(addr,page_size, PROT_READ |     
+PROT_WRITE,MAP_SHARED,fd,0)) == MAP_FAILED) 
+  {
+   printf("cant do mmap on file\n");
+   exit(1);
+  }
+
+  if (0 == i)
+    addr1 = addr;
+  i++;
+  errno = 0;	
+  /* lock the mapped memory pagewise*/
+  if ((ret = mlock((char *)addr, 1500)) == -1) 
+  {
+   printf("errno value is %d\n", errno);
+   printf("cant lock maped region\n");
+   exit(1);
+  }
+  addr = addr + page_size;
+ }
+}
+======================================================
+
+
+This testcase results in an mlock() failure with errno 14 that is EFAULT,
+but it has nowhere been specified that mlock() will return EFAULT.  When I
+tested the same on older kernels like 2.6.18, I got the correct result i.e
+errno 12 (ENOMEM).
+
+I think in source code mlock(2), setting errno ENOMEM has been missed in
+do_mlock() , on mlock_fixup() failure.
+
+
+
+
+SUSv3 requires the following behavior frmo mlock(2).
+
+[ENOMEM]
+    Some or all of the address range specified by the addr and
+    len arguments does not correspond to valid mapped pages
+    in the address space of the process.
+
+[EAGAIN]
+    Some or all of the memory identified by the operation could not
+    be locked when the call was made.
+
+This rule isn't so nice and slighly strange.  but many people think
+POSIX/SUS compliance is important.
+
+Reported-by: Halesh Sadashiv <halesh.sadashiv@ap.sony.com>
+Tested-by: Halesh Sadashiv <halesh.sadashiv@ap.sony.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |   33 ---------------------------------
- 1 file changed, 33 deletions(-)
+ mm/memory.c |   16 +++++++++++++---
+ mm/mlock.c  |    2 --
+ 2 files changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN fs/splice.c~git-block-git-rejects fs/splice.c
---- a/fs/splice.c~git-block-git-rejects
-+++ a/fs/splice.c
-@@ -1162,38 +1162,6 @@ static long do_splice(struct file *in, l
+diff -puN mm/memory.c~mlock-fix-return-values mm/memory.c
+--- a/mm/memory.c~mlock-fix-return-values
++++ a/mm/memory.c
+@@ -2765,16 +2765,26 @@ int make_pages_present(unsigned long add
+ 
+ 	vma = find_vma(current->mm, addr);
+ 	if (!vma)
+-		return -1;
++		return -ENOMEM;
+ 	write = (vma->vm_flags & VM_WRITE) != 0;
+ 	BUG_ON(addr >= end);
+ 	BUG_ON(end > vma->vm_end);
+ 	len = DIV_ROUND_UP(end, PAGE_SIZE) - addr/PAGE_SIZE;
+ 	ret = get_user_pages(current, current->mm, addr,
+ 			len, write, 0, NULL, NULL);
+-	if (ret < 0)
++	if (ret < 0) {
++		/*
++		   SUS require strange return value to mlock
++		    - invalid addr generate to ENOMEM.
++		    - out of memory should generate EAGAIN.
++		*/
++		if (ret == -EFAULT)
++			ret = -ENOMEM;
++		else if (ret == -ENOMEM)
++			ret = -EAGAIN;
+ 		return ret;
+-	return ret == len ? 0 : -1;
++	}
++	return ret == len ? 0 : -ENOMEM;
  }
  
- /*
--<<<<<<< HEAD:fs/splice.c
--=======
-- * Do a copy-from-user while holding the mmap_semaphore for reading, in a
-- * manner safe from deadlocking with simultaneous mmap() (grabbing mmap_sem
-- * for writing) and page faulting on the user memory pointed to by src.
-- * This assumes that we will very rarely hit the partial != 0 path, or this
-- * will not be a win.
-- */
--static int copy_from_user_mmap_sem(void *dst, const void __user *src, size_t n)
--{
--	int partial;
--
--	if (!access_ok(VERIFY_READ, src, n))
--		return -EFAULT;
--
--	pagefault_disable();
--	partial = __copy_from_user_inatomic(dst, src, n);
--	pagefault_enable();
--
--	/*
--	 * Didn't copy everything, drop the mmap_sem and do a faulting copy
--	 */
--	if (unlikely(partial)) {
--		up_read(&current->mm->mmap_sem);
--		partial = copy_from_user(dst, src, n);
--		down_read(&current->mm->mmap_sem);
--	}
--
--	return partial;
--}
--
--/*
-  * Just copy the data to user space
-  */
- static int pipe_to_user_copy(struct pipe_inode_info *pipe,
-@@ -1413,7 +1381,6 @@ static long vmsplice_to_user(struct file
+ #if !defined(__HAVE_ARCH_GATE_AREA)
+diff -puN mm/mlock.c~mlock-fix-return-values mm/mlock.c
+--- a/mm/mlock.c~mlock-fix-return-values
++++ a/mm/mlock.c
+@@ -78,8 +78,6 @@ success:
+ 
+ 	mm->locked_vm -= pages;
+ out:
+-	if (ret == -ENOMEM)
+-		ret = -EAGAIN;
+ 	return ret;
  }
  
- /*
-->>>>>>> FETCH_HEAD:fs/splice.c
-  * Map an iov into an array of pages and offset/length tupples. With the
-  * partial_page structure, we can map several non-contiguous ranges into
-  * our ones pages[] map instead of splitting that operation into pieces.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-next-remove-localversion.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-i2c-renesas-highlander-fpga-smbus-support-update-fix.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-serio-xilinx_ps2c-fix-warning.patch
-git-jg-misc.patch
-git-kbuild-fixes.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
-sched-type-fix.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-git-xtensa.patch
-git-pekka.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-scsi-megaraid_sas-add-the-new-controllers-support-checkpatch-fixes.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
 vmscan-split-lru-lists-into-anon-file-sets.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
 unevictable-lru-infrastructure.patch
+unevictable-lru-infrastructure-nommu-fix.patch
+unevictable-lru-infrastructure-remember-pages-active-state.patch
+unevictable-lru-infrastructure-defer-vm-event-counting.patch
+unevictable-infrastructure-lru-add-event-counting-with-statistics.patch
 unevictable-lru-page-statistics.patch
+shm_locked-pages-are-unevictable.patch
+shm_locked-pages-are-unevictable-add-event-counts-to-list-scan.patch
 mlock-mlocked-pages-are-unevictable.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch
+swap-cull-unevictable-pages-in-fault-path.patch
 vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-devpts-switch-to-ida-checkpatch-fixes.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+vmscam-kill-unused-lru-functions.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
