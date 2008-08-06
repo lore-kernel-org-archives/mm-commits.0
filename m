@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-mounth-remove-cvs-keyword.patch added to -mm tree
-Date: Wed, 06 Aug 2008 15:52:30 -0700
-Message-ID: <200808062252.m76MqUSD019743@imap1.linux-foundation.org>
+Subject: + quota-remove-cvs-keywords.patch added to -mm tree
+Date: Wed, 06 Aug 2008 15:52:28 -0700
+Message-ID: <200808062252.m76MqSpA019740@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46049 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48826 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753725AbYHFWwj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:39 -0400
+	by vger.kernel.org with ESMTP id S1753819AbYHFWwk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, jack@suse.cz
 
 
 The patch titled
-     include/linux/mount.h: remove CVS keyword
+     quota: remove CVS keywords
 has been added to the -mm tree.  Its filename is
-     include-linux-mounth-remove-cvs-keyword.patch
+     quota-remove-cvs-keywords.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/mount.h: remove CVS keyword
+Subject: quota: remove CVS keywords
 From: Adrian Bunk <bunk@kernel.org>
 
-Remove a CVS keyword that wasn't updated for a long time from a comment.
+Remove CVS keywords that weren't updated for a long time from comments.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mount.h |    2 --
- 1 file changed, 2 deletions(-)
+ fs/dquot.c               |    2 --
+ include/linux/quota.h    |    2 --
+ include/linux/quotaops.h |    3 ---
+ 3 files changed, 7 deletions(-)
 
-diff -puN include/linux/mount.h~include-linux-mounth-remove-cvs-keyword include/linux/mount.h
---- a/include/linux/mount.h~include-linux-mounth-remove-cvs-keyword
-+++ a/include/linux/mount.h
-@@ -5,8 +5,6 @@
+diff -puN fs/dquot.c~quota-remove-cvs-keywords fs/dquot.c
+--- a/fs/dquot.c~quota-remove-cvs-keywords
++++ a/fs/dquot.c
+@@ -9,8 +9,6 @@
+  * implementation is based on one of the several variants of the LINUX
+  * inode-subsystem with added complexity of the diskquota system.
+  * 
+- * Version: $Id: dquot.c,v 6.3 1996/11/17 18:35:34 mvw Exp mvw $
+- * 
+  * Author:	Marco van Wieringen <mvw@planets.elm.net>
+  *
+  * Fixes:   Dmitry Gorodchanin <pgmdsg@ibi.com>, 11 Feb 96
+diff -puN include/linux/quota.h~quota-remove-cvs-keywords include/linux/quota.h
+--- a/include/linux/quota.h~quota-remove-cvs-keywords
++++ a/include/linux/quota.h
+@@ -28,8 +28,6 @@
+  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+  * SUCH DAMAGE.
+- *
+- * Version: $Id: quota.h,v 2.0 1996/11/17 16:48:14 mvw Exp mvw $
+  */
+ 
+ #ifndef _LINUX_QUOTA_
+diff -puN include/linux/quotaops.h~quota-remove-cvs-keywords include/linux/quotaops.h
+--- a/include/linux/quotaops.h~quota-remove-cvs-keywords
++++ a/include/linux/quotaops.h
+@@ -3,9 +3,6 @@
+  * macros expand to the right source-code.
   *
   * Author:  Marco van Wieringen <mvw@planets.elm.net>
-  *
-- * Version: $Id: mount.h,v 2.0 1996/11/17 16:48:14 mvw Exp mvw $
+- *
+- * Version: $Id: quotaops.h,v 1.2 1998/01/15 16:22:26 ecd Exp $
 - *
   */
- #ifndef _LINUX_MOUNT_H
- #define _LINUX_MOUNT_H
+ #ifndef _LINUX_QUOTAOPS_
+ #define _LINUX_QUOTAOPS_
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
