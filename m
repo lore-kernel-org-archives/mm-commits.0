@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + telephony-remove-cvs-keywords.patch added to -mm tree
-Date: Wed, 06 Aug 2008 15:52:22 -0700
-Message-ID: <200808062252.m76MqMr1019731@imap1.linux-foundation.org>
+Subject: + include-linux-mounth-remove-cvs-keyword.patch added to -mm tree
+Date: Wed, 06 Aug 2008 15:52:30 -0700
+Message-ID: <200808062252.m76MqUSD019743@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39567 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46049 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753127AbYHFWwb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:31 -0400
+	by vger.kernel.org with ESMTP id S1753725AbYHFWwj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org
 
 
 The patch titled
-     telephony: remove CVS keywords
+     include/linux/mount.h: remove CVS keyword
 has been added to the -mm tree.  Its filename is
-     telephony-remove-cvs-keywords.patch
+     include-linux-mounth-remove-cvs-keyword.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: telephony: remove CVS keywords
+Subject: include/linux/mount.h: remove CVS keyword
 From: Adrian Bunk <bunk@kernel.org>
 
-Remove CVS keywords that weren't updated for a long time from comments.
+Remove a CVS keyword that wasn't updated for a long time from a comment.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/telephony/ixj.c   |    2 --
- include/linux/telephony.h |    4 ----
- 2 files changed, 6 deletions(-)
+ include/linux/mount.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/telephony/ixj.c~telephony-remove-cvs-keywords drivers/telephony/ixj.c
---- a/drivers/telephony/ixj.c~telephony-remove-cvs-keywords
-+++ a/drivers/telephony/ixj.c
-@@ -42,8 +42,6 @@
-  ***************************************************************************/
- 
- /*
-- * $Log: ixj.c,v $
-- *
-  * Revision 4.8  2003/07/09 19:39:00  Daniele Bellucci
-  * Audit some copy_*_user and minor cleanup.
+diff -puN include/linux/mount.h~include-linux-mounth-remove-cvs-keyword include/linux/mount.h
+--- a/include/linux/mount.h~include-linux-mounth-remove-cvs-keyword
++++ a/include/linux/mount.h
+@@ -5,8 +5,6 @@
   *
-diff -puN include/linux/telephony.h~telephony-remove-cvs-keywords include/linux/telephony.h
---- a/include/linux/telephony.h~telephony-remove-cvs-keywords
-+++ a/include/linux/telephony.h
-@@ -28,10 +28,6 @@
-  * ON AN "AS IS" BASIS, AND QUICKNET TECHNOLOGIES, INC. HAS NO OBLIGATION
-  * TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+  * Author:  Marco van Wieringen <mvw@planets.elm.net>
   *
-- * Version:       $Revision: 4.2 $
+- * Version: $Id: mount.h,v 2.0 1996/11/17 16:48:14 mvw Exp mvw $
 - *
-- * $Id: telephony.h,v 4.2 2001/08/06 07:09:43 craigs Exp $
-- *
-  *****************************************************************************/
- 
- #ifndef TELEPHONY_H
+  */
+ #ifndef _LINUX_MOUNT_H
+ #define _LINUX_MOUNT_H
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
