@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + asm-h8300-mdh-remove-cvs-keyword.patch added to -mm tree
-Date: Wed, 06 Aug 2008 15:52:34 -0700
-Message-ID: <200808062252.m76MqY2F019749@imap1.linux-foundation.org>
+Subject: + maintainers-remove-hga-framebuffer-driver-entry.patch added to -mm tree
+Date: Wed, 06 Aug 2008 15:52:40 -0700
+Message-ID: <200808062252.m76MqeN5019758@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41000 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37588 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754723AbYHFWw7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:59 -0400
+	by vger.kernel.org with ESMTP id S1754513AbYHFWwu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, ysato@users.sourceforge.jp
+Cc: bunk@kernel.org
 
 
 The patch titled
-     asm-h8300/md.h: remove CVS keyword
+     MAINTAINERS: remove HGA FRAMEBUFFER DRIVER entry
 has been added to the -mm tree.  Its filename is
-     asm-h8300-mdh-remove-cvs-keyword.patch
+     maintainers-remove-hga-framebuffer-driver-entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,29 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asm-h8300/md.h: remove CVS keyword
+Subject: MAINTAINERS: remove HGA FRAMEBUFFER DRIVER entry
 From: Adrian Bunk <bunk@kernel.org>
 
-Remove a CVS keyword that wasn't updated for a long time from a comment.
+- maintainer has not been active for years
+- maintainer email bounces
+- URL no longer exists
+- covered by the FRAMEBUFFER LAYER entry
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-h8300/md.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN include/asm-h8300/md.h~asm-h8300-mdh-remove-cvs-keyword include/asm-h8300/md.h
---- a/include/asm-h8300/md.h~asm-h8300-mdh-remove-cvs-keyword
-+++ a/include/asm-h8300/md.h
-@@ -1,4 +1,4 @@
--/* $Id: md.h,v 1.1 2002/11/19 02:09:26 gerg Exp $
-+/*
-  * md.h: High speed xor_block operation for RAID4/5 
-  *
-  */
+diff -puN MAINTAINERS~maintainers-remove-hga-framebuffer-driver-entry MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-hga-framebuffer-driver-entry
++++ a/MAINTAINERS
+@@ -1923,13 +1923,6 @@ M:	zippel@linux-m68k.org
+ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
+ 
+-HGA FRAMEBUFFER DRIVER
+-P:	Ferenc Bakonyi
+-M:	fero@drama.obuda.kando.hu
+-L:	linux-nvidia@lists.surfsouth.com
+-W:	http://drama.obuda.kando.hu/~fero/cgi-bin/hgafb.shtml
+-S:	Maintained
+-
+ HID CORE LAYER
+ P:	Jiri Kosina
+ M:	jkosina@suse.cz
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
