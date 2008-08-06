@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-remove-printk-with-outdated-version.patch added to -mm tree
-Date: Wed, 06 Aug 2008 15:52:20 -0700
-Message-ID: <200808062252.m76MqKFY019728@imap1.linux-foundation.org>
+Subject: + drivers-scsi-a3000c-make-2-functions-static.patch added to -mm tree
+Date: Wed, 06 Aug 2008 15:52:46 -0700
+Message-ID: <200808062252.m76Mqktu019787@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50454 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51198 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754673AbYHFWwx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:53 -0400
+	by vger.kernel.org with ESMTP id S1754716AbYHFWw5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:52:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, abelay@MIT.EDU, bjorn.helgaas@hp.com, rene.herman@gmail.com
+Cc: bunk@kernel.org, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     pnp: remove printk() with outdated version
+     drivers/scsi/a3000.c: make 2 functions static
 has been added to the -mm tree.  Its filename is
-     pnp-remove-printk-with-outdated-version.patch
+     drivers-scsi-a3000c-make-2-functions-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp: remove printk() with outdated version
+Subject: drivers/scsi/a3000.c: make 2 functions static
 From: Adrian Bunk <bunk@kernel.org>
 
-There's no point in printing some ancient version number forever.
+a3000_{detect,release}() can become static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by; Rene Herman <rene.herman@gmail.com>
-Acked-by; Bjorn Helgaas <bjorn.helgaas@hp.com>
-Acked-by; Adam M Belay <abelay@MIT.EDU>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/core.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/scsi/a3000.c |    6 ++++--
+ drivers/scsi/a3000.h |    3 ---
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/pnp/core.c~pnp-remove-printk-with-outdated-version drivers/pnp/core.c
---- a/drivers/pnp/core.c~pnp-remove-printk-with-outdated-version
-+++ a/drivers/pnp/core.c
-@@ -218,7 +218,6 @@ void __pnp_remove_device(struct pnp_dev 
+diff -puN drivers/scsi/a3000.c~drivers-scsi-a3000c-make-2-functions-static drivers/scsi/a3000.c
+--- a/drivers/scsi/a3000.c~drivers-scsi-a3000c-make-2-functions-static
++++ a/drivers/scsi/a3000.c
+@@ -25,6 +25,8 @@
  
- static int __init pnp_init(void)
+ static struct Scsi_Host *a3000_host = NULL;
+ 
++static int a3000_release(struct Scsi_Host *instance);
++
+ static irqreturn_t a3000_intr (int irq, void *dummy)
  {
--	printk(KERN_INFO "Linux Plug and Play Support v0.97 (c) Adam Belay\n");
- 	return bus_register(&pnp_bus_type);
+ 	unsigned long flags;
+@@ -157,7 +159,7 @@ static void dma_stop(struct Scsi_Host *i
+     }
  }
  
+-int __init a3000_detect(struct scsi_host_template *tpnt)
++static int __init a3000_detect(struct scsi_host_template *tpnt)
+ {
+     wd33c93_regs regs;
+ 
+@@ -232,7 +234,7 @@ static struct scsi_host_template driver_
+ 
+ #include "scsi_module.c"
+ 
+-int a3000_release(struct Scsi_Host *instance)
++static int a3000_release(struct Scsi_Host *instance)
+ {
+     wd33c93_release();
+     DMA(instance)->CNTR = 0;
+diff -puN drivers/scsi/a3000.h~drivers-scsi-a3000c-make-2-functions-static drivers/scsi/a3000.h
+--- a/drivers/scsi/a3000.h~drivers-scsi-a3000c-make-2-functions-static
++++ a/drivers/scsi/a3000.h
+@@ -11,9 +11,6 @@
+ 
+ #include <linux/types.h>
+ 
+-int a3000_detect(struct scsi_host_template *);
+-int a3000_release(struct Scsi_Host *);
+-
+ #ifndef CMD_PER_LUN
+ #define CMD_PER_LUN 2
+ #endif
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
