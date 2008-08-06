@@ -1,214 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: - v4l-drx397xdc-replace-__function__-occurrences.patch removed from -mm tree
-Date: Wed, 06 Aug 2008 13:57:24 -0700
-Message-ID: <200808062057.m76KvOYa014766@imap1.linux-foundation.org>
+Subject: - pm_qos-spelling-fixes.patch removed from -mm tree
+Date: Wed, 06 Aug 2008 13:57:14 -0700
+Message-ID: <200808062057.m76KvEHM014752@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54506 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54811 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1422859AbYHFU5u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 16:57:50 -0400
+	by vger.kernel.org with ESMTP id S1759023AbYHFU5r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 16:57:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
+To: richard@hughsie.com, mgross@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     v4l: drx397xD.c replace __FUNCTION__ occurrences
+     pm_qos: spelling fixes
 has been removed from the -mm tree.  Its filename was
-     v4l-drx397xdc-replace-__function__-occurrences.patch
+     pm_qos-spelling-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: v4l: drx397xD.c replace __FUNCTION__ occurrences
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: pm_qos: spelling fixes
+From: Richard Hughes <richard@hughsie.com>
 
-__FUNCTION__ is gcc-specific, use __func__
+A documentation cleanup patch.  With a minor tweak to clarify units for
+kbs.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: mark gross <mgross@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/frontends/drx397xD.c |   34 +++++++++++------------
- 1 file changed, 17 insertions(+), 17 deletions(-)
+ Documentation/power/pm_qos_interface.txt |    7 ++++++-
+ include/linux/pm_qos_params.h            |    2 +-
+ kernel/pm_qos_params.c                   |   16 ++++++++--------
+ 3 files changed, 15 insertions(+), 10 deletions(-)
 
-diff -puN drivers/media/dvb/frontends/drx397xD.c~v4l-drx397xdc-replace-__function__-occurrences drivers/media/dvb/frontends/drx397xD.c
---- a/drivers/media/dvb/frontends/drx397xD.c~v4l-drx397xdc-replace-__function__-occurrences
-+++ a/drivers/media/dvb/frontends/drx397xD.c
-@@ -96,7 +96,7 @@ static void drx_release_fw(struct drx397
+diff -puN Documentation/power/pm_qos_interface.txt~pm_qos-spelling-fixes Documentation/power/pm_qos_interface.txt
+--- a/Documentation/power/pm_qos_interface.txt~pm_qos-spelling-fixes
++++ a/Documentation/power/pm_qos_interface.txt
+@@ -1,4 +1,4 @@
+-PM quality of Service interface.
++PM Quality Of Service Interface.
+ 
+ This interface provides a kernel and user mode interface for registering
+ performance expectations by drivers, subsystems and user space applications on
+@@ -7,6 +7,11 @@ one of the parameters.
+ Currently we have {cpu_dma_latency, network_latency, network_throughput} as the
+ initial set of pm_qos parameters.
+ 
++Each parameters have defined units:
++ * latency: usec
++ * timeout: usec
++ * throughput: kbs (kilo bit / sec)
++
+ The infrastructure exposes multiple misc device nodes one per implemented
+ parameter.  The set of parameters implement is defined by pm_qos_power_init()
+ and pm_qos_params.h.  This is done because having the available parameters
+diff -puN include/linux/pm_qos_params.h~pm_qos-spelling-fixes include/linux/pm_qos_params.h
+--- a/include/linux/pm_qos_params.h~pm_qos-spelling-fixes
++++ a/include/linux/pm_qos_params.h
+@@ -1,6 +1,6 @@
+ /* interface for the pm_qos_power infrastructure of the linux kernel.
+  *
+- * Mark Gross
++ * Mark Gross <mgross@linux.intel.com>
+  */
+ #include <linux/list.h>
+ #include <linux/notifier.h>
+diff -puN kernel/pm_qos_params.c~pm_qos-spelling-fixes kernel/pm_qos_params.c
+--- a/kernel/pm_qos_params.c~pm_qos-spelling-fixes
++++ a/kernel/pm_qos_params.c
+@@ -24,7 +24,7 @@
+  * requirement that the application has is cleaned up when closes the file
+  * pointer or exits the pm_qos_object will get an opportunity to clean up.
+  *
+- * mark gross mgross@linux.intel.com
++ * Mark Gross <mgross@linux.intel.com>
+  */
+ 
+ #include <linux/pm_qos_params.h>
+@@ -211,8 +211,8 @@ EXPORT_SYMBOL_GPL(pm_qos_requirement);
+  * @value: defines the qos request
+  *
+  * This function inserts a new entry in the pm_qos_class list of requested qos
+- * performance charactoistics.  It recomputes the agregate QoS expectations for
+- * the pm_qos_class of parrameters.
++ * performance characteristics.  It recomputes the aggregate QoS expectations
++ * for the pm_qos_class of parameters.
+  */
+ int pm_qos_add_requirement(int pm_qos_class, char *name, s32 value)
  {
- 	fw_ix_t ix = s->chip_rev;
- 
--	pr_debug("%s\n", __FUNCTION__);
-+	pr_debug("%s\n", __func__);
- 
- 	write_lock(&fw[ix].lock);
- 	if (fw[ix].refcnt) {
-@@ -113,7 +113,7 @@ static int drx_load_fw(struct drx397xD_s
- 	size_t size, len;
- 	int i = 0, j, rc = -EINVAL;
- 
--	pr_debug("%s\n", __FUNCTION__);
-+	pr_debug("%s\n", __func__);
- 
- 	if (ix < 0 || ix >= ARRAY_SIZE(fw))
- 		return -EINVAL;
-@@ -197,10 +197,10 @@ static int write_fw(struct drx397xD_stat
- 	int len, rc = 0, i = 0;
- 
- 	if (ix < 0 || ix >= ARRAY_SIZE(blob_name)) {
--		pr_debug("%s drx_fw_ix_t out of range\n", __FUNCTION__);
-+		pr_debug("%s drx_fw_ix_t out of range\n", __func__);
- 		return -EINVAL;
- 	}
--	pr_debug("%s %s\n", __FUNCTION__, blob_name[ix]);
-+	pr_debug("%s %s\n", __func__, blob_name[ix]);
- 
- 	read_lock(&fw[s->chip_rev].lock);
- 	data = fw[s->chip_rev].data[ix];
-@@ -305,7 +305,7 @@ static int PLL_Set(struct drx397xD_state
- 	u32 f_tuner, f = fep->frequency;
- 	int rc;
- 
--	pr_debug("%s\n", __FUNCTION__);
-+	pr_debug("%s\n", __func__);
- 
- 	if ((f > s->frontend.ops.tuner_ops.info.frequency_max) ||
- 	    (f < s->frontend.ops.tuner_ops.info.frequency_min))
-@@ -325,7 +325,7 @@ static int PLL_Set(struct drx397xD_state
- 		return rc;
- 
- 	*df_tuner = f_tuner - f;
--	pr_debug("%s requested %d [Hz] tuner %d [Hz]\n", __FUNCTION__, f,
-+	pr_debug("%s requested %d [Hz] tuner %d [Hz]\n", __func__, f,
- 		 f_tuner);
- 
- 	return 0;
-@@ -340,7 +340,7 @@ static int SC_WaitForReady(struct drx397
- 	int cnt = 1000;
- 	int rc;
- 
--	pr_debug("%s\n", __FUNCTION__);
-+	pr_debug("%s\n", __func__);
- 
- 	while (cnt--) {
- 		rc = RD16(s, 0x820043);
-@@ -354,7 +354,7 @@ static int SC_SendCommand(struct drx397x
+@@ -250,10 +250,10 @@ EXPORT_SYMBOL_GPL(pm_qos_add_requirement
+  * @name: identifies the request
+  * @value: defines the qos request
+  *
+- * Updates an existing qos requierement for the pm_qos_class of parameters along
++ * Updates an existing qos requirement for the pm_qos_class of parameters along
+  * with updating the target pm_qos_class value.
+  *
+- * If the named request isn't in the lest then no change is made.
++ * If the named request isn't in the list then no change is made.
+  */
+ int pm_qos_update_requirement(int pm_qos_class, char *name, s32 new_value)
  {
- 	int rc;
- 
--	pr_debug("%s\n", __FUNCTION__);
-+	pr_debug("%s\n", __func__);
- 
- 	WR16(s, 0x820043, cmd);
- 	SC_WaitForReady(s);
-@@ -368,7 +368,7 @@ static int HI_Command(struct drx397xD_st
+@@ -287,7 +287,7 @@ EXPORT_SYMBOL_GPL(pm_qos_update_requirem
+  * @pm_qos_class: identifies which list of qos request to us
+  * @name: identifies the request
+  *
+- * Will remove named qos request from pm_qos_class list of parrameters and
++ * Will remove named qos request from pm_qos_class list of parameters and
+  * recompute the current target value for the pm_qos_class.
+  */
+ void pm_qos_remove_requirement(int pm_qos_class, char *name)
+@@ -319,7 +319,7 @@ EXPORT_SYMBOL_GPL(pm_qos_remove_requirem
+  * @notifier: notifier block managed by caller.
+  *
+  * will register the notifier into a notification chain that gets called
+- * uppon changes to the pm_qos_class target value.
++ * upon changes to the pm_qos_class target value.
+  */
+  int pm_qos_add_notifier(int pm_qos_class, struct notifier_block *notifier)
  {
- 	int rc, cnt = 1000;
- 
--	pr_debug("%s\n", __FUNCTION__);
-+	pr_debug("%s\n", __func__);
- 
- 	rc = WR16(s, 0x420032, cmd);
- 	if (rc < 0)
-@@ -389,7 +389,7 @@ static int HI_Command(struct drx397xD_st
- static int HI_CfgCommand(struct drx397xD_state *s)
+@@ -338,7 +338,7 @@ EXPORT_SYMBOL_GPL(pm_qos_add_notifier);
+  * @notifier: notifier block to be removed.
+  *
+  * will remove the notifier from the notification chain that gets called
+- * uppon changes to the pm_qos_class target value.
++ * upon changes to the pm_qos_class target value.
+  */
+ int pm_qos_remove_notifier(int pm_qos_class, struct notifier_block *notifier)
  {
- 
--	pr_debug("%s\n", __FUNCTION__);
-+	pr_debug("%s\n", __func__);
- 
- 	WR16(s, 0x420033, 0x3973);
- 	WR16(s, 0x420034, s->config.w50);	// code 4, log 4
-@@ -419,7 +419,7 @@ static int SetCfgIfAgc(struct drx397xD_s
- 	u16 w0C = agc->w0C;
- 	int quot, rem, i, rc = -EINVAL;
- 
--	pr_debug("%s\n", __FUNCTION__);
-+	pr_debug("%s\n", __func__);
- 
- 	if (agc->w04 > 0x3ff)
- 		goto exit_rc;
-@@ -478,7 +478,7 @@ static int SetCfgRfAgc(struct drx397xD_s
- 	u16 w06 = agc->w06;
- 	int rc = -1;
- 
--	pr_debug("%s %d 0x%x 0x%x\n", __FUNCTION__, agc->d00, w04, w06);
-+	pr_debug("%s %d 0x%x 0x%x\n", __func__, agc->d00, w04, w06);
- 
- 	if (w04 > 0x3ff)
- 		goto exit_rc;
-@@ -554,7 +554,7 @@ static int CorrectSysClockDeviation(stru
- 	int lockstat;
- 	u32 clk, clk_limit;
- 
--	pr_debug("%s\n", __FUNCTION__);
-+	pr_debug("%s\n", __func__);
- 
- 	if (s->config.d5C == 0) {
- 		EXIT_RC(WR16(s, 0x08200e8, 0x010));
-@@ -598,7 +598,7 @@ static int CorrectSysClockDeviation(stru
- 
- 	if (clk - s->config.f_osc * 1000 + clk_limit <= 2 * clk_limit) {
- 		s->f_osc = clk;
--		pr_debug("%s: osc %d %d [Hz]\n", __FUNCTION__,
-+		pr_debug("%s: osc %d %d [Hz]\n", __func__,
- 			 s->config.f_osc * 1000, clk - s->config.f_osc * 1000);
- 	}
- 	rc = WR16(s, 0x08200e8, 0);
-@@ -610,7 +610,7 @@ static int ConfigureMPEGOutput(struct dr
- {
- 	int rc, si, bp;
- 
--	pr_debug("%s\n", __FUNCTION__);
-+	pr_debug("%s\n", __func__);
- 
- 	si = s->config.wA0;
- 	if (s->config.w98 == 0) {
-@@ -646,7 +646,7 @@ static int drx_tune(struct drx397xD_stat
- 
- 	int rc, df_tuner;
- 	int a, b, c, d;
--	pr_debug("%s %d\n", __FUNCTION__, s->config.d60);
-+	pr_debug("%s %d\n", __func__, s->config.d60);
- 
- 	if (s->config.d60 != 2)
- 		goto set_tuner;
-@@ -1082,7 +1082,7 @@ static int drx397x_init(struct dvb_front
- 	struct drx397xD_state *s = fe->demodulator_priv;
- 	int rc;
- 
--	pr_debug("%s\n", __FUNCTION__);
-+	pr_debug("%s\n", __func__);
- 
- 	s->config.rfagc.d00 = 2;	/* 0x7c */
- 	s->config.rfagc.w04 = 0;
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from richard@hughsie.com are
 
-linux-next.patch
-cifs-remove-global_extern-macro.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-v4l-drx397xdc-sparse-annotations.patch
-input-ads7846c-sparse-lock-annotation.patch
-drivers-net-replace-__function__-with-__func__.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-wireless-replace-__function__-with-__func__.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-include-replace-__function__-with-__func__.patch
-misc-replace-__function__-with-__func__.patch
-befs-annotate-fs32-on-tests-for-superblock-endianness.patch
-byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
 
