@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + binfmt_somc-add-module_license.patch added to -mm tree
-Date: Wed, 06 Aug 2008 15:52:55 -0700
-Message-ID: <200808062252.m76Mqt9L019799@imap1.linux-foundation.org>
+Subject: + m32r-export-__ndelay.patch added to -mm tree
+Date: Wed, 06 Aug 2008 15:52:51 -0700
+Message-ID: <200808062252.m76MqpI1019793@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58415 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57119 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754700AbYHFWxE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:53:04 -0400
+	by vger.kernel.org with ESMTP id S1754779AbYHFWxL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 18:53:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, takata@linux-m32r.org
 
 
 The patch titled
-     binfmt_som.c: add MODULE_LICENSE
+     m32r: export __ndelay
 has been added to the -mm tree.  Its filename is
-     binfmt_somc-add-module_license.patch
+     m32r-export-__ndelay.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,28 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: binfmt_som.c: add MODULE_LICENSE
+Subject: m32r: export __ndelay
 From: Adrian Bunk <bunk@kernel.org>
 
-Add the missing MODULE_LICENSE("GPL").
+ERROR: "__ndelay" [drivers/spi/spi_bitbang.ko] undefined!
 
 Reported-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_som.c |    2 ++
+ arch/m32r/lib/delay.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN fs/binfmt_som.c~binfmt_somc-add-module_license fs/binfmt_som.c
---- a/fs/binfmt_som.c~binfmt_somc-add-module_license
-+++ a/fs/binfmt_som.c
-@@ -306,3 +306,5 @@ static void __exit exit_som_binfmt(void)
+diff -puN arch/m32r/lib/delay.c~m32r-export-__ndelay arch/m32r/lib/delay.c
+--- a/arch/m32r/lib/delay.c~m32r-export-__ndelay
++++ a/arch/m32r/lib/delay.c
+@@ -6,6 +6,7 @@
+  */
  
- core_initcall(init_som_binfmt);
- module_exit(exit_som_binfmt);
-+
-+MODULE_LICENSE("GPL");
+ #include <linux/param.h>
++#include <linux/module.h>
+ #ifdef CONFIG_SMP
+ #include <linux/sched.h>
+ #include <asm/current.h>
+@@ -121,3 +122,4 @@ void __ndelay(unsigned long nsecs)
+ {
+ 	__const_udelay(nsecs * 0x00005);  /* 2**32 / 1000000000 (rounded up) */
+ }
++EXPORT_SYMBOL(__ndelay);
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
