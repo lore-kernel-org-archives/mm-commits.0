@@ -1,63 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - fbcon-fix-scrolling-after-logo-is-cleared.patch removed from -mm tree
-Date: Wed, 06 Aug 2008 13:56:53 -0700
-Message-ID: <200808062056.m76KurCX014715@imap1.linux-foundation.org>
+Subject: - genirq-better-warning-on-irqchip-set_type-failure.patch removed from -mm tree
+Date: Wed, 06 Aug 2008 13:56:22 -0700
+Message-ID: <200808062056.m76KuMGk014661@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56186 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60716 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756151AbYHFU5Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 16:57:25 -0400
+	by vger.kernel.org with ESMTP id S1757604AbYHFU5Q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 16:57:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, Uwe.Kleine-Koenig@digi.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbcon: fix scrolling after logo is cleared
+     genirq: better warning on irqchip->set_type() failure
 has been removed from the -mm tree.  Its filename was
-     fbcon-fix-scrolling-after-logo-is-cleared.patch
+     genirq-better-warning-on-irqchip-set_type-failure.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: fbcon: fix scrolling after logo is cleared
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: genirq: better warning on irqchip->set_type() failure
+=46rom: David Brownell <dbrownell@users.sourceforge.net>
 
-If the 'clear' command is used on the frame buffer with a logo the upper
-area is filled by few lines but not scrolled anymore.
+While I'm glad to finally see the hole fixed whereby passing an invalid
+IRQ trigger type to request_irq() would be ignored, the current diagnos=
+tic
+isn't quite useful.  Fixed by also listing the trigger type which was
+rejected.
 
-Fix this by removing the protected area for the logo if any part of the
-logo is cleared.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Uwe Kleine-K=F6nig <Uwe.Kleine-Koenig@digi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fbcon.c |    3 +++
- 1 file changed, 3 insertions(+)
+ kernel/irq/manage.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/console/fbcon.c~fbcon-fix-scrolling-after-logo-is-cleared drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~fbcon-fix-scrolling-after-logo-is-cleared
-+++ a/drivers/video/console/fbcon.c
-@@ -1311,6 +1311,9 @@ static void fbcon_clear(struct vc_data *
- 	if (!height || !width)
- 		return;
- 
-+	if (sy < vc->vc_top && vc->vc_top == logo_lines)
-+		vc->vc_top = 0;
-+
- 	/* Split blits that cross physical y_wrap boundary */
- 
- 	y_break = p->vrows - p->yscroll;
+diff -puN kernel/irq/manage.c~genirq-better-warning-on-irqchip-set_type=
+-failure kernel/irq/manage.c
+--- a/kernel/irq/manage.c~genirq-better-warning-on-irqchip-set_type-fai=
+lure
++++ a/kernel/irq/manage.c
+@@ -323,7 +323,8 @@ static int __irq_set_trigger(struct irq_
+ 	ret =3D chip->set_type(irq, flags & IRQF_TRIGGER_MASK);
+=20
+ 	if (ret)
+-		pr_err("setting flow type for irq %u failed (%pF)\n",
++		pr_err("setting trigger mode %d for irq %u failed (%pF)\n",
++				(int)(flags & IRQF_TRIGGER_MASK),
+ 				irq, chip->set_type);
+=20
+ 	return ret;
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from dbrownell@users.sourceforg=
+e.net are
 
 linux-next.patch
-rtc-m48t59-reduce-structure-m48t59_private.patch
-x86-fdiv-bug-detection-fix.patch
-fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
+rtc-ds1307-alarm-support-for-ds1337-ds1339.patch
+rtc-remove-some-nop-open-release-methods.patch
+legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
