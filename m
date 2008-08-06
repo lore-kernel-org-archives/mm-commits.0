@@ -1,99 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - s3c24xx-reset-register-status-on-resume.patch removed from -mm tree
-Date: Wed, 06 Aug 2008 13:55:36 -0700
-Message-ID: <200808062055.m76KtaND014587@imap1.linux-foundation.org>
+Subject: - tty-revert-part-of-the-termios-locking.patch removed from -mm tree
+Date: Wed, 06 Aug 2008 13:55:47 -0700
+Message-ID: <200808062055.m76Ktl6p014604@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35443 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58625 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758697AbYHFU4r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 16:56:47 -0400
+	by vger.kernel.org with ESMTP id S1758094AbYHFU4g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Aug 2008 16:56:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben-linux@fluff.org, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: alan@redhat.com, ckyoog@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: S3C24XX: reset register status on resume.
+     tty: revert part of the termios locking
 has been removed from the -mm tree.  Its filename was
-     s3c24xx-reset-register-status-on-resume.patch
+     tty-revert-part-of-the-termios-locking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: S3C24XX: reset register status on resume.
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: tty: revert part of the termios locking
+From: Alan Cox <alan@redhat.com>
 
-Fix a bug in the spi_s3c24xx driver where it does not reset the registers
-of the hardware when resuming from suspend (this block has been reset over
-suspend).
+vt: deadlock workaround
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+2.6.26 corrected the mutex locking on tty resizing to fix the case where
+you could get the tty/vt sizing out of sync.  That turns out to have a
+deadlock.
+
+The actual fix is really major and I've got it lined up as part of the ops
+changes for 2.6.28 so for 2.6.26/2.6.27 it is safer to reintroduce this
+ages old minor bug.
+
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=11234
+
+Signed-off-by: Alan Cox <alan@redhat.com>
+Reported-by: kouyu <ckyoog@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_s3c24xx.c |   25 +++++++++++++++----------
- 1 file changed, 15 insertions(+), 10 deletions(-)
+ drivers/char/vt.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/spi/spi_s3c24xx.c~s3c24xx-reset-register-status-on-resume drivers/spi/spi_s3c24xx.c
---- a/drivers/spi/spi_s3c24xx.c~s3c24xx-reset-register-status-on-resume
-+++ a/drivers/spi/spi_s3c24xx.c
-@@ -236,6 +236,19 @@ static irqreturn_t s3c24xx_spi_irq(int i
- 	return IRQ_HANDLED;
- }
+diff -puN drivers/char/vt.c~tty-revert-part-of-the-termios-locking drivers/char/vt.c
+--- a/drivers/char/vt.c~tty-revert-part-of-the-termios-locking
++++ a/drivers/char/vt.c
+@@ -916,7 +916,6 @@ int vc_resize(struct vc_data *vc, unsign
+ 		ws.ws_col = vc->vc_cols;
+ 		ws.ws_ypixel = vc->vc_scan_lines;
  
-+static void s3c24xx_spi_initialsetup(struct s3c24xx_spi *hw)
-+{
-+	/* for the moment, permanently enable the clock */
-+
-+	clk_enable(hw->clk);
-+
-+	/* program defaults into the registers */
-+
-+	writeb(0xff, hw->regs + S3C2410_SPPRE);
-+	writeb(SPPIN_DEFAULT, hw->regs + S3C2410_SPPIN);
-+	writeb(SPCON_DEFAULT, hw->regs + S3C2410_SPCON);
-+}
-+
- static int __init s3c24xx_spi_probe(struct platform_device *pdev)
- {
- 	struct s3c2410_spi_info *pdata;
-@@ -327,15 +340,7 @@ static int __init s3c24xx_spi_probe(stru
- 		goto err_no_clk;
+-		mutex_lock(&vc->vc_tty->termios_mutex);
+ 		spin_lock_irq(&vc->vc_tty->ctrl_lock);
+ 		if ((ws.ws_row != cws->ws_row || ws.ws_col != cws->ws_col))
+ 			pgrp = get_pid(vc->vc_tty->pgrp);
+@@ -926,7 +925,6 @@ int vc_resize(struct vc_data *vc, unsign
+ 			put_pid(pgrp);
+ 		}
+ 		*cws = ws;
+-		mutex_unlock(&vc->vc_tty->termios_mutex);
  	}
  
--	/* for the moment, permanently enable the clock */
--
--	clk_enable(hw->clk);
--
--	/* program defaults into the registers */
--
--	writeb(0xff, hw->regs + S3C2410_SPPRE);
--	writeb(SPPIN_DEFAULT, hw->regs + S3C2410_SPPIN);
--	writeb(SPCON_DEFAULT, hw->regs + S3C2410_SPCON);
-+	s3c24xx_spi_initialsetup(hw);
- 
- 	/* setup any gpio we can */
- 
-@@ -415,7 +420,7 @@ static int s3c24xx_spi_resume(struct pla
- {
- 	struct s3c24xx_spi *hw = platform_get_drvdata(pdev);
- 
--	clk_enable(hw->clk);
-+	s3c24xx_spi_initialsetup(hw);
- 	return 0;
- }
- 
+ 	if (CON_IS_VISIBLE(vc))
 _
 
-Patches currently in -mm which might be from ben-linux@fluff.org are
+Patches currently in -mm which might be from alan@redhat.com are
 
-sm501-update-debugging-low-information-messages.patch
-linux-next.patch
-resource-add-resource_type-and-ioresource_type_bits.patch
-resource-add-new-ioresource_clk-type-v2.patch
-i2c-sh_mobile-ioresource_clk-support.patch
+hamradio-add-missing-sanity-check-to-tty-operation.patch
+drivers-net-skfp-pmfc-use-offsetof-macro.patch
+i2o-fix-32-64bit-dma-locking.patch
+fb-push-down-the-bkl-in-the-ioctl-handler.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
 
