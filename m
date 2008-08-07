@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + autofs4-devicer-node-ioctl-docoumentation.patch added to -mm tree
-Date: Thu, 07 Aug 2008 13:47:53 -0700
-Message-ID: <200808072047.m77Klr7Z004629@imap1.linux-foundation.org>
+Date: Thu, 07 Aug 2008 13:48:07 -0700
+Message-ID: <200808072048.m77Km77b004723@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52923 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41877 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753291AbYHGUr5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 16:47:57 -0400
+	by vger.kernel.org with ESMTP id S1753465AbYHGUsM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 16:48:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,7 +15,7 @@ Cc: raven@themaw.net
 
 
 The patch titled
-     autofs4: devicer node ioctl docoumentation.
+     autofs4: device node ioctl documentation
 has been added to the -mm tree.  Its filename is
      autofs4-devicer-node-ioctl-docoumentation.patch
 
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: devicer node ioctl docoumentation.
+Subject: autofs4: device node ioctl documentation
 From: Ian Kent <raven@themaw.net>
 
 Add documentation for the miscellaneous device module of autofs4.
