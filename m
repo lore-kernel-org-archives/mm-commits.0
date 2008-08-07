@@ -1,24 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - radeonfb-fix-engine-hangs-and-cache-flushing-v2.patch removed from -mm tree
-Date: Thu, 07 Aug 2008 02:10:38 -0700
-Message-ID: <200808070910.m779Ad3F009207@imap1.linux-foundation.org>
+Subject: + radeonfb-fix-engine-hangs-and-cache-flushing-v2.patch added to -mm tree
+Date: Thu, 07 Aug 2008 02:04:59 -0700
+Message-ID: <200808070905.m7794xQ7009009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:57012 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754448AbYHGMXd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 08:23:33 -0400
+	by vger.kernel.org with ESMTP id S1754465AbYHGMXe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 08:23:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, davem@davemloft.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: benh@kernel.crashing.org, davem@davemloft.net, stable@kernel.org
 
 
 The patch titled
      radeonfb: fix engine hangs and cache flushing (v2)
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      radeonfb-fix-engine-hangs-and-cache-flushing-v2.patch
 
-This patch was dropped because it was folded into radeonfb-fix-engine-hangs-and-cache-flushing.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -54,6 +64,7 @@ v2. adds a missing wait on fifo
 
 Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: "David S. Miller" <davem@davemloft.net>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
