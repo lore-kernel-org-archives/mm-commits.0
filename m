@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + autofs4-cleanup-autofs-mount-type-usage.patch added to -mm tree
-Date: Thu, 07 Aug 2008 13:41:57 -0700
-Message-ID: <200808072041.m77KfvmD004358@imap1.linux-foundation.org>
+Subject: + autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch added to -mm tree
+Date: Thu, 07 Aug 2008 13:47:44 -0700
+Message-ID: <200808072047.m77Kli52004617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41877 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47104 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752564AbYHGUmC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 16:42:02 -0400
+	by vger.kernel.org with ESMTP id S1753288AbYHGUrs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 16:47:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: raven@themaw.net
+Cc: akpm@linux-foundation.org, raven@themaw.net
 
 
 The patch titled
-     autofs4: cleanup autofs mount type usage
+     autofs4-track-uid-and-gid-of-last-mount-requester-fix
 has been added to the -mm tree.  Its filename is
-     autofs4-cleanup-autofs-mount-type-usage.patch
+     autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,144 +33,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: cleanup autofs mount type usage
-From: Ian Kent <raven@themaw.net>
+Subject: autofs4-track-uid-and-gid-of-last-mount-requester-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Usage of the AUTOFS_TYPE_* defines is a little confusing and appears
-inconsistent.
+fix tpyo in comment
 
-Signed-off-by: Ian Kent <raven@themaw.net>
+Cc: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/autofs_i.h    |    6 ++----
- fs/autofs4/expire.c      |    2 +-
- fs/autofs4/inode.c       |    6 +++---
- fs/autofs4/waitq.c       |    8 ++++----
- include/linux/auto_fs4.h |    5 +++++
- 5 files changed, 15 insertions(+), 12 deletions(-)
+ fs/autofs4/waitq.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/autofs4/autofs_i.h~autofs4-cleanup-autofs-mount-type-usage fs/autofs4/autofs_i.h
---- a/fs/autofs4/autofs_i.h~autofs4-cleanup-autofs-mount-type-usage
-+++ a/fs/autofs4/autofs_i.h
-@@ -21,6 +21,8 @@
- #define AUTOFS_IOC_FIRST     AUTOFS_IOC_READY
- #define AUTOFS_IOC_COUNT     32
- 
-+#define AUTOFS_TYPE_TRIGGER	(AUTOFS_TYPE_DIRECT|AUTOFS_TYPE_OFFSET)
-+
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/time.h>
-@@ -92,10 +94,6 @@ struct autofs_wait_queue {
- 
- #define AUTOFS_SBI_MAGIC 0x6d4a556d
- 
--#define AUTOFS_TYPE_INDIRECT     0x0001
--#define AUTOFS_TYPE_DIRECT       0x0002
--#define AUTOFS_TYPE_OFFSET       0x0004
--
- struct autofs_sb_info {
- 	u32 magic;
- 	int pipefd;
-diff -puN fs/autofs4/expire.c~autofs4-cleanup-autofs-mount-type-usage fs/autofs4/expire.c
---- a/fs/autofs4/expire.c~autofs4-cleanup-autofs-mount-type-usage
-+++ a/fs/autofs4/expire.c
-@@ -479,7 +479,7 @@ int autofs4_expire_multi(struct super_bl
- 	if (arg && get_user(do_now, arg))
- 		return -EFAULT;
- 
--	if (sbi->type & AUTOFS_TYPE_DIRECT)
-+	if (sbi->type & AUTOFS_TYPE_TRIGGER)
- 		dentry = autofs4_expire_direct(sb, mnt, sbi, do_now);
- 	else
- 		dentry = autofs4_expire_indirect(sb, mnt, sbi, do_now);
-diff -puN fs/autofs4/inode.c~autofs4-cleanup-autofs-mount-type-usage fs/autofs4/inode.c
---- a/fs/autofs4/inode.c~autofs4-cleanup-autofs-mount-type-usage
-+++ a/fs/autofs4/inode.c
-@@ -288,7 +288,7 @@ static int parse_options(char *options, 
- 			*type = AUTOFS_TYPE_DIRECT;
- 			break;
- 		case Opt_offset:
--			*type = AUTOFS_TYPE_DIRECT | AUTOFS_TYPE_OFFSET;
-+			*type = AUTOFS_TYPE_OFFSET;
- 			break;
- 		default:
- 			return 1;
-@@ -336,7 +336,7 @@ int autofs4_fill_super(struct super_bloc
- 	sbi->sb = s;
- 	sbi->version = 0;
- 	sbi->sub_version = 0;
--	sbi->type = 0;
-+	sbi->type = AUTOFS_TYPE_INDIRECT;
- 	sbi->min_proto = 0;
- 	sbi->max_proto = 0;
- 	mutex_init(&sbi->wq_mutex);
-@@ -378,7 +378,7 @@ int autofs4_fill_super(struct super_bloc
- 	}
- 
- 	root_inode->i_fop = &autofs4_root_operations;
--	root_inode->i_op = sbi->type & AUTOFS_TYPE_DIRECT ?
-+	root_inode->i_op = sbi->type & AUTOFS_TYPE_TRIGGER ?
- 			&autofs4_direct_root_inode_operations :
- 			&autofs4_indirect_root_inode_operations;
- 
-diff -puN fs/autofs4/waitq.c~autofs4-cleanup-autofs-mount-type-usage fs/autofs4/waitq.c
---- a/fs/autofs4/waitq.c~autofs4-cleanup-autofs-mount-type-usage
+diff -puN fs/autofs4/waitq.c~autofs4-track-uid-and-gid-of-last-mount-requester-fix fs/autofs4/waitq.c
+--- a/fs/autofs4/waitq.c~autofs4-track-uid-and-gid-of-last-mount-requester-fix
 +++ a/fs/autofs4/waitq.c
-@@ -337,7 +337,7 @@ int autofs4_wait(struct autofs_sb_info *
- 		 * is very similar for indirect mounts except only dentrys
- 		 * in the root of the autofs file system may be negative.
- 		 */
--		if (sbi->type & (AUTOFS_TYPE_DIRECT|AUTOFS_TYPE_OFFSET))
-+		if (sbi->type & AUTOFS_TYPE_TRIGGER)
- 			return -ENOENT;
- 		else if (!IS_ROOT(dentry->d_parent))
- 			return -ENOENT;
-@@ -348,7 +348,7 @@ int autofs4_wait(struct autofs_sb_info *
- 		return -ENOMEM;
+@@ -458,7 +458,7 @@ int autofs4_wait(struct autofs_sb_info *
+ 	status = wq->status;
  
- 	/* If this is a direct mount request create a dummy name */
--	if (IS_ROOT(dentry) && (sbi->type & AUTOFS_TYPE_DIRECT))
-+	if (IS_ROOT(dentry) && sbi->type & AUTOFS_TYPE_TRIGGER)
- 		qstr.len = sprintf(name, "%p", dentry);
- 	else {
- 		qstr.len = autofs4_getpath(sbi, dentry, &name);
-@@ -406,11 +406,11 @@ int autofs4_wait(struct autofs_sb_info *
- 				type = autofs_ptype_expire_multi;
- 		} else {
- 			if (notify == NFY_MOUNT)
--				type = (sbi->type & AUTOFS_TYPE_DIRECT) ?
-+				type = (sbi->type & AUTOFS_TYPE_TRIGGER) ?
- 					autofs_ptype_missing_direct :
- 					 autofs_ptype_missing_indirect;
- 			else
--				type = (sbi->type & AUTOFS_TYPE_DIRECT) ?
-+				type = (sbi->type & AUTOFS_TYPE_TRIGGER) ?
- 					autofs_ptype_expire_direct :
- 					autofs_ptype_expire_indirect;
- 		}
-diff -puN include/linux/auto_fs4.h~autofs4-cleanup-autofs-mount-type-usage include/linux/auto_fs4.h
---- a/include/linux/auto_fs4.h~autofs4-cleanup-autofs-mount-type-usage
-+++ a/include/linux/auto_fs4.h
-@@ -29,6 +29,11 @@
- #define AUTOFS_EXP_IMMEDIATE		1
- #define AUTOFS_EXP_LEAVES		2
- 
-+#define AUTOFS_TYPE_ANY			0x0000
-+#define AUTOFS_TYPE_INDIRECT		0x0001
-+#define AUTOFS_TYPE_DIRECT		0x0002
-+#define AUTOFS_TYPE_OFFSET		0x0004
-+
- /* Daemon notification packet types */
- enum autofs_notify {
- 	NFY_NONE,
+ 	/*
+-	 * For direct and offset mounts we need to track the requestrer
++	 * For direct and offset mounts we need to track the requester's
+ 	 * uid and gid in the dentry info struct. This is so it can be
+ 	 * supplied, on request, by the misc device ioctl interface.
+ 	 * This is needed during daemon resatart when reconnecting
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-autofs4-cleanup-autofs-mount-type-usage.patch
-autofs4-track-uid-and-gid-of-last-mount-requester.patch
-autofs4-devicer-node-ioctl-docoumentation.patch
-autofs4-add-miscelaneous-device-for-ioctls.patch
+radeonfb-fix-engine-hangs-and-cache-flushing.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+linux-next.patch
+next-remove-localversion.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+i2c-renesas-highlander-fpga-smbus-support-update-fix.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+git-kbuild-fixes.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
+sched-type-fix.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+scsi-megaraid_sas-add-the-new-controllers-support-checkpatch-fixes.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
