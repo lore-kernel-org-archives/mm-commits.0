@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + inith-remove-long-dead-__setup_null_param-macro.patch added to -mm tree
-Date: Thu, 07 Aug 2008 13:09:07 -0700
-Message-ID: <200808072009.m77K97AA003031@imap1.linux-foundation.org>
+Subject: + drm-sis-depends-on-fb_sis.patch added to -mm tree
+Date: Thu, 07 Aug 2008 13:10:48 -0700
+Message-ID: <200808072010.m77KAmks003065@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40346 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42424 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755654AbYHGULV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 16:11:21 -0400
+	by vger.kernel.org with ESMTP id S1752706AbYHGUMS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 16:12:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@crashcourse.ca
+Cc: randy.dunlap@oracle.com, airlied@linux.ie
 
 
 The patch titled
-     init.h: remove long-dead __setup_null_param() macro
+     drm: sis depends on FB_SIS
 has been added to the -mm tree.  Its filename is
-     inith-remove-long-dead-__setup_null_param-macro.patch
+     drm-sis-depends-on-fb_sis.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,51 +33,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init.h: remove long-dead __setup_null_param() macro
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: drm: sis depends on FB_SIS
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-This macro appears to have been unused for ages, and there are no
-invocations of it anywhere in the source tree.
+drm/sis calls mm functions in fb/sis, so make the former depend
+on the latter.
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+This one happened with FB_SIS=m, AGP_SIS=y, DRM_SYS=y.
+
+sis1.out:sis_mm.c:(.text+0x70014): undefined reference to `sis_free'
+sis1.out:sis_mm.c:(.text+0x7002a): undefined reference to `sis_malloc'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init.h |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/gpu/drm/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/init.h~inith-remove-long-dead-__setup_null_param-macro include/linux/init.h
---- a/include/linux/init.h~inith-remove-long-dead-__setup_null_param-macro
-+++ a/include/linux/init.h
-@@ -232,9 +232,6 @@ struct obs_kernel_param {
- 		__attribute__((aligned((sizeof(long)))))	\
- 		= { __setup_str_##unique_id, fn, early }
+diff -puN drivers/gpu/drm/Kconfig~drm-sis-depends-on-fb_sis drivers/gpu/drm/Kconfig
+--- a/drivers/gpu/drm/Kconfig~drm-sis-depends-on-fb_sis
++++ a/drivers/gpu/drm/Kconfig
+@@ -86,7 +86,7 @@ config DRM_MGA
  
--#define __setup_null_param(str, unique_id)			\
--	__setup_param(str, unique_id, NULL, 0)
--
- #define __setup(str, fn)					\
- 	__setup_param(str, fn, fn, 0)
- 
-@@ -295,7 +292,6 @@ void __init parse_early_param(void);
- 	void cleanup_module(void) __attribute__((alias(#exitfn)));
- 
- #define __setup_param(str, unique_id, fn)	/* nothing */
--#define __setup_null_param(str, unique_id) 	/* nothing */
- #define __setup(str, func) 			/* nothing */
- #endif
- 
+ config DRM_SIS
+ 	tristate "SiS video cards"
+-	depends on DRM && AGP
++	depends on DRM && AGP && FB_SIS
+ 	help
+ 	  Choose this option if you have a SiS 630 or compatible video
+           chipset. If M is selected the module will be called sis. AGP
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
+linux-next.patch
 git-kbuild-fixes.patch
-m32r-remove-the-unused-nohighmem-option.patch
-scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
-xtensa-warn-about-including-asm-rwsemh-directly.patch
-xtensa-use-newer-__spin_lock_unlocked-macro.patch
-uml-remove-the-dead-tty_log-code.patch
-inith-remove-long-dead-__setup_null_param-macro.patch
-oss-remove-references-to-dead-sound-oss-vars-aedsp16_msssbpro.patch
-fs-partitions-acornc-remove-dead-code.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+lkdtm-fix-for-config_scsi=n.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+ftrace-printk-formatting-infrastructure-fix.patch
+git-unionfs.patch
+docsrc-build-documentation-sources.patch
+docsrc-fix-procfs-example.patch
+docsrc-fix-ifenslave-type.patch
+docsrc-fix-crc32hash-type.patch
+docsrc-fix-getdelays-printk-formats.patch
+drm-sis-depends-on-fb_sis.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+w1-documentation-w1-masters-ds2490-update.patch
+profile-likely-unlikely-macros.patch
 
