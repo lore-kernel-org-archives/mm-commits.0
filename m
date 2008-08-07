@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pci-calgary-fix-function-declaration.patch added to -mm tree
-Date: Thu, 07 Aug 2008 16:32:29 -0700
-Message-ID: <200808072332.m77NWTeB011508@imap1.linux-foundation.org>
+Subject: + gru-fix-preprocessor-symbol-for-sparse.patch added to -mm tree
+Date: Thu, 07 Aug 2008 16:31:47 -0700
+Message-ID: <200808072331.m77NVluJ011487@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46628 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59489 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750769AbYHGXdK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 19:33:10 -0400
+	by vger.kernel.org with ESMTP id S1752478AbYHGXdT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 19:33:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, mulix@mulix.org
+Cc: randy.dunlap@oracle.com, steiner@sgi.com
 
 
 The patch titled
-     pci-calgary: fix function declaration
+     GRU: fix preprocessor symbol for sparse
 has been added to the -mm tree.  Its filename is
-     pci-calgary-fix-function-declaration.patch
+     gru-fix-preprocessor-symbol-for-sparse.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci-calgary: fix function declaration
+Subject: GRU: fix preprocessor symbol for sparse
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix function declaration:
+Fix preprocessor symbol so that sparse sees it and does not generate
+errors:
 
-linux-next-20080807/arch/x86/kernel/pci-calgary_64.c:1353:36: warning: non-ANSI function declaration of function 'get_tce_space_from_tar'
+linux-next-20080807/drivers/misc/sgi-gru/grutables.h:286:2: error: "Unsupported architecture"
+linux-next-20080807/drivers/misc/sgi-gru/grutables.h:286:2: error: "Unsupported architecture"
+linux-next-20080807/drivers/misc/sgi-gru/grutables.h:286:2: error: "Unsupported architecture"
+linux-next-20080807/drivers/misc/sgi-gru/grutables.h:286:2: error: "Unsupported architecture"
+linux-next-20080807/drivers/misc/sgi-gru/grutlbpurge.c:185:11: error: undefined identifier 'GRUREGION'
+linux-next-20080807/drivers/misc/sgi-gru/grutables.h:286:2: error: "Unsupported architecture"
+linux-next-20080807/drivers/misc/sgi-gru/grutables.h:286:2: error: "Unsupported architecture"
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Muli Ben-Yehuda <mulix@mulix.org>
+Cc: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/pci-calgary_64.c |    2 +-
+ drivers/misc/sgi-gru/grutables.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/pci-calgary_64.c~pci-calgary-fix-function-declaration arch/x86/kernel/pci-calgary_64.c
---- a/arch/x86/kernel/pci-calgary_64.c~pci-calgary-fix-function-declaration
-+++ a/arch/x86/kernel/pci-calgary_64.c
-@@ -1350,7 +1350,7 @@ static void calgary_init_bitmap_from_tce
-  * Function for kdump case. Get the tce tables from first kernel
-  * by reading the contents of the base adress register of calgary iommu
-  */
--static void get_tce_space_from_tar()
-+static void get_tce_space_from_tar(void)
- {
- 	int bus;
- 	void __iomem *target;
+diff -puN drivers/misc/sgi-gru/grutables.h~gru-fix-preprocessor-symbol-for-sparse drivers/misc/sgi-gru/grutables.h
+--- a/drivers/misc/sgi-gru/grutables.h~gru-fix-preprocessor-symbol-for-sparse
++++ a/drivers/misc/sgi-gru/grutables.h
+@@ -279,7 +279,7 @@ struct gru_stats_s {
+ #if defined CONFIG_IA64
+ #define VADDR_HI_BIT		64
+ #define GRUREGION(addr)		((addr) >> (VADDR_HI_BIT - 3) & 3)
+-#elif defined __x86_64
++#elif defined CONFIG_X86_64
+ #define VADDR_HI_BIT		48
+ #define GRUREGION(addr)		(0)		/* ZZZ could do better */
+ #else
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 gru-fix-preprocessor-symbol-for-sparse.patch
-pci-calgary-fix-function-declaration.patch
 linux-next.patch
 drm-sis-depends-on-fb_sis.patch
 git-kbuild-fixes.patch
