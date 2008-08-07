@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + revert-rtc-cdev-lock_kernel-pushdown.patch added to -mm tree
-Date: Wed, 06 Aug 2008 21:18:32 -0700
-Message-ID: <200808070418.m774IW46031217@imap1.linux-foundation.org>
+Subject: + h8300-fix-section-mismatch.patch added to -mm tree
+Date: Wed, 06 Aug 2008 21:29:00 -0700
+Message-ID: <200808070429.m774T0cL031565@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37187 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40234 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751513AbYHGETR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 00:19:17 -0400
+	by vger.kernel.org with ESMTP id S1751383AbYHGE3R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 00:29:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbrownell@users.sourceforge.net, alessandro.zummo@towertech.it, corbet@lwn.net
+Cc: ysato@users.sourceforge.jp
 
 
 The patch titled
-     revert "rtc: cdev lock_kernel() pushdown"
+     h8300: fix section mismatch
 has been added to the -mm tree.  Its filename is
-     revert-rtc-cdev-lock_kernel-pushdown.patch
+     h8300-fix-section-mismatch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,70 +33,97 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "rtc: cdev lock_kernel() pushdown"
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: h8300: fix section mismatch
+From: Yoshinori Sato <ysato@users.sourceforge.jp>
 
-Revert needless "rtc: cdev lock_kernel() pushdown" patch
-(51a776fa7a7997e726d4a478eda0854c6f9143bd).  That patch added some
-explicit references to the BKL, which the RTC framework does not need
-to use.
+WARNING: vmlinux.o(.text+0x2fdf): Section mismatch in reference from the variable .LM3 to the variable .init.text:___alloc_bootmem
+The function .LM3() references
+the variable __init ___alloc_bootmem.
+This is often because .LM3 lacks a __init
+annotation or the annotation of ___alloc_bootmem is wrong.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
+WARNING: vmlinux.o(.text+0x2ff5): Section mismatch in reference from the variable .LM4 to the variable .init.text:___alloc_bootmem
+The function .LM4() references
+the variable __init ___alloc_bootmem.
+This is often because .LM4 lacks a __init
+annotation or the annotation of ___alloc_bootmem is wrong.
+
+WARNING: vmlinux.o(.text+0x300b): Section mismatch in reference from the variable .LM5 to the variable .init.text:___alloc_bootmem
+The function .LM5() references
+the variable __init ___alloc_bootmem.
+This is often because .LM5 lacks a __init
+annotation or the annotation of ___alloc_bootmem is wrong.
+
+WARNING: vmlinux.o(.text+0x304b): Section mismatch in reference from the variable .LM10 to the variable .init.text:_free_area_init
+The function .LM10() references
+the variable __init _free_area_init.
+This is often because .LM10 lacks a __init
+annotation or the annotation of _free_area_init is wrong.
+
+WARNING: vmlinux.o(.text+0x30a3): Section mismatch in reference from the variable .LM17 to the variable .init.text:_free_all_bootmem
+The function .LM17() references
+the variable __init _free_all_bootmem.
+This is often because .LM17 lacks a __init
+annotation or the annotation of _free_all_bootmem is wrong.
+
+Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-dev.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ arch/h8300/mm/init.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-dev.c~revert-rtc-cdev-lock_kernel-pushdown drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~revert-rtc-cdev-lock_kernel-pushdown
-+++ a/drivers/rtc/rtc-dev.c
-@@ -13,7 +13,6 @@
+diff -puN arch/h8300/mm/init.c~h8300-fix-section-mismatch arch/h8300/mm/init.c
+--- a/arch/h8300/mm/init.c~h8300-fix-section-mismatch
++++ a/arch/h8300/mm/init.c
+@@ -40,9 +40,6 @@
  
- #include <linux/module.h>
- #include <linux/rtc.h>
--#include <linux/smp_lock.h>
- #include "rtc-core.h"
+ #undef DEBUG
  
- static dev_t rtc_devt;
-@@ -27,11 +26,8 @@ static int rtc_dev_open(struct inode *in
- 					struct rtc_device, char_dev);
- 	const struct rtc_class_ops *ops = rtc->ops;
- 
--	lock_kernel();
--	if (test_and_set_bit_lock(RTC_DEV_BUSY, &rtc->flags)) {
--		err = -EBUSY;
--		goto out;
--	}
-+	if (test_and_set_bit_lock(RTC_DEV_BUSY, &rtc->flags))
-+		return -EBUSY;
- 
- 	file->private_data = rtc;
- 
-@@ -41,13 +37,11 @@ static int rtc_dev_open(struct inode *in
- 		rtc->irq_data = 0;
- 		spin_unlock_irq(&rtc->irq_lock);
- 
--		goto out;
-+		return 0;
+-extern void die_if_kernel(char *,struct pt_regs *,long);
+-extern void free_initmem(void);
+-
+ /*
+  * BAD_PAGE is the page that is used for page faults when linux
+  * is out-of-memory. Older versions of linux just did a
+@@ -73,7 +70,7 @@ extern unsigned long memory_end;
+  * The parameters are pointers to where to stick the starting and ending
+  * addresses of available kernel virtual memory.
+  */
+-void paging_init(void)
++void __init paging_init(void)
+ {
+ 	/*
+ 	 * Make sure start_mem is page aligned,  otherwise bootmem and
+@@ -122,7 +119,7 @@ void paging_init(void)
  	}
- 
- 	/* something has gone wrong */
- 	clear_bit_unlock(RTC_DEV_BUSY, &rtc->flags);
--out:
--	unlock_kernel();
- 	return err;
  }
  
+-void mem_init(void)
++void __init mem_init(void)
+ {
+ 	int codek = 0, datak = 0, initk = 0;
+ 	/* DAVIDM look at setup memory map generically with reserved area */
+@@ -178,7 +175,7 @@ void free_initrd_mem(unsigned long start
+ #endif
+ 
+ void
+-free_initmem()
++free_initmem(void)
+ {
+ #ifdef CONFIG_RAMKERNEL
+ 	unsigned long addr;
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from ysato@users.sourceforge.jp are
 
-revert-rtc-cdev-lock_kernel-pushdown.patch
-linux-next.patch
-rtc-ds1307-alarm-support-for-ds1337-ds1339.patch
-rtc-remove-some-nop-open-release-methods.patch
-legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
+h8300-fix-section-mismatch.patch
+h8300-update-timer-handler-delete-files.patch
+h8300-update-timer-handler-new-files.patch
+h8300-update-timer-handler-misc-update.patch
+h8300-kconfig-cleanup.patch
+h8300-generic_bug-support.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+asm-h8300-mdh-remove-cvs-keyword.patch
+alpha-miata-remove-dead-url.patch
 
