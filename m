@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-use-common-header-for-software-io-tlb.patch added to -mm tree
-Date: Thu, 07 Aug 2008 14:12:24 -0700
-Message-ID: <200808072112.m77LCOlf005610@imap1.linux-foundation.org>
+Subject: + autofs4-add-miscellaneous-device-for-ioctls-fix.patch added to -mm tree
+Date: Thu, 07 Aug 2008 14:10:57 -0700
+Message-ID: <200808072110.m77LAvPT005569@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43140 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57372 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751658AbYHGVMy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 17:12:54 -0400
+	by vger.kernel.org with ESMTP id S1753391AbYHGVbK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 17:31:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joerg.roedel@amd.com, tony.luck@intel.com
+Cc: akpm@linux-foundation.org, raven@themaw.net
 
 
 The patch titled
-     ia64: use common header for software IO/TLB
+     autofs4-add-miscellaneous-device-for-ioctls-fix
 has been added to the -mm tree.  Its filename is
-     ia64-use-common-header-for-software-io-tlb.patch
+     autofs4-add-miscellaneous-device-for-ioctls-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,76 +33,100 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: use common header for software IO/TLB
-From: Joerg Roedel <joerg.roedel@amd.com>
+Subject: autofs4-add-miscellaneous-device-for-ioctls-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove the swiotlb prototypes from the architecture code and use the
-common header file instead.
-
-Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/hp/common/hwsw_iommu.c |    9 +--------
- arch/ia64/include/asm/machvec.h  |   22 +---------------------
- 2 files changed, 2 insertions(+), 29 deletions(-)
+ fs/autofs4/dev-ioctl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/ia64/hp/common/hwsw_iommu.c~ia64-use-common-header-for-software-io-tlb arch/ia64/hp/common/hwsw_iommu.c
---- a/arch/ia64/hp/common/hwsw_iommu.c~ia64-use-common-header-for-software-io-tlb
-+++ a/arch/ia64/hp/common/hwsw_iommu.c
-@@ -13,19 +13,12 @@
-  */
+diff -puN fs/autofs4/dev-ioctl.c~autofs4-add-miscellaneous-device-for-ioctls-fix fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs4-add-miscellaneous-device-for-ioctls-fix
++++ a/fs/autofs4/dev-ioctl.c
+@@ -39,8 +39,8 @@
  
- #include <linux/device.h>
-+#include <linux/swiotlb.h>
+ #define AUTOFS_DEV_IOCTL_SIZE	sizeof(struct autofs_dev_ioctl)
  
- #include <asm/machvec.h>
+-typedef int (*ioctl_fn)(struct file *,
+-struct autofs_sb_info *, struct autofs_dev_ioctl *);
++typedef int (*ioctl_fn)(struct file *, struct autofs_sb_info *,
++			struct autofs_dev_ioctl *);
  
- /* swiotlb declarations & definitions: */
- extern int swiotlb_late_init_with_default_size (size_t size);
--extern ia64_mv_dma_alloc_coherent	swiotlb_alloc_coherent;
--extern ia64_mv_dma_free_coherent	swiotlb_free_coherent;
--extern ia64_mv_dma_map_single_attrs	swiotlb_map_single_attrs;
--extern ia64_mv_dma_unmap_single_attrs	swiotlb_unmap_single_attrs;
--extern ia64_mv_dma_map_sg_attrs		swiotlb_map_sg_attrs;
--extern ia64_mv_dma_unmap_sg_attrs	swiotlb_unmap_sg_attrs;
--extern ia64_mv_dma_supported		swiotlb_dma_supported;
--extern ia64_mv_dma_mapping_error	swiotlb_dma_mapping_error;
- 
- /* hwiommu declarations & definitions: */
- 
-diff -puN arch/ia64/include/asm/machvec.h~ia64-use-common-header-for-software-io-tlb arch/ia64/include/asm/machvec.h
---- a/arch/ia64/include/asm/machvec.h~ia64-use-common-header-for-software-io-tlb
-+++ a/arch/ia64/include/asm/machvec.h
-@@ -11,6 +11,7 @@
- #define _ASM_IA64_MACHVEC_H
- 
- #include <linux/types.h>
-+#include <linux/swiotlb.h>
- 
- /* forward declarations: */
- struct device;
-@@ -294,27 +295,6 @@ extern void machvec_init_from_cmdline(co
- # endif /* CONFIG_IA64_GENERIC */
- 
- /*
-- * Declare default routines which aren't declared anywhere else:
-- */
--extern ia64_mv_dma_init			swiotlb_init;
--extern ia64_mv_dma_alloc_coherent	swiotlb_alloc_coherent;
--extern ia64_mv_dma_free_coherent	swiotlb_free_coherent;
--extern ia64_mv_dma_map_single		swiotlb_map_single;
--extern ia64_mv_dma_map_single_attrs	swiotlb_map_single_attrs;
--extern ia64_mv_dma_unmap_single		swiotlb_unmap_single;
--extern ia64_mv_dma_unmap_single_attrs	swiotlb_unmap_single_attrs;
--extern ia64_mv_dma_map_sg		swiotlb_map_sg;
--extern ia64_mv_dma_map_sg_attrs		swiotlb_map_sg_attrs;
--extern ia64_mv_dma_unmap_sg		swiotlb_unmap_sg;
--extern ia64_mv_dma_unmap_sg_attrs	swiotlb_unmap_sg_attrs;
--extern ia64_mv_dma_sync_single_for_cpu	swiotlb_sync_single_for_cpu;
--extern ia64_mv_dma_sync_sg_for_cpu	swiotlb_sync_sg_for_cpu;
--extern ia64_mv_dma_sync_single_for_device swiotlb_sync_single_for_device;
--extern ia64_mv_dma_sync_sg_for_device	swiotlb_sync_sg_for_device;
--extern ia64_mv_dma_mapping_error	swiotlb_dma_mapping_error;
--extern ia64_mv_dma_supported		swiotlb_dma_supported;
+ static int check_name(const char *name)
+ {
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+radeonfb-fix-engine-hangs-and-cache-flushing.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+linux-next.patch
+next-remove-localversion.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+i2c-renesas-highlander-fpga-smbus-support-update-fix.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+git-kbuild-fixes.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
+sched-type-fix.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+scsi-megaraid_sas-add-the-new-controllers-support-checkpatch-fixes.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
+
