@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lockdep-spin_lock_nest_lock-fix-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 07 Aug 2008 14:41:22 -0700
-Message-ID: <200808072141.m77LfMAi007006@imap1.linux-foundation.org>
+Subject: + lockdep-annotate-mm_take_all_locks.patch added to -mm tree
+Date: Thu, 07 Aug 2008 14:41:51 -0700
+Message-ID: <200808072141.m77Lfp7C007019@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40231 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36729 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752660AbYHGVmO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 17:42:14 -0400
+	by vger.kernel.org with ESMTP id S1750890AbYHGVml (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 17:42:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl
+Cc: a.p.zijlstra@chello.nl, andrea@qumranet.com
 
 
 The patch titled
-     lockdep-spin_lock_nest_lock-fix-checkpatch-fixes
+     lockdep: annotate mm_take_all_locks()
 has been added to the -mm tree.  Its filename is
-     lockdep-spin_lock_nest_lock-fix-checkpatch-fixes.patch
+     lockdep-annotate-mm_take_all_locks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,126 +33,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lockdep-spin_lock_nest_lock-fix-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lockdep: annotate mm_take_all_locks()
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
-#46: FILE: kernel/spinlock.c:326:
-+EXPORT_SYMBOL(_spin_lock_nest_lock);
+The nesting is correct due to holding mmap_sem, use the new annotation
+to annotate this.
 
-total: 0 errors, 1 warnings, 26 lines checked
+This doesn't solve the MAX_LOCK_DEPTH issue, but 48 seems enough for
+the current kvm usage, which does this early on in the life of an mm.
 
-./patches/lockdep-spin_lock_nest_lock-fix.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Andrea Arcangeli <andrea@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/spinlock.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/mmap.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/spinlock.c~lockdep-spin_lock_nest_lock-fix-checkpatch-fixes kernel/spinlock.c
---- a/kernel/spinlock.c~lockdep-spin_lock_nest_lock-fix-checkpatch-fixes
-+++ a/kernel/spinlock.c
-@@ -290,7 +290,6 @@ void __lockfunc _spin_lock_nested(spinlo
- 	spin_acquire(&lock->dep_map, subclass, 0, _RET_IP_);
- 	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
- }
--
- EXPORT_SYMBOL(_spin_lock_nested);
+diff -puN mm/mmap.c~lockdep-annotate-mm_take_all_locks mm/mmap.c
+--- a/mm/mmap.c~lockdep-annotate-mm_take_all_locks
++++ a/mm/mmap.c
+@@ -2273,14 +2273,14 @@ int install_special_mapping(struct mm_st
  
- unsigned long __lockfunc _spin_lock_irqsave_nested(spinlock_t *lock, int subclass)
-@@ -312,7 +311,6 @@ unsigned long __lockfunc _spin_lock_irqs
- #endif
- 	return flags;
- }
--
- EXPORT_SYMBOL(_spin_lock_irqsave_nested);
+ static DEFINE_MUTEX(mm_all_locks_mutex);
  
- void __lockfunc _spin_lock_nest_lock(spinlock_t *lock,
-@@ -322,7 +320,6 @@ void __lockfunc _spin_lock_nest_lock(spi
- 	spin_acquire_nest(&lock->dep_map, 0, 0, nest_lock, _RET_IP_);
- 	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
+-static void vm_lock_anon_vma(struct anon_vma *anon_vma)
++static void vm_lock_anon_vma(struct mm_struct *mm, struct anon_vma *anon_vma)
+ {
+ 	if (!test_bit(0, (unsigned long *) &anon_vma->head.next)) {
+ 		/*
+ 		 * The LSB of head.next can't change from under us
+ 		 * because we hold the mm_all_locks_mutex.
+ 		 */
+-		spin_lock(&anon_vma->lock);
++		spin_lock_nest_lock(&anon_vma->lock, &mm->mmap_sem);
+ 		/*
+ 		 * We can safely modify head.next after taking the
+ 		 * anon_vma->lock. If some other vma in this mm shares
+@@ -2296,7 +2296,7 @@ static void vm_lock_anon_vma(struct anon
+ 	}
  }
--
- EXPORT_SYMBOL(_spin_lock_nest_lock);
  
- #endif
+-static void vm_lock_mapping(struct address_space *mapping)
++static void vm_lock_mapping(struct mm_struct *mm, struct address_space *mapping)
+ {
+ 	if (!test_bit(AS_MM_ALL_LOCKS, &mapping->flags)) {
+ 		/*
+@@ -2310,7 +2310,7 @@ static void vm_lock_mapping(struct addre
+ 		 */
+ 		if (test_and_set_bit(AS_MM_ALL_LOCKS, &mapping->flags))
+ 			BUG();
+-		spin_lock(&mapping->i_mmap_lock);
++		spin_lock_nest_lock(&mapping->i_mmap_lock, &mm->mmap_sem);
+ 	}
+ }
+ 
+@@ -2359,9 +2359,9 @@ int mm_take_all_locks(struct mm_struct *
+ 		if (signal_pending(current))
+ 			goto out_unlock;
+ 		if (vma->anon_vma)
+-			vm_lock_anon_vma(vma->anon_vma);
++			vm_lock_anon_vma(mm, vma->anon_vma);
+ 		if (vma->vm_file && vma->vm_file->f_mapping)
+-			vm_lock_mapping(vma->vm_file->f_mapping);
++			vm_lock_mapping(mm, vma->vm_file->f_mapping);
+ 	}
+ 	ret = 0;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
-radeonfb-fix-engine-hangs-and-cache-flushing.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-next-remove-localversion.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-i2c-renesas-highlander-fpga-smbus-support-update-fix.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-serio-xilinx_ps2c-fix-warning.patch
-git-jg-misc.patch
-git-kbuild-fixes.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
 sched-type-fix.patch
+lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal.patch
+lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal-fix.patch
+lockdep-lock_set_subclass-reset-a-held-locks-subclass.patch
+lockdep-re-annotate-scheduler-runqueues.patch
+lockdep-shrink-held_lock-structure.patch
+lockdep-shrink-held_lock-structure-fix.patch
+lockdep-shrink-held_lock-structure-fix-2.patch
+lockdep-map_acquire.patch
+lockdep-lock-protection-locks.patch
+lockdep-spin_lock_nest_lock.patch
+lockdep-spin_lock_nest_lock-fix.patch
 lockdep-spin_lock_nest_lock-fix-checkpatch-fixes.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-scsi-megaraid_sas-add-the-new-controllers-support-checkpatch-fixes.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-devpts-switch-to-ida-checkpatch-fixes.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+lockdep-annotate-mm_take_all_locks.patch
 
