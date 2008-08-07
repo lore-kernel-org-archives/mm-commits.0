@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lockdep-spin_lock_nest_lock-fix.patch added to -mm tree
-Date: Thu, 07 Aug 2008 14:40:13 -0700
-Message-ID: <200808072140.m77LeD8m006969@imap1.linux-foundation.org>
+Subject: + lockdep-spin_lock_nest_lock-fix-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 07 Aug 2008 14:41:22 -0700
+Message-ID: <200808072141.m77LfMAi007006@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52949 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40231 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751739AbYHGVlF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 17:41:05 -0400
+	by vger.kernel.org with ESMTP id S1752660AbYHGVmO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 17:42:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl
 
 
 The patch titled
-     lockdep-spin_lock_nest_lock fix
+     lockdep-spin_lock_nest_lock-fix-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     lockdep-spin_lock_nest_lock-fix.patch
+     lockdep-spin_lock_nest_lock-fix-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,71 +33,126 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lockdep-spin_lock_nest_lock fix
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: lockdep-spin_lock_nest_lock-fix-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
+#46: FILE: kernel/spinlock.c:326:
++EXPORT_SYMBOL(_spin_lock_nest_lock);
+
+total: 0 errors, 1 warnings, 26 lines checked
+
+./patches/lockdep-spin_lock_nest_lock-fix.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/spinlock.h         |    4 ++--
- include/linux/spinlock_api_smp.h |    2 ++
- kernel/spinlock.c                |    2 +-
- 3 files changed, 5 insertions(+), 3 deletions(-)
+ kernel/spinlock.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN include/linux/spinlock.h~lockdep-spin_lock_nest_lock-fix include/linux/spinlock.h
---- a/include/linux/spinlock.h~lockdep-spin_lock_nest_lock-fix
-+++ a/include/linux/spinlock.h
-@@ -185,8 +185,8 @@ do {								\
- # define spin_lock_nested(lock, subclass) _spin_lock_nested(lock, subclass)
- # define spin_lock_nest_lock(lock, nest_lock)				\
- 	 do {								\
--		 typecheck(struct lockdep_map *, &nest_lock->dep_map);	\
--		 _spin_lock_nest_lock(lock, &nest_lock->dep_map);	\
-+		 typecheck(struct lockdep_map *, &(nest_lock)->dep_map);\
-+		 _spin_lock_nest_lock(lock, &(nest_lock)->dep_map);	\
- 	 } while (0)
- #else
- # define spin_lock_nested(lock, subclass) _spin_lock(lock)
-diff -puN include/linux/spinlock_api_smp.h~lockdep-spin_lock_nest_lock-fix include/linux/spinlock_api_smp.h
---- a/include/linux/spinlock_api_smp.h~lockdep-spin_lock_nest_lock-fix
-+++ a/include/linux/spinlock_api_smp.h
-@@ -22,6 +22,8 @@ int in_lock_functions(unsigned long addr
- void __lockfunc _spin_lock(spinlock_t *lock)		__acquires(lock);
- void __lockfunc _spin_lock_nested(spinlock_t *lock, int subclass)
- 							__acquires(lock);
-+void __lockfunc _spin_lock_nest_lock(spinlock_t *lock, struct lockdep_map *map)
-+							__acquires(lock);
- void __lockfunc _read_lock(rwlock_t *lock)		__acquires(lock);
- void __lockfunc _write_lock(rwlock_t *lock)		__acquires(lock);
- void __lockfunc _spin_lock_bh(spinlock_t *lock)		__acquires(lock);
-diff -puN kernel/spinlock.c~lockdep-spin_lock_nest_lock-fix kernel/spinlock.c
---- a/kernel/spinlock.c~lockdep-spin_lock_nest_lock-fix
+diff -puN kernel/spinlock.c~lockdep-spin_lock_nest_lock-fix-checkpatch-fixes kernel/spinlock.c
+--- a/kernel/spinlock.c~lockdep-spin_lock_nest_lock-fix-checkpatch-fixes
 +++ a/kernel/spinlock.c
-@@ -323,7 +323,7 @@ void __lockfunc _spin_lock_nest_lock(spi
+@@ -290,7 +290,6 @@ void __lockfunc _spin_lock_nested(spinlo
+ 	spin_acquire(&lock->dep_map, subclass, 0, _RET_IP_);
  	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
  }
+-
+ EXPORT_SYMBOL(_spin_lock_nested);
  
--EXPORT_SYMBOL(_spin_lock_nest_lock)
-+EXPORT_SYMBOL(_spin_lock_nest_lock);
+ unsigned long __lockfunc _spin_lock_irqsave_nested(spinlock_t *lock, int subclass)
+@@ -312,7 +311,6 @@ unsigned long __lockfunc _spin_lock_irqs
+ #endif
+ 	return flags;
+ }
+-
+ EXPORT_SYMBOL(_spin_lock_irqsave_nested);
+ 
+ void __lockfunc _spin_lock_nest_lock(spinlock_t *lock,
+@@ -322,7 +320,6 @@ void __lockfunc _spin_lock_nest_lock(spi
+ 	spin_acquire_nest(&lock->dep_map, 0, 0, nest_lock, _RET_IP_);
+ 	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
+ }
+-
+ EXPORT_SYMBOL(_spin_lock_nest_lock);
  
  #endif
- 
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+radeonfb-fix-engine-hangs-and-cache-flushing.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
+next-remove-localversion.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+i2c-renesas-highlander-fpga-smbus-support-update-fix.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+git-kbuild-fixes.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
 sched-type-fix.patch
-lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal.patch
-lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal-fix.patch
-lockdep-lock_set_subclass-reset-a-held-locks-subclass.patch
-lockdep-re-annotate-scheduler-runqueues.patch
-lockdep-shrink-held_lock-structure.patch
-lockdep-shrink-held_lock-structure-fix.patch
-lockdep-shrink-held_lock-structure-fix-2.patch
-lockdep-map_acquire.patch
-lockdep-lock-protection-locks.patch
-lockdep-spin_lock_nest_lock.patch
-lockdep-spin_lock_nest_lock-fix.patch
+lockdep-spin_lock_nest_lock-fix-checkpatch-fixes.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+scsi-megaraid_sas-add-the-new-controllers-support-checkpatch-fixes.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
