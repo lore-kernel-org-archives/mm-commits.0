@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gru-fix-preprocessor-symbol-for-sparse.patch added to -mm tree
-Date: Thu, 07 Aug 2008 16:31:47 -0700
-Message-ID: <200808072331.m77NVluJ011487@imap1.linux-foundation.org>
+Subject: + leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling.patch added to -mm tree
+Date: Thu, 07 Aug 2008 16:36:44 -0700
+Message-ID: <200808072336.m77Nai0s011686@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59489 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44670 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752478AbYHGXdT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 19:33:19 -0400
+	by vger.kernel.org with ESMTP id S1751053AbYHGXhA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 19:37:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, steiner@sgi.com
+Cc: sven.wegener@stealer.net, ncase@xes-inc.com, rpurdie@rpsys.net
 
 
 The patch titled
-     GRU: fix preprocessor symbol for sparse
+     leds-pca955x: add proper error handling and fix bogus memory handling
 has been added to the -mm tree.  Its filename is
-     gru-fix-preprocessor-symbol-for-sparse.patch
+     leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,62 +33,150 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: GRU: fix preprocessor symbol for sparse
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: leds-pca955x: add proper error handling and fix bogus memory handling
+From: Sven Wegener <sven.wegener@stealer.net>
 
-Fix preprocessor symbol so that sparse sees it and does not generate
-errors:
+Check the return value of led_classdev_register and unregister all
+registered devices, if registering one device fails.  Also the dynamic
+memory handling is totally bogus.  You can't allocate multiple chunks via
+kzalloc() and expect them to be in order later.  I wonder how this ever
+worked.
 
-linux-next-20080807/drivers/misc/sgi-gru/grutables.h:286:2: error: "Unsupported architecture"
-linux-next-20080807/drivers/misc/sgi-gru/grutables.h:286:2: error: "Unsupported architecture"
-linux-next-20080807/drivers/misc/sgi-gru/grutables.h:286:2: error: "Unsupported architecture"
-linux-next-20080807/drivers/misc/sgi-gru/grutables.h:286:2: error: "Unsupported architecture"
-linux-next-20080807/drivers/misc/sgi-gru/grutlbpurge.c:185:11: error: undefined identifier 'GRUREGION'
-linux-next-20080807/drivers/misc/sgi-gru/grutables.h:286:2: error: "Unsupported architecture"
-linux-next-20080807/drivers/misc/sgi-gru/grutables.h:286:2: error: "Unsupported architecture"
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jack Steiner <steiner@sgi.com>
+Signed-off-by: Sven Wegener <sven.wegener@stealer.net>
+Acked-by: Nate Case <ncase@xes-inc.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grutables.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/leds/leds-pca955x.c |   72 ++++++++++++++++++----------------
+ 1 file changed, 39 insertions(+), 33 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grutables.h~gru-fix-preprocessor-symbol-for-sparse drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~gru-fix-preprocessor-symbol-for-sparse
-+++ a/drivers/misc/sgi-gru/grutables.h
-@@ -279,7 +279,7 @@ struct gru_stats_s {
- #if defined CONFIG_IA64
- #define VADDR_HI_BIT		64
- #define GRUREGION(addr)		((addr) >> (VADDR_HI_BIT - 3) & 3)
--#elif defined __x86_64
-+#elif defined CONFIG_X86_64
- #define VADDR_HI_BIT		48
- #define GRUREGION(addr)		(0)		/* ZZZ could do better */
- #else
+diff -puN drivers/leds/leds-pca955x.c~leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling drivers/leds/leds-pca955x.c
+--- a/drivers/leds/leds-pca955x.c~leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling
++++ a/drivers/leds/leds-pca955x.c
+@@ -248,11 +248,10 @@ static int __devinit pca955x_probe(struc
+ 					const struct i2c_device_id *id)
+ {
+ 	struct pca955x_led *pca955x;
+-	int i;
+-	int err = -ENODEV;
+ 	struct pca955x_chipdef *chip;
+ 	struct i2c_adapter *adapter;
+ 	struct led_platform_data *pdata;
++	int i, err;
+ 
+ 	chip = &pca955x_chipdefs[id->driver_data];
+ 	adapter = to_i2c_adapter(client->dev.parent);
+@@ -282,43 +281,46 @@ static int __devinit pca955x_probe(struc
+ 		}
+ 	}
+ 
++	pca955x = kzalloc(sizeof(*pca955x) * chip->bits, GFP_KERNEL);
++	if (!pca955x)
++		return -ENOMEM;
++
++	i2c_set_clientdata(client, pca955x);
++
+ 	for (i = 0; i < chip->bits; i++) {
+-		pca955x = kzalloc(sizeof(struct pca955x_led), GFP_KERNEL);
+-		if (!pca955x) {
+-			err = -ENOMEM;
+-			goto exit;
+-		}
++		pca955x[i].chipdef = chip;
++		pca955x[i].client = client;
++		pca955x[i].led_num = i;
+ 
+-		pca955x->chipdef = chip;
+-		pca955x->client = client;
+-		pca955x->led_num = i;
+ 		/* Platform data can specify LED names and default triggers */
+ 		if (pdata) {
+ 			if (pdata->leds[i].name)
+-				snprintf(pca955x->name, 32, "pca955x:%s",
+-							pdata->leds[i].name);
++				snprintf(pca955x[i].name,
++					 sizeof(pca955x[i].name), "pca955x:%s",
++					 pdata->leds[i].name);
+ 			if (pdata->leds[i].default_trigger)
+-				pca955x->led_cdev.default_trigger =
++				pca955x[i].led_cdev.default_trigger =
+ 					pdata->leds[i].default_trigger;
+ 		} else {
+-			snprintf(pca955x->name, 32, "pca955x:%d", i);
++			snprintf(pca955x[i].name, 32, "pca955x:%d", i);
+ 		}
+-		spin_lock_init(&pca955x->lock);
+ 
+-		pca955x->led_cdev.name = pca955x->name;
+-		pca955x->led_cdev.brightness_set =
+-				pca955x_led_set;
+-
+-		/*
+-		 * Client data is a pointer to the _first_ pca955x_led
+-		 * struct
+-		 */
+-		if (i == 0)
+-			i2c_set_clientdata(client, pca955x);
++		spin_lock_init(&pca955x[i].lock);
++
++		pca955x[i].led_cdev.name = pca955x[i].name;
++		pca955x[i].led_cdev.brightness_set = pca955x_led_set;
+ 
+-		INIT_WORK(&(pca955x->work), pca955x_led_work);
++		INIT_WORK(&pca955x[i].work, pca955x_led_work);
+ 
+-		led_classdev_register(&client->dev, &(pca955x->led_cdev));
++		err = led_classdev_register(&client->dev, &pca955x[i].led_cdev);
++		if (err < 0) {
++			while (i > 0) {
++				i--;
++				led_classdev_unregister(&pca955x[i].led_cdev);
++			}
++
++			goto exit;
++		}
+ 	}
+ 
+ 	/* Turn off LEDs */
+@@ -336,23 +338,27 @@ static int __devinit pca955x_probe(struc
+ 	pca955x_write_psc(client, 1, 0);
+ 
+ 	return 0;
++
+ exit:
++	kfree(pca955x);
++	i2c_set_clientdata(client, NULL);
++
+ 	return err;
+ }
+ 
+ static int __devexit pca955x_remove(struct i2c_client *client)
+ {
+ 	struct pca955x_led *pca955x = i2c_get_clientdata(client);
+-	int leds = pca955x->chipdef->bits;
+ 	int i;
+ 
+-	for (i = 0; i < leds; i++) {
+-		led_classdev_unregister(&(pca955x->led_cdev));
+-		cancel_work_sync(&(pca955x->work));
+-		kfree(pca955x);
+-		pca955x = pca955x + 1;
++	for (i = 0; i < pca955x->chipdef->bits; i++) {
++		led_classdev_unregister(&pca955x[i].led_cdev);
++		cancel_work_sync(&pca955x[i].work);
+ 	}
+ 
++	kfree(pca955x);
++	i2c_set_clientdata(client, NULL);
++
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from sven.wegener@stealer.net are
 
-gru-fix-preprocessor-symbol-for-sparse.patch
-linux-next.patch
-drm-sis-depends-on-fb_sis.patch
-git-kbuild-fixes.patch
-genksyms-track-symbol-checksum-changes.patch
-genksyms-allow-to-ignore-symbol-checksum-changes.patch
-lkdtm-fix-for-config_scsi=n.patch
-bnx2x-fix-logical-op.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-netfilter-conntrack_helper-needs-to-include-rculisth.patch
-ftrace-printk-formatting-infrastructure-fix.patch
-git-unionfs.patch
-docsrc-build-documentation-sources.patch
-docsrc-fix-procfs-example.patch
-docsrc-fix-ifenslave-type.patch
-docsrc-fix-crc32hash-type.patch
-docsrc-fix-getdelays-printk-formats.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-w1-documentation-w1-masters-ds2490-update.patch
-profile-likely-unlikely-macros.patch
+leds-fsg-change-order-of-initialization-and-deinitialization.patch
+leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling.patch
 
