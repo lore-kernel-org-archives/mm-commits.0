@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + s3c2410_wdt-fix-build-breakage.patch added to -mm tree
-Date: Thu, 07 Aug 2008 14:46:55 -0700
-Message-ID: <200808072146.m77Lktjb007232@imap1.linux-foundation.org>
+Subject: + pci-calgary-fix-function-declaration.patch added to -mm tree
+Date: Thu, 07 Aug 2008 16:32:29 -0700
+Message-ID: <200808072332.m77NWTeB011508@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46628 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752771AbYHGVsN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 17:48:13 -0400
+	by vger.kernel.org with ESMTP id S1750769AbYHGXdK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 19:33:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rmk@arm.linux.org.uk, alan@lxorguk.ukuu.org.uk, ben-linux@fluff.org, wim@iguana.be
+Cc: randy.dunlap@oracle.com, mulix@mulix.org
 
 
 The patch titled
-     s3c2410_wdt: fix build breakage
+     pci-calgary: fix function declaration
 has been added to the -mm tree.  Its filename is
-     s3c2410_wdt-fix-build-breakage.patch
+     pci-calgary-fix-function-declaration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s3c2410_wdt: fix build breakage
-From: Russell King <rmk@arm.linux.org.uk>
+Subject: pci-calgary: fix function declaration
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Not sure what happened, but it looks like a mismerge in
-41dc8b72e37c514f7332cbc3f3dd864910c2a1fa ("s3c2410_wdt watchdog driver:
-Locking and coding style").
+Fix function declaration:
 
-We seem to have two functions which are almost identical called the same
-thing...
+linux-next-20080807/arch/x86/kernel/pci-calgary_64.c:1353:36: warning: non-ANSI function declaration of function 'get_tce_space_from_tar'
 
-  CC      drivers/watchdog/s3c2410_wdt.o
-drivers/watchdog/s3c2410_wdt.c:130: error: redefinition of '__s3c2410wdt_stop'
-drivers/watchdog/s3c2410_wdt.c:119: error: previous definition of '__s3c2410wdt_stop' was here
-drivers/watchdog/s3c2410_wdt.c: In function `s3c2410wdt_start':
-drivers/watchdog/s3c2410_wdt.c:172: warning: `return' with a value, in function returning void
-drivers/watchdog/s3c2410_wdt.c: At top level:
-drivers/watchdog/s3c2410_wdt.c:119: warning: '__s3c2410wdt_stop' defined but not used
-
-Acked-by: Ben Dooks <ben-linux@fluff.org>
-Cc: Wim Van Sebroeck <wim@iguana.be>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Muli Ben-Yehuda <mulix@mulix.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/s3c2410_wdt.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ arch/x86/kernel/pci-calgary_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/watchdog/s3c2410_wdt.c~s3c2410_wdt-fix-build-breakage drivers/watchdog/s3c2410_wdt.c
---- a/drivers/watchdog/s3c2410_wdt.c~s3c2410_wdt-fix-build-breakage
-+++ a/drivers/watchdog/s3c2410_wdt.c
-@@ -119,17 +119,6 @@ static void __s3c2410wdt_stop(void)
+diff -puN arch/x86/kernel/pci-calgary_64.c~pci-calgary-fix-function-declaration arch/x86/kernel/pci-calgary_64.c
+--- a/arch/x86/kernel/pci-calgary_64.c~pci-calgary-fix-function-declaration
++++ a/arch/x86/kernel/pci-calgary_64.c
+@@ -1350,7 +1350,7 @@ static void calgary_init_bitmap_from_tce
+  * Function for kdump case. Get the tce tables from first kernel
+  * by reading the contents of the base adress register of calgary iommu
+  */
+-static void get_tce_space_from_tar()
++static void get_tce_space_from_tar(void)
  {
- 	unsigned long wtcon;
- 
--	spin_lock(&wdt_lock);
--	wtcon = readl(wdt_base + S3C2410_WTCON);
--	wtcon &= ~(S3C2410_WTCON_ENABLE | S3C2410_WTCON_RSTEN);
--	writel(wtcon, wdt_base + S3C2410_WTCON);
--	spin_unlock(&wdt_lock);
--}
--
--static void __s3c2410wdt_stop(void)
--{
--	unsigned long wtcon;
--
- 	wtcon = readl(wdt_base + S3C2410_WTCON);
- 	wtcon &= ~(S3C2410_WTCON_ENABLE | S3C2410_WTCON_RSTEN);
- 	writel(wtcon, wdt_base + S3C2410_WTCON);
-@@ -168,8 +157,6 @@ static void s3c2410wdt_start(void)
- 	writel(wdt_count, wdt_base + S3C2410_WTCNT);
- 	writel(wtcon, wdt_base + S3C2410_WTCON);
- 	spin_unlock(&wdt_lock);
+ 	int bus;
+ 	void __iomem *target;
+_
+
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
+
+gru-fix-preprocessor-symbol-for-sparse.patch
+pci-calgary-fix-function-declaration.patch
+linux-next.patch
+drm-sis-depends-on-fb_sis.patch
+git-kbuild-fixes.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+lkdtm-fix-for-config_scsi=n.patch
+bnx2x-fix-logical-op.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+ftrace-printk-formatting-infrastructure-fix.patch
+git-unionfs.patch
+docsrc-build-documentation-sources.patch
+docsrc-fix-procfs-example.patch
+docsrc-fix-ifenslave-type.patch
+docsrc-fix-crc32hash-type.patch
+docsrc-fix-getdelays-printk-formats.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+w1-documentation-w1-masters-ds2490-update.patch
+profile-likely-unlikely-macros.patch
+
