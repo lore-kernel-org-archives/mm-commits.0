@@ -1,95 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - usb-bandrich-bandluxe-c150-c250-hspa-data-card-driver.patch removed from -mm tree
-Date: Fri, 08 Aug 2008 15:08:29 -0700
-Message-ID: <200808082208.m78M8TlY031255@imap1.linux-foundation.org>
+Subject: - pl2023-remove-usb-id-4348-5523-handled-by-ch341.patch removed from -mm tree
+Date: Fri, 08 Aug 2008 15:08:26 -0700
+Message-ID: <200808082208.m78M8QZt031252@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38576 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42544 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764103AbYHHWM4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 18:12:56 -0400
+	by vger.kernel.org with ESMTP id S1765410AbYHHWNJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 18:13:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: upleong@bandrich.com, greg@kroah.com, smurf@smurf.noris.de, mm-commits@vger.kernel.org
+To: tfheen@err.no, mingo@elte.hu, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: BandRich BandLuxe C150/C250 HSPA Data Card Driver
+     pl2023: remove USB id (4348:5523) handled by ch341
 has been removed from the -mm tree.  Its filename was
-     usb-bandrich-bandluxe-c150-c250-hspa-data-card-driver.patch
+     pl2023-remove-usb-id-4348-5523-handled-by-ch341.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: BandRich BandLuxe C150/C250 HSPA Data Card Driver
-From: Leon Leong <upleong@bandrich.com>
+Subject: pl2023: remove USB id (4348:5523) handled by ch341
+From: Tollef Fog Heen <tfheen@err.no>
 
-Add the Product ID for the BandLuxe C150/C250 3.5G data card series from
-BandRich Inc.  After detection, the data card works fine.
+USB ID 4348:5523 is handled by the ch341 driver.  Remove it from the
+pl2023 driver.
 
-Signed-off-by: Leon Leong <upleong@bandrich.com>
-Cc: Matthias Urlichs <smurf@smurf.noris.de>
-Cc: Greg KH <greg@kroah.com>
+Reverts 002e8f2c80c6be76bb312940bc278fc10b2b2487.
+
+Signed-off-by: Tollef Fog Heen <tfheen@err.no>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: <stable@kernel.org>		[needs careful checking]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/option.c |   32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
+ drivers/usb/serial/pl2303.c |    1 -
+ drivers/usb/serial/pl2303.h |    4 ----
+ 2 files changed, 5 deletions(-)
 
-diff -puN drivers/usb/serial/option.c~usb-bandrich-bandluxe-c150-c250-hspa-data-card-driver drivers/usb/serial/option.c
---- a/drivers/usb/serial/option.c~usb-bandrich-bandluxe-c150-c250-hspa-data-card-driver
-+++ a/drivers/usb/serial/option.c
-@@ -186,6 +186,23 @@ static int  option_send_setup(struct tty
- #define BANDRICH_VENDOR_ID			0x1A8D
- #define BANDRICH_PRODUCT_C100_1			0x1002
- #define BANDRICH_PRODUCT_C100_2			0x1003
-+#define BANDRICH_PRODUCT_1004			0x1004
-+#define BANDRICH_PRODUCT_1005			0x1005
-+#define BANDRICH_PRODUCT_1006			0x1006
-+#define BANDRICH_PRODUCT_1007			0x1007
-+#define BANDRICH_PRODUCT_1008			0x1008
-+#define BANDRICH_PRODUCT_1009			0x1009
-+#define BANDRICH_PRODUCT_100A			0x100a
-+
-+#define BANDRICH_PRODUCT_100B			0x100b
-+#define BANDRICH_PRODUCT_100C			0x100c
-+#define BANDRICH_PRODUCT_100D			0x100d
-+#define BANDRICH_PRODUCT_100E			0x100e
-+
-+#define BANDRICH_PRODUCT_100F			0x100f
-+#define BANDRICH_PRODUCT_1010			0x1010
-+#define BANDRICH_PRODUCT_1011			0x1011
-+#define BANDRICH_PRODUCT_1012			0x1012
+diff -puN drivers/usb/serial/pl2303.c~pl2023-remove-usb-id-4348-5523-handled-by-ch341 drivers/usb/serial/pl2303.c
+--- a/drivers/usb/serial/pl2303.c~pl2023-remove-usb-id-4348-5523-handled-by-ch341
++++ a/drivers/usb/serial/pl2303.c
+@@ -90,7 +90,6 @@ static struct usb_device_id id_table [] 
+ 	{ USB_DEVICE(ALCOR_VENDOR_ID, ALCOR_PRODUCT_ID) },
+ 	{ USB_DEVICE(WS002IN_VENDOR_ID, WS002IN_PRODUCT_ID) },
+ 	{ USB_DEVICE(COREGA_VENDOR_ID, COREGA_PRODUCT_ID) },
+-	{ USB_DEVICE(HL340_VENDOR_ID, HL340_PRODUCT_ID) },
+ 	{ USB_DEVICE(YCCABLE_VENDOR_ID, YCCABLE_PRODUCT_ID) },
+ 	{ }					/* Terminating entry */
+ };
+diff -puN drivers/usb/serial/pl2303.h~pl2023-remove-usb-id-4348-5523-handled-by-ch341 drivers/usb/serial/pl2303.h
+--- a/drivers/usb/serial/pl2303.h~pl2023-remove-usb-id-4348-5523-handled-by-ch341
++++ a/drivers/usb/serial/pl2303.h
+@@ -107,10 +107,6 @@
+ #define COREGA_VENDOR_ID	0x07aa
+ #define COREGA_PRODUCT_ID	0x002a
  
- #define AMOI_VENDOR_ID			0x1614
- #define AMOI_PRODUCT_9508			0x0800
-@@ -302,6 +319,21 @@ static struct usb_device_id option_ids[]
- 	{ USB_DEVICE(ONDA_VENDOR_ID, ONDA_PRODUCT_ET502HS) },
- 	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_C100_1) },
- 	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_C100_2) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_1004) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_1005) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_1006) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_1007) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_1008) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_1009) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_100A) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_100B) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_100C) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_100D) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_100E) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_100F) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_1010) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_1011) },
-+	{ USB_DEVICE(BANDRICH_VENDOR_ID, BANDRICH_PRODUCT_1012) },
- 	{ USB_DEVICE(KYOCERA_VENDOR_ID, KYOCERA_PRODUCT_KPC650) },
- 	{ USB_DEVICE(KYOCERA_VENDOR_ID, KYOCERA_PRODUCT_KPC680) },
- 	{ USB_DEVICE(QUALCOMM_VENDOR_ID, 0x6000)}, /* ZTE AC8700 */
-_
-
-Patches currently in -mm which might be from upleong@bandrich.com are
-
-linux-next.patch
-
+-/* HL HL-340 (ID: 4348:5523) */
+-#define HL340_VENDOR_ID		0x4348
+-#define HL340_PRODUCT_ID	0x5523
