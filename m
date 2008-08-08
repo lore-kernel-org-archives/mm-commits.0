@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_lcdfb-set-ypanstep-to-1-and-enable-y-panning-on-at91.patch added to -mm tree
-Date: Fri, 08 Aug 2008 13:36:33 -0700
-Message-ID: <200808082036.m78KaXUe027203@imap1.linux-foundation.org>
+Subject: + x86-kill-arch-x86-kernel-mpparsec-debugging-printk.patch added to -mm tree
+Date: Fri, 08 Aug 2008 13:51:35 -0700
+Message-ID: <200808082051.m78KpZGC027833@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59966 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44208 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751351AbYHHUhJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 16:37:09 -0400
+	by vger.kernel.org with ESMTP id S1760698AbYHHUwM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 16:52:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stf_xl@wp.pl, hskinnemoen@atmel.com, krzysztof.h1@wp.pl
+Cc: rene.herman@keyaccess.nl, rene.herman@gmail.com
 
 
 The patch titled
-     atmel_lcdfb: set ypanstep to 1 and enable y-panning on AT91
+     x86: kill arch/x86/kernel/mpparse.c debugging printk
 has been added to the -mm tree.  Its filename is
-     atmel_lcdfb-set-ypanstep-to-1-and-enable-y-panning-on-at91.patch
+     x86-kill-arch-x86-kernel-mpparsec-debugging-printk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,51 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_lcdfb: set ypanstep to 1 and enable y-panning on AT91
-From: Stanislaw Gruszka <stf_xl@wp.pl>
+Subject: x86: kill arch/x86/kernel/mpparse.c debugging printk
+From: Rene Herman <rene.herman@keyaccess.nl>
 
-Panning in the y-direction can be done by simply changing the DMA base
-address.  This code is already in place, but FBIOPAN_DISPLAY will
-currently fail because ypanstep is 0.
+commit 11a62a056093a7f25f1595fbd8bd5f93559572b6 turns some formerly nopped
+debugging printks in arch/x86/kernel/mppparse.c into regular ones.  The
+one at the top of smp_scan_config() in particular also prints on
+!CONFIG_SMP/CONFIG_X86_LOCAL_APIC kernels and UP machines without anything
+resembling MP tables which makes their lowly UP owners wonder...
 
-Set ypanstep to 1 to indicate that we do support y-panning and also set
-the necessary acceleration flags on AT91 (AVR32 already have them.)
+Given that it was up to this point also not considered valuable user-level
+information, let's just kill that one.
 
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Rene Herman <rene.herman@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/atmel_lcdfb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/x86/kernel/mpparse.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-set-ypanstep-to-1-and-enable-y-panning-on-at91 drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-set-ypanstep-to-1-and-enable-y-panning-on-at91
-+++ a/drivers/video/atmel_lcdfb.c
-@@ -39,7 +39,9 @@
- #endif
+diff -puN arch/x86/kernel/mpparse.c~x86-kill-arch-x86-kernel-mpparsec-debugging-printk arch/x86/kernel/mpparse.c
+--- a/arch/x86/kernel/mpparse.c~x86-kill-arch-x86-kernel-mpparsec-debugging-printk
++++ a/arch/x86/kernel/mpparse.c
+@@ -697,7 +697,6 @@ static int __init smp_scan_config(unsign
+ 	unsigned int *bp = phys_to_virt(base);
+ 	struct intel_mp_floating *mpf;
  
- #if defined(CONFIG_ARCH_AT91)
--#define	ATMEL_LCDFB_FBINFO_DEFAULT	FBINFO_DEFAULT
-+#define	ATMEL_LCDFB_FBINFO_DEFAULT	(FBINFO_DEFAULT \
-+					 | FBINFO_PARTIAL_PAN_OK \
-+					 | FBINFO_HWACCEL_YPAN)
+-	printk(KERN_DEBUG "Scan SMP from %p for %ld bytes.\n", bp, length);
+ 	BUILD_BUG_ON(sizeof(*mpf) != 16);
  
- static inline void atmel_lcdfb_update_dma2d(struct atmel_lcdfb_info *sinfo,
- 					struct fb_var_screeninfo *var)
-@@ -177,7 +179,7 @@ static struct fb_fix_screeninfo atmel_lc
- 	.type		= FB_TYPE_PACKED_PIXELS,
- 	.visual		= FB_VISUAL_TRUECOLOR,
- 	.xpanstep	= 0,
--	.ypanstep	= 0,
-+	.ypanstep	= 1,
- 	.ywrapstep	= 0,
- 	.accel		= FB_ACCEL_NONE,
- };
+ 	while (length > 0) {
 _
 
-Patches currently in -mm which might be from stf_xl@wp.pl are
+Patches currently in -mm which might be from rene.herman@keyaccess.nl are
 
-atmel_lcdfb-set-ypanstep-to-1-and-enable-y-panning-on-at91.patch
-atmel_lcdfb-add-board-parameter-specify-framebuffer-memory-size.patch
+x86-kill-arch-x86-kernel-mpparsec-debugging-printk.patch
+i2c-dont-autograb-i2c-pca-is.patch
 
