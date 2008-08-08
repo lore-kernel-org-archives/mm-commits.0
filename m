@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-uv-use-blinking-led-for-heartbeat-display.patch added to -mm tree
-Date: Thu, 07 Aug 2008 23:08:17 -0700
-Message-ID: <200808080608.m7868HY7025822@imap1.linux-foundation.org>
+Subject: + x86_64-uv-use-blinking-led-for-heartbeat-display.patch added to -mm tree
+Date: Thu, 07 Aug 2008 23:08:11 -0700
+Message-ID: <200808080608.m7868BxB025809@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34915 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58024 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752667AbYHHGIV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 02:08:21 -0400
+	by vger.kernel.org with ESMTP id S1752696AbYHHGIY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 02:08:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: travis@sgi.com, tony.luck@intel.com
+Cc: travis@sgi.com, hpa@zytor.com, tglx@linutronix.de
 
 
 The patch titled
-     ia64 UV: use blinking LED for heartbeat display
+     x86_64 UV: use blinking LED for heartbeat display
 has been added to the -mm tree.  Its filename is
-     ia64-uv-use-blinking-led-for-heartbeat-display.patch
+     x86_64-uv-use-blinking-led-for-heartbeat-display.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64 UV: use blinking LED for heartbeat display
+Subject: x86_64 UV: use blinking LED for heartbeat display
 From: Mike Travis <travis@sgi.com>
 
   * Add a function to blink the "heartbeat" LED indicating
@@ -48,48 +48,30 @@ various cpu state indicators, not just providing "pretty blinking
 lights", as the LED state is readable by the system controller.
 
 Signed-off-by: Mike Travis <travis@sgi.com>
-Cc: Tony Luck <tony.luck@intel.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/uv/uv_hub.h |    4 ++++
- arch/ia64/uv/kernel/setup.c       |   28 ++++++++++++++++++++++++++++
- 2 files changed, 32 insertions(+)
+ arch/x86/kernel/genx2apic_uv_x.c |   29 +++++++++++++++++++++++++++++
+ include/asm-x86/uv/uv_hub.h      |    1 +
+ include/linux/clocksource.h      |    5 +++++
+ kernel/time/clocksource.c        |   10 +++++++++-
+ 4 files changed, 44 insertions(+), 1 deletion(-)
 
-diff -puN arch/ia64/include/asm/uv/uv_hub.h~ia64-uv-use-blinking-led-for-heartbeat-display arch/ia64/include/asm/uv/uv_hub.h
---- a/arch/ia64/include/asm/uv/uv_hub.h~ia64-uv-use-blinking-led-for-heartbeat-display
-+++ a/arch/ia64/include/asm/uv/uv_hub.h
-@@ -100,6 +100,7 @@ struct uv_hub_info_s {
- 	unsigned long	lowmem_remap_top;
- 	unsigned long	lowmem_remap_base;
- 	unsigned long	led_offset;
-+	unsigned int	led_heartbeat_count;
- 	unsigned short	pnode;
- 	unsigned short	pnode_mask;
- 	unsigned short	coherency_domain_number;
-@@ -153,6 +154,9 @@ DECLARE_PER_CPU(struct uv_hub_info_s, __
- /* idle callback */
- extern void (*ia64_mark_idle) (int);
+diff -puN arch/x86/kernel/genx2apic_uv_x.c~x86_64-uv-use-blinking-led-for-heartbeat-display arch/x86/kernel/genx2apic_uv_x.c
+--- a/arch/x86/kernel/genx2apic_uv_x.c~x86_64-uv-use-blinking-led-for-heartbeat-display
++++ a/arch/x86/kernel/genx2apic_uv_x.c
+@@ -10,6 +10,7 @@
  
-+/* idle callback */
-+extern void (*ia64_mark_idle) (int);
-+
- /*
-  * Macros for converting between kernel virtual addresses, socket local physical
-  * addresses, and UV global physical addresses.
-diff -puN arch/ia64/uv/kernel/setup.c~ia64-uv-use-blinking-led-for-heartbeat-display arch/ia64/uv/kernel/setup.c
---- a/arch/ia64/uv/kernel/setup.c~ia64-uv-use-blinking-led-for-heartbeat-display
-+++ a/arch/ia64/uv/kernel/setup.c
-@@ -8,6 +8,7 @@
-  * Copyright (C) 2008 Silicon Graphics, Inc. All rights reserved.
-  */
- 
+ #include <linux/kernel.h>
+ #include <linux/threads.h>
 +#include <linux/clocksource.h>
- #include <linux/module.h>
- #include <linux/percpu.h>
- #include <asm/sn/simulator.h>
-@@ -65,6 +66,25 @@ static void uv_idle(int state)
- 		uv_set_led_bits(LED_CPU_ACTIVITY, LED_CPU_ACTIVITY);
+ #include <linux/cpumask.h>
+ #include <linux/string.h>
+ #include <linux/kernel.h>
+@@ -359,6 +360,25 @@ static __init void uv_rtc_init(void)
+ 		sn_rtc_cycles_per_second = ticks_per_sec;
  }
  
 +#ifdef CONFIG_CLOCKSOURCE_WATCHDOG
@@ -97,7 +79,7 @@ diff -puN arch/ia64/uv/kernel/setup.c~ia64-uv-use-blinking-led-for-heartbeat-dis
 +{
 +	int cpu;
 +
-+	uv_hub_info->uv_heartbeat = nr_cpu_ids;
++	uv_hub_info->led_heartbeat_count = nr_cpu_ids;
 +
 +	for_each_online_cpu(cpu) {
 +		struct uv_hub_info_s *hub = uv_cpu_hub_info(cpu);
@@ -111,13 +93,21 @@ diff -puN arch/ia64/uv/kernel/setup.c~ia64-uv-use-blinking-led-for-heartbeat-dis
 +}
 +#endif
 +
- void __init uv_setup(char **cmdline_p)
+ static __init void uv_system_init(void)
  {
  	union uvh_si_addr_map_config_u m_n_config;
-@@ -124,4 +144,12 @@ void __init uv_setup(char **cmdline_p)
+@@ -437,6 +457,7 @@ static __init void uv_system_init(void)
+ 		uv_cpu_hub_info(cpu)->coherency_domain_number = 0;/* ZZZ */
+ 		uv_cpu_hub_info(cpu)->led_offset = LED_LOCAL_MMR_BASE + lcpu;
+ 		uv_cpu_hub_info(cpu)->led_state = 0;
++		uv_cpu_hub_info(cpu)->led_heartbeat_count = nr_cpu_ids;
+ 		uv_node_to_blade[nid] = blade;
+ 		uv_cpu_to_blade[cpu] = blade;
+ 		max_pnode = max(pnode, max_pnode);
+@@ -454,6 +475,14 @@ static __init void uv_system_init(void)
  
- 	/* enable idle callback */
- 	ia64_mark_idle = &uv_idle;
+ 	/* enable post-smp_cpus_done processing */
+ 	smp_cpus_done_system = uv_start_system;
 +
 +#ifdef CONFIG_CLOCKSOURCE_WATCHDOG
 +	/* enable heartbeat display callback */
@@ -127,6 +117,64 @@ diff -puN arch/ia64/uv/kernel/setup.c~ia64-uv-use-blinking-led-for-heartbeat-dis
 +			   "LED Heartbeat NOT enabled\n");
 +#endif
  }
+ 
+ /*
+diff -puN include/asm-x86/uv/uv_hub.h~x86_64-uv-use-blinking-led-for-heartbeat-display include/asm-x86/uv/uv_hub.h
+--- a/include/asm-x86/uv/uv_hub.h~x86_64-uv-use-blinking-led-for-heartbeat-display
++++ a/include/asm-x86/uv/uv_hub.h
+@@ -124,6 +124,7 @@ struct uv_hub_info_s {
+ 	unsigned long	lowmem_remap_top;
+ 	unsigned long	lowmem_remap_base;
+ 	unsigned long	led_offset;
++	unsigned int	led_heartbeat_count;
+ 	unsigned short	pnode;
+ 	unsigned short	pnode_mask;
+ 	unsigned short	coherency_domain_number;
+diff -puN include/linux/clocksource.h~x86_64-uv-use-blinking-led-for-heartbeat-display include/linux/clocksource.h
+--- a/include/linux/clocksource.h~x86_64-uv-use-blinking-led-for-heartbeat-display
++++ a/include/linux/clocksource.h
+@@ -242,4 +242,9 @@ static inline void update_vsyscall_tz(vo
+ }
+ #endif
+ 
++#ifdef CONFIG_CLOCKSOURCE_WATCHDOG
++/* typically blinks "heartbeat" LED */
++extern void (*display_heartbeat)(void);
++#endif
++
+ #endif /* _LINUX_CLOCKSOURCE_H */
+diff -puN kernel/time/clocksource.c~x86_64-uv-use-blinking-led-for-heartbeat-display kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~x86_64-uv-use-blinking-led-for-heartbeat-display
++++ a/kernel/time/clocksource.c
+@@ -76,6 +76,9 @@ static DEFINE_SPINLOCK(watchdog_lock);
+ static cycle_t watchdog_last;
+ static unsigned long watchdog_resumed;
+ 
++/* arch specific heartbeat display */
++void (*display_heartbeat)(void);
++
+ /*
+  * Interval: 0.5sec Threshold: 0.0625s
+  */
+@@ -140,12 +143,17 @@ static void clocksource_watchdog(unsigne
+ 		}
+ 	}
+ 
++	/* If arch has a heartbeat display, then poke it */
++	if (display_heartbeat)
++		display_heartbeat();
++
+ 	if (!list_empty(&watchdog_list)) {
+ 		/*
+ 		 * Cycle through CPUs to check if the CPUs stay
+ 		 * synchronized to each other.
+ 		 */
+-		int next_cpu = next_cpu_nr(raw_smp_processor_id(), cpu_online_map);
++		int next_cpu = next_cpu_nr(raw_smp_processor_id(),
++					   cpu_online_map);
+ 
+ 		if (next_cpu >= nr_cpu_ids)
+ 			next_cpu = first_cpu(cpu_online_map);
 _
 
 Patches currently in -mm which might be from travis@sgi.com are
