@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ide-cd-use-bcd2bin-bin2bcd.patch added to -mm tree
-Date: Fri, 08 Aug 2008 14:39:59 -0700
-Message-ID: <200808082139.m78LdxrB029813@imap1.linux-foundation.org>
+Subject: + include-linux-bcdh-remove-comments.patch added to -mm tree
+Date: Fri, 08 Aug 2008 14:40:19 -0700
+Message-ID: <200808082140.m78LeJ4X029933@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55686 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44665 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758545AbYHHVkJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 17:40:09 -0400
+	by vger.kernel.org with ESMTP id S1758783AbYHHVk2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 17:40:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, bzolnier@gmail.com, petkovbb@gmail.com
+Cc: bunk@kernel.org
 
 
 The patch titled
-     ide-cd: use bcd2bin/bin2bcd
+     include/linux/bcd.h: remove comments
 has been added to the -mm tree.  Its filename is
-     ide-cd-use-bcd2bin-bin2bcd.patch
+     include-linux-bcdh-remove-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ide-cd: use bcd2bin/bin2bcd
+Subject: include/linux/bcd.h: remove comments
 From: Adrian Bunk <bunk@kernel.org>
 
-Change ide-cd to use the new bcd2bin/bin2bcd functions instead of the
-obsolete BCD2BIN/BIN2BCD macros.
+- the macros are gone
+- there's no more code in this file,
+  LGPL + GPL = GPL,
+  and the code that was moved to lib/bcd.c is anyway trivial
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Acked-by: Borislav Petkov <petkovbb@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-cd.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ include/linux/bcd.h |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN drivers/ide/ide-cd.c~ide-cd-use-bcd2bin-bin2bcd drivers/ide/ide-cd.c
---- a/drivers/ide/ide-cd.c~ide-cd-use-bcd2bin-bin2bcd
-+++ a/drivers/ide/ide-cd.c
-@@ -1268,9 +1268,9 @@ static ide_startstop_t ide_cd_do_request
-  */
- static void msf_from_bcd(struct atapi_msf *msf)
- {
--	msf->minute = BCD2BIN(msf->minute);
--	msf->second = BCD2BIN(msf->second);
--	msf->frame  = BCD2BIN(msf->frame);
-+	msf->minute = bcd2bin(msf->minute);
-+	msf->second = bcd2bin(msf->second);
-+	msf->frame  = bcd2bin(msf->frame);
- }
+diff -puN include/linux/bcd.h~include-linux-bcdh-remove-comments include/linux/bcd.h
+--- a/include/linux/bcd.h~include-linux-bcdh-remove-comments
++++ a/include/linux/bcd.h
+@@ -1,12 +1,3 @@
+-/* Permission is hereby granted to copy, modify and redistribute this code
+- * in terms of the GNU Library General Public License, Version 2 or later,
+- * at your option.
+- */
+-
+-/* macros to translate to/from binary and binary-coded decimal (frequently
+- * found in RTC chips).
+- */
+-
+ #ifndef _BCD_H
+ #define _BCD_H
  
- int cdrom_check_status(ide_drive_t *drive, struct request_sense *sense)
-@@ -1411,8 +1411,8 @@ int ide_cd_read_toc(ide_drive_t *drive, 
- 		return stat;
- 
- 	if (drive->atapi_flags & IDE_AFLAG_TOCTRACKS_AS_BCD) {
--		toc->hdr.first_track = BCD2BIN(toc->hdr.first_track);
--		toc->hdr.last_track  = BCD2BIN(toc->hdr.last_track);
-+		toc->hdr.first_track = bcd2bin(toc->hdr.first_track);
-+		toc->hdr.last_track  = bcd2bin(toc->hdr.last_track);
- 	}
- 
- 	ntracks = toc->hdr.last_track - toc->hdr.first_track + 1;
-@@ -1452,8 +1452,8 @@ int ide_cd_read_toc(ide_drive_t *drive, 
- 			return stat;
- 
- 		if (drive->atapi_flags & IDE_AFLAG_TOCTRACKS_AS_BCD) {
--			toc->hdr.first_track = (u8)BIN2BCD(CDROM_LEADOUT);
--			toc->hdr.last_track = (u8)BIN2BCD(CDROM_LEADOUT);
-+			toc->hdr.first_track = (u8)bin2bcd(CDROM_LEADOUT);
-+			toc->hdr.last_track = (u8)bin2bcd(CDROM_LEADOUT);
- 		} else {
- 			toc->hdr.first_track = CDROM_LEADOUT;
- 			toc->hdr.last_track = CDROM_LEADOUT;
-@@ -1466,14 +1466,14 @@ int ide_cd_read_toc(ide_drive_t *drive, 
- 	toc->hdr.toc_length = be16_to_cpu(toc->hdr.toc_length);
- 
- 	if (drive->atapi_flags & IDE_AFLAG_TOCTRACKS_AS_BCD) {
--		toc->hdr.first_track = BCD2BIN(toc->hdr.first_track);
--		toc->hdr.last_track  = BCD2BIN(toc->hdr.last_track);
-+		toc->hdr.first_track = bcd2bin(toc->hdr.first_track);
-+		toc->hdr.last_track  = bcd2bin(toc->hdr.last_track);
- 	}
- 
- 	for (i = 0; i <= ntracks; i++) {
- 		if (drive->atapi_flags & IDE_AFLAG_TOCADDR_AS_BCD) {
- 			if (drive->atapi_flags & IDE_AFLAG_TOCTRACKS_AS_BCD)
--				toc->ent[i].track = BCD2BIN(toc->ent[i].track);
-+				toc->ent[i].track = bcd2bin(toc->ent[i].track);
- 			msf_from_bcd(&toc->ent[i].addr.msf);
- 		}
- 		toc->ent[i].addr.lba = msf_to_lba(toc->ent[i].addr.msf.minute,
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
