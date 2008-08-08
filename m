@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-use-bcd2bin-bin2bcd.patch added to -mm tree
-Date: Fri, 08 Aug 2008 14:39:57 -0700
-Message-ID: <200808082139.m78LdvuQ029810@imap1.linux-foundation.org>
+Subject: + alpha-use-bcd2bin-bin2bcd.patch added to -mm tree
+Date: Fri, 08 Aug 2008 14:39:44 -0700
+Message-ID: <200808082139.m78Ldi2D029795@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41227 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37943 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756309AbYHHVkJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 17:40:09 -0400
+	by vger.kernel.org with ESMTP id S1758608AbYHHVkH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 17:40:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, tony.luck@intel.com
+Cc: bunk@kernel.org, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     ia64: use bcd2bin/bin2bcd
+     alpha: use bcd2bin/bin2bcd
 has been added to the -mm tree.  Its filename is
-     ia64-use-bcd2bin-bin2bcd.patch
+     alpha-use-bcd2bin-bin2bcd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: use bcd2bin/bin2bcd
+Subject: alpha: use bcd2bin/bin2bcd
 From: Adrian Bunk <bunk@kernel.org>
 
-Change ia64 to use the new bcd2bin/bin2bcd functions instead of the
-obsolete BCD2BIN/BIN2BCD macros.
+Change alpha to use the new bcd2bin/bin2bcd functions instead of the
+obsolete BCD_TO_BIN/BIN_TO_BCD macros.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/sal.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/alpha/kernel/core_marvel.c |    4 ++--
+ arch/alpha/kernel/time.c        |   18 +++++++++---------
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN arch/ia64/include/asm/sal.h~ia64-use-bcd2bin-bin2bcd arch/ia64/include/asm/sal.h
---- a/arch/ia64/include/asm/sal.h~ia64-use-bcd2bin-bin2bcd
-+++ a/arch/ia64/include/asm/sal.h
-@@ -236,7 +236,7 @@ extern struct ia64_sal_desc_ptc *ia64_pt
+diff -puN arch/alpha/kernel/core_marvel.c~alpha-use-bcd2bin-bin2bcd arch/alpha/kernel/core_marvel.c
+--- a/arch/alpha/kernel/core_marvel.c~alpha-use-bcd2bin-bin2bcd
++++ a/arch/alpha/kernel/core_marvel.c
+@@ -655,7 +655,7 @@ __marvel_rtc_io(u8 b, unsigned long addr
  
- extern unsigned short sal_revision;	/* supported SAL spec revision */
- extern unsigned short sal_version;	/* SAL version; OEM dependent */
--#define SAL_VERSION_CODE(major, minor) ((BIN2BCD(major) << 8) | BIN2BCD(minor))
-+#define SAL_VERSION_CODE(major, minor) ((bin2bcd(major) << 8) | bin2bcd(minor))
+ 	case 0x71:					/* RTC_PORT(1) */
+ 		rtc_access.index = index;
+-		rtc_access.data = BCD_TO_BIN(b);
++		rtc_access.data = bcd2bin(b);
+ 		rtc_access.function = 0x48 + !write;	/* GET/PUT_TOY */
  
- extern const char *ia64_sal_strerror (long status);
- extern void ia64_sal_init (struct ia64_sal_systab *sal_systab);
+ #ifdef CONFIG_SMP
+@@ -668,7 +668,7 @@ __marvel_rtc_io(u8 b, unsigned long addr
+ #else
+ 		__marvel_access_rtc(&rtc_access);
+ #endif
+-		ret = BIN_TO_BCD(rtc_access.data);
++		ret = bin2bcd(rtc_access.data);
+ 		break;
+ 
+ 	default:
+diff -puN arch/alpha/kernel/time.c~alpha-use-bcd2bin-bin2bcd arch/alpha/kernel/time.c
+--- a/arch/alpha/kernel/time.c~alpha-use-bcd2bin-bin2bcd
++++ a/arch/alpha/kernel/time.c
+@@ -346,12 +346,12 @@ time_init(void)
+ 	year = CMOS_READ(RTC_YEAR);
+ 
+ 	if (!(CMOS_READ(RTC_CONTROL) & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+-		BCD_TO_BIN(sec);
+-		BCD_TO_BIN(min);
+-		BCD_TO_BIN(hour);
+-		BCD_TO_BIN(day);
+-		BCD_TO_BIN(mon);
+-		BCD_TO_BIN(year);
++		sec = bcd2bin(sec);
++		min = bcd2bin(min);
++		hour = bcd2bin(hour);
++		day = bcd2bin(day);
++		mon = bcd2bin(mon);
++		year = bcd2bin(year);
+ 	}
+ 
+ 	/* PC-like is standard; used for year >= 70 */
+@@ -525,7 +525,7 @@ set_rtc_mmss(unsigned long nowtime)
+ 
+ 	cmos_minutes = CMOS_READ(RTC_MINUTES);
+ 	if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
+-		BCD_TO_BIN(cmos_minutes);
++		cmos_minutes = bcd2bin(cmos_minutes);
+ 
+ 	/*
+ 	 * since we're only adjusting minutes and seconds,
+@@ -543,8 +543,8 @@ set_rtc_mmss(unsigned long nowtime)
+ 
+ 	if (abs(real_minutes - cmos_minutes) < 30) {
+ 		if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+-			BIN_TO_BCD(real_seconds);
+-			BIN_TO_BCD(real_minutes);
++			real_seconds = bin2bcd(real_seconds);
++			real_minutes = bin2bcd(real_minutes);
+ 		}
+ 		CMOS_WRITE(real_seconds,RTC_SECONDS);
+ 		CMOS_WRITE(real_minutes,RTC_MINUTES);
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
