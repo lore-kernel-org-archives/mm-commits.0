@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tracehook-fix-clone_ptrace.patch added to -mm tree
-Date: Thu, 07 Aug 2008 17:42:56 -0700
-Message-ID: <200808080042.m780gueQ014272@imap1.linux-foundation.org>
+Subject: + ia64-uv-provide-a-led-driver-for-uv-systems.patch added to -mm tree
+Date: Thu, 07 Aug 2008 23:08:13 -0700
+Message-ID: <200808080608.m7868DiG025812@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36068 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49570 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751857AbYHHAoI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Aug 2008 20:44:08 -0400
+	by vger.kernel.org with ESMTP id S1752589AbYHHGIQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 02:08:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roland@redhat.com, ehabkost@redhat.com, oleg@tv-sign.ru, rjw@sisk.pl
+Cc: travis@sgi.com, tony.luck@intel.com
 
 
 The patch titled
-     tracehook: fix CLONE_PTRACE
+     ia64 UV: provide a LED driver for UV Systems
 has been added to the -mm tree.  Its filename is
-     tracehook-fix-clone_ptrace.patch
+     ia64-uv-provide-a-led-driver-for-uv-systems.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,84 +33,148 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracehook: fix CLONE_PTRACE
-From: Roland McGrath <roland@redhat.com>
+Subject: ia64 UV: provide a LED driver for UV Systems
+From: Mike Travis <travis@sgi.com>
 
-In the change in commit 09a05394fe2448a4139b014936330af23fa7ec83, I
-overlooked two nits in the logic and this broke using CLONE_PTRACE when
-PTRACE_O_TRACE* are not being used.
+  * Add base functionality for writing to the LED's on
+    the ia64 UV architecture.
 
-A parent that is itself traced at all but not using PTRACE_O_TRACE*, using
-CLONE_PTRACE would have its new child fail to be traced.
+Note that this is a RAS feature that allows external monitoring of
+various cpu state indicators, not just providing "pretty blinking
+lights", as the LED state is readable by the system controller.
 
-A parent that is not itself traced at all that uses CLONE_PTRACE (which
-should be a no-op in this case) would confuse the bookkeeping and lead to
-a crash at exit time.
-
-This restores the missing checks and fixes both failure modes.
-
-Reported-by: Eduardo Habkost <ehabkost@redhat.com>
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Mike Travis <travis@sgi.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ptrace.h    |    2 +-
- include/linux/tracehook.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/ia64/include/asm/uv/uv_hub.h |   61 +++++++++++++++++++++++++++-
+ arch/ia64/uv/kernel/setup.c       |    2 
+ 2 files changed, 62 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/ptrace.h~tracehook-fix-clone_ptrace include/linux/ptrace.h
---- a/include/linux/ptrace.h~tracehook-fix-clone_ptrace
-+++ a/include/linux/ptrace.h
-@@ -172,7 +172,7 @@ static inline void ptrace_init_task(stru
- 	child->ptrace = 0;
- 	if (unlikely(ptrace)) {
- 		child->ptrace = current->ptrace;
--		__ptrace_link(child, current->parent);
-+		ptrace_link(child, current->parent);
- 	}
+diff -puN arch/ia64/include/asm/uv/uv_hub.h~ia64-uv-provide-a-led-driver-for-uv-systems arch/ia64/include/asm/uv/uv_hub.h
+--- a/arch/ia64/include/asm/uv/uv_hub.h~ia64-uv-provide-a-led-driver-for-uv-systems
++++ a/arch/ia64/include/asm/uv/uv_hub.h
+@@ -99,6 +99,7 @@ struct uv_hub_info_s {
+ 	unsigned long	gnode_upper;
+ 	unsigned long	lowmem_remap_top;
+ 	unsigned long	lowmem_remap_base;
++	unsigned long	led_offset;
+ 	unsigned short	pnode;
+ 	unsigned short	pnode_mask;
+ 	unsigned short	coherency_domain_number;
+@@ -106,6 +107,7 @@ struct uv_hub_info_s {
+ 	unsigned char	blade_processor_id;
+ 	unsigned char	m_val;
+ 	unsigned char	n_val;
++	unsigned char	led_state;
+ };
+ DECLARE_PER_CPU(struct uv_hub_info_s, __uv_hub_info);
+ #define uv_hub_info 		(&__get_cpu_var(__uv_hub_info))
+@@ -134,6 +136,20 @@ DECLARE_PER_CPU(struct uv_hub_info_s, __
+ #define UV_GLOBAL_MMR64_PNODE_BITS(p)					\
+ 	((unsigned long)(p) << UV_GLOBAL_MMR64_PNODE_SHIFT)
+ 
++/* Local Bus from cpu's perspective */
++#define LOCAL_BUS_BASE		0x1c00000
++#define LOCAL_BUS_SIZE		(4 * 1024 * 1024)
++
++/* LED windows - located at top of ACPI MMR space */
++#define LED_WINDOW_COUNT	64
++#define LED_LOCAL_MMR_BASE	(LOCAL_BUS_BASE + LOCAL_BUS_SIZE - \
++							LED_WINDOW_COUNT)
++
++#define LED_CPU_HEARTBEAT	0x01	/* timer interrupt */
++#define LED_CPU_ACTIVITY	0x02	/* not idle */
++#define LED_CPU_BLINK		0xffff	/* blink led */
++#define LED_CPU_HB_INTERVAL	(HZ/2)	/* blink once per second */
++
+ /*
+  * Macros for converting between kernel virtual addresses, socket local physical
+  * addresses, and UV global physical addresses.
+@@ -240,6 +256,16 @@ static inline void uv_write_local_mmr(un
+ 	*uv_local_mmr_address(offset) = val;
  }
  
-diff -puN include/linux/tracehook.h~tracehook-fix-clone_ptrace include/linux/tracehook.h
---- a/include/linux/tracehook.h~tracehook-fix-clone_ptrace
-+++ a/include/linux/tracehook.h
-@@ -280,7 +280,7 @@ static inline void tracehook_report_clon
- 					  unsigned long clone_flags,
- 					  pid_t pid, struct task_struct *child)
- {
--	if (unlikely(trace)) {
-+	if (unlikely(trace) || unlikely(clone_flags & CLONE_PTRACE)) {
- 		/*
- 		 * The child starts up with an immediate SIGSTOP.
- 		 */
++static inline unsigned char uv_read_local_mmr8(unsigned long offset)
++{
++	return *((unsigned char *)uv_local_mmr_address(offset));
++}
++
++static inline void uv_write_local_mmr8(unsigned long offset, unsigned char val)
++{
++	*((unsigned char *)uv_local_mmr_address(offset)) = val;
++}
++
+ /*
+  * Structures and definitions for converting between cpu, node, pnode, and blade
+  * numbers.
+@@ -305,5 +331,38 @@ static inline int uv_num_possible_blades
+ 	return 1;
+ }
+ 
+-#endif /* __ASM_IA64_UV_HUB__ */
++/* Light up the leds */
++static inline void uv_set_led_bits(unsigned short value, unsigned char mask)
++{
++	unsigned char state = uv_hub_info->led_state;
++
++	if (value == LED_CPU_BLINK)
++		state ^= mask;
++	else
++		state = (state & ~mask) | (value & mask);
+ 
++	if (uv_hub_info->led_state != state) {
++		uv_hub_info->led_state = state;
++		uv_write_local_mmr8(uv_hub_info->led_offset, state);
++	}
++}
++
++/* Light up the leds */
++static inline void uv_set_led_bits_on(int cpu, unsigned short value,
++					       unsigned char mask)
++
++{
++	unsigned char state = uv_cpu_hub_info(cpu)->led_state;
++
++	if (value == LED_CPU_BLINK)
++		state ^= mask;
++	else
++		state = (state & ~mask) | (value & mask);
++
++	if (uv_cpu_hub_info(cpu)->led_state != state) {
++		uv_cpu_hub_info(cpu)->led_state = state;
++		uv_write_local_mmr8(uv_cpu_hub_info(cpu)->led_offset, state);
++	}
++}
++
++#endif /* __ASM_IA64_UV_HUB__ */
+diff -puN arch/ia64/uv/kernel/setup.c~ia64-uv-provide-a-led-driver-for-uv-systems arch/ia64/uv/kernel/setup.c
+--- a/arch/ia64/uv/kernel/setup.c~ia64-uv-provide-a-led-driver-for-uv-systems
++++ a/arch/ia64/uv/kernel/setup.c
+@@ -104,6 +104,8 @@ void __init uv_setup(char **cmdline_p)
+ 		uv_cpu_hub_info(cpu)->gnode_upper = gnode_upper;
+ 		uv_cpu_hub_info(cpu)->global_mmr_base = mmr_base;
+ 		uv_cpu_hub_info(cpu)->coherency_domain_number = 0;/* ZZZ */
++		uv_cpu_hub_info(cpu)->led_offset = LED_LOCAL_MMR_BASE + lcpu;
++		uv_cpu_hub_info(cpu)->led_state = 0;
+ 		printk(KERN_DEBUG "UV cpu %d, nid %d\n", cpu, nid);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from travis@sgi.com are
 
-tracehook-fix-clone_ptrace.patch
-x86-tracehook_signal_handler.patch
-x86-tracehook-syscall.patch
-x86-tracehook-asm-syscallh.patch
-x86-signals-use-asm-syscallh.patch
-x86-tracehook-tif_notify_resume.patch
-x86-tracehook-config_have_arch_tracehook.patch
-sched-do_wait_for_common-use-signal_pending_state.patch
-wait_task_inactive-dont-consider-task-nivcsw.patch
-wait_task_inactive-improve-the-returned-value-for-nvcsw-==-0.patch
-wait_task_inactive-fix-the-config_smp-version.patch
-posix-timers-fix-posix_timer_event-vs-dequeue_signal-race.patch
-posix-timers-do_schedule_next_timer-fix-the-setting-of-si_overrun.patch
-posix-timers-dont-switch-to-group_leader-if-it_process-dies.patch
-posix-timers-always-do-get_task_structtimer-it_process.patch
-posix-timers-sys_timer_create-remove-the-buggy-pf_exiting-check.patch
-posix-timers-sys_timer_create-simplify-and-s-tasklist-rcu.patch
-posix-timers-move-the-initialization-of-timer-sigq-from-send-to-create-path.patch
-posix-timers-sys_timer_create-cleanup-the-error-handling.patch
-posix-timers-kill-it_sigev_signo-and-it_sigev_value.patch
-posix-timers-lock_timer-kill-the-bogus-it_id-check.patch
-posix-timers-lock_timer-make-it-readable.patch
-make-ptrace_untrace-static.patch
-coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
-kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
+linux-next.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+seq_file-add-seq_cpumask-seq_nodemask.patch
+switch-proc-irq-smp_affinity-et-al-to-seqfiles.patch
+cpuset-use-seq_cpumask-seq_nodemask.patch
+x86_64-uv-provide-a-led-driver-for-uv-systems.patch
+x86_64-uv-use-led-to-indicate-cpu-is-active.patch
+x86_64-uv-use-blinking-led-for-heartbeat-display.patch
+ia64-uv-provide-a-led-driver-for-uv-systems.patch
+ia64-uv-use-led-to-indicate-cpu-is-active.patch
+ia64-uv-use-blinking-led-for-heartbeat-display.patch
+ia64-uv-use-blinking-led-for-heartbeat-display-fix.patch
 
