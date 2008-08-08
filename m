@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + printk-robustify-printk-fix.patch added to -mm tree
-Date: Fri, 08 Aug 2008 12:17:01 -0700
-Message-ID: <200808081917.m78JH28F024181@imap1.linux-foundation.org>
+Subject: + usb-hso-minor-fixes-due-to-code-review.patch added to -mm tree
+Date: Fri, 08 Aug 2008 13:29:23 -0700
+Message-ID: <200808082029.m78KTNqx026961@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53746 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55628 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753965AbYHHTRX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 15:17:23 -0400
+	by vger.kernel.org with ESMTP id S1751654AbYHHU32 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 16:29:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, srostedt@redhat.com, torvalds@linux-foundation.org
+Cc: gregkh@suse.de
 
 
 The patch titled
-     printk-robustify-printk-fix
+     USB: HSO: minor fixes due to code review
 has been added to the -mm tree.  Its filename is
-     printk-robustify-printk-fix.patch
+     usb-hso-minor-fixes-due-to-code-review.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,105 +33,125 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: printk-robustify-printk-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: USB: HSO: minor fixes due to code review
+From: Greg Kroah-Hartman <gregkh@suse.de>
 
-- remvoe trailing whitespace
+Fix up problems in hso.c driver as pointed out by Andrew.
 
-- make klogd_wakeup_state static
-
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Steven Rostedt <srostedt@redhat.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/usb/hso.c |   43 ++++++++++++++++++++++------------------
+ 1 file changed, 24 insertions(+), 19 deletions(-)
 
-diff -puN kernel/printk.c~printk-robustify-printk-fix kernel/printk.c
---- a/kernel/printk.c~printk-robustify-printk-fix
-+++ a/kernel/printk.c
-@@ -988,7 +988,7 @@ struct klogd_wakeup_state {
- 	int pending;
- };
+diff -puN drivers/net/usb/hso.c~usb-hso-minor-fixes-due-to-code-review drivers/net/usb/hso.c
+--- a/drivers/net/usb/hso.c~usb-hso-minor-fixes-due-to-code-review
++++ a/drivers/net/usb/hso.c
+@@ -102,8 +102,12 @@
  
--DEFINE_PER_CPU(struct klogd_wakeup_state, kws);
-+static DEFINE_PER_CPU(struct klogd_wakeup_state, kws);
+ #define MAX_RX_URBS			2
  
- void __wake_up_klogd(struct rcu_head *head)
+-#define get_serial_by_tty(x)	\
+-	(x ? (struct hso_serial *)x->driver_data : NULL)
++static inline struct hso_serial *get_serial_by_tty(struct tty_struct *tty)
++{
++	if (tty)
++		return tty->driver_data;
++	return NULL;
++}
+ 
+ /*****************************************************************************/
+ /* Debugging functions                                                       */
+@@ -294,24 +298,25 @@ static int hso_get_activity(struct hso_d
+ 
+ /* #define DEBUG */
+ 
+-#define dev2net(x) (x->port_data.dev_net)
+-#define dev2ser(x) (x->port_data.dev_serial)
++static inline struct hso_net *dev2net(struct hso_device *hso_dev)
++{
++	return hso_dev->port_data.dev_net;
++}
++
++static inline struct hso_serial *dev2ser(struct hso_device *hso_dev)
++{
++	return hso_dev->port_data.dev_serial;
++}
+ 
+ /* Debugging functions */
+ #ifdef DEBUG
+ static void dbg_dump(int line_count, const char *func_name, unsigned char *buf,
+ 		     unsigned int len)
  {
+-	u8 i = 0;
+-
+-	printk(KERN_DEBUG "[%d:%s]: len %d", line_count, func_name, len);
++	static char name[255];
+ 
+-	for (i = 0; i < len; i++) {
+-		if (!(i % 16))
+-			printk("\n    0x%03x:  ", i);
+-		printk("%02x ", (unsigned char)buf[i]);
+-	}
+-	printk("\n");
++	sprintf(name, "hso[%d:%s]", line_count, func_name);
++	print_hex_dump_bytes(name, DUMP_PREFIX_NONE, buf, len);
+ }
+ 
+ #define DUMP(buf_, len_)	\
+@@ -528,13 +533,12 @@ static struct hso_serial *get_serial_by_
+ 
+ static struct hso_serial *get_serial_by_index(unsigned index)
+ {
+-	struct hso_serial *serial;
++	struct hso_serial *serial = NULL;
+ 	unsigned long flags;
+ 
+-	if (!serial_table[index])
+-		return NULL;
+ 	spin_lock_irqsave(&serial_table_lock, flags);
+-	serial = dev2ser(serial_table[index]);
++	if (serial_table[index])
++		serial = dev2ser(serial_table[index]);
+ 	spin_unlock_irqrestore(&serial_table_lock, flags);
+ 
+ 	return serial;
+@@ -561,6 +565,7 @@ static int get_free_serial_index(void)
+ static void set_serial_by_index(unsigned index, struct hso_serial *serial)
+ {
+ 	unsigned long flags;
++
+ 	spin_lock_irqsave(&serial_table_lock, flags);
+ 	if (serial)
+ 		serial_table[index] = serial->parent;
+@@ -569,7 +574,7 @@ static void set_serial_by_index(unsigned
+ 	spin_unlock_irqrestore(&serial_table_lock, flags);
+ }
+ 
+-/* log a meaningfull explanation of an USB status */
++/* log a meaningful explanation of an USB status */
+ static void log_usb_status(int status, const char *function)
+ {
+ 	char *explanation;
+@@ -2654,7 +2659,7 @@ static void hso_free_interface(struct us
+ 			hso_stop_net_device(network_table[i]);
+ 			cancel_work_sync(&network_table[i]->async_put_intf);
+ 			cancel_work_sync(&network_table[i]->async_get_intf);
+-			if(rfk)
++			if (rfk)
+ 				rfkill_unregister(rfk);
+ 			hso_free_net_device(network_table[i]);
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gregkh@suse.de are
 
-printk-robustify-printk-fix.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-next-remove-localversion.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-i2c-renesas-highlander-fpga-smbus-support-update-fix.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-serio-xilinx_ps2c-fix-warning.patch
-git-jg-misc.patch
-git-kbuild-fixes.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
-sched-type-fix.patch
-lockdep-spin_lock_nest_lock-fix-checkpatch-fixes.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+hso-fix-oops-in-read-write-callbacks.patch
+hso-fix-refcounting-on-the-ttyhsx-devices.patch
+usb-hso-make-tty_operations-const.patch
+usb-hso-minor-fixes-due-to-code-review.patch
 drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-scsi-megaraid_sas-add-the-new-controllers-support-checkpatch-fixes.patch
 unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-devpts-switch-to-ida-checkpatch-fixes.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
