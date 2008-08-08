@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-fix-txx9wdtc-compilation.patch added to -mm tree
-Date: Fri, 08 Aug 2008 15:29:49 -0700
-Message-ID: <200808082229.m78MTngD032397@imap1.linux-foundation.org>
+Subject: + watchdog-fix-at91rm9200_wdtc-compilation.patch added to -mm tree
+Date: Fri, 08 Aug 2008 15:29:54 -0700
+Message-ID: <200808082229.m78MTsxm032403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51451 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55347 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764498AbYHHWaB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 18:30:01 -0400
+	by vger.kernel.org with ESMTP id S1762416AbYHHWa3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 18:30:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org, wim@iguana.be
 
 
 The patch titled
-     watchdog: fix txx9wdt.c compilation
+     watchdog: fix at91rm9200_wdt.c compilation
 has been added to the -mm tree.  Its filename is
-     watchdog-fix-txx9wdtc-compilation.patch
+     watchdog-fix-at91rm9200_wdtc-compilation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,23 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: fix txx9wdt.c compilation
+Subject: watchdog: fix at91rm9200_wdt.c compilation
 From: Adrian Bunk <bunk@kernel.org>
 
-Fix the following compile error caused by commit
-8dc244f7deac4c0e95ce0ffd26f494bb6e1534c0 ([WATCHDOG 48/57] txx9: Fix
-locking, switch to unlocked_ioctl):
+Fix the following compile error:
 
-txx9wdt.c:48: warning: type defaults to 'int' in declaration of
-txx9wdt.c:48: warning: parameter names (without types) in function
-txx9wdt.c: In function 'txx9wdt_ping':
-txx9wdt.c:52: error: 'txx9_lock' undeclared (first use in this function)
-txx9wdt.c:52: error: (Each undeclared identifier is reported only once
-txx9wdt.c:52: error: for each function it appears in.)
-txx9wdt.c: In function 'txx9wdt_start':
-txx9wdt.c:59: error: 'txx9_lock' undeclared (first use in this function)
-txx9wdt.c: In function 'txx9wdt_stop':
-txx9wdt.c:71: error: 'txx9_lock' undeclared (first use in this function)
+at91rm9200_wdt.c:188: error: 'at91_wdt_ioctl' undeclared here (not in a
 
 Reported-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
@@ -57,21 +46,21 @@ Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/txx9wdt.c |    2 +-
+ drivers/watchdog/at91rm9200_wdt.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/watchdog/txx9wdt.c~watchdog-fix-txx9wdtc-compilation drivers/watchdog/txx9wdt.c
---- a/drivers/watchdog/txx9wdt.c~watchdog-fix-txx9wdtc-compilation
-+++ a/drivers/watchdog/txx9wdt.c
-@@ -45,7 +45,7 @@ static unsigned long txx9wdt_alive;
- static int expect_close;
- static struct txx9_tmr_reg __iomem *txx9wdt_reg;
- static struct clk *txx9_imclk;
--static DECLARE_LOCK(txx9_lock);
-+static DEFINE_SPINLOCK(txx9_lock);
- 
- static void txx9wdt_ping(void)
+diff -puN drivers/watchdog/at91rm9200_wdt.c~watchdog-fix-at91rm9200_wdtc-compilation drivers/watchdog/at91rm9200_wdt.c
+--- a/drivers/watchdog/at91rm9200_wdt.c~watchdog-fix-at91rm9200_wdtc-compilation
++++ a/drivers/watchdog/at91rm9200_wdt.c
+@@ -129,7 +129,7 @@ static struct watchdog_info at91_wdt_inf
+ /*
+  * Handle commands from user-space.
+  */
+-static long at91_wdt_ioct(struct file *file,
++static long at91_wdt_ioctl(struct file *file,
+ 					unsigned int cmd, unsigned long arg)
  {
+ 	void __user *argp = (void __user *)arg;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
