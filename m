@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-fix-at91rm9200_wdtc-compilation.patch added to -mm tree
-Date: Fri, 08 Aug 2008 15:29:54 -0700
-Message-ID: <200808082229.m78MTsxm032403@imap1.linux-foundation.org>
+Subject: + watchdog-fix-wdt285c-compilation.patch added to -mm tree
+Date: Fri, 08 Aug 2008 15:29:56 -0700
+Message-ID: <200808082229.m78MTuTw032406@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55347 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40656 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762416AbYHHWa3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 18:30:29 -0400
+	by vger.kernel.org with ESMTP id S1764695AbYHHWak (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 18:30:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org, wim@iguana.be
 
 
 The patch titled
-     watchdog: fix at91rm9200_wdt.c compilation
+     watchdog: fix wdt285.c compilation
 has been added to the -mm tree.  Its filename is
-     watchdog-fix-at91rm9200_wdtc-compilation.patch
+     watchdog-fix-wdt285c-compilation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,18 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: fix at91rm9200_wdt.c compilation
+Subject: watchdog: fix wdt285.c compilation
 From: Adrian Bunk <bunk@kernel.org>
 
-Fix the following compile error:
+Fix the following compile error caused by commit
+d0e58eed05f9baf77c4f75e794ae245f6dae240a ([WATCHDOG 55/57] wdt285: switch
+to unlocked_ioctl and tidy up ...):
 
-at91rm9200_wdt.c:188: error: 'at91_wdt_ioctl' undeclared here (not in a
+wdt285.c: In function 'footbridge_watchdog_init':
+wdt285.c:211: error: 'KERN_WARN' undeclared (first use in this function)
+wdt285.c:211: error: (Each undeclared identifier is reported only once
+wdt285.c:211: error: for each function it appears in.)
+wdt285.c:212: error: expected ')' before string constant
 
 Reported-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
@@ -46,21 +52,21 @@ Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/at91rm9200_wdt.c |    2 +-
+ drivers/watchdog/wdt285.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/watchdog/at91rm9200_wdt.c~watchdog-fix-at91rm9200_wdtc-compilation drivers/watchdog/at91rm9200_wdt.c
---- a/drivers/watchdog/at91rm9200_wdt.c~watchdog-fix-at91rm9200_wdtc-compilation
-+++ a/drivers/watchdog/at91rm9200_wdt.c
-@@ -129,7 +129,7 @@ static struct watchdog_info at91_wdt_inf
- /*
-  * Handle commands from user-space.
-  */
--static long at91_wdt_ioct(struct file *file,
-+static long at91_wdt_ioctl(struct file *file,
- 					unsigned int cmd, unsigned long arg)
- {
- 	void __user *argp = (void __user *)arg;
+diff -puN drivers/watchdog/wdt285.c~watchdog-fix-wdt285c-compilation drivers/watchdog/wdt285.c
+--- a/drivers/watchdog/wdt285.c~watchdog-fix-wdt285c-compilation
++++ a/drivers/watchdog/wdt285.c
+@@ -210,7 +210,7 @@ static int __init footbridge_watchdog_in
+ 								soft_margin);
+ 
+ 	if (machine_is_cats())
+-		printk(KERN_WARN
++		printk(KERN_WARNING
+ 		  "Warning: Watchdog reset may not work on this machine.\n");
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
