@@ -1,56 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch removed from -mm tree
-Date: Fri, 08 Aug 2008 15:08:22 -0700
-Message-ID: <200808082208.m78M8MCC031245@imap1.linux-foundation.org>
+Subject: - drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch removed from -mm tree
+Date: Fri, 08 Aug 2008 15:08:32 -0700
+Message-ID: <200808082208.m78M8WaF031261@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58046 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53206 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761634AbYHHWLM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 18:11:12 -0400
+	by vger.kernel.org with ESMTP id S1764671AbYHHWMA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 18:12:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/usb/class/cdc-acm.c: use correct type for CPU flags
+     drivers/net/netxen/netxen_nic_hw.c: fix printk warnings
 has been removed from the -mm tree.  Its filename was
-     drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+     drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/class/cdc-acm.c: use correct type for CPU flags
+Subject: drivers/net/netxen/netxen_nic_hw.c: fix printk warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/usb/class/cdc-acm.c: In function 'acm_waker':
-drivers/usb/class/cdc-acm.c:527: warning: comparison of distinct pointer types lacks a cast
-drivers/usb/class/cdc-acm.c:529: warning: comparison of distinct pointer types lacks a cast
+drivers/net/netxen/netxen_nic_hw.c: In function 'netxen_nic_pci_mem_read_direct':
+drivers/net/netxen/netxen_nic_hw.c:1414: warning: format '%llx' expects type 'long long unsigned int', but argument 3 has type 'u64'
+drivers/net/netxen/netxen_nic_hw.c: In function 'netxen_nic_pci_mem_write_direct':
+drivers/net/netxen/netxen_nic_hw.c:1487: warning: format '%llx' expects type 'long long unsigned int', but argument 3 has type 'u64'
 
-Nobody tests linux-next.
+You don't know what type was used for u64 hence they cannot be printed without
+casting.
 
-Cc: Greg KH <greg@kroah.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/class/cdc-acm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/netxen/netxen_nic_hw.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/usb/class/cdc-acm.c~drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags drivers/usb/class/cdc-acm.c
---- a/drivers/usb/class/cdc-acm.c~drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags
-+++ a/drivers/usb/class/cdc-acm.c
-@@ -512,7 +512,7 @@ static void acm_softint(struct work_stru
- static void acm_waker(struct work_struct *waker)
- {
- 	struct acm *acm = container_of(waker, struct acm, waker);
--	long flags;
-+	unsigned long flags;
- 	int rv;
+diff -puN drivers/net/netxen/netxen_nic_hw.c~drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings drivers/net/netxen/netxen_nic_hw.c
+--- a/drivers/net/netxen/netxen_nic_hw.c~drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings
++++ a/drivers/net/netxen/netxen_nic_hw.c
+@@ -1411,7 +1411,8 @@ static int netxen_nic_pci_mem_read_direc
+ 		(netxen_nic_pci_is_same_window(adapter, off+size-1) == 0)) {
+ 		write_unlock_irqrestore(&adapter->adapter_lock, flags);
+ 		printk(KERN_ERR "%s out of bound pci memory access. "
+-			"offset is 0x%llx\n", netxen_nic_driver_name, off);
++			"offset is 0x%llx\n", netxen_nic_driver_name,
++			(unsigned long long)off);
+ 		return -1;
+ 	}
  
- 	rv = usb_autopm_get_interface(acm->control);
+@@ -1484,7 +1485,8 @@ netxen_nic_pci_mem_write_direct(struct n
+ 		(netxen_nic_pci_is_same_window(adapter, off+size-1) == 0)) {
+ 		write_unlock_irqrestore(&adapter->adapter_lock, flags);
+ 		printk(KERN_ERR "%s out of bound pci memory access. "
+-			"offset is 0x%llx\n", netxen_nic_driver_name, off);
++			"offset is 0x%llx\n", netxen_nic_driver_name,
++			(unsigned long long)off);
+ 		return -1;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
