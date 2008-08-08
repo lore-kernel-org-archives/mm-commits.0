@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-use-bcd2bin-bin2bcd.patch added to -mm tree
-Date: Fri, 08 Aug 2008 14:40:08 -0700
-Message-ID: <200808082140.m78Le84d029918@imap1.linux-foundation.org>
+Subject: + ide-cd-use-bcd2bin-bin2bcd.patch added to -mm tree
+Date: Fri, 08 Aug 2008 14:39:59 -0700
+Message-ID: <200808082139.m78LdxrB029813@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39796 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55686 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756853AbYHHVkT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 17:40:19 -0400
+	by vger.kernel.org with ESMTP id S1758545AbYHHVkJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 17:40:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, benh@kernel.crashing.org
+Cc: bunk@kernel.org, bzolnier@gmail.com, petkovbb@gmail.com
 
 
 The patch titled
-     powerpc: use bcd2bin/bin2bcd
+     ide-cd: use bcd2bin/bin2bcd
 has been added to the -mm tree.  Its filename is
-     powerpc-use-bcd2bin-bin2bcd.patch
+     ide-cd-use-bcd2bin-bin2bcd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,147 +33,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: use bcd2bin/bin2bcd
+Subject: ide-cd: use bcd2bin/bin2bcd
 From: Adrian Bunk <bunk@kernel.org>
 
-Change powerpc to use the new bcd2bin/bin2bcd functions instead of the
-obsolete BCD_TO_BIN/BIN_TO_BCD macros.
+Change ide-cd to use the new bcd2bin/bin2bcd functions instead of the
+obsolete BCD2BIN/BIN2BCD macros.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Acked-by: Borislav Petkov <petkovbb@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/chrp/time.c  |   24 ++++++++++++------------
- arch/powerpc/platforms/iseries/mf.c |   26 +++++++++++++-------------
- arch/powerpc/platforms/maple/time.c |   24 ++++++++++++------------
- 3 files changed, 37 insertions(+), 37 deletions(-)
+ drivers/ide/ide-cd.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN arch/powerpc/platforms/chrp/time.c~powerpc-use-bcd2bin-bin2bcd arch/powerpc/platforms/chrp/time.c
---- a/arch/powerpc/platforms/chrp/time.c~powerpc-use-bcd2bin-bin2bcd
-+++ a/arch/powerpc/platforms/chrp/time.c
-@@ -94,12 +94,12 @@ int chrp_set_rtc_time(struct rtc_time *t
- 	chrp_cmos_clock_write((save_freq_select|RTC_DIV_RESET2), RTC_FREQ_SELECT);
+diff -puN drivers/ide/ide-cd.c~ide-cd-use-bcd2bin-bin2bcd drivers/ide/ide-cd.c
+--- a/drivers/ide/ide-cd.c~ide-cd-use-bcd2bin-bin2bcd
++++ a/drivers/ide/ide-cd.c
+@@ -1268,9 +1268,9 @@ static ide_startstop_t ide_cd_do_request
+  */
+ static void msf_from_bcd(struct atapi_msf *msf)
+ {
+-	msf->minute = BCD2BIN(msf->minute);
+-	msf->second = BCD2BIN(msf->second);
+-	msf->frame  = BCD2BIN(msf->frame);
++	msf->minute = bcd2bin(msf->minute);
++	msf->second = bcd2bin(msf->second);
++	msf->frame  = bcd2bin(msf->frame);
+ }
  
- 	if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--		BIN_TO_BCD(tm.tm_sec);
--		BIN_TO_BCD(tm.tm_min);
--		BIN_TO_BCD(tm.tm_hour);
--		BIN_TO_BCD(tm.tm_mon);
--		BIN_TO_BCD(tm.tm_mday);
--		BIN_TO_BCD(tm.tm_year);
-+		tm.tm_sec = bin2bcd(tm.tm_sec);
-+		tm.tm_min = bin2bcd(tm.tm_min);
-+		tm.tm_hour = bin2bcd(tm.tm_hour);
-+		tm.tm_mon = bin2bcd(tm.tm_mon);
-+		tm.tm_mday = bin2bcd(tm.tm_mday);
-+		tm.tm_year = bin2bcd(tm.tm_year);
+ int cdrom_check_status(ide_drive_t *drive, struct request_sense *sense)
+@@ -1411,8 +1411,8 @@ int ide_cd_read_toc(ide_drive_t *drive, 
+ 		return stat;
+ 
+ 	if (drive->atapi_flags & IDE_AFLAG_TOCTRACKS_AS_BCD) {
+-		toc->hdr.first_track = BCD2BIN(toc->hdr.first_track);
+-		toc->hdr.last_track  = BCD2BIN(toc->hdr.last_track);
++		toc->hdr.first_track = bcd2bin(toc->hdr.first_track);
++		toc->hdr.last_track  = bcd2bin(toc->hdr.last_track);
  	}
- 	chrp_cmos_clock_write(tm.tm_sec,RTC_SECONDS);
- 	chrp_cmos_clock_write(tm.tm_min,RTC_MINUTES);
-@@ -136,12 +136,12 @@ void chrp_get_rtc_time(struct rtc_time *
- 	} while (sec != chrp_cmos_clock_read(RTC_SECONDS));
  
- 	if (!(chrp_cmos_clock_read(RTC_CONTROL) & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--		BCD_TO_BIN(sec);
--		BCD_TO_BIN(min);
--		BCD_TO_BIN(hour);
--		BCD_TO_BIN(day);
--		BCD_TO_BIN(mon);
--		BCD_TO_BIN(year);
-+		sec = bcd2bin(sec);
-+		min = bcd2bin(min);
-+		hour = bcd2bin(hour);
-+		day = bcd2bin(day);
-+		mon = bcd2bin(mon);
-+		year = bcd2bin(year);
+ 	ntracks = toc->hdr.last_track - toc->hdr.first_track + 1;
+@@ -1452,8 +1452,8 @@ int ide_cd_read_toc(ide_drive_t *drive, 
+ 			return stat;
+ 
+ 		if (drive->atapi_flags & IDE_AFLAG_TOCTRACKS_AS_BCD) {
+-			toc->hdr.first_track = (u8)BIN2BCD(CDROM_LEADOUT);
+-			toc->hdr.last_track = (u8)BIN2BCD(CDROM_LEADOUT);
++			toc->hdr.first_track = (u8)bin2bcd(CDROM_LEADOUT);
++			toc->hdr.last_track = (u8)bin2bcd(CDROM_LEADOUT);
+ 		} else {
+ 			toc->hdr.first_track = CDROM_LEADOUT;
+ 			toc->hdr.last_track = CDROM_LEADOUT;
+@@ -1466,14 +1466,14 @@ int ide_cd_read_toc(ide_drive_t *drive, 
+ 	toc->hdr.toc_length = be16_to_cpu(toc->hdr.toc_length);
+ 
+ 	if (drive->atapi_flags & IDE_AFLAG_TOCTRACKS_AS_BCD) {
+-		toc->hdr.first_track = BCD2BIN(toc->hdr.first_track);
+-		toc->hdr.last_track  = BCD2BIN(toc->hdr.last_track);
++		toc->hdr.first_track = bcd2bin(toc->hdr.first_track);
++		toc->hdr.last_track  = bcd2bin(toc->hdr.last_track);
  	}
- 	if (year < 70)
- 		year += 100;
-diff -puN arch/powerpc/platforms/iseries/mf.c~powerpc-use-bcd2bin-bin2bcd arch/powerpc/platforms/iseries/mf.c
---- a/arch/powerpc/platforms/iseries/mf.c~powerpc-use-bcd2bin-bin2bcd
-+++ a/arch/powerpc/platforms/iseries/mf.c
-@@ -722,13 +722,13 @@ static int mf_set_rtc(struct rtc_time *t
- 	day = tm->tm_mday;
- 	mon = tm->tm_mon + 1;
  
--	BIN_TO_BCD(sec);
--	BIN_TO_BCD(min);
--	BIN_TO_BCD(hour);
--	BIN_TO_BCD(mon);
--	BIN_TO_BCD(day);
--	BIN_TO_BCD(y1);
--	BIN_TO_BCD(y2);
-+	sec = bin2bcd(sec);
-+	min = bin2bcd(min);
-+	hour = bin2bcd(hour);
-+	mon = bin2bcd(mon);
-+	day = bin2bcd(day);
-+	y1 = bin2bcd(y1);
-+	y2 = bin2bcd(y2);
- 
- 	memset(ce_time, 0, sizeof(ce_time));
- 	ce_time[3] = 0x41;
-@@ -777,12 +777,12 @@ static int rtc_set_tm(int rc, u8 *ce_msg
- 		u8 day = ce_msg[10];
- 		u8 mon = ce_msg[11];
- 
--		BCD_TO_BIN(sec);
--		BCD_TO_BIN(min);
--		BCD_TO_BIN(hour);
--		BCD_TO_BIN(day);
--		BCD_TO_BIN(mon);
--		BCD_TO_BIN(year);
-+		sec = bcd2bin(sec);
-+		min = bcd2bin(min);
-+		hour = bcd2bin(hour);
-+		day = bcd2bin(day);
-+		mon = bcd2bin(mon);
-+		year = bcd2bin(year);
- 
- 		if (year <= 69)
- 			year += 100;
-diff -puN arch/powerpc/platforms/maple/time.c~powerpc-use-bcd2bin-bin2bcd arch/powerpc/platforms/maple/time.c
---- a/arch/powerpc/platforms/maple/time.c~powerpc-use-bcd2bin-bin2bcd
-+++ a/arch/powerpc/platforms/maple/time.c
-@@ -68,12 +68,12 @@ void maple_get_rtc_time(struct rtc_time 
- 
- 	if (!(maple_clock_read(RTC_CONTROL) & RTC_DM_BINARY)
- 	    || RTC_ALWAYS_BCD) {
--		BCD_TO_BIN(tm->tm_sec);
--		BCD_TO_BIN(tm->tm_min);
--		BCD_TO_BIN(tm->tm_hour);
--		BCD_TO_BIN(tm->tm_mday);
--		BCD_TO_BIN(tm->tm_mon);
--		BCD_TO_BIN(tm->tm_year);
-+		tm->tm_sec = bcd2bin(tm->tm_sec);
-+		tm->tm_min = bcd2bin(tm->tm_min);
-+		tm->tm_hour = bcd2bin(tm->tm_hour);
-+		tm->tm_mday = bcd2bin(tm->tm_mday);
-+		tm->tm_mon = bcd2bin(tm->tm_mon);
-+		tm->tm_year = bcd2bin(tm->tm_year);
- 	  }
- 	if ((tm->tm_year + 1900) < 1970)
- 		tm->tm_year += 100;
-@@ -104,12 +104,12 @@ int maple_set_rtc_time(struct rtc_time *
- 	year = tm->tm_year;
- 
- 	if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--		BIN_TO_BCD(sec);
--		BIN_TO_BCD(min);
--		BIN_TO_BCD(hour);
--		BIN_TO_BCD(mon);
--		BIN_TO_BCD(mday);
--		BIN_TO_BCD(year);
-+		sec = bin2bcd(sec);
-+		min = bin2bcd(min);
-+		hour = bin2bcd(hour);
-+		mon = bin2bcd(mon);
-+		mday = bin2bcd(mday);
-+		year = bin2bcd(year);
- 	}
- 	maple_clock_write(sec, RTC_SECONDS);
- 	maple_clock_write(min, RTC_MINUTES);
+ 	for (i = 0; i <= ntracks; i++) {
+ 		if (drive->atapi_flags & IDE_AFLAG_TOCADDR_AS_BCD) {
+ 			if (drive->atapi_flags & IDE_AFLAG_TOCTRACKS_AS_BCD)
+-				toc->ent[i].track = BCD2BIN(toc->ent[i].track);
++				toc->ent[i].track = bcd2bin(toc->ent[i].track);
+ 			msf_from_bcd(&toc->ent[i].addr.msf);
+ 		}
+ 		toc->ent[i].addr.lba = msf_to_lba(toc->ent[i].addr.msf.minute,
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
