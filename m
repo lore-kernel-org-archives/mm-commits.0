@@ -1,163 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch removed from -mm tree
-Date: Fri, 08 Aug 2008 15:04:46 -0700
-Message-ID: <200808082204.m78M4kSJ031054@imap1.linux-foundation.org>
+Subject: - sky2-adapt-to-use-reworked-pci-pm-code.patch removed from -mm tree
+Date: Fri, 08 Aug 2008 15:04:18 -0700
+Message-ID: <200808082204.m78M4IJt031047@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41939 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35147 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761970AbYHHWFk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 18:05:40 -0400
+	by vger.kernel.org with ESMTP id S1764351AbYHHWFt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 18:05:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gregkh@suse.de, oneukum@suse.de, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, jeff@garzik.org, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/usb/class/cdc-wdm.c: fix build with CONFIG_PM=n
+     sky2: adapt to use reworked PCI PM code
 has been removed from the -mm tree.  Its filename was
-     drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
+     sky2-adapt-to-use-reworked-pci-pm-code.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because of lots of rejects
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/class/cdc-wdm.c: fix build with CONFIG_PM=n
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sky2: adapt to use reworked PCI PM code
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Cc: Oliver Neukum <oneukum@suse.de>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Adapt the sky2 driver to use the reworked PCI PM and make it use the
+exported PCI PM core functions instead of accessing the PCI PM registers
+directly by itself.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/class/cdc-wdm.c |   28 +++++++++++++++++-----------
- 1 file changed, 17 insertions(+), 11 deletions(-)
+ drivers/net/sky2.c |   55 ++++++++++++++-----------------------------
+ 1 file changed, 19 insertions(+), 36 deletions(-)
 
-diff -puN drivers/usb/class/cdc-wdm.c~drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n drivers/usb/class/cdc-wdm.c
---- a/drivers/usb/class/cdc-wdm.c~drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n
-+++ a/drivers/usb/class/cdc-wdm.c
-@@ -742,6 +742,19 @@ static void wdm_disconnect(struct usb_in
- 	mutex_unlock(&wdm_mutex);
- }
+diff -puN drivers/net/sky2.c~sky2-adapt-to-use-reworked-pci-pm-code drivers/net/sky2.c
+--- a/drivers/net/sky2.c~sky2-adapt-to-use-reworked-pci-pm-code
++++ a/drivers/net/sky2.c
+@@ -277,7 +277,6 @@ static void sky2_power_aux(struct sky2_h
  
-+static int recover_from_urb_loss(struct wdm_device *desc)
-+{
-+	int rv = 0;
-+
-+	if (desc->count) {
-+		rv = usb_submit_urb(desc->validity, GFP_NOIO);
-+		if (rv < 0)
-+			err("Error resume submitting int urb - %d", rv);
-+	}
-+	return rv;
-+}
-+
-+#ifdef CONFIG_PM
- static int wdm_suspend(struct usb_interface *intf, pm_message_t message)
+ static void sky2_power_state(struct sky2_hw *hw, pci_power_t state)
  {
- 	struct wdm_device *desc = usb_get_intfdata(intf);
-@@ -765,17 +778,6 @@ static int wdm_suspend(struct usb_interf
- 	return rv;
- }
+-	u16 power_control = sky2_pci_read16(hw, hw->pm_cap + PCI_PM_CTRL);
+ 	int pex = pci_find_capability(hw->pdev, PCI_CAP_ID_EXP);
+ 	u32 reg;
  
--static int recover_from_urb_loss(struct wdm_device *desc)
--{
--	int rv = 0;
+@@ -285,19 +284,12 @@ static void sky2_power_state(struct sky2
+ 
+ 	switch (state) {
+ 	case PCI_D0:
+-		break;
 -
--	if (desc->count) {
--		rv = usb_submit_urb(desc->validity, GFP_NOIO);
--		if (rv < 0)
--			err("Error resume submitting int urb - %d", rv);
--	}
--	return rv;
--}
- static int wdm_resume(struct usb_interface *intf)
- {
- 	struct wdm_device *desc = usb_get_intfdata(intf);
-@@ -787,6 +789,10 @@ static int wdm_resume(struct usb_interfa
- 	mutex_unlock(&desc->plock);
- 	return rv;
- }
-+#else
-+#define wdm_suspend NULL
-+#define wdm_resume NULL
-+#endif
+ 	case PCI_D1:
+-		power_control |= 1;
+-		break;
+-
+ 	case PCI_D2:
+-		power_control |= 2;
+ 		break;
  
- static int wdm_pre_reset(struct usb_interface *intf)
+ 	case PCI_D3hot:
+ 	case PCI_D3cold:
+-		power_control |= 3;
+ 		if (hw->flags & SKY2_HW_ADV_POWER_CTL) {
+ 			/* additional power saving measurements */
+ 			reg = sky2_pci_read32(hw, PCI_DEV_REG4);
+@@ -347,9 +339,8 @@ static void sky2_power_state(struct sky2
+ 		return;
+ 	}
+ 
+-	power_control |= PCI_PM_CTRL_PME_ENABLE;
+ 	/* Finally, set the new power state. */
+-	sky2_pci_write32(hw, hw->pm_cap + PCI_PM_CTRL, power_control);
++	pci_set_power_state(hw->pdev, state);
+ 
+ 	sky2_write8(hw, B2_TST_CTRL1, TST_CFG_WRITE_OFF);
+ 	sky2_pci_read32(hw, B0_CTST);
+@@ -3115,7 +3106,8 @@ static int sky2_set_wol(struct net_devic
+ 	struct sky2_port *sky2 = netdev_priv(dev);
+ 	struct sky2_hw *hw = sky2->hw;
+ 
+-	if (wol->wolopts & ~sky2_wol_supported(sky2->hw))
++	if ((wol->wolopts & ~sky2_wol_supported(sky2->hw))
++	    || !device_can_wakeup(&hw->pdev->dev))
+ 		return -EOPNOTSUPP;
+ 
+ 	sky2->wol = wol->wolopts;
+@@ -3126,8 +3118,8 @@ static int sky2_set_wol(struct net_devic
+ 		sky2_write32(hw, B0_CTST, sky2->wol
+ 			     ? Y2_HW_WOL_ON : Y2_HW_WOL_OFF);
+ 
+-	if (!netif_running(dev))
+-		sky2_wol_init(sky2);
++	device_set_wakeup_enable(&hw->pdev->dev, sky2->wol);
++
+ 	return 0;
+ }
+ 
+@@ -4247,18 +4239,6 @@ static int __devinit sky2_test_msi(struc
+ 	return err;
+ }
+ 
+-static int __devinit pci_wake_enabled(struct pci_dev *dev)
+-{
+-	int pm  = pci_find_capability(dev, PCI_CAP_ID_PM);
+-	u16 value;
+-
+-	if (!pm)
+-		return 0;
+-	if (pci_read_config_word(dev, pm + PCI_PM_CTRL, &value))
+-		return 0;
+-	return value & PCI_PM_CTRL_PME_ENABLE;
+-}
+-
+ /* This driver supports yukon2 chipset only */
+ static const char *sky2_name(u8 chipid, char *buf, int sz)
  {
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-printk-robustify-printk-fix.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-i2c-renesas-highlander-fpga-smbus-support-update-fix.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-serio-xilinx_ps2c-fix-warning.patch
-git-jg-misc.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
-sched-type-fix.patch
-lockdep-spin_lock_nest_lock-fix-checkpatch-fixes.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
-git-xtensa.patch
-git-pekka.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-scsi-megaraid_sas-add-the-new-controllers-support-checkpatch-fixes.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-devpts-switch-to-ida-checkpatch-fixes.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
-
+@@ -4319,7 +4299,7 @@ static int __devinit sky2_probe(struct p
+ 		}
+ 	}
+ 
+-	wol_default = pci_wake_enabled(pdev) ? WAKE_MAGIC : 0;
++	wol_default = device_may_wakeup(&pdev->dev) ? WAKE_MAGIC : 0;
+ 
+ 	err = -ENOMEM;
+ 	hw = kzalloc(sizeof(*hw), GFP_KERNEL);
+@@ -4484,7 +4464,9 @@ static void __devexit sky2_remove(struct
+ static int sky2_suspend(struct pci_dev *pdev, pm_message_t state)
+ {
+ 	struct sky2_hw *hw = pci_get_drvdata(pdev);
+-	int i, wol = 0;
++	pci_power_t target_state;
++	int i;
++	bool wol = false;
+ 
+ 	if (!hw)
+ 		return 0;
+@@ -4500,10 +4482,10 @@ static int sky2_suspend(struct pci_dev *
+ 		if (netif_running(dev))
+ 			sky2_down(dev);
+ 
+-		if (sky2->wol)
++		if (sky2->wol) {
++			wol = true;
+ 			sky2_wol_init(sky2);
+-
+-		wol |= sky2->wol;
++		}
+ 	}
+ 
+ 	sky2_write32(hw, B0_IMSK, 0);
+@@ -4511,8 +4493,10 @@ static int sky2_suspend(struct pci_dev *
+ 	sky2_power_aux(hw);
+ 
+ 	pci_save_state(pdev);
+-	pci_enable_wake(pdev, pci_choose_state(pdev, state), wol);
+-	sky2_power_state(hw, pci_choose_state(pdev, state));
++
++	target_state = pci_target_state(pdev);
++	pci_enable_wake(pdev, target_state, wol);
++	sky2_power_state(hw, target_state);
+ 
+ 	return 0;
+ }
+@@ -4525,14 +4509,13 @@ static int sky2_resume(struct pci_dev *p
+ 	if (!hw)
+ 		return 0;
+ 
++	pci_enable_wake(pdev, PCI_D0, false);
+ 	sky2_power_state(hw, PCI_D0);
+ 
+ 	err = pci_restore_state(pdev);
+ 	if (err)
+ 		goto out;
+ 
+-	pci_enable_wake(pdev, PCI_D0, 0);
