@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-uv-use-led-to-indicate-cpu-is-active.patch added to -mm tree
-Date: Thu, 07 Aug 2008 23:08:09 -0700
-Message-ID: <200808080608.m78689J8025806@imap1.linux-foundation.org>
+Subject: + x86_64-uv-provide-a-led-driver-for-uv-systems.patch added to -mm tree
+Date: Thu, 07 Aug 2008 23:08:07 -0700
+Message-ID: <200808080608.m78687aE025803@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49362 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33798 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752668AbYHHGIV (ORCPT
+	by vger.kernel.org with ESMTP id S1752679AbYHHGIV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 02:08:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: travis@sgi.com, hpa@zytor.com, tglx@linutronix.de
 
 
 The patch titled
-     x86_64 UV: use LED to indicate CPU is active
+     x86_64 UV: provide a LED driver for UV Systems
 has been added to the -mm tree.  Its filename is
-     x86_64-uv-use-led-to-indicate-cpu-is-active.patch
+     x86_64-uv-provide-a-led-driver-for-uv-systems.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,14 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86_64 UV: use LED to indicate CPU is active
+Subject: x86_64 UV: provide a LED driver for UV Systems
 From: Mike Travis <travis@sgi.com>
 
-  * Add an idle callback to turn on/off a LED indicating that
-    the CPU is "active" (ON) or "idle" (OFF).
-
-  * Introduces a callback for "post-smp_cpus_done" processing
-    to setup callback.
+  * Add base functionality for writing to the LED's on
+    the x86_64 UV architecture.
 
 Note that this is a RAS feature that allows external monitoring of
 various cpu state indicators, not just providing "pretty blinking
@@ -52,116 +49,118 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/genx2apic_uv_x.c |   40 +++++++++++++++++++++++++++++
- arch/x86/kernel/smpboot.c        |    6 ++++
- include/asm-x86/genapic_64.h     |    3 ++
- 3 files changed, 49 insertions(+)
+ arch/x86/kernel/genx2apic_uv_x.c |    2 
+ include/asm-x86/uv/uv_hub.h      |   60 ++++++++++++++++++++++++++++-
+ 2 files changed, 61 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/genx2apic_uv_x.c~x86_64-uv-use-led-to-indicate-cpu-is-active arch/x86/kernel/genx2apic_uv_x.c
---- a/arch/x86/kernel/genx2apic_uv_x.c~x86_64-uv-use-led-to-indicate-cpu-is-active
+diff -puN arch/x86/kernel/genx2apic_uv_x.c~x86_64-uv-provide-a-led-driver-for-uv-systems arch/x86/kernel/genx2apic_uv_x.c
+--- a/arch/x86/kernel/genx2apic_uv_x.c~x86_64-uv-provide-a-led-driver-for-uv-systems
 +++ a/arch/x86/kernel/genx2apic_uv_x.c
-@@ -19,6 +19,7 @@
- #include <linux/bootmem.h>
- #include <linux/module.h>
- #include <linux/hardirq.h>
-+#include <asm/idle.h>
- #include <asm/smp.h>
- #include <asm/ipi.h>
- #include <asm/genapic.h>
-@@ -27,6 +28,8 @@
- #include <asm/uv/uv_hub.h>
- #include <asm/uv/bios.h>
+@@ -432,6 +432,8 @@ static __init void uv_system_init(void)
+ 		uv_cpu_hub_info(cpu)->gnode_upper = gnode_upper;
+ 		uv_cpu_hub_info(cpu)->global_mmr_base = mmr_base;
+ 		uv_cpu_hub_info(cpu)->coherency_domain_number = 0;/* ZZZ */
++		uv_cpu_hub_info(cpu)->led_offset = LED_LOCAL_MMR_BASE + lcpu;
++		uv_cpu_hub_info(cpu)->led_state = 0;
+ 		uv_node_to_blade[nid] = blade;
+ 		uv_cpu_to_blade[cpu] = blade;
+ 		max_pnode = max(pnode, max_pnode);
+diff -puN include/asm-x86/uv/uv_hub.h~x86_64-uv-provide-a-led-driver-for-uv-systems include/asm-x86/uv/uv_hub.h
+--- a/include/asm-x86/uv/uv_hub.h~x86_64-uv-provide-a-led-driver-for-uv-systems
++++ a/include/asm-x86/uv/uv_hub.h
+@@ -123,6 +123,7 @@ struct uv_hub_info_s {
+ 	unsigned long	gnode_upper;
+ 	unsigned long	lowmem_remap_top;
+ 	unsigned long	lowmem_remap_base;
++	unsigned long	led_offset;
+ 	unsigned short	pnode;
+ 	unsigned short	pnode_mask;
+ 	unsigned short	coherency_domain_number;
+@@ -130,6 +131,7 @@ struct uv_hub_info_s {
+ 	unsigned char	blade_processor_id;
+ 	unsigned char	m_val;
+ 	unsigned char	n_val;
++	unsigned char	led_state;
+ };
+ DECLARE_PER_CPU(struct uv_hub_info_s, __uv_hub_info);
+ #define uv_hub_info 		(&__get_cpu_var(__uv_hub_info))
+@@ -161,6 +163,19 @@ DECLARE_PER_CPU(struct uv_hub_info_s, __
+ 	((unsigned long)(p) << UV_GLOBAL_MMR64_PNODE_SHIFT)
  
-+static __init void uv_start_system(void);
+ #define UV_APIC_PNODE_SHIFT	6
++/* Local Bus from cpu's perspective */
++#define LOCAL_BUS_BASE		0x1c00000
++#define LOCAL_BUS_SIZE		(4 * 1024 * 1024)
 +
- static enum uv_system_type uv_system_type;
- 
- static int __init uv_acpi_madt_oem_check(char *oem_id, char *oem_table_id)
-@@ -448,6 +451,9 @@ static __init void uv_system_init(void)
- 	map_mmr_high(max_pnode);
- 	map_config_high(max_pnode);
- 	map_mmioh_high(max_pnode);
++/* LED windows - located at top of ACPI MMR space */
++#define LED_WINDOW_COUNT	64
++#define LED_LOCAL_MMR_BASE	(LOCAL_BUS_BASE + LOCAL_BUS_SIZE - \
++							LED_WINDOW_COUNT)
 +
-+	/* enable post-smp_cpus_done processing */
-+	smp_cpus_done_system = uv_start_system;
- }
++#define LED_CPU_HEARTBEAT	0x01	/* timer interrupt */
++#define LED_CPU_ACTIVITY	0x02	/* not idle */
++#define LED_CPU_BLINK		0xffff	/* blink led */
++#define LED_CPU_HB_INTERVAL	(HZ/2)	/* blink once per second */
  
  /*
-@@ -465,4 +471,38 @@ void __cpuinit uv_cpu_init(void)
- 		set_x2apic_extra_bits(uv_hub_info->pnode);
+  * Macros for converting between kernel virtual addresses, socket local physical
+@@ -276,6 +291,16 @@ static inline void uv_write_local_mmr(un
+ 	*uv_local_mmr_address(offset) = val;
  }
  
-+/*
-+ * Illuminate "activity" LED when CPU is going "active",
-+ * extinguish when going "idle".
-+ */
-+static int uv_idle(struct notifier_block *nfb, unsigned long action, void *junk)
++static inline unsigned char uv_read_local_mmr8(unsigned long offset)
 +{
-+	if (action == IDLE_START)
-+		uv_set_led_bits(0, LED_CPU_ACTIVITY);
-+
-+	else if (action == IDLE_END)
-+		uv_set_led_bits(LED_CPU_ACTIVITY, LED_CPU_ACTIVITY);
-+
-+	return NOTIFY_OK;
++	return *((unsigned char *)uv_local_mmr_address(offset));
 +}
 +
-+static struct notifier_block uv_idle_notifier = {
-+	.notifier_call = uv_idle,
-+};
- 
-+/*
-+ * Initialize idle led callback function
-+ */
-+static __init void uv_init_led_idle_display(void)
++static inline void uv_write_local_mmr8(unsigned long offset, unsigned char val)
 +{
-+	/* initialize timer for activity monitor */
-+	idle_notifier_register(&uv_idle_notifier);
++	*((unsigned char *)uv_local_mmr_address(offset)) = val;
 +}
 +
-+/*
-+ * Initialize subsystems that need to start after the system is up
-+ */
-+static __init void uv_start_system(void)
-+{
-+	uv_init_led_idle_display();
-+}
-diff -puN arch/x86/kernel/smpboot.c~x86_64-uv-use-led-to-indicate-cpu-is-active arch/x86/kernel/smpboot.c
---- a/arch/x86/kernel/smpboot.c~x86_64-uv-use-led-to-indicate-cpu-is-active
-+++ a/arch/x86/kernel/smpboot.c
-@@ -1200,6 +1200,9 @@ void __init native_smp_prepare_boot_cpu(
- 	per_cpu(cpu_state, me) = CPU_ONLINE;
+ /*
+  * Structures and definitions for converting between cpu, node, pnode, and blade
+  * numbers.
+@@ -350,5 +375,38 @@ static inline int uv_num_possible_blades
+ 	return uv_possible_blades;
  }
  
-+/* post-smp_cpus_done processing */
-+void (*smp_cpus_done_system)(void);
+-#endif /* __ASM_X86_UV_HUB__ */
++/* Light up the leds */
++static inline void uv_set_led_bits(unsigned short value, unsigned char mask)
++{
++	unsigned char state = uv_hub_info->led_state;
 +
- void __init native_smp_cpus_done(unsigned int max_cpus)
- {
- 	pr_debug("Boot done.\n");
-@@ -1210,6 +1213,9 @@ void __init native_smp_cpus_done(unsigne
- 	setup_ioapic_dest();
- #endif
- 	check_nmi_watchdog();
-+
-+	if (smp_cpus_done_system)
-+		smp_cpus_done_system();
- }
++	if (value == LED_CPU_BLINK)
++		state ^= mask;
++	else
++		state = (state & ~mask) | (value & mask);
  
- #ifdef CONFIG_HOTPLUG_CPU
-diff -puN include/asm-x86/genapic_64.h~x86_64-uv-use-led-to-indicate-cpu-is-active include/asm-x86/genapic_64.h
---- a/include/asm-x86/genapic_64.h~x86_64-uv-use-led-to-indicate-cpu-is-active
-+++ a/include/asm-x86/genapic_64.h
-@@ -47,6 +47,9 @@ enum uv_system_type {UV_NONE, UV_LEGACY_
- extern enum uv_system_type get_uv_system_type(void);
- extern int is_uv_system(void);
- 
-+/* system tasks to run after smp_cpus_done */
-+extern void (*smp_cpus_done_system)(void);
++	if (uv_hub_info->led_state != state) {
++		uv_hub_info->led_state = state;
++		uv_write_local_mmr8(uv_hub_info->led_offset, state);
++	}
++}
 +
- extern struct genapic apic_x2apic_uv_x;
- DECLARE_PER_CPU(int, x2apic_extra_bits);
- extern void uv_cpu_init(void);
++/* Light up the leds */
++static inline void uv_set_led_bits_on(int cpu, unsigned short value,
++					       unsigned char mask)
++
++{
++	unsigned char state = uv_cpu_hub_info(cpu)->led_state;
++
++	if (value == LED_CPU_BLINK)
++		state ^= mask;
++	else
++		state = (state & ~mask) | (value & mask);
++
++	if (uv_cpu_hub_info(cpu)->led_state != state) {
++		uv_cpu_hub_info(cpu)->led_state = state;
++		uv_write_local_mmr8(uv_cpu_hub_info(cpu)->led_offset, state);
++	}
++}
++
++#endif /* __ASM_X86_UV_HUB__ */
 _
 
 Patches currently in -mm which might be from travis@sgi.com are
