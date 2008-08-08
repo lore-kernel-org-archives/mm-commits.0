@@ -1,300 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - via-velocity-fix-sleep-with-spinlock-bug-during-mtu-change.patch removed from -mm tree
-Date: Fri, 08 Aug 2008 15:08:06 -0700
-Message-ID: <200808082208.m78M86qP031217@imap1.linux-foundation.org>
+Subject: - e1000e-perform-basic-82573-eeprom-checks-for-known-issues.patch removed from -mm tree
+Date: Fri, 08 Aug 2008 15:08:14 -0700
+Message-ID: <200808082208.m78M8EUQ031227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38326 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58444 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763607AbYHHWIs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 18:08:48 -0400
+	by vger.kernel.org with ESMTP id S1761812AbYHHWIr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 18:08:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: romieu@fr.zoreil.com, arjan@linux.intel.com, rseguier@e-teleport.net, mm-commits@vger.kernel.org
+To: auke-jan.h.kok@intel.com, jeffrey.t.kirsher@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     via-velocity: fix sleep-with-spinlock bug during MTU change
+     e1000e: perform basic 82573 EEPROM checks for known issues
 has been removed from the -mm tree.  Its filename was
-     via-velocity-fix-sleep-with-spinlock-bug-during-mtu-change.patch
+     e1000e-perform-basic-82573-eeprom-checks-for-known-issues.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: via-velocity: fix sleep-with-spinlock bug during MTU change
-From: Francois Romieu <romieu@fr.zoreil.com>
+Subject: e1000e: perform basic 82573 EEPROM checks for known issues
+From: Auke Kok <auke-jan.h.kok@intel.com>
 
-velocity_init_{rd/tx}_ring use kcalloc(..., GFP_KERNEL).
+82573 EEPROMs have been shipped out with known issues.  While most people
+will never see the issues some people do and we know how to address them. 
+Warn the user if we find one of these EEPROM issues.
 
-Allocate and free everyting outside of the locked section.
-
-Spotted-by: Arjan van de Ven <arjan@linux.intel.com>
-Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
-Fixed-by: Seguier Regis <rseguier@e-teleport.net>
+Signed-off-by: Auke Kok <auke-jan.h.kok@intel.com>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/via-velocity.c |  132 ++++++++++++++++++++++-------------
- 1 file changed, 86 insertions(+), 46 deletions(-)
+ drivers/net/e1000e/netdev.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff -puN drivers/net/via-velocity.c~via-velocity-fix-sleep-with-spinlock-bug-during-mtu-change drivers/net/via-velocity.c
---- a/drivers/net/via-velocity.c~via-velocity-fix-sleep-with-spinlock-bug-during-mtu-change
-+++ a/drivers/net/via-velocity.c
-@@ -662,6 +662,10 @@ static void velocity_vlan_rx_kill_vid(st
-         spin_unlock_irq(&vptr->lock);
+diff -puN drivers/net/e1000e/netdev.c~e1000e-perform-basic-82573-eeprom-checks-for-known-issues drivers/net/e1000e/netdev.c
+--- a/drivers/net/e1000e/netdev.c~e1000e-perform-basic-82573-eeprom-checks-for-known-issues
++++ a/drivers/net/e1000e/netdev.c
+@@ -4177,6 +4177,28 @@ static void e1000_print_device_info(stru
+ 	       hw->mac.type, hw->phy.type, (pba_num >> 8), (pba_num & 0xff));
  }
  
-+static void velocity_init_rx_ring_indexes(struct velocity_info *vptr)
++static void e1000_eeprom_checks(struct e1000_adapter *adapter)
 +{
-+	vptr->rx.dirty = vptr->rx.filled = vptr->rx.curr = 0;
-+}
- 
- /**
-  *	velocity_rx_reset	-	handle a receive reset
-@@ -677,7 +681,7 @@ static void velocity_rx_reset(struct vel
- 	struct mac_regs __iomem * regs = vptr->mac_regs;
- 	int i;
- 
--	vptr->rx.dirty = vptr->rx.filled = vptr->rx.curr = 0;
-+	velocity_init_rx_ring_indexes(vptr);
- 
- 	/*
- 	 *	Init state, all RD entries belong to the NIC
-@@ -1093,14 +1097,14 @@ static int __devinit velocity_get_pci_in
- }
- 
- /**
-- *	velocity_init_rings	-	set up DMA rings
-+ *	velocity_init_dma_rings	-	set up DMA rings
-  *	@vptr: Velocity to set up
-  *
-  *	Allocate PCI mapped DMA rings for the receive and transmit layer
-  *	to use.
-  */
- 
--static int velocity_init_rings(struct velocity_info *vptr)
-+static int velocity_init_dma_rings(struct velocity_info *vptr)
- {
- 	struct velocity_opt *opt = &vptr->options;
- 	const unsigned int rx_ring_size = opt->numrx * sizeof(struct rx_desc);
-@@ -1141,13 +1145,13 @@ static int velocity_init_rings(struct ve
- }
- 
- /**
-- *	velocity_free_rings	-	free PCI ring pointers
-+ *	velocity_free_dma_rings	-	free PCI ring pointers
-  *	@vptr: Velocity to free from
-  *
-  *	Clean up the PCI ring buffers allocated to this velocity.
-  */
- 
--static void velocity_free_rings(struct velocity_info *vptr)
-+static void velocity_free_dma_rings(struct velocity_info *vptr)
- {
- 	const int size = vptr->options.numrx * sizeof(struct rx_desc) +
- 		vptr->options.numtx * sizeof(struct tx_desc) * vptr->tx.numq;
-@@ -1229,7 +1233,7 @@ static int velocity_init_rd_ring(struct 
- 	if (!vptr->rx.info)
- 		goto out;
- 
--	vptr->rx.filled = vptr->rx.dirty = vptr->rx.curr = 0;
-+	velocity_init_rx_ring_indexes(vptr);
- 
- 	if (velocity_rx_refill(vptr) != vptr->options.numrx) {
- 		VELOCITY_PRT(MSG_LEVEL_ERR, KERN_ERR
-@@ -1847,6 +1851,40 @@ static void velocity_free_tx_buf(struct 
- 	tdinfo->skb = NULL;
- }
- 
-+static int velocity_init_rings(struct velocity_info *vptr, int mtu)
-+{
-+	int ret;
++	struct e1000_hw *hw = &adapter->hw;
++	int ret_val;
++	u16 buf = 0;
 +
-+	velocity_set_rxbufsize(vptr, mtu);
++	if (hw->mac.type != e1000_82573)
++		return;
 +
-+	ret = velocity_init_dma_rings(vptr);
-+	if (ret < 0)
-+		goto out;
-+
-+	ret = velocity_init_rd_ring(vptr);
-+	if (ret < 0)
-+		goto err_free_dma_rings_0;
-+
-+	ret = velocity_init_td_ring(vptr);
-+	if (ret < 0)
-+		goto err_free_rd_ring_1;
-+out:
-+	return ret;
-+
-+err_free_rd_ring_1:
-+	velocity_free_rd_ring(vptr);
-+err_free_dma_rings_0:
-+	velocity_free_dma_rings(vptr);
-+	goto out;
-+}
-+
-+static void velocity_free_rings(struct velocity_info *vptr)
-+{
-+	velocity_free_td_ring(vptr);
-+	velocity_free_rd_ring(vptr);
-+	velocity_free_dma_rings(vptr);
-+}
-+
- /**
-  *	velocity_open		-	interface activation callback
-  *	@dev: network layer device to open
-@@ -1863,20 +1901,10 @@ static int velocity_open(struct net_devi
- 	struct velocity_info *vptr = netdev_priv(dev);
- 	int ret;
- 
--	velocity_set_rxbufsize(vptr, dev->mtu);
--
--	ret = velocity_init_rings(vptr);
-+	ret = velocity_init_rings(vptr, dev->mtu);
- 	if (ret < 0)
- 		goto out;
- 
--	ret = velocity_init_rd_ring(vptr);
--	if (ret < 0)
--		goto err_free_desc_rings;
--
--	ret = velocity_init_td_ring(vptr);
--	if (ret < 0)
--		goto err_free_rd_ring;
--
- 	/* Ensure chip is running */
- 	pci_set_power_state(vptr->pdev, PCI_D0);
- 
-@@ -1889,7 +1917,8 @@ static int velocity_open(struct net_devi
- 	if (ret < 0) {
- 		/* Power down the chip */
- 		pci_set_power_state(vptr->pdev, PCI_D3hot);
--		goto err_free_td_ring;
-+		velocity_free_rings(vptr);
-+		goto out;
- 	}
- 
- 	mac_enable_int(vptr->mac_regs);
-@@ -1897,14 +1926,6 @@ static int velocity_open(struct net_devi
- 	vptr->flags |= VELOCITY_FLAGS_OPENED;
- out:
- 	return ret;
--
--err_free_td_ring:
--	velocity_free_td_ring(vptr);
--err_free_rd_ring:
--	velocity_free_rd_ring(vptr);
--err_free_desc_rings:
--	velocity_free_rings(vptr);
--	goto out;
- }
- 
- /**
-@@ -1920,50 +1941,72 @@ err_free_desc_rings:
- static int velocity_change_mtu(struct net_device *dev, int new_mtu)
- {
- 	struct velocity_info *vptr = netdev_priv(dev);
--	unsigned long flags;
--	int oldmtu = dev->mtu;
- 	int ret = 0;
- 
- 	if ((new_mtu < VELOCITY_MIN_MTU) || new_mtu > (VELOCITY_MAX_MTU)) {
- 		VELOCITY_PRT(MSG_LEVEL_ERR, KERN_NOTICE "%s: Invalid MTU.\n",
- 				vptr->dev->name);
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto out_0;
- 	}
- 
- 	if (!netif_running(dev)) {
- 		dev->mtu = new_mtu;
--		return 0;
-+		goto out_0;
- 	}
- 
--	if (new_mtu != oldmtu) {
-+	if (dev->mtu != new_mtu) {
-+		struct velocity_info *tmp_vptr;
-+		unsigned long flags;
-+		struct rx_info rx;
-+		struct tx_info tx;
-+
-+		tmp_vptr = kzalloc(sizeof(*tmp_vptr), GFP_KERNEL);
-+		if (!tmp_vptr) {
-+			ret = -ENOMEM;
-+			goto out_0;
-+		}
-+
-+		tmp_vptr->dev = dev;
-+		tmp_vptr->pdev = vptr->pdev;
-+		tmp_vptr->options = vptr->options;
-+		tmp_vptr->tx.numq = vptr->tx.numq;
-+
-+		ret = velocity_init_rings(tmp_vptr, new_mtu);
-+		if (ret < 0)
-+			goto out_free_tmp_vptr_1;
-+
- 		spin_lock_irqsave(&vptr->lock, flags);
- 
- 		netif_stop_queue(dev);
- 		velocity_shutdown(vptr);
- 
--		velocity_free_td_ring(vptr);
--		velocity_free_rd_ring(vptr);
-+		rx = vptr->rx;
-+		tx = vptr->tx;
- 
--		dev->mtu = new_mtu;
-+		vptr->rx = tmp_vptr->rx;
-+		vptr->tx = tmp_vptr->tx;
- 
--		velocity_set_rxbufsize(vptr, new_mtu);
-+		tmp_vptr->rx = rx;
-+		tmp_vptr->tx = tx;
- 
--		ret = velocity_init_rd_ring(vptr);
--		if (ret < 0)
--			goto out_unlock;
-+		dev->mtu = new_mtu;
- 
--		ret = velocity_init_td_ring(vptr);
--		if (ret < 0)
--			goto out_unlock;
-+		velocity_give_many_rx_descs(vptr);
- 
- 		velocity_init_registers(vptr, VELOCITY_INIT_COLD);
- 
- 		mac_enable_int(vptr->mac_regs);
- 		netif_start_queue(dev);
--out_unlock:
-+
- 		spin_unlock_irqrestore(&vptr->lock, flags);
--	}
- 
-+		velocity_free_rings(tmp_vptr);
-+
-+out_free_tmp_vptr_1:
-+		kfree(tmp_vptr);
++	ret_val = e1000_read_nvm(hw, NVM_INIT_CONTROL2_REG, 1, &buf);
++	if (!(le16_to_cpu(buf) & (1 << 0))) {
++		/* Deep Smart Power Down (DSPD) */
++		e_warn("Warning: detected DSPD enabled in EEPROM\n");
 +	}
-+out_0:
- 	return ret;
- }
++
++	ret_val = e1000_read_nvm(hw, NVM_INIT_3GIO_3, 1, &buf);
++	if (le16_to_cpu(buf) & (3 << 2)) {
++		/* ASPM enable */
++		e_warn("Warning: detected ASPM enabled in EEPROM\n");
++	}
++}
++
+ /**
+  * e1000e_is_need_ioport - determine if an adapter needs ioport resources or not
+  * @pdev: PCI device information struct
+@@ -4400,6 +4422,8 @@ static int __devinit e1000_probe(struct 
+ 		}
+ 	}
  
-@@ -2009,9 +2052,6 @@ static int velocity_close(struct net_dev
- 	/* Power down the chip */
- 	pci_set_power_state(vptr->pdev, PCI_D3hot);
- 
--	/* Free the resources */
--	velocity_free_td_ring(vptr);
--	velocity_free_rd_ring(vptr);
- 	velocity_free_rings(vptr);
- 
- 	vptr->flags &= (~VELOCITY_FLAGS_OPENED);
++	e1000_eeprom_checks(adapter);
++
+ 	/* copy the MAC address out of the NVM */
+ 	if (e1000e_read_mac_addr(&adapter->hw))
+ 		e_err("NVM Read Error while reading MAC address\n");
 _
 
-Patches currently in -mm which might be from romieu@fr.zoreil.com are
+Patches currently in -mm which might be from auke-jan.h.kok@intel.com are
 
 origin.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
 
