@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-fix-wdt285c-compilation.patch added to -mm tree
-Date: Fri, 08 Aug 2008 15:29:56 -0700
-Message-ID: <200808082229.m78MTuTw032406@imap1.linux-foundation.org>
+Subject: + watchdog-fix-shwdtc-compilation.patch added to -mm tree
+Date: Fri, 08 Aug 2008 15:29:52 -0700
+Message-ID: <200808082229.m78MTqrq032400@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40656 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54710 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764695AbYHHWak (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 18:30:40 -0400
+	by vger.kernel.org with ESMTP id S1764745AbYHHWai (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 18:30:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, wim@iguana.be
+Cc: bunk@stusta.de, bunk@kernel.org, wim@iguana.be
 
 
 The patch titled
-     watchdog: fix wdt285.c compilation
+     watchdog: fix shwdt.c compilation
 has been added to the -mm tree.  Its filename is
-     watchdog-fix-wdt285c-compilation.patch
+     watchdog-fix-shwdtc-compilation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,18 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: fix wdt285.c compilation
-From: Adrian Bunk <bunk@kernel.org>
+Subject: watchdog: fix shwdt.c compilation
+From: Adrian Bunk <bunk@stusta.de>
 
-Fix the following compile error caused by commit
-d0e58eed05f9baf77c4f75e794ae245f6dae240a ([WATCHDOG 55/57] wdt285: switch
-to unlocked_ioctl and tidy up ...):
+Fix the following compile errors caused by commit
+70b814ec1a484279a51bf9f7193551b996627247 ([WATCHDOG 45/57] shwdt: coding
+style, cleanup, switch to unlocked_io):
 
-wdt285.c: In function 'footbridge_watchdog_init':
-wdt285.c:211: error: 'KERN_WARN' undeclared (first use in this function)
-wdt285.c:211: error: (Each undeclared identifier is reported only once
-wdt285.c:211: error: for each function it appears in.)
-wdt285.c:212: error: expected ')' before string constant
+shwdt.c:64: error: 'WTCSR_CKS_4096' undeclared here (not in a function)
+shwdt.c: In function 'sh_wdt_start':
+shwdt.c:92: error: 'wdt_lock' undeclared (first use in this function)
+shwdt.c:92: error: (Each undeclared identifier is reported only once
+shwdt.c:92: error: for each function it appears in.)
+shwdt.c:97: error: implicit declaration of function 'sh_wdt_read_csr'
+shwdt.c:98: error: 'WTCSR_WT' undeclared (first use in this function)
+shwdt.c:99: error: implicit declaration of function 'sh_wdt_write_csr'
+shwdt.c:101: error: implicit declaration of function 'sh_wdt_write_cnt'
+shwdt.c:112: error: 'WTCSR_TME' undeclared (first use in this function)
+shwdt.c:113: error: 'WTCSR_RSTS' undeclared (first use in this function)
+shwdt.c: In function 'sh_wdt_stop':
+shwdt.c:142: error: 'wdt_lock' undeclared (first use in this function)
+shwdt.c:147: error: 'WTCSR_TME' undeclared (first use in this function)
+shwdt.c: In function 'sh_wdt_keepalive':
+shwdt.c:160: error: 'wdt_lock' undeclared (first use in this function)
+shwdt.c: In function 'sh_wdt_set_heartbeat':
+shwdt.c:176: error: 'wdt_lock' undeclared (first use in this function)
+shwdt.c: In function 'sh_wdt_ping':
+shwdt.c:192: error: 'wdt_lock' undeclared (first use in this function)
+shwdt.c:197: error: 'WTCSR_IOVF' undeclared (first use in this function)
+shwdt.c: At top level:
+shwdt.c:417: error: conflicting type qualifiers for 'sh_wdt_info'
+shwdt.c:71: error: previous declaration of 'sh_wdt_info' was here
+make[3]: *** [drivers/watchdog/shwdt.o] Error 1
 
 Reported-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
@@ -52,83 +72,114 @@ Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/wdt285.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/watchdog/shwdt.c |   23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
-diff -puN drivers/watchdog/wdt285.c~watchdog-fix-wdt285c-compilation drivers/watchdog/wdt285.c
---- a/drivers/watchdog/wdt285.c~watchdog-fix-wdt285c-compilation
-+++ a/drivers/watchdog/wdt285.c
-@@ -210,7 +210,7 @@ static int __init footbridge_watchdog_in
- 								soft_margin);
+diff -puN drivers/watchdog/shwdt.c~watchdog-fix-shwdtc-compilation drivers/watchdog/shwdt.c
+--- a/drivers/watchdog/shwdt.c~watchdog-fix-shwdtc-compilation
++++ a/drivers/watchdog/shwdt.c
+@@ -31,6 +31,7 @@
+ #include <linux/io.h>
+ #include <linux/uaccess.h>
+ #include <linux/watchdog.h>
++#include <asm/watchdog.h>
  
- 	if (machine_is_cats())
--		printk(KERN_WARN
-+		printk(KERN_WARNING
- 		  "Warning: Watchdog reset may not work on this machine.\n");
+ #define PFX "shwdt: "
+ 
+@@ -68,7 +69,7 @@ static int clock_division_ratio = WTCSR_
+ static void sh_wdt_ping(unsigned long data);
+ 
+ static unsigned long shwdt_is_open;
+-static struct watchdog_info sh_wdt_info;
++static const struct watchdog_info sh_wdt_info;
+ static char shwdt_expect_close;
+ static DEFINE_TIMER(timer, sh_wdt_ping, 0, 0);
+ static unsigned long next_heartbeat;
+@@ -89,7 +90,7 @@ static void sh_wdt_start(void)
+ 	__u8 csr;
+ 	unsigned long flags;
+ 
+-	spin_lock_irqsave(&wdt_lock, flags);
++	spin_lock_irqsave(&shwdt_lock, flags);
+ 
+ 	next_heartbeat = jiffies + (heartbeat * HZ);
+ 	mod_timer(&timer, next_ping_period(clock_division_ratio));
+@@ -127,7 +128,7 @@ static void sh_wdt_start(void)
+ 	csr &= ~RSTCSR_RSTS;
+ 	sh_wdt_write_rstcsr(csr);
+ #endif
+-	spin_unlock_irqrestore(&wdt_lock, flags);
++	spin_unlock_irqrestore(&shwdt_lock, flags);
+ }
+ 
+ /**
+@@ -139,14 +140,14 @@ static void sh_wdt_stop(void)
+ 	__u8 csr;
+ 	unsigned long flags;
+ 
+-	spin_lock_irqsave(&wdt_lock, flags);
++	spin_lock_irqsave(&shwdt_lock, flags);
+ 
+ 	del_timer(&timer);
+ 
+ 	csr = sh_wdt_read_csr();
+ 	csr &= ~WTCSR_TME;
+ 	sh_wdt_write_csr(csr);
+-	spin_unlock_irqrestore(&wdt_lock, flags);
++	spin_unlock_irqrestore(&shwdt_lock, flags);
+ }
+ 
+ /**
+@@ -157,9 +158,9 @@ static inline void sh_wdt_keepalive(void
+ {
+ 	unsigned long flags;
+ 
+-	spin_lock_irqsave(&wdt_lock, flags);
++	spin_lock_irqsave(&shwdt_lock, flags);
+ 	next_heartbeat = jiffies + (heartbeat * HZ);
+-	spin_unlock_irqrestore(&wdt_lock, flags);
++	spin_unlock_irqrestore(&shwdt_lock, flags);
+ }
+ 
+ /**
+@@ -173,9 +174,9 @@ static int sh_wdt_set_heartbeat(int t)
+ 	if (unlikely(t < 1 || t > 3600)) /* arbitrary upper limit */
+ 		return -EINVAL;
+ 
+-	spin_lock_irqsave(&wdt_lock, flags);
++	spin_lock_irqsave(&shwdt_lock, flags);
+ 	heartbeat = t;
+-	spin_unlock_irqrestore(&wdt_lock, flags);
++	spin_unlock_irqrestore(&shwdt_lock, flags);
  	return 0;
  }
+ 
+@@ -189,7 +190,7 @@ static void sh_wdt_ping(unsigned long da
+ {
+ 	unsigned long flags;
+ 
+-	spin_lock_irqsave(&wdt_lock, flags);
++	spin_lock_irqsave(&shwdt_lock, flags);
+ 	if (time_before(jiffies, next_heartbeat)) {
+ 		__u8 csr;
+ 
+@@ -203,7 +204,7 @@ static void sh_wdt_ping(unsigned long da
+ 	} else
+ 		printk(KERN_WARNING PFX "Heartbeat lost! Will not ping "
+ 		       "the watchdog\n");
+-	spin_unlock_irqrestore(&wdt_lock, flags);
++	spin_unlock_irqrestore(&shwdt_lock, flags);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from bunk@stusta.de are
 
-origin.patch
-feature-removal-scheduletxt-remove-the-ncr53c9x-entry.patch
 linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-m32r-dont-offer-config_isa.patch
-m32r-export-empty_zero_page.patch
-m32r-export-__ndelay.patch
-m32r-kernel-cleanups.patch
-the-overdue-eepro100-removal.patch
-ntfs-update-homepage.patch
-parisc-lib-make-code-static.patch
-drivers-parisc-make-code-static.patch
-if-0-ses_match_host.patch
-scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
-drivers-scsi-a2091c-make-2-functions-static.patch
-drivers-scsi-a3000c-make-2-functions-static.patch
-fs_mbcache-dont-needlessly-make-it-built-in.patch
-drivers-net-atl1e-atl1e_mainc-uninline-atl1e_setup_mac_ctrl.patch
-watchdog-fix-txx9wdtc-compilation.patch
+git-unionfs.patch
 watchdog-fix-shwdtc-compilation.patch
-watchdog-fix-at91rm9200_wdtc-compilation.patch
-watchdog-fix-wdt285c-compilation.patch
-asm-h8300-mdh-remove-cvs-keyword.patch
-alpha-miata-remove-dead-url.patch
-uml-remove-the-dead-tty_log-code.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-maintainers-remove-zf-machz-watchdog-entry.patch
-maintainers-remove-hga-framebuffer-driver-entry.patch
-include-linux-mounth-remove-cvs-keyword.patch
-kernel-dmac-remove-a-cvs-keyword.patch
-binfmt_somc-add-module_license.patch
-the-scheduled-serial_coldfire-removal.patch
-make-probe_serial_gsc-static.patch
-pnp-remove-printk-with-outdated-version.patch
-telephony-remove-cvs-keywords.patch
-reiserfs-procfsc-remove-cvs-keywords.patch
-quota-remove-cvs-keywords.patch
-make-ptrace_untrace-static.patch
-fs-partitions-acornc-remove-dead-code.patch
-parport-remove-cvs-keywords.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-firmware-iscsi_ibftc-make-3-functions-static.patch
-acpi-use-bcd2bin-bin2bcd.patch
-alpha-use-bcd2bin-bin2bcd.patch
-arm-use-bcd2bin-bin2bcd.patch
-cris-use-bcd2bin-bin2bcd.patch
-drivers-rtc-use-bcd2bin-bin2bcd.patch
-rtc-use-bcd2bin-bin2bcd.patch
-ia64-use-bcd2bin-bin2bcd.patch
-ide-cd-use-bcd2bin-bin2bcd.patch
-m68k-use-bcd2bin-bin2bcd.patch
-mips-use-bcd2bin-bin2bcd.patch
-mn10300-use-bcd2bin-bin2bcd.patch
-powerpc-use-bcd2bin-bin2bcd.patch
-i2c-use-bcd2bin-bin2bcd.patch
-drivers-scsi-sr_vendorc-use-bcd2bin.patch
-sparc64-use-bcd2bin-bin2bcd.patch
-remove-the-obsolete-bcdbin-binbcd-macros.patch
-include-linux-bcdh-remove-comments.patch
+reiser4-export-remove_from_page_cache.patch
 reiser4.patch
+mutex-subsystem-synchro-test-module.patch
 
