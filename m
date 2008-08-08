@@ -1,77 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - s3c2410_wdt-fix-build-breakage.patch removed from -mm tree
-Date: Fri, 08 Aug 2008 15:08:34 -0700
-Message-ID: <200808082208.m78M8YcB031264@imap1.linux-foundation.org>
+Subject: - e1000e-fix-drv-load-issues.patch removed from -mm tree
+Date: Fri, 08 Aug 2008 15:08:16 -0700
+Message-ID: <200808082208.m78M8Gwb031232@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33021 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37715 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764273AbYHHWJd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 18:09:33 -0400
+	by vger.kernel.org with ESMTP id S932428AbYHHWIu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 18:08:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rmk@arm.linux.org.uk, alan@lxorguk.ukuu.org.uk, ben-linux@fluff.org, wim@iguana.be, mm-commits@vger.kernel.org
+To: jesse.brandeburg@intel.com, jeffrey.t.kirsher@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s3c2410_wdt: fix build breakage
+     e1000e: fix drv load issues
 has been removed from the -mm tree.  Its filename was
-     s3c2410_wdt-fix-build-breakage.patch
+     e1000e-fix-drv-load-issues.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s3c2410_wdt: fix build breakage
-From: Russell King <rmk@arm.linux.org.uk>
+Subject: e1000e: fix drv load issues
+From: Jesse Brandeburg <jesse.brandeburg@intel.com>
 
-Not sure what happened, but it looks like a mismerge in
-41dc8b72e37c514f7332cbc3f3dd864910c2a1fa ("s3c2410_wdt watchdog driver:
-Locking and coding style").
+A few people seem to have problems maintaining gigabit link and it was
+root caused to an interaction between the managability firmware on the
+host and the driver, not communicating.
 
-We seem to have two functions which are almost identical called the same
-thing...
+The form of communication they use is the drv_load bit.
 
-  CC      drivers/watchdog/s3c2410_wdt.o
-drivers/watchdog/s3c2410_wdt.c:130: error: redefinition of '__s3c2410wdt_stop'
-drivers/watchdog/s3c2410_wdt.c:119: error: previous definition of '__s3c2410wdt_stop' was here
-drivers/watchdog/s3c2410_wdt.c: In function `s3c2410wdt_start':
-drivers/watchdog/s3c2410_wdt.c:172: warning: `return' with a value, in function returning void
-drivers/watchdog/s3c2410_wdt.c: At top level:
-drivers/watchdog/s3c2410_wdt.c:119: warning: '__s3c2410wdt_stop' defined but not used
-
-Acked-by: Ben Dooks <ben-linux@fluff.org>
-Cc: Wim Van Sebroeck <wim@iguana.be>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/s3c2410_wdt.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ drivers/net/e1000e/netdev.c |   28 ++++++++++++----------------
+ 1 file changed, 12 insertions(+), 16 deletions(-)
 
-diff -puN drivers/watchdog/s3c2410_wdt.c~s3c2410_wdt-fix-build-breakage drivers/watchdog/s3c2410_wdt.c
---- a/drivers/watchdog/s3c2410_wdt.c~s3c2410_wdt-fix-build-breakage
-+++ a/drivers/watchdog/s3c2410_wdt.c
-@@ -119,17 +119,6 @@ static void __s3c2410wdt_stop(void)
- {
- 	unsigned long wtcon;
+diff -puN drivers/net/e1000e/netdev.c~e1000e-fix-drv-load-issues drivers/net/e1000e/netdev.c
+--- a/drivers/net/e1000e/netdev.c~e1000e-fix-drv-load-issues
++++ a/drivers/net/e1000e/netdev.c
+@@ -2444,7 +2444,7 @@ void e1000e_reset(struct e1000_adapter *
+ 	 * For parts with AMT enabled, let the firmware know
+ 	 * that the network interface is in control
+ 	 */
+-	if ((adapter->flags & FLAG_HAS_AMT) && e1000e_check_mng_mode(hw))
++	if (adapter->flags & FLAG_HAS_AMT)
+ 		e1000_get_hw_control(adapter);
  
--	spin_lock(&wdt_lock);
--	wtcon = readl(wdt_base + S3C2410_WTCON);
--	wtcon &= ~(S3C2410_WTCON_ENABLE | S3C2410_WTCON_RSTEN);
--	writel(wtcon, wdt_base + S3C2410_WTCON);
--	spin_unlock(&wdt_lock);
--}
--
--static void __s3c2410wdt_stop(void)
--{
--	unsigned long wtcon;
--
- 	wtcon = readl(wdt_base + S3C2410_WTCON);
- 	wtcon &= ~(S3C2410_WTCON_ENABLE | S3C2410_WTCON_RSTEN);
- 	writel(wtcon, wdt_base + S3C2410_WTCON);
-@@ -168,8 +157,6 @@ static void s3c2410wdt_start(void)
- 	writel(wdt_count, wdt_base + S3C2410_WTCNT);
- 	writel(wtcon, wdt_base + S3C2410_WTCON);
- 	spin_unlock(&wdt_lock);
+ 	ew32(WUC, 0);
+@@ -2634,8 +2634,7 @@ static int e1000_open(struct net_device 
+ 	 * If AMT is enabled, let the firmware know that the network
+ 	 * interface is now open
+ 	 */
+-	if ((adapter->flags & FLAG_HAS_AMT) &&
+-	    e1000e_check_mng_mode(&adapter->hw))
++	if (adapter->flags & FLAG_HAS_AMT)
+ 		e1000_get_hw_control(adapter);
+ 
+ 	/*
+@@ -2713,8 +2712,7 @@ static int e1000_close(struct net_device
+ 	 * If AMT is enabled, let the firmware know that the network
+ 	 * interface is now closed
+ 	 */
+-	if ((adapter->flags & FLAG_HAS_AMT) &&
+-	    e1000e_check_mng_mode(&adapter->hw))
++	if (adapter->flags & FLAG_HAS_AMT)
+ 		e1000_release_hw_control(adapter);
+ 
+ 	return 0;
+@@ -4030,7 +4028,7 @@ static int e1000_resume(struct pci_dev *
+ 	 * is up.  For all other cases, let the f/w know that the h/w is now
+ 	 * under the control of the driver.
+ 	 */
+-	if (!(adapter->flags & FLAG_HAS_AMT) || !e1000e_check_mng_mode(&adapter->hw))
++	if (!(adapter->flags & FLAG_HAS_AMT))
+ 		e1000_get_hw_control(adapter);
+ 
+ 	return 0;
+@@ -4149,8 +4147,7 @@ static void e1000_io_resume(struct pci_d
+ 	 * is up.  For all other cases, let the f/w know that the h/w is now
+ 	 * under the control of the driver.
+ 	 */
+-	if (!(adapter->flags & FLAG_HAS_AMT) ||
+-	    !e1000e_check_mng_mode(&adapter->hw))
++	if (!(adapter->flags & FLAG_HAS_AMT))
+ 		e1000_get_hw_control(adapter);
+ 
+ }
+@@ -4505,8 +4502,7 @@ static int __devinit e1000_probe(struct 
+ 	 * is up.  For all other cases, let the f/w know that the h/w is now
+ 	 * under the control of the driver.
+ 	 */
+-	if (!(adapter->flags & FLAG_HAS_AMT) ||
+-	    !e1000e_check_mng_mode(&adapter->hw))
++	if (!(adapter->flags & FLAG_HAS_AMT))
+ 		e1000_get_hw_control(adapter);
+ 
+ 	/* tell the stack to leave us alone until e1000_open() is called */
+@@ -4523,19 +4519,19 @@ static int __devinit e1000_probe(struct 
+ 	return 0;
+ 
+ err_register:
+-err_hw_init:
+-	e1000_release_hw_control(adapter);
++	if (!(adapter->flags & FLAG_HAS_AMT))
++		e1000_release_hw_control(adapter);
+ err_eeprom:
+ 	if (!e1000_check_reset_block(&adapter->hw))
+ 		e1000_phy_hw_reset(&adapter->hw);
++err_hw_init:
+ 
+-	if (adapter->hw.flash_address)
+-		iounmap(adapter->hw.flash_address);
