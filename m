@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-use-bcd2bin-bin2bcd.patch added to -mm tree
-Date: Fri, 08 Aug 2008 14:39:42 -0700
-Message-ID: <200808082139.m78LdgcM029789@imap1.linux-foundation.org>
+Subject: + arm-use-bcd2bin-bin2bcd.patch added to -mm tree
+Date: Fri, 08 Aug 2008 14:39:46 -0700
+Message-ID: <200808082139.m78Ldkxq029798@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54589 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59914 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754249AbYHHVjz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 17:39:55 -0400
+	by vger.kernel.org with ESMTP id S1751651AbYHHVkE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 17:40:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, andi@firstfloor.org
+Cc: bunk@kernel.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     acpi: use bcd2bin/bin2bcd
+     arm: use bcd2bin/bin2bcd
 has been added to the -mm tree.  Its filename is
-     acpi-use-bcd2bin-bin2bcd.patch
+     arm-use-bcd2bin-bin2bcd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,62 +33,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: use bcd2bin/bin2bcd
+Subject: arm: use bcd2bin/bin2bcd
 From: Adrian Bunk <bunk@kernel.org>
 
-Change ACPI to use the new bcd2bin/bin2bcd functions instead of the
+Change arm to use the new bcd2bin/bin2bcd functions instead of the
 obsolete BCD_TO_BIN/BIN_TO_BCD macros.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/sleep/proc.c |   18 +++++++++---------
+ arch/arm/mach-footbridge/time.c |   18 +++++++++---------
  1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN drivers/acpi/sleep/proc.c~acpi-use-bcd2bin-bin2bcd drivers/acpi/sleep/proc.c
---- a/drivers/acpi/sleep/proc.c~acpi-use-bcd2bin-bin2bcd
-+++ a/drivers/acpi/sleep/proc.c
-@@ -120,13 +120,13 @@ static int acpi_system_alarm_seq_show(st
- 	spin_unlock_irqrestore(&rtc_lock, flags);
+diff -puN arch/arm/mach-footbridge/time.c~arm-use-bcd2bin-bin2bcd arch/arm/mach-footbridge/time.c
+--- a/arch/arm/mach-footbridge/time.c~arm-use-bcd2bin-bin2bcd
++++ a/arch/arm/mach-footbridge/time.c
+@@ -49,12 +49,12 @@ static unsigned long __init get_isa_cmos
+ 	} while (sec != CMOS_READ(RTC_SECONDS));
  
- 	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+ 	if (!(CMOS_READ(RTC_CONTROL) & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
 -		BCD_TO_BIN(sec);
 -		BCD_TO_BIN(min);
--		BCD_TO_BIN(hr);
+-		BCD_TO_BIN(hour);
 -		BCD_TO_BIN(day);
--		BCD_TO_BIN(mo);
--		BCD_TO_BIN(yr);
--		BCD_TO_BIN(cent);
+-		BCD_TO_BIN(mon);
+-		BCD_TO_BIN(year);
 +		sec = bcd2bin(sec);
 +		min = bcd2bin(min);
-+		hr = bcd2bin(hr);
++		hour = bcd2bin(hour);
 +		day = bcd2bin(day);
-+		mo = bcd2bin(mo);
-+		yr = bcd2bin(yr);
-+		cent = bcd2bin(cent);
++		mon = bcd2bin(mon);
++		year = bcd2bin(year);
  	}
+ 	if ((year += 1900) < 1970)
+ 		year += 100;
+@@ -76,7 +76,7 @@ static int set_isa_cmos_time(void)
  
- 	/* we're trusting the FADT (see above) */
-@@ -204,7 +204,7 @@ static u32 cmos_bcd_read(int offset, int
- {
- 	u32 val = CMOS_READ(offset);
- 	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
--		BCD_TO_BIN(val);
-+		val = bcd2bin(val);
- 	return val;
- }
+ 	cmos_minutes = CMOS_READ(RTC_MINUTES);
+ 	if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
+-		BCD_TO_BIN(cmos_minutes);
++		cmos_minutes = bcd2bin(cmos_minutes);
  
-@@ -212,7 +212,7 @@ static u32 cmos_bcd_read(int offset, int
- static void cmos_bcd_write(u32 val, int offset, int rtc_control)
- {
- 	if (!(rtc_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
--		BIN_TO_BCD(val);
-+		val = bin2bcd(val);
- 	CMOS_WRITE(val, offset);
- }
+ 	/*
+ 	 * since we're only adjusting minutes and seconds,
+@@ -92,8 +92,8 @@ static int set_isa_cmos_time(void)
  
+ 	if (abs(real_minutes - cmos_minutes) < 30) {
+ 		if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+-			BIN_TO_BCD(real_seconds);
+-			BIN_TO_BCD(real_minutes);
++			real_seconds = bin2bcd(real_seconds);
++			real_minutes = bin2bcd(real_minutes);
+ 		}
+ 		CMOS_WRITE(real_seconds,RTC_SECONDS);
+ 		CMOS_WRITE(real_minutes,RTC_MINUTES);
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
