@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + matroxfb-i2c-structure-templates-clean-up.patch added to -mm tree
-Date: Fri, 08 Aug 2008 14:05:18 -0700
-Message-ID: <200808082105.m78L5Ije028496@imap1.linux-foundation.org>
+Subject: + usb-hso-driver-fix-kconfig.patch added to -mm tree
+Date: Fri, 08 Aug 2008 14:19:52 -0700
+Message-ID: <200808082119.m78LJqhg029075@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39653 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42363 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753934AbYHHVGA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 17:06:00 -0400
+	by vger.kernel.org with ESMTP id S1754281AbYHHVUh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 17:20:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khali@linux-fr.org, VANDROVE@vc.cvut.cz, krzysztof.h1@wp.pl
+Cc: dbrownell@users.sourceforge.net, greg@kroah.com, jeff@garzik.org
 
 
 The patch titled
-     matroxfb: i2c structure templates clean-up
+     usb HSO driver: fix Kconfig
 has been added to the -mm tree.  Its filename is
-     matroxfb-i2c-structure-templates-clean-up.patch
+     usb-hso-driver-fix-kconfig.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,70 +33,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: matroxfb: i2c structure templates clean-up
-From: Jean Delvare <khali@linux-fr.org>
+Subject: usb HSO driver: fix Kconfig
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Clean up the use of structure templates in i2c-matroxfb. In this case
-it's more efficient to initialize the few fields we need individually.
-This makes i2c-matroxfb.ko 16% smaller on my system.
+Move the Kconfig for the new "Option" driver so it's not in the middle of
+the usbnet-based drivers, so the dependency displays in the Kconfig user
+interfaces don't get trashed.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Petr Vandrovec <VANDROVE@vc.cvut.cz>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/matrox/i2c-matroxfb.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ drivers/net/usb/Kconfig |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN drivers/video/matrox/i2c-matroxfb.c~matroxfb-i2c-structure-templates-clean-up drivers/video/matrox/i2c-matroxfb.c
---- a/drivers/video/matrox/i2c-matroxfb.c~matroxfb-i2c-structure-templates-clean-up
-+++ a/drivers/video/matrox/i2c-matroxfb.c
-@@ -87,13 +87,7 @@ static int matroxfb_gpio_getscl(void* da
- 	return (matroxfb_read_gpio(b->minfo) & b->mask.clock) ? 1 : 0;
- }
+diff -puN drivers/net/usb/Kconfig~usb-hso-driver-fix-kconfig drivers/net/usb/Kconfig
+--- a/drivers/net/usb/Kconfig~usb-hso-driver-fix-kconfig
++++ a/drivers/net/usb/Kconfig
+@@ -154,17 +154,6 @@ config USB_NET_AX8817X
+ 	  This driver creates an interface named "ethX", where X depends on
+ 	  what other networking devices you have in use.
  
--static struct i2c_adapter matrox_i2c_adapter_template =
--{
--	.owner =	THIS_MODULE,
--	.id =		I2C_HW_B_G400,
--};
+-config USB_HSO
+-	tristate "Option USB High Speed Mobile Devices"
+-	depends on USB && RFKILL
+-	default n
+-	help
+-	  Choose this option if you have an Option HSDPA/HSUPA card.
+-	  These cards support downlink speeds of 7.2Mbps or greater.
 -
--static struct i2c_algo_bit_data matrox_i2c_algo_template =
-+static const struct i2c_algo_bit_data matrox_i2c_algo_template =
- {
- 	.setsda		= matroxfb_gpio_setsda,
- 	.setscl		= matroxfb_gpio_setscl,
-@@ -112,7 +106,8 @@ static int i2c_bus_reg(struct i2c_bit_ad
- 	b->minfo = minfo;
- 	b->mask.data = data;
- 	b->mask.clock = clock;
--	b->adapter = matrox_i2c_adapter_template;
-+	b->adapter.owner = THIS_MODULE;
-+	b->adapter.id = I2C_HW_B_G400;
- 	snprintf(b->adapter.name, sizeof(b->adapter.name), name,
- 		minfo->fbcon.node);
- 	i2c_set_adapdata(&b->adapter, b);
+-	  To compile this driver as a module, choose M here: the
+-	  module will be called hso.
+-
+ config USB_NET_CDCETHER
+ 	tristate "CDC Ethernet support (smart devices such as cable modems)"
+ 	depends on USB_USBNET
+@@ -337,5 +326,15 @@ config USB_NET_ZAURUS
+ 	  really need this non-conformant variant of CDC Ethernet (or in
+ 	  some cases CDC MDLM) protocol, not "g_ether".
+ 
++config USB_HSO
++	tristate "Option USB High Speed Mobile Devices"
++	depends on USB && RFKILL
++	default n
++	help
++	  Choose this option if you have an Option HSDPA/HSUPA card.
++	  These cards support downlink speeds of 7.2Mbps or greater.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called hso.
+ 
+ endmenu
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
-matrox-maven-fix-a-broken-error-path.patch
-matroxfb-i2c-structure-templates-clean-up.patch
-matrox-maven-convert-to-a-new-style-i2c-driver.patch
+revert-rtc-cdev-lock_kernel-pushdown.patch
 linux-next.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-i2c-renesas-highlander-fpga-smbus-support-update.patch
-i2c-renesas-highlander-fpga-smbus-support-update-fix.patch
-applesmc-support-for-intel-imac.patch
-applesmc-add-support-for-macbook-v3.patch
-hwmon-adc124s501-generic-driver.patch
-hwmon-adc124s501-generic-driver-update.patch
-i5k_amb-provide-labels-for-temperature-sensors.patch
-abituguru3-update-maintainers.patch
-radeonfb-revert-fix-radeon-ddc-regression.patch
-resource-add-resource_type-and-ioresource_type_bits.patch
-resource-add-new-ioresource_clk-type-v2.patch
-i2c-sh_mobile-ioresource_clk-support.patch
+usb-hso-driver-fix-kconfig.patch
+rtc-ds1307-alarm-support-for-ds1337-ds1339.patch
+rtc-remove-some-nop-open-release-methods.patch
+legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
 
