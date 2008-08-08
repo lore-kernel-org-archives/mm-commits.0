@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-use-bcd2bin-bin2bcd.patch added to -mm tree
-Date: Fri, 08 Aug 2008 14:40:06 -0700
-Message-ID: <200808082140.m78Le6wg029915@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 08 Aug 2008 15:03:13 -0700
+Message-ID: <200808082203.m78M3Dob031021@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38812 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59231 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758783AbYHHVkq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 17:40:46 -0400
+	by vger.kernel.org with ESMTP id S1764668AbYHHWEE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Aug 2008 18:04:04 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m78M3Dso032765
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 8 Aug 2008 15:03:14 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, dhowells@redhat.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     mn10300: use bcd2bin/bin2bcd
+     linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mn10300-use-bcd2bin-bin2bcd.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +37,299 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mn10300: use bcd2bin/bin2bcd
-From: Adrian Bunk <bunk@kernel.org>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Change mn10300 to use the new bcd2bin/bin2bcd functions instead of the
-obsolete BCD_TO_BIN/BIN_TO_BCD macros.
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/kernel/rtc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/sparc64/kernel/sys_sparc32.c |    3 ---
+ drivers/watchdog/at91rm9200_wdt.c |    5 -----
+ drivers/watchdog/davinci_wdt.c    |    4 ----
+ drivers/watchdog/ep93xx_wdt.c     |    4 ----
+ drivers/watchdog/ixp2000_wdt.c    |    4 ----
+ drivers/watchdog/ixp4xx_wdt.c     |    4 ----
+ drivers/watchdog/ks8695_wdt.c     |    7 -------
+ drivers/watchdog/omap_wdt.c       |    7 -------
+ drivers/watchdog/pnx4008_wdt.c    |    4 ----
+ drivers/watchdog/sa1100_wdt.c     |    4 ----
+ drivers/watchdog/wdt285.c         |    4 ----
+ 11 files changed, 50 deletions(-)
 
-diff -puN arch/mn10300/kernel/rtc.c~mn10300-use-bcd2bin-bin2bcd arch/mn10300/kernel/rtc.c
---- a/arch/mn10300/kernel/rtc.c~mn10300-use-bcd2bin-bin2bcd
-+++ a/arch/mn10300/kernel/rtc.c
-@@ -67,7 +67,7 @@ static int set_rtc_mmss(unsigned long no
+diff -puN arch/sparc64/kernel/sys_sparc32.c~linux-next-git-rejects arch/sparc64/kernel/sys_sparc32.c
+--- a/arch/sparc64/kernel/sys_sparc32.c~linux-next-git-rejects
++++ a/arch/sparc64/kernel/sys_sparc32.c
+@@ -58,8 +58,6 @@
+ #include <asm/mmu_context.h>
+ #include <asm/compat_signal.h>
  
- 	cmos_minutes = CMOS_READ(RTC_MINUTES);
- 	if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
--		BCD_TO_BIN(cmos_minutes);
-+		cmos_minutes = bcd2bin(cmos_minutes);
+-<<<<<<< HEAD:arch/sparc64/kernel/sys_sparc32.c
+-=======
+ asmlinkage long sys32_chown16(const char __user * filename, u16 user, u16 group)
+ {
+ 	return sys_chown(filename, low2highuid(user), low2highgid(group));
+@@ -236,7 +234,6 @@ asmlinkage long sys32_getegid16(void)
+ 	return high2lowgid(current->cred->egid);
+ }
  
- 	/*
- 	 * since we're only adjusting minutes and seconds,
-@@ -84,8 +84,8 @@ static int set_rtc_mmss(unsigned long no
+->>>>>>> FETCH_HEAD:arch/sparc64/kernel/sys_sparc32.c
+ /* 32-bit timeval and related flotsam.  */
  
- 	if (abs(real_minutes - cmos_minutes) < 30) {
- 		if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--			BIN_TO_BCD(real_seconds);
--			BIN_TO_BCD(real_minutes);
-+			real_seconds = bin2bcd(real_seconds);
-+			real_minutes = bin2bcd(real_minutes);
- 		}
- 		CMOS_WRITE(real_seconds, RTC_SECONDS);
- 		CMOS_WRITE(real_minutes, RTC_MINUTES);
+ static inline long put_tv32(struct compat_timeval __user *o, struct timeval *i)
+diff -puN drivers/watchdog/at91rm9200_wdt.c~linux-next-git-rejects drivers/watchdog/at91rm9200_wdt.c
+--- a/drivers/watchdog/at91rm9200_wdt.c~linux-next-git-rejects
++++ a/drivers/watchdog/at91rm9200_wdt.c
+@@ -20,13 +20,8 @@
+ #include <linux/platform_device.h>
+ #include <linux/types.h>
+ #include <linux/watchdog.h>
+-<<<<<<< HEAD:drivers/watchdog/at91rm9200_wdt.c
+ #include <linux/uaccess.h>
+-#include <asm/arch/at91_st.h>
+-=======
+-#include <asm/uaccess.h>
+ #include <mach/at91_st.h>
+->>>>>>> FETCH_HEAD:drivers/watchdog/at91rm9200_wdt.c
+ 
+ 
+ #define WDT_DEFAULT_TIME	5	/* seconds */
+diff -puN drivers/watchdog/davinci_wdt.c~linux-next-git-rejects drivers/watchdog/davinci_wdt.c
+--- a/drivers/watchdog/davinci_wdt.c~linux-next-git-rejects
++++ a/drivers/watchdog/davinci_wdt.c
+@@ -25,13 +25,9 @@
+ #include <linux/uaccess.h>
+ #include <linux/io.h>
+ 
+-<<<<<<< HEAD:drivers/watchdog/davinci_wdt.c
+-#include <asm/hardware.h>
+-=======
+ #include <mach/hardware.h>
+ #include <asm/uaccess.h>
+ #include <asm/io.h>
+->>>>>>> FETCH_HEAD:drivers/watchdog/davinci_wdt.c
+ 
+ #define MODULE_NAME "DAVINCI-WDT: "
+ 
+diff -puN drivers/watchdog/ep93xx_wdt.c~linux-next-git-rejects drivers/watchdog/ep93xx_wdt.c
+--- a/drivers/watchdog/ep93xx_wdt.c~linux-next-git-rejects
++++ a/drivers/watchdog/ep93xx_wdt.c
+@@ -30,12 +30,8 @@
+ #include <linux/timer.h>
+ #include <linux/uaccess.h>
+ 
+-<<<<<<< HEAD:drivers/watchdog/ep93xx_wdt.c
+-#include <asm/hardware.h>
+-=======
+ #include <mach/hardware.h>
+ #include <asm/uaccess.h>
+->>>>>>> FETCH_HEAD:drivers/watchdog/ep93xx_wdt.c
+ 
+ #define WDT_VERSION	"0.3"
+ #define PFX		"ep93xx_wdt: "
+diff -puN drivers/watchdog/ixp2000_wdt.c~linux-next-git-rejects drivers/watchdog/ixp2000_wdt.c
+--- a/drivers/watchdog/ixp2000_wdt.c~linux-next-git-rejects
++++ a/drivers/watchdog/ixp2000_wdt.c
+@@ -27,12 +27,8 @@
+ #include <linux/bitops.h>
+ #include <linux/uaccess.h>
+ 
+-<<<<<<< HEAD:drivers/watchdog/ixp2000_wdt.c
+-#include <asm/hardware.h>
+-=======
+ #include <mach/hardware.h>
+ #include <asm/uaccess.h>
+->>>>>>> FETCH_HEAD:drivers/watchdog/ixp2000_wdt.c
+ 
+ static int nowayout = WATCHDOG_NOWAYOUT;
+ static unsigned int heartbeat = 60;	/* (secs) Default is 1 minute */
+diff -puN drivers/watchdog/ixp4xx_wdt.c~linux-next-git-rejects drivers/watchdog/ixp4xx_wdt.c
+--- a/drivers/watchdog/ixp4xx_wdt.c~linux-next-git-rejects
++++ a/drivers/watchdog/ixp4xx_wdt.c
+@@ -24,12 +24,8 @@
+ #include <linux/bitops.h>
+ #include <linux/uaccess.h>
+ 
+-<<<<<<< HEAD:drivers/watchdog/ixp4xx_wdt.c
+-#include <asm/hardware.h>
+-=======
+ #include <mach/hardware.h>
+ #include <asm/uaccess.h>
+->>>>>>> FETCH_HEAD:drivers/watchdog/ixp4xx_wdt.c
+ 
+ static int nowayout = WATCHDOG_NOWAYOUT;
+ static int heartbeat = 60;	/* (secs) Default is 1 minute */
+diff -puN drivers/watchdog/ks8695_wdt.c~linux-next-git-rejects drivers/watchdog/ks8695_wdt.c
+--- a/drivers/watchdog/ks8695_wdt.c~linux-next-git-rejects
++++ a/drivers/watchdog/ks8695_wdt.c
+@@ -19,16 +19,9 @@
+ #include <linux/platform_device.h>
+ #include <linux/types.h>
+ #include <linux/watchdog.h>
+-<<<<<<< HEAD:drivers/watchdog/ks8695_wdt.c
+ #include <linux/io.h>
+-#include <linux/uaccess.h>
+-#include <asm/arch/regs-timer.h>
+-=======
+-#include <asm/io.h>
+ #include <asm/uaccess.h>
+ #include <mach/regs-timer.h>
+->>>>>>> FETCH_HEAD:drivers/watchdog/ks8695_wdt.c
+-
+ 
+ #define WDT_DEFAULT_TIME	5	/* seconds */
+ #define WDT_MAX_TIME		171	/* seconds */
+diff -puN drivers/watchdog/omap_wdt.c~linux-next-git-rejects drivers/watchdog/omap_wdt.c
+--- a/drivers/watchdog/omap_wdt.c~linux-next-git-rejects
++++ a/drivers/watchdog/omap_wdt.c
+@@ -40,16 +40,9 @@
+ #include <linux/moduleparam.h>
+ #include <linux/clk.h>
+ #include <linux/bitops.h>
+-<<<<<<< HEAD:drivers/watchdog/omap_wdt.c
+ #include <linux/io.h>
+-#include <linux/uaccess.h>
+-#include <linux/hardware.h>
+-=======
+-
+-#include <asm/io.h>
+ #include <asm/uaccess.h>
+ #include <mach/hardware.h>
+->>>>>>> FETCH_HEAD:drivers/watchdog/omap_wdt.c
+ 
+ #include <mach/prcm.h>
+ 
+diff -puN drivers/watchdog/pnx4008_wdt.c~linux-next-git-rejects drivers/watchdog/pnx4008_wdt.c
+--- a/drivers/watchdog/pnx4008_wdt.c~linux-next-git-rejects
++++ a/drivers/watchdog/pnx4008_wdt.c
+@@ -31,13 +31,9 @@
+ #include <linux/uaccess.h>
+ #include <linux/io.h>
+ 
+-<<<<<<< HEAD:drivers/watchdog/pnx4008_wdt.c
+-#include <asm/hardware.h>
+-=======
+ #include <mach/hardware.h>
+ #include <asm/uaccess.h>
+ #include <asm/io.h>
+->>>>>>> FETCH_HEAD:drivers/watchdog/pnx4008_wdt.c
+ 
+ #define MODULE_NAME "PNX4008-WDT: "
+ 
+diff -puN drivers/watchdog/sa1100_wdt.c~linux-next-git-rejects drivers/watchdog/sa1100_wdt.c
+--- a/drivers/watchdog/sa1100_wdt.c~linux-next-git-rejects
++++ a/drivers/watchdog/sa1100_wdt.c
+@@ -32,13 +32,9 @@
+ #include <mach/pxa-regs.h>
+ #endif
+ 
+-<<<<<<< HEAD:drivers/watchdog/sa1100_wdt.c
+-#include <asm/hardware.h>
+-=======
+ #include <mach/reset.h>
+ #include <mach/hardware.h>
+ #include <asm/uaccess.h>
+->>>>>>> FETCH_HEAD:drivers/watchdog/sa1100_wdt.c
+ 
+ #define OSCR_FREQ		CLOCK_TICK_RATE
+ 
+diff -puN drivers/watchdog/wdt285.c~linux-next-git-rejects drivers/watchdog/wdt285.c
+--- a/drivers/watchdog/wdt285.c~linux-next-git-rejects
++++ a/drivers/watchdog/wdt285.c
+@@ -29,13 +29,9 @@
+ #include <linux/uaccess.h>
+ #include <linux/irq.h>
+ 
+-<<<<<<< HEAD:drivers/watchdog/wdt285.c
+-#include <asm/hardware.h>
+-=======
+ #include <asm/irq.h>
+ #include <asm/uaccess.h>
+ #include <mach/hardware.h>
+->>>>>>> FETCH_HEAD:drivers/watchdog/wdt285.c
+ #include <asm/mach-types.h>
+ #include <asm/hardware/dec21285.h>
+ 
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-feature-removal-scheduletxt-remove-the-ncr53c9x-entry.patch
+origin.patch
+printk-robustify-printk-fix.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-m32r-dont-offer-config_isa.patch
-m32r-export-empty_zero_page.patch
-m32r-export-__ndelay.patch
-m32r-kernel-cleanups.patch
-the-overdue-eepro100-removal.patch
-ntfs-update-homepage.patch
-parisc-lib-make-code-static.patch
-drivers-parisc-make-code-static.patch
-if-0-ses_match_host.patch
-scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
-drivers-scsi-a2091c-make-2-functions-static.patch
-drivers-scsi-a3000c-make-2-functions-static.patch
-git-block.patch
-fs_mbcache-dont-needlessly-make-it-built-in.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+git-agpgart.patch
+git-agpgart.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+git-drm.patch
+i2c-renesas-highlander-fpga-smbus-support-update-fix.patch
+git-dlm.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+git-kvm.patch
+git-mtd.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
+git-nfsd.patch
+git-pci-current.patch
+sched-type-fix.patch
+lockdep-spin_lock_nest_lock-fix-checkpatch-fixes.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+drivers-usb-class-cdc-acmc-use-correct-type-for-cpu-flags.patch
+drivers-usb-class-cdc-wdmc-fix-build-with-config_pm=n.patch
 git-xtensa.patch
-drivers-net-atl1e-atl1e_mainc-uninline-atl1e_setup_mac_ctrl.patch
-asm-h8300-mdh-remove-cvs-keyword.patch
-alpha-miata-remove-dead-url.patch
-uml-remove-the-dead-tty_log-code.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-maintainers-remove-zf-machz-watchdog-entry.patch
-maintainers-remove-hga-framebuffer-driver-entry.patch
-include-linux-mounth-remove-cvs-keyword.patch
-kernel-dmac-remove-a-cvs-keyword.patch
-binfmt_somc-add-module_license.patch
-the-scheduled-serial_coldfire-removal.patch
-make-probe_serial_gsc-static.patch
-pnp-remove-printk-with-outdated-version.patch
-telephony-remove-cvs-keywords.patch
-reiserfs-procfsc-remove-cvs-keywords.patch
-quota-remove-cvs-keywords.patch
-make-ptrace_untrace-static.patch
-fs-partitions-acornc-remove-dead-code.patch
-parport-remove-cvs-keywords.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-firmware-iscsi_ibftc-make-3-functions-static.patch
-acpi-use-bcd2bin-bin2bcd.patch
-alpha-use-bcd2bin-bin2bcd.patch
-arm-use-bcd2bin-bin2bcd.patch
-cris-use-bcd2bin-bin2bcd.patch
-drivers-rtc-use-bcd2bin-bin2bcd.patch
-rtc-use-bcd2bin-bin2bcd.patch
-ia64-use-bcd2bin-bin2bcd.patch
-ide-cd-use-bcd2bin-bin2bcd.patch
-m68k-use-bcd2bin-bin2bcd.patch
-mips-use-bcd2bin-bin2bcd.patch
-mn10300-use-bcd2bin-bin2bcd.patch
-powerpc-use-bcd2bin-bin2bcd.patch
-i2c-use-bcd2bin-bin2bcd.patch
-drivers-scsi-sr_vendorc-use-bcd2bin.patch
-sparc64-use-bcd2bin-bin2bcd.patch
-remove-the-obsolete-bcdbin-binbcd-macros.patch
-include-linux-bcdh-remove-comments.patch
+git-pekka.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+drivers-net-netxen-netxen_nic_hwc-fix-printk-warnings.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+scsi-megaraid_sas-add-the-new-controllers-support-checkpatch-fixes.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
 reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
