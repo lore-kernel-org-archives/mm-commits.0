@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + irq-warn-about-irqf_disabledirqf_shared.patch added to -mm tree
-Date: Mon, 11 Aug 2008 13:54:20 -0700
-Message-ID: <200808112054.m7BKsK4V020918@imap1.linux-foundation.org>
+Subject: + neofb-reduce-panning-function.patch added to -mm tree
+Date: Mon, 11 Aug 2008 13:55:38 -0700
+Message-ID: <200808112055.m7BKtcwv020947@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43248 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43146 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751023AbYHKUz2 (ORCPT
+	by vger.kernel.org with ESMTP id S1754208AbYHKU4J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 16:55:28 -0400
+	Mon, 11 Aug 2008 16:56:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbrownell@users.sourceforge.net, a.p.zijlstra@chello.nl, mingo@elte.hu, tglx@linutronix.de
+Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     irq: warn about (IRQF_DISABLED|IRQF_SHARED)
+     neofb: reduce panning function
 has been added to the -mm tree.  Its filename is
-     irq-warn-about-irqf_disabledirqf_shared.patch
+     neofb-reduce-panning-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: irq: warn about (IRQF_DISABLED|IRQF_SHARED)
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: neofb: reduce panning function
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-We periodically waste time tracking down problems caused by the IRQ
-framework not respecting IRQF_DISABLED for some shared IRQ cases.  Linus
-views this as "will not fix", but we're still left with the bugs caused by
-this misbehavior.
+Reduce panning function by deleting checks done by higher layer and
+folding remaining function into the called one.
 
-This patch adds a nag message in request_irq(), so that drivers can fix
-their IRQ handlers to avoid this problem.
-
-Note that developers will never see the relevant bugs when they run with
-LOCKDEP, so it's no wonder these bugs are hard to find.  (That also means
-LOCKDEP is overlooking some IRQ-related bugs involving IRQ handlers that
-don't set IRQF_DISABLED...)
-
-This was the root cause of some USB oopsing a while back ...
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/manage.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/video/neofb.c |   35 +++++------------------------------
+ 1 file changed, 5 insertions(+), 30 deletions(-)
 
-diff -puN kernel/irq/manage.c~irq-warn-about-irqf_disabledirqf_shared kernel/irq/manage.c
---- a/kernel/irq/manage.c~irq-warn-about-irqf_disabledirqf_shared
-+++ a/kernel/irq/manage.c
-@@ -604,6 +604,18 @@ int request_irq(unsigned int irq, irq_ha
- 	struct irqaction *action;
- 	int retval;
+diff -puN drivers/video/neofb.c~neofb-reduce-panning-function drivers/video/neofb.c
+--- a/drivers/video/neofb.c~neofb-reduce-panning-function
++++ a/drivers/video/neofb.c
+@@ -1186,8 +1186,11 @@ static int neofb_set_par(struct fb_info 
+ 	return 0;
+ }
  
-+	/*
-+	 * handle_IRQ_event() always ignores IRQF_DISABLED except for
-+	 * the _first_ irqaction (sigh).  That can cause oopsing, but
-+	 * the behavior is classified as "will not fix" so we need to
-+	 * start nudging drivers away from using that idiom.
-+	 */
-+	if ((irqflags & (IRQF_SHARED|IRQF_DISABLED))
-+			== (IRQF_SHARED|IRQF_DISABLED))
-+		pr_warning("IRQ %d/%s: IRQF_DISABLED is not "
-+				"guaranteed on shared IRQs\n",
-+				irq, devname);
-+
- #ifdef CONFIG_LOCKDEP
- 	/*
- 	 * Lockdep wants atomic interrupt handlers:
+-static void neofb_update_start(struct fb_info *info,
+-			       struct fb_var_screeninfo *var)
++/*
++ *    Pan or Wrap the Display
++ */
++static int neofb_pan_display(struct fb_var_screeninfo *var,
++			     struct fb_info *info)
+ {
+ 	struct neofb_par *par = info->par;
+ 	struct vgastate *state = &par->state;
+@@ -1216,35 +1219,7 @@ static void neofb_update_start(struct fb
+ 	vga_wgfx(state->vgabase, 0x0E, (((Base >> 16) & 0x0f) | (oldExtCRTDispAddr & 0xf0)));
+ 
+ 	neoLock(state);
+-}
+-
+-/*
+- *    Pan or Wrap the Display
+- */
+-static int neofb_pan_display(struct fb_var_screeninfo *var,
+-			     struct fb_info *info)
+-{
+-	u_int y_bottom;
+-
+-	y_bottom = var->yoffset;
+-
+-	if (!(var->vmode & FB_VMODE_YWRAP))
+-		y_bottom += var->yres;
+-
+-	if (var->xoffset > (var->xres_virtual - var->xres))
+-		return -EINVAL;
+-	if (y_bottom > info->var.yres_virtual)
+-		return -EINVAL;
+-
+-	neofb_update_start(info, var);
+-
+-	info->var.xoffset = var->xoffset;
+-	info->var.yoffset = var->yoffset;
+ 
+-	if (var->vmode & FB_VMODE_YWRAP)
+-		info->var.vmode |= FB_VMODE_YWRAP;
+-	else
+-		info->var.vmode &= ~FB_VMODE_YWRAP;
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-revert-rtc-cdev-lock_kernel-pushdown.patch
+origin.patch
+sm501-update-debugging-low-information-messages.patch
+matrox-maven-fix-a-broken-error-path.patch
+matroxfb-i2c-structure-templates-clean-up.patch
+matrox-maven-convert-to-a-new-style-i2c-driver.patch
+atmel_lcdfb-set-ypanstep-to-1-and-enable-y-panning-on-at91.patch
+atmel_lcdfb-add-board-parameter-specify-framebuffer-memory-size.patch
+fbcon-prevent-cursor-disappearance-after-switching-to-512-character-font.patch
 linux-next.patch
-usb-hso-driver-fix-kconfig.patch
-rtc-ds1307-alarm-support-for-ds1337-ds1339.patch
-rtc-remove-some-nop-open-release-methods.patch
-legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
-irq-warn-about-irqf_disabledirqf_shared.patch
+rtc-m48t59-reduce-structure-m48t59_private.patch
+x86-fdiv-bug-detection-fix.patch
+fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
+neofb-reduce-panning-function.patch
 
