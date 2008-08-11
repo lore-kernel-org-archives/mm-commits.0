@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-file-close-consistently-disables-repeating-irqs.patch added to -mm tree
-Date: Mon, 11 Aug 2008 15:07:38 -0700
-Message-ID: <200808112207.m7BM7c5D024094@imap1.linux-foundation.org>
+Subject: + ext3-dont-try-to-resize-if-there-are-no-reserved-gdt-blocks-left.patch added to -mm tree
+Date: Mon, 11 Aug 2008 15:08:14 -0700
+Message-ID: <200808112208.m7BM8EI0024118__47573.8108427778$1218492612$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42195 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42434 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753110AbYHKWIr (ORCPT
+	by vger.kernel.org with ESMTP id S1757904AbYHKWJB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 18:08:47 -0400
+	Mon, 11 Aug 2008 18:09:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbrownell@users.sourceforge.net, a.zummo@towertech.it, andy.sharp@onstor.com, anemo@mba.ocn.ne.jp, angelo.castello@st.com, lethal@linux-sh.org, thomas.hommel@gefanuc.com
+Cc: jbacik@redhat.com, adilger@sun.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     rtc: file close() consistently disables repeating irqs
+     ext3: don't try to resize if there are no reserved gdt blocks left
 has been added to the -mm tree.  Its filename is
-     rtc-file-close-consistently-disables-repeating-irqs.patch
+     ext3-dont-try-to-resize-if-there-are-no-reserved-gdt-blocks-left.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,158 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: file close() consistently disables repeating irqs
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: ext3: don't try to resize if there are no reserved gdt blocks left
+From: Josef Bacik <jbacik@redhat.com>
 
-Make the rtc framework consistent about disabling 1/second update IRQs
-that may have been activated through the /dev interface, when that /dev
-file is closed.  (It may have closed because of coredump, etc.) This was
-previously done only for emulated update IRQs ...  now, do it always.
+When trying to resize a ext3 fs and you run out of reserved gdt blocks,
+you get an error that doesn't actually tell you what went wrong, it just
+says that the gdb it picked is not correct, which is the case since you
+don't have any reserved gdt blocks left.  This patch adds a check to make
+sure you have reserved gdt blocks to use, and if not prints out a more
+relevant error.
 
-Also comment the current policy: repeating IRQs (periodic, update) that
-userspace enabled will be cleanly disabled, but alarms are left alone. 
-Such repeating IRQs are a constant and pointless system load.
-
-Update some RTC drivers to remove now-needless release() methods.  Most
-such methods just enforce that policy.  The others all seem to be buggy,
-and mistreat in-kernel clients of periodic or alarm IRQs.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Andrew Sharp <andy.sharp@onstor.com>
-Cc: Angelo Castello <angelo.castello@st.com>
-Acked-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Acked-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Thomas Hommel <thomas.hommel@gefanuc.com>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Josef Bacik <jbacik@redhat.com>
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Andreas Dilger <adilger@sun.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-dev.c      |   12 +++++++++---
- drivers/rtc/rtc-ds1511.c   |   13 -------------
- drivers/rtc/rtc-ds1553.c   |   12 ------------
- drivers/rtc/rtc-sh.c       |    7 -------
- drivers/rtc/rtc-stk17ta8.c |   12 ------------
- 5 files changed, 9 insertions(+), 47 deletions(-)
+ fs/ext3/resize.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-dev.c~rtc-file-close-consistently-disables-repeating-irqs drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~rtc-file-close-consistently-disables-repeating-irqs
-+++ a/drivers/rtc/rtc-dev.c
-@@ -423,9 +423,15 @@ static int rtc_dev_release(struct inode 
- {
- 	struct rtc_device *rtc = file->private_data;
+diff -puN fs/ext3/resize.c~ext3-dont-try-to-resize-if-there-are-no-reserved-gdt-blocks-left fs/ext3/resize.c
+--- a/fs/ext3/resize.c~ext3-dont-try-to-resize-if-there-are-no-reserved-gdt-blocks-left
++++ a/fs/ext3/resize.c
+@@ -790,7 +790,8 @@ int ext3_group_add(struct super_block *s
  
--#ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
--	clear_uie(rtc);
--#endif
-+	/* We shut down the repeating IRQs that userspace enabled,
-+	 * since nothing is listening to them.
-+	 *  - Update (UIE) ... currently only managed through ioctls
-+	 *  - Periodic (PIE) ... also used through rtc_*() interface calls
-+	 *
-+	 * Leave the alarm alone; it may be set to trigger a system wakeup
-+	 * later, or be used by kernel code, and is a one-shot event anyway.
-+	 */
-+	rtc_dev_ioctl(file, RTC_UIE_OFF, 0);
- 	rtc_irq_set_state(rtc, NULL, 0);
- 
- 	if (rtc->ops->release)
-diff -puN drivers/rtc/rtc-ds1511.c~rtc-file-close-consistently-disables-repeating-irqs drivers/rtc/rtc-ds1511.c
---- a/drivers/rtc/rtc-ds1511.c~rtc-file-close-consistently-disables-repeating-irqs
-+++ a/drivers/rtc/rtc-ds1511.c
-@@ -379,18 +379,6 @@ ds1511_interrupt(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
-- static void
--ds1511_rtc_release(struct device *dev)
--{
--	struct platform_device *pdev = to_platform_device(dev);
--	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
--
--	if (pdata->irq >= 0) {
--		pdata->irqen = 0;
--		ds1511_rtc_update_alarm(pdata);
--	}
--}
--
-  static int
- ds1511_rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
- {
-@@ -428,7 +416,6 @@ static const struct rtc_class_ops ds1511
- 	.set_time	= ds1511_rtc_set_time,
- 	.read_alarm	= ds1511_rtc_read_alarm,
- 	.set_alarm	= ds1511_rtc_set_alarm,
--	.release	= ds1511_rtc_release,
- 	.ioctl		= ds1511_rtc_ioctl,
- };
- 
-diff -puN drivers/rtc/rtc-ds1553.c~rtc-file-close-consistently-disables-repeating-irqs drivers/rtc/rtc-ds1553.c
---- a/drivers/rtc/rtc-ds1553.c~rtc-file-close-consistently-disables-repeating-irqs
-+++ a/drivers/rtc/rtc-ds1553.c
-@@ -207,17 +207,6 @@ static irqreturn_t ds1553_rtc_interrupt(
- 	return IRQ_HANDLED;
- }
- 
--static void ds1553_rtc_release(struct device *dev)
--{
--	struct platform_device *pdev = to_platform_device(dev);
--	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
--
--	if (pdata->irq >= 0) {
--		pdata->irqen = 0;
--		ds1553_rtc_update_alarm(pdata);
--	}
--}
--
- static int ds1553_rtc_ioctl(struct device *dev, unsigned int cmd,
- 			    unsigned long arg)
- {
-@@ -254,7 +243,6 @@ static const struct rtc_class_ops ds1553
- 	.set_time	= ds1553_rtc_set_time,
- 	.read_alarm	= ds1553_rtc_read_alarm,
- 	.set_alarm	= ds1553_rtc_set_alarm,
--	.release	= ds1553_rtc_release,
- 	.ioctl		= ds1553_rtc_ioctl,
- };
- 
-diff -puN drivers/rtc/rtc-sh.c~rtc-file-close-consistently-disables-repeating-irqs drivers/rtc/rtc-sh.c
---- a/drivers/rtc/rtc-sh.c~rtc-file-close-consistently-disables-repeating-irqs
-+++ a/drivers/rtc/rtc-sh.c
-@@ -257,12 +257,6 @@ static inline void sh_rtc_setaie(struct 
- 	spin_unlock_irq(&rtc->lock);
- }
- 
--static void sh_rtc_release(struct device *dev)
--{
--	sh_rtc_setpie(dev, 0);
--	sh_rtc_setaie(dev, 0);
--}
--
- static int sh_rtc_proc(struct device *dev, struct seq_file *seq)
- {
- 	struct sh_rtc *rtc = dev_get_drvdata(dev);
-@@ -559,7 +553,6 @@ static int sh_rtc_irq_set_freq(struct de
- }
- 
- static struct rtc_class_ops sh_rtc_ops = {
--	.release	= sh_rtc_release,
- 	.ioctl		= sh_rtc_ioctl,
- 	.read_time	= sh_rtc_read_time,
- 	.set_time	= sh_rtc_set_time,
-diff -puN drivers/rtc/rtc-stk17ta8.c~rtc-file-close-consistently-disables-repeating-irqs drivers/rtc/rtc-stk17ta8.c
---- a/drivers/rtc/rtc-stk17ta8.c~rtc-file-close-consistently-disables-repeating-irqs
-+++ a/drivers/rtc/rtc-stk17ta8.c
-@@ -215,17 +215,6 @@ static irqreturn_t stk17ta8_rtc_interrup
- 	return IRQ_HANDLED;
- }
- 
--static void stk17ta8_rtc_release(struct device *dev)
--{
--	struct platform_device *pdev = to_platform_device(dev);
--	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
--
--	if (pdata->irq >= 0) {
--		pdata->irqen = 0;
--		stk17ta8_rtc_update_alarm(pdata);
--	}
--}
+ 	if (reserved_gdb || gdb_off == 0) {
+ 		if (!EXT3_HAS_COMPAT_FEATURE(sb,
+-					     EXT3_FEATURE_COMPAT_RESIZE_INODE)){
++					     EXT3_FEATURE_COMPAT_RESIZE_INODE)
++		    || !le16_to_cpu(es->s_reserved_gdt_blocks)) {
+ 			ext3_warning(sb, __func__,
+ 				     "No reserved GDT blocks, can't resize");
+ 			return -EPERM;
+_
+
+Patches currently in -mm which might be from jbacik@redhat.com are
+
+ext3-dont-try-to-resize-if-there-are-no-reserved-gdt-blocks-left.patch
+ext4-dont-try-to-resize-if-there-are-no-reserved-gdt-blocks-left.patch
+
