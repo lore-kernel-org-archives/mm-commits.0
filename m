@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + doc-unevictable-lru-and-mlocked-pages-documentation-update-2.patch added to -mm tree
-Date: Mon, 11 Aug 2008 14:53:24 -0700
-Message-ID: <200808112153.m7BLrO1N023417@imap1.linux-foundation.org>
+Subject: + cdrom-handle-toc.patch added to -mm tree
+Date: Mon, 11 Aug 2008 15:02:34 -0700
+Message-ID: <200808112202.m7BM2YN1023884@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42337 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41963 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752811AbYHKVyR (ORCPT
+	by vger.kernel.org with ESMTP id S1751071AbYHKWDk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 17:54:17 -0400
+	Mon, 11 Aug 2008 18:03:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Lee.Schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com
+Cc: shurick@sectorb.msk.ru, bzolnier@gmail.com, jens.axboe@oracle.com, petkovbb@googlemail.com, tj@kernel.org
 
 
 The patch titled
-     Cleanup/rework Unevictable LRU and Mlocked Pages documentation
+     cdrom: handle TOC
 has been added to the -mm tree.  Its filename is
-     doc-unevictable-lru-and-mlocked-pages-documentation-update-2.patch
+     cdrom-handle-toc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Cleanup/rework Unevictable LRU and Mlocked Pages documentation
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: cdrom: handle TOC
+From: Alexander Inyukhin <shurick@sectorb.msk.ru>
 
-Cleanup and rework of Documentation/vm/unevictable-lru.txt:
+This patch should fix TOC handling for cdroms that can not play audio.  It
+extends commit af744e3294d09d706c4eae26cffaaa68a8d40337 ("cdrom: don't
+check CDC_PLAY_AUDIO in cdrom_count_tracks()") with a safety check and
+non-audio ioctls support.
 
-+ typos and such pointed out by Randy Dunlap
-+ rework rationale for use of LRU list based on discussion with
-  Christoph Lameter
-+ a few other area of rewording suggested by the rationale rework.
+Since CDC_PLAY_AUDIO flag was used not only to check ability to play audio
+but also to ensure that audio_ioctl was not NULL, all TOC-related
+operations had to use it.
 
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+As far as I understand, now audio_ioctl is never NULL, so a sanity check
+during device registration should be sufficient.
+
+It was tested on Optiarc AD7203A device, that has no ability to play
+audio.
+
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Borislav Petkov <petkovbb@googlemail.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/unevictable-lru.txt |   62 ++++++++++++++-----------
- 1 file changed, 35 insertions(+), 27 deletions(-)
+ drivers/cdrom/cdrom.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/vm/unevictable-lru.txt~doc-unevictable-lru-and-mlocked-pages-documentation-update-2 Documentation/vm/unevictable-lru.txt
---- a/Documentation/vm/unevictable-lru.txt~doc-unevictable-lru-and-mlocked-pages-documentation-update-2
-+++ a/Documentation/vm/unevictable-lru.txt
-@@ -38,32 +38,36 @@ The Unevictable LRU List
+diff -puN drivers/cdrom/cdrom.c~cdrom-handle-toc drivers/cdrom/cdrom.c
+--- a/drivers/cdrom/cdrom.c~cdrom-handle-toc
++++ a/drivers/cdrom/cdrom.c
+@@ -394,6 +394,8 @@ int register_cdrom(struct cdrom_device_i
  
- The Unevictable LRU infrastructure consists of an additional, per-zone, LRU list
- called the "unevictable" list and an associated page flag, PG_unevictable, to
--indicate that the page is being managed on the unevictable list.  The PG_unevictable
--flag is analogous to, and mutually exclusive with, the PG_active flag in that
--it indicates on which LRU list a page resides when PG_lru is set.  The
--unevictable LRU list is source configurable based on the UNEVICTABLE_LRU Kconfig
--option.
--
--Why maintain unevictable pages on an additional LRU list?  Primarily because
--we want to be able to migrate unevictable pages between nodes--for memory
--deframentation, workload management and memory hotplug.  The linux kernel can
--only migrate pages that it can successfully isolate from the lru lists.
--Therefore, we want to keep the unevictable pages on an lru-like list, where
--they can be found by isolate_lru_page().
--
--Secondarily, the Linux memory management subsystem has well established
--protocols for managing pages on the LRU.  Vmscan is based on LRU lists.
--LRU list exist per zone, and we want to maintain pages relative to their
--"home zone".  All of these make the use of an additional list, parallel to
--the LRU active and inactive lists, a natural mechanism to employ.  Note,
--however, that the unevictable list does not differentiate between file backed
--and swap backed [anon] pages.  This differentiation is only important while
--the pages are, in fact, evictable.
-+indicate that the page is being managed on the unevictable list.  The
-+PG_unevictable flag is analogous to, and mutually exclusive with, the PG_active
-+flag in that it indicates on which LRU list a page resides when PG_lru is set.
-+The unevictable LRU list is source configurable based on the UNEVICTABLE_LRU
-+Kconfig option.
-+
-+The Unevictable LRU infrastructure maintains unevictable pages on an additional
-+LRU list for a few reasons:
-+
-+1) We get to "treat unevictable pages just like we treat other pages in the
-+   system, which means we get to use the same code to manipulate them, the
-+   same code to isolate them (for migrate, etc.), the same code to keep track
-+   of the statistics, etc..." [Rik van Riel]
-+
-+2) We want to be able to migrate unevictable pages between nodes--for memory
-+   defragmentation, workload management and memory hotplug.  The linux kernel
-+   can only migrate pages that it can successfully isolate from the lru lists.
-+   If we were to maintain pages elsewise than on an lru-like list, where they
-+   can be found by isolate_lru_page(), we would prevent their migration, unless
-+   we reworked migration code to find the unevictable pages.
-+
-+
-+The unevictable LRU list does not differentiate between file backed and swap
-+backed [anon] pages.  This differentiation is only important while the pages
-+are, in fact, evictable.
+ 	if (cdo->open == NULL || cdo->release == NULL)
+ 		return -EINVAL;
++	if (cdo->audio_ioctl == NULL)
++		return -EINVAL;
+ 	if (!banner_printed) {
+ 		printk(KERN_INFO "Uniform CD-ROM driver " REVISION "\n");
+ 		banner_printed = 1;
+@@ -408,7 +410,6 @@ int register_cdrom(struct cdrom_device_i
+ 	ENSURE(get_last_session, CDC_MULTI_SESSION);
+ 	ENSURE(get_mcn, CDC_MCN);
+ 	ENSURE(reset, CDC_RESET);
+-	ENSURE(audio_ioctl, CDC_PLAY_AUDIO);
+ 	ENSURE(generic_packet, CDC_GENERIC_PACKET);
+ 	cdi->mc_flags = 0;
+ 	cdo->n_minors = 0;
+@@ -2506,8 +2507,6 @@ static int cdrom_ioctl_get_subchnl(struc
  
- The unevictable LRU list benefits from the "arrayification" of the per-zone
- LRU lists and statistics originally proposed and posted by Christoph Lameter.
+ 	/* cdinfo(CD_DO_IOCTL,"entering CDROMSUBCHNL\n");*/
  
--Note that the unevictable list does not use the lru pagevec mechanism. Rather,
-+The unevictable list does not use the lru pagevec mechanism. Rather,
- unevictable pages are placed directly on the page's zone's unevictable
- list under the zone lru_lock.  The reason for this is to prevent stranding
- of pages on the unevictable list when one task has the page isolated from the
-@@ -156,14 +160,18 @@ Mlocked Page:  Prior Work
+-	if (!CDROM_CAN(CDC_PLAY_AUDIO))
+-		return -ENOSYS;
+ 	if (copy_from_user(&q, argp, sizeof(q)))
+ 		return -EFAULT;
  
- The "Unevictable Mlocked Pages" infrastructure is based on work originally
- posted by Nick Piggin in an RFC patch entitled "mm: mlocked pages off LRU".
--Nick's posted his patch as an alternative to a patch posted by Christoph
-+Nick posted his patch as an alternative to a patch posted by Christoph
- Lameter to achieve the same objective--hiding mlocked pages from vmscan.
- In Nick's patch, he used one of the struct page lru list link fields as a count
- of VM_LOCKED vmas that map the page.  This use of the link field for a count
--prevent the management of the pages on an LRU list.  When Nick's patch was
--integrated with the Unevictable LRU work, the count was replaced by walking the
--reverse map to determine whether any VM_LOCKED vmas mapped the page.  More on
--this below.
-+prevented the management of the pages on an LRU list.  Thus, mlocked pages were
-+not migratable as isolate_lru_page() could not find them and the lru list link
-+field was not available to the migration subsystem.  Nick resolved this by
-+putting mlocked pages back on the lru list before attempting to isolate them,
-+thus abandoning the count of VM_LOCKED vmas.  When Nick's patch was integrated
-+with the Unevictable LRU work, the count was replaced by walking the reverse
-+map to determine whether any VM_LOCKED vmas mapped the page.  More on this
-+below.
+@@ -2538,8 +2537,6 @@ static int cdrom_ioctl_read_tochdr(struc
  
+ 	/* cdinfo(CD_DO_IOCTL, "entering CDROMREADTOCHDR\n"); */
  
- Mlocked Pages:  Basic Management
+-	if (!CDROM_CAN(CDC_PLAY_AUDIO))
+-		return -ENOSYS;
+ 	if (copy_from_user(&header, argp, sizeof(header)))
+ 		return -EFAULT;
+ 
+@@ -2562,8 +2559,6 @@ static int cdrom_ioctl_read_tocentry(str
+ 
+ 	/* cdinfo(CD_DO_IOCTL, "entering CDROMREADTOCENTRY\n"); */
+ 
+-	if (!CDROM_CAN(CDC_PLAY_AUDIO))
+-		return -ENOSYS;
+ 	if (copy_from_user(&entry, argp, sizeof(entry)))
+ 		return -EFAULT;
+ 
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from shurick@sectorb.msk.ru are
 
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-vmscan-free-swap-space-on-swap-in-activation.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-ramfs-and-ram-disk-pages-are-unevictable.patch
-shm_locked-pages-are-unevictable.patch
-doc-unevictable-lru-and-mlocked-pages-documentation-update.patch
-doc-unevictable-lru-and-mlocked-pages-documentation-update-2.patch
+cdrom-handle-toc.patch
 
