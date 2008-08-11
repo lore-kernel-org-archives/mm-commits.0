@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lockdep-handle-chains-involving-classes-defined-in-modules.patch added to -mm tree
-Date: Mon, 11 Aug 2008 15:43:36 -0700
-Message-ID: <200808112243.m7BMha26025803@imap1.linux-foundation.org>
+Subject: + allocate-structures-for-reservation-tracking-in-hugetlbfs-outside-of-spinlocks-v2.patch added to -mm tree
+Date: Mon, 11 Aug 2008 15:52:48 -0700
+Message-ID: <200808112252.m7BMqm0B026176@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38320 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56620 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752204AbYHKWoT (ORCPT
+	by vger.kernel.org with ESMTP id S1751968AbYHKWxI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 18:44:19 -0400
+	Mon, 11 Aug 2008 18:53:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rabin@rab.in, a.p.zijlstra@chello.nl, mingo@elte.hu, snakebyte@gmx.de, ying.huang@intel.com
+Cc: apw@shadowen.org, gerald.schaefer@de.ibm.com, mel@csn.ul.ie
 
 
 The patch titled
-     lockdep: handle chains involving classes defined in modules
+     allocate structures for reservation tracking in hugetlbfs outside of spinlocks v2
 has been added to the -mm tree.  Its filename is
-     lockdep-handle-chains-involving-classes-defined-in-modules.patch
+     allocate-structures-for-reservation-tracking-in-hugetlbfs-outside-of-spinlocks-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lockdep: handle chains involving classes defined in modules
-From: Rabin Vincent <rabin@rab.in>
+Subject: allocate structures for reservation tracking in hugetlbfs outside of spinlocks v2
+From: Andy Whitcroft <apw@shadowen.org>
 
-/proc/lockdep_chains currently oopses after any module which creates and
-uses a lock is unloaded.  This is because one of the chains involves a
-class which was defined in the module just unloaded.
+[Andrew this should replace the previous version which did not check
+the returns from the region prepare for errors.  This has been tested by
+us and Gerald and it looks good.
 
-Solve this by marking the classes as unused and not printing information
-about the unused classes.
+Bah, while reviewing the locking based on your previous email I spotted
+that we need to check the return from the vma_needs_reservation call for
+allocation errors.  Here is an updated patch to correct this.  This passes
+testing here.]
 
-Reported-by: Eric Sesterhenn <snakebyte@gmx.de>
-Signed-off-by: Rabin Vincent <rabin@rab.in>
-Acked-by: Huang Ying <ying.huang@intel.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Tested-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/lockdep.c      |    1 +
- kernel/lockdep_proc.c |    3 +++
- 2 files changed, 4 insertions(+)
+ mm/hugetlb.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN kernel/lockdep.c~lockdep-handle-chains-involving-classes-defined-in-modules kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-handle-chains-involving-classes-defined-in-modules
-+++ a/kernel/lockdep.c
-@@ -3174,6 +3174,7 @@ static void zap_class(struct lock_class 
- 	list_del_rcu(&class->hash_entry);
- 	list_del_rcu(&class->lock_entry);
+diff -puN mm/hugetlb.c~allocate-structures-for-reservation-tracking-in-hugetlbfs-outside-of-spinlocks-v2 mm/hugetlb.c
+--- a/mm/hugetlb.c~allocate-structures-for-reservation-tracking-in-hugetlbfs-outside-of-spinlocks-v2
++++ a/mm/hugetlb.c
+@@ -1949,7 +1949,10 @@ retry:
+ 	 * the spinlock.
+ 	 */
+ 	if (write_access && !(vma->vm_flags & VM_SHARED))
+-		vma_needs_reservation(h, vma, address);
++		if (vma_needs_reservation(h, vma, address) < 0) {
++			ret = VM_FAULT_OOM;
++			goto backout_unlocked;
++		}
  
-+	class->key = NULL;
- }
+ 	spin_lock(&mm->page_table_lock);
+ 	size = i_size_read(mapping->host) >> huge_page_shift(h);
+@@ -1976,6 +1979,7 @@ out:
  
- static inline int within(const void *addr, void *start, unsigned long size)
-diff -puN kernel/lockdep_proc.c~lockdep-handle-chains-involving-classes-defined-in-modules kernel/lockdep_proc.c
---- a/kernel/lockdep_proc.c~lockdep-handle-chains-involving-classes-defined-in-modules
-+++ a/kernel/lockdep_proc.c
-@@ -201,6 +201,9 @@ static int lc_show(struct seq_file *m, v
+ backout:
+ 	spin_unlock(&mm->page_table_lock);
++backout_unlocked:
+ 	unlock_page(page);
+ 	put_page(page);
+ 	goto out;
+@@ -2004,8 +2008,7 @@ int hugetlb_fault(struct mm_struct *mm, 
+ 	entry = huge_ptep_get(ptep);
+ 	if (huge_pte_none(entry)) {
+ 		ret = hugetlb_no_page(mm, vma, address, ptep, write_access);
+-		mutex_unlock(&hugetlb_instantiation_mutex);
+-		return ret;
++		goto out_unlock;
+ 	}
  
- 	for (i = 0; i < chain->depth; i++) {
- 		class = lock_chain_get_class(chain, i);
-+		if (!class->key)
-+			continue;
-+
- 		seq_printf(m, "[%p] ", class->key);
- 		print_name(m, class);
- 		seq_puts(m, "\n");
+ 	ret = 0;
+@@ -2019,7 +2022,10 @@ int hugetlb_fault(struct mm_struct *mm, 
+ 	 * consumed.
+ 	 */
+ 	if (write_access && !pte_write(entry)) {
+-		vma_needs_reservation(h, vma, address);
++		if (vma_needs_reservation(h, vma, address) < 0) {
++			ret = VM_FAULT_OOM;
++			goto out_unlock;
++		}
+ 
+ 		if (!(vma->vm_flags & VM_SHARED))
+ 			pagecache_page = hugetlbfs_pagecache_page(h,
+@@ -2039,6 +2045,7 @@ int hugetlb_fault(struct mm_struct *mm, 
+ 		put_page(pagecache_page);
+ 	}
+ 
++out_unlock:
+ 	mutex_unlock(&hugetlb_instantiation_mutex);
+ 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from rabin@rab.in are
+Patches currently in -mm which might be from apw@shadowen.org are
 
-origin.patch
-cpuidle-make-sysfs-attributes-sysdev-class-attributes.patch
-linux-next.patch
-lockdep-handle-chains-involving-classes-defined-in-modules.patch
+hugetlbfs-allocate-structures-for-reservation-tracking-outside-of-spinlocks.patch
+allocate-structures-for-reservation-tracking-in-hugetlbfs-outside-of-spinlocks-v2.patch
+page-owner-tracking-leak-detector.patch
 
