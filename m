@@ -1,136 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: - devpts-switch-to-ida-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 11 Aug 2008 14:14:02 -0700
-Message-ID: <200808112114.m7BLE2vw021710@imap1.linux-foundation.org>
+Subject: + binfmt_elf_fdpic-support-auxvec-base-platform-string.patch added to -mm tree
+Date: Mon, 11 Aug 2008 14:19:01 -0700
+Message-ID: <200808112119.m7BLJ2Mq021960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40437 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37944 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757781AbYHKVOF (ORCPT
+	by vger.kernel.org with ESMTP id S1758052AbYHKVTv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 17:14:05 -0400
+	Mon, 11 Aug 2008 17:19:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: lethal@linux-sh.org, dhowells@redhat.com
 
 
 The patch titled
-     devpts-switch-to-ida-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     devpts-switch-to-ida-checkpatch-fixes.patch
+     binfmt_elf_fdpic: support auxvec base platform string
+has been added to the -mm tree.  Its filename is
+     binfmt_elf_fdpic-support-auxvec-base-platform-string.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devpts-switch-to-ida-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: binfmt_elf_fdpic: support auxvec base platform string
+From: Paul Mundt <lethal@linux-sh.org>
 
-WARNING: braces {} are not necessary for single statement blocks
-#36: FILE: fs/devpts/inode.c:186:
-+	if (!ida_pre_get(&allocated_ptys, GFP_KERNEL)) {
- 		return -ENOMEM;
- 	}
+Commit 483fad1c3fa1060d7e6710e84a065ad514571739 introduces
+AT_BASE_PLATFORM, but only implements it for binfmt_elf. Given that
+AT_VECTOR_SIZE_BASE is unconditionally enlarged for us, and it's only
+optionally added in for the platforms that set ELF_BASE_PLATFORM, wire
+it up for binfmt_elf_fdpic, too.
 
-total: 0 errors, 1 warnings, 46 lines checked
-
-./patches/devpts-switch-to-ida.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/devpts/inode.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/binfmt_elf_fdpic.c |   50 ++++++++++++++++++++++++++++++++++------
+ 1 file changed, 43 insertions(+), 7 deletions(-)
 
-diff -puN fs/devpts/inode.c~devpts-switch-to-ida-checkpatch-fixes fs/devpts/inode.c
---- a/fs/devpts/inode.c~devpts-switch-to-ida-checkpatch-fixes
-+++ a/fs/devpts/inode.c
-@@ -183,9 +183,8 @@ int devpts_new_index(void)
- 	int ida_ret;
+diff -puN fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-support-auxvec-base-platform-string fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-support-auxvec-base-platform-string
++++ a/fs/binfmt_elf_fdpic.c
+@@ -455,6 +455,16 @@ error_kill:
+ }
  
- retry:
--	if (!ida_pre_get(&allocated_ptys, GFP_KERNEL)) {
-+	if (!ida_pre_get(&allocated_ptys, GFP_KERNEL))
- 		return -ENOMEM;
--	}
+ /*****************************************************************************/
++
++#ifndef ELF_BASE_PLATFORM
++/*
++ * AT_BASE_PLATFORM indicates the "real" hardware/microarchitecture.
++ * If the arch defines ELF_BASE_PLATFORM (in asm/elf.h), the value
++ * will be copied to the user stack in the same manner as AT_PLATFORM.
++ */
++#define ELF_BASE_PLATFORM NULL
++#endif
++
+ /*
+  * present useful information to the program
+  */
+@@ -467,8 +477,8 @@ static int create_elf_fdpic_tables(struc
+ 	elf_caddr_t __user *argv, *envp;
+ 	const struct cred *cred = current_cred();
+ 	size_t platform_len = 0, len;
+-	char *k_platform;
+-	char __user *u_platform, *p;
++	char *k_platform, *k_base_platform;
++	char __user *u_platform, *u_base_platform, *p;
+ 	long hwcap;
+ 	int loop;
+ 	int nr;	/* reset for each csp adjustment */
+@@ -484,11 +494,14 @@ static int create_elf_fdpic_tables(struc
+ 		return -EFAULT;
+ #endif
  
- 	mutex_lock(&allocated_ptys_lock);
- 	ida_ret = ida_get_new(&allocated_ptys, &index);
+-	/* get hold of platform and hardware capabilities masks for the machine
+-	 * we are running on.  In some cases (Sparc), this info is impossible
+-	 * to get, in others (i386) it is merely difficult.
+-	 */
+ 	hwcap = ELF_HWCAP;
++
++	/*
++	 * If this architecture has a platform capability string, copy it
++	 * to userspace.  In some cases (Sparc), this info is impossible
++	 * for userspace to get any other way, in others (i386) it is
++	 * merely difficult.
++	 */
+ 	k_platform = ELF_PLATFORM;
+ 	u_platform = NULL;
+ 
+@@ -500,6 +513,21 @@ static int create_elf_fdpic_tables(struc
+ 			return -EFAULT;
+ 	}
+ 
++	/*
++	 * If this architecture has a "base" platform capability
++	 * string, copy it to userspace.
++	 */
++	k_base_platform = ELF_BASE_PLATFORM;
++	u_base_platform = NULL;
++
++	if (k_base_platform) {
++		platform_len = strlen(k_base_platform) + 1;
++		sp -= platform_len;
++		u_base_platform = (char __user *) sp;
++		if (__copy_to_user(u_base_platform, k_base_platform, platform_len) != 0)
++			return -EFAULT;
++	}
++
+ #if defined(__i386__) && defined(CONFIG_SMP)
+ 	/* in some cases (e.g. Hyper-Threading), we want to avoid L1 evictions
+ 	 * by the processes running on the same package. One thing we can do is
+@@ -544,7 +572,8 @@ static int create_elf_fdpic_tables(struc
+ 	/* force 16 byte _final_ alignment here for generality */
+ #define DLINFO_ITEMS 13
+ 
+-	nitems = 1 + DLINFO_ITEMS + (k_platform ? 1 : 0) + AT_VECTOR_SIZE_ARCH;
++	nitems = 1 + DLINFO_ITEMS + (k_platform ? 1 : 0) +
++		(k_base_platform ? 1 : 0) + AT_VECTOR_SIZE_ARCH;
+ 
+ 	csp = sp;
+ 	sp -= nitems * 2 * sizeof(unsigned long);
+@@ -576,6 +605,13 @@ static int create_elf_fdpic_tables(struc
+ 			    (elf_addr_t) (unsigned long) u_platform);
+ 	}
+ 
++	if (k_base_platform) {
++		nr = 0;
++		csp -= 2 * sizeof(unsigned long);
++		NEW_AUX_ENT(AT_BASE_PLATFORM,
++			    (elf_addr_t) (unsigned long) u_base_platform);
++	}
++
+ 	nr = 0;
+ 	csp -= DLINFO_ITEMS * 2 * sizeof(unsigned long);
+ 	NEW_AUX_ENT(AT_HWCAP,	hwcap);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
 origin.patch
-printk-robustify-printk-fix.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+i2c-renesas-highlander-fpga-smbus-support-update.patch
 i2c-renesas-highlander-fpga-smbus-support-update-fix.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-serio-xilinx_ps2c-fix-warning.patch
-git-jg-misc.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
-sched-type-fix.patch
-lockdep-spin_lock_nest_lock-fix-checkpatch-fixes.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-scsi-megaraid_sas-add-the-new-controllers-support.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-devpts-switch-to-ida-checkpatch-fixes.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore.patch
+binfmt_elf_fdpic-support-auxvec-base-platform-string.patch
+binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack.patch
+binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch
+resource-add-resource_type-and-ioresource_type_bits.patch
+resource-add-new-ioresource_clk-type-v2.patch
+i2c-sh_mobile-ioresource_clk-support.patch
 
