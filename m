@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cdrom-handle-toc.patch added to -mm tree
-Date: Mon, 11 Aug 2008 15:02:34 -0700
-Message-ID: <200808112202.m7BM2YN1023884@imap1.linux-foundation.org>
+Subject: + rtc-file-close-consistently-disables-repeating-irqs.patch added to -mm tree
+Date: Mon, 11 Aug 2008 15:07:38 -0700
+Message-ID: <200808112207.m7BM7c5D024094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41963 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42195 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751071AbYHKWDk (ORCPT
+	by vger.kernel.org with ESMTP id S1753110AbYHKWIr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 18:03:40 -0400
+	Mon, 11 Aug 2008 18:08:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shurick@sectorb.msk.ru, bzolnier@gmail.com, jens.axboe@oracle.com, petkovbb@googlemail.com, tj@kernel.org
+Cc: dbrownell@users.sourceforge.net, a.zummo@towertech.it, andy.sharp@onstor.com, anemo@mba.ocn.ne.jp, angelo.castello@st.com, lethal@linux-sh.org, thomas.hommel@gefanuc.com
 
 
 The patch titled
-     cdrom: handle TOC
+     rtc: file close() consistently disables repeating irqs
 has been added to the -mm tree.  Its filename is
-     cdrom-handle-toc.patch
+     rtc-file-close-consistently-disables-repeating-irqs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,158 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cdrom: handle TOC
-From: Alexander Inyukhin <shurick@sectorb.msk.ru>
+Subject: rtc: file close() consistently disables repeating irqs
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-This patch should fix TOC handling for cdroms that can not play audio.  It
-extends commit af744e3294d09d706c4eae26cffaaa68a8d40337 ("cdrom: don't
-check CDC_PLAY_AUDIO in cdrom_count_tracks()") with a safety check and
-non-audio ioctls support.
+Make the rtc framework consistent about disabling 1/second update IRQs
+that may have been activated through the /dev interface, when that /dev
+file is closed.  (It may have closed because of coredump, etc.) This was
+previously done only for emulated update IRQs ...  now, do it always.
 
-Since CDC_PLAY_AUDIO flag was used not only to check ability to play audio
-but also to ensure that audio_ioctl was not NULL, all TOC-related
-operations had to use it.
+Also comment the current policy: repeating IRQs (periodic, update) that
+userspace enabled will be cleanly disabled, but alarms are left alone. 
+Such repeating IRQs are a constant and pointless system load.
 
-As far as I understand, now audio_ioctl is never NULL, so a sanity check
-during device registration should be sufficient.
+Update some RTC drivers to remove now-needless release() methods.  Most
+such methods just enforce that policy.  The others all seem to be buggy,
+and mistreat in-kernel clients of periodic or alarm IRQs.
 
-It was tested on Optiarc AD7203A device, that has no ability to play
-audio.
-
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Borislav Petkov <petkovbb@googlemail.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Andrew Sharp <andy.sharp@onstor.com>
+Cc: Angelo Castello <angelo.castello@st.com>
+Acked-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Thomas Hommel <thomas.hommel@gefanuc.com>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cdrom/cdrom.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ drivers/rtc/rtc-dev.c      |   12 +++++++++---
+ drivers/rtc/rtc-ds1511.c   |   13 -------------
+ drivers/rtc/rtc-ds1553.c   |   12 ------------
+ drivers/rtc/rtc-sh.c       |    7 -------
+ drivers/rtc/rtc-stk17ta8.c |   12 ------------
+ 5 files changed, 9 insertions(+), 47 deletions(-)
 
-diff -puN drivers/cdrom/cdrom.c~cdrom-handle-toc drivers/cdrom/cdrom.c
---- a/drivers/cdrom/cdrom.c~cdrom-handle-toc
-+++ a/drivers/cdrom/cdrom.c
-@@ -394,6 +394,8 @@ int register_cdrom(struct cdrom_device_i
+diff -puN drivers/rtc/rtc-dev.c~rtc-file-close-consistently-disables-repeating-irqs drivers/rtc/rtc-dev.c
+--- a/drivers/rtc/rtc-dev.c~rtc-file-close-consistently-disables-repeating-irqs
++++ a/drivers/rtc/rtc-dev.c
+@@ -423,9 +423,15 @@ static int rtc_dev_release(struct inode 
+ {
+ 	struct rtc_device *rtc = file->private_data;
  
- 	if (cdo->open == NULL || cdo->release == NULL)
- 		return -EINVAL;
-+	if (cdo->audio_ioctl == NULL)
-+		return -EINVAL;
- 	if (!banner_printed) {
- 		printk(KERN_INFO "Uniform CD-ROM driver " REVISION "\n");
- 		banner_printed = 1;
-@@ -408,7 +410,6 @@ int register_cdrom(struct cdrom_device_i
- 	ENSURE(get_last_session, CDC_MULTI_SESSION);
- 	ENSURE(get_mcn, CDC_MCN);
- 	ENSURE(reset, CDC_RESET);
--	ENSURE(audio_ioctl, CDC_PLAY_AUDIO);
- 	ENSURE(generic_packet, CDC_GENERIC_PACKET);
- 	cdi->mc_flags = 0;
- 	cdo->n_minors = 0;
-@@ -2506,8 +2507,6 @@ static int cdrom_ioctl_get_subchnl(struc
+-#ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
+-	clear_uie(rtc);
+-#endif
++	/* We shut down the repeating IRQs that userspace enabled,
++	 * since nothing is listening to them.
++	 *  - Update (UIE) ... currently only managed through ioctls
++	 *  - Periodic (PIE) ... also used through rtc_*() interface calls
++	 *
++	 * Leave the alarm alone; it may be set to trigger a system wakeup
++	 * later, or be used by kernel code, and is a one-shot event anyway.
++	 */
++	rtc_dev_ioctl(file, RTC_UIE_OFF, 0);
+ 	rtc_irq_set_state(rtc, NULL, 0);
  
- 	/* cdinfo(CD_DO_IOCTL,"entering CDROMSUBCHNL\n");*/
+ 	if (rtc->ops->release)
+diff -puN drivers/rtc/rtc-ds1511.c~rtc-file-close-consistently-disables-repeating-irqs drivers/rtc/rtc-ds1511.c
+--- a/drivers/rtc/rtc-ds1511.c~rtc-file-close-consistently-disables-repeating-irqs
++++ a/drivers/rtc/rtc-ds1511.c
+@@ -379,18 +379,6 @@ ds1511_interrupt(int irq, void *dev_id)
+ 	return IRQ_HANDLED;
+ }
  
--	if (!CDROM_CAN(CDC_PLAY_AUDIO))
--		return -ENOSYS;
- 	if (copy_from_user(&q, argp, sizeof(q)))
- 		return -EFAULT;
+- static void
+-ds1511_rtc_release(struct device *dev)
+-{
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+-
+-	if (pdata->irq >= 0) {
+-		pdata->irqen = 0;
+-		ds1511_rtc_update_alarm(pdata);
+-	}
+-}
+-
+  static int
+ ds1511_rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
+ {
+@@ -428,7 +416,6 @@ static const struct rtc_class_ops ds1511
+ 	.set_time	= ds1511_rtc_set_time,
+ 	.read_alarm	= ds1511_rtc_read_alarm,
+ 	.set_alarm	= ds1511_rtc_set_alarm,
+-	.release	= ds1511_rtc_release,
+ 	.ioctl		= ds1511_rtc_ioctl,
+ };
  
-@@ -2538,8 +2537,6 @@ static int cdrom_ioctl_read_tochdr(struc
+diff -puN drivers/rtc/rtc-ds1553.c~rtc-file-close-consistently-disables-repeating-irqs drivers/rtc/rtc-ds1553.c
+--- a/drivers/rtc/rtc-ds1553.c~rtc-file-close-consistently-disables-repeating-irqs
++++ a/drivers/rtc/rtc-ds1553.c
+@@ -207,17 +207,6 @@ static irqreturn_t ds1553_rtc_interrupt(
+ 	return IRQ_HANDLED;
+ }
  
- 	/* cdinfo(CD_DO_IOCTL, "entering CDROMREADTOCHDR\n"); */
+-static void ds1553_rtc_release(struct device *dev)
+-{
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+-
+-	if (pdata->irq >= 0) {
+-		pdata->irqen = 0;
+-		ds1553_rtc_update_alarm(pdata);
+-	}
+-}
+-
+ static int ds1553_rtc_ioctl(struct device *dev, unsigned int cmd,
+ 			    unsigned long arg)
+ {
+@@ -254,7 +243,6 @@ static const struct rtc_class_ops ds1553
+ 	.set_time	= ds1553_rtc_set_time,
+ 	.read_alarm	= ds1553_rtc_read_alarm,
+ 	.set_alarm	= ds1553_rtc_set_alarm,
+-	.release	= ds1553_rtc_release,
+ 	.ioctl		= ds1553_rtc_ioctl,
+ };
  
--	if (!CDROM_CAN(CDC_PLAY_AUDIO))
--		return -ENOSYS;
- 	if (copy_from_user(&header, argp, sizeof(header)))
- 		return -EFAULT;
+diff -puN drivers/rtc/rtc-sh.c~rtc-file-close-consistently-disables-repeating-irqs drivers/rtc/rtc-sh.c
+--- a/drivers/rtc/rtc-sh.c~rtc-file-close-consistently-disables-repeating-irqs
++++ a/drivers/rtc/rtc-sh.c
+@@ -257,12 +257,6 @@ static inline void sh_rtc_setaie(struct 
+ 	spin_unlock_irq(&rtc->lock);
+ }
  
-@@ -2562,8 +2559,6 @@ static int cdrom_ioctl_read_tocentry(str
+-static void sh_rtc_release(struct device *dev)
+-{
+-	sh_rtc_setpie(dev, 0);
+-	sh_rtc_setaie(dev, 0);
+-}
+-
+ static int sh_rtc_proc(struct device *dev, struct seq_file *seq)
+ {
+ 	struct sh_rtc *rtc = dev_get_drvdata(dev);
+@@ -559,7 +553,6 @@ static int sh_rtc_irq_set_freq(struct de
+ }
  
- 	/* cdinfo(CD_DO_IOCTL, "entering CDROMREADTOCENTRY\n"); */
+ static struct rtc_class_ops sh_rtc_ops = {
+-	.release	= sh_rtc_release,
+ 	.ioctl		= sh_rtc_ioctl,
+ 	.read_time	= sh_rtc_read_time,
+ 	.set_time	= sh_rtc_set_time,
+diff -puN drivers/rtc/rtc-stk17ta8.c~rtc-file-close-consistently-disables-repeating-irqs drivers/rtc/rtc-stk17ta8.c
+--- a/drivers/rtc/rtc-stk17ta8.c~rtc-file-close-consistently-disables-repeating-irqs
++++ a/drivers/rtc/rtc-stk17ta8.c
+@@ -215,17 +215,6 @@ static irqreturn_t stk17ta8_rtc_interrup
+ 	return IRQ_HANDLED;
+ }
  
--	if (!CDROM_CAN(CDC_PLAY_AUDIO))
--		return -ENOSYS;
- 	if (copy_from_user(&entry, argp, sizeof(entry)))
- 		return -EFAULT;
- 
-_
-
-Patches currently in -mm which might be from shurick@sectorb.msk.ru are
-
-cdrom-handle-toc.patch
-
+-static void stk17ta8_rtc_release(struct device *dev)
+-{
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+-
+-	if (pdata->irq >= 0) {
+-		pdata->irqen = 0;
+-		stk17ta8_rtc_update_alarm(pdata);
+-	}
+-}
