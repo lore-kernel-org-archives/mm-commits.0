@@ -1,91 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: + fbcon-prevent-cursor-disappearance-after-switching-to-512-character-font.patch added to -mm tree
-Date: Sun, 10 Aug 2008 12:45:57 -0700
-Message-ID: <200808101945.m7AJjvZH029590@imap1.linux-foundation.org>
+Subject: - lib-vsprintfc-wrong-conversion-function-used.patch removed from -mm tree
+Date: Sun, 10 Aug 2008 20:37:38 -0700
+Message-ID: <200808110337.m7B3bcPO012980@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41127 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34924 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753340AbYHJTqq (ORCPT
+	by vger.kernel.org with ESMTP id S1753846AbYHKDhk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 10 Aug 2008 15:46:46 -0400
+	Sun, 10 Aug 2008 23:37:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, hanzelpeter@gmail.com
+To: swen@vnet.ibm.com, yi.y.yang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbcon: prevent cursor disappearance after switching to 512 character font
-has been added to the -mm tree.  Its filename is
-     fbcon-prevent-cursor-disappearance-after-switching-to-512-character-font.patch
+     lib/vsprintf.c: wrong conversion function used
+has been removed from the -mm tree.  Its filename was
+     lib-vsprintfc-wrong-conversion-function-used.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbcon: prevent cursor disappearance after switching to 512 character font
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: lib/vsprintf.c: wrong conversion function used
+From: Swen Schillig <swen@vnet.ibm.com>
 
-Adjust and honor the vc_scrl_erase_char for 256 and 512 character fonts.
+The macro define_strict_strtoux() is using the simple_strtoul () function
+as opposed to the simple_strtoull() function.  This leads to false
+conversions on non-64bit machines (here 31bit System z).
 
-It fixes the issue with disappearing cursor during scrolling
-(http://bugzilla.kernel.org/show_bug.cgi?id=11258).  The issue was
-reported and tracked by Peter Hanzel.
+The following patch fixes the issue introduced by
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Reported-by: Peter Hanzel <hanzelpeter@gmail.com>
+commit 06b2a76d25d3cfbd14680021c1d356c91be6904e
+Author: Yi Yang <yi.y.yang@intel.com>
+Date:   Fri Feb 8 04:21:57 2008 -0800
+
+Signed-off-by: Swen Schillig <swen@vnet.ibm.com>
+Cc: Yi Yang <yi.y.yang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fbcon.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/vsprintf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/console/fbcon.c~fbcon-prevent-cursor-disappearance-after-switching-to-512-character-font drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~fbcon-prevent-cursor-disappearance-after-switching-to-512-character-font
-+++ a/drivers/video/console/fbcon.c
-@@ -2518,7 +2518,7 @@ static int fbcon_do_set_font(struct vc_d
- 			c = vc->vc_video_erase_char;
- 			vc->vc_video_erase_char =
- 			    ((c & 0xfe00) >> 1) | (c & 0xff);
--			c = vc->vc_def_color;
-+			c = vc->vc_scrl_erase_char;
- 			vc->vc_scrl_erase_char =
- 			    ((c & 0xFE00) >> 1) | (c & 0xFF);
- 			vc->vc_attr >>= 1;
-@@ -2551,7 +2551,7 @@ static int fbcon_do_set_font(struct vc_d
- 			if (vc->vc_can_do_color) {
- 				vc->vc_video_erase_char =
- 				    ((c & 0xff00) << 1) | (c & 0xff);
--				c = vc->vc_def_color;
-+				c = vc->vc_scrl_erase_char;
- 				vc->vc_scrl_erase_char =
- 				    ((c & 0xFF00) << 1) | (c & 0xFF);
- 				vc->vc_attr <<= 1;
+diff -puN lib/vsprintf.c~lib-vsprintfc-wrong-conversion-function-used lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-wrong-conversion-function-used
++++ a/lib/vsprintf.c
+@@ -220,7 +220,7 @@ int strict_strtou##type(const char *cp, 
+ 	if (len == 0)							\
+ 		return -EINVAL;						\
+ 									\
+-	val = simple_strtoul(cp, &tail, base);				\
++	val = simple_strtoull(cp, &tail, base);				\
+ 	if ((*tail == '\0') ||						\
+ 		((len == (size_t)(tail - cp) + 1) && (*tail == '\n'))) {\
+ 		*res = val;						\
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from swen@vnet.ibm.com are
 
-origin.patch
-sm501-update-debugging-low-information-messages.patch
-matrox-maven-fix-a-broken-error-path.patch
-matroxfb-i2c-structure-templates-clean-up.patch
-matrox-maven-convert-to-a-new-style-i2c-driver.patch
-atmel_lcdfb-set-ypanstep-to-1-and-enable-y-panning-on-at91.patch
-atmel_lcdfb-add-board-parameter-specify-framebuffer-memory-size.patch
-fbcon-prevent-cursor-disappearance-after-switching-to-512-character-font.patch
-linux-next.patch
-rtc-m48t59-reduce-structure-m48t59_private.patch
-x86-fdiv-bug-detection-fix.patch
-fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
+lib-vsprintfc-wrong-conversion-function-used.patch
 
