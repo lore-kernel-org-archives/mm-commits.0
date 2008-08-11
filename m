@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + listh-fix-fatal-kernel-doc-error.patch added to -mm tree
-Date: Mon, 11 Aug 2008 16:35:53 -0700
-Message-ID: <200808112335.m7BNZrhq027881@imap1.linux-foundation.org>
+Subject: + ixgbe-add-cx4-device-id.patch added to -mm tree
+Date: Mon, 11 Aug 2008 16:37:36 -0700
+Message-ID: <200808112337.m7BNbaJC027987@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42597 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37951 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753243AbYHKXgh (ORCPT
+	by vger.kernel.org with ESMTP id S1753483AbYHKXhi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 19:36:37 -0400
+	Mon, 11 Aug 2008 19:37:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: jesse.brandeburg@intel.com, jeffrey.t.kirsher@intel.com
 
 
 The patch titled
-     list.h: fix fatal kernel-doc error
+     ixgbe: add cx4 device ID
 has been added to the -mm tree.  Its filename is
-     listh-fix-fatal-kernel-doc-error.patch
+     ixgbe-add-cx4-device-id.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: list.h: fix fatal kernel-doc error
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: ixgbe: add cx4 device ID
+From: Jesse Brandeburg <jesse.brandeburg@intel.com>
 
-Fix fatal multi-line kernel-doc error in list.h:
-function short description must be on one line.
+This is a simple device ID add for adapters that support CX4 (copper
+infiniband style cable) connectors for 10GbE.
 
-Error(linux-2.6.27-rc2-git3//include/linux/list.h:318): duplicate section name 'Description'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/ixgbe/ixgbe_82598.c |    1 +
+ drivers/net/ixgbe/ixgbe_main.c  |    4 +++-
+ drivers/net/ixgbe/ixgbe_type.h  |    1 +
+ 3 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/list.h~listh-fix-fatal-kernel-doc-error include/linux/list.h
---- a/include/linux/list.h~listh-fix-fatal-kernel-doc-error
-+++ a/include/linux/list.h
-@@ -309,11 +309,11 @@ static inline void list_splice_init(stru
- }
+diff -puN drivers/net/ixgbe/ixgbe_82598.c~ixgbe-add-cx4-device-id drivers/net/ixgbe/ixgbe_82598.c
+--- a/drivers/net/ixgbe/ixgbe_82598.c~ixgbe-add-cx4-device-id
++++ a/drivers/net/ixgbe/ixgbe_82598.c
+@@ -190,6 +190,7 @@ static enum ixgbe_media_type ixgbe_get_m
+ 	case IXGBE_DEV_ID_82598AF_DUAL_PORT:
+ 	case IXGBE_DEV_ID_82598AF_SINGLE_PORT:
+ 	case IXGBE_DEV_ID_82598EB_CX4:
++	case IXGBE_DEV_ID_82598_CX4_DUAL_PORT:
+ 		media_type = ixgbe_media_type_fiber;
+ 		break;
+ 	case IXGBE_DEV_ID_82598AT_DUAL_PORT:
+diff -puN drivers/net/ixgbe/ixgbe_main.c~ixgbe-add-cx4-device-id drivers/net/ixgbe/ixgbe_main.c
+--- a/drivers/net/ixgbe/ixgbe_main.c~ixgbe-add-cx4-device-id
++++ a/drivers/net/ixgbe/ixgbe_main.c
+@@ -48,7 +48,7 @@ char ixgbe_driver_name[] = "ixgbe";
+ static const char ixgbe_driver_string[] =
+ 	"Intel(R) 10 Gigabit PCI Express Network Driver";
  
- /**
-- * list_splice_tail_init - join two lists, each list being a queue, and
-- *     reinitialise the emptied list.
-+ * list_splice_tail_init - join two lists and reinitialise the emptied list
-  * @list: the new list to add.
-  * @head: the place to add it in the first list.
-  *
-+ * Each of the lists is a queue.
-  * The list at @list is reinitialised
-  */
- static inline void list_splice_tail_init(struct list_head *list,
+-#define DRV_VERSION "1.3.18-k2"
++#define DRV_VERSION "1.3.18-k4"
+ const char ixgbe_driver_version[] = DRV_VERSION;
+ static const char ixgbe_copyright[] =
+ 	 "Copyright (c) 1999-2007 Intel Corporation.";
+@@ -72,6 +72,8 @@ static struct pci_device_id ixgbe_pci_tb
+ 	 board_82598 },
+ 	{PCI_VDEVICE(INTEL, IXGBE_DEV_ID_82598EB_CX4),
+ 	 board_82598 },
++	{PCI_VDEVICE(INTEL, IXGBE_DEV_ID_82598_CX4_DUAL_PORT),
++	 board_82598 },
+ 
+ 	/* required last entry */
+ 	{0, }
+diff -puN drivers/net/ixgbe/ixgbe_type.h~ixgbe-add-cx4-device-id drivers/net/ixgbe/ixgbe_type.h
+--- a/drivers/net/ixgbe/ixgbe_type.h~ixgbe-add-cx4-device-id
++++ a/drivers/net/ixgbe/ixgbe_type.h
+@@ -39,6 +39,7 @@
+ #define IXGBE_DEV_ID_82598AF_SINGLE_PORT 0x10C7
+ #define IXGBE_DEV_ID_82598AT_DUAL_PORT   0x10C8
+ #define IXGBE_DEV_ID_82598EB_CX4         0x10DD
++#define IXGBE_DEV_ID_82598_CX4_DUAL_PORT 0x10EC
+ 
+ /* General Registers */
+ #define IXGBE_CTRL      0x00000
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from jesse.brandeburg@intel.com are
 
 origin.patch
-gru-fix-preprocessor-symbol-for-sparse.patch
-pci-calgary-fix-function-declaration.patch
-move-kernel-doc-comment-for-might_sleep-directly-before-its-defining-block.patch
-listh-fix-fatal-kernel-doc-error.patch
-linux-next.patch
-drm-sis-depends-on-fb_sis.patch
-genksyms-track-symbol-checksum-changes.patch
-genksyms-allow-to-ignore-symbol-checksum-changes.patch
-lkdtm-fix-for-config_scsi=n.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-netfilter-conntrack_helper-needs-to-include-rculisth.patch
-ftrace-printk-formatting-infrastructure-fix.patch
-git-unionfs.patch
-docsrc-build-documentation-sources.patch
-docsrc-fix-procfs-example.patch
-docsrc-fix-ifenslave-type.patch
-docsrc-fix-crc32hash-type.patch
-docsrc-fix-getdelays-printk-formats.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-w1-documentation-w1-masters-ds2490-update.patch
-profile-likely-unlikely-macros.patch
+ixgbe-add-cx4-device-id.patch
 
