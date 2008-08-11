@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch added to -mm tree
-Date: Mon, 11 Aug 2008 14:39:30 -0700
-Message-ID: <200808112139.m7BLdUHn022825@imap1.linux-foundation.org>
+Subject: + rtc-rtc-rs5c372-add-support-for-ricoh-r2025s-d-rtc.patch added to -mm tree
+Date: Mon, 11 Aug 2008 14:43:24 -0700
+Message-ID: <200808112143.m7BLhOtu023009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57120 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40704 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752074AbYHKVjd (ORCPT
+	by vger.kernel.org with ESMTP id S1751943AbYHKVno (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 17:39:33 -0400
+	Mon, 11 Aug 2008 17:43:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com
+Cc: lethal@linux-sh.org, a.zummo@towertech.it, david-b@pacbell.net, riku.voipio@movial.fi
 
 
 The patch titled
-     byteorder: add a new include/linux/swab.h to define byteswapping functions
+     rtc: rtc-rs5c372: add support for Ricoh R2025S/D RTC
 has been added to the -mm tree.  Its filename is
-     byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
+     rtc-rtc-rs5c372-add-support-for-ricoh-r2025s-d-rtc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,382 +34,133 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: add a new include/linux/swab.h to define byteswapping functions
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: rtc: rtc-rs5c372: add support for Ricoh R2025S/D RTC
+From: Paul Mundt <lethal@linux-sh.org>
 
-Collect the implementations from include/linux/byteorder/swab.h, swabb.h
-in swab.h
+This adds support for the Ricoh R2025S/D series of I2C RTCs, produced by
+Ricoh Japan and described at:
 
-The functionality provided covers:
-u16 swab16(u16 val) - return a byteswapped 16 bit value
-u32 swab32(u32 val) - return a byteswapped 32 bit value
-u64 swab64(u64 val) - return a byteswapped 64 bit value
-u32 swahw32(u32 val) - return a wordswapped 32 bit value
-u32 swahb32(u32 val) - return a high/low byteswapped 32 bit value
+	http://www.ricoh.co.jp/LSI/product_rtc/2wire/r2025x/
 
-Similar to above, but return swapped value from a naturally-aligned pointer
-u16 swab16p(u16 *p)
-u32 swab32p(u32 *p)
-u64 swab64p(u64 *p)
-u32 swahw32p(u32 *p)
-u32 swahb32p(u32 *p)
+This series has very minor deviations from the rest of the RS5C chips,
+most of which have to do with the oscillator, which was abstracted away in
+an earlier patch.
 
-Similar to above, but swap the value in-place (in-situ)
-void swab16s(u16 *p)
-void swab32s(u32 *p)
-void swab64s(u64 *p)
-void swahw32s(u32 *p)
-void swahb32s(u32 *p)
-
-Arches can override any of these with an optimized version by defining an
-inline in their asm/byteorder.h (example given for swab16()):
-
-u16 __arch_swab16() {}
- #define __arch_swab16 __arch_swab16
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Acked-by: David Brownell <david-b@pacbell.net>
+Tested-by: Riku Voipio <riku.voipio@movial.fi>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swab.h |  309 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 309 insertions(+)
+ drivers/rtc/rtc-rs5c372.c |   25 ++++++++++++++++++++-----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
 
-diff -puN /dev/null include/linux/swab.h
---- /dev/null
-+++ a/include/linux/swab.h
-@@ -0,0 +1,309 @@
-+#ifndef _LINUX_SWAB_H
-+#define _LINUX_SWAB_H
-+
-+#include <linux/types.h>
-+#include <linux/compiler.h>
-+#include <asm/byteorder.h>
-+
-+/*
-+ * casts are necessary for constants, because we never know how for sure
-+ * how U/UL/ULL map to __u16, __u32, __u64. At least not in a portable way.
-+ */
-+#define __const_swab16(x) ((__u16)(				\
-+	(((__u16)(x) & (__u16)0x00ffU) << 8) |			\
-+	(((__u16)(x) & (__u16)0xff00U) >> 8)))
-+
-+#define __const_swab32(x) ((__u32)(				\
-+	(((__u32)(x) & (__u32)0x000000ffUL) << 24) |		\
-+	(((__u32)(x) & (__u32)0x0000ff00UL) <<  8) |		\
-+	(((__u32)(x) & (__u32)0x00ff0000UL) >>  8) |		\
-+	(((__u32)(x) & (__u32)0xff000000UL) >> 24)))
-+
-+#define __const_swab64(x) ((__u64)(				\
-+	(((__u64)(x) & (__u64)0x00000000000000ffULL) << 56) |	\
-+	(((__u64)(x) & (__u64)0x000000000000ff00ULL) << 40) |	\
-+	(((__u64)(x) & (__u64)0x0000000000ff0000ULL) << 24) |	\
-+	(((__u64)(x) & (__u64)0x00000000ff000000ULL) <<  8) |	\
-+	(((__u64)(x) & (__u64)0x000000ff00000000ULL) >>  8) |	\
-+	(((__u64)(x) & (__u64)0x0000ff0000000000ULL) >> 24) |	\
-+	(((__u64)(x) & (__u64)0x00ff000000000000ULL) >> 40) |	\
-+	(((__u64)(x) & (__u64)0xff00000000000000ULL) >> 56)))
-+
-+#define __const_swahw32(x) ((__u32)(				\
-+	(((__u32)(x) & (__u32)0x0000ffffUL) << 16) |		\
-+	(((__u32)(x) & (__u32)0xffff0000UL) >> 16)))
-+
-+#define __const_swahb32(x) ((__u32)(				\
-+	(((__u32)(x) & (__u32)0x00ff00ffUL) << 8) |		\
-+	(((__u32)(x) & (__u32)0xff00ff00UL) >> 8)))
-+
-+/*
-+ * Implement the following as inlines, but define the interface using
-+ * macros to allow constant folding when possible:
-+ * ___swab16, ___swab32, ___swab64, ___swahw32, ___swahb32
-+ */
-+
-+static inline __attribute_const__ __u16 ___swab16(__u16 val)
-+{
-+#ifdef __arch_swab16
-+	return __arch_swab16(val);
-+#elif defined(__arch_swab16p)
-+	return __arch_swab16p(&val);
-+#else
-+	return __const_swab16(val);
-+#endif
-+}
-+
-+static inline __attribute_const__ __u32 ___swab32(__u32 val)
-+{
-+#ifdef __arch_swab32
-+	return __arch_swab32(val);
-+#elif defined(__arch_swab32p)
-+	return __arch_swab32p(&val);
-+#else
-+	return __const_swab32(val);
-+#endif
-+}
-+
-+static inline __attribute_const__ __u64 ___swab64(__u64 val)
-+{
-+#ifdef __arch_swab64
-+	return __arch_swab64(val);
-+#elif defined(__arch_swab64p)
-+	return __arch_swab64p(&val);
-+#elif defined(__SWAB_64_THRU_32__)
-+	__u32 h = val >> 32;
-+	__u32 l = val & ((1ULL << 32) - 1);
-+	return (((__u64)___swab32(l)) << 32) | ((__u64)(___swab32(h)));
-+#else
-+	return __const_swab64(val);
-+#endif
-+}
-+
-+static inline __attribute_const__ __u32 ___swahw32(__u32 val)
-+{
-+#ifdef __arch_swahw32
-+	return __arch_swahw32(val);
-+#elif defined(__arch_swahw32p)
-+	return __arch_swahw32p(&val);
-+#else
-+	return __const_swahw32(val);
-+#endif
-+}
-+
-+static inline __attribute_const__ __u32 ___swahb32(__u32 val)
-+{
-+#ifdef __arch_swahb32
-+	return __arch_swahb32(val);
-+#elif defined(__arch_swahb32p)
-+	return __arch_swahb32p(&val);
-+#else
-+	return __const_swahb32(val);
-+#endif
-+}
-+
-+/**
-+ * __swab16 - return a byteswapped 16-bit value
-+ * @x: value to byteswap
-+ */
-+#define __swab16(x)				\
-+	(__builtin_constant_p((__u16)(x)) ?	\
-+	__const_swab16((x)) :			\
-+	___swab16((x)))
-+
-+/**
-+ * __swab32 - return a byteswapped 32-bit value
-+ * @x: value to byteswap
-+ */
-+#define __swab32(x)				\
-+	(__builtin_constant_p((__u32)(x)) ?	\
-+	__const_swab32((x)) :			\
-+	___swab32((x)))
-+
-+/**
-+ * __swab64 - return a byteswapped 64-bit value
-+ * @x: value to byteswap
-+ */
-+#define __swab64(x)				\
-+	(__builtin_constant_p((__u64)(x)) ?	\
-+	__const_swab64((x)) :			\
-+	___swab64((x)))
-+
-+/**
-+ * __swahw32 - return a word-swapped 32-bit value
-+ * @x: value to wordswap
-+ *
-+ * __swahw32(0x12340000) is 0x00001234
-+ */
-+#define __swahw32(x)				\
-+	(__builtin_constant_p((__u32)(x)) ?	\
-+	__const_swahw32((x)) :			\
-+	___swahw32((x)))
-+
-+/**
-+ * __swahb32 - return a high and low byte-swapped 32-bit value
-+ * @x: value to byteswap
-+ *
-+ * __swahb32(0x12345678) is 0x34127856
-+ */
-+#define __swahb32(x)				\
-+	(__builtin_constant_p((__u32)(x)) ?	\
-+	__const_swahb32((x)) :			\
-+	___swahb32((x)))
-+
-+/**
-+ * __swab16p - return a byteswapped 16-bit value from a pointer
-+ * @p: pointer to a naturally-aligned 16-bit value
-+ */
-+static inline __u16 __swab16p(const __u16 *p)
-+{
-+#ifdef __arch_swab16p
-+	return __arch_swab16p(p);
-+#else
-+	return __swab16(*p);
-+#endif
-+}
-+
-+/**
-+ * __swab32p - return a byteswapped 32-bit value from a pointer
-+ * @p: pointer to a naturally-aligned 32-bit value
-+ */
-+static inline __u32 __swab32p(const __u32 *p)
-+{
-+#ifdef __arch_swab32p
-+	return __arch_swab32p(p);
-+#else
-+	return __swab32(*p);
-+#endif
-+}
-+
-+/**
-+ * __swab64p - return a byteswapped 64-bit value from a pointer
-+ * @p: pointer to a naturally-aligned 64-bit value
-+ */
-+static inline __u64 __swab64p(const __u64 *p)
-+{
-+#ifdef __arch_swab64p
-+	return __arch_swab64p(p);
-+#else
-+	return __swab64(*p);
-+#endif
-+}
-+
-+/**
-+ * __swahw32p - return a wordswapped 32-bit value from a pointer
-+ * @p: pointer to a naturally-aligned 32-bit value
-+ *
-+ * See __swahw32() for details of wordswapping.
-+ */
-+static inline __u32 __swahw32p(const __u32 *p)
-+{
-+#ifdef __arch_swahw32p
-+	return __arch_swahw32p(p);
-+#else
-+	return __swahw32(*p);
-+#endif
-+}
-+
-+/**
-+ * __swahb32p - return a high and low byteswapped 32-bit value from a pointer
-+ * @p: pointer to a naturally-aligned 32-bit value
-+ *
-+ * See __swahb32() for details of high/low byteswapping.
-+ */
-+static inline __u32 __swahb32p(const __u32 *p)
-+{
-+#ifdef __arch_swahb32p
-+	return __arch_swahb32p(p);
-+#else
-+	return __swahb32(*p);
-+#endif
-+}
-+
-+/**
-+ * __swab16s - byteswap a 16-bit value in-place
-+ * @p: pointer to a naturally-aligned 16-bit value
-+ */
-+static inline void __swab16s(__u16 *p)
-+{
-+#ifdef __arch_swab16s
-+	__arch_swab16s(p);
-+#else
-+	*p = __swab16p(p);
-+#endif
-+}
-+/**
-+ * __swab32s - byteswap a 32-bit value in-place
-+ * @p: pointer to a naturally-aligned 32-bit value
-+ */
-+static inline void __swab32s(__u32 *p)
-+{
-+#ifdef __arch_swab32s
-+	__arch_swab32s(p);
-+#else
-+	*p = __swab32p(p);
-+#endif
-+}
-+
-+/**
-+ * __swab64s - byteswap a 64-bit value in-place
-+ * @p: pointer to a naturally-aligned 64-bit value
-+ */
-+static inline void __swab64s(__u64 *p)
-+{
-+#ifdef __arch_swab64s
-+	__arch_swab64s(p);
-+#else
-+	*p = __swab64p(p);
-+#endif
-+}
-+
-+/**
-+ * __swahw32s - wordswap a 32-bit value in-place
-+ * @p: pointer to a naturally-aligned 32-bit value
-+ *
-+ * See __swahw32() for details of wordswapping
-+ */
-+static inline void __swahw32s(__u32 *p)
-+{
-+#ifdef __arch_swahw32s
-+	__arch_swahw32s(p);
-+#else
-+	*p = __swahw32p(p);
-+#endif
-+}
-+
-+/**
-+ * __swahb32s - high and low byteswap a 32-bit value in-place
-+ * @p: pointer to a naturally-aligned 32-bit value
-+ *
-+ * See __swahb32() for details of high and low byte swapping
-+ */
-+static inline void __swahb32s(__u32 *p)
-+{
-+#ifdef __arch_swahb32s
-+	__arch_swahb32s(p);
-+#else
-+	*p = __swahb32p(p);
-+#endif
-+}
-+
-+#ifdef __KERNEL__
-+# define swab16 __swab16
-+# define swab32 __swab32
-+# define swab64 __swab64
-+# define swahw32 __swahw32
-+# define swahb32 __swahb32
-+# define swab16p __swab16p
-+# define swab32p __swab32p
-+# define swab64p __swab64p
-+# define swahw32p __swahw32p
-+# define swahb32p __swahb32p
-+# define swab16s __swab16s
-+# define swab32s __swab32s
-+# define swab64s __swab64s
-+# define swahw32s __swahw32s
-+# define swahb32s __swahb32s
-+#endif /* __KERNEL__ */
-+
-+#endif /* _LINUX_SWAB_H */
+diff -puN drivers/rtc/rtc-rs5c372.c~rtc-rtc-rs5c372-add-support-for-ricoh-r2025s-d-rtc drivers/rtc/rtc-rs5c372.c
+--- a/drivers/rtc/rtc-rs5c372.c~rtc-rtc-rs5c372-add-support-for-ricoh-r2025s-d-rtc
++++ a/drivers/rtc/rtc-rs5c372.c
+@@ -1,5 +1,5 @@
+ /*
+- * An I2C driver for Ricoh RS5C372 and RV5C38[67] RTCs
++ * An I2C driver for Ricoh RS5C372, R2025S/D and RV5C38[67] RTCs
+  *
+  * Copyright (C) 2005 Pavel Mironchik <pmironchik@optifacio.net>
+  * Copyright (C) 2006 Tower Technologies
+@@ -52,7 +52,8 @@
+ #	define RS5C_CTRL1_CT4		(4 << 0)	/* 1 Hz level irq */
+ #define RS5C_REG_CTRL2		15
+ #	define RS5C372_CTRL2_24		(1 << 5)
+-#	define RS5C_CTRL2_XSTP		(1 << 4)
++#	define R2025_CTRL2_XST		(1 << 5)
++#	define RS5C_CTRL2_XSTP		(1 << 4)	/* only if !R2025S/D */
+ #	define RS5C_CTRL2_CTFG		(1 << 2)
+ #	define RS5C_CTRL2_AAFG		(1 << 1)	/* or WAFG */
+ #	define RS5C_CTRL2_BAFG		(1 << 0)	/* or DAFG */
+@@ -64,6 +65,7 @@
+ 
+ enum rtc_type {
+ 	rtc_undef = 0,
++	rtc_r2025sd,
+ 	rtc_rs5c372a,
+ 	rtc_rs5c372b,
+ 	rtc_rv5c386,
+@@ -71,6 +73,7 @@ enum rtc_type {
+ };
+ 
+ static const struct i2c_device_id rs5c372_id[] = {
++	{ "r2025sd", rtc_r2025sd },
+ 	{ "rs5c372a", rtc_rs5c372a },
+ 	{ "rs5c372b", rtc_rs5c372b },
+ 	{ "rv5c386", rtc_rv5c386 },
+@@ -531,9 +534,15 @@ static int rs5c_oscillator_setup(struct 
+ 	unsigned char buf[2];
+ 	int addr, i, ret = 0;
+ 
+-	if (!(rs5c372->regs[RS5C_REG_CTRL2] & RS5C_CTRL2_XSTP))
+-		return ret;
+-	rs5c372->regs[RS5C_REG_CTRL2] &= ~RS5C_CTRL2_XSTP;
++	if (rs5c372->type == rtc_r2025sd) {
++		if (!(rs5c372->regs[RS5C_REG_CTRL2] & R2025_CTRL2_XST))
++			return ret;
++		rs5c372->regs[RS5C_REG_CTRL2] &= ~R2025_CTRL2_XST;
++	} else {
++		if (!(rs5c372->regs[RS5C_REG_CTRL2] & RS5C_CTRL2_XSTP))
++			return ret;
++		rs5c372->regs[RS5C_REG_CTRL2] &= ~RS5C_CTRL2_XSTP;
++	}
+ 
+ 	addr   = RS5C_ADDR(RS5C_REG_CTRL1);
+ 	buf[0] = rs5c372->regs[RS5C_REG_CTRL1];
+@@ -546,6 +555,7 @@ static int rs5c_oscillator_setup(struct 
+ 		buf[1] |= RS5C372_CTRL2_24;
+ 		rs5c372->time24 = 1;
+ 		break;
++	case rtc_r2025sd:
+ 	case rtc_rv5c386:
+ 	case rtc_rv5c387a:
+ 		buf[0] |= RV5C387_CTRL1_24;
+@@ -623,6 +633,7 @@ static int rs5c372_probe(struct i2c_clie
+ 		if (rs5c372->regs[RS5C_REG_CTRL2] & RS5C372_CTRL2_24)
+ 			rs5c372->time24 = 1;
+ 		break;
++	case rtc_r2025sd:
+ 	case rtc_rv5c386:
+ 	case rtc_rv5c387a:
+ 		if (rs5c372->regs[RS5C_REG_CTRL1] & RV5C387_CTRL1_24)
+@@ -638,6 +649,9 @@ static int rs5c372_probe(struct i2c_clie
+ 
+ 	/* if the oscillator lost power and no other software (like
+ 	 * the bootloader) set it up, do it here.
++	 *
++	 * The R2025S/D does this a little differently than the other
++	 * parts, so we special case that..
+ 	 */
+ 	err = rs5c_oscillator_setup(rs5c372);
+ 	if (unlikely(err < 0)) {
+@@ -650,6 +664,7 @@ static int rs5c372_probe(struct i2c_clie
+ 
+ 	dev_info(&client->dev, "%s found, %s, driver version " DRV_VERSION "\n",
+ 			({ char *s; switch (rs5c372->type) {
++			case rtc_r2025sd:	s = "r2025sd"; break;
+ 			case rtc_rs5c372a:	s = "rs5c372a"; break;
+ 			case rtc_rs5c372b:	s = "rs5c372b"; break;
+ 			case rtc_rv5c386:	s = "rv5c386"; break;
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
+origin.patch
 linux-next.patch
-cifs-remove-global_extern-macro.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-v4l-drx397xdc-sparse-annotations.patch
-input-ads7846c-sparse-lock-annotation.patch
-drivers-net-replace-__function__-with-__func__.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-wireless-replace-__function__-with-__func__.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-include-replace-__function__-with-__func__.patch
-misc-replace-__function__-with-__func__.patch
-befs-annotate-fs32-on-tests-for-superblock-endianness.patch
-byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+i2c-renesas-highlander-fpga-smbus-support-update.patch
+i2c-renesas-highlander-fpga-smbus-support-update-fix.patch
+rtc-rtc-rs5c372-smbus-conversion-support.patch
+rtc-rtc-rs5c372-add-support-for-ricoh-r2025s-d-rtc.patch
+kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore.patch
+binfmt_elf_fdpic-support-auxvec-base-platform-string.patch
+binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack.patch
+binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch
+resource-add-resource_type-and-ioresource_type_bits.patch
+resource-add-new-ioresource_clk-type-v2.patch
+i2c-sh_mobile-ioresource_clk-support.patch
 
