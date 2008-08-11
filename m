@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gcov-architecture-specific-compile-flag-adjustments-x86_64-fix-2.patch added to -mm tree
-Date: Mon, 11 Aug 2008 14:10:27 -0700
-Message-ID: <200808112110.m7BLASEe021542@imap1.linux-foundation.org>
+Subject: + kdump-add-is_vmcore_usable-and-vmcore_unusable-update.patch added to -mm tree
+Date: Mon, 11 Aug 2008 14:12:47 -0700
+Message-ID: <200808112112.m7BLClXu021670@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42635 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58306 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754464AbYHKVMI (ORCPT
+	by vger.kernel.org with ESMTP id S1754168AbYHKVNp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 17:12:08 -0400
+	Mon, 11 Aug 2008 17:13:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, peter.oberparleiter@de.ibm.com
+Cc: horms@verge.net.au, vgoyal@redhat.com
 
 
 The patch titled
-     unable to boot with gcov on x86_64
+     kdump-add-is_vmcore_usable-and-vmcore_unusable update
 has been added to the -mm tree.  Its filename is
-     gcov-architecture-specific-compile-flag-adjustments-x86_64-fix-2.patch
+     kdump-add-is_vmcore_usable-and-vmcore_unusable-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unable to boot with gcov on x86_64
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: kdump-add-is_vmcore_usable-and-vmcore_unusable update
+From: Simon Horman <horms@verge.net.au>
 
-I'm seeing similar GCOV problems as with 2.6.26-rc5-mm1 that you fixed. 
-This is the same x86_64 box and again it was unable to boot with gcov
-enabled.  A quick look revealed that arch/x86/kernel/tsc_64.c and
-arch/x86/kernel/tsc_32.ccode was unified.  Unfortunately simple change of
+I don't think this change was described at all...
 
-GCOV_tsc_32.o := n
-GCOV_tsc_64.o := n
-
-to
-
-GCOV_tsc.o := n
-
-did not help.  Given the amount of combinations of which set of files with
-GCOV might cause failures I was rather fortunate and after a few hours I
-was able to pinpoint exactly two files which need GCOV disabled to make my
-x86_64 boot.
-
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/Makefile |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/crash_dump.h |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/kernel/Makefile~gcov-architecture-specific-compile-flag-adjustments-x86_64-fix-2 arch/x86/kernel/Makefile
---- a/arch/x86/kernel/Makefile~gcov-architecture-specific-compile-flag-adjustments-x86_64-fix-2
-+++ a/arch/x86/kernel/Makefile
-@@ -13,8 +13,8 @@ CFLAGS_REMOVE_rtc.o = -pg
- CFLAGS_REMOVE_paravirt.o = -pg
- endif
+diff -puN include/linux/crash_dump.h~kdump-add-is_vmcore_usable-and-vmcore_unusable-update include/linux/crash_dump.h
+--- a/include/linux/crash_dump.h~kdump-add-is_vmcore_usable-and-vmcore_unusable-update
++++ a/include/linux/crash_dump.h
+@@ -39,15 +39,11 @@ static inline int is_kdump_kernel(void)
+ {
+ 	return (elfcorehdr_addr != ELFCORE_ADDR_MAX) ? 1 : 0;
+ }
+-#else /* !CONFIG_CRASH_DUMP */
+-static inline int is_kdump_kernel(void) { return 0; }
+-#endif /* CONFIG_CRASH_DUMP */
  
--GCOV_tsc_32.o := n
--GCOV_tsc_64.o := n
-+GCOV_vsyscall_64.o := n
-+GCOV_tsc.o := n
+-#ifdef CONFIG_PROC_VMCORE
+ /* is_vmcore_usable() checks if the kernel is booting after a panic and
+  * the vmcore region is usable.
+  *
+- * This makes use of the fact that due to alignment 1 is not
++ * This makes use of the fact that due to alignment -2ULL is not
+  * a valid pointer, much in the vain of IS_ERR(), except
+  * dealing directly with an unsigned long long rather than a pointer.
+  */
+@@ -66,7 +62,9 @@ static inline void vmcore_unusable(void)
+ 	if (is_kdump_kernel())
+ 		elfcorehdr_addr = ELFCORE_ADDR_ERR;
+ }
+-#endif /* CONFIG_PROC_VMCORE */
++#else /* !CONFIG_CRASH_DUMP */
++static inline int is_kdump_kernel(void) { return 0; }
++#endif /* CONFIG_CRASH_DUMP */
  
- #
- # vsyscalls (which work on the user stack) should have
+ extern unsigned long saved_max_pfn;
+ #endif /* LINUX_CRASHDUMP_H */
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from horms@verge.net.au are
 
-gcov-architecture-specific-compile-flag-adjustments-x86_64-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-x86_64-fix-2.patch
-reiser4.patch
+linux-next.patch
+kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore.patch
+kdump-update-elfcorehdr-documentation-to-reflect-supported-architectures.patch
+kdump-use-is_kdump_kernel-in-sba_init.patch
+kdump-add-is_vmcore_usable-and-vmcore_unusable.patch
+kdump-add-is_vmcore_usable-and-vmcore_unusable-update.patch
+kdump-use-is_vmcore_usable-and-vmcore_unusable-in-reserve_elfcorehdr.patch
+kdump-ia64-always-reserve-elfcore-header-memory-in-crash-kernel.patch
 
