@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-make-the-resource-type-an-unsigned-long-fix.patch added to -mm tree
-Date: Mon, 11 Aug 2008 15:28:05 -0700
-Message-ID: <200808112228.m7BMS57S025039@imap1.linux-foundation.org>
+Subject: + i2c-renesas-highlander-fpga-smbus-support-update-fix-fix.patch added to -mm tree
+Date: Mon, 11 Aug 2008 15:40:22 -0700
+Message-ID: <200808112240.m7BMeNwE025654@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60632 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54046 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752113AbYHKW3E (ORCPT
+	by vger.kernel.org with ESMTP id S1751996AbYHKWlZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 18:29:04 -0400
+	Mon, 11 Aug 2008 18:41:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rene.herman@keyaccess.nl, andi@firstfloor.org, bjorn.helgaas@hp.com, hpa@zytor.com, rene.herman@gmail.com
+Cc: akpm@linux-foundation.org, khali@linux-fr.org, lethal@linux-sh.org, xyzzy@speakeasy.org
 
 
 The patch titled
-     PNP: resource type is now an unsigned long
+     i2c-renesas-highlander-fpga-smbus-support-update-fix-fix
 has been added to the -mm tree.  Its filename is
-     pnp-make-the-resource-type-an-unsigned-long-fix.patch
+     i2c-renesas-highlander-fpga-smbus-support-update-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PNP: resource type is now an unsigned long
-From: Rene Herman <rene.herman@keyaccess.nl>
+Subject: i2c-renesas-highlander-fpga-smbus-support-update-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Rene Herman <rene.herman@gmail.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Acked-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+Don't wait interruptibly - it will fall though if signal_pending().
+
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Trent Piepho <xyzzy@speakeasy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/quirks.c |    2 +-
+ drivers/i2c/busses/i2c-highlander.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pnp/quirks.c~pnp-make-the-resource-type-an-unsigned-long-fix drivers/pnp/quirks.c
---- a/drivers/pnp/quirks.c~pnp-make-the-resource-type-an-unsigned-long-fix
-+++ a/drivers/pnp/quirks.c
-@@ -245,7 +245,7 @@ static void quirk_system_pci_resources(s
- 	 */
- 	for_each_pci_dev(pdev) {
- 		for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
--			unsigned int type;
-+			unsigned long type;
- 
- 			type = pci_resource_flags(pdev, i) &
- 					(IORESOURCE_IO | IORESOURCE_MEM);
+diff -puN drivers/i2c/busses/i2c-highlander.c~i2c-renesas-highlander-fpga-smbus-support-update-fix-fix drivers/i2c/busses/i2c-highlander.c
+--- a/drivers/i2c/busses/i2c-highlander.c~i2c-renesas-highlander-fpga-smbus-support-update-fix-fix
++++ a/drivers/i2c/busses/i2c-highlander.c
+@@ -199,7 +199,7 @@ static void highlander_i2c_poll(struct h
+ static inline int highlander_i2c_wait_xfer_done(struct highlander_i2c_dev *dev)
+ {
+ 	if (dev->irq)
+-		wait_for_completion_interruptible_timeout(&dev->cmd_complete,
++		wait_for_completion_timeout(&dev->cmd_complete,
+ 					  msecs_to_jiffies(iic_timeout));
+ 	else
+ 		/* busy looping, the IRQ of champions */
 _
 
-Patches currently in -mm which might be from rene.herman@keyaccess.nl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-i2c-dont-autograb-i2c-pca-is.patch
-pnp-make-the-resource-type-an-unsigned-long.patch
-pnp-make-the-resource-type-an-unsigned-long-fix.patch
+origin.patch
+printk-robustify-printk-fix.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+i2c-renesas-highlander-fpga-smbus-support-update-fix.patch
+i2c-renesas-highlander-fpga-smbus-support-update-fix-fix.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
+sched-type-fix.patch
+lockdep-spin_lock_nest_lock-fix-checkpatch-fixes.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+scsi-megaraid_sas-add-the-new-controllers-support.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
