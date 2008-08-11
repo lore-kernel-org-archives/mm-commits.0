@@ -1,93 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: + kdump-add-is_vmcore_usable-and-vmcore_unusable-update.patch added to -mm tree
-Date: Mon, 11 Aug 2008 14:12:47 -0700
-Message-ID: <200808112112.m7BLClXu021670@imap1.linux-foundation.org>
+Subject: - devpts-switch-to-ida-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 11 Aug 2008 14:14:02 -0700
+Message-ID: <200808112114.m7BLE2vw021710@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58306 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40437 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754168AbYHKVNp (ORCPT
+	by vger.kernel.org with ESMTP id S1757781AbYHKVOF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 17:13:45 -0400
+	Mon, 11 Aug 2008 17:14:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: horms@verge.net.au, vgoyal@redhat.com
+To: akpm@linux-foundation.org, adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kdump-add-is_vmcore_usable-and-vmcore_unusable update
-has been added to the -mm tree.  Its filename is
-     kdump-add-is_vmcore_usable-and-vmcore_unusable-update.patch
+     devpts-switch-to-ida-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     devpts-switch-to-ida-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kdump-add-is_vmcore_usable-and-vmcore_unusable update
-From: Simon Horman <horms@verge.net.au>
+Subject: devpts-switch-to-ida-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-I don't think this change was described at all...
+WARNING: braces {} are not necessary for single statement blocks
+#36: FILE: fs/devpts/inode.c:186:
++	if (!ida_pre_get(&allocated_ptys, GFP_KERNEL)) {
+ 		return -ENOMEM;
+ 	}
 
-Signed-off-by: Simon Horman <horms@verge.net.au>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+total: 0 errors, 1 warnings, 46 lines checked
+
+./patches/devpts-switch-to-ida.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/crash_dump.h |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ fs/devpts/inode.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/crash_dump.h~kdump-add-is_vmcore_usable-and-vmcore_unusable-update include/linux/crash_dump.h
---- a/include/linux/crash_dump.h~kdump-add-is_vmcore_usable-and-vmcore_unusable-update
-+++ a/include/linux/crash_dump.h
-@@ -39,15 +39,11 @@ static inline int is_kdump_kernel(void)
- {
- 	return (elfcorehdr_addr != ELFCORE_ADDR_MAX) ? 1 : 0;
- }
--#else /* !CONFIG_CRASH_DUMP */
--static inline int is_kdump_kernel(void) { return 0; }
--#endif /* CONFIG_CRASH_DUMP */
+diff -puN fs/devpts/inode.c~devpts-switch-to-ida-checkpatch-fixes fs/devpts/inode.c
+--- a/fs/devpts/inode.c~devpts-switch-to-ida-checkpatch-fixes
++++ a/fs/devpts/inode.c
+@@ -183,9 +183,8 @@ int devpts_new_index(void)
+ 	int ida_ret;
  
--#ifdef CONFIG_PROC_VMCORE
- /* is_vmcore_usable() checks if the kernel is booting after a panic and
-  * the vmcore region is usable.
-  *
-- * This makes use of the fact that due to alignment 1 is not
-+ * This makes use of the fact that due to alignment -2ULL is not
-  * a valid pointer, much in the vain of IS_ERR(), except
-  * dealing directly with an unsigned long long rather than a pointer.
-  */
-@@ -66,7 +62,9 @@ static inline void vmcore_unusable(void)
- 	if (is_kdump_kernel())
- 		elfcorehdr_addr = ELFCORE_ADDR_ERR;
- }
--#endif /* CONFIG_PROC_VMCORE */
-+#else /* !CONFIG_CRASH_DUMP */
-+static inline int is_kdump_kernel(void) { return 0; }
-+#endif /* CONFIG_CRASH_DUMP */
+ retry:
+-	if (!ida_pre_get(&allocated_ptys, GFP_KERNEL)) {
++	if (!ida_pre_get(&allocated_ptys, GFP_KERNEL))
+ 		return -ENOMEM;
+-	}
  
- extern unsigned long saved_max_pfn;
- #endif /* LINUX_CRASHDUMP_H */
+ 	mutex_lock(&allocated_ptys_lock);
+ 	ida_ret = ida_get_new(&allocated_ptys, &index);
 _
 
-Patches currently in -mm which might be from horms@verge.net.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+printk-robustify-printk-fix.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore.patch
-kdump-update-elfcorehdr-documentation-to-reflect-supported-architectures.patch
-kdump-use-is_kdump_kernel-in-sba_init.patch
-kdump-add-is_vmcore_usable-and-vmcore_unusable.patch
-kdump-add-is_vmcore_usable-and-vmcore_unusable-update.patch
-kdump-use-is_vmcore_usable-and-vmcore_unusable-in-reserve_elfcorehdr.patch
-kdump-ia64-always-reserve-elfcore-header-memory-in-crash-kernel.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+i2c-renesas-highlander-fpga-smbus-support-update-fix.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
+sched-type-fix.patch
+lockdep-spin_lock_nest_lock-fix-checkpatch-fixes.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+scsi-megaraid_sas-add-the-new-controllers-support.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+devpts-switch-to-ida-checkpatch-fixes.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
