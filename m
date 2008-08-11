@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + viafb-makefile-kconfig.patch added to -mm tree
-Date: Mon, 11 Aug 2008 16:09:23 -0700
-Message-ID: <200808112309.m7BN9NRZ026821@imap1.linux-foundation.org>
+Subject: + viafb-accelc-accelh-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 11 Aug 2008 16:11:23 -0700
+Message-ID: <200808112311.m7BNBO5F026860@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54486 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47555 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751800AbYHKXLj (ORCPT
+	by vger.kernel.org with ESMTP id S1752174AbYHKXME (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 19:11:39 -0400
+	Mon, 11 Aug 2008 19:12:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: JosephChan@via.com.tw, geert@linux-m68k.org, josephchan@via.com.tw, krzysztof.h1@poczta.fm
+Cc: akpm@linux-foundation.org, JosephChan@via.com.tw, geert@linux-m68k.org, josephchan@via.com.tw, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     viafb: Makefile, Kconfig
+     viafb-accelc-accelh-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     viafb-makefile-kconfig.patch
+     viafb-accelc-accelh-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,151 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: Makefile, Kconfig
-From: Joseph Chan <JosephChan@via.com.tw>
+Subject: viafb-accelc-accelh-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Modified drivers/video/Makefile and drivers/video/Kconfig.
+ERROR: open brace '{' following function declarations go on the next line
+#222: FILE: drivers/video/via/accel.c:204:
++void viafb_show_hw_cursor(struct fb_info *info, int Status) {
 
-Signed-off-by: Joseph Chan <josephchan@via.com.tw>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+WARNING: suspect code indent for conditional statements
+#249: FILE: drivers/video/via/accel.c:231:
++	while (!(MMIO_IN32(VIA_REG_STATUS) & VIA_VR_QUEUE_BUSY)
+
+WARNING: suspect code indent for conditional statements
+#253: FILE: drivers/video/via/accel.c:235:
++	while ((MMIO_IN32(VIA_REG_STATUS) &
+
+total: 1 errors, 2 warnings, 421 lines checked
+
+./patches/viafb-accelc-accelh.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Joseph Chan <JosephChan@via.com.tw>
+Cc: Joseph Chan <josephchan@via.com.tw>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig  |   18 ++++++++++++++++++
- drivers/video/Makefile |    1 +
- 2 files changed, 19 insertions(+)
+ drivers/video/via/accel.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/Kconfig~viafb-makefile-kconfig drivers/video/Kconfig
---- a/drivers/video/Kconfig~viafb-makefile-kconfig
-+++ a/drivers/video/Kconfig
-@@ -1498,6 +1498,24 @@ config FB_SIS_315
- 	  (315/H/PRO, 55x, 650, 651, 740, 330, 661, 741, 760, 761) as well
- 	  as XGI V3XT, V5, V8 and Z7.
+diff -puN drivers/video/via/accel.c~viafb-accelc-accelh-checkpatch-fixes drivers/video/via/accel.c
+--- a/drivers/video/via/accel.c~viafb-accelc-accelh-checkpatch-fixes
++++ a/drivers/video/via/accel.c
+@@ -201,7 +201,8 @@ void viafb_hw_cursor_init(void)
+ 	MMIO_OUT32(VIA_REG_CURSOR_FG, 0x0);
+ }
  
-+config FB_VIA
-+       tristate "VIA UniChrome (Pro) and Chrome9 display support"
-+       depends on FB && PCI
-+       select FB_CFB_FILLRECT
-+       select FB_CFB_COPYAREA
-+       select FB_CFB_IMAGEBLIT
-+       select FB_SOFT_CURSOR
-+       select I2C_ALGOBIT
-+       select I2C
-+       help
-+	  This is the frame buffer device driver for Graphics chips of VIA
-+	  UniChrome (Pro) Family (CLE266,PM800/CN400,P4M800CE/P4M800Pro/
-+	  CN700/VN800,CX700/VX700,P4M890) and Chrome9 Family (K8M890,CN896
-+ 	  /P4M900,VX800)
-+	  Say Y if you have a VIA UniChrome graphics board.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called viafb.
- config FB_NEOMAGIC
- 	tristate "NeoMagic display support"
- 	depends on FB && PCI
-diff -puN drivers/video/Makefile~viafb-makefile-kconfig drivers/video/Makefile
---- a/drivers/video/Makefile~viafb-makefile-kconfig
-+++ a/drivers/video/Makefile
-@@ -43,6 +43,7 @@ obj-$(CONFIG_FB_ATY)		  += aty/ macmodes
- obj-$(CONFIG_FB_ATY128)		  += aty/ macmodes.o
- obj-$(CONFIG_FB_RADEON)		  += aty/
- obj-$(CONFIG_FB_SIS)		  += sis/
-+obj-$(CONFIG_FB_VIA)		  += via/
- obj-$(CONFIG_FB_KYRO)             += kyro/
- obj-$(CONFIG_FB_SAVAGE)		  += savage/
- obj-$(CONFIG_FB_GEODE)		  += geode/
+-void viafb_show_hw_cursor(struct fb_info *info, int Status) {
++void viafb_show_hw_cursor(struct fb_info *info, int Status)
++{
+ 	u32 temp;
+ 	u32 iga_path = ((struct viafb_par *)(info->par))->iga_path;
+ 
+@@ -222,20 +223,21 @@ void viafb_show_hw_cursor(struct fb_info
+ 	default:
+ 		temp &= 0x7FFFFFFF;
+ 	}
+-	MMIO_OUT32(VIA_REG_CURSOR_MODE, temp); }
++	MMIO_OUT32(VIA_REG_CURSOR_MODE, temp);
++}
+ 
+ int viafb_wait_engine_idle(void)
+ {
+ 	int loop = 0;
+ 
+-	while (!(MMIO_IN32(VIA_REG_STATUS) & VIA_VR_QUEUE_BUSY)
+-	       && (loop++ < MAXLOOP))
+-	       cpu_relax();
++	while (!(MMIO_IN32(VIA_REG_STATUS) & VIA_VR_QUEUE_BUSY) &&
++			(loop++ < MAXLOOP))
++		cpu_relax();
+ 
+ 	while ((MMIO_IN32(VIA_REG_STATUS) &
+-		(VIA_CMD_RGTR_BUSY | VIA_2D_ENG_BUSY | VIA_3D_ENG_BUSY)) &&
+-	       (loop++ < MAXLOOP))
+-	       cpu_relax();
++		    (VIA_CMD_RGTR_BUSY | VIA_2D_ENG_BUSY | VIA_3D_ENG_BUSY)) &&
++		    (loop++ < MAXLOOP))
++		cpu_relax();
+ 
+ 	return loop >= MAXLOOP;
+ }
 _
 
-Patches currently in -mm which might be from JosephChan@via.com.tw are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-sata_viac-add-support-for-vt8251-fix-the-internal-chips-issue-and.patch
-viafb-viafbmodes-viafbtxt.patch
-viafb-makefile-kconfig.patch
-viafb-accelc-accelh.patch
-viafb-chiph-debugh.patch
-viafb-dvic-dvih-globalc-and-globalh.patch
-viafb-hwc-hwh.patch
-viafb-ifacec-ifaceh-ioctlc-ioctlh.patch
-viafb-lcdc-lcdh-lcdtblh.patch
-viafb-makefile-shareh.patch
-viafb-tbl1636c-tbl1636h-tbldpasettingc-tbldpasettingh.patch
-viafb-viafbdevc-viafbdevh.patch
-viafb-via_i2cc-via_i2ch-viamodec-viamodeh.patch
-viafb-via_utilityc-via_utilityh-vt1636c-vt1636h.patch
+origin.patch
+printk-robustify-printk-fix.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+i2c-renesas-highlander-fpga-smbus-support-update-fix.patch
+i2c-renesas-highlander-fpga-smbus-support-update-fix-fix.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
+sched-type-fix.patch
+lockdep-spin_lock_nest_lock-fix-checkpatch-fixes.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+scsi-megaraid_sas-add-the-new-controllers-support.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
