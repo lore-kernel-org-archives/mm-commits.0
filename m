@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + viafb-lcdc-lcdh-lcdtblh.patch added to -mm tree
-Date: Mon, 11 Aug 2008 16:14:46 -0700
-Message-ID: <200808112314.m7BNEkIV027042@imap1.linux-foundation.org>
+Subject: + viafb-makefile-shareh.patch added to -mm tree
+Date: Mon, 11 Aug 2008 16:14:53 -0700
+Message-ID: <200808112314.m7BNErGt027045@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36693 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48524 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753390AbYHKXPd (ORCPT
+	by vger.kernel.org with ESMTP id S1753438AbYHKXPi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 19:15:33 -0400
+	Mon, 11 Aug 2008 19:15:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: JosephChan@via.com.tw, geert@linux-m68k.org, josephchan@via.com.tw, krzyszto
 
 
 The patch titled
-     viafb: lcd.c, lcd.h, lcdtbl.h
+     viafb: Makefile, share.h
 has been added to the -mm tree.  Its filename is
-     viafb-lcdc-lcdh-lcdtblh.patch
+     viafb-makefile-shareh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: lcd.c, lcd.h, lcdtbl.h
+Subject: viafb: Makefile, share.h
 From: Joseph Chan <JosephChan@via.com.tw>
 
-lcd.c, lcd.h: LVDS generic process.
-lcdtbl.h: patch register for simultaneous case.
+Makefile for drivers/video/via/
+share.h: shared macro for viafb
 
 Signed-off-by: Joseph Chan <josephchan@via.com.tw>
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
@@ -46,15 +46,25 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/lcd.c    | 1821 +++++++++++++++++++++++++++++++++++
- drivers/video/via/lcd.h    |   94 +
- drivers/video/via/lcdtbl.h |  591 +++++++++++
- 3 files changed, 2506 insertions(+)
+ drivers/video/via/Makefile |    7 
+ drivers/video/via/share.h  | 1105 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 1112 insertions(+)
 
-diff -puN /dev/null drivers/video/via/lcd.c
+diff -puN /dev/null drivers/video/via/Makefile
 --- /dev/null
-+++ a/drivers/video/via/lcd.c
-@@ -0,0 +1,1821 @@
++++ a/drivers/video/via/Makefile
+@@ -0,0 +1,7 @@
++#
++# Makefile for the VIA framebuffer driver (for Linux Kernel 2.6)
++#
++
++obj-$(CONFIG_FB_VIA) += viafb.o
++
++viafb-y	:=viafbdev.o hw.o iface.o  via_i2c.o dvi.o lcd.o ioctl.o accel.o via_utility.o vt1636.o global.o tblDPASetting.o viamode.o tbl1636.o
+diff -puN /dev/null drivers/video/via/share.h
+--- /dev/null
++++ a/drivers/video/via/share.h
+@@ -0,0 +1,1105 @@
 +/*
 + * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
 + * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
@@ -76,2499 +86,1090 @@ diff -puN /dev/null drivers/video/via/lcd.c
 + * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 + */
 +
-+#include "global.h"
-+#include "lcdtbl.h"
++#ifndef __SHARE_H__
++#define __SHARE_H__
 +
-+static struct iga2_shadow_crtc_timing iga2_shadow_crtc_reg = {
-+	/* IGA2 Shadow Horizontal Total */
-+	{IGA2_SHADOW_HOR_TOTAL_REG_NUM, {{CR6D, 0, 7}, {CR71, 3, 3} } },
-+	/* IGA2 Shadow Horizontal Blank End */
-+	{IGA2_SHADOW_HOR_BLANK_END_REG_NUM, {{CR6E, 0, 7} } },
-+	/* IGA2 Shadow Vertical Total */
-+	{IGA2_SHADOW_VER_TOTAL_REG_NUM, {{CR6F, 0, 7}, {CR71, 0, 2} } },
-+	/* IGA2 Shadow Vertical Addressable Video */
-+	{IGA2_SHADOW_VER_ADDR_REG_NUM, {{CR70, 0, 7}, {CR71, 4, 6} } },
-+	/* IGA2 Shadow Vertical Blank Start */
-+	{IGA2_SHADOW_VER_BLANK_START_REG_NUM,
-+	 {{CR72, 0, 7}, {CR74, 4, 6} } },
-+	/* IGA2 Shadow Vertical Blank End */
-+	{IGA2_SHADOW_VER_BLANK_END_REG_NUM, {{CR73, 0, 7}, {CR74, 0, 2} } },
-+	/* IGA2 Shadow Vertical Sync Start */
-+	{IGA2_SHADOW_VER_SYNC_START_REG_NUM, {{CR75, 0, 7}, {CR76, 4, 6} } },
-+	/* IGA2 Shadow Vertical Sync End */
-+	{IGA2_SHADOW_VER_SYNC_END_REG_NUM, {{CR76, 0, 3} } }
++/* Define Return Value */
++#define FAIL        -1
++#define OK          1
++
++#ifndef NULL
++#define NULL 0
++#endif
++
++/* Define Bit Field */
++#define BIT0    0x01
++#define BIT1    0x02
++#define BIT2    0x04
++#define BIT3    0x08
++#define BIT4    0x10
++#define BIT5    0x20
++#define BIT6    0x40
++#define BIT7    0x80
++
++/* Video Memory Size */
++#define VIDEO_MEMORY_SIZE_16M    0x1000000
++
++/* Definition Mode Index
++*/
++#define     VIA_RES_640X480                 	0
++#define     VIA_RES_800X600                 	1
++#define     VIA_RES_1024X768                	2
++#define     VIA_RES_1152X864                	3
++#define     VIA_RES_1280X1024               	4
++#define     VIA_RES_1600X1200               	5
++#define     VIA_RES_1440X1050               	6
++#define     VIA_RES_1280X768                	7
++#define     VIA_RES_1280X960                	8
++#define     VIA_RES_1920X1440               	9
++#define     VIA_RES_848X480                 	10
++#define     VIA_RES_1400X1050               	11
++#define     VIA_RES_720X480                 	12
++#define     VIA_RES_720X576                 	13
++#define     VIA_RES_1024X512                	14
++#define     VIA_RES_856X480                 	15
++#define     VIA_RES_1024X576                	16
++#define     VIA_RES_640X400                 	17
++#define     VIA_RES_1280X720                	18
++#define     VIA_RES_1920X1080               	19
++#define     VIA_RES_800X480                 	20
++#define     VIA_RES_1368X768                	21
++#define     VIA_RES_1024X600                	22
++#define     VIA_RES_1280X800                	23
++#define     VIA_RES_1680X1050               	24
++#define     VIA_RES_960X600			25
++#define     VIA_RES_1000X600               	26
++#define     VIA_RES_1088X612               	27
++#define     VIA_RES_1152X720               	28
++#define     VIA_RES_1200X720               	29
++#define     VIA_RES_1280X600               	30
++#define     VIA_RES_1360X768               	31
++#define     VIA_RES_1366X768               	32
++#define     VIA_RES_1440X900               	33
++#define     VIA_RES_1600X900               	34
++#define     VIA_RES_1600X1024              	35
++#define     VIA_RES_1792X1344              	36
++#define     VIA_RES_1856X1392              	37
++#define     VIA_RES_1920X1200              	38
++#define     VIA_RES_2048X1536              	39
++#define     VIA_RES_480X640                  	40
++
++/*Reduce Blanking*/
++#define     VIA_RES_1360X768_RB          	131
++#define     VIA_RES_1440X900_RB          	133
++#define     VIA_RES_1400X1050_RB        	111
++#define     VIA_RES_1600X900_RB          	134
++#define     VIA_RES_1680X1050_RB        	124
++#define     VIA_RES_1920X1080_RB        	119
++#define     VIA_RES_1920X1200_RB        	138
++
++#define     VIA_RES_INVALID                 	255
++
++/* standard VGA IO port
++*/
++#define VIARMisc    0x3CC
++#define VIAWMisc    0x3C2
++#define VIAStatus   0x3DA
++#define VIACR       0x3D4
++#define VIASR       0x3C4
++#define VIAGR       0x3CE
++#define VIAAR       0x3C0
++
++#define StdCR       0x19
++#define StdSR       0x04
++#define StdGR       0x09
++#define StdAR       0x14
++
++#define PatchCR     11
++
++/* Display path */
++#define IGA1        1
++#define IGA2        2
++#define IGA1_IGA2   3
++
++/* Define Color Depth  */
++#define MODE_8BPP       1
++#define MODE_16BPP      2
++#define MODE_32BPP      4
++
++#define GR20    0x20
++#define GR21    0x21
++#define GR22    0x22
++
++/* Sequencer Registers */
++#define SR01    0x01
++#define SR10    0x10
++#define SR12    0x12
++#define SR15    0x15
++#define SR16    0x16
++#define SR17    0x17
++#define SR18    0x18
++#define SR1B    0x1B
++#define SR1A    0x1A
++#define SR1C    0x1C
++#define SR1D    0x1D
++#define SR1E    0x1E
++#define SR1F    0x1F
++#define SR20    0x20
++#define SR21    0x21
++#define SR22    0x22
++#define SR2A    0x2A
++#define SR2D    0x2D
++#define SR2E    0x2E
++
++#define SR30    0x30
++#define SR39    0x39
++#define SR3D    0x3D
++#define SR3E    0x3E
++#define SR3F    0x3F
++#define SR40    0x40
++#define SR43    0x43
++#define SR44    0x44
++#define SR45    0x45
++#define SR46    0x46
++#define SR47    0x47
++#define SR48    0x48
++#define SR49    0x49
++#define SR4A    0x4A
++#define SR4B    0x4B
++#define SR4C    0x4C
++#define SR52    0x52
++#define SR5E    0x5E
++#define SR65    0x65
++
++/* CRT Controller Registers */
++#define CR00    0x00
++#define CR01    0x01
++#define CR02    0x02
++#define CR03    0x03
++#define CR04    0x04
++#define CR05    0x05
++#define CR06    0x06
++#define CR07    0x07
++#define CR08    0x08
++#define CR09    0x09
++#define CR0A    0x0A
++#define CR0B    0x0B
++#define CR0C    0x0C
++#define CR0D    0x0D
++#define CR0E    0x0E
++#define CR0F    0x0F
++#define CR10    0x10
++#define CR11    0x11
++#define CR12    0x12
++#define CR13    0x13
++#define CR14    0x14
++#define CR15    0x15
++#define CR16    0x16
++#define CR17    0x17
++#define CR18    0x18
++
++/* Extend CRT Controller Registers */
++#define CR30    0x30
++#define CR31    0x31
++#define CR32    0x32
++#define CR33    0x33
++#define CR34    0x34
++#define CR35    0x35
++#define CR36    0x36
++#define CR37    0x37
++#define CR38    0x38
++#define CR39    0x39
++#define CR3A    0x3A
++#define CR3B    0x3B
++#define CR3C    0x3C
++#define CR3D    0x3D
++#define CR3E    0x3E
++#define CR3F    0x3F
++#define CR40    0x40
++#define CR41    0x41
++#define CR42    0x42
++#define CR43    0x43
++#define CR44    0x44
++#define CR45    0x45
++#define CR46    0x46
++#define CR47    0x47
++#define CR48    0x48
++#define CR49    0x49
++#define CR4A    0x4A
++#define CR4B    0x4B
++#define CR4C    0x4C
++#define CR4D    0x4D
++#define CR4E    0x4E
++#define CR4F    0x4F
++#define CR50    0x50
++#define CR51    0x51
++#define CR52    0x52
++#define CR53    0x53
++#define CR54    0x54
++#define CR55    0x55
++#define CR56    0x56
++#define CR57    0x57
++#define CR58    0x58
++#define CR59    0x59
++#define CR5A    0x5A
++#define CR5B    0x5B
++#define CR5C    0x5C
++#define CR5D    0x5D
++#define CR5E    0x5E
++#define CR5F    0x5F
++#define CR60    0x60
++#define CR61    0x61
++#define CR62    0x62
++#define CR63    0x63
++#define CR64    0x64
++#define CR65    0x65
++#define CR66    0x66
++#define CR67    0x67
++#define CR68    0x68
++#define CR69    0x69
++#define CR6A    0x6A
++#define CR6B    0x6B
++#define CR6C    0x6C
++#define CR6D    0x6D
++#define CR6E    0x6E
++#define CR6F    0x6F
++#define CR70    0x70
++#define CR71    0x71
++#define CR72    0x72
++#define CR73    0x73
++#define CR74    0x74
++#define CR75    0x75
++#define CR76    0x76
++#define CR77    0x77
++#define CR78    0x78
++#define CR79    0x79
++#define CR7A    0x7A
++#define CR7B    0x7B
++#define CR7C    0x7C
++#define CR7D    0x7D
++#define CR7E    0x7E
++#define CR7F    0x7F
++#define CR80    0x80
++#define CR81    0x81
++#define CR82    0x82
++#define CR83    0x83
++#define CR84    0x84
++#define CR85    0x85
++#define CR86    0x86
++#define CR87    0x87
++#define CR88    0x88
++#define CR89    0x89
++#define CR8A    0x8A
++#define CR8B    0x8B
++#define CR8C    0x8C
++#define CR8D    0x8D
++#define CR8E    0x8E
++#define CR8F    0x8F
++#define CR90    0x90
++#define CR91    0x91
++#define CR92    0x92
++#define CR93    0x93
++#define CR94    0x94
++#define CR95    0x95
++#define CR96    0x96
++#define CR97    0x97
++#define CR98    0x98
++#define CR99    0x99
++#define CR9A    0x9A
++#define CR9B    0x9B
++#define CR9C    0x9C
++#define CR9D    0x9D
++#define CR9E    0x9E
++#define CR9F    0x9F
++#define CRA0    0xA0
++#define CRA1    0xA1
++#define CRA2    0xA2
++#define CRA3    0xA3
++#define CRD2    0xD2
++#define CRD3    0xD3
++#define CRD4    0xD4
++
++/* LUT Table*/
++#define LUT_DATA             0x3C9	/* DACDATA */
++#define LUT_INDEX_READ       0x3C7	/* DACRX */
++#define LUT_INDEX_WRITE      0x3C8	/* DACWX */
++#define DACMASK              0x3C6
++
++/* Definition Device */
++#define DEVICE_CRT  0x01
++#define DEVICE_DVI  0x03
++#define DEVICE_LCD  0x04
++
++/* Device output interface */
++#define INTERFACE_NONE          0x00
++#define INTERFACE_ANALOG_RGB    0x01
++#define INTERFACE_DVP0          0x02
++#define INTERFACE_DVP1          0x03
++#define INTERFACE_DFP_HIGH      0x04
++#define INTERFACE_DFP_LOW       0x05
++#define INTERFACE_DFP           0x06
++#define INTERFACE_LVDS0         0x07
++#define INTERFACE_LVDS1         0x08
++#define INTERFACE_LVDS0LVDS1    0x09
++#define INTERFACE_TMDS          0x0A
++
++#define HW_LAYOUT_LCD_ONLY      0x01
++#define HW_LAYOUT_DVI_ONLY      0x02
++#define HW_LAYOUT_LCD_DVI       0x03
++#define HW_LAYOUT_LCD1_LCD2     0x04
++#define HW_LAYOUT_LCD_EXTERNAL_LCD2 0x10
++
++/* Definition Refresh Rate */
++#define REFRESH_50      50
++#define REFRESH_60      60
++#define REFRESH_75      75
++#define REFRESH_85      85
++#define REFRESH_100     100
++#define REFRESH_120     120
++
++/* Definition Sync Polarity*/
++#define NEGATIVE        1
++#define POSITIVE        0
++
++/*480x640@60 Sync Polarity (GTF)
++*/
++#define M480X640_R60_HSP        NEGATIVE
++#define M480X640_R60_VSP        POSITIVE
++
++/*640x480@60 Sync Polarity (VESA Mode)
++*/
++#define M640X480_R60_HSP        NEGATIVE
++#define M640X480_R60_VSP        NEGATIVE
++
++/*640x480@75 Sync Polarity (VESA Mode)
++*/
++#define M640X480_R75_HSP        NEGATIVE
++#define M640X480_R75_VSP        NEGATIVE
++
++/*640x480@85 Sync Polarity (VESA Mode)
++*/
++#define M640X480_R85_HSP        NEGATIVE
++#define M640X480_R85_VSP        NEGATIVE
++
++/*640x480@100 Sync Polarity (GTF Mode)
++*/
++#define M640X480_R100_HSP       NEGATIVE
++#define M640X480_R100_VSP       POSITIVE
++
++/*640x480@120 Sync Polarity (GTF Mode)
++*/
++#define M640X480_R120_HSP       NEGATIVE
++#define M640X480_R120_VSP       POSITIVE
++
++/*720x480@60 Sync Polarity  (GTF Mode)
++*/
++#define M720X480_R60_HSP        NEGATIVE
++#define M720X480_R60_VSP        POSITIVE
++
++/*720x576@60 Sync Polarity  (GTF Mode)
++*/
++#define M720X576_R60_HSP        NEGATIVE
++#define M720X576_R60_VSP        POSITIVE
++
++/*800x600@60 Sync Polarity (VESA Mode)
++*/
++#define M800X600_R60_HSP        POSITIVE
++#define M800X600_R60_VSP        POSITIVE
++
++/*800x600@75 Sync Polarity (VESA Mode)
++*/
++#define M800X600_R75_HSP        POSITIVE
++#define M800X600_R75_VSP        POSITIVE
++
++/*800x600@85 Sync Polarity (VESA Mode)
++*/
++#define M800X600_R85_HSP        POSITIVE
++#define M800X600_R85_VSP        POSITIVE
++
++/*800x600@100 Sync Polarity (GTF Mode)
++*/
++#define M800X600_R100_HSP       NEGATIVE
++#define M800X600_R100_VSP       POSITIVE
++
++/*800x600@120 Sync Polarity (GTF Mode)
++*/
++#define M800X600_R120_HSP       NEGATIVE
++#define M800X600_R120_VSP       POSITIVE
++
++/*800x480@60 Sync Polarity  (CVT Mode)
++*/
++#define M800X480_R60_HSP        NEGATIVE
++#define M800X480_R60_VSP        POSITIVE
++
++/*848x480@60 Sync Polarity  (CVT Mode)
++*/
++#define M848X480_R60_HSP        NEGATIVE
++#define M848X480_R60_VSP        POSITIVE
++
++/*852x480@60 Sync Polarity  (GTF Mode)
++*/
++#define M852X480_R60_HSP        NEGATIVE
++#define M852X480_R60_VSP        POSITIVE
++
++/*1024x512@60 Sync Polarity (GTF Mode)
++*/
++#define M1024X512_R60_HSP       NEGATIVE
++#define M1024X512_R60_VSP       POSITIVE
++
++/*1024x600@60 Sync Polarity (GTF Mode)
++*/
++#define M1024X600_R60_HSP       NEGATIVE
++#define M1024X600_R60_VSP       POSITIVE
++
++/*1024x768@60 Sync Polarity (VESA Mode)
++*/
++#define M1024X768_R60_HSP       NEGATIVE
++#define M1024X768_R60_VSP       NEGATIVE
++
++/*1024x768@75 Sync Polarity (VESA Mode)
++*/
++#define M1024X768_R75_HSP       POSITIVE
++#define M1024X768_R75_VSP       POSITIVE
++
++/*1024x768@85 Sync Polarity (VESA Mode)
++*/
++#define M1024X768_R85_HSP       POSITIVE
++#define M1024X768_R85_VSP       POSITIVE
++
++/*1024x768@100 Sync Polarity (GTF Mode)
++*/
++#define M1024X768_R100_HSP      NEGATIVE
++#define M1024X768_R100_VSP      POSITIVE
++
++/*1152x864@75 Sync Polarity (VESA Mode)
++*/
++#define M1152X864_R75_HSP       POSITIVE
++#define M1152X864_R75_VSP       POSITIVE
++
++/*1280x720@60 Sync Polarity  (GTF Mode)
++*/
++#define M1280X720_R60_HSP       NEGATIVE
++#define M1280X720_R60_VSP       POSITIVE
++
++/* 1280x768@50 Sync Polarity  (GTF Mode) */
++#define M1280X768_R50_HSP       NEGATIVE
++#define M1280X768_R50_VSP       POSITIVE
++
++/*1280x768@60 Sync Polarity  (GTF Mode)
++*/
++#define M1280X768_R60_HSP       NEGATIVE
++#define M1280X768_R60_VSP       POSITIVE
++
++/*1280x800@60 Sync Polarity  (CVT Mode)
++*/
++#define M1280X800_R60_HSP       NEGATIVE
++#define M1280X800_R60_VSP       POSITIVE
++
++/*1280x960@60 Sync Polarity (VESA Mode)
++*/
++#define M1280X960_R60_HSP       POSITIVE
++#define M1280X960_R60_VSP       POSITIVE
++
++/*1280x1024@60 Sync Polarity (VESA Mode)
++*/
++#define M1280X1024_R60_HSP      POSITIVE
++#define M1280X1024_R60_VSP      POSITIVE
++
++/* 1360x768@60 Sync Polarity (CVT Mode) */
++#define M1360X768_R60_HSP       POSITIVE
++#define M1360X768_R60_VSP       POSITIVE
++
++/* 1360x768@60 Sync Polarity (CVT Reduce Blanking Mode) */
++#define M1360X768_RB_R60_HSP       POSITIVE
++#define M1360X768_RB_R60_VSP       NEGATIVE
++
++/* 1368x768@50 Sync Polarity (GTF Mode) */
++#define M1368X768_R50_HSP       NEGATIVE
++#define M1368X768_R50_VSP       POSITIVE
++
++/* 1368x768@60 Sync Polarity (VESA Mode) */
++#define M1368X768_R60_HSP       NEGATIVE
++#define M1368X768_R60_VSP       POSITIVE
++
++/*1280x1024@75 Sync Polarity (VESA Mode)
++*/
++#define M1280X1024_R75_HSP      POSITIVE
++#define M1280X1024_R75_VSP      POSITIVE
++
++/*1280x1024@85 Sync Polarity (VESA Mode)
++*/
++#define M1280X1024_R85_HSP      POSITIVE
++#define M1280X1024_R85_VSP      POSITIVE
++
++/*1440x1050@60 Sync Polarity (GTF Mode)
++*/
++#define M1440X1050_R60_HSP      NEGATIVE
++#define M1440X1050_R60_VSP      POSITIVE
++
++/*1600x1200@60 Sync Polarity (VESA Mode)
++*/
++#define M1600X1200_R60_HSP      POSITIVE
++#define M1600X1200_R60_VSP      POSITIVE
++
++/*1600x1200@75 Sync Polarity (VESA Mode)
++*/
++#define M1600X1200_R75_HSP      POSITIVE
++#define M1600X1200_R75_VSP      POSITIVE
++
++/* 1680x1050@60 Sync Polarity (CVT Mode) */
++#define M1680x1050_R60_HSP      NEGATIVE
++#define M1680x1050_R60_VSP      NEGATIVE
++
++/* 1680x1050@60 Sync Polarity (CVT Reduce Blanking Mode) */
++#define M1680x1050_RB_R60_HSP      POSITIVE
++#define M1680x1050_RB_R60_VSP      NEGATIVE
++
++/* 1680x1050@75 Sync Polarity (CVT Mode) */
++#define M1680x1050_R75_HSP      NEGATIVE
++#define M1680x1050_R75_VSP      POSITIVE
++
++/*1920x1080@60 Sync Polarity (CVT Mode)
++*/
++#define M1920X1080_R60_HSP      NEGATIVE
++#define M1920X1080_R60_VSP      POSITIVE
++
++/* 1920x1080@60 Sync Polarity (CVT Reduce Blanking Mode) */
++#define M1920X1080_RB_R60_HSP  POSITIVE
++#define M1920X1080_RB_R60_VSP  NEGATIVE
++
++/*1920x1440@60 Sync Polarity (VESA Mode)
++*/
++#define M1920X1440_R60_HSP      NEGATIVE
++#define M1920X1440_R60_VSP      POSITIVE
++
++/*1920x1440@75 Sync Polarity (VESA Mode)
++*/
++#define M1920X1440_R75_HSP      NEGATIVE
++#define M1920X1440_R75_VSP      POSITIVE
++
++#if 0
++/* 1400x1050@60 Sync Polarity (VESA Mode) */
++#define M1400X1050_R60_HSP      NEGATIVE
++#define M1400X1050_R60_VSP      NEGATIVE
++#endif
++
++/* 1400x1050@60 Sync Polarity (CVT Mode) */
++#define M1400X1050_R60_HSP      NEGATIVE
++#define M1400X1050_R60_VSP      POSITIVE
++
++/* 1400x1050@60 Sync Polarity (CVT Reduce Blanking Mode) */
++#define M1400X1050_RB_R60_HSP      POSITIVE
++#define M1400X1050_RB_R60_VSP      NEGATIVE
++
++/* 1400x1050@75 Sync Polarity (CVT Mode) */
++#define M1400X1050_R75_HSP      NEGATIVE
++#define M1400X1050_R75_VSP      POSITIVE
++
++/* 960x600@60 Sync Polarity (CVT Mode) */
++#define M960X600_R60_HSP        NEGATIVE
++#define M960X600_R60_VSP        POSITIVE
++
++/* 1000x600@60 Sync Polarity (GTF Mode) */
++#define M1000X600_R60_HSP       NEGATIVE
++#define M1000X600_R60_VSP       POSITIVE
++
++/* 1024x576@60 Sync Polarity (GTF Mode) */
++#define M1024X576_R60_HSP       NEGATIVE
++#define M1024X576_R60_VSP       POSITIVE
++
++/*1024x600@60 Sync Polarity (GTF Mode)*/
++#define M1024X600_R60_HSP       NEGATIVE
++#define M1024X600_R60_VSP       POSITIVE
++
++/* 1088x612@60 Sync Polarity (CVT Mode) */
++#define M1088X612_R60_HSP       NEGATIVE
++#define M1088X612_R60_VSP       POSITIVE
++
++/* 1152x720@60 Sync Polarity (CVT Mode) */
++#define M1152X720_R60_HSP       NEGATIVE
++#define M1152X720_R60_VSP       POSITIVE
++
++/* 1200x720@60 Sync Polarity (GTF Mode) */
++#define M1200X720_R60_HSP       NEGATIVE
++#define M1200X720_R60_VSP       POSITIVE
++
++/* 1280x600@60 Sync Polarity (GTF Mode) */
++#define M1280x600_R60_HSP       NEGATIVE
++#define M1280x600_R60_VSP       POSITIVE
++
++/* 1280x720@50 Sync Polarity  (GTF Mode) */
++#define M1280X720_R50_HSP       NEGATIVE
++#define M1280X720_R50_VSP       POSITIVE
++
++/* 1280x720@60 Sync Polarity  (CEA Mode) */
++#define M1280X720_CEA_R60_HSP       POSITIVE
++#define M1280X720_CEA_R60_VSP       POSITIVE
++
++/* 1440x900@60 Sync Polarity (CVT Mode) */
++#define M1440X900_R60_HSP       NEGATIVE
++#define M1440X900_R60_VSP       POSITIVE
++
++/* 1440x900@75 Sync Polarity (CVT Mode) */
++#define M1440X900_R75_HSP       NEGATIVE
++#define M1440X900_R75_VSP       POSITIVE
++
++/* 1440x900@60 Sync Polarity (CVT Reduce Blanking Mode) */
++#define M1440X900_RB_R60_HSP       POSITIVE
++#define M1440X900_RB_R60_VSP       NEGATIVE
++
++/* 1600x900@60 Sync Polarity (CVT Mode) */
++#define M1600X900_R60_HSP       NEGATIVE
++#define M1600X900_R60_VSP       POSITIVE
++
++/* 1600x900@60 Sync Polarity (CVT Reduce Blanking Mode) */
++#define M1600X900_RB_R60_HSP       POSITIVE
++#define M1600X900_RB_R60_VSP       NEGATIVE
++
++/* 1600x1024@60 Sync Polarity (GTF Mode) */
++#define M1600X1024_R60_HSP      NEGATIVE
++#define M1600X1024_R60_VSP      POSITIVE
++
++/* 1792x1344@60 Sync Polarity (DMT Mode) */
++#define M1792x1344_R60_HSP      NEGATIVE
++#define M1792x1344_R60_VSP      POSITIVE
++
++/* 1856x1392@60 Sync Polarity (DMT Mode) */
++#define M1856x1392_R60_HSP      NEGATIVE
++#define M1856x1392_R60_VSP      POSITIVE
++
++/* 1920x1200@60 Sync Polarity (CVT Mode) */
++#define M1920X1200_R60_HSP      NEGATIVE
++#define M1920X1200_R60_VSP      POSITIVE
++
++/* 1920x1200@60 Sync Polarity (CVT Reduce Blanking Mode) */
++#define M1920X1200_RB_R60_HSP  POSITIVE
++#define M1920X1200_RB_R60_VSP  NEGATIVE
++
++/* 1920x1080@60 Sync Polarity  (CEA Mode) */
++#define M1920X1080_CEA_R60_HSP       POSITIVE
++#define M1920X1080_CEA_R60_VSP       POSITIVE
++
++/* 2048x1536@60 Sync Polarity (CVT Mode) */
++#define M2048x1536_R60_HSP      NEGATIVE
++#define M2048x1536_R60_VSP      POSITIVE
++
++/* define PLL index: */
++#define CLK_25_175M     25175000
++#define CLK_26_880M     26880000
++#define CLK_29_581M     29581000
++#define CLK_31_490M     31490000
++#define CLK_31_500M     31500000
++#define CLK_31_728M     31728000
++#define CLK_32_668M     32688000
++#define CLK_36_000M     36000000
++#define CLK_40_000M     40000000
++#define CLK_41_291M     41291000
++#define CLK_43_163M     43163000
++#define CLK_45_250M     45250000	/* 45.46MHz */
++#define CLK_46_000M     46000000
++#define CLK_46_996M     46996000
++#define CLK_48_000M     48000000
++#define CLK_48_875M     48875000
++#define CLK_49_500M     49500000
++#define CLK_52_406M     52406000
++#define CLK_52_977M     52977000
++#define CLK_56_250M     56250000
++#define CLK_60_466M     60466000
++#define CLK_61_500M     61500000
++#define CLK_65_000M     65000000
++#define CLK_65_178M     65178000
++#define CLK_66_750M     66750000	/* 67.116MHz */
++#define CLK_68_179M     68179000
++#define CLK_69_924M     69924000
++#define CLK_70_159M     70159000
++#define CLK_72_000M     72000000
++#define CLK_74_270M     74270000
++#define CLK_78_750M     78750000
++#define CLK_80_136M     80136000
++#define CLK_83_375M     83375000
++#define CLK_83_950M     83950000
++#define CLK_84_750M     84750000	/* 84.537Mhz */
++#define CLK_85_860M     85860000
++#define CLK_88_750M     88750000
++#define CLK_94_500M     94500000
++#define CLK_97_750M     97750000
++#define CLK_101_000M    101000000
++#define CLK_106_500M    106500000
++#define CLK_108_000M    108000000
++#define CLK_113_309M    113309000
++#define CLK_118_840M    118840000
++#define CLK_119_000M    119000000
++#define CLK_121_750M    121750000	/* 121.704MHz */
++#define CLK_125_104M    125104000
++#define CLK_133_308M    133308000
++#define CLK_135_000M    135000000
++#define CLK_136_700M    136700000
++#define CLK_138_400M    138400000
++#define CLK_146_760M    146760000
++#define CLK_148_500M    148500000
++
++#define CLK_153_920M    153920000
++#define CLK_156_000M    156000000
++#define CLK_157_500M    157500000
++#define CLK_162_000M    162000000
++#define CLK_187_000M    187000000
++#define CLK_193_295M    193295000
++#define CLK_202_500M    202500000
++#define CLK_204_000M    204000000
++#define CLK_218_500M    218500000
++#define CLK_234_000M    234000000
++#define CLK_267_250M    267250000
++#define CLK_297_500M    297500000
++#define CLK_74_481M     74481000
++#define CLK_172_798M    172798000
++#define CLK_122_614M    122614000
++
++/* CLE266 PLL value
++*/
++#define CLE266_PLL_25_175M     0x0000C763
++#define CLE266_PLL_26_880M     0x0000440F
++#define CLE266_PLL_29_581M     0x00008421
++#define CLE266_PLL_31_490M     0x00004721
++#define CLE266_PLL_31_500M     0x0000C3B5
++#define CLE266_PLL_31_728M     0x0000471F
++#define CLE266_PLL_32_668M     0x0000C449
++#define CLE266_PLL_36_000M     0x0000C5E5
++#define CLE266_PLL_40_000M     0x0000C459
++#define CLE266_PLL_41_291M     0x00004417
++#define CLE266_PLL_43_163M     0x0000C579
++#define CLE266_PLL_45_250M     0x0000C57F	/* 45.46MHz */
++#define CLE266_PLL_46_000M     0x0000875A
++#define CLE266_PLL_46_996M     0x0000C4E9
++#define CLE266_PLL_48_000M     0x00001443
++#define CLE266_PLL_48_875M     0x00001D63
++#define CLE266_PLL_49_500M     0x00008653
++#define CLE266_PLL_52_406M     0x0000C475
++#define CLE266_PLL_52_977M     0x00004525
++#define CLE266_PLL_56_250M     0x000047B7
++#define CLE266_PLL_60_466M     0x0000494C
++#define CLE266_PLL_61_500M     0x00001456
++#define CLE266_PLL_65_000M     0x000086ED
++#define CLE266_PLL_65_178M     0x0000855B
++#define CLE266_PLL_66_750M     0x0000844B	/* 67.116MHz */
++#define CLE266_PLL_68_179M     0x00000413
++#define CLE266_PLL_69_924M     0x00001153
++#define CLE266_PLL_70_159M     0x00001462
++#define CLE266_PLL_72_000M     0x00001879
++#define CLE266_PLL_74_270M     0x00004853
++#define CLE266_PLL_78_750M     0x00004321
++#define CLE266_PLL_80_136M     0x0000051C
++#define CLE266_PLL_83_375M     0x0000C25D
++#define CLE266_PLL_83_950M     0x00000729
++#define CLE266_PLL_84_750M     0x00008576	/* 84.537MHz */
++#define CLE266_PLL_85_860M     0x00004754
++#define CLE266_PLL_88_750M     0x0000051F
++#define CLE266_PLL_94_500M     0x00000521
++#define CLE266_PLL_97_750M     0x00004652
++#define CLE266_PLL_101_000M    0x0000497F
++#define CLE266_PLL_106_500M    0x00008477	/* 106.491463 MHz */
++#define CLE266_PLL_108_000M    0x00008479
++#define CLE266_PLL_113_309M    0x00000C5F
++#define CLE266_PLL_118_840M    0x00004553
++#define CLE266_PLL_119_000M    0x00000D6C
++#define CLE266_PLL_121_750M    0x00004555	/* 121.704MHz */
++#define CLE266_PLL_125_104M    0x000006B5
++#define CLE266_PLL_133_308M    0x0000465F
++#define CLE266_PLL_135_000M    0x0000455E
++#define CLE266_PLL_136_700M    0x00000C73
++#define CLE266_PLL_138_400M    0x00000957
++#define CLE266_PLL_146_760M    0x00004567
++#define CLE266_PLL_148_500M    0x00000853
++#define CLE266_PLL_153_920M    0x00000856
++#define CLE266_PLL_156_000M    0x0000456D
++#define CLE266_PLL_157_500M    0x000005B7
++#define CLE266_PLL_162_000M    0x00004571
++#define CLE266_PLL_187_000M    0x00000976
++#define CLE266_PLL_193_295M    0x0000086C
++#define CLE266_PLL_202_500M    0x00000763
++#define CLE266_PLL_204_000M    0x00000764
++#define CLE266_PLL_218_500M    0x0000065C
++#define CLE266_PLL_234_000M    0x00000662
++#define CLE266_PLL_267_250M    0x00000670
++#define CLE266_PLL_297_500M    0x000005E6
++#define CLE266_PLL_74_481M     0x0000051A
++#define CLE266_PLL_172_798M    0x00004579
++#define CLE266_PLL_122_614M    0x0000073C
++
++/* K800 PLL value
++*/
++#define K800_PLL_25_175M     0x00539001
++#define K800_PLL_26_880M     0x001C8C80
++#define K800_PLL_29_581M     0x00409080
++#define K800_PLL_31_490M     0x006F9001
++#define K800_PLL_31_500M     0x008B9002
++#define K800_PLL_31_728M     0x00AF9003
++#define K800_PLL_32_668M     0x00909002
++#define K800_PLL_36_000M     0x009F9002
++#define K800_PLL_40_000M     0x00578C02
++#define K800_PLL_41_291M     0x00438C01
++#define K800_PLL_43_163M     0x00778C03
++#define K800_PLL_45_250M     0x007D8C83	/* 45.46MHz */
++#define K800_PLL_46_000M     0x00658C02
++#define K800_PLL_46_996M     0x00818C83
++#define K800_PLL_48_000M     0x00848C83
++#define K800_PLL_48_875M     0x00508C81
++#define K800_PLL_49_500M     0x00518C01
++#define K800_PLL_52_406M     0x00738C02
++#define K800_PLL_52_977M     0x00928C83
++#define K800_PLL_56_250M     0x007C8C02
++#define K800_PLL_60_466M     0x00A78C83
++#define K800_PLL_61_500M     0x00AA8C83
++#define K800_PLL_65_000M     0x006B8C01
++#define K800_PLL_65_178M     0x00B48C83
++#define K800_PLL_66_750M     0x00948C82	/* 67.116MHz */
++#define K800_PLL_68_179M     0x00708C01
++#define K800_PLL_69_924M     0x00C18C83
++#define K800_PLL_70_159M     0x00C28C83
++#define K800_PLL_72_000M     0x009F8C82
++#define K800_PLL_74_270M     0x00ce0c03
++#define K800_PLL_78_750M     0x00408801
++#define K800_PLL_80_136M     0x00428801
++#define K800_PLL_83_375M     0x005B0882
++#define K800_PLL_83_950M     0x00738803
++#define K800_PLL_84_750M     0x00748883	/* 84.477MHz */
++#define K800_PLL_85_860M     0x00768883
++#define K800_PLL_88_750M     0x007A8883
++#define K800_PLL_94_500M     0x00828803
++#define K800_PLL_97_750M     0x00878883
++#define K800_PLL_101_000M    0x008B8883
++#define K800_PLL_106_500M    0x00758882	/* 106.491463 MHz */
++#define K800_PLL_108_000M    0x00778882
++#define K800_PLL_113_309M    0x005D8881
++#define K800_PLL_118_840M    0x00A48883
++#define K800_PLL_119_000M    0x00838882
++#define K800_PLL_121_750M    0x00A88883	/* 121.704MHz */
++#define K800_PLL_125_104M    0x00688801
++#define K800_PLL_133_308M    0x005D8801
++#define K800_PLL_135_000M    0x001A4081
++#define K800_PLL_136_700M    0x00BD8883
++#define K800_PLL_138_400M    0x00728881
++#define K800_PLL_146_760M    0x00CC8883
++#define K800_PLL_148_500M    0x00ce0803
++#define K800_PLL_153_920M    0x00548482
++#define K800_PLL_156_000M    0x006B8483
++#define K800_PLL_157_500M    0x00142080
++#define K800_PLL_162_000M    0x006F8483
++#define K800_PLL_187_000M    0x00818483
++#define K800_PLL_193_295M    0x004F8481
++#define K800_PLL_202_500M    0x00538481
++#define K800_PLL_204_000M    0x008D8483
++#define K800_PLL_218_500M    0x00978483
++#define K800_PLL_234_000M    0x00608401
++#define K800_PLL_267_250M    0x006E8481
++#define K800_PLL_297_500M    0x00A48402
++#define K800_PLL_74_481M     0x007B8C81
++#define K800_PLL_172_798M    0x00778483
++#define K800_PLL_122_614M    0x00878882
++
++/* PLL for VT3324 */
++#define CX700_25_175M     0x008B1003
++#define CX700_26_719M     0x00931003
++#define CX700_26_880M     0x00941003
++#define CX700_29_581M     0x00A49003
++#define CX700_31_490M     0x00AE1003
++#define CX700_31_500M     0x00AE1003
++#define CX700_31_728M     0x00AF1003
++#define CX700_32_668M     0x00B51003
++#define CX700_36_000M     0x00C81003
++#define CX700_40_000M     0x006E0C03
++#define CX700_41_291M     0x00710C03
++#define CX700_43_163M     0x00770C03
++#define CX700_45_250M     0x007D0C03	/* 45.46MHz */
++#define CX700_46_000M     0x007F0C03
++#define CX700_46_996M     0x00818C83
++#define CX700_48_000M     0x00840C03
++#define CX700_48_875M     0x00508C81
++#define CX700_49_500M     0x00880C03
++#define CX700_52_406M     0x00730C02
++#define CX700_52_977M     0x00920C03
++#define CX700_56_250M     0x009B0C03
++#define CX700_60_466M     0x00460C00
++#define CX700_61_500M     0x00AA0C03
++#define CX700_65_000M     0x006B0C01
++#define CX700_65_178M     0x006B0C01
++#define CX700_66_750M     0x00940C02	/*67.116MHz */
++#define CX700_68_179M     0x00BC0C03
++#define CX700_69_924M     0x00C10C03
++#define CX700_70_159M     0x00C20C03
++#define CX700_72_000M     0x009F0C02
++#define CX700_74_270M     0x00CE0C03
++#define CX700_74_481M     0x00CE0C03
++#define CX700_78_750M     0x006C0803
++#define CX700_80_136M     0x006E0803
++#define CX700_83_375M     0x005B0882
++#define CX700_83_950M     0x00730803
++#define CX700_84_750M     0x00740803	/* 84.537Mhz */
++#define CX700_85_860M     0x00760803
++#define CX700_88_750M     0x00AC8885
++#define CX700_94_500M     0x00820803
++#define CX700_97_750M     0x00870803
++#define CX700_101_000M    0x008B0803
++#define CX700_106_500M    0x00750802
++#define CX700_108_000M    0x00950803
++#define CX700_113_309M    0x005D0801
++#define CX700_118_840M    0x00A40803
++#define CX700_119_000M    0x00830802
++#define CX700_121_750M    0x00420800	/* 121.704MHz */
++#define CX700_125_104M    0x00AD0803
++#define CX700_133_308M    0x00930802
++#define CX700_135_000M    0x00950802
++#define CX700_136_700M    0x00BD0803
++#define CX700_138_400M    0x00720801
++#define CX700_146_760M    0x00CC0803
++#define CX700_148_500M    0x00a40802
++#define CX700_153_920M    0x00540402
++#define CX700_156_000M    0x006B0403
++#define CX700_157_500M    0x006C0403
++#define CX700_162_000M    0x006F0403
++#define CX700_172_798M    0x00770403
++#define CX700_187_000M    0x00810403
++#define CX700_193_295M    0x00850403
++#define CX700_202_500M    0x008C0403
++#define CX700_204_000M    0x008D0403
++#define CX700_218_500M    0x00970403
++#define CX700_234_000M    0x00600401
++#define CX700_267_250M    0x00B90403
++#define CX700_297_500M    0x00CE0403
++#define CX700_122_614M    0x00870802
++
++/* Definition CRTC Timing Index */
++#define H_TOTAL_INDEX               0
++#define H_ADDR_INDEX                1
++#define H_BLANK_START_INDEX         2
++#define H_BLANK_END_INDEX           3
++#define H_SYNC_START_INDEX          4
++#define H_SYNC_END_INDEX            5
++#define V_TOTAL_INDEX               6
++#define V_ADDR_INDEX                7
++#define V_BLANK_START_INDEX         8
++#define V_BLANK_END_INDEX           9
++#define V_SYNC_START_INDEX          10
++#define V_SYNC_END_INDEX            11
++#define H_TOTAL_SHADOW_INDEX        12
++#define H_BLANK_END_SHADOW_INDEX    13
++#define V_TOTAL_SHADOW_INDEX        14
++#define V_ADDR_SHADOW_INDEX         15
++#define V_BLANK_SATRT_SHADOW_INDEX  16
++#define V_BLANK_END_SHADOW_INDEX    17
++#define V_SYNC_SATRT_SHADOW_INDEX   18
++#define V_SYNC_END_SHADOW_INDEX     19
++
++/* Definition Video Mode Pixel Clock (picoseconds)
++*/
++#define RES_480X640_60HZ_PIXCLOCK    39722
++#define RES_640X480_60HZ_PIXCLOCK    39722
++#define RES_640X480_75HZ_PIXCLOCK    31747
++#define RES_640X480_85HZ_PIXCLOCK    27777
++#define RES_640X480_100HZ_PIXCLOCK   23168
++#define RES_640X480_120HZ_PIXCLOCK   19081
++#define RES_720X480_60HZ_PIXCLOCK    37020
++#define RES_720X576_60HZ_PIXCLOCK    30611
++#define RES_800X600_60HZ_PIXCLOCK    25000
++#define RES_800X600_75HZ_PIXCLOCK    20203
++#define RES_800X600_85HZ_PIXCLOCK    17777
++#define RES_800X600_100HZ_PIXCLOCK   14667
++#define RES_800X600_120HZ_PIXCLOCK   11912
++#define RES_800X480_60HZ_PIXCLOCK    33805
++#define RES_848X480_60HZ_PIXCLOCK    31756
++#define RES_856X480_60HZ_PIXCLOCK    31518
++#define RES_1024X512_60HZ_PIXCLOCK   24218
++#define RES_1024X600_60HZ_PIXCLOCK   20460
++#define RES_1024X768_60HZ_PIXCLOCK   15385
++#define RES_1024X768_75HZ_PIXCLOCK   12699
++#define RES_1024X768_85HZ_PIXCLOCK   10582
++#define RES_1024X768_100HZ_PIXCLOCK  8825
++#define RES_1152X864_75HZ_PIXCLOCK   9259
++#define RES_1280X768_60HZ_PIXCLOCK   12480
++#define RES_1280X800_60HZ_PIXCLOCK   11994
++#define RES_1280X960_60HZ_PIXCLOCK   9259
++#define RES_1280X1024_60HZ_PIXCLOCK  9260
++#define RES_1280X1024_75HZ_PIXCLOCK  7408
++#define RES_1280X768_85HZ_PIXCLOCK   6349
++#define RES_1440X1050_60HZ_PIXCLOCK  7993
++#define RES_1600X1200_60HZ_PIXCLOCK  6172
++#define RES_1600X1200_75HZ_PIXCLOCK  4938
++#define RES_1280X720_60HZ_PIXCLOCK   13426
++#define RES_1920X1080_60HZ_PIXCLOCK  5787
++#define RES_1400X1050_60HZ_PIXCLOCK  8214
++#define RES_1400X1050_75HZ_PIXCLOCK  6410
++#define RES_1368X768_60HZ_PIXCLOCK   11647
++#define RES_960X600_60HZ_PIXCLOCK      22099
++#define RES_1000X600_60HZ_PIXCLOCK    20834
++#define RES_1024X576_60HZ_PIXCLOCK    21278
++#define RES_1088X612_60HZ_PIXCLOCK    18877
++#define RES_1152X720_60HZ_PIXCLOCK    14981
++#define RES_1200X720_60HZ_PIXCLOCK    14253
++#define RES_1280X600_60HZ_PIXCLOCK    16260
++#define RES_1280X720_50HZ_PIXCLOCK    16538
++#define RES_1280X768_50HZ_PIXCLOCK    15342
++#define RES_1366X768_50HZ_PIXCLOCK    14301
++#define RES_1366X768_60HZ_PIXCLOCK    11646
++#define RES_1360X768_60HZ_PIXCLOCK    11799
++#define RES_1440X900_60HZ_PIXCLOCK    9390
++#define RES_1440X900_75HZ_PIXCLOCK    7315
++#define RES_1600X900_60HZ_PIXCLOCK    8415
++#define RES_1600X1024_60HZ_PIXCLOCK   7315
++#define RES_1680X1050_60HZ_PIXCLOCK   6814
++#define RES_1680X1050_75HZ_PIXCLOCK   5348
++#define RES_1792X1344_60HZ_PIXCLOCK   4902
++#define RES_1856X1392_60HZ_PIXCLOCK   4577
++#define RES_1920X1200_60HZ_PIXCLOCK   5173
++#define RES_1920X1440_60HZ_PIXCLOCK   4274
++#define RES_1920X1440_75HZ_PIXCLOCK   3367
++#define RES_2048X1536_60HZ_PIXCLOCK   3742
++
++#define RES_1360X768_RB_60HZ_PIXCLOCK 13889
++#define RES_1400X1050_RB_60HZ_PIXCLOCK 9901
++#define RES_1440X900_RB_60HZ_PIXCLOCK   11268
++#define RES_1600X900_RB_60HZ_PIXCLOCK   10230
++#define RES_1680X1050_RB_60HZ_PIXCLOCK 8403
++#define RES_1920X1080_RB_60HZ_PIXCLOCK 7225
++#define RES_1920X1200_RB_60HZ_PIXCLOCK 6497
++
++/* LCD display method
++*/
++#define     LCD_EXPANDSION              0x00
++#define     LCD_CENTERING               0x01
++
++/* LCD mode
++*/
++#define     LCD_OPENLDI               0x00
++#define     LCD_SPWG                  0x01
++
++/* Define display timing
++*/
++struct display_timing {
++	u16 hor_total;
++	u16 hor_addr;
++	u16 hor_blank_start;
++	u16 hor_blank_end;
++	u16 hor_sync_start;
++	u16 hor_sync_end;
++	u16 ver_total;
++	u16 ver_addr;
++	u16 ver_blank_start;
++	u16 ver_blank_end;
++	u16 ver_sync_start;
++	u16 ver_sync_end;
 +};
 +
-+static struct _lcd_scaling_factor lcd_scaling_factor = {
-+	/* LCD Horizontal Scaling Factor Register */
-+	{LCD_HOR_SCALING_FACTOR_REG_NUM,
-+	 {{CR9F, 0, 1}, {CR77, 0, 7}, {CR79, 4, 5} } },
-+	/* LCD Vertical Scaling Factor Register */
-+	{LCD_VER_SCALING_FACTOR_REG_NUM,
-+	 {{CR79, 3, 3}, {CR78, 0, 7}, {CR79, 6, 7} } }
-+};
-+static struct _lcd_scaling_factor lcd_scaling_factor_CLE = {
-+	/* LCD Horizontal Scaling Factor Register */
-+	{LCD_HOR_SCALING_FACTOR_REG_NUM_CLE, {{CR77, 0, 7}, {CR79, 4, 5} } },
-+	/* LCD Vertical Scaling Factor Register */
-+	{LCD_VER_SCALING_FACTOR_REG_NUM_CLE, {{CR78, 0, 7}, {CR79, 6, 7} } }
++struct crt_mode_table {
++	int refresh_rate;
++	unsigned long clk;
++	int h_sync_polarity;
++	int v_sync_polarity;
++	struct display_timing crtc;
 +};
 +
-+static int check_lvds_chip(int device_id_subaddr, int device_id);
-+static bool lvds_identify_integratedlvds(void);
-+static int fp_id_to_vindex(int panel_id);
-+static int lvds_register_read(int index);
-+static void load_lcd_scaling(int set_hres, int set_vres, int panel_hres,
-+		      int panel_vres);
-+static void load_lcd_k400_patch_tbl(int set_hres, int set_vres,
-+	int panel_id);
-+static void load_lcd_p880_patch_tbl(int set_hres, int set_vres,
-+	int panel_id);
-+static void load_lcd_patch_regs(int set_hres, int set_vres,
-+	int panel_id, int set_iga);
-+static void via_pitch_alignment_patch_lcd(
-+	struct lvds_setting_information *plvds_setting_info,
-+				   struct lvds_chip_information
-+				   *plvds_chip_info);
-+static void lcd_patch_skew_dvp0(struct lvds_setting_information
-+			 *plvds_setting_info,
-+			 struct lvds_chip_information *plvds_chip_info);
-+static void lcd_patch_skew_dvp1(struct lvds_setting_information
-+			 *plvds_setting_info,
-+			 struct lvds_chip_information *plvds_chip_info);
-+static void lcd_patch_skew(struct lvds_setting_information
-+	*plvds_setting_info, struct lvds_chip_information *plvds_chip_info);
-+
-+static void integrated_lvds_disable(struct lvds_setting_information
-+			     *plvds_setting_info,
-+			     struct lvds_chip_information *plvds_chip_info);
-+static void integrated_lvds_enable(struct lvds_setting_information
-+			    *plvds_setting_info,
-+			    struct lvds_chip_information *plvds_chip_info);
-+static void lcd_powersequence_off(void);
-+static void lcd_powersequence_on(void);
-+static void fill_lcd_format(void);
-+static void check_diport_of_integrated_lvds(
-+	struct lvds_chip_information *plvds_chip_info,
-+				     struct lvds_setting_information
-+				     *plvds_setting_info);
-+static struct display_timing lcd_centering_timging(struct display_timing
-+					    mode_crt_reg,
-+					   struct display_timing panel_crt_reg);
-+static void load_crtc_shadow_timing(struct display_timing mode_timing,
-+			     struct display_timing panel_timing);
-+static void viafb_load_scaling_factor_for_p4m900(int set_hres,
-+	int set_vres, int panel_hres, int panel_vres);
-+
-+static int check_lvds_chip(int device_id_subaddr, int device_id)
-+{
-+	if (lvds_register_read(device_id_subaddr) == device_id)
-+		return OK;
-+	else
-+		return FAIL;
-+}
-+
-+void viafb_init_lcd_size(void)
-+{
-+	DEBUG_MSG(KERN_INFO "viafb_init_lcd_size()\n");
-+	DEBUG_MSG(KERN_INFO
-+		"viaparinfo->lvds_setting_info->get_lcd_size_method %d\n",
-+		viaparinfo->lvds_setting_info->get_lcd_size_method);
-+
-+	switch (viaparinfo->lvds_setting_info->get_lcd_size_method) {
-+	case GET_LCD_SIZE_BY_SYSTEM_BIOS:
-+		break;
-+	case GET_LCD_SZIE_BY_HW_STRAPPING:
-+		break;
-+	case GET_LCD_SIZE_BY_VGA_BIOS:
-+		DEBUG_MSG(KERN_INFO "Get LCD Size method by VGA BIOS !!\n");
-+		viaparinfo->lvds_setting_info->lcd_panel_size =
-+		    fp_id_to_vindex(viafb_lcd_panel_id);
-+		DEBUG_MSG(KERN_INFO "LCD Panel_ID = %d\n",
-+			  viaparinfo->lvds_setting_info->lcd_panel_id);
-+		DEBUG_MSG(KERN_INFO "LCD Panel Size = %d\n",
-+			  viaparinfo->lvds_setting_info->lcd_panel_size);
-+		break;
-+	case GET_LCD_SIZE_BY_USER_SETTING:
-+		DEBUG_MSG(KERN_INFO "Get LCD Size method by user setting !!\n");
-+		viaparinfo->lvds_setting_info->lcd_panel_size =
-+		    fp_id_to_vindex(viafb_lcd_panel_id);
-+		DEBUG_MSG(KERN_INFO "LCD Panel_ID = %d\n",
-+			  viaparinfo->lvds_setting_info->lcd_panel_id);
-+		DEBUG_MSG(KERN_INFO "LCD Panel Size = %d\n",
-+			  viaparinfo->lvds_setting_info->lcd_panel_size);
-+		break;
-+	default:
-+		DEBUG_MSG(KERN_INFO "viafb_init_lcd_size fail\n");
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID1_800X600;
-+		viaparinfo->lvds_setting_info->lcd_panel_size =
-+		    fp_id_to_vindex(LCD_PANEL_ID1_800X600);
-+	}
-+	viaparinfo->lvds_setting_info2->lcd_panel_id =
-+		viaparinfo->lvds_setting_info->lcd_panel_id;
-+	viaparinfo->lvds_setting_info2->lcd_panel_size =
-+		viaparinfo->lvds_setting_info->lcd_panel_size;
-+	viaparinfo->lvds_setting_info2->lcd_panel_hres =
-+		viaparinfo->lvds_setting_info->lcd_panel_hres;
-+	viaparinfo->lvds_setting_info2->lcd_panel_vres =
-+		viaparinfo->lvds_setting_info->lcd_panel_vres;
-+	viaparinfo->lvds_setting_info2->device_lcd_dualedge =
-+	    viaparinfo->lvds_setting_info->device_lcd_dualedge;
-+	viaparinfo->lvds_setting_info2->LCDDithering =
-+		viaparinfo->lvds_setting_info->LCDDithering;
-+}
-+
-+static bool lvds_identify_integratedlvds(void)
-+{
-+	if (viafb_display_hardware_layout == HW_LAYOUT_LCD_EXTERNAL_LCD2) {
-+		/* Two dual channel LCD (Internal LVDS + External LVDS): */
-+		/* If we have an external LVDS, such as VT1636, we should
-+		   have its chip ID already. */
-+		if (viaparinfo->chip_info->lvds_chip_info.lvds_chip_name) {
-+			viaparinfo->chip_info->lvds_chip_info2.lvds_chip_name =
-+			    INTEGRATED_LVDS;
-+			DEBUG_MSG(KERN_INFO "Support two dual channel LVDS!\
-+				  (Internal LVDS + External LVDS)\n");
-+		} else {
-+			viaparinfo->chip_info->lvds_chip_info.lvds_chip_name =
-+			    INTEGRATED_LVDS;
-+			DEBUG_MSG(KERN_INFO "Not found external LVDS,\
-+				  so can't support two dual channel LVDS!\n");
-+		}
-+	} else if (viafb_display_hardware_layout == HW_LAYOUT_LCD1_LCD2) {
-+		/* Two single channel LCD (Internal LVDS + Internal LVDS): */
-+		viaparinfo->chip_info->lvds_chip_info.lvds_chip_name =
-+		INTEGRATED_LVDS;
-+		viaparinfo->chip_info->lvds_chip_info2.lvds_chip_name =
-+			INTEGRATED_LVDS;
-+		DEBUG_MSG(KERN_INFO "Support two single channel LVDS!\
-+			  (Internal LVDS + Internal LVDS)\n");
-+	} else if (viafb_display_hardware_layout != HW_LAYOUT_DVI_ONLY) {
-+		/* If we have found external LVDS, just use it,
-+		   otherwise, we will use internal LVDS as default. */
-+		if (!viaparinfo->chip_info->lvds_chip_info.lvds_chip_name) {
-+			viaparinfo->chip_info->lvds_chip_info.lvds_chip_name =
-+			    INTEGRATED_LVDS;
-+			DEBUG_MSG(KERN_INFO "Found Integrated LVDS!\n");
-+		}
-+	} else {
-+		viaparinfo->chip_info->lvds_chip_info.lvds_chip_name =
-+			NON_LVDS_TRANSMITTER;
-+		DEBUG_MSG(KERN_INFO "Do not support LVDS!\n");
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
-+int viafb_lvds_trasmitter_identify(void)
-+{
-+	viaparinfo->i2c_stuff.i2c_port = I2CPORTINDEX;
-+	if (viafb_lvds_identify_vt1636()) {
-+		viaparinfo->chip_info->lvds_chip_info.i2c_port = I2CPORTINDEX;
-+		DEBUG_MSG(KERN_INFO
-+			  "Found VIA VT1636 LVDS on port i2c 0x31 \n");
-+	} else {
-+		viaparinfo->i2c_stuff.i2c_port = GPIOPORTINDEX;
-+		if (viafb_lvds_identify_vt1636()) {
-+			viaparinfo->chip_info->lvds_chip_info.i2c_port =
-+				GPIOPORTINDEX;
-+			DEBUG_MSG(KERN_INFO
-+				  "Found VIA VT1636 LVDS on port gpio 0x2c \n");
-+		}
-+	}
-+
-+	if (viaparinfo->chip_info->gfx_chip_name == UNICHROME_CX700)
-+		lvds_identify_integratedlvds();
-+
-+	if (viaparinfo->chip_info->lvds_chip_info.lvds_chip_name)
-+		return true;
-+	/* Check for VT1631: */
-+	viaparinfo->chip_info->lvds_chip_info.lvds_chip_name = VT1631_LVDS;
-+	viaparinfo->chip_info->lvds_chip_info.lvds_chip_slave_addr =
-+		VT1631_LVDS_I2C_ADDR;
-+
-+	if (check_lvds_chip(VT1631_DEVICE_ID_REG, VT1631_DEVICE_ID) != FAIL) {
-+		DEBUG_MSG(KERN_INFO "\n VT1631 LVDS ! \n");
-+		DEBUG_MSG(KERN_INFO "\n %2d",
-+			  viaparinfo->chip_info->lvds_chip_info.lvds_chip_name);
-+		DEBUG_MSG(KERN_INFO "\n %2d",
-+			  viaparinfo->chip_info->lvds_chip_info.lvds_chip_name);
-+		return OK;
-+	}
-+
-+	viaparinfo->chip_info->lvds_chip_info.lvds_chip_name =
-+		NON_LVDS_TRANSMITTER;
-+	viaparinfo->chip_info->lvds_chip_info.lvds_chip_slave_addr =
-+		VT1631_LVDS_I2C_ADDR;
-+	return FAIL;
-+}
-+
-+static int fp_id_to_vindex(int panel_id)
-+{
-+	DEBUG_MSG(KERN_INFO "fp_get_panel_id()\n");
-+
-+	if (panel_id > LCD_PANEL_ID_MAXIMUM)
-+		viafb_lcd_panel_id = panel_id =
-+		viafb_read_reg(VIACR, CR3F) & 0x0F;
-+
-+	switch (panel_id) {
-+	case 0x0:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 640;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 480;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID0_640X480;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 0;
-+		viaparinfo->lvds_setting_info->LCDDithering = 1;
-+		return VIA_RES_640X480;
-+		break;
-+	case 0x1:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 800;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 600;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID1_800X600;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 0;
-+		viaparinfo->lvds_setting_info->LCDDithering = 1;
-+		return VIA_RES_800X600;
-+		break;
-+	case 0x2:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 1024;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 768;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID2_1024X768;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 0;
-+		viaparinfo->lvds_setting_info->LCDDithering = 1;
-+		return VIA_RES_1024X768;
-+		break;
-+	case 0x3:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 1280;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 768;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID3_1280X768;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 0;
-+		viaparinfo->lvds_setting_info->LCDDithering = 1;
-+		return VIA_RES_1280X768;
-+		break;
-+	case 0x4:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 1280;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 1024;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID4_1280X1024;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 1;
-+		viaparinfo->lvds_setting_info->LCDDithering = 1;
-+		return VIA_RES_1280X1024;
-+		break;
-+	case 0x5:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 1400;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 1050;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID5_1400X1050;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 1;
-+		viaparinfo->lvds_setting_info->LCDDithering = 1;
-+		return VIA_RES_1400X1050;
-+		break;
-+	case 0x6:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 1600;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 1200;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID6_1600X1200;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 1;
-+		viaparinfo->lvds_setting_info->LCDDithering = 1;
-+		return VIA_RES_1600X1200;
-+		break;
-+	case 0x8:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 800;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 480;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_IDA_800X480;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 0;
-+		viaparinfo->lvds_setting_info->LCDDithering = 1;
-+		return VIA_RES_800X480;
-+		break;
-+	case 0x9:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 1024;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 768;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID2_1024X768;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 1;
-+		viaparinfo->lvds_setting_info->LCDDithering = 1;
-+		return VIA_RES_1024X768;
-+		break;
-+	case 0xA:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 1024;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 768;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID2_1024X768;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 0;
-+		viaparinfo->lvds_setting_info->LCDDithering = 0;
-+		return VIA_RES_1024X768;
-+		break;
-+	case 0xB:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 1024;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 768;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID2_1024X768;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 1;
-+		viaparinfo->lvds_setting_info->LCDDithering = 0;
-+		return VIA_RES_1024X768;
-+		break;
-+	case 0xC:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 1280;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 768;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID3_1280X768;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 0;
-+		viaparinfo->lvds_setting_info->LCDDithering = 0;
-+		return VIA_RES_1280X768;
-+		break;
-+	case 0xD:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 1280;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 1024;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID4_1280X1024;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 1;
-+		viaparinfo->lvds_setting_info->LCDDithering = 0;
-+		return VIA_RES_1280X1024;
-+		break;
-+	case 0xE:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 1400;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 1050;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID5_1400X1050;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 1;
-+		viaparinfo->lvds_setting_info->LCDDithering = 0;
-+		return VIA_RES_1400X1050;
-+		break;
-+	case 0xF:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 1600;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 1200;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID6_1600X1200;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 1;
-+		viaparinfo->lvds_setting_info->LCDDithering = 0;
-+		return VIA_RES_1600X1200;
-+		break;
-+	case 0x10:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 1366;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 768;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID7_1366X768;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 0;
-+		viaparinfo->lvds_setting_info->LCDDithering = 0;
-+		return VIA_RES_1368X768;
-+		break;
-+	case 0x11:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 1024;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 600;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID8_1024X600;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 0;
-+		viaparinfo->lvds_setting_info->LCDDithering = 1;
-+		return VIA_RES_1024X600;
-+		break;
-+	case 0x12:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 1280;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 768;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID3_1280X768;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 1;
-+		viaparinfo->lvds_setting_info->LCDDithering = 1;
-+		return VIA_RES_1280X768;
-+		break;
-+	case 0x13:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 1280;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 800;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID9_1280X800;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 0;
-+		viaparinfo->lvds_setting_info->LCDDithering = 1;
-+		return VIA_RES_1280X800;
-+		break;
-+	case 0x14:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 1360;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 768;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_IDB_1360X768;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 0;
-+		viaparinfo->lvds_setting_info->LCDDithering = 0;
-+		return VIA_RES_1360X768;
-+		break;
-+	case 0x15:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 1280;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 768;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID3_1280X768;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 1;
-+		viaparinfo->lvds_setting_info->LCDDithering = 0;
-+		return VIA_RES_1280X768;
-+		break;
-+	case 0x16:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 480;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 640;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_IDC_480X640;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 0;
-+		viaparinfo->lvds_setting_info->LCDDithering = 1;
-+		return VIA_RES_480X640;
-+		break;
-+	default:
-+		viaparinfo->lvds_setting_info->lcd_panel_hres = 800;
-+		viaparinfo->lvds_setting_info->lcd_panel_vres = 600;
-+		viaparinfo->lvds_setting_info->lcd_panel_id =
-+			LCD_PANEL_ID1_800X600;
-+		viaparinfo->lvds_setting_info->device_lcd_dualedge = 0;
-+		viaparinfo->lvds_setting_info->LCDDithering = 1;
-+		return VIA_RES_800X600;
-+	}
-+}
-+
-+static int lvds_register_read(int index)
-+{
-+	u8 data;
-+
-+	viaparinfo->i2c_stuff.i2c_port = GPIOPORTINDEX;
-+	viafb_i2c_readbyte((u8) viaparinfo->chip_info->
-+	    lvds_chip_info.lvds_chip_slave_addr,
-+			(u8) index, &data);
-+	return data;
-+}
-+
-+static void load_lcd_scaling(int set_hres, int set_vres, int panel_hres,
-+		      int panel_vres)
-+{
-+	int reg_value = 0;
-+	int viafb_load_reg_num;
-+	struct io_register *reg = NULL;
-+
-+	DEBUG_MSG(KERN_INFO "load_lcd_scaling()!!\n");
-+
-+	/* LCD Scaling Enable */
-+	viafb_write_reg_mask(CR79, VIACR, 0x07, BIT0 + BIT1 + BIT2);
-+	if (UNICHROME_P4M900 == viaparinfo->chip_info->gfx_chip_name) {
-+		viafb_load_scaling_factor_for_p4m900(set_hres, set_vres,
-+					       panel_hres, panel_vres);
-+		return;
-+	}
-+
-+	/* Check if expansion for horizontal */
-+	if (set_hres != panel_hres) {
-+		/* Load Horizontal Scaling Factor */
-+		switch (viaparinfo->chip_info->gfx_chip_name) {
-+		case UNICHROME_CLE266:
-+		case UNICHROME_K400:
-+			reg_value =
-+			    CLE266_LCD_HOR_SCF_FORMULA(set_hres, panel_hres);
-+			viafb_load_reg_num =
-+			    lcd_scaling_factor_CLE.lcd_hor_scaling_factor.
-+			    reg_num;
-+			reg = lcd_scaling_factor_CLE.lcd_hor_scaling_factor.reg;
-+			viafb_load_reg(reg_value,
-+				viafb_load_reg_num, reg, VIACR);
-+			break;
-+		case UNICHROME_K800:
-+		case UNICHROME_PM800:
-+		case UNICHROME_CN700:
-+		case UNICHROME_CX700:
-+		case UNICHROME_K8M890:
-+		case UNICHROME_P4M890:
-+			reg_value =
-+			    K800_LCD_HOR_SCF_FORMULA(set_hres, panel_hres);
-+			/* Horizontal scaling enabled */
-+			viafb_write_reg_mask(CRA2, VIACR, 0xC0, BIT7 + BIT6);
-+			viafb_load_reg_num =
-+			    lcd_scaling_factor.lcd_hor_scaling_factor.reg_num;
-+			reg = lcd_scaling_factor.lcd_hor_scaling_factor.reg;
-+			viafb_load_reg(reg_value,
-+				viafb_load_reg_num, reg, VIACR);
-+			break;
-+		}
-+
-+		DEBUG_MSG(KERN_INFO "Horizontal Scaling value = %d", reg_value);
-+	} else {
-+		/* Horizontal scaling disabled */
-+		viafb_write_reg_mask(CRA2, VIACR, 0x00, BIT7);
-+	}
-+
-+	/* Check if expansion for vertical */
-+	if (set_vres != panel_vres) {
-+		/* Load Vertical Scaling Factor */
-+		switch (viaparinfo->chip_info->gfx_chip_name) {
-+		case UNICHROME_CLE266:
-+		case UNICHROME_K400:
-+			reg_value =
-+			    CLE266_LCD_VER_SCF_FORMULA(set_vres, panel_vres);
-+			viafb_load_reg_num =
-+			    lcd_scaling_factor_CLE.lcd_ver_scaling_factor.
-+			    reg_num;
-+			reg = lcd_scaling_factor_CLE.lcd_ver_scaling_factor.reg;
-+			viafb_load_reg(reg_value,
-+				viafb_load_reg_num, reg, VIACR);
-+			break;
-+		case UNICHROME_K800:
-+		case UNICHROME_PM800:
-+		case UNICHROME_CN700:
-+		case UNICHROME_CX700:
-+		case UNICHROME_K8M890:
-+		case UNICHROME_P4M890:
-+			reg_value =
-+			    K800_LCD_VER_SCF_FORMULA(set_vres, panel_vres);
-+			/* Vertical scaling enabled */
-+			viafb_write_reg_mask(CRA2, VIACR, 0x08, BIT3);
-+			viafb_load_reg_num =
-+			    lcd_scaling_factor.lcd_ver_scaling_factor.reg_num;
-+			reg = lcd_scaling_factor.lcd_ver_scaling_factor.reg;
-+			viafb_load_reg(reg_value,
-+				viafb_load_reg_num, reg, VIACR);
-+			break;
-+		}
-+
-+		DEBUG_MSG(KERN_INFO "Vertical Scaling value = %d", reg_value);
-+	} else {
-+		/* Vertical scaling disabled */
-+		viafb_write_reg_mask(CRA2, VIACR, 0x00, BIT3);
-+	}
-+}
-+
-+static void load_lcd_k400_patch_tbl(int set_hres, int set_vres,
-+	int panel_id)
-+{
-+	int vmode_index;
-+	int reg_num = 0;
-+	struct io_reg *lcd_patch_reg = NULL;
-+
-+	if (viaparinfo->lvds_setting_info->iga_path == IGA2)
-+		vmode_index = viafb_get_mode_index(set_hres, set_vres, 1);
-+	else
-+		vmode_index = viafb_get_mode_index(set_hres, set_vres, 0);
-+	switch (panel_id) {
-+		/* LCD 800x600 */
-+	case LCD_PANEL_ID1_800X600:
-+		switch (vmode_index) {
-+		case VIA_RES_640X400:
-+		case VIA_RES_640X480:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_6X4_8X6;
-+			lcd_patch_reg = K400_LCD_RES_6X4_8X6;
-+			break;
-+		case VIA_RES_720X480:
-+		case VIA_RES_720X576:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_7X4_8X6;
-+			lcd_patch_reg = K400_LCD_RES_7X4_8X6;
-+			break;
-+		}
-+		break;
-+
-+		/* LCD 1024x768 */
-+	case LCD_PANEL_ID2_1024X768:
-+		switch (vmode_index) {
-+		case VIA_RES_640X400:
-+		case VIA_RES_640X480:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_6X4_10X7;
-+			lcd_patch_reg = K400_LCD_RES_6X4_10X7;
-+			break;
-+		case VIA_RES_720X480:
-+		case VIA_RES_720X576:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_7X4_10X7;
-+			lcd_patch_reg = K400_LCD_RES_7X4_10X7;
-+			break;
-+		case VIA_RES_800X600:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_8X6_10X7;
-+			lcd_patch_reg = K400_LCD_RES_8X6_10X7;
-+			break;
-+		}
-+		break;
-+
-+		/* LCD 1280x1024 */
-+	case LCD_PANEL_ID4_1280X1024:
-+		switch (vmode_index) {
-+		case VIA_RES_640X400:
-+		case VIA_RES_640X480:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_6X4_12X10;
-+			lcd_patch_reg = K400_LCD_RES_6X4_12X10;
-+			break;
-+		case VIA_RES_720X480:
-+		case VIA_RES_720X576:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_7X4_12X10;
-+			lcd_patch_reg = K400_LCD_RES_7X4_12X10;
-+			break;
-+		case VIA_RES_800X600:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_8X6_12X10;
-+			lcd_patch_reg = K400_LCD_RES_8X6_12X10;
-+			break;
-+		case VIA_RES_1024X768:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_10X7_12X10;
-+			lcd_patch_reg = K400_LCD_RES_10X7_12X10;
-+			break;
-+
-+		}
-+		break;
-+
-+		/* LCD 1400x1050 */
-+	case LCD_PANEL_ID5_1400X1050:
-+		switch (vmode_index) {
-+		case VIA_RES_640X480:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_6X4_14X10;
-+			lcd_patch_reg = K400_LCD_RES_6X4_14X10;
-+			break;
-+		case VIA_RES_800X600:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_8X6_14X10;
-+			lcd_patch_reg = K400_LCD_RES_8X6_14X10;
-+			break;
-+		case VIA_RES_1024X768:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_10X7_14X10;
-+			lcd_patch_reg = K400_LCD_RES_10X7_14X10;
-+			break;
-+		case VIA_RES_1280X768:
-+		case VIA_RES_1280X800:
-+		case VIA_RES_1280X960:
-+		case VIA_RES_1280X1024:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_12X10_14X10;
-+			lcd_patch_reg = K400_LCD_RES_12X10_14X10;
-+			break;
-+		}
-+		break;
-+
-+		/* LCD 1600x1200 */
-+	case LCD_PANEL_ID6_1600X1200:
-+		switch (vmode_index) {
-+		case VIA_RES_640X400:
-+		case VIA_RES_640X480:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_6X4_16X12;
-+			lcd_patch_reg = K400_LCD_RES_6X4_16X12;
-+			break;
-+		case VIA_RES_720X480:
-+		case VIA_RES_720X576:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_7X4_16X12;
-+			lcd_patch_reg = K400_LCD_RES_7X4_16X12;
-+			break;
-+		case VIA_RES_800X600:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_8X6_16X12;
-+			lcd_patch_reg = K400_LCD_RES_8X6_16X12;
-+			break;
-+		case VIA_RES_1024X768:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_10X7_16X12;
-+			lcd_patch_reg = K400_LCD_RES_10X7_16X12;
-+			break;
-+		case VIA_RES_1280X768:
-+		case VIA_RES_1280X800:
-+		case VIA_RES_1280X960:
-+		case VIA_RES_1280X1024:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_12X10_16X12;
-+			lcd_patch_reg = K400_LCD_RES_12X10_16X12;
-+			break;
-+		}
-+		break;
-+
-+		/* LCD 1366x768 */
-+	case LCD_PANEL_ID7_1366X768:
-+		switch (vmode_index) {
-+		case VIA_RES_640X480:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_6X4_1366X7;
-+			lcd_patch_reg = K400_LCD_RES_6X4_1366X7;
-+			break;
-+		case VIA_RES_720X480:
-+		case VIA_RES_720X576:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_7X4_1366X7;
-+			lcd_patch_reg = K400_LCD_RES_7X4_1366X7;
-+			break;
-+		case VIA_RES_800X600:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_8X6_1366X7;
-+			lcd_patch_reg = K400_LCD_RES_8X6_1366X7;
-+			break;
-+		case VIA_RES_1024X768:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_10X7_1366X7;
-+			lcd_patch_reg = K400_LCD_RES_10X7_1366X7;
-+			break;
-+		case VIA_RES_1280X768:
-+		case VIA_RES_1280X800:
-+		case VIA_RES_1280X960:
-+		case VIA_RES_1280X1024:
-+			reg_num = NUM_TOTAL_K400_LCD_RES_12X10_1366X7;
-+			lcd_patch_reg = K400_LCD_RES_12X10_1366X7;
-+			break;
-+		}
-+		break;
-+
-+		/* LCD 1360x768 */
-+	case LCD_PANEL_IDB_1360X768:
-+		break;
-+	}
-+	if (reg_num != 0) {
-+		/* H.W. Reset : ON */
-+		viafb_write_reg_mask(CR17, VIACR, 0x00, BIT7);
-+
-+		viafb_write_regx(lcd_patch_reg, reg_num);
-+
-+		/* H.W. Reset : OFF */
-+		viafb_write_reg_mask(CR17, VIACR, 0x80, BIT7);
-+
-+		/* Reset PLL */
-+		viafb_write_reg_mask(SR40, VIASR, 0x02, BIT1);
-+		viafb_write_reg_mask(SR40, VIASR, 0x00, BIT1);
-+
-+		/* Fire! */
-+		outb(inb(VIARMisc) | (BIT2 + BIT3), VIAWMisc);
-+	}
-+}
-+
-+static void load_lcd_p880_patch_tbl(int set_hres, int set_vres,
-+	int panel_id)
-+{
-+	int vmode_index;
-+	int reg_num = 0;
-+	struct io_reg *lcd_patch_reg = NULL;
-+
-+	if (viaparinfo->lvds_setting_info->iga_path == IGA2)
-+		vmode_index = viafb_get_mode_index(set_hres, set_vres, 1);
-+	else
-+		vmode_index = viafb_get_mode_index(set_hres, set_vres, 0);
-+
-+	switch (panel_id) {
-+	case LCD_PANEL_ID5_1400X1050:
-+		switch (vmode_index) {
-+		case VIA_RES_640X480:
-+			reg_num = NUM_TOTAL_P880_LCD_RES_6X4_14X10;
-+			lcd_patch_reg = P880_LCD_RES_6X4_14X10;
-+			break;
-+		case VIA_RES_800X600:
-+			reg_num = NUM_TOTAL_P880_LCD_RES_8X6_14X10;
-+			lcd_patch_reg = P880_LCD_RES_8X6_14X10;
-+			break;
-+		}
-+		break;
-+	case LCD_PANEL_ID6_1600X1200:
-+		switch (vmode_index) {
-+		case VIA_RES_640X400:
-+		case VIA_RES_640X480:
-+			reg_num = NUM_TOTAL_P880_LCD_RES_6X4_16X12;
-+			lcd_patch_reg = P880_LCD_RES_6X4_16X12;
-+			break;
-+		case VIA_RES_720X480:
-+		case VIA_RES_720X576:
-+			reg_num = NUM_TOTAL_P880_LCD_RES_7X4_16X12;
-+			lcd_patch_reg = P880_LCD_RES_7X4_16X12;
-+			break;
-+		case VIA_RES_800X600:
-+			reg_num = NUM_TOTAL_P880_LCD_RES_8X6_16X12;
-+			lcd_patch_reg = P880_LCD_RES_8X6_16X12;
-+			break;
-+		case VIA_RES_1024X768:
-+			reg_num = NUM_TOTAL_P880_LCD_RES_10X7_16X12;
-+			lcd_patch_reg = P880_LCD_RES_10X7_16X12;
-+			break;
-+		case VIA_RES_1280X768:
-+		case VIA_RES_1280X960:
-+		case VIA_RES_1280X1024:
-+			reg_num = NUM_TOTAL_P880_LCD_RES_12X10_16X12;
-+			lcd_patch_reg = P880_LCD_RES_12X10_16X12;
-+			break;
-+		}
-+		break;
-+
-+	}
-+	if (reg_num != 0) {
-+		/* H.W. Reset : ON */
-+		viafb_write_reg_mask(CR17, VIACR, 0x00, BIT7);
-+
-+		viafb_write_regx(lcd_patch_reg, reg_num);
-+
-+		/* H.W. Reset : OFF */
-+		viafb_write_reg_mask(CR17, VIACR, 0x80, BIT7);
-+
-+		/* Reset PLL */
-+		viafb_write_reg_mask(SR40, VIASR, 0x02, BIT1);
-+		viafb_write_reg_mask(SR40, VIASR, 0x00, BIT1);
-+
-+		/* Fire! */
-+		outb(inb(VIARMisc) | (BIT2 + BIT3), VIAWMisc);
-+	}
-+}
-+
-+static void load_lcd_patch_regs(int set_hres, int set_vres,
-+	int panel_id, int set_iga)
-+{
-+	int vmode_index;
-+
-+	if (viaparinfo->lvds_setting_info->iga_path == IGA2)
-+		vmode_index = viafb_get_mode_index(set_hres, set_vres, 1);
-+	else
-+		vmode_index = viafb_get_mode_index(set_hres, set_vres, 0);
-+
-+	viafb_unlock_crt();
-+
-+	/* Patch for simultaneous & Expansion */
-+	if ((set_iga == IGA1_IGA2) &&
-+		(viaparinfo->lvds_setting_info->display_method ==
-+	    LCD_EXPANDSION)) {
-+		switch (viaparinfo->chip_info->gfx_chip_name) {
-+		case UNICHROME_CLE266:
-+		case UNICHROME_K400:
-+			load_lcd_k400_patch_tbl(set_hres, set_vres, panel_id);
-+			break;
-+		case UNICHROME_K800:
-+			break;
-+		case UNICHROME_PM800:
-+		case UNICHROME_CN700:
-+		case UNICHROME_CX700:
-+			load_lcd_p880_patch_tbl(set_hres, set_vres, panel_id);
-+		}
-+	}
-+
-+	viafb_lock_crt();
-+}
-+
-+static void via_pitch_alignment_patch_lcd(
-+	struct lvds_setting_information *plvds_setting_info,
-+				   struct lvds_chip_information
-+				   *plvds_chip_info)
-+{
-+	unsigned char cr13, cr35, cr65, cr66, cr67;
-+	unsigned long dwScreenPitch = 0;
-+	unsigned long dwPitch;
-+
-+	dwPitch = plvds_setting_info->h_active * (plvds_setting_info->bpp >> 3);
-+	if (dwPitch & 0x1F) {
-+		dwScreenPitch = ((dwPitch + 31) & ~31) >> 3;
-+		if (plvds_setting_info->iga_path == IGA2) {
-+			if (plvds_setting_info->bpp > 8) {
-+				cr66 = (unsigned char)(dwScreenPitch & 0xFF);
-+				viafb_write_reg(CR66, VIACR, cr66);
-+				cr67 = viafb_read_reg(VIACR, CR67) & 0xFC;
-+				cr67 |=
-+				    (unsigned
-+				     char)((dwScreenPitch & 0x300) >> 8);
-+				viafb_write_reg(CR67, VIACR, cr67);
-+			}
-+
-+			/* Fetch Count */
-+			cr67 = viafb_read_reg(VIACR, CR67) & 0xF3;
-+			cr67 |= (unsigned char)((dwScreenPitch & 0x600) >> 7);
-+			viafb_write_reg(CR67, VIACR, cr67);
-+			cr65 = (unsigned char)((dwScreenPitch >> 1) & 0xFF);
-+			cr65 += 2;
-+			viafb_write_reg(CR65, VIACR, cr65);
-+		} else {
-+			if (plvds_setting_info->bpp > 8) {
-+				cr13 = (unsigned char)(dwScreenPitch & 0xFF);
-+				viafb_write_reg(CR13, VIACR, cr13);
-+				cr35 = viafb_read_reg(VIACR, CR35) & 0x1F;
-+				cr35 |=
-+				    (unsigned
-+				     char)((dwScreenPitch & 0x700) >> 3);
-+				viafb_write_reg(CR35, VIACR, cr35);
-+			}
-+		}
-+	}
-+}
-+static void lcd_patch_skew_dvp0(struct lvds_setting_information
-+			 *plvds_setting_info,
-+			 struct lvds_chip_information *plvds_chip_info)
-+{
-+	if (VT1636_LVDS == plvds_chip_info->lvds_chip_name) {
-+		switch (viaparinfo->chip_info->gfx_chip_name) {
-+		case UNICHROME_P4M900:
-+			viafb_vt1636_patch_skew_on_vt3364(plvds_setting_info,
-+						    plvds_chip_info);
-+			break;
-+		case UNICHROME_P4M890:
-+			viafb_vt1636_patch_skew_on_vt3327(plvds_setting_info,
-+						    plvds_chip_info);
-+			break;
-+		}
-+	}
-+}
-+static void lcd_patch_skew_dvp1(struct lvds_setting_information
-+			 *plvds_setting_info,
-+			 struct lvds_chip_information *plvds_chip_info)
-+{
-+	if (VT1636_LVDS == plvds_chip_info->lvds_chip_name) {
-+		switch (viaparinfo->chip_info->gfx_chip_name) {
-+		case UNICHROME_CX700:
-+			viafb_vt1636_patch_skew_on_vt3324(plvds_setting_info,
-+						    plvds_chip_info);
-+			break;
-+		}
-+	}
-+}
-+static void lcd_patch_skew(struct lvds_setting_information
-+	*plvds_setting_info, struct lvds_chip_information *plvds_chip_info)
-+{
-+	DEBUG_MSG(KERN_INFO "lcd_patch_skew\n");
-+	switch (plvds_chip_info->output_interface) {
-+	case INTERFACE_DVP0:
-+		lcd_patch_skew_dvp0(plvds_setting_info, plvds_chip_info);
-+		break;
-+	case INTERFACE_DVP1:
-+		lcd_patch_skew_dvp1(plvds_setting_info, plvds_chip_info);
-+		break;
-+	case INTERFACE_DFP_LOW:
-+		if (UNICHROME_P4M900 == viaparinfo->chip_info->gfx_chip_name) {
-+			viafb_write_reg_mask(CR99, VIACR, 0x08,
-+				       BIT0 + BIT1 + BIT2 + BIT3);
-+		}
-+		break;
-+	}
-+}
-+
-+/* LCD Set Mode */
-+void viafb_lcd_set_mode(struct crt_mode_table *mode_crt_table,
-+		  struct lvds_setting_information *plvds_setting_info,
-+		  struct lvds_chip_information *plvds_chip_info)
-+{
-+	int video_index = plvds_setting_info->lcd_panel_size;
-+	int set_iga = plvds_setting_info->iga_path;
-+	int mode_bpp = plvds_setting_info->bpp;
-+	int viafb_load_reg_num = 0;
-+	int reg_value = 0;
-+	int set_hres, set_vres;
-+	int panel_hres, panel_vres;
-+	u32 pll_D_N;
-+	int offset;
-+	struct io_register *reg = NULL;
-+	struct display_timing mode_crt_reg, panel_crt_reg;
-+	struct crt_mode_table *panel_crt_table = NULL;
-+	struct VideoModeTable *vmode_tbl = NULL;
-+
-+	DEBUG_MSG(KERN_INFO "viafb_lcd_set_mode!!\n");
-+	/* Get mode table */
-+	mode_crt_reg = mode_crt_table->crtc;
-+	/* Get panel table Pointer */
-+	vmode_tbl = viafb_get_modetbl_pointer(video_index);
-+	panel_crt_table = vmode_tbl->crtc;
-+	panel_crt_reg = panel_crt_table->crtc;
-+	DEBUG_MSG(KERN_INFO "bellow viafb_lcd_set_mode!!\n");
-+	set_hres = plvds_setting_info->h_active;
-+	set_vres = plvds_setting_info->v_active;
-+	panel_hres = plvds_setting_info->lcd_panel_hres;
-+	panel_vres = plvds_setting_info->lcd_panel_vres;
-+	if (VT1636_LVDS == plvds_chip_info->lvds_chip_name)
-+		viafb_init_lvds_vt1636(plvds_setting_info, plvds_chip_info);
-+	plvds_setting_info->vclk = panel_crt_table->clk;
-+	if (set_iga == IGA1) {
-+		/* IGA1 doesn't have LCD scaling, so set it as centering. */
-+		viafb_load_crtc_timing(lcd_centering_timging
-+				 (mode_crt_reg, panel_crt_reg), IGA1);
-+	} else {
-+		/* Expansion */
-+		if ((plvds_setting_info->display_method ==
-+		     LCD_EXPANDSION) & ((set_hres != panel_hres)
-+					|| (set_vres != panel_vres))) {
-+			/* expansion timing IGA2 loaded panel set timing*/
-+			viafb_load_crtc_timing(panel_crt_reg, IGA2);
-+			DEBUG_MSG(KERN_INFO "viafb_load_crtc_timing!!\n");
-+			load_lcd_scaling(set_hres, set_vres, panel_hres,
-+					 panel_vres);
-+			DEBUG_MSG(KERN_INFO "load_lcd_scaling!!\n");
-+		} else {	/* Centering */
-+			/* centering timing IGA2 always loaded panel
-+			   and mode releative timing */
-+			viafb_load_crtc_timing(lcd_centering_timging
-+					 (mode_crt_reg, panel_crt_reg), IGA2);
-+			viafb_write_reg_mask(CR79, VIACR, 0x00,
-+				BIT0 + BIT1 + BIT2);
-+			/* LCD scaling disabled */
-+		}
-+	}
-+
-+	if (set_iga == IGA1_IGA2) {
-+		load_crtc_shadow_timing(mode_crt_reg, panel_crt_reg);
-+		/* Fill shadow registers */
-+
-+		switch (plvds_setting_info->lcd_panel_id) {
-+		case LCD_PANEL_ID0_640X480:
-+			offset = 80;
-+			break;
-+		case LCD_PANEL_ID1_800X600:
-+		case LCD_PANEL_IDA_800X480:
-+			offset = 110;
-+			break;
-+		case LCD_PANEL_ID2_1024X768:
-+			offset = 150;
-+			break;
-+		case LCD_PANEL_ID3_1280X768:
-+		case LCD_PANEL_ID4_1280X1024:
-+		case LCD_PANEL_ID5_1400X1050:
-+		case LCD_PANEL_ID9_1280X800:
-+			offset = 190;
-+			break;
-+		case LCD_PANEL_ID6_1600X1200:
-+			offset = 250;
-+			break;
-+		case LCD_PANEL_ID7_1366X768:
-+		case LCD_PANEL_IDB_1360X768:
-+			offset = 212;
-+			break;
-+		default:
-+			offset = 140;
-+			break;
-+		}
-+
-+		/* Offset for simultaneous */
-+		reg_value = offset;
-+		viafb_load_reg_num = offset_reg.iga2_offset_reg.reg_num;
-+		reg = offset_reg.iga2_offset_reg.reg;
-+		viafb_load_reg(reg_value, viafb_load_reg_num, reg, VIACR);
-+		DEBUG_MSG(KERN_INFO "viafb_load_reg!!\n");
-+		viafb_load_fetch_count_reg(set_hres, 4, IGA2);
-+		/* Fetch count for simultaneous */
-+	} else {		/* SAMM */
-+		/* Offset for IGA2 only */
-+		viafb_load_offset_reg(set_hres, mode_bpp / 8, set_iga);
-+		/* Fetch count for IGA2 only */
-+		viafb_load_fetch_count_reg(set_hres, mode_bpp / 8, set_iga);
-+
-+		if ((viaparinfo->chip_info->gfx_chip_name != UNICHROME_CLE266)
-+		    && (viaparinfo->chip_info->gfx_chip_name != UNICHROME_K400))
-+			viafb_load_FIFO_reg(set_iga, set_hres, set_vres);
-+
-+		viafb_set_color_depth(mode_bpp / 8, set_iga);
-+	}
-+
-+	fill_lcd_format();
-+
-+	pll_D_N = viafb_get_clk_value(panel_crt_table[0].clk);
-+	DEBUG_MSG(KERN_INFO "PLL=0x%x", pll_D_N);
-+	viafb_set_vclock(pll_D_N, set_iga);
-+
-+	viafb_set_output_path(DEVICE_LCD, set_iga,
-+		plvds_chip_info->output_interface);
-+	lcd_patch_skew(plvds_setting_info, plvds_chip_info);
-+
-+	/* If K8M800, enable LCD Prefetch Mode. */
-+	if ((viaparinfo->chip_info->gfx_chip_name == UNICHROME_K800)
-+	    || (UNICHROME_K8M890 == viaparinfo->chip_info->gfx_chip_name))
-+		viafb_write_reg_mask(CR6A, VIACR, 0x01, BIT0);
-+
-+	load_lcd_patch_regs(set_hres, set_vres,
-+			    plvds_setting_info->lcd_panel_id, set_iga);
-+
-+	DEBUG_MSG(KERN_INFO "load_lcd_patch_regs!!\n");
-+
-+	/* Patch for non 32bit alignment mode */
-+	via_pitch_alignment_patch_lcd(plvds_setting_info, plvds_chip_info);
-+}
-+
-+static void integrated_lvds_disable(struct lvds_setting_information
-+			     *plvds_setting_info,
-+			     struct lvds_chip_information *plvds_chip_info)
-+{
-+	bool turn_off_first_powersequence = false;
-+	bool turn_off_second_powersequence = false;
-+	if (INTERFACE_LVDS0LVDS1 == plvds_chip_info->output_interface)
-+		turn_off_first_powersequence = true;
-+	if (INTERFACE_LVDS0 == plvds_chip_info->output_interface)
-+		turn_off_first_powersequence = true;
-+	if (INTERFACE_LVDS1 == plvds_chip_info->output_interface)
-+		turn_off_second_powersequence = true;
-+	if (turn_off_second_powersequence) {
-+		/* Use second power sequence control: */
-+
-+		/* Turn off power sequence. */
-+		viafb_write_reg_mask(CRD4, VIACR, 0, BIT1);
-+
-+		/* Turn off back light. */
-+		viafb_write_reg_mask(CRD3, VIACR, 0xC0, BIT6 + BIT7);
-+	}
-+	if (turn_off_first_powersequence) {
-+		/* Use first power sequence control: */
-+
-+		/* Turn off power sequence. */
-+		viafb_write_reg_mask(CR6A, VIACR, 0, BIT3);
-+
-+		/* Turn off back light. */
-+		viafb_write_reg_mask(CR91, VIACR, 0xC0, BIT6 + BIT7);
-+	}
-+
-+	/* Turn DFP High/Low Pad off. */
-+	viafb_write_reg_mask(SR2A, VIASR, 0, BIT0 + BIT1 + BIT2 + BIT3);
-+
-+	/* Power off LVDS channel. */
-+	switch (plvds_chip_info->output_interface) {
-+	case INTERFACE_LVDS0:
-+		{
-+			viafb_write_reg_mask(CRD2, VIACR, 0x80, BIT7);
-+			break;
-+		}
-+
-+	case INTERFACE_LVDS1:
-+		{
-+			viafb_write_reg_mask(CRD2, VIACR, 0x40, BIT6);
-+			break;
-+		}
-+
-+	case INTERFACE_LVDS0LVDS1:
-+		{
-+			viafb_write_reg_mask(CRD2, VIACR, 0xC0, BIT6 + BIT7);
-+			break;
-+		}
-+	}
-+}
-+
-+static void integrated_lvds_enable(struct lvds_setting_information
-+			    *plvds_setting_info,
-+			    struct lvds_chip_information *plvds_chip_info)
-+{
-+	bool turn_on_first_powersequence = false;
-+	bool turn_on_second_powersequence = false;
-+
-+	DEBUG_MSG(KERN_INFO "integrated_lvds_enable, out_interface:%d\n",
-+		  plvds_chip_info->output_interface);
-+	if (plvds_setting_info->lcd_mode == LCD_SPWG)
-+		viafb_write_reg_mask(CRD2, VIACR, 0x00, BIT0 + BIT1);
-+	 else
-+		viafb_write_reg_mask(CRD2, VIACR, 0x03, BIT0 + BIT1);
-+	if (INTERFACE_LVDS0LVDS1 == plvds_chip_info->output_interface)
-+		turn_on_first_powersequence = true;
-+	if (INTERFACE_LVDS0 == plvds_chip_info->output_interface)
-+		turn_on_first_powersequence = true;
-+	if (INTERFACE_LVDS1 == plvds_chip_info->output_interface)
-+		turn_on_second_powersequence = true;
-+
-+	if (turn_on_second_powersequence) {
-+		/* Use second power sequence control: */
-+
-+		/* Use hardware control power sequence. */
-+		viafb_write_reg_mask(CRD3, VIACR, 0, BIT0);
-+
-+		/* Turn on back light. */
-+		viafb_write_reg_mask(CRD3, VIACR, 0, BIT6 + BIT7);
-+
-+		/* Turn on hardware power sequence. */
-+		viafb_write_reg_mask(CRD4, VIACR, 0x02, BIT1);
-+	}
-+	if (turn_on_first_powersequence) {
-+		/* Use first power sequence control: */
-+
-+		/* Use hardware control power sequence. */
-+		viafb_write_reg_mask(CR91, VIACR, 0, BIT0);
-+
-+		/* Turn on back light. */
-+		viafb_write_reg_mask(CR91, VIACR, 0, BIT6 + BIT7);
-+
-+		/* Turn on hardware power sequence. */
-+		viafb_write_reg_mask(CR6A, VIACR, 0x08, BIT3);
-+	}
-+
-+	/* Turn DFP High/Low pad on. */
-+	viafb_write_reg_mask(SR2A, VIASR, 0x0F, BIT0 + BIT1 + BIT2 + BIT3);
-+
-+	/* Power on LVDS channel. */
-+	switch (plvds_chip_info->output_interface) {
-+	case INTERFACE_LVDS0:
-+		{
-+			viafb_write_reg_mask(CRD2, VIACR, 0, BIT7);
-+			break;
-+		}
-+
-+	case INTERFACE_LVDS1:
-+		{
-+			viafb_write_reg_mask(CRD2, VIACR, 0, BIT6);
-+			break;
-+		}
-+
-+	case INTERFACE_LVDS0LVDS1:
-+		{
-+			viafb_write_reg_mask(CRD2, VIACR, 0, BIT6 + BIT7);
-+			break;
-+		}
-+	}
-+}
-+
-+void viafb_lcd_disable(void)
-+{
-+
-+	if (viaparinfo->chip_info->gfx_chip_name == UNICHROME_CLE266) {
-+		lcd_powersequence_off();
-+		/* DI1 pad off */
-+		viafb_write_reg_mask(SR1E, VIASR, 0x00, 0x30);
-+	} else if (viaparinfo->chip_info->gfx_chip_name == UNICHROME_CX700) {
-+		if (viafb_LCD2_ON
-+		    && (INTEGRATED_LVDS ==
-+			viaparinfo->chip_info->lvds_chip_info2.lvds_chip_name))
-+			integrated_lvds_disable(viaparinfo->lvds_setting_info,
-+				&viaparinfo->chip_info->lvds_chip_info2);
-+		if (INTEGRATED_LVDS ==
-+			viaparinfo->chip_info->lvds_chip_info.lvds_chip_name)
-+			integrated_lvds_disable(viaparinfo->lvds_setting_info,
-+				&viaparinfo->chip_info->lvds_chip_info);
-+		if (VT1636_LVDS == viaparinfo->chip_info->
-+			lvds_chip_info.lvds_chip_name)
-+			viafb_disable_lvds_vt1636(viaparinfo->lvds_setting_info,
-+				&viaparinfo->chip_info->lvds_chip_info);
-+	} else if (VT1636_LVDS ==
-+	viaparinfo->chip_info->lvds_chip_info.lvds_chip_name) {
-+		viafb_disable_lvds_vt1636(viaparinfo->lvds_setting_info,
-+				    &viaparinfo->chip_info->lvds_chip_info);
-+	} else {
-+		/* DFP-HL pad off          */
-+		viafb_write_reg_mask(SR2A, VIASR, 0x00, 0x0F);
-+		/* Backlight off           */
-+		viafb_write_reg_mask(SR3D, VIASR, 0x00, 0x20);
-+		/* 24 bit DI data paht off */
-+		viafb_write_reg_mask(CR91, VIACR, 0x80, 0x80);
-+		/* Simultaneout disabled   */
-+		viafb_write_reg_mask(CR6B, VIACR, 0x00, 0x08);
-+	}
-+
-+	/* Disable expansion bit   */
-+	viafb_write_reg_mask(CR79, VIACR, 0x00, 0x01);
-+	/* CRT path set to IGA1    */
-+	viafb_write_reg_mask(SR16, VIASR, 0x00, 0x40);
-+	/* Simultaneout disabled   */
-+	viafb_write_reg_mask(CR6B, VIACR, 0x00, 0x08);
-+	/* IGA2 path disabled      */
-+	viafb_write_reg_mask(CR6A, VIACR, 0x00, 0x80);
-+
-+}
-+
-+void viafb_lcd_enable(void)
-+{
-+	if (viaparinfo->chip_info->gfx_chip_name == UNICHROME_CLE266) {
-+		/* DI1 pad on */
-+		viafb_write_reg_mask(SR1E, VIASR, 0x30, 0x30);
-+		lcd_powersequence_on();
-+	} else if (viaparinfo->chip_info->gfx_chip_name == UNICHROME_CX700) {
-+		if (viafb_LCD2_ON && (INTEGRATED_LVDS ==
-+			viaparinfo->chip_info->lvds_chip_info2.lvds_chip_name))
-+			integrated_lvds_enable(viaparinfo->lvds_setting_info2, \
-+				&viaparinfo->chip_info->lvds_chip_info2);
-+		if (INTEGRATED_LVDS ==
-+			viaparinfo->chip_info->lvds_chip_info.lvds_chip_name)
-+			integrated_lvds_enable(viaparinfo->lvds_setting_info,
-+				&viaparinfo->chip_info->lvds_chip_info);
-+		if (VT1636_LVDS == viaparinfo->chip_info->
-+			lvds_chip_info.lvds_chip_name)
-+			viafb_enable_lvds_vt1636(viaparinfo->
-+			lvds_setting_info, &viaparinfo->chip_info->
-+			lvds_chip_info);
-+	} else if (VT1636_LVDS ==
-+	viaparinfo->chip_info->lvds_chip_info.lvds_chip_name) {
-+		viafb_enable_lvds_vt1636(viaparinfo->lvds_setting_info,
-+				   &viaparinfo->chip_info->lvds_chip_info);
-+	} else {
-+		/* DFP-HL pad on           */
-+		viafb_write_reg_mask(SR2A, VIASR, 0x0F, 0x0F);
-+		/* Backlight on            */
-+		viafb_write_reg_mask(SR3D, VIASR, 0x20, 0x20);
-+		/* 24 bit DI data paht on  */
-+		viafb_write_reg_mask(CR91, VIACR, 0x00, 0x80);
-+
-+		/* Set data source selection bit by iga path */
-+		if (viaparinfo->lvds_setting_info->iga_path == IGA1) {
-+			/* DFP-H set to IGA1       */
-+			viafb_write_reg_mask(CR97, VIACR, 0x00, 0x10);
-+			/* DFP-L set to IGA1       */
-+			viafb_write_reg_mask(CR99, VIACR, 0x00, 0x10);
-+		} else {
-+			/* DFP-H set to IGA2       */
-+			viafb_write_reg_mask(CR97, VIACR, 0x10, 0x10);
-+			/* DFP-L set to IGA2       */
-+			viafb_write_reg_mask(CR99, VIACR, 0x10, 0x10);
-+		}
-+		/* LCD enabled             */
-+		viafb_write_reg_mask(CR6A, VIACR, 0x48, 0x48);
-+	}
-+
-+	if ((viaparinfo->lvds_setting_info->iga_path == IGA1)
-+	    || (viaparinfo->lvds_setting_info->iga_path == IGA1_IGA2)) {
-+		/* CRT path set to IGA2    */
-+		viafb_write_reg_mask(SR16, VIASR, 0x40, 0x40);
-+		/* IGA2 path disabled      */
-+		viafb_write_reg_mask(CR6A, VIACR, 0x00, 0x80);
-+		/* IGA2 path enabled       */
-+	} else {		/* IGA2 */
-+		viafb_write_reg_mask(CR6A, VIACR, 0x80, 0x80);
-+	}
-+
-+}
-+
-+static void lcd_powersequence_off(void)
-+{
-+	int i, mask, data;
-+
-+	/* Software control power sequence */
-+	viafb_write_reg_mask(CR91, VIACR, 0x11, 0x11);
-+
-+	for (i = 0; i < 3; i++) {
-+		mask = PowerSequenceOff[0][i];
-+		data = PowerSequenceOff[1][i] & mask;
-+		viafb_write_reg_mask(CR91, VIACR, (u8) data, (u8) mask);
-+		udelay(PowerSequenceOff[2][i]);
-+	}
-+
-+	/* Disable LCD */
-+	viafb_write_reg_mask(CR6A, VIACR, 0x00, 0x08);
-+}
-+
-+static void lcd_powersequence_on(void)
-+{
-+	int i, mask, data;
-+
-+	/* Software control power sequence */
-+	viafb_write_reg_mask(CR91, VIACR, 0x11, 0x11);
-+
-+	/* Enable LCD */
-+	viafb_write_reg_mask(CR6A, VIACR, 0x08, 0x08);
-+
-+	for (i = 0; i < 3; i++) {
-+		mask = PowerSequenceOn[0][i];
-+		data = PowerSequenceOn[1][i] & mask;
-+		viafb_write_reg_mask(CR91, VIACR, (u8) data, (u8) mask);
-+		udelay(PowerSequenceOn[2][i]);
-+	}
-+
-+	udelay(1);
-+}
-+
-+static void fill_lcd_format(void)
-+{
-+	u8 bdithering = 0, bdual = 0;
-+
-+	if (viaparinfo->lvds_setting_info->device_lcd_dualedge)
-+		bdual = BIT4;
-+	if (viaparinfo->lvds_setting_info->LCDDithering)
-+		bdithering = BIT0;
-+	/* Dual & Dithering */
-+	viafb_write_reg_mask(CR88, VIACR, (bdithering | bdual), BIT4 + BIT0);
-+}
-+
-+static void check_diport_of_integrated_lvds(
-+	struct lvds_chip_information *plvds_chip_info,
-+				     struct lvds_setting_information
-+				     *plvds_setting_info)
-+{
-+	/* Determine LCD DI Port by hardware layout. */
-+	switch (viafb_display_hardware_layout) {
-+	case HW_LAYOUT_LCD_ONLY:
-+		{
-+			if (plvds_setting_info->device_lcd_dualedge) {
-+				plvds_chip_info->output_interface =
-+				    INTERFACE_LVDS0LVDS1;
-+			} else {
-+				plvds_chip_info->output_interface =
-+				    INTERFACE_LVDS0;
-+			}
-+
-+			break;
-+		}
-+
-+	case HW_LAYOUT_DVI_ONLY:
-+		{
-+			plvds_chip_info->output_interface = INTERFACE_NONE;
-+			break;
-+		}
-+
-+	case HW_LAYOUT_LCD1_LCD2:
-+	case HW_LAYOUT_LCD_EXTERNAL_LCD2:
-+		{
-+			plvds_chip_info->output_interface =
-+			    INTERFACE_LVDS0LVDS1;
-+			break;
-+		}
-+
-+	case HW_LAYOUT_LCD_DVI:
-+		{
-+			plvds_chip_info->output_interface = INTERFACE_LVDS1;
-+			break;
-+		}
-+
-+	default:
-+		{
-+			plvds_chip_info->output_interface = INTERFACE_LVDS1;
-+			break;
-+		}
-+	}
-+
-+	DEBUG_MSG(KERN_INFO
-+		  "Display Hardware Layout: 0x%x, LCD DI Port: 0x%x\n",
-+		  viafb_display_hardware_layout,
-+		  plvds_chip_info->output_interface);
-+}
-+
-+void viafb_init_lvds_output_interface(struct lvds_chip_information
-+				*plvds_chip_info,
-+				struct lvds_setting_information
-+				*plvds_setting_info)
-+{
-+	if (INTERFACE_NONE != plvds_chip_info->output_interface) {
-+		/*Do nothing, lcd port is specified by module parameter */
-+		return;
-+	}
-+
-+	switch (plvds_chip_info->lvds_chip_name) {
-+
-+	case VT1636_LVDS:
-+		switch (viaparinfo->chip_info->gfx_chip_name) {
-+		case UNICHROME_CX700:
-+			plvds_chip_info->output_interface = INTERFACE_DVP1;
-+			break;
-+		case UNICHROME_CN700:
-+			plvds_chip_info->output_interface = INTERFACE_DFP_LOW;
-+			break;
-+		default:
-+			plvds_chip_info->output_interface = INTERFACE_DVP0;
-+			break;
-+		}
-+		break;
-+
-+	case INTEGRATED_LVDS:
-+		check_diport_of_integrated_lvds(plvds_chip_info,
-+						plvds_setting_info);
-+		break;
-+
-+	default:
-+		switch (viaparinfo->chip_info->gfx_chip_name) {
-+		case UNICHROME_K8M890:
-+		case UNICHROME_P4M900:
-+		case UNICHROME_P4M890:
-+			plvds_chip_info->output_interface = INTERFACE_DFP_LOW;
-+			break;
-+		default:
-+			plvds_chip_info->output_interface = INTERFACE_DFP;
-+			break;
-+		}
-+		break;
-+	}
-+}
-+
-+static struct display_timing lcd_centering_timging(struct display_timing
-+					    mode_crt_reg,
-+					    struct display_timing panel_crt_reg)
-+{
-+	struct display_timing crt_reg;
-+
-+	crt_reg.hor_total = panel_crt_reg.hor_total;
-+	crt_reg.hor_addr = mode_crt_reg.hor_addr;
-+	crt_reg.hor_blank_start =
-+	    (panel_crt_reg.hor_addr - mode_crt_reg.hor_addr) / 2 +
-+	    crt_reg.hor_addr;
-+	crt_reg.hor_blank_end = panel_crt_reg.hor_blank_end;
-+	crt_reg.hor_sync_start =
-+	    (panel_crt_reg.hor_sync_start -
-+	     panel_crt_reg.hor_blank_start) + crt_reg.hor_blank_start;
-+	crt_reg.hor_sync_end = panel_crt_reg.hor_sync_end;
-+
-+	crt_reg.ver_total = panel_crt_reg.ver_total;
-+	crt_reg.ver_addr = mode_crt_reg.ver_addr;
-+	crt_reg.ver_blank_start =
-+	    (panel_crt_reg.ver_addr - mode_crt_reg.ver_addr) / 2 +
-+	    crt_reg.ver_addr;
-+	crt_reg.ver_blank_end = panel_crt_reg.ver_blank_end;
-+	crt_reg.ver_sync_start =
-+	    (panel_crt_reg.ver_sync_start -
-+	     panel_crt_reg.ver_blank_start) + crt_reg.ver_blank_start;
-+	crt_reg.ver_sync_end = panel_crt_reg.ver_sync_end;
-+
-+	return crt_reg;
-+}
-+
-+static void load_crtc_shadow_timing(struct display_timing mode_timing,
-+			     struct display_timing panel_timing)
-+{
-+	struct io_register *reg = NULL;
-+	int i;
-+	int viafb_load_reg_Num = 0;
-+	int reg_value = 0;
-+
-+	if (viaparinfo->lvds_setting_info->display_method == LCD_EXPANDSION) {
-+		/* Expansion */
-+		for (i = 12; i < 20; i++) {
-+			switch (i) {
-+			case H_TOTAL_SHADOW_INDEX:
-+				reg_value =
-+				    IGA2_HOR_TOTAL_SHADOW_FORMULA
-+				    (panel_timing.hor_total);
-+				viafb_load_reg_Num =
-+				    iga2_shadow_crtc_reg.hor_total_shadow.
-+				    reg_num;
-+				reg = iga2_shadow_crtc_reg.hor_total_shadow.reg;
-+				break;
-+			case H_BLANK_END_SHADOW_INDEX:
-+				reg_value =
-+				    IGA2_HOR_BLANK_END_SHADOW_FORMULA
-+				    (panel_timing.hor_blank_start,
-+				     panel_timing.hor_blank_end);
-+				viafb_load_reg_Num =
-+				    iga2_shadow_crtc_reg.
-+				    hor_blank_end_shadow.reg_num;
-+				reg =
-+				    iga2_shadow_crtc_reg.
-+				    hor_blank_end_shadow.reg;
-+				break;
-+			case V_TOTAL_SHADOW_INDEX:
-+				reg_value =
-+				    IGA2_VER_TOTAL_SHADOW_FORMULA
-+				    (panel_timing.ver_total);
-+				viafb_load_reg_Num =
-+				    iga2_shadow_crtc_reg.ver_total_shadow.
-+				    reg_num;
-+				reg = iga2_shadow_crtc_reg.ver_total_shadow.reg;
-+				break;
-+			case V_ADDR_SHADOW_INDEX:
-+				reg_value =
-+				    IGA2_VER_ADDR_SHADOW_FORMULA
-+				    (panel_timing.ver_addr);
-+				viafb_load_reg_Num =
-+				    iga2_shadow_crtc_reg.ver_addr_shadow.
-+				    reg_num;
-+				reg = iga2_shadow_crtc_reg.ver_addr_shadow.reg;
-+				break;
-+			case V_BLANK_SATRT_SHADOW_INDEX:
-+				reg_value =
-+				    IGA2_VER_BLANK_START_SHADOW_FORMULA
-+				    (panel_timing.ver_blank_start);
-+				viafb_load_reg_Num =
-+				    iga2_shadow_crtc_reg.
-+				    ver_blank_start_shadow.reg_num;
-+				reg =
-+				    iga2_shadow_crtc_reg.
-+				    ver_blank_start_shadow.reg;
-+				break;
-+			case V_BLANK_END_SHADOW_INDEX:
-+				reg_value =
-+				    IGA2_VER_BLANK_END_SHADOW_FORMULA
-+				    (panel_timing.ver_blank_start,
-+				     panel_timing.ver_blank_end);
-+				viafb_load_reg_Num =
-+				    iga2_shadow_crtc_reg.
-+				    ver_blank_end_shadow.reg_num;
-+				reg =
-+				    iga2_shadow_crtc_reg.
-+				    ver_blank_end_shadow.reg;
-+				break;
-+			case V_SYNC_SATRT_SHADOW_INDEX:
-+				reg_value =
-+				    IGA2_VER_SYNC_START_SHADOW_FORMULA
-+				    (panel_timing.ver_sync_start);
-+				viafb_load_reg_Num =
-+				    iga2_shadow_crtc_reg.
-+				    ver_sync_start_shadow.reg_num;
-+				reg =
-+				    iga2_shadow_crtc_reg.
-+				    ver_sync_start_shadow.reg;
-+				break;
-+			case V_SYNC_END_SHADOW_INDEX:
-+				reg_value =
-+				    IGA2_VER_SYNC_END_SHADOW_FORMULA
-+				    (panel_timing.ver_sync_start,
-+				     panel_timing.ver_sync_end);
-+				viafb_load_reg_Num =
-+				    iga2_shadow_crtc_reg.
-+				    ver_sync_end_shadow.reg_num;
-+				reg =
-+				    iga2_shadow_crtc_reg.
-+				    ver_sync_end_shadow.reg;
-+				break;
-+			}
-+			viafb_load_reg(reg_value,
-+				viafb_load_reg_Num, reg, VIACR);
-+		}
-+	} else {		/* Centering */
-+		for (i = 12; i < 20; i++) {
-+			switch (i) {
-+			case H_TOTAL_SHADOW_INDEX:
-+				reg_value =
-+				    IGA2_HOR_TOTAL_SHADOW_FORMULA
-+				    (panel_timing.hor_total);
-+				viafb_load_reg_Num =
-+				    iga2_shadow_crtc_reg.hor_total_shadow.
-+				    reg_num;
-+				reg = iga2_shadow_crtc_reg.hor_total_shadow.reg;
-+				break;
-+			case H_BLANK_END_SHADOW_INDEX:
-+				reg_value =
-+				    IGA2_HOR_BLANK_END_SHADOW_FORMULA
-+				    (panel_timing.hor_blank_start,
-+				     panel_timing.hor_blank_end);
-+				viafb_load_reg_Num =
-+				    iga2_shadow_crtc_reg.
-+				    hor_blank_end_shadow.reg_num;
-+				reg =
-+				    iga2_shadow_crtc_reg.
-+				    hor_blank_end_shadow.reg;
-+				break;
-+			case V_TOTAL_SHADOW_INDEX:
-+				reg_value =
-+				    IGA2_VER_TOTAL_SHADOW_FORMULA
-+				    (panel_timing.ver_total);
-+				viafb_load_reg_Num =
-+				    iga2_shadow_crtc_reg.ver_total_shadow.
-+				    reg_num;
-+				reg = iga2_shadow_crtc_reg.ver_total_shadow.reg;
-+				break;
-+			case V_ADDR_SHADOW_INDEX:
-+				reg_value =
-+				    IGA2_VER_ADDR_SHADOW_FORMULA
-+				    (mode_timing.ver_addr);
-+				viafb_load_reg_Num =
-+				    iga2_shadow_crtc_reg.ver_addr_shadow.
-+				    reg_num;
-+				reg = iga2_shadow_crtc_reg.ver_addr_shadow.reg;
-+				break;
-+			case V_BLANK_SATRT_SHADOW_INDEX:
-+				reg_value =
-+				    IGA2_VER_BLANK_START_SHADOW_FORMULA
-+				    (mode_timing.ver_blank_start);
-+				viafb_load_reg_Num =
-+				    iga2_shadow_crtc_reg.
-+				    ver_blank_start_shadow.reg_num;
-+				reg =
-+				    iga2_shadow_crtc_reg.
-+				    ver_blank_start_shadow.reg;
-+				break;
-+			case V_BLANK_END_SHADOW_INDEX:
-+				reg_value =
-+				    IGA2_VER_BLANK_END_SHADOW_FORMULA
-+				    (panel_timing.ver_blank_start,
-+				     panel_timing.ver_blank_end);
-+				viafb_load_reg_Num =
-+				    iga2_shadow_crtc_reg.
-+				    ver_blank_end_shadow.reg_num;
-+				reg =
-+				    iga2_shadow_crtc_reg.
-+				    ver_blank_end_shadow.reg;
-+				break;
-+			case V_SYNC_SATRT_SHADOW_INDEX:
-+				reg_value =
-+				    IGA2_VER_SYNC_START_SHADOW_FORMULA(
-+				    (panel_timing.ver_sync_start -
-+				    panel_timing.ver_blank_start) +
-+				    (panel_timing.ver_addr -
-+				    mode_timing.ver_addr) / 2 +
-+				    mode_timing.ver_addr);
-+				viafb_load_reg_Num =
-+				    iga2_shadow_crtc_reg.ver_sync_start_shadow.
-+				    reg_num;
-+				reg =
-+				    iga2_shadow_crtc_reg.ver_sync_start_shadow.
-+				    reg;
-+				break;
-+			case V_SYNC_END_SHADOW_INDEX:
-+				reg_value =
-+				    IGA2_VER_SYNC_END_SHADOW_FORMULA(
-+				    (panel_timing.ver_sync_start -
-+				    panel_timing.ver_blank_start) +
-+				    (panel_timing.ver_addr -
-+				    mode_timing.ver_addr) / 2 +
-+				    mode_timing.ver_addr,
-+				    panel_timing.ver_sync_end);
-+				viafb_load_reg_Num =
-+				    iga2_shadow_crtc_reg.ver_sync_end_shadow.
-+				    reg_num;
-+				reg =
-+				    iga2_shadow_crtc_reg.ver_sync_end_shadow.
-+				    reg;
-+				break;
-+			}
-+			viafb_load_reg(reg_value,
-+				viafb_load_reg_Num, reg, VIACR);
-+		}
-+	}
-+}
-+
-+bool viafb_lcd_get_mobile_state(bool *mobile)
-+{
-+	unsigned char *romptr, *tableptr;
-+	u8 core_base;
-+	unsigned char *biosptr;
-+	/* Rom address */
-+	u32 romaddr = 0x000C0000;
-+	u16 start_pattern = 0;
-+
-+	biosptr = ioremap(romaddr, 0x10000);
-+
-+	memcpy(&start_pattern, biosptr, 2);
-+	/* Compare pattern */
-+	if (start_pattern == 0xAA55) {
-+		/* Get the start of Table */
-+		/* 0x1B means BIOS offset position */
-+		romptr = biosptr + 0x1B;
-+		tableptr = biosptr + *((u16 *) romptr);
-+
-+		/* Get the start of biosver structure */
-+		/* 18 means BIOS version position. */
-+		romptr = tableptr + 18;
-+		romptr = biosptr + *((u16 *) romptr);
-+
-+		/* The offset should be 44, but the
-+		   actual image is less three char. */
-+		/* pRom += 44; */
-+		romptr += 41;
-+
-+		core_base = *romptr++;
-+
-+		if (core_base & 0x8)
-+			*mobile = false;
-+		else
-+			*mobile = true;
-+		/* release memory */
-+		iounmap(biosptr);
-+
-+		return true;
-+	} else {
-+		iounmap(biosptr);
-+		return false;
-+	}
-+}
-+
-+static void viafb_load_scaling_factor_for_p4m900(int set_hres,
-+	int set_vres, int panel_hres, int panel_vres)
-+{
-+	int h_scaling_factor;
-+	int v_scaling_factor;
-+	u8 cra2 = 0;
-+	u8 cr77 = 0;
-+	u8 cr78 = 0;
-+	u8 cr79 = 0;
-+	u8 cr9f = 0;
-+	/* Check if expansion for horizontal */
-+	if (set_hres < panel_hres) {
-+		/* Load Horizontal Scaling Factor */
-+
-+		/* For VIA_K8M800 or later chipsets. */
-+		h_scaling_factor =
-+		    K800_LCD_HOR_SCF_FORMULA(set_hres, panel_hres);
-+		/* HSCaleFactor[1:0] at CR9F[1:0] */
-+		cr9f = h_scaling_factor & 0x0003;
-+		/* HSCaleFactor[9:2] at CR77[7:0] */
-+		cr77 = (h_scaling_factor & 0x03FC) >> 2;
-+		/* HSCaleFactor[11:10] at CR79[5:4] */
-+		cr79 = (h_scaling_factor & 0x0C00) >> 10;
-+		cr79 <<= 4;
-+
-+		/* Horizontal scaling enabled */
-+		cra2 = 0xC0;
-+
-+		DEBUG_MSG(KERN_INFO "Horizontal Scaling value = %d\n",
-+			  h_scaling_factor);
-+	} else {
-+		/* Horizontal scaling disabled */
-+		cra2 = 0x00;
-+	}
-+
-+	/* Check if expansion for vertical */
-+	if (set_vres < panel_vres) {
-+		/* Load Vertical Scaling Factor */
-+
-+		/* For VIA_K8M800 or later chipsets. */
-+		v_scaling_factor =
-+		    K800_LCD_VER_SCF_FORMULA(set_vres, panel_vres);
-+
-+		/* Vertical scaling enabled */
-+		cra2 |= 0x08;
-+		/* VSCaleFactor[0] at CR79[3] */
-+		cr79 |= ((v_scaling_factor & 0x0001) << 3);
-+		/* VSCaleFactor[8:1] at CR78[7:0] */
-+		cr78 |= (v_scaling_factor & 0x01FE) >> 1;
-+		/* VSCaleFactor[10:9] at CR79[7:6] */
-+		cr79 |= ((v_scaling_factor & 0x0600) >> 9) << 6;
-+
-+		DEBUG_MSG(KERN_INFO "Vertical Scaling value = %d\n",
-+			  v_scaling_factor);
-+	} else {
-+		/* Vertical scaling disabled */
-+		cra2 |= 0x00;
-+	}
-+
-+	viafb_write_reg_mask(CRA2, VIACR, cra2, BIT3 + BIT6 + BIT7);
-+	viafb_write_reg_mask(CR77, VIACR, cr77, 0xFF);
-+	viafb_write_reg_mask(CR78, VIACR, cr78, 0xFF);
-+	viafb_write_reg_mask(CR79, VIACR, cr79, 0xF8);
-+	viafb_write_reg_mask(CR9F, VIACR, cr9f, BIT0 + BIT1);
-+}
-diff -puN /dev/null drivers/video/via/lcd.h
---- /dev/null
-+++ a/drivers/video/via/lcd.h
-@@ -0,0 +1,94 @@
-+/*
-+ * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
-+ * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
-+
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public
-+ * License as published by the Free Software Foundation;
-+ * either version 2, or (at your option) any later version.
-+
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
-+ * the implied warranty of MERCHANTABILITY or FITNESS FOR
-+ * A PARTICULAR PURPOSE.See the GNU General Public License
-+ * for more details.
-+
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc.,
-+ * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-+ */
-+#ifndef __LCD_H__
-+#define __LCD_H__
-+
-+/*Definition TMDS Device ID register*/
-+#define     VT1631_DEVICE_ID_REG        0x02
-+#define     VT1631_DEVICE_ID            0x92
-+
-+#define     VT3271_DEVICE_ID_REG        0x02
-+#define     VT3271_DEVICE_ID            0x71
-+
-+#define     GET_LCD_SIZE_BY_SYSTEM_BIOS     0x01
-+#define     GET_LCD_SIZE_BY_VGA_BIOS        0x02
-+#define     GET_LCD_SZIE_BY_HW_STRAPPING    0x03
-+#define     GET_LCD_SIZE_BY_USER_SETTING    0x04
-+
-+/* Definition DVI Panel ID*/
-+/* Resolution: 640x480,   Channel: single, Dithering: Enable */
-+#define     LCD_PANEL_ID0_640X480       0x00
-+/* Resolution: 800x600,   Channel: single, Dithering: Enable */
-+#define     LCD_PANEL_ID1_800X600       0x01
-+/* Resolution: 1024x768,  Channel: single, Dithering: Enable */
-+#define     LCD_PANEL_ID2_1024X768      0x02
-+/* Resolution: 1280x768,  Channel: single, Dithering: Enable */
-+#define     LCD_PANEL_ID3_1280X768      0x03
-+/* Resolution: 1280x1024, Channel: dual,   Dithering: Enable */
-+#define     LCD_PANEL_ID4_1280X1024     0x04
-+/* Resolution: 1400x1050, Channel: dual,   Dithering: Enable */
-+#define     LCD_PANEL_ID5_1400X1050     0x05
-+/* Resolution: 1600x1200, Channel: dual,   Dithering: Enable */
-+#define     LCD_PANEL_ID6_1600X1200     0x06
-+/* Resolution: 1366x768,  Channel: single, Dithering: Disable */
-+#define     LCD_PANEL_ID7_1366X768      0x07
-+/* Resolution: 1024x600,  Channel: single, Dithering: Enable*/
-+#define     LCD_PANEL_ID8_1024X600      0x08
-+/* Resolution: 1280x800,  Channel: single, Dithering: Enable*/
-+#define     LCD_PANEL_ID9_1280X800      0x09
-+/* Resolution: 800x480,   Channel: single, Dithering: Enable*/
-+#define     LCD_PANEL_IDA_800X480       0x0A
-+/* Resolution: 1360x768,   Channel: single, Dithering: Disable*/
-+#define     LCD_PANEL_IDB_1360X768     0x0B
-+/* Resolution: 480x640,  Channel: single, Dithering: Enable */
-+#define     LCD_PANEL_IDC_480X640      0x0C
-+
-+
-+extern int viafb_LCD2_ON;
-+extern int viafb_LCD_ON;
-+extern int viafb_DVI_ON;
-+
-+void viafb_disable_lvds_vt1636(struct lvds_setting_information
-+			 *plvds_setting_info,
-+			 struct lvds_chip_information *plvds_chip_info);
-+void viafb_enable_lvds_vt1636(struct lvds_setting_information
-+			*plvds_setting_info,
-+			struct lvds_chip_information *plvds_chip_info);
-+void viafb_lcd_disable(void);
-+void viafb_lcd_enable(void);
-+void viafb_init_lcd_size(void);
-+void viafb_init_lvds_output_interface(struct lvds_chip_information
-+				*plvds_chip_info,
-+				struct lvds_setting_information
-+				*plvds_setting_info);
-+void viafb_lcd_set_mode(struct crt_mode_table *mode_crt_table,
-+		  struct lvds_setting_information *plvds_setting_info,
-+		  struct lvds_chip_information *plvds_chip_info);
-+int viafb_lvds_trasmitter_identify(void);
-+void viafb_init_lvds_output_interface(struct lvds_chip_information
-+				*plvds_chip_info,
-+				struct lvds_setting_information
-+				*plvds_setting_info);
-+bool viafb_lcd_get_mobile_state(bool *mobile);
-+void viafb_load_crtc_timing(struct display_timing device_timing,
-+	int set_iga);
-+
-+#endif /* __LCD_H__ */
-diff -puN /dev/null drivers/video/via/lcdtbl.h
---- /dev/null
-+++ a/drivers/video/via/lcdtbl.h
-@@ -0,0 +1,591 @@
-+/*
-+ * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
-+ * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
-+
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public
-+ * License as published by the Free Software Foundation;
-+ * either version 2, or (at your option) any later version.
-+
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
-+ * the implied warranty of MERCHANTABILITY or FITNESS FOR
-+ * A PARTICULAR PURPOSE.See the GNU General Public License
-+ * for more details.
-+
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc.,
-+ * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-+ */
-+#ifndef __LCDTBL_H__
-+#define __LCDTBL_H__
-+
-+#include "share.h"
-+
-+/* CLE266 Software Power Sequence */
-+/* {Mask}, {Data}, {Delay} */
-+int PowerSequenceOn[3][3] =
-+    { {0x10, 0x08, 0x06}, {0x10, 0x08, 0x06}, {0x19, 0x1FE, 0x01} };
-+int PowerSequenceOff[3][3] =
-+    { {0x06, 0x08, 0x10}, {0x00, 0x00, 0x00}, {0xD2, 0x19, 0x01} };
-+
-+/* ++++++ P880 ++++++ */
-+/*   Panel 1600x1200   */
-+struct io_reg P880_LCD_RES_6X4_16X12[] = {
-+	/*IGA2 Horizontal Total */
-+	{VIACR, CR50, 0xFF, 0x73}, {VIACR, CR55, 0x0F, 0x08},
-+	/*IGA2 Horizontal Blank End */
-+	{VIACR, CR53, 0xFF, 0x73}, {VIACR, CR54, 0x38, 0x00},
-+	{VIACR, CR5D, 0x40, 0x40},
-+	/*IGA2 Horizontal Total Shadow */
-+	{VIACR, CR6D, 0xFF, 0x5A}, {VIACR, CR71, 0x08, 0x00},
-+	/*IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x5E},
-+	/*IGA2 Offset */
-+	{VIACR, CR66, 0xFF, 0xD6}, {VIACR, CR67, 0x03, 0x00},
-+	 /*VCLK*/ {VIASR, SR44, 0xFF, 0x7D}, {VIASR, SR45, 0xFF, 0x8C},
-+	{VIASR, SR46, 0xFF, 0x02}
-+
++struct io_reg {
++	int port;
++	u8 index;
++	u8 mask;
++	u8 value;
 +};
 +
-+#define NUM_TOTAL_P880_LCD_RES_6X4_16X12 ARRAY_SIZE(P880_LCD_RES_6X4_16X12)
-+
-+struct io_reg P880_LCD_RES_7X4_16X12[] = {
-+	/*IGA2 Horizontal Total */
-+	{VIACR, CR50, 0xFF, 0x67}, {VIACR, CR55, 0x0F, 0x08},
-+	/*IGA2 Horizontal Blank End */
-+	{VIACR, CR53, 0xFF, 0x67}, {VIACR, CR54, 0x38, 0x00},
-+	{VIACR, CR5D, 0x40, 0x40},
-+	/*IGA2 Horizontal Total Shadow */
-+	{VIACR, CR6D, 0xFF, 0x74}, {VIACR, CR71, 0x08, 0x00},
-+	/*IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x78},
-+	/*IGA2 Offset */
-+	{VIACR, CR66, 0xFF, 0xF5}, {VIACR, CR67, 0x03, 0x00},
-+	 /*VCLK*/ {VIASR, SR44, 0xFF, 0x78}, {VIASR, SR45, 0xFF, 0x8C},
-+	{VIASR, SR46, 0xFF, 0x01}
-+
-+};
-+
-+#define NUM_TOTAL_P880_LCD_RES_7X4_16X12 ARRAY_SIZE(P880_LCD_RES_7X4_16X12)
-+
-+struct io_reg P880_LCD_RES_8X6_16X12[] = {
-+	/*IGA2 Horizontal Total */
-+	{VIACR, CR50, 0xFF, 0x65}, {VIACR, CR55, 0x0F, 0x08},
-+	/*IGA2 Horizontal Blank End */
-+	{VIACR, CR53, 0xFF, 0x65}, {VIACR, CR54, 0x38, 0x00},
-+	{VIACR, CR5D, 0x40, 0x40},
-+	/*IGA2 Horizontal Total Shadow */
-+	{VIACR, CR6D, 0xFF, 0x7F}, {VIACR, CR71, 0x08, 0x00},
-+	/*IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x83},
-+	/*IGA2 Offset */
-+	{VIACR, CR66, 0xFF, 0xE1}, {VIACR, CR67, 0x03, 0x00},
-+	 /*VCLK*/ {VIASR, SR44, 0xFF, 0x6D}, {VIASR, SR45, 0xFF, 0x88},
-+	{VIASR, SR46, 0xFF, 0x03}
-+
-+};
-+
-+#define NUM_TOTAL_P880_LCD_RES_8X6_16X12 ARRAY_SIZE(P880_LCD_RES_8X6_16X12)
-+
-+struct io_reg P880_LCD_RES_10X7_16X12[] = {
-+	/*IGA2 Horizontal Total */
-+	{VIACR, CR50, 0xFF, 0x65}, {VIACR, CR55, 0x0F, 0x08},
-+	/*IGA2 Horizontal Blank End */
-+	{VIACR, CR53, 0xFF, 0x65}, {VIACR, CR54, 0x38, 0x00},
-+	{VIACR, CR5D, 0x40, 0x40},
-+	/*IGA2 Horizontal Total Shadow */
-+	{VIACR, CR6D, 0xFF, 0xAB}, {VIACR, CR71, 0x08, 0x00},
-+	/*IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0xAF},
-+	/*IGA2 Offset */
-+	{VIACR, CR66, 0xFF, 0xF0}, {VIACR, CR67, 0x03, 0x00},
-+	 /*VCLK*/ {VIASR, SR44, 0xFF, 0x92}, {VIASR, SR45, 0xFF, 0x88},
-+	{VIASR, SR46, 0xFF, 0x03}
-+
-+};
-+
-+#define NUM_TOTAL_P880_LCD_RES_10X7_16X12 ARRAY_SIZE(P880_LCD_RES_10X7_16X12)
-+
-+struct io_reg P880_LCD_RES_12X10_16X12[] = {
-+	/*IGA2 Horizontal Total */
-+	{VIACR, CR50, 0xFF, 0x7D}, {VIACR, CR55, 0x0F, 0x08},
-+	/*IGA2 Horizontal Blank End */
-+	{VIACR, CR53, 0xFF, 0x7D}, {VIACR, CR54, 0x38, 0x00},
-+	{VIACR, CR5D, 0x40, 0x40},
-+	/*IGA2 Horizontal Total Shadow */
-+	{VIACR, CR6D, 0xFF, 0xD0}, {VIACR, CR71, 0x08, 0x00},
-+	/*IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0xD4},
-+	/*IGA2 Offset */
-+	{VIACR, CR66, 0xFF, 0xFA}, {VIACR, CR67, 0x03, 0x00},
-+	 /*VCLK*/ {VIASR, SR44, 0xFF, 0xF6}, {VIASR, SR45, 0xFF, 0x88},
-+	{VIASR, SR46, 0xFF, 0x05}
-+
-+};
-+
-+#define NUM_TOTAL_P880_LCD_RES_12X10_16X12 ARRAY_SIZE(P880_LCD_RES_12X10_16X12)
-+
-+/*   Panel 1400x1050   */
-+struct io_reg P880_LCD_RES_6X4_14X10[] = {
-+	/* 640x480                          */
-+	/* IGA2 Horizontal Total            */
-+	{VIACR, CR50, 0xFF, 0x9D}, {VIACR, CR55, 0x0F, 0x56},
-+	/* IGA2 Horizontal Blank End        */
-+	{VIACR, CR53, 0xFF, 0x9D}, {VIACR, CR54, 0x38, 0x75},
-+	{VIACR, CR5D, 0x40, 0x24},
-+	/* IGA2 Horizontal Total Shadow     */
-+	{VIACR, CR6D, 0xFF, 0x5F}, {VIACR, CR71, 0x08, 0x44},
-+	/* IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x63},
-+	/* IGA2 Offset                      */
-+	{VIACR, CR66, 0xFF, 0xB4}, {VIACR, CR67, 0x03, 0x00},
-+	/* VCLK                             */
-+	{VIASR, SR44, 0xFF, 0xC6}, {VIASR, SR45, 0xFF, 0x8C},
-+	{VIASR, SR46, 0xFF, 0x05}
-+};
-+
-+#define NUM_TOTAL_P880_LCD_RES_6X4_14X10 ARRAY_SIZE(P880_LCD_RES_6X4_14X10)
-+
-+struct io_reg P880_LCD_RES_8X6_14X10[] = {
-+	/* 800x600                          */
-+	/* IGA2 Horizontal Total            */
-+	{VIACR, CR50, 0xFF, 0x9D}, {VIACR, CR55, 0x0F, 0x56},
-+	/* IGA2 Horizontal Blank End        */
-+	{VIACR, CR53, 0xFF, 0x9D}, {VIACR, CR54, 0x38, 0x75},
-+	{VIACR, CR5D, 0x40, 0x24},
-+	/* IGA2 Horizontal Total Shadow     */
-+	{VIACR, CR6D, 0xFF, 0x7F}, {VIACR, CR71, 0x08, 0x44},
-+	/* IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x83},
-+	/* IGA2 Offset                      */
-+	{VIACR, CR66, 0xFF, 0xBE}, {VIACR, CR67, 0x03, 0x00},
-+	/* VCLK                             */
-+	{VIASR, SR44, 0xFF, 0x06}, {VIASR, SR45, 0xFF, 0x8D},
-+	{VIASR, SR46, 0xFF, 0x05}
-+};
-+
-+#define NUM_TOTAL_P880_LCD_RES_8X6_14X10 ARRAY_SIZE(P880_LCD_RES_8X6_14X10)
-+
-+/* ++++++ K400 ++++++ */
-+/*   Panel 1600x1200   */
-+struct io_reg K400_LCD_RES_6X4_16X12[] = {
-+	/*IGA2 Horizontal Total */
-+	{VIACR, CR50, 0xFF, 0x73}, {VIACR, CR55, 0x0F, 0x08},
-+	/*IGA2 Horizontal Blank End */
-+	{VIACR, CR53, 0xFF, 0x73}, {VIACR, CR54, 0x38, 0x00},
-+	{VIACR, CR5D, 0x40, 0x40},
-+	/*IGA2 Horizontal Total Shadow */
-+	{VIACR, CR6D, 0xFF, 0x5A}, {VIACR, CR71, 0x08, 0x00},
-+	/*IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x5E},
-+	/*IGA2 Offset */
-+	{VIACR, CR66, 0xFF, 0xDA}, {VIACR, CR67, 0x03, 0x00},
-+	 /*VCLK*/ {VIASR, SR46, 0xFF, 0xC4}, {VIASR, SR47, 0xFF, 0x7F}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_6X4_16X12 ARRAY_SIZE(K400_LCD_RES_6X4_16X12)
-+
-+struct io_reg K400_LCD_RES_7X4_16X12[] = {
-+	/*IGA2 Horizontal Total */
-+	{VIACR, CR50, 0xFF, 0x67}, {VIACR, CR55, 0x0F, 0x08},
-+	/*IGA2 Horizontal Blank End */
-+	{VIACR, CR53, 0xFF, 0x67}, {VIACR, CR54, 0x38, 0x00},
-+	{VIACR, CR5D, 0x40, 0x40},
-+	/*IGA2 Horizontal Total Shadow */
-+	{VIACR, CR6D, 0xFF, 0x74}, {VIACR, CR71, 0x08, 0x00},
-+	/*IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x78},
-+	/*IGA2 Offset */
-+	{VIACR, CR66, 0xFF, 0xF5}, {VIACR, CR67, 0x03, 0x00},
-+	 /*VCLK*/ {VIASR, SR46, 0xFF, 0x46}, {VIASR, SR47, 0xFF, 0x3D}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_7X4_16X12 ARRAY_SIZE(K400_LCD_RES_7X4_16X12)
-+
-+struct io_reg K400_LCD_RES_8X6_16X12[] = {
-+	/*IGA2 Horizontal Total */
-+	{VIACR, CR50, 0xFF, 0x65}, {VIACR, CR55, 0x0F, 0x08},
-+	/*IGA2 Horizontal Blank End */
-+	{VIACR, CR53, 0xFF, 0x65}, {VIACR, CR54, 0x38, 0x00},
-+	{VIACR, CR5D, 0x40, 0x40},
-+	/*IGA2 Horizontal Total Shadow */
-+	{VIACR, CR6D, 0xFF, 0x7F}, {VIACR, CR71, 0x08, 0x00},
-+	/*IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x83},
-+	/*IGA2 Offset */
-+	{VIACR, CR66, 0xFF, 0xE1}, {VIACR, CR67, 0x03, 0x00},
-+	 /*VCLK*/ {VIASR, SR46, 0xFF, 0x85}, {VIASR, SR47, 0xFF, 0x6F}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_8X6_16X12 ARRAY_SIZE(K400_LCD_RES_8X6_16X12)
-+
-+struct io_reg K400_LCD_RES_10X7_16X12[] = {
-+	/*IGA2 Horizontal Total */
-+	{VIACR, CR50, 0xFF, 0x65}, {VIACR, CR55, 0x0F, 0x08},
-+	/*IGA2 Horizontal Blank End */
-+	{VIACR, CR53, 0xFF, 0x65}, {VIACR, CR54, 0x38, 0x00},
-+	{VIACR, CR5D, 0x40, 0x40},
-+	/*IGA2 Horizontal Total Shadow */
-+	{VIACR, CR6D, 0xFF, 0xAB}, {VIACR, CR71, 0x08, 0x00},
-+	/*IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0xAF},
-+	/*IGA2 Offset */
-+	{VIACR, CR66, 0xFF, 0xF0}, {VIACR, CR67, 0x03, 0x00},
-+	 /*VCLK*/ {VIASR, SR46, 0xFF, 0x45}, {VIASR, SR47, 0xFF, 0x4A}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_10X7_16X12 ARRAY_SIZE(K400_LCD_RES_10X7_16X12)
-+
-+struct io_reg K400_LCD_RES_12X10_16X12[] = {
-+	/*IGA2 Horizontal Total */
-+	{VIACR, CR50, 0xFF, 0x7D}, {VIACR, CR55, 0x0F, 0x08},
-+	/*IGA2 Horizontal Blank End */
-+	{VIACR, CR53, 0xFF, 0x7D}, {VIACR, CR54, 0x38, 0x00},
-+	{VIACR, CR5D, 0x40, 0x40},
-+	/*IGA2 Horizontal Total Shadow */
-+	{VIACR, CR6D, 0xFF, 0xD0}, {VIACR, CR71, 0x08, 0x00},
-+	/*IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0xD4},
-+	/*IGA2 Offset */
-+	{VIACR, CR66, 0xFF, 0xFA}, {VIACR, CR67, 0x03, 0x00},
-+	 /*VCLK*/ {VIASR, SR46, 0xFF, 0x47}, {VIASR, SR47, 0xFF, 0x7C}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_12X10_16X12 ARRAY_SIZE(K400_LCD_RES_12X10_16X12)
-+
-+/*   Panel 1400x1050   */
-+struct io_reg K400_LCD_RES_6X4_14X10[] = {
-+	/* 640x400                          */
-+	/* IGA2 Horizontal Total            */
-+	{VIACR, CR50, 0xFF, 0x9D}, {VIACR, CR55, 0x0F, 0x56},
-+	/* IGA2 Horizontal Blank End        */
-+	{VIACR, CR53, 0xFF, 0x9D}, {VIACR, CR54, 0x38, 0x75},
-+	{VIACR, CR5D, 0x40, 0x24},
-+	/* IGA2 Horizontal Total Shadow     */
-+	{VIACR, CR6D, 0xFF, 0x5F}, {VIACR, CR71, 0x08, 0x44},
-+	/* IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x63},
-+	/* IGA2 Offset                      */
-+	{VIACR, CR66, 0xFF, 0xB4}, {VIACR, CR67, 0x03, 0x00},
-+	/* VCLK                             */
-+	{VIASR, SR46, 0xFF, 0x07}, {VIASR, SR47, 0xFF, 0x19}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_6X4_14X10 ARRAY_SIZE(K400_LCD_RES_6X4_14X10)
-+
-+struct io_reg K400_LCD_RES_8X6_14X10[] = {
-+	/* 800x600                          */
-+	/* IGA2 Horizontal Total            */
-+	{VIACR, CR50, 0xFF, 0x9D}, {VIACR, CR55, 0x0F, 0x56},
-+	/* IGA2 Horizontal Blank End        */
-+	{VIACR, CR53, 0xFF, 0x9D}, {VIACR, CR54, 0x38, 0x75},
-+	{VIACR, CR5D, 0x40, 0x24},
-+	/* IGA2 Horizontal Total Shadow     */
-+	{VIACR, CR6D, 0xFF, 0x7F}, {VIACR, CR71, 0x08, 0x44},
-+	/* IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x83},
-+	/* IGA2 Offset                      */
-+	{VIACR, CR66, 0xFF, 0xBE}, {VIACR, CR67, 0x03, 0x00},
-+	/* VCLK                             */
-+	{VIASR, SR46, 0xFF, 0x07}, {VIASR, SR47, 0xFF, 0x21}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_8X6_14X10 ARRAY_SIZE(K400_LCD_RES_8X6_14X10)
-+
-+struct io_reg K400_LCD_RES_10X7_14X10[] = {
-+	/* 1024x768                         */
-+	/* IGA2 Horizontal Total            */
-+	{VIACR, CR50, 0xFF, 0x9D}, {VIACR, CR55, 0x0F, 0x56},
-+	/* IGA2 Horizontal Blank End        */
-+	{VIACR, CR53, 0xFF, 0x9D}, {VIACR, CR54, 0x38, 0x75},
-+	{VIACR, CR5D, 0x40, 0x24},
-+	/* IGA2 Horizontal Total Shadow     */
-+	{VIACR, CR6D, 0xFF, 0xA3}, {VIACR, CR71, 0x08, 0x44},
-+	/* IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0xA7},
-+	/* IGA2 Offset                      */
-+	{VIACR, CR66, 0xFF, 0xC3}, {VIACR, CR67, 0x03, 0x04},
-+	/* VCLK                             */
-+	{VIASR, SR46, 0xFF, 0x05}, {VIASR, SR47, 0xFF, 0x1E}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_10X7_14X10 ARRAY_SIZE(K400_LCD_RES_10X7_14X10)
-+
-+struct io_reg K400_LCD_RES_12X10_14X10[] = {
-+	/* 1280x768, 1280x960, 1280x1024    */
-+	/* IGA2 Horizontal Total            */
-+	{VIACR, CR50, 0xFF, 0x97}, {VIACR, CR55, 0x0F, 0x56},
-+	/* IGA2 Horizontal Blank End        */
-+	{VIACR, CR53, 0xFF, 0x97}, {VIACR, CR54, 0x38, 0x75},
-+	{VIACR, CR5D, 0x40, 0x24},
-+	/* IGA2 Horizontal Total Shadow     */
-+	{VIACR, CR6D, 0xFF, 0xCE}, {VIACR, CR71, 0x08, 0x44},
-+	/* IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0xD2},
-+	/* IGA2 Offset                      */
-+	{VIACR, CR66, 0xFF, 0xC9}, {VIACR, CR67, 0x03, 0x04},
-+	/* VCLK                             */
-+	{VIASR, SR46, 0xFF, 0x84}, {VIASR, SR47, 0xFF, 0x79}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_12X10_14X10 ARRAY_SIZE(K400_LCD_RES_12X10_14X10)
-+
-+/* ++++++ K400 ++++++ */
-+/*   Panel 1366x768   */
-+struct io_reg K400_LCD_RES_6X4_1366X7[] = {
-+	/* 640x400                          */
-+	/* IGA2 Horizontal Total            */
-+	{VIACR, CR50, 0xFF, 0x47}, {VIACR, CR55, 0x0F, 0x35},
-+	/* IGA2 Horizontal Blank End        */
-+	{VIACR, CR53, 0xFF, 0x47}, {VIACR, CR54, 0x38, 0x2B},
-+	{VIACR, CR5D, 0x40, 0x13},
-+	/* IGA2 Horizontal Total Shadow     */
-+	{VIACR, CR6D, 0xFF, 0x60}, {VIACR, CR71, 0x08, 0x23},
-+	/* IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x64},
-+	/* IGA2 Offset                      */
-+	{VIACR, CR66, 0xFF, 0x8C}, {VIACR, CR67, 0x03, 0x00},
-+	/* VCLK                             */
-+	{VIASR, SR46, 0xFF, 0x87}, {VIASR, SR47, 0xFF, 0x4C}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_6X4_1366X7 ARRAY_SIZE(K400_LCD_RES_6X4_1366X7)
-+
-+struct io_reg K400_LCD_RES_7X4_1366X7[] = {
-+	/* IGA2 Horizontal Total            */
-+	{VIACR, CR50, 0xFF, 0x3B}, {VIACR, CR55, 0x0F, 0x35},
-+	/* IGA2 Horizontal Blank End        */
-+	{VIACR, CR53, 0xFF, 0x3B}, {VIACR, CR54, 0x38, 0x2B},
-+	{VIACR, CR5D, 0x40, 0x13},
-+	/* IGA2 Horizontal Total Shadow     */
-+	{VIACR, CR6D, 0xFF, 0x71}, {VIACR, CR71, 0x08, 0x23},
-+	/* IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x75},
-+	/* IGA2 Offset                      */
-+	{VIACR, CR66, 0xFF, 0x96}, {VIACR, CR67, 0x03, 0x00},
-+	/* VCLK                             */
-+	{VIASR, SR46, 0xFF, 0x05}, {VIASR, SR47, 0xFF, 0x10}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_7X4_1366X7 ARRAY_SIZE(K400_LCD_RES_7X4_1366X7)
-+
-+struct io_reg K400_LCD_RES_8X6_1366X7[] = {
-+	/* 800x600                          */
-+	/* IGA2 Horizontal Total            */
-+	{VIACR, CR50, 0xFF, 0x37}, {VIACR, CR55, 0x0F, 0x35},
-+	/* IGA2 Horizontal Blank End        */
-+	{VIACR, CR53, 0xFF, 0x37}, {VIACR, CR54, 0x38, 0x2B},
-+	{VIACR, CR5D, 0x40, 0x13},
-+	/* IGA2 Horizontal Total Shadow     */
-+	{VIACR, CR6D, 0xFF, 0x7E}, {VIACR, CR71, 0x08, 0x23},
-+	/* IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x82},
-+	/* IGA2 Offset                      */
-+	{VIACR, CR66, 0xFF, 0x8C}, {VIACR, CR67, 0x03, 0x00},
-+	/* VCLK                             */
-+	{VIASR, SR46, 0xFF, 0x84}, {VIASR, SR47, 0xFF, 0xB9}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_8X6_1366X7 ARRAY_SIZE(K400_LCD_RES_8X6_1366X7)
-+
-+struct io_reg K400_LCD_RES_10X7_1366X7[] = {
-+	/* 1024x768                         */
-+	/* IGA2 Horizontal Total            */
-+	{VIACR, CR50, 0xFF, 0x9D}, {VIACR, CR55, 0x0F, 0x56},
-+	/* IGA2 Horizontal Blank End        */
-+	{VIACR, CR53, 0xFF, 0x9D}, {VIACR, CR54, 0x38, 0x75},
-+	{VIACR, CR5D, 0x40, 0x24},
-+	/* IGA2 Horizontal Total Shadow     */
-+	{VIACR, CR6D, 0xFF, 0xA3}, {VIACR, CR71, 0x08, 0x44},
-+	/* IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0xA7},
-+	/* IGA2 Offset                      */
-+	{VIACR, CR66, 0xFF, 0xC3}, {VIACR, CR67, 0x03, 0x04},
-+	/* VCLK                             */
-+	{VIASR, SR46, 0xFF, 0x05}, {VIASR, SR47, 0xFF, 0x1E}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_10X7_1366X7 ARRAY_SIZE(K400_LCD_RES_10X7_1366X7)
-+
-+struct io_reg K400_LCD_RES_12X10_1366X7[] = {
-+	/* 1280x768, 1280x960, 1280x1024    */
-+	/* IGA2 Horizontal Total            */
-+	{VIACR, CR50, 0xFF, 0x97}, {VIACR, CR55, 0x0F, 0x56},
-+	/* IGA2 Horizontal Blank End        */
-+	{VIACR, CR53, 0xFF, 0x97}, {VIACR, CR54, 0x38, 0x75},
-+	{VIACR, CR5D, 0x40, 0x24},
-+	/* IGA2 Horizontal Total Shadow     */
-+	{VIACR, CR6D, 0xFF, 0xCE}, {VIACR, CR71, 0x08, 0x44},
-+	/* IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0xD2},
-+	/* IGA2 Offset                      */
-+	{VIACR, CR66, 0xFF, 0xC9}, {VIACR, CR67, 0x03, 0x04},
-+	/* VCLK                             */
-+	{VIASR, SR46, 0xFF, 0x84}, {VIASR, SR47, 0xFF, 0x79}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_12X10_1366X7\
-+			ARRAY_SIZE(K400_LCD_RES_12X10_1366X7)
-+
-+/* ++++++ K400 ++++++ */
-+/*   Panel 1280x1024   */
-+struct io_reg K400_LCD_RES_6X4_12X10[] = {
-+	/*IGA2 Horizontal Total */
-+	{VIACR, CR50, 0xFF, 0x9D}, {VIACR, CR55, 0x0F, 0x46},
-+	/*IGA2 Horizontal Blank End */
-+	{VIACR, CR53, 0xFF, 0x9D}, {VIACR, CR54, 0x38, 0x74},
-+	{VIACR, CR5D, 0x40, 0x1C},
-+	/*IGA2 Horizontal Total Shadow */
-+	{VIACR, CR6D, 0xFF, 0x5F}, {VIACR, CR71, 0x08, 0x34},
-+	/*IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x63},
-+	/*IGA2 Offset */
-+	{VIACR, CR66, 0xFF, 0xAA}, {VIACR, CR67, 0x03, 0x00},
-+	 /*VCLK*/ {VIASR, SR46, 0xFF, 0x07}, {VIASR, SR47, 0xFF, 0x19}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_6X4_12X10 ARRAY_SIZE(K400_LCD_RES_6X4_12X10)
-+
-+struct io_reg K400_LCD_RES_7X4_12X10[] = {
-+	/*IGA2 Horizontal Total */
-+	{VIACR, CR50, 0xFF, 0x9D}, {VIACR, CR55, 0x0F, 0x46},
-+	/*IGA2 Horizontal Blank End */
-+	{VIACR, CR53, 0xFF, 0x9D}, {VIACR, CR54, 0x38, 0x74},
-+	{VIACR, CR5D, 0x40, 0x1C},
-+	/*IGA2 Horizontal Total Shadow */
-+	{VIACR, CR6D, 0xFF, 0x68}, {VIACR, CR71, 0x08, 0x34},
-+	/*IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x6C},
-+	/*IGA2 Offset */
-+	{VIACR, CR66, 0xFF, 0xA8}, {VIACR, CR67, 0x03, 0x00},
-+	 /*VCLK*/ {VIASR, SR46, 0xFF, 0x87}, {VIASR, SR47, 0xFF, 0xED}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_7X4_12X10 ARRAY_SIZE(K400_LCD_RES_7X4_12X10)
-+
-+struct io_reg K400_LCD_RES_8X6_12X10[] = {
-+	/*IGA2 Horizontal Total */
-+	{VIACR, CR50, 0xFF, 0x9D}, {VIACR, CR55, 0x0F, 0x46},
-+	/*IGA2 Horizontal Blank End */
-+	{VIACR, CR53, 0xFF, 0x9D}, {VIACR, CR54, 0x38, 0x74},
-+	{VIACR, CR5D, 0x40, 0x1C},
-+	/*IGA2 Horizontal Total Shadow */
-+	{VIACR, CR6D, 0xFF, 0x7F}, {VIACR, CR71, 0x08, 0x34},
-+	/*IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x83},
-+	/*IGA2 Offset */
-+	{VIACR, CR66, 0xFF, 0xBE}, {VIACR, CR67, 0x03, 0x00},
-+	 /*VCLK*/ {VIASR, SR46, 0xFF, 0x07}, {VIASR, SR47, 0xFF, 0x21}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_8X6_12X10 ARRAY_SIZE(K400_LCD_RES_8X6_12X10)
-+
-+struct io_reg K400_LCD_RES_10X7_12X10[] = {
-+	/*IGA2 Horizontal Total */
-+	{VIACR, CR50, 0xFF, 0x9D}, {VIACR, CR55, 0x0F, 0x46},
-+	/*IGA2 Horizontal Blank End */
-+	{VIACR, CR53, 0xFF, 0x9D}, {VIACR, CR54, 0x38, 0x74},
-+	{VIACR, CR5D, 0x40, 0x1C},
-+	/*IGA2 Horizontal Total Shadow */
-+	{VIACR, CR6D, 0xFF, 0xA3}, {VIACR, CR71, 0x08, 0x34},
-+	/*IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0xA7},
-+	/*IGA2 Offset */
-+	{VIACR, CR66, 0xFF, 0xBE}, {VIACR, CR67, 0x03, 0x04},
-+	 /*VCLK*/ {VIASR, SR46, 0xFF, 0x05}, {VIASR, SR47, 0xFF, 0x1E}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_10X7_12X10 ARRAY_SIZE(K400_LCD_RES_10X7_12X10)
-+
-+/* ++++++ K400 ++++++ */
-+/*   Panel 1024x768    */
-+struct io_reg K400_LCD_RES_6X4_10X7[] = {
-+	/*IGA2 Horizontal Total */
-+	{VIACR, CR50, 0xFF, 0x47}, {VIACR, CR55, 0x0F, 0x35},
-+	/*IGA2 Horizontal Blank End */
-+	{VIACR, CR53, 0xFF, 0x47}, {VIACR, CR54, 0x38, 0x2B},
-+	{VIACR, CR5D, 0x40, 0x13},
-+	/*IGA2 Horizontal Total Shadow */
-+	{VIACR, CR6D, 0xFF, 0x60}, {VIACR, CR71, 0x08, 0x23},
-+	/*IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x64},
-+	/*IGA2 Offset */
-+	{VIACR, CR66, 0xFF, 0x8C}, {VIACR, CR67, 0x03, 0x00},
-+	 /*VCLK*/ {VIASR, SR46, 0xFF, 0x87}, {VIASR, SR47, 0xFF, 0x4C}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_6X4_10X7 ARRAY_SIZE(K400_LCD_RES_6X4_10X7)
-+
-+struct io_reg K400_LCD_RES_7X4_10X7[] = {
-+	/*IGA2 Horizontal Total */
-+	{VIACR, CR50, 0xFF, 0x3B}, {VIACR, CR55, 0x0F, 0x35},
-+	/*IGA2 Horizontal Blank End */
-+	{VIACR, CR53, 0xFF, 0x3B}, {VIACR, CR54, 0x38, 0x2B},
-+	{VIACR, CR5D, 0x40, 0x13},
-+	/*IGA2 Horizontal Total Shadow */
-+	{VIACR, CR6D, 0xFF, 0x71}, {VIACR, CR71, 0x08, 0x23},
-+	/*IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x75},
-+	/*IGA2 Offset */
-+	{VIACR, CR66, 0xFF, 0x96}, {VIACR, CR67, 0x03, 0x00},
-+	 /*VCLK*/ {VIASR, SR46, 0xFF, 0x05}, {VIASR, SR47, 0xFF, 0x10}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_7X4_10X7 ARRAY_SIZE(K400_LCD_RES_7X4_10X7)
-+
-+struct io_reg K400_LCD_RES_8X6_10X7[] = {
-+	/*IGA2 Horizontal Total */
-+	{VIACR, CR50, 0xFF, 0x37}, {VIACR, CR55, 0x0F, 0x35},
-+	/*IGA2 Horizontal Blank End */
-+	{VIACR, CR53, 0xFF, 0x37}, {VIACR, CR54, 0x38, 0x2B},
-+	{VIACR, CR5D, 0x40, 0x13},
-+	/*IGA2 Horizontal Total Shadow */
-+	{VIACR, CR6D, 0xFF, 0x7E}, {VIACR, CR71, 0x08, 0x23},
-+	/*IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x82},
-+	/*IGA2 Offset */
-+	{VIACR, CR66, 0xFF, 0x8C}, {VIACR, CR67, 0x03, 0x00},
-+	 /*VCLK*/ {VIASR, SR46, 0xFF, 0x84}, {VIASR, SR47, 0xFF, 0xB9}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_8X6_10X7 ARRAY_SIZE(K400_LCD_RES_8X6_10X7)
-+
-+/* ++++++ K400 ++++++ */
-+/*   Panel 800x600     */
-+struct io_reg K400_LCD_RES_6X4_8X6[] = {
-+	/*IGA2 Horizontal Total */
-+	{VIACR, CR50, 0xFF, 0x1A}, {VIACR, CR55, 0x0F, 0x34},
-+	/*IGA2 Horizontal Blank End */
-+	{VIACR, CR53, 0xFF, 0x1A}, {VIACR, CR54, 0x38, 0xE3},
-+	{VIACR, CR5D, 0x40, 0x12},
-+	/*IGA2 Horizontal Total Shadow */
-+	{VIACR, CR6D, 0xFF, 0x5F}, {VIACR, CR71, 0x08, 0x22},
-+	/*IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x63},
-+	/*IGA2 Offset */
-+	{VIACR, CR66, 0xFF, 0x6E}, {VIACR, CR67, 0x03, 0x00},
-+	 /*VCLK*/ {VIASR, SR46, 0xFF, 0x86}, {VIASR, SR47, 0xFF, 0xB3}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_6X4_8X6 ARRAY_SIZE(K400_LCD_RES_6X4_8X6)
-+
-+struct io_reg K400_LCD_RES_7X4_8X6[] = {
-+	/*IGA2 Horizontal Total */
-+	{VIACR, CR50, 0xFF, 0x1F}, {VIACR, CR55, 0x0F, 0x34},
-+	/*IGA2 Horizontal Blank End */
-+	{VIACR, CR53, 0xFF, 0x1F}, {VIACR, CR54, 0x38, 0xE3},
-+	{VIACR, CR5D, 0x40, 0x12},
-+	/*IGA2 Horizontal Total Shadow */
-+	{VIACR, CR6D, 0xFF, 0x7F}, {VIACR, CR71, 0x08, 0x22},
-+	/*IGA2 Horizontal Blank End Shadow */
-+	{VIACR, CR6E, 0xFF, 0x83},
-+	/*IGA2 Offset */
-+	{VIACR, CR66, 0xFF, 0x78}, {VIACR, CR67, 0x03, 0x00},
-+	 /*VCLK*/ {VIASR, SR46, 0xFF, 0xC4}, {VIASR, SR47, 0xFF, 0x59}
-+};
-+
-+#define NUM_TOTAL_K400_LCD_RES_7X4_8X6 ARRAY_SIZE(K400_LCD_RES_7X4_8X6)
-+
-+#endif /* __LCDTBL_H__ */
++#endif /* __SHARE_H__ */
 _
 
 Patches currently in -mm which might be from JosephChan@via.com.tw are
