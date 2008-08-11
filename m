@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-renesas-highlander-fpga-smbus-support-update-fix-fix.patch added to -mm tree
-Date: Mon, 11 Aug 2008 15:40:22 -0700
-Message-ID: <200808112240.m7BMeNwE025654@imap1.linux-foundation.org>
+Subject: + lockdep-handle-chains-involving-classes-defined-in-modules.patch added to -mm tree
+Date: Mon, 11 Aug 2008 15:43:36 -0700
+Message-ID: <200808112243.m7BMha26025803@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54046 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38320 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751996AbYHKWlZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752204AbYHKWoT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 18:41:25 -0400
+	Mon, 11 Aug 2008 18:44:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, khali@linux-fr.org, lethal@linux-sh.org, xyzzy@speakeasy.org
+Cc: rabin@rab.in, a.p.zijlstra@chello.nl, mingo@elte.hu, snakebyte@gmx.de, ying.huang@intel.com
 
 
 The patch titled
-     i2c-renesas-highlander-fpga-smbus-support-update-fix-fix
+     lockdep: handle chains involving classes defined in modules
 has been added to the -mm tree.  Its filename is
-     i2c-renesas-highlander-fpga-smbus-support-update-fix-fix.patch
+     lockdep-handle-chains-involving-classes-defined-in-modules.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,101 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i2c-renesas-highlander-fpga-smbus-support-update-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lockdep: handle chains involving classes defined in modules
+From: Rabin Vincent <rabin@rab.in>
 
-Don't wait interruptibly - it will fall though if signal_pending().
+/proc/lockdep_chains currently oopses after any module which creates and
+uses a lock is unloaded.  This is because one of the chains involves a
+class which was defined in the module just unloaded.
 
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Trent Piepho <xyzzy@speakeasy.org>
+Solve this by marking the classes as unused and not printing information
+about the unused classes.
+
+Reported-by: Eric Sesterhenn <snakebyte@gmx.de>
+Signed-off-by: Rabin Vincent <rabin@rab.in>
+Acked-by: Huang Ying <ying.huang@intel.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-highlander.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/lockdep.c      |    1 +
+ kernel/lockdep_proc.c |    3 +++
+ 2 files changed, 4 insertions(+)
 
-diff -puN drivers/i2c/busses/i2c-highlander.c~i2c-renesas-highlander-fpga-smbus-support-update-fix-fix drivers/i2c/busses/i2c-highlander.c
---- a/drivers/i2c/busses/i2c-highlander.c~i2c-renesas-highlander-fpga-smbus-support-update-fix-fix
-+++ a/drivers/i2c/busses/i2c-highlander.c
-@@ -199,7 +199,7 @@ static void highlander_i2c_poll(struct h
- static inline int highlander_i2c_wait_xfer_done(struct highlander_i2c_dev *dev)
- {
- 	if (dev->irq)
--		wait_for_completion_interruptible_timeout(&dev->cmd_complete,
-+		wait_for_completion_timeout(&dev->cmd_complete,
- 					  msecs_to_jiffies(iic_timeout));
- 	else
- 		/* busy looping, the IRQ of champions */
+diff -puN kernel/lockdep.c~lockdep-handle-chains-involving-classes-defined-in-modules kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-handle-chains-involving-classes-defined-in-modules
++++ a/kernel/lockdep.c
+@@ -3174,6 +3174,7 @@ static void zap_class(struct lock_class 
+ 	list_del_rcu(&class->hash_entry);
+ 	list_del_rcu(&class->lock_entry);
+ 
++	class->key = NULL;
+ }
+ 
+ static inline int within(const void *addr, void *start, unsigned long size)
+diff -puN kernel/lockdep_proc.c~lockdep-handle-chains-involving-classes-defined-in-modules kernel/lockdep_proc.c
+--- a/kernel/lockdep_proc.c~lockdep-handle-chains-involving-classes-defined-in-modules
++++ a/kernel/lockdep_proc.c
+@@ -201,6 +201,9 @@ static int lc_show(struct seq_file *m, v
+ 
+ 	for (i = 0; i < chain->depth; i++) {
+ 		class = lock_chain_get_class(chain, i);
++		if (!class->key)
++			continue;
++
+ 		seq_printf(m, "[%p] ", class->key);
+ 		print_name(m, class);
+ 		seq_puts(m, "\n");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rabin@rab.in are
 
 origin.patch
-printk-robustify-printk-fix.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
+cpuidle-make-sysfs-attributes-sysdev-class-attributes.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-i2c-renesas-highlander-fpga-smbus-support-update-fix.patch
-i2c-renesas-highlander-fpga-smbus-support-update-fix-fix.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-serio-xilinx_ps2c-fix-warning.patch
-git-jg-misc.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
-sched-type-fix.patch
-lockdep-spin_lock_nest_lock-fix-checkpatch-fixes.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-scsi-megaraid_sas-add-the-new-controllers-support.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+lockdep-handle-chains-involving-classes-defined-in-modules.patch
 
