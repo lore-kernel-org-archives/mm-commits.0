@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-fix-shadowed-variable-warning.patch added to -mm tree
-Date: Mon, 11 Aug 2008 16:55:20 -0700
-Message-ID: <200808112355.m7BNtKnw028715@imap1.linux-foundation.org>
+Subject: + fs-eventpollc-fix-sys_epoll_create1-comment.patch added to -mm tree
+Date: Mon, 11 Aug 2008 16:58:46 -0700
+Message-ID: <200808112358.m7BNwkJU028876@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57337 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51238 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755789AbYHKXzX (ORCPT
+	by vger.kernel.org with ESMTP id S1758739AbYHKX7b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 19:55:23 -0400
+	Mon, 11 Aug 2008 19:59:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com
+Cc: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, geert@linux-m68k.org
 
 
 The patch titled
-     x86: fix shadowed variable warning
+     fs/eventpoll.c: fix sys_epoll_create1() comment
 has been added to the -mm tree.  Its filename is
-     x86-fix-shadowed-variable-warning.patch
+     fs-eventpollc-fix-sys_epoll_create1-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: fix shadowed variable warning
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: fs/eventpoll.c: fix sys_epoll_create1() comment
+From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/pvclock.c:102:6: warning: symbol 'tsc_khz' shadows an earlier one
-include/asm/tsc.h:18:21: originally declared here
+The `size' argument was removed.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Reported-by:  Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/pvclock.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/eventpoll.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN arch/x86/kernel/pvclock.c~x86-fix-shadowed-variable-warning arch/x86/kernel/pvclock.c
---- a/arch/x86/kernel/pvclock.c~x86-fix-shadowed-variable-warning
-+++ a/arch/x86/kernel/pvclock.c
-@@ -99,14 +99,14 @@ static unsigned pvclock_get_time_values(
- 
- unsigned long pvclock_tsc_khz(struct pvclock_vcpu_time_info *src)
- {
--	u64 tsc_khz = 1000000ULL << 32;
-+	u64 pv_tsc_khz = 1000000ULL << 32;
- 
--	do_div(tsc_khz, src->tsc_to_system_mul);
-+	do_div(pv_tsc_khz, src->tsc_to_system_mul);
- 	if (src->tsc_shift < 0)
--		tsc_khz <<= -src->tsc_shift;
-+		pv_tsc_khz <<= -src->tsc_shift;
- 	else
--		tsc_khz >>= src->tsc_shift;
--	return tsc_khz;
-+		pv_tsc_khz >>= src->tsc_shift;
-+	return pv_tsc_khz;
+diff -puN fs/eventpoll.c~fs-eventpollc-fix-sys_epoll_create1-comment fs/eventpoll.c
+--- a/fs/eventpoll.c~fs-eventpollc-fix-sys_epoll_create1-comment
++++ a/fs/eventpoll.c
+@@ -1041,10 +1041,7 @@ retry:
  }
  
- cycle_t pvclock_clocksource_read(struct pvclock_vcpu_time_info *src)
+ /*
+- * It opens an eventpoll file descriptor. The "size" parameter is there
+- * for historical reasons, when epoll was using an hash instead of an
+- * RB tree. With the current implementation, the "size" parameter is ignored
+- * (besides sanity checks).
++ * Open an eventpoll file descriptor.
+  */
+ asmlinkage long sys_epoll_create1(int flags)
+ {
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+fs-eventpollc-fix-sys_epoll_create1-comment.patch
+printk-robustify-printk-fix.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-x86-fix-shadowed-variable-warning.patch
-cifs-remove-global_extern-macro.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
 ppc-use-the-common-ascii-hex-helpers.patch
 powerpc-replace-__function__-with-__func__.patch
-v4l-drx397xdc-sparse-annotations.patch
-input-ads7846c-sparse-lock-annotation.patch
-kvm-make-functions-static.patch
-drivers-net-replace-__function__-with-__func__.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+i2c-renesas-highlander-fpga-smbus-support-update-fix.patch
+i2c-renesas-highlander-fpga-smbus-support-update-fix-fix.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
+sched-type-fix.patch
+lockdep-spin_lock_nest_lock-fix-checkpatch-fixes.patch
 scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-wireless-replace-__function__-with-__func__.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-include-replace-__function__-with-__func__.patch
-misc-replace-__function__-with-__func__.patch
-befs-annotate-fs32-on-tests-for-superblock-endianness.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+scsi-megaraid_sas-add-the-new-controllers-support.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
