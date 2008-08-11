@@ -1,24 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-package-dont-break-if-%_smp_mflags-isnt-set.patch added to -mm tree
-Date: Mon, 11 Aug 2008 13:30:52 -0700
-Message-ID: <200808112030.m7BKUrId019864@imap1.linux-foundation.org>
+Subject: + move-kernel-doc-comment-for-might_sleep-directly-before-its-defining-block.patch added to -mm tree
+Date: Mon, 11 Aug 2008 13:32:52 -0700
+Message-ID: <200808112032.m7BKWqaW019971@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56178 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34193 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753115AbYHKUbM (ORCPT
+	by vger.kernel.org with ESMTP id S1751302AbYHKUdT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 16:31:12 -0400
+	Mon, 11 Aug 2008 16:33:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jk@ozlabs.org, sam@ravnborg.org
+Cc: Uwe.Kleine-Koenig@digi.com, mingo@elte.hu, randy.dunlap@oracle.com
 
 
 The patch titled
-     scripts/package: don't break if %{_smp_mflags} isn't set
+     move kernel-doc comment for might_sleep directly before its defini=
+ng block
 has been added to the -mm tree.  Its filename is
-     scripts-package-dont-break-if-%_smp_mflags-isnt-set.patch
+     move-kernel-doc-comment-for-might_sleep-directly-before-its-defini=
+ng-block.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,57 +31,57 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: scripts/package: don't break if %{_smp_mflags} isn't set
-From: Jeremy Kerr <jk@ozlabs.org>
+Subject: move kernel-doc comment for might_sleep directly before its de=
+fining block
+=46rom: Uwe Kleine-K=F6nig <Uwe.Kleine-Koenig@digi.com>
 
-Currently, if we do a 'make rpm-pkg' without the _smp_mflags rpm macro
-defined, the build fails with:
-
-  [snip]
-  Executing(%build): /bin/bash -e /var/tmp/rpm-tmp.67959
-  + umask 022
-  + cd /home/jk/devel/kernel-snapshot/rpm/BUILD
-  + cd kernel-2.6.26
-  + make clean
-  + make '%{_smp_mflags}'
-  make[3]: *** No rule to make target `%{_smp_mflags}'.  Stop.
-  error: Bad exit status from /var/tmp/rpm-tmp.67959 (%build)
-
-This change uses the 'null if not set' reference to the _smp_mflags
-macro instead.
-
-Signed-off-by: Jeremy Kerr <jk@ozlabs.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Uwe Kleine-K=F6nig <Uwe.Kleine-Koenig@digi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/package/mkspec |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kernel.h |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN scripts/package/mkspec~scripts-package-dont-break-if-%_smp_mflags-isnt-set scripts/package/mkspec
---- a/scripts/package/mkspec~scripts-package-dont-break-if-%_smp_mflags-isnt-set
-+++ a/scripts/package/mkspec
-@@ -57,7 +57,7 @@ fi
- echo "%build"
- 
- if ! $PREBUILT; then
--echo "make clean && make %{_smp_mflags}"
-+echo "make clean && make %{?_smp_mflags}"
- echo ""
- fi
- 
-_
-
-Patches currently in -mm which might be from jk@ozlabs.org are
-
-scripts-package-dont-break-if-%_smp_mflags-isnt-set.patch
-scripts-package-allow-custom-options-to-rpm.patch
-
+diff -puN include/linux/kernel.h~move-kernel-doc-comment-for-might_slee=
+p-directly-before-its-defining-block include/linux/kernel.h
+--- a/include/linux/kernel.h~move-kernel-doc-comment-for-might_sleep-di=
+rectly-before-its-defining-block
++++ a/include/linux/kernel.h
+@@ -108,6 +108,13 @@ struct completion;
+ struct pt_regs;
+ struct user;
+=20
++#ifdef CONFIG_PREEMPT_VOLUNTARY
++extern int _cond_resched(void);
++# define might_resched() _cond_resched()
++#else
++# define might_resched() do { } while (0)
++#endif
++
+ /**
+  * might_sleep - annotation for functions that can sleep
+  *
+@@ -118,13 +125,6 @@ struct user;
+  * be bitten later when the calling function happens to sleep when it =
+is not
+  * supposed to.
+  */
+-#ifdef CONFIG_PREEMPT_VOLUNTARY
+-extern int _cond_resched(void);
+-# define might_resched() _cond_resched()
+-#else
+-# define might_resched() do { } while (0)
+-#endif
