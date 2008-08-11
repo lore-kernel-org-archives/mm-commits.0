@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch removed from -mm tree
-Date: Mon, 11 Aug 2008 14:38:57 -0700
-Message-ID: <200808112138.m7BLcvUu022777@imap1.linux-foundation.org>
+Subject: + byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch added to -mm tree
+Date: Mon, 11 Aug 2008 14:39:30 -0700
+Message-ID: <200808112139.m7BLdUHn022825@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46146 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57120 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755057AbYHKVi7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752074AbYHKVjd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 17:38:59 -0400
+	Mon, 11 Aug 2008 17:39:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
      byteorder: add a new include/linux/swab.h to define byteswapping functions
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -55,6 +65,7 @@ Arches can override any of these with an optimized version by defining an
 inline in their asm/byteorder.h (example given for swab16()):
 
 u16 __arch_swab16() {}
+ #define __arch_swab16 __arch_swab16
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -114,9 +125,9 @@ diff -puN /dev/null include/linux/swab.h
 +
 +static inline __attribute_const__ __u16 ___swab16(__u16 val)
 +{
-+#ifdef HAVE_ARCH_SWAB16
++#ifdef __arch_swab16
 +	return __arch_swab16(val);
-+#elif defined(HAVE_ARCH_SWAB16P)
++#elif defined(__arch_swab16p)
 +	return __arch_swab16p(&val);
 +#else
 +	return __const_swab16(val);
@@ -125,9 +136,9 @@ diff -puN /dev/null include/linux/swab.h
 +
 +static inline __attribute_const__ __u32 ___swab32(__u32 val)
 +{
-+#ifdef HAVE_ARCH_SWAB32
++#ifdef __arch_swab32
 +	return __arch_swab32(val);
-+#elif defined(HAVE_ARCH_SWAB32P)
++#elif defined(__arch_swab32p)
 +	return __arch_swab32p(&val);
 +#else
 +	return __const_swab32(val);
@@ -136,9 +147,9 @@ diff -puN /dev/null include/linux/swab.h
 +
 +static inline __attribute_const__ __u64 ___swab64(__u64 val)
 +{
-+#ifdef HAVE_ARCH_SWAB64
++#ifdef __arch_swab64
 +	return __arch_swab64(val);
-+#elif defined(HAVE_ARCH_SWAB64P)
++#elif defined(__arch_swab64p)
 +	return __arch_swab64p(&val);
 +#elif defined(__SWAB_64_THRU_32__)
 +	__u32 h = val >> 32;
@@ -151,9 +162,9 @@ diff -puN /dev/null include/linux/swab.h
 +
 +static inline __attribute_const__ __u32 ___swahw32(__u32 val)
 +{
-+#ifdef HAVE_ARCH_SWAHW32
++#ifdef __arch_swahw32
 +	return __arch_swahw32(val);
-+#elif defined(HAVE_ARCH_SWAHW32P)
++#elif defined(__arch_swahw32p)
 +	return __arch_swahw32p(&val);
 +#else
 +	return __const_swahw32(val);
@@ -162,9 +173,9 @@ diff -puN /dev/null include/linux/swab.h
 +
 +static inline __attribute_const__ __u32 ___swahb32(__u32 val)
 +{
-+#ifdef HAVE_ARCH_SWAHB32
++#ifdef __arch_swahb32
 +	return __arch_swahb32(val);
-+#elif defined(HAVE_ARCH_SWAHB32P)
++#elif defined(__arch_swahb32p)
 +	return __arch_swahb32p(&val);
 +#else
 +	return __const_swahb32(val);
@@ -226,7 +237,7 @@ diff -puN /dev/null include/linux/swab.h
 + */
 +static inline __u16 __swab16p(const __u16 *p)
 +{
-+#ifdef HAVE_ARCH_SWAB16P
++#ifdef __arch_swab16p
 +	return __arch_swab16p(p);
 +#else
 +	return __swab16(*p);
@@ -239,7 +250,7 @@ diff -puN /dev/null include/linux/swab.h
 + */
 +static inline __u32 __swab32p(const __u32 *p)
 +{
-+#ifdef HAVE_ARCH_SWAB32P
++#ifdef __arch_swab32p
 +	return __arch_swab32p(p);
 +#else
 +	return __swab32(*p);
@@ -252,7 +263,7 @@ diff -puN /dev/null include/linux/swab.h
 + */
 +static inline __u64 __swab64p(const __u64 *p)
 +{
-+#ifdef HAVE_ARCH_SWAB64P
++#ifdef __arch_swab64p
 +	return __arch_swab64p(p);
 +#else
 +	return __swab64(*p);
@@ -267,7 +278,7 @@ diff -puN /dev/null include/linux/swab.h
 + */
 +static inline __u32 __swahw32p(const __u32 *p)
 +{
-+#ifdef HAVE_ARCH_SWAHW32P
++#ifdef __arch_swahw32p
 +	return __arch_swahw32p(p);
 +#else
 +	return __swahw32(*p);
@@ -282,7 +293,7 @@ diff -puN /dev/null include/linux/swab.h
 + */
 +static inline __u32 __swahb32p(const __u32 *p)
 +{
-+#ifdef HAVE_ARCH_SWAHB32P
++#ifdef __arch_swahb32p
 +	return __arch_swahb32p(p);
 +#else
 +	return __swahb32(*p);
@@ -295,7 +306,7 @@ diff -puN /dev/null include/linux/swab.h
 + */
 +static inline void __swab16s(__u16 *p)
 +{
-+#ifdef HAVE_ARCH_SWAB16S
++#ifdef __arch_swab16s
 +	__arch_swab16s(p);
 +#else
 +	*p = __swab16p(p);
@@ -307,7 +318,7 @@ diff -puN /dev/null include/linux/swab.h
 + */
 +static inline void __swab32s(__u32 *p)
 +{
-+#ifdef HAVE_ARCH_SWAB32S
++#ifdef __arch_swab32s
 +	__arch_swab32s(p);
 +#else
 +	*p = __swab32p(p);
@@ -320,7 +331,7 @@ diff -puN /dev/null include/linux/swab.h
 + */
 +static inline void __swab64s(__u64 *p)
 +{
-+#ifdef HAVE_ARCH_SWAB64S
++#ifdef __arch_swab64s
 +	__arch_swab64s(p);
 +#else
 +	*p = __swab64p(p);
@@ -335,7 +346,7 @@ diff -puN /dev/null include/linux/swab.h
 + */
 +static inline void __swahw32s(__u32 *p)
 +{
-+#ifdef HAVE_ARCH_SWAHW32S
++#ifdef __arch_swahw32s
 +	__arch_swahw32s(p);
 +#else
 +	*p = __swahw32p(p);
@@ -350,7 +361,7 @@ diff -puN /dev/null include/linux/swab.h
 + */
 +static inline void __swahb32s(__u32 *p)
 +{
-+#ifdef HAVE_ARCH_SWAHB32S
++#ifdef __arch_swahb32s
 +	__arch_swahb32s(p);
 +#else
 +	*p = __swahb32p(p);
