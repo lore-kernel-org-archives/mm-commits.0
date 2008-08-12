@@ -1,103 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-restore-the-proper-nr_irqs-define-so-larger-systems-work.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 13:34:07 -0700
-Message-ID: <200808122034.m7CKY79T011927@imap1.linux-foundation.org>
+Subject: - posix-timers-fix-posix_timer_event-vs-dequeue_signal-race.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 13:33:50 -0700
+Message-ID: <200808122033.m7CKXo30011831@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55490 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36913 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752034AbYHLUtp (ORCPT
+	by vger.kernel.org with ESMTP id S1751594AbYHLUuY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 16:49:45 -0400
+	Tue, 12 Aug 2008 16:50:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiederm@xmission.com, dhaval@linux.vnet.ibm.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, markmc@redhat.com, oliver.pntr@gmail.com, roland@redhat.com, stable@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64: restore the proper NR_IRQS define so larger systems work
+     posix-timers: fix posix_timer_event() vs dequeue_signal() race
 has been removed from the -mm tree.  Its filename was
-     x86_64-restore-the-proper-nr_irqs-define-so-larger-systems-work.patch
+     posix-timers-fix-posix_timer_event-vs-dequeue_signal-race.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86_64: restore the proper NR_IRQS define so larger systems work
-From: "Eric W. Biederman" <ebiederm@xmission.com>
+Subject: posix-timers: fix posix_timer_event() vs dequeue_signal() race
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-As pointed out and tracked by Yinghai Lu <yhlu.kernel@gmail.com>:
+The bug was reported and analysed by Mark McLoughlin <markmc@redhat.com>,
+the patch is based on his and Roland's suggestions.
 
-Dhaval Giani got:
-kernel BUG at arch/x86/kernel/io_apic_64.c:357!
-invalid opcode: 0000 [1] SMP
-CPU 24
-...
+posix_timer_event() always rewrites the pre-allocated siginfo before
+sending the signal.  Most of the written info is the same all the time,
+but memset(0) is very wrong.  If ->sigq is queued we can race with
+collect_signal() which can fail to find this siginfo looking at .si_signo,
+or copy_siginfo() can copy the wrong .si_code/si_tid/etc.
 
-his system (x3950) has 8 ioapic, irq > 256
+In short, sys_timer_settime() can in fact stop the active timer, or the
+user can receive the siginfo with the wrong .si_xxx values.
 
-This was caused by:
-        commit 9b7dc567d03d74a1fbae84e88949b6a60d922d82
-        Author: Thomas Gleixner <tglx@linutronix.de>
-        Date:   Fri May 2 20:10:09 2008 +0200
+Move "memset(->info, 0)" from posix_timer_event() to alloc_posix_timer(),
+change send_sigqueue() to set .si_overrun = 0 when ->sigq is not queued. 
+It would be nice to move the whole sigq->info initialization from send to
+create path, but this is not easy to do without uglifying timer_create()
+further.
 
-           x86: unify interrupt vector defines
+As Roland rightly pointed out, we need more cleanups/fixes here, see the
+"FIXME" comment in the patch.  Hopefully this patch makes sense anyway,
+and it can mask the most bad implications.
 
-           The interrupt vector defines are copied 4 times around with minimal
-           differences. Move them all into asm-x86/irq_vectors.h
-
-It appears that Thomas did not notice that x86_64 does something
-completely different when he merge irq_vectors.h
-
-We can solve this for 2.6.27 by simply reintroducing the old heuristic
-for setting NR_IRQS on x86_64 to a usable value, which trivially removes
-the regression.
-
-Long term it would be nice to harmonize the handling of ioapic interrupts
-of x86_32 and x86_64 so we don't have this kind of confusion.
-
-Dhaval Giani tested an earlier version of this patch by YH which confirms
-simply increasing NR_IRQS fixes the problem.
-
-Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com> 
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Reported-by: Mark McLoughlin <markmc@redhat.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Tested-by: Mark McLoughlin <markmc@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Oliver Pinter <oliver.pntr@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/irq_vectors.h |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ kernel/posix-timers.c |   17 +++++++++++++----
+ kernel/signal.c       |    1 +
+ 2 files changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-x86/irq_vectors.h~x86_64-restore-the-proper-nr_irqs-define-so-larger-systems-work include/asm-x86/irq_vectors.h
---- a/include/asm-x86/irq_vectors.h~x86_64-restore-the-proper-nr_irqs-define-so-larger-systems-work
-+++ a/include/asm-x86/irq_vectors.h
-@@ -109,7 +109,15 @@
- #define LAST_VM86_IRQ		15
- #define invalid_vm86_irq(irq)	((irq) < 3 || (irq) > 15)
+diff -puN kernel/posix-timers.c~posix-timers-fix-posix_timer_event-vs-dequeue_signal-race kernel/posix-timers.c
+--- a/kernel/posix-timers.c~posix-timers-fix-posix_timer_event-vs-dequeue_signal-race
++++ a/kernel/posix-timers.c
+@@ -311,14 +311,22 @@ void do_schedule_next_timer(struct sigin
+ 		unlock_timer(timr, flags);
+ }
  
--#if !defined(CONFIG_X86_VOYAGER)
-+#ifdef CONFIG_X86_64
-+# if NR_CPUS < MAX_IO_APICS
-+#  define NR_IRQS (NR_VECTORS + (32 * NR_CPUS))
-+# else
-+#  define NR_IRQS (NR_VECTORS + (32 * MAX_IO_APICS ))
-+# endif
-+# define NR_IRQ_VECTORS NR_IRQS
-+
-+#elif !defined(CONFIG_X86_VOYAGER)
+-int posix_timer_event(struct k_itimer *timr,int si_private)
++int posix_timer_event(struct k_itimer *timr, int si_private)
+ {
+-	memset(&timr->sigq->info, 0, sizeof(siginfo_t));
++	/*
++	 * FIXME: if ->sigq is queued we can race with
++	 * dequeue_signal()->do_schedule_next_timer().
++	 *
++	 * If dequeue_signal() sees the "right" value of
++	 * si_sys_private it calls do_schedule_next_timer().
++	 * We re-queue ->sigq and drop ->it_lock().
++	 * do_schedule_next_timer() locks the timer
++	 * and re-schedules it while ->sigq is pending.
++	 * Not really bad, but not that we want.
++	 */
+ 	timr->sigq->info.si_sys_private = si_private;
+-	/* Send signal to the process that owns this timer.*/
  
- # if defined(CONFIG_X86_IO_APIC) || defined(CONFIG_PARAVIRT) || defined(CONFIG_X86_VISWS)
+ 	timr->sigq->info.si_signo = timr->it_sigev_signo;
+-	timr->sigq->info.si_errno = 0;
+ 	timr->sigq->info.si_code = SI_TIMER;
+ 	timr->sigq->info.si_tid = timr->it_id;
+ 	timr->sigq->info.si_value = timr->it_sigev_value;
+@@ -450,6 +458,7 @@ static struct k_itimer * alloc_posix_tim
+ 		kmem_cache_free(posix_timers_cache, tmr);
+ 		tmr = NULL;
+ 	}
++	memset(&tmr->sigq->info, 0, sizeof(siginfo_t));
+ 	return tmr;
+ }
  
+diff -puN kernel/signal.c~posix-timers-fix-posix_timer_event-vs-dequeue_signal-race kernel/signal.c
+--- a/kernel/signal.c~posix-timers-fix-posix_timer_event-vs-dequeue_signal-race
++++ a/kernel/signal.c
+@@ -1304,6 +1304,7 @@ int send_sigqueue(struct sigqueue *q, st
+ 		q->info.si_overrun++;
+ 		goto out;
+ 	}
++	q->info.si_overrun = 0;
+ 
+ 	signalfd_notify(t, sig);
+ 	pending = group ? &t->signal->shared_pending : &t->pending;
 _
 
-Patches currently in -mm which might be from ebiederm@xmission.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
 linux-next.patch
-kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
+sched-do_wait_for_common-use-signal_pending_state.patch
+wait_task_inactive-dont-consider-task-nivcsw.patch
+wait_task_inactive-improve-the-returned-value-for-nvcsw-==-0.patch
+wait_task_inactive-fix-the-config_smp-version.patch
+posix-timers-dont-switch-to-group_leader-if-it_process-dies.patch
+posix-timers-always-do-get_task_structtimer-it_process.patch
+posix-timers-sys_timer_create-remove-the-buggy-pf_exiting-check.patch
+posix-timers-sys_timer_create-simplify-and-s-tasklist-rcu.patch
+posix-timers-move-the-initialization-of-timer-sigq-from-send-to-create-path.patch
+posix-timers-sys_timer_create-cleanup-the-error-handling.patch
+posix-timers-kill-it_sigev_signo-and-it_sigev_value.patch
+posix-timers-lock_timer-kill-the-bogus-it_id-check.patch
+posix-timers-lock_timer-make-it-readable.patch
+make-ptrace_untrace-static.patch
+coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
+kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
 
