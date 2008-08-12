@@ -1,126 +1,300 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-input-serio-xilinx_ps2c-fix-warning.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 13:33:04 -0700
-Message-ID: <200808122033.m7CKX4qk011761@imap1.linux-foundation.org>
+Subject: - lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 13:33:13 -0700
+Message-ID: <200808122033.m7CKXDJh011775@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48573 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52273 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751199AbYHLUdi (ORCPT
+	by vger.kernel.org with ESMTP id S1751305AbYHLUdt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 16:33:38 -0400
+	Tue, 12 Aug 2008 16:33:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dtor@mail.ru, mm-commits@vger.kernel.org
+To: davem@davemloft.net, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/input/serio/xilinx_ps2.c: fix warning
+     lockdep: fix combinatorial explosion in lock subgraph traversal
 has been removed from the -mm tree.  Its filename was
-     drivers-input-serio-xilinx_ps2c-fix-warning.patch
+     lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/input/serio/xilinx_ps2.c: fix warning
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lockdep: fix combinatorial explosion in lock subgraph traversal
+From: David Miller <davem@davemloft.net>
 
-drivers/input/serio/xilinx_ps2.c:272: warning: cast from pointer to integer of different size
+When we traverse the graph, either forwards or backwards, we are
+interested in whether a certain property exists somewhere in a node
+reachable in the graph.
 
-Also, it is fishy that phys_addr has a 32-bit type.
+Therefore it is never necessary to traverse through a node more than once
+to get a correct answer to the given query.
 
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Take advantage of this property using a global ID counter so that we need
+not clear all the markers in all the lock_class entries before doing a
+traversal.  A new ID is choosen when we start to traverse, and we continue
+through a lock_class only if it's ID hasn't been marked with the new value
+yet.
+
+This short-circuiting is essential especially for high CPU count systems. 
+The scheduler has a runqueue per cpu, and needs to take two runqueue locks
+at a time, which leads to long chains of backwards and forwards subgraphs
+from these runqueue lock nodes.  Without the short-circuit implemented
+here, a graph traversal on a runqueue lock can take up to (1 << (N - 1))
+checks on a system with N cpus.
+
+For anything more than 16 cpus or so, lockdep will eventually bring the
+machine to a complete standstill.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/serio/xilinx_ps2.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/lockdep.h    |    1 
+ kernel/lockdep.c           |   86 +++++++++++++++++++++++++++++++++++
+ kernel/lockdep_internals.h |    3 +
+ kernel/lockdep_proc.c      |   34 +------------
+ 4 files changed, 93 insertions(+), 31 deletions(-)
 
-diff -puN drivers/input/serio/xilinx_ps2.c~drivers-input-serio-xilinx_ps2c-fix-warning drivers/input/serio/xilinx_ps2.c
---- a/drivers/input/serio/xilinx_ps2.c~drivers-input-serio-xilinx_ps2c-fix-warning
-+++ a/drivers/input/serio/xilinx_ps2.c
-@@ -269,8 +269,8 @@ static int xps2_setup(struct device *dev
- 	 * we have the PS2 in a good state */
- 	out_be32(drvdata->base_address + XPS2_SRST_OFFSET, XPS2_SRST_RESET);
+diff -puN include/linux/lockdep.h~lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal include/linux/lockdep.h
+--- a/include/linux/lockdep.h~lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal
++++ a/include/linux/lockdep.h
+@@ -89,6 +89,7 @@ struct lock_class {
  
--	dev_info(dev, "Xilinx PS2 at 0x%08X mapped to 0x%08X, irq=%d\n",
--		drvdata->phys_addr, (u32)drvdata->base_address, drvdata->irq);
-+	dev_info(dev, "Xilinx PS2 at 0x%08X mapped to 0x%p, irq=%d\n",
-+		drvdata->phys_addr, drvdata->base_address, drvdata->irq);
+ 	struct lockdep_subclass_key	*key;
+ 	unsigned int			subclass;
++	unsigned int			dep_gen_id;
  
- 	serio = &drvdata->serio;
- 	serio->id.type = SERIO_8042;
+ 	/*
+ 	 * IRQ/softirq usage tracking bits:
+diff -puN kernel/lockdep.c~lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal
++++ a/kernel/lockdep.c
+@@ -372,6 +372,19 @@ unsigned int nr_process_chains;
+ unsigned int max_lockdep_depth;
+ unsigned int max_recursion_depth;
+ 
++static unsigned int lockdep_dependency_gen_id;
++
++static bool lockdep_dependency_visit(struct lock_class *source,
++				     unsigned int depth)
++{
++	if (!depth)
++		lockdep_dependency_gen_id++;
++	if (source->dep_gen_id == lockdep_dependency_gen_id)
++		return true;
++	source->dep_gen_id = lockdep_dependency_gen_id;
++	return false;
++}
++
+ #ifdef CONFIG_DEBUG_LOCKDEP
+ /*
+  * We cannot printk in early bootup code. Not even early_printk()
+@@ -558,6 +571,9 @@ static void print_lock_dependencies(stru
+ {
+ 	struct lock_list *entry;
+ 
++	if (lockdep_dependency_visit(class, depth))
++		return;
++
+ 	if (DEBUG_LOCKS_WARN_ON(depth >= 20))
+ 		return;
+ 
+@@ -959,6 +975,67 @@ static int noinline print_infinite_recur
+ 	return 0;
+ }
+ 
++unsigned long __lockdep_count_forward_deps(struct lock_class *class,
++					   unsigned int depth)
++{
++	struct lock_list *entry;
++	unsigned long ret = 1;
++
++	if (lockdep_dependency_visit(class, depth))
++		return 0;
++
++	/*
++	 * Recurse this class's dependency list:
++	 */
++	list_for_each_entry(entry, &class->locks_after, entry)
++		ret += __lockdep_count_forward_deps(entry->class, depth + 1);
++
++	return ret;
++}
++
++unsigned long lockdep_count_forward_deps(struct lock_class *class)
++{
++	unsigned long ret, flags;
++
++	local_irq_save(flags);
++	__raw_spin_lock(&lockdep_lock);
++	ret = __lockdep_count_forward_deps(class, 0);
++	__raw_spin_unlock(&lockdep_lock);
++	local_irq_restore(flags);
++
++	return ret;
++}
++
++unsigned long __lockdep_count_backward_deps(struct lock_class *class,
++					    unsigned int depth)
++{
++	struct lock_list *entry;
++	unsigned long ret = 1;
++
++	if (lockdep_dependency_visit(class, depth))
++		return 0;
++	/*
++	 * Recurse this class's dependency list:
++	 */
++	list_for_each_entry(entry, &class->locks_before, entry)
++		ret += __lockdep_count_backward_deps(entry->class, depth + 1);
++
++	return ret;
++}
++
++unsigned long lockdep_count_backward_deps(struct lock_class *class)
++{
++	unsigned long ret, flags;
++
++	local_irq_save(flags);
++	__raw_spin_lock(&lockdep_lock);
++	ret = __lockdep_count_backward_deps(class, 0);
++	__raw_spin_unlock(&lockdep_lock);
++	local_irq_restore(flags);
++
++	return ret;
++}
++
+ /*
+  * Prove that the dependency graph starting at <entry> can not
+  * lead to <target>. Print an error and return 0 if it does.
+@@ -968,6 +1045,9 @@ check_noncircular(struct lock_class *sou
+ {
+ 	struct lock_list *entry;
+ 
++	if (lockdep_dependency_visit(source, depth))
++		return 1;
++
+ 	debug_atomic_inc(&nr_cyclic_check_recursions);
+ 	if (depth > max_recursion_depth)
+ 		max_recursion_depth = depth;
+@@ -1011,6 +1091,9 @@ find_usage_forwards(struct lock_class *s
+ 	struct lock_list *entry;
+ 	int ret;
+ 
++	if (lockdep_dependency_visit(source, depth))
++		return 1;
++
+ 	if (depth > max_recursion_depth)
+ 		max_recursion_depth = depth;
+ 	if (depth >= RECURSION_LIMIT)
+@@ -1050,6 +1133,9 @@ find_usage_backwards(struct lock_class *
+ 	struct lock_list *entry;
+ 	int ret;
+ 
++	if (lockdep_dependency_visit(source, depth))
++		return 1;
++
+ 	if (!__raw_spin_is_locked(&lockdep_lock))
+ 		return DEBUG_LOCKS_WARN_ON(1);
+ 
+diff -puN kernel/lockdep_internals.h~lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal kernel/lockdep_internals.h
+--- a/kernel/lockdep_internals.h~lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal
++++ a/kernel/lockdep_internals.h
+@@ -53,6 +53,9 @@ extern unsigned int nr_process_chains;
+ extern unsigned int max_lockdep_depth;
+ extern unsigned int max_recursion_depth;
+ 
++extern unsigned long lockdep_count_forward_deps(struct lock_class *);
++extern unsigned long lockdep_count_backward_deps(struct lock_class *);
++
+ #ifdef CONFIG_DEBUG_LOCKDEP
+ /*
+  * Various lockdep statistics:
+diff -puN kernel/lockdep_proc.c~lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal kernel/lockdep_proc.c
+--- a/kernel/lockdep_proc.c~lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal
++++ a/kernel/lockdep_proc.c
+@@ -63,34 +63,6 @@ static void l_stop(struct seq_file *m, v
+ {
+ }
+ 
+-static unsigned long count_forward_deps(struct lock_class *class)
+-{
+-	struct lock_list *entry;
+-	unsigned long ret = 1;
+-
+-	/*
+-	 * Recurse this class's dependency list:
+-	 */
+-	list_for_each_entry(entry, &class->locks_after, entry)
+-		ret += count_forward_deps(entry->class);
+-
+-	return ret;
+-}
+-
+-static unsigned long count_backward_deps(struct lock_class *class)
+-{
+-	struct lock_list *entry;
+-	unsigned long ret = 1;
+-
+-	/*
+-	 * Recurse this class's dependency list:
+-	 */
+-	list_for_each_entry(entry, &class->locks_before, entry)
+-		ret += count_backward_deps(entry->class);
+-
+-	return ret;
+-}
+-
+ static void print_name(struct seq_file *m, struct lock_class *class)
+ {
+ 	char str[128];
+@@ -124,10 +96,10 @@ static int l_show(struct seq_file *m, vo
+ #ifdef CONFIG_DEBUG_LOCKDEP
+ 	seq_printf(m, " OPS:%8ld", class->ops);
+ #endif
+-	nr_forward_deps = count_forward_deps(class);
++	nr_forward_deps = lockdep_count_forward_deps(class);
+ 	seq_printf(m, " FD:%5ld", nr_forward_deps);
+ 
+-	nr_backward_deps = count_backward_deps(class);
++	nr_backward_deps = lockdep_count_backward_deps(class);
+ 	seq_printf(m, " BD:%5ld", nr_backward_deps);
+ 
+ 	get_usage_chars(class, &c1, &c2, &c3, &c4);
+@@ -350,7 +322,7 @@ static int lockdep_stats_show(struct seq
+ 		if (class->usage_mask & LOCKF_ENABLED_HARDIRQS_READ)
+ 			nr_hardirq_read_unsafe++;
+ 
+-		sum_forward_deps += count_forward_deps(class);
++		sum_forward_deps += lockdep_count_forward_deps(class);
+ 	}
+ #ifdef CONFIG_DEBUG_LOCKDEP
+ 	DEBUG_LOCKS_WARN_ON(debug_atomic_read(&nr_unused_locks) != nr_unused);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from davem@davemloft.net are
 
 origin.patch
-fs-eventpollc-fix-sys_epoll_create1-comment.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
+radeonfb-fix-accel-engine-hangs.patch
 linux-next.patch
-next-remove-localversion.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-scsi-megaraid_sas-add-the-new-controllers-support.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
+configure-out-igmp-support.patch
+drivers-isdn-capi-kcapic-adjust-error-handling-code-involving-capi_ctr_put.patch
+sunrpc-do-not-pin-sunrpc-module-in-the-memory.patch
+docsrc-fix-ifenslave-type.patch
+ali-m7101-pmu-also-available-on-sun-netras-too.patch
+x86-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
+sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
+introduce-generic-iommu_num_pages-function.patch
+sparc64-use-iommu_num_pages-function-in-iommu-code.patch
+kprobes-indirectly-call-kprobe_target.patch
+kprobes-add-tests-for-register_kprobes.patch
+rtc-m48t59-add-support-for-m48t02-and-m48t59-chips-2nd-rev.patch
+sparc64-use-bcd2bin-bin2bcd.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
