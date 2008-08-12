@@ -1,56 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - pci-calgary-fix-function-declaration.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 13:32:34 -0700
-Message-ID: <200808122032.m7CKWYAN011722@imap1.linux-foundation.org>
+Subject: - listh-fix-fatal-kernel-doc-error.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 13:32:40 -0700
+Message-ID: <200808122032.m7CKWe6u011728@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45271 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54953 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751175AbYHLUdP (ORCPT
+	by vger.kernel.org with ESMTP id S1751179AbYHLUdV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 16:33:15 -0400
+	Tue, 12 Aug 2008 16:33:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mulix@mulix.org, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci-calgary: fix function declaration
+     list.h: fix fatal kernel-doc error
 has been removed from the -mm tree.  Its filename was
-     pci-calgary-fix-function-declaration.patch
+     listh-fix-fatal-kernel-doc-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci-calgary: fix function declaration
+Subject: list.h: fix fatal kernel-doc error
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix function declaration:
+Fix fatal multi-line kernel-doc error in list.h:
+function short description must be on one line.
 
-linux-next-20080807/arch/x86/kernel/pci-calgary_64.c:1353:36: warning: non-ANSI function declaration of function 'get_tce_space_from_tar'
+Error(linux-2.6.27-rc2-git3//include/linux/list.h:318): duplicate section name 'Description'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Muli Ben-Yehuda <mulix@mulix.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/pci-calgary_64.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/list.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/pci-calgary_64.c~pci-calgary-fix-function-declaration arch/x86/kernel/pci-calgary_64.c
---- a/arch/x86/kernel/pci-calgary_64.c~pci-calgary-fix-function-declaration
-+++ a/arch/x86/kernel/pci-calgary_64.c
-@@ -1350,7 +1350,7 @@ static void calgary_init_bitmap_from_tce
-  * Function for kdump case. Get the tce tables from first kernel
-  * by reading the contents of the base adress register of calgary iommu
+diff -puN include/linux/list.h~listh-fix-fatal-kernel-doc-error include/linux/list.h
+--- a/include/linux/list.h~listh-fix-fatal-kernel-doc-error
++++ a/include/linux/list.h
+@@ -309,11 +309,11 @@ static inline void list_splice_init(stru
+ }
+ 
+ /**
+- * list_splice_tail_init - join two lists, each list being a queue, and
+- *     reinitialise the emptied list.
++ * list_splice_tail_init - join two lists and reinitialise the emptied list
+  * @list: the new list to add.
+  * @head: the place to add it in the first list.
+  *
++ * Each of the lists is a queue.
+  * The list at @list is reinitialised
   */
--static void get_tce_space_from_tar()
-+static void get_tce_space_from_tar(void)
- {
- 	int bus;
- 	void __iomem *target;
+ static inline void list_splice_tail_init(struct list_head *list,
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
