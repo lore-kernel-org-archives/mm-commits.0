@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update.patch added to -mm tree
-Date: Tue, 12 Aug 2008 16:36:44 -0700
-Message-ID: <200808122336.m7CNaiH3019627@imap1.linux-foundation.org>
+Subject: + suspend-fix-section-mismatch-warning-register_nosave_region.patch added to -mm tree
+Date: Tue, 12 Aug 2008 16:40:25 -0700
+Message-ID: <200808122340.m7CNeP3P019798@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57681 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51122 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752316AbYHLXh2 (ORCPT
+	by vger.kernel.org with ESMTP id S1751700AbYHLXkc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 19:37:28 -0400
+	Tue, 12 Aug 2008 19:40:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: private@claudio.ch, rpurdie@rpsys.net
+Cc: marcin.slusarz@gmail.com, pavel@suse.cz, rjw@sisk.pl
 
 
 The patch titled
-     backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc update
+     suspend: fix section mismatch warning - register_nosave_region
 has been added to the -mm tree.  Its filename is
-     backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update.patch
+     suspend-fix-section-mismatch-warning-register_nosave_region.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc update
-From: Claudio Nieder <private@claudio.ch>
+Subject: suspend: fix section mismatch warning - register_nosave_region
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-Hi,
+WARNING: vmlinux.o(.text+0xe684): Section mismatch in reference from the function register_nosave_region() to the function .init.text:__register_nosave_region()
+The function register_nosave_region() references
+the function __init __register_nosave_region().
+This is often because register_nosave_region lacks a __init
+annotation or the annotation of __register_nosave_region is wrong.
 
-> I believe the mdelay()s could be converted to the preferable msleep()?
+register_nosave_region calls __init function and is called only from
+__init functions
 
-thank you for the remark. I have changed the mdelay to msleep in my
-patch, reapplied it to the current Linus tree, built a kernel, installed
-it on my computer and tested it. It works perfectly as you surely
-expected. The corrected patch is included here.
-
-BTW: I have noticed that some other drivers in video/backlight still use
-mdelay: ili9320.c, locomolcd.c and vgg2432a4.c.
-
-Signed-off-by: Claudio Nieder <private@claudio.ch>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/kb3886_bl.c |    4 ++--
+ include/linux/suspend.h |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/kb3886_bl.c~backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update drivers/video/backlight/kb3886_bl.c
---- a/drivers/video/backlight/kb3886_bl.c~backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update
-+++ a/drivers/video/backlight/kb3886_bl.c
-@@ -40,9 +40,9 @@ void kb3886_bl_set_intensity(int intensi
- 	mutex_lock(&bl_mutex);
- 	intensity = intensity&0xff;
- 	outb(KB3886_ADC_DAC_PWM, KB3886_PARENT);
--	mdelay(10);
-+	msleep(10);
- 	outb(KB3886_PWM0_WRITE, KB3886_IO);
--	mdelay(10);
-+	msleep(10);
- 	outb(intensity, KB3886_IO);
- 	mutex_unlock(&bl_mutex);
+diff -puN include/linux/suspend.h~suspend-fix-section-mismatch-warning-register_nosave_region include/linux/suspend.h
+--- a/include/linux/suspend.h~suspend-fix-section-mismatch-warning-register_nosave_region
++++ a/include/linux/suspend.h
+@@ -217,11 +217,11 @@ struct platform_hibernation_ops {
+ #ifdef CONFIG_HIBERNATION
+ /* kernel/power/snapshot.c */
+ extern void __register_nosave_region(unsigned long b, unsigned long e, int km);
+-static inline void register_nosave_region(unsigned long b, unsigned long e)
++static inline void __init register_nosave_region(unsigned long b, unsigned long e)
+ {
+ 	__register_nosave_region(b, e, 0);
+ }
+-static inline void register_nosave_region_late(unsigned long b, unsigned long e)
++static inline void __init register_nosave_region_late(unsigned long b, unsigned long e)
+ {
+ 	__register_nosave_region(b, e, 1);
  }
 _
 
-Patches currently in -mm which might be from private@claudio.ch are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
+suspend-fix-section-mismatch-warning-register_nosave_region.patch
 
