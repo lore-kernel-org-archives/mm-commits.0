@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-eventpollc-fix-sys_epoll_create1-comment.patch added to -mm tree
-Date: Mon, 11 Aug 2008 16:58:46 -0700
-Message-ID: <200808112358.m7BNwkJU028876@imap1.linux-foundation.org>
+Subject: + fbdev-kconfig-update-fix.patch added to -mm tree
+Date: Mon, 11 Aug 2008 17:02:19 -0700
+Message-ID: <200808120002.m7C02JQq029120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51238 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43653 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758739AbYHKX7b (ORCPT
+	by vger.kernel.org with ESMTP id S1753242AbYHLACt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 19:59:31 -0400
+	Mon, 11 Aug 2008 20:02:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, geert@linux-m68k.org
+Cc: akpm@linux-foundation.org, geert@linux-m68k.org, krzysztof.h1@wp.pl
 
 
 The patch titled
-     fs/eventpoll.c: fix sys_epoll_create1() comment
+     fbdev-kconfig-update-fix
 has been added to the -mm tree.  Its filename is
-     fs-eventpollc-fix-sys_epoll_create1-comment.patch
+     fbdev-kconfig-update-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/eventpoll.c: fix sys_epoll_create1() comment
+Subject: fbdev-kconfig-update-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-The `size' argument was removed.
+fix text
 
-Reported-by:  Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/video/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/eventpoll.c~fs-eventpollc-fix-sys_epoll_create1-comment fs/eventpoll.c
---- a/fs/eventpoll.c~fs-eventpollc-fix-sys_epoll_create1-comment
-+++ a/fs/eventpoll.c
-@@ -1041,10 +1041,7 @@ retry:
- }
- 
- /*
-- * It opens an eventpoll file descriptor. The "size" parameter is there
-- * for historical reasons, when epoll was using an hash instead of an
-- * RB tree. With the current implementation, the "size" parameter is ignored
-- * (besides sanity checks).
-+ * Open an eventpoll file descriptor.
-  */
- asmlinkage long sys_epoll_create1(int flags)
- {
+diff -puN drivers/video/Kconfig~fbdev-kconfig-update-fix drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fbdev-kconfig-update-fix
++++ a/drivers/video/Kconfig
+@@ -261,7 +261,7 @@ config FB_PM2
+ 	help
+ 	  This is the frame buffer device driver for cards based on
+ 	  the 3D Labs Permedia, Permedia 2 and Permedia 2V chips.
+-	  The driver was tested on following cards are:
++	  The driver was tested on the following cards:
+ 		Diamond FireGL 1000 PRO AGP
+ 		ELSA Gloria Synergy PCI
+ 		Appian Jeronimo PRO (both heads) PCI
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,6 +115,7 @@ viafb-accelc-accelh-checkpatch-fixes.patch
 viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
 viafb-hwc-hwh-checkpatch-fixes.patch
 viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
 eink_apollofb-new-driver-for-apollo-eink-controller.patch
 gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
 reiser4.patch
