@@ -1,73 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: - sm501-update-debugging-low-information-messages.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 13:32:45 -0700
-Message-ID: <200808122032.m7CKWj5g011734@imap1.linux-foundation.org>
+Subject: - lockdep-lock_set_subclass-reset-a-held-locks-subclass.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 13:33:16 -0700
+Message-ID: <200808122033.m7CKXGcN011778@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54832 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57996 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751351AbYHLUdy (ORCPT
+	by vger.kernel.org with ESMTP id S1751548AbYHLUd6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 16:33:54 -0400
+	Tue, 12 Aug 2008 16:33:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ben-linux@fluff.org, krzysztof.h1@wp.pl, sameo@openedhand.com, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, davem@davemloft.net, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sm501: update debugging/low information messages
+     lockdep: lock_set_subclass - reset a held locks subclass
 has been removed from the -mm tree.  Its filename was
-     sm501-update-debugging-low-information-messages.patch
+     lockdep-lock_set_subclass-reset-a-held-locks-subclass.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sm501: update debugging/low information messages
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: lockdep: lock_set_subclass - reset a held locks subclass
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-Make the default output of the SM501 driver to be less noisy wrt to
-message that have low informational value, or simply should be debug.
+This can be used to reset a held lock's subclass, for arbitrary-depth
+iterated data structures such as trees or lists which have per-node locks.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Cc: Samuel Ortiz <sameo@openedhand.com>
-
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/sm501.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/lockdep.h |    4 ++
+ kernel/lockdep.c        |   69 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 73 insertions(+)
 
-diff -puN drivers/mfd/sm501.c~sm501-update-debugging-low-information-messages drivers/mfd/sm501.c
---- a/drivers/mfd/sm501.c~sm501-update-debugging-low-information-messages
-+++ a/drivers/mfd/sm501.c
-@@ -623,8 +623,8 @@ unsigned long sm501_set_clock(struct dev
+diff -puN include/linux/lockdep.h~lockdep-lock_set_subclass-reset-a-held-locks-subclass include/linux/lockdep.h
+--- a/include/linux/lockdep.h~lockdep-lock_set_subclass-reset-a-held-locks-subclass
++++ a/include/linux/lockdep.h
+@@ -300,6 +300,9 @@ extern void lock_acquire(struct lockdep_
+ extern void lock_release(struct lockdep_map *lock, int nested,
+ 			 unsigned long ip);
  
- 	sm501_sync_regs(sm);
++extern void lock_set_subclass(struct lockdep_map *lock, unsigned int subclass,
++			      unsigned long ip);
++
+ # define INIT_LOCKDEP				.lockdep_recursion = 0,
  
--	dev_info(sm->dev, "gate %08lx, clock %08lx, mode %08lx\n",
--		 gate, clock, mode);
-+	dev_dbg(sm->dev, "gate %08lx, clock %08lx, mode %08lx\n",
-+		gate, clock, mode);
+ #define lockdep_depth(tsk)	(debug_locks ? (tsk)->lockdep_depth : 0)
+@@ -316,6 +319,7 @@ static inline void lockdep_on(void)
  
- 	sm501_mdelay(sm, 16);
- 	mutex_unlock(&sm->clock_lock);
-@@ -742,7 +742,7 @@ static int sm501_register_device(struct 
- 	int ret;
+ # define lock_acquire(l, s, t, r, c, i)		do { } while (0)
+ # define lock_release(l, n, i)			do { } while (0)
++# define lock_set_subclass(l, s, i)		do { } while (0)
+ # define lockdep_init()				do { } while (0)
+ # define lockdep_info()				do { } while (0)
+ # define lockdep_init_map(lock, name, key, sub)	do { (void)(key); } while (0)
+diff -puN kernel/lockdep.c~lockdep-lock_set_subclass-reset-a-held-locks-subclass kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-lock_set_subclass-reset-a-held-locks-subclass
++++ a/kernel/lockdep.c
+@@ -2658,6 +2658,55 @@ static int check_unlock(struct task_stru
+ 	return 1;
+ }
  
- 	for (ptr = 0; ptr < pdev->num_resources; ptr++) {
--		printk("%s[%d] flags %08lx: %08llx..%08llx\n",
-+		printk(KERN_DEBUG "%s[%d] flags %08lx: %08llx..%08llx\n",
- 		       pdev->name, ptr,
- 		       pdev->resource[ptr].flags,
- 		       (unsigned long long)pdev->resource[ptr].start,
++static int
++__lock_set_subclass(struct lockdep_map *lock,
++		    unsigned int subclass, unsigned long ip)
++{
++	struct task_struct *curr = current;
++	struct held_lock *hlock, *prev_hlock;
++	struct lock_class *class;
++	unsigned int depth;
++	int i;
++
++	depth = curr->lockdep_depth;
++	if (DEBUG_LOCKS_WARN_ON(!depth))
++		return 0;
++
++	prev_hlock = NULL;
++	for (i = depth-1; i >= 0; i--) {
++		hlock = curr->held_locks + i;
++		/*
++		 * We must not cross into another context:
++		 */
++		if (prev_hlock && prev_hlock->irq_context != hlock->irq_context)
++			break;
++		if (hlock->instance == lock)
++			goto found_it;
++		prev_hlock = hlock;
++	}
++	return print_unlock_inbalance_bug(curr, lock, ip);
++
++found_it:
++	class = register_lock_class(lock, subclass, 0);
++	hlock->class = class;
++
++	curr->lockdep_depth = i;
++	curr->curr_chain_key = hlock->prev_chain_key;
++
++	for (; i < depth; i++) {
++		hlock = curr->held_locks + i;
++		if (!__lock_acquire(hlock->instance,
++			hlock->class->subclass, hlock->trylock,
++				hlock->read, hlock->check, hlock->hardirqs_off,
++				hlock->acquire_ip))
++			return 0;
++	}
++
++	if (DEBUG_LOCKS_WARN_ON(curr->lockdep_depth != depth))
++		return 0;
++	return 1;
++}
++
+ /*
+  * Remove the lock to the list of currently held locks in a
+  * potentially non-nested (out of order) manner. This is a
+@@ -2822,6 +2871,26 @@ static void check_flags(unsigned long fl
+ #endif
+ }
+ 
++void
++lock_set_subclass(struct lockdep_map *lock,
++		  unsigned int subclass, unsigned long ip)
++{
++	unsigned long flags;
++
++	if (unlikely(current->lockdep_recursion))
++		return;
++
++	raw_local_irq_save(flags);
++	current->lockdep_recursion = 1;
++	check_flags(flags);
++	if (__lock_set_subclass(lock, subclass, ip))
++		check_chain_key(current);
++	current->lockdep_recursion = 0;
++	raw_local_irq_restore(flags);
++}
++
++EXPORT_SYMBOL_GPL(lock_set_subclass);
++
+ /*
+  * We are not always called with irqs disabled - do that here,
+  * and also avoid lockdep recursion:
 _
 
-Patches currently in -mm which might be from ben-linux@fluff.org are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
+origin.patch
 linux-next.patch
-resource-add-resource_type-and-ioresource_type_bits.patch
-resource-add-new-ioresource_clk-type-v2.patch
-i2c-sh_mobile-ioresource_clk-support.patch
+irq-warn-about-irqf_disabledirqf_shared.patch
 
