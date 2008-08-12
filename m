@@ -1,282 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - lockdep-lock-protection-locks.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 13:26:26 -0700
-Message-ID: <200808122026.m7CKQQ7U011483@imap1.linux-foundation.org>
+Subject: - lockdep-spin_lock_nest_lock.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 13:26:35 -0700
+Message-ID: <200808122026.m7CKQZcc011486@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57831 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55762 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751267AbYHLU0b (ORCPT
+	by vger.kernel.org with ESMTP id S1751517AbYHLU0k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 16:26:31 -0400
+	Tue, 12 Aug 2008 16:26:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep: lock protection locks
+     lockdep: spin_lock_nest_lock()
 has been removed from the -mm tree.  Its filename was
-     lockdep-lock-protection-locks.patch
+     lockdep-spin_lock_nest_lock.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lockdep: lock protection locks
+Subject: lockdep: spin_lock_nest_lock()
 From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-On Fri, 2008-08-01 at 16:26 -0700, Linus Torvalds wrote:
+Expose the new lock protection lock.
 
-> On Fri, 1 Aug 2008, David Miller wrote:
-> >
-> > Taking more than a few locks of the same class at once is bad
-> > news and it's better to find an alternative method.
->
-> It's not always wrong.
->
-> If you can guarantee that anybody that takes more than one lock of a
-> particular class will always take a single top-level lock _first_, then
-> that's all good. You can obviously screw up and take the same lock _twice_
-> (which will deadlock), but at least you cannot get into ABBA situations.
->
-> So maybe the right thing to do is to just teach lockdep about "lock
-> protection locks". That would have solved the multi-queue issues for
-> networking too - all the actual network drivers would still have taken
-> just their single queue lock, but the one case that needs to take all of
-> them would have taken a separate top-level lock first.
->
-> Never mind that the multi-queue locks were always taken in the same order:
-> it's never wrong to just have some top-level serialization, and anybody
-> who needs to take <n> locks might as well do <n+1>, because they sure as
-> hell aren't going to be on _any_ fastpaths.
->
-> So the simplest solution really sounds like just teaching lockdep about
-> that one special case. It's not "nesting" exactly, although it's obviously
-> related to it.
+This can be used to annotate places where we take multiple locks of the
+same class and avoid deadlocks by always taking another (top-level) lock
+first.
 
-Do as Linus suggested. The lock protection lock is called nest_lock.
-
-Note that we still have the MAX_LOCK_DEPTH (48) limit to consider, so anything
-that spills that it still up shit creek.
+NOTE: we're still bound to the MAX_LOCK_DEPTH (48) limit.
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lockdep.h    |   34 ++++++++++++++++++----------------
- include/linux/rcuclassic.h |    2 +-
- kernel/lockdep.c           |   26 +++++++++++++++++++++-----
- 3 files changed, 40 insertions(+), 22 deletions(-)
+ include/linux/lockdep.h  |    2 ++
+ include/linux/spinlock.h |    6 ++++++
+ kernel/spinlock.c        |   11 +++++++++++
+ 3 files changed, 19 insertions(+)
 
-diff -puN include/linux/lockdep.h~lockdep-lock-protection-locks include/linux/lockdep.h
---- a/include/linux/lockdep.h~lockdep-lock-protection-locks
+diff -puN include/linux/lockdep.h~lockdep-spin_lock_nest_lock include/linux/lockdep.h
+--- a/include/linux/lockdep.h~lockdep-spin_lock_nest_lock
 +++ a/include/linux/lockdep.h
-@@ -211,6 +211,7 @@ struct held_lock {
- 	u64				prev_chain_key;
- 	unsigned long			acquire_ip;
- 	struct lockdep_map		*instance;
-+	struct lockdep_map		*nest_lock;
- #ifdef CONFIG_LOCK_STAT
- 	u64 				waittime_stamp;
- 	u64				holdtime_stamp;
-@@ -297,7 +298,8 @@ extern void lockdep_init_map(struct lock
-  *   2: full validation
-  */
- extern void lock_acquire(struct lockdep_map *lock, unsigned int subclass,
--			 int trylock, int read, int check, unsigned long ip);
-+			 int trylock, int read, int check,
-+			 struct lockdep_map *nest_lock, unsigned long ip);
- 
- extern void lock_release(struct lockdep_map *lock, int nested,
- 			 unsigned long ip);
-@@ -319,7 +321,7 @@ static inline void lockdep_on(void)
- {
- }
- 
--# define lock_acquire(l, s, t, r, c, i)		do { } while (0)
-+# define lock_acquire(l, s, t, r, c, n, i)	do { } while (0)
- # define lock_release(l, n, i)			do { } while (0)
- # define lock_set_subclass(l, s, i)		do { } while (0)
- # define lockdep_init()				do { } while (0)
-@@ -407,9 +409,9 @@ static inline void print_irqtrace_events
- 
+@@ -410,8 +410,10 @@ static inline void print_irqtrace_events
  #ifdef CONFIG_DEBUG_LOCK_ALLOC
  # ifdef CONFIG_PROVE_LOCKING
--#  define spin_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, i)
-+#  define spin_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, NULL, i)
+ #  define spin_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, NULL, i)
++#  define spin_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 2, n, i)
  # else
--#  define spin_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, i)
-+#  define spin_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, NULL, i)
+ #  define spin_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, NULL, i)
++#  define spin_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 1, NULL, i)
  # endif
  # define spin_release(l, n, i)			lock_release(l, n, i)
  #else
-@@ -419,11 +421,11 @@ static inline void print_irqtrace_events
+diff -puN include/linux/spinlock.h~lockdep-spin_lock_nest_lock include/linux/spinlock.h
+--- a/include/linux/spinlock.h~lockdep-spin_lock_nest_lock
++++ a/include/linux/spinlock.h
+@@ -183,8 +183,14 @@ do {								\
  
  #ifdef CONFIG_DEBUG_LOCK_ALLOC
- # ifdef CONFIG_PROVE_LOCKING
--#  define rwlock_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, i)
--#  define rwlock_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 2, 2, i)
-+#  define rwlock_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, NULL, i)
-+#  define rwlock_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 2, 2, NULL, i)
- # else
--#  define rwlock_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, i)
--#  define rwlock_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 2, 1, i)
-+#  define rwlock_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, NULL, i)
-+#  define rwlock_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 2, 1, NULL, i)
- # endif
- # define rwlock_release(l, n, i)		lock_release(l, n, i)
+ # define spin_lock_nested(lock, subclass) _spin_lock_nested(lock, subclass)
++# define spin_lock_nest_lock(lock, nest_lock)				\
++	 do {								\
++		 typecheck(struct lockdep_map *, &nest_lock->dep_map);	\
++		 _spin_lock_nest_lock(lock, &nest_lock->dep_map);	\
++	 } while (0)
  #else
-@@ -434,9 +436,9 @@ static inline void print_irqtrace_events
+ # define spin_lock_nested(lock, subclass) _spin_lock(lock)
++# define spin_lock_nest_lock(lock, nest_lock) _spin_lock(lock)
+ #endif
  
- #ifdef CONFIG_DEBUG_LOCK_ALLOC
- # ifdef CONFIG_PROVE_LOCKING
--#  define mutex_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, i)
-+#  define mutex_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, NULL, i)
- # else
--#  define mutex_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, i)
-+#  define mutex_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, NULL, i)
- # endif
- # define mutex_release(l, n, i)			lock_release(l, n, i)
- #else
-@@ -446,11 +448,11 @@ static inline void print_irqtrace_events
+ #define write_lock(lock)		_write_lock(lock)
+diff -puN kernel/spinlock.c~lockdep-spin_lock_nest_lock kernel/spinlock.c
+--- a/kernel/spinlock.c~lockdep-spin_lock_nest_lock
++++ a/kernel/spinlock.c
+@@ -292,6 +292,7 @@ void __lockfunc _spin_lock_nested(spinlo
+ }
  
- #ifdef CONFIG_DEBUG_LOCK_ALLOC
- # ifdef CONFIG_PROVE_LOCKING
--#  define rwsem_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, i)
--#  define rwsem_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 1, 2, i)
-+#  define rwsem_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, NULL, i)
-+#  define rwsem_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 1, 2, NULL, i)
- # else
--#  define rwsem_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, i)
--#  define rwsem_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 1, 1, i)
-+#  define rwsem_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, NULL, i)
-+#  define rwsem_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 1, 1, NULL, i)
- # endif
- # define rwsem_release(l, n, i)			lock_release(l, n, i)
- #else
-@@ -461,9 +463,9 @@ static inline void print_irqtrace_events
- 
- #ifdef CONFIG_DEBUG_LOCK_ALLOC
- # ifdef CONFIG_PROVE_LOCKING
--#  define map_acquire(l)		lock_acquire(l, 0, 0, 0, 2, _THIS_IP_)
-+#  define map_acquire(l)		lock_acquire(l, 0, 0, 0, 2, NULL, _THIS_IP_)
- # else
--#  define map_acquire(l)		lock_acquire(l, 0, 0, 0, 1, _THIS_IP_)
-+#  define map_acquire(l)		lock_acquire(l, 0, 0, 0, 1, NULL, _THIS_IP_)
- # endif
- # define map_release(l)			lock_release(l, 1, _THIS_IP_)
- #else
-diff -puN include/linux/rcuclassic.h~lockdep-lock-protection-locks include/linux/rcuclassic.h
---- a/include/linux/rcuclassic.h~lockdep-lock-protection-locks
-+++ a/include/linux/rcuclassic.h
-@@ -125,7 +125,7 @@ extern int rcu_needs_cpu(int cpu);
- #ifdef CONFIG_DEBUG_LOCK_ALLOC
- extern struct lockdep_map rcu_lock_map;
- # define rcu_read_acquire()	\
--			lock_acquire(&rcu_lock_map, 0, 0, 2, 1, _THIS_IP_)
-+			lock_acquire(&rcu_lock_map, 0, 0, 2, 1, NULL, _THIS_IP_)
- # define rcu_read_release()	lock_release(&rcu_lock_map, 1, _THIS_IP_)
- #else
- # define rcu_read_acquire()	do { } while (0)
-diff -puN kernel/lockdep.c~lockdep-lock-protection-locks kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-lock-protection-locks
-+++ a/kernel/lockdep.c
-@@ -1372,18 +1372,32 @@ check_deadlock(struct task_struct *curr,
- 	       struct lockdep_map *next_instance, int read)
- {
- 	struct held_lock *prev;
-+	struct held_lock *nest = NULL;
- 	int i;
- 
- 	for (i = 0; i < curr->lockdep_depth; i++) {
- 		prev = curr->held_locks + i;
+ EXPORT_SYMBOL(_spin_lock_nested);
 +
-+		if (prev->instance == next->nest_lock)
-+			nest = prev;
-+
- 		if (hlock_class(prev) != hlock_class(next))
- 			continue;
-+
- 		/*
- 		 * Allow read-after-read recursion of the same
- 		 * lock class (i.e. read_lock(lock)+read_lock(lock)):
- 		 */
- 		if ((read == 2) && prev->read)
- 			return 2;
-+
-+		/*
-+		 * We're holding the nest_lock, which serializes this lock's
-+		 * nesting behaviour.
-+		 */
-+		if (nest)
-+			return 2;
-+
- 		return print_deadlock_bug(curr, prev, next);
- 	}
- 	return 1;
-@@ -2505,7 +2519,7 @@ EXPORT_SYMBOL_GPL(lockdep_init_map);
-  */
- static int __lock_acquire(struct lockdep_map *lock, unsigned int subclass,
- 			  int trylock, int read, int check, int hardirqs_off,
--			  unsigned long ip)
-+			  struct lockdep_map *nest_lock, unsigned long ip)
- {
- 	struct task_struct *curr = current;
- 	struct lock_class *class = NULL;
-@@ -2564,6 +2578,7 @@ static int __lock_acquire(struct lockdep
- 	hlock->class_idx = class - lock_classes + 1;
- 	hlock->acquire_ip = ip;
- 	hlock->instance = lock;
-+	hlock->nest_lock = nest_lock;
- 	hlock->trylock = trylock;
- 	hlock->read = read;
- 	hlock->check = check;
-@@ -2715,7 +2730,7 @@ found_it:
- 		if (!__lock_acquire(hlock->instance,
- 			hlock_class(hlock)->subclass, hlock->trylock,
- 				hlock->read, hlock->check, hlock->hardirqs_off,
--				hlock->acquire_ip))
-+				hlock->nest_lock, hlock->acquire_ip))
- 			return 0;
- 	}
- 
-@@ -2776,7 +2791,7 @@ found_it:
- 		if (!__lock_acquire(hlock->instance,
- 			hlock_class(hlock)->subclass, hlock->trylock,
- 				hlock->read, hlock->check, hlock->hardirqs_off,
--				hlock->acquire_ip))
-+				hlock->nest_lock, hlock->acquire_ip))
- 			return 0;
- 	}
- 
-@@ -2913,7 +2928,8 @@ EXPORT_SYMBOL_GPL(lock_set_subclass);
-  * and also avoid lockdep recursion:
-  */
- void lock_acquire(struct lockdep_map *lock, unsigned int subclass,
--			  int trylock, int read, int check, unsigned long ip)
-+			  int trylock, int read, int check,
-+			  struct lockdep_map *nest_lock, unsigned long ip)
+ unsigned long __lockfunc _spin_lock_irqsave_nested(spinlock_t *lock, int subclass)
  {
  	unsigned long flags;
+@@ -314,6 +315,16 @@ unsigned long __lockfunc _spin_lock_irqs
  
-@@ -2928,7 +2944,7 @@ void lock_acquire(struct lockdep_map *lo
+ EXPORT_SYMBOL(_spin_lock_irqsave_nested);
  
- 	current->lockdep_recursion = 1;
- 	__lock_acquire(lock, subclass, trylock, read, check,
--		       irqs_disabled_flags(flags), ip);
-+		       irqs_disabled_flags(flags), nest_lock, ip);
- 	current->lockdep_recursion = 0;
- 	raw_local_irq_restore(flags);
- }
++void __lockfunc _spin_lock_nest_lock(spinlock_t *lock,
++				     struct lockdep_map *nest_lock)
++{
++	preempt_disable();
++	spin_acquire_nest(&lock->dep_map, 0, 0, nest_lock, _RET_IP_);
++	LOCK_CONTENDED(lock, _raw_spin_trylock, _raw_spin_lock);
++}
++
++EXPORT_SYMBOL(_spin_lock_nest_lock)
++
+ #endif
+ 
+ void __lockfunc _spin_unlock(spinlock_t *lock)
 _
 
 Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
 linux-next.patch
-lockdep-lock-protection-locks.patch
 lockdep-spin_lock_nest_lock.patch
 lockdep-spin_lock_nest_lock-fix.patch
 lockdep-spin_lock_nest_lock-fix-checkpatch-fixes.patch
