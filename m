@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-version-022.patch added to -mm tree
-Date: Tue, 12 Aug 2008 15:27:14 -0700
-Message-ID: <200808122227.m7CMREl2016746@imap1.linux-foundation.org>
+Subject: + checkpatch-perform-indent-checks-on-perl.patch added to -mm tree
+Date: Tue, 12 Aug 2008 15:27:12 -0700
+Message-ID: <200808122227.m7CMRCgG016743@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35561 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48622 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751351AbYHLW1t (ORCPT
+	by vger.kernel.org with ESMTP id S1751852AbYHLW1t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 12 Aug 2008 18:27:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: version: 0.22
+     checkpatch: perform indent checks on perl
 has been added to the -mm tree.  Its filename is
-     checkpatch-version-022.patch
+     checkpatch-perform-indent-checks-on-perl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: version: 0.22
+Subject: checkpatch: perform indent checks on perl
 From: Andy Whitcroft <apw@shadowen.org>
+
+So that we eat our own dog food ensure the indent checks apply to perl
+too.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-version-022 scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-version-022
+diff -puN scripts/checkpatch.pl~checkpatch-perform-indent-checks-on-perl scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-perform-indent-checks-on-perl
 +++ a/scripts/checkpatch.pl
-@@ -9,7 +9,7 @@ use strict;
- my $P = $0;
- $P =~ s@.*/@@g;
+@@ -1266,8 +1266,8 @@ sub process {
+ 			WARN("adding a line without newline at end of file\n" . $herecurr);
+ 		}
  
--my $V = '0.21';
-+my $V = '0.22';
+-# check we are in a valid source file *.[hc] if not then ignore this hunk
+-		next if ($realfile !~ /\.[hc]$/);
++# check we are in a valid source file C or perl if not then ignore this hunk
++		next if ($realfile !~ /\.(h|c|pl)$/);
  
- use Getopt::Long qw(:config no_auto_abbrev);
+ # at the beginning of a line any tabs must come first and anything
+ # more than 8 must use tabs.
+@@ -1277,6 +1277,9 @@ sub process {
+ 			ERROR("code indent should use tabs where possible\n" . $herevet);
+ 		}
  
++# check we are in a valid C source file if not then ignore this hunk
++		next if ($realfile !~ /\.(h|c)$/);
++
+ # check for RCS/CVS revision markers
+ 		if ($rawline =~ /^\+.*\$(Revision|Log|Id)(?:\$|)/) {
+ 			WARN("CVS style keyword markers, these will _not_ be updated\n". $herecurr);
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
