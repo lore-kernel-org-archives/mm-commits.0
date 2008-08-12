@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + viafb-viafbmodes-viafbtxt-fix-fix.patch added to -mm tree
-Date: Tue, 12 Aug 2008 16:10:23 -0700
-Message-ID: <200808122310.m7CNANwg018524@imap1.linux-foundation.org>
+Subject: + kexec-jump-clean-up-ifdef-and-comments.patch added to -mm tree
+Date: Tue, 12 Aug 2008 16:15:41 -0700
+Message-ID: <200808122315.m7CNFfwW018732@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39068 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52399 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751860AbYHLXKi (ORCPT
+	by vger.kernel.org with ESMTP id S1751351AbYHLXQU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 19:10:38 -0400
+	Tue, 12 Aug 2008 19:16:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, JosephChan@via.com.tw, geert@linux-m68k.org, josephchan@via.com.tw, krzysztof.h1@poczta.fm
+Cc: ying.huang@intel.com, ebiederm@xmission.com, mingo@elte.hu, pavel@ucw.cz, rjw@sisk.pl, vgoyal@redhat.com
 
 
 The patch titled
-     viafb-viafbmodes-viafbtxt-fix-fix
+     kexec jump: clean up #ifdef and comments
 has been added to the -mm tree.  Its filename is
-     viafb-viafbmodes-viafbtxt-fix-fix.patch
+     kexec-jump-clean-up-ifdef-and-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,104 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb-viafbmodes-viafbtxt-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kexec jump: clean up #ifdef and comments
+From: Huang Ying <ying.huang@intel.com>
 
-Cc: <JosephChan@via.com.tw>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Joseph Chan <josephchan@via.com.tw>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Move if (kexec_image->preserve_context) { ...  } into #ifdef
+CONFIG_KEXEC_JUMP to make code looks cleaner.
+
+Fix no longer correct comments of kernel_kexec().
+
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fb/viafb.txt |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/kexec.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/fb/viafb.txt~viafb-viafbmodes-viafbtxt-fix-fix Documentation/fb/viafb.txt
---- a/Documentation/fb/viafb.txt~viafb-viafbmodes-viafbtxt-fix-fix
-+++ a/Documentation/fb/viafb.txt
-@@ -182,8 +182,8 @@ Notes:
-        instead of calling common ioctl function FBIOPUT_VSCREENINFO since
-        viafb doesn't support multi-head well, or it will cause screen crush.
-     4. VX800 2D accelerator hasn't been supported in this driver yet. When
--       using driver on VX800, the driver will disable the acceleration funciton.
--       as default.
-+       using driver on VX800, the driver will disable the acceleration
-+       function as default.
+diff -puN kernel/kexec.c~kexec-jump-clean-up-ifdef-and-comments kernel/kexec.c
+--- a/kernel/kexec.c~kexec-jump-clean-up-ifdef-and-comments
++++ a/kernel/kexec.c
+@@ -1426,11 +1426,9 @@ static int __init crash_save_vmcoreinfo_
  
+ module_init(crash_save_vmcoreinfo_init)
  
- [Configure viafb with "fbset" tool]
+-/**
+- *	kernel_kexec - reboot the system
+- *
+- *	Move into place and start executing a preloaded standalone
+- *	executable.  If nothing was preloaded return an error.
++/*
++ * Move into place and start executing a preloaded standalone
++ * executable.  If nothing was preloaded return an error.
+  */
+ int kernel_kexec(void)
+ {
+@@ -1443,8 +1441,8 @@ int kernel_kexec(void)
+ 		goto Unlock;
+ 	}
+ 
+-	if (kexec_image->preserve_context) {
+ #ifdef CONFIG_KEXEC_JUMP
++	if (kexec_image->preserve_context) {
+ 		mutex_lock(&pm_mutex);
+ 		pm_prepare_console();
+ 		error = freeze_processes();
+@@ -1471,8 +1469,9 @@ int kernel_kexec(void)
+ 		if (error)
+ 			goto Enable_irqs;
+ 		save_processor_state();
++	} else
+ #endif
+-	} else {
++	{
+ 		blocking_notifier_call_chain(&reboot_notifier_list,
+ 					     SYS_RESTART, NULL);
+ 		system_state = SYSTEM_RESTART;
+@@ -1484,8 +1483,8 @@ int kernel_kexec(void)
+ 
+ 	machine_kexec(kexec_image);
+ 
+-	if (kexec_image->preserve_context) {
+ #ifdef CONFIG_KEXEC_JUMP
++	if (kexec_image->preserve_context) {
+ 		restore_processor_state();
+ 		device_power_up(PMSG_RESTORE);
+  Enable_irqs:
+@@ -1499,8 +1498,8 @@ int kernel_kexec(void)
+  Restore_console:
+ 		pm_restore_console();
+ 		mutex_unlock(&pm_mutex);
+-#endif
+ 	}
++#endif
+ 
+  Unlock:
+ 	xchg(&kexec_lock, 0);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
 origin.patch
-fs-eventpollc-fix-sys_epoll_create1-comment.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-next-remove-localversion.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-scsi-megaraid_sas-add-the-new-controllers-support.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+kexec-jump-clean-up-ifdef-and-comments.patch
+kexec-jump-rename-kexec_control_code_size-to-kexec_control_page_size.patch
+kexec-jump-check-code-size-in-control-page.patch
+kexec-jump-remove-duplication-of-kexec_restart_prepare.patch
+kexec-jump-in-sync-with-hibernation-implementation.patch
+kexec-jump-__ftrace_enabled_save-restore.patch
+kexec-jump-fix-for-ftrace.patch
 
