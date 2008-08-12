@@ -1,137 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-trivial-cleanups-fix.patch added to -mm tree
-Date: Tue, 12 Aug 2008 16:21:28 -0700
-Message-ID: <200808122321.m7CNLSCU018997@imap1.linux-foundation.org>
+Subject: - acpi-utmisc-use-warn_on-instead-of-warn_on_slowpath.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 16:21:49 -0700
+Message-ID: <200808122321.m7CNLnNU019017@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43720 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58867 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754525AbYHLXVg (ORCPT
+	by vger.kernel.org with ESMTP id S1752155AbYHLXWL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 19:21:36 -0400
+	Tue, 12 Aug 2008 19:22:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, pavel@suse.cz
+To: randy.dunlap@oracle.com, andi@firstfloor.org, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi-trivial-cleanups-fix
-has been added to the -mm tree.  Its filename is
-     acpi-trivial-cleanups-fix.patch
+     acpi utmisc: use WARN_ON() instead of warn_on_slowpath()
+has been removed from the -mm tree.  Its filename was
+     acpi-utmisc-use-warn_on-instead-of-warn_on_slowpath.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi-trivial-cleanups-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: acpi utmisc: use WARN_ON() instead of warn_on_slowpath()
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-rethink..
+utmisc.c needs to include asm-generic/bug.h for warn()/WARN() functions,
+but it should use WARN_ON() instead of warn_on_slowpath() since arches can
+provide their own implementation of WARN_ON(), which does not have to
+use/provide/implement warn_on_slowpath() at all.  Just use the front door
+(WARN_ON).
 
+linux-next-20080702/drivers/acpi/utilities/utmisc.c:1027: error: implicit declaration of function 'warn_on_slowpath'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Pavel Machek <pavel@suse.cz>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/reboot.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/acpi/utilities/utmisc.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/reboot.c~acpi-trivial-cleanups-fix drivers/acpi/reboot.c
---- a/drivers/acpi/reboot.c~acpi-trivial-cleanups-fix
-+++ a/drivers/acpi/reboot.c
-@@ -1,8 +1,4 @@
--/*
-- * Reset the machine using the RESET_REG
-- *
-- * Distribute under GPL.
-- */
-+
- #include <linux/pci.h>
- #include <linux/acpi.h>
- #include <acpi/reboot.h>
+diff -puN drivers/acpi/utilities/utmisc.c~acpi-utmisc-use-warn_on-instead-of-warn_on_slowpath drivers/acpi/utilities/utmisc.c
+--- a/drivers/acpi/utilities/utmisc.c~acpi-utmisc-use-warn_on-instead-of-warn_on_slowpath
++++ a/drivers/acpi/utilities/utmisc.c
+@@ -42,6 +42,7 @@
+  */
+ 
+ #include <linux/module.h>
++#include <asm-generic/bug.h>
+ 
+ #include <acpi/acpi.h>
+ #include <acpi/acnamesp.h>
+@@ -1024,7 +1025,7 @@ acpi_ut_error(const char *module_name, u
+ {
+ 	va_list args;
+ 
+-	warn_on_slowpath(module_name, line_number);
++	WARN_ON(1);
+ 	acpi_os_printf("ACPI Error (%s-%04d): ", module_name, line_number);
+ 
+ 	va_start(args, format);
+@@ -1039,7 +1040,7 @@ acpi_ut_exception(const char *module_nam
+ {
+ 	va_list args;
+ 
+-	warn_on_slowpath(module_name, line_number);
++	WARN_ON(1);
+ 	acpi_os_printf("ACPI Exception (%s-%04d): %s, ", module_name,
+ 		       line_number, acpi_format_exception(status));
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-fs-eventpollc-fix-sys_epoll_create1-comment.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
+gru-fix-preprocessor-symbol-for-sparse.patch
+move-kernel-doc-comment-for-might_sleep-directly-before-its-defining-block.patch
+docsrc-build-documentation-sources.patch
+docsrc-fix-procfs-example.patch
+docsrc-fix-ifenslave-type.patch
+docsrc-fix-crc32hash-type.patch
+docsrc-fix-getdelays-printk-formats.patch
 linux-next.patch
-next-remove-localversion.patch
-acpi-trivial-cleanups-fix.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
+acpi-utmisc-use-warn_on-instead-of-warn_on_slowpath.patch
+drm-sis-depends-on-fb_sis.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+lkdtm-fix-for-config_scsi=n.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+ftrace-printk-formatting-infrastructure-fix.patch
 git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
 rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-scsi-megaraid_sas-add-the-new-controllers-support.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+w1-documentation-w1-masters-ds2490-update.patch
 profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
