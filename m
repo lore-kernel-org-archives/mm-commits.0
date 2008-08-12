@@ -1,119 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: + memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch added to -mm tree
-Date: Mon, 11 Aug 2008 17:35:40 -0700
-Message-ID: <200808120035.m7C0ZejA030442@imap1.linux-foundation.org>
+Subject: - printk-robustify-printk-fix.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 01:06:36 -0700
+Message-ID: <200808120806.m7C86aHH014360@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52335 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58945 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754090AbYHLAln (ORCPT
+	by vger.kernel.org with ESMTP id S1751677AbYHLIHc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 20:41:43 -0400
+	Tue, 12 Aug 2008 04:07:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, rientjes@google.com, skumar@linux.vnet.ibm.com, vgoyal@redhat.com, xemul@openvz.org, yamamoto@valinux.co.jp
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, srostedt@redhat.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Memory rlimit enhance mm_owner_changed callback to deal with exited owner
-has been added to the -mm tree.  Its filename is
-     memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
+     printk-robustify-printk-fix
+has been removed from the -mm tree.  Its filename was
+     printk-robustify-printk-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into printk-robustify-printk.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Memory rlimit enhance mm_owner_changed callback to deal with exited owner
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: printk-robustify-printk-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-mm_owner_changed callback can also be called with new task set to NULL. 
-(race between try_to_unuse() and mm->owner exiting).  Surprisingly the
-order of cgroup arguments being passed was incorrect (proves that we did
-not run into mm_owner_changed callback at all).
+- make klogd_wakeup_state static
 
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Sudhir Kumar <skumar@linux.vnet.ibm.com>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Cc: Paul Menage <menage@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Steven Rostedt <srostedt@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memrlimitcgroup.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ kernel/printk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memrlimitcgroup.c~memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner mm/memrlimitcgroup.c
---- a/mm/memrlimitcgroup.c~memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner
-+++ a/mm/memrlimitcgroup.c
-@@ -73,6 +73,12 @@ void memrlimit_cgroup_uncharge_as(struct
- {
- 	struct memrlimit_cgroup *memrcg;
+diff -puN kernel/printk.c~printk-robustify-printk-fix kernel/printk.c
+--- a/kernel/printk.c~printk-robustify-printk-fix
++++ a/kernel/printk.c
+@@ -988,7 +988,7 @@ struct klogd_wakeup_state {
+ 	int pending;
+ };
  
-+	/*
-+	 * Uncharge happened as a part of the mm_owner_changed callback
-+	 */
-+	if (!mm->owner)
-+		return;
-+
- 	memrcg = memrlimit_cgroup_from_task(mm->owner);
- 	res_counter_uncharge(&memrcg->as_res, (nr_pages << PAGE_SHIFT));
- }
-@@ -193,8 +199,8 @@ out:
-  * This callback is called with mmap_sem held
-  */
- static void memrlimit_cgroup_mm_owner_changed(struct cgroup_subsys *ss,
--						struct cgroup *cgrp,
- 						struct cgroup *old_cgrp,
-+						struct cgroup *cgrp,
- 						struct task_struct *p)
- {
- 	struct memrlimit_cgroup *memrcg, *old_memrcg;
-@@ -204,7 +210,12 @@ static void memrlimit_cgroup_mm_owner_ch
- 	memrcg = memrlimit_cgroup_from_cgrp(cgrp);
- 	old_memrcg = memrlimit_cgroup_from_cgrp(old_cgrp);
+-DEFINE_PER_CPU(struct klogd_wakeup_state, kws);
++static DEFINE_PER_CPU(struct klogd_wakeup_state, kws);
  
--	if (res_counter_charge(&memrcg->as_res, (mm->total_vm << PAGE_SHIFT)))
-+	/*
-+	 * If we don't have a new cgroup, we just uncharge from the old one.
-+	 * It means that the task is going away
-+	 */
-+	if (memrcg &&
-+	    res_counter_charge(&memrcg->as_res, (mm->total_vm << PAGE_SHIFT)))
- 		goto out;
- 	res_counter_uncharge(&old_memrcg->as_res, (mm->total_vm << PAGE_SHIFT));
- out:
+ void __wake_up_klogd(struct rcu_head *head)
+ {
 _
 
-Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-fix-oops-in-mem_cgroup_shrink_usage.patch
+origin.patch
+fs-eventpollc-fix-sys_epoll_create1-comment.patch
+printk-robustify-printk.patch
+printk-robustify-printk-fix.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-mm-owner-fix-race-between-swap-and-exit.patch
-gcov-architecture-specific-compile-flag-adjustments-x86_64-fix.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+i2c-renesas-highlander-fpga-smbus-support-update-fix.patch
+i2c-renesas-highlander-fpga-smbus-support-update-fix-fix.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-serio-xilinx_ps2c-fix-warning.patch
+git-jg-misc.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
+sched-type-fix.patch
+lockdep-spin_lock_nest_lock-fix-checkpatch-fixes.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+scsi-megaraid_sas-add-the-new-controllers-support.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
