@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-report-any-absolute-references-to-kernel-source-files.patch added to -mm tree
-Date: Tue, 12 Aug 2008 15:27:02 -0700
-Message-ID: <200808122227.m7CMR24U016728@imap1.linux-foundation.org>
+Subject: + checkpatch-reduce-warnings-for-include-of-asm-fooh-to-check-from-arch-barc.patch added to -mm tree
+Date: Tue, 12 Aug 2008 15:27:00 -0700
+Message-ID: <200808122227.m7CMR0gZ016719@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33906 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43699 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751952AbYHLWbI (ORCPT
+	by vger.kernel.org with ESMTP id S1751928AbYHLWbI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 12 Aug 2008 18:31:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: report any absolute references to kernel source files
+     checkpatch: reduce warnings for #include of asm/foo.h to check from arch/bar.c
 has been added to the -mm tree.  Its filename is
-     checkpatch-report-any-absolute-references-to-kernel-source-files.patch
+     checkpatch-reduce-warnings-for-include-of-asm-fooh-to-check-from-arch-barc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: report any absolute references to kernel source files
+Subject: checkpatch: reduce warnings for #include of asm/foo.h to check from arch/bar.c
 From: Andy Whitcroft <apw@shadowen.org>
 
-Absolute references to kernel source files are generally only useful
-locally to the originator of the patch.  Check for any such references and
-report them.
+It is much more likely that an architecture file will want to directly
+include asm header files.  Reduce this WARNING to a CHECK when the
+referencing file is in the arch directory.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   41 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+ scripts/checkpatch.pl |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-report-any-absolute-references-to-kernel-source-files scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-report-any-absolute-references-to-kernel-source-files
+diff -puN scripts/checkpatch.pl~checkpatch-reduce-warnings-for-include-of-asm-fooh-to-check-from-arch-barc scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-reduce-warnings-for-include-of-asm-fooh-to-check-from-arch-barc
 +++ a/scripts/checkpatch.pl
-@@ -958,6 +958,33 @@ sub CHK {
- 	}
- }
+@@ -1942,12 +1942,17 @@ sub process {
  
-+sub check_absolute_file {
-+	my ($absolute, $herecurr) = @_;
-+	my $file = $absolute;
-+
-+	##print "absolute<$absolute>\n";
-+
-+	# See if any suffix of this path is a path within the tree.
-+	while ($file =~ s@^[^/]*/@@) {
-+		if (-f "$root/$file") {
-+			##print "file<$file>\n";
-+			last;
-+		}
-+	}
-+	if (! -f _)  {
-+		return 0;
-+	}
-+
-+	# It is, so see if the prefix is acceptable.
-+	my $prefix = $absolute;
-+	substr($prefix, -length($file)) = '';
-+
-+	##print "prefix<$prefix>\n";
-+	if ($prefix ne ".../") {
-+		WARN("use relative pathname instead of absolute in changelog text\n" . $herecurr);
-+	}
-+}
-+
- sub process {
- 	my $filename = shift;
- 
-@@ -1168,6 +1195,20 @@ sub process {
- 				$herecurr) if (!$emitted_corrupt++);
+ #warn if <asm/foo.h> is #included and <linux/foo.h> is available (uses RAW line)
+ 		if ($tree && $rawline =~ m{^.\s*\#\s*include\s*\<asm\/(.*)\.h\>}) {
+-			my $checkfile = "include/linux/$1.h";
+-			if (-f "$root/$checkfile" && $realfile ne $checkfile &&
++			my $file = "$1.h";
++			my $checkfile = "include/linux/$file";
++			if (-f "$root/$checkfile" &&
++			    $realfile ne $checkfile &&
+ 			    $1 ne 'irq')
+ 			{
+-				WARN("Use #include <linux/$1.h> instead of <asm/$1.h>\n" .
+-					$herecurr);
++				if ($realfile =~ m{^arch/}) {
++					CHK("Consider using #include <linux/$file> instead of <asm/$file>\n" . $herecurr);
++				} else {
++					WARN("Use #include <linux/$file> instead of <asm/$file>\n" . $herecurr);
++				}
+ 			}
  		}
  
-+# Check for absolute kernel paths.
-+		if ($tree) {
-+			while ($line =~ m{(?:^|\s)(/\S*)}g) {
-+				my $file = $1;
-+
-+				if ($file =~ m{^(.*?)(?::\d+)+:?$} &&
-+				    check_absolute_file($1, $herecurr)) {
-+					#
-+				} else {
-+					check_absolute_file($file, $herecurr);
-+				}
-+			}
-+		}
-+
- # UTF-8 regex found at http://www.w3.org/International/questions/qa-forms-utf-8.en.php
- 		if (($realfile =~ /^$/ || $line =~ /^\+/) &&
- 		    $rawline !~ m/^$UTF8*$/) {
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
