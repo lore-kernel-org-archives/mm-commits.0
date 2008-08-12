@@ -1,101 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - lockdep-annotate-mm_take_all_locks.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 13:33:30 -0700
-Message-ID: <200808122033.m7CKXURf011793@imap1.linux-foundation.org>
+Subject: - i2c-dont-autograb-i2c-pca-is.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 13:32:57 -0700
+Message-ID: <200808122032.m7CKWvkj011749@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41197 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54955 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751728AbYHLUnB (ORCPT
+	by vger.kernel.org with ESMTP id S1751868AbYHLUns (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 16:43:01 -0400
+	Tue, 12 Aug 2008 16:43:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, andrea@qumranet.com, mm-commits@vger.kernel.org
+To: rene.herman@keyaccess.nl, rene.herman@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep: annotate mm_take_all_locks()
+     i2c: don't autograb i2c-pca-is
 has been removed from the -mm tree.  Its filename was
-     lockdep-annotate-mm_take_all_locks.patch
+     i2c-dont-autograb-i2c-pca-is.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lockdep: annotate mm_take_all_locks()
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: i2c: don't autograb i2c-pca-is
+From: Rene Herman <rene.herman@keyaccess.nl>
 
-The nesting is correct due to holding mmap_sem, use the new annotation
-to annotate this.
+Grabbing ISA bus resources without anything or anyone telling us we should
+can break boot on randconfig/allyesconfig builds by keeping resources that
+are in fact owned by different hardware busy and does as reported by Ingo
+Molnar.
 
-This doesn't solve the MAX_LOCK_DEPTH issue, but 48 seems enough for
-the current kvm usage, which does this early on in the life of an mm.
+Generally it's also dangerous to just poke at random I/O ports and
+especially those in the range where other old easily confused ISA hardware
+might live.
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Andrea Arcangeli <andrea@qumranet.com>
+For this specialized I2C bus driver, insist that the user specifies
+the resources before grabbing them.
+
+The^WA user of this driver is a one time
+
+echo "options i2c-pca-isa base=0x330 irq=10" >> /etc/modprobe.conf
+
+away from the old behaviour.
+
+Signed-off-by: Rene Herman <rene.herman@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/i2c/busses/i2c-pca-isa.c |   20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
-diff -puN mm/mmap.c~lockdep-annotate-mm_take_all_locks mm/mmap.c
---- a/mm/mmap.c~lockdep-annotate-mm_take_all_locks
-+++ a/mm/mmap.c
-@@ -2273,14 +2273,14 @@ int install_special_mapping(struct mm_st
+diff -puN drivers/i2c/busses/i2c-pca-isa.c~i2c-dont-autograb-i2c-pca-is drivers/i2c/busses/i2c-pca-isa.c
+--- a/drivers/i2c/busses/i2c-pca-isa.c~i2c-dont-autograb-i2c-pca-is
++++ a/drivers/i2c/busses/i2c-pca-isa.c
+@@ -36,8 +36,8 @@
+ #define DRIVER "i2c-pca-isa"
+ #define IO_SIZE 4
  
- static DEFINE_MUTEX(mm_all_locks_mutex);
+-static unsigned long base   = 0x330;
+-static int irq 	  = 10;
++static unsigned long base;
++static int irq = -1;
  
--static void vm_lock_anon_vma(struct anon_vma *anon_vma)
-+static void vm_lock_anon_vma(struct mm_struct *mm, struct anon_vma *anon_vma)
+ /* Data sheet recommends 59kHz for 100kHz operation due to variation
+  * in the actual clock rate */
+@@ -107,6 +107,19 @@ static struct i2c_adapter pca_isa_ops = 
+ 	.timeout	= 100,
+ };
+ 
++static int __devinit pca_isa_match(struct device *dev, unsigned int id)
++{
++	int match = base != 0;
++
++	if (match) {
++		if (irq == -1)
++			dev_warn(dev, "using poling mode (specify irq)\n");
++	} else
++		dev_err(dev, "please specify base\n");
++
++	return match;
++}
++
+ static int __devinit pca_isa_probe(struct device *dev, unsigned int id)
  {
- 	if (!test_bit(0, (unsigned long *) &anon_vma->head.next)) {
- 		/*
- 		 * The LSB of head.next can't change from under us
- 		 * because we hold the mm_all_locks_mutex.
- 		 */
--		spin_lock(&anon_vma->lock);
-+		spin_lock_nest_lock(&anon_vma->lock, &mm->mmap_sem);
- 		/*
- 		 * We can safely modify head.next after taking the
- 		 * anon_vma->lock. If some other vma in this mm shares
-@@ -2296,7 +2296,7 @@ static void vm_lock_anon_vma(struct anon
+ 	init_waitqueue_head(&pca_wait);
+@@ -153,7 +166,7 @@ static int __devexit pca_isa_remove(stru
+ {
+ 	i2c_del_adapter(&pca_isa_ops);
+ 
+-	if (irq > 0) {
++	if (irq > -1) {
+ 		disable_irq(irq);
+ 		free_irq(irq, &pca_isa_ops);
  	}
+@@ -163,6 +176,7 @@ static int __devexit pca_isa_remove(stru
  }
  
--static void vm_lock_mapping(struct address_space *mapping)
-+static void vm_lock_mapping(struct mm_struct *mm, struct address_space *mapping)
- {
- 	if (!test_bit(AS_MM_ALL_LOCKS, &mapping->flags)) {
- 		/*
-@@ -2310,7 +2310,7 @@ static void vm_lock_mapping(struct addre
- 		 */
- 		if (test_and_set_bit(AS_MM_ALL_LOCKS, &mapping->flags))
- 			BUG();
--		spin_lock(&mapping->i_mmap_lock);
-+		spin_lock_nest_lock(&mapping->i_mmap_lock, &mm->mmap_sem);
- 	}
- }
- 
-@@ -2359,9 +2359,9 @@ int mm_take_all_locks(struct mm_struct *
- 		if (signal_pending(current))
- 			goto out_unlock;
- 		if (vma->anon_vma)
--			vm_lock_anon_vma(vma->anon_vma);
-+			vm_lock_anon_vma(mm, vma->anon_vma);
- 		if (vma->vm_file && vma->vm_file->f_mapping)
--			vm_lock_mapping(vma->vm_file->f_mapping);
-+			vm_lock_mapping(mm, vma->vm_file->f_mapping);
- 	}
- 	ret = 0;
- 
+ static struct isa_driver pca_isa_driver = {
++	.match		= pca_isa_match,
+ 	.probe		= pca_isa_probe,
+ 	.remove		= __devexit_p(pca_isa_remove),
+ 	.driver = {
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from rene.herman@keyaccess.nl are
 
 origin.patch
-linux-next.patch
-irq-warn-about-irqf_disabledirqf_shared.patch
+v4l1-make-pms-not-autoprobe-when-builtin.patch
+v4l1-make-pms-not-autoprobe-when-builtin-update.patch
+isdn-make-icn-not-autograb-when-builtin.patch
+pnp-make-the-resource-type-an-unsigned-long.patch
+pnp-make-the-resource-type-an-unsigned-long-fix.patch
 
