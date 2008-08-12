@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-fix-up-comment-checks-search-to-scan-the-entire-block.patch added to -mm tree
-Date: Tue, 12 Aug 2008 15:26:56 -0700
-Message-ID: <200808122226.m7CMQu9L016713@imap1.linux-foundation.org>
+Subject: + checkpatch-suspect-indent-skip-over-preprocessor-label-and-blank-lines.patch added to -mm tree
+Date: Tue, 12 Aug 2008 15:27:06 -0700
+Message-ID: <200808122227.m7CMR6Ql016734@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49413 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56960 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751917AbYHLWbI (ORCPT
+	by vger.kernel.org with ESMTP id S1751967AbYHLWbI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 12 Aug 2008 18:31:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: fix up comment checks search to scan the entire block
+     checkpatch: suspect indent -- skip over preprocessor, label and blank lines
 has been added to the -mm tree.  Its filename is
-     checkpatch-fix-up-comment-checks-search-to-scan-the-entire-block.patch
+     checkpatch-suspect-indent-skip-over-preprocessor-label-and-blank-lines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: fix up comment checks search to scan the entire block
+Subject: checkpatch: suspect indent -- skip over preprocessor, label and blank lines
 From: Andy Whitcroft <apw@shadowen.org>
 
-We are not counting the lines in the block correctly which causes the
-comment scan to stop prematurly and thus miss comments which end at the
-end of the block.  Fix this up.
+We should skip over and check the lines which follow preprocessor
+statements, labels, and blank lines.  These all have legitimate reasons to
+be indented differently.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |   27 ++++++++++++++++-----------
+ 1 file changed, 16 insertions(+), 11 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-up-comment-checks-search-to-scan-the-entire-block scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-up-comment-checks-search-to-scan-the-entire-block
+diff -puN scripts/checkpatch.pl~checkpatch-suspect-indent-skip-over-preprocessor-label-and-blank-lines scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-suspect-indent-skip-over-preprocessor-label-and-blank-lines
 +++ a/scripts/checkpatch.pl
-@@ -1029,9 +1029,14 @@ sub process {
- 			# edge is a close comment then we must be in a comment
- 			# at context start.
- 			my $edge;
--			for (my $ln = $linenr + 1; $ln < ($linenr + $realcnt); $ln++) {
--				next if ($line =~ /^-/);
--				($edge) = ($rawlines[$ln - 1] =~ m@(/\*|\*/)@);
-+			my $cnt = $realcnt;
-+			for (my $ln = $linenr + 1; $cnt > 0; $ln++) {
-+				next if (defined $rawlines[$ln - 1] &&
-+					 $rawlines[$ln - 1] =~ /^-/);
-+				$cnt--;
-+				#print "RAW<$rawlines[$ln - 1]>\n";
-+				($edge) = (defined $rawlines[$ln - 1] &&
-+					$rawlines[$ln - 1] =~ m@(/\*|\*/)@);
- 				last if (defined $edge);
+@@ -1434,7 +1434,7 @@ sub process {
+ 			if ($s =~ s/^\s*\\//) {
+ 				$continuation = 1;
  			}
- 			if (defined $edge && $edge eq '*/') {
+-			if ($s =~ s/^\s*\n//) {
++			if ($s =~ s/^\s*?\n//) {
+ 				$check = 1;
+ 				$cond_lines++;
+ 			}
+@@ -1446,15 +1446,20 @@ sub process {
+ 				$check = 0;
+ 			}
+ 
+-			# Ignore the current line if its is a preprocessor
+-			# line.
+-			if ($s =~ /^\s*#\s*/) {
+-				$check = 0;
+-			}
+-
+-			# Ignore the current line if it is label.
+-			if ($s =~ /^\s*$Ident\s*:/) {
+-				$check = 0;
++			my $cond_ptr = -1;
++			while ($cond_ptr != $cond_lines) {
++				$cond_ptr = $cond_lines;
++
++				# Ignore:
++				#  1) blank lines, they should be at 0,
++				#  2) preprocessor lines, and
++				#  3) labels.
++				if ($s =~ /^\s*?\n/ ||
++				    $s =~ /^\s*#\s*?/ ||
++				    $s =~ /^\s*$Ident\s*:/) {
++					$s =~ s/^.*?\n//;
++					$cond_lines++;
++				}
+ 			}
+ 
+ 			my (undef, $sindent) = line_stats("+" . $s);
+@@ -1470,7 +1475,7 @@ sub process {
+ 				$stat_real = "[...]\n$stat_real";
+ 			}
+ 
+-			##print "line<$line> prevline<$prevline> indent<$indent> sindent<$sindent> check<$check> continuation<$continuation> s<$s> cond_lines<$cond_lines> stat_real<$stat_real> stat<$stat>\n";
++			#print "line<$line> prevline<$prevline> indent<$indent> sindent<$sindent> check<$check> continuation<$continuation> s<$s> cond_lines<$cond_lines> stat_real<$stat_real> stat<$stat>\n";
+ 
+ 			if ($check && (($sindent % 8) != 0 ||
+ 			    ($sindent <= $indent && $s ne ''))) {
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
