@@ -1,326 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: - linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 13:18:43 -0700
-Message-ID: <200808122018.m7CKIhv1011089@imap1.linux-foundation.org>
+Subject: - lockdep-map_acquire.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 13:26:18 -0700
+Message-ID: <200808122026.m7CKQI8N011480@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34185 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36060 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752450AbYHLUTQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751248AbYHLU0Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 16:19:16 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m7CKIiSj022216
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 12 Aug 2008 13:18:45 -0700
+	Tue, 12 Aug 2008 16:26:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     lockdep: map_acquire
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     lockdep-map_acquire.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lockdep: map_acquire
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
 
+Most the free-standing lock_acquire() usages look remarkably similar, sweep
+them into a new helper.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/kernel/sys_sparc32.c |    3 ---
- drivers/watchdog/at91rm9200_wdt.c |    5 -----
- drivers/watchdog/davinci_wdt.c    |    4 ----
- drivers/watchdog/ep93xx_wdt.c     |    4 ----
- drivers/watchdog/ixp2000_wdt.c    |    4 ----
- drivers/watchdog/ixp4xx_wdt.c     |    4 ----
- drivers/watchdog/ks8695_wdt.c     |    7 -------
- drivers/watchdog/omap_wdt.c       |    7 -------
- drivers/watchdog/pnx4008_wdt.c    |    4 ----
- drivers/watchdog/sa1100_wdt.c     |    4 ----
- drivers/watchdog/wdt285.c         |    4 ----
- 11 files changed, 50 deletions(-)
+ fs/jbd/transaction.c    |    4 ++--
+ fs/jbd2/transaction.c   |    4 ++--
+ include/linux/lockdep.h |   12 ++++++++++++
+ kernel/workqueue.c      |   24 ++++++++++++------------
+ 4 files changed, 28 insertions(+), 16 deletions(-)
 
-diff -puN arch/sparc64/kernel/sys_sparc32.c~linux-next-git-rejects arch/sparc64/kernel/sys_sparc32.c
---- a/arch/sparc64/kernel/sys_sparc32.c~linux-next-git-rejects
-+++ a/arch/sparc64/kernel/sys_sparc32.c
-@@ -58,8 +58,6 @@
- #include <asm/mmu_context.h>
- #include <asm/compat_signal.h>
+diff -puN fs/jbd/transaction.c~lockdep-map_acquire fs/jbd/transaction.c
+--- a/fs/jbd/transaction.c~lockdep-map_acquire
++++ a/fs/jbd/transaction.c
+@@ -291,7 +291,7 @@ handle_t *journal_start(journal_t *journ
+ 		goto out;
+ 	}
  
--<<<<<<< HEAD:arch/sparc64/kernel/sys_sparc32.c
--=======
- asmlinkage long sys32_chown16(const char __user * filename, u16 user, u16 group)
- {
- 	return sys_chown(filename, low2highuid(user), low2highgid(group));
-@@ -236,7 +234,6 @@ asmlinkage long sys32_getegid16(void)
- 	return high2lowgid(current->cred->egid);
+-	lock_acquire(&handle->h_lockdep_map, 0, 0, 0, 2, _THIS_IP_);
++	map_acquire(&handle->h_lockdep_map);
+ 
+ out:
+ 	return handle;
+@@ -1448,7 +1448,7 @@ int journal_stop(handle_t *handle)
+ 		spin_unlock(&journal->j_state_lock);
+ 	}
+ 
+-	lock_release(&handle->h_lockdep_map, 1, _THIS_IP_);
++	map_release(&handle->h_lockdep_map);
+ 
+ 	jbd_free_handle(handle);
+ 	return err;
+diff -puN fs/jbd2/transaction.c~lockdep-map_acquire fs/jbd2/transaction.c
+--- a/fs/jbd2/transaction.c~lockdep-map_acquire
++++ a/fs/jbd2/transaction.c
+@@ -301,7 +301,7 @@ handle_t *jbd2_journal_start(journal_t *
+ 		goto out;
+ 	}
+ 
+-	lock_acquire(&handle->h_lockdep_map, 0, 0, 0, 2, _THIS_IP_);
++	map_acquire(&handle->h_lockdep_map);
+ out:
+ 	return handle;
  }
+@@ -1279,7 +1279,7 @@ int jbd2_journal_stop(handle_t *handle)
+ 		spin_unlock(&journal->j_state_lock);
+ 	}
  
-->>>>>>> FETCH_HEAD:arch/sparc64/kernel/sys_sparc32.c
- /* 32-bit timeval and related flotsam.  */
+-	lock_release(&handle->h_lockdep_map, 1, _THIS_IP_);
++	map_release(&handle->h_lockdep_map);
  
- static inline long put_tv32(struct compat_timeval __user *o, struct timeval *i)
-diff -puN drivers/watchdog/at91rm9200_wdt.c~linux-next-git-rejects drivers/watchdog/at91rm9200_wdt.c
---- a/drivers/watchdog/at91rm9200_wdt.c~linux-next-git-rejects
-+++ a/drivers/watchdog/at91rm9200_wdt.c
-@@ -20,13 +20,8 @@
- #include <linux/platform_device.h>
- #include <linux/types.h>
- #include <linux/watchdog.h>
--<<<<<<< HEAD:drivers/watchdog/at91rm9200_wdt.c
- #include <linux/uaccess.h>
--#include <asm/arch/at91_st.h>
--=======
--#include <asm/uaccess.h>
- #include <mach/at91_st.h>
-->>>>>>> FETCH_HEAD:drivers/watchdog/at91rm9200_wdt.c
- 
- 
- #define WDT_DEFAULT_TIME	5	/* seconds */
-diff -puN drivers/watchdog/davinci_wdt.c~linux-next-git-rejects drivers/watchdog/davinci_wdt.c
---- a/drivers/watchdog/davinci_wdt.c~linux-next-git-rejects
-+++ a/drivers/watchdog/davinci_wdt.c
-@@ -25,13 +25,9 @@
- #include <linux/uaccess.h>
- #include <linux/io.h>
- 
--<<<<<<< HEAD:drivers/watchdog/davinci_wdt.c
--#include <asm/hardware.h>
--=======
- #include <mach/hardware.h>
- #include <asm/uaccess.h>
- #include <asm/io.h>
-->>>>>>> FETCH_HEAD:drivers/watchdog/davinci_wdt.c
- 
- #define MODULE_NAME "DAVINCI-WDT: "
- 
-diff -puN drivers/watchdog/ep93xx_wdt.c~linux-next-git-rejects drivers/watchdog/ep93xx_wdt.c
---- a/drivers/watchdog/ep93xx_wdt.c~linux-next-git-rejects
-+++ a/drivers/watchdog/ep93xx_wdt.c
-@@ -30,12 +30,8 @@
- #include <linux/timer.h>
- #include <linux/uaccess.h>
- 
--<<<<<<< HEAD:drivers/watchdog/ep93xx_wdt.c
--#include <asm/hardware.h>
--=======
- #include <mach/hardware.h>
- #include <asm/uaccess.h>
-->>>>>>> FETCH_HEAD:drivers/watchdog/ep93xx_wdt.c
- 
- #define WDT_VERSION	"0.3"
- #define PFX		"ep93xx_wdt: "
-diff -puN drivers/watchdog/ixp2000_wdt.c~linux-next-git-rejects drivers/watchdog/ixp2000_wdt.c
---- a/drivers/watchdog/ixp2000_wdt.c~linux-next-git-rejects
-+++ a/drivers/watchdog/ixp2000_wdt.c
-@@ -27,12 +27,8 @@
- #include <linux/bitops.h>
- #include <linux/uaccess.h>
- 
--<<<<<<< HEAD:drivers/watchdog/ixp2000_wdt.c
--#include <asm/hardware.h>
--=======
- #include <mach/hardware.h>
- #include <asm/uaccess.h>
-->>>>>>> FETCH_HEAD:drivers/watchdog/ixp2000_wdt.c
- 
- static int nowayout = WATCHDOG_NOWAYOUT;
- static unsigned int heartbeat = 60;	/* (secs) Default is 1 minute */
-diff -puN drivers/watchdog/ixp4xx_wdt.c~linux-next-git-rejects drivers/watchdog/ixp4xx_wdt.c
---- a/drivers/watchdog/ixp4xx_wdt.c~linux-next-git-rejects
-+++ a/drivers/watchdog/ixp4xx_wdt.c
-@@ -24,12 +24,8 @@
- #include <linux/bitops.h>
- #include <linux/uaccess.h>
- 
--<<<<<<< HEAD:drivers/watchdog/ixp4xx_wdt.c
--#include <asm/hardware.h>
--=======
- #include <mach/hardware.h>
- #include <asm/uaccess.h>
-->>>>>>> FETCH_HEAD:drivers/watchdog/ixp4xx_wdt.c
- 
- static int nowayout = WATCHDOG_NOWAYOUT;
- static int heartbeat = 60;	/* (secs) Default is 1 minute */
-diff -puN drivers/watchdog/ks8695_wdt.c~linux-next-git-rejects drivers/watchdog/ks8695_wdt.c
---- a/drivers/watchdog/ks8695_wdt.c~linux-next-git-rejects
-+++ a/drivers/watchdog/ks8695_wdt.c
-@@ -19,16 +19,9 @@
- #include <linux/platform_device.h>
- #include <linux/types.h>
- #include <linux/watchdog.h>
--<<<<<<< HEAD:drivers/watchdog/ks8695_wdt.c
- #include <linux/io.h>
--#include <linux/uaccess.h>
--#include <asm/arch/regs-timer.h>
--=======
--#include <asm/io.h>
- #include <asm/uaccess.h>
- #include <mach/regs-timer.h>
-->>>>>>> FETCH_HEAD:drivers/watchdog/ks8695_wdt.c
--
- 
- #define WDT_DEFAULT_TIME	5	/* seconds */
- #define WDT_MAX_TIME		171	/* seconds */
-diff -puN drivers/watchdog/omap_wdt.c~linux-next-git-rejects drivers/watchdog/omap_wdt.c
---- a/drivers/watchdog/omap_wdt.c~linux-next-git-rejects
-+++ a/drivers/watchdog/omap_wdt.c
-@@ -40,16 +40,9 @@
- #include <linux/moduleparam.h>
- #include <linux/clk.h>
- #include <linux/bitops.h>
--<<<<<<< HEAD:drivers/watchdog/omap_wdt.c
- #include <linux/io.h>
--#include <linux/uaccess.h>
--#include <linux/hardware.h>
--=======
--
--#include <asm/io.h>
- #include <asm/uaccess.h>
- #include <mach/hardware.h>
-->>>>>>> FETCH_HEAD:drivers/watchdog/omap_wdt.c
- 
- #include <mach/prcm.h>
- 
-diff -puN drivers/watchdog/pnx4008_wdt.c~linux-next-git-rejects drivers/watchdog/pnx4008_wdt.c
---- a/drivers/watchdog/pnx4008_wdt.c~linux-next-git-rejects
-+++ a/drivers/watchdog/pnx4008_wdt.c
-@@ -31,13 +31,9 @@
- #include <linux/uaccess.h>
- #include <linux/io.h>
- 
--<<<<<<< HEAD:drivers/watchdog/pnx4008_wdt.c
--#include <asm/hardware.h>
--=======
- #include <mach/hardware.h>
- #include <asm/uaccess.h>
- #include <asm/io.h>
-->>>>>>> FETCH_HEAD:drivers/watchdog/pnx4008_wdt.c
- 
- #define MODULE_NAME "PNX4008-WDT: "
- 
-diff -puN drivers/watchdog/sa1100_wdt.c~linux-next-git-rejects drivers/watchdog/sa1100_wdt.c
---- a/drivers/watchdog/sa1100_wdt.c~linux-next-git-rejects
-+++ a/drivers/watchdog/sa1100_wdt.c
-@@ -32,13 +32,9 @@
- #include <mach/pxa-regs.h>
+ 	jbd2_free_handle(handle);
+ 	return err;
+diff -puN include/linux/lockdep.h~lockdep-map_acquire include/linux/lockdep.h
+--- a/include/linux/lockdep.h~lockdep-map_acquire
++++ a/include/linux/lockdep.h
+@@ -459,4 +459,16 @@ static inline void print_irqtrace_events
+ # define rwsem_release(l, n, i)			do { } while (0)
  #endif
  
--<<<<<<< HEAD:drivers/watchdog/sa1100_wdt.c
--#include <asm/hardware.h>
--=======
- #include <mach/reset.h>
- #include <mach/hardware.h>
- #include <asm/uaccess.h>
-->>>>>>> FETCH_HEAD:drivers/watchdog/sa1100_wdt.c
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++# ifdef CONFIG_PROVE_LOCKING
++#  define map_acquire(l)		lock_acquire(l, 0, 0, 0, 2, _THIS_IP_)
++# else
++#  define map_acquire(l)		lock_acquire(l, 0, 0, 0, 1, _THIS_IP_)
++# endif
++# define map_release(l)			lock_release(l, 1, _THIS_IP_)
++#else
++# define map_acquire(l)			do { } while (0)
++# define map_release(l)			do { } while (0)
++#endif
++
+ #endif /* __LINUX_LOCKDEP_H */
+diff -puN kernel/workqueue.c~lockdep-map_acquire kernel/workqueue.c
+--- a/kernel/workqueue.c~lockdep-map_acquire
++++ a/kernel/workqueue.c
+@@ -290,11 +290,11 @@ static void run_workqueue(struct cpu_wor
  
- #define OSCR_FREQ		CLOCK_TICK_RATE
+ 		BUG_ON(get_wq_data(work) != cwq);
+ 		work_clear_pending(work);
+-		lock_acquire(&cwq->wq->lockdep_map, 0, 0, 0, 2, _THIS_IP_);
+-		lock_acquire(&lockdep_map, 0, 0, 0, 2, _THIS_IP_);
++		map_acquire(&cwq->wq->lockdep_map);
++		map_acquire(&lockdep_map);
+ 		f(work);
+-		lock_release(&lockdep_map, 1, _THIS_IP_);
+-		lock_release(&cwq->wq->lockdep_map, 1, _THIS_IP_);
++		map_release(&lockdep_map);
++		map_release(&cwq->wq->lockdep_map);
  
-diff -puN drivers/watchdog/wdt285.c~linux-next-git-rejects drivers/watchdog/wdt285.c
---- a/drivers/watchdog/wdt285.c~linux-next-git-rejects
-+++ a/drivers/watchdog/wdt285.c
-@@ -29,13 +29,9 @@
- #include <linux/uaccess.h>
- #include <linux/irq.h>
+ 		if (unlikely(in_atomic() || lockdep_depth(current) > 0)) {
+ 			printk(KERN_ERR "BUG: workqueue leaked lock or atomic: "
+@@ -413,8 +413,8 @@ void flush_workqueue(struct workqueue_st
+ 	int cpu;
  
--<<<<<<< HEAD:drivers/watchdog/wdt285.c
--#include <asm/hardware.h>
--=======
- #include <asm/irq.h>
- #include <asm/uaccess.h>
- #include <mach/hardware.h>
-->>>>>>> FETCH_HEAD:drivers/watchdog/wdt285.c
- #include <asm/mach-types.h>
- #include <asm/hardware/dec21285.h>
+ 	might_sleep();
+-	lock_acquire(&wq->lockdep_map, 0, 0, 0, 2, _THIS_IP_);
+-	lock_release(&wq->lockdep_map, 1, _THIS_IP_);
++	map_acquire(&wq->lockdep_map);
++	map_release(&wq->lockdep_map);
+ 	for_each_cpu_mask_nr(cpu, *cpu_map)
+ 		flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, cpu));
+ }
+@@ -441,8 +441,8 @@ int flush_work(struct work_struct *work)
+ 	if (!cwq)
+ 		return 0;
  
+-	lock_acquire(&cwq->wq->lockdep_map, 0, 0, 0, 2, _THIS_IP_);
+-	lock_release(&cwq->wq->lockdep_map, 1, _THIS_IP_);
++	map_acquire(&cwq->wq->lockdep_map);
++	map_release(&cwq->wq->lockdep_map);
+ 
+ 	prev = NULL;
+ 	spin_lock_irq(&cwq->lock);
+@@ -536,8 +536,8 @@ static void wait_on_work(struct work_str
+ 
+ 	might_sleep();
+ 
+-	lock_acquire(&work->lockdep_map, 0, 0, 0, 2, _THIS_IP_);
+-	lock_release(&work->lockdep_map, 1, _THIS_IP_);
++	map_acquire(&work->lockdep_map);
++	map_release(&work->lockdep_map);
+ 
+ 	cwq = get_wq_data(work);
+ 	if (!cwq)
+@@ -872,8 +872,8 @@ static void cleanup_workqueue_thread(str
+ 	if (cwq->thread == NULL)
+ 		return;
+ 
+-	lock_acquire(&cwq->wq->lockdep_map, 0, 0, 0, 2, _THIS_IP_);
+-	lock_release(&cwq->wq->lockdep_map, 1, _THIS_IP_);
++	map_acquire(&cwq->wq->lockdep_map);
++	map_release(&cwq->wq->lockdep_map);
+ 
+ 	flush_cpu_workqueue(cwq);
+ 	/*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 origin.patch
-fs-eventpollc-fix-sys_epoll_create1-comment.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-git-drm.patch
-i2c-renesas-highlander-fpga-smbus-support-update-fix.patch
-i2c-renesas-highlander-fpga-smbus-support-update-fix-fix.patch
-git-dlm.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-serio-xilinx_ps2c-fix-warning.patch
-git-jg-misc.patch
-git-kvm.patch
-git-mtd.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
-git-nfsd.patch
-sched-type-fix.patch
+lockdep-map_acquire.patch
+lockdep-lock-protection-locks.patch
+lockdep-spin_lock_nest_lock.patch
+lockdep-spin_lock_nest_lock-fix.patch
 lockdep-spin_lock_nest_lock-fix-checkpatch-fixes.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-git-watchdog.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-scsi-megaraid_sas-add-the-new-controllers-support.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+lockdep-annotate-mm_take_all_locks.patch
+lockdep-handle-chains-involving-classes-defined-in-modules.patch
+mm-fix-mm_take_all_locks-locking-order.patch
+irq-warn-about-irqf_disabledirqf_shared.patch
 
