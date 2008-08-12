@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-reduce-warnings-for-include-of-asm-fooh-to-check-from-arch-barc.patch added to -mm tree
-Date: Tue, 12 Aug 2008 15:27:00 -0700
-Message-ID: <200808122227.m7CMR0gZ016719@imap1.linux-foundation.org>
+Subject: + checkpatch-____cacheline_aligned-et-al-are-modifiers.patch added to -mm tree
+Date: Tue, 12 Aug 2008 15:26:52 -0700
+Message-ID: <200808122226.m7CMQqjG016707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43699 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57975 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751928AbYHLWbI (ORCPT
+	by vger.kernel.org with ESMTP id S1751411AbYHLWbI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 12 Aug 2008 18:31:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: reduce warnings for #include of asm/foo.h to check from arch/bar.c
+     checkpatch: ____cacheline_aligned et al are modifiers
 has been added to the -mm tree.  Its filename is
-     checkpatch-reduce-warnings-for-include-of-asm-fooh-to-check-from-arch-barc.patch
+     checkpatch-____cacheline_aligned-et-al-are-modifiers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: reduce warnings for #include of asm/foo.h to check from arch/bar.c
+Subject: checkpatch: ____cacheline_aligned et al are modifiers
 From: Andy Whitcroft <apw@shadowen.org>
 
-It is much more likely that an architecture file will want to directly
-include asm header files.  Reduce this WARNING to a CHECK when the
-referencing file is in the arch directory.
+Add the cacheline alignment modifiers to the attribute lists.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-reduce-warnings-for-include-of-asm-fooh-to-check-from-arch-barc scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-reduce-warnings-for-include-of-asm-fooh-to-check-from-arch-barc
+diff -puN scripts/checkpatch.pl~checkpatch-____cacheline_aligned-et-al-are-modifiers scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-____cacheline_aligned-et-al-are-modifiers
 +++ a/scripts/checkpatch.pl
-@@ -1942,12 +1942,17 @@ sub process {
- 
- #warn if <asm/foo.h> is #included and <linux/foo.h> is available (uses RAW line)
- 		if ($tree && $rawline =~ m{^.\s*\#\s*include\s*\<asm\/(.*)\.h\>}) {
--			my $checkfile = "include/linux/$1.h";
--			if (-f "$root/$checkfile" && $realfile ne $checkfile &&
-+			my $file = "$1.h";
-+			my $checkfile = "include/linux/$file";
-+			if (-f "$root/$checkfile" &&
-+			    $realfile ne $checkfile &&
- 			    $1 ne 'irq')
- 			{
--				WARN("Use #include <linux/$1.h> instead of <asm/$1.h>\n" .
--					$herecurr);
-+				if ($realfile =~ m{^arch/}) {
-+					CHK("Consider using #include <linux/$file> instead of <asm/$file>\n" . $herecurr);
-+				} else {
-+					WARN("Use #include <linux/$file> instead of <asm/$file>\n" . $herecurr);
-+				}
- 			}
- 		}
- 
+@@ -113,7 +113,10 @@ our $Attribute	= qr{
+ 			const|
+ 			__read_mostly|
+ 			__kprobes|
+-			__(?:mem|cpu|dev|)(?:initdata|init)
++			__(?:mem|cpu|dev|)(?:initdata|init)|
++			____cacheline_aligned|
++			____cacheline_aligned_in_smp|
++			____cacheline_internodealigned_in_smp
+ 		  }x;
+ our $Modifier;
+ our $Inline	= qr{inline|__always_inline|noinline};
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
