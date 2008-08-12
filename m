@@ -1,175 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-fix-shwdtc-compilation.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 13:33:58 -0700
-Message-ID: <200808122033.m7CKXw2I011841@imap1.linux-foundation.org>
+Subject: - drivers-net-atl1e-atl1e_mainc-uninline-atl1e_setup_mac_ctrl.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 13:33:45 -0700
+Message-ID: <200808122033.m7CKXjaY011821@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55750 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47018 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751629AbYHLUez (ORCPT
+	by vger.kernel.org with ESMTP id S1751835AbYHLUfA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 16:34:55 -0400
+	Tue, 12 Aug 2008 16:35:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@stusta.de, bunk@kernel.org, wim@iguana.be, mm-commits@vger.kernel.org
+To: bunk@kernel.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: fix shwdt.c compilation
+     drivers/net/atl1e/atl1e_main.c: uninline atl1e_setup_mac_ctrl()
 has been removed from the -mm tree.  Its filename was
-     watchdog-fix-shwdtc-compilation.patch
+     drivers-net-atl1e-atl1e_mainc-uninline-atl1e_setup_mac_ctrl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: fix shwdt.c compilation
-From: Adrian Bunk <bunk@stusta.de>
+Subject: drivers/net/atl1e/atl1e_main.c: uninline atl1e_setup_mac_ctrl()
+From: Adrian Bunk <bunk@kernel.org>
 
-Fix the following compile errors caused by commit
-70b814ec1a484279a51bf9f7193551b996627247 ([WATCHDOG 45/57] shwdt: coding
-style, cleanup, switch to unlocked_io):
+There doesn't seem to be a compelling reason why atl1e_setup_mac_ctrl()
+is marked as "inline":
 
-shwdt.c:64: error: 'WTCSR_CKS_4096' undeclared here (not in a function)
-shwdt.c: In function 'sh_wdt_start':
-shwdt.c:92: error: 'wdt_lock' undeclared (first use in this function)
-shwdt.c:92: error: (Each undeclared identifier is reported only once
-shwdt.c:92: error: for each function it appears in.)
-shwdt.c:97: error: implicit declaration of function 'sh_wdt_read_csr'
-shwdt.c:98: error: 'WTCSR_WT' undeclared (first use in this function)
-shwdt.c:99: error: implicit declaration of function 'sh_wdt_write_csr'
-shwdt.c:101: error: implicit declaration of function 'sh_wdt_write_cnt'
-shwdt.c:112: error: 'WTCSR_TME' undeclared (first use in this function)
-shwdt.c:113: error: 'WTCSR_RSTS' undeclared (first use in this function)
-shwdt.c: In function 'sh_wdt_stop':
-shwdt.c:142: error: 'wdt_lock' undeclared (first use in this function)
-shwdt.c:147: error: 'WTCSR_TME' undeclared (first use in this function)
-shwdt.c: In function 'sh_wdt_keepalive':
-shwdt.c:160: error: 'wdt_lock' undeclared (first use in this function)
-shwdt.c: In function 'sh_wdt_set_heartbeat':
-shwdt.c:176: error: 'wdt_lock' undeclared (first use in this function)
-shwdt.c: In function 'sh_wdt_ping':
-shwdt.c:192: error: 'wdt_lock' undeclared (first use in this function)
-shwdt.c:197: error: 'WTCSR_IOVF' undeclared (first use in this function)
-shwdt.c: At top level:
-shwdt.c:417: error: conflicting type qualifiers for 'sh_wdt_info'
-shwdt.c:71: error: previous declaration of 'sh_wdt_info' was here
-make[3]: *** [drivers/watchdog/shwdt.o] Error 1
+It's not used in any place where speed would matter much, and as long as
+it has only one caller non-ancient gcc versions anyway inline it
+automatically.
+
+This patch fixes the following compile error with gcc 3.4:
+
+atl1e_main.c: In function `atl1e_check_link':
+atl1e_main.c:50: sorry, unimplemented: inlining failed in call to
+atl1e_main.c:196: sorry, unimplemented: called from here
 
 Reported-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/shwdt.c |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ drivers/net/atl1e/atl1e_main.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/watchdog/shwdt.c~watchdog-fix-shwdtc-compilation drivers/watchdog/shwdt.c
---- a/drivers/watchdog/shwdt.c~watchdog-fix-shwdtc-compilation
-+++ a/drivers/watchdog/shwdt.c
-@@ -31,6 +31,7 @@
- #include <linux/io.h>
- #include <linux/uaccess.h>
- #include <linux/watchdog.h>
-+#include <asm/watchdog.h>
+diff -puN drivers/net/atl1e/atl1e_main.c~drivers-net-atl1e-atl1e_mainc-uninline-atl1e_setup_mac_ctrl drivers/net/atl1e/atl1e_main.c
+--- a/drivers/net/atl1e/atl1e_main.c~drivers-net-atl1e-atl1e_mainc-uninline-atl1e_setup_mac_ctrl
++++ a/drivers/net/atl1e/atl1e_main.c
+@@ -47,7 +47,7 @@ MODULE_DESCRIPTION("Atheros 1000M Ethern
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION(DRV_VERSION);
  
- #define PFX "shwdt: "
+-static inline void atl1e_setup_mac_ctrl(struct atl1e_adapter *adapter);
++static void atl1e_setup_mac_ctrl(struct atl1e_adapter *adapter);
  
-@@ -68,7 +69,7 @@ static int clock_division_ratio = WTCSR_
- static void sh_wdt_ping(unsigned long data);
- 
- static unsigned long shwdt_is_open;
--static struct watchdog_info sh_wdt_info;
-+static const struct watchdog_info sh_wdt_info;
- static char shwdt_expect_close;
- static DEFINE_TIMER(timer, sh_wdt_ping, 0, 0);
- static unsigned long next_heartbeat;
-@@ -89,7 +90,7 @@ static void sh_wdt_start(void)
- 	__u8 csr;
- 	unsigned long flags;
- 
--	spin_lock_irqsave(&wdt_lock, flags);
-+	spin_lock_irqsave(&shwdt_lock, flags);
- 
- 	next_heartbeat = jiffies + (heartbeat * HZ);
- 	mod_timer(&timer, next_ping_period(clock_division_ratio));
-@@ -127,7 +128,7 @@ static void sh_wdt_start(void)
- 	csr &= ~RSTCSR_RSTS;
- 	sh_wdt_write_rstcsr(csr);
- #endif
--	spin_unlock_irqrestore(&wdt_lock, flags);
-+	spin_unlock_irqrestore(&shwdt_lock, flags);
+ static const u16
+ atl1e_rx_page_vld_regs[AT_MAX_RECEIVE_QUEUE][AT_PAGE_NUM_PER_QUEUE] =
+@@ -1037,7 +1037,7 @@ static inline void atl1e_configure_dma(s
+ 	return;
  }
  
- /**
-@@ -139,14 +140,14 @@ static void sh_wdt_stop(void)
- 	__u8 csr;
- 	unsigned long flags;
- 
--	spin_lock_irqsave(&wdt_lock, flags);
-+	spin_lock_irqsave(&shwdt_lock, flags);
- 
- 	del_timer(&timer);
- 
- 	csr = sh_wdt_read_csr();
- 	csr &= ~WTCSR_TME;
- 	sh_wdt_write_csr(csr);
--	spin_unlock_irqrestore(&wdt_lock, flags);
-+	spin_unlock_irqrestore(&shwdt_lock, flags);
- }
- 
- /**
-@@ -157,9 +158,9 @@ static inline void sh_wdt_keepalive(void
+-static inline void atl1e_setup_mac_ctrl(struct atl1e_adapter *adapter)
++static void atl1e_setup_mac_ctrl(struct atl1e_adapter *adapter)
  {
- 	unsigned long flags;
- 
--	spin_lock_irqsave(&wdt_lock, flags);
-+	spin_lock_irqsave(&shwdt_lock, flags);
- 	next_heartbeat = jiffies + (heartbeat * HZ);
--	spin_unlock_irqrestore(&wdt_lock, flags);
-+	spin_unlock_irqrestore(&shwdt_lock, flags);
- }
- 
- /**
-@@ -173,9 +174,9 @@ static int sh_wdt_set_heartbeat(int t)
- 	if (unlikely(t < 1 || t > 3600)) /* arbitrary upper limit */
- 		return -EINVAL;
- 
--	spin_lock_irqsave(&wdt_lock, flags);
-+	spin_lock_irqsave(&shwdt_lock, flags);
- 	heartbeat = t;
--	spin_unlock_irqrestore(&wdt_lock, flags);
-+	spin_unlock_irqrestore(&shwdt_lock, flags);
- 	return 0;
- }
- 
-@@ -189,7 +190,7 @@ static void sh_wdt_ping(unsigned long da
- {
- 	unsigned long flags;
- 
--	spin_lock_irqsave(&wdt_lock, flags);
-+	spin_lock_irqsave(&shwdt_lock, flags);
- 	if (time_before(jiffies, next_heartbeat)) {
- 		__u8 csr;
- 
-@@ -203,7 +204,7 @@ static void sh_wdt_ping(unsigned long da
- 	} else
- 		printk(KERN_WARNING PFX "Heartbeat lost! Will not ping "
- 		       "the watchdog\n");
--	spin_unlock_irqrestore(&wdt_lock, flags);
-+	spin_unlock_irqrestore(&shwdt_lock, flags);
- }
- 
- /**
+ 	u32 value;
+ 	struct atl1e_hw *hw = &adapter->hw;
 _
 
-Patches currently in -mm which might be from bunk@stusta.de are
+Patches currently in -mm which might be from bunk@kernel.org are
 
+origin.patch
+feature-removal-scheduletxt-remove-the-ncr53c9x-entry.patch
 linux-next.patch
-git-unionfs.patch
-reiser4-export-remove_from_page_cache.patch
+m32r-remove-the-unused-nohighmem-option.patch
+m32r-dont-offer-config_isa.patch
+m32r-export-empty_zero_page.patch
+m32r-export-__ndelay.patch
+m32r-kernel-cleanups.patch
+the-overdue-eepro100-removal.patch
+ntfs-update-homepage.patch
+parisc-lib-make-code-static.patch
+drivers-parisc-make-code-static.patch
+if-0-ses_match_host.patch
+scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
+drivers-scsi-a2091c-make-2-functions-static.patch
+drivers-scsi-a3000c-make-2-functions-static.patch
+fs_mbcache-dont-needlessly-make-it-built-in.patch
+git-xtensa.patch
+asm-h8300-mdh-remove-cvs-keyword.patch
+alpha-miata-remove-dead-url.patch
+uml-remove-the-dead-tty_log-code.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+maintainers-remove-hga-framebuffer-driver-entry.patch
+include-linux-mounth-remove-cvs-keyword.patch
+kernel-dmac-remove-a-cvs-keyword.patch
+binfmt_somc-add-module_license.patch
+make-probe_serial_gsc-static.patch
+pnp-remove-printk-with-outdated-version.patch
+telephony-remove-cvs-keywords.patch
+reiserfs-procfsc-remove-cvs-keywords.patch
+quota-remove-cvs-keywords.patch
+make-ptrace_untrace-static.patch
+fs-partitions-acornc-remove-dead-code.patch
+parport-remove-cvs-keywords.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-firmware-iscsi_ibftc-make-3-functions-static.patch
+ipc-semc-make-free_un-static.patch
+acpi-use-bcd2bin-bin2bcd.patch
+alpha-use-bcd2bin-bin2bcd.patch
+arm-use-bcd2bin-bin2bcd.patch
+cris-use-bcd2bin-bin2bcd.patch
+drivers-rtc-use-bcd2bin-bin2bcd.patch
+rtc-use-bcd2bin-bin2bcd.patch
+ia64-use-bcd2bin-bin2bcd.patch
+ide-cd-use-bcd2bin-bin2bcd.patch
+mips-use-bcd2bin-bin2bcd.patch
+mn10300-use-bcd2bin-bin2bcd.patch
+powerpc-use-bcd2bin-bin2bcd.patch
+i2c-use-bcd2bin-bin2bcd.patch
+drivers-scsi-sr_vendorc-use-bcd2bin.patch
+sparc64-use-bcd2bin-bin2bcd.patch
+remove-the-obsolete-bcdbin-binbcd-macros.patch
+include-linux-bcdh-remove-comments.patch
 reiser4.patch
-mutex-subsystem-synchro-test-module.patch
 
