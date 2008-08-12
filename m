@@ -1,183 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - lockdep-map_acquire.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 13:26:18 -0700
-Message-ID: <200808122026.m7CKQI8N011480@imap1.linux-foundation.org>
+Subject: - lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal-fix.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 13:25:48 -0700
+Message-ID: <200808122025.m7CKPmGm011458@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36060 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48403 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751248AbYHLU0Y (ORCPT
+	by vger.kernel.org with ESMTP id S1751071AbYHLU0K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 16:26:24 -0400
+	Tue, 12 Aug 2008 16:26:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
+To: mingo@elte.hu, a.p.zijlstra@chello.nl, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep: map_acquire
+     lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal fix
 has been removed from the -mm tree.  Its filename was
-     lockdep-map_acquire.patch
+     lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal-fix.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lockdep: map_acquire
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal fix
+From: Ingo Molnar <mingo@elte.hu>
 
-Most the free-standing lock_acquire() usages look remarkably similar, sweep
-them into a new helper.
+fix:
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+ kernel/built-in.o: In function `lockdep_stats_show':
+ lockdep_proc.c:(.text+0x3cb2f): undefined reference to `lockdep_count_forward_deps'
+ kernel/built-in.o: In function `l_show':
+ lockdep_proc.c:(.text+0x3d02b): undefined reference to `lockdep_count_forward_deps'
+ lockdep_proc.c:(.text+0x3d047): undefined reference to `lockdep_count_backward_deps'
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/transaction.c    |    4 ++--
- fs/jbd2/transaction.c   |    4 ++--
- include/linux/lockdep.h |   12 ++++++++++++
- kernel/workqueue.c      |   24 ++++++++++++------------
- 4 files changed, 28 insertions(+), 16 deletions(-)
+ kernel/lockdep_internals.h |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN fs/jbd/transaction.c~lockdep-map_acquire fs/jbd/transaction.c
---- a/fs/jbd/transaction.c~lockdep-map_acquire
-+++ a/fs/jbd/transaction.c
-@@ -291,7 +291,7 @@ handle_t *journal_start(journal_t *journ
- 		goto out;
- 	}
+diff -puN kernel/lockdep_internals.h~lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal-fix kernel/lockdep_internals.h
+--- a/kernel/lockdep_internals.h~lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal-fix
++++ a/kernel/lockdep_internals.h
+@@ -53,8 +53,21 @@ extern unsigned int nr_process_chains;
+ extern unsigned int max_lockdep_depth;
+ extern unsigned int max_recursion_depth;
  
--	lock_acquire(&handle->h_lockdep_map, 0, 0, 0, 2, _THIS_IP_);
-+	map_acquire(&handle->h_lockdep_map);
- 
- out:
- 	return handle;
-@@ -1448,7 +1448,7 @@ int journal_stop(handle_t *handle)
- 		spin_unlock(&journal->j_state_lock);
- 	}
- 
--	lock_release(&handle->h_lockdep_map, 1, _THIS_IP_);
-+	map_release(&handle->h_lockdep_map);
- 
- 	jbd_free_handle(handle);
- 	return err;
-diff -puN fs/jbd2/transaction.c~lockdep-map_acquire fs/jbd2/transaction.c
---- a/fs/jbd2/transaction.c~lockdep-map_acquire
-+++ a/fs/jbd2/transaction.c
-@@ -301,7 +301,7 @@ handle_t *jbd2_journal_start(journal_t *
- 		goto out;
- 	}
- 
--	lock_acquire(&handle->h_lockdep_map, 0, 0, 0, 2, _THIS_IP_);
-+	map_acquire(&handle->h_lockdep_map);
- out:
- 	return handle;
- }
-@@ -1279,7 +1279,7 @@ int jbd2_journal_stop(handle_t *handle)
- 		spin_unlock(&journal->j_state_lock);
- 	}
- 
--	lock_release(&handle->h_lockdep_map, 1, _THIS_IP_);
-+	map_release(&handle->h_lockdep_map);
- 
- 	jbd2_free_handle(handle);
- 	return err;
-diff -puN include/linux/lockdep.h~lockdep-map_acquire include/linux/lockdep.h
---- a/include/linux/lockdep.h~lockdep-map_acquire
-+++ a/include/linux/lockdep.h
-@@ -459,4 +459,16 @@ static inline void print_irqtrace_events
- # define rwsem_release(l, n, i)			do { } while (0)
- #endif
- 
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+# ifdef CONFIG_PROVE_LOCKING
-+#  define map_acquire(l)		lock_acquire(l, 0, 0, 0, 2, _THIS_IP_)
-+# else
-+#  define map_acquire(l)		lock_acquire(l, 0, 0, 0, 1, _THIS_IP_)
-+# endif
-+# define map_release(l)			lock_release(l, 1, _THIS_IP_)
++#ifdef CONFIG_PROVE_LOCKING
+ extern unsigned long lockdep_count_forward_deps(struct lock_class *);
+ extern unsigned long lockdep_count_backward_deps(struct lock_class *);
 +#else
-+# define map_acquire(l)			do { } while (0)
-+# define map_release(l)			do { } while (0)
++static inline unsigned long
++lockdep_count_forward_deps(struct lock_class *class)
++{
++	return 0;
++}
++static inline unsigned long
++lockdep_count_backward_deps(struct lock_class *class)
++{
++	return 0;
++}
 +#endif
-+
- #endif /* __LINUX_LOCKDEP_H */
-diff -puN kernel/workqueue.c~lockdep-map_acquire kernel/workqueue.c
---- a/kernel/workqueue.c~lockdep-map_acquire
-+++ a/kernel/workqueue.c
-@@ -290,11 +290,11 @@ static void run_workqueue(struct cpu_wor
  
- 		BUG_ON(get_wq_data(work) != cwq);
- 		work_clear_pending(work);
--		lock_acquire(&cwq->wq->lockdep_map, 0, 0, 0, 2, _THIS_IP_);
--		lock_acquire(&lockdep_map, 0, 0, 0, 2, _THIS_IP_);
-+		map_acquire(&cwq->wq->lockdep_map);
-+		map_acquire(&lockdep_map);
- 		f(work);
--		lock_release(&lockdep_map, 1, _THIS_IP_);
--		lock_release(&cwq->wq->lockdep_map, 1, _THIS_IP_);
-+		map_release(&lockdep_map);
-+		map_release(&cwq->wq->lockdep_map);
- 
- 		if (unlikely(in_atomic() || lockdep_depth(current) > 0)) {
- 			printk(KERN_ERR "BUG: workqueue leaked lock or atomic: "
-@@ -413,8 +413,8 @@ void flush_workqueue(struct workqueue_st
- 	int cpu;
- 
- 	might_sleep();
--	lock_acquire(&wq->lockdep_map, 0, 0, 0, 2, _THIS_IP_);
--	lock_release(&wq->lockdep_map, 1, _THIS_IP_);
-+	map_acquire(&wq->lockdep_map);
-+	map_release(&wq->lockdep_map);
- 	for_each_cpu_mask_nr(cpu, *cpu_map)
- 		flush_cpu_workqueue(per_cpu_ptr(wq->cpu_wq, cpu));
- }
-@@ -441,8 +441,8 @@ int flush_work(struct work_struct *work)
- 	if (!cwq)
- 		return 0;
- 
--	lock_acquire(&cwq->wq->lockdep_map, 0, 0, 0, 2, _THIS_IP_);
--	lock_release(&cwq->wq->lockdep_map, 1, _THIS_IP_);
-+	map_acquire(&cwq->wq->lockdep_map);
-+	map_release(&cwq->wq->lockdep_map);
- 
- 	prev = NULL;
- 	spin_lock_irq(&cwq->lock);
-@@ -536,8 +536,8 @@ static void wait_on_work(struct work_str
- 
- 	might_sleep();
- 
--	lock_acquire(&work->lockdep_map, 0, 0, 0, 2, _THIS_IP_);
--	lock_release(&work->lockdep_map, 1, _THIS_IP_);
-+	map_acquire(&work->lockdep_map);
-+	map_release(&work->lockdep_map);
- 
- 	cwq = get_wq_data(work);
- 	if (!cwq)
-@@ -872,8 +872,8 @@ static void cleanup_workqueue_thread(str
- 	if (cwq->thread == NULL)
- 		return;
- 
--	lock_acquire(&cwq->wq->lockdep_map, 0, 0, 0, 2, _THIS_IP_);
--	lock_release(&cwq->wq->lockdep_map, 1, _THIS_IP_);
-+	map_acquire(&cwq->wq->lockdep_map);
-+	map_release(&cwq->wq->lockdep_map);
- 
- 	flush_cpu_workqueue(cwq);
- 	/*
+ #ifdef CONFIG_DEBUG_LOCKDEP
+ /*
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
+move-kernel-doc-comment-for-might_sleep-directly-before-its-defining-block.patch
 linux-next.patch
-lockdep-map_acquire.patch
-lockdep-lock-protection-locks.patch
-lockdep-spin_lock_nest_lock.patch
-lockdep-spin_lock_nest_lock-fix.patch
-lockdep-spin_lock_nest_lock-fix-checkpatch-fixes.patch
-lockdep-annotate-mm_take_all_locks.patch
+introduce-generic-header-file-for-the-software-io-tlb.patch
+calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
+x86-remove-init_mm-export-as-planned-for-2626.patch
+use-warn-in-arch-x86-mm-ioremapc.patch
+use-warn-in-arch-x86-mm-pageattrc.patch
+use-warn-in-arch-x86-kernel.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+i386-vmalloc-size-fix.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+x86-64-fix-overlap-of-modules-and-fixmap-areas.patch
+x86_64-remove-empty-lines-from-stack-traces-oopses.patch
+x86-tracehook_signal_handler.patch
+x86-tracehook-syscall.patch
+x86-tracehook-asm-syscallh.patch
+x86-signals-use-asm-syscallh.patch
+x86-tracehook-tif_notify_resume.patch
+x86-tracehook-config_have_arch_tracehook.patch
+x86-use-common-header-for-software-io-tlb.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
+use-warn-in-kernel-lockdepc.patch
+sched-do_wait_for_common-use-signal_pending_state.patch
+wait_task_inactive-dont-consider-task-nivcsw.patch
+wait_task_inactive-improve-the-returned-value-for-nvcsw-==-0.patch
+wait_task_inactive-fix-the-config_smp-version.patch
+lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal-fix.patch
+lockdep-lock_set_subclass-reset-a-held-locks-subclass.patch
+lockdep-shrink-held_lock-structure.patch
+lockdep-shrink-held_lock-structure-fix.patch
+lockdep-shrink-held_lock-structure-fix-2.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+rcu-just-rename-call_rcu_bh-instead-of-making-it-a-macro.patch
+rcu-trace-fix-possible-mem-leak.patch
+ftrace-new-continue-entry-separate-out-from-trace_entry.patch
+ftrace-printk-formatting-infrastructure.patch
+ftrace-printk-formatting-infrastructure-fix.patch
+git-perfmon.patch
+switch-proc-irq-smp_affinity-et-al-to-seqfiles.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
 lockdep-handle-chains-involving-classes-defined-in-modules.patch
-mm-fix-mm_take_all_locks-locking-order.patch
+clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
+clocksource-keep-track-of-original-clocksource-frequency.patch
+clocksource-introduce-clocksource_forward_now.patch
+clocksource-introduce-clock_monotonic_raw.patch
+posix-timers-do_schedule_next_timer-fix-the-setting-of-si_overrun.patch
+x86-fdiv-bug-detection-fix.patch
+x86_64-restore-the-proper-nr_irqs-define-so-larger-systems-work.patch
+x86-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
+introduce-generic-iommu_num_pages-function.patch
+x86-convert-gart-driver-to-generic-iommu_num_pages-function.patch
+x86-amd-iommu-convert-driver-to-generic-iommu_num_pages-function.patch
+x86-convert-calgary-iommu-driver-to-generic-iommu_num_pages-function.patch
+legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
 irq-warn-about-irqf_disabledirqf_shared.patch
+kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
+kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+likely-profiling-disable-ftrace.patch
 
