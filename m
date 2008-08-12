@@ -1,113 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-fix-at91rm9200_wdtc-compilation.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 13:34:01 -0700
-Message-ID: <200808122034.m7CKY1jq011844@imap1.linux-foundation.org>
+Subject: - lockdep-handle-chains-involving-classes-defined-in-modules.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 13:33:47 -0700
+Message-ID: <200808122033.m7CKXloN011828@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35334 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44537 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751306AbYHLUen (ORCPT
+	by vger.kernel.org with ESMTP id S1751306AbYHLUei (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 16:34:43 -0400
+	Tue, 12 Aug 2008 16:34:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, wim@iguana.be, mm-commits@vger.kernel.org
+To: rabin@rab.in, a.p.zijlstra@chello.nl, mingo@elte.hu, snakebyte@gmx.de, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: fix at91rm9200_wdt.c compilation
+     lockdep: handle chains involving classes defined in modules
 has been removed from the -mm tree.  Its filename was
-     watchdog-fix-at91rm9200_wdtc-compilation.patch
+     lockdep-handle-chains-involving-classes-defined-in-modules.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: fix at91rm9200_wdt.c compilation
-From: Adrian Bunk <bunk@kernel.org>
+Subject: lockdep: handle chains involving classes defined in modules
+From: Rabin Vincent <rabin@rab.in>
 
-Fix the following compile error:
+/proc/lockdep_chains currently oopses after any module which creates and
+uses a lock is unloaded.  This is because one of the chains involves a
+class which was defined in the module just unloaded.
 
-at91rm9200_wdt.c:188: error: 'at91_wdt_ioctl' undeclared here (not in a
+Solve this by marking the classes as unused and not printing information
+about the unused classes.
 
-Reported-by: Adrian Bunk <bunk@kernel.org>
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Reported-by: Eric Sesterhenn <snakebyte@gmx.de>
+Signed-off-by: Rabin Vincent <rabin@rab.in>
+Acked-by: Huang Ying <ying.huang@intel.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/at91rm9200_wdt.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/lockdep.c      |    1 +
+ kernel/lockdep_proc.c |    3 +++
+ 2 files changed, 4 insertions(+)
 
-diff -puN drivers/watchdog/at91rm9200_wdt.c~watchdog-fix-at91rm9200_wdtc-compilation drivers/watchdog/at91rm9200_wdt.c
---- a/drivers/watchdog/at91rm9200_wdt.c~watchdog-fix-at91rm9200_wdtc-compilation
-+++ a/drivers/watchdog/at91rm9200_wdt.c
-@@ -129,7 +129,7 @@ static struct watchdog_info at91_wdt_inf
- /*
-  * Handle commands from user-space.
-  */
--static long at91_wdt_ioct(struct file *file,
-+static long at91_wdt_ioctl(struct file *file,
- 					unsigned int cmd, unsigned long arg)
- {
- 	void __user *argp = (void __user *)arg;
+diff -puN kernel/lockdep.c~lockdep-handle-chains-involving-classes-defined-in-modules kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-handle-chains-involving-classes-defined-in-modules
++++ a/kernel/lockdep.c
+@@ -3174,6 +3174,7 @@ static void zap_class(struct lock_class 
+ 	list_del_rcu(&class->hash_entry);
+ 	list_del_rcu(&class->lock_entry);
+ 
++	class->key = NULL;
+ }
+ 
+ static inline int within(const void *addr, void *start, unsigned long size)
+diff -puN kernel/lockdep_proc.c~lockdep-handle-chains-involving-classes-defined-in-modules kernel/lockdep_proc.c
+--- a/kernel/lockdep_proc.c~lockdep-handle-chains-involving-classes-defined-in-modules
++++ a/kernel/lockdep_proc.c
+@@ -201,6 +201,9 @@ static int lc_show(struct seq_file *m, v
+ 
+ 	for (i = 0; i < chain->depth; i++) {
+ 		class = lock_chain_get_class(chain, i);
++		if (!class->key)
++			continue;
++
+ 		seq_printf(m, "[%p] ", class->key);
+ 		print_name(m, class);
+ 		seq_puts(m, "\n");
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from rabin@rab.in are
 
 origin.patch
-feature-removal-scheduletxt-remove-the-ncr53c9x-entry.patch
+cpuidle-make-sysfs-attributes-sysdev-class-attributes.patch
 linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-m32r-dont-offer-config_isa.patch
-m32r-export-empty_zero_page.patch
-m32r-export-__ndelay.patch
-m32r-kernel-cleanups.patch
-the-overdue-eepro100-removal.patch
-ntfs-update-homepage.patch
-parisc-lib-make-code-static.patch
-drivers-parisc-make-code-static.patch
-if-0-ses_match_host.patch
-scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
-drivers-scsi-a2091c-make-2-functions-static.patch
-drivers-scsi-a3000c-make-2-functions-static.patch
-fs_mbcache-dont-needlessly-make-it-built-in.patch
-git-xtensa.patch
-asm-h8300-mdh-remove-cvs-keyword.patch
-alpha-miata-remove-dead-url.patch
-uml-remove-the-dead-tty_log-code.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-maintainers-remove-hga-framebuffer-driver-entry.patch
-include-linux-mounth-remove-cvs-keyword.patch
-kernel-dmac-remove-a-cvs-keyword.patch
-binfmt_somc-add-module_license.patch
-make-probe_serial_gsc-static.patch
-pnp-remove-printk-with-outdated-version.patch
-telephony-remove-cvs-keywords.patch
-reiserfs-procfsc-remove-cvs-keywords.patch
-quota-remove-cvs-keywords.patch
-make-ptrace_untrace-static.patch
-fs-partitions-acornc-remove-dead-code.patch
-parport-remove-cvs-keywords.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-firmware-iscsi_ibftc-make-3-functions-static.patch
-ipc-semc-make-free_un-static.patch
-acpi-use-bcd2bin-bin2bcd.patch
-alpha-use-bcd2bin-bin2bcd.patch
-arm-use-bcd2bin-bin2bcd.patch
-cris-use-bcd2bin-bin2bcd.patch
-drivers-rtc-use-bcd2bin-bin2bcd.patch
-rtc-use-bcd2bin-bin2bcd.patch
-ia64-use-bcd2bin-bin2bcd.patch
-ide-cd-use-bcd2bin-bin2bcd.patch
-mips-use-bcd2bin-bin2bcd.patch
-mn10300-use-bcd2bin-bin2bcd.patch
-powerpc-use-bcd2bin-bin2bcd.patch
-i2c-use-bcd2bin-bin2bcd.patch
-drivers-scsi-sr_vendorc-use-bcd2bin.patch
-sparc64-use-bcd2bin-bin2bcd.patch
-remove-the-obsolete-bcdbin-binbcd-macros.patch
-include-linux-bcdh-remove-comments.patch
-reiser4.patch
 
