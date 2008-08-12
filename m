@@ -1,128 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - sched-type-fix.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 13:33:11 -0700
-Message-ID: <200808122033.m7CKXBdr011772@imap1.linux-foundation.org>
+Subject: - sm501-update-debugging-low-information-messages.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 13:32:45 -0700
+Message-ID: <200808122032.m7CKWj5g011734@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59021 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54832 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751457AbYHLUd5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751351AbYHLUdy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 16:33:57 -0400
+	Tue, 12 Aug 2008 16:33:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
+To: ben-linux@fluff.org, krzysztof.h1@wp.pl, sameo@openedhand.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sched: type fix
+     sm501: update debugging/low information messages
 has been removed from the -mm tree.  Its filename was
-     sched-type-fix.patch
+     sm501-update-debugging-low-information-messages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched: type fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sm501: update debugging/low information messages
+From: Ben Dooks <ben-linux@fluff.org>
 
-powerpc:
+Make the default output of the SM501 driver to be less noisy wrt to
+message that have low informational value, or simply should be debug.
 
-kernel/sched_fair.c: In function 'hrtick_start_fair':
-kernel/sched_fair.c:902: warning: comparison of distinct pointer types lacks a cast
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Cc: Samuel Ortiz <sameo@openedhand.com>
 
-we don't know what type the arch uses for s64 and friends.  Still.
-
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched_fair.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mfd/sm501.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/sched_fair.c~sched-type-fix kernel/sched_fair.c
---- a/kernel/sched_fair.c~sched-type-fix
-+++ a/kernel/sched_fair.c
-@@ -899,7 +899,7 @@ static void hrtick_start_fair(struct rq 
- 		 * doesn't make sense. Rely on vruntime for fairness.
- 		 */
- 		if (rq->curr != p)
--			delta = max(10000LL, delta);
-+			delta = max_t(s64, 10000, delta);
+diff -puN drivers/mfd/sm501.c~sm501-update-debugging-low-information-messages drivers/mfd/sm501.c
+--- a/drivers/mfd/sm501.c~sm501-update-debugging-low-information-messages
++++ a/drivers/mfd/sm501.c
+@@ -623,8 +623,8 @@ unsigned long sm501_set_clock(struct dev
  
- 		hrtick_start(rq, delta);
- 	}
+ 	sm501_sync_regs(sm);
+ 
+-	dev_info(sm->dev, "gate %08lx, clock %08lx, mode %08lx\n",
+-		 gate, clock, mode);
++	dev_dbg(sm->dev, "gate %08lx, clock %08lx, mode %08lx\n",
++		gate, clock, mode);
+ 
+ 	sm501_mdelay(sm, 16);
+ 	mutex_unlock(&sm->clock_lock);
+@@ -742,7 +742,7 @@ static int sm501_register_device(struct 
+ 	int ret;
+ 
+ 	for (ptr = 0; ptr < pdev->num_resources; ptr++) {
+-		printk("%s[%d] flags %08lx: %08llx..%08llx\n",
++		printk(KERN_DEBUG "%s[%d] flags %08lx: %08llx..%08llx\n",
+ 		       pdev->name, ptr,
+ 		       pdev->resource[ptr].flags,
+ 		       (unsigned long long)pdev->resource[ptr].start,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
-origin.patch
-fs-eventpollc-fix-sys_epoll_create1-comment.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-next-remove-localversion.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-unionfs.patch
-git-logfs-git-rejects.patch
-git-logfs-fixup.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-scsi-megaraid_sas-add-the-new-controllers-support.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+resource-add-resource_type-and-ioresource_type_bits.patch
+resource-add-new-ioresource_clk-type-v2.patch
+i2c-sh_mobile-ioresource_clk-support.patch
 
