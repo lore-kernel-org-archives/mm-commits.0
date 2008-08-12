@@ -1,80 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - lockdep-handle-chains-involving-classes-defined-in-modules.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 13:33:47 -0700
-Message-ID: <200808122033.m7CKXloN011828@imap1.linux-foundation.org>
+Subject: - x86-fdiv-bug-detection-fix.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 13:34:05 -0700
+Message-ID: <200808122034.m7CKY5TG011924@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44537 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751306AbYHLUei (ORCPT
+	by vger.kernel.org with ESMTP id S1751860AbYHLUe5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 16:34:38 -0400
+	Tue, 12 Aug 2008 16:34:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rabin@rab.in, a.p.zijlstra@chello.nl, mingo@elte.hu, snakebyte@gmx.de, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep: handle chains involving classes defined in modules
+     x86: fdiv bug detection fix
 has been removed from the -mm tree.  Its filename was
-     lockdep-handle-chains-involving-classes-defined-in-modules.patch
+     x86-fdiv-bug-detection-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lockdep: handle chains involving classes defined in modules
-From: Rabin Vincent <rabin@rab.in>
+Subject: x86: fdiv bug detection fix
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-/proc/lockdep_chains currently oopses after any module which creates and
-uses a lock is unloaded.  This is because one of the chains involves a
-class which was defined in the module just unloaded.
+The fdiv detection code writes s32 integer into the
+boot_cpu_data.fdiv_bug.
 
-Solve this by marking the classes as unused and not printing information
-about the unused classes.
+However, the boot_cpu_data.fdiv_bug is only char (s8) field so the
+detection overwrites already set fields for other bugs, e.g.  the f00f bug
+field.
 
-Reported-by: Eric Sesterhenn <snakebyte@gmx.de>
-Signed-off-by: Rabin Vincent <rabin@rab.in>
-Acked-by: Huang Ying <ying.huang@intel.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Use local s32 variable to achieve result.
+
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/lockdep.c      |    1 +
- kernel/lockdep_proc.c |    3 +++
- 2 files changed, 4 insertions(+)
+ arch/x86/kernel/cpu/bugs.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN kernel/lockdep.c~lockdep-handle-chains-involving-classes-defined-in-modules kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-handle-chains-involving-classes-defined-in-modules
-+++ a/kernel/lockdep.c
-@@ -3174,6 +3174,7 @@ static void zap_class(struct lock_class 
- 	list_del_rcu(&class->hash_entry);
- 	list_del_rcu(&class->lock_entry);
- 
-+	class->key = NULL;
- }
- 
- static inline int within(const void *addr, void *start, unsigned long size)
-diff -puN kernel/lockdep_proc.c~lockdep-handle-chains-involving-classes-defined-in-modules kernel/lockdep_proc.c
---- a/kernel/lockdep_proc.c~lockdep-handle-chains-involving-classes-defined-in-modules
-+++ a/kernel/lockdep_proc.c
-@@ -201,6 +201,9 @@ static int lc_show(struct seq_file *m, v
- 
- 	for (i = 0; i < chain->depth; i++) {
- 		class = lock_chain_get_class(chain, i);
-+		if (!class->key)
-+			continue;
+diff -puN arch/x86/kernel/cpu/bugs.c~x86-fdiv-bug-detection-fix arch/x86/kernel/cpu/bugs.c
+--- a/arch/x86/kernel/cpu/bugs.c~x86-fdiv-bug-detection-fix
++++ a/arch/x86/kernel/cpu/bugs.c
+@@ -50,6 +50,8 @@ static double __initdata y = 3145727.0;
+  */
+ static void __init check_fpu(void)
+ {
++	s32 fdiv_bug;
 +
- 		seq_printf(m, "[%p] ", class->key);
- 		print_name(m, class);
- 		seq_puts(m, "\n");
+ 	if (!boot_cpu_data.hard_math) {
+ #ifndef CONFIG_MATH_EMULATION
+ 		printk(KERN_EMERG "No coprocessor found and no math emulation present.\n");
+@@ -74,8 +76,10 @@ static void __init check_fpu(void)
+ 		"fistpl %0\n\t"
+ 		"fwait\n\t"
+ 		"fninit"
+-		: "=m" (*&boot_cpu_data.fdiv_bug)
++		: "=m" (*&fdiv_bug)
+ 		: "m" (*&x), "m" (*&y));
++
++	boot_cpu_data.fdiv_bug = fdiv_bug;
+ 	if (boot_cpu_data.fdiv_bug)
+ 		printk("Hmm, FPU with FDIV bug.\n");
+ }
 _
 
-Patches currently in -mm which might be from rabin@rab.in are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-cpuidle-make-sysfs-attributes-sysdev-class-attributes.patch
+matrox-maven-fix-a-broken-error-path.patch
+matroxfb-i2c-structure-templates-clean-up.patch
+matrox-maven-convert-to-a-new-style-i2c-driver.patch
+atmel_lcdfb-set-ypanstep-to-1-and-enable-y-panning-on-at91.patch
+atmel_lcdfb-add-board-parameter-specify-framebuffer-memory-size.patch
+fbcon-prevent-cursor-disappearance-after-switching-to-512-character-font.patch
 linux-next.patch
+rtc-m48t59-reduce-structure-m48t59_private.patch
+rtc-m48t59-add-support-for-m48t02-and-m48t59-chips-2nd-rev.patch
+fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
+neofb-reduce-panning-function.patch
+fbdev-kconfig-update.patch
+fbdev-kconfig-update-fix.patch
 
