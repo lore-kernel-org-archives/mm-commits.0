@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + misdn-endian-annotations-for-struct-zt.patch added to -mm tree
-Date: Mon, 11 Aug 2008 17:14:26 -0700
-Message-ID: <200808120014.m7C0EQkR029640@imap1.linux-foundation.org>
+Subject: + misdn-annotate-iomem-pointer-and-add-statics.patch added to -mm tree
+Date: Mon, 11 Aug 2008 17:14:28 -0700
+Message-ID: <200808120014.m7C0ESju029643@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44022 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48394 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753641AbYHLAPC (ORCPT
+	by vger.kernel.org with ESMTP id S1753822AbYHLAPE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 20:15:02 -0400
+	Mon, 11 Aug 2008 20:15:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: harvey.harrison@gmail.com, kkeil@suse.de
 
 
 The patch titled
-     mISDN: endian annotations for struct zt
+     mISDN: annotate iomem pointer and add statics
 has been added to the -mm tree.  Its filename is
-     misdn-endian-annotations-for-struct-zt.patch
+     misdn-annotate-iomem-pointer-and-add-statics.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mISDN: endian annotations for struct zt
+Subject: mISDN: annotate iomem pointer and add statics
 From: Harvey Harrison <harvey.harrison@gmail.com>
-
-Found two possible bugs where the z1 value was used directly without
-byteswapping.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/mISDN/hfc_pci.h |    4 ++--
- drivers/isdn/hardware/mISDN/hfcpci.c  |    9 ++++-----
- 2 files changed, 6 insertions(+), 7 deletions(-)
+ drivers/isdn/hardware/mISDN/hfcpci.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/isdn/hardware/mISDN/hfc_pci.h~misdn-endian-annotations-for-struct-zt drivers/isdn/hardware/mISDN/hfc_pci.h
---- a/drivers/isdn/hardware/mISDN/hfc_pci.h~misdn-endian-annotations-for-struct-zt
-+++ a/drivers/isdn/hardware/mISDN/hfc_pci.h
-@@ -183,8 +183,8 @@
- #define D_FREG_MASK  0xF
- 
- struct zt {
--	unsigned short z1;  /* Z1 pointer 16 Bit */
--	unsigned short z2;  /* Z2 pointer 16 Bit */
-+	__le16 z1;  /* Z1 pointer 16 Bit */
-+	__le16 z2;  /* Z2 pointer 16 Bit */
- };
- 
- struct dfifo {
-diff -puN drivers/isdn/hardware/mISDN/hfcpci.c~misdn-endian-annotations-for-struct-zt drivers/isdn/hardware/mISDN/hfcpci.c
---- a/drivers/isdn/hardware/mISDN/hfcpci.c~misdn-endian-annotations-for-struct-zt
+diff -puN drivers/isdn/hardware/mISDN/hfcpci.c~misdn-annotate-iomem-pointer-and-add-statics drivers/isdn/hardware/mISDN/hfcpci.c
+--- a/drivers/isdn/hardware/mISDN/hfcpci.c~misdn-annotate-iomem-pointer-and-add-statics
 +++ a/drivers/isdn/hardware/mISDN/hfcpci.c
-@@ -366,8 +366,7 @@ static void hfcpci_clear_fifo_tx(struct 
- 	bzt->f2 = MAX_B_FRAMES;
- 	bzt->f1 = bzt->f2;	/* init F pointers to remain constant */
- 	bzt->za[MAX_B_FRAMES].z1 = cpu_to_le16(B_FIFO_SIZE + B_SUB_VAL - 1);
--	bzt->za[MAX_B_FRAMES].z2 = cpu_to_le16(
--	    le16_to_cpu(bzt->za[MAX_B_FRAMES].z1 - 1));
-+	bzt->za[MAX_B_FRAMES].z2 = cpu_to_le16(B_FIFO_SIZE + B_SUB_VAL - 2);
- 	if (fifo_state)
- 		hc->hw.fifo_en |= fifo_state;
- 	Write_hfc(hc, HFCPCI_FIFO_EN, hc->hw.fifo_en);
-@@ -482,7 +481,7 @@ receive_dmsg(struct hfc_pci *hc)
- 			df->f2 = ((df->f2 + 1) & MAX_D_FRAMES) |
- 			    (MAX_D_FRAMES + 1);	/* next buffer */
- 			df->za[df->f2 & D_FREG_MASK].z2 =
--			    cpu_to_le16((zp->z2 + rcnt) & (D_FIFO_SIZE - 1));
-+			    cpu_to_le16((le16_to_cpu(zp->z2) + rcnt) & (D_FIFO_SIZE - 1));
- 		} else {
- 			dch->rx_skb = mI_alloc_skb(rcnt - 3, GFP_ATOMIC);
- 			if (!dch->rx_skb) {
-@@ -526,7 +525,7 @@ receive_dmsg(struct hfc_pci *hc)
- int
+@@ -43,7 +43,7 @@ MODULE_LICENSE("GPL");
+ module_param(debug, uint, 0);
+ 
+ static LIST_HEAD(HFClist);
+-DEFINE_RWLOCK(HFClock);
++static DEFINE_RWLOCK(HFClock);
+ 
+ enum {
+ 	HFC_CCD_2BD0,
+@@ -88,7 +88,7 @@ struct hfcPCI_hw {
+ 	unsigned char		bswapped;
+ 	unsigned char		protocol;
+ 	int			nt_timer;
+-	unsigned char		*pci_io; /* start of PCI IO memory */
++	unsigned char __iomem 	*pci_io; /* start of PCI IO memory */
+ 	dma_addr_t		dmahandle;
+ 	void			*fifos; /* FIFO memory */
+ 	int			last_bfifo_cnt[2];
+@@ -153,7 +153,7 @@ release_io_hfcpci(struct hfc_pci *hc)
+ 	pci_write_config_word(hc->pdev, PCI_COMMAND, 0);
+ 	del_timer(&hc->hw.timer);
+ 	pci_free_consistent(hc->pdev, 0x8000, hc->hw.fifos, hc->hw.dmahandle);
+-	iounmap((void *)hc->hw.pci_io);
++	iounmap(hc->hw.pci_io);
+ }
+ 
+ /*
+@@ -522,7 +522,7 @@ receive_dmsg(struct hfc_pci *hc)
+ /*
+  * check for transparent receive data and read max one threshold size if avail
+  */
+-int
++static int
  hfcpci_empty_fifo_trans(struct bchannel *bch, struct bzfifo *bz, u_char *bdata)
  {
--	unsigned short	*z1r, *z2r;
-+	 __le16 *z1r, *z2r;
- 	int		new_z2, fcnt, maxlen;
- 	u_char		*ptr, *ptr1;
+ 	 __le16 *z1r, *z2r;
+@@ -575,7 +575,7 @@ hfcpci_empty_fifo_trans(struct bchannel 
+ /*
+  * B-channel main receive routine
+  */
+-void
++static void
+ main_rec_hfcpci(struct bchannel *bch)
+ {
+ 	struct hfc_pci	*hc = bch->hw;
+@@ -1678,7 +1678,7 @@ hfcpci_l2l1B(struct mISDNchannel *ch, st
+  * called for card init message
+  */
  
-@@ -724,7 +723,7 @@ hfcpci_fill_fifo(struct bchannel *bch)
- 	struct bzfifo	*bz;
- 	u_char		*bdata;
- 	u_char		new_f1, *src, *dst;
--	unsigned short	*z1t, *z2t;
-+	__le16 *z1t, *z2t;
+-void
++static void
+ inithfcpci(struct hfc_pci *hc)
+ {
+ 	printk(KERN_DEBUG "inithfcpci: entered\n");
+@@ -1965,7 +1965,7 @@ setup_hw(struct hfc_pci *hc)
+ 		printk(KERN_WARNING "HFC-PCI: No IRQ for PCI card found\n");
+ 		return 1;
+ 	}
+-	hc->hw.pci_io = (char *)(ulong)hc->pdev->resource[1].start;
++	hc->hw.pci_io = (char __iomem *)(unsigned long)hc->pdev->resource[1].start;
  
- 	if ((bch->debug & DEBUG_HW_BCHANNEL) && !(bch->debug & DEBUG_HW_BFIFO))
- 		printk(KERN_DEBUG "%s\n", __func__);
+ 	if (!hc->hw.pci_io) {
+ 		printk(KERN_WARNING "HFC-PCI: No IO-Mem for PCI card found\n");
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
