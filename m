@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-complex-macros-fix-up-extension-handling.patch added to -mm tree
-Date: Tue, 12 Aug 2008 15:26:54 -0700
-Message-ID: <200808122226.m7CMQsia016710@imap1.linux-foundation.org>
+Subject: + checkpatch-add-tests-for-the-attribute-matcher.patch added to -mm tree
+Date: Tue, 12 Aug 2008 15:26:50 -0700
+Message-ID: <200808122226.m7CMQoLD016704@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57139 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53623 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751871AbYHLWbI (ORCPT
+	by vger.kernel.org with ESMTP id S1751903AbYHLWbI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 12 Aug 2008 18:31:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: complex macros -- fix up extension handling
+     checkpatch: add tests for the attribute matcher
 has been added to the -mm tree.  Its filename is
-     checkpatch-complex-macros-fix-up-extension-handling.patch
+     checkpatch-add-tests-for-the-attribute-matcher.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: complex macros -- fix up extension handling
+Subject: checkpatch: add tests for the attribute matcher
 From: Andy Whitcroft <apw@shadowen.org>
 
-Only pull in new extension lines where the current contents ends with a \.
+Add support for direct testing of the attribute matcher, add basic tests
+for it.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-complex-macros-fix-up-extension-handling scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-complex-macros-fix-up-extension-handling
+diff -puN scripts/checkpatch.pl~checkpatch-add-tests-for-the-attribute-matcher scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-tests-for-the-attribute-matcher
 +++ a/scripts/checkpatch.pl
-@@ -1977,8 +1977,8 @@ sub process {
- 			# Extract the remainder of the define (if any) and
- 			# rip off surrounding spaces, and trailing \'s.
- 			$rest = '';
--			while ($off != 0 || ($cnt > 0 && $rest =~ /(?:^|\\)\s*$/)) {
--				#print "ADDING $off <" . substr($lines[$ln - 1], $off) . ">\n";
-+			while ($off != 0 || ($cnt > 0 && $rest =~ /\\\s*$/)) {
-+				#print "ADDING cnt<$cnt> $off <" . substr($lines[$ln - 1], $off) . "> rest<$rest>\n";
- 				if ($off != 0 || $lines[$ln - 1] !~ /^-/) {
- 					$rest .= substr($lines[$ln - 1], $off) . "\n";
- 					$cnt--;
+@@ -66,6 +66,7 @@ if ($#ARGV < 0) {
+ my $dbg_values = 0;
+ my $dbg_possible = 0;
+ my $dbg_type = 0;
++my $dbg_attr = 0;
+ for my $key (keys %debug) {
+ 	eval "\${dbg_$key} = '$debug{$key}';"
+ }
+@@ -1367,6 +1368,15 @@ sub process {
+ 			}
+ 			next;
+ 		}
++# TEST: allow direct testing of the attribute matcher.
++		if ($dbg_attr) {
++			if ($line =~ /^.\s*$Attribute\s*$/) {
++				ERROR("TEST: is attr\n" . $herecurr);
++			} elsif ($dbg_attr > 1 && $line =~ /^.+($Attribute)/) {
++				ERROR("TEST: is not attr ($1 is)\n". $herecurr);
++			}
++			next;
++		}
+ 
+ # check for initialisation to aggregates open brace on the next line
+ 		if ($prevline =~ /$Declare\s*$Ident\s*=\s*$/ &&
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
