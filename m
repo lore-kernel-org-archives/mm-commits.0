@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-%lx-tests-should-hand-%%-as-a-literal.patch added to -mm tree
-Date: Tue, 12 Aug 2008 15:27:08 -0700
-Message-ID: <200808122227.m7CMR8St016737@imap1.linux-foundation.org>
+Subject: + checkpatch-report-the-correct-lines-for-single-statement-blocks.patch added to -mm tree
+Date: Tue, 12 Aug 2008 15:27:10 -0700
+Message-ID: <200808122227.m7CMRA9N016740@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40426 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53049 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751351AbYHLW1o (ORCPT
+	by vger.kernel.org with ESMTP id S1751864AbYHLW1u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 18:27:44 -0400
+	Tue, 12 Aug 2008 18:27:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: %Lx tests should hand %% as a literal
+     checkpatch: report the correct lines for single statement blocks
 has been added to the -mm tree.  Its filename is
-     checkpatch-%lx-tests-should-hand-%%-as-a-literal.patch
+     checkpatch-report-the-correct-lines-for-single-statement-blocks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: %Lx tests should hand %% as a literal
+Subject: checkpatch: report the correct lines for single statement blocks
 From: Andy Whitcroft <apw@shadowen.org>
 
-Ensure that we handle literal %'s correctly when adjacent to a %Lx.
-
-	%Lx	bad
-	%%Lx	good
-	%%%Lx	bad
+Report the correct lines for single statement blocks.  Currently we are
+reporting the right number of lines, but not skipping the negative lines.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/checkpatch.pl |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-%lx-tests-should-hand-%%-as-a-literal scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-%lx-tests-should-hand-%%-as-a-literal
+diff -puN scripts/checkpatch.pl~checkpatch-report-the-correct-lines-for-single-statement-blocks scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-report-the-correct-lines-for-single-statement-blocks
 +++ a/scripts/checkpatch.pl
-@@ -2392,6 +2392,7 @@ sub process {
- 		my $string;
- 		while ($line =~ /(?:^|")([X\t]*)(?:"|$)/g) {
- 			$string = substr($rawline, $-[1], $+[1] - $-[1]);
-+			$string =~ s/%%/__/g;
- 			if ($string =~ /(?<!%)%L[udi]/) {
- 				WARN("\%Ld/%Lu are not-standard C, use %lld/%llu\n" . $herecurr);
- 				last;
+@@ -2214,10 +2214,10 @@ sub process {
+ 			}
+ 			if ($level == 0 && $block =~ /^\s*\{/ && !$allowed) {
+ 				my $herectx = $here . "\n";;
+-				my $end = $linenr + statement_rawlines($block) - 1;
++				my $cnt = statement_rawlines($block);
+ 
+-				for (my $ln = $linenr - 1; $ln < $end; $ln++) {
+-					$herectx .= $rawlines[$ln] . "\n";;
++				for (my $n = 0; $n < $cnt; $n++) {
++					$herectx .= raw_line($linenr, $n) . "\n";;
+ 				}
+ 
+ 				WARN("braces {} are not necessary for single statement blocks\n" . $herectx);
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
