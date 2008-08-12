@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + misdn-annotate-iomem-pointer-and-add-statics.patch added to -mm tree
-Date: Mon, 11 Aug 2008 17:14:28 -0700
-Message-ID: <200808120014.m7C0ESju029643@imap1.linux-foundation.org>
+Subject: + m68knommu-wire-up-new-system-calls.patch added to -mm tree
+Date: Mon, 11 Aug 2008 17:19:45 -0700
+Message-ID: <200808120019.m7C0JjhF029859@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48394 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54101 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753822AbYHLAPE (ORCPT
+	by vger.kernel.org with ESMTP id S1752778AbYHLAUD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 20:15:04 -0400
+	Mon, 11 Aug 2008 20:20:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, kkeil@suse.de
+Cc: geert@linux-m68k.org, gerg@uclinux.org
 
 
 The patch titled
-     mISDN: annotate iomem pointer and add statics
+     m68k{,nommu}: wire up new system calls
 has been added to the -mm tree.  Its filename is
-     misdn-annotate-iomem-pointer-and-add-statics.patch
+     m68knommu-wire-up-new-system-calls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,110 +34,130 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mISDN: annotate iomem pointer and add statics
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: m68k{,nommu}: wire up new system calls
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Karsten Keil <kkeil@suse.de>
+Wire up for m68k{,nommu} the system calls that were added in the last
+merge window:
+
+commit 4006553b06306b34054529477b06b68a1c66249b (flag parameters: inotify_init)
+commit ed8cae8ba01348bfd83333f4648dd807b04d7f08 (flag parameters: pipe)
+commit 336dd1f70ff62d7dd8655228caed4c5bfc818c56 (flag parameters: dup2)
+commit a0998b50c3f0b8fdd265c63e0032f86ebe377dbf (flag parameters: epoll_create)
+commit 9fe5ad9c8cef9ad5873d8ee55d1cf00d9b607df0 (flag parameters add-on: remove
+						 epoll_create size param)
+commit b087498eb5605673b0f260a7620d91818cd72304 (flag parameters: eventfd)
+commit 9deb27baedb79759c3ab9435a7d8b841842d56e9 (flag parameters: signalfd)
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/mISDN/hfcpci.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ arch/m68k/kernel/entry.S             |    6 ++++++
+ arch/m68knommu/include/asm/unistd.h  |    8 +++++++-
+ arch/m68knommu/kernel/syscalltable.S |    6 ++++++
+ include/asm-m68k/unistd.h            |    8 +++++++-
+ 4 files changed, 26 insertions(+), 2 deletions(-)
 
-diff -puN drivers/isdn/hardware/mISDN/hfcpci.c~misdn-annotate-iomem-pointer-and-add-statics drivers/isdn/hardware/mISDN/hfcpci.c
---- a/drivers/isdn/hardware/mISDN/hfcpci.c~misdn-annotate-iomem-pointer-and-add-statics
-+++ a/drivers/isdn/hardware/mISDN/hfcpci.c
-@@ -43,7 +43,7 @@ MODULE_LICENSE("GPL");
- module_param(debug, uint, 0);
+diff -puN arch/m68k/kernel/entry.S~m68knommu-wire-up-new-system-calls arch/m68k/kernel/entry.S
+--- a/arch/m68k/kernel/entry.S~m68knommu-wire-up-new-system-calls
++++ a/arch/m68k/kernel/entry.S
+@@ -747,4 +747,10 @@ sys_call_table:
+ 	.long sys_fallocate		/* 320 */
+ 	.long sys_timerfd_settime
+ 	.long sys_timerfd_gettime
++	.long sys_signalfd4
++	.long sys_eventfd2
++	.long sys_epoll_create1		/* 325 */
++	.long sys_dup3
++	.long sys_pipe2
++	.long sys_inotify_init1
  
- static LIST_HEAD(HFClist);
--DEFINE_RWLOCK(HFClock);
-+static DEFINE_RWLOCK(HFClock);
+diff -puN arch/m68knommu/include/asm/unistd.h~m68knommu-wire-up-new-system-calls arch/m68knommu/include/asm/unistd.h
+--- a/arch/m68knommu/include/asm/unistd.h~m68knommu-wire-up-new-system-calls
++++ a/arch/m68knommu/include/asm/unistd.h
+@@ -326,10 +326,16 @@
+ #define __NR_fallocate		320
+ #define __NR_timerfd_settime	321
+ #define __NR_timerfd_gettime	322
++#define __NR_signalfd4		323
++#define __NR_eventfd2		324
++#define __NR_epoll_create1	325
++#define __NR_dup3		326
++#define __NR_pipe2		327
++#define __NR_inotify_init1	328
  
- enum {
- 	HFC_CCD_2BD0,
-@@ -88,7 +88,7 @@ struct hfcPCI_hw {
- 	unsigned char		bswapped;
- 	unsigned char		protocol;
- 	int			nt_timer;
--	unsigned char		*pci_io; /* start of PCI IO memory */
-+	unsigned char __iomem 	*pci_io; /* start of PCI IO memory */
- 	dma_addr_t		dmahandle;
- 	void			*fifos; /* FIFO memory */
- 	int			last_bfifo_cnt[2];
-@@ -153,7 +153,7 @@ release_io_hfcpci(struct hfc_pci *hc)
- 	pci_write_config_word(hc->pdev, PCI_COMMAND, 0);
- 	del_timer(&hc->hw.timer);
- 	pci_free_consistent(hc->pdev, 0x8000, hc->hw.fifos, hc->hw.dmahandle);
--	iounmap((void *)hc->hw.pci_io);
-+	iounmap(hc->hw.pci_io);
- }
+ #ifdef __KERNEL__
  
- /*
-@@ -522,7 +522,7 @@ receive_dmsg(struct hfc_pci *hc)
- /*
-  * check for transparent receive data and read max one threshold size if avail
-  */
--int
-+static int
- hfcpci_empty_fifo_trans(struct bchannel *bch, struct bzfifo *bz, u_char *bdata)
- {
- 	 __le16 *z1r, *z2r;
-@@ -575,7 +575,7 @@ hfcpci_empty_fifo_trans(struct bchannel 
- /*
-  * B-channel main receive routine
-  */
--void
-+static void
- main_rec_hfcpci(struct bchannel *bch)
- {
- 	struct hfc_pci	*hc = bch->hw;
-@@ -1678,7 +1678,7 @@ hfcpci_l2l1B(struct mISDNchannel *ch, st
-  * called for card init message
-  */
+-#define NR_syscalls		323
++#define NR_syscalls		329
  
--void
-+static void
- inithfcpci(struct hfc_pci *hc)
- {
- 	printk(KERN_DEBUG "inithfcpci: entered\n");
-@@ -1965,7 +1965,7 @@ setup_hw(struct hfc_pci *hc)
- 		printk(KERN_WARNING "HFC-PCI: No IRQ for PCI card found\n");
- 		return 1;
- 	}
--	hc->hw.pci_io = (char *)(ulong)hc->pdev->resource[1].start;
-+	hc->hw.pci_io = (char __iomem *)(unsigned long)hc->pdev->resource[1].start;
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
+diff -puN arch/m68knommu/kernel/syscalltable.S~m68knommu-wire-up-new-system-calls arch/m68knommu/kernel/syscalltable.S
+--- a/arch/m68knommu/kernel/syscalltable.S~m68knommu-wire-up-new-system-calls
++++ a/arch/m68knommu/kernel/syscalltable.S
+@@ -341,6 +341,12 @@ ENTRY(sys_call_table)
+ 	.long sys_fallocate		/* 320 */
+ 	.long sys_timerfd_settime
+ 	.long sys_timerfd_gettime
++	.long sys_signalfd4
++	.long sys_eventfd2
++	.long sys_epoll_create1		/* 325 */
++	.long sys_dup3
++	.long sys_pipe2
++	.long sys_inotify_init1
  
- 	if (!hc->hw.pci_io) {
- 		printk(KERN_WARNING "HFC-PCI: No IO-Mem for PCI card found\n");
+ 	.rept NR_syscalls-(.-sys_call_table)/4
+ 		.long sys_ni_syscall
+diff -puN include/asm-m68k/unistd.h~m68knommu-wire-up-new-system-calls include/asm-m68k/unistd.h
+--- a/include/asm-m68k/unistd.h~m68knommu-wire-up-new-system-calls
++++ a/include/asm-m68k/unistd.h
+@@ -325,10 +325,16 @@
+ #define __NR_fallocate		320
+ #define __NR_timerfd_settime	321
+ #define __NR_timerfd_gettime	322
++#define __NR_signalfd4		323
++#define __NR_eventfd2		324
++#define __NR_epoll_create1	325
++#define __NR_dup3		326
++#define __NR_pipe2		327
++#define __NR_inotify_init1	328
+ 
+ #ifdef __KERNEL__
+ 
+-#define NR_syscalls		323
++#define NR_syscalls		329
+ 
+ #define __ARCH_WANT_IPC_PARSE_VERSION
+ #define __ARCH_WANT_OLD_READDIR
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-linux-next.patch
-x86-fix-shadowed-variable-warning.patch
-cifs-remove-global_extern-macro.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-v4l-drx397xdc-sparse-annotations.patch
-input-ads7846c-sparse-lock-annotation.patch
-kvm-make-functions-static.patch
-misdn-endian-annotations-for-struct-zt.patch
-misdn-annotate-iomem-pointer-and-add-statics.patch
-drivers-net-replace-__function__-with-__func__.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-wireless-replace-__function__-with-__func__.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-include-replace-__function__-with-__func__.patch
-misc-replace-__function__-with-__func__.patch
-befs-annotate-fs32-on-tests-for-superblock-endianness.patch
+origin.patch
+fs-eventpollc-fix-sys_epoll_create1-comment.patch
+m68knommu-wire-up-new-system-calls.patch
+arch-m68k-bvme6000-rtcc-remove-duplicated-include.patch
+viafb-viafbmodes-viafbtxt.patch
+viafb-makefile-kconfig.patch
+viafb-accelc-accelh.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-chiph-debugh.patch
+viafb-dvic-dvih-globalc-and-globalh.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-ifacec-ifaceh-ioctlc-ioctlh.patch
+viafb-lcdc-lcdh-lcdtblh.patch
+viafb-makefile-shareh.patch
+viafb-tbl1636c-tbl1636h-tbldpasettingc-tbldpasettingh.patch
+viafb-viafbdevc-viafbdevh.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+viafb-via_i2cc-via_i2ch-viamodec-viamodeh.patch
+viafb-via_utilityc-via_utilityh-vt1636c-vt1636h.patch
+fbdev-kconfig-update.patch
+fbdev-kconfig-update-fix.patch
+m68k-use-bcd2bin-bin2bcd.patch
 
