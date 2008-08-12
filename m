@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-ds1374-fix-no-irq-case-handling.patch added to -mm tree
-Date: Tue, 12 Aug 2008 16:35:19 -0700
-Message-ID: <200808122335.m7CNZJCJ019588@imap1.linux-foundation.org>
+Subject: + ftrace-printk-formatting-infrastructure-fix-fix.patch added to -mm tree
+Date: Tue, 12 Aug 2008 16:55:14 -0700
+Message-ID: <200808130008.m7D08JcZ020826@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35923 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40719 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752331AbYHLXlR (ORCPT
+	by vger.kernel.org with ESMTP id S1752034AbYHMAIv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 19:41:17 -0400
+	Tue, 12 Aug 2008 20:08:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avorontsov@ru.mvista.com, a.zummo@towertech.it, david-b@pacbell.net
+Cc: akpm@linux-foundation.org, mingo@elte.hu, randy.dunlap@oracle.com, rostedt@goodmis.org
 
 
 The patch titled
-     rtc: rtc-ds1374: fix 'no irq' case handling
+     ftrace-printk-formatting-infrastructure-fix-fix
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-ds1374-fix-no-irq-case-handling.patch
+     ftrace-printk-formatting-infrastructure-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: rtc-ds1374: fix 'no irq' case handling
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: ftrace-printk-formatting-infrastructure-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On a PowerPC board with ds1374 RTC I'm getting this error while RTC tries
-to probe:
+In file included from kernel/sysctl.c:51:
+include/linux/ftrace.h:164: error: expected ',' or ';' before '{' token
 
-rtc-ds1374 0-0068: unable to request IRQ
-
-This happens because I2C probing code (drivers/of/of_i2c.c) is specifying
-IRQ0 for 'no irq' case, which is correct.
-
-The driver handles this incorrectly, though. This patch fixes it.
-
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1374.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/ftrace.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ds1374.c~rtc-rtc-ds1374-fix-no-irq-case-handling drivers/rtc/rtc-ds1374.c
---- a/drivers/rtc/rtc-ds1374.c~rtc-rtc-ds1374-fix-no-irq-case-handling
-+++ a/drivers/rtc/rtc-ds1374.c
-@@ -173,7 +173,7 @@ static int ds1374_read_alarm(struct devi
- 	int cr, sr;
- 	int ret = 0;
- 
--	if (client->irq < 0)
-+	if (client->irq <= 0)
- 		return -EINVAL;
- 
- 	mutex_lock(&ds1374->mutex);
-@@ -212,7 +212,7 @@ static int ds1374_set_alarm(struct devic
- 	int cr;
- 	int ret = 0;
- 
--	if (client->irq < 0)
-+	if (client->irq <= 0)
- 		return -EINVAL;
- 
- 	ret = ds1374_read_time(dev, &now);
-@@ -381,7 +381,7 @@ static int ds1374_probe(struct i2c_clien
- 	if (ret)
- 		goto out_free;
- 
--	if (client->irq >= 0) {
-+	if (client->irq > 0) {
- 		ret = request_irq(client->irq, ds1374_irq, 0,
- 		                  "ds1374", client);
- 		if (ret) {
-@@ -401,7 +401,7 @@ static int ds1374_probe(struct i2c_clien
- 	return 0;
- 
- out_irq:
--	if (client->irq >= 0)
-+	if (client->irq > 0)
- 		free_irq(client->irq, client);
- 
- out_free:
-@@ -414,7 +414,7 @@ static int __devexit ds1374_remove(struc
+diff -puN include/linux/ftrace.h~ftrace-printk-formatting-infrastructure-fix-fix include/linux/ftrace.h
+--- a/include/linux/ftrace.h~ftrace-printk-formatting-infrastructure-fix-fix
++++ a/include/linux/ftrace.h
+@@ -160,7 +160,8 @@ __ftrace_printk(unsigned long ip, const 
+ static inline void
+ ftrace_special(unsigned long arg1, unsigned long arg2, unsigned long arg3) { }
+ static inline int
+-ftrace_printk(const char *fmt, ...) __attribute__ ((format (printf, 1, 0)))
++ftrace_printk(const char *fmt, ...) __attribute__ ((format (printf, 1, 0)));
++static inline int ftrace_printk(const char *fmt, ...)
  {
- 	struct ds1374 *ds1374 = i2c_get_clientdata(client);
- 
--	if (client->irq >= 0) {
-+	if (client->irq > 0) {
- 		mutex_lock(&ds1374->mutex);
- 		ds1374->exiting = 1;
- 		mutex_unlock(&ds1374->mutex);
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-rtc-rtc-ds1374-fix-no-irq-case-handling.patch
-rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
+fs-eventpollc-fix-sys_epoll_create1-comment.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+linux-next.patch
+next-remove-localversion.patch
+acpi-trivial-cleanups-fix.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+git-jg-misc.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
+ftrace-printk-formatting-infrastructure-fix-fix.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+scsi-megaraid_sas-add-the-new-controllers-support.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
