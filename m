@@ -1,88 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - agp-fix-sis-5591-5592-wrong-pci-id.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 13:33:32 -0700
-Message-ID: <200808122033.m7CKXWM1011796@imap1.linux-foundation.org>
+Subject: - i2c-renesas-highlander-fpga-smbus-support-update-fix-fix.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 13:32:55 -0700
+Message-ID: <200808122032.m7CKWtJU011746@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53746 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46603 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751357AbYHLUma (ORCPT
+	by vger.kernel.org with ESMTP id S1751832AbYHLUml (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 16:42:30 -0400
+	Tue, 12 Aug 2008 16:42:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, airlied@linux.ie, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, khali@linux-fr.org, lethal@linux-sh.org, xyzzy@speakeasy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     agp: fix SIS 5591/5592 wrong PCI id
+     i2c-renesas-highlander-fpga-smbus-support-update-fix-fix
 has been removed from the -mm tree.  Its filename was
-     agp-fix-sis-5591-5592-wrong-pci-id.patch
+     i2c-renesas-highlander-fpga-smbus-support-update-fix-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: agp: fix SIS 5591/5592 wrong PCI id
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: i2c-renesas-highlander-fpga-smbus-support-update-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The correct id for the AGP bridge is the id of
-the main host (5591) not the id of the PCI-to-PCI
-bridge AGP (0001). Output from "lspci -nv" shows
-that only the former has AGP capabilities flag set:
+Don't wait interruptibly - it will fall though if signal_pending().
 
-00:00.0 0600: 1039:5591 (rev 02)
-        Flags: bus master, medium devsel, latency 64
-        Memory at ec000000 (32-bit, non-prefetchable) [size=32M]
-        Capabilities: [c0] AGP version 1.0
-
-00:02.0 0604: 1039:0001 (prog-if 00 [Normal decode])
-        Flags: bus master, fast devsel, latency 0
-        Bus: primary=00, secondary=01, subordinate=01, sec-latency=0
-        I/O behind bridge: 0000c000-0000cfff
-        Memory behind bridge: eb500000-eb5fffff
-        Prefetchable memory behind bridge: eb300000-eb3fffff
-
-The AGP bridge is correctly detected with the patch applied.
-I have tested it on PC Chips M570 motherboard.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Dave Airlie <airlied@linux.ie>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Trent Piepho <xyzzy@speakeasy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/sis-agp.c |    2 +-
+ drivers/i2c/busses/i2c-highlander.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/agp/sis-agp.c~agp-fix-sis-5591-5592-wrong-pci-id drivers/char/agp/sis-agp.c
---- a/drivers/char/agp/sis-agp.c~agp-fix-sis-5591-5592-wrong-pci-id
-+++ a/drivers/char/agp/sis-agp.c
-@@ -241,7 +241,7 @@ static struct pci_device_id agp_sis_pci_
- 		.class		= (PCI_CLASS_BRIDGE_HOST << 8),
- 		.class_mask	= ~0,
- 		.vendor		= PCI_VENDOR_ID_SI,
--		.device		= PCI_DEVICE_ID_SI_5591_AGP,
-+		.device		= PCI_DEVICE_ID_SI_5591,
- 		.subvendor	= PCI_ANY_ID,
- 		.subdevice	= PCI_ANY_ID,
- 	},
+diff -puN drivers/i2c/busses/i2c-highlander.c~i2c-renesas-highlander-fpga-smbus-support-update-fix-fix drivers/i2c/busses/i2c-highlander.c
+--- a/drivers/i2c/busses/i2c-highlander.c~i2c-renesas-highlander-fpga-smbus-support-update-fix-fix
++++ a/drivers/i2c/busses/i2c-highlander.c
+@@ -199,7 +199,7 @@ static void highlander_i2c_poll(struct h
+ static inline int highlander_i2c_wait_xfer_done(struct highlander_i2c_dev *dev)
+ {
+ 	if (dev->irq)
+-		wait_for_completion_interruptible_timeout(&dev->cmd_complete,
++		wait_for_completion_timeout(&dev->cmd_complete,
+ 					  msecs_to_jiffies(iic_timeout));
+ 	else
+ 		/* busy looping, the IRQ of champions */
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-matrox-maven-fix-a-broken-error-path.patch
-matroxfb-i2c-structure-templates-clean-up.patch
-matrox-maven-convert-to-a-new-style-i2c-driver.patch
-atmel_lcdfb-set-ypanstep-to-1-and-enable-y-panning-on-at91.patch
-atmel_lcdfb-add-board-parameter-specify-framebuffer-memory-size.patch
-fbcon-prevent-cursor-disappearance-after-switching-to-512-character-font.patch
+fs-eventpollc-fix-sys_epoll_create1-comment.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-rtc-m48t59-reduce-structure-m48t59_private.patch
-rtc-m48t59-add-support-for-m48t02-and-m48t59-chips-2nd-rev.patch
-fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
-neofb-reduce-panning-function.patch
-fbdev-kconfig-update.patch
+next-remove-localversion.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+git-jg-misc.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+scsi-megaraid_sas-add-the-new-controllers-support.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
 fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
