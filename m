@@ -1,60 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - maintainers-remove-zf-machz-watchdog-entry.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 13:34:13 -0700
-Message-ID: <200808122034.m7CKYD1r011933@imap1.linux-foundation.org>
+Subject: - watchdog-fix-at91rm9200_wdtc-compilation.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 13:34:01 -0700
+Message-ID: <200808122034.m7CKY1jq011844@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45113 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35334 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751306AbYHLUew (ORCPT
+	by vger.kernel.org with ESMTP id S1751306AbYHLUen (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 16:34:52 -0400
+	Tue, 12 Aug 2008 16:34:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mm-commits@vger.kernel.org
+To: bunk@kernel.org, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MAINTAINERS: remove ZF MACHZ WATCHDOG entry
+     watchdog: fix at91rm9200_wdt.c compilation
 has been removed from the -mm tree.  Its filename was
-     maintainers-remove-zf-machz-watchdog-entry.patch
+     watchdog-fix-at91rm9200_wdtc-compilation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: remove ZF MACHZ WATCHDOG entry
+Subject: watchdog: fix at91rm9200_wdt.c compilation
 From: Adrian Bunk <bunk@kernel.org>
 
-- maintainer has not been active for years
-- maintainer email bounces
-- URL no longer exists
-- covered by the WATCHDOG DEVICE DRIVERS entry
+Fix the following compile error:
 
+at91rm9200_wdt.c:188: error: 'at91_wdt_ioctl' undeclared here (not in a
+
+Reported-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    6 ------
- 1 file changed, 6 deletions(-)
+ drivers/watchdog/at91rm9200_wdt.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-remove-zf-machz-watchdog-entry MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-zf-machz-watchdog-entry
-+++ a/MAINTAINERS
-@@ -4703,12 +4703,6 @@ L:	linux-wireless@vger.kernel.org
- L:	zd1211-devs@lists.sourceforge.net (subscribers-only)
- S:	Maintained
- 
--ZF MACHZ WATCHDOG
--P:	Fernando Fuganti
--M:	fuganti@netbank.com.br
--W:	http://cvs.conectiva.com.br/drivers/ZFL-watchdog/
--S:	Maintained
--
- ZR36067 VIDEO FOR LINUX DRIVER
- P:	Ronald Bultje
- M:	rbultje@ronald.bitfreak.net
+diff -puN drivers/watchdog/at91rm9200_wdt.c~watchdog-fix-at91rm9200_wdtc-compilation drivers/watchdog/at91rm9200_wdt.c
+--- a/drivers/watchdog/at91rm9200_wdt.c~watchdog-fix-at91rm9200_wdtc-compilation
++++ a/drivers/watchdog/at91rm9200_wdt.c
+@@ -129,7 +129,7 @@ static struct watchdog_info at91_wdt_inf
+ /*
+  * Handle commands from user-space.
+  */
+-static long at91_wdt_ioct(struct file *file,
++static long at91_wdt_ioctl(struct file *file,
+ 					unsigned int cmd, unsigned long arg)
+ {
+ 	void __user *argp = (void __user *)arg;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
