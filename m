@@ -1,68 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-fix-txx9wdtc-compilation.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 13:33:55 -0700
-Message-ID: <200808122033.m7CKXteA011837@imap1.linux-foundation.org>
+Subject: - maintainers-remove-zf-machz-watchdog-entry.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 13:34:13 -0700
+Message-ID: <200808122034.m7CKYD1r011933@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38089 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45113 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751306AbYHLUek (ORCPT
+	by vger.kernel.org with ESMTP id S1751306AbYHLUew (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 16:34:40 -0400
+	Tue, 12 Aug 2008 16:34:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, wim@iguana.be, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: fix txx9wdt.c compilation
+     MAINTAINERS: remove ZF MACHZ WATCHDOG entry
 has been removed from the -mm tree.  Its filename was
-     watchdog-fix-txx9wdtc-compilation.patch
+     maintainers-remove-zf-machz-watchdog-entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: fix txx9wdt.c compilation
+Subject: MAINTAINERS: remove ZF MACHZ WATCHDOG entry
 From: Adrian Bunk <bunk@kernel.org>
 
-Fix the following compile error caused by commit
-8dc244f7deac4c0e95ce0ffd26f494bb6e1534c0 ([WATCHDOG 48/57] txx9: Fix
-locking, switch to unlocked_ioctl):
+- maintainer has not been active for years
+- maintainer email bounces
+- URL no longer exists
+- covered by the WATCHDOG DEVICE DRIVERS entry
 
-txx9wdt.c:48: warning: type defaults to 'int' in declaration of
-txx9wdt.c:48: warning: parameter names (without types) in function
-txx9wdt.c: In function 'txx9wdt_ping':
-txx9wdt.c:52: error: 'txx9_lock' undeclared (first use in this function)
-txx9wdt.c:52: error: (Each undeclared identifier is reported only once
-txx9wdt.c:52: error: for each function it appears in.)
-txx9wdt.c: In function 'txx9wdt_start':
-txx9wdt.c:59: error: 'txx9_lock' undeclared (first use in this function)
-txx9wdt.c: In function 'txx9wdt_stop':
-txx9wdt.c:71: error: 'txx9_lock' undeclared (first use in this function)
-
-Reported-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/txx9wdt.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN drivers/watchdog/txx9wdt.c~watchdog-fix-txx9wdtc-compilation drivers/watchdog/txx9wdt.c
---- a/drivers/watchdog/txx9wdt.c~watchdog-fix-txx9wdtc-compilation
-+++ a/drivers/watchdog/txx9wdt.c
-@@ -45,7 +45,7 @@ static unsigned long txx9wdt_alive;
- static int expect_close;
- static struct txx9_tmr_reg __iomem *txx9wdt_reg;
- static struct clk *txx9_imclk;
--static DECLARE_LOCK(txx9_lock);
-+static DEFINE_SPINLOCK(txx9_lock);
+diff -puN MAINTAINERS~maintainers-remove-zf-machz-watchdog-entry MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-zf-machz-watchdog-entry
++++ a/MAINTAINERS
+@@ -4703,12 +4703,6 @@ L:	linux-wireless@vger.kernel.org
+ L:	zd1211-devs@lists.sourceforge.net (subscribers-only)
+ S:	Maintained
  
- static void txx9wdt_ping(void)
- {
+-ZF MACHZ WATCHDOG
+-P:	Fernando Fuganti
+-M:	fuganti@netbank.com.br
+-W:	http://cvs.conectiva.com.br/drivers/ZFL-watchdog/
+-S:	Maintained
+-
+ ZR36067 VIDEO FOR LINUX DRIVER
+ P:	Ronald Bultje
+ M:	rbultje@ronald.bitfreak.net
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
