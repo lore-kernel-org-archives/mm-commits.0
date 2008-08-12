@@ -1,37 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-uv-use-led-to-indicate-cpu-is-active.patch removed from -mm tree
-Date: Mon, 11 Aug 2008 17:37:34 -0700
-Message-ID: <200808120037.m7C0bYEM030557@imap1.linux-foundation.org>
+Subject: - x86_64-uv-use-blinking-led-for-heartbeat-display.patch removed from -mm tree
+Date: Mon, 11 Aug 2008 17:37:37 -0700
+Message-ID: <200808120037.m7C0bbq9030560@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49603 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54227 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753562AbYHLAhp (ORCPT
+	by vger.kernel.org with ESMTP id S1753590AbYHLAhs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Aug 2008 20:37:45 -0400
+	Mon, 11 Aug 2008 20:37:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: travis@sgi.com, hpa@zytor.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64 UV: use LED to indicate CPU is active
+     x86_64 UV: use blinking LED for heartbeat display
 has been removed from the -mm tree.  Its filename was
-     x86_64-uv-use-led-to-indicate-cpu-is-active.patch
+     x86_64-uv-use-blinking-led-for-heartbeat-display.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86_64 UV: use LED to indicate CPU is active
+Subject: x86_64 UV: use blinking LED for heartbeat display
 From: Mike Travis <travis@sgi.com>
 
-  * Add an idle callback to turn on/off a LED indicating that
-    the CPU is "active" (ON) or "idle" (OFF).
+  * Add a function to blink the "heartbeat" LED indicating
+    that the CPU is responding to timer interrupts.
 
-  * Introduces a callback for "post-smp_cpus_done" processing
-    to setup callback.
+  * Introduces a callback for "heartbeat" display in the
+    clocksource_watchdog function, which in turn requires
+    CONFIG_CLOCKSOURCE_WATCHDOG to be set.
 
 Note that this is a RAS feature that allows external monitoring of
 various cpu state indicators, not just providing "pretty blinking
@@ -43,123 +44,134 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/genx2apic_uv_x.c |   40 +++++++++++++++++++++++++++++
- arch/x86/kernel/smpboot.c        |    6 ++++
- include/asm-x86/genapic_64.h     |    3 ++
- 3 files changed, 49 insertions(+)
+ arch/x86/kernel/genx2apic_uv_x.c |   29 +++++++++++++++++++++++++++++
+ include/asm-x86/uv/uv_hub.h      |    1 +
+ include/linux/clocksource.h      |    5 +++++
+ kernel/time/clocksource.c        |   10 +++++++++-
+ 4 files changed, 44 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/genx2apic_uv_x.c~x86_64-uv-use-led-to-indicate-cpu-is-active arch/x86/kernel/genx2apic_uv_x.c
---- a/arch/x86/kernel/genx2apic_uv_x.c~x86_64-uv-use-led-to-indicate-cpu-is-active
+diff -puN arch/x86/kernel/genx2apic_uv_x.c~x86_64-uv-use-blinking-led-for-heartbeat-display arch/x86/kernel/genx2apic_uv_x.c
+--- a/arch/x86/kernel/genx2apic_uv_x.c~x86_64-uv-use-blinking-led-for-heartbeat-display
 +++ a/arch/x86/kernel/genx2apic_uv_x.c
-@@ -19,6 +19,7 @@
- #include <linux/bootmem.h>
- #include <linux/module.h>
- #include <linux/hardirq.h>
-+#include <asm/idle.h>
- #include <asm/smp.h>
- #include <asm/ipi.h>
- #include <asm/genapic.h>
-@@ -27,6 +28,8 @@
- #include <asm/uv/uv_hub.h>
- #include <asm/uv/bios.h>
+@@ -10,6 +10,7 @@
  
-+static __init void uv_start_system(void);
-+
- static enum uv_system_type uv_system_type;
+ #include <linux/kernel.h>
+ #include <linux/threads.h>
++#include <linux/clocksource.h>
+ #include <linux/cpumask.h>
+ #include <linux/string.h>
+ #include <linux/kernel.h>
+@@ -359,6 +360,25 @@ static __init void uv_rtc_init(void)
+ 		sn_rtc_cycles_per_second = ticks_per_sec;
+ }
  
- static int __init uv_acpi_madt_oem_check(char *oem_id, char *oem_table_id)
-@@ -448,6 +451,9 @@ static __init void uv_system_init(void)
- 	map_mmr_high(max_pnode);
- 	map_config_high(max_pnode);
- 	map_mmioh_high(max_pnode);
++#ifdef CONFIG_CLOCKSOURCE_WATCHDOG
++static void uv_display_heartbeat(void)
++{
++	int cpu;
 +
-+	/* enable post-smp_cpus_done processing */
-+	smp_cpus_done_system = uv_start_system;
++	uv_hub_info->led_heartbeat_count = nr_cpu_ids;
++
++	for_each_online_cpu(cpu) {
++		struct uv_hub_info_s *hub = uv_cpu_hub_info(cpu);
++
++		if (hub->led_heartbeat_count > 0) {
++			uv_set_led_bits_on(cpu, LED_CPU_BLINK,
++						LED_CPU_HEARTBEAT);
++			--hub->led_heartbeat_count;
++		}
++	}
++}
++#endif
++
+ static __init void uv_system_init(void)
+ {
+ 	union uvh_si_addr_map_config_u m_n_config;
+@@ -437,6 +457,7 @@ static __init void uv_system_init(void)
+ 		uv_cpu_hub_info(cpu)->coherency_domain_number = 0;/* ZZZ */
+ 		uv_cpu_hub_info(cpu)->led_offset = LED_LOCAL_MMR_BASE + lcpu;
+ 		uv_cpu_hub_info(cpu)->led_state = 0;
++		uv_cpu_hub_info(cpu)->led_heartbeat_count = nr_cpu_ids;
+ 		uv_node_to_blade[nid] = blade;
+ 		uv_cpu_to_blade[cpu] = blade;
+ 		max_pnode = max(pnode, max_pnode);
+@@ -454,6 +475,14 @@ static __init void uv_system_init(void)
+ 
+ 	/* enable post-smp_cpus_done processing */
+ 	smp_cpus_done_system = uv_start_system;
++
++#ifdef CONFIG_CLOCKSOURCE_WATCHDOG
++	/* enable heartbeat display callback */
++	display_heartbeat = uv_display_heartbeat;
++#else
++	printk(KERN_NOTICE "UV: CLOCKSOURCE_WATCHDOG not configured, "
++			   "LED Heartbeat NOT enabled\n");
++#endif
  }
  
  /*
-@@ -465,4 +471,38 @@ void __cpuinit uv_cpu_init(void)
- 		set_x2apic_extra_bits(uv_hub_info->pnode);
+diff -puN include/asm-x86/uv/uv_hub.h~x86_64-uv-use-blinking-led-for-heartbeat-display include/asm-x86/uv/uv_hub.h
+--- a/include/asm-x86/uv/uv_hub.h~x86_64-uv-use-blinking-led-for-heartbeat-display
++++ a/include/asm-x86/uv/uv_hub.h
+@@ -124,6 +124,7 @@ struct uv_hub_info_s {
+ 	unsigned long	lowmem_remap_top;
+ 	unsigned long	lowmem_remap_base;
+ 	unsigned long	led_offset;
++	unsigned int	led_heartbeat_count;
+ 	unsigned short	pnode;
+ 	unsigned short	pnode_mask;
+ 	unsigned short	coherency_domain_number;
+diff -puN include/linux/clocksource.h~x86_64-uv-use-blinking-led-for-heartbeat-display include/linux/clocksource.h
+--- a/include/linux/clocksource.h~x86_64-uv-use-blinking-led-for-heartbeat-display
++++ a/include/linux/clocksource.h
+@@ -242,4 +242,9 @@ static inline void update_vsyscall_tz(vo
  }
- 
-+/*
-+ * Illuminate "activity" LED when CPU is going "active",
-+ * extinguish when going "idle".
-+ */
-+static int uv_idle(struct notifier_block *nfb, unsigned long action, void *junk)
-+{
-+	if (action == IDLE_START)
-+		uv_set_led_bits(0, LED_CPU_ACTIVITY);
-+
-+	else if (action == IDLE_END)
-+		uv_set_led_bits(LED_CPU_ACTIVITY, LED_CPU_ACTIVITY);
-+
-+	return NOTIFY_OK;
-+}
-+
-+static struct notifier_block uv_idle_notifier = {
-+	.notifier_call = uv_idle,
-+};
- 
-+/*
-+ * Initialize idle led callback function
-+ */
-+static __init void uv_init_led_idle_display(void)
-+{
-+	/* initialize timer for activity monitor */
-+	idle_notifier_register(&uv_idle_notifier);
-+}
-+
-+/*
-+ * Initialize subsystems that need to start after the system is up
-+ */
-+static __init void uv_start_system(void)
-+{
-+	uv_init_led_idle_display();
-+}
-diff -puN arch/x86/kernel/smpboot.c~x86_64-uv-use-led-to-indicate-cpu-is-active arch/x86/kernel/smpboot.c
---- a/arch/x86/kernel/smpboot.c~x86_64-uv-use-led-to-indicate-cpu-is-active
-+++ a/arch/x86/kernel/smpboot.c
-@@ -1200,6 +1200,9 @@ void __init native_smp_prepare_boot_cpu(
- 	per_cpu(cpu_state, me) = CPU_ONLINE;
- }
- 
-+/* post-smp_cpus_done processing */
-+void (*smp_cpus_done_system)(void);
-+
- void __init native_smp_cpus_done(unsigned int max_cpus)
- {
- 	pr_debug("Boot done.\n");
-@@ -1210,6 +1213,9 @@ void __init native_smp_cpus_done(unsigne
- 	setup_ioapic_dest();
  #endif
- 	check_nmi_watchdog();
-+
-+	if (smp_cpus_done_system)
-+		smp_cpus_done_system();
- }
  
- #ifdef CONFIG_HOTPLUG_CPU
-diff -puN include/asm-x86/genapic_64.h~x86_64-uv-use-led-to-indicate-cpu-is-active include/asm-x86/genapic_64.h
---- a/include/asm-x86/genapic_64.h~x86_64-uv-use-led-to-indicate-cpu-is-active
-+++ a/include/asm-x86/genapic_64.h
-@@ -47,6 +47,9 @@ enum uv_system_type {UV_NONE, UV_LEGACY_
- extern enum uv_system_type get_uv_system_type(void);
- extern int is_uv_system(void);
- 
-+/* system tasks to run after smp_cpus_done */
-+extern void (*smp_cpus_done_system)(void);
++#ifdef CONFIG_CLOCKSOURCE_WATCHDOG
++/* typically blinks "heartbeat" LED */
++extern void (*display_heartbeat)(void);
++#endif
 +
- extern struct genapic apic_x2apic_uv_x;
- DECLARE_PER_CPU(int, x2apic_extra_bits);
- extern void uv_cpu_init(void);
+ #endif /* _LINUX_CLOCKSOURCE_H */
+diff -puN kernel/time/clocksource.c~x86_64-uv-use-blinking-led-for-heartbeat-display kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~x86_64-uv-use-blinking-led-for-heartbeat-display
++++ a/kernel/time/clocksource.c
+@@ -76,6 +76,9 @@ static DEFINE_SPINLOCK(watchdog_lock);
+ static cycle_t watchdog_last;
+ static unsigned long watchdog_resumed;
+ 
++/* arch specific heartbeat display */
++void (*display_heartbeat)(void);
++
+ /*
+  * Interval: 0.5sec Threshold: 0.0625s
+  */
+@@ -140,12 +143,17 @@ static void clocksource_watchdog(unsigne
+ 		}
+ 	}
+ 
++	/* If arch has a heartbeat display, then poke it */
++	if (display_heartbeat)
++		display_heartbeat();
++
+ 	if (!list_empty(&watchdog_list)) {
+ 		/*
+ 		 * Cycle through CPUs to check if the CPUs stay
+ 		 * synchronized to each other.
+ 		 */
+-		int next_cpu = next_cpu_nr(raw_smp_processor_id(), cpu_online_map);
++		int next_cpu = next_cpu_nr(raw_smp_processor_id(),
++					   cpu_online_map);
+ 
+ 		if (next_cpu >= nr_cpu_ids)
+ 			next_cpu = first_cpu(cpu_online_map);
 _
 
 Patches currently in -mm which might be from travis@sgi.com are
 
 linux-next.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-x86_64-uv-use-led-to-indicate-cpu-is-active.patch
 x86_64-uv-use-blinking-led-for-heartbeat-display.patch
 ia64-uv-provide-a-led-driver-for-uv-systems.patch
 ia64-uv-use-led-to-indicate-cpu-is-active.patch
