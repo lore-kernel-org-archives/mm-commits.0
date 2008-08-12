@@ -1,152 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - m68knommu-wire-up-new-system-calls.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 13:32:42 -0700
-Message-ID: <200808122032.m7CKWgha011731@imap1.linux-foundation.org>
+Subject: - drivers-input-serio-xilinx_ps2c-fix-warning.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 13:33:04 -0700
+Message-ID: <200808122033.m7CKX4qk011761@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44384 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48573 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751189AbYHLUdZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751199AbYHLUdi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 16:33:25 -0400
+	Tue, 12 Aug 2008 16:33:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, gerg@uclinux.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m68k{,nommu}: wire up new system calls
+     drivers/input/serio/xilinx_ps2.c: fix warning
 has been removed from the -mm tree.  Its filename was
-     m68knommu-wire-up-new-system-calls.patch
+     drivers-input-serio-xilinx_ps2c-fix-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m68k{,nommu}: wire up new system calls
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: drivers/input/serio/xilinx_ps2.c: fix warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Wire up for m68k{,nommu} the system calls that were added in the last
-merge window:
+drivers/input/serio/xilinx_ps2.c:272: warning: cast from pointer to integer of different size
 
-commit 4006553b06306b34054529477b06b68a1c66249b (flag parameters: inotify_init)
-commit ed8cae8ba01348bfd83333f4648dd807b04d7f08 (flag parameters: pipe)
-commit 336dd1f70ff62d7dd8655228caed4c5bfc818c56 (flag parameters: dup2)
-commit a0998b50c3f0b8fdd265c63e0032f86ebe377dbf (flag parameters: epoll_create)
-commit 9fe5ad9c8cef9ad5873d8ee55d1cf00d9b607df0 (flag parameters add-on: remove
-						 epoll_create size param)
-commit b087498eb5605673b0f260a7620d91818cd72304 (flag parameters: eventfd)
-commit 9deb27baedb79759c3ab9435a7d8b841842d56e9 (flag parameters: signalfd)
+Also, it is fishy that phys_addr has a 32-bit type.
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Greg Ungerer <gerg@uclinux.org>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/kernel/entry.S             |    6 ++++++
- arch/m68knommu/include/asm/unistd.h  |    8 +++++++-
- arch/m68knommu/kernel/syscalltable.S |    6 ++++++
- include/asm-m68k/unistd.h            |    8 +++++++-
- 4 files changed, 26 insertions(+), 2 deletions(-)
+ drivers/input/serio/xilinx_ps2.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/m68k/kernel/entry.S~m68knommu-wire-up-new-system-calls arch/m68k/kernel/entry.S
---- a/arch/m68k/kernel/entry.S~m68knommu-wire-up-new-system-calls
-+++ a/arch/m68k/kernel/entry.S
-@@ -747,4 +747,10 @@ sys_call_table:
- 	.long sys_fallocate		/* 320 */
- 	.long sys_timerfd_settime
- 	.long sys_timerfd_gettime
-+	.long sys_signalfd4
-+	.long sys_eventfd2
-+	.long sys_epoll_create1		/* 325 */
-+	.long sys_dup3
-+	.long sys_pipe2
-+	.long sys_inotify_init1
+diff -puN drivers/input/serio/xilinx_ps2.c~drivers-input-serio-xilinx_ps2c-fix-warning drivers/input/serio/xilinx_ps2.c
+--- a/drivers/input/serio/xilinx_ps2.c~drivers-input-serio-xilinx_ps2c-fix-warning
++++ a/drivers/input/serio/xilinx_ps2.c
+@@ -269,8 +269,8 @@ static int xps2_setup(struct device *dev
+ 	 * we have the PS2 in a good state */
+ 	out_be32(drvdata->base_address + XPS2_SRST_OFFSET, XPS2_SRST_RESET);
  
-diff -puN arch/m68knommu/include/asm/unistd.h~m68knommu-wire-up-new-system-calls arch/m68knommu/include/asm/unistd.h
---- a/arch/m68knommu/include/asm/unistd.h~m68knommu-wire-up-new-system-calls
-+++ a/arch/m68knommu/include/asm/unistd.h
-@@ -326,10 +326,16 @@
- #define __NR_fallocate		320
- #define __NR_timerfd_settime	321
- #define __NR_timerfd_gettime	322
-+#define __NR_signalfd4		323
-+#define __NR_eventfd2		324
-+#define __NR_epoll_create1	325
-+#define __NR_dup3		326
-+#define __NR_pipe2		327
-+#define __NR_inotify_init1	328
+-	dev_info(dev, "Xilinx PS2 at 0x%08X mapped to 0x%08X, irq=%d\n",
+-		drvdata->phys_addr, (u32)drvdata->base_address, drvdata->irq);
++	dev_info(dev, "Xilinx PS2 at 0x%08X mapped to 0x%p, irq=%d\n",
++		drvdata->phys_addr, drvdata->base_address, drvdata->irq);
  
- #ifdef __KERNEL__
- 
--#define NR_syscalls		323
-+#define NR_syscalls		329
- 
- #define __ARCH_WANT_IPC_PARSE_VERSION
- #define __ARCH_WANT_OLD_READDIR
-diff -puN arch/m68knommu/kernel/syscalltable.S~m68knommu-wire-up-new-system-calls arch/m68knommu/kernel/syscalltable.S
---- a/arch/m68knommu/kernel/syscalltable.S~m68knommu-wire-up-new-system-calls
-+++ a/arch/m68knommu/kernel/syscalltable.S
-@@ -341,6 +341,12 @@ ENTRY(sys_call_table)
- 	.long sys_fallocate		/* 320 */
- 	.long sys_timerfd_settime
- 	.long sys_timerfd_gettime
-+	.long sys_signalfd4
-+	.long sys_eventfd2
-+	.long sys_epoll_create1		/* 325 */
-+	.long sys_dup3
-+	.long sys_pipe2
-+	.long sys_inotify_init1
- 
- 	.rept NR_syscalls-(.-sys_call_table)/4
- 		.long sys_ni_syscall
-diff -puN include/asm-m68k/unistd.h~m68knommu-wire-up-new-system-calls include/asm-m68k/unistd.h
---- a/include/asm-m68k/unistd.h~m68knommu-wire-up-new-system-calls
-+++ a/include/asm-m68k/unistd.h
-@@ -325,10 +325,16 @@
- #define __NR_fallocate		320
- #define __NR_timerfd_settime	321
- #define __NR_timerfd_gettime	322
-+#define __NR_signalfd4		323
-+#define __NR_eventfd2		324
-+#define __NR_epoll_create1	325
-+#define __NR_dup3		326
-+#define __NR_pipe2		327
-+#define __NR_inotify_init1	328
- 
- #ifdef __KERNEL__
- 
--#define NR_syscalls		323
-+#define NR_syscalls		329
- 
- #define __ARCH_WANT_IPC_PARSE_VERSION
- #define __ARCH_WANT_OLD_READDIR
+ 	serio = &drvdata->serio;
+ 	serio->id.type = SERIO_8042;
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 fs-eventpollc-fix-sys_epoll_create1-comment.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-arch-m68k-bvme6000-rtcc-remove-duplicated-include.patch
-viafb-viafbmodes-viafbtxt.patch
-viafb-makefile-kconfig.patch
-viafb-accelc-accelh.patch
+next-remove-localversion.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+git-jg-misc.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-unionfs.patch
+git-logfs-git-rejects.patch
+git-logfs-fixup.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+scsi-megaraid_sas-add-the-new-controllers-support.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+slb-drop-kmem-cache-argument-from-constructor-fix-fix-logfs.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
 viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-chiph-debugh.patch
-viafb-dvic-dvih-globalc-and-globalh.patch
 viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh.patch
 viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-ifacec-ifaceh-ioctlc-ioctlh.patch
-viafb-lcdc-lcdh-lcdtblh.patch
-viafb-makefile-shareh.patch
-viafb-tbl1636c-tbl1636h-tbldpasettingc-tbldpasettingh.patch
-viafb-viafbdevc-viafbdevh.patch
 viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-viafb-via_i2cc-via_i2ch-viamodec-viamodeh.patch
-viafb-via_utilityc-via_utilityh-vt1636c-vt1636h.patch
-fbdev-kconfig-update.patch
 fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
