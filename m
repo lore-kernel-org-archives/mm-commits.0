@@ -1,66 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - lockdep-shrink-held_lock-structure-fix.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 13:33:26 -0700
-Message-ID: <200808122033.m7CKXQH2011787@imap1.linux-foundation.org>
+Subject: - usb-hso-make-tty_operations-const.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 13:33:40 -0700
+Message-ID: <200808122033.m7CKXea4011810@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42660 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38736 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751565AbYHLUeX (ORCPT
+	by vger.kernel.org with ESMTP id S1751763AbYHLUe3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 16:34:23 -0400
+	Tue, 12 Aug 2008 16:34:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, davej@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: gregkh@suse.de, ajb@spheresystems.co.uk, arjan@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lockdep: shrink held_lock structure (fix)
+     USB: HSO: make tty_operations const
 has been removed from the -mm tree.  Its filename was
-     lockdep-shrink-held_lock-structure-fix.patch
+     usb-hso-make-tty_operations-const.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lockdep: shrink held_lock structure (fix)
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: USB: HSO: make tty_operations const
+From: Greg Kroah-Hartman <gregkh@suse.de>
 
-Replacement patch - on account of the old one having a bug that
-basically disables lockdep.
+As recommended by Arjan.
 
-Cc: Dave Jones <davej@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Andrew Bird <ajb@spheresystems.co.uk>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lockdep.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/usb/hso.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/lockdep.h~lockdep-shrink-held_lock-structure-fix include/linux/lockdep.h
---- a/include/linux/lockdep.h~lockdep-shrink-held_lock-structure-fix
-+++ a/include/linux/lockdep.h
-@@ -229,10 +229,10 @@ struct held_lock {
- 	 * The following field is used to detect when we cross into an
- 	 * interrupt context:
- 	 */
--	unsigned int irq_context:1;
-+	unsigned int irq_context:2; /* bit 0 - soft, bit 1 - hard */
- 	unsigned int trylock:1;
--	unsigned int read:2;
--	unsigned int check:1;
-+	unsigned int read:2;        /* see lock_acquire() comment */
-+	unsigned int check:2;       /* see lock_acquire() comment */
- 	unsigned int hardirqs_off:1;
- };
+diff -puN drivers/net/usb/hso.c~usb-hso-make-tty_operations-const drivers/net/usb/hso.c
+--- a/drivers/net/usb/hso.c~usb-hso-make-tty_operations-const
++++ a/drivers/net/usb/hso.c
+@@ -2725,7 +2725,7 @@ static int hso_mux_submit_intr_urb(struc
+ }
  
+ /* operations setup of the serial interface */
+-static struct tty_operations hso_serial_ops = {
++static const struct tty_operations hso_serial_ops = {
+ 	.open = hso_serial_open,
+ 	.close = hso_serial_close,
+ 	.write = hso_serial_write,
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from gregkh@suse.de are
 
 origin.patch
 linux-next.patch
-irq-warn-about-irqf_disabledirqf_shared.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
 
