@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + byteorder-sh-use-the-new-byteorder-headers.patch added to -mm tree
-Date: Tue, 12 Aug 2008 19:59:15 -0700
-Message-ID: <200808130259.m7D2xFJZ027478@imap1.linux-foundation.org>
+Subject: + byteorder-fix-direct-byteswap-includes.patch added to -mm tree
+Date: Tue, 12 Aug 2008 19:59:23 -0700
+Message-ID: <200808130259.m7D2xN8n027490@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53418 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33568 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753762AbYHMC7S (ORCPT
+	by vger.kernel.org with ESMTP id S1754051AbYHMC7Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 22:59:18 -0400
+	Tue, 12 Aug 2008 22:59:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, lethal@linux-sh.org
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     byteorder: sh: use the new byteorder headers
+     byteorder: fix direct byteswap includes
 has been added to the -mm tree.  Its filename is
-     byteorder-sh-use-the-new-byteorder-headers.patch
+     byteorder-fix-direct-byteswap-includes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,126 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: sh: use the new byteorder headers
+Subject: byteorder: fix direct byteswap includes
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Acked-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/byteorder.h |   32 ++++++++++++++----------------
- 1 file changed, 15 insertions(+), 17 deletions(-)
+ arch/avr32/mach-at32ap/include/mach/io.h |    3 +--
+ drivers/media/dvb/ttpci/av7110.c         |    2 +-
+ drivers/media/video/cx18/cx18-driver.h   |    2 +-
+ drivers/media/video/ivtv/ivtv-driver.h   |    2 +-
+ drivers/media/video/vpx3220.c            |    2 +-
+ kernel/rcupreempt.c                      |    2 +-
+ tests/rcutorture.c                       |    2 +-
+ 7 files changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN arch/sh/include/asm/byteorder.h~byteorder-sh-use-the-new-byteorder-headers arch/sh/include/asm/byteorder.h
---- a/arch/sh/include/asm/byteorder.h~byteorder-sh-use-the-new-byteorder-headers
-+++ a/arch/sh/include/asm/byteorder.h
-@@ -8,7 +8,15 @@
- #include <linux/compiler.h>
+diff -puN arch/avr32/mach-at32ap/include/mach/io.h~byteorder-fix-direct-byteswap-includes arch/avr32/mach-at32ap/include/mach/io.h
+--- a/arch/avr32/mach-at32ap/include/mach/io.h~byteorder-fix-direct-byteswap-includes
++++ a/arch/avr32/mach-at32ap/include/mach/io.h
+@@ -1,8 +1,7 @@
+ #ifndef __ASM_AVR32_ARCH_AT32AP_IO_H
+ #define __ASM_AVR32_ARCH_AT32AP_IO_H
+ 
+-/* For "bizarre" halfword swapping */
+-#include <linux/byteorder/swabb.h>
++#include <linux/swab.h>
+ 
+ #if defined(CONFIG_AP700X_32_BIT_SMC)
+ # define __swizzle_addr_b(addr)	(addr ^ 3UL)
+diff -puN drivers/media/dvb/ttpci/av7110.c~byteorder-fix-direct-byteswap-includes drivers/media/dvb/ttpci/av7110.c
+--- a/drivers/media/dvb/ttpci/av7110.c~byteorder-fix-direct-byteswap-includes
++++ a/drivers/media/dvb/ttpci/av7110.c
+@@ -36,7 +36,6 @@
+ #include <linux/fs.h>
+ #include <linux/timer.h>
+ #include <linux/poll.h>
+-#include <linux/byteorder/swabb.h>
+ #include <linux/smp_lock.h>
+ 
+ #include <linux/kernel.h>
+@@ -53,6 +52,7 @@
+ #include <linux/kthread.h>
+ #include <asm/unaligned.h>
+ 
++#include <asm/byteorder.h>
+ #include <asm/system.h>
+ 
+ #include <linux/dvb/frontend.h>
+diff -puN drivers/media/video/cx18/cx18-driver.h~byteorder-fix-direct-byteswap-includes drivers/media/video/cx18/cx18-driver.h
+--- a/drivers/media/video/cx18/cx18-driver.h~byteorder-fix-direct-byteswap-includes
++++ a/drivers/media/video/cx18/cx18-driver.h
+@@ -38,10 +38,10 @@
+ #include <linux/i2c-algo-bit.h>
+ #include <linux/list.h>
+ #include <linux/unistd.h>
+-#include <linux/byteorder/swab.h>
+ #include <linux/pagemap.h>
+ #include <linux/workqueue.h>
+ #include <linux/mutex.h>
++#include <asm/byteorder.h>
+ 
+ #include <linux/dvb/video.h>
+ #include <linux/dvb/audio.h>
+diff -puN drivers/media/video/ivtv/ivtv-driver.h~byteorder-fix-direct-byteswap-includes drivers/media/video/ivtv/ivtv-driver.h
+--- a/drivers/media/video/ivtv/ivtv-driver.h~byteorder-fix-direct-byteswap-includes
++++ a/drivers/media/video/ivtv/ivtv-driver.h
+@@ -49,11 +49,11 @@
+ #include <linux/i2c-algo-bit.h>
+ #include <linux/list.h>
+ #include <linux/unistd.h>
+-#include <linux/byteorder/swab.h>
+ #include <linux/pagemap.h>
+ #include <linux/scatterlist.h>
+ #include <linux/workqueue.h>
+ #include <linux/mutex.h>
++#include <asm/byteorder.h>
+ #include <asm/uaccess.h>
+ #include <asm/system.h>
+ 
+diff -puN drivers/media/video/vpx3220.c~byteorder-fix-direct-byteswap-includes drivers/media/video/vpx3220.c
+--- a/drivers/media/video/vpx3220.c~byteorder-fix-direct-byteswap-includes
++++ a/drivers/media/video/vpx3220.c
+@@ -24,7 +24,7 @@
  #include <linux/types.h>
+ #include <linux/slab.h>
  
--static inline __attribute_const__ __u32 ___arch__swab32(__u32 x)
-+#ifdef __LITTLE_ENDIAN__
-+# define __LITTLE_ENDIAN
-+#else
-+# define __BIG_ENDIAN
-+#endif
-+
-+#define __SWAB_64_THRU_32__
-+
-+static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
- {
- 	__asm__(
- #ifdef __SH5__
-@@ -24,8 +32,9 @@ static inline __attribute_const__ __u32 
+-#include <linux/byteorder/swab.h>
++#include <asm/byteorder.h>
  
- 	return x;
- }
-+#define __arch_swab32 __arch_swab32
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+diff -puN kernel/rcupreempt.c~byteorder-fix-direct-byteswap-includes kernel/rcupreempt.c
+--- a/kernel/rcupreempt.c~byteorder-fix-direct-byteswap-includes
++++ a/kernel/rcupreempt.c
+@@ -54,9 +54,9 @@
+ #include <linux/cpu.h>
+ #include <linux/random.h>
+ #include <linux/delay.h>
+-#include <linux/byteorder/swabb.h>
+ #include <linux/cpumask.h>
+ #include <linux/rcupreempt_trace.h>
++#include <asm/byteorder.h>
  
--static inline __attribute_const__ __u16 ___arch__swab16(__u16 x)
-+static inline __attribute_const__ __u16 __arch_swab16(__u16 x)
- {
- 	__asm__(
- #ifdef __SH5__
-@@ -39,8 +48,9 @@ static inline __attribute_const__ __u16 
+ /*
+  * Macro that prevents the compiler from reordering accesses, but does
+diff -puN tests/rcutorture.c~byteorder-fix-direct-byteswap-includes tests/rcutorture.c
+--- a/tests/rcutorture.c~byteorder-fix-direct-byteswap-includes
++++ a/tests/rcutorture.c
+@@ -42,10 +42,10 @@
+ #include <linux/freezer.h>
+ #include <linux/cpu.h>
+ #include <linux/delay.h>
+-#include <linux/byteorder/swabb.h>
+ #include <linux/stat.h>
+ #include <linux/srcu.h>
+ #include <linux/slab.h>
++#include <asm/byteorder.h>
  
- 	return x;
- }
-+#define __arch_swab16 __arch_swab16
- 
--static inline __u64 ___arch__swab64(__u64 val)
-+static inline __u64 __arch_swab64(__u64 val)
- {
- 	union {
- 		struct { __u32 a,b; } s;
-@@ -51,20 +61,8 @@ static inline __u64 ___arch__swab64(__u6
- 	w.s.a = ___arch__swab32(v.s.b);
- 	return w.u;
- }
-+#define __arch_swab64 __arch_swab64
- 
--#define __arch__swab64(x) ___arch__swab64(x)
--#define __arch__swab32(x) ___arch__swab32(x)
--#define __arch__swab16(x) ___arch__swab16(x)
--
--#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
--#  define __BYTEORDER_HAS_U64__
--#  define __SWAB_64_THRU_32__
--#endif
--
--#ifdef __LITTLE_ENDIAN__
--#include <linux/byteorder/little_endian.h>
--#else
--#include <linux/byteorder/big_endian.h>
--#endif
-+#include <linux/byteorder.h>
- 
- #endif /* __ASM_SH_BYTEORDER_H */
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Paul E. McKenney <paulmck@us.ibm.com> and "
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
