@@ -1,229 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: - switch-proc-irq-smp_affinity-et-al-to-seqfiles.patch removed from -mm tree
-Date: Wed, 13 Aug 2008 01:53:16 -0700
-Message-ID: <200808130853.m7D8rGcj008310@imap1.linux-foundation.org>
+Subject: - firmware-memmap-cleanup.patch removed from -mm tree
+Date: Wed, 13 Aug 2008 01:53:39 -0700
+Message-ID: <200808130853.m7D8rdqj008349@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33816 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49139 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752557AbYHMIyV (ORCPT
+	by vger.kernel.org with ESMTP id S1752264AbYHMIy2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 04:54:21 -0400
+	Wed, 13 Aug 2008 04:54:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mingo@elte.hu, pj@sgi.com, travis@sgi.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: bwalle@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     genirq: switch /proc/irq/*/smp_affinity et al to seqfiles
+     firmware/memmap: cleanup
 has been removed from the -mm tree.  Its filename was
-     switch-proc-irq-smp_affinity-et-al-to-seqfiles.patch
+     firmware-memmap-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: genirq: switch /proc/irq/*/smp_affinity et al to seqfiles
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: firmware/memmap: cleanup
+From: Bernhard Walle <bwalle@suse.de>
 
-Switch /proc/irq/*/smp_affinity , /proc/irq/default_smp_affinity to
-seq_files.
+Various cleanup the drivers/firmware/memmap (after review by AKPM):
 
-cat(1) reads with 1024 chunks by default, with high enough NR_CPUS, there
-will be -EINVAL.
+    - fix kdoc to conform to the standard
+    - move kdoc from header to implementation files
+    - remove superfluous WARN_ON() after kmalloc()
+    - WARN_ON(x); if (!x) -> if(!WARN_ON(x))
+    - improve some comments
 
-As side effect, there are now two less users of the ->read_proc interface.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/proc.c |   96 +++++++++++++++++++++++---------------------
- 1 file changed, 51 insertions(+), 45 deletions(-)
+ drivers/firmware/memmap.c    |   61 +++++++++++++++++++++++----------
+ include/linux/firmware-map.h |   26 --------------
+ 2 files changed, 43 insertions(+), 44 deletions(-)
 
-diff -puN kernel/irq/proc.c~switch-proc-irq-smp_affinity-et-al-to-seqfiles kernel/irq/proc.c
---- a/kernel/irq/proc.c~switch-proc-irq-smp_affinity-et-al-to-seqfiles
-+++ a/kernel/irq/proc.c
-@@ -8,6 +8,7 @@
+diff -puN drivers/firmware/memmap.c~firmware-memmap-cleanup drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~firmware-memmap-cleanup
++++ a/drivers/firmware/memmap.c
+@@ -84,20 +84,23 @@ static struct kobj_type memmap_ktype = {
+  */
  
- #include <linux/irq.h>
- #include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
- #include <linux/interrupt.h>
+ /*
+- * Firmware memory map entries
++ * Firmware memory map entries. No locking is needed because the
++ * firmware_map_add() and firmware_map_add_early() functions are called
++ * in firmware initialisation code in one single thread of execution.
+  */
+ static LIST_HEAD(map_entries);
  
- #include "internals.h"
-@@ -16,23 +17,18 @@ static struct proc_dir_entry *root_irq_d
- 
- #ifdef CONFIG_SMP
- 
--static int irq_affinity_read_proc(char *page, char **start, off_t off,
--				  int count, int *eof, void *data)
-+static int irq_affinity_proc_show(struct seq_file *m, void *v)
- {
--	struct irq_desc *desc = irq_desc + (long)data;
-+	struct irq_desc *desc = irq_desc + (long)m->private;
- 	cpumask_t *mask = &desc->affinity;
--	int len;
- 
- #ifdef CONFIG_GENERIC_PENDING_IRQ
- 	if (desc->status & IRQ_MOVE_PENDING)
- 		mask = &desc->pending_mask;
- #endif
--	len = cpumask_scnprintf(page, count, *mask);
--
--	if (count - len < 2)
--		return -EINVAL;
--	len += sprintf(page + len, "\n");
--	return len;
-+	seq_cpumask(m, mask);
-+	seq_putc(m, '\n');
-+	return 0;
+ /**
+- * Common implementation of firmware_map_add() and firmware_map_add_early()
+- * which expects a pre-allocated struct firmware_map_entry.
+- *
++ * firmware_map_add_entry() - Does the real work to add a firmware memmap entry.
+  * @start: Start of the memory range.
+  * @end:   End of the memory range (inclusive).
+  * @type:  Type of the memory range.
+  * @entry: Pre-allocated (either kmalloc() or bootmem allocator), uninitialised
+  *         entry.
+- */
++ *
++ * Common implementation of firmware_map_add() and firmware_map_add_early()
++ * which expects a pre-allocated struct firmware_map_entry.
++ **/
+ static int firmware_map_add_entry(resource_size_t start, resource_size_t end,
+ 				  const char *type,
+ 				  struct firmware_map_entry *entry)
+@@ -115,33 +118,52 @@ static int firmware_map_add_entry(resour
+ 	return 0;
  }
  
- #ifndef is_affinity_mask_valid
-@@ -40,11 +36,12 @@ static int irq_affinity_read_proc(char *
- #endif
- 
- int no_irq_affinity;
--static int irq_affinity_write_proc(struct file *file, const char __user *buffer,
--				   unsigned long count, void *data)
-+static ssize_t irq_affinity_proc_write(struct file *file,
-+		const char __user *buffer, size_t count, loff_t *pos)
+-/*
+- * See <linux/firmware-map.h> for documentation.
+- */
++/**
++ * firmware_map_add() - Adds a firmware mapping entry.
++ * @start: Start of the memory range.
++ * @end:   End of the memory range (inclusive).
++ * @type:  Type of the memory range.
++ *
++ * This function uses kmalloc() for memory
++ * allocation. Use firmware_map_add_early() if you want to use the bootmem
++ * allocator.
++ *
++ * That function must be called before late_initcall.
++ *
++ * Returns 0 on success, or -ENOMEM if no memory could be allocated.
++ **/
+ int firmware_map_add(resource_size_t start, resource_size_t end,
+ 		     const char *type)
  {
--	unsigned int irq = (int)(long)data, full_count = count, err;
-+	unsigned int irq = (int)(long)PDE(file->f_path.dentry->d_inode)->data;
- 	cpumask_t new_value;
-+	int err;
+ 	struct firmware_map_entry *entry;
  
- 	if (!irq_desc[irq].chip->set_affinity || no_irq_affinity ||
- 	    irq_balancing_disabled(irq))
-@@ -65,28 +62,38 @@ static int irq_affinity_write_proc(struc
- 	if (!cpus_intersects(new_value, cpu_online_map))
- 		/* Special case for empty set - allow the architecture
- 		   code to set default SMP affinity. */
--		return irq_select_affinity(irq) ? -EINVAL : full_count;
-+		return irq_select_affinity(irq) ? -EINVAL : count;
+ 	entry = kmalloc(sizeof(struct firmware_map_entry), GFP_ATOMIC);
+-	WARN_ON(!entry);
+ 	if (!entry)
+ 		return -ENOMEM;
  
- 	irq_set_affinity(irq, new_value);
- 
--	return full_count;
-+	return count;
+ 	return firmware_map_add_entry(start, end, type, entry);
  }
  
--static int default_affinity_read(char *page, char **start, off_t off,
--				  int count, int *eof, void *data)
-+static int irq_affinity_proc_open(struct inode *inode, struct file *file)
+-/*
+- * See <linux/firmware-map.h> for documentation.
+- */
++/**
++ * firmware_map_add_early() - Adds a firmware mapping entry.
++ * @start: Start of the memory range.
++ * @end:   End of the memory range (inclusive).
++ * @type:  Type of the memory range.
++ *
++ * Adds a firmware mapping entry. This function uses the bootmem allocator
++ * for memory allocation. Use firmware_map_add() if you want to use kmalloc().
++ *
++ * That function must be called before late_initcall.
++ *
++ * Returns 0 on success, or -ENOMEM if no memory could be allocated.
++ **/
+ int __init firmware_map_add_early(resource_size_t start, resource_size_t end,
+ 				  const char *type)
  {
--	int len = cpumask_scnprintf(page, count, irq_default_affinity);
--	if (count - len < 2)
--		return -EINVAL;
--	len += sprintf(page + len, "\n");
--	return len;
-+	return single_open(file, irq_affinity_proc_show, PDE(inode)->data);
- }
+ 	struct firmware_map_entry *entry;
  
--static int default_affinity_write(struct file *file, const char __user *buffer,
--				   unsigned long count, void *data)
-+static const struct file_operations irq_affinity_proc_fops = {
-+	.open		= irq_affinity_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+	.write		= irq_affinity_proc_write,
-+};
-+
-+static int default_affinity_show(struct seq_file *m, void *v)
-+{
-+	seq_cpumask(m, &irq_default_affinity);
-+	seq_putc(m, '\n');
-+	return 0;
-+}
-+
-+static ssize_t default_affinity_write(struct file *file,
-+		const char __user *buffer, size_t count, loff_t *ppos)
+ 	entry = alloc_bootmem_low(sizeof(struct firmware_map_entry));
+-	WARN_ON(!entry);
+-	if (!entry)
++	if (WARN_ON(!entry))
+ 		return -ENOMEM;
+ 
+ 	return firmware_map_add_entry(start, end, type, entry);
+@@ -183,7 +205,10 @@ static ssize_t memmap_attr_show(struct k
+ /*
+  * Initialises stuff and adds the entries in the map_entries list to
+  * sysfs. Important is that firmware_map_add() and firmware_map_add_early()
+- * must be called before late_initcall.
++ * must be called before late_initcall. That's just because that function
++ * is called as late_initcall() function, which means that if you call
++ * firmware_map_add() or firmware_map_add_early() afterwards, the entries
++ * are not added to sysfs.
+  */
+ static int __init memmap_init(void)
  {
--	unsigned int full_count = count, err;
- 	cpumask_t new_value;
-+	int err;
+@@ -192,13 +217,13 @@ static int __init memmap_init(void)
+ 	struct kset *memmap_kset;
  
- 	err = cpumask_parse_user(buffer, count, new_value);
- 	if (err)
-@@ -105,8 +112,21 @@ static int default_affinity_write(struct
+ 	memmap_kset = kset_create_and_add("memmap", NULL, firmware_kobj);
+-	WARN_ON(!memmap_kset);
+-	if (!memmap_kset)
++	if (WARN_ON(!memmap_kset))
+ 		return -ENOMEM;
  
- 	irq_default_affinity = new_value;
+ 	list_for_each_entry(entry, &map_entries, list) {
+ 		entry->kobj.kset = memmap_kset;
+-		kobject_add(&entry->kobj, NULL, "%d", i++);
++		if (kobject_add(&entry->kobj, NULL, "%d", i++))
++			kobject_put(&entry->kobj);
+ 	}
  
--	return full_count;
-+	return count;
- }
-+
-+static int default_affinity_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, default_affinity_show, NULL);
-+}
-+
-+static const struct file_operations default_affinity_proc_fops = {
-+	.open		= default_affinity_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+	.write		= default_affinity_write,
-+};
- #endif
+ 	return 0;
+diff -puN include/linux/firmware-map.h~firmware-memmap-cleanup include/linux/firmware-map.h
+--- a/include/linux/firmware-map.h~firmware-memmap-cleanup
++++ a/include/linux/firmware-map.h
+@@ -24,34 +24,8 @@
+  */
+ #ifdef CONFIG_FIRMWARE_MEMMAP
  
- static int irq_spurious_read(char *page, char **start, off_t off,
-@@ -178,16 +198,9 @@ void register_irq_proc(unsigned int irq)
- 	irq_desc[irq].dir = proc_mkdir(name, root_irq_dir);
- 
- #ifdef CONFIG_SMP
--	{
--		/* create /proc/irq/<irq>/smp_affinity */
--		entry = create_proc_entry("smp_affinity", 0600, irq_desc[irq].dir);
--
--		if (entry) {
--			entry->data = (void *)(long)irq;
--			entry->read_proc = irq_affinity_read_proc;
--			entry->write_proc = irq_affinity_write_proc;
--		}
--	}
-+	/* create /proc/irq/<irq>/smp_affinity */
-+	proc_create_data("smp_affinity", 0600, irq_desc[irq].dir,
-+			 &irq_affinity_proc_fops, (void *)(long)irq);
- #endif
- 
- 	entry = create_proc_entry("spurious", 0444, irq_desc[irq].dir);
-@@ -208,15 +221,8 @@ void unregister_handler_proc(unsigned in
- void register_default_affinity_proc(void)
- {
- #ifdef CONFIG_SMP
--	struct proc_dir_entry *entry;
--
--	/* create /proc/irq/default_smp_affinity */
--	entry = create_proc_entry("default_smp_affinity", 0600, root_irq_dir);
--	if (entry) {
--		entry->data = NULL;
--		entry->read_proc  = default_affinity_read;
--		entry->write_proc = default_affinity_write;
--	}
-+	proc_create("irq/default_smp_affinity", 0600, NULL,
-+		    &default_affinity_proc_fops);
- #endif
- }
- 
-_
-
-Patches currently in -mm which might be from adobriyan@gmail.com are
-
-linux-next.patch
-x86_64-remove-empty-lines-from-stack-traces-oopses.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-cdc-acm-dont-unlock-acm-mutex-on-error-path.patch
-cpuset-use-seq_cpumask-seq_nodemask.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
-
+-/**
+- * Adds a firmware mapping entry. This function uses kmalloc() for memory
+- * allocation. Use firmware_map_add_early() if you want to use the bootmem
+- * allocator.
+- *
+- * That function must be called before late_initcall.
+- *
+- * @start: Start of the memory range.
+- * @end:   End of the memory range (inclusive).
+- * @type:  Type of the memory range.
+- *
+- * Returns 0 on success, or -ENOMEM if no memory could be allocated.
+- */
+ int firmware_map_add(resource_size_t start, resource_size_t end,
+ 		     const char *type);
