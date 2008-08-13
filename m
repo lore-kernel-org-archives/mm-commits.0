@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-jump-check-code-size-in-control-page-fix.patch added to -mm tree
-Date: Wed, 13 Aug 2008 10:06:43 -0700
-Message-ID: <200808131706.m7DH6hIG028587@imap1.linux-foundation.org>
+Subject: + kexec-use-a-bitop-for-locking-rather-than-xchg.patch added to -mm tree
+Date: Wed, 13 Aug 2008 12:44:10 -0700
+Message-ID: <200808131944.m7DJiBJG003155@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33531 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49763 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750875AbYHMRHt (ORCPT
+	by vger.kernel.org with ESMTP id S1751802AbYHMTpc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 13:07:49 -0400
+	Wed, 13 Aug 2008 15:45:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ebiederm@xmission.com, mingo@elte.hu, pavel@ucw.cz, rjw@sisk.pl, vgoyal@redhat.com
+Cc: akpm@linux-foundation.org, ebiederm@xmission.com, vgoyal@redhat.com, ying.huang@intel.com
 
 
 The patch titled
-     kexec-jump-check-code-size-in-control-page-fix
+     kexec: use a bitop for locking rather than xchg()
 has been added to the -mm tree.  Its filename is
-     kexec-jump-check-code-size-in-control-page-fix.patch
+     kexec-use-a-bitop-for-locking-rather-than-xchg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,134 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec-jump-check-code-size-in-control-page-fix
+Subject: kexec: use a bitop for locking rather than xchg()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/vmlinux.lds:348: undefined symbol `kexec_control_code_size' referenced in expression
+Functionally the same, but more conventional.
 
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Huang Ying <ying.huang@intel.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/vmlinux_32.lds.S |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/kexec.c |   41 +++++++++++++++++++++--------------------
+ 1 file changed, 21 insertions(+), 20 deletions(-)
 
-diff -puN arch/x86/kernel/vmlinux_32.lds.S~kexec-jump-check-code-size-in-control-page-fix arch/x86/kernel/vmlinux_32.lds.S
---- a/arch/x86/kernel/vmlinux_32.lds.S~kexec-jump-check-code-size-in-control-page-fix
-+++ a/arch/x86/kernel/vmlinux_32.lds.S
-@@ -211,8 +211,10 @@ SECTIONS
-   DWARF_DEBUG
+diff -puN kernel/kexec.c~kexec-use-a-bitop-for-locking-rather-than-xchg kernel/kexec.c
+--- a/kernel/kexec.c~kexec-use-a-bitop-for-locking-rather-than-xchg
++++ a/kernel/kexec.c
+@@ -9,6 +9,7 @@
+ #include <linux/capability.h>
+ #include <linux/mm.h>
+ #include <linux/file.h>
++#include <linux/bitops.h>
+ #include <linux/slab.h>
+ #include <linux/fs.h>
+ #include <linux/kexec.h>
+@@ -924,19 +925,28 @@ static int kimage_load_segment(struct ki
+  */
+ struct kimage *kexec_image;
+ struct kimage *kexec_crash_image;
++
++static unsigned long kexec_bitlock;
++
+ /*
+- * A home grown binary mutex.
+- * Nothing can wait so this mutex is safe to use
+- * in interrupt context :)
++ * Return true if we acquired the lock
+  */
+-static int kexec_lock;
++static inline bool kexec_trylock(void)
++{
++	return !test_and_set_bit(0, &kexec_bitlock);
++}
++
++static void kexec_unlock(void)
++{
++	if (!test_and_clear_bit(0, &kexec_bitlock))
++		WARN_ON(1);
++}
+ 
+ asmlinkage long sys_kexec_load(unsigned long entry, unsigned long nr_segments,
+ 				struct kexec_segment __user *segments,
+ 				unsigned long flags)
+ {
+ 	struct kimage **dest_image, *image;
+-	int locked;
+ 	int result;
+ 
+ 	/* We only trust the superuser with rebooting the system. */
+@@ -972,8 +982,7 @@ asmlinkage long sys_kexec_load(unsigned 
+ 	 *
+ 	 * KISS: always take the mutex.
+ 	 */
+-	locked = xchg(&kexec_lock, 1);
+-	if (locked)
++	if (!kexec_trylock())
+ 		return -EBUSY;
+ 
+ 	dest_image = &kexec_image;
+@@ -1015,8 +1024,7 @@ asmlinkage long sys_kexec_load(unsigned 
+ 	image = xchg(dest_image, image);
+ 
+ out:
+-	locked = xchg(&kexec_lock, 0); /* Release the mutex */
+-	BUG_ON(!locked);
++	kexec_unlock();
+ 	kimage_free(image);
+ 
+ 	return result;
+@@ -1063,9 +1071,6 @@ asmlinkage long compat_sys_kexec_load(un
+ 
+ void crash_kexec(struct pt_regs *regs)
+ {
+-	int locked;
+-
+-
+ 	/* Take the kexec_lock here to prevent sys_kexec_load
+ 	 * running on one cpu from replacing the crash kernel
+ 	 * we are using after a panic on a different cpu.
+@@ -1074,8 +1079,7 @@ void crash_kexec(struct pt_regs *regs)
+ 	 * of memory the xchg(&kexec_crash_image) would be
+ 	 * sufficient.  But since I reuse the memory...
+ 	 */
+-	locked = xchg(&kexec_lock, 1);
+-	if (!locked) {
++	if (kexec_trylock()) {
+ 		if (kexec_crash_image) {
+ 			struct pt_regs fixed_regs;
+ 			crash_setup_regs(&fixed_regs, regs);
+@@ -1083,8 +1087,7 @@ void crash_kexec(struct pt_regs *regs)
+ 			machine_crash_shutdown(&fixed_regs);
+ 			machine_kexec(kexec_crash_image);
+ 		}
+-		locked = xchg(&kexec_lock, 0);
+-		BUG_ON(!locked);
++		kexec_unlock();
+ 	}
  }
  
-+#ifdef CONFIG_KEXEC
- /* Link time checks */
- #include <asm/kexec.h>
+@@ -1434,7 +1437,7 @@ int kernel_kexec(void)
+ {
+ 	int error = 0;
  
- ASSERT(kexec_control_code_size <= KEXEC_CONTROL_CODE_MAX_SIZE,
-        "kexec control code size is too big")
-+#endif
+-	if (xchg(&kexec_lock, 1))
++	if (!kexec_trylock())
+ 		return -EBUSY;
+ 	if (!kexec_image) {
+ 		error = -EINVAL;
+@@ -1498,8 +1501,6 @@ int kernel_kexec(void)
+ #endif
+ 
+  Unlock:
+-	if (!xchg(&kexec_lock, 0))
+-		BUG();
+-
++	kexec_unlock();
+ 	return error;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,6 +186,7 @@ ftrace-printk-formatting-infrastructure-fix-fix.patch
 scsi-gdthc-use-unaligned-access-helpers.patch
 git-xtensa.patch
 kexec-jump-check-code-size-in-control-page-fix.patch
+kexec-use-a-bitop-for-locking-rather-than-xchg.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 hwmon-adc124s501-generic-driver.patch
 rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
