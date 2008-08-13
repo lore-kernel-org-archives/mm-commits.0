@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + kexec-use-a-bitop-for-locking-rather-than-xchg.patch added to -mm tree
-Date: Wed, 13 Aug 2008 13:25:40 -0700
-Message-ID: <200808132025.m7DKPf7W004979@imap1.linux-foundation.org>
+Date: Wed, 13 Aug 2008 13:41:36 -0700
+Message-ID: <200808132041.m7DKfaEY005647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34864 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39123 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754232AbYHMU0E (ORCPT
+	by vger.kernel.org with ESMTP id S1753359AbYHMUn0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 16:26:04 -0400
+	Wed, 13 Aug 2008 16:43:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,7 +16,7 @@ Cc: akpm@linux-foundation.org, ebiederm@xmission.com, vgoyal@redhat.com, ying.hu
 
 
 The patch titled
-     kexec: use a spinlock for locking rather than xchg()
+     kexec: use a mutex for locking rather than xchg()
 has been added to the -mm tree.  Its filename is
      kexec-use-a-bitop-for-locking-rather-than-xchg.patch
 
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec: use a spinlock for locking rather than xchg()
+Subject: kexec: use a mutex for locking rather than xchg()
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Functionally the same, but more conventional.
@@ -45,12 +45,21 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |   30 ++++++++----------------------
- 1 file changed, 8 insertions(+), 22 deletions(-)
+ kernel/kexec.c |   34 ++++++++++------------------------
+ 1 file changed, 10 insertions(+), 24 deletions(-)
 
 diff -puN kernel/kexec.c~kexec-use-a-bitop-for-locking-rather-than-xchg kernel/kexec.c
 --- a/kernel/kexec.c~kexec-use-a-bitop-for-locking-rather-than-xchg
 +++ a/kernel/kexec.c
+@@ -12,7 +12,7 @@
+ #include <linux/slab.h>
+ #include <linux/fs.h>
+ #include <linux/kexec.h>
+-#include <linux/spinlock.h>
++#include <linux/mutex.h>
+ #include <linux/list.h>
+ #include <linux/highmem.h>
+ #include <linux/syscalls.h>
 @@ -924,19 +924,14 @@ static int kimage_load_segment(struct ki
   */
  struct kimage *kexec_image;
@@ -62,7 +71,7 @@ diff -puN kernel/kexec.c~kexec-use-a-bitop-for-locking-rather-than-xchg kernel/k
 - */
 -static int kexec_lock;
 +
-+static DEFINE_SPINLOCK(kexec_lock);
++static DEFINE_MUTEX(kexec_mutex);
  
  asmlinkage long sys_kexec_load(unsigned long entry, unsigned long nr_segments,
  				struct kexec_segment __user *segments,
@@ -79,7 +88,7 @@ diff -puN kernel/kexec.c~kexec-use-a-bitop-for-locking-rather-than-xchg kernel/k
  	 */
 -	locked = xchg(&kexec_lock, 1);
 -	if (locked)
-+	if (!spin_trylock(&kexec_lock))
++	if (!mutex_trylock(&kexec_mutex))
  		return -EBUSY;
  
  	dest_image = &kexec_image;
@@ -89,27 +98,29 @@ diff -puN kernel/kexec.c~kexec-use-a-bitop-for-locking-rather-than-xchg kernel/k
  out:
 -	locked = xchg(&kexec_lock, 0); /* Release the mutex */
 -	BUG_ON(!locked);
-+	spin_unlock(&kexec_lock);
++	mutex_unlock(&kexec_mutex);
  	kimage_free(image);
  
  	return result;
-@@ -1063,9 +1056,6 @@ asmlinkage long compat_sys_kexec_load(un
+@@ -1063,10 +1056,7 @@ asmlinkage long compat_sys_kexec_load(un
  
  void crash_kexec(struct pt_regs *regs)
  {
 -	int locked;
 -
 -
- 	/* Take the kexec_lock here to prevent sys_kexec_load
+-	/* Take the kexec_lock here to prevent sys_kexec_load
++	/* Take the kexec_mutex here to prevent sys_kexec_load
  	 * running on one cpu from replacing the crash kernel
  	 * we are using after a panic on a different cpu.
+ 	 *
 @@ -1074,8 +1064,7 @@ void crash_kexec(struct pt_regs *regs)
  	 * of memory the xchg(&kexec_crash_image) would be
  	 * sufficient.  But since I reuse the memory...
  	 */
 -	locked = xchg(&kexec_lock, 1);
 -	if (!locked) {
-+	if (spin_trylock(&kexec_lock)) {
++	if (mutex_trylock(&kexec_mutex)) {
  		if (kexec_crash_image) {
  			struct pt_regs fixed_regs;
  			crash_setup_regs(&fixed_regs, regs);
@@ -119,7 +130,7 @@ diff -puN kernel/kexec.c~kexec-use-a-bitop-for-locking-rather-than-xchg kernel/k
  		}
 -		locked = xchg(&kexec_lock, 0);
 -		BUG_ON(!locked);
-+		spin_unlock(&kexec_lock);
++		mutex_unlock(&kexec_mutex);
  	}
  }
  
@@ -128,7 +139,7 @@ diff -puN kernel/kexec.c~kexec-use-a-bitop-for-locking-rather-than-xchg kernel/k
  	int error = 0;
  
 -	if (xchg(&kexec_lock, 1))
-+	if (!spin_trylock(&kexec_lock))
++	if (!mutex_trylock(&kexec_mutex))
  		return -EBUSY;
  	if (!kexec_image) {
  		error = -EINVAL;
@@ -139,7 +150,7 @@ diff -puN kernel/kexec.c~kexec-use-a-bitop-for-locking-rather-than-xchg kernel/k
 -	if (!xchg(&kexec_lock, 0))
 -		BUG();
 -
-+	spin_unlock(&kexec_lock);
++	mutex_unlock(&kexec_mutex);
  	return error;
  }
 _
