@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + byteorder-m68k-use-the-new-byteorder-headers.patch added to -mm tree
-Date: Tue, 12 Aug 2008 19:59:01 -0700
-Message-ID: <200808130259.m7D2x1C3027451@imap1.linux-foundation.org>
+Subject: + byteorder-m32r-use-the-new-byteorder-headers.patch added to -mm tree
+Date: Tue, 12 Aug 2008 19:58:59 -0700
+Message-ID: <200808130258.m7D2wxu6027379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59401 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45223 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753865AbYHMC7M (ORCPT
+	by vger.kernel.org with ESMTP id S1753897AbYHMC7N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 22:59:12 -0400
+	Tue, 12 Aug 2008 22:59:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, geert@linux-m68k.org, zippel@linux-m68k.org
+Cc: harvey.harrison@gmail.com, takata@linux-m32r.org
 
 
 The patch titled
-     byteorder: m68k: use the new byteorder headers
+     byteorder: m32r: use the new byteorder headers
 has been added to the -mm tree.  Its filename is
-     byteorder-m68k-use-the-new-byteorder-headers.patch
+     byteorder-m32r-use-the-new-byteorder-headers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: m68k: use the new byteorder headers
+Subject: byteorder: m32r: use the new byteorder headers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m68k/byteorder.h |   16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+ include/asm-m32r/byteorder.h |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN include/asm-m68k/byteorder.h~byteorder-m68k-use-the-new-byteorder-headers include/asm-m68k/byteorder.h
---- a/include/asm-m68k/byteorder.h~byteorder-m68k-use-the-new-byteorder-headers
-+++ a/include/asm-m68k/byteorder.h
-@@ -4,22 +4,16 @@
- #include <asm/types.h>
- #include <linux/compiler.h>
+diff -puN include/asm-m32r/byteorder.h~byteorder-m32r-use-the-new-byteorder-headers include/asm-m32r/byteorder.h
+--- a/include/asm-m32r/byteorder.h~byteorder-m32r-use-the-new-byteorder-headers
++++ a/include/asm-m32r/byteorder.h
+@@ -1,17 +1,14 @@
+ #ifndef _ASM_M32R_BYTEORDER_H
+ #define _ASM_M32R_BYTEORDER_H
  
--#ifdef __GNUC__
-+#define __BIG_ENDIAN
-+#define __SWAB_64_THRU_32__
- 
--static __inline__ __attribute_const__ __u32 ___arch__swab32(__u32 val)
-+static inline __attribute_const__ __u32 __arch_swab32(__u32 val)
- {
- 	__asm__("rolw #8,%0; swap %0; rolw #8,%0" : "=d" (val) : "0" (val));
- 	return val;
- }
--#define __arch__swab32(x) ___arch__swab32(x)
-+#define __arch_swab32 __arch_swab32
- 
--#endif
+-#include <asm/types.h>
 -
--#if defined(__GNUC__) && !defined(__STRICT_ANSI__) || defined(__KERNEL__)
+-#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
 -#  define __BYTEORDER_HAS_U64__
 -#  define __SWAB_64_THRU_32__
 -#endif
 -
--#include <linux/byteorder/big_endian.h>
-+#include <linux/byteorder.h>
+ #if defined(__LITTLE_ENDIAN__)
+-#  include <linux/byteorder/little_endian.h>
++# define __LITTLE_ENDIAN
+ #else
+-#  include <linux/byteorder/big_endian.h>
++# define __BIG_ENDIAN
+ #endif
  
- #endif /* _M68K_BYTEORDER_H */
++#define __SWAB_64_THRU_32__
++
++#include <linux/byteorder.h>
++
+ #endif /* _ASM_M32R_BYTEORDER_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
