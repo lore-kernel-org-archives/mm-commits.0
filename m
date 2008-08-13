@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ibmaem-update-the-documentation-to-reflect-the-current-name.patch added to -mm tree
-Date: Wed, 13 Aug 2008 15:52:14 -0700
-Message-ID: <200808132252.m7DMqEu9010761@imap1.linux-foundation.org>
+Subject: + ibmaem-dont-query-the-entire-sensor-repository-when-reading-energy-meter.patch added to -mm tree
+Date: Wed, 13 Aug 2008 15:54:47 -0700
+Message-ID: <200808132254.m7DMslki010889@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48492 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58173 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753069AbYHMWwt (ORCPT
+	by vger.kernel.org with ESMTP id S1750782AbYHMWzs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 18:52:49 -0400
+	Wed, 13 Aug 2008 18:55:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: djwong@us.ibm.com
 
 
 The patch titled
-     ibmaem: update the documentation to reflect the current name
+     ibmaem: don't query the entire sensor repository when reading energy meter
 has been added to the -mm tree.  Its filename is
-     ibmaem-update-the-documentation-to-reflect-the-current-name.patch
+     ibmaem-dont-query-the-entire-sensor-repository-when-reading-energy-meter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,97 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ibmaem: update the documentation to reflect the current name
+Subject: ibmaem: don't query the entire sensor repository when reading energy meter
 From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-Minor documentation update to reflect the current full name of the power
-management hardware interface and reflows the text a bit.
+Currently, all sensors are read when the energy meter is queried via
+sysfs.  This introduces a considerable amount of delay and variation in
+the sysfs reading, which is not desirable when trying to profile energy
+use.  Therefore, read only the energy meters when a sysfs query comes in
+for them, and don't cache the results so that we always get the latest
+reading.
 
 Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/hwmon/ibmaem |   37 +++++++++++++++++------------------
- drivers/hwmon/ibmaem.c     |    6 ++---
- 2 files changed, 22 insertions(+), 21 deletions(-)
+ drivers/hwmon/ibmaem.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/hwmon/ibmaem~ibmaem-update-the-documentation-to-reflect-the-current-name Documentation/hwmon/ibmaem
---- a/Documentation/hwmon/ibmaem~ibmaem-update-the-documentation-to-reflect-the-current-name
-+++ a/Documentation/hwmon/ibmaem
-@@ -1,8 +1,11 @@
- Kernel driver ibmaem
- ======================
- 
-+This driver talks to the IBM Systems Director Active Energy Manager, known
-+henceforth as AEM.
-+
- Supported systems:
--  * Any recent IBM System X server with Active Energy Manager support.
-+  * Any recent IBM System X server with AEM support.
-     This includes the x3350, x3550, x3650, x3655, x3755, x3850 M2,
-     x3950 M2, and certain HS2x/LS2x/QS2x blades.  The IPMI host interface
-     driver ("ipmi-si") needs to be loaded for this driver to do anything.
-@@ -14,24 +17,22 @@ Author: Darrick J. Wong
- Description
- -----------
- 
--This driver implements sensor reading support for the energy and power
--meters available on various IBM System X hardware through the BMC.  All
--sensor banks will be exported as platform devices; this driver can talk
--to both v1 and v2 interfaces.  This driver is completely separate from the
--older ibmpex driver.
--
--The v1 AEM interface has a simple set of features to monitor energy use.
--There is a register that displays an estimate of raw energy consumption
--since the last BMC reset, and a power sensor that returns average power
--use over a configurable interval.
--
--The v2 AEM interface is a bit more sophisticated, being able to present
--a wider range of energy and power use registers, the power cap as
--set by the AEM software, and temperature sensors.
-+This driver implements sensor reading support for the energy and power meters
-+available on various IBM System X hardware through the BMC.  All sensor banks
-+will be exported as platform devices; this driver can talk to both v1 and v2
-+interfaces.  This driver is completely separate from the older ibmpex driver.
-+
-+The v1 AEM interface has a simple set of features to monitor energy use.  There
-+is a register that displays an estimate of raw energy consumption since the
-+last BMC reset, and a power sensor that returns average power use over a
-+configurable interval.
-+
-+The v2 AEM interface is a bit more sophisticated, being able to present a wider
-+range of energy and power use registers, the power cap as set by the AEM
-+software, and temperature sensors.
- 
- Special Features
- ----------------
- 
--The "power_cap" value displays the current system power cap, as set by
--the Active Energy Manager software.  Setting the power cap from the host
--is not currently supported.
-+The "power_cap" value displays the current system power cap, as set by the AEM
-+software.  Setting the power cap from the host is not currently supported.
-diff -puN drivers/hwmon/ibmaem.c~ibmaem-update-the-documentation-to-reflect-the-current-name drivers/hwmon/ibmaem.c
---- a/drivers/hwmon/ibmaem.c~ibmaem-update-the-documentation-to-reflect-the-current-name
+diff -puN drivers/hwmon/ibmaem.c~ibmaem-dont-query-the-entire-sensor-repository-when-reading-energy-meter drivers/hwmon/ibmaem.c
+--- a/drivers/hwmon/ibmaem.c~ibmaem-dont-query-the-entire-sensor-repository-when-reading-energy-meter
 +++ a/drivers/hwmon/ibmaem.c
-@@ -1,6 +1,6 @@
- /*
-- * A hwmon driver for the IBM Active Energy Manager temperature/power sensors
-- * and capping functionality.
-+ * A hwmon driver for the IBM System Director Active Energy Manager (AEM)
-+ * temperature/power/energy sensors and capping functionality.
-  * Copyright (C) 2008 IBM
-  *
-  * Author: Darrick J. Wong <djwong@us.ibm.com>
-@@ -1104,7 +1104,7 @@ static void __exit aem_exit(void)
+@@ -463,12 +463,18 @@ static int aem_read_sensor(struct aem_da
  }
  
- MODULE_AUTHOR("Darrick J. Wong <djwong@us.ibm.com>");
--MODULE_DESCRIPTION("IBM Active Energy Manager power/temp sensor driver");
-+MODULE_DESCRIPTION("IBM AEM power/temp/energy sensor driver");
- MODULE_LICENSE("GPL");
+ /* Update AEM energy registers */
++static void update_aem_energy_one(struct aem_data *data, int which)
++{
++	aem_read_sensor(data, AEM_ENERGY_ELEMENT, which,
++			&data->energy[which], 8);
++}
++
+ static void update_aem_energy(struct aem_data *data)
+ {
+-	aem_read_sensor(data, AEM_ENERGY_ELEMENT, 0, &data->energy[0], 8);
++	update_aem_energy_one(data, 0);
+ 	if (data->ver_major < 2)
+ 		return;
+-	aem_read_sensor(data, AEM_ENERGY_ELEMENT, 1, &data->energy[1], 8);
++	update_aem_energy_one(data, 1);
+ }
  
- module_init(aem_init);
+ /* Update all AEM1 sensors */
+@@ -850,7 +856,7 @@ static ssize_t aem_show_power(struct dev
+ 	struct timespec b, a;
+ 
+ 	mutex_lock(&data->lock);
+-	update_aem_energy(data);
++	update_aem_energy_one(data, attr->index);
+ 	getnstimeofday(&b);
+ 	before = data->energy[attr->index];
+ 
+@@ -862,7 +868,7 @@ static ssize_t aem_show_power(struct dev
+ 		return 0;
+ 	}
+ 
+-	update_aem_energy(data);
++	update_aem_energy_one(data, attr->index);
+ 	getnstimeofday(&a);
+ 	after = data->energy[attr->index];
+ 	mutex_unlock(&data->lock);
+@@ -881,7 +887,9 @@ static ssize_t aem_show_energy(struct de
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct aem_data *a = dev_get_drvdata(dev);
+-	a->update(a);
++	mutex_lock(&a->lock);
++	update_aem_energy_one(a, attr->index);
++	mutex_unlock(&a->lock);
+ 
+ 	return sprintf(buf, "%llu\n",
+ 			(unsigned long long)a->energy[attr->index] * 1000);
 _
 
 Patches currently in -mm which might be from djwong@us.ibm.com are
@@ -132,4 +111,5 @@ Patches currently in -mm which might be from djwong@us.ibm.com are
 i5k_amb-provide-labels-for-temperature-sensors.patch
 ibmaem-update-the-documentation-to-reflect-the-current-name.patch
 ibmaem-prevent-infinite-probing-loop-on-x3650-m2-systems.patch
+ibmaem-dont-query-the-entire-sensor-repository-when-reading-energy-meter.patch
 
