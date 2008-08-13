@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ibmaem-prevent-infinite-probing-loop-on-x3650-m2-systems.patch added to -mm tree
-Date: Wed, 13 Aug 2008 15:51:44 -0700
-Message-ID: <200808132251.m7DMpius010740@imap1.linux-foundation.org>
+Subject: + ibmaem-update-the-documentation-to-reflect-the-current-name.patch added to -mm tree
+Date: Wed, 13 Aug 2008 15:52:14 -0700
+Message-ID: <200808132252.m7DMqEu9010761@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48668 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48492 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752424AbYHMWwe (ORCPT
+	by vger.kernel.org with ESMTP id S1753069AbYHMWwt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 18:52:34 -0400
+	Wed, 13 Aug 2008 18:52:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: djwong@us.ibm.com
 
 
 The patch titled
-     ibmaem: prevent infinite probing loop on x3650 M2 systems
+     ibmaem: update the documentation to reflect the current name
 has been added to the -mm tree.  Its filename is
-     ibmaem-prevent-infinite-probing-loop-on-x3650-m2-systems.patch
+     ibmaem-update-the-documentation-to-reflect-the-current-name.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,97 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ibmaem: prevent infinite probing loop on x3650 M2 systems
+Subject: ibmaem: update the documentation to reflect the current name
 From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-On older machines, probing for a nonexistent AEM interface returned an
-IPMI error; when we saw this, we'd stop probing.  On the x3650 M2 and
-(presumably) later, we are returned a value indicating success and a
-buffer full of garbage or zeroes.  This causes the probe function to run
-in an infinite loop.  To fix this, we add one last check--if the interface
-number we're looking for is higher than the number of interfaces that AEM
-claims to have, stop probing.
+Minor documentation update to reflect the current full name of the power
+management hardware interface and reflows the text a bit.
 
 Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/ibmaem.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/hwmon/ibmaem |   37 +++++++++++++++++------------------
+ drivers/hwmon/ibmaem.c     |    6 ++---
+ 2 files changed, 22 insertions(+), 21 deletions(-)
 
-diff -puN drivers/hwmon/ibmaem.c~ibmaem-prevent-infinite-probing-loop-on-x3650-m2-systems drivers/hwmon/ibmaem.c
---- a/drivers/hwmon/ibmaem.c~ibmaem-prevent-infinite-probing-loop-on-x3650-m2-systems
+diff -puN Documentation/hwmon/ibmaem~ibmaem-update-the-documentation-to-reflect-the-current-name Documentation/hwmon/ibmaem
+--- a/Documentation/hwmon/ibmaem~ibmaem-update-the-documentation-to-reflect-the-current-name
++++ a/Documentation/hwmon/ibmaem
+@@ -1,8 +1,11 @@
+ Kernel driver ibmaem
+ ======================
+ 
++This driver talks to the IBM Systems Director Active Energy Manager, known
++henceforth as AEM.
++
+ Supported systems:
+-  * Any recent IBM System X server with Active Energy Manager support.
++  * Any recent IBM System X server with AEM support.
+     This includes the x3350, x3550, x3650, x3655, x3755, x3850 M2,
+     x3950 M2, and certain HS2x/LS2x/QS2x blades.  The IPMI host interface
+     driver ("ipmi-si") needs to be loaded for this driver to do anything.
+@@ -14,24 +17,22 @@ Author: Darrick J. Wong
+ Description
+ -----------
+ 
+-This driver implements sensor reading support for the energy and power
+-meters available on various IBM System X hardware through the BMC.  All
+-sensor banks will be exported as platform devices; this driver can talk
+-to both v1 and v2 interfaces.  This driver is completely separate from the
+-older ibmpex driver.
+-
+-The v1 AEM interface has a simple set of features to monitor energy use.
+-There is a register that displays an estimate of raw energy consumption
+-since the last BMC reset, and a power sensor that returns average power
+-use over a configurable interval.
+-
+-The v2 AEM interface is a bit more sophisticated, being able to present
+-a wider range of energy and power use registers, the power cap as
+-set by the AEM software, and temperature sensors.
++This driver implements sensor reading support for the energy and power meters
++available on various IBM System X hardware through the BMC.  All sensor banks
++will be exported as platform devices; this driver can talk to both v1 and v2
++interfaces.  This driver is completely separate from the older ibmpex driver.
++
++The v1 AEM interface has a simple set of features to monitor energy use.  There
++is a register that displays an estimate of raw energy consumption since the
++last BMC reset, and a power sensor that returns average power use over a
++configurable interval.
++
++The v2 AEM interface is a bit more sophisticated, being able to present a wider
++range of energy and power use registers, the power cap as set by the AEM
++software, and temperature sensors.
+ 
+ Special Features
+ ----------------
+ 
+-The "power_cap" value displays the current system power cap, as set by
+-the Active Energy Manager software.  Setting the power cap from the host
+-is not currently supported.
++The "power_cap" value displays the current system power cap, as set by the AEM
++software.  Setting the power cap from the host is not currently supported.
+diff -puN drivers/hwmon/ibmaem.c~ibmaem-update-the-documentation-to-reflect-the-current-name drivers/hwmon/ibmaem.c
+--- a/drivers/hwmon/ibmaem.c~ibmaem-update-the-documentation-to-reflect-the-current-name
 +++ a/drivers/hwmon/ibmaem.c
-@@ -676,7 +676,8 @@ static int aem_find_aem2(struct aem_ipmi
- 		return -ETIMEDOUT;
+@@ -1,6 +1,6 @@
+ /*
+- * A hwmon driver for the IBM Active Energy Manager temperature/power sensors
+- * and capping functionality.
++ * A hwmon driver for the IBM System Director Active Energy Manager (AEM)
++ * temperature/power/energy sensors and capping functionality.
+  * Copyright (C) 2008 IBM
+  *
+  * Author: Darrick J. Wong <djwong@us.ibm.com>
+@@ -1104,7 +1104,7 @@ static void __exit aem_exit(void)
+ }
  
- 	if (data->rx_result || data->rx_msg_len != sizeof(*fi_resp) ||
--	    memcmp(&fi_resp->id, &system_x_id, sizeof(system_x_id)))
-+	    memcmp(&fi_resp->id, &system_x_id, sizeof(system_x_id)) ||
-+	    fi_resp->num_instances <= instance_num)
- 		return -ENOENT;
+ MODULE_AUTHOR("Darrick J. Wong <djwong@us.ibm.com>");
+-MODULE_DESCRIPTION("IBM Active Energy Manager power/temp sensor driver");
++MODULE_DESCRIPTION("IBM AEM power/temp/energy sensor driver");
+ MODULE_LICENSE("GPL");
  
- 	return 0;
+ module_init(aem_init);
 _
 
 Patches currently in -mm which might be from djwong@us.ibm.com are
