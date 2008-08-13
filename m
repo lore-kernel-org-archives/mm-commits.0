@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + byteorder-mips-use-the-new-byteorder-headers.patch added to -mm tree
-Date: Tue, 12 Aug 2008 19:59:05 -0700
-Message-ID: <200808130259.m7D2x5Lu027463@imap1.linux-foundation.org>
+Subject: + byteorder-sh-use-the-new-byteorder-headers.patch added to -mm tree
+Date: Tue, 12 Aug 2008 19:59:15 -0700
+Message-ID: <200808130259.m7D2xFJZ027478@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37992 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53418 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753779AbYHMC7R (ORCPT
+	by vger.kernel.org with ESMTP id S1753762AbYHMC7S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 22:59:17 -0400
+	Tue, 12 Aug 2008 22:59:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, ralf@linux-mips.org
+Cc: harvey.harrison@gmail.com, lethal@linux-sh.org
 
 
 The patch titled
-     byteorder: mips: use the new byteorder headers
+     byteorder: sh: use the new byteorder headers
 has been added to the -mm tree.  Its filename is
-     byteorder-mips-use-the-new-byteorder-headers.patch
+     byteorder-sh-use-the-new-byteorder-headers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,97 +34,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: mips: use the new byteorder headers
+Subject: byteorder: sh: use the new byteorder headers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-mips/byteorder.h |   40 +++++++++++++--------------------
- 1 file changed, 16 insertions(+), 24 deletions(-)
+ arch/sh/include/asm/byteorder.h |   32 ++++++++++++++----------------
+ 1 file changed, 15 insertions(+), 17 deletions(-)
 
-diff -puN include/asm-mips/byteorder.h~byteorder-mips-use-the-new-byteorder-headers include/asm-mips/byteorder.h
---- a/include/asm-mips/byteorder.h~byteorder-mips-use-the-new-byteorder-headers
-+++ a/include/asm-mips/byteorder.h
-@@ -11,11 +11,19 @@
+diff -puN arch/sh/include/asm/byteorder.h~byteorder-sh-use-the-new-byteorder-headers arch/sh/include/asm/byteorder.h
+--- a/arch/sh/include/asm/byteorder.h~byteorder-sh-use-the-new-byteorder-headers
++++ a/arch/sh/include/asm/byteorder.h
+@@ -8,7 +8,15 @@
  #include <linux/compiler.h>
- #include <asm/types.h>
+ #include <linux/types.h>
  
--#ifdef __GNUC__
-+#if defined(__MIPSEB__)
-+# define __BIG_ENDIAN
-+#elif defined(__MIPSEL__)
+-static inline __attribute_const__ __u32 ___arch__swab32(__u32 x)
++#ifdef __LITTLE_ENDIAN__
 +# define __LITTLE_ENDIAN
 +#else
-+# error "MIPS, but neither __MIPSEB__, nor __MIPSEL__???"
++# define __BIG_ENDIAN
 +#endif
 +
 +#define __SWAB_64_THRU_32__
- 
- #ifdef CONFIG_CPU_MIPSR2
- 
--static __inline__ __attribute_const__ __u16 ___arch__swab16(__u16 x)
-+static inline __attribute_const__ __u16 __arch_swab16(__u16 x)
- {
- 	__asm__(
- 	"	wsbh	%0, %1			\n"
-@@ -24,9 +32,9 @@ static __inline__ __attribute_const__ __
- 
- 	return x;
- }
--#define __arch__swab16(x)	___arch__swab16(x)
-+#define __arch_swab16 __arch_swab16
- 
--static __inline__ __attribute_const__ __u32 ___arch__swab32(__u32 x)
++
 +static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
  {
  	__asm__(
- 	"	wsbh	%0, %1			\n"
-@@ -36,11 +44,10 @@ static __inline__ __attribute_const__ __
+ #ifdef __SH5__
+@@ -24,8 +32,9 @@ static inline __attribute_const__ __u32 
  
  	return x;
  }
--#define __arch__swab32(x)	___arch__swab32(x)
 +#define __arch_swab32 __arch_swab32
  
- #ifdef CONFIG_CPU_MIPS64_R2
--
--static __inline__ __attribute_const__ __u64 ___arch__swab64(__u64 x)
-+static inline __attribute_const__ __u64 __arch_swab64(__u64 x)
+-static inline __attribute_const__ __u16 ___arch__swab16(__u16 x)
++static inline __attribute_const__ __u16 __arch_swab16(__u16 x)
  {
  	__asm__(
- 	"	dsbh	%0, %1			\n"
-@@ -51,26 +58,11 @@ static __inline__ __attribute_const__ __
+ #ifdef __SH5__
+@@ -39,8 +48,9 @@ static inline __attribute_const__ __u16 
  
  	return x;
  }
--
--#define __arch__swab64(x)	___arch__swab64(x)
--
++#define __arch_swab16 __arch_swab16
+ 
+-static inline __u64 ___arch__swab64(__u64 val)
++static inline __u64 __arch_swab64(__u64 val)
+ {
+ 	union {
+ 		struct { __u32 a,b; } s;
+@@ -51,20 +61,8 @@ static inline __u64 ___arch__swab64(__u6
+ 	w.s.a = ___arch__swab32(v.s.b);
+ 	return w.u;
+ }
 +#define __arch_swab64 __arch_swab64
- #endif /* CONFIG_CPU_MIPS64_R2 */
  
- #endif /* CONFIG_CPU_MIPSR2 */
- 
+-#define __arch__swab64(x) ___arch__swab64(x)
+-#define __arch__swab32(x) ___arch__swab32(x)
+-#define __arch__swab16(x) ___arch__swab16(x)
+-
 -#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
 -#  define __BYTEORDER_HAS_U64__
 -#  define __SWAB_64_THRU_32__
 -#endif
 -
--#endif /* __GNUC__ */
--
--#if defined(__MIPSEB__)
--#  include <linux/byteorder/big_endian.h>
--#elif defined(__MIPSEL__)
--#  include <linux/byteorder/little_endian.h>
+-#ifdef __LITTLE_ENDIAN__
+-#include <linux/byteorder/little_endian.h>
 -#else
--#  error "MIPS, but neither __MIPSEB__, nor __MIPSEL__???"
+-#include <linux/byteorder/big_endian.h>
 -#endif
 +#include <linux/byteorder.h>
  
- #endif /* _ASM_BYTEORDER_H */
+ #endif /* __ASM_SH_BYTEORDER_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
