@@ -1,72 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - byteorder-alpha-use-the-new-byteorder-headers.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 22:43:33 -0700
-Message-ID: <200808130556.m7D5ucVZ001301@imap1.linux-foundation.org>
+Subject: - byteorder-avr32-use-the-new-byteorder-headers.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 22:43:37 -0700
+Message-ID: <200808130556.m7D5ugNv001307@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36789 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33636 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752941AbYHMF4n (ORCPT
+	by vger.kernel.org with ESMTP id S1751917AbYHMF4q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 01:56:43 -0400
+	Wed, 13 Aug 2008 01:56:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, haavard.skinnemoen@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     byteorder: alpha: use the new byteorder headers
+     byteorder: avr32: use the new byteorder headers
 has been removed from the -mm tree.  Its filename was
-     byteorder-alpha-use-the-new-byteorder-headers.patch
+     byteorder-avr32-use-the-new-byteorder-headers.patch
 
 This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: alpha: use the new byteorder headers
+Subject: byteorder: avr32: use the new byteorder headers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
+Acked-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/byteorder.h |   13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ arch/avr32/include/asm/byteorder.h |   22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN include/asm-alpha/byteorder.h~byteorder-alpha-use-the-new-byteorder-headers include/asm-alpha/byteorder.h
---- a/include/asm-alpha/byteorder.h~byteorder-alpha-use-the-new-byteorder-headers
-+++ a/include/asm-alpha/byteorder.h
-@@ -5,9 +5,9 @@
+diff -puN arch/avr32/include/asm/byteorder.h~byteorder-avr32-use-the-new-byteorder-headers arch/avr32/include/asm/byteorder.h
+--- a/arch/avr32/include/asm/byteorder.h~byteorder-avr32-use-the-new-byteorder-headers
++++ a/arch/avr32/include/asm/byteorder.h
+@@ -7,6 +7,9 @@
+ #include <asm/types.h>
  #include <linux/compiler.h>
- #include <asm/compiler.h>
  
--#ifdef __GNUC__
-+#define __LITTLE_ENDIAN
++#define __BIG_ENDIAN
++#define __SWAB_64_THRU_32__
++
+ #ifdef __CHECKER__
+ extern unsigned long __builtin_bswap_32(unsigned long x);
+ extern unsigned short __builtin_bswap_16(unsigned short x);
+@@ -17,15 +20,18 @@ extern unsigned short __builtin_bswap_16
+  * the result.
+  */
+ #if !(__GNUC__ == 4 && __GNUC_MINOR__ < 2)
+-#define __arch__swab32(x) __builtin_bswap_32(x)
+-#define __arch__swab16(x) __builtin_bswap_16(x)
+-#endif
++static inline __attribute_const__ __u16 __arch_swab16(__u16 val)
++{
++	return __builtin_bswap_16(val);
++}
++#define __arch_swab16 __arch_swab16
  
--static inline __attribute_const__ __u32 __arch__swab32(__u32 x)
-+static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
- {
- 	/*
- 	 * Unfortunately, we can't use the 6 instruction sequence
-@@ -35,13 +35,8 @@ static inline __attribute_const__ __u32 
- 
- 	return t1;
- }
+-#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
+-# define __BYTEORDER_HAS_U64__
+-# define __SWAB_64_THRU_32__
++static inline __attribute_const__ __u32 __arch_swab32(__u32 val)
++{
++	return __builtin_bswap_32(val);
++}
 +#define __arch_swab32 __arch_swab32
+ #endif
  
--#define __arch__swab32 __arch__swab32
+-#include <linux/byteorder/big_endian.h>
 -
--#endif /* __GNUC__ */
--
--#define __BYTEORDER_HAS_U64__
--
--#include <linux/byteorder/little_endian.h>
 +#include <linux/byteorder.h>
- 
- #endif /* _ALPHA_BYTEORDER_H */
+ #endif /* __ASM_AVR32_BYTEORDER_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -97,8 +105,6 @@ include-replace-__function__-with-__func__.patch
 misc-replace-__function__-with-__func__.patch
 befs-annotate-fs32-on-tests-for-superblock-endianness.patch
 net-tipc-subscrc-dont-use-___constant_swab32.patch
-byteorder-alpha-use-the-new-byteorder-headers.patch
-byteorder-arm-use-the-new-byteorder-headers.patch
 byteorder-avr32-use-the-new-byteorder-headers.patch
 byteorder-blackfin-use-the-new-byteorder-headers.patch
 byteorder-cris-use-the-new-byteorder-headers.patch
