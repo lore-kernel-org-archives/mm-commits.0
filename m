@@ -1,60 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - byteorder-h8300-use-the-new-byteorder-headers.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 22:43:45 -0700
-Message-ID: <200808130556.m7D5uoFg001321@imap1.linux-foundation.org>
+Subject: - byteorder-m32r-use-the-new-byteorder-headers.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 22:43:49 -0700
+Message-ID: <200808130556.m7D5usfQ001332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52262 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36874 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752026AbYHMF5C (ORCPT
+	by vger.kernel.org with ESMTP id S1752083AbYHMF5F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 01:57:02 -0400
+	Wed, 13 Aug 2008 01:57:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     byteorder: h8300: use the new byteorder headers
+     byteorder: m32r: use the new byteorder headers
 has been removed from the -mm tree.  Its filename was
-     byteorder-h8300-use-the-new-byteorder-headers.patch
+     byteorder-m32r-use-the-new-byteorder-headers.patch
 
 This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: h8300: use the new byteorder headers
+Subject: byteorder: m32r: use the new byteorder headers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-h8300/byteorder.h |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ include/asm-m32r/byteorder.h |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN include/asm-h8300/byteorder.h~byteorder-h8300-use-the-new-byteorder-headers include/asm-h8300/byteorder.h
---- a/include/asm-h8300/byteorder.h~byteorder-h8300-use-the-new-byteorder-headers
-+++ a/include/asm-h8300/byteorder.h
-@@ -1,13 +1,9 @@
- #ifndef _H8300_BYTEORDER_H
- #define _H8300_BYTEORDER_H
+diff -puN include/asm-m32r/byteorder.h~byteorder-m32r-use-the-new-byteorder-headers include/asm-m32r/byteorder.h
+--- a/include/asm-m32r/byteorder.h~byteorder-m32r-use-the-new-byteorder-headers
++++ a/include/asm-m32r/byteorder.h
+@@ -1,17 +1,14 @@
+ #ifndef _ASM_M32R_BYTEORDER_H
+ #define _ASM_M32R_BYTEORDER_H
  
 -#include <asm/types.h>
-+#define __BIG_ENDIAN
-+#define __SWAB_64_THRU_32__
- 
--#if defined(__GNUC__) && !defined(__STRICT_ANSI__) || defined(__KERNEL__)
+-
+-#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
 -#  define __BYTEORDER_HAS_U64__
 -#  define __SWAB_64_THRU_32__
 -#endif
 -
--#include <linux/byteorder/big_endian.h>
-+#include <linux/byteorder.h>
+ #if defined(__LITTLE_ENDIAN__)
+-#  include <linux/byteorder/little_endian.h>
++# define __LITTLE_ENDIAN
+ #else
+-#  include <linux/byteorder/big_endian.h>
++# define __BIG_ENDIAN
+ #endif
  
- #endif /* _H8300_BYTEORDER_H */
++#define __SWAB_64_THRU_32__
++
++#include <linux/byteorder.h>
++
+ #endif /* _ASM_M32R_BYTEORDER_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -85,8 +92,6 @@ include-replace-__function__-with-__func__.patch
 misc-replace-__function__-with-__func__.patch
 befs-annotate-fs32-on-tests-for-superblock-endianness.patch
 net-tipc-subscrc-dont-use-___constant_swab32.patch
-byteorder-h8300-use-the-new-byteorder-headers.patch
-byteorder-ia64-use-the-new-byteorder-headers.patch
 byteorder-m32r-use-the-new-byteorder-headers.patch
 byteorder-m68k-use-the-new-byteorder-headers.patch
 byteorder-m68knommu-use-the-new-byteorder-headers.patch
