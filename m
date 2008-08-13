@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + byteorder-powerpc-use-the-new-byteorder-headers.patch added to -mm tree
-Date: Tue, 12 Aug 2008 19:59:11 -0700
-Message-ID: <200808130259.m7D2xBgQ027472@imap1.linux-foundation.org>
+Subject: + byteorder-frv-use-the-new-byteorder-headers.patch added to -mm tree
+Date: Tue, 12 Aug 2008 19:58:53 -0700
+Message-ID: <200808130258.m7D2wrdK027367@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48631 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50044 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753999AbYHMC7P (ORCPT
+	by vger.kernel.org with ESMTP id S1753921AbYHMC7P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 12 Aug 2008 22:59:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, benh@kernel.crashing.org
+Cc: harvey.harrison@gmail.com, dhowells@redhat.com
 
 
 The patch titled
-     byteorder: powerpc: use the new byteorder headers
+     byteorder: frv: use the new byteorder headers
 has been added to the -mm tree.  Its filename is
-     byteorder-powerpc-use-the-new-byteorder-headers.patch
+     byteorder-frv-use-the-new-byteorder-headers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,114 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: powerpc: use the new byteorder headers
+Subject: byteorder: frv: use the new byteorder headers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/byteorder.h |   49 +++++++++----------------
- 1 file changed, 18 insertions(+), 31 deletions(-)
+ include/asm-frv/byteorder.h |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN arch/powerpc/include/asm/byteorder.h~byteorder-powerpc-use-the-new-byteorder-headers arch/powerpc/include/asm/byteorder.h
---- a/arch/powerpc/include/asm/byteorder.h~byteorder-powerpc-use-the-new-byteorder-headers
-+++ a/arch/powerpc/include/asm/byteorder.h
-@@ -11,36 +11,43 @@
- #include <asm/types.h>
- #include <linux/compiler.h>
+diff -puN include/asm-frv/byteorder.h~byteorder-frv-use-the-new-byteorder-headers include/asm-frv/byteorder.h
+--- a/include/asm-frv/byteorder.h~byteorder-frv-use-the-new-byteorder-headers
++++ a/include/asm-frv/byteorder.h
+@@ -1,13 +1,9 @@
+ #ifndef _ASM_BYTEORDER_H
+ #define _ASM_BYTEORDER_H
  
--#ifdef __GNUC__
--#ifdef __KERNEL__
+-#include <asm/types.h>
 +#define __BIG_ENDIAN
++#define __SWAB_64_THRU_32__
  
--static __inline__ __u16 ld_le16(const volatile __u16 *addr)
-+#ifndef __powerpc64__
-+# define __SWAB_64_THRU_32__
-+#endif
-+
-+static inline __u16 __arch_swab16p(const volatile __u16 *addr)
- {
- 	__u16 val;
- 
- 	__asm__ __volatile__ ("lhbrx %0,0,%1" : "=r" (val) : "r" (addr), "m" (*addr));
- 	return val;
- }
-+#define __arch_swab16p __arch_swab16p
- 
--static __inline__ void st_le16(volatile __u16 *addr, const __u16 val)
-+static inline void __arch_swab16s(volatile __u16 *addr, const __u16 val)
- {
- 	__asm__ __volatile__ ("sthbrx %1,0,%2" : "=m" (*addr) : "r" (val), "r" (addr));
- }
-+#define __arch_swab16s __arch_swab16s
- 
--static __inline__ __u32 ld_le32(const volatile __u32 *addr)
-+static inline __u32 __arch_swab32p(const volatile __u32 *addr)
- {
- 	__u32 val;
- 
- 	__asm__ __volatile__ ("lwbrx %0,0,%1" : "=r" (val) : "r" (addr), "m" (*addr));
- 	return val;
- }
-+#define __arch_swab32p __arch_swab32p
- 
--static __inline__ void st_le32(volatile __u32 *addr, const __u32 val)
-+static inline void __arch_swab32s(volatile __u32 *addr, const __u32 val)
- {
- 	__asm__ __volatile__ ("stwbrx %1,0,%2" : "=m" (*addr) : "r" (val), "r" (addr));
- }
-+#define __arch_swab32s __arch_swab32s
- 
--static __inline__ __attribute_const__ __u16 ___arch__swab16(__u16 value)
-+static inline __attribute_const__ __u16 __arch_swab16(__u16 value)
- {
- 	__u16 result;
- 
-@@ -49,8 +56,9 @@ static __inline__ __attribute_const__ __
- 	    : "r" (value), "0" (value >> 8));
- 	return result;
- }
-+#define __arch_swab16 __arch_swab16
- 
--static __inline__ __attribute_const__ __u32 ___arch__swab32(__u32 value)
-+static inline __attribute_const__ __u32 __arch_swab32(__u32 value)
- {
- 	__u32 result;
- 
-@@ -61,29 +69,8 @@ static __inline__ __attribute_const__ __
- 	    : "r" (value), "0" (value >> 24));
- 	return result;
- }
-+#define __arch_swab32 __arch_swab32
- 
--#define __arch__swab16(x) ___arch__swab16(x)
--#define __arch__swab32(x) ___arch__swab32(x)
--
--/* The same, but returns converted value from the location pointer by addr. */
--#define __arch__swab16p(addr) ld_le16(addr)
--#define __arch__swab32p(addr) ld_le32(addr)
--
--/* The same, but do the conversion in situ, ie. put the value back to addr. */
--#define __arch__swab16s(addr) st_le16(addr,*addr)
--#define __arch__swab32s(addr) st_le32(addr,*addr)
--
--#endif /* __KERNEL__ */
--
--#ifndef __STRICT_ANSI__
--#define __BYTEORDER_HAS_U64__
--#ifndef __powerpc64__
--#define __SWAB_64_THRU_32__
--#endif /* __powerpc64__ */
--#endif /* __STRICT_ANSI__ */
--
--#endif /* __GNUC__ */
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__) || defined(__KERNEL__)
+-#  define __BYTEORDER_HAS_U64__
+-#  define __SWAB_64_THRU_32__
+-#endif
 -
 -#include <linux/byteorder/big_endian.h>
 +#include <linux/byteorder.h>
  
- #endif /* _ASM_POWERPC_BYTEORDER_H */
+ #endif /* _ASM_BYTEORDER_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
