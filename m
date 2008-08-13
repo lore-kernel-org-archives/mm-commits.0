@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + byteorder-xtensa-use-the-new-byteorder-headers.patch added to -mm tree
-Date: Tue, 12 Aug 2008 19:59:21 -0700
-Message-ID: <200808130259.m7D2xLub027487@imap1.linux-foundation.org>
+Subject: + byteorder-x86-use-the-new-byteorder-headers.patch added to -mm tree
+Date: Tue, 12 Aug 2008 19:59:19 -0700
+Message-ID: <200808130259.m7D2xJKH027484@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55146 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57071 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753762AbYHMC7X (ORCPT
+	by vger.kernel.org with ESMTP id S1752785AbYHMC7y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 22:59:23 -0400
+	Tue, 12 Aug 2008 22:59:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, chris@zankel.net
+Cc: harvey.harrison@gmail.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     byteorder: xtensa: use the new byteorder headers
+     byteorder: x86: use the new byteorder headers
 has been added to the -mm tree.  Its filename is
-     byteorder-xtensa-use-the-new-byteorder-headers.patch
+     byteorder-x86-use-the-new-byteorder-headers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,126 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: xtensa: use the new byteorder headers
+Subject: byteorder: x86: use the new byteorder headers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Chris Zankel <chris@zankel.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-xtensa/byteorder.h |   32 ++++++++++++++-----------------
- 1 file changed, 15 insertions(+), 17 deletions(-)
+ include/asm-x86/byteorder.h |   69 +++++++++++++---------------------
+ 1 file changed, 27 insertions(+), 42 deletions(-)
 
-diff -puN include/asm-xtensa/byteorder.h~byteorder-xtensa-use-the-new-byteorder-headers include/asm-xtensa/byteorder.h
---- a/include/asm-xtensa/byteorder.h~byteorder-xtensa-use-the-new-byteorder-headers
-+++ a/include/asm-xtensa/byteorder.h
-@@ -14,7 +14,17 @@
+diff -puN include/asm-x86/byteorder.h~byteorder-x86-use-the-new-byteorder-headers include/asm-x86/byteorder.h
+--- a/include/asm-x86/byteorder.h~byteorder-x86-use-the-new-byteorder-headers
++++ a/include/asm-x86/byteorder.h
+@@ -4,26 +4,33 @@
  #include <asm/types.h>
  #include <linux/compiler.h>
  
--static __inline__ __attribute_const__ __u32 ___arch__swab32(__u32 x)
-+#ifdef __XTENSA_EL__
-+# define __LITTLE_ENDIAN
-+#elif defined(__XTENSA_EB__)
-+# define __BIG_ENDIAN
-+#else
-+# error processor byte order undefined!
-+#endif
-+
-+#define __SWAB_64_THRU_32__
-+
-+static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
+-#ifdef __GNUC__
++#define __LITTLE_ENDIAN
+ 
+-#ifdef __i386__
+-
+-static inline __attribute_const__ __u32 ___arch__swab32(__u32 x)
++static inline __attribute_const__ __u32 __arch_swab32(__u32 val)
  {
-     __u32 res;
-     /* instruction sequence from Xtensa ISA release 2/2000 */
-@@ -28,8 +38,9 @@ static __inline__ __attribute_const__ __
- 	    );
-     return res;
+-#ifdef CONFIG_X86_BSWAP
+-	asm("bswap %0" : "=r" (x) : "0" (x));
+-#else
++#ifdef __i386__
++# ifdef CONFIG_X86_BSWAP
++	asm("bswap %0" : "=r" (val) : "0" (val));
++# else
+ 	asm("xchgb %b0,%h0\n\t"	/* swap lower bytes	*/
+ 	    "rorl $16,%0\n\t"	/* swap words		*/
+ 	    "xchgb %b0,%h0"	/* swap higher bytes	*/
+-	    : "=q" (x)
+-	    : "0" (x));
++	    : "=q" (val)
++	    : "0" (val));
++# endif
++
++#else /* __i386__ */
++	asm("bswapl %0"
++	    : "=r" (val)
++	    : "0" (val));
+ #endif
+-	return x;
++	return val;
  }
 +#define __arch_swab32 __arch_swab32
  
--static __inline__ __attribute_const__ __u16 ___arch__swab16(__u16 x)
-+static inline __attribute_const__ __u16 __arch_swab16(__u16 x)
+-static inline __attribute_const__ __u64 ___arch__swab64(__u64 val)
++static inline __attribute_const__ __u64 __arch_swab64(__u64 val)
  {
-     /* Given that 'short' values are signed (i.e., can be negative),
-      * we cannot assume that the upper 16-bits of the register are
-@@ -62,21 +73,8 @@ static __inline__ __attribute_const__ __
- 
-     return res;
- }
-+#define __arch_swab16 __arch_swab16
- 
--#define __arch__swab32(x) ___arch__swab32(x)
--#define __arch__swab16(x) ___arch__swab16(x)
--
--#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
--#  define __BYTEORDER_HAS_U64__
--#  define __SWAB_64_THRU_32__
--#endif
--
--#ifdef __XTENSA_EL__
--# include <linux/byteorder/little_endian.h>
--#elif defined(__XTENSA_EB__)
--# include <linux/byteorder/big_endian.h>
++#ifdef __i386__
+ 	union {
+ 		struct {
+ 			__u32 a;
+@@ -32,50 +39,28 @@ static inline __attribute_const__ __u64 
+ 		__u64 u;
+ 	} v;
+ 	v.u = val;
+-#ifdef CONFIG_X86_BSWAP
++# ifdef CONFIG_X86_BSWAP
+ 	asm("bswapl %0 ; bswapl %1 ; xchgl %0,%1"
+ 	    : "=r" (v.s.a), "=r" (v.s.b)
+ 	    : "0" (v.s.a), "1" (v.s.b));
 -#else
--# error processor byte order undefined!
++# else
+ 	v.s.a = ___arch__swab32(v.s.a);
+ 	v.s.b = ___arch__swab32(v.s.b);
+ 	asm("xchgl %0,%1"
+ 	    : "=r" (v.s.a), "=r" (v.s.b)
+ 	    : "0" (v.s.a), "1" (v.s.b));
 -#endif
++# endif
+ 	return v.u;
+-}
+ 
+ #else /* __i386__ */
+-
+-static inline __attribute_const__ __u64 ___arch__swab64(__u64 x)
+-{
+ 	asm("bswapq %0"
+-	    : "=r" (x)
+-	    : "0" (x));
+-	return x;
+-}
+-
+-static inline __attribute_const__ __u32 ___arch__swab32(__u32 x)
+-{
+-	asm("bswapl %0"
+-	    : "=r" (x)
+-	    : "0" (x));
+-	return x;
+-}
+-
++	    : "=r" (val)
++	    : "0" (val));
++	return val;
+ #endif
++}
++#define __arch_swab64 __arch_swab64
+ 
+-/* Do not define swab16.  Gcc is smart enough to recognize "C" version and
+-   convert it into rotation or exhange.  */
+-
+-#define __arch__swab64(x) ___arch__swab64(x)
+-#define __arch__swab32(x) ___arch__swab32(x)
+-
+-#define __BYTEORDER_HAS_U64__
+-
+-#endif /* __GNUC__ */
+-
+-#include <linux/byteorder/little_endian.h>
 +#include <linux/byteorder.h>
  
- #endif /* _XTENSA_BYTEORDER_H */
+ #endif /* _ASM_X86_BYTEORDER_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
