@@ -1,79 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - ali-m7101-pmu-also-available-on-sun-netras-too.patch removed from -mm tree
-Date: Wed, 13 Aug 2008 01:53:36 -0700
-Message-ID: <200808130853.m7D8ragM008343@imap1.linux-foundation.org>
+Subject: - docsrc-fix-procfs-example.patch removed from -mm tree
+Date: Wed, 13 Aug 2008 01:53:23 -0700
+Message-ID: <200808130853.m7D8rNeX008322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51968 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52666 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751443AbYHMIyl (ORCPT
+	by vger.kernel.org with ESMTP id S1751040AbYHMIzc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 04:54:41 -0400
+	Wed, 13 Aug 2008 04:55:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex@digriz.org.uk, davem@davemloft.net, wim@iguana.be, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, J.A.K.Mouw@its.tudelft.nl, alan@lxorguk.ukuu.org.uk, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ALi M7101 PMU also available on Sun Netra's too
+     docsrc: fix procfs example
 has been removed from the -mm tree.  Its filename was
-     ali-m7101-pmu-also-available-on-sun-netras-too.patch
+     docsrc-fix-procfs-example.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ALi M7101 PMU also available on Sun Netra's too
-From: Alexander Clouter <alex@digriz.org.uk>
+Subject: docsrc: fix procfs example
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-My Sun Netra T1 AC200 has one of these... bit harsh not letting me use it
-and all :)
+Add MODULE_LICENSE() to DocBook/procfs_example.c since modpost complained
+about a missing license there.
 
-==========
-alex@woodchuck:~$ lspci -nn
-00:01.0 PCI bridge [0604]: Sun Microsystems Computer Corp. Simba Advanced PCI Bridge [108e:5000] (rev 13)
-00:01.1 PCI bridge [0604]: Sun Microsystems Computer Corp. Simba Advanced PCI Bridge [108e:5000] (rev 13)
-01:03.0 Non-VGA unclassified device [0000]: ALi Corporation M7101 Power Management Controller [PMU] [10b9:7101]
-01:05.1 Ethernet controller [0200]: Sun Microsystems Computer Corp. RIO GEM [108e:1101] (rev 01)
-01:05.3 USB Controller [0c03]: Sun Microsystems Computer Corp. RIO USB [108e:1103] (rev 01)
-01:07.0 ISA bridge [0601]: ALi Corporation M1533/M1535 PCI to ISA Bridge [Aladdin IV/V/V+] [10b9:1533]
-01:0c.0 Bridge [0680]: Sun Microsystems Computer Corp. RIO EBUS [108e:1100] (rev 01)
-01:0c.1 Ethernet controller [0200]: Sun Microsystems Computer Corp. RIO GEM [108e:1101] (rev 01)
-01:0c.3 USB Controller [0c03]: Sun Microsystems Computer Corp. RIO USB [108e:1103] (rev 01)
-01:0d.0 IDE interface [0101]: ALi Corporation M5229 IDE [10b9:5229] (rev c3)
-02:08.0 SCSI storage controller [0100]: LSI Logic / Symbios Logic 53C896/897 [1000:000b] (rev 07)
-02:08.1 SCSI storage controller [0100]: LSI Logic / Symbios Logic 53C896/897 [1000:000b] (rev 07)
-==========
+Remove tty procfs removal since the creation was deleted long ago
+(http://git.kernel.org/?p=linux/kernel/git/tglx/history.git;a=commitdiff;h=5ad9cb65e9b15e5b83e2dd1c10a4bcaccc4ec644).
 
-Signed-off-by: Alexander Clouter <alex@digriz.org.uk>
-Cc: Wim Van Sebroeck <wim@iguana.be>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: <J.A.K.Mouw@its.tudelft.nl>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/Kconfig |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ Documentation/DocBook/procfs_example.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/watchdog/Kconfig~ali-m7101-pmu-also-available-on-sun-netras-too drivers/watchdog/Kconfig
---- a/drivers/watchdog/Kconfig~ali-m7101-pmu-also-available-on-sun-netras-too
-+++ a/drivers/watchdog/Kconfig
-@@ -285,10 +285,11 @@ config ALIM1535_WDT
+diff -puN Documentation/DocBook/procfs_example.c~docsrc-fix-procfs-example Documentation/DocBook/procfs_example.c
+--- a/Documentation/DocBook/procfs_example.c~docsrc-fix-procfs-example
++++ a/Documentation/DocBook/procfs_example.c
+@@ -189,8 +189,6 @@ static int __init init_procfs_example(vo
+ 	return 0;
  
- config ALIM7101_WDT
- 	tristate "ALi M7101 PMU Computer Watchdog"
--	depends on X86 && PCI
-+	depends on PCI
- 	help
- 	  This is the driver for the hardware watchdog on the ALi M7101 PMU
--	  as used in the x86 Cobalt servers.
-+	  as used in the x86 Cobalt servers and also found in some
-+	  SPARC Netra servers too.
+ no_symlink:
+-	remove_proc_entry("tty", example_dir);
+-no_tty:
+ 	remove_proc_entry("bar", example_dir);
+ no_bar:
+ 	remove_proc_entry("foo", example_dir);
+@@ -206,7 +204,6 @@ out:
+ static void __exit cleanup_procfs_example(void)
+ {
+ 	remove_proc_entry("jiffies_too", example_dir);
+-	remove_proc_entry("tty", example_dir);
+ 	remove_proc_entry("bar", example_dir);
+ 	remove_proc_entry("foo", example_dir);
+ 	remove_proc_entry("jiffies", example_dir);
+@@ -222,3 +219,4 @@ module_exit(cleanup_procfs_example);
  
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called alim7101_wdt.
+ MODULE_AUTHOR("Erik Mouw");
+ MODULE_DESCRIPTION("procfs examples");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from alex@digriz.org.uk are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
+linux-next.patch
+drm-sis-depends-on-fb_sis.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+lkdtm-fix-for-config_scsi=n.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+ftrace-printk-formatting-infrastructure-fix.patch
+ftrace-printk-formatting-infrastructure-fix-fix.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+w1-documentation-w1-masters-ds2490-update.patch
+profile-likely-unlikely-macros.patch
 
