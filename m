@@ -1,126 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - byteorder-cris-use-the-new-byteorder-headers.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 22:43:41 -0700
-Message-ID: <200808130556.m7D5ukF6001314@imap1.linux-foundation.org>
+Subject: - byteorder-ia64-use-the-new-byteorder-headers.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 22:43:47 -0700
+Message-ID: <200808130556.m7D5uqDL001329@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34051 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53640 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751951AbYHMF44 (ORCPT
+	by vger.kernel.org with ESMTP id S1751871AbYHMF4y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 01:56:56 -0400
+	Wed, 13 Aug 2008 01:56:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, jesper.nilsson@axis.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     byteorder: cris: use the new byteorder headers
+     byteorder: ia64: use the new byteorder headers
 has been removed from the -mm tree.  Its filename was
-     byteorder-cris-use-the-new-byteorder-headers.patch
+     byteorder-ia64-use-the-new-byteorder-headers.patch
 
 This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: cris: use the new byteorder headers
+Subject: byteorder: ia64: use the new byteorder headers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-cris/arch-v10/byteorder.h |    6 ++++--
- include/asm-cris/arch-v32/byteorder.h |    6 ++++--
- include/asm-cris/byteorder.h          |   18 +++---------------
- 3 files changed, 11 insertions(+), 19 deletions(-)
+ arch/ia64/include/asm/byteorder.h |   26 +++++++++++---------------
+ 1 file changed, 11 insertions(+), 15 deletions(-)
 
-diff -puN include/asm-cris/arch-v10/byteorder.h~byteorder-cris-use-the-new-byteorder-headers include/asm-cris/arch-v10/byteorder.h
---- a/include/asm-cris/arch-v10/byteorder.h~byteorder-cris-use-the-new-byteorder-headers
-+++ a/include/asm-cris/arch-v10/byteorder.h
-@@ -9,18 +9,20 @@
-  * them together into ntohl etc.
-  */
+diff -puN arch/ia64/include/asm/byteorder.h~byteorder-ia64-use-the-new-byteorder-headers arch/ia64/include/asm/byteorder.h
+--- a/arch/ia64/include/asm/byteorder.h~byteorder-ia64-use-the-new-byteorder-headers
++++ a/arch/ia64/include/asm/byteorder.h
+@@ -10,33 +10,29 @@
+ #include <asm/intrinsics.h>
+ #include <linux/compiler.h>
  
--static inline __attribute_const__ __u32 ___arch__swab32(__u32 x)
+-static __inline__ __attribute_const__ __u64
+-__ia64_swab64 (__u64 x)
++#define __LITTLE_ENDIAN
++
++static inline __attribute_const__ __u64 __arch_swab64(__u64 x)
+ {
+ 	__u64 result;
+ 
+ 	result = ia64_mux1(x, ia64_mux1_rev);
+ 	return result;
+ }
++#define __arch_swab64 __arch_swab64
+ 
+-static __inline__ __attribute_const__ __u32
+-__ia64_swab32 (__u32 x)
 +static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
  {
- 	__asm__ ("swapwb %0" : "=r" (x) : "0" (x));
-   
- 	return(x);
+-	return __ia64_swab64(x) >> 32;
++	return __arch_swab64(x) >> 32;
  }
 +#define __arch_swab32 __arch_swab32
  
--static inline __attribute_const__ __u16 ___arch__swab16(__u16 x)
+-static __inline__ __attribute_const__ __u16
+-__ia64_swab16(__u16 x)
 +static inline __attribute_const__ __u16 __arch_swab16(__u16 x)
  {
- 	__asm__ ("swapb %0" : "=r" (x) : "0" (x));
- 	
- 	return(x);
+-	return __ia64_swab64(x) >> 48;
++	return __arch_swab64(x) >> 48;
  }
 +#define __arch_swab16 __arch_swab16
  
- #endif
-diff -puN include/asm-cris/arch-v32/byteorder.h~byteorder-cris-use-the-new-byteorder-headers include/asm-cris/arch-v32/byteorder.h
---- a/include/asm-cris/arch-v32/byteorder.h~byteorder-cris-use-the-new-byteorder-headers
-+++ a/include/asm-cris/arch-v32/byteorder.h
-@@ -4,17 +4,19 @@
- #include <asm/types.h>
- 
- static inline __const__ __u32
--___arch__swab32(__u32 x)
-+__arch_swab32(__u32 x)
- {
- 	__asm__ __volatile__ ("swapwb %0" : "=r" (x) : "0" (x));
- 	return (x);
- }
-+#define __arch_swab32 __arch_swab32
- 
- static inline __const__ __u16
--___arch__swab16(__u16 x)
-+__arch_swab16(__u16 x)
- {
- 	__asm__ __volatile__ ("swapb %0" : "=r" (x) : "0" (x));
- 	return (x);
- }
-+#define __arch_swab16 __arch_swab16
- 
- #endif /* _ASM_CRIS_ARCH_BYTEORDER_H */
-diff -puN include/asm-cris/byteorder.h~byteorder-cris-use-the-new-byteorder-headers include/asm-cris/byteorder.h
---- a/include/asm-cris/byteorder.h~byteorder-cris-use-the-new-byteorder-headers
-+++ a/include/asm-cris/byteorder.h
-@@ -1,26 +1,14 @@
- #ifndef _CRIS_BYTEORDER_H
- #define _CRIS_BYTEORDER_H
- 
--#ifdef __GNUC__
-+#define __LITTLE_ENDIAN
-+#define __SWAB_64_THRU_32__
- 
- #ifdef __KERNEL__
- #include <asm/arch/byteorder.h>
+-#define __arch__swab64(x) __ia64_swab64(x)
+-#define __arch__swab32(x) __ia64_swab32(x)
+-#define __arch__swab16(x) __ia64_swab16(x)
 -
--/* defines are necessary because the other files detect the presence
-- * of a defined __arch_swab32, not an inline
-- */
--#define __arch__swab32(x) ___arch__swab32(x)
--#define __arch__swab16(x) ___arch__swab16(x)
--#endif /* __KERNEL__ */
--
--#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
--#  define __BYTEORDER_HAS_U64__
--#  define __SWAB_64_THRU_32__
- #endif
- 
--#endif /* __GNUC__ */
+-#define __BYTEORDER_HAS_U64__
 -
 -#include <linux/byteorder/little_endian.h>
 +#include <linux/byteorder.h>
  
- #endif
- 
+ #endif /* _ASM_IA64_BYTEORDER_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -151,9 +113,6 @@ include-replace-__function__-with-__func__.patch
 misc-replace-__function__-with-__func__.patch
 befs-annotate-fs32-on-tests-for-superblock-endianness.patch
 net-tipc-subscrc-dont-use-___constant_swab32.patch
-byteorder-cris-use-the-new-byteorder-headers.patch
-byteorder-frv-use-the-new-byteorder-headers.patch
-byteorder-h8300-use-the-new-byteorder-headers.patch
 byteorder-ia64-use-the-new-byteorder-headers.patch
 byteorder-m32r-use-the-new-byteorder-headers.patch
 byteorder-m68k-use-the-new-byteorder-headers.patch
