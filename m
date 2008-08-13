@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch added to -mm tree
-Date: Tue, 12 Aug 2008 17:32:20 -0700
-Message-ID: <200808130045.m7D0jPD9022494@imap1.linux-foundation.org>
+Subject: + autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch added to -mm tree
+Date: Tue, 12 Aug 2008 17:32:22 -0700
+Message-ID: <200808130045.m7D0jRGX022497@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36690 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34129 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752931AbYHMAp3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751703AbYHMAps (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 20:45:29 -0400
+	Tue, 12 Aug 2008 20:45:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, raven@themaw.net
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, raven@themaw.net
 
 
 The patch titled
-     autofs4-add-miscellaneous-device-for-ioctls-fix-2
+     autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3
 has been added to the -mm tree.  Its filename is
-     autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+     autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4-add-miscellaneous-device-for-ioctls-fix-2
+Subject: autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/autofs4/dev-ioctl.c: In function 'autofs_dev_ioctl_fd_install':
-fs/autofs4/dev-ioctl.c:272: error: dereferencing pointer to incomplete type
-fs/autofs4/dev-ioctl.c:273: error: implicit declaration of function 'files_fdtable'
-fs/autofs4/dev-ioctl.c:273: warning: assignment makes pointer from integer without a cast
-fs/autofs4/dev-ioctl.c:274: error: dereferencing pointer to incomplete type
-fs/autofs4/dev-ioctl.c:275: error: dereferencing pointer to incomplete type
-fs/autofs4/dev-ioctl.c:276: error: dereferencing pointer to incomplete type
-fs/autofs4/dev-ioctl.c:277: error: dereferencing pointer to incomplete type
-fs/autofs4/dev-ioctl.c:276: error: invalid lvalue in asm output 0
-fs/autofs4/dev-ioctl.c:276: error: memory input 2 is not directly addressable
+fs/autofs4/dev-ioctl.c: In function 'autofs_dev_ioctl_open_mountpoint':
+fs/autofs4/dev-ioctl.c:310: error: too few arguments to function 'dentry_open'
 
 Cc: Ian Kent <raven@themaw.net>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/dev-ioctl.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/autofs4/dev-ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/autofs4/dev-ioctl.c~autofs4-add-miscellaneous-device-for-ioctls-fix-2 fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs4-add-miscellaneous-device-for-ioctls-fix-2
+diff -puN fs/autofs4/dev-ioctl.c~autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3 fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3
 +++ a/fs/autofs4/dev-ioctl.c
-@@ -15,6 +15,7 @@
- #include <linux/namei.h>
- #include <linux/fcntl.h>
- #include <linux/file.h>
-+#include <linux/fdtable.h>
- #include <linux/sched.h>
- #include <linux/compat.h>
- #include <linux/syscalls.h>
+@@ -307,7 +307,7 @@ static int autofs_dev_ioctl_open_mountpo
+ 			goto out;
+ 		}
+ 
+-		filp = dentry_open(nd.path.dentry, nd.path.mnt, O_RDONLY);
++		filp = dentry_open(nd.path.dentry, nd.path.mnt, O_RDONLY, NULL);
+ 		if (IS_ERR(filp)) {
+ 			err = PTR_ERR(filp);
+ 			goto out;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
