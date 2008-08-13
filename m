@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + byteorder-avr32-use-the-new-byteorder-headers.patch added to -mm tree
-Date: Tue, 12 Aug 2008 19:58:47 -0700
-Message-ID: <200808130258.m7D2wlPA027358@imap1.linux-foundation.org>
+Subject: + byteorder-arm-use-the-new-byteorder-headers.patch added to -mm tree
+Date: Tue, 12 Aug 2008 19:58:46 -0700
+Message-ID: <200808130258.m7D2wk3b027355@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33061 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48310 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752264AbYHMC6w (ORCPT
+	by vger.kernel.org with ESMTP id S1753427AbYHMC6z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 22:58:52 -0400
+	Tue, 12 Aug 2008 22:58:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, haavard.skinnemoen@atmel.com
+Cc: harvey.harrison@gmail.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     byteorder: avr32: use the new byteorder headers
+     byteorder: arm: use the new byteorder headers
 has been added to the -mm tree.  Its filename is
-     byteorder-avr32-use-the-new-byteorder-headers.patch
+     byteorder-arm-use-the-new-byteorder-headers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: avr32: use the new byteorder headers
+Subject: byteorder: arm: use the new byteorder headers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Acked-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/include/asm/byteorder.h |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ arch/arm/include/asm/byteorder.h |   25 +++++++++++--------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
 
-diff -puN arch/avr32/include/asm/byteorder.h~byteorder-avr32-use-the-new-byteorder-headers arch/avr32/include/asm/byteorder.h
---- a/arch/avr32/include/asm/byteorder.h~byteorder-avr32-use-the-new-byteorder-headers
-+++ a/arch/avr32/include/asm/byteorder.h
-@@ -7,6 +7,9 @@
- #include <asm/types.h>
+diff -puN arch/arm/include/asm/byteorder.h~byteorder-arm-use-the-new-byteorder-headers arch/arm/include/asm/byteorder.h
+--- a/arch/arm/include/asm/byteorder.h~byteorder-arm-use-the-new-byteorder-headers
++++ a/arch/arm/include/asm/byteorder.h
+@@ -18,7 +18,15 @@
  #include <linux/compiler.h>
+ #include <asm/types.h>
  
-+#define __BIG_ENDIAN
+-static inline __attribute_const__ __u32 ___arch__swab32(__u32 x)
++#ifdef __ARMEB__
++# define __BIG_ENDIAN
++#else
++# define __LITTLE_ENDIAN
++#endif
++
 +#define __SWAB_64_THRU_32__
 +
- #ifdef __CHECKER__
- extern unsigned long __builtin_bswap_32(unsigned long x);
- extern unsigned short __builtin_bswap_16(unsigned short x);
-@@ -17,15 +20,18 @@ extern unsigned short __builtin_bswap_16
-  * the result.
-  */
- #if !(__GNUC__ == 4 && __GNUC_MINOR__ < 2)
--#define __arch__swab32(x) __builtin_bswap_32(x)
--#define __arch__swab16(x) __builtin_bswap_16(x)
--#endif
-+static inline __attribute_const__ __u16 __arch_swab16(__u16 val)
-+{
-+	return __builtin_bswap_16(val);
-+}
-+#define __arch_swab16 __arch_swab16
++static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
+ {
+ 	__u32 t;
  
--#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
--# define __BYTEORDER_HAS_U64__
--# define __SWAB_64_THRU_32__
-+static inline __attribute_const__ __u32 __arch_swab32(__u32 val)
-+{
-+	return __builtin_bswap_32(val);
-+}
+@@ -40,19 +48,8 @@ static inline __attribute_const__ __u32 
+ 
+ 	return x;
+ }
 +#define __arch_swab32 __arch_swab32
- #endif
  
--#include <linux/byteorder/big_endian.h>
+-#define __arch__swab32(x) ___arch__swab32(x)
 -
+-#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
+-#  define __BYTEORDER_HAS_U64__
+-#  define __SWAB_64_THRU_32__
+-#endif
+-
+-#ifdef __ARMEB__
+-#include <linux/byteorder/big_endian.h>
+-#else
+-#include <linux/byteorder/little_endian.h>
+-#endif
 +#include <linux/byteorder.h>
- #endif /* __ASM_AVR32_BYTEORDER_H */
+ 
+ #endif
+-
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
