@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-jump-check-code-size-in-control-page-fix.patch added to -mm tree
-Date: Tue, 12 Aug 2008 17:13:08 -0700
-Message-ID: <200808130026.m7D0QD9F021513@imap1.linux-foundation.org>
+Subject: + drivers-ata-pata_it821xc-fix-warning.patch added to -mm tree
+Date: Tue, 12 Aug 2008 17:27:08 -0700
+Message-ID: <200808130040.m7D0eClb022334@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48264 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49252 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755175AbYHMA1i (ORCPT
+	by vger.kernel.org with ESMTP id S1752209AbYHMAkV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 20:27:38 -0400
+	Tue, 12 Aug 2008 20:40:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ebiederm@xmission.com, mingo@elte.hu, pavel@ucw.cz, rjw@sisk.pl, vgoyal@redhat.com
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     kexec-jump-check-code-size-in-control-page-fix
+     drivers/ata/pata_it821x.c: fix warning
 has been added to the -mm tree.  Its filename is
-     kexec-jump-check-code-size-in-control-page-fix.patch
+     drivers-ata-pata_it821xc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec-jump-check-code-size-in-control-page-fix
+Subject: drivers/ata/pata_it821x.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/vmlinux.lds:348: undefined symbol `kexec_control_code_size' referenced in expression
+drivers/ata/pata_it821x.c: In function 'it821x_port_start':
+drivers/ata/pata_it821x.c:609: warning: 'mtype' may be used uninitialized in this function
 
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Pretty horrid fix, but so's a warning..
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/vmlinux.lds      |    3 ---
- arch/x86/kernel/vmlinux_32.lds.S |    2 ++
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/ata/pata_it821x.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/vmlinux.lds~kexec-jump-check-code-size-in-control-page-fix arch/x86/kernel/vmlinux.lds
---- a/arch/x86/kernel/vmlinux.lds~kexec-jump-check-code-size-in-control-page-fix
-+++ a/arch/x86/kernel/vmlinux.lds
-@@ -342,6 +342,3 @@ SECTIONS
-   .stab 0 : { *(.stab) } .stabstr 0 : { *(.stabstr) } .stab.excl 0 : { *(.stab.excl) } .stab.exclstr 0 : { *(.stab.exclstr) } .stab.index 0 : { *(.stab.index) } .stab.indexstr 0 : { *(.stab.indexstr) } .comment 0 : { *(.comment) }
-   .debug 0 : { *(.debug) } .line 0 : { *(.line) } .debug_srcinfo 0 : { *(.debug_srcinfo) } .debug_sfnames 0 : { *(.debug_sfnames) } .debug_aranges 0 : { *(.debug_aranges) } .debug_pubnames 0 : { *(.debug_pubnames) } .debug_info 0 : { *(.debug_info .gnu.linkonce.wi.*) } .debug_abbrev 0 : { *(.debug_abbrev) } .debug_line 0 : { *(.debug_line) } .debug_frame 0 : { *(.debug_frame) } .debug_str 0 : { *(.debug_str) } .debug_loc 0 : { *(.debug_loc) } .debug_macinfo 0 : { *(.debug_macinfo) } .debug_weaknames 0 : { *(.debug_weaknames) } .debug_funcnames 0 : { *(.debug_funcnames) } .debug_typenames 0 : { *(.debug_typenames) } .debug_varnames 0 : { *(.debug_varnames) }
- }
--/* Link time checks */
--ASSERT(kexec_control_code_size <= 2048,
--       "kexec control code size is too big")
-diff -puN arch/x86/kernel/vmlinux_32.lds.S~kexec-jump-check-code-size-in-control-page-fix arch/x86/kernel/vmlinux_32.lds.S
---- a/arch/x86/kernel/vmlinux_32.lds.S~kexec-jump-check-code-size-in-control-page-fix
-+++ a/arch/x86/kernel/vmlinux_32.lds.S
-@@ -211,8 +211,10 @@ SECTIONS
-   DWARF_DEBUG
- }
+diff -puN drivers/ata/pata_it821x.c~drivers-ata-pata_it821xc-fix-warning drivers/ata/pata_it821x.c
+--- a/drivers/ata/pata_it821x.c~drivers-ata-pata_it821xc-fix-warning
++++ a/drivers/ata/pata_it821x.c
+@@ -619,9 +619,9 @@ static void it821x_display_disk(int n, u
  
-+#ifdef CONFIG_KEXEC
- /* Link time checks */
- #include <asm/kexec.h>
+ 	ata_id_c_string((u16 *)buf, id, 0, 41); 
  
- ASSERT(kexec_control_code_size <= KEXEC_CONTROL_CODE_MAX_SIZE,
-        "kexec control code size is too big")
-+#endif
++	mtype = "UDMA";
+ 	if (buf[51]) {
+ 		mode = ffs(buf[51]);
+-		mtype = "UDMA";
+ 	} else if (buf[49]) {
+ 		mode = ffs(buf[49]);
+ 		mtype = "MWDMA";
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -151,4 +139,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+drivers-ata-pata_it821xc-fix-warning.patch
 
