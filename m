@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + byteorder-m32r-use-the-new-byteorder-headers.patch added to -mm tree
-Date: Tue, 12 Aug 2008 19:58:59 -0700
-Message-ID: <200808130258.m7D2wxu6027379@imap1.linux-foundation.org>
+Subject: + byteorder-h8300-use-the-new-byteorder-headers.patch added to -mm tree
+Date: Tue, 12 Aug 2008 19:58:55 -0700
+Message-ID: <200808130258.m7D2wtR7027370@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45223 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49643 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753897AbYHMC7N (ORCPT
+	by vger.kernel.org with ESMTP id S1753962AbYHMC7O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 22:59:13 -0400
+	Tue, 12 Aug 2008 22:59:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, takata@linux-m32r.org
+Cc: harvey.harrison@gmail.com, ysato@users.sourceforge.jp
 
 
 The patch titled
-     byteorder: m32r: use the new byteorder headers
+     byteorder: h8300: use the new byteorder headers
 has been added to the -mm tree.  Its filename is
-     byteorder-m32r-use-the-new-byteorder-headers.patch
+     byteorder-h8300-use-the-new-byteorder-headers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: m32r: use the new byteorder headers
+Subject: byteorder: h8300: use the new byteorder headers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m32r/byteorder.h |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ include/asm-h8300/byteorder.h |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN include/asm-m32r/byteorder.h~byteorder-m32r-use-the-new-byteorder-headers include/asm-m32r/byteorder.h
---- a/include/asm-m32r/byteorder.h~byteorder-m32r-use-the-new-byteorder-headers
-+++ a/include/asm-m32r/byteorder.h
-@@ -1,17 +1,14 @@
- #ifndef _ASM_M32R_BYTEORDER_H
- #define _ASM_M32R_BYTEORDER_H
+diff -puN include/asm-h8300/byteorder.h~byteorder-h8300-use-the-new-byteorder-headers include/asm-h8300/byteorder.h
+--- a/include/asm-h8300/byteorder.h~byteorder-h8300-use-the-new-byteorder-headers
++++ a/include/asm-h8300/byteorder.h
+@@ -1,13 +1,9 @@
+ #ifndef _H8300_BYTEORDER_H
+ #define _H8300_BYTEORDER_H
  
 -#include <asm/types.h>
--
--#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
++#define __BIG_ENDIAN
++#define __SWAB_64_THRU_32__
+ 
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__) || defined(__KERNEL__)
 -#  define __BYTEORDER_HAS_U64__
 -#  define __SWAB_64_THRU_32__
 -#endif
 -
- #if defined(__LITTLE_ENDIAN__)
--#  include <linux/byteorder/little_endian.h>
-+# define __LITTLE_ENDIAN
- #else
--#  include <linux/byteorder/big_endian.h>
-+# define __BIG_ENDIAN
- #endif
- 
-+#define __SWAB_64_THRU_32__
-+
+-#include <linux/byteorder/big_endian.h>
 +#include <linux/byteorder.h>
-+
- #endif /* _ASM_M32R_BYTEORDER_H */
+ 
+ #endif /* _H8300_BYTEORDER_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
