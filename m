@@ -1,154 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - seq_file-add-seq_cpumask-seq_nodemask.patch removed from -mm tree
-Date: Wed, 13 Aug 2008 01:53:13 -0700
-Message-ID: <200808130853.m7D8rDIn008304@imap1.linux-foundation.org>
+Subject: - cdrom-handle-toc.patch removed from -mm tree
+Date: Wed, 13 Aug 2008 01:53:41 -0700
+Message-ID: <200808130853.m7D8rfvW008358@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56721 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35919 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753744AbYHMJGn (ORCPT
+	by vger.kernel.org with ESMTP id S1754034AbYHMJHd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 05:06:43 -0400
+	Wed, 13 Aug 2008 05:07:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, pj@sgi.com, travis@sgi.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: shurick@sectorb.msk.ru, bzolnier@gmail.com, jens.axboe@oracle.com, petkovbb@googlemail.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     seq_file: add seq_cpumask(), seq_nodemask()
+     cdrom: handle TOC
 has been removed from the -mm tree.  Its filename was
-     seq_file-add-seq_cpumask-seq_nodemask.patch
+     cdrom-handle-toc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: seq_file: add seq_cpumask(), seq_nodemask()
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: cdrom: handle TOC
+From: Alexander Inyukhin <shurick@sectorb.msk.ru>
 
-Short enough reads from /proc/irq/*/smp_affinity return -EINVAL for no
-good reason.
+This patch should fix TOC handling for cdroms that can not play audio.  It
+extends commit af744e3294d09d706c4eae26cffaaa68a8d40337 ("cdrom: don't
+check CDC_PLAY_AUDIO in cdrom_count_tracks()") with a safety check and
+non-audio ioctls support.
 
-This became noticed with NR_CPUS=4096 patches, when length of printed
-representation of cpumask becase 1152, but cat(1) continued to read with
-1024-byte chunks.  bitmap_scnprintf() in good faith fills buffer, returns
-1023, check returns -EINVAL.
+Since CDC_PLAY_AUDIO flag was used not only to check ability to play audio
+but also to ensure that audio_ioctl was not NULL, all TOC-related
+operations had to use it.
 
-Fix it by switching to seq_file, so handler will just fill buffer and
-doesn't care about offsets, length, filling EOF and all this crap.
+As far as I understand, now audio_ioctl is never NULL, so a sanity check
+during device registration should be sufficient.
 
-For that add seq_bitmap(), and wrappers around it -- seq_cpumask() and
-seq_nodemask().
+It was tested on Optiarc AD7203A device, that has no ability to play
+audio.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Reviewed-by: Paul Jackson <pj@sgi.com>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Borislav Petkov <petkovbb@googlemail.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c            |   14 ++++++++++++++
- include/linux/bitmap.h   |    1 +
- include/linux/seq_file.h |   12 ++++++++++++
- lib/bitmap.c             |   11 +++++++++++
- 4 files changed, 38 insertions(+)
+ drivers/cdrom/cdrom.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN fs/seq_file.c~seq_file-add-seq_cpumask-seq_nodemask fs/seq_file.c
---- a/fs/seq_file.c~seq_file-add-seq_cpumask-seq_nodemask
-+++ a/fs/seq_file.c
-@@ -443,6 +443,20 @@ int seq_dentry(struct seq_file *m, struc
- 	return -1;
- }
+diff -puN drivers/cdrom/cdrom.c~cdrom-handle-toc drivers/cdrom/cdrom.c
+--- a/drivers/cdrom/cdrom.c~cdrom-handle-toc
++++ a/drivers/cdrom/cdrom.c
+@@ -394,6 +394,8 @@ int register_cdrom(struct cdrom_device_i
  
-+int seq_bitmap(struct seq_file *m, unsigned long *bits, unsigned int nr_bits)
-+{
-+	size_t len = bitmap_scnprintf_len(nr_bits);
-+
-+	if (m->count + len < m->size) {
-+		bitmap_scnprintf(m->buf + m->count, m->size - m->count,
-+				 bits, nr_bits);
-+		m->count += len;
-+		return 0;
-+	}
-+	m->count = m->size;
-+	return -1;
-+}
-+
- static void *single_start(struct seq_file *p, loff_t *pos)
- {
- 	return NULL + (*pos == 0);
-diff -puN include/linux/bitmap.h~seq_file-add-seq_cpumask-seq_nodemask include/linux/bitmap.h
---- a/include/linux/bitmap.h~seq_file-add-seq_cpumask-seq_nodemask
-+++ a/include/linux/bitmap.h
-@@ -110,6 +110,7 @@ extern int __bitmap_weight(const unsigne
+ 	if (cdo->open == NULL || cdo->release == NULL)
+ 		return -EINVAL;
++	if (cdo->audio_ioctl == NULL)
++		return -EINVAL;
+ 	if (!banner_printed) {
+ 		printk(KERN_INFO "Uniform CD-ROM driver " REVISION "\n");
+ 		banner_printed = 1;
+@@ -408,7 +410,6 @@ int register_cdrom(struct cdrom_device_i
+ 	ENSURE(get_last_session, CDC_MULTI_SESSION);
+ 	ENSURE(get_mcn, CDC_MCN);
+ 	ENSURE(reset, CDC_RESET);
+-	ENSURE(audio_ioctl, CDC_PLAY_AUDIO);
+ 	ENSURE(generic_packet, CDC_GENERIC_PACKET);
+ 	cdi->mc_flags = 0;
+ 	cdo->n_minors = 0;
+@@ -2506,8 +2507,6 @@ static int cdrom_ioctl_get_subchnl(struc
  
- extern int bitmap_scnprintf(char *buf, unsigned int len,
- 			const unsigned long *src, int nbits);
-+extern int bitmap_scnprintf_len(unsigned int nr_bits);
- extern int __bitmap_parse(const char *buf, unsigned int buflen, int is_user,
- 			unsigned long *dst, int nbits);
- extern int bitmap_parse_user(const char __user *ubuf, unsigned int ulen,
-diff -puN include/linux/seq_file.h~seq_file-add-seq_cpumask-seq_nodemask include/linux/seq_file.h
---- a/include/linux/seq_file.h~seq_file-add-seq_cpumask-seq_nodemask
-+++ a/include/linux/seq_file.h
-@@ -4,6 +4,8 @@
- #include <linux/types.h>
- #include <linux/string.h>
- #include <linux/mutex.h>
-+#include <linux/cpumask.h>
-+#include <linux/nodemask.h>
+ 	/* cdinfo(CD_DO_IOCTL,"entering CDROMSUBCHNL\n");*/
  
- struct seq_operations;
- struct file;
-@@ -47,6 +49,16 @@ int seq_path(struct seq_file *, struct p
- int seq_dentry(struct seq_file *, struct dentry *, char *);
- int seq_path_root(struct seq_file *m, struct path *path, struct path *root,
- 		  char *esc);
-+int seq_bitmap(struct seq_file *m, unsigned long *bits, unsigned int nr_bits);
-+static inline int seq_cpumask(struct seq_file *m, cpumask_t *mask)
-+{
-+	return seq_bitmap(m, mask->bits, NR_CPUS);
-+}
-+
-+static inline int seq_nodemask(struct seq_file *m, nodemask_t *mask)
-+{
-+	return seq_bitmap(m, mask->bits, MAX_NUMNODES);
-+}
+-	if (!CDROM_CAN(CDC_PLAY_AUDIO))
+-		return -ENOSYS;
+ 	if (copy_from_user(&q, argp, sizeof(q)))
+ 		return -EFAULT;
  
- int single_open(struct file *, int (*)(struct seq_file *, void *), void *);
- int single_release(struct inode *, struct file *);
-diff -puN lib/bitmap.c~seq_file-add-seq_cpumask-seq_nodemask lib/bitmap.c
---- a/lib/bitmap.c~seq_file-add-seq_cpumask-seq_nodemask
-+++ a/lib/bitmap.c
-@@ -316,6 +316,17 @@ int bitmap_scnprintf(char *buf, unsigned
- EXPORT_SYMBOL(bitmap_scnprintf);
+@@ -2538,8 +2537,6 @@ static int cdrom_ioctl_read_tochdr(struc
  
- /**
-+ * bitmap_scnprintf_len - return buffer length needed to convert
-+ * bitmap to an ASCII hex string
-+ * @nr_bits: number of bits to be converted
-+ */
-+int bitmap_scnprintf_len(unsigned int nr_bits)
-+{
-+	unsigned int nr_nibbles = ALIGN(nr_bits, 4) / 4;
-+	return nr_nibbles + ALIGN(nr_nibbles, CHUNKSZ / 4) / (CHUNKSZ / 4) - 1;
-+}
-+
-+/**
-  * __bitmap_parse - convert an ASCII hex string into a bitmap.
-  * @buf: pointer to buffer containing string.
-  * @buflen: buffer size in bytes.  If string is smaller than this
+ 	/* cdinfo(CD_DO_IOCTL, "entering CDROMREADTOCHDR\n"); */
+ 
+-	if (!CDROM_CAN(CDC_PLAY_AUDIO))
+-		return -ENOSYS;
+ 	if (copy_from_user(&header, argp, sizeof(header)))
+ 		return -EFAULT;
+ 
+@@ -2562,8 +2559,6 @@ static int cdrom_ioctl_read_tocentry(str
+ 
+ 	/* cdinfo(CD_DO_IOCTL, "entering CDROMREADTOCENTRY\n"); */
+ 
+-	if (!CDROM_CAN(CDC_PLAY_AUDIO))
+-		return -ENOSYS;
+ 	if (copy_from_user(&entry, argp, sizeof(entry)))
+ 		return -EFAULT;
+ 
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from shurick@sectorb.msk.ru are
 
 linux-next.patch
-x86_64-remove-empty-lines-from-stack-traces-oopses.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-cdc-acm-dont-unlock-acm-mutex-on-error-path.patch
-cpuset-use-seq_cpumask-seq_nodemask.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
 
