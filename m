@@ -1,97 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: - byteorder-xtensa-use-the-new-byteorder-headers.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 22:44:14 -0700
-Message-ID: <200808130557.m7D5vJTD001373@imap1.linux-foundation.org>
+Subject: - byteorder-fix-direct-byteswap-includes.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 22:44:16 -0700
+Message-ID: <200808130557.m7D5vLNw001396@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52569 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56355 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752209AbYHMF5V (ORCPT
+	by vger.kernel.org with ESMTP id S1752242AbYHMF5X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 01:57:21 -0400
+	Wed, 13 Aug 2008 01:57:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, chris@zankel.net, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     byteorder: xtensa: use the new byteorder headers
+     byteorder: fix direct byteswap includes
 has been removed from the -mm tree.  Its filename was
-     byteorder-xtensa-use-the-new-byteorder-headers.patch
+     byteorder-fix-direct-byteswap-includes.patch
 
 This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: xtensa: use the new byteorder headers
+Subject: byteorder: fix direct byteswap includes
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-xtensa/byteorder.h |   32 ++++++++++++++-----------------
- 1 file changed, 15 insertions(+), 17 deletions(-)
+ arch/avr32/mach-at32ap/include/mach/io.h |    3 +--
+ drivers/media/dvb/ttpci/av7110.c         |    2 +-
+ drivers/media/video/cx18/cx18-driver.h   |    2 +-
+ drivers/media/video/ivtv/ivtv-driver.h   |    2 +-
+ drivers/media/video/vpx3220.c            |    2 +-
+ kernel/rcupreempt.c                      |    2 +-
+ tests/rcutorture.c                       |    2 +-
+ 7 files changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN include/asm-xtensa/byteorder.h~byteorder-xtensa-use-the-new-byteorder-headers include/asm-xtensa/byteorder.h
---- a/include/asm-xtensa/byteorder.h~byteorder-xtensa-use-the-new-byteorder-headers
-+++ a/include/asm-xtensa/byteorder.h
-@@ -14,7 +14,17 @@
- #include <asm/types.h>
- #include <linux/compiler.h>
+diff -puN arch/avr32/mach-at32ap/include/mach/io.h~byteorder-fix-direct-byteswap-includes arch/avr32/mach-at32ap/include/mach/io.h
+--- a/arch/avr32/mach-at32ap/include/mach/io.h~byteorder-fix-direct-byteswap-includes
++++ a/arch/avr32/mach-at32ap/include/mach/io.h
+@@ -1,8 +1,7 @@
+ #ifndef __ASM_AVR32_ARCH_AT32AP_IO_H
+ #define __ASM_AVR32_ARCH_AT32AP_IO_H
  
--static __inline__ __attribute_const__ __u32 ___arch__swab32(__u32 x)
-+#ifdef __XTENSA_EL__
-+# define __LITTLE_ENDIAN
-+#elif defined(__XTENSA_EB__)
-+# define __BIG_ENDIAN
-+#else
-+# error processor byte order undefined!
-+#endif
-+
-+#define __SWAB_64_THRU_32__
-+
-+static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
- {
-     __u32 res;
-     /* instruction sequence from Xtensa ISA release 2/2000 */
-@@ -28,8 +38,9 @@ static __inline__ __attribute_const__ __
- 	    );
-     return res;
- }
-+#define __arch_swab32 __arch_swab32
+-/* For "bizarre" halfword swapping */
+-#include <linux/byteorder/swabb.h>
++#include <linux/swab.h>
  
--static __inline__ __attribute_const__ __u16 ___arch__swab16(__u16 x)
-+static inline __attribute_const__ __u16 __arch_swab16(__u16 x)
- {
-     /* Given that 'short' values are signed (i.e., can be negative),
-      * we cannot assume that the upper 16-bits of the register are
-@@ -62,21 +73,8 @@ static __inline__ __attribute_const__ __
+ #if defined(CONFIG_AP700X_32_BIT_SMC)
+ # define __swizzle_addr_b(addr)	(addr ^ 3UL)
+diff -puN drivers/media/dvb/ttpci/av7110.c~byteorder-fix-direct-byteswap-includes drivers/media/dvb/ttpci/av7110.c
+--- a/drivers/media/dvb/ttpci/av7110.c~byteorder-fix-direct-byteswap-includes
++++ a/drivers/media/dvb/ttpci/av7110.c
+@@ -36,7 +36,6 @@
+ #include <linux/fs.h>
+ #include <linux/timer.h>
+ #include <linux/poll.h>
+-#include <linux/byteorder/swabb.h>
+ #include <linux/smp_lock.h>
  
-     return res;
- }
-+#define __arch_swab16 __arch_swab16
+ #include <linux/kernel.h>
+@@ -53,6 +52,7 @@
+ #include <linux/kthread.h>
+ #include <asm/unaligned.h>
  
--#define __arch__swab32(x) ___arch__swab32(x)
--#define __arch__swab16(x) ___arch__swab16(x)
--
--#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
--#  define __BYTEORDER_HAS_U64__
--#  define __SWAB_64_THRU_32__
--#endif
--
--#ifdef __XTENSA_EL__
--# include <linux/byteorder/little_endian.h>
--#elif defined(__XTENSA_EB__)
--# include <linux/byteorder/big_endian.h>
--#else
--# error processor byte order undefined!
--#endif
-+#include <linux/byteorder.h>
++#include <asm/byteorder.h>
+ #include <asm/system.h>
  
- #endif /* _XTENSA_BYTEORDER_H */
+ #include <linux/dvb/frontend.h>
+diff -puN drivers/media/video/cx18/cx18-driver.h~byteorder-fix-direct-byteswap-includes drivers/media/video/cx18/cx18-driver.h
+--- a/drivers/media/video/cx18/cx18-driver.h~byteorder-fix-direct-byteswap-includes
++++ a/drivers/media/video/cx18/cx18-driver.h
+@@ -38,10 +38,10 @@
+ #include <linux/i2c-algo-bit.h>
+ #include <linux/list.h>
+ #include <linux/unistd.h>
+-#include <linux/byteorder/swab.h>
+ #include <linux/pagemap.h>
+ #include <linux/workqueue.h>
+ #include <linux/mutex.h>
++#include <asm/byteorder.h>
+ 
+ #include <linux/dvb/video.h>
+ #include <linux/dvb/audio.h>
+diff -puN drivers/media/video/ivtv/ivtv-driver.h~byteorder-fix-direct-byteswap-includes drivers/media/video/ivtv/ivtv-driver.h
+--- a/drivers/media/video/ivtv/ivtv-driver.h~byteorder-fix-direct-byteswap-includes
++++ a/drivers/media/video/ivtv/ivtv-driver.h
+@@ -49,11 +49,11 @@
+ #include <linux/i2c-algo-bit.h>
+ #include <linux/list.h>
+ #include <linux/unistd.h>
+-#include <linux/byteorder/swab.h>
+ #include <linux/pagemap.h>
+ #include <linux/scatterlist.h>
+ #include <linux/workqueue.h>
+ #include <linux/mutex.h>
++#include <asm/byteorder.h>
+ #include <asm/uaccess.h>
+ #include <asm/system.h>
+ 
+diff -puN drivers/media/video/vpx3220.c~byteorder-fix-direct-byteswap-includes drivers/media/video/vpx3220.c
+--- a/drivers/media/video/vpx3220.c~byteorder-fix-direct-byteswap-includes
++++ a/drivers/media/video/vpx3220.c
+@@ -24,7 +24,7 @@
+ #include <linux/types.h>
+ #include <linux/slab.h>
+ 
+-#include <linux/byteorder/swab.h>
++#include <asm/byteorder.h>
+ 
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
+diff -puN kernel/rcupreempt.c~byteorder-fix-direct-byteswap-includes kernel/rcupreempt.c
+--- a/kernel/rcupreempt.c~byteorder-fix-direct-byteswap-includes
++++ a/kernel/rcupreempt.c
+@@ -54,9 +54,9 @@
+ #include <linux/cpu.h>
+ #include <linux/random.h>
+ #include <linux/delay.h>
+-#include <linux/byteorder/swabb.h>
+ #include <linux/cpumask.h>
+ #include <linux/rcupreempt_trace.h>
++#include <asm/byteorder.h>
+ 
+ /*
+  * Macro that prevents the compiler from reordering accesses, but does
+diff -puN tests/rcutorture.c~byteorder-fix-direct-byteswap-includes tests/rcutorture.c
+--- a/tests/rcutorture.c~byteorder-fix-direct-byteswap-includes
++++ a/tests/rcutorture.c
+@@ -42,10 +42,10 @@
+ #include <linux/freezer.h>
+ #include <linux/cpu.h>
+ #include <linux/delay.h>
+-#include <linux/byteorder/swabb.h>
+ #include <linux/stat.h>
+ #include <linux/srcu.h>
+ #include <linux/slab.h>
++#include <asm/byteorder.h>
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Paul E. McKenney <paulmck@us.ibm.com> and "
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -122,7 +174,6 @@ include-replace-__function__-with-__func__.patch
 misc-replace-__function__-with-__func__.patch
 befs-annotate-fs32-on-tests-for-superblock-endianness.patch
 net-tipc-subscrc-dont-use-___constant_swab32.patch
-byteorder-xtensa-use-the-new-byteorder-headers.patch
 byteorder-fix-direct-byteswap-includes.patch
 byteorder-remove-the-old-byteorder-implementation.patch
 
