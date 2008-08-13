@@ -1,81 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-call-arch_prepare_hugepage-for-surplus-pages.patch removed from -mm tree
-Date: Wed, 13 Aug 2008 01:52:07 -0700
-Message-ID: <200808130852.m7D8q7xr008177@imap1.linux-foundation.org>
+Subject: - ali-m7101-pmu-also-available-on-sun-netras-too.patch removed from -mm tree
+Date: Wed, 13 Aug 2008 01:53:36 -0700
+Message-ID: <200808130853.m7D8ragM008343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60433 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51968 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752582AbYHMIyo (ORCPT
+	by vger.kernel.org with ESMTP id S1751443AbYHMIyl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 04:54:44 -0400
+	Wed, 13 Aug 2008 04:54:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gerald.schaefer@de.ibm.com, agl@us.ibm.com, npiggin@suse.de, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: alex@digriz.org.uk, davem@davemloft.net, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: call arch_prepare_hugepage() for surplus pages
+     ALi M7101 PMU also available on Sun Netra's too
 has been removed from the -mm tree.  Its filename was
-     hugetlb-call-arch_prepare_hugepage-for-surplus-pages.patch
+     ali-m7101-pmu-also-available-on-sun-netras-too.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: call arch_prepare_hugepage() for surplus pages
-From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Subject: ALi M7101 PMU also available on Sun Netra's too
+From: Alexander Clouter <alex@digriz.org.uk>
 
-The s390 software large page emulation implements shared page tables by
-using page->index of the first tail page from a compound large page to
-store page table information.  This is set up in arch_prepare_hugepage(),
-which is called from alloc_fresh_huge_page_node().
+My Sun Netra T1 AC200 has one of these... bit harsh not letting me use it
+and all :)
 
-A similar call to arch_prepare_hugepage() is missing for surplus large
-pages that are allocated in alloc_buddy_huge_page(), which breaks the
-software emulation mode for (surplus) large pages on s390.  This patch
-adds the missing call to arch_prepare_hugepage().  It will have no effect
-on other architectures where arch_prepare_hugepage() is a nop.
+==========
+alex@woodchuck:~$ lspci -nn
+00:01.0 PCI bridge [0604]: Sun Microsystems Computer Corp. Simba Advanced PCI Bridge [108e:5000] (rev 13)
+00:01.1 PCI bridge [0604]: Sun Microsystems Computer Corp. Simba Advanced PCI Bridge [108e:5000] (rev 13)
+01:03.0 Non-VGA unclassified device [0000]: ALi Corporation M7101 Power Management Controller [PMU] [10b9:7101]
+01:05.1 Ethernet controller [0200]: Sun Microsystems Computer Corp. RIO GEM [108e:1101] (rev 01)
+01:05.3 USB Controller [0c03]: Sun Microsystems Computer Corp. RIO USB [108e:1103] (rev 01)
+01:07.0 ISA bridge [0601]: ALi Corporation M1533/M1535 PCI to ISA Bridge [Aladdin IV/V/V+] [10b9:1533]
+01:0c.0 Bridge [0680]: Sun Microsystems Computer Corp. RIO EBUS [108e:1100] (rev 01)
+01:0c.1 Ethernet controller [0200]: Sun Microsystems Computer Corp. RIO GEM [108e:1101] (rev 01)
+01:0c.3 USB Controller [0c03]: Sun Microsystems Computer Corp. RIO USB [108e:1103] (rev 01)
+01:0d.0 IDE interface [0101]: ALi Corporation M5229 IDE [10b9:5229] (rev c3)
+02:08.0 SCSI storage controller [0100]: LSI Logic / Symbios Logic 53C896/897 [1000:000b] (rev 07)
+02:08.1 SCSI storage controller [0100]: LSI Logic / Symbios Logic 53C896/897 [1000:000b] (rev 07)
+==========
 
-Also, use the correct order in the error path in alloc_fresh_huge_page_node().
-
-Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Acked-by: Nick Piggin <npiggin@suse.de>
-Acked-by: Adam Litke <agl@us.ibm.com>
+Signed-off-by: Alexander Clouter <alex@digriz.org.uk>
+Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/watchdog/Kconfig |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-call-arch_prepare_hugepage-for-surplus-pages mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-call-arch_prepare_hugepage-for-surplus-pages
-+++ a/mm/hugetlb.c
-@@ -565,7 +565,7 @@ static struct page *alloc_fresh_huge_pag
- 		huge_page_order(h));
- 	if (page) {
- 		if (arch_prepare_hugepage(page)) {
--			__free_pages(page, HUGETLB_PAGE_ORDER);
-+			__free_pages(page, huge_page_order(h));
- 			return NULL;
- 		}
- 		prep_new_huge_page(h, page, nid);
-@@ -665,6 +665,11 @@ static struct page *alloc_buddy_huge_pag
- 					__GFP_REPEAT|__GFP_NOWARN,
- 					huge_page_order(h));
+diff -puN drivers/watchdog/Kconfig~ali-m7101-pmu-also-available-on-sun-netras-too drivers/watchdog/Kconfig
+--- a/drivers/watchdog/Kconfig~ali-m7101-pmu-also-available-on-sun-netras-too
++++ a/drivers/watchdog/Kconfig
+@@ -285,10 +285,11 @@ config ALIM1535_WDT
  
-+	if (page && arch_prepare_hugepage(page)) {
-+		__free_pages(page, huge_page_order(h));
-+		return NULL;
-+	}
-+
- 	spin_lock(&hugetlb_lock);
- 	if (page) {
- 		/*
+ config ALIM7101_WDT
+ 	tristate "ALi M7101 PMU Computer Watchdog"
+-	depends on X86 && PCI
++	depends on PCI
+ 	help
+ 	  This is the driver for the hardware watchdog on the ALi M7101 PMU
+-	  as used in the x86 Cobalt servers.
++	  as used in the x86 Cobalt servers and also found in some
++	  SPARC Netra servers too.
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called alim7101_wdt.
 _
 
-Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
+Patches currently in -mm which might be from alex@digriz.org.uk are
 
 
