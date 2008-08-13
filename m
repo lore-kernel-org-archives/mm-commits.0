@@ -1,115 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - feature-removal-scheduletxt-remove-the-ncr53c9x-entry.patch removed from -mm tree
-Date: Wed, 13 Aug 2008 01:52:04 -0700
-Message-ID: <200808130852.m7D8q4Sr008174@imap1.linux-foundation.org>
+Subject: - revert-rtc-cdev-lock_kernel-pushdown.patch removed from -mm tree
+Date: Wed, 13 Aug 2008 01:52:19 -0700
+Message-ID: <200808130852.m7D8qJoL008197@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57431 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54697 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753359AbYHMIwn (ORCPT
+	by vger.kernel.org with ESMTP id S1754315AbYHMIw5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 04:52:43 -0400
+	Wed, 13 Aug 2008 04:52:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, James.Bottomley@HansenPartnership.com, hch@lst.de, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, alessandro.zummo@towertech.it, corbet@lwn.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     feature-removal-schedule.txt: remove the NCR53C9x entry
+     revert "rtc: cdev lock_kernel() pushdown"
 has been removed from the -mm tree.  Its filename was
-     feature-removal-scheduletxt-remove-the-ncr53c9x-entry.patch
+     revert-rtc-cdev-lock_kernel-pushdown.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: feature-removal-schedule.txt: remove the NCR53C9x entry
-From: Adrian Bunk <bunk@kernel.org>
+Subject: revert "rtc: cdev lock_kernel() pushdown"
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Now that the driver is removed we should also remove the entry in
-Documentation/feature-removal-schedule.txt
+Revert "rtc: cdev lock_kernel() pushdown" patch
+(51a776fa7a7997e726d4a478eda0854c6f9143bd).  The RTC framework does not
+need BKL protection.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Christoph Hellwig <hch@lst.de>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |    9 ---------
- 1 file changed, 9 deletions(-)
+ drivers/rtc/rtc-dev.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~feature-removal-scheduletxt-remove-the-ncr53c9x-entry Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~feature-removal-scheduletxt-remove-the-ncr53c9x-entry
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -19,15 +19,6 @@ Who:	Pavel Machek <pavel@suse.cz>
+diff -puN drivers/rtc/rtc-dev.c~revert-rtc-cdev-lock_kernel-pushdown drivers/rtc/rtc-dev.c
+--- a/drivers/rtc/rtc-dev.c~revert-rtc-cdev-lock_kernel-pushdown
++++ a/drivers/rtc/rtc-dev.c
+@@ -13,7 +13,6 @@
  
- ---------------------------
+ #include <linux/module.h>
+ #include <linux/rtc.h>
+-#include <linux/smp_lock.h>
+ #include "rtc-core.h"
  
--What:	old NCR53C9x driver
--When:	October 2007
--Why:	Replaced by the much better esp_scsi driver.  Actual low-level
--	driver can be ported over almost trivially.
--Who:	David Miller <davem@davemloft.net>
--	Christoph Hellwig <hch@lst.de>
--
-----------------------------
--
- What:	Video4Linux API 1 ioctls and video_decoder.h from Video devices.
- When:	December 2008
- Files:	include/linux/video_decoder.h include/linux/videodev.h
+ static dev_t rtc_devt;
+@@ -27,11 +26,8 @@ static int rtc_dev_open(struct inode *in
+ 					struct rtc_device, char_dev);
+ 	const struct rtc_class_ops *ops = rtc->ops;
+ 
+-	lock_kernel();
+-	if (test_and_set_bit_lock(RTC_DEV_BUSY, &rtc->flags)) {
+-		err = -EBUSY;
+-		goto out;
+-	}
++	if (test_and_set_bit_lock(RTC_DEV_BUSY, &rtc->flags))
++		return -EBUSY;
+ 
+ 	file->private_data = rtc;
+ 
+@@ -41,13 +37,11 @@ static int rtc_dev_open(struct inode *in
+ 		rtc->irq_data = 0;
+ 		spin_unlock_irq(&rtc->irq_lock);
+ 
+-		goto out;
++		return 0;
+ 	}
+ 
+ 	/* something has gone wrong */
+ 	clear_bit_unlock(RTC_DEV_BUSY, &rtc->flags);
+-out:
+-	unlock_kernel();
+ 	return err;
+ }
+ 
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-m32r-dont-offer-config_isa.patch
-m32r-export-empty_zero_page.patch
-m32r-export-__ndelay.patch
-m32r-kernel-cleanups.patch
-the-overdue-eepro100-removal.patch
-ntfs-update-homepage.patch
-parisc-lib-make-code-static.patch
-drivers-parisc-make-code-static.patch
-if-0-ses_match_host.patch
-scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
-drivers-scsi-a2091c-make-2-functions-static.patch
-drivers-scsi-a3000c-make-2-functions-static.patch
-fs_mbcache-dont-needlessly-make-it-built-in.patch
-git-xtensa.patch
-asm-h8300-mdh-remove-cvs-keyword.patch
-alpha-miata-remove-dead-url.patch
-uml-remove-the-dead-tty_log-code.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-maintainers-remove-hga-framebuffer-driver-entry.patch
-include-linux-mounth-remove-cvs-keyword.patch
-kernel-dmac-remove-a-cvs-keyword.patch
-binfmt_somc-add-module_license.patch
-make-probe_serial_gsc-static.patch
-pnp-remove-printk-with-outdated-version.patch
-telephony-remove-cvs-keywords.patch
-reiserfs-procfsc-remove-cvs-keywords.patch
-quota-remove-cvs-keywords.patch
-make-ptrace_untrace-static.patch
-fs-partitions-acornc-remove-dead-code.patch
-parport-remove-cvs-keywords.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-firmware-iscsi_ibftc-make-3-functions-static.patch
-ipc-semc-make-free_un-static.patch
-acpi-use-bcd2bin-bin2bcd.patch
-alpha-use-bcd2bin-bin2bcd.patch
-arm-use-bcd2bin-bin2bcd.patch
-cris-use-bcd2bin-bin2bcd.patch
-drivers-rtc-use-bcd2bin-bin2bcd.patch
-rtc-use-bcd2bin-bin2bcd.patch
-mips-use-bcd2bin-bin2bcd.patch
-mn10300-use-bcd2bin-bin2bcd.patch
-powerpc-use-bcd2bin-bin2bcd.patch
-i2c-use-bcd2bin-bin2bcd.patch
-drivers-scsi-sr_vendorc-use-bcd2bin.patch
-sparc64-use-bcd2bin-bin2bcd.patch
-remove-the-obsolete-bcdbin-binbcd-macros.patch
-include-linux-bcdh-remove-comments.patch
-reiser4.patch
+usb-hso-driver-fix-kconfig.patch
+rtc-ds1307-alarm-support-for-ds1337-ds1339.patch
+rtc-remove-some-nop-open-release-methods.patch
+legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
+rtc-file-close-consistently-disables-repeating-irqs.patch
+irq-warn-about-irqf_disabledirqf_shared.patch
 
