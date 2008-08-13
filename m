@@ -1,71 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_lcdfb-set-ypanstep-to-1-and-enable-y-panning-on-at91.patch removed from -mm tree
-Date: Wed, 13 Aug 2008 01:52:55 -0700
-Message-ID: <200808130852.m7D8qtkM008266@imap1.linux-foundation.org>
+Subject: - atmel_lcdfb-add-board-parameter-specify-framebuffer-memory-size.patch removed from -mm tree
+Date: Wed, 13 Aug 2008 01:52:57 -0700
+Message-ID: <200808130852.m7D8qvfO008269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41269 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42614 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752570AbYHMJF2 (ORCPT
+	by vger.kernel.org with ESMTP id S1753902AbYHMJFy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 05:05:28 -0400
+	Wed, 13 Aug 2008 05:05:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haavard.skinnemoen@atmel.com, hskinnemoen@atmel.com, krzysztof.h1@wp.pl, nicolas.ferre@atmel.com, mm-commits@vger.kernel.org
+To: haavard.skinnemoen@atmel.com, krzysztof.h1@wp.pl, nicolas.ferre@atmel.com, stf_xl@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_lcdfb: set ypanstep to 1 and enable y-panning on AT91
+     atmel_lcdfb: add board parameter specify framebuffer memory size
 has been removed from the -mm tree.  Its filename was
-     atmel_lcdfb-set-ypanstep-to-1-and-enable-y-panning-on-at91.patch
+     atmel_lcdfb-add-board-parameter-specify-framebuffer-memory-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_lcdfb: set ypanstep to 1 and enable y-panning on AT91
+Subject: atmel_lcdfb: add board parameter specify framebuffer memory size
 From: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
 
-Panning in the y-direction can be done by simply changing the DMA base
-address.  This code is already in place, but FBIOPAN_DISPLAY will
-currently fail because ypanstep is 0.
+Specify how much physically continuous, DMA capable memory will be
+allocated at driver initialization time.  This allow to create framebuffer
+device with larger virtual resolution.  Combine with y-panning this can be
+used to implement double buffering acceleration method.
 
-Set ypanstep to 1 to indicate that we do support y-panning and also set
-the necessary acceleration flags on AT91 (AVR32 already have them.)
-
-Signed-off-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: Stanislaw Gruszka <stf_xl@wp.pl>
+Acked-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
 Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/atmel_lcdfb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/video/atmel_lcdfb.c |    7 +++++--
+ include/video/atmel_lcdc.h  |    1 +
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-set-ypanstep-to-1-and-enable-y-panning-on-at91 drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-set-ypanstep-to-1-and-enable-y-panning-on-at91
+diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-add-board-parameter-specify-framebuffer-memory-size drivers/video/atmel_lcdfb.c
+--- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-add-board-parameter-specify-framebuffer-memory-size
 +++ a/drivers/video/atmel_lcdfb.c
-@@ -39,7 +39,9 @@
- #endif
+@@ -242,9 +242,11 @@ static int atmel_lcdfb_alloc_video_memor
+ {
+ 	struct fb_info *info = sinfo->info;
+ 	struct fb_var_screeninfo *var = &info->var;
++	unsigned int smem_len;
  
- #if defined(CONFIG_ARCH_AT91)
--#define	ATMEL_LCDFB_FBINFO_DEFAULT	FBINFO_DEFAULT
-+#define	ATMEL_LCDFB_FBINFO_DEFAULT	(FBINFO_DEFAULT \
-+					 | FBINFO_PARTIAL_PAN_OK \
-+					 | FBINFO_HWACCEL_YPAN)
+-	info->fix.smem_len = (var->xres_virtual * var->yres_virtual
+-			    * ((var->bits_per_pixel + 7) / 8));
++	smem_len = (var->xres_virtual * var->yres_virtual
++		    * ((var->bits_per_pixel + 7) / 8));
++	info->fix.smem_len = max(smem_len, sinfo->smem_len);
  
- static inline void atmel_lcdfb_update_dma2d(struct atmel_lcdfb_info *sinfo,
- 					struct fb_var_screeninfo *var)
-@@ -177,7 +179,7 @@ static struct fb_fix_screeninfo atmel_lc
- 	.type		= FB_TYPE_PACKED_PIXELS,
- 	.visual		= FB_VISUAL_TRUECOLOR,
- 	.xpanstep	= 0,
--	.ypanstep	= 0,
-+	.ypanstep	= 1,
- 	.ywrapstep	= 0,
- 	.accel		= FB_ACCEL_NONE,
- };
+ 	info->screen_base = dma_alloc_writecombine(info->device, info->fix.smem_len,
+ 					(dma_addr_t *)&info->fix.smem_start, GFP_KERNEL);
+@@ -796,6 +798,7 @@ static int __init atmel_lcdfb_probe(stru
+ 		sinfo->default_monspecs = pdata_sinfo->default_monspecs;
+ 		sinfo->atmel_lcdfb_power_control = pdata_sinfo->atmel_lcdfb_power_control;
+ 		sinfo->guard_time = pdata_sinfo->guard_time;
++		sinfo->smem_len = pdata_sinfo->smem_len;
+ 		sinfo->lcdcon_is_backlight = pdata_sinfo->lcdcon_is_backlight;
+ 		sinfo->lcd_wiring_mode = pdata_sinfo->lcd_wiring_mode;
+ 	} else {
+diff -puN include/video/atmel_lcdc.h~atmel_lcdfb-add-board-parameter-specify-framebuffer-memory-size include/video/atmel_lcdc.h
+--- a/include/video/atmel_lcdc.h~atmel_lcdfb-add-board-parameter-specify-framebuffer-memory-size
++++ a/include/video/atmel_lcdc.h
+@@ -41,6 +41,7 @@ struct atmel_lcdfb_info {
+ 	struct work_struct	task;
+ 
+ 	unsigned int		guard_time;
++	unsigned int 		smem_len;
+ 	struct platform_device	*pdev;
+ 	struct clk		*bus_clk;
+ 	struct clk		*lcdc_clk;
 _
 
 Patches currently in -mm which might be from haavard.skinnemoen@atmel.com are
