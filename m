@@ -1,123 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - allocate-structures-for-reservation-tracking-in-hugetlbfs-outside-of-spinlocks-v2.patch removed from -mm tree
-Date: Wed, 13 Aug 2008 01:52:37 -0700
-Message-ID: <200808130852.m7D8qbBk008224@imap1.linux-foundation.org>
+Subject: - cpuidle-make-sysfs-attributes-sysdev-class-attributes.patch removed from -mm tree
+Date: Wed, 13 Aug 2008 01:52:28 -0700
+Message-ID: <200808130852.m7D8qSKl008210@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57424 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41311 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753069AbYHMJGD (ORCPT
+	by vger.kernel.org with ESMTP id S1753907AbYHMJGY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 05:06:03 -0400
+	Wed, 13 Aug 2008 05:06:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@shadowen.org, gerald.schaefer@de.ibm.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: rabin@rab.in, ak@linux.intel.com, shaohua.li@intel.com, snakebyte@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     allocate structures for reservation tracking in hugetlbfs outside of spinlocks v2
+     cpuidle: make sysfs attributes sysdev class attributes
 has been removed from the -mm tree.  Its filename was
-     allocate-structures-for-reservation-tracking-in-hugetlbfs-outside-of-spinlocks-v2.patch
+     cpuidle-make-sysfs-attributes-sysdev-class-attributes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: allocate structures for reservation tracking in hugetlbfs outside of spinlocks v2
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: cpuidle: make sysfs attributes sysdev class attributes
+From: Rabin Vincent <rabin@rab.in>
 
-[Andrew this should replace the previous version which did not check
-the returns from the region prepare for errors.  This has been tested by
-us and Gerald and it looks good.
+These attributes are really sysdev class attributes.  The incorrect
+definition leads to an oops because of recent changes which make sysdev
+attributes use a different prototype.
 
-Bah, while reviewing the locking based on your previous email I spotted
-that we need to check the return from the vma_needs_reservation call for
-allocation errors.  Here is an updated patch to correct this.  This passes
-testing here.]
+Based on Andi's f718cd4add5aea9d379faff92f162571e356cc5f ("sched: make
+scheduler sysfs attributes sysdev class devices")
 
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Tested-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Reported-by: Eric Sesterhenn <snakebyte@gmx.de>
+Signed-off-by: Rabin Vincent <rabin@rab.in>
+Acked-by: Andi Kleen <ak@linux.intel.com>
+Cc: "Li, Shaohua" <shaohua.li@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ drivers/cpuidle/sysfs.c |   29 +++++++++++++++--------------
+ 1 file changed, 15 insertions(+), 14 deletions(-)
 
-diff -puN mm/hugetlb.c~allocate-structures-for-reservation-tracking-in-hugetlbfs-outside-of-spinlocks-v2 mm/hugetlb.c
---- a/mm/hugetlb.c~allocate-structures-for-reservation-tracking-in-hugetlbfs-outside-of-spinlocks-v2
-+++ a/mm/hugetlb.c
-@@ -1949,7 +1949,10 @@ retry:
- 	 * the spinlock.
- 	 */
- 	if (write_access && !(vma->vm_flags & VM_SHARED))
--		vma_needs_reservation(h, vma, address);
-+		if (vma_needs_reservation(h, vma, address) < 0) {
-+			ret = VM_FAULT_OOM;
-+			goto backout_unlocked;
-+		}
+diff -puN drivers/cpuidle/sysfs.c~cpuidle-make-sysfs-attributes-sysdev-class-attributes drivers/cpuidle/sysfs.c
+--- a/drivers/cpuidle/sysfs.c~cpuidle-make-sysfs-attributes-sysdev-class-attributes
++++ a/drivers/cpuidle/sysfs.c
+@@ -21,8 +21,8 @@ static int __init cpuidle_sysfs_setup(ch
+ }
+ __setup("cpuidle_sysfs_switch", cpuidle_sysfs_setup);
  
- 	spin_lock(&mm->page_table_lock);
- 	size = i_size_read(mapping->host) >> huge_page_shift(h);
-@@ -1976,6 +1979,7 @@ out:
+-static ssize_t show_available_governors(struct sys_device *dev,
+-		struct sysdev_attribute *attr, char *buf)
++static ssize_t show_available_governors(struct sysdev_class *class,
++					char *buf)
+ {
+ 	ssize_t i = 0;
+ 	struct cpuidle_governor *tmp;
+@@ -40,8 +40,8 @@ out:
+ 	return i;
+ }
  
- backout:
- 	spin_unlock(&mm->page_table_lock);
-+backout_unlocked:
- 	unlock_page(page);
- 	put_page(page);
- 	goto out;
-@@ -2004,8 +2008,7 @@ int hugetlb_fault(struct mm_struct *mm, 
- 	entry = huge_ptep_get(ptep);
- 	if (huge_pte_none(entry)) {
- 		ret = hugetlb_no_page(mm, vma, address, ptep, write_access);
--		mutex_unlock(&hugetlb_instantiation_mutex);
--		return ret;
-+		goto out_unlock;
- 	}
+-static ssize_t show_current_driver(struct sys_device *dev,
+-		struct sysdev_attribute *attr, char *buf)
++static ssize_t show_current_driver(struct sysdev_class *class,
++				   char *buf)
+ {
+ 	ssize_t ret;
  
- 	ret = 0;
-@@ -2019,7 +2022,10 @@ int hugetlb_fault(struct mm_struct *mm, 
- 	 * consumed.
- 	 */
- 	if (write_access && !pte_write(entry)) {
--		vma_needs_reservation(h, vma, address);
-+		if (vma_needs_reservation(h, vma, address) < 0) {
-+			ret = VM_FAULT_OOM;
-+			goto out_unlock;
-+		}
- 
- 		if (!(vma->vm_flags & VM_SHARED))
- 			pagecache_page = hugetlbfs_pagecache_page(h,
-@@ -2039,6 +2045,7 @@ int hugetlb_fault(struct mm_struct *mm, 
- 		put_page(pagecache_page);
- 	}
- 
-+out_unlock:
- 	mutex_unlock(&hugetlb_instantiation_mutex);
- 
+@@ -55,8 +55,8 @@ static ssize_t show_current_driver(struc
  	return ret;
+ }
+ 
+-static ssize_t show_current_governor(struct sys_device *dev,
+-			struct sysdev_attribute *attr, char *buf)
++static ssize_t show_current_governor(struct sysdev_class *class,
++				     char *buf)
+ {
+ 	ssize_t ret;
+ 
+@@ -70,9 +70,8 @@ static ssize_t show_current_governor(str
+ 	return ret;
+ }
+ 
+-static ssize_t store_current_governor(struct sys_device *dev,
+-	struct sysdev_attribute *attr,
+-	const char *buf, size_t count)
++static ssize_t store_current_governor(struct sysdev_class *class,
++				      const char *buf, size_t count)
+ {
+ 	char gov_name[CPUIDLE_NAME_LEN];
+ 	int ret = -EINVAL;
+@@ -104,8 +103,9 @@ static ssize_t store_current_governor(st
+ 		return count;
+ }
+ 
+-static SYSDEV_ATTR(current_driver, 0444, show_current_driver, NULL);
+-static SYSDEV_ATTR(current_governor_ro, 0444, show_current_governor, NULL);
++static SYSDEV_CLASS_ATTR(current_driver, 0444, show_current_driver, NULL);
++static SYSDEV_CLASS_ATTR(current_governor_ro, 0444, show_current_governor,
++			 NULL);
+ 
+ static struct attribute *cpuclass_default_attrs[] = {
+ 	&attr_current_driver.attr,
+@@ -113,9 +113,10 @@ static struct attribute *cpuclass_defaul
+ 	NULL
+ };
+ 
+-static SYSDEV_ATTR(available_governors, 0444, show_available_governors, NULL);
+-static SYSDEV_ATTR(current_governor, 0644, show_current_governor,
+-	store_current_governor);
++static SYSDEV_CLASS_ATTR(available_governors, 0444, show_available_governors,
++			 NULL);
++static SYSDEV_CLASS_ATTR(current_governor, 0644, show_current_governor,
++			 store_current_governor);
+ 
+ static struct attribute *cpuclass_switch_attrs[] = {
+ 	&attr_available_governors.attr,
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from rabin@rab.in are
 
-checkpatch-square-brackets-exemption-for-array-slices-in-braces.patch
-checkpatch-values-double-ampersand-may-be-unary.patch
-checkpatch-conditional-indent-labels-have-different-indent-rules.patch
-checkpatch-switch-indent-allow-plain-return.patch
-checkpatch-add-tests-for-the-attribute-matcher.patch
-checkpatch-____cacheline_aligned-et-al-are-modifiers.patch
-checkpatch-complex-macros-fix-up-extension-handling.patch
-checkpatch-fix-up-comment-checks-search-to-scan-the-entire-block.patch
-checkpatch-include-asm-checks-should-be-anchored.patch
-checkpatch-reduce-warnings-for-include-of-asm-fooh-to-check-from-arch-barc.patch
-checkpatch-report-any-absolute-references-to-kernel-source-files.patch
-checkpatch-report-the-real-first-line-of-all-suspect-indents.patch
-checkpatch-suspect-indent-skip-over-preprocessor-label-and-blank-lines.patch
-checkpatch-%lx-tests-should-hand-%%-as-a-literal.patch
-checkpatch-report-the-correct-lines-for-single-statement-blocks.patch
-checkpatch-perform-indent-checks-on-perl.patch
-checkpatch-version-022.patch
-page-owner-tracking-leak-detector.patch
+linux-next.patch
 
