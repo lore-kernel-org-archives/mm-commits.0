@@ -1,88 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - byteorder-ia64-use-the-new-byteorder-headers.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 22:43:47 -0700
-Message-ID: <200808130556.m7D5uqDL001329@imap1.linux-foundation.org>
+Subject: - byteorder-h8300-use-the-new-byteorder-headers.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 22:43:45 -0700
+Message-ID: <200808130556.m7D5uoFg001321@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53640 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52262 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751871AbYHMF4y (ORCPT
+	by vger.kernel.org with ESMTP id S1752026AbYHMF5C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 01:56:54 -0400
+	Wed, 13 Aug 2008 01:57:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     byteorder: ia64: use the new byteorder headers
+     byteorder: h8300: use the new byteorder headers
 has been removed from the -mm tree.  Its filename was
-     byteorder-ia64-use-the-new-byteorder-headers.patch
+     byteorder-h8300-use-the-new-byteorder-headers.patch
 
 This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: ia64: use the new byteorder headers
+Subject: byteorder: h8300: use the new byteorder headers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/byteorder.h |   26 +++++++++++---------------
- 1 file changed, 11 insertions(+), 15 deletions(-)
+ include/asm-h8300/byteorder.h |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN arch/ia64/include/asm/byteorder.h~byteorder-ia64-use-the-new-byteorder-headers arch/ia64/include/asm/byteorder.h
---- a/arch/ia64/include/asm/byteorder.h~byteorder-ia64-use-the-new-byteorder-headers
-+++ a/arch/ia64/include/asm/byteorder.h
-@@ -10,33 +10,29 @@
- #include <asm/intrinsics.h>
- #include <linux/compiler.h>
+diff -puN include/asm-h8300/byteorder.h~byteorder-h8300-use-the-new-byteorder-headers include/asm-h8300/byteorder.h
+--- a/include/asm-h8300/byteorder.h~byteorder-h8300-use-the-new-byteorder-headers
++++ a/include/asm-h8300/byteorder.h
+@@ -1,13 +1,9 @@
+ #ifndef _H8300_BYTEORDER_H
+ #define _H8300_BYTEORDER_H
  
--static __inline__ __attribute_const__ __u64
--__ia64_swab64 (__u64 x)
-+#define __LITTLE_ENDIAN
-+
-+static inline __attribute_const__ __u64 __arch_swab64(__u64 x)
- {
- 	__u64 result;
+-#include <asm/types.h>
++#define __BIG_ENDIAN
++#define __SWAB_64_THRU_32__
  
- 	result = ia64_mux1(x, ia64_mux1_rev);
- 	return result;
- }
-+#define __arch_swab64 __arch_swab64
- 
--static __inline__ __attribute_const__ __u32
--__ia64_swab32 (__u32 x)
-+static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
- {
--	return __ia64_swab64(x) >> 32;
-+	return __arch_swab64(x) >> 32;
- }
-+#define __arch_swab32 __arch_swab32
- 
--static __inline__ __attribute_const__ __u16
--__ia64_swab16(__u16 x)
-+static inline __attribute_const__ __u16 __arch_swab16(__u16 x)
- {
--	return __ia64_swab64(x) >> 48;
-+	return __arch_swab64(x) >> 48;
- }
-+#define __arch_swab16 __arch_swab16
- 
--#define __arch__swab64(x) __ia64_swab64(x)
--#define __arch__swab32(x) __ia64_swab32(x)
--#define __arch__swab16(x) __ia64_swab16(x)
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__) || defined(__KERNEL__)
+-#  define __BYTEORDER_HAS_U64__
+-#  define __SWAB_64_THRU_32__
+-#endif
 -
--#define __BYTEORDER_HAS_U64__
--
--#include <linux/byteorder/little_endian.h>
+-#include <linux/byteorder/big_endian.h>
 +#include <linux/byteorder.h>
  
- #endif /* _ASM_IA64_BYTEORDER_H */
+ #endif /* _H8300_BYTEORDER_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -113,6 +85,7 @@ include-replace-__function__-with-__func__.patch
 misc-replace-__function__-with-__func__.patch
 befs-annotate-fs32-on-tests-for-superblock-endianness.patch
 net-tipc-subscrc-dont-use-___constant_swab32.patch
+byteorder-h8300-use-the-new-byteorder-headers.patch
 byteorder-ia64-use-the-new-byteorder-headers.patch
 byteorder-m32r-use-the-new-byteorder-headers.patch
 byteorder-m68k-use-the-new-byteorder-headers.patch
