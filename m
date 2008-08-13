@@ -1,94 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - revert-rtc-cdev-lock_kernel-pushdown.patch removed from -mm tree
-Date: Wed, 13 Aug 2008 01:52:19 -0700
-Message-ID: <200808130852.m7D8qJoL008197@imap1.linux-foundation.org>
+Subject: - page-allocator-use-no-panic-variant-of-alloc_bootmem-in-alloc_large_system_hash.patch removed from -mm tree
+Date: Wed, 13 Aug 2008 01:52:13 -0700
+Message-ID: <200808130852.m7D8qD8I008186@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54697 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45169 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754315AbYHMIw5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754290AbYHMIxD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 04:52:57 -0400
+	Wed, 13 Aug 2008 04:53:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbrownell@users.sourceforge.net, alessandro.zummo@towertech.it, corbet@lwn.net, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "rtc: cdev lock_kernel() pushdown"
+     page allocator: use no-panic variant of alloc_bootmem() in alloc_large_system_hash()
 has been removed from the -mm tree.  Its filename was
-     revert-rtc-cdev-lock_kernel-pushdown.patch
+     page-allocator-use-no-panic-variant-of-alloc_bootmem-in-alloc_large_system_hash.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "rtc: cdev lock_kernel() pushdown"
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: page allocator: use no-panic variant of alloc_bootmem() in alloc_large_system_hash()
+From: Jan Beulich <jbeulich@novell.com>
 
-Revert "rtc: cdev lock_kernel() pushdown" patch
-(51a776fa7a7997e726d4a478eda0854c6f9143bd).  The RTC framework does not
-need BKL protection.
+..  since a failed allocation is being (initially) handled gracefully, and
+panic()-ed upon failure explicitly in the function if retries with smaller
+sizes failed.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-dev.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ include/linux/bootmem.h |    4 ++++
+ mm/page_alloc.c         |    2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-dev.c~revert-rtc-cdev-lock_kernel-pushdown drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~revert-rtc-cdev-lock_kernel-pushdown
-+++ a/drivers/rtc/rtc-dev.c
-@@ -13,7 +13,6 @@
- 
- #include <linux/module.h>
- #include <linux/rtc.h>
--#include <linux/smp_lock.h>
- #include "rtc-core.h"
- 
- static dev_t rtc_devt;
-@@ -27,11 +26,8 @@ static int rtc_dev_open(struct inode *in
- 					struct rtc_device, char_dev);
- 	const struct rtc_class_ops *ops = rtc->ops;
- 
--	lock_kernel();
--	if (test_and_set_bit_lock(RTC_DEV_BUSY, &rtc->flags)) {
--		err = -EBUSY;
--		goto out;
--	}
-+	if (test_and_set_bit_lock(RTC_DEV_BUSY, &rtc->flags))
-+		return -EBUSY;
- 
- 	file->private_data = rtc;
- 
-@@ -41,13 +37,11 @@ static int rtc_dev_open(struct inode *in
- 		rtc->irq_data = 0;
- 		spin_unlock_irq(&rtc->irq_lock);
- 
--		goto out;
-+		return 0;
- 	}
- 
- 	/* something has gone wrong */
- 	clear_bit_unlock(RTC_DEV_BUSY, &rtc->flags);
--out:
--	unlock_kernel();
- 	return err;
- }
- 
+diff -puN include/linux/bootmem.h~page-allocator-use-no-panic-variant-of-alloc_bootmem-in-alloc_large_system_hash include/linux/bootmem.h
+--- a/include/linux/bootmem.h~page-allocator-use-no-panic-variant-of-alloc_bootmem-in-alloc_large_system_hash
++++ a/include/linux/bootmem.h
+@@ -97,10 +97,14 @@ extern void *__alloc_bootmem_low_node(pg
+ #ifndef CONFIG_HAVE_ARCH_BOOTMEM_NODE
+ #define alloc_bootmem(x) \
+ 	__alloc_bootmem(x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
++#define alloc_bootmem_nopanic(x) \
++	__alloc_bootmem_nopanic(x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
+ #define alloc_bootmem_low(x) \
+ 	__alloc_bootmem_low(x, SMP_CACHE_BYTES, 0)
+ #define alloc_bootmem_pages(x) \
+ 	__alloc_bootmem(x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
++#define alloc_bootmem_pages_nopanic(x) \
++	__alloc_bootmem_nopanic(x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
+ #define alloc_bootmem_low_pages(x) \
+ 	__alloc_bootmem_low(x, PAGE_SIZE, 0)
+ #define alloc_bootmem_node(pgdat, x) \
+diff -puN mm/page_alloc.c~page-allocator-use-no-panic-variant-of-alloc_bootmem-in-alloc_large_system_hash mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-use-no-panic-variant-of-alloc_bootmem-in-alloc_large_system_hash
++++ a/mm/page_alloc.c
+@@ -4437,7 +4437,7 @@ void *__init alloc_large_system_hash(con
+ 	do {
+ 		size = bucketsize << log2qty;
+ 		if (flags & HASH_EARLY)
+-			table = alloc_bootmem(size);
++			table = alloc_bootmem_nopanic(size);
+ 		else if (hashdist)
+ 			table = __vmalloc(size, GFP_ATOMIC, PAGE_KERNEL);
+ 		else {
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
-linux-next.patch
-usb-hso-driver-fix-kconfig.patch
-rtc-ds1307-alarm-support-for-ds1337-ds1339.patch
-rtc-remove-some-nop-open-release-methods.patch
-legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
-rtc-file-close-consistently-disables-repeating-irqs.patch
-irq-warn-about-irqf_disabledirqf_shared.patch
+x86-64-fix-overlap-of-modules-and-fixmap-areas.patch
 
