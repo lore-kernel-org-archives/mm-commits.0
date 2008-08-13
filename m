@@ -1,185 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: + byteorder-parisc-use-the-new-byteorder-headers.patch added to -mm tree
-Date: Tue, 12 Aug 2008 19:59:09 -0700
-Message-ID: <200808130259.m7D2x9AD027469@imap1.linux-foundation.org>
+Subject: - kexec-jump-check-code-size-in-control-page-fix.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 20:03:48 -0700
+Message-ID: <200808130303.m7D33mGP027600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42579 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55796 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752653AbYHMDCF (ORCPT
+	by vger.kernel.org with ESMTP id S1752209AbYHMDE0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 23:02:05 -0400
+	Tue, 12 Aug 2008 23:04:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, grundler@parisc-linux.org, kyle@mcmartin.ca, matthew@wil.cx
+To: akpm@linux-foundation.org, ebiederm@xmission.com, mingo@elte.hu, pavel@ucw.cz, rjw@sisk.pl, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     byteorder: parisc: use the new byteorder headers
-has been added to the -mm tree.  Its filename is
-     byteorder-parisc-use-the-new-byteorder-headers.patch
+     kexec-jump-check-code-size-in-control-page-fix
+has been removed from the -mm tree.  Its filename was
+     kexec-jump-check-code-size-in-control-page-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: parisc: use the new byteorder headers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: kexec-jump-check-code-size-in-control-page-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Grant Grundler <grundler@parisc-linux.org>
+arch/x86/kernel/vmlinux.lds:348: undefined symbol `kexec_control_code_size' referenced in expression
+
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/include/asm/byteorder.h |   37 ++++++++------------------
- 1 file changed, 12 insertions(+), 25 deletions(-)
+ arch/x86/kernel/vmlinux_32.lds.S |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/parisc/include/asm/byteorder.h~byteorder-parisc-use-the-new-byteorder-headers arch/parisc/include/asm/byteorder.h
---- a/arch/parisc/include/asm/byteorder.h~byteorder-parisc-use-the-new-byteorder-headers
-+++ a/arch/parisc/include/asm/byteorder.h
-@@ -4,9 +4,10 @@
- #include <asm/types.h>
- #include <linux/compiler.h>
- 
--#ifdef __GNUC__
-+#define __BIG_ENDIAN
-+#define __SWAB_64_THRU_32__
- 
--static __inline__ __attribute_const__ __u16 ___arch__swab16(__u16 x)
-+static inline __attribute_const__ __u16 __arch_swab16(__u16 x)
- {
- 	__asm__("dep %0, 15, 8, %0\n\t"		/* deposit 00ab -> 0bab */
- 		"shd %%r0, %0, 8, %0"		/* shift 000000ab -> 00ba */
-@@ -14,8 +15,9 @@ static __inline__ __attribute_const__ __
- 		: "0" (x));
- 	return x;
- }
-+#define __arch_swab16 __arch_swab16
- 
--static __inline__ __attribute_const__ __u32 ___arch__swab24(__u32 x)
-+static inline __attribute_const__ __u32 __arch_swab24(__u32 x)
- {
- 	__asm__("shd %0, %0, 8, %0\n\t"		/* shift xabcxabc -> cxab */
- 		"dep %0, 15, 8, %0\n\t"		/* deposit cxab -> cbab */
-@@ -25,7 +27,7 @@ static __inline__ __attribute_const__ __
- 	return x;
+diff -puN arch/x86/kernel/vmlinux_32.lds.S~kexec-jump-check-code-size-in-control-page-fix arch/x86/kernel/vmlinux_32.lds.S
+--- a/arch/x86/kernel/vmlinux_32.lds.S~kexec-jump-check-code-size-in-control-page-fix
++++ a/arch/x86/kernel/vmlinux_32.lds.S
+@@ -211,8 +211,10 @@ SECTIONS
+   DWARF_DEBUG
  }
  
--static __inline__ __attribute_const__ __u32 ___arch__swab32(__u32 x)
-+static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
- {
- 	unsigned int temp;
- 	__asm__("shd %0, %0, 16, %1\n\t"	/* shift abcdabcd -> cdab */
-@@ -35,7 +37,7 @@ static __inline__ __attribute_const__ __
- 		: "0" (x));
- 	return x;
- }
--
-+#define __arch_swab32 __arch_swab32
++#ifdef CONFIG_KEXEC
+ /* Link time checks */
+ #include <asm/kexec.h>
  
- #if BITS_PER_LONG > 32
- /*
-@@ -48,7 +50,8 @@ static __inline__ __attribute_const__ __
- **      HSHR    67452301 -> *6*4*2*0 into %0
- **      OR      %0 | %1  -> 76543210 into %0 (all done!)
- */
--static __inline__ __attribute_const__ __u64 ___arch__swab64(__u64 x) {
-+static inline __attribute_const__ __u64 __arch_swab64(__u64 x)
-+{
- 	__u64 temp;
- 	__asm__("permh,3210 %0, %0\n\t"
- 		"hshl %0, 8, %1\n\t"
-@@ -58,25 +61,9 @@ static __inline__ __attribute_const__ __
- 		: "0" (x));
- 	return x;
- }
--#define __arch__swab64(x) ___arch__swab64(x)
--#define __BYTEORDER_HAS_U64__
--#elif !defined(__STRICT_ANSI__)
--static __inline__ __attribute_const__ __u64 ___arch__swab64(__u64 x)
--{
--	__u32 t1 = ___arch__swab32((__u32) x);
--	__u32 t2 = ___arch__swab32((__u32) (x >> 32));
--	return (((__u64) t1 << 32) | t2);
--}
--#define __arch__swab64(x) ___arch__swab64(x)
--#define __BYTEORDER_HAS_U64__
--#endif
--
--#define __arch__swab16(x) ___arch__swab16(x)
--#define __arch__swab24(x) ___arch__swab24(x)
--#define __arch__swab32(x) ___arch__swab32(x)
--
--#endif /* __GNUC__ */
-+#define __arch_swab64 __arch_swab64
-+#endif /* BITS_PER_LONG > 32 */
- 
--#include <linux/byteorder/big_endian.h>
-+#include <linux/byteorder.h>
- 
- #endif /* _PARISC_BYTEORDER_H */
+ ASSERT(kexec_control_code_size <= KEXEC_CONTROL_CODE_MAX_SIZE,
+        "kexec control code size is too big")
++#endif
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
+origin.patch
+fs-eventpollc-fix-sys_epoll_create1-comment.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-x86-fix-shadowed-variable-warning.patch
-cifs-remove-global_extern-macro.patch
+next-remove-localversion.patch
+acpi-trivial-cleanups-fix.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+kernel-auditscc-fix-warning.patch
 ppc-use-the-common-ascii-hex-helpers.patch
 powerpc-replace-__function__-with-__func__.patch
-v4l-drx397xdc-sparse-annotations.patch
-input-ads7846c-sparse-lock-annotation.patch
-kvm-make-functions-static.patch
-misdn-endian-annotations-for-struct-zt.patch
-misdn-annotate-iomem-pointer-and-add-statics.patch
-drivers-net-replace-__function__-with-__func__.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+git-jg-misc.patch
+drivers-ata-pata_it821xc-fix-warning.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
+ftrace-printk-formatting-infrastructure-fix-fix.patch
 scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-wireless-replace-__function__-with-__func__.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-include-replace-__function__-with-__func__.patch
-misc-replace-__function__-with-__func__.patch
-befs-annotate-fs32-on-tests-for-superblock-endianness.patch
-byteorder-alpha-use-the-new-byteorder-headers.patch
-byteorder-arm-use-the-new-byteorder-headers.patch
-byteorder-avr32-use-the-new-byteorder-headers.patch
-byteorder-blackfin-use-the-new-byteorder-headers.patch
-byteorder-cris-use-the-new-byteorder-headers.patch
-byteorder-frv-use-the-new-byteorder-headers.patch
-byteorder-h8300-use-the-new-byteorder-headers.patch
-byteorder-ia64-use-the-new-byteorder-headers.patch
-byteorder-m32r-use-the-new-byteorder-headers.patch
-byteorder-m68k-use-the-new-byteorder-headers.patch
-byteorder-m68knommu-use-the-new-byteorder-headers.patch
-byteorder-mips-use-the-new-byteorder-headers.patch
-byteorder-mn10300-use-the-new-byteorder-headers.patch
-byteorder-parisc-use-the-new-byteorder-headers.patch
-byteorder-powerpc-use-the-new-byteorder-headers.patch
-byteorder-s390-use-the-new-byteorder-headers.patch
-byteorder-sh-use-the-new-byteorder-headers.patch
-byteorder-sparc-use-the-new-byteorder-headers.patch
-byteorder-x86-use-the-new-byteorder-headers.patch
-byteorder-xtensa-use-the-new-byteorder-headers.patch
-byteorder-fix-direct-byteswap-includes.patch
-byteorder-remove-the-old-byteorder-implementation.patch
+git-unionfs.patch
+git-xtensa.patch
+kexec-jump-check-code-size-in-control-page-fix.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+scsi-megaraid_sas-add-the-new-controllers-support.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
