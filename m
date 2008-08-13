@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-set-try_to_release_pages-gfp_mask-to-0.patch added to -mm tree
-Date: Tue, 12 Aug 2008 20:23:01 -0700
-Message-ID: <200808130323.m7D3N1AC028304@imap1.linux-foundation.org>
+Subject: + net-tipc-subscrc-dont-use-___constant_swab32.patch added to -mm tree
+Date: Tue, 12 Aug 2008 20:44:40 -0700
+Message-ID: <200808130357.m7D3vjwk029593@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42253 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43912 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751966AbYHMDXr (ORCPT
+	by vger.kernel.org with ESMTP id S1754278AbYHMD6W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 23:23:47 -0400
+	Tue, 12 Aug 2008 23:58:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hifumi.hisashi@oss.ntt.co.jp, cmm@us.ibm.com
+Cc: akpm@linux-foundation.org, allan.stephens@windriver.com, davem@davemloft.net, harvey.harrison@gmail.com, jon.maloy@ericsson.com, per.liden@ericsson.com
 
 
 The patch titled
-     vmscan: set try_to_release_page's gfp_mask to 0
+     net/tipc/subscr.c: don't use ___constant_swab32
 has been added to the -mm tree.  Its filename is
-     vmscan-set-try_to_release_pages-gfp_mask-to-0.patch
+     net-tipc-subscrc-dont-use-___constant_swab32.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,113 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: set try_to_release_page's gfp_mask to 0
-From: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Subject: net/tipc/subscr.c: don't use ___constant_swab32
+From: Andrew Morton <akpm@linux-foundation.org>
 
-shrink_page_list() passes a gfp_mask to try_to_release_page.  When
-shrink_page_list is called from kswapd or buddy system, gfp_mask is set
-and (gfp_mask & __GFP_WAIT) and (gfp_mask & __GFP_FS) check is positive. 
-releasepage of jbd/jbd2(ext3/4, ocfs2) and XFS use this parameter.
+It's an internal implementation detail which we _should_ be free to change. 
+So we did, and it promptly broke.
 
-If try_to_free_page fails due to bh busy in jbd/jbd2, jbd/jbd2 lets a
-thread wait for committing transaction.  I think this has big performance
-impacts for vmscan.  So I modified shrink_page_list not to pass gfp_mask
-to try_to_release_page in ordered to improve vmscan performance.
+The compiler shold be able to work out when to use the __constant version
+anyway.
 
-Signed-off-by: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
-Cc: Mingming Cao <cmm@us.ibm.com>
+Cc: Per Liden <per.liden@ericsson.com>
+Cc: Jon Maloy <jon.maloy@ericsson.com>
+Cc: Allan Stephens <allan.stephens@windriver.com>
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
+ net/tipc/subscr.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~vmscan-set-try_to_release_pages-gfp_mask-to-0 mm/vmscan.c
---- a/mm/vmscan.c~vmscan-set-try_to_release_pages-gfp_mask-to-0
-+++ a/mm/vmscan.c
-@@ -614,7 +614,7 @@ static unsigned long shrink_page_list(st
- 		 * Otherwise, leave the page on the LRU so it is swappable.
- 		 */
- 		if (PagePrivate(page)) {
--			if (!try_to_release_page(page, sc->gfp_mask))
-+			if (!try_to_release_page(page, 0))
- 				goto activate_locked;
- 			if (!mapping && page_count(page) == 1) {
- 				unlock_page(page);
+diff -puN net/tipc/subscr.c~net-tipc-subscrc-dont-use-___constant_swab32 net/tipc/subscr.c
+--- a/net/tipc/subscr.c~net-tipc-subscrc-dont-use-___constant_swab32
++++ a/net/tipc/subscr.c
+@@ -85,7 +85,7 @@ static struct top_srv topsrv = { 0 };
+ 
+ static u32 htohl(u32 in, int swap)
+ {
+-	return swap ? (u32)___constant_swab32(in) : in;
++	return swap ? swab32(in) : in;
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from hifumi.hisashi@oss.ntt.co.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vmscan-set-try_to_release_pages-gfp_mask-to-0.patch
+origin.patch
+fs-eventpollc-fix-sys_epoll_create1-comment.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+linux-next.patch
+next-remove-localversion.patch
+acpi-trivial-cleanups-fix.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+kernel-auditscc-fix-warning.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+git-jg-misc.patch
+drivers-ata-pata_it821xc-fix-warning.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
+ftrace-printk-formatting-infrastructure-fix-fix.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+hwmon-adc124s501-generic-driver.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+scsi-megaraid_sas-add-the-new-controllers-support.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+net-tipc-subscrc-dont-use-___constant_swab32.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
