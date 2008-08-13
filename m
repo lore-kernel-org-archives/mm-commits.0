@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-ata-pata_it821xc-fix-warning.patch added to -mm tree
-Date: Tue, 12 Aug 2008 17:27:08 -0700
-Message-ID: <200808130040.m7D0eClb022334@imap1.linux-foundation.org>
+Subject: + autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch added to -mm tree
+Date: Tue, 12 Aug 2008 17:32:20 -0700
+Message-ID: <200808130045.m7D0jPD9022494@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49252 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36690 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752209AbYHMAkV (ORCPT
+	by vger.kernel.org with ESMTP id S1752931AbYHMAp3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 20:40:21 -0400
+	Tue, 12 Aug 2008 20:45:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk
+Cc: akpm@linux-foundation.org, raven@themaw.net
 
 
 The patch titled
-     drivers/ata/pata_it821x.c: fix warning
+     autofs4-add-miscellaneous-device-for-ioctls-fix-2
 has been added to the -mm tree.  Its filename is
-     drivers-ata-pata_it821xc-fix-warning.patch
+     autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/ata/pata_it821x.c: fix warning
+Subject: autofs4-add-miscellaneous-device-for-ioctls-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/ata/pata_it821x.c: In function 'it821x_port_start':
-drivers/ata/pata_it821x.c:609: warning: 'mtype' may be used uninitialized in this function
+fs/autofs4/dev-ioctl.c: In function 'autofs_dev_ioctl_fd_install':
+fs/autofs4/dev-ioctl.c:272: error: dereferencing pointer to incomplete type
+fs/autofs4/dev-ioctl.c:273: error: implicit declaration of function 'files_fdtable'
+fs/autofs4/dev-ioctl.c:273: warning: assignment makes pointer from integer without a cast
+fs/autofs4/dev-ioctl.c:274: error: dereferencing pointer to incomplete type
+fs/autofs4/dev-ioctl.c:275: error: dereferencing pointer to incomplete type
+fs/autofs4/dev-ioctl.c:276: error: dereferencing pointer to incomplete type
+fs/autofs4/dev-ioctl.c:277: error: dereferencing pointer to incomplete type
+fs/autofs4/dev-ioctl.c:276: error: invalid lvalue in asm output 0
+fs/autofs4/dev-ioctl.c:276: error: memory input 2 is not directly addressable
 
-Pretty horrid fix, but so's a warning..
-
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_it821x.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/autofs4/dev-ioctl.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/ata/pata_it821x.c~drivers-ata-pata_it821xc-fix-warning drivers/ata/pata_it821x.c
---- a/drivers/ata/pata_it821x.c~drivers-ata-pata_it821xc-fix-warning
-+++ a/drivers/ata/pata_it821x.c
-@@ -619,9 +619,9 @@ static void it821x_display_disk(int n, u
- 
- 	ata_id_c_string((u16 *)buf, id, 0, 41); 
- 
-+	mtype = "UDMA";
- 	if (buf[51]) {
- 		mode = ffs(buf[51]);
--		mtype = "UDMA";
- 	} else if (buf[49]) {
- 		mode = ffs(buf[49]);
- 		mtype = "MWDMA";
+diff -puN fs/autofs4/dev-ioctl.c~autofs4-add-miscellaneous-device-for-ioctls-fix-2 fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs4-add-miscellaneous-device-for-ioctls-fix-2
++++ a/fs/autofs4/dev-ioctl.c
+@@ -15,6 +15,7 @@
+ #include <linux/namei.h>
+ #include <linux/fcntl.h>
+ #include <linux/file.h>
++#include <linux/fdtable.h>
+ #include <linux/sched.h>
+ #include <linux/compat.h>
+ #include <linux/syscalls.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,6 +82,7 @@ ppc-use-the-common-ascii-hex-helpers.patch
 powerpc-replace-__function__-with-__func__.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
 git-jg-misc.patch
+drivers-ata-pata_it821xc-fix-warning.patch
 git-ubi-git-rejects.patch
 sundance-set-carrier-status-on-link-change-events.patch
 cassini-use-request_firmware.patch
@@ -112,6 +116,8 @@ h8300-generic_bug-support-checkpatch-fixes.patch
 container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
 autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
 autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
 fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
 viafb-viafbmodes-viafbtxt-fix-fix.patch
 viafb-accelc-accelh-checkpatch-fixes.patch
@@ -139,5 +145,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-ata-pata_it821xc-fix-warning.patch
 
