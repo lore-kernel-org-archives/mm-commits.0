@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + byteorder-cris-use-the-new-byteorder-headers.patch added to -mm tree
-Date: Tue, 12 Aug 2008 19:58:51 -0700
-Message-ID: <200808130258.m7D2wp3F027364@imap1.linux-foundation.org>
+Subject: + byteorder-m68k-use-the-new-byteorder-headers.patch added to -mm tree
+Date: Tue, 12 Aug 2008 19:59:01 -0700
+Message-ID: <200808130259.m7D2x1C3027451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57257 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59401 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753630AbYHMC7H (ORCPT
+	by vger.kernel.org with ESMTP id S1753865AbYHMC7M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 22:59:07 -0400
+	Tue, 12 Aug 2008 22:59:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, jesper.nilsson@axis.com
+Cc: harvey.harrison@gmail.com, geert@linux-m68k.org, zippel@linux-m68k.org
 
 
 The patch titled
-     byteorder: cris: use the new byteorder headers
+     byteorder: m68k: use the new byteorder headers
 has been added to the -mm tree.  Its filename is
-     byteorder-cris-use-the-new-byteorder-headers.patch
+     byteorder-m68k-use-the-new-byteorder-headers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,103 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: cris: use the new byteorder headers
+Subject: byteorder: m68k: use the new byteorder headers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-cris/arch-v10/byteorder.h |    6 ++++--
- include/asm-cris/arch-v32/byteorder.h |    6 ++++--
- include/asm-cris/byteorder.h          |   18 +++---------------
- 3 files changed, 11 insertions(+), 19 deletions(-)
+ include/asm-m68k/byteorder.h |   16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN include/asm-cris/arch-v10/byteorder.h~byteorder-cris-use-the-new-byteorder-headers include/asm-cris/arch-v10/byteorder.h
---- a/include/asm-cris/arch-v10/byteorder.h~byteorder-cris-use-the-new-byteorder-headers
-+++ a/include/asm-cris/arch-v10/byteorder.h
-@@ -9,18 +9,20 @@
-  * them together into ntohl etc.
-  */
- 
--static inline __attribute_const__ __u32 ___arch__swab32(__u32 x)
-+static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
- {
- 	__asm__ ("swapwb %0" : "=r" (x) : "0" (x));
-   
- 	return(x);
- }
-+#define __arch_swab32 __arch_swab32
- 
--static inline __attribute_const__ __u16 ___arch__swab16(__u16 x)
-+static inline __attribute_const__ __u16 __arch_swab16(__u16 x)
- {
- 	__asm__ ("swapb %0" : "=r" (x) : "0" (x));
- 	
- 	return(x);
- }
-+#define __arch_swab16 __arch_swab16
- 
- #endif
-diff -puN include/asm-cris/arch-v32/byteorder.h~byteorder-cris-use-the-new-byteorder-headers include/asm-cris/arch-v32/byteorder.h
---- a/include/asm-cris/arch-v32/byteorder.h~byteorder-cris-use-the-new-byteorder-headers
-+++ a/include/asm-cris/arch-v32/byteorder.h
-@@ -4,17 +4,19 @@
+diff -puN include/asm-m68k/byteorder.h~byteorder-m68k-use-the-new-byteorder-headers include/asm-m68k/byteorder.h
+--- a/include/asm-m68k/byteorder.h~byteorder-m68k-use-the-new-byteorder-headers
++++ a/include/asm-m68k/byteorder.h
+@@ -4,22 +4,16 @@
  #include <asm/types.h>
- 
- static inline __const__ __u32
--___arch__swab32(__u32 x)
-+__arch_swab32(__u32 x)
- {
- 	__asm__ __volatile__ ("swapwb %0" : "=r" (x) : "0" (x));
- 	return (x);
- }
-+#define __arch_swab32 __arch_swab32
- 
- static inline __const__ __u16
--___arch__swab16(__u16 x)
-+__arch_swab16(__u16 x)
- {
- 	__asm__ __volatile__ ("swapb %0" : "=r" (x) : "0" (x));
- 	return (x);
- }
-+#define __arch_swab16 __arch_swab16
- 
- #endif /* _ASM_CRIS_ARCH_BYTEORDER_H */
-diff -puN include/asm-cris/byteorder.h~byteorder-cris-use-the-new-byteorder-headers include/asm-cris/byteorder.h
---- a/include/asm-cris/byteorder.h~byteorder-cris-use-the-new-byteorder-headers
-+++ a/include/asm-cris/byteorder.h
-@@ -1,26 +1,14 @@
- #ifndef _CRIS_BYTEORDER_H
- #define _CRIS_BYTEORDER_H
+ #include <linux/compiler.h>
  
 -#ifdef __GNUC__
-+#define __LITTLE_ENDIAN
++#define __BIG_ENDIAN
 +#define __SWAB_64_THRU_32__
  
- #ifdef __KERNEL__
- #include <asm/arch/byteorder.h>
--
--/* defines are necessary because the other files detect the presence
-- * of a defined __arch_swab32, not an inline
-- */
+-static __inline__ __attribute_const__ __u32 ___arch__swab32(__u32 val)
++static inline __attribute_const__ __u32 __arch_swab32(__u32 val)
+ {
+ 	__asm__("rolw #8,%0; swap %0; rolw #8,%0" : "=d" (val) : "0" (val));
+ 	return val;
+ }
 -#define __arch__swab32(x) ___arch__swab32(x)
--#define __arch__swab16(x) ___arch__swab16(x)
--#endif /* __KERNEL__ */
++#define __arch_swab32 __arch_swab32
+ 
+-#endif
 -
--#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__) || defined(__KERNEL__)
 -#  define __BYTEORDER_HAS_U64__
 -#  define __SWAB_64_THRU_32__
- #endif
- 
--#endif /* __GNUC__ */
+-#endif
 -
--#include <linux/byteorder/little_endian.h>
+-#include <linux/byteorder/big_endian.h>
 +#include <linux/byteorder.h>
  
- #endif
- 
+ #endif /* _M68K_BYTEORDER_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
