@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + byteorder-x86-use-the-new-byteorder-headers.patch added to -mm tree
-Date: Tue, 12 Aug 2008 19:59:19 -0700
-Message-ID: <200808130259.m7D2xJKH027484@imap1.linux-foundation.org>
+Subject: + byteorder-s390-use-the-new-byteorder-headers.patch added to -mm tree
+Date: Tue, 12 Aug 2008 19:59:13 -0700
+Message-ID: <200808130259.m7D2xDWu027475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57071 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38914 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752785AbYHMC7y (ORCPT
+	by vger.kernel.org with ESMTP id S1752352AbYHMDAF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 22:59:54 -0400
+	Tue, 12 Aug 2008 23:00:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, mingo@elte.hu, tglx@linutronix.de
+Cc: harvey.harrison@gmail.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     byteorder: x86: use the new byteorder headers
+     byteorder: s390: use the new byteorder headers
 has been added to the -mm tree.  Its filename is
-     byteorder-x86-use-the-new-byteorder-headers.patch
+     byteorder-s390-use-the-new-byteorder-headers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,126 +34,140 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: x86: use the new byteorder headers
+Subject: byteorder: s390: use the new byteorder headers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/byteorder.h |   69 +++++++++++++---------------------
- 1 file changed, 27 insertions(+), 42 deletions(-)
+ arch/s390/include/asm/byteorder.h |   70 ++++++++--------------------
+ 1 file changed, 20 insertions(+), 50 deletions(-)
 
-diff -puN include/asm-x86/byteorder.h~byteorder-x86-use-the-new-byteorder-headers include/asm-x86/byteorder.h
---- a/include/asm-x86/byteorder.h~byteorder-x86-use-the-new-byteorder-headers
-+++ a/include/asm-x86/byteorder.h
-@@ -4,26 +4,33 @@
+diff -puN arch/s390/include/asm/byteorder.h~byteorder-s390-use-the-new-byteorder-headers arch/s390/include/asm/byteorder.h
+--- a/arch/s390/include/asm/byteorder.h~byteorder-s390-use-the-new-byteorder-headers
++++ a/arch/s390/include/asm/byteorder.h
+@@ -11,32 +11,39 @@
+ 
  #include <asm/types.h>
- #include <linux/compiler.h>
  
 -#ifdef __GNUC__
-+#define __LITTLE_ENDIAN
- 
--#ifdef __i386__
--
--static inline __attribute_const__ __u32 ___arch__swab32(__u32 x)
-+static inline __attribute_const__ __u32 __arch_swab32(__u32 val)
- {
--#ifdef CONFIG_X86_BSWAP
--	asm("bswap %0" : "=r" (x) : "0" (x));
--#else
-+#ifdef __i386__
-+# ifdef CONFIG_X86_BSWAP
-+	asm("bswap %0" : "=r" (val) : "0" (val));
-+# else
- 	asm("xchgb %b0,%h0\n\t"	/* swap lower bytes	*/
- 	    "rorl $16,%0\n\t"	/* swap words		*/
- 	    "xchgb %b0,%h0"	/* swap higher bytes	*/
--	    : "=q" (x)
--	    : "0" (x));
-+	    : "=q" (val)
-+	    : "0" (val));
-+# endif
++#define __BIG_ENDIAN
 +
-+#else /* __i386__ */
-+	asm("bswapl %0"
-+	    : "=r" (val)
-+	    : "0" (val));
- #endif
--	return x;
-+	return val;
- }
-+#define __arch_swab32 __arch_swab32
++#ifndef __s390x__
++# define __SWAB_64_THRU_32__
++#endif
  
--static inline __attribute_const__ __u64 ___arch__swab64(__u64 val)
-+static inline __attribute_const__ __u64 __arch_swab64(__u64 val)
+ #ifdef __s390x__
+-static inline __u64 ___arch__swab64p(const __u64 *x)
++static inline __u64 __arch_swab64p(const __u64 *x)
  {
-+#ifdef __i386__
- 	union {
- 		struct {
- 			__u32 a;
-@@ -32,50 +39,28 @@ static inline __attribute_const__ __u64 
- 		__u64 u;
- 	} v;
- 	v.u = val;
--#ifdef CONFIG_X86_BSWAP
-+# ifdef CONFIG_X86_BSWAP
- 	asm("bswapl %0 ; bswapl %1 ; xchgl %0,%1"
- 	    : "=r" (v.s.a), "=r" (v.s.b)
- 	    : "0" (v.s.a), "1" (v.s.b));
--#else
-+# else
- 	v.s.a = ___arch__swab32(v.s.a);
- 	v.s.b = ___arch__swab32(v.s.b);
- 	asm("xchgl %0,%1"
- 	    : "=r" (v.s.a), "=r" (v.s.b)
- 	    : "0" (v.s.a), "1" (v.s.b));
--#endif
-+# endif
- 	return v.u;
--}
+ 	__u64 result;
  
- #else /* __i386__ */
--
--static inline __attribute_const__ __u64 ___arch__swab64(__u64 x)
--{
- 	asm("bswapq %0"
--	    : "=r" (x)
--	    : "0" (x));
--	return x;
--}
--
--static inline __attribute_const__ __u32 ___arch__swab32(__u32 x)
--{
--	asm("bswapl %0"
--	    : "=r" (x)
--	    : "0" (x));
--	return x;
--}
--
-+	    : "=r" (val)
-+	    : "0" (val));
-+	return val;
- #endif
-+}
+ 	asm volatile("lrvg %0,%1" : "=d" (result) : "m" (*x));
+ 	return result;
+ }
++#define __arch_swab64p __arch_swab64p
+ 
+-static inline __u64 ___arch__swab64(__u64 x)
++static inline __u64 __arch_swab64(__u64 x)
+ {
+ 	__u64 result;
+ 
+ 	asm volatile("lrvgr %0,%1" : "=d" (result) : "d" (x));
+ 	return result;
+ }
 +#define __arch_swab64 __arch_swab64
  
--/* Do not define swab16.  Gcc is smart enough to recognize "C" version and
--   convert it into rotation or exhange.  */
+-static inline void ___arch__swab64s(__u64 *x)
++static inline void __arch_swab64s(__u64 *x)
+ {
+ 	*x = ___arch__swab64p(x);
+ }
++#define __arch_swab64s __arch_swab64s
+ #endif /* __s390x__ */
+ 
+-static inline __u32 ___arch__swab32p(const __u32 *x)
++static inline __u32 __arch_swab32p(const __u32 *x)
+ {
+ 	__u32 result;
+ 	
+@@ -53,25 +60,20 @@ static inline __u32 ___arch__swab32p(con
+ #endif /* __s390x__ */
+ 	return result;
+ }
++#define __arch_swab32p __arch_swab32p
+ 
+-static inline __u32 ___arch__swab32(__u32 x)
++#ifdef __s390x__
++static inline __u32 __arch_swab32(__u32 x)
+ {
+-#ifndef __s390x__
+-	return ___arch__swab32p(&x);
+-#else /* __s390x__ */
+ 	__u32 result;
+ 	
+ 	asm volatile("lrvr  %0,%1" : "=d" (result) : "d" (x));
+ 	return result;
+-#endif /* __s390x__ */
+-}
 -
+-static __inline__ void ___arch__swab32s(__u32 *x)
+-{
+-	*x = ___arch__swab32p(x);
+ }
++#define __arch_swab32 __arch_swab32
++#endif /* __s390x__ */
+ 
+-static __inline__ __u16 ___arch__swab16p(const __u16 *x)
++static inline __u16 __arch_swab16p(const __u16 *x)
+ {
+ 	__u16 result;
+ 	
+@@ -86,40 +88,8 @@ static __inline__ __u16 ___arch__swab16p
+ #endif /* __s390x__ */
+ 	return result;
+ }
++#define __arch_swab16p __arch_swab16p
+ 
+-static __inline__ __u16 ___arch__swab16(__u16 x)
+-{
+-	return ___arch__swab16p(&x);
+-}
+-
+-static __inline__ void ___arch__swab16s(__u16 *x)
+-{
+-	*x = ___arch__swab16p(x);
+-}
+-
+-#ifdef __s390x__
 -#define __arch__swab64(x) ___arch__swab64(x)
+-#define __arch__swab64p(x) ___arch__swab64p(x)
+-#define __arch__swab64s(x) ___arch__swab64s(x)
+-#endif /* __s390x__ */
 -#define __arch__swab32(x) ___arch__swab32(x)
+-#define __arch__swab16(x) ___arch__swab16(x)
+-#define __arch__swab32p(x) ___arch__swab32p(x)
+-#define __arch__swab16p(x) ___arch__swab16p(x)
+-#define __arch__swab32s(x) ___arch__swab32s(x)
+-#define __arch__swab16s(x) ___arch__swab16s(x)
 -
+-#ifndef __s390x__
+-#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
+-#  define __BYTEORDER_HAS_U64__
+-#  define __SWAB_64_THRU_32__
+-#endif
+-#else /* __s390x__ */
 -#define __BYTEORDER_HAS_U64__
+-#endif /* __s390x__ */
 -
 -#endif /* __GNUC__ */
 -
--#include <linux/byteorder/little_endian.h>
+-#include <linux/byteorder/big_endian.h>
 +#include <linux/byteorder.h>
  
- #endif /* _ASM_X86_BYTEORDER_H */
+ #endif /* _S390_BYTEORDER_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
