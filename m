@@ -1,87 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_lcdfb-add-board-parameter-specify-framebuffer-memory-size.patch removed from -mm tree
-Date: Wed, 13 Aug 2008 01:52:57 -0700
-Message-ID: <200808130852.m7D8qvfO008269@imap1.linux-foundation.org>
+Subject: - hugetlbfs-allocate-structures-for-reservation-tracking-outside-of-spinlocks.patch removed from -mm tree
+Date: Wed, 13 Aug 2008 01:52:33 -0700
+Message-ID: <200808130852.m7D8qXig008219@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42614 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53682 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753902AbYHMJFy (ORCPT
+	by vger.kernel.org with ESMTP id S1753779AbYHMJFu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 05:05:54 -0400
+	Wed, 13 Aug 2008 05:05:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haavard.skinnemoen@atmel.com, krzysztof.h1@wp.pl, nicolas.ferre@atmel.com, stf_xl@wp.pl, mm-commits@vger.kernel.org
+To: apw@shadowen.org, gerald.schaefer@de.ibm.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_lcdfb: add board parameter specify framebuffer memory size
+     hugetlbfs: allocate structures for reservation tracking outside of spinlocks
 has been removed from the -mm tree.  Its filename was
-     atmel_lcdfb-add-board-parameter-specify-framebuffer-memory-size.patch
+     hugetlbfs-allocate-structures-for-reservation-tracking-outside-of-spinlocks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_lcdfb: add board parameter specify framebuffer memory size
-From: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Subject: hugetlbfs: allocate structures for reservation tracking outside of spinlocks
+From: Andy Whitcroft <apw@shadowen.org>
 
-Specify how much physically continuous, DMA capable memory will be
-allocated at driver initialization time.  This allow to create framebuffer
-device with larger virtual resolution.  Combine with y-panning this can be
-used to implement double buffering acceleration method.
+In the normal case, hugetlbfs reserves hugepages at map time so that the
+pages exist for future faults.  A struct file_region is used to track when
+reservations have been consumed and where.  These file_regions are
+allocated as necessary with kmalloc() which can sleep with the
+mm->page_table_lock held.  This is wrong and triggers may-sleep warning
+when PREEMPT is enabled.
 
-Signed-off-by: Stanislaw Gruszka <stf_xl@wp.pl>
-Acked-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
-Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+Updates to the underlying file_region are done in two phases.  The first
+phase prepares the region for the change, allocating any necessary memory,
+without actually making the change.  The second phase actually commits the
+change.  This patch makes use of this by checking the reservations before
+the page_table_lock is taken; triggering any necessary allocations.  This
+may then be safely repeated within the locks without any allocations being
+required.
+
+Credit to Mel Gorman for diagnosing this failure and initial versions of
+the patch.
+
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Tested-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/atmel_lcdfb.c |    7 +++++--
- include/video/atmel_lcdc.h  |    1 +
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |   44 +++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 35 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-add-board-parameter-specify-framebuffer-memory-size drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-add-board-parameter-specify-framebuffer-memory-size
-+++ a/drivers/video/atmel_lcdfb.c
-@@ -242,9 +242,11 @@ static int atmel_lcdfb_alloc_video_memor
- {
- 	struct fb_info *info = sinfo->info;
- 	struct fb_var_screeninfo *var = &info->var;
-+	unsigned int smem_len;
+diff -puN mm/hugetlb.c~hugetlbfs-allocate-structures-for-reservation-tracking-outside-of-spinlocks mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlbfs-allocate-structures-for-reservation-tracking-outside-of-spinlocks
++++ a/mm/hugetlb.c
+@@ -1942,6 +1942,15 @@ retry:
+ 			lock_page(page);
+ 	}
  
--	info->fix.smem_len = (var->xres_virtual * var->yres_virtual
--			    * ((var->bits_per_pixel + 7) / 8));
-+	smem_len = (var->xres_virtual * var->yres_virtual
-+		    * ((var->bits_per_pixel + 7) / 8));
-+	info->fix.smem_len = max(smem_len, sinfo->smem_len);
++	/*
++	 * If we are going to COW a private mapping later, we examine the
++	 * pending reservations for this page now. This will ensure that
++	 * any allocations necessary to record that reservation occur outside
++	 * the spinlock.
++	 */
++	if (write_access && !(vma->vm_flags & VM_SHARED))
++		vma_needs_reservation(h, vma, address);
++
+ 	spin_lock(&mm->page_table_lock);
+ 	size = i_size_read(mapping->host) >> huge_page_shift(h);
+ 	if (idx >= size)
+@@ -1978,6 +1987,7 @@ int hugetlb_fault(struct mm_struct *mm, 
+ 	pte_t *ptep;
+ 	pte_t entry;
+ 	int ret;
++	struct page *pagecache_page = NULL;
+ 	static DEFINE_MUTEX(hugetlb_instantiation_mutex);
+ 	struct hstate *h = hstate_vma(vma);
  
- 	info->screen_base = dma_alloc_writecombine(info->device, info->fix.smem_len,
- 					(dma_addr_t *)&info->fix.smem_start, GFP_KERNEL);
-@@ -796,6 +798,7 @@ static int __init atmel_lcdfb_probe(stru
- 		sinfo->default_monspecs = pdata_sinfo->default_monspecs;
- 		sinfo->atmel_lcdfb_power_control = pdata_sinfo->atmel_lcdfb_power_control;
- 		sinfo->guard_time = pdata_sinfo->guard_time;
-+		sinfo->smem_len = pdata_sinfo->smem_len;
- 		sinfo->lcdcon_is_backlight = pdata_sinfo->lcdcon_is_backlight;
- 		sinfo->lcd_wiring_mode = pdata_sinfo->lcd_wiring_mode;
- 	} else {
-diff -puN include/video/atmel_lcdc.h~atmel_lcdfb-add-board-parameter-specify-framebuffer-memory-size include/video/atmel_lcdc.h
---- a/include/video/atmel_lcdc.h~atmel_lcdfb-add-board-parameter-specify-framebuffer-memory-size
-+++ a/include/video/atmel_lcdc.h
-@@ -41,6 +41,7 @@ struct atmel_lcdfb_info {
- 	struct work_struct	task;
+@@ -2000,19 +2010,35 @@ int hugetlb_fault(struct mm_struct *mm, 
  
- 	unsigned int		guard_time;
-+	unsigned int 		smem_len;
- 	struct platform_device	*pdev;
- 	struct clk		*bus_clk;
- 	struct clk		*lcdc_clk;
+ 	ret = 0;
+ 
++	/*
++	 * If we are going to COW the mapping later, we examine the pending
++	 * reservations for this page now. This will ensure that any
++	 * allocations necessary to record that reservation occur outside the
++	 * spinlock. For private mappings, we also lookup the pagecache
++	 * page now as it is used to determine if a reservation has been
++	 * consumed.
++	 */
++	if (write_access && !pte_write(entry)) {
++		vma_needs_reservation(h, vma, address);
++
++		if (!(vma->vm_flags & VM_SHARED))
++			pagecache_page = hugetlbfs_pagecache_page(h,
++								vma, address);
++	}
++
+ 	spin_lock(&mm->page_table_lock);
+ 	/* Check for a racing update before calling hugetlb_cow */
+ 	if (likely(pte_same(entry, huge_ptep_get(ptep))))
+-		if (write_access && !pte_write(entry)) {
+-			struct page *page;
+-			page = hugetlbfs_pagecache_page(h, vma, address);
+-			ret = hugetlb_cow(mm, vma, address, ptep, entry, page);
+-			if (page) {
+-				unlock_page(page);
+-				put_page(page);
+-			}
+-		}
++		if (write_access && !pte_write(entry))
++			ret = hugetlb_cow(mm, vma, address, ptep, entry,
++							pagecache_page);
+ 	spin_unlock(&mm->page_table_lock);
++
++	if (pagecache_page) {
++		unlock_page(pagecache_page);
++		put_page(pagecache_page);
++	}
++
+ 	mutex_unlock(&hugetlb_instantiation_mutex);
+ 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from haavard.skinnemoen@atmel.com are
+Patches currently in -mm which might be from apw@shadowen.org are
 
-linux-next.patch
+checkpatch-square-brackets-exemption-for-array-slices-in-braces.patch
+checkpatch-values-double-ampersand-may-be-unary.patch
+checkpatch-conditional-indent-labels-have-different-indent-rules.patch
+checkpatch-switch-indent-allow-plain-return.patch
+checkpatch-add-tests-for-the-attribute-matcher.patch
+checkpatch-____cacheline_aligned-et-al-are-modifiers.patch
+checkpatch-complex-macros-fix-up-extension-handling.patch
+checkpatch-fix-up-comment-checks-search-to-scan-the-entire-block.patch
+checkpatch-include-asm-checks-should-be-anchored.patch
+checkpatch-reduce-warnings-for-include-of-asm-fooh-to-check-from-arch-barc.patch
+checkpatch-report-any-absolute-references-to-kernel-source-files.patch
+checkpatch-report-the-real-first-line-of-all-suspect-indents.patch
+checkpatch-suspect-indent-skip-over-preprocessor-label-and-blank-lines.patch
+checkpatch-%lx-tests-should-hand-%%-as-a-literal.patch
+checkpatch-report-the-correct-lines-for-single-statement-blocks.patch
+checkpatch-perform-indent-checks-on-perl.patch
+checkpatch-version-022.patch
+page-owner-tracking-leak-detector.patch
 
