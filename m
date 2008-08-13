@@ -1,163 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - byteorder-s390-use-the-new-byteorder-headers.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 22:44:06 -0700
-Message-ID: <200808130557.m7D5vBnm001361@imap1.linux-foundation.org>
+Subject: - byteorder-parisc-use-the-new-byteorder-headers.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 22:44:01 -0700
+Message-ID: <200808130557.m7D5v6hW001355@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52394 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35375 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752281AbYHMF6X (ORCPT
+	by vger.kernel.org with ESMTP id S1751835AbYHMGCM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 01:58:23 -0400
+	Wed, 13 Aug 2008 02:02:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, grundler@parisc-linux.org, kyle@mcmartin.ca, matthew@wil.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     byteorder: s390: use the new byteorder headers
+     byteorder: parisc: use the new byteorder headers
 has been removed from the -mm tree.  Its filename was
-     byteorder-s390-use-the-new-byteorder-headers.patch
+     byteorder-parisc-use-the-new-byteorder-headers.patch
 
 This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: s390: use the new byteorder headers
+Subject: byteorder: parisc: use the new byteorder headers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Grant Grundler <grundler@parisc-linux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/byteorder.h |   70 ++++++++--------------------
- 1 file changed, 20 insertions(+), 50 deletions(-)
+ arch/parisc/include/asm/byteorder.h |   37 ++++++++------------------
+ 1 file changed, 12 insertions(+), 25 deletions(-)
 
-diff -puN arch/s390/include/asm/byteorder.h~byteorder-s390-use-the-new-byteorder-headers arch/s390/include/asm/byteorder.h
---- a/arch/s390/include/asm/byteorder.h~byteorder-s390-use-the-new-byteorder-headers
-+++ a/arch/s390/include/asm/byteorder.h
-@@ -11,32 +11,39 @@
- 
+diff -puN arch/parisc/include/asm/byteorder.h~byteorder-parisc-use-the-new-byteorder-headers arch/parisc/include/asm/byteorder.h
+--- a/arch/parisc/include/asm/byteorder.h~byteorder-parisc-use-the-new-byteorder-headers
++++ a/arch/parisc/include/asm/byteorder.h
+@@ -4,9 +4,10 @@
  #include <asm/types.h>
+ #include <linux/compiler.h>
  
 -#ifdef __GNUC__
 +#define __BIG_ENDIAN
-+
-+#ifndef __s390x__
-+# define __SWAB_64_THRU_32__
-+#endif
++#define __SWAB_64_THRU_32__
  
- #ifdef __s390x__
--static inline __u64 ___arch__swab64p(const __u64 *x)
-+static inline __u64 __arch_swab64p(const __u64 *x)
+-static __inline__ __attribute_const__ __u16 ___arch__swab16(__u16 x)
++static inline __attribute_const__ __u16 __arch_swab16(__u16 x)
  {
- 	__u64 result;
- 
- 	asm volatile("lrvg %0,%1" : "=d" (result) : "m" (*x));
- 	return result;
+ 	__asm__("dep %0, 15, 8, %0\n\t"		/* deposit 00ab -> 0bab */
+ 		"shd %%r0, %0, 8, %0"		/* shift 000000ab -> 00ba */
+@@ -14,8 +15,9 @@ static __inline__ __attribute_const__ __
+ 		: "0" (x));
+ 	return x;
  }
-+#define __arch_swab64p __arch_swab64p
++#define __arch_swab16 __arch_swab16
  
--static inline __u64 ___arch__swab64(__u64 x)
-+static inline __u64 __arch_swab64(__u64 x)
+-static __inline__ __attribute_const__ __u32 ___arch__swab24(__u32 x)
++static inline __attribute_const__ __u32 __arch_swab24(__u32 x)
  {
- 	__u64 result;
- 
- 	asm volatile("lrvgr %0,%1" : "=d" (result) : "d" (x));
- 	return result;
+ 	__asm__("shd %0, %0, 8, %0\n\t"		/* shift xabcxabc -> cxab */
+ 		"dep %0, 15, 8, %0\n\t"		/* deposit cxab -> cbab */
+@@ -25,7 +27,7 @@ static __inline__ __attribute_const__ __
+ 	return x;
  }
-+#define __arch_swab64 __arch_swab64
  
--static inline void ___arch__swab64s(__u64 *x)
-+static inline void __arch_swab64s(__u64 *x)
+-static __inline__ __attribute_const__ __u32 ___arch__swab32(__u32 x)
++static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
  {
- 	*x = ___arch__swab64p(x);
+ 	unsigned int temp;
+ 	__asm__("shd %0, %0, 16, %1\n\t"	/* shift abcdabcd -> cdab */
+@@ -35,7 +37,7 @@ static __inline__ __attribute_const__ __
+ 		: "0" (x));
+ 	return x;
  }
-+#define __arch_swab64s __arch_swab64s
- #endif /* __s390x__ */
- 
--static inline __u32 ___arch__swab32p(const __u32 *x)
-+static inline __u32 __arch_swab32p(const __u32 *x)
- {
- 	__u32 result;
- 	
-@@ -53,25 +60,20 @@ static inline __u32 ___arch__swab32p(con
- #endif /* __s390x__ */
- 	return result;
- }
-+#define __arch_swab32p __arch_swab32p
- 
--static inline __u32 ___arch__swab32(__u32 x)
-+#ifdef __s390x__
-+static inline __u32 __arch_swab32(__u32 x)
- {
--#ifndef __s390x__
--	return ___arch__swab32p(&x);
--#else /* __s390x__ */
- 	__u32 result;
- 	
- 	asm volatile("lrvr  %0,%1" : "=d" (result) : "d" (x));
- 	return result;
--#endif /* __s390x__ */
--}
 -
--static __inline__ void ___arch__swab32s(__u32 *x)
--{
--	*x = ___arch__swab32p(x);
- }
 +#define __arch_swab32 __arch_swab32
-+#endif /* __s390x__ */
  
--static __inline__ __u16 ___arch__swab16p(const __u16 *x)
-+static inline __u16 __arch_swab16p(const __u16 *x)
- {
- 	__u16 result;
- 	
-@@ -86,40 +88,8 @@ static __inline__ __u16 ___arch__swab16p
- #endif /* __s390x__ */
- 	return result;
+ #if BITS_PER_LONG > 32
+ /*
+@@ -48,7 +50,8 @@ static __inline__ __attribute_const__ __
+ **      HSHR    67452301 -> *6*4*2*0 into %0
+ **      OR      %0 | %1  -> 76543210 into %0 (all done!)
+ */
+-static __inline__ __attribute_const__ __u64 ___arch__swab64(__u64 x) {
++static inline __attribute_const__ __u64 __arch_swab64(__u64 x)
++{
+ 	__u64 temp;
+ 	__asm__("permh,3210 %0, %0\n\t"
+ 		"hshl %0, 8, %1\n\t"
+@@ -58,25 +61,9 @@ static __inline__ __attribute_const__ __
+ 		: "0" (x));
+ 	return x;
  }
-+#define __arch_swab16p __arch_swab16p
- 
--static __inline__ __u16 ___arch__swab16(__u16 x)
--{
--	return ___arch__swab16p(&x);
--}
--
--static __inline__ void ___arch__swab16s(__u16 *x)
--{
--	*x = ___arch__swab16p(x);
--}
--
--#ifdef __s390x__
 -#define __arch__swab64(x) ___arch__swab64(x)
--#define __arch__swab64p(x) ___arch__swab64p(x)
--#define __arch__swab64s(x) ___arch__swab64s(x)
--#endif /* __s390x__ */
--#define __arch__swab32(x) ___arch__swab32(x)
--#define __arch__swab16(x) ___arch__swab16(x)
--#define __arch__swab32p(x) ___arch__swab32p(x)
--#define __arch__swab16p(x) ___arch__swab16p(x)
--#define __arch__swab32s(x) ___arch__swab32s(x)
--#define __arch__swab16s(x) ___arch__swab16s(x)
--
--#ifndef __s390x__
--#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
--#  define __BYTEORDER_HAS_U64__
--#  define __SWAB_64_THRU_32__
--#endif
--#else /* __s390x__ */
 -#define __BYTEORDER_HAS_U64__
--#endif /* __s390x__ */
+-#elif !defined(__STRICT_ANSI__)
+-static __inline__ __attribute_const__ __u64 ___arch__swab64(__u64 x)
+-{
+-	__u32 t1 = ___arch__swab32((__u32) x);
+-	__u32 t2 = ___arch__swab32((__u32) (x >> 32));
+-	return (((__u64) t1 << 32) | t2);
+-}
+-#define __arch__swab64(x) ___arch__swab64(x)
+-#define __BYTEORDER_HAS_U64__
+-#endif
+-
+-#define __arch__swab16(x) ___arch__swab16(x)
+-#define __arch__swab24(x) ___arch__swab24(x)
+-#define __arch__swab32(x) ___arch__swab32(x)
 -
 -#endif /* __GNUC__ */
--
++#define __arch_swab64 __arch_swab64
++#endif /* BITS_PER_LONG > 32 */
+ 
 -#include <linux/byteorder/big_endian.h>
 +#include <linux/byteorder.h>
  
- #endif /* _S390_BYTEORDER_H */
+ #endif /* _PARISC_BYTEORDER_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -188,6 +151,8 @@ include-replace-__function__-with-__func__.patch
 misc-replace-__function__-with-__func__.patch
 befs-annotate-fs32-on-tests-for-superblock-endianness.patch
 net-tipc-subscrc-dont-use-___constant_swab32.patch
+byteorder-parisc-use-the-new-byteorder-headers.patch
+byteorder-powerpc-use-the-new-byteorder-headers.patch
 byteorder-s390-use-the-new-byteorder-headers.patch
 byteorder-sh-use-the-new-byteorder-headers.patch
 byteorder-sparc-use-the-new-byteorder-headers.patch
