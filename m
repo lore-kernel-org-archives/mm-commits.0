@@ -1,62 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - isight_firmware-fix-a-leak-and-double-kfree.patch removed from -mm tree
-Date: Wed, 13 Aug 2008 01:52:31 -0700
-Message-ID: <200808130852.m7D8qVuB008213@imap1.linux-foundation.org>
+Subject: - memcg-fix-oops-in-mem_cgroup_shrink_usage.patch removed from -mm tree
+Date: Wed, 13 Aug 2008 01:52:17 -0700
+Message-ID: <200808130852.m7D8qHqr008194@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39175 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59746 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754563AbYHMIxP (ORCPT
+	by vger.kernel.org with ESMTP id S1752944AbYHMIxf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 04:53:15 -0400
+	Wed, 13 Aug 2008 04:53:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: parag.warudkar@gmail.com, mm-commits@vger.kernel.org
+To: hugh@veritas.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isight_firmware: fix a leak and double kfree()
+     memcg: fix oops in mem_cgroup_shrink_usage
 has been removed from the -mm tree.  Its filename was
-     isight_firmware-fix-a-leak-and-double-kfree.patch
+     memcg-fix-oops-in-mem_cgroup_shrink_usage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isight_firmware: fix a leak and double kfree()
-From: "Parag Warudkar" <parag.warudkar@gmail.com>
+Subject: memcg: fix oops in mem_cgroup_shrink_usage
+From: Hugh Dickins <hugh@veritas.com>
 
-Signed-off-by: Parag Warudkar <parag.warudkar@gmail.com>
+Got an oops in mem_cgroup_shrink_usage() when testing loop over tmpfs:
+yes, of course, loop0 has no mm: other entry points check but this didn't.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/isight_firmware.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/usb/misc/isight_firmware.c~isight_firmware-fix-a-leak-and-double-kfree drivers/usb/misc/isight_firmware.c
---- a/drivers/usb/misc/isight_firmware.c~isight_firmware-fix-a-leak-and-double-kfree
-+++ a/drivers/usb/misc/isight_firmware.c
-@@ -48,7 +48,8 @@ static int isight_firmware_load(struct u
+diff -puN mm/memcontrol.c~memcg-fix-oops-in-mem_cgroup_shrink_usage mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-oops-in-mem_cgroup_shrink_usage
++++ a/mm/memcontrol.c
+@@ -796,6 +796,8 @@ int mem_cgroup_shrink_usage(struct mm_st
  
- 	if (request_firmware(&firmware, "isight.fw", &dev->dev) != 0) {
- 		printk(KERN_ERR "Unable to load isight firmware\n");
--		return -ENODEV;
-+		ret = -ENODEV;
-+		goto out;
- 	}
+ 	if (mem_cgroup_subsys.disabled)
+ 		return 0;
++	if (!mm)
++		return 0;
  
- 	ptr = firmware->data;
-@@ -91,7 +92,6 @@ static int isight_firmware_load(struct u
- 			     buf, llen, 300) != llen) {
- 				printk(KERN_ERR
- 				       "Failed to load isight firmware\n");
--				kfree(buf);
- 				ret = -ENODEV;
- 				goto out;
- 			}
+ 	rcu_read_lock();
+ 	mem = mem_cgroup_from_task(rcu_dereference(mm->owner));
 _
 
-Patches currently in -mm which might be from parag.warudkar@gmail.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
+linux-next.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+mm-owner-fix-race-between-swap-and-exit.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+mlock-mlocked-pages-are-unevictable.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mmapc-deinline-a-few-functions.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+prio_tree-debugging-patch.patch
 
