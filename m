@@ -1,77 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - gru-fix-preprocessor-symbol-for-sparse.patch removed from -mm tree
-Date: Wed, 13 Aug 2008 01:52:43 -0700
-Message-ID: <200808130852.m7D8qh2V008250@imap1.linux-foundation.org>
+Subject: - ide-cd-use-bcd2bin-bin2bcd.patch removed from -mm tree
+Date: Wed, 13 Aug 2008 01:53:45 -0700
+Message-ID: <200808130853.m7D8rj27008364@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52276 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56210 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753352AbYHMJDE (ORCPT
+	by vger.kernel.org with ESMTP id S1753306AbYHMJDD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 05:03:04 -0400
+	Wed, 13 Aug 2008 05:03:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, steiner@sgi.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, bzolnier@gmail.com, petkovbb@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     GRU: fix preprocessor symbol for sparse
+     ide-cd: use bcd2bin/bin2bcd
 has been removed from the -mm tree.  Its filename was
-     gru-fix-preprocessor-symbol-for-sparse.patch
+     ide-cd-use-bcd2bin-bin2bcd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: GRU: fix preprocessor symbol for sparse
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: ide-cd: use bcd2bin/bin2bcd
+From: Adrian Bunk <bunk@kernel.org>
 
-Fix preprocessor symbol so that sparse sees it and does not generate
-errors:
+Change ide-cd to use the new bcd2bin/bin2bcd functions instead of the
+obsolete BCD2BIN/BIN2BCD macros.
 
-linux-next-20080807/drivers/misc/sgi-gru/grutables.h:286:2: error: "Unsupported architecture"
-linux-next-20080807/drivers/misc/sgi-gru/grutables.h:286:2: error: "Unsupported architecture"
-linux-next-20080807/drivers/misc/sgi-gru/grutables.h:286:2: error: "Unsupported architecture"
-linux-next-20080807/drivers/misc/sgi-gru/grutables.h:286:2: error: "Unsupported architecture"
-linux-next-20080807/drivers/misc/sgi-gru/grutlbpurge.c:185:11: error: undefined identifier 'GRUREGION'
-linux-next-20080807/drivers/misc/sgi-gru/grutables.h:286:2: error: "Unsupported architecture"
-linux-next-20080807/drivers/misc/sgi-gru/grutables.h:286:2: error: "Unsupported architecture"
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jack Steiner <steiner@sgi.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Acked-by: Borislav Petkov <petkovbb@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grutables.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/ide/ide-cd.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grutables.h~gru-fix-preprocessor-symbol-for-sparse drivers/misc/sgi-gru/grutables.h
---- a/drivers/misc/sgi-gru/grutables.h~gru-fix-preprocessor-symbol-for-sparse
-+++ a/drivers/misc/sgi-gru/grutables.h
-@@ -279,7 +279,7 @@ struct gru_stats_s {
- #if defined CONFIG_IA64
- #define VADDR_HI_BIT		64
- #define GRUREGION(addr)		((addr) >> (VADDR_HI_BIT - 3) & 3)
--#elif defined __x86_64
-+#elif defined CONFIG_X86_64
- #define VADDR_HI_BIT		48
- #define GRUREGION(addr)		(0)		/* ZZZ could do better */
- #else
+diff -puN drivers/ide/ide-cd.c~ide-cd-use-bcd2bin-bin2bcd drivers/ide/ide-cd.c
+--- a/drivers/ide/ide-cd.c~ide-cd-use-bcd2bin-bin2bcd
++++ a/drivers/ide/ide-cd.c
+@@ -1268,9 +1268,9 @@ static ide_startstop_t ide_cd_do_request
+  */
+ static void msf_from_bcd(struct atapi_msf *msf)
+ {
+-	msf->minute = BCD2BIN(msf->minute);
+-	msf->second = BCD2BIN(msf->second);
+-	msf->frame  = BCD2BIN(msf->frame);
++	msf->minute = bcd2bin(msf->minute);
++	msf->second = bcd2bin(msf->second);
++	msf->frame  = bcd2bin(msf->frame);
+ }
+ 
+ int cdrom_check_status(ide_drive_t *drive, struct request_sense *sense)
+@@ -1411,8 +1411,8 @@ int ide_cd_read_toc(ide_drive_t *drive, 
+ 		return stat;
+ 
+ 	if (drive->atapi_flags & IDE_AFLAG_TOCTRACKS_AS_BCD) {
+-		toc->hdr.first_track = BCD2BIN(toc->hdr.first_track);
+-		toc->hdr.last_track  = BCD2BIN(toc->hdr.last_track);
++		toc->hdr.first_track = bcd2bin(toc->hdr.first_track);
++		toc->hdr.last_track  = bcd2bin(toc->hdr.last_track);
+ 	}
+ 
+ 	ntracks = toc->hdr.last_track - toc->hdr.first_track + 1;
+@@ -1452,8 +1452,8 @@ int ide_cd_read_toc(ide_drive_t *drive, 
+ 			return stat;
+ 
+ 		if (drive->atapi_flags & IDE_AFLAG_TOCTRACKS_AS_BCD) {
+-			toc->hdr.first_track = (u8)BIN2BCD(CDROM_LEADOUT);
+-			toc->hdr.last_track = (u8)BIN2BCD(CDROM_LEADOUT);
++			toc->hdr.first_track = (u8)bin2bcd(CDROM_LEADOUT);
++			toc->hdr.last_track = (u8)bin2bcd(CDROM_LEADOUT);
+ 		} else {
+ 			toc->hdr.first_track = CDROM_LEADOUT;
+ 			toc->hdr.last_track = CDROM_LEADOUT;
+@@ -1466,14 +1466,14 @@ int ide_cd_read_toc(ide_drive_t *drive, 
+ 	toc->hdr.toc_length = be16_to_cpu(toc->hdr.toc_length);
+ 
+ 	if (drive->atapi_flags & IDE_AFLAG_TOCTRACKS_AS_BCD) {
+-		toc->hdr.first_track = BCD2BIN(toc->hdr.first_track);
+-		toc->hdr.last_track  = BCD2BIN(toc->hdr.last_track);
++		toc->hdr.first_track = bcd2bin(toc->hdr.first_track);
++		toc->hdr.last_track  = bcd2bin(toc->hdr.last_track);
+ 	}
+ 
+ 	for (i = 0; i <= ntracks; i++) {
+ 		if (drive->atapi_flags & IDE_AFLAG_TOCADDR_AS_BCD) {
+ 			if (drive->atapi_flags & IDE_AFLAG_TOCTRACKS_AS_BCD)
+-				toc->ent[i].track = BCD2BIN(toc->ent[i].track);
++				toc->ent[i].track = bcd2bin(toc->ent[i].track);
+ 			msf_from_bcd(&toc->ent[i].addr.msf);
+ 		}
+ 		toc->ent[i].addr.lba = msf_to_lba(toc->ent[i].addr.msf.minute,
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 linux-next.patch
-drm-sis-depends-on-fb_sis.patch
-genksyms-track-symbol-checksum-changes.patch
-genksyms-allow-to-ignore-symbol-checksum-changes.patch
-lkdtm-fix-for-config_scsi=n.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-netfilter-conntrack_helper-needs-to-include-rculisth.patch
-ftrace-printk-formatting-infrastructure-fix.patch
-ftrace-printk-formatting-infrastructure-fix-fix.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-w1-documentation-w1-masters-ds2490-update.patch
-profile-likely-unlikely-macros.patch
+m32r-remove-the-unused-nohighmem-option.patch
+m32r-dont-offer-config_isa.patch
+m32r-export-empty_zero_page.patch
+m32r-export-__ndelay.patch
+m32r-kernel-cleanups.patch
+the-overdue-eepro100-removal.patch
+ntfs-update-homepage.patch
+parisc-lib-make-code-static.patch
+drivers-parisc-make-code-static.patch
+if-0-ses_match_host.patch
+scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
+drivers-scsi-a2091c-make-2-functions-static.patch
+drivers-scsi-a3000c-make-2-functions-static.patch
+fs_mbcache-dont-needlessly-make-it-built-in.patch
+git-xtensa.patch
+asm-h8300-mdh-remove-cvs-keyword.patch
+alpha-miata-remove-dead-url.patch
+uml-remove-the-dead-tty_log-code.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+maintainers-remove-hga-framebuffer-driver-entry.patch
+include-linux-mounth-remove-cvs-keyword.patch
+kernel-dmac-remove-a-cvs-keyword.patch
+binfmt_somc-add-module_license.patch
+make-probe_serial_gsc-static.patch
+pnp-remove-printk-with-outdated-version.patch
+telephony-remove-cvs-keywords.patch
+reiserfs-procfsc-remove-cvs-keywords.patch
+quota-remove-cvs-keywords.patch
+make-ptrace_untrace-static.patch
+fs-partitions-acornc-remove-dead-code.patch
+parport-remove-cvs-keywords.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-firmware-iscsi_ibftc-make-3-functions-static.patch
+ipc-semc-make-free_un-static.patch
+acpi-use-bcd2bin-bin2bcd.patch
+alpha-use-bcd2bin-bin2bcd.patch
+arm-use-bcd2bin-bin2bcd.patch
+cris-use-bcd2bin-bin2bcd.patch
+drivers-rtc-use-bcd2bin-bin2bcd.patch
+rtc-use-bcd2bin-bin2bcd.patch
+mips-use-bcd2bin-bin2bcd.patch
+mn10300-use-bcd2bin-bin2bcd.patch
+powerpc-use-bcd2bin-bin2bcd.patch
+i2c-use-bcd2bin-bin2bcd.patch
+drivers-scsi-sr_vendorc-use-bcd2bin.patch
+sparc64-use-bcd2bin-bin2bcd.patch
+remove-the-obsolete-bcdbin-binbcd-macros.patch
+include-linux-bcdh-remove-comments.patch
+reiser4.patch
 
