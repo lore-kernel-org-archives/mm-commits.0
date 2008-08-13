@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + byteorder-arm-use-the-new-byteorder-headers.patch added to -mm tree
-Date: Tue, 12 Aug 2008 19:58:46 -0700
-Message-ID: <200808130258.m7D2wk3b027355@imap1.linux-foundation.org>
+Subject: + byteorder-blackfin-use-the-new-byteorder-headers.patch added to -mm tree
+Date: Tue, 12 Aug 2008 19:58:49 -0700
+Message-ID: <200808130258.m7D2wnnh027361@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48310 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34222 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753427AbYHMC6z (ORCPT
+	by vger.kernel.org with ESMTP id S1753331AbYHMC6x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 22:58:55 -0400
+	Tue, 12 Aug 2008 22:58:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, rmk@arm.linux.org.uk
+Cc: harvey.harrison@gmail.com, bryan.wu@analog.com
 
 
 The patch titled
-     byteorder: arm: use the new byteorder headers
+     byteorder: blackfin: use the new byteorder headers
 has been added to the -mm tree.  Its filename is
-     byteorder-arm-use-the-new-byteorder-headers.patch
+     byteorder-blackfin-use-the-new-byteorder-headers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: arm: use the new byteorder headers
+Subject: byteorder: blackfin: use the new byteorder headers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/byteorder.h |   25 +++++++++++--------------
- 1 file changed, 11 insertions(+), 14 deletions(-)
+ include/asm-blackfin/byteorder.h |   33 +++++++++++++----------------
+ 1 file changed, 15 insertions(+), 18 deletions(-)
 
-diff -puN arch/arm/include/asm/byteorder.h~byteorder-arm-use-the-new-byteorder-headers arch/arm/include/asm/byteorder.h
---- a/arch/arm/include/asm/byteorder.h~byteorder-arm-use-the-new-byteorder-headers
-+++ a/arch/arm/include/asm/byteorder.h
-@@ -18,7 +18,15 @@
- #include <linux/compiler.h>
+diff -puN include/asm-blackfin/byteorder.h~byteorder-blackfin-use-the-new-byteorder-headers include/asm-blackfin/byteorder.h
+--- a/include/asm-blackfin/byteorder.h~byteorder-blackfin-use-the-new-byteorder-headers
++++ a/include/asm-blackfin/byteorder.h
+@@ -4,9 +4,10 @@
  #include <asm/types.h>
+ #include <linux/compiler.h>
  
--static inline __attribute_const__ __u32 ___arch__swab32(__u32 x)
-+#ifdef __ARMEB__
-+# define __BIG_ENDIAN
-+#else
-+# define __LITTLE_ENDIAN
-+#endif
-+
+-#ifdef __GNUC__
++#define __LITTLE_ENDIAN
 +#define __SWAB_64_THRU_32__
-+
-+static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
+ 
+-static __inline__ __attribute_const__ __u32 ___arch__swahb32(__u32 xx)
++static inline __attribute_const__ __u32 __arch_swahb32(__u32 xx)
  {
- 	__u32 t;
- 
-@@ -40,19 +48,8 @@ static inline __attribute_const__ __u32 
- 
- 	return x;
+ 	__u32 tmp;
+ 	__asm__("%1 = %0 >> 8 (V);\n\t"
+@@ -15,34 +16,30 @@ static __inline__ __attribute_const__ __
+ 		: "+d"(xx), "=&d"(tmp));
+ 	return xx;
  }
++#define __arch_swahb32 __arch_swahb32
+ 
+-static __inline__ __attribute_const__ __u32 ___arch__swahw32(__u32 xx)
++static inline __attribute_const__ __u32 __arch_swahw32(__u32 xx)
+ {
+ 	__u32 rv;
+ 	__asm__("%0 = PACK(%1.L, %1.H);\n\t": "=d"(rv): "d"(xx));
+ 	return rv;
+ }
++#define __arch_swahw32 __arch_swahw32
+ 
+-#define __arch__swahb32(x) ___arch__swahb32(x)
+-#define __arch__swahw32(x) ___arch__swahw32(x)
+-#define __arch__swab32(x) ___arch__swahb32(___arch__swahw32(x))
++static inline __attribute_const__ __u32 __arch_swab32(__u32 xx)
++{
++	return __arch_swahb32(__arch_swahw32(x));
++}
 +#define __arch_swab32 __arch_swab32
  
--#define __arch__swab32(x) ___arch__swab32(x)
+-static __inline__ __attribute_const__ __u16 ___arch__swab16(__u16 xx)
++static inline __attribute_const__ __u16 __arch_swab16(__u16 xx)
+ {
+ 	__u32 xw = xx;
+ 	__asm__("%0 <<= 8;\n	%0.L = %0.L + %0.H (NS);\n": "+d"(xw));
+ 	return (__u16)xw;
+ }
++#define __arch_swab16 __arch_swab16
+ 
+-#define __arch__swab16(x) ___arch__swab16(x)
 -
--#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
+-#endif
+-
+-#if defined(__GNUC__) && !defined(__STRICT_ANSI__) || defined(__KERNEL__)
 -#  define __BYTEORDER_HAS_U64__
 -#  define __SWAB_64_THRU_32__
 -#endif
 -
--#ifdef __ARMEB__
--#include <linux/byteorder/big_endian.h>
--#else
 -#include <linux/byteorder/little_endian.h>
--#endif
 +#include <linux/byteorder.h>
  
- #endif
--
+-#endif				/* _BLACKFIN_BYTEORDER_H */
++#endif /* _BLACKFIN_BYTEORDER_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
