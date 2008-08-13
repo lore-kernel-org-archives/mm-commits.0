@@ -1,878 +1,2156 @@
 From: akpm@linux-foundation.org
-Subject: + byteorder-remove-the-old-byteorder-implementation.patch added to -mm tree
-Date: Tue, 12 Aug 2008 22:07:06 -0700
-Message-ID: <200808130520.m7D5KBi6032527@imap1.linux-foundation.org>
+Subject: - rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 22:20:00 -0700
+Message-ID: <200808130533.m7D5X5aL000460@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60942 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41316 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751478AbYHMFUO (ORCPT
+	by vger.kernel.org with ESMTP id S1751600AbYHMFd2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 01:20:14 -0400
+	Wed, 13 Aug 2008 01:33:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com
+To: prasad@linux.vnet.ibm.com, dwilder@us.ibm.com, hunt@redhat.com, zanussi@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     byteorder: remove the old byteorder implementation
-has been added to the -mm tree.  Its filename is
-     byteorder-remove-the-old-byteorder-implementation.patch
+     Rename lib/trace.[ch] files to kernel/relay_debugfs.[ch] and enhancements
+has been removed from the -mm tree.  Its filename was
+     rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: remove the old byteorder implementation
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: Rename lib/trace.[ch] files to kernel/relay_debugfs.[ch] and enhancements
+From: "K.Prasad" <prasad@linux.vnet.ibm.com>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+This patch renames the lib/trace.[ch] files to kernel/relay_debugfs.[ch]. 
+Also present are the changes to rename the "trace_*" functions to
+"relay_*".
+
+Two new functions which provide an easy-to-use interface for relay
+called relay_printk() and relay_dump() are also introduced (earlier
+called as trace_printk() and trace_dump()).
+
+Signed-off-by: K.Prasad <prasad@linux.vnet.ibm.com>
+Cc: Tom Zanussi <zanussi@us.ibm.com>
+Cc: Martin Hunt <hunt@redhat.com>
+Cc: David Wilder <dwilder@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/byteorder/Kbuild          |    3 
- include/linux/byteorder/big_endian.h    |  108 ----------
- include/linux/byteorder/generic.h       |  173 -----------------
- include/linux/byteorder/little_endian.h |  108 ----------
- include/linux/byteorder/swab.h          |  222 ----------------------
- include/linux/byteorder/swabb.h         |  135 -------------
- 6 files changed, 749 deletions(-)
+ Documentation/filesystems/relay.txt |   22 
+ include/linux/relay_debugfs.h       |  155 +++++
+ include/linux/trace.h               |   99 ---
+ init/Kconfig                        |    9 
+ kernel/Makefile                     |    1 
+ kernel/relay_debugfs.c              |  760 ++++++++++++++++++++++++++
+ lib/Kconfig                         |    9 
+ lib/Makefile                        |    2 
+ lib/trace.c                         |  563 -------------------
+ samples/Kconfig                     |    8 
+ samples/Makefile                    |    2 
+ samples/relay/Makefile              |    4 
+ samples/relay/fork_trace.c          |  132 ++++
+ samples/trace/Makefile              |    4 
+ samples/trace/fork_new_trace.c      |   99 +++
+ samples/trace/fork_trace.c          |  132 ----
+ 16 files changed, 1187 insertions(+), 814 deletions(-)
 
-diff -puN include/linux/byteorder/Kbuild~byteorder-remove-the-old-byteorder-implementation /dev/null
---- a/include/linux/byteorder/Kbuild
+diff -puN Documentation/filesystems/relay.txt~rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements Documentation/filesystems/relay.txt
+--- a/Documentation/filesystems/relay.txt~rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements
++++ a/Documentation/filesystems/relay.txt
+@@ -637,6 +637,28 @@ are:
+ 5) Destroy the 'relay debugfs' channel and underlying relay channel -
+    relay_cleanup().
+ 
++Alternatively the user may choose to make use of two new interfaces --
++relay_printk() and relay_dump() -- to setup trace interface and
++relay_cleanup_all() to tear-down the same.
++
++Steps to use:
++1) Create and populate an instance of relay_printk_data structure. The fields
++   parent_dir and dir are mandatory. The fields buf_size, sub_buf_size and flags
++   are optional and will take default values if not populated. The field
++   'exists' and ti are for the trace infrastructure to use. The pointer to the
++   'struct relay_info' i.e. ti may be used to perform fine granular operations
++   such as determine the state of the 'trace', stop individual traces, etc.
++2) Default values for buf_size and sub_buf_size are 4096, 40 respectively.
++3) Use relay_dump() to output binary data which may be acted upon by a
++   high-level program (say dumping a structure). relay_printk() can be used
++   for string output. Pass a pointer to the instance of relay_printk_data
++   structure to these functions along with other parameters. The output from
++   these functions can be found at
++   <debugfs_mount>/<parent_dir>/<dir>/trace<0..n>.
++4) relay_cleanup_all() for a given parent directory will cleanup and remove all
++   trace directories created under the specified directory.
++5) Sample code for the same can be found in samples/trace/fork_new_trace.c
++
+ Kernel Configuration
+ --------------------
+ To use 'relay debugfs', configure your kernel with CONFIG_TRACE=y.
+diff -puN /dev/null include/linux/relay_debugfs.h
+--- /dev/null
++++ a/include/linux/relay_debugfs.h
+@@ -0,0 +1,155 @@
++/*
++ * RELAY DEBUGFS defines and function prototypes
++ *
++ * Copyright (C) 2007 IBM Inc.
++ *
++ *	Tom Zanussi <zanussi@us.ibm.com>
++ *	Martin Hunt <hunt@redhat.com>
++ *	David Wilder <dwilder@us.ibm.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++ *
++ */
++#ifndef _LINUX_RELAY_DEBUGFS_H
++#define _LINUX_RELAY_DEBUGFS_H
++
++#include <linux/relay.h>
++
++/*
++ * RELAY DEBUGFS channel flags
++ */
++#define RELAY_GLOBAL_CHANNEL	0x01
++#define RELAY_FLIGHT_CHANNEL	0x02
++#define RELAY_DISABLE_STATE	0x04
++
++enum relay_state {
++	RELAY_SETUP,
++	RELAY_RUNNING,
++	RELAY_STOPPED,
++};
++
++enum relay_dir_state {
++	RELAY_PARENT_DIR_ABSENT,
++	RELAY_PARENT_DIR_EXISTS,
++	RELAY_DIR_EXISTS
++};
++
++#define RELAY_ROOT_NAME_SIZE	64	/* Max root dir identifier */
++#define RELAY_NAME_SIZE		64	/* Max relay identifier */
++
++/*
++ * Buffers for use by relay_printk
++ */
++#define DEFAULT_RELAY_BUF_SIZE 4096
++#define DEFAULT_RELAY_SUB_BUF_NR 40
++/*
++ * Global root user information
++ */
++struct relay_root {
++	struct list_head list;
++	char name[RELAY_ROOT_NAME_SIZE];
++	struct dentry *root;
++	unsigned int users;
++};
++
++/*
++ * Client information
++ */
++struct relay_info {
++	struct mutex state_mutex; /* Used to protect state changes */
++	enum relay_state state;
++	struct dentry *state_file;
++	struct rchan *rchan;
++	struct dentry *dir;
++	struct dentry *dropped_file;
++	struct dentry *reset_consumed_file;
++	struct dentry *nr_sub_file;
++	struct dentry *sub_size_file;
++	atomic_t dropped;
++	struct relay_root *root;
++	void *private_data;
++	unsigned int flags;
++	unsigned int buf_size;
++	unsigned int buf_nr;
++	spinlock_t relay_lock;
++};
++
++struct relay_printk_data {
++	char *parent_dir;
++	char *dir;
++	int exists;
++	int buf_size;
++	int sub_buf_size;
++	unsigned long flags;
++	struct relay_info *ti;
++};
++
++/*
++ * Information about every 'relay debugfs' directory
++ */
++struct relay_dir {
++	struct list_head relay_dir_list;
++	char relay_dir_name[RELAY_NAME_SIZE];
++	struct dentry *relay_root;
++	struct dentry *relay_dir;
++	struct relay_info *ti;
++};
++
++#ifdef CONFIG_RELAY_DEBUGFS
++static inline int relay_running(struct relay_info *relay)
++{
++	return relay->state == RELAY_RUNNING;
++}
++struct relay_info *relay_setup(const char *root, const char *name,
++			       u32 buf_size, u32 buf_nr, u32 flags);
++int relay_start(struct relay_info *relay);
++int relay_stop(struct relay_info *relay);
++void relay_cleanup(struct relay_info *relay);
++int relay_exists(const char *parent_dir, const char *dir,
++					struct relay_info **ti);
++void relay_cleanup_all(const char *parent_dir);
++int relay_printk(struct relay_printk_data *dpk, char *format, ...);
++int relay_dump(struct relay_printk_data *dpk, const void *output,
++							const int output_len);
++#else
++static inline struct relay_info *relay_setup(const char *root,
++					     const char *name, u32 buf_size,
++					     u32 buf_nr, u32 flags)
++{
++	return NULL;
++}
++static inline int relay_start(struct relay_info *relay) { return -EINVAL; }
++static inline int relay_stop(struct relay_info *relay) { return -EINVAL; }
++static inline int relay_running(struct relay_info *relay) { return 0; }
++static inline void relay_cleanup(struct relay_info *relay) {}
++static inline int relay_exists(const char *parent_dir, const char *dir,
++				struct relay_info **ti)
++{
++	return -EINVAL;
++}
++static inline void relay_cleanup_all(const char *parent_dir) {}
++static inline int relay_printk(struct relay_printk_data *dpk, char *format,
++				...)
++{
++	return -EINVAL;
++}
++int relay_dump(struct relay_printk_data *dpk, const void *output,
++							const int output_len)
++{
++	return -EINVAL;
++}
++
++#endif
++
++#endif /* ifdef CONFIG_RELAY_DEBUGFS */
+diff -puN include/linux/trace.h~rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements /dev/null
+--- a/include/linux/trace.h
 +++ /dev/null
-@@ -1,3 +0,0 @@
--unifdef-y += big_endian.h
--unifdef-y += little_endian.h
--unifdef-y += swab.h
-diff -puN include/linux/byteorder/big_endian.h~byteorder-remove-the-old-byteorder-implementation /dev/null
---- a/include/linux/byteorder/big_endian.h
-+++ /dev/null
-@@ -1,108 +0,0 @@
--#ifndef _LINUX_BYTEORDER_BIG_ENDIAN_H
--#define _LINUX_BYTEORDER_BIG_ENDIAN_H
+@@ -1,99 +0,0 @@
+-/*
+- * TRACE defines and function prototypes
+- *
+- * Copyright (C) 2007 IBM Inc.
+- *
+- *	Tom Zanussi <zanussi@us.ibm.com>
+- *	Martin Hunt <hunt@redhat.com>
+- *	David Wilder <dwilder@us.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+- *
+- */
+-#ifndef _LINUX_TRACE_H
+-#define _LINUX_TRACE_H
 -
--#ifndef __BIG_ENDIAN
--#define __BIG_ENDIAN 4321
--#endif
--#ifndef __BIG_ENDIAN_BITFIELD
--#define __BIG_ENDIAN_BITFIELD
--#endif
--
--#include <linux/types.h>
--#include <linux/byteorder/swab.h>
--
--#define __constant_htonl(x) ((__force __be32)(__u32)(x))
--#define __constant_ntohl(x) ((__force __u32)(__be32)(x))
--#define __constant_htons(x) ((__force __be16)(__u16)(x))
--#define __constant_ntohs(x) ((__force __u16)(__be16)(x))
--#define __constant_cpu_to_le64(x) ((__force __le64)___constant_swab64((x)))
--#define __constant_le64_to_cpu(x) ___constant_swab64((__force __u64)(__le64)(x))
--#define __constant_cpu_to_le32(x) ((__force __le32)___constant_swab32((x)))
--#define __constant_le32_to_cpu(x) ___constant_swab32((__force __u32)(__le32)(x))
--#define __constant_cpu_to_le16(x) ((__force __le16)___constant_swab16((x)))
--#define __constant_le16_to_cpu(x) ___constant_swab16((__force __u16)(__le16)(x))
--#define __constant_cpu_to_be64(x) ((__force __be64)(__u64)(x))
--#define __constant_be64_to_cpu(x) ((__force __u64)(__be64)(x))
--#define __constant_cpu_to_be32(x) ((__force __be32)(__u32)(x))
--#define __constant_be32_to_cpu(x) ((__force __u32)(__be32)(x))
--#define __constant_cpu_to_be16(x) ((__force __be16)(__u16)(x))
--#define __constant_be16_to_cpu(x) ((__force __u16)(__be16)(x))
--#define __cpu_to_le64(x) ((__force __le64)__swab64((x)))
--#define __le64_to_cpu(x) __swab64((__force __u64)(__le64)(x))
--#define __cpu_to_le32(x) ((__force __le32)__swab32((x)))
--#define __le32_to_cpu(x) __swab32((__force __u32)(__le32)(x))
--#define __cpu_to_le16(x) ((__force __le16)__swab16((x)))
--#define __le16_to_cpu(x) __swab16((__force __u16)(__le16)(x))
--#define __cpu_to_be64(x) ((__force __be64)(__u64)(x))
--#define __be64_to_cpu(x) ((__force __u64)(__be64)(x))
--#define __cpu_to_be32(x) ((__force __be32)(__u32)(x))
--#define __be32_to_cpu(x) ((__force __u32)(__be32)(x))
--#define __cpu_to_be16(x) ((__force __be16)(__u16)(x))
--#define __be16_to_cpu(x) ((__force __u16)(__be16)(x))
--
--static inline __le64 __cpu_to_le64p(const __u64 *p)
--{
--	return (__force __le64)__swab64p(p);
--}
--static inline __u64 __le64_to_cpup(const __le64 *p)
--{
--	return __swab64p((__u64 *)p);
--}
--static inline __le32 __cpu_to_le32p(const __u32 *p)
--{
--	return (__force __le32)__swab32p(p);
--}
--static inline __u32 __le32_to_cpup(const __le32 *p)
--{
--	return __swab32p((__u32 *)p);
--}
--static inline __le16 __cpu_to_le16p(const __u16 *p)
--{
--	return (__force __le16)__swab16p(p);
--}
--static inline __u16 __le16_to_cpup(const __le16 *p)
--{
--	return __swab16p((__u16 *)p);
--}
--static inline __be64 __cpu_to_be64p(const __u64 *p)
--{
--	return (__force __be64)*p;
--}
--static inline __u64 __be64_to_cpup(const __be64 *p)
--{
--	return (__force __u64)*p;
--}
--static inline __be32 __cpu_to_be32p(const __u32 *p)
--{
--	return (__force __be32)*p;
--}
--static inline __u32 __be32_to_cpup(const __be32 *p)
--{
--	return (__force __u32)*p;
--}
--static inline __be16 __cpu_to_be16p(const __u16 *p)
--{
--	return (__force __be16)*p;
--}
--static inline __u16 __be16_to_cpup(const __be16 *p)
--{
--	return (__force __u16)*p;
--}
--#define __cpu_to_le64s(x) __swab64s((x))
--#define __le64_to_cpus(x) __swab64s((x))
--#define __cpu_to_le32s(x) __swab32s((x))
--#define __le32_to_cpus(x) __swab32s((x))
--#define __cpu_to_le16s(x) __swab16s((x))
--#define __le16_to_cpus(x) __swab16s((x))
--#define __cpu_to_be64s(x) do { (void)(x); } while (0)
--#define __be64_to_cpus(x) do { (void)(x); } while (0)
--#define __cpu_to_be32s(x) do { (void)(x); } while (0)
--#define __be32_to_cpus(x) do { (void)(x); } while (0)
--#define __cpu_to_be16s(x) do { (void)(x); } while (0)
--#define __be16_to_cpus(x) do { (void)(x); } while (0)
--
--#ifdef __KERNEL__
--#include <linux/byteorder/generic.h>
--#endif
--
--#endif /* _LINUX_BYTEORDER_BIG_ENDIAN_H */
-diff -puN include/linux/byteorder/generic.h~byteorder-remove-the-old-byteorder-implementation /dev/null
---- a/include/linux/byteorder/generic.h
-+++ /dev/null
-@@ -1,173 +0,0 @@
--#ifndef _LINUX_BYTEORDER_GENERIC_H
--#define _LINUX_BYTEORDER_GENERIC_H
+-#include <linux/relay.h>
 -
 -/*
-- * linux/byteorder_generic.h
-- * Generic Byte-reordering support
-- *
-- * The "... p" macros, like le64_to_cpup, can be used with pointers
-- * to unaligned data, but there will be a performance penalty on 
-- * some architectures.  Use get_unaligned for unaligned data.
-- *
-- * Francois-Rene Rideau <fare@tunes.org> 19970707
-- *    gathered all the good ideas from all asm-foo/byteorder.h into one file,
-- *    cleaned them up.
-- *    I hope it is compliant with non-GCC compilers.
-- *    I decided to put __BYTEORDER_HAS_U64__ in byteorder.h,
-- *    because I wasn't sure it would be ok to put it in types.h
-- *    Upgraded it to 2.1.43
-- * Francois-Rene Rideau <fare@tunes.org> 19971012
-- *    Upgraded it to 2.1.57
-- *    to please Linus T., replaced huge #ifdef's between little/big endian
-- *    by nestedly #include'd files.
-- * Francois-Rene Rideau <fare@tunes.org> 19971205
-- *    Made it to 2.1.71; now a facelift:
-- *    Put files under include/linux/byteorder/
-- *    Split swab from generic support.
-- *
-- * TODO:
-- *   = Regular kernel maintainers could also replace all these manual
-- *    byteswap macros that remain, disseminated among drivers,
-- *    after some grep or the sources...
-- *   = Linus might want to rename all these macros and files to fit his taste,
-- *    to fit his personal naming scheme.
-- *   = it seems that a few drivers would also appreciate
-- *    nybble swapping support...
-- *   = every architecture could add their byteswap macro in asm/byteorder.h
-- *    see how some architectures already do (i386, alpha, ppc, etc)
-- *   = cpu_to_beXX and beXX_to_cpu might some day need to be well
-- *    distinguished throughout the kernel. This is not the case currently,
-- *    since little endian, big endian, and pdp endian machines needn't it.
-- *    But this might be the case for, say, a port of Linux to 20/21 bit
-- *    architectures (and F21 Linux addict around?).
+- * TRACE channel flags
 - */
+-#define TRACE_GLOBAL_CHANNEL	0x01
+-#define TRACE_FLIGHT_CHANNEL	0x02
+-#define TRACE_DISABLE_STATE	0x04
+-
+-enum trace_state {
+-	TRACE_SETUP,
+-	TRACE_RUNNING,
+-	TRACE_STOPPED,
+-};
+-
+-#define TRACE_ROOT_NAME_SIZE	64	/* Max root dir identifier */
+-#define TRACE_NAME_SIZE		64	/* Max trace identifier */
 -
 -/*
-- * The following macros are to be defined by <asm/byteorder.h>:
-- *
-- * Conversion of long and short int between network and host format
-- *	ntohl(__u32 x)
-- *	ntohs(__u16 x)
-- *	htonl(__u32 x)
-- *	htons(__u16 x)
-- * It seems that some programs (which? where? or perhaps a standard? POSIX?)
-- * might like the above to be functions, not macros (why?).
-- * if that's true, then detect them, and take measures.
-- * Anyway, the measure is: define only ___ntohl as a macro instead,
-- * and in a separate file, have
-- * unsigned long inline ntohl(x){return ___ntohl(x);}
-- *
-- * The same for constant arguments
-- *	__constant_ntohl(__u32 x)
-- *	__constant_ntohs(__u16 x)
-- *	__constant_htonl(__u32 x)
-- *	__constant_htons(__u16 x)
-- *
-- * Conversion of XX-bit integers (16- 32- or 64-)
-- * between native CPU format and little/big endian format
-- * 64-bit stuff only defined for proper architectures
-- *	cpu_to_[bl]eXX(__uXX x)
-- *	[bl]eXX_to_cpu(__uXX x)
-- *
-- * The same, but takes a pointer to the value to convert
-- *	cpu_to_[bl]eXXp(__uXX x)
-- *	[bl]eXX_to_cpup(__uXX x)
-- *
-- * The same, but change in situ
-- *	cpu_to_[bl]eXXs(__uXX x)
-- *	[bl]eXX_to_cpus(__uXX x)
-- *
-- * See asm-foo/byteorder.h for examples of how to provide
-- * architecture-optimized versions
-- *
+- * Global root user information
 - */
--
--#define cpu_to_le64 __cpu_to_le64
--#define le64_to_cpu __le64_to_cpu
--#define cpu_to_le32 __cpu_to_le32
--#define le32_to_cpu __le32_to_cpu
--#define cpu_to_le16 __cpu_to_le16
--#define le16_to_cpu __le16_to_cpu
--#define cpu_to_be64 __cpu_to_be64
--#define be64_to_cpu __be64_to_cpu
--#define cpu_to_be32 __cpu_to_be32
--#define be32_to_cpu __be32_to_cpu
--#define cpu_to_be16 __cpu_to_be16
--#define be16_to_cpu __be16_to_cpu
--#define cpu_to_le64p __cpu_to_le64p
--#define le64_to_cpup __le64_to_cpup
--#define cpu_to_le32p __cpu_to_le32p
--#define le32_to_cpup __le32_to_cpup
--#define cpu_to_le16p __cpu_to_le16p
--#define le16_to_cpup __le16_to_cpup
--#define cpu_to_be64p __cpu_to_be64p
--#define be64_to_cpup __be64_to_cpup
--#define cpu_to_be32p __cpu_to_be32p
--#define be32_to_cpup __be32_to_cpup
--#define cpu_to_be16p __cpu_to_be16p
--#define be16_to_cpup __be16_to_cpup
--#define cpu_to_le64s __cpu_to_le64s
--#define le64_to_cpus __le64_to_cpus
--#define cpu_to_le32s __cpu_to_le32s
--#define le32_to_cpus __le32_to_cpus
--#define cpu_to_le16s __cpu_to_le16s
--#define le16_to_cpus __le16_to_cpus
--#define cpu_to_be64s __cpu_to_be64s
--#define be64_to_cpus __be64_to_cpus
--#define cpu_to_be32s __cpu_to_be32s
--#define be32_to_cpus __be32_to_cpus
--#define cpu_to_be16s __cpu_to_be16s
--#define be16_to_cpus __be16_to_cpus
+-struct trace_root {
+-	struct list_head list;
+-	char name[TRACE_ROOT_NAME_SIZE];
+-	struct dentry *root;
+-	unsigned int users;
+-};
 -
 -/*
-- * They have to be macros in order to do the constant folding
-- * correctly - if the argument passed into a inline function
-- * it is no longer constant according to gcc..
+- * Client information
 - */
+-struct trace_info {
+-	struct mutex state_mutex; /* Used to protect state changes */
+-	enum trace_state state;
+-	struct dentry *state_file;
+-	struct rchan *rchan;
+-	struct dentry *dir;
+-	struct dentry *dropped_file;
+-	struct dentry *reset_consumed_file;
+-	struct dentry *nr_sub_file;
+-	struct dentry *sub_size_file;
+-	atomic_t dropped;
+-	struct trace_root *root;
+-	void *private_data;
+-	unsigned int flags;
+-	unsigned int buf_size;
+-	unsigned int buf_nr;
+-};
 -
--#undef ntohl
--#undef ntohs
--#undef htonl
--#undef htons
--
--#define ___htonl(x) __cpu_to_be32(x)
--#define ___htons(x) __cpu_to_be16(x)
--#define ___ntohl(x) __be32_to_cpu(x)
--#define ___ntohs(x) __be16_to_cpu(x)
--
--#define htonl(x) ___htonl(x)
--#define ntohl(x) ___ntohl(x)
--#define htons(x) ___htons(x)
--#define ntohs(x) ___ntohs(x)
--
--static inline void le16_add_cpu(__le16 *var, u16 val)
+-#ifdef CONFIG_TRACE
+-static inline int trace_running(struct trace_info *trace)
 -{
--	*var = cpu_to_le16(le16_to_cpu(*var) + val);
+-	return trace->state == TRACE_RUNNING;
 -}
--
--static inline void le32_add_cpu(__le32 *var, u32 val)
--{
--	*var = cpu_to_le32(le32_to_cpu(*var) + val);
--}
--
--static inline void le64_add_cpu(__le64 *var, u64 val)
--{
--	*var = cpu_to_le64(le64_to_cpu(*var) + val);
--}
--
--static inline void be16_add_cpu(__be16 *var, u16 val)
--{
--	*var = cpu_to_be16(be16_to_cpu(*var) + val);
--}
--
--static inline void be32_add_cpu(__be32 *var, u32 val)
--{
--	*var = cpu_to_be32(be32_to_cpu(*var) + val);
--}
--
--static inline void be64_add_cpu(__be64 *var, u64 val)
--{
--	*var = cpu_to_be64(be64_to_cpu(*var) + val);
--}
--
--#endif /* _LINUX_BYTEORDER_GENERIC_H */
-diff -puN include/linux/byteorder/little_endian.h~byteorder-remove-the-old-byteorder-implementation /dev/null
---- a/include/linux/byteorder/little_endian.h
-+++ /dev/null
-@@ -1,108 +0,0 @@
--#ifndef _LINUX_BYTEORDER_LITTLE_ENDIAN_H
--#define _LINUX_BYTEORDER_LITTLE_ENDIAN_H
--
--#ifndef __LITTLE_ENDIAN
--#define __LITTLE_ENDIAN 1234
--#endif
--#ifndef __LITTLE_ENDIAN_BITFIELD
--#define __LITTLE_ENDIAN_BITFIELD
--#endif
--
--#include <linux/types.h>
--#include <linux/byteorder/swab.h>
--
--#define __constant_htonl(x) ((__force __be32)___constant_swab32((x)))
--#define __constant_ntohl(x) ___constant_swab32((__force __be32)(x))
--#define __constant_htons(x) ((__force __be16)___constant_swab16((x)))
--#define __constant_ntohs(x) ___constant_swab16((__force __be16)(x))
--#define __constant_cpu_to_le64(x) ((__force __le64)(__u64)(x))
--#define __constant_le64_to_cpu(x) ((__force __u64)(__le64)(x))
--#define __constant_cpu_to_le32(x) ((__force __le32)(__u32)(x))
--#define __constant_le32_to_cpu(x) ((__force __u32)(__le32)(x))
--#define __constant_cpu_to_le16(x) ((__force __le16)(__u16)(x))
--#define __constant_le16_to_cpu(x) ((__force __u16)(__le16)(x))
--#define __constant_cpu_to_be64(x) ((__force __be64)___constant_swab64((x)))
--#define __constant_be64_to_cpu(x) ___constant_swab64((__force __u64)(__be64)(x))
--#define __constant_cpu_to_be32(x) ((__force __be32)___constant_swab32((x)))
--#define __constant_be32_to_cpu(x) ___constant_swab32((__force __u32)(__be32)(x))
--#define __constant_cpu_to_be16(x) ((__force __be16)___constant_swab16((x)))
--#define __constant_be16_to_cpu(x) ___constant_swab16((__force __u16)(__be16)(x))
--#define __cpu_to_le64(x) ((__force __le64)(__u64)(x))
--#define __le64_to_cpu(x) ((__force __u64)(__le64)(x))
--#define __cpu_to_le32(x) ((__force __le32)(__u32)(x))
--#define __le32_to_cpu(x) ((__force __u32)(__le32)(x))
--#define __cpu_to_le16(x) ((__force __le16)(__u16)(x))
--#define __le16_to_cpu(x) ((__force __u16)(__le16)(x))
--#define __cpu_to_be64(x) ((__force __be64)__swab64((x)))
--#define __be64_to_cpu(x) __swab64((__force __u64)(__be64)(x))
--#define __cpu_to_be32(x) ((__force __be32)__swab32((x)))
--#define __be32_to_cpu(x) __swab32((__force __u32)(__be32)(x))
--#define __cpu_to_be16(x) ((__force __be16)__swab16((x)))
--#define __be16_to_cpu(x) __swab16((__force __u16)(__be16)(x))
--
--static inline __le64 __cpu_to_le64p(const __u64 *p)
--{
--	return (__force __le64)*p;
--}
--static inline __u64 __le64_to_cpup(const __le64 *p)
--{
--	return (__force __u64)*p;
--}
--static inline __le32 __cpu_to_le32p(const __u32 *p)
--{
--	return (__force __le32)*p;
--}
--static inline __u32 __le32_to_cpup(const __le32 *p)
--{
--	return (__force __u32)*p;
--}
--static inline __le16 __cpu_to_le16p(const __u16 *p)
--{
--	return (__force __le16)*p;
--}
--static inline __u16 __le16_to_cpup(const __le16 *p)
--{
--	return (__force __u16)*p;
--}
--static inline __be64 __cpu_to_be64p(const __u64 *p)
--{
--	return (__force __be64)__swab64p(p);
--}
--static inline __u64 __be64_to_cpup(const __be64 *p)
--{
--	return __swab64p((__u64 *)p);
--}
--static inline __be32 __cpu_to_be32p(const __u32 *p)
--{
--	return (__force __be32)__swab32p(p);
--}
--static inline __u32 __be32_to_cpup(const __be32 *p)
--{
--	return __swab32p((__u32 *)p);
--}
--static inline __be16 __cpu_to_be16p(const __u16 *p)
--{
--	return (__force __be16)__swab16p(p);
--}
--static inline __u16 __be16_to_cpup(const __be16 *p)
--{
--	return __swab16p((__u16 *)p);
--}
--#define __cpu_to_le64s(x) do { (void)(x); } while (0)
--#define __le64_to_cpus(x) do { (void)(x); } while (0)
--#define __cpu_to_le32s(x) do { (void)(x); } while (0)
--#define __le32_to_cpus(x) do { (void)(x); } while (0)
--#define __cpu_to_le16s(x) do { (void)(x); } while (0)
--#define __le16_to_cpus(x) do { (void)(x); } while (0)
--#define __cpu_to_be64s(x) __swab64s((x))
--#define __be64_to_cpus(x) __swab64s((x))
--#define __cpu_to_be32s(x) __swab32s((x))
--#define __be32_to_cpus(x) __swab32s((x))
--#define __cpu_to_be16s(x) __swab16s((x))
--#define __be16_to_cpus(x) __swab16s((x))
--
--#ifdef __KERNEL__
--#include <linux/byteorder/generic.h>
--#endif
--
--#endif /* _LINUX_BYTEORDER_LITTLE_ENDIAN_H */
-diff -puN include/linux/byteorder/swab.h~byteorder-remove-the-old-byteorder-implementation /dev/null
---- a/include/linux/byteorder/swab.h
-+++ /dev/null
-@@ -1,222 +0,0 @@
--#ifndef _LINUX_BYTEORDER_SWAB_H
--#define _LINUX_BYTEORDER_SWAB_H
--
--/*
-- * linux/byteorder/swab.h
-- * Byte-swapping, independently from CPU endianness
-- *	swabXX[ps]?(foo)
-- *
-- * Francois-Rene Rideau <fare@tunes.org> 19971205
-- *    separated swab functions from cpu_to_XX,
-- *    to clean up support for bizarre-endian architectures.
-- *
-- * Trent Piepho <xyzzy@speakeasy.org> 2007114
-- *    make constant-folding work, provide C versions that
-- *    gcc can optimize better, explain different versions
-- *
-- * See asm-i386/byteorder.h and suches for examples of how to provide
-- * architecture-dependent optimized versions
-- *
-- */
--
--#include <linux/compiler.h>
--
--/* Functions/macros defined, there are a lot:
-- *
-- * ___swabXX
-- *    Generic C versions of the swab functions.
-- *
-- * ___constant_swabXX
-- *    C versions that gcc can fold into a compile-time constant when
-- *    the argument is a compile-time constant.
-- *
-- * __arch__swabXX[sp]?
-- *    Architecture optimized versions of all the swab functions
-- *    (including the s and p versions).  These can be defined in
-- *    asm-arch/byteorder.h.  Any which are not, are defined here.
-- *    __arch__swabXXs() is defined in terms of __arch__swabXXp(), which
-- *    is defined in terms of __arch__swabXX(), which is in turn defined
-- *    in terms of ___swabXX(x).
-- *    These must be macros.  They may be unsafe for arguments with
-- *    side-effects.
-- *
-- * __fswabXX
-- *    Inline function versions of the __arch__ macros.  These _are_ safe
-- *    if the arguments have side-effects.  Note there are no s and p
-- *    versions of these.
-- *
-- * __swabXX[sb]
-- *    There are the ones you should actually use.  The __swabXX versions
-- *    will be a constant given a constant argument and use the arch
-- *    specific code (if any) for non-constant arguments.  The s and p
-- *    versions always use the arch specific code (constant folding
-- *    doesn't apply).  They are safe to use with arguments with
-- *    side-effects.
-- *
-- * swabXX[sb]
-- *    Nicknames for __swabXX[sb] to use in the kernel.
-- */
--
--/* casts are necessary for constants, because we never know how for sure
-- * how U/UL/ULL map to __u16, __u32, __u64. At least not in a portable way.
-- */
--
--static __inline__ __attribute_const__ __u16 ___swab16(__u16 x)
--{
--	return x<<8 | x>>8;
--}
--static __inline__ __attribute_const__ __u32 ___swab32(__u32 x)
--{
--	return x<<24 | x>>24 |
--		(x & (__u32)0x0000ff00UL)<<8 |
--		(x & (__u32)0x00ff0000UL)>>8;
--}
--static __inline__ __attribute_const__ __u64 ___swab64(__u64 x)
--{
--	return x<<56 | x>>56 |
--		(x & (__u64)0x000000000000ff00ULL)<<40 |
--		(x & (__u64)0x0000000000ff0000ULL)<<24 |
--		(x & (__u64)0x00000000ff000000ULL)<< 8 |
--	        (x & (__u64)0x000000ff00000000ULL)>> 8 |
--		(x & (__u64)0x0000ff0000000000ULL)>>24 |
--		(x & (__u64)0x00ff000000000000ULL)>>40;
--}
--
--#define ___constant_swab16(x) \
--	((__u16)( \
--		(((__u16)(x) & (__u16)0x00ffU) << 8) | \
--		(((__u16)(x) & (__u16)0xff00U) >> 8) ))
--#define ___constant_swab32(x) \
--	((__u32)( \
--		(((__u32)(x) & (__u32)0x000000ffUL) << 24) | \
--		(((__u32)(x) & (__u32)0x0000ff00UL) <<  8) | \
--		(((__u32)(x) & (__u32)0x00ff0000UL) >>  8) | \
--		(((__u32)(x) & (__u32)0xff000000UL) >> 24) ))
--#define ___constant_swab64(x) \
--	((__u64)( \
--		(__u64)(((__u64)(x) & (__u64)0x00000000000000ffULL) << 56) | \
--		(__u64)(((__u64)(x) & (__u64)0x000000000000ff00ULL) << 40) | \
--		(__u64)(((__u64)(x) & (__u64)0x0000000000ff0000ULL) << 24) | \
--		(__u64)(((__u64)(x) & (__u64)0x00000000ff000000ULL) <<  8) | \
--	        (__u64)(((__u64)(x) & (__u64)0x000000ff00000000ULL) >>  8) | \
--		(__u64)(((__u64)(x) & (__u64)0x0000ff0000000000ULL) >> 24) | \
--		(__u64)(((__u64)(x) & (__u64)0x00ff000000000000ULL) >> 40) | \
--		(__u64)(((__u64)(x) & (__u64)0xff00000000000000ULL) >> 56) ))
--
--/*
-- * provide defaults when no architecture-specific optimization is detected
-- */
--#ifndef __arch__swab16
--#  define __arch__swab16(x) ___swab16(x)
--#endif
--#ifndef __arch__swab32
--#  define __arch__swab32(x) ___swab32(x)
--#endif
--#ifndef __arch__swab64
--#  define __arch__swab64(x) ___swab64(x)
--#endif
--
--#ifndef __arch__swab16p
--#  define __arch__swab16p(x) __arch__swab16(*(x))
--#endif
--#ifndef __arch__swab32p
--#  define __arch__swab32p(x) __arch__swab32(*(x))
--#endif
--#ifndef __arch__swab64p
--#  define __arch__swab64p(x) __arch__swab64(*(x))
--#endif
--
--#ifndef __arch__swab16s
--#  define __arch__swab16s(x) ((void)(*(x) = __arch__swab16p(x)))
--#endif
--#ifndef __arch__swab32s
--#  define __arch__swab32s(x) ((void)(*(x) = __arch__swab32p(x)))
--#endif
--#ifndef __arch__swab64s
--#  define __arch__swab64s(x) ((void)(*(x) = __arch__swab64p(x)))
--#endif
--
--
--/*
-- * Allow constant folding
-- */
--#if defined(__GNUC__) && defined(__OPTIMIZE__)
--#  define __swab16(x) \
--(__builtin_constant_p((__u16)(x)) ? \
-- ___constant_swab16((x)) : \
-- __fswab16((x)))
--#  define __swab32(x) \
--(__builtin_constant_p((__u32)(x)) ? \
-- ___constant_swab32((x)) : \
-- __fswab32((x)))
--#  define __swab64(x) \
--(__builtin_constant_p((__u64)(x)) ? \
-- ___constant_swab64((x)) : \
-- __fswab64((x)))
+-struct trace_info *trace_setup(const char *root, const char *name,
+-			       u32 buf_size, u32 buf_nr, u32 flags);
+-int trace_start(struct trace_info *trace);
+-int trace_stop(struct trace_info *trace);
+-void trace_cleanup(struct trace_info *trace);
 -#else
--#  define __swab16(x) __fswab16(x)
--#  define __swab32(x) __fswab32(x)
--#  define __swab64(x) __fswab64(x)
--#endif /* OPTIMIZE */
--
--
--static __inline__ __attribute_const__ __u16 __fswab16(__u16 x)
+-static inline struct trace_info *trace_setup(const char *root,
+-					     const char *name, u32 buf_size,
+-					     u32 buf_nr, u32 flags)
 -{
--	return __arch__swab16(x);
+-	return NULL;
 -}
--static __inline__ __u16 __swab16p(const __u16 *x)
--{
--	return __arch__swab16p(x);
--}
--static __inline__ void __swab16s(__u16 *addr)
--{
--	__arch__swab16s(addr);
--}
--
--static __inline__ __attribute_const__ __u32 __fswab32(__u32 x)
--{
--	return __arch__swab32(x);
--}
--static __inline__ __u32 __swab32p(const __u32 *x)
--{
--	return __arch__swab32p(x);
--}
--static __inline__ void __swab32s(__u32 *addr)
--{
--	__arch__swab32s(addr);
--}
--
--#ifdef __BYTEORDER_HAS_U64__
--static __inline__ __attribute_const__ __u64 __fswab64(__u64 x)
--{
--#  ifdef __SWAB_64_THRU_32__
--	__u32 h = x >> 32;
--        __u32 l = x & ((1ULL<<32)-1);
--        return (((__u64)__swab32(l)) << 32) | ((__u64)(__swab32(h)));
--#  else
--	return __arch__swab64(x);
--#  endif
--}
--static __inline__ __u64 __swab64p(const __u64 *x)
--{
--	return __arch__swab64p(x);
--}
--static __inline__ void __swab64s(__u64 *addr)
--{
--	__arch__swab64s(addr);
--}
--#endif /* __BYTEORDER_HAS_U64__ */
--
--#if defined(__KERNEL__)
--#define swab16 __swab16
--#define swab32 __swab32
--#define swab64 __swab64
--#define swab16p __swab16p
--#define swab32p __swab32p
--#define swab64p __swab64p
--#define swab16s __swab16s
--#define swab32s __swab32s
--#define swab64s __swab64s
+-static inline int trace_start(struct trace_info *trace) { return -EINVAL; }
+-static inline int trace_stop(struct trace_info *trace) { return -EINVAL; }
+-static inline int trace_running(struct trace_info *trace) { return 0; }
+-static inline void trace_cleanup(struct trace_info *trace) {}
 -#endif
 -
--#endif /* _LINUX_BYTEORDER_SWAB_H */
-diff -puN include/linux/byteorder/swabb.h~byteorder-remove-the-old-byteorder-implementation /dev/null
---- a/include/linux/byteorder/swabb.h
+-#endif
+diff -puN init/Kconfig~rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements init/Kconfig
+--- a/init/Kconfig~rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements
++++ a/init/Kconfig
+@@ -460,6 +460,15 @@ config RELAY
+ 
+ 	  If unsure, say N.
+ 
++config RELAY_DEBUGFS
++	bool "Relay debugfs setup and control"
++	depends on RELAY && DEBUG_FS
++	help
++	  This option provides support for the setup, teardown and control
++	  of relay channels from kernel code which are mounted on debugfs.
++	  It also provides information and control to userspace via a set of
++	  debugfs control files.  If unsure, say N.
++
+ config NAMESPACES
+ 	bool "Namespaces support" if EMBEDDED
+ 	default !EMBEDDED
+diff -puN kernel/Makefile~rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements kernel/Makefile
+--- a/kernel/Makefile~rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements
++++ a/kernel/Makefile
+@@ -75,6 +75,7 @@ ifeq ($(CONFIG_PREEMPT_RCU),y)
+ obj-$(CONFIG_RCU_TRACE) += rcupreempt_trace.o
+ endif
+ obj-$(CONFIG_RELAY) += relay.o
++obj-$(CONFIG_RELAY_DEBUGFS) += relay_debugfs.o
+ obj-$(CONFIG_SYSCTL) += utsname_sysctl.o
+ obj-$(CONFIG_TASK_DELAY_ACCT) += delayacct.o
+ obj-$(CONFIG_TASKSTATS) += taskstats.o tsacct.o
+diff -puN /dev/null kernel/relay_debugfs.c
+--- /dev/null
++++ a/kernel/relay_debugfs.c
+@@ -0,0 +1,760 @@
++/*
++ * Based on blktrace code, Copyright (C) 2006 Jens Axboe <axboe@kernel.dk>
++ * Moved to utt.c by Tom Zanussi <zanussi@us.ibm.com>, 2006
++ * Additional contributions by:
++ * Martin Hunt <hunt@redhat.com>, 2007
++ * David Wilder <dwilder@us.ibm.com>, 2007
++ * Renamed to trace <dwilder.ibm.com>, 2007
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/mutex.h>
++#include <linux/debugfs.h>
++#include <linux/relay_debugfs.h>
++
++static LIST_HEAD(relay_roots);
++static LIST_HEAD(relay_dirs);
++static DEFINE_MUTEX(relay_mutex);
++
++static int state_open(struct inode *inode, struct file *filp)
++{
++	filp->private_data = inode->i_private;
++	return 0;
++}
++
++static ssize_t state_read(struct file *filp, char __user *buffer,
++			  size_t count, loff_t *ppos)
++{
++	struct relay_info *relay = filp->private_data;
++	char *buf = "relay not started\n";
++
++	if (relay->state == RELAY_STOPPED)
++		buf = "stopped\n";
++	else if (relay->state == RELAY_RUNNING)
++		buf = "running\n";
++	return simple_read_from_buffer(buffer, count, ppos, buf, strlen(buf));
++}
++
++static ssize_t state_write(struct file *filp, const char __user *buffer,
++			   size_t count, loff_t *ppos)
++{
++	struct relay_info *relay = filp->private_data;
++	char buf[16];
++	int ret;
++
++	if (relay->flags & RELAY_DISABLE_STATE)
++		return -EINVAL;
++
++	if (count > sizeof(buf) - 1)
++		return -EINVAL;
++
++	if (copy_from_user(buf, buffer, count))
++		return -EFAULT;
++
++	buf[count-1] = '\0';
++
++	if (strcmp(buf, "start") == 0) {
++		ret = relay_start(relay);
++		if (ret)
++			return ret;
++	} else if (strcmp(buf, "stop") == 0)
++		relay_stop(relay);
++	else
++		return -EINVAL;
++
++	return count;
++}
++
++static struct file_operations state_fops = {
++	.owner	= THIS_MODULE,
++	.open	= state_open,
++	.read	= state_read,
++	.write	= state_write,
++};
++
++static void remove_root(struct relay_info *relay)
++{
++	if (relay->root->root && simple_empty(relay->root->root)) {
++		debugfs_remove(relay->root->root);
++		list_del(&relay->root->list);
++		kfree(relay->root);
++		relay->root = NULL;
++	}
++}
++
++static void remove_tree(struct relay_info *relay)
++{
++	struct list_head *pos, *temp;
++	struct relay_dir *dr = NULL;
++
++	mutex_lock(&relay_mutex);
++	debugfs_remove(relay->dir);
++
++	list_for_each_safe(pos, temp, &relay_dirs) {
++		dr = list_entry(pos, struct relay_dir, relay_dir_list);
++		if (dr->ti == relay) {
++			list_del(pos);
++			kfree(dr);
++		}
++	}
++
++	if (relay->root) {
++		if (--relay->root->users == 0)
++			remove_root(relay);
++	}
++
++	mutex_unlock(&relay_mutex);
++}
++
++/*
++ * Creates the relay_root if it's not found.
++ */
++static struct relay_root *lookup_root(const char *root)
++{
++	struct list_head *pos;
++	struct relay_root *r;
++
++	list_for_each(pos, &relay_roots) {
++		r = list_entry(pos, struct relay_root, list);
++		if (!strcmp(r->name, root))
++			return r;
++	}
++
++	r = kzalloc(sizeof(struct relay_root), GFP_KERNEL);
++	if (!r)
++		return ERR_PTR(-ENOMEM);
++
++	strlcpy(r->name, root, sizeof(r->name));
++
++	r->root = debugfs_create_dir(root, NULL);
++	if (IS_ERR(r->root))
++		r->root = NULL;
++	else
++		list_add(&r->list, &relay_roots);
++
++	return r;
++}
++
++static struct dentry *create_tree(struct relay_info *relay, const char *root,
++				  const char *name)
++{
++	struct relay_dir *temp;
++
++	if (root == NULL || name == NULL)
++		return ERR_PTR(-EINVAL);
++
++	temp = kzalloc(sizeof(struct relay_dir), GFP_KERNEL);
++	if ((temp == NULL) || (strlen(name) > RELAY_NAME_SIZE))
++		return ERR_PTR(-ENOMEM);
++
++	strlcpy(temp->relay_dir_name, name, sizeof(temp->relay_dir_name));
++
++	mutex_lock(&relay_mutex);
++
++	relay->root = lookup_root(root);
++	if (IS_ERR(relay->root)) {
++		relay->root = NULL;
++		goto err;
++	}
++
++	temp->relay_root = relay->root->root;
++	temp->relay_dir = debugfs_create_dir(name, relay->root->root);
++
++	if (IS_ERR(temp->relay_dir))
++		remove_root(relay);
++	else {
++		relay->root->users++;
++		temp->ti = relay;
++		list_add_tail(&temp->relay_dir_list, &relay_dirs);
++	}
++
++err:
++	mutex_unlock(&relay_mutex);
++	return temp->relay_dir;
++}
++
++int relay_exists(const char *parent_dir, const char *dir,
++					struct relay_info **ti)
++{
++	struct list_head *pos;
++	struct relay_root *r;
++	struct relay_dir *temp;
++
++	list_for_each(pos, &relay_roots) {
++		r = list_entry(pos, struct relay_root, list);
++		if (!strcmp(parent_dir, r->name))
++			goto search_dir;
++	}
++	return RELAY_PARENT_DIR_ABSENT;
++
++ search_dir:
++	list_for_each(pos, &relay_dirs) {
++		temp = list_entry(pos, struct relay_dir, relay_dir_list);
++
++		if (!strcmp(dir, temp->relay_dir_name)) {
++			*ti = temp->ti;
++			return RELAY_DIR_EXISTS;
++		}
++	}
++	return RELAY_PARENT_DIR_EXISTS;
++}
++EXPORT_SYMBOL_GPL(relay_exists);
++
++static int dropped_open(struct inode *inode, struct file *filp)
++{
++	filp->private_data = inode->i_private;
++
++	return 0;
++}
++
++static ssize_t dropped_read(struct file *filp, char __user *buffer,
++			    size_t count, loff_t *ppos)
++{
++	struct relay_info *relay = filp->private_data;
++	char buf[16];
++
++	snprintf(buf, sizeof(buf), "%u\n", atomic_read(&relay->dropped));
++
++	return simple_read_from_buffer(buffer, count, ppos, buf, strlen(buf));
++}
++
++static struct file_operations dropped_fops = {
++	.owner	= THIS_MODULE,
++	.open	= dropped_open,
++	.read	= dropped_read,
++};
++
++static int reset_consumed_open(struct inode *inode, struct file *filp)
++{
++	filp->private_data = inode->i_private;
++
++	return 0;
++}
++
++static ssize_t reset_consumed_write(struct file *filp,
++				    const char __user *buffer,
++				    size_t count, loff_t *ppos)
++{
++	int ret = count;
++	struct relay_info *relay = filp->private_data;
++
++	mutex_lock(&relay->state_mutex);
++	switch (relay->state) {
++	case RELAY_RUNNING:
++		relay->state = RELAY_STOPPED;
++		synchronize_rcu();
++		relay_flush(relay->rchan);
++		relay_reset_consumed(relay->rchan);
++		relay->state = RELAY_RUNNING;
++		break;
++	case RELAY_STOPPED:
++		relay_reset_consumed(relay->rchan);
++		break;
++	default:
++		ret = -EINVAL;
++	}
++	mutex_unlock(&relay->state_mutex);
++	return ret;
++}
++
++static struct file_operations reset_consumed_fops = {
++	.owner	= THIS_MODULE,
++	.open	= reset_consumed_open,
++	.write	= reset_consumed_write
++};
++
++static int sub_size_open(struct inode *inode, struct file *filp)
++{
++	filp->private_data = inode->i_private;
++
++	return 0;
++}
++
++static ssize_t sub_size_read(struct file *filp, char __user *buffer,
++			     size_t count, loff_t *ppos)
++{
++	struct relay_info *relay = filp->private_data;
++	char buf[32];
++
++	snprintf(buf, sizeof(buf), "%zu\n", relay->rchan->subbuf_size);
++
++	return simple_read_from_buffer(buffer, count, ppos, buf, strlen(buf));
++}
++
++static struct file_operations sub_size_fops = {
++	.owner	= THIS_MODULE,
++	.open	= sub_size_open,
++	.read	= sub_size_read,
++};
++
++static int nr_sub_open(struct inode *inode, struct file *filp)
++{
++	filp->private_data = inode->i_private;
++	return 0;
++}
++
++static ssize_t nr_sub_read(struct file *filp, char __user *buffer,
++			   size_t count, loff_t *ppos)
++{
++	struct relay_info *relay = filp->private_data;
++	char buf[32];
++
++	snprintf(buf, sizeof(buf), "%zu\n", relay->rchan->n_subbufs);
++
++	return simple_read_from_buffer(buffer, count, ppos, buf, strlen(buf));
++}
++
++static struct file_operations nr_sub_fops = {
++	.owner	= THIS_MODULE,
++	.open	= nr_sub_open,
++	.read	= nr_sub_read,
++};
++
++/*
++ * Keep track of how many times we encountered a full subbuffer, to aid
++ * the user space app in telling how many lost events there were.
++ */
++static int subbuf_start_callback(struct rchan_buf *buf, void *subbuf,
++				 void *prev_subbuf, size_t prev_padding)
++{
++	struct relay_info *relay = buf->chan->private_data;
++
++	if (relay->flags & RELAY_FLIGHT_CHANNEL)
++		return 1;
++
++	if (!relay_buf_full(buf))
++		return 1;
++
++	atomic_inc(&relay->dropped);
++
++	return 0;
++}
++
++static int remove_buf_file_callback(struct dentry *dentry)
++{
++	debugfs_remove(dentry);
++
++	return 0;
++}
++
++static struct dentry *create_buf_file_callback(const char *filename,
++					       struct dentry *parent, int mode,
++					       struct rchan_buf *buf,
++					       int *is_global)
++{
++	return debugfs_create_file(filename, mode, parent, buf,
++				   &relay_file_operations);
++}
++
++static struct dentry *create_global_buf_file_callback(const char *filename,
++						      struct dentry *parent,
++						      int mode,
++						      struct rchan_buf *buf,
++						      int *is_global)
++{
++	*is_global = 1;
++
++	return debugfs_create_file(filename, mode, parent, buf,
++				   &relay_file_operations);
++}
++
++static struct rchan_callbacks relay_callbacks = {
++	.subbuf_start		= subbuf_start_callback,
++	.create_buf_file	= create_buf_file_callback,
++	.remove_buf_file	= remove_buf_file_callback,
++};
++static struct rchan_callbacks relay_callbacks_global = {
++	.subbuf_start		= subbuf_start_callback,
++	.create_buf_file	= create_global_buf_file_callback,
++	.remove_buf_file	= remove_buf_file_callback,
++};
++
++static void remove_controls(struct relay_info *relay)
++{
++	debugfs_remove(relay->state_file);
++	debugfs_remove(relay->dropped_file);
++	debugfs_remove(relay->reset_consumed_file);
++	debugfs_remove(relay->nr_sub_file);
++	debugfs_remove(relay->sub_size_file);
++	remove_tree(relay);
++}
++
++/*
++ * Setup controls for tracing.
++ */
++static struct relay_info *setup_controls(const char *root,
++					 const char *name, u32 flags)
++{
++	struct relay_info *relay;
++	long ret;
++
++	relay = kzalloc(sizeof(*relay), GFP_KERNEL);
++	if (!relay) {
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	relay->dir = create_tree(relay, root, name);
++	if (IS_ERR(relay->dir)) {
++		ret = PTR_ERR(relay->dir);
++		relay->dir = NULL;
++		goto err;
++	}
++
++	relay->state_file = debugfs_create_file("state", 0444, relay->dir,
++						 relay, &state_fops);
++	if (IS_ERR(relay->state_file)) {
++		ret = PTR_ERR(relay->state_file);
++		relay->state_file = NULL;
++		goto err;
++	}
++
++	if (!(flags & RELAY_FLIGHT_CHANNEL)) {
++		relay->dropped_file = debugfs_create_file("dropped", 0444,
++							  relay->dir, relay,
++							  &dropped_fops);
++		if (IS_ERR(relay->dropped_file)) {
++			ret = PTR_ERR(relay->dropped_file);
++			relay->dropped_file = NULL;
++			goto err;
++		}
++	}
++
++	if (flags & RELAY_FLIGHT_CHANNEL) {
++		relay->reset_consumed_file = debugfs_create_file("rewind", 0444,
++							relay->dir, relay,
++							&reset_consumed_fops);
++		if (IS_ERR(relay->reset_consumed_file)) {
++			ret = PTR_ERR(relay->reset_consumed_file);
++			relay->reset_consumed_file = NULL;
++			goto err;
++		}
++	}
++
++	relay->nr_sub_file = debugfs_create_file("nr_sub", 0444,
++						 relay->dir, relay,
++						 &nr_sub_fops);
++	if (IS_ERR(relay->nr_sub_file)) {
++		ret = PTR_ERR(relay->nr_sub_file);
++		relay->nr_sub_file = NULL;
++		goto err;
++	}
++
++	relay->sub_size_file = debugfs_create_file("sub_size", 0444,
++						   relay->dir, relay,
++						   &sub_size_fops);
++	if (IS_ERR(relay->sub_size_file)) {
++		ret = PTR_ERR(relay->sub_size_file);
++		relay->sub_size_file = NULL;
++		goto err;
++	}
++
++	return relay;
++err:
++	if (relay) {
++		remove_controls(relay);
++		kfree(relay);
++	}
++
++	return ERR_PTR(ret);
++}
++
++static int relay_setup_channel(struct relay_info *relay, u32 buf_size,
++				u32 buf_nr, u32 flags)
++{
++	if (!buf_size || !buf_nr)
++		return -EINVAL;
++
++	if (flags & RELAY_GLOBAL_CHANNEL)
++		relay->rchan = relay_open("trace", relay->dir, buf_size,
++					  buf_nr, &relay_callbacks_global,
++					  relay);
++	else
++		relay->rchan = relay_open("trace", relay->dir, buf_size,
++					  buf_nr, &relay_callbacks, relay);
++
++	if (!relay->rchan)
++		return -ENOMEM;
++
++	relay->flags = flags;
++	relay->state = RELAY_SETUP;
++
++	return 0;
++}
++
++/**
++ *	relay_setup - create a new relay relay handle
++ *	@root: The root directory name to place relay directories.
++ *	@name: Relay debugfs directory name, created in @root
++ *	@buf_size: size of the relay sub-buffers
++ *	@buf_nr: number of relay sub-buffers
++ *	@flags: Option selection (see relay channel flags definitions)
++ *
++ *	returns a relay_info handle or NULL, if setup failed.
++ *
++ *	The @root is created (if needed) in the root of the debugfs.
++ *	The default values when flags=0 are: use per-CPU buffering,
++ *	use non-overwrite mode. See Documentation/filesystems/relay.txt for
++ *	details.
++ */
++struct relay_info *relay_setup(const char *root, const char *name,
++			       u32 buf_size, u32 buf_nr, u32 flags)
++{
++	struct relay_info *relay;
++
++	relay = setup_controls(root, name, flags);
++	if (IS_ERR(relay))
++		return relay;
++
++	relay->buf_size = buf_size;
++	relay->buf_nr = buf_nr;
++	relay->flags = flags;
++	mutex_init(&relay->state_mutex);
++	relay->state = RELAY_SETUP;
++
++	return relay;
++}
++EXPORT_SYMBOL_GPL(relay_setup);
++
++/**
++ *	relay_start - start tracing
++ *	@relay: relay handle to start.
++ *
++ *	returns 0 if successful.
++ */
++int relay_start(struct relay_info *relay)
++{
++	/*
++	 * For starting a relay, we can transition from a setup or stopped
++	 * relay.
++	 */
++	if (relay->state == RELAY_RUNNING)
++		return -EINVAL;
++
++	mutex_lock(&relay->state_mutex);
++	if (relay->state == RELAY_SETUP) {
++		int ret;
++
++		ret = relay_setup_channel(relay, relay->buf_size,
++					  relay->buf_nr, relay->flags);
++		if (ret) {
++			mutex_unlock(&relay->state_mutex);
++			return ret;
++		}
++	}
++
++	relay->state = RELAY_RUNNING;
++	mutex_unlock(&relay->state_mutex);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(relay_start);
++
++/**
++ *	relay_stop - stop tracing
++ *	@relay: relay handle to stop.
++ *
++ */
++int relay_stop(struct relay_info *relay)
++{
++	int ret = -EINVAL;
++
++	/*
++	 * For stopping a relay, the state must be running
++	 */
++	mutex_lock(&relay->state_mutex);
++	if (relay->state == RELAY_RUNNING) {
++		relay->state = RELAY_STOPPED;
++		/*
++		 * wait for all cpus to see the change in
++		 * state before continuing
++		 */
++		synchronize_sched();
++		relay_flush(relay->rchan);
++		ret = 0;
++	}
++	mutex_unlock(&relay->state_mutex);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(relay_stop);
++
++static void relay_cleanup_channel(struct relay_info *relay)
++{
++	relay_stop(relay);
++	relay_close(relay->rchan);
++	relay->rchan = NULL;
++}
++
++/**
++ *	relay_cleanup - destroys the relay channel, control files and dir
++ *	@relay: relay handle to cleanup
++ */
++void relay_cleanup(struct relay_info *relay)
++{
++	relay_cleanup_channel(relay);
++	remove_controls(relay);
++	kfree(relay);
++}
++EXPORT_SYMBOL_GPL(relay_cleanup);
++
++/**
++ *	relay_cleanup_all - Removes all relay debugfs directories in parent_dir
++ *	@parent_dir: Name of the parent directory
++ */
++void relay_cleanup_all(const char *parent_dir)
++{
++	struct list_head *pos, *pos_temp;
++	struct relay_dir *temp;
++
++	list_for_each_safe(pos, pos_temp, &relay_dirs) {
++		temp = list_entry(pos, struct relay_dir, relay_dir_list);
++		if (!strncmp(parent_dir, temp->relay_root->d_iname, \
++							strlen(parent_dir)))
++			relay_cleanup(temp->ti);
++	}
++}
++EXPORT_SYMBOL_GPL(relay_cleanup_all);
++
++/*
++ * Send formatted data to relay debugfs channel.
++ */
++static int relay_printf(struct relay_info *trace, const char *format,
++								va_list ap)
++{
++	va_list aq;
++	char *record;
++	int len, ret = 0;
++
++	if (relay_running(trace)) {
++		va_copy(aq, ap);
++		len = vsnprintf(NULL, 0, format, aq);
++		va_end(aq);
++		record = relay_reserve(trace->rchan, ++len);
++		if (record)
++			ret = vsnprintf(record, len, format, ap);
++	}
++	return ret;
++}
++
++static inline int init_relay_interface(struct relay_printk_data *tpk)
++{
++	int ret = 0;
++	tpk->exists = relay_exists(tpk->parent_dir, tpk->dir, &tpk->ti);
++
++	switch (tpk->exists) {
++
++	case RELAY_PARENT_DIR_EXISTS:
++	case RELAY_PARENT_DIR_ABSENT:
++		if (!tpk->buf_size)
++			tpk->buf_size = DEFAULT_RELAY_BUF_SIZE;
++		if (!tpk->sub_buf_size)
++			tpk->sub_buf_size = DEFAULT_RELAY_SUB_BUF_NR;
++		tpk->ti = relay_setup(tpk->parent_dir, tpk->dir,
++				tpk->buf_size, tpk->sub_buf_size, tpk->flags);
++		printk(KERN_INFO "Trace interface %s setup\n",
++							tpk->ti->dir->d_iname);
++		if (IS_ERR(tpk->ti)) {
++			printk(KERN_ERR "Error initialising %s interface\n",
++							tpk->ti->dir->d_iname);
++			return -EPERM;
++		}
++	/* Fall through */
++	case RELAY_DIR_EXISTS:
++		if (tpk->ti->state == RELAY_SETUP)
++			ret = relay_start(tpk->ti);
++		else
++			ret = -EPERM;
++	}
++
++	return 0;
++}
++
++/**
++ * relay_printk - Output a string to debugfs mount 'directly' using 'trace'
++ * @tpk: Structure containing info such as parent_dir and directory
++ * @format: String containing format string specifiers
++ * @ap: List of arguments
++ */
++int relay_printk(struct relay_printk_data *tpk, char *format, ...)
++{
++	int ret = 0;
++	va_list(ap);
++	unsigned long flags = 0;
++
++	va_start(ap, format);
++
++	ret = init_relay_interface(tpk);
++	if (unlikely(ret))
++		return ret;
++
++	/* Now do the actual printing */
++	/* Take an RCU Lock over the relay_info state */
++	rcu_read_lock();
++	/* Take a spinlock for the global buffer used by relay */
++	if (tpk->flags & RELAY_GLOBAL_CHANNEL)
++		spin_lock_irqsave(&tpk->ti->relay_lock, flags);
++	ret = relay_printf(tpk->ti, format, ap);
++	if (tpk->flags & RELAY_GLOBAL_CHANNEL)
++		spin_unlock_irqrestore(&tpk->ti->relay_lock, flags);
++	rcu_read_unlock();
++
++	va_end(ap);
++	return ret;
++}
++EXPORT_SYMBOL(relay_printk);
++
++/**
++ * relay_dump - Output binary into debugfs mount 'directly' using 'trace'
++ * @tpk: Structure containing info such as parent_dir and directory
++ * @output: Data that needs to be output
++ * @output_len: Length of the output data
++ */
++int relay_dump(struct relay_printk_data *tpk, const void *output,
++							const int output_len)
++{
++	char *record;
++	unsigned long flags = 0;
++	int ret = 0;
++
++	ret = init_relay_interface(tpk);
++	if (unlikely(ret))
++		return ret;
++
++	/* Now do the actual printing */
++	rcu_read_lock();
++	/* Take a spinlock for the global buffer used by relay */
++	if (tpk->flags & RELAY_GLOBAL_CHANNEL)
++		spin_lock_irqsave(&tpk->ti->relay_lock, flags);
++	record = relay_reserve(tpk->ti->rchan, output_len);
++
++	if (record && relay_running(tpk->ti))
++		memcpy(record, output, output_len);
++	else {
++		if (record)
++			ret = -EPERM;
++		else
++			ret = -ENOMEM;
++	}
++	if (tpk->flags & RELAY_GLOBAL_CHANNEL)
++		spin_unlock_irqrestore(&tpk->ti->relay_lock, flags);
++	rcu_read_unlock();
++
++	return ret;
++}
++EXPORT_SYMBOL(relay_dump);
+diff -puN lib/Kconfig~rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements lib/Kconfig
+--- a/lib/Kconfig~rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements
++++ a/lib/Kconfig
+@@ -157,13 +157,4 @@ config CHECK_SIGNATURE
+ config HAVE_LMB
+ 	boolean
+ 
+-config TRACE
+-	bool "Trace setup and control"
+-	depends on RELAY && DEBUG_FS
+-	help
+-	  This option provides support for the setup, teardown and control
+-	  of tracing channels from kernel code.  It also provides trace
+-	  information and control to userspace via a set of debugfs control
+-	  files.  If unsure, say N.
+-
+ endmenu
+diff -puN lib/Makefile~rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements lib/Makefile
+--- a/lib/Makefile~rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements
++++ a/lib/Makefile
+@@ -79,8 +79,6 @@ obj-$(CONFIG_HAVE_LMB) += lmb.o
+ 
+ obj-$(CONFIG_HAVE_ARCH_TRACEHOOK) += syscall.o
+ 
+-obj-$(CONFIG_TRACE) += trace.o
+-
+ hostprogs-y	:= gen_crc32table
+ clean-files	:= crc32table.h
+ 
+diff -puN lib/trace.c~rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements /dev/null
+--- a/lib/trace.c
 +++ /dev/null
-@@ -1,135 +0,0 @@
--#ifndef _LINUX_BYTEORDER_SWABB_H
--#define _LINUX_BYTEORDER_SWABB_H
--
+@@ -1,563 +0,0 @@
 -/*
-- * linux/byteorder/swabb.h
-- * SWAp Bytes Bizarrely
-- *	swaHHXX[ps]?(foo)
+- * Based on blktrace code, Copyright (C) 2006 Jens Axboe <axboe@kernel.dk>
+- * Moved to utt.c by Tom Zanussi <zanussi@us.ibm.com>, 2006
+- * Additional contributions by:
+- * Martin Hunt <hunt@redhat.com>, 2007
+- * David Wilder <dwilder@us.ibm.com>, 2007
+- * Renamed to trace <dwilder.ibm.com>, 2007
 - *
-- * Support for obNUXIous pdp-endian and other bizarre architectures.
-- * Will Linux ever run on such ancient beasts? if not, this file
-- * will be but a programming pearl. Still, it's a reminder that we
-- * shouldn't be making too many assumptions when trying to be portable.
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
 - *
-- */
--
--/*
-- * Meaning of the names I chose (vaxlinux people feel free to correct them):
-- * swahw32	swap 16-bit half-words in a 32-bit word
-- * swahb32	swap 8-bit halves of each 16-bit half-word in a 32-bit word
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
 - *
-- * No 64-bit support yet. I don't know NUXI conventions for long longs.
-- * I guarantee it will be a mess when it's there, though :->
-- * It will be even worse if there are conflicting 64-bit conventions.
-- * Hopefully, no one ever used 64-bit objects on NUXI machines.
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 - *
 - */
 -
--#include <linux/types.h>
+-#include <linux/kernel.h>
+-#include <linux/module.h>
+-#include <linux/init.h>
+-#include <linux/mutex.h>
+-#include <linux/debugfs.h>
+-#include <linux/trace.h>
 -
--#define ___swahw32(x) \
--({ \
--	__u32 __x = (x); \
--	((__u32)( \
--		(((__u32)(__x) & (__u32)0x0000ffffUL) << 16) | \
--		(((__u32)(__x) & (__u32)0xffff0000UL) >> 16) )); \
--})
--#define ___swahb32(x) \
--({ \
--	__u32 __x = (x); \
--	((__u32)( \
--		(((__u32)(__x) & (__u32)0x00ff00ffUL) << 8) | \
--		(((__u32)(__x) & (__u32)0xff00ff00UL) >> 8) )); \
--})
+-static LIST_HEAD(trace_roots);
+-static DEFINE_MUTEX(trace_mutex);
 -
--#define ___constant_swahw32(x) \
--	((__u32)( \
--		(((__u32)(x) & (__u32)0x0000ffffUL) << 16) | \
--		(((__u32)(x) & (__u32)0xffff0000UL) >> 16) ))
--#define ___constant_swahb32(x) \
--	((__u32)( \
--		(((__u32)(x) & (__u32)0x00ff00ffUL) << 8) | \
--		(((__u32)(x) & (__u32)0xff00ff00UL) >> 8) ))
+-static int state_open(struct inode *inode, struct file *filp)
+-{
+-	filp->private_data = inode->i_private;
+-	return 0;
+-}
+-
+-static ssize_t state_read(struct file *filp, char __user *buffer,
+-			  size_t count, loff_t *ppos)
+-{
+-	struct trace_info *trace = filp->private_data;
+-	char *buf = "trace not started\n";
+-
+-	if (trace->state == TRACE_STOPPED)
+-		buf = "stopped\n";
+-	else if (trace->state == TRACE_RUNNING)
+-		buf = "running\n";
+-	return simple_read_from_buffer(buffer, count, ppos, buf, strlen(buf));
+-}
+-
+-static ssize_t state_write(struct file *filp, const char __user *buffer,
+-			   size_t count, loff_t *ppos)
+-{
+-	struct trace_info *trace = filp->private_data;
+-	char buf[16];
+-	int ret;
+-
+-	if (trace->flags & TRACE_DISABLE_STATE)
+-		return -EINVAL;
+-
+-	if (count > sizeof(buf) - 1)
+-		return -EINVAL;
+-
+-	if (copy_from_user(buf, buffer, count))
+-		return -EFAULT;
+-
+-	buf[count-1] = '\0';
+-
+-	if (strcmp(buf, "start") == 0) {
+-		ret = trace_start(trace);
+-		if (ret)
+-			return ret;
+-	} else if (strcmp(buf, "stop") == 0)
+-		trace_stop(trace);
+-	else
+-		return -EINVAL;
+-
+-	return count;
+-}
+-
+-static struct file_operations state_fops = {
+-	.owner	= THIS_MODULE,
+-	.open	= state_open,
+-	.read	= state_read,
+-	.write	= state_write,
+-};
+-
+-static void remove_root(struct trace_info *trace)
+-{
+-	if (trace->root->root && simple_empty(trace->root->root)) {
+-		debugfs_remove(trace->root->root);
+-		list_del(&trace->root->list);
+-		kfree(trace->root);
+-		trace->root = NULL;
+-	}
+-}
+-
+-static void remove_tree(struct trace_info *trace)
+-{
+-	mutex_lock(&trace_mutex);
+-	debugfs_remove(trace->dir);
+-
+-	if (trace->root) {
+-		if (--trace->root->users == 0)
+-			remove_root(trace);
+-	}
+-
+-	mutex_unlock(&trace_mutex);
+-}
 -
 -/*
-- * provide defaults when no architecture-specific optimization is detected
+- * Creates the trace_root if it's not found.
 - */
--#ifndef __arch__swahw32
--#  define __arch__swahw32(x) ___swahw32(x)
--#endif
--#ifndef __arch__swahb32
--#  define __arch__swahb32(x) ___swahb32(x)
--#endif
+-static struct trace_root *lookup_root(const char *root)
+-{
+-	struct list_head *pos;
+-	struct trace_root *r;
 -
--#ifndef __arch__swahw32p
--#  define __arch__swahw32p(x) __swahw32(*(x))
--#endif
--#ifndef __arch__swahb32p
--#  define __arch__swahb32p(x) __swahb32(*(x))
--#endif
+-	list_for_each(pos, &trace_roots) {
+-		r = list_entry(pos, struct trace_root, list);
+-		if (!strcmp(r->name, root))
+-			return r;
+-	}
 -
--#ifndef __arch__swahw32s
--#  define __arch__swahw32s(x) do { *(x) = __swahw32p((x)); } while (0)
--#endif
--#ifndef __arch__swahb32s
--#  define __arch__swahb32s(x) do { *(x) = __swahb32p((x)); } while (0)
--#endif
+-	r = kzalloc(sizeof(struct trace_root), GFP_KERNEL);
+-	if (!r)
+-		return ERR_PTR(-ENOMEM);
 -
+-	strlcpy(r->name, root, sizeof(r->name));
+-
+-	r->root = debugfs_create_dir(root, NULL);
+-	if (IS_ERR(r->root))
+-		r->root = NULL;
+-	else
+-		list_add(&r->list, &trace_roots);
+-
+-	return r;
+-}
+-
+-static struct dentry *create_tree(struct trace_info *trace, const char *root,
+-				  const char *name)
+-{
+-	struct dentry *dir = NULL;
+-
+-	if (root == NULL || name == NULL)
+-		return ERR_PTR(-EINVAL);
+-
+-	mutex_lock(&trace_mutex);
+-
+-	trace->root = lookup_root(root);
+-	if (IS_ERR(trace->root)) {
+-		trace->root = NULL;
+-		goto err;
+-	}
+-
+-	dir = debugfs_create_dir(name, trace->root->root);
+-	if (IS_ERR(dir))
+-		remove_root(trace);
+-	else
+-		trace->root->users++;
+-
+-err:
+-	mutex_unlock(&trace_mutex);
+-	return dir;
+-}
+-
+-static int dropped_open(struct inode *inode, struct file *filp)
+-{
+-	filp->private_data = inode->i_private;
+-
+-	return 0;
+-}
+-
+-static ssize_t dropped_read(struct file *filp, char __user *buffer,
+-			    size_t count, loff_t *ppos)
+-{
+-	struct trace_info *trace = filp->private_data;
+-	char buf[16];
+-
+-	snprintf(buf, sizeof(buf), "%u\n", atomic_read(&trace->dropped));
+-
+-	return simple_read_from_buffer(buffer, count, ppos, buf, strlen(buf));
+-}
+-
+-static struct file_operations dropped_fops = {
+-	.owner	= THIS_MODULE,
+-	.open	= dropped_open,
+-	.read	= dropped_read,
+-};
+-
+-static int reset_consumed_open(struct inode *inode, struct file *filp)
+-{
+-	filp->private_data = inode->i_private;
+-
+-	return 0;
+-}
+-
+-static ssize_t reset_consumed_write(struct file *filp,
+-				    const char __user *buffer,
+-				    size_t count, loff_t *ppos)
+-{
+-	int ret = count;
+-	struct trace_info *trace = filp->private_data;
+-
+-	mutex_lock(&trace->state_mutex);
+-	switch (trace->state) {
+-	case TRACE_RUNNING:
+-		trace->state = TRACE_STOPPED;
+-		synchronize_rcu();
+-		relay_flush(trace->rchan);
+-		relay_reset_consumed(trace->rchan);
+-		trace->state = TRACE_RUNNING;
+-		break;
+-	case TRACE_STOPPED:
+-		relay_reset_consumed(trace->rchan);
+-		break;
+-	default:
+-		ret = -EINVAL;
+-	}
+-	mutex_unlock(&trace->state_mutex);
+-	return ret;
+-}
+-
+-static struct file_operations reset_consumed_fops = {
+-	.owner	= THIS_MODULE,
+-	.open	= reset_consumed_open,
+-	.write	= reset_consumed_write
+-};
+-
+-static int sub_size_open(struct inode *inode, struct file *filp)
+-{
+-	filp->private_data = inode->i_private;
+-
+-	return 0;
+-}
+-
+-static ssize_t sub_size_read(struct file *filp, char __user *buffer,
+-			     size_t count, loff_t *ppos)
+-{
+-	struct trace_info *trace = filp->private_data;
+-	char buf[32];
+-
+-	snprintf(buf, sizeof(buf), "%zu\n", trace->rchan->subbuf_size);
+-
+-	return simple_read_from_buffer(buffer, count, ppos, buf, strlen(buf));
+-}
+-
+-static struct file_operations sub_size_fops = {
+-	.owner	= THIS_MODULE,
+-	.open	= sub_size_open,
+-	.read	= sub_size_read,
+-};
+-
+-static int nr_sub_open(struct inode *inode, struct file *filp)
+-{
+-	filp->private_data = inode->i_private;
+-	return 0;
+-}
+-
+-static ssize_t nr_sub_read(struct file *filp, char __user *buffer,
+-			   size_t count, loff_t *ppos)
+-{
+-	struct trace_info *trace = filp->private_data;
+-	char buf[32];
+-
+-	snprintf(buf, sizeof(buf), "%zu\n", trace->rchan->n_subbufs);
+-
+-	return simple_read_from_buffer(buffer, count, ppos, buf, strlen(buf));
+-}
+-
+-static struct file_operations nr_sub_fops = {
+-	.owner	= THIS_MODULE,
+-	.open	= nr_sub_open,
+-	.read	= nr_sub_read,
+-};
 -
 -/*
-- * Allow constant folding
+- * Keep track of how many times we encountered a full subbuffer, to aid
+- * the user space app in telling how many lost events there were.
 - */
--#define __swahw32(x) \
--(__builtin_constant_p((__u32)(x)) ? \
-- ___swahw32((x)) : \
-- __fswahw32((x)))
--#define __swahb32(x) \
--(__builtin_constant_p((__u32)(x)) ? \
-- ___swahb32((x)) : \
-- __fswahb32((x)))
--
--
--static inline __u32 __fswahw32(__u32 x)
+-static int subbuf_start_callback(struct rchan_buf *buf, void *subbuf,
+-				 void *prev_subbuf, size_t prev_padding)
 -{
--	return __arch__swahw32(x);
+-	struct trace_info *trace = buf->chan->private_data;
+-
+-	if (trace->flags & TRACE_FLIGHT_CHANNEL)
+-		return 1;
+-
+-	if (!relay_buf_full(buf))
+-		return 1;
+-
+-	atomic_inc(&trace->dropped);
+-
+-	return 0;
 -}
 -
--static inline __u32 __swahw32p(__u32 *x)
+-static int remove_buf_file_callback(struct dentry *dentry)
 -{
--	return __arch__swahw32p(x);
+-	debugfs_remove(dentry);
+-
+-	return 0;
 -}
 -
--static inline void __swahw32s(__u32 *addr)
+-static struct dentry *create_buf_file_callback(const char *filename,
+-					       struct dentry *parent, int mode,
+-					       struct rchan_buf *buf,
+-					       int *is_global)
 -{
--	__arch__swahw32s(addr);
+-	return debugfs_create_file(filename, mode, parent, buf,
+-				   &relay_file_operations);
 -}
 -
--static inline __u32 __fswahb32(__u32 x)
+-static struct dentry *create_global_buf_file_callback(const char *filename,
+-						      struct dentry *parent,
+-						      int mode,
+-						      struct rchan_buf *buf,
+-						      int *is_global)
 -{
--	return __arch__swahb32(x);
+-	*is_global = 1;
+-
+-	return debugfs_create_file(filename, mode, parent, buf,
+-				   &relay_file_operations);
 -}
 -
--static inline __u32 __swahb32p(__u32 *x)
+-static struct rchan_callbacks relay_callbacks = {
+-	.subbuf_start		= subbuf_start_callback,
+-	.create_buf_file	= create_buf_file_callback,
+-	.remove_buf_file	= remove_buf_file_callback,
+-};
+-static struct rchan_callbacks relay_callbacks_global = {
+-	.subbuf_start		= subbuf_start_callback,
+-	.create_buf_file	= create_global_buf_file_callback,
+-	.remove_buf_file	= remove_buf_file_callback,
+-};
+-
+-static void remove_controls(struct trace_info *trace)
 -{
--	return __arch__swahb32p(x);
+-	debugfs_remove(trace->state_file);
+-	debugfs_remove(trace->dropped_file);
+-	debugfs_remove(trace->reset_consumed_file);
+-	debugfs_remove(trace->nr_sub_file);
+-	debugfs_remove(trace->sub_size_file);
+-	remove_tree(trace);
 -}
 -
--static inline void __swahb32s(__u32 *addr)
--{
--	__arch__swahb32s(addr);
--}
--
--#ifdef __BYTEORDER_HAS_U64__
 -/*
-- * Not supported yet
+- * Setup controls for tracing.
 - */
--#endif /* __BYTEORDER_HAS_U64__ */
+-static struct trace_info *setup_controls(const char *root,
+-					 const char *name, u32 flags)
+-{
+-	struct trace_info *trace;
+-	long ret;
 -
--#define swahw32 __swahw32
--#define swahb32 __swahb32
--#define swahw32p __swahw32p
--#define swahb32p __swahb32p
--#define swahw32s __swahw32s
--#define swahb32s __swahb32s
+-	trace = kzalloc(sizeof(*trace), GFP_KERNEL);
+-	if (!trace) {
+-		ret = -ENOMEM;
+-		goto err;
+-	}
 -
--#endif /* _LINUX_BYTEORDER_SWABB_H */
-_
-
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
-
-byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
-byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
-linux-next.patch
-x86-fix-shadowed-variable-warning.patch
-cifs-remove-global_extern-macro.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-v4l-drx397xdc-sparse-annotations.patch
-input-ads7846c-sparse-lock-annotation.patch
-kvm-make-functions-static.patch
-misdn-endian-annotations-for-struct-zt.patch
-misdn-annotate-iomem-pointer-and-add-statics.patch
-drivers-net-replace-__function__-with-__func__.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-wireless-replace-__function__-with-__func__.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-include-replace-__function__-with-__func__.patch
-misc-replace-__function__-with-__func__.patch
-befs-annotate-fs32-on-tests-for-superblock-endianness.patch
-net-tipc-subscrc-dont-use-___constant_swab32.patch
-byteorder-add-include-linux-byteorderh-and-include-linux-swabh-to-userspace-headers.patch
-byteorder-alpha-use-the-new-byteorder-headers.patch
-byteorder-arm-use-the-new-byteorder-headers.patch
-byteorder-avr32-use-the-new-byteorder-headers.patch
-byteorder-blackfin-use-the-new-byteorder-headers.patch
-byteorder-cris-use-the-new-byteorder-headers.patch
-byteorder-frv-use-the-new-byteorder-headers.patch
-byteorder-h8300-use-the-new-byteorder-headers.patch
-byteorder-ia64-use-the-new-byteorder-headers.patch
-byteorder-m32r-use-the-new-byteorder-headers.patch
-byteorder-m68k-use-the-new-byteorder-headers.patch
-byteorder-m68knommu-use-the-new-byteorder-headers.patch
-byteorder-mips-use-the-new-byteorder-headers.patch
-byteorder-mn10300-use-the-new-byteorder-headers.patch
-byteorder-parisc-use-the-new-byteorder-headers.patch
-byteorder-powerpc-use-the-new-byteorder-headers.patch
-byteorder-s390-use-the-new-byteorder-headers.patch
-byteorder-sh-use-the-new-byteorder-headers.patch
-byteorder-sparc-use-the-new-byteorder-headers.patch
-byteorder-x86-use-the-new-byteorder-headers.patch
-byteorder-xtensa-use-the-new-byteorder-headers.patch
-byteorder-fix-direct-byteswap-includes.patch
-byteorder-remove-the-old-byteorder-implementation.patch
-
+-	trace->dir = create_tree(trace, root, name);
+-	if (IS_ERR(trace->dir)) {
+-		ret = PTR_ERR(trace->dir);
+-		trace->dir = NULL;
+-		goto err;
+-	}
+-
+-	trace->state_file = debugfs_create_file("state", 0444, trace->dir,
+-						 trace, &state_fops);
+-	if (IS_ERR(trace->state_file)) {
+-		ret = PTR_ERR(trace->state_file);
+-		trace->state_file = NULL;
+-		goto err;
+-	}
+-
+-	if (!(flags & TRACE_FLIGHT_CHANNEL)) {
+-		trace->dropped_file = debugfs_create_file("dropped", 0444,
+-							  trace->dir, trace,
+-							  &dropped_fops);
+-		if (IS_ERR(trace->dropped_file)) {
+-			ret = PTR_ERR(trace->dropped_file);
+-			trace->dropped_file = NULL;
+-			goto err;
+-		}
+-	}
+-
+-	if (flags & TRACE_FLIGHT_CHANNEL) {
+-		trace->reset_consumed_file = debugfs_create_file("rewind", 0444,
+-							trace->dir, trace,
+-							&reset_consumed_fops);
+-		if (IS_ERR(trace->reset_consumed_file)) {
+-			ret = PTR_ERR(trace->reset_consumed_file);
+-			trace->reset_consumed_file = NULL;
+-			goto err;
+-		}
+-	}
+-
+-	trace->nr_sub_file = debugfs_create_file("nr_sub", 0444,
+-						 trace->dir, trace,
+-						 &nr_sub_fops);
+-	if (IS_ERR(trace->nr_sub_file)) {
+-		ret = PTR_ERR(trace->nr_sub_file);
+-		trace->nr_sub_file = NULL;
+-		goto err;
+-	}
+-
+-	trace->sub_size_file = debugfs_create_file("sub_size", 0444,
+-						   trace->dir, trace,
+-						   &sub_size_fops);
+-	if (IS_ERR(trace->sub_size_file)) {
+-		ret = PTR_ERR(trace->sub_size_file);
+-		trace->sub_size_file = NULL;
+-		goto err;
+-	}
+-
+-	return trace;
+-err:
+-	if (trace) {
+-		remove_controls(trace);
+-		kfree(trace);
+-	}
+-
+-	return ERR_PTR(ret);
+-}
+-
+-static int trace_setup_channel(struct trace_info *trace, u32 buf_size,
+-				u32 buf_nr, u32 flags)
+-{
+-	if (!buf_size || !buf_nr)
+-		return -EINVAL;
+-
+-	if (flags & TRACE_GLOBAL_CHANNEL)
+-		trace->rchan = relay_open("trace", trace->dir, buf_size,
+-					  buf_nr, &relay_callbacks_global,
+-					  trace);
+-	else
+-		trace->rchan = relay_open("trace", trace->dir, buf_size,
+-					  buf_nr, &relay_callbacks, trace);
+-
+-	if (!trace->rchan)
+-		return -ENOMEM;
+-
+-	trace->flags = flags;
+-	trace->state = TRACE_SETUP;
+-
+-	return 0;
+-}
+-
+-/**
+- *	trace_setup - create a new trace trace handle
+- *	@root: The root directory name to place trace directories.
+- *	@name: Trace directory name, created in @root
+- *	@buf_size: size of the relay sub-buffers
+- *	@buf_nr: number of relay sub-buffers
+- *	@flags: Option selection (see trace channel flags definitions)
+- *
+- *	returns a trace_info handle or NULL, if setup failed.
+- *
+- *	The @root is created (if needed) in the root of the debugfs.
+- *	The default values when flags=0 are: use per-CPU buffering,
+- *	use non-overwrite mode. See Documentation/trace.txt for details.
+- */
+-struct trace_info *trace_setup(const char *root, const char *name,
+-			       u32 buf_size, u32 buf_nr, u32 flags)
+-{
+-	struct trace_info *trace;
+-
+-	trace = setup_controls(root, name, flags);
+-	if (IS_ERR(trace))
+-		return trace;
+-
+-	trace->buf_size = buf_size;
+-	trace->buf_nr = buf_nr;
+-	trace->flags = flags;
+-	mutex_init(&trace->state_mutex);
+-	trace->state = TRACE_SETUP;
+-
+-	return trace;
+-}
+-EXPORT_SYMBOL_GPL(trace_setup);
+-
+-/**
+- *	trace_start - start tracing
+- *	@trace: trace handle to start.
+- *
+- *	returns 0 if successful.
+- */
+-int trace_start(struct trace_info *trace)
+-{
+-	/*
+-	 * For starting a trace, we can transition from a setup or stopped
+-	 * trace.
+-	 */
+-	if (trace->state == TRACE_RUNNING)
+-		return -EINVAL;
+-
+-	mutex_lock(&trace->state_mutex);
+-	if (trace->state == TRACE_SETUP) {
+-		int ret;
+-
+-		ret = trace_setup_channel(trace, trace->buf_size,
+-					  trace->buf_nr, trace->flags);
+-		if (ret) {
+-			mutex_unlock(&trace->state_mutex);
+-			return ret;
+-		}
+-	}
+-
+-	trace->state = TRACE_RUNNING;
+-	mutex_unlock(&trace->state_mutex);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(trace_start);
+-
+-/**
+- *	trace_stop - stop tracing
+- *	@trace: trace handle to stop.
+- *
+- */
+-int trace_stop(struct trace_info *trace)
+-{
+-	int ret = -EINVAL;
+-
+-	/*
+-	 * For stopping a trace, the state must be running
+-	 */
+-	mutex_lock(&trace->state_mutex);
+-	if (trace->state == TRACE_RUNNING) {
+-		trace->state = TRACE_STOPPED;
+-		/*
+-		 * wait for all cpus to see the change in
+-		 * state before continuing
+-		 */
+-		synchronize_sched();
+-		relay_flush(trace->rchan);
+-		ret = 0;
+-	}
+-	mutex_unlock(&trace->state_mutex);
+-	return ret;
+-}
+-EXPORT_SYMBOL_GPL(trace_stop);
+-
+-static void trace_cleanup_channel(struct trace_info *trace)
+-{
+-	trace_stop(trace);
+-	relay_close(trace->rchan);
+-	trace->rchan = NULL;
+-}
+-
+-/**
+- *	trace_cleanup - destroys the trace channel, control files and dir
+- *	@trace: trace handle to cleanup
+- */
+-void trace_cleanup(struct trace_info *trace)
+-{
+-	trace_cleanup_channel(trace);
+-	remove_controls(trace);
+-	kfree(trace);
+-}
+-EXPORT_SYMBOL_GPL(trace_cleanup);
+diff -puN samples/Kconfig~rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements samples/Kconfig
+--- a/samples/Kconfig~rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements
++++ a/samples/Kconfig
+@@ -33,11 +33,11 @@ config SAMPLE_KRETPROBES
+ 	default m
+ 	depends on SAMPLE_KPROBES && KRETPROBES
+ 
+-config SAMPLE_TRACE
+-	tristate "Build trace example -- loadable modules only"
+-	depends on TRACE && KPROBES && m
++config SAMPLE_RELAY
++	tristate "Build relay debugfs example -- loadable modules only"
++	depends on RELAY && KPROBES && m
+ 	help
+-	  This builds a trace example module.
++	  This builds a relay debugfs example module.
+ 
+ endif # SAMPLES
+ 
+diff -puN samples/Makefile~rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements samples/Makefile
+--- a/samples/Makefile~rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements
++++ a/samples/Makefile
+@@ -1,3 +1,3 @@
+ # Makefile for Linux samples code
+ 
+-obj-$(CONFIG_SAMPLES)	+= markers/ kobject/ kprobes/ trace/
++obj-$(CONFIG_SAMPLES)	+= markers/ kobject/ kprobes/ relay/
+diff -puN /dev/null samples/relay/Makefile
+--- /dev/null
++++ a/samples/relay/Makefile
+@@ -0,0 +1,4 @@
++# builds the trace example kernel modules;
++# then to use (as root):  insmod <fork_trace.ko>
++
++obj-$(CONFIG_SAMPLE_RELAY) := fork_trace.o fork_new_trace.o
+diff -puN /dev/null samples/relay/fork_trace.c
+--- /dev/null
++++ a/samples/relay/fork_trace.c
+@@ -0,0 +1,132 @@
++/*
++ * An example of using 'relay debugfs' in a kprobes module
++ *
++ * Copyright (C) 2007 IBM Inc.
++ *
++ * David Wilder <dwilder@us.ibm.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++ *
++ * -------
++ * This module creates a 'relay debugfs' channel and places a kprobe
++ * on the function do_fork(). The value of current->pid is written to
++ * the 'relay debugfs' channel each time the kprobe is hit..
++ *
++ * How to run the example:
++ * $ mount -t debugfs /debug
++ * $ insmod fork_trace.ko
++ *
++ * To view the data produced by the module:
++ * $ cat /debug/relay_debugfs_example/do_fork/trace0
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/kprobes.h>
++#include <linux/relay_debugfs.h>
++
++#define USE_GLOBAL_BUFFERS 1
++#define USE_FLIGHT 1
++
++#define PROBE_POINT "do_fork"
++
++static struct kprobe kp;
++static struct relay_info *kprobes_relay;
++
++#ifdef USE_GLOBAL_BUFFERS
++static DEFINE_SPINLOCK(relay_debugfs_lock);
++#endif
++
++/*
++ * Send formatted trace data to 'relay debugfs' channel.
++ * @note Preemption must be disabled to use this.
++ */
++static void relay_debugfs_printf(struct relay_info *relay, const char *format, ...)
++{
++	va_list ap, aq;
++	char *record;
++	unsigned long flags;
++	int len;
++
++	if (!relay)
++		return;
++
++#ifdef USE_GLOBAL_BUFFERS
++	spin_lock_irqsave(&relay_debugfs_lock, flags);
++#endif
++	if (relay_running(relay)) {
++		va_start(ap, format);
++		va_copy(aq, ap);
++		len = vsnprintf(NULL, 0, format, aq);
++		va_end(aq);
++		record = relay_reserve(relay->rchan, ++len);
++		if (record)
++			vsnprintf(record, len, format, ap);
++		va_end(ap);
++	}
++#ifdef USE_GLOBAL_BUFFERS
++	spin_unlock_irqrestore(&relay_debugfs_lock, flags);
++#endif
++}
++
++static int handler_pre(struct kprobe *p, struct pt_regs *regs)
++{
++	rcu_read_lock();
++	relay_debugfs_printf(kprobes_relay, "%d\n", current->pid);
++	rcu_read_unlock();
++	return 0;
++}
++
++int init_module(void)
++{
++	int ret;
++	u32 flags = 0;
++
++#ifdef USE_GLOBAL_BUFFERS
++	flags |= RELAY_GLOBAL_CHANNEL;
++#endif
++
++#ifdef USE_FLIGHT
++	flags |= RELAY_FLIGHT_CHANNEL;
++#endif
++
++	/* setup the relay */
++	kprobes_relay = relay_setup("relay_example", PROBE_POINT,
++				     1024, 8, flags);
++	if (IS_ERR(kprobes_relay))
++		return PTR_ERR(kprobes_relay);
++
++	relay_start(kprobes_relay);
++
++	/* setup the kprobe */
++	kp.pre_handler = handler_pre;
++	kp.post_handler = NULL;
++	kp.fault_handler = NULL;
++	kp.symbol_name = PROBE_POINT;
++	ret = register_kprobe(&kp);
++	if (ret) {
++		printk(KERN_ERR "fork_trace: register_kprobe failed\n");
++		return ret;
++	}
++	return 0;
++}
++
++void cleanup_module(void)
++{
++	unregister_kprobe(&kp);
++	relay_stop(kprobes_relay);
++	relay_cleanup(kprobes_relay);
++}
++MODULE_LICENSE("GPL");
+diff -puN samples/trace/Makefile~rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements /dev/null
+--- a/samples/trace/Makefile
++++ /dev/null
+@@ -1,4 +0,0 @@
+-# builds the trace example kernel modules;
+-# then to use (as root):  insmod <fork_trace.ko>
+-
+-obj-$(CONFIG_SAMPLE_TRACE) := fork_trace.o
+diff -puN /dev/null samples/trace/fork_new_trace.c
+--- /dev/null
++++ a/samples/trace/fork_new_trace.c
+@@ -0,0 +1,99 @@
++/*
++ * An example of using trace in a kprobes module
++ *
++ * Copyright (C) 2008 IBM Inc.
++ *
++ * K.Prasad <prasad@linux.vnet.ibm.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++ *
++ * -------
++ * This module creates a trace channel and places a kprobe
++ * on the function do_fork(). The value of current->pid is written to
++ * the trace channel each time the kprobe is hit..
++ *
++ * How to run the example:
++ * $ mount -t debugfs /debug
++ * $ insmod fork_new_trace.ko
++ *
++ * To view the data produced by the module:
++ * $ cat /debug/relay_example/do_fork/trace0
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/kprobes.h>
++#include <linux/relay_debugfs.h>
++
++#define SAMPLE_PARENT_DIR "relay_new_example"
++#define PROBE_POINT "do_fork"
++
++static struct kprobe kp;
++static struct relay_printk_data *tpk;
++
++static int handler_pre(struct kprobe *p, struct pt_regs *regs)
++{
++	relay_printk(tpk, "%d\n", current->pid);
++	return 0;
++}
++
++int init_module(void)
++{
++	int ret = 0;
++	int len_parent_dir, len_dir;
++
++	/* setup the kprobe */
++	kp.pre_handler = handler_pre;
++	kp.post_handler = NULL;
++	kp.fault_handler = NULL;
++	kp.symbol_name = PROBE_POINT;
++	ret = register_kprobe(&kp);
++	if (ret) {
++		printk(KERN_ERR "fork_trace: register_kprobe failed\n");
++		return ret;
++	}
++
++	len_parent_dir = strlen(SAMPLE_PARENT_DIR) + 1;
++	/* Initialising len_dir to the larger of the two dir names */
++	len_dir = strlen("kprobe_struct") + 1;
++
++	tpk = kzalloc(sizeof(*tpk), GFP_KERNEL);
++	if (!tpk)
++		ret = 1;
++
++	tpk->parent_dir = SAMPLE_PARENT_DIR;
++
++	/* Let's do a binary dump of struct kprobe using relay_dump */
++	tpk->dir = "kprobes_struct";
++	tpk->flags = TRACE_GLOBAL_CHANNEL;
++	relay_dump(tpk, &kp, sizeof(kp));
++
++	/* Now change the directory to collect fork pid data */
++	tpk->dir = PROBE_POINT;
++
++	if (ret)
++		printk(KERN_ERR "Unable to find required free memory. "
++				"Trace new sample module loading aborted");
++	return ret;
++}
++
++void cleanup_module(void)
++{
++	unregister_kprobe(&kp);
++
++	/* Just a single cleanup call passing the parent dir string */
++	relay_cleanup_all(SAMPLE_PARENT_DIR);
++}
++MODULE_LICENSE("GPL");
+diff -puN samples/trace/fork_trace.c~rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements /dev/null
+--- a/samples/trace/fork_trace.c
++++ /dev/null
+@@ -1,132 +0,0 @@
+-/*
+- * An example of using trace in a kprobes module
+- *
+- * Copyright (C) 2007 IBM Inc.
+- *
+- * David Wilder <dwilder@us.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+- *
+- * -------
+- * This module creates a trace channel and places a kprobe
+- * on the function do_fork(). The value of current->pid is written to
+- * the trace channel each time the kprobe is hit..
+- *
+- * How to run the example:
+- * $ mount -t debugfs /debug
+- * $ insmod fork_trace.ko
+- *
+- * To view the data produced by the module:
+- * $ cat /debug/trace_example/do_fork/trace0
+- *
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/module.h>
+-#include <linux/kprobes.h>
+-#include <linux/trace.h>
+-
+-#define USE_GLOBAL_BUFFERS 1
+-#define USE_FLIGHT 1
+-
+-#define PROBE_POINT "do_fork"
+-
+-static struct kprobe kp;
+-static struct trace_info *kprobes_trace;
+-
+-#ifdef USE_GLOBAL_BUFFERS
+-static DEFINE_SPINLOCK(trace_lock);
+-#endif
+-
+-/*
+- * Send formatted trace data to trace channel.
+- * @note Preemption must be disabled to use this.
+- */
+-static void trace_printf(struct trace_info *trace, const char *format, ...)
+-{
+-	va_list ap, aq;
+-	char *record;
+-	unsigned long flags;
+-	int len;
+-
+-	if (!trace)
+-		return;
+-
+-#ifdef USE_GLOBAL_BUFFERS
+-	spin_lock_irqsave(&trace_lock, flags);
+-#endif
+-	if (trace_running(trace)) {
+-		va_start(ap, format);
+-		va_copy(aq, ap);
+-		len = vsnprintf(NULL, 0, format, aq);
+-		va_end(aq);
+-		record = relay_reserve(trace->rchan, ++len);
+-		if (record)
+-			vsnprintf(record, len, format, ap);
+-		va_end(ap);
+-	}
+-#ifdef USE_GLOBAL_BUFFERS
+-	spin_unlock_irqrestore(&trace_lock, flags);
+-#endif
+-}
+-
+-static int handler_pre(struct kprobe *p, struct pt_regs *regs)
+-{
+-	rcu_read_lock();
+-	trace_printf(kprobes_trace, "%d\n", current->pid);
+-	rcu_read_unlock();
+-	return 0;
+-}
+-
+-int init_module(void)
+-{
+-	int ret;
+-	u32 flags = 0;
+-
+-#ifdef USE_GLOBAL_BUFFERS
+-	flags |= TRACE_GLOBAL_CHANNEL;
+-#endif
+-
+-#ifdef USE_FLIGHT
+-	flags |= TRACE_FLIGHT_CHANNEL;
+-#endif
+-
+-	/* setup the trace */
+-	kprobes_trace = trace_setup("trace_example", PROBE_POINT,
+-				     1024, 8, flags);
+-	if (IS_ERR(kprobes_trace))
+-		return PTR_ERR(kprobes_trace);
+-
+-	trace_start(kprobes_trace);
+-
+-	/* setup the kprobe */
+-	kp.pre_handler = handler_pre;
+-	kp.post_handler = NULL;
+-	kp.fault_handler = NULL;
+-	kp.symbol_name = PROBE_POINT;
+-	ret = register_kprobe(&kp);
+-	if (ret) {
+-		printk(KERN_ERR "fork_trace: register_kprobe failed\n");
+-		return ret;
+-	}
+-	return 0;
+-}
