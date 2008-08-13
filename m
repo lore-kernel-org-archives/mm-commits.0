@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch added to -mm tree
-Date: Tue, 12 Aug 2008 19:24:32 -0700
-Message-ID: <200808130237.m7D2bbUs026643@imap1.linux-foundation.org>
+Subject: + byteorder-avr32-use-the-new-byteorder-headers.patch added to -mm tree
+Date: Tue, 12 Aug 2008 19:58:47 -0700
+Message-ID: <200808130258.m7D2wlPA027358@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51677 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33061 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752316AbYHMChz (ORCPT
+	by vger.kernel.org with ESMTP id S1752264AbYHMC6w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 22:37:55 -0400
+	Tue, 12 Aug 2008 22:58:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, denzzzhome@yahoo.com
+Cc: harvey.harrison@gmail.com, haavard.skinnemoen@atmel.com
 
 
 The patch titled
-     rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix
+     byteorder: avr32: use the new byteorder headers
 has been added to the -mm tree.  Its filename is
-     rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+     byteorder-avr32-use-the-new-byteorder-headers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,129 +34,106 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: byteorder: avr32: use the new byteorder headers
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-These are going away.
-
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Dennis Aberilla <denzzzhome@yahoo.com>
+Acked-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds3234.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ arch/avr32/include/asm/byteorder.h |   22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds3234.c~rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix drivers/rtc/rtc-ds3234.c
---- a/drivers/rtc/rtc-ds3234.c~rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix
-+++ a/drivers/rtc/rtc-ds3234.c
-@@ -154,22 +154,22 @@ static int ds3234_set_datetime(struct de
- 	dev_dbg(dev, "tm_year: %i\n", dt->tm_year);
+diff -puN arch/avr32/include/asm/byteorder.h~byteorder-avr32-use-the-new-byteorder-headers arch/avr32/include/asm/byteorder.h
+--- a/arch/avr32/include/asm/byteorder.h~byteorder-avr32-use-the-new-byteorder-headers
++++ a/arch/avr32/include/asm/byteorder.h
+@@ -7,6 +7,9 @@
+ #include <asm/types.h>
+ #include <linux/compiler.h>
+ 
++#define __BIG_ENDIAN
++#define __SWAB_64_THRU_32__
++
+ #ifdef __CHECKER__
+ extern unsigned long __builtin_bswap_32(unsigned long x);
+ extern unsigned short __builtin_bswap_16(unsigned short x);
+@@ -17,15 +20,18 @@ extern unsigned short __builtin_bswap_16
+  * the result.
+  */
+ #if !(__GNUC__ == 4 && __GNUC_MINOR__ < 2)
+-#define __arch__swab32(x) __builtin_bswap_32(x)
+-#define __arch__swab16(x) __builtin_bswap_16(x)
+-#endif
++static inline __attribute_const__ __u16 __arch_swab16(__u16 val)
++{
++	return __builtin_bswap_16(val);
++}
++#define __arch_swab16 __arch_swab16
+ 
+-#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
+-# define __BYTEORDER_HAS_U64__
+-# define __SWAB_64_THRU_32__
++static inline __attribute_const__ __u32 __arch_swab32(__u32 val)
++{
++	return __builtin_bswap_32(val);
++}
++#define __arch_swab32 __arch_swab32
  #endif
  
--	ds3234_set_reg(dev, DS3234_REG_SECONDS, BIN2BCD(dt->tm_sec));
--	ds3234_set_reg(dev, DS3234_REG_MINUTES, BIN2BCD(dt->tm_min));
--	ds3234_set_reg(dev, DS3234_REG_HOURS, BIN2BCD(dt->tm_hour) & 0x3f);
-+	ds3234_set_reg(dev, DS3234_REG_SECONDS, bin2bcd(dt->tm_sec));
-+	ds3234_set_reg(dev, DS3234_REG_MINUTES, bin2bcd(dt->tm_min));
-+	ds3234_set_reg(dev, DS3234_REG_HOURS, bin2bcd(dt->tm_hour) & 0x3f);
- 
- 	/* 0 = Sun */
--	ds3234_set_reg(dev, DS3234_REG_DAY, BIN2BCD(dt->tm_wday + 1));
--	ds3234_set_reg(dev, DS3234_REG_DATE, BIN2BCD(dt->tm_mday));
-+	ds3234_set_reg(dev, DS3234_REG_DAY, bin2bcd(dt->tm_wday + 1));
-+	ds3234_set_reg(dev, DS3234_REG_DATE, bin2bcd(dt->tm_mday));
- 
- 	/* 0 = Jan */
--	ds3234_set_reg(dev, DS3234_REG_MONTH, BIN2BCD(dt->tm_mon + 1));
-+	ds3234_set_reg(dev, DS3234_REG_MONTH, bin2bcd(dt->tm_mon + 1));
- 
- 	/* Assume 20YY although we just want to make sure not to go negative. */
- 	if (dt->tm_year > 100)
- 		dt->tm_year -= 100;
- 
--	ds3234_set_reg(dev, DS3234_REG_YEAR, BIN2BCD(dt->tm_year));
-+	ds3234_set_reg(dev, DS3234_REG_YEAR, bin2bcd(dt->tm_year));
- 
- 	return 0;
- }
+-#include <linux/byteorder/big_endian.h>
+-
++#include <linux/byteorder.h>
+ #endif /* __ASM_AVR32_BYTEORDER_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-origin.patch
-fs-eventpollc-fix-sys_epoll_create1-comment.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
+byteorder-add-a-new-include-linux-swabh-to-define-byteswapping-functions.patch
+byteorder-add-include-linux-byteorderh-to-define-endian-helpers.patch
 linux-next.patch
-next-remove-localversion.patch
-acpi-trivial-cleanups-fix.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-kernel-auditscc-fix-warning.patch
+x86-fix-shadowed-variable-warning.patch
+cifs-remove-global_extern-macro.patch
 ppc-use-the-common-ascii-hex-helpers.patch
 powerpc-replace-__function__-with-__func__.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-drivers-ata-pata_it821xc-fix-warning.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
-ftrace-printk-formatting-infrastructure-fix-fix.patch
+v4l-drx397xdc-sparse-annotations.patch
+input-ads7846c-sparse-lock-annotation.patch
+kvm-make-functions-static.patch
+misdn-endian-annotations-for-struct-zt.patch
+misdn-annotate-iomem-pointer-and-add-statics.patch
+drivers-net-replace-__function__-with-__func__.patch
+scsi-replace-__inline-with-inline.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
 scsi-gdthc-use-unaligned-access-helpers.patch
-git-unionfs.patch
-git-xtensa.patch
-kexec-jump-check-code-size-in-control-page-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-hwmon-adc124s501-generic-driver.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-scsi-megaraid_sas-add-the-new-controllers-support.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+wireless-replace-__function__-with-__func__.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+olpc-olpc_batteryc-sparse-endian-annotations.patch
+include-replace-__function__-with-__func__.patch
+misc-replace-__function__-with-__func__.patch
+befs-annotate-fs32-on-tests-for-superblock-endianness.patch
+byteorder-alpha-use-the-new-byteorder-headers.patch
+byteorder-arm-use-the-new-byteorder-headers.patch
+byteorder-avr32-use-the-new-byteorder-headers.patch
+byteorder-blackfin-use-the-new-byteorder-headers.patch
+byteorder-cris-use-the-new-byteorder-headers.patch
+byteorder-frv-use-the-new-byteorder-headers.patch
+byteorder-h8300-use-the-new-byteorder-headers.patch
+byteorder-ia64-use-the-new-byteorder-headers.patch
+byteorder-m32r-use-the-new-byteorder-headers.patch
+byteorder-m68k-use-the-new-byteorder-headers.patch
+byteorder-m68knommu-use-the-new-byteorder-headers.patch
+byteorder-mips-use-the-new-byteorder-headers.patch
+byteorder-mn10300-use-the-new-byteorder-headers.patch
+byteorder-parisc-use-the-new-byteorder-headers.patch
+byteorder-powerpc-use-the-new-byteorder-headers.patch
+byteorder-s390-use-the-new-byteorder-headers.patch
+byteorder-sh-use-the-new-byteorder-headers.patch
+byteorder-sparc-use-the-new-byteorder-headers.patch
+byteorder-x86-use-the-new-byteorder-headers.patch
+byteorder-xtensa-use-the-new-byteorder-headers.patch
+byteorder-fix-direct-byteswap-includes.patch
+byteorder-remove-the-old-byteorder-implementation.patch
 
