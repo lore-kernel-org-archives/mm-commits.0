@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-jump-check-code-size-in-control-page-fix.patch added to -mm tree
-Date: Tue, 12 Aug 2008 17:45:48 -0700
-Message-ID: <200808130058.m7D0wrsR023002@imap1.linux-foundation.org>
+Subject: + kernel-auditscc-fix-warning.patch added to -mm tree
+Date: Tue, 12 Aug 2008 17:55:16 -0700
+Message-ID: <200808130108.m7D18KjA023417@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44368 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38384 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751664AbYHMBAt (ORCPT
+	by vger.kernel.org with ESMTP id S1752086AbYHMBIy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 21:00:49 -0400
+	Tue, 12 Aug 2008 21:08:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ebiederm@xmission.com, mingo@elte.hu, pavel@ucw.cz, rjw@sisk.pl, vgoyal@redhat.com
+Cc: akpm@linux-foundation.org, viro@zeniv.linux.org.uk, zhangxiliang@cn.fujitsu.com
 
 
 The patch titled
-     kexec-jump-check-code-size-in-control-page-fix
+     kernel/auditsc.c: fix warning
 has been added to the -mm tree.  Its filename is
-     kexec-jump-check-code-size-in-control-page-fix.patch
+     kernel-auditscc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec-jump-check-code-size-in-control-page-fix
+Subject: kernel/auditsc.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/vmlinux.lds:348: undefined symbol `kexec_control_code_size' referenced in expression
+kernel/auditsc.c: In function 'audit_match_perm':
+kernel/auditsc.c:249: warning: ISO C90 forbids mixed declarations and code
 
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Zhang Xiliang <zhangxiliang@cn.fujitsu.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/vmlinux_32.lds.S |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/auditsc.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/vmlinux_32.lds.S~kexec-jump-check-code-size-in-control-page-fix arch/x86/kernel/vmlinux_32.lds.S
---- a/arch/x86/kernel/vmlinux_32.lds.S~kexec-jump-check-code-size-in-control-page-fix
-+++ a/arch/x86/kernel/vmlinux_32.lds.S
-@@ -211,8 +211,10 @@ SECTIONS
-   DWARF_DEBUG
- }
+diff -puN kernel/auditsc.c~kernel-auditscc-fix-warning kernel/auditsc.c
+--- a/kernel/auditsc.c~kernel-auditscc-fix-warning
++++ a/kernel/auditsc.c
+@@ -243,10 +243,12 @@ static inline int open_arg(int flags, in
  
-+#ifdef CONFIG_KEXEC
- /* Link time checks */
- #include <asm/kexec.h>
+ static int audit_match_perm(struct audit_context *ctx, int mask)
+ {
++	unsigned int n;
++
+ 	if (unlikely(!ctx))
+ 		return 0;
  
- ASSERT(kexec_control_code_size <= KEXEC_CONTROL_CODE_MAX_SIZE,
-        "kexec control code size is too big")
-+#endif
+-	unsigned n = ctx->major;
++	n = ctx->major;
+ 	switch (audit_classify_syscall(ctx->arch, n)) {
+ 	case 0:	/* native */
+ 		if ((mask & AUDIT_PERM_WRITE) &&
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,6 +77,7 @@ next-remove-localversion.patch
 acpi-trivial-cleanups-fix.patch
 arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+kernel-auditscc-fix-warning.patch
 ppc-use-the-common-ascii-hex-helpers.patch
 powerpc-replace-__function__-with-__func__.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
