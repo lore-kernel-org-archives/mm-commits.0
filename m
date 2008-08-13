@@ -1,72 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - byteorder-m68k-use-the-new-byteorder-headers.patch removed from -mm tree
-Date: Tue, 12 Aug 2008 22:43:52 -0700
-Message-ID: <200808130556.m7D5uvWB001337@imap1.linux-foundation.org>
+Subject: - byteorder-mips-use-the-new-byteorder-headers.patch removed from -mm tree
+Date: Tue, 12 Aug 2008 22:43:56 -0700
+Message-ID: <200808130557.m7D5v1pG001343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49467 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47378 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752129AbYHMF5I (ORCPT
+	by vger.kernel.org with ESMTP id S1752129AbYHMF5N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 01:57:08 -0400
+	Wed, 13 Aug 2008 01:57:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, geert@linux-m68k.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     byteorder: m68k: use the new byteorder headers
+     byteorder: mips: use the new byteorder headers
 has been removed from the -mm tree.  Its filename was
-     byteorder-m68k-use-the-new-byteorder-headers.patch
+     byteorder-mips-use-the-new-byteorder-headers.patch
 
 This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: m68k: use the new byteorder headers
+Subject: byteorder: mips: use the new byteorder headers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-m68k/byteorder.h |   16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+ include/asm-mips/byteorder.h |   40 +++++++++++++--------------------
+ 1 file changed, 16 insertions(+), 24 deletions(-)
 
-diff -puN include/asm-m68k/byteorder.h~byteorder-m68k-use-the-new-byteorder-headers include/asm-m68k/byteorder.h
---- a/include/asm-m68k/byteorder.h~byteorder-m68k-use-the-new-byteorder-headers
-+++ a/include/asm-m68k/byteorder.h
-@@ -4,22 +4,16 @@
- #include <asm/types.h>
+diff -puN include/asm-mips/byteorder.h~byteorder-mips-use-the-new-byteorder-headers include/asm-mips/byteorder.h
+--- a/include/asm-mips/byteorder.h~byteorder-mips-use-the-new-byteorder-headers
++++ a/include/asm-mips/byteorder.h
+@@ -11,11 +11,19 @@
  #include <linux/compiler.h>
+ #include <asm/types.h>
  
 -#ifdef __GNUC__
-+#define __BIG_ENDIAN
++#if defined(__MIPSEB__)
++# define __BIG_ENDIAN
++#elif defined(__MIPSEL__)
++# define __LITTLE_ENDIAN
++#else
++# error "MIPS, but neither __MIPSEB__, nor __MIPSEL__???"
++#endif
++
 +#define __SWAB_64_THRU_32__
  
--static __inline__ __attribute_const__ __u32 ___arch__swab32(__u32 val)
-+static inline __attribute_const__ __u32 __arch_swab32(__u32 val)
+ #ifdef CONFIG_CPU_MIPSR2
+ 
+-static __inline__ __attribute_const__ __u16 ___arch__swab16(__u16 x)
++static inline __attribute_const__ __u16 __arch_swab16(__u16 x)
  {
- 	__asm__("rolw #8,%0; swap %0; rolw #8,%0" : "=d" (val) : "0" (val));
- 	return val;
+ 	__asm__(
+ 	"	wsbh	%0, %1			\n"
+@@ -24,9 +32,9 @@ static __inline__ __attribute_const__ __
+ 
+ 	return x;
  }
--#define __arch__swab32(x) ___arch__swab32(x)
+-#define __arch__swab16(x)	___arch__swab16(x)
++#define __arch_swab16 __arch_swab16
+ 
+-static __inline__ __attribute_const__ __u32 ___arch__swab32(__u32 x)
++static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
+ {
+ 	__asm__(
+ 	"	wsbh	%0, %1			\n"
+@@ -36,11 +44,10 @@ static __inline__ __attribute_const__ __
+ 
+ 	return x;
+ }
+-#define __arch__swab32(x)	___arch__swab32(x)
 +#define __arch_swab32 __arch_swab32
  
--#endif
+ #ifdef CONFIG_CPU_MIPS64_R2
 -
--#if defined(__GNUC__) && !defined(__STRICT_ANSI__) || defined(__KERNEL__)
+-static __inline__ __attribute_const__ __u64 ___arch__swab64(__u64 x)
++static inline __attribute_const__ __u64 __arch_swab64(__u64 x)
+ {
+ 	__asm__(
+ 	"	dsbh	%0, %1			\n"
+@@ -51,26 +58,11 @@ static __inline__ __attribute_const__ __
+ 
+ 	return x;
+ }
+-
+-#define __arch__swab64(x)	___arch__swab64(x)
+-
++#define __arch_swab64 __arch_swab64
+ #endif /* CONFIG_CPU_MIPS64_R2 */
+ 
+ #endif /* CONFIG_CPU_MIPSR2 */
+ 
+-#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
 -#  define __BYTEORDER_HAS_U64__
 -#  define __SWAB_64_THRU_32__
 -#endif
 -
--#include <linux/byteorder/big_endian.h>
+-#endif /* __GNUC__ */
+-
+-#if defined(__MIPSEB__)
+-#  include <linux/byteorder/big_endian.h>
+-#elif defined(__MIPSEL__)
+-#  include <linux/byteorder/little_endian.h>
+-#else
+-#  error "MIPS, but neither __MIPSEB__, nor __MIPSEL__???"
+-#endif
 +#include <linux/byteorder.h>
  
- #endif /* _M68K_BYTEORDER_H */
+ #endif /* _ASM_BYTEORDER_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -97,8 +145,6 @@ include-replace-__function__-with-__func__.patch
 misc-replace-__function__-with-__func__.patch
 befs-annotate-fs32-on-tests-for-superblock-endianness.patch
 net-tipc-subscrc-dont-use-___constant_swab32.patch
-byteorder-m68k-use-the-new-byteorder-headers.patch
-byteorder-m68knommu-use-the-new-byteorder-headers.patch
 byteorder-mips-use-the-new-byteorder-headers.patch
 byteorder-mn10300-use-the-new-byteorder-headers.patch
 byteorder-parisc-use-the-new-byteorder-headers.patch
