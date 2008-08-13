@@ -1,78 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - page-allocator-use-no-panic-variant-of-alloc_bootmem-in-alloc_large_system_hash.patch removed from -mm tree
-Date: Wed, 13 Aug 2008 01:52:13 -0700
-Message-ID: <200808130852.m7D8qD8I008186@imap1.linux-foundation.org>
+Subject: - rtc-isl1208-fixes-double-removal-of-a-sysfs-entry.patch removed from -mm tree
+Date: Wed, 13 Aug 2008 01:52:25 -0700
+Message-ID: <200808130852.m7D8qPhu008204@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45169 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48577 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754290AbYHMIxD (ORCPT
+	by vger.kernel.org with ESMTP id S1754297AbYHMIxF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 04:53:03 -0400
+	Wed, 13 Aug 2008 04:53:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbeulich@novell.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: a.zummo@towertech.it, david-b@pacbell.net, hartleys@visionengravers.com, hvr@gnu.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     page allocator: use no-panic variant of alloc_bootmem() in alloc_large_system_hash()
+     rtc-isl1208: fix double removal of a sysfs entry
 has been removed from the -mm tree.  Its filename was
-     page-allocator-use-no-panic-variant-of-alloc_bootmem-in-alloc_large_system_hash.patch
+     rtc-isl1208-fixes-double-removal-of-a-sysfs-entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page allocator: use no-panic variant of alloc_bootmem() in alloc_large_system_hash()
-From: Jan Beulich <jbeulich@novell.com>
+Subject: rtc-isl1208: fix double removal of a sysfs entry
+From: Alessandro Zummo <a.zummo@towertech.it>
 
-..  since a failed allocation is being (initially) handled gracefully, and
-panic()-ed upon failure explicitly in the function if retries with smaller
-sizes failed.
-
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Herbert Valerio Riedel <hvr@gnu.org>
+Cc: Hartley Sweeten <hartleys@visionengravers.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    4 ++++
- mm/page_alloc.c         |    2 +-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-isl1208.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/bootmem.h~page-allocator-use-no-panic-variant-of-alloc_bootmem-in-alloc_large_system_hash include/linux/bootmem.h
---- a/include/linux/bootmem.h~page-allocator-use-no-panic-variant-of-alloc_bootmem-in-alloc_large_system_hash
-+++ a/include/linux/bootmem.h
-@@ -97,10 +97,14 @@ extern void *__alloc_bootmem_low_node(pg
- #ifndef CONFIG_HAVE_ARCH_BOOTMEM_NODE
- #define alloc_bootmem(x) \
- 	__alloc_bootmem(x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
-+#define alloc_bootmem_nopanic(x) \
-+	__alloc_bootmem_nopanic(x, SMP_CACHE_BYTES, __pa(MAX_DMA_ADDRESS))
- #define alloc_bootmem_low(x) \
- 	__alloc_bootmem_low(x, SMP_CACHE_BYTES, 0)
- #define alloc_bootmem_pages(x) \
- 	__alloc_bootmem(x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
-+#define alloc_bootmem_pages_nopanic(x) \
-+	__alloc_bootmem_nopanic(x, PAGE_SIZE, __pa(MAX_DMA_ADDRESS))
- #define alloc_bootmem_low_pages(x) \
- 	__alloc_bootmem_low(x, PAGE_SIZE, 0)
- #define alloc_bootmem_node(pgdat, x) \
-diff -puN mm/page_alloc.c~page-allocator-use-no-panic-variant-of-alloc_bootmem-in-alloc_large_system_hash mm/page_alloc.c
---- a/mm/page_alloc.c~page-allocator-use-no-panic-variant-of-alloc_bootmem-in-alloc_large_system_hash
-+++ a/mm/page_alloc.c
-@@ -4437,7 +4437,7 @@ void *__init alloc_large_system_hash(con
- 	do {
- 		size = bucketsize << log2qty;
- 		if (flags & HASH_EARLY)
--			table = alloc_bootmem(size);
-+			table = alloc_bootmem_nopanic(size);
- 		else if (hashdist)
- 			table = __vmalloc(size, GFP_ATOMIC, PAGE_KERNEL);
- 		else {
+diff -puN drivers/rtc/rtc-isl1208.c~rtc-isl1208-fixes-double-removal-of-a-sysfs-entry drivers/rtc/rtc-isl1208.c
+--- a/drivers/rtc/rtc-isl1208.c~rtc-isl1208-fixes-double-removal-of-a-sysfs-entry
++++ a/drivers/rtc/rtc-isl1208.c
+@@ -482,7 +482,7 @@ isl1208_sysfs_register(struct device *de
+ static int
+ isl1208_sysfs_unregister(struct device *dev)
+ {
+-	device_remove_file(dev, &dev_attr_atrim);
++	device_remove_file(dev, &dev_attr_dtrim);
+ 	device_remove_file(dev, &dev_attr_atrim);
+ 	device_remove_file(dev, &dev_attr_usr);
+ 
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from a.zummo@towertech.it are
 
-x86-64-fix-overlap-of-modules-and-fixmap-areas.patch
+ntp-let-update_persistent_clock-sleep.patch
+rtc-rtc-ds1374-fix-no-irq-case-handling.patch
+rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
+rtc-pcf8563-remove-client-validation.patch
+rtc-m48t59-reduce-structure-m48t59_private.patch
+rtc-ds1374-wakup-support.patch
+rtc-ds1374-wakeup-support-update.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+rtc-ds1307-alarm-support-for-ds1337-ds1339.patch
+rtc-remove-some-nop-open-release-methods.patch
+legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
+rtc-rtc-rs5c372-smbus-conversion-support.patch
+rtc-rtc-rs5c372-add-support-for-ricoh-r2025s-d-rtc.patch
+rtc-file-close-consistently-disables-repeating-irqs.patch
+rtc-m48t59-add-support-for-m48t02-and-m48t59-chips-2nd-rev.patch
+drivers-rtc-use-bcd2bin-bin2bcd.patch
+rtc-use-bcd2bin-bin2bcd.patch
 
