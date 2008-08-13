@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + byteorder-mn10300-use-the-new-byteorder-headers.patch added to -mm tree
-Date: Tue, 12 Aug 2008 19:59:07 -0700
-Message-ID: <200808130259.m7D2x75V027466@imap1.linux-foundation.org>
+Subject: + byteorder-sparc-use-the-new-byteorder-headers.patch added to -mm tree
+Date: Tue, 12 Aug 2008 19:59:17 -0700
+Message-ID: <200808130259.m7D2xHEQ027481@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56249 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34916 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754024AbYHMC72 (ORCPT
+	by vger.kernel.org with ESMTP id S1754039AbYHMC7U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 12 Aug 2008 22:59:28 -0400
+	Tue, 12 Aug 2008 22:59:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, dhowells@redhat.com
+Cc: harvey.harrison@gmail.com, davem@davemloft.net
 
 
 The patch titled
-     byteorder: mn10300: use the new byteorder headers
+     byteorder: sparc: use the new byteorder headers
 has been added to the -mm tree.  Its filename is
-     byteorder-mn10300-use-the-new-byteorder-headers.patch
+     byteorder-sparc-use-the-new-byteorder-headers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: mn10300: use the new byteorder headers
+Subject: byteorder: sparc: use the new byteorder headers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
+Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-mn10300/byteorder.h |   23 +++++++----------------
- 1 file changed, 7 insertions(+), 16 deletions(-)
+ arch/sparc/include/asm/byteorder.h |   22 ++++++++--------------
+ 1 file changed, 8 insertions(+), 14 deletions(-)
 
-diff -puN include/asm-mn10300/byteorder.h~byteorder-mn10300-use-the-new-byteorder-headers include/asm-mn10300/byteorder.h
---- a/include/asm-mn10300/byteorder.h~byteorder-mn10300-use-the-new-byteorder-headers
-+++ a/include/asm-mn10300/byteorder.h
-@@ -13,34 +13,25 @@
- 
+diff -puN arch/sparc/include/asm/byteorder.h~byteorder-sparc-use-the-new-byteorder-headers arch/sparc/include/asm/byteorder.h
+--- a/arch/sparc/include/asm/byteorder.h~byteorder-sparc-use-the-new-byteorder-headers
++++ a/arch/sparc/include/asm/byteorder.h
+@@ -4,15 +4,14 @@
  #include <asm/types.h>
+ #include <asm/asi.h>
  
 -#ifdef __GNUC__
-+#define __LITTLE_ENDIAN
-+#define __SWAB_64_THRU_32__
++#define __BIG_ENDIAN
  
--static inline __attribute__((const))
--__u32 ___arch__swab32(__u32 x)
-+static inline __attribute_const__ __u32 __arch_swab32(__u32 x)
- {
- 	__u32 ret;
- 	asm("swap %1,%0" : "=r" (ret) : "r" (x));
- 	return ret;
- }
-+#define __arch_swab32 __arch_swab32
+ #ifdef CONFIG_SPARC32
+ #define __SWAB_64_THRU_32__
+ #endif
  
--static inline __attribute__((const))
--__u16 ___arch__swab16(__u16 x)
-+static inline __attribute_const__ __u16 __arch_swab16(__u16 x)
+ #ifdef CONFIG_SPARC64
+-
+-static inline __u16 ___arch__swab16p(const __u16 *addr)
++static inline __u16 __arch_swab16p(const __u16 *addr)
  {
  	__u16 ret;
- 	asm("swaph %1,%0" : "=r" (ret) : "r" (x));
+ 
+@@ -21,8 +20,9 @@ static inline __u16 ___arch__swab16p(con
+ 			      : "r" (addr), "i" (ASI_PL));
  	return ret;
  }
-+#define __arch_swab16 __arch_swab16
++#define __arch_swab16p __arch_swab16p
  
--#define __arch__swab32(x) ___arch__swab32(x)
--#define __arch__swab16(x) ___arch__swab16(x)
+-static inline __u32 ___arch__swab32p(const __u32 *addr)
++static inline __u32 __arch_swab32p(const __u32 *addr)
+ {
+ 	__u32 ret;
+ 
+@@ -31,8 +31,9 @@ static inline __u32 ___arch__swab32p(con
+ 			      : "r" (addr), "i" (ASI_PL));
+ 	return ret;
+ }
++#define __arch_swab32p __arch_swab32p
+ 
+-static inline __u64 ___arch__swab64p(const __u64 *addr)
++static inline __u64 __arch_swab64p(const __u64 *addr)
+ {
+ 	__u64 ret;
+ 
+@@ -41,17 +42,10 @@ static inline __u64 ___arch__swab64p(con
+ 			      : "r" (addr), "i" (ASI_PL));
+ 	return ret;
+ }
 -
--#if !defined(__STRICT_ANSI__) || defined(__KERNEL__)
--#  define __BYTEORDER_HAS_U64__
--#  define __SWAB_64_THRU_32__
+-#define __arch__swab16p(x) ___arch__swab16p(x)
+-#define __arch__swab32p(x) ___arch__swab32p(x)
+-#define __arch__swab64p(x) ___arch__swab64p(x)
++#define __arch_swab64p __arch_swab64p
+ 
+ #endif /* CONFIG_SPARC64 */
+ 
+-#define __BYTEORDER_HAS_U64__
+-
 -#endif
 -
--#endif /* __GNUC__ */
--
--#include <linux/byteorder/little_endian.h>
+-#include <linux/byteorder/big_endian.h>
 +#include <linux/byteorder.h>
  
- #endif /* _ASM_BYTEORDER_H */
+ #endif /* _SPARC_BYTEORDER_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
