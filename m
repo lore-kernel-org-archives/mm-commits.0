@@ -1,152 +1,289 @@
 From: akpm@linux-foundation.org
-Subject: - ide-cd-use-bcd2bin-bin2bcd.patch removed from -mm tree
-Date: Wed, 13 Aug 2008 01:53:45 -0700
-Message-ID: <200808130853.m7D8rj27008364@imap1.linux-foundation.org>
+Subject: - docsrc-build-documentation-sources.patch removed from -mm tree
+Date: Wed, 13 Aug 2008 01:53:21 -0700
+Message-ID: <200808130853.m7D8rLT7008319@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56210 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44162 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753306AbYHMJDD (ORCPT
+	by vger.kernel.org with ESMTP id S1752803AbYHMJDL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 05:03:03 -0400
+	Wed, 13 Aug 2008 05:03:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, bzolnier@gmail.com, petkovbb@gmail.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ide-cd: use bcd2bin/bin2bcd
+     docsrc: build Documentation/ sources
 has been removed from the -mm tree.  Its filename was
-     ide-cd-use-bcd2bin-bin2bcd.patch
+     docsrc-build-documentation-sources.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ide-cd: use bcd2bin/bin2bcd
-From: Adrian Bunk <bunk@kernel.org>
+Subject: docsrc: build Documentation/ sources
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Change ide-cd to use the new bcd2bin/bin2bcd functions instead of the
-obsolete BCD2BIN/BIN2BCD macros.
+Currently source files in the Documentation/ sub-dir can easily bit-rot
+since they are not generally buildable, either because they are hidden in
+text files or because there are no Makefile rules for them.  This needs to
+be fixed so that the source files remain usable and good examples of code
+instead of bad examples.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
-Acked-by: Borislav Petkov <petkovbb@gmail.com>
+Add the ability to build source files that are in the Documentation/ dir. 
+Add to Kconfig as "BUILD_DOCSRC" config symbol.
+
+Use "CONFIG_BUILD_DOCSRC=1 make ..." to build objects from the
+Documentation/ sources.  Or enable BUILD_DOCSRC in the *config system. 
+However, this symbol depends on HEADERS_CHECK since the header files need
+to be installed (for userspace builds).
+
+Built (using cross-tools) for x86-64, i386, alpha, ia64, sparc32,
+sparc64, powerpc, sh, m68k, & mips.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-cd.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ Documentation/DocBook/Makefile              |    7 +++++++
+ Documentation/Makefile                      |    3 +++
+ Documentation/accounting/Makefile           |   10 ++++++++++
+ Documentation/auxdisplay/Makefile           |   10 ++++++++++
+ Documentation/connector/Makefile            |   11 +++++++++++
+ Documentation/filesystems/configfs/Makefile |    3 +++
+ Documentation/ia64/Makefile                 |    8 ++++++++
+ Documentation/networking/Makefile           |    8 ++++++++
+ Documentation/pcmcia/Makefile               |   10 ++++++++++
+ Documentation/spi/Makefile                  |   11 +++++++++++
+ Documentation/video4linux/Makefile          |    8 ++++++++
+ Documentation/vm/Makefile                   |    8 ++++++++
+ Documentation/watchdog/src/Makefile         |    8 ++++++++
+ Makefile                                    |    5 ++++-
+ lib/Kconfig.debug                           |    9 +++++++++
+ 15 files changed, 118 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ide/ide-cd.c~ide-cd-use-bcd2bin-bin2bcd drivers/ide/ide-cd.c
---- a/drivers/ide/ide-cd.c~ide-cd-use-bcd2bin-bin2bcd
-+++ a/drivers/ide/ide-cd.c
-@@ -1268,9 +1268,9 @@ static ide_startstop_t ide_cd_do_request
-  */
- static void msf_from_bcd(struct atapi_msf *msf)
- {
--	msf->minute = BCD2BIN(msf->minute);
--	msf->second = BCD2BIN(msf->second);
--	msf->frame  = BCD2BIN(msf->frame);
-+	msf->minute = bcd2bin(msf->minute);
-+	msf->second = bcd2bin(msf->second);
-+	msf->frame  = bcd2bin(msf->frame);
- }
+diff -puN Documentation/DocBook/Makefile~docsrc-build-documentation-sources Documentation/DocBook/Makefile
+--- a/Documentation/DocBook/Makefile~docsrc-build-documentation-sources
++++ a/Documentation/DocBook/Makefile
+@@ -102,6 +102,13 @@ C-procfs-example = procfs_example.xml
+ C-procfs-example2 = $(addprefix $(obj)/,$(C-procfs-example))
+ $(obj)/procfs-guide.xml: $(C-procfs-example2)
  
- int cdrom_check_status(ide_drive_t *drive, struct request_sense *sense)
-@@ -1411,8 +1411,8 @@ int ide_cd_read_toc(ide_drive_t *drive, 
- 		return stat;
++# List of programs to build
++##oops, this is a kernel module::hostprogs-y := procfs_example
++obj-m += procfs_example.o
++
++# Tell kbuild to always build the programs
++always := $(hostprogs-y)
++
+ notfoundtemplate = echo "*** You have to install docbook-utils or xmlto ***"; \
+ 		   exit 1
+ db2xtemplate = db2TYPE -o $(dir $@) $<
+diff -puN /dev/null Documentation/Makefile
+--- /dev/null
++++ a/Documentation/Makefile
+@@ -0,0 +1,3 @@
++obj-m := DocBook/ accounting/ auxdisplay/ connector/ \
++	filesystems/configfs/ ia64/ networking/ \
++	pcmcia/ spi/ video4linux/ vm/ watchdog/src/
+diff -puN /dev/null Documentation/accounting/Makefile
+--- /dev/null
++++ a/Documentation/accounting/Makefile
+@@ -0,0 +1,10 @@
++# kbuild trick to avoid linker error. Can be omitted if a module is built.
++obj- := dummy.o
++
++# List of programs to build
++hostprogs-y := getdelays
++
++# Tell kbuild to always build the programs
++always := $(hostprogs-y)
++
++HOSTCFLAGS_getdelays.o += -I$(objtree)/usr/include
+diff -puN /dev/null Documentation/auxdisplay/Makefile
+--- /dev/null
++++ a/Documentation/auxdisplay/Makefile
+@@ -0,0 +1,10 @@
++# kbuild trick to avoid linker error. Can be omitted if a module is built.
++obj- := dummy.o
++
++# List of programs to build
++hostprogs-y := cfag12864b-example
++
++# Tell kbuild to always build the programs
++always := $(hostprogs-y)
++
++HOSTCFLAGS_cfag12864b-example.o += -I$(objtree)/usr/include
+diff -puN /dev/null Documentation/connector/Makefile
+--- /dev/null
++++ a/Documentation/connector/Makefile
+@@ -0,0 +1,11 @@
++ifneq ($(CONFIG_CONNECTOR),)
++obj-m += cn_test.o
++endif
++
++# List of programs to build
++hostprogs-y := ucon
++
++# Tell kbuild to always build the programs
++always := $(hostprogs-y)
++
++HOSTCFLAGS_ucon.o += -I$(objtree)/usr/include
+diff -puN /dev/null Documentation/filesystems/configfs/Makefile
+--- /dev/null
++++ a/Documentation/filesystems/configfs/Makefile
+@@ -0,0 +1,3 @@
++ifneq ($(CONFIG_CONFIGFS_FS),)
++obj-m += configfs_example_explicit.o configfs_example_macros.o
++endif
+diff -puN /dev/null Documentation/ia64/Makefile
+--- /dev/null
++++ a/Documentation/ia64/Makefile
+@@ -0,0 +1,8 @@
++# kbuild trick to avoid linker error. Can be omitted if a module is built.
++obj- := dummy.o
++
++# List of programs to build
++hostprogs-y := aliasing-test
++
++# Tell kbuild to always build the programs
++always := $(hostprogs-y)
+diff -puN /dev/null Documentation/networking/Makefile
+--- /dev/null
++++ a/Documentation/networking/Makefile
+@@ -0,0 +1,8 @@
++# kbuild trick to avoid linker error. Can be omitted if a module is built.
++obj- := dummy.o
++
++# List of programs to build
++hostprogs-y := ifenslave
++
++# Tell kbuild to always build the programs
++always := $(hostprogs-y)
+diff -puN /dev/null Documentation/pcmcia/Makefile
+--- /dev/null
++++ a/Documentation/pcmcia/Makefile
+@@ -0,0 +1,10 @@
++# kbuild trick to avoid linker error. Can be omitted if a module is built.
++obj- := dummy.o
++
++# List of programs to build
++hostprogs-y := crc32hash
++
++# Tell kbuild to always build the programs
++always := $(hostprogs-y)
++
++HOSTCFLAGS_crc32hash.o += -I$(objtree)/usr/include
+diff -puN /dev/null Documentation/spi/Makefile
+--- /dev/null
++++ a/Documentation/spi/Makefile
+@@ -0,0 +1,11 @@
++# kbuild trick to avoid linker error. Can be omitted if a module is built.
++obj- := dummy.o
++
++# List of programs to build
++hostprogs-y := spidev_test spidev_fdx
++
++# Tell kbuild to always build the programs
++always := $(hostprogs-y)
++
++HOSTCFLAGS_spidev_test.o += -I$(objtree)/usr/include
++HOSTCFLAGS_spidev_fdx.o += -I$(objtree)/usr/include
+diff -puN /dev/null Documentation/video4linux/Makefile
+--- /dev/null
++++ a/Documentation/video4linux/Makefile
+@@ -0,0 +1,8 @@
++# kbuild trick to avoid linker error. Can be omitted if a module is built.
++obj- := dummy.o
++
++# List of programs to build
++hostprogs-y := v4lgrab
++
++# Tell kbuild to always build the programs
++always := $(hostprogs-y)
+diff -puN /dev/null Documentation/vm/Makefile
+--- /dev/null
++++ a/Documentation/vm/Makefile
+@@ -0,0 +1,8 @@
++# kbuild trick to avoid linker error. Can be omitted if a module is built.
++obj- := dummy.o
++
++# List of programs to build
++hostprogs-y := slabinfo
++
++# Tell kbuild to always build the programs
++always := $(hostprogs-y)
+diff -puN /dev/null Documentation/watchdog/src/Makefile
+--- /dev/null
++++ a/Documentation/watchdog/src/Makefile
+@@ -0,0 +1,8 @@
++# kbuild trick to avoid linker error. Can be omitted if a module is built.
++obj- := dummy.o
++
++# List of programs to build
++hostprogs-y := watchdog-simple watchdog-test
++
++# Tell kbuild to always build the programs
++always := $(hostprogs-y)
+diff -puN Makefile~docsrc-build-documentation-sources Makefile
+--- a/Makefile~docsrc-build-documentation-sources
++++ a/Makefile
+@@ -822,6 +822,9 @@ endif
+ ifdef CONFIG_SAMPLES
+ 	$(Q)$(MAKE) $(build)=samples
+ endif
++ifdef CONFIG_BUILD_DOCSRC
++	$(Q)$(MAKE) $(build)=Documentation
++endif
+ 	$(call vmlinux-modpost)
+ 	$(call if_changed_rule,vmlinux__)
+ 	$(Q)rm -f .old_version
+@@ -1166,7 +1169,7 @@ MRPROPER_FILES += .config .config.old in
+ #
+ clean: rm-dirs  := $(CLEAN_DIRS)
+ clean: rm-files := $(CLEAN_FILES)
+-clean-dirs      := $(addprefix _clean_,$(srctree) $(vmlinux-alldirs))
++clean-dirs      := $(addprefix _clean_,$(srctree) $(vmlinux-alldirs) Documentation)
  
- 	if (drive->atapi_flags & IDE_AFLAG_TOCTRACKS_AS_BCD) {
--		toc->hdr.first_track = BCD2BIN(toc->hdr.first_track);
--		toc->hdr.last_track  = BCD2BIN(toc->hdr.last_track);
-+		toc->hdr.first_track = bcd2bin(toc->hdr.first_track);
-+		toc->hdr.last_track  = bcd2bin(toc->hdr.last_track);
- 	}
+ PHONY += $(clean-dirs) clean archclean
+ $(clean-dirs):
+diff -puN lib/Kconfig.debug~docsrc-build-documentation-sources lib/Kconfig.debug
+--- a/lib/Kconfig.debug~docsrc-build-documentation-sources
++++ a/lib/Kconfig.debug
+@@ -735,6 +735,15 @@ config FIREWIRE_OHCI_REMOTE_DMA
  
- 	ntracks = toc->hdr.last_track - toc->hdr.first_track + 1;
-@@ -1452,8 +1452,8 @@ int ide_cd_read_toc(ide_drive_t *drive, 
- 			return stat;
+ 	  If unsure, say N.
  
- 		if (drive->atapi_flags & IDE_AFLAG_TOCTRACKS_AS_BCD) {
--			toc->hdr.first_track = (u8)BIN2BCD(CDROM_LEADOUT);
--			toc->hdr.last_track = (u8)BIN2BCD(CDROM_LEADOUT);
-+			toc->hdr.first_track = (u8)bin2bcd(CDROM_LEADOUT);
-+			toc->hdr.last_track = (u8)bin2bcd(CDROM_LEADOUT);
- 		} else {
- 			toc->hdr.first_track = CDROM_LEADOUT;
- 			toc->hdr.last_track = CDROM_LEADOUT;
-@@ -1466,14 +1466,14 @@ int ide_cd_read_toc(ide_drive_t *drive, 
- 	toc->hdr.toc_length = be16_to_cpu(toc->hdr.toc_length);
++menuconfig BUILD_DOCSRC
++	bool "Build targets in Documentation/ tree"
++	depends on HEADERS_CHECK
++	help
++	  This option attempts to build objects from the source files in the
++	  kernel Documentation/ tree.
++
++	  Say N if you are unsure.
++
+ source "samples/Kconfig"
  
- 	if (drive->atapi_flags & IDE_AFLAG_TOCTRACKS_AS_BCD) {
--		toc->hdr.first_track = BCD2BIN(toc->hdr.first_track);
--		toc->hdr.last_track  = BCD2BIN(toc->hdr.last_track);
-+		toc->hdr.first_track = bcd2bin(toc->hdr.first_track);
-+		toc->hdr.last_track  = bcd2bin(toc->hdr.last_track);
- 	}
- 
- 	for (i = 0; i <= ntracks; i++) {
- 		if (drive->atapi_flags & IDE_AFLAG_TOCADDR_AS_BCD) {
- 			if (drive->atapi_flags & IDE_AFLAG_TOCTRACKS_AS_BCD)
--				toc->ent[i].track = BCD2BIN(toc->ent[i].track);
-+				toc->ent[i].track = bcd2bin(toc->ent[i].track);
- 			msf_from_bcd(&toc->ent[i].addr.msf);
- 		}
- 		toc->ent[i].addr.lba = msf_to_lba(toc->ent[i].addr.msf.minute,
+ source "lib/Kconfig.kgdb"
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-m32r-dont-offer-config_isa.patch
-m32r-export-empty_zero_page.patch
-m32r-export-__ndelay.patch
-m32r-kernel-cleanups.patch
-the-overdue-eepro100-removal.patch
-ntfs-update-homepage.patch
-parisc-lib-make-code-static.patch
-drivers-parisc-make-code-static.patch
-if-0-ses_match_host.patch
-scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
-drivers-scsi-a2091c-make-2-functions-static.patch
-drivers-scsi-a3000c-make-2-functions-static.patch
-fs_mbcache-dont-needlessly-make-it-built-in.patch
-git-xtensa.patch
-asm-h8300-mdh-remove-cvs-keyword.patch
-alpha-miata-remove-dead-url.patch
-uml-remove-the-dead-tty_log-code.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-maintainers-remove-hga-framebuffer-driver-entry.patch
-include-linux-mounth-remove-cvs-keyword.patch
-kernel-dmac-remove-a-cvs-keyword.patch
-binfmt_somc-add-module_license.patch
-make-probe_serial_gsc-static.patch
-pnp-remove-printk-with-outdated-version.patch
-telephony-remove-cvs-keywords.patch
-reiserfs-procfsc-remove-cvs-keywords.patch
-quota-remove-cvs-keywords.patch
-make-ptrace_untrace-static.patch
-fs-partitions-acornc-remove-dead-code.patch
-parport-remove-cvs-keywords.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-firmware-iscsi_ibftc-make-3-functions-static.patch
-ipc-semc-make-free_un-static.patch
-acpi-use-bcd2bin-bin2bcd.patch
-alpha-use-bcd2bin-bin2bcd.patch
-arm-use-bcd2bin-bin2bcd.patch
-cris-use-bcd2bin-bin2bcd.patch
-drivers-rtc-use-bcd2bin-bin2bcd.patch
-rtc-use-bcd2bin-bin2bcd.patch
-mips-use-bcd2bin-bin2bcd.patch
-mn10300-use-bcd2bin-bin2bcd.patch
-powerpc-use-bcd2bin-bin2bcd.patch
-i2c-use-bcd2bin-bin2bcd.patch
-drivers-scsi-sr_vendorc-use-bcd2bin.patch
-sparc64-use-bcd2bin-bin2bcd.patch
-remove-the-obsolete-bcdbin-binbcd-macros.patch
-include-linux-bcdh-remove-comments.patch
-reiser4.patch
+drm-sis-depends-on-fb_sis.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+lkdtm-fix-for-config_scsi=n.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+ftrace-printk-formatting-infrastructure-fix.patch
+ftrace-printk-formatting-infrastructure-fix-fix.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+w1-documentation-w1-masters-ds2490-update.patch
+profile-likely-unlikely-macros.patch
 
