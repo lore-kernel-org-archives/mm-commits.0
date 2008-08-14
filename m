@@ -1,91 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - ixgbe-add-cx4-device-id.patch removed from -mm tree
-Date: Thu, 14 Aug 2008 16:54:24 -0700
-Message-ID: <200808142354.m7ENsOdH003935@imap1.linux-foundation.org>
+Subject: - e1000e-use-skb_copy_to_linear_data_offset-introduced-in-2622.patch removed from -mm tree
+Date: Thu, 14 Aug 2008 16:54:30 -0700
+Message-ID: <200808142354.m7ENsUC4003944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55167 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36237 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751973AbYHNXy0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752113AbYHNXyc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Aug 2008 19:54:26 -0400
+	Thu, 14 Aug 2008 19:54:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesse.brandeburg@intel.com, jeffrey.t.kirsher@intel.com, mm-commits@vger.kernel.org
+To: bruce.w.allan@intel.com, jeffrey.t.kirsher@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ixgbe: add cx4 device ID
+     e1000e: use skb_copy_to_linear_data_offset introduced in 2.6.22
 has been removed from the -mm tree.  Its filename was
-     ixgbe-add-cx4-device-id.patch
+     e1000e-use-skb_copy_to_linear_data_offset-introduced-in-2622.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ixgbe: add cx4 device ID
-From: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Subject: e1000e: use skb_copy_to_linear_data_offset introduced in 2.6.22
+From: Bruce Allan <bruce.w.allan@intel.com>
 
-This is a simple device ID add for adapters that support CX4 (copper
-infiniband style cable) connectors for 10GbE.
+The e1000e driver was based on a version of e1000 prior to acme's
+introduction of skb_copy_to_linear_data_offset, and was submitted after
+acme went through and coverted all the drivers to use it.
 
-Signed-off-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Signed-off-by: Bruce Allan <bruce.w.allan@intel.com>
 Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ixgbe/ixgbe_82598.c |    1 +
- drivers/net/ixgbe/ixgbe_main.c  |    4 +++-
- drivers/net/ixgbe/ixgbe_type.h  |    1 +
- 3 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/net/e1000e/netdev.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/ixgbe/ixgbe_82598.c~ixgbe-add-cx4-device-id drivers/net/ixgbe/ixgbe_82598.c
---- a/drivers/net/ixgbe/ixgbe_82598.c~ixgbe-add-cx4-device-id
-+++ a/drivers/net/ixgbe/ixgbe_82598.c
-@@ -190,6 +190,7 @@ static enum ixgbe_media_type ixgbe_get_m
- 	case IXGBE_DEV_ID_82598AF_DUAL_PORT:
- 	case IXGBE_DEV_ID_82598AF_SINGLE_PORT:
- 	case IXGBE_DEV_ID_82598EB_CX4:
-+	case IXGBE_DEV_ID_82598_CX4_DUAL_PORT:
- 		media_type = ixgbe_media_type_fiber;
- 		break;
- 	case IXGBE_DEV_ID_82598AT_DUAL_PORT:
-diff -puN drivers/net/ixgbe/ixgbe_main.c~ixgbe-add-cx4-device-id drivers/net/ixgbe/ixgbe_main.c
---- a/drivers/net/ixgbe/ixgbe_main.c~ixgbe-add-cx4-device-id
-+++ a/drivers/net/ixgbe/ixgbe_main.c
-@@ -48,7 +48,7 @@ char ixgbe_driver_name[] = "ixgbe";
- static const char ixgbe_driver_string[] =
- 	"Intel(R) 10 Gigabit PCI Express Network Driver";
- 
--#define DRV_VERSION "1.3.18-k2"
-+#define DRV_VERSION "1.3.18-k4"
- const char ixgbe_driver_version[] = DRV_VERSION;
- static const char ixgbe_copyright[] =
- 	 "Copyright (c) 1999-2007 Intel Corporation.";
-@@ -72,6 +72,8 @@ static struct pci_device_id ixgbe_pci_tb
- 	 board_82598 },
- 	{PCI_VDEVICE(INTEL, IXGBE_DEV_ID_82598EB_CX4),
- 	 board_82598 },
-+	{PCI_VDEVICE(INTEL, IXGBE_DEV_ID_82598_CX4_DUAL_PORT),
-+	 board_82598 },
- 
- 	/* required last entry */
- 	{0, }
-diff -puN drivers/net/ixgbe/ixgbe_type.h~ixgbe-add-cx4-device-id drivers/net/ixgbe/ixgbe_type.h
---- a/drivers/net/ixgbe/ixgbe_type.h~ixgbe-add-cx4-device-id
-+++ a/drivers/net/ixgbe/ixgbe_type.h
-@@ -39,6 +39,7 @@
- #define IXGBE_DEV_ID_82598AF_SINGLE_PORT 0x10C7
- #define IXGBE_DEV_ID_82598AT_DUAL_PORT   0x10C8
- #define IXGBE_DEV_ID_82598EB_CX4         0x10DD
-+#define IXGBE_DEV_ID_82598_CX4_DUAL_PORT 0x10EC
- 
- /* General Registers */
- #define IXGBE_CTRL      0x00000
+diff -puN drivers/net/e1000e/netdev.c~e1000e-use-skb_copy_to_linear_data_offset-introduced-in-2622 drivers/net/e1000e/netdev.c
+--- a/drivers/net/e1000e/netdev.c~e1000e-use-skb_copy_to_linear_data_offset-introduced-in-2622
++++ a/drivers/net/e1000e/netdev.c
+@@ -510,9 +510,12 @@ static bool e1000_clean_rx_irq(struct e1
+ 			    netdev_alloc_skb(netdev, length + NET_IP_ALIGN);
+ 			if (new_skb) {
+ 				skb_reserve(new_skb, NET_IP_ALIGN);
+-				memcpy(new_skb->data - NET_IP_ALIGN,
+-				       skb->data - NET_IP_ALIGN,
+-				       length + NET_IP_ALIGN);
++				skb_copy_to_linear_data_offset(new_skb,
++							       -NET_IP_ALIGN,
++							       (skb->data -
++								NET_IP_ALIGN),
++							       (length +
++								NET_IP_ALIGN));
+ 				/* save the skb in buffer_info as good */
+ 				buffer_info->skb = skb;
+ 				skb = new_skb;
 _
 
-Patches currently in -mm which might be from jesse.brandeburg@intel.com are
+Patches currently in -mm which might be from bruce.w.allan@intel.com are
 
 git-net.patch
+e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
 
