@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch added to -mm tree
-Date: Thu, 14 Aug 2008 14:01:19 -0700
-Message-ID: <200808142101.m7EL1J2m029341@imap1.linux-foundation.org>
+Subject: + spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup.patch added to -mm tree
+Date: Thu, 14 Aug 2008 14:14:48 -0700
+Message-ID: <200808142114.m7ELEmhY029912@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49747 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53895 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755880AbYHNVB2 (ORCPT
+	by vger.kernel.org with ESMTP id S1753502AbYHNVP1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Aug 2008 17:01:28 -0400
+	Thu, 14 Aug 2008 17:15:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, elendil@planet.nl, mel@csn.ul.ie
+Cc: akpm@linux-foundation.org, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     mm/page_alloc.c:free_area_init_nodes() fix inappropriate use of enum
+     spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup
 has been added to the -mm tree.  Its filename is
-     mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+     spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/page_alloc.c:free_area_init_nodes() fix inappropriate use of enum
+Subject: spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Local variable `i' is a) misleadingly-named for an `enum zone_type' and b)
-used for indexing zones as well as nodes as well as node_maps.
-
-Make it an `int'.
-
-Reported-by: Frans Pop <elendil@planet.nl>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/spi/spi.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum
-+++ a/mm/page_alloc.c
-@@ -3942,7 +3942,7 @@ static void check_for_regular_memory(pg_
- void __init free_area_init_nodes(unsigned long *max_zone_pfn)
- {
- 	unsigned long nid;
--	enum zone_type i;
-+	int i;
+diff -puN drivers/spi/spi.c~spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup drivers/spi/spi.c
+--- a/drivers/spi/spi.c~spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup
++++ a/drivers/spi/spi.c
+@@ -219,8 +219,6 @@ struct spi_device *spi_alloc_device(stru
+ }
+ EXPORT_SYMBOL_GPL(spi_alloc_device);
  
- 	/* Sort early_node_map as initialisation assumes it is sorted */
- 	sort_node_map();
+-static DEFINE_MUTEX(spi_add_lock);
+-
+ /**
+  * spi_add_device - Add spi_device allocated with spi_alloc_device
+  * @spi: spi_device to register
+@@ -232,6 +230,7 @@ static DEFINE_MUTEX(spi_add_lock);
+  */
+ int spi_add_device(struct spi_device *spi)
+ {
++	static DEFINE_MUTEX(spi_add_lock);
+ 	struct device *dev = spi->master->dev.parent;
+ 	int status;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,6 +71,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 kexec-jump-check-code-size-in-control-page-fix.patch
 kexec-use-a-bitop-for-locking-rather-than-xchg.patch
 hwmon-adc124s501-generic-driver.patch
+spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup.patch
 seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
 next-remove-localversion.patch
