@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-use-div_round_up.patch added to -mm tree
-Date: Thu, 14 Aug 2008 14:59:15 -0700
-Message-ID: <200808142159.m7ELxGJR031681@imap1.linux-foundation.org>
+Subject: + completions-un-inline-try_wait_for_completion-and-completion_done.patch added to -mm tree
+Date: Thu, 14 Aug 2008 15:58:57 -0700
+Message-ID: <200808142258.m7EMwvQJ001723@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59785 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37833 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751490AbYHNWAT (ORCPT
+	by vger.kernel.org with ESMTP id S1750846AbYHNW7z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Aug 2008 18:00:19 -0400
+	Thu, 14 Aug 2008 18:59:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, jens.axboe@oracle.com, mike.miller@hp.com
+Cc: david@fromorbit.com, geert@linux-m68k.org, mingo@elte.hu
 
 
 The patch titled
-     drivers/block: Use DIV_ROUND_UP
+     completions: uninline try_wait_for_completion and completion_done
 has been added to the -mm tree.  Its filename is
-     drivers-block-use-div_round_up.patch
+     completions-un-inline-try_wait_for_completion-and-completion_done.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,145 +34,149 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block: Use DIV_ROUND_UP
-From: Julia Lawall <julia@diku.dk>
+Subject: completions: uninline try_wait_for_completion and completion_done
+From: Dave Chinner <david@fromorbit.com>
 
-The kernel.h macro DIV_ROUND_UP performs the computation (((n) + (d) - 1) /
-(d)) but is perhaps more readable.
+m68k fails to build with these functions inlined in completion.h.  Move
+them out of line into sched.c and export them to avoid this problem.
 
-An extract of the semantic patch that makes this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@haskernel@
-@@
-
-#include <linux/kernel.h>
-
-@depends on haskernel@
-expression n,d;
-@@
-
-(
-- (n + d - 1) / d
-+ DIV_ROUND_UP(n,d)
-|
-- (n + (d - 1)) / d
-+ DIV_ROUND_UP(n,d)
-)
-
-@depends on haskernel@
-expression n,d;
-@@
-
-- DIV_ROUND_UP((n),d)
-+ DIV_ROUND_UP(n,d)
-
-@depends on haskernel@
-expression n,d;
-@@
-
-- DIV_ROUND_UP(n,(d))
-+ DIV_ROUND_UP(n,d)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: <mike.miller@hp.com>
+Signed-off-by: Dave Chinner <david@fromorbit.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c    |    8 ++++----
- drivers/block/cpqarray.c |    2 +-
- drivers/block/floppy.c   |    8 ++++----
- 3 files changed, 9 insertions(+), 9 deletions(-)
+ include/linux/completion.h |   46 +----------------------------------
+ kernel/sched.c             |   46 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 48 insertions(+), 44 deletions(-)
 
-diff -puN drivers/block/cciss.c~drivers-block-use-div_round_up drivers/block/cciss.c
---- a/drivers/block/cciss.c~drivers-block-use-div_round_up
-+++ a/drivers/block/cciss.c
-@@ -3460,8 +3460,8 @@ static int __devinit cciss_init_one(stru
- 	       hba[i]->intr[SIMPLE_MODE_INT], dac ? "" : " not");
+diff -puN include/linux/completion.h~completions-un-inline-try_wait_for_completion-and-completion_done include/linux/completion.h
+--- a/include/linux/completion.h~completions-un-inline-try_wait_for_completion-and-completion_done
++++ a/include/linux/completion.h
+@@ -49,6 +49,8 @@ extern unsigned long wait_for_completion
+ 						   unsigned long timeout);
+ extern unsigned long wait_for_completion_interruptible_timeout(
+ 			struct completion *x, unsigned long timeout);
++extern bool try_wait_for_completion(struct completion *x);
++extern bool completion_done(struct completion *x);
  
- 	hba[i]->cmd_pool_bits =
--	    kmalloc(((hba[i]->nr_cmds + BITS_PER_LONG -
--		      1) / BITS_PER_LONG) * sizeof(unsigned long), GFP_KERNEL);
-+	    kmalloc(DIV_ROUND_UP(hba[i]->nr_cmds, BITS_PER_LONG)
-+			* sizeof(unsigned long), GFP_KERNEL);
- 	hba[i]->cmd_pool = (CommandList_struct *)
- 	    pci_alloc_consistent(hba[i]->pdev,
- 		    hba[i]->nr_cmds * sizeof(CommandList_struct),
-@@ -3493,8 +3493,8 @@ static int __devinit cciss_init_one(stru
- 	/* command and error info recs zeroed out before
- 	   they are used */
- 	memset(hba[i]->cmd_pool_bits, 0,
--	       ((hba[i]->nr_cmds + BITS_PER_LONG -
--		 1) / BITS_PER_LONG) * sizeof(unsigned long));
-+	       DIV_ROUND_UP(hba[i]->nr_cmds, BITS_PER_LONG)
-+			* sizeof(unsigned long));
+ extern void complete(struct completion *);
+ extern void complete_all(struct completion *);
+@@ -56,48 +58,4 @@ extern void complete_all(struct completi
+ #define INIT_COMPLETION(x)	((x).done = 0)
  
- 	hba[i]->num_luns = 0;
- 	hba[i]->highest_lun = -1;
-diff -puN drivers/block/cpqarray.c~drivers-block-use-div_round_up drivers/block/cpqarray.c
---- a/drivers/block/cpqarray.c~drivers-block-use-div_round_up
-+++ a/drivers/block/cpqarray.c
-@@ -424,7 +424,7 @@ static int __init cpqarray_register_ctlr
- 		hba[i]->pci_dev, NR_CMDS * sizeof(cmdlist_t),
- 		&(hba[i]->cmd_pool_dhandle));
- 	hba[i]->cmd_pool_bits = kcalloc(
--		(NR_CMDS+BITS_PER_LONG-1)/BITS_PER_LONG, sizeof(unsigned long),
-+		DIV_ROUND_UP(NR_CMDS, BITS_PER_LONG), sizeof(unsigned long),
- 		GFP_KERNEL);
  
- 	if (!hba[i]->cmd_pool_bits || !hba[i]->cmd_pool)
-diff -puN drivers/block/floppy.c~drivers-block-use-div_round_up drivers/block/floppy.c
---- a/drivers/block/floppy.c~drivers-block-use-div_round_up
-+++ a/drivers/block/floppy.c
-@@ -1355,20 +1355,20 @@ static void fdc_specify(void)
- 	}
+-/**
+- *	try_wait_for_completion - try to decrement a completion without blocking
+- *	@x:	completion structure
+- *
+- *	Returns: 0 if a decrement cannot be done without blocking
+- *		 1 if a decrement succeeded.
+- *
+- *	If a completion is being used as a counting completion,
+- *	attempt to decrement the counter without blocking. This
+- *	enables us to avoid waiting if the resource the completion
+- *	is protecting is not available.
+- */
+-static inline bool try_wait_for_completion(struct completion *x)
+-{
+-	int ret = 1;
+-
+-	spin_lock_irq(&x->wait.lock);
+-	if (!x->done)
+-		ret = 0;
+-	else
+-		x->done--;
+-	spin_unlock_irq(&x->wait.lock);
+-	return ret;
+-}
+-
+-/**
+- *	completion_done - Test to see if a completion has any waiters
+- *	@x:	completion structure
+- *
+- *	Returns: 0 if there are waiters (wait_for_completion() in progress)
+- *		 1 if there are no waiters.
+- *
+- */
+-static inline bool completion_done(struct completion *x)
+-{
+-	int ret = 1;
+-
+-	spin_lock_irq(&x->wait.lock);
+-	if (!x->done)
+-		ret = 0;
+-	spin_unlock_irq(&x->wait.lock);
+-	return ret;
+-}
+-
+ #endif
+diff -puN kernel/sched.c~completions-un-inline-try_wait_for_completion-and-completion_done kernel/sched.c
+--- a/kernel/sched.c~completions-un-inline-try_wait_for_completion-and-completion_done
++++ a/kernel/sched.c
+@@ -4669,6 +4669,52 @@ int __sched wait_for_completion_killable
+ }
+ EXPORT_SYMBOL(wait_for_completion_killable);
  
- 	/* Convert step rate from microseconds to milliseconds and 4 bits */
--	srt = 16 - (DP->srt * scale_dtr / 1000 + NOMINAL_DTR - 1) / NOMINAL_DTR;
-+	srt = 16 - DIV_ROUND_UP(DP->srt * scale_dtr / 1000, NOMINAL_DTR);
- 	if (slow_floppy) {
- 		srt = srt / 4;
- 	}
- 	SUPBOUND(srt, 0xf);
- 	INFBOUND(srt, 0);
- 
--	hlt = (DP->hlt * scale_dtr / 2 + NOMINAL_DTR - 1) / NOMINAL_DTR;
-+	hlt = DIV_ROUND_UP(DP->hlt * scale_dtr / 2, NOMINAL_DTR);
- 	if (hlt < 0x01)
- 		hlt = 0x01;
- 	else if (hlt > 0x7f)
- 		hlt = hlt_max_code;
- 
--	hut = (DP->hut * scale_dtr / 16 + NOMINAL_DTR - 1) / NOMINAL_DTR;
-+	hut = DIV_ROUND_UP(DP->hut * scale_dtr / 16, NOMINAL_DTR);
- 	if (hut < 0x1)
- 		hut = 0x1;
- 	else if (hut > 0xf)
-@@ -2385,7 +2385,7 @@ static void rw_interrupt(void)
- 
- #ifdef FLOPPY_SANITY_CHECK
- 	if (nr_sectors / ssize >
--	    (in_sector_offset + current_count_sectors + ssize - 1) / ssize) {
-+	    DIV_ROUND_UP(in_sector_offset + current_count_sectors, ssize)) {
- 		DPRINT("long rw: %x instead of %lx\n",
- 		       nr_sectors, current_count_sectors);
- 		printk("rs=%d s=%d\n", R_SECTOR, SECTOR);
++/**
++ *	try_wait_for_completion - try to decrement a completion without blocking
++ *	@x:	completion structure
++ *
++ *	Returns: 0 if a decrement cannot be done without blocking
++ *		 1 if a decrement succeeded.
++ *
++ *	If a completion is being used as a counting completion,
++ *	attempt to decrement the counter without blocking. This
++ *	enables us to avoid waiting if the resource the completion
++ *	is protecting is not available.
++ */
++bool try_wait_for_completion(struct completion *x)
++{
++	int ret = 1;
++
++	spin_lock_irq(&x->wait.lock);
++	if (!x->done)
++		ret = 0;
++	else
++		x->done--;
++	spin_unlock_irq(&x->wait.lock);
++	return ret;
++}
++EXPORT_SYMBOL(try_wait_for_completion);
++
++/**
++ *	completion_done - Test to see if a completion has any waiters
++ *	@x:	completion structure
++ *
++ *	Returns: 0 if there are waiters (wait_for_completion() in progress)
++ *		 1 if there are no waiters.
++ *
++ */
++bool completion_done(struct completion *x)
++{
++	int ret = 1;
++
++	spin_lock_irq(&x->wait.lock);
++	if (!x->done)
++		ret = 0;
++	spin_unlock_irq(&x->wait.lock);
++	return ret;
++}
++EXPORT_SYMBOL(completion_done);
++
+ static long __sched
+ sleep_on_common(wait_queue_head_t *q, int state, long timeout)
+ {
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from david@fromorbit.com are
 
+xfs-clean-up-stale-references-to-semaphores.patch
+xfs-replace-the-xfs-buf-iodone-semaphore-with-a-completion.patch
+xfs-extend-completions-to-provide-xfs-object-flush-requirements.patch
+xfs-replace-inode-flush-semaphore-with-a-completion.patch
+xfs-replace-dquot-flush-semaphore-with-a-completion.patch
+xfs-remove-the-sema_t-from-xfs.patch
+completions-un-inline-try_wait_for_completion-and-completion_done.patch
 linux-next.patch
-drivers-isdn-capi-kcapic-adjust-error-handling-code-involving-capi_ctr_put.patch
-net-ieee80211-adjust-error-handling.patch
-drivers-atm-use-div_round_up.patch
-drivers-block-use-div_round_up.patch
-drivers-media-video-use-div_round_up.patch
-drivers-misc-use-div_round_up.patch
-drivers-net-wan-use-div_round_up.patch
-drivers-scsi-use-div_round_up.patch
-drivers-scsi-megaraid-use-div_round_up.patch
-drivers-net-xen-netfrontc-use-div_round_up.patch
 
