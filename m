@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-use-div_round_up.patch added to -mm tree
-Date: Thu, 14 Aug 2008 14:59:17 -0700
-Message-ID: <200808142159.m7ELxIHg031689@imap1.linux-foundation.org>
+Subject: + drivers-atm-use-div_round_up.patch added to -mm tree
+Date: Thu, 14 Aug 2008 14:59:11 -0700
+Message-ID: <200808142159.m7ELxCKJ031676@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43761 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47066 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750846AbYHNV7Y (ORCPT
+	by vger.kernel.org with ESMTP id S1751019AbYHNV7Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 14 Aug 2008 17:59:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, mchehab@infradead.org
+Cc: julia@diku.dk, chas@cmf.nrl.navy.mil
 
 
 The patch titled
-     drivers/media/video: Use DIV_ROUND_UP
+     drivers/atm: Use DIV_ROUND_UP
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-use-div_round_up.patch
+     drivers-atm-use-div_round_up.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video: Use DIV_ROUND_UP
+Subject: drivers/atm: Use DIV_ROUND_UP
 From: Julia Lawall <julia@diku.dk>
 
 The kernel.h macro DIV_ROUND_UP performs the computation (((n) + (d) - 1) /
 (d)) but is perhaps more readable.
+
+In the case of the file drivers/atm/eni.c, I am a little bit suspicious of
+the -1 at the end of the affected expression.  Please check that that is
+what is wanted.
 
 An extract of the semantic patch that makes this change is as follows:
 (http://www.emn.fr/x-info/coccinelle/)
@@ -77,69 +81,89 @@ expression n,d;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Chas Williams <chas@cmf.nrl.navy.mil>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/bw-qcam.c       |    4 ++--
- drivers/media/video/uvc/uvc_video.c |    2 +-
- drivers/media/video/zoran_device.c  |    4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/atm/eni.c     |    2 +-
+ drivers/atm/horizon.c |    8 ++++----
+ drivers/atm/zatm.c    |    6 +++---
+ 3 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/media/video/bw-qcam.c~drivers-media-video-use-div_round_up drivers/media/video/bw-qcam.c
---- a/drivers/media/video/bw-qcam.c~drivers-media-video-use-div_round_up
-+++ a/drivers/media/video/bw-qcam.c
-@@ -495,7 +495,7 @@ static void qc_set(struct qcam_device *q
- 		val2 = (((q->port_mode & QC_MODE_MASK) == QC_BIDIR) ? 24 : 8) *
- 		    q->transfer_scale;
+diff -puN drivers/atm/eni.c~drivers-atm-use-div_round_up drivers/atm/eni.c
+--- a/drivers/atm/eni.c~drivers-atm-use-div_round_up
++++ a/drivers/atm/eni.c
+@@ -1270,7 +1270,7 @@ static int comp_tx(struct eni_dev *eni_d
+ 			if (*pre < 3) (*pre)++; /* else fail later */
+ 			div = pre_div[*pre]*-*pcr;
+ 			DPRINTK("max div %d\n",div);
+-			*res = (TS_CLOCK+div-1)/div-1;
++			*res = DIV_ROUND_UP(TS_CLOCK, div)-1;
+ 		}
+ 		if (*res < 0) *res = 0;
+ 		if (*res > MID_SEG_MAX_RATE) *res = MID_SEG_MAX_RATE;
+diff -puN drivers/atm/horizon.c~drivers-atm-use-div_round_up drivers/atm/horizon.c
+--- a/drivers/atm/horizon.c~drivers-atm-use-div_round_up
++++ a/drivers/atm/horizon.c
+@@ -635,7 +635,7 @@ static int make_rate (const hrz_dev * de
+ 		// take care of rounding
+ 		switch (r) {
+ 			case round_down:
+-				pre = (br+(c<<div)-1)/(c<<div);
++				pre = DIV_ROUND_UP(br, c<<div);
+ 				// but p must be non-zero
+ 				if (!pre)
+ 					pre = 1;
+@@ -668,7 +668,7 @@ static int make_rate (const hrz_dev * de
+ 			// take care of rounding
+ 			switch (r) {
+ 				case round_down:
+-					pre = (br+(c<<div)-1)/(c<<div);
++					pre = DIV_ROUND_UP(br, c<<div);
+ 					break;
+ 				case round_nearest:
+ 					pre = (br+(c<<div)/2)/(c<<div);
+@@ -698,7 +698,7 @@ got_it:
+ 		if (bits)
+ 			*bits = (div<<CLOCK_SELECT_SHIFT) | (pre-1);
+ 		if (actual) {
+-			*actual = (br + (pre<<div) - 1) / (pre<<div);
++			*actual = DIV_ROUND_UP(br, pre<<div);
+ 			PRINTD (DBG_QOS, "actual rate: %u", *actual);
+ 		}
+ 		return 0;
+@@ -1967,7 +1967,7 @@ static int __devinit hrz_init (hrz_dev *
+   // Set the max AAL5 cell count to be just enough to contain the
+   // largest AAL5 frame that the user wants to receive
+   wr_regw (dev, MAX_AAL5_CELL_COUNT_OFF,
+-	   (max_rx_size + ATM_AAL5_TRAILER + ATM_CELL_PAYLOAD - 1) / ATM_CELL_PAYLOAD);
++	   DIV_ROUND_UP(max_rx_size + ATM_AAL5_TRAILER, ATM_CELL_PAYLOAD));
+   
+   // Enable receive
+   wr_regw (dev, RX_CONFIG_OFF, rd_regw (dev, RX_CONFIG_OFF) | RX_ENABLE);
+diff -puN drivers/atm/zatm.c~drivers-atm-use-div_round_up drivers/atm/zatm.c
+--- a/drivers/atm/zatm.c~drivers-atm-use-div_round_up
++++ a/drivers/atm/zatm.c
+@@ -496,8 +496,8 @@ static int open_rx_first(struct atm_vcc 
+ 			vcc->qos.rxtp.max_sdu = 65464;
+ 			/* fix this - we may want to receive 64kB SDUs
+ 			   later */
+-		cells = (vcc->qos.rxtp.max_sdu+ATM_AAL5_TRAILER+
+-		    ATM_CELL_PAYLOAD-1)/ATM_CELL_PAYLOAD;
++		cells = DIV_ROUND_UP(vcc->qos.rxtp.max_sdu + ATM_AAL5_TRAILER,
++				ATM_CELL_PAYLOAD);
+ 		zatm_vcc->pool = pool_index(cells*ATM_CELL_PAYLOAD);
  	}
--	val = (val + val2 - 1) / val2;
-+	val = DIV_ROUND_UP(val, val2);
- 	qc_command(q, 0x13);
- 	qc_command(q, val);
- 
-@@ -651,7 +651,7 @@ static long qc_capture(struct qcam_devic
- 	transperline = q->width * q->bpp;
- 	divisor = (((q->port_mode & QC_MODE_MASK) == QC_BIDIR) ? 24 : 8) *
- 	    q->transfer_scale;
--	transperline = (transperline + divisor - 1) / divisor;
-+	transperline = DIV_ROUND_UP(transperline, divisor);
- 
- 	for (i = 0, yield = yieldlines; i < linestotrans; i++)
- 	{
-diff -puN drivers/media/video/uvc/uvc_video.c~drivers-media-video-use-div_round_up drivers/media/video/uvc/uvc_video.c
---- a/drivers/media/video/uvc/uvc_video.c~drivers-media-video-use-div_round_up
-+++ a/drivers/media/video/uvc/uvc_video.c
-@@ -655,7 +655,7 @@ static int uvc_init_video_isoc(struct uv
- 	if (size > UVC_MAX_FRAME_SIZE)
- 		return -EINVAL;
- 
--	npackets = (size + psize - 1) / psize;
-+	npackets = DIV_ROUND_UP(size, psize);
- 	if (npackets > UVC_MAX_ISO_PACKETS)
- 		npackets = UVC_MAX_ISO_PACKETS;
- 
-diff -puN drivers/media/video/zoran_device.c~drivers-media-video-use-div_round_up drivers/media/video/zoran_device.c
---- a/drivers/media/video/zoran_device.c~drivers-media-video-use-div_round_up
-+++ a/drivers/media/video/zoran_device.c
-@@ -377,7 +377,7 @@ zr36057_set_vfe (struct zoran           
- 
- 	/* horizontal */
- 	VidWinWid = video_width;
--	X = (VidWinWid * 64 + tvn->Wa - 1) / tvn->Wa;
-+	X = DIV_ROUND_UP(VidWinWid * 64, tvn->Wa);
- 	We = (VidWinWid * 64) / X;
- 	HorDcm = 64 - X;
- 	hcrop1 = 2 * ((tvn->Wa - We) / 4);
-@@ -403,7 +403,7 @@ zr36057_set_vfe (struct zoran           
- 	/* Vertical */
- 	DispMode = !(video_height > BUZ_MAX_HEIGHT / 2);
- 	VidWinHt = DispMode ? video_height : video_height / 2;
--	Y = (VidWinHt * 64 * 2 + tvn->Ha - 1) / tvn->Ha;
-+	Y = DIV_ROUND_UP(VidWinHt * 64 * 2, tvn->Ha);
- 	He = (VidWinHt * 64) / Y;
- 	VerDcm = 64 - Y;
- 	vcrop1 = (tvn->Ha / 2 - He) / 2;
+ 	else {
+@@ -820,7 +820,7 @@ static int alloc_shaper(struct atm_dev *
+ 			}
+ 			else {
+ 				i = 255;
+-				m = (ATM_OC3_PCR*255+max-1)/max;
++				m = DIV_ROUND_UP(ATM_OC3_PCR*255, max);
+ 			}
+ 		}
+ 		if (i > m) {
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
