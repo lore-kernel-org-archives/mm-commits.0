@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + configfs-consolidate-locking-around-configfs_detach_prep-in-configfs_rmdir.patch added to -mm tree
-Date: Thu, 14 Aug 2008 01:58:10 -0700
-Message-ID: <200808140858.m7E8wAGQ000341@imap1.linux-foundation.org>
+Subject: + hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds.patch added to -mm tree
+Date: Thu, 14 Aug 2008 01:59:11 -0700
+Message-ID: <200808140859.m7E8xBWE000428@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58724 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58852 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751780AbYHNI6a (ORCPT
+	by vger.kernel.org with ESMTP id S1752298AbYHNI7V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Aug 2008 04:58:30 -0400
+	Thu, 14 Aug 2008 04:59:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: louis.rilling@kerlabs.com, Joel.Becker@oracle.com
+Cc: richard@rsk.demon.co.uk, tglx@linutronix.de
 
 
 The patch titled
-     configfs: consolidate locking around configfs_detach_prep() in configfs_rmdir()
+     hrtimer: reorder struct hrtimer to save 8 bytes on 64 bit builds
 has been added to the -mm tree.  Its filename is
-     configfs-consolidate-locking-around-configfs_detach_prep-in-configfs_rmdir.patch
+     hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: configfs: consolidate locking around configfs_detach_prep() in configfs_rmdir()
-From: Louis Rilling <louis.rilling@kerlabs.com>
+Subject: hrtimer: reorder struct hrtimer to save 8 bytes on 64 bit builds
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-It appears that configfs_rmdir() can protect configfs_detach_prep()
-retries with less calls to {spin,mutex}_{lock,unlock}, and cleaner code.
+reorder struct hrtimer to save 8 bytes on 64 bit builds when
+CONFIG_TIMER_STATS selected.  (also removes 8 bytes from signal_struct)
 
-This patch does not change any behavior, except that it removes two
-useless lock/unlock pairs having nothing inside to protect and providing a
-useless barrier.
-
-Signed-off-by: Louis Rilling <louis.rilling@kerlabs.com>
-Cc: Joel Becker <Joel.Becker@oracle.com>
+Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/configfs/dir.c |   17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ include/linux/hrtimer.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/configfs/dir.c~configfs-consolidate-locking-around-configfs_detach_prep-in-configfs_rmdir fs/configfs/dir.c
---- a/fs/configfs/dir.c~configfs-consolidate-locking-around-configfs_detach_prep-in-configfs_rmdir
-+++ a/fs/configfs/dir.c
-@@ -1311,16 +1311,18 @@ static int configfs_rmdir(struct inode *
- 	 * Ensure that no racing symlink() will make detach_prep() fail while
- 	 * the new link is temporarily attached
- 	 */
--	mutex_lock(&configfs_symlink_mutex);
--	spin_lock(&configfs_dirent_lock);
- 	do {
- 		struct mutex *wait_mutex;
+diff -puN include/linux/hrtimer.h~hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds
++++ a/include/linux/hrtimer.h
+@@ -115,12 +115,12 @@ struct hrtimer {
+ 	enum hrtimer_restart		(*function)(struct hrtimer *);
+ 	struct hrtimer_clock_base	*base;
+ 	unsigned long			state;
+-	enum hrtimer_cb_mode		cb_mode;
+ 	struct list_head		cb_entry;
++	enum hrtimer_cb_mode		cb_mode;
+ #ifdef CONFIG_TIMER_STATS
++	int				start_pid;
+ 	void				*start_site;
+ 	char				start_comm[16];
+-	int				start_pid;
+ #endif
+ };
  
-+		mutex_lock(&configfs_symlink_mutex);
-+		spin_lock(&configfs_dirent_lock);
- 		ret = configfs_detach_prep(dentry, &wait_mutex);
--		if (ret) {
-+		if (ret)
- 			configfs_detach_rollback(dentry);
--			spin_unlock(&configfs_dirent_lock);
--			mutex_unlock(&configfs_symlink_mutex);
-+		spin_unlock(&configfs_dirent_lock);
-+		mutex_unlock(&configfs_symlink_mutex);
-+
-+		if (ret) {
- 			if (ret != -EAGAIN) {
- 				config_item_put(parent_item);
- 				return ret;
-@@ -1329,13 +1331,8 @@ static int configfs_rmdir(struct inode *
- 			/* Wait until the racing operation terminates */
- 			mutex_lock(wait_mutex);
- 			mutex_unlock(wait_mutex);
+_
+
+Patches currently in -mm which might be from richard@rsk.demon.co.uk are
+
+hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds.patch
+
