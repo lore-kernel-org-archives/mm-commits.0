@@ -1,78 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - e1000e-set-interruptthrottlerate-to-default-when-invalid-value-used.patch removed from -mm tree
-Date: Thu, 14 Aug 2008 16:54:28 -0700
-Message-ID: <200808142354.m7ENsSap003941@imap1.linux-foundation.org>
+Subject: - e1000e-return-1-instead-of-a-non-zero-value-for-link-up-indication.patch removed from -mm tree
+Date: Thu, 14 Aug 2008 16:54:26 -0700
+Message-ID: <200808142354.m7ENsQVL003938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35023 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60847 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752042AbYHNXya (ORCPT
+	by vger.kernel.org with ESMTP id S1752033AbYHNXy3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Aug 2008 19:54:30 -0400
+	Thu, 14 Aug 2008 19:54:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bruce.w.allan@intel.com, jeffrey.t.kirsher@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     e1000e: set InterruptThrottleRate to default when invalid value used
+     e1000e: return 1 instead of a non-zero value for link up indication
 has been removed from the -mm tree.  Its filename was
-     e1000e-set-interruptthrottlerate-to-default-when-invalid-value-used.patch
+     e1000e-return-1-instead-of-a-non-zero-value-for-link-up-indication.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: e1000e: set InterruptThrottleRate to default when invalid value used
+Subject: e1000e: return 1 instead of a non-zero value for link up indication
 From: Bruce Allan <bruce.w.allan@intel.com>
 
-During module load, seting the InterruptThrottleRate parameter to an
-invalid value would result in the itr/itr_setting pair being set to
-unexpected values which would result in poor performance.
+A number of users have mentioned they have tools that rely on a link-up
+indication having a return value of 1 rather than a non-zero value.
 
 Signed-off-by: Bruce Allan <bruce.w.allan@intel.com>
 Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000e/param.c |   23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ drivers/net/e1000e/ethtool.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/e1000e/param.c~e1000e-set-interruptthrottlerate-to-default-when-invalid-value-used drivers/net/e1000e/param.c
---- a/drivers/net/e1000e/param.c~e1000e-set-interruptthrottlerate-to-default-when-invalid-value-used
-+++ a/drivers/net/e1000e/param.c
-@@ -327,11 +327,26 @@ void __devinit e1000e_check_options(stru
- 				e1000_validate_option(&adapter->itr, &opt,
- 					adapter);
- 				/*
--				 * save the setting, because the dynamic bits
--				 * change itr. clear the lower two bits
--				 * because they are used as control
-+				 * Save the setting, because the dynamic bits
-+				 * change itr.
- 				 */
--				adapter->itr_setting = adapter->itr & ~3;
-+				if (e1000_validate_option(&adapter->itr, &opt,
-+							  adapter) &&
-+				    (adapter->itr == 3)) {
-+					/*
-+					 * In case of invalid user value,
-+					 * default to conservative mode.
-+					 */
-+					adapter->itr_setting = adapter->itr;
-+					adapter->itr = 20000;
-+				} else {
-+					/*
-+					 * Clear the lower two bits because
-+					 * they are used as control.
-+					 */
-+					adapter->itr_setting =
-+						adapter->itr & ~3;
-+				}
- 				break;
- 			}
- 		} else {
+diff -puN drivers/net/e1000e/ethtool.c~e1000e-return-1-instead-of-a-non-zero-value-for-link-up-indication drivers/net/e1000e/ethtool.c
+--- a/drivers/net/e1000e/ethtool.c~e1000e-return-1-instead-of-a-non-zero-value-for-link-up-indication
++++ a/drivers/net/e1000e/ethtool.c
+@@ -177,7 +177,7 @@ static u32 e1000_get_link(struct net_dev
+ 	u32 status;
+ 	
+ 	status = er32(STATUS);
+-	return (status & E1000_STATUS_LU);
++	return (status & E1000_STATUS_LU) ? 1 : 0;
+ }
+ 
+ static int e1000_set_spd_dplx(struct e1000_adapter *adapter, u16 spddplx)
 _
 
 Patches currently in -mm which might be from bruce.w.allan@intel.com are
