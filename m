@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reorder-struct-prop_local_single-to-remove-padding-on-64-bit-builds.patch added to -mm tree
-Date: Thu, 14 Aug 2008 02:01:17 -0700
-Message-ID: <200808140901.m7E91HC1000508@imap1.linux-foundation.org>
+Subject: + maintainers-add-maintainers-for-gru-xpc-xpnet-and-xp.patch added to -mm tree
+Date: Thu, 14 Aug 2008 02:02:36 -0700
+Message-ID: <200808140902.m7E92aSv000536@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34729 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53086 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758064AbYHNJB2 (ORCPT
+	by vger.kernel.org with ESMTP id S1753656AbYHNJCu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Aug 2008 05:01:28 -0400
+	Thu, 14 Aug 2008 05:02:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard@rsk.demon.co.uk, a.p.zijlstra@chello.nl
+Cc: steiner@sgi.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     reorder struct prop_local_single to remove padding on 64 bit builds
+     MAINTAINERS: add maintainers for GRU, XPC, XPNET and XP
 has been added to the -mm tree.  Its filename is
-     reorder-struct-prop_local_single-to-remove-padding-on-64-bit-builds.patch
+     maintainers-add-maintainers-for-gru-xpc-xpnet-and-xp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reorder struct prop_local_single to remove padding on 64 bit builds
-From: Richard Kennedy <richard@rsk.demon.co.uk>
+Subject: MAINTAINERS: add maintainers for GRU, XPC, XPNET and XP
+From: Jack Steiner <steiner@sgi.com>
 
-reorder structure to remove 8 bytes of padding on 64 bit builds
+Add MAINTAINERS for GRU, XPNET, XPC and XP drivers.
 
-(also removes 8 bytes from task_struct)
-
-Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Jack Steiner <steiner@sgi.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/proportions.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN include/linux/proportions.h~reorder-struct-prop_local_single-to-remove-padding-on-64-bit-builds include/linux/proportions.h
---- a/include/linux/proportions.h~reorder-struct-prop_local_single-to-remove-padding-on-64-bit-builds
-+++ a/include/linux/proportions.h
-@@ -104,8 +104,8 @@ struct prop_local_single {
- 	 * snapshot of the last seen global state
- 	 * and a lock protecting this state
- 	 */
--	int shift;
- 	unsigned long period;
-+	int shift;
- 	spinlock_t lock;		/* protect the snapshot state */
- };
+diff -puN MAINTAINERS~maintainers-add-maintainers-for-gru-xpc-xpnet-and-xp MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-maintainers-for-gru-xpc-xpnet-and-xp
++++ a/MAINTAINERS
+@@ -3763,6 +3763,16 @@ L:	linux-visws-devel@lists.sf.net
+ W:	http://linux-visws.sf.net
+ S:	Maintained for 2.6.
  
++SGI GRU DRIVER
++P:	Jack Steiner
++M:	steiner@sgi.com
++S:	Maintained
++
++SGI XP/XPC/XPNET DRIVER
++P:	Dean Nelson
++M:	dcn@sgi.com
++S:	Maintained
++
+ SIMTEC EB110ATX (Chalice CATS)
+ P:	Ben Dooks
+ P:	Vincent Sanders
 _
 
-Patches currently in -mm which might be from richard@rsk.demon.co.uk are
+Patches currently in -mm which might be from steiner@sgi.com are
 
-hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds.patch
-sched-reorder-signal_struct-to-remove-8-bytes-on-64-bit-builds.patch
-sched-reorder-struct-sched_rt_entity-to-remove-padding-on-64-bit-builds.patch
-reorder-struct-prop_local_single-to-remove-padding-on-64-bit-builds.patch
+maintainers-add-maintainers-for-gru-xpc-xpnet-and-xp.patch
+linux-next.patch
 
