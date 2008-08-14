@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup.patch added to -mm tree
-Date: Thu, 14 Aug 2008 14:14:48 -0700
-Message-ID: <200808142114.m7ELEmhY029912@imap1.linux-foundation.org>
+Subject: + spi-bugfix-spi_add_device-with-duplicate-chipselects.patch added to -mm tree
+Date: Thu, 14 Aug 2008 14:14:45 -0700
+Message-ID: <200808142114.m7ELEktJ029909@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53895 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37546 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753502AbYHNVP1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753703AbYHNVP2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Aug 2008 17:15:27 -0400
+	Thu, 14 Aug 2008 17:15:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dbrownell@users.sourceforge.net
+Cc: dbrownell@users.sourceforge.net
 
 
 The patch titled
-     spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup
+     spi: bugfix spi_add_device() with duplicate chipselects
 has been added to the -mm tree.  Its filename is
-     spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup.patch
+     spi-bugfix-spi_add_device-with-duplicate-chipselects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,116 +34,118 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: spi: bugfix spi_add_device() with duplicate chipselects
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Cc: David Brownell <dbrownell@users.sourceforge.net>
+When reviewing a recent patch I noticed a potential trouble spot in the
+registration of new SPI devices.  The SPI master driver is told to set the
+device up before adding it to the driver model, so that it's always
+properly set up when probe() is called.  (This is important, because in
+the case of inverted chipselects, this device can make the bus misbehave
+until it's properly deselected.  It's got to be set up even if no driver
+binds to the device.)
+
+The trouble spot is that it doesn't first verify that no other device has
+been added using that chipselect.  If such a device has been added, its
+configuration gets trashed.  (Fortunately this has not been a common
+error!)
+
+The fix here adds an explicit check, and a mutex to protect the relevant
+critical region.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/spi/spi.c |   41 ++++++++++++++++++++++++++++++-----------
+ 1 file changed, 30 insertions(+), 11 deletions(-)
 
-diff -puN drivers/spi/spi.c~spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup drivers/spi/spi.c
---- a/drivers/spi/spi.c~spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup
+diff -puN drivers/spi/spi.c~spi-bugfix-spi_add_device-with-duplicate-chipselects drivers/spi/spi.c
+--- a/drivers/spi/spi.c~spi-bugfix-spi_add_device-with-duplicate-chipselects
 +++ a/drivers/spi/spi.c
-@@ -219,8 +219,6 @@ struct spi_device *spi_alloc_device(stru
+@@ -219,6 +219,8 @@ struct spi_device *spi_alloc_device(stru
  }
  EXPORT_SYMBOL_GPL(spi_alloc_device);
  
--static DEFINE_MUTEX(spi_add_lock);
--
++static DEFINE_MUTEX(spi_add_lock);
++
  /**
   * spi_add_device - Add spi_device allocated with spi_alloc_device
   * @spi: spi_device to register
-@@ -232,6 +230,7 @@ static DEFINE_MUTEX(spi_add_lock);
+@@ -226,7 +228,7 @@ EXPORT_SYMBOL_GPL(spi_alloc_device);
+  * Companion function to spi_alloc_device.  Devices allocated with
+  * spi_alloc_device can be added onto the spi bus with this function.
+  *
+- * Returns 0 on success; non-zero on failure
++ * Returns 0 on success; negative errno on failure
   */
  int spi_add_device(struct spi_device *spi)
  {
-+	static DEFINE_MUTEX(spi_add_lock);
- 	struct device *dev = spi->master->dev.parent;
- 	int status;
+@@ -246,26 +248,43 @@ int spi_add_device(struct spi_device *sp
+ 			"%s.%u", spi->master->dev.bus_id,
+ 			spi->chip_select);
+ 
+-	/* drivers may modify this initial i/o setup */
++
++	/* We need to make sure there's no other device with this
++	 * chipselect **BEFORE** we call setup(), else we'll trash
++	 * its configuration.  Lock against concurrent add() calls.
++	 */
++	mutex_lock(&spi_add_lock);
++
++	if (bus_find_device_by_name(&spi_bus_type, NULL, spi->dev.bus_id)
++			!= NULL) {
++		dev_err(dev, "chipselect %d already in use\n",
++				spi->chip_select);
++		status = -EBUSY;
++		goto done;
++	}
++
++	/* Drivers may modify this initial i/o setup, but will
++	 * normally rely on the device being setup.  Devices
++	 * using SPI_CS_HIGH can't coexist well otherwise...
++	 */
+ 	status = spi->master->setup(spi);
+ 	if (status < 0) {
+ 		dev_err(dev, "can't %s %s, status %d\n",
+ 				"setup", spi->dev.bus_id, status);
+-		return status;
++		goto done;
+ 	}
+ 
+-	/* driver core catches callers that misbehave by defining
+-	 * devices that already exist.
+-	 */
++	/* Device may be bound to an active driver when this returns */
+ 	status = device_add(&spi->dev);
+-	if (status < 0) {
++	if (status < 0)
+ 		dev_err(dev, "can't %s %s, status %d\n",
+ 				"add", spi->dev.bus_id, status);
+-		return status;
+-	}
++	else
++		dev_dbg(dev, "registered child %s\n", spi->dev.bus_id);
+ 
+-	dev_dbg(dev, "registered child %s\n", spi->dev.bus_id);
+-	return 0;
++done:
++	mutex_unlock(&spi_add_lock);
++	return status;
+ }
+ EXPORT_SYMBOL_GPL(spi_add_device);
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
-kexec-jump-check-code-size-in-control-page-fix.patch
-kexec-use-a-bitop-for-locking-rather-than-xchg.patch
-hwmon-adc124s501-generic-driver.patch
+spi-bugfix-spi_add_device-with-duplicate-chipselects.patch
 spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-next-remove-localversion.patch
-acpi-trivial-cleanups-fix.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-x86-microcode-patch-loader-style-corrections-fix.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-drivers-ata-pata_it821xc-fix-warning.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers-tweaks.patch
-ftrace-printk-formatting-infrastructure-fix-fix.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-scsi-megaraid_sas-add-the-new-controllers-support.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-net-tipc-subscrc-dont-use-___constant_swab32.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+usb-hso-driver-fix-kconfig.patch
+rtc-ds1307-alarm-support-for-ds1337-ds1339.patch
+rtc-remove-some-nop-open-release-methods.patch
+legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
+rtc-file-close-consistently-disables-repeating-irqs.patch
+irq-warn-about-irqf_disabledirqf_shared.patch
 
