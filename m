@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds.patch added to -mm tree
-Date: Thu, 14 Aug 2008 01:59:11 -0700
-Message-ID: <200808140859.m7E8xBWE000428@imap1.linux-foundation.org>
+Subject: + sched-reorder-signal_struct-to-remove-8-bytes-on-64-bit-builds.patch added to -mm tree
+Date: Thu, 14 Aug 2008 02:00:36 -0700
+Message-ID: <200808140900.m7E90avG000489@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58852 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35485 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752298AbYHNI7V (ORCPT
+	by vger.kernel.org with ESMTP id S1755014AbYHNJBK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Aug 2008 04:59:21 -0400
+	Thu, 14 Aug 2008 05:01:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: richard@rsk.demon.co.uk, tglx@linutronix.de
+Cc: richard@rsk.demon.co.uk, a.p.zijlstra@chello.nl, mingo@elte.hu
 
 
 The patch titled
-     hrtimer: reorder struct hrtimer to save 8 bytes on 64 bit builds
+     sched: reorder signal_struct to remove 8 bytes on 64 bit builds
 has been added to the -mm tree.  Its filename is
-     hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds.patch
+     sched-reorder-signal_struct-to-remove-8-bytes-on-64-bit-builds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hrtimer: reorder struct hrtimer to save 8 bytes on 64 bit builds
+Subject: sched: reorder signal_struct to remove 8 bytes on 64 bit builds
 From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-reorder struct hrtimer to save 8 bytes on 64 bit builds when
-CONFIG_TIMER_STATS selected.  (also removes 8 bytes from signal_struct)
+reorder structure to remove 8 bytes of padding on 64 bit builds
 
 Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hrtimer.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/sched.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/hrtimer.h~hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds include/linux/hrtimer.h
---- a/include/linux/hrtimer.h~hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds
-+++ a/include/linux/hrtimer.h
-@@ -115,12 +115,12 @@ struct hrtimer {
- 	enum hrtimer_restart		(*function)(struct hrtimer *);
- 	struct hrtimer_clock_base	*base;
- 	unsigned long			state;
--	enum hrtimer_cb_mode		cb_mode;
- 	struct list_head		cb_entry;
-+	enum hrtimer_cb_mode		cb_mode;
- #ifdef CONFIG_TIMER_STATS
-+	int				start_pid;
- 	void				*start_site;
- 	char				start_comm[16];
--	int				start_pid;
- #endif
- };
+diff -puN include/linux/sched.h~sched-reorder-signal_struct-to-remove-8-bytes-on-64-bit-builds include/linux/sched.h
+--- a/include/linux/sched.h~sched-reorder-signal_struct-to-remove-8-bytes-on-64-bit-builds
++++ a/include/linux/sched.h
+@@ -451,8 +451,8 @@ struct signal_struct {
+ 	 * - everyone except group_exit_task is stopped during signal delivery
+ 	 *   of fatal signals, group_exit_task processes the signal.
+ 	 */
+-	struct task_struct	*group_exit_task;
+ 	int			notify_count;
++	struct task_struct	*group_exit_task;
  
+ 	/* thread group stop support, overloads group_exit_code too */
+ 	int			group_stop_count;
 _
 
 Patches currently in -mm which might be from richard@rsk.demon.co.uk are
 
 hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds.patch
+sched-reorder-signal_struct-to-remove-8-bytes-on-64-bit-builds.patch
+sched-reorder-struct-sched_rt_entity-to-remove-padding-on-64-bit-builds.patch
+reorder-struct-prop_local_single-to-remove-padding-on-64-bit-builds.patch
 
