@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + p54usb-regression-due-to-commit-b19fa1f.patch added to -mm tree
-Date: Thu, 14 Aug 2008 14:40:56 -0700
-Message-ID: <200808142140.m7ELeuI5030945@imap1.linux-foundation.org>
+Subject: + hci_usb-replace-mb-with-smp_mb.patch added to -mm tree
+Date: Thu, 14 Aug 2008 14:42:27 -0700
+Message-ID: <200808142142.m7ELgRXC030985@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49459 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50481 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751052AbYHNVlA (ORCPT
+	by vger.kernel.org with ESMTP id S1754309AbYHNVnG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Aug 2008 17:41:00 -0400
+	Thu, 14 Aug 2008 17:43:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Larry.Finger@lwfinger.net
+Cc: tom.leiming@gmail.com, hidave.darkstar@gmail.com, marcel@holtmann.org
 
 
 The patch titled
-     p54usb: regression  due to commit b19fa1f
+     hci_usb: replace mb with smp_mb
 has been added to the -mm tree.  Its filename is
-     p54usb-regression-due-to-commit-b19fa1f.patch
+     hci_usb-replace-mb-with-smp_mb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: p54usb: regression  due to commit b19fa1f
-From: Larry Finger <Larry.Finger@lwfinger.net>
+Subject: hci_usb: replace mb with smp_mb
+From: Ming Lei <tom.leiming@gmail.com>
 
-In commit b19fa1fa91845234961c64dbd564671aa7c0fd27, the configuration
-parameter NETDEVICES_MULTIQUEUE was eliminated making multiple TX queues
-the normal behavior.  For p54usb, enabling multiple queues broke the
-driver.
+smp_mb is enough for ordering memory operations among processors,and mb is
+more expensive than smp_mb for UP machine, so replace it with smp_mb().
 
-A temporary hack that forces only one queue is presented here.  With it,
-the driver works as before.  Obviously, a proper fix is needed in the long
-run.
-
-Signed-off-by: Larry Finger <Larry.Finger@lwfinger.net>
+Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>
+Cc: Dave Young <hidave.darkstar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/p54/p54common.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/bluetooth/hci_usb.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/wireless/p54/p54common.c~p54usb-regression-due-to-commit-b19fa1f drivers/net/wireless/p54/p54common.c
---- a/drivers/net/wireless/p54/p54common.c~p54usb-regression-due-to-commit-b19fa1f
-+++ a/drivers/net/wireless/p54/p54common.c
-@@ -150,7 +150,7 @@ void p54_parse_firmware(struct ieee80211
- 		priv->tx_stats[1].limit = 4;
- 		priv->tx_stats[2].limit = 3;
- 		priv->tx_stats[3].limit = 1;
--		dev->queues = 4;
-+		dev->queues = 1; /* temp. hack, set to 1 as 4 breaks p54usb */
- 	}
+diff -puN drivers/bluetooth/hci_usb.h~hci_usb-replace-mb-with-smp_mb drivers/bluetooth/hci_usb.h
+--- a/drivers/bluetooth/hci_usb.h~hci_usb-replace-mb-with-smp_mb
++++ a/drivers/bluetooth/hci_usb.h
+@@ -70,8 +70,8 @@ static inline void _urb_queue_head(struc
+ {
+ 	unsigned long flags;
+ 	spin_lock_irqsave(&q->lock, flags);
+-	/* _urb_unlink needs to know which spinlock to use, thus mb(). */
+-	_urb->queue = q; mb(); list_add(&_urb->list, &q->head);
++	/* _urb_unlink needs to know which spinlock to use, thus smp_mb(). */
++	_urb->queue = q; smp_mb(); list_add(&_urb->list, &q->head);
+ 	spin_unlock_irqrestore(&q->lock, flags);
  }
- EXPORT_SYMBOL_GPL(p54_parse_firmware);
+ 
+@@ -79,8 +79,8 @@ static inline void _urb_queue_tail(struc
+ {
+ 	unsigned long flags;
+ 	spin_lock_irqsave(&q->lock, flags);
+-	/* _urb_unlink needs to know which spinlock to use, thus mb(). */
+-	_urb->queue = q; mb(); list_add_tail(&_urb->list, &q->head);
++	/* _urb_unlink needs to know which spinlock to use, thus smp_mb(). */
++	_urb->queue = q; smp_mb(); list_add_tail(&_urb->list, &q->head);
+ 	spin_unlock_irqrestore(&q->lock, flags);
+ }
+ 
+@@ -89,7 +89,7 @@ static inline void _urb_unlink(struct _u
+ 	struct _urb_queue *q;
+ 	unsigned long flags;
+ 
+-	mb();
++	smp_mb();
+ 	q = _urb->queue;
+ 	/* If q is NULL, it will die at easy-to-debug NULL pointer dereference.
+ 	   No need to BUG(). */
 _
 
-Patches currently in -mm which might be from Larry.Finger@lwfinger.net are
+Patches currently in -mm which might be from tom.leiming@gmail.com are
 
-net-ieee80211-adjust-error-handling.patch
-p54usb-regression-due-to-commit-b19fa1f.patch
+hci_usb-replace-mb-with-smp_mb.patch
 
