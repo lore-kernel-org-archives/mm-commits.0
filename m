@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-add-support-for-addressrangeunusuable-acpi-memory-type.patch added to -mm tree
-Date: Thu, 14 Aug 2008 02:22:02 -0700
-Message-ID: <200808140922.m7E9M21U001353@imap1.linux-foundation.org>
+Subject: + ixp4xx_eth-fix-dma_mapping_error-compile-errors.patch added to -mm tree
+Date: Thu, 14 Aug 2008 02:26:15 -0700
+Message-ID: <200808140926.m7E9QFL5001513@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49767 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54315 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752009AbYHNJXA (ORCPT
+	by vger.kernel.org with ESMTP id S1752534AbYHNJ2c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Aug 2008 05:23:00 -0400
+	Thu, 14 Aug 2008 05:28:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joseph.cihula@intel.com, andi@firstfloor.org, gang.wei@intel.com, mingo@elte.hu, shane.wang@intel.com, tglx@linutronix.de
+Cc: mikpe@it.uu.se, jeff@garzik.org, khc@pm.waw.pl
 
 
 The patch titled
-     acpi: add support for AddressRangeUnusuable ACPI memory type
+     ixp4xx_eth: fix dma_mapping_error() compile errors
 has been added to the -mm tree.  Its filename is
-     acpi-add-support-for-addressrangeunusuable-acpi-memory-type.patch
+     ixp4xx_eth-fix-dma_mapping_error-compile-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: add support for AddressRangeUnusuable ACPI memory type
-From: "Cihula, Joseph" <joseph.cihula@intel.com>
+Subject: ixp4xx_eth: fix dma_mapping_error() compile errors
+From: Mikael Pettersson <mikpe@it.uu.se>
 
-Add support for the E820_UNUSABLE memory type, which is defined in
-Revision 3.0b (Oct.  10, 2006) of the ACPI Specification on p.  394 Table
-14-1:
+The arm ixp4xx_eth driver doesn't compile in 2.6.27-rc1:
 
-  AddressRangeUnusuable This range of address contains memory in which
-  errors have been detected.  This range must not be used by the OSPM.
+  CC [M]  drivers/net/arm/ixp4xx_eth.o
+drivers/net/arm/ixp4xx_eth.c: In function 'eth_poll':
+drivers/net/arm/ixp4xx_eth.c:554: warning: passing argument 1 of 'dma_mapping_error' makes pointer from integer without a cast
+drivers/net/arm/ixp4xx_eth.c:554: error: too few arguments to function 'dma_mapping_error'
+drivers/net/arm/ixp4xx_eth.c: In function 'eth_xmit':
+drivers/net/arm/ixp4xx_eth.c:701: warning: passing argument 1 of 'dma_mapping_error' makes pointer from integer without a cast
+drivers/net/arm/ixp4xx_eth.c:701: error: too few arguments to function 'dma_mapping_error'
+drivers/net/arm/ixp4xx_eth.c: In function 'init_queues':
+drivers/net/arm/ixp4xx_eth.c:886: warning: passing argument 1 of 'dma_mapping_error' makes pointer from integer without a cast
+drivers/net/arm/ixp4xx_eth.c:886: error: too few arguments to function 'dma_mapping_error'
+make[3]: *** [drivers/net/arm/ixp4xx_eth.o] Error 1
+make[2]: *** [drivers/net/arm] Error 2
+make[1]: *** [drivers/net] Error 2
+make: *** [drivers] Error 2
 
-Signed-off-by: Joseph Cihula <joseph.cihula@intel.com>
-Signed-off-by: Shane Wang <shane.wang@intel.com>
-Signed-off-by: Gang Wei <gang.wei@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <andi@firstfloor.org>
+dma_mapping_error() changed in 2.6.27-rc1 to also take a device parameter,
+but nobody bothered updating ixp4xx_eth.c. Fixed by passing the appropriate
+device value in the dma_mapping_error() calls.
+
+Tested on an ixp425 box.
+
+Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
+Acked-by: Krzysztof Halasa <khc@pm.waw.pl>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/e820.c |    4 ++++
- include/asm-x86/e820.h |    1 +
- 2 files changed, 5 insertions(+)
+ drivers/net/arm/ixp4xx_eth.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/e820.c~acpi-add-support-for-addressrangeunusuable-acpi-memory-type arch/x86/kernel/e820.c
---- a/arch/x86/kernel/e820.c~acpi-add-support-for-addressrangeunusuable-acpi-memory-type
-+++ a/arch/x86/kernel/e820.c
-@@ -148,6 +148,9 @@ void __init e820_print_map(char *who)
- 		case E820_NVS:
- 			printk(KERN_CONT "(ACPI NVS)\n");
- 			break;
-+		case E820_UNUSABLE:
-+			printk("(unusable)\n");
-+			break;
- 		default:
- 			printk(KERN_CONT "type %u\n", e820.map[i].type);
- 			break;
-@@ -1260,6 +1263,7 @@ static inline const char *e820_type_to_s
- 	case E820_RAM:	return "System RAM";
- 	case E820_ACPI:	return "ACPI Tables";
- 	case E820_NVS:	return "ACPI Non-volatile Storage";
-+	case E820_UNUSABLE:	return "Unusable memory";
- 	default:	return "reserved";
- 	}
- }
-diff -puN include/asm-x86/e820.h~acpi-add-support-for-addressrangeunusuable-acpi-memory-type include/asm-x86/e820.h
---- a/include/asm-x86/e820.h~acpi-add-support-for-addressrangeunusuable-acpi-memory-type
-+++ a/include/asm-x86/e820.h
-@@ -43,6 +43,7 @@
- #define E820_RESERVED	2
- #define E820_ACPI	3
- #define E820_NVS	4
-+#define E820_UNUSABLE	5
+diff -puN drivers/net/arm/ixp4xx_eth.c~ixp4xx_eth-fix-dma_mapping_error-compile-errors drivers/net/arm/ixp4xx_eth.c
+--- a/drivers/net/arm/ixp4xx_eth.c~ixp4xx_eth-fix-dma_mapping_error-compile-errors
++++ a/drivers/net/arm/ixp4xx_eth.c
+@@ -551,7 +551,7 @@ static int eth_poll(struct napi_struct *
+ 		if ((skb = netdev_alloc_skb(dev, RX_BUFF_SIZE))) {
+ 			phys = dma_map_single(&dev->dev, skb->data,
+ 					      RX_BUFF_SIZE, DMA_FROM_DEVICE);
+-			if (dma_mapping_error(phys)) {
++			if (dma_mapping_error(&dev->dev, phys)) {
+ 				dev_kfree_skb(skb);
+ 				skb = NULL;
+ 			}
+@@ -698,7 +698,7 @@ static int eth_xmit(struct sk_buff *skb,
+ #endif
  
- /* reserved RAM used by kernel itself */
- #define E820_RESERVED_KERN        128
+ 	phys = dma_map_single(&dev->dev, mem, bytes, DMA_TO_DEVICE);
+-	if (dma_mapping_error(phys)) {
++	if (dma_mapping_error(&dev->dev, phys)) {
+ #ifdef __ARMEB__
+ 		dev_kfree_skb(skb);
+ #else
+@@ -883,7 +883,7 @@ static int init_queues(struct port *port
+ 		desc->buf_len = MAX_MRU;
+ 		desc->data = dma_map_single(&port->netdev->dev, data,
+ 					    RX_BUFF_SIZE, DMA_FROM_DEVICE);
+-		if (dma_mapping_error(desc->data)) {
++		if (dma_mapping_error(&port->netdev->dev, desc->data)) {
+ 			free_buffer(buff);
+ 			return -EIO;
+ 		}
 _
 
-Patches currently in -mm which might be from joseph.cihula@intel.com are
+Patches currently in -mm which might be from mikpe@it.uu.se are
 
-acpi-add-support-for-addressrangeunusuable-acpi-memory-type.patch
+ixp4xx_eth-fix-dma_mapping_error-compile-errors.patch
 
