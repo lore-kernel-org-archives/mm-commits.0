@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ixp4xx_eth-fix-dma_mapping_error-compile-errors.patch added to -mm tree
-Date: Thu, 14 Aug 2008 02:26:15 -0700
-Message-ID: <200808140926.m7E9QFL5001513@imap1.linux-foundation.org>
+Subject: + leds-avoid-needless-strlen-for-attributes.patch added to -mm tree
+Date: Thu, 14 Aug 2008 02:31:05 -0700
+Message-ID: <200808140931.m7E9V5UZ001663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54315 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38941 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752534AbYHNJ2c (ORCPT
+	by vger.kernel.org with ESMTP id S1757766AbYHNJbX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Aug 2008 05:28:32 -0400
+	Thu, 14 Aug 2008 05:31:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mikpe@it.uu.se, jeff@garzik.org, khc@pm.waw.pl
+Cc: sven.wegener@stealer.net, ray-lk@madrabbit.org, rpurdie@rpsys.net
 
 
 The patch titled
-     ixp4xx_eth: fix dma_mapping_error() compile errors
+     leds: avoid needless strlen() for attributes
 has been added to the -mm tree.  Its filename is
-     ixp4xx_eth-fix-dma_mapping_error-compile-errors.patch
+     leds-avoid-needless-strlen-for-attributes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ixp4xx_eth: fix dma_mapping_error() compile errors
-From: Mikael Pettersson <mikpe@it.uu.se>
+Subject: leds: avoid needless strlen() for attributes
+From: Sven Wegener <sven.wegener@stealer.net>
 
-The arm ixp4xx_eth driver doesn't compile in 2.6.27-rc1:
+There's no need for the additional call to strlen(), we can directly
+return the value returned by sprintf().  We now return a length value that
+doesn't include the final '\0', but user space shouldn't bother about it
+anyway.
 
-  CC [M]  drivers/net/arm/ixp4xx_eth.o
-drivers/net/arm/ixp4xx_eth.c: In function 'eth_poll':
-drivers/net/arm/ixp4xx_eth.c:554: warning: passing argument 1 of 'dma_mapping_error' makes pointer from integer without a cast
-drivers/net/arm/ixp4xx_eth.c:554: error: too few arguments to function 'dma_mapping_error'
-drivers/net/arm/ixp4xx_eth.c: In function 'eth_xmit':
-drivers/net/arm/ixp4xx_eth.c:701: warning: passing argument 1 of 'dma_mapping_error' makes pointer from integer without a cast
-drivers/net/arm/ixp4xx_eth.c:701: error: too few arguments to function 'dma_mapping_error'
-drivers/net/arm/ixp4xx_eth.c: In function 'init_queues':
-drivers/net/arm/ixp4xx_eth.c:886: warning: passing argument 1 of 'dma_mapping_error' makes pointer from integer without a cast
-drivers/net/arm/ixp4xx_eth.c:886: error: too few arguments to function 'dma_mapping_error'
-make[3]: *** [drivers/net/arm/ixp4xx_eth.o] Error 1
-make[2]: *** [drivers/net/arm] Error 2
-make[1]: *** [drivers/net] Error 2
-make: *** [drivers] Error 2
-
-dma_mapping_error() changed in 2.6.27-rc1 to also take a device parameter,
-but nobody bothered updating ixp4xx_eth.c. Fixed by passing the appropriate
-device value in the dma_mapping_error() calls.
-
-Tested on an ixp425 box.
-
-Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
-Acked-by: Krzysztof Halasa <khc@pm.waw.pl>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Sven Wegener <sven.wegener@stealer.net>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Ray Lee <ray-lk@madrabbit.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/arm/ixp4xx_eth.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/leds/led-class.c     |    5 +----
+ drivers/leds/ledtrig-timer.c |    8 ++------
+ 2 files changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN drivers/net/arm/ixp4xx_eth.c~ixp4xx_eth-fix-dma_mapping_error-compile-errors drivers/net/arm/ixp4xx_eth.c
---- a/drivers/net/arm/ixp4xx_eth.c~ixp4xx_eth-fix-dma_mapping_error-compile-errors
-+++ a/drivers/net/arm/ixp4xx_eth.c
-@@ -551,7 +551,7 @@ static int eth_poll(struct napi_struct *
- 		if ((skb = netdev_alloc_skb(dev, RX_BUFF_SIZE))) {
- 			phys = dma_map_single(&dev->dev, skb->data,
- 					      RX_BUFF_SIZE, DMA_FROM_DEVICE);
--			if (dma_mapping_error(phys)) {
-+			if (dma_mapping_error(&dev->dev, phys)) {
- 				dev_kfree_skb(skb);
- 				skb = NULL;
- 			}
-@@ -698,7 +698,7 @@ static int eth_xmit(struct sk_buff *skb,
- #endif
+diff -puN drivers/leds/led-class.c~leds-avoid-needless-strlen-for-attributes drivers/leds/led-class.c
+--- a/drivers/leds/led-class.c~leds-avoid-needless-strlen-for-attributes
++++ a/drivers/leds/led-class.c
+@@ -34,14 +34,11 @@ static ssize_t led_brightness_show(struc
+ 		struct device_attribute *attr, char *buf)
+ {
+ 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
+-	ssize_t ret = 0;
  
- 	phys = dma_map_single(&dev->dev, mem, bytes, DMA_TO_DEVICE);
--	if (dma_mapping_error(phys)) {
-+	if (dma_mapping_error(&dev->dev, phys)) {
- #ifdef __ARMEB__
- 		dev_kfree_skb(skb);
- #else
-@@ -883,7 +883,7 @@ static int init_queues(struct port *port
- 		desc->buf_len = MAX_MRU;
- 		desc->data = dma_map_single(&port->netdev->dev, data,
- 					    RX_BUFF_SIZE, DMA_FROM_DEVICE);
--		if (dma_mapping_error(desc->data)) {
-+		if (dma_mapping_error(&port->netdev->dev, desc->data)) {
- 			free_buffer(buff);
- 			return -EIO;
- 		}
-_
-
-Patches currently in -mm which might be from mikpe@it.uu.se are
-
-ixp4xx_eth-fix-dma_mapping_error-compile-errors.patch
-
+ 	/* no lock needed for this */
+ 	led_update_brightness(led_cdev);
+-	sprintf(buf, "%u\n", led_cdev->brightness);
+-	ret = strlen(buf) + 1;
+ 
+-	return ret;
++	return sprintf(buf, "%u\n", led_cdev->brightness);
+ }
+ 
+ static ssize_t led_brightness_store(struct device *dev,
+diff -puN drivers/leds/ledtrig-timer.c~leds-avoid-needless-strlen-for-attributes drivers/leds/ledtrig-timer.c
+--- a/drivers/leds/ledtrig-timer.c~leds-avoid-needless-strlen-for-attributes
++++ a/drivers/leds/ledtrig-timer.c
+@@ -70,9 +70,7 @@ static ssize_t led_delay_on_show(struct 
+ 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
+ 	struct timer_trig_data *timer_data = led_cdev->trigger_data;
+ 
+-	sprintf(buf, "%lu\n", timer_data->delay_on);
+-
+-	return strlen(buf) + 1;
++	return sprintf(buf, "%lu\n", timer_data->delay_on);
+ }
+ 
+ static ssize_t led_delay_on_store(struct device *dev,
+@@ -116,9 +114,7 @@ static ssize_t led_delay_off_show(struct
+ 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
+ 	struct timer_trig_data *timer_data = led_cdev->trigger_data;
+ 
+-	sprintf(buf, "%lu\n", timer_data->delay_off);
