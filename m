@@ -1,68 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - kexec-jump-check-code-size-in-control-page-fix.patch removed from -mm tree
-Date: Thu, 14 Aug 2008 16:49:14 -0700
-Message-ID: <200808150002.m7F02ONL004272@imap1.linux-foundation.org>
+Subject: - spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup.patch removed from -mm tree
+Date: Thu, 14 Aug 2008 16:50:29 -0700
+Message-ID: <200808150003.m7F03aLM004379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55015 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36433 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751424AbYHOADF (ORCPT
+	by vger.kernel.org with ESMTP id S1751872AbYHOAEO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Aug 2008 20:03:05 -0400
+	Thu, 14 Aug 2008 20:04:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ebiederm@xmission.com, mingo@elte.hu, pavel@ucw.cz, rjw@sisk.pl, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kexec-jump-check-code-size-in-control-page-fix
+     spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup
 has been removed from the -mm tree.  Its filename was
-     kexec-jump-check-code-size-in-control-page-fix.patch
+     spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup.patch
 
-This patch was dropped because it was folded into kexec-jump-check-code-size-in-control-page.patch
+This patch was dropped because it was folded into spi-bugfix-spi_add_device-with-duplicate-chipselects.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec-jump-check-code-size-in-control-page-fix
+Subject: spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/vmlinux.lds:348: undefined symbol `kexec_control_code_size' referenced in expression
-
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/vmlinux_32.lds.S |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/spi/spi.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/vmlinux_32.lds.S~kexec-jump-check-code-size-in-control-page-fix arch/x86/kernel/vmlinux_32.lds.S
---- a/arch/x86/kernel/vmlinux_32.lds.S~kexec-jump-check-code-size-in-control-page-fix
-+++ a/arch/x86/kernel/vmlinux_32.lds.S
-@@ -211,8 +211,10 @@ SECTIONS
-   DWARF_DEBUG
+diff -puN drivers/spi/spi.c~spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup drivers/spi/spi.c
+--- a/drivers/spi/spi.c~spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup
++++ a/drivers/spi/spi.c
+@@ -219,8 +219,6 @@ struct spi_device *spi_alloc_device(stru
  }
+ EXPORT_SYMBOL_GPL(spi_alloc_device);
  
-+#ifdef CONFIG_KEXEC
- /* Link time checks */
- #include <asm/kexec.h>
+-static DEFINE_MUTEX(spi_add_lock);
+-
+ /**
+  * spi_add_device - Add spi_device allocated with spi_alloc_device
+  * @spi: spi_device to register
+@@ -232,6 +230,7 @@ static DEFINE_MUTEX(spi_add_lock);
+  */
+ int spi_add_device(struct spi_device *spi)
+ {
++	static DEFINE_MUTEX(spi_add_lock);
+ 	struct device *dev = spi->master->dev.parent;
+ 	int status;
  
- ASSERT(kexec_control_code_size <= KEXEC_CONTROL_CODE_MAX_SIZE,
-        "kexec control code size is too big")
-+#endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 kexec-jump-check-code-size-in-control-page.patch
-kexec-jump-check-code-size-in-control-page-fix.patch
 kexec-use-a-bitop-for-locking-rather-than-xchg.patch
 hwmon-adc124s501-generic-driver.patch
+spi-bugfix-spi_add_device-with-duplicate-chipselects.patch
 spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup.patch
 seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
