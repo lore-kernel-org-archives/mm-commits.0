@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc_time_to_tm-fix-signed-unsigned-arithmetic.patch added to -mm tree
-Date: Thu, 14 Aug 2008 14:50:19 -0700
-Message-ID: <200808142150.m7ELoJrj031312@imap1.linux-foundation.org>
+Subject: + drivers-media-video-use-div_round_up.patch added to -mm tree
+Date: Thu, 14 Aug 2008 14:59:17 -0700
+Message-ID: <200808142159.m7ELxIHg031689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47375 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43761 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751410AbYHNVve (ORCPT
+	by vger.kernel.org with ESMTP id S1750846AbYHNV7Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Aug 2008 17:51:34 -0400
+	Thu, 14 Aug 2008 17:59:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jan.altenberg@linutronix.de, a.zummo@towertech.it, david-b@pacbell.net, dmitri.vorobiev@gmail.com, macro@linux-mips.org, stable@kernel.org
+Cc: julia@diku.dk, mchehab@infradead.org
 
 
 The patch titled
-     rtc_time_to_tm: fix signed / unsigned arithmetic
+     drivers/media/video: Use DIV_ROUND_UP
 has been added to the -mm tree.  Its filename is
-     rtc_time_to_tm-fix-signed-unsigned-arithmetic.patch
+     drivers-media-video-use-div_round_up.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,125 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc_time_to_tm: fix signed / unsigned arithmetic
-From: Jan Altenberg <jan.altenberg@linutronix.de>
+Subject: drivers/media/video: Use DIV_ROUND_UP
+From: Julia Lawall <julia@diku.dk>
 
-commit 945185a69daa457c4c5e46e47f4afad7dcea734f ("rtc: rtc_time_to_tm: use
-unsigned arithmetic") changed the some types in rtc_time_to_tm() to
-unsigned:
+The kernel.h macro DIV_ROUND_UP performs the computation (((n) + (d) - 1) /
+(d)) but is perhaps more readable.
 
- void rtc_time_to_tm(unsigned long time, struct rtc_time *tm)
- {
--       register int days, month, year;
-+       unsigned int days, month, year;
+An extract of the semantic patch that makes this change is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
 
-This doesn't work for all cases, because days is checked for < 0 later
-on:
+// <smpl>
+@haskernel@
+@@
 
-if (days < 0) {
-	year -= 1;
-	days += 365 + LEAP_YEAR(year);
-}
+#include <linux/kernel.h>
 
-I think the correct fix would be to keep days signed and do an appropriate
-cast later on.
+@depends on haskernel@
+expression n,d;
+@@
 
-Signed-off-by: Jan Altenberg <jan.altenberg@linutronix.de>
-Cc: Maciej W. Rozycki <macro@linux-mips.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Dmitri Vorobiev <dmitri.vorobiev@gmail.com>
-Cc: <stable@kernel.org>
+(
+- (n + d - 1) / d
++ DIV_ROUND_UP(n,d)
+|
+- (n + (d - 1)) / d
++ DIV_ROUND_UP(n,d)
+)
+
+@depends on haskernel@
+expression n,d;
+@@
+
+- DIV_ROUND_UP((n),d)
++ DIV_ROUND_UP(n,d)
+
+@depends on haskernel@
+expression n,d;
+@@
+
+- DIV_ROUND_UP(n,(d))
++ DIV_ROUND_UP(n,d)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-lib.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/media/video/bw-qcam.c       |    4 ++--
+ drivers/media/video/uvc/uvc_video.c |    2 +-
+ drivers/media/video/zoran_device.c  |    4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-lib.c~rtc_time_to_tm-fix-signed-unsigned-arithmetic drivers/rtc/rtc-lib.c
---- a/drivers/rtc/rtc-lib.c~rtc_time_to_tm-fix-signed-unsigned-arithmetic
-+++ a/drivers/rtc/rtc-lib.c
-@@ -51,10 +51,11 @@ EXPORT_SYMBOL(rtc_year_days);
-  */
- void rtc_time_to_tm(unsigned long time, struct rtc_time *tm)
- {
--	unsigned int days, month, year;
-+	unsigned int month, year;
-+	int days;
+diff -puN drivers/media/video/bw-qcam.c~drivers-media-video-use-div_round_up drivers/media/video/bw-qcam.c
+--- a/drivers/media/video/bw-qcam.c~drivers-media-video-use-div_round_up
++++ a/drivers/media/video/bw-qcam.c
+@@ -495,7 +495,7 @@ static void qc_set(struct qcam_device *q
+ 		val2 = (((q->port_mode & QC_MODE_MASK) == QC_BIDIR) ? 24 : 8) *
+ 		    q->transfer_scale;
+ 	}
+-	val = (val + val2 - 1) / val2;
++	val = DIV_ROUND_UP(val, val2);
+ 	qc_command(q, 0x13);
+ 	qc_command(q, val);
  
- 	days = time / 86400;
--	time -= days * 86400;
-+	time -= (unsigned int) days * 86400;
+@@ -651,7 +651,7 @@ static long qc_capture(struct qcam_devic
+ 	transperline = q->width * q->bpp;
+ 	divisor = (((q->port_mode & QC_MODE_MASK) == QC_BIDIR) ? 24 : 8) *
+ 	    q->transfer_scale;
+-	transperline = (transperline + divisor - 1) / divisor;
++	transperline = DIV_ROUND_UP(transperline, divisor);
  
- 	/* day of the week, 1970-01-01 was a Thursday */
- 	tm->tm_wday = (days + 4) % 7;
+ 	for (i = 0, yield = yieldlines; i < linestotrans; i++)
+ 	{
+diff -puN drivers/media/video/uvc/uvc_video.c~drivers-media-video-use-div_round_up drivers/media/video/uvc/uvc_video.c
+--- a/drivers/media/video/uvc/uvc_video.c~drivers-media-video-use-div_round_up
++++ a/drivers/media/video/uvc/uvc_video.c
+@@ -655,7 +655,7 @@ static int uvc_init_video_isoc(struct uv
+ 	if (size > UVC_MAX_FRAME_SIZE)
+ 		return -EINVAL;
+ 
+-	npackets = (size + psize - 1) / psize;
++	npackets = DIV_ROUND_UP(size, psize);
+ 	if (npackets > UVC_MAX_ISO_PACKETS)
+ 		npackets = UVC_MAX_ISO_PACKETS;
+ 
+diff -puN drivers/media/video/zoran_device.c~drivers-media-video-use-div_round_up drivers/media/video/zoran_device.c
+--- a/drivers/media/video/zoran_device.c~drivers-media-video-use-div_round_up
++++ a/drivers/media/video/zoran_device.c
+@@ -377,7 +377,7 @@ zr36057_set_vfe (struct zoran           
+ 
+ 	/* horizontal */
+ 	VidWinWid = video_width;
+-	X = (VidWinWid * 64 + tvn->Wa - 1) / tvn->Wa;
++	X = DIV_ROUND_UP(VidWinWid * 64, tvn->Wa);
+ 	We = (VidWinWid * 64) / X;
+ 	HorDcm = 64 - X;
+ 	hcrop1 = 2 * ((tvn->Wa - We) / 4);
+@@ -403,7 +403,7 @@ zr36057_set_vfe (struct zoran           
+ 	/* Vertical */
+ 	DispMode = !(video_height > BUZ_MAX_HEIGHT / 2);
+ 	VidWinHt = DispMode ? video_height : video_height / 2;
+-	Y = (VidWinHt * 64 * 2 + tvn->Ha - 1) / tvn->Ha;
++	Y = DIV_ROUND_UP(VidWinHt * 64 * 2, tvn->Ha);
+ 	He = (VidWinHt * 64) / Y;
+ 	VerDcm = 64 - Y;
+ 	vcrop1 = (tvn->Ha / 2 - He) / 2;
 _
 
-Patches currently in -mm which might be from jan.altenberg@linutronix.de are
+Patches currently in -mm which might be from julia@diku.dk are
 
-rtc_time_to_tm-fix-signed-unsigned-arithmetic.patch
+linux-next.patch
+drivers-isdn-capi-kcapic-adjust-error-handling-code-involving-capi_ctr_put.patch
+net-ieee80211-adjust-error-handling.patch
+drivers-atm-use-div_round_up.patch
+drivers-block-use-div_round_up.patch
+drivers-media-video-use-div_round_up.patch
+drivers-misc-use-div_round_up.patch
+drivers-net-wan-use-div_round_up.patch
+drivers-scsi-use-div_round_up.patch
+drivers-scsi-megaraid-use-div_round_up.patch
+drivers-net-xen-netfrontc-use-div_round_up.patch
 
