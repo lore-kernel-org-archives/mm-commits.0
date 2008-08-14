@@ -1,94 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - usb-hso-driver-fix-kconfig.patch removed from -mm tree
-Date: Thu, 14 Aug 2008 16:54:22 -0700
-Message-ID: <200808142354.m7ENsMxO003932@imap1.linux-foundation.org>
+Subject: - ixp4xx_eth-fix-dma_mapping_error-compile-errors.patch removed from -mm tree
+Date: Thu, 14 Aug 2008 16:54:40 -0700
+Message-ID: <200808142354.m7ENseWO003959@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33398 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53702 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752104AbYHNXzE (ORCPT
+	by vger.kernel.org with ESMTP id S1750846AbYHNXzh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Aug 2008 19:55:04 -0400
+	Thu, 14 Aug 2008 19:55:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbrownell@users.sourceforge.net, greg@kroah.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mikpe@it.uu.se, jeff@garzik.org, khc@pm.waw.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb HSO driver: fix Kconfig
+     ixp4xx_eth: fix dma_mapping_error() compile errors
 has been removed from the -mm tree.  Its filename was
-     usb-hso-driver-fix-kconfig.patch
+     ixp4xx_eth-fix-dma_mapping_error-compile-errors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb HSO driver: fix Kconfig
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: ixp4xx_eth: fix dma_mapping_error() compile errors
+From: Mikael Pettersson <mikpe@it.uu.se>
 
-Move the Kconfig for the new "Option" driver so it's not in the middle of
-the usbnet-based drivers, so the dependency displays in the Kconfig user
-interfaces don't get trashed.
+The arm ixp4xx_eth driver doesn't compile in 2.6.27-rc1:
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Greg KH <greg@kroah.com>
+  CC [M]  drivers/net/arm/ixp4xx_eth.o
+drivers/net/arm/ixp4xx_eth.c: In function 'eth_poll':
+drivers/net/arm/ixp4xx_eth.c:554: warning: passing argument 1 of 'dma_mapping_error' makes pointer from integer without a cast
+drivers/net/arm/ixp4xx_eth.c:554: error: too few arguments to function 'dma_mapping_error'
+drivers/net/arm/ixp4xx_eth.c: In function 'eth_xmit':
+drivers/net/arm/ixp4xx_eth.c:701: warning: passing argument 1 of 'dma_mapping_error' makes pointer from integer without a cast
+drivers/net/arm/ixp4xx_eth.c:701: error: too few arguments to function 'dma_mapping_error'
+drivers/net/arm/ixp4xx_eth.c: In function 'init_queues':
+drivers/net/arm/ixp4xx_eth.c:886: warning: passing argument 1 of 'dma_mapping_error' makes pointer from integer without a cast
+drivers/net/arm/ixp4xx_eth.c:886: error: too few arguments to function 'dma_mapping_error'
+make[3]: *** [drivers/net/arm/ixp4xx_eth.o] Error 1
+make[2]: *** [drivers/net/arm] Error 2
+make[1]: *** [drivers/net] Error 2
+make: *** [drivers] Error 2
+
+dma_mapping_error() changed in 2.6.27-rc1 to also take a device parameter,
+but nobody bothered updating ixp4xx_eth.c. Fixed by passing the appropriate
+device value in the dma_mapping_error() calls.
+
+Tested on an ixp425 box.
+
+Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
+Acked-by: Krzysztof Halasa <khc@pm.waw.pl>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/usb/Kconfig |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
+ drivers/net/arm/ixp4xx_eth.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/usb/Kconfig~usb-hso-driver-fix-kconfig drivers/net/usb/Kconfig
---- a/drivers/net/usb/Kconfig~usb-hso-driver-fix-kconfig
-+++ a/drivers/net/usb/Kconfig
-@@ -154,17 +154,6 @@ config USB_NET_AX8817X
- 	  This driver creates an interface named "ethX", where X depends on
- 	  what other networking devices you have in use.
+diff -puN drivers/net/arm/ixp4xx_eth.c~ixp4xx_eth-fix-dma_mapping_error-compile-errors drivers/net/arm/ixp4xx_eth.c
+--- a/drivers/net/arm/ixp4xx_eth.c~ixp4xx_eth-fix-dma_mapping_error-compile-errors
++++ a/drivers/net/arm/ixp4xx_eth.c
+@@ -551,7 +551,7 @@ static int eth_poll(struct napi_struct *
+ 		if ((skb = netdev_alloc_skb(dev, RX_BUFF_SIZE))) {
+ 			phys = dma_map_single(&dev->dev, skb->data,
+ 					      RX_BUFF_SIZE, DMA_FROM_DEVICE);
+-			if (dma_mapping_error(phys)) {
++			if (dma_mapping_error(&dev->dev, phys)) {
+ 				dev_kfree_skb(skb);
+ 				skb = NULL;
+ 			}
+@@ -698,7 +698,7 @@ static int eth_xmit(struct sk_buff *skb,
+ #endif
  
--config USB_HSO
--	tristate "Option USB High Speed Mobile Devices"
--	depends on USB && RFKILL
--	default n
--	help
--	  Choose this option if you have an Option HSDPA/HSUPA card.
--	  These cards support downlink speeds of 7.2Mbps or greater.
--
--	  To compile this driver as a module, choose M here: the
--	  module will be called hso.
--
- config USB_NET_CDCETHER
- 	tristate "CDC Ethernet support (smart devices such as cable modems)"
- 	depends on USB_USBNET
-@@ -337,5 +326,15 @@ config USB_NET_ZAURUS
- 	  really need this non-conformant variant of CDC Ethernet (or in
- 	  some cases CDC MDLM) protocol, not "g_ether".
- 
-+config USB_HSO
-+	tristate "Option USB High Speed Mobile Devices"
-+	depends on USB && RFKILL
-+	default n
-+	help
-+	  Choose this option if you have an Option HSDPA/HSUPA card.
-+	  These cards support downlink speeds of 7.2Mbps or greater.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called hso.
- 
- endmenu
+ 	phys = dma_map_single(&dev->dev, mem, bytes, DMA_TO_DEVICE);
+-	if (dma_mapping_error(phys)) {
++	if (dma_mapping_error(&dev->dev, phys)) {
+ #ifdef __ARMEB__
+ 		dev_kfree_skb(skb);
+ #else
+@@ -883,7 +883,7 @@ static int init_queues(struct port *port
+ 		desc->buf_len = MAX_MRU;
+ 		desc->data = dma_map_single(&port->netdev->dev, data,
+ 					    RX_BUFF_SIZE, DMA_FROM_DEVICE);
+-		if (dma_mapping_error(desc->data)) {
++		if (dma_mapping_error(&port->netdev->dev, desc->data)) {
+ 			free_buffer(buff);
+ 			return -EIO;
+ 		}
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from mikpe@it.uu.se are
 
-origin.patch
-spi-bugfix-spi_add_device-with-duplicate-chipselects.patch
-spi-bugfix-spi_add_device-with-duplicate-chipselects-cleanup.patch
-linux-next.patch
 git-net.patch
-rtc-ds1307-alarm-support-for-ds1337-ds1339.patch
-rtc-remove-some-nop-open-release-methods.patch
-legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
-rtc-file-close-consistently-disables-repeating-irqs.patch
-irq-warn-about-irqf_disabledirqf_shared.patch
 
