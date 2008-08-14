@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-maintainers-for-gru-xpc-xpnet-and-xp.patch added to -mm tree
-Date: Thu, 14 Aug 2008 02:02:36 -0700
-Message-ID: <200808140902.m7E92aSv000536@imap1.linux-foundation.org>
+Subject: + x86-pda_init-fix-memory-leak-with-cpu_hotplug.patch added to -mm tree
+Date: Thu, 14 Aug 2008 02:15:04 -0700
+Message-ID: <200808140915.m7E9F4kA001077@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53086 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42258 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753656AbYHNJCu (ORCPT
+	by vger.kernel.org with ESMTP id S1758582AbYHNJQB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Aug 2008 05:02:50 -0400
+	Thu, 14 Aug 2008 05:16:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: steiner@sgi.com, sfr@canb.auug.org.au
+Cc: andreas.herrmann3@amd.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     MAINTAINERS: add maintainers for GRU, XPC, XPNET and XP
+     x86: pda_init: fix memory leak with CPU_HOTPLUG
 has been added to the -mm tree.  Its filename is
-     maintainers-add-maintainers-for-gru-xpc-xpnet-and-xp.patch
+     x86-pda_init-fix-memory-leak-with-cpu_hotplug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MAINTAINERS: add maintainers for GRU, XPC, XPNET and XP
-From: Jack Steiner <steiner@sgi.com>
+Subject: x86: pda_init: fix memory leak with CPU_HOTPLUG
+From: Andreas Herrmann <andreas.herrmann3@amd.com>
 
-Add MAINTAINERS for GRU, XPNET, XPC and XP drivers.
+pda->irqstackptr is allocated whenever a CPU is set online.  But it is
+never freed (or did I miss something?).  This results in a memory leak of
+16 KByte for each CPU offline/online cycle.
 
-Signed-off-by: Jack Steiner <steiner@sgi.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Fix is to allocate pda->irqstackptr only once.
+
+Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ arch/x86/kernel/cpu/common_64.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-maintainers-for-gru-xpc-xpnet-and-xp MAINTAINERS
---- a/MAINTAINERS~maintainers-add-maintainers-for-gru-xpc-xpnet-and-xp
-+++ a/MAINTAINERS
-@@ -3763,6 +3763,16 @@ L:	linux-visws-devel@lists.sf.net
- W:	http://linux-visws.sf.net
- S:	Maintained for 2.6.
+diff -puN arch/x86/kernel/cpu/common_64.c~x86-pda_init-fix-memory-leak-with-cpu_hotplug arch/x86/kernel/cpu/common_64.c
+--- a/arch/x86/kernel/cpu/common_64.c~x86-pda_init-fix-memory-leak-with-cpu_hotplug
++++ a/arch/x86/kernel/cpu/common_64.c
+@@ -493,17 +493,20 @@ void pda_init(int cpu)
+ 		/* others are initialized in smpboot.c */
+ 		pda->pcurrent = &init_task;
+ 		pda->irqstackptr = boot_cpu_stack;
++		pda->irqstackptr += IRQSTACKSIZE - 64;
+ 	} else {
+-		pda->irqstackptr = (char *)
+-			__get_free_pages(GFP_ATOMIC, IRQSTACK_ORDER);
+-		if (!pda->irqstackptr)
+-			panic("cannot allocate irqstack for cpu %d", cpu);
++		if (!pda->irqstackptr) {
++			pda->irqstackptr = (char *)
++				__get_free_pages(GFP_ATOMIC, IRQSTACK_ORDER);
++			if (!pda->irqstackptr)
++				panic("cannot allocate irqstack for cpu %d",
++				      cpu);
++			pda->irqstackptr += IRQSTACKSIZE - 64;
++		}
  
-+SGI GRU DRIVER
-+P:	Jack Steiner
-+M:	steiner@sgi.com
-+S:	Maintained
-+
-+SGI XP/XPC/XPNET DRIVER
-+P:	Dean Nelson
-+M:	dcn@sgi.com
-+S:	Maintained
-+
- SIMTEC EB110ATX (Chalice CATS)
- P:	Ben Dooks
- P:	Vincent Sanders
-_
-
-Patches currently in -mm which might be from steiner@sgi.com are
-
-maintainers-add-maintainers-for-gru-xpc-xpnet-and-xp.patch
-linux-next.patch
-
+ 		if (pda->nodenumber == 0 && cpu_to_node(cpu) != NUMA_NO_NODE)
+ 			pda->nodenumber = cpu_to_node(cpu);
+ 	}
