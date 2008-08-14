@@ -1,97 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - ixp4xx_eth-fix-dma_mapping_error-compile-errors.patch removed from -mm tree
-Date: Thu, 14 Aug 2008 16:54:40 -0700
-Message-ID: <200808142354.m7ENseWO003959@imap1.linux-foundation.org>
+Subject: + bootmem-allocator-alloc_bootmem_core-page-align-the-end-offset.patch added to -mm tree
+Date: Thu, 14 Aug 2008 16:58:54 -0700
+Message-ID: <200808142358.m7ENws2c004160@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53702 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45148 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750846AbYHNXzh (ORCPT
+	by vger.kernel.org with ESMTP id S1750875AbYHNX73 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Aug 2008 19:55:37 -0400
+	Thu, 14 Aug 2008 19:59:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mikpe@it.uu.se, jeff@garzik.org, khc@pm.waw.pl, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mpatocka@redhat.com, davem@davemloft.net, hannes@saeurebad.de
 
 
 The patch titled
-     ixp4xx_eth: fix dma_mapping_error() compile errors
-has been removed from the -mm tree.  Its filename was
-     ixp4xx_eth-fix-dma_mapping_error-compile-errors.patch
+     bootmem allocator: alloc_bootmem_core(): page-align the end offset
+has been added to the -mm tree.  Its filename is
+     bootmem-allocator-alloc_bootmem_core-page-align-the-end-offset.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ixp4xx_eth: fix dma_mapping_error() compile errors
-From: Mikael Pettersson <mikpe@it.uu.se>
+Subject: bootmem allocator: alloc_bootmem_core(): page-align the end offset
+From: Mikulas Patocka <mpatocka@redhat.com>
 
-The arm ixp4xx_eth driver doesn't compile in 2.6.27-rc1:
+This is the minimal sequence that jams the allocator:
 
-  CC [M]  drivers/net/arm/ixp4xx_eth.o
-drivers/net/arm/ixp4xx_eth.c: In function 'eth_poll':
-drivers/net/arm/ixp4xx_eth.c:554: warning: passing argument 1 of 'dma_mapping_error' makes pointer from integer without a cast
-drivers/net/arm/ixp4xx_eth.c:554: error: too few arguments to function 'dma_mapping_error'
-drivers/net/arm/ixp4xx_eth.c: In function 'eth_xmit':
-drivers/net/arm/ixp4xx_eth.c:701: warning: passing argument 1 of 'dma_mapping_error' makes pointer from integer without a cast
-drivers/net/arm/ixp4xx_eth.c:701: error: too few arguments to function 'dma_mapping_error'
-drivers/net/arm/ixp4xx_eth.c: In function 'init_queues':
-drivers/net/arm/ixp4xx_eth.c:886: warning: passing argument 1 of 'dma_mapping_error' makes pointer from integer without a cast
-drivers/net/arm/ixp4xx_eth.c:886: error: too few arguments to function 'dma_mapping_error'
-make[3]: *** [drivers/net/arm/ixp4xx_eth.o] Error 1
-make[2]: *** [drivers/net/arm] Error 2
-make[1]: *** [drivers/net] Error 2
-make: *** [drivers] Error 2
+void *p, *q, *r;
+p = alloc_bootmem(PAGE_SIZE);
+q = alloc_bootmem(64);
+free_bootmem(p, PAGE_SIZE);
+p = alloc_bootmem(PAGE_SIZE);
+r = alloc_bootmem(64);
 
-dma_mapping_error() changed in 2.6.27-rc1 to also take a device parameter,
-but nobody bothered updating ixp4xx_eth.c. Fixed by passing the appropriate
-device value in the dma_mapping_error() calls.
+after this sequence (assuming that the allocator was empty or page-aligned
+before), pointer "q" will be equal to pointer "r".
 
-Tested on an ixp425 box.
+What's hapenning inside the allocator:
+p = alloc_bootmem(PAGE_SIZE);
+in allocator: last_end_off == PAGE_SIZE, bitmap contains bits 10000...
+q = alloc_bootmem(64);
+in allocator: last_end_off == PAGE_SIZE + 64, bitmap contains 11000...
+free_bootmem(p, PAGE_SIZE);
+in allocator: last_end_off == PAGE_SIZE + 64, bitmap contains 01000...
+p = alloc_bootmem(PAGE_SIZE);
+in allocator: last_end_off == PAGE_SIZE, bitmap contains 11000...
+r = alloc_bootmem(64);
 
-Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
-Acked-by: Krzysztof Halasa <khc@pm.waw.pl>
-Cc: Jeff Garzik <jeff@garzik.org>
+and now:
+
+it finds bit "2", as a place where to allocate (sidx)
+
+it hits the condition
+
+if (bdata->last_end_off && PFN_DOWN(bdata->last_end_off) + 1 == sidx))
+start_off = ALIGN(bdata->last_end_off, align);
+
+-you can see that the condition is true, so it assigns start_off = 
+ALIGN(bdata->last_end_off, align); (that is PAGE_SIZE) and allocates 
+over already allocated block.
+
+With the patch it tries to continue at the end of previous allocation only 
+if the previous allocation ended in the middle of the page.
+
+Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
+Acked-by: Johannes Weiner <hannes@saeurebad.de>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/arm/ixp4xx_eth.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/bootmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/arm/ixp4xx_eth.c~ixp4xx_eth-fix-dma_mapping_error-compile-errors drivers/net/arm/ixp4xx_eth.c
---- a/drivers/net/arm/ixp4xx_eth.c~ixp4xx_eth-fix-dma_mapping_error-compile-errors
-+++ a/drivers/net/arm/ixp4xx_eth.c
-@@ -551,7 +551,7 @@ static int eth_poll(struct napi_struct *
- 		if ((skb = netdev_alloc_skb(dev, RX_BUFF_SIZE))) {
- 			phys = dma_map_single(&dev->dev, skb->data,
- 					      RX_BUFF_SIZE, DMA_FROM_DEVICE);
--			if (dma_mapping_error(phys)) {
-+			if (dma_mapping_error(&dev->dev, phys)) {
- 				dev_kfree_skb(skb);
- 				skb = NULL;
+diff -puN mm/bootmem.c~bootmem-allocator-alloc_bootmem_core-page-align-the-end-offset mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-allocator-alloc_bootmem_core-page-align-the-end-offset
++++ a/mm/bootmem.c
+@@ -473,7 +473,7 @@ find_block:
+ 				goto find_block;
  			}
-@@ -698,7 +698,7 @@ static int eth_xmit(struct sk_buff *skb,
- #endif
  
- 	phys = dma_map_single(&dev->dev, mem, bytes, DMA_TO_DEVICE);
--	if (dma_mapping_error(phys)) {
-+	if (dma_mapping_error(&dev->dev, phys)) {
- #ifdef __ARMEB__
- 		dev_kfree_skb(skb);
- #else
-@@ -883,7 +883,7 @@ static int init_queues(struct port *port
- 		desc->buf_len = MAX_MRU;
- 		desc->data = dma_map_single(&port->netdev->dev, data,
- 					    RX_BUFF_SIZE, DMA_FROM_DEVICE);
--		if (dma_mapping_error(desc->data)) {
-+		if (dma_mapping_error(&port->netdev->dev, desc->data)) {
- 			free_buffer(buff);
- 			return -EIO;
- 		}
+-		if (bdata->last_end_off &&
++		if (bdata->last_end_off & (PAGE_SIZE - 1) &&
+ 				PFN_DOWN(bdata->last_end_off) + 1 == sidx)
+ 			start_off = ALIGN(bdata->last_end_off, align);
+ 		else
 _
 
-Patches currently in -mm which might be from mikpe@it.uu.se are
+Patches currently in -mm which might be from mpatocka@redhat.com are
 
-git-net.patch
+bootmem-allocator-alloc_bootmem_core-page-align-the-end-offset.patch
+linux-next.patch
 
