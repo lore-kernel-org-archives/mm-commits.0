@@ -1,160 +1,565 @@
 From: akpm@linux-foundation.org
-Subject: + bootmem-fix-aligning-of-node-relative-indexes-and-offsets.patch added to -mm tree
-Date: Wed, 13 Aug 2008 17:23:56 -0700
-Message-ID: <200808140023.m7E0NuRB014076@imap1.linux-foundation.org>
+Subject: mmotm 2008-08-13-18-11 uploaded
+Date: Wed, 13 Aug 2008 18:11:30 -0700
+Message-ID: <200808140111.m7E1BUPA015931@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53209 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40241 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752701AbYHNAYd (ORCPT
+	by vger.kernel.org with ESMTP id S1754970AbYHNBLd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 20:24:33 -0400
+	Wed, 13 Aug 2008 21:11:33 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m7E1BUNn018366
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2008 18:11:31 -0700
+Received: from localhost.localdomain (localhost [127.0.0.1])
+	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m7E1BUPA015931
+	for <mm-commits@vger.kernel.org>; Wed, 13 Aug 2008 18:11:30 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hannes@saeurebad.de, andreas.herrmann3@amd.com
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 
+The mm-of-the-moment snapshot 2008-08-13-18-11 has been uploaded to
 
-The patch titled
-     bootmem: fix aligning of node-relative indexes and offsets
-has been added to the -mm tree.  Its filename is
-     bootmem-fix-aligning-of-node-relative-indexes-and-offsets.patch
+   http://userweb.kernel.org/~akpm/mmotm/
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+It contains the following patches against 2.6.27-rc3:
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
-
-------------------------------------------------------
-Subject: bootmem: fix aligning of node-relative indexes and offsets
-From: Johannes Weiner <hannes@saeurebad.de>
-
-Absolute alignment requirements may never be applied to node-relative
-offsets.  Andreas Herrmann spotted this flaw when a bootmem allocation on
-an unaligned node was itself not aligned because the combination of an
-unaligned node with an aligned offset into that node is not garuanteed to
-be aligned itself.
-
-This patch introduces two helper functions that align a node-relative
-index or offset with respect to the node's starting address so that the
-absolute PFN or virtual address that results from combining the two
-satisfies the requested alignment.
-
-Then all the broken ALIGN()s in alloc_bootmem_core() are replaced by these
-helpers.
-
-Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
-Reported-by: Andreas Herrmann <andreas.herrmann3@amd.com>
-Debugged-by: Andreas Herrmann <andreas.herrmann3@amd.com>
-Reviewed-by: Andreas Herrmann <andreas.herrmann3@amd.com>
-Tested-by: Andreas Herrmann <andreas.herrmann3@amd.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/bootmem.c |   35 +++++++++++++++++++++++++++++------
- 1 file changed, 29 insertions(+), 6 deletions(-)
-
-diff -puN mm/bootmem.c~bootmem-fix-aligning-of-node-relative-indexes-and-offsets mm/bootmem.c
---- a/mm/bootmem.c~bootmem-fix-aligning-of-node-relative-indexes-and-offsets
-+++ a/mm/bootmem.c
-@@ -405,6 +405,29 @@ int __init reserve_bootmem(unsigned long
- }
- #endif /* !CONFIG_HAVE_ARCH_BOOTMEM_NODE */
- 
-+static unsigned long align_idx(struct bootmem_data *bdata, unsigned long idx,
-+			unsigned long step)
-+{
-+	unsigned long base = bdata->node_min_pfn;
-+
-+	/*
-+	 * Align the index with respect to the node start so that the
-+	 * combination of both satisfies the requested alignment.
-+	 */
-+
-+	return ALIGN(base + idx, step) - base;
-+}
-+
-+static unsigned long align_off(struct bootmem_data *bdata, unsigned long off,
-+			unsigned long align)
-+{
-+	unsigned long base = PFN_PHYS(bdata->node_min_pfn);
-+
-+	/* Same as align_idx for byte offsets */
-+
-+	return ALIGN(base + off, align) - base;
-+}
-+
- static void * __init alloc_bootmem_core(struct bootmem_data *bdata,
- 				unsigned long size, unsigned long align,
- 				unsigned long goal, unsigned long limit)
-@@ -441,7 +464,7 @@ static void * __init alloc_bootmem_core(
- 	else
- 		start = ALIGN(min, step);
- 
--	sidx = start - bdata->node_min_pfn;;
-+	sidx = start - bdata->node_min_pfn;
- 	midx = max - bdata->node_min_pfn;
- 
- 	if (bdata->hint_idx > sidx) {
-@@ -450,7 +473,7 @@ static void * __init alloc_bootmem_core(
- 		 * catch the fallback below.
- 		 */
- 		fallback = sidx + 1;
--		sidx = ALIGN(bdata->hint_idx, step);
-+		sidx = align_idx(bdata, bdata->hint_idx, step);
- 	}
- 
- 	while (1) {
-@@ -459,7 +482,7 @@ static void * __init alloc_bootmem_core(
- 		unsigned long eidx, i, start_off, end_off;
- find_block:
- 		sidx = find_next_zero_bit(bdata->node_bootmem_map, midx, sidx);
--		sidx = ALIGN(sidx, step);
-+		sidx = align_idx(bdata, sidx, step);
- 		eidx = sidx + PFN_UP(size);
- 
- 		if (sidx >= midx || eidx > midx)
-@@ -467,7 +490,7 @@ find_block:
- 
- 		for (i = sidx; i < eidx; i++)
- 			if (test_bit(i, bdata->node_bootmem_map)) {
--				sidx = ALIGN(i, step);
-+				sidx = align_idx(bdata, i, step);
- 				if (sidx == i)
- 					sidx += step;
- 				goto find_block;
-@@ -475,7 +498,7 @@ find_block:
- 
- 		if (bdata->last_end_off &&
- 				PFN_DOWN(bdata->last_end_off) + 1 == sidx)
--			start_off = ALIGN(bdata->last_end_off, align);
-+			start_off = align_off(bdata, bdata->last_end_off, align);
- 		else
- 			start_off = PFN_PHYS(sidx);
- 
-@@ -499,7 +522,7 @@ find_block:
- 	}
- 
- 	if (fallback) {
--		sidx = ALIGN(fallback - 1, step);
-+		sidx = align_idx(bdata, fallback - 1, step);
- 		fallback = 0;
- 		goto find_block;
- 	}
-_
-
-Patches currently in -mm which might be from hannes@saeurebad.de are
-
+documentation-vm-page_migration-update-reference-to-numa_maps-fix-download-uri.patch
+suspend-fix-section-mismatch-warning-register_nosave_region.patch
+kexec-fix-compilation-warning-on-xchgkexec_lock-0-in-kernel_kexec.patch
+kexec-jump-clean-up-ifdef-and-comments.patch
+kexec-jump-rename-kexec_control_code_size-to-kexec_control_page_size.patch
+kexec-jump-check-code-size-in-control-page.patch
+kexec-jump-check-code-size-in-control-page-fix.patch
+kexec-jump-remove-duplication-of-kexec_restart_prepare.patch
+kexec-jump-in-sync-with-hibernation-implementation.patch
+kexec-jump-__ftrace_enabled_save-restore.patch
+kexec-jump-fix-for-ftrace.patch
+kexec-use-a-bitop-for-locking-rather-than-xchg.patch
+freescale-diu-add-virtual-resolution-and-panning-support.patch
+freescale-diu-bug-fix-add-sanity-check-for-aoi-position.patch
+applesmc-support-for-intel-imac.patch
+applesmc-add-support-for-macbook-v3.patch
+drivers-hwmon-w83791dc-fix-unused-var-warning.patch
+hwmon-adc124s501-generic-driver.patch
+hwmon-adc124s501-generic-driver-update.patch
+i5k_amb-provide-labels-for-temperature-sensors.patch
+abituguru3-update-maintainers.patch
+abituguru3-prefer-dmi-probing-to-manual-probing.patch
+ibmaem-update-the-documentation-to-reflect-the-current-name.patch
+ibmaem-prevent-infinite-probing-loop-on-x3650-m2-systems.patch
+ibmaem-dont-query-the-entire-sensor-repository-when-reading-energy-meter.patch
+coretemp-recognize-nehalem-cpus.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+repeatable-slab-corruption-with-ltp-msgctl08.patch
+linux-next.patch
+next-remove-localversion.patch
+introduce-generic-header-file-for-the-software-io-tlb.patch
+acpi-add-checking-for-null-early-param.patch
+acpi-trivial-cleanups.patch
+acpi-trivial-cleanups-fix.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
+x86-remove-init_mm-export-as-planned-for-2626.patch
+use-warn-in-arch-x86-mm-ioremapc.patch
+use-warn-in-arch-x86-mm-pageattrc.patch
+use-warn-in-arch-x86-kernel.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+i386-vmalloc-size-fix.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+x86-64-fix-overlap-of-modules-and-fixmap-areas.patch
+x86_64-remove-empty-lines-from-stack-traces-oopses.patch
+x86-tracehook_signal_handler.patch
+x86-tracehook-syscall.patch
+x86-tracehook-asm-syscallh.patch
+x86-signals-use-asm-syscallh.patch
+x86-tracehook-tif_notify_resume.patch
+x86-tracehook-config_have_arch_tracehook.patch
+x86-use-common-header-for-software-io-tlb.patch
+x86-fix-shadowed-variable-warning.patch
+geode-mfgpt-check-irq-before-using-mfgpt-as-clocksource.patch
+hda_intel-enable-snoop-for-nvidia-hda-controller.patch
+cifs-remove-global_extern-macro.patch
+cifs-fix-range-check.patch
+pcmcia-pccard-deadlock-fix.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+powerpc-replace-__function__-with-__func__.patch
+drm-sis-depends-on-fb_sis.patch
+v4l-link-tuner-before-saa7134.patch
+v4l-drx397xdc-sparse-annotations.patch
+v4l1-make-pms-not-autoprobe-when-builtin.patch
+v4l1-make-pms-not-autoprobe-when-builtin-update.patch
+add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+ntp-let-update_persistent_clock-sleep.patch
+migrate_timers-add-comment-use-spinlock_irq.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+timekeeping-fix-rounding-problem-during-clock-update.patch
+ia64-uv-provide-a-led-driver-for-uv-systems.patch
+ia64-uv-use-led-to-indicate-cpu-is-active.patch
+ia64-uv-use-blinking-led-for-heartbeat-display.patch
+ia64-uv-use-blinking-led-for-heartbeat-display-fix.patch
+ia64-use-common-header-for-software-io-tlb.patch
+git-infiniband.patch
+elantech-touchpad-driver.patch
+input-touchscreen-driver-add-support-ad7877-touchscreen-driver.patch
+input-ads7846c-sparse-lock-annotation.patch
+git-jg-misc.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+lkdtm-fix-for-config_scsi=n.patch
+scripts-package-dont-break-if-%_smp_mflags-isnt-set.patch
+scripts-package-allow-custom-options-to-rpm.patch
+kvm-make-functions-static.patch
+git-lblnet.patch
+git-libata-all.patch
+libata-scsi-dont-start-hotplug-work-queue-if-hotplug-is-disabled.patch
+sata_viac-add-support-for-vt8251-fix-the-internal-chips-issue-and.patch
+drivers-ata-pata_it821xc-fix-warning.patch
+m32r-remove-the-unused-nohighmem-option.patch
+m32r-dont-offer-config_isa.patch
+m32r-export-empty_zero_page.patch
+m32r-export-__ndelay.patch
+m32r-kernel-cleanups.patch
+mmc-fix-clock-off-in-pxa255-270.patch
+git-ubi.patch
+git-ubi-git-rejects.patch
+configure-out-igmp-support.patch
+acpi-compal-laptop-use-rfkill-switch-subsystem.patch
+drivers-isdn-capi-kcapic-adjust-error-handling-code-involving-capi_ctr_put.patch
+isdn-make-icn-not-autograb-when-builtin.patch
+misdn-endian-annotations-for-struct-zt.patch
+misdn-annotate-iomem-pointer-and-add-statics.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+sundance-set-carrier-status-on-link-change-events.patch
+skge-adapt-skge-to-use-reworked-pci-pm.patch
+cassini-use-request_firmware.patch
+drivers-net-replace-__function__-with-__func__.patch
+e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
+the-overdue-eepro100-removal.patch
+sky2-fix-suspend-hibernation-shutdown-regression-with-wol-enabled-rev-2.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+3x59x-fix-pci-resource-management.patch
+smc-ultra-get-rid-of-eth%d-message.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
+power-support-for-texas-instruments-bq27x00-battery-managers.patch
+power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes.patch
+power-support-for-texas-instruments-bq27x00-battery-managers-tweaks.patch
+nfs-err_ptr-is-expected-on-failure-from-nfs_do_clone_mount.patch
+sunrpc-do-not-pin-sunrpc-module-in-the-memory.patch
+ntfs-update-homepage.patch
+git-parisc.patch
+parisc-lib-make-code-static.patch
+drivers-parisc-make-code-static.patch
+use-warn-in-kernel-lockdepc.patch
+sched-do_wait_for_common-use-signal_pending_state.patch
+wait_task_inactive-dont-consider-task-nivcsw.patch
+wait_task_inactive-improve-the-returned-value-for-nvcsw-==-0.patch
+wait_task_inactive-fix-the-config_smp-version.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+rcu-just-rename-call_rcu_bh-instead-of-making-it-a-macro.patch
+rcu-trace-fix-possible-mem-leak.patch
+ftrace-new-continue-entry-separate-out-from-trace_entry.patch
+ftrace-printk-formatting-infrastructure.patch
+ftrace-printk-formatting-infrastructure-fix.patch
+ftrace-printk-formatting-infrastructure-fix-fix.patch
+aic7xxx-introduce-dont_generate_debug_code-keyword-in-aicasm-parser.patch
+aic7xxx-update-reg-files.patch
+aic7xxx-update-_shipped-files.patch
+if-0-ses_match_host.patch
+scsi-replace-__inline-with-inline.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+ipr-use-memory_read_from_buffer.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
+drivers-scsi-a2091c-make-2-functions-static.patch
+drivers-scsi-a3000c-make-2-functions-static.patch
+cdc-acm-dont-unlock-acm-mutex-on-error-path.patch
+fs_mbcache-dont-needlessly-make-it-built-in.patch
+vfs-make-security_inode_setattr-calling-consistent.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+watchdog-delete-unused-driver-mpc8xx_wdtc.patch
+ath5k-unify-resets.patch
+net-ieee80211-adjust-error-handling.patch
+wireless-replace-__function__-with-__func__.patch
+xfs-use-get_unaligned_-helpers.patch
+xfs-clean-up-stale-references-to-semaphores.patch
+xfs-replace-the-xfs-buf-iodone-semaphore-with-a-completion.patch
+xfs-extend-completions-to-provide-xfs-object-flush-requirements.patch
+xfs-replace-inode-flush-semaphore-with-a-completion.patch
+xfs-replace-dquot-flush-semaphore-with-a-completion.patch
+xfs-remove-the-sema_t-from-xfs.patch
 git-xtensa.patch
+xtensa-warn-about-including-asm-rwsemh-directly.patch
+xtensa-replace-remaining-__function__-occurences.patch
+xtensa-use-newer-__spin_lock_unlocked-macro.patch
+mm.patch
+rtc-rtc-ds1374-fix-no-irq-case-handling.patch
 bootmem-fix-aligning-of-node-relative-indexes-and-offsets.patch
+rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
+vmscan-set-try_to_release_pages-gfp_mask-to-0.patch
+serial-8250-tighten-test-for-using-backup-timer.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+jbd2-abort-instead-of-waiting-for-nonexistent-transactions.patch
+h8300-kallsyms-exclude-local-symbols.patch
+h8300-kallsyms-exclude-local-symbols-update.patch
+leds-fsg-change-order-of-initialization-and-deinitialization.patch
+leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling.patch
+drivers-net-skfp-pmfc-use-offsetof-macro.patch
+drivers-net-skfp-essc-fix-compile-warnings.patch
+usb-hso-driver-fix-kconfig.patch
+ixgbe-add-cx4-device-id.patch
+igb-remove-82576-quad-adapter.patch
+e1000e-return-1-instead-of-a-non-zero-value-for-link-up-indication.patch
+e1000e-set-interruptthrottlerate-to-default-when-invalid-value-used.patch
+e1000e-use-skb_copy_to_linear_data_offset-introduced-in-2622.patch
+e1000e-increase-tx-timeout-factor-for-10mbps.patch
+e1000e-increase-minimum-frame-size-allowed.patch
+e1000e-test-for-unusable-msi-support.patch
+e1000e-remove-unnecessary-snippet-missed-in-prior-check_options-update.patch
+nfs-bug_on-in-nfs_follow_mountpoint.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+ftrace-make-output-nicely-spaced-for-up-to-999-cpus.patch
+lockdep-fix-combinatorial-explosion-in-lock-subgraph-traversal-fix.patch
+scsi-megaraid_sas-add-the-dumy-readl-to-force-pci-flush.patch
+scsi-megaraid_sas-add-the-shutdown-dcmd-cmd-to-driver-shutdown-routine.patch
+scsi-megaraid_sas-add-the-new-controllers-support.patch
+scsi-megaraid_sas-version-and-documentation-update.patch
+ntp-fix-calculation-of-the-next-jiffie-to-trigger-rtc-sync.patch
+clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
+clocksource-keep-track-of-original-clocksource-frequency.patch
+clocksource-introduce-clocksource_forward_now.patch
+clocksource-introduce-clock_monotonic_raw.patch
+posix-timers-dont-switch-to-group_leader-if-it_process-dies.patch
+posix-timers-always-do-get_task_structtimer-it_process.patch
+posix-timers-sys_timer_create-remove-the-buggy-pf_exiting-check.patch
+posix-timers-sys_timer_create-simplify-and-s-tasklist-rcu.patch
+posix-timers-move-the-initialization-of-timer-sigq-from-send-to-create-path.patch
+posix-timers-sys_timer_create-cleanup-the-error-handling.patch
+posix-timers-kill-it_sigev_signo-and-it_sigev_value.patch
+posix-timers-lock_timer-kill-the-bogus-it_id-check.patch
+posix-timers-lock_timer-make-it-readable.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+mm-owner-fix-race-between-swap-and-exit.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
+vmscan-free-swap-space-on-swap-in-activation.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
+vmscan-fix-pagecache-reclaim-referenced-bit-check.patch
+vmscan-add-newly-swapped-in-pages-to-the-inactive-list.patch
+more-aggressively-use-lumpy-reclaim.patch
+pageflag-helpers-for-configed-out-flags.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-infrastructure-nommu-fix.patch
+unevictable-lru-infrastructure-remember-pages-active-state.patch
+unevictable-lru-infrastructure-defer-vm-event-counting.patch
+unevictable-infrastructure-lru-add-event-counting-with-statistics.patch
+unevictable-lru-page-statistics.patch
+ramfs-and-ram-disk-pages-are-unevictable.patch
+shm_locked-pages-are-unevictable.patch
+shm_locked-pages-are-unevictable-add-event-counts-to-list-scan.patch
+mlock-mlocked-pages-are-unevictable.patch
+doc-unevictable-lru-and-mlocked-pages-documentation.patch
+doc-unevictable-lru-and-mlocked-pages-documentation-update.patch
+doc-unevictable-lru-and-mlocked-pages-documentation-update-2.patch
+mlock-downgrade-mmap-sem-while-populating-mlocked-regions.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch
+swap-cull-unevictable-pages-in-fault-path.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-count-attempts-to-free-mlocked-page-2.patch
+vmscam-kill-unused-lru-functions.patch
 vmscan-dont-accumulate-scan-pressure-on-unrelated-lists.patch
+mmapc-deinline-a-few-functions.patch
+h8300-update-timer-handler-delete-files.patch
+h8300-update-timer-handler-new-files.patch
+h8300-update-timer-handler-misc-update.patch
+h8300-kconfig-cleanup.patch
+h8300-generic_bug-support.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+asm-h8300-mdh-remove-cvs-keyword.patch
+alpha-miata-remove-dead-url.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures.patch
+container-freezer-make-refrigerator-always-available.patch
+container-freezer-implement-freezer-cgroup-subsystem.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-skip-frozen-cgroups-during-power-management-resume.patch
+container-freezer-prevent-frozen-tasks-or-cgroups-from-changing.patch
+arch-m68k-bvme6000-rtcc-remove-duplicated-include.patch
+uml-remove-the-dead-tty_log-code.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+olpc-olpc_batteryc-sparse-endian-annotations.patch
+include-replace-__function__-with-__func__.patch
+misc-replace-__function__-with-__func__.patch
+maintainers-remove-hga-framebuffer-driver-entry.patch
+include-linux-mounth-remove-cvs-keyword.patch
+kernel-dmac-remove-a-cvs-keyword.patch
+inith-remove-long-dead-__setup_null_param-macro.patch
+x86-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
+sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
+powerpc-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
+introduce-generic-iommu_num_pages-function.patch
+x86-convert-gart-driver-to-generic-iommu_num_pages-function.patch
+x86-amd-iommu-convert-driver-to-generic-iommu_num_pages-function.patch
+x86-convert-calgary-iommu-driver-to-generic-iommu_num_pages-function.patch
+powerpc-use-iommu_num_pages-function-in-iommu-code.patch
+alpha-use-iommu_num_pages-function-in-iommu-code.patch
+sparc64-use-iommu_num_pages-function-in-iommu-code.patch
+checkpatch-square-brackets-exemption-for-array-slices-in-braces.patch
+checkpatch-values-double-ampersand-may-be-unary.patch
+checkpatch-conditional-indent-labels-have-different-indent-rules.patch
+checkpatch-switch-indent-allow-plain-return.patch
+checkpatch-add-tests-for-the-attribute-matcher.patch
+checkpatch-____cacheline_aligned-et-al-are-modifiers.patch
+checkpatch-complex-macros-fix-up-extension-handling.patch
+checkpatch-fix-up-comment-checks-search-to-scan-the-entire-block.patch
+checkpatch-include-asm-checks-should-be-anchored.patch
+checkpatch-reduce-warnings-for-include-of-asm-fooh-to-check-from-arch-barc.patch
+checkpatch-report-any-absolute-references-to-kernel-source-files.patch
+checkpatch-report-the-real-first-line-of-all-suspect-indents.patch
+checkpatch-suspect-indent-skip-over-preprocessor-label-and-blank-lines.patch
+checkpatch-%lx-tests-should-hand-%%-as-a-literal.patch
+checkpatch-report-the-correct-lines-for-single-statement-blocks.patch
+checkpatch-perform-indent-checks-on-perl.patch
+checkpatch-version-022.patch
+oss-remove-references-to-dead-sound-oss-vars-aedsp16_msssbpro.patch
+binfmt_somc-add-module_license.patch
+altix-serial-fix.patch
+make-probe_serial_gsc-static.patch
+kprobes-indirectly-call-kprobe_target.patch
+kprobes-add-tests-for-register_kprobes.patch
+i2o-fix-32-64bit-dma-locking.patch
+autofs4-cleanup-autofs-mount-type-usage.patch
+autofs4-track-uid-and-gid-of-last-mount-requester.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-devicer-node-ioctl-docoumentation.patch
+autofs4-add-miscellaneous-device-for-ioctls.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-pcf8563-remove-client-validation.patch
+rtc-m48t59-reduce-structure-m48t59_private.patch
+rtc-ds1374-wakup-support.patch
+rtc-ds1374-wakeup-support-update.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+rtc-ds1307-alarm-support-for-ds1337-ds1339.patch
+rtc-remove-some-nop-open-release-methods.patch
+legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
+rtc-rtc-rs5c372-smbus-conversion-support.patch
+rtc-rtc-rs5c372-add-support-for-ricoh-r2025s-d-rtc.patch
+rtc-file-close-consistently-disables-repeating-irqs.patch
+rtc-m48t59-add-support-for-m48t02-and-m48t59-chips-2nd-rev.patch
+spi-add-spi-over-gpio-driver.patch
+spi-add-spi-over-gpio-driver-fix-returned-error-code.patch
+mmc-add-gpio-based-mmc-sd-driver.patch
+fb-push-down-the-bkl-in-the-ioctl-handler.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+radeonfb-revert-fix-radeon-ddc-regression.patch
+fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
+neofb-reduce-panning-function.patch
+viafb-viafbmodes-viafbtxt.patch
+viafb-viafbmodes-viafbtxt-fix.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-makefile-kconfig.patch
+viafb-accelc-accelh.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-chiph-debugh.patch
+viafb-dvic-dvih-globalc-and-globalh.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-ifacec-ifaceh-ioctlc-ioctlh.patch
+viafb-lcdc-lcdh-lcdtblh.patch
+viafb-makefile-shareh.patch
+viafb-tbl1636c-tbl1636h-tbldpasettingc-tbldpasettingh.patch
+viafb-viafbdevc-viafbdevh.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+viafb-via_i2cc-via_i2ch-viamodec-viamodeh.patch
+viafb-via_utilityc-via_utilityh-vt1636c-vt1636h.patch
+fbdev-kconfig-update.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+pnp-remove-printk-with-outdated-version.patch
+pnp-make-the-resource-type-an-unsigned-long.patch
+pnp-make-the-resource-type-an-unsigned-long-fix.patch
+telephony-remove-cvs-keywords.patch
+jbd-abort-when-failed-to-log-metadata-buffers.patch
+jbd-fix-error-handling-for-checkpoint-io.patch
+ext3-add-checks-for-errors-from-jbd.patch
+jbd-dont-dirty-original-metadata-buffer-on-abort.patch
+ext3-dont-try-to-resize-if-there-are-no-reserved-gdt-blocks-left.patch
+ext4-dont-try-to-resize-if-there-are-no-reserved-gdt-blocks-left.patch
+jbd-abort-instead-of-waiting-for-nonexistent-transactions.patch
+befs-annotate-fs32-on-tests-for-superblock-endianness.patch
+hfsplus-quieten-down-mounting-hfsplus-journaled-fs-read-only.patch
+reiserfs-procfsc-remove-cvs-keywords.patch
+quota-remove-cvs-keywords.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+cpuset-use-seq_cpumask-seq_nodemask.patch
+irq-warn-about-irqf_disabledirqf_shared.patch
+make-ptrace_untrace-static.patch
+coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
+kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
+kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore.patch
+kdump-update-elfcorehdr-documentation-to-reflect-supported-architectures.patch
+kdump-use-is_kdump_kernel-in-sba_init.patch
+kdump-add-is_vmcore_usable-and-vmcore_unusable.patch
+kdump-add-is_vmcore_usable-and-vmcore_unusable-update.patch
+kdump-use-is_vmcore_usable-and-vmcore_unusable-in-reserve_elfcorehdr.patch
+kdump-ia64-always-reserve-elfcore-header-memory-in-crash-kernel.patch
+binfmt_elf_fdpic-support-auxvec-base-platform-string.patch
+binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack.patch
+binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch
+ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
+char-merge-ip2main-and-ip2base.patch
+char-ip2-cleanup-globals.patch
+char-ip2-fix-sparse-warnings.patch
+char-ip2-init-deinit-cleanup.patch
+ip2-avoid-add_timer-with-pending-timer.patch
+char-ds1286-eliminate-busy-waiting.patch
+firmware-use-dev_printk-when-possible.patch
+fs-partitions-acornc-remove-dead-code.patch
+relay-reset-consumed.patch
+trace-code-and-documentation.patch
+trace-code-and-documentation-merging-documentation-tracetxt-with-documentation-filesystems-relaytxt.patch
+trace-sample.patch
+rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements.patch
+rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements-fix.patch
+parport-remove-cvs-keywords.patch
+tpm-correct-tpm-timeouts-to-jiffies-conversion.patch
+w1-fix-deadlocks-and-remove-w1_control_thread.patch
+w1-abort-search-early-on-on-exit.patch
+w1-dont-delay-search-start.patch
+w1-w1_process-block-or-sleep.patch
+w1-feature-enable-hardware-strong-pullup.patch
+w1-feature-w1_thermc-use-strong-pullup-and-documentation.patch
+w1-be-able-to-manually-add-and-remove-slaves.patch
+w1-recode-w1_slave_found-logic.patch
+w1-new-module-parameter-search_count.patch
+w1-document-add-remove-search_count-and-pullup.patch
+w1-w1_slave_read_id-read-bug-use-device_attribute.patch
+w1-w1_therm-fix-user-buffer-overflow-and-cat.patch
+w1-w1_family-remove-unused-variable-need_exit.patch
+w1-w1_therm-consistent-mutex-access-code-cleanup.patch
+w1-w1_intc-use-first-available-master-number.patch
+w1-w1c-s-printk-dev_dbg.patch
+w1-w1_ioc-reset-comments-and-msleep.patch
+w1-ds1wmc-msleep-for-reset.patch
+w1-ds2490c-correct-print-message.patch
+w1-ds2490c-add-support-for-strong-pullup.patch
+w1-ds2490c-ds_write_bit-grouping-error-disable-readback.patch
+w1-ds2490c-disable-bit-read-and-write.patch
+w1-ds2490c-simplify-and-fix-ds_touch_bit.patch
+w1-ds2490c-ds_dump_status-rework.patch
+w1-ds2490c-ds_reset-remove-ds_wait_status.patch
+w1-ds2490c-reset-ds2490-in-init.patch
+w1-ds2490c-magic-number-work.patch
+w1-ds2490c-ds_write_block-remove-extra-ds_wait_status.patch
+w1-documentation-w1-masters-ds2490-update.patch
+w1-ds2490c-optimize-ds_set_pullup.patch
+configure-out-aio-support.patch
+kernel-call-constructors.patch
+kernel-call-constructors-uml-fix-1.patch
+kernel-call-constructors-uml-fix-2.patch
+kernel-introduce-gcc_version_lower-macro.patch
+seq_file-add-function-to-write-binary-data.patch
+gcov-add-gcov-profiling-infrastructure.patch
+gcov-add-gcov-profiling-infrastructure-revert-link-changes.patch
+gcov-architecture-specific-compile-flag-adjustments.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-x86_64-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-x86_64-fix-2.patch
 mm-more-likely-reclaim-madv_sequential-mappings.patch
-
+resources-tidy-__request_region.patch
+resource-add-resource_type-and-ioresource_type_bits.patch
+powerpc-hugetlb-pgtable-cache-access-cleanup.patch
+net-tipc-subscrc-dont-use-___constant_swab32.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+drivers-firmware-iscsi_ibftc-make-3-functions-static.patch
+ipc-semc-make-free_un-static.patch
+acpi-use-bcd2bin-bin2bcd.patch
+alpha-use-bcd2bin-bin2bcd.patch
+arm-use-bcd2bin-bin2bcd.patch
+cris-use-bcd2bin-bin2bcd.patch
+drivers-rtc-use-bcd2bin-bin2bcd.patch
+rtc-use-bcd2bin-bin2bcd.patch
+mips-use-bcd2bin-bin2bcd.patch
+mn10300-use-bcd2bin-bin2bcd.patch
+powerpc-use-bcd2bin-bin2bcd.patch
+i2c-use-bcd2bin-bin2bcd.patch
+drivers-scsi-sr_vendorc-use-bcd2bin.patch
+sparc64-use-bcd2bin-bin2bcd.patch
+remove-the-obsolete-bcdbin-binbcd-macros.patch
+include-linux-bcdh-remove-comments.patch
+reiser4-vfs-add-super_operationssync_inodes-2.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-fix-handling-enospc-cryptcompress.patch
+reiser4-fix-handling-enospc-unix_file.patch
+reiser4-fix-kill_hook_internal.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-compile-warning-cleanups.patch
+reiser4-use-wake_up_process-instead-of-wake_up-when-possible.patch
+reiser4-track-upstream-changes.patch
+make-sure-nobodys-leaking-resources.patch
+journal_add_journal_head-debug.patch
+page-owner-tracking-leak-detector.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+releasing-resources-with-children.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+detect-atomic-counter-underflows.patch
+mm-debug-dump-pageframes-on-bad_page.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
+shrink_slab-handle-bad-shrinkers.patch
+keep-track-of-network-interface-renaming.patch
+workaround-for-a-pci-restoring-bug.patch
+prio_tree-debugging-patch.patch
+single_open-seq_release-leak-diagnostics.patch
+add-a-refcount-check-in-dput.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+tg3-debugging.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+likely_prof-changed-to-use-proc_create.patch
+likeliness-accounting-change-and-cleanup.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
+likely_prof-update-to-test_and_set_bit_lock-clear_bit_unlock.patch
+likely-profiling-disable-ftrace.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
