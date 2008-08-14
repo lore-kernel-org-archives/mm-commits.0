@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-pda_init-fix-memory-leak-with-cpu_hotplug.patch added to -mm tree
-Date: Thu, 14 Aug 2008 02:15:04 -0700
-Message-ID: <200808140915.m7E9F4kA001077@imap1.linux-foundation.org>
+Subject: + acpi-add-support-for-addressrangeunusuable-acpi-memory-type.patch added to -mm tree
+Date: Thu, 14 Aug 2008 02:22:02 -0700
+Message-ID: <200808140922.m7E9M21U001353@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42258 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49767 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758582AbYHNJQB (ORCPT
+	by vger.kernel.org with ESMTP id S1752009AbYHNJXA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Aug 2008 05:16:01 -0400
+	Thu, 14 Aug 2008 05:23:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andreas.herrmann3@amd.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+Cc: joseph.cihula@intel.com, andi@firstfloor.org, gang.wei@intel.com, mingo@elte.hu, shane.wang@intel.com, tglx@linutronix.de
 
 
 The patch titled
-     x86: pda_init: fix memory leak with CPU_HOTPLUG
+     acpi: add support for AddressRangeUnusuable ACPI memory type
 has been added to the -mm tree.  Its filename is
-     x86-pda_init-fix-memory-leak-with-cpu_hotplug.patch
+     acpi-add-support-for-addressrangeunusuable-acpi-memory-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: pda_init: fix memory leak with CPU_HOTPLUG
-From: Andreas Herrmann <andreas.herrmann3@amd.com>
+Subject: acpi: add support for AddressRangeUnusuable ACPI memory type
+From: "Cihula, Joseph" <joseph.cihula@intel.com>
 
-pda->irqstackptr is allocated whenever a CPU is set online.  But it is
-never freed (or did I miss something?).  This results in a memory leak of
-16 KByte for each CPU offline/online cycle.
+Add support for the E820_UNUSABLE memory type, which is defined in
+Revision 3.0b (Oct.  10, 2006) of the ACPI Specification on p.  394 Table
+14-1:
 
-Fix is to allocate pda->irqstackptr only once.
+  AddressRangeUnusuable This range of address contains memory in which
+  errors have been detected.  This range must not be used by the OSPM.
 
-Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Joseph Cihula <joseph.cihula@intel.com>
+Signed-off-by: Shane Wang <shane.wang@intel.com>
+Signed-off-by: Gang Wei <gang.wei@intel.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/common_64.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ arch/x86/kernel/e820.c |    4 ++++
+ include/asm-x86/e820.h |    1 +
+ 2 files changed, 5 insertions(+)
 
-diff -puN arch/x86/kernel/cpu/common_64.c~x86-pda_init-fix-memory-leak-with-cpu_hotplug arch/x86/kernel/cpu/common_64.c
---- a/arch/x86/kernel/cpu/common_64.c~x86-pda_init-fix-memory-leak-with-cpu_hotplug
-+++ a/arch/x86/kernel/cpu/common_64.c
-@@ -493,17 +493,20 @@ void pda_init(int cpu)
- 		/* others are initialized in smpboot.c */
- 		pda->pcurrent = &init_task;
- 		pda->irqstackptr = boot_cpu_stack;
-+		pda->irqstackptr += IRQSTACKSIZE - 64;
- 	} else {
--		pda->irqstackptr = (char *)
--			__get_free_pages(GFP_ATOMIC, IRQSTACK_ORDER);
--		if (!pda->irqstackptr)
--			panic("cannot allocate irqstack for cpu %d", cpu);
-+		if (!pda->irqstackptr) {
-+			pda->irqstackptr = (char *)
-+				__get_free_pages(GFP_ATOMIC, IRQSTACK_ORDER);
-+			if (!pda->irqstackptr)
-+				panic("cannot allocate irqstack for cpu %d",
-+				      cpu);
-+			pda->irqstackptr += IRQSTACKSIZE - 64;
-+		}
- 
- 		if (pda->nodenumber == 0 && cpu_to_node(cpu) != NUMA_NO_NODE)
- 			pda->nodenumber = cpu_to_node(cpu);
+diff -puN arch/x86/kernel/e820.c~acpi-add-support-for-addressrangeunusuable-acpi-memory-type arch/x86/kernel/e820.c
+--- a/arch/x86/kernel/e820.c~acpi-add-support-for-addressrangeunusuable-acpi-memory-type
++++ a/arch/x86/kernel/e820.c
+@@ -148,6 +148,9 @@ void __init e820_print_map(char *who)
+ 		case E820_NVS:
+ 			printk(KERN_CONT "(ACPI NVS)\n");
+ 			break;
++		case E820_UNUSABLE:
++			printk("(unusable)\n");
++			break;
+ 		default:
+ 			printk(KERN_CONT "type %u\n", e820.map[i].type);
+ 			break;
+@@ -1260,6 +1263,7 @@ static inline const char *e820_type_to_s
+ 	case E820_RAM:	return "System RAM";
+ 	case E820_ACPI:	return "ACPI Tables";
+ 	case E820_NVS:	return "ACPI Non-volatile Storage";
++	case E820_UNUSABLE:	return "Unusable memory";
+ 	default:	return "reserved";
  	}
+ }
+diff -puN include/asm-x86/e820.h~acpi-add-support-for-addressrangeunusuable-acpi-memory-type include/asm-x86/e820.h
+--- a/include/asm-x86/e820.h~acpi-add-support-for-addressrangeunusuable-acpi-memory-type
++++ a/include/asm-x86/e820.h
+@@ -43,6 +43,7 @@
+ #define E820_RESERVED	2
+ #define E820_ACPI	3
+ #define E820_NVS	4
++#define E820_UNUSABLE	5
+ 
+ /* reserved RAM used by kernel itself */
+ #define E820_RESERVED_KERN        128
+_
+
+Patches currently in -mm which might be from joseph.cihula@intel.com are
+
+acpi-add-support-for-addressrangeunusuable-acpi-memory-type.patch
+
