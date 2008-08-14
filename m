@@ -1,195 +1,193 @@
 From: akpm@linux-foundation.org
-Subject: + power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 13 Aug 2008 16:45:38 -0700
-Message-ID: <200808132345.m7DNjdLg012658@imap1.linux-foundation.org>
+Subject: - alloc_bootmem_core-fix-misaligned-allocation-of-1g-page.patch removed from -mm tree
+Date: Wed, 13 Aug 2008 17:22:53 -0700
+Message-ID: <200808140022.m7E0MrK3014056@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60969 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34964 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754240AbYHMXqR (ORCPT
+	by vger.kernel.org with ESMTP id S1752930AbYHNAXt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 13 Aug 2008 19:46:17 -0400
+	Wed, 13 Aug 2008 20:23:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cbouatmailru@gmail.com, dwmw2@infradead.org, giometti@linux.it
+To: andreas.herrmann3@amd.com, hannes@saeurebad.de, mingo@elte.hu, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes.patch
+     alloc_bootmem_core(): fix misaligned allocation of 1G page
+has been removed from the -mm tree.  Its filename was
+     alloc_bootmem_core-fix-misaligned-allocation-of-1g-page.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: alloc_bootmem_core(): fix misaligned allocation of 1G page
+From: Andreas Herrmann <andreas.herrmann3@amd.com>
 
-ERROR: space prohibited before that ':' (ctx:WxE)
-#227: FILE: drivers/power/bq27x00_battery.c:175:
-+	case POWER_SUPPLY_PROP_VOLTAGE_NOW :
- 	                                   ^
+If memory hole remapping is enabled on an x86-NUMA system, allocation of
+1G pages on node 1 will most probably trigger an BUG_ON in
+alloc_bootmem_huge_page because alloc_bootmem_core fails to properly align
+the huge page on a 1G boundary.
 
-ERROR: space prohibited before that ':' (ctx:WxE)
-#228: FILE: drivers/power/bq27x00_battery.c:176:
-+	case POWER_SUPPLY_PROP_PRESENT :
- 	                               ^
+I've observed this Oops with kernel 2.6.27-rc2-00166-gaeee90d with a 2
+socket system and activated memory hole remapping.  (Of course disabling
+memory hole remapping works around the problem but this wastes a
+significant amount of memory.)
 
-ERROR: space prohibited before that ':' (ctx:WxE)
-#235: FILE: drivers/power/bq27x00_battery.c:183:
-+	case POWER_SUPPLY_PROP_CURRENT_NOW :
- 	                                   ^
+Here some dmesg snippet with that kernel (using "bootmem_debug"  plus some
+additional printk's):
 
-ERROR: space prohibited before that ':' (ctx:WxE)
-#240: FILE: drivers/power/bq27x00_battery.c:188:
-+	case POWER_SUPPLY_PROP_CAPACITY :
- 	                                ^
+  ...
+  Bootmem setup node 0 0000000000000000-0000000130000000
+  ...
+  Bootmem setup node 1 0000000130000000-0000000230000000
+  ...
+  Kernel command line: root=/dev/sda4 console=ttyS0,115200
+    hugepagesz=2M hugepages=0 hugepagesz=1G hugepages=3 bootmem_debug
+    debug earlyprintk=ttyS0,115200
+   ...
 
-ERROR: space prohibited before that ':' (ctx:WxE)
-#245: FILE: drivers/power/bq27x00_battery.c:193:
-+	case POWER_SUPPLY_PROP_TEMP :
- 	                            ^
+  bootmem::alloc_bootmem_core nid=1 size=40000000 [262144 pages]
+    align=40000000 goal=0 limit=0
+  min: 1245184, max: 2293760, step: 262144, start: 1310720
+  sidx: 65536, midx: 1048576
+  sidx: 65536
+  sidx: 262144, eidx: 524288
+  start_off: 1073741824, end_off: 2147483648, merge: 0, min_pfn: 1245184
+  bootmem::__reserve nid=1 start=170000 end=1b0000 flags=1
+  addr:ffff880170000000, paddr:0000000170000000, size: 1073741824
+  PANIC: early exception 06 rip 10:ffffffff807ce3b0 error 0 cr2 0
+  Pid: 0, comm: swapper Not tainted 2.6.27-rc2-00166-gaeee90d-dirty #6
 
-total: 5 errors, 0 warnings, 412 lines checked
+  Call Trace:
+   [<ffffffff807cccbe>] ___alloc_bootmem_nopanic+0x60/0x98
+   [<ffffffff807bc195>] early_idt_handler+0x55/0x69
+   [<ffffffff807ce3b0>] alloc_bootmem_huge_page+0xa6/0xd9
+   [<ffffffff807ce39f>] alloc_bootmem_huge_page+0x95/0xd9
+   [<ffffffff807ce3fe>] hugetlb_hstate_alloc_pages+0x1b/0x3a
+   [<ffffffff807ce489>] hugetlb_nrpages_setup+0x6c/0x7a
+   [<ffffffff807bc69e>] unknown_bootoption+0xdc/0x1e2
+   [<ffffffff802446d6>] parse_args+0x137/0x1f5
+   [<ffffffff807bc5c2>] unknown_bootoption+0x0/0x1e2
+   [<ffffffff807bcb6e>] start_kernel+0x195/0x2b7
+   [<ffffffff807bc369>] x86_64_start_kernel+0xe3/0xe7
 
-./patches/power-support-for-texas-instruments-bq27x00-battery-managers.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+  RIP 0x10
 
-Please run checkpatch prior to sending patches
+The problem in alloc_bootmem_core is that it just guarantees proper
+alignment for the offset (sidx) from bdata->node_min_pfn.
 
-Cc: Anton Vorontsov <cbouatmailru@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Rodolfo Giometti <giometti@linux.it>
+A simple (ugly) fix is to add bdata->node_min_pfn to sidx and friends. 
+Patch is attached.
+
+The current code in alloc_bootmem_core is based on changes introduced with
+commit 5f2809e69c7128f86316048221cf45146f69a4a0 (bootmem: clean up
+alloc_bootmem_core).  But I didn't check whether this commit introduced
+the problem.
+
+
+With attached patch the 1G huge page gets properly aligned on node 1:
+
+  Linux version 2.6.27-rc2-00389-g10fec20-dirty ...
+  ...
+  Bootmem setup node 0 0000000000000000-0000000130000000
+  ...
+  Bootmem setup node 1 0000000130000000-0000000230000000
+  ...
+
+  Kernel command line: root=/dev/sda4 console=ttyS0,115200
+    hugepagesz=2M hugepages=0 huge pagesz=1G hugepages=3 bootmem_debug
+    debug earlyprintk=ttyS0,115200
+  bootmem::alloc_bootmem_core nid=0 size=40000000 [262144 pages] align=40000000
+    goal=0 limit=0
+  bootmem::__reserve nid=0 start=40000 end=80000 flags=1
+  bootmem::alloc_bootmem_core nid=0 size=40000000 [262144 pages] align=40000000
+    goal=0 limit=0
+  bootmem::__reserve nid=0 start=80000 end=c0000 flags=1
+  bootmem::alloc_bootmem_core nid=0 size=40000000 [262144 pages] align=40000000
+    goal=0 limit=0
+  bootmem::alloc_bootmem_core nid=0 size=40000000 [262144 pages] align=40000000
+    goal=0 limit=0
+  bootmem::alloc_bootmem_core nid=1 size=40000000 [262144 pages] align=40000000
+    goal=0 limit=0
+  bootmem::__reserve nid=1 start=140000 end=180000 flags=1
+  Initializing CPU#0
+  ...
+
+Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Johannes Weiner <hannes@saeurebad.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/bq27x00_battery.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/bootmem.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN drivers/power/bq27x00_battery.c~power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes drivers/power/bq27x00_battery.c
---- a/drivers/power/bq27x00_battery.c~power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes
-+++ a/drivers/power/bq27x00_battery.c
-@@ -172,25 +172,25 @@ static int bq27x00_battery_get_property(
- 	struct bq27x00_device_info *di = to_bq27x00_device_info(psy);
+diff -puN mm/bootmem.c~alloc_bootmem_core-fix-misaligned-allocation-of-1g-page mm/bootmem.c
+--- a/mm/bootmem.c~alloc_bootmem_core-fix-misaligned-allocation-of-1g-page
++++ a/mm/bootmem.c
+@@ -441,8 +441,8 @@ static void * __init alloc_bootmem_core(
+ 	else
+ 		start = ALIGN(min, step);
  
- 	switch (psp) {
--	case POWER_SUPPLY_PROP_VOLTAGE_NOW :
--	case POWER_SUPPLY_PROP_PRESENT :
-+	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-+	case POWER_SUPPLY_PROP_PRESENT:
- 		val->intval = bq27x00_battery_voltage(di);
- 		if (psp == POWER_SUPPLY_PROP_PRESENT)
- 			val->intval = val->intval <= 0 ? 0 : 1;
+-	sidx = start - bdata->node_min_pfn;;
+-	midx = max - bdata->node_min_pfn;
++	sidx = start;
++	midx = max;
  
- 		break;
+ 	if (bdata->hint_idx > sidx) {
+ 		/*
+@@ -458,7 +458,10 @@ static void * __init alloc_bootmem_core(
+ 		void *region;
+ 		unsigned long eidx, i, start_off, end_off;
+ find_block:
+-		sidx = find_next_zero_bit(bdata->node_bootmem_map, midx, sidx);
++		sidx = find_next_zero_bit(bdata->node_bootmem_map,
++					  midx - bdata->node_min_pfn,
++					  sidx - bdata->node_min_pfn);
++		sidx += bdata->node_min_pfn;
+ 		sidx = ALIGN(sidx, step);
+ 		eidx = sidx + PFN_UP(size);
  
--	case POWER_SUPPLY_PROP_CURRENT_NOW :
-+	case POWER_SUPPLY_PROP_CURRENT_NOW:
- 		val->intval = bq27x00_battery_current(di);
+@@ -466,7 +469,8 @@ find_block:
+ 			break;
  
- 		break;
+ 		for (i = sidx; i < eidx; i++)
+-			if (test_bit(i, bdata->node_bootmem_map)) {
++			if (test_bit(i - bdata->node_min_pfn,
++				     bdata->node_bootmem_map)) {
+ 				sidx = ALIGN(i, step);
+ 				if (sidx == i)
+ 					sidx += step;
+@@ -474,16 +478,17 @@ find_block:
+ 			}
  
--	case POWER_SUPPLY_PROP_CAPACITY :
-+	case POWER_SUPPLY_PROP_CAPACITY:
- 		val->intval = bq27x00_battery_rsoc(di);
+ 		if (bdata->last_end_off &&
+-				PFN_DOWN(bdata->last_end_off) + 1 == sidx)
++		    (PFN_DOWN(bdata->last_end_off) + 1) ==
++		    (sidx - bdata->node_min_pfn))
+ 			start_off = ALIGN(bdata->last_end_off, align);
+ 		else
+-			start_off = PFN_PHYS(sidx);
++			start_off = PFN_PHYS(sidx - bdata->node_min_pfn);
  
- 		break;
+-		merge = PFN_DOWN(start_off) < sidx;
++		merge = PFN_DOWN(start_off) < (sidx - bdata->node_min_pfn);
+ 		end_off = start_off + size;
  
--	case POWER_SUPPLY_PROP_TEMP :
-+	case POWER_SUPPLY_PROP_TEMP:
- 		val->intval = bq27x00_battery_temperature(di);
+ 		bdata->last_end_off = end_off;
+-		bdata->hint_idx = PFN_UP(end_off);
++		bdata->hint_idx = PFN_UP(end_off + bdata->node_min_pfn);
  
- 		break;
+ 		/*
+ 		 * Reserve the area now:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andreas.herrmann3@amd.com are
 
-kexec-jump-check-code-size-in-control-page-fix.patch
-kexec-use-a-bitop-for-locking-rather-than-xchg.patch
-hwmon-adc124s501-generic-driver.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-next-remove-localversion.patch
-acpi-trivial-cleanups-fix.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-drivers-ata-pata_it821xc-fix-warning.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers-tweaks.patch
-ftrace-printk-formatting-infrastructure-fix-fix.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-scsi-megaraid_sas-add-the-new-controllers-support.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-net-tipc-subscrc-dont-use-___constant_swab32.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+alloc_bootmem_core-fix-misaligned-allocation-of-1g-page.patch
 
