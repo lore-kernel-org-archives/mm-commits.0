@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-jump-rename-kexec_control_code_size-to-kexec_control_page_size-fix.patch added to -mm tree
-Date: Thu, 14 Aug 2008 17:46:57 -0700
-Message-ID: <200808150100.m7F106I0006447@imap1.linux-foundation.org>
+Subject: + drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch added to -mm tree
+Date: Thu, 14 Aug 2008 21:29:39 -0700
+Message-ID: <200808150442.m7F4gmxR014530@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54418 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56363 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750738AbYHOBBv (ORCPT
+	by vger.kernel.org with ESMTP id S1750790AbYHOEn2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 14 Aug 2008 21:01:51 -0400
+	Fri, 15 Aug 2008 00:43:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, ebiederm@xmission.com, mingo@elte.hu, pavel@ucw.cz, rjw@sisk.pl, rmk@arm.linux.org.uk, vgoyal@redhat.com, ying.huang@intel.com
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, hare@suse.de, schwidefsky@de.ibm.com
 
 
 The patch titled
-     kexec-jump-rename-kexec_control_code_size-to-kexec_control_page_size-fix
+     drivers/scsi/device_handler/scsi_dh_emc.c: suppress warning
 has been added to the -mm tree.  Its filename is
-     kexec-jump-rename-kexec_control_code_size-to-kexec_control_page_size-fix.patch
+     drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec-jump-rename-kexec_control_code_size-to-kexec_control_page_size-fix
+Subject: drivers/scsi/device_handler/scsi_dh_emc.c: suppress warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- unbreak powerpc and arm
+s390:
 
-- use grep
+drivers/scsi/device_handler/scsi_dh_emc.c: In function 'parse_sp_info_reply':
+drivers/scsi/device_handler/scsi_dh_emc.c:179: warning: comparison is always false due to limited range of data type
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+because chars are unsigned, I assume.
+
+Cc: Hannes Reinecke <hare@suse.de>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/machine_kexec.c        |    2 +-
- arch/powerpc/kernel/machine_kexec_32.c |    2 +-
- arch/x86/kernel/machine_kexec_32.c     |    2 +-
- kernel/kexec.c                         |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/scsi/device_handler/scsi_dh_emc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/kernel/machine_kexec.c~kexec-jump-rename-kexec_control_code_size-to-kexec_control_page_size-fix arch/arm/kernel/machine_kexec.c
---- a/arch/arm/kernel/machine_kexec.c~kexec-jump-rename-kexec_control_code_size-to-kexec_control_page_size-fix
-+++ a/arch/arm/kernel/machine_kexec.c
-@@ -71,7 +71,7 @@ void machine_kexec(struct kimage *image)
- 
- 
- 	flush_icache_range((unsigned long) reboot_code_buffer,
--			   (unsigned long) reboot_code_buffer + KEXEC_CONTROL_CODE_SIZE);
-+			   (unsigned long) reboot_code_buffer + KEXEC_CONTROL_PAGE_SIZE);
- 	printk(KERN_INFO "Bye!\n");
- 
- 	cpu_proc_fin();
-diff -puN arch/powerpc/kernel/machine_kexec_32.c~kexec-jump-rename-kexec_control_code_size-to-kexec_control_page_size-fix arch/powerpc/kernel/machine_kexec_32.c
---- a/arch/powerpc/kernel/machine_kexec_32.c~kexec-jump-rename-kexec_control_code_size-to-kexec_control_page_size-fix
-+++ a/arch/powerpc/kernel/machine_kexec_32.c
-@@ -51,7 +51,7 @@ void default_machine_kexec(struct kimage
- 						relocate_new_kernel_size);
- 
- 	flush_icache_range(reboot_code_buffer,
--				reboot_code_buffer + KEXEC_CONTROL_CODE_SIZE);
-+				reboot_code_buffer + KEXEC_CONTROL_PAGE_SIZE);
- 	printk(KERN_INFO "Bye!\n");
- 
- 	/* now call it */
-diff -puN arch/x86/kernel/machine_kexec_32.c~kexec-jump-rename-kexec_control_code_size-to-kexec_control_page_size-fix arch/x86/kernel/machine_kexec_32.c
---- a/arch/x86/kernel/machine_kexec_32.c~kexec-jump-rename-kexec_control_code_size-to-kexec_control_page_size-fix
-+++ a/arch/x86/kernel/machine_kexec_32.c
-@@ -78,7 +78,7 @@ static void load_segments(void)
- /*
-  * A architecture hook called to validate the
-  * proposed image and prepare the control pages
-- * as needed.  The pages for KEXEC_CONTROL_CODE_SIZE
-+ * as needed.  The pages for KEXEC_CONTROL_PAGE_SIZE
-  * have been allocated, but the segments have yet
-  * been copied into the kernel.
-  *
-diff -puN kernel/kexec.c~kexec-jump-rename-kexec_control_code_size-to-kexec_control_page_size-fix kernel/kexec.c
---- a/kernel/kexec.c~kexec-jump-rename-kexec_control_code_size-to-kexec_control_page_size-fix
-+++ a/kernel/kexec.c
-@@ -77,7 +77,7 @@ int kexec_should_crash(struct task_struc
-  *
-  * The code for the transition from the current kernel to the
-  * the new kernel is placed in the control_code_buffer, whose size
-- * is given by KEXEC_CONTROL_CODE_SIZE.  In the best case only a single
-+ * is given by KEXEC_CONTROL_PAGE_SIZE.  In the best case only a single
-  * page of memory is necessary, but some architectures require more.
-  * Because this memory must be identity mapped in the transition from
-  * virtual to physical addresses it must live in the range
+diff -puN drivers/scsi/device_handler/scsi_dh_emc.c~drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning drivers/scsi/device_handler/scsi_dh_emc.c
+--- a/drivers/scsi/device_handler/scsi_dh_emc.c~drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning
++++ a/drivers/scsi/device_handler/scsi_dh_emc.c
+@@ -176,7 +176,7 @@ static int parse_sp_info_reply(struct sc
+ 		err = SCSI_DH_DEV_TEMP_BUSY;
+ 		goto out;
+ 	}
+-	if (csdev->buffer[4] < 0 || csdev->buffer[4] > 2) {
++	if (csdev->buffer[4] & ~3) {
+ 		/* Invalid buffer format */
+ 		sdev_printk(KERN_NOTICE, sdev,
+ 			    "%s: invalid VPD page 0xC0 format\n",
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -191,4 +150,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
 
