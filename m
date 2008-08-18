@@ -1,61 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-hwmon-w83791dc-fix-unused-var-warning.patch removed from -mm tree
-Date: Mon, 18 Aug 2008 12:39:52 -0700
-Message-ID: <200808181939.m7IJdqAc008373@imap1.linux-foundation.org>
+Subject: - freescale-diu-add-virtual-resolution-and-panning-support.patch removed from -mm tree
+Date: Mon, 18 Aug 2008 12:39:41 -0700
+Message-ID: <200808181939.m7IJdffM008351@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54633 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35762 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762786AbYHRTkt (ORCPT
+	by vger.kernel.org with ESMTP id S1758425AbYHRTk2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 15:40:49 -0400
+	Mon, 18 Aug 2008 15:40:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: niro@tut.by, mhoffman@lightlink.com, mm-commits@vger.kernel.org
+To: yorksun@freescale.com, adaplas@pol.net, galak@gate.crashing.org, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/hwmon/w83791d.c: fix unused var warning
+     freescale DIU: add virtual resolution and panning support
 has been removed from the -mm tree.  Its filename was
-     drivers-hwmon-w83791dc-fix-unused-var-warning.patch
+     freescale-diu-add-virtual-resolution-and-panning-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/hwmon/w83791d.c: fix unused var warning
-From: Michael Borisov <niro@tut.by>
+Subject: freescale DIU: add virtual resolution and panning support
+From: York Sun <yorksun@freescale.com>
 
-drivers/hwmon/w83791d.c: In function `w83791d_probe':
-drivers/hwmon/w83791d.c:1049: warning: unused variable `val1'
+Application can now have the virtual resoltuion and use FBIOPAN_DISPLAY
+ioctl to pan.
 
-Signed-off-by: Michael Borisov <niro@tut.by>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Signed-off-by: York Sun <yorksun@freescale.com>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/w83791d.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/video/fsl-diu-fb.c |   28 +++++++++++++++++++++++-----
+ 1 file changed, 23 insertions(+), 5 deletions(-)
 
-diff -puN drivers/hwmon/w83791d.c~drivers-hwmon-w83791dc-fix-unused-var-warning drivers/hwmon/w83791d.c
---- a/drivers/hwmon/w83791d.c~drivers-hwmon-w83791dc-fix-unused-var-warning
-+++ a/drivers/hwmon/w83791d.c
-@@ -1055,9 +1055,10 @@ static int w83791d_probe(struct i2c_clie
- {
- 	struct w83791d_data *data;
- 	struct device *dev = &client->dev;
--	int i, val1, err;
-+	int i, err;
+diff -puN drivers/video/fsl-diu-fb.c~freescale-diu-add-virtual-resolution-and-panning-support drivers/video/fsl-diu-fb.c
+--- a/drivers/video/fsl-diu-fb.c~freescale-diu-add-virtual-resolution-and-panning-support
++++ a/drivers/video/fsl-diu-fb.c
+@@ -778,6 +778,22 @@ static void unmap_video_memory(struct fb
+ }
  
- #ifdef DEBUG
-+	int val1;
- 	val1 = w83791d_read(client, W83791D_REG_DID_VID4);
- 	dev_dbg(dev, "Device ID version: %d.%d (0x%02x)\n",
- 			(val1 >> 5) & 0x07, (val1 >> 1) & 0x0f, val1);
+ /*
++ * Using the fb_var_screeninfo in fb_info we set the aoi of this
++ * particular framebuffer. It is a light version of fsl_diu_set_par.
++ */
++static int fsl_diu_set_aoi(struct fb_info *info)
++{
++	struct fb_var_screeninfo *var = &info->var;
++	struct mfb_info *mfbi = info->par;
++	struct diu_ad *ad = mfbi->ad;
++
++	/* AOI should not be greater than display size */
++	ad->offset_xyi = cpu_to_le32((var->yoffset << 16) | var->xoffset);
++	ad->offset_xyd = cpu_to_le32((mfbi->y_aoi_d << 16) | mfbi->x_aoi_d);
++	return 0;
++}
++
++/*
+  * Using the fb_var_screeninfo in fb_info we set the resolution of this
+  * particular framebuffer. This function alters the fb_fix_screeninfo stored
+  * in fb_info. It does not alter var in fb_info since we are using that
+@@ -817,11 +833,11 @@ static int fsl_diu_set_par(struct fb_inf
+ 		diu_ops.get_pixel_format(var->bits_per_pixel,
+ 					 machine_data->monitor_port);
+ 	ad->addr    = cpu_to_le32(info->fix.smem_start);
+-	ad->src_size_g_alpha = cpu_to_le32((var->yres << 12) |
+-				var->xres) | mfbi->g_alpha;
+-	/* fix me. AOI should not be greater than display size */
++	ad->src_size_g_alpha = cpu_to_le32((var->yres_virtual << 12) |
++				var->xres_virtual) | mfbi->g_alpha;
++	/* AOI should not be greater than display size */
+ 	ad->aoi_size 	= cpu_to_le32((var->yres << 16) | var->xres);
+-	ad->offset_xyi = 0;
++	ad->offset_xyi = cpu_to_le32((var->yoffset << 16) | var->xoffset);
+ 	ad->offset_xyd = cpu_to_le32((mfbi->y_aoi_d << 16) | mfbi->x_aoi_d);
+ 
+ 	/* Disable chroma keying function */
+@@ -921,6 +937,8 @@ static int fsl_diu_pan_display(struct fb
+ 	else
+ 		info->var.vmode &= ~FB_VMODE_YWRAP;
+ 
++	fsl_diu_set_aoi(info);
++
+ 	return 0;
+ }
+ 
+@@ -989,7 +1007,7 @@ static int fsl_diu_ioctl(struct fb_info 
+ 		pr_debug("set AOI display offset of index %d to (%d,%d)\n",
+ 				 mfbi->index, aoi_d.x_aoi_d, aoi_d.y_aoi_d);
+ 		fsl_diu_check_var(&info->var, info);
+-		fsl_diu_set_par(info);
++		fsl_diu_set_aoi(info);
+ 		break;
+ 	case MFB_GET_AOID:
+ 		aoi_d.x_aoi_d = mfbi->x_aoi_d;
 _
 
-Patches currently in -mm which might be from niro@tut.by are
+Patches currently in -mm which might be from yorksun@freescale.com are
 
 origin.patch
 
