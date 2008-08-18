@@ -1,180 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - geode-mfgpt-check-irq-before-using-mfgpt-as-clocksource.patch removed from -mm tree
-Date: Mon, 18 Aug 2008 12:40:50 -0700
-Message-ID: <200808181940.m7IJeots008491@imap1.linux-foundation.org>
+Subject: - abituguru3-update-maintainers.patch removed from -mm tree
+Date: Mon, 18 Aug 2008 12:40:01 -0700
+Message-ID: <200808181940.m7IJe1HU008415@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44869 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42184 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932499AbYHRTmU (ORCPT
+	by vger.kernel.org with ESMTP id S1765286AbYHRTlR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 15:42:20 -0400
+	Mon, 18 Aug 2008 15:41:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: JRottmann@LiPPERTEmbedded.de, dilinger@debian.org, johnstul@us.ibm.com, jordan.crouse@amd.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: alistair@devzero.co.uk, j.w.r.degoede@hhs.nl, khali@linux-fr.org, mhoffman@lightlink.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     geode-mfgpt: check IRQ before using MFGPT as clocksource
+     abituguru3: update MAINTAINERS
 has been removed from the -mm tree.  Its filename was
-     geode-mfgpt-check-irq-before-using-mfgpt-as-clocksource.patch
+     abituguru3-update-maintainers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: geode-mfgpt: check IRQ before using MFGPT as clocksource
-From: Jens Rottmann <JRottmann@LiPPERTEmbedded.de>
+Subject: abituguru3: update MAINTAINERS
+From: Alistair John Strachan <alistair@devzero.co.uk>
 
-Add a simple IRQ autodetection to the AMD Geode MFGPT driver, and more
-importantly, add some checks, if IRQs can actually be received on the
-chosen line.  This fixes cases where MFGPT is selected as clocksource
-though not producing any ticks, so the kernel simply starves during boot.
+Hans passed maintainership of the abituguru3 hwmon driver onto me.  Add a
+new entry to the MAINTAINERS file for the abituguru3 driver and assign it
+to me.  Also update the existing UGURU entry to indicate that Hans is only
+responsible for the abituguru driver.
 
-Signed-off-by: Jens Rottmann <JRottmann@LiPPERTEmbedded.de>
-Cc: Jordan Crouse <jordan.crouse@amd.com>
-Cc: Andres Salomon <dilinger@debian.org>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Alistair John Strachan <alistair@devzero.co.uk>
+Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/mfgpt_32.c |   52 ++++++++++++++++++++++++-----------
- include/asm-x86/geode.h    |    3 +-
- 2 files changed, 39 insertions(+), 16 deletions(-)
+ MAINTAINERS |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/mfgpt_32.c~geode-mfgpt-check-irq-before-using-mfgpt-as-clocksource arch/x86/kernel/mfgpt_32.c
---- a/arch/x86/kernel/mfgpt_32.c~geode-mfgpt-check-irq-before-using-mfgpt-as-clocksource
-+++ a/arch/x86/kernel/mfgpt_32.c
-@@ -33,6 +33,8 @@
- #include <linux/module.h>
- #include <asm/geode.h>
+diff -puN MAINTAINERS~abituguru3-update-maintainers MAINTAINERS
+--- a/MAINTAINERS~abituguru3-update-maintainers
++++ a/MAINTAINERS
+@@ -175,12 +175,18 @@ M:	bcrl@kvack.org
+ L:	linux-aio@kvack.org
+ S:	Supported
  
-+#define MFGPT_DEFAULT_IRQ	7
+-ABIT UGURU HARDWARE MONITOR DRIVER
++ABIT UGURU 1,2 HARDWARE MONITOR DRIVER
+ P:	Hans de Goede
+ M:	j.w.r.degoede@hhs.nl
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ 
++ABIT UGURU 3 HARDWARE MONITOR DRIVER
++P:	Alistair John Strachan
++M:	alistair@devzero.co.uk
++L:	lm-sensors@lm-sensors.org
++S:	Maintained
 +
- static struct mfgpt_timer_t {
- 	unsigned int avail:1;
- } mfgpt_timers[MFGPT_MAX_TIMERS];
-@@ -157,29 +159,48 @@ int geode_mfgpt_toggle_event(int timer, 
- }
- EXPORT_SYMBOL_GPL(geode_mfgpt_toggle_event);
- 
--int geode_mfgpt_set_irq(int timer, int cmp, int irq, int enable)
-+int geode_mfgpt_set_irq(int timer, int cmp, int *irq, int enable)
- {
--	u32 val, dummy;
--	int offset;
-+	u32 zsel, lpc, dummy;
-+	int shift;
- 
- 	if (timer < 0 || timer >= MFGPT_MAX_TIMERS)
- 		return -EIO;
- 
--	if (geode_mfgpt_toggle_event(timer, cmp, MFGPT_EVENT_IRQ, enable))
-+	/*
-+	 * Unfortunately, MFGPTs come in pairs sharing their IRQ lines. If VSA
-+	 * is using the same CMP of the timer's Siamese twin, the IRQ is set to
-+	 * 2, and we mustn't use nor change it.
-+	 * XXX: Likewise, 2 Linux drivers might clash if the 2nd overwrites the
-+	 * IRQ of the 1st. This can only happen if forcing an IRQ, calling this
-+	 * with *irq==0 is safe. Currently there _are_ no 2 drivers.
-+	 */
-+	rdmsr(MSR_PIC_ZSEL_LOW, zsel, dummy);
-+	shift = ((cmp == MFGPT_CMP1 ? 0 : 4) + timer % 4) * 4;
-+	if (((zsel >> shift) & 0xF) == 2)
- 		return -EIO;
- 
--	rdmsr(MSR_PIC_ZSEL_LOW, val, dummy);
-+	/* Choose IRQ: if none supplied, keep IRQ already set or use default */
-+	if (!*irq)
-+		*irq = (zsel >> shift) & 0xF;
-+	if (!*irq)
-+		*irq = MFGPT_DEFAULT_IRQ;
- 
--	offset = (timer % 4) * 4;
--
--	val &= ~((0xF << offset) | (0xF << (offset + 16)));
-+	/* Can't use IRQ if it's 0 (=disabled), 2, or routed to LPC */
-+	if (*irq < 1 || *irq == 2 || *irq > 15)
-+		return -EIO;
-+	rdmsr(MSR_PIC_IRQM_LPC, lpc, dummy);
-+	if (lpc & (1 << *irq))
-+		return -EIO;
- 
-+	/* All chosen and checked - go for it */
-+	if (geode_mfgpt_toggle_event(timer, cmp, MFGPT_EVENT_IRQ, enable))
-+		return -EIO;
- 	if (enable) {
--		val |= (irq & 0x0F) << (offset);
--		val |= (irq & 0x0F) << (offset + 16);
-+		zsel = (zsel & ~(0xF << shift)) | (*irq << shift);
-+		wrmsr(MSR_PIC_ZSEL_LOW, zsel, dummy);
- 	}
- 
--	wrmsr(MSR_PIC_ZSEL_LOW, val, dummy);
- 	return 0;
- }
- 
-@@ -242,7 +263,7 @@ EXPORT_SYMBOL_GPL(geode_mfgpt_alloc_time
- static unsigned int mfgpt_tick_mode = CLOCK_EVT_MODE_SHUTDOWN;
- static u16 mfgpt_event_clock;
- 
--static int irq = 7;
-+static int irq;
- static int __init mfgpt_setup(char *str)
- {
- 	get_option(&str, &irq);
-@@ -346,7 +367,7 @@ int __init mfgpt_timer_setup(void)
- 	mfgpt_event_clock = timer;
- 
- 	/* Set up the IRQ on the MFGPT side */
--	if (geode_mfgpt_setup_irq(mfgpt_event_clock, MFGPT_CMP2, irq)) {
-+	if (geode_mfgpt_setup_irq(mfgpt_event_clock, MFGPT_CMP2, &irq)) {
- 		printk(KERN_ERR "mfgpt-timer:  Could not set up IRQ %d\n", irq);
- 		return -EIO;
- 	}
-@@ -374,13 +395,14 @@ int __init mfgpt_timer_setup(void)
- 			&mfgpt_clockevent);
- 
- 	printk(KERN_INFO
--	       "mfgpt-timer:  registering the MFGPT timer as a clock event.\n");
-+	       "mfgpt-timer:  Registering MFGPT timer %d as a clock event, using IRQ %d\n",
-+	       timer, irq);
- 	clockevents_register_device(&mfgpt_clockevent);
- 
- 	return 0;
- 
- err:
--	geode_mfgpt_release_irq(mfgpt_event_clock, MFGPT_CMP2, irq);
-+	geode_mfgpt_release_irq(mfgpt_event_clock, MFGPT_CMP2, &irq);
- 	printk(KERN_ERR
- 	       "mfgpt-timer:  Unable to set up the MFGPT clock source\n");
- 	return -EIO;
-diff -puN include/asm-x86/geode.h~geode-mfgpt-check-irq-before-using-mfgpt-as-clocksource include/asm-x86/geode.h
---- a/include/asm-x86/geode.h~geode-mfgpt-check-irq-before-using-mfgpt-as-clocksource
-+++ a/include/asm-x86/geode.h
-@@ -50,6 +50,7 @@ extern int geode_get_dev_base(unsigned i
- #define MSR_PIC_YSEL_HIGH	0x51400021
- #define MSR_PIC_ZSEL_LOW	0x51400022
- #define MSR_PIC_ZSEL_HIGH	0x51400023
-+#define MSR_PIC_IRQM_LPC	0x51400025
- 
- #define MSR_MFGPT_IRQ		0x51400028
- #define MSR_MFGPT_NR		0x51400029
-@@ -237,7 +238,7 @@ static inline u16 geode_mfgpt_read(int t
- }
- 
- extern int geode_mfgpt_toggle_event(int timer, int cmp, int event, int enable);
--extern int geode_mfgpt_set_irq(int timer, int cmp, int irq, int enable);
-+extern int geode_mfgpt_set_irq(int timer, int cmp, int *irq, int enable);
- extern int geode_mfgpt_alloc_timer(int timer, int domain);
- 
- #define geode_mfgpt_setup_irq(t, c, i) geode_mfgpt_set_irq((t), (c), (i), 1)
+ ACENIC DRIVER
+ P:	Jes Sorensen
+ M:	jes@trained-monkey.org
 _
 
-Patches currently in -mm which might be from JRottmann@LiPPERTEmbedded.de are
+Patches currently in -mm which might be from alistair@devzero.co.uk are
 
 origin.patch
 
