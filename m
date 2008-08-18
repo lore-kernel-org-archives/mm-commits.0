@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-describe-bootmem_debug-kernel-parameter.patch added to -mm tree
-Date: Mon, 18 Aug 2008 13:58:41 -0700
-Message-ID: <200808182058.m7IKwfa9012353@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-apm_32c-remove-duplicated-include.patch added to -mm tree
+Date: Mon, 18 Aug 2008 14:04:20 -0700
+Message-ID: <200808182104.m7IL4KK0012641@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35860 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56453 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750973AbYHRU7H (ORCPT
+	by vger.kernel.org with ESMTP id S1753465AbYHRVE4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 16:59:07 -0400
+	Mon, 18 Aug 2008 17:04:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andreas.herrmann3@amd.com, hannes@saeurebad.de, mingo@elte.hu, randy.dunlap@oracle.com
+Cc: weiyi.huang@gmail.com, mingo@elte.hu, pavel@suse.cz, tglx@linutronix.de
 
 
 The patch titled
-     documentation: describe bootmem_debug kernel parameter
+     arch/x86/kernel/apm_32.c: remove duplicated #include
 has been added to the -mm tree.  Its filename is
-     documentation-describe-bootmem_debug-kernel-parameter.patch
+     arch-x86-kernel-apm_32c-remove-duplicated-include.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: documentation: describe bootmem_debug kernel parameter
-From: Andreas Herrmann <andreas.herrmann3@amd.com>
+Subject: arch/x86/kernel/apm_32.c: remove duplicated #include
+From: Huang Weiyi <weiyi.huang@gmail.com>
 
-"bootmem_debug" is not mentioned in kernel-parameters.txt. Recently I
-had to use that kernel option and I think it should be documented.
+Removed duplicated include file <linux/smp_lock.h> in
+arch/x86/kernel/apm_32.c.
 
-Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
+Acked-by: Pavel Machek <pavel@suse.cz>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Johannes Weiner <hannes@saeurebad.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/x86/kernel/apm_32.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN Documentation/kernel-parameters.txt~documentation-describe-bootmem_debug-kernel-parameter Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~documentation-describe-bootmem_debug-kernel-parameter
-+++ a/Documentation/kernel-parameters.txt
-@@ -430,6 +430,8 @@ and is between 256 and 4096 characters. 
- 			no delay (0).
- 			Format: integer
+diff -puN arch/x86/kernel/apm_32.c~arch-x86-kernel-apm_32c-remove-duplicated-include arch/x86/kernel/apm_32.c
+--- a/arch/x86/kernel/apm_32.c~arch-x86-kernel-apm_32c-remove-duplicated-include
++++ a/arch/x86/kernel/apm_32.c
+@@ -228,7 +228,6 @@
+ #include <linux/suspend.h>
+ #include <linux/kthread.h>
+ #include <linux/jiffies.h>
+-#include <linux/smp_lock.h>
  
-+	bootmem_debug	[KNL] Enable bootmem allocator debug messages.
-+
- 	bttv.card=	[HW,V4L] bttv (bt848 + bt878 based grabber cards)
- 	bttv.radio=	Most important insmod options are available as
- 			kernel args too.
+ #include <asm/system.h>
+ #include <asm/uaccess.h>
 _
 
-Patches currently in -mm which might be from andreas.herrmann3@amd.com are
+Patches currently in -mm which might be from weiyi.huang@gmail.com are
 
-documentation-describe-bootmem_debug-kernel-parameter.patch
+origin.patch
 linux-next.patch
-bootmem-fix-aligning-of-node-relative-indexes-and-offsets.patch
+arch-x86-kernel-apm_32c-remove-duplicated-include.patch
+arch-m68k-bvme6000-rtcc-remove-duplicated-include.patch
 
