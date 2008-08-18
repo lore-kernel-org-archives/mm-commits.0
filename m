@@ -1,73 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - abituguru3-update-maintainers.patch removed from -mm tree
-Date: Mon, 18 Aug 2008 12:40:01 -0700
-Message-ID: <200808181940.m7IJe1HU008415@imap1.linux-foundation.org>
+Subject: - x86-tracehook_signal_handler.patch removed from -mm tree
+Date: Mon, 18 Aug 2008 12:40:40 -0700
+Message-ID: <200808181940.m7IJeeFb008476@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42184 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54263 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765286AbYHRTlR (ORCPT
+	by vger.kernel.org with ESMTP id S932727AbYHRTml (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 15:41:17 -0400
+	Mon, 18 Aug 2008 15:42:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alistair@devzero.co.uk, j.w.r.degoede@hhs.nl, khali@linux-fr.org, mhoffman@lightlink.com, mm-commits@vger.kernel.org
+To: roland@redhat.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     abituguru3: update MAINTAINERS
+     x86: tracehook_signal_handler
 has been removed from the -mm tree.  Its filename was
-     abituguru3-update-maintainers.patch
+     x86-tracehook_signal_handler.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: abituguru3: update MAINTAINERS
-From: Alistair John Strachan <alistair@devzero.co.uk>
+Subject: x86: tracehook_signal_handler
+From: Roland McGrath <roland@redhat.com>
 
-Hans passed maintainership of the abituguru3 hwmon driver onto me.  Add a
-new entry to the MAINTAINERS file for the abituguru3 driver and assign it
-to me.  Also update the existing UGURU entry to indicate that Hans is only
-responsible for the abituguru driver.
+This makes the x86 signal handling code use tracehook_signal_handler() in
+place of calling into ptrace guts.  The call is moved after the sa_mask
+processing, but there is no other change.  This cleanup doesn't matter to
+existing debuggers, but is the sensible thing: have all facets of the
+handler setup complete before the debugger inspects the task again.
 
-Signed-off-by: Alistair John Strachan <alistair@devzero.co.uk>
-Acked-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ arch/x86/kernel/signal_32.c |    6 ++++--
+ arch/x86/kernel/signal_64.c |    6 ++++--
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN MAINTAINERS~abituguru3-update-maintainers MAINTAINERS
---- a/MAINTAINERS~abituguru3-update-maintainers
-+++ a/MAINTAINERS
-@@ -175,12 +175,18 @@ M:	bcrl@kvack.org
- L:	linux-aio@kvack.org
- S:	Supported
+diff -puN arch/x86/kernel/signal_32.c~x86-tracehook_signal_handler arch/x86/kernel/signal_32.c
+--- a/arch/x86/kernel/signal_32.c~x86-tracehook_signal_handler
++++ a/arch/x86/kernel/signal_32.c
+@@ -17,6 +17,7 @@
+ #include <linux/errno.h>
+ #include <linux/sched.h>
+ #include <linux/wait.h>
++#include <linux/tracehook.h>
+ #include <linux/elf.h>
+ #include <linux/smp.h>
+ #include <linux/mm.h>
+@@ -558,8 +559,6 @@ handle_signal(unsigned long sig, siginfo
+ 	 * handler too.
+ 	 */
+ 	regs->flags &= ~X86_EFLAGS_TF;
+-	if (test_thread_flag(TIF_SINGLESTEP))
+-		ptrace_notify(SIGTRAP);
  
--ABIT UGURU HARDWARE MONITOR DRIVER
-+ABIT UGURU 1,2 HARDWARE MONITOR DRIVER
- P:	Hans de Goede
- M:	j.w.r.degoede@hhs.nl
- L:	lm-sensors@lm-sensors.org
- S:	Maintained
+ 	spin_lock_irq(&current->sighand->siglock);
+ 	sigorsets(&current->blocked, &current->blocked, &ka->sa.sa_mask);
+@@ -568,6 +567,9 @@ handle_signal(unsigned long sig, siginfo
+ 	recalc_sigpending();
+ 	spin_unlock_irq(&current->sighand->siglock);
  
-+ABIT UGURU 3 HARDWARE MONITOR DRIVER
-+P:	Alistair John Strachan
-+M:	alistair@devzero.co.uk
-+L:	lm-sensors@lm-sensors.org
-+S:	Maintained
++	tracehook_signal_handler(sig, info, ka, regs,
++				 test_thread_flag(TIF_SINGLESTEP));
 +
- ACENIC DRIVER
- P:	Jes Sorensen
- M:	jes@trained-monkey.org
+ 	return 0;
+ }
+ 
+diff -puN arch/x86/kernel/signal_64.c~x86-tracehook_signal_handler arch/x86/kernel/signal_64.c
+--- a/arch/x86/kernel/signal_64.c~x86-tracehook_signal_handler
++++ a/arch/x86/kernel/signal_64.c
+@@ -15,6 +15,7 @@
+ #include <linux/errno.h>
+ #include <linux/wait.h>
+ #include <linux/ptrace.h>
++#include <linux/tracehook.h>
+ #include <linux/unistd.h>
+ #include <linux/stddef.h>
+ #include <linux/personality.h>
+@@ -444,8 +445,6 @@ handle_signal(unsigned long sig, siginfo
+ 		 * handler too.
+ 		 */
+ 		regs->flags &= ~X86_EFLAGS_TF;
+-		if (test_thread_flag(TIF_SINGLESTEP))
+-			ptrace_notify(SIGTRAP);
+ 
+ 		spin_lock_irq(&current->sighand->siglock);
+ 		sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
+@@ -453,6 +452,9 @@ handle_signal(unsigned long sig, siginfo
+ 			sigaddset(&current->blocked,sig);
+ 		recalc_sigpending();
+ 		spin_unlock_irq(&current->sighand->siglock);
++
++		tracehook_signal_handler(sig, info, ka, regs,
++					 test_thread_flag(TIF_SINGLESTEP));
+ 	}
+ 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from alistair@devzero.co.uk are
+Patches currently in -mm which might be from roland@redhat.com are
 
-origin.patch
+linux-next.patch
+x86-tracehook-config_have_arch_tracehook.patch
+sched-do_wait_for_common-use-signal_pending_state.patch
+wait_task_inactive-dont-consider-task-nivcsw.patch
+wait_task_inactive-improve-the-returned-value-for-nvcsw-==-0.patch
+wait_task_inactive-fix-the-config_smp-version.patch
+posix-timers-dont-switch-to-group_leader-if-it_process-dies.patch
+posix-timers-always-do-get_task_structtimer-it_process.patch
+posix-timers-sys_timer_create-remove-the-buggy-pf_exiting-check.patch
+posix-timers-sys_timer_create-simplify-and-s-tasklist-rcu.patch
+posix-timers-move-the-initialization-of-timer-sigq-from-send-to-create-path.patch
+posix-timers-sys_timer_create-cleanup-the-error-handling.patch
+posix-timers-kill-it_sigev_signo-and-it_sigev_value.patch
+posix-timers-lock_timer-kill-the-bogus-it_id-check.patch
+posix-timers-lock_timer-make-it-readable.patch
+make-ptrace_untrace-static.patch
+coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
+kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
 
