@@ -1,79 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - wait_task_inactive-improve-the-returned-value-for-nvcsw-==-0.patch removed from -mm tree
-Date: Mon, 18 Aug 2008 12:55:34 -0700
-Message-ID: <200808181955.m7IJtYMu009375@imap1.linux-foundation.org>
+Subject: + acpi_pmc-check-for-monotonicity.patch added to -mm tree
+Date: Mon, 18 Aug 2008 13:21:02 -0700
+Message-ID: <200808182021.m7IKL2Be010575@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44405 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37641 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753713AbYHRT43 (ORCPT
+	by vger.kernel.org with ESMTP id S1752648AbYHRUWW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 15:56:29 -0400
+	Mon, 18 Aug 2008 16:22:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: linux@dominikbrodowski.net, andi@firstfloor.org, andi@lisas.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     wait_task_inactive: "improve" the returned value for ->nvcsw == 0
-has been removed from the -mm tree.  Its filename was
-     wait_task_inactive-improve-the-returned-value-for-nvcsw-==-0.patch
+     acpi_pm.c: check for monotonicity
+has been added to the -mm tree.  Its filename is
+     acpi_pmc-check-for-monotonicity.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wait_task_inactive: "improve" the returned value for ->nvcsw == 0
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: acpi_pm.c: check for monotonicity
+From: Dominik Brodowski <linux@dominikbrodowski.net>
 
-wait_task_inactive() returns 1 when p->nvcsw == 0 || p->nvcsw == 1.  This
-means that two subsequent calls can return the same number while the task
-was scheduled in between.
+The current check for monotonicity is way too weak: Andreas Mohr reports (
+http://lkml.org/lkml/2008/8/10/77 ) that on one of his test systems the
+current check only triggers in 50% of all cases, leading to catastrophic
+timer behaviour.  To fix this issue, expand the check for monotonicity by
+doing ten consecutive tests instead of one.
 
-Change the code to return "nvcsw | LONG_MIN" instead of "nvcsw ?: 1", now
-the overlap always needs LONG_MAX schedules.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
-Acked-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Andreas Mohr <andi@lisas.de>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/clocksource/acpi_pm.c |   42 +++++++++++++++++++-------------
+ 1 file changed, 25 insertions(+), 17 deletions(-)
 
-diff -puN kernel/sched.c~wait_task_inactive-improve-the-returned-value-for-nvcsw-==-0 kernel/sched.c
---- a/kernel/sched.c~wait_task_inactive-improve-the-returned-value-for-nvcsw-==-0
-+++ a/kernel/sched.c
-@@ -1926,7 +1926,7 @@ unsigned long wait_task_inactive(struct 
- 		on_rq = p->se.on_rq;
- 		ncsw = 0;
- 		if (!match_state || p->state == match_state)
--			ncsw = p->nvcsw ?: 1;
-+			ncsw = p->nvcsw | LONG_MIN; /* sets MSB */
- 		task_rq_unlock(rq, &flags);
+diff -puN drivers/clocksource/acpi_pm.c~acpi_pmc-check-for-monotonicity drivers/clocksource/acpi_pm.c
+--- a/drivers/clocksource/acpi_pm.c~acpi_pmc-check-for-monotonicity
++++ a/drivers/clocksource/acpi_pm.c
+@@ -178,7 +178,7 @@ static int verify_pmtmr_rate(void)
+ static int __init init_acpi_pm_clocksource(void)
+ {
+ 	cycle_t value1, value2;
+-	unsigned int i;
++	unsigned int i, j, good = 0;
  
- 		/*
+ 	if (!pmtmr_ioport)
+ 		return -ENODEV;
+@@ -187,24 +187,32 @@ static int __init init_acpi_pm_clocksour
+ 						clocksource_acpi_pm.shift);
+ 
+ 	/* "verify" this timing source: */
+-	value1 = clocksource_acpi_pm.read();
+-	for (i = 0; i < 10000; i++) {
+-		value2 = clocksource_acpi_pm.read();
+-		if (value2 == value1)
+-			continue;
+-		if (value2 > value1)
+-			goto pm_good;
+-		if ((value2 < value1) && ((value2) < 0xFFF))
+-			goto pm_good;
+-		printk(KERN_INFO "PM-Timer had inconsistent results:"
+-			" 0x%#llx, 0x%#llx - aborting.\n", value1, value2);
+-		return -EINVAL;
++	for (j = 0; j < 10; j++) {
++		value1 = clocksource_acpi_pm.read();
++		for (i = 0; i < 10000; i++) {
++			value2 = clocksource_acpi_pm.read();
++			if (value2 == value1)
++				continue;
++			if (value2 > value1)
++				good++;
++				break;
++			if ((value2 < value1) && ((value2) < 0xFFF))
++				good++;
++				break;
++			printk(KERN_INFO "PM-Timer had inconsistent results:"
++			       " 0x%#llx, 0x%#llx - aborting.\n",
++			       value1, value2);
++			return -EINVAL;
++		}
++		udelay(300 * i);
++	}
++
++	if (good != 10) {
++		printk(KERN_INFO "PM-Timer had no reasonable result:"
++		       " 0x%#llx - aborting.\n", value1);
++		return -ENODEV;
+ 	}
+-	printk(KERN_INFO "PM-Timer had no reasonable result:"
+-			" 0x%#llx - aborting.\n", value1);
+-	return -ENODEV;
+ 
+-pm_good:
+ 	if (verify_pmtmr_rate() != 0)
+ 		return -ENODEV;
+ 
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from linux@dominikbrodowski.net are
 
 linux-next.patch
-migrate_timers-add-comment-use-spinlock_irq.patch
-sched-do_wait_for_common-use-signal_pending_state.patch
-wait_task_inactive-improve-the-returned-value-for-nvcsw-==-0.patch
-wait_task_inactive-fix-the-config_smp-version.patch
-posix-timers-dont-switch-to-group_leader-if-it_process-dies.patch
-posix-timers-always-do-get_task_structtimer-it_process.patch
-posix-timers-sys_timer_create-remove-the-buggy-pf_exiting-check.patch
-posix-timers-sys_timer_create-simplify-and-s-tasklist-rcu.patch
-posix-timers-move-the-initialization-of-timer-sigq-from-send-to-create-path.patch
-posix-timers-sys_timer_create-cleanup-the-error-handling.patch
-posix-timers-kill-it_sigev_signo-and-it_sigev_value.patch
-posix-timers-lock_timer-kill-the-bogus-it_id-check.patch
-posix-timers-lock_timer-make-it-readable.patch
-make-ptrace_untrace-static.patch
-coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
-kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
+pcmcia-pccard-deadlock-fix.patch
+acpi_pmc-use-proper-read-function-also-in-errata-mode.patch
+acpi_pmc-check-for-monotonicity.patch
+make-sure-nobodys-leaking-resources.patch
 
