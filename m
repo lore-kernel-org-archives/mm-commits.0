@@ -1,34 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - x86-signals-use-asm-syscallh.patch removed from -mm tree
-Date: Mon, 18 Aug 2008 12:40:46 -0700
-Message-ID: <200808181940.m7IJek3r008485@imap1.linux-foundation.org>
+Subject: - x86-tracehook-tif_notify_resume.patch removed from -mm tree
+Date: Mon, 18 Aug 2008 12:40:48 -0700
+Message-ID: <200808181940.m7IJemLm008488@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57050 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33507 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759182AbYHRTvG (ORCPT
+	by vger.kernel.org with ESMTP id S1760745AbYHRTvH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 15:51:06 -0400
+	Mon, 18 Aug 2008 15:51:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: roland@redhat.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86 signals: use asm/syscall.h
+     x86: tracehook: TIF_NOTIFY_RESUME
 has been removed from the -mm tree.  Its filename was
-     x86-signals-use-asm-syscallh.patch
+     x86-tracehook-tif_notify_resume.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86 signals: use asm/syscall.h
+Subject: x86: tracehook: TIF_NOTIFY_RESUME
 From: Roland McGrath <roland@redhat.com>
 
-Replace local inlines with the asm/syscall.h interfaces that do the same
-things.
+This adds TIF_NOTIFY_RESUME support for x86, both 64-bit and 32-bit.  When
+set, we call tracehook_notify_resume() on the way to user mode.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -36,80 +36,68 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/signal_64.c |   38 ++++------------------------------
- 1 file changed, 5 insertions(+), 33 deletions(-)
+ arch/x86/kernel/signal_32.c   |    5 +++++
+ arch/x86/kernel/signal_64.c   |    5 +++++
+ include/asm-x86/thread_info.h |    4 +++-
+ 3 files changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/signal_64.c~x86-signals-use-asm-syscallh arch/x86/kernel/signal_64.c
---- a/arch/x86/kernel/signal_64.c~x86-signals-use-asm-syscallh
-+++ a/arch/x86/kernel/signal_64.c
-@@ -27,6 +27,7 @@
- #include <asm/proto.h>
- #include <asm/ia32_unistd.h>
- #include <asm/mce.h>
-+#include <asm/syscall.h>
- #include "sigframe.h"
+diff -puN arch/x86/kernel/signal_32.c~x86-tracehook-tif_notify_resume arch/x86/kernel/signal_32.c
+--- a/arch/x86/kernel/signal_32.c~x86-tracehook-tif_notify_resume
++++ a/arch/x86/kernel/signal_32.c
+@@ -663,5 +663,10 @@ do_notify_resume(struct pt_regs *regs, v
+ 	if (thread_info_flags & _TIF_SIGPENDING)
+ 		do_signal(regs);
  
- #define _BLOCKABLE (~(sigmask(SIGKILL) | sigmask(SIGSTOP)))
-@@ -347,35 +348,6 @@ give_sigsegv:
++	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
++		clear_thread_flag(TIF_NOTIFY_RESUME);
++		tracehook_notify_resume(regs);
++	}
++
+ 	clear_thread_flag(TIF_IRET);
+ }
+diff -puN arch/x86/kernel/signal_64.c~x86-tracehook-tif_notify_resume arch/x86/kernel/signal_64.c
+--- a/arch/x86/kernel/signal_64.c~x86-tracehook-tif_notify_resume
++++ a/arch/x86/kernel/signal_64.c
+@@ -523,6 +523,11 @@ void do_notify_resume(struct pt_regs *re
+ 	/* deal with pending signal delivery */
+ 	if (thread_info_flags & _TIF_SIGPENDING)
+ 		do_signal(regs);
++
++	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
++		clear_thread_flag(TIF_NOTIFY_RESUME);
++		tracehook_notify_resume(regs);
++	}
  }
  
- /*
-- * Return -1L or the syscall number that @regs is executing.
-- */
--static long current_syscall(struct pt_regs *regs)
--{
--	/*
--	 * We always sign-extend a -1 value being set here,
--	 * so this is always either -1L or a syscall number.
--	 */
--	return regs->orig_ax;
--}
--
--/*
-- * Return a value that is -EFOO if the system call in @regs->orig_ax
-- * returned an error.  This only works for @regs from @current.
-- */
--static long current_syscall_ret(struct pt_regs *regs)
--{
--#ifdef CONFIG_IA32_EMULATION
--	if (test_thread_flag(TIF_IA32))
--		/*
--		 * Sign-extend the value so (int)-EFOO becomes (long)-EFOO
--		 * and will match correctly in comparisons.
--		 */
--		return (int) regs->ax;
--#endif
--	return regs->ax;
--}
--
--/*
-  * OK, we're invoking a handler
-  */	
+ void signal_fault(struct pt_regs *regs, void __user *frame, char *where)
+diff -puN include/asm-x86/thread_info.h~x86-tracehook-tif_notify_resume include/asm-x86/thread_info.h
+--- a/include/asm-x86/thread_info.h~x86-tracehook-tif_notify_resume
++++ a/include/asm-x86/thread_info.h
+@@ -71,6 +71,7 @@ struct thread_info {
+  * Warning: layout of LSW is hardcoded in entry.S
+  */
+ #define TIF_SYSCALL_TRACE	0	/* syscall trace active */
++#define TIF_NOTIFY_RESUME	1	/* callback before returning to user */
+ #define TIF_SIGPENDING		2	/* signal pending */
+ #define TIF_NEED_RESCHED	3	/* rescheduling necessary */
+ #define TIF_SINGLESTEP		4	/* reenable singlestep on user return*/
+@@ -93,6 +94,7 @@ struct thread_info {
+ #define TIF_BTS_TRACE_TS	27      /* record scheduling event timestamps */
  
-@@ -386,9 +358,9 @@ handle_signal(unsigned long sig, siginfo
- 	int ret;
+ #define _TIF_SYSCALL_TRACE	(1 << TIF_SYSCALL_TRACE)
++#define _TIF_NOTIFY_RESUME	(1 << TIF_NOTIFY_RESUME)
+ #define _TIF_SIGPENDING		(1 << TIF_SIGPENDING)
+ #define _TIF_SINGLESTEP		(1 << TIF_SINGLESTEP)
+ #define _TIF_NEED_RESCHED	(1 << TIF_NEED_RESCHED)
+@@ -133,7 +135,7 @@ struct thread_info {
  
- 	/* Are we from a system call? */
--	if (current_syscall(regs) >= 0) {
-+	if (syscall_get_nr(current, regs) >= 0) {
- 		/* If so, check system call restarting.. */
--		switch (current_syscall_ret(regs)) {
-+		switch (syscall_get_error(current, regs)) {
- 		case -ERESTART_RESTARTBLOCK:
- 		case -ERESTARTNOHAND:
- 			regs->ax = -EINTR;
-@@ -511,9 +483,9 @@ static void do_signal(struct pt_regs *re
- 	}
+ /* Only used for 64 bit */
+ #define _TIF_DO_NOTIFY_MASK						\
+-	(_TIF_SIGPENDING|_TIF_MCE_NOTIFY)
++	(_TIF_SIGPENDING|_TIF_MCE_NOTIFY|_TIF_NOTIFY_RESUME)
  
- 	/* Did we come from a system call? */
--	if (current_syscall(regs) >= 0) {
-+	if (syscall_get_nr(current, regs) >= 0) {
- 		/* Restart the system call - no handlers present */
--		switch (current_syscall_ret(regs)) {
-+		switch (syscall_get_error(current, regs)) {
- 		case -ERESTARTNOHAND:
- 		case -ERESTARTSYS:
- 		case -ERESTARTNOINTR:
+ /* flags to check in __switch_to() */
+ #define _TIF_WORK_CTXSW							\
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
