@@ -1,197 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - next-git-rejects.patch removed from -mm tree
-Date: Mon, 18 Aug 2008 12:21:03 -0700
-Message-ID: <200808181921.m7IJL4o1007197@imap1.linux-foundation.org>
+Subject: - x86-microcode-patch-loader-style-corrections-fix.patch removed from -mm tree
+Date: Mon, 18 Aug 2008 12:23:06 -0700
+Message-ID: <200808181923.m7IJN7Ok007267@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33828 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45467 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756682AbYHRTVW (ORCPT
+	by vger.kernel.org with ESMTP id S1755729AbYHRTYh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 15:21:22 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m7IJL4He027374
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 18 Aug 2008 12:21:05 -0700
+	Mon, 18 Aug 2008 15:24:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, peter.oruba@amd.com, tglx@linutronix.de, tigran@aivazian.fsnet.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     next-git-rejects
+     x86-microcode-patch-loader-style-corrections-fix
 has been removed from the -mm tree.  Its filename was
-     next-git-rejects.patch
+     x86-microcode-patch-loader-style-corrections-fix.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: next-git-rejects
+Subject: x86-microcode-patch-loader-style-corrections-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+spell "matching" correctly.
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Oruba <peter.oruba@amd.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tigran Aivazian <tigran@aivazian.fsnet.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/ohci.h      |    3 --
- fs/xfs/linux-2.6/xfs_linux.h |    3 --
- fs/xfs/xfs_inode.c           |    5 ----
- fs/xfs/xfs_vnodeops.c        |   16 --------------
- include/linux/cred.h         |   36 ---------------------------------
- 5 files changed, 63 deletions(-)
+ arch/x86/kernel/microcode.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/usb/host/ohci.h~next-git-rejects drivers/usb/host/ohci.h
---- a/drivers/usb/host/ohci.h~next-git-rejects
-+++ a/drivers/usb/host/ohci.h
-@@ -400,11 +400,8 @@ struct ohci_hcd {
- #define	OHCI_QUIRK_ZFMICRO	0x20			/* Compaq ZFMicro chipset*/
- #define	OHCI_QUIRK_NEC		0x40			/* lost interrupts */
- #define	OHCI_QUIRK_FRAME_NO	0x80			/* no big endian frame_no shift */
--<<<<<<< HEAD:drivers/usb/host/ohci.h
- #define	OHCI_QUIRK_HUB_POWER	0x100			/* distrust firmware power/oc setup */
--=======
- #define OHCI_QUIRK_HUB_POWER	0x100			/* distrust firmware power/oc setup */
-->>>>>>> FETCH_HEAD:drivers/usb/host/ohci.h
- #define	OHCI_QUIRK_AMD_ISO	0x200			/* ISO transfers*/
- 	// there are also chip quirks/bugs in init logic
- 
-diff -puN fs/xfs/linux-2.6/xfs_linux.h~next-git-rejects fs/xfs/linux-2.6/xfs_linux.h
---- a/fs/xfs/linux-2.6/xfs_linux.h~next-git-rejects
-+++ a/fs/xfs/linux-2.6/xfs_linux.h
-@@ -126,11 +126,8 @@
- 
- #define current_cpu()		(raw_smp_processor_id())
- #define current_pid()		(current->pid)
--<<<<<<< HEAD:fs/xfs/linux-2.6/xfs_linux.h
--=======
- #define this_fsuid(cred)	(current_fsuid())
- #define this_fsgid(cred)	(current_fsgid())
-->>>>>>> FETCH_HEAD:fs/xfs/linux-2.6/xfs_linux.h
- #define current_test_flags(f)	(current->flags & (f))
- #define current_set_flags_nested(sp, f)		\
- 		(*(sp) = current->flags, current->flags |= (f))
-diff -puN fs/xfs/xfs_inode.c~next-git-rejects fs/xfs/xfs_inode.c
---- a/fs/xfs/xfs_inode.c~next-git-rejects
-+++ a/fs/xfs/xfs_inode.c
-@@ -1081,13 +1081,8 @@ xfs_ialloc(
- 	ip->i_d.di_onlink = 0;
- 	ip->i_d.di_nlink = nlink;
- 	ASSERT(ip->i_d.di_nlink == nlink);
--<<<<<<< HEAD:fs/xfs/xfs_inode.c
--	ip->i_d.di_uid = current_fsuid();
--	ip->i_d.di_gid = current_fsgid();
--=======
- 	ip->i_d.di_uid = this_fsuid(cr);
- 	ip->i_d.di_gid = this_fsgid(cr);
-->>>>>>> FETCH_HEAD:fs/xfs/xfs_inode.c
- 	ip->i_d.di_projid = prid;
- 	memset(&(ip->i_d.di_pad[0]), 0, sizeof(ip->i_d.di_pad));
- 
-diff -puN fs/xfs/xfs_vnodeops.c~next-git-rejects fs/xfs/xfs_vnodeops.c
---- a/fs/xfs/xfs_vnodeops.c~next-git-rejects
-+++ a/fs/xfs/xfs_vnodeops.c
-@@ -182,11 +182,7 @@ xfs_setattr(
- 	xfs_ilock(ip, lock_flags);
- 
- 	/* boolean: are we the file owner? */
--<<<<<<< HEAD:fs/xfs/xfs_vnodeops.c
--	file_owner = (current_fsuid() == ip->i_d.di_uid);
--=======
- 	file_owner = (this_fsuid(credp) == ip->i_d.di_uid);
-->>>>>>> FETCH_HEAD:fs/xfs/xfs_vnodeops.c
- 
- 	/*
- 	 * Change various properties of a file.
-@@ -1537,11 +1533,7 @@ xfs_create(
- 	 * Make sure that we have allocated dquot(s) on disk.
- 	 */
- 	error = XFS_QM_DQVOPALLOC(mp, dp,
--<<<<<<< HEAD:fs/xfs/xfs_vnodeops.c
--			current_fsuid(), current_fsgid(), prid,
--=======
- 			this_fsuid(credp), this_fsgid(credp), prid,
-->>>>>>> FETCH_HEAD:fs/xfs/xfs_vnodeops.c
- 			XFS_QMOPT_QUOTALL|XFS_QMOPT_INHERIT, &udqp, &gdqp);
- 	if (error)
- 		goto std_return;
-@@ -2277,11 +2269,7 @@ xfs_mkdir(
- 	 * Make sure that we have allocated dquot(s) on disk.
- 	 */
- 	error = XFS_QM_DQVOPALLOC(mp, dp,
--<<<<<<< HEAD:fs/xfs/xfs_vnodeops.c
--			current_fsuid(), current_fsgid(), prid,
--=======
- 			this_fsuid(credp), this_fsgid(credp), prid,
-->>>>>>> FETCH_HEAD:fs/xfs/xfs_vnodeops.c
- 			XFS_QMOPT_QUOTALL | XFS_QMOPT_INHERIT, &udqp, &gdqp);
- 	if (error)
- 		goto std_return;
-@@ -2507,11 +2495,7 @@ xfs_symlink(
- 	 * Make sure that we have allocated dquot(s) on disk.
- 	 */
- 	error = XFS_QM_DQVOPALLOC(mp, dp,
--<<<<<<< HEAD:fs/xfs/xfs_vnodeops.c
--			current_fsuid(), current_fsgid(), prid,
--=======
- 			this_fsuid(credp), this_fsgid(credp), prid,
-->>>>>>> FETCH_HEAD:fs/xfs/xfs_vnodeops.c
- 			XFS_QMOPT_QUOTALL | XFS_QMOPT_INHERIT, &udqp, &gdqp);
- 	if (error)
- 		goto std_return;
-diff -puN include/linux/cred.h~next-git-rejects include/linux/cred.h
---- a/include/linux/cred.h~next-git-rejects
-+++ a/include/linux/cred.h
-@@ -12,41 +12,6 @@
- #ifndef _LINUX_CRED_H
- #define _LINUX_CRED_H
- 
--<<<<<<< HEAD:include/linux/cred.h
--#define get_current_user()	(get_uid(current->user))
--
--#define task_uid(task)		((task)->uid)
--#define task_gid(task)		((task)->gid)
--#define task_euid(task)		((task)->euid)
--#define task_egid(task)		((task)->egid)
--
--#define current_uid()		(current->uid)
--#define current_gid()		(current->gid)
--#define current_euid()		(current->euid)
--#define current_egid()		(current->egid)
--#define current_suid()		(current->suid)
--#define current_sgid()		(current->sgid)
--#define current_fsuid()		(current->fsuid)
--#define current_fsgid()		(current->fsgid)
--#define current_cap()		(current->cap_effective)
--
--#define current_uid_gid(_uid, _gid)		\
--do {						\
--	*(_uid) = current->uid;			\
--	*(_gid) = current->gid;			\
--} while(0)
--
--#define current_euid_egid(_uid, _gid)		\
--do {						\
--	*(_uid) = current->euid;		\
--	*(_gid) = current->egid;		\
--} while(0)
--
--#define current_fsuid_fsgid(_uid, _gid)		\
--do {						\
--	*(_uid) = current->fsuid;		\
--	*(_gid) = current->fsgid;		\
--=======
- #include <linux/capability.h>
- #include <linux/key.h>
- #include <asm/atomic.h>
-@@ -364,7 +329,6 @@ do {						\
- 	__cred = current_cred();		\
- 	*(_fsuid) = __cred->fsuid;		\
- 	*(_fsgid) = __cred->fsgid;		\
-->>>>>>> FETCH_HEAD:include/linux/cred.h
- } while(0)
- 
- #endif /* _LINUX_CRED_H */
+diff -puN arch/x86/kernel/microcode.c~x86-microcode-patch-loader-style-corrections-fix arch/x86/kernel/microcode.c
+--- a/arch/x86/kernel/microcode.c~x86-microcode-patch-loader-style-corrections-fix
++++ a/arch/x86/kernel/microcode.c
+@@ -264,7 +264,7 @@ static int microcode_sanity_check(void *
+  * return 1 - found update
+  * return < 0 - error
+  */
+-static int get_maching_microcode(void *mc, int cpu)
++static int get_matching_microcode(void *mc, int cpu)
+ {
+ 	struct ucode_cpu_info *uci = ucode_cpu_info + cpu;
+ 	microcode_header_t *mc_header = mc;
+@@ -405,7 +405,7 @@ static int do_microcode_update(void)
+ 			if (!uci->valid)
+ 				continue;
+ 			set_cpus_allowed_ptr(current, &cpumask_of_cpu(cpu));
+-			error = get_maching_microcode(new_mc, cpu);
++			error = get_matching_microcode(new_mc, cpu);
+ 			if (error < 0)
+ 				goto out;
+ 			if (error == 1)
+@@ -549,7 +549,7 @@ static int cpu_request_microcode(int cpu
+ 		error = microcode_sanity_check(mc);
+ 		if (error)
+ 			break;
+-		error = get_maching_microcode(mc, cpu);
++		error = get_matching_microcode(mc, cpu);
+ 		if (error < 0)
+ 			break;
+ 		/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -200,8 +77,6 @@ origin.patch
 seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
 next-remove-localversion.patch
-next-git-rejects.patch
-acpi-trivial-cleanups-fix.patch
 arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
 x86-microcode-patch-loader-style-corrections-fix.patch
