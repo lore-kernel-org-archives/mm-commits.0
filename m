@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + forcedeth-add-pci_enable_device-to-nv_resume.patch added to -mm tree
-Date: Mon, 18 Aug 2008 13:52:14 -0700
-Message-ID: <200808182052.m7IKqE3l012132@imap1.linux-foundation.org>
+Subject: + acpi_pmc-check-for-monotonicity-cleanup.patch added to -mm tree
+Date: Mon, 18 Aug 2008 13:55:09 -0700
+Message-ID: <200808182055.m7IKt9Vr012281@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43510 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45774 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750875AbYHRUxB (ORCPT
+	by vger.kernel.org with ESMTP id S1751477AbYHRU4F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 16:53:01 -0400
+	Mon, 18 Aug 2008 16:56:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: simon@fire.lp0.eu, aabdulla@nvidia.com, jgarzik@redhat.com, ranma+kernel@tdiedrich.de
+Cc: linux@dominikbrodowski.net, andi@firstfloor.org, andi@lisas.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     forcedeth: add pci_enable_device() to nv_resume()
+     acpi_pmc-check-for-monotonicity cleanup
 has been added to the -mm tree.  Its filename is
-     forcedeth-add-pci_enable_device-to-nv_resume.patch
+     acpi_pmc-check-for-monotonicity-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: forcedeth: add pci_enable_device() to nv_resume()
-From: Simon Arlott <simon@fire.lp0.eu>
+Subject: acpi_pmc-check-for-monotonicity cleanup
+From: Dominik Brodowski <linux@dominikbrodowski.net>
 
-My NIC stops working after resuming from standby, it's not receiving any
-interrupts.
-
-Commit 25d90810ff49d2a63475776f24c74c6bb49b045f ([netdrvr] forcedeth:
-reorder suspend/resume code) introduces pci_disable_device to nv_suspend,
-but there's no corresponding pci_enable_device in nv_resume - so I added
-one (copied from e1000).  This results in interrupts being re-enabled
-after suspend.
-
-However, the NIC (10de:0373) still doesn't work after resume.
-
-Cc: Tobias Diedrich <ranma+kernel@tdiedrich.de>
-Cc: Jeff Garzik <jgarzik@redhat.com>
-Cc: Ayaz Abdulla <aabdulla@nvidia.com>
+Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andreas Mohr <andi@lisas.de>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/clocksource/acpi_pm.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-add-pci_enable_device-to-nv_resume drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-add-pci_enable_device-to-nv_resume
-+++ a/drivers/net/forcedeth.c
-@@ -5960,6 +5960,13 @@ static int nv_resume(struct pci_dev *pde
+diff -puN drivers/clocksource/acpi_pm.c~acpi_pmc-check-for-monotonicity-cleanup drivers/clocksource/acpi_pm.c
+--- a/drivers/clocksource/acpi_pm.c~acpi_pmc-check-for-monotonicity-cleanup
++++ a/drivers/clocksource/acpi_pm.c
+@@ -175,6 +175,9 @@ static int verify_pmtmr_rate(void)
+ #define verify_pmtmr_rate() (0)
+ #endif
  
- 	pci_set_power_state(pdev, PCI_D0);
- 	pci_restore_state(pdev);
-+	rc = pci_enable_device(pdev);
-+	if (rc) {
-+		printk(KERN_ERR "forcedeth: Cannot enable PCI device from suspend\n");
-+		return rc;
-+	}
-+	pci_set_master(pdev);
++/* Number of monotonicity checks to perform during initialization */
++#define ACPI_PM_MONOTONICITY_CHECKS 10
 +
- 	/* ack any pending wake events, disable PME */
- 	pci_enable_wake(pdev, PCI_D0, 0);
+ static int __init init_acpi_pm_clocksource(void)
+ {
+ 	cycle_t value1, value2;
+@@ -187,7 +190,7 @@ static int __init init_acpi_pm_clocksour
+ 						clocksource_acpi_pm.shift);
+ 
+ 	/* "verify" this timing source: */
+-	for (j = 0; j < 10; j++) {
++	for (j = 0; j < ACPI_PM_MONOTONICITY_CHECKS; j++) {
+ 		value1 = clocksource_acpi_pm.read();
+ 		for (i = 0; i < 10000; i++) {
+ 			value2 = clocksource_acpi_pm.read();
+@@ -207,9 +210,9 @@ static int __init init_acpi_pm_clocksour
+ 		udelay(300 * i);
+ 	}
+ 
+-	if (good != 10) {
+-		printk(KERN_INFO "PM-Timer had no reasonable result:"
+-		       " 0x%#llx - aborting.\n", value1);
++	if (good != ACPI_PM_MONOTONICITY_CHECKS) {
++		printk(KERN_INFO "PM-Timer failed consistency check "
++		       " (0x%#llx) - aborting.\n", value1);
+ 		return -ENODEV;
+ 	}
  
 _
 
-Patches currently in -mm which might be from simon@fire.lp0.eu are
+Patches currently in -mm which might be from linux@dominikbrodowski.net are
 
-origin.patch
-v4l-link-tuner-before-saa7134.patch
-forcedeth-add-pci_enable_device-to-nv_resume.patch
+linux-next.patch
+pcmcia-pccard-deadlock-fix.patch
+acpi_pmc-use-proper-read-function-also-in-errata-mode.patch
+acpi_pmc-check-for-monotonicity.patch
+acpi_pmc-check-for-monotonicity-cleanup.patch
+make-sure-nobodys-leaking-resources.patch
 
