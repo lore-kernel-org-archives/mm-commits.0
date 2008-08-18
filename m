@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + acpi_pmc-use-proper-read-function-also-in-errata-mode.patch added to -mm tree
-Date: Mon, 18 Aug 2008 13:20:57 -0700
-Message-ID: <200808182020.m7IKKxwM010565@imap1.linux-foundation.org>
+Date: Mon, 18 Aug 2008 13:23:52 -0700
+Message-ID: <200808182023.m7IKNqkU010677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57416 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44373 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752797AbYHRUXD (ORCPT
+	by vger.kernel.org with ESMTP id S1751485AbYHRUYn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 16:23:03 -0400
+	Mon, 18 Aug 2008 16:24:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@dominikbrodowski.net, andi@firstfloor.org, andi@lisas.de, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
+Cc: linux@dominikbrodowski.net, andi@firstfloor.org, andi@lisas.de, johnstul@us.ibm.com, mingo@elte.hu, stable@kernel.org, tglx@linutronix.de
 
 
 The patch titled
@@ -54,6 +54,7 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.net>
 Cc: Andreas Mohr <andi@lisas.de>
 Cc: Andi Kleen <andi@firstfloor.org>
+Cc: <stable@kernel.org>		[2.6.26.x, 2.6.25.x but not immediately]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
