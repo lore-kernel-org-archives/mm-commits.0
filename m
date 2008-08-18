@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup.patch added to -mm tree
-Date: Mon, 18 Aug 2008 13:32:24 -0700
-Message-ID: <200808182032.m7IKWODv011251@imap1.linux-foundation.org>
+Subject: + drivers-media-video-gspca-zc3xxc-fix-oops.patch added to -mm tree
+Date: Mon, 18 Aug 2008 13:35:30 -0700
+Message-ID: <200808182035.m7IKZU6X011452@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34090 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35739 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757077AbYHRUdO (ORCPT
+	by vger.kernel.org with ESMTP id S1751462AbYHRUfh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 16:33:14 -0400
+	Mon, 18 Aug 2008 16:35:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zippel@linux-m68k.org, johnstul@us.ibm.com, mingo@elte.hu, mtk.manpages@googlemail.com, tglx@linutronix.de
+Cc: parag.warudkar@gmail.com, mchehab@infradead.org, moinejf@free.fr
 
 
 The patch titled
-     ntp: fix ADJ_OFFSET_SS_READ bug and do_adjtimex() cleanup
+     drivers/media/video/gspca/zc3xx.c: fix oops
 has been added to the -mm tree.  Its filename is
-     ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup.patch
+     drivers-media-video-gspca-zc3xxc-fix-oops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,173 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ntp: fix ADJ_OFFSET_SS_READ bug and do_adjtimex() cleanup
-From: Roman Zippel <zippel@linux-m68k.org>
+Subject: drivers/media/video/gspca/zc3xx.c: fix oops
+From: "Parag Warudkar" <parag.warudkar@gmail.com>
 
-Thanks to the review by Michael Kerrisk a bug in the recent
-ADJ_OFFSET_SS_READ option was discovered, where the ntp time_offset was
-inadvertently set by it.  This fixes this by making the adjtime code
-more separate from the ntp_adjtime code (both of which really want to
-be separate syscalls).
+Fix a couple of NULL pointer dereferences in zc3xx.
 
-Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Without this patch my machine oopses as soon as I open Kopete-kde4. 
+Patch tested to work fine (no detectable differences in image rendered by
+camera - as crappy as ever, no more oopses ;) on x86 with a Creative
+Webcam Notebook.
+
+OOPS Analysis
+-------------------
+http://marc.info/?l=linux-kernel&m=121769418920774&w=4
+
+4575.306109] Code: 83 ec 04 0f b6 90 da 07 00 00 8b a8 04 02 00 00 0f
+b6 80 d9 07 00 00 8b 3c 95 f4 dc 15 f9 8b 14 95 d8 dc 15 f9 83 c0 80
+89 14 24 <0f> b6 37 0f af f0 8d b6 00 00 00 00 0f b6 83 00 dc 15 f9 0f
+af
+[ 4575.306133] EIP: [<f915c2d4>] setcontrast+0x34/0xf0 [gspca_zc3xx]
+SS:ESP 0068:da81bd64
+
+Which corresponds to -
+
+1374: 0f b6 37 movzbl (%edi),%esi
+--^^-- Faulting instruction
+1377: 0f af f0 imul %eax,%esi
+137a: 8d b6 00 00 00 00 lea 0x0(%esi),%esi
+
+That is this code in zc3xx.c -
+k = (sd->contrast - 128) /* -128 / 128 */
+                    * Tgamma[0];
+
+Where Tgamma = gamma_tb[sd->gamma];
+
+For sd->gamma=0 Tgamma is NULL -
+
+static const __u8 *gamma_tb[] = {
+NULL, ...
+
+Kopete seems to trigger the zero gamma on ioctl and we happily oops in
+that case.
+
+Fix this by detecting the zero gamma case while trying to preserve
+intended effect of zero gamma.
+
+On reviewing the code, the exact same problem exists for Tgradient where
+it is dereferenced when NULL.  Fix that too.
+
+Signed-off-by: Parag Warudkar <parag.warudkar@gmail.com>
+Cc: Jean-Francois Moine <moinejf@free.fr>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timex.h |    9 ++++
- kernel/time/ntp.c     |   76 +++++++++++++++++++++-------------------
- 2 files changed, 48 insertions(+), 37 deletions(-)
+ drivers/media/video/gspca/zc3xx.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/timex.h~ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup include/linux/timex.h
---- a/include/linux/timex.h~ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup
-+++ a/include/linux/timex.h
-@@ -141,8 +141,15 @@ struct timex {
- #define ADJ_MICRO		0x1000	/* select microsecond resolution */
- #define ADJ_NANO		0x2000	/* select nanosecond resolution */
- #define ADJ_TICK		0x4000	/* tick value */
-+
-+#ifdef __KERNEL__
-+#define ADJ_ADJTIME		0x8000	/* switch between adjtime/adjtimex modes */
-+#define ADJ_OFFSET_SINGLESHOT	0x0001	/* old-fashioned adjtime */
-+#define ADJ_OFFSET_READONLY	0x2000	/* read-only adjtime */
-+#else
- #define ADJ_OFFSET_SINGLESHOT	0x8001	/* old-fashioned adjtime */
--#define ADJ_OFFSET_SS_READ	0xa001  /* read-only adjtime */
-+#define ADJ_OFFSET_SS_READ	0xa001	/* read-only adjtime */
-+#endif
+diff -puN drivers/media/video/gspca/zc3xx.c~drivers-media-video-gspca-zc3xxc-fix-oops drivers/media/video/gspca/zc3xx.c
+--- a/drivers/media/video/gspca/zc3xx.c~drivers-media-video-gspca-zc3xxc-fix-oops
++++ a/drivers/media/video/gspca/zc3xx.c
+@@ -6476,12 +6476,15 @@ static void setcontrast(struct gspca_dev
+ 	Tgamma = gamma_tb[sd->gamma];
+ 	Tgradient = gradient_tb[sd->gamma];
  
- /* xntp 3.4 compatibility names */
- #define MOD_OFFSET	ADJ_OFFSET
-diff -puN kernel/time/ntp.c~ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup kernel/time/ntp.c
---- a/kernel/time/ntp.c~ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup
-+++ a/kernel/time/ntp.c
-@@ -277,38 +277,50 @@ static inline void notify_cmos_timer(voi
- int do_adjtimex(struct timex *txc)
- {
- 	struct timespec ts;
--	long save_adjust, sec;
- 	int result;
- 
--	/* In order to modify anything, you gotta be super-user! */
--	if (txc->modes && !capable(CAP_SYS_TIME))
--		return -EPERM;
--
--	/* Now we validate the data before disabling interrupts */
--
--	if ((txc->modes & ADJ_OFFSET_SINGLESHOT) == ADJ_OFFSET_SINGLESHOT) {
-+	/* Validate the data before disabling interrupts */
-+	if (txc->modes & ADJ_ADJTIME) {
- 		/* singleshot must not be used with any other mode bits */
--		if (txc->modes & ~ADJ_OFFSET_SS_READ)
-+		if (!(txc->modes & ADJ_OFFSET_SINGLESHOT))
- 			return -EINVAL;
--	}
-+		if (!(txc->modes & ADJ_OFFSET_READONLY) &&
-+		    !capable(CAP_SYS_TIME))
-+			return -EPERM;
-+	} else {
-+		/* In order to modify anything, you gotta be super-user! */
-+		 if (txc->modes && !capable(CAP_SYS_TIME))
-+			return -EPERM;
-+
-+		/* if the quartz is off by more than 10% something is VERY wrong! */
-+		if (txc->modes & ADJ_TICK &&
-+		    (txc->tick <  900000/USER_HZ ||
-+		     txc->tick > 1100000/USER_HZ))
-+				return -EINVAL;
- 
--	/* if the quartz is off by more than 10% something is VERY wrong ! */
--	if (txc->modes & ADJ_TICK)
--		if (txc->tick <  900000/USER_HZ ||
--		    txc->tick > 1100000/USER_HZ)
--			return -EINVAL;
-+		if (txc->modes & ADJ_STATUS && time_state != TIME_OK)
-+			hrtimer_cancel(&leap_timer);
-+	}
- 
--	if (time_state != TIME_OK && txc->modes & ADJ_STATUS)
--		hrtimer_cancel(&leap_timer);
- 	getnstimeofday(&ts);
- 
- 	write_seqlock_irq(&xtime_lock);
- 
--	/* Save for later - semantics of adjtime is to return old value */
--	save_adjust = time_adjust;
--
- 	/* If there are input parameters, then process them */
-+	if (txc->modes & ADJ_ADJTIME) {
-+		long save_adjust = time_adjust;
-+
-+		if (!(txc->modes & ADJ_OFFSET_READONLY)) {
-+			/* adjtime() is independent from ntp_adjtime() */
-+			time_adjust = txc->offset;
-+			ntp_update_frequency();
-+		}
-+		txc->offset = save_adjust;
-+		goto adj_done;
-+	}
- 	if (txc->modes) {
-+		long sec;
-+
- 		if (txc->modes & ADJ_STATUS) {
- 			if ((time_status & STA_PLL) &&
- 			    !(txc->status & STA_PLL)) {
-@@ -375,13 +387,8 @@ int do_adjtimex(struct timex *txc)
- 		if (txc->modes & ADJ_TAI && txc->constant > 0)
- 			time_tai = txc->constant;
- 
--		if (txc->modes & ADJ_OFFSET) {
--			if (txc->modes == ADJ_OFFSET_SINGLESHOT)
--				/* adjtime() is independent from ntp_adjtime() */
--				time_adjust = txc->offset;
--			else
--				ntp_update_offset(txc->offset);
--		}
-+		if (txc->modes & ADJ_OFFSET)
-+			ntp_update_offset(txc->offset);
- 		if (txc->modes & ADJ_TICK)
- 			tick_usec = txc->tick;
- 
-@@ -389,19 +396,16 @@ int do_adjtimex(struct timex *txc)
- 			ntp_update_frequency();
- 	}
- 
-+	txc->offset = shift_right(time_offset * NTP_INTERVAL_FREQ,
-+				  NTP_SCALE_SHIFT);
-+	if (!(time_status & STA_NANO))
-+		txc->offset /= NSEC_PER_USEC;
-+
-+adj_done:
- 	result = time_state;	/* mostly `TIME_OK' */
- 	if (time_status & (STA_UNSYNC|STA_CLOCKERR))
- 		result = TIME_ERROR;
- 
--	if ((txc->modes == ADJ_OFFSET_SINGLESHOT) ||
--	    (txc->modes == ADJ_OFFSET_SS_READ))
--		txc->offset = save_adjust;
--	else {
--		txc->offset = shift_right(time_offset * NTP_INTERVAL_FREQ,
--					  NTP_SCALE_SHIFT);
--		if (!(time_status & STA_NANO))
--			txc->offset /= NSEC_PER_USEC;
--	}
- 	txc->freq	   = shift_right((s32)(time_freq >> PPM_SCALE_INV_SHIFT) *
- 					 (s64)PPM_SCALE_INV,
- 					 NTP_SCALE_SHIFT);
+-	k = (sd->contrast - 128)		/* -128 / 128 */
++	if(!Tgamma)
++		k = 0;
++	else
++		k = (sd->contrast - 128)		/* -128 / 128 */
+ 			* Tgamma[0];
+ 	PDEBUG(D_CONF, "gamma:%d contrast:%d gamma coeff: %d/128",
+ 		sd->gamma, sd->contrast, k);
+ 	for (i = 0; i < 16; i++) {
+-		g = Tgamma[i] + kgamma_tb[i] * k / 128;
++		g = (Tgamma ? Tgamma[i] : 0) + kgamma_tb[i] * k / 128;
+ 		if (g > 0xff)
+ 			g = 0xff;
+ 		else if (g <= 0)
+@@ -6497,7 +6500,7 @@ static void setcontrast(struct gspca_dev
+ 	PDEBUG(D_CONF, "    %02x %02x %02x %02x %02x %02x %02x %02x",
+ 		v[8], v[9], v[10], v[11], v[12], v[13], v[14], v[15]);
+ 	for (i = 0; i < 16; i++) {
+-		g = Tgradient[i] - kgrad_tb[i] * k / 128;
++		g = (Tgradient ? Tgradient[i] : 0) - kgrad_tb[i] * k / 128;
+ 		if (g > 0xff)
+ 			g = 0xff;
+ 		else if (g <= 0) {
 _
 
-Patches currently in -mm which might be from zippel@linux-m68k.org are
+Patches currently in -mm which might be from parag.warudkar@gmail.com are
 
-ntp-let-update_persistent_clock-sleep.patch
-timekeeping-fix-rounding-problem-during-clock-update.patch
-ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup.patch
-ntp-fix-calculation-of-the-next-jiffie-to-trigger-rtc-sync.patch
-clocksource-keep-track-of-original-clocksource-frequency.patch
-clocksource-introduce-clocksource_forward_now.patch
-clocksource-introduce-clock_monotonic_raw.patch
-hfsplus-quieten-down-mounting-hfsplus-journaled-fs-read-only.patch
+drivers-media-video-gspca-zc3xxc-fix-oops.patch
 
