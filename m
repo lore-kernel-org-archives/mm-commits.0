@@ -1,74 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - x86-microcode-patch-loader-style-corrections-fix.patch removed from -mm tree
-Date: Mon, 18 Aug 2008 12:23:06 -0700
-Message-ID: <200808181923.m7IJN7Ok007267@imap1.linux-foundation.org>
+Subject: - ftrace-printk-formatting-infrastructure-fix-fix.patch removed from -mm tree
+Date: Mon, 18 Aug 2008 12:27:31 -0700
+Message-ID: <200808181927.m7IJRVqq007543@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45467 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58146 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755729AbYHRTYh (ORCPT
+	by vger.kernel.org with ESMTP id S932192AbYHRT31 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 15:24:37 -0400
+	Mon, 18 Aug 2008 15:29:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, peter.oruba@amd.com, tglx@linutronix.de, tigran@aivazian.fsnet.co.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, randy.dunlap@oracle.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-microcode-patch-loader-style-corrections-fix
+     ftrace-printk-formatting-infrastructure-fix-fix
 has been removed from the -mm tree.  Its filename was
-     x86-microcode-patch-loader-style-corrections-fix.patch
+     ftrace-printk-formatting-infrastructure-fix-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into ftrace-printk-formatting-infrastructure.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-microcode-patch-loader-style-corrections-fix
+Subject: ftrace-printk-formatting-infrastructure-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-spell "matching" correctly.
+In file included from kernel/sysctl.c:51:
+include/linux/ftrace.h:164: error: expected ',' or ';' before '{' token
 
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Oruba <peter.oruba@amd.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tigran Aivazian <tigran@aivazian.fsnet.co.uk>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/microcode.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/ftrace.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/microcode.c~x86-microcode-patch-loader-style-corrections-fix arch/x86/kernel/microcode.c
---- a/arch/x86/kernel/microcode.c~x86-microcode-patch-loader-style-corrections-fix
-+++ a/arch/x86/kernel/microcode.c
-@@ -264,7 +264,7 @@ static int microcode_sanity_check(void *
-  * return 1 - found update
-  * return < 0 - error
-  */
--static int get_maching_microcode(void *mc, int cpu)
-+static int get_matching_microcode(void *mc, int cpu)
+diff -puN include/linux/ftrace.h~ftrace-printk-formatting-infrastructure-fix-fix include/linux/ftrace.h
+--- a/include/linux/ftrace.h~ftrace-printk-formatting-infrastructure-fix-fix
++++ a/include/linux/ftrace.h
+@@ -181,7 +181,8 @@ __ftrace_printk(unsigned long ip, const 
+ static inline void
+ ftrace_special(unsigned long arg1, unsigned long arg2, unsigned long arg3) { }
+ static inline int
+-ftrace_printk(const char *fmt, ...) __attribute__ ((format (printf, 1, 0)))
++ftrace_printk(const char *fmt, ...) __attribute__ ((format (printf, 1, 0)));
++static inline int ftrace_printk(const char *fmt, ...)
  {
- 	struct ucode_cpu_info *uci = ucode_cpu_info + cpu;
- 	microcode_header_t *mc_header = mc;
-@@ -405,7 +405,7 @@ static int do_microcode_update(void)
- 			if (!uci->valid)
- 				continue;
- 			set_cpus_allowed_ptr(current, &cpumask_of_cpu(cpu));
--			error = get_maching_microcode(new_mc, cpu);
-+			error = get_matching_microcode(new_mc, cpu);
- 			if (error < 0)
- 				goto out;
- 			if (error == 1)
-@@ -549,7 +549,7 @@ static int cpu_request_microcode(int cpu
- 		error = microcode_sanity_check(mc);
- 		if (error)
- 			break;
--		error = get_maching_microcode(mc, cpu);
-+		error = get_matching_microcode(mc, cpu);
- 		if (error < 0)
- 			break;
- 		/*
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,23 +62,19 @@ linux-next.patch
 next-remove-localversion.patch
 arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-x86-microcode-patch-loader-style-corrections-fix.patch
 ppc-use-the-common-ascii-hex-helpers.patch
 powerpc-replace-__function__-with-__func__.patch
-git-drm.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
 git-jg-misc.patch
-git-kvm.patch
 drivers-ata-pata_it821xc-fix-warning.patch
-git-mtd.patch
 git-ubi-git-rejects.patch
-git-net.patch
 sundance-set-carrier-status-on-link-change-events.patch
 cassini-use-request_firmware.patch
 e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
 power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes.patch
 power-support-for-texas-instruments-bq27x00-battery-managers-tweaks.patch
+ftrace-printk-formatting-infrastructure.patch
 ftrace-printk-formatting-infrastructure-fix-fix.patch
 git-scsi-rc-fixes.patch
 scsi-gdthc-use-unaligned-access-helpers.patch
