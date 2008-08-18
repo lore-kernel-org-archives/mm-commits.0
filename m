@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + alloc_bootmem_core-fix-misaligned-allocation-of-1g-page.patch added to -mm tree
-Date: Mon, 18 Aug 2008 14:18:53 -0700
-Message-ID: <200808182118.m7ILIrxM013207@imap1.linux-foundation.org>
+Subject: - alloc_bootmem_core-fix-misaligned-allocation-of-1g-page.patch removed from -mm tree
+Date: Mon, 18 Aug 2008 14:20:39 -0700
+Message-ID: <200808182120.m7ILKe8P013350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39679 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53755 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752981AbYHRVS7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752031AbYHRVUp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 17:18:59 -0400
+	Mon, 18 Aug 2008 17:20:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hannes@saeurebad.de, andreas.herrmann3@amd.com
+To: hannes@saeurebad.de, andreas.herrmann3@amd.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      bootmem: fix aligning of node-relative indexes and offsets
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      alloc_bootmem_core-fix-misaligned-allocation-of-1g-page.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -149,8 +139,8 @@ Patches currently in -mm which might be from hannes@saeurebad.de are
 origin.patch
 documentation-describe-bootmem_debug-kernel-parameter.patch
 git-xtensa.patch
-alloc_bootmem_core-fix-misaligned-allocation-of-1g-page.patch
 bootmem-fix-aligning-of-node-relative-indexes-and-offsets.patch
+alloc_bootmem_core-fix-misaligned-allocation-of-1g-page.patch
 vmscan-dont-accumulate-scan-pressure-on-unrelated-lists.patch
 mm-more-likely-reclaim-madv_sequential-mappings.patch
 
