@@ -1,90 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-ipmi-ipmi_si_intfc-default_find_bmc-fix-leak.patch added to -mm tree
-Date: Sun, 17 Aug 2008 15:18:36 -0700
-Message-ID: <200808172218.m7HMIaiw024193@imap1.linux-foundation.org>
+Subject: - next-git-rejects.patch removed from -mm tree
+Date: Mon, 18 Aug 2008 12:21:03 -0700
+Message-ID: <200808181921.m7IJL4o1007197@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45776 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33828 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751945AbYHQWTc (ORCPT
+	by vger.kernel.org with ESMTP id S1756682AbYHRTVW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 17 Aug 2008 18:19:32 -0400
+	Mon, 18 Aug 2008 15:21:22 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m7IJL4He027374
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 18 Aug 2008 12:21:05 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, danielm77@spray.se, krafft@de.ibm.com, michael@ellerman.id.au, minyard@acm.org, paulus@samba.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/ipmi/ipmi_si_intf.c:default_find_bmc(): fix leak
-has been added to the -mm tree.  Its filename is
-     drivers-char-ipmi-ipmi_si_intfc-default_find_bmc-fix-leak.patch
+     next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/ipmi/ipmi_si_intf.c:default_find_bmc(): fix leak
+Subject: next-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-If check_legacy_ioport() returns true, we leak *info.
-
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=11362
-
-Reported-by: Daniel Marjamki <danielm77@spray.se>
-Cc: Christian Krafft <krafft@de.ibm.com>
-Cc: Michael Ellerman <michael@ellerman.id.au>
-Cc: Corey Minyard <minyard@acm.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_si_intf.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/usb/host/ohci.h      |    3 --
+ fs/xfs/linux-2.6/xfs_linux.h |    3 --
+ fs/xfs/xfs_inode.c           |    5 ----
+ fs/xfs/xfs_vnodeops.c        |   16 --------------
+ include/linux/cred.h         |   36 ---------------------------------
+ 5 files changed, 63 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~drivers-char-ipmi-ipmi_si_intfc-default_find_bmc-fix-leak drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~drivers-char-ipmi-ipmi_si_intfc-default_find_bmc-fix-leak
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -2695,15 +2695,13 @@ static __devinit void default_find_bmc(v
- 	for (i = 0; ; i++) {
- 		if (!ipmi_defaults[i].port)
- 			break;
--
--		info = kzalloc(sizeof(*info), GFP_KERNEL);
--		if (!info)
--			return;
--
- #ifdef CONFIG_PPC_MERGE
- 		if (check_legacy_ioport(ipmi_defaults[i].port))
- 			continue;
- #endif
-+		info = kzalloc(sizeof(*info), GFP_KERNEL);
-+		if (!info)
-+			return;
+diff -puN drivers/usb/host/ohci.h~next-git-rejects drivers/usb/host/ohci.h
+--- a/drivers/usb/host/ohci.h~next-git-rejects
++++ a/drivers/usb/host/ohci.h
+@@ -400,11 +400,8 @@ struct ohci_hcd {
+ #define	OHCI_QUIRK_ZFMICRO	0x20			/* Compaq ZFMicro chipset*/
+ #define	OHCI_QUIRK_NEC		0x40			/* lost interrupts */
+ #define	OHCI_QUIRK_FRAME_NO	0x80			/* no big endian frame_no shift */
+-<<<<<<< HEAD:drivers/usb/host/ohci.h
+ #define	OHCI_QUIRK_HUB_POWER	0x100			/* distrust firmware power/oc setup */
+-=======
+ #define OHCI_QUIRK_HUB_POWER	0x100			/* distrust firmware power/oc setup */
+->>>>>>> FETCH_HEAD:drivers/usb/host/ohci.h
+ #define	OHCI_QUIRK_AMD_ISO	0x200			/* ISO transfers*/
+ 	// there are also chip quirks/bugs in init logic
  
- 		info->addr_source = NULL;
+diff -puN fs/xfs/linux-2.6/xfs_linux.h~next-git-rejects fs/xfs/linux-2.6/xfs_linux.h
+--- a/fs/xfs/linux-2.6/xfs_linux.h~next-git-rejects
++++ a/fs/xfs/linux-2.6/xfs_linux.h
+@@ -126,11 +126,8 @@
  
+ #define current_cpu()		(raw_smp_processor_id())
+ #define current_pid()		(current->pid)
+-<<<<<<< HEAD:fs/xfs/linux-2.6/xfs_linux.h
+-=======
+ #define this_fsuid(cred)	(current_fsuid())
+ #define this_fsgid(cred)	(current_fsgid())
+->>>>>>> FETCH_HEAD:fs/xfs/linux-2.6/xfs_linux.h
+ #define current_test_flags(f)	(current->flags & (f))
+ #define current_set_flags_nested(sp, f)		\
+ 		(*(sp) = current->flags, current->flags |= (f))
+diff -puN fs/xfs/xfs_inode.c~next-git-rejects fs/xfs/xfs_inode.c
+--- a/fs/xfs/xfs_inode.c~next-git-rejects
++++ a/fs/xfs/xfs_inode.c
+@@ -1081,13 +1081,8 @@ xfs_ialloc(
+ 	ip->i_d.di_onlink = 0;
+ 	ip->i_d.di_nlink = nlink;
+ 	ASSERT(ip->i_d.di_nlink == nlink);
+-<<<<<<< HEAD:fs/xfs/xfs_inode.c
+-	ip->i_d.di_uid = current_fsuid();
+-	ip->i_d.di_gid = current_fsgid();
+-=======
+ 	ip->i_d.di_uid = this_fsuid(cr);
+ 	ip->i_d.di_gid = this_fsgid(cr);
+->>>>>>> FETCH_HEAD:fs/xfs/xfs_inode.c
+ 	ip->i_d.di_projid = prid;
+ 	memset(&(ip->i_d.di_pad[0]), 0, sizeof(ip->i_d.di_pad));
+ 
+diff -puN fs/xfs/xfs_vnodeops.c~next-git-rejects fs/xfs/xfs_vnodeops.c
+--- a/fs/xfs/xfs_vnodeops.c~next-git-rejects
++++ a/fs/xfs/xfs_vnodeops.c
+@@ -182,11 +182,7 @@ xfs_setattr(
+ 	xfs_ilock(ip, lock_flags);
+ 
+ 	/* boolean: are we the file owner? */
+-<<<<<<< HEAD:fs/xfs/xfs_vnodeops.c
+-	file_owner = (current_fsuid() == ip->i_d.di_uid);
+-=======
+ 	file_owner = (this_fsuid(credp) == ip->i_d.di_uid);
+->>>>>>> FETCH_HEAD:fs/xfs/xfs_vnodeops.c
+ 
+ 	/*
+ 	 * Change various properties of a file.
+@@ -1537,11 +1533,7 @@ xfs_create(
+ 	 * Make sure that we have allocated dquot(s) on disk.
+ 	 */
+ 	error = XFS_QM_DQVOPALLOC(mp, dp,
+-<<<<<<< HEAD:fs/xfs/xfs_vnodeops.c
+-			current_fsuid(), current_fsgid(), prid,
+-=======
+ 			this_fsuid(credp), this_fsgid(credp), prid,
+->>>>>>> FETCH_HEAD:fs/xfs/xfs_vnodeops.c
+ 			XFS_QMOPT_QUOTALL|XFS_QMOPT_INHERIT, &udqp, &gdqp);
+ 	if (error)
+ 		goto std_return;
+@@ -2277,11 +2269,7 @@ xfs_mkdir(
+ 	 * Make sure that we have allocated dquot(s) on disk.
+ 	 */
+ 	error = XFS_QM_DQVOPALLOC(mp, dp,
+-<<<<<<< HEAD:fs/xfs/xfs_vnodeops.c
+-			current_fsuid(), current_fsgid(), prid,
+-=======
+ 			this_fsuid(credp), this_fsgid(credp), prid,
+->>>>>>> FETCH_HEAD:fs/xfs/xfs_vnodeops.c
+ 			XFS_QMOPT_QUOTALL | XFS_QMOPT_INHERIT, &udqp, &gdqp);
+ 	if (error)
+ 		goto std_return;
+@@ -2507,11 +2495,7 @@ xfs_symlink(
+ 	 * Make sure that we have allocated dquot(s) on disk.
+ 	 */
+ 	error = XFS_QM_DQVOPALLOC(mp, dp,
+-<<<<<<< HEAD:fs/xfs/xfs_vnodeops.c
+-			current_fsuid(), current_fsgid(), prid,
+-=======
+ 			this_fsuid(credp), this_fsgid(credp), prid,
+->>>>>>> FETCH_HEAD:fs/xfs/xfs_vnodeops.c
+ 			XFS_QMOPT_QUOTALL | XFS_QMOPT_INHERIT, &udqp, &gdqp);
+ 	if (error)
+ 		goto std_return;
+diff -puN include/linux/cred.h~next-git-rejects include/linux/cred.h
+--- a/include/linux/cred.h~next-git-rejects
++++ a/include/linux/cred.h
+@@ -12,41 +12,6 @@
+ #ifndef _LINUX_CRED_H
+ #define _LINUX_CRED_H
+ 
+-<<<<<<< HEAD:include/linux/cred.h
+-#define get_current_user()	(get_uid(current->user))
+-
+-#define task_uid(task)		((task)->uid)
+-#define task_gid(task)		((task)->gid)
+-#define task_euid(task)		((task)->euid)
+-#define task_egid(task)		((task)->egid)
+-
+-#define current_uid()		(current->uid)
+-#define current_gid()		(current->gid)
+-#define current_euid()		(current->euid)
+-#define current_egid()		(current->egid)
+-#define current_suid()		(current->suid)
+-#define current_sgid()		(current->sgid)
+-#define current_fsuid()		(current->fsuid)
+-#define current_fsgid()		(current->fsgid)
+-#define current_cap()		(current->cap_effective)
+-
+-#define current_uid_gid(_uid, _gid)		\
+-do {						\
+-	*(_uid) = current->uid;			\
+-	*(_gid) = current->gid;			\
+-} while(0)
+-
+-#define current_euid_egid(_uid, _gid)		\
+-do {						\
+-	*(_uid) = current->euid;		\
+-	*(_gid) = current->egid;		\
+-} while(0)
+-
+-#define current_fsuid_fsgid(_uid, _gid)		\
+-do {						\
+-	*(_uid) = current->fsuid;		\
+-	*(_gid) = current->fsgid;		\
+-=======
+ #include <linux/capability.h>
+ #include <linux/key.h>
+ #include <asm/atomic.h>
+@@ -364,7 +329,6 @@ do {						\
+ 	__cred = current_cred();		\
+ 	*(_fsuid) = __cred->fsuid;		\
+ 	*(_fsgid) = __cred->fsgid;		\
+->>>>>>> FETCH_HEAD:include/linux/cred.h
+ } while(0)
+ 
+ #endif /* _LINUX_CRED_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-kexec-jump-rename-kexec_control_code_size-to-kexec_control_page_size.patch
-kexec-jump-check-code-size-in-control-page.patch
-kexec-use-a-bitop-for-locking-rather-than-xchg.patch
-hwmon-adc124s501-generic-driver.patch
-spi-bugfix-spi_add_device-with-duplicate-chipselects.patch
 seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
 next-remove-localversion.patch
@@ -95,9 +207,12 @@ zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
 x86-microcode-patch-loader-style-corrections-fix.patch
 ppc-use-the-common-ascii-hex-helpers.patch
 powerpc-replace-__function__-with-__func__.patch
+git-drm.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
 git-jg-misc.patch
+git-kvm.patch
 drivers-ata-pata_it821xc-fix-warning.patch
+git-mtd.patch
 git-ubi-git-rejects.patch
 git-net.patch
 sundance-set-carrier-status-on-link-change-events.patch
@@ -107,8 +222,10 @@ backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.p
 power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes.patch
 power-support-for-texas-instruments-bq27x00-battery-managers-tweaks.patch
 ftrace-printk-formatting-infrastructure-fix-fix.patch
+git-scsi-rc-fixes.patch
 scsi-gdthc-use-unaligned-access-helpers.patch
 drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+git-watchdog.patch
 git-xtensa.patch
 drivers-char-ipmi-ipmi_si_intfc-default_find_bmc-fix-leak.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
