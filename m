@@ -1,93 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: - omfs-fix-potential-oops-when-directory-size-is-corrupted.patch removed from -mm tree
-Date: Mon, 18 Aug 2008 12:40:25 -0700
-Message-ID: <200808181940.m7IJeP2P008452@imap1.linux-foundation.org>
+Subject: - completions-un-inline-try_wait_for_completion-and-completion_done.patch removed from -mm tree
+Date: Mon, 18 Aug 2008 12:40:22 -0700
+Message-ID: <200808181940.m7IJeM5k008449@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34079 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34988 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758900AbYHRTun (ORCPT
+	by vger.kernel.org with ESMTP id S1762716AbYHRTu6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 15:50:43 -0400
+	Mon, 18 Aug 2008 15:50:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: me@bobcopeland.com, snakebyte@gmx.de, mm-commits@vger.kernel.org
+To: david@fromorbit.com, geert@linux-m68k.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     omfs: fix potential oops when directory size is corrupted
+     completions: uninline try_wait_for_completion and completion_done
 has been removed from the -mm tree.  Its filename was
-     omfs-fix-potential-oops-when-directory-size-is-corrupted.patch
+     completions-un-inline-try_wait_for_completion-and-completion_done.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omfs: fix potential oops when directory size is corrupted
-From: Bob Copeland <me@bobcopeland.com>
+Subject: completions: uninline try_wait_for_completion and completion_done
+From: Dave Chinner <david@fromorbit.com>
 
-Testing with a modified fsfuzzer reveals a couple of locations in omfs
-where filesystem variables are ultimately used as loop counters with
-insufficient sanity checking.  In this case, dir->i_size is used to
-compute the number of buckets in the directory hash.  If too large,
-readdir will overrun a buffer.
+m68k fails to build with these functions inlined in completion.h.  Move
+them out of line into sched.c and export them to avoid this problem.
 
-Since it's an invariant that dir->i_size is equal to the sysblock
-size, and we already sanity check that, just use that value instead.
-This fixes the following oops:
-
-BUG: unable to handle kernel paging request at c978e004
-IP: [<c032298e>] omfs_readdir+0x18e/0x32f
-Oops: 0000 [#1] PREEMPT DEBUG_PAGEALLOC
-Modules linked in:
-
-Pid: 4796, comm: ls Not tainted (2.6.27-rc2 #12)
-EIP: 0060:[<c032298e>] EFLAGS: 00010287 CPU: 0
-EIP is at omfs_readdir+0x18e/0x32f
-EAX: c978d000 EBX: 00000000 ECX: cbfcfaf8 EDX: cb2cf100
-ESI: 00001000 EDI: 00000800 EBP: cb2d3f68 ESP: cb2d3f0c
- DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
-Process ls (pid: 4796, ti=cb2d3000 task=cb175f40 task.ti=cb2d3000)
-Stack: 00000002 00000000 00000000 c018a820 cb2d3f94 cb2cf100 cbfb0000 ffffff10
-       cbfb3b80 cbfcfaf8 000001c9 00000a09 00000000 00000000 00000000 cbfcfbc8
-       c9697000 cbfb3b80 22222222 00001000 c08e6cd0 cb2cf100 cbfb3b80 cb2d3f88
-Call Trace:
- [<c018a820>] ? filldir64+0x0/0xcd
- [<c018a9f2>] ? vfs_readdir+0x56/0x82
- [<c018a820>] ? filldir64+0x0/0xcd
- [<c018aa7c>] ? sys_getdents64+0x5e/0xa0
- [<c01038bd>] ? sysenter_do_call+0x12/0x31
- =======================
-Code: 00 89 f0 89 f3 0f ac f8 14 81 e3 ff ff 0f 00 48 8d
-14 c5 b8 01 00 00 89 45 cc 89 55 f0 e9 8c 01 00 00 8b 4d c8 8b 75 f0 8b
-41 18 <8b> 54 30 04 8b 04 30 31 f6 89 5d dc 89 d1 8b 55 b8 0f c8 0f c9
-
-Reported-by: Eric Sesterhenn <snakebyte@gmx.de>
-Signed-off-by: Bob Copeland <me@bobcopeland.com>
+Signed-off-by: Dave Chinner <david@fromorbit.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/omfs/inode.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/completion.h |   46 +----------------------------------
+ kernel/sched.c             |   46 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 48 insertions(+), 44 deletions(-)
 
-diff -puN fs/omfs/inode.c~omfs-fix-potential-oops-when-directory-size-is-corrupted fs/omfs/inode.c
---- a/fs/omfs/inode.c~omfs-fix-potential-oops-when-directory-size-is-corrupted
-+++ a/fs/omfs/inode.c
-@@ -232,8 +232,7 @@ struct inode *omfs_iget(struct super_blo
- 		inode->i_mode = S_IFDIR | (S_IRWXUGO & ~sbi->s_dmask);
- 		inode->i_op = &omfs_dir_inops;
- 		inode->i_fop = &omfs_dir_operations;
--		inode->i_size = be32_to_cpu(oi->i_head.h_body_size) +
--			sizeof(struct omfs_header);
-+		inode->i_size = sbi->s_sys_blocksize;
- 		inc_nlink(inode);
- 		break;
- 	case OMFS_FILE:
+diff -puN include/linux/completion.h~completions-un-inline-try_wait_for_completion-and-completion_done include/linux/completion.h
+--- a/include/linux/completion.h~completions-un-inline-try_wait_for_completion-and-completion_done
++++ a/include/linux/completion.h
+@@ -49,6 +49,8 @@ extern unsigned long wait_for_completion
+ 						   unsigned long timeout);
+ extern unsigned long wait_for_completion_interruptible_timeout(
+ 			struct completion *x, unsigned long timeout);
++extern bool try_wait_for_completion(struct completion *x);
++extern bool completion_done(struct completion *x);
+ 
+ extern void complete(struct completion *);
+ extern void complete_all(struct completion *);
+@@ -56,48 +58,4 @@ extern void complete_all(struct completi
+ #define INIT_COMPLETION(x)	((x).done = 0)
+ 
+ 
+-/**
+- *	try_wait_for_completion - try to decrement a completion without blocking
+- *	@x:	completion structure
+- *
+- *	Returns: 0 if a decrement cannot be done without blocking
+- *		 1 if a decrement succeeded.
+- *
+- *	If a completion is being used as a counting completion,
+- *	attempt to decrement the counter without blocking. This
+- *	enables us to avoid waiting if the resource the completion
+- *	is protecting is not available.
+- */
+-static inline bool try_wait_for_completion(struct completion *x)
+-{
+-	int ret = 1;
+-
+-	spin_lock_irq(&x->wait.lock);
+-	if (!x->done)
+-		ret = 0;
+-	else
+-		x->done--;
+-	spin_unlock_irq(&x->wait.lock);
+-	return ret;
+-}
+-
+-/**
+- *	completion_done - Test to see if a completion has any waiters
+- *	@x:	completion structure
+- *
+- *	Returns: 0 if there are waiters (wait_for_completion() in progress)
+- *		 1 if there are no waiters.
+- *
+- */
+-static inline bool completion_done(struct completion *x)
+-{
+-	int ret = 1;
+-
+-	spin_lock_irq(&x->wait.lock);
+-	if (!x->done)
+-		ret = 0;
+-	spin_unlock_irq(&x->wait.lock);
+-	return ret;
+-}
+-
+ #endif
+diff -puN kernel/sched.c~completions-un-inline-try_wait_for_completion-and-completion_done kernel/sched.c
+--- a/kernel/sched.c~completions-un-inline-try_wait_for_completion-and-completion_done
++++ a/kernel/sched.c
+@@ -4669,6 +4669,52 @@ int __sched wait_for_completion_killable
+ }
+ EXPORT_SYMBOL(wait_for_completion_killable);
+ 
++/**
++ *	try_wait_for_completion - try to decrement a completion without blocking
++ *	@x:	completion structure
++ *
++ *	Returns: 0 if a decrement cannot be done without blocking
++ *		 1 if a decrement succeeded.
++ *
++ *	If a completion is being used as a counting completion,
++ *	attempt to decrement the counter without blocking. This
++ *	enables us to avoid waiting if the resource the completion
++ *	is protecting is not available.
++ */
++bool try_wait_for_completion(struct completion *x)
++{
++	int ret = 1;
++
++	spin_lock_irq(&x->wait.lock);
++	if (!x->done)
++		ret = 0;
++	else
++		x->done--;
++	spin_unlock_irq(&x->wait.lock);
++	return ret;
++}
++EXPORT_SYMBOL(try_wait_for_completion);
++
++/**
++ *	completion_done - Test to see if a completion has any waiters
++ *	@x:	completion structure
++ *
++ *	Returns: 0 if there are waiters (wait_for_completion() in progress)
++ *		 1 if there are no waiters.
++ *
++ */
++bool completion_done(struct completion *x)
++{
++	int ret = 1;
++
++	spin_lock_irq(&x->wait.lock);
++	if (!x->done)
++		ret = 0;
++	spin_unlock_irq(&x->wait.lock);
++	return ret;
++}
++EXPORT_SYMBOL(completion_done);
++
+ static long __sched
+ sleep_on_common(wait_queue_head_t *q, int state, long timeout)
+ {
 _
 
-Patches currently in -mm which might be from me@bobcopeland.com are
+Patches currently in -mm which might be from david@fromorbit.com are
 
 origin.patch
-ath5k-unify-resets.patch
+linux-next.patch
 
