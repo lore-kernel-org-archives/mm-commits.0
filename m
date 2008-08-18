@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-pagecache-insertion-fewer-atomics.patch added to -mm tree
-Date: Mon, 18 Aug 2008 16:29:51 -0700
-Message-ID: <200808182329.m7INTp2a019432@imap1.linux-foundation.org>
+Subject: + mm-unlockless-reclaim.patch added to -mm tree
+Date: Mon, 18 Aug 2008 16:29:53 -0700
+Message-ID: <200808182329.m7INTrab019435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57426 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33001 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752799AbYHRX34 (ORCPT
+	by vger.kernel.org with ESMTP id S1752799AbYHRX36 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 19:29:56 -0400
+	Mon, 18 Aug 2008 19:29:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: npiggin@suse.de
 
 
 The patch titled
-     mm: pagecache insertion fewer atomics
+     mm: unlockless reclaim
 has been added to the -mm tree.  Its filename is
-     mm-pagecache-insertion-fewer-atomics.patch
+     mm-unlockless-reclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: pagecache insertion fewer atomics
+Subject: mm: unlockless reclaim
 From: Nick Piggin <npiggin@suse.de>
 
-Setting and clearing the page locked when inserting it into swapcache /
-pagecache when it has no other references can use non-atomic page flags
-operations because no other CPU may be operating on it at this time.
-
-This saves one atomic operation when inserting a page into pagecache.
+unlock_page is fairly expensive.  It can be avoided in page reclaim
+success path.  By definition if we have any other references to the page
+it would be a bug anyway.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |   14 +++++++-------
- mm/swap_state.c         |    4 ++--
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ mm/vmscan.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/pagemap.h~mm-pagecache-insertion-fewer-atomics include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-pagecache-insertion-fewer-atomics
-+++ a/include/linux/pagemap.h
-@@ -299,14 +299,14 @@ extern int __lock_page_killable(struct p
- extern void __lock_page_nosync(struct page *page);
- extern void unlock_page(struct page *page);
+diff -puN mm/vmscan.c~mm-unlockless-reclaim mm/vmscan.c
+--- a/mm/vmscan.c~mm-unlockless-reclaim
++++ a/mm/vmscan.c
+@@ -781,7 +781,14 @@ static unsigned long shrink_page_list(st
+ 		if (!mapping || !__remove_mapping(mapping, page))
+ 			goto keep_locked;
  
--static inline void set_page_locked(struct page *page)
-+static inline void __set_page_locked(struct page *page)
- {
--	set_bit(PG_locked, &page->flags);
-+	__set_bit(PG_locked, &page->flags);
- }
- 
--static inline void clear_page_locked(struct page *page)
-+static inline void __clear_page_locked(struct page *page)
- {
--	clear_bit(PG_locked, &page->flags);
-+	__clear_bit(PG_locked, &page->flags);
- }
- 
- static inline int trylock_page(struct page *page)
-@@ -438,17 +438,17 @@ extern void __remove_from_page_cache(str
- 
- /*
-  * Like add_to_page_cache_locked, but used to add newly allocated pages:
-- * the page is new, so we can just run set_page_locked() against it.
-+ * the page is new, so we can just run __set_page_locked() against it.
-  */
- static inline int add_to_page_cache(struct page *page,
- 		struct address_space *mapping, pgoff_t offset, gfp_t gfp_mask)
- {
- 	int error;
- 
--	set_page_locked(page);
-+	__set_page_locked(page);
- 	error = add_to_page_cache_locked(page, mapping, offset, gfp_mask);
- 	if (unlikely(error))
--		clear_page_locked(page);
+-		unlock_page(page);
++		/*
++		 * At this point, we have no other references and there is
++		 * no way to pick any more up (removed from LRU, removed
++		 * from pagecache). Can use non-atomic bitops now (and
++		 * we obviously don't have to worry about waking up a process
++		 * waiting on the page lock, because there are no references.
++		 */
 +		__clear_page_locked(page);
- 	return error;
- }
- 
-diff -puN mm/swap_state.c~mm-pagecache-insertion-fewer-atomics mm/swap_state.c
---- a/mm/swap_state.c~mm-pagecache-insertion-fewer-atomics
-+++ a/mm/swap_state.c
-@@ -303,7 +303,7 @@ struct page *read_swap_cache_async(swp_e
- 		 * re-using the just freed swap entry for an existing page.
- 		 * May fail (-ENOMEM) if radix-tree node allocation failed.
- 		 */
--		set_page_locked(new_page);
-+		__set_page_locked(new_page);
- 		SetPageSwapBacked(new_page);
- 		err = add_to_swap_cache(new_page, entry, gfp_mask & GFP_KERNEL);
- 		if (likely(!err)) {
-@@ -315,7 +315,7 @@ struct page *read_swap_cache_async(swp_e
- 			return new_page;
- 		}
- 		ClearPageSwapBacked(new_page);
--		clear_page_locked(new_page);
-+		__clear_page_locked(new_page);
- 		swap_free(entry);
- 	} while (err != -ENOMEM);
- 
+ free_it:
+ 		nr_reclaimed++;
+ 		if (!pagevec_add(&freed_pvec, page)) {
 _
 
 Patches currently in -mm which might be from npiggin@suse.de are
