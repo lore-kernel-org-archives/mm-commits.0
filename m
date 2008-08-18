@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling-update.patch added to -mm tree
-Date: Mon, 18 Aug 2008 15:33:27 -0700
-Message-ID: <200808182233.m7IMXRxb016489@imap1.linux-foundation.org>
+Subject: + mm-page_remove_rmap-comments-on-pageanon.patch added to -mm tree
+Date: Mon, 18 Aug 2008 15:34:03 -0700
+Message-ID: <200808182234.m7IMY3x0016571@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47857 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39363 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753877AbYHRWeN (ORCPT
+	by vger.kernel.org with ESMTP id S1753881AbYHRWep (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 18:34:13 -0400
+	Mon, 18 Aug 2008 18:34:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sven.wegener@stealer.net, ncase@xes-inc.com, rpurdie@rpsys.net
+Cc: hugh@veritas.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling update
+     mm: page_remove_rmap comments on PageAnon
 has been added to the -mm tree.  Its filename is
-     leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling-update.patch
+     mm-page_remove_rmap-comments-on-pageanon.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling update
-From: Sven Wegener <sven.wegener@stealer.net>
+Subject: mm: page_remove_rmap comments on PageAnon
+From: Hugh Dickins <hugh@veritas.com>
 
-Andrew, could you please update the patch in -mm with the one below. It
-contains the below fixes, that were applied after you added it to -mm,
-and is identical to the one Nate tested.
+Add a comment to s390's page_test_dirty/page_clear_dirty/page_set_dirty
+dance in page_remove_rmap(): I was wrong to think the PageSwapCache test
+could be avoided, and would like a comment in there to remind me.  And
+mention s390, to help us remember that this block is not really common.
 
-- Another 32 -> sizeof() conversion
-- Move the unregister code to where we also free the memory on failure
-- cancel_work_sync() when unregistering on failure
+Also move down the "It would be tidy to reset PageAnon" comment: it does
+not belong to s390's block, and it would be unwise to reset PageAnon
+before we're done with testing it.
 
-Cc: Nate Case <ncase@xes-inc.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-pca955x.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/rmap.c |   25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
-diff -puN drivers/leds/leds-pca955x.c~leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling-update drivers/leds/leds-pca955x.c
---- a/drivers/leds/leds-pca955x.c~leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling-update
-+++ a/drivers/leds/leds-pca955x.c
-@@ -302,7 +302,8 @@ static int __devinit pca955x_probe(struc
- 				pca955x[i].led_cdev.default_trigger =
- 					pdata->leds[i].default_trigger;
- 		} else {
--			snprintf(pca955x[i].name, 32, "pca955x:%d", i);
-+			snprintf(pca955x[i].name, sizeof(pca955x[i].name),
-+				 "pca955x:%d", i);
+diff -puN mm/rmap.c~mm-page_remove_rmap-comments-on-pageanon mm/rmap.c
+--- a/mm/rmap.c~mm-page_remove_rmap-comments-on-pageanon
++++ a/mm/rmap.c
+@@ -659,23 +659,30 @@ void page_remove_rmap(struct page *page,
  		}
  
- 		spin_lock_init(&pca955x[i].lock);
-@@ -313,14 +314,8 @@ static int __devinit pca955x_probe(struc
- 		INIT_WORK(&pca955x[i].work, pca955x_led_work);
+ 		/*
+-		 * It would be tidy to reset the PageAnon mapping here,
+-		 * but that might overwrite a racing page_add_anon_rmap
+-		 * which increments mapcount after us but sets mapping
+-		 * before us: so leave the reset to free_hot_cold_page,
+-		 * and remember that it's only reliable while mapped.
+-		 * Leaving it set also helps swapoff to reinstate ptes
+-		 * faster for those pages still in swapcache.
++		 * Now that the last pte has gone, s390 must transfer dirty
++		 * flag from storage key to struct page.  We can usually skip
++		 * this if the page is anon, so about to be freed; but perhaps
++		 * not if it's in swapcache - there might be another pte slot
++		 * containing the swap entry, but page not yet written to swap.
+ 		 */
+ 		if ((!PageAnon(page) || PageSwapCache(page)) &&
+ 		    page_test_dirty(page)) {
+ 			page_clear_dirty(page);
+ 			set_page_dirty(page);
+ 		}
+-		mem_cgroup_uncharge_page(page);
  
- 		err = led_classdev_register(&client->dev, &pca955x[i].led_cdev);
--		if (err < 0) {
--			while (i > 0) {
--				i--;
--				led_classdev_unregister(&pca955x[i].led_cdev);
--			}
--
-+		if (err < 0)
- 			goto exit;
--		}
++		mem_cgroup_uncharge_page(page);
+ 		__dec_zone_page_state(page,
+-				PageAnon(page) ? NR_ANON_PAGES : NR_FILE_MAPPED);
++			PageAnon(page) ? NR_ANON_PAGES : NR_FILE_MAPPED);
++		/*
++		 * It would be tidy to reset the PageAnon mapping here,
++		 * but that might overwrite a racing page_add_anon_rmap
++		 * which increments mapcount after us but sets mapping
++		 * before us: so leave the reset to free_hot_cold_page,
++		 * and remember that it's only reliable while mapped.
++		 * Leaving it set also helps swapoff to reinstate ptes
++		 * faster for those pages still in swapcache.
++		 */
  	}
- 
- 	/* Turn off LEDs */
-@@ -340,6 +335,11 @@ static int __devinit pca955x_probe(struc
- 	return 0;
- 
- exit:
-+	while (i--) {
-+		led_classdev_unregister(&pca955x[i].led_cdev);
-+		cancel_work_sync(&pca955x[i].work);
-+	}
-+
- 	kfree(pca955x);
- 	i2c_set_clientdata(client, NULL);
+ }
  
 _
 
-Patches currently in -mm which might be from sven.wegener@stealer.net are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-leds-avoid-needless-strlen-for-attributes.patch
-leds-wrap-use-default-on-trigger-for-power-led.patch
-leds-fsg-change-order-of-initialization-and-deinitialization.patch
-leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling.patch
-leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling-update.patch
+mm-page_remove_rmap-comments-on-pageanon.patch
+linux-next.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+mm-owner-fix-race-between-swap-and-exit.patch
+mm-owner-fix-race-between-swap-and-exit-fix.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+mlock-mlocked-pages-are-unevictable.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mmapc-deinline-a-few-functions.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+prio_tree-debugging-patch.patch
 
