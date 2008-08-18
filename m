@@ -1,239 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: - watchdog-delete-unused-driver-mpc8xx_wdtc.patch removed from -mm tree
-Date: Mon, 18 Aug 2008 12:41:00 -0700
-Message-ID: <200808181941.m7IJf0Q8008506@imap1.linux-foundation.org>
+Subject: - omfs-fix-oops-when-file-metadata-is-corrupted.patch removed from -mm tree
+Date: Mon, 18 Aug 2008 12:40:28 -0700
+Message-ID: <200808181940.m7IJeSJk008461@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58047 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54804 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765796AbYHRTu1 (ORCPT
+	by vger.kernel.org with ESMTP id S1756238AbYHRTun (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 15:50:27 -0400
+	Mon, 18 Aug 2008 15:50:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jochen@scram.de, vitb@kernel.crashing.org, wim@iguana.be, mm-commits@vger.kernel.org
+To: me@bobcopeland.com, snakebyte@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     watchdog: delete unused driver mpc8xx_wdt.c
+     omfs: fix oops when file metadata is corrupted
 has been removed from the -mm tree.  Its filename was
-     watchdog-delete-unused-driver-mpc8xx_wdtc.patch
+     omfs-fix-oops-when-file-metadata-is-corrupted.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: delete unused driver mpc8xx_wdt.c
-From: Jochen Friedrich <jochen@scram.de>
+Subject: omfs: fix oops when file metadata is corrupted
+From: Bob Copeland <me@bobcopeland.com>
 
-The watchdog driver mpc8xx_wdt.c was a device interface to
-arch/ppc/syslib/m8xx_wdt.c for MPC8xx hardware.  Now that ARCH=ppc is
-gone, this driver is of no more use.  For ARCH=powerpc, MPC8xx hardware is
-supported by mpc8xxx_wdt.c.
+A fuzzed fileystem image failed with OMFS when the extent count was
+used in a loop without being checked against the max number of extents.
+It also provoked a signed division for an array index that was checked
+as if unsigned, leading to index by -1.
 
-Signed-off-by: Jochen Friedrich <jochen@scram.de>
-Cc: Wim Van Sebroeck <wim@iguana.be>
-Acked-by: Vitaly Bordug <vitb@kernel.crashing.org>
+omfsck will be updated to fix these cases, in the meantime bail out
+gracefully.
+
+Reported-by: Eric Sesterhenn <snakebyte@gmx.de>
+Signed-off-by: Bob Copeland <me@bobcopeland.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/Kconfig      |    4 
- drivers/watchdog/Makefile     |    1 
- drivers/watchdog/mpc8xx_wdt.c |  170 --------------------------------
- 3 files changed, 175 deletions(-)
+ fs/omfs/bitmap.c |    5 +++--
+ fs/omfs/file.c   |   33 ++++++++++++++++++++++++++-------
+ 2 files changed, 29 insertions(+), 9 deletions(-)
 
-diff -puN drivers/watchdog/Kconfig~watchdog-delete-unused-driver-mpc8xx_wdtc drivers/watchdog/Kconfig
---- a/drivers/watchdog/Kconfig~watchdog-delete-unused-driver-mpc8xx_wdtc
-+++ a/drivers/watchdog/Kconfig
-@@ -691,10 +691,6 @@ config MPC5200_WDT
- 	tristate "MPC5200 Watchdog Timer"
- 	depends on PPC_MPC52xx
+diff -puN fs/omfs/bitmap.c~omfs-fix-oops-when-file-metadata-is-corrupted fs/omfs/bitmap.c
+--- a/fs/omfs/bitmap.c~omfs-fix-oops-when-file-metadata-is-corrupted
++++ a/fs/omfs/bitmap.c
+@@ -92,7 +92,7 @@ int omfs_allocate_block(struct super_blo
+ 	struct buffer_head *bh;
+ 	struct omfs_sb_info *sbi = OMFS_SB(sb);
+ 	int bits_per_entry = 8 * sb->s_blocksize;
+-	int map, bit;
++	unsigned int map, bit;
+ 	int ret = 0;
+ 	u64 tmp;
  
--config 8xx_WDT
--	tristate "MPC8xx Watchdog Timer"
--	depends on 8xx
--
- config 8xxx_WDT
- 	tristate "MPC8xxx Platform Watchdog Timer"
- 	depends on PPC_8xx || PPC_83xx || PPC_86xx
-diff -puN drivers/watchdog/Makefile~watchdog-delete-unused-driver-mpc8xx_wdtc drivers/watchdog/Makefile
---- a/drivers/watchdog/Makefile~watchdog-delete-unused-driver-mpc8xx_wdtc
-+++ a/drivers/watchdog/Makefile
-@@ -101,7 +101,6 @@ obj-$(CONFIG_TXX9_WDT) += txx9wdt.o
- # PARISC Architecture
+@@ -176,7 +176,8 @@ int omfs_clear_range(struct super_block 
+ 	struct omfs_sb_info *sbi = OMFS_SB(sb);
+ 	int bits_per_entry = 8 * sb->s_blocksize;
+ 	u64 tmp;
+-	int map, bit, ret;
++	unsigned int map, bit;
++	int ret;
  
- # POWERPC Architecture
--obj-$(CONFIG_8xx_WDT) += mpc8xx_wdt.o
- obj-$(CONFIG_MPC5200_WDT) += mpc5200_wdt.o
- obj-$(CONFIG_8xxx_WDT) += mpc8xxx_wdt.o
- obj-$(CONFIG_MV64X60_WDT) += mv64x60_wdt.o
-diff -puN drivers/watchdog/mpc8xx_wdt.c~watchdog-delete-unused-driver-mpc8xx_wdtc /dev/null
---- a/drivers/watchdog/mpc8xx_wdt.c
-+++ /dev/null
-@@ -1,170 +0,0 @@
--/*
-- * mpc8xx_wdt.c - MPC8xx watchdog userspace interface
-- *
-- * Author: Florian Schirmer <jolt@tuxbox.org>
-- *
-- * 2002 (c) Florian Schirmer <jolt@tuxbox.org> This file is licensed under
-- * the terms of the GNU General Public License version 2. This program
-- * is licensed "as is" without any warranty of any kind, whether express
-- * or implied.
-- */
--
--#include <linux/fs.h>
--#include <linux/init.h>
--#include <linux/kernel.h>
--#include <linux/miscdevice.h>
--#include <linux/module.h>
--#include <linux/watchdog.h>
--#include <asm/8xx_immap.h>
--#include <linux/uaccess.h>
--#include <linux/io.h>
--#include <syslib/m8xx_wdt.h>
--
--static unsigned long wdt_opened;
--static int wdt_status;
--static spinlock_t wdt_lock;
--
--static void mpc8xx_wdt_handler_disable(void)
--{
--	volatile uint __iomem *piscr;
--	piscr = (uint *)&((immap_t *)IMAP_ADDR)->im_sit.sit_piscr;
--
--	if (!m8xx_has_internal_rtc)
--		m8xx_wdt_stop_timer();
--	else
--		out_be32(piscr, in_be32(piscr) & ~(PISCR_PIE | PISCR_PTE));
--	printk(KERN_NOTICE "mpc8xx_wdt: keep-alive handler deactivated\n");
--}
--
--static void mpc8xx_wdt_handler_enable(void)
--{
--	volatile uint __iomem *piscr;
--	piscr = (uint *)&((immap_t *)IMAP_ADDR)->im_sit.sit_piscr;
--
--	if (!m8xx_has_internal_rtc)
--		m8xx_wdt_install_timer();
--	else
--		out_be32(piscr, in_be32(piscr) | PISCR_PIE | PISCR_PTE);
--	printk(KERN_NOTICE "mpc8xx_wdt: keep-alive handler activated\n");
--}
--
--static int mpc8xx_wdt_open(struct inode *inode, struct file *file)
--{
--	if (test_and_set_bit(0, &wdt_opened))
--		return -EBUSY;
--	m8xx_wdt_reset();
--	mpc8xx_wdt_handler_disable();
--	return nonseekable_open(inode, file);
--}
--
--static int mpc8xx_wdt_release(struct inode *inode, struct file *file)
--{
--	m8xx_wdt_reset();
--#if !defined(CONFIG_WATCHDOG_NOWAYOUT)
--	mpc8xx_wdt_handler_enable();
--#endif
--	clear_bit(0, &wdt_opened);
--	return 0;
--}
--
--static ssize_t mpc8xx_wdt_write(struct file *file, const char *data,
--						size_t len, loff_t *ppos)
--{
--	if (len) {
--		spin_lock(&wdt_lock);
--		m8xx_wdt_reset();
--		spin_unlock(&wdt_lock);
--	}
--	return len;
--}
--
--static long mpc8xx_wdt_ioctl(struct file *file,
--					unsigned int cmd, unsigned long arg)
--{
--	int timeout;
--	static struct watchdog_info info = {
--		.options = WDIOF_KEEPALIVEPING,
--		.firmware_version = 0,
--		.identity = "MPC8xx watchdog",
--	};
--
--	switch (cmd) {
--	case WDIOC_GETSUPPORT:
--		if (copy_to_user((void *)arg, &info, sizeof(info)))
--			return -EFAULT;
--		break;
--
--	case WDIOC_GETSTATUS:
--	case WDIOC_GETBOOTSTATUS:
--		if (put_user(wdt_status, (int *)arg))
--			return -EFAULT;
--		wdt_status &= ~WDIOF_KEEPALIVEPING;
--		break;
--
--	case WDIOC_GETTEMP:
--		return -EOPNOTSUPP;
--
--	case WDIOC_SETOPTIONS:
--		return -EOPNOTSUPP;
--
--	case WDIOC_KEEPALIVE:
--		spin_lock(&wdt_lock);
--		m8xx_wdt_reset();
--		wdt_status |= WDIOF_KEEPALIVEPING;
--		spin_unlock(&wdt_lock);
--		break;
--
--	case WDIOC_SETTIMEOUT:
--		return -EOPNOTSUPP;
--
--	case WDIOC_GETTIMEOUT:
--		spin_lock(&wdt_lock);
--		timeout = m8xx_wdt_get_timeout();
--		spin_unlock(&wdt_lock);
--		if (put_user(timeout, (int *)arg))
--			return -EFAULT;
--		break;
--
--	default:
--		return -ENOTTY;
--	}
--
--	return 0;
--}
--
--static const struct file_operations mpc8xx_wdt_fops = {
--	.owner = THIS_MODULE,
--	.llseek = no_llseek,
--	.write = mpc8xx_wdt_write,
--	.unlocked_ioctl = mpc8xx_wdt_ioctl,
--	.open = mpc8xx_wdt_open,
--	.release = mpc8xx_wdt_release,
--};
--
--static struct miscdevice mpc8xx_wdt_miscdev = {
--	.minor = WATCHDOG_MINOR,
--	.name = "watchdog",
--	.fops = &mpc8xx_wdt_fops,
--};
--
--static int __init mpc8xx_wdt_init(void)
--{
--	spin_lock_init(&wdt_lock);
--	return misc_register(&mpc8xx_wdt_miscdev);
--}
--
--static void __exit mpc8xx_wdt_exit(void)
--{
--	misc_deregister(&mpc8xx_wdt_miscdev);
--
--	m8xx_wdt_reset();
--	mpc8xx_wdt_handler_enable();
--}
--
--module_init(mpc8xx_wdt_init);
--module_exit(mpc8xx_wdt_exit);
+ 	tmp = block;
+ 	bit = do_div(tmp, bits_per_entry);
+diff -puN fs/omfs/file.c~omfs-fix-oops-when-file-metadata-is-corrupted fs/omfs/file.c
+--- a/fs/omfs/file.c~omfs-fix-oops-when-file-metadata-is-corrupted
++++ a/fs/omfs/file.c
+@@ -26,6 +26,13 @@ static int omfs_sync_file(struct file *f
+ 	return err ? -EIO : 0;
+ }
+ 
++static u32 omfs_max_extents(struct omfs_sb_info *sbi, int offset)
++{
++	return (sbi->s_sys_blocksize - offset -
++		sizeof(struct omfs_extent)) /
++		sizeof(struct omfs_extent_entry) + 1;
++}
++
+ void omfs_make_empty_table(struct buffer_head *bh, int offset)
+ {
+ 	struct omfs_extent *oe = (struct omfs_extent *) &bh->b_data[offset];
+@@ -45,6 +52,7 @@ int omfs_shrink_inode(struct inode *inod
+ 	struct buffer_head *bh;
+ 	u64 next, last;
+ 	u32 extent_count;
++	u32 max_extents;
+ 	int ret;
+ 
+ 	/* traverse extent table, freeing each entry that is greater
+@@ -62,15 +70,18 @@ int omfs_shrink_inode(struct inode *inod
+ 		goto out;
+ 
+ 	oe = (struct omfs_extent *)(&bh->b_data[OMFS_EXTENT_START]);
++	max_extents = omfs_max_extents(sbi, OMFS_EXTENT_START);
+ 
+ 	for (;;) {
+ 
+-		if (omfs_is_bad(sbi, (struct omfs_header *) bh->b_data, next)) {
+-			brelse(bh);
+-			goto out;
+-		}
++		if (omfs_is_bad(sbi, (struct omfs_header *) bh->b_data, next))
++			goto out_brelse;
+ 
+ 		extent_count = be32_to_cpu(oe->e_extent_count);
++
++		if (extent_count > max_extents)
++			goto out_brelse;
++
+ 		last = next;
+ 		next = be64_to_cpu(oe->e_next);
+ 		entry = &oe->e_entry;
+@@ -98,10 +109,14 @@ int omfs_shrink_inode(struct inode *inod
+ 		if (!bh)
+ 			goto out;
+ 		oe = (struct omfs_extent *) (&bh->b_data[OMFS_EXTENT_CONT]);
++		max_extents = omfs_max_extents(sbi, OMFS_EXTENT_CONT);
+ 	}
+ 	ret = 0;
+ out:
+ 	return ret;
++out_brelse:
++	brelse(bh);
++	return ret;
+ }
+ 
+ static void omfs_truncate(struct inode *inode)
+@@ -154,9 +169,7 @@ static int omfs_grow_extent(struct inode
+ 			goto out;
+ 		}
+ 	}
+-	max_count = (sbi->s_sys_blocksize - OMFS_EXTENT_START -
+-		sizeof(struct omfs_extent)) /
+-		sizeof(struct omfs_extent_entry) + 1;
++	max_count = omfs_max_extents(sbi, OMFS_EXTENT_START);
+ 
+ 	/* TODO: add a continuation block here */
+ 	if (be32_to_cpu(oe->e_extent_count) > max_count-1)
+@@ -225,6 +238,7 @@ static int omfs_get_block(struct inode *
+ 	sector_t next, offset;
+ 	int ret;
+ 	u64 new_block;
++	u32 max_extents;
+ 	int extent_count;
+ 	struct omfs_extent *oe;
+ 	struct omfs_extent_entry *entry;
+@@ -238,6 +252,7 @@ static int omfs_get_block(struct inode *
+ 		goto out;
+ 
+ 	oe = (struct omfs_extent *)(&bh->b_data[OMFS_EXTENT_START]);
++	max_extents = omfs_max_extents(sbi, OMFS_EXTENT_START);
+ 	next = inode->i_ino;
+ 
+ 	for (;;) {
+@@ -249,6 +264,9 @@ static int omfs_get_block(struct inode *
+ 		next = be64_to_cpu(oe->e_next);
+ 		entry = &oe->e_entry;
+ 
++		if (extent_count > max_extents)
++			goto out_brelse;
++
+ 		offset = find_block(inode, entry, block, extent_count, &remain);
+ 		if (offset > 0) {
+ 			ret = 0;
+@@ -266,6 +284,7 @@ static int omfs_get_block(struct inode *
+ 		if (!bh)
+ 			goto out;
+ 		oe = (struct omfs_extent *) (&bh->b_data[OMFS_EXTENT_CONT]);
++		max_extents = omfs_max_extents(sbi, OMFS_EXTENT_CONT);
+ 	}
+ 	if (create) {
+ 		ret = omfs_grow_extent(inode, oe, &new_block);
+_
+
+Patches currently in -mm which might be from me@bobcopeland.com are
+
+origin.patch
+ath5k-unify-resets.patch
+
