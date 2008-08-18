@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_remove_rmap-comments-on-pageanon.patch added to -mm tree
-Date: Mon, 18 Aug 2008 15:34:03 -0700
-Message-ID: <200808182234.m7IMY3x0016571@imap1.linux-foundation.org>
+Subject: + mm-show-free-swap-as-signed.patch added to -mm tree
+Date: Mon, 18 Aug 2008 15:34:44 -0700
+Message-ID: <200808182234.m7IMYicC016599@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39363 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59344 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753881AbYHRWep (ORCPT
+	by vger.kernel.org with ESMTP id S1753994AbYHRWfU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 18:34:45 -0400
+	Mon, 18 Aug 2008 18:35:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, schwidefsky@de.ibm.com
+Cc: hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     mm: page_remove_rmap comments on PageAnon
+     mm: show free swap as signed
 has been added to the -mm tree.  Its filename is
-     mm-page_remove_rmap-comments-on-pageanon.patch
+     mm-show-free-swap-as-signed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: page_remove_rmap comments on PageAnon
+Subject: mm: show free swap as signed
 From: Hugh Dickins <hugh@veritas.com>
 
-Add a comment to s390's page_test_dirty/page_clear_dirty/page_set_dirty
-dance in page_remove_rmap(): I was wrong to think the PageSwapCache test
-could be avoided, and would like a comment in there to remind me.  And
-mention s390, to help us remember that this block is not really common.
-
-Also move down the "It would be tidy to reset PageAnon" comment: it does
-not belong to s390's block, and it would be unwise to reset PageAnon
-before we're done with testing it.
+Adjust <Alt><SysRq>m show_swap_cache_info() to show "Free swap" as a
+signed long: the signed format is preferable, because during swapoff
+nr_swap_pages can legitimately go negative, so makes more sense thus
+(it used to be shown redundantly, once as signed and once as unsigned).
 
 Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   25 ++++++++++++++++---------
- 1 file changed, 16 insertions(+), 9 deletions(-)
+ mm/swap_state.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/rmap.c~mm-page_remove_rmap-comments-on-pageanon mm/rmap.c
---- a/mm/rmap.c~mm-page_remove_rmap-comments-on-pageanon
-+++ a/mm/rmap.c
-@@ -659,23 +659,30 @@ void page_remove_rmap(struct page *page,
- 		}
- 
- 		/*
--		 * It would be tidy to reset the PageAnon mapping here,
--		 * but that might overwrite a racing page_add_anon_rmap
--		 * which increments mapcount after us but sets mapping
--		 * before us: so leave the reset to free_hot_cold_page,
--		 * and remember that it's only reliable while mapped.
--		 * Leaving it set also helps swapoff to reinstate ptes
--		 * faster for those pages still in swapcache.
-+		 * Now that the last pte has gone, s390 must transfer dirty
-+		 * flag from storage key to struct page.  We can usually skip
-+		 * this if the page is anon, so about to be freed; but perhaps
-+		 * not if it's in swapcache - there might be another pte slot
-+		 * containing the swap entry, but page not yet written to swap.
- 		 */
- 		if ((!PageAnon(page) || PageSwapCache(page)) &&
- 		    page_test_dirty(page)) {
- 			page_clear_dirty(page);
- 			set_page_dirty(page);
- 		}
--		mem_cgroup_uncharge_page(page);
- 
-+		mem_cgroup_uncharge_page(page);
- 		__dec_zone_page_state(page,
--				PageAnon(page) ? NR_ANON_PAGES : NR_FILE_MAPPED);
-+			PageAnon(page) ? NR_ANON_PAGES : NR_FILE_MAPPED);
-+		/*
-+		 * It would be tidy to reset the PageAnon mapping here,
-+		 * but that might overwrite a racing page_add_anon_rmap
-+		 * which increments mapcount after us but sets mapping
-+		 * before us: so leave the reset to free_hot_cold_page,
-+		 * and remember that it's only reliable while mapped.
-+		 * Leaving it set also helps swapoff to reinstate ptes
-+		 * faster for those pages still in swapcache.
-+		 */
- 	}
+diff -puN mm/swap_state.c~mm-show-free-swap-as-signed mm/swap_state.c
+--- a/mm/swap_state.c~mm-show-free-swap-as-signed
++++ a/mm/swap_state.c
+@@ -60,7 +60,7 @@ void show_swap_cache_info(void)
+ 	printk("Swap cache stats: add %lu, delete %lu, find %lu/%lu\n",
+ 		swap_cache_info.add_total, swap_cache_info.del_total,
+ 		swap_cache_info.find_success, swap_cache_info.find_total);
+-	printk("Free swap  = %lukB\n", nr_swap_pages << (PAGE_SHIFT - 10));
++	printk("Free swap  = %ldkB\n", nr_swap_pages << (PAGE_SHIFT - 10));
+ 	printk("Total swap = %lukB\n", total_swap_pages << (PAGE_SHIFT - 10));
  }
  
 _
@@ -103,6 +68,7 @@ Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
 mm-page_remove_rmap-comments-on-pageanon.patch
+mm-show-free-swap-as-signed.patch
 linux-next.patch
 memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
 mm-owner-fix-race-between-swap-and-exit.patch
