@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + e1000e-add-support-for-new-82574l-part.patch added to -mm tree
-Date: Mon, 18 Aug 2008 14:35:56 -0700
-Message-ID: <200808182135.m7ILZuEr013965@imap1.linux-foundation.org>
+Subject: + oss-remove-driver-for-sgi-hal2-audio-device.patch added to -mm tree
+Date: Mon, 18 Aug 2008 14:37:28 -0700
+Message-ID: <200808182137.m7ILbS0J014006@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43136 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38612 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753446AbYHRVg2 (ORCPT
+	by vger.kernel.org with ESMTP id S1755316AbYHRViS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 17:36:28 -0400
+	Mon, 18 Aug 2008 17:38:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bruce.w.allan@intel.com, jeffrey.t.kirsher@intel.com
+Cc: tsbogend@alpha.franken.de, ralf@linux-mips.org, tiwai@suse.de
 
 
 The patch titled
-     e1000e: add support for new 82574L part
+     oss: remove driver for SGI HAL2 audio device
 has been added to the -mm tree.  Its filename is
-     e1000e-add-support-for-new-82574l-part.patch
+     oss-remove-driver-for-sgi-hal2-audio-device.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,1527 +34,1862 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: e1000e: add support for new 82574L part
-From: Bruce Allan <bruce.w.allan@intel.com>
+Subject: oss: remove driver for SGI HAL2 audio device
+From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 
-This new part has the same feature set as previous parts with the addition
-of MSI-X support.
+With the restructering of the indy button handling the old OSS HAL2 driver
+got broken.  Since there is a new ALSA driver for HAL2, the experimental
+OSS driver is obsolete and will be removed by this patch.
 
-Signed-off-by: Bruce Allan <bruce.w.allan@intel.com>
-Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Signed-off-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000e/82571.c   |  153 +++++++++++-
- drivers/net/e1000e/defines.h |   13 +
- drivers/net/e1000e/e1000.h   |   28 ++
- drivers/net/e1000e/es2lan.c  |    2 
- drivers/net/e1000e/ethtool.c |   38 ++-
- drivers/net/e1000e/hw.h      |   11 
- drivers/net/e1000e/ich8lan.c |   18 +
- drivers/net/e1000e/lib.c     |    7 
- drivers/net/e1000e/netdev.c  |  409 +++++++++++++++++++++++++++++----
- drivers/net/e1000e/param.c   |   27 ++
- drivers/net/e1000e/phy.c     |  109 ++++++++
- 11 files changed, 738 insertions(+), 77 deletions(-)
+ sound/oss/Kconfig  |    7 
+ sound/oss/Makefile |    1 
+ sound/oss/hal2.c   | 1558 -------------------------------------------
+ sound/oss/hal2.h   |  248 ------
+ 4 files changed, 1814 deletions(-)
 
-diff -puN drivers/net/e1000e/82571.c~e1000e-add-support-for-new-82574l-part drivers/net/e1000e/82571.c
---- a/drivers/net/e1000e/82571.c~e1000e-add-support-for-new-82574l-part
-+++ a/drivers/net/e1000e/82571.c
-@@ -38,6 +38,7 @@
-  * 82573V Gigabit Ethernet Controller (Copper)
-  * 82573E Gigabit Ethernet Controller (Copper)
-  * 82573L Gigabit Ethernet Controller
-+ * 82574L Gigabit Network Connection
-  */
+diff -puN sound/oss/Kconfig~oss-remove-driver-for-sgi-hal2-audio-device sound/oss/Kconfig
+--- a/sound/oss/Kconfig~oss-remove-driver-for-sgi-hal2-audio-device
++++ a/sound/oss/Kconfig
+@@ -24,13 +24,6 @@ config SOUND_VWSND
+ 	  <file:Documentation/sound/oss/vwsnd> for more info on this driver's
+ 	  capabilities.
  
- #include <linux/netdevice.h>
-@@ -54,6 +55,8 @@
- 
- #define E1000_GCR_L1_ACT_WITHOUT_L0S_RX 0x08000000
- 
-+#define E1000_NVM_INIT_CTRL2_MNGM 0x6000 /* Manageability Operation Mode mask */
-+
- static s32 e1000_get_phy_id_82571(struct e1000_hw *hw);
- static s32 e1000_setup_copper_link_82571(struct e1000_hw *hw);
- static s32 e1000_setup_fiber_serdes_link_82571(struct e1000_hw *hw);
-@@ -63,6 +66,8 @@ static s32 e1000_fix_nvm_checksum_82571(
- static void e1000_initialize_hw_bits_82571(struct e1000_hw *hw);
- static s32 e1000_setup_link_82571(struct e1000_hw *hw);
- static void e1000_clear_hw_cntrs_82571(struct e1000_hw *hw);
-+static bool e1000_check_mng_mode_82574(struct e1000_hw *hw);
-+static s32 e1000_led_on_82574(struct e1000_hw *hw);
- 
- /**
-  *  e1000_init_phy_params_82571 - Init PHY func ptrs.
-@@ -92,6 +97,9 @@ static s32 e1000_init_phy_params_82571(s
- 	case e1000_82573:
- 		phy->type		 = e1000_phy_m88;
- 		break;
-+	case e1000_82574:
-+		phy->type		 = e1000_phy_bm;
-+		break;
- 	default:
- 		return -E1000_ERR_PHY;
- 		break;
-@@ -111,6 +119,10 @@ static s32 e1000_init_phy_params_82571(s
- 		if (phy->id != M88E1111_I_PHY_ID)
- 			return -E1000_ERR_PHY;
- 		break;
-+	case e1000_82574:
-+		if (phy->id != BME1000_E_PHY_ID_R2)
-+			return -E1000_ERR_PHY;
-+		break;
- 	default:
- 		return -E1000_ERR_PHY;
- 		break;
-@@ -150,6 +162,7 @@ static s32 e1000_init_nvm_params_82571(s
- 
- 	switch (hw->mac.type) {
- 	case e1000_82573:
-+	case e1000_82574:
- 		if (((eecd >> 15) & 0x3) == 0x3) {
- 			nvm->type = e1000_nvm_flash_hw;
- 			nvm->word_size = 2048;
-@@ -245,6 +258,17 @@ static s32 e1000_init_mac_params_82571(s
- 		break;
- 	}
- 
-+	switch (hw->mac.type) {
-+	case e1000_82574:
-+		func->check_mng_mode = e1000_check_mng_mode_82574;
-+		func->led_on = e1000_led_on_82574;
-+		break;
-+	default:
-+		func->check_mng_mode = e1000e_check_mng_mode_generic;
-+		func->led_on = e1000e_led_on_generic;
-+		break;
-+	}
-+
- 	return 0;
- }
- 
-@@ -330,6 +354,8 @@ static s32 e1000_get_variants_82571(stru
- static s32 e1000_get_phy_id_82571(struct e1000_hw *hw)
- {
- 	struct e1000_phy_info *phy = &hw->phy;
-+	s32 ret_val;
-+	u16 phy_id = 0;
- 
- 	switch (hw->mac.type) {
- 	case e1000_82571:
-@@ -345,6 +371,20 @@ static s32 e1000_get_phy_id_82571(struct
- 	case e1000_82573:
- 		return e1000e_get_phy_id(hw);
- 		break;
-+	case e1000_82574:
-+		ret_val = e1e_rphy(hw, PHY_ID1, &phy_id);
-+		if (ret_val)
-+			return ret_val;
-+
-+		phy->id = (u32)(phy_id << 16);
-+		udelay(20);
-+		ret_val = e1e_rphy(hw, PHY_ID2, &phy_id);
-+		if (ret_val)
-+			return ret_val;
-+
-+		phy->id |= (u32)(phy_id);
-+		phy->revision = (u32)(phy_id & ~PHY_REVISION_MASK);
-+		break;
- 	default:
- 		return -E1000_ERR_PHY;
- 		break;
-@@ -421,7 +461,7 @@ static s32 e1000_acquire_nvm_82571(struc
- 	if (ret_val)
- 		return ret_val;
- 
--	if (hw->mac.type != e1000_82573)
-+	if (hw->mac.type != e1000_82573 && hw->mac.type != e1000_82574)
- 		ret_val = e1000e_acquire_nvm(hw);
- 
- 	if (ret_val)
-@@ -461,6 +501,7 @@ static s32 e1000_write_nvm_82571(struct 
- 
- 	switch (hw->mac.type) {
- 	case e1000_82573:
-+	case e1000_82574:
- 		ret_val = e1000_write_nvm_eewr_82571(hw, offset, words, data);
- 		break;
- 	case e1000_82571:
-@@ -735,7 +776,7 @@ static s32 e1000_reset_hw_82571(struct e
- 	 * Must acquire the MDIO ownership before MAC reset.
- 	 * Ownership defaults to firmware after a reset.
- 	 */
--	if (hw->mac.type == e1000_82573) {
-+	if (hw->mac.type == e1000_82573 || hw->mac.type == e1000_82574) {
- 		extcnf_ctrl = er32(EXTCNF_CTRL);
- 		extcnf_ctrl |= E1000_EXTCNF_CTRL_MDIO_SW_OWNERSHIP;
- 
-@@ -776,7 +817,7 @@ static s32 e1000_reset_hw_82571(struct e
- 	 * Need to wait for Phy configuration completion before accessing
- 	 * NVM and Phy.
- 	 */
--	if (hw->mac.type == e1000_82573)
-+	if (hw->mac.type == e1000_82573 || hw->mac.type == e1000_82574)
- 		msleep(25);
- 
- 	/* Clear any pending interrupt events. */
-@@ -843,7 +884,7 @@ static s32 e1000_init_hw_82571(struct e1
- 	ew32(TXDCTL(0), reg_data);
- 
- 	/* ...for both queues. */
--	if (mac->type != e1000_82573) {
-+	if (mac->type != e1000_82573 && mac->type != e1000_82574) {
- 		reg_data = er32(TXDCTL(1));
- 		reg_data = (reg_data & ~E1000_TXDCTL_WTHRESH) |
- 			   E1000_TXDCTL_FULL_TX_DESC_WB |
-@@ -918,19 +959,28 @@ static void e1000_initialize_hw_bits_825
- 	}
- 
- 	/* Device Control */
--	if (hw->mac.type == e1000_82573) {
-+	if (hw->mac.type == e1000_82573 || hw->mac.type == e1000_82574) {
- 		reg = er32(CTRL);
- 		reg &= ~(1 << 29);
- 		ew32(CTRL, reg);
- 	}
- 
- 	/* Extended Device Control */
--	if (hw->mac.type == e1000_82573) {
-+	if (hw->mac.type == e1000_82573 || hw->mac.type == e1000_82574) {
- 		reg = er32(CTRL_EXT);
- 		reg &= ~(1 << 23);
- 		reg |= (1 << 22);
- 		ew32(CTRL_EXT, reg);
- 	}
-+
-+	/* PCI-Ex Control Register */
-+	if (hw->mac.type == e1000_82574) {
-+		reg = er32(GCR);
-+		reg |= (1 << 22);
-+		ew32(GCR, reg);
-+	}
-+
-+	return;
- }
- 
- /**
-@@ -947,7 +997,7 @@ void e1000e_clear_vfta(struct e1000_hw *
- 	u32 vfta_offset = 0;
- 	u32 vfta_bit_in_reg = 0;
- 
--	if (hw->mac.type == e1000_82573) {
-+	if (hw->mac.type == e1000_82573 || hw->mac.type == e1000_82574) {
- 		if (hw->mng_cookie.vlan_id != 0) {
- 			/*
- 			 * The VFTA is a 4096b bit-field, each identifying
-@@ -976,6 +1026,48 @@ void e1000e_clear_vfta(struct e1000_hw *
- }
- 
- /**
-+ *  e1000_check_mng_mode_82574 - Check manageability is enabled
-+ *  @hw: pointer to the HW structure
-+ *
-+ *  Reads the NVM Initialization Control Word 2 and returns true
-+ *  (>0) if any manageability is enabled, else false (0).
-+ **/
-+static bool e1000_check_mng_mode_82574(struct e1000_hw *hw)
-+{
-+	u16 data;
-+
-+	e1000_read_nvm(hw, NVM_INIT_CONTROL2_REG, 1, &data);
-+	return (data & E1000_NVM_INIT_CTRL2_MNGM) != 0;
-+}
-+
-+/**
-+ *  e1000_led_on_82574 - Turn LED on
-+ *  @hw: pointer to the HW structure
-+ *
-+ *  Turn LED on.
-+ **/
-+static s32 e1000_led_on_82574(struct e1000_hw *hw)
-+{
-+	u32 ctrl;
-+	u32 i;
-+
-+	ctrl = hw->mac.ledctl_mode2;
-+	if (!(E1000_STATUS_LU & er32(STATUS))) {
-+		/*
-+		 * If no link, then turn LED on by setting the invert bit
-+		 * for each LED that's "on" (0x0E) in ledctl_mode2.
-+		 */
-+		for (i = 0; i < 4; i++)
-+			if (((hw->mac.ledctl_mode2 >> (i * 8)) & 0xFF) ==
-+			    E1000_LEDCTL_MODE_LED_ON)
-+				ctrl |= (E1000_LEDCTL_LED0_IVRT << (i * 8));
-+	}
-+	ew32(LEDCTL, ctrl);
-+
-+	return 0;
-+}
-+
-+/**
-  *  e1000_update_mc_addr_list_82571 - Update Multicast addresses
-  *  @hw: pointer to the HW structure
-  *  @mc_addr_list: array of multicast addresses to program
-@@ -1018,7 +1110,8 @@ static s32 e1000_setup_link_82571(struct
- 	 * the default flow control setting, so we explicitly
- 	 * set it to full.
- 	 */
--	if (hw->mac.type == e1000_82573)
-+	if ((hw->mac.type == e1000_82573 || hw->mac.type == e1000_82574) &&
-+	    hw->fc.type == e1000_fc_default)
- 		hw->fc.type = e1000_fc_full;
- 
- 	return e1000e_setup_link(hw);
-@@ -1045,6 +1138,7 @@ static s32 e1000_setup_copper_link_82571
- 
- 	switch (hw->phy.type) {
- 	case e1000_phy_m88:
-+	case e1000_phy_bm:
- 		ret_val = e1000e_copper_link_setup_m88(hw);
- 		break;
- 	case e1000_phy_igp_2:
-@@ -1114,11 +1208,10 @@ static s32 e1000_valid_led_default_82571
- 		return ret_val;
- 	}
- 
--	if (hw->mac.type == e1000_82573 &&
-+	if ((hw->mac.type == e1000_82573 || hw->mac.type == e1000_82574) &&
- 	    *data == ID_LED_RESERVED_F746)
- 		*data = ID_LED_DEFAULT_82573;
--	else if (*data == ID_LED_RESERVED_0000 ||
--		 *data == ID_LED_RESERVED_FFFF)
-+	else if (*data == ID_LED_RESERVED_0000 || *data == ID_LED_RESERVED_FFFF)
- 		*data = ID_LED_DEFAULT;
- 
- 	return 0;
-@@ -1265,13 +1358,13 @@ static void e1000_clear_hw_cntrs_82571(s
- }
- 
- static struct e1000_mac_operations e82571_mac_ops = {
--	.mng_mode_enab		= E1000_MNG_IAMT_MODE << E1000_FWSM_MODE_SHIFT,
-+	/* .check_mng_mode: mac type dependent */
- 	/* .check_for_link: media type dependent */
- 	.cleanup_led		= e1000e_cleanup_led_generic,
- 	.clear_hw_cntrs		= e1000_clear_hw_cntrs_82571,
- 	.get_bus_info		= e1000e_get_bus_info_pcie,
- 	/* .get_link_up_info: media type dependent */
--	.led_on			= e1000e_led_on_generic,
-+	/* .led_on: mac type dependent */
- 	.led_off		= e1000e_led_off_generic,
- 	.update_mc_addr_list	= e1000_update_mc_addr_list_82571,
- 	.reset_hw		= e1000_reset_hw_82571,
-@@ -1312,6 +1405,22 @@ static struct e1000_phy_operations e82_p
- 	.write_phy_reg		= e1000e_write_phy_reg_m88,
- };
- 
-+static struct e1000_phy_operations e82_phy_ops_bm = {
-+	.acquire_phy		= e1000_get_hw_semaphore_82571,
-+	.check_reset_block	= e1000e_check_reset_block_generic,
-+	.commit_phy		= e1000e_phy_sw_reset,
-+	.force_speed_duplex	= e1000e_phy_force_speed_duplex_m88,
-+	.get_cfg_done		= e1000e_get_cfg_done,
-+	.get_cable_length	= e1000e_get_cable_length_m88,
-+	.get_phy_info		= e1000e_get_phy_info_m88,
-+	.read_phy_reg		= e1000e_read_phy_reg_bm2,
-+	.release_phy		= e1000_put_hw_semaphore_82571,
-+	.reset_phy		= e1000e_phy_hw_reset_generic,
-+	.set_d0_lplu_state	= e1000_set_d0_lplu_state_82571,
-+	.set_d3_lplu_state	= e1000e_set_d3_lplu_state,
-+	.write_phy_reg		= e1000e_write_phy_reg_bm2,
-+};
-+
- static struct e1000_nvm_operations e82571_nvm_ops = {
- 	.acquire_nvm		= e1000_acquire_nvm_82571,
- 	.read_nvm		= e1000e_read_nvm_eerd,
-@@ -1375,3 +1484,21 @@ struct e1000_info e1000_82573_info = {
- 	.nvm_ops		= &e82571_nvm_ops,
- };
- 
-+struct e1000_info e1000_82574_info = {
-+	.mac			= e1000_82574,
-+	.flags			= FLAG_HAS_HW_VLAN_FILTER
-+				  | FLAG_HAS_MSIX
-+				  | FLAG_HAS_JUMBO_FRAMES
-+				  | FLAG_HAS_WOL
-+				  | FLAG_APME_IN_CTRL3
-+				  | FLAG_RX_CSUM_ENABLED
-+				  | FLAG_HAS_SMART_POWER_DOWN
-+				  | FLAG_HAS_AMT
-+				  | FLAG_HAS_CTRLEXT_ON_LOAD,
-+	.pba			= 20,
-+	.get_variants		= e1000_get_variants_82571,
-+	.mac_ops		= &e82571_mac_ops,
-+	.phy_ops		= &e82_phy_ops_bm,
-+	.nvm_ops		= &e82571_nvm_ops,
-+};
-+
-diff -puN drivers/net/e1000e/defines.h~e1000e-add-support-for-new-82574l-part drivers/net/e1000e/defines.h
---- a/drivers/net/e1000e/defines.h~e1000e-add-support-for-new-82574l-part
-+++ a/drivers/net/e1000e/defines.h
-@@ -71,9 +71,11 @@
- #define E1000_CTRL_EXT_RO_DIS    0x00020000 /* Relaxed Ordering disable */
- #define E1000_CTRL_EXT_LINK_MODE_MASK 0x00C00000
- #define E1000_CTRL_EXT_LINK_MODE_PCIE_SERDES  0x00C00000
-+#define E1000_CTRL_EXT_EIAME          0x01000000
- #define E1000_CTRL_EXT_DRV_LOAD       0x10000000 /* Driver loaded bit for FW */
- #define E1000_CTRL_EXT_IAME           0x08000000 /* Interrupt acknowledge Auto-mask */
- #define E1000_CTRL_EXT_INT_TIMER_CLR  0x20000000 /* Clear Interrupt timers after IMS clear */
-+#define E1000_CTRL_EXT_PBA_CLR        0x80000000 /* PBA Clear */
- 
- /* Receive Descriptor bit definitions */
- #define E1000_RXD_STAT_DD       0x01    /* Descriptor Done */
-@@ -299,6 +301,7 @@
- #define E1000_RXCSUM_IPPCSE    0x00001000   /* IP payload checksum enable */
- 
- /* Header split receive */
-+#define E1000_RFCTL_ACK_DIS             0x00001000
- #define E1000_RFCTL_EXTEN               0x00008000
- #define E1000_RFCTL_IPV6_EX_DIS         0x00010000
- #define E1000_RFCTL_NEW_IPV6_EXT_DIS    0x00020000
-@@ -363,6 +366,11 @@
- #define E1000_ICR_RXDMT0        0x00000010 /* Rx desc min. threshold (0) */
- #define E1000_ICR_RXT0          0x00000080 /* Rx timer intr (ring 0) */
- #define E1000_ICR_INT_ASSERTED  0x80000000 /* If this bit asserted, the driver should claim the interrupt */
-+#define E1000_ICR_RXQ0          0x00100000 /* Rx Queue 0 Interrupt */
-+#define E1000_ICR_RXQ1          0x00200000 /* Rx Queue 1 Interrupt */
-+#define E1000_ICR_TXQ0          0x00400000 /* Tx Queue 0 Interrupt */
-+#define E1000_ICR_TXQ1          0x00800000 /* Tx Queue 1 Interrupt */
-+#define E1000_ICR_OTHER         0x01000000 /* Other Interrupts */
- 
- /*
-  * This defines the bits that are set in the Interrupt Mask
-@@ -386,6 +394,11 @@
- #define E1000_IMS_RXSEQ     E1000_ICR_RXSEQ     /* Rx sequence error */
- #define E1000_IMS_RXDMT0    E1000_ICR_RXDMT0    /* Rx desc min. threshold */
- #define E1000_IMS_RXT0      E1000_ICR_RXT0      /* Rx timer intr */
-+#define E1000_IMS_RXQ0      E1000_ICR_RXQ0      /* Rx Queue 0 Interrupt */
-+#define E1000_IMS_RXQ1      E1000_ICR_RXQ1      /* Rx Queue 1 Interrupt */
-+#define E1000_IMS_TXQ0      E1000_ICR_TXQ0      /* Tx Queue 0 Interrupt */
-+#define E1000_IMS_TXQ1      E1000_ICR_TXQ1      /* Tx Queue 1 Interrupt */
-+#define E1000_IMS_OTHER     E1000_ICR_OTHER     /* Other Interrupts */
- 
- /* Interrupt Cause Set */
- #define E1000_ICS_LSC       E1000_ICR_LSC       /* Link Status Change */
-diff -puN drivers/net/e1000e/e1000.h~e1000e-add-support-for-new-82574l-part drivers/net/e1000e/e1000.h
---- a/drivers/net/e1000e/e1000.h~e1000e-add-support-for-new-82574l-part
-+++ a/drivers/net/e1000e/e1000.h
-@@ -62,6 +62,11 @@ struct e1000_info;
- 	e_printk(KERN_NOTICE, adapter, format, ## arg)
- 
- 
-+/* Interrupt modes, as used by the IntMode paramter */
-+#define E1000E_INT_MODE_LEGACY		0
-+#define E1000E_INT_MODE_MSI		1
-+#define E1000E_INT_MODE_MSIX		2
-+
- /* Tx/Rx descriptor defines */
- #define E1000_DEFAULT_TXD		256
- #define E1000_MAX_TXD			4096
-@@ -95,6 +100,7 @@ enum e1000_boards {
- 	board_82571,
- 	board_82572,
- 	board_82573,
-+	board_82574,
- 	board_80003es2lan,
- 	board_ich8lan,
- 	board_ich9lan,
-@@ -146,6 +152,12 @@ struct e1000_ring {
- 	/* array of buffer information structs */
- 	struct e1000_buffer *buffer_info;
- 
-+	char name[IFNAMSIZ + 5];
-+	u32 ims_val;
-+	u32 itr_val;
-+	u16 itr_register;
-+	int set_itr;
-+
- 	struct sk_buff *rx_skb_top;
- 
- 	struct e1000_queue_stats stats;
-@@ -274,6 +286,9 @@ struct e1000_adapter {
- 	u32 test_icr;
- 
- 	u32 msg_enable;
-+	struct msix_entry *msix_entries;
-+	int int_mode;
-+	u32 eiac_mask;
- 
- 	u32 eeprom_wol;
- 	u32 wol;
-@@ -306,6 +321,7 @@ struct e1000_info {
- #define FLAG_HAS_SWSM_ON_LOAD             (1 << 6)
- #define FLAG_HAS_JUMBO_FRAMES             (1 << 7)
- #define FLAG_IS_ICH                       (1 << 9)
-+#define FLAG_HAS_MSIX                     (1 << 10)
- #define FLAG_HAS_SMART_POWER_DOWN         (1 << 11)
- #define FLAG_IS_QUAD_PORT_A               (1 << 12)
- #define FLAG_IS_QUAD_PORT                 (1 << 13)
-@@ -364,6 +380,8 @@ extern int e1000e_setup_tx_resources(str
- extern void e1000e_free_rx_resources(struct e1000_adapter *adapter);
- extern void e1000e_free_tx_resources(struct e1000_adapter *adapter);
- extern void e1000e_update_stats(struct e1000_adapter *adapter);
-+extern void e1000e_set_interrupt_capability(struct e1000_adapter *adapter);
-+extern void e1000e_reset_interrupt_capability(struct e1000_adapter *adapter);
- 
- extern unsigned int copybreak;
- 
-@@ -372,6 +390,7 @@ extern char *e1000e_get_hw_dev_name(stru
- extern struct e1000_info e1000_82571_info;
- extern struct e1000_info e1000_82572_info;
- extern struct e1000_info e1000_82573_info;
-+extern struct e1000_info e1000_82574_info;
- extern struct e1000_info e1000_ich8_info;
- extern struct e1000_info e1000_ich9_info;
- extern struct e1000_info e1000_es2_info;
-@@ -450,6 +469,8 @@ extern enum e1000_phy_type e1000e_get_ph
- extern s32 e1000e_determine_phy_address(struct e1000_hw *hw);
- extern s32 e1000e_write_phy_reg_bm(struct e1000_hw *hw, u32 offset, u16 data);
- extern s32 e1000e_read_phy_reg_bm(struct e1000_hw *hw, u32 offset, u16 *data);
-+extern s32 e1000e_read_phy_reg_bm2(struct e1000_hw *hw, u32 offset, u16 *data);
-+extern s32 e1000e_write_phy_reg_bm2(struct e1000_hw *hw, u32 offset, u16 data);
- extern void e1000e_phy_force_speed_duplex_setup(struct e1000_hw *hw, u16 *phy_ctrl);
- extern s32 e1000e_write_kmrn_reg(struct e1000_hw *hw, u32 offset, u16 data);
- extern s32 e1000e_read_kmrn_reg(struct e1000_hw *hw, u32 offset, u16 *data);
-@@ -520,7 +541,12 @@ static inline s32 e1000_get_phy_info(str
- 	return hw->phy.ops.get_phy_info(hw);
- }
- 
--extern bool e1000e_check_mng_mode(struct e1000_hw *hw);
-+static inline s32 e1000e_check_mng_mode(struct e1000_hw *hw)
-+{
-+	return hw->mac.ops.check_mng_mode(hw);
-+}
-+
-+extern bool e1000e_check_mng_mode_generic(struct e1000_hw *hw);
- extern bool e1000e_enable_tx_pkt_filtering(struct e1000_hw *hw);
- extern s32 e1000e_mng_write_dhcp_info(struct e1000_hw *hw, u8 *buffer, u16 length);
- 
-diff -puN drivers/net/e1000e/es2lan.c~e1000e-add-support-for-new-82574l-part drivers/net/e1000e/es2lan.c
---- a/drivers/net/e1000e/es2lan.c~e1000e-add-support-for-new-82574l-part
-+++ a/drivers/net/e1000e/es2lan.c
-@@ -1247,7 +1247,7 @@ static void e1000_clear_hw_cntrs_80003es
- }
- 
- static struct e1000_mac_operations es2_mac_ops = {
--	.mng_mode_enab		= E1000_MNG_IAMT_MODE << E1000_FWSM_MODE_SHIFT,
-+	.check_mng_mode		= e1000e_check_mng_mode_generic,
- 	/* check_for_link dependent on media type */
- 	.cleanup_led		= e1000e_cleanup_led_generic,
- 	.clear_hw_cntrs		= e1000_clear_hw_cntrs_80003es2lan,
-diff -puN drivers/net/e1000e/ethtool.c~e1000e-add-support-for-new-82574l-part drivers/net/e1000e/ethtool.c
---- a/drivers/net/e1000e/ethtool.c~e1000e-add-support-for-new-82574l-part
-+++ a/drivers/net/e1000e/ethtool.c
-@@ -568,6 +568,7 @@ static int e1000_set_eeprom(struct net_d
- 	 * and flush shadow RAM for 82573 controllers
- 	 */
- 	if ((ret_val == 0) && ((first_word <= NVM_CHECKSUM_REG) ||
-+			       (hw->mac.type == e1000_82574) ||
- 			       (hw->mac.type == e1000_82573)))
- 		e1000e_update_nvm_checksum(hw);
- 
-@@ -779,6 +780,7 @@ static int e1000_reg_test(struct e1000_a
- 		toggle = 0x7FFFF3FF;
- 		break;
- 	case e1000_82573:
-+	case e1000_82574:
- 	case e1000_ich8lan:
- 	case e1000_ich9lan:
- 		toggle = 0x7FFFF033;
-@@ -884,10 +886,18 @@ static int e1000_intr_test(struct e1000_
- 	u32 shared_int = 1;
- 	u32 irq = adapter->pdev->irq;
- 	int i;
-+	int ret_val = 0;
-+	int int_mode = E1000E_INT_MODE_LEGACY;
- 
- 	*data = 0;
- 
--	/* NOTE: we don't test MSI interrupts here, yet */
-+	/* NOTE: we don't test MSI/MSI-X interrupts here, yet */
-+	if (adapter->int_mode == E1000E_INT_MODE_MSIX) {
-+		int_mode = adapter->int_mode;
-+		e1000e_reset_interrupt_capability(adapter);
-+		adapter->int_mode = E1000E_INT_MODE_LEGACY;
-+		e1000e_set_interrupt_capability(adapter);
-+	}
- 	/* Hook up test interrupt handler just for this test */
- 	if (!request_irq(irq, &e1000_test_intr, IRQF_PROBE_SHARED, netdev->name,
- 			 netdev)) {
-@@ -895,7 +905,8 @@ static int e1000_intr_test(struct e1000_
- 	} else if (request_irq(irq, &e1000_test_intr, IRQF_SHARED,
- 		 netdev->name, netdev)) {
- 		*data = 1;
--		return -1;
-+		ret_val = -1;
-+		goto out;
- 	}
- 	e_info("testing %s interrupt\n", (shared_int ? "shared" : "unshared"));
- 
-@@ -974,7 +985,14 @@ static int e1000_intr_test(struct e1000_
- 	/* Unhook test interrupt handler */
- 	free_irq(irq, netdev);
- 
--	return *data;
-+out:
-+	if (int_mode == E1000E_INT_MODE_MSIX) {
-+		e1000e_reset_interrupt_capability(adapter);
-+		adapter->int_mode = int_mode;
-+		e1000e_set_interrupt_capability(adapter);
-+	}
-+
-+	return ret_val;
- }
- 
- static void e1000_free_desc_rings(struct e1000_adapter *adapter)
-@@ -1755,11 +1773,13 @@ static void e1000_led_blink_callback(uns
- static int e1000_phys_id(struct net_device *netdev, u32 data)
- {
- 	struct e1000_adapter *adapter = netdev_priv(netdev);
-+	struct e1000_hw *hw = &adapter->hw;
- 
- 	if (!data)
- 		data = INT_MAX;
- 
--	if (adapter->hw.phy.type == e1000_phy_ife) {
-+	if ((hw->phy.type == e1000_phy_ife) ||
-+	    (hw->mac.type == e1000_82574)) {
- 		if (!adapter->blink_timer.function) {
- 			init_timer(&adapter->blink_timer);
- 			adapter->blink_timer.function =
-@@ -1769,16 +1789,16 @@ static int e1000_phys_id(struct net_devi
- 		mod_timer(&adapter->blink_timer, jiffies);
- 		msleep_interruptible(data * 1000);
- 		del_timer_sync(&adapter->blink_timer);
--		e1e_wphy(&adapter->hw,
--				    IFE_PHY_SPECIAL_CONTROL_LED, 0);
-+		if (hw->phy.type == e1000_phy_ife)
-+			e1e_wphy(hw, IFE_PHY_SPECIAL_CONTROL_LED, 0);
- 	} else {
--		e1000e_blink_led(&adapter->hw);
-+		e1000e_blink_led(hw);
- 		msleep_interruptible(data * 1000);
- 	}
- 
--	adapter->hw.mac.ops.led_off(&adapter->hw);
-+	hw->mac.ops.led_off(hw);
- 	clear_bit(E1000_LED_ON, &adapter->led_status);
--	adapter->hw.mac.ops.cleanup_led(&adapter->hw);
-+	hw->mac.ops.cleanup_led(hw);
- 
- 	return 0;
- }
-diff -puN drivers/net/e1000e/hw.h~e1000e-add-support-for-new-82574l-part drivers/net/e1000e/hw.h
---- a/drivers/net/e1000e/hw.h~e1000e-add-support-for-new-82574l-part
-+++ a/drivers/net/e1000e/hw.h
-@@ -65,7 +65,11 @@ enum e1e_registers {
- 	E1000_ICS      = 0x000C8, /* Interrupt Cause Set - WO */
- 	E1000_IMS      = 0x000D0, /* Interrupt Mask Set - RW */
- 	E1000_IMC      = 0x000D8, /* Interrupt Mask Clear - WO */
-+	E1000_EIAC_82574 = 0x000DC, /* Ext. Interrupt Auto Clear - RW */
- 	E1000_IAM      = 0x000E0, /* Interrupt Acknowledge Auto Mask */
-+	E1000_IVAR     = 0x000E4, /* Interrupt Vector Allocation - RW */
-+	E1000_EITR_82574_BASE = 0x000E8, /* Interrupt Throttling - RW */
-+#define E1000_EITR_82574(_n) (E1000_EITR_82574_BASE + (_n << 2))
- 	E1000_RCTL     = 0x00100, /* Rx Control - RW */
- 	E1000_FCTTV    = 0x00170, /* Flow Control Transmit Timer Value - RW */
- 	E1000_TXCW     = 0x00178, /* Tx Configuration Word - RW */
-@@ -332,6 +336,7 @@ enum e1e_registers {
- #define E1000_DEV_ID_82573E			0x108B
- #define E1000_DEV_ID_82573E_IAMT		0x108C
- #define E1000_DEV_ID_82573L			0x109A
-+#define E1000_DEV_ID_82574L			0x10D3
- 
- #define E1000_DEV_ID_80003ES2LAN_COPPER_DPT	0x1096
- #define E1000_DEV_ID_80003ES2LAN_SERDES_DPT	0x1098
-@@ -357,12 +362,15 @@ enum e1e_registers {
- #define E1000_DEV_ID_ICH10_R_BM_LF		0x10CD
- #define E1000_DEV_ID_ICH10_R_BM_V		0x10CE
- 
-+#define E1000_REVISION_4 4
-+
- #define E1000_FUNC_1 1
- 
- enum e1000_mac_type {
- 	e1000_82571,
- 	e1000_82572,
- 	e1000_82573,
-+	e1000_82574,
- 	e1000_80003es2lan,
- 	e1000_ich8lan,
- 	e1000_ich9lan,
-@@ -696,8 +704,7 @@ struct e1000_host_mng_command_info {
- 
- /* Function pointers and static data for the MAC. */
- struct e1000_mac_operations {
--	u32			mng_mode_enab;
+-config SOUND_HAL2
+-	tristate "SGI HAL2 sound (EXPERIMENTAL)"
+-	depends on SGI_IP22 && EXPERIMENTAL
+-	help
+-	  Say Y or M if you have an SGI Indy or Indigo2 system and want to be able to
+-	  use its on-board A2 audio system.
 -
-+	bool (*check_mng_mode)(struct e1000_hw *);
- 	s32  (*check_for_link)(struct e1000_hw *);
- 	s32  (*cleanup_led)(struct e1000_hw *);
- 	void (*clear_hw_cntrs)(struct e1000_hw *);
-diff -puN drivers/net/e1000e/ich8lan.c~e1000e-add-support-for-new-82574l-part drivers/net/e1000e/ich8lan.c
---- a/drivers/net/e1000e/ich8lan.c~e1000e-add-support-for-new-82574l-part
-+++ a/drivers/net/e1000e/ich8lan.c
-@@ -417,6 +417,22 @@ static void e1000_release_swflag_ich8lan
- }
+ config SOUND_AU1550_AC97
+ 	tristate "Au1550/Au1200 AC97 Sound"
+ 	depends on SOC_AU1550 || SOC_AU1200
+diff -puN sound/oss/Makefile~oss-remove-driver-for-sgi-hal2-audio-device sound/oss/Makefile
+--- a/sound/oss/Makefile~oss-remove-driver-for-sgi-hal2-audio-device
++++ a/sound/oss/Makefile
+@@ -10,7 +10,6 @@ obj-$(CONFIG_SOUND_OSS)		+= sound.o
+ # Please leave it as is, cause the link order is significant !
  
- /**
-+ *  e1000_check_mng_mode_ich8lan - Checks management mode
-+ *  @hw: pointer to the HW structure
-+ *
-+ *  This checks if the adapter has manageability enabled.
-+ *  This is a function pointer entry point only called by read/write
-+ *  routines for the PHY and NVM parts.
-+ **/
-+static bool e1000_check_mng_mode_ich8lan(struct e1000_hw *hw)
-+{
-+	u32 fwsm = er32(FWSM);
-+
-+	return (fwsm & E1000_FWSM_MODE_MASK) ==
-+		(E1000_ICH_MNG_IAMT_MODE << E1000_FWSM_MODE_SHIFT);
-+}
-+
-+/**
-  *  e1000_check_reset_block_ich8lan - Check if PHY reset is blocked
-  *  @hw: pointer to the HW structure
-  *
-@@ -2282,7 +2298,7 @@ static void e1000_clear_hw_cntrs_ich8lan
- }
- 
- static struct e1000_mac_operations ich8_mac_ops = {
--	.mng_mode_enab		= E1000_ICH_MNG_IAMT_MODE << E1000_FWSM_MODE_SHIFT,
-+	.check_mng_mode		= e1000_check_mng_mode_ich8lan,
- 	.check_for_link		= e1000e_check_for_copper_link,
- 	.cleanup_led		= e1000_cleanup_led_ich8lan,
- 	.clear_hw_cntrs		= e1000_clear_hw_cntrs_ich8lan,
-diff -puN drivers/net/e1000e/lib.c~e1000e-add-support-for-new-82574l-part drivers/net/e1000e/lib.c
---- a/drivers/net/e1000e/lib.c~e1000e-add-support-for-new-82574l-part
-+++ a/drivers/net/e1000e/lib.c
-@@ -2222,17 +2222,18 @@ static s32 e1000_mng_enable_host_if(stru
- }
- 
- /**
-- *  e1000e_check_mng_mode - check management mode
-+ *  e1000e_check_mng_mode_generic - check management mode
-  *  @hw: pointer to the HW structure
-  *
-  *  Reads the firmware semaphore register and returns true (>0) if
-  *  manageability is enabled, else false (0).
-  **/
--bool e1000e_check_mng_mode(struct e1000_hw *hw)
-+bool e1000e_check_mng_mode_generic(struct e1000_hw *hw)
- {
- 	u32 fwsm = er32(FWSM);
- 
--	return (fwsm & E1000_FWSM_MODE_MASK) == hw->mac.ops.mng_mode_enab;
-+	return (fwsm & E1000_FWSM_MODE_MASK) ==
-+		(E1000_MNG_IAMT_MODE << E1000_FWSM_MODE_SHIFT);
- }
- 
- /**
-diff -puN drivers/net/e1000e/netdev.c~e1000e-add-support-for-new-82574l-part drivers/net/e1000e/netdev.c
---- a/drivers/net/e1000e/netdev.c~e1000e-add-support-for-new-82574l-part
-+++ a/drivers/net/e1000e/netdev.c
-@@ -55,6 +55,7 @@ static const struct e1000_info *e1000_in
- 	[board_82571]		= &e1000_82571_info,
- 	[board_82572]		= &e1000_82572_info,
- 	[board_82573]		= &e1000_82573_info,
-+	[board_82574]		= &e1000_82574_info,
- 	[board_80003es2lan]	= &e1000_es2_info,
- 	[board_ich8lan]		= &e1000_ich8_info,
- 	[board_ich9lan]		= &e1000_ich9_info,
-@@ -1179,8 +1180,8 @@ static irqreturn_t e1000_intr(int irq, v
- 	struct net_device *netdev = data;
- 	struct e1000_adapter *adapter = netdev_priv(netdev);
- 	struct e1000_hw *hw = &adapter->hw;
+ obj-$(CONFIG_SOUND_SH_DAC_AUDIO)	+= sh_dac_audio.o
+-obj-$(CONFIG_SOUND_HAL2)	+= hal2.o
+ obj-$(CONFIG_SOUND_AEDSP16)	+= aedsp16.o
+ obj-$(CONFIG_SOUND_PSS)		+= pss.o ad1848.o mpu401.o
+ obj-$(CONFIG_SOUND_TRIX)	+= trix.o ad1848.o sb_lib.o uart401.o
+diff -puN sound/oss/hal2.c~oss-remove-driver-for-sgi-hal2-audio-device /dev/null
+--- a/sound/oss/hal2.c
++++ /dev/null
+@@ -1,1558 +0,0 @@
+-/*
+- *  Driver for A2 audio system used in SGI machines
+- *  Copyright (c) 2001, 2002, 2003 Ladislav Michl <ladis@linux-mips.org>
+- *  
+- *  Based on Ulf Carlsson's code.
+- *
+- *  This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License version 2 as 
+- *  published by the Free Software Foundation.
+- *
+- *  This program is distributed in the hope that it will be useful,
+- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- *
+- *  Supported devices:
+- *  /dev/dsp    standard dsp device, (mostly) OSS compatible
+- *  /dev/mixer	standard mixer device, (mostly) OSS compatible
+- *
+- */
+-#include <linux/kernel.h>
+-#include <linux/module.h>
+-#include <linux/sched.h>
+-#include <linux/init.h>
+-#include <linux/slab.h>
+-#include <linux/poll.h>
+-#include <linux/interrupt.h>
+-#include <linux/dma-mapping.h>
+-#include <linux/sound.h>
+-#include <linux/soundcard.h>
+-#include <linux/mutex.h>
 -
- 	u32 rctl, icr = er32(ICR);
-+
- 	if (!icr)
- 		return IRQ_NONE;  /* Not our interrupt */
- 
-@@ -1236,6 +1237,263 @@ static irqreturn_t e1000_intr(int irq, v
- 	return IRQ_HANDLED;
- }
- 
-+static irqreturn_t e1000_msix_other(int irq, void *data)
-+{
-+	struct net_device *netdev = data;
-+	struct e1000_adapter *adapter = netdev_priv(netdev);
-+	struct e1000_hw *hw = &adapter->hw;
-+	u32 icr = er32(ICR);
-+
-+	if (!(icr & E1000_ICR_INT_ASSERTED)) {
-+		ew32(IMS, E1000_IMS_OTHER);
-+		return IRQ_NONE;
-+	}
-+
-+	if (icr & adapter->eiac_mask)
-+		ew32(ICS, (icr & adapter->eiac_mask));
-+
-+	if (icr & E1000_ICR_OTHER) {
-+		if (!(icr & E1000_ICR_LSC))
-+			goto no_link_interrupt;
-+		hw->mac.get_link_status = 1;
-+		/* guard against interrupt when we're going down */
-+		if (!test_bit(__E1000_DOWN, &adapter->state))
-+			mod_timer(&adapter->watchdog_timer, jiffies + 1);
-+	}
-+
-+no_link_interrupt:
-+	ew32(IMS, E1000_IMS_LSC | E1000_IMS_OTHER);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+
-+static irqreturn_t e1000_intr_msix_tx(int irq, void *data)
-+{
-+	struct net_device *netdev = data;
-+	struct e1000_adapter *adapter = netdev_priv(netdev);
-+	struct e1000_hw *hw = &adapter->hw;
-+	struct e1000_ring *tx_ring = adapter->tx_ring;
-+
-+
-+	adapter->total_tx_bytes = 0;
-+	adapter->total_tx_packets = 0;
-+
-+	if (!e1000_clean_tx_irq(adapter))
-+		/* Ring was not completely cleaned, so fire another interrupt */
-+		ew32(ICS, tx_ring->ims_val);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static irqreturn_t e1000_intr_msix_rx(int irq, void *data)
-+{
-+	struct net_device *netdev = data;
-+	struct e1000_adapter *adapter = netdev_priv(netdev);
-+
-+	/* Write the ITR value calculated at the end of the
-+	 * previous interrupt.
-+	 */
-+	if (adapter->rx_ring->set_itr) {
-+		writel(1000000000 / (adapter->rx_ring->itr_val * 256),
-+		       adapter->hw.hw_addr + adapter->rx_ring->itr_register);
-+		adapter->rx_ring->set_itr = 0;
-+	}
-+
-+	if (netif_rx_schedule_prep(netdev, &adapter->napi)) {
-+		adapter->total_rx_bytes = 0;
-+		adapter->total_rx_packets = 0;
-+		__netif_rx_schedule(netdev, &adapter->napi);
-+	}
-+	return IRQ_HANDLED;
-+}
-+
-+/**
-+ * e1000_configure_msix - Configure MSI-X hardware
-+ *
-+ * e1000_configure_msix sets up the hardware to properly
-+ * generate MSI-X interrupts.
-+ **/
-+static void e1000_configure_msix(struct e1000_adapter *adapter)
-+{
-+	struct e1000_hw *hw = &adapter->hw;
-+	struct e1000_ring *rx_ring = adapter->rx_ring;
-+	struct e1000_ring *tx_ring = adapter->tx_ring;
-+	int vector = 0;
-+	u32 ctrl_ext, ivar = 0;
-+
-+	adapter->eiac_mask = 0;
-+
-+	/* Workaround issue with spurious interrupts on 82574 in MSI-X mode */
-+	if (hw->mac.type == e1000_82574) {
-+		u32 rfctl = er32(RFCTL);
-+		rfctl |= E1000_RFCTL_ACK_DIS;
-+		ew32(RFCTL, rfctl);
-+	}
-+
-+#define E1000_IVAR_INT_ALLOC_VALID	0x8
-+	/* Configure Rx vector */
-+	rx_ring->ims_val = E1000_IMS_RXQ0;
-+	adapter->eiac_mask |= rx_ring->ims_val;
-+	if (rx_ring->itr_val)
-+		writel(1000000000 / (rx_ring->itr_val * 256),
-+		       hw->hw_addr + rx_ring->itr_register);
-+	else
-+		writel(1, hw->hw_addr + rx_ring->itr_register);
-+	ivar = E1000_IVAR_INT_ALLOC_VALID | vector;
-+
-+	/* Configure Tx vector */
-+	tx_ring->ims_val = E1000_IMS_TXQ0;
-+	vector++;
-+	if (tx_ring->itr_val)
-+		writel(1000000000 / (tx_ring->itr_val * 256),
-+		       hw->hw_addr + tx_ring->itr_register);
-+	else
-+		writel(1, hw->hw_addr + tx_ring->itr_register);
-+	adapter->eiac_mask |= tx_ring->ims_val;
-+	ivar |= ((E1000_IVAR_INT_ALLOC_VALID | vector) << 8);
-+
-+	/* set vector for Other Causes, e.g. link changes */
-+	vector++;
-+	ivar |= ((E1000_IVAR_INT_ALLOC_VALID | vector) << 16);
-+	if (rx_ring->itr_val)
-+		writel(1000000000 / (rx_ring->itr_val * 256),
-+		       hw->hw_addr + E1000_EITR_82574(vector));
-+	else
-+		writel(1, hw->hw_addr + E1000_EITR_82574(vector));
-+
-+	/* Cause Tx interrupts on every write back */
-+	ivar |= (1 << 31);
-+
-+	ew32(IVAR, ivar);
-+
-+	/* enable MSI-X PBA support */
-+	ctrl_ext = er32(CTRL_EXT);
-+	ctrl_ext |= E1000_CTRL_EXT_PBA_CLR;
-+
-+	/* Auto-Mask Other interrupts upon ICR read */
-+#define E1000_EIAC_MASK_82574   0x01F00000
-+	ew32(IAM, ~E1000_EIAC_MASK_82574 | E1000_IMS_OTHER);
-+	ctrl_ext |= E1000_CTRL_EXT_EIAME;
-+	ew32(CTRL_EXT, ctrl_ext);
-+	e1e_flush();
-+}
-+
-+void e1000e_reset_interrupt_capability(struct e1000_adapter *adapter)
-+{
-+	if (adapter->msix_entries) {
-+		pci_disable_msix(adapter->pdev);
-+		kfree(adapter->msix_entries);
-+		adapter->msix_entries = NULL;
-+	} else if (adapter->flags & FLAG_MSI_ENABLED) {
-+		pci_disable_msi(adapter->pdev);
-+		adapter->flags &= ~FLAG_MSI_ENABLED;
-+	}
-+
-+	return;
-+}
-+
-+/**
-+ * e1000e_set_interrupt_capability - set MSI or MSI-X if supported
-+ *
-+ * Attempt to configure interrupts using the best available
-+ * capabilities of the hardware and kernel.
-+ **/
-+void e1000e_set_interrupt_capability(struct e1000_adapter *adapter)
-+{
-+	int err;
-+	int numvecs, i;
-+
-+
-+	switch (adapter->int_mode) {
-+	case E1000E_INT_MODE_MSIX:
-+		if (adapter->flags & FLAG_HAS_MSIX) {
-+			numvecs = 3; /* RxQ0, TxQ0 and other */
-+			adapter->msix_entries = kcalloc(numvecs,
-+						      sizeof(struct msix_entry),
-+						      GFP_KERNEL);
-+			if (adapter->msix_entries) {
-+				for (i = 0; i < numvecs; i++)
-+					adapter->msix_entries[i].entry = i;
-+
-+				err = pci_enable_msix(adapter->pdev,
-+						      adapter->msix_entries,
-+						      numvecs);
-+				if (err == 0)
-+					return;
-+			}
-+			/* MSI-X failed, so fall through and try MSI */
-+			e_err("Failed to initialize MSI-X interrupts.  "
-+			      "Falling back to MSI interrupts.\n");
-+			e1000e_reset_interrupt_capability(adapter);
-+		}
-+		adapter->int_mode = E1000E_INT_MODE_MSI;
-+		/* Fall through */
-+	case E1000E_INT_MODE_MSI:
-+		if (!pci_enable_msi(adapter->pdev)) {
-+			adapter->flags |= FLAG_MSI_ENABLED;
-+		} else {
-+			adapter->int_mode = E1000E_INT_MODE_LEGACY;
-+			e_err("Failed to initialize MSI interrupts.  Falling "
-+			      "back to legacy interrupts.\n");
-+		}
-+		/* Fall through */
-+	case E1000E_INT_MODE_LEGACY:
-+		/* Don't do anything; this is the system default */
-+		break;
-+	}
-+
-+	return;
-+}
-+
-+/**
-+ * e1000_request_msix - Initialize MSI-X interrupts
-+ *
-+ * e1000_request_msix allocates MSI-X vectors and requests interrupts from the
-+ * kernel.
-+ **/
-+static int e1000_request_msix(struct e1000_adapter *adapter)
-+{
-+	struct net_device *netdev = adapter->netdev;
-+	int err = 0, vector = 0;
-+
-+	if (strlen(netdev->name) < (IFNAMSIZ - 5))
-+		sprintf(adapter->rx_ring->name, "%s-rx0", netdev->name);
-+	else
-+		memcpy(adapter->rx_ring->name, netdev->name, IFNAMSIZ);
-+	err = request_irq(adapter->msix_entries[vector].vector,
-+			  &e1000_intr_msix_rx, 0, adapter->rx_ring->name,
-+			  netdev);
-+	if (err)
-+		goto out;
-+	adapter->rx_ring->itr_register = E1000_EITR_82574(vector);
-+	adapter->rx_ring->itr_val = adapter->itr;
-+	vector++;
-+
-+	if (strlen(netdev->name) < (IFNAMSIZ - 5))
-+		sprintf(adapter->tx_ring->name, "%s-tx0", netdev->name);
-+	else
-+		memcpy(adapter->tx_ring->name, netdev->name, IFNAMSIZ);
-+	err = request_irq(adapter->msix_entries[vector].vector,
-+			  &e1000_intr_msix_tx, 0, adapter->tx_ring->name,
-+			  netdev);
-+	if (err)
-+		goto out;
-+	adapter->tx_ring->itr_register = E1000_EITR_82574(vector);
-+	adapter->tx_ring->itr_val = adapter->itr;
-+	vector++;
-+
-+	err = request_irq(adapter->msix_entries[vector].vector,
-+			  &e1000_msix_other, 0, netdev->name, netdev);
-+	if (err)
-+		goto out;
-+
-+	e1000_configure_msix(adapter);
-+	return 0;
-+out:
-+	return err;
-+}
-+
- /**
-  * e1000_request_irq - initialize interrupts
-  *
-@@ -1245,29 +1503,33 @@ static irqreturn_t e1000_intr(int irq, v
- static int e1000_request_irq(struct e1000_adapter *adapter)
- {
- 	struct net_device *netdev = adapter->netdev;
--	int irq_flags = IRQF_SHARED;
- 	int err;
- 
--	if (!(adapter->flags & FLAG_MSI_TEST_FAILED)) {
--		err = pci_enable_msi(adapter->pdev);
--		if (!err) {
--			adapter->flags |= FLAG_MSI_ENABLED;
--			irq_flags = 0;
+-
+-#include <asm/io.h>
+-#include <asm/sgi/hpc3.h>
+-#include <asm/sgi/ip22.h>
+-
+-#include "hal2.h"
+-
+-#if 0
+-#define DEBUG(args...)		printk(args)
+-#else
+-#define DEBUG(args...)
+-#endif
+-
+-#if 0 
+-#define DEBUG_MIX(args...)	printk(args)
+-#else
+-#define DEBUG_MIX(args...)
+-#endif
+-
+-/*
+- * Before touching these look how it works. It is a bit unusual I know,
+- * but it helps to keep things simple. This driver is considered complete
+- * and I won't add any new features although hardware has many cool
+- * capabilities.
+- * (Historical note: HAL2 driver was first written by Ulf Carlsson - ALSA
+- * 0.3 running with 2.2.x kernel. Then ALSA changed completely and it
+- * seemed easier to me to write OSS driver from scratch - this one. Now
+- * when ALSA is official part of 2.6 kernel it's time to write ALSA driver
+- * using (hopefully) final version of ALSA interface)
+- */
+-#define H2_BLOCK_SIZE	1024
+-#define H2_ADC_BUFSIZE	8192
+-#define H2_DAC_BUFSIZE	16834
+-
+-struct hal2_pbus {
+-	struct hpc3_pbus_dmacregs *pbus;
+-	int pbusnr;
+-	unsigned int ctrl;		/* Current state of pbus->pbdma_ctrl */
+-};
+-
+-struct hal2_desc {
+-	struct hpc_dma_desc desc;
+-	u32 cnt;			/* don't touch, it is also padding */
+-};
+-
+-struct hal2_codec {
+-	unsigned char *buffer;
+-	struct hal2_desc *desc;
+-	int desc_count;
+-	int tail, head;			/* tail index, head index */
+-	struct hal2_pbus pbus;
+-	unsigned int format;		/* Audio data format */
+-	int voices;			/* mono/stereo */
+-	unsigned int sample_rate;
+-	unsigned int master;		/* Master frequency */
+-	unsigned short mod;		/* MOD value */
+-	unsigned short inc;		/* INC value */
+-
+-	wait_queue_head_t dma_wait;
+-	spinlock_t lock;
+-	struct mutex sem;
+-
+-	int usecount;			/* recording and playback are
+-					 * independent */
+-};
+-
+-#define H2_MIX_OUTPUT_ATT	0
+-#define H2_MIX_INPUT_GAIN	1
+-#define H2_MIXERS		2
+-struct hal2_mixer {
+-	int modcnt;
+-	unsigned int master;
+-	unsigned int volume[H2_MIXERS];
+-};
+-
+-struct hal2_card {
+-	int dev_dsp;			/* audio device */
+-	int dev_mixer;			/* mixer device */
+-	int dev_midi;			/* midi device */
+-
+-	struct hal2_ctl_regs *ctl_regs;	/* HAL2 ctl registers */
+-	struct hal2_aes_regs *aes_regs;	/* HAL2 aes registers */
+-	struct hal2_vol_regs *vol_regs;	/* HAL2 vol registers */
+-	struct hal2_syn_regs *syn_regs;	/* HAL2 syn registers */
+-
+-	struct hal2_codec dac;
+-	struct hal2_codec adc;
+-	struct hal2_mixer mixer;
+-};
+-
+-#define H2_INDIRECT_WAIT(regs)	while (regs->isr & H2_ISR_TSTATUS);
+-
+-#define H2_READ_ADDR(addr)	(addr | (1<<7))
+-#define H2_WRITE_ADDR(addr)	(addr)
+-
+-static char *hal2str = "HAL2";
+-
+-/*
+- * I doubt anyone has a machine with two HAL2 cards. It's possible to
+- * have two HPC's, so it is probably possible to have two HAL2 cards.
+- * Try to deal with it, but note that it is not tested.
+- */
+-#define MAXCARDS	2
+-static struct hal2_card* hal2_card[MAXCARDS];
+-
+-static const struct {
+-	unsigned char idx:4, avail:1;
+-} mixtable[SOUND_MIXER_NRDEVICES] = {
+-	[SOUND_MIXER_PCM]	= { H2_MIX_OUTPUT_ATT, 1 },	/* voice */
+-	[SOUND_MIXER_MIC]	= { H2_MIX_INPUT_GAIN, 1 },	/* mic */
+-};
+-
+-#define H2_SUPPORTED_FORMATS	(AFMT_S16_LE | AFMT_S16_BE)
+-
+-static inline void hal2_isr_write(struct hal2_card *hal2, u16 val)
+-{
+-	hal2->ctl_regs->isr = val;
+-}
+-
+-static inline u16 hal2_isr_look(struct hal2_card *hal2)
+-{
+-	return hal2->ctl_regs->isr;
+-}
+-
+-static inline u16 hal2_rev_look(struct hal2_card *hal2)
+-{
+-	return hal2->ctl_regs->rev;
+-}
+-
+-#ifdef HAL2_DUMP_REGS
+-static u16 hal2_i_look16(struct hal2_card *hal2, u16 addr)
+-{
+-	struct hal2_ctl_regs *regs = hal2->ctl_regs;
+-
+-	regs->iar = H2_READ_ADDR(addr);
+-	H2_INDIRECT_WAIT(regs);
+-	return regs->idr0;
+-}
+-#endif
+-
+-static u32 hal2_i_look32(struct hal2_card *hal2, u16 addr)
+-{
+-	u32 ret;
+-	struct hal2_ctl_regs *regs = hal2->ctl_regs;
+-
+-	regs->iar = H2_READ_ADDR(addr);
+-	H2_INDIRECT_WAIT(regs);
+-	ret = regs->idr0 & 0xffff;
+-	regs->iar = H2_READ_ADDR(addr | 0x1);
+-	H2_INDIRECT_WAIT(regs);
+-	ret |= (regs->idr0 & 0xffff) << 16;
+-	return ret;
+-}
+-
+-static void hal2_i_write16(struct hal2_card *hal2, u16 addr, u16 val)
+-{
+-	struct hal2_ctl_regs *regs = hal2->ctl_regs;
+-
+-	regs->idr0 = val;
+-	regs->idr1 = 0;
+-	regs->idr2 = 0;
+-	regs->idr3 = 0;
+-	regs->iar = H2_WRITE_ADDR(addr);
+-	H2_INDIRECT_WAIT(regs);
+-}
+-
+-static void hal2_i_write32(struct hal2_card *hal2, u16 addr, u32 val)
+-{
+-	struct hal2_ctl_regs *regs = hal2->ctl_regs;
+-
+-	regs->idr0 = val & 0xffff;
+-	regs->idr1 = val >> 16;
+-	regs->idr2 = 0;
+-	regs->idr3 = 0;
+-	regs->iar = H2_WRITE_ADDR(addr);
+-	H2_INDIRECT_WAIT(regs);
+-}
+-
+-static void hal2_i_setbit16(struct hal2_card *hal2, u16 addr, u16 bit)
+-{
+-	struct hal2_ctl_regs *regs = hal2->ctl_regs;
+-
+-	regs->iar = H2_READ_ADDR(addr);
+-	H2_INDIRECT_WAIT(regs);
+-	regs->idr0 = (regs->idr0 & 0xffff) | bit;
+-	regs->idr1 = 0;
+-	regs->idr2 = 0;
+-	regs->idr3 = 0;
+-	regs->iar = H2_WRITE_ADDR(addr);
+-	H2_INDIRECT_WAIT(regs);
+-}
+-
+-static void hal2_i_setbit32(struct hal2_card *hal2, u16 addr, u32 bit)
+-{
+-	u32 tmp;
+-	struct hal2_ctl_regs *regs = hal2->ctl_regs;
+-
+-	regs->iar = H2_READ_ADDR(addr);
+-	H2_INDIRECT_WAIT(regs);
+-	tmp = (regs->idr0 & 0xffff) | (regs->idr1 << 16) | bit;
+-	regs->idr0 = tmp & 0xffff;
+-	regs->idr1 = tmp >> 16;
+-	regs->idr2 = 0;
+-	regs->idr3 = 0;
+-	regs->iar = H2_WRITE_ADDR(addr);
+-	H2_INDIRECT_WAIT(regs);
+-}
+-
+-static void hal2_i_clearbit16(struct hal2_card *hal2, u16 addr, u16 bit)
+-{
+-	struct hal2_ctl_regs *regs = hal2->ctl_regs;
+-
+-	regs->iar = H2_READ_ADDR(addr);
+-	H2_INDIRECT_WAIT(regs);
+-	regs->idr0 = (regs->idr0 & 0xffff) & ~bit;
+-	regs->idr1 = 0;
+-	regs->idr2 = 0;
+-	regs->idr3 = 0;
+-	regs->iar = H2_WRITE_ADDR(addr);
+-	H2_INDIRECT_WAIT(regs);
+-}
+-
+-#if 0
+-static void hal2_i_clearbit32(struct hal2_card *hal2, u16 addr, u32 bit)
+-{
+-	u32 tmp;
+-	hal2_ctl_regs_t *regs = hal2->ctl_regs;
+-
+-	regs->iar = H2_READ_ADDR(addr);
+-	H2_INDIRECT_WAIT(regs);
+-	tmp = ((regs->idr0 & 0xffff) | (regs->idr1 << 16)) & ~bit;
+-	regs->idr0 = tmp & 0xffff;
+-	regs->idr1 = tmp >> 16;
+-	regs->idr2 = 0;
+-	regs->idr3 = 0;
+-	regs->iar = H2_WRITE_ADDR(addr);
+-	H2_INDIRECT_WAIT(regs);
+-}
+-#endif
+-
+-#ifdef HAL2_DUMP_REGS
+-static void hal2_dump_regs(struct hal2_card *hal2)
+-{
+-	DEBUG("isr: %08hx ", hal2_isr_look(hal2));
+-	DEBUG("rev: %08hx\n", hal2_rev_look(hal2));
+-	DEBUG("relay: %04hx\n", hal2_i_look16(hal2, H2I_RELAY_C));
+-	DEBUG("port en: %04hx ", hal2_i_look16(hal2, H2I_DMA_PORT_EN));
+-	DEBUG("dma end: %04hx ", hal2_i_look16(hal2, H2I_DMA_END));
+-	DEBUG("dma drv: %04hx\n", hal2_i_look16(hal2, H2I_DMA_DRV));
+-	DEBUG("syn ctl: %04hx ", hal2_i_look16(hal2, H2I_SYNTH_C));
+-	DEBUG("aesrx ctl: %04hx ", hal2_i_look16(hal2, H2I_AESRX_C));
+-	DEBUG("aestx ctl: %04hx ", hal2_i_look16(hal2, H2I_AESTX_C));
+-	DEBUG("dac ctl1: %04hx ", hal2_i_look16(hal2, H2I_ADC_C1));
+-	DEBUG("dac ctl2: %08x ", hal2_i_look32(hal2, H2I_ADC_C2));
+-	DEBUG("adc ctl1: %04hx ", hal2_i_look16(hal2, H2I_DAC_C1));
+-	DEBUG("adc ctl2: %08x ", hal2_i_look32(hal2, H2I_DAC_C2));
+-	DEBUG("syn map: %04hx\n", hal2_i_look16(hal2, H2I_SYNTH_MAP_C));
+-	DEBUG("bres1 ctl1: %04hx ", hal2_i_look16(hal2, H2I_BRES1_C1));
+-	DEBUG("bres1 ctl2: %04x ", hal2_i_look32(hal2, H2I_BRES1_C2));
+-	DEBUG("bres2 ctl1: %04hx ", hal2_i_look16(hal2, H2I_BRES2_C1));
+-	DEBUG("bres2 ctl2: %04x ", hal2_i_look32(hal2, H2I_BRES2_C2));
+-	DEBUG("bres3 ctl1: %04hx ", hal2_i_look16(hal2, H2I_BRES3_C1));
+-	DEBUG("bres3 ctl2: %04x\n", hal2_i_look32(hal2, H2I_BRES3_C2));
+-}
+-#endif
+-
+-static struct hal2_card* hal2_dsp_find_card(int minor)
+-{
+-	int i;
+-
+-	for (i = 0; i < MAXCARDS; i++)
+-		if (hal2_card[i] != NULL && hal2_card[i]->dev_dsp == minor)
+-			return hal2_card[i];
+-	return NULL;
+-}
+-
+-static struct hal2_card* hal2_mixer_find_card(int minor)
+-{
+-	int i;
+-
+-	for (i = 0; i < MAXCARDS; i++)
+-		if (hal2_card[i] != NULL && hal2_card[i]->dev_mixer == minor)
+-			return hal2_card[i];
+-	return NULL;
+-}
+-
+-static void hal2_inc_head(struct hal2_codec *codec)
+-{
+-	codec->head++;
+-	if (codec->head == codec->desc_count)
+-		codec->head = 0;
+-}
+-
+-static void hal2_inc_tail(struct hal2_codec *codec)
+-{
+-	codec->tail++;
+-	if (codec->tail == codec->desc_count)
+-		codec->tail = 0;
+-}
+-
+-static void hal2_dac_interrupt(struct hal2_codec *dac)
+-{
+-	int running;
+-
+-	spin_lock(&dac->lock);
+-	/* if tail buffer contains zero samples DMA stream was already
+-	 * stopped */
+-	running = dac->desc[dac->tail].cnt;
+-	dac->desc[dac->tail].cnt = 0;
+-	dac->desc[dac->tail].desc.cntinfo = HPCDMA_XIE | HPCDMA_EOX;
+-	/* we just proccessed empty buffer, don't update tail pointer */
+-	if (running)
+-		hal2_inc_tail(dac);
+-	spin_unlock(&dac->lock);
+-
+-	wake_up(&dac->dma_wait);
+-}
+-
+-static void hal2_adc_interrupt(struct hal2_codec *adc)
+-{
+-	int running;
+-
+-	spin_lock(&adc->lock);
+-	/* if head buffer contains nonzero samples DMA stream was already
+-	 * stopped */
+-	running = !adc->desc[adc->head].cnt;
+-	adc->desc[adc->head].cnt = H2_BLOCK_SIZE;
+-	adc->desc[adc->head].desc.cntinfo = HPCDMA_XIE | HPCDMA_EOR;
+-	/* we just proccessed empty buffer, don't update head pointer */
+-	if (running)
+-		hal2_inc_head(adc);
+-	spin_unlock(&adc->lock);
+-
+-	wake_up(&adc->dma_wait);
+-}
+-
+-static irqreturn_t hal2_interrupt(int irq, void *dev_id)
+-{
+-	struct hal2_card *hal2 = dev_id;
+-	irqreturn_t ret = IRQ_NONE;
+-
+-	/* decide what caused this interrupt */
+-	if (hal2->dac.pbus.pbus->pbdma_ctrl & HPC3_PDMACTRL_INT) {
+-		hal2_dac_interrupt(&hal2->dac);
+-		ret = IRQ_HANDLED;
+-	}
+-	if (hal2->adc.pbus.pbus->pbdma_ctrl & HPC3_PDMACTRL_INT) {
+-		hal2_adc_interrupt(&hal2->adc);
+-		ret = IRQ_HANDLED;
+-	}
+-	return ret;
+-}
+-
+-static int hal2_compute_rate(struct hal2_codec *codec, unsigned int rate)
+-{
+-	unsigned short mod;
+-	
+-	DEBUG("rate: %d\n", rate);
+-	
+-	if (rate < 4000) rate = 4000;
+-	else if (rate > 48000) rate = 48000;
+-
+-	if (44100 % rate < 48000 % rate) {
+-		mod = 4 * 44100 / rate;
+-		codec->master = 44100;
+-	} else {
+-		mod = 4 * 48000 / rate;
+-		codec->master = 48000;
+-	}
+-
+-	codec->inc = 4;
+-	codec->mod = mod;
+-	rate = 4 * codec->master / mod;
+-
+-	DEBUG("real_rate: %d\n", rate);
+-
+-	return rate;
+-}
+-
+-static void hal2_set_dac_rate(struct hal2_card *hal2)
+-{
+-	unsigned int master = hal2->dac.master;
+-	int inc = hal2->dac.inc;
+-	int mod = hal2->dac.mod;
+-
+-	DEBUG("master: %d inc: %d mod: %d\n", master, inc, mod);
+-	
+-	hal2_i_write16(hal2, H2I_BRES1_C1, (master == 44100) ? 1 : 0);
+-	hal2_i_write32(hal2, H2I_BRES1_C2, ((0xffff & (inc - mod - 1)) << 16) | inc);
+-}
+-
+-static void hal2_set_adc_rate(struct hal2_card *hal2)
+-{
+-	unsigned int master = hal2->adc.master;
+-	int inc = hal2->adc.inc;
+-	int mod = hal2->adc.mod;
+-
+-	DEBUG("master: %d inc: %d mod: %d\n", master, inc, mod);
+-	
+-	hal2_i_write16(hal2, H2I_BRES2_C1, (master == 44100) ? 1 : 0);
+-	hal2_i_write32(hal2, H2I_BRES2_C2, ((0xffff & (inc - mod - 1)) << 16) | inc);
+-}
+-
+-static void hal2_setup_dac(struct hal2_card *hal2)
+-{
+-	unsigned int fifobeg, fifoend, highwater, sample_size;
+-	struct hal2_pbus *pbus = &hal2->dac.pbus;
+-
+-	DEBUG("hal2_setup_dac\n");
+-	
+-	/* Now we set up some PBUS information. The PBUS needs information about
+-	 * what portion of the fifo it will use. If it's receiving or
+-	 * transmitting, and finally whether the stream is little endian or big
+-	 * endian. The information is written later, on the start call.
+-	 */
+-	sample_size = 2 * hal2->dac.voices;
+-	/* Fifo should be set to hold exactly four samples. Highwater mark
+-	 * should be set to two samples. */
+-	highwater = (sample_size * 2) >> 1;	/* halfwords */
+-	fifobeg = 0;				/* playback is first */
+-	fifoend = (sample_size * 4) >> 3;	/* doublewords */
+-	pbus->ctrl = HPC3_PDMACTRL_RT | HPC3_PDMACTRL_LD |
+-		     (highwater << 8) | (fifobeg << 16) | (fifoend << 24) |
+-		     (hal2->dac.format & AFMT_S16_LE ? HPC3_PDMACTRL_SEL : 0);
+-	/* We disable everything before we do anything at all */
+-	pbus->pbus->pbdma_ctrl = HPC3_PDMACTRL_LD;
+-	hal2_i_clearbit16(hal2, H2I_DMA_PORT_EN, H2I_DMA_PORT_EN_CODECTX);
+-	/* Setup the HAL2 for playback */
+-	hal2_set_dac_rate(hal2);
+-	/* Set endianess */
+-	if (hal2->dac.format & AFMT_S16_LE)
+-		hal2_i_setbit16(hal2, H2I_DMA_END, H2I_DMA_END_CODECTX);
+-	else
+-		hal2_i_clearbit16(hal2, H2I_DMA_END, H2I_DMA_END_CODECTX);
+-	/* Set DMA bus */
+-	hal2_i_setbit16(hal2, H2I_DMA_DRV, (1 << pbus->pbusnr));
+-	/* We are using 1st Bresenham clock generator for playback */
+-	hal2_i_write16(hal2, H2I_DAC_C1, (pbus->pbusnr << H2I_C1_DMA_SHIFT)
+-			| (1 << H2I_C1_CLKID_SHIFT)
+-			| (hal2->dac.voices << H2I_C1_DATAT_SHIFT));
+-}
+-
+-static void hal2_setup_adc(struct hal2_card *hal2)
+-{
+-	unsigned int fifobeg, fifoend, highwater, sample_size;
+-	struct hal2_pbus *pbus = &hal2->adc.pbus;
+-
+-	DEBUG("hal2_setup_adc\n");
+-
+-	sample_size = 2 * hal2->adc.voices;
+-	highwater = (sample_size * 2) >> 1;		/* halfwords */
+-	fifobeg = (4 * 4) >> 3;				/* record is second */
+-	fifoend = (4 * 4 + sample_size * 4) >> 3;	/* doublewords */
+-	pbus->ctrl = HPC3_PDMACTRL_RT | HPC3_PDMACTRL_RCV | HPC3_PDMACTRL_LD | 
+-		     (highwater << 8) | (fifobeg << 16) | (fifoend << 24) |
+-		     (hal2->adc.format & AFMT_S16_LE ? HPC3_PDMACTRL_SEL : 0);
+-	pbus->pbus->pbdma_ctrl = HPC3_PDMACTRL_LD;
+-	hal2_i_clearbit16(hal2, H2I_DMA_PORT_EN, H2I_DMA_PORT_EN_CODECR);
+-	/* Setup the HAL2 for record */
+-	hal2_set_adc_rate(hal2);
+-	/* Set endianess */
+-	if (hal2->adc.format & AFMT_S16_LE)
+-		hal2_i_setbit16(hal2, H2I_DMA_END, H2I_DMA_END_CODECR);
+-	else
+-		hal2_i_clearbit16(hal2, H2I_DMA_END, H2I_DMA_END_CODECR);
+-	/* Set DMA bus */
+-	hal2_i_setbit16(hal2, H2I_DMA_DRV, (1 << pbus->pbusnr));
+-	/* We are using 2nd Bresenham clock generator for record */
+-	hal2_i_write16(hal2, H2I_ADC_C1, (pbus->pbusnr << H2I_C1_DMA_SHIFT)
+-			| (2 << H2I_C1_CLKID_SHIFT)
+-			| (hal2->adc.voices << H2I_C1_DATAT_SHIFT));
+-}
+-
+-static dma_addr_t hal2_desc_addr(struct hal2_codec *codec, int i)
+-{
+-	if (--i < 0)
+-		i = codec->desc_count - 1;
+-	return codec->desc[i].desc.pnext;
+-}
+-
+-static void hal2_start_dac(struct hal2_card *hal2)
+-{
+-	struct hal2_codec *dac = &hal2->dac;
+-	struct hal2_pbus *pbus = &dac->pbus;
+-
+-	pbus->pbus->pbdma_dptr = hal2_desc_addr(dac, dac->tail);
+-	pbus->pbus->pbdma_ctrl = pbus->ctrl | HPC3_PDMACTRL_ACT;
+-	/* enable DAC */
+-	hal2_i_setbit16(hal2, H2I_DMA_PORT_EN, H2I_DMA_PORT_EN_CODECTX);
+-}
+-
+-static void hal2_start_adc(struct hal2_card *hal2)
+-{
+-	struct hal2_codec *adc = &hal2->adc;
+-	struct hal2_pbus *pbus = &adc->pbus;
+-
+-	pbus->pbus->pbdma_dptr = hal2_desc_addr(adc, adc->head);
+-	pbus->pbus->pbdma_ctrl = pbus->ctrl | HPC3_PDMACTRL_ACT;
+-	/* enable ADC */
+-	hal2_i_setbit16(hal2, H2I_DMA_PORT_EN, H2I_DMA_PORT_EN_CODECR);
+-}
+-
+-static inline void hal2_stop_dac(struct hal2_card *hal2)
+-{
+-	hal2->dac.pbus.pbus->pbdma_ctrl = HPC3_PDMACTRL_LD;
+-	/* The HAL2 itself may remain enabled safely */
+-}
+-
+-static inline void hal2_stop_adc(struct hal2_card *hal2)
+-{
+-	hal2->adc.pbus.pbus->pbdma_ctrl = HPC3_PDMACTRL_LD;
+-}
+-
+-static int hal2_alloc_dmabuf(struct hal2_codec *codec, int size,
+-			     int count, int cntinfo, int dir)
+-{
+-	struct hal2_desc *desc, *dma_addr;
+-	int i;
+-
+-	DEBUG("allocating %dk DMA buffer.\n", size / 1024);
+-
+-	codec->buffer = (unsigned char *)__get_free_pages(GFP_KERNEL | GFP_DMA,
+-							  get_order(size));
+-	if (!codec->buffer)
+-		return -ENOMEM;
+-	desc = dma_alloc_coherent(NULL, count * sizeof(struct hal2_desc),
+-				  (dma_addr_t *)&dma_addr, GFP_KERNEL);
+-	if (!desc) {
+-		free_pages((unsigned long)codec->buffer, get_order(size));
+-		return -ENOMEM;
+-	}
+-	codec->desc = desc;
+-	for (i = 0; i < count; i++) {
+-		desc->desc.pbuf = dma_map_single(NULL,
+-			(void *)(codec->buffer + i * H2_BLOCK_SIZE),
+-			H2_BLOCK_SIZE, dir);
+-		desc->desc.cntinfo = cntinfo;
+-		desc->desc.pnext = (i == count - 1) ?
+-				   (u32)dma_addr : (u32)(dma_addr + i + 1);
+-		desc->cnt = 0;
+-		desc++;
+-	}
+-	codec->desc_count = count;
+-	codec->head = codec->tail = 0;
+-	return 0;
+-}
+-
+-static int hal2_alloc_dac_dmabuf(struct hal2_codec *codec)
+-{
+-	return hal2_alloc_dmabuf(codec, H2_DAC_BUFSIZE,
+-				 H2_DAC_BUFSIZE / H2_BLOCK_SIZE,
+-				 HPCDMA_XIE | HPCDMA_EOX,
+-				 DMA_TO_DEVICE);
+-}
+-
+-static int hal2_alloc_adc_dmabuf(struct hal2_codec *codec)
+-{
+-	return hal2_alloc_dmabuf(codec, H2_ADC_BUFSIZE,
+-				 H2_ADC_BUFSIZE / H2_BLOCK_SIZE,
+-				 HPCDMA_XIE | H2_BLOCK_SIZE,
+-				 DMA_TO_DEVICE);
+-}
+-
+-static void hal2_free_dmabuf(struct hal2_codec *codec, int size, int dir)
+-{
+-	dma_addr_t dma_addr;
+-	int i;
+-
+-	dma_addr = codec->desc[codec->desc_count - 1].desc.pnext;
+-	for (i = 0; i < codec->desc_count; i++)
+-		dma_unmap_single(NULL, codec->desc[i].desc.pbuf,
+-				 H2_BLOCK_SIZE, dir);
+-	dma_free_coherent(NULL, codec->desc_count * sizeof(struct hal2_desc),
+-			  (void *)codec->desc, dma_addr);
+-	free_pages((unsigned long)codec->buffer, get_order(size));
+-}
+-
+-static void hal2_free_dac_dmabuf(struct hal2_codec *codec)
+-{
+-	return hal2_free_dmabuf(codec, H2_DAC_BUFSIZE, DMA_TO_DEVICE);
+-}
+-
+-static void hal2_free_adc_dmabuf(struct hal2_codec *codec)
+-{
+-	return hal2_free_dmabuf(codec, H2_ADC_BUFSIZE, DMA_FROM_DEVICE);
+-}
+-
+-/* 
+- * Add 'count' bytes to 'buffer' from DMA ring buffers. Return number of
+- * bytes added or -EFAULT if copy_from_user failed.
+- */
+-static int hal2_get_buffer(struct hal2_card *hal2, char *buffer, int count)
+-{
+-	unsigned long flags;
+-	int size, ret = 0;
+-	unsigned char *buf;
+-	struct hal2_desc *tail;
+-	struct hal2_codec *adc = &hal2->adc;
+-
+-	DEBUG("getting %d bytes ", count);
+-
+-	spin_lock_irqsave(&adc->lock, flags);
+-	tail = &adc->desc[adc->tail];
+-	/* enable DMA stream if there are no data */
+-	if (!tail->cnt && !(adc->pbus.pbus->pbdma_ctrl & HPC3_PDMACTRL_ISACT))
+-		hal2_start_adc(hal2);
+-	while (tail->cnt > 0 && count > 0) {
+-		size = min((int)tail->cnt, count);
+-		buf = &adc->buffer[(adc->tail + 1) * H2_BLOCK_SIZE - tail->cnt];
+-		spin_unlock_irqrestore(&adc->lock, flags);
+-		dma_sync_single(NULL, tail->desc.pbuf, size, DMA_FROM_DEVICE);
+-		if (copy_to_user(buffer, buf, size)) {
+-			ret = -EFAULT;
+-			goto out;
 -		}
-+	if (adapter->msix_entries) {
-+		err = e1000_request_msix(adapter);
-+		if (!err)
-+			return err;
-+		/* fall back to MSI */
-+		e1000e_reset_interrupt_capability(adapter);
-+		adapter->int_mode = E1000E_INT_MODE_MSI;
-+		e1000e_set_interrupt_capability(adapter);
- 	}
-+	if (adapter->flags & FLAG_MSI_ENABLED) {
-+		err = request_irq(adapter->pdev->irq, &e1000_intr_msi, 0,
-+				  netdev->name, netdev);
-+		if (!err)
-+			return err;
- 
--	err = request_irq(adapter->pdev->irq,
--			  ((adapter->flags & FLAG_MSI_ENABLED) ?
--				&e1000_intr_msi : &e1000_intr),
--			  irq_flags, netdev->name, netdev);
--	if (err) {
--		if (adapter->flags & FLAG_MSI_ENABLED) {
--			pci_disable_msi(adapter->pdev);
--			adapter->flags &= ~FLAG_MSI_ENABLED;
+-		spin_lock_irqsave(&adc->lock, flags);
+-		tail->cnt -= size;
+-		/* buffer is empty, update tail pointer */
+-		if (tail->cnt == 0) {
+-			tail->desc.cntinfo = HPCDMA_XIE | H2_BLOCK_SIZE;
+-			hal2_inc_tail(adc);
+-			tail = &adc->desc[adc->tail];
+-			/* enable DMA stream again if needed */
+-			if (!(adc->pbus.pbus->pbdma_ctrl & HPC3_PDMACTRL_ISACT))
+-				hal2_start_adc(hal2);
 -		}
--		e_err("Unable to allocate interrupt, Error: %d\n", err);
-+		/* fall back to legacy interrupt */
-+		e1000e_reset_interrupt_capability(adapter);
-+		adapter->int_mode = E1000E_INT_MODE_LEGACY;
- 	}
- 
-+	err = request_irq(adapter->pdev->irq, &e1000_intr, IRQF_SHARED,
-+			  netdev->name, netdev);
-+	if (err)
-+		e_err("Unable to allocate interrupt, Error: %d\n", err);
-+
- 	return err;
- }
- 
-@@ -1275,11 +1537,21 @@ static void e1000_free_irq(struct e1000_
- {
- 	struct net_device *netdev = adapter->netdev;
- 
--	free_irq(adapter->pdev->irq, netdev);
--	if (adapter->flags & FLAG_MSI_ENABLED) {
--		pci_disable_msi(adapter->pdev);
--		adapter->flags &= ~FLAG_MSI_ENABLED;
-+	if (adapter->msix_entries) {
-+		int vector = 0;
-+
-+		free_irq(adapter->msix_entries[vector].vector, netdev);
-+		vector++;
-+
-+		free_irq(adapter->msix_entries[vector].vector, netdev);
-+		vector++;
-+
-+		/* Other Causes interrupt vector */
-+		free_irq(adapter->msix_entries[vector].vector, netdev);
-+		return;
- 	}
-+
-+	free_irq(adapter->pdev->irq, netdev);
- }
- 
- /**
-@@ -1290,6 +1562,8 @@ static void e1000_irq_disable(struct e10
- 	struct e1000_hw *hw = &adapter->hw;
- 
- 	ew32(IMC, ~0);
-+	if (adapter->msix_entries)
-+		ew32(EIAC_82574, 0);
- 	e1e_flush();
- 	synchronize_irq(adapter->pdev->irq);
- }
-@@ -1301,7 +1575,12 @@ static void e1000_irq_enable(struct e100
- {
- 	struct e1000_hw *hw = &adapter->hw;
- 
--	ew32(IMS, IMS_ENABLE_MASK);
-+	if (adapter->msix_entries) {
-+		ew32(EIAC_82574, adapter->eiac_mask & E1000_EIAC_MASK_82574);
-+		ew32(IMS, adapter->eiac_mask | E1000_IMS_OTHER | E1000_IMS_LSC);
-+	} else {
-+		ew32(IMS, IMS_ENABLE_MASK);
-+	}
- 	e1e_flush();
- }
- 
-@@ -1551,9 +1830,8 @@ void e1000e_free_rx_resources(struct e10
-  *      traffic pattern.  Constants in this function were computed
-  *      based on theoretical maximum wire speed and thresholds were set based
-  *      on testing data as well as attempting to minimize response time
-- *      while increasing bulk throughput.
-- *      this functionality is controlled by the InterruptThrottleRate module
-- *      parameter (see e1000_param.c)
-+ *      while increasing bulk throughput.  This functionality is controlled
-+ *      by the InterruptThrottleRate module parameter.
-  **/
- static unsigned int e1000_update_itr(struct e1000_adapter *adapter,
- 				     u16 itr_setting, int packets,
-@@ -1661,11 +1939,37 @@ set_itr_now:
- 			     min(adapter->itr + (new_itr >> 2), new_itr) :
- 			     new_itr;
- 		adapter->itr = new_itr;
--		ew32(ITR, 1000000000 / (new_itr * 256));
-+		adapter->rx_ring->itr_val = new_itr;
-+		if (adapter->msix_entries)
-+			adapter->rx_ring->set_itr = 1;
-+		else
-+			ew32(ITR, 1000000000 / (new_itr * 256));
- 	}
- }
- 
- /**
-+ * e1000_alloc_queues - Allocate memory for all rings
-+ * @adapter: board private structure to initialize
-+ **/
-+static int __devinit e1000_alloc_queues(struct e1000_adapter *adapter)
-+{
-+	adapter->tx_ring = kzalloc(sizeof(struct e1000_ring), GFP_KERNEL);
-+	if (!adapter->tx_ring)
-+		goto err;
-+
-+	adapter->rx_ring = kzalloc(sizeof(struct e1000_ring), GFP_KERNEL);
-+	if (!adapter->rx_ring)
-+		goto err;
-+
-+	return 0;
-+err:
-+	e_err("Unable to allocate memory for queues\n");
-+	kfree(adapter->rx_ring);
-+	kfree(adapter->tx_ring);
-+	return -ENOMEM;
-+}
-+
-+/**
-  * e1000_clean - NAPI Rx polling callback
-  * @napi: struct associated with this polling callback
-  * @budget: amount of packets driver is allowed to process this poll
-@@ -1673,12 +1977,17 @@ set_itr_now:
- static int e1000_clean(struct napi_struct *napi, int budget)
- {
- 	struct e1000_adapter *adapter = container_of(napi, struct e1000_adapter, napi);
-+	struct e1000_hw *hw = &adapter->hw;
- 	struct net_device *poll_dev = adapter->netdev;
- 	int tx_cleaned = 0, work_done = 0;
- 
- 	/* Must NOT use netdev_priv macro here. */
- 	adapter = poll_dev->priv;
- 
-+	if (adapter->msix_entries &&
-+	    !(adapter->rx_ring->ims_val & adapter->tx_ring->ims_val))
-+		goto clean_rx;
-+
- 	/*
- 	 * e1000_clean is called per-cpu.  This lock protects
- 	 * tx_ring from being cleaned by multiple cpus
-@@ -1690,6 +1999,7 @@ static int e1000_clean(struct napi_struc
- 		spin_unlock(&adapter->tx_queue_lock);
- 	}
- 
-+clean_rx:
- 	adapter->clean_rx(adapter, &work_done, budget);
- 
- 	if (tx_cleaned)
-@@ -1700,7 +2010,10 @@ static int e1000_clean(struct napi_struc
- 		if (adapter->itr_setting & 3)
- 			e1000_set_itr(adapter);
- 		netif_rx_complete(poll_dev, napi);
--		e1000_irq_enable(adapter);
-+		if (adapter->msix_entries)
-+			ew32(IMS, adapter->rx_ring->ims_val);
-+		else
-+			e1000_irq_enable(adapter);
- 	}
- 
- 	return work_done;
-@@ -2496,6 +2809,8 @@ int e1000e_up(struct e1000_adapter *adap
- 	clear_bit(__E1000_DOWN, &adapter->state);
- 
- 	napi_enable(&adapter->napi);
-+	if (adapter->msix_entries)
-+		e1000_configure_msix(adapter);
- 	e1000_irq_enable(adapter);
- 
- 	/* fire a link change interrupt to start the watchdog */
-@@ -2579,13 +2894,10 @@ static int __devinit e1000_sw_init(struc
- 	adapter->max_frame_size = netdev->mtu + ETH_HLEN + ETH_FCS_LEN;
- 	adapter->min_frame_size = ETH_ZLEN + ETH_FCS_LEN;
- 
--	adapter->tx_ring = kzalloc(sizeof(struct e1000_ring), GFP_KERNEL);
--	if (!adapter->tx_ring)
--		goto err;
-+	e1000e_set_interrupt_capability(adapter);
- 
--	adapter->rx_ring = kzalloc(sizeof(struct e1000_ring), GFP_KERNEL);
--	if (!adapter->rx_ring)
--		goto err;
-+	if (e1000_alloc_queues(adapter))
-+		return -ENOMEM;
- 
- 	spin_lock_init(&adapter->tx_queue_lock);
- 
-@@ -2596,12 +2908,6 @@ static int __devinit e1000_sw_init(struc
- 
- 	set_bit(__E1000_DOWN, &adapter->state);
- 	return 0;
+-		buffer += size;
+-		ret += size;
+-		count -= size;
 -
--err:
--	e_err("Unable to allocate memory for queues\n");
--	kfree(adapter->rx_ring);
--	kfree(adapter->tx_ring);
--	return -ENOMEM;
- }
- 
- /**
-@@ -2643,6 +2949,7 @@ static int e1000_test_msi_interrupt(stru
- 
- 	/* free the real vector and request a test handler */
- 	e1000_free_irq(adapter);
-+	e1000e_reset_interrupt_capability(adapter);
- 
- 	/* Assume that the test fails, if it succeeds then the test
- 	 * MSI irq handler will unset this flag */
-@@ -2673,6 +2980,7 @@ static int e1000_test_msi_interrupt(stru
- 	rmb();
- 
- 	if (adapter->flags & FLAG_MSI_TEST_FAILED) {
-+		adapter->int_mode = E1000E_INT_MODE_LEGACY;
- 		err = -EIO;
- 		e_info("MSI interrupt test failed!\n");
- 	}
-@@ -2686,7 +2994,7 @@ static int e1000_test_msi_interrupt(stru
- 	/* okay so the test worked, restore settings */
- 	e_dbg("%s: MSI interrupt test succeeded!\n", netdev->name);
- msi_test_failed:
--	/* restore the original vector, even if it failed */
-+	e1000e_set_interrupt_capability(adapter);
- 	e1000_request_irq(adapter);
- 	return err;
- }
-@@ -2796,7 +3104,7 @@ static int e1000_open(struct net_device 
- 	 * ignore e1000e MSI messages, which means we need to test our MSI
- 	 * interrupt now
- 	 */
--	{
-+	if (adapter->int_mode != E1000E_INT_MODE_LEGACY) {
- 		err = e1000_test_msi(adapter);
- 		if (err) {
- 			e_err("Interrupt allocation failed\n");
-@@ -2988,7 +3296,8 @@ void e1000e_update_stats(struct e1000_ad
- 
- 	adapter->stats.algnerrc += er32(ALGNERRC);
- 	adapter->stats.rxerrc += er32(RXERRC);
--	adapter->stats.tncrs += er32(TNCRS);
-+	if (hw->mac.type != e1000_82574)
-+		adapter->stats.tncrs += er32(TNCRS);
- 	adapter->stats.cexterr += er32(CEXTERR);
- 	adapter->stats.tsctc += er32(TSCTC);
- 	adapter->stats.tsctfc += er32(TSCTFC);
-@@ -3315,7 +3624,10 @@ link_up:
- 	}
- 
- 	/* Cause software interrupt to ensure Rx ring is cleaned */
--	ew32(ICS, E1000_ICS_RXDMT0);
-+	if (adapter->msix_entries)
-+		ew32(ICS, adapter->rx_ring->ims_val);
-+	else
-+		ew32(ICS, E1000_ICS_RXDMT0);
- 
- 	/* Force detection of hung controller every watchdog period */
- 	adapter->detect_tx_hung = 1;
-@@ -4032,6 +4344,7 @@ static int e1000_suspend(struct pci_dev 
- 		e1000e_down(adapter);
- 		e1000_free_irq(adapter);
- 	}
-+	e1000e_reset_interrupt_capability(adapter);
- 
- 	retval = pci_save_state(pdev);
- 	if (retval)
-@@ -4158,6 +4471,7 @@ static int e1000_resume(struct pci_dev *
- 	pci_enable_wake(pdev, PCI_D3hot, 0);
- 	pci_enable_wake(pdev, PCI_D3cold, 0);
- 
-+	e1000e_set_interrupt_capability(adapter);
- 	if (netif_running(netdev)) {
- 		err = e1000_request_irq(adapter);
- 		if (err)
-@@ -4467,6 +4781,8 @@ static int __devinit e1000_probe(struct 
- 
- 	adapter->bd_number = cards_found++;
- 
-+	e1000e_check_options(adapter);
-+
- 	/* setup adapter struct */
- 	err = e1000_sw_init(adapter);
- 	if (err)
-@@ -4573,8 +4889,6 @@ static int __devinit e1000_probe(struct 
- 	INIT_WORK(&adapter->reset_task, e1000_reset_task);
- 	INIT_WORK(&adapter->watchdog_task, e1000_watchdog_task);
- 
--	e1000e_check_options(adapter);
+-		DEBUG("(%d) ", size);
+-	}
+-	spin_unlock_irqrestore(&adc->lock, flags);
+-out:
+-	DEBUG("\n");
 -
- 	/* Initialize link parameters. User can change them with ethtool */
- 	adapter->hw.mac.autoneg = 1;
- 	adapter->fc_autoneg = 1;
-@@ -4704,6 +5018,7 @@ static void __devexit e1000_remove(struc
- 	if (!e1000_check_reset_block(&adapter->hw))
- 		e1000_phy_hw_reset(&adapter->hw);
- 
-+	e1000e_reset_interrupt_capability(adapter);
- 	kfree(adapter->tx_ring);
- 	kfree(adapter->rx_ring);
- 
-@@ -4745,6 +5060,8 @@ static struct pci_device_id e1000_pci_tb
- 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_82573E_IAMT), board_82573 },
- 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_82573L), board_82573 },
- 
-+	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_82574L), board_82574 },
-+
- 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_80003ES2LAN_COPPER_DPT),
- 	  board_80003es2lan },
- 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_80003ES2LAN_COPPER_SPT),
-diff -puN drivers/net/e1000e/param.c~e1000e-add-support-for-new-82574l-part drivers/net/e1000e/param.c
---- a/drivers/net/e1000e/param.c~e1000e-add-support-for-new-82574l-part
-+++ a/drivers/net/e1000e/param.c
-@@ -114,6 +114,15 @@ E1000_PARAM(InterruptThrottleRate, "Inte
- #define DEFAULT_ITR 3
- #define MAX_ITR 100000
- #define MIN_ITR 100
-+/* IntMode (Interrupt Mode)
-+ *
-+ * Valid Range: 0 - 2
-+ *
-+ * Default Value: 2 (MSI-X)
-+ */
-+E1000_PARAM(IntMode, "Interrupt Mode");
-+#define MAX_INTMODE	2
-+#define MIN_INTMODE	0
- 
- /*
-  * Enable Smart Power Down of the PHY
-@@ -352,6 +361,24 @@ void __devinit e1000e_check_options(stru
- 			adapter->itr = 20000;
- 		}
- 	}
-+	{ /* Interrupt Mode */
-+		struct e1000_option opt = {
-+			.type = range_option,
-+			.name = "Interrupt Mode",
-+			.err  = "defaulting to 2 (MSI-X)",
-+			.def  = E1000E_INT_MODE_MSIX,
-+			.arg  = { .r = { .min = MIN_INTMODE,
-+					 .max = MAX_INTMODE } }
-+		};
-+
-+		if (num_IntMode > bd) {
-+			unsigned int int_mode = IntMode[bd];
-+			e1000_validate_option(&int_mode, &opt, adapter);
-+			adapter->int_mode = int_mode;
-+		} else {
-+			adapter->int_mode = opt.def;
-+		}
-+	}
- 	{ /* Smart Power Down */
- 		const struct e1000_option opt = {
- 			.type = enable_option,
-diff -puN drivers/net/e1000e/phy.c~e1000e-add-support-for-new-82574l-part drivers/net/e1000e/phy.c
---- a/drivers/net/e1000e/phy.c~e1000e-add-support-for-new-82574l-part
-+++ a/drivers/net/e1000e/phy.c
-@@ -476,7 +476,9 @@ s32 e1000e_copper_link_setup_m88(struct 
- 	if (ret_val)
- 		return ret_val;
- 
--	if ((phy->type == e1000_phy_m88) && (phy->revision < 4)) {
-+	if ((phy->type == e1000_phy_m88) &&
-+	    (phy->revision < E1000_REVISION_4) &&
-+	    (phy->id != BME1000_E_PHY_ID_R2)) {
- 		/*
- 		 * Force TX_CLK in the Extended PHY Specific Control Register
- 		 * to 25MHz clock.
-@@ -504,6 +506,18 @@ s32 e1000e_copper_link_setup_m88(struct 
- 			return ret_val;
- 	}
- 
-+	if ((phy->type == e1000_phy_bm) && (phy->id == BME1000_E_PHY_ID_R2)) {
-+		/* Set PHY page 0, register 29 to 0x0003 */
-+		ret_val = e1e_wphy(hw, 29, 0x0003);
-+		if (ret_val)
-+			return ret_val;
-+
-+		/* Set PHY page 0, register 30 to 0x0000 */
-+		ret_val = e1e_wphy(hw, 30, 0x0000);
-+		if (ret_val)
-+			return ret_val;
-+	}
-+
- 	/* Commit the changes. */
- 	ret_val = e1000e_commit_phy(hw);
- 	if (ret_val)
-@@ -1969,6 +1983,99 @@ out:
- }
- 
- /**
-+ *  e1000e_read_phy_reg_bm2 - Read BM PHY register
-+ *  @hw: pointer to the HW structure
-+ *  @offset: register offset to be read
-+ *  @data: pointer to the read data
-+ *
-+ *  Acquires semaphore, if necessary, then reads the PHY register at offset
-+ *  and storing the retrieved information in data.  Release any acquired
-+ *  semaphores before exiting.
-+ **/
-+s32 e1000e_read_phy_reg_bm2(struct e1000_hw *hw, u32 offset, u16 *data)
-+{
-+	s32 ret_val;
-+	u16 page = (u16)(offset >> IGP_PAGE_SHIFT);
-+
-+	/* Page 800 works differently than the rest so it has its own func */
-+	if (page == BM_WUC_PAGE) {
-+		ret_val = e1000_access_phy_wakeup_reg_bm(hw, offset, data,
-+							 true);
-+		return ret_val;
-+	}
-+
-+	ret_val = hw->phy.ops.acquire_phy(hw);
-+	if (ret_val)
-+		return ret_val;
-+
-+	hw->phy.addr = 1;
-+
-+	if (offset > MAX_PHY_MULTI_PAGE_REG) {
-+
-+		/* Page is shifted left, PHY expects (page x 32) */
-+		ret_val = e1000e_write_phy_reg_mdic(hw, BM_PHY_PAGE_SELECT,
-+						    page);
-+
-+		if (ret_val) {
-+			hw->phy.ops.release_phy(hw);
-+			return ret_val;
-+		}
-+	}
-+
-+	ret_val = e1000e_read_phy_reg_mdic(hw, MAX_PHY_REG_ADDRESS & offset,
-+					   data);
-+	hw->phy.ops.release_phy(hw);
-+
-+	return ret_val;
-+}
-+
-+/**
-+ *  e1000e_write_phy_reg_bm2 - Write BM PHY register
-+ *  @hw: pointer to the HW structure
-+ *  @offset: register offset to write to
-+ *  @data: data to write at register offset
-+ *
-+ *  Acquires semaphore, if necessary, then writes the data to PHY register
-+ *  at the offset.  Release any acquired semaphores before exiting.
-+ **/
-+s32 e1000e_write_phy_reg_bm2(struct e1000_hw *hw, u32 offset, u16 data)
-+{
-+	s32 ret_val;
-+	u16 page = (u16)(offset >> IGP_PAGE_SHIFT);
-+
-+	/* Page 800 works differently than the rest so it has its own func */
-+	if (page == BM_WUC_PAGE) {
-+		ret_val = e1000_access_phy_wakeup_reg_bm(hw, offset, &data,
-+							 false);
-+		return ret_val;
-+	}
-+
-+	ret_val = hw->phy.ops.acquire_phy(hw);
-+	if (ret_val)
-+		return ret_val;
-+
-+	hw->phy.addr = 1;
-+
-+	if (offset > MAX_PHY_MULTI_PAGE_REG) {
-+		/* Page is shifted left, PHY expects (page x 32) */
-+		ret_val = e1000e_write_phy_reg_mdic(hw, BM_PHY_PAGE_SELECT,
-+						    page);
-+
-+		if (ret_val) {
-+			hw->phy.ops.release_phy(hw);
-+			return ret_val;
-+		}
-+	}
-+
-+	ret_val = e1000e_write_phy_reg_mdic(hw, MAX_PHY_REG_ADDRESS & offset,
-+					    data);
-+
-+	hw->phy.ops.release_phy(hw);
-+
-+	return ret_val;
-+}
-+
-+/**
-  *  e1000_access_phy_wakeup_reg_bm - Read BM PHY wakeup register
-  *  @hw: pointer to the HW structure
-  *  @offset: register offset to be read or written
-_
-
-Patches currently in -mm which might be from bruce.w.allan@intel.com are
-
-linux-next.patch
-e1000e-add-support-for-new-82574l-part.patch
-
+-	return ret;
+-} 
+-
+-/* 
+- * Add 'count' bytes from 'buffer' to DMA ring buffers. Return number of
+- * bytes added or -EFAULT if copy_from_user failed.
+- */
+-static int hal2_add_buffer(struct hal2_card *hal2, char *buffer, int count)
+-{
+-	unsigned long flags;
+-	unsigned char *buf;
+-	int size, ret = 0;
+-	struct hal2_desc *head;
+-	struct hal2_codec *dac = &hal2->dac;
+-
+-	DEBUG("adding %d bytes ", count);
+-
+-	spin_lock_irqsave(&dac->lock, flags);
+-	head = &dac->desc[dac->head];
+-	while (head->cnt == 0 && count > 0) {
+-		size = min((int)H2_BLOCK_SIZE, count);
+-		buf = &dac->buffer[dac->head * H2_BLOCK_SIZE];
+-		spin_unlock_irqrestore(&dac->lock, flags);
+-		if (copy_from_user(buf, buffer, size)) {
+-			ret = -EFAULT;
+-			goto out;
+-		}
+-		dma_sync_single(NULL, head->desc.pbuf, size, DMA_TO_DEVICE);
+-		spin_lock_irqsave(&dac->lock, flags);
+-		head->desc.cntinfo = size | HPCDMA_XIE;
+-		head->cnt = size;
+-		buffer += size;
+-		ret += size;
+-		count -= size;
+-		hal2_inc_head(dac);
+-		head = &dac->desc[dac->head];
+-
+-		DEBUG("(%d) ", size);
+-	}
+-	if (!(dac->pbus.pbus->pbdma_ctrl & HPC3_PDMACTRL_ISACT) && ret > 0)
+-		hal2_start_dac(hal2);
+-	spin_unlock_irqrestore(&dac->lock, flags);
+-out:
+-	DEBUG("\n");
+-
+-	return ret;
+-}
+-
+-#define hal2_reset_dac_pointer(hal2)	hal2_reset_pointer(hal2, 1)
+-#define hal2_reset_adc_pointer(hal2)	hal2_reset_pointer(hal2, 0)
+-static void hal2_reset_pointer(struct hal2_card *hal2, int is_dac)
+-{
+-	int i;
+-	struct hal2_codec *codec = (is_dac) ? &hal2->dac : &hal2->adc;
+-
+-	DEBUG("hal2_reset_pointer\n");
+-
+-	for (i = 0; i < codec->desc_count; i++) {
+-		codec->desc[i].cnt = 0;
+-		codec->desc[i].desc.cntinfo = HPCDMA_XIE | (is_dac) ?
+-					      HPCDMA_EOX : H2_BLOCK_SIZE;
+-	}
+-	codec->head = codec->tail = 0;
+-}
+-
+-static int hal2_sync_dac(struct hal2_card *hal2)
+-{
+-	DECLARE_WAITQUEUE(wait, current);
+-	struct hal2_codec *dac = &hal2->dac;
+-	int ret = 0;
+-	unsigned long flags;
+-	signed long timeout = 1000 * H2_BLOCK_SIZE * 2 * dac->voices *
+-			      HZ / dac->sample_rate / 900;
+-
+-	while (dac->pbus.pbus->pbdma_ctrl & HPC3_PDMACTRL_ISACT) {
+-		add_wait_queue(&dac->dma_wait, &wait);
+-		set_current_state(TASK_INTERRUPTIBLE);
+-		schedule_timeout(timeout);
+-		spin_lock_irqsave(&dac->lock, flags);
+-		if (dac->desc[dac->tail].cnt)
+-			ret = -ETIME;
+-		spin_unlock_irqrestore(&dac->lock, flags);
+-		if (signal_pending(current))
+-			ret = -ERESTARTSYS;
+-		if (ret) {
+-			hal2_stop_dac(hal2);
+-			hal2_reset_dac_pointer(hal2);
+-		}
+-		remove_wait_queue(&dac->dma_wait, &wait);
+-	}
+-
+-	return ret;
+-}
+-
+-static int hal2_write_mixer(struct hal2_card *hal2, int index, int vol)
+-{
+-	unsigned int l, r, tmp;
+-
+-	DEBUG_MIX("mixer %d write\n", index);
+-
+-	if (index >= SOUND_MIXER_NRDEVICES || !mixtable[index].avail)
+-		return -EINVAL;
+-
+-	r = (vol >> 8) & 0xff;
+-	if (r > 100)
+-		r = 100;
+-	l = vol & 0xff;
+-	if (l > 100)
+-		l = 100;
+-
+-	hal2->mixer.volume[mixtable[index].idx] = l | (r << 8);
+-
+-	switch (mixtable[index].idx) {
+-	case H2_MIX_OUTPUT_ATT:
+-
+-		DEBUG_MIX("output attenuator %d,%d\n", l, r);
+-
+-		if (r | l) {
+-			tmp = hal2_i_look32(hal2, H2I_DAC_C2);
+-			tmp &= ~(H2I_C2_L_ATT_M | H2I_C2_R_ATT_M | H2I_C2_MUTE);
+-
+-			/* Attenuator has five bits */
+-			l = 31 * (100 - l) / 99;
+-			r = 31 * (100 - r) / 99;
+-
+-			DEBUG_MIX("left: %d, right %d\n", l, r);
+-
+-			tmp |= (l << H2I_C2_L_ATT_SHIFT) & H2I_C2_L_ATT_M;
+-			tmp |= (r << H2I_C2_R_ATT_SHIFT) & H2I_C2_R_ATT_M;
+-			hal2_i_write32(hal2, H2I_DAC_C2, tmp);
+-		} else 
+-			hal2_i_setbit32(hal2, H2I_DAC_C2, H2I_C2_MUTE);
+-		break;
+-	case H2_MIX_INPUT_GAIN:
+-
+-		DEBUG_MIX("input gain %d,%d\n", l, r);
+-
+-		tmp = hal2_i_look32(hal2, H2I_ADC_C2);
+-		tmp &= ~(H2I_C2_L_GAIN_M | H2I_C2_R_GAIN_M);
+-
+-		/* Gain control has four bits */
+-		l = 16 * l / 100;
+-		r = 16 * r / 100;
+-
+-		DEBUG_MIX("left: %d, right %d\n", l, r);
+-
+-		tmp |= (l << H2I_C2_L_GAIN_SHIFT) & H2I_C2_L_GAIN_M;
+-		tmp |= (r << H2I_C2_R_GAIN_SHIFT) & H2I_C2_R_GAIN_M;
+-		hal2_i_write32(hal2, H2I_ADC_C2, tmp);
+-
+-		break;
+-	}
+-
+-	return 0;
+-}
+-
+-static void hal2_init_mixer(struct hal2_card *hal2)
+-{
+-	int i;
+-
+-	for (i = 0; i < SOUND_MIXER_NRDEVICES; i++)
+-		if (mixtable[i].avail)
+-			hal2->mixer.volume[mixtable[i].idx] = 100 | (100 << 8);
+-
+-	/* disable attenuator */
+-	hal2_i_write32(hal2, H2I_DAC_C2, 0);
+-	/* set max input gain */
+-	hal2_i_write32(hal2, H2I_ADC_C2, H2I_C2_MUTE |
+-			(H2I_C2_L_GAIN_M << H2I_C2_L_GAIN_SHIFT) |
+-			(H2I_C2_R_GAIN_M << H2I_C2_R_GAIN_SHIFT));
+-	/* set max volume */
+-	hal2->mixer.master = 0xff;
+-	hal2->vol_regs->left = 0xff;
+-	hal2->vol_regs->right = 0xff;
+-}
+-
+-/*
+- * XXX: later i'll implement mixer for main volume which will be disabled
+- * by default. enabling it users will be allowed to have master volume level
+- * control on panel in their favourite X desktop
+- */
+-static void hal2_volume_control(int direction)
+-{
+-	unsigned int master = hal2_card[0]->mixer.master;
+-	struct hal2_vol_regs *vol = hal2_card[0]->vol_regs;
+-
+-	/* volume up */
+-	if (direction > 0 && master < 0xff)
+-		master++;
+-	/* volume down */
+-	else if (direction < 0 && master > 0)
+-		master--;
+-	/* TODO: mute/unmute */
+-	vol->left = master;
+-	vol->right = master;
+-	hal2_card[0]->mixer.master = master;
+-}
+-
+-static int hal2_mixer_ioctl(struct hal2_card *hal2, unsigned int cmd,
+-			    unsigned long arg)
+-{
+-	int val;
+-
+-        if (cmd == SOUND_MIXER_INFO) {
+-		mixer_info info;
+-
+-		memset(&info, 0, sizeof(info));
+-		strlcpy(info.id, hal2str, sizeof(info.id));
+-		strlcpy(info.name, hal2str, sizeof(info.name));
+-		info.modify_counter = hal2->mixer.modcnt;
+-		if (copy_to_user((void *)arg, &info, sizeof(info)))
+-			return -EFAULT;
+-		return 0;
+-	}
+-	if (cmd == SOUND_OLD_MIXER_INFO) {
+-		_old_mixer_info info;
+-
+-		memset(&info, 0, sizeof(info));
+-		strlcpy(info.id, hal2str, sizeof(info.id));
+-		strlcpy(info.name, hal2str, sizeof(info.name));
+-		if (copy_to_user((void *)arg, &info, sizeof(info)))
+-			return -EFAULT;
+-		return 0;
+-	}
+-	if (cmd == OSS_GETVERSION)
+-		return put_user(SOUND_VERSION, (int *)arg);
+-
+-	if (_IOC_TYPE(cmd) != 'M' || _IOC_SIZE(cmd) != sizeof(int))
+-                return -EINVAL;
+-
+-        if (_IOC_DIR(cmd) == _IOC_READ) {
+-                switch (_IOC_NR(cmd)) {
+-		/* Give the current record source */
+-		case SOUND_MIXER_RECSRC:
+-			val = 0;	/* FIXME */
+-			break;
+-		/* Give the supported mixers, all of them support stereo */
+-                case SOUND_MIXER_DEVMASK:
+-                case SOUND_MIXER_STEREODEVS: {
+-			int i;
+-
+-			for (val = i = 0; i < SOUND_MIXER_NRDEVICES; i++)
+-				if (mixtable[i].avail)
+-					val |= 1 << i;
+-			break;
+-			}
+-		/* Arg contains a bit for each supported recording source */
+-                case SOUND_MIXER_RECMASK:
+-			val = 0;
+-			break;
+-                case SOUND_MIXER_CAPS:
+-			val = 0;
+-			break;
+-		/* Read a specific mixer */
+-		default: {
+-			int i = _IOC_NR(cmd);
+-
+-			if (i >= SOUND_MIXER_NRDEVICES || !mixtable[i].avail)
+-				return -EINVAL;
+-			val = hal2->mixer.volume[mixtable[i].idx];
+-			break;
+-			}
+-		}
+-		return put_user(val, (int *)arg);
+-	}
+-
+-        if (_IOC_DIR(cmd) != (_IOC_WRITE|_IOC_READ))
+-		return -EINVAL;
+-
+-	hal2->mixer.modcnt++;
+-
+-	if (get_user(val, (int *)arg))
+-		return -EFAULT;
+-
+-	switch (_IOC_NR(cmd)) {
+-	/* Arg contains a bit for each recording source */
+-	case SOUND_MIXER_RECSRC:
+-		return 0;	/* FIXME */
+-	default:
+-		return hal2_write_mixer(hal2, _IOC_NR(cmd), val);
+-	}
+-
+-	return 0;
+-}
+-
+-static int hal2_open_mixdev(struct inode *inode, struct file *file)
+-{
+-	struct hal2_card *hal2 = hal2_mixer_find_card(iminor(inode));
+-
+-	if (hal2) {
+-		file->private_data = hal2;
+-		return nonseekable_open(inode, file);
+-	}
+-	return -ENODEV;
+-}
+-
+-static int hal2_release_mixdev(struct inode *inode, struct file *file)
+-{
+-	return 0;
+-}
+-
+-static int hal2_ioctl_mixdev(struct inode *inode, struct file *file,
+-			     unsigned int cmd, unsigned long arg)
+-{
+-	return hal2_mixer_ioctl((struct hal2_card *)file->private_data, cmd, arg);
+-}
+-
+-static int hal2_ioctl(struct inode *inode, struct file *file, 
+-		      unsigned int cmd, unsigned long arg)
+-{
+-	int val;
+-	struct hal2_card *hal2 = (struct hal2_card *) file->private_data;
+-
+-	switch (cmd) {
+-	case OSS_GETVERSION:
+-		return put_user(SOUND_VERSION, (int *)arg);
+-
+-	case SNDCTL_DSP_SYNC:
+-		if (file->f_mode & FMODE_WRITE)
+-			return hal2_sync_dac(hal2);
+-		return 0;
+-
+-	case SNDCTL_DSP_SETDUPLEX:
+-		return 0;
+-
+-	case SNDCTL_DSP_GETCAPS:
+-		return put_user(DSP_CAP_DUPLEX | DSP_CAP_MULTI, (int *)arg);
+-
+-	case SNDCTL_DSP_RESET:
+-		if (file->f_mode & FMODE_READ) {
+-			hal2_stop_adc(hal2);
+-			hal2_reset_adc_pointer(hal2);
+-		}
+-		if (file->f_mode & FMODE_WRITE) {
+-			hal2_stop_dac(hal2);
+-			hal2_reset_dac_pointer(hal2);
+-		}
+-		return 0;
+-
+- 	case SNDCTL_DSP_SPEED:
+-		if (get_user(val, (int *)arg))
+-			return -EFAULT;
+-		if (file->f_mode & FMODE_READ) {
+-			hal2_stop_adc(hal2);
+-			val = hal2_compute_rate(&hal2->adc, val);
+-			hal2->adc.sample_rate = val;
+-			hal2_set_adc_rate(hal2);
+-		}
+-		if (file->f_mode & FMODE_WRITE) {
+-			hal2_stop_dac(hal2);
+-			val = hal2_compute_rate(&hal2->dac, val);
+-			hal2->dac.sample_rate = val;
+-			hal2_set_dac_rate(hal2);
+-		}
+-		return put_user(val, (int *)arg);
+-
+-	case SNDCTL_DSP_STEREO:
+-		if (get_user(val, (int *)arg))
+-			return -EFAULT;
+-		if (file->f_mode & FMODE_READ) {
+-			hal2_stop_adc(hal2);
+-			hal2->adc.voices = (val) ? 2 : 1;
+-			hal2_setup_adc(hal2);
+-		}
+-		if (file->f_mode & FMODE_WRITE) {
+-			hal2_stop_dac(hal2);
+-			hal2->dac.voices = (val) ? 2 : 1;
+-			hal2_setup_dac(hal2);
+-                }
+-		return 0;
+-
+-	case SNDCTL_DSP_CHANNELS:
+-		if (get_user(val, (int *)arg))
+-			return -EFAULT;
+-		if (val != 0) {
+-			if (file->f_mode & FMODE_READ) {
+-				hal2_stop_adc(hal2);
+-				hal2->adc.voices = (val == 1) ? 1 : 2;
+-				hal2_setup_adc(hal2);
+-			}
+-			if (file->f_mode & FMODE_WRITE) {
+-				hal2_stop_dac(hal2);
+-				hal2->dac.voices = (val == 1) ? 1 : 2;
+-				hal2_setup_dac(hal2);
+-			}
+-		}
+-		val = -EINVAL;
+-		if (file->f_mode & FMODE_READ)
+-			val = hal2->adc.voices;
+-		if (file->f_mode & FMODE_WRITE)
+-			val = hal2->dac.voices;
+-		return put_user(val, (int *)arg);
+-
+-	case SNDCTL_DSP_GETFMTS: /* Returns a mask */
+-                return put_user(H2_SUPPORTED_FORMATS, (int *)arg);
+-
+-	case SNDCTL_DSP_SETFMT: /* Selects ONE fmt*/
+-		if (get_user(val, (int *)arg))
+-			return -EFAULT;
+-		if (val != AFMT_QUERY) {
+-			if (!(val & H2_SUPPORTED_FORMATS))
+-				return -EINVAL;
+-			if (file->f_mode & FMODE_READ) {
+-				hal2_stop_adc(hal2);
+-				hal2->adc.format = val;
+-				hal2_setup_adc(hal2);
+-			}
+-			if (file->f_mode & FMODE_WRITE) {
+-				hal2_stop_dac(hal2);
+-				hal2->dac.format = val;
+-				hal2_setup_dac(hal2);
+-			}
+-		} else {
+-			val = -EINVAL;
+-			if (file->f_mode & FMODE_READ)
+-				val = hal2->adc.format;
+-			if (file->f_mode & FMODE_WRITE)
+-				val = hal2->dac.format;
+-		}
+-		return put_user(val, (int *)arg);
+-
+-	case SNDCTL_DSP_POST:
+-		return 0;
+-
+-	case SNDCTL_DSP_GETOSPACE: {
+-		audio_buf_info info;
+-		int i;
+-		unsigned long flags;
+-		struct hal2_codec *dac = &hal2->dac;
+-
+-		if (!(file->f_mode & FMODE_WRITE))
+-			return -EINVAL;
+-		info.fragments = 0;
+-		spin_lock_irqsave(&dac->lock, flags);
+-		for (i = 0; i < dac->desc_count; i++)
+-			if (dac->desc[i].cnt == 0)
+-				info.fragments++;
+-		spin_unlock_irqrestore(&dac->lock, flags);
+-		info.fragstotal = dac->desc_count;
+-		info.fragsize = H2_BLOCK_SIZE;
+-                info.bytes = info.fragsize * info.fragments;
+-
+-		return copy_to_user((void *)arg, &info, sizeof(info)) ? -EFAULT : 0;
+-	}
+-
+-	case SNDCTL_DSP_GETISPACE: {
+-		audio_buf_info info;
+-		int i;
+-		unsigned long flags;
+-		struct hal2_codec *adc = &hal2->adc;
+-
+-		if (!(file->f_mode & FMODE_READ))
+-			return -EINVAL;
+-		info.fragments = 0;
+-		info.bytes = 0;
+-		spin_lock_irqsave(&adc->lock, flags);
+-		for (i = 0; i < adc->desc_count; i++)
+-			if (adc->desc[i].cnt > 0) {
+-				info.fragments++;
+-				info.bytes += adc->desc[i].cnt;
+-			}
+-		spin_unlock_irqrestore(&adc->lock, flags);
+-		info.fragstotal = adc->desc_count;
+-		info.fragsize = H2_BLOCK_SIZE;
+-
+-		return copy_to_user((void *)arg, &info, sizeof(info)) ? -EFAULT : 0;
+-	}
+-
+-	case SNDCTL_DSP_NONBLOCK:
+-		file->f_flags |= O_NONBLOCK;
+-		return 0;
+-
+-	case SNDCTL_DSP_GETBLKSIZE:
+-		return put_user(H2_BLOCK_SIZE, (int *)arg);
+-
+-	case SNDCTL_DSP_SETFRAGMENT:
+-		return 0;
+-
+-	case SOUND_PCM_READ_RATE:
+-		val = -EINVAL;
+-		if (file->f_mode & FMODE_READ)
+-			val = hal2->adc.sample_rate;
+-		if (file->f_mode & FMODE_WRITE)
+-			val = hal2->dac.sample_rate;
+-		return put_user(val, (int *)arg);
+-
+-	case SOUND_PCM_READ_CHANNELS:
+-		val = -EINVAL;
+-		if (file->f_mode & FMODE_READ)
+-			val = hal2->adc.voices;
+-		if (file->f_mode & FMODE_WRITE)
+-			val = hal2->dac.voices;
+-		return put_user(val, (int *)arg);
+-
+-	case SOUND_PCM_READ_BITS:
+-		return put_user(16, (int *)arg);
+-	}
+-
+-	return hal2_mixer_ioctl(hal2, cmd, arg);
+-}
+-
+-static ssize_t hal2_read(struct file *file, char *buffer,
+-			 size_t count, loff_t *ppos)
+-{
+-	ssize_t err;
+-	struct hal2_card *hal2 = (struct hal2_card *) file->private_data;
+-	struct hal2_codec *adc = &hal2->adc;
+-
+-	if (!count)
+-		return 0;
+-	if (mutex_lock_interruptible(&adc->sem))
+-		return -EINTR;
+-	if (file->f_flags & O_NONBLOCK) {
+-		err = hal2_get_buffer(hal2, buffer, count);
+-		err = err == 0 ? -EAGAIN : err;
+-	} else {
+-		do {
+-			/* ~10% longer */
+-			signed long timeout = 1000 * H2_BLOCK_SIZE *
+-				2 * adc->voices * HZ / adc->sample_rate / 900;
+-			unsigned long flags;
+-			DECLARE_WAITQUEUE(wait, current);
+-			ssize_t cnt = 0;
+-
+-			err = hal2_get_buffer(hal2, buffer, count);
+-			if (err > 0) {
+-				count -= err;
+-				cnt += err;
+-				buffer += err;
+-				err = cnt;
+-			}
+-			if (count > 0 && err >= 0) {
+-				add_wait_queue(&adc->dma_wait, &wait);
+-				set_current_state(TASK_INTERRUPTIBLE);
+-				schedule_timeout(timeout);
+-				spin_lock_irqsave(&adc->lock, flags);
+-				if (!adc->desc[adc->tail].cnt)
+-					err = -EAGAIN;
+-				spin_unlock_irqrestore(&adc->lock, flags);
+-				if (signal_pending(current))
+-					err = -ERESTARTSYS;
+-				remove_wait_queue(&adc->dma_wait, &wait);
+-				if (err < 0) {
+-					hal2_stop_adc(hal2);
+-					hal2_reset_adc_pointer(hal2);
+-				}
+-			}
+-		} while (count > 0 && err >= 0);
+-	}
+-	mutex_unlock(&adc->sem);
+-
+-	return err;
+-}
+-
+-static ssize_t hal2_write(struct file *file, const char *buffer,
+-			  size_t count, loff_t *ppos)
+-{
+-	ssize_t err;
+-	char *buf = (char*) buffer;
+-	struct hal2_card *hal2 = (struct hal2_card *) file->private_data;
+-	struct hal2_codec *dac = &hal2->dac;
+-
+-	if (!count)
+-		return 0;
+-	if (mutex_lock_interruptible(&dac->sem))
+-		return -EINTR;
+-	if (file->f_flags & O_NONBLOCK) {
+-		err = hal2_add_buffer(hal2, buf, count);
+-		err = err == 0 ? -EAGAIN : err;
+-	} else {
+-		do {
+-			/* ~10% longer */
+-			signed long timeout = 1000 * H2_BLOCK_SIZE *
+-				2 * dac->voices * HZ / dac->sample_rate / 900;
+-			unsigned long flags;
+-			DECLARE_WAITQUEUE(wait, current);
+-			ssize_t cnt = 0;
+-
+-			err = hal2_add_buffer(hal2, buf, count);
+-			if (err > 0) {
+-				count -= err;
+-				cnt += err;
+-				buf += err;
+-				err = cnt;
+-			}
+-			if (count > 0 && err >= 0) {
+-				add_wait_queue(&dac->dma_wait, &wait);
+-				set_current_state(TASK_INTERRUPTIBLE);
+-				schedule_timeout(timeout);
+-				spin_lock_irqsave(&dac->lock, flags);
+-				if (dac->desc[dac->head].cnt)
+-					err = -EAGAIN;
+-				spin_unlock_irqrestore(&dac->lock, flags);
+-				if (signal_pending(current))
+-					err = -ERESTARTSYS;
+-				remove_wait_queue(&dac->dma_wait, &wait);
+-				if (err < 0) {
+-					hal2_stop_dac(hal2);
+-					hal2_reset_dac_pointer(hal2);
+-				}
+-			}
+-		} while (count > 0 && err >= 0);
+-	}
+-	mutex_unlock(&dac->sem);
+-
+-	return err;
+-}
+-
+-static unsigned int hal2_poll(struct file *file, struct poll_table_struct *wait)
+-{
+-	unsigned long flags;
+-	unsigned int mask = 0;
+-	struct hal2_card *hal2 = (struct hal2_card *) file->private_data;
+-
+-	if (file->f_mode & FMODE_READ) {
+-		struct hal2_codec *adc = &hal2->adc;
+-
+-		poll_wait(file, &adc->dma_wait, wait);
+-		spin_lock_irqsave(&adc->lock, flags);
+-		if (adc->desc[adc->tail].cnt > 0)
+-			mask |= POLLIN;
+-		spin_unlock_irqrestore(&adc->lock, flags);
+-	}
+-
+-	if (file->f_mode & FMODE_WRITE) {
+-		struct hal2_codec *dac = &hal2->dac;
+-
+-		poll_wait(file, &dac->dma_wait, wait);
+-		spin_lock_irqsave(&dac->lock, flags);
+-		if (dac->desc[dac->head].cnt == 0)
+-			mask |= POLLOUT;
+-		spin_unlock_irqrestore(&dac->lock, flags);
+-	}
+-
+-	return mask;
+-}
+-
+-static int hal2_open(struct inode *inode, struct file *file)
+-{
+-	int err;
+-	struct hal2_card *hal2 = hal2_dsp_find_card(iminor(inode));
+-
+-	if (!hal2)
+-		return -ENODEV;
+-	file->private_data = hal2;
+-	if (file->f_mode & FMODE_READ) {
+-		struct hal2_codec *adc = &hal2->adc;
+-
+-		if (adc->usecount)
+-			return -EBUSY;
+-		/* OSS spec wanted us to use 8 bit, 8 kHz mono by default,
+-		 * but HAL2 can't do 8bit audio */
+-		adc->format = AFMT_S16_BE;
+-		adc->voices = 1;
+-		adc->sample_rate = hal2_compute_rate(adc, 8000);
+-		hal2_set_adc_rate(hal2);
+-		err = hal2_alloc_adc_dmabuf(adc);
+-		if (err)
+-			return err;
+-		hal2_setup_adc(hal2);
+-		adc->usecount++;
+-	}
+-	if (file->f_mode & FMODE_WRITE) {
+-		struct hal2_codec *dac = &hal2->dac;
+-
+-		if (dac->usecount)
+-			return -EBUSY;
+-		dac->format = AFMT_S16_BE;
+-		dac->voices = 1;
+-		dac->sample_rate = hal2_compute_rate(dac, 8000);
+-		hal2_set_dac_rate(hal2);
+-		err = hal2_alloc_dac_dmabuf(dac);
+-		if (err)
+-			return err;
+-		hal2_setup_dac(hal2);
+-		dac->usecount++;
+-	}
+-
+-	return nonseekable_open(inode, file);
+-}
+-
+-static int hal2_release(struct inode *inode, struct file *file)
+-{
+-	struct hal2_card *hal2 = (struct hal2_card *) file->private_data;
+-
+-	if (file->f_mode & FMODE_READ) {
+-		struct hal2_codec *adc = &hal2->adc;
+-
+-		mutex_lock(&adc->sem);
+-		hal2_stop_adc(hal2);
+-		hal2_free_adc_dmabuf(adc);
+-		adc->usecount--;
+-		mutex_unlock(&adc->sem);
+-	}
+-	if (file->f_mode & FMODE_WRITE) {
+-		struct hal2_codec *dac = &hal2->dac;
+-
+-		mutex_lock(&dac->sem);
+-		hal2_sync_dac(hal2);
+-		hal2_free_dac_dmabuf(dac);
+-		dac->usecount--;
+-		mutex_unlock(&dac->sem);
+-	}
+-
+-	return 0;
+-}
+-
+-static const struct file_operations hal2_audio_fops = {
+-	.owner		= THIS_MODULE,
+-	.llseek		= no_llseek,
+-	.read		= hal2_read,
+-	.write		= hal2_write,
+-	.poll		= hal2_poll,
+-	.ioctl		= hal2_ioctl,
+-	.open		= hal2_open,
+-	.release	= hal2_release,
+-};
+-
+-static const struct file_operations hal2_mixer_fops = {
+-	.owner		= THIS_MODULE,
+-	.llseek		= no_llseek,
+-	.ioctl		= hal2_ioctl_mixdev,
+-	.open		= hal2_open_mixdev,
+-	.release	= hal2_release_mixdev,
+-};
+-
+-static void hal2_init_codec(struct hal2_codec *codec, struct hpc3_regs *hpc3,
+-			    int index)
+-{
+-	codec->pbus.pbusnr = index;
+-	codec->pbus.pbus = &hpc3->pbdma[index];
+-	init_waitqueue_head(&codec->dma_wait);
+-	mutex_init(&codec->sem);
+-	spin_lock_init(&codec->lock);
+-}
+-
+-static int hal2_detect(struct hal2_card *hal2)
+-{
+-	unsigned short board, major, minor;
+-	unsigned short rev;
+-
+-	/* reset HAL2 */
+-	hal2_isr_write(hal2, 0);
+-	/* release reset */
+-	hal2_isr_write(hal2, H2_ISR_GLOBAL_RESET_N | H2_ISR_CODEC_RESET_N);
+-
+-	hal2_i_write16(hal2, H2I_RELAY_C, H2I_RELAY_C_STATE); 
+-	if ((rev = hal2_rev_look(hal2)) & H2_REV_AUDIO_PRESENT)
+-		return -ENODEV;
+-
+-	board = (rev & H2_REV_BOARD_M) >> 12;
+-	major = (rev & H2_REV_MAJOR_CHIP_M) >> 4;
+-	minor = (rev & H2_REV_MINOR_CHIP_M);
+-
+-	printk(KERN_INFO "SGI HAL2 revision %i.%i.%i\n",
+-	       board, major, minor);
+-
+-	return 0;
+-}
+-
+-static int hal2_init_card(struct hal2_card **phal2, struct hpc3_regs *hpc3)
+-{
+-	int ret = 0;
+-	struct hal2_card *hal2;
+-
+-	hal2 = kzalloc(sizeof(struct hal2_card), GFP_KERNEL);
+-	if (!hal2)
+-		return -ENOMEM;
+-
+-	hal2->ctl_regs = (struct hal2_ctl_regs *)hpc3->pbus_extregs[0];
+-	hal2->aes_regs = (struct hal2_aes_regs *)hpc3->pbus_extregs[1];
+-	hal2->vol_regs = (struct hal2_vol_regs *)hpc3->pbus_extregs[2];
+-	hal2->syn_regs = (struct hal2_syn_regs *)hpc3->pbus_extregs[3];
+-
+-	if (hal2_detect(hal2) < 0) {
+-		ret = -ENODEV;
+-		goto free_card;
+-	}
+-
+-	hal2_init_codec(&hal2->dac, hpc3, 0);
+-	hal2_init_codec(&hal2->adc, hpc3, 1);
+-
+-	/*
+-	 * All DMA channel interfaces in HAL2 are designed to operate with
+-	 * PBUS programmed for 2 cycles in D3, 2 cycles in D4 and 2 cycles
+-	 * in D5. HAL2 is a 16-bit device which can accept both big and little
+-	 * endian format. It assumes that even address bytes are on high
+-	 * portion of PBUS (15:8) and assumes that HPC3 is programmed to
+-	 * accept a live (unsynchronized) version of P_DREQ_N from HAL2.
+-	 */
+-#define HAL2_PBUS_DMACFG ((0 << HPC3_DMACFG_D3R_SHIFT) | \
+-			  (2 << HPC3_DMACFG_D4R_SHIFT) | \
+-			  (2 << HPC3_DMACFG_D5R_SHIFT) | \
+-			  (0 << HPC3_DMACFG_D3W_SHIFT) | \
+-			  (2 << HPC3_DMACFG_D4W_SHIFT) | \
+-			  (2 << HPC3_DMACFG_D5W_SHIFT) | \
+-				HPC3_DMACFG_DS16 | \
+-				HPC3_DMACFG_EVENHI | \
+-				HPC3_DMACFG_RTIME | \
+-			  (8 << HPC3_DMACFG_BURST_SHIFT) | \
+-				HPC3_DMACFG_DRQLIVE)
+-	/*
+-	 * Ignore what's mentioned in the specification and write value which
+-	 * works in The Real World (TM)
+-	 */
+-	hpc3->pbus_dmacfg[hal2->dac.pbus.pbusnr][0] = 0x8208844;
+-	hpc3->pbus_dmacfg[hal2->adc.pbus.pbusnr][0] = 0x8208844;
+-
+-	if (request_irq(SGI_HPCDMA_IRQ, hal2_interrupt, IRQF_SHARED,
+-			hal2str, hal2)) {
+-		printk(KERN_ERR "HAL2: Can't get irq %d\n", SGI_HPCDMA_IRQ);
+-		ret = -EAGAIN;
+-		goto free_card;
+-	}
+-
+-	hal2->dev_dsp = register_sound_dsp(&hal2_audio_fops, -1);
+-	if (hal2->dev_dsp < 0) {
+-		ret = hal2->dev_dsp;
+-		goto free_irq;
+-	}
+-
+-	hal2->dev_mixer = register_sound_mixer(&hal2_mixer_fops, -1);
+-	if (hal2->dev_mixer < 0) {
+-		ret = hal2->dev_mixer;
+-		goto unregister_dsp;
+-	}
+-
+-	hal2_init_mixer(hal2);
+-
+-	*phal2 = hal2;
+-	return 0;
+-unregister_dsp:
+-	unregister_sound_dsp(hal2->dev_dsp);
+-free_irq:
+-	free_irq(SGI_HPCDMA_IRQ, hal2);
+-free_card:
+-	kfree(hal2);
+-
+-	return ret;
+-}
+-
+-extern void (*indy_volume_button)(int);
+-
+-/* 
+- * Assuming only one HAL2 card. Mail me if you ever meet machine with
+- * more than one.
+- */
+-static int __init init_hal2(void)
+-{
+-	int i, error;
+-
+-	for (i = 0; i < MAXCARDS; i++)
+-		hal2_card[i] = NULL;
+-
+-	error = hal2_init_card(&hal2_card[0], hpc3c0);
+-
+-	/* let Indy's volume buttons work */
+-	if (!error && !ip22_is_fullhouse())
+-		indy_volume_button = hal2_volume_control;
+-
+-	return error;
+-
+-}
+-
+-static void __exit exit_hal2(void)
+-{
+-	int i;
+-
+-	/* unregister volume butons callback function */
+-	indy_volume_button = NULL;
+-	
+-	for (i = 0; i < MAXCARDS; i++)
+-		if (hal2_card[i]) {
+-			free_irq(SGI_HPCDMA_IRQ, hal2_card[i]);
+-			unregister_sound_dsp(hal2_card[i]->dev_dsp);
+-			unregister_sound_mixer(hal2_card[i]->dev_mixer);
+-			kfree(hal2_card[i]);
+-	}
+-}
+-
+-module_init(init_hal2);
+-module_exit(exit_hal2);
+-
+-MODULE_DESCRIPTION("OSS compatible driver for SGI HAL2 audio");
+-MODULE_AUTHOR("Ladislav Michl");
+-MODULE_LICENSE("GPL");
+diff -puN sound/oss/hal2.h~oss-remove-driver-for-sgi-hal2-audio-device /dev/null
+--- a/sound/oss/hal2.h
++++ /dev/null
+@@ -1,248 +0,0 @@
+-#ifndef __HAL2_H
+-#define __HAL2_H
+-
+-/*
+- *  Driver for HAL2 sound processors
+- *  Copyright (c) 1999 Ulf Carlsson <ulfc@bun.falkenberg.se>
+- *  Copyright (c) 2001, 2002, 2003 Ladislav Michl <ladis@linux-mips.org>
+- *
+- *  This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License version 2 as 
+- *  published by the Free Software Foundation.
+- *
+- *  This program is distributed in the hope that it will be useful,
+- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- *
+- */
+-
+-#include <asm/addrspace.h>
+-#include <asm/sgi/hpc3.h>
+-#include <linux/spinlock.h>
+-#include <linux/types.h>
+-
+-/* Indirect status register */
+-
+-#define H2_ISR_TSTATUS		0x01	/* RO: transaction status 1=busy */
+-#define H2_ISR_USTATUS		0x02	/* RO: utime status bit 1=armed */
+-#define H2_ISR_QUAD_MODE	0x04	/* codec mode 0=indigo 1=quad */
+-#define H2_ISR_GLOBAL_RESET_N	0x08	/* chip global reset 0=reset */
+-#define H2_ISR_CODEC_RESET_N	0x10	/* codec/synth reset 0=reset  */
+-
+-/* Revision register */
+-
+-#define H2_REV_AUDIO_PRESENT	0x8000	/* RO: audio present 0=present */
+-#define H2_REV_BOARD_M		0x7000	/* RO: bits 14:12, board revision */
+-#define H2_REV_MAJOR_CHIP_M	0x00F0	/* RO: bits 7:4, major chip revision */
+-#define H2_REV_MINOR_CHIP_M	0x000F	/* RO: bits 3:0, minor chip revision */
+-
+-/* Indirect address register */
+-
+-/*
+- * Address of indirect internal register to be accessed. A write to this
+- * register initiates read or write access to the indirect registers in the
+- * HAL2. Note that there af four indirect data registers for write access to
+- * registers larger than 16 byte.
+- */
+-
+-#define H2_IAR_TYPE_M		0xF000	/* bits 15:12, type of functional */
+-					/* block the register resides in */
+-					/* 1=DMA Port */
+-					/* 9=Global DMA Control */
+-					/* 2=Bresenham */
+-					/* 3=Unix Timer */
+-#define H2_IAR_NUM_M		0x0F00	/* bits 11:8 instance of the */
+-					/* blockin which the indirect */
+-					/* register resides */
+-					/* If IAR_TYPE_M=DMA Port: */
+-					/* 1=Synth In */
+-					/* 2=AES In */
+-					/* 3=AES Out */
+-					/* 4=DAC Out */
+-					/* 5=ADC Out */
+-					/* 6=Synth Control */
+-					/* If IAR_TYPE_M=Global DMA Control: */
+-					/* 1=Control */
+-					/* If IAR_TYPE_M=Bresenham: */
+-					/* 1=Bresenham Clock Gen 1 */
+-					/* 2=Bresenham Clock Gen 2 */
+-					/* 3=Bresenham Clock Gen 3 */
+-					/* If IAR_TYPE_M=Unix Timer: */
+-					/* 1=Unix Timer */
+-#define H2_IAR_ACCESS_SELECT	0x0080	/* 1=read 0=write */
+-#define H2_IAR_PARAM		0x000C	/* Parameter Select */
+-#define H2_IAR_RB_INDEX_M	0x0003	/* Read Back Index */
+-					/* 00:word0 */
+-					/* 01:word1 */
+-					/* 10:word2 */
+-					/* 11:word3 */
+-/*
+- * HAL2 internal addressing
+- *
+- * The HAL2 has "indirect registers" (idr) which are accessed by writing to the
+- * Indirect Data registers. Write the address to the Indirect Address register
+- * to transfer the data.
+- *
+- * We define the H2IR_* to the read address and H2IW_* to the write address and
+- * H2I_* to be fields in whatever register is referred to.
+- *
+- * When we write to indirect registers which are larger than one word (16 bit)
+- * we have to fill more than one indirect register before writing. When we read
+- * back however we have to read several times, each time with different Read
+- * Back Indexes (there are defs for doing this easily).
+- */
+-
+-/*
+- * Relay Control
+- */
+-#define H2I_RELAY_C		0x9100
+-#define H2I_RELAY_C_STATE	0x01		/* state of RELAY pin signal */
+-
+-/* DMA port enable */
+-
+-#define H2I_DMA_PORT_EN		0x9104
+-#define H2I_DMA_PORT_EN_SY_IN	0x01		/* Synth_in DMA port */
+-#define H2I_DMA_PORT_EN_AESRX	0x02		/* AES receiver DMA port */
+-#define H2I_DMA_PORT_EN_AESTX	0x04		/* AES transmitter DMA port */
+-#define H2I_DMA_PORT_EN_CODECTX	0x08		/* CODEC transmit DMA port */
+-#define H2I_DMA_PORT_EN_CODECR	0x10		/* CODEC receive DMA port */
+-
+-#define H2I_DMA_END		0x9108 		/* global dma endian select */
+-#define H2I_DMA_END_SY_IN	0x01		/* Synth_in DMA port */
+-#define H2I_DMA_END_AESRX	0x02		/* AES receiver DMA port */
+-#define H2I_DMA_END_AESTX	0x04		/* AES transmitter DMA port */
+-#define H2I_DMA_END_CODECTX	0x08		/* CODEC transmit DMA port */
+-#define H2I_DMA_END_CODECR	0x10		/* CODEC receive DMA port */
+-						/* 0=b_end 1=l_end */
+-
+-#define H2I_DMA_DRV		0x910C  	/* global PBUS DMA enable */
+-
+-#define H2I_SYNTH_C		0x1104		/* Synth DMA control */
+-
+-#define H2I_AESRX_C		0x1204	 	/* AES RX dma control */
+-
+-#define H2I_C_TS_EN		0x20		/* Timestamp enable */
+-#define H2I_C_TS_FRMT		0x40		/* Timestamp format */
+-#define H2I_C_NAUDIO		0x80		/* Sign extend */
+-
+-/* AESRX CTL, 16 bit */
+-
+-#define H2I_AESTX_C		0x1304		/* AES TX DMA control */
+-#define H2I_AESTX_C_CLKID_SHIFT	3		/* Bresenham Clock Gen 1-3 */
+-#define H2I_AESTX_C_CLKID_M	0x18
+-#define H2I_AESTX_C_DATAT_SHIFT	8		/* 1=mono 2=stereo (3=quad) */
+-#define H2I_AESTX_C_DATAT_M	0x300
+-
+-/* CODEC registers */
+-
+-#define H2I_DAC_C1		0x1404 		/* DAC DMA control, 16 bit */
+-#define H2I_DAC_C2		0x1408		/* DAC DMA control, 32 bit */
+-#define H2I_ADC_C1		0x1504 		/* ADC DMA control, 16 bit */
+-#define H2I_ADC_C2		0x1508		/* ADC DMA control, 32 bit */
+-
+-/* Bits in CTL1 register */
+-
+-#define H2I_C1_DMA_SHIFT	0		/* DMA channel */
+-#define H2I_C1_DMA_M		0x7
+-#define H2I_C1_CLKID_SHIFT	3		/* Bresenham Clock Gen 1-3 */
+-#define H2I_C1_CLKID_M		0x18
+-#define H2I_C1_DATAT_SHIFT	8		/* 1=mono 2=stereo (3=quad) */
+-#define H2I_C1_DATAT_M		0x300
+-
+-/* Bits in CTL2 register */
+-
+-#define H2I_C2_R_GAIN_SHIFT	0		/* right a/d input gain */	
+-#define H2I_C2_R_GAIN_M		0xf	
+-#define H2I_C2_L_GAIN_SHIFT	4		/* left a/d input gain */
+-#define H2I_C2_L_GAIN_M		0xf0
+-#define H2I_C2_R_SEL		0x100		/* right input select */
+-#define H2I_C2_L_SEL		0x200		/* left input select */
+-#define H2I_C2_MUTE		0x400		/* mute */
+-#define H2I_C2_DO1		0x00010000	/* digital output port bit 0 */
+-#define H2I_C2_DO2		0x00020000	/* digital output port bit 1 */
+-#define H2I_C2_R_ATT_SHIFT	18		/* right d/a output - */
+-#define H2I_C2_R_ATT_M		0x007c0000	/* attenuation */
+-#define H2I_C2_L_ATT_SHIFT	23		/* left d/a output - */
+-#define H2I_C2_L_ATT_M		0x0f800000	/* attenuation */
+-
+-#define H2I_SYNTH_MAP_C		0x1104		/* synth dma handshake ctrl */
+-
+-/* Clock generator CTL 1, 16 bit */
+-
+-#define H2I_BRES1_C1		0x2104
+-#define H2I_BRES2_C1		0x2204
+-#define H2I_BRES3_C1		0x2304
+-
+-#define H2I_BRES_C1_SHIFT	0		/* 0=48.0 1=44.1 2=aes_rx */
+-#define H2I_BRES_C1_M		0x03
+-				
+-/* Clock generator CTL 2, 32 bit */
+-
+-#define H2I_BRES1_C2		0x2108
+-#define H2I_BRES2_C2		0x2208
+-#define H2I_BRES3_C2		0x2308
+-
+-#define H2I_BRES_C2_INC_SHIFT	0		/* increment value */
+-#define H2I_BRES_C2_INC_M	0xffff
+-#define H2I_BRES_C2_MOD_SHIFT	16		/* modcontrol value */
+-#define H2I_BRES_C2_MOD_M	0xffff0000	/* modctrl=0xffff&(modinc-1) */
+-
+-/* Unix timer, 64 bit */
+-
+-#define H2I_UTIME		0x3104
+-#define H2I_UTIME_0_LD		0xffff		/* microseconds, LSB's */
+-#define H2I_UTIME_1_LD0		0x0f		/* microseconds, MSB's */
+-#define H2I_UTIME_1_LD1		0xf0		/* tenths of microseconds */
+-#define H2I_UTIME_2_LD		0xffff		/* seconds, LSB's */
+-#define H2I_UTIME_3_LD		0xffff		/* seconds, MSB's */
+-
+-struct hal2_ctl_regs {
+-	u32 _unused0[4];
+-	volatile u32 isr;		/* 0x10 Status Register */
+-	u32 _unused1[3];
+-	volatile u32 rev;		/* 0x20 Revision Register */
+-	u32 _unused2[3];
+-	volatile u32 iar;		/* 0x30 Indirect Address Register */
+-	u32 _unused3[3];
+-	volatile u32 idr0;		/* 0x40 Indirect Data Register 0 */
+-	u32 _unused4[3];
+-	volatile u32 idr1;		/* 0x50 Indirect Data Register 1 */
+-	u32 _unused5[3];
+-	volatile u32 idr2;		/* 0x60 Indirect Data Register 2 */
+-	u32 _unused6[3];
+-	volatile u32 idr3;		/* 0x70 Indirect Data Register 3 */
+-};
+-
+-struct hal2_aes_regs {
+-	volatile u32 rx_stat[2];	/* Status registers */
+-	volatile u32 rx_cr[2];		/* Control registers */
+-	volatile u32 rx_ud[4];		/* User data window */
+-	volatile u32 rx_st[24];		/* Channel status data */
+-	
+-	volatile u32 tx_stat[1];	/* Status register */
+-	volatile u32 tx_cr[3];		/* Control registers */
+-	volatile u32 tx_ud[4];		/* User data window */
+-	volatile u32 tx_st[24];		/* Channel status data */
+-};
+-
+-struct hal2_vol_regs {
+-	volatile u32 right;		/* Right volume */
+-	volatile u32 left;		/* Left volume */
+-};
+-
+-struct hal2_syn_regs {
+-	u32 _unused0[2];
+-	volatile u32 page;		/* DOC Page register */
+-	volatile u32 regsel;		/* DOC Register selection */
+-	volatile u32 dlow;		/* DOC Data low */
+-	volatile u32 dhigh;		/* DOC Data high */
+-	volatile u32 irq;		/* IRQ Status */
+-	volatile u32 dram;		/* DRAM Access */
+-};
