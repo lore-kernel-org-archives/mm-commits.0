@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + char-cyclades-remove-bogus-iomap.patch added to -mm tree
-Date: Mon, 18 Aug 2008 14:44:48 -0700
-Message-ID: <200808182144.m7ILim43014390@imap1.linux-foundation.org>
+Subject: + char-sx-fix-io-unmapping.patch added to -mm tree
+Date: Mon, 18 Aug 2008 14:44:51 -0700
+Message-ID: <200808182144.m7ILipjo014395@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51534 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53726 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756045AbYHRVua (ORCPT
+	by vger.kernel.org with ESMTP id S1756049AbYHRVua (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 18 Aug 2008 17:50:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jirislaby@gmail.com, R.E.Wolff@BitWizard.nl, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     Char: cyclades, remove bogus iomap
+     Char: sx, fix io unmapping
 has been added to the -mm tree.  Its filename is
-     char-cyclades-remove-bogus-iomap.patch
+     char-sx-fix-io-unmapping.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: cyclades, remove bogus iomap
+Subject: Char: sx, fix io unmapping
 From: Jiri Slaby <jirislaby@gmail.com>
 
-readl/writel are not expected to accept iomap return value. Replace
-bogus mapping by standard ioremap.
+board->base is increased for CF cards after mapping. Use board->base2
+for unmapping the region, since it holds the original/correct address.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: <R.E.Wolff@BitWizard.nl>
@@ -46,74 +46,30 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ drivers/char/sx.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-remove-bogus-iomap drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-remove-bogus-iomap
-+++ a/drivers/char/cyclades.c
-@@ -4993,12 +4993,14 @@ static int __devinit cy_pci_probe(struct
- 			device_id == PCI_DEVICE_ID_CYCLOM_Y_Hi) {
- 		card_name = "Cyclom-Y";
+diff -puN drivers/char/sx.c~char-sx-fix-io-unmapping drivers/char/sx.c
+--- a/drivers/char/sx.c~char-sx-fix-io-unmapping
++++ a/drivers/char/sx.c
+@@ -2504,7 +2504,7 @@ static void __devexit sx_remove_card(str
+ 		del_timer(&board->timer);
+ 		if (pdev) {
+ #ifdef CONFIG_PCI
+-			pci_iounmap(pdev, board->base);
++			pci_iounmap(pdev, board->base2);
+ 			pci_release_region(pdev, IS_CF_BOARD(board) ? 3 : 2);
+ #endif
+ 		} else {
+@@ -2703,7 +2703,7 @@ static int __devinit sx_pci_probe(struct
  
--		addr0 = pci_iomap(pdev, 0, CyPCI_Yctl);
-+		addr0 = ioremap_nocache(pci_resource_start(pdev, 0),
-+				CyPCI_Yctl);
- 		if (addr0 == NULL) {
- 			dev_err(&pdev->dev, "can't remap ctl region\n");
- 			goto err_reg;
- 		}
--		addr2 = pci_iomap(pdev, 2, CyPCI_Ywin);
-+		addr2 = ioremap_nocache(pci_resource_start(pdev, 2),
-+				CyPCI_Ywin);
- 		if (addr2 == NULL) {
- 			dev_err(&pdev->dev, "can't remap base region\n");
- 			goto err_unmap;
-@@ -5013,7 +5015,8 @@ static int __devinit cy_pci_probe(struct
- 	} else if (device_id == PCI_DEVICE_ID_CYCLOM_Z_Hi) {
- 		struct RUNTIME_9060 __iomem *ctl_addr;
- 
--		ctl_addr = addr0 = pci_iomap(pdev, 0, CyPCI_Zctl);
-+		ctl_addr = addr0 = ioremap_nocache(pci_resource_start(pdev, 0),
-+				CyPCI_Zctl);
- 		if (addr0 == NULL) {
- 			dev_err(&pdev->dev, "can't remap ctl region\n");
- 			goto err_reg;
-@@ -5026,8 +5029,8 @@ static int __devinit cy_pci_probe(struct
- 
- 		mailbox = (u32)readl(&ctl_addr->mail_box_0);
- 
--		addr2 = pci_iomap(pdev, 2, mailbox == ZE_V1 ?
--				CyPCI_Ze_win : CyPCI_Zwin);
-+		addr2 = ioremap_nocache(pci_resource_start(pdev, 2),
-+				mailbox == ZE_V1 ? CyPCI_Ze_win : CyPCI_Zwin);
- 		if (addr2 == NULL) {
- 			dev_err(&pdev->dev, "can't remap base region\n");
- 			goto err_unmap;
-@@ -5159,9 +5162,9 @@ err_null:
- 	cy_card[card_no].base_addr = NULL;
- 	free_irq(irq, &cy_card[card_no]);
+ 	return 0;
  err_unmap:
--	pci_iounmap(pdev, addr0);
-+	iounmap(addr0);
- 	if (addr2)
--		pci_iounmap(pdev, addr2);
-+		iounmap(addr2);
+-	pci_iounmap(pdev, board->base);
++	pci_iounmap(pdev, board->base2);
  err_reg:
- 	pci_release_regions(pdev);
- err_dis:
-@@ -5186,9 +5189,9 @@ static void __devexit cy_pci_remove(stru
- 		cy_writew(cinfo->ctl_addr + 0x68,
- 				readw(cinfo->ctl_addr + 0x68) & ~0x0900);
- 
--	pci_iounmap(pdev, cinfo->base_addr);
-+	iounmap(cinfo->base_addr);
- 	if (cinfo->ctl_addr)
--		pci_iounmap(pdev, cinfo->ctl_addr);
-+		iounmap(cinfo->ctl_addr);
- 	if (cinfo->irq
- #ifndef CONFIG_CYZ_INTR
- 		&& !IS_CYC_Z(*cinfo)
+ 	pci_release_region(pdev, reg);
+ err_flag:
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
