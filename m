@@ -1,111 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - ftrace-printk-formatting-infrastructure-fix.patch removed from -mm tree
-Date: Mon, 18 Aug 2008 12:27:28 -0700
-Message-ID: <200808181927.m7IJRS9c007540@imap1.linux-foundation.org>
+Subject: - suspend-fix-section-mismatch-warning-register_nosave_region.patch removed from -mm tree
+Date: Mon, 18 Aug 2008 12:39:19 -0700
+Message-ID: <200808181939.m7IJdJnM008283@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60911 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36134 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758326AbYHRTh5 (ORCPT
+	by vger.kernel.org with ESMTP id S1762676AbYHRTj1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 15:37:57 -0400
+	Mon, 18 Aug 2008 15:39:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rostedt@goodmis.org, mingo@elte.hu, randy.dunlap@oracle.com, srostedt@redhat.com, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, pavel@suse.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ftrace: ftrace_printk doc moved
+     suspend: fix section mismatch warning - register_nosave_region
 has been removed from the -mm tree.  Its filename was
-     ftrace-printk-formatting-infrastructure-fix.patch
+     suspend-fix-section-mismatch-warning-register_nosave_region.patch
 
-This patch was dropped because it was folded into ftrace-printk-formatting-infrastructure.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ftrace: ftrace_printk doc moved
-From: Steven Rostedt <rostedt@goodmis.org>
+Subject: suspend: fix section mismatch warning - register_nosave_region
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-Based on Randy Dunlap's suggestion, the ftrace_printk kernel-doc belongs
-with the ftrace_printk macro that should be used. Not with the
-__ftrace_printk internal function.
+WARNING: vmlinux.o(.text+0xe684): Section mismatch in reference from the function register_nosave_region() to the function .init.text:__register_nosave_region()
+The function register_nosave_region() references
+the function __init __register_nosave_region().
+This is often because register_nosave_region lacks a __init
+annotation or the annotation of __register_nosave_region is wrong.
 
-Signed-off-by: Steven Rostedt <srostedt@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+register_nosave_region calls __init function and is called only from
+__init functions
+
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ftrace.h |   18 +++++++++++++++++-
- kernel/trace/trace.c   |   16 ----------------
- 2 files changed, 17 insertions(+), 17 deletions(-)
+ include/linux/suspend.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/ftrace.h~ftrace-printk-formatting-infrastructure-fix include/linux/ftrace.h
---- a/include/linux/ftrace.h~ftrace-printk-formatting-infrastructure-fix
-+++ a/include/linux/ftrace.h
-@@ -157,7 +157,23 @@ static inline void __ftrace_enabled_rest
- #ifdef CONFIG_TRACING
- extern void
- ftrace_special(unsigned long arg1, unsigned long arg2, unsigned long arg3);
--# define ftrace_printk(x...) __ftrace_printk(_THIS_IP_, x)
-+/**
-+ * ftrace_printk - printf formatting in the ftrace buffer
-+ * @fmt: the printf format for printing
-+ *
-+ * Note: __ftrace_printk is an internal function for ftrace_printk and
-+ *       the @ip is passed in via the ftrace_printk macro.
-+ *
-+ * This function allows a kernel developer to debug fast path sections
-+ * that printk is not appropriate for. By scattering in various
-+ * printk like tracing in the code, a developer can quickly see
-+ * where problems are occurring.
-+ *
-+ * This is intended as a debugging tool for the developer only.
-+ * Please refrain from leaving ftrace_printks scattered around in
-+ * your code.
-+ */
-+# define ftrace_printk(fmt...) __ftrace_printk(_THIS_IP_, fmt)
- extern int
- __ftrace_printk(unsigned long ip, const char *fmt, ...)
- 	__attribute__ ((format (printf, 2, 3)));
-diff -puN kernel/trace/trace.c~ftrace-printk-formatting-infrastructure-fix kernel/trace/trace.c
---- a/kernel/trace/trace.c~ftrace-printk-formatting-infrastructure-fix
-+++ a/kernel/trace/trace.c
-@@ -3075,22 +3075,6 @@ static __init void tracer_init_debugfs(v
- 	(sizeof(struct trace_field) - offsetof(struct trace_field, print.buf))
- #define TRACE_CONT_BUF_SIZE sizeof(struct trace_field)
- 
--/**
-- * ftrace_printk - printf formatting in the ftrace buffer
-- * @fmt - the printf format for printing.
-- *
-- * Note: __ftrace_printk is an internal function for ftrace_printk and
-- *       the @ip is passed in via the ftrace_printk macro.
-- *
-- * This function allows a kernel developer to debug fast path sections
-- * that printk is not appropriate for. By scattering in various
-- * printk like tracing in the code, a developer can quickly see
-- * where problems are occurring.
-- *
-- * This is intended as a debugging tool for the developer only.
-- * Please reframe from leaving ftrace_printks scattered around in
-- * your code.
-- */
- int __ftrace_printk(unsigned long ip, const char *fmt, ...)
+diff -puN include/linux/suspend.h~suspend-fix-section-mismatch-warning-register_nosave_region include/linux/suspend.h
+--- a/include/linux/suspend.h~suspend-fix-section-mismatch-warning-register_nosave_region
++++ a/include/linux/suspend.h
+@@ -217,11 +217,11 @@ struct platform_hibernation_ops {
+ #ifdef CONFIG_HIBERNATION
+ /* kernel/power/snapshot.c */
+ extern void __register_nosave_region(unsigned long b, unsigned long e, int km);
+-static inline void register_nosave_region(unsigned long b, unsigned long e)
++static inline void __init register_nosave_region(unsigned long b, unsigned long e)
  {
- 	struct trace_array *tr = &global_trace;
+ 	__register_nosave_region(b, e, 0);
+ }
+-static inline void register_nosave_region_late(unsigned long b, unsigned long e)
++static inline void __init register_nosave_region_late(unsigned long b, unsigned long e)
+ {
+ 	__register_nosave_region(b, e, 1);
+ }
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
 origin.patch
 linux-next.patch
-rcu-just-rename-call_rcu_bh-instead-of-making-it-a-macro.patch
-rcu-trace-fix-possible-mem-leak.patch
-ftrace-new-continue-entry-separate-out-from-trace_entry.patch
-ftrace-printk-formatting-infrastructure.patch
-ftrace-printk-formatting-infrastructure-fix.patch
-ftrace-printk-formatting-infrastructure-fix-fix.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
 
