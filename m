@@ -1,66 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - fs-inodec-properly-init-address_space-writeback_index.patch removed from -mm tree
-Date: Mon, 18 Aug 2008 12:40:18 -0700
-Message-ID: <200808181940.m7IJeIfu008442@imap1.linux-foundation.org>
+Subject: - ibmaem-dont-query-the-entire-sensor-repository-when-reading-energy-meter.patch removed from -mm tree
+Date: Mon, 18 Aug 2008 12:40:11 -0700
+Message-ID: <200808181940.m7IJeB2I008430@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40362 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45100 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933744AbYHRTpO (ORCPT
+	by vger.kernel.org with ESMTP id S1763155AbYHRTqE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 15:45:14 -0400
+	Mon, 18 Aug 2008 15:46:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris.mason@oracle.com, mm-commits@vger.kernel.org
+To: djwong@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/inode.c: properly init address_space->writeback_index
+     ibmaem: don't query the entire sensor repository when reading energy meter
 has been removed from the -mm tree.  Its filename was
-     fs-inodec-properly-init-address_space-writeback_index.patch
+     ibmaem-dont-query-the-entire-sensor-repository-when-reading-energy-meter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/inode.c: properly init address_space->writeback_index
-From: Chris Mason <chris.mason@oracle.com>
+Subject: ibmaem: don't query the entire sensor repository when reading energy meter
+From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-write_cache_pages() uses i_mapping->writeback_index to pick up where it
-left off the last time a given inode was found by pdflush or
-balance_dirty_pages (or anyone else who sets wbc->range_cyclic)
+Currently, all sensors are read when the energy meter is queried via
+sysfs.  This introduces a considerable amount of delay and variation in
+the sysfs reading, which is not desirable when trying to profile energy
+use.  Therefore, read only the energy meters when a sysfs query comes in
+for them, and don't cache the results so that we always get the latest
+reading.
 
-alloc_inode() should set it to a sane value so that writeback doesn't
-start in the middle of a file.  It is somewhat difficult to notice the bug
-since write_cache_pages will loop around to the start of the file and the
-elevator helps hide the resulting seeks.
-
-For whatever reason, Btrfs hits this often.  Unpatched, untarring 30
-copies of the linux kernel in series runs at 47MB/s on a single sata
-drive.  With this fix, it jumps to 62MB/s.
-
-Signed-off-by: Chris Mason <chris.mason@oracle.com>
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/hwmon/ibmaem.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN fs/inode.c~fs-inodec-properly-init-address_space-writeback_index fs/inode.c
---- a/fs/inode.c~fs-inodec-properly-init-address_space-writeback_index
-+++ a/fs/inode.c
-@@ -166,6 +166,7 @@ static struct inode *alloc_inode(struct 
- 		mapping_set_gfp_mask(mapping, GFP_HIGHUSER_PAGECACHE);
- 		mapping->assoc_mapping = NULL;
- 		mapping->backing_dev_info = &default_backing_dev_info;
-+		mapping->writeback_index = 0;
+diff -puN drivers/hwmon/ibmaem.c~ibmaem-dont-query-the-entire-sensor-repository-when-reading-energy-meter drivers/hwmon/ibmaem.c
+--- a/drivers/hwmon/ibmaem.c~ibmaem-dont-query-the-entire-sensor-repository-when-reading-energy-meter
++++ a/drivers/hwmon/ibmaem.c
+@@ -463,12 +463,18 @@ static int aem_read_sensor(struct aem_da
+ }
  
- 		/*
- 		 * If the block_device provides a backing_dev_info for client
+ /* Update AEM energy registers */
++static void update_aem_energy_one(struct aem_data *data, int which)
++{
++	aem_read_sensor(data, AEM_ENERGY_ELEMENT, which,
++			&data->energy[which], 8);
++}
++
+ static void update_aem_energy(struct aem_data *data)
+ {
+-	aem_read_sensor(data, AEM_ENERGY_ELEMENT, 0, &data->energy[0], 8);
++	update_aem_energy_one(data, 0);
+ 	if (data->ver_major < 2)
+ 		return;
+-	aem_read_sensor(data, AEM_ENERGY_ELEMENT, 1, &data->energy[1], 8);
++	update_aem_energy_one(data, 1);
+ }
+ 
+ /* Update all AEM1 sensors */
+@@ -850,7 +856,7 @@ static ssize_t aem_show_power(struct dev
+ 	struct timespec b, a;
+ 
+ 	mutex_lock(&data->lock);
+-	update_aem_energy(data);
++	update_aem_energy_one(data, attr->index);
+ 	getnstimeofday(&b);
+ 	before = data->energy[attr->index];
+ 
+@@ -862,7 +868,7 @@ static ssize_t aem_show_power(struct dev
+ 		return 0;
+ 	}
+ 
+-	update_aem_energy(data);
++	update_aem_energy_one(data, attr->index);
+ 	getnstimeofday(&a);
+ 	after = data->energy[attr->index];
+ 	mutex_unlock(&data->lock);
+@@ -881,7 +887,9 @@ static ssize_t aem_show_energy(struct de
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct aem_data *a = dev_get_drvdata(dev);
+-	a->update(a);
++	mutex_lock(&a->lock);
++	update_aem_energy_one(a, attr->index);
++	mutex_unlock(&a->lock);
+ 
+ 	return sprintf(buf, "%llu\n",
+ 			(unsigned long long)a->energy[attr->index] * 1000);
 _
 
-Patches currently in -mm which might be from chris.mason@oracle.com are
+Patches currently in -mm which might be from djwong@us.ibm.com are
 
 origin.patch
 
