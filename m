@@ -1,34 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: - wait_task_inactive-fix-the-config_smp-version.patch removed from -mm tree
-Date: Mon, 18 Aug 2008 12:55:36 -0700
-Message-ID: <200808181955.m7IJtamd009381@imap1.linux-foundation.org>
+Subject: - wait_task_inactive-dont-consider-task-nivcsw.patch removed from -mm tree
+Date: Mon, 18 Aug 2008 12:55:31 -0700
+Message-ID: <200808181955.m7IJtVT9009372@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52770 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44030 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752161AbYHRT4W (ORCPT
+	by vger.kernel.org with ESMTP id S1752620AbYHRT4Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 15:56:22 -0400
+	Mon, 18 Aug 2008 15:56:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@tv-sign.ru, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wait_task_inactive: fix the !CONFIG_SMP version
+     wait_task_inactive(): don't consider task->nivcsw
 has been removed from the -mm tree.  Its filename was
-     wait_task_inactive-fix-the-config_smp-version.patch
+     wait_task_inactive-dont-consider-task-nivcsw.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wait_task_inactive: fix the !CONFIG_SMP version
+Subject: wait_task_inactive(): don't consider task->nivcsw
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-The semantics of wait_task_inactive() was changed, update the !SMP
-version accordingly.
+If wait_task_inactive() returns success the task was deactivated.  In that
+case schedule() always increments ->nvcsw which alone can be used as a
+"generation counter".
+
+If the next call returns the same number, we can be sure that the task was
+unscheduled.  Otherwise, because we know that .on_rq == 0 again, ->nvcsw
+should have been changed in between.
+
+Q: perhaps it is better to do "ncsw = (p->nvcsw << 1) | 1" ?  This
+decreases the possibility of "was it unscheduled" false positive when
+->nvcsw == 0.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
@@ -36,23 +45,26 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/sched.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/sched.h~wait_task_inactive-fix-the-config_smp-version include/linux/sched.h
---- a/include/linux/sched.h~wait_task_inactive-fix-the-config_smp-version
-+++ a/include/linux/sched.h
-@@ -1809,7 +1809,9 @@ extern unsigned long wait_task_inactive(
- static inline unsigned long wait_task_inactive(struct task_struct *p,
- 					       long match_state)
- {
--	return 1;
-+	if (match_state && unlikely(p->state != match_state))
-+		return 0;
-+	return p->nvcsw | LONG_MIN; /* sets MSB */
- }
- #endif
+diff -puN kernel/sched.c~wait_task_inactive-dont-consider-task-nivcsw kernel/sched.c
+--- a/kernel/sched.c~wait_task_inactive-dont-consider-task-nivcsw
++++ a/kernel/sched.c
+@@ -1925,11 +1925,8 @@ unsigned long wait_task_inactive(struct 
+ 		running = task_running(rq, p);
+ 		on_rq = p->se.on_rq;
+ 		ncsw = 0;
+-		if (!match_state || p->state == match_state) {
+-			ncsw = p->nivcsw + p->nvcsw;
+-			if (unlikely(!ncsw))
+-				ncsw = 1;
+-		}
++		if (!match_state || p->state == match_state)
++			ncsw = p->nvcsw ?: 1;
+ 		task_rq_unlock(rq, &flags);
  
+ 		/*
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -60,6 +72,8 @@ Patches currently in -mm which might be from oleg@tv-sign.ru are
 linux-next.patch
 migrate_timers-add-comment-use-spinlock_irq.patch
 sched-do_wait_for_common-use-signal_pending_state.patch
+wait_task_inactive-dont-consider-task-nivcsw.patch
+wait_task_inactive-improve-the-returned-value-for-nvcsw-==-0.patch
 wait_task_inactive-fix-the-config_smp-version.patch
 posix-timers-dont-switch-to-group_leader-if-it_process-dies.patch
 posix-timers-always-do-get_task_structtimer-it_process.patch
