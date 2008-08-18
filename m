@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-hp_wmi_notify-static.patch added to -mm tree
-Date: Mon, 18 Aug 2008 15:57:26 -0700
-Message-ID: <200808182257.m7IMvQx0017448@imap1.linux-foundation.org>
+Subject: + kernelh-fix-kernel-doc-for-might_sleep.patch added to -mm tree
+Date: Mon, 18 Aug 2008 15:58:31 -0700
+Message-ID: <200808182258.m7IMwV0i017464@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49116 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55552 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752414AbYHRW5f (ORCPT
+	by vger.kernel.org with ESMTP id S1752623AbYHRW6p (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 18:57:35 -0400
+	Mon, 18 Aug 2008 18:58:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: randy.dunlap@oracle.com, Uwe.Kleine-Koenig@digi.com
 
 
 The patch titled
-     make hp_wmi_notify() static
+     kernel.h: fix kernel-doc for might_sleep
 has been added to the -mm tree.  Its filename is
-     make-hp_wmi_notify-static.patch
+     kernelh-fix-kernel-doc-for-might_sleep.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make hp_wmi_notify() static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: kernel.h: fix kernel-doc for might_sleep
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Make the needlessly global hp_wmi_notify() static.
+Put the kernel-doc for might_sleep() _immediately_ before the macro (no
+intervening lines).  Otherwise kernel-doc complains like so:
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Warning(linux-2.6.27-rc3-git2//include/linux/kernel.h:129): No description found for parameter 'file'
+Warning(linux-2.6.27-rc3-git2//include/linux/kernel.h:129): No description found for parameter 'line'
+
+because kernel-doc is looking at the wrong function prototype (i.e.,
+__might_sleep).  [Yes, I have a todo note to myself to check/warn for that
+inconsistency in scripts/kernel-doc.]
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Uwe Kleine-K_nig <Uwe.Kleine-Koenig@digi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/hp-wmi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kernel.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/misc/hp-wmi.c~make-hp_wmi_notify-static drivers/misc/hp-wmi.c
---- a/drivers/misc/hp-wmi.c~make-hp_wmi_notify-static
-+++ a/drivers/misc/hp-wmi.c
-@@ -306,7 +306,7 @@ static int hp_wmi_setkeycode(struct inpu
- 	return -EINVAL;
- }
+diff -puN include/linux/kernel.h~kernelh-fix-kernel-doc-for-might_sleep include/linux/kernel.h
+--- a/include/linux/kernel.h~kernelh-fix-kernel-doc-for-might_sleep
++++ a/include/linux/kernel.h
+@@ -115,6 +115,8 @@ extern int _cond_resched(void);
+ # define might_resched() do { } while (0)
+ #endif
  
--void hp_wmi_notify(u32 value, void *context)
-+static void hp_wmi_notify(u32 value, void *context)
- {
- 	struct acpi_buffer response = { ACPI_ALLOCATE_BUFFER, NULL };
- 	static struct key_entry *key;
++#ifdef CONFIG_DEBUG_SPINLOCK_SLEEP
++  void __might_sleep(char *file, int line);
+ /**
+  * might_sleep - annotation for functions that can sleep
+  *
+@@ -125,8 +127,6 @@ extern int _cond_resched(void);
+  * be bitten later when the calling function happens to sleep when it is not
+  * supposed to.
+  */
+-#ifdef CONFIG_DEBUG_SPINLOCK_SLEEP
+-  void __might_sleep(char *file, int line);
+ # define might_sleep() \
+ 	do { __might_sleep(__FILE__, __LINE__); might_resched(); } while (0)
+ #else
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-origin.patch
+documentation-describe-bootmem_debug-kernel-parameter.patch
+kernel-doc-allow-space-in-macro-define.patch
+kernelh-fix-kernel-doc-for-might_sleep.patch
 linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-m32r-dont-offer-config_isa.patch
-m32r-export-empty_zero_page.patch
-m32r-export-__ndelay.patch
-m32r-kernel-cleanups.patch
-the-overdue-eepro100-removal.patch
-ntfs-update-homepage.patch
-parisc-lib-make-code-static.patch
-drivers-parisc-make-code-static.patch
-if-0-ses_match_host.patch
-scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
-drivers-scsi-a2091c-make-2-functions-static.patch
-drivers-scsi-a3000c-make-2-functions-static.patch
-fs_mbcache-dont-needlessly-make-it-built-in.patch
-git-xtensa.patch
-mpc8xxx_wdt-fix-modular-build.patch
-asm-h8300-mdh-remove-cvs-keyword.patch
-alpha-miata-remove-dead-url.patch
-uml-remove-the-dead-tty_log-code.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-maintainers-remove-hga-framebuffer-driver-entry.patch
-include-linux-mounth-remove-cvs-keyword.patch
-kernel-dmac-remove-a-cvs-keyword.patch
-binfmt_somc-add-module_license.patch
-make-probe_serial_gsc-static.patch
-pnp-remove-printk-with-outdated-version.patch
-telephony-remove-cvs-keywords.patch
-reiserfs-procfsc-remove-cvs-keywords.patch
-quota-remove-cvs-keywords.patch
-make-ptrace_untrace-static.patch
-fs-partitions-acornc-remove-dead-code.patch
-parport-remove-cvs-keywords.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-firmware-iscsi_ibftc-make-3-functions-static.patch
-ipc-semc-make-free_un-static.patch
-make-fs-proc-proc_sysctlc-grab_header-static.patch
-make-hp_wmi_notify-static.patch
-acpi-use-bcd2bin-bin2bcd.patch
-alpha-use-bcd2bin-bin2bcd.patch
-arm-use-bcd2bin-bin2bcd.patch
-cris-use-bcd2bin-bin2bcd.patch
-drivers-rtc-use-bcd2bin-bin2bcd.patch
-rtc-use-bcd2bin-bin2bcd.patch
-mips-use-bcd2bin-bin2bcd.patch
-mn10300-use-bcd2bin-bin2bcd.patch
-powerpc-use-bcd2bin-bin2bcd.patch
-i2c-use-bcd2bin-bin2bcd.patch
-drivers-scsi-sr_vendorc-use-bcd2bin.patch
-sparc64-use-bcd2bin-bin2bcd.patch
-remove-the-obsolete-bcdbin-binbcd-macros.patch
-include-linux-bcdh-remove-comments.patch
-reiser4.patch
+drm-sis-depends-on-fb_sis.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+lkdtm-fix-for-config_scsi=n.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+ftrace-printk-formatting-infrastructure.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+w1-documentation-w1-masters-ds2490-update.patch
+profile-likely-unlikely-macros.patch
 
