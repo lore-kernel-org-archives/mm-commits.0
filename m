@@ -1,435 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - hwmon-adc124s501-generic-driver.patch removed from -mm tree
-Date: Mon, 18 Aug 2008 12:39:55 -0700
-Message-ID: <200808181939.m7IJdt6e008376@imap1.linux-foundation.org>
+Subject: - x86-signals-use-asm-syscallh.patch removed from -mm tree
+Date: Mon, 18 Aug 2008 12:40:46 -0700
+Message-ID: <200808181940.m7IJek3r008485@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59484 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57050 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934285AbYHRTuw (ORCPT
+	by vger.kernel.org with ESMTP id S1759182AbYHRTvG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 15:50:52 -0400
+	Mon, 18 Aug 2008 15:51:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marc.pignat@hevs.ch, david-b@pacbell.net, khali@linux-fr.org, mhoffman@lightlink.com, tobias@himmer-online.de, mm-commits@vger.kernel.org
+To: roland@redhat.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwmon: ADC124S501 generic driver
+     x86 signals: use asm/syscall.h
 has been removed from the -mm tree.  Its filename was
-     hwmon-adc124s501-generic-driver.patch
+     x86-signals-use-asm-syscallh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: ADC124S501 generic driver
-From: Marc Pignat <marc.pignat@hevs.ch>
+Subject: x86 signals: use asm/syscall.h
+From: Roland McGrath <roland@redhat.com>
 
-SPI driver for analog to digital converters national semiconductor
-ADC081S101, ADC124S501, ...
+Replace local inlines with the asm/syscall.h interfaces that do the same
+things.
 
-Code for 8 channels by Tobias Himmer.
-
-This driver adds support for National Semiconductor ADC<bb><c>S<sss> chip
-family, where:
-
- * bb  is the resolution in number of bits (8, 10, 12)
- * c   is the number of channels (1, 2, 4, 8)
- * sss is the maximum conversion speed (021 for 200 kSPS, 051 for 500
-   kSPS and 101 for 1 MSPS)
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Marc Pignat <marc.pignat@hevs.ch>
-Cc: Tobias Himmer <tobias@himmer-online.de>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/Kconfig  |   16 +
- drivers/hwmon/Makefile |    1 
- drivers/hwmon/adcxx.c  |  329 +++++++++++++++++++++++++++++++++++++++
- 3 files changed, 346 insertions(+)
+ arch/x86/kernel/signal_64.c |   38 ++++------------------------------
+ 1 file changed, 5 insertions(+), 33 deletions(-)
 
-diff -puN drivers/hwmon/Kconfig~hwmon-adc124s501-generic-driver drivers/hwmon/Kconfig
---- a/drivers/hwmon/Kconfig~hwmon-adc124s501-generic-driver
-+++ a/drivers/hwmon/Kconfig
-@@ -77,6 +77,22 @@ config SENSORS_AD7418
- 	  This driver can also be built as a module. If so, the module
- 	  will be called ad7418.
+diff -puN arch/x86/kernel/signal_64.c~x86-signals-use-asm-syscallh arch/x86/kernel/signal_64.c
+--- a/arch/x86/kernel/signal_64.c~x86-signals-use-asm-syscallh
++++ a/arch/x86/kernel/signal_64.c
+@@ -27,6 +27,7 @@
+ #include <asm/proto.h>
+ #include <asm/ia32_unistd.h>
+ #include <asm/mce.h>
++#include <asm/syscall.h>
+ #include "sigframe.h"
  
-+config SENSORS_ADCXX
-+	tristate "National Semiconductor ADCxxxSxxx"
-+	depends on SPI_MASTER && EXPERIMENTAL
-+	help
-+	  If you say yes here you get support for the National Semiconductor
-+	  ADC<bb><c>S<sss> chip family, where
-+	  * bb  is the resolution in number of bits (8, 10, 12)
-+	  * c   is the number of channels (1, 2, 4, 8)
-+	  * sss is the maximum conversion speed (021 for 200 kSPS, 051 for 500
-+	    kSPS and 101 for 1 MSPS)
-+
-+	  Examples : ADC081S101, ADC124S501, ...
-+
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called adcxx.
-+
- config SENSORS_ADM1021
- 	tristate "Analog Devices ADM1021 and compatibles"
- 	depends on I2C
-diff -puN drivers/hwmon/Makefile~hwmon-adc124s501-generic-driver drivers/hwmon/Makefile
---- a/drivers/hwmon/Makefile~hwmon-adc124s501-generic-driver
-+++ a/drivers/hwmon/Makefile
-@@ -17,6 +17,7 @@ obj-$(CONFIG_SENSORS_ABITUGURU)	+= abitu
- obj-$(CONFIG_SENSORS_ABITUGURU3)+= abituguru3.o
- obj-$(CONFIG_SENSORS_AD7414)	+= ad7414.o
- obj-$(CONFIG_SENSORS_AD7418)	+= ad7418.o
-+obj-$(CONFIG_SENSORS_ADCXX)	+= adcxx.o
- obj-$(CONFIG_SENSORS_ADM1021)	+= adm1021.o
- obj-$(CONFIG_SENSORS_ADM1025)	+= adm1025.o
- obj-$(CONFIG_SENSORS_ADM1026)	+= adm1026.o
-diff -puN /dev/null drivers/hwmon/adcxx.c
---- /dev/null
-+++ a/drivers/hwmon/adcxx.c
-@@ -0,0 +1,329 @@
-+/*
-+ * adcxx.c
-+ *
-+ * The adcxx4s is an AD converter family from National Semiconductor (NS).
-+ *
-+ * Copyright (c) 2008 Marc Pignat <marc.pignat@hevs.ch>
-+ *
-+ * The adcxx4s communicates with a host processor via an SPI/Microwire Bus
-+ * interface. This driver supports the whole family of devices with name
-+ * ADC<bb><c>S<sss>, where
-+ * * bb is the resolution in number of bits (8, 10, 12)
-+ * * c is the number of channels (1, 2, 4, 8)
-+ * * sss is the maximum conversion speed (021 for 200 kSPS, 051 for 500 kSPS
-+ *   and 101 for 1 MSPS)
-+ *
-+ * Complete datasheets are available at National's website here:
-+ * http://www.national.com/ds/DC/ADC<bb><c>S<sss>.pdf
-+ *
-+ * Handling of 8, 10 and 12 bits converters are the same, the
-+ * unavailable bits are 0 :)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/device.h>
-+#include <linux/err.h>
-+#include <linux/sysfs.h>
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
-+#include <linux/mutex.h>
-+#include <linux/spi/spi.h>
-+
-+#define DRVNAME		"adcxx"
-+
-+struct adcxx {
-+	struct device *hwmon_dev;
-+	struct mutex lock;
-+	u32 channels;
-+	u32 reference; /* in millivolts */
-+};
-+
-+/* sysfs hook function */
-+static ssize_t adcxx_read(struct device *dev,
-+		struct device_attribute *devattr, char *buf)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct adcxx *adc = dev_get_drvdata(&spi->dev);
-+	u8 tx_buf[2] = { attr->index << 3 }; /* other bits are don't care */
-+	u8 rx_buf[2];
-+	int status;
-+	int value;
-+
-+	if (mutex_lock_interruptible(&adc->lock))
-+		return -ERESTARTSYS;
-+
-+	status = spi_write_then_read(spi, tx_buf, sizeof(tx_buf),
-+					rx_buf, sizeof(rx_buf));
-+	if (status < 0) {
-+		dev_warn(dev, "spi_write_then_read failed with status %d\n",
-+				status);
-+		goto out;
-+	}
-+
-+	value = (rx_buf[0] << 8) + rx_buf[1];
-+	dev_dbg(dev, "raw value = 0x%x\n", value);
-+
-+	value = value * adc->reference >> 12;
-+	status = sprintf(buf, "%d\n", value);
-+out:
-+	mutex_unlock(&adc->lock);
-+	return status;
-+}
-+
-+static ssize_t adcxx_show_min(struct device *dev,
-+		struct device_attribute *devattr, char *buf)
-+{
-+	/* The minimum reference is 0 for this chip family */
-+	return sprintf(buf, "0\n");
-+}
-+
-+static ssize_t adcxx_show_max(struct device *dev,
-+		struct device_attribute *devattr, char *buf)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+	struct adcxx *adc = dev_get_drvdata(&spi->dev);
-+	u32 reference;
-+
-+	if (mutex_lock_interruptible(&adc->lock))
-+		return -ERESTARTSYS;
-+
-+	reference = adc->reference;
-+
-+	mutex_unlock(&adc->lock);
-+
-+	return sprintf(buf, "%d\n", reference);
-+}
-+
-+static ssize_t adcxx_set_max(struct device *dev,
-+	struct device_attribute *devattr, const char *buf, size_t count)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+	struct adcxx *adc = dev_get_drvdata(&spi->dev);
-+	unsigned long value;
-+
-+	if (strict_strtoul(buf, 10, &value))
-+		return -EINVAL;
-+
-+	if (mutex_lock_interruptible(&adc->lock))
-+		return -ERESTARTSYS;
-+
-+	adc->reference = value;
-+
-+	mutex_unlock(&adc->lock);
-+
-+	return count;
-+}
-+
-+static ssize_t adcxx_show_name(struct device *dev, struct device_attribute
-+			      *devattr, char *buf)
-+{
-+	struct spi_device *spi = to_spi_device(dev);
-+	struct adcxx *adc = dev_get_drvdata(&spi->dev);
-+
-+	return sprintf(buf, "adcxx%ds\n", adc->channels);
-+}
-+
-+static struct sensor_device_attribute ad_input[] = {
-+	SENSOR_ATTR(name, S_IRUGO, adcxx_show_name, NULL, 0),
-+	SENSOR_ATTR(in_min, S_IRUGO, adcxx_show_min, NULL, 0),
-+	SENSOR_ATTR(in_max, S_IWUSR | S_IRUGO, adcxx_show_max,
-+					adcxx_set_max, 0),
-+	SENSOR_ATTR(in0_input, S_IRUGO, adcxx_read, NULL, 0),
-+	SENSOR_ATTR(in1_input, S_IRUGO, adcxx_read, NULL, 1),
-+	SENSOR_ATTR(in2_input, S_IRUGO, adcxx_read, NULL, 2),
-+	SENSOR_ATTR(in3_input, S_IRUGO, adcxx_read, NULL, 3),
-+	SENSOR_ATTR(in4_input, S_IRUGO, adcxx_read, NULL, 4),
-+	SENSOR_ATTR(in5_input, S_IRUGO, adcxx_read, NULL, 5),
-+	SENSOR_ATTR(in6_input, S_IRUGO, adcxx_read, NULL, 6),
-+	SENSOR_ATTR(in7_input, S_IRUGO, adcxx_read, NULL, 7),
-+};
-+
-+/*----------------------------------------------------------------------*/
-+
-+static int __devinit adcxx_probe(struct spi_device *spi, int channels)
-+{
-+	struct adcxx *adc;
-+	int status;
-+	int i;
-+
-+	adc = kzalloc(sizeof *adc, GFP_KERNEL);
-+	if (!adc)
-+		return -ENOMEM;
-+
-+	/* set a default value for the reference */
-+	adc->reference = 3300;
-+	adc->channels = channels;
-+	mutex_init(&adc->lock);
-+
-+	mutex_lock(&adc->lock);
-+
-+	dev_set_drvdata(&spi->dev, adc);
-+
-+	for (i = 0; i < 3 + adc->channels; i++) {
-+		status = device_create_file(&spi->dev, &ad_input[i].dev_attr);
-+		if (status) {
-+			dev_err(&spi->dev, "device_create_file failed.\n");
-+			goto out_err;
-+		}
-+	}
-+
-+	adc->hwmon_dev = hwmon_device_register(&spi->dev);
-+	if (IS_ERR(adc->hwmon_dev)) {
-+		dev_err(&spi->dev, "hwmon_device_register failed.\n");
-+		status = PTR_ERR(adc->hwmon_dev);
-+		goto out_err;
-+	}
-+
-+	mutex_unlock(&adc->lock);
-+	return 0;
-+
-+out_err:
-+	for (i--; i >= 0; i--)
-+		device_remove_file(&spi->dev, &ad_input[i].dev_attr);
-+
-+	dev_set_drvdata(&spi->dev, NULL);
-+	mutex_unlock(&adc->lock);
-+	kfree(adc);
-+	return status;
-+}
-+
-+static int __devinit adcxx1s_probe(struct spi_device *spi)
-+{
-+	return adcxx_probe(spi, 1);
-+}
-+
-+static int __devinit adcxx2s_probe(struct spi_device *spi)
-+{
-+	return adcxx_probe(spi, 2);
-+}
-+
-+static int __devinit adcxx4s_probe(struct spi_device *spi)
-+{
-+	return adcxx_probe(spi, 4);
-+}
-+
-+static int __devinit adcxx8s_probe(struct spi_device *spi)
-+{
-+	return adcxx_probe(spi, 8);
-+}
-+
-+static int __devexit adcxx_remove(struct spi_device *spi)
-+{
-+	struct adcxx *adc = dev_get_drvdata(&spi->dev);
-+	int i;
-+
-+	mutex_lock(&adc->lock);
-+	hwmon_device_unregister(adc->hwmon_dev);
-+	for (i = 0; i < 3 + adc->channels; i++)
-+		device_remove_file(&spi->dev, &ad_input[i].dev_attr);
-+
-+	dev_set_drvdata(&spi->dev, NULL);
-+	mutex_unlock(&adc->lock);
-+	kfree(adc);
-+
-+	return 0;
-+}
-+
-+static struct spi_driver adcxx1s_driver = {
-+	.driver = {
-+		.name	= "adcxx1s",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe	= adcxx1s_probe,
-+	.remove	= __devexit_p(adcxx_remove),
-+};
-+
-+static struct spi_driver adcxx2s_driver = {
-+	.driver = {
-+		.name	= "adcxx2s",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe	= adcxx2s_probe,
-+	.remove	= __devexit_p(adcxx_remove),
-+};
-+
-+static struct spi_driver adcxx4s_driver = {
-+	.driver = {
-+		.name	= "adcxx4s",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe	= adcxx4s_probe,
-+	.remove	= __devexit_p(adcxx_remove),
-+};
-+
-+static struct spi_driver adcxx8s_driver = {
-+	.driver = {
-+		.name	= "adcxx8s",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe	= adcxx8s_probe,
-+	.remove	= __devexit_p(adcxx_remove),
-+};
-+
-+static int __init init_adcxx(void)
-+{
-+	int status;
-+	status = spi_register_driver(&adcxx1s_driver);
-+	if (status)
-+		goto reg_1_failed;
-+
-+	status = spi_register_driver(&adcxx2s_driver);
-+	if (status)
-+		goto reg_2_failed;
-+
-+	status = spi_register_driver(&adcxx4s_driver);
-+	if (status)
-+		goto reg_4_failed;
-+
-+	status = spi_register_driver(&adcxx8s_driver);
-+	if (status)
-+		goto reg_8_failed;
-+
-+	return status;
-+
-+reg_8_failed:
-+	spi_unregister_driver(&adcxx4s_driver);
-+reg_4_failed:
-+	spi_unregister_driver(&adcxx2s_driver);
-+reg_2_failed:
-+	spi_unregister_driver(&adcxx1s_driver);
-+reg_1_failed:
-+	return status;
-+}
-+
-+static void __exit exit_adcxx(void)
-+{
-+	spi_unregister_driver(&adcxx1s_driver);
-+	spi_unregister_driver(&adcxx2s_driver);
-+	spi_unregister_driver(&adcxx4s_driver);
-+	spi_unregister_driver(&adcxx8s_driver);
-+}
-+
-+module_init(init_adcxx);
-+module_exit(exit_adcxx);
-+
-+MODULE_AUTHOR("Marc Pignat");
-+MODULE_DESCRIPTION("National Semiconductor adcxx8sxxx Linux driver");
-+MODULE_LICENSE("GPL");
-+
-+MODULE_ALIAS("adcxx1s");
-+MODULE_ALIAS("adcxx2s");
-+MODULE_ALIAS("adcxx4s");
-+MODULE_ALIAS("adcxx8s");
+ #define _BLOCKABLE (~(sigmask(SIGKILL) | sigmask(SIGSTOP)))
+@@ -347,35 +348,6 @@ give_sigsegv:
+ }
+ 
+ /*
+- * Return -1L or the syscall number that @regs is executing.
+- */
+-static long current_syscall(struct pt_regs *regs)
+-{
+-	/*
+-	 * We always sign-extend a -1 value being set here,
+-	 * so this is always either -1L or a syscall number.
+-	 */
+-	return regs->orig_ax;
+-}
+-
+-/*
+- * Return a value that is -EFOO if the system call in @regs->orig_ax
+- * returned an error.  This only works for @regs from @current.
+- */
+-static long current_syscall_ret(struct pt_regs *regs)
+-{
+-#ifdef CONFIG_IA32_EMULATION
+-	if (test_thread_flag(TIF_IA32))
+-		/*
+-		 * Sign-extend the value so (int)-EFOO becomes (long)-EFOO
+-		 * and will match correctly in comparisons.
+-		 */
+-		return (int) regs->ax;
+-#endif
+-	return regs->ax;
+-}
+-
+-/*
+  * OK, we're invoking a handler
+  */	
+ 
+@@ -386,9 +358,9 @@ handle_signal(unsigned long sig, siginfo
+ 	int ret;
+ 
+ 	/* Are we from a system call? */
+-	if (current_syscall(regs) >= 0) {
++	if (syscall_get_nr(current, regs) >= 0) {
+ 		/* If so, check system call restarting.. */
+-		switch (current_syscall_ret(regs)) {
++		switch (syscall_get_error(current, regs)) {
+ 		case -ERESTART_RESTARTBLOCK:
+ 		case -ERESTARTNOHAND:
+ 			regs->ax = -EINTR;
+@@ -511,9 +483,9 @@ static void do_signal(struct pt_regs *re
+ 	}
+ 
+ 	/* Did we come from a system call? */
+-	if (current_syscall(regs) >= 0) {
++	if (syscall_get_nr(current, regs) >= 0) {
+ 		/* Restart the system call - no handlers present */
+-		switch (current_syscall_ret(regs)) {
++		switch (syscall_get_error(current, regs)) {
+ 		case -ERESTARTNOHAND:
+ 		case -ERESTARTSYS:
+ 		case -ERESTARTNOINTR:
 _
 
-Patches currently in -mm which might be from marc.pignat@hevs.ch are
+Patches currently in -mm which might be from roland@redhat.com are
 
-origin.patch
 linux-next.patch
-rtc-ds1374-wakup-support.patch
-rtc-ds1374-wakeup-support-update.patch
+x86-tracehook-config_have_arch_tracehook.patch
+sched-do_wait_for_common-use-signal_pending_state.patch
+wait_task_inactive-dont-consider-task-nivcsw.patch
+wait_task_inactive-improve-the-returned-value-for-nvcsw-==-0.patch
+wait_task_inactive-fix-the-config_smp-version.patch
+posix-timers-dont-switch-to-group_leader-if-it_process-dies.patch
+posix-timers-always-do-get_task_structtimer-it_process.patch
+posix-timers-sys_timer_create-remove-the-buggy-pf_exiting-check.patch
+posix-timers-sys_timer_create-simplify-and-s-tasklist-rcu.patch
+posix-timers-move-the-initialization-of-timer-sigq-from-send-to-create-path.patch
+posix-timers-sys_timer_create-cleanup-the-error-handling.patch
+posix-timers-kill-it_sigev_signo-and-it_sigev_value.patch
+posix-timers-lock_timer-kill-the-bogus-it_id-check.patch
+posix-timers-lock_timer-make-it-readable.patch
+make-ptrace_untrace-static.patch
+coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
+kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
 
