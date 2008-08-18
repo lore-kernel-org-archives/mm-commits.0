@@ -1,131 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-trivial-cleanups-fix.patch removed from -mm tree
-Date: Mon, 18 Aug 2008 12:40:33 -0700
-Message-ID: <200808181940.m7IJeXqh008467@imap1.linux-foundation.org>
+Subject: - geode-mfgpt-check-irq-before-using-mfgpt-as-clocksource.patch removed from -mm tree
+Date: Mon, 18 Aug 2008 12:40:50 -0700
+Message-ID: <200808181940.m7IJeots008491@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39880 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44869 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765296AbYHRTl0 (ORCPT
+	by vger.kernel.org with ESMTP id S932499AbYHRTmU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 15:41:26 -0400
+	Mon, 18 Aug 2008 15:42:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, pavel@suse.cz, mm-commits@vger.kernel.org
+To: JRottmann@LiPPERTEmbedded.de, dilinger@debian.org, johnstul@us.ibm.com, jordan.crouse@amd.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi-trivial-cleanups-fix
+     geode-mfgpt: check IRQ before using MFGPT as clocksource
 has been removed from the -mm tree.  Its filename was
-     acpi-trivial-cleanups-fix.patch
+     geode-mfgpt-check-irq-before-using-mfgpt-as-clocksource.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi-trivial-cleanups-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: geode-mfgpt: check IRQ before using MFGPT as clocksource
+From: Jens Rottmann <JRottmann@LiPPERTEmbedded.de>
 
-rethink..
+Add a simple IRQ autodetection to the AMD Geode MFGPT driver, and more
+importantly, add some checks, if IRQs can actually be received on the
+chosen line.  This fixes cases where MFGPT is selected as clocksource
+though not producing any ticks, so the kernel simply starves during boot.
 
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Pavel Machek <pavel@suse.cz>
+Signed-off-by: Jens Rottmann <JRottmann@LiPPERTEmbedded.de>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
+Cc: Andres Salomon <dilinger@debian.org>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/reboot.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ arch/x86/kernel/mfgpt_32.c |   52 ++++++++++++++++++++++++-----------
+ include/asm-x86/geode.h    |    3 +-
+ 2 files changed, 39 insertions(+), 16 deletions(-)
 
-diff -puN drivers/acpi/reboot.c~acpi-trivial-cleanups-fix drivers/acpi/reboot.c
---- a/drivers/acpi/reboot.c~acpi-trivial-cleanups-fix
-+++ a/drivers/acpi/reboot.c
-@@ -1,8 +1,4 @@
--/*
-- * Reset the machine using the RESET_REG
-- *
-- * Distribute under GPL.
-- */
+diff -puN arch/x86/kernel/mfgpt_32.c~geode-mfgpt-check-irq-before-using-mfgpt-as-clocksource arch/x86/kernel/mfgpt_32.c
+--- a/arch/x86/kernel/mfgpt_32.c~geode-mfgpt-check-irq-before-using-mfgpt-as-clocksource
++++ a/arch/x86/kernel/mfgpt_32.c
+@@ -33,6 +33,8 @@
+ #include <linux/module.h>
+ #include <asm/geode.h>
+ 
++#define MFGPT_DEFAULT_IRQ	7
 +
- #include <linux/pci.h>
- #include <linux/acpi.h>
- #include <acpi/reboot.h>
+ static struct mfgpt_timer_t {
+ 	unsigned int avail:1;
+ } mfgpt_timers[MFGPT_MAX_TIMERS];
+@@ -157,29 +159,48 @@ int geode_mfgpt_toggle_event(int timer, 
+ }
+ EXPORT_SYMBOL_GPL(geode_mfgpt_toggle_event);
+ 
+-int geode_mfgpt_set_irq(int timer, int cmp, int irq, int enable)
++int geode_mfgpt_set_irq(int timer, int cmp, int *irq, int enable)
+ {
+-	u32 val, dummy;
+-	int offset;
++	u32 zsel, lpc, dummy;
++	int shift;
+ 
+ 	if (timer < 0 || timer >= MFGPT_MAX_TIMERS)
+ 		return -EIO;
+ 
+-	if (geode_mfgpt_toggle_event(timer, cmp, MFGPT_EVENT_IRQ, enable))
++	/*
++	 * Unfortunately, MFGPTs come in pairs sharing their IRQ lines. If VSA
++	 * is using the same CMP of the timer's Siamese twin, the IRQ is set to
++	 * 2, and we mustn't use nor change it.
++	 * XXX: Likewise, 2 Linux drivers might clash if the 2nd overwrites the
++	 * IRQ of the 1st. This can only happen if forcing an IRQ, calling this
++	 * with *irq==0 is safe. Currently there _are_ no 2 drivers.
++	 */
++	rdmsr(MSR_PIC_ZSEL_LOW, zsel, dummy);
++	shift = ((cmp == MFGPT_CMP1 ? 0 : 4) + timer % 4) * 4;
++	if (((zsel >> shift) & 0xF) == 2)
+ 		return -EIO;
+ 
+-	rdmsr(MSR_PIC_ZSEL_LOW, val, dummy);
++	/* Choose IRQ: if none supplied, keep IRQ already set or use default */
++	if (!*irq)
++		*irq = (zsel >> shift) & 0xF;
++	if (!*irq)
++		*irq = MFGPT_DEFAULT_IRQ;
+ 
+-	offset = (timer % 4) * 4;
+-
+-	val &= ~((0xF << offset) | (0xF << (offset + 16)));
++	/* Can't use IRQ if it's 0 (=disabled), 2, or routed to LPC */
++	if (*irq < 1 || *irq == 2 || *irq > 15)
++		return -EIO;
++	rdmsr(MSR_PIC_IRQM_LPC, lpc, dummy);
++	if (lpc & (1 << *irq))
++		return -EIO;
+ 
++	/* All chosen and checked - go for it */
++	if (geode_mfgpt_toggle_event(timer, cmp, MFGPT_EVENT_IRQ, enable))
++		return -EIO;
+ 	if (enable) {
+-		val |= (irq & 0x0F) << (offset);
+-		val |= (irq & 0x0F) << (offset + 16);
++		zsel = (zsel & ~(0xF << shift)) | (*irq << shift);
++		wrmsr(MSR_PIC_ZSEL_LOW, zsel, dummy);
+ 	}
+ 
+-	wrmsr(MSR_PIC_ZSEL_LOW, val, dummy);
+ 	return 0;
+ }
+ 
+@@ -242,7 +263,7 @@ EXPORT_SYMBOL_GPL(geode_mfgpt_alloc_time
+ static unsigned int mfgpt_tick_mode = CLOCK_EVT_MODE_SHUTDOWN;
+ static u16 mfgpt_event_clock;
+ 
+-static int irq = 7;
++static int irq;
+ static int __init mfgpt_setup(char *str)
+ {
+ 	get_option(&str, &irq);
+@@ -346,7 +367,7 @@ int __init mfgpt_timer_setup(void)
+ 	mfgpt_event_clock = timer;
+ 
+ 	/* Set up the IRQ on the MFGPT side */
+-	if (geode_mfgpt_setup_irq(mfgpt_event_clock, MFGPT_CMP2, irq)) {
++	if (geode_mfgpt_setup_irq(mfgpt_event_clock, MFGPT_CMP2, &irq)) {
+ 		printk(KERN_ERR "mfgpt-timer:  Could not set up IRQ %d\n", irq);
+ 		return -EIO;
+ 	}
+@@ -374,13 +395,14 @@ int __init mfgpt_timer_setup(void)
+ 			&mfgpt_clockevent);
+ 
+ 	printk(KERN_INFO
+-	       "mfgpt-timer:  registering the MFGPT timer as a clock event.\n");
++	       "mfgpt-timer:  Registering MFGPT timer %d as a clock event, using IRQ %d\n",
++	       timer, irq);
+ 	clockevents_register_device(&mfgpt_clockevent);
+ 
+ 	return 0;
+ 
+ err:
+-	geode_mfgpt_release_irq(mfgpt_event_clock, MFGPT_CMP2, irq);
++	geode_mfgpt_release_irq(mfgpt_event_clock, MFGPT_CMP2, &irq);
+ 	printk(KERN_ERR
+ 	       "mfgpt-timer:  Unable to set up the MFGPT clock source\n");
+ 	return -EIO;
+diff -puN include/asm-x86/geode.h~geode-mfgpt-check-irq-before-using-mfgpt-as-clocksource include/asm-x86/geode.h
+--- a/include/asm-x86/geode.h~geode-mfgpt-check-irq-before-using-mfgpt-as-clocksource
++++ a/include/asm-x86/geode.h
+@@ -50,6 +50,7 @@ extern int geode_get_dev_base(unsigned i
+ #define MSR_PIC_YSEL_HIGH	0x51400021
+ #define MSR_PIC_ZSEL_LOW	0x51400022
+ #define MSR_PIC_ZSEL_HIGH	0x51400023
++#define MSR_PIC_IRQM_LPC	0x51400025
+ 
+ #define MSR_MFGPT_IRQ		0x51400028
+ #define MSR_MFGPT_NR		0x51400029
+@@ -237,7 +238,7 @@ static inline u16 geode_mfgpt_read(int t
+ }
+ 
+ extern int geode_mfgpt_toggle_event(int timer, int cmp, int event, int enable);
+-extern int geode_mfgpt_set_irq(int timer, int cmp, int irq, int enable);
++extern int geode_mfgpt_set_irq(int timer, int cmp, int *irq, int enable);
+ extern int geode_mfgpt_alloc_timer(int timer, int domain);
+ 
+ #define geode_mfgpt_setup_irq(t, c, i) geode_mfgpt_set_irq((t), (c), (i), 1)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from JRottmann@LiPPERTEmbedded.de are
 
 origin.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-next-remove-localversion.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-drivers-ata-pata_it821xc-fix-warning.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers-tweaks.patch
-ftrace-printk-formatting-infrastructure.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-git-watchdog.patch
-git-xtensa.patch
-drivers-char-ipmi-ipmi_si_intfc-default_find_bmc-fix-leak.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
