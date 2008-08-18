@@ -1,59 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - kexec-fix-compilation-warning-on-xchgkexec_lock-0-in-kernel_kexec.patch removed from -mm tree
-Date: Mon, 18 Aug 2008 12:39:21 -0700
-Message-ID: <200808181939.m7IJdLEV008288@imap1.linux-foundation.org>
+Subject: - documentation-vm-page_migration-update-reference-to-numa_maps-fix-download-uri.patch removed from -mm tree
+Date: Mon, 18 Aug 2008 12:39:17 -0700
+Message-ID: <200808181939.m7IJdHQd008278@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38504 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40652 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762662AbYHRTjX (ORCPT
+	by vger.kernel.org with ESMTP id S1758989AbYHRTjY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 15:39:23 -0400
+	Mon, 18 Aug 2008 15:39:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: mtk.manpages@googlemail.com, Lee.Schermerhorn@hp.com, cpw@sgi.com, mtk.manpages@gmail.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kexec: fix compilation warning on xchg(&kexec_lock, 0) in kernel_kexec()
+     Documentation/vm/page_migration: update reference to numa_maps + fix download URI
 has been removed from the -mm tree.  Its filename was
-     kexec-fix-compilation-warning-on-xchgkexec_lock-0-in-kernel_kexec.patch
+     documentation-vm-page_migration-update-reference-to-numa_maps-fix-download-uri.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec: fix compilation warning on xchg(&kexec_lock, 0) in kernel_kexec()
-From: Huang Ying <ying.huang@intel.com>
+Subject: Documentation/vm/page_migration: update reference to numa_maps + fix download URI
+From: "Michael Kerrisk" <mtk.manpages@googlemail.com>
 
-kernel/kexec.c: In function 'kernel_kexec':
-kernel/kexec.c:1506: warning: value computed is not used
+With man-pages-3.07, the numa_maps documentation home is now proc(5), so
+the reference in Documentation/vm/page_migration needs updating. 
+(Cliff/Lee are removing numa_maps.5 from the numactl package.) Also, the
+download location for the numactl package changed a while back.  This
+patch fixes both things, as well as a typo (provided-->provides).
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Cliff Wickman <cpw@sgi.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/vm/page_migration |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN kernel/kexec.c~kexec-fix-compilation-warning-on-xchgkexec_lock-0-in-kernel_kexec kernel/kexec.c
---- a/kernel/kexec.c~kexec-fix-compilation-warning-on-xchgkexec_lock-0-in-kernel_kexec
-+++ a/kernel/kexec.c
-@@ -1503,7 +1503,8 @@ int kernel_kexec(void)
- 	}
+diff -puN Documentation/vm/page_migration~documentation-vm-page_migration-update-reference-to-numa_maps-fix-download-uri Documentation/vm/page_migration
+--- a/Documentation/vm/page_migration~documentation-vm-page_migration-update-reference-to-numa_maps-fix-download-uri
++++ a/Documentation/vm/page_migration
+@@ -18,10 +18,11 @@ migrate_pages function call takes two se
+ process that are located on the from nodes to the destination nodes.
+ Page migration functions are provided by the numactl package by Andi Kleen
+ (a version later than 0.9.3 is required. Get it from
+-ftp://ftp.suse.com/pub/people/ak). numactl provided libnuma which
+-provides an interface similar to other numa functionality for page migration.
+-cat /proc/<pid>/numa_maps allows an easy review of where the pages of
+-a process are located. See also the numa_maps manpage in the numactl package.
++ftp://oss.sgi.com/www/projects/libnuma/download/). numactl provides libnuma
++which provides an interface similar to other numa functionality for page
++migration.  cat /proc/<pid>/numa_maps allows an easy review of where the
++pages of a process are located. See also the numa_maps documentation in the
++proc(5) man page.
  
-  Unlock:
--	xchg(&kexec_lock, 0);
-+	if (!xchg(&kexec_lock, 0))
-+		BUG();
- 
- 	return error;
- }
+ Manual migration is useful if for example the scheduler has relocated
+ a process to a processor on a distant node. A batch scheduler or an
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from mtk.manpages@googlemail.com are
 
 origin.patch
+coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
 
