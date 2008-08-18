@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + video-framebuffer-add-fuctional-power-management-support-to-blackfin-bf54x-lq043-framebuffer-driver.patch added to -mm tree
-Date: Mon, 18 Aug 2008 15:01:35 -0700
-Message-ID: <200808182201.m7IM1Z4G015172@imap1.linux-foundation.org>
+Subject: + tpm-work-around-bug-in-broadcom-bcm0102-chipset.patch added to -mm tree
+Date: Mon, 18 Aug 2008 15:27:34 -0700
+Message-ID: <200808182227.m7IMRZYB016289@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59454 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36261 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753282AbYHRWCE (ORCPT
+	by vger.kernel.org with ESMTP id S1753869AbYHRW2B (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 18:02:04 -0400
+	Mon, 18 Aug 2008 18:28:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: michael.hennerich@analog.com, cooloney@kernel.org, krzysztof.h1@wp.pl
+Cc: valdis.kletnieks@vt.edu, kjhall@us.ibm.com, marcin_obara@users.sourceforge.net, tpm@selhorst.net
 
 
 The patch titled
-     Video/Framebuffer: add fuctional power management support to Blackfin BF54x LQ043 framebuffer driver
+     tpm: work around bug in Broadcom BCM0102 chipset
 has been added to the -mm tree.  Its filename is
-     video-framebuffer-add-fuctional-power-management-support-to-blackfin-bf54x-lq043-framebuffer-driver.patch
+     tpm-work-around-bug-in-broadcom-bcm0102-chipset.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Video/Framebuffer: add fuctional power management support to Blackfin BF54x LQ043 framebuffer driver
-From: Michael Hennerich <michael.hennerich@analog.com>
+Subject: tpm: work around bug in Broadcom BCM0102 chipset
+From: Valdis.Kletnieks@vt.edu
 
-Fix bug: does nor properply resume after suspend mem
-Fix for PM_SUSPEND_MEM: Save and restore peripheral base and DMA registers
+Patch tpm-correct-tpm-timeouts-to-jiffies-conversion reveals a bug in the
+Broadcom BCM0102 TPM chipset used in the Dell Latitude D820 - although
+most of the timeouts are returned in usecs as per the spec, one is
+apparently returned in msecs, which results in a too-small value leading
+to a timeout when the code treats it as usecs.  To prevent a regression,
+we check for the known too-short value and adjust it to a value that makes
+things work.
 
-Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
-Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+Cc: Marcin Obara <marcin_obara@users.sourceforge.net>
+Cc: Marcel Selhorst <tpm@selhorst.net>
+Cc: Kylene Jo Hall <kjhall@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/bf54x-lq043fb.c |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ drivers/char/tpm/tpm.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/video/bf54x-lq043fb.c~video-framebuffer-add-fuctional-power-management-support-to-blackfin-bf54x-lq043-framebuffer-driver drivers/video/bf54x-lq043fb.c
---- a/drivers/video/bf54x-lq043fb.c~video-framebuffer-add-fuctional-power-management-support-to-blackfin-bf54x-lq043-framebuffer-driver
-+++ a/drivers/video/bf54x-lq043fb.c
-@@ -733,7 +733,6 @@ static int bfin_bf54x_remove(struct plat
- static int bfin_bf54x_suspend(struct platform_device *pdev, pm_message_t state)
- {
- 	struct fb_info *fbinfo = platform_get_drvdata(pdev);
--	struct bfin_bf54xfb_info *info = fbinfo->par;
- 
- 	bfin_write_EPPI0_CONTROL(bfin_read_EPPI0_CONTROL() & ~EPPI_EN);
- 	disable_dma(CH_EPPI0);
-@@ -747,8 +746,18 @@ static int bfin_bf54x_resume(struct plat
- 	struct fb_info *fbinfo = platform_get_drvdata(pdev);
- 	struct bfin_bf54xfb_info *info = fbinfo->par;
- 
--	enable_dma(CH_EPPI0);
--	bfin_write_EPPI0_CONTROL(bfin_read_EPPI0_CONTROL() | EPPI_EN);
-+	if (info->lq043_open_cnt) {
+diff -puN drivers/char/tpm/tpm.c~tpm-work-around-bug-in-broadcom-bcm0102-chipset drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~tpm-work-around-bug-in-broadcom-bcm0102-chipset
++++ a/drivers/char/tpm/tpm.c
+@@ -557,6 +557,13 @@ duration:
+ 	    usecs_to_jiffies(be32_to_cpu
+ 			     (*((__be32 *) (data +
+ 					    TPM_GET_CAP_RET_UINT32_1_IDX))));
++	/* The Broadcom BCM0102 chipset in a Dell Latitude D820 gets the above
++	 * value wrong and apparently reports msecs rather than usecs. So we
++	 * fix up the resulting too-small TPM_SHORT value to make things work.
++	 */
++	if (chip->vendor.duration[TPM_SHORT] < (HZ/100))
++		chip->vendor.duration[TPM_SHORT] = HZ;
 +
-+		bfin_write_EPPI0_CONTROL(0);
-+		SSYNC();
-+
-+		config_dma(info);
-+		config_ppi(info);
-+
-+		/* start dma */
-+		enable_dma(CH_EPPI0);
-+		bfin_write_EPPI0_CONTROL(bfin_read_EPPI0_CONTROL() | EPPI_EN);
-+	}
- 
- 	return 0;
- }
+ 	chip->vendor.duration[TPM_MEDIUM] =
+ 	    usecs_to_jiffies(be32_to_cpu
+ 			     (*((__be32 *) (data +
 _
 
-Patches currently in -mm which might be from michael.hennerich@analog.com are
+Patches currently in -mm which might be from valdis.kletnieks@vt.edu are
 
-origin.patch
-linux-next.patch
-input-touchscreen-driver-add-support-ad7877-touchscreen-driver.patch
-video-framebuffer-add-fuctional-power-management-support-to-blackfin-bf54x-lq043-framebuffer-driver.patch
+tpm-work-around-bug-in-broadcom-bcm0102-chipset.patch
 
