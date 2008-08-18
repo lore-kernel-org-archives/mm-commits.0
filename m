@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-xip-fix-fault-vs-sparse-page-invalidate-race.patch added to -mm tree
-Date: Mon, 18 Aug 2008 16:13:32 -0700
-Message-ID: <200808182313.m7INDWWI018029@imap1.linux-foundation.org>
+Subject: + mm-dirty-page-tracking-race-fix.patch added to -mm tree
+Date: Mon, 18 Aug 2008 16:13:28 -0700
+Message-ID: <200808182313.m7INDS8p018023@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43406 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40498 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753489AbYHRXNv (ORCPT
+	by vger.kernel.org with ESMTP id S1753390AbYHRXNt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 19:13:51 -0400
+	Mon, 18 Aug 2008 19:13:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, cotte@freenet.de, hugh@veritas.com, jaredeh@gmail.com
+Cc: npiggin@suse.de, a.p.zijlstra@chello.nl, cotte@freenet.de, hugh@veritas.com, jaredeh@gmail.com
 
 
 The patch titled
-     mm: xip fix fault vs sparse page invalidate race
+     mm: dirty page tracking race fix
 has been added to the -mm tree.  Its filename is
-     mm-xip-fix-fault-vs-sparse-page-invalidate-race.patch
+     mm-dirty-page-tracking-race-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,156 +34,128 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: xip fix fault vs sparse page invalidate race
+Subject: mm: dirty page tracking race fix
 From: Nick Piggin <npiggin@suse.de>
 
-XIP has a race between sparse pages being inserted into page tables, and
-sparse pages being zapped when its time to put a non-sparse page in.
+There is a race with dirty page accounting where a page may not properly
+be accounted for.
 
-What can happen is that a process can be left with a dangling sparse page
-in a MAP_SHARED mapping, while the rest of the world sees the non-sparse
-version.  Ie.  data corruption.
+clear_page_dirty_for_io() calls page_mkclean; then TestClearPageDirty.
 
-Guard these operations with a seqlock, making fault-in-sparse-pages the
-slowpath, and try-to-unmap-sparse-pages the fastpath.
+page_mkclean walks the rmaps for that page, and for each one it cleans and
+write protects the pte if it was dirty.  It uses page_check_address to
+find the pte.  That function has a shortcut to avoid the ptl if the pte is
+not present.  Unfortunately, the pte can be switched to not-present then
+back to present by other code while holding the page table lock -- this
+should not be a signal for page_mkclean to ignore that pte, because it may
+be dirty.
+
+For example, powerpc64's set_pte_at will clear a previously present pte
+before setting it to the desired value.  There may also be other code in
+core mm or in arch which do similar things.
+
+The consequence of the bug is loss of data integrity due to msync, and
+loss of dirty page accounting accuracy.  XIP's __xip_unmap could easily
+also be unreliable (depending on the exact XIP locking scheme), which can
+lead to data corruption.
+
+Fix this by having an option to always take ptl to check the pte in
+page_check_address.
+
+It's possible to retain this optimization for page_referenced and
+try_to_unmap.
 
 Signed-off-by: Nick Piggin <npiggin@suse.de>
 Cc: Jared Hulbert <jaredeh@gmail.com>
-Acked-by: Carsten Otte <cotte@freenet.de>
+Cc: Carsten Otte <cotte@freenet.de>
 Cc: Hugh Dickins <hugh@veritas.com>
+Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap_xip.c |   60 ++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 46 insertions(+), 14 deletions(-)
+ include/linux/rmap.h |    2 +-
+ mm/filemap_xip.c     |    2 +-
+ mm/rmap.c            |   14 +++++++++-----
+ 3 files changed, 11 insertions(+), 7 deletions(-)
 
-diff -puN mm/filemap_xip.c~mm-xip-fix-fault-vs-sparse-page-invalidate-race mm/filemap_xip.c
---- a/mm/filemap_xip.c~mm-xip-fix-fault-vs-sparse-page-invalidate-race
-+++ a/mm/filemap_xip.c
-@@ -15,6 +15,8 @@
- #include <linux/rmap.h>
- #include <linux/mmu_notifier.h>
- #include <linux/sched.h>
-+#include <linux/seqlock.h>
-+#include <linux/mutex.h>
- #include <asm/tlbflush.h>
- #include <asm/io.h>
- 
-@@ -22,22 +24,18 @@
-  * We do use our own empty page to avoid interference with other users
-  * of ZERO_PAGE(), such as /dev/zero
+diff -puN include/linux/rmap.h~mm-dirty-page-tracking-race-fix include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-dirty-page-tracking-race-fix
++++ a/include/linux/rmap.h
+@@ -102,7 +102,7 @@ int try_to_unmap(struct page *, int igno
+  * Called from mm/filemap_xip.c to unmap empty zero page
   */
-+static DEFINE_MUTEX(xip_sparse_mutex);
-+static seqcount_t xip_sparse_seq = SEQCNT_ZERO;
- static struct page *__xip_sparse_page;
- 
-+/* called under xip_sparse_mutex */
- static struct page *xip_sparse_page(void)
- {
- 	if (!__xip_sparse_page) {
- 		struct page *page = alloc_page(GFP_HIGHUSER | __GFP_ZERO);
- 
--		if (page) {
--			static DEFINE_SPINLOCK(xip_alloc_lock);
--			spin_lock(&xip_alloc_lock);
--			if (!__xip_sparse_page)
--				__xip_sparse_page = page;
--			else
--				__free_page(page);
--			spin_unlock(&xip_alloc_lock);
--		}
-+		if (page)
-+			__xip_sparse_page = page;
- 	}
- 	return __xip_sparse_page;
- }
-@@ -174,11 +172,16 @@ __xip_unmap (struct address_space * mapp
- 	pte_t pteval;
- 	spinlock_t *ptl;
- 	struct page *page;
-+	unsigned count;
-+	int locked = 0;
-+
-+	count = read_seqcount_begin(&xip_sparse_seq);
- 
- 	page = __xip_sparse_page;
- 	if (!page)
- 		return;
- 
-+retry:
- 	spin_lock(&mapping->i_mmap_lock);
- 	vma_prio_tree_foreach(vma, &iter, &mapping->i_mmap, pgoff, pgoff) {
- 		mm = vma->vm_mm;
-@@ -198,6 +201,14 @@ __xip_unmap (struct address_space * mapp
- 		}
- 	}
- 	spin_unlock(&mapping->i_mmap_lock);
-+
-+	if (locked) {
-+		mutex_unlock(&xip_sparse_mutex);
-+	} else if (read_seqcount_retry(&xip_sparse_seq, count)) {
-+		mutex_lock(&xip_sparse_mutex);
-+		locked = 1;
-+		goto retry;
-+	}
- }
+ pte_t *page_check_address(struct page *, struct mm_struct *,
+-				unsigned long, spinlock_t **);
++				unsigned long, spinlock_t **, int);
  
  /*
-@@ -218,7 +229,7 @@ static int xip_file_fault(struct vm_area
- 	int error;
+  * Used by swapoff to help locate where page is expected in vma.
+diff -puN mm/filemap_xip.c~mm-dirty-page-tracking-race-fix mm/filemap_xip.c
+--- a/mm/filemap_xip.c~mm-dirty-page-tracking-race-fix
++++ a/mm/filemap_xip.c
+@@ -185,7 +185,7 @@ __xip_unmap (struct address_space * mapp
+ 		address = vma->vm_start +
+ 			((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+ 		BUG_ON(address < vma->vm_start || address >= vma->vm_end);
+-		pte = page_check_address(page, mm, address, &ptl);
++		pte = page_check_address(page, mm, address, &ptl, 1);
+ 		if (pte) {
+ 			/* Nuke the page table entry. */
+ 			flush_cache_page(vma, address, pte_pfn(*pte));
+diff -puN mm/rmap.c~mm-dirty-page-tracking-race-fix mm/rmap.c
+--- a/mm/rmap.c~mm-dirty-page-tracking-race-fix
++++ a/mm/rmap.c
+@@ -224,10 +224,14 @@ unsigned long page_address_in_vma(struct
+ /*
+  * Check that @page is mapped at @address into @mm.
+  *
++ * If @synch is false, page_check_address may perform a racy check to avoid
++ * the page table lock when the pte is not present (helpful when reclaiming
++ * highly shared pages).
++ *
+  * On success returns with pte mapped and locked.
+  */
+ pte_t *page_check_address(struct page *page, struct mm_struct *mm,
+-			  unsigned long address, spinlock_t **ptlp)
++			  unsigned long address, spinlock_t **ptlp, int synch)
+ {
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+@@ -249,7 +253,7 @@ pte_t *page_check_address(struct page *p
  
- 	/* XXX: are VM_FAULT_ codes OK? */
--
-+again:
- 	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		return VM_FAULT_SIGBUS;
-@@ -245,6 +256,7 @@ static int xip_file_fault(struct vm_area
- 		__xip_unmap(mapping, vmf->pgoff);
- 
- found:
-+		printk("%s insert %lx@%lx\n", current->comm, (unsigned long)vmf->virtual_address, xip_pfn);
- 		err = vm_insert_mixed(vma, (unsigned long)vmf->virtual_address,
- 							xip_pfn);
- 		if (err == -ENOMEM)
-@@ -252,14 +264,34 @@ found:
- 		BUG_ON(err);
- 		return VM_FAULT_NOPAGE;
- 	} else {
-+		int err, ret = VM_FAULT_OOM;
-+
-+		mutex_lock(&xip_sparse_mutex);
-+		write_seqcount_begin(&xip_sparse_seq);
-+		error = mapping->a_ops->get_xip_mem(mapping, vmf->pgoff, 0,
-+							&xip_mem, &xip_pfn);
-+		if (unlikely(!error)) {
-+			write_seqcount_end(&xip_sparse_seq);
-+			mutex_unlock(&xip_sparse_mutex);
-+			goto again;
-+		}
-+		if (error != -ENODATA)
-+			goto out;
- 		/* not shared and writable, use xip_sparse_page() */
- 		page = xip_sparse_page();
- 		if (!page)
--			return VM_FAULT_OOM;
-+			goto out;
-+		err = vm_insert_page(vma, (unsigned long)vmf->virtual_address,
-+							page);
-+		if (err == -ENOMEM)
-+			goto out;
- 
--		page_cache_get(page);
--		vmf->page = page;
--		return 0;
-+		ret = VM_FAULT_NOPAGE;
-+out:
-+		write_seqcount_end(&xip_sparse_seq);
-+		mutex_unlock(&xip_sparse_mutex);
-+
-+		return ret;
+ 	pte = pte_offset_map(pmd, address);
+ 	/* Make a quick check before getting the lock */
+-	if (!pte_present(*pte)) {
++	if (!synch && !pte_present(*pte)) {
+ 		pte_unmap(pte);
+ 		return NULL;
  	}
- }
+@@ -281,7 +285,7 @@ static int page_referenced_one(struct pa
+ 	if (address == -EFAULT)
+ 		goto out;
+ 
+-	pte = page_check_address(page, mm, address, &ptl);
++	pte = page_check_address(page, mm, address, &ptl, 0);
+ 	if (!pte)
+ 		goto out;
+ 
+@@ -450,7 +454,7 @@ static int page_mkclean_one(struct page 
+ 	if (address == -EFAULT)
+ 		goto out;
+ 
+-	pte = page_check_address(page, mm, address, &ptl);
++	pte = page_check_address(page, mm, address, &ptl, 1);
+ 	if (!pte)
+ 		goto out;
+ 
+@@ -704,7 +708,7 @@ static int try_to_unmap_one(struct page 
+ 	if (address == -EFAULT)
+ 		goto out;
+ 
+-	pte = page_check_address(page, mm, address, &ptl);
++	pte = page_check_address(page, mm, address, &ptl, 0);
+ 	if (!pte)
+ 		goto out;
  
 _
 
