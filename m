@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-self-maps-doesnt-display-the-real-file-offset-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 18 Aug 2008 14:13:16 -0700
-Message-ID: <200808182113.m7ILDGgf012995@imap1.linux-foundation.org>
+Subject: + alloc_bootmem_core-fix-misaligned-allocation-of-1g-page.patch added to -mm tree
+Date: Mon, 18 Aug 2008 14:18:53 -0700
+Message-ID: <200808182118.m7ILIrxM013207@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40444 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39679 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752233AbYHRVNr (ORCPT
+	by vger.kernel.org with ESMTP id S1752981AbYHRVS7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 18 Aug 2008 17:13:47 -0400
+	Mon, 18 Aug 2008 17:18:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cboulte@gmail.com
+Cc: hannes@saeurebad.de, andreas.herrmann3@amd.com
 
 
 The patch titled
-     proc-self-maps-doesnt-display-the-real-file-offset-checkpatch-fixes
+     bootmem: fix aligning of node-relative indexes and offsets
 has been added to the -mm tree.  Its filename is
-     proc-self-maps-doesnt-display-the-real-file-offset-checkpatch-fixes.patch
+     alloc_bootmem_core-fix-misaligned-allocation-of-1g-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,118 +34,123 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc-self-maps-doesnt-display-the-real-file-offset-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: bootmem: fix aligning of node-relative indexes and offsets
+From: Johannes Weiner <hannes@saeurebad.de>
 
-ERROR: code indent should use tabs where possible
-#132: FILE: fs/proc/task_mmu.c:229:
-+^I^I        ((loff_t) vma->vm_pgoff) << PAGE_SHIFT,$
+needs changlelog and signoff.
 
-total: 1 errors, 0 warnings, 32 lines checked
-
-./patches/proc-self-maps-doesnt-display-the-real-file-offset.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Clement Calmels <cboulte@gmail.com>
+Reviewed-and-tested-by: Andreas Herrmann <andreas.herrmann3@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/bootmem.c |   43 +++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 37 insertions(+), 6 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~proc-self-maps-doesnt-display-the-real-file-offset-checkpatch-fixes fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-self-maps-doesnt-display-the-real-file-offset-checkpatch-fixes
-+++ a/fs/proc/task_mmu.c
-@@ -226,7 +226,7 @@ static int show_map(struct seq_file *m, 
- 			flags & VM_WRITE ? 'w' : '-',
- 			flags & VM_EXEC ? 'x' : '-',
- 			flags & VM_MAYSHARE ? 's' : 'p',
--		        ((loff_t) vma->vm_pgoff) << PAGE_SHIFT,
-+			((loff_t)vma->vm_pgoff) << PAGE_SHIFT,
- 			MAJOR(dev), MINOR(dev), ino, &len);
+diff -puN mm/bootmem.c~alloc_bootmem_core-fix-misaligned-allocation-of-1g-page mm/bootmem.c
+--- a/mm/bootmem.c~alloc_bootmem_core-fix-misaligned-allocation-of-1g-page
++++ a/mm/bootmem.c
+@@ -405,6 +405,30 @@ int __init reserve_bootmem(unsigned long
+ }
+ #endif /* !CONFIG_HAVE_ARCH_BOOTMEM_NODE */
  
- 	/*
++static unsigned long align_idx(struct bootmem_data *bdata, unsigned long idx,
++			unsigned long step)
++{
++	unsigned long base = bdata->node_min_pfn;
++
++	/*
++	 * Align the index with respect to the node start so that the
++	 * resulting absolute PFN (node-start + index) is properly
++	 * aligned.
++	 */
++
++	return ALIGN(base + idx, step) - base;
++}
++
++static unsigned long align_off(struct bootmem_data *bdata, unsigned long off,
++			unsigned long align)
++{
++	unsigned long base = PFN_PHYS(bdata->node_min_pfn);
++
++	/* Same as align_idx for byte offsets */
++
++	return ALIGN(base + off, align) - base;
++}
++
+ static void * __init alloc_bootmem_core(struct bootmem_data *bdata,
+ 				unsigned long size, unsigned long align,
+ 				unsigned long goal, unsigned long limit)
+@@ -441,16 +465,23 @@ static void * __init alloc_bootmem_core(
+ 	else
+ 		start = ALIGN(min, step);
+ 
+-	sidx = start - bdata->node_min_pfn;;
++	sidx = start - bdata->node_min_pfn;
+ 	midx = max - bdata->node_min_pfn;
+ 
++	/*
++	 * Because the indexes are relative to the node, all alignment
++	 * below has to be done with respect to the node's start in
++	 * order to have the resulting PFNs and addresses properly
++	 * aligned.
++	 */
++
+ 	if (bdata->hint_idx > sidx) {
+ 		/*
+ 		 * Handle the valid case of sidx being zero and still
+ 		 * catch the fallback below.
+ 		 */
+ 		fallback = sidx + 1;
+-		sidx = ALIGN(bdata->hint_idx, step);
++		sidx = align_idx(bdata, bdata->hint_idx, step);
+ 	}
+ 
+ 	while (1) {
+@@ -459,7 +490,7 @@ static void * __init alloc_bootmem_core(
+ 		unsigned long eidx, i, start_off, end_off;
+ find_block:
+ 		sidx = find_next_zero_bit(bdata->node_bootmem_map, midx, sidx);
+-		sidx = ALIGN(sidx, step);
++		sidx = align_idx(bdata, sidx, step);
+ 		eidx = sidx + PFN_UP(size);
+ 
+ 		if (sidx >= midx || eidx > midx)
+@@ -467,7 +498,7 @@ find_block:
+ 
+ 		for (i = sidx; i < eidx; i++)
+ 			if (test_bit(i, bdata->node_bootmem_map)) {
+-				sidx = ALIGN(i, step);
++				sidx = align_idx(bdata, i, step);
+ 				if (sidx == i)
+ 					sidx += step;
+ 				goto find_block;
+@@ -475,7 +506,7 @@ find_block:
+ 
+ 		if (bdata->last_end_off & (PAGE_SIZE - 1) &&
+ 				PFN_DOWN(bdata->last_end_off) + 1 == sidx)
+-			start_off = ALIGN(bdata->last_end_off, align);
++			start_off = align_off(bdata, bdata->last_end_off, align);
+ 		else
+ 			start_off = PFN_PHYS(sidx);
+ 
+@@ -499,7 +530,7 @@ find_block:
+ 	}
+ 
+ 	if (fallback) {
+-		sidx = ALIGN(fallback - 1, step);
++		sidx = align_idx(bdata, fallback - 1, step);
+ 		fallback = 0;
+ 		goto find_block;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hannes@saeurebad.de are
 
 origin.patch
-proc-self-maps-doesnt-display-the-real-file-offset-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-next-remove-localversion.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-git-jg-misc.patch
-drivers-ata-pata_it821xc-fix-warning.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-remove-inapplicable-test-for-ioport-checkpatch-fixes.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers-tweaks.patch
-ftrace-printk-formatting-infrastructure.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-git-watchdog.patch
+documentation-describe-bootmem_debug-kernel-parameter.patch
 git-xtensa.patch
-drivers-char-ipmi-ipmi_si_intfc-default_find_bmc-fix-leak.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-media-video-gspca-zc3xxc-fix-oops-checkpatch-fixes.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+alloc_bootmem_core-fix-misaligned-allocation-of-1g-page.patch
+bootmem-fix-aligning-of-node-relative-indexes-and-offsets.patch
+vmscan-dont-accumulate-scan-pressure-on-unrelated-lists.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
 
