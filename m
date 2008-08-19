@@ -1,126 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - char-cyclades-remove-bogus-iomap.patch removed from -mm tree
-Date: Tue, 19 Aug 2008 15:40:28 -0700
-Message-ID: <200808192240.m7JMeSQ2010651@imap1.linux-foundation.org>
+Subject: - kernelh-fix-kernel-doc-for-might_sleep.patch removed from -mm tree
+Date: Tue, 19 Aug 2008 15:40:26 -0700
+Message-ID: <200808192240.m7JMeQtA010648@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41834 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42586 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751684AbYHSWkl (ORCPT
+	by vger.kernel.org with ESMTP id S1751650AbYHSWkk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Aug 2008 18:40:41 -0400
+	Tue, 19 Aug 2008 18:40:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, R.E.Wolff@BitWizard.nl, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, Uwe.Kleine-Koenig@digi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: cyclades, remove bogus iomap
+     kernel.h: fix kernel-doc for might_sleep
 has been removed from the -mm tree.  Its filename was
-     char-cyclades-remove-bogus-iomap.patch
+     kernelh-fix-kernel-doc-for-might_sleep.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: cyclades, remove bogus iomap
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: kernel.h: fix kernel-doc for might_sleep
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-readl/writel are not expected to accept iomap return value. Replace
-bogus mapping by standard ioremap.
+Put the kernel-doc for might_sleep() _immediately_ before the macro (no
+intervening lines).  Otherwise kernel-doc complains like so:
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: <R.E.Wolff@BitWizard.nl>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Warning(linux-2.6.27-rc3-git2//include/linux/kernel.h:129): No description found for parameter 'file'
+Warning(linux-2.6.27-rc3-git2//include/linux/kernel.h:129): No description found for parameter 'line'
+
+because kernel-doc is looking at the wrong function prototype (i.e.,
+__might_sleep).  [Yes, I have a todo note to myself to check/warn for that
+inconsistency in scripts/kernel-doc.]
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Uwe Kleine-K_nig <Uwe.Kleine-Koenig@digi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ include/linux/kernel.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/cyclades.c~char-cyclades-remove-bogus-iomap drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-cyclades-remove-bogus-iomap
-+++ a/drivers/char/cyclades.c
-@@ -4993,12 +4993,14 @@ static int __devinit cy_pci_probe(struct
- 			device_id == PCI_DEVICE_ID_CYCLOM_Y_Hi) {
- 		card_name = "Cyclom-Y";
+diff -puN include/linux/kernel.h~kernelh-fix-kernel-doc-for-might_sleep include/linux/kernel.h
+--- a/include/linux/kernel.h~kernelh-fix-kernel-doc-for-might_sleep
++++ a/include/linux/kernel.h
+@@ -115,6 +115,8 @@ extern int _cond_resched(void);
+ # define might_resched() do { } while (0)
+ #endif
  
--		addr0 = pci_iomap(pdev, 0, CyPCI_Yctl);
-+		addr0 = ioremap_nocache(pci_resource_start(pdev, 0),
-+				CyPCI_Yctl);
- 		if (addr0 == NULL) {
- 			dev_err(&pdev->dev, "can't remap ctl region\n");
- 			goto err_reg;
- 		}
--		addr2 = pci_iomap(pdev, 2, CyPCI_Ywin);
-+		addr2 = ioremap_nocache(pci_resource_start(pdev, 2),
-+				CyPCI_Ywin);
- 		if (addr2 == NULL) {
- 			dev_err(&pdev->dev, "can't remap base region\n");
- 			goto err_unmap;
-@@ -5013,7 +5015,8 @@ static int __devinit cy_pci_probe(struct
- 	} else if (device_id == PCI_DEVICE_ID_CYCLOM_Z_Hi) {
- 		struct RUNTIME_9060 __iomem *ctl_addr;
- 
--		ctl_addr = addr0 = pci_iomap(pdev, 0, CyPCI_Zctl);
-+		ctl_addr = addr0 = ioremap_nocache(pci_resource_start(pdev, 0),
-+				CyPCI_Zctl);
- 		if (addr0 == NULL) {
- 			dev_err(&pdev->dev, "can't remap ctl region\n");
- 			goto err_reg;
-@@ -5026,8 +5029,8 @@ static int __devinit cy_pci_probe(struct
- 
- 		mailbox = (u32)readl(&ctl_addr->mail_box_0);
- 
--		addr2 = pci_iomap(pdev, 2, mailbox == ZE_V1 ?
--				CyPCI_Ze_win : CyPCI_Zwin);
-+		addr2 = ioremap_nocache(pci_resource_start(pdev, 2),
-+				mailbox == ZE_V1 ? CyPCI_Ze_win : CyPCI_Zwin);
- 		if (addr2 == NULL) {
- 			dev_err(&pdev->dev, "can't remap base region\n");
- 			goto err_unmap;
-@@ -5159,9 +5162,9 @@ err_null:
- 	cy_card[card_no].base_addr = NULL;
- 	free_irq(irq, &cy_card[card_no]);
- err_unmap:
--	pci_iounmap(pdev, addr0);
-+	iounmap(addr0);
- 	if (addr2)
--		pci_iounmap(pdev, addr2);
-+		iounmap(addr2);
- err_reg:
- 	pci_release_regions(pdev);
- err_dis:
-@@ -5186,9 +5189,9 @@ static void __devexit cy_pci_remove(stru
- 		cy_writew(cinfo->ctl_addr + 0x68,
- 				readw(cinfo->ctl_addr + 0x68) & ~0x0900);
- 
--	pci_iounmap(pdev, cinfo->base_addr);
-+	iounmap(cinfo->base_addr);
- 	if (cinfo->ctl_addr)
--		pci_iounmap(pdev, cinfo->ctl_addr);
-+		iounmap(cinfo->ctl_addr);
- 	if (cinfo->irq
- #ifndef CONFIG_CYZ_INTR
- 		&& !IS_CYC_Z(*cinfo)
++#ifdef CONFIG_DEBUG_SPINLOCK_SLEEP
++  void __might_sleep(char *file, int line);
+ /**
+  * might_sleep - annotation for functions that can sleep
+  *
+@@ -125,8 +127,6 @@ extern int _cond_resched(void);
+  * be bitten later when the calling function happens to sleep when it is not
+  * supposed to.
+  */
+-#ifdef CONFIG_DEBUG_SPINLOCK_SLEEP
+-  void __might_sleep(char *file, int line);
+ # define might_sleep() \
+ 	do { __might_sleep(__FILE__, __LINE__); might_resched(); } while (0)
+ #else
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
+documentation-describe-bootmem_debug-kernel-parameter.patch
 linux-next.patch
-ath5k-unify-resets.patch
-char-sx-remove-bogus-iomap.patch
-mm-owner-fix-race-between-swap-and-exit-fix.patch
-viafb-viafbdevc-viafbdevh.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-char-merge-ip2main-and-ip2base.patch
-char-ip2-cleanup-globals.patch
-char-ip2-fix-sparse-warnings.patch
-char-ip2-init-deinit-cleanup.patch
-ip2-avoid-add_timer-with-pending-timer.patch
-char-ds1286-eliminate-busy-waiting.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+drm-sis-depends-on-fb_sis.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+lkdtm-fix-for-config_scsi=n.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
+ftrace-printk-formatting-infrastructure.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+w1-documentation-w1-masters-ds2490-update.patch
+profile-likely-unlikely-macros.patch
 
