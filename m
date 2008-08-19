@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-fix-double-lock-on-uie-emulation.patch added to -mm tree
-Date: Tue, 19 Aug 2008 13:15:59 -0700
-Message-ID: <200808192015.m7JKFxop004192@imap1.linux-foundation.org>
+Subject: + forcedeth-fix-kexec-regression.patch added to -mm tree
+Date: Tue, 19 Aug 2008 13:35:33 -0700
+Message-ID: <200808192035.m7JKZXCO005049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36516 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36090 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754356AbYHSUQS (ORCPT
+	by vger.kernel.org with ESMTP id S1753678AbYHSUhC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Aug 2008 16:16:18 -0400
+	Tue, 19 Aug 2008 16:37:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anemo@mba.ocn.ne.jp, a.zummo@towertech.it, david-b@pacbell.net, rmk@arm.linux.org.uk
+Cc: rjw@sisk.pl, aabdulla@nvidia.com, jeff@garzik.org, yhlu.kernel@gmail.com
 
 
 The patch titled
-     rtc: fix double lock on UIE emulation
+     forcedeth: fix kexec regression
 has been added to the -mm tree.  Its filename is
-     rtc-fix-double-lock-on-uie-emulation.patch
+     forcedeth-fix-kexec-regression.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: fix double lock on UIE emulation
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-		
-With commit 5ad31a575157147b43fa84ef1e21471661653878 ("rtc: remove BKL
-for ioctl()"), RTC_UIE_ON ioctl cause double lock on rtc->ops_lock.
-The ops_lock must not be held while set_uie() calls rtc_read_time()
-which takes the lock.  Also clear_uie() does not need ops_lock.  This
-patch fixes return value of RTC_UIE_OFF ioctl too.
+Subject: forcedeth: fix kexec regression
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+forcedeth: Fix kexec regression
+
+Fix regression tracked as http://bugzilla.kernel.org/show_bug.cgi?id=11361
+and caused by commit f735a2a1a4f2a0f5cd823ce323e82675990469e2 ("[netdrvr]
+forcedeth: setup wake-on-lan before shutting down") that makes network
+adapters integrated into the NVidia MCP55 chipsets fail to work in kexeced
+kernels.  The problem appears to be that if the adapter is put into D3_hot
+during ->shutdown(), it cannot be brought back into D0 after kexec (ref. 
+http://marc.info/?l=linux-kernel&m=121900062814967&w=4).  Therefore, only
+put forcedeth into D3 during ->shutdown() if the system is to be powered
+off.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Tested-by: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Ayaz Abdulla <aabdulla@nvidia.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-dev.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/net/forcedeth.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-dev.c~rtc-fix-double-lock-on-uie-emulation drivers/rtc/rtc-dev.c
---- a/drivers/rtc/rtc-dev.c~rtc-fix-double-lock-on-uie-emulation
-+++ a/drivers/rtc/rtc-dev.c
-@@ -403,11 +403,14 @@ static long rtc_dev_ioctl(struct file *f
+diff -puN drivers/net/forcedeth.c~forcedeth-fix-kexec-regression drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-fix-kexec-regression
++++ a/drivers/net/forcedeth.c
+@@ -5990,10 +5990,12 @@ static void nv_shutdown(struct pci_dev *
+ 	if (netif_running(dev))
+ 		nv_close(dev);
  
- #ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
- 	case RTC_UIE_OFF:
-+		mutex_unlock(&rtc->ops_lock);
- 		clear_uie(rtc);
--		break;
-+		return 0;
- 
- 	case RTC_UIE_ON:
-+		mutex_unlock(&rtc->ops_lock);
- 		err = set_uie(rtc);
-+		return err;
- #endif
- 	default:
- 		err = -ENOTTY;
+-	pci_enable_wake(pdev, PCI_D3hot, np->wolenabled);
+-	pci_enable_wake(pdev, PCI_D3cold, np->wolenabled);
+ 	pci_disable_device(pdev);
+-	pci_set_power_state(pdev, PCI_D3hot);
++	if (system_state == SYSTEM_POWER_OFF) {
++		if (pci_enable_wake(pdev, PCI_D3cold, np->wolenabled))
++			pci_enable_wake(pdev, PCI_D3hot, np->wolenabled);
++		pci_set_power_state(pdev, PCI_D3hot);
++	}
+ }
+ #else
+ #define nv_suspend NULL
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
-rtc-fix-double-lock-on-uie-emulation.patch
-cramfs-fix-named-pipe-handling.patch
+origin.patch
+revert-preregister-support-for-powernow-k8.patch
 linux-next.patch
-rtc-file-close-consistently-disables-repeating-irqs.patch
+skge-adapt-skge-to-use-reworked-pci-pm.patch
+skty2-adapt-to-the-reworked-pci-pm.patch
+e100-adapt-to-the-reworked-pci-pm.patch
+forcedeth-fix-kexec-regression.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures.patch
+container-freezer-make-refrigerator-always-available.patch
+container-freezer-skip-frozen-cgroups-during-power-management-resume.patch
+shrink_slab-handle-bad-shrinkers.patch
 
