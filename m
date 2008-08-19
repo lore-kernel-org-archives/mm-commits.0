@@ -1,87 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - fix-binfmt_miscc-avoid-potential-kernel-stack-overflow.patch removed from -mm tree
-Date: Tue, 19 Aug 2008 10:17:14 -0700
-Message-ID: <200808191717.m7JHHEHt028640@imap1.linux-foundation.org>
+Subject: - isdn-make-icn-not-autograb-when-builtin.patch removed from -mm tree
+Date: Tue, 19 Aug 2008 10:17:45 -0700
+Message-ID: <200808191717.m7JHHjnj028651@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54191 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50435 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752783AbYHSRRZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751870AbYHSRSm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Aug 2008 13:17:25 -0400
+	Tue, 19 Aug 2008 13:18:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, kirill@shutemov.name, stable@kernel.org, mm-commits@vger.kernel.org
+To: rene.herman@keyaccess.nl, alan@lxorguk.ukuu.org.uk, fritz@isdn4linux.de, kkeil@suse.de, rene.herman@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix "binfmt_misc.c: avoid potential kernel stack overflow"
+     ISDN: make ICN not autograb when builtin
 has been removed from the -mm tree.  Its filename was
-     fix-binfmt_miscc-avoid-potential-kernel-stack-overflow.patch
+     isdn-make-icn-not-autograb-when-builtin.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix "binfmt_misc.c: avoid potential kernel stack overflow"
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: ISDN: make ICN not autograb when builtin
+From: Rene Herman <rene.herman@keyaccess.nl>
 
-Fix a regression introduced by 3a2e7f47d71e1df86acc1dda6826890b6546a4e1
-("binfmt_misc.c: avoid potential kernel stack overflow").
+The old ISDN ICN legacy ISA driver was found to break the boot during Ingo
+Molnar's testing of randconfig kernels by grabbing bus resources even
+without the hardware present.  Insist that the (existing) icn=io parameter
+be specified when builtin so as to avoid such.
 
-In the case of modularized binfmt, the appropriate binary handler gets
-registered _before_ the script one and sets the misc_bang flag even too
-early.
+This is a deprecated driver (stack, even) and highly likely unused. 
+Nothing changes modular moreover.
 
-Thus when we launch a script the load_misc_binary sets this bang, then
-returns error, since the binary is actually a script, then the
-load_script_binary successfully loads the script, then it loads the misc
-binary again, which exits with the -ENOEXEC error due to bang set.
-
-Reported-and-tested-by: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: <stable@kernel.org>		[2.6.26.x]
+Signed-off-by: Rene Herman <rene.herman@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Karsten Keil <kkeil@suse.de>
+Cc: Fritz Elfert <fritz@isdn4linux.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_misc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/isdn/icn/icn.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN fs/binfmt_misc.c~fix-binfmt_miscc-avoid-potential-kernel-stack-overflow fs/binfmt_misc.c
---- a/fs/binfmt_misc.c~fix-binfmt_miscc-avoid-potential-kernel-stack-overflow
-+++ a/fs/binfmt_misc.c
-@@ -120,8 +120,6 @@ static int load_misc_binary(struct linux
- 	if (bprm->misc_bang)
- 		goto _ret;
+diff -puN drivers/isdn/icn/icn.c~isdn-make-icn-not-autograb-when-builtin drivers/isdn/icn/icn.c
+--- a/drivers/isdn/icn/icn.c~isdn-make-icn-not-autograb-when-builtin
++++ a/drivers/isdn/icn/icn.c
+@@ -1596,6 +1596,8 @@ icn_addcard(int port, char *id1, char *i
+ }
  
--	bprm->misc_bang = 1;
--
- 	/* to keep locking time low, we copy the interpreter string */
- 	read_lock(&entries_lock);
- 	fmt = check_file(bprm);
-@@ -199,6 +197,8 @@ static int load_misc_binary(struct linux
- 	if (retval < 0)
- 		goto _error;
- 
-+	bprm->misc_bang = 1;
+ #ifndef MODULE
++static int enable;
 +
- 	retval = search_binary_handler (bprm, regs);
- 	if (retval < 0)
- 		goto _error;
+ static int __init
+ icn_setup(char *line)
+ {
+@@ -1605,8 +1607,10 @@ icn_setup(char *line)
+ 	static char sid2[20];
+ 
+ 	str = get_options(line, 2, ints);
+-	if (ints[0])
++	if (ints[0]) {
+ 		portbase = ints[1];
++		enable = 1;
++	}
+ 	if (ints[0] > 1)
+ 		membase = (unsigned long)ints[2];
+ 	if (str && *str) {
+@@ -1628,6 +1632,12 @@ static int __init icn_init(void)
+ 	char *p;
+ 	char rev[10];
+ 
++#ifndef MODULE
++	if (!enable) {
++		printk(KERN_INFO "ICN: please specify io\n");
++		return -ENODEV;
++	}
++#endif
+ 	memset(&dev, 0, sizeof(icn_dev));
+ 	dev.memaddr = (membase & 0x0ffc000);
+ 	dev.channel = -1;
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from rene.herman@keyaccess.nl are
 
-binfmt_misc-fix-false-enoexec-when-coupled-with-other-binary-handlers.patch
-fix-binfmt_miscc-avoid-potential-kernel-stack-overflow.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-reiser4.patch
+v4l1-make-pms-not-autoprobe-when-builtin.patch
+v4l1-make-pms-not-autoprobe-when-builtin-update.patch
+isdn-make-icn-not-autograb-when-builtin.patch
+pnp-make-the-resource-type-an-unsigned-long.patch
+pnp-make-the-resource-type-an-unsigned-long-fix.patch
 
