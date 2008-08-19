@@ -1,85 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - kernelh-fix-kernel-doc-for-might_sleep.patch removed from -mm tree
-Date: Tue, 19 Aug 2008 15:40:26 -0700
-Message-ID: <200808192240.m7JMeQtA010648@imap1.linux-foundation.org>
+Subject: - char-sx-fix-io-unmapping.patch removed from -mm tree
+Date: Tue, 19 Aug 2008 15:40:31 -0700
+Message-ID: <200808192240.m7JMeVbp010654@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42586 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52381 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751650AbYHSWkk (ORCPT
+	by vger.kernel.org with ESMTP id S1751907AbYHSWkl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Aug 2008 18:40:40 -0400
+	Tue, 19 Aug 2008 18:40:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, Uwe.Kleine-Koenig@digi.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, R.E.Wolff@BitWizard.nl, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel.h: fix kernel-doc for might_sleep
+     Char: sx, fix io unmapping
 has been removed from the -mm tree.  Its filename was
-     kernelh-fix-kernel-doc-for-might_sleep.patch
+     char-sx-fix-io-unmapping.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel.h: fix kernel-doc for might_sleep
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Char: sx, fix io unmapping
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Put the kernel-doc for might_sleep() _immediately_ before the macro (no
-intervening lines).  Otherwise kernel-doc complains like so:
+board->base is increased for CF cards after mapping. Use board->base2
+for unmapping the region, since it holds the original/correct address.
 
-Warning(linux-2.6.27-rc3-git2//include/linux/kernel.h:129): No description found for parameter 'file'
-Warning(linux-2.6.27-rc3-git2//include/linux/kernel.h:129): No description found for parameter 'line'
-
-because kernel-doc is looking at the wrong function prototype (i.e.,
-__might_sleep).  [Yes, I have a todo note to myself to check/warn for that
-inconsistency in scripts/kernel-doc.]
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Uwe Kleine-K_nig <Uwe.Kleine-Koenig@digi.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: <R.E.Wolff@BitWizard.nl>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    4 ++--
+ drivers/char/sx.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kernel.h~kernelh-fix-kernel-doc-for-might_sleep include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-fix-kernel-doc-for-might_sleep
-+++ a/include/linux/kernel.h
-@@ -115,6 +115,8 @@ extern int _cond_resched(void);
- # define might_resched() do { } while (0)
+diff -puN drivers/char/sx.c~char-sx-fix-io-unmapping drivers/char/sx.c
+--- a/drivers/char/sx.c~char-sx-fix-io-unmapping
++++ a/drivers/char/sx.c
+@@ -2504,7 +2504,7 @@ static void __devexit sx_remove_card(str
+ 		del_timer(&board->timer);
+ 		if (pdev) {
+ #ifdef CONFIG_PCI
+-			pci_iounmap(pdev, board->base);
++			pci_iounmap(pdev, board->base2);
+ 			pci_release_region(pdev, IS_CF_BOARD(board) ? 3 : 2);
  #endif
+ 		} else {
+@@ -2703,7 +2703,7 @@ static int __devinit sx_pci_probe(struct
  
-+#ifdef CONFIG_DEBUG_SPINLOCK_SLEEP
-+  void __might_sleep(char *file, int line);
- /**
-  * might_sleep - annotation for functions that can sleep
-  *
-@@ -125,8 +127,6 @@ extern int _cond_resched(void);
-  * be bitten later when the calling function happens to sleep when it is not
-  * supposed to.
-  */
--#ifdef CONFIG_DEBUG_SPINLOCK_SLEEP
--  void __might_sleep(char *file, int line);
- # define might_sleep() \
- 	do { __might_sleep(__FILE__, __LINE__); might_resched(); } while (0)
- #else
+ 	return 0;
+ err_unmap:
+-	pci_iounmap(pdev, board->base);
++	pci_iounmap(pdev, board->base2);
+ err_reg:
+ 	pci_release_region(pdev, reg);
+ err_flag:
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-documentation-describe-bootmem_debug-kernel-parameter.patch
 linux-next.patch
-drm-sis-depends-on-fb_sis.patch
-genksyms-track-symbol-checksum-changes.patch
-genksyms-allow-to-ignore-symbol-checksum-changes.patch
-lkdtm-fix-for-config_scsi=n.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-netfilter-conntrack_helper-needs-to-include-rculisth.patch
-ftrace-printk-formatting-infrastructure.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-w1-documentation-w1-masters-ds2490-update.patch
-profile-likely-unlikely-macros.patch
+ath5k-unify-resets.patch
+char-sx-remove-bogus-iomap.patch
+mm-owner-fix-race-between-swap-and-exit-fix.patch
+viafb-viafbdevc-viafbdevh.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
+char-merge-ip2main-and-ip2base.patch
+char-ip2-cleanup-globals.patch
+char-ip2-fix-sparse-warnings.patch
+char-ip2-init-deinit-cleanup.patch
+ip2-avoid-add_timer-with-pending-timer.patch
+char-ds1286-eliminate-busy-waiting.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
