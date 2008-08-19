@@ -1,48 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - pageattr-cache-flush-before-tlb-flush.patch removed from -mm tree
-Date: Mon, 18 Aug 2008 22:26:17 -0700
-Message-ID: <200808190526.m7J5QI7X032637@imap1.linux-foundation.org>
+Subject: + nbd-fix-memory-leak-of-nbd_dev-array.patch added to -mm tree
+Date: Mon, 18 Aug 2008 22:43:31 -0700
+Message-ID: <200808190543.m7J5hV0F000777@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42695 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58064 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752449AbYHSF0v (ORCPT
+	by vger.kernel.org with ESMTP id S1751285AbYHSFnn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Aug 2008 01:26:51 -0400
+	Tue, 19 Aug 2008 01:43:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shaohua.li@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sven.wegener@stealer.net, paul.clements@steeleye.com
 
 
 The patch titled
-     pageattr: cache flush before tlb flush
-has been removed from the -mm tree.  Its filename was
-     pageattr-cache-flush-before-tlb-flush.patch
+     nbd: fix memory leak of nbd_dev array
+has been added to the -mm tree.  Its filename is
+     nbd-fix-memory-leak-of-nbd_dev-array.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pageattr: cache flush before tlb flush
-From: Shaohua Li <shaohua.li@intel.com>
+Subject: nbd: fix memory leak of nbd_dev array
+From: Sven Wegener <sven.wegener@stealer.net>
 
-clflush uses a virtual address but cache line is physical indexed in x86. 
-In my understanding, clflush will do some pagetable walk, so doing cache
-flush first should reduce some pagetable walk.
+We leak the memory allocated for the nbd_dev array at multiple places. 
+Fix them by either adding a kfree() or by rearranging code to return
+before we allocate the memory.
 
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+Signed-off-by: Sven Wegener <sven.wegener@stealer.net>
+Cc: Paul Clements <paul.clements@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pageattr.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/block/nbd.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/mm/pageattr.c~pageattr-cache-flush-before-tlb-flush arch/x86/mm/pageattr.c
---- a/arch/x86/mm/pageattr.c~pageattr-cache-flush-before-tlb-flush
-+++ a/arch/x86/mm/pageattr.c
-@@ -168,10 +168,8 @@ static void cpa_flush_range(unsigned lon
- 	BUG_ON(irqs_disabled());
- 	WARN_ON(PAGE_ALIGN(start) != start);
+diff -puN drivers/block/nbd.c~nbd-fix-memory-leak-of-nbd_dev-array drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-fix-memory-leak-of-nbd_dev-array
++++ a/drivers/block/nbd.c
+@@ -707,15 +707,15 @@ static int __init nbd_init(void)
  
--	on_each_cpu(__cpa_flush_range, NULL, 1);
+ 	BUILD_BUG_ON(sizeof(struct nbd_request) != 28);
+ 
+-	nbd_dev = kcalloc(nbds_max, sizeof(*nbd_dev), GFP_KERNEL);
+-	if (!nbd_dev)
+-		return -ENOMEM;
+-
+ 	if (max_part < 0) {
+ 		printk(KERN_CRIT "nbd: max_part must be >= 0\n");
+ 		return -EINVAL;
+ 	}
+ 
++	nbd_dev = kcalloc(nbds_max, sizeof(*nbd_dev), GFP_KERNEL);
++	if (!nbd_dev)
++		return -ENOMEM;
++
+ 	part_shift = 0;
+ 	if (max_part > 0)
+ 		part_shift = fls(max_part);
+@@ -779,6 +779,7 @@ out:
+ 		blk_cleanup_queue(nbd_dev[i].disk->queue);
+ 		put_disk(nbd_dev[i].disk);
+ 	}
++	kfree(nbd_dev);
+ 	return err;
+ }
+ 
+@@ -795,6 +796,7 @@ static void __exit nbd_cleanup(void)
+ 		}
+ 	}
+ 	unregister_blkdev(NBD_MAJOR, "nbd");
++	kfree(nbd_dev);
+ 	printk(KERN_INFO "nbd: unregistered device at major %d\n", NBD_MAJOR);
+ }
+ 
+_
+
+Patches currently in -mm which might be from sven.wegener@stealer.net are
+
+origin.patch
+nbd-fix-memory-leak-of-nbd_dev-array.patch
+leds-avoid-needless-strlen-for-attributes.patch
+leds-wrap-use-default-on-trigger-for-power-led.patch
+leds-fsg-change-order-of-initialization-and-deinitialization.patch
+leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling.patch
+leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling-update.patch
+
