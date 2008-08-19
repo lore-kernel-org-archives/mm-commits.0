@@ -1,114 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: + driver-net-skgec-restart-the-interface-when-its-options-or-pauseparam-is-set.patch added to -mm tree
-Date: Mon, 18 Aug 2008 21:50:51 -0700
-Message-ID: <200808190450.m7J4opW1031423@imap1.linux-foundation.org>
+Subject: - pageattr-cache-flush-before-tlb-flush.patch removed from -mm tree
+Date: Mon, 18 Aug 2008 22:26:17 -0700
+Message-ID: <200808190526.m7J5QI7X032637@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42085 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42695 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751854AbYHSEvn (ORCPT
+	by vger.kernel.org with ESMTP id S1752449AbYHSF0v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Aug 2008 00:51:43 -0400
+	Tue, 19 Aug 2008 01:26:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: Xiaoming.Zhang@resilience.com, jeff@garzik.org, shemminger@vyatta.com, xiaoming.zhang@resilience.com
+To: shaohua.li@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     driver/net/skge.c: restart the interface when it's options or pauseparam is set
-has been added to the -mm tree.  Its filename is
-     driver-net-skgec-restart-the-interface-when-its-options-or-pauseparam-is-set.patch
+     pageattr: cache flush before tlb flush
+has been removed from the -mm tree.  Its filename was
+     pageattr-cache-flush-before-tlb-flush.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: driver/net/skge.c: restart the interface when it's options or pauseparam is set
-From: "Xiaoming.Zhang" <Xiaoming.Zhang@resilience.com>
+Subject: pageattr: cache flush before tlb flush
+From: Shaohua Li <shaohua.li@intel.com>
 
-We have an issue of the skge driver: The card won't work when it's options
-are changed.  Here's the hardware info:
+clflush uses a virtual address but cache line is physical indexed in x86. 
+In my understanding, clflush will do some pagetable walk, so doing cache
+flush first should reduce some pagetable walk.
 
-# lspci -v
-05:04.0 Ethernet controller: Marvell Technology Group Ltd. 88E8001 Gigabit Ethernet Controller (rev 13)
-        Subsystem: Marvell Technology Group Ltd. Marvell RDK-8001
-        Flags: bus master, 66MHz, medium devsel, latency 32, IRQ 16
-        Memory at d042c000 (32-bit, non-prefetchable) [size=16K]
-        I/O ports at d000 [size=256]
-        [virtual] Expansion ROM at 20400000 [disabled] [size=128K]
-        Capabilities: [48] Power Management version 2
-        Capabilities: [50] Vital Product Data
-
-The happens in both Linux-2.6.26(skge version 1.23) and RHEL5.2(skge
-version 1.6).
-
-For example, at first it is set to "speed 1000 duplex full auto-neg on" and
-it works, then run
-
-       ethtool -s <ethx> autoneg off
-or     ethtool -s <ethx> speed 100 duplex full autoneg off
-
-Then it will stop working. After that if we restart the interface:
-
-	ifconifg <ethx> down
-	ifconfig <ethx> up
-
-It will work again. And `ethtool -A' has the same issue.
-
-So we think after setting the options, the interface should be restarted. 
-
-Signed-off-by: Zhang Xiaoming <xiaoming.zhang@resilience.com>
-Cc: Stephen Hemminger <shemminger@vyatta.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Shaohua Li <shaohua.li@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/skge.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ arch/x86/mm/pageattr.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/skge.c~driver-net-skgec-restart-the-interface-when-its-options-or-pauseparam-is-set drivers/net/skge.c
---- a/drivers/net/skge.c~driver-net-skgec-restart-the-interface-when-its-options-or-pauseparam-is-set
-+++ a/drivers/net/skge.c
-@@ -353,8 +353,10 @@ static int skge_set_settings(struct net_
- 	skge->autoneg = ecmd->autoneg;
- 	skge->advertising = ecmd->advertising;
+diff -puN arch/x86/mm/pageattr.c~pageattr-cache-flush-before-tlb-flush arch/x86/mm/pageattr.c
+--- a/arch/x86/mm/pageattr.c~pageattr-cache-flush-before-tlb-flush
++++ a/arch/x86/mm/pageattr.c
+@@ -168,10 +168,8 @@ static void cpa_flush_range(unsigned lon
+ 	BUG_ON(irqs_disabled());
+ 	WARN_ON(PAGE_ALIGN(start) != start);
  
--	if (netif_running(dev))
--		skge_phy_reset(skge);
-+	if (netif_running(dev)) {
-+		skge_down(dev);
-+		skge_up(dev);
-+	}
- 
- 	return (0);
- }
-@@ -595,8 +597,10 @@ static int skge_set_pauseparam(struct ne
- 			skge->flow_control = FLOW_MODE_NONE;
- 	}
- 
--	if (netif_running(dev))
--		skge_phy_reset(skge);
-+	if (netif_running(dev)) {
-+		skge_down(dev);
-+		skge_up(dev);
-+	}
- 
- 	return 0;
- }
-_
-
-Patches currently in -mm which might be from Xiaoming.Zhang@resilience.com are
-
-driver-net-skgec-restart-the-interface-when-its-options-or-pauseparam-is-set.patch
-
+-	on_each_cpu(__cpa_flush_range, NULL, 1);
