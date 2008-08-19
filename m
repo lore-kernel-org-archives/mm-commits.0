@@ -1,69 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - kexec-fix-up-kexec_control_code_size-missed-during-conversion.patch removed from -mm tree
-Date: Tue, 19 Aug 2008 15:40:14 -0700
-Message-ID: <200808192240.m7JMeEB5010633@imap1.linux-foundation.org>
+Subject: - 8250-remove-a-few-inlines-of-dubious-value.patch removed from -mm tree
+Date: Tue, 19 Aug 2008 15:40:33 -0700
+Message-ID: <200808192240.m7JMeXnk010657@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56635 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37746 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750851AbYHSWkV (ORCPT
+	by vger.kernel.org with ESMTP id S1751909AbYHSWkm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Aug 2008 18:40:21 -0400
+	Tue, 19 Aug 2008 18:40:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paul@burly.ondioline.org, benh@kernel.crashing.org, paul@ondioline.org, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: will.newton@gmail.com, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kexec: fix up KEXEC_CONTROL_CODE_SIZE missed during conversion
+     8250: remove a few inlines of dubious value
 has been removed from the -mm tree.  Its filename was
-     kexec-fix-up-kexec_control_code_size-missed-during-conversion.patch
+     8250-remove-a-few-inlines-of-dubious-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kexec: fix up KEXEC_CONTROL_CODE_SIZE missed during conversion
-From: Paul Collins <paul@burly.ondioline.org>
+Subject: 8250: remove a few inlines of dubious value
+From: "Will Newton" <will.newton@gmail.com>
 
-Commit 163f6876f5c3ff8215e900b93779e960a56b3694 ("kexec jump: rename
-KEXEC_CONTROL_CODE_SIZE to KEXEC_CONTROL_PAGE_SIZE") missed one, resulting
-in the following compile error:
+Remove some inlines from various functions that are called once, are too
+big to inline, or are called only from slow path code.  This saves around
+300 bytes of code for me.
 
-  AS      arch/powerpc/kernel/misc_32.o
-arch/powerpc/kernel/misc_32.S: Assembler messages:
-arch/powerpc/kernel/misc_32.S:902: Error: unsupported relocation against KEXEC_CONTROL_CODE_SIZE
-make[2]: *** [arch/powerpc/kernel/misc_32.o] Error 1
-make[1]: *** [arch/powerpc/kernel] Error 2
-make: *** [vmlinux] Error 2
-
-I grepped arch/ and found no further instances.
-
-Signed-off-by: Paul Collins <paul@ondioline.org>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Will Newton <will.newton@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/misc_32.S |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/8250.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN arch/powerpc/kernel/misc_32.S~kexec-fix-up-kexec_control_code_size-missed-during-conversion arch/powerpc/kernel/misc_32.S
---- a/arch/powerpc/kernel/misc_32.S~kexec-fix-up-kexec_control_code_size-missed-during-conversion
-+++ a/arch/powerpc/kernel/misc_32.S
-@@ -899,7 +899,7 @@ relocate_new_kernel:
+diff -puN drivers/serial/8250.c~8250-remove-a-few-inlines-of-dubious-value drivers/serial/8250.c
+--- a/drivers/serial/8250.c~8250-remove-a-few-inlines-of-dubious-value
++++ a/drivers/serial/8250.c
+@@ -540,7 +540,7 @@ static unsigned int serial_icr_read(stru
+ /*
+  * FIFO support.
+  */
+-static inline void serial8250_clear_fifos(struct uart_8250_port *p)
++static void serial8250_clear_fifos(struct uart_8250_port *p)
+ {
+ 	if (p->capabilities & UART_CAP_FIFO) {
+ 		serial_outp(p, UART_FCR, UART_FCR_ENABLE_FIFO);
+@@ -555,7 +555,7 @@ static inline void serial8250_clear_fifo
+  * capability" bit enabled.  Note that on XR16C850s, we need to
+  * reset LCR to write to IER.
+  */
+-static inline void serial8250_set_sleep(struct uart_8250_port *p, int sleep)
++static void serial8250_set_sleep(struct uart_8250_port *p, int sleep)
+ {
+ 	if (p->capabilities & UART_CAP_SLEEP) {
+ 		if (p->capabilities & UART_CAP_EFR) {
+@@ -1428,8 +1428,7 @@ static unsigned int check_modem_status(s
+ /*
+  * This handles the interrupt from one port.
+  */
+-static inline void
+-serial8250_handle_port(struct uart_8250_port *up)
++static void serial8250_handle_port(struct uart_8250_port *up)
+ {
+ 	unsigned int status;
+ 	unsigned long flags;
+@@ -1764,7 +1763,7 @@ static void serial8250_break_ctl(struct 
+ /*
+  *	Wait for transmitter & holding register to empty
+  */
+-static inline void wait_for_xmitr(struct uart_8250_port *up, int bits)
++static void wait_for_xmitr(struct uart_8250_port *up, int bits)
+ {
+ 	unsigned int status, tmout = 10000;
  
- 	/* set a new stack at the bottom of our page... */
- 	/* (not really needed now) */
--	addi	r1, r4, KEXEC_CONTROL_CODE_SIZE - 8 /* for LR Save+Back Chain */
-+	addi	r1, r4, KEXEC_CONTROL_PAGE_SIZE - 8 /* for LR Save+Back Chain */
- 	stw	r0, 0(r1)
- 
- 	/* Do the copies */
 _
 
-Patches currently in -mm which might be from paul@burly.ondioline.org are
+Patches currently in -mm which might be from will.newton@gmail.com are
 
-origin.patch
+linux-next.patch
+serial-8250-tighten-test-for-using-backup-timer.patch
 
