@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch added to -mm tree
-Date: Tue, 19 Aug 2008 15:49:13 -0700
-Message-ID: <200808192302.m7JN2S0L011580@imap1.linux-foundation.org>
+Subject: + drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch added to -mm tree
+Date: Tue, 19 Aug 2008 16:28:45 -0700
+Message-ID: <200808192342.m7JNg0Ru013401@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59791 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43633 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752112AbYHSXDt (ORCPT
+	by vger.kernel.org with ESMTP id S1752298AbYHSXmx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Aug 2008 19:03:49 -0400
+	Tue, 19 Aug 2008 19:42:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, david-b@pacbell.net, dtor@mail.ru, marek.vasut@gmail.com, nico@marvell.com, rmk+kernel@arm.linux.org.uk, vsauder@inhand.com
 
 
 The patch titled
-     arch/x86/kernel/io_apic_32.c: fix printk warnings
+     drivers/input/touchscreen/ucb1400_ts.c needs GPIO
 has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
+     drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/io_apic_32.c: fix printk warnings
+Subject: drivers/input/touchscreen/ucb1400_ts.c needs GPIO
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/io_apic_32.c: In function 'print_local_APIC':
-arch/x86/kernel/io_apic_32.c:1539: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'u64'
-arch/x86/kernel/io_apic_32.c:1540: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'u64'
+ia64 allmodconfig:
 
-No need for casting here - we know what type u64 has.
+include/asm-generic/gpio.h: In function `gpio_get_value_cansleep':
+include/asm-generic/gpio.h:147: error: implicit declaration of function `gpio_get_value'
+include/asm-generic/gpio.h: In function `gpio_set_value_cansleep':
+include/asm-generic/gpio.h:153: error: implicit declaration of function `gpio_set_value'
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+recent linux-next breakage.  Not sure what caused it..
+
+Cc: Marek Vasut <marek.vasut@gmail.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Vernon Sauder <vsauder@inhand.com>
+Cc: Nicolas Pitre <nico@marvell.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/io_apic_32.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/input/touchscreen/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/kernel/io_apic_32.c~arch-x86-kernel-io_apic_32c-fix-printk-warnings arch/x86/kernel/io_apic_32.c
---- a/arch/x86/kernel/io_apic_32.c~arch-x86-kernel-io_apic_32c-fix-printk-warnings
-+++ a/arch/x86/kernel/io_apic_32.c
-@@ -1536,8 +1536,8 @@ __apicdebuginit(void) print_local_APIC(v
- 	}
- 
- 	icr = apic_icr_read();
--	printk(KERN_DEBUG "... APIC ICR: %08x\n", icr);
--	printk(KERN_DEBUG "... APIC ICR2: %08x\n", icr >> 32);
-+	printk(KERN_DEBUG "... APIC ICR: %08Lx\n", icr);
-+	printk(KERN_DEBUG "... APIC ICR2: %08Lx\n", icr >> 32);
- 
- 	v = apic_read(APIC_LVTT);
- 	printk(KERN_DEBUG "... APIC LVTT: %08x\n", v);
+diff -puN drivers/input/touchscreen/Kconfig~drivers-input-touchscreen-ucb1400_tsc-needs-gpio drivers/input/touchscreen/Kconfig
+--- a/drivers/input/touchscreen/Kconfig~drivers-input-touchscreen-ucb1400_tsc-needs-gpio
++++ a/drivers/input/touchscreen/Kconfig
+@@ -221,6 +221,7 @@ config TOUCHSCREEN_UCB1400
+ 	tristate "Philips UCB1400 touchscreen"
+ 	select AC97_BUS
+ 	depends on UCB1400_CORE
++	depends on GPIOLIB
+ 	help
+ 	  This enables support for the Philips UCB1400 touchscreen interface.
+ 	  The UCB1400 is an AC97 audio codec.  The touchscreen interface
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,9 +81,11 @@ next-remove-localversion.patch
 linux-next-git-rejects.patch
 arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
 ppc-use-the-common-ascii-hex-helpers.patch
 powerpc-replace-__function__-with-__func__.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 git-jg-misc.patch
 drivers-ata-pata_it821xc-fix-warning.patch
 git-ubi-git-rejects.patch
@@ -146,5 +152,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
 
