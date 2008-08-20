@@ -1,71 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - proc-self-maps-doesnt-display-the-real-file-offset-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 20 Aug 2008 13:18:44 -0700
-Message-ID: <200808202018.m7KKIjOo029623@imap1.linux-foundation.org>
+Subject: - mm-dirty-page-tracking-race-fix-fix.patch removed from -mm tree
+Date: Wed, 20 Aug 2008 13:19:59 -0700
+Message-ID: <200808202019.m7KKJxgk029650@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49939 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58114 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754930AbYHTUSr (ORCPT
+	by vger.kernel.org with ESMTP id S1751143AbYHTUUR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 16:18:47 -0400
+	Wed, 20 Aug 2008 16:20:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cboulte@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, cotte@freenet.de, hugh@veritas.com, jaredeh@gmail.com, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc-self-maps-doesnt-display-the-real-file-offset-checkpatch-fixes
+     mm-dirty-page-tracking-race-fix-fix
 has been removed from the -mm tree.  Its filename was
-     proc-self-maps-doesnt-display-the-real-file-offset-checkpatch-fixes.patch
+     mm-dirty-page-tracking-race-fix-fix.patch
 
-This patch was dropped because it was folded into proc-self-maps-doesnt-display-the-real-file-offset.patch
+This patch was dropped because it was folded into mm-dirty-page-tracking-race-fix.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc-self-maps-doesnt-display-the-real-file-offset-checkpatch-fixes
+Subject: mm-dirty-page-tracking-race-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#132: FILE: fs/proc/task_mmu.c:229:
-+^I^I        ((loff_t) vma->vm_pgoff) << PAGE_SHIFT,$
-
-total: 1 errors, 0 warnings, 32 lines checked
-
-./patches/proc-self-maps-doesnt-display-the-real-file-offset.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Clement Calmels <cboulte@gmail.com>
+Cc: Carsten Otte <cotte@freenet.de>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Jared Hulbert <jaredeh@gmail.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/rmap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~proc-self-maps-doesnt-display-the-real-file-offset-checkpatch-fixes fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-self-maps-doesnt-display-the-real-file-offset-checkpatch-fixes
-+++ a/fs/proc/task_mmu.c
-@@ -226,7 +226,7 @@ static int show_map(struct seq_file *m, 
- 			flags & VM_WRITE ? 'w' : '-',
- 			flags & VM_EXEC ? 'x' : '-',
- 			flags & VM_MAYSHARE ? 's' : 'p',
--		        ((loff_t) vma->vm_pgoff) << PAGE_SHIFT,
-+			((loff_t)vma->vm_pgoff) << PAGE_SHIFT,
- 			MAJOR(dev), MINOR(dev), ino, &len);
+diff -puN mm/rmap.c~mm-dirty-page-tracking-race-fix-fix mm/rmap.c
+--- a/mm/rmap.c~mm-dirty-page-tracking-race-fix-fix
++++ a/mm/rmap.c
+@@ -224,14 +224,14 @@ unsigned long page_address_in_vma(struct
+ /*
+  * Check that @page is mapped at @address into @mm.
+  *
+- * If @synch is false, page_check_address may perform a racy check to avoid
++ * If @sync is false, page_check_address may perform a racy check to avoid
+  * the page table lock when the pte is not present (helpful when reclaiming
+  * highly shared pages).
+  *
+  * On success returns with pte mapped and locked.
+  */
+ pte_t *page_check_address(struct page *page, struct mm_struct *mm,
+-			  unsigned long address, spinlock_t **ptlp, int synch)
++			  unsigned long address, spinlock_t **ptlp, int sync)
+ {
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+@@ -253,7 +253,7 @@ pte_t *page_check_address(struct page *p
  
- 	/*
+ 	pte = pte_offset_map(pmd, address);
+ 	/* Make a quick check before getting the lock */
+-	if (!synch && !pte_present(*pte)) {
++	if (!sync && !pte_present(*pte)) {
+ 		pte_unmap(pte);
+ 		return NULL;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 proc-self-maps-doesnt-display-the-real-file-offset.patch
-proc-self-maps-doesnt-display-the-real-file-offset-checkpatch-fixes.patch
 drivers-char-ipmi-ipmi_si_intfc-default_find_bmc-fix-leak.patch
+mm-dirty-page-tracking-race-fix.patch
 mm-dirty-page-tracking-race-fix-fix.patch
 seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
