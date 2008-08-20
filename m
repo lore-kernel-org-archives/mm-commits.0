@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-mfd-ucb1400_corec-further-unbork.patch added to -mm tree
-Date: Tue, 19 Aug 2008 22:20:07 -0700
-Message-ID: <200808200520.m7K5K7qr025831@imap1.linux-foundation.org>
+Subject: + nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch added to -mm tree
+Date: Wed, 20 Aug 2008 00:44:06 -0700
+Message-ID: <200808200744.m7K7i60D031085@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42748 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54237 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751520AbYHTFUr (ORCPT
+	by vger.kernel.org with ESMTP id S1755174AbYHTHoR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 01:20:47 -0400
+	Wed, 20 Aug 2008 03:44:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, rdunlap@xenotime.net, sameo@openedhand.com
+Cc: akpm@linux-foundation.org, konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     drivers/mfd/ucb1400_core.c: further unbork
+     nilfs2-continuous-snapshotting-file-system-fix-fix-2
 has been added to the -mm tree.  Its filename is
-     drivers-mfd-ucb1400_corec-further-unbork.patch
+     nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/mfd/ucb1400_core.c: further unbork
+Subject: nilfs2-continuous-snapshotting-file-system-fix-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Samuel Ortiz <sameo@openedhand.com>
+Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nilfs2/namei.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN drivers/input/touchscreen/Kconfig~drivers-mfd-ucb1400_corec-further-unbork drivers/input/touchscreen/Kconfig
---- a/drivers/input/touchscreen/Kconfig~drivers-mfd-ucb1400_corec-further-unbork
-+++ a/drivers/input/touchscreen/Kconfig
-@@ -219,7 +219,7 @@ config TOUCHSCREEN_ATMEL_TSADCC
+diff -puN fs/nilfs2/namei.c~nilfs2-continuous-snapshotting-file-system-fix-fix-2 fs/nilfs2/namei.c
+--- a/fs/nilfs2/namei.c~nilfs2-continuous-snapshotting-file-system-fix-fix-2
++++ a/fs/nilfs2/namei.c
+@@ -80,7 +80,6 @@ nilfs_lookup(struct inode *dir, struct d
+ struct dentry *nilfs_get_parent(struct dentry *child)
+ {
+ 	unsigned long ino;
+-	struct dentry *parent;
+ 	struct inode *inode;
+ 	struct dentry dotdot;
  
- config TOUCHSCREEN_UCB1400
- 	tristate "Philips UCB1400 touchscreen"
--	select AC97_BUS
-+	depends on AC97_BUS
- 	depends on UCB1400_CORE
- 	help
- 	  This enables support for the Philips UCB1400 touchscreen interface.
+@@ -94,12 +93,7 @@ struct dentry *nilfs_get_parent(struct d
+ 	inode = nilfs_iget(child->d_inode->i_sb, ino);
+ 	if (IS_ERR(inode))
+ 		return ERR_CAST(inode);
+-	parent = d_alloc_anon(inode);
+-	if (!parent) {
+-		iput(inode);
+-		parent = ERR_PTR(-ENOMEM);
+-	}
+-	return parent;
++	return d_obtain_alias(inode);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -125,6 +136,8 @@ viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
 fbdev-kconfig-update-fix.patch
 eink_apollofb-new-driver-for-apollo-eink-controller.patch
 gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+nilfs2-continuous-snapshotting-file-system-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
 reiser4.patch
 reiser4-tree_lock-fixes.patch
 reiser4-tree_lock-fixes-fix.patch
