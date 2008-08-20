@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linux-timexh-cleanup-for-userspace.patch added to -mm tree
-Date: Tue, 19 Aug 2008 20:49:35 -0700
-Message-ID: <200808200349.m7K3nZdp022728@imap1.linux-foundation.org>
+Subject: + tracehook-fix-sa_nocldwait.patch added to -mm tree
+Date: Tue, 19 Aug 2008 20:50:55 -0700
+Message-ID: <200808200350.m7K3otwm022754@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33758 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46539 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750864AbYHTDuM (ORCPT
+	by vger.kernel.org with ESMTP id S1751188AbYHTDv7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Aug 2008 23:50:12 -0400
+	Tue, 19 Aug 2008 23:51:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vapier@gentoo.org, bunk@stusta.de, johnstul@us.ibm.com, tglx@linutronix.de, zippel@linux-m68k.org
+Cc: roland@redhat.com, andi@firstfloor.org, oleg@tv-sign.ru
 
 
 The patch titled
-     linux/timex.h: cleanup for userspace
+     tracehook: fix SA_NOCLDWAIT
 has been added to the -mm tree.  Its filename is
-     linux-timexh-cleanup-for-userspace.patch
+     tracehook-fix-sa_nocldwait.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux/timex.h: cleanup for userspace
-From: Mike Frysinger <vapier@gentoo.org>
+Subject: tracehook: fix SA_NOCLDWAIT
+From: Roland McGrath <roland@redhat.com>
 
-MAXFREQ_SCALED was tweaked recently to contain a (s64) cast.  Assuming this
-is meant for userspace, change it to (__s64) and pull in linux/types.h.
+I outwitted myself again in commit 2b2a1ff64afbadac842bbc58c5166962cf4f7664,
+and broke the SA_NOCLDWAIT behavior so it leaks zombies.  This fixes it.
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Adrian Bunk <bunk@stusta.de>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Reported-by: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timex.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/signal.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/timex.h~linux-timexh-cleanup-for-userspace include/linux/timex.h
---- a/include/linux/timex.h~linux-timexh-cleanup-for-userspace
-+++ a/include/linux/timex.h
-@@ -55,6 +55,7 @@
+diff -puN kernel/signal.c~tracehook-fix-sa_nocldwait kernel/signal.c
+--- a/kernel/signal.c~tracehook-fix-sa_nocldwait
++++ a/kernel/signal.c
+@@ -1338,6 +1338,7 @@ int do_notify_parent(struct task_struct 
+ 	struct siginfo info;
+ 	unsigned long flags;
+ 	struct sighand_struct *psig;
++	int ret = sig;
  
- #include <linux/compiler.h>
- #include <linux/time.h>
-+#include <linux/types.h>
+ 	BUG_ON(sig == -1);
  
- #include <asm/param.h>
+@@ -1402,7 +1403,7 @@ int do_notify_parent(struct task_struct 
+ 		 * is implementation-defined: we do (if you don't want
+ 		 * it, just use SIG_IGN instead).
+ 		 */
+-		tsk->exit_signal = -1;
++		ret = tsk->exit_signal = -1;
+ 		if (psig->action[SIGCHLD-1].sa.sa_handler == SIG_IGN)
+ 			sig = -1;
+ 	}
+@@ -1411,7 +1412,7 @@ int do_notify_parent(struct task_struct 
+ 	__wake_up_parent(tsk, tsk->parent);
+ 	spin_unlock_irqrestore(&psig->siglock, flags);
  
-@@ -85,7 +86,7 @@
+-	return sig;
++	return ret;
+ }
  
- #define MAXPHASE 500000000l	/* max phase error (ns) */
- #define MAXFREQ 500000		/* max frequency error (ns/s) */
--#define MAXFREQ_SCALED ((s64)MAXFREQ << NTP_SCALE_SHIFT)
-+#define MAXFREQ_SCALED ((__s64)MAXFREQ << NTP_SCALE_SHIFT)
- #define MINSEC 256		/* min interval between updates (s) */
- #define MAXSEC 2048		/* max interval between updates (s) */
- #define NTP_PHASE_LIMIT ((MAXPHASE / NSEC_PER_USEC) << 5) /* beyond max. dispersion */
+ static void do_notify_parent_cldstop(struct task_struct *tsk, int why)
 _
 
-Patches currently in -mm which might be from vapier@gentoo.org are
+Patches currently in -mm which might be from roland@redhat.com are
 
-linux-timexh-cleanup-for-userspace.patch
+tracehook-fix-sa_nocldwait.patch
+linux-next.patch
+x86-tracehook-config_have_arch_tracehook.patch
+sched-do_wait_for_common-use-signal_pending_state.patch
+wait_task_inactive-dont-consider-task-nivcsw.patch
+wait_task_inactive-improve-the-returned-value-for-nvcsw-==-0.patch
+fix-setpriorityprio_pgrp-thread-iterator-breakage.patch
+posix-timers-dont-switch-to-group_leader-if-it_process-dies.patch
+posix-timers-always-do-get_task_structtimer-it_process.patch
+posix-timers-sys_timer_create-remove-the-buggy-pf_exiting-check.patch
+posix-timers-sys_timer_create-simplify-and-s-tasklist-rcu.patch
+posix-timers-move-the-initialization-of-timer-sigq-from-send-to-create-path.patch
+posix-timers-sys_timer_create-cleanup-the-error-handling.patch
+posix-timers-kill-it_sigev_signo-and-it_sigev_value.patch
+posix-timers-lock_timer-kill-the-bogus-it_id-check.patch
+posix-timers-lock_timer-make-it-readable.patch
+make-ptrace_untrace-static.patch
+coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
+kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
 
