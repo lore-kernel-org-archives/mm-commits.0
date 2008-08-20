@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + posix-timers-check-it_signal-instead-of-it_pid-to-validate-the-timer.patch added to -mm tree
-Date: Wed, 20 Aug 2008 12:11:16 -0700
-Message-ID: <200808201911.m7KJBGVN026774@imap1.linux-foundation.org>
+Subject: + posix-timers-simplify-de_thread-exit_itimers-path.patch added to -mm tree
+Date: Wed, 20 Aug 2008 12:15:36 -0700
+Message-ID: <200808201915.m7KJFafJ026900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39901 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52308 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752126AbYHTTMT (ORCPT
+	by vger.kernel.org with ESMTP id S1753205AbYHTTQ0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 15:12:19 -0400
+	Wed, 20 Aug 2008 15:16:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@tv-sign.ru, roland@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     posix-timers: check ->it_signal instead of ->it_pid to validate the timer
+     posix-timers: simplify de_thread()->exit_itimers() path
 has been added to the -mm tree.  Its filename is
-     posix-timers-check-it_signal-instead-of-it_pid-to-validate-the-timer.patch
+     posix-timers-simplify-de_thread-exit_itimers-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,106 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: posix-timers: check ->it_signal instead of ->it_pid to validate the timer
+Subject: posix-timers: simplify de_thread()->exit_itimers() path
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-->it_pid (was ->it_process) has also a special meaning: if it is NULL,
-the timer is under deletion or it wasn't initialized yet. We can check
-->it_signal != NULL instead, this way we can
-
-	- simplify sys_timer_create() a bit
-
-	- remove yet another check from lock_timer()
-
-	- move put_pid(->it_pid) into release_posix_timer() which
-	  runs outside of ->it_lock
+de_thread() postpones release_task(leader) until after exit_itimers().
+This was needed because !SIGEV_THREAD_ID timers could use ->group_leader
+without get_task_struct(). With the recent changes we can release the
+leader earlier and simplify the code.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Cc: Rolanda McGrath <roland@redhat.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/posix-timers.c |   17 +++++++----------
- 1 file changed, 7 insertions(+), 10 deletions(-)
+ fs/exec.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN kernel/posix-timers.c~posix-timers-check-it_signal-instead-of-it_pid-to-validate-the-timer kernel/posix-timers.c
---- a/kernel/posix-timers.c~posix-timers-check-it_signal-instead-of-it_pid-to-validate-the-timer
-+++ a/kernel/posix-timers.c
-@@ -464,6 +464,7 @@ static void release_posix_timer(struct k
- 		idr_remove(&posix_timers_id, tmr->it_id);
- 		spin_unlock_irqrestore(&idr_lock, flags);
- 	}
-+	put_pid(tmr->it_pid);
- 	sigqueue_free(tmr->sigq);
- 	kmem_cache_free(posix_timers_cache, tmr);
- }
-@@ -480,7 +481,6 @@ sys_timer_create(const clockid_t which_c
- 	int new_timer_id;
- 	sigevent_t event;
- 	int it_id_set = IT_ID_NOT_SET;
--	struct pid *it_pid;
+diff -puN fs/exec.c~posix-timers-simplify-de_thread-exit_itimers-path fs/exec.c
+--- a/fs/exec.c~posix-timers-simplify-de_thread-exit_itimers-path
++++ a/fs/exec.c
+@@ -776,7 +776,6 @@ static int de_thread(struct task_struct 
+ 	struct signal_struct *sig = tsk->signal;
+ 	struct sighand_struct *oldsighand = tsk->sighand;
+ 	spinlock_t *lock = &oldsighand->siglock;
+-	struct task_struct *leader = NULL;
+ 	int count;
  
- 	if (invalid_clockid(which_clock))
- 		return -EINVAL;
-@@ -532,9 +532,9 @@ sys_timer_create(const clockid_t which_c
- 			goto out;
- 		}
- 		rcu_read_lock();
--		it_pid = get_pid(good_sigevent(&event));
-+		new_timer->it_pid = get_pid(good_sigevent(&event));
- 		rcu_read_unlock();
--		if (!it_pid) {
-+		if (!new_timer->it_pid) {
- 			error = -EINVAL;
- 			goto out;
- 		}
-@@ -542,7 +542,7 @@ sys_timer_create(const clockid_t which_c
- 		event.sigev_notify = SIGEV_SIGNAL;
- 		event.sigev_signo = SIGALRM;
- 		event.sigev_value.sival_int = new_timer->it_id;
--		it_pid = get_pid(task_tgid(current));
-+		new_timer->it_pid = get_pid(task_tgid(current));
+ 	if (thread_group_empty(tsk))
+@@ -814,7 +813,7 @@ static int de_thread(struct task_struct 
+ 	 * and to assume its PID:
+ 	 */
+ 	if (!thread_group_leader(tsk)) {
+-		leader = tsk->group_leader;
++		struct task_struct *leader = tsk->group_leader;
+ 
+ 		sig->notify_count = -1;	/* for exit_notify() */
+ 		for (;;) {
+@@ -868,8 +867,9 @@ static int de_thread(struct task_struct 
+ 
+ 		BUG_ON(leader->exit_state != EXIT_ZOMBIE);
+ 		leader->exit_state = EXIT_DEAD;
+-
+ 		write_unlock_irq(&tasklist_lock);
++
++		release_task(leader);
  	}
  
- 	new_timer->it_sigev_notify     = event.sigev_notify;
-@@ -552,7 +552,6 @@ sys_timer_create(const clockid_t which_c
- 	new_timer->sigq->info.si_code  = SI_TIMER;
+ 	sig->group_exit_task = NULL;
+@@ -878,8 +878,6 @@ static int de_thread(struct task_struct 
+ no_thread_group:
+ 	exit_itimers(sig);
+ 	flush_itimer_signals();
+-	if (leader)
+-		release_task(leader);
  
- 	spin_lock_irq(&current->sighand->siglock);
--	new_timer->it_pid = it_pid;
- 	new_timer->it_signal = current->signal;
- 	list_add(&new_timer->list, &current->signal->posix_timers);
- 	spin_unlock_irq(&current->sighand->siglock);
-@@ -588,7 +587,7 @@ static struct k_itimer *lock_timer(timer
- 	timr = idr_find(&posix_timers_id, (int)timer_id);
- 	if (timr) {
- 		spin_lock(&timr->it_lock);
--		if (timr->it_pid && timr->it_signal == current->signal) {
-+		if (timr->it_signal == current->signal) {
- 			spin_unlock(&idr_lock);
- 			return timr;
- 		}
-@@ -837,8 +836,7 @@ retry_delete:
- 	 * This keeps any tasks waiting on the spin lock from thinking
- 	 * they got something (see the lock code above).
- 	 */
--	put_pid(timer->it_pid);
--	timer->it_pid = NULL;
-+	timer->it_signal = NULL;
- 
- 	unlock_timer(timer, flags);
- 	release_posix_timer(timer, IT_ID_SET);
-@@ -864,8 +862,7 @@ retry_delete:
- 	 * This keeps any tasks waiting on the spin lock from thinking
- 	 * they got something (see the lock code above).
- 	 */
--	put_pid(timer->it_pid);
--	timer->it_pid = NULL;
-+	timer->it_signal = NULL;
- 
- 	unlock_timer(timer, flags);
- 	release_posix_timer(timer, IT_ID_SET);
+ 	if (atomic_read(&oldsighand->count) != 1) {
+ 		struct sighand_struct *newsighand;
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -156,6 +113,7 @@ posix-timers-lock_timer-kill-the-bogus-it_id-check.patch
 posix-timers-lock_timer-make-it-readable.patch
 posix-timers-use-struct-pid-instead-of-struct-task_struct.patch
 posix-timers-check-it_signal-instead-of-it_pid-to-validate-the-timer.patch
+posix-timers-simplify-de_thread-exit_itimers-path.patch
 make-ptrace_untrace-static.patch
 coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
 kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
