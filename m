@@ -1,123 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - h8300-kallsyms-exclude-local-symbols-update.patch removed from -mm tree
-Date: Wed, 20 Aug 2008 16:31:41 -0700
-Message-ID: <200808202331.m7KNVfUJ004941@imap1.linux-foundation.org>
+Subject: - leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling-update.patch removed from -mm tree
+Date: Wed, 20 Aug 2008 16:32:29 -0700
+Message-ID: <200808202332.m7KNWTa4004990@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58478 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37965 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755392AbYHTXcH (ORCPT
+	by vger.kernel.org with ESMTP id S1753116AbYHTXcp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 19:32:07 -0400
+	Wed, 20 Aug 2008 19:32:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ysato@users.sourceforge.jp, pmarques@grupopie.com, mm-commits@vger.kernel.org
+To: sven.wegener@stealer.net, ncase@xes-inc.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     h8300-kallsyms-exclude-local-symbols-update
+     leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling update
 has been removed from the -mm tree.  Its filename was
-     h8300-kallsyms-exclude-local-symbols-update.patch
+     leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling-update.patch
 
-This patch was dropped because it was folded into h8300-kallsyms-exclude-local-symbols.patch
+This patch was dropped because it was folded into leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: h8300-kallsyms-exclude-local-symbols-update
-From: Yoshinori Sato <ysato@users.sourceforge.jp>
+Subject: leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling update
+From: Sven Wegener <sven.wegener@stealer.net>
 
-At Thu, 07 Aug 2008 13:00:05 +0100,
-Paulo Marques wrote:
->
-> Yoshinori Sato wrote:
-> > h8300's nm output include '.Lfoo' local symbols.
-> > [...]
-> >  	/* exclude also MIPS ELF local symbols ($L123 instead of .L123) */
-> > -	else if (str[0] == '$')
-> > +	else if (str[0] == '$' || str[0] == '.')
->
-> The comment above needs some updating too. Something along these lines:
->
-> /* exclude also MIPS ELF local symbols (eg. $L123) and h8300 (eg .LM10) */
->
-> Other than that, the patch seems fine.
->
-> --
-> Paulo Marques - www.grupopie.com
->
-> "...so she told me it was either her or the ham radio, over."
+Andrew, could you please update the patch in -mm with the one below. It
+contains the below fixes, that were applied after you added it to -mm,
+and is identical to the one Nate tested.
 
-Thanks reply.
+- Another 32 -> sizeof() conversion
+- Move the unregister code to where we also free the memory on failure
+- cancel_work_sync() when unregistering on failure
 
-Update comment.
-And same problem in modpost.
-
-Warning message dirty.
-WARNING: vmlinux.o(.text+0x304b): Section mismatch in reference from the variable .LM10 to the variable .init.text:_free_area_init
-The function .LM10() references
-the variable __init _free_area_init.
-This is often because .LM10 lacks a __init
-annotation or the annotation of _free_area_init is wrong.
-
-fix it.
-WARNING: vmlinux.o(.text+0x304b): Section mismatch in reference from the variable _paging_init to the variable .init.text:___alloc_bootmem
-The function _paging_init() references
-the variable __init ___alloc_bootmem.
-This is often because _paging_init lacks a __init
-annotation or the annotation of ___alloc_bootmem is wrong.
-
-Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Paulo Marques <pmarques@grupopie.com>
+Cc: Nate Case <ncase@xes-inc.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kallsyms.c    |    5 +++--
- scripts/mod/modpost.c |    4 +++-
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/leds/leds-pca955x.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN scripts/kallsyms.c~h8300-kallsyms-exclude-local-symbols-update scripts/kallsyms.c
---- a/scripts/kallsyms.c~h8300-kallsyms-exclude-local-symbols-update
-+++ a/scripts/kallsyms.c
-@@ -105,8 +105,9 @@ static int read_symbol(FILE *in, struct 
- 	else if (toupper(stype) == 'U' ||
- 		 is_arm_mapping_symbol(sym))
- 		return -1;
--	/* exclude also MIPS ELF local symbols ($L123 instead of .L123) */
--	else if (str[0] == '$' || str[0] == '.')
-+	/* exclude also MIPS ELF (e.g. $L123) and h8300 elf (e.g. .LM123)
-+	   local symbols */
-+ 	else if (str[0] == '$' || str[0] == '.')
- 		return -1;
- 	/* exclude debugging symbols */
- 	else if (stype == 'N')
-diff -puN scripts/mod/modpost.c~h8300-kallsyms-exclude-local-symbols-update scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~h8300-kallsyms-exclude-local-symbols-update
-+++ a/scripts/mod/modpost.c
-@@ -1042,7 +1042,9 @@ static inline int is_valid_name(struct e
- {
- 	const char *name = elf->strtab + sym->st_name;
+diff -puN drivers/leds/leds-pca955x.c~leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling-update drivers/leds/leds-pca955x.c
+--- a/drivers/leds/leds-pca955x.c~leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling-update
++++ a/drivers/leds/leds-pca955x.c
+@@ -302,7 +302,8 @@ static int __devinit pca955x_probe(struc
+ 				pca955x[i].led_cdev.default_trigger =
+ 					pdata->leds[i].default_trigger;
+ 		} else {
+-			snprintf(pca955x[i].name, 32, "pca955x:%d", i);
++			snprintf(pca955x[i].name, sizeof(pca955x[i].name),
++				 "pca955x:%d", i);
+ 		}
  
--	if (!name || !strlen(name))
-+	if (!name || !strlen(name) ||
-+	/* exclude h8300 elf local symbols (e.g. .LM123) */
-+	    name[0] == '.')
- 		return 0;
- 	return !is_arm_mapping_symbol(name);
- }
+ 		spin_lock_init(&pca955x[i].lock);
+@@ -313,14 +314,8 @@ static int __devinit pca955x_probe(struc
+ 		INIT_WORK(&pca955x[i].work, pca955x_led_work);
+ 
+ 		err = led_classdev_register(&client->dev, &pca955x[i].led_cdev);
+-		if (err < 0) {
+-			while (i > 0) {
+-				i--;
+-				led_classdev_unregister(&pca955x[i].led_cdev);
+-			}
+-
++		if (err < 0)
+ 			goto exit;
+-		}
+ 	}
+ 
+ 	/* Turn off LEDs */
+@@ -340,6 +335,11 @@ static int __devinit pca955x_probe(struc
+ 	return 0;
+ 
+ exit:
++	while (i--) {
++		led_classdev_unregister(&pca955x[i].led_cdev);
++		cancel_work_sync(&pca955x[i].work);
++	}
++
+ 	kfree(pca955x);
+ 	i2c_set_clientdata(client, NULL);
+ 
 _
 
-Patches currently in -mm which might be from ysato@users.sourceforge.jp are
+Patches currently in -mm which might be from sven.wegener@stealer.net are
 
 origin.patch
-h8300-kallsyms-exclude-local-symbols.patch
-h8300-kallsyms-exclude-local-symbols-update.patch
-h8300-update-timer-handler-delete-files.patch
-h8300-update-timer-handler-new-files.patch
-h8300-update-timer-handler-misc-update.patch
-h8300-kconfig-cleanup.patch
-h8300-generic_bug-support.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-asm-h8300-mdh-remove-cvs-keyword.patch
-alpha-miata-remove-dead-url.patch
+nbd-fix-memory-leak-of-nbd_dev-array.patch
+leds-avoid-needless-strlen-for-attributes.patch
+leds-wrap-use-default-on-trigger-for-power-led.patch
+leds-fsg-change-order-of-initialization-and-deinitialization.patch
+leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling.patch
+leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling-update.patch
 
