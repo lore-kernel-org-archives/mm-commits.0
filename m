@@ -1,63 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - xtensa-use-newer-__spin_lock_unlocked-macro.patch removed from -mm tree
-Date: Wed, 20 Aug 2008 13:13:02 -0700
-Message-ID: <200808202013.m7KKD2A6029395@imap1.linux-foundation.org>
+Subject: - tracehook-fix-sa_nocldwait.patch removed from -mm tree
+Date: Wed, 20 Aug 2008 13:12:52 -0700
+Message-ID: <200808202012.m7KKCqQK029365@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38315 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44986 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755415AbYHTUNF (ORCPT
+	by vger.kernel.org with ESMTP id S1754865AbYHTUNa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 16:13:05 -0400
+	Wed, 20 Aug 2008 16:13:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@crashcourse.ca, chris@zankel.net, mm-commits@vger.kernel.org
+To: roland@redhat.com, andi@firstfloor.org, oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xtensa: use newer __SPIN_LOCK_UNLOCKED macro
+     tracehook: fix SA_NOCLDWAIT
 has been removed from the -mm tree.  Its filename was
-     xtensa-use-newer-__spin_lock_unlocked-macro.patch
+     tracehook-fix-sa_nocldwait.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: use newer __SPIN_LOCK_UNLOCKED macro
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: tracehook: fix SA_NOCLDWAIT
+From: Roland McGrath <roland@redhat.com>
 
-SPIN_LOCK_UNLOCKED() breaks lockdep and is deprecated.
+I outwitted myself again in commit 2b2a1ff64afbadac842bbc58c5166962cf4f7664,
+and broke the SA_NOCLDWAIT behavior so it leaks zombies.  This fixes it.
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Cc: Chris Zankel <chris@zankel.net>
+Reported-by: Andi Kleen <andi@firstfloor.org>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/platforms/iss/network.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/signal.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/xtensa/platforms/iss/network.c~xtensa-use-newer-__spin_lock_unlocked-macro arch/xtensa/platforms/iss/network.c
---- a/arch/xtensa/platforms/iss/network.c~xtensa-use-newer-__spin_lock_unlocked-macro
-+++ a/arch/xtensa/platforms/iss/network.c
-@@ -640,7 +640,7 @@ static int iss_net_configure(int index, 
- 	*lp = ((struct iss_net_private) {
- 		.device_list		= LIST_HEAD_INIT(lp->device_list),
- 		.opened_list		= LIST_HEAD_INIT(lp->opened_list),
--		.lock			= SPIN_LOCK_UNLOCKED,
-+		.lock			= __SPIN_LOCK_UNLOCKED(lp.lock),
- 		.dev			= dev,
- 		.index			= index,
- 		//.fd                   = -1,
+diff -puN kernel/signal.c~tracehook-fix-sa_nocldwait kernel/signal.c
+--- a/kernel/signal.c~tracehook-fix-sa_nocldwait
++++ a/kernel/signal.c
+@@ -1338,6 +1338,7 @@ int do_notify_parent(struct task_struct 
+ 	struct siginfo info;
+ 	unsigned long flags;
+ 	struct sighand_struct *psig;
++	int ret = sig;
+ 
+ 	BUG_ON(sig == -1);
+ 
+@@ -1402,7 +1403,7 @@ int do_notify_parent(struct task_struct 
+ 		 * is implementation-defined: we do (if you don't want
+ 		 * it, just use SIG_IGN instead).
+ 		 */
+-		tsk->exit_signal = -1;
++		ret = tsk->exit_signal = -1;
+ 		if (psig->action[SIGCHLD-1].sa.sa_handler == SIG_IGN)
+ 			sig = -1;
+ 	}
+@@ -1411,7 +1412,7 @@ int do_notify_parent(struct task_struct 
+ 	__wake_up_parent(tsk, tsk->parent);
+ 	spin_unlock_irqrestore(&psig->siglock, flags);
+ 
+-	return sig;
++	return ret;
+ }
+ 
+ static void do_notify_parent_cldstop(struct task_struct *tsk, int why)
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from roland@redhat.com are
 
+origin.patch
 linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
-uml-remove-the-dead-tty_log-code.patch
-inith-remove-long-dead-__setup_null_param-macro.patch
-oss-remove-references-to-dead-sound-oss-vars-aedsp16_msssbpro.patch
-fs-partitions-acornc-remove-dead-code.patch
+x86-tracehook-config_have_arch_tracehook.patch
+sched-do_wait_for_common-use-signal_pending_state.patch
+wait_task_inactive-dont-consider-task-nivcsw.patch
+wait_task_inactive-improve-the-returned-value-for-nvcsw-==-0.patch
+fix-setpriorityprio_pgrp-thread-iterator-breakage.patch
+posix-timers-dont-switch-to-group_leader-if-it_process-dies.patch
+posix-timers-always-do-get_task_structtimer-it_process.patch
+posix-timers-sys_timer_create-remove-the-buggy-pf_exiting-check.patch
+posix-timers-sys_timer_create-simplify-and-s-tasklist-rcu.patch
+posix-timers-move-the-initialization-of-timer-sigq-from-send-to-create-path.patch
+posix-timers-sys_timer_create-cleanup-the-error-handling.patch
+posix-timers-kill-it_sigev_signo-and-it_sigev_value.patch
+posix-timers-lock_timer-kill-the-bogus-it_id-check.patch
+posix-timers-lock_timer-make-it-readable.patch
+posix-timers-use-struct-pid-instead-of-struct-task_struct.patch
+posix-timers-check-it_signal-instead-of-it_pid-to-validate-the-timer.patch
+posix-timers-simplify-de_thread-exit_itimers-path.patch
+make-ptrace_untrace-static.patch
+coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
+kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
 
