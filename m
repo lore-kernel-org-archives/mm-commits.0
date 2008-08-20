@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch added to -mm tree
-Date: Wed, 20 Aug 2008 00:44:06 -0700
-Message-ID: <200808200744.m7K7i60D031085@imap1.linux-foundation.org>
+Subject: + nilfs2-continuous-snapshotting-file-system-fix.patch added to -mm tree
+Date: Wed, 20 Aug 2008 00:44:05 -0700
+Message-ID: <200808200744.m7K7i5X0031082@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54237 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56840 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755174AbYHTHoR (ORCPT
+	by vger.kernel.org with ESMTP id S1755098AbYHTHoP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 03:44:17 -0400
+	Wed, 20 Aug 2008 03:44:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     nilfs2-continuous-snapshotting-file-system-fix-fix-2
+     nilfs2-continuous-snapshotting-file-system-fix
 has been added to the -mm tree.  Its filename is
-     nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
+     nilfs2-continuous-snapshotting-file-system-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2-continuous-snapshotting-file-system-fix-fix-2
+Subject: nilfs2-continuous-snapshotting-file-system-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/namei.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ fs/nilfs2/inode.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/nilfs2/namei.c~nilfs2-continuous-snapshotting-file-system-fix-fix-2 fs/nilfs2/namei.c
---- a/fs/nilfs2/namei.c~nilfs2-continuous-snapshotting-file-system-fix-fix-2
-+++ a/fs/nilfs2/namei.c
-@@ -80,7 +80,6 @@ nilfs_lookup(struct inode *dir, struct d
- struct dentry *nilfs_get_parent(struct dentry *child)
- {
- 	unsigned long ino;
--	struct dentry *parent;
- 	struct inode *inode;
- 	struct dentry dotdot;
+diff -puN fs/nilfs2/inode.c~nilfs2-continuous-snapshotting-file-system-fix fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~nilfs2-continuous-snapshotting-file-system-fix
++++ a/fs/nilfs2/inode.c
+@@ -279,13 +279,13 @@ struct inode *nilfs_new_inode(struct ino
  
-@@ -94,12 +93,7 @@ struct dentry *nilfs_get_parent(struct d
- 	inode = nilfs_iget(child->d_inode->i_sb, ino);
- 	if (IS_ERR(inode))
- 		return ERR_CAST(inode);
--	parent = d_alloc_anon(inode);
--	if (!parent) {
--		iput(inode);
--		parent = ERR_PTR(-ENOMEM);
--	}
--	return parent;
-+	return d_obtain_alias(inode);
- }
+ 	atomic_inc(&sbi->s_inodes_count);
  
- /*
+-	inode->i_uid = current->fsuid;
++	inode->i_uid = current_fsuid();
+ 	if (dir->i_mode & S_ISGID) {
+ 		inode->i_gid = dir->i_gid;
+ 		if (S_ISDIR(mode))
+ 			mode |= S_ISGID;
+ 	} else
+-		inode->i_gid = current->fsgid;
++		inode->i_gid = current_fsgid();
+ 
+ 	inode->i_mode = mode;
+ 	inode->i_ino = ino;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
