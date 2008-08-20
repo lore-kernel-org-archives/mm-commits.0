@@ -1,72 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - mm-dirty-page-tracking-race-fix-fix.patch removed from -mm tree
-Date: Wed, 20 Aug 2008 13:19:59 -0700
-Message-ID: <200808202019.m7KKJxgk029650@imap1.linux-foundation.org>
+Subject: + mm-show-quicklist-memory-usage-in-proc-meminfo-fix.patch added to -mm tree
+Date: Wed, 20 Aug 2008 14:03:57 -0700
+Message-ID: <200808202117.m7KLHEaV032139@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58114 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52048 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751143AbYHTUUR (ORCPT
+	by vger.kernel.org with ESMTP id S1754587AbYHTVRe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 16:20:17 -0400
+	Wed, 20 Aug 2008 17:17:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, cotte@freenet.de, hugh@veritas.com, jaredeh@gmail.com, npiggin@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, stable@kernel.org
 
 
 The patch titled
-     mm-dirty-page-tracking-race-fix-fix
-has been removed from the -mm tree.  Its filename was
-     mm-dirty-page-tracking-race-fix-fix.patch
+     mm-show-quicklist-memory-usage-in-proc-meminfo-fix
+has been added to the -mm tree.  Its filename is
+     mm-show-quicklist-memory-usage-in-proc-meminfo-fix.patch
 
-This patch was dropped because it was folded into mm-dirty-page-tracking-race-fix.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-dirty-page-tracking-race-fix-fix
+Subject: mm-show-quicklist-memory-usage-in-proc-meminfo-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Carsten Otte <cotte@freenet.de>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Jared Hulbert <jaredeh@gmail.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+fs/proc/proc_misc.c: In function 'meminfo_read_proc':
+fs/proc/proc_misc.c:226: error: implicit declaration of function 'quicklist_total_size'
+fs/proc/proc_misc.c:227: warning: format '%8lu' expects type 'long unsigned int', but argument 28 has type 'int'
+fs/proc/proc_misc.c:227: warning: format '%8lu' expects type 'long unsigned int', but argument 28 has type 'int'
+
+Cc: <stable@kernel.org>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/proc/proc_misc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/rmap.c~mm-dirty-page-tracking-race-fix-fix mm/rmap.c
---- a/mm/rmap.c~mm-dirty-page-tracking-race-fix-fix
-+++ a/mm/rmap.c
-@@ -224,14 +224,14 @@ unsigned long page_address_in_vma(struct
- /*
-  * Check that @page is mapped at @address into @mm.
-  *
-- * If @synch is false, page_check_address may perform a racy check to avoid
-+ * If @sync is false, page_check_address may perform a racy check to avoid
-  * the page table lock when the pte is not present (helpful when reclaiming
-  * highly shared pages).
-  *
-  * On success returns with pte mapped and locked.
-  */
- pte_t *page_check_address(struct page *page, struct mm_struct *mm,
--			  unsigned long address, spinlock_t **ptlp, int synch)
-+			  unsigned long address, spinlock_t **ptlp, int sync)
- {
- 	pgd_t *pgd;
- 	pud_t *pud;
-@@ -253,7 +253,7 @@ pte_t *page_check_address(struct page *p
- 
- 	pte = pte_offset_map(pmd, address);
- 	/* Make a quick check before getting the lock */
--	if (!synch && !pte_present(*pte)) {
-+	if (!sync && !pte_present(*pte)) {
- 		pte_unmap(pte);
- 		return NULL;
- 	}
+diff -puN fs/proc/proc_misc.c~mm-show-quicklist-memory-usage-in-proc-meminfo-fix fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~mm-show-quicklist-memory-usage-in-proc-meminfo-fix
++++ a/fs/proc/proc_misc.c
+@@ -24,6 +24,7 @@
+ #include <linux/tty.h>
+ #include <linux/string.h>
+ #include <linux/mman.h>
++#include <linux/quicklist.h>
+ #include <linux/proc_fs.h>
+ #include <linux/ioport.h>
+ #include <linux/mm.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,8 +69,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 proc-self-maps-doesnt-display-the-real-file-offset.patch
 drivers-char-ipmi-ipmi_si_intfc-default_find_bmc-fix-leak.patch
-mm-dirty-page-tracking-race-fix.patch
-mm-dirty-page-tracking-race-fix-fix.patch
+mm-show-quicklist-memory-usage-in-proc-meminfo-fix.patch
 seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
 next-remove-localversion.patch
