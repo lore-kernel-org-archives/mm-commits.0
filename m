@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-show-quicklist-memory-usage-in-proc-meminfo-fix.patch added to -mm tree
-Date: Wed, 20 Aug 2008 14:03:57 -0700
-Message-ID: <200808202117.m7KLHEaV032139@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch added to -mm tree
+Date: Wed, 20 Aug 2008 14:16:31 -0700
+Message-ID: <200808202129.m7KLTl7C032616@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52048 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51596 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754587AbYHTVRe (ORCPT
+	by vger.kernel.org with ESMTP id S1752426AbYHTVay (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 17:17:34 -0400
+	Wed, 20 Aug 2008 17:30:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, stable@kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu, randy.dunlap@oracle.com, tglx@linutronix.de
 
 
 The patch titled
-     mm-show-quicklist-memory-usage-in-proc-meminfo-fix
+     arch/x86/kernel/io_apic_64.c: fix printk warnings
 has been added to the -mm tree.  Its filename is
-     mm-show-quicklist-memory-usage-in-proc-meminfo-fix.patch
+     arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-show-quicklist-memory-usage-in-proc-meminfo-fix
+Subject: arch/x86/kernel/io_apic_64.c: fix printk warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/proc/proc_misc.c: In function 'meminfo_read_proc':
-fs/proc/proc_misc.c:226: error: implicit declaration of function 'quicklist_total_size'
-fs/proc/proc_misc.c:227: warning: format '%8lu' expects type 'long unsigned int', but argument 28 has type 'int'
-fs/proc/proc_misc.c:227: warning: format '%8lu' expects type 'long unsigned int', but argument 28 has type 'int'
+arch/x86/kernel/io_apic_64.c: In function 'print_local_APIC':
+arch/x86/kernel/io_apic_64.c:1284: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'long unsigned int'
+arch/x86/kernel/io_apic_64.c:1285: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'long unsigned int'
 
-Cc: <stable@kernel.org>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/kernel/io_apic_64.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/proc_misc.c~mm-show-quicklist-memory-usage-in-proc-meminfo-fix fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~mm-show-quicklist-memory-usage-in-proc-meminfo-fix
-+++ a/fs/proc/proc_misc.c
-@@ -24,6 +24,7 @@
- #include <linux/tty.h>
- #include <linux/string.h>
- #include <linux/mman.h>
-+#include <linux/quicklist.h>
- #include <linux/proc_fs.h>
- #include <linux/ioport.h>
- #include <linux/mm.h>
+diff -puN arch/x86/kernel/io_apic_64.c~arch-x86-kernel-io_apic_64c-fix-printk-warnings arch/x86/kernel/io_apic_64.c
+--- a/arch/x86/kernel/io_apic_64.c~arch-x86-kernel-io_apic_64c-fix-printk-warnings
++++ a/arch/x86/kernel/io_apic_64.c
+@@ -1281,8 +1281,8 @@ __apicdebuginit(void) print_local_APIC(v
+ 	printk(KERN_DEBUG "... APIC ESR: %08x\n", v);
+ 
+ 	icr = apic_icr_read();
+-	printk(KERN_DEBUG "... APIC ICR: %08x\n", icr);
+-	printk(KERN_DEBUG "... APIC ICR2: %08x\n", icr >> 32);
++	printk(KERN_DEBUG "... APIC ICR: %08Lx\n", icr);
++	printk(KERN_DEBUG "... APIC ICR2: %08Lx\n", icr >> 32);
+ 
+ 	v = apic_read(APIC_LVTT);
+ 	printk(KERN_DEBUG "... APIC LVTT: %08x\n", v);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,6 +80,7 @@ drivers-mfd-ucb1400_corec-further-unbork.patch
 arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
 arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
+arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
 ppc-use-the-common-ascii-hex-helpers.patch
 powerpc-replace-__function__-with-__func__.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
