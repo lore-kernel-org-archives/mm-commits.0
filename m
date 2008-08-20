@@ -1,35 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - power-support-for-texas-instruments-bq27x00-battery-managers-tweaks.patch removed from -mm tree
-Date: Wed, 20 Aug 2008 16:52:14 -0700
-Message-ID: <200808202352.m7KNqFIV006071@imap1.linux-foundation.org>
+Subject: - power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 20 Aug 2008 16:52:13 -0700
+Message-ID: <200808202352.m7KNqD0B006068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45540 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51741 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755504AbYHTXwt (ORCPT
+	by vger.kernel.org with ESMTP id S1756073AbYHTXwx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 19:52:49 -0400
+	Wed, 20 Aug 2008 19:52:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, cbouatmailru@gmail.com, dwmw2@infradead.org, giometti@linux.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     power-support-for-texas-instruments-bq27x00-battery-managers-tweaks
+     power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     power-support-for-texas-instruments-bq27x00-battery-managers-tweaks.patch
+     power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into power-support-for-texas-instruments-bq27x00-battery-managers.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: power-support-for-texas-instruments-bq27x00-battery-managers-tweaks
+Subject: power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- make things static
+ERROR: space prohibited before that ':' (ctx:WxE)
+#227: FILE: drivers/power/bq27x00_battery.c:175:
++	case POWER_SUPPLY_PROP_VOLTAGE_NOW :
+ 	                                   ^
 
-- use kasprintf()
+ERROR: space prohibited before that ':' (ctx:WxE)
+#228: FILE: drivers/power/bq27x00_battery.c:176:
++	case POWER_SUPPLY_PROP_PRESENT :
+ 	                               ^
+
+ERROR: space prohibited before that ':' (ctx:WxE)
+#235: FILE: drivers/power/bq27x00_battery.c:183:
++	case POWER_SUPPLY_PROP_CURRENT_NOW :
+ 	                                   ^
+
+ERROR: space prohibited before that ':' (ctx:WxE)
+#240: FILE: drivers/power/bq27x00_battery.c:188:
++	case POWER_SUPPLY_PROP_CAPACITY :
+ 	                                ^
+
+ERROR: space prohibited before that ':' (ctx:WxE)
+#245: FILE: drivers/power/bq27x00_battery.c:193:
++	case POWER_SUPPLY_PROP_TEMP :
+ 	                            ^
+
+total: 5 errors, 0 warnings, 412 lines checked
+
+./patches/power-support-for-texas-instruments-bq27x00-battery-managers.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Anton Vorontsov <cbouatmailru@gmail.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
@@ -37,38 +66,43 @@ Cc: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/bq27x00_battery.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/power/bq27x00_battery.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/power/bq27x00_battery.c~power-support-for-texas-instruments-bq27x00-battery-managers-tweaks drivers/power/bq27x00_battery.c
---- a/drivers/power/bq27x00_battery.c~power-support-for-texas-instruments-bq27x00-battery-managers-tweaks
+diff -puN drivers/power/bq27x00_battery.c~power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes drivers/power/bq27x00_battery.c
+--- a/drivers/power/bq27x00_battery.c~power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes
 +++ a/drivers/power/bq27x00_battery.c
-@@ -40,8 +40,8 @@
- /* If the system has several batteries we need a different name for each
-  * of them...
-  */
--DEFINE_IDR(battery_id);
--DEFINE_MUTEX(battery_mutex);
-+static DEFINE_IDR(battery_id);
-+static DEFINE_MUTEX(battery_mutex);
+@@ -172,25 +172,25 @@ static int bq27x00_battery_get_property(
+ 	struct bq27x00_device_info *di = to_bq27x00_device_info(psy);
  
- struct bq27x00_device_info;
- struct bq27x00_access_methods {
-@@ -275,13 +275,12 @@ static int bq27200_battery_probe(struct 
- 	if (retval < 0)
- 		return retval;
+ 	switch (psp) {
+-	case POWER_SUPPLY_PROP_VOLTAGE_NOW :
+-	case POWER_SUPPLY_PROP_PRESENT :
++	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
++	case POWER_SUPPLY_PROP_PRESENT:
+ 		val->intval = bq27x00_battery_voltage(di);
+ 		if (psp == POWER_SUPPLY_PROP_PRESENT)
+ 			val->intval = val->intval <= 0 ? 0 : 1;
  
--	name = kmalloc(16, GFP_KERNEL);
-+	name = kasprintf(GFP_KERNEL, "bq27200-%d", num);
- 	if (!name) {
- 		dev_err(&client->dev, "failed to allocate device name\n");
- 		retval = -ENOMEM;
- 		goto batt_failed_1;
- 	}
--	sprintf(name, "bq27200-%d", num);
+ 		break;
  
- 	di = kzalloc(sizeof(*di), GFP_KERNEL);
- 	if (!di) {
+-	case POWER_SUPPLY_PROP_CURRENT_NOW :
++	case POWER_SUPPLY_PROP_CURRENT_NOW:
+ 		val->intval = bq27x00_battery_current(di);
+ 
+ 		break;
+ 
+-	case POWER_SUPPLY_PROP_CAPACITY :
++	case POWER_SUPPLY_PROP_CAPACITY:
+ 		val->intval = bq27x00_battery_rsoc(di);
+ 
+ 		break;
+ 
+-	case POWER_SUPPLY_PROP_TEMP :
++	case POWER_SUPPLY_PROP_TEMP:
+ 		val->intval = bq27x00_battery_temperature(di);
+ 
+ 		break;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,6 +132,7 @@ sundance-set-carrier-status-on-link-change-events.patch
 cassini-use-request_firmware.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
 power-support-for-texas-instruments-bq27x00-battery-managers.patch
+power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes.patch
 power-support-for-texas-instruments-bq27x00-battery-managers-tweaks.patch
 ftrace-printk-formatting-infrastructure.patch
 scsi-gdthc-use-unaligned-access-helpers.patch
