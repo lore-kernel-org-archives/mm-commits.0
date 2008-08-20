@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-supply-ioremap_wc-for-mn10300.patch added to -mm tree
-Date: Wed, 20 Aug 2008 12:06:10 -0700
-Message-ID: <200808201906.m7KJ6AqH026537@imap1.linux-foundation.org>
+Subject: + frv-provide-ioremap_wc-for-frv.patch added to -mm tree
+Date: Wed, 20 Aug 2008 12:06:57 -0700
+Message-ID: <200808201906.m7KJ6v6g026582@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48301 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36370 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754649AbYHTTGa (ORCPT
+	by vger.kernel.org with ESMTP id S1751980AbYHTTH4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 15:06:30 -0400
+	Wed, 20 Aug 2008 15:07:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dhowells@redhat.com
 
 
 The patch titled
-     MN10300: supply ioremap_wc() for MN10300
+     FRV: provide ioremap_wc() for FRV
 has been added to the -mm tree.  Its filename is
-     mn10300-supply-ioremap_wc-for-mn10300.patch
+     frv-provide-ioremap_wc-for-frv.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MN10300: supply ioremap_wc() for MN10300
+Subject: FRV: provide ioremap_wc() for FRV
 From: David Howells <dhowells@redhat.com>
 
-Supply ioremap_wc() for MN10300.
+Provide ioremap_wc() for FRV.
 
-(akpm: fixes the build on various random drivers which mn10300 probably
+(akpm: fixes the build on various random drivers which frv probably
 doesn't use)
 
 Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-mn10300/io.h |    2 ++
+ include/asm-frv/io.h |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN include/asm-mn10300/io.h~mn10300-supply-ioremap_wc-for-mn10300 include/asm-mn10300/io.h
---- a/include/asm-mn10300/io.h~mn10300-supply-ioremap_wc-for-mn10300
-+++ a/include/asm-mn10300/io.h
-@@ -259,6 +259,8 @@ static inline void *ioremap_nocache(unsi
- 	return (void *) (offset | 0x20000000);
+diff -puN include/asm-frv/io.h~frv-provide-ioremap_wc-for-frv include/asm-frv/io.h
+--- a/include/asm-frv/io.h~frv-provide-ioremap_wc-for-frv
++++ a/include/asm-frv/io.h
+@@ -271,6 +271,8 @@ static inline void __iomem *ioremap_full
+ 	return __ioremap(physaddr, size, IOMAP_FULL_CACHING);
  }
  
 +#define ioremap_wc ioremap_nocache
 +
- static inline void iounmap(void *addr)
- {
- }
+ extern void iounmap(void volatile __iomem *addr);
+ 
+ static inline void __iomem *ioport_map(unsigned long port, unsigned int nr)
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
 mn10300-supply-ioremap_wc-for-mn10300.patch
+frv-provide-ioremap_wc-for-frv.patch
 linux-next.patch
 calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
 cifs-fix-range-check.patch
