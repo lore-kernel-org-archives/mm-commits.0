@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kvm-is-still-busted-on-ia64.patch added to -mm tree
-Date: Tue, 19 Aug 2008 16:44:44 -0700
-Message-ID: <200808192357.m7JNvxOf014001@imap1.linux-foundation.org>
+Subject: + mfd-ucb1400-sound-driver-uses-depends-on-ac97_bus.patch added to -mm tree
+Date: Tue, 19 Aug 2008 17:11:54 -0700
+Message-ID: <200808200011.m7K0Bssj014506@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46312 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46026 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753019AbYHSX6d (ORCPT
+	by vger.kernel.org with ESMTP id S1753377AbYHTANX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 19 Aug 2008 19:58:33 -0400
+	Tue, 19 Aug 2008 20:13:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avi@qumranet.com, xiantao.zhang@intel.com
+Cc: randy.dunlap@oracle.com, sameo@openedhand.com
 
 
 The patch titled
-     kvm is still busted on ia64
+     mfd/ucb1400 sound driver uses/depends on AC97_BUS
 has been added to the -mm tree.  Its filename is
-     kvm-is-still-busted-on-ia64.patch
+     mfd-ucb1400-sound-driver-uses-depends-on-ac97_bus.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,116 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kvm is still busted on ia64
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mfd/ucb1400 sound driver uses/depends on AC97_BUS
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-arch/ia64/kvm/../../../virt/kvm/ioapic.c:42:17: irq.h: No such file or directory
-arch/ia64/kvm/../../../virt/kvm/ioapic.c: In function `__kvm_ioapic_update_eoi':
-arch/ia64/kvm/../../../virt/kvm/ioapic.c:296: error: implicit declaration of function `kvm_notify_acked_irq'
-arch/ia64/kvm/../../../virt/kvm/ioapic.c: In function `ioapic_mmio_write':
-arch/ia64/kvm/../../../virt/kvm/ioapic.c:389: error: too few arguments to function `kvm_ioapic_update_eoi'
+mfd/ucb1400 sound driver uses/depends on AC97_BUS:
 
-Cc: Xiantao Zhang <xiantao.zhang@intel.com>
-Cc: Avi Kivity <avi@qumranet.com>
+ERROR: "ac97_bus_type" [drivers/mfd/ucb1400_core.ko] undefined!
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Samuel Ortiz <sameo@openedhand.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/mfd/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/ia64/Kconfig~kvm-is-still-busted-on-ia64 arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~kvm-is-still-busted-on-ia64
-+++ a/arch/ia64/Kconfig
-@@ -20,7 +20,6 @@ config IA64
- 	select HAVE_KPROBES
- 	select HAVE_KRETPROBES
- 	select HAVE_DMA_ATTRS
--	select HAVE_KVM
- 	default y
+diff -puN drivers/mfd/Kconfig~mfd-ucb1400-sound-driver-uses-depends-on-ac97_bus drivers/mfd/Kconfig
+--- a/drivers/mfd/Kconfig~mfd-ucb1400-sound-driver-uses-depends-on-ac97_bus
++++ a/drivers/mfd/Kconfig
+@@ -52,6 +52,7 @@ config HTC_PASIC3
+ 
+ config UCB1400_CORE
+ 	tristate "Philips UCB1400 Core driver"
++	depends on AC97_BUS
  	help
- 	  The Itanium Processor Family is Intel's 64-bit successor to
+ 	  This enables support for the Philips UCB1400 core functions.
+ 	  The UCB1400 is an AC97 audio codec.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-origin.patch
-proc-self-maps-doesnt-display-the-real-file-offset-checkpatch-fixes.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
+documentation-describe-bootmem_debug-kernel-parameter.patch
 linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-powerpc-replace-__function__-with-__func__.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-kvm-is-still-busted-on-ia64.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-drivers-ata-pata_it821xc-fix-warning.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers-tweaks.patch
+mfd-ucb1400-sound-driver-uses-depends-on-ac97_bus.patch
+drm-sis-depends-on-fb_sis.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+lkdtm-fix-for-config_scsi=n.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
 ftrace-printk-formatting-infrastructure.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-git-watchdog.patch
-git-xtensa.patch
-drivers-char-ipmi-ipmi_si_intfc-default_find_bmc-fix-leak.patch
-mm-dirty-page-tracking-race-fix-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
 rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+w1-documentation-w1-masters-ds2490-update.patch
 profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
