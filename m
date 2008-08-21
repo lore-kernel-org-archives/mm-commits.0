@@ -1,57 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - kvm-is-still-busted-on-ia64.patch removed from -mm tree
-Date: Thu, 21 Aug 2008 11:40:48 -0700
-Message-ID: <200808211840.m7LIems3019920@imap1.linux-foundation.org>
+Subject: - powerpc-export-cmo_pagesize.patch removed from -mm tree
+Date: Thu, 21 Aug 2008 11:47:22 -0700
+Message-ID: <200808211847.m7LIlMcv020188@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33542 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40181 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753103AbYHUSlS (ORCPT
+	by vger.kernel.org with ESMTP id S1754635AbYHUSrZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Aug 2008 14:41:18 -0400
+	Thu, 21 Aug 2008 14:47:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, avi@qumranet.com, xiantao.zhang@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kvm is still busted on ia64
+     powerpc: export CMO_PageSize
 has been removed from the -mm tree.  Its filename was
-     kvm-is-still-busted-on-ia64.patch
+     powerpc-export-cmo_pagesize.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kvm is still busted on ia64
+Subject: powerpc: export CMO_PageSize
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/ia64/kvm/../../../virt/kvm/ioapic.c:42:17: irq.h: No such file or directory
-arch/ia64/kvm/../../../virt/kvm/ioapic.c: In function `__kvm_ioapic_update_eoi':
-arch/ia64/kvm/../../../virt/kvm/ioapic.c:296: error: implicit declaration of function `kvm_notify_acked_irq'
-arch/ia64/kvm/../../../virt/kvm/ioapic.c: In function `ioapic_mmio_write':
-arch/ia64/kvm/../../../virt/kvm/ioapic.c:389: error: too few arguments to function `kvm_ioapic_update_eoi'
+powerpc allmodconfig:
 
-Cc: Xiantao Zhang <xiantao.zhang@intel.com>
-Cc: Avi Kivity <avi@qumranet.com>
+ERROR: "CMO_PageSize" [arch/powerpc/platforms/pseries/cmm.ko] undefined!
+
+(needed for 2.6.27)
+
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig |    1 -
- 1 file changed, 1 deletion(-)
+ arch/powerpc/platforms/pseries/setup.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/ia64/Kconfig~kvm-is-still-busted-on-ia64 arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~kvm-is-still-busted-on-ia64
-+++ a/arch/ia64/Kconfig
-@@ -20,7 +20,6 @@ config IA64
- 	select HAVE_KPROBES
- 	select HAVE_KRETPROBES
- 	select HAVE_DMA_ATTRS
--	select HAVE_KVM
- 	default y
- 	help
- 	  The Itanium Processor Family is Intel's 64-bit successor to
+diff -puN arch/powerpc/platforms/pseries/setup.c~powerpc-export-cmo_pagesize arch/powerpc/platforms/pseries/setup.c
+--- a/arch/powerpc/platforms/pseries/setup.c~powerpc-export-cmo_pagesize
++++ a/arch/powerpc/platforms/pseries/setup.c
+@@ -71,6 +71,7 @@
+ int CMO_PrPSP = -1;
+ int CMO_SecPSP = -1;
+ unsigned long CMO_PageSize = (ASM_CONST(1) << IOMMU_PAGE_SHIFT);
++EXPORT_SYMBOL(CMO_PageSize);
+ 
+ int fwnmi_active;  /* TRUE if an FWNMI handler is present */
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,9 +66,7 @@ arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
 arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
 arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
-git-powerpc.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
-kvm-is-still-busted-on-ia64.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 git-jg-misc.patch
 drivers-ata-pata_it821xc-fix-warning.patch
@@ -84,9 +81,7 @@ drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
 git-watchdog.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
-powerpc-export-cmo_pagesize.patch
 rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
 mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
