@@ -1,111 +1,225 @@
 From: akpm@linux-foundation.org
-Subject: - mm-page_remove_rmap-comments-on-pageanon.patch removed from -mm tree
-Date: Wed, 20 Aug 2008 20:49:12 -0700
-Message-ID: <200808210349.m7L3nCEd015620@imap1.linux-foundation.org>
+Subject: - powerpc-use-bcd2bin-bin2bcd.patch removed from -mm tree
+Date: Wed, 20 Aug 2008 20:50:07 -0700
+Message-ID: <200808210350.m7L3o7rV015695@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32953 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36110 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755134AbYHUDuL (ORCPT
+	by vger.kernel.org with ESMTP id S1754749AbYHUDuS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 23:50:11 -0400
+	Wed, 20 Aug 2008 23:50:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, benh@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: page_remove_rmap comments on PageAnon
+     powerpc: use bcd2bin/bin2bcd
 has been removed from the -mm tree.  Its filename was
-     mm-page_remove_rmap-comments-on-pageanon.patch
+     powerpc-use-bcd2bin-bin2bcd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: page_remove_rmap comments on PageAnon
-From: Hugh Dickins <hugh@veritas.com>
+Subject: powerpc: use bcd2bin/bin2bcd
+From: Adrian Bunk <bunk@kernel.org>
 
-Add a comment to s390's page_test_dirty/page_clear_dirty/page_set_dirty
-dance in page_remove_rmap(): I was wrong to think the PageSwapCache test
-could be avoided, and would like a comment in there to remind me.  And
-mention s390, to help us remember that this block is not really common.
+Change powerpc to use the new bcd2bin/bin2bcd functions instead of the
+obsolete BCD_TO_BIN/BIN_TO_BCD macros.
 
-Also move down the "It would be tidy to reset PageAnon" comment: it does
-not belong to s390's block, and it would be unwise to reset PageAnon
-before we're done with testing it.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   25 ++++++++++++++++---------
- 1 file changed, 16 insertions(+), 9 deletions(-)
+ arch/powerpc/platforms/chrp/time.c  |   24 ++++++++++++------------
+ arch/powerpc/platforms/iseries/mf.c |   26 +++++++++++++-------------
+ arch/powerpc/platforms/maple/time.c |   24 ++++++++++++------------
+ 3 files changed, 37 insertions(+), 37 deletions(-)
 
-diff -puN mm/rmap.c~mm-page_remove_rmap-comments-on-pageanon mm/rmap.c
---- a/mm/rmap.c~mm-page_remove_rmap-comments-on-pageanon
-+++ a/mm/rmap.c
-@@ -659,23 +659,30 @@ void page_remove_rmap(struct page *page,
- 		}
+diff -puN arch/powerpc/platforms/chrp/time.c~powerpc-use-bcd2bin-bin2bcd arch/powerpc/platforms/chrp/time.c
+--- a/arch/powerpc/platforms/chrp/time.c~powerpc-use-bcd2bin-bin2bcd
++++ a/arch/powerpc/platforms/chrp/time.c
+@@ -94,12 +94,12 @@ int chrp_set_rtc_time(struct rtc_time *t
+ 	chrp_cmos_clock_write((save_freq_select|RTC_DIV_RESET2), RTC_FREQ_SELECT);
  
- 		/*
--		 * It would be tidy to reset the PageAnon mapping here,
--		 * but that might overwrite a racing page_add_anon_rmap
--		 * which increments mapcount after us but sets mapping
--		 * before us: so leave the reset to free_hot_cold_page,
--		 * and remember that it's only reliable while mapped.
--		 * Leaving it set also helps swapoff to reinstate ptes
--		 * faster for those pages still in swapcache.
-+		 * Now that the last pte has gone, s390 must transfer dirty
-+		 * flag from storage key to struct page.  We can usually skip
-+		 * this if the page is anon, so about to be freed; but perhaps
-+		 * not if it's in swapcache - there might be another pte slot
-+		 * containing the swap entry, but page not yet written to swap.
- 		 */
- 		if ((!PageAnon(page) || PageSwapCache(page)) &&
- 		    page_test_dirty(page)) {
- 			page_clear_dirty(page);
- 			set_page_dirty(page);
- 		}
--		mem_cgroup_uncharge_page(page);
- 
-+		mem_cgroup_uncharge_page(page);
- 		__dec_zone_page_state(page,
--				PageAnon(page) ? NR_ANON_PAGES : NR_FILE_MAPPED);
-+			PageAnon(page) ? NR_ANON_PAGES : NR_FILE_MAPPED);
-+		/*
-+		 * It would be tidy to reset the PageAnon mapping here,
-+		 * but that might overwrite a racing page_add_anon_rmap
-+		 * which increments mapcount after us but sets mapping
-+		 * before us: so leave the reset to free_hot_cold_page,
-+		 * and remember that it's only reliable while mapped.
-+		 * Leaving it set also helps swapoff to reinstate ptes
-+		 * faster for those pages still in swapcache.
-+		 */
+ 	if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+-		BIN_TO_BCD(tm.tm_sec);
+-		BIN_TO_BCD(tm.tm_min);
+-		BIN_TO_BCD(tm.tm_hour);
+-		BIN_TO_BCD(tm.tm_mon);
+-		BIN_TO_BCD(tm.tm_mday);
+-		BIN_TO_BCD(tm.tm_year);
++		tm.tm_sec = bin2bcd(tm.tm_sec);
++		tm.tm_min = bin2bcd(tm.tm_min);
++		tm.tm_hour = bin2bcd(tm.tm_hour);
++		tm.tm_mon = bin2bcd(tm.tm_mon);
++		tm.tm_mday = bin2bcd(tm.tm_mday);
++		tm.tm_year = bin2bcd(tm.tm_year);
  	}
- }
+ 	chrp_cmos_clock_write(tm.tm_sec,RTC_SECONDS);
+ 	chrp_cmos_clock_write(tm.tm_min,RTC_MINUTES);
+@@ -136,12 +136,12 @@ void chrp_get_rtc_time(struct rtc_time *
+ 	} while (sec != chrp_cmos_clock_read(RTC_SECONDS));
  
+ 	if (!(chrp_cmos_clock_read(RTC_CONTROL) & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+-		BCD_TO_BIN(sec);
+-		BCD_TO_BIN(min);
+-		BCD_TO_BIN(hour);
+-		BCD_TO_BIN(day);
+-		BCD_TO_BIN(mon);
+-		BCD_TO_BIN(year);
++		sec = bcd2bin(sec);
++		min = bcd2bin(min);
++		hour = bcd2bin(hour);
++		day = bcd2bin(day);
++		mon = bcd2bin(mon);
++		year = bcd2bin(year);
+ 	}
+ 	if (year < 70)
+ 		year += 100;
+diff -puN arch/powerpc/platforms/iseries/mf.c~powerpc-use-bcd2bin-bin2bcd arch/powerpc/platforms/iseries/mf.c
+--- a/arch/powerpc/platforms/iseries/mf.c~powerpc-use-bcd2bin-bin2bcd
++++ a/arch/powerpc/platforms/iseries/mf.c
+@@ -722,13 +722,13 @@ static int mf_set_rtc(struct rtc_time *t
+ 	day = tm->tm_mday;
+ 	mon = tm->tm_mon + 1;
+ 
+-	BIN_TO_BCD(sec);
+-	BIN_TO_BCD(min);
+-	BIN_TO_BCD(hour);
+-	BIN_TO_BCD(mon);
+-	BIN_TO_BCD(day);
+-	BIN_TO_BCD(y1);
+-	BIN_TO_BCD(y2);
++	sec = bin2bcd(sec);
++	min = bin2bcd(min);
++	hour = bin2bcd(hour);
++	mon = bin2bcd(mon);
++	day = bin2bcd(day);
++	y1 = bin2bcd(y1);
++	y2 = bin2bcd(y2);
+ 
+ 	memset(ce_time, 0, sizeof(ce_time));
+ 	ce_time[3] = 0x41;
+@@ -777,12 +777,12 @@ static int rtc_set_tm(int rc, u8 *ce_msg
+ 		u8 day = ce_msg[10];
+ 		u8 mon = ce_msg[11];
+ 
+-		BCD_TO_BIN(sec);
+-		BCD_TO_BIN(min);
+-		BCD_TO_BIN(hour);
+-		BCD_TO_BIN(day);
+-		BCD_TO_BIN(mon);
+-		BCD_TO_BIN(year);
++		sec = bcd2bin(sec);
++		min = bcd2bin(min);
++		hour = bcd2bin(hour);
++		day = bcd2bin(day);
++		mon = bcd2bin(mon);
++		year = bcd2bin(year);
+ 
+ 		if (year <= 69)
+ 			year += 100;
+diff -puN arch/powerpc/platforms/maple/time.c~powerpc-use-bcd2bin-bin2bcd arch/powerpc/platforms/maple/time.c
+--- a/arch/powerpc/platforms/maple/time.c~powerpc-use-bcd2bin-bin2bcd
++++ a/arch/powerpc/platforms/maple/time.c
+@@ -68,12 +68,12 @@ void maple_get_rtc_time(struct rtc_time 
+ 
+ 	if (!(maple_clock_read(RTC_CONTROL) & RTC_DM_BINARY)
+ 	    || RTC_ALWAYS_BCD) {
+-		BCD_TO_BIN(tm->tm_sec);
+-		BCD_TO_BIN(tm->tm_min);
+-		BCD_TO_BIN(tm->tm_hour);
+-		BCD_TO_BIN(tm->tm_mday);
+-		BCD_TO_BIN(tm->tm_mon);
+-		BCD_TO_BIN(tm->tm_year);
++		tm->tm_sec = bcd2bin(tm->tm_sec);
++		tm->tm_min = bcd2bin(tm->tm_min);
++		tm->tm_hour = bcd2bin(tm->tm_hour);
++		tm->tm_mday = bcd2bin(tm->tm_mday);
++		tm->tm_mon = bcd2bin(tm->tm_mon);
++		tm->tm_year = bcd2bin(tm->tm_year);
+ 	  }
+ 	if ((tm->tm_year + 1900) < 1970)
+ 		tm->tm_year += 100;
+@@ -104,12 +104,12 @@ int maple_set_rtc_time(struct rtc_time *
+ 	year = tm->tm_year;
+ 
+ 	if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+-		BIN_TO_BCD(sec);
+-		BIN_TO_BCD(min);
+-		BIN_TO_BCD(hour);
+-		BIN_TO_BCD(mon);
+-		BIN_TO_BCD(mday);
+-		BIN_TO_BCD(year);
++		sec = bin2bcd(sec);
++		min = bin2bcd(min);
++		hour = bin2bcd(hour);
++		mon = bin2bcd(mon);
++		mday = bin2bcd(mday);
++		year = bin2bcd(year);
+ 	}
+ 	maple_clock_write(sec, RTC_SECONDS);
+ 	maple_clock_write(min, RTC_MINUTES);
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-mm-owner-fix-race-between-swap-and-exit.patch
-mm-owner-fix-race-between-swap-and-exit-fix.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mmapc-deinline-a-few-functions.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+ntfs-update-homepage.patch
+linux-next.patch
+git-powerpc.patch
+m32r-remove-the-unused-nohighmem-option.patch
+m32r-dont-offer-config_isa.patch
+m32r-export-empty_zero_page.patch
+m32r-export-__ndelay.patch
+m32r-kernel-cleanups.patch
+the-overdue-eepro100-removal.patch
+parisc-lib-make-code-static.patch
+drivers-parisc-make-code-static.patch
+if-0-ses_match_host.patch
+scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
+drivers-scsi-a2091c-make-2-functions-static.patch
+drivers-scsi-a3000c-make-2-functions-static.patch
+fs_mbcache-dont-needlessly-make-it-built-in.patch
+git-xtensa.patch
+mpc8xxx_wdt-fix-modular-build.patch
+asm-h8300-mdh-remove-cvs-keyword.patch
+alpha-miata-remove-dead-url.patch
+uml-remove-the-dead-tty_log-code.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+maintainers-remove-hga-framebuffer-driver-entry.patch
+include-linux-mounth-remove-cvs-keyword.patch
+kernel-dmac-remove-a-cvs-keyword.patch
+binfmt_somc-add-module_license.patch
+make-probe_serial_gsc-static.patch
+pnp-remove-printk-with-outdated-version.patch
+telephony-remove-cvs-keywords.patch
+reiserfs-procfsc-remove-cvs-keywords.patch
+quota-remove-cvs-keywords.patch
+make-ptrace_untrace-static.patch
+fs-partitions-acornc-remove-dead-code.patch
+parport-remove-cvs-keywords.patch
 make-mm-rmapc-anon_vma_cachep-static.patch
-prio_tree-debugging-patch.patch
+drivers-firmware-iscsi_ibftc-make-3-functions-static.patch
+ipc-semc-make-free_un-static.patch
+make-fs-proc-proc_sysctlc-grab_header-static.patch
+make-hp_wmi_notify-static.patch
+acpi-use-bcd2bin-bin2bcd.patch
+alpha-use-bcd2bin-bin2bcd.patch
+arm-use-bcd2bin-bin2bcd.patch
+cris-use-bcd2bin-bin2bcd.patch
+drivers-rtc-use-bcd2bin-bin2bcd.patch
+rtc-use-bcd2bin-bin2bcd.patch
+mips-use-bcd2bin-bin2bcd.patch
+mn10300-use-bcd2bin-bin2bcd.patch
+i2c-use-bcd2bin-bin2bcd.patch
+drivers-scsi-sr_vendorc-use-bcd2bin.patch
+sparc64-use-bcd2bin-bin2bcd.patch
+remove-the-obsolete-bcdbin-binbcd-macros.patch
+include-linux-bcdh-remove-comments.patch
+reiser4.patch
 
