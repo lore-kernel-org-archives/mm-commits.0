@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + mm-rewrite-vmap-layer-fix.patch added to -mm tree
-Date: Thu, 21 Aug 2008 14:35:46 -0700
-Message-ID: <200808212135.m7LLZkvw027204@imap1.linux-foundation.org>
+Subject: + r8169-balance-pci_map-pci_unmap-pair.patch added to -mm tree
+Date: Thu, 21 Aug 2008 14:55:24 -0700
+Message-ID: <200808212155.m7LLtOCu027958@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35150 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47339 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755774AbYHUVfw (ORCPT
+	by vger.kernel.org with ESMTP id S1755941AbYHUV4P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Aug 2008 17:35:52 -0400
+	Thu, 21 Aug 2008 17:56:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeremy@goop.org, npiggin@suse.de
+Cc: romieu@fr.zoreil.com, alistair@devzero.co.uk, edward_hsu@realtek.com.tw, ilpo.jarvinen@helsinki.fi, tjfontaine@atxconsulting.com
 
 
 The patch titled
-     mm-rewrite-vmap-layer-fix
+     r8169: balance pci_map / pci_unmap pair
 has been added to the -mm tree.  Its filename is
-     mm-rewrite-vmap-layer-fix.patch
+     r8169-balance-pci_map-pci_unmap-pair.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,164 +29,57 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: mm-rewrite-vmap-layer-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: r8169: balance pci_map / pci_unmap pair
+=46rom: Francois Romieu <romieu@fr.zoreil.com>
 
-- no externs in C.
+The leak hurts with swiotlb and jumbo frames (see
+http://bugzilla.kernel.org/show_bug.cgi?id=3D9468).
 
-- avoid ifdefs-in-C.
+Heavily hinted by Ilpo J=E4rvinen
 
-- Get the vmalloc_init() declaration's section right (sometimes it matters)
-
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
+Tested-by: Alistair John Strachan <alistair@devzero.co.uk>
+Tested-by: Timothy J Fontaine <tjfontaine@atxconsulting.com>
+Cc: Edward Hsu <edward_hsu@realtek.com.tw>
+Cc: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    9 +++++++++
- init/main.c             |    6 ------
- 2 files changed, 9 insertions(+), 6 deletions(-)
+ drivers/net/r8169.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/vmalloc.h~mm-rewrite-vmap-layer-fix include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~mm-rewrite-vmap-layer-fix
-+++ a/include/linux/vmalloc.h
-@@ -2,6 +2,7 @@
- #define _LINUX_VMALLOC_H
- 
- #include <linux/spinlock.h>
-+#include <linux/init.h>
- #include <asm/page.h>		/* pgprot_t */
- 
- struct vm_area_struct;		/* vma defining user mapping in mm_types.h */
-@@ -41,6 +42,14 @@ extern void *vm_map_ram(struct page **pa
- 				int node, pgprot_t prot);
- extern void vm_unmap_aliases(void);
- 
-+#ifdef CONFIG_MMU
-+extern void __init vmalloc_init(void);
-+#else
-+static inline void vmalloc_init(void)
-+{
-+}
-+#endif
-+
- extern void *vmalloc(unsigned long size);
- extern void *vmalloc_user(unsigned long size);
- extern void *vmalloc_node(unsigned long size, int node);
-diff -puN init/main.c~mm-rewrite-vmap-layer-fix init/main.c
---- a/init/main.c~mm-rewrite-vmap-layer-fix
-+++ a/init/main.c
-@@ -91,9 +91,6 @@ extern void mca_init(void);
- extern void sbus_init(void);
- extern void prio_tree_init(void);
- extern void radix_tree_init(void);
--#ifdef CONFIG_MMU
--extern void vmalloc_init(void);
--#endif
- extern void free_initmem(void);
- #ifdef	CONFIG_ACPI
- extern void acpi_early_init(void);
-@@ -654,9 +651,6 @@ asmlinkage void __init start_kernel(void
- 		initrd_start = 0;
- 	}
- #endif
--#ifdef CONFIG_MMU
--	vmalloc_init();
--#endif
- 	vfs_caches_init_early();
- 	cpuset_init_early();
- 	mem_init();
+diff -puN drivers/net/r8169.c~r8169-balance-pci_map-pci_unmap-pair driv=
+ers/net/r8169.c
+--- a/drivers/net/r8169.c~r8169-balance-pci_map-pci_unmap-pair
++++ a/drivers/net/r8169.c
+@@ -2792,7 +2792,7 @@ static int rtl8169_rx_interrupt(struct n
+ 					pkt_size, PCI_DMA_FROMDEVICE);
+ 				rtl8169_mark_to_asic(desc, tp->rx_buf_sz);
+ 			} else {
+-				pci_unmap_single(pdev, addr, pkt_size,
++				pci_unmap_single(pdev, addr, tp->rx_buf_sz,
+ 						 PCI_DMA_FROMDEVICE);
+ 				tp->Rx_skbuff[entry] =3D NULL;
+ 			}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from romieu@fr.zoreil.com are
 
-vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
-acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
-mm-show-quicklist-memory-usage-in-proc-meminfo-fix.patch
-mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-next-remove-localversion.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
-arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-drivers-ata-pata_it821xc-fix-warning.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers.patch
-ftrace-printk-formatting-infrastructure.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-git-watchdog.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mm-rewrite-vmap-layer-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-nilfs2-continuous-snapshotting-file-system-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+r8169-balance-pci_map-pci_unmap-pair.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
