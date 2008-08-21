@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-remove-include-versionh.patch added to -mm tree
-Date: Thu, 21 Aug 2008 12:31:02 -0700
-Message-ID: <200808211931.m7LJV2Zc021963@imap1.linux-foundation.org>
+Subject: + fix-documentation-filesystems-ramfs-rootfs-initramfstxt.patch added to -mm tree
+Date: Thu, 21 Aug 2008 12:41:02 -0700
+Message-ID: <200808211941.m7LJf2Fv022396@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44026 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49657 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752751AbYHUTbq (ORCPT
+	by vger.kernel.org with ESMTP id S1760959AbYHUTlg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Aug 2008 15:31:46 -0400
+	Thu, 21 Aug 2008 15:41:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: weiyi.huang@gmail.com, krzysztof.h1@poczta.fm, santiago@crfreenet.org
+Cc: fransmeulenbroeks@gmail.com, rob@landley.net
 
 
 The patch titled
-     drivers/video/: remove #include <version.h>
+     Fix Documentation/filesystems/ramfs-rootfs-initramfs.txt
 has been added to the -mm tree.  Its filename is
-     drivers-video-remove-include-versionh.patch
+     fix-documentation-filesystems-ramfs-rootfs-initramfstxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/: remove #include <version.h>
-From: Huang Weiyi <weiyi.huang@gmail.com>
+Subject: Fix Documentation/filesystems/ramfs-rootfs-initramfs.txt
+From: frans <fransmeulenbroeks@gmail.com>
 
-The driver(s) below do not use LINUX_VERSION_CODE nor KERNEL_VERSION.
-  drivers/video/arkfb.c
-  drivers/video/s3fb.c
-  drivers/video/vt8623fb.c
+First a file hello.c is created, then the file hello2.c is compiled. 
+Change this to hello.c
 
-This patch removes the said #include <version.h>.
-
-Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
-Acked-by: Ondrej Zajicek <santiago@crfreenet.org>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Signed-off-by: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/arkfb.c    |    1 -
- drivers/video/s3fb.c     |    1 -
- drivers/video/vt8623fb.c |    1 -
- 3 files changed, 3 deletions(-)
+ Documentation/filesystems/ramfs-rootfs-initramfs.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/arkfb.c~drivers-video-remove-include-versionh drivers/video/arkfb.c
---- a/drivers/video/arkfb.c~drivers-video-remove-include-versionh
-+++ a/drivers/video/arkfb.c
-@@ -11,7 +11,6 @@
-  *  Code is based on s3fb
-  */
- 
--#include <linux/version.h>
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/errno.h>
-diff -puN drivers/video/s3fb.c~drivers-video-remove-include-versionh drivers/video/s3fb.c
---- a/drivers/video/s3fb.c~drivers-video-remove-include-versionh
-+++ a/drivers/video/s3fb.c
-@@ -11,7 +11,6 @@
-  * which is based on the code of neofb.
-  */
- 
--#include <linux/version.h>
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/errno.h>
-diff -puN drivers/video/vt8623fb.c~drivers-video-remove-include-versionh drivers/video/vt8623fb.c
---- a/drivers/video/vt8623fb.c~drivers-video-remove-include-versionh
-+++ a/drivers/video/vt8623fb.c
-@@ -12,7 +12,6 @@
-  * (http://davesdomain.org.uk/viafb/)
-  */
- 
--#include <linux/version.h>
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/errno.h>
+diff -puN Documentation/filesystems/ramfs-rootfs-initramfs.txt~fix-documentation-filesystems-ramfs-rootfs-initramfstxt Documentation/filesystems/ramfs-rootfs-initramfs.txt
+--- a/Documentation/filesystems/ramfs-rootfs-initramfs.txt~fix-documentation-filesystems-ramfs-rootfs-initramfstxt
++++ a/Documentation/filesystems/ramfs-rootfs-initramfs.txt
+@@ -263,7 +263,7 @@ User Mode Linux, like so:
+     sleep(999999999);
+   }
+   EOF
+-  gcc -static hello2.c -o init
++  gcc -static hello.c -o init
+   echo init | cpio -o -H newc | gzip > test.cpio.gz
+   # Testing external initramfs using the initrd loading mechanism.
+   qemu -kernel /boot/vmlinuz -initrd test.cpio.gz /dev/zero
 _
 
-Patches currently in -mm which might be from weiyi.huang@gmail.com are
+Patches currently in -mm which might be from fransmeulenbroeks@gmail.com are
 
+fix-documentation-filesystems-ramfs-rootfs-initramfstxt.patch
 linux-next.patch
-arch-x86-kernel-apm_32c-remove-duplicated-include.patch
-arch-m68k-bvme6000-rtcc-remove-duplicated-include.patch
-drivers-misc-eeprom_93cx6c-remove-include-versionh.patch
-drivers-video-remove-include-versionh.patch
 
