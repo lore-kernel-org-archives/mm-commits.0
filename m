@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-tmscsimc-fix-mangled-printk-output.patch added to -mm tree
-Date: Thu, 21 Aug 2008 12:23:32 -0700
-Message-ID: <200808211923.m7LJNW6K021726@imap1.linux-foundation.org>
+Subject: + drivers-misc-eeprom_93cx6c-remove-include-versionh.patch added to -mm tree
+Date: Thu, 21 Aug 2008 12:30:05 -0700
+Message-ID: <200808211930.m7LJU5nD021938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59190 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40687 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755836AbYHUTXm (ORCPT
+	by vger.kernel.org with ESMTP id S1755431AbYHUTad (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Aug 2008 15:23:42 -0400
+	Thu, 21 Aug 2008 15:30:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nick@ukfsn.org, James.Bottomley@HansenPartnership.com, g.liakhovetski@gmx.de
+Cc: weiyi.huang@gmail.com
 
 
 The patch titled
-     scsi: tmscsim.c: fix mangled printk output
+     drivers/misc/eeprom_93cx6.c: remove #include <version.h>
 has been added to the -mm tree.  Its filename is
-     scsi-tmscsimc-fix-mangled-printk-output.patch
+     drivers-misc-eeprom_93cx6c-remove-include-versionh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: tmscsim.c: fix mangled printk output
-From: Nick Warne <nick@ukfsn.org>
+Subject: drivers/misc/eeprom_93cx6.c: remove #include <version.h>
+From: Huang Weiyi <weiyi.huang@gmail.com>
 
-Signed-off-by: Nick Warne <nick@ukfsn.org>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/tmscsim.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/misc/eeprom_93cx6.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/scsi/tmscsim.c~scsi-tmscsimc-fix-mangled-printk-output drivers/scsi/tmscsim.c
---- a/drivers/scsi/tmscsim.c~scsi-tmscsimc-fix-mangled-printk-output
-+++ a/drivers/scsi/tmscsim.c
-@@ -2573,8 +2573,8 @@ static struct pci_driver dc390_driver = 
- static int __init dc390_module_init(void)
- {
- 	if (!disable_clustering)
--		printk(KERN_INFO "DC390: clustering now enabled by default. If you get problems load\n"
--		       "\twith \"disable_clustering=1\" and report to maintainers\n");
-+		printk(KERN_INFO "DC390: clustering now enabled by default. If you get problems load\n");
-+		printk(KERN_INFO "	with \"disable_clustering=1\" and report to maintainers\n");
+diff -puN drivers/misc/eeprom_93cx6.c~drivers-misc-eeprom_93cx6c-remove-include-versionh drivers/misc/eeprom_93cx6.c
+--- a/drivers/misc/eeprom_93cx6.c~drivers-misc-eeprom_93cx6c-remove-include-versionh
++++ a/drivers/misc/eeprom_93cx6.c
+@@ -26,7 +26,6 @@
  
- 	if (tmscsim[0] == -1 || tmscsim[0] > 15) {
- 		tmscsim[0] = 7;
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+-#include <linux/version.h>
+ #include <linux/delay.h>
+ #include <linux/eeprom_93cx6.h>
+ 
 _
 
-Patches currently in -mm which might be from nick@ukfsn.org are
+Patches currently in -mm which might be from weiyi.huang@gmail.com are
 
-scsi-tmscsimc-fix-mangled-printk-output.patch
+linux-next.patch
+arch-x86-kernel-apm_32c-remove-duplicated-include.patch
+arch-m68k-bvme6000-rtcc-remove-duplicated-include.patch
+drivers-misc-eeprom_93cx6c-remove-include-versionh.patch
 
