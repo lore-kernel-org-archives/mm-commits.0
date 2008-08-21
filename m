@@ -1,67 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - libata-scsi-dont-start-hotplug-work-queue-if-hotplug-is-disabled.patch removed from -mm tree
-Date: Wed, 20 Aug 2008 20:03:51 -0700
-Message-ID: <200808210303.m7L33pxB013527@imap1.linux-foundation.org>
+Subject: - ntp-fix-adjtimex-freq-return-error.patch removed from -mm tree
+Date: Wed, 20 Aug 2008 20:12:37 -0700
+Message-ID: <200808210312.m7L3CbMu013997@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40999 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38261 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752715AbYHUDEt (ORCPT
+	by vger.kernel.org with ESMTP id S1756540AbYHUDNS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 23:04:49 -0400
+	Wed, 20 Aug 2008 23:13:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chunbo.luo@windriver.com, jeff@garzik.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: johnstul@us.ibm.com, tglx@linutronix.de, ziegler@uni-freiburg.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata-scsi: don't start hotplug work queue if hotplug is disabled
+     ntp: fix adjtimex() freq return error
 has been removed from the -mm tree.  Its filename was
-     libata-scsi-dont-start-hotplug-work-queue-if-hotplug-is-disabled.patch
+     ntp-fix-adjtimex-freq-return-error.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libata-scsi: don't start hotplug work queue if hotplug is disabled
-From: Chunbo Luo <chunbo.luo@windriver.com>
+Subject: ntp: fix adjtimex() freq return error
+From: john stultz <johnstul@us.ibm.com>
 
-Previously, queue_delayed_work() was started unconditionally, but if
-ATA_PFLAG_SCSI_HOTPLUG is not set and we do this, the work queue may cause
-multiple messages like this:
+Martin Ziegler reported a bug in adjtimex(), where odd positive
+frequencies are reduced by 1 while negative values are correct.
 
-ata3.00: WARNING: ATAPI is not supported with this driver, device ignored.
+See http://bugzilla.kernel.org/show_bug.cgi?id=11370 for details
 
-So now,it is only started when the hotplug flag is actually set.
+The issue was introduced in the following commit that increased time_freq
+to a 64bit value and increased its resolution:
 
-Signed-off-by: Chunbo Luo <chunbo.luo@windriver.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <tj@kernel.org>
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=074b3b87941c99bc0ce35385b5817924b1ed0c23;hp=eea83d896e318bda54be2d2770d2c5d6668d11db
+
+The problem is how we convert from our internal high res value back to
+userland.  Instead of dividing, we shift, then mult, then shift again,
+causing the slight error seen in the bug.
+
+I don't think adjtimex() is a terribly hot path, so this patch simply uses
+div_s64() to convert back to the external resolution and removes the
+unused shift defines to resolve the issue.
+
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Reported-by: Martin Ziegler <ziegler@uni-freiburg.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable.kernel.org>		[2.6.25.x, 2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-scsi.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/timex.h |    3 ---
+ kernel/time/ntp.c     |    4 +---
+ 2 files changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN drivers/ata/libata-scsi.c~libata-scsi-dont-start-hotplug-work-queue-if-hotplug-is-disabled drivers/ata/libata-scsi.c
---- a/drivers/ata/libata-scsi.c~libata-scsi-dont-start-hotplug-work-queue-if-hotplug-is-disabled
-+++ a/drivers/ata/libata-scsi.c
-@@ -3176,8 +3176,9 @@ void ata_scsi_scan_host(struct ata_port 
- 				"                  switching to async\n");
+diff -puN include/linux/timex.h~ntp-fix-adjtimex-freq-return-error include/linux/timex.h
+--- a/include/linux/timex.h~ntp-fix-adjtimex-freq-return-error
++++ a/include/linux/timex.h
+@@ -82,9 +82,6 @@
+  */
+ #define SHIFT_USEC 16		/* frequency offset scale (shift) */
+ #define PPM_SCALE (NSEC_PER_USEC << (NTP_SCALE_SHIFT - SHIFT_USEC))
+-#define PPM_SCALE_INV_SHIFT 20
+-#define PPM_SCALE_INV ((1ll << (PPM_SCALE_INV_SHIFT + NTP_SCALE_SHIFT)) / \
+-		       PPM_SCALE + 1)
+ 
+ #define MAXPHASE 500000000l	/* max phase error (ns) */
+ #define MAXFREQ 500000		/* max frequency error (ns/s) */
+diff -puN kernel/time/ntp.c~ntp-fix-adjtimex-freq-return-error kernel/time/ntp.c
+--- a/kernel/time/ntp.c~ntp-fix-adjtimex-freq-return-error
++++ a/kernel/time/ntp.c
+@@ -402,9 +402,7 @@ int do_adjtimex(struct timex *txc)
+ 		if (!(time_status & STA_NANO))
+ 			txc->offset /= NSEC_PER_USEC;
  	}
- 
--	queue_delayed_work(ata_aux_wq, &ap->hotplug_task,
--			   round_jiffies_relative(HZ));
-+	if (ap->pflags & ATA_PFLAG_SCSI_HOTPLUG)
-+		queue_delayed_work(ata_aux_wq, &ap->hotplug_task,
-+				round_jiffies_relative(HZ));
- }
- 
- /**
+-	txc->freq	   = shift_right((s32)(time_freq >> PPM_SCALE_INV_SHIFT) *
+-					 (s64)PPM_SCALE_INV,
+-					 NTP_SCALE_SHIFT);
++	txc->freq	   = div_s64(time_freq, PPM_SCALE);
+ 	txc->maxerror	   = time_maxerror;
+ 	txc->esterror	   = time_esterror;
+ 	txc->status	   = time_status;
 _
 
-Patches currently in -mm which might be from chunbo.luo@windriver.com are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
-libata-scsi-dont-start-hotplug-work-queue-if-hotplug-is-disabled.patch
+ntp-fix-adjtimex-freq-return-error.patch
+timekeeping-fix-rounding-problem-during-clock-update.patch
+ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup.patch
+linux-timexh-cleanup-for-userspace.patch
+clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
+clocksource-keep-track-of-original-clocksource-frequency.patch
+clocksource-introduce-clocksource_forward_now.patch
+clocksource-introduce-clock_monotonic_raw.patch
 
