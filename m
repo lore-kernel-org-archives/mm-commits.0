@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-max7301-fix-the-race-between-chip-addition-and-pins-reconfiguration.patch added to -mm tree
-Date: Thu, 21 Aug 2008 12:44:08 -0700
-Message-ID: <200808211944.m7LJi8l2022572@imap1.linux-foundation.org>
+Subject: + filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature.patch added to -mm tree
+Date: Thu, 21 Aug 2008 13:20:23 -0700
+Message-ID: <200808212020.m7LKKODX024059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43834 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37539 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751594AbYHUTpG (ORCPT
+	by vger.kernel.org with ESMTP id S1754595AbYHUUUf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Aug 2008 15:45:06 -0400
+	Thu, 21 Aug 2008 16:20:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbaryshkov@gmail.com, david-b@pacbell.net, g.liakhovetski@pengutronix.de, j.beisert@pengutronix.de, rmk@arm.linux.org.uk
+Cc: t-sato@yk.jp.nec.com, dgc@sgi.com, hch@lst.de, lachlan@sgi.com, m-hamaguchi@ys.jp.nec.com, tes@sgi.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     gpio: max7301: fix the race between chip addition and pins reconfiguration
+     filesystem freezing: remove XFS specific ioctl interfaces for freeze feature
 has been added to the -mm tree.  Its filename is
-     gpio-max7301-fix-the-race-between-chip-addition-and-pins-reconfiguration.patch
+     filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: max7301: fix the race between chip addition and pins reconfiguration
-From: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Subject: filesystem freezing: remove XFS specific ioctl interfaces for freeze feature
+From: Takashi Sato <t-sato@yk.jp.nec.com>
 
-There is a small race and code ugliness in max7301: pins are reconfigured
-after the chip is registered.  Swap these calls so that the device is
-registered in correct state.
+Remvoe the XFS specific ioctl interfaces and request codes for freeze
+feature.
 
-Also this fixes the comile-time warning about unchecked gpiochip_remove.
+This patch has been supplied by David Chinner.
 
-Signed-off-by: Dmitry Baryshkov <dbaryshkov@gmail.com>
-Cc: Juergen Beisert <j.beisert@pengutronix.de>
-Cc: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Dave Chinner <dgc@sgi.com>
+Signed-off-by: Takashi Sato <t-sato@yk.jp.nec.com>
+Cc: Masayuki Hamaguchi <m-hamaguchi@ys.jp.nec.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: Lachlan McIlroy <lachlan@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/max7301.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ fs/xfs/linux-2.6/xfs_ioctl.c   |   15 ---------------
+ fs/xfs/linux-2.6/xfs_ioctl32.c |    2 --
+ fs/xfs/xfs_fs.h                |    4 ++--
+ 3 files changed, 2 insertions(+), 19 deletions(-)
 
-diff -puN drivers/gpio/max7301.c~gpio-max7301-fix-the-race-between-chip-addition-and-pins-reconfiguration drivers/gpio/max7301.c
---- a/drivers/gpio/max7301.c~gpio-max7301-fix-the-race-between-chip-addition-and-pins-reconfiguration
-+++ a/drivers/gpio/max7301.c
-@@ -255,10 +255,6 @@ static int __devinit max7301_probe(struc
- 	ts->chip.dev = &spi->dev;
- 	ts->chip.owner = THIS_MODULE;
- 
--	ret = gpiochip_add(&ts->chip);
--	if (ret)
--		goto exit_destroy;
--
- 	/*
- 	 * tristate all pins in hardware and cache the
- 	 * register values for later use.
-@@ -269,17 +265,19 @@ static int __devinit max7301_probe(struc
- 		max7301_write(spi, 0x08 + i, 0xAA);
- 		ts->port_config[i] = 0xAA;
- 		for (j = 0; j < 4; j++) {
--			int idx = ts->chip.base + (i - 1) * 4 + j;
--			ret = gpio_direction_input(idx);
-+			int offset = (i - 1) * 4 + j;
-+			ret = max7301_direction_input(&ts->chip, offset);
- 			if (ret)
--				goto exit_remove;
--			gpio_free(idx);
-+				goto exit_destroy;
- 		}
+diff -puN fs/xfs/linux-2.6/xfs_ioctl.c~filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature fs/xfs/linux-2.6/xfs_ioctl.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl.c~filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature
++++ a/fs/xfs/linux-2.6/xfs_ioctl.c
+@@ -1529,21 +1529,6 @@ xfs_ioctl(
+ 		return -error;
  	}
-+
-+	ret = gpiochip_add(&ts->chip);
-+	if (ret)
-+		goto exit_destroy;
-+
- 	return ret;
  
--exit_remove:
--	gpiochip_remove(&ts->chip);
- exit_destroy:
- 	dev_set_drvdata(&spi->dev, NULL);
- 	mutex_destroy(&ts->lock);
+-	case XFS_IOC_FREEZE:
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		if (inode->i_sb->s_frozen == SB_UNFROZEN)
+-			freeze_bdev(inode->i_sb->s_bdev);
+-		return 0;
+-
+-	case XFS_IOC_THAW:
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-		if (inode->i_sb->s_frozen != SB_UNFROZEN)
+-			thaw_bdev(inode->i_sb->s_bdev, inode->i_sb);
+-		return 0;
+-
+ 	case XFS_IOC_GOINGDOWN: {
+ 		__uint32_t in;
+ 
+diff -puN fs/xfs/linux-2.6/xfs_ioctl32.c~filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature fs/xfs/linux-2.6/xfs_ioctl32.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl32.c~filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature
++++ a/fs/xfs/linux-2.6/xfs_ioctl32.c
+@@ -398,8 +398,6 @@ xfs_compat_ioctl(
+ 	case XFS_IOC_FSGROWFSDATA:
+ 	case XFS_IOC_FSGROWFSLOG:
+ 	case XFS_IOC_FSGROWFSRT:
+-	case XFS_IOC_FREEZE:
+-	case XFS_IOC_THAW:
+ 	case XFS_IOC_GOINGDOWN:
+ 	case XFS_IOC_ERROR_INJECTION:
+ 	case XFS_IOC_ERROR_CLEARALL:
+diff -puN fs/xfs/xfs_fs.h~filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature fs/xfs/xfs_fs.h
+--- a/fs/xfs/xfs_fs.h~filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature
++++ a/fs/xfs/xfs_fs.h
+@@ -477,8 +477,8 @@ typedef struct xfs_handle {
+ #define XFS_IOC_ERROR_INJECTION	     _IOW ('X', 116, struct xfs_error_injection)
+ #define XFS_IOC_ERROR_CLEARALL	     _IOW ('X', 117, struct xfs_error_injection)
+ /*	XFS_IOC_ATTRCTL_BY_HANDLE -- deprecated 118	 */
+-#define XFS_IOC_FREEZE		     _IOWR('X', 119, int)
+-#define XFS_IOC_THAW		     _IOWR('X', 120, int)
++/*	XFS_IOC_FREEZE		  -- FIFREEZE   119	 */
++/*	XFS_IOC_THAW		  -- FITHAW     120	 */
+ #define XFS_IOC_FSSETDM_BY_HANDLE    _IOW ('X', 121, struct xfs_fsop_setdm_handlereq)
+ #define XFS_IOC_ATTRLIST_BY_HANDLE   _IOW ('X', 122, struct xfs_fsop_attrlist_handlereq)
+ #define XFS_IOC_ATTRMULTI_BY_HANDLE  _IOW ('X', 123, struct xfs_fsop_attrmulti_handlereq)
 _
 
-Patches currently in -mm which might be from dbaryshkov@gmail.com are
+Patches currently in -mm which might be from t-sato@yk.jp.nec.com are
 
-linux-next.patch
-make-gpiochip-label-const.patch
-gpio-max7301-fix-the-race-between-chip-addition-and-pins-reconfiguration.patch
+filesystem-freezing-implement-generic-freeze-feature.patch
+filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature.patch
+filesystem-freezing-add-timeout-feature.patch
 
