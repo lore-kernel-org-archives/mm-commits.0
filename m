@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch added to -mm tree
-Date: Thu, 21 Aug 2008 14:21:14 -0700
-Message-ID: <200808212121.m7LLLEZ6026549@imap1.linux-foundation.org>
+Subject: + nubus-fix-mis-indented-statement.patch added to -mm tree
+Date: Thu, 21 Aug 2008 14:22:37 -0700
+Message-ID: <200808212122.m7LLMbL7026621@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34077 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46914 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756161AbYHUVVR (ORCPT
+	by vger.kernel.org with ESMTP id S1751276AbYHUVWt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Aug 2008 17:21:17 -0400
+	Thu, 21 Aug 2008 17:22:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hifumi.hisashi@oss.ntt.co.jp
+Cc: ilpo.jarvinen@helsinki.fi
 
 
 The patch titled
-     vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix
+     nubus: fix mis-indented statement
 has been added to the -mm tree.  Its filename is
-     vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
+     nubus-fix-mis-indented-statement.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,128 +29,54 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: nubus: fix mis-indented statement
+=46rom: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
 
-Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+It seems this is the right way around because otherwise the len usage i=
+n
+the outer loop would be pretty pointless.
+
+Signed-off-by: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/nubus/nubus.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix mm/filemap.c
---- a/mm/filemap.c~vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix
-+++ a/mm/filemap.c
-@@ -2129,15 +2129,15 @@ generic_file_direct_write(struct kiocb *
- 	 * After a write we want buffered reads to be sure to go to disk to get
- 	 * the new data.  We invalidate clean cached page from the region we're
- 	 * about to write.  We do this *before* the write so that we can return
--	* without clobbering -EIOCBQUEUED from ->direct_IO().
-+	 * without clobbering -EIOCBQUEUED from ->direct_IO().
- 	 */
- 	if (mapping->nrpages) {
- 		written = invalidate_inode_pages2_range(mapping,
- 					pos >> PAGE_CACHE_SHIFT, end);
- 		/*
--		* If a page can not be invalidated, return 0 to fall back
--		* to buffered write.
--		*/
-+		 * If a page can not be invalidated, return 0 to fall back
-+		 * to buffered write.
-+		 */
- 		if (written) {
- 			if (written == -EBUSY)
- 				return 0;
+diff -puN drivers/nubus/nubus.c~nubus-fix-mis-indented-statement driver=
+s/nubus/nubus.c
+--- a/drivers/nubus/nubus.c~nubus-fix-mis-indented-statement
++++ a/drivers/nubus/nubus.c
+@@ -126,7 +126,7 @@ static void nubus_advance(unsigned char=20
+ 	{
+ 		while(not_useful(p,map))
+ 			p++;
+-			p++;
++		p++;
+ 		len--;
+ 	}
+ 	*ptr =3D p;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ilpo.jarvinen@helsinki.fi =
+are
 
-vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
-mm-show-quicklist-memory-usage-in-proc-meminfo-fix.patch
-mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-next-remove-localversion.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
-arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-drivers-ata-pata_it821xc-fix-warning.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers.patch
-ftrace-printk-formatting-infrastructure.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-git-watchdog.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-nilfs2-continuous-snapshotting-file-system-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+nubus-fix-mis-indented-statement.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
