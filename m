@@ -1,225 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-use-bcd2bin-bin2bcd.patch removed from -mm tree
-Date: Wed, 20 Aug 2008 20:50:07 -0700
-Message-ID: <200808210350.m7L3o7rV015695@imap1.linux-foundation.org>
+Subject: - cramfs-fix-named-pipe-handling.patch removed from -mm tree
+Date: Wed, 20 Aug 2008 20:50:02 -0700
+Message-ID: <200808210350.m7L3o2aS015686@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36110 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38153 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754749AbYHUDuS (ORCPT
+	by vger.kernel.org with ESMTP id S1754929AbYHUDuN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 23:50:18 -0400
+	Wed, 20 Aug 2008 23:50:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: viro@ZenIV.linux.org.uk, anemo@mba.ocn.ne.jp, stable@kernel.orgviro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: use bcd2bin/bin2bcd
+     cramfs: fix named-pipe handling
 has been removed from the -mm tree.  Its filename was
-     powerpc-use-bcd2bin-bin2bcd.patch
+     cramfs-fix-named-pipe-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: use bcd2bin/bin2bcd
-From: Adrian Bunk <bunk@kernel.org>
+Subject: cramfs: fix named-pipe handling
+From: Al Viro <viro@ZenIV.linux.org.uk>
 
-Change powerpc to use the new bcd2bin/bin2bcd functions instead of the
-obsolete BCD_TO_BIN/BIN_TO_BCD macros.
+After commit a97c9bf33f4612e2aed6f000f6b1d268b6814f3c (fix cramfs
+making duplicate entries in inode cache) in kernel 2.6.14, named-pipe
+on cramfs does not work properly.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+It seems the commit make all named-pipe on cramfs share their inode
+(and named-pipe buffer).
+
+Make ..._test() refuse to merge inodes with ->i_ino == 1, take inode setup
+back to get_cramfs_inode() and make ->drop_inode() evict ones with ->i_ino
+== 1 immediately.
+
+Reported-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@kernel.org>		[2.6.14 and later]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/chrp/time.c  |   24 ++++++++++++------------
- arch/powerpc/platforms/iseries/mf.c |   26 +++++++++++++-------------
- arch/powerpc/platforms/maple/time.c |   24 ++++++++++++------------
- 3 files changed, 37 insertions(+), 37 deletions(-)
+ fs/cramfs/inode.c |   84 +++++++++++++++++++-------------------------
+ 1 file changed, 38 insertions(+), 46 deletions(-)
 
-diff -puN arch/powerpc/platforms/chrp/time.c~powerpc-use-bcd2bin-bin2bcd arch/powerpc/platforms/chrp/time.c
---- a/arch/powerpc/platforms/chrp/time.c~powerpc-use-bcd2bin-bin2bcd
-+++ a/arch/powerpc/platforms/chrp/time.c
-@@ -94,12 +94,12 @@ int chrp_set_rtc_time(struct rtc_time *t
- 	chrp_cmos_clock_write((save_freq_select|RTC_DIV_RESET2), RTC_FREQ_SELECT);
+diff -puN fs/cramfs/inode.c~cramfs-fix-named-pipe-handling fs/cramfs/inode.c
+--- a/fs/cramfs/inode.c~cramfs-fix-named-pipe-handling
++++ a/fs/cramfs/inode.c
+@@ -43,58 +43,13 @@ static DEFINE_MUTEX(read_mutex);
+ static int cramfs_iget5_test(struct inode *inode, void *opaque)
+ {
+ 	struct cramfs_inode *cramfs_inode = opaque;
+-
+-	if (inode->i_ino != CRAMINO(cramfs_inode))
+-		return 0; /* does not match */
+-
+-	if (inode->i_ino != 1)
+-		return 1;
+-
+-	/* all empty directories, char, block, pipe, and sock, share inode #1 */
+-
+-	if ((inode->i_mode != cramfs_inode->mode) ||
+-	    (inode->i_gid != cramfs_inode->gid) ||
+-	    (inode->i_uid != cramfs_inode->uid))
+-		return 0; /* does not match */
+-
+-	if ((S_ISCHR(inode->i_mode) || S_ISBLK(inode->i_mode)) &&
+-	    (inode->i_rdev != old_decode_dev(cramfs_inode->size)))
+-		return 0; /* does not match */
+-
+-	return 1; /* matches */
++	return inode->i_ino == CRAMINO(cramfs_inode) && inode->i_ino != 1;
+ }
  
- 	if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--		BIN_TO_BCD(tm.tm_sec);
--		BIN_TO_BCD(tm.tm_min);
--		BIN_TO_BCD(tm.tm_hour);
--		BIN_TO_BCD(tm.tm_mon);
--		BIN_TO_BCD(tm.tm_mday);
--		BIN_TO_BCD(tm.tm_year);
-+		tm.tm_sec = bin2bcd(tm.tm_sec);
-+		tm.tm_min = bin2bcd(tm.tm_min);
-+		tm.tm_hour = bin2bcd(tm.tm_hour);
-+		tm.tm_mon = bin2bcd(tm.tm_mon);
-+		tm.tm_mday = bin2bcd(tm.tm_mday);
-+		tm.tm_year = bin2bcd(tm.tm_year);
+ static int cramfs_iget5_set(struct inode *inode, void *opaque)
+ {
+-	static struct timespec zerotime;
+ 	struct cramfs_inode *cramfs_inode = opaque;
+-	inode->i_mode = cramfs_inode->mode;
+-	inode->i_uid = cramfs_inode->uid;
+-	inode->i_size = cramfs_inode->size;
+-	inode->i_blocks = (cramfs_inode->size - 1) / 512 + 1;
+-	inode->i_gid = cramfs_inode->gid;
+-	/* Struct copy intentional */
+-	inode->i_mtime = inode->i_atime = inode->i_ctime = zerotime;
+ 	inode->i_ino = CRAMINO(cramfs_inode);
+-	/* inode->i_nlink is left 1 - arguably wrong for directories,
+-	   but it's the best we can do without reading the directory
+-           contents.  1 yields the right result in GNU find, even
+-	   without -noleaf option. */
+-	if (S_ISREG(inode->i_mode)) {
+-		inode->i_fop = &generic_ro_fops;
+-		inode->i_data.a_ops = &cramfs_aops;
+-	} else if (S_ISDIR(inode->i_mode)) {
+-		inode->i_op = &cramfs_dir_inode_operations;
+-		inode->i_fop = &cramfs_directory_operations;
+-	} else if (S_ISLNK(inode->i_mode)) {
+-		inode->i_op = &page_symlink_inode_operations;
+-		inode->i_data.a_ops = &cramfs_aops;
+-	} else {
+-		inode->i_size = 0;
+-		inode->i_blocks = 0;
+-		init_special_inode(inode, inode->i_mode,
+-			old_decode_dev(cramfs_inode->size));
+-	}
+ 	return 0;
+ }
+ 
+@@ -104,12 +59,48 @@ static struct inode *get_cramfs_inode(st
+ 	struct inode *inode = iget5_locked(sb, CRAMINO(cramfs_inode),
+ 					    cramfs_iget5_test, cramfs_iget5_set,
+ 					    cramfs_inode);
++	static struct timespec zerotime;
++
+ 	if (inode && (inode->i_state & I_NEW)) {
++		inode->i_mode = cramfs_inode->mode;
++		inode->i_uid = cramfs_inode->uid;
++		inode->i_size = cramfs_inode->size;
++		inode->i_blocks = (cramfs_inode->size - 1) / 512 + 1;
++		inode->i_gid = cramfs_inode->gid;
++		/* Struct copy intentional */
++		inode->i_mtime = inode->i_atime = inode->i_ctime = zerotime;
++		/* inode->i_nlink is left 1 - arguably wrong for directories,
++		   but it's the best we can do without reading the directory
++		   contents.  1 yields the right result in GNU find, even
++		   without -noleaf option. */
++		if (S_ISREG(inode->i_mode)) {
++			inode->i_fop = &generic_ro_fops;
++			inode->i_data.a_ops = &cramfs_aops;
++		} else if (S_ISDIR(inode->i_mode)) {
++			inode->i_op = &cramfs_dir_inode_operations;
++			inode->i_fop = &cramfs_directory_operations;
++		} else if (S_ISLNK(inode->i_mode)) {
++			inode->i_op = &page_symlink_inode_operations;
++			inode->i_data.a_ops = &cramfs_aops;
++		} else {
++			inode->i_size = 0;
++			inode->i_blocks = 0;
++			init_special_inode(inode, inode->i_mode,
++				old_decode_dev(cramfs_inode->size));
++		}
+ 		unlock_new_inode(inode);
  	}
- 	chrp_cmos_clock_write(tm.tm_sec,RTC_SECONDS);
- 	chrp_cmos_clock_write(tm.tm_min,RTC_MINUTES);
-@@ -136,12 +136,12 @@ void chrp_get_rtc_time(struct rtc_time *
- 	} while (sec != chrp_cmos_clock_read(RTC_SECONDS));
+ 	return inode;
+ }
  
- 	if (!(chrp_cmos_clock_read(RTC_CONTROL) & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--		BCD_TO_BIN(sec);
--		BCD_TO_BIN(min);
--		BCD_TO_BIN(hour);
--		BCD_TO_BIN(day);
--		BCD_TO_BIN(mon);
--		BCD_TO_BIN(year);
-+		sec = bcd2bin(sec);
-+		min = bcd2bin(min);
-+		hour = bcd2bin(hour);
-+		day = bcd2bin(day);
-+		mon = bcd2bin(mon);
-+		year = bcd2bin(year);
- 	}
- 	if (year < 70)
- 		year += 100;
-diff -puN arch/powerpc/platforms/iseries/mf.c~powerpc-use-bcd2bin-bin2bcd arch/powerpc/platforms/iseries/mf.c
---- a/arch/powerpc/platforms/iseries/mf.c~powerpc-use-bcd2bin-bin2bcd
-+++ a/arch/powerpc/platforms/iseries/mf.c
-@@ -722,13 +722,13 @@ static int mf_set_rtc(struct rtc_time *t
- 	day = tm->tm_mday;
- 	mon = tm->tm_mon + 1;
++static void cramfs_drop_inode(struct inode *inode)
++{
++	if (inode->i_ino == 1)
++		generic_delete_inode(inode);
++	else
++		generic_drop_inode(inode);
++}
++
+ /*
+  * We have our own block cache: don't fill up the buffer cache
+  * with the rom-image, because the way the filesystem is set
+@@ -534,6 +525,7 @@ static const struct super_operations cra
+ 	.put_super	= cramfs_put_super,
+ 	.remount_fs	= cramfs_remount,
+ 	.statfs		= cramfs_statfs,
++	.drop_inode	= cramfs_drop_inode,
+ };
  
--	BIN_TO_BCD(sec);
--	BIN_TO_BCD(min);
--	BIN_TO_BCD(hour);
--	BIN_TO_BCD(mon);
--	BIN_TO_BCD(day);
--	BIN_TO_BCD(y1);
--	BIN_TO_BCD(y2);
-+	sec = bin2bcd(sec);
-+	min = bin2bcd(min);
-+	hour = bin2bcd(hour);
-+	mon = bin2bcd(mon);
-+	day = bin2bcd(day);
-+	y1 = bin2bcd(y1);
-+	y2 = bin2bcd(y2);
- 
- 	memset(ce_time, 0, sizeof(ce_time));
- 	ce_time[3] = 0x41;
-@@ -777,12 +777,12 @@ static int rtc_set_tm(int rc, u8 *ce_msg
- 		u8 day = ce_msg[10];
- 		u8 mon = ce_msg[11];
- 
--		BCD_TO_BIN(sec);
--		BCD_TO_BIN(min);
--		BCD_TO_BIN(hour);
--		BCD_TO_BIN(day);
--		BCD_TO_BIN(mon);
--		BCD_TO_BIN(year);
-+		sec = bcd2bin(sec);
-+		min = bcd2bin(min);
-+		hour = bcd2bin(hour);
-+		day = bcd2bin(day);
-+		mon = bcd2bin(mon);
-+		year = bcd2bin(year);
- 
- 		if (year <= 69)
- 			year += 100;
-diff -puN arch/powerpc/platforms/maple/time.c~powerpc-use-bcd2bin-bin2bcd arch/powerpc/platforms/maple/time.c
---- a/arch/powerpc/platforms/maple/time.c~powerpc-use-bcd2bin-bin2bcd
-+++ a/arch/powerpc/platforms/maple/time.c
-@@ -68,12 +68,12 @@ void maple_get_rtc_time(struct rtc_time 
- 
- 	if (!(maple_clock_read(RTC_CONTROL) & RTC_DM_BINARY)
- 	    || RTC_ALWAYS_BCD) {
--		BCD_TO_BIN(tm->tm_sec);
--		BCD_TO_BIN(tm->tm_min);
--		BCD_TO_BIN(tm->tm_hour);
--		BCD_TO_BIN(tm->tm_mday);
--		BCD_TO_BIN(tm->tm_mon);
--		BCD_TO_BIN(tm->tm_year);
-+		tm->tm_sec = bcd2bin(tm->tm_sec);
-+		tm->tm_min = bcd2bin(tm->tm_min);
-+		tm->tm_hour = bcd2bin(tm->tm_hour);
-+		tm->tm_mday = bcd2bin(tm->tm_mday);
-+		tm->tm_mon = bcd2bin(tm->tm_mon);
-+		tm->tm_year = bcd2bin(tm->tm_year);
- 	  }
- 	if ((tm->tm_year + 1900) < 1970)
- 		tm->tm_year += 100;
-@@ -104,12 +104,12 @@ int maple_set_rtc_time(struct rtc_time *
- 	year = tm->tm_year;
- 
- 	if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--		BIN_TO_BCD(sec);
--		BIN_TO_BCD(min);
--		BIN_TO_BCD(hour);
--		BIN_TO_BCD(mon);
--		BIN_TO_BCD(mday);
--		BIN_TO_BCD(year);
-+		sec = bin2bcd(sec);
-+		min = bin2bcd(min);
-+		hour = bin2bcd(hour);
-+		mon = bin2bcd(mon);
-+		mday = bin2bcd(mday);
-+		year = bin2bcd(year);
- 	}
- 	maple_clock_write(sec, RTC_SECONDS);
- 	maple_clock_write(min, RTC_MINUTES);
+ static int cramfs_get_sb(struct file_system_type *fs_type,
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from viro@ZenIV.linux.org.uk are
 
-ntfs-update-homepage.patch
 linux-next.patch
-git-powerpc.patch
-m32r-remove-the-unused-nohighmem-option.patch
-m32r-dont-offer-config_isa.patch
-m32r-export-empty_zero_page.patch
-m32r-export-__ndelay.patch
-m32r-kernel-cleanups.patch
-the-overdue-eepro100-removal.patch
-parisc-lib-make-code-static.patch
-drivers-parisc-make-code-static.patch
-if-0-ses_match_host.patch
-scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
-drivers-scsi-a2091c-make-2-functions-static.patch
-drivers-scsi-a3000c-make-2-functions-static.patch
-fs_mbcache-dont-needlessly-make-it-built-in.patch
-git-xtensa.patch
-mpc8xxx_wdt-fix-modular-build.patch
-asm-h8300-mdh-remove-cvs-keyword.patch
-alpha-miata-remove-dead-url.patch
-uml-remove-the-dead-tty_log-code.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-maintainers-remove-hga-framebuffer-driver-entry.patch
-include-linux-mounth-remove-cvs-keyword.patch
-kernel-dmac-remove-a-cvs-keyword.patch
-binfmt_somc-add-module_license.patch
-make-probe_serial_gsc-static.patch
-pnp-remove-printk-with-outdated-version.patch
-telephony-remove-cvs-keywords.patch
-reiserfs-procfsc-remove-cvs-keywords.patch
-quota-remove-cvs-keywords.patch
-make-ptrace_untrace-static.patch
-fs-partitions-acornc-remove-dead-code.patch
-parport-remove-cvs-keywords.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-drivers-firmware-iscsi_ibftc-make-3-functions-static.patch
-ipc-semc-make-free_un-static.patch
-make-fs-proc-proc_sysctlc-grab_header-static.patch
-make-hp_wmi_notify-static.patch
-acpi-use-bcd2bin-bin2bcd.patch
-alpha-use-bcd2bin-bin2bcd.patch
-arm-use-bcd2bin-bin2bcd.patch
-cris-use-bcd2bin-bin2bcd.patch
-drivers-rtc-use-bcd2bin-bin2bcd.patch
-rtc-use-bcd2bin-bin2bcd.patch
-mips-use-bcd2bin-bin2bcd.patch
-mn10300-use-bcd2bin-bin2bcd.patch
-i2c-use-bcd2bin-bin2bcd.patch
-drivers-scsi-sr_vendorc-use-bcd2bin.patch
-sparc64-use-bcd2bin-bin2bcd.patch
-remove-the-obsolete-bcdbin-binbcd-macros.patch
-include-linux-bcdh-remove-comments.patch
-reiser4.patch
 
