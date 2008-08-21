@@ -1,76 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - mm-show-free-swap-as-signed.patch removed from -mm tree
-Date: Wed, 20 Aug 2008 20:49:15 -0700
-Message-ID: <200808210349.m7L3nFCN015623@imap1.linux-foundation.org>
+Subject: - blackfin-rtc-driver-dont-let-rtc-programming-in-bootloaders-randomly-cause-5-second-boot-delays.patch removed from -mm tree
+Date: Wed, 20 Aug 2008 20:49:10 -0700
+Message-ID: <200808210349.m7L3nAcq015617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60128 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59437 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753283AbYHUDtW (ORCPT
+	by vger.kernel.org with ESMTP id S1754380AbYHUDt1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 23:49:22 -0400
+	Wed, 20 Aug 2008 23:49:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: vapier.adi@gmail.com, a.zummo@towertech.it, cooloney@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: show free swap as signed
+     Blackfin RTC Driver: dont let RTC programming in bootloaders randomly cause ~5 second boot delays
 has been removed from the -mm tree.  Its filename was
-     mm-show-free-swap-as-signed.patch
+     blackfin-rtc-driver-dont-let-rtc-programming-in-bootloaders-randomly-cause-5-second-boot-delays.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: show free swap as signed
-From: Hugh Dickins <hugh@veritas.com>
+Subject: Blackfin RTC Driver: dont let RTC programming in bootloaders randomly cause ~5 second boot delays
+From: Mike Frysinger <vapier.adi@gmail.com>
 
-Adjust <Alt><SysRq>m show_swap_cache_info() to show "Free swap" as a
-signed long: the signed format is preferable, because during swapoff
-nr_swap_pages can legitimately go negative, so makes more sense thus
-(it used to be shown redundantly, once as signed and once as unsigned).
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_state.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-bfin.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN mm/swap_state.c~mm-show-free-swap-as-signed mm/swap_state.c
---- a/mm/swap_state.c~mm-show-free-swap-as-signed
-+++ a/mm/swap_state.c
-@@ -60,7 +60,7 @@ void show_swap_cache_info(void)
- 	printk("Swap cache stats: add %lu, delete %lu, find %lu/%lu\n",
- 		swap_cache_info.add_total, swap_cache_info.del_total,
- 		swap_cache_info.find_success, swap_cache_info.find_total);
--	printk("Free swap  = %lukB\n", nr_swap_pages << (PAGE_SHIFT - 10));
-+	printk("Free swap  = %ldkB\n", nr_swap_pages << (PAGE_SHIFT - 10));
- 	printk("Total swap = %lukB\n", total_swap_pages << (PAGE_SHIFT - 10));
- }
+diff -puN drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-dont-let-rtc-programming-in-bootloaders-randomly-cause-5-second-boot-delays drivers/rtc/rtc-bfin.c
+--- a/drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-dont-let-rtc-programming-in-bootloaders-randomly-cause-5-second-boot-delays
++++ a/drivers/rtc/rtc-bfin.c
+@@ -363,6 +363,7 @@ static int __devinit bfin_rtc_probe(stru
+ 	struct bfin_rtc *rtc;
+ 	struct device *dev = &pdev->dev;
+ 	int ret = 0;
++	unsigned long timeout;
+ 
+ 	dev_dbg_stamp(dev);
+ 
+@@ -377,6 +378,13 @@ static int __devinit bfin_rtc_probe(stru
+ 	ret = request_irq(IRQ_RTC, bfin_rtc_interrupt, IRQF_SHARED, pdev->name, dev);
+ 	if (unlikely(ret))
+ 		goto err;
++	/* sometimes the bootloader touched things, but the write complete was not
++	 * enabled, so let's just do a quick timeout here since the IRQ will not fire ...
++	 */
++	timeout = jiffies + HZ;
++	while (bfin_read_RTC_ISTAT() & RTC_ISTAT_WRITE_PENDING)
++		if (time_after(jiffies, timeout))
++			break;
+ 	bfin_rtc_reset(dev, RTC_ISTAT_WRITE_COMPLETE);
+ 	bfin_write_RTC_SWCNT(0);
  
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from vapier.adi@gmail.com are
 
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-mm-owner-fix-race-between-swap-and-exit.patch
-mm-owner-fix-race-between-swap-and-exit-fix.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mmapc-deinline-a-few-functions.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-prio_tree-debugging-patch.patch
+linux-next.patch
 
