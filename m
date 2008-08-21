@@ -1,69 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - mn10300-supply-ioremap_wc-for-mn10300.patch removed from -mm tree
-Date: Wed, 20 Aug 2008 20:49:34 -0700
-Message-ID: <200808210349.m7L3nYmN015647@imap1.linux-foundation.org>
+Subject: - video-framebuffer-add-fuctional-power-management-support-to-blackfin-bf54x-lq043-framebuffer-driver.patch removed from -mm tree
+Date: Wed, 20 Aug 2008 20:49:43 -0700
+Message-ID: <200808210349.m7L3nhik015659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53923 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59750 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754865AbYHUDtw (ORCPT
+	by vger.kernel.org with ESMTP id S1754864AbYHUDtx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 23:49:52 -0400
+	Wed, 20 Aug 2008 23:49:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org
+To: michael.hennerich@analog.com, cooloney@kernel.org, krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MN10300: supply ioremap_wc() for MN10300
+     Video/Framebuffer: add fuctional power management support to Blackfin BF54x LQ043 framebuffer driver
 has been removed from the -mm tree.  Its filename was
-     mn10300-supply-ioremap_wc-for-mn10300.patch
+     video-framebuffer-add-fuctional-power-management-support-to-blackfin-bf54x-lq043-framebuffer-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MN10300: supply ioremap_wc() for MN10300
-From: David Howells <dhowells@redhat.com>
+Subject: Video/Framebuffer: add fuctional power management support to Blackfin BF54x LQ043 framebuffer driver
+From: Michael Hennerich <michael.hennerich@analog.com>
 
-Supply ioremap_wc() for MN10300.
+Fix bug: does nor properply resume after suspend mem
+Fix for PM_SUSPEND_MEM: Save and restore peripheral base and DMA registers
 
-(akpm: fixes the build on various random drivers which mn10300 probably
-doesn't use)
-
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-mn10300/io.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/video/bf54x-lq043fb.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-mn10300/io.h~mn10300-supply-ioremap_wc-for-mn10300 include/asm-mn10300/io.h
---- a/include/asm-mn10300/io.h~mn10300-supply-ioremap_wc-for-mn10300
-+++ a/include/asm-mn10300/io.h
-@@ -259,6 +259,8 @@ static inline void *ioremap_nocache(unsi
- 	return (void *) (offset | 0x20000000);
- }
- 
-+#define ioremap_wc ioremap_nocache
-+
- static inline void iounmap(void *addr)
+diff -puN drivers/video/bf54x-lq043fb.c~video-framebuffer-add-fuctional-power-management-support-to-blackfin-bf54x-lq043-framebuffer-driver drivers/video/bf54x-lq043fb.c
+--- a/drivers/video/bf54x-lq043fb.c~video-framebuffer-add-fuctional-power-management-support-to-blackfin-bf54x-lq043-framebuffer-driver
++++ a/drivers/video/bf54x-lq043fb.c
+@@ -733,7 +733,6 @@ static int bfin_bf54x_remove(struct plat
+ static int bfin_bf54x_suspend(struct platform_device *pdev, pm_message_t state)
  {
+ 	struct fb_info *fbinfo = platform_get_drvdata(pdev);
+-	struct bfin_bf54xfb_info *info = fbinfo->par;
+ 
+ 	bfin_write_EPPI0_CONTROL(bfin_read_EPPI0_CONTROL() & ~EPPI_EN);
+ 	disable_dma(CH_EPPI0);
+@@ -747,8 +746,18 @@ static int bfin_bf54x_resume(struct plat
+ 	struct fb_info *fbinfo = platform_get_drvdata(pdev);
+ 	struct bfin_bf54xfb_info *info = fbinfo->par;
+ 
+-	enable_dma(CH_EPPI0);
+-	bfin_write_EPPI0_CONTROL(bfin_read_EPPI0_CONTROL() | EPPI_EN);
++	if (info->lq043_open_cnt) {
++
++		bfin_write_EPPI0_CONTROL(0);
++		SSYNC();
++
++		config_dma(info);
++		config_ppi(info);
++
++		/* start dma */
++		enable_dma(CH_EPPI0);
++		bfin_write_EPPI0_CONTROL(bfin_read_EPPI0_CONTROL() | EPPI_EN);
++	}
+ 
+ 	return 0;
  }
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from michael.hennerich@analog.com are
 
 linux-next.patch
-calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
-cifs-fix-range-check.patch
-clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-binfmt_elf_fdpic-support-auxvec-base-platform-string.patch
-binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack.patch
-binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-mn10300-use-bcd2bin-bin2bcd.patch
-mutex-subsystem-synchro-test-module.patch
+input-touchscreen-driver-add-support-ad7877-touchscreen-driver.patch
 
