@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acer-wmi-remove-debugfs-entries-upon-unloading.patch added to -mm tree
-Date: Thu, 21 Aug 2008 14:27:27 -0700
-Message-ID: <200808212127.m7LLRRlR026837@imap1.linux-foundation.org>
+Subject: + scripts-checksyscallssh-fix-for-non-gnu-sed.patch added to -mm tree
+Date: Thu, 21 Aug 2008 14:28:45 -0700
+Message-ID: <200808212128.m7LLSjhT026877@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45270 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39240 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758022AbYHUV1e (ORCPT
+	by vger.kernel.org with ESMTP id S1754571AbYHUV2v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Aug 2008 17:27:34 -0400
+	Thu, 21 Aug 2008 17:28:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: russ.dill@gmail.com, Russ.Dill@gmail.com, ak@linux.intel.com, carlos@strangeworlds.co.uk
+Cc: tvolpini@gmx.net, sam@ravnborg.org
 
 
 The patch titled
-     acer-wmi: remove debugfs entries upon unloading
+     scripts/checksyscalls.sh: fix for non-gnu sed
 has been added to the -mm tree.  Its filename is
-     acer-wmi-remove-debugfs-entries-upon-unloading.patch
+     scripts-checksyscallssh-fix-for-non-gnu-sed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acer-wmi: remove debugfs entries upon unloading
-From: Russ Dill <russ.dill@gmail.com>
+Subject: scripts/checksyscalls.sh: fix for non-gnu sed
+From: Thomas Volpini <tvolpini@gmx.net>
 
-The exit function neglects to remove debugfs entries, leading to a BUG
-on reload.
+Make the checksyscalls script work even on systems where sed is non-gnu.
 
-Signed-off-by: Russ Dill <Russ.Dill@gmail.com>
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>a
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/acer-wmi.c |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/checksyscalls.sh |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/misc/acer-wmi.c~acer-wmi-remove-debugfs-entries-upon-unloading drivers/misc/acer-wmi.c
---- a/drivers/misc/acer-wmi.c~acer-wmi-remove-debugfs-entries-upon-unloading
-+++ a/drivers/misc/acer-wmi.c
-@@ -1267,6 +1267,7 @@ error_platform_register:
- static void __exit acer_wmi_exit(void)
- {
- 	remove_sysfs(acer_platform_device);
-+	remove_debugfs();
- 	platform_device_del(acer_platform_device);
- 	platform_driver_unregister(&acer_platform_driver);
+diff -puN scripts/checksyscalls.sh~scripts-checksyscallssh-fix-for-non-gnu-sed scripts/checksyscalls.sh
+--- a/scripts/checksyscalls.sh~scripts-checksyscallssh-fix-for-non-gnu-sed
++++ a/scripts/checksyscalls.sh
+@@ -113,10 +113,10 @@ EOF
+ }
  
+ syscall_list() {
+-sed -n -e '/^\#define/ { s/[^_]*__NR_\([^[:space:]]*\).*/\
++sed -n -e '/^\#define/ s/[^_]*__NR_\([^[:space:]]*\).*/\
+ \#if !defined \(__NR_\1\) \&\& !defined \(__IGNORE_\1\)\
+ \#warning syscall \1 not implemented\
+-\#endif/p }' $1
++\#endif/p' $1
+ }
+ 
+ (ignore_list && syscall_list ${srctree}/include/asm-x86/unistd_32.h) | \
 _
 
-Patches currently in -mm which might be from russ.dill@gmail.com are
+Patches currently in -mm which might be from tvolpini@gmx.net are
 
-acer-wmi-remove-debugfs-entries-upon-unloading.patch
-acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
+scripts-checksyscallssh-fix-for-non-gnu-sed.patch
 
