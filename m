@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + floppy-support-arbitrary-first-sector-numbers.patch added to -mm tree
-Date: Thu, 21 Aug 2008 12:40:05 -0700
-Message-ID: <200808211940.m7LJe5s4022370@imap1.linux-foundation.org>
+Subject: + remove-unused-include-linux-versionhs.patch added to -mm tree
+Date: Thu, 21 Aug 2008 12:42:56 -0700
+Message-ID: <200808211942.m7LJguow022475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35553 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34586 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754315AbYHUTmE (ORCPT
+	by vger.kernel.org with ESMTP id S1752818AbYHUTnf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Aug 2008 15:42:04 -0400
+	Thu, 21 Aug 2008 15:43:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: keith@lochan.org, alain@linux.lu, jens.axboe@oracle.com, mtk.manpages@googlemail.com
+Cc: bunk@kernel.org
 
 
 The patch titled
-     floppy: support arbitrary first-sector numbers
+     remove unused #include <linux/version.h>'s
 has been added to the -mm tree.  Its filename is
-     floppy-support-arbitrary-first-sector-numbers.patch
+     remove-unused-include-linux-versionhs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,124 +34,747 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: floppy: support arbitrary first-sector numbers
-From: Keith Wansbrough <keith@lochan.org>
+Subject: remove unused #include <linux/version.h>'s
+From: Adrian Bunk <bunk@kernel.org>
 
-The current floppy_struct allows floppies to number sectors starting
-from 0 or 1.  This patch allows arbitrary first-sector numbers - for
-example, 0xC1 for Amstrad CPC disks.
+Let the files using linux/version.h match the files that #include it.
 
-This extends the existing 1-bit field (FD_ZEROBASED, bit 2 of stretch)
-to 8 bits (FD_SECTMASK, bits 2 to 9).
-
-Currently 0x00 denotes a first sector number of 1, and 0x01 denotes a
-first sector number of 0.  We extend this by interpreting FD_SECTMASK
-as the first sector number with the LSB flipped.
-
-Signed-off-by: Keith Wansbrough <keith@lochan.org>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Alain Knaff <alain@linux.lu>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/floppy.c |   23 +++++++++++++++--------
- include/linux/fd.h     |    8 +++++++-
- 2 files changed, 22 insertions(+), 9 deletions(-)
+ arch/arm/plat-omap/clock.c                   |    1 -
+ arch/cris/arch-v32/kernel/fasttimer.c        |    2 --
+ arch/mn10300/kernel/mn10300-serial.c         |    1 -
+ arch/powerpc/sysdev/bestcomm/gen_bd.c        |    1 -
+ arch/x86/mach-rdc321x/platform.c             |    1 -
+ drivers/atm/adummy.c                         |    1 -
+ drivers/char/xilinx_hwicap/buffer_icap.h     |    1 -
+ drivers/char/xilinx_hwicap/fifo_icap.h       |    1 -
+ drivers/char/xilinx_hwicap/xilinx_hwicap.h   |    1 -
+ drivers/edac/edac_core.h                     |    1 -
+ drivers/i2c/busses/i2c-at91.c                |    1 -
+ drivers/infiniband/hw/ehca/ehca_tools.h      |    1 -
+ drivers/infiniband/hw/ipath/ipath_fs.c       |    1 -
+ drivers/infiniband/hw/nes/nes.h              |    1 -
+ drivers/infiniband/ulp/iser/iser_verbs.c     |    1 -
+ drivers/input/keyboard/bf54x-keys.c          |    1 -
+ drivers/input/touchscreen/mainstone-wm97xx.c |    1 -
+ drivers/mfd/asic3.c                          |    1 -
+ drivers/mtd/nand/au1550nd.c                  |    1 -
+ drivers/net/myri10ge/myri10ge.c              |    1 -
+ drivers/net/netxen/netxen_nic.h              |    1 -
+ drivers/net/netxen/netxen_nic_ethtool.c      |    1 -
+ drivers/net/netxen/netxen_nic_hdr.h          |    2 --
+ drivers/net/tokenring/lanstreamer.c          |    1 -
+ drivers/net/tokenring/lanstreamer.h          |    2 --
+ drivers/net/wireless/b43legacy/main.c        |    1 -
+ drivers/net/wireless/iwlwifi/iwl-3945-led.c  |    1 -
+ drivers/net/wireless/iwlwifi/iwl-led.c       |    1 -
+ drivers/net/wireless/iwlwifi/iwl-rfkill.c    |    1 -
+ drivers/rtc/rtc-max6902.c                    |    2 --
+ drivers/rtc/rtc-r9701.c                      |    1 -
+ drivers/s390/net/ctcm_mpc.c                  |    1 -
+ drivers/scsi/dpt/dpti_i2o.h                  |    1 -
+ drivers/scsi/ips.c                           |    1 -
+ drivers/scsi/ips.h                           |    1 -
+ drivers/scsi/lpfc/lpfc_debugfs.c             |    1 -
+ drivers/scsi/nsp32.c                         |    1 -
+ drivers/scsi/nsp32.h                         |    1 -
+ drivers/scsi/pcmcia/nsp_cs.c                 |    1 -
+ drivers/scsi/qla2xxx/qla_mid.c               |    1 -
+ drivers/usb/gadget/s3c2410_udc.c             |    1 -
+ drivers/video/vermilion/vermilion.h          |    1 -
+ drivers/video/xilinxfb.c                     |    1 -
+ fs/jffs2/jffs2_fs_i.h                        |    1 -
+ fs/xfs/xfs_dmapi.h                           |    1 -
+ include/asm-x86/xen/hypervisor.h             |    1 -
+ include/linux/fs_uart_pd.h                   |    1 -
+ kernel/nsproxy.c                             |    1 -
+ kernel/power/swap.c                          |    1 -
+ kernel/user_namespace.c                      |    1 -
+ kernel/utsname.c                             |    1 -
+ kernel/utsname_sysctl.c                      |    1 -
+ sound/mips/au1x00.c                          |    1 -
+ sound/soc/at91/eti_b1_wm8731.c               |    1 -
+ sound/soc/codecs/wm8753.c                    |    1 -
+ sound/soc/codecs/wm9712.c                    |    1 -
+ 56 files changed, 60 deletions(-)
 
-diff -puN drivers/block/floppy.c~floppy-support-arbitrary-first-sector-numbers drivers/block/floppy.c
---- a/drivers/block/floppy.c~floppy-support-arbitrary-first-sector-numbers
-+++ a/drivers/block/floppy.c
-@@ -423,8 +423,15 @@ static struct floppy_raw_cmd *raw_cmd, d
-  * 1581's logical side 0 is on physical side 1, whereas the Sharp's logical
-  * side 0 is on physical side 0 (but with the misnamed sector IDs).
-  * 'stretch' should probably be renamed to something more general, like
-- * 'options'.  Other parameters should be self-explanatory (see also
-- * setfdprm(8)).
-+ * 'options'.
-+ *
-+ * Bits 2 through 9 of 'stretch' tell the number of the first sector.
-+ * The LSB (bit 2) is flipped. For most disks, the first sector
-+ * is 1 (represented by 0x00<<2).  For some CP/M and music sampler
-+ * disks (such as Ensoniq EPS 16plus) it is 0 (represented as 0x01<<2).
-+ * For Amstrad CPC disks it is 0xC1 (represented as 0xC0<<2).
-+ *
-+ * Other parameters should be self-explanatory (see also setfdprm(8)).
+diff -puN arch/arm/plat-omap/clock.c~remove-unused-include-linux-versionhs arch/arm/plat-omap/clock.c
+--- a/arch/arm/plat-omap/clock.c~remove-unused-include-linux-versionhs
++++ a/arch/arm/plat-omap/clock.c
+@@ -10,7 +10,6 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
   */
+-#include <linux/version.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+diff -puN arch/cris/arch-v32/kernel/fasttimer.c~remove-unused-include-linux-versionhs arch/cris/arch-v32/kernel/fasttimer.c
+--- a/arch/cris/arch-v32/kernel/fasttimer.c~remove-unused-include-linux-versionhs
++++ a/arch/cris/arch-v32/kernel/fasttimer.c
+@@ -19,8 +19,6 @@
+ #include <asm/irq.h>
+ #include <asm/system.h>
+ 
+-#include <linux/version.h>
+-
+ #include <hwregs/reg_map.h>
+ #include <hwregs/reg_rdwr.h>
+ #include <hwregs/timer_defs.h>
+diff -puN arch/mn10300/kernel/mn10300-serial.c~remove-unused-include-linux-versionhs arch/mn10300/kernel/mn10300-serial.c
+--- a/arch/mn10300/kernel/mn10300-serial.c~remove-unused-include-linux-versionhs
++++ a/arch/mn10300/kernel/mn10300-serial.c
+@@ -17,7 +17,6 @@ static const char serial_revdate[] = "20
+ #define SUPPORT_SYSRQ
+ #endif
+ 
+-#include <linux/version.h>
+ #include <linux/module.h>
+ #include <linux/serial.h>
+ #include <linux/circ_buf.h>
+diff -puN arch/powerpc/sysdev/bestcomm/gen_bd.c~remove-unused-include-linux-versionhs arch/powerpc/sysdev/bestcomm/gen_bd.c
+--- a/arch/powerpc/sysdev/bestcomm/gen_bd.c~remove-unused-include-linux-versionhs
++++ a/arch/powerpc/sysdev/bestcomm/gen_bd.c
+@@ -11,7 +11,6 @@
+  *
+  */
+ 
+-#include <linux/version.h>
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/string.h>
+diff -puN arch/x86/mach-rdc321x/platform.c~remove-unused-include-linux-versionhs arch/x86/mach-rdc321x/platform.c
+--- a/arch/x86/mach-rdc321x/platform.c~remove-unused-include-linux-versionhs
++++ a/arch/x86/mach-rdc321x/platform.c
+@@ -25,7 +25,6 @@
+ #include <linux/list.h>
+ #include <linux/device.h>
+ #include <linux/platform_device.h>
+-#include <linux/version.h>
+ #include <linux/leds.h>
+ 
+ #include <asm/gpio.h>
+diff -puN drivers/atm/adummy.c~remove-unused-include-linux-versionhs drivers/atm/adummy.c
+--- a/drivers/atm/adummy.c~remove-unused-include-linux-versionhs
++++ a/drivers/atm/adummy.c
+@@ -3,7 +3,6 @@
+  */
+ 
+ #include <linux/module.h>
+-#include <linux/version.h>
+ #include <linux/kernel.h>
+ #include <linux/skbuff.h>
+ #include <linux/errno.h>
+diff -puN drivers/char/xilinx_hwicap/buffer_icap.h~remove-unused-include-linux-versionhs drivers/char/xilinx_hwicap/buffer_icap.h
+--- a/drivers/char/xilinx_hwicap/buffer_icap.h~remove-unused-include-linux-versionhs
++++ a/drivers/char/xilinx_hwicap/buffer_icap.h
+@@ -38,7 +38,6 @@
+ 
+ #include <linux/types.h>
+ #include <linux/cdev.h>
+-#include <linux/version.h>
+ #include <linux/platform_device.h>
+ 
+ #include <asm/io.h>
+diff -puN drivers/char/xilinx_hwicap/fifo_icap.h~remove-unused-include-linux-versionhs drivers/char/xilinx_hwicap/fifo_icap.h
+--- a/drivers/char/xilinx_hwicap/fifo_icap.h~remove-unused-include-linux-versionhs
++++ a/drivers/char/xilinx_hwicap/fifo_icap.h
+@@ -38,7 +38,6 @@
+ 
+ #include <linux/types.h>
+ #include <linux/cdev.h>
+-#include <linux/version.h>
+ #include <linux/platform_device.h>
+ 
+ #include <asm/io.h>
+diff -puN drivers/char/xilinx_hwicap/xilinx_hwicap.h~remove-unused-include-linux-versionhs drivers/char/xilinx_hwicap/xilinx_hwicap.h
+--- a/drivers/char/xilinx_hwicap/xilinx_hwicap.h~remove-unused-include-linux-versionhs
++++ a/drivers/char/xilinx_hwicap/xilinx_hwicap.h
+@@ -38,7 +38,6 @@
+ 
+ #include <linux/types.h>
+ #include <linux/cdev.h>
+-#include <linux/version.h>
+ #include <linux/platform_device.h>
+ 
+ #include <asm/io.h>
+diff -puN drivers/edac/edac_core.h~remove-unused-include-linux-versionhs drivers/edac/edac_core.h
+--- a/drivers/edac/edac_core.h~remove-unused-include-linux-versionhs
++++ a/drivers/edac/edac_core.h
+@@ -34,7 +34,6 @@
+ #include <linux/platform_device.h>
+ #include <linux/sysdev.h>
+ #include <linux/workqueue.h>
+-#include <linux/version.h>
+ 
+ #define EDAC_MC_LABEL_LEN	31
+ #define EDAC_DEVICE_NAME_LEN	31
+diff -puN drivers/i2c/busses/i2c-at91.c~remove-unused-include-linux-versionhs drivers/i2c/busses/i2c-at91.c
+--- a/drivers/i2c/busses/i2c-at91.c~remove-unused-include-linux-versionhs
++++ a/drivers/i2c/busses/i2c-at91.c
+@@ -14,7 +14,6 @@
+ */
+ 
+ #include <linux/module.h>
+-#include <linux/version.h>
+ #include <linux/kernel.h>
+ #include <linux/err.h>
+ #include <linux/slab.h>
+diff -puN drivers/infiniband/hw/ehca/ehca_tools.h~remove-unused-include-linux-versionhs drivers/infiniband/hw/ehca/ehca_tools.h
+--- a/drivers/infiniband/hw/ehca/ehca_tools.h~remove-unused-include-linux-versionhs
++++ a/drivers/infiniband/hw/ehca/ehca_tools.h
+@@ -54,7 +54,6 @@
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+ #include <linux/vmalloc.h>
+-#include <linux/version.h>
+ #include <linux/notifier.h>
+ #include <linux/cpu.h>
+ #include <linux/device.h>
+diff -puN drivers/infiniband/hw/ipath/ipath_fs.c~remove-unused-include-linux-versionhs drivers/infiniband/hw/ipath/ipath_fs.c
+--- a/drivers/infiniband/hw/ipath/ipath_fs.c~remove-unused-include-linux-versionhs
++++ a/drivers/infiniband/hw/ipath/ipath_fs.c
+@@ -31,7 +31,6 @@
+  * SOFTWARE.
+  */
+ 
+-#include <linux/version.h>
+ #include <linux/module.h>
+ #include <linux/fs.h>
+ #include <linux/mount.h>
+diff -puN drivers/infiniband/hw/nes/nes.h~remove-unused-include-linux-versionhs drivers/infiniband/hw/nes/nes.h
+--- a/drivers/infiniband/hw/nes/nes.h~remove-unused-include-linux-versionhs
++++ a/drivers/infiniband/hw/nes/nes.h
+@@ -43,7 +43,6 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/workqueue.h>
+ #include <linux/slab.h>
+-#include <linux/version.h>
+ #include <asm/io.h>
+ #include <linux/crc32c.h>
+ 
+diff -puN drivers/infiniband/ulp/iser/iser_verbs.c~remove-unused-include-linux-versionhs drivers/infiniband/ulp/iser/iser_verbs.c
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c~remove-unused-include-linux-versionhs
++++ a/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -33,7 +33,6 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/delay.h>
+-#include <linux/version.h>
+ 
+ #include "iscsi_iser.h"
+ 
+diff -puN drivers/input/keyboard/bf54x-keys.c~remove-unused-include-linux-versionhs drivers/input/keyboard/bf54x-keys.c
+--- a/drivers/input/keyboard/bf54x-keys.c~remove-unused-include-linux-versionhs
++++ a/drivers/input/keyboard/bf54x-keys.c
+@@ -29,7 +29,6 @@
+  */
+ 
+ #include <linux/module.h>
+-#include <linux/version.h>
+ 
+ #include <linux/init.h>
+ #include <linux/fs.h>
+diff -puN drivers/input/touchscreen/mainstone-wm97xx.c~remove-unused-include-linux-versionhs drivers/input/touchscreen/mainstone-wm97xx.c
+--- a/drivers/input/touchscreen/mainstone-wm97xx.c~remove-unused-include-linux-versionhs
++++ a/drivers/input/touchscreen/mainstone-wm97xx.c
+@@ -25,7 +25,6 @@
+ 
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+-#include <linux/version.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
+diff -puN drivers/mfd/asic3.c~remove-unused-include-linux-versionhs drivers/mfd/asic3.c
+--- a/drivers/mfd/asic3.c~remove-unused-include-linux-versionhs
++++ a/drivers/mfd/asic3.c
+@@ -16,7 +16,6 @@
+  *
+  */
+ 
+-#include <linux/version.h>
+ #include <linux/kernel.h>
+ #include <linux/irq.h>
+ #include <linux/gpio.h>
+diff -puN drivers/mtd/nand/au1550nd.c~remove-unused-include-linux-versionhs drivers/mtd/nand/au1550nd.c
+--- a/drivers/mtd/nand/au1550nd.c~remove-unused-include-linux-versionhs
++++ a/drivers/mtd/nand/au1550nd.c
+@@ -16,7 +16,6 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
+ #include <linux/mtd/partitions.h>
+-#include <linux/version.h>
+ #include <asm/io.h>
+ 
+ #include <asm/mach-au1x00/au1xxx.h>
+diff -puN drivers/net/myri10ge/myri10ge.c~remove-unused-include-linux-versionhs drivers/net/myri10ge/myri10ge.c
+--- a/drivers/net/myri10ge/myri10ge.c~remove-unused-include-linux-versionhs
++++ a/drivers/net/myri10ge/myri10ge.c
+@@ -56,7 +56,6 @@
+ #include <linux/ethtool.h>
+ #include <linux/firmware.h>
+ #include <linux/delay.h>
+-#include <linux/version.h>
+ #include <linux/timer.h>
+ #include <linux/vmalloc.h>
+ #include <linux/crc32.h>
+diff -puN drivers/net/netxen/netxen_nic.h~remove-unused-include-linux-versionhs drivers/net/netxen/netxen_nic.h
+--- a/drivers/net/netxen/netxen_nic.h~remove-unused-include-linux-versionhs
++++ a/drivers/net/netxen/netxen_nic.h
+@@ -45,7 +45,6 @@
+ #include <linux/in.h>
+ #include <linux/tcp.h>
+ #include <linux/skbuff.h>
+-#include <linux/version.h>
+ 
+ #include <linux/ethtool.h>
+ #include <linux/mii.h>
+diff -puN drivers/net/netxen/netxen_nic_ethtool.c~remove-unused-include-linux-versionhs drivers/net/netxen/netxen_nic_ethtool.c
+--- a/drivers/net/netxen/netxen_nic_ethtool.c~remove-unused-include-linux-versionhs
++++ a/drivers/net/netxen/netxen_nic_ethtool.c
+@@ -38,7 +38,6 @@
+ #include <asm/io.h>
+ #include <linux/netdevice.h>
+ #include <linux/ethtool.h>
+-#include <linux/version.h>
+ 
+ #include "netxen_nic.h"
+ #include "netxen_nic_hw.h"
+diff -puN drivers/net/netxen/netxen_nic_hdr.h~remove-unused-include-linux-versionhs drivers/net/netxen/netxen_nic_hdr.h
+--- a/drivers/net/netxen/netxen_nic_hdr.h~remove-unused-include-linux-versionhs
++++ a/drivers/net/netxen/netxen_nic_hdr.h
+@@ -32,8 +32,6 @@
+ 
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+-#include <linux/version.h>
+-
+ #include <linux/spinlock.h>
+ #include <asm/irq.h>
+ #include <linux/init.h>
+diff -puN drivers/net/tokenring/lanstreamer.c~remove-unused-include-linux-versionhs drivers/net/tokenring/lanstreamer.c
+--- a/drivers/net/tokenring/lanstreamer.c~remove-unused-include-linux-versionhs
++++ a/drivers/net/tokenring/lanstreamer.c
+@@ -119,7 +119,6 @@
+ #include <linux/pci.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/spinlock.h>
+-#include <linux/version.h>
+ #include <linux/bitops.h>
+ #include <linux/jiffies.h>
+ 
+diff -puN drivers/net/tokenring/lanstreamer.h~remove-unused-include-linux-versionhs drivers/net/tokenring/lanstreamer.h
+--- a/drivers/net/tokenring/lanstreamer.h~remove-unused-include-linux-versionhs
++++ a/drivers/net/tokenring/lanstreamer.h
+@@ -60,8 +60,6 @@
+  *
+  */
+ 
+-#include <linux/version.h>
+-
+ /* MAX_INTR - the maximum number of times we can loop
+  * inside the interrupt function before returning
+  * control to the OS (maximum value is 256)
+diff -puN drivers/net/wireless/b43legacy/main.c~remove-unused-include-linux-versionhs drivers/net/wireless/b43legacy/main.c
+--- a/drivers/net/wireless/b43legacy/main.c~remove-unused-include-linux-versionhs
++++ a/drivers/net/wireless/b43legacy/main.c
+@@ -34,7 +34,6 @@
+ #include <linux/moduleparam.h>
+ #include <linux/if_arp.h>
+ #include <linux/etherdevice.h>
+-#include <linux/version.h>
+ #include <linux/firmware.h>
+ #include <linux/wireless.h>
+ #include <linux/workqueue.h>
+diff -puN drivers/net/wireless/iwlwifi/iwl-3945-led.c~remove-unused-include-linux-versionhs drivers/net/wireless/iwlwifi/iwl-3945-led.c
+--- a/drivers/net/wireless/iwlwifi/iwl-3945-led.c~remove-unused-include-linux-versionhs
++++ a/drivers/net/wireless/iwlwifi/iwl-3945-led.c
+@@ -27,7 +27,6 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+-#include <linux/version.h>
+ #include <linux/init.h>
+ #include <linux/pci.h>
+ #include <linux/dma-mapping.h>
+diff -puN drivers/net/wireless/iwlwifi/iwl-led.c~remove-unused-include-linux-versionhs drivers/net/wireless/iwlwifi/iwl-led.c
+--- a/drivers/net/wireless/iwlwifi/iwl-led.c~remove-unused-include-linux-versionhs
++++ a/drivers/net/wireless/iwlwifi/iwl-led.c
+@@ -27,7 +27,6 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+-#include <linux/version.h>
+ #include <linux/init.h>
+ #include <linux/pci.h>
+ #include <linux/dma-mapping.h>
+diff -puN drivers/net/wireless/iwlwifi/iwl-rfkill.c~remove-unused-include-linux-versionhs drivers/net/wireless/iwlwifi/iwl-rfkill.c
+--- a/drivers/net/wireless/iwlwifi/iwl-rfkill.c~remove-unused-include-linux-versionhs
++++ a/drivers/net/wireless/iwlwifi/iwl-rfkill.c
+@@ -27,7 +27,6 @@
+  *****************************************************************************/
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+-#include <linux/version.h>
+ #include <linux/init.h>
+ 
+ #include <net/mac80211.h>
+diff -puN drivers/rtc/rtc-max6902.c~remove-unused-include-linux-versionhs drivers/rtc/rtc-max6902.c
+--- a/drivers/rtc/rtc-max6902.c~remove-unused-include-linux-versionhs
++++ a/drivers/rtc/rtc-max6902.c
+@@ -20,8 +20,6 @@
+  */
+ 
+ #include <linux/module.h>
+-#include <linux/version.h>
+-
+ #include <linux/kernel.h>
+ #include <linux/platform_device.h>
+ #include <linux/init.h>
+diff -puN drivers/rtc/rtc-r9701.c~remove-unused-include-linux-versionhs drivers/rtc/rtc-r9701.c
+--- a/drivers/rtc/rtc-r9701.c~remove-unused-include-linux-versionhs
++++ a/drivers/rtc/rtc-r9701.c
+@@ -14,7 +14,6 @@
+  */
+ 
+ #include <linux/module.h>
+-#include <linux/version.h>
+ #include <linux/kernel.h>
+ #include <linux/platform_device.h>
+ #include <linux/device.h>
+diff -puN drivers/s390/net/ctcm_mpc.c~remove-unused-include-linux-versionhs drivers/s390/net/ctcm_mpc.c
+--- a/drivers/s390/net/ctcm_mpc.c~remove-unused-include-linux-versionhs
++++ a/drivers/s390/net/ctcm_mpc.c
+@@ -19,7 +19,6 @@
+ #undef DEBUGDATA
+ #undef DEBUGCCW
+ 
+-#include <linux/version.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+diff -puN drivers/scsi/dpt/dpti_i2o.h~remove-unused-include-linux-versionhs drivers/scsi/dpt/dpti_i2o.h
+--- a/drivers/scsi/dpt/dpti_i2o.h~remove-unused-include-linux-versionhs
++++ a/drivers/scsi/dpt/dpti_i2o.h
+@@ -21,7 +21,6 @@
+ 
+ #include <linux/i2o-dev.h>
+ 
+-#include <linux/version.h>
+ #include <linux/notifier.h>
+ #include <asm/atomic.h>
+ 
+diff -puN drivers/scsi/ips.c~remove-unused-include-linux-versionhs drivers/scsi/ips.c
+--- a/drivers/scsi/ips.c~remove-unused-include-linux-versionhs
++++ a/drivers/scsi/ips.c
+@@ -165,7 +165,6 @@
+ #include <asm/byteorder.h>
+ #include <asm/page.h>
+ #include <linux/stddef.h>
+-#include <linux/version.h>
+ #include <linux/string.h>
+ #include <linux/errno.h>
+ #include <linux/kernel.h>
+diff -puN drivers/scsi/ips.h~remove-unused-include-linux-versionhs drivers/scsi/ips.h
+--- a/drivers/scsi/ips.h~remove-unused-include-linux-versionhs
++++ a/drivers/scsi/ips.h
+@@ -50,7 +50,6 @@
+ #ifndef _IPS_H_
+    #define _IPS_H_
+ 
+-#include <linux/version.h>
+ #include <linux/nmi.h>
+    #include <asm/uaccess.h>
+    #include <asm/io.h>
+diff -puN drivers/scsi/lpfc/lpfc_debugfs.c~remove-unused-include-linux-versionhs drivers/scsi/lpfc/lpfc_debugfs.c
+--- a/drivers/scsi/lpfc/lpfc_debugfs.c~remove-unused-include-linux-versionhs
++++ a/drivers/scsi/lpfc/lpfc_debugfs.c
+@@ -27,7 +27,6 @@
+ #include <linux/pci.h>
+ #include <linux/spinlock.h>
+ #include <linux/ctype.h>
+-#include <linux/version.h>
+ 
+ #include <scsi/scsi.h>
+ #include <scsi/scsi_device.h>
+diff -puN drivers/scsi/nsp32.c~remove-unused-include-linux-versionhs drivers/scsi/nsp32.c
+--- a/drivers/scsi/nsp32.c~remove-unused-include-linux-versionhs
++++ a/drivers/scsi/nsp32.c
+@@ -23,7 +23,6 @@
+  *   1.2: PowerPC (big endian) support.
+  */
+ 
+-#include <linux/version.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+diff -puN drivers/scsi/nsp32.h~remove-unused-include-linux-versionhs drivers/scsi/nsp32.h
+--- a/drivers/scsi/nsp32.h~remove-unused-include-linux-versionhs
++++ a/drivers/scsi/nsp32.h
+@@ -16,7 +16,6 @@
+ #ifndef _NSP32_H
+ #define _NSP32_H
+ 
+-#include <linux/version.h>
+ //#define NSP32_DEBUG 9
+ 
  /*
- 	    Size
-@@ -2236,9 +2243,9 @@ static void setup_format_params(int trac
- 			}
- 		}
- 	}
--	if (_floppy->stretch & FD_ZEROBASED) {
-+	if (_floppy->stretch & FD_SECTBASEMASK) {
- 		for (count = 0; count < F_SECT_PER_TRACK; count++)
--			here[count].sect--;
-+			here[count].sect += FD_SECTBASE(_floppy) - 1;
- 	}
- }
+diff -puN drivers/scsi/pcmcia/nsp_cs.c~remove-unused-include-linux-versionhs drivers/scsi/pcmcia/nsp_cs.c
+--- a/drivers/scsi/pcmcia/nsp_cs.c~remove-unused-include-linux-versionhs
++++ a/drivers/scsi/pcmcia/nsp_cs.c
+@@ -25,7 +25,6 @@
  
-@@ -2649,7 +2656,7 @@ static int make_raw_rw_request(void)
- 	}
- 	HEAD = fsector_t / _floppy->sect;
+ ***********************************************************************/
  
--	if (((_floppy->stretch & (FD_SWAPSIDES | FD_ZEROBASED)) ||
-+	if (((_floppy->stretch & (FD_SWAPSIDES | FD_SECTBASEMASK)) ||
- 	     TESTF(FD_NEED_TWADDLE)) && fsector_t < _floppy->sect)
- 		max_sector = _floppy->sect;
+-#include <linux/version.h>
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+diff -puN drivers/scsi/qla2xxx/qla_mid.c~remove-unused-include-linux-versionhs drivers/scsi/qla2xxx/qla_mid.c
+--- a/drivers/scsi/qla2xxx/qla_mid.c~remove-unused-include-linux-versionhs
++++ a/drivers/scsi/qla2xxx/qla_mid.c
+@@ -6,7 +6,6 @@
+  */
+ #include "qla_def.h"
  
-@@ -2679,7 +2686,7 @@ static int make_raw_rw_request(void)
- 	CODE2SIZE;
- 	SECT_PER_TRACK = _floppy->sect << 2 >> SIZECODE;
- 	SECTOR = ((fsector_t % _floppy->sect) << 2 >> SIZECODE) +
--	    ((_floppy->stretch & FD_ZEROBASED) ? 0 : 1);
-+	    FD_SECTBASE(_floppy);
+-#include <linux/version.h>
+ #include <linux/moduleparam.h>
+ #include <linux/vmalloc.h>
+ #include <linux/smp_lock.h>
+diff -puN drivers/usb/gadget/s3c2410_udc.c~remove-unused-include-linux-versionhs drivers/usb/gadget/s3c2410_udc.c
+--- a/drivers/usb/gadget/s3c2410_udc.c~remove-unused-include-linux-versionhs
++++ a/drivers/usb/gadget/s3c2410_udc.c
+@@ -35,7 +35,6 @@
+ #include <linux/list.h>
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
+-#include <linux/version.h>
+ #include <linux/clk.h>
  
- 	/* tracksize describes the size which can be filled up with sectors
- 	 * of size ssize.
-@@ -3311,7 +3318,7 @@ static inline int set_geometry(unsigned 
- 	    g->head <= 0 ||
- 	    g->track <= 0 || g->track > UDP->tracks >> STRETCH(g) ||
- 	    /* check if reserved bits are set */
--	    (g->stretch & ~(FD_STRETCH | FD_SWAPSIDES | FD_ZEROBASED)) != 0)
-+	    (g->stretch & ~(FD_STRETCH | FD_SWAPSIDES | FD_SECTBASEMASK)) != 0)
- 		return -EINVAL;
- 	if (type) {
- 		if (!capable(CAP_SYS_ADMIN))
-@@ -3356,7 +3363,7 @@ static inline int set_geometry(unsigned 
- 		if (DRS->maxblock > user_params[drive].sect ||
- 		    DRS->maxtrack ||
- 		    ((user_params[drive].sect ^ oldStretch) &
--		     (FD_SWAPSIDES | FD_ZEROBASED)))
-+		     (FD_SWAPSIDES | FD_SECTBASEMASK)))
- 			invalidate_drive(bdev);
- 		else
- 			process_fd_request();
-diff -puN include/linux/fd.h~floppy-support-arbitrary-first-sector-numbers include/linux/fd.h
---- a/include/linux/fd.h~floppy-support-arbitrary-first-sector-numbers
-+++ a/include/linux/fd.h
-@@ -15,10 +15,16 @@ struct floppy_struct {
- 			sect,		/* sectors per track */
- 			head,		/* nr of heads */
- 			track,		/* nr of tracks */
--			stretch;	/* !=0 means double track steps */
-+			stretch;	/* bit 0 !=0 means double track steps */
-+					/* bit 1 != 0 means swap sides */
-+					/* bits 2..9 give the first sector */
-+					/*  number (the LSB is flipped) */
- #define FD_STRETCH 1
- #define FD_SWAPSIDES 2
- #define FD_ZEROBASED 4
-+#define FD_SECTBASEMASK 0x3FC
-+#define FD_MKSECTBASE(s) (((s) ^ 1) << 2)
-+#define FD_SECTBASE(floppy) ((((floppy)->stretch & FD_SECTBASEMASK) >> 2) ^ 1)
+ #include <linux/debugfs.h>
+diff -puN drivers/video/vermilion/vermilion.h~remove-unused-include-linux-versionhs drivers/video/vermilion/vermilion.h
+--- a/drivers/video/vermilion/vermilion.h~remove-unused-include-linux-versionhs
++++ a/drivers/video/vermilion/vermilion.h
+@@ -30,7 +30,6 @@
+ #define _VERMILION_H_
  
- 	unsigned char	gap,		/* gap1 size */
+ #include <linux/kernel.h>
+-#include <linux/version.h>
+ #include <linux/pci.h>
+ #include <asm/atomic.h>
+ #include <linux/mutex.h>
+diff -puN drivers/video/xilinxfb.c~remove-unused-include-linux-versionhs drivers/video/xilinxfb.c
+--- a/drivers/video/xilinxfb.c~remove-unused-include-linux-versionhs
++++ a/drivers/video/xilinxfb.c
+@@ -24,7 +24,6 @@
+ #include <linux/device.h>
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+-#include <linux/version.h>
+ #include <linux/errno.h>
+ #include <linux/string.h>
+ #include <linux/mm.h>
+diff -puN fs/jffs2/jffs2_fs_i.h~remove-unused-include-linux-versionhs fs/jffs2/jffs2_fs_i.h
+--- a/fs/jffs2/jffs2_fs_i.h~remove-unused-include-linux-versionhs
++++ a/fs/jffs2/jffs2_fs_i.h
+@@ -12,7 +12,6 @@
+ #ifndef _JFFS2_FS_I
+ #define _JFFS2_FS_I
  
+-#include <linux/version.h>
+ #include <linux/rbtree.h>
+ #include <linux/posix_acl.h>
+ #include <linux/mutex.h>
+diff -puN fs/xfs/xfs_dmapi.h~remove-unused-include-linux-versionhs fs/xfs/xfs_dmapi.h
+--- a/fs/xfs/xfs_dmapi.h~remove-unused-include-linux-versionhs
++++ a/fs/xfs/xfs_dmapi.h
+@@ -18,7 +18,6 @@
+ #ifndef __XFS_DMAPI_H__
+ #define __XFS_DMAPI_H__
+ 
+-#include <linux/version.h>
+ /*	Values used to define the on-disk version of dm_attrname_t. All
+  *	on-disk attribute names start with the 8-byte string "SGI_DMI_".
+  *
+diff -puN include/asm-x86/xen/hypervisor.h~remove-unused-include-linux-versionhs include/asm-x86/xen/hypervisor.h
+--- a/include/asm-x86/xen/hypervisor.h~remove-unused-include-linux-versionhs
++++ a/include/asm-x86/xen/hypervisor.h
+@@ -35,7 +35,6 @@
+ 
+ #include <linux/types.h>
+ #include <linux/kernel.h>
+-#include <linux/version.h>
+ 
+ #include <xen/interface/xen.h>
+ #include <xen/interface/version.h>
+diff -puN include/linux/fs_uart_pd.h~remove-unused-include-linux-versionhs include/linux/fs_uart_pd.h
+--- a/include/linux/fs_uart_pd.h~remove-unused-include-linux-versionhs
++++ a/include/linux/fs_uart_pd.h
+@@ -12,7 +12,6 @@
+ #ifndef FS_UART_PD_H
+ #define FS_UART_PD_H
+ 
+-#include <linux/version.h>
+ #include <asm/types.h>
+ 
+ enum fs_uart_id {
+diff -puN kernel/nsproxy.c~remove-unused-include-linux-versionhs kernel/nsproxy.c
+--- a/kernel/nsproxy.c~remove-unused-include-linux-versionhs
++++ a/kernel/nsproxy.c
+@@ -14,7 +14,6 @@
+  */
+ 
+ #include <linux/module.h>
+-#include <linux/version.h>
+ #include <linux/nsproxy.h>
+ #include <linux/init_task.h>
+ #include <linux/mnt_namespace.h>
+diff -puN kernel/power/swap.c~remove-unused-include-linux-versionhs kernel/power/swap.c
+--- a/kernel/power/swap.c~remove-unused-include-linux-versionhs
++++ a/kernel/power/swap.c
+@@ -14,7 +14,6 @@
+ #include <linux/module.h>
+ #include <linux/file.h>
+ #include <linux/utsname.h>
+-#include <linux/version.h>
+ #include <linux/delay.h>
+ #include <linux/bitops.h>
+ #include <linux/genhd.h>
+diff -puN kernel/user_namespace.c~remove-unused-include-linux-versionhs kernel/user_namespace.c
+--- a/kernel/user_namespace.c~remove-unused-include-linux-versionhs
++++ a/kernel/user_namespace.c
+@@ -6,7 +6,6 @@
+  */
+ 
+ #include <linux/module.h>
+-#include <linux/version.h>
+ #include <linux/nsproxy.h>
+ #include <linux/slab.h>
+ #include <linux/user_namespace.h>
+diff -puN kernel/utsname.c~remove-unused-include-linux-versionhs kernel/utsname.c
+--- a/kernel/utsname.c~remove-unused-include-linux-versionhs
++++ a/kernel/utsname.c
+@@ -12,7 +12,6 @@
+ #include <linux/module.h>
+ #include <linux/uts.h>
+ #include <linux/utsname.h>
+-#include <linux/version.h>
+ #include <linux/err.h>
+ #include <linux/slab.h>
+ 
+diff -puN kernel/utsname_sysctl.c~remove-unused-include-linux-versionhs kernel/utsname_sysctl.c
+--- a/kernel/utsname_sysctl.c~remove-unused-include-linux-versionhs
++++ a/kernel/utsname_sysctl.c
+@@ -12,7 +12,6 @@
+ #include <linux/module.h>
+ #include <linux/uts.h>
+ #include <linux/utsname.h>
+-#include <linux/version.h>
+ #include <linux/sysctl.h>
+ 
+ static void *get_uts(ctl_table *table, int write)
+diff -puN sound/mips/au1x00.c~remove-unused-include-linux-versionhs sound/mips/au1x00.c
+--- a/sound/mips/au1x00.c~remove-unused-include-linux-versionhs
++++ a/sound/mips/au1x00.c
+@@ -38,7 +38,6 @@
+ #include <linux/interrupt.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+-#include <linux/version.h>
+ #include <sound/core.h>
+ #include <sound/initval.h>
+ #include <sound/pcm.h>
+diff -puN sound/soc/at91/eti_b1_wm8731.c~remove-unused-include-linux-versionhs sound/soc/at91/eti_b1_wm8731.c
+--- a/sound/soc/at91/eti_b1_wm8731.c~remove-unused-include-linux-versionhs
++++ a/sound/soc/at91/eti_b1_wm8731.c
+@@ -22,7 +22,6 @@
+ 
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+-#include <linux/version.h>
+ #include <linux/kernel.h>
+ #include <linux/clk.h>
+ #include <linux/timer.h>
+diff -puN sound/soc/codecs/wm8753.c~remove-unused-include-linux-versionhs sound/soc/codecs/wm8753.c
+--- a/sound/soc/codecs/wm8753.c~remove-unused-include-linux-versionhs
++++ a/sound/soc/codecs/wm8753.c
+@@ -34,7 +34,6 @@
+ 
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+-#include <linux/version.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/delay.h>
+diff -puN sound/soc/codecs/wm9712.c~remove-unused-include-linux-versionhs sound/soc/codecs/wm9712.c
+--- a/sound/soc/codecs/wm9712.c~remove-unused-include-linux-versionhs
++++ a/sound/soc/codecs/wm9712.c
+@@ -13,7 +13,6 @@
+ 
+ #include <linux/init.h>
+ #include <linux/module.h>
+-#include <linux/version.h>
+ #include <linux/kernel.h>
+ #include <linux/device.h>
+ #include <sound/core.h>
 _
 
-Patches currently in -mm which might be from keith@lochan.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-floppy-support-arbitrary-first-sector-numbers.patch
+ntfs-update-homepage.patch
+linux-next.patch
+m32r-remove-the-unused-nohighmem-option.patch
+m32r-dont-offer-config_isa.patch
+m32r-export-empty_zero_page.patch
+m32r-export-__ndelay.patch
+m32r-kernel-cleanups.patch
+the-overdue-eepro100-removal.patch
+parisc-lib-make-code-static.patch
+drivers-parisc-make-code-static.patch
+if-0-ses_match_host.patch
+scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
+drivers-scsi-a2091c-make-2-functions-static.patch
+drivers-scsi-a3000c-make-2-functions-static.patch
+fs_mbcache-dont-needlessly-make-it-built-in.patch
+git-xtensa.patch
+mpc8xxx_wdt-fix-modular-build.patch
+asm-h8300-mdh-remove-cvs-keyword.patch
+alpha-miata-remove-dead-url.patch
+uml-remove-the-dead-tty_log-code.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+maintainers-remove-hga-framebuffer-driver-entry.patch
+include-linux-mounth-remove-cvs-keyword.patch
+kernel-dmac-remove-a-cvs-keyword.patch
+binfmt_somc-add-module_license.patch
+make-probe_serial_gsc-static.patch
+pnp-remove-printk-with-outdated-version.patch
+telephony-remove-cvs-keywords.patch
+reiserfs-procfsc-remove-cvs-keywords.patch
+quota-remove-cvs-keywords.patch
+make-ptrace_untrace-static.patch
+fs-partitions-acornc-remove-dead-code.patch
+parport-remove-cvs-keywords.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+ipc-semc-make-free_un-static.patch
+make-fs-proc-proc_sysctlc-grab_header-static.patch
+make-hp_wmi_notify-static.patch
+acpi-use-bcd2bin-bin2bcd.patch
+alpha-use-bcd2bin-bin2bcd.patch
+arm-use-bcd2bin-bin2bcd.patch
+cris-use-bcd2bin-bin2bcd.patch
+drivers-rtc-use-bcd2bin-bin2bcd.patch
+rtc-use-bcd2bin-bin2bcd.patch
+mips-use-bcd2bin-bin2bcd.patch
+mn10300-use-bcd2bin-bin2bcd.patch
+i2c-use-bcd2bin-bin2bcd.patch
+drivers-scsi-sr_vendorc-use-bcd2bin.patch
+sparc64-use-bcd2bin-bin2bcd.patch
+remove-the-obsolete-bcdbin-binbcd-macros.patch
+include-linux-bcdh-remove-comments.patch
+remove-unused-include-linux-versionhs.patch
+reiser4.patch
 
