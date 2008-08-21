@@ -1,65 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-dont-try-to-resize-if-there-are-no-reserved-gdt-blocks-left.patch removed from -mm tree
-Date: Thu, 21 Aug 2008 11:47:28 -0700
-Message-ID: <200808211847.m7LIlShj020194__45238.8967889876$1219344576$gmane$org@imap1.linux-foundation.org>
+Subject: + pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch added to -mm tree
+Date: Thu, 21 Aug 2008 11:59:28 -0700
+Message-ID: <200808211859.m7LIxUkg020707@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46530 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55759 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753942AbYHUSsY (ORCPT
+	by vger.kernel.org with ESMTP id S1754687AbYHUS7j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Aug 2008 14:48:24 -0400
+	Thu, 21 Aug 2008 14:59:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbacik@redhat.com, adilger@sun.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, pavel@suse.cz, rjw@sisk.pl, stern@rowland.harvard.edu
 
 
 The patch titled
-     ext4: don't try to resize if there are no reserved gdt blocks left
-has been removed from the -mm tree.  Its filename was
-     ext4-dont-try-to-resize-if-there-are-no-reserved-gdt-blocks-left.patch
+     pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup
+has been added to the -mm tree.  Its filename is
+     pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: don't try to resize if there are no reserved gdt blocks left
-From: Josef Bacik <jbacik@redhat.com>
+Subject: pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-When trying to resize a ext3 fs and you run out of reserved gdt blocks,
-you get an error that doesn't actually tell you what went wrong, it just
-says that the gdb it picked is not correct, which is the case since you
-don't have any reserved gdt blocks left.  This patch adds a check to make
-sure you have reserved gdt blocks to use, and if not prints out a more
-relevant error.
-
-Signed-off-by: Josef Bacik <jbacik@redhat.com>
-Cc: <linux-ext4@vger.kernel.org>
-Cc: Andreas Dilger <adilger@sun.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Pavel Machek <pavel@suse.cz>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/resize.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/kmod.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/ext4/resize.c~ext4-dont-try-to-resize-if-there-are-no-reserved-gdt-blocks-left fs/ext4/resize.c
---- a/fs/ext4/resize.c~ext4-dont-try-to-resize-if-there-are-no-reserved-gdt-blocks-left
-+++ a/fs/ext4/resize.c
-@@ -773,7 +773,8 @@ int ext4_group_add(struct super_block *s
+diff -puN include/linux/kmod.h~pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup include/linux/kmod.h
+--- a/include/linux/kmod.h~pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup
++++ a/include/linux/kmod.h
+@@ -99,9 +99,7 @@ struct file;
+ extern int call_usermodehelper_pipe(char *path, char *argv[], char *envp[],
+ 				    struct file **filp);
  
- 	if (reserved_gdb || gdb_off == 0) {
- 		if (!EXT4_HAS_COMPAT_FEATURE(sb,
--					     EXT4_FEATURE_COMPAT_RESIZE_INODE)){
-+					     EXT4_FEATURE_COMPAT_RESIZE_INODE)
-+		    || !le16_to_cpu(es->s_reserved_gdt_blocks)) {
- 			ext4_warning(sb, __func__,
- 				     "No reserved GDT blocks, can't resize");
- 			return -EPERM;
+-#ifdef CONFIG_PM_SLEEP
+ extern int usermodehelper_disable(void);
+ extern void usermodehelper_enable(void);
+-#endif
+ 
+ #endif /* __LINUX_KMOD_H__ */
 _
 
-Patches currently in -mm which might be from jbacik@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-show-quicklist-memory-usage-in-proc-meminfo-fix.patch
+mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-ext3-dont-try-to-resize-if-there-are-no-reserved-gdt-blocks-left.patch
+next-remove-localversion.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
+arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+git-jg-misc.patch
+drivers-ata-pata_it821xc-fix-warning.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
+power-support-for-texas-instruments-bq27x00-battery-managers.patch
+ftrace-printk-formatting-infrastructure.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+git-watchdog.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+nilfs2-continuous-snapshotting-file-system-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
