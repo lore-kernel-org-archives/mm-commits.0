@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch added to -mm tree
-Date: Thu, 21 Aug 2008 11:59:28 -0700
-Message-ID: <200808211859.m7LIxUkg020707@imap1.linux-foundation.org>
+Subject: + e100-fix-iomap-read.patch added to -mm tree
+Date: Thu, 21 Aug 2008 12:00:30 -0700
+Message-ID: <200808211900.m7LJ0UTE020753@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55759 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34614 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754687AbYHUS7j (ORCPT
+	by vger.kernel.org with ESMTP id S1755181AbYHUTBk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Aug 2008 14:59:39 -0400
+	Thu, 21 Aug 2008 15:01:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, pavel@suse.cz, rjw@sisk.pl, stern@rowland.harvard.edu
+Cc: jirislaby@gmail.com, bruce.w.allan@intel.com, jeff@garzik.org, jeffrey.t.kirsher@intel.com, jesse.brandeburg@intel.com, john.ronciak@intel.com, peter.p.waskiewicz.jr@intel.com
 
 
 The patch titled
-     pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup
+     e100: fix iomap read
 has been added to the -mm tree.  Its filename is
-     pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+     e100-fix-iomap-read.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,111 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: e100: fix iomap read
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Pavel Machek <pavel@suse.cz>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
+There were 2 omitted readb's used on an iomap space. eliminate them
+by using ioread8 instead.
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Acked-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Cc: Bruce Allan <bruce.w.allan@intel.com>
+Cc: PJ Waskiewicz <peter.p.waskiewicz.jr@intel.com>
+Cc: John Ronciak <john.ronciak@intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmod.h |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/net/e100.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kmod.h~pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup include/linux/kmod.h
---- a/include/linux/kmod.h~pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup
-+++ a/include/linux/kmod.h
-@@ -99,9 +99,7 @@ struct file;
- extern int call_usermodehelper_pipe(char *path, char *argv[], char *envp[],
- 				    struct file **filp);
+diff -puN drivers/net/e100.c~e100-fix-iomap-read drivers/net/e100.c
+--- a/drivers/net/e100.c~e100-fix-iomap-read
++++ a/drivers/net/e100.c
+@@ -1727,7 +1727,7 @@ static int e100_rx_indicate(struct nic *
+ 		if ((le16_to_cpu(rfd->command) & cb_el) &&
+ 		    (RU_RUNNING == nic->ru_running))
  
--#ifdef CONFIG_PM_SLEEP
- extern int usermodehelper_disable(void);
- extern void usermodehelper_enable(void);
--#endif
+-			if (readb(&nic->csr->scb.status) & rus_no_res)
++			if (ioread8(&nic->csr->scb.status) & rus_no_res)
+ 				nic->ru_running = RU_SUSPENDED;
+ 		return -ENODATA;
+ 	}
+@@ -1750,7 +1750,7 @@ static int e100_rx_indicate(struct nic *
+ 	if ((le16_to_cpu(rfd->command) & cb_el) &&
+ 	    (RU_RUNNING == nic->ru_running)) {
  
- #endif /* __LINUX_KMOD_H__ */
+-	    if (readb(&nic->csr->scb.status) & rus_no_res)
++	    if (ioread8(&nic->csr->scb.status) & rus_no_res)
+ 		nic->ru_running = RU_SUSPENDED;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-mm-show-quicklist-memory-usage-in-proc-meminfo-fix.patch
-mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-next-remove-localversion.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
-arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-drivers-ata-pata_it821xc-fix-warning.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers.patch
-ftrace-printk-formatting-infrastructure.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-git-watchdog.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
+e100-fix-iomap-read.patch
+ath5k-unify-resets.patch
+mm-owner-fix-race-between-swap-and-exit-fix.patch
+char-sx-remove-bogus-iomap.patch
+viafb-viafbdevc-viafbdevh.patch
 viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-nilfs2-continuous-snapshotting-file-system-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
+ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
+char-merge-ip2main-and-ip2base.patch
+char-ip2-cleanup-globals.patch
+char-ip2-fix-sparse-warnings.patch
+char-ip2-init-deinit-cleanup.patch
+ip2-avoid-add_timer-with-pending-timer.patch
+char-ds1286-eliminate-busy-waiting.patch
 reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
