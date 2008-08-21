@@ -1,54 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-rtc-driver-do-all-initialization-before-we-register-the-rtc-and-make-it-available.patch removed from -mm tree
-Date: Wed, 20 Aug 2008 20:49:06 -0700
-Message-ID: <200808210349.m7L3n6iC015611@imap1.linux-foundation.org>
+Subject: - mm-mminit_loglevel-cannot-be-__meminitdata-anymore.patch removed from -mm tree
+Date: Wed, 20 Aug 2008 20:49:17 -0700
+Message-ID: <200808210349.m7L3nH9u015627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43554 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59143 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753562AbYHUDtW (ORCPT
+	by vger.kernel.org with ESMTP id S1753562AbYHUDtY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 23:49:22 -0400
+	Wed, 20 Aug 2008 23:49:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vapier.adi@gmail.com, a.zummo@towertech.it, cooloney@kernel.org, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Blackfin RTC Driver: do all initialization before we register the rtc and make it available
+     mm: mminit_loglevel cannot be __meminitdata anymore
 has been removed from the -mm tree.  Its filename was
-     blackfin-rtc-driver-do-all-initialization-before-we-register-the-rtc-and-make-it-available.patch
+     mm-mminit_loglevel-cannot-be-__meminitdata-anymore.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Blackfin RTC Driver: do all initialization before we register the rtc and make it available
-From: Mike Frysinger <vapier.adi@gmail.com>
+Subject: mm: mminit_loglevel cannot be __meminitdata anymore
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+mminit_loglevel is now used from mminit_verify_zonelist <- build_all_zonelists <-
+
+1. online_pages <- memory_block_action <- memory_block_change_state <- store_mem_state (sys handler)
+2. numa_zonelist_order_handler (proc handler)
+
+so it cannot be annotated __meminit - drop it
+
+fixes following section mismatch warning:
+WARNING: vmlinux.o(.text+0x71628): Section mismatch in reference from the function mminit_verify_zonelist() to the variable .meminit.data:mminit_loglevel
+The function mminit_verify_zonelist() references
+the variable __meminitdata mminit_loglevel.
+This is often because mminit_verify_zonelist lacks a __meminitdata
+annotation or the annotation of mminit_loglevel is wrong.
+
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-bfin.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/mm_init.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-do-all-initialization-before-we-register-the-rtc-and-make-it-available drivers/rtc/rtc-bfin.c
---- a/drivers/rtc/rtc-bfin.c~blackfin-rtc-driver-do-all-initialization-before-we-register-the-rtc-and-make-it-available
-+++ a/drivers/rtc/rtc-bfin.c
-@@ -371,6 +371,7 @@ static int __devinit bfin_rtc_probe(stru
- 	if (unlikely(!rtc))
- 		return -ENOMEM;
- 	platform_set_drvdata(pdev, rtc);
-+	device_init_wakeup(dev, 1);
+diff -puN mm/mm_init.c~mm-mminit_loglevel-cannot-be-__meminitdata-anymore mm/mm_init.c
+--- a/mm/mm_init.c~mm-mminit_loglevel-cannot-be-__meminitdata-anymore
++++ a/mm/mm_init.c
+@@ -12,7 +12,7 @@
+ #include "internal.h"
  
- 	/* Grab the IRQ and init the hardware */
- 	ret = request_irq(IRQ_RTC, bfin_rtc_interrupt, IRQF_SHARED, pdev->name, dev);
-@@ -386,8 +387,6 @@ static int __devinit bfin_rtc_probe(stru
- 		goto err_irq;
- 	}
+ #ifdef CONFIG_DEBUG_MEMORY_INIT
+-int __meminitdata mminit_loglevel;
++int mminit_loglevel;
  
--	device_init_wakeup(dev, 1);
+ #ifndef SECTIONS_SHIFT
+ #define SECTIONS_SHIFT	0
+_
+
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
+
+linux-next.patch
+
