@@ -1,139 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: - fix-setpriorityprio_pgrp-thread-iterator-breakage.patch removed from -mm tree
-Date: Wed, 20 Aug 2008 20:49:45 -0700
-Message-ID: <200808210349.m7L3njaU015662@imap1.linux-foundation.org>
+Subject: - fbdefio-add-set_page_dirty-handler-to-deferred-io-fb.patch removed from -mm tree
+Date: Wed, 20 Aug 2008 20:49:59 -0700
+Message-ID: <200808210349.m7L3nxkN015677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40225 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39670 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755066AbYHUDur (ORCPT
+	by vger.kernel.org with ESMTP id S1755189AbYHUDvN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 23:50:47 -0400
+	Wed, 20 Aug 2008 23:51:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kenchen@google.com, jens.axboe@oracle.com, mingo@elte.hu, oleg@tv-sign.ru, roland@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: ijc@hellion.org.uk, a.p.zijlstra@chello.nl, armbru@redhat.com, hannes@saeurebad.de, hugh@veritas.com, jayakumar.lkml@gmail.com, jeremy@goop.org, kel@otaku42.de, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     fix setpriority(PRIO_PGRP) thread iterator breakage
+     fbdefio: add set_page_dirty handler to deferred IO FB
 has been removed from the -mm tree.  Its filename was
-     fix-setpriorityprio_pgrp-thread-iterator-breakage.patch
+     fbdefio-add-set_page_dirty-handler-to-deferred-io-fb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix setpriority(PRIO_PGRP) thread iterator breakage
-From: "Ken Chen" <kenchen@google.com>
+Subject: fbdefio: add set_page_dirty handler to deferred IO FB
+From: Ian Campbell <ijc@hellion.org.uk>
 
-When user calls sys_setpriority(PRIO_PGRP ...) on a NPTL style multi-LWP
-process, only the task leader of the process is affected, all other
-sibling LWP threads didn't receive the setting.  The problem was that the
-iterator used in sys_setpriority() only iteartes over one task for each
-process, ignoring all other sibling thread.
+Fixes kernel BUG at lib/radix-tree.c:473.
 
-Introduce a new macro do_each_pid_thread / while_each_pid_thread to walk
-each thread of a process.  Convert 4 call sites in {set/get}priority and
-ioprio_{set/get}.
+Previously the handler was incidentally provided by tmpfs but this was
+removed with:
 
-Signed-off-by: Ken Chen <kenchen@google.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+  commit 14fcc23fdc78e9d32372553ccf21758a9bd56fa1
+  Author: Hugh Dickins <hugh@veritas.com>
+  Date:   Mon Jul 28 15:46:19 2008 -0700
+
+    tmpfs: fix kernel BUG in shmem_delete_inode
+
+relying on this behaviour was incorrect in any case and the BUG also
+appeared when the device node was on an ext3 filesystem.
+
+v2: override a_ops at open() time rather than mmap() time to minimise
+races per AKPM's concerns.
+
+Signed-off-by: Ian Campbell <ijc@hellion.org.uk>
+Cc: Jaya Kumar <jayakumar.lkml@gmail.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Johannes Weiner <hannes@saeurebad.de>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Kel Modderman <kel@otaku42.de>
+Cc: Markus Armbruster <armbru@redhat.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: <stable@kernel.org> [14fcc23fd is in 2.6.25.14 and 2.6.26.1]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ioprio.c         |    8 ++++----
- include/linux/pid.h |    9 +++++++++
- kernel/sys.c        |    8 ++++----
- 3 files changed, 17 insertions(+), 8 deletions(-)
+ drivers/video/fb_defio.c |   19 +++++++++++++++++++
+ drivers/video/fbmem.c    |    4 ++++
+ include/linux/fb.h       |    3 +++
+ 3 files changed, 26 insertions(+)
 
-diff -puN fs/ioprio.c~fix-setpriorityprio_pgrp-thread-iterator-breakage fs/ioprio.c
---- a/fs/ioprio.c~fix-setpriorityprio_pgrp-thread-iterator-breakage
-+++ a/fs/ioprio.c
-@@ -115,11 +115,11 @@ asmlinkage long sys_ioprio_set(int which
- 				pgrp = task_pgrp(current);
- 			else
- 				pgrp = find_vpid(who);
--			do_each_pid_task(pgrp, PIDTYPE_PGID, p) {
-+			do_each_pid_thread(pgrp, PIDTYPE_PGID, p) {
- 				ret = set_task_ioprio(p, ioprio);
- 				if (ret)
- 					break;
--			} while_each_pid_task(pgrp, PIDTYPE_PGID, p);
-+			} while_each_pid_thread(pgrp, PIDTYPE_PGID, p);
- 			break;
- 		case IOPRIO_WHO_USER:
- 			if (!who)
-@@ -204,7 +204,7 @@ asmlinkage long sys_ioprio_get(int which
- 				pgrp = task_pgrp(current);
- 			else
- 				pgrp = find_vpid(who);
--			do_each_pid_task(pgrp, PIDTYPE_PGID, p) {
-+			do_each_pid_thread(pgrp, PIDTYPE_PGID, p) {
- 				tmpio = get_task_ioprio(p);
- 				if (tmpio < 0)
- 					continue;
-@@ -212,7 +212,7 @@ asmlinkage long sys_ioprio_get(int which
- 					ret = tmpio;
- 				else
- 					ret = ioprio_best(ret, tmpio);
--			} while_each_pid_task(pgrp, PIDTYPE_PGID, p);
-+			} while_each_pid_thread(pgrp, PIDTYPE_PGID, p);
- 			break;
- 		case IOPRIO_WHO_USER:
- 			if (!who)
-diff -puN include/linux/pid.h~fix-setpriorityprio_pgrp-thread-iterator-breakage include/linux/pid.h
---- a/include/linux/pid.h~fix-setpriorityprio_pgrp-thread-iterator-breakage
-+++ a/include/linux/pid.h
-@@ -161,4 +161,13 @@ pid_t pid_vnr(struct pid *pid);
- 			}						\
- 	} while (0)
+diff -puN drivers/video/fb_defio.c~fbdefio-add-set_page_dirty-handler-to-deferred-io-fb drivers/video/fb_defio.c
+--- a/drivers/video/fb_defio.c~fbdefio-add-set_page_dirty-handler-to-deferred-io-fb
++++ a/drivers/video/fb_defio.c
+@@ -114,6 +114,17 @@ static struct vm_operations_struct fb_de
+ 	.page_mkwrite	= fb_deferred_io_mkwrite,
+ };
  
-+#define do_each_pid_thread(pid, type, task)				\
-+	do_each_pid_task(pid, type, task) {				\
-+		struct task_struct *tg___ = task;			\
-+		do {
++static int fb_deferred_io_set_page_dirty(struct page *page)
++{
++	if (!PageDirty(page))
++		SetPageDirty(page);
++	return 0;
++}
 +
-+#define while_each_pid_thread(pid, type, task)				\
-+		} while_each_thread(tg___, task);			\
-+		task = tg___;						\
-+	} while_each_pid_task(pid, type, task)
- #endif /* _LINUX_PID_H */
-diff -puN kernel/sys.c~fix-setpriorityprio_pgrp-thread-iterator-breakage kernel/sys.c
---- a/kernel/sys.c~fix-setpriorityprio_pgrp-thread-iterator-breakage
-+++ a/kernel/sys.c
-@@ -169,9 +169,9 @@ asmlinkage long sys_setpriority(int whic
- 				pgrp = find_vpid(who);
- 			else
- 				pgrp = task_pgrp(current);
--			do_each_pid_task(pgrp, PIDTYPE_PGID, p) {
-+			do_each_pid_thread(pgrp, PIDTYPE_PGID, p) {
- 				error = set_one_prio(p, niceval, error);
--			} while_each_pid_task(pgrp, PIDTYPE_PGID, p);
-+			} while_each_pid_thread(pgrp, PIDTYPE_PGID, p);
- 			break;
- 		case PRIO_USER:
- 			user = current->user;
-@@ -229,11 +229,11 @@ asmlinkage long sys_getpriority(int whic
- 				pgrp = find_vpid(who);
- 			else
- 				pgrp = task_pgrp(current);
--			do_each_pid_task(pgrp, PIDTYPE_PGID, p) {
-+			do_each_pid_thread(pgrp, PIDTYPE_PGID, p) {
- 				niceval = 20 - task_nice(p);
- 				if (niceval > retval)
- 					retval = niceval;
--			} while_each_pid_task(pgrp, PIDTYPE_PGID, p);
-+			} while_each_pid_thread(pgrp, PIDTYPE_PGID, p);
- 			break;
- 		case PRIO_USER:
- 			user = current->user;
++static const struct address_space_operations fb_deferred_io_aops = {
++	.set_page_dirty = fb_deferred_io_set_page_dirty,
++};
++
+ static int fb_deferred_io_mmap(struct fb_info *info, struct vm_area_struct *vma)
+ {
+ 	vma->vm_ops = &fb_deferred_io_vm_ops;
+@@ -163,6 +174,14 @@ void fb_deferred_io_init(struct fb_info 
+ }
+ EXPORT_SYMBOL_GPL(fb_deferred_io_init);
+ 
++void fb_deferred_io_open(struct fb_info *info,
++			 struct inode *inode,
++			 struct file *file)
++{
++	file->f_mapping->a_ops = &fb_deferred_io_aops;
++}
++EXPORT_SYMBOL_GPL(fb_deferred_io_open);
++
+ void fb_deferred_io_cleanup(struct fb_info *info)
+ {
+ 	void *screen_base = (void __force *) info->screen_base;
+diff -puN drivers/video/fbmem.c~fbdefio-add-set_page_dirty-handler-to-deferred-io-fb drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~fbdefio-add-set_page_dirty-handler-to-deferred-io-fb
++++ a/drivers/video/fbmem.c
+@@ -1344,6 +1344,10 @@ fb_open(struct inode *inode, struct file
+ 		if (res)
+ 			module_put(info->fbops->owner);
+ 	}
++#ifdef CONFIG_FB_DEFERRED_IO
++	if (info->fbdefio)
++		fb_deferred_io_open(info, inode, file);
++#endif
+ out:
+ 	unlock_kernel();
+ 	return res;
+diff -puN include/linux/fb.h~fbdefio-add-set_page_dirty-handler-to-deferred-io-fb include/linux/fb.h
+--- a/include/linux/fb.h~fbdefio-add-set_page_dirty-handler-to-deferred-io-fb
++++ a/include/linux/fb.h
+@@ -976,6 +976,9 @@ static inline void __fb_pad_aligned_buff
+ 
+ /* drivers/video/fb_defio.c */
+ extern void fb_deferred_io_init(struct fb_info *info);
++extern void fb_deferred_io_open(struct fb_info *info,
++				struct inode *inode,
++				struct file *file);
+ extern void fb_deferred_io_cleanup(struct fb_info *info);
+ extern int fb_deferred_io_fsync(struct file *file, struct dentry *dentry,
+ 				int datasync);
 _
 
-Patches currently in -mm which might be from kenchen@google.com are
+Patches currently in -mm which might be from ijc@hellion.org.uk are
 
 
