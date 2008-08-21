@@ -1,175 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - cramfs-fix-named-pipe-handling.patch removed from -mm tree
-Date: Wed, 20 Aug 2008 20:50:02 -0700
-Message-ID: <200808210350.m7L3o2aS015686@imap1.linux-foundation.org>
+Subject: - mm-xip-ext2-fix-block-allocation-race.patch removed from -mm tree
+Date: Wed, 20 Aug 2008 20:49:54 -0700
+Message-ID: <200808210349.m7L3nsXl015671@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38153 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52495 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754929AbYHUDuN (ORCPT
+	by vger.kernel.org with ESMTP id S1754869AbYHUDuG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 23:50:13 -0400
+	Wed, 20 Aug 2008 23:50:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: viro@ZenIV.linux.org.uk, anemo@mba.ocn.ne.jp, stable@kernel.orgviro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: npiggin@suse.de, cotte@freenet.de, hugh@veritas.com, jaredeh@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cramfs: fix named-pipe handling
+     mm: xip/ext2 fix block allocation race
 has been removed from the -mm tree.  Its filename was
-     cramfs-fix-named-pipe-handling.patch
+     mm-xip-ext2-fix-block-allocation-race.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cramfs: fix named-pipe handling
-From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: mm: xip/ext2 fix block allocation race
+From: Nick Piggin <npiggin@suse.de>
 
-After commit a97c9bf33f4612e2aed6f000f6b1d268b6814f3c (fix cramfs
-making duplicate entries in inode cache) in kernel 2.6.14, named-pipe
-on cramfs does not work properly.
+XIP can call into get_xip_mem concurrently with the same file,offset with
+create=1.  This usually maps down to get_block, which expects the page
+lock to prevent such a situation.  This causes ext2 to explode for one
+reason or another.
 
-It seems the commit make all named-pipe on cramfs share their inode
-(and named-pipe buffer).
+Serialise those calls for the moment.  For common usages today, I suspect
+get_xip_mem rarely is called to create new blocks.  In future as XIP
+technologies evolve we might need to look at which operations require
+scalability, and rework the locking to suit.
 
-Make ..._test() refuse to merge inodes with ->i_ino == 1, take inode setup
-back to get_cramfs_inode() and make ->drop_inode() evict ones with ->i_ino
-== 1 immediately.
-
-Reported-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@kernel.org>		[2.6.14 and later]
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Jared Hulbert <jaredeh@gmail.com>
+Acked-by: Carsten Otte <cotte@freenet.de>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cramfs/inode.c |   84 +++++++++++++++++++-------------------------
- 1 file changed, 38 insertions(+), 46 deletions(-)
+ mm/filemap_xip.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/cramfs/inode.c~cramfs-fix-named-pipe-handling fs/cramfs/inode.c
---- a/fs/cramfs/inode.c~cramfs-fix-named-pipe-handling
-+++ a/fs/cramfs/inode.c
-@@ -43,58 +43,13 @@ static DEFINE_MUTEX(read_mutex);
- static int cramfs_iget5_test(struct inode *inode, void *opaque)
- {
- 	struct cramfs_inode *cramfs_inode = opaque;
--
--	if (inode->i_ino != CRAMINO(cramfs_inode))
--		return 0; /* does not match */
--
--	if (inode->i_ino != 1)
--		return 1;
--
--	/* all empty directories, char, block, pipe, and sock, share inode #1 */
--
--	if ((inode->i_mode != cramfs_inode->mode) ||
--	    (inode->i_gid != cramfs_inode->gid) ||
--	    (inode->i_uid != cramfs_inode->uid))
--		return 0; /* does not match */
--
--	if ((S_ISCHR(inode->i_mode) || S_ISBLK(inode->i_mode)) &&
--	    (inode->i_rdev != old_decode_dev(cramfs_inode->size)))
--		return 0; /* does not match */
--
--	return 1; /* matches */
-+	return inode->i_ino == CRAMINO(cramfs_inode) && inode->i_ino != 1;
- }
+diff -puN mm/filemap_xip.c~mm-xip-ext2-fix-block-allocation-race mm/filemap_xip.c
+--- a/mm/filemap_xip.c~mm-xip-ext2-fix-block-allocation-race
++++ a/mm/filemap_xip.c
+@@ -248,15 +248,16 @@ again:
+ 		int err;
  
- static int cramfs_iget5_set(struct inode *inode, void *opaque)
- {
--	static struct timespec zerotime;
- 	struct cramfs_inode *cramfs_inode = opaque;
--	inode->i_mode = cramfs_inode->mode;
--	inode->i_uid = cramfs_inode->uid;
--	inode->i_size = cramfs_inode->size;
--	inode->i_blocks = (cramfs_inode->size - 1) / 512 + 1;
--	inode->i_gid = cramfs_inode->gid;
--	/* Struct copy intentional */
--	inode->i_mtime = inode->i_atime = inode->i_ctime = zerotime;
- 	inode->i_ino = CRAMINO(cramfs_inode);
--	/* inode->i_nlink is left 1 - arguably wrong for directories,
--	   but it's the best we can do without reading the directory
--           contents.  1 yields the right result in GNU find, even
--	   without -noleaf option. */
--	if (S_ISREG(inode->i_mode)) {
--		inode->i_fop = &generic_ro_fops;
--		inode->i_data.a_ops = &cramfs_aops;
--	} else if (S_ISDIR(inode->i_mode)) {
--		inode->i_op = &cramfs_dir_inode_operations;
--		inode->i_fop = &cramfs_directory_operations;
--	} else if (S_ISLNK(inode->i_mode)) {
--		inode->i_op = &page_symlink_inode_operations;
--		inode->i_data.a_ops = &cramfs_aops;
--	} else {
--		inode->i_size = 0;
--		inode->i_blocks = 0;
--		init_special_inode(inode, inode->i_mode,
--			old_decode_dev(cramfs_inode->size));
--	}
- 	return 0;
- }
+ 		/* maybe shared writable, allocate new block */
++		mutex_lock(&xip_sparse_mutex);
+ 		error = mapping->a_ops->get_xip_mem(mapping, vmf->pgoff, 1,
+ 							&xip_mem, &xip_pfn);
++		mutex_unlock(&xip_sparse_mutex);
+ 		if (error)
+ 			return VM_FAULT_SIGBUS;
+ 		/* unmap sparse mappings at pgoff from all other vmas */
+ 		__xip_unmap(mapping, vmf->pgoff);
  
-@@ -104,12 +59,48 @@ static struct inode *get_cramfs_inode(st
- 	struct inode *inode = iget5_locked(sb, CRAMINO(cramfs_inode),
- 					    cramfs_iget5_test, cramfs_iget5_set,
- 					    cramfs_inode);
-+	static struct timespec zerotime;
-+
- 	if (inode && (inode->i_state & I_NEW)) {
-+		inode->i_mode = cramfs_inode->mode;
-+		inode->i_uid = cramfs_inode->uid;
-+		inode->i_size = cramfs_inode->size;
-+		inode->i_blocks = (cramfs_inode->size - 1) / 512 + 1;
-+		inode->i_gid = cramfs_inode->gid;
-+		/* Struct copy intentional */
-+		inode->i_mtime = inode->i_atime = inode->i_ctime = zerotime;
-+		/* inode->i_nlink is left 1 - arguably wrong for directories,
-+		   but it's the best we can do without reading the directory
-+		   contents.  1 yields the right result in GNU find, even
-+		   without -noleaf option. */
-+		if (S_ISREG(inode->i_mode)) {
-+			inode->i_fop = &generic_ro_fops;
-+			inode->i_data.a_ops = &cramfs_aops;
-+		} else if (S_ISDIR(inode->i_mode)) {
-+			inode->i_op = &cramfs_dir_inode_operations;
-+			inode->i_fop = &cramfs_directory_operations;
-+		} else if (S_ISLNK(inode->i_mode)) {
-+			inode->i_op = &page_symlink_inode_operations;
-+			inode->i_data.a_ops = &cramfs_aops;
-+		} else {
-+			inode->i_size = 0;
-+			inode->i_blocks = 0;
-+			init_special_inode(inode, inode->i_mode,
-+				old_decode_dev(cramfs_inode->size));
-+		}
- 		unlock_new_inode(inode);
- 	}
- 	return inode;
- }
- 
-+static void cramfs_drop_inode(struct inode *inode)
-+{
-+	if (inode->i_ino == 1)
-+		generic_delete_inode(inode);
-+	else
-+		generic_drop_inode(inode);
-+}
-+
- /*
-  * We have our own block cache: don't fill up the buffer cache
-  * with the rom-image, because the way the filesystem is set
-@@ -534,6 +525,7 @@ static const struct super_operations cra
- 	.put_super	= cramfs_put_super,
- 	.remount_fs	= cramfs_remount,
- 	.statfs		= cramfs_statfs,
-+	.drop_inode	= cramfs_drop_inode,
- };
- 
- static int cramfs_get_sb(struct file_system_type *fs_type,
+ found:
+-		printk("%s insert %lx@%lx\n", current->comm, (unsigned long)vmf->virtual_address, xip_pfn);
+ 		err = vm_insert_mixed(vma, (unsigned long)vmf->virtual_address,
+ 							xip_pfn);
+ 		if (err == -ENOMEM)
+@@ -340,8 +341,10 @@ __xip_file_write(struct file *filp, cons
+ 						&xip_mem, &xip_pfn);
+ 		if (status == -ENODATA) {
+ 			/* we allocate a new page unmap it */
++			mutex_lock(&xip_sparse_mutex);
+ 			status = a_ops->get_xip_mem(mapping, index, 1,
+ 							&xip_mem, &xip_pfn);
++			mutex_unlock(&xip_sparse_mutex);
+ 			if (!status)
+ 				/* unmap page at pgoff from all other vmas */
+ 				__xip_unmap(mapping, index);
 _
 
-Patches currently in -mm which might be from viro@ZenIV.linux.org.uk are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 linux-next.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmstat-mlocked-pages-statistics.patch
+mm-pagecache-insertion-fewer-atomics.patch
+mm-unlockless-reclaim.patch
+mm-page-lock-use-lock-bitops.patch
+fs-buffer-lock-use-lock-bitops.patch
+mm-page-allocator-minor-speedup.patch
+reiser4.patch
+likeliness-accounting-change-and-cleanup.patch
 
