@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-setup_zone_migrate_reserve-aware-of-overlapping-nodes.patch added to -mm tree
-Date: Thu, 21 Aug 2008 12:21:27 -0700
-Message-ID: <200808211921.m7LJLRpP021574@imap1.linux-foundation.org>
+Subject: + scsi-tmscsimc-fix-mangled-printk-output.patch added to -mm tree
+Date: Thu, 21 Aug 2008 12:23:32 -0700
+Message-ID: <200808211923.m7LJNW6K021726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45476 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59190 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753609AbYHUTW0 (ORCPT
+	by vger.kernel.org with ESMTP id S1755836AbYHUTXm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Aug 2008 15:22:26 -0400
+	Thu, 21 Aug 2008 15:23:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: agl@us.ibm.com, apw@shadowen.org, dave@linux.vnet.ibm.com, mel@csn.ul.ie, nacc@us.ibm.com, stable@kernel.org
+Cc: nick@ukfsn.org, James.Bottomley@HansenPartnership.com, g.liakhovetski@gmx.de
 
 
 The patch titled
-     mm: make setup_zone_migrate_reserve() aware of overlapping nodes
+     scsi: tmscsim.c: fix mangled printk output
 has been added to the -mm tree.  Its filename is
-     mm-make-setup_zone_migrate_reserve-aware-of-overlapping-nodes.patch
+     scsi-tmscsimc-fix-mangled-printk-output.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make setup_zone_migrate_reserve() aware of overlapping nodes
-From: Adam Litke <agl@us.ibm.com>
+Subject: scsi: tmscsim.c: fix mangled printk output
+From: Nick Warne <nick@ukfsn.org>
 
-I have gotten to the root cause of the hugetlb badness I reported back on
-August 15th.  My system has the following memory topology (note the
-overlapping node):
-
-            Node 0 Memory: 0x8000000-0x44000000
-            Node 1 Memory: 0x0-0x8000000 0x44000000-0x80000000
-
-setup_zone_migrate_reserve() scans the address range 0x0-0x8000000 looking
-for a pageblock to move onto the MIGRATE_RESERVE list.  Finding no
-candidates, it happily continues the scan into 0x8000000-0x44000000.  When
-a pageblock is found, the pages are moved to the MIGRATE_RESERVE list on
-the wrong zone.  Oops.
-
-setup_zone_migrate_reserve() should skip pageblocks in overlapping nodes.
-
-Signed-off-by: Adam Litke <agl@us.ibm.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Nishanth Aravamudan <nacc@us.ibm.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
+Signed-off-by: Nick Warne <nick@ukfsn.org>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/scsi/tmscsim.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-make-setup_zone_migrate_reserve-aware-of-overlapping-nodes mm/page_alloc.c
---- a/mm/page_alloc.c~mm-make-setup_zone_migrate_reserve-aware-of-overlapping-nodes
-+++ a/mm/page_alloc.c
-@@ -694,6 +694,9 @@ static int move_freepages(struct zone *z
- #endif
+diff -puN drivers/scsi/tmscsim.c~scsi-tmscsimc-fix-mangled-printk-output drivers/scsi/tmscsim.c
+--- a/drivers/scsi/tmscsim.c~scsi-tmscsimc-fix-mangled-printk-output
++++ a/drivers/scsi/tmscsim.c
+@@ -2573,8 +2573,8 @@ static struct pci_driver dc390_driver = 
+ static int __init dc390_module_init(void)
+ {
+ 	if (!disable_clustering)
+-		printk(KERN_INFO "DC390: clustering now enabled by default. If you get problems load\n"
+-		       "\twith \"disable_clustering=1\" and report to maintainers\n");
++		printk(KERN_INFO "DC390: clustering now enabled by default. If you get problems load\n");
++		printk(KERN_INFO "	with \"disable_clustering=1\" and report to maintainers\n");
  
- 	for (page = start_page; page <= end_page;) {
-+		/* Make sure we are not inadvertently changing nodes */
-+		VM_BUG_ON(page_to_nid(page) != zone_to_nid(zone));
-+
- 		if (!pfn_valid_within(page_to_pfn(page))) {
- 			page++;
- 			continue;
-@@ -2516,6 +2519,10 @@ static void setup_zone_migrate_reserve(s
- 			continue;
- 		page = pfn_to_page(pfn);
- 
-+		/* Watch out for overlapping nodes */
-+		if (page_to_nid(page) != zone_to_nid(zone))
-+			continue;
-+
- 		/* Blocks with reserved pages will never free, skip them. */
- 		if (PageReserved(page))
- 			continue;
+ 	if (tmscsim[0] == -1 || tmscsim[0] > 15) {
+ 		tmscsim[0] = 7;
 _
 
-Patches currently in -mm which might be from agl@us.ibm.com are
+Patches currently in -mm which might be from nick@ukfsn.org are
 
-mm-make-setup_zone_migrate_reserve-aware-of-overlapping-nodes.patch
+scsi-tmscsimc-fix-mangled-printk-output.patch
 
