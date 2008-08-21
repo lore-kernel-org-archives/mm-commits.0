@@ -1,99 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - mm-xip-ext2-fix-block-allocation-race.patch removed from -mm tree
-Date: Wed, 20 Aug 2008 20:49:54 -0700
-Message-ID: <200808210349.m7L3nsXl015671@imap1.linux-foundation.org>
+Subject: - drivers-char-ipmi-ipmi_si_intfc-default_find_bmc-fix-leak.patch removed from -mm tree
+Date: Wed, 20 Aug 2008 20:49:38 -0700
+Message-ID: <200808210349.m7L3ncF8015653@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52495 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52346 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754869AbYHUDuG (ORCPT
+	by vger.kernel.org with ESMTP id S1754929AbYHUDu1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 23:50:06 -0400
+	Wed, 20 Aug 2008 23:50:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, cotte@freenet.de, hugh@veritas.com, jaredeh@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, danielm77@spray.se, krafft@de.ibm.com, michael@ellerman.id.au, minyard@acm.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: xip/ext2 fix block allocation race
+     drivers/char/ipmi/ipmi_si_intf.c:default_find_bmc(): fix leak
 has been removed from the -mm tree.  Its filename was
-     mm-xip-ext2-fix-block-allocation-race.patch
+     drivers-char-ipmi-ipmi_si_intfc-default_find_bmc-fix-leak.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: xip/ext2 fix block allocation race
-From: Nick Piggin <npiggin@suse.de>
+Subject: drivers/char/ipmi/ipmi_si_intf.c:default_find_bmc(): fix leak
+From: Andrew Morton <akpm@linux-foundation.org>
 
-XIP can call into get_xip_mem concurrently with the same file,offset with
-create=1.  This usually maps down to get_block, which expects the page
-lock to prevent such a situation.  This causes ext2 to explode for one
-reason or another.
+If check_legacy_ioport() returns true, we leak *info.
 
-Serialise those calls for the moment.  For common usages today, I suspect
-get_xip_mem rarely is called to create new blocks.  In future as XIP
-technologies evolve we might need to look at which operations require
-scalability, and rework the locking to suit.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=11362
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Jared Hulbert <jaredeh@gmail.com>
-Acked-by: Carsten Otte <cotte@freenet.de>
-Cc: Hugh Dickins <hugh@veritas.com>
+Reported-by: Daniel Marjamki <danielm77@spray.se>
+Cc: Christian Krafft <krafft@de.ibm.com>
+Cc: Michael Ellerman <michael@ellerman.id.au>
+Cc: Corey Minyard <minyard@acm.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap_xip.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/char/ipmi/ipmi_si_intf.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN mm/filemap_xip.c~mm-xip-ext2-fix-block-allocation-race mm/filemap_xip.c
---- a/mm/filemap_xip.c~mm-xip-ext2-fix-block-allocation-race
-+++ a/mm/filemap_xip.c
-@@ -248,15 +248,16 @@ again:
- 		int err;
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~drivers-char-ipmi-ipmi_si_intfc-default_find_bmc-fix-leak drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~drivers-char-ipmi-ipmi_si_intfc-default_find_bmc-fix-leak
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -2695,15 +2695,13 @@ static __devinit void default_find_bmc(v
+ 	for (i = 0; ; i++) {
+ 		if (!ipmi_defaults[i].port)
+ 			break;
+-
+-		info = kzalloc(sizeof(*info), GFP_KERNEL);
+-		if (!info)
+-			return;
+-
+ #ifdef CONFIG_PPC_MERGE
+ 		if (check_legacy_ioport(ipmi_defaults[i].port))
+ 			continue;
+ #endif
++		info = kzalloc(sizeof(*info), GFP_KERNEL);
++		if (!info)
++			return;
  
- 		/* maybe shared writable, allocate new block */
-+		mutex_lock(&xip_sparse_mutex);
- 		error = mapping->a_ops->get_xip_mem(mapping, vmf->pgoff, 1,
- 							&xip_mem, &xip_pfn);
-+		mutex_unlock(&xip_sparse_mutex);
- 		if (error)
- 			return VM_FAULT_SIGBUS;
- 		/* unmap sparse mappings at pgoff from all other vmas */
- 		__xip_unmap(mapping, vmf->pgoff);
+ 		info->addr_source = NULL;
  
- found:
--		printk("%s insert %lx@%lx\n", current->comm, (unsigned long)vmf->virtual_address, xip_pfn);
- 		err = vm_insert_mixed(vma, (unsigned long)vmf->virtual_address,
- 							xip_pfn);
- 		if (err == -ENOMEM)
-@@ -340,8 +341,10 @@ __xip_file_write(struct file *filp, cons
- 						&xip_mem, &xip_pfn);
- 		if (status == -ENODATA) {
- 			/* we allocate a new page unmap it */
-+			mutex_lock(&xip_sparse_mutex);
- 			status = a_ops->get_xip_mem(mapping, index, 1,
- 							&xip_mem, &xip_pfn);
-+			mutex_unlock(&xip_sparse_mutex);
- 			if (!status)
- 				/* unmap page at pgoff from all other vmas */
- 				__xip_unmap(mapping, index);
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-show-quicklist-memory-usage-in-proc-meminfo-fix.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
+next-remove-localversion.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
+arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
+git-powerpc.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+kvm-is-still-busted-on-ia64.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+git-jg-misc.patch
+drivers-ata-pata_it821xc-fix-warning.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
+power-support-for-texas-instruments-bq27x00-battery-managers.patch
+ftrace-printk-formatting-infrastructure.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+git-watchdog.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+powerpc-export-cmo_pagesize.patch
+rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+ftrace-disable-function-tracing-bringing-up-new-cpu.patch
+unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
 mlock-mlocked-pages-are-unevictable.patch
 mlock-mlocked-pages-are-unevictable-fix.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmstat-mlocked-pages-statistics.patch
-mm-pagecache-insertion-fewer-atomics.patch
-mm-unlockless-reclaim.patch
-mm-page-lock-use-lock-bitops.patch
-fs-buffer-lock-use-lock-bitops.patch
-mm-page-allocator-minor-speedup.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+nilfs2-continuous-snapshotting-file-system-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
 reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
