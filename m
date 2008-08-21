@@ -1,158 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: + mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix.patch added to -mm tree
-Date: Thu, 21 Aug 2008 00:13:07 -0700
-Message-ID: <200808210726.m7L7QOEP023844@imap1.linux-foundation.org>
+Subject: - netfilter-conntrack_helper-needs-to-include-rculisth.patch removed from -mm tree
+Date: Thu, 21 Aug 2008 08:59:26 -0700
+Message-ID: <200808211559.m7LFxQYf012828@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50595 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44980 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754726AbYHUH0j (ORCPT
+	by vger.kernel.org with ESMTP id S1751708AbYHUQA3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Aug 2008 03:26:39 -0400
+	Thu, 21 Aug 2008 12:00:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, stable@kernel.org
+To: randy.dunlap@oracle.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix
-has been added to the -mm tree.  Its filename is
-     mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix.patch
+     netfilter: conntrack_helper needs to include rculist.h
+has been removed from the -mm tree.  Its filename was
+     netfilter-conntrack_helper-needs-to-include-rculisth.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: netfilter: conntrack_helper needs to include rculist.h
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Cc:
-Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+nf_conntrack_helper users rcu hlist functions so it needs to #include
+rculist.h.
+
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: implicit declaration of function 'hlist_for_each_entry_rcu'
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: 'hnode' undeclared (first use in this function)
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: (Each undeclared identifier is reported only once
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: for each function it appears in.)
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: expected ';' before '{' token
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:50: warning: unused variable 'mask'
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:74: error: 'hnode' undeclared (first use in this function)
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:74: error: expected ';' before '{' token
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:117: error: implicit declaration of function 'hlist_add_head_rcu'
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:133: error: implicit declaration of function 'hlist_del_rcu'
+filter/nf_conntrack_helper.o] Error 1
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/quicklist.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/nf_conntrack_helper.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/quicklist.c~mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix mm/quicklist.c
---- a/mm/quicklist.c~mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix
-+++ a/mm/quicklist.c
-@@ -28,7 +28,7 @@ static unsigned long max_pages(unsigned 
- 	unsigned long node_free_pages, max;
- 	int node = numa_node_id();
- 	struct zone *zones = NODE_DATA(node)->node_zones;
--	int num_cpus_per_node;
-+	cpumask_t node_cpumask;
+diff -puN net/netfilter/nf_conntrack_helper.c~netfilter-conntrack_helper-needs-to-include-rculisth net/netfilter/nf_conntrack_helper.c
+--- a/net/netfilter/nf_conntrack_helper.c~netfilter-conntrack_helper-needs-to-include-rculisth
++++ a/net/netfilter/nf_conntrack_helper.c
+@@ -10,6 +10,7 @@
+  */
  
- 	node_free_pages =
- #ifdef CONFIG_ZONE_DMA
-@@ -41,8 +41,8 @@ static unsigned long max_pages(unsigned 
- 
- 	max = node_free_pages / FRACTION_OF_NODE_MEM;
- 
--	num_cpus_per_node = cpus_weight_nr(node_to_cpumask(node));
--	max /= num_cpus_per_node;
-+	node_cpumask = node_to_cpumask(node);
-+	max /= cpus_weight_nr(node_cpumask);
- 
- 	return max(max, min_pages);
- }
+ #include <linux/types.h>
++#include <linux/rculist.h>
+ #include <linux/netfilter.h>
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-mm-show-quicklist-memory-usage-in-proc-meminfo-fix.patch
-mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-next-remove-localversion.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
+mfd-ucb1400-sound-driver-uses-depends-on-ac97_bus.patch
 arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
-git-powerpc.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-kvm-is-still-busted-on-ia64.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-drivers-ata-pata_it821xc-fix-warning.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers.patch
+drm-sis-depends-on-fb_sis.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+lkdtm-fix-for-config_scsi=n.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+netfilter-conntrack_helper-needs-to-include-rculisth.patch
 ftrace-printk-formatting-infrastructure.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-git-watchdog.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-powerpc-export-cmo_pagesize.patch
 rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-nilfs2-continuous-snapshotting-file-system-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+w1-documentation-w1-masters-ds2490-update.patch
 profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
