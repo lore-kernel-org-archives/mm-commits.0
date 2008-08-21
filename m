@@ -1,149 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - bootmem-fix-aligning-of-node-relative-indexes-and-offsets.patch removed from -mm tree
-Date: Wed, 20 Aug 2008 20:49:41 -0700
-Message-ID: <200808210349.m7L3nfJc015656@imap1.linux-foundation.org>
+Subject: - mn10300-supply-ioremap_wc-for-mn10300.patch removed from -mm tree
+Date: Wed, 20 Aug 2008 20:49:34 -0700
+Message-ID: <200808210349.m7L3nYmN015647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57851 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53923 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754784AbYHUDtu (ORCPT
+	by vger.kernel.org with ESMTP id S1754865AbYHUDtw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 23:49:50 -0400
+	Wed, 20 Aug 2008 23:49:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@saeurebad.de, andreas.herrmann3@amd.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bootmem: fix aligning of node-relative indexes and offsets
+     MN10300: supply ioremap_wc() for MN10300
 has been removed from the -mm tree.  Its filename was
-     bootmem-fix-aligning-of-node-relative-indexes-and-offsets.patch
+     mn10300-supply-ioremap_wc-for-mn10300.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bootmem: fix aligning of node-relative indexes and offsets
-From: Johannes Weiner <hannes@saeurebad.de>
+Subject: MN10300: supply ioremap_wc() for MN10300
+From: David Howells <dhowells@redhat.com>
 
-Absolute alignment requirements may never be applied to node-relative
-offsets.  Andreas Herrmann spotted this flaw when a bootmem allocation on
-an unaligned node was itself not aligned because the combination of an
-unaligned node with an aligned offset into that node is not garuanteed to
-be aligned itself.
+Supply ioremap_wc() for MN10300.
 
-This patch introduces two helper functions that align a node-relative
-index or offset with respect to the node's starting address so that the
-absolute PFN or virtual address that results from combining the two
-satisfies the requested alignment.
+(akpm: fixes the build on various random drivers which mn10300 probably
+doesn't use)
 
-Then all the broken ALIGN()s in alloc_bootmem_core() are replaced by these
-helpers.
-
-Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
-Reported-by: Andreas Herrmann <andreas.herrmann3@amd.com>
-Debugged-by: Andreas Herrmann <andreas.herrmann3@amd.com>
-Reviewed-by: Andreas Herrmann <andreas.herrmann3@amd.com>
-Tested-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   35 +++++++++++++++++++++++++++++------
- 1 file changed, 29 insertions(+), 6 deletions(-)
+ include/asm-mn10300/io.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/bootmem.c~bootmem-fix-aligning-of-node-relative-indexes-and-offsets mm/bootmem.c
---- a/mm/bootmem.c~bootmem-fix-aligning-of-node-relative-indexes-and-offsets
-+++ a/mm/bootmem.c
-@@ -405,6 +405,29 @@ int __init reserve_bootmem(unsigned long
+diff -puN include/asm-mn10300/io.h~mn10300-supply-ioremap_wc-for-mn10300 include/asm-mn10300/io.h
+--- a/include/asm-mn10300/io.h~mn10300-supply-ioremap_wc-for-mn10300
++++ a/include/asm-mn10300/io.h
+@@ -259,6 +259,8 @@ static inline void *ioremap_nocache(unsi
+ 	return (void *) (offset | 0x20000000);
  }
- #endif /* !CONFIG_HAVE_ARCH_BOOTMEM_NODE */
  
-+static unsigned long align_idx(struct bootmem_data *bdata, unsigned long idx,
-+			unsigned long step)
-+{
-+	unsigned long base = bdata->node_min_pfn;
++#define ioremap_wc ioremap_nocache
 +
-+	/*
-+	 * Align the index with respect to the node start so that the
-+	 * combination of both satisfies the requested alignment.
-+	 */
-+
-+	return ALIGN(base + idx, step) - base;
-+}
-+
-+static unsigned long align_off(struct bootmem_data *bdata, unsigned long off,
-+			unsigned long align)
-+{
-+	unsigned long base = PFN_PHYS(bdata->node_min_pfn);
-+
-+	/* Same as align_idx for byte offsets */
-+
-+	return ALIGN(base + off, align) - base;
-+}
-+
- static void * __init alloc_bootmem_core(struct bootmem_data *bdata,
- 				unsigned long size, unsigned long align,
- 				unsigned long goal, unsigned long limit)
-@@ -441,7 +464,7 @@ static void * __init alloc_bootmem_core(
- 	else
- 		start = ALIGN(min, step);
- 
--	sidx = start - bdata->node_min_pfn;;
-+	sidx = start - bdata->node_min_pfn;
- 	midx = max - bdata->node_min_pfn;
- 
- 	if (bdata->hint_idx > sidx) {
-@@ -450,7 +473,7 @@ static void * __init alloc_bootmem_core(
- 		 * catch the fallback below.
- 		 */
- 		fallback = sidx + 1;
--		sidx = ALIGN(bdata->hint_idx, step);
-+		sidx = align_idx(bdata, bdata->hint_idx, step);
- 	}
- 
- 	while (1) {
-@@ -459,7 +482,7 @@ static void * __init alloc_bootmem_core(
- 		unsigned long eidx, i, start_off, end_off;
- find_block:
- 		sidx = find_next_zero_bit(bdata->node_bootmem_map, midx, sidx);
--		sidx = ALIGN(sidx, step);
-+		sidx = align_idx(bdata, sidx, step);
- 		eidx = sidx + PFN_UP(size);
- 
- 		if (sidx >= midx || eidx > midx)
-@@ -467,7 +490,7 @@ find_block:
- 
- 		for (i = sidx; i < eidx; i++)
- 			if (test_bit(i, bdata->node_bootmem_map)) {
--				sidx = ALIGN(i, step);
-+				sidx = align_idx(bdata, i, step);
- 				if (sidx == i)
- 					sidx += step;
- 				goto find_block;
-@@ -475,7 +498,7 @@ find_block:
- 
- 		if (bdata->last_end_off & (PAGE_SIZE - 1) &&
- 				PFN_DOWN(bdata->last_end_off) + 1 == sidx)
--			start_off = ALIGN(bdata->last_end_off, align);
-+			start_off = align_off(bdata, bdata->last_end_off, align);
- 		else
- 			start_off = PFN_PHYS(sidx);
- 
-@@ -499,7 +522,7 @@ find_block:
- 	}
- 
- 	if (fallback) {
--		sidx = ALIGN(fallback - 1, step);
-+		sidx = align_idx(bdata, fallback - 1, step);
- 		fallback = 0;
- 		goto find_block;
- 	}
+ static inline void iounmap(void *addr)
+ {
+ }
 _
 
-Patches currently in -mm which might be from hannes@saeurebad.de are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-git-xtensa.patch
-vmscan-dont-accumulate-scan-pressure-on-unrelated-lists.patch
-mm-more-likely-reclaim-madv_sequential-mappings.patch
+linux-next.patch
+calgary-fix-a-comparison-warning-the-pci-calgary-64-driver.patch
+cifs-fix-range-check.patch
+clocksource-fix-a-print-format-error-in-the-acpi-pm-clocksource-driver-and-check-range.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+binfmt_elf_fdpic-support-auxvec-base-platform-string.patch
+binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack.patch
+binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch
+ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
+mn10300-use-bcd2bin-bin2bcd.patch
+mutex-subsystem-synchro-test-module.patch
 
