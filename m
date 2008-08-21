@@ -1,152 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-char-ipmi-ipmi_si_intfc-default_find_bmc-fix-leak.patch removed from -mm tree
-Date: Wed, 20 Aug 2008 20:49:38 -0700
-Message-ID: <200808210349.m7L3ncF8015653@imap1.linux-foundation.org>
+Subject: - fix-setpriorityprio_pgrp-thread-iterator-breakage.patch removed from -mm tree
+Date: Wed, 20 Aug 2008 20:49:45 -0700
+Message-ID: <200808210349.m7L3njaU015662@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52346 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40225 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754929AbYHUDu1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755066AbYHUDur (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 23:50:27 -0400
+	Wed, 20 Aug 2008 23:50:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, danielm77@spray.se, krafft@de.ibm.com, michael@ellerman.id.au, minyard@acm.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: kenchen@google.com, jens.axboe@oracle.com, mingo@elte.hu, oleg@tv-sign.ru, roland@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/ipmi/ipmi_si_intf.c:default_find_bmc(): fix leak
+     fix setpriority(PRIO_PGRP) thread iterator breakage
 has been removed from the -mm tree.  Its filename was
-     drivers-char-ipmi-ipmi_si_intfc-default_find_bmc-fix-leak.patch
+     fix-setpriorityprio_pgrp-thread-iterator-breakage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/ipmi/ipmi_si_intf.c:default_find_bmc(): fix leak
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fix setpriority(PRIO_PGRP) thread iterator breakage
+From: "Ken Chen" <kenchen@google.com>
 
-If check_legacy_ioport() returns true, we leak *info.
+When user calls sys_setpriority(PRIO_PGRP ...) on a NPTL style multi-LWP
+process, only the task leader of the process is affected, all other
+sibling LWP threads didn't receive the setting.  The problem was that the
+iterator used in sys_setpriority() only iteartes over one task for each
+process, ignoring all other sibling thread.
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=11362
+Introduce a new macro do_each_pid_thread / while_each_pid_thread to walk
+each thread of a process.  Convert 4 call sites in {set/get}priority and
+ioprio_{set/get}.
 
-Reported-by: Daniel Marjamki <danielm77@spray.se>
-Cc: Christian Krafft <krafft@de.ibm.com>
-Cc: Michael Ellerman <michael@ellerman.id.au>
-Cc: Corey Minyard <minyard@acm.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Ken Chen <kenchen@google.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_si_intf.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ fs/ioprio.c         |    8 ++++----
+ include/linux/pid.h |    9 +++++++++
+ kernel/sys.c        |    8 ++++----
+ 3 files changed, 17 insertions(+), 8 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~drivers-char-ipmi-ipmi_si_intfc-default_find_bmc-fix-leak drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~drivers-char-ipmi-ipmi_si_intfc-default_find_bmc-fix-leak
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -2695,15 +2695,13 @@ static __devinit void default_find_bmc(v
- 	for (i = 0; ; i++) {
- 		if (!ipmi_defaults[i].port)
+diff -puN fs/ioprio.c~fix-setpriorityprio_pgrp-thread-iterator-breakage fs/ioprio.c
+--- a/fs/ioprio.c~fix-setpriorityprio_pgrp-thread-iterator-breakage
++++ a/fs/ioprio.c
+@@ -115,11 +115,11 @@ asmlinkage long sys_ioprio_set(int which
+ 				pgrp = task_pgrp(current);
+ 			else
+ 				pgrp = find_vpid(who);
+-			do_each_pid_task(pgrp, PIDTYPE_PGID, p) {
++			do_each_pid_thread(pgrp, PIDTYPE_PGID, p) {
+ 				ret = set_task_ioprio(p, ioprio);
+ 				if (ret)
+ 					break;
+-			} while_each_pid_task(pgrp, PIDTYPE_PGID, p);
++			} while_each_pid_thread(pgrp, PIDTYPE_PGID, p);
  			break;
--
--		info = kzalloc(sizeof(*info), GFP_KERNEL);
--		if (!info)
--			return;
--
- #ifdef CONFIG_PPC_MERGE
- 		if (check_legacy_ioport(ipmi_defaults[i].port))
- 			continue;
- #endif
-+		info = kzalloc(sizeof(*info), GFP_KERNEL);
-+		if (!info)
-+			return;
+ 		case IOPRIO_WHO_USER:
+ 			if (!who)
+@@ -204,7 +204,7 @@ asmlinkage long sys_ioprio_get(int which
+ 				pgrp = task_pgrp(current);
+ 			else
+ 				pgrp = find_vpid(who);
+-			do_each_pid_task(pgrp, PIDTYPE_PGID, p) {
++			do_each_pid_thread(pgrp, PIDTYPE_PGID, p) {
+ 				tmpio = get_task_ioprio(p);
+ 				if (tmpio < 0)
+ 					continue;
+@@ -212,7 +212,7 @@ asmlinkage long sys_ioprio_get(int which
+ 					ret = tmpio;
+ 				else
+ 					ret = ioprio_best(ret, tmpio);
+-			} while_each_pid_task(pgrp, PIDTYPE_PGID, p);
++			} while_each_pid_thread(pgrp, PIDTYPE_PGID, p);
+ 			break;
+ 		case IOPRIO_WHO_USER:
+ 			if (!who)
+diff -puN include/linux/pid.h~fix-setpriorityprio_pgrp-thread-iterator-breakage include/linux/pid.h
+--- a/include/linux/pid.h~fix-setpriorityprio_pgrp-thread-iterator-breakage
++++ a/include/linux/pid.h
+@@ -161,4 +161,13 @@ pid_t pid_vnr(struct pid *pid);
+ 			}						\
+ 	} while (0)
  
- 		info->addr_source = NULL;
- 
++#define do_each_pid_thread(pid, type, task)				\
++	do_each_pid_task(pid, type, task) {				\
++		struct task_struct *tg___ = task;			\
++		do {
++
++#define while_each_pid_thread(pid, type, task)				\
++		} while_each_thread(tg___, task);			\
++		task = tg___;						\
++	} while_each_pid_task(pid, type, task)
+ #endif /* _LINUX_PID_H */
+diff -puN kernel/sys.c~fix-setpriorityprio_pgrp-thread-iterator-breakage kernel/sys.c
+--- a/kernel/sys.c~fix-setpriorityprio_pgrp-thread-iterator-breakage
++++ a/kernel/sys.c
+@@ -169,9 +169,9 @@ asmlinkage long sys_setpriority(int whic
+ 				pgrp = find_vpid(who);
+ 			else
+ 				pgrp = task_pgrp(current);
+-			do_each_pid_task(pgrp, PIDTYPE_PGID, p) {
++			do_each_pid_thread(pgrp, PIDTYPE_PGID, p) {
+ 				error = set_one_prio(p, niceval, error);
+-			} while_each_pid_task(pgrp, PIDTYPE_PGID, p);
++			} while_each_pid_thread(pgrp, PIDTYPE_PGID, p);
+ 			break;
+ 		case PRIO_USER:
+ 			user = current->user;
+@@ -229,11 +229,11 @@ asmlinkage long sys_getpriority(int whic
+ 				pgrp = find_vpid(who);
+ 			else
+ 				pgrp = task_pgrp(current);
+-			do_each_pid_task(pgrp, PIDTYPE_PGID, p) {
++			do_each_pid_thread(pgrp, PIDTYPE_PGID, p) {
+ 				niceval = 20 - task_nice(p);
+ 				if (niceval > retval)
+ 					retval = niceval;
+-			} while_each_pid_task(pgrp, PIDTYPE_PGID, p);
++			} while_each_pid_thread(pgrp, PIDTYPE_PGID, p);
+ 			break;
+ 		case PRIO_USER:
+ 			user = current->user;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kenchen@google.com are
 
-mm-show-quicklist-memory-usage-in-proc-meminfo-fix.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-next-remove-localversion.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
-arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
-git-powerpc.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-kvm-is-still-busted-on-ia64.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-drivers-ata-pata_it821xc-fix-warning.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers.patch
-ftrace-printk-formatting-infrastructure.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-git-watchdog.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-powerpc-export-cmo_pagesize.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-ftrace-disable-function-tracing-bringing-up-new-cpu.patch
-unrevert-usb-dont-explicitly-reenable-root-hub-status-interrupts.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-nilfs2-continuous-snapshotting-file-system-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
