@@ -1,108 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 20 Aug 2008 16:52:13 -0700
-Message-ID: <200808202352.m7KNqD0B006068@imap1.linux-foundation.org>
+Subject: + powerpc-export-cmo_pagesize.patch added to -mm tree
+Date: Wed, 20 Aug 2008 18:01:03 -0700
+Message-ID: <200808210114.m7L1EKsR009275@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51741 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47032 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756073AbYHTXwx (ORCPT
+	by vger.kernel.org with ESMTP id S1751811AbYHUBO1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 20 Aug 2008 19:52:53 -0400
+	Wed, 20 Aug 2008 21:14:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cbouatmailru@gmail.com, dwmw2@infradead.org, giometti@linux.it, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org
 
 
 The patch titled
-     power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes.patch
+     powerpc: export CMO_PageSize
+has been added to the -mm tree.  Its filename is
+     powerpc-export-cmo_pagesize.patch
 
-This patch was dropped because it was folded into power-support-for-texas-instruments-bq27x00-battery-managers.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes
+Subject: powerpc: export CMO_PageSize
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: space prohibited before that ':' (ctx:WxE)
-#227: FILE: drivers/power/bq27x00_battery.c:175:
-+	case POWER_SUPPLY_PROP_VOLTAGE_NOW :
- 	                                   ^
+powerpc allmodconfig:
 
-ERROR: space prohibited before that ':' (ctx:WxE)
-#228: FILE: drivers/power/bq27x00_battery.c:176:
-+	case POWER_SUPPLY_PROP_PRESENT :
- 	                               ^
+ERROR: "CMO_PageSize" [arch/powerpc/platforms/pseries/cmm.ko] undefined!
 
-ERROR: space prohibited before that ':' (ctx:WxE)
-#235: FILE: drivers/power/bq27x00_battery.c:183:
-+	case POWER_SUPPLY_PROP_CURRENT_NOW :
- 	                                   ^
+(needed for 2.6.27)
 
-ERROR: space prohibited before that ':' (ctx:WxE)
-#240: FILE: drivers/power/bq27x00_battery.c:188:
-+	case POWER_SUPPLY_PROP_CAPACITY :
- 	                                ^
-
-ERROR: space prohibited before that ':' (ctx:WxE)
-#245: FILE: drivers/power/bq27x00_battery.c:193:
-+	case POWER_SUPPLY_PROP_TEMP :
- 	                            ^
-
-total: 5 errors, 0 warnings, 412 lines checked
-
-./patches/power-support-for-texas-instruments-bq27x00-battery-managers.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Anton Vorontsov <cbouatmailru@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Rodolfo Giometti <giometti@linux.it>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/bq27x00_battery.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/powerpc/platforms/pseries/setup.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/power/bq27x00_battery.c~power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes drivers/power/bq27x00_battery.c
---- a/drivers/power/bq27x00_battery.c~power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes
-+++ a/drivers/power/bq27x00_battery.c
-@@ -172,25 +172,25 @@ static int bq27x00_battery_get_property(
- 	struct bq27x00_device_info *di = to_bq27x00_device_info(psy);
+diff -puN arch/powerpc/platforms/pseries/setup.c~powerpc-export-cmo_pagesize arch/powerpc/platforms/pseries/setup.c
+--- a/arch/powerpc/platforms/pseries/setup.c~powerpc-export-cmo_pagesize
++++ a/arch/powerpc/platforms/pseries/setup.c
+@@ -71,6 +71,7 @@
+ int CMO_PrPSP = -1;
+ int CMO_SecPSP = -1;
+ unsigned long CMO_PageSize = (ASM_CONST(1) << IOMMU_PAGE_SHIFT);
++EXPORT_SYMBOL(CMO_PageSize);
  
- 	switch (psp) {
--	case POWER_SUPPLY_PROP_VOLTAGE_NOW :
--	case POWER_SUPPLY_PROP_PRESENT :
-+	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
-+	case POWER_SUPPLY_PROP_PRESENT:
- 		val->intval = bq27x00_battery_voltage(di);
- 		if (psp == POWER_SUPPLY_PROP_PRESENT)
- 			val->intval = val->intval <= 0 ? 0 : 1;
+ int fwnmi_active;  /* TRUE if an FWNMI handler is present */
  
- 		break;
- 
--	case POWER_SUPPLY_PROP_CURRENT_NOW :
-+	case POWER_SUPPLY_PROP_CURRENT_NOW:
- 		val->intval = bq27x00_battery_current(di);
- 
- 		break;
- 
--	case POWER_SUPPLY_PROP_CAPACITY :
-+	case POWER_SUPPLY_PROP_CAPACITY:
- 		val->intval = bq27x00_battery_rsoc(di);
- 
- 		break;
- 
--	case POWER_SUPPLY_PROP_TEMP :
-+	case POWER_SUPPLY_PROP_TEMP:
- 		val->intval = bq27x00_battery_temperature(di);
- 
- 		break;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -132,8 +90,6 @@ sundance-set-carrier-status-on-link-change-events.patch
 cassini-use-request_firmware.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
 power-support-for-texas-instruments-bq27x00-battery-managers.patch
-power-support-for-texas-instruments-bq27x00-battery-managers-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers-tweaks.patch
 ftrace-printk-formatting-infrastructure.patch
 scsi-gdthc-use-unaligned-access-helpers.patch
 drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
@@ -191,4 +147,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+powerpc-export-cmo_pagesize.patch
 
