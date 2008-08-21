@@ -1,104 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-rtc-ds1374-fix-no-irq-case-handling.patch removed from -mm tree
-Date: Wed, 20 Aug 2008 20:49:56 -0700
-Message-ID: <200808210349.m7L3nuHI015674@imap1.linux-foundation.org>
+Subject: + gcov-add-gcov-profiling-infrastructure-add-datagcov-to-data-section.patch added to -mm tree
+Date: Wed, 20 Aug 2008 23:51:34 -0700
+Message-ID: <200808210651.m7L6pYQJ022404@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41336 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57549 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750828AbYHUEbt (ORCPT
+	by vger.kernel.org with ESMTP id S1753119AbYHUGwd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 21 Aug 2008 00:31:49 -0400
+	Thu, 21 Aug 2008 02:52:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, a.zummo@towertech.it, david-b@pacbell.net, jacmet@sunsite.dk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: paulus@samba.org, peter.oberparleiter@de.ibm.com
 
 
 The patch titled
-     rtc: rtc-ds1374: fix 'no irq' case handling
-has been removed from the -mm tree.  Its filename was
-     rtc-rtc-ds1374-fix-no-irq-case-handling.patch
+     gcov: add .data.gcov to data section
+has been added to the -mm tree.  Its filename is
+     gcov-add-gcov-profiling-infrastructure-add-datagcov-to-data-section.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: rtc-ds1374: fix 'no irq' case handling
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: gcov: add .data.gcov to data section
+From: Paul Mackerras <paulus@samba.org>
 
-On a PowerPC board with ds1374 RTC I'm getting this error while RTC tries
-to probe:
+Andrew Morton writes:
 
-rtc-ds1374 0-0068: unable to request IRQ
+> ia64 blew up in a perhaps similar fashion.  See lkml thread
+> "ia64 allmodconfig on current mainline".
+>
+> The compiler is from http://userweb.kernel.org/~akpm/cross-compilers/
+> (installable on redhatty systems, maybe others).
 
-This happens because I2C probing code (drivers/of/of_i2c.c) is specifying
-IRQ0 for 'no irq' case, which is correct.
+This is the problem:
 
-The driver handles this incorrectly, though. This patch fixes it.
+Ld versions before about 2.18 or so (older than April 2007, I think)
+have a bug where they put things in the wrong order in the output file
+if you don't have all the sections listed in the vmlinux.lds with an
+AT() clause on each one (it seems they all have to have AT(), or
+none).  With the gcov stuff turned on, we get a .data.gcov section
+which isn't mentioned in include/asm-generic/vmlinux.lds.h, which
+triggers this bug.  This works around the ld bug by making sure
+.data.gcov is mentioned in DATA_DATA.
 
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
+The patch below should work around the problem, and may help ia64 as
+well if it's the same problem there.  If it does fix it for you, you
+can push it to Linus, since it touches a generic file.  Here's a SOB
+in case you decide to do that (the previous paragraph should serve as
+a patch description).  If you don't want to push this, I can do an
+equivalent fix in arch/powerpc/kernel/vmlinux.lds.S.
+
+Signed-off-by: Paul Mackerras <paulus@samba.org>
+Cc: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1374.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/asm-generic/vmlinux.lds.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/rtc/rtc-ds1374.c~rtc-rtc-ds1374-fix-no-irq-case-handling drivers/rtc/rtc-ds1374.c
---- a/drivers/rtc/rtc-ds1374.c~rtc-rtc-ds1374-fix-no-irq-case-handling
-+++ a/drivers/rtc/rtc-ds1374.c
-@@ -173,7 +173,7 @@ static int ds1374_read_alarm(struct devi
- 	int cr, sr;
- 	int ret = 0;
- 
--	if (client->irq < 0)
-+	if (client->irq <= 0)
- 		return -EINVAL;
- 
- 	mutex_lock(&ds1374->mutex);
-@@ -212,7 +212,7 @@ static int ds1374_set_alarm(struct devic
- 	int cr;
- 	int ret = 0;
- 
--	if (client->irq < 0)
-+	if (client->irq <= 0)
- 		return -EINVAL;
- 
- 	ret = ds1374_read_time(dev, &now);
-@@ -381,7 +381,7 @@ static int ds1374_probe(struct i2c_clien
- 	if (ret)
- 		goto out_free;
- 
--	if (client->irq >= 0) {
-+	if (client->irq > 0) {
- 		ret = request_irq(client->irq, ds1374_irq, 0,
- 		                  "ds1374", client);
- 		if (ret) {
-@@ -401,7 +401,7 @@ static int ds1374_probe(struct i2c_clien
- 	return 0;
- 
- out_irq:
--	if (client->irq >= 0)
-+	if (client->irq > 0)
- 		free_irq(client->irq, client);
- 
- out_free:
-@@ -414,7 +414,7 @@ static int __devexit ds1374_remove(struc
- {
- 	struct ds1374 *ds1374 = i2c_get_clientdata(client);
- 
--	if (client->irq >= 0) {
-+	if (client->irq > 0) {
- 		mutex_lock(&ds1374->mutex);
- 		ds1374->exiting = 1;
- 		mutex_unlock(&ds1374->mutex);
+diff -puN include/asm-generic/vmlinux.lds.h~gcov-add-gcov-profiling-infrastructure-add-datagcov-to-data-section include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~gcov-add-gcov-profiling-infrastructure-add-datagcov-to-data-section
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -43,6 +43,7 @@
+ 	*(.data)							\
+ 	*(.data.init.refok)						\
+ 	*(.ref.data)							\
++	*(.data.gcov)							\
+ 	DEV_KEEP(init.data)						\
+ 	DEV_KEEP(exit.data)						\
+ 	CPU_KEEP(init.data)						\
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from paulus@samba.org are
 
-rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
-mpc8xxx_wdt-fix-modular-build.patch
+linux-next.patch
+git-powerpc.patch
+x86-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
+powerpc-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
+introduce-generic-iommu_num_pages-function.patch
+powerpc-use-iommu_num_pages-function-in-iommu-code.patch
+gcov-add-gcov-profiling-infrastructure-add-datagcov-to-data-section.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+powerpc-hugetlb-pgtable-cache-access-cleanup.patch
 
