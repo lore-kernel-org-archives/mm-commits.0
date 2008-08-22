@@ -1,70 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - hda_intel-enable-snoop-for-nvidia-hda-controller.patch removed from -mm tree
-Date: Fri, 22 Aug 2008 15:55:56 -0700
-Message-ID: <200808222255.m7MMtuR2020867@imap1.linux-foundation.org>
+Subject: - use-warn-in-arch-x86-kernel.patch removed from -mm tree
+Date: Fri, 22 Aug 2008 15:55:52 -0700
+Message-ID: <200808222255.m7MMtq44020860@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60831 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53864 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753111AbYHVW42 (ORCPT
+	by vger.kernel.org with ESMTP id S1753698AbYHVW4j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 18:56:28 -0400
+	Fri, 22 Aug 2008 18:56:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peerchen@gmail.com, mm-commits@vger.kernel.org
+To: arjan@linux.intel.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hda_intel: enable snoop for nvidia HDA controller
+     Use WARN() in arch/x86/kernel
 has been removed from the -mm tree.  Its filename was
-     hda_intel-enable-snoop-for-nvidia-hda-controller.patch
+     use-warn-in-arch-x86-kernel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hda_intel: enable snoop for nvidia HDA controller
-From: Peer Chen <peerchen@gmail.com>
+Subject: Use WARN() in arch/x86/kernel
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-Enable the snoop for nvidia hda controller to avoid data coherence issue.
+Use WARN() instead of a printk+WARN_ON() pair; this way the message becomes
+part of the warning section for better reporting/collection.  This also
+allowed the folding of some if()'s into the WARN()
 
-Signed-off-by: Peer Chen <peerchen@gmail.com>
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/hda_intel.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/x86/kernel/cpu/mtrr/main.c  |    5 +----
+ arch/x86/kernel/pci-calgary_64.c |    3 +--
+ arch/x86/kernel/tsc_sync.c       |    6 ++----
+ 3 files changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN sound/pci/hda/hda_intel.c~hda_intel-enable-snoop-for-nvidia-hda-controller sound/pci/hda/hda_intel.c
---- a/sound/pci/hda/hda_intel.c~hda_intel-enable-snoop-for-nvidia-hda-controller
-+++ a/sound/pci/hda/hda_intel.c
-@@ -278,6 +278,9 @@ enum {
- /* Defines for Nvidia HDA support */
- #define NVIDIA_HDA_TRANSREG_ADDR      0x4e
- #define NVIDIA_HDA_ENABLE_COHBITS     0x0f
-+#define NVIDIA_HDA_ISTRM_COH          0x4d
-+#define NVIDIA_HDA_OSTRM_COH          0x4c
-+#define NVIDIA_HDA_ENABLE_COHBIT      0x01
+diff -puN arch/x86/kernel/cpu/mtrr/main.c~use-warn-in-arch-x86-kernel arch/x86/kernel/cpu/mtrr/main.c
+--- a/arch/x86/kernel/cpu/mtrr/main.c~use-warn-in-arch-x86-kernel
++++ a/arch/x86/kernel/cpu/mtrr/main.c
+@@ -1496,11 +1496,8 @@ int __init mtrr_trim_uncached_memory(uns
  
- /* Defines for Intel SCH HDA snoop control */
- #define INTEL_SCH_HDA_DEVC      0x78
-@@ -900,6 +903,12 @@ static void azx_init_pci(struct azx *chi
- 		update_pci_byte(chip->pci,
- 				NVIDIA_HDA_TRANSREG_ADDR,
- 				0x0f, NVIDIA_HDA_ENABLE_COHBITS);
-+		update_pci_byte(chip->pci,
-+				NVIDIA_HDA_ISTRM_COH,
-+				0x01, NVIDIA_HDA_ENABLE_COHBIT);
-+		update_pci_byte(chip->pci,
-+				NVIDIA_HDA_OSTRM_COH,
-+				0x01, NVIDIA_HDA_ENABLE_COHBIT);
- 		break;
- 	case AZX_DRIVER_SCH:
- 		pci_read_config_word(chip->pci, INTEL_SCH_HDA_DEVC, &snoop);
+ 	/* kvm/qemu doesn't have mtrr set right, don't trim them all */
+ 	if (!highest_pfn) {
+-		if (!kvm_para_available()) {
+-			printk(KERN_WARNING
++		WARN(!kvm_para_available(), KERN_WARNING
+ 				"WARNING: strange, CPU MTRRs all blank?\n");
+-			WARN_ON(1);
+-		}
+ 		return 0;
+ 	}
+ 
+diff -puN arch/x86/kernel/pci-calgary_64.c~use-warn-in-arch-x86-kernel arch/x86/kernel/pci-calgary_64.c
+--- a/arch/x86/kernel/pci-calgary_64.c~use-warn-in-arch-x86-kernel
++++ a/arch/x86/kernel/pci-calgary_64.c
+@@ -343,9 +343,8 @@ static void iommu_free(struct iommu_tabl
+ 	/* were we called with bad_dma_address? */
+ 	badend = bad_dma_address + (EMERGENCY_PAGES * PAGE_SIZE);
+ 	if (unlikely((dma_addr >= bad_dma_address) && (dma_addr < badend))) {
+-		printk(KERN_ERR "Calgary: driver tried unmapping bad DMA "
++		WARN(1, KERN_ERR "Calgary: driver tried unmapping bad DMA "
+ 		       "address 0x%Lx\n", dma_addr);
+-		WARN_ON(1);
+ 		return;
+ 	}
+ 
+diff -puN arch/x86/kernel/tsc_sync.c~use-warn-in-arch-x86-kernel arch/x86/kernel/tsc_sync.c
+--- a/arch/x86/kernel/tsc_sync.c~use-warn-in-arch-x86-kernel
++++ a/arch/x86/kernel/tsc_sync.c
+@@ -88,11 +88,9 @@ static __cpuinit void check_tsc_warp(voi
+ 			__raw_spin_unlock(&sync_lock);
+ 		}
+ 	}
+-	if (!(now-start)) {
+-		printk("Warning: zero tsc calibration delta: %Ld [max: %Ld]\n",
++	WARN(!(now-start),
++		"Warning: zero tsc calibration delta: %Ld [max: %Ld]\n",
+ 			now-start, end-start);
+-		WARN_ON(1);
+-	}
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from peerchen@gmail.com are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
 origin.patch
+linux-next.patch
 
