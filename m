@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 22 Aug 2008 13:34:18 -0700
-Message-ID: <200808222034.m7MKYI6w015220@imap1.linux-foundation.org>
+Subject: + container-freezer-make-freezer-state-names-less-generic.patch added to -mm tree
+Date: Fri, 22 Aug 2008 13:39:14 -0700
+Message-ID: <200808222039.m7MKdEGL015419@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38678 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58488 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754615AbYHVUe4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752874AbYHVUkM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 16:34:56 -0400
+	Fri, 22 Aug 2008 16:40:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, private@claudio.ch
+Cc: matthltc@us.ibm.com
 
 
 The patch titled
-     backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes
+     container freezer: make freezer state names less generic
 has been added to the -mm tree.  Its filename is
-     backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
+     container-freezer-make-freezer-state-names-less-generic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,125 +34,196 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: container freezer: make freezer state names less generic
+From: Matt Helsley <matthltc@us.ibm.com>
 
-WARNING: space prohibited between function name and open parenthesis '('
-#135: FILE: drivers/video/backlight/kb3886_bl.c:161:
-+	if (IS_ERR (kb3886_backlight_device))
+Rename cgroup freezer states to be less generic to avoid any name
+collisions while also better describing what each state is.
 
-total: 0 errors, 1 warnings, 104 lines checked
-
-./patches/backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Claudio Nieder <private@claudio.ch>
+Signed-off-by: Matt Helsley <matthltc@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/kb3886_bl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/cgroup_freezer.c |   56 +++++++++++++++++++-------------------
+ 1 file changed, 28 insertions(+), 28 deletions(-)
 
-diff -puN drivers/video/backlight/kb3886_bl.c~backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes drivers/video/backlight/kb3886_bl.c
---- a/drivers/video/backlight/kb3886_bl.c~backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes
-+++ a/drivers/video/backlight/kb3886_bl.c
-@@ -158,7 +158,7 @@ static int kb3886bl_probe(struct platfor
+diff -puN kernel/cgroup_freezer.c~container-freezer-make-freezer-state-names-less-generic kernel/cgroup_freezer.c
+--- a/kernel/cgroup_freezer.c~container-freezer-make-freezer-state-names-less-generic
++++ a/kernel/cgroup_freezer.c
+@@ -22,9 +22,9 @@
+ #include <linux/seq_file.h>
  
- 	kb3886_backlight_device = backlight_device_register("kb3886-bl",
- 		&pdev->dev, NULL, &kb3886bl_ops);
--	if (IS_ERR (kb3886_backlight_device))
-+	if (IS_ERR(kb3886_backlight_device))
- 		return PTR_ERR(kb3886_backlight_device);
+ enum freezer_state {
+-	STATE_RUNNING = 0,
+-	STATE_FREEZING,
+-	STATE_FROZEN,
++	CGROUP_THAWED = 0,
++	CGROUP_FREEZING,
++	CGROUP_FROZEN,
+ };
  
- 	platform_set_drvdata(pdev, kb3886_backlight_device);
+ struct freezer {
+@@ -57,7 +57,7 @@ int cgroup_frozen(struct task_struct *ta
+ 	state = freezer->state;
+ 	task_unlock(task);
+ 
+-	return state == STATE_FROZEN;
++	return state == CGROUP_FROZEN;
+ }
+ 
+ /*
+@@ -65,7 +65,7 @@ int cgroup_frozen(struct task_struct *ta
+  * interface. See cgroups code for the current size.
+  */
+ static const char *freezer_state_strs[] = {
+-	"RUNNING",
++	"THAWED",
+ 	"FREEZING",
+ 	"FROZEN",
+ };
+@@ -75,10 +75,10 @@ static const char *freezer_state_strs[] 
+  * Transitions are caused by userspace writes to the freezer.state file.
+  * The values in parenthesis are state labels. The rest are edge labels.
+  *
+- * (RUNNING) --FROZEN--> (FREEZING) --FROZEN--> (FROZEN)
+- *    ^ ^                     |                       |
+- *    | \_______RUNNING_______/                       |
+- *    \_____________________________RUNNING___________/
++ * (THAWED) --FROZEN--> (FREEZING) --FROZEN--> (FROZEN)
++ *    ^ ^                    |                     |
++ *    | \_______THAWED_______/                     |
++ *    \__________________________THAWED____________/
+  */
+ 
+ struct cgroup_subsys freezer_subsys;
+@@ -135,7 +135,7 @@ static struct cgroup_subsys_state *freez
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	spin_lock_init(&freezer->lock);
+-	freezer->state = STATE_RUNNING;
++	freezer->state = CGROUP_THAWED;
+ 	return &freezer->css;
+ }
+ 
+@@ -170,13 +170,13 @@ static int freezer_can_attach(struct cgr
+ 		return -EBUSY;
+ 
+ 	freezer = cgroup_freezer(new_cgroup);
+-	if (freezer->state == STATE_FROZEN)
++	if (freezer->state == CGROUP_FROZEN)
+ 		return -EBUSY;
+ 
+ 	retval = 0;
+ 	task_lock(task);
+ 	freezer = task_freezer(task);
+-	if (freezer->state == STATE_FROZEN)
++	if (freezer->state == CGROUP_FROZEN)
+ 		retval = -EBUSY;
+ 	task_unlock(task);
+ 	return retval;
+@@ -190,10 +190,10 @@ static void freezer_fork(struct cgroup_s
+ 	freezer = task_freezer(task);
+ 	task_unlock(task);
+ 
+-	BUG_ON(freezer->state == STATE_FROZEN);
++	BUG_ON(freezer->state == CGROUP_FROZEN);
+ 	spin_lock_irq(&freezer->lock);
+-	/* Locking avoids race with FREEZING -> RUNNING transitions. */
+-	if (freezer->state == STATE_FREEZING)
++	/* Locking avoids race with FREEZING -> THAWED transitions. */
++	if (freezer->state == CGROUP_FREEZING)
+ 		freeze_task(task, true);
+ 	spin_unlock_irq(&freezer->lock);
+ }
+@@ -221,7 +221,7 @@ static void check_if_frozen(struct cgrou
+ 	 * tasks.
+ 	 */
+ 	if (nfrozen == ntotal)
+-		freezer->state = STATE_FROZEN;
++		freezer->state = CGROUP_FROZEN;
+ 	cgroup_iter_end(cgroup, &it);
+ }
+ 
+@@ -237,7 +237,7 @@ static int freezer_read(struct cgroup *c
+ 	freezer = cgroup_freezer(cgroup);
+ 	spin_lock_irq(&freezer->lock);
+ 	state = freezer->state;
+-	if (state == STATE_FREEZING) {
++	if (state == CGROUP_FREEZING) {
+ 		/* We change from FREEZING to FROZEN lazily if the cgroup was
+ 		 * only partially frozen when we exitted write. */
+ 		check_if_frozen(cgroup, freezer);
+@@ -257,7 +257,7 @@ static int try_to_freeze_cgroup(struct c
+ 	struct task_struct *task;
+ 	unsigned int num_cant_freeze_now = 0;
+ 
+-	freezer->state = STATE_FREEZING;
++	freezer->state = CGROUP_FREEZING;
+ 	cgroup_iter_start(cgroup, &it);
+ 	while ((task = cgroup_iter_next(cgroup, &it))) {
+ 		if (!freeze_task(task, true))
+@@ -288,7 +288,7 @@ static int unfreeze_cgroup(struct cgroup
+ 			wake_up_process(task);
+ 	}
+ 	cgroup_iter_end(cgroup, &it);
+-	freezer->state = STATE_RUNNING;
++	freezer->state = CGROUP_THAWED;
+ 
+ 	return 0;
+ }
+@@ -305,18 +305,18 @@ static int freezer_change_state(struct c
+ 	if (goal_state == freezer->state)
+ 		goto out;
+ 	switch (freezer->state) {
+-	case STATE_RUNNING:
++	case CGROUP_THAWED:
+ 		retval = try_to_freeze_cgroup(cgroup, freezer);
+ 		break;
+-	case STATE_FREEZING:
+-		if (goal_state == STATE_FROZEN) {
++	case CGROUP_FREEZING:
++		if (goal_state == CGROUP_FROZEN) {
+ 			/* Userspace is retrying after
+ 			 * "/bin/echo FROZEN > freezer.state" returned -EBUSY */
+ 			retval = try_to_freeze_cgroup(cgroup, freezer);
+ 			break;
+ 		}
+-		/* state == FREEZING and goal_state == RUNNING, so unfreeze */
+-	case STATE_FROZEN:
++		/* state == FREEZING and goal_state == THAWED, so unfreeze */
++	case CGROUP_FROZEN:
+ 		retval = unfreeze_cgroup(cgroup, freezer);
+ 		break;
+ 	default:
+@@ -335,10 +335,10 @@ static int freezer_write(struct cgroup *
+ 	int retval;
+ 	enum freezer_state goal_state;
+ 
+-	if (strcmp(buffer, freezer_state_strs[STATE_RUNNING]) == 0)
+-		goal_state = STATE_RUNNING;
+-	else if (strcmp(buffer, freezer_state_strs[STATE_FROZEN]) == 0)
+-		goal_state = STATE_FROZEN;
++	if (strcmp(buffer, freezer_state_strs[CGROUP_THAWED]) == 0)
++		goal_state = CGROUP_THAWED;
++	else if (strcmp(buffer, freezer_state_strs[CGROUP_FROZEN]) == 0)
++		goal_state = CGROUP_FROZEN;
+ 	else
+ 		return -EIO;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from matthltc@us.ibm.com are
 
-vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
-acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
-mm-show-quicklist-memory-usage-in-proc-meminfo.patch
-mm-quicklist-shouldnt-be-proportional-to-number-of-cpus.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-next-remove-localversion.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
-arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers.patch
-drivers-pci-hotplug-ibmphp_ebdac-list_for_each-to-list_for_each_entry-checkpatch-fixes.patch
-ftrace-printk-formatting-infrastructure.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-git-watchdog.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mm-rewrite-vmap-layer-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures.patch
+container-freezer-make-refrigerator-always-available.patch
+container-freezer-implement-freezer-cgroup-subsystem.patch
 container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-nilfs2-continuous-snapshotting-file-system-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process.patch
+container-freezer-skip-frozen-cgroups-during-power-management-resume.patch
+container-freezer-prevent-frozen-tasks-or-cgroups-from-changing.patch
+container-freezer-make-freezer-state-names-less-generic.patch
+container-freezer-cleanup-comment.patch
+container-freezer-rename-check_if_frozen.patch
+container-freezer-document-the-cgroup-freezer-subsystem.patch
 
