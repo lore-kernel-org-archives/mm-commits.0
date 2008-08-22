@@ -1,98 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: + fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch added to -mm tree
-Date: Fri, 22 Aug 2008 16:08:52 -0700
-Message-ID: <200808222322.m7MNMBiu021818@imap1.linux-foundation.org>
+Subject: - verify_dynamic_kobject_allocation-dont-use-kmalloc.patch removed from -mm tree
+Date: Fri, 22 Aug 2008 16:09:02 -0700
+Message-ID: <200808222322.m7MNMMQN021821@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58025 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51082 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754845AbYHVXWO (ORCPT
+	by vger.kernel.org with ESMTP id S1755365AbYHVXW6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 19:22:14 -0400
+	Fri, 22 Aug 2008 19:22:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+To: akpm@linux-foundation.org, bwalle@suse.de, bzolnier@gmail.com, greg@kroah.com, gregkh@suse.de, haveblue@us.ibm.com, hugh@veritas.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/sysfs/dir.c: remove unused __sysfs_get_dentry()
-has been added to the -mm tree.  Its filename is
-     fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
+     verify_dynamic_kobject_allocation: dont use kmalloc()
+has been removed from the -mm tree.  Its filename was
+     verify_dynamic_kobject_allocation-dont-use-kmalloc.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/sysfs/dir.c: remove unused __sysfs_get_dentry()
+Subject: verify_dynamic_kobject_allocation: dont use kmalloc()
 From: Andrew Morton <akpm@linux-foundation.org>
 
+- It's called very early from the firmware code and goes oops.
+
+- Adding a GFP_KERNEL allocation into the previously-atomic
+  kobject_init() was a step backwards.
+
+It's 128 bytes, which is liveable with.
+
+Cc: Bernhard Walle <bwalle@suse.de>
 Cc: Greg KH <greg@kroah.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/dir.c |   39 ---------------------------------------
- 1 file changed, 39 deletions(-)
+ lib/kobject.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN fs/sysfs/dir.c~fs-sysfs-dirc-remove-unused-__sysfs_get_dentry fs/sysfs/dir.c
---- a/fs/sysfs/dir.c~fs-sysfs-dirc-remove-unused-__sysfs_get_dentry
-+++ a/fs/sysfs/dir.c
-@@ -795,45 +795,6 @@ void sysfs_remove_dir(struct kobject * k
- 	__sysfs_remove_dir(sd);
- }
+diff -puN lib/kobject.c~verify_dynamic_kobject_allocation-dont-use-kmalloc lib/kobject.c
+--- a/lib/kobject.c~verify_dynamic_kobject_allocation-dont-use-kmalloc
++++ a/lib/kobject.c
+@@ -38,12 +38,10 @@ static int ptr_in_range(void *ptr, void 
  
--/**
-- *	__sysfs_get_dentry - get dentry for the given sysfs_dirent
-- *	@sb: superblock of the dentry to return
-- *	@sd: sysfs_dirent of interest
-- *
-- *	Get dentry for @sd.  Only return a dentry if one currently
-- *	exists.
-- *
-- *	LOCKING:
-- *	Kernel thread context (may sleep)
-- *
-- *	RETURNS:
-- *	Pointer to found dentry on success, NULL on failure.
-- */
--static struct dentry *__sysfs_get_dentry(struct super_block *sb,
--					 struct sysfs_dirent *sd)
--{
--	struct inode *inode;
--	struct dentry *dentry = NULL;
--
--	inode = ilookup5_nowait(sysfs_sb, sd->s_ino, sysfs_ilookup_test, sd);
--	if (inode && !(inode->i_state & I_NEW)) {
--		struct dentry *alias;
--		spin_lock(&dcache_lock);
--		list_for_each_entry(alias, &inode->i_dentry, d_alias) {
--			if (!IS_ROOT(alias) && d_unhashed(alias))
--				continue;
--			if (alias->d_sb != sb)
--				continue;
--			dentry = alias;
--			dget_locked(dentry);
--			break;
--		}
--		spin_unlock(&dcache_lock);
--	}
--	iput(inode);
--	return dentry;
--}
--
- struct sysfs_rename_struct {
- 	struct list_head list;
- 	struct dentry *old_dentry;
+ static void verify_dynamic_kobject_allocation(struct kobject *kobj)
+ {
+-	char *namebuf;
++	char namebuf[KSYM_NAME_LEN];
+ 	const char *ret;
+ 
+-	namebuf = kzalloc(KSYM_NAME_LEN, GFP_KERNEL);
+-	ret = kallsyms_lookup((unsigned long)kobj, NULL, NULL, NULL,
+-			namebuf);
++	ret = kallsyms_lookup((unsigned long)kobj, NULL, NULL, NULL, namebuf);
+ 	/*
+ 	 * This is the X86_32-only part of this function.
+ 	 * This is here because it is valid to have a kobject
+@@ -63,7 +61,7 @@ static void verify_dynamic_kobject_alloc
+ 	/* dump_stack(); */
+ 	pr_debug("---- end silly warning ----\n");
+ out:
+-	kfree(namebuf);
++	return;
+ }
+ #else
+ static void verify_dynamic_kobject_allocation(struct kobject *kobj) { }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,6 +94,7 @@ zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
 arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
 arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
 fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
+verify_dynamic_kobject_allocation-dont-use-kmalloc.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 git-jg-misc.patch
