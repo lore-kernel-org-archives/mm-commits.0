@@ -1,127 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: + mm-skip-memory-holes-in-flatmem-when-reading-proc-pagetypeinfo.patch added to -mm tree
-Date: Fri, 22 Aug 2008 09:15:55 -0700
-Message-ID: <200808221615.m7MGFt0a004520@imap1.linux-foundation.org>
+Subject: - filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature.patch removed from -mm tree
+Date: Fri, 22 Aug 2008 11:22:17 -0700
+Message-ID: <200808221822.m7MIMHH6009593@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57675 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40387 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751581AbYHVQQ7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751715AbYHVSWa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 12:16:59 -0400
+	Fri, 22 Aug 2008 14:22:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, hsweeten@visionengravers.com, rmk@arm.linux.org.uk, stable@kernel.org
+To: t-sato@yk.jp.nec.com, dgc@sgi.com, hch@lst.de, lachlan@sgi.com, m-hamaguchi@ys.jp.nec.com, tes@sgi.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: skip memory holes in FLATMEM when reading /proc/pagetypeinfo
-has been added to the -mm tree.  Its filename is
-     mm-skip-memory-holes-in-flatmem-when-reading-proc-pagetypeinfo.patch
+     filesystem freezing: remove XFS specific ioctl interfaces for freeze feature
+has been removed from the -mm tree.  Its filename was
+     filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: skip memory holes in FLATMEM when reading /proc/pagetypeinfo
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: filesystem freezing: remove XFS specific ioctl interfaces for freeze feature
+From: Takashi Sato <t-sato@yk.jp.nec.com>
 
-Fixes an oops on arm.
+Remvoe the XFS specific ioctl interfaces and request codes for freeze
+feature.
 
-Ordinarily, memory holes in flatmem still have a valid memmap and is safe
-to use.  However, an architecture (ARM) frees up the memmap backing memory
-holes on the assumption it is never used.  /proc/pagetypeinfo reads the
-whole range of pages in a zone believing that the memmap is valid and that
-pfn_valid will return false if it is not.  On ARM, freeing the memmap
-breaks the page->zone linkages even though pfn_valid() returns true and
-the kernel can oops shortly afterwards due to accessing a bogus struct
-zone *.
+This patch has been supplied by David Chinner.
 
-This patch lets architectures say when FLATMEM can have holes in the
-memmap.  Rather than an expensive check for valid memory,
-/proc/pagetypeinfo will confirm that the page linkages are still valid by
-checking page->zone is still the expected zone.  The lookup of page_zone
-is safe as there is a limited range of memory that is accessed when
-calling page_zone.  Even if page_zone happens to return the correct zone,
-the impact is that the counters in /proc/pagetypeinfo are slightly off but
-fragmentation monitoring is unlikely to be relevant on an embedded system.
-
-Reported-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Tested-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
+Signed-off-by: Dave Chinner <dgc@sgi.com>
+Signed-off-by: Takashi Sato <t-sato@yk.jp.nec.com>
+Cc: Masayuki Hamaguchi <m-hamaguchi@ys.jp.nec.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: Lachlan McIlroy <lachlan@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig |    5 +++++
- mm/vmstat.c      |   19 ++++++++++++++++++-
- 2 files changed, 23 insertions(+), 1 deletion(-)
+ fs/xfs/linux-2.6/xfs_ioctl.c   |   15 ---------------
+ fs/xfs/linux-2.6/xfs_ioctl32.c |    2 --
+ fs/xfs/xfs_fs.h                |    4 ++--
+ 3 files changed, 2 insertions(+), 19 deletions(-)
 
-diff -puN arch/arm/Kconfig~mm-skip-memory-holes-in-flatmem-when-reading-proc-pagetypeinfo arch/arm/Kconfig
---- a/arch/arm/Kconfig~mm-skip-memory-holes-in-flatmem-when-reading-proc-pagetypeinfo
-+++ a/arch/arm/Kconfig
-@@ -810,6 +810,11 @@ config OABI_COMPAT
- 	  UNPREDICTABLE (in fact it can be predicted that it won't work
- 	  at all). If in doubt say Y.
- 
-+config ARCH_FLATMEM_HAS_HOLES
-+	bool
-+	default y
-+	depends on FLATMEM
-+
- config ARCH_DISCONTIGMEM_ENABLE
- 	bool
- 	default (ARCH_LH7A40X && !LH7A40X_CONTIGMEM)
-diff -puN mm/vmstat.c~mm-skip-memory-holes-in-flatmem-when-reading-proc-pagetypeinfo mm/vmstat.c
---- a/mm/vmstat.c~mm-skip-memory-holes-in-flatmem-when-reading-proc-pagetypeinfo
-+++ a/mm/vmstat.c
-@@ -516,9 +516,26 @@ static void pagetypeinfo_showblockcount_
- 			continue;
- 
- 		page = pfn_to_page(pfn);
-+#ifdef CONFIG_ARCH_FLATMEM_HAS_HOLES
-+		/*
-+		 * Ordinarily, memory holes in flatmem still have a valid
-+		 * memmap for the PFN range. However, an architecture for
-+		 * embedded systems (e.g. ARM) can free up the memmap backing
-+		 * holes to save memory on the assumption the memmap is
-+		 * never used. The page_zone linkages are then broken even
-+		 * though pfn_valid() returns true. Skip the page if the
-+		 * linkages are broken. Even if this test passed, the impact
-+		 * is that the counters for the movable type are off but
-+		 * fragmentation monitoring is likely meaningless on small
-+		 * systems.
-+		 */
-+		if (page_zone(page) != zone)
-+			continue;
-+#endif
- 		mtype = get_pageblock_migratetype(page);
- 
--		count[mtype]++;
-+		if (mtype < MIGRATE_TYPES)
-+			count[mtype]++;
+diff -puN fs/xfs/linux-2.6/xfs_ioctl.c~filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature fs/xfs/linux-2.6/xfs_ioctl.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl.c~filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature
++++ a/fs/xfs/linux-2.6/xfs_ioctl.c
+@@ -1529,21 +1529,6 @@ xfs_ioctl(
+ 		return -error;
  	}
  
- 	/* Print counts */
+-	case XFS_IOC_FREEZE:
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		if (inode->i_sb->s_frozen == SB_UNFROZEN)
+-			freeze_bdev(inode->i_sb->s_bdev);
+-		return 0;
+-
+-	case XFS_IOC_THAW:
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-		if (inode->i_sb->s_frozen != SB_UNFROZEN)
+-			thaw_bdev(inode->i_sb->s_bdev, inode->i_sb);
+-		return 0;
+-
+ 	case XFS_IOC_GOINGDOWN: {
+ 		__uint32_t in;
+ 
+diff -puN fs/xfs/linux-2.6/xfs_ioctl32.c~filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature fs/xfs/linux-2.6/xfs_ioctl32.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl32.c~filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature
++++ a/fs/xfs/linux-2.6/xfs_ioctl32.c
+@@ -398,8 +398,6 @@ xfs_compat_ioctl(
+ 	case XFS_IOC_FSGROWFSDATA:
+ 	case XFS_IOC_FSGROWFSLOG:
+ 	case XFS_IOC_FSGROWFSRT:
+-	case XFS_IOC_FREEZE:
+-	case XFS_IOC_THAW:
+ 	case XFS_IOC_GOINGDOWN:
+ 	case XFS_IOC_ERROR_INJECTION:
+ 	case XFS_IOC_ERROR_CLEARALL:
+diff -puN fs/xfs/xfs_fs.h~filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature fs/xfs/xfs_fs.h
+--- a/fs/xfs/xfs_fs.h~filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature
++++ a/fs/xfs/xfs_fs.h
+@@ -477,8 +477,8 @@ typedef struct xfs_handle {
+ #define XFS_IOC_ERROR_INJECTION	     _IOW ('X', 116, struct xfs_error_injection)
+ #define XFS_IOC_ERROR_CLEARALL	     _IOW ('X', 117, struct xfs_error_injection)
+ /*	XFS_IOC_ATTRCTL_BY_HANDLE -- deprecated 118	 */
+-#define XFS_IOC_FREEZE		     _IOWR('X', 119, int)
+-#define XFS_IOC_THAW		     _IOWR('X', 120, int)
++/*	XFS_IOC_FREEZE		  -- FIFREEZE   119	 */
++/*	XFS_IOC_THAW		  -- FITHAW     120	 */
+ #define XFS_IOC_FSSETDM_BY_HANDLE    _IOW ('X', 121, struct xfs_fsop_setdm_handlereq)
+ #define XFS_IOC_ATTRLIST_BY_HANDLE   _IOW ('X', 122, struct xfs_fsop_attrlist_handlereq)
+ #define XFS_IOC_ATTRMULTI_BY_HANDLE  _IOW ('X', 123, struct xfs_fsop_attrmulti_handlereq)
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from t-sato@yk.jp.nec.com are
 
-mm-make-setup_zone_migrate_reserve-aware-of-overlapping-nodes.patch
-mm-skip-memory-holes-in-flatmem-when-reading-proc-pagetypeinfo.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-page-owner-tracking-leak-detector.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature.patch
+filesystem-freezing-add-timeout-feature.patch
 
