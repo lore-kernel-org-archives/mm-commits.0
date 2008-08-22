@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + add-phys_addr_t-for-holding-physical-addresses.patch added to -mm tree
-Date: Fri, 22 Aug 2008 13:00:50 -0700
-Message-ID: <200808222000.m7MK0p9F013835@imap1.linux-foundation.org>
+Subject: + make-pfn_phys-explicitly-return-phys_addr_t.patch added to -mm tree
+Date: Fri, 22 Aug 2008 13:00:54 -0700
+Message-ID: <200808222000.m7MK0twV013843@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51866 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43015 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757970AbYHVUCg (ORCPT
+	by vger.kernel.org with ESMTP id S1757969AbYHVUCg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 22 Aug 2008 16:02:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jeremy@goop.org, benh@kernel.crashing.org, ehabkost@redhat.com, jeremy.fitzh
 
 
 The patch titled
-     add phys_addr_t for holding physical addresses
+     make PFN_PHYS explicitly return phys_addr_t
 has been added to the -mm tree.  Its filename is
-     add-phys_addr_t-for-holding-physical-addresses.patch
+     make-pfn_phys-explicitly-return-phys_addr_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,135 +34,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add phys_addr_t for holding physical addresses
+Subject: make PFN_PHYS explicitly return phys_addr_t
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Add a kernel-wide "phys_addr_t" which is guaranteed to be able to hold
-any physical address.  By default it equals the word size of the
-architecture, but a 32-bit architecture can set ARCH_PHYS_ADDR_T_64BIT
-if it needs a 64-bit phys_addr_t.
+PFN_PHYS, as its name suggests, turns a pfn into a physical address.
+However, it is a macro which just operates on its argument without
+modifying its type.  pfns are typed unsigned long, but an unsigned
+long may not be long enough to hold a physical address (32-bit systems
+with more than 32 bits of physcial address).
+
+Make sure we cast to phys_addr_t to return a complete result.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Eduardo Habkost <ehabkost@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Eduardo Habkost <ehabkost@redhat.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig             |    3 +++
- arch/powerpc/include/asm/types.h |    7 -------
- arch/x86/Kconfig                 |    3 +++
- include/asm-x86/page_32.h        |    2 --
- include/asm-x86/page_64.h        |    1 -
- include/linux/types.h            |    6 ++++++
- mm/Kconfig                       |    3 +++
- 7 files changed, 15 insertions(+), 10 deletions(-)
+ arch/m32r/mm/discontig.c   |    4 ++--
+ include/asm-x86/xen/page.h |    4 ++--
+ include/linux/pfn.h        |    6 +++++-
+ 3 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN arch/powerpc/Kconfig~add-phys_addr_t-for-holding-physical-addresses arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~add-phys_addr_t-for-holding-physical-addresses
-+++ a/arch/powerpc/Kconfig
-@@ -22,6 +22,9 @@ config WORD_SIZE
- config PPC_MERGE
- 	def_bool y
+diff -puN arch/m32r/mm/discontig.c~make-pfn_phys-explicitly-return-phys_addr_t arch/m32r/mm/discontig.c
+--- a/arch/m32r/mm/discontig.c~make-pfn_phys-explicitly-return-phys_addr_t
++++ a/arch/m32r/mm/discontig.c
+@@ -111,9 +111,9 @@ unsigned long __init setup_memory(void)
+ 				initrd_start, INITRD_SIZE);
+ 		} else {
+ 			printk("initrd extends beyond end of memory "
+-				"(0x%08lx > 0x%08lx)\ndisabling initrd\n",
++				"(0x%08lx > 0x%08llx)\ndisabling initrd\n",
+ 				INITRD_START + INITRD_SIZE,
+-				PFN_PHYS(max_low_pfn));
++			        (unsigned long long)PFN_PHYS(max_low_pfn));
  
-+config ARCH_PHYS_ADDR_T_64BIT
-+       def_bool PPC64 || PHYS_64BIT
-+
- config MMU
- 	bool
- 	default y
-diff -puN arch/powerpc/include/asm/types.h~add-phys_addr_t-for-holding-physical-addresses arch/powerpc/include/asm/types.h
---- a/arch/powerpc/include/asm/types.h~add-phys_addr_t-for-holding-physical-addresses
-+++ a/arch/powerpc/include/asm/types.h
-@@ -48,13 +48,6 @@ typedef struct {
+ 			initrd_start = 0;
+ 		}
+diff -puN include/asm-x86/xen/page.h~make-pfn_phys-explicitly-return-phys_addr_t include/asm-x86/xen/page.h
+--- a/include/asm-x86/xen/page.h~make-pfn_phys-explicitly-return-phys_addr_t
++++ a/include/asm-x86/xen/page.h
+@@ -76,13 +76,13 @@ static inline unsigned long mfn_to_pfn(u
+ static inline xmaddr_t phys_to_machine(xpaddr_t phys)
+ {
+ 	unsigned offset = phys.paddr & ~PAGE_MASK;
+-	return XMADDR(PFN_PHYS((u64)pfn_to_mfn(PFN_DOWN(phys.paddr))) | offset);
++	return XMADDR(PFN_PHYS(pfn_to_mfn(PFN_DOWN(phys.paddr))) | offset);
+ }
  
- typedef __vector128 vector128;
+ static inline xpaddr_t machine_to_phys(xmaddr_t machine)
+ {
+ 	unsigned offset = machine.maddr & ~PAGE_MASK;
+-	return XPADDR(PFN_PHYS((u64)mfn_to_pfn(PFN_DOWN(machine.maddr))) | offset);
++	return XPADDR(PFN_PHYS(mfn_to_pfn(PFN_DOWN(machine.maddr))) | offset);
+ }
  
--/* Physical address used by some IO functions */
--#if defined(CONFIG_PPC64) || defined(CONFIG_PHYS_64BIT)
--typedef u64 phys_addr_t;
--#else
--typedef u32 phys_addr_t;
--#endif
--
- #ifdef __powerpc64__
- typedef u64 dma_addr_t;
- #else
-diff -puN arch/x86/Kconfig~add-phys_addr_t-for-holding-physical-addresses arch/x86/Kconfig
---- a/arch/x86/Kconfig~add-phys_addr_t-for-holding-physical-addresses
-+++ a/arch/x86/Kconfig
-@@ -968,6 +968,9 @@ config X86_PAE
- 	  has the cost of more pagetable lookup overhead, and also
- 	  consumes more pagetable space per process.
+ /*
+diff -puN include/linux/pfn.h~make-pfn_phys-explicitly-return-phys_addr_t include/linux/pfn.h
+--- a/include/linux/pfn.h~make-pfn_phys-explicitly-return-phys_addr_t
++++ a/include/linux/pfn.h
+@@ -1,9 +1,13 @@
+ #ifndef _LINUX_PFN_H_
+ #define _LINUX_PFN_H_
  
-+config ARCH_PHYS_ADDR_T_64BIT
-+       def_bool X86_64 || X86_PAE
-+
- # Common NUMA Features
- config NUMA
- 	bool "Numa Memory Allocation and Scheduler Support (EXPERIMENTAL)"
-diff -puN include/asm-x86/page_32.h~add-phys_addr_t-for-holding-physical-addresses include/asm-x86/page_32.h
---- a/include/asm-x86/page_32.h~add-phys_addr_t-for-holding-physical-addresses
-+++ a/include/asm-x86/page_32.h
-@@ -33,7 +33,6 @@ typedef u64	pmdval_t;
- typedef u64	pudval_t;
- typedef u64	pgdval_t;
- typedef u64	pgprotval_t;
--typedef u64	phys_addr_t;
- 
- typedef union {
- 	struct {
-@@ -54,7 +53,6 @@ typedef unsigned long	pmdval_t;
- typedef unsigned long	pudval_t;
- typedef unsigned long	pgdval_t;
- typedef unsigned long	pgprotval_t;
--typedef unsigned long	phys_addr_t;
- 
- typedef union {
- 	pteval_t pte;
-diff -puN include/asm-x86/page_64.h~add-phys_addr_t-for-holding-physical-addresses include/asm-x86/page_64.h
---- a/include/asm-x86/page_64.h~add-phys_addr_t-for-holding-physical-addresses
-+++ a/include/asm-x86/page_64.h
-@@ -79,7 +79,6 @@ typedef unsigned long	pmdval_t;
- typedef unsigned long	pudval_t;
- typedef unsigned long	pgdval_t;
- typedef unsigned long	pgprotval_t;
--typedef unsigned long	phys_addr_t;
- 
- typedef struct page *pgtable_t;
- 
-diff -puN include/linux/types.h~add-phys_addr_t-for-holding-physical-addresses include/linux/types.h
---- a/include/linux/types.h~add-phys_addr_t-for-holding-physical-addresses
-+++ a/include/linux/types.h
-@@ -197,6 +197,12 @@ typedef u64 resource_size_t;
- typedef u32 resource_size_t;
- #endif
- 
-+#ifdef CONFIG_PHYS_ADDR_T_64BIT
-+typedef u64 phys_addr_t;
-+#else
-+typedef u32 phys_addr_t;
++#ifndef __ASSEMBLY__
++#include <linux/types.h>
 +#endif
 +
- struct ustat {
- 	__kernel_daddr_t	f_tfree;
- 	__kernel_ino_t		f_tinode;
-diff -puN mm/Kconfig~add-phys_addr_t-for-holding-physical-addresses mm/Kconfig
---- a/mm/Kconfig~add-phys_addr_t-for-holding-physical-addresses
-+++ a/mm/Kconfig
-@@ -187,6 +187,9 @@ config RESOURCES_64BIT
- 	help
- 	  This option allows memory and IO resources to be 64 bit.
+ #define PFN_ALIGN(x)	(((unsigned long)(x) + (PAGE_SIZE - 1)) & PAGE_MASK)
+ #define PFN_UP(x)	(((x) + PAGE_SIZE-1) >> PAGE_SHIFT)
+ #define PFN_DOWN(x)	((x) >> PAGE_SHIFT)
+-#define PFN_PHYS(x)	((x) << PAGE_SHIFT)
++#define PFN_PHYS(x)	((phys_addr_t)(x) << PAGE_SHIFT)
  
-+config PHYS_ADDR_T_64BIT
-+	def_bool 64BIT || ARCH_PHYS_ADDR_T_64BIT
-+
- config ZONE_DMA_FLAG
- 	int
- 	default "0" if !ZONE_DMA
+ #endif
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
