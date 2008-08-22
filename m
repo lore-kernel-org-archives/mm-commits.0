@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mlock-make-mlock-error-return-posixly-correct-fix.patch added to -mm tree
-Date: Fri, 22 Aug 2008 16:03:51 -0700
-Message-ID: <200808222317.m7MNHAMX021646@imap1.linux-foundation.org>
+Subject: + fix-a-race-condtion-of-oops_in_progress-fix.patch added to -mm tree
+Date: Fri, 22 Aug 2008 16:07:19 -0700
+Message-ID: <200808222320.m7MNKddw021771@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37497 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46434 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754756AbYHVXRT (ORCPT
+	by vger.kernel.org with ESMTP id S1754895AbYHVXUm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 19:17:19 -0400
+	Fri, 22 Aug 2008 19:20:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com
+Cc: akpm@linux-foundation.org, ying.huang@intel.com
 
 
 The patch titled
-     mlock-make-mlock-error-return-posixly-correct-fix
+     fix-a-race-condtion-of-oops_in_progress-fix
 has been added to the -mm tree.  Its filename is
-     mlock-make-mlock-error-return-posixly-correct-fix.patch
+     fix-a-race-condtion-of-oops_in_progress-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlock-make-mlock-error-return-posixly-correct-fix
+Subject: fix-a-race-condtion-of-oops_in_progress-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/mlock.c: In function 'mlock_fixup':
-mm/mlock.c:468: error: implicit declaration of function '__mlock_posix_error_return'
-
-Documentation/SubmitChecklist considered useful...
-
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   30 ++++++++++++++++++------------
- 1 file changed, 18 insertions(+), 12 deletions(-)
+ lib/debug_locks.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mlock.c~mlock-make-mlock-error-return-posixly-correct-fix mm/mlock.c
---- a/mm/mlock.c~mlock-make-mlock-error-return-posixly-correct-fix
-+++ a/mm/mlock.c
-@@ -143,18 +143,6 @@ static void munlock_vma_page(struct page
- 	}
- }
- 
--/*
-- * convert get_user_pages() return value to posix mlock() error
-- */
--static int __mlock_posix_error_return(long retval)
--{
--	if (retval == -EFAULT)
--		retval = -ENOMEM;
--	else if (retval == -ENOMEM)
--		retval = -EAGAIN;
--	return retval;
--}
--
- /**
-  * __mlock_vma_pages_range() -  mlock/munlock a range of pages in the vma.
-  * @vma:   target vma
-@@ -268,6 +256,18 @@ static long __mlock_vma_pages_range(stru
- 	return ret;	/* count entire vma as locked_vm */
- }
- 
-+/*
-+ * convert get_user_pages() return value to posix mlock() error
-+ */
-+static int __mlock_posix_error_return(long retval)
-+{
-+	if (retval == -EFAULT)
-+		retval = -ENOMEM;
-+	else if (retval == -ENOMEM)
-+		retval = -EAGAIN;
-+	return retval;
-+}
-+
- #else /* CONFIG_UNEVICTABLE_LRU */
- 
- /*
-@@ -281,6 +281,12 @@ static long __mlock_vma_pages_range(stru
- 		return make_pages_present(start, end);
- 	return 0;
- }
-+
-+static inline int __mlock_posix_error_return(long retval)
-+{
-+	return 0;
-+}
-+
- #endif /* CONFIG_UNEVICTABLE_LRU */
- 
- /**
+diff -puN lib/debug_locks.c~fix-a-race-condtion-of-oops_in_progress-fix lib/debug_locks.c
+--- a/lib/debug_locks.c~fix-a-race-condtion-of-oops_in_progress-fix
++++ a/lib/debug_locks.c
+@@ -38,7 +38,7 @@ int debug_locks_off(void)
+ {
+ 	if (xchg(&debug_locks, 0)) {
+ 		if (!debug_locks_silent) {
+-			oops_in_progress = 1;
++			atomic_set(&oops_in_progress, 1);
+ 			console_verbose();
+ 			return 1;
+ 		}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
