@@ -1,107 +1,285 @@
 From: akpm@linux-foundation.org
-Subject: - filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature.patch removed from -mm tree
-Date: Fri, 22 Aug 2008 11:22:17 -0700
-Message-ID: <200808221822.m7MIMHH6009593@imap1.linux-foundation.org>
+Subject: - filesystem-freezing-implement-generic-freeze-feature.patch removed from -mm tree
+Date: Fri, 22 Aug 2008 11:22:13 -0700
+Message-ID: <200808221822.m7MIMEZP009590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40387 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48869 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751715AbYHVSWa (ORCPT
+	by vger.kernel.org with ESMTP id S1751718AbYHVSWc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 14:22:30 -0400
+	Fri, 22 Aug 2008 14:22:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: t-sato@yk.jp.nec.com, dgc@sgi.com, hch@lst.de, lachlan@sgi.com, m-hamaguchi@ys.jp.nec.com, tes@sgi.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: t-sato@yk.jp.nec.com, dgc@sgi.com, hch@lst.de, lachlan@sgi.com, m-hamaguchi@ys.jp.nec.com, mtk.manpages@googlemail.com, tes@sgi.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     filesystem freezing: remove XFS specific ioctl interfaces for freeze feature
+     filesystem freezing: implement generic freeze feature
 has been removed from the -mm tree.  Its filename was
-     filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature.patch
+     filesystem-freezing-implement-generic-freeze-feature.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: filesystem freezing: remove XFS specific ioctl interfaces for freeze feature
+Subject: filesystem freezing: implement generic freeze feature
 From: Takashi Sato <t-sato@yk.jp.nec.com>
 
-Remvoe the XFS specific ioctl interfaces and request codes for freeze
-feature.
+Currently, ext3 in mainline Linux doesn't have the freeze feature which
+suspends write requests.  So, we cannot take a backup which keeps the
+filesystem's consistency with the storage device's features (snapshot and
+replication) while it is mounted.
 
-This patch has been supplied by David Chinner.
+In many case, a commercial filesystem (e.g.  VxFS) has the freeze feature
+and it would be used to get the consistent backup.
 
-Signed-off-by: Dave Chinner <dgc@sgi.com>
+If Linux's standard filesytem ext3 has the freeze feature, we can do it
+without a commercial filesystem.
+
+So I have implemented the ioctls of the freeze feature.
+I think we can take the consistent backup with the following steps.
+1. Freeze the filesystem with the freeze ioctl.
+2. Separate the replication volume or create the snapshot
+   with the storage device's feature.
+3. Unfreeze the filesystem with the unfreeze ioctl.
+4. Take the backup from the separated replication volume
+   or the snapshot.
+
+
+
+This patch:
+
+The ioctls for the generic freeze feature are below.
+o Freeze the filesystem
+  int ioctl(int fd, int FIFREEZE, arg)
+    fd: The file descriptor of the mountpoint
+    FIFREEZE: request code for the freeze
+    arg: Ignored
+    Return value: 0 if the operation succeeds. Otherwise, -1
+
+o Unfreeze the filesystem
+  int ioctl(int fd, int FITHAW, arg)
+    fd: The file descriptor of the mountpoint
+    FITHAW: request code for unfreeze
+    arg: Ignored
+    Return value: 0 if the operation succeeds. Otherwise, -1
+
 Signed-off-by: Takashi Sato <t-sato@yk.jp.nec.com>
-Cc: Masayuki Hamaguchi <m-hamaguchi@ys.jp.nec.com>
+Signed-off-by: Masayuki Hamaguchi <m-hamaguchi@ys.jp.nec.com>
+Cc: Dave Chinner <dgc@sgi.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
 Cc: Timothy Shimmin <tes@sgi.com>
 Cc: Lachlan McIlroy <lachlan@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/linux-2.6/xfs_ioctl.c   |   15 ---------------
- fs/xfs/linux-2.6/xfs_ioctl32.c |    2 --
- fs/xfs/xfs_fs.h                |    4 ++--
- 3 files changed, 2 insertions(+), 19 deletions(-)
+ fs/block_dev.c              |    2 +
+ fs/buffer.c                 |   27 ++++++++++++++-
+ fs/ioctl.c                  |   61 ++++++++++++++++++++++++++++++++++
+ include/linux/buffer_head.h |    2 -
+ include/linux/fs.h          |    6 +++
+ 5 files changed, 96 insertions(+), 2 deletions(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_ioctl.c~filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature fs/xfs/linux-2.6/xfs_ioctl.c
---- a/fs/xfs/linux-2.6/xfs_ioctl.c~filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature
-+++ a/fs/xfs/linux-2.6/xfs_ioctl.c
-@@ -1529,21 +1529,6 @@ xfs_ioctl(
- 		return -error;
+diff -puN fs/block_dev.c~filesystem-freezing-implement-generic-freeze-feature fs/block_dev.c
+--- a/fs/block_dev.c~filesystem-freezing-implement-generic-freeze-feature
++++ a/fs/block_dev.c
+@@ -285,6 +285,8 @@ static void init_once(void *foo)
+ 	INIT_LIST_HEAD(&bdev->bd_holder_list);
+ #endif
+ 	inode_init_once(&ei->vfs_inode);
++	/* Initialize semaphore for freeze. */
++	sema_init(&bdev->bd_freeze_sem, 1);
+ }
+ 
+ static inline void __bd_forget(struct inode *inode)
+diff -puN fs/buffer.c~filesystem-freezing-implement-generic-freeze-feature fs/buffer.c
+--- a/fs/buffer.c~filesystem-freezing-implement-generic-freeze-feature
++++ a/fs/buffer.c
+@@ -200,6 +200,15 @@ struct super_block *freeze_bdev(struct b
+ {
+ 	struct super_block *sb;
+ 
++	down(&bdev->bd_freeze_sem);
++	bdev->bd_freeze_count++;
++	if (bdev->bd_freeze_count > 1) {
++		sb = get_super(bdev);
++		drop_super(sb);
++		up(&bdev->bd_freeze_sem);
++		return sb;
++	}
++
+ 	down(&bdev->bd_mount_sem);
+ 	sb = get_super(bdev);
+ 	if (sb && !(sb->s_flags & MS_RDONLY)) {
+@@ -218,6 +227,8 @@ struct super_block *freeze_bdev(struct b
  	}
  
--	case XFS_IOC_FREEZE:
--		if (!capable(CAP_SYS_ADMIN))
--			return -EPERM;
--
--		if (inode->i_sb->s_frozen == SB_UNFROZEN)
--			freeze_bdev(inode->i_sb->s_bdev);
--		return 0;
--
--	case XFS_IOC_THAW:
--		if (!capable(CAP_SYS_ADMIN))
--			return -EPERM;
--		if (inode->i_sb->s_frozen != SB_UNFROZEN)
--			thaw_bdev(inode->i_sb->s_bdev, inode->i_sb);
--		return 0;
--
- 	case XFS_IOC_GOINGDOWN: {
- 		__uint32_t in;
+ 	sync_blockdev(bdev);
++	up(&bdev->bd_freeze_sem);
++
+ 	return sb;	/* thaw_bdev releases s->s_umount and bd_mount_sem */
+ }
+ EXPORT_SYMBOL(freeze_bdev);
+@@ -229,8 +240,20 @@ EXPORT_SYMBOL(freeze_bdev);
+  *
+  * Unlocks the filesystem and marks it writeable again after freeze_bdev().
+  */
+-void thaw_bdev(struct block_device *bdev, struct super_block *sb)
++int thaw_bdev(struct block_device *bdev, struct super_block *sb)
+ {
++
++	down(&bdev->bd_freeze_sem);
++	if (!bdev->bd_freeze_count) {
++		up(&bdev->bd_freeze_sem);
++		return 0;
++	}
++	bdev->bd_freeze_count--;
++	if (bdev->bd_freeze_count > 0) {
++		up(&bdev->bd_freeze_sem);
++		return 0;
++	}
++
+ 	if (sb) {
+ 		BUG_ON(sb->s_bdev != bdev);
  
-diff -puN fs/xfs/linux-2.6/xfs_ioctl32.c~filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature fs/xfs/linux-2.6/xfs_ioctl32.c
---- a/fs/xfs/linux-2.6/xfs_ioctl32.c~filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature
-+++ a/fs/xfs/linux-2.6/xfs_ioctl32.c
-@@ -398,8 +398,6 @@ xfs_compat_ioctl(
- 	case XFS_IOC_FSGROWFSDATA:
- 	case XFS_IOC_FSGROWFSLOG:
- 	case XFS_IOC_FSGROWFSRT:
--	case XFS_IOC_FREEZE:
--	case XFS_IOC_THAW:
- 	case XFS_IOC_GOINGDOWN:
- 	case XFS_IOC_ERROR_INJECTION:
- 	case XFS_IOC_ERROR_CLEARALL:
-diff -puN fs/xfs/xfs_fs.h~filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature fs/xfs/xfs_fs.h
---- a/fs/xfs/xfs_fs.h~filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature
-+++ a/fs/xfs/xfs_fs.h
-@@ -477,8 +477,8 @@ typedef struct xfs_handle {
- #define XFS_IOC_ERROR_INJECTION	     _IOW ('X', 116, struct xfs_error_injection)
- #define XFS_IOC_ERROR_CLEARALL	     _IOW ('X', 117, struct xfs_error_injection)
- /*	XFS_IOC_ATTRCTL_BY_HANDLE -- deprecated 118	 */
--#define XFS_IOC_FREEZE		     _IOWR('X', 119, int)
--#define XFS_IOC_THAW		     _IOWR('X', 120, int)
-+/*	XFS_IOC_FREEZE		  -- FIFREEZE   119	 */
-+/*	XFS_IOC_THAW		  -- FITHAW     120	 */
- #define XFS_IOC_FSSETDM_BY_HANDLE    _IOW ('X', 121, struct xfs_fsop_setdm_handlereq)
- #define XFS_IOC_ATTRLIST_BY_HANDLE   _IOW ('X', 122, struct xfs_fsop_attrlist_handlereq)
- #define XFS_IOC_ATTRMULTI_BY_HANDLE  _IOW ('X', 123, struct xfs_fsop_attrmulti_handlereq)
+@@ -243,6 +266,8 @@ void thaw_bdev(struct block_device *bdev
+ 	}
+ 
+ 	up(&bdev->bd_mount_sem);
++	up(&bdev->bd_freeze_sem);
++	return 0;
+ }
+ EXPORT_SYMBOL(thaw_bdev);
+ 
+diff -puN fs/ioctl.c~filesystem-freezing-implement-generic-freeze-feature fs/ioctl.c
+--- a/fs/ioctl.c~filesystem-freezing-implement-generic-freeze-feature
++++ a/fs/ioctl.c
+@@ -13,6 +13,7 @@
+ #include <linux/security.h>
+ #include <linux/module.h>
+ #include <linux/uaccess.h>
++#include <linux/buffer_head.h>
+ 
+ #include <asm/ioctls.h>
+ 
+@@ -141,6 +142,57 @@ static int ioctl_fioasync(unsigned int f
+ }
+ 
+ /*
++ * ioctl_freeze - Freeze the filesystem.
++ *
++ * @filp:	target file
++ *
++ * Call freeze_bdev() to freeze the filesystem.
++ */
++static int ioctl_freeze(struct file *filp)
++{
++	struct super_block *sb = filp->f_path.dentry->d_inode->i_sb;
++
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++
++	/* If filesystem doesn't support freeze feature, return. */
++	if (sb->s_op->write_super_lockfs == NULL)
++		return -EOPNOTSUPP;
++
++	/* If a regular file or a directory isn't specified, return. */
++	if (sb->s_bdev == NULL)
++		return -EINVAL;
++
++	/* Freeze */
++	sb = freeze_bdev(sb->s_bdev);
++	if (IS_ERR(sb))
++		return PTR_ERR(sb);
++	return 0;
++}
++
++/*
++ * ioctl_thaw - Thaw the filesystem.
++ *
++ * @filp:	target file
++ *
++ * Call thaw_bdev() to thaw the filesystem.
++ */
++static int ioctl_thaw(struct file *filp)
++{
++	struct super_block *sb = filp->f_path.dentry->d_inode->i_sb;
++
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++
++	/* If a regular file or a directory isn't specified, return EINVAL. */
++	if (sb->s_bdev == NULL)
++		return -EINVAL;
++
++	/* Thaw */
++	return thaw_bdev(sb->s_bdev, sb);
++}
++
++/*
+  * When you add any new common ioctls to the switches above and below
+  * please update compat_sys_ioctl() too.
+  *
+@@ -181,6 +233,15 @@ int do_vfs_ioctl(struct file *filp, unsi
+ 		} else
+ 			error = -ENOTTY;
+ 		break;
++
++	case FIFREEZE:
++		error = ioctl_freeze(filp);
++		break;
++
++	case FITHAW:
++		error = ioctl_thaw(filp);
++		break;
++
+ 	default:
+ 		if (S_ISREG(filp->f_path.dentry->d_inode->i_mode))
+ 			error = file_ioctl(filp, cmd, arg);
+diff -puN include/linux/buffer_head.h~filesystem-freezing-implement-generic-freeze-feature include/linux/buffer_head.h
+--- a/include/linux/buffer_head.h~filesystem-freezing-implement-generic-freeze-feature
++++ a/include/linux/buffer_head.h
+@@ -170,7 +170,7 @@ void __wait_on_buffer(struct buffer_head
+ wait_queue_head_t *bh_waitq_head(struct buffer_head *bh);
+ int fsync_bdev(struct block_device *);
+ struct super_block *freeze_bdev(struct block_device *);
+-void thaw_bdev(struct block_device *, struct super_block *);
++int thaw_bdev(struct block_device *, struct super_block *);
+ int fsync_super(struct super_block *);
+ int fsync_no_super(struct block_device *);
+ struct buffer_head *__find_get_block(struct block_device *bdev, sector_t block,
+diff -puN include/linux/fs.h~filesystem-freezing-implement-generic-freeze-feature include/linux/fs.h
+--- a/include/linux/fs.h~filesystem-freezing-implement-generic-freeze-feature
++++ a/include/linux/fs.h
+@@ -229,6 +229,8 @@ extern int dir_notify_enable;
+ #define BMAP_IOCTL 1		/* obsolete - kept for compatibility */
+ #define FIBMAP	   _IO(0x00,1)	/* bmap access */
+ #define FIGETBSZ   _IO(0x00,2)	/* get the block size used for bmap */
++#define FIFREEZE	_IOWR('X', 119, int)	/* Freeze */
++#define FITHAW		_IOWR('X', 120, int)	/* Thaw */
+ 
+ #define	FS_IOC_GETFLAGS			_IOR('f', 1, long)
+ #define	FS_IOC_SETFLAGS			_IOW('f', 2, long)
+@@ -578,6 +580,10 @@ struct block_device {
+ 	 * care to not mess up bd_private for that case.
+ 	 */
+ 	unsigned long		bd_private;
++	/* The counter of freeze processes */
++	int			bd_freeze_count;
++	/* Semaphore for freeze */
++	struct semaphore	bd_freeze_sem;
+ };
+ 
+ /*
 _
 
 Patches currently in -mm which might be from t-sato@yk.jp.nec.com are
 
+filesystem-freezing-implement-generic-freeze-feature.patch
 filesystem-freezing-remove-xfs-specific-ioctl-interfaces-for-freeze-feature.patch
 filesystem-freezing-add-timeout-feature.patch
 
