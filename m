@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + container-freezer-make-freezer-state-names-less-generic.patch added to -mm tree
-Date: Fri, 22 Aug 2008 13:39:14 -0700
-Message-ID: <200808222039.m7MKdEGL015419@imap1.linux-foundation.org>
+Subject: + container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process.patch added to -mm tree
+Date: Fri, 22 Aug 2008 13:38:48 -0700
+Message-ID: <200808222038.m7MKcm6W015403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58488 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53415 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752874AbYHVUkM (ORCPT
+	by vger.kernel.org with ESMTP id S1754063AbYHVUk7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 16:40:12 -0400
+	Fri, 22 Aug 2008 16:40:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthltc@us.ibm.com
+Cc: matthltc@us.ibm.com, clg@fr.ibm.com, pavel@suse.cz, rjw@sisk.pl, serue@us.ibm.com
 
 
 The patch titled
-     container freezer: make freezer state names less generic
+     container freezer: uninline thaw_process()
 has been added to the -mm tree.  Its filename is
-     container-freezer-make-freezer-state-names-less-generic.patch
+     container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,182 +34,110 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: container freezer: make freezer state names less generic
+Subject: container freezer: uninline thaw_process()
 From: Matt Helsley <matthltc@us.ibm.com>
 
-Rename cgroup freezer states to be less generic to avoid any name
-collisions while also better describing what each state is.
+Now that the cgroup freezer system also calls thaw_process() inlining
+these functions uses more space.  Uninlining returns some space:
+
+Before:
+	text	data	bss	dec	hex	filename
+	4260872	275532	290816	4827220 49a854	vmlinux
+After:
+	text	data	bss	dec	hex	filename
+	4260852	275532	290816	4827200	49a840	vmlinux
 
 Signed-off-by: Matt Helsley <matthltc@us.ibm.com>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@suse.cz>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup_freezer.c |   56 +++++++++++++++++++-------------------
- 1 file changed, 28 insertions(+), 28 deletions(-)
+ include/linux/freezer.h |   29 +++--------------------------
+ kernel/freezer.c        |   31 +++++++++++++++++++++++++++++++
+ 2 files changed, 34 insertions(+), 26 deletions(-)
 
-diff -puN kernel/cgroup_freezer.c~container-freezer-make-freezer-state-names-less-generic kernel/cgroup_freezer.c
---- a/kernel/cgroup_freezer.c~container-freezer-make-freezer-state-names-less-generic
-+++ a/kernel/cgroup_freezer.c
-@@ -22,9 +22,9 @@
- #include <linux/seq_file.h>
- 
- enum freezer_state {
--	STATE_RUNNING = 0,
--	STATE_FREEZING,
--	STATE_FROZEN,
-+	CGROUP_THAWED = 0,
-+	CGROUP_FREEZING,
-+	CGROUP_FROZEN,
- };
- 
- struct freezer {
-@@ -57,7 +57,7 @@ int cgroup_frozen(struct task_struct *ta
- 	state = freezer->state;
- 	task_unlock(task);
- 
--	return state == STATE_FROZEN;
-+	return state == CGROUP_FROZEN;
- }
+diff -puN include/linux/freezer.h~container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process include/linux/freezer.h
+--- a/include/linux/freezer.h~container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process
++++ a/include/linux/freezer.h
+@@ -46,34 +46,11 @@ static inline bool should_send_signal(st
  
  /*
-@@ -65,7 +65,7 @@ int cgroup_frozen(struct task_struct *ta
-  * interface. See cgroups code for the current size.
+  * Wake up a frozen process
+- *
+- * task_lock() is needed to prevent the race with refrigerator() which may
+- * occur if the freezing of tasks fails.  Namely, without the lock, if the
+- * freezing of tasks failed, thaw_tasks() might have run before a task in
+- * refrigerator() could call frozen_process(), in which case the task would be
+- * frozen and no one would thaw it.
   */
- static const char *freezer_state_strs[] = {
--	"RUNNING",
-+	"THAWED",
- 	"FREEZING",
- 	"FROZEN",
- };
-@@ -75,10 +75,10 @@ static const char *freezer_state_strs[] 
-  * Transitions are caused by userspace writes to the freezer.state file.
-  * The values in parenthesis are state labels. The rest are edge labels.
-  *
-- * (RUNNING) --FROZEN--> (FREEZING) --FROZEN--> (FROZEN)
-- *    ^ ^                     |                       |
-- *    | \_______RUNNING_______/                       |
-- *    \_____________________________RUNNING___________/
-+ * (THAWED) --FROZEN--> (FREEZING) --FROZEN--> (FROZEN)
-+ *    ^ ^                    |                     |
-+ *    | \_______THAWED_______/                     |
-+ *    \__________________________THAWED____________/
-  */
+-static inline int __thaw_process(struct task_struct *p)
+-{
+-	if (frozen(p)) {
+-		p->flags &= ~PF_FROZEN;
+-		return 1;
+-	}
+-	clear_freeze_flag(p);
+-	return 0;
+-}
++extern int __thaw_process(struct task_struct *p);
  
- struct cgroup_subsys freezer_subsys;
-@@ -135,7 +135,7 @@ static struct cgroup_subsys_state *freez
- 		return ERR_PTR(-ENOMEM);
+-static inline int thaw_process(struct task_struct *p)
+-{
+-	task_lock(p);
+-	if (__thaw_process(p) == 1) {
+-		task_unlock(p);
+-		wake_up_process(p);
+-		return 1;
+-	}
+-	task_unlock(p);
+-	return 0;
+-}
++/* Takes and releases task alloc lock using task_lock() */
++extern int thaw_process(struct task_struct *p);
  
- 	spin_lock_init(&freezer->lock);
--	freezer->state = STATE_RUNNING;
-+	freezer->state = CGROUP_THAWED;
- 	return &freezer->css;
- }
- 
-@@ -170,13 +170,13 @@ static int freezer_can_attach(struct cgr
- 		return -EBUSY;
- 
- 	freezer = cgroup_freezer(new_cgroup);
--	if (freezer->state == STATE_FROZEN)
-+	if (freezer->state == CGROUP_FROZEN)
- 		return -EBUSY;
- 
- 	retval = 0;
- 	task_lock(task);
- 	freezer = task_freezer(task);
--	if (freezer->state == STATE_FROZEN)
-+	if (freezer->state == CGROUP_FROZEN)
- 		retval = -EBUSY;
- 	task_unlock(task);
- 	return retval;
-@@ -190,10 +190,10 @@ static void freezer_fork(struct cgroup_s
- 	freezer = task_freezer(task);
- 	task_unlock(task);
- 
--	BUG_ON(freezer->state == STATE_FROZEN);
-+	BUG_ON(freezer->state == CGROUP_FROZEN);
- 	spin_lock_irq(&freezer->lock);
--	/* Locking avoids race with FREEZING -> RUNNING transitions. */
--	if (freezer->state == STATE_FREEZING)
-+	/* Locking avoids race with FREEZING -> THAWED transitions. */
-+	if (freezer->state == CGROUP_FREEZING)
- 		freeze_task(task, true);
- 	spin_unlock_irq(&freezer->lock);
- }
-@@ -221,7 +221,7 @@ static void check_if_frozen(struct cgrou
- 	 * tasks.
- 	 */
- 	if (nfrozen == ntotal)
--		freezer->state = STATE_FROZEN;
-+		freezer->state = CGROUP_FROZEN;
- 	cgroup_iter_end(cgroup, &it);
- }
- 
-@@ -237,7 +237,7 @@ static int freezer_read(struct cgroup *c
- 	freezer = cgroup_freezer(cgroup);
- 	spin_lock_irq(&freezer->lock);
- 	state = freezer->state;
--	if (state == STATE_FREEZING) {
-+	if (state == CGROUP_FREEZING) {
- 		/* We change from FREEZING to FROZEN lazily if the cgroup was
- 		 * only partially frozen when we exitted write. */
- 		check_if_frozen(cgroup, freezer);
-@@ -257,7 +257,7 @@ static int try_to_freeze_cgroup(struct c
- 	struct task_struct *task;
- 	unsigned int num_cant_freeze_now = 0;
- 
--	freezer->state = STATE_FREEZING;
-+	freezer->state = CGROUP_FREEZING;
- 	cgroup_iter_start(cgroup, &it);
- 	while ((task = cgroup_iter_next(cgroup, &it))) {
- 		if (!freeze_task(task, true))
-@@ -288,7 +288,7 @@ static int unfreeze_cgroup(struct cgroup
- 			wake_up_process(task);
+ extern void refrigerator(void);
+ extern int freeze_processes(void);
+diff -puN kernel/freezer.c~container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process kernel/freezer.c
+--- a/kernel/freezer.c~container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process
++++ a/kernel/freezer.c
+@@ -120,3 +120,34 @@ void cancel_freezing(struct task_struct 
+ 		spin_unlock_irqrestore(&p->sighand->siglock, flags);
  	}
- 	cgroup_iter_end(cgroup, &it);
--	freezer->state = STATE_RUNNING;
-+	freezer->state = CGROUP_THAWED;
- 
- 	return 0;
  }
-@@ -305,18 +305,18 @@ static int freezer_change_state(struct c
- 	if (goal_state == freezer->state)
- 		goto out;
- 	switch (freezer->state) {
--	case STATE_RUNNING:
-+	case CGROUP_THAWED:
- 		retval = try_to_freeze_cgroup(cgroup, freezer);
- 		break;
--	case STATE_FREEZING:
--		if (goal_state == STATE_FROZEN) {
-+	case CGROUP_FREEZING:
-+		if (goal_state == CGROUP_FROZEN) {
- 			/* Userspace is retrying after
- 			 * "/bin/echo FROZEN > freezer.state" returned -EBUSY */
- 			retval = try_to_freeze_cgroup(cgroup, freezer);
- 			break;
- 		}
--		/* state == FREEZING and goal_state == RUNNING, so unfreeze */
--	case STATE_FROZEN:
-+		/* state == FREEZING and goal_state == THAWED, so unfreeze */
-+	case CGROUP_FROZEN:
- 		retval = unfreeze_cgroup(cgroup, freezer);
- 		break;
- 	default:
-@@ -335,10 +335,10 @@ static int freezer_write(struct cgroup *
- 	int retval;
- 	enum freezer_state goal_state;
- 
--	if (strcmp(buffer, freezer_state_strs[STATE_RUNNING]) == 0)
--		goal_state = STATE_RUNNING;
--	else if (strcmp(buffer, freezer_state_strs[STATE_FROZEN]) == 0)
--		goal_state = STATE_FROZEN;
-+	if (strcmp(buffer, freezer_state_strs[CGROUP_THAWED]) == 0)
-+		goal_state = CGROUP_THAWED;
-+	else if (strcmp(buffer, freezer_state_strs[CGROUP_FROZEN]) == 0)
-+		goal_state = CGROUP_FROZEN;
- 	else
- 		return -EIO;
- 
++
++/*
++ * Wake up a frozen process
++ *
++ * task_lock() is needed to prevent the race with refrigerator() which may
++ * occur if the freezing of tasks fails.  Namely, without the lock, if the
++ * freezing of tasks failed, thaw_tasks() might have run before a task in
++ * refrigerator() could call frozen_process(), in which case the task would be
++ * frozen and no one would thaw it.
++ */
++int __thaw_process(struct task_struct *p)
++{
++	if (frozen(p)) {
++		p->flags &= ~PF_FROZEN;
++		return 1;
++	}
++	clear_freeze_flag(p);
++	return 0;
++}
++
++int thaw_process(struct task_struct *p)
++{
++	task_lock(p);
++	if (__thaw_process(p) == 1) {
++		task_unlock(p);
++		wake_up_process(p);
++		return 1;
++	}
++	task_unlock(p);
++	return 0;
++}
 _
 
 Patches currently in -mm which might be from matthltc@us.ibm.com are
