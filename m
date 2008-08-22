@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-a-race-condtion-of-oops_in_progress-fix.patch added to -mm tree
-Date: Fri, 22 Aug 2008 16:07:19 -0700
-Message-ID: <200808222320.m7MNKddw021771@imap1.linux-foundation.org>
+Subject: + fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch added to -mm tree
+Date: Fri, 22 Aug 2008 16:08:52 -0700
+Message-ID: <200808222322.m7MNMBiu021818@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46434 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58025 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754895AbYHVXUm (ORCPT
+	by vger.kernel.org with ESMTP id S1754845AbYHVXWO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 19:20:42 -0400
+	Fri, 22 Aug 2008 19:22:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ying.huang@intel.com
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     fix-a-race-condtion-of-oops_in_progress-fix
+     fs/sysfs/dir.c: remove unused __sysfs_get_dentry()
 has been added to the -mm tree.  Its filename is
-     fix-a-race-condtion-of-oops_in_progress-fix.patch
+     fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix-a-race-condtion-of-oops_in_progress-fix
+Subject: fs/sysfs/dir.c: remove unused __sysfs_get_dentry()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Huang Ying <ying.huang@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/debug_locks.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/sysfs/dir.c |   39 ---------------------------------------
+ 1 file changed, 39 deletions(-)
 
-diff -puN lib/debug_locks.c~fix-a-race-condtion-of-oops_in_progress-fix lib/debug_locks.c
---- a/lib/debug_locks.c~fix-a-race-condtion-of-oops_in_progress-fix
-+++ a/lib/debug_locks.c
-@@ -38,7 +38,7 @@ int debug_locks_off(void)
- {
- 	if (xchg(&debug_locks, 0)) {
- 		if (!debug_locks_silent) {
--			oops_in_progress = 1;
-+			atomic_set(&oops_in_progress, 1);
- 			console_verbose();
- 			return 1;
- 		}
+diff -puN fs/sysfs/dir.c~fs-sysfs-dirc-remove-unused-__sysfs_get_dentry fs/sysfs/dir.c
+--- a/fs/sysfs/dir.c~fs-sysfs-dirc-remove-unused-__sysfs_get_dentry
++++ a/fs/sysfs/dir.c
+@@ -795,45 +795,6 @@ void sysfs_remove_dir(struct kobject * k
+ 	__sysfs_remove_dir(sd);
+ }
+ 
+-/**
+- *	__sysfs_get_dentry - get dentry for the given sysfs_dirent
+- *	@sb: superblock of the dentry to return
+- *	@sd: sysfs_dirent of interest
+- *
+- *	Get dentry for @sd.  Only return a dentry if one currently
+- *	exists.
+- *
+- *	LOCKING:
+- *	Kernel thread context (may sleep)
+- *
+- *	RETURNS:
+- *	Pointer to found dentry on success, NULL on failure.
+- */
+-static struct dentry *__sysfs_get_dentry(struct super_block *sb,
+-					 struct sysfs_dirent *sd)
+-{
+-	struct inode *inode;
+-	struct dentry *dentry = NULL;
+-
+-	inode = ilookup5_nowait(sysfs_sb, sd->s_ino, sysfs_ilookup_test, sd);
+-	if (inode && !(inode->i_state & I_NEW)) {
+-		struct dentry *alias;
+-		spin_lock(&dcache_lock);
+-		list_for_each_entry(alias, &inode->i_dentry, d_alias) {
+-			if (!IS_ROOT(alias) && d_unhashed(alias))
+-				continue;
+-			if (alias->d_sb != sb)
+-				continue;
+-			dentry = alias;
+-			dget_locked(dentry);
+-			break;
+-		}
+-		spin_unlock(&dcache_lock);
+-	}
+-	iput(inode);
+-	return dentry;
+-}
+-
+ struct sysfs_rename_struct {
+ 	struct list_head list;
+ 	struct dentry *old_dentry;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,6 +112,7 @@ arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
 arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
 arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
+fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 git-jg-misc.patch
