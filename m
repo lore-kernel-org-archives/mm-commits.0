@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-a-race-condtion-of-oops_in_progress-fix.patch added to -mm tree
-Date: Fri, 22 Aug 2008 15:55:43 -0700
-Message-ID: <200808222309.m7MN93ke021326@imap1.linux-foundation.org>
+Subject: + mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch added to -mm tree
+Date: Fri, 22 Aug 2008 15:58:42 -0700
+Message-ID: <200808222312.m7MNC1nE021436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33693 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44712 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753779AbYHVXJI (ORCPT
+	by vger.kernel.org with ESMTP id S1754864AbYHVXML (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 19:09:08 -0400
+	Fri, 22 Aug 2008 19:12:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ying.huang@intel.com
+Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com
 
 
 The patch titled
-     fix-a-race-condtion-of-oops_in_progress-fix
+     mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix
 has been added to the -mm tree.  Its filename is
-     fix-a-race-condtion-of-oops_in_progress-fix.patch
+     mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix-a-race-condtion-of-oops_in_progress-fix
+Subject: mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Huang Ying <ying.huang@intel.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/debug_locks.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mlock.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN lib/debug_locks.c~fix-a-race-condtion-of-oops_in_progress-fix lib/debug_locks.c
---- a/lib/debug_locks.c~fix-a-race-condtion-of-oops_in_progress-fix
-+++ a/lib/debug_locks.c
-@@ -38,7 +38,7 @@ int debug_locks_off(void)
- {
- 	if (xchg(&debug_locks, 0)) {
- 		if (!debug_locks_silent) {
--			oops_in_progress = 1;
-+			atomic_set(oops_in_progress, 1);
- 			console_verbose();
- 			return 1;
- 		}
+diff -puN mm/mlock.c~mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix mm/mlock.c
+--- a/mm/mlock.c~mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix
++++ a/mm/mlock.c
+@@ -239,7 +239,6 @@ static long __mlock_vma_pages_range(stru
+ }
+ #endif /* CONFIG_UNEVICTABLE_LRU */
+ 
+-/*
+ /**
+  * mlock_vma_pages_range() - mlock pages in specified vma range.
+  * @vma - the vma containing the specfied address range
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,6 +103,7 @@ unevictable-lru-page-statistics.patch
 mlock-mlocked-pages-are-unevictable.patch
 mlock-mlocked-pages-are-unevictable-fix.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
 vmscan-unevictable-lru-scan-sysctl.patch
 mm-rewrite-vmap-layer-fix.patch
 h8300-generic_bug-support-checkpatch-fixes.patch
