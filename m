@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mlock-revert-mainline-handling-of-mlock-error-return.patch added to -mm tree
-Date: Fri, 22 Aug 2008 14:44:26 -0700
-Message-ID: <200808222144.m7MLiQl1018096@imap1.linux-foundation.org>
+Subject: + mlock-make-mlock-error-return-posixly-correct.patch added to -mm tree
+Date: Fri, 22 Aug 2008 14:44:29 -0700
+Message-ID: <200808222144.m7MLiUqO018099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36123 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41841 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755622AbYHVVoz (ORCPT
+	by vger.kernel.org with ESMTP id S1755880AbYHVVpB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 17:44:55 -0400
+	Fri, 22 Aug 2008 17:45:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lee.schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     mlock: revert mainline handling of mlock error return
+     mlock: make mlock error return Posixly Correct
 has been added to the -mm tree.  Its filename is
-     mlock-revert-mainline-handling-of-mlock-error-return.patch
+     mlock-make-mlock-error-return-posixly-correct.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,111 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlock: revert mainline handling of mlock error return
+Subject: mlock: make mlock error return Posixly Correct
 From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-This change is intended to make mlock() error returns correct. 
-make_page_present() is a lower level function used by more than mlock(). 
-Subsequent patch[es] will add this error return fixup in an mlock specific
-path.
+Rework Posix error return for mlock().
 
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Posix requires error code for mlock*() system calls for some conditions
+that differ from what kernel low level functions, such as
+get_user_pages(), return for those conditions.  For more info, see:
+
+http://marc.info/?l=linux-kernel&m=121750892930775&w=2
+
+This patch provides the same translation of get_user_pages()
+error codes to posix specified error codes in the context
+of the mlock rework for unevictable lru.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   14 ++------------
- 1 file changed, 2 insertions(+), 12 deletions(-)
+ mm/memory.c |    2 +-
+ mm/mlock.c  |   27 +++++++++++++++++++++------
+ 2 files changed, 22 insertions(+), 7 deletions(-)
 
-diff -puN mm/memory.c~mlock-revert-mainline-handling-of-mlock-error-return mm/memory.c
---- a/mm/memory.c~mlock-revert-mainline-handling-of-mlock-error-return
+diff -puN mm/memory.c~mlock-make-mlock-error-return-posixly-correct mm/memory.c
+--- a/mm/memory.c~mlock-make-mlock-error-return-posixly-correct
 +++ a/mm/memory.c
-@@ -2819,19 +2819,9 @@ int make_pages_present(unsigned long add
- 	len = DIV_ROUND_UP(end, PAGE_SIZE) - addr/PAGE_SIZE;
- 	ret = get_user_pages(current, current->mm, addr,
+@@ -2821,7 +2821,7 @@ int make_pages_present(unsigned long add
  			len, write, 0, NULL, NULL);
--	if (ret < 0) {
--		/*
--		   SUS require strange return value to mlock
--		    - invalid addr generate to ENOMEM.
--		    - out of memory should generate EAGAIN.
--		*/
--		if (ret == -EFAULT)
--			ret = -ENOMEM;
--		else if (ret == -ENOMEM)
--			ret = -EAGAIN;
-+	if (ret < 0)
+ 	if (ret < 0)
  		return ret;
--	}
--	return ret == len ? 0 : -ENOMEM;
-+	return ret == len ? 0 : -1;
+-	return ret == len ? 0 : -1;
++	return ret == len ? 0 : -EFAULT;
  }
  
  #if !defined(__HAVE_ARCH_GATE_AREA)
+diff -puN mm/mlock.c~mlock-make-mlock-error-return-posixly-correct mm/mlock.c
+--- a/mm/mlock.c~mlock-make-mlock-error-return-posixly-correct
++++ a/mm/mlock.c
+@@ -143,6 +143,18 @@ static void munlock_vma_page(struct page
+ 	}
+ }
+ 
++/*
++ * convert get_user_pages() return value to posix mlock() error
++ */
++static int __mlock_posix_error_return(long retval)
++{
++	if (retval == -EFAULT)
++		retval = -ENOMEM;
++	else if (retval == -ENOMEM)
++		retval = -EAGAIN;
++	return retval;
++}
++
+ /**
+  * __mlock_vma_pages_range() -  mlock/munlock a range of pages in the vma.
+  * @vma:   target vma
+@@ -248,11 +260,12 @@ static long __mlock_vma_pages_range(stru
+ 			addr += PAGE_SIZE;	/* for next get_user_pages() */
+ 			nr_pages--;
+ 		}
++		ret = 0;
+ 	}
+ 
+ 	lru_add_drain_all();	/* to update stats */
+ 
+-	return 0;	/* count entire vma as locked_vm */
++	return ret;	/* count entire vma as locked_vm */
+ }
+ 
+ #else /* CONFIG_UNEVICTABLE_LRU */
+@@ -265,7 +278,7 @@ static long __mlock_vma_pages_range(stru
+ 				   int mlock)
+ {
+ 	if (mlock && (vma->vm_flags & VM_LOCKED))
+-		make_pages_present(start, end);
++		return make_pages_present(start, end);
+ 	return 0;
+ }
+ #endif /* CONFIG_UNEVICTABLE_LRU */
+@@ -435,10 +448,7 @@ success:
+ 		downgrade_write(&mm->mmap_sem);
+ 
+ 		ret = __mlock_vma_pages_range(vma, start, end, 1);
+-		if (ret > 0) {
+-			mm->locked_vm -= ret;
+-			ret = 0;
+-		}
++
+ 		/*
+ 		 * Need to reacquire mmap sem in write mode, as our callers
+ 		 * expect this.  We have no support for atomically upgrading
+@@ -452,6 +462,11 @@ success:
+ 		/* non-NULL *prev must contain @start, but need to check @end */
+ 		if (!(*prev) || end > (*prev)->vm_end)
+ 			ret = -ENOMEM;
++		else if (ret > 0) {
++			mm->locked_vm -= ret;
++			ret = 0;
++		} else
++			ret = __mlock_posix_error_return(ret); /* translate if needed */
+ 	} else {
+ 		/*
+ 		 * TODO:  for unlocking, pages will already be resident, so
 _
 
 Patches currently in -mm which might be from lee.schermerhorn@hp.com are
