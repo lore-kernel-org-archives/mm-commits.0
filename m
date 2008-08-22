@@ -1,64 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix.patch removed from -mm tree
-Date: Thu, 21 Aug 2008 21:27:51 -0700
-Message-ID: <200808220427.m7M4Rpmv010749@imap1.linux-foundation.org>
+Subject: - drivers-ata-pata_it821xc-fix-warning.patch removed from -mm tree
+Date: Fri, 22 Aug 2008 00:27:00 -0700
+Message-ID: <200808220727.m7M7R0nf017195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36497 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41051 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751311AbYHVE2B (ORCPT
+	by vger.kernel.org with ESMTP id S1752132AbYHVH1K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 00:28:01 -0400
+	Fri, 22 Aug 2008 03:27:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix
+     drivers/ata/pata_it821x.c: fix warning
 has been removed from the -mm tree.  Its filename was
-     mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix.patch
+     drivers-ata-pata_it821xc-fix-warning.patch
 
-This patch was dropped because it was folded into mm-quicklist-shouldnt-be-proportional-to-number-of-cpus.patch
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix
+Subject: drivers/ata/pata_it821x.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+drivers/ata/pata_it821x.c: In function 'it821x_port_start':
+drivers/ata/pata_it821x.c:609: warning: 'mtype' may be used uninitialized in this function
+
+Pretty horrid fix, but so's a warning..
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/quicklist.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/ata/pata_it821x.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/quicklist.c~mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix mm/quicklist.c
---- a/mm/quicklist.c~mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix
-+++ a/mm/quicklist.c
-@@ -28,7 +28,7 @@ static unsigned long max_pages(unsigned 
- 	unsigned long node_free_pages, max;
- 	int node = numa_node_id();
- 	struct zone *zones = NODE_DATA(node)->node_zones;
--	int num_cpus_per_node;
-+	cpumask_t node_cpumask;
+diff -puN drivers/ata/pata_it821x.c~drivers-ata-pata_it821xc-fix-warning drivers/ata/pata_it821x.c
+--- a/drivers/ata/pata_it821x.c~drivers-ata-pata_it821xc-fix-warning
++++ a/drivers/ata/pata_it821x.c
+@@ -619,9 +619,9 @@ static void it821x_display_disk(int n, u
  
- 	node_free_pages =
- #ifdef CONFIG_ZONE_DMA
-@@ -41,8 +41,8 @@ static unsigned long max_pages(unsigned 
+ 	ata_id_c_string((u16 *)buf, id, 0, 41); 
  
- 	max = node_free_pages / FRACTION_OF_NODE_MEM;
- 
--	num_cpus_per_node = cpus_weight_nr(node_to_cpumask(node));
--	max /= num_cpus_per_node;
-+	node_cpumask = node_to_cpumask(node);
-+	max /= cpus_weight_nr(node_cpumask);
- 
- 	return max(max, min_pages);
- }
++	mtype = "UDMA";
+ 	if (buf[51]) {
+ 		mode = ffs(buf[51]);
+-		mtype = "UDMA";
+ 	} else if (buf[49]) {
+ 		mode = ffs(buf[49]);
+ 		mtype = "MWDMA";
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,7 +61,6 @@ vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
 acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
 mm-show-quicklist-memory-usage-in-proc-meminfo.patch
 mm-quicklist-shouldnt-be-proportional-to-number-of-cpus.patch
-mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix.patch
 seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
 next-remove-localversion.patch
