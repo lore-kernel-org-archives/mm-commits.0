@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-pci-hotplug-ibmphp_ebdac-list_for_each-to-list_for_each_entry.patch added to -mm tree
-Date: Fri, 22 Aug 2008 13:28:17 -0700
-Message-ID: <200808222028.m7MKSH5K014990@imap1.linux-foundation.org>
+Subject: + backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2.patch added to -mm tree
+Date: Fri, 22 Aug 2008 13:33:46 -0700
+Message-ID: <200808222033.m7MKXliJ015206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53874 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53449 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757941AbYHVUeV (ORCPT
+	by vger.kernel.org with ESMTP id S1758201AbYHVUeY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 16:34:21 -0400
+	Fri, 22 Aug 2008 16:34:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cordsam@linux.vnet.ibm.com, cordesam@gmail.com, jbarnes@virtuousgeek.org, kristen.c.accardi@intel.com
+Cc: private@claudio.ch
 
 
 The patch titled
-     drivers-pci-hotplug-ibmphp_ebda.c: list_for_each to list_for_each_entry
+     From: Claudio Nieder <private@claudio.ch>
 has been added to the -mm tree.  Its filename is
-     drivers-pci-hotplug-ibmphp_ebdac-list_for_each-to-list_for_each_entry.patch
+     backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,307 +34,167 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-pci-hotplug-ibmphp_ebda.c: list_for_each to list_for_each_entry
-From: Cordelia Sam <cordsam@linux.vnet.ibm.com>
+Subject: From: Claudio Nieder <private@claudio.ch>
 
-Make code more readable with list_for_each_entry().
 
-Signed-off-by: Cordelia Sam <cordesam@gmail.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Hi,
+
+> These two empty initializers are not needed.
+
+Fixed.
+
+> Now let's add module alias to ensure driver autoloading.
+> IMHO the line below should do the trick:
+>
+> MODULE_ALIAS("dmi:*:svnSDV:pniTouchT201:*");
+
+I usually built the kernel with my driver included. For once I tried to build as
+module first without that line added and then with. And by magic the module is
+loaded right at boot time. Thank you for your help.
+
+Once again the patch in which all your suggestions are included. Furthermore I
+noticed that I had "default y" in Kconfig. Handy for me, but a tad selfish I
+think and so corrected that by setting it to "n".
+
+Here the fixed patch:
+
+Signed-off-by: Claudio Nieder <private@claudio.ch>
+
+Backlight driver for Tabletkiosk Sahara TouchIT-213 Tablet PC
+---
+
+index 452b770..7dd0ecd 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/ibmphp_ebda.c |   92 +++++++---------------------
- 1 file changed, 23 insertions(+), 69 deletions(-)
+ drivers/video/backlight/Kconfig     |    2 -
+ drivers/video/backlight/kb3886_bl.c |   45 +++++++++++---------------
+ 2 files changed, 21 insertions(+), 26 deletions(-)
 
-diff -puN drivers/pci/hotplug/ibmphp_ebda.c~drivers-pci-hotplug-ibmphp_ebdac-list_for_each-to-list_for_each_entry drivers/pci/hotplug/ibmphp_ebda.c
---- a/drivers/pci/hotplug/ibmphp_ebda.c~drivers-pci-hotplug-ibmphp_ebdac-list_for_each-to-list_for_each_entry
-+++ a/drivers/pci/hotplug/ibmphp_ebda.c
-@@ -123,10 +123,8 @@ static struct ebda_pci_rsrc *alloc_ebda_
- static void __init print_bus_info (void)
- {
- 	struct bus_info *ptr;
--	struct list_head *ptr1;
- 	
--	list_for_each (ptr1, &bus_info_head) {
--		ptr = list_entry (ptr1, struct bus_info, bus_info_list);
-+	list_for_each_entry (ptr, &bus_info_head, bus_info_list) {
- 		debug ("%s - slot_min = %x\n", __func__, ptr->slot_min);
- 		debug ("%s - slot_max = %x\n", __func__, ptr->slot_max);
- 		debug ("%s - slot_count = %x\n", __func__, ptr->slot_count);
-@@ -146,10 +144,8 @@ static void __init print_bus_info (void)
- static void print_lo_info (void)
- {
- 	struct rio_detail *ptr;
--	struct list_head *ptr1;
- 	debug ("print_lo_info ----\n");	
--	list_for_each (ptr1, &rio_lo_head) {
--		ptr = list_entry (ptr1, struct rio_detail, rio_detail_list);
-+	list_for_each_entry (ptr, &rio_lo_head, rio_detail_list) {
- 		debug ("%s - rio_node_id = %x\n", __func__, ptr->rio_node_id);
- 		debug ("%s - rio_type = %x\n", __func__, ptr->rio_type);
- 		debug ("%s - owner_id = %x\n", __func__, ptr->owner_id);
-@@ -163,10 +159,8 @@ static void print_lo_info (void)
- static void print_vg_info (void)
- {
- 	struct rio_detail *ptr;
--	struct list_head *ptr1;
- 	debug ("%s ---\n", __func__);
--	list_for_each (ptr1, &rio_vg_head) {
--		ptr = list_entry (ptr1, struct rio_detail, rio_detail_list);
-+	list_for_each_entry (ptr, &rio_vg_head, rio_detail_list) {
- 		debug ("%s - rio_node_id = %x\n", __func__, ptr->rio_node_id);
- 		debug ("%s - rio_type = %x\n", __func__, ptr->rio_type);
- 		debug ("%s - owner_id = %x\n", __func__, ptr->owner_id);
-@@ -180,10 +174,8 @@ static void print_vg_info (void)
- static void __init print_ebda_pci_rsrc (void)
- {
- 	struct ebda_pci_rsrc *ptr;
--	struct list_head *ptr1;
- 
--	list_for_each (ptr1, &ibmphp_ebda_pci_rsrc_head) {
--		ptr = list_entry (ptr1, struct ebda_pci_rsrc, ebda_pci_rsrc_list);
-+	list_for_each_entry (ptr, &ibmphp_ebda_pci_rsrc_head, ebda_pci_rsrc_list) {
- 		debug ("%s - rsrc type: %x bus#: %x dev_func: %x start addr: %x end addr: %x\n", 
- 			__func__, ptr->rsrc_type ,ptr->bus_num, ptr->dev_fun,ptr->start_addr, ptr->end_addr);
- 	}
-@@ -192,10 +184,8 @@ static void __init print_ebda_pci_rsrc (
- static void __init print_ibm_slot (void)
- {
- 	struct slot *ptr;
--	struct list_head *ptr1;
- 
--	list_for_each (ptr1, &ibmphp_slot_head) {
--		ptr = list_entry (ptr1, struct slot, ibm_slot_list);
-+	list_for_each_entry (ptr, &ibmphp_slot_head, ibm_slot_list) {
- 		debug ("%s - slot_number: %x\n", __func__, ptr->number);
- 	}
- }
-@@ -203,10 +193,8 @@ static void __init print_ibm_slot (void)
- static void __init print_opt_vg (void)
- {
- 	struct opt_rio *ptr;
--	struct list_head *ptr1;
- 	debug ("%s ---\n", __func__);
--	list_for_each (ptr1, &opt_vg_head) {
--		ptr = list_entry (ptr1, struct opt_rio, opt_rio_list);
-+	list_for_each_entry (ptr, &opt_vg_head, opt_rio_list) {
- 		debug ("%s - rio_type %x\n", __func__, ptr->rio_type);
- 		debug ("%s - chassis_num: %x\n", __func__, ptr->chassis_num);
- 		debug ("%s - first_slot_num: %x\n", __func__, ptr->first_slot_num);
-@@ -217,13 +205,9 @@ static void __init print_opt_vg (void)
- static void __init print_ebda_hpc (void)
- {
- 	struct controller *hpc_ptr;
--	struct list_head *ptr1;
- 	u16 index;
- 
--	list_for_each (ptr1, &ebda_hpc_head) {
+diff -puN drivers/video/backlight/Kconfig~backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2 drivers/video/backlight/Kconfig
+--- a/drivers/video/backlight/Kconfig~backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2
++++ a/drivers/video/backlight/Kconfig
+@@ -167,7 +167,7 @@ config BACKLIGHT_MBP_NVIDIA
+ config BACKLIGHT_SAHARA
+ 	tristate "Tabletkiosk Sahara Touch-iT Backlight Driver"
+ 	depends on BACKLIGHT_CLASS_DEVICE && X86
+-	default y
++	default n
+ 	help
+ 	  If you have a Tabletkiosk Sahara Touch-iT, say y to enable the
+ 	  backlight driver.
+diff -puN drivers/video/backlight/kb3886_bl.c~backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2 drivers/video/backlight/kb3886_bl.c
+--- a/drivers/video/backlight/kb3886_bl.c~backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2
++++ a/drivers/video/backlight/kb3886_bl.c
+@@ -1,7 +1,7 @@
+ /*
+  *  Backlight Driver for the KB3886 Backlight
+  *
+- *  Copyright (c) 2007 Claudio Nieder
++ *  Copyright (c) 2007-2008 Claudio Nieder
+  *
+  *  Based on corgi_bl.c by Richard Purdie and kb3886 driver by Robert Woerle
+  *
+@@ -19,7 +19,7 @@
+ #include <linux/fb.h>
+ #include <linux/backlight.h>
+ #include <linux/delay.h>
 -
--		hpc_ptr = list_entry (ptr1, struct controller, ebda_hpc_list); 
--
-+	list_for_each_entry (hpc_ptr, &ebda_hpc_head, ebda_hpc_list) {
- 		for (index = 0; index < hpc_ptr->slot_count; index++) {
- 			debug ("%s - physical slot#: %x\n", __func__, hpc_ptr->slots[index].slot_num);
- 			debug ("%s - pci bus# of the slot: %x\n", __func__, hpc_ptr->slots[index].slot_bus_num);
-@@ -460,9 +444,7 @@ static int __init ebda_rio_table (void)
- static struct opt_rio *search_opt_vg (u8 chassis_num)
- {
- 	struct opt_rio *ptr;
--	struct list_head *ptr1;
--	list_for_each (ptr1, &opt_vg_head) {
--		ptr = list_entry (ptr1, struct opt_rio, opt_rio_list);
-+	list_for_each_entry (ptr, &opt_vg_head, opt_rio_list) {
- 		if (ptr->chassis_num == chassis_num)
- 			return ptr;
- 	}		
-@@ -473,10 +455,8 @@ static int __init combine_wpg_for_chassi
- {
- 	struct opt_rio *opt_rio_ptr = NULL;
- 	struct rio_detail *rio_detail_ptr = NULL;
--	struct list_head *list_head_ptr = NULL;
- 	
--	list_for_each (list_head_ptr, &rio_vg_head) {
--		rio_detail_ptr = list_entry (list_head_ptr, struct rio_detail, rio_detail_list);
-+	list_for_each_entry (rio_detail_ptr, &rio_vg_head, rio_detail_list) {
- 		opt_rio_ptr = search_opt_vg (rio_detail_ptr->chassis_num);
- 		if (!opt_rio_ptr) {
- 			opt_rio_ptr = kzalloc(sizeof(struct opt_rio), GFP_KERNEL);
-@@ -497,14 +477,12 @@ static int __init combine_wpg_for_chassi
- }	
++#include <linux/dmi.h>
  
  /*
-- * reorgnizing linked list of expansion box	 
-+ * reorganizing linked list of expansion box
-  */
- static struct opt_rio_lo *search_opt_lo (u8 chassis_num)
- {
- 	struct opt_rio_lo *ptr;
--	struct list_head *ptr1;
--	list_for_each (ptr1, &opt_lo_head) {
--		ptr = list_entry (ptr1, struct opt_rio_lo, opt_rio_lo_list);
-+	list_for_each_entry (ptr, &opt_lo_head, opt_rio_lo_list) {
- 		if (ptr->chassis_num == chassis_num)
- 			return ptr;
- 	}		
-@@ -515,10 +493,8 @@ static int combine_wpg_for_expansion (vo
- {
- 	struct opt_rio_lo *opt_rio_lo_ptr = NULL;
- 	struct rio_detail *rio_detail_ptr = NULL;
--	struct list_head *list_head_ptr = NULL;
- 	
--	list_for_each (list_head_ptr, &rio_lo_head) {
--		rio_detail_ptr = list_entry (list_head_ptr, struct rio_detail, rio_detail_list);
-+	list_for_each_entry (rio_detail_ptr, &rio_lo_head, rio_detail_list) {
- 		opt_rio_lo_ptr = search_opt_lo (rio_detail_ptr->chassis_num);
- 		if (!opt_rio_lo_ptr) {
- 			opt_rio_lo_ptr = kzalloc(sizeof(struct opt_rio_lo), GFP_KERNEL);
-@@ -550,20 +526,17 @@ static int first_slot_num (u8 slot_num, 
- {
- 	struct opt_rio *opt_vg_ptr = NULL;
- 	struct opt_rio_lo *opt_lo_ptr = NULL;
--	struct list_head *ptr = NULL;
- 	int rc = 0;
+  * The following is what corgi has in arch/arm/mach-pxa/corgi.c and
+@@ -35,7 +35,7 @@
  
- 	if (!var) {
--		list_for_each (ptr, &opt_vg_head) {
--			opt_vg_ptr = list_entry (ptr, struct opt_rio, opt_rio_list);
-+		list_for_each_entry (opt_vg_ptr, &opt_vg_head, opt_rio_list) {
- 			if ((first_slot < opt_vg_ptr->first_slot_num) && (slot_num >= opt_vg_ptr->first_slot_num)) { 
- 				rc = -ENODEV;
- 				break;
- 			}
- 		}
- 	} else {
--		list_for_each (ptr, &opt_lo_head) {
--			opt_lo_ptr = list_entry (ptr, struct opt_rio_lo, opt_rio_lo_list);
-+		list_for_each_entry (opt_lo_ptr, &opt_lo_head, opt_rio_lo_list) {
- 			if ((first_slot < opt_lo_ptr->first_slot_num) && (slot_num >= opt_lo_ptr->first_slot_num)) {
- 				rc = -ENODEV;
- 				break;
-@@ -576,10 +549,8 @@ static int first_slot_num (u8 slot_num, 
- static struct opt_rio_lo * find_rxe_num (u8 slot_num)
+ static DEFINE_MUTEX(bl_mutex);
+ 
+-void kb3886_bl_set_intensity(int intensity)
++static void kb3886_bl_set_intensity(int intensity)
  {
- 	struct opt_rio_lo *opt_lo_ptr;
--	struct list_head *ptr;
+ 	mutex_lock(&bl_mutex);
+ 	intensity = intensity&0xff;
+@@ -73,11 +73,6 @@ static struct platform_device *devices[]
+ 	&kb3886bl_device,
+ };
  
--	list_for_each (ptr, &opt_lo_head) {
--		opt_lo_ptr = list_entry (ptr, struct opt_rio_lo, opt_rio_lo_list);
-+	list_for_each_entry (opt_lo_ptr, &opt_lo_head, opt_rio_lo_list) {
- 		//check to see if this slot_num belongs to expansion box
- 		if ((slot_num >= opt_lo_ptr->first_slot_num) && (!first_slot_num (slot_num, opt_lo_ptr->first_slot_num, 1))) 
- 			return opt_lo_ptr;
-@@ -590,10 +561,8 @@ static struct opt_rio_lo * find_rxe_num 
- static struct opt_rio * find_chassis_num (u8 slot_num)
- {
- 	struct opt_rio *opt_vg_ptr;
--	struct list_head *ptr;
- 
--	list_for_each (ptr, &opt_vg_head) {
--		opt_vg_ptr = list_entry (ptr, struct opt_rio, opt_rio_list);
-+	list_for_each_entry (opt_vg_ptr, &opt_vg_head, opt_rio_list) {
- 		//check to see if this slot_num belongs to chassis 
- 		if ((slot_num >= opt_vg_ptr->first_slot_num) && (!first_slot_num (slot_num, opt_vg_ptr->first_slot_num, 0))) 
- 			return opt_vg_ptr;
-@@ -607,11 +576,9 @@ static struct opt_rio * find_chassis_num
- static u8 calculate_first_slot (u8 slot_num)
- {
- 	u8 first_slot = 1;
--	struct list_head * list;
- 	struct slot * slot_cur;
- 	
--	list_for_each (list, &ibmphp_slot_head) {
--		slot_cur = list_entry (list, struct slot, ibm_slot_list);
-+	list_for_each_entry (slot_cur, &ibmphp_slot_head, ibm_slot_list) {
- 		if (slot_cur->ctrl) {
- 			if ((slot_cur->ctrl->ctlr_type != 4) && (slot_cur->ctrl->ending_slot_num > first_slot) && (slot_num > slot_cur->ctrl->ending_slot_num)) 
- 				first_slot = slot_cur->ctrl->ending_slot_num;
-@@ -767,7 +734,6 @@ static int __init ebda_rsrc_controller (
- 	struct bus_info *bus_info_ptr1, *bus_info_ptr2;
- 	int rc;
- 	struct slot *tmp_slot;
--	struct list_head *list;
- 
- 	addr = hpc_list_ptr->phys_addr;
- 	for (ctlr = 0; ctlr < hpc_list_ptr->num_ctlrs; ctlr++) {
-@@ -997,9 +963,7 @@ static int __init ebda_rsrc_controller (
- 
- 	}			/* each hpc  */
- 
--	list_for_each (list, &ibmphp_slot_head) {
--		tmp_slot = list_entry (list, struct slot, ibm_slot_list);
+-static void __init sahara_init(void)
+-{
+-	platform_add_devices(devices, ARRAY_SIZE(devices));
+-}
 -
-+	list_for_each_entry (tmp_slot, &ibmphp_slot_head, ibm_slot_list) {
- 		snprintf (tmp_slot->hotplug_slot->name, 30, "%s", create_file_name (tmp_slot));
- 		pci_hp_register(tmp_slot->hotplug_slot,
- 			pci_find_bus(0, tmp_slot->bus), tmp_slot->device);
-@@ -1101,10 +1065,8 @@ u16 ibmphp_get_total_controllers (void)
- struct slot *ibmphp_get_slot_from_physical_num (u8 physical_num)
- {
- 	struct slot *slot;
--	struct list_head *list;
+ /*
+  * Back to driver
+  */
+@@ -90,6 +85,17 @@ static unsigned long kb3886bl_flags;
+ #define KB3886BL_SUSPENDED     0x01
+ #define KB3886BL_BATTLOW       0x02
  
--	list_for_each (list, &ibmphp_slot_head) {
--		slot = list_entry (list, struct slot, ibm_slot_list);
-+	list_for_each_entry (slot, &ibmphp_slot_head, ibm_slot_list) {
- 		if (slot->number == physical_num)
- 			return slot;
- 	}
-@@ -1120,10 +1082,8 @@ struct slot *ibmphp_get_slot_from_physic
- struct bus_info *ibmphp_find_same_bus_num (u32 num)
++static struct dmi_system_id __initdata kb3886bl_device_table[] = {
++	{
++		.ident = "Sahara Touch-iT",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "SDV"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "iTouch T201"),
++		},
++	},
++	{ }
++};
++
+ static int kb3886bl_send_intensity(struct backlight_device *bd)
  {
- 	struct bus_info *ptr;
--	struct list_head  *ptr1;
+ 	int intensity = bd->props.brightness;
+@@ -137,21 +143,6 @@ static int kb3886bl_get_intensity(struct
+ 	return kb3886bl_intensity;
+ }
  
--	list_for_each (ptr1, &bus_info_head) {
--		ptr = list_entry (ptr1, struct bus_info, bus_info_list); 
-+	list_for_each_entry (ptr, &bus_info_head, bus_info_list) {
- 		if (ptr->busno == num) 
- 			 return ptr;
- 	}
-@@ -1136,10 +1096,8 @@ struct bus_info *ibmphp_find_same_bus_nu
- int ibmphp_get_bus_index (u8 num)
+-/*
+- * Called when the battery is low to limit the backlight intensity.
+- * If limit==0 clear any limit, otherwise limit the intensity
+- */
+-void kb3886bl_limit_intensity(int limit)
+-{
+-	if (limit)
+-		kb3886bl_flags |= KB3886BL_BATTLOW;
+-	else
+-		kb3886bl_flags &= ~KB3886BL_BATTLOW;
+-	backlight_update_status(kb3886_backlight_device);
+-}
+-EXPORT_SYMBOL(kb3886bl_limit_intensity);
+-
+-
+ static struct backlight_ops kb3886bl_ops = {
+ 	.get_brightness = kb3886bl_get_intensity,
+ 	.update_status  = kb3886bl_send_intensity,
+@@ -167,7 +158,7 @@ static int kb3886bl_probe(struct platfor
+ 
+ 	kb3886_backlight_device = backlight_device_register("kb3886-bl",
+ 		&pdev->dev, NULL, &kb3886bl_ops);
+-	if (IS_ERR(kb3886_backlight_device))
++	if (IS_ERR (kb3886_backlight_device))
+ 		return PTR_ERR(kb3886_backlight_device);
+ 
+ 	platform_set_drvdata(pdev, kb3886_backlight_device);
+@@ -201,7 +192,10 @@ static struct platform_driver kb3886bl_d
+ 
+ static int __init kb3886_init(void)
  {
- 	struct bus_info *ptr;
--	struct list_head  *ptr1;
+-	sahara_init();
++	if (!dmi_check_system(kb3886bl_device_table))
++		return -ENODEV;
++
++	platform_add_devices(devices, ARRAY_SIZE(devices));
+ 	return platform_driver_register(&kb3886bl_driver);
+ }
  
--	list_for_each (ptr1, &bus_info_head) {
--		ptr = list_entry (ptr1, struct bus_info, bus_info_list);
-+	list_for_each_entry (ptr, &bus_info_head, bus_info_list) {
- 		if (ptr->busno == num)  
- 			return ptr->index;
- 	}
-@@ -1212,11 +1170,9 @@ static struct pci_driver ibmphp_driver =
- int ibmphp_register_pci (void)
- {
- 	struct controller *ctrl;
--	struct list_head *tmp;
- 	int rc = 0;
- 
--	list_for_each (tmp, &ebda_hpc_head) {
--		ctrl = list_entry (tmp, struct controller, ebda_hpc_list);
-+	list_for_each_entry (ctrl, &ebda_hpc_head, ebda_hpc_list) {
- 		if (ctrl->ctlr_type == 1) {
- 			rc = pci_register_driver(&ibmphp_driver);
- 			break;
-@@ -1227,12 +1183,10 @@ int ibmphp_register_pci (void)
- static int ibmphp_probe (struct pci_dev * dev, const struct pci_device_id *ids)
- {
- 	struct controller *ctrl;
--	struct list_head *tmp;
- 
- 	debug ("inside ibmphp_probe\n");
- 	
--	list_for_each (tmp, &ebda_hpc_head) {
--		ctrl = list_entry (tmp, struct controller, ebda_hpc_list);
-+	list_for_each_entry (ctrl, &ebda_hpc_head, ebda_hpc_list) {
- 		if (ctrl->ctlr_type == 1) {
- 			if ((dev->devfn == ctrl->u.pci_ctlr.dev_fun) && (dev->bus->number == ctrl->u.pci_ctlr.bus)) {
- 				ctrl->ctrl_dev = dev;
+@@ -216,3 +210,4 @@ module_exit(kb3886_exit);
+ MODULE_AUTHOR("Claudio Nieder <private@claudio.ch>");
+ MODULE_DESCRIPTION("Tabletkiosk Sahara Touch-iT Backlight Driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("dmi:*:svnSDV:pniTouchT201:*");
 _
 
-Patches currently in -mm which might be from cordsam@linux.vnet.ibm.com are
+Patches currently in -mm which might be from private@claudio.ch are
 
-drivers-pci-hotplug-ibmphp_ebdac-list_for_each-to-list_for_each_entry.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2.patch
 
