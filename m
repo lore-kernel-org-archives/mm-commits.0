@@ -1,73 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch removed from -mm tree
-Date: Fri, 22 Aug 2008 15:56:06 -0700
-Message-ID: <200808222256.m7MMu6Rc020888@imap1.linux-foundation.org>
+Subject: - nohz-fix-wrong-event-handler-after-online-an-offlined-cpu.patch removed from -mm tree
+Date: Fri, 22 Aug 2008 15:56:08 -0700
+Message-ID: <200808222256.m7MMu8Ys020891@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38185 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56480 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754325AbYHVXEb (ORCPT
+	by vger.kernel.org with ESMTP id S1754289AbYHVXEq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 19:04:31 -0400
+	Fri, 22 Aug 2008 19:04:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mingo@elte.hu, paulmck@us.ibm.com, mm-commits@vger.kernel.org
+To: miaox@cn.fujitsu.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rcu: fix synchronize_rcu() so that kernel-doc works
+     nohz: fix wrong event handler after online an offlined cpu
 has been removed from the -mm tree.  Its filename was
-     rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+     nohz-fix-wrong-event-handler-after-online-an-offlined-cpu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rcu: fix synchronize_rcu() so that kernel-doc works
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: nohz: fix wrong event handler after online an offlined cpu
+From: Miao Xie <miaox@cn.fujitsu.com>
 
-Fix RCU's synchronize_rcu() so that it looks like a C function, enabling
-it to be recognized as a function with kernel-doc annotation.
+On the tickless system(CONFIG_NO_HZ=y and CONFIG_HIGH_RES_TIMERS=n), after
+I made an offlined cpu online, I found this cpu's event handler was
+tick_handle_periodic, not tick_nohz_handler.
 
-Warning(linux-2.6.26-git11//kernel/rcupdate.c:81): No description found for parameter 'synchronize_rcu'
-Warning(linux-2.6.26-git11//kernel/rcupdate.c:81): No description found for parameter 'call_rcu'
+After debuging, I found this bug was caused by the wrong tick mode.  the
+tick mode is not changed to NOHZ_MODE_INACTIVE when the cpu is offline.
 
-[akpm@linux-foundation.org: fix comment]
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+This patch fixes this bug.
+
+Signed-off-by: Miao Xie <miaox@cn.fujitsu.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcupdate.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/tick.h     |    5 ++++-
+ kernel/time/tick-sched.c |    6 +++++-
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN kernel/rcupdate.c~rcu-fix-synchronize_rcu-so-that-kernel-doc-works kernel/rcupdate.c
---- a/kernel/rcupdate.c~rcu-fix-synchronize_rcu-so-that-kernel-doc-works
-+++ a/kernel/rcupdate.c
-@@ -77,6 +77,7 @@ void wakeme_after_rcu(struct rcu_head  *
-  * sections are delimited by rcu_read_lock() and rcu_read_unlock(),
-  * and may be nested.
-  */
-+void synchronize_rcu(void);	/* Makes kernel-doc tools happy */
- synchronize_rcu_xxx(synchronize_rcu, call_rcu)
- EXPORT_SYMBOL_GPL(synchronize_rcu);
+diff -puN include/linux/tick.h~nohz-fix-wrong-event-handler-after-online-an-offlined-cpu include/linux/tick.h
+--- a/include/linux/tick.h~nohz-fix-wrong-event-handler-after-online-an-offlined-cpu
++++ a/include/linux/tick.h
+@@ -74,10 +74,13 @@ extern struct tick_device *tick_get_devi
+ extern int tick_init_highres(void);
+ extern int tick_program_event(ktime_t expires, int force);
+ extern void tick_setup_sched_timer(void);
++# endif
++
++# if defined CONFIG_NO_HZ || defined CONFIG_HIGH_RES_TIMERS
+ extern void tick_cancel_sched_timer(int cpu);
+ # else
+ static inline void tick_cancel_sched_timer(int cpu) { }
+-# endif /* HIGHRES */
++# endif
  
+ # ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
+ extern struct tick_device *tick_get_broadcast_device(void);
+diff -puN kernel/time/tick-sched.c~nohz-fix-wrong-event-handler-after-online-an-offlined-cpu kernel/time/tick-sched.c
+--- a/kernel/time/tick-sched.c~nohz-fix-wrong-event-handler-after-online-an-offlined-cpu
++++ a/kernel/time/tick-sched.c
+@@ -659,17 +659,21 @@ void tick_setup_sched_timer(void)
+ 		ts->nohz_mode = NOHZ_MODE_HIGHRES;
+ #endif
+ }
++#endif /* HIGH_RES_TIMERS */
+ 
++#if defined CONFIG_NO_HZ || defined CONFIG_HIGH_RES_TIMERS
+ void tick_cancel_sched_timer(int cpu)
+ {
+ 	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
+ 
++# ifdef CONFIG_HIGH_RES_TIMERS
+ 	if (ts->sched_timer.base)
+ 		hrtimer_cancel(&ts->sched_timer);
++# endif
+ 
+ 	ts->nohz_mode = NOHZ_MODE_INACTIVE;
+ }
+-#endif /* HIGH_RES_TIMERS */
++#endif
+ 
+ /**
+  * Async notification about clocksource changes
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from miaox@cn.fujitsu.com are
 
 origin.patch
-linux-next.patch
-mfd-ucb1400-sound-driver-uses-depends-on-ac97_bus.patch
-arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
-drm-sis-depends-on-fb_sis.patch
-genksyms-track-symbol-checksum-changes.patch
-genksyms-allow-to-ignore-symbol-checksum-changes.patch
-lkdtm-fix-for-config_scsi=n.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-ftrace-printk-formatting-infrastructure.patch
-w1-documentation-w1-masters-ds2490-update.patch
-profile-likely-unlikely-macros.patch
 
