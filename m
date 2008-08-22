@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + make-mm-hugetlbc-unmap_ref_private-static.patch added to -mm tree
-Date: Fri, 22 Aug 2008 11:37:24 -0700
-Message-ID: <200808221837.m7MIbOip010293@imap1.linux-foundation.org>
+Subject: + make-kprobesc-kretprobe_table_lock-static.patch added to -mm tree
+Date: Fri, 22 Aug 2008 11:37:27 -0700
+Message-ID: <200808221837.m7MIbRV1010296@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54284 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42177 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755717AbYHVShd (ORCPT
+	by vger.kernel.org with ESMTP id S1752249AbYHVSho (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 14:37:33 -0400
+	Fri, 22 Aug 2008 14:37:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, ananth@in.ibm.com
 
 
 The patch titled
-     make mm/hugetlb.c:unmap_ref_private() static
+     make kprobes.c:kretprobe_table_lock() static
 has been added to the -mm tree.  Its filename is
-     make-mm-hugetlbc-unmap_ref_private-static.patch
+     make-kprobesc-kretprobe_table_lock-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make mm/hugetlb.c:unmap_ref_private() static
+Subject: make kprobes.c:kretprobe_table_lock() static
 From: Adrian Bunk <bunk@kernel.org>
 
-Make the needlessly global unmap_ref_private() static.
+Make the needlessly global kretprobe_table_lock() static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ kernel/kprobes.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~make-mm-hugetlbc-unmap_ref_private-static mm/hugetlb.c
---- a/mm/hugetlb.c~make-mm-hugetlbc-unmap_ref_private-static
-+++ a/mm/hugetlb.c
-@@ -1747,10 +1747,8 @@ void unmap_hugepage_range(struct vm_area
-  * from other VMAs and let the children be SIGKILLed if they are faulting the
-  * same region.
-  */
--int unmap_ref_private(struct mm_struct *mm,
--					struct vm_area_struct *vma,
--					struct page *page,
--					unsigned long address)
-+static int unmap_ref_private(struct mm_struct *mm, struct vm_area_struct *vma,
-+			     struct page *page, unsigned long address)
+diff -puN kernel/kprobes.c~make-kprobesc-kretprobe_table_lock-static kernel/kprobes.c
+--- a/kernel/kprobes.c~make-kprobesc-kretprobe_table_lock-static
++++ a/kernel/kprobes.c
+@@ -404,7 +404,7 @@ void kretprobe_hash_lock(struct task_str
+ 	spin_lock_irqsave(hlist_lock, *flags);
+ }
+ 
+-void kretprobe_table_lock(unsigned long hash, unsigned long *flags)
++static void kretprobe_table_lock(unsigned long hash, unsigned long *flags)
  {
- 	struct vm_area_struct *iter_vma;
- 	struct address_space *mapping;
+ 	spinlock_t *hlist_lock = kretprobe_table_lock_ptr(hash);
+ 	spin_lock_irqsave(hlist_lock, *flags);
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
