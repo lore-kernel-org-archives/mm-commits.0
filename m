@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-random-typos.patch added to -mm tree
-Date: Fri, 22 Aug 2008 12:00:58 -0700
-Message-ID: <200808221900.m7MJ0wIB011261@imap1.linux-foundation.org>
+Subject: + pci-fix-printk-warnings-in-probec.patch added to -mm tree
+Date: Fri, 22 Aug 2008 12:49:49 -0700
+Message-ID: <200808221949.m7MJnnUY013310@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44434 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49819 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752214AbYHVTBx (ORCPT
+	by vger.kernel.org with ESMTP id S1755168AbYHVTua (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 15:01:53 -0400
+	Fri, 22 Aug 2008 15:50:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dth@cistron.nl, avi@qumranet.com, kaber@trash.net, starvik@axis.com
+Cc: johfel@users.sourceforge.net
 
 
 The patch titled
-     fix random typos
+     pci: fix printk warnings in probe.c
 has been added to the -mm tree.  Its filename is
-     fix-random-typos.patch
+     pci-fix-printk-warnings-in-probec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix random typos
-From: Danny ter Haar <dth@cistron.nl>
+Subject: pci: fix printk warnings in probe.c
+From: Johann Felix Soden <johfel@users.sourceforge.net>
 
-Signed-off-by: Danny ter Haar <dth@cistron.nl>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Avi Kivity <avi@qumranet.com>
+drivers/pci/probe.c: In function 'pci_read_bridge_bases':
+drivers/pci/probe.c:386: warning: format '%llx' expects type 'long long unsigned int', but argument 3 has type 'resource_size_t'
+drivers/pci/probe.c:386: warning: format '%llx' expects type 'long long unsigned int', but argument 4 has type 'resource_size_t'
+drivers/pci/probe.c:398: warning: format '%llx' expects type 'long long unsigned int', but argument 3 has type 'resource_size_t'
+drivers/pci/probe.c:398: warning: format '%llx' expects type 'long long unsigned int', but argument 4 has type 'resource_size_t'
+drivers/pci/probe.c:434: warning: format '%llx' expects type 'long long unsigned int', but argument 4 has type 'resource_size_t'
+drivers/pci/probe.c:434: warning: format '%llx' expects type 'long long unsigned int', but argument 5 has type 'resource_size_t'
+
+Signed-off-by: Johann Felix Soden <johfel@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cris/README         |    2 +-
- Documentation/ia64/kvm.txt        |    9 +++++----
- net/netfilter/nf_conntrack_acct.c |    2 +-
- 3 files changed, 7 insertions(+), 6 deletions(-)
+ drivers/pci/probe.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/cris/README~fix-random-typos Documentation/cris/README
---- a/Documentation/cris/README~fix-random-typos
-+++ a/Documentation/cris/README
-@@ -27,7 +27,7 @@ operating system.
- The ETRAX 100LX chip
- --------------------
+diff -puN drivers/pci/probe.c~pci-fix-printk-warnings-in-probec drivers/pci/probe.c
+--- a/drivers/pci/probe.c~pci-fix-printk-warnings-in-probec
++++ a/drivers/pci/probe.c
+@@ -383,7 +383,9 @@ void __devinit pci_read_bridge_bases(str
+ 			res->start = base;
+ 		if (!res->end)
+ 			res->end = limit + 0xfff;
+-		printk(KERN_INFO "PCI: bridge %s io port: [%llx, %llx]\n", pci_name(dev), res->start, res->end);
++		printk(KERN_INFO "PCI: bridge %s io port: [%llx, %llx]\n",
++			pci_name(dev), (unsigned long long) res->start,
++			(unsigned long long) res->end);
+ 	}
  
--For reference, plase see the press-release:
-+For reference, please see the press-release:
+ 	res = child->resource[1];
+@@ -395,7 +397,8 @@ void __devinit pci_read_bridge_bases(str
+ 		res->flags = (mem_base_lo & PCI_MEMORY_RANGE_TYPE_MASK) | IORESOURCE_MEM;
+ 		res->start = base;
+ 		res->end = limit + 0xfffff;
+-		printk(KERN_INFO "PCI: bridge %s 32bit mmio: [%llx, %llx]\n", pci_name(dev), res->start, res->end);
++		printk(KERN_INFO "PCI: bridge %s 32bit mmio: [%llx, %llx]\n", pci_name(dev),
++			(unsigned long long) res->start, (unsigned long long) res->end);
+ 	}
  
- http://www.axis.com/news/us/001101_etrax.htm
+ 	res = child->resource[2];
+@@ -431,7 +434,9 @@ void __devinit pci_read_bridge_bases(str
+ 		res->flags = (mem_base_lo & PCI_MEMORY_RANGE_TYPE_MASK) | IORESOURCE_MEM | IORESOURCE_PREFETCH;
+ 		res->start = base;
+ 		res->end = limit + 0xfffff;
+-		printk(KERN_INFO "PCI: bridge %s %sbit mmio pref: [%llx, %llx]\n", pci_name(dev), (res->flags & PCI_PREF_RANGE_TYPE_64)?"64":"32",res->start, res->end);
++		printk(KERN_INFO "PCI: bridge %s %sbit mmio pref: [%llx, %llx]\n",
++			pci_name(dev), (res->flags & PCI_PREF_RANGE_TYPE_64) ? "64" : "32",
++			(unsigned long long) res->start, (unsigned long long) res->end);
+ 	}
+ }
  
-diff -puN Documentation/ia64/kvm.txt~fix-random-typos Documentation/ia64/kvm.txt
---- a/Documentation/ia64/kvm.txt~fix-random-typos
-+++ a/Documentation/ia64/kvm.txt
-@@ -1,7 +1,8 @@
--Currently, kvm module in EXPERIMENTAL stage on IA64. This means that
--interfaces are not stable enough to use. So, plase had better don't run
--critical applications in virtual machine. We will try our best to make it
--strong in future versions!
-+Currently, kvm module is in EXPERIMENTAL stage on IA64. This means that
-+interfaces are not stable enough to use. So, please don't run critical
-+applications in virtual machine.
-+We will try our best to improve it in future versions!
-+
- 				Guide: How to boot up guests on kvm/ia64
- 
- This guide is to describe how to enable kvm support for IA-64 systems.
-diff -puN net/netfilter/nf_conntrack_acct.c~fix-random-typos net/netfilter/nf_conntrack_acct.c
---- a/net/netfilter/nf_conntrack_acct.c~fix-random-typos
-+++ a/net/netfilter/nf_conntrack_acct.c
-@@ -69,7 +69,7 @@ int nf_conntrack_acct_init(void)
- 	int ret;
- 
- #ifdef CONFIG_NF_CT_ACCT
--	printk(KERN_WARNING "CONFIG_NF_CT_ACCT is deprecated and will be removed soon. Plase use\n");
-+	printk(KERN_WARNING "CONFIG_NF_CT_ACCT is deprecated and will be removed soon. Please use\n");
- 	printk(KERN_WARNING "nf_conntrack.acct=1 kernel paramater, acct=1 nf_conntrack module option or\n");
- 	printk(KERN_WARNING "sysctl net.netfilter.nf_conntrack_acct=1 to enable it.\n");
- #endif
 _
 
-Patches currently in -mm which might be from dth@cistron.nl are
+Patches currently in -mm which might be from johfel@users.sourceforge.net are
 
-fix-random-typos.patch
+pci-fix-printk-warnings-in-setup-busc.patch
+pci-fix-printk-warnings-in-probec.patch
 
