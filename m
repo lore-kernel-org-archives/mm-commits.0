@@ -1,57 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - mm-show-quicklist-memory-usage-in-proc-meminfo-fix.patch removed from -mm tree
-Date: Thu, 21 Aug 2008 21:27:25 -0700
-Message-ID: <200808220427.m7M4RPuB010741@imap1.linux-foundation.org>
+Subject: - mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix.patch removed from -mm tree
+Date: Thu, 21 Aug 2008 21:27:51 -0700
+Message-ID: <200808220427.m7M4Rpmv010749@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54630 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36497 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750712AbYHVE1k (ORCPT
+	by vger.kernel.org with ESMTP id S1751311AbYHVE2B (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 00:27:40 -0400
+	Fri, 22 Aug 2008 00:28:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-show-quicklist-memory-usage-in-proc-meminfo-fix
+     mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix
 has been removed from the -mm tree.  Its filename was
-     mm-show-quicklist-memory-usage-in-proc-meminfo-fix.patch
+     mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix.patch
 
-This patch was dropped because it was folded into mm-show-quicklist-memory-usage-in-proc-meminfo.patch
+This patch was dropped because it was folded into mm-quicklist-shouldnt-be-proportional-to-number-of-cpus.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-show-quicklist-memory-usage-in-proc-meminfo-fix
+Subject: mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/proc/proc_misc.c: In function 'meminfo_read_proc':
-fs/proc/proc_misc.c:226: error: implicit declaration of function 'quicklist_total_size'
-fs/proc/proc_misc.c:227: warning: format '%8lu' expects type 'long unsigned int', but argument 28 has type 'int'
-fs/proc/proc_misc.c:227: warning: format '%8lu' expects type 'long unsigned int', but argument 28 has type 'int'
-
-Cc: <stable@kernel.org>
+Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
 Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/quicklist.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/proc_misc.c~mm-show-quicklist-memory-usage-in-proc-meminfo-fix fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~mm-show-quicklist-memory-usage-in-proc-meminfo-fix
-+++ a/fs/proc/proc_misc.c
-@@ -24,6 +24,7 @@
- #include <linux/tty.h>
- #include <linux/string.h>
- #include <linux/mman.h>
-+#include <linux/quicklist.h>
- #include <linux/proc_fs.h>
- #include <linux/ioport.h>
- #include <linux/mm.h>
+diff -puN mm/quicklist.c~mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix mm/quicklist.c
+--- a/mm/quicklist.c~mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix
++++ a/mm/quicklist.c
+@@ -28,7 +28,7 @@ static unsigned long max_pages(unsigned 
+ 	unsigned long node_free_pages, max;
+ 	int node = numa_node_id();
+ 	struct zone *zones = NODE_DATA(node)->node_zones;
+-	int num_cpus_per_node;
++	cpumask_t node_cpumask;
+ 
+ 	node_free_pages =
+ #ifdef CONFIG_ZONE_DMA
+@@ -41,8 +41,8 @@ static unsigned long max_pages(unsigned 
+ 
+ 	max = node_free_pages / FRACTION_OF_NODE_MEM;
+ 
+-	num_cpus_per_node = cpus_weight_nr(node_to_cpumask(node));
+-	max /= num_cpus_per_node;
++	node_cpumask = node_to_cpumask(node);
++	max /= cpus_weight_nr(node_cpumask);
+ 
+ 	return max(max, min_pages);
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -59,7 +66,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
 acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
 mm-show-quicklist-memory-usage-in-proc-meminfo.patch
-mm-show-quicklist-memory-usage-in-proc-meminfo-fix.patch
+mm-quicklist-shouldnt-be-proportional-to-number-of-cpus.patch
 mm-quicklist-shouldnt-be-proportional-to-number-of-cpus-fix.patch
 seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
