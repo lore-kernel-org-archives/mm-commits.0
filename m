@@ -1,98 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: - nohz-fix-wrong-event-handler-after-online-an-offlined-cpu.patch removed from -mm tree
-Date: Fri, 22 Aug 2008 15:56:08 -0700
-Message-ID: <200808222256.m7MMu8Ys020891@imap1.linux-foundation.org>
+Subject: + fix-a-race-condtion-of-oops_in_progress-fix.patch added to -mm tree
+Date: Fri, 22 Aug 2008 15:55:43 -0700
+Message-ID: <200808222309.m7MN93ke021326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56480 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33693 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754289AbYHVXEq (ORCPT
+	by vger.kernel.org with ESMTP id S1753779AbYHVXJI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 19:04:46 -0400
+	Fri, 22 Aug 2008 19:09:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: miaox@cn.fujitsu.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, ying.huang@intel.com
 
 
 The patch titled
-     nohz: fix wrong event handler after online an offlined cpu
-has been removed from the -mm tree.  Its filename was
-     nohz-fix-wrong-event-handler-after-online-an-offlined-cpu.patch
+     fix-a-race-condtion-of-oops_in_progress-fix
+has been added to the -mm tree.  Its filename is
+     fix-a-race-condtion-of-oops_in_progress-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nohz: fix wrong event handler after online an offlined cpu
-From: Miao Xie <miaox@cn.fujitsu.com>
+Subject: fix-a-race-condtion-of-oops_in_progress-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-On the tickless system(CONFIG_NO_HZ=y and CONFIG_HIGH_RES_TIMERS=n), after
-I made an offlined cpu online, I found this cpu's event handler was
-tick_handle_periodic, not tick_nohz_handler.
-
-After debuging, I found this bug was caused by the wrong tick mode.  the
-tick mode is not changed to NOHZ_MODE_INACTIVE when the cpu is offline.
-
-This patch fixes this bug.
-
-Signed-off-by: Miao Xie <miaox@cn.fujitsu.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tick.h     |    5 ++++-
- kernel/time/tick-sched.c |    6 +++++-
- 2 files changed, 9 insertions(+), 2 deletions(-)
+ lib/debug_locks.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/tick.h~nohz-fix-wrong-event-handler-after-online-an-offlined-cpu include/linux/tick.h
---- a/include/linux/tick.h~nohz-fix-wrong-event-handler-after-online-an-offlined-cpu
-+++ a/include/linux/tick.h
-@@ -74,10 +74,13 @@ extern struct tick_device *tick_get_devi
- extern int tick_init_highres(void);
- extern int tick_program_event(ktime_t expires, int force);
- extern void tick_setup_sched_timer(void);
-+# endif
-+
-+# if defined CONFIG_NO_HZ || defined CONFIG_HIGH_RES_TIMERS
- extern void tick_cancel_sched_timer(int cpu);
- # else
- static inline void tick_cancel_sched_timer(int cpu) { }
--# endif /* HIGHRES */
-+# endif
- 
- # ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
- extern struct tick_device *tick_get_broadcast_device(void);
-diff -puN kernel/time/tick-sched.c~nohz-fix-wrong-event-handler-after-online-an-offlined-cpu kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~nohz-fix-wrong-event-handler-after-online-an-offlined-cpu
-+++ a/kernel/time/tick-sched.c
-@@ -659,17 +659,21 @@ void tick_setup_sched_timer(void)
- 		ts->nohz_mode = NOHZ_MODE_HIGHRES;
- #endif
- }
-+#endif /* HIGH_RES_TIMERS */
- 
-+#if defined CONFIG_NO_HZ || defined CONFIG_HIGH_RES_TIMERS
- void tick_cancel_sched_timer(int cpu)
+diff -puN lib/debug_locks.c~fix-a-race-condtion-of-oops_in_progress-fix lib/debug_locks.c
+--- a/lib/debug_locks.c~fix-a-race-condtion-of-oops_in_progress-fix
++++ a/lib/debug_locks.c
+@@ -38,7 +38,7 @@ int debug_locks_off(void)
  {
- 	struct tick_sched *ts = &per_cpu(tick_cpu_sched, cpu);
- 
-+# ifdef CONFIG_HIGH_RES_TIMERS
- 	if (ts->sched_timer.base)
- 		hrtimer_cancel(&ts->sched_timer);
-+# endif
- 
- 	ts->nohz_mode = NOHZ_MODE_INACTIVE;
- }
--#endif /* HIGH_RES_TIMERS */
-+#endif
- 
- /**
-  * Async notification about clocksource changes
+ 	if (xchg(&debug_locks, 0)) {
+ 		if (!debug_locks_silent) {
+-			oops_in_progress = 1;
++			atomic_set(oops_in_progress, 1);
+ 			console_verbose();
+ 			return 1;
+ 		}
 _
 
-Patches currently in -mm which might be from miaox@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
+acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
+mm-show-quicklist-memory-usage-in-proc-meminfo.patch
+mm-quicklist-shouldnt-be-proportional-to-number-of-cpus.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
+arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+git-jg-misc.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
+power-support-for-texas-instruments-bq27x00-battery-managers.patch
+drivers-pci-hotplug-ibmphp_ebdac-list_for_each-to-list_for_each_entry-checkpatch-fixes.patch
+ftrace-printk-formatting-infrastructure.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+git-watchdog.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mm-rewrite-vmap-layer-fix.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+fix-a-race-condtion-of-oops_in_progress-fix.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+nilfs2-continuous-snapshotting-file-system-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
