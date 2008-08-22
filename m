@@ -1,141 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-ata-pata_it821xc-fix-warning.patch removed from -mm tree
-Date: Fri, 22 Aug 2008 00:27:00 -0700
-Message-ID: <200808220727.m7M7R0nf017195@imap1.linux-foundation.org>
+Subject: + mm-skip-memory-holes-in-flatmem-when-reading-proc-pagetypeinfo.patch added to -mm tree
+Date: Fri, 22 Aug 2008 09:15:55 -0700
+Message-ID: <200808221615.m7MGFt0a004520@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41051 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57675 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752132AbYHVH1K (ORCPT
+	by vger.kernel.org with ESMTP id S1751581AbYHVQQ7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 03:27:10 -0400
+	Fri, 22 Aug 2008 12:16:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mel@csn.ul.ie, hsweeten@visionengravers.com, rmk@arm.linux.org.uk, stable@kernel.org
 
 
 The patch titled
-     drivers/ata/pata_it821x.c: fix warning
-has been removed from the -mm tree.  Its filename was
-     drivers-ata-pata_it821xc-fix-warning.patch
+     mm: skip memory holes in FLATMEM when reading /proc/pagetypeinfo
+has been added to the -mm tree.  Its filename is
+     mm-skip-memory-holes-in-flatmem-when-reading-proc-pagetypeinfo.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/ata/pata_it821x.c: fix warning
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: skip memory holes in FLATMEM when reading /proc/pagetypeinfo
+From: Mel Gorman <mel@csn.ul.ie>
 
-drivers/ata/pata_it821x.c: In function 'it821x_port_start':
-drivers/ata/pata_it821x.c:609: warning: 'mtype' may be used uninitialized in this function
+Fixes an oops on arm.
 
-Pretty horrid fix, but so's a warning..
+Ordinarily, memory holes in flatmem still have a valid memmap and is safe
+to use.  However, an architecture (ARM) frees up the memmap backing memory
+holes on the assumption it is never used.  /proc/pagetypeinfo reads the
+whole range of pages in a zone believing that the memmap is valid and that
+pfn_valid will return false if it is not.  On ARM, freeing the memmap
+breaks the page->zone linkages even though pfn_valid() returns true and
+the kernel can oops shortly afterwards due to accessing a bogus struct
+zone *.
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+This patch lets architectures say when FLATMEM can have holes in the
+memmap.  Rather than an expensive check for valid memory,
+/proc/pagetypeinfo will confirm that the page linkages are still valid by
+checking page->zone is still the expected zone.  The lookup of page_zone
+is safe as there is a limited range of memory that is accessed when
+calling page_zone.  Even if page_zone happens to return the correct zone,
+the impact is that the counters in /proc/pagetypeinfo are slightly off but
+fragmentation monitoring is unlikely to be relevant on an embedded system.
+
+Reported-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Tested-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_it821x.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/Kconfig |    5 +++++
+ mm/vmstat.c      |   19 ++++++++++++++++++-
+ 2 files changed, 23 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_it821x.c~drivers-ata-pata_it821xc-fix-warning drivers/ata/pata_it821x.c
---- a/drivers/ata/pata_it821x.c~drivers-ata-pata_it821xc-fix-warning
-+++ a/drivers/ata/pata_it821x.c
-@@ -619,9 +619,9 @@ static void it821x_display_disk(int n, u
+diff -puN arch/arm/Kconfig~mm-skip-memory-holes-in-flatmem-when-reading-proc-pagetypeinfo arch/arm/Kconfig
+--- a/arch/arm/Kconfig~mm-skip-memory-holes-in-flatmem-when-reading-proc-pagetypeinfo
++++ a/arch/arm/Kconfig
+@@ -810,6 +810,11 @@ config OABI_COMPAT
+ 	  UNPREDICTABLE (in fact it can be predicted that it won't work
+ 	  at all). If in doubt say Y.
  
- 	ata_id_c_string((u16 *)buf, id, 0, 41); 
++config ARCH_FLATMEM_HAS_HOLES
++	bool
++	default y
++	depends on FLATMEM
++
+ config ARCH_DISCONTIGMEM_ENABLE
+ 	bool
+ 	default (ARCH_LH7A40X && !LH7A40X_CONTIGMEM)
+diff -puN mm/vmstat.c~mm-skip-memory-holes-in-flatmem-when-reading-proc-pagetypeinfo mm/vmstat.c
+--- a/mm/vmstat.c~mm-skip-memory-holes-in-flatmem-when-reading-proc-pagetypeinfo
++++ a/mm/vmstat.c
+@@ -516,9 +516,26 @@ static void pagetypeinfo_showblockcount_
+ 			continue;
  
-+	mtype = "UDMA";
- 	if (buf[51]) {
- 		mode = ffs(buf[51]);
--		mtype = "UDMA";
- 	} else if (buf[49]) {
- 		mode = ffs(buf[49]);
- 		mtype = "MWDMA";
+ 		page = pfn_to_page(pfn);
++#ifdef CONFIG_ARCH_FLATMEM_HAS_HOLES
++		/*
++		 * Ordinarily, memory holes in flatmem still have a valid
++		 * memmap for the PFN range. However, an architecture for
++		 * embedded systems (e.g. ARM) can free up the memmap backing
++		 * holes to save memory on the assumption the memmap is
++		 * never used. The page_zone linkages are then broken even
++		 * though pfn_valid() returns true. Skip the page if the
++		 * linkages are broken. Even if this test passed, the impact
++		 * is that the counters for the movable type are off but
++		 * fragmentation monitoring is likely meaningless on small
++		 * systems.
++		 */
++		if (page_zone(page) != zone)
++			continue;
++#endif
+ 		mtype = get_pageblock_migratetype(page);
+ 
+-		count[mtype]++;
++		if (mtype < MIGRATE_TYPES)
++			count[mtype]++;
+ 	}
+ 
+ 	/* Print counts */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
-acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
-mm-show-quicklist-memory-usage-in-proc-meminfo.patch
-mm-quicklist-shouldnt-be-proportional-to-number-of-cpus.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
-linux-next.patch
-next-remove-localversion.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
-arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-drivers-ata-pata_it821xc-fix-warning.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers.patch
-ftrace-printk-formatting-infrastructure.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-git-watchdog.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-rcu-fix-synchronize_rcu-so-that-kernel-doc-works.patch
+mm-make-setup_zone_migrate_reserve-aware-of-overlapping-nodes.patch
+mm-skip-memory-holes-in-flatmem-when-reading-proc-pagetypeinfo.patch
 mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mm-rewrite-vmap-layer-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-nilfs2-continuous-snapshotting-file-system-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
 page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
