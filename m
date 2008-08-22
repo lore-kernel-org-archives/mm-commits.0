@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-bootmem-silence-section-mismatch-warning-contig_page_data-bootmem_node_data.patch added to -mm tree
-Date: Fri, 22 Aug 2008 11:25:00 -0700
-Message-ID: <200808221825.m7MIP0l2009657@imap1.linux-foundation.org>
+Subject: + mm-hugetlbc-make-resv_map_allocrelease-static.patch added to -mm tree
+Date: Fri, 22 Aug 2008 11:37:22 -0700
+Message-ID: <200808221837.m7MIbMB6010290@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43920 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46597 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755374AbYHVSZV (ORCPT
+	by vger.kernel.org with ESMTP id S1758197AbYHVShc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 14:25:21 -0400
+	Fri, 22 Aug 2008 14:37:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: marcin.slusarz@gmail.com, hannes@saeurebad.de, sam@ravnborg.org, smaclennan@pikatech.com
+Cc: bunk@kernel.org
 
 
 The patch titled
-     mm/bootmem: silence section mismatch warning - contig_page_data/bootmem_node_data
+     mm/hugetlb.c: make resv_map_{alloc,release}() static
 has been added to the -mm tree.  Its filename is
-     mm-bootmem-silence-section-mismatch-warning-contig_page_data-bootmem_node_data.patch
+     mm-hugetlbc-make-resv_map_allocrelease-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/bootmem: silence section mismatch warning - contig_page_data/bootmem_node_data
-From: Marcin Slusarz <marcin.slusarz@gmail.com>
+Subject: mm/hugetlb.c: make resv_map_{alloc,release}() static
+From: Adrian Bunk <bunk@kernel.org>
 
-WARNING: vmlinux.o(.data+0x1f5c0): Section mismatch in reference from the variable contig_page_data to the variable .init.data:bootmem_node_data
-The variable contig_page_data references
-the variable __initdata bootmem_node_data
-If the reference is valid then annotate the
-variable with __init* (see linux/init.h) or name the variable:
-*driver, *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
+Make the needlessly global resv_map_{alloc,release}() static.
 
-Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Johannes Weiner <hannes@saeurebad.de>
-Cc: Sean MacLennan <smaclennan@pikatech.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-bootmem-silence-section-mismatch-warning-contig_page_data-bootmem_node_data mm/page_alloc.c
---- a/mm/page_alloc.c~mm-bootmem-silence-section-mismatch-warning-contig_page_data-bootmem_node_data
-+++ a/mm/page_alloc.c
-@@ -4071,7 +4071,7 @@ void __init set_dma_reserve(unsigned lon
+diff -puN mm/hugetlb.c~mm-hugetlbc-make-resv_map_allocrelease-static mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlbc-make-resv_map_allocrelease-static
++++ a/mm/hugetlb.c
+@@ -262,7 +262,7 @@ struct resv_map {
+ 	struct list_head regions;
+ };
+ 
+-struct resv_map *resv_map_alloc(void)
++static struct resv_map *resv_map_alloc(void)
+ {
+ 	struct resv_map *resv_map = kmalloc(sizeof(*resv_map), GFP_KERNEL);
+ 	if (!resv_map)
+@@ -274,7 +274,7 @@ struct resv_map *resv_map_alloc(void)
+ 	return resv_map;
  }
  
- #ifndef CONFIG_NEED_MULTIPLE_NODES
--struct pglist_data contig_page_data = { .bdata = &bootmem_node_data[0] };
-+struct pglist_data __refdata contig_page_data = { .bdata = &bootmem_node_data[0] };
- EXPORT_SYMBOL(contig_page_data);
- #endif
+-void resv_map_release(struct kref *ref)
++static void resv_map_release(struct kref *ref)
+ {
+ 	struct resv_map *resv_map = container_of(ref, struct resv_map, refs);
  
 _
 
-Patches currently in -mm which might be from marcin.slusarz@gmail.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-mm-bootmem-silence-section-mismatch-warning-contig_page_data-bootmem_node_data.patch
+ntfs-update-homepage.patch
 linux-next.patch
+m32r-remove-the-unused-nohighmem-option.patch
+m32r-dont-offer-config_isa.patch
+m32r-export-empty_zero_page.patch
+m32r-export-__ndelay.patch
+m32r-kernel-cleanups.patch
+the-overdue-eepro100-removal.patch
+parisc-lib-make-code-static.patch
+drivers-parisc-make-code-static.patch
+if-0-ses_match_host.patch
+scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
+drivers-scsi-a2091c-make-2-functions-static.patch
+drivers-scsi-a3000c-make-2-functions-static.patch
+fs_mbcache-dont-needlessly-make-it-built-in.patch
+git-xtensa.patch
+mpc8xxx_wdt-fix-modular-build.patch
+asm-h8300-mdh-remove-cvs-keyword.patch
+alpha-miata-remove-dead-url.patch
+uml-remove-the-dead-tty_log-code.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+maintainers-remove-hga-framebuffer-driver-entry.patch
+include-linux-mounth-remove-cvs-keyword.patch
+kernel-dmac-remove-a-cvs-keyword.patch
+binfmt_somc-add-module_license.patch
+make-probe_serial_gsc-static.patch
+pnp-remove-printk-with-outdated-version.patch
+telephony-remove-cvs-keywords.patch
+reiserfs-procfsc-remove-cvs-keywords.patch
+quota-remove-cvs-keywords.patch
+make-ptrace_untrace-static.patch
+fs-partitions-acornc-remove-dead-code.patch
+parport-remove-cvs-keywords.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+ipc-semc-make-free_un-static.patch
+make-fs-proc-proc_sysctlc-grab_header-static.patch
+make-hp_wmi_notify-static.patch
+mm-hugetlbc-make-resv_map_allocrelease-static.patch
+make-mm-hugetlbc-unmap_ref_private-static.patch
+make-kprobesc-kretprobe_table_lock-static.patch
+acpi-use-bcd2bin-bin2bcd.patch
+alpha-use-bcd2bin-bin2bcd.patch
+arm-use-bcd2bin-bin2bcd.patch
+cris-use-bcd2bin-bin2bcd.patch
+drivers-rtc-use-bcd2bin-bin2bcd.patch
+rtc-use-bcd2bin-bin2bcd.patch
+mips-use-bcd2bin-bin2bcd.patch
+mn10300-use-bcd2bin-bin2bcd.patch
+i2c-use-bcd2bin-bin2bcd.patch
+drivers-scsi-sr_vendorc-use-bcd2bin.patch
+sparc64-use-bcd2bin-bin2bcd.patch
+remove-the-obsolete-bcdbin-binbcd-macros.patch
+include-linux-bcdh-remove-comments.patch
+remove-unused-include-linux-versionhs.patch
+reiser4.patch
 
