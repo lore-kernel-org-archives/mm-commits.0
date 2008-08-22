@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlbc-make-resv_map_allocrelease-static.patch added to -mm tree
-Date: Fri, 22 Aug 2008 11:37:22 -0700
-Message-ID: <200808221837.m7MIbMB6010290@imap1.linux-foundation.org>
+Subject: + make-mm-hugetlbc-unmap_ref_private-static.patch added to -mm tree
+Date: Fri, 22 Aug 2008 11:37:24 -0700
+Message-ID: <200808221837.m7MIbOip010293@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46597 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54284 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758197AbYHVShc (ORCPT
+	by vger.kernel.org with ESMTP id S1755717AbYHVShd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 14:37:32 -0400
+	Fri, 22 Aug 2008 14:37:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bunk@kernel.org
 
 
 The patch titled
-     mm/hugetlb.c: make resv_map_{alloc,release}() static
+     make mm/hugetlb.c:unmap_ref_private() static
 has been added to the -mm tree.  Its filename is
-     mm-hugetlbc-make-resv_map_allocrelease-static.patch
+     make-mm-hugetlbc-unmap_ref_private-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/hugetlb.c: make resv_map_{alloc,release}() static
+Subject: make mm/hugetlb.c:unmap_ref_private() static
 From: Adrian Bunk <bunk@kernel.org>
 
-Make the needlessly global resv_map_{alloc,release}() static.
+Make the needlessly global unmap_ref_private() static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlbc-make-resv_map_allocrelease-static mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbc-make-resv_map_allocrelease-static
+diff -puN mm/hugetlb.c~make-mm-hugetlbc-unmap_ref_private-static mm/hugetlb.c
+--- a/mm/hugetlb.c~make-mm-hugetlbc-unmap_ref_private-static
 +++ a/mm/hugetlb.c
-@@ -262,7 +262,7 @@ struct resv_map {
- 	struct list_head regions;
- };
- 
--struct resv_map *resv_map_alloc(void)
-+static struct resv_map *resv_map_alloc(void)
+@@ -1747,10 +1747,8 @@ void unmap_hugepage_range(struct vm_area
+  * from other VMAs and let the children be SIGKILLed if they are faulting the
+  * same region.
+  */
+-int unmap_ref_private(struct mm_struct *mm,
+-					struct vm_area_struct *vma,
+-					struct page *page,
+-					unsigned long address)
++static int unmap_ref_private(struct mm_struct *mm, struct vm_area_struct *vma,
++			     struct page *page, unsigned long address)
  {
- 	struct resv_map *resv_map = kmalloc(sizeof(*resv_map), GFP_KERNEL);
- 	if (!resv_map)
-@@ -274,7 +274,7 @@ struct resv_map *resv_map_alloc(void)
- 	return resv_map;
- }
- 
--void resv_map_release(struct kref *ref)
-+static void resv_map_release(struct kref *ref)
- {
- 	struct resv_map *resv_map = container_of(ref, struct resv_map, refs);
- 
+ 	struct vm_area_struct *iter_vma;
+ 	struct address_space *mapping;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
