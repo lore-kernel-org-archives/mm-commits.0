@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch added to -mm tree
-Date: Fri, 22 Aug 2008 15:58:42 -0700
-Message-ID: <200808222312.m7MNC1nE021436@imap1.linux-foundation.org>
+Subject: + mlock-make-mlock-error-return-posixly-correct-fix.patch added to -mm tree
+Date: Fri, 22 Aug 2008 16:03:51 -0700
+Message-ID: <200808222317.m7MNHAMX021646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44712 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37497 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754864AbYHVXML (ORCPT
+	by vger.kernel.org with ESMTP id S1754756AbYHVXRT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 22 Aug 2008 19:12:11 -0400
+	Fri, 22 Aug 2008 19:17:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@
 
 
 The patch titled
-     mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix
+     mlock-make-mlock-error-return-posixly-correct-fix
 has been added to the -mm tree.  Its filename is
-     mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+     mlock-make-mlock-error-return-posixly-correct-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix
+Subject: mlock-make-mlock-error-return-posixly-correct-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+mm/mlock.c: In function 'mlock_fixup':
+mm/mlock.c:468: error: implicit declaration of function '__mlock_posix_error_return'
+
+Documentation/SubmitChecklist considered useful...
 
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/mlock.c |   30 ++++++++++++++++++------------
+ 1 file changed, 18 insertions(+), 12 deletions(-)
 
-diff -puN mm/mlock.c~mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix mm/mlock.c
---- a/mm/mlock.c~mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix
+diff -puN mm/mlock.c~mlock-make-mlock-error-return-posixly-correct-fix mm/mlock.c
+--- a/mm/mlock.c~mlock-make-mlock-error-return-posixly-correct-fix
 +++ a/mm/mlock.c
-@@ -239,7 +239,6 @@ static long __mlock_vma_pages_range(stru
+@@ -143,18 +143,6 @@ static void munlock_vma_page(struct page
+ 	}
  }
- #endif /* CONFIG_UNEVICTABLE_LRU */
  
 -/*
+- * convert get_user_pages() return value to posix mlock() error
+- */
+-static int __mlock_posix_error_return(long retval)
+-{
+-	if (retval == -EFAULT)
+-		retval = -ENOMEM;
+-	else if (retval == -ENOMEM)
+-		retval = -EAGAIN;
+-	return retval;
+-}
+-
  /**
-  * mlock_vma_pages_range() - mlock pages in specified vma range.
-  * @vma - the vma containing the specfied address range
+  * __mlock_vma_pages_range() -  mlock/munlock a range of pages in the vma.
+  * @vma:   target vma
+@@ -268,6 +256,18 @@ static long __mlock_vma_pages_range(stru
+ 	return ret;	/* count entire vma as locked_vm */
+ }
+ 
++/*
++ * convert get_user_pages() return value to posix mlock() error
++ */
++static int __mlock_posix_error_return(long retval)
++{
++	if (retval == -EFAULT)
++		retval = -ENOMEM;
++	else if (retval == -ENOMEM)
++		retval = -EAGAIN;
++	return retval;
++}
++
+ #else /* CONFIG_UNEVICTABLE_LRU */
+ 
+ /*
+@@ -281,6 +281,12 @@ static long __mlock_vma_pages_range(stru
+ 		return make_pages_present(start, end);
+ 	return 0;
+ }
++
++static inline int __mlock_posix_error_return(long retval)
++{
++	return 0;
++}
++
+ #endif /* CONFIG_UNEVICTABLE_LRU */
+ 
+ /**
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,6 +153,7 @@ mlock-mlocked-pages-are-unevictable-fix.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
 vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
 mm-rewrite-vmap-layer-fix.patch
 h8300-generic_bug-support-checkpatch-fixes.patch
 pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
