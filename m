@@ -1,118 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: - mm-show-quicklist-memory-usage-in-proc-meminfo.patch removed from -mm tree
-Date: Mon, 25 Aug 2008 11:55:51 -0700
-Message-ID: <200808251855.m7PItpqL032203@imap1.linux-foundation.org>
+Subject: - mm-quicklist-shouldnt-be-proportional-to-number-of-cpus.patch removed from -mm tree
+Date: Mon, 25 Aug 2008 11:55:57 -0700
+Message-ID: <200808251855.m7PItv9D032206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59540 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33725 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751931AbYHYS4E (ORCPT
+	by vger.kernel.org with ESMTP id S1750769AbYHYS4J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Aug 2008 14:56:04 -0400
+	Mon, 25 Aug 2008 14:56:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, stable@kernel.org, travis@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: show quicklist memory usage in /proc/meminfo
+     mm: quicklist shouldn't be proportional to number of CPUs
 has been removed from the -mm tree.  Its filename was
-     mm-show-quicklist-memory-usage-in-proc-meminfo.patch
+     mm-quicklist-shouldnt-be-proportional-to-number-of-cpus.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: show quicklist memory usage in /proc/meminfo
+Subject: mm: quicklist shouldn't be proportional to number of CPUs
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-At present the quicklists store some page for each CPU as a cache.  (Each
-CPU has node_free_pages/16 pages)
+When a test program which does task migration runs, my 8GB box spends
+800MB of memory for quicklist.  This is not memory leak but doesn't seem
+good.
 
-It is used for page table cache.  Then, exit() increase cache, the other
-hand fork() spent it.
+% cat /proc/meminfo
 
-So, if apache type (one parent and many child model) middleware run, One
-CPU process fork(), Other CPU process the middleware work and exit().
+MemTotal:        7701568 kB
+MemFree:         4724672 kB
+(snip)
+Quicklists:       844800 kB
 
-At that time, One CPU don't have page table cache at all, Others have
-maximum caches.
+because
 
-	QList_max = (#ofCPUs - 1) x Free / 16
-	=> QList_max / (Free + QList_max) = (#ofCPUs - 1) / (16 + #ofCPUs - 1)
+- My machine spec is
+	number of numa node: 2
+	number of cpus:      8 (4CPU x2 node)
+        total mem:           8GB (4GB x2 node)
+        free mem:            about 5GB
 
-So, How much quicklist spent memory at maximum case?  That is #CPUs
-proposional because it is per CPU cache but cache amount calculation
-doesn't use #ofCPUs.
-
-	Above calculation mean
+- Maximum quicklist usage is here
 
 	 Number of CPUs per node            2    4    8   16
 	 ==============================  ====================
 	 QList_max / (Free + QList_max)   5.8%  16%  30%  48%
 
+- Then, 4.7GB x 16% ~= 880MB.
+  So, Quicklist can use 800MB.
 
-Wow!  Quicklist can spent about 50% memory at worst case.  More
-unfortunately, it doesn't have any cache shrinking mechanism.  So it cause
-some wrong thing.
+So, if following spec machine run that program
 
-1. End user misunderstand to memory leak happend.
-	=> /proc/meminfo should display amount quicklist
+   CPUs: 64 (8cpu x 8node)
+   Mem:  1TB (128GB x8node)
 
-2. It can cause OOM killer
-	=> Amount of quicklists shouldn't be proportional to number of CPUs.
+Then, quicklist can waste 300GB (= 1TB x 30%).  It is too large.
 
+So, I don't like cache policies which is proportional to # of cpus.
 
+My patch changes the number of caches
+from:
+   per-cpu-cache-amount = memory_on_node / 16
+to
+   per-cpu-cache-amount = memory_on_node / 16 / number_of_cpus_on_node.
 
-This patch:
+I think this is reasonable.  but even if this patch is applied, quicklist
+can cache tons of memory on big machine.
 
-Quicklists can consume several GB memory.  So, if end user can't see how
-much memory is used, he can fail to understand why a memory leak happend.
+(Although its patch applied, quicklist can waste 64GB on 1TB server (= 1TB
+/ 16), it is still too much??)
 
-after this patch applied, /proc/meminfo output following.
+test program is below.
+--------------------------------------------------------------------------------
+#define _GNU_SOURCE
 
-% cat /proc/meminfo
+#include <stdio.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sched.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <sys/wait.h>
 
-MemTotal:        7701504 kB
-MemFree:         5159040 kB
-Buffers:          112960 kB
-Cached:           337536 kB
-SwapCached:            0 kB
-Active:           218944 kB
-Inactive:         350848 kB
-Active(anon):     120832 kB
-Inactive(anon):        0 kB
-Active(file):      98112 kB
-Inactive(file):   350848 kB
-Unevictable:           0 kB
-Mlocked:               0 kB
-SwapTotal:       2031488 kB
-SwapFree:        2031488 kB
-Dirty:               320 kB
-Writeback:             0 kB
-AnonPages:        119488 kB
-Mapped:            38528 kB
-Slab:            1595712 kB
-SReclaimable:      23744 kB
-SUnreclaim:      1571968 kB
-PageTables:        14336 kB
-NFS_Unstable:          0 kB
-Bounce:                0 kB
-WritebackTmp:          0 kB
-CommitLimit:     5882240 kB
-Committed_AS:     356672 kB
-VmallocTotal:   17592177655808 kB
-VmallocUsed:       29056 kB
-VmallocChunk:   17592177626304 kB
-Quicklists:       283776 kB
-HugePages_Total:     0
-HugePages_Free:      0
-HugePages_Rsvd:      0
-HugePages_Surp:      0
-Hugepagesize:    262144 kB
+#define BUFFSIZE 512
 
-[akpm@linux-foundation.org: build fix]
+int max_cpu(void)	/* get max number of logical cpus from /proc/cpuinfo */
+{
+  FILE *fd;
+  char *ret, buffer[BUFFSIZE];
+  int cpu = 1;
+
+  fd = fopen("/proc/cpuinfo", "r");
+  if (fd == NULL) {
+    perror("fopen(/proc/cpuinfo)");
+    exit(EXIT_FAILURE);
+  }
+  while (1) {
+    ret = fgets(buffer, BUFFSIZE, fd);
+    if (ret == NULL)
+      break;
+    if (!strncmp(buffer, "processor", 9))
+      cpu = atoi(strchr(buffer, ':') + 2);
+  }
+  fclose(fd);
+  return cpu;
+}
+
+void cpu_bind(int cpu)	/* bind current process to one cpu */
+{
+  cpu_set_t mask;
+  int ret;
+
+  CPU_ZERO(&mask);
+  CPU_SET(cpu, &mask);
+  ret = sched_setaffinity(0, sizeof(mask), &mask);
+  if (ret == -1) {
+    perror("sched_setaffinity()");
+    exit(EXIT_FAILURE);
+  }
+  sched_yield();	/* not necessary */
+}
+
+#define MMAP_SIZE (10 * 1024 * 1024)	/* 10 MB */
+#define FORK_INTERVAL 1	/* 1 second */
+
+main(int argc, char *argv[])
+{
+  int cpu_max, nextcpu;
+  long pagesize;
+  pid_t pid;
+
+  /* set max number of logical cpu */
+  if (argc > 1)
+    cpu_max = atoi(argv[1]) - 1;
+  else
+    cpu_max = max_cpu();
+
+  /* get the page size */
+  pagesize = sysconf(_SC_PAGESIZE);
+  if (pagesize == -1) {
+    perror("sysconf(_SC_PAGESIZE)");
+    exit(EXIT_FAILURE);
+  }
+
+  /* prepare parent process */
+  cpu_bind(0);
+  nextcpu = cpu_max;
+
+loop:
+
+  /* select destination cpu for child process by round-robin rule */
+  if (++nextcpu > cpu_max)
+    nextcpu = 1;
+
+  pid = fork();
+
+  if (pid == 0) { /* child action */
+
+    char *p;
+    int i;
+
+    /* consume page tables */
+    p = mmap(0, MMAP_SIZE, PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+    i = MMAP_SIZE / pagesize;
+    while (i-- > 0) {
+      *p = 1;
+      p += pagesize;
+    }
+
+    /* move to other cpu */
+    cpu_bind(nextcpu);
+/*
+    printf("a child moved to cpu%d after mmap().\n", nextcpu);
+    fflush(stdout);
+ */
+
+    /* back page tables to pgtable_quicklist */
+    exit(0);
+
+  } else if (pid > 0) { /* parent action */
+
+    sleep(FORK_INTERVAL);
+    waitpid(pid, NULL, WNOHANG);
+
+  }
+
+  goto loop;
+}
+
+[akpm@linux-foundation.org: fix build on sparc64]
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Mike Travis <travis@sgi.com>
@@ -120,63 +203,38 @@ Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c       |    7 +++++--
- include/linux/quicklist.h |    7 +++++++
- 2 files changed, 12 insertions(+), 2 deletions(-)
+ mm/quicklist.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/proc_misc.c~mm-show-quicklist-memory-usage-in-proc-meminfo fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~mm-show-quicklist-memory-usage-in-proc-meminfo
-+++ a/fs/proc/proc_misc.c
-@@ -24,6 +24,7 @@
- #include <linux/tty.h>
- #include <linux/string.h>
- #include <linux/mman.h>
-+#include <linux/quicklist.h>
- #include <linux/proc_fs.h>
- #include <linux/ioport.h>
- #include <linux/mm.h>
-@@ -189,7 +190,8 @@ static int meminfo_read_proc(char *page,
- 		"Committed_AS: %8lu kB\n"
- 		"VmallocTotal: %8lu kB\n"
- 		"VmallocUsed:  %8lu kB\n"
--		"VmallocChunk: %8lu kB\n",
-+		"VmallocChunk:   %8lu kB\n"
-+		"Quicklists:     %8lu kB\n",
- 		K(i.totalram),
- 		K(i.freeram),
- 		K(i.bufferram),
-@@ -221,7 +223,8 @@ static int meminfo_read_proc(char *page,
- 		K(committed),
- 		(unsigned long)VMALLOC_TOTAL >> 10,
- 		vmi.used >> 10,
--		vmi.largest_chunk >> 10
-+		vmi.largest_chunk >> 10,
-+		K(quicklist_total_size())
- 		);
+diff -puN mm/quicklist.c~mm-quicklist-shouldnt-be-proportional-to-number-of-cpus mm/quicklist.c
+--- a/mm/quicklist.c~mm-quicklist-shouldnt-be-proportional-to-number-of-cpus
++++ a/mm/quicklist.c
+@@ -26,7 +26,9 @@ DEFINE_PER_CPU(struct quicklist, quickli
+ static unsigned long max_pages(unsigned long min_pages)
+ {
+ 	unsigned long node_free_pages, max;
+-	struct zone *zones = NODE_DATA(numa_node_id())->node_zones;
++	int node = numa_node_id();
++	struct zone *zones = NODE_DATA(node)->node_zones;
++	cpumask_t node_cpumask;
  
- 		len += hugetlb_report_meminfo(page + len);
-diff -puN include/linux/quicklist.h~mm-show-quicklist-memory-usage-in-proc-meminfo include/linux/quicklist.h
---- a/include/linux/quicklist.h~mm-show-quicklist-memory-usage-in-proc-meminfo
-+++ a/include/linux/quicklist.h
-@@ -80,6 +80,13 @@ void quicklist_trim(int nr, void (*dtor)
+ 	node_free_pages =
+ #ifdef CONFIG_ZONE_DMA
+@@ -38,6 +40,10 @@ static unsigned long max_pages(unsigned 
+ 		zone_page_state(&zones[ZONE_NORMAL], NR_FREE_PAGES);
  
- unsigned long quicklist_total_size(void);
- 
-+#else
+ 	max = node_free_pages / FRACTION_OF_NODE_MEM;
 +
-+static inline unsigned long quicklist_total_size(void)
-+{
-+	return 0;
-+}
++	node_cpumask = node_to_cpumask(node);
++	max /= cpus_weight_nr(node_cpumask);
 +
- #endif
+ 	return max(max, min_pages);
+ }
  
- #endif /* LINUX_QUICKLIST_H */
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-mm-show-quicklist-memory-usage-in-proc-meminfo.patch
 mm-quicklist-shouldnt-be-proportional-to-number-of-cpus.patch
 linux-next.patch
 vmscan-use-an-indexed-array-for-lru-variables.patch
