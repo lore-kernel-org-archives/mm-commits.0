@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pata_sil680-convert-config_ppc_merge-to-config_ppc.patch added to -mm tree
-Date: Tue, 26 Aug 2008 14:16:49 -0700
-Message-ID: <200808262116.m7QLGnvK028109@imap1.linux-foundation.org>
+Subject: + netdev-drop-config_ppc_merge-from-kconfig.patch added to -mm tree
+Date: Tue, 26 Aug 2008 14:16:38 -0700
+Message-ID: <200808262116.m7QLGcdS028094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50639 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48708 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751726AbYHZVSC (ORCPT
+	by vger.kernel.org with ESMTP id S1751909AbYHZVSd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Aug 2008 17:18:02 -0400
+	Tue, 26 Aug 2008 17:18:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: galak@kernel.crashing.org, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, jeff@garzik.org, paulus@samba.org
+Cc: galak@kernel.crashing.org, benh@kernel.crashing.org, david@gibson.dropbear.id.au, jeff@garzik.org, jwboyer@linux.vnet.ibm.com, paulus@samba.org
 
 
 The patch titled
-     pata_sil680: convert CONFIG_PPC_MERGE to CONFIG_PPC
+     netdev: drop CONFIG_PPC_MERGE from Kconfig
 has been added to the -mm tree.  Its filename is
-     pata_sil680-convert-config_ppc_merge-to-config_ppc.patch
+     netdev-drop-config_ppc_merge-from-kconfig.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_sil680: convert CONFIG_PPC_MERGE to CONFIG_PPC
+Subject: netdev: drop CONFIG_PPC_MERGE from Kconfig
 From: Kumar Gala <galak@kernel.crashing.org>
 
 Now that arch/ppc is dead CONFIG_PPC_MERGE is always defined for all
-powerpc platforms and we want to get rid of CONFIG_PPC_MERGE use
-CONFIG_PPC instead.
+powerpc platforms so we don't need to depend on it.
 
 Signed-off-by: Kumar Gala <galak@kernel.crashing.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Josh Boyer <jwboyer@linux.vnet.ibm.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_sil680.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/Kconfig             |    2 +-
+ drivers/net/ibm_newemac/Kconfig |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_sil680.c~pata_sil680-convert-config_ppc_merge-to-config_ppc drivers/ata/pata_sil680.c
---- a/drivers/ata/pata_sil680.c~pata_sil680-convert-config_ppc_merge-to-config_ppc
-+++ a/drivers/ata/pata_sil680.c
-@@ -230,7 +230,7 @@ static u8 sil680_init_chip(struct pci_de
- 		tmpbyte & 1, tmpbyte & 0x30);
+diff -puN drivers/net/Kconfig~netdev-drop-config_ppc_merge-from-kconfig drivers/net/Kconfig
+--- a/drivers/net/Kconfig~netdev-drop-config_ppc_merge-from-kconfig
++++ a/drivers/net/Kconfig
+@@ -1800,7 +1800,7 @@ config FEC2
  
- 	*try_mmio = 0;
--#ifdef CONFIG_PPC_MERGE
-+#ifdef CONFIG_PPC
- 	if (machine_is(cell))
- 		*try_mmio = (tmpbyte & 1) || pci_resource_start(pdev, 5);
- #endif
+ config FEC_MPC52xx
+ 	tristate "MPC52xx FEC driver"
+-	depends on PPC_MERGE && PPC_MPC52xx && PPC_BESTCOMM_FEC
++	depends on PPC_MPC52xx && PPC_BESTCOMM_FEC
+ 	select CRC32
+ 	select PHYLIB
+ 	---help---
+diff -puN drivers/net/ibm_newemac/Kconfig~netdev-drop-config_ppc_merge-from-kconfig drivers/net/ibm_newemac/Kconfig
+--- a/drivers/net/ibm_newemac/Kconfig~netdev-drop-config_ppc_merge-from-kconfig
++++ a/drivers/net/ibm_newemac/Kconfig
+@@ -1,6 +1,6 @@
+ config IBM_NEW_EMAC
+ 	tristate "IBM EMAC Ethernet support"
+-	depends on PPC_DCR && PPC_MERGE
++	depends on PPC_DCR
+ 	select CRC32
+ 	help
+ 	  This driver supports the IBM EMAC family of Ethernet controllers
 _
 
 Patches currently in -mm which might be from galak@kernel.crashing.org are
