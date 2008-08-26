@@ -1,310 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: - wireless-replace-__function__-with-__func__.patch removed from -mm tree
-Date: Tue, 26 Aug 2008 11:45:35 -0700
-Message-ID: <200808261845.m7QIjZkX021412@imap1.linux-foundation.org>
+Subject: - ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup.patch removed from -mm tree
+Date: Tue, 26 Aug 2008 11:44:57 -0700
+Message-ID: <200808261844.m7QIiv2m021355@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52118 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51926 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758078AbYHZSsJ (ORCPT
+	by vger.kernel.org with ESMTP id S1757897AbYHZSvk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Aug 2008 14:48:09 -0400
+	Tue, 26 Aug 2008 14:51:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, IvDoorn@gmail.com, dcbw@redhat.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: zippel@linux-m68k.org, johnstul@us.ibm.com, mingo@elte.hu, mtk.manpages@googlemail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wireless: replace __FUNCTION__ with __func__
+     ntp: fix ADJ_OFFSET_SS_READ bug and do_adjtimex() cleanup
 has been removed from the -mm tree.  Its filename was
-     wireless-replace-__function__-with-__func__.patch
+     ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wireless: replace __FUNCTION__ with __func__
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: ntp: fix ADJ_OFFSET_SS_READ bug and do_adjtimex() cleanup
+From: Roman Zippel <zippel@linux-m68k.org>
 
-__FUNCTION__ is gcc-specific, use __func__
+Thanks to the review by Michael Kerrisk a bug in the recent
+ADJ_OFFSET_SS_READ option was discovered, where the ntp time_offset was
+inadvertently set by it.  This fixes this by making the adjtime code
+more separate from the ntp_adjtime code (both of which really want to
+be separate syscalls).
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Acked-by: Ivo van Doorn <IvDoorn@gmail.com>
-Acked-by: Dan Williams <dcbw@redhat.com>
+Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/airo.c                   |   16 ++++++++--------
- drivers/net/wireless/hermes.c                 |    2 +-
- drivers/net/wireless/ipw2100.c                |    2 +-
- drivers/net/wireless/ipw2200.h                |    4 ++--
- drivers/net/wireless/iwlwifi/iwl-3945-debug.h |    4 ++--
- drivers/net/wireless/libertas/if_cs.c         |    2 +-
- drivers/net/wireless/prism54/isl_ioctl.c      |    8 ++++----
- drivers/net/wireless/rt2x00/rt2x00.h          |    4 ++--
- drivers/net/wireless/wl3501_cs.c              |    8 ++++----
- 9 files changed, 25 insertions(+), 25 deletions(-)
+ include/linux/timex.h |    9 ++++
+ kernel/time/ntp.c     |   76 +++++++++++++++++++++-------------------
+ 2 files changed, 48 insertions(+), 37 deletions(-)
 
-diff -puN drivers/net/wireless/airo.c~wireless-replace-__function__-with-__func__ drivers/net/wireless/airo.c
---- a/drivers/net/wireless/airo.c~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/airo.c
-@@ -1915,7 +1915,7 @@ static int mpi_start_xmit(struct sk_buff
- 	struct airo_info *ai = dev->priv;
+diff -puN include/linux/timex.h~ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup include/linux/timex.h
+--- a/include/linux/timex.h~ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup
++++ a/include/linux/timex.h
+@@ -141,8 +141,15 @@ struct timex {
+ #define ADJ_MICRO		0x1000	/* select microsecond resolution */
+ #define ADJ_NANO		0x2000	/* select nanosecond resolution */
+ #define ADJ_TICK		0x4000	/* tick value */
++
++#ifdef __KERNEL__
++#define ADJ_ADJTIME		0x8000	/* switch between adjtime/adjtimex modes */
++#define ADJ_OFFSET_SINGLESHOT	0x0001	/* old-fashioned adjtime */
++#define ADJ_OFFSET_READONLY	0x2000	/* read-only adjtime */
++#else
+ #define ADJ_OFFSET_SINGLESHOT	0x8001	/* old-fashioned adjtime */
+-#define ADJ_OFFSET_SS_READ	0xa001  /* read-only adjtime */
++#define ADJ_OFFSET_SS_READ	0xa001	/* read-only adjtime */
++#endif
  
- 	if (!skb) {
--		airo_print_err(dev->name, "%s: skb == NULL!",__FUNCTION__);
-+		airo_print_err(dev->name, "%s: skb == NULL!",__func__);
- 		return 0;
- 	}
- 	npacks = skb_queue_len (&ai->txq);
-@@ -1964,7 +1964,7 @@ static int mpi_send_packet (struct net_d
- 	if ((skb = skb_dequeue(&ai->txq)) == NULL) {
- 		airo_print_err(dev->name,
- 			"%s: Dequeue'd zero in send_packet()",
--			__FUNCTION__);
-+			__func__);
- 		return 0;
- 	}
- 
-@@ -2115,7 +2115,7 @@ static int airo_start_xmit(struct sk_buf
- 	u32 *fids = priv->fids;
- 
- 	if ( skb == NULL ) {
--		airo_print_err(dev->name, "%s: skb == NULL!", __FUNCTION__);
-+		airo_print_err(dev->name, "%s: skb == NULL!", __func__);
- 		return 0;
- 	}
- 
-@@ -2186,7 +2186,7 @@ static int airo_start_xmit11(struct sk_b
- 	}
- 
- 	if ( skb == NULL ) {
--		airo_print_err(dev->name, "%s: skb == NULL!", __FUNCTION__);
-+		airo_print_err(dev->name, "%s: skb == NULL!", __func__);
- 		return 0;
- 	}
- 
-@@ -4127,7 +4127,7 @@ static int PC4500_writerid(struct airo_i
- 		if (test_bit(FLAG_ENABLED, &ai->flags) && (RID_WEP_TEMP != rid))
- 			airo_print_err(ai->dev->name,
- 				"%s: MAC should be disabled (rid=%04x)",
--				__FUNCTION__, rid);
-+				__func__, rid);
- 		memset(&cmd, 0, sizeof(cmd));
- 		memset(&rsp, 0, sizeof(rsp));
- 
-@@ -4142,7 +4142,7 @@ static int PC4500_writerid(struct airo_i
- 			&ai->config_desc.rid_desc, sizeof(Rid));
- 
- 		if (len < 4 || len > 2047) {
--			airo_print_err(ai->dev->name, "%s: len=%d", __FUNCTION__, len);
-+			airo_print_err(ai->dev->name, "%s: len=%d", __func__, len);
- 			rc = -1;
- 		} else {
- 			memcpy((char *)ai->config_desc.virtual_host_addr,
-@@ -4151,9 +4151,9 @@ static int PC4500_writerid(struct airo_i
- 			rc = issuecommand(ai, &cmd, &rsp);
- 			if ((rc & 0xff00) != 0) {
- 				airo_print_err(ai->dev->name, "%s: Write rid Error %d",
--						__FUNCTION__, rc);
-+						__func__, rc);
- 				airo_print_err(ai->dev->name, "%s: Cmd=%04x",
--						__FUNCTION__, cmd.cmd);
-+						__func__, cmd.cmd);
- 			}
- 
- 			if ((rsp.status & 0x7f00))
-diff -puN drivers/net/wireless/hermes.c~wireless-replace-__function__-with-__func__ drivers/net/wireless/hermes.c
---- a/drivers/net/wireless/hermes.c~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/hermes.c
-@@ -463,7 +463,7 @@ int hermes_read_ltv(hermes_t *hw, int ba
- 	if (rtype != rid)
- 		printk(KERN_WARNING "hermes @ %p: %s(): "
- 		       "rid (0x%04x) does not match type (0x%04x)\n",
--		       hw->iobase, __FUNCTION__, rid, rtype);
-+		       hw->iobase, __func__, rid, rtype);
- 	if (HERMES_RECLEN_TO_BYTES(rlength) > bufsize)
- 		printk(KERN_WARNING "hermes @ %p: "
- 		       "Truncating LTV record from %d to %d bytes. "
-diff -puN drivers/net/wireless/ipw2100.c~wireless-replace-__function__-with-__func__ drivers/net/wireless/ipw2100.c
---- a/drivers/net/wireless/ipw2100.c~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/ipw2100.c
-@@ -211,7 +211,7 @@ static u32 ipw2100_debug_level = IPW_DL_
- do { \
- 	if (ipw2100_debug_level & (level)) { \
- 		printk(KERN_DEBUG "ipw2100: %c %s ", \
--                       in_interrupt() ? 'I' : 'U',  __FUNCTION__); \
-+                       in_interrupt() ? 'I' : 'U',  __func__); \
- 		printk(message); \
- 	} \
- } while (0)
-diff -puN drivers/net/wireless/ipw2200.h~wireless-replace-__function__-with-__func__ drivers/net/wireless/ipw2200.h
---- a/drivers/net/wireless/ipw2200.h~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/ipw2200.h
-@@ -1394,13 +1394,13 @@ BIT_ARG16(x)
- #define IPW_DEBUG(level, fmt, args...) \
- do { if (ipw_debug_level & (level)) \
-   printk(KERN_DEBUG DRV_NAME": %c %s " fmt, \
--         in_interrupt() ? 'I' : 'U', __FUNCTION__ , ## args); } while (0)
-+         in_interrupt() ? 'I' : 'U', __func__ , ## args); } while (0)
- 
- #ifdef CONFIG_IPW2200_DEBUG
- #define IPW_LL_DEBUG(level, fmt, args...) \
- do { if (ipw_debug_level & (level)) \
-   printk(KERN_DEBUG DRV_NAME": %c %s " fmt, \
--         in_interrupt() ? 'I' : 'U', __FUNCTION__ , ## args); } while (0)
-+         in_interrupt() ? 'I' : 'U', __func__ , ## args); } while (0)
- #else
- #define IPW_LL_DEBUG(level, fmt, args...) do {} while (0)
- #endif				/* CONFIG_IPW2200_DEBUG */
-diff -puN drivers/net/wireless/iwlwifi/iwl-3945-debug.h~wireless-replace-__function__-with-__func__ drivers/net/wireless/iwlwifi/iwl-3945-debug.h
---- a/drivers/net/wireless/iwlwifi/iwl-3945-debug.h~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/iwlwifi/iwl-3945-debug.h
-@@ -34,12 +34,12 @@ extern u32 iwl3945_debug_level;
- #define IWL_DEBUG(level, fmt, args...) \
- do { if (iwl3945_debug_level & (level)) \
-   printk(KERN_ERR DRV_NAME": %c %s " fmt, \
--	 in_interrupt() ? 'I' : 'U', __FUNCTION__ , ## args); } while (0)
-+	 in_interrupt() ? 'I' : 'U', __func__ , ## args); } while (0)
- 
- #define IWL_DEBUG_LIMIT(level, fmt, args...) \
- do { if ((iwl3945_debug_level & (level)) && net_ratelimit()) \
-   printk(KERN_ERR DRV_NAME": %c %s " fmt, \
--	 in_interrupt() ? 'I' : 'U', __FUNCTION__ , ## args); } while (0)
-+	 in_interrupt() ? 'I' : 'U', __func__ , ## args); } while (0)
- 
- static inline void iwl3945_print_hex_dump(int level, void *p, u32 len)
+ /* xntp 3.4 compatibility names */
+ #define MOD_OFFSET	ADJ_OFFSET
+diff -puN kernel/time/ntp.c~ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup kernel/time/ntp.c
+--- a/kernel/time/ntp.c~ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup
++++ a/kernel/time/ntp.c
+@@ -277,38 +277,50 @@ static inline void notify_cmos_timer(voi
+ int do_adjtimex(struct timex *txc)
  {
-diff -puN drivers/net/wireless/libertas/if_cs.c~wireless-replace-__function__-with-__func__ drivers/net/wireless/libertas/if_cs.c
---- a/drivers/net/wireless/libertas/if_cs.c~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/libertas/if_cs.c
-@@ -720,7 +720,7 @@ static int if_cs_host_to_card(struct lbs
- 		ret = if_cs_send_cmd(priv, buf, nb);
- 		break;
- 	default:
--		lbs_pr_err("%s: unsupported type %d\n", __FUNCTION__, type);
-+		lbs_pr_err("%s: unsupported type %d\n", __func__, type);
+ 	struct timespec ts;
+-	long save_adjust, sec;
+ 	int result;
+ 
+-	/* In order to modify anything, you gotta be super-user! */
+-	if (txc->modes && !capable(CAP_SYS_TIME))
+-		return -EPERM;
+-
+-	/* Now we validate the data before disabling interrupts */
+-
+-	if ((txc->modes & ADJ_OFFSET_SINGLESHOT) == ADJ_OFFSET_SINGLESHOT) {
++	/* Validate the data before disabling interrupts */
++	if (txc->modes & ADJ_ADJTIME) {
+ 		/* singleshot must not be used with any other mode bits */
+-		if (txc->modes & ~ADJ_OFFSET_SS_READ)
++		if (!(txc->modes & ADJ_OFFSET_SINGLESHOT))
+ 			return -EINVAL;
+-	}
++		if (!(txc->modes & ADJ_OFFSET_READONLY) &&
++		    !capable(CAP_SYS_TIME))
++			return -EPERM;
++	} else {
++		/* In order to modify anything, you gotta be super-user! */
++		 if (txc->modes && !capable(CAP_SYS_TIME))
++			return -EPERM;
++
++		/* if the quartz is off by more than 10% something is VERY wrong! */
++		if (txc->modes & ADJ_TICK &&
++		    (txc->tick <  900000/USER_HZ ||
++		     txc->tick > 1100000/USER_HZ))
++				return -EINVAL;
+ 
+-	/* if the quartz is off by more than 10% something is VERY wrong ! */
+-	if (txc->modes & ADJ_TICK)
+-		if (txc->tick <  900000/USER_HZ ||
+-		    txc->tick > 1100000/USER_HZ)
+-			return -EINVAL;
++		if (txc->modes & ADJ_STATUS && time_state != TIME_OK)
++			hrtimer_cancel(&leap_timer);
++	}
+ 
+-	if (time_state != TIME_OK && txc->modes & ADJ_STATUS)
+-		hrtimer_cancel(&leap_timer);
+ 	getnstimeofday(&ts);
+ 
+ 	write_seqlock_irq(&xtime_lock);
+ 
+-	/* Save for later - semantics of adjtime is to return old value */
+-	save_adjust = time_adjust;
+-
+ 	/* If there are input parameters, then process them */
++	if (txc->modes & ADJ_ADJTIME) {
++		long save_adjust = time_adjust;
++
++		if (!(txc->modes & ADJ_OFFSET_READONLY)) {
++			/* adjtime() is independent from ntp_adjtime() */
++			time_adjust = txc->offset;
++			ntp_update_frequency();
++		}
++		txc->offset = save_adjust;
++		goto adj_done;
++	}
+ 	if (txc->modes) {
++		long sec;
++
+ 		if (txc->modes & ADJ_STATUS) {
+ 			if ((time_status & STA_PLL) &&
+ 			    !(txc->status & STA_PLL)) {
+@@ -375,13 +387,8 @@ int do_adjtimex(struct timex *txc)
+ 		if (txc->modes & ADJ_TAI && txc->constant > 0)
+ 			time_tai = txc->constant;
+ 
+-		if (txc->modes & ADJ_OFFSET) {
+-			if (txc->modes == ADJ_OFFSET_SINGLESHOT)
+-				/* adjtime() is independent from ntp_adjtime() */
+-				time_adjust = txc->offset;
+-			else
+-				ntp_update_offset(txc->offset);
+-		}
++		if (txc->modes & ADJ_OFFSET)
++			ntp_update_offset(txc->offset);
+ 		if (txc->modes & ADJ_TICK)
+ 			tick_usec = txc->tick;
+ 
+@@ -389,19 +396,16 @@ int do_adjtimex(struct timex *txc)
+ 			ntp_update_frequency();
  	}
  
- 	lbs_deb_leave_args(LBS_DEB_CS, "ret %d", ret);
-diff -puN drivers/net/wireless/prism54/isl_ioctl.c~wireless-replace-__function__-with-__func__ drivers/net/wireless/prism54/isl_ioctl.c
---- a/drivers/net/wireless/prism54/isl_ioctl.c~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/prism54/isl_ioctl.c
-@@ -71,7 +71,7 @@ prism54_mib_mode_helper(islpci_private *
- 	if (iw_mode == IW_MODE_REPEAT || iw_mode == IW_MODE_SECOND) {
- 		printk(KERN_DEBUG
- 		       "%s(): Sorry, Repeater mode and Secondary mode "
--		       "are not yet supported by this driver.\n", __FUNCTION__);
-+		       "are not yet supported by this driver.\n", __func__);
- 		return -EINVAL;
- 	}
++	txc->offset = shift_right(time_offset * NTP_INTERVAL_FREQ,
++				  NTP_SCALE_SHIFT);
++	if (!(time_status & STA_NANO))
++		txc->offset /= NSEC_PER_USEC;
++
++adj_done:
+ 	result = time_state;	/* mostly `TIME_OK' */
+ 	if (time_status & (STA_UNSYNC|STA_CLOCKERR))
+ 		result = TIME_ERROR;
  
-@@ -333,7 +333,7 @@ prism54_set_mode(struct net_device *ndev
- 	if (*uwrq > IW_MODE_MONITOR || *uwrq < IW_MODE_AUTO) {
- 		printk(KERN_DEBUG
- 		       "%s: %s() You passed a non-valid init_mode.\n",
--		       priv->ndev->name, __FUNCTION__);
-+		       priv->ndev->name, __func__);
- 		return -EINVAL;
- 	}
- 
-@@ -1234,7 +1234,7 @@ prism54_set_txpower(struct net_device *n
- 		/* don't know how to disable radio */
- 		printk(KERN_DEBUG
- 		       "%s: %s() disabling radio is not yet supported.\n",
--		       priv->ndev->name, __FUNCTION__);
-+		       priv->ndev->name, __func__);
- 		return -ENOTSUPP;
- 	} else if (vwrq->fixed)
- 		/* currently only fixed value is supported */
-@@ -1242,7 +1242,7 @@ prism54_set_txpower(struct net_device *n
- 	else {
- 		printk(KERN_DEBUG
- 		       "%s: %s() auto power will be implemented later.\n",
--		       priv->ndev->name, __FUNCTION__);
-+		       priv->ndev->name, __func__);
- 		return -ENOTSUPP;
- 	}
- }
-diff -puN drivers/net/wireless/rt2x00/rt2x00.h~wireless-replace-__function__-with-__func__ drivers/net/wireless/rt2x00/rt2x00.h
---- a/drivers/net/wireless/rt2x00/rt2x00.h~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/rt2x00/rt2x00.h
-@@ -53,11 +53,11 @@
-  */
- #define DEBUG_PRINTK_MSG(__dev, __kernlvl, __lvl, __msg, __args...)	\
- 	printk(__kernlvl "%s -> %s: %s - " __msg,			\
--	       wiphy_name((__dev)->hw->wiphy), __FUNCTION__, __lvl, ##__args)
-+	       wiphy_name((__dev)->hw->wiphy), __func__, __lvl, ##__args)
- 
- #define DEBUG_PRINTK_PROBE(__kernlvl, __lvl, __msg, __args...)	\
- 	printk(__kernlvl "%s -> %s: %s - " __msg,		\
--	       KBUILD_MODNAME, __FUNCTION__, __lvl, ##__args)
-+	       KBUILD_MODNAME, __func__, __lvl, ##__args)
- 
- #ifdef CONFIG_RT2X00_DEBUG
- #define DEBUG_PRINTK(__dev, __kernlvl, __lvl, __msg, __args...)	\
-diff -puN drivers/net/wireless/wl3501_cs.c~wireless-replace-__function__-with-__func__ drivers/net/wireless/wl3501_cs.c
---- a/drivers/net/wireless/wl3501_cs.c~wireless-replace-__function__-with-__func__
-+++ a/drivers/net/wireless/wl3501_cs.c
-@@ -79,7 +79,7 @@ static int pc_debug = PCMCIA_DEBUG;
- module_param(pc_debug, int, 0);
- #define dprintk(n, format, args...) \
- 	{ if (pc_debug > (n)) \
--		printk(KERN_INFO "%s: " format "\n", __FUNCTION__ , ##args); }
-+		printk(KERN_INFO "%s: " format "\n", __func__ , ##args); }
- #else
- #define dprintk(n, format, args...)
- #endif
-@@ -470,7 +470,7 @@ static int wl3501_pwr_mgmt(struct wl3501
- 			spin_unlock_irqrestore(&this->lock, flags);
- 			rc = wait_event_interruptible(this->wait,
- 				this->sig_pwr_mgmt_confirm.status != 255);
--			printk(KERN_INFO "%s: %s status=%d\n", __FUNCTION__,
-+			printk(KERN_INFO "%s: %s status=%d\n", __func__,
- 			       suspend ? "suspend" : "resume",
- 			       this->sig_pwr_mgmt_confirm.status);
- 			goto out;
-@@ -1199,7 +1199,7 @@ static int wl3501_reset_board(struct wl3
- 		}
- 		WL3501_NOPLOOP(10);
- 	}
--	printk(KERN_WARNING "%s: failed to reset the board!\n", __FUNCTION__);
-+	printk(KERN_WARNING "%s: failed to reset the board!\n", __func__);
- 	rc = -ENODEV;
- out:
- 	return rc;
-@@ -1250,7 +1250,7 @@ static int wl3501_init_firmware(struct w
- out:
- 	return rc;
- fail:
--	printk(KERN_WARNING "%s: failed!\n", __FUNCTION__);
-+	printk(KERN_WARNING "%s: failed!\n", __func__);
- 	goto out;
- }
- 
+-	if ((txc->modes == ADJ_OFFSET_SINGLESHOT) ||
+-	    (txc->modes == ADJ_OFFSET_SS_READ))
+-		txc->offset = save_adjust;
+-	else {
+-		txc->offset = shift_right(time_offset * NTP_INTERVAL_FREQ,
+-					  NTP_SCALE_SHIFT);
+-		if (!(time_status & STA_NANO))
+-			txc->offset /= NSEC_PER_USEC;
+-	}
+ 	txc->freq	   = shift_right((s32)(time_freq >> PPM_SCALE_INV_SHIFT) *
+ 					 (s64)PPM_SCALE_INV,
+ 					 NTP_SCALE_SHIFT);
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from zippel@linux-m68k.org are
 
 linux-next.patch
-x86-fix-shadowed-variable-warning.patch
-cifs-remove-global_extern-macro.patch
-v4l-drx397xdc-sparse-annotations.patch
-input-ads7846c-sparse-lock-annotation.patch
-misdn-endian-annotations-for-struct-zt.patch
-misdn-annotate-iomem-pointer-and-add-statics.patch
-drivers-net-replace-__function__-with-__func__.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-include-replace-__function__-with-__func__.patch
-misc-replace-__function__-with-__func__.patch
-befs-annotate-fs32-on-tests-for-superblock-endianness.patch
-byteorder-add-new-headers-for-make-headers-install.patch
-pvrusb2-use-proper-byteorder-interface.patch
+ntp-let-update_persistent_clock-sleep.patch
+timekeeping-fix-rounding-problem-during-clock-update.patch
+ntp-improve-adjtimex-frequency-rounding.patch
+ntp-fix-calculation-of-the-next-jiffie-to-trigger-rtc-sync.patch
+hfsplus-quieten-down-mounting-hfsplus-journaled-fs-read-only.patch
 
