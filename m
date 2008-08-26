@@ -1,124 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: - i386-vmalloc-size-fix.patch removed from -mm tree
-Date: Tue, 26 Aug 2008 11:44:44 -0700
-Message-ID: <200808261844.m7QIiiDw021335@imap1.linux-foundation.org>
+Subject: - arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch removed from -mm tree
+Date: Tue, 26 Aug 2008 11:44:41 -0700
+Message-ID: <200808261844.m7QIif3j021332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58154 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51679 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757086AbYHZSpf (ORCPT
+	by vger.kernel.org with ESMTP id S1757493AbYHZSpm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Aug 2008 14:45:35 -0400
+	Tue, 26 Aug 2008 14:45:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidave.darkstar@gmail.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i386: vmalloc size fix
+     arch/x86/pci/irq.c: attempt to clean up code layout
 has been removed from the -mm tree.  Its filename was
-     i386-vmalloc-size-fix.patch
+     arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i386: vmalloc size fix
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: arch/x86/pci/irq.c: attempt to clean up code layout
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Booting kernel with vmalloc=[any size<=16m] will oops on my pc (i386/1G memory).
-
-BUG_ON in arch/x86/mm/init_32.c triggered:
-BUG_ON((unsigned long)high_memory > VMALLOC_START);
-
-It's due to the vm area hole.
-
-In include/asm-x86/pgtable_32.h:
-#define VMALLOC_OFFSET	(8 * 1024 * 1024)
-#define VMALLOC_START	(((unsigned long)high_memory + 2 * VMALLOC_OFFSET - 1) \
-			 & ~(VMALLOC_OFFSET - 1))
-
-There's several related point:
-1. MAXMEM :
- (-__PAGE_OFFSET - __VMALLOC_RESERVE).
-The space after VMALLOC_END is included as well, I set it to
-(VMALLOC_END - PAGE_OFFSET - __VMALLOC_RESERVE)
-
-2. VMALLOC_OFFSET is not considered in __VMALLOC_RESERVE
-fixed by adding VMALLOC_OFFSET to it.
-
-3. VMALLOC_START :
- (((unsigned long)high_memory + 2 * VMALLOC_OFFSET - 1) & ~(VMALLOC_OFFSET - 1))
-So it's not always 8M, bigger than 8M possible.
-I set it to ((unsigned long)high_memory + VMALLOC_OFFSET)
-
-4. the VMALLOC_RESERVE is an unused macro, so remove it here.
-
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pgtable_32.c     |    3 ++-
- include/asm-x86/page_32.h    |    3 ---
- include/asm-x86/pgtable_32.h |    5 +++--
- 3 files changed, 5 insertions(+), 6 deletions(-)
+ arch/x86/pci/irq.c |   65 ++++++++++++++++++++++++-------------------
+ 1 file changed, 37 insertions(+), 28 deletions(-)
 
-diff -puN arch/x86/mm/pgtable_32.c~i386-vmalloc-size-fix arch/x86/mm/pgtable_32.c
---- a/arch/x86/mm/pgtable_32.c~i386-vmalloc-size-fix
-+++ a/arch/x86/mm/pgtable_32.c
-@@ -123,7 +123,8 @@ static int __init parse_vmalloc(char *ar
- 	if (!arg)
- 		return -EINVAL;
+diff -puN arch/x86/pci/irq.c~arch-x86-pci-irqc-attempt-to-clean-up-code-layout arch/x86/pci/irq.c
+--- a/arch/x86/pci/irq.c~arch-x86-pci-irqc-attempt-to-clean-up-code-layout
++++ a/arch/x86/pci/irq.c
+@@ -1043,35 +1043,44 @@ static void __init pcibios_fixup_irqs(vo
+ 		if (io_apic_assign_pci_irqs) {
+ 			int irq;
  
--	__VMALLOC_RESERVE = memparse(arg, &arg);
-+	/* Add VMALLOC_OFFSET to the parsed value due to vm area guard hole*/
-+	__VMALLOC_RESERVE = memparse(arg, &arg) + VMALLOC_OFFSET;
- 	return 0;
- }
- early_param("vmalloc", parse_vmalloc);
-diff -puN include/asm-x86/page_32.h~i386-vmalloc-size-fix include/asm-x86/page_32.h
---- a/include/asm-x86/page_32.h~i386-vmalloc-size-fix
-+++ a/include/asm-x86/page_32.h
-@@ -89,9 +89,6 @@ extern int nx_enabled;
- extern unsigned int __VMALLOC_RESERVE;
- extern int sysctl_legacy_va_layout;
- 
--#define VMALLOC_RESERVE		((unsigned long)__VMALLOC_RESERVE)
--#define MAXMEM			(-__PAGE_OFFSET - __VMALLOC_RESERVE)
--
- extern void find_low_pfn_range(void);
- extern unsigned long init_memory_mapping(unsigned long start,
- 					 unsigned long end);
-diff -puN include/asm-x86/pgtable_32.h~i386-vmalloc-size-fix include/asm-x86/pgtable_32.h
---- a/include/asm-x86/pgtable_32.h~i386-vmalloc-size-fix
-+++ a/include/asm-x86/pgtable_32.h
-@@ -56,8 +56,7 @@ void paging_init(void);
-  * area for the same reason. ;)
-  */
- #define VMALLOC_OFFSET	(8 * 1024 * 1024)
--#define VMALLOC_START	(((unsigned long)high_memory + 2 * VMALLOC_OFFSET - 1) \
--			 & ~(VMALLOC_OFFSET - 1))
-+#define VMALLOC_START	((unsigned long)high_memory + VMALLOC_OFFSET)
- #ifdef CONFIG_X86_PAE
- #define LAST_PKMAP 512
- #else
-@@ -73,6 +72,8 @@ void paging_init(void);
- # define VMALLOC_END	(FIXADDR_START - 2 * PAGE_SIZE)
- #endif
- 
-+#define MAXMEM	(VMALLOC_END - PAGE_OFFSET - __VMALLOC_RESERVE)
+-			if (pin) {
+-				/*
+-				 * interrupt pins are numbered starting
+-				 * from 1
+-				 */
+-				pin--;
+-				irq = IO_APIC_get_PCI_irq_vector(dev->bus->number,
+-					PCI_SLOT(dev->devfn), pin);
+-	/*
+-	 * Busses behind bridges are typically not listed in the MP-table.
+-	 * In this case we have to look up the IRQ based on the parent bus,
+-	 * parent slot, and pin number. The SMP code detects such bridged
+-	 * busses itself so we should get into this branch reliably.
+-	 */
+-				if (irq < 0 && dev->bus->parent) { /* go back to the bridge */
+-					struct pci_dev *bridge = dev->bus->self;
++			if (!pin)
++				continue;
 +
- /*
-  * Define this if things work differently on an i386 and an i486:
-  * it will (on an i486) warn about kernel memory accesses that are
++			/*
++			 * interrupt pins are numbered starting from 1
++			 */
++			pin--;
++			irq = IO_APIC_get_PCI_irq_vector(dev->bus->number,
++				PCI_SLOT(dev->devfn), pin);
++			/*
++			 * Busses behind bridges are typically not listed in the
++			 * MP-table.  In this case we have to look up the IRQ
++			 * based on the parent bus, parent slot, and pin number.
++			 * The SMP code detects such bridged busses itself so we
++			 * should get into this branch reliably.
++			 */
++			if (irq < 0 && dev->bus->parent) {
++				/* go back to the bridge */
++				struct pci_dev *bridge = dev->bus->self;
++				int bus;
+ 
+-					pin = (pin + PCI_SLOT(dev->devfn)) % 4;
+-					irq = IO_APIC_get_PCI_irq_vector(bridge->bus->number,
+-							PCI_SLOT(bridge->devfn), pin);
+-					if (irq >= 0)
+-						dev_warn(&dev->dev, "using bridge %s INT %c to get IRQ %d\n",
+-							 pci_name(bridge),
+-							 'A' + pin, irq);
+-				}
+-				if (irq >= 0) {
+-					dev_info(&dev->dev, "PCI->APIC IRQ transform: INT %c -> IRQ %d\n", 'A' + pin, irq);
+-					dev->irq = irq;
+-				}
++				pin = (pin + PCI_SLOT(dev->devfn)) % 4;
++				bus = bridge->bus->number;
++				irq = IO_APIC_get_PCI_irq_vector(bus,
++						PCI_SLOT(bridge->devfn), pin);
++				if (irq >= 0)
++					dev_warn(&dev->dev,
++						"using bridge %s INT %c to "
++							"get IRQ %d\n",
++						 pci_name(bridge),
++						 'A' + pin, irq);
++			}
++			if (irq >= 0) {
++				dev_info(&dev->dev,
++					"PCI->APIC IRQ transform: INT %c "
++						"-> IRQ %d\n",
++					'A' + pin, irq);
++				dev->irq = irq;
+ 			}
+ 		}
+ #endif
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
+acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-hci_usb-replace-mb-with-smp_mb.patch
+next-remove-localversion.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+git-jg-misc.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
+power-support-for-texas-instruments-bq27x00-battery-managers.patch
+drivers-pci-hotplug-ibmphp_ebdac-list_for_each-to-list_for_each_entry-checkpatch-fixes.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+git-watchdog.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+fix-a-race-condtion-of-oops_in_progress-fix.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+nilfs2-continuous-snapshotting-file-system-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
