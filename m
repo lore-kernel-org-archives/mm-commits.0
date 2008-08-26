@@ -1,90 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: - wait_task_inactive-dont-consider-task-nivcsw.patch removed from -mm tree
-Date: Tue, 26 Aug 2008 11:18:34 -0700
-Message-ID: <200808261818.m7QIIYhu020267@imap1.linux-foundation.org>
+Subject: + kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch added to -mm tree
+Date: Tue, 26 Aug 2008 11:30:26 -0700
+Message-ID: <200808261830.m7QIUQdl020710@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32872 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48610 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752642AbYHZSTj (ORCPT
+	by vger.kernel.org with ESMTP id S1754434AbYHZSbI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Aug 2008 14:19:39 -0400
+	Tue, 26 Aug 2008 14:31:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu, rostedt@goodmis.org, sam@ravnborg.org
 
 
 The patch titled
-     wait_task_inactive(): don't consider task->nivcsw
-has been removed from the -mm tree.  Its filename was
-     wait_task_inactive-dont-consider-task-nivcsw.patch
+     kbuild: ftrace: don't assume that scripts/recordmcount.pl is executable
+has been added to the -mm tree.  Its filename is
+     kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
 
-This patch was dropped because an alternative patch was merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wait_task_inactive(): don't consider task->nivcsw
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: kbuild: ftrace: don't assume that scripts/recordmcount.pl is executable
+From: Andrew Morton <akpm@linux-foundation.org>
 
-If wait_task_inactive() returns success the task was deactivated.  In that
-case schedule() always increments ->nvcsw which alone can be used as a
-"generation counter".
+  CHK     include/linux/version.h
+  CHK     include/linux/utsrelease.h
+  CC      scripts/mod/empty.o
+/bin/sh: /usr/src/25/scripts/recordmcount.pl: Permission denied
 
-If the next call returns the same number, we can be sure that the task was
-unscheduled.  Otherwise, because we know that .on_rq == 0 again, ->nvcsw
-should have been changed in between.
+We shouldn't assume that files have their `x' bits set.  There are various
+ways in which file permissions get lost, including use of patch(1).
 
-Q: perhaps it is better to do "ncsw = (p->nvcsw << 1) | 1" ?  This
-decreases the possibility of "was it unscheduled" false positive when
-->nvcsw == 0.
+It might not be correct to assume that perl lives in $PATH?
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ scripts/Makefile.build |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sched.c~wait_task_inactive-dont-consider-task-nivcsw kernel/sched.c
---- a/kernel/sched.c~wait_task_inactive-dont-consider-task-nivcsw
-+++ a/kernel/sched.c
-@@ -1925,11 +1925,8 @@ unsigned long wait_task_inactive(struct 
- 		running = task_running(rq, p);
- 		on_rq = p->se.on_rq;
- 		ncsw = 0;
--		if (!match_state || p->state == match_state) {
--			ncsw = p->nivcsw + p->nvcsw;
--			if (unlikely(!ncsw))
--				ncsw = 1;
--		}
-+		if (!match_state || p->state == match_state)
-+			ncsw = p->nvcsw ?: 1;
- 		task_rq_unlock(rq, &flags);
+diff -puN scripts/Makefile.build~kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable scripts/Makefile.build
+--- a/scripts/Makefile.build~kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable
++++ a/scripts/Makefile.build
+@@ -199,8 +199,9 @@ cmd_modversions =							\
+ endif
  
- 		/*
+ ifdef CONFIG_FTRACE_MCOUNT_RECORD
+-cmd_record_mcount = $(srctree)/scripts/recordmcount.pl "$(ARCH)" \
+-	"$(OBJDUMP)" "$(OBJCOPY)" "$(CC)" "$(LD)" "$(NM)" "$(RM)" "$(MV)" "$(@)";
++cmd_record_mcount = perl $(srctree)/scripts/recordmcount.pl \
++	"$(ARCH)" "$(OBJDUMP)" "$(OBJCOPY)" "$(CC)" "$(LD)" "$(NM)" "$(RM)" \
++	"$(MV)" "$(@)";
+ endif
+ 
+ define rule_cc_o_c
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
+acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-posix-timers-dont-switch-to-group_leader-if-it_process-dies.patch
-posix-timers-always-do-get_task_structtimer-it_process.patch
-posix-timers-sys_timer_create-remove-the-buggy-pf_exiting-check.patch
-posix-timers-sys_timer_create-simplify-and-s-tasklist-rcu.patch
-posix-timers-move-the-initialization-of-timer-sigq-from-send-to-create-path.patch
-posix-timers-sys_timer_create-cleanup-the-error-handling.patch
-posix-timers-kill-it_sigev_signo-and-it_sigev_value.patch
-posix-timers-lock_timer-kill-the-bogus-it_id-check.patch
-posix-timers-lock_timer-make-it-readable.patch
-wait_task_inactive-dont-consider-task-nivcsw.patch
-wait_task_inactive-improve-the-returned-value-for-nvcsw-==-0.patch
-posix-timers-use-struct-pid-instead-of-struct-task_struct.patch
-posix-timers-check-it_signal-instead-of-it_pid-to-validate-the-timer.patch
-posix-timers-simplify-de_thread-exit_itimers-path.patch
-make-ptrace_untrace-static.patch
-coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
-kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
+next-remove-localversion.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+git-jg-misc.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
+power-support-for-texas-instruments-bq27x00-battery-managers.patch
+drivers-pci-hotplug-ibmphp_ebdac-list_for_each-to-list_for_each_entry-checkpatch-fixes.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+git-watchdog.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+fix-a-race-condtion-of-oops_in_progress-fix.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+nilfs2-continuous-snapshotting-file-system-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
