@@ -1,88 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-video-remove-include-versionh.patch removed from -mm tree
-Date: Tue, 26 Aug 2008 11:43:22 -0700
-Message-ID: <200808261843.m7QIhMcT021288@imap1.linux-foundation.org>
+Subject: - saa7134-corec-fix-warning.patch removed from -mm tree
+Date: Tue, 26 Aug 2008 11:44:53 -0700
+Message-ID: <200808261844.m7QIirVi021349@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51008 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49866 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757290AbYHZSoL (ORCPT
+	by vger.kernel.org with ESMTP id S1756337AbYHZSp2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Aug 2008 14:44:11 -0400
+	Tue, 26 Aug 2008 14:45:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: weiyi.huang@gmail.com, krzysztof.h1@poczta.fm, santiago@crfreenet.org, mm-commits@vger.kernel.org
+To: a.beregalov@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/: remove #include <version.h>
+     saa7134-core.c: fix warning
 has been removed from the -mm tree.  Its filename was
-     drivers-video-remove-include-versionh.patch
+     saa7134-corec-fix-warning.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/: remove #include <version.h>
-From: Huang Weiyi <weiyi.huang@gmail.com>
+Subject: saa7134-core.c: fix warning
+From: Alexander Beregalov <a.beregalov@gmail.com>
 
-The driver(s) below do not use LINUX_VERSION_CODE nor KERNEL_VERSION.
-  drivers/video/arkfb.c
-  drivers/video/s3fb.c
-  drivers/video/vt8623fb.c
+drivers/media/video/saa7134/saa7134-core.c:366: warning:
+'saa7134_buffer_requeue' defined but not used
 
-This patch removes the said #include <version.h>.
-
-Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
-Acked-by: Ondrej Zajicek <santiago@crfreenet.org>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/arkfb.c    |    1 -
- drivers/video/s3fb.c     |    1 -
- drivers/video/vt8623fb.c |    1 -
- 3 files changed, 3 deletions(-)
+ drivers/media/video/saa7134/saa7134-core.c |   52 +++++++++----------
+ 1 file changed, 26 insertions(+), 26 deletions(-)
 
-diff -puN drivers/video/arkfb.c~drivers-video-remove-include-versionh drivers/video/arkfb.c
---- a/drivers/video/arkfb.c~drivers-video-remove-include-versionh
-+++ a/drivers/video/arkfb.c
-@@ -11,7 +11,6 @@
-  *  Code is based on s3fb
-  */
+diff -puN drivers/media/video/saa7134/saa7134-core.c~saa7134-corec-fix-warning drivers/media/video/saa7134/saa7134-core.c
+--- a/drivers/media/video/saa7134/saa7134-core.c~saa7134-corec-fix-warning
++++ a/drivers/media/video/saa7134/saa7134-core.c
+@@ -359,32 +359,6 @@ void saa7134_buffer_timeout(unsigned lon
+ 	spin_unlock_irqrestore(&dev->slock,flags);
+ }
  
--#include <linux/version.h>
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/errno.h>
-diff -puN drivers/video/s3fb.c~drivers-video-remove-include-versionh drivers/video/s3fb.c
---- a/drivers/video/s3fb.c~drivers-video-remove-include-versionh
-+++ a/drivers/video/s3fb.c
-@@ -11,7 +11,6 @@
-  * which is based on the code of neofb.
-  */
+-/* resends a current buffer in queue after resume */
+-
+-static int saa7134_buffer_requeue(struct saa7134_dev *dev,
+-				  struct saa7134_dmaqueue *q)
+-{
+-	struct saa7134_buf *buf, *next;
+-
+-	assert_spin_locked(&dev->slock);
+-
+-	buf  = q->curr;
+-	next = buf;
+-	dprintk("buffer_requeue\n");
+-
+-	if (!buf)
+-		return 0;
+-
+-	dprintk("buffer_requeue : resending active buffers \n");
+-
+-	if (!list_empty(&q->queue))
+-		next = list_entry(q->queue.next, struct saa7134_buf,
+-					  vb.queue);
+-	buf->activate(dev, buf, next);
+-
+-	return 0;
+-}
+-
+ /* ------------------------------------------------------------------ */
  
--#include <linux/version.h>
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/errno.h>
-diff -puN drivers/video/vt8623fb.c~drivers-video-remove-include-versionh drivers/video/vt8623fb.c
---- a/drivers/video/vt8623fb.c~drivers-video-remove-include-versionh
-+++ a/drivers/video/vt8623fb.c
-@@ -12,7 +12,6 @@
-  * (http://davesdomain.org.uk/viafb/)
-  */
+ int saa7134_set_dmabits(struct saa7134_dev *dev)
+@@ -1139,6 +1113,32 @@ static void __devexit saa7134_finidev(st
+ }
  
--#include <linux/version.h>
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/errno.h>
+ #ifdef CONFIG_PM
++
++/* resends a current buffer in queue after resume */
++static int saa7134_buffer_requeue(struct saa7134_dev *dev,
++				  struct saa7134_dmaqueue *q)
++{
++	struct saa7134_buf *buf, *next;
++
++	assert_spin_locked(&dev->slock);
++
++	buf  = q->curr;
++	next = buf;
++	dprintk("buffer_requeue\n");
++
++	if (!buf)
++		return 0;
++
++	dprintk("buffer_requeue : resending active buffers \n");
++
++	if (!list_empty(&q->queue))
++		next = list_entry(q->queue.next, struct saa7134_buf,
++					  vb.queue);
++	buf->activate(dev, buf, next);
++
++	return 0;
++}
++
+ static int saa7134_suspend(struct pci_dev *pci_dev , pm_message_t state)
+ {
+ 
 _
 
-Patches currently in -mm which might be from weiyi.huang@gmail.com are
+Patches currently in -mm which might be from a.beregalov@gmail.com are
 
 linux-next.patch
-arch-m68k-bvme6000-rtcc-remove-duplicated-include.patch
-drivers-video-remove-include-versionh.patch
 
