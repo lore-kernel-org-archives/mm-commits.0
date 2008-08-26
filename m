@@ -1,194 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup.patch removed from -mm tree
-Date: Tue, 26 Aug 2008 11:44:57 -0700
-Message-ID: <200808261844.m7QIiv2m021355@imap1.linux-foundation.org>
+Subject: - sched-reorder-signal_struct-to-remove-8-bytes-on-64-bit-builds.patch removed from -mm tree
+Date: Tue, 26 Aug 2008 11:45:02 -0700
+Message-ID: <200808261845.m7QIj2tO021367@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51926 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57213 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757897AbYHZSvk (ORCPT
+	by vger.kernel.org with ESMTP id S1757210AbYHZSx5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Aug 2008 14:51:40 -0400
+	Tue, 26 Aug 2008 14:53:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zippel@linux-m68k.org, johnstul@us.ibm.com, mingo@elte.hu, mtk.manpages@googlemail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: richard@rsk.demon.co.uk, a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ntp: fix ADJ_OFFSET_SS_READ bug and do_adjtimex() cleanup
+     sched: reorder signal_struct to remove 8 bytes on 64 bit builds
 has been removed from the -mm tree.  Its filename was
-     ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup.patch
+     sched-reorder-signal_struct-to-remove-8-bytes-on-64-bit-builds.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ntp: fix ADJ_OFFSET_SS_READ bug and do_adjtimex() cleanup
-From: Roman Zippel <zippel@linux-m68k.org>
+Subject: sched: reorder signal_struct to remove 8 bytes on 64 bit builds
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-Thanks to the review by Michael Kerrisk a bug in the recent
-ADJ_OFFSET_SS_READ option was discovered, where the ntp time_offset was
-inadvertently set by it.  This fixes this by making the adjtime code
-more separate from the ntp_adjtime code (both of which really want to
-be separate syscalls).
+reorder structure to remove 8 bytes of padding on 64 bit builds
 
-Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timex.h |    9 ++++
- kernel/time/ntp.c     |   76 +++++++++++++++++++++-------------------
- 2 files changed, 48 insertions(+), 37 deletions(-)
+ include/linux/sched.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/timex.h~ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup include/linux/timex.h
---- a/include/linux/timex.h~ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup
-+++ a/include/linux/timex.h
-@@ -141,8 +141,15 @@ struct timex {
- #define ADJ_MICRO		0x1000	/* select microsecond resolution */
- #define ADJ_NANO		0x2000	/* select nanosecond resolution */
- #define ADJ_TICK		0x4000	/* tick value */
-+
-+#ifdef __KERNEL__
-+#define ADJ_ADJTIME		0x8000	/* switch between adjtime/adjtimex modes */
-+#define ADJ_OFFSET_SINGLESHOT	0x0001	/* old-fashioned adjtime */
-+#define ADJ_OFFSET_READONLY	0x2000	/* read-only adjtime */
-+#else
- #define ADJ_OFFSET_SINGLESHOT	0x8001	/* old-fashioned adjtime */
--#define ADJ_OFFSET_SS_READ	0xa001  /* read-only adjtime */
-+#define ADJ_OFFSET_SS_READ	0xa001	/* read-only adjtime */
-+#endif
+diff -puN include/linux/sched.h~sched-reorder-signal_struct-to-remove-8-bytes-on-64-bit-builds include/linux/sched.h
+--- a/include/linux/sched.h~sched-reorder-signal_struct-to-remove-8-bytes-on-64-bit-builds
++++ a/include/linux/sched.h
+@@ -451,8 +451,8 @@ struct signal_struct {
+ 	 * - everyone except group_exit_task is stopped during signal delivery
+ 	 *   of fatal signals, group_exit_task processes the signal.
+ 	 */
+-	struct task_struct	*group_exit_task;
+ 	int			notify_count;
++	struct task_struct	*group_exit_task;
  
- /* xntp 3.4 compatibility names */
- #define MOD_OFFSET	ADJ_OFFSET
-diff -puN kernel/time/ntp.c~ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup kernel/time/ntp.c
---- a/kernel/time/ntp.c~ntp-fix-adj_offset_ss_read-bug-and-do_adjtimex-cleanup
-+++ a/kernel/time/ntp.c
-@@ -277,38 +277,50 @@ static inline void notify_cmos_timer(voi
- int do_adjtimex(struct timex *txc)
- {
- 	struct timespec ts;
--	long save_adjust, sec;
- 	int result;
- 
--	/* In order to modify anything, you gotta be super-user! */
--	if (txc->modes && !capable(CAP_SYS_TIME))
--		return -EPERM;
--
--	/* Now we validate the data before disabling interrupts */
--
--	if ((txc->modes & ADJ_OFFSET_SINGLESHOT) == ADJ_OFFSET_SINGLESHOT) {
-+	/* Validate the data before disabling interrupts */
-+	if (txc->modes & ADJ_ADJTIME) {
- 		/* singleshot must not be used with any other mode bits */
--		if (txc->modes & ~ADJ_OFFSET_SS_READ)
-+		if (!(txc->modes & ADJ_OFFSET_SINGLESHOT))
- 			return -EINVAL;
--	}
-+		if (!(txc->modes & ADJ_OFFSET_READONLY) &&
-+		    !capable(CAP_SYS_TIME))
-+			return -EPERM;
-+	} else {
-+		/* In order to modify anything, you gotta be super-user! */
-+		 if (txc->modes && !capable(CAP_SYS_TIME))
-+			return -EPERM;
-+
-+		/* if the quartz is off by more than 10% something is VERY wrong! */
-+		if (txc->modes & ADJ_TICK &&
-+		    (txc->tick <  900000/USER_HZ ||
-+		     txc->tick > 1100000/USER_HZ))
-+				return -EINVAL;
- 
--	/* if the quartz is off by more than 10% something is VERY wrong ! */
--	if (txc->modes & ADJ_TICK)
--		if (txc->tick <  900000/USER_HZ ||
--		    txc->tick > 1100000/USER_HZ)
--			return -EINVAL;
-+		if (txc->modes & ADJ_STATUS && time_state != TIME_OK)
-+			hrtimer_cancel(&leap_timer);
-+	}
- 
--	if (time_state != TIME_OK && txc->modes & ADJ_STATUS)
--		hrtimer_cancel(&leap_timer);
- 	getnstimeofday(&ts);
- 
- 	write_seqlock_irq(&xtime_lock);
- 
--	/* Save for later - semantics of adjtime is to return old value */
--	save_adjust = time_adjust;
--
- 	/* If there are input parameters, then process them */
-+	if (txc->modes & ADJ_ADJTIME) {
-+		long save_adjust = time_adjust;
-+
-+		if (!(txc->modes & ADJ_OFFSET_READONLY)) {
-+			/* adjtime() is independent from ntp_adjtime() */
-+			time_adjust = txc->offset;
-+			ntp_update_frequency();
-+		}
-+		txc->offset = save_adjust;
-+		goto adj_done;
-+	}
- 	if (txc->modes) {
-+		long sec;
-+
- 		if (txc->modes & ADJ_STATUS) {
- 			if ((time_status & STA_PLL) &&
- 			    !(txc->status & STA_PLL)) {
-@@ -375,13 +387,8 @@ int do_adjtimex(struct timex *txc)
- 		if (txc->modes & ADJ_TAI && txc->constant > 0)
- 			time_tai = txc->constant;
- 
--		if (txc->modes & ADJ_OFFSET) {
--			if (txc->modes == ADJ_OFFSET_SINGLESHOT)
--				/* adjtime() is independent from ntp_adjtime() */
--				time_adjust = txc->offset;
--			else
--				ntp_update_offset(txc->offset);
--		}
-+		if (txc->modes & ADJ_OFFSET)
-+			ntp_update_offset(txc->offset);
- 		if (txc->modes & ADJ_TICK)
- 			tick_usec = txc->tick;
- 
-@@ -389,19 +396,16 @@ int do_adjtimex(struct timex *txc)
- 			ntp_update_frequency();
- 	}
- 
-+	txc->offset = shift_right(time_offset * NTP_INTERVAL_FREQ,
-+				  NTP_SCALE_SHIFT);
-+	if (!(time_status & STA_NANO))
-+		txc->offset /= NSEC_PER_USEC;
-+
-+adj_done:
- 	result = time_state;	/* mostly `TIME_OK' */
- 	if (time_status & (STA_UNSYNC|STA_CLOCKERR))
- 		result = TIME_ERROR;
- 
--	if ((txc->modes == ADJ_OFFSET_SINGLESHOT) ||
--	    (txc->modes == ADJ_OFFSET_SS_READ))
--		txc->offset = save_adjust;
--	else {
--		txc->offset = shift_right(time_offset * NTP_INTERVAL_FREQ,
--					  NTP_SCALE_SHIFT);
--		if (!(time_status & STA_NANO))
--			txc->offset /= NSEC_PER_USEC;
--	}
- 	txc->freq	   = shift_right((s32)(time_freq >> PPM_SCALE_INV_SHIFT) *
- 					 (s64)PPM_SCALE_INV,
- 					 NTP_SCALE_SHIFT);
+ 	/* thread group stop support, overloads group_exit_code too */
+ 	int			group_stop_count;
 _
 
-Patches currently in -mm which might be from zippel@linux-m68k.org are
+Patches currently in -mm which might be from richard@rsk.demon.co.uk are
 
 linux-next.patch
-ntp-let-update_persistent_clock-sleep.patch
-timekeeping-fix-rounding-problem-during-clock-update.patch
-ntp-improve-adjtimex-frequency-rounding.patch
-ntp-fix-calculation-of-the-next-jiffie-to-trigger-rtc-sync.patch
-hfsplus-quieten-down-mounting-hfsplus-journaled-fs-read-only.patch
+hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds.patch
 
