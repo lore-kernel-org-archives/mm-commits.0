@@ -1,99 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-avoid-dropping-rapid-hotkey-events-or-other-gpes-on-asus-eeepc.patch removed from -mm tree
-Date: Tue, 26 Aug 2008 16:06:52 -0700
-Message-ID: <200808262306.m7QN6qQw032501@imap1.linux-foundation.org>
+Subject: + acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch added to -mm tree
+Date: Tue, 26 Aug 2008 16:08:07 -0700
+Message-ID: <200808262308.m7QN871G032613@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44386 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48429 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751668AbYHZXHz (ORCPT
+	by vger.kernel.org with ESMTP id S1750778AbYHZXIq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Aug 2008 19:07:55 -0400
+	Tue, 26 Aug 2008 19:08:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan-jenkins@tuffmail.co.uk, andi@firstfloor.org, astarikovskiy@suse.de, hmh@hmh.eng.br, maxi@daemonizer.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, andi@firstfloor.org, astarikovskiy@suse.de
 
 
 The patch titled
-     acpi: Avoid dropping rapid hotkey events (or other GPEs) on Asus EeePC
-has been removed from the -mm tree.  Its filename was
-     acpi-avoid-dropping-rapid-hotkey-events-or-other-gpes-on-asus-eeepc.patch
+     acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup
+has been added to the -mm tree.  Its filename is
+     acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: Avoid dropping rapid hotkey events (or other GPEs) on Asus EeePC
-From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
+Subject: acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-It looks like this EC clears the SMI_EVT bit after every query, even if
-there are more events pending.  The workaround is to repeatedly query the
-EC until it reports that no events remain.
+use bool properly.
 
-This fixes a regression in 2.6.26 (from 2.6.25.3).  Initially reported as
-"Asus Eee PC hotkeys stop working if pressed quickly" in bugzilla
-<http://bugzilla.kernel.org/show_bug.cgi?id=11089>.
-
-The regression was caused by a recently added check for interrupt storms. 
-The Eee PC triggers this check and switches to polling.  When multiple
-events arrive between polling intervals, only one is fetched from the EC. 
-This causes erroneous behaviour; ultimately events stop being delivered
-altogether when the EC buffer overflows.
-
-Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Maximilian Engelhardt <maxi@daemonizer.de>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Cc: Andi Kleen <andi@firstfloor.org>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/ec.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ drivers/acpi/ec.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/ec.c~acpi-avoid-dropping-rapid-hotkey-events-or-other-gpes-on-asus-eeepc drivers/acpi/ec.c
---- a/drivers/acpi/ec.c~acpi-avoid-dropping-rapid-hotkey-events-or-other-gpes-on-asus-eeepc
+diff -puN Documentation/kernel-parameters.txt~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup Documentation/kernel-parameters.txt
+diff -puN drivers/acpi/ec.c~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup drivers/acpi/ec.c
+--- a/drivers/acpi/ec.c~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup
 +++ a/drivers/acpi/ec.c
-@@ -486,14 +486,10 @@ void acpi_ec_remove_query_handler(struct
- 
- EXPORT_SYMBOL_GPL(acpi_ec_remove_query_handler);
- 
--static void acpi_ec_gpe_query(void *ec_cxt)
-+static void acpi_ec_gpe_run_handler(struct acpi_ec *ec, u8 value)
- {
--	struct acpi_ec *ec = ec_cxt;
--	u8 value = 0;
- 	struct acpi_ec_query_handler *handler, copy;
- 
--	if (!ec || acpi_ec_query(ec, &value))
--		return;
- 	mutex_lock(&ec->lock);
- 	list_for_each_entry(handler, &ec->list, node) {
- 		if (value == handler->query_bit) {
-@@ -511,6 +507,18 @@ static void acpi_ec_gpe_query(void *ec_c
- 	mutex_unlock(&ec->lock);
- }
- 
-+static void acpi_ec_gpe_query(void *ec_cxt)
-+{
-+	struct acpi_ec *ec = ec_cxt;
-+	u8 value = 0;
-+
-+	if (!ec)
-+		return;
-+
-+	while (!acpi_ec_query(ec, &value))
-+		acpi_ec_gpe_run_handler(ec, value);
-+}
-+
- static u32 acpi_ec_gpe_handler(void *data)
- {
+@@ -518,7 +518,7 @@ static u32 acpi_ec_gpe_handler(void *dat
  	acpi_status status = AE_OK;
+ 	struct acpi_ec *ec = data;
+ 	u8 state = acpi_ec_read_status(ec);
+-	static bool warn_done = 0;
++	static bool warn_done = false;
+ 
+ 	pr_debug(PREFIX "~~~> interrupt\n");
+ 	atomic_inc(&ec->irq_count);
 _
 
-Patches currently in -mm which might be from alan-jenkins@tuffmail.co.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-acpi-avoid-dropping-rapid-hotkey-events-or-other-gpes-on-asus-eeepc.patch
+origin.patch
+vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
+acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+linux-next.patch
+next-remove-localversion.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
+acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+git-jg-misc.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
+power-support-for-texas-instruments-bq27x00-battery-managers.patch
+drivers-pci-hotplug-ibmphp_ebdac-list_for_each-to-list_for_each_entry-checkpatch-fixes.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+git-watchdog.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+fix-a-race-condtion-of-oops_in_progress-fix.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+nilfs2-continuous-snapshotting-file-system-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
