@@ -1,273 +1,280 @@
 From: akpm@linux-foundation.org
-Subject: - mm-quicklist-shouldnt-be-proportional-to-number-of-cpus.patch removed from -mm tree
-Date: Mon, 25 Aug 2008 11:55:57 -0700
-Message-ID: <200808251855.m7PItv9D032206@imap1.linux-foundation.org>
+Subject: - linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 26 Aug 2008 10:52:35 -0700
+Message-ID: <200808261752.m7QHqZRa019206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33725 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34963 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750769AbYHYS4J (ORCPT
+	by vger.kernel.org with ESMTP id S1754219AbYHZRxI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 25 Aug 2008 14:56:09 -0400
+	Tue, 26 Aug 2008 13:53:08 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m7QHqaYV024995
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 26 Aug 2008 10:52:37 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, stable@kernel.org, travis@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: quicklist shouldn't be proportional to number of CPUs
+     linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     mm-quicklist-shouldnt-be-proportional-to-number-of-cpus.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: quicklist shouldn't be proportional to number of CPUs
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: linux-next-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-When a test program which does task migration runs, my 8GB box spends
-800MB of memory for quicklist.  This is not memory leak but doesn't seem
-good.
-
-% cat /proc/meminfo
-
-MemTotal:        7701568 kB
-MemFree:         4724672 kB
-(snip)
-Quicklists:       844800 kB
-
-because
-
-- My machine spec is
-	number of numa node: 2
-	number of cpus:      8 (4CPU x2 node)
-        total mem:           8GB (4GB x2 node)
-        free mem:            about 5GB
-
-- Maximum quicklist usage is here
-
-	 Number of CPUs per node            2    4    8   16
-	 ==============================  ====================
-	 QList_max / (Free + QList_max)   5.8%  16%  30%  48%
-
-- Then, 4.7GB x 16% ~= 880MB.
-  So, Quicklist can use 800MB.
-
-So, if following spec machine run that program
-
-   CPUs: 64 (8cpu x 8node)
-   Mem:  1TB (128GB x8node)
-
-Then, quicklist can waste 300GB (= 1TB x 30%).  It is too large.
-
-So, I don't like cache policies which is proportional to # of cpus.
-
-My patch changes the number of caches
-from:
-   per-cpu-cache-amount = memory_on_node / 16
-to
-   per-cpu-cache-amount = memory_on_node / 16 / number_of_cpus_on_node.
-
-I think this is reasonable.  but even if this patch is applied, quicklist
-can cache tons of memory on big machine.
-
-(Although its patch applied, quicklist can waste 64GB on 1TB server (= 1TB
-/ 16), it is still too much??)
-
-test program is below.
---------------------------------------------------------------------------------
-#define _GNU_SOURCE
-
-#include <stdio.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sched.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#include <sys/wait.h>
-
-#define BUFFSIZE 512
-
-int max_cpu(void)	/* get max number of logical cpus from /proc/cpuinfo */
-{
-  FILE *fd;
-  char *ret, buffer[BUFFSIZE];
-  int cpu = 1;
-
-  fd = fopen("/proc/cpuinfo", "r");
-  if (fd == NULL) {
-    perror("fopen(/proc/cpuinfo)");
-    exit(EXIT_FAILURE);
-  }
-  while (1) {
-    ret = fgets(buffer, BUFFSIZE, fd);
-    if (ret == NULL)
-      break;
-    if (!strncmp(buffer, "processor", 9))
-      cpu = atoi(strchr(buffer, ':') + 2);
-  }
-  fclose(fd);
-  return cpu;
-}
-
-void cpu_bind(int cpu)	/* bind current process to one cpu */
-{
-  cpu_set_t mask;
-  int ret;
-
-  CPU_ZERO(&mask);
-  CPU_SET(cpu, &mask);
-  ret = sched_setaffinity(0, sizeof(mask), &mask);
-  if (ret == -1) {
-    perror("sched_setaffinity()");
-    exit(EXIT_FAILURE);
-  }
-  sched_yield();	/* not necessary */
-}
-
-#define MMAP_SIZE (10 * 1024 * 1024)	/* 10 MB */
-#define FORK_INTERVAL 1	/* 1 second */
-
-main(int argc, char *argv[])
-{
-  int cpu_max, nextcpu;
-  long pagesize;
-  pid_t pid;
-
-  /* set max number of logical cpu */
-  if (argc > 1)
-    cpu_max = atoi(argv[1]) - 1;
-  else
-    cpu_max = max_cpu();
-
-  /* get the page size */
-  pagesize = sysconf(_SC_PAGESIZE);
-  if (pagesize == -1) {
-    perror("sysconf(_SC_PAGESIZE)");
-    exit(EXIT_FAILURE);
-  }
-
-  /* prepare parent process */
-  cpu_bind(0);
-  nextcpu = cpu_max;
-
-loop:
-
-  /* select destination cpu for child process by round-robin rule */
-  if (++nextcpu > cpu_max)
-    nextcpu = 1;
-
-  pid = fork();
-
-  if (pid == 0) { /* child action */
-
-    char *p;
-    int i;
-
-    /* consume page tables */
-    p = mmap(0, MMAP_SIZE, PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
-    i = MMAP_SIZE / pagesize;
-    while (i-- > 0) {
-      *p = 1;
-      p += pagesize;
-    }
-
-    /* move to other cpu */
-    cpu_bind(nextcpu);
-/*
-    printf("a child moved to cpu%d after mmap().\n", nextcpu);
-    fflush(stdout);
- */
-
-    /* back page tables to pgtable_quicklist */
-    exit(0);
-
-  } else if (pid > 0) { /* parent action */
-
-    sleep(FORK_INTERVAL);
-    waitpid(pid, NULL, WNOHANG);
-
-  }
-
-  goto loop;
-}
-
-[akpm@linux-foundation.org: fix build on sparc64]
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Mike Travis <travis@sgi.com>
-Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/quicklist.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ arch/x86/kernel/cpu/cyrix.c  |   20 --------------------
+ arch/x86/kernel/paravirt.c   |   15 ---------------
+ arch/x86/oprofile/nmi_int.c  |   22 +---------------------
+ drivers/usb/core/usb.c       |    4 ----
+ drivers/usb/musb/musb_core.c |    4 ----
+ 5 files changed, 1 insertion(+), 64 deletions(-)
 
-diff -puN mm/quicklist.c~mm-quicklist-shouldnt-be-proportional-to-number-of-cpus mm/quicklist.c
---- a/mm/quicklist.c~mm-quicklist-shouldnt-be-proportional-to-number-of-cpus
-+++ a/mm/quicklist.c
-@@ -26,7 +26,9 @@ DEFINE_PER_CPU(struct quicklist, quickli
- static unsigned long max_pages(unsigned long min_pages)
- {
- 	unsigned long node_free_pages, max;
--	struct zone *zones = NODE_DATA(numa_node_id())->node_zones;
-+	int node = numa_node_id();
-+	struct zone *zones = NODE_DATA(node)->node_zones;
-+	cpumask_t node_cpumask;
- 
- 	node_free_pages =
- #ifdef CONFIG_ZONE_DMA
-@@ -38,6 +40,10 @@ static unsigned long max_pages(unsigned 
- 		zone_page_state(&zones[ZONE_NORMAL], NR_FREE_PAGES);
- 
- 	max = node_free_pages / FRACTION_OF_NODE_MEM;
-+
-+	node_cpumask = node_to_cpumask(node);
-+	max /= cpus_weight_nr(node_cpumask);
-+
- 	return max(max, min_pages);
+diff -puN arch/x86/kernel/cpu/cyrix.c~linux-next-git-rejects arch/x86/kernel/cpu/cyrix.c
+--- a/arch/x86/kernel/cpu/cyrix.c~linux-next-git-rejects
++++ a/arch/x86/kernel/cpu/cyrix.c
+@@ -134,26 +134,6 @@ static void __cpuinit set_cx86_memwb(voi
+ 	setCx86_old(CX86_CCR2, getCx86_old(CX86_CCR2) | 0x14);
  }
+ 
+-<<<<<<< HEAD:arch/x86/kernel/cpu/cyrix.c
+-=======
+-static void __cpuinit set_cx86_inc(void)
+-{
+-	unsigned char ccr3;
+-
+-	printk(KERN_INFO "Enable Incrementor on Cyrix/NSC processor.\n");
+-
+-	ccr3 = getCx86(CX86_CCR3);
+-	setCx86(CX86_CCR3, (ccr3 & 0x0f) | 0x10); /* enable MAPEN */
+-	/* PCR1 -- Performance Control */
+-	/* Incrementor on, whatever that is */
+-	setCx86_old(CX86_PCR1, getCx86_old(CX86_PCR1) | 0x02);
+-	/* PCR0 -- Performance Control */
+-	/* Incrementor Margin 10 */
+-	setCx86_old(CX86_PCR0, getCx86_old(CX86_PCR0) | 0x04);
+-	setCx86(CX86_CCR3, ccr3);	/* disable MAPEN */
+-}
+-
+->>>>>>> FETCH_HEAD:arch/x86/kernel/cpu/cyrix.c
+ /*
+  *	Configure later MediaGX and/or Geode processor.
+  */
+diff -puN arch/x86/kernel/paravirt.c~linux-next-git-rejects arch/x86/kernel/paravirt.c
+--- a/arch/x86/kernel/paravirt.c~linux-next-git-rejects
++++ a/arch/x86/kernel/paravirt.c
+@@ -455,21 +455,6 @@ struct pv_mmu_ops pv_mmu_ops = {
+ 	.set_fixmap = native_set_fixmap,
+ };
+ 
+-<<<<<<< HEAD:arch/x86/kernel/paravirt.c
+-struct pv_lock_ops pv_lock_ops = {
+-#ifdef CONFIG_SMP
+-	.spin_is_locked = __ticket_spin_is_locked,
+-	.spin_is_contended = __ticket_spin_is_contended,
+-
+-	.spin_lock = __ticket_spin_lock,
+-	.spin_trylock = __ticket_spin_trylock,
+-	.spin_unlock = __ticket_spin_unlock,
+-#endif
+-};
+-EXPORT_SYMBOL(pv_lock_ops);
+-
+-=======
+->>>>>>> FETCH_HEAD:arch/x86/kernel/paravirt.c
+ EXPORT_SYMBOL_GPL(pv_time_ops);
+ EXPORT_SYMBOL    (pv_cpu_ops);
+ EXPORT_SYMBOL    (pv_mmu_ops);
+diff -puN arch/x86/oprofile/nmi_int.c~linux-next-git-rejects arch/x86/oprofile/nmi_int.c
+--- a/arch/x86/oprofile/nmi_int.c~linux-next-git-rejects
++++ a/arch/x86/oprofile/nmi_int.c
+@@ -32,15 +32,10 @@ static DEFINE_PER_CPU(unsigned long, sav
+ 
+ static int nmi_start(void);
+ static void nmi_stop(void);
+-<<<<<<< HEAD:arch/x86/oprofile/nmi_int.c
+-static void nmi_cpu_start(void *dummy);
+-static void nmi_cpu_stop(void *dummy);
+-=======
+ static void nmi_cpu_save_mpx_registers(struct op_msrs *msrs);
+ static void nmi_cpu_restore_mpx_registers(struct op_msrs *msrs);
+ static void nmi_cpu_stop(void *dummy);
+ static void nmi_cpu_start(void *dummy);
+->>>>>>> FETCH_HEAD:arch/x86/oprofile/nmi_int.c
+ 
+ /* 0 == registered but off, 1 == registered and on */
+ static int nmi_enabled = 0;
+@@ -579,16 +574,8 @@ int __init op_nmi_init(struct oprofile_o
+ 		return -ENODEV;
+ 	}
+ 
+-<<<<<<< HEAD:arch/x86/oprofile/nmi_int.c
+-	init_sysfs();
+-#ifdef CONFIG_SMP
+-	register_cpu_notifier(&oprofile_cpu_nb);
+-#endif
+-	using_nmi = 1;
+-=======
+ 	/* default values, can be overwritten by model */
+ 	__get_cpu_var(switch_index) = 0;
+->>>>>>> FETCH_HEAD:arch/x86/oprofile/nmi_int.c
+ 	ops->create_files = nmi_create_files;
+ 	ops->setup = nmi_setup;
+ 	ops->shutdown = nmi_shutdown;
+@@ -610,15 +597,8 @@ int __init op_nmi_init(struct oprofile_o
+ 
+ void op_nmi_exit(void)
+ {
+-	if (using_nmi) {
++	if (using_nmi)
+ 		exit_sysfs();
+-<<<<<<< HEAD:arch/x86/oprofile/nmi_int.c
+-#ifdef CONFIG_SMP
+-		unregister_cpu_notifier(&oprofile_cpu_nb);
+-#endif
+-	}
+-=======
+ 	if (model->exit)
+ 		model->exit();
+->>>>>>> FETCH_HEAD:arch/x86/oprofile/nmi_int.c
+ }
+diff -puN drivers/usb/core/usb.c~linux-next-git-rejects drivers/usb/core/usb.c
+--- a/drivers/usb/core/usb.c~linux-next-git-rejects
++++ a/drivers/usb/core/usb.c
+@@ -301,11 +301,7 @@ static struct pm_ops usb_device_pm_ops =
+ 
+ #define ksuspend_usb_init()	0
+ #define ksuspend_usb_cleanup()	do {} while (0)
+-<<<<<<< HEAD:drivers/usb/core/usb.c
+-#define usb_device_pm_ops	(*(struct pm_ops *)0)
+-=======
+ #define usb_device_pm_ops	(* (struct pm_ops *) 0)
+->>>>>>> FETCH_HEAD:drivers/usb/core/usb.c
+ 
+ #endif	/* CONFIG_PM */
+ 
+diff -puN drivers/usb/musb/musb_core.c~linux-next-git-rejects drivers/usb/musb/musb_core.c
+--- a/drivers/usb/musb/musb_core.c~linux-next-git-rejects
++++ a/drivers/usb/musb/musb_core.c
+@@ -114,11 +114,7 @@
+ 
+ 
+ 
+-<<<<<<< HEAD:drivers/usb/musb/musb_core.c
+ unsigned debug;
+-=======
+-unsigned debug = 0;
+->>>>>>> FETCH_HEAD:drivers/usb/musb/musb_core.c
+ module_param(debug, uint, S_IRUGO | S_IWUSR);
+ MODULE_PARM_DESC(debug, "Debug message level. Default = 0");
  
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-quicklist-shouldnt-be-proportional-to-number-of-cpus.patch
+origin.patch
+vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
+acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-vmscan-use-an-indexed-array-for-lru-variables.patch
-swap-use-an-array-for-the-lru-pagevecs.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+git-acpi.patch
+arch-x86-pci-irqc-attempt-to-clean-up-code-layout.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
+arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
+git-alsa-tiwai.patch
+git-powerpc-merge.patch
+git-powerpc.patch
+fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
+git-drm.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+git-jg-misc.patch
+git-kvm.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix.patch
+git-mtd.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
+power-support-for-texas-instruments-bq27x00-battery-managers.patch
+drivers-pci-hotplug-ibmphp_ebdac-list_for_each-to-list_for_each_entry-checkpatch-fixes.patch
+ftrace-printk-formatting-infrastructure.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+git-watchdog.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
 vmscan-split-lru-lists-into-anon-file-sets.patch
-vmscan-second-chance-replacement-for-anonymous-pages.patch
 unevictable-lru-infrastructure.patch
-unevictable-lru-infrastructure-nommu-fix.patch
-unevictable-lru-infrastructure-remember-pages-active-state.patch
-unevictable-lru-infrastructure-defer-vm-event-counting.patch
-unevictable-infrastructure-lru-add-event-counting-with-statistics.patch
 unevictable-lru-page-statistics.patch
-shm_locked-pages-are-unevictable.patch
-shm_locked-pages-are-unevictable-add-event-counts-to-list-scan.patch
 mlock-mlocked-pages-are-unevictable.patch
 mlock-mlocked-pages-are-unevictable-fix.patch
-doc-unevictable-lru-and-mlocked-pages-documentation-update-2.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-__mlock_vma_pages_range-comment-block.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-backout-locked_vm-adjustment-during-mmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-return-value-for-munmap-mlock-vma-race.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-update-locked_vm-on-munmap-of-mlocked-region.patch
-vmstat-mlocked-pages-statistics.patch
-vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch
-swap-cull-unevictable-pages-in-fault-path.patch
 vmscan-unevictable-lru-scan-sysctl.patch
-vmscam-kill-unused-lru-functions.patch
-mlock-revert-mainline-handling-of-mlock-error-return.patch
-mlock-make-mlock-error-return-posixly-correct.patch
 mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-unlockless-reclaim.patch
-mm-more-likely-reclaim-madv_sequential-mappings.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+fix-a-race-condtion-of-oops_in_progress-fix.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+nilfs2-continuous-snapshotting-file-system-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
