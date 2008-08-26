@@ -1,232 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: - clocksource-introduce-clocksource_forward_now.patch removed from -mm tree
-Date: Tue, 26 Aug 2008 11:45:44 -0700
-Message-ID: <200808261845.m7QIjiAl021425@imap1.linux-foundation.org>
+Subject: + tty-minor-code-efficiency-and-style-cleanup.patch added to -mm tree
+Date: Tue, 26 Aug 2008 14:07:18 -0700
+Message-ID: <200808262107.m7QL7Jw5027729@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56670 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50152 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760525AbYHZTEd (ORCPT
+	by vger.kernel.org with ESMTP id S1751389AbYHZVH2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Aug 2008 15:04:33 -0400
+	Tue, 26 Aug 2008 17:07:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zippel@linux-m68k.org, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: joe@skyrush.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     clocksource: introduce clocksource_forward_now()
-has been removed from the -mm tree.  Its filename was
-     clocksource-introduce-clocksource_forward_now.patch
+     tty: minor code efficiency and style cleanup
+has been added to the -mm tree.  Its filename is
+     tty-minor-code-efficiency-and-style-cleanup.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clocksource: introduce clocksource_forward_now()
-From: Roman Zippel <zippel@linux-m68k.org>
+Subject: tty: minor code efficiency and style cleanup
+From: Joe Peterson <joe@skyrush.com>
 
-To keep the raw monotonic patch simple first introduce
-clocksource_forward_now(), which takes care of the offset since the last
-update_wall_time() call and adds it to the clock, so there is no need
-anymore to deal with it explicitly at various places, which need to make
-significant changes to the clock.
-This is also gets rid of the timekeeping_suspend_nsecs, instead of
-waiting until resume, the value is accumulated during suspend. In the end
-there is only a single user of __get_nsec_offset() left, so I integrated
-it back to getnstimeofday().
+No behavior changes.
 
-Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: John Stultz <johnstul@us.ibm.com>
+Signed-off-by: Joe Peterson <joe@skyrush.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/timekeeping.c |   71 ++++++++++++++++--------------------
- 1 file changed, 33 insertions(+), 38 deletions(-)
+ drivers/char/n_tty.c |   63 ++++++++++++++++++++---------------------
+ 1 file changed, 32 insertions(+), 31 deletions(-)
 
-diff -puN kernel/time/timekeeping.c~clocksource-introduce-clocksource_forward_now kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~clocksource-introduce-clocksource_forward_now
-+++ a/kernel/time/timekeeping.c
-@@ -58,27 +58,23 @@ struct clocksource *clock;
+diff -puN drivers/char/n_tty.c~tty-minor-code-efficiency-and-style-cleanup drivers/char/n_tty.c
+--- a/drivers/char/n_tty.c~tty-minor-code-efficiency-and-style-cleanup
++++ a/drivers/char/n_tty.c
+@@ -446,8 +446,6 @@ static ssize_t process_output_block(stru
+ 		}
+ 	}
+ break_out:
+-	//if (tty->ops->flush_chars)
+-	//	tty->ops->flush_chars(tty);
+ 	i = tty->ops->write(tty, buf, i);
  
- #ifdef CONFIG_GENERIC_TIME
- /**
-- * __get_nsec_offset - Returns nanoseconds since last call to periodic_hook
-+ * clocksource_forward_now - update clock to the current time
-  *
-- * private function, must hold xtime_lock lock when being
-- * called. Returns the number of nanoseconds since the
-- * last call to update_wall_time() (adjusted by NTP scaling)
-+ * Forward the current clock to update its state since the last call to
-+ * update_wall_time(). This is useful before significant clock changes,
-+ * as it avoids having to deal with this time offset explicitly.
-  */
--static inline s64 __get_nsec_offset(void)
-+static void clocksource_forward_now(void)
- {
- 	cycle_t cycle_now, cycle_delta;
--	s64 ns_offset;
-+	s64 nsec;
- 
--	/* read clocksource: */
- 	cycle_now = clocksource_read(clock);
--
--	/* calculate the delta since the last update_wall_time: */
- 	cycle_delta = (cycle_now - clock->cycle_last) & clock->mask;
-+	clock->cycle_last = cycle_now;
- 
--	/* convert to nanoseconds: */
--	ns_offset = cyc2ns(clock, cycle_delta);
--
--	return ns_offset;
-+	nsec = cyc2ns(clock, cycle_delta);
-+	timespec_add_ns(&xtime, nsec);
+ 	unlock_kernel();
+@@ -455,11 +453,11 @@ break_out:
  }
  
  /**
-@@ -89,6 +85,7 @@ static inline s64 __get_nsec_offset(void
-  */
- void getnstimeofday(struct timespec *ts)
+- *	process_echoes	-	write pending echoed characters
++ *	process_echoes	-	write pending echo characters
+  *	@tty: terminal device
+  *
+- *	Write echoed (and other ldisc-generated) characters to the
+- *	tty that have been stored previously in the echo buffer.
++ *	Write previously buffered echo (and other ldisc-generated)
++ *	characters to the tty.
+  *
+  *	Characters generated by the ldisc (including echoes) need to
+  *	be buffered because the driver's write buffer can fill during
+@@ -488,11 +486,11 @@ break_out:
+ 
+ static void process_echoes(struct tty_struct *tty)
  {
-+	cycle_t cycle_now, cycle_delta;
- 	unsigned long seq;
- 	s64 nsecs;
+-	int	space, num, nr;
++	int	space, nr;
+ 	unsigned char c;
+ 	unsigned char *cp, *buf_end;
  
-@@ -96,7 +93,15 @@ void getnstimeofday(struct timespec *ts)
- 		seq = read_seqbegin(&xtime_lock);
- 
- 		*ts = xtime;
--		nsecs = __get_nsec_offset();
-+
-+		/* read clocksource: */
-+		cycle_now = clocksource_read(clock);
-+
-+		/* calculate the delta since the last update_wall_time: */
-+		cycle_delta = (cycle_now - clock->cycle_last) & clock->mask;
-+
-+		/* convert to nanoseconds: */
-+		nsecs = cyc2ns(clock, cycle_delta);
- 
- 	} while (read_seqretry(&xtime_lock, seq));
- 
-@@ -129,22 +134,22 @@ EXPORT_SYMBOL(do_gettimeofday);
-  */
- int do_settimeofday(struct timespec *tv)
- {
-+	struct timespec ts_delta;
- 	unsigned long flags;
--	time_t wtm_sec, sec = tv->tv_sec;
--	long wtm_nsec, nsec = tv->tv_nsec;
- 
- 	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
- 		return -EINVAL;
- 
- 	write_seqlock_irqsave(&xtime_lock, flags);
- 
--	nsec -= __get_nsec_offset();
-+	clocksource_forward_now();
-+
-+	ts_delta.tv_sec = tv->tv_sec - xtime.tv_sec;
-+	ts_delta.tv_nsec = tv->tv_nsec - xtime.tv_nsec;
-+	wall_to_monotonic = timespec_sub(wall_to_monotonic, ts_delta);
- 
--	wtm_sec  = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
--	wtm_nsec = wall_to_monotonic.tv_nsec + (xtime.tv_nsec - nsec);
-+	xtime = *tv;
- 
--	set_normalized_timespec(&xtime, sec, nsec);
--	set_normalized_timespec(&wall_to_monotonic, wtm_sec, wtm_nsec);
- 	update_xtime_cache(0);
- 
- 	clock->error = 0;
-@@ -170,22 +175,17 @@ EXPORT_SYMBOL(do_settimeofday);
- static void change_clocksource(void)
- {
- 	struct clocksource *new;
--	cycle_t now;
--	u64 nsec;
- 
- 	new = clocksource_get_next();
- 
- 	if (clock == new)
+-	if (!(num = tty->echo_cnt))
++	if (!tty->echo_cnt)
  		return;
  
--	new->cycle_last = 0;
--	now = clocksource_read(new);
--	nsec =  __get_nsec_offset();
--	timespec_add_ns(&xtime, nsec);
-+	clocksource_forward_now();
+ 	lock_kernel();
+@@ -501,7 +499,7 @@ static void process_echoes(struct tty_st
  
- 	clock = new;
--	clock->cycle_last = now;
--
-+	clock->cycle_last = 0;
-+	clock->cycle_last = clocksource_read(new);
- 	clock->error = 0;
- 	clock->xtime_nsec = 0;
- 	clocksource_calculate_interval(clock, NTP_INTERVAL_LENGTH);
-@@ -200,8 +200,8 @@ static void change_clocksource(void)
- 	 */
- }
- #else
-+static inline void clocksource_forward_now(void) { }
- static inline void change_clocksource(void) { }
--static inline s64 __get_nsec_offset(void) { return 0; }
- #endif
- 
- /**
-@@ -265,8 +265,6 @@ void __init timekeeping_init(void)
- static int timekeeping_suspended;
- /* time in seconds when suspend began */
- static unsigned long timekeeping_suspend_time;
--/* xtime offset when we went into suspend */
--static s64 timekeeping_suspend_nsecs;
- 
- /**
-  * timekeeping_resume - Resumes the generic timekeeping subsystem.
-@@ -292,8 +290,6 @@ static int timekeeping_resume(struct sys
- 		wall_to_monotonic.tv_sec -= sleep_length;
- 		total_sleep_time += sleep_length;
+ 	buf_end = tty->echo_buf + N_TTY_BUF_SIZE;
+ 	cp = tty->echo_buf + tty->echo_pos;
+-	nr = num;
++	nr = tty->echo_cnt;
+ 	while (nr > 0) {
+ 		c = *cp;
+ 		if (c == ECHO_OP_START) {
+@@ -635,14 +633,15 @@ static void process_echoes(struct tty_st
+ 			cp -= N_TTY_BUF_SIZE;
  	}
--	/* Make sure that we have the correct xtime reference */
--	timespec_add_ns(&xtime, timekeeping_suspend_nsecs);
- 	update_xtime_cache(0);
- 	/* re-base the last cycle value */
- 	clock->cycle_last = 0;
-@@ -319,8 +315,7 @@ static int timekeeping_suspend(struct sy
- 	timekeeping_suspend_time = read_persistent_clock();
  
- 	write_seqlock_irqsave(&xtime_lock, flags);
--	/* Get the current xtime offset */
--	timekeeping_suspend_nsecs = __get_nsec_offset();
-+	clocksource_forward_now();
- 	timekeeping_suspended = 1;
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
+-	tty->echo_cnt = nr;
+-	if (tty->echo_cnt == 0) {
++	if (nr == 0) {
+ 		tty->echo_pos = 0;
++		tty->echo_cnt = 0;
+ 		tty->echo_overrun = 0;
+ 	} else {
+-		int num_processed = (num - nr);
++		int num_processed = tty->echo_cnt - nr;
+ 		tty->echo_pos += num_processed;
+-		tty->echo_pos &= (N_TTY_BUF_SIZE - 1);
++		tty->echo_pos &= N_TTY_BUF_SIZE - 1;
++		tty->echo_cnt = nr;
+ 		if (num_processed > 0)
+ 			tty->echo_overrun = 0;
+ 	}
+@@ -663,42 +662,43 @@ static void process_echoes(struct tty_st
  
-@@ -461,10 +456,10 @@ void update_wall_time(void)
- 	 */
- 	while (offset >= clock->cycle_interval) {
- 		/* accumulate one interval */
--		clock->xtime_nsec += clock->xtime_interval;
--		clock->cycle_last += clock->cycle_interval;
- 		offset -= clock->cycle_interval;
-+		clock->cycle_last += clock->cycle_interval;
+ static void add_echo_byte(unsigned char c, struct tty_struct *tty)
+ {
+-	int 	add_char_pos;
++	int	new_byte_pos;
+ 	unsigned long flags;
  
-+		clock->xtime_nsec += clock->xtime_interval;
- 		if (clock->xtime_nsec >= (u64)NSEC_PER_SEC << clock->shift) {
- 			clock->xtime_nsec -= (u64)NSEC_PER_SEC << clock->shift;
- 			xtime.tv_sec++;
+ 	spin_lock_irqsave(&tty->echo_lock, flags);
+ 
+-	add_char_pos = tty->echo_pos + tty->echo_cnt;
+-	if (add_char_pos >= N_TTY_BUF_SIZE)
+-		add_char_pos -= N_TTY_BUF_SIZE;
+-
+-	/* Detect overrun */
+ 	if (tty->echo_cnt == N_TTY_BUF_SIZE) {
++		/* Circular buffer is already at capacity */
++		new_byte_pos = tty->echo_pos;
++
+ 		/*
+-		 * If the start position pointer needs to be advanced
+-		 * due to running out of buffer space, be sure it is
+-		 * done in such a way as to remove whole
+-		 * operation byte groups.
++		 * Since the buffer start position needs to be advanced,
++		 * be sure to step by a whole operation byte group.
+ 		 */
+-		if (*(tty->echo_buf +
+-		      (tty->echo_pos & (N_TTY_BUF_SIZE - 1))) == ECHO_OP_START)
++		if (tty->echo_buf[tty->echo_pos] == ECHO_OP_START)
+ 		{
+-			if (*(tty->echo_buf +
+-			      ((tty->echo_pos + 1) & (N_TTY_BUF_SIZE - 1))) == ECHO_OP_TAB_ERASE) {
++			if (tty->echo_buf[(tty->echo_pos + 1) &
++					  (N_TTY_BUF_SIZE - 1)] ==
++						ECHO_OP_TAB_ERASE) {
+ 				tty->echo_pos += 4;
+ 				tty->echo_cnt -= 3;
+ 			} else {
+ 				tty->echo_pos += 2;
+ 				tty->echo_cnt -= 1;
+ 			}
+-		} else
++		} else {
+ 			tty->echo_pos++;
+-		tty->echo_pos &= (N_TTY_BUF_SIZE - 1);
++		}
++		tty->echo_pos &= N_TTY_BUF_SIZE - 1;
++
+ 		tty->echo_overrun = 1;
+-	} else
++	} else {
++		new_byte_pos = tty->echo_pos + tty->echo_cnt;
++		new_byte_pos &= N_TTY_BUF_SIZE - 1;
+ 		tty->echo_cnt++;
++	}
+ 
+-	tty->echo_buf[add_char_pos] = c;
++	tty->echo_buf[new_byte_pos] = c;
+ 
+ 	spin_unlock_irqrestore(&tty->echo_lock, flags);
+ }
+@@ -762,8 +762,9 @@ static void echo_char_raw(unsigned char 
+ 	if (c == ECHO_OP_START) {
+ 		add_echo_byte(ECHO_OP_START, tty);
+ 		add_echo_byte(ECHO_OP_START, tty);
+-	} else
++	} else {
+ 		add_echo_byte(c, tty);
++	}
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from zippel@linux-m68k.org are
+Patches currently in -mm which might be from joe@skyrush.com are
 
-linux-next.patch
-ntp-let-update_persistent_clock-sleep.patch
-timekeeping-fix-rounding-problem-during-clock-update.patch
-ntp-improve-adjtimex-frequency-rounding.patch
-ntp-fix-calculation-of-the-next-jiffie-to-trigger-rtc-sync.patch
-hfsplus-quieten-down-mounting-hfsplus-journaled-fs-read-only.patch
+tty-fix-loss-of-echoed-characters.patch
+tty-minor-code-efficiency-and-style-cleanup.patch
 
