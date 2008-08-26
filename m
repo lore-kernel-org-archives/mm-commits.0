@@ -1,60 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - arch-x86-kernel-apm_32c-remove-duplicated-include.patch removed from -mm tree
-Date: Tue, 26 Aug 2008 11:44:51 -0700
-Message-ID: <200808261844.m7QIipi7021346@imap1.linux-foundation.org>
+Subject: - acpi-add-support-for-addressrangeunusuable-acpi-memory-type.patch removed from -mm tree
+Date: Tue, 26 Aug 2008 11:44:49 -0700
+Message-ID: <200808261844.m7QIinld021343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53873 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38240 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757529AbYHZSps (ORCPT
+	by vger.kernel.org with ESMTP id S1757536AbYHZSpv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Aug 2008 14:45:48 -0400
+	Tue, 26 Aug 2008 14:45:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: weiyi.huang@gmail.com, mingo@elte.hu, pavel@suse.cz, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: joseph.cihula@intel.com, andi@firstfloor.org, gang.wei@intel.com, mingo@elte.hu, shane.wang@intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86/kernel/apm_32.c: remove duplicated #include
+     acpi: add support for AddressRangeUnusuable ACPI memory type
 has been removed from the -mm tree.  Its filename was
-     arch-x86-kernel-apm_32c-remove-duplicated-include.patch
+     acpi-add-support-for-addressrangeunusuable-acpi-memory-type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/apm_32.c: remove duplicated #include
-From: Huang Weiyi <weiyi.huang@gmail.com>
+Subject: acpi: add support for AddressRangeUnusuable ACPI memory type
+From: "Cihula, Joseph" <joseph.cihula@intel.com>
 
-Removed duplicated include file <linux/smp_lock.h> in
-arch/x86/kernel/apm_32.c.
+Add support for the E820_UNUSABLE memory type, which is defined in
+Revision 3.0b (Oct.  10, 2006) of the ACPI Specification on p.  394 Table
+14-1:
 
-Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
-Acked-by: Pavel Machek <pavel@suse.cz>
+  AddressRangeUnusuable This range of address contains memory in which
+  errors have been detected.  This range must not be used by the OSPM.
+
+Signed-off-by: Joseph Cihula <joseph.cihula@intel.com>
+Signed-off-by: Shane Wang <shane.wang@intel.com>
+Signed-off-by: Gang Wei <gang.wei@intel.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/apm_32.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/x86/kernel/e820.c |    4 ++++
+ include/asm-x86/e820.h |    1 +
+ 2 files changed, 5 insertions(+)
 
-diff -puN arch/x86/kernel/apm_32.c~arch-x86-kernel-apm_32c-remove-duplicated-include arch/x86/kernel/apm_32.c
---- a/arch/x86/kernel/apm_32.c~arch-x86-kernel-apm_32c-remove-duplicated-include
-+++ a/arch/x86/kernel/apm_32.c
-@@ -228,7 +228,6 @@
- #include <linux/suspend.h>
- #include <linux/kthread.h>
- #include <linux/jiffies.h>
--#include <linux/smp_lock.h>
+diff -puN arch/x86/kernel/e820.c~acpi-add-support-for-addressrangeunusuable-acpi-memory-type arch/x86/kernel/e820.c
+--- a/arch/x86/kernel/e820.c~acpi-add-support-for-addressrangeunusuable-acpi-memory-type
++++ a/arch/x86/kernel/e820.c
+@@ -148,6 +148,9 @@ void __init e820_print_map(char *who)
+ 		case E820_NVS:
+ 			printk(KERN_CONT "(ACPI NVS)\n");
+ 			break;
++		case E820_UNUSABLE:
++			printk("(unusable)\n");
++			break;
+ 		default:
+ 			printk(KERN_CONT "type %u\n", e820.map[i].type);
+ 			break;
+@@ -1260,6 +1263,7 @@ static inline const char *e820_type_to_s
+ 	case E820_RAM:	return "System RAM";
+ 	case E820_ACPI:	return "ACPI Tables";
+ 	case E820_NVS:	return "ACPI Non-volatile Storage";
++	case E820_UNUSABLE:	return "Unusable memory";
+ 	default:	return "reserved";
+ 	}
+ }
+diff -puN include/asm-x86/e820.h~acpi-add-support-for-addressrangeunusuable-acpi-memory-type include/asm-x86/e820.h
+--- a/include/asm-x86/e820.h~acpi-add-support-for-addressrangeunusuable-acpi-memory-type
++++ a/include/asm-x86/e820.h
+@@ -43,6 +43,7 @@
+ #define E820_RESERVED	2
+ #define E820_ACPI	3
+ #define E820_NVS	4
++#define E820_UNUSABLE	5
  
- #include <asm/system.h>
- #include <asm/uaccess.h>
+ /* reserved RAM used by kernel itself */
+ #define E820_RESERVED_KERN        128
 _
 
-Patches currently in -mm which might be from weiyi.huang@gmail.com are
+Patches currently in -mm which might be from joseph.cihula@intel.com are
 
 linux-next.patch
-arch-m68k-bvme6000-rtcc-remove-duplicated-include.patch
 
