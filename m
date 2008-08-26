@@ -1,77 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - drm-sis-depends-on-fb_sis.patch removed from -mm tree
-Date: Tue, 26 Aug 2008 11:13:56 -0700
-Message-ID: <200808261813.m7QIDubn020055@imap1.linux-foundation.org>
+Subject: - wait_task_inactive-dont-consider-task-nivcsw.patch removed from -mm tree
+Date: Tue, 26 Aug 2008 11:18:34 -0700
+Message-ID: <200808261818.m7QIIYhu020267@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46399 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32872 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754664AbYHZSOx (ORCPT
+	by vger.kernel.org with ESMTP id S1752642AbYHZSTj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Aug 2008 14:14:53 -0400
+	Tue, 26 Aug 2008 14:19:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, airlied@linux.ie, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, mingo@elte.hu, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drm: sis depends on FB_SIS
+     wait_task_inactive(): don't consider task->nivcsw
 has been removed from the -mm tree.  Its filename was
-     drm-sis-depends-on-fb_sis.patch
+     wait_task_inactive-dont-consider-task-nivcsw.patch
 
 This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm: sis depends on FB_SIS
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: wait_task_inactive(): don't consider task->nivcsw
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-drm/sis calls mm functions in fb/sis, so make the former depend
-on the latter.
+If wait_task_inactive() returns success the task was deactivated.  In that
+case schedule() always increments ->nvcsw which alone can be used as a
+"generation counter".
 
-This one happened with FB_SIS=m, AGP_SIS=y, DRM_SYS=y.
+If the next call returns the same number, we can be sure that the task was
+unscheduled.  Otherwise, because we know that .on_rq == 0 again, ->nvcsw
+should have been changed in between.
 
-sis1.out:sis_mm.c:(.text+0x70014): undefined reference to `sis_free'
-sis1.out:sis_mm.c:(.text+0x7002a): undefined reference to `sis_malloc'
+Q: perhaps it is better to do "ncsw = (p->nvcsw << 1) | 1" ?  This
+decreases the possibility of "was it unscheduled" false positive when
+->nvcsw == 0.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sched.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/gpu/drm/Kconfig~drm-sis-depends-on-fb_sis drivers/gpu/drm/Kconfig
---- a/drivers/gpu/drm/Kconfig~drm-sis-depends-on-fb_sis
-+++ a/drivers/gpu/drm/Kconfig
-@@ -86,7 +86,7 @@ config DRM_MGA
+diff -puN kernel/sched.c~wait_task_inactive-dont-consider-task-nivcsw kernel/sched.c
+--- a/kernel/sched.c~wait_task_inactive-dont-consider-task-nivcsw
++++ a/kernel/sched.c
+@@ -1925,11 +1925,8 @@ unsigned long wait_task_inactive(struct 
+ 		running = task_running(rq, p);
+ 		on_rq = p->se.on_rq;
+ 		ncsw = 0;
+-		if (!match_state || p->state == match_state) {
+-			ncsw = p->nivcsw + p->nvcsw;
+-			if (unlikely(!ncsw))
+-				ncsw = 1;
+-		}
++		if (!match_state || p->state == match_state)
++			ncsw = p->nvcsw ?: 1;
+ 		task_rq_unlock(rq, &flags);
  
- config DRM_SIS
- 	tristate "SiS video cards"
--	depends on DRM && AGP
-+	depends on DRM && AGP && FB_SIS
- 	help
- 	  Choose this option if you have a SiS 630 or compatible video
-           chipset. If M is selected the module will be called sis. AGP
+ 		/*
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
-origin.patch
 linux-next.patch
-mfd-ucb1400-sound-driver-uses-depends-on-ac97_bus.patch
-drm-sis-depends-on-fb_sis.patch
-genksyms-track-symbol-checksum-changes.patch
-genksyms-allow-to-ignore-symbol-checksum-changes.patch
-lkdtm-fix-for-config_scsi=n.patch
-git-kvm.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-security-testing.patch
-ftrace-printk-formatting-infrastructure.patch
-git-block.patch
-git-pekka.patch
-w1-documentation-w1-masters-ds2490-update.patch
-profile-likely-unlikely-macros.patch
+posix-timers-dont-switch-to-group_leader-if-it_process-dies.patch
+posix-timers-always-do-get_task_structtimer-it_process.patch
+posix-timers-sys_timer_create-remove-the-buggy-pf_exiting-check.patch
+posix-timers-sys_timer_create-simplify-and-s-tasklist-rcu.patch
+posix-timers-move-the-initialization-of-timer-sigq-from-send-to-create-path.patch
+posix-timers-sys_timer_create-cleanup-the-error-handling.patch
+posix-timers-kill-it_sigev_signo-and-it_sigev_value.patch
+posix-timers-lock_timer-kill-the-bogus-it_id-check.patch
+posix-timers-lock_timer-make-it-readable.patch
+wait_task_inactive-dont-consider-task-nivcsw.patch
+wait_task_inactive-improve-the-returned-value-for-nvcsw-==-0.patch
+posix-timers-use-struct-pid-instead-of-struct-task_struct.patch
+posix-timers-check-it_signal-instead-of-it_pid-to-validate-the-timer.patch
+posix-timers-simplify-de_thread-exit_itimers-path.patch
+make-ptrace_untrace-static.patch
+coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
+kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
 
