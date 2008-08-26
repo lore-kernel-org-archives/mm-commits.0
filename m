@@ -1,57 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch removed from -mm tree
-Date: Tue, 26 Aug 2008 10:54:12 -0700
-Message-ID: <200808261754.m7QHsC0s019256@imap1.linux-foundation.org>
+Subject: - arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch removed from -mm tree
+Date: Tue, 26 Aug 2008 10:54:16 -0700
+Message-ID: <200808261754.m7QHsG5F019259@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34877 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54094 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753699AbYHZRzE (ORCPT
+	by vger.kernel.org with ESMTP id S1757109AbYHZRzW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Aug 2008 13:55:04 -0400
+	Tue, 26 Aug 2008 13:55:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, randy.dunlap@oracle.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86/kernel/io_apic_32.c: fix printk warnings
+     arch/x86/kernel/io_apic_64.c: fix printk warnings
 has been removed from the -mm tree.  Its filename was
-     arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
+     arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/io_apic_32.c: fix printk warnings
+Subject: arch/x86/kernel/io_apic_64.c: fix printk warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/io_apic_32.c: In function 'print_local_APIC':
-arch/x86/kernel/io_apic_32.c:1539: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'u64'
-arch/x86/kernel/io_apic_32.c:1540: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'u64'
-
-No need for casting here - we know what type u64 has.
+arch/x86/kernel/io_apic_64.c: In function 'print_local_APIC':
+arch/x86/kernel/io_apic_64.c:1284: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'long unsigned int'
+arch/x86/kernel/io_apic_64.c:1285: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'long unsigned int'
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/io_apic_32.c |    4 ++--
+ arch/x86/kernel/io_apic_64.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/io_apic_32.c~arch-x86-kernel-io_apic_32c-fix-printk-warnings arch/x86/kernel/io_apic_32.c
---- a/arch/x86/kernel/io_apic_32.c~arch-x86-kernel-io_apic_32c-fix-printk-warnings
-+++ a/arch/x86/kernel/io_apic_32.c
-@@ -1536,8 +1536,8 @@ __apicdebuginit(void) print_local_APIC(v
- 	}
+diff -puN arch/x86/kernel/io_apic_64.c~arch-x86-kernel-io_apic_64c-fix-printk-warnings arch/x86/kernel/io_apic_64.c
+--- a/arch/x86/kernel/io_apic_64.c~arch-x86-kernel-io_apic_64c-fix-printk-warnings
++++ a/arch/x86/kernel/io_apic_64.c
+@@ -1281,8 +1281,8 @@ __apicdebuginit(void) print_local_APIC(v
+ 	printk(KERN_DEBUG "... APIC ESR: %08x\n", v);
  
  	icr = apic_icr_read();
 -	printk(KERN_DEBUG "... APIC ICR: %08x\n", icr);
 -	printk(KERN_DEBUG "... APIC ICR2: %08x\n", icr >> 32);
-+	printk(KERN_DEBUG "... APIC ICR: %08Lx\n", icr);
-+	printk(KERN_DEBUG "... APIC ICR2: %08Lx\n", icr >> 32);
++	printk(KERN_DEBUG "... APIC ICR: %08lx\n", icr);
++	printk(KERN_DEBUG "... APIC ICR2: %08lx\n", icr >> 32);
  
  	v = apic_read(APIC_LVTT);
  	printk(KERN_DEBUG "... APIC LVTT: %08x\n", v);
@@ -68,7 +67,6 @@ next-remove-localversion.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-arch-x86-kernel-io_apic_32c-fix-printk-warnings.patch
 arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
 git-alsa-tiwai.patch
 git-powerpc-merge.patch
