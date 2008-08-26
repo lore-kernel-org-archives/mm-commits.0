@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + percpu-counters-clean-up-percpu_counter_sum_and_set-interface.patch added to -mm tree
-Date: Tue, 26 Aug 2008 14:10:19 -0700
-Message-ID: <200808262110.m7QLAKM1027843__45369.0085131258$1219785184$gmane$org@imap1.linux-foundation.org>
+Subject: + mpc52xx_psc_spi-remove-code-associated-with-config_ppc_merge.patch added to -mm tree
+Date: Tue, 26 Aug 2008 14:16:45 -0700
+Message-ID: <200808262116.m7QLGjn7028103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47802 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40449 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751371AbYHZVLo (ORCPT
+	by vger.kernel.org with ESMTP id S1751435AbYHZVRY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Aug 2008 17:11:44 -0400
+	Tue, 26 Aug 2008 17:17:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cmm@us.ibm.com, a.p.zijlstra@chello.nl, linux-ext4@vger.kernel.org
+Cc: galak@kernel.crashing.org, benh@kernel.crashing.org, david-b@pacbell.net, grant.likely@secretlab.ca, paulus@samba.org
 
 
 The patch titled
-     percpu-counters: clean up percpu_counter_sum_and_set() interface
+     mpc52xx_psc_spi: remove code associated with !CONFIG_PPC_MERGE
 has been added to the -mm tree.  Its filename is
-     percpu-counters-clean-up-percpu_counter_sum_and_set-interface.patch
+     mpc52xx_psc_spi-remove-code-associated-with-config_ppc_merge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,106 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: percpu-counters: clean up percpu_counter_sum_and_set() interface
-From: Mingming Cao <cmm@us.ibm.com>
+Subject: mpc52xx_psc_spi: remove code associated with !CONFIG_PPC_MERGE
+From: Kumar Gala <galak@kernel.crashing.org>
 
-percpu_counter_sum_and_set() and percpu_counter_sum() is the same except
-the former update the global counter after accounting.  Since we are
-taking the fbc->lock to calculate the precise value of the counter in
-percpu_counter_sum() anyway, it should simply set fbc->count too, as the
-percpu_counter_sum_and_set() dose.
+Now that arch/ppc is gone we don't need CONFIG_PPC_MERGE anymore
+remove the dead code associated with !CONFIG_PPC_MERGE.
 
-This patch merges these two interfaces into one.
-
-Signed-off-by: Mingming Cao <cmm@us.ibm.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Kumar Gala <galak@kernel.crashing.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/balloc.c               |    2 +-
- include/linux/percpu_counter.h |   12 +++---------
- lib/percpu_counter.c           |    8 +++-----
- 3 files changed, 7 insertions(+), 15 deletions(-)
+ drivers/spi/mpc52xx_psc_spi.c |   55 --------------------------------
+ 1 file changed, 55 deletions(-)
 
-diff -puN fs/ext4/balloc.c~percpu-counters-clean-up-percpu_counter_sum_and_set-interface fs/ext4/balloc.c
---- a/fs/ext4/balloc.c~percpu-counters-clean-up-percpu_counter_sum_and_set-interface
-+++ a/fs/ext4/balloc.c
-@@ -1624,7 +1624,7 @@ ext4_fsblk_t ext4_has_free_blocks(struct
- #ifdef CONFIG_SMP
- 	if (free_blocks - root_blocks < FBC_BATCH)
- 		free_blocks =
--			percpu_counter_sum_and_set(&sbi->s_freeblocks_counter);
-+			percpu_counter_sum(&sbi->s_freeblocks_counter);
- #endif
- 	if (free_blocks <= root_blocks)
- 		/* we don't have free space */
-diff -puN include/linux/percpu_counter.h~percpu-counters-clean-up-percpu_counter_sum_and_set-interface include/linux/percpu_counter.h
---- a/include/linux/percpu_counter.h~percpu-counters-clean-up-percpu_counter_sum_and_set-interface
-+++ a/include/linux/percpu_counter.h
-@@ -35,7 +35,7 @@ int percpu_counter_init_irq(struct percp
- void percpu_counter_destroy(struct percpu_counter *fbc);
- void percpu_counter_set(struct percpu_counter *fbc, s64 amount);
- void __percpu_counter_add(struct percpu_counter *fbc, s64 amount, s32 batch);
--s64 __percpu_counter_sum(struct percpu_counter *fbc, int set);
-+s64 __percpu_counter_sum(struct percpu_counter *fbc);
- 
- static inline void percpu_counter_add(struct percpu_counter *fbc, s64 amount)
- {
-@@ -44,19 +44,13 @@ static inline void percpu_counter_add(st
- 
- static inline s64 percpu_counter_sum_positive(struct percpu_counter *fbc)
- {
--	s64 ret = __percpu_counter_sum(fbc, 0);
-+	s64 ret = __percpu_counter_sum(fbc);
- 	return ret < 0 ? 0 : ret;
+diff -puN drivers/spi/mpc52xx_psc_spi.c~mpc52xx_psc_spi-remove-code-associated-with-config_ppc_merge drivers/spi/mpc52xx_psc_spi.c
+--- a/drivers/spi/mpc52xx_psc_spi.c~mpc52xx_psc_spi-remove-code-associated-with-config_ppc_merge
++++ a/drivers/spi/mpc52xx_psc_spi.c
+@@ -15,13 +15,7 @@
+ #include <linux/init.h>
+ #include <linux/errno.h>
+ #include <linux/interrupt.h>
+-
+-#if defined(CONFIG_PPC_MERGE)
+ #include <linux/of_platform.h>
+-#else
+-#include <linux/platform_device.h>
+-#endif
+-
+ #include <linux/workqueue.h>
+ #include <linux/completion.h>
+ #include <linux/io.h>
+@@ -471,53 +465,6 @@ static int __exit mpc52xx_psc_spi_do_rem
+ 	return 0;
  }
  
--static inline s64 percpu_counter_sum_and_set(struct percpu_counter *fbc)
+-#if !defined(CONFIG_PPC_MERGE)
+-static int __init mpc52xx_psc_spi_probe(struct platform_device *dev)
 -{
--	return __percpu_counter_sum(fbc, 1);
+-	switch(dev->id) {
+-	case 1:
+-	case 2:
+-	case 3:
+-	case 6:
+-		return mpc52xx_psc_spi_do_probe(&dev->dev,
+-			MPC52xx_PA(MPC52xx_PSCx_OFFSET(dev->id)),
+-			MPC52xx_PSC_SIZE, platform_get_irq(dev, 0), dev->id);
+-	default:
+-		return -EINVAL;
+-	}
 -}
 -
+-static int __exit mpc52xx_psc_spi_remove(struct platform_device *dev)
+-{
+-	return mpc52xx_psc_spi_do_remove(&dev->dev);
+-}
 -
- static inline s64 percpu_counter_sum(struct percpu_counter *fbc)
+-/* work with hotplug and coldplug */
+-MODULE_ALIAS("platform:mpc52xx-psc-spi");
+-
+-static struct platform_driver mpc52xx_psc_spi_platform_driver = {
+-	.remove = __exit_p(mpc52xx_psc_spi_remove),
+-	.driver = {
+-		.name = "mpc52xx-psc-spi",
+-		.owner = THIS_MODULE,
+-	},
+-};
+-
+-static int __init mpc52xx_psc_spi_init(void)
+-{
+-	return platform_driver_probe(&mpc52xx_psc_spi_platform_driver,
+-			mpc52xx_psc_spi_probe);
+-}
+-module_init(mpc52xx_psc_spi_init);
+-
+-static void __exit mpc52xx_psc_spi_exit(void)
+-{
+-	platform_driver_unregister(&mpc52xx_psc_spi_platform_driver);
+-}
+-module_exit(mpc52xx_psc_spi_exit);
+-
+-#else	/* defined(CONFIG_PPC_MERGE) */
+-
+ static int __init mpc52xx_psc_spi_of_probe(struct of_device *op,
+ 	const struct of_device_id *match)
  {
--	return __percpu_counter_sum(fbc, 0);
-+	return __percpu_counter_sum(fbc);
+@@ -586,8 +533,6 @@ static void __exit mpc52xx_psc_spi_exit(
  }
+ module_exit(mpc52xx_psc_spi_exit);
  
- static inline s64 percpu_counter_read(struct percpu_counter *fbc)
-diff -puN lib/percpu_counter.c~percpu-counters-clean-up-percpu_counter_sum_and_set-interface lib/percpu_counter.c
---- a/lib/percpu_counter.c~percpu-counters-clean-up-percpu_counter_sum_and_set-interface
-+++ a/lib/percpu_counter.c
-@@ -52,7 +52,7 @@ EXPORT_SYMBOL(__percpu_counter_add);
-  * Add up all the per-cpu counts, return the result.  This is a more accurate
-  * but much slower version of percpu_counter_read_positive()
-  */
--s64 __percpu_counter_sum(struct percpu_counter *fbc, int set)
-+s64 __percpu_counter_sum(struct percpu_counter *fbc)
- {
- 	s64 ret;
- 	int cpu;
-@@ -62,11 +62,9 @@ s64 __percpu_counter_sum(struct percpu_c
- 	for_each_online_cpu(cpu) {
- 		s32 *pcount = per_cpu_ptr(fbc->counters, cpu);
- 		ret += *pcount;
--		if (set)
--			*pcount = 0;
-+		*pcount = 0;
- 	}
--	if (set)
--		fbc->count = ret;
-+	fbc->count = ret;
- 
- 	spin_unlock(&fbc->lock);
- 	return ret;
-_
-
-Patches currently in -mm which might be from cmm@us.ibm.com are
-
-origin.patch
-vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails.patch
-vmscan-set-try_to_release_pages-gfp_mask-to-0.patch
-percpu-counters-clean-up-percpu_counter_sum_and_set-interface.patch
-
+-#endif	/* defined(CONFIG_PPC_MERGE) */
