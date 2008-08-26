@@ -1,44 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch added to -mm tree
-Date: Tue, 26 Aug 2008 16:06:44 -0700
-Message-ID: <200808262306.m7QN6iIw032498@imap1.linux-foundation.org>
+Subject: - acpi-avoid-dropping-rapid-hotkey-events-or-other-gpes-on-asus-eeepc.patch removed from -mm tree
+Date: Tue, 26 Aug 2008 16:06:52 -0700
+Message-ID: <200808262306.m7QN6qQw032501@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53309 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44386 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751043AbYHZXHZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751668AbYHZXHz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Aug 2008 19:07:25 -0400
+	Tue, 26 Aug 2008 19:07:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: astarikovskiy@suse.de, andi@firstfloor.org, hmh@hmh.eng.br, maxi@daemonizer.de, stable@kernel.org
+To: alan-jenkins@tuffmail.co.uk, andi@firstfloor.org, astarikovskiy@suse.de, hmh@hmh.eng.br, maxi@daemonizer.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: EC: Don't degrade to poll mode at storm automatically
-has been added to the -mm tree.  Its filename is
-     acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch
+     acpi: Avoid dropping rapid hotkey events (or other GPEs) on Asus EeePC
+has been removed from the -mm tree.  Its filename was
+     acpi-avoid-dropping-rapid-hotkey-events-or-other-gpes-on-asus-eeepc.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ACPI: EC: Don't degrade to poll mode at storm automatically
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: acpi: Avoid dropping rapid hotkey events (or other GPEs) on Asus EeePC
+From: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 
-Not all users of semi-broken EC devices want to degrade to poll mode, so
-give them right to choose.
+It looks like this EC clears the SMI_EVT bit after every query, even if
+there are more events pending.  The workaround is to repeatedly query the
+EC until it reports that no events remain.
 
 This fixes a regression in 2.6.26 (from 2.6.25.3).  Initially reported as
 "Asus Eee PC hotkeys stop working if pressed quickly" in bugzilla
@@ -50,7 +41,7 @@ events arrive between polling intervals, only one is fetched from the EC.
 This causes erroneous behaviour; ultimately events stop being delivered
 altogether when the EC buffer overflows.
 
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Signed-off-by: Alan Jenkins <alan-jenkins@tuffmail.co.uk>
 Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
 Cc: Maximilian Engelhardt <maxi@daemonizer.de>
 Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
@@ -59,104 +50,50 @@ Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    5 +++
- drivers/acpi/ec.c                   |   36 ++++++++++++++++++--------
- 2 files changed, 31 insertions(+), 10 deletions(-)
+ drivers/acpi/ec.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically
-+++ a/Documentation/kernel-parameters.txt
-@@ -741,6 +741,11 @@ and is between 256 and 4096 characters. 
- 
- 	eata=		[HW,SCSI]
- 
-+	ec_intr=	[HW,ACPI] ACPI Embedded Controller interrupt mode
-+			Format: <int>
-+			0: polling mode
-+			non-0: interrupt mode (default)
-+
- 	edd=		[EDD]
- 			Format: {"off" | "on" | "skip[mbr]"}
- 
-diff -puN drivers/acpi/ec.c~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically drivers/acpi/ec.c
---- a/drivers/acpi/ec.c~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically
+diff -puN drivers/acpi/ec.c~acpi-avoid-dropping-rapid-hotkey-events-or-other-gpes-on-asus-eeepc drivers/acpi/ec.c
+--- a/drivers/acpi/ec.c~acpi-avoid-dropping-rapid-hotkey-events-or-other-gpes-on-asus-eeepc
 +++ a/drivers/acpi/ec.c
-@@ -110,6 +110,8 @@ static struct acpi_ec {
- 	u8 handlers_installed;
- } *boot_ec, *first_ec;
+@@ -486,14 +486,10 @@ void acpi_ec_remove_query_handler(struct
  
-+int acpi_ec_intr = 1; /* Default is interrupt mode */
-+
- /* 
-  * Some Asus system have exchanged ECDT data/command IO addresses.
-  */
-@@ -516,12 +518,14 @@ static u32 acpi_ec_gpe_handler(void *dat
- 	acpi_status status = AE_OK;
- 	struct acpi_ec *ec = data;
- 	u8 state = acpi_ec_read_status(ec);
-+	static bool warn_done = 0;
+ EXPORT_SYMBOL_GPL(acpi_ec_remove_query_handler);
  
- 	pr_debug(PREFIX "~~~> interrupt\n");
- 	atomic_inc(&ec->irq_count);
--	if (atomic_read(&ec->irq_count) > 5) {
--		pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
--		ec_switch_to_poll_mode(ec);
-+	if (!warn_done && atomic_read(&ec->irq_count) > 5) {
-+		pr_warning(PREFIX "GPE storm detected, try to use ec_intr=0 "
-+			"kernel option, if you see problems with keyboard.\n");
-+		warn_done = 1;
- 		goto end;
- 	}
- 	clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
-@@ -848,20 +852,21 @@ static int ec_install_handlers(struct ac
- 	acpi_status status;
- 	if (ec->handlers_installed)
- 		return 0;
--	status = acpi_install_gpe_handler(NULL, ec->gpe,
-+	if (acpi_ec_intr) {
-+		status = acpi_install_gpe_handler(NULL, ec->gpe,
- 					  ACPI_GPE_EDGE_TRIGGERED,
- 					  &acpi_ec_gpe_handler, ec);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	acpi_set_gpe_type(NULL, ec->gpe, ACPI_GPE_TYPE_RUNTIME);
--	acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
-+		if (ACPI_FAILURE(status))
-+			return -ENODEV;
+-static void acpi_ec_gpe_query(void *ec_cxt)
++static void acpi_ec_gpe_run_handler(struct acpi_ec *ec, u8 value)
+ {
+-	struct acpi_ec *ec = ec_cxt;
+-	u8 value = 0;
+ 	struct acpi_ec_query_handler *handler, copy;
  
-+		acpi_set_gpe_type(NULL, ec->gpe, ACPI_GPE_TYPE_RUNTIME);
-+		acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
-+	}
- 	status = acpi_install_address_space_handler(ec->handle,
- 						    ACPI_ADR_SPACE_EC,
- 						    &acpi_ec_space_handler,
- 						    NULL, ec);
--	if (ACPI_FAILURE(status)) {
-+	if (ACPI_FAILURE(status) && acpi_ec_intr) {
- 		acpi_remove_gpe_handler(NULL, ec->gpe, &acpi_ec_gpe_handler);
- 		return -ENODEV;
- 	}
-@@ -1047,3 +1052,14 @@ static void __exit acpi_ec_exit(void)
- 	return;
+-	if (!ec || acpi_ec_query(ec, &value))
+-		return;
+ 	mutex_lock(&ec->lock);
+ 	list_for_each_entry(handler, &ec->list, node) {
+ 		if (value == handler->query_bit) {
+@@ -511,6 +507,18 @@ static void acpi_ec_gpe_query(void *ec_c
+ 	mutex_unlock(&ec->lock);
  }
- #endif	/* 0 */
-+
-+static int __init acpi_ec_set_intr_mode(char *str)
+ 
++static void acpi_ec_gpe_query(void *ec_cxt)
 +{
-+	if (!get_option(&str, &acpi_ec_intr)) {
-+		acpi_ec_intr = 0;
-+		return 0;
-+	}
-+	return 1;
++	struct acpi_ec *ec = ec_cxt;
++	u8 value = 0;
++
++	if (!ec)
++		return;
++
++	while (!acpi_ec_query(ec, &value))
++		acpi_ec_gpe_run_handler(ec, value);
 +}
 +
-+__setup("ec_intr=", acpi_ec_set_intr_mode);
+ static u32 acpi_ec_gpe_handler(void *data)
+ {
+ 	acpi_status status = AE_OK;
 _
 
-Patches currently in -mm which might be from astarikovskiy@suse.de are
+Patches currently in -mm which might be from alan-jenkins@tuffmail.co.uk are
 
-linux-next.patch
-acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch
 acpi-avoid-dropping-rapid-hotkey-events-or-other-gpes-on-asus-eeepc.patch
 
