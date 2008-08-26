@@ -1,151 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch removed from -mm tree
-Date: Tue, 26 Aug 2008 10:54:16 -0700
-Message-ID: <200808261754.m7QHsG5F019259@imap1.linux-foundation.org>
+Subject: - drm-sis-depends-on-fb_sis.patch removed from -mm tree
+Date: Tue, 26 Aug 2008 11:13:56 -0700
+Message-ID: <200808261813.m7QIDubn020055@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54094 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46399 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757109AbYHZRzW (ORCPT
+	by vger.kernel.org with ESMTP id S1754664AbYHZSOx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Aug 2008 13:55:22 -0400
+	Tue, 26 Aug 2008 14:14:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, randy.dunlap@oracle.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86/kernel/io_apic_64.c: fix printk warnings
+     drm: sis depends on FB_SIS
 has been removed from the -mm tree.  Its filename was
-     arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
+     drm-sis-depends-on-fb_sis.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/io_apic_64.c: fix printk warnings
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drm: sis depends on FB_SIS
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-arch/x86/kernel/io_apic_64.c: In function 'print_local_APIC':
-arch/x86/kernel/io_apic_64.c:1284: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'long unsigned int'
-arch/x86/kernel/io_apic_64.c:1285: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'long unsigned int'
+drm/sis calls mm functions in fb/sis, so make the former depend
+on the latter.
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+This one happened with FB_SIS=m, AGP_SIS=y, DRM_SYS=y.
+
+sis1.out:sis_mm.c:(.text+0x70014): undefined reference to `sis_free'
+sis1.out:sis_mm.c:(.text+0x7002a): undefined reference to `sis_malloc'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/io_apic_64.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/io_apic_64.c~arch-x86-kernel-io_apic_64c-fix-printk-warnings arch/x86/kernel/io_apic_64.c
---- a/arch/x86/kernel/io_apic_64.c~arch-x86-kernel-io_apic_64c-fix-printk-warnings
-+++ a/arch/x86/kernel/io_apic_64.c
-@@ -1281,8 +1281,8 @@ __apicdebuginit(void) print_local_APIC(v
- 	printk(KERN_DEBUG "... APIC ESR: %08x\n", v);
+diff -puN drivers/gpu/drm/Kconfig~drm-sis-depends-on-fb_sis drivers/gpu/drm/Kconfig
+--- a/drivers/gpu/drm/Kconfig~drm-sis-depends-on-fb_sis
++++ a/drivers/gpu/drm/Kconfig
+@@ -86,7 +86,7 @@ config DRM_MGA
  
- 	icr = apic_icr_read();
--	printk(KERN_DEBUG "... APIC ICR: %08x\n", icr);
--	printk(KERN_DEBUG "... APIC ICR2: %08x\n", icr >> 32);
-+	printk(KERN_DEBUG "... APIC ICR: %08lx\n", icr);
-+	printk(KERN_DEBUG "... APIC ICR2: %08lx\n", icr >> 32);
- 
- 	v = apic_read(APIC_LVTT);
- 	printk(KERN_DEBUG "... APIC LVTT: %08x\n", v);
+ config DRM_SIS
+ 	tristate "SiS video cards"
+-	depends on DRM && AGP
++	depends on DRM && AGP && FB_SIS
+ 	help
+ 	  Choose this option if you have a SiS 630 or compatible video
+           chipset. If M is selected the module will be called sis. AGP
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
-acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-next-remove-localversion.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-arch-x86-kernel-io_apic_64c-fix-printk-warnings.patch
-git-alsa-tiwai.patch
-git-powerpc-merge.patch
-git-powerpc.patch
-fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
-git-drm.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
+mfd-ucb1400-sound-driver-uses-depends-on-ac97_bus.patch
+drm-sis-depends-on-fb_sis.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+lkdtm-fix-for-config_scsi=n.patch
 git-kvm.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix.patch
-git-mtd.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers.patch
-drivers-pci-hotplug-ibmphp_ebdac-list_for_each-to-list_for_each_entry-checkpatch-fixes.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-security-testing.patch
 ftrace-printk-formatting-infrastructure.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-git-watchdog.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-fix-a-race-condtion-of-oops_in_progress-fix.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-nilfs2-continuous-snapshotting-file-system-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+git-block.patch
+git-pekka.patch
+w1-documentation-w1-masters-ds2490-update.patch
 profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
