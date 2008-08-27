@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + vga16fb-remove-open_lock-mutex.patch added to -mm tree
-Date: Wed, 27 Aug 2008 13:32:56 -0700
-Message-ID: <200808272032.m7RKWukS020881@imap1.linux-foundation.org>
+Subject: + neofb-remove-open_lock-mutex.patch added to -mm tree
+Date: Wed, 27 Aug 2008 13:32:58 -0700
+Message-ID: <200808272032.m7RKWwEY020884@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57519 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47811 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752148AbYH0UdA (ORCPT
+	by vger.kernel.org with ESMTP id S1752278AbYH0UdA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 27 Aug 2008 16:33:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     vga16fb: remove open_lock mutex
+     neofb: remove open_lock mutex
 has been added to the -mm tree.  Its filename is
-     vga16fb-remove-open_lock-mutex.patch
+     neofb-remove-open_lock-mutex.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vga16fb: remove open_lock mutex
+Subject: neofb: remove open_lock mutex
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
 Remove mutex from the fb_open/fb_release functions as these operations are
@@ -44,29 +44,21 @@ Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/vga16fb.c |   11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ drivers/video/neofb.c    |   10 ++--------
+ include/video/neomagic.h |    1 -
+ 2 files changed, 2 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/vga16fb.c~vga16fb-remove-open_lock-mutex drivers/video/vga16fb.c
---- a/drivers/video/vga16fb.c~vga16fb-remove-open_lock-mutex
-+++ a/drivers/video/vga16fb.c
-@@ -58,7 +58,6 @@ struct vga16fb_par {
- 		unsigned char	ClockingMode;	  /* Seq-Controller:01h */
- 	} vga_state;
- 	struct vgastate state;
--	struct mutex open_lock;
- 	unsigned int ref_count;
- 	int palette_blanked, vesa_blanked, mode, isVGA;
- 	u8 misc, pel_msk, vss, clkdiv;
-@@ -286,7 +285,6 @@ static int vga16fb_open(struct fb_info *
+diff -puN drivers/video/neofb.c~neofb-remove-open_lock-mutex drivers/video/neofb.c
+--- a/drivers/video/neofb.c~neofb-remove-open_lock-mutex
++++ a/drivers/video/neofb.c
+@@ -557,14 +557,12 @@ neofb_open(struct fb_info *info, int use
  {
- 	struct vga16fb_par *par = info->par;
+ 	struct neofb_par *par = info->par;
  
 -	mutex_lock(&par->open_lock);
  	if (!par->ref_count) {
  		memset(&par->state, 0, sizeof(struct vgastate));
- 		par->state.flags = VGA_SAVE_FONTS | VGA_SAVE_MODE |
-@@ -294,7 +292,6 @@ static int vga16fb_open(struct fb_info *
+ 		par->state.flags = VGA_SAVE_MODE | VGA_SAVE_FONTS;
  		save_vga(&par->state);
  	}
  	par->ref_count++;
@@ -74,9 +66,9 @@ diff -puN drivers/video/vga16fb.c~vga16fb-remove-open_lock-mutex drivers/video/v
  
  	return 0;
  }
-@@ -303,15 +300,12 @@ static int vga16fb_release(struct fb_inf
+@@ -574,16 +572,13 @@ neofb_release(struct fb_info *info, int 
  {
- 	struct vga16fb_par *par = info->par;
+ 	struct neofb_par *par = info->par;
  
 -	mutex_lock(&par->open_lock);
 -	if (!par->ref_count) {
@@ -85,21 +77,33 @@ diff -puN drivers/video/vga16fb.c~vga16fb-remove-open_lock-mutex drivers/video/v
  		return -EINVAL;
 -	}
 +
- 	if (par->ref_count == 1)
+ 	if (par->ref_count == 1) {
  		restore_vga(&par->state);
+ 	}
  	par->ref_count--;
 -	mutex_unlock(&par->open_lock);
  
  	return 0;
  }
-@@ -1326,7 +1320,6 @@ static int __init vga16fb_probe(struct p
- 	printk(KERN_INFO "vga16fb: mapped to 0x%p\n", info->screen_base);
- 	par = info->par;
+@@ -1958,7 +1953,6 @@ static struct fb_info *__devinit neo_all
+ 
+ 	info->fix.accel = id->driver_data;
  
 -	mutex_init(&par->open_lock);
- 	par->isVGA = screen_info.orig_video_isVGA;
- 	par->palette_blanked = 0;
- 	par->vesa_blanked = 0;
+ 	par->pci_burst = !nopciburst;
+ 	par->lcd_stretch = !nostretch;
+ 	par->libretto = libretto;
+diff -puN include/video/neomagic.h~neofb-remove-open_lock-mutex include/video/neomagic.h
+--- a/include/video/neomagic.h~neofb-remove-open_lock-mutex
++++ a/include/video/neomagic.h
+@@ -123,7 +123,6 @@ typedef volatile struct {
+ 
+ struct neofb_par {
+ 	struct vgastate state;
+-	struct mutex open_lock;
+ 	unsigned int ref_count;
+ 
+ 	unsigned char MiscOutReg;	/* Misc */
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
