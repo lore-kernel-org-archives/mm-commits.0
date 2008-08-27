@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-check-read_mapping_page-return-value.patch added to -mm tree
-Date: Wed, 27 Aug 2008 14:34:05 -0700
-Message-ID: <200808272134.m7RLY5Ul023693@imap1.linux-foundation.org>
+Subject: + pid_ns-de_thread-kill-the-now-unneeded-child_reaper-change.patch added to -mm tree
+Date: Wed, 27 Aug 2008 14:28:55 -0700
+Message-ID: <200808272128.m7RLSt6J023422@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36702 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33433 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750784AbYH0Veo (ORCPT
+	by vger.kernel.org with ESMTP id S1752506AbYH0Vex (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 17:34:44 -0400
+	Wed, 27 Aug 2008 17:34:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: snakebyte@gmx.de, zippel@linux-m68k.org
+Cc: oleg@tv-sign.ru, serue@us.ibm.com, sukadev@linux.vnet.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     hfsplus: check read_mapping_page() return value
+     pid_ns: de_thread: kill the now unneeded ->child_reaper change
 has been added to the -mm tree.  Its filename is
-     hfsplus-check-read_mapping_page-return-value.patch
+     pid_ns-de_thread-kill-the-now-unneeded-child_reaper-change.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,112 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hfsplus: check read_mapping_page() return value
-From: Eric Sesterhenn <snakebyte@gmx.de>
+Subject: pid_ns: de_thread: kill the now unneeded ->child_reaper change
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-W		hile testing more corrupted images with hfsplus, i came across
-one which triggered the following bug:
+de_thread() checks if the old leader was the ->child_reaper, this is not
+possible any longer.  With the previous patch ->group_leader itself will
+change ->child_reaper on exit.
 
-[15840.675016] BUG: unable to handle kernel paging request at fffffffb
-[15840.675016] IP: [<c0116a4f>] kmap+0x15/0x56
-[15840.675016] *pde = 00008067 *pte = 00000000
-[15840.675016] Oops: 0000 [#1] PREEMPT DEBUG_PAGEALLOC
-[15840.675016] Modules linked in:
-[15840.675016]
-[15840.675016] Pid: 11575, comm: ln Not tainted (2.6.27-rc4-00123-gd3ee1b4-dirty #29)
-[15840.675016] EIP: 0060:[<c0116a4f>] EFLAGS: 00010202 CPU: 0
-[15840.675016] EIP is at kmap+0x15/0x56
-[15840.675016] EAX: 00000246 EBX: fffffffb ECX: 00000000 EDX: cab919c0
-[15840.675016] ESI: 000007dd EDI: cab0bcf4 EBP: cab0bc98 ESP: cab0bc94
-[15840.675016]  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
-[15840.675016] Process ln (pid: 11575, ti=cab0b000 task=cab919c0 task.ti=cab0b000)
-[15840.675016] Stack: 00000000 cab0bcdc c0231cfb 00000000 cab0bce0 00000800 ca9290c0 fffffffb
-[15840.675016]        cab145d0 cab919c0 cab15998 22222222 22222222 22222222 00000001 cab15960
-[15840.675016]        000007dd cab0bcf4 cab0bd04 c022cb3a cab0bcf4 cab15a6c ca9290c0 00000000
-[15840.675016] Call Trace:
-[15840.675016]  [<c0231cfb>] ? hfsplus_block_allocate+0x6f/0x2d3
-[15840.675016]  [<c022cb3a>] ? hfsplus_file_extend+0xc4/0x1db
-[15840.675016]  [<c022ce41>] ? hfsplus_get_block+0x8c/0x19d
-[15840.675016]  [<c06adde4>] ? sub_preempt_count+0x9d/0xab
-[15840.675016]  [<c019ece6>] ? __block_prepare_write+0x147/0x311
-[15840.675016]  [<c0161934>] ? __grab_cache_page+0x52/0x73
-[15840.675016]  [<c019ef4f>] ? block_write_begin+0x79/0xd5
-[15840.675016]  [<c022cdb5>] ? hfsplus_get_block+0x0/0x19d
-[15840.675016]  [<c019f22a>] ? cont_write_begin+0x27f/0x2af
-[15840.675016]  [<c022cdb5>] ? hfsplus_get_block+0x0/0x19d
-[15840.675016]  [<c0139ebe>] ? tick_program_event+0x28/0x4c
-[15840.675016]  [<c013bd35>] ? trace_hardirqs_off+0xb/0xd
-[15840.675016]  [<c022b723>] ? hfsplus_write_begin+0x2d/0x32
-[15840.675016]  [<c022cdb5>] ? hfsplus_get_block+0x0/0x19d
-[15840.675016]  [<c0161988>] ? pagecache_write_begin+0x33/0x107
-[15840.675016]  [<c01879e5>] ? __page_symlink+0x3c/0xae
-[15840.675016]  [<c019ad34>] ? __mark_inode_dirty+0x12f/0x137
-[15840.675016]  [<c0187a70>] ? page_symlink+0x19/0x1e
-[15840.675016]  [<c022e6eb>] ? hfsplus_symlink+0x41/0xa6
-[15840.675016]  [<c01886a9>] ? vfs_symlink+0x99/0x101
-[15840.675016]  [<c018a2f6>] ? sys_symlinkat+0x6b/0xad
-[15840.675016]  [<c018a348>] ? sys_symlink+0x10/0x12
-[15840.675016]  [<c01038bd>] ? sysenter_do_call+0x12/0x31
-[15840.675016]  =======================
-[15840.675016] Code: 00 00 75 10 83 3d 88 2f ec c0 02 75 07 89 d0 e8 12 56 05 00 5d c3 55 ba 06 00 00 00 89 e5 53 89 c3 b8 3d eb 7e c0 e8 16 74 00 00 <8b> 03 c1 e8 1e 69 c0 d8 02 00 00 05 b8 69 8e c0 2b 80 c4 02 00
-[15840.675016] EIP: [<c0116a4f>] kmap+0x15/0x56 SS:ESP 0068:cab0bc94
-[15840.675016] ---[ end trace 4fea40dad6b70e5f ]---
+Henceforth find_new_reaper() is the only function (apart from
+initialization) which plays with ->child_reaper.
 
-This happens because the return value of read_mapping_page() is passed on
-to kmap unchecked.  The bug is triggered after the first
-read_mapping_page() in hfsplus_block_allocate(), this patch fixes all
-three usages in this functions but leaves the ones further down in the
-file unchanged.
-
-Signed-off-by: Eric Sesterhenn <snakebyte@gmx.de>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
+Acked-by: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/bitmap.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ fs/exec.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/hfsplus/bitmap.c~hfsplus-check-read_mapping_page-return-value fs/hfsplus/bitmap.c
---- a/fs/hfsplus/bitmap.c~hfsplus-check-read_mapping_page-return-value
-+++ a/fs/hfsplus/bitmap.c
-@@ -32,6 +32,10 @@ int hfsplus_block_allocate(struct super_
- 	mutex_lock(&HFSPLUS_SB(sb).alloc_file->i_mutex);
- 	mapping = HFSPLUS_SB(sb).alloc_file->i_mapping;
- 	page = read_mapping_page(mapping, offset / PAGE_CACHE_BITS, NULL);
-+	if (IS_ERR(page)) {
-+		start = size;
-+		goto out;
-+	}
- 	pptr = kmap(page);
- 	curr = pptr + (offset & (PAGE_CACHE_BITS - 1)) / 32;
- 	i = offset % 32;
-@@ -73,6 +77,10 @@ int hfsplus_block_allocate(struct super_
- 			break;
- 		page = read_mapping_page(mapping, offset / PAGE_CACHE_BITS,
- 					 NULL);
-+		if (IS_ERR(page)) {
-+			start = size;
-+			goto out;
-+		}
- 		curr = pptr = kmap(page);
- 		if ((size ^ offset) / PAGE_CACHE_BITS)
- 			end = pptr + PAGE_CACHE_BITS / 32;
-@@ -120,6 +128,10 @@ found:
- 		offset += PAGE_CACHE_BITS;
- 		page = read_mapping_page(mapping, offset / PAGE_CACHE_BITS,
- 					 NULL);
-+		if (IS_ERR(page)) {
-+			start = size;
-+			goto out;
-+		}
- 		pptr = kmap(page);
- 		curr = pptr;
- 		end = pptr + PAGE_CACHE_BITS / 32;
+diff -puN fs/exec.c~pid_ns-de_thread-kill-the-now-unneeded-child_reaper-change fs/exec.c
+--- a/fs/exec.c~pid_ns-de_thread-kill-the-now-unneeded-child_reaper-change
++++ a/fs/exec.c
+@@ -822,8 +822,6 @@ static int de_thread(struct task_struct 
+ 			schedule();
+ 		}
+ 
+-		if (unlikely(task_child_reaper(tsk) == leader))
+-			task_active_pid_ns(tsk)->child_reaper = tsk;
+ 		/*
+ 		 * The only record we have of the real-time age of a
+ 		 * process, regardless of execs it's done, is start_time.
 _
 
-Patches currently in -mm which might be from snakebyte@gmx.de are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
+exit-signals-use-of-uninitialized-field-notify_count.patch
+pid_ns-zap_pid_ns_processes-fix-the-child_reaper-changing.patch
+pid_ns-bug-11391-change-child_reaper-when-init-group_leader-exits.patch
 linux-next.patch
-hfsplus-fix-buffer-overflow-with-a-corrupted-image.patch
-hfsplus-check-read_mapping_page-return-value.patch
+posix-timers-dont-switch-to-group_leader-if-it_process-dies.patch
+posix-timers-always-do-get_task_structtimer-it_process.patch
+posix-timers-sys_timer_create-remove-the-buggy-pf_exiting-check.patch
+posix-timers-sys_timer_create-simplify-and-s-tasklist-rcu.patch
+posix-timers-move-the-initialization-of-timer-sigq-from-send-to-create-path.patch
+posix-timers-sys_timer_create-cleanup-the-error-handling.patch
+posix-timers-kill-it_sigev_signo-and-it_sigev_value.patch
+posix-timers-lock_timer-kill-the-bogus-it_id-check.patch
+posix-timers-lock_timer-make-it-readable.patch
+posix-timers-use-struct-pid-instead-of-struct-task_struct.patch
+posix-timers-check-it_signal-instead-of-it_pid-to-validate-the-timer.patch
+posix-timers-simplify-de_thread-exit_itimers-path.patch
+make-ptrace_untrace-static.patch
+coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
+kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
+pid_ns-de_thread-kill-the-now-unneeded-child_reaper-change.patch
+pid_ns-kill-the-now-unused-task_child_reaper.patch
 
