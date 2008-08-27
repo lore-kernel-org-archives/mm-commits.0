@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ixgbe-fix-vlan-filtering.patch added to -mm tree
-Date: Tue, 26 Aug 2008 16:50:59 -0700
-Message-ID: <200808262350.m7QNoxKW001661@imap1.linux-foundation.org>
+Subject: + cfq-iosched-fix-queue-depth-detection.patch added to -mm tree
+Date: Tue, 26 Aug 2008 17:06:49 -0700
+Message-ID: <200808270006.m7R06nFA002244@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36623 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34908 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752172AbYHZXvf (ORCPT
+	by vger.kernel.org with ESMTP id S1752018AbYH0AHI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Aug 2008 19:51:35 -0400
+	Tue, 26 Aug 2008 20:07:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alexander.h.duyck@intel.com, jeff@garzik.org, jeffrey.t.kirsher@intel.com, jesse.brandeburg@intel.com
+Cc: aaronc@gelato.unsw.edu.au
 
 
 The patch titled
-     ixgbe: fix vlan filtering
+     cfq-iosched: fix queue depth detection
 has been added to the -mm tree.  Its filename is
-     ixgbe-fix-vlan-filtering.patch
+     cfq-iosched-fix-queue-depth-detection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,136 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ixgbe: fix vlan filtering
-From: Alexander Duyck <alexander.h.duyck@intel.com>
+Subject: cfq-iosched: fix queue depth detection
+From: Aaron Carroll <aaronc@gelato.unsw.edu.au>
 
-There are no vlan filter settings in the fctrl register.
+CFQ's detection of queueing devices assumes a non-queuing device and
+detects if the queue depth reaches a certain threshold.  Under some
+workloads (e.g.  synchronous reads), CFQ effectively forces a unit queue
+depth, thus defeating the detection logic.  This leads to poor performance
+on queuing hardware, since the idle window remains enabled.
 
-Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
-Signed-off-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
-Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+This patch inverts the sense of the logic: assume a queuing-capable
+device, and detect if the depth does not exceed the threshold.
+
+Signed-off-by: Aaron Carroll <aaronc@gelato.unsw.edu.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ixgbe/ixgbe_main.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ block/cfq-iosched.c |   47 +++++++++++++++++++++++++++++++++---------
+ 1 file changed, 38 insertions(+), 9 deletions(-)
 
-diff -puN drivers/net/ixgbe/ixgbe_main.c~ixgbe-fix-vlan-filtering drivers/net/ixgbe/ixgbe_main.c
---- a/drivers/net/ixgbe/ixgbe_main.c~ixgbe-fix-vlan-filtering
-+++ a/drivers/net/ixgbe/ixgbe_main.c
-@@ -1636,16 +1636,17 @@ static void ixgbe_set_multi(struct net_d
- 	struct ixgbe_hw *hw = &adapter->hw;
- 	struct dev_mc_list *mc_ptr;
- 	u8 *mta_list;
--	u32 fctrl;
-+	u32 fctrl, vlnctrl;
- 	int i;
+diff -puN block/cfq-iosched.c~cfq-iosched-fix-queue-depth-detection block/cfq-iosched.c
+--- a/block/cfq-iosched.c~cfq-iosched-fix-queue-depth-detection
++++ a/block/cfq-iosched.c
+@@ -39,6 +39,7 @@ static int cfq_slice_idle = HZ / 125;
+ #define CFQ_MIN_TT		(2)
  
- 	/* Check for Promiscuous and All Multicast modes */
+ #define CFQ_SLICE_SCALE		(5)
++#define CFQ_HW_QUEUE_MIN	(5)
  
- 	fctrl = IXGBE_READ_REG(hw, IXGBE_FCTRL);
-+	vlnctrl = IXGBE_READ_REG(hw, IXGBE_VLNCTRL);
+ #define RQ_CIC(rq)		\
+ 	((struct cfq_io_context *) (rq)->elevator_private)
+@@ -86,7 +87,14 @@ struct cfq_data {
  
- 	if (netdev->flags & IFF_PROMISC) {
- 		fctrl |= (IXGBE_FCTRL_UPE | IXGBE_FCTRL_MPE);
--		fctrl &= ~IXGBE_VLNCTRL_VFE;
-+		vlnctrl &= ~IXGBE_VLNCTRL_VFE;
- 	} else {
- 		if (netdev->flags & IFF_ALLMULTI) {
- 			fctrl |= IXGBE_FCTRL_MPE;
-@@ -1653,10 +1654,11 @@ static void ixgbe_set_multi(struct net_d
- 		} else {
- 			fctrl &= ~(IXGBE_FCTRL_UPE | IXGBE_FCTRL_MPE);
- 		}
--		fctrl |= IXGBE_VLNCTRL_VFE;
-+		vlnctrl |= IXGBE_VLNCTRL_VFE;
- 	}
+ 	int rq_in_driver;
+ 	int sync_flight;
++
++	/*
++	 * queue-depth detection
++	 */
++	int rq_queued;
+ 	int hw_tag;
++	int hw_tag_samples;
++	int rq_in_driver_peak;
  
- 	IXGBE_WRITE_REG(hw, IXGBE_FCTRL, fctrl);
-+	IXGBE_WRITE_REG(hw, IXGBE_VLNCTRL, vlnctrl);
+ 	/*
+ 	 * idle window management
+@@ -654,15 +662,6 @@ static void cfq_activate_request(struct 
+ 	cfq_log_cfqq(cfqd, RQ_CFQQ(rq), "activate rq, drv=%d",
+ 						cfqd->rq_in_driver);
  
- 	if (netdev->mc_count) {
- 		mta_list = kcalloc(netdev->mc_count, ETH_ALEN, GFP_ATOMIC);
+-	/*
+-	 * If the depth is larger 1, it really could be queueing. But lets
+-	 * make the mark a little higher - idling could still be good for
+-	 * low queueing, and a low queueing number could also just indicate
+-	 * a SCSI mid layer like behaviour where limit+1 is often seen.
+-	 */
+-	if (!cfqd->hw_tag && cfqd->rq_in_driver > 4)
+-		cfqd->hw_tag = 1;
+-
+ 	cfqd->last_position = rq->hard_sector + rq->hard_nr_sectors;
+ }
+ 
+@@ -686,6 +685,7 @@ static void cfq_remove_request(struct re
+ 	list_del_init(&rq->queuelist);
+ 	cfq_del_rq_rb(rq);
+ 
++	cfqq->cfqd->rq_queued--;
+ 	if (rq_is_meta(rq)) {
+ 		WARN_ON(!cfqq->meta_pending);
+ 		cfqq->meta_pending--;
+@@ -1833,6 +1833,7 @@ cfq_rq_enqueued(struct cfq_data *cfqd, s
+ {
+ 	struct cfq_io_context *cic = RQ_CIC(rq);
+ 
++	cfqd->rq_queued++;
+ 	if (rq_is_meta(rq))
+ 		cfqq->meta_pending++;
+ 
+@@ -1880,6 +1881,31 @@ static void cfq_insert_request(struct re
+ 	cfq_rq_enqueued(cfqd, cfqq, rq);
+ }
+ 
++/*
++ * Update hw_tag based on peak queue depth over 50 samples under
++ * sufficient load.
++ */
++static void cfq_update_hw_tag(struct cfq_data *cfqd)
++{
++	if (cfqd->rq_in_driver > cfqd->rq_in_driver_peak)
++		cfqd->rq_in_driver_peak = cfqd->rq_in_driver;
++
++	if (cfqd->rq_queued <= CFQ_HW_QUEUE_MIN &&
++	    cfqd->rq_in_driver <= CFQ_HW_QUEUE_MIN)
++		return;
++
++	if (cfqd->hw_tag_samples++ < 50)
++		return;
++
++	if (cfqd->rq_in_driver_peak >= CFQ_HW_QUEUE_MIN)
++		cfqd->hw_tag = 1;
++	else
++		cfqd->hw_tag = 0;
++
++	cfqd->hw_tag_samples = 0;
++	cfqd->rq_in_driver_peak = 0;
++}
++
+ static void cfq_completed_request(struct request_queue *q, struct request *rq)
+ {
+ 	struct cfq_queue *cfqq = RQ_CFQQ(rq);
+@@ -1890,6 +1916,8 @@ static void cfq_completed_request(struct
+ 	now = jiffies;
+ 	cfq_log_cfqq(cfqd, cfqq, "complete");
+ 
++	cfq_update_hw_tag(cfqd);
++
+ 	WARN_ON(!cfqd->rq_in_driver);
+ 	WARN_ON(!cfqq->dispatched);
+ 	cfqd->rq_in_driver--;
+@@ -2200,6 +2228,7 @@ static void *cfq_init_queue(struct reque
+ 	cfqd->cfq_slice[1] = cfq_slice_sync;
+ 	cfqd->cfq_slice_async_rq = cfq_slice_async_rq;
+ 	cfqd->cfq_slice_idle = cfq_slice_idle;
++	cfqd->hw_tag = 1;
+ 
+ 	return cfqd;
+ }
 _
 
-Patches currently in -mm which might be from alexander.h.duyck@intel.com are
+Patches currently in -mm which might be from aaronc@gelato.unsw.edu.au are
 
-ixgbe-fix-vlan-filtering.patch
-igb-remove-82576-quad-adapter.patch
+linux-next.patch
+cfq-iosched-fix-queue-depth-detection.patch
 
