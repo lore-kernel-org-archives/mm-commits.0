@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-check_par-fixes.patch added to -mm tree
-Date: Wed, 27 Aug 2008 14:31:42 -0700
-Message-ID: <200808272131.m7RLVglP023584@imap1.linux-foundation.org>
+Subject: + hfsplus-check-read_mapping_page-return-value.patch added to -mm tree
+Date: Wed, 27 Aug 2008 14:34:05 -0700
+Message-ID: <200808272134.m7RLY5Ul023693@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59101 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36702 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752463AbYH0VcQ (ORCPT
+	by vger.kernel.org with ESMTP id S1750784AbYH0Veo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 17:32:16 -0400
+	Wed, 27 Aug 2008 17:34:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, krzysztof.h1@poczta.fm
+Cc: snakebyte@gmx.de, zippel@linux-m68k.org
 
 
 The patch titled
-     cirrusfb: check_par fixes
+     hfsplus: check read_mapping_page() return value
 has been added to the -mm tree.  Its filename is
-     cirrusfb-check_par-fixes.patch
+     hfsplus-check-read_mapping_page-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,130 +34,112 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: check_par fixes
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: hfsplus: check read_mapping_page() return value
+From: Eric Sesterhenn <snakebyte@gmx.de>
 
-1. Check if virtual resolution fits into memory.
-   Otherwise, Linux hangs during panning.
-2. When selected use all available memory to
-    maximize yres_virtual to speed up panning
-   (previously also xres_virtual was increased).
-3. Simplify memory restriction calculations.
+W		hile testing more corrupted images with hfsplus, i came across
+one which triggered the following bug:
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@poczta.fm>
+[15840.675016] BUG: unable to handle kernel paging request at fffffffb
+[15840.675016] IP: [<c0116a4f>] kmap+0x15/0x56
+[15840.675016] *pde = 00008067 *pte = 00000000
+[15840.675016] Oops: 0000 [#1] PREEMPT DEBUG_PAGEALLOC
+[15840.675016] Modules linked in:
+[15840.675016]
+[15840.675016] Pid: 11575, comm: ln Not tainted (2.6.27-rc4-00123-gd3ee1b4-dirty #29)
+[15840.675016] EIP: 0060:[<c0116a4f>] EFLAGS: 00010202 CPU: 0
+[15840.675016] EIP is at kmap+0x15/0x56
+[15840.675016] EAX: 00000246 EBX: fffffffb ECX: 00000000 EDX: cab919c0
+[15840.675016] ESI: 000007dd EDI: cab0bcf4 EBP: cab0bc98 ESP: cab0bc94
+[15840.675016]  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
+[15840.675016] Process ln (pid: 11575, ti=cab0b000 task=cab919c0 task.ti=cab0b000)
+[15840.675016] Stack: 00000000 cab0bcdc c0231cfb 00000000 cab0bce0 00000800 ca9290c0 fffffffb
+[15840.675016]        cab145d0 cab919c0 cab15998 22222222 22222222 22222222 00000001 cab15960
+[15840.675016]        000007dd cab0bcf4 cab0bd04 c022cb3a cab0bcf4 cab15a6c ca9290c0 00000000
+[15840.675016] Call Trace:
+[15840.675016]  [<c0231cfb>] ? hfsplus_block_allocate+0x6f/0x2d3
+[15840.675016]  [<c022cb3a>] ? hfsplus_file_extend+0xc4/0x1db
+[15840.675016]  [<c022ce41>] ? hfsplus_get_block+0x8c/0x19d
+[15840.675016]  [<c06adde4>] ? sub_preempt_count+0x9d/0xab
+[15840.675016]  [<c019ece6>] ? __block_prepare_write+0x147/0x311
+[15840.675016]  [<c0161934>] ? __grab_cache_page+0x52/0x73
+[15840.675016]  [<c019ef4f>] ? block_write_begin+0x79/0xd5
+[15840.675016]  [<c022cdb5>] ? hfsplus_get_block+0x0/0x19d
+[15840.675016]  [<c019f22a>] ? cont_write_begin+0x27f/0x2af
+[15840.675016]  [<c022cdb5>] ? hfsplus_get_block+0x0/0x19d
+[15840.675016]  [<c0139ebe>] ? tick_program_event+0x28/0x4c
+[15840.675016]  [<c013bd35>] ? trace_hardirqs_off+0xb/0xd
+[15840.675016]  [<c022b723>] ? hfsplus_write_begin+0x2d/0x32
+[15840.675016]  [<c022cdb5>] ? hfsplus_get_block+0x0/0x19d
+[15840.675016]  [<c0161988>] ? pagecache_write_begin+0x33/0x107
+[15840.675016]  [<c01879e5>] ? __page_symlink+0x3c/0xae
+[15840.675016]  [<c019ad34>] ? __mark_inode_dirty+0x12f/0x137
+[15840.675016]  [<c0187a70>] ? page_symlink+0x19/0x1e
+[15840.675016]  [<c022e6eb>] ? hfsplus_symlink+0x41/0xa6
+[15840.675016]  [<c01886a9>] ? vfs_symlink+0x99/0x101
+[15840.675016]  [<c018a2f6>] ? sys_symlinkat+0x6b/0xad
+[15840.675016]  [<c018a348>] ? sys_symlink+0x10/0x12
+[15840.675016]  [<c01038bd>] ? sysenter_do_call+0x12/0x31
+[15840.675016]  =======================
+[15840.675016] Code: 00 00 75 10 83 3d 88 2f ec c0 02 75 07 89 d0 e8 12 56 05 00 5d c3 55 ba 06 00 00 00 89 e5 53 89 c3 b8 3d eb 7e c0 e8 16 74 00 00 <8b> 03 c1 e8 1e 69 c0 d8 02 00 00 05 b8 69 8e c0 2b 80 c4 02 00
+[15840.675016] EIP: [<c0116a4f>] kmap+0x15/0x56 SS:ESP 0068:cab0bc94
+[15840.675016] ---[ end trace 4fea40dad6b70e5f ]---
+
+This happens because the return value of read_mapping_page() is passed on
+to kmap unchecked.  The bug is triggered after the first
+read_mapping_page() in hfsplus_block_allocate(), this patch fixes all
+three usages in this functions but leaves the ones further down in the
+file unchanged.
+
+Signed-off-by: Eric Sesterhenn <snakebyte@gmx.de>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |   59 +++++++++++--------------------------
- 1 file changed, 18 insertions(+), 41 deletions(-)
+ fs/hfsplus/bitmap.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-check_par-fixes drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-check_par-fixes
-+++ a/drivers/video/cirrusfb.c
-@@ -628,27 +628,18 @@ static long cirrusfb_get_mclk(long freq,
- static int cirrusfb_check_var(struct fb_var_screeninfo *var,
- 			      struct fb_info *info)
- {
--	int nom, den;		/* translyting from pixels->bytes */
--	int yres, i;
--	static struct { int xres, yres; } modes[] =
--	{ { 1600, 1280 },
--	  { 1280, 1024 },
--	  { 1024, 768 },
--	  { 800, 600 },
--	  { 640, 480 },
--	  { -1, -1 } };
-+	int yres;
-+	/* memory size in pixels */
-+	unsigned pixels = info->screen_size * 8 / var->bits_per_pixel;
- 
- 	switch (var->bits_per_pixel) {
- 	case 1:
--		nom = 4;
--		den = 8;
-+		pixels /= 4;
- 		break;		/* 8 pixel per byte, only 1/4th of mem usable */
- 	case 8:
- 	case 16:
- 	case 24:
- 	case 32:
--		nom = var->bits_per_pixel / 8;
--		den = 1;
- 		break;		/* 1 pixel == 1 byte */
- 	default:
- 		printk(KERN_ERR "cirrusfb: mode %dx%dx%d rejected..."
-@@ -658,43 +649,29 @@ static int cirrusfb_check_var(struct fb_
- 		return -EINVAL;
- 	}
- 
--	if (var->xres * nom / den * var->yres > info->screen_size) {
--		printk(KERN_ERR "cirrusfb: mode %dx%dx%d rejected..."
--			"resolution too high to fit into video memory!\n",
--			var->xres, var->yres, var->bits_per_pixel);
--		DPRINTK("EXIT - EINVAL error\n");
--		return -EINVAL;
--	}
--
-+	if (var->xres_virtual < var->xres)
-+		var->xres_virtual = var->xres;
- 	/* use highest possible virtual resolution */
--	if (var->xres_virtual == -1 &&
--	    var->yres_virtual == -1) {
--		printk(KERN_INFO
--		     "cirrusfb: using maximum available virtual resolution\n");
--		for (i = 0; modes[i].xres != -1; i++) {
--			int size = modes[i].xres * nom / den * modes[i].yres;
--			if (size < info->screen_size / 2)
--				break;
--		}
--		if (modes[i].xres == -1) {
--			printk(KERN_ERR "cirrusfb: could not find a virtual "
--				"resolution that fits into video memory!!\n");
--			DPRINTK("EXIT - EINVAL error\n");
--			return -EINVAL;
--		}
--		var->xres_virtual = modes[i].xres;
--		var->yres_virtual = modes[i].yres;
-+	if (var->yres_virtual == -1) {
-+		var->yres_virtual = pixels / var->xres_virtual;
- 
- 		printk(KERN_INFO "cirrusfb: virtual resolution set to "
- 			"maximum of %dx%d\n", var->xres_virtual,
- 			var->yres_virtual);
- 	}
--
--	if (var->xres_virtual < var->xres)
--		var->xres_virtual = var->xres;
- 	if (var->yres_virtual < var->yres)
- 		var->yres_virtual = var->yres;
- 
-+	if (var->xres_virtual * var->yres_virtual > pixels) {
-+		printk(KERN_ERR "cirrusfb: mode %dx%dx%d rejected... "
-+		      "virtual resolution too high to fit into video memory!\n",
-+			var->xres_virtual, var->yres_virtual,
-+			var->bits_per_pixel);
-+		DPRINTK("EXIT - EINVAL error\n");
-+		return -EINVAL;
+diff -puN fs/hfsplus/bitmap.c~hfsplus-check-read_mapping_page-return-value fs/hfsplus/bitmap.c
+--- a/fs/hfsplus/bitmap.c~hfsplus-check-read_mapping_page-return-value
++++ a/fs/hfsplus/bitmap.c
+@@ -32,6 +32,10 @@ int hfsplus_block_allocate(struct super_
+ 	mutex_lock(&HFSPLUS_SB(sb).alloc_file->i_mutex);
+ 	mapping = HFSPLUS_SB(sb).alloc_file->i_mapping;
+ 	page = read_mapping_page(mapping, offset / PAGE_CACHE_BITS, NULL);
++	if (IS_ERR(page)) {
++		start = size;
++		goto out;
 +	}
-+
-+
- 	if (var->xoffset < 0)
- 		var->xoffset = 0;
- 	if (var->yoffset < 0)
+ 	pptr = kmap(page);
+ 	curr = pptr + (offset & (PAGE_CACHE_BITS - 1)) / 32;
+ 	i = offset % 32;
+@@ -73,6 +77,10 @@ int hfsplus_block_allocate(struct super_
+ 			break;
+ 		page = read_mapping_page(mapping, offset / PAGE_CACHE_BITS,
+ 					 NULL);
++		if (IS_ERR(page)) {
++			start = size;
++			goto out;
++		}
+ 		curr = pptr = kmap(page);
+ 		if ((size ^ offset) / PAGE_CACHE_BITS)
+ 			end = pptr + PAGE_CACHE_BITS / 32;
+@@ -120,6 +128,10 @@ found:
+ 		offset += PAGE_CACHE_BITS;
+ 		page = read_mapping_page(mapping, offset / PAGE_CACHE_BITS,
+ 					 NULL);
++		if (IS_ERR(page)) {
++			start = size;
++			goto out;
++		}
+ 		pptr = kmap(page);
+ 		curr = pptr;
+ 		end = pptr + PAGE_CACHE_BITS / 32;
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from snakebyte@gmx.de are
 
-cirrusfb-check_par-fixes.patch
 linux-next.patch
-fb-metronome-printk-format-warning.patch
-rtc-m48t59-reduce-structure-m48t59_private.patch
-rtc-m48t59-add-support-for-m48t02-and-m48t59-chips-2nd-rev.patch
-fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
-neofb-reduce-panning-function.patch
-fbdev-kconfig-update.patch
-fbdev-kconfig-update-fix.patch
-neofb-kill-some-redundant-code.patch
-vga16fb-remove-open_lock-mutex.patch
-neofb-remove-open_lock-mutex.patch
+hfsplus-fix-buffer-overflow-with-a-corrupted-image.patch
+hfsplus-check-read_mapping_page-return-value.patch
 
