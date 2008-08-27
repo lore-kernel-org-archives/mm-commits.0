@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + agp-follow-lspci-device-vendor-style.patch added to -mm tree
-Date: Wed, 27 Aug 2008 16:14:52 -0700
-Message-ID: <200808272314.m7RNEq9b027854@imap1.linux-foundation.org>
+Subject: + netfilter-xt_time-gives-a-wrong-monthday-in-a-leap-year.patch added to -mm tree
+Date: Wed, 27 Aug 2008 16:20:30 -0700
+Message-ID: <200808272320.m7RNKUUn028077@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43507 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59567 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753924AbYH0XPl (ORCPT
+	by vger.kernel.org with ESMTP id S1751815AbYH0XUm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 19:15:41 -0400
+	Wed, 27 Aug 2008 19:20:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, airlied@linux.ie
+Cc: kaih.luo@gmail.com, jengelh@computergmbh.de, kaber@trash.net
 
 
 The patch titled
-     agp: follow lspci device/vendor style
+     netfilter: xt_time gives a wrong monthday in a leap year
 has been added to the -mm tree.  Its filename is
-     agp-follow-lspci-device-vendor-style.patch
+     netfilter-xt_time-gives-a-wrong-monthday-in-a-leap-year.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,142 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: agp: follow lspci device/vendor style
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: netfilter: xt_time gives a wrong monthday in a leap year
+From: Kaihui Luo <kaih.luo@gmail.com>
 
-Use "[%04x:%04x]" for PCI vendor/device IDs to follow the format used by
-lspci(8).
+The function localtime_3 in xt_time.c gives a wrong monthday in a leap
+year after 28th 2.  calculating monthday should use the array
+days_since_leapyear[] not days_since_year[] in a leap year.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Kaihui Luo <kaih.luo@gmail.com>
+Cc: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/ali-agp.c      |    2 +-
- drivers/char/agp/amd64-agp.c    |    2 +-
- drivers/char/agp/ati-agp.c      |    2 +-
- drivers/char/agp/intel-agp.c    |    2 +-
- drivers/char/agp/isoch.c        |    2 +-
- drivers/char/agp/sis-agp.c      |    2 +-
- drivers/char/agp/sworks-agp.c   |    2 +-
- drivers/char/agp/uninorth-agp.c |    2 +-
- 8 files changed, 8 insertions(+), 8 deletions(-)
+ net/netfilter/xt_time.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/agp/ali-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/ali-agp.c
---- a/drivers/char/agp/ali-agp.c~agp-follow-lspci-device-vendor-style
-+++ a/drivers/char/agp/ali-agp.c
-@@ -316,7 +316,7 @@ static int __devinit agp_ali_probe(struc
- 			goto found;
- 	}
- 
--	dev_err(&pdev->dev, "unsupported ALi chipset [%04x/%04x])\n",
-+	dev_err(&pdev->dev, "unsupported ALi chipset [%04x:%04x])\n",
- 		pdev->vendor, pdev->device);
- 	return -ENODEV;
- 
-diff -puN drivers/char/agp/amd64-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/amd64-agp.c
---- a/drivers/char/agp/amd64-agp.c~agp-follow-lspci-device-vendor-style
-+++ a/drivers/char/agp/amd64-agp.c
-@@ -507,7 +507,7 @@ static int __devinit agp_amd64_probe(str
- 	    pdev->device == PCI_DEVICE_ID_AMD_8151_0) {
- 		amd8151_init(pdev, bridge);
+diff -puN net/netfilter/xt_time.c~netfilter-xt_time-gives-a-wrong-monthday-in-a-leap-year net/netfilter/xt_time.c
+--- a/net/netfilter/xt_time.c~netfilter-xt_time-gives-a-wrong-monthday-in-a-leap-year
++++ a/net/netfilter/xt_time.c
+@@ -136,17 +136,19 @@ static void localtime_3(struct xtm *r, t
+ 	 * from w repeatedly while counting.)
+ 	 */
+ 	if (is_leap(year)) {
++		/* use days_since_leapyear[] in a leap year */
+ 		for (i = ARRAY_SIZE(days_since_leapyear) - 1;
+-		    i > 0 && days_since_year[i] > w; --i)
++		    i > 0 && days_since_leapyear[i] > w; --i)
+ 			/* just loop */;
++		r->monthday = w - days_since_leapyear[i] + 1;
  	} else {
--		dev_info(&pdev->dev, "AGP bridge [%04x/%04x]\n",
-+		dev_info(&pdev->dev, "AGP bridge [%04x:%04x]\n",
- 			 pdev->vendor, pdev->device);
+ 		for (i = ARRAY_SIZE(days_since_year) - 1;
+ 		    i > 0 && days_since_year[i] > w; --i)
+ 			/* just loop */;
++		r->monthday = w - days_since_year[i] + 1;
  	}
  
-diff -puN drivers/char/agp/ati-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/ati-agp.c
---- a/drivers/char/agp/ati-agp.c~agp-follow-lspci-device-vendor-style
-+++ a/drivers/char/agp/ati-agp.c
-@@ -488,7 +488,7 @@ static int __devinit agp_ati_probe(struc
- 			goto found;
- 	}
- 
--	dev_err(&pdev->dev, "unsupported Ati chipset [%04x/%04x])\n",
-+	dev_err(&pdev->dev, "unsupported Ati chipset [%04x:%04x])\n",
- 		pdev->vendor, pdev->device);
- 	return -ENODEV;
- 
-diff -puN drivers/char/agp/intel-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~agp-follow-lspci-device-vendor-style
-+++ a/drivers/char/agp/intel-agp.c
-@@ -2199,7 +2199,7 @@ static int __devinit agp_intel_probe(str
- 
- 	if (intel_agp_chipsets[i].name == NULL) {
- 		if (cap_ptr)
--			dev_warn(&pdev->dev, "unsupported Intel chipset [%04x/%04x]\n",
-+			dev_warn(&pdev->dev, "unsupported Intel chipset [%04x:%04x]\n",
- 				 pdev->vendor, pdev->device);
- 		agp_put_bridge(bridge);
- 		return -ENODEV;
-diff -puN drivers/char/agp/isoch.c~agp-follow-lspci-device-vendor-style drivers/char/agp/isoch.c
---- a/drivers/char/agp/isoch.c~agp-follow-lspci-device-vendor-style
-+++ a/drivers/char/agp/isoch.c
-@@ -359,7 +359,7 @@ int agp_3_5_enable(struct agp_bridge_dat
- 			case 0x0001:    /* Unclassified device */
- 				/* Don't know what this is, but log it for investigation. */
- 				if (mcapndx != 0) {
--					dev_info(&td->dev, "wacky, found unclassified AGP device %s [%04x/%04x]\n",
-+					dev_info(&td->dev, "wacky, found unclassified AGP device %s [%04x:%04x]\n",
- 						 pci_name(dev),
- 						 dev->vendor, dev->device);
- 				}
-diff -puN drivers/char/agp/sis-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/sis-agp.c
---- a/drivers/char/agp/sis-agp.c~agp-follow-lspci-device-vendor-style
-+++ a/drivers/char/agp/sis-agp.c
-@@ -190,7 +190,7 @@ static int __devinit agp_sis_probe(struc
- 		return -ENODEV;
- 
- 
--	dev_info(&pdev->dev, "SiS chipset [%04x/%04x]\n",
-+	dev_info(&pdev->dev, "SiS chipset [%04x:%04x]\n",
- 		 pdev->vendor, pdev->device);
- 	bridge = agp_alloc_bridge();
- 	if (!bridge)
-diff -puN drivers/char/agp/sworks-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/sworks-agp.c
---- a/drivers/char/agp/sworks-agp.c~agp-follow-lspci-device-vendor-style
-+++ a/drivers/char/agp/sworks-agp.c
-@@ -466,7 +466,7 @@ static int __devinit agp_serverworks_pro
- 	default:
- 		if (cap_ptr)
- 			dev_err(&pdev->dev, "unsupported Serverworks chipset "
--				"[%04x/%04x]\n", pdev->vendor, pdev->device);
-+				"[%04x:%04x]\n", pdev->vendor, pdev->device);
- 		return -ENODEV;
- 	}
- 
-diff -puN drivers/char/agp/uninorth-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/uninorth-agp.c
---- a/drivers/char/agp/uninorth-agp.c~agp-follow-lspci-device-vendor-style
-+++ a/drivers/char/agp/uninorth-agp.c
-@@ -601,7 +601,7 @@ static int __devinit agp_uninorth_probe(
- 		}
- 	}
- 
--	dev_err(&pdev->dev, "unsupported Apple chipset [%04x/%04x]\n",
-+	dev_err(&pdev->dev, "unsupported Apple chipset [%04x:%04x]\n",
- 		pdev->vendor, pdev->device);
- 	return -ENODEV;
+ 	r->month    = i + 1;
+-	r->monthday = w - days_since_year[i] + 1;
+ 	return;
+ }
  
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from kaih.luo@gmail.com are
 
-linux-next.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-x86-use-dev_printk-in-quirk-message.patch
-pci-tidy-pme-support-messages.patch
-pci-tidy-pme-support-messages-checkpatch-fixes.patch
-vsprintf-use-new-vsprintf-symbolic-function-pointer-format.patch
-vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
-pnp-remove-printk-with-outdated-version.patch
-pnp-make-the-resource-type-an-unsigned-long.patch
-pnp-make-the-resource-type-an-unsigned-long-fix.patch
-firmware-use-dev_printk-when-possible.patch
-resources-tidy-__request_region.patch
-x86-pci-follow-lspci-device-vendor-style.patch
-agp-follow-lspci-device-vendor-style.patch
-v4l-dvb-follow-lspci-device-vendor-style.patch
-irda-follow-lspci-device-vendor-style.patch
-pci-follow-lspci-device-vendor-style.patch
+netfilter-xt_time-gives-a-wrong-monthday-in-a-leap-year.patch
 
