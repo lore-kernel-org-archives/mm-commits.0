@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hp-wmi-update-to-match-current-rfkill-semantics.patch added to -mm tree
-Date: Wed, 27 Aug 2008 13:27:22 -0700
-Message-ID: <200808272027.m7RKRMCX020634@imap1.linux-foundation.org>
+Subject: + include-linux-fsh-put-declarations-in-__kernel__.patch added to -mm tree
+Date: Wed, 27 Aug 2008 13:28:19 -0700
+Message-ID: <200808272028.m7RKSJU5020663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55917 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59375 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752466AbYH0U2W (ORCPT
+	by vger.kernel.org with ESMTP id S1752496AbYH0U2x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 16:28:22 -0400
+	Wed, 27 Aug 2008 16:28:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mjg59@srcf.ucam.org, hidave.darkstar@gmail.com, hmh@hmh.eng.br, ivdoorn@gmail.com, marcel@holtmann.org, mjg@redhat.com
+Cc: jengelh@medozas.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     hp-wmi: update to match current rfkill semantics
+     include: linux/fs.h: put declarations in __KERNEL__
 has been added to the -mm tree.  Its filename is
-     hp-wmi-update-to-match-current-rfkill-semantics.patch
+     include-linux-fsh-put-declarations-in-__kernel__.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,171 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hp-wmi: update to match current rfkill semantics
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: include: linux/fs.h: put declarations in __KERNEL__
+From: Jan Engelhardt <jengelh@medozas.de>
 
-hp-wmi currently changes the RFKill state by altering the struct members
-rather than using the dedicated interface, meaning that update events
-won't be pushed to userspace.  This patch fixes that, along with fixing
-the declared type of the WWAN kill switch.  It also ensures that rfkill
-interfaces are only registered for hardware that exists.
+An anonymous user tried to use symbols from /usr/include/linux/fs.h.
+Since these however are not defined in libc, but are specific to the
+kernel, they should be in an #ifdef __KERNEL__ section. Move them
+there.
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
-Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Ivo van Doorn <ivdoorn@gmail.com>
-Cc: Dave Young <hidave.darkstar@gmail.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/hp-wmi.c |   81 ++++++++++++++++++++++------------------
- 1 file changed, 46 insertions(+), 35 deletions(-)
+ include/linux/fs.h |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN drivers/misc/hp-wmi.c~hp-wmi-update-to-match-current-rfkill-semantics drivers/misc/hp-wmi.c
---- a/drivers/misc/hp-wmi.c~hp-wmi-update-to-match-current-rfkill-semantics
-+++ a/drivers/misc/hp-wmi.c
-@@ -177,9 +177,9 @@ static int hp_wmi_wifi_state(void)
- 	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
+diff -puN include/linux/fs.h~include-linux-fsh-put-declarations-in-__kernel__ include/linux/fs.h
+--- a/include/linux/fs.h~include-linux-fsh-put-declarations-in-__kernel__
++++ a/include/linux/fs.h
+@@ -21,7 +21,6 @@
  
- 	if (wireless & 0x100)
--		return 1;
-+		return RFKILL_STATE_UNBLOCKED;
- 	else
--		return 0;
-+		return RFKILL_STATE_SOFT_BLOCKED;
- }
+ /* Fixed constants first: */
+ #undef NR_OPEN
+-extern int sysctl_nr_open;
+ #define INR_OPEN 1024		/* Initial setting for nfile rlimits */
  
- static int hp_wmi_bluetooth_state(void)
-@@ -187,9 +187,9 @@ static int hp_wmi_bluetooth_state(void)
- 	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
+ #define BLOCK_SIZE_BITS 10
+@@ -38,21 +37,13 @@ struct files_stat_struct {
+ 	int nr_free_files;	/* read only */
+ 	int max_files;		/* tunable */
+ };
+-extern struct files_stat_struct files_stat;
+-extern int get_max_files(void);
  
- 	if (wireless & 0x10000)
--		return 1;
-+		return RFKILL_STATE_UNBLOCKED;
- 	else
--		return 0;
-+		return RFKILL_STATE_SOFT_BLOCKED;
- }
+ struct inodes_stat_t {
+ 	int nr_inodes;
+ 	int nr_unused;
+ 	int dummy[5];		/* padding for sysctl ABI compatibility */
+ };
+-extern struct inodes_stat_t inodes_stat;
  
- static int hp_wmi_wwan_state(void)
-@@ -197,9 +197,9 @@ static int hp_wmi_wwan_state(void)
- 	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
- 
- 	if (wireless & 0x1000000)
--		return 1;
-+		return RFKILL_STATE_UNBLOCKED;
- 	else
--		return 0;
-+		return RFKILL_STATE_SOFT_BLOCKED;
- }
- 
- static ssize_t show_display(struct device *dev, struct device_attribute *attr,
-@@ -338,12 +338,14 @@ void hp_wmi_notify(u32 value, void *cont
- 			}
- 		} else if (eventcode == 0x5) {
- 			if (wifi_rfkill)
--				wifi_rfkill->state = hp_wmi_wifi_state();
-+				rfkill_force_state(wifi_rfkill,
-+						   hp_wmi_wifi_state());
- 			if (bluetooth_rfkill)
--				bluetooth_rfkill->state =
--				    hp_wmi_bluetooth_state();
-+				rfkill_force_state(bluetooth_rfkill,
-+						   hp_wmi_bluetooth_state());
- 			if (wwan_rfkill)
--				wwan_rfkill->state = hp_wmi_wwan_state();
-+				rfkill_force_state(wwan_rfkill,
-+						   hp_wmi_wwan_state());
- 		} else
- 			printk(KERN_INFO "HP WMI: Unknown key pressed - %x\n",
- 			       eventcode);
-@@ -398,6 +400,7 @@ static void cleanup_sysfs(struct platfor
- static int __init hp_wmi_bios_setup(struct platform_device *device)
- {
- 	int err;
-+	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
- 
- 	err = device_create_file(&device->dev, &dev_attr_display);
- 	if (err)
-@@ -412,28 +415,33 @@ static int __init hp_wmi_bios_setup(stru
- 	if (err)
- 		goto add_sysfs_error;
- 
--	wifi_rfkill = rfkill_allocate(&device->dev, RFKILL_TYPE_WLAN);
--	wifi_rfkill->name = "hp-wifi";
--	wifi_rfkill->state = hp_wmi_wifi_state();
--	wifi_rfkill->toggle_radio = hp_wmi_wifi_set;
--	wifi_rfkill->user_claim_unsupported = 1;
+-extern int leases_enable, lease_break_time;
 -
--	bluetooth_rfkill = rfkill_allocate(&device->dev,
--					   RFKILL_TYPE_BLUETOOTH);
--	bluetooth_rfkill->name = "hp-bluetooth";
--	bluetooth_rfkill->state = hp_wmi_bluetooth_state();
--	bluetooth_rfkill->toggle_radio = hp_wmi_bluetooth_set;
--	bluetooth_rfkill->user_claim_unsupported = 1;
--
--	wwan_rfkill = rfkill_allocate(&device->dev, RFKILL_TYPE_WIMAX);
--	wwan_rfkill->name = "hp-wwan";
--	wwan_rfkill->state = hp_wmi_wwan_state();
--	wwan_rfkill->toggle_radio = hp_wmi_wwan_set;
--	wwan_rfkill->user_claim_unsupported = 1;
--
--	rfkill_register(wifi_rfkill);
--	rfkill_register(bluetooth_rfkill);
--	rfkill_register(wwan_rfkill);
-+	if (wireless & 0x1) {
-+		wifi_rfkill = rfkill_allocate(&device->dev, RFKILL_TYPE_WLAN);
-+		wifi_rfkill->name = "hp-wifi";
-+		wifi_rfkill->state = hp_wmi_wifi_state();
-+		wifi_rfkill->toggle_radio = hp_wmi_wifi_set;
-+		wifi_rfkill->user_claim_unsupported = 1;
-+		rfkill_register(wifi_rfkill);
-+	}
+-#ifdef CONFIG_DNOTIFY
+-extern int dir_notify_enable;
+-#endif
+ 
+ #define NR_FILE  8192	/* this can well be larger on a larger system */
+ 
+@@ -314,6 +305,15 @@ extern void __init inode_init(void);
+ extern void __init inode_init_early(void);
+ extern void __init files_init(unsigned long);
+ 
++extern struct files_stat_struct files_stat;
++extern int get_max_files(void);
++extern int sysctl_nr_open;
++extern struct inodes_stat_t inodes_stat;
++extern int leases_enable, lease_break_time;
++#ifdef CONFIG_DNOTIFY
++extern int dir_notify_enable;
++#endif
 +
-+	if (wireless & 0x2) {
-+		bluetooth_rfkill = rfkill_allocate(&device->dev,
-+						   RFKILL_TYPE_BLUETOOTH);
-+		bluetooth_rfkill->name = "hp-bluetooth";
-+		bluetooth_rfkill->state = hp_wmi_bluetooth_state();
-+		bluetooth_rfkill->toggle_radio = hp_wmi_bluetooth_set;
-+		bluetooth_rfkill->user_claim_unsupported = 1;
-+		rfkill_register(bluetooth_rfkill);
-+	}
-+
-+	if (wireless & 0x4) {
-+		wwan_rfkill = rfkill_allocate(&device->dev, RFKILL_TYPE_WWAN);
-+		wwan_rfkill->name = "hp-wwan";
-+		wwan_rfkill->state = hp_wmi_wwan_state();
-+		wwan_rfkill->toggle_radio = hp_wmi_wwan_set;
-+		wwan_rfkill->user_claim_unsupported = 1;
-+		rfkill_register(wwan_rfkill);
-+	}
- 
- 	return 0;
- add_sysfs_error:
-@@ -445,9 +453,12 @@ static int __exit hp_wmi_bios_remove(str
- {
- 	cleanup_sysfs(device);
- 
--	rfkill_unregister(wifi_rfkill);
--	rfkill_unregister(bluetooth_rfkill);
--	rfkill_unregister(wwan_rfkill);
-+	if (wifi_rfkill)
-+		rfkill_unregister(wifi_rfkill);
-+	if (bluetooth_rfkill)
-+		rfkill_unregister(bluetooth_rfkill);
-+	if (wwan_rfkill)
-+		rfkill_unregister(wwan_rfkill);
- 
- 	return 0;
- }
+ struct buffer_head;
+ typedef int (get_block_t)(struct inode *inode, sector_t iblock,
+ 			struct buffer_head *bh_result, int create);
 _
 
-Patches currently in -mm which might be from mjg59@srcf.ucam.org are
+Patches currently in -mm which might be from jengelh@medozas.de are
 
-linux-next.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7.patch
-eeepc-laptop-use-standard-interfaces.patch
-hp-wmi-update-to-match-current-rfkill-semantics.patch
-rtc-cmos-strongly-avoid-hpet-emulation.patch
+include-linux-fsh-put-declarations-in-__kernel__.patch
 
