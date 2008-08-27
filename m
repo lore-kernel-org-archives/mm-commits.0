@@ -1,210 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix.patch removed from -mm tree
-Date: Wed, 27 Aug 2008 13:30:54 -0700
-Message-ID: <200808272030.m7RKUsZJ020801@imap1.linux-foundation.org>
+Subject: + vga16fb-remove-open_lock-mutex.patch added to -mm tree
+Date: Wed, 27 Aug 2008 13:32:56 -0700
+Message-ID: <200808272032.m7RKWukS020881@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39592 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57519 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751801AbYH0Ubo (ORCPT
+	by vger.kernel.org with ESMTP id S1752148AbYH0UdA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 16:31:44 -0400
+	Wed, 27 Aug 2008 16:33:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, const@tltsu.ru, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix
-has been removed from the -mm tree.  Its filename was
-     led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix.patch
+     vga16fb: remove open_lock mutex
+has been added to the -mm tree.  Its filename is
+     vga16fb-remove-open_lock-mutex.patch
 
-This patch was dropped because it was folded into led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vga16fb: remove open_lock mutex
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-- cleanups
+Remove mutex from the fb_open/fb_release functions as these operations are
+mutexed at fb layer.
 
-- fix off-by-one on error path
-
-Cc: Constantin Baranov <const@tltsu.ru>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-alix.c |   21 ++++++++++++++-------
- 1 file changed, 14 insertions(+), 7 deletions(-)
+ drivers/video/vga16fb.c |   11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
-diff -puN drivers/leds/leds-alix.c~led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix drivers/leds/leds-alix.c
---- a/drivers/leds/leds-alix.c~led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix
-+++ a/drivers/leds/leds-alix.c
-@@ -4,7 +4,7 @@
-  * Copyright (C) 2008 Constantin Baranov <const@tltsu.ru>
-  */
+diff -puN drivers/video/vga16fb.c~vga16fb-remove-open_lock-mutex drivers/video/vga16fb.c
+--- a/drivers/video/vga16fb.c~vga16fb-remove-open_lock-mutex
++++ a/drivers/video/vga16fb.c
+@@ -58,7 +58,6 @@ struct vga16fb_par {
+ 		unsigned char	ClockingMode;	  /* Seq-Controller:01h */
+ 	} vga_state;
+ 	struct vgastate state;
+-	struct mutex open_lock;
+ 	unsigned int ref_count;
+ 	int palette_blanked, vesa_blanked, mode, isVGA;
+ 	u8 misc, pel_msk, vss, clkdiv;
+@@ -286,7 +285,6 @@ static int vga16fb_open(struct fb_info *
+ {
+ 	struct vga16fb_par *par = info->par;
  
--#include <asm/io.h>
-+#include <linux/io.h>
- #include <linux/err.h>
- #include <linux/kernel.h>
- #include <linux/leds.h>
-@@ -22,6 +22,7 @@ static void alix_led_set(struct led_clas
- {
- 	struct alix_led *led_dev =
- 		container_of(led_cdev, struct alix_led, cdev);
-+
- 	if (brightness)
- 		outl(led_dev->on_value, led_dev->port);
- 	else
-@@ -63,6 +64,7 @@ static struct alix_led alix_leds[] = {
- static int alix_led_suspend(struct platform_device *dev, pm_message_t state)
- {
- 	int i;
-+
- 	for (i = 0; i < ARRAY_SIZE(alix_leds); i++)
- 		led_classdev_suspend(&alix_leds[i].cdev);
- 	return 0;
-@@ -71,6 +73,7 @@ static int alix_led_suspend(struct platf
- static int alix_led_resume(struct platform_device *dev)
- {
- 	int i;
-+
- 	for (i = 0; i < ARRAY_SIZE(alix_leds); i++)
- 		led_classdev_resume(&alix_leds[i].cdev);
- 	return 0;
-@@ -86,22 +89,25 @@ static int alix_led_resume(struct platfo
- static int __init alix_led_probe(struct platform_device *pdev)
- {
- 	int i;
--	int ret = 0;
-+	int ret;
- 
--	for (i = 0; i < ARRAY_SIZE(alix_leds) && ret >= 0; i++)
-+	for (i = 0; i < ARRAY_SIZE(alix_leds); i++) {
- 		ret = led_classdev_register(&pdev->dev, &alix_leds[i].cdev);
--
--	if (ret < 0) {
--		for (i = i - 2; i >= 0; i--)
--			led_classdev_unregister(&alix_leds[i].cdev);
-+		if (ret < 0)
-+			goto fail;
+-	mutex_lock(&par->open_lock);
+ 	if (!par->ref_count) {
+ 		memset(&par->state, 0, sizeof(struct vgastate));
+ 		par->state.flags = VGA_SAVE_FONTS | VGA_SAVE_MODE |
+@@ -294,7 +292,6 @@ static int vga16fb_open(struct fb_info *
+ 		save_vga(&par->state);
  	}
-+	return 0;
+ 	par->ref_count++;
+-	mutex_unlock(&par->open_lock);
  
-+fail:
-+	while (--i >= 0)
-+		led_classdev_unregister(&alix_leds[i].cdev);
- 	return ret;
- }
- 
- static int alix_led_remove(struct platform_device *pdev)
- {
- 	int i;
-+
- 	for (i = 0; i < ARRAY_SIZE(alix_leds); i++)
- 		led_classdev_unregister(&alix_leds[i].cdev);
  	return 0;
-@@ -122,6 +128,7 @@ static struct platform_device *pdev;
- static int __init alix_led_init(void)
+ }
+@@ -303,15 +300,12 @@ static int vga16fb_release(struct fb_inf
  {
- 	int ret;
+ 	struct vga16fb_par *par = info->par;
+ 
+-	mutex_lock(&par->open_lock);
+-	if (!par->ref_count) {
+-		mutex_unlock(&par->open_lock);
++	if (!par->ref_count)
+ 		return -EINVAL;
+-	}
 +
- 	pdev = platform_device_register_simple(KBUILD_MODNAME, -1, NULL, 0);
- 	if (!IS_ERR(pdev)) {
- 		ret = platform_driver_probe(&alix_led_driver, alix_led_probe);
+ 	if (par->ref_count == 1)
+ 		restore_vga(&par->state);
+ 	par->ref_count--;
+-	mutex_unlock(&par->open_lock);
+ 
+ 	return 0;
+ }
+@@ -1326,7 +1320,6 @@ static int __init vga16fb_probe(struct p
+ 	printk(KERN_INFO "vga16fb: mapped to 0x%p\n", info->screen_base);
+ 	par = info->par;
+ 
+-	mutex_init(&par->open_lock);
+ 	par->isVGA = screen_info.orig_video_isVGA;
+ 	par->palette_blanked = 0;
+ 	par->vesa_blanked = 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-origin.patch
-vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
-acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
 linux-next.patch
-next-remove-localversion.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
-acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers.patch
-drivers-pci-hotplug-ibmphp_ebdac-list_for_each-to-list_for_each_entry-checkpatch-fixes.patch
-pci-tidy-pme-support-messages-checkpatch-fixes.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-git-watchdog.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-fix-a-race-condtion-of-oops_in_progress-fix.patch
-vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fb-metronome-printk-format-warning.patch
+rtc-m48t59-reduce-structure-m48t59_private.patch
+rtc-m48t59-add-support-for-m48t02-and-m48t59-chips-2nd-rev.patch
+fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
+neofb-reduce-panning-function.patch
+fbdev-kconfig-update.patch
 fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-nilfs2-continuous-snapshotting-file-system-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+neofb-kill-some-redundant-code.patch
+vga16fb-remove-open_lock-mutex.patch
+neofb-remove-open_lock-mutex.patch
 
