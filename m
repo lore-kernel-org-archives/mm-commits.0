@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-follow-lspci-device-vendor-style.patch added to -mm tree
-Date: Wed, 27 Aug 2008 16:14:58 -0700
-Message-ID: <200808272314.m7RNEw5D027863@imap1.linux-foundation.org>
+Subject: + x86-pci-follow-lspci-device-vendor-style.patch added to -mm tree
+Date: Wed, 27 Aug 2008 16:14:49 -0700
+Message-ID: <200808272314.m7RNEn0A027849@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43119 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56994 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753598AbYH0XPd (ORCPT
+	by vger.kernel.org with ESMTP id S1753928AbYH0XPq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 19:15:33 -0400
+	Wed, 27 Aug 2008 19:15:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, jbarnes@virtuousgeek.org
+Cc: bjorn.helgaas@hp.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     pci: follow lspci device/vendor style
+     x86/pci: follow lspci device/vendor style
 has been added to the -mm tree.  Its filename is
-     pci-follow-lspci-device-vendor-style.patch
+     x86-pci-follow-lspci-device-vendor-style.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: follow lspci device/vendor style
+Subject: x86/pci: follow lspci device/vendor style
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
 Use "[%04x:%04x]" for PCI vendor/device IDs to follow the format used by
 lspci(8).
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pcie/portdrv_pci.c |    2 +-
- drivers/pci/probe.c            |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/pci/irq.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/pci/pcie/portdrv_pci.c~pci-follow-lspci-device-vendor-style drivers/pci/pcie/portdrv_pci.c
---- a/drivers/pci/pcie/portdrv_pci.c~pci-follow-lspci-device-vendor-style
-+++ a/drivers/pci/pcie/portdrv_pci.c
-@@ -91,7 +91,7 @@ static int __devinit pcie_portdrv_probe 
- 	
- 	pci_set_master(dev);
-         if (!dev->irq && dev->pin) {
--		dev_warn(&dev->dev, "device [%04x/%04x] has invalid IRQ; "
-+		dev_warn(&dev->dev, "device [%04x:%04x] has invalid IRQ; "
- 			 "check vendor BIOS\n", dev->vendor, dev->device);
+diff -puN arch/x86/pci/irq.c~x86-pci-follow-lspci-device-vendor-style arch/x86/pci/irq.c
+--- a/arch/x86/pci/irq.c~x86-pci-follow-lspci-device-vendor-style
++++ a/arch/x86/pci/irq.c
+@@ -493,7 +493,7 @@ static int pirq_amd756_get(struct pci_de
+ 	if (pirq <= 4)
+ 		irq = read_config_nybble(router, 0x56, pirq - 1);
+ 	dev_info(&dev->dev,
+-		 "AMD756: dev [%04x/%04x], router PIRQ %d get IRQ %d\n",
++		 "AMD756: dev [%04x:%04x], router PIRQ %d get IRQ %d\n",
+ 		 dev->vendor, dev->device, pirq, irq);
+ 	return irq;
+ }
+@@ -501,7 +501,7 @@ static int pirq_amd756_get(struct pci_de
+ static int pirq_amd756_set(struct pci_dev *router, struct pci_dev *dev, int pirq, int irq)
+ {
+ 	dev_info(&dev->dev,
+-		 "AMD756: dev [%04x/%04x], router PIRQ %d set IRQ %d\n",
++		 "AMD756: dev [%04x:%04x], router PIRQ %d set IRQ %d\n",
+ 		 dev->vendor, dev->device, pirq, irq);
+ 	if (pirq <= 4)
+ 		write_config_nybble(router, 0x56, pirq - 1, irq);
+@@ -823,7 +823,7 @@ static void __init pirq_find_router(stru
+ 	r->get = NULL;
+ 	r->set = NULL;
+ 
+-	DBG(KERN_DEBUG "PCI: Attempting to find IRQ router for %04x:%04x\n",
++	DBG(KERN_DEBUG "PCI: Attempting to find IRQ router for [%04x:%04x]\n",
+ 	    rt->rtr_vendor, rt->rtr_device);
+ 
+ 	pirq_router_dev = pci_get_bus_and_slot(rt->rtr_bus, rt->rtr_devfn);
+@@ -843,7 +843,7 @@ static void __init pirq_find_router(stru
+ 			h->probe(r, pirq_router_dev, pirq_router_dev->device))
+ 			break;
  	}
- 	if (pcie_port_device_register(dev)) {
-diff -puN drivers/pci/probe.c~pci-follow-lspci-device-vendor-style drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-follow-lspci-device-vendor-style
-+++ a/drivers/pci/probe.c
-@@ -757,7 +757,7 @@ static int pci_setup_device(struct pci_d
- 	dev->class = class;
- 	class >>= 8;
+-	dev_info(&pirq_router_dev->dev, "%s IRQ router [%04x/%04x]\n",
++	dev_info(&pirq_router_dev->dev, "%s IRQ router [%04x:%04x]\n",
+ 		 pirq_router.name,
+ 		 pirq_router_dev->vendor, pirq_router_dev->device);
  
--	dev_dbg(&dev->dev, "found [%04x/%04x] class %06x header type %02x\n",
-+	dev_dbg(&dev->dev, "found [%04x:%04x] class %06x header type %02x\n",
- 		 dev->vendor, dev->device, class, dev->hdr_type);
- 
- 	/* "Unknown power state" */
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
