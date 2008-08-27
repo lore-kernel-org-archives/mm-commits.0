@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + exit-signals-use-of-uninitialized-field-notify_count.patch added to -mm tree
-Date: Tue, 26 Aug 2008 21:24:50 -0700
-Message-ID: <200808270424.m7R4Oopq011773@imap1.linux-foundation.org>
+Subject: + v4l-fix-return-value-of-meye-probe-callback.patch added to -mm tree
+Date: Wed, 27 Aug 2008 13:09:01 -0700
+Message-ID: <200808272009.m7RK91Qi019850@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38027 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39533 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750724AbYH0E0E (ORCPT
+	by vger.kernel.org with ESMTP id S1750990AbYH0UJP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 00:26:04 -0400
+	Wed, 27 Aug 2008 16:09:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vandebo-lkml@NerdBox.Net, mingo@elte.hu, oleg@tv-sign.ru, roland@redhat.comvandebo-lkml@NerdBox.Net
+Cc: henne@nachtwindheim.de
 
 
 The patch titled
-     exit signals: use of uninitialized field notify_count
+     v4l: fix return value of meye probe callback
 has been added to the -mm tree.  Its filename is
-     exit-signals-use-of-uninitialized-field-notify_count.patch
+     v4l-fix-return-value-of-meye-probe-callback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: exit signals: use of uninitialized field notify_count
-From: Steve VanDeBogart <vandebo-lkml@NerdBox.Net>
+Subject: v4l: fix return value of meye probe callback
+From: Henrik Kretzschmar <henne@nachtwindheim.de>
 
-task->signal->notify_count is only initialized if
-task->signal->group_exit_task is not NULL.  Reorder a conditional so
-that uninitialised memory is not used.  Found by Valgrind.
+The return value of the probe function should return -ENOMEM instead of
+-EBUSY if video_device_alloc() fails.
 
-Signed-off-by: Steve VanDeBogart <vandebo-lkml@nerdbox.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Henrik Kretzschmar <henne@nachtwindheim.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/video/meye.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/exit.c~exit-signals-use-of-uninitialized-field-notify_count kernel/exit.c
---- a/kernel/exit.c~exit-signals-use-of-uninitialized-field-notify_count
-+++ a/kernel/exit.c
-@@ -918,8 +918,8 @@ static void exit_notify(struct task_stru
+diff -puN drivers/media/video/meye.c~v4l-fix-return-value-of-meye-probe-callback drivers/media/video/meye.c
+--- a/drivers/media/video/meye.c~v4l-fix-return-value-of-meye-probe-callback
++++ a/drivers/media/video/meye.c
+@@ -1779,6 +1779,7 @@ static int __devinit meye_probe(struct p
+ 		goto outnotdev;
+ 	}
  
- 	/* mt-exec, de_thread() is waiting for us */
- 	if (thread_group_leader(tsk) &&
--	    tsk->signal->notify_count < 0 &&
--	    tsk->signal->group_exit_task)
-+	    tsk->signal->group_exit_task &&
-+	    tsk->signal->notify_count < 0)
- 		wake_up_process(tsk->signal->group_exit_task);
++	ret = -ENOMEM;
+ 	meye.mchip_dev = pcidev;
+ 	meye.video_dev = video_device_alloc();
+ 	if (!meye.video_dev) {
+@@ -1786,7 +1787,6 @@ static int __devinit meye_probe(struct p
+ 		goto outnotdev;
+ 	}
  
- 	write_unlock_irq(&tasklist_lock);
+-	ret = -ENOMEM;
+ 	meye.grab_temp = vmalloc(MCHIP_NB_PAGES_MJPEG * PAGE_SIZE);
+ 	if (!meye.grab_temp) {
+ 		printk(KERN_ERR "meye: grab buffer allocation failed\n");
 _
 
-Patches currently in -mm which might be from vandebo-lkml@NerdBox.Net are
+Patches currently in -mm which might be from henne@nachtwindheim.de are
 
-exit-signals-use-of-uninitialized-field-notify_count.patch
+linux-next.patch
+v4l-fix-return-value-of-meye-probe-callback.patch
 
