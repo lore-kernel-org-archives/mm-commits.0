@@ -1,107 +1,210 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-fsh-put-declarations-in-__kernel__.patch added to -mm tree
-Date: Wed, 27 Aug 2008 13:28:19 -0700
-Message-ID: <200808272028.m7RKSJU5020663@imap1.linux-foundation.org>
+Subject: - led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix.patch removed from -mm tree
+Date: Wed, 27 Aug 2008 13:30:54 -0700
+Message-ID: <200808272030.m7RKUsZJ020801@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59375 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39592 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752496AbYH0U2x (ORCPT
+	by vger.kernel.org with ESMTP id S1751801AbYH0Ubo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 16:28:53 -0400
+	Wed, 27 Aug 2008 16:31:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jengelh@medozas.de, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, const@tltsu.ru, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include: linux/fs.h: put declarations in __KERNEL__
-has been added to the -mm tree.  Its filename is
-     include-linux-fsh-put-declarations-in-__kernel__.patch
+     led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix
+has been removed from the -mm tree.  Its filename was
+     led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include: linux/fs.h: put declarations in __KERNEL__
-From: Jan Engelhardt <jengelh@medozas.de>
+Subject: led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-An anonymous user tried to use symbols from /usr/include/linux/fs.h.
-Since these however are not defined in libc, but are specific to the
-kernel, they should be in an #ifdef __KERNEL__ section. Move them
-there.
+- cleanups
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+- fix off-by-one on error path
+
+Cc: Constantin Baranov <const@tltsu.ru>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/leds/leds-alix.c |   21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/fs.h~include-linux-fsh-put-declarations-in-__kernel__ include/linux/fs.h
---- a/include/linux/fs.h~include-linux-fsh-put-declarations-in-__kernel__
-+++ a/include/linux/fs.h
-@@ -21,7 +21,6 @@
+diff -puN drivers/leds/leds-alix.c~led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix drivers/leds/leds-alix.c
+--- a/drivers/leds/leds-alix.c~led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix
++++ a/drivers/leds/leds-alix.c
+@@ -4,7 +4,7 @@
+  * Copyright (C) 2008 Constantin Baranov <const@tltsu.ru>
+  */
  
- /* Fixed constants first: */
- #undef NR_OPEN
--extern int sysctl_nr_open;
- #define INR_OPEN 1024		/* Initial setting for nfile rlimits */
- 
- #define BLOCK_SIZE_BITS 10
-@@ -38,21 +37,13 @@ struct files_stat_struct {
- 	int nr_free_files;	/* read only */
- 	int max_files;		/* tunable */
- };
--extern struct files_stat_struct files_stat;
--extern int get_max_files(void);
- 
- struct inodes_stat_t {
- 	int nr_inodes;
- 	int nr_unused;
- 	int dummy[5];		/* padding for sysctl ABI compatibility */
- };
--extern struct inodes_stat_t inodes_stat;
- 
--extern int leases_enable, lease_break_time;
--
--#ifdef CONFIG_DNOTIFY
--extern int dir_notify_enable;
--#endif
- 
- #define NR_FILE  8192	/* this can well be larger on a larger system */
- 
-@@ -314,6 +305,15 @@ extern void __init inode_init(void);
- extern void __init inode_init_early(void);
- extern void __init files_init(unsigned long);
- 
-+extern struct files_stat_struct files_stat;
-+extern int get_max_files(void);
-+extern int sysctl_nr_open;
-+extern struct inodes_stat_t inodes_stat;
-+extern int leases_enable, lease_break_time;
-+#ifdef CONFIG_DNOTIFY
-+extern int dir_notify_enable;
-+#endif
+-#include <asm/io.h>
++#include <linux/io.h>
+ #include <linux/err.h>
+ #include <linux/kernel.h>
+ #include <linux/leds.h>
+@@ -22,6 +22,7 @@ static void alix_led_set(struct led_clas
+ {
+ 	struct alix_led *led_dev =
+ 		container_of(led_cdev, struct alix_led, cdev);
 +
- struct buffer_head;
- typedef int (get_block_t)(struct inode *inode, sector_t iblock,
- 			struct buffer_head *bh_result, int create);
+ 	if (brightness)
+ 		outl(led_dev->on_value, led_dev->port);
+ 	else
+@@ -63,6 +64,7 @@ static struct alix_led alix_leds[] = {
+ static int alix_led_suspend(struct platform_device *dev, pm_message_t state)
+ {
+ 	int i;
++
+ 	for (i = 0; i < ARRAY_SIZE(alix_leds); i++)
+ 		led_classdev_suspend(&alix_leds[i].cdev);
+ 	return 0;
+@@ -71,6 +73,7 @@ static int alix_led_suspend(struct platf
+ static int alix_led_resume(struct platform_device *dev)
+ {
+ 	int i;
++
+ 	for (i = 0; i < ARRAY_SIZE(alix_leds); i++)
+ 		led_classdev_resume(&alix_leds[i].cdev);
+ 	return 0;
+@@ -86,22 +89,25 @@ static int alix_led_resume(struct platfo
+ static int __init alix_led_probe(struct platform_device *pdev)
+ {
+ 	int i;
+-	int ret = 0;
++	int ret;
+ 
+-	for (i = 0; i < ARRAY_SIZE(alix_leds) && ret >= 0; i++)
++	for (i = 0; i < ARRAY_SIZE(alix_leds); i++) {
+ 		ret = led_classdev_register(&pdev->dev, &alix_leds[i].cdev);
+-
+-	if (ret < 0) {
+-		for (i = i - 2; i >= 0; i--)
+-			led_classdev_unregister(&alix_leds[i].cdev);
++		if (ret < 0)
++			goto fail;
+ 	}
++	return 0;
+ 
++fail:
++	while (--i >= 0)
++		led_classdev_unregister(&alix_leds[i].cdev);
+ 	return ret;
+ }
+ 
+ static int alix_led_remove(struct platform_device *pdev)
+ {
+ 	int i;
++
+ 	for (i = 0; i < ARRAY_SIZE(alix_leds); i++)
+ 		led_classdev_unregister(&alix_leds[i].cdev);
+ 	return 0;
+@@ -122,6 +128,7 @@ static struct platform_device *pdev;
+ static int __init alix_led_init(void)
+ {
+ 	int ret;
++
+ 	pdev = platform_device_register_simple(KBUILD_MODNAME, -1, NULL, 0);
+ 	if (!IS_ERR(pdev)) {
+ 		ret = platform_driver_probe(&alix_led_driver, alix_led_probe);
 _
 
-Patches currently in -mm which might be from jengelh@medozas.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-include-linux-fsh-put-declarations-in-__kernel__.patch
+origin.patch
+vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
+acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
+seq_file-fix-bug-when-seq_read-reads-nothing.patch
+linux-next.patch
+next-remove-localversion.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
+acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+git-jg-misc.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards-fix.patch
+git-ubi-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
+power-support-for-texas-instruments-bq27x00-battery-managers.patch
+drivers-pci-hotplug-ibmphp_ebdac-list_for_each-to-list_for_each_entry-checkpatch-fixes.patch
+pci-tidy-pme-support-messages-checkpatch-fixes.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+git-watchdog.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+fix-a-race-condtion-of-oops_in_progress-fix.patch
+vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+applicomc-fix-apparently-broken-code-in-do_ac_read.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+nilfs2-continuous-snapshotting-file-system-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
