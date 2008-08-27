@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dvb-fix-i2c-adapters-name-size.patch added to -mm tree
-Date: Tue, 26 Aug 2008 17:30:09 -0700
-Message-ID: <200808270030.m7R0U9tu003198@imap1.linux-foundation.org>
+Subject: + vsprintf-use-new-vsprintf-symbolic-function-pointer-format.patch added to -mm tree
+Date: Tue, 26 Aug 2008 17:41:43 -0700
+Message-ID: <200808270041.m7R0fhx6003654@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45459 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54927 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752503AbYH0Abu (ORCPT
+	by vger.kernel.org with ESMTP id S1752518AbYH0Alw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Aug 2008 20:31:50 -0400
+	Tue, 26 Aug 2008 20:41:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khali@linux-fr.org, mchehab@infradead.org, mkrufky@linuxtv.org, patrick.boettcher@desy.de, stoth@hauppauge.com, uwe.bugla@gmx.de
+Cc: bjorn.helgaas@hp.com, greg@kroah.com, jbarnes@virtuousgeek.org, kay.sievers@vrfy.org, kyle@mcmartin.ca, rjw@sisk.pl
 
 
 The patch titled
-     dvb: fix I2C adapters name size
+     vsprintf: use new vsprintf symbolic function pointer format
 has been added to the -mm tree.  Its filename is
-     dvb-fix-i2c-adapters-name-size.patch
+     vsprintf-use-new-vsprintf-symbolic-function-pointer-format.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,151 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dvb: fix I2C adapters name size
-From: Jean Delvare <khali@linux-fr.org>
+Subject: vsprintf: use new vsprintf symbolic function pointer format
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Some DVB drivers are incorrectly assuming that the size of
-i2c_adapter.name is I2C_NAME_SIZE.  Here's a fix.
+Use the '%pF' format to get rid of an "#ifdef DEBUG" and make some printks
+atomic.
 
-Also change strncpy to strlcpy, as the former is error-prone (and was
-indeed incorrectly used.)
+This removes the last in-tree uses of print_fn_descriptor_symbol().  I
+marked print_fn_descriptor_symbol() deprecated and scheduled it for
+removal next year to give time for out-of-tree modules to be updated.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Acked-by: Uwe Bugla <uwe.bugla@gmx.de>
-Reviewed-by: Michael Krufky <mkrufky@linuxtv.org>
-Acked-by: Steven Toth <stoth@hauppauge.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: <patrick.boettcher@desy.de>
+parisc's print_fn_descriptor_symbol() is currently broken there (it needs
+to dereference the function pointer similar to ia64 and power).  This
+patch shouldn't make anything worse, but it means we need to fix
+dereference_function_descriptor() instead of print_fn_descriptor_symbol()
+to get meaningful initcall_debug output.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/b2c2/flexcop-i2c.c  |   12 ++++++------
- drivers/media/dvb/frontends/cx24123.c |    4 ++--
- drivers/media/dvb/frontends/s5h1420.c |    3 ++-
- 3 files changed, 10 insertions(+), 9 deletions(-)
+ Documentation/feature-removal-schedule.txt |    8 ++++++++
+ drivers/base/power/main.c                  |    7 ++-----
+ drivers/pci/quirks.c                       |    5 +----
+ include/linux/kallsyms.h                   |    8 +++-----
+ init/main.c                                |   14 ++++++--------
+ 5 files changed, 20 insertions(+), 22 deletions(-)
 
-diff -puN drivers/media/dvb/b2c2/flexcop-i2c.c~dvb-fix-i2c-adapters-name-size drivers/media/dvb/b2c2/flexcop-i2c.c
---- a/drivers/media/dvb/b2c2/flexcop-i2c.c~dvb-fix-i2c-adapters-name-size
-+++ a/drivers/media/dvb/b2c2/flexcop-i2c.c
-@@ -221,12 +221,12 @@ int flexcop_i2c_init(struct flexcop_devi
- 	fc->fc_i2c_adap[1].port = FC_I2C_PORT_EEPROM;
- 	fc->fc_i2c_adap[2].port = FC_I2C_PORT_TUNER;
+diff -puN Documentation/feature-removal-schedule.txt~vsprintf-use-new-vsprintf-symbolic-function-pointer-format Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~vsprintf-use-new-vsprintf-symbolic-function-pointer-format
++++ a/Documentation/feature-removal-schedule.txt
+@@ -302,3 +302,11 @@ Why:  Accounting can now be enabled/disa
+       controlled by a kernel/module/sysfs/sysctl parameter.
+ Who:  Krzysztof Piotr Oledzki <ole@ans.pl>
  
--	strncpy(fc->fc_i2c_adap[0].i2c_adap.name,
--		"B2C2 FlexCop I2C to demod", I2C_NAME_SIZE);
--	strncpy(fc->fc_i2c_adap[1].i2c_adap.name,
--		"B2C2 FlexCop I2C to eeprom", I2C_NAME_SIZE);
--	strncpy(fc->fc_i2c_adap[2].i2c_adap.name,
--		"B2C2 FlexCop I2C to tuner", I2C_NAME_SIZE);
-+	strlcpy(fc->fc_i2c_adap[0].i2c_adap.name, "B2C2 FlexCop I2C to demod",
-+		sizeof(fc->fc_i2c_adap[0].i2c_adap.name));
-+	strlcpy(fc->fc_i2c_adap[1].i2c_adap.name, "B2C2 FlexCop I2C to eeprom",
-+		sizeof(fc->fc_i2c_adap[1].i2c_adap.name));
-+	strlcpy(fc->fc_i2c_adap[2].i2c_adap.name, "B2C2 FlexCop I2C to tuner",
-+		sizeof(fc->fc_i2c_adap[2].i2c_adap.name));
++---------------------------
++
++What: print_fn_descriptor_symbol()
++When: October 2009
++Why:  The %pF vsprintf format provides the same functionality in a
++      simpler way.  print_fn_descriptor_symbol() is deprecated but
++      still present to give out-of-tree modules time to change.
++Who:  Bjorn Helgaas <bjorn.helgaas@hp.com>
+diff -puN drivers/base/power/main.c~vsprintf-use-new-vsprintf-symbolic-function-pointer-format drivers/base/power/main.c
+--- a/drivers/base/power/main.c~vsprintf-use-new-vsprintf-symbolic-function-pointer-format
++++ a/drivers/base/power/main.c
+@@ -778,10 +778,7 @@ EXPORT_SYMBOL_GPL(device_suspend);
  
- 	i2c_set_adapdata(&fc->fc_i2c_adap[0].i2c_adap, &fc->fc_i2c_adap[0]);
- 	i2c_set_adapdata(&fc->fc_i2c_adap[1].i2c_adap, &fc->fc_i2c_adap[1]);
-diff -puN drivers/media/dvb/frontends/cx24123.c~dvb-fix-i2c-adapters-name-size drivers/media/dvb/frontends/cx24123.c
---- a/drivers/media/dvb/frontends/cx24123.c~dvb-fix-i2c-adapters-name-size
-+++ a/drivers/media/dvb/frontends/cx24123.c
-@@ -1072,8 +1072,8 @@ struct dvb_frontend* cx24123_attach(cons
-     if (config->dont_use_pll)
- 	cx24123_repeater_mode(state, 1, 0);
+ void __suspend_report_result(const char *function, void *fn, int ret)
+ {
+-	if (ret) {
+-		printk(KERN_ERR "%s(): ", function);
+-		print_fn_descriptor_symbol("%s returns ", fn);
+-		printk("%d\n", ret);
+-	}
++	if (ret)
++		printk(KERN_ERR "%s(): %pF returns %d\n", function, fn, ret);
+ }
+ EXPORT_SYMBOL_GPL(__suspend_report_result);
+diff -puN drivers/pci/quirks.c~vsprintf-use-new-vsprintf-symbolic-function-pointer-format drivers/pci/quirks.c
+--- a/drivers/pci/quirks.c~vsprintf-use-new-vsprintf-symbolic-function-pointer-format
++++ a/drivers/pci/quirks.c
+@@ -1560,10 +1560,7 @@ static void pci_do_fixups(struct pci_dev
+ 	while (f < end) {
+ 		if ((f->vendor == dev->vendor || f->vendor == (u16) PCI_ANY_ID) &&
+  		    (f->device == dev->device || f->device == (u16) PCI_ANY_ID)) {
+-#ifdef DEBUG
+-			dev_dbg(&dev->dev, "calling ");
+-			print_fn_descriptor_symbol("%s\n", f->hook);
+-#endif
++			dev_dbg(&dev->dev, "calling %pF\n", f->hook);
+ 			f->hook(dev);
+ 		}
+ 		f++;
+diff -puN include/linux/kallsyms.h~vsprintf-use-new-vsprintf-symbolic-function-pointer-format include/linux/kallsyms.h
+--- a/include/linux/kallsyms.h~vsprintf-use-new-vsprintf-symbolic-function-pointer-format
++++ a/include/linux/kallsyms.h
+@@ -93,12 +93,10 @@ static inline void print_symbol(const ch
+ }
  
--	strncpy(state->tuner_i2c_adapter.name,
--		"CX24123 tuner I2C bus", I2C_NAME_SIZE);
-+	strlcpy(state->tuner_i2c_adapter.name, "CX24123 tuner I2C bus",
-+		sizeof(state->tuner_i2c_adapter.name));
- 	state->tuner_i2c_adapter.class     = I2C_CLASS_TV_DIGITAL,
- 	state->tuner_i2c_adapter.algo      = &cx24123_tuner_i2c_algo;
- 	state->tuner_i2c_adapter.algo_data = NULL;
-diff -puN drivers/media/dvb/frontends/s5h1420.c~dvb-fix-i2c-adapters-name-size drivers/media/dvb/frontends/s5h1420.c
---- a/drivers/media/dvb/frontends/s5h1420.c~dvb-fix-i2c-adapters-name-size
-+++ a/drivers/media/dvb/frontends/s5h1420.c
-@@ -915,7 +915,8 @@ struct dvb_frontend *s5h1420_attach(cons
- 	state->frontend.demodulator_priv = state;
+ /*
+- * Pretty-print a function pointer.
+- *
+- * ia64 and ppc64 function pointers are really function descriptors,
+- * which contain a pointer the real address.
++ * Pretty-print a function pointer.  This function is deprecated.
++ * Please use the "%pF" vsprintf format instead.
+  */
+-static inline void print_fn_descriptor_symbol(const char *fmt, void *addr)
++static inline void __deprecated print_fn_descriptor_symbol(const char *fmt, void *addr)
+ {
+ #if defined(CONFIG_IA64) || defined(CONFIG_PPC64)
+ 	addr = *(void **)addr;
+diff -puN init/main.c~vsprintf-use-new-vsprintf-symbolic-function-pointer-format init/main.c
+--- a/init/main.c~vsprintf-use-new-vsprintf-symbolic-function-pointer-format
++++ a/init/main.c
+@@ -730,7 +730,7 @@ int do_one_initcall(initcall_t fn)
+ 	int result;
  
- 	/* create tuner i2c adapter */
--	strncpy(state->tuner_i2c_adapter.name, "S5H1420-PN1010 tuner I2C bus", I2C_NAME_SIZE);
-+	strlcpy(state->tuner_i2c_adapter.name, "S5H1420-PN1010 tuner I2C bus",
-+		sizeof(state->tuner_i2c_adapter.name));
- 	state->tuner_i2c_adapter.class     = I2C_CLASS_TV_DIGITAL,
- 	state->tuner_i2c_adapter.algo      = &s5h1420_tuner_i2c_algo;
- 	state->tuner_i2c_adapter.algo_data = NULL;
+ 	if (initcall_debug) {
+-		print_fn_descriptor_symbol("calling  %s\n", fn);
++		printk("calling  %pF\n", fn);
+ 		t0 = ktime_get();
+ 	}
+ 
+@@ -740,9 +740,8 @@ int do_one_initcall(initcall_t fn)
+ 		t1 = ktime_get();
+ 		delta = ktime_sub(t1, t0);
+ 
+-		print_fn_descriptor_symbol("initcall %s", fn);
+-		printk(" returned %d after %Ld msecs\n", result,
+-			(unsigned long long) delta.tv64 >> 20);
++		printk("initcall %pF returned %d after %Ld msecs\n", fn,
++		       result, (unsigned long long) delta.tv64 >> 20);
+ 	}
+ 
+ 	msgbuf[0] = 0;
+@@ -758,10 +757,9 @@ int do_one_initcall(initcall_t fn)
+ 		strlcat(msgbuf, "disabled interrupts ", sizeof(msgbuf));
+ 		local_irq_enable();
+ 	}
+-	if (msgbuf[0]) {
+-		print_fn_descriptor_symbol(KERN_WARNING "initcall %s", fn);
+-		printk(" returned with %s\n", msgbuf);
+-	}
++	if (msgbuf[0])
++		printk(KERN_WARNING "initcall %pF returned with %s\n",
++		       fn, msgbuf);
+ 
+ 	return result;
+ }
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-origin.patch
 linux-next.patch
 mm-only-enforce-acpi-resource-conflict-checks.patch
-dvb-fix-i2c-adapters-name-size.patch
-radeonfb-revert-fix-radeon-ddc-regression.patch
-resource-add-resource_type-and-ioresource_type_bits.patch
-i2c-use-bcd2bin-bin2bcd.patch
+vsprintf-use-new-vsprintf-symbolic-function-pointer-format.patch
+pnp-remove-printk-with-outdated-version.patch
+pnp-make-the-resource-type-an-unsigned-long.patch
+pnp-make-the-resource-type-an-unsigned-long-fix.patch
+firmware-use-dev_printk-when-possible.patch
+resources-tidy-__request_region.patch
 
