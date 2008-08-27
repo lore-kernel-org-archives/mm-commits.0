@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + v4l-fix-retval-in-vivi-driver-for-more-than-one-device.patch added to -mm tree
-Date: Wed, 27 Aug 2008 13:09:27 -0700
-Message-ID: <200808272009.m7RK9R7L019860@imap1.linux-foundation.org>
+Subject: + acpi_pmc-use-proper-read-function-also-in-errata-mode.patch added to -mm tree
+Date: Wed, 27 Aug 2008 13:15:29 -0700
+Message-ID: <200808272015.m7RKFTXM020159@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47479 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60055 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751295AbYH0UJe (ORCPT
+	by vger.kernel.org with ESMTP id S1751768AbYH0UQb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 16:09:34 -0400
+	Wed, 27 Aug 2008 16:16:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: henne@nachtwindheim.de
+Cc: linux@dominikbrodowski.net, alan@lxorguk.ukuu.org.uk, andi@lisas.de, hirofumi@mail.parknet.co.jp, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     v4l: fix retval in vivi driver for more than one device
+     acpi_pm.c: use proper read function also in errata mode
 has been added to the -mm tree.  Its filename is
-     v4l-fix-retval-in-vivi-driver-for-more-than-one-device.patch
+     acpi_pmc-use-proper-read-function-also-in-errata-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: v4l: fix retval in vivi driver for more than one device
-From: Henrik Kretzschmar <henne@nachtwindheim.de>
+Subject: acpi_pm.c: use proper read function also in errata mode
+From: Dominik Brodowski <linux@dominikbrodowski.net>
 
-The variable ret should be set for each device to -ENOMEM, not only the
-first.
+On all hardware (some Intel ICH4, PIIX4 and PIIX4E chipsets) affected by a
+hardware errata there's about a 4.2% chance that initialization of the
+ACPI PMTMR fails.  On those chipsets, we need to read out the timer value
+at least three times to get a correct result, for every once in a while
+(i.e.  within a 3 ns window every 69.8 ns) the read returns a bogus
+result.  During normal operation we work around this issue, but during
+initialization reading a bogus value may lead to -EINVAL even though the
+hardware is usable.
 
-Signed-off-by: Henrik Kretzschmar <henne@nachtwindheim.de>
+Thanks to Andreas Mohr for spotting this issue.
+
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Andreas Mohr <andi@lisas.de>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/vivi.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/clocksource/acpi_pm.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/media/video/vivi.c~v4l-fix-retval-in-vivi-driver-for-more-than-one-device drivers/media/video/vivi.c
---- a/drivers/media/video/vivi.c~v4l-fix-retval-in-vivi-driver-for-more-than-one-device
-+++ a/drivers/media/video/vivi.c
-@@ -1111,11 +1111,12 @@ static struct video_device vivi_template
- 
- static int __init vivi_init(void)
+diff -puN drivers/clocksource/acpi_pm.c~acpi_pmc-use-proper-read-function-also-in-errata-mode drivers/clocksource/acpi_pm.c
+--- a/drivers/clocksource/acpi_pm.c~acpi_pmc-use-proper-read-function-also-in-errata-mode
++++ a/drivers/clocksource/acpi_pm.c
+@@ -151,13 +151,13 @@ DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_SE
+  */
+ static int verify_pmtmr_rate(void)
  {
--	int ret = -ENOMEM, i;
-+	int ret, i;
- 	struct vivi_dev *dev;
- 	struct video_device *vfd;
+-	u32 value1, value2;
++	cycle_t value1, value2;
+ 	unsigned long count, delta;
  
- 	for (i = 0; i < n_devs; i++) {
-+		ret = -ENOMEM;
- 		dev = kzalloc(sizeof(*dev), GFP_KERNEL);
- 		if (NULL == dev)
- 			break;
+ 	mach_prepare_counter();
+-	value1 = read_pmtmr();
++	value1 = clocksource_acpi_pm.read();
+ 	mach_countup(&count);
+-	value2 = read_pmtmr();
++	value2 = clocksource_acpi_pm.read();
+ 	delta = (value2 - value1) & ACPI_PM_MASK;
+ 
+ 	/* Check that the PMTMR delta is within 5% of what we expect */
+@@ -177,7 +177,7 @@ static int verify_pmtmr_rate(void)
+ 
+ static int __init init_acpi_pm_clocksource(void)
+ {
+-	u32 value1, value2;
++	cycle_t value1, value2;
+ 	unsigned int i;
+ 
+ 	if (!pmtmr_ioport)
+@@ -187,9 +187,9 @@ static int __init init_acpi_pm_clocksour
+ 						clocksource_acpi_pm.shift);
+ 
+ 	/* "verify" this timing source: */
+-	value1 = read_pmtmr();
++	value1 = clocksource_acpi_pm.read();
+ 	for (i = 0; i < 10000; i++) {
+-		value2 = read_pmtmr();
++		value2 = clocksource_acpi_pm.read();
+ 		if (value2 == value1)
+ 			continue;
+ 		if (value2 > value1)
+@@ -197,11 +197,11 @@ static int __init init_acpi_pm_clocksour
+ 		if ((value2 < value1) && ((value2) < 0xFFF))
+ 			goto pm_good;
+ 		printk(KERN_INFO "PM-Timer had inconsistent results:"
+-			" 0x%#x, 0x%#x - aborting.\n", value1, value2);
++			" 0x%#llx, 0x%#llx - aborting.\n", value1, value2);
+ 		return -EINVAL;
+ 	}
+ 	printk(KERN_INFO "PM-Timer had no reasonable result:"
+-			" 0x%#x - aborting.\n", value1);
++			" 0x%#llx - aborting.\n", value1);
+ 	return -ENODEV;
+ 
+ pm_good:
 _
 
-Patches currently in -mm which might be from henne@nachtwindheim.de are
+Patches currently in -mm which might be from linux@dominikbrodowski.net are
 
 linux-next.patch
-v4l-fix-return-value-of-meye-probe-callback.patch
-v4l-fix-retval-in-vivi-driver-for-more-than-one-device.patch
+pcmcia-pccard-deadlock-fix.patch
+acpi_pmc-use-proper-read-function-also-in-errata-mode.patch
+make-sure-nobodys-leaking-resources.patch
 
