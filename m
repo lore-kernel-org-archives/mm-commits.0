@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serio_raw-add-support-for-translated-serio_i8042xl-ports.patch added to -mm tree
-Date: Wed, 27 Aug 2008 16:49:28 -0700
-Message-ID: <200808272349.m7RNnSx7029355@imap1.linux-foundation.org>
+Subject: + nfs-remove-8-bytes-of-padding-from-struct-nfs_fattr-on-64-bit-builds.patch added to -mm tree
+Date: Wed, 27 Aug 2008 16:50:56 -0700
+Message-ID: <200808272350.m7RNoutr029390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54029 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51028 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754457AbYH0Xtb (ORCPT
+	by vger.kernel.org with ESMTP id S1754454AbYH0XvA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 19:49:31 -0400
+	Wed, 27 Aug 2008 19:51:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: niels.devos@wincor-nixdorf.com, dmitry.torokhov@gmail.com
+Cc: richard@rsk.demon.co.uk
 
 
 The patch titled
-     serio_raw: add support for translated (SERIO_I8042XL) ports
+     nfs: remove 8 bytes of padding from struct nfs_fattr on 64 bit builds
 has been added to the -mm tree.  Its filename is
-     serio_raw-add-support-for-translated-serio_i8042xl-ports.patch
+     nfs-remove-8-bytes-of-padding-from-struct-nfs_fattr-on-64-bit-builds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serio_raw: add support for translated (SERIO_I8042XL) ports
-From: "Niels de Vos" <niels.devos@wincor-nixdorf.com>
+Subject: nfs: remove 8 bytes of padding from struct nfs_fattr on 64 bit builds
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-serio_raw only binds to non-translated devices. Enable serio_raw to
-bind to normal (translated) keyboards which can have non-standard
-extensions (like POS Keyboards). With this it is possible to send
-commands to the device over /dev/serio_raw<n>.
+remove 8 bytes of padding from struct nfs_fattr on 64 bit builds
 
-Signed-off-by: Niels de Vos <niels.devos@wincor-nixdorf.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+This also removes padding from several nfs structures, including
+16 bytes from  nfs4_opendata, nfs4_createdata,nfs3_createdata
+& 8 bytes from nfs_read_data,nfs_write_data,nfs_removeres,nfs4_closedata
+
+This also reduces the reported stack usage of many nfs functions (30+).
+
+Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/serio/serio_raw.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/nfs_xdr.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/serio/serio_raw.c~serio_raw-add-support-for-translated-serio_i8042xl-ports drivers/input/serio/serio_raw.c
---- a/drivers/input/serio/serio_raw.c~serio_raw-add-support-for-translated-serio_i8042xl-ports
-+++ a/drivers/input/serio/serio_raw.c
-@@ -373,6 +373,12 @@ static struct serio_device_id serio_raw_
- 		.id	= SERIO_ANY,
- 		.extra	= SERIO_ANY,
- 	},
-+	{
-+		.type   = SERIO_8042_XL,
-+		.proto  = SERIO_ANY,
-+		.id     = SERIO_ANY,
-+		.extra  = SERIO_ANY,
-+	},
- 	{ 0 }
- };
- 
+diff -puN include/linux/nfs_xdr.h~nfs-remove-8-bytes-of-padding-from-struct-nfs_fattr-on-64-bit-builds include/linux/nfs_xdr.h
+--- a/include/linux/nfs_xdr.h~nfs-remove-8-bytes-of-padding-from-struct-nfs_fattr-on-64-bit-builds
++++ a/include/linux/nfs_xdr.h
+@@ -36,6 +36,7 @@ struct nfs_fattr {
+ 	__u32			nlink;
+ 	__u32			uid;
+ 	__u32			gid;
++	dev_t			rdev;
+ 	__u64			size;
+ 	union {
+ 		struct {
+@@ -46,7 +47,6 @@ struct nfs_fattr {
+ 			__u64	used;
+ 		} nfs3;
+ 	} du;
+-	dev_t			rdev;
+ 	struct nfs_fsid		fsid;
+ 	__u64			fileid;
+ 	struct timespec		atime;
 _
 
-Patches currently in -mm which might be from niels.devos@wincor-nixdorf.com are
+Patches currently in -mm which might be from richard@rsk.demon.co.uk are
 
-serio_raw-add-support-for-translated-serio_i8042xl-ports.patch
+linux-next.patch
+hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds.patch
+libata-reorder-ata_device-to-remove-8-bytes-of-padding-on-64-bits.patch
+nfs-remove-8-bytes-of-padding-from-struct-nfs_fattr-on-64-bit-builds.patch
 
