@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cfq-iosched-fix-queue-depth-detection.patch added to -mm tree
-Date: Tue, 26 Aug 2008 17:06:49 -0700
-Message-ID: <200808270006.m7R06nFA002244@imap1.linux-foundation.org>
+Subject: + dvb-fix-i2c-adapters-name-size.patch added to -mm tree
+Date: Tue, 26 Aug 2008 17:30:09 -0700
+Message-ID: <200808270030.m7R0U9tu003198@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34908 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45459 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752018AbYH0AHI (ORCPT
+	by vger.kernel.org with ESMTP id S1752503AbYH0Abu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Aug 2008 20:07:08 -0400
+	Tue, 26 Aug 2008 20:31:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aaronc@gelato.unsw.edu.au
+Cc: khali@linux-fr.org, mchehab@infradead.org, mkrufky@linuxtv.org, patrick.boettcher@desy.de, stoth@hauppauge.com, uwe.bugla@gmx.de
 
 
 The patch titled
-     cfq-iosched: fix queue depth detection
+     dvb: fix I2C adapters name size
 has been added to the -mm tree.  Its filename is
-     cfq-iosched-fix-queue-depth-detection.patch
+     dvb-fix-i2c-adapters-name-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,136 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cfq-iosched: fix queue depth detection
-From: Aaron Carroll <aaronc@gelato.unsw.edu.au>
+Subject: dvb: fix I2C adapters name size
+From: Jean Delvare <khali@linux-fr.org>
 
-CFQ's detection of queueing devices assumes a non-queuing device and
-detects if the queue depth reaches a certain threshold.  Under some
-workloads (e.g.  synchronous reads), CFQ effectively forces a unit queue
-depth, thus defeating the detection logic.  This leads to poor performance
-on queuing hardware, since the idle window remains enabled.
+Some DVB drivers are incorrectly assuming that the size of
+i2c_adapter.name is I2C_NAME_SIZE.  Here's a fix.
 
-This patch inverts the sense of the logic: assume a queuing-capable
-device, and detect if the depth does not exceed the threshold.
+Also change strncpy to strlcpy, as the former is error-prone (and was
+indeed incorrectly used.)
 
-Signed-off-by: Aaron Carroll <aaronc@gelato.unsw.edu.au>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Acked-by: Uwe Bugla <uwe.bugla@gmx.de>
+Reviewed-by: Michael Krufky <mkrufky@linuxtv.org>
+Acked-by: Steven Toth <stoth@hauppauge.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: <patrick.boettcher@desy.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/cfq-iosched.c |   47 +++++++++++++++++++++++++++++++++---------
- 1 file changed, 38 insertions(+), 9 deletions(-)
+ drivers/media/dvb/b2c2/flexcop-i2c.c  |   12 ++++++------
+ drivers/media/dvb/frontends/cx24123.c |    4 ++--
+ drivers/media/dvb/frontends/s5h1420.c |    3 ++-
+ 3 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN block/cfq-iosched.c~cfq-iosched-fix-queue-depth-detection block/cfq-iosched.c
---- a/block/cfq-iosched.c~cfq-iosched-fix-queue-depth-detection
-+++ a/block/cfq-iosched.c
-@@ -39,6 +39,7 @@ static int cfq_slice_idle = HZ / 125;
- #define CFQ_MIN_TT		(2)
+diff -puN drivers/media/dvb/b2c2/flexcop-i2c.c~dvb-fix-i2c-adapters-name-size drivers/media/dvb/b2c2/flexcop-i2c.c
+--- a/drivers/media/dvb/b2c2/flexcop-i2c.c~dvb-fix-i2c-adapters-name-size
++++ a/drivers/media/dvb/b2c2/flexcop-i2c.c
+@@ -221,12 +221,12 @@ int flexcop_i2c_init(struct flexcop_devi
+ 	fc->fc_i2c_adap[1].port = FC_I2C_PORT_EEPROM;
+ 	fc->fc_i2c_adap[2].port = FC_I2C_PORT_TUNER;
  
- #define CFQ_SLICE_SCALE		(5)
-+#define CFQ_HW_QUEUE_MIN	(5)
+-	strncpy(fc->fc_i2c_adap[0].i2c_adap.name,
+-		"B2C2 FlexCop I2C to demod", I2C_NAME_SIZE);
+-	strncpy(fc->fc_i2c_adap[1].i2c_adap.name,
+-		"B2C2 FlexCop I2C to eeprom", I2C_NAME_SIZE);
+-	strncpy(fc->fc_i2c_adap[2].i2c_adap.name,
+-		"B2C2 FlexCop I2C to tuner", I2C_NAME_SIZE);
++	strlcpy(fc->fc_i2c_adap[0].i2c_adap.name, "B2C2 FlexCop I2C to demod",
++		sizeof(fc->fc_i2c_adap[0].i2c_adap.name));
++	strlcpy(fc->fc_i2c_adap[1].i2c_adap.name, "B2C2 FlexCop I2C to eeprom",
++		sizeof(fc->fc_i2c_adap[1].i2c_adap.name));
++	strlcpy(fc->fc_i2c_adap[2].i2c_adap.name, "B2C2 FlexCop I2C to tuner",
++		sizeof(fc->fc_i2c_adap[2].i2c_adap.name));
  
- #define RQ_CIC(rq)		\
- 	((struct cfq_io_context *) (rq)->elevator_private)
-@@ -86,7 +87,14 @@ struct cfq_data {
+ 	i2c_set_adapdata(&fc->fc_i2c_adap[0].i2c_adap, &fc->fc_i2c_adap[0]);
+ 	i2c_set_adapdata(&fc->fc_i2c_adap[1].i2c_adap, &fc->fc_i2c_adap[1]);
+diff -puN drivers/media/dvb/frontends/cx24123.c~dvb-fix-i2c-adapters-name-size drivers/media/dvb/frontends/cx24123.c
+--- a/drivers/media/dvb/frontends/cx24123.c~dvb-fix-i2c-adapters-name-size
++++ a/drivers/media/dvb/frontends/cx24123.c
+@@ -1072,8 +1072,8 @@ struct dvb_frontend* cx24123_attach(cons
+     if (config->dont_use_pll)
+ 	cx24123_repeater_mode(state, 1, 0);
  
- 	int rq_in_driver;
- 	int sync_flight;
-+
-+	/*
-+	 * queue-depth detection
-+	 */
-+	int rq_queued;
- 	int hw_tag;
-+	int hw_tag_samples;
-+	int rq_in_driver_peak;
+-	strncpy(state->tuner_i2c_adapter.name,
+-		"CX24123 tuner I2C bus", I2C_NAME_SIZE);
++	strlcpy(state->tuner_i2c_adapter.name, "CX24123 tuner I2C bus",
++		sizeof(state->tuner_i2c_adapter.name));
+ 	state->tuner_i2c_adapter.class     = I2C_CLASS_TV_DIGITAL,
+ 	state->tuner_i2c_adapter.algo      = &cx24123_tuner_i2c_algo;
+ 	state->tuner_i2c_adapter.algo_data = NULL;
+diff -puN drivers/media/dvb/frontends/s5h1420.c~dvb-fix-i2c-adapters-name-size drivers/media/dvb/frontends/s5h1420.c
+--- a/drivers/media/dvb/frontends/s5h1420.c~dvb-fix-i2c-adapters-name-size
++++ a/drivers/media/dvb/frontends/s5h1420.c
+@@ -915,7 +915,8 @@ struct dvb_frontend *s5h1420_attach(cons
+ 	state->frontend.demodulator_priv = state;
  
- 	/*
- 	 * idle window management
-@@ -654,15 +662,6 @@ static void cfq_activate_request(struct 
- 	cfq_log_cfqq(cfqd, RQ_CFQQ(rq), "activate rq, drv=%d",
- 						cfqd->rq_in_driver);
- 
--	/*
--	 * If the depth is larger 1, it really could be queueing. But lets
--	 * make the mark a little higher - idling could still be good for
--	 * low queueing, and a low queueing number could also just indicate
--	 * a SCSI mid layer like behaviour where limit+1 is often seen.
--	 */
--	if (!cfqd->hw_tag && cfqd->rq_in_driver > 4)
--		cfqd->hw_tag = 1;
--
- 	cfqd->last_position = rq->hard_sector + rq->hard_nr_sectors;
- }
- 
-@@ -686,6 +685,7 @@ static void cfq_remove_request(struct re
- 	list_del_init(&rq->queuelist);
- 	cfq_del_rq_rb(rq);
- 
-+	cfqq->cfqd->rq_queued--;
- 	if (rq_is_meta(rq)) {
- 		WARN_ON(!cfqq->meta_pending);
- 		cfqq->meta_pending--;
-@@ -1833,6 +1833,7 @@ cfq_rq_enqueued(struct cfq_data *cfqd, s
- {
- 	struct cfq_io_context *cic = RQ_CIC(rq);
- 
-+	cfqd->rq_queued++;
- 	if (rq_is_meta(rq))
- 		cfqq->meta_pending++;
- 
-@@ -1880,6 +1881,31 @@ static void cfq_insert_request(struct re
- 	cfq_rq_enqueued(cfqd, cfqq, rq);
- }
- 
-+/*
-+ * Update hw_tag based on peak queue depth over 50 samples under
-+ * sufficient load.
-+ */
-+static void cfq_update_hw_tag(struct cfq_data *cfqd)
-+{
-+	if (cfqd->rq_in_driver > cfqd->rq_in_driver_peak)
-+		cfqd->rq_in_driver_peak = cfqd->rq_in_driver;
-+
-+	if (cfqd->rq_queued <= CFQ_HW_QUEUE_MIN &&
-+	    cfqd->rq_in_driver <= CFQ_HW_QUEUE_MIN)
-+		return;
-+
-+	if (cfqd->hw_tag_samples++ < 50)
-+		return;
-+
-+	if (cfqd->rq_in_driver_peak >= CFQ_HW_QUEUE_MIN)
-+		cfqd->hw_tag = 1;
-+	else
-+		cfqd->hw_tag = 0;
-+
-+	cfqd->hw_tag_samples = 0;
-+	cfqd->rq_in_driver_peak = 0;
-+}
-+
- static void cfq_completed_request(struct request_queue *q, struct request *rq)
- {
- 	struct cfq_queue *cfqq = RQ_CFQQ(rq);
-@@ -1890,6 +1916,8 @@ static void cfq_completed_request(struct
- 	now = jiffies;
- 	cfq_log_cfqq(cfqd, cfqq, "complete");
- 
-+	cfq_update_hw_tag(cfqd);
-+
- 	WARN_ON(!cfqd->rq_in_driver);
- 	WARN_ON(!cfqq->dispatched);
- 	cfqd->rq_in_driver--;
-@@ -2200,6 +2228,7 @@ static void *cfq_init_queue(struct reque
- 	cfqd->cfq_slice[1] = cfq_slice_sync;
- 	cfqd->cfq_slice_async_rq = cfq_slice_async_rq;
- 	cfqd->cfq_slice_idle = cfq_slice_idle;
-+	cfqd->hw_tag = 1;
- 
- 	return cfqd;
- }
+ 	/* create tuner i2c adapter */
+-	strncpy(state->tuner_i2c_adapter.name, "S5H1420-PN1010 tuner I2C bus", I2C_NAME_SIZE);
++	strlcpy(state->tuner_i2c_adapter.name, "S5H1420-PN1010 tuner I2C bus",
++		sizeof(state->tuner_i2c_adapter.name));
+ 	state->tuner_i2c_adapter.class     = I2C_CLASS_TV_DIGITAL,
+ 	state->tuner_i2c_adapter.algo      = &s5h1420_tuner_i2c_algo;
+ 	state->tuner_i2c_adapter.algo_data = NULL;
 _
 
-Patches currently in -mm which might be from aaronc@gelato.unsw.edu.au are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
+origin.patch
 linux-next.patch
-cfq-iosched-fix-queue-depth-detection.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+dvb-fix-i2c-adapters-name-size.patch
+radeonfb-revert-fix-radeon-ddc-regression.patch
+resource-add-resource_type-and-ioresource_type_bits.patch
+i2c-use-bcd2bin-bin2bcd.patch
 
