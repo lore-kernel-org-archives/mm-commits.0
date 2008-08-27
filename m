@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + devcgroup-use-kmemdup.patch added to -mm tree
-Date: Wed, 27 Aug 2008 14:39:23 -0700
-Message-ID: <200808272139.m7RLdN8T023951@imap1.linux-foundation.org>
+Subject: + devcgroup-remove-unused-variable.patch added to -mm tree
+Date: Wed, 27 Aug 2008 14:39:25 -0700
+Message-ID: <200808272139.m7RLdP91023956@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53639 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40408 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751250AbYH0VkJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751715AbYH0Vk6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 17:40:09 -0400
+	Wed, 27 Aug 2008 17:40:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lizf@cn.fujitsu.com, menage@google.com, serue@us.ibm.com
 
 
 The patch titled
-     devcgroup: use kmemdup()
+     devcgroup: remove unused variable
 has been added to the -mm tree.  Its filename is
-     devcgroup-use-kmemdup.patch
+     devcgroup-remove-unused-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devcgroup: use kmemdup()
+Subject: devcgroup: remove unused variable
 From: Li Zefan <lizf@cn.fujitsu.com>
-
-This saves 40 bytes on my x86_32 box.
 
 Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
 Acked-by: Serge Hallyn <serue@us.ibm.com>
@@ -45,40 +43,29 @@ Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/device_cgroup.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ security/device_cgroup.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN security/device_cgroup.c~devcgroup-use-kmemdup security/device_cgroup.c
---- a/security/device_cgroup.c~devcgroup-use-kmemdup
+diff -puN security/device_cgroup.c~devcgroup-remove-unused-variable security/device_cgroup.c
+--- a/security/device_cgroup.c~devcgroup-remove-unused-variable
 +++ a/security/device_cgroup.c
-@@ -84,13 +84,9 @@ static int dev_whitelist_copy(struct lis
- 	struct dev_whitelist_item *wh, *tmp, *new;
+@@ -355,7 +355,7 @@ static int devcgroup_update_access(struc
+ 	struct dev_cgroup *cur_devcgroup;
+ 	const char *b;
+ 	char *endp;
+-	int retval = 0, count;
++	int count;
+ 	struct dev_whitelist_item wh;
  
- 	list_for_each_entry(wh, orig, list) {
--		new = kmalloc(sizeof(*wh), GFP_KERNEL);
-+		new = kmemdup(wh, sizeof(*wh), GFP_KERNEL);
- 		if (!new)
- 			goto free_and_exit;
--		new->major = wh->major;
--		new->minor = wh->minor;
--		new->type = wh->type;
--		new->access = wh->access;
- 		list_add_tail(&new->list, dest);
+ 	if (!capable(CAP_SYS_ADMIN))
+@@ -432,7 +432,6 @@ static int devcgroup_update_access(struc
  	}
  
-@@ -114,11 +110,10 @@ static int dev_whitelist_add(struct dev_
- {
- 	struct dev_whitelist_item *whcopy, *walk;
- 
--	whcopy = kmalloc(sizeof(*whcopy), GFP_KERNEL);
-+	whcopy = kmemdup(wh, sizeof(*wh), GFP_KERNEL);
- 	if (!whcopy)
- 		return -ENOMEM;
- 
--	memcpy(whcopy, wh, sizeof(*whcopy));
- 	spin_lock(&dev_cgroup->lock);
- 	list_for_each_entry(walk, &dev_cgroup->whitelist, list) {
- 		if (walk->type != wh->type)
+ handle:
+-	retval = 0;
+ 	switch (filetype) {
+ 	case DEVCG_ALLOW:
+ 		if (!parent_has_perm(devcgroup, &wh))
 _
 
 Patches currently in -mm which might be from lizf@cn.fujitsu.com are
