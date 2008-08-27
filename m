@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-pci-follow-lspci-device-vendor-style.patch added to -mm tree
-Date: Wed, 27 Aug 2008 16:14:49 -0700
-Message-ID: <200808272314.m7RNEn0A027849@imap1.linux-foundation.org>
+Subject: + agp-follow-lspci-device-vendor-style.patch added to -mm tree
+Date: Wed, 27 Aug 2008 16:14:52 -0700
+Message-ID: <200808272314.m7RNEq9b027854@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56994 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43507 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753928AbYH0XPq (ORCPT
+	by vger.kernel.org with ESMTP id S1753924AbYH0XPl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 19:15:46 -0400
+	Wed, 27 Aug 2008 19:15:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, mingo@elte.hu, tglx@linutronix.de
+Cc: bjorn.helgaas@hp.com, airlied@linux.ie
 
 
 The patch titled
-     x86/pci: follow lspci device/vendor style
+     agp: follow lspci device/vendor style
 has been added to the -mm tree.  Its filename is
-     x86-pci-follow-lspci-device-vendor-style.patch
+     agp-follow-lspci-device-vendor-style.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,122 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86/pci: follow lspci device/vendor style
+Subject: agp: follow lspci device/vendor style
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
 Use "[%04x:%04x]" for PCI vendor/device IDs to follow the format used by
 lspci(8).
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/pci/irq.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/agp/ali-agp.c      |    2 +-
+ drivers/char/agp/amd64-agp.c    |    2 +-
+ drivers/char/agp/ati-agp.c      |    2 +-
+ drivers/char/agp/intel-agp.c    |    2 +-
+ drivers/char/agp/isoch.c        |    2 +-
+ drivers/char/agp/sis-agp.c      |    2 +-
+ drivers/char/agp/sworks-agp.c   |    2 +-
+ drivers/char/agp/uninorth-agp.c |    2 +-
+ 8 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86/pci/irq.c~x86-pci-follow-lspci-device-vendor-style arch/x86/pci/irq.c
---- a/arch/x86/pci/irq.c~x86-pci-follow-lspci-device-vendor-style
-+++ a/arch/x86/pci/irq.c
-@@ -493,7 +493,7 @@ static int pirq_amd756_get(struct pci_de
- 	if (pirq <= 4)
- 		irq = read_config_nybble(router, 0x56, pirq - 1);
- 	dev_info(&dev->dev,
--		 "AMD756: dev [%04x/%04x], router PIRQ %d get IRQ %d\n",
-+		 "AMD756: dev [%04x:%04x], router PIRQ %d get IRQ %d\n",
- 		 dev->vendor, dev->device, pirq, irq);
- 	return irq;
- }
-@@ -501,7 +501,7 @@ static int pirq_amd756_get(struct pci_de
- static int pirq_amd756_set(struct pci_dev *router, struct pci_dev *dev, int pirq, int irq)
- {
- 	dev_info(&dev->dev,
--		 "AMD756: dev [%04x/%04x], router PIRQ %d set IRQ %d\n",
-+		 "AMD756: dev [%04x:%04x], router PIRQ %d set IRQ %d\n",
- 		 dev->vendor, dev->device, pirq, irq);
- 	if (pirq <= 4)
- 		write_config_nybble(router, 0x56, pirq - 1, irq);
-@@ -823,7 +823,7 @@ static void __init pirq_find_router(stru
- 	r->get = NULL;
- 	r->set = NULL;
- 
--	DBG(KERN_DEBUG "PCI: Attempting to find IRQ router for %04x:%04x\n",
-+	DBG(KERN_DEBUG "PCI: Attempting to find IRQ router for [%04x:%04x]\n",
- 	    rt->rtr_vendor, rt->rtr_device);
- 
- 	pirq_router_dev = pci_get_bus_and_slot(rt->rtr_bus, rt->rtr_devfn);
-@@ -843,7 +843,7 @@ static void __init pirq_find_router(stru
- 			h->probe(r, pirq_router_dev, pirq_router_dev->device))
- 			break;
+diff -puN drivers/char/agp/ali-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/ali-agp.c
+--- a/drivers/char/agp/ali-agp.c~agp-follow-lspci-device-vendor-style
++++ a/drivers/char/agp/ali-agp.c
+@@ -316,7 +316,7 @@ static int __devinit agp_ali_probe(struc
+ 			goto found;
  	}
--	dev_info(&pirq_router_dev->dev, "%s IRQ router [%04x/%04x]\n",
-+	dev_info(&pirq_router_dev->dev, "%s IRQ router [%04x:%04x]\n",
- 		 pirq_router.name,
- 		 pirq_router_dev->vendor, pirq_router_dev->device);
+ 
+-	dev_err(&pdev->dev, "unsupported ALi chipset [%04x/%04x])\n",
++	dev_err(&pdev->dev, "unsupported ALi chipset [%04x:%04x])\n",
+ 		pdev->vendor, pdev->device);
+ 	return -ENODEV;
+ 
+diff -puN drivers/char/agp/amd64-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/amd64-agp.c
+--- a/drivers/char/agp/amd64-agp.c~agp-follow-lspci-device-vendor-style
++++ a/drivers/char/agp/amd64-agp.c
+@@ -507,7 +507,7 @@ static int __devinit agp_amd64_probe(str
+ 	    pdev->device == PCI_DEVICE_ID_AMD_8151_0) {
+ 		amd8151_init(pdev, bridge);
+ 	} else {
+-		dev_info(&pdev->dev, "AGP bridge [%04x/%04x]\n",
++		dev_info(&pdev->dev, "AGP bridge [%04x:%04x]\n",
+ 			 pdev->vendor, pdev->device);
+ 	}
+ 
+diff -puN drivers/char/agp/ati-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/ati-agp.c
+--- a/drivers/char/agp/ati-agp.c~agp-follow-lspci-device-vendor-style
++++ a/drivers/char/agp/ati-agp.c
+@@ -488,7 +488,7 @@ static int __devinit agp_ati_probe(struc
+ 			goto found;
+ 	}
+ 
+-	dev_err(&pdev->dev, "unsupported Ati chipset [%04x/%04x])\n",
++	dev_err(&pdev->dev, "unsupported Ati chipset [%04x:%04x])\n",
+ 		pdev->vendor, pdev->device);
+ 	return -ENODEV;
+ 
+diff -puN drivers/char/agp/intel-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/intel-agp.c
+--- a/drivers/char/agp/intel-agp.c~agp-follow-lspci-device-vendor-style
++++ a/drivers/char/agp/intel-agp.c
+@@ -2199,7 +2199,7 @@ static int __devinit agp_intel_probe(str
+ 
+ 	if (intel_agp_chipsets[i].name == NULL) {
+ 		if (cap_ptr)
+-			dev_warn(&pdev->dev, "unsupported Intel chipset [%04x/%04x]\n",
++			dev_warn(&pdev->dev, "unsupported Intel chipset [%04x:%04x]\n",
+ 				 pdev->vendor, pdev->device);
+ 		agp_put_bridge(bridge);
+ 		return -ENODEV;
+diff -puN drivers/char/agp/isoch.c~agp-follow-lspci-device-vendor-style drivers/char/agp/isoch.c
+--- a/drivers/char/agp/isoch.c~agp-follow-lspci-device-vendor-style
++++ a/drivers/char/agp/isoch.c
+@@ -359,7 +359,7 @@ int agp_3_5_enable(struct agp_bridge_dat
+ 			case 0x0001:    /* Unclassified device */
+ 				/* Don't know what this is, but log it for investigation. */
+ 				if (mcapndx != 0) {
+-					dev_info(&td->dev, "wacky, found unclassified AGP device %s [%04x/%04x]\n",
++					dev_info(&td->dev, "wacky, found unclassified AGP device %s [%04x:%04x]\n",
+ 						 pci_name(dev),
+ 						 dev->vendor, dev->device);
+ 				}
+diff -puN drivers/char/agp/sis-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/sis-agp.c
+--- a/drivers/char/agp/sis-agp.c~agp-follow-lspci-device-vendor-style
++++ a/drivers/char/agp/sis-agp.c
+@@ -190,7 +190,7 @@ static int __devinit agp_sis_probe(struc
+ 		return -ENODEV;
+ 
+ 
+-	dev_info(&pdev->dev, "SiS chipset [%04x/%04x]\n",
++	dev_info(&pdev->dev, "SiS chipset [%04x:%04x]\n",
+ 		 pdev->vendor, pdev->device);
+ 	bridge = agp_alloc_bridge();
+ 	if (!bridge)
+diff -puN drivers/char/agp/sworks-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/sworks-agp.c
+--- a/drivers/char/agp/sworks-agp.c~agp-follow-lspci-device-vendor-style
++++ a/drivers/char/agp/sworks-agp.c
+@@ -466,7 +466,7 @@ static int __devinit agp_serverworks_pro
+ 	default:
+ 		if (cap_ptr)
+ 			dev_err(&pdev->dev, "unsupported Serverworks chipset "
+-				"[%04x/%04x]\n", pdev->vendor, pdev->device);
++				"[%04x:%04x]\n", pdev->vendor, pdev->device);
+ 		return -ENODEV;
+ 	}
+ 
+diff -puN drivers/char/agp/uninorth-agp.c~agp-follow-lspci-device-vendor-style drivers/char/agp/uninorth-agp.c
+--- a/drivers/char/agp/uninorth-agp.c~agp-follow-lspci-device-vendor-style
++++ a/drivers/char/agp/uninorth-agp.c
+@@ -601,7 +601,7 @@ static int __devinit agp_uninorth_probe(
+ 		}
+ 	}
+ 
+-	dev_err(&pdev->dev, "unsupported Apple chipset [%04x/%04x]\n",
++	dev_err(&pdev->dev, "unsupported Apple chipset [%04x:%04x]\n",
+ 		pdev->vendor, pdev->device);
+ 	return -ENODEV;
  
 _
 
