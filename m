@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + viafb-accelc-accelh-update.patch added to -mm tree
-Date: Wed, 27 Aug 2008 16:26:00 -0700
-Message-ID: <200808272326.m7RNQ0T2028274@imap1.linux-foundation.org>
+Subject: + viafb-viafbdevc-update.patch added to -mm tree
+Date: Wed, 27 Aug 2008 16:27:08 -0700
+Message-ID: <200808272327.m7RNR8fp028369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48328 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52060 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752083AbYH0X0D (ORCPT
+	by vger.kernel.org with ESMTP id S1754568AbYH0X1K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 19:26:03 -0400
+	Wed, 27 Aug 2008 19:27:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: JosephChan@via.com.tw, josephchan@via.com.tw, krzysztof.h1@wp.pl
 
 
 The patch titled
-     viafb: accel.c & accel.h (update)
+     viafb: viafbdev.c (update)
 has been added to the -mm tree.  Its filename is
-     viafb-accelc-accelh-update.patch
+     viafb-viafbdevc-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,330 +34,237 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: accel.c & accel.h (update)
+Subject: viafb: viafbdev.c (update)
 From: <JosephChan@via.com.tw>
 
-Remove the marco MMIO_OUT32, and replace it with writel() function.
+Remove the macro MMIO_OUT32, and replace it with writel() function. 
+And replace "u32" with "unsigned long" in writel() function (original
+MMIO_OUT32 marco) for avoiding warning message in 64bit OS.
 
 Signed-off-by: Joseph Chan <josephchan@via.com.tw>
 Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/accel.c |  202 +++++++++++++++++++++---------------
- drivers/video/via/accel.h |   11 -
- 2 files changed, 119 insertions(+), 94 deletions(-)
+ drivers/video/via/viafbdev.c |  110 +++++++++++++++++----------------
+ 1 file changed, 57 insertions(+), 53 deletions(-)
 
-diff -puN drivers/video/via/accel.c~viafb-accelc-accelh-update drivers/video/via/accel.c
---- a/drivers/video/via/accel.c~viafb-accelc-accelh-update
-+++ a/drivers/video/via/accel.c
-@@ -38,44 +38,44 @@ void viafb_init_2d_engine(void)
- 	u32 dwVQLen, dwVQStartL, dwVQEndL, dwVQStartEndH;
+diff -puN drivers/video/via/viafbdev.c~viafb-viafbdevc-update drivers/video/via/viafbdev.c
+--- a/drivers/video/via/viafbdev.c~viafb-viafbdevc-update
++++ a/drivers/video/via/viafbdev.c
+@@ -896,30 +896,32 @@ static void viafb_fillrect(struct fb_inf
+ 	}
  
- 	/* init 2D engine regs to reset 2D engine */
--	MMIO_OUT32(VIA_REG_GEMODE, 0x0);
+ 	/* BitBlt Source Address */
 -	MMIO_OUT32(VIA_REG_SRCPOS, 0x0);
--	MMIO_OUT32(VIA_REG_DSTPOS, 0x0);
--	MMIO_OUT32(VIA_REG_DIMENSION, 0x0);
--	MMIO_OUT32(VIA_REG_PATADDR, 0x0);
--	MMIO_OUT32(VIA_REG_FGCOLOR, 0x0);
--	MMIO_OUT32(VIA_REG_BGCOLOR, 0x0);
--	MMIO_OUT32(VIA_REG_CLIPTL, 0x0);
--	MMIO_OUT32(VIA_REG_CLIPBR, 0x0);
--	MMIO_OUT32(VIA_REG_OFFSET, 0x0);
--	MMIO_OUT32(VIA_REG_KEYCONTROL, 0x0);
--	MMIO_OUT32(VIA_REG_SRCBASE, 0x0);
--	MMIO_OUT32(VIA_REG_DSTBASE, 0x0);
--	MMIO_OUT32(VIA_REG_PITCH, 0x0);
--	MMIO_OUT32(VIA_REG_MONOPAT1, 0x0);
-+	writel(0x0, viaparinfo->io_virt + VIA_REG_GEMODE);
 +	writel(0x0, viaparinfo->io_virt + VIA_REG_SRCPOS);
-+	writel(0x0, viaparinfo->io_virt + VIA_REG_DSTPOS);
-+	writel(0x0, viaparinfo->io_virt + VIA_REG_DIMENSION);
-+	writel(0x0, viaparinfo->io_virt + VIA_REG_PATADDR);
-+	writel(0x0, viaparinfo->io_virt + VIA_REG_FGCOLOR);
-+	writel(0x0, viaparinfo->io_virt + VIA_REG_BGCOLOR);
-+	writel(0x0, viaparinfo->io_virt + VIA_REG_CLIPTL);
-+	writel(0x0, viaparinfo->io_virt + VIA_REG_CLIPBR);
-+	writel(0x0, viaparinfo->io_virt + VIA_REG_OFFSET);
-+	writel(0x0, viaparinfo->io_virt + VIA_REG_KEYCONTROL);
-+	writel(0x0, viaparinfo->io_virt + VIA_REG_SRCBASE);
-+	writel(0x0, viaparinfo->io_virt + VIA_REG_DSTBASE);
-+	writel(0x0, viaparinfo->io_virt + VIA_REG_PITCH);
-+	writel(0x0, viaparinfo->io_virt + VIA_REG_MONOPAT1);
- 
- 	/* Init AGP and VQ regs */
- 	switch (viaparinfo->chip_info->gfx_chip_name) {
- 	case UNICHROME_K8M890:
- 	case UNICHROME_P4M900:
--		MMIO_OUT32(VIA_REG_CR_TRANSET, 0x00100000);
--		MMIO_OUT32(VIA_REG_CR_TRANSPACE, 0x680A0000);
--		MMIO_OUT32(VIA_REG_CR_TRANSPACE, 0x02000000);
-+		writel(0x00100000, viaparinfo->io_virt + VIA_REG_CR_TRANSET);
-+		writel(0x680A0000, viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
-+		writel(0x02000000, viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
- 		break;
- 
- 	default:
--		MMIO_OUT32(VIA_REG_TRANSET, 0x00100000);
--		MMIO_OUT32(VIA_REG_TRANSPACE, 0x00000000);
--		MMIO_OUT32(VIA_REG_TRANSPACE, 0x00333004);
--		MMIO_OUT32(VIA_REG_TRANSPACE, 0x60000000);
--		MMIO_OUT32(VIA_REG_TRANSPACE, 0x61000000);
--		MMIO_OUT32(VIA_REG_TRANSPACE, 0x62000000);
--		MMIO_OUT32(VIA_REG_TRANSPACE, 0x63000000);
--		MMIO_OUT32(VIA_REG_TRANSPACE, 0x64000000);
--		MMIO_OUT32(VIA_REG_TRANSPACE, 0x7D000000);
-+		writel(0x00100000, viaparinfo->io_virt + VIA_REG_TRANSET);
-+		writel(0x00000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+		writel(0x00333004, viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+		writel(0x60000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+		writel(0x61000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+		writel(0x62000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+		writel(0x63000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+		writel(0x64000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+		writel(0x7D000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
- 
--		MMIO_OUT32(VIA_REG_TRANSET, 0xFE020000);
--		MMIO_OUT32(VIA_REG_TRANSPACE, 0x00000000);
-+		writel(0xFE020000, viaparinfo->io_virt + VIA_REG_TRANSET);
-+		writel(0x00000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
- 		break;
- 	}
- 	if (viaparinfo->VQ_start != 0) {
-@@ -104,37 +104,64 @@ void viafb_init_2d_engine(void)
- 		switch (viaparinfo->chip_info->gfx_chip_name) {
- 		case UNICHROME_K8M890:
- 		case UNICHROME_P4M900:
--			MMIO_OUT32(VIA_REG_CR_TRANSET, 0x00100000);
--			MMIO_OUT32(VIA_REG_CR_TRANSPACE, dwVQStartEndH);
--			MMIO_OUT32(VIA_REG_CR_TRANSPACE, dwVQStartL);
--			MMIO_OUT32(VIA_REG_CR_TRANSPACE, dwVQEndL);
--			MMIO_OUT32(VIA_REG_CR_TRANSPACE, dwVQLen);
--			MMIO_OUT32(VIA_REG_CR_TRANSPACE, 0x74301001);
--			MMIO_OUT32(VIA_REG_CR_TRANSPACE, 0x00000000);
-+			writel(0x00100000,
-+				viaparinfo->io_virt + VIA_REG_CR_TRANSET);
-+			writel(dwVQStartEndH,
-+				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
-+			writel(dwVQStartL,
-+				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
-+			writel(dwVQEndL,
-+				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
-+			writel(dwVQLen,
-+				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
-+			writel(0x74301001,
-+				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
-+			writel(0x00000000,
-+				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
- 			break;
- 		default:
--			MMIO_OUT32(VIA_REG_TRANSET, 0x00FE0000);
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x080003FE);
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x0A00027C);
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x0B000260);
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x0C000274);
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x0D000264);
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x0E000000);
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x0F000020);
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x1000027E);
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x110002FE);
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x200F0060);
--
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x00000006);
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x40008C0F);
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x44000000);
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x45080C04);
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x46800408);
--
--			MMIO_OUT32(VIA_REG_TRANSPACE, dwVQStartEndH);
--			MMIO_OUT32(VIA_REG_TRANSPACE, dwVQStartL);
--			MMIO_OUT32(VIA_REG_TRANSPACE, dwVQEndL);
--			MMIO_OUT32(VIA_REG_TRANSPACE, dwVQLen);
-+			writel(0x00FE0000,
-+				viaparinfo->io_virt + VIA_REG_TRANSET);
-+			writel(0x080003FE,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(0x0A00027C,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(0x0B000260,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(0x0C000274,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(0x0D000264,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(0x0E000000,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(0x0F000020,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(0x1000027E,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(0x110002FE,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(0x200F0060,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+
-+			writel(0x00000006,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(0x40008C0F,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(0x44000000,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(0x45080C04,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(0x46800408,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+
-+			writel(dwVQStartEndH,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(dwVQStartL,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(dwVQEndL,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(dwVQLen,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
- 			break;
- 		}
- 	} else {
-@@ -142,38 +169,46 @@ void viafb_init_2d_engine(void)
- 		switch (viaparinfo->chip_info->gfx_chip_name) {
- 		case UNICHROME_K8M890:
- 		case UNICHROME_P4M900:
--			MMIO_OUT32(VIA_REG_CR_TRANSET, 0x00100000);
--			MMIO_OUT32(VIA_REG_CR_TRANSPACE, 0x74301000);
-+			writel(0x00100000,
-+				viaparinfo->io_virt + VIA_REG_CR_TRANSET);
-+			writel(0x74301000,
-+				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
- 			break;
- 		default:
--			MMIO_OUT32(VIA_REG_TRANSET, 0x00FE0000);
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x00000004);
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x40008C0F);
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x44000000);
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x45080C04);
--			MMIO_OUT32(VIA_REG_TRANSPACE, 0x46800408);
-+			writel(0x00FE0000,
-+				viaparinfo->io_virt + VIA_REG_TRANSET);
-+			writel(0x00000004,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(0x40008C0F,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(0x44000000,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(0x45080C04,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
-+			writel(0x46800408,
-+				viaparinfo->io_virt + VIA_REG_TRANSPACE);
- 			break;
- 		}
- 	}
- 
- 	viafb_set_2d_color_depth(viaparinfo->bpp);
- 
+ 	/* Source Base Address */
 -	MMIO_OUT32(VIA_REG_SRCBASE, 0x0);
--	MMIO_OUT32(VIA_REG_DSTBASE, 0x0);
 +	writel(0x0, viaparinfo->io_virt + VIA_REG_SRCBASE);
-+	writel(0x0, viaparinfo->io_virt + VIA_REG_DSTBASE);
- 
+ 	/* Destination Base Address */
+-	/*MMIO_OUT32(VIA_REG_DSTBASE, 0x0); */
+-	MMIO_OUT32(VIA_REG_DSTBASE,
+-		   ((u32) (info->screen_base) - (u32) viafb_FB_MM) >> 3);
++	writel(((unsigned long) (info->screen_base) -
++		   (unsigned long) viafb_FB_MM) >> 3,
++		   viaparinfo->io_virt + VIA_REG_DSTBASE);
+ 	/* Pitch */
+ 	pitch = (info->var.xres_virtual + 7) & ~7;
 -	MMIO_OUT32(VIA_REG_PITCH,
 -		   VIA_PITCH_ENABLE |
 +	writel(VIA_PITCH_ENABLE |
- 		   (((viaparinfo->hres *
- 		      viaparinfo->bpp >> 3) >> 3) | (((viaparinfo->hres *
- 						   viaparinfo->
--						   bpp >> 3) >> 3) << 16)));
-+						   bpp >> 3) >> 3) << 16)),
-+					viaparinfo->io_virt + VIA_REG_PITCH);
+ 		   (((pitch *
+ 		      info->var.bits_per_pixel >> 3) >> 3) |
+ 		      (((pitch * info->
+-		      var.bits_per_pixel >> 3) >> 3) << 16)));
++		      var.bits_per_pixel >> 3) >> 3) << 16)),
++		      viaparinfo->io_virt + VIA_REG_PITCH);
+ 	/* BitBlt Destination Address */
+-	MMIO_OUT32(VIA_REG_DSTPOS, ((rect->dy << 16) | rect->dx));
++	writel(((rect->dy << 16) | rect->dx),
++		viaparinfo->io_virt + VIA_REG_DSTPOS);
+ 	/* Dimension: width & height */
+-	MMIO_OUT32(VIA_REG_DIMENSION,
+-		   (((rect->height - 1) << 16) | (rect->width - 1)));
++	writel((((rect->height - 1) << 16) | (rect->width - 1)),
++		viaparinfo->io_virt + VIA_REG_DIMENSION);
+ 	/* Forground color or Destination color */
+-	MMIO_OUT32(VIA_REG_FGCOLOR, col);
++	writel(col, viaparinfo->io_virt + VIA_REG_FGCOLOR);
+ 	/* GE Command */
+-	MMIO_OUT32(VIA_REG_GECMD, (0x01 | 0x2000 | (rop << 24)));
++	writel((0x01 | 0x2000 | (rop << 24)),
++		viaparinfo->io_virt + VIA_REG_GECMD);
+ 
  }
  
- void viafb_set_2d_color_depth(int bpp)
- {
- 	u32 dwGEMode;
- 
--	dwGEMode = MMIO_IN32(0x04) & 0xFFFFFCFF;
-+	dwGEMode = readl(viaparinfo->io_virt + 0x04) & 0xFFFFFCFF;
- 
- 	switch (bpp) {
- 	case 16:
-@@ -188,17 +223,18 @@ void viafb_set_2d_color_depth(int bpp)
+@@ -951,33 +953,34 @@ static void viafb_copyarea(struct fb_inf
  	}
  
- 	/* Set BPP and Pitch */
--	MMIO_OUT32(VIA_REG_GEMODE, dwGEMode);
-+	writel(dwGEMode, viaparinfo->io_virt + VIA_REG_GEMODE);
+ 	/* Source Base Address */
+-	/*MMIO_OUT32(VIA_REG_SRCBASE, 0x0); */
+-	MMIO_OUT32(VIA_REG_SRCBASE,
+-		   ((u32) (info->screen_base) - (u32) viafb_FB_MM) >> 3);
++	writel(((unsigned long) (info->screen_base) -
++		   (unsigned long) viafb_FB_MM) >> 3,
++		   viaparinfo->io_virt + VIA_REG_SRCBASE);
+ 	/* Destination Base Address */
+-	/*MMIO_OUT32(VIA_REG_DSTBASE, 0x0); */
+-	MMIO_OUT32(VIA_REG_DSTBASE,
+-		   ((u32) (info->screen_base) - (u32) viafb_FB_MM) >> 3);
++	writel(((unsigned long) (info->screen_base) -
++		   (unsigned long) viafb_FB_MM) >> 3,
++		   viaparinfo->io_virt + VIA_REG_DSTBASE);
+ 	/* Pitch */
+ 	pitch = (info->var.xres_virtual + 7) & ~7;
+ 	/* VIA_PITCH_ENABLE can be omitted now. */
+-	MMIO_OUT32(VIA_REG_PITCH,
+-		   VIA_PITCH_ENABLE |
++	writel(VIA_PITCH_ENABLE |
+ 		   (((pitch *
+ 		      info->var.bits_per_pixel >> 3) >> 3) | (((pitch *
+ 								info->var.
+ 								bits_per_pixel
+ 								>> 3) >> 3)
+-							      << 16)));
++							      << 16)),
++				viaparinfo->io_virt + VIA_REG_PITCH);
+ 	/* BitBlt Source Address */
+-	MMIO_OUT32(VIA_REG_SRCPOS, ((sy << 16) | sx));
++	writel(((sy << 16) | sx), viaparinfo->io_virt + VIA_REG_SRCPOS);
+ 	/* BitBlt Destination Address */
+-	MMIO_OUT32(VIA_REG_DSTPOS, ((dy << 16) | dx));
++	writel(((dy << 16) | dx), viaparinfo->io_virt + VIA_REG_DSTPOS);
+ 	/* Dimension: width & height */
+-	MMIO_OUT32(VIA_REG_DIMENSION,
+-		   (((area->height - 1) << 16) | (area->width - 1)));
++	writel((((area->height - 1) << 16) | (area->width - 1)),
++		   viaparinfo->io_virt + VIA_REG_DIMENSION);
+ 	/* GE Command */
+-	MMIO_OUT32(VIA_REG_GECMD, (0x01 | direction | (0xCC << 24)));
++	writel((0x01 | direction | (0xCC << 24)),
++		viaparinfo->io_virt + VIA_REG_GECMD);
+ 
  }
  
- void viafb_hw_cursor_init(void)
- {
- 	/* Set Cursor Image Base Address */
--	MMIO_OUT32(VIA_REG_CURSOR_MODE, viaparinfo->cursor_start);
--	MMIO_OUT32(VIA_REG_CURSOR_POS, 0x0);
--	MMIO_OUT32(VIA_REG_CURSOR_ORG, 0x0);
--	MMIO_OUT32(VIA_REG_CURSOR_BG, 0x0);
--	MMIO_OUT32(VIA_REG_CURSOR_FG, 0x0);
-+	writel(viaparinfo->cursor_start,
-+		viaparinfo->io_virt + VIA_REG_CURSOR_MODE);
-+	writel(0x0, viaparinfo->io_virt + VIA_REG_CURSOR_POS);
-+	writel(0x0, viaparinfo->io_virt + VIA_REG_CURSOR_ORG);
-+	writel(0x0, viaparinfo->io_virt + VIA_REG_CURSOR_BG);
-+	writel(0x0, viaparinfo->io_virt + VIA_REG_CURSOR_FG);
- }
+@@ -1010,37 +1013,38 @@ static void viafb_imageblit(struct fb_in
+ 	size = image->width * image->height;
  
- void viafb_show_hw_cursor(struct fb_info *info, int Status)
-@@ -206,7 +242,7 @@ void viafb_show_hw_cursor(struct fb_info
- 	u32 temp;
- 	u32 iga_path = ((struct viafb_par *)(info->par))->iga_path;
+ 	/* Source Base Address */
+-	MMIO_OUT32(VIA_REG_SRCBASE, 0x0);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_SRCBASE);
+ 	/* Destination Base Address */
+-	/*MMIO_OUT32(VIA_REG_DSTBASE, 0x0); */
+-	MMIO_OUT32(VIA_REG_DSTBASE,
+-		   ((u32) (info->screen_base) - (u32) viafb_FB_MM) >> 3);
++	writel(((unsigned long) (info->screen_base) -
++		   (unsigned long) viafb_FB_MM) >> 3,
++		   viaparinfo->io_virt + VIA_REG_DSTBASE);
+ 	/* Pitch */
+ 	pitch = (info->var.xres_virtual + 7) & ~7;
+-	MMIO_OUT32(VIA_REG_PITCH,
+-		   VIA_PITCH_ENABLE |
++	writel(VIA_PITCH_ENABLE |
+ 		   (((pitch *
+ 		      info->var.bits_per_pixel >> 3) >> 3) | (((pitch *
+ 								info->var.
+ 								bits_per_pixel
+ 								>> 3) >> 3)
+-							      << 16)));
++							      << 16)),
++				viaparinfo->io_virt + VIA_REG_PITCH);
+ 	/* BitBlt Source Address */
+-	MMIO_OUT32(VIA_REG_SRCPOS, 0x0);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_SRCPOS);
+ 	/* BitBlt Destination Address */
+-	MMIO_OUT32(VIA_REG_DSTPOS, ((image->dy << 16) | image->dx));
++	writel(((image->dy << 16) | image->dx),
++		viaparinfo->io_virt + VIA_REG_DSTPOS);
+ 	/* Dimension: width & height */
+-	MMIO_OUT32(VIA_REG_DIMENSION,
+-		   (((image->height - 1) << 16) | (image->width - 1)));
++	writel((((image->height - 1) << 16) | (image->width - 1)),
++		   viaparinfo->io_virt + VIA_REG_DIMENSION);
+ 	/* fb color */
+-	MMIO_OUT32(VIA_REG_FGCOLOR, fg_col);
++	writel(fg_col, viaparinfo->io_virt + VIA_REG_FGCOLOR);
+ 	/* bg color */
+-	MMIO_OUT32(VIA_REG_BGCOLOR, bg_col);
++	writel(bg_col, viaparinfo->io_virt + VIA_REG_BGCOLOR);
+ 	/* GE Command */
+-	MMIO_OUT32(VIA_REG_GECMD, 0xCC020142);
++	writel(0xCC020142, viaparinfo->io_virt + VIA_REG_GECMD);
  
--	temp = MMIO_IN32(VIA_REG_CURSOR_MODE);
-+	temp = readl(viaparinfo->io_virt + VIA_REG_CURSOR_MODE);
- 	switch (Status) {
- 	case HW_Cursor_ON:
- 		temp |= 0x1;
-@@ -223,18 +259,18 @@ void viafb_show_hw_cursor(struct fb_info
- 	default:
- 		temp &= 0x7FFFFFFF;
+ 	for (i = 0; i < size / 4; i++) {
+-		MMIO_OUT32(VIA_MMIO_BLTBASE, *udata);
++		writel(*udata, viaparinfo->io_virt + VIA_MMIO_BLTBASE);
+ 		udata++;
  	}
--	MMIO_OUT32(VIA_REG_CURSOR_MODE, temp);
-+	writel(temp, viaparinfo->io_virt + VIA_REG_CURSOR_MODE);
- }
  
- int viafb_wait_engine_idle(void)
- {
- 	int loop = 0;
+@@ -1080,7 +1084,7 @@ static int viafb_cursor(struct fb_info *
+ 	if (cursor->set & FB_CUR_SETHOT) {
+ 		viacursor.hot = cursor->hot;
+ 		temp = ((viacursor.hot.x) << 16) + viacursor.hot.y;
+-		MMIO_OUT32(VIA_REG_CURSOR_ORG, temp);
++		writel(temp, viaparinfo->io_virt + VIA_REG_CURSOR_ORG);
+ 	}
  
--	while (!(MMIO_IN32(VIA_REG_STATUS) & VIA_VR_QUEUE_BUSY) &&
--			(loop++ < MAXLOOP))
-+	while (!(readl(viaparinfo->io_virt + VIA_REG_STATUS) &
-+			VIA_VR_QUEUE_BUSY) && (loop++ < MAXLOOP))
- 		cpu_relax();
+ 	if (cursor->set & FB_CUR_SETPOS) {
+@@ -1090,11 +1094,11 @@ static int viafb_cursor(struct fb_info *
+ 		xx = cursor->image.dx - info->var.xoffset;
+ 		temp = yy & 0xFFFF;
+ 		temp |= (xx << 16);
+-		MMIO_OUT32(VIA_REG_CURSOR_POS, temp);
++		writel(temp, viaparinfo->io_virt + VIA_REG_CURSOR_POS);
+ 	}
  
--	while ((MMIO_IN32(VIA_REG_STATUS) &
-+	while ((readl(viaparinfo->io_virt + VIA_REG_STATUS) &
- 		    (VIA_CMD_RGTR_BUSY | VIA_2D_ENG_BUSY | VIA_3D_ENG_BUSY)) &&
- 		    (loop++ < MAXLOOP))
- 		cpu_relax();
-diff -puN drivers/video/via/accel.h~viafb-accelc-accelh-update drivers/video/via/accel.h
---- a/drivers/video/via/accel.h~viafb-accelc-accelh-update
-+++ a/drivers/video/via/accel.h
-@@ -31,17 +31,6 @@
- #define MMIO_SR_READ                (MMIO_VGABASE + 0x3C4)
- #define MMIO_SR_WRITE               (MMIO_VGABASE + 0x3C5)
+ 	if (cursor->set & FB_CUR_SETSIZE) {
+-		temp = MMIO_IN32(VIA_REG_CURSOR_MODE);
++		temp = readl(viaparinfo->io_virt + VIA_REG_CURSOR_MODE);
  
--#define VIA_MMIO 1
--
--#if VIA_MMIO
--#define MMIO_OUT32(reg, val) writel(val, viaparinfo->io_virt + reg)
--#define MMIO_IN32(reg)      readl(viaparinfo->io_virt + reg)
--
--#else
--#define MMIO_OUT32(reg, val) outl(val, reg)
--#define MMIO_IN32(reg)      inl(reg)
--#endif
--
- /* HW Cursor Status Define */
- #define HW_Cursor_ON    0
- #define HW_Cursor_OFF   1
+ 		if ((cursor->image.width <= 32)
+ 		    && (cursor->image.height <= 32)) {
+@@ -1109,7 +1113,7 @@ static int viafb_cursor(struct fb_info *
+ 			"The cursor image is biger than 64x64 bits...\n");
+ 			return -ENXIO;
+ 		}
+-		MMIO_OUT32(VIA_REG_CURSOR_MODE, temp);
++		writel(temp, viaparinfo->io_virt + VIA_REG_CURSOR_MODE);
+ 
+ 		viacursor.image.height = cursor->image.height;
+ 		viacursor.image.width = cursor->image.width;
+@@ -1169,8 +1173,8 @@ static int viafb_cursor(struct fb_info *
+ 			    0xFFC0) >> 6);
+ 		}
+ 
+-		MMIO_OUT32(VIA_REG_CURSOR_BG, bg_col);
+-		MMIO_OUT32(VIA_REG_CURSOR_FG, fg_col);
++		writel(bg_col, viaparinfo->io_virt + VIA_REG_CURSOR_BG);
++		writel(fg_col, viaparinfo->io_virt + VIA_REG_CURSOR_FG);
+ 	}
+ 
+ 	if (cursor->set & FB_CUR_SETSHAPE) {
+@@ -2116,15 +2120,15 @@ static int __devinit via_pci_probe(void)
+ 
+ 	viaparinfo = (struct viafb_par *)viafbinfo->par;
+ 	viaparinfo->tmds_setting_info = (struct tmds_setting_information *)
+-		((u32)viaparinfo + viafb_par_length);
++		((unsigned long)viaparinfo + viafb_par_length);
+ 	viaparinfo->lvds_setting_info = (struct lvds_setting_information *)
+-		((u32)viaparinfo->tmds_setting_info + tmds_length);
++		((unsigned long)viaparinfo->tmds_setting_info + tmds_length);
+ 	viaparinfo->lvds_setting_info2 = (struct lvds_setting_information *)
+-		((u32)viaparinfo->lvds_setting_info + lvds_length);
++		((unsigned long)viaparinfo->lvds_setting_info + lvds_length);
+ 	viaparinfo->crt_setting_info = (struct crt_setting_information *)
+-		((u32)viaparinfo->lvds_setting_info2 + lvds_length);
++		((unsigned long)viaparinfo->lvds_setting_info2 + lvds_length);
+ 	viaparinfo->chip_info = (struct chip_information *)
+-		((u32)viaparinfo->crt_setting_info + crt_length);
++		((unsigned long)viaparinfo->crt_setting_info + crt_length);
+ 
+ 	if (viafb_dual_fb)
+ 		viafb_SAMM_ON = 1;
 _
 
 Patches currently in -mm which might be from JosephChan@via.com.tw are
@@ -382,6 +289,7 @@ viafb-makefile-shareh.patch
 viafb-tbl1636c-tbl1636h-tbldpasettingc-tbldpasettingh.patch
 viafb-viafbdevc-viafbdevh.patch
 viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+viafb-viafbdevc-update.patch
 viafb-via_i2cc-via_i2ch-viamodec-viamodeh.patch
 viafb-via_utilityc-via_utilityh-vt1636c-vt1636h.patch
 
