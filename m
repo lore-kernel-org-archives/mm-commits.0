@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pika-warp-appliance-watchdog-timer.patch added to -mm tree
-Date: Wed, 27 Aug 2008 13:23:00 -0700
-Message-ID: <200808272023.m7RKN0uR020427@imap1.linux-foundation.org>
+Subject: + hp-wmi-update-to-match-current-rfkill-semantics.patch added to -mm tree
+Date: Wed, 27 Aug 2008 13:27:22 -0700
+Message-ID: <200808272027.m7RKRMCX020634@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43878 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55917 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753292AbYH0UXm (ORCPT
+	by vger.kernel.org with ESMTP id S1752466AbYH0U2W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 16:23:42 -0400
+	Wed, 27 Aug 2008 16:28:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: smaclennan@pikatech.com, wim@iguana.be
+Cc: mjg59@srcf.ucam.org, hidave.darkstar@gmail.com, hmh@hmh.eng.br, ivdoorn@gmail.com, marcel@holtmann.org, mjg@redhat.com
 
 
 The patch titled
-     Pika Warp appliance watchdog timer
+     hp-wmi: update to match current rfkill semantics
 has been added to the -mm tree.  Its filename is
-     pika-warp-appliance-watchdog-timer.patch
+     hp-wmi-update-to-match-current-rfkill-semantics.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,172 +34,171 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Pika Warp appliance watchdog timer
-From: Sean MacLennan <smaclennan@pikatech.com>
+Subject: hp-wmi: update to match current rfkill semantics
+From: Matthew Garrett <mjg59@srcf.ucam.org>
 
-The FPGA based watchdog timer used by the Pika Warp appliance.
+hp-wmi currently changes the RFKill state by altering the struct members
+rather than using the dedicated interface, meaning that update events
+won't be pushed to userspace.  This patch fixes that, along with fixing
+the declared type of the WWAN kill switch.  It also ensures that rfkill
+interfaces are only registered for hardware that exists.
 
-Signed-off-by: Sean MacLennan <smaclennan@pikatech.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Ivo van Doorn <ivdoorn@gmail.com>
+Cc: Dave Young <hidave.darkstar@gmail.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/Kconfig    |    8 ++
- drivers/watchdog/Makefile   |    1 
- drivers/watchdog/pika_wdt.c |  113 ++++++++++++++++++++++++++++++++++
- 3 files changed, 122 insertions(+)
+ drivers/misc/hp-wmi.c |   81 ++++++++++++++++++++++------------------
+ 1 file changed, 46 insertions(+), 35 deletions(-)
 
-diff -puN drivers/watchdog/Kconfig~pika-warp-appliance-watchdog-timer drivers/watchdog/Kconfig
---- a/drivers/watchdog/Kconfig~pika-warp-appliance-watchdog-timer
-+++ a/drivers/watchdog/Kconfig
-@@ -735,6 +735,14 @@ config BOOKE_WDT
- 	  Please see Documentation/watchdog/watchdog-api.txt for
- 	  more information.
+diff -puN drivers/misc/hp-wmi.c~hp-wmi-update-to-match-current-rfkill-semantics drivers/misc/hp-wmi.c
+--- a/drivers/misc/hp-wmi.c~hp-wmi-update-to-match-current-rfkill-semantics
++++ a/drivers/misc/hp-wmi.c
+@@ -177,9 +177,9 @@ static int hp_wmi_wifi_state(void)
+ 	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
  
-+config PIKA_WDT
-+	tristate "PIKA FPGA Watchdog"
-+	depends on WARP
-+	default y
-+	help
-+	 This enables the watchdog in the PIKA FPGA. Currently used on
-+	 the Warp platform.
-+
- # PPC64 Architecture
+ 	if (wireless & 0x100)
+-		return 1;
++		return RFKILL_STATE_UNBLOCKED;
+ 	else
+-		return 0;
++		return RFKILL_STATE_SOFT_BLOCKED;
+ }
  
- config WATCHDOG_RTAS
-diff -puN drivers/watchdog/Makefile~pika-warp-appliance-watchdog-timer drivers/watchdog/Makefile
---- a/drivers/watchdog/Makefile~pika-warp-appliance-watchdog-timer
-+++ a/drivers/watchdog/Makefile
-@@ -110,6 +110,7 @@ obj-$(CONFIG_MPC5200_WDT) += mpc5200_wdt
- obj-$(CONFIG_8xxx_WDT) += mpc8xxx_wdt.o
- obj-$(CONFIG_MV64X60_WDT) += mv64x60_wdt.o
- obj-$(CONFIG_BOOKE_WDT) += booke_wdt.o
-+obj-$(CONFIG_PIKA_WDT) += pika_wdt.o
+ static int hp_wmi_bluetooth_state(void)
+@@ -187,9 +187,9 @@ static int hp_wmi_bluetooth_state(void)
+ 	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
  
- # PPC64 Architecture
- obj-$(CONFIG_WATCHDOG_RTAS) += wdrtas.o
-diff -puN /dev/null drivers/watchdog/pika_wdt.c
---- /dev/null
-+++ a/drivers/watchdog/pika_wdt.c
-@@ -0,0 +1,113 @@
-+/*
-+ * PIKA FPGA based Watchdog Timer
-+ *
-+ * Copyright (c) 2008 PIKA Technologies
-+ *   Sean MacLennan <smaclennan@pikatech.com>
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/fs.h>
-+#include <linux/miscdevice.h>
-+#include <linux/reboot.h>
-+#include <linux/uaccess.h>
-+#include <linux/io.h>
-+#include <linux/of_platform.h>
-+#include <linux/watchdog.h>
-+
-+
-+static void __iomem *pikawdt_fpga;
-+
-+
-+static inline void pikawdt_ping(void)
-+{
-+	unsigned reset = in_be32(pikawdt_fpga + 0x14);
-+	reset |= 0xf80; /* enable with max timeout - 15 seconds */
-+	out_be32(pikawdt_fpga + 0x14, reset);
-+}
-+
-+static int pikawdt_open(struct inode *inode, struct file *file)
-+{
-+	printk(KERN_INFO "PIKA WDT started...\n");
-+
-+	pikawdt_ping();
-+
-+	return 0;
-+}
-+
-+static int pikawdt_release(struct inode *inode, struct file *file)
-+{
-+	pikawdt_ping(); /* one last time */
-+	return 0;
-+}
-+
-+static ssize_t pikawdt_write(struct file *file, const char __user *buf,
-+			     size_t count, loff_t *ppos)
-+{
-+	pikawdt_ping();
-+	return count;
-+}
-+
-+/* We support the bare minimum to be conformant. */
-+static int pikawdt_ioctl(struct inode *inode, struct file *file,
-+			 unsigned int cmd, unsigned long arg)
-+{
-+	if (cmd == WDIOC_KEEPALIVE) {
-+		pikawdt_ping();
-+		return 0;
-+	} else
-+		return -EINVAL;
-+}
-+
-+static const struct file_operations pikawdt_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= pikawdt_open,
-+	.release	= pikawdt_release,
-+	.write		= pikawdt_write,
-+	.ioctl		= pikawdt_ioctl,
-+};
-+
-+static struct miscdevice pikawdt_miscdev = {
-+	.minor	= WATCHDOG_MINOR,
-+	.name	= "watchdog",
-+	.fops	= &pikawdt_fops,
-+};
-+
-+static int __init pikawdt_init(void)
-+{
-+	struct device_node *np;
-+	int ret;
-+
-+	np = of_find_compatible_node(NULL, NULL, "pika,fpga");
-+	if (np == NULL) {
-+		printk(KERN_ERR "pikawdt: Unable to find fpga.\n");
-+		return -ENOENT;
+ 	if (wireless & 0x10000)
+-		return 1;
++		return RFKILL_STATE_UNBLOCKED;
+ 	else
+-		return 0;
++		return RFKILL_STATE_SOFT_BLOCKED;
+ }
+ 
+ static int hp_wmi_wwan_state(void)
+@@ -197,9 +197,9 @@ static int hp_wmi_wwan_state(void)
+ 	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
+ 
+ 	if (wireless & 0x1000000)
+-		return 1;
++		return RFKILL_STATE_UNBLOCKED;
+ 	else
+-		return 0;
++		return RFKILL_STATE_SOFT_BLOCKED;
+ }
+ 
+ static ssize_t show_display(struct device *dev, struct device_attribute *attr,
+@@ -338,12 +338,14 @@ void hp_wmi_notify(u32 value, void *cont
+ 			}
+ 		} else if (eventcode == 0x5) {
+ 			if (wifi_rfkill)
+-				wifi_rfkill->state = hp_wmi_wifi_state();
++				rfkill_force_state(wifi_rfkill,
++						   hp_wmi_wifi_state());
+ 			if (bluetooth_rfkill)
+-				bluetooth_rfkill->state =
+-				    hp_wmi_bluetooth_state();
++				rfkill_force_state(bluetooth_rfkill,
++						   hp_wmi_bluetooth_state());
+ 			if (wwan_rfkill)
+-				wwan_rfkill->state = hp_wmi_wwan_state();
++				rfkill_force_state(wwan_rfkill,
++						   hp_wmi_wwan_state());
+ 		} else
+ 			printk(KERN_INFO "HP WMI: Unknown key pressed - %x\n",
+ 			       eventcode);
+@@ -398,6 +400,7 @@ static void cleanup_sysfs(struct platfor
+ static int __init hp_wmi_bios_setup(struct platform_device *device)
+ {
+ 	int err;
++	int wireless = hp_wmi_perform_query(HPWMI_WIRELESS_QUERY, 0, 0);
+ 
+ 	err = device_create_file(&device->dev, &dev_attr_display);
+ 	if (err)
+@@ -412,28 +415,33 @@ static int __init hp_wmi_bios_setup(stru
+ 	if (err)
+ 		goto add_sysfs_error;
+ 
+-	wifi_rfkill = rfkill_allocate(&device->dev, RFKILL_TYPE_WLAN);
+-	wifi_rfkill->name = "hp-wifi";
+-	wifi_rfkill->state = hp_wmi_wifi_state();
+-	wifi_rfkill->toggle_radio = hp_wmi_wifi_set;
+-	wifi_rfkill->user_claim_unsupported = 1;
+-
+-	bluetooth_rfkill = rfkill_allocate(&device->dev,
+-					   RFKILL_TYPE_BLUETOOTH);
+-	bluetooth_rfkill->name = "hp-bluetooth";
+-	bluetooth_rfkill->state = hp_wmi_bluetooth_state();
+-	bluetooth_rfkill->toggle_radio = hp_wmi_bluetooth_set;
+-	bluetooth_rfkill->user_claim_unsupported = 1;
+-
+-	wwan_rfkill = rfkill_allocate(&device->dev, RFKILL_TYPE_WIMAX);
+-	wwan_rfkill->name = "hp-wwan";
+-	wwan_rfkill->state = hp_wmi_wwan_state();
+-	wwan_rfkill->toggle_radio = hp_wmi_wwan_set;
+-	wwan_rfkill->user_claim_unsupported = 1;
+-
+-	rfkill_register(wifi_rfkill);
+-	rfkill_register(bluetooth_rfkill);
+-	rfkill_register(wwan_rfkill);
++	if (wireless & 0x1) {
++		wifi_rfkill = rfkill_allocate(&device->dev, RFKILL_TYPE_WLAN);
++		wifi_rfkill->name = "hp-wifi";
++		wifi_rfkill->state = hp_wmi_wifi_state();
++		wifi_rfkill->toggle_radio = hp_wmi_wifi_set;
++		wifi_rfkill->user_claim_unsupported = 1;
++		rfkill_register(wifi_rfkill);
 +	}
 +
-+	pikawdt_fpga = of_iomap(np, 0);
-+
-+	of_node_put(np);
-+
-+	if (pikawdt_fpga == NULL) {
-+		printk(KERN_ERR "pikawdt: Unable to map fpga.\n");
-+		return -ENOENT;
++	if (wireless & 0x2) {
++		bluetooth_rfkill = rfkill_allocate(&device->dev,
++						   RFKILL_TYPE_BLUETOOTH);
++		bluetooth_rfkill->name = "hp-bluetooth";
++		bluetooth_rfkill->state = hp_wmi_bluetooth_state();
++		bluetooth_rfkill->toggle_radio = hp_wmi_bluetooth_set;
++		bluetooth_rfkill->user_claim_unsupported = 1;
++		rfkill_register(bluetooth_rfkill);
 +	}
 +
-+	ret = misc_register(&pikawdt_miscdev);
-+	if (ret) {
-+		iounmap(pikawdt_fpga);
-+		printk(KERN_ERR "pikawdt: Unable to register miscdev.\n");
-+		return ret;
++	if (wireless & 0x4) {
++		wwan_rfkill = rfkill_allocate(&device->dev, RFKILL_TYPE_WWAN);
++		wwan_rfkill->name = "hp-wwan";
++		wwan_rfkill->state = hp_wmi_wwan_state();
++		wwan_rfkill->toggle_radio = hp_wmi_wwan_set;
++		wwan_rfkill->user_claim_unsupported = 1;
++		rfkill_register(wwan_rfkill);
 +	}
-+
-+	return 0;
-+}
-+module_init(pikawdt_init);
-+
-+
-+static void __exit pikawdt_exit(void)
-+{
-+	misc_deregister(&pikawdt_miscdev);
-+
-+	iounmap(pikawdt_fpga);
-+}
-+module_exit(pikawdt_exit);
+ 
+ 	return 0;
+ add_sysfs_error:
+@@ -445,9 +453,12 @@ static int __exit hp_wmi_bios_remove(str
+ {
+ 	cleanup_sysfs(device);
+ 
+-	rfkill_unregister(wifi_rfkill);
+-	rfkill_unregister(bluetooth_rfkill);
+-	rfkill_unregister(wwan_rfkill);
++	if (wifi_rfkill)
++		rfkill_unregister(wifi_rfkill);
++	if (bluetooth_rfkill)
++		rfkill_unregister(bluetooth_rfkill);
++	if (wwan_rfkill)
++		rfkill_unregister(wwan_rfkill);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from smaclennan@pikatech.com are
+Patches currently in -mm which might be from mjg59@srcf.ucam.org are
 
-mm-bootmem-silence-section-mismatch-warning-contig_page_data-bootmem_node_data.patch
 linux-next.patch
-pika-warp-appliance-watchdog-timer.patch
+toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7.patch
+eeepc-laptop-use-standard-interfaces.patch
+hp-wmi-update-to-match-current-rfkill-semantics.patch
+rtc-cmos-strongly-avoid-hpet-emulation.patch
 
