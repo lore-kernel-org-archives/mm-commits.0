@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning.patch added to -mm tree
-Date: Wed, 27 Aug 2008 16:07:56 -0700
-Message-ID: <200808272307.m7RN7uRh027581@imap1.linux-foundation.org>
+Subject: + v4l-mt9m111c-make-function-static.patch added to -mm tree
+Date: Wed, 27 Aug 2008 16:09:27 -0700
+Message-ID: <200808272309.m7RN9RWm027616@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45651 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51339 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753920AbYH0XIy (ORCPT
+	by vger.kernel.org with ESMTP id S1753930AbYH0XJ4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 19:08:54 -0400
+	Wed, 27 Aug 2008 19:09:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: elendil@planet.nl, bruce.w.allan@intel.com, jeff@garzik.org, jeffrey.t.kirsher@intel.com, jesse.brandeburg@intel.com, john.ronciak@intel.com, peter.p.waskiewicz.jr@intel.com
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     e1000e: avoid duplicated output of device name in kernel warning
+     v4l: mt9m111.c make function static
 has been added to the -mm tree.  Its filename is
-     e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning.patch
+     v4l-mt9m111c-make-function-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: e1000e: avoid duplicated output of device name in kernel warning
-From: Frans Pop <elendil@planet.nl>
+Subject: v4l: mt9m111.c make function static
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-With 2.6.27-rc3 I noticed the following messages in my boot log:
+drivers/media/video/mt9m111.c:758:5: warning: symbol 'mt9m111_restore_state' was not declared. Should it be static?
 
-0000:01:00.0: 0000:01:00.0: Warning: detected DSPD enabled in EEPROM
-0000:01:00.0: eth0: (PCI Express:2.5GB/s:Width x1) 00:16:76:04:ff:09
-
-The second seems correct, but the first has a silly repetition of the
-PCI device before the actual message. The message originates from
-e1000_eeprom_checks in e1000e/netdev.c.
-
-With this patch below the first message becomes
-
-  e1000e 0000:01:00.0: Warning: detected DSPD enabled in EEPROM
-
-which makes it similar to directly preceding messages.
-
-Use dev_warn instead of e_warn in e1000_eeprom_checks() as the interface
-name has not yet been assigned at that point.
-
-Signed-off-by: Frans Pop <elendil@planet.nl>
-Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
-Cc: Bruce Allan <bruce.w.allan@intel.com>
-Cc: PJ Waskiewicz <peter.p.waskiewicz.jr@intel.com>
-Cc: John Ronciak <john.ronciak@intel.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000e/netdev.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/video/mt9m111.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/e1000e/netdev.c~e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning drivers/net/e1000e/netdev.c
---- a/drivers/net/e1000e/netdev.c~e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning
-+++ a/drivers/net/e1000e/netdev.c
-@@ -4649,13 +4649,15 @@ static void e1000_eeprom_checks(struct e
- 	ret_val = e1000_read_nvm(hw, NVM_INIT_CONTROL2_REG, 1, &buf);
- 	if (!(le16_to_cpu(buf) & (1 << 0))) {
- 		/* Deep Smart Power Down (DSPD) */
--		e_warn("Warning: detected DSPD enabled in EEPROM\n");
-+		dev_warn(&adapter->pdev->dev,
-+			 "Warning: detected DSPD enabled in EEPROM\n");
- 	}
- 
- 	ret_val = e1000_read_nvm(hw, NVM_INIT_3GIO_3, 1, &buf);
- 	if (le16_to_cpu(buf) & (3 << 2)) {
- 		/* ASPM enable */
--		e_warn("Warning: detected ASPM enabled in EEPROM\n");
-+		dev_warn(&adapter->pdev->dev,
-+			 "Warning: detected ASPM enabled in EEPROM\n");
- 	}
+diff -puN drivers/media/video/mt9m111.c~v4l-mt9m111c-make-function-static drivers/media/video/mt9m111.c
+--- a/drivers/media/video/mt9m111.c~v4l-mt9m111c-make-function-static
++++ a/drivers/media/video/mt9m111.c
+@@ -755,7 +755,7 @@ static int mt9m111_set_control(struct so
+ 	return ret;
  }
+ 
+-int mt9m111_restore_state(struct soc_camera_device *icd)
++static int mt9m111_restore_state(struct soc_camera_device *icd)
+ {
+ 	struct mt9m111 *mt9m111 = container_of(icd, struct mt9m111, icd);
  
 _
 
-Patches currently in -mm which might be from elendil@planet.nl are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+linux-next.patch
+x86-fix-shadowed-variable-warning.patch
+cifs-remove-global_extern-macro.patch
+v4l-drx397xdc-sparse-annotations.patch
+v4l-mt9m111c-make-function-static.patch
+input-ads7846c-sparse-lock-annotation.patch
+misdn-endian-annotations-for-struct-zt.patch
+misdn-annotate-iomem-pointer-and-add-statics.patch
+drivers-net-replace-__function__-with-__func__.patch
+scsi-replace-__inline-with-inline.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
+olpc-olpc_batteryc-sparse-endian-annotations.patch
+include-replace-__function__-with-__func__.patch
+misc-replace-__function__-with-__func__.patch
+befs-annotate-fs32-on-tests-for-superblock-endianness.patch
+byteorder-add-new-headers-for-make-headers-install.patch
+pvrusb2-use-proper-byteorder-interface.patch
 
