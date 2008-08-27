@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tpm-update-char-dev-bkl-pushdown.patch added to -mm tree
-Date: Tue, 26 Aug 2008 17:56:14 -0700
-Message-ID: <200808270056.m7R0uEoM004255@imap1.linux-foundation.org>
+Subject: + exit-signals-use-of-uninitialized-field-notify_count.patch added to -mm tree
+Date: Tue, 26 Aug 2008 21:24:50 -0700
+Message-ID: <200808270424.m7R4Oopq011773@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60111 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38027 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752635AbYH0A4h (ORCPT
+	by vger.kernel.org with ESMTP id S1750724AbYH0E0E (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 26 Aug 2008 20:56:37 -0400
+	Wed, 27 Aug 2008 00:26:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: srajiv@linux.vnet.ibm.com, serue@us.ibm.com, zohar@us.ibm.com
+Cc: vandebo-lkml@NerdBox.Net, mingo@elte.hu, oleg@tv-sign.ru, roland@redhat.comvandebo-lkml@NerdBox.Net
 
 
 The patch titled
-     tpm: update char dev BKL pushdown
+     exit signals: use of uninitialized field notify_count
 has been added to the -mm tree.  Its filename is
-     tpm-update-char-dev-bkl-pushdown.patch
+     exit-signals-use-of-uninitialized-field-notify_count.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tpm: update char dev BKL pushdown
-From: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
+Subject: exit signals: use of uninitialized field notify_count
+From: Steve VanDeBogart <vandebo-lkml@NerdBox.Net>
 
-Remove the BKL calls from the TPM driver, which were added in the overall
-misc-char-dev-BKL-pushdown.patch, as they are not needed.  Changed
-num_opens from an int to atomic_t.
+task->signal->notify_count is only initialized if
+task->signal->group_exit_task is not NULL.  Reorder a conditional so
+that uninitialised memory is not used.  Found by Valgrind.
 
-Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
-Signed-off-by: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
+Signed-off-by: Steve VanDeBogart <vandebo-lkml@nerdbox.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm.c |   22 +++++++---------------
- drivers/char/tpm/tpm.h |    2 +-
- 2 files changed, 8 insertions(+), 16 deletions(-)
+ kernel/exit.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/tpm/tpm.c~tpm-update-char-dev-bkl-pushdown drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~tpm-update-char-dev-bkl-pushdown
-+++ a/drivers/char/tpm/tpm.c
-@@ -967,7 +967,6 @@ int tpm_open(struct inode *inode, struct
- 	int rc = 0, minor = iminor(inode);
- 	struct tpm_chip *chip = NULL, *pos;
+diff -puN kernel/exit.c~exit-signals-use-of-uninitialized-field-notify_count kernel/exit.c
+--- a/kernel/exit.c~exit-signals-use-of-uninitialized-field-notify_count
++++ a/kernel/exit.c
+@@ -918,8 +918,8 @@ static void exit_notify(struct task_stru
  
--	lock_kernel();
- 	spin_lock(&driver_lock);
+ 	/* mt-exec, de_thread() is waiting for us */
+ 	if (thread_group_leader(tsk) &&
+-	    tsk->signal->notify_count < 0 &&
+-	    tsk->signal->group_exit_task)
++	    tsk->signal->group_exit_task &&
++	    tsk->signal->notify_count < 0)
+ 		wake_up_process(tsk->signal->group_exit_task);
  
- 	list_for_each_entry(pos, &tpm_chip_list, list) {
-@@ -982,34 +981,31 @@ int tpm_open(struct inode *inode, struct
- 		goto err_out;
- 	}
- 
--	if (chip->num_opens) {
-+	if (atomic_read(&chip->num_opens)) {
- 		dev_dbg(chip->dev, "Another process owns this TPM\n");
- 		rc = -EBUSY;
- 		goto err_out;
- 	}
- 
--	chip->num_opens++;
-+	atomic_inc(&chip->num_opens);
- 	get_device(chip->dev);
- 
- 	spin_unlock(&driver_lock);
- 
- 	chip->data_buffer = kmalloc(TPM_BUFSIZE * sizeof(u8), GFP_KERNEL);
- 	if (chip->data_buffer == NULL) {
--		chip->num_opens--;
-+		atomic_dec(&chip->num_opens);
- 		put_device(chip->dev);
--		unlock_kernel();
- 		return -ENOMEM;
- 	}
- 
- 	atomic_set(&chip->data_pending, 0);
- 
- 	file->private_data = chip;
--	unlock_kernel();
- 	return 0;
- 
- err_out:
- 	spin_unlock(&driver_lock);
--	unlock_kernel();
- 	return rc;
- }
- EXPORT_SYMBOL_GPL(tpm_open);
-@@ -1023,7 +1019,7 @@ int tpm_release(struct inode *inode, str
- 	file->private_data = NULL;
- 	del_singleshot_timer_sync(&chip->user_read_timer);
- 	atomic_set(&chip->data_pending, 0);
--	chip->num_opens--;
-+	atomic_dec(chip->num_opens);
- 	put_device(chip->dev);
- 	kfree(chip->data_buffer);
- 	spin_unlock(&driver_lock);
-@@ -1238,20 +1234,16 @@ struct tpm_chip *tpm_register_hardware(s
- 		return NULL;
- 	}
- 
--	spin_lock(&driver_lock);
--
--	list_add(&chip->list, &tpm_chip_list);
--
--	spin_unlock(&driver_lock);
--
- 	if (sysfs_create_group(&dev->kobj, chip->vendor.attr_group)) {
--		list_del(&chip->list);
- 		misc_deregister(&chip->vendor.miscdev);
- 		put_device(chip->dev);
- 		return NULL;
- 	}
- 
- 	chip->bios_dir = tpm_bios_log_setup(devname);
-+	spin_lock(&driver_lock);
-+	list_add(&chip->list, &tpm_chip_list);
-+	spin_unlock(&driver_lock);
- 
- 	return chip;
- }
-diff -puN drivers/char/tpm/tpm.h~tpm-update-char-dev-bkl-pushdown drivers/char/tpm/tpm.h
---- a/drivers/char/tpm/tpm.h~tpm-update-char-dev-bkl-pushdown
-+++ a/drivers/char/tpm/tpm.h
-@@ -90,7 +90,7 @@ struct tpm_chip {
- 	struct device *dev;	/* Device stuff */
- 
- 	int dev_num;		/* /dev/tpm# */
--	int num_opens;		/* only one allowed */
-+	atomic_t num_opens;		/* only one allowed */
- 	int time_expired;
- 
- 	/* Data passed to and from the tpm via the read/write calls */
+ 	write_unlock_irq(&tasklist_lock);
 _
 
-Patches currently in -mm which might be from srajiv@linux.vnet.ibm.com are
+Patches currently in -mm which might be from vandebo-lkml@NerdBox.Net are
 
-securityfs-do-not-depend-on-config_security.patch
-tpm-include-moderated-for-non-subscribers-notation-in-maintainers.patch
-tpm-update-char-dev-bkl-pushdown.patch
+exit-signals-use-of-uninitialized-field-notify_count.patch
 
