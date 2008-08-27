@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + v4l-fix-return-value-of-meye-probe-callback.patch added to -mm tree
-Date: Wed, 27 Aug 2008 13:09:01 -0700
-Message-ID: <200808272009.m7RK91Qi019850@imap1.linux-foundation.org>
+Subject: + v4l-fix-retval-in-vivi-driver-for-more-than-one-device.patch added to -mm tree
+Date: Wed, 27 Aug 2008 13:09:27 -0700
+Message-ID: <200808272009.m7RK9R7L019860@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39533 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47479 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750990AbYH0UJP (ORCPT
+	by vger.kernel.org with ESMTP id S1751295AbYH0UJe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 16:09:15 -0400
+	Wed, 27 Aug 2008 16:09:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: henne@nachtwindheim.de
 
 
 The patch titled
-     v4l: fix return value of meye probe callback
+     v4l: fix retval in vivi driver for more than one device
 has been added to the -mm tree.  Its filename is
-     v4l-fix-return-value-of-meye-probe-callback.patch
+     v4l-fix-retval-in-vivi-driver-for-more-than-one-device.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: v4l: fix return value of meye probe callback
+Subject: v4l: fix retval in vivi driver for more than one device
 From: Henrik Kretzschmar <henne@nachtwindheim.de>
 
-The return value of the probe function should return -ENOMEM instead of
--EBUSY if video_device_alloc() fails.
+The variable ret should be set for each device to -ENOMEM, not only the
+first.
 
 Signed-off-by: Henrik Kretzschmar <henne@nachtwindheim.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/meye.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/vivi.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/media/video/meye.c~v4l-fix-return-value-of-meye-probe-callback drivers/media/video/meye.c
---- a/drivers/media/video/meye.c~v4l-fix-return-value-of-meye-probe-callback
-+++ a/drivers/media/video/meye.c
-@@ -1779,6 +1779,7 @@ static int __devinit meye_probe(struct p
- 		goto outnotdev;
- 	}
+diff -puN drivers/media/video/vivi.c~v4l-fix-retval-in-vivi-driver-for-more-than-one-device drivers/media/video/vivi.c
+--- a/drivers/media/video/vivi.c~v4l-fix-retval-in-vivi-driver-for-more-than-one-device
++++ a/drivers/media/video/vivi.c
+@@ -1111,11 +1111,12 @@ static struct video_device vivi_template
  
-+	ret = -ENOMEM;
- 	meye.mchip_dev = pcidev;
- 	meye.video_dev = video_device_alloc();
- 	if (!meye.video_dev) {
-@@ -1786,7 +1787,6 @@ static int __devinit meye_probe(struct p
- 		goto outnotdev;
- 	}
+ static int __init vivi_init(void)
+ {
+-	int ret = -ENOMEM, i;
++	int ret, i;
+ 	struct vivi_dev *dev;
+ 	struct video_device *vfd;
  
--	ret = -ENOMEM;
- 	meye.grab_temp = vmalloc(MCHIP_NB_PAGES_MJPEG * PAGE_SIZE);
- 	if (!meye.grab_temp) {
- 		printk(KERN_ERR "meye: grab buffer allocation failed\n");
+ 	for (i = 0; i < n_devs; i++) {
++		ret = -ENOMEM;
+ 		dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+ 		if (NULL == dev)
+ 			break;
 _
 
 Patches currently in -mm which might be from henne@nachtwindheim.de are
 
 linux-next.patch
 v4l-fix-return-value-of-meye-probe-callback.patch
+v4l-fix-retval-in-vivi-driver-for-more-than-one-device.patch
 
