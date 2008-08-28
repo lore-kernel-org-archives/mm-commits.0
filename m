@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - ath5k-lock-beacons.patch removed from -mm tree
-Date: Thu, 28 Aug 2008 14:48:51 -0700
-Message-ID: <200808282148.m7SLmpSx016142@imap1.linux-foundation.org>
+Subject: - ath5k-fix-bintval-setup.patch removed from -mm tree
+Date: Thu, 28 Aug 2008 14:48:54 -0700
+Message-ID: <200808282148.m7SLms8F016145@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54984 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50988 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753825AbYH1VtB (ORCPT
+	by vger.kernel.org with ESMTP id S1753911AbYH1VtD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Aug 2008 17:49:01 -0400
+	Thu, 28 Aug 2008 17:49:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, linville@tuxdriver.com, mcgrof@gmail.com, mickflemm@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Ath5k: lock beacons
+     Ath5k: fix bintval setup
 has been removed from the -mm tree.  Its filename was
-     ath5k-lock-beacons.patch
+     ath5k-fix-bintval-setup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Ath5k: lock beacons
+Subject: Ath5k: fix bintval setup
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Beacons setup and config was racy with beacon send.  Ensure that ISR and
-reset functions see consistent state of bbuf.
-
-Use also dev_kfree_skb_any in ath5k_txbuf_free since we call it from
-atomic now.
+bintval is set to the initial value at .config_interface which is too
+late, since it overwrites previously set value from .config.  Move the
+initialization to the .add_interface.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Cc: Nick Kossifidis <mickflemm@gmail.com>
@@ -40,88 +38,34 @@ Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k/base.c |   15 ++++++++++++---
- drivers/net/wireless/ath5k/base.h |    1 +
- 2 files changed, 13 insertions(+), 3 deletions(-)
+ drivers/net/wireless/ath5k/base.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/wireless/ath5k/base.c~ath5k-lock-beacons drivers/net/wireless/ath5k/base.c
---- a/drivers/net/wireless/ath5k/base.c~ath5k-lock-beacons
+diff -puN drivers/net/wireless/ath5k/base.c~ath5k-fix-bintval-setup drivers/net/wireless/ath5k/base.c
+--- a/drivers/net/wireless/ath5k/base.c~ath5k-fix-bintval-setup
 +++ a/drivers/net/wireless/ath5k/base.c
-@@ -252,7 +252,7 @@ static inline void ath5k_txbuf_free(stru
- 		return;
- 	pci_unmap_single(sc->pdev, bf->skbaddr, bf->skb->len,
- 			PCI_DMA_TODEVICE);
--	dev_kfree_skb(bf->skb);
-+	dev_kfree_skb_any(bf->skb);
- 	bf->skb = NULL;
- }
- 
-@@ -467,6 +467,7 @@ ath5k_pci_probe(struct pci_dev *pdev,
- 	mutex_init(&sc->lock);
- 	spin_lock_init(&sc->rxbuflock);
- 	spin_lock_init(&sc->txbuflock);
-+	spin_lock_init(&sc->block);
- 
- 	/* Set private data */
- 	pci_set_drvdata(pdev, hw);
-@@ -2143,8 +2144,11 @@ ath5k_beacon_config(struct ath5k_softc *
- 
- 		sc->imask |= AR5K_INT_SWBA;
- 
--		if (ath5k_hw_hasveol(ah))
-+		if (ath5k_hw_hasveol(ah)) {
-+			spin_lock(&sc->block);
- 			ath5k_beacon_send(sc);
-+			spin_unlock(&sc->block);
-+		}
- 	}
- 	/* TODO else AP */
- 
-@@ -2344,7 +2348,9 @@ ath5k_intr(int irq, void *dev_id)
- 						  TSF_TO_TU(tsf),
- 						  (unsigned long long) tsf);
- 				} else {
-+					spin_lock(&sc->block);
- 					ath5k_beacon_send(sc);
-+					spin_unlock(&sc->block);
- 				}
- 			}
- 			if (status & AR5K_INT_RXEOL) {
-@@ -3010,6 +3016,7 @@ static int
- ath5k_beacon_update(struct ieee80211_hw *hw, struct sk_buff *skb)
- {
- 	struct ath5k_softc *sc = hw->priv;
-+	unsigned long flags;
- 	int ret;
- 
- 	ath5k_debug_dump_skb(sc, skb, "BC  ", 1);
-@@ -3019,12 +3026,14 @@ ath5k_beacon_update(struct ieee80211_hw 
+@@ -2711,6 +2711,11 @@ static int ath5k_add_interface(struct ie
+ 		ret = -EOPNOTSUPP;
  		goto end;
  	}
++
++	/* Set to a reasonable value. Note that this will
++	 * be set to mac80211's value at ath5k_config(). */
++	sc->bintval = 1000;
++
+ 	ret = 0;
+ end:
+ 	mutex_unlock(&sc->lock);
+@@ -2755,9 +2760,6 @@ ath5k_config_interface(struct ieee80211_
+ 	struct ath5k_hw *ah = sc->ah;
+ 	int ret;
  
-+	spin_lock_irqsave(&sc->block, flags);
- 	ath5k_txbuf_free(sc, sc->bbuf);
- 	sc->bbuf->skb = skb;
- 	ret = ath5k_beacon_setup(sc, sc->bbuf);
- 	if (ret)
- 		sc->bbuf->skb = NULL;
--	else {
-+	spin_unlock_irqrestore(&sc->block, flags);
-+	if (!ret) {
- 		ath5k_beacon_config(sc);
- 		mmiowb();
- 	}
-diff -puN drivers/net/wireless/ath5k/base.h~ath5k-lock-beacons drivers/net/wireless/ath5k/base.h
---- a/drivers/net/wireless/ath5k/base.h~ath5k-lock-beacons
-+++ a/drivers/net/wireless/ath5k/base.h
-@@ -172,6 +172,7 @@ struct ath5k_softc {
- 	struct tasklet_struct	txtq;		/* tx intr tasklet */
- 	struct ath5k_led	tx_led;		/* tx led */
- 
-+	spinlock_t		block;		/* protects beacon */
- 	struct ath5k_buf	*bbuf;		/* beacon buffer */
- 	unsigned int		bhalq,		/* SW q for outgoing beacons */
- 				bmisscount,	/* missed beacon transmits */
+-	/* Set to a reasonable value. Note that this will
+-	 * be set to mac80211's value at ath5k_config(). */
+-	sc->bintval = 1000;
+ 	mutex_lock(&sc->lock);
+ 	if (sc->vif != vif) {
+ 		ret = -EIO;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
