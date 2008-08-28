@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext2-fix-ext2-block-reservation-early-enospc-issue.patch added to -mm tree
-Date: Thu, 28 Aug 2008 16:23:44 -0700
-Message-ID: <200808282323.m7SNNjj8019841@imap1.linux-foundation.org>
+Subject: + byteorder-use-generic-c-version-for-value-byteswapping.patch added to -mm tree
+Date: Thu, 28 Aug 2008 16:32:35 -0700
+Message-ID: <200808282332.m7SNWZmI020228@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55904 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60399 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754283AbYH1X3v (ORCPT
+	by vger.kernel.org with ESMTP id S1754951AbYH1XdI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Aug 2008 19:29:51 -0400
+	Thu, 28 Aug 2008 19:33:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cmm@us.ibm.com, tytso@mit.edu
+Cc: harvey.harrison@gmail.com, davem@davemloft.net
 
 
 The patch titled
-     ext2: fix ext2 block reservation early ENOSPC issue
+     byteorder: use generic C version for value byteswapping
 has been added to the -mm tree.  Its filename is
-     ext2-fix-ext2-block-reservation-early-enospc-issue.patch
+     byteorder-use-generic-c-version-for-value-byteswapping.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,108 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext2: fix ext2 block reservation early ENOSPC issue
-From: Mingming Cao <cmm@us.ibm.com>
+Subject: byteorder: use generic C version for value byteswapping
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-We could run into ENOSPC error on ext2, even when there is free blocks on
-the filesystem.
+This makes the new implementation of the byteorder helpers match the old
+in how it degraded when an arch-defined version was not available:
 
-The problem is triggered in the case the goal block group has 0 free
-blocks , and the rest block groups are skipped due to the check of
-"free_blocks < windowsz/2".  Current code could fall back to non
-reservation allocation to prevent early ENOSPC after examing all the block
-groups with reservation on , but this code was bypassed if the reservation
-window is turned off already, which is true in this case.
+1) swab()
+	- look for arch defined
+	- if not, use generic c version
 
-This patch fixed two issues:
-1) We don't need to turn off block reservation if the goal block group has
-0 free blocks left and continue search for the rest of block groups.
+2) swabp()
+	- look for arch-defined
+	- if not, deref pointer and use swab()
 
-Current code the intention is to turn off the block reservation if the
-goal allocation group has a few (some) free blocks left (not enough for
-make the desired reservation window),to try to allocation in the goal
-block group, to get better locality.  But if the goal blocks have 0 free
-blocks, it should leave the block reservation on, and continues search for
-the next block groups,rather than turn off block reservation completely.
+3) swabs()
+	- look for arch defined
+	- if not, use swabp
 
-2) we don't need to check the window size if the block reservation is off.
-
-The problem was originally found and fixed in ext4.
-
-Signed-off-by: Mingming Cao <cmm@us.ibm.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/balloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/swab.h |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN fs/ext2/balloc.c~ext2-fix-ext2-block-reservation-early-enospc-issue fs/ext2/balloc.c
---- a/fs/ext2/balloc.c~ext2-fix-ext2-block-reservation-early-enospc-issue
-+++ a/fs/ext2/balloc.c
-@@ -1295,6 +1295,7 @@ retry_alloc:
- 	 * turn off reservation for this allocation
- 	 */
- 	if (my_rsv && (free_blocks < windowsz)
-+		&& (free_blocks > 0)
- 		&& (rsv_is_empty(&my_rsv->rsv_window)))
- 		my_rsv = NULL;
- 
-@@ -1332,7 +1333,7 @@ retry_alloc:
- 		 * free blocks is less than half of the reservation
- 		 * window size.
- 		 */
--		if (free_blocks <= (windowsz/2))
-+		if (my_rsv && (free_blocks <= (windowsz/2)))
- 			continue;
- 
- 		brelse(bitmap_bh);
+diff -puN include/linux/swab.h~byteorder-use-generic-c-version-for-value-byteswapping include/linux/swab.h
+--- a/include/linux/swab.h~byteorder-use-generic-c-version-for-value-byteswapping
++++ a/include/linux/swab.h
+@@ -47,8 +47,6 @@ static inline __attribute_const__ __u16 
+ {
+ #ifdef __arch_swab16
+ 	return __arch_swab16(val);
+-#elif defined(__arch_swab16p)
+-	return __arch_swab16p(&val);
+ #else
+ 	return __const_swab16(val);
+ #endif
+@@ -58,8 +56,6 @@ static inline __attribute_const__ __u32 
+ {
+ #ifdef __arch_swab32
+ 	return __arch_swab32(val);
+-#elif defined(__arch_swab32p)
+-	return __arch_swab32p(&val);
+ #else
+ 	return __const_swab32(val);
+ #endif
+@@ -69,8 +65,6 @@ static inline __attribute_const__ __u64 
+ {
+ #ifdef __arch_swab64
+ 	return __arch_swab64(val);
+-#elif defined(__arch_swab64p)
+-	return __arch_swab64p(&val);
+ #elif defined(__SWAB_64_THRU_32__)
+ 	__u32 h = val >> 32;
+ 	__u32 l = val & ((1ULL << 32) - 1);
+@@ -84,8 +78,6 @@ static inline __attribute_const__ __u32 
+ {
+ #ifdef __arch_swahw32
+ 	return __arch_swahw32(val);
+-#elif defined(__arch_swahw32p)
+-	return __arch_swahw32p(&val);
+ #else
+ 	return __const_swahw32(val);
+ #endif
+@@ -95,8 +87,6 @@ static inline __attribute_const__ __u32 
+ {
+ #ifdef __arch_swahb32
+ 	return __arch_swahb32(val);
+-#elif defined(__arch_swahb32p)
+-	return __arch_swahb32p(&val);
+ #else
+ 	return __const_swahb32(val);
+ #endif
 _
 
-Patches currently in -mm which might be from cmm@us.ibm.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-origin.patch
-vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails.patch
-vmscan-set-try_to_release_pages-gfp_mask-to-0.patch
-percpu-counters-clean-up-percpu_counter_sum_and_set-interface.patch
-ext2-fix-ext2-block-reservation-early-enospc-issue.patch
-ext3-fix-ext3-block-reservation-early-enospc-issue.patch
+linux-next.patch
+acpi-toshiba_acpic-fix-sparse-signedness-mismatch-warnings.patch
+x86-fix-shadowed-variable-warning.patch
+cifs-remove-global_extern-macro.patch
+v4l-drx397xdc-sparse-annotations.patch
+v4l-mt9m111c-make-function-static.patch
+input-ads7846c-sparse-lock-annotation.patch
+misdn-endian-annotations-for-struct-zt.patch
+misdn-annotate-iomem-pointer-and-add-statics.patch
+drivers-net-replace-__function__-with-__func__.patch
+rcu-spinlocks-take-an-unsigned-long-flags.patch
+rcu-fix-sparse-shadowed-variable-warning.patch
+scsi-replace-__inline-with-inline.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
+olpc-olpc_batteryc-sparse-endian-annotations.patch
+include-replace-__function__-with-__func__.patch
+misc-replace-__function__-with-__func__.patch
+befs-annotate-fs32-on-tests-for-superblock-endianness.patch
+char-moxac-sparse-annotation.patch
+byteorder-add-new-headers-for-make-headers-install.patch
+pvrusb2-use-proper-byteorder-interface.patch
+byteorder-use-generic-c-version-for-value-byteswapping.patch
 
