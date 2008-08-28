@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + tdfxfb-fix-sdram-memory-size-detection.patch added to -mm tree
-Date: Thu, 28 Aug 2008 16:37:16 -0700
-Message-ID: <200808282337.m7SNbGt6020373@imap1.linux-foundation.org>
+Subject: + tdfxfb-fix-frame-buffer-name-overrun.patch added to -mm tree
+Date: Thu, 28 Aug 2008 16:37:19 -0700
+Message-ID: <200808282337.m7SNbJ7E020376@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35902 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44655 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757350AbYH1Xh2 (ORCPT
+	by vger.kernel.org with ESMTP id S1757503AbYH1Xha (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Aug 2008 19:37:28 -0400
+	Thu, 28 Aug 2008 19:37:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krzysztof.h1@wp.pl, geert@linux-m68k.org
 
 
 The patch titled
-     tdfxfb: fix SDRAM memory size detection
+     tdfxfb: fix frame buffer name overrun
 has been added to the -mm tree.  Its filename is
-     tdfxfb-fix-sdram-memory-size-detection.patch
+     tdfxfb-fix-frame-buffer-name-overrun.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tdfxfb: fix SDRAM memory size detection
+Subject: tdfxfb: fix frame buffer name overrun
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Fix memory detection on Voodoo3 cards with SDRAM memory.
+If there are more then one graphics card handled by the tdfxfb driver the
+name of the frame buffer overruns reserved name size.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
@@ -47,18 +48,25 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/video/tdfxfb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/tdfxfb.c~tdfxfb-fix-sdram-memory-size-detection drivers/video/tdfxfb.c
---- a/drivers/video/tdfxfb.c~tdfxfb-fix-sdram-memory-size-detection
+diff -puN drivers/video/tdfxfb.c~tdfxfb-fix-frame-buffer-name-overrun drivers/video/tdfxfb.c
+--- a/drivers/video/tdfxfb.c~tdfxfb-fix-frame-buffer-name-overrun
 +++ a/drivers/video/tdfxfb.c
-@@ -426,7 +426,7 @@ static unsigned long do_lfb_size(struct 
- 	if (dev_id < PCI_DEVICE_ID_3DFX_VOODOO5) {
- 		/* Banshee/Voodoo3 */
- 		chip_size = 2;
--		if (has_sgram && (draminit0 & DRAMINIT0_SGRAM_TYPE))
-+		if (has_sgram && !(draminit0 & DRAMINIT0_SGRAM_TYPE))
- 			chip_size = 1;
- 	} else {
- 		/* Voodoo4/5 */
+@@ -95,7 +95,6 @@ static inline int mtrr_del(int reg, unsi
+ #define VOODOO5_MAX_PIXCLOCK 350000
+ 
+ static struct fb_fix_screeninfo tdfx_fix __devinitdata = {
+-	.id =		"3Dfx",
+ 	.type =		FB_TYPE_PACKED_PIXELS,
+ 	.visual =	FB_VISUAL_PSEUDOCOLOR,
+ 	.ypanstep =	1,
+@@ -1196,6 +1195,7 @@ static int __devinit tdfxfb_probe(struct
+ 		return -ENOMEM;
+ 
+ 	default_par = info->par;
++	strcpy(tdfx_fix.id, "3Dfx");
+ 
+ 	/* Configure the default fb_fix_screeninfo first */
+ 	switch (pdev->device) {
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
