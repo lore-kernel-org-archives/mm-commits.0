@@ -1,98 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - mpc8xxx_wdt-fix-modular-build.patch removed from -mm tree
-Date: Thu, 28 Aug 2008 14:49:26 -0700
-Message-ID: <200808282149.m7SLnQO6016187@imap1.linux-foundation.org>
+Subject: - ixgbe-fix-vlan-filtering.patch removed from -mm tree
+Date: Thu, 28 Aug 2008 14:49:19 -0700
+Message-ID: <200808282149.m7SLnJAI016178@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51230 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60987 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755931AbYH1VuE (ORCPT
+	by vger.kernel.org with ESMTP id S1755989AbYH1VuO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Aug 2008 17:50:04 -0400
+	Thu, 28 Aug 2008 17:50:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, bunk@kernel.org, davej@redhat.com, wim@iguana.be, mm-commits@vger.kernel.org
+To: alexander.h.duyck@intel.com, jeff@garzik.org, jeffrey.t.kirsher@intel.com, jesse.brandeburg@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mpc8xxx_wdt: fix modular build
+     ixgbe: fix vlan filtering
 has been removed from the -mm tree.  Its filename was
-     mpc8xxx_wdt-fix-modular-build.patch
+     ixgbe-fix-vlan-filtering.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mpc8xxx_wdt: fix modular build
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: ixgbe: fix vlan filtering
+From: Alexander Duyck <alexander.h.duyck@intel.com>
 
-Fix the following build error when mpc8xxx_wdt is selected to build as a
-module:
+VLAN filtering is broken, due to reading the incorrect register for the
+VLAN filtering settings.  Fixed by reading/writing the correct register.
 
-drivers/watchdog/mpc8xxx_wdt.c:304: error: redefinition of '__inittest'
-drivers/watchdog/mpc8xxx_wdt.c:298: error: previous definition of '__inittest' was here
-drivers/watchdog/mpc8xxx_wdt.c:304: error: redefinition of 'init_module'
-drivers/watchdog/mpc8xxx_wdt.c:298: error: previous definition of 'init_module' was here
+There are no vlan filter settings in the fctrl register.
 
-Reported-by: Dave Jones <davej@redhat.com>
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: Wim Van Sebroeck <wim@iguana.be>
-Cc: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+Signed-off-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/mpc8xxx_wdt.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/net/ixgbe/ixgbe_main.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/watchdog/mpc8xxx_wdt.c~mpc8xxx_wdt-fix-modular-build drivers/watchdog/mpc8xxx_wdt.c
---- a/drivers/watchdog/mpc8xxx_wdt.c~mpc8xxx_wdt-fix-modular-build
-+++ a/drivers/watchdog/mpc8xxx_wdt.c
-@@ -48,6 +48,7 @@ struct mpc8xxx_wdt_type {
- };
+diff -puN drivers/net/ixgbe/ixgbe_main.c~ixgbe-fix-vlan-filtering drivers/net/ixgbe/ixgbe_main.c
+--- a/drivers/net/ixgbe/ixgbe_main.c~ixgbe-fix-vlan-filtering
++++ a/drivers/net/ixgbe/ixgbe_main.c
+@@ -1636,16 +1636,17 @@ static void ixgbe_set_multi(struct net_d
+ 	struct ixgbe_hw *hw = &adapter->hw;
+ 	struct dev_mc_list *mc_ptr;
+ 	u8 *mta_list;
+-	u32 fctrl;
++	u32 fctrl, vlnctrl;
+ 	int i;
  
- static struct mpc8xxx_wdt __iomem *wd_base;
-+static int mpc8xxx_wdt_init_late(void);
+ 	/* Check for Promiscuous and All Multicast modes */
  
- static u16 timeout = 0xffff;
- module_param(timeout, ushort, 0);
-@@ -213,6 +214,12 @@ static int __devinit mpc8xxx_wdt_probe(s
- 	else
- 		timeout_sec = timeout / freq;
+ 	fctrl = IXGBE_READ_REG(hw, IXGBE_FCTRL);
++	vlnctrl = IXGBE_READ_REG(hw, IXGBE_VLNCTRL);
  
-+#ifdef MODULE
-+	ret = mpc8xxx_wdt_init_late();
-+	if (ret)
-+		goto err_unmap;
-+#endif
-+
- 	pr_info("WDT driver for MPC8xxx initialized. mode:%s timeout=%d "
- 		"(%d seconds)\n", reset ? "reset" : "interrupt", timeout,
- 		timeout_sec);
-@@ -280,7 +287,7 @@ static struct of_platform_driver mpc8xxx
-  * very early to start pinging the watchdog (misc devices are not yet
-  * available), and later module_init() just registers the misc device.
-  */
--static int __init mpc8xxx_wdt_init_late(void)
-+static int mpc8xxx_wdt_init_late(void)
- {
- 	int ret;
- 
-@@ -295,7 +302,9 @@ static int __init mpc8xxx_wdt_init_late(
+ 	if (netdev->flags & IFF_PROMISC) {
+ 		fctrl |= (IXGBE_FCTRL_UPE | IXGBE_FCTRL_MPE);
+-		fctrl &= ~IXGBE_VLNCTRL_VFE;
++		vlnctrl &= ~IXGBE_VLNCTRL_VFE;
+ 	} else {
+ 		if (netdev->flags & IFF_ALLMULTI) {
+ 			fctrl |= IXGBE_FCTRL_MPE;
+@@ -1653,10 +1654,11 @@ static void ixgbe_set_multi(struct net_d
+ 		} else {
+ 			fctrl &= ~(IXGBE_FCTRL_UPE | IXGBE_FCTRL_MPE);
+ 		}
+-		fctrl |= IXGBE_VLNCTRL_VFE;
++		vlnctrl |= IXGBE_VLNCTRL_VFE;
  	}
- 	return 0;
- }
-+#ifndef MODULE
- module_init(mpc8xxx_wdt_init_late);
-+#endif
  
- static int __init mpc8xxx_wdt_init(void)
- {
+ 	IXGBE_WRITE_REG(hw, IXGBE_FCTRL, fctrl);
++	IXGBE_WRITE_REG(hw, IXGBE_VLNCTRL, vlnctrl);
+ 
+ 	if (netdev->mc_count) {
+ 		mta_list = kcalloc(netdev->mc_count, ETH_ALEN, GFP_ATOMIC);
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from alexander.h.duyck@intel.com are
 
-origin.patch
 linux-next.patch
-rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
 
