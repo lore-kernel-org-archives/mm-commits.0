@@ -1,146 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - tpm-update-char-dev-bkl-pushdown.patch removed from -mm tree
-Date: Wed, 27 Aug 2008 20:36:31 -0700
-Message-ID: <200808280336.m7S3aVar005344@imap1.linux-foundation.org>
+Subject: + initramfs-fix-compilation-warning.patch added to -mm tree
+Date: Wed, 27 Aug 2008 20:43:38 -0700
+Message-ID: <200808280343.m7S3hcbu005613@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42322 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47108 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753830AbYH1Dmb (ORCPT
+	by vger.kernel.org with ESMTP id S1753660AbYH1Doy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 23:42:31 -0400
+	Wed, 27 Aug 2008 23:44:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: srajiv@linux.vnet.ibm.com, serue@us.ibm.com, zohar@us.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: h-shimamoto@ct.jp.nec.com, arjan@infradead.org, mingo@elte.hu, shaohua.li@intel.com
 
 
 The patch titled
-     tpm: update char dev BKL pushdown
-has been removed from the -mm tree.  Its filename was
-     tpm-update-char-dev-bkl-pushdown.patch
+     initramfs: fix compilation warning
+has been added to the -mm tree.  Its filename is
+     initramfs-fix-compilation-warning.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tpm: update char dev BKL pushdown
-From: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
+Subject: initramfs: fix compilation warning
+From: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
 
-Remove the BKL calls from the TPM driver, which were added in the overall
-misc-char-dev-BKL-pushdown.patch, as they are not needed.  Changed
-num_opens from an int to atomic_t.
+  CC      init/initramfs.o
+init/initramfs.c:517: warning: 'clean_rootfs' defined but not used
 
-Signed-off-by: Mimi Zohar <zohar@us.ibm.com>
-Signed-off-by: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
+clean_rootfs is not used when CONFIG_BLK_DEV_RAM disabled.
+
+(akpm: fixes "fastboot: remove duplicate unpack_to_rootfs()")
+
+Signed-off-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm.c |   22 +++++++---------------
- drivers/char/tpm/tpm.h |    2 +-
- 2 files changed, 8 insertions(+), 16 deletions(-)
+ init/initramfs.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/char/tpm/tpm.c~tpm-update-char-dev-bkl-pushdown drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~tpm-update-char-dev-bkl-pushdown
-+++ a/drivers/char/tpm/tpm.c
-@@ -967,7 +967,6 @@ int tpm_open(struct inode *inode, struct
- 	int rc = 0, minor = iminor(inode);
- 	struct tpm_chip *chip = NULL, *pos;
- 
--	lock_kernel();
- 	spin_lock(&driver_lock);
- 
- 	list_for_each_entry(pos, &tpm_chip_list, list) {
-@@ -982,34 +981,31 @@ int tpm_open(struct inode *inode, struct
- 		goto err_out;
- 	}
- 
--	if (chip->num_opens) {
-+	if (atomic_read(&chip->num_opens)) {
- 		dev_dbg(chip->dev, "Another process owns this TPM\n");
- 		rc = -EBUSY;
- 		goto err_out;
- 	}
- 
--	chip->num_opens++;
-+	atomic_inc(&chip->num_opens);
- 	get_device(chip->dev);
- 
- 	spin_unlock(&driver_lock);
- 
- 	chip->data_buffer = kmalloc(TPM_BUFSIZE * sizeof(u8), GFP_KERNEL);
- 	if (chip->data_buffer == NULL) {
--		chip->num_opens--;
-+		atomic_dec(&chip->num_opens);
- 		put_device(chip->dev);
--		unlock_kernel();
- 		return -ENOMEM;
- 	}
- 
- 	atomic_set(&chip->data_pending, 0);
- 
- 	file->private_data = chip;
--	unlock_kernel();
- 	return 0;
- 
- err_out:
- 	spin_unlock(&driver_lock);
--	unlock_kernel();
- 	return rc;
+diff -puN init/initramfs.c~initramfs-fix-compilation-warning init/initramfs.c
+--- a/init/initramfs.c~initramfs-fix-compilation-warning
++++ a/init/initramfs.c
+@@ -512,6 +512,7 @@ skip:
+ 	initrd_end = 0;
  }
- EXPORT_SYMBOL_GPL(tpm_open);
-@@ -1023,7 +1019,7 @@ int tpm_release(struct inode *inode, str
- 	file->private_data = NULL;
- 	del_singleshot_timer_sync(&chip->user_read_timer);
- 	atomic_set(&chip->data_pending, 0);
--	chip->num_opens--;
-+	atomic_dec(chip->num_opens);
- 	put_device(chip->dev);
- 	kfree(chip->data_buffer);
- 	spin_unlock(&driver_lock);
-@@ -1238,20 +1234,16 @@ struct tpm_chip *tpm_register_hardware(s
- 		return NULL;
- 	}
  
--	spin_lock(&driver_lock);
--
--	list_add(&chip->list, &tpm_chip_list);
--
--	spin_unlock(&driver_lock);
--
- 	if (sysfs_create_group(&dev->kobj, chip->vendor.attr_group)) {
--		list_del(&chip->list);
- 		misc_deregister(&chip->vendor.miscdev);
- 		put_device(chip->dev);
- 		return NULL;
- 	}
- 
- 	chip->bios_dir = tpm_bios_log_setup(devname);
-+	spin_lock(&driver_lock);
-+	list_add(&chip->list, &tpm_chip_list);
-+	spin_unlock(&driver_lock);
- 
- 	return chip;
++#ifdef CONFIG_BLK_DEV_RAM
+ #define BUF_SIZE 1024
+ static void __init clean_rootfs(void)
+ {
+@@ -558,6 +559,7 @@ static void __init clean_rootfs(void)
+ 	sys_close(fd);
+ 	kfree(buf);
  }
-diff -puN drivers/char/tpm/tpm.h~tpm-update-char-dev-bkl-pushdown drivers/char/tpm/tpm.h
---- a/drivers/char/tpm/tpm.h~tpm-update-char-dev-bkl-pushdown
-+++ a/drivers/char/tpm/tpm.h
-@@ -90,7 +90,7 @@ struct tpm_chip {
- 	struct device *dev;	/* Device stuff */
++#endif
  
- 	int dev_num;		/* /dev/tpm# */
--	int num_opens;		/* only one allowed */
-+	atomic_t num_opens;		/* only one allowed */
- 	int time_expired;
- 
- 	/* Data passed to and from the tpm via the read/write calls */
+ static int __init populate_rootfs(void)
+ {
 _
 
-Patches currently in -mm which might be from srajiv@linux.vnet.ibm.com are
+Patches currently in -mm which might be from h-shimamoto@ct.jp.nec.com are
 
-securityfs-do-not-depend-on-config_security.patch
-tpm-include-moderated-for-non-subscribers-notation-in-maintainers.patch
-tpm-update-char-dev-bkl-pushdown.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+linux-next.patch
+net-fix-compilation-ng-when-config_module.patch
+initramfs-fix-compilation-warning.patch
+rcu-spinlocks-take-an-unsigned-long-flags.patch
+unevictable-lru-page-statistics.patch
 
