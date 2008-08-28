@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uclinux-fix-gzip-header-parsing-in-binfmt_flatc.patch added to -mm tree
-Date: Wed, 27 Aug 2008 16:57:25 -0700
-Message-ID: <200808272357.m7RNvPd2029701@imap1.linux-foundation.org>
+Subject: + wait-kill-is_sync_wait.patch added to -mm tree
+Date: Wed, 27 Aug 2008 18:12:15 -0700
+Message-ID: <200808280112.m7S1CFAZ032555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42056 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53716 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753883AbYH0X5w (ORCPT
+	by vger.kernel.org with ESMTP id S1752018AbYH1BMm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 19:57:52 -0400
+	Wed, 27 Aug 2008 21:12:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: volodymyrgl@gmail.com, dhowells@redhat.com, gerg@snapgear.com
+Cc: tj@kernel.org, mingo@elte.hu
 
 
 The patch titled
-     uclinux: fix gzip header parsing in binfmt_flat.c
+     wait: kill is_sync_wait()
 has been added to the -mm tree.  Its filename is
-     uclinux-fix-gzip-header-parsing-in-binfmt_flatc.patch
+     wait-kill-is_sync_wait.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,98 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uclinux: fix gzip header parsing in binfmt_flat.c
-From: "Volodymyr G. Lukiianyk" <volodymyrgl@gmail.com>
+Subject: wait: kill is_sync_wait()
+From: Tejun Heo <tj@kernel.org>
 
-There are off-by-one errors in decompress_exec() when calculating the length of
-optional "original file name" and "comment" fields: the "ret" index is not
-incremented when terminating '\0' character is reached. The check of the buffer
-overflow (after an "extra-field" length was taken into account) is also fixed.
+is_sync_wait() is used to distinguish between sync and async waits. 
+Basically sync waits are the ones initialized with init_waitqueue_entry()
+and async ones with init_waitqueue_func_entry().  The sync/async
+distinction is used only in prepare_to_wait[_exclusive]() and its only
+function is to skip setting the current task state if the wait is async. 
+This has a few problems.
 
-I've encountered this off-by-one error when tried to reuse
-gzip-header-parsing part of the decompress_exec() function.  There was an
-"original file name" field in the payload (with miscalculated length) and
-zlib_inflate() returned Z_DATA_ERROR.  But after the fix similar to this
-one all worked fine.
+* No one uses it.  None of func_entry users use prepare_to_wait()
+  functions, so the code path never gets executed.
 
-Signed-off-by: Volodymyr G Lukiianyk <volodymyrgl@gmail.com>
-Cc: Greg Ungerer <gerg@snapgear.com>
-Cc: David Howells <dhowells@redhat.com>
+* The distinction is bogus.  Maybe back when func_entry is used only
+  by aio but it's now also used by epoll and in future possibly by 9p
+  and poll/select.
+
+* Taking @state as argument and ignoring it silenly depending on how
+  @wait is initialized is just a bad error-prone API.
+
+* It prevents func_entry waits from using wait->private for no good
+  reason.
+
+This patch kills is_sync_wait() and the associated code paths from
+prepare_to_wait[_exclusive]().  As there was no user of these code paths,
+this patch doesn't cause any behavior difference.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_flat.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/wait.h |    9 ---------
+ kernel/wait.c        |   14 ++------------
+ 2 files changed, 2 insertions(+), 21 deletions(-)
 
-diff -puN fs/binfmt_flat.c~uclinux-fix-gzip-header-parsing-in-binfmt_flatc fs/binfmt_flat.c
---- a/fs/binfmt_flat.c~uclinux-fix-gzip-header-parsing-in-binfmt_flatc
-+++ a/fs/binfmt_flat.c
-@@ -229,13 +229,13 @@ static int decompress_exec(
- 	ret = 10;
- 	if (buf[3] & EXTRA_FIELD) {
- 		ret += 2 + buf[10] + (buf[11] << 8);
--		if (unlikely(LBUFSIZE == ret)) {
-+		if (unlikely(LBUFSIZE <= ret)) {
- 			DBG_FLT("binfmt_flat: buffer overflow (EXTRA)?\n");
- 			goto out_free_buf;
- 		}
- 	}
- 	if (buf[3] & ORIG_NAME) {
--		for (; ret < LBUFSIZE && (buf[ret] != 0); ret++)
-+		while (ret < LBUFSIZE && buf[ret++] != 0)
- 			;
- 		if (unlikely(LBUFSIZE == ret)) {
- 			DBG_FLT("binfmt_flat: buffer overflow (ORIG_NAME)?\n");
-@@ -243,7 +243,7 @@ static int decompress_exec(
- 		}
- 	}
- 	if (buf[3] & COMMENT) {
--		for (;  ret < LBUFSIZE && (buf[ret] != 0); ret++)
-+		while (ret < LBUFSIZE && buf[ret++] != 0)
- 			;
- 		if (unlikely(LBUFSIZE == ret)) {
- 			DBG_FLT("binfmt_flat: buffer overflow (COMMENT)?\n");
+diff -puN include/linux/wait.h~wait-kill-is_sync_wait include/linux/wait.h
+--- a/include/linux/wait.h~wait-kill-is_sync_wait
++++ a/include/linux/wait.h
+@@ -108,15 +108,6 @@ static inline int waitqueue_active(wait_
+ 	return !list_empty(&q->task_list);
+ }
+ 
+-/*
+- * Used to distinguish between sync and async io wait context:
+- * sync i/o typically specifies a NULL wait queue entry or a wait
+- * queue entry bound to a task (current task) to wake up.
+- * aio specifies a wait queue entry with an async notification
+- * callback routine, not associated with any task.
+- */
+-#define is_sync_wait(wait)	(!(wait) || ((wait)->private))
+-
+ extern void add_wait_queue(wait_queue_head_t *q, wait_queue_t *wait);
+ extern void add_wait_queue_exclusive(wait_queue_head_t *q, wait_queue_t *wait);
+ extern void remove_wait_queue(wait_queue_head_t *q, wait_queue_t *wait);
+diff -puN kernel/wait.c~wait-kill-is_sync_wait kernel/wait.c
+--- a/kernel/wait.c~wait-kill-is_sync_wait
++++ a/kernel/wait.c
+@@ -72,12 +72,7 @@ prepare_to_wait(wait_queue_head_t *q, wa
+ 	spin_lock_irqsave(&q->lock, flags);
+ 	if (list_empty(&wait->task_list))
+ 		__add_wait_queue(q, wait);
+-	/*
+-	 * don't alter the task state if this is just going to
+-	 * queue an async wait queue callback
+-	 */
+-	if (is_sync_wait(wait))
+-		set_current_state(state);
++	set_current_state(state);
+ 	spin_unlock_irqrestore(&q->lock, flags);
+ }
+ EXPORT_SYMBOL(prepare_to_wait);
+@@ -91,12 +86,7 @@ prepare_to_wait_exclusive(wait_queue_hea
+ 	spin_lock_irqsave(&q->lock, flags);
+ 	if (list_empty(&wait->task_list))
+ 		__add_wait_queue_tail(q, wait);
+-	/*
+-	 * don't alter the task state if this is just going to
+- 	 * queue an async wait queue callback
+-	 */
+-	if (is_sync_wait(wait))
+-		set_current_state(state);
++	set_current_state(state);
+ 	spin_unlock_irqrestore(&q->lock, flags);
+ }
+ EXPORT_SYMBOL(prepare_to_wait_exclusive);
 _
 
-Patches currently in -mm which might be from volodymyrgl@gmail.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
-uclinux-fix-gzip-header-parsing-in-binfmt_flatc.patch
+origin.patch
+linux-next.patch
+sata_viac-add-support-for-vt8251-fix-the-internal-chips-issue-and.patch
+wait-kill-is_sync_wait.patch
 
