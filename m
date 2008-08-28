@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-fix-ext3-block-reservation-early-enospc-issue.patch added to -mm tree
-Date: Thu, 28 Aug 2008 16:23:19 -0700
-Message-ID: <200808282323.m7SNNKjb019835@imap1.linux-foundation.org>
+Subject: + ext2-fix-ext2-block-reservation-early-enospc-issue.patch added to -mm tree
+Date: Thu, 28 Aug 2008 16:23:44 -0700
+Message-ID: <200808282323.m7SNNjj8019841@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33026 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55904 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753928AbYH1XXv (ORCPT
+	by vger.kernel.org with ESMTP id S1754283AbYH1X3v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Aug 2008 19:23:51 -0400
+	Thu, 28 Aug 2008 19:29:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: cmm@us.ibm.com, tytso@mit.edu
 
 
 The patch titled
-     ext3: fix ext3  block reservation early ENOSPC issue
+     ext2: fix ext2 block reservation early ENOSPC issue
 has been added to the -mm tree.  Its filename is
-     ext3-fix-ext3-block-reservation-early-enospc-issue.patch
+     ext2-fix-ext2-block-reservation-early-enospc-issue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: fix ext3  block reservation early ENOSPC issue
+Subject: ext2: fix ext2 block reservation early ENOSPC issue
 From: Mingming Cao <cmm@us.ibm.com>
 
-We could run into ENOSPC error on ext3, even when there is free blocks on
+We could run into ENOSPC error on ext2, even when there is free blocks on
 the filesystem.
 
 The problem is triggered in the case the goal block group has 0 free
@@ -67,13 +67,13 @@ Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/balloc.c |    3 ++-
+ fs/ext2/balloc.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/ext3/balloc.c~ext3-fix-ext3-block-reservation-early-enospc-issue fs/ext3/balloc.c
---- a/fs/ext3/balloc.c~ext3-fix-ext3-block-reservation-early-enospc-issue
-+++ a/fs/ext3/balloc.c
-@@ -1547,6 +1547,7 @@ retry_alloc:
+diff -puN fs/ext2/balloc.c~ext2-fix-ext2-block-reservation-early-enospc-issue fs/ext2/balloc.c
+--- a/fs/ext2/balloc.c~ext2-fix-ext2-block-reservation-early-enospc-issue
++++ a/fs/ext2/balloc.c
+@@ -1295,6 +1295,7 @@ retry_alloc:
  	 * turn off reservation for this allocation
  	 */
  	if (my_rsv && (free_blocks < windowsz)
@@ -81,7 +81,7 @@ diff -puN fs/ext3/balloc.c~ext3-fix-ext3-block-reservation-early-enospc-issue fs
  		&& (rsv_is_empty(&my_rsv->rsv_window)))
  		my_rsv = NULL;
  
-@@ -1585,7 +1586,7 @@ retry_alloc:
+@@ -1332,7 +1333,7 @@ retry_alloc:
  		 * free blocks is less than half of the reservation
  		 * window size.
  		 */
