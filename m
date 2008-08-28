@@ -1,118 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - igb-remove-82576-quad-adapter.patch removed from -mm tree
-Date: Thu, 28 Aug 2008 14:49:08 -0700
-Message-ID: <200808282149.m7SLn8O8016166@imap1.linux-foundation.org>
+Subject: - video_sh_mobile_ceu-should-depend-on-has_dma.patch removed from -mm tree
+Date: Thu, 28 Aug 2008 14:49:00 -0700
+Message-ID: <200808282149.m7SLn0Vm016151@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49726 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53996 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754755AbYH1VtK (ORCPT
+	by vger.kernel.org with ESMTP id S1754733AbYH1VtR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Aug 2008 17:49:10 -0400
+	Thu, 28 Aug 2008 17:49:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexander.h.duyck@intel.com, jeffrey.t.kirsher@intel.com, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, damm@igel.co.jp, lethal@linux-sh.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     igb: remove 82576 quad adapter
+     VIDEO_SH_MOBILE_CEU should depend on HAS_DMA
 has been removed from the -mm tree.  Its filename was
-     igb-remove-82576-quad-adapter.patch
+     video_sh_mobile_ceu-should-depend-on-has_dma.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: igb: remove 82576 quad adapter
-From: Alexander Duyck <alexander.h.duyck@intel.com>
+Subject: VIDEO_SH_MOBILE_CEU should depend on HAS_DMA
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Disable support for device 8086:10E8.  Currently the result of loading the
-driver with the device present causes system instability.
+ERROR: "dma_alloc_coherent" [drivers/media/video/videobuf-dma-contig.ko] undefined!
+ERROR: "dma_sync_single_for_cpu" [drivers/media/video/videobuf-dma-contig.ko] undefined!
+ERROR: "dma_free_coherent" [drivers/media/video/videobuf-dma-contig.ko] undefined!
 
-Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
-Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+commit 0d3244d6439c8c31d2a29efd587c7aca9042c8aa ("V4L/DVB (8342):
+sh_mobile_ceu_camera: Add SuperH Mobile CEU driver V3") introduced
+VIDEO_SH_MOBILE_CEU, which selects VIDEOBUF_DMA_CONTIG.  This circumvents
+the dependency on HAS_DMA of VIDEOBUF_DMA_CONTIG.
+
+Add a dependency on HAS_DMA to VIDEO_SH_MOBILE_CEU to fix this.
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
+Acked-by: Magnus Damm <damm@igel.co.jp>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/igb/e1000_82575.c |    1 -
- drivers/net/igb/e1000_hw.h    |    1 -
- drivers/net/igb/igb_ethtool.c |    9 ---------
- drivers/net/igb/igb_main.c    |   11 -----------
- 4 files changed, 22 deletions(-)
+ drivers/media/video/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/igb/e1000_82575.c~igb-remove-82576-quad-adapter drivers/net/igb/e1000_82575.c
---- a/drivers/net/igb/e1000_82575.c~igb-remove-82576-quad-adapter
-+++ a/drivers/net/igb/e1000_82575.c
-@@ -87,7 +87,6 @@ static s32 igb_get_invariants_82575(stru
- 	case E1000_DEV_ID_82576:
- 	case E1000_DEV_ID_82576_FIBER:
- 	case E1000_DEV_ID_82576_SERDES:
--	case E1000_DEV_ID_82576_QUAD_COPPER:
- 		mac->type = e1000_82576;
- 		break;
- 	default:
-diff -puN drivers/net/igb/e1000_hw.h~igb-remove-82576-quad-adapter drivers/net/igb/e1000_hw.h
---- a/drivers/net/igb/e1000_hw.h~igb-remove-82576-quad-adapter
-+++ a/drivers/net/igb/e1000_hw.h
-@@ -41,7 +41,6 @@ struct e1000_hw;
- #define E1000_DEV_ID_82576                    0x10C9
- #define E1000_DEV_ID_82576_FIBER              0x10E6
- #define E1000_DEV_ID_82576_SERDES             0x10E7
--#define E1000_DEV_ID_82576_QUAD_COPPER        0x10E8
- #define E1000_DEV_ID_82575EB_COPPER           0x10A7
- #define E1000_DEV_ID_82575EB_FIBER_SERDES     0x10A9
- #define E1000_DEV_ID_82575GB_QUAD_COPPER      0x10D6
-diff -puN drivers/net/igb/igb_ethtool.c~igb-remove-82576-quad-adapter drivers/net/igb/igb_ethtool.c
---- a/drivers/net/igb/igb_ethtool.c~igb-remove-82576-quad-adapter
-+++ a/drivers/net/igb/igb_ethtool.c
-@@ -1746,15 +1746,6 @@ static int igb_wol_exclusion(struct igb_
- 		/* return success for non excluded adapter ports */
- 		retval = 0;
- 		break;
--	case E1000_DEV_ID_82576_QUAD_COPPER:
--		/* quad port adapters only support WoL on port A */
--		if (!(adapter->flags & IGB_FLAG_QUAD_PORT_A)) {
--			wol->supported = 0;
--			break;
--		}
--		/* return success for non excluded adapter ports */
--		retval = 0;
--		break;
- 	default:
- 		/* dual port cards only support WoL on port A from now on
- 		 * unless it was enabled in the eeprom for port B
-diff -puN drivers/net/igb/igb_main.c~igb-remove-82576-quad-adapter drivers/net/igb/igb_main.c
---- a/drivers/net/igb/igb_main.c~igb-remove-82576-quad-adapter
-+++ a/drivers/net/igb/igb_main.c
-@@ -61,7 +61,6 @@ static struct pci_device_id igb_pci_tbl[
- 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_82576), board_82575 },
- 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_82576_FIBER), board_82575 },
- 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_82576_SERDES), board_82575 },
--	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_82576_QUAD_COPPER), board_82575 },
- 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_82575EB_COPPER), board_82575 },
- 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_82575EB_FIBER_SERDES), board_82575 },
- 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_82575GB_QUAD_COPPER), board_82575 },
-@@ -1217,16 +1216,6 @@ static int __devinit igb_probe(struct pc
- 		if (rd32(E1000_STATUS) & E1000_STATUS_FUNC_1)
- 			adapter->eeprom_wol = 0;
- 		break;
--	case E1000_DEV_ID_82576_QUAD_COPPER:
--		/* if quad port adapter, disable WoL on all but port A */
--		if (global_quad_port_a != 0)
--			adapter->eeprom_wol = 0;
--		else
--			adapter->flags |= IGB_FLAG_QUAD_PORT_A;
--		/* Reset for multiple quad port adapters */
--		if (++global_quad_port_a == 4)
--			global_quad_port_a = 0;
--		break;
- 	}
+diff -puN drivers/media/video/Kconfig~video_sh_mobile_ceu-should-depend-on-has_dma drivers/media/video/Kconfig
+--- a/drivers/media/video/Kconfig~video_sh_mobile_ceu-should-depend-on-has_dma
++++ a/drivers/media/video/Kconfig
+@@ -968,7 +968,7 @@ config VIDEO_PXA27x
  
- 	/* initialize the wol settings based on the eeprom settings */
+ config VIDEO_SH_MOBILE_CEU
+ 	tristate "SuperH Mobile CEU Interface driver"
+-	depends on VIDEO_DEV
++	depends on VIDEO_DEV && HAS_DMA
+ 	select SOC_CAMERA
+ 	select VIDEOBUF_DMA_CONTIG
+ 	---help---
 _
 
-Patches currently in -mm which might be from alexander.h.duyck@intel.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
+m68k-update-defconfigs.patch
 linux-next.patch
+arch-m68k-bvme6000-rtcc-remove-duplicated-include.patch
+viafb-viafbmodes-viafbtxt.patch
+viafb-viafbmodes-viafbtxt-fix.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-makefile-kconfig.patch
+viafb-accelc-accelh.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-chiph-debugh.patch
+viafb-dvic-dvih-globalc-and-globalh.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-ifacec-ifaceh-ioctlc-ioctlh.patch
+viafb-lcdc-lcdh-lcdtblh.patch
+viafb-makefile-shareh.patch
+viafb-tbl1636c-tbl1636h-tbldpasettingc-tbldpasettingh.patch
+viafb-viafbdevc-viafbdevh.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+viafb-via_i2cc-via_i2ch-viamodec-viamodeh.patch
+viafb-via_utilityc-via_utilityh-vt1636c-vt1636h.patch
+fbdev-kconfig-update.patch
+fbdev-kconfig-update-fix.patch
 
