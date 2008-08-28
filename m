@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch added to -mm tree
-Date: Wed, 27 Aug 2008 20:48:01 -0700
-Message-ID: <200808280348.m7S3m1FG005780@imap1.linux-foundation.org>
+Date: Wed, 27 Aug 2008 20:48:33 -0700
+Message-ID: <200808280348.m7S3mXFp005792@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35947 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55364 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753646AbYH1DsL (ORCPT
+	by vger.kernel.org with ESMTP id S1753893AbYH1DtS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 23:48:11 -0400
+	Wed, 27 Aug 2008 23:49:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sonic.zhang@analog.com, cooloney@kernel.org
+Cc: sonic.zhang@analog.com, cooloney@kernel.org, jeff@garzik.org
 
 
 The patch titled
@@ -39,6 +39,7 @@ From: Sonic Zhang <sonic.zhang@analog.com>
 
 Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
 Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
