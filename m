@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + wait-kill-is_sync_wait.patch added to -mm tree
-Date: Wed, 27 Aug 2008 18:12:15 -0700
-Message-ID: <200808280112.m7S1CFAZ032555@imap1.linux-foundation.org>
+Subject: + video_sh_mobile_ceu-should-depend-on-has_dma.patch added to -mm tree
+Date: Wed, 27 Aug 2008 20:13:31 -0700
+Message-ID: <200808280313.m7S3DVvb004451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53716 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50631 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752018AbYH1BMm (ORCPT
+	by vger.kernel.org with ESMTP id S1751915AbYH1DNv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 21:12:42 -0400
+	Wed, 27 Aug 2008 23:13:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, mingo@elte.hu
+Cc: geert@linux-m68k.org, damm@igel.co.jp, lethal@linux-sh.org, mchehab@infradead.org
 
 
 The patch titled
-     wait: kill is_sync_wait()
+     VIDEO_SH_MOBILE_CEU should depend on HAS_DMA
 has been added to the -mm tree.  Its filename is
-     wait-kill-is_sync_wait.patch
+     video_sh_mobile_ceu-should-depend-on-has_dma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,98 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wait: kill is_sync_wait()
-From: Tejun Heo <tj@kernel.org>
+Subject: VIDEO_SH_MOBILE_CEU should depend on HAS_DMA
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-is_sync_wait() is used to distinguish between sync and async waits. 
-Basically sync waits are the ones initialized with init_waitqueue_entry()
-and async ones with init_waitqueue_func_entry().  The sync/async
-distinction is used only in prepare_to_wait[_exclusive]() and its only
-function is to skip setting the current task state if the wait is async. 
-This has a few problems.
+ERROR: "dma_alloc_coherent" [drivers/media/video/videobuf-dma-contig.ko] undefined!
+ERROR: "dma_sync_single_for_cpu" [drivers/media/video/videobuf-dma-contig.ko] undefined!
+ERROR: "dma_free_coherent" [drivers/media/video/videobuf-dma-contig.ko] undefined!
 
-* No one uses it.  None of func_entry users use prepare_to_wait()
-  functions, so the code path never gets executed.
+commit 0d3244d6439c8c31d2a29efd587c7aca9042c8aa ("V4L/DVB (8342):
+sh_mobile_ceu_camera: Add SuperH Mobile CEU driver V3") introduced
+VIDEO_SH_MOBILE_CEU, which selects VIDEOBUF_DMA_CONTIG.  This circumvents
+the dependency on HAS_DMA of VIDEOBUF_DMA_CONTIG.
 
-* The distinction is bogus.  Maybe back when func_entry is used only
-  by aio but it's now also used by epoll and in future possibly by 9p
-  and poll/select.
+Add a dependency on HAS_DMA to VIDEO_SH_MOBILE_CEU to fix this.
 
-* Taking @state as argument and ignoring it silenly depending on how
-  @wait is initialized is just a bad error-prone API.
-
-* It prevents func_entry waits from using wait->private for no good
-  reason.
-
-This patch kills is_sync_wait() and the associated code paths from
-prepare_to_wait[_exclusive]().  As there was no user of these code paths,
-this patch doesn't cause any behavior difference.
-
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
+Acked-by: Magnus Damm <damm@igel.co.jp>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/wait.h |    9 ---------
- kernel/wait.c        |   14 ++------------
- 2 files changed, 2 insertions(+), 21 deletions(-)
+ drivers/media/video/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/wait.h~wait-kill-is_sync_wait include/linux/wait.h
---- a/include/linux/wait.h~wait-kill-is_sync_wait
-+++ a/include/linux/wait.h
-@@ -108,15 +108,6 @@ static inline int waitqueue_active(wait_
- 	return !list_empty(&q->task_list);
- }
+diff -puN drivers/media/video/Kconfig~video_sh_mobile_ceu-should-depend-on-has_dma drivers/media/video/Kconfig
+--- a/drivers/media/video/Kconfig~video_sh_mobile_ceu-should-depend-on-has_dma
++++ a/drivers/media/video/Kconfig
+@@ -968,7 +968,7 @@ config VIDEO_PXA27x
  
--/*
-- * Used to distinguish between sync and async io wait context:
-- * sync i/o typically specifies a NULL wait queue entry or a wait
-- * queue entry bound to a task (current task) to wake up.
-- * aio specifies a wait queue entry with an async notification
-- * callback routine, not associated with any task.
-- */
--#define is_sync_wait(wait)	(!(wait) || ((wait)->private))
--
- extern void add_wait_queue(wait_queue_head_t *q, wait_queue_t *wait);
- extern void add_wait_queue_exclusive(wait_queue_head_t *q, wait_queue_t *wait);
- extern void remove_wait_queue(wait_queue_head_t *q, wait_queue_t *wait);
-diff -puN kernel/wait.c~wait-kill-is_sync_wait kernel/wait.c
---- a/kernel/wait.c~wait-kill-is_sync_wait
-+++ a/kernel/wait.c
-@@ -72,12 +72,7 @@ prepare_to_wait(wait_queue_head_t *q, wa
- 	spin_lock_irqsave(&q->lock, flags);
- 	if (list_empty(&wait->task_list))
- 		__add_wait_queue(q, wait);
--	/*
--	 * don't alter the task state if this is just going to
--	 * queue an async wait queue callback
--	 */
--	if (is_sync_wait(wait))
--		set_current_state(state);
-+	set_current_state(state);
- 	spin_unlock_irqrestore(&q->lock, flags);
- }
- EXPORT_SYMBOL(prepare_to_wait);
-@@ -91,12 +86,7 @@ prepare_to_wait_exclusive(wait_queue_hea
- 	spin_lock_irqsave(&q->lock, flags);
- 	if (list_empty(&wait->task_list))
- 		__add_wait_queue_tail(q, wait);
--	/*
--	 * don't alter the task state if this is just going to
-- 	 * queue an async wait queue callback
--	 */
--	if (is_sync_wait(wait))
--		set_current_state(state);
-+	set_current_state(state);
- 	spin_unlock_irqrestore(&q->lock, flags);
- }
- EXPORT_SYMBOL(prepare_to_wait_exclusive);
+ config VIDEO_SH_MOBILE_CEU
+ 	tristate "SuperH Mobile CEU Interface driver"
+-	depends on VIDEO_DEV
++	depends on VIDEO_DEV && HAS_DMA
+ 	select SOC_CAMERA
+ 	select VIDEOBUF_DMA_CONTIG
+ 	---help---
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-origin.patch
+m68k-update-defconfigs.patch
 linux-next.patch
-sata_viac-add-support-for-vt8251-fix-the-internal-chips-issue-and.patch
-wait-kill-is_sync_wait.patch
+video_sh_mobile_ceu-should-depend-on-has_dma.patch
+arch-m68k-bvme6000-rtcc-remove-duplicated-include.patch
+viafb-viafbmodes-viafbtxt.patch
+viafb-viafbmodes-viafbtxt-fix.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-makefile-kconfig.patch
+viafb-accelc-accelh.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-chiph-debugh.patch
+viafb-dvic-dvih-globalc-and-globalh.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-ifacec-ifaceh-ioctlc-ioctlh.patch
+viafb-lcdc-lcdh-lcdtblh.patch
+viafb-makefile-shareh.patch
+viafb-tbl1636c-tbl1636h-tbldpasettingc-tbldpasettingh.patch
+viafb-viafbdevc-viafbdevh.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+viafb-via_i2cc-via_i2ch-viamodec-viamodeh.patch
+viafb-via_utilityc-via_utilityh-vt1636c-vt1636h.patch
+fbdev-kconfig-update.patch
+fbdev-kconfig-update-fix.patch
 
