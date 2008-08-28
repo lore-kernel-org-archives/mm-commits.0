@@ -1,85 +1,219 @@
 From: akpm@linux-foundation.org
-Subject: - seq_file-fix-bug-when-seq_read-reads-nothing.patch removed from -mm tree
-Date: Thu, 28 Aug 2008 14:30:05 -0700
-Message-ID: <200808282130.m7SLU60T015388@imap1.linux-foundation.org>
+Subject: - linux-next-fixup.patch removed from -mm tree
+Date: Thu, 28 Aug 2008 14:42:08 -0700
+Message-ID: <200808282142.m7SLg8EA015811@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57247 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38873 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755977AbYH1Vak (ORCPT
+	by vger.kernel.org with ESMTP id S1752226AbYH1VmK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Aug 2008 17:30:40 -0400
+	Thu, 28 Aug 2008 17:42:10 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m7SLg8hk024331
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 28 Aug 2008 14:42:09 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: biannm@cn.fujitsu.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     seq_file(): fix bug when seq_read() reads nothing
+     linux-next-fixup
 has been removed from the -mm tree.  Its filename was
-     seq_file-fix-bug-when-seq_read-reads-nothing.patch
+     linux-next-fixup.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: seq_file(): fix bug when seq_read() reads nothing
-From: Bian Naimeng <biannm@cn.fujitsu.com>
+Subject: linux-next-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-When I used seq_file to read a proc file, I got a bug in seq_read().  If
-show() skips the first element or the size of first element is 0, and the
-size of second element is larger than the seq_file->size at the same time,
-seq_read will return 0, so nothing can be read from the proc file.
-
-So, if seq_read() returns because it finds the element is bigger than the
-m->buf, it must make sure that either some date was filled to m->buf by
-show(), or some data was flushed to the user buf beforehand.  If not, it
-should increase the m->buf until it can read this element.
-
-[akpm@linux-foundation.org: fix comment]
-Signed-off-by: Bian Naimeng <biannm@cn.fujitsu.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ drivers/media/video/Kconfig |   62 ----------------------------------
+ 1 file changed, 1 insertion(+), 61 deletions(-)
 
-diff -puN fs/seq_file.c~seq_file-fix-bug-when-seq_read-reads-nothing fs/seq_file.c
---- a/fs/seq_file.c~seq_file-fix-bug-when-seq_read-reads-nothing
-+++ a/fs/seq_file.c
-@@ -107,6 +107,7 @@ ssize_t seq_read(struct file *file, char
- 		if (!size)
- 			goto Done;
- 	}
-+First_record:
- 	/* we need at least one record in buffer */
- 	while (1) {
- 		pos = m->index;
-@@ -145,8 +146,18 @@ Fill:
- 		err = m->op->show(m, p);
- 		if (m->count == m->size || err) {
- 			m->count = offs;
--			if (likely(err <= 0))
-+			if (err < 0)
- 				break;
-+			/*
-+			 * If no data was flushed to the user buf and nothing
-+			 * was read by show() beforehand, we should advance the
-+			 * m->buf until it can read this element.
-+			 */
-+			if (err == 0 && m->count == 0 && copied == 0) {
-+				m->index = next;
-+				m->op->stop(m, p);
-+				goto First_record;
-+			}
- 		}
- 		pos = next;
- 	}
+diff -puN drivers/media/video/Kconfig~linux-next-fixup drivers/media/video/Kconfig
+--- a/drivers/media/video/Kconfig~linux-next-fixup
++++ a/drivers/media/video/Kconfig
+@@ -822,7 +822,7 @@ config VIDEO_PXA27x
+ 
+ config VIDEO_SH_MOBILE_CEU
+ 	tristate "SuperH Mobile CEU Interface driver"
+-	depends on VIDEO_DEV && SOC_CAMERA
++	depends on VIDEO_DEV && SOC_CAMERA && HAS_DMA
+ 	select VIDEOBUF_DMA_CONTIG
+ 	---help---
+ 	  This is a v4l2 driver for the SuperH Mobile CEU Interface
+@@ -956,64 +956,4 @@ config USB_S2255
+ 
+ endif # V4L_USB_DRIVERS
+ 
+-config SOC_CAMERA
+-	tristate "SoC camera support"
+-	depends on VIDEO_V4L2 && HAS_DMA
+-	select VIDEOBUF_GEN
+-	help
+-	  SoC Camera is a common API to several cameras, not connecting
+-	  over a bus like PCI or USB. For example some i2c camera connected
+-	  directly to the data bus of an SoC.
+-
+-config SOC_CAMERA_MT9M001
+-	tristate "mt9m001 support"
+-	depends on SOC_CAMERA && I2C
+-	select GPIO_PCA953X if MT9M001_PCA9536_SWITCH
+-	help
+-	  This driver supports MT9M001 cameras from Micron, monochrome
+-	  and colour models.
+-
+-config MT9M001_PCA9536_SWITCH
+-	bool "pca9536 datawidth switch for mt9m001"
+-	depends on SOC_CAMERA_MT9M001 && GENERIC_GPIO
+-	help
+-	  Select this if your MT9M001 camera uses a PCA9536 I2C GPIO
+-	  extender to switch between 8 and 10 bit datawidth modes
+-
+-config SOC_CAMERA_MT9V022
+-	tristate "mt9v022 support"
+-	depends on SOC_CAMERA && I2C
+-	select GPIO_PCA953X if MT9V022_PCA9536_SWITCH
+-	help
+-	  This driver supports MT9V022 cameras from Micron
+-
+-config MT9V022_PCA9536_SWITCH
+-	bool "pca9536 datawidth switch for mt9v022"
+-	depends on SOC_CAMERA_MT9V022 && GENERIC_GPIO
+-	help
+-	  Select this if your MT9V022 camera uses a PCA9536 I2C GPIO
+-	  extender to switch between 8 and 10 bit datawidth modes
+-
+-config SOC_CAMERA_PLATFORM
+-	tristate "platform camera support"
+-	depends on SOC_CAMERA
+-	help
+-	  This is a generic SoC camera platform driver, useful for testing
+-
+-config VIDEO_PXA27x
+-	tristate "PXA27x Quick Capture Interface driver"
+-	depends on VIDEO_DEV && PXA27x
+-	select SOC_CAMERA
+-	select VIDEOBUF_DMA_SG
+-	---help---
+-	  This is a v4l2 driver for the PXA27x Quick Capture Interface
+-
+-config VIDEO_SH_MOBILE_CEU
+-	tristate "SuperH Mobile CEU Interface driver"
+-	depends on VIDEO_DEV && HAS_DMA
+-	select SOC_CAMERA
+-	select VIDEOBUF_DMA_CONTIG
+-	---help---
+-	  This is a v4l2 driver for the SuperH Mobile CEU Interface
+-
+ endif # VIDEO_CAPTURE_DRIVERS
 _
 
-Patches currently in -mm which might be from biannm@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-seq_file-fix-bug-when-seq_read-reads-nothing.patch
+origin.patch
+vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
+acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-fixup.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
+git-acpi.patch
+acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+x86-make-poll_idle-behave-more-like-the-other-idle-methods-checkpatch-fixes.patch
+git-alsa-tiwai.patch
+git-powerpc.patch
+fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
+git-drm.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+git-jg-misc.patch
+git-kvm.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
+git-mtd.patch
+git-ubi-git-rejects.patch
+git-net.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
+power-support-for-texas-instruments-bq27x00-battery-managers.patch
+git-pci-next.patch
+drivers-pci-hotplug-ibmphp_ebdac-list_for_each-to-list_for_each_entry-checkpatch-fixes.patch
+pci-tidy-pme-support-messages-checkpatch-fixes.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+fix-a-race-condtion-of-oops_in_progress-fix.patch
+vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+applicomc-fix-apparently-broken-code-in-do_ac_read.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+nilfs2-continuous-snapshotting-file-system-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
