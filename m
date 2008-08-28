@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tdfxfb-fix-frame-buffer-name-overrun.patch added to -mm tree
-Date: Thu, 28 Aug 2008 16:37:19 -0700
-Message-ID: <200808282337.m7SNbJ7E020376@imap1.linux-foundation.org>
+Subject: + rtc-rtc-m41t80c-add-support-for-the-st-m41t65-rtc.patch added to -mm tree
+Date: Thu, 28 Aug 2008 16:42:13 -0700
+Message-ID: <200808282342.m7SNgDVU020520@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44655 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60886 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757503AbYH1Xha (ORCPT
+	by vger.kernel.org with ESMTP id S1753785AbYH1Xmr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Aug 2008 19:37:30 -0400
+	Thu, 28 Aug 2008 19:42:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, geert@linux-m68k.org
+Cc: sfalco@harris.com, a.zummo@towertech.it, anemo@mba.ocn.ne.jp, david-b@pacbell.net, macro@linux-mips.org
 
 
 The patch titled
-     tdfxfb: fix frame buffer name overrun
+     rtc: rtc-m41t80.c: add support for the ST M41T65 RTC
 has been added to the -mm tree.  Its filename is
-     tdfxfb-fix-frame-buffer-name-overrun.patch
+     rtc-rtc-m41t80c-add-support-for-the-st-m41t65-rtc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,158 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tdfxfb: fix frame buffer name overrun
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: rtc: rtc-m41t80.c: add support for the ST M41T65 RTC
+From: "Steven A. Falco" <sfalco@harris.com>
 
-If there are more then one graphics card handled by the tdfxfb driver the
-name of the frame buffer overruns reserved name size.
+Add support for M41T65 Real Time Clock chip.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+The main differences I see between the M41T65 and M41T80 are that:
+
+1) The M41T65 watchdog timer has three bits controlling resolution
+   (versus two for the M41T80).
+
+2) There is no register 0x13 for controlling square-wave output.
+
+Signed-off-by: Steven A. Falco <sfalco@harris.com>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
+Acked-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tdfxfb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/Kconfig      |   14 +++++------
+ drivers/rtc/rtc-m41t80.c |   45 +++++++++++++++++++++++++++----------
+ 2 files changed, 41 insertions(+), 18 deletions(-)
 
-diff -puN drivers/video/tdfxfb.c~tdfxfb-fix-frame-buffer-name-overrun drivers/video/tdfxfb.c
---- a/drivers/video/tdfxfb.c~tdfxfb-fix-frame-buffer-name-overrun
-+++ a/drivers/video/tdfxfb.c
-@@ -95,7 +95,6 @@ static inline int mtrr_del(int reg, unsi
- #define VOODOO5_MAX_PIXCLOCK 350000
+diff -puN drivers/rtc/Kconfig~rtc-rtc-m41t80c-add-support-for-the-st-m41t65-rtc drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-rtc-m41t80c-add-support-for-the-st-m41t65-rtc
++++ a/drivers/rtc/Kconfig
+@@ -220,22 +220,22 @@ config RTC_DRV_PCF8583
+ 	  will be called rtc-pcf8583.
  
- static struct fb_fix_screeninfo tdfx_fix __devinitdata = {
--	.id =		"3Dfx",
- 	.type =		FB_TYPE_PACKED_PIXELS,
- 	.visual =	FB_VISUAL_PSEUDOCOLOR,
- 	.ypanstep =	1,
-@@ -1196,6 +1195,7 @@ static int __devinit tdfxfb_probe(struct
- 		return -ENOMEM;
+ config RTC_DRV_M41T80
+-	tristate "ST M41T80/81/82/83/84/85/87"
++	tristate "ST M41T65/M41T80/81/82/83/84/85/87"
+ 	help
+-	  If you say Y here you will get support for the
+-	  ST M41T80 RTC chips series. Currently following chips are
+-	  supported: M41T80, M41T81, M41T82, M41T83, M41ST84, M41ST85
+-	  and M41ST87.
++	  If you say Y here you will get support for the ST M41T60
++	  and M41T80 RTC chips series. Currently, the following chips are
++	  supported: M41T65, M41T80, M41T81, M41T82, M41T83, M41ST84,
++	  M41ST85, and M41ST87.
  
- 	default_par = info->par;
-+	strcpy(tdfx_fix.id, "3Dfx");
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-m41t80.
  
- 	/* Configure the default fb_fix_screeninfo first */
- 	switch (pdev->device) {
+ config RTC_DRV_M41T80_WDT
+-	bool "ST M41T80 series RTC watchdog timer"
++	bool "ST M41T65/M41T80 series RTC watchdog timer"
+ 	depends on RTC_DRV_M41T80
+ 	help
+ 	  If you say Y here you will get support for the
+-	  watchdog timer in ST M41T80 RTC chips series.
++	  watchdog timer in the ST M41T60 and M41T80 RTC chips series.
+ 
+ config RTC_DRV_TWL92330
+ 	boolean "TI TWL92330/Menelaus"
+diff -puN drivers/rtc/rtc-m41t80.c~rtc-rtc-m41t80c-add-support-for-the-st-m41t65-rtc drivers/rtc/rtc-m41t80.c
+--- a/drivers/rtc/rtc-m41t80.c~rtc-rtc-m41t80c-add-support-for-the-st-m41t65-rtc
++++ a/drivers/rtc/rtc-m41t80.c
+@@ -56,21 +56,27 @@
+ #define M41T80_ALHOUR_HT	(1 << 6)	/* HT: Halt Update Bit */
+ #define M41T80_FLAGS_AF		(1 << 6)	/* AF: Alarm Flag Bit */
+ #define M41T80_FLAGS_BATT_LOW	(1 << 4)	/* BL: Battery Low Bit */
+-
+-#define M41T80_FEATURE_HT	(1 << 0)
+-#define M41T80_FEATURE_BL	(1 << 1)
++#define M41T80_WATCHDOG_RB2	(1 << 7)	/* RB: Watchdog resolution */
++#define M41T80_WATCHDOG_RB1	(1 << 1)	/* RB: Watchdog resolution */
++#define M41T80_WATCHDOG_RB0	(1 << 0)	/* RB: Watchdog resolution */
++
++#define M41T80_FEATURE_HT	(1 << 0)	/* Halt feature */
++#define M41T80_FEATURE_BL	(1 << 1)	/* Battery low indicator */
++#define M41T80_FEATURE_SQ	(1 << 2)	/* Squarewave feature */
++#define M41T80_FEATURE_WD	(1 << 3)	/* Extra watchdog resolution */
+ 
+ #define DRV_VERSION "0.05"
+ 
+ static const struct i2c_device_id m41t80_id[] = {
+-	{ "m41t80", 0 },
+-	{ "m41t81", M41T80_FEATURE_HT },
+-	{ "m41t81s", M41T80_FEATURE_HT | M41T80_FEATURE_BL },
+-	{ "m41t82", M41T80_FEATURE_HT | M41T80_FEATURE_BL },
+-	{ "m41t83", M41T80_FEATURE_HT | M41T80_FEATURE_BL },
+-	{ "m41st84", M41T80_FEATURE_HT | M41T80_FEATURE_BL },
+-	{ "m41st85", M41T80_FEATURE_HT | M41T80_FEATURE_BL },
+-	{ "m41st87", M41T80_FEATURE_HT | M41T80_FEATURE_BL },
++	{ "m41t65", M41T80_FEATURE_HT | M41T80_FEATURE_WD },
++	{ "m41t80", M41T80_FEATURE_SQ },
++	{ "m41t81", M41T80_FEATURE_HT | M41T80_FEATURE_SQ},
++	{ "m41t81s", M41T80_FEATURE_HT | M41T80_FEATURE_BL | M41T80_FEATURE_SQ },
++	{ "m41t82", M41T80_FEATURE_HT | M41T80_FEATURE_BL | M41T80_FEATURE_SQ },
++	{ "m41t83", M41T80_FEATURE_HT | M41T80_FEATURE_BL | M41T80_FEATURE_SQ },
++	{ "m41st84", M41T80_FEATURE_HT | M41T80_FEATURE_BL | M41T80_FEATURE_SQ },
++	{ "m41st85", M41T80_FEATURE_HT | M41T80_FEATURE_BL | M41T80_FEATURE_SQ },
++	{ "m41st87", M41T80_FEATURE_HT | M41T80_FEATURE_BL | M41T80_FEATURE_SQ },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, m41t80_id);
+@@ -386,8 +392,12 @@ static ssize_t m41t80_sysfs_show_sqwfreq
+ 				struct device_attribute *attr, char *buf)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
++	struct m41t80_data *clientdata = i2c_get_clientdata(client);
+ 	int val;
+ 
++	if (!(clientdata->features & M41T80_FEATURE_SQ))
++		return -EINVAL;
++
+ 	val = i2c_smbus_read_byte_data(client, M41T80_REG_SQW);
+ 	if (val < 0)
+ 		return -EIO;
+@@ -408,9 +418,13 @@ static ssize_t m41t80_sysfs_set_sqwfreq(
+ 				const char *buf, size_t count)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
++	struct m41t80_data *clientdata = i2c_get_clientdata(client);
+ 	int almon, sqw;
+ 	int val = simple_strtoul(buf, NULL, 0);
+ 
++	if (!(clientdata->features & M41T80_FEATURE_SQ))
++		return -EINVAL;
++
+ 	if (val) {
+ 		if (!is_power_of_2(val))
+ 			return -EINVAL;
+@@ -499,6 +513,8 @@ static void wdt_ping(void)
+ 			.buf	= i2c_data,
+ 		},
+ 	};
++	struct m41t80_data *clientdata = i2c_get_clientdata(save_client);
++
+ 	i2c_data[0] = 0x09;		/* watchdog register */
+ 
+ 	if (wdt_margin > 31)
+@@ -509,6 +525,13 @@ static void wdt_ping(void)
+ 		 */
+ 		i2c_data[1] = wdt_margin<<2 | 0x82;
+ 
++	/*
++	 * M41T65 has three bits for watchdog resolution.  Don't set bit 7, as
++	 * that would be an invalid resolution.
++	 */
++	if (clientdata->features & M41T80_FEATURE_WD)
++		i2c_data[1] &= ~M41T80_WATCHDOG_RB2;
++
+ 	i2c_transfer(save_client->adapter, msgs1, 1);
+ }
+ 
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from sfalco@harris.com are
 
-cirrusfb-check_par-fixes.patch
-tdfxfb-fix-sdram-memory-size-detection.patch
-tdfxfb-fix-frame-buffer-name-overrun.patch
-linux-next.patch
-fb-metronome-printk-format-warning.patch
-rtc-m48t59-reduce-structure-m48t59_private.patch
-rtc-m48t59-add-support-for-m48t02-and-m48t59-chips-2nd-rev.patch
-fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
-neofb-reduce-panning-function.patch
-viafb-accelc-accelh-update.patch
-viafb-viafbdevc-update.patch
-fbdev-kconfig-update.patch
-fbdev-kconfig-update-fix.patch
-neofb-kill-some-redundant-code.patch
-vga16fb-remove-open_lock-mutex.patch
-neofb-remove-open_lock-mutex.patch
+rtc-rtc-m41t80c-add-support-for-the-st-m41t65-rtc.patch
 
