@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + viafb-maintainers-entry.patch added to -mm tree
-Date: Wed, 27 Aug 2008 20:53:49 -0700
-Message-ID: <200808280353.m7S3rnen006028@imap1.linux-foundation.org>
+Subject: + ftrace-disable-tracing-for-suspend-to-ram.patch added to -mm tree
+Date: Wed, 27 Aug 2008 20:54:51 -0700
+Message-ID: <200808280354.m7S3sphg006049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49547 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45495 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753932AbYH1DyQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753157AbYH1Dz5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 27 Aug 2008 23:54:16 -0400
+	Wed, 27 Aug 2008 23:55:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: JosephChan@via.com.tw, ScottFang@viatech.com.cn, josephchan@via.com.tw
+Cc: rostedt@goodmis.org, marcin.slusarz@gmail.com, mingo@elte.hu, rjw@sisk.pl, srostedt@redhat.com
 
 
 The patch titled
-     viafb: MAINTAINERS entry
+     ftrace: disable tracing for suspend to ram
 has been added to the -mm tree.  Its filename is
-     viafb-maintainers-entry.patch
+     ftrace-disable-tracing-for-suspend-to-ram.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: MAINTAINERS entry
-From: <JosephChan@via.com.tw>
+Subject: ftrace: disable tracing for suspend to ram
+From: Steven Rostedt <rostedt@goodmis.org>
 
-Add maintainers for VIA UniChrome(Pro)/Chrome9 Framebuffer driver
+I've been painstakingly debugging the issue with suspend to ram and
+ftraced.  The 2.6.28 code does not have this issue, but since the mcount
+recording is not going to be in 27, this must be solved for the ftrace
+daemon version.
 
-Signed-off-by: Joseph Chan <josephchan@via.com.tw>
-Signed-off-by: Scott Fang <ScottFang@viatech.com.cn>
+The resume from suspend to ram would reboot because it was triple
+faulting.  Debugging further, I found that calling the mcount function
+itself was not an issue, but it would fault when it incremented
+preempt_count.  preempt_count is on the tasks info structure that is on
+the low memory address of the task's stack.  For some reason, it could not
+write to it.  Resuming out of suspend to ram does quite a lot of funny
+tricks to get to work, so it is not surprising at all that simply doing a
+preempt_disable() would cause a fault.
+
+Thanks to Rafael for suggesting to add a "while (1);" to find the place in
+resuming that is causing the fault.  I would place the loop somewhere in
+the code, compile and reboot and see if it would either reboot (hit the
+fault) or simply hang (hit the loop).  Doing this over and over again, I
+narrowed it down that it was happening in enable_nonboot_cpus.
+
+At this point, I found that it is easier to simply disable tracing around
+the suspend code, instead of searching for the particular function that
+can not handle doing a preempt_disable.
+
+This patch disables the tracer as it suspends and reenables it on resume.
+
+I tested this patch on my Laptop, and it can resume fine with the patch.
+
+Signed-off-by: Steven Rostedt <srostedt@redhat.com>
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Tested-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ kernel/power/main.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~viafb-maintainers-entry MAINTAINERS
---- a/MAINTAINERS~viafb-maintainers-entry
-+++ a/MAINTAINERS
-@@ -4485,6 +4485,14 @@ M:	khali@linux-fr.org
- L:	i2c@lm-sensors.org
- S:	Maintained
+diff -puN kernel/power/main.c~ftrace-disable-tracing-for-suspend-to-ram kernel/power/main.c
+--- a/kernel/power/main.c~ftrace-disable-tracing-for-suspend-to-ram
++++ a/kernel/power/main.c
+@@ -21,6 +21,7 @@
+ #include <linux/freezer.h>
+ #include <linux/vmstat.h>
+ #include <linux/syscalls.h>
++#include <linux/ftrace.h>
  
-+VIA UNICHROME(PRO)/CHROME9 FRAMEBUFFER DRIVER
-+P:	Joseph Chan
-+M:	JosephChan@via.com.tw
-+P:	Scott Fang
-+M:	ScottFang@viatech.com.cn
-+L:	linux-fbdev-devel@lists.sourceforge.net (moderated for non-subscribers)
-+S:	Maintained
-+
- VIA VELOCITY NETWORK DRIVER
- P:	Francois Romieu
- M:	romieu@fr.zoreil.com
+ #include "power.h"
+ 
+@@ -310,7 +311,7 @@ static int suspend_enter(suspend_state_t
+  */
+ int suspend_devices_and_enter(suspend_state_t state)
+ {
+-	int error;
++	int error, ftrace_save;
+ 
+ 	if (!suspend_ops)
+ 		return -ENOSYS;
+@@ -321,6 +322,7 @@ int suspend_devices_and_enter(suspend_st
+ 			goto Close;
+ 	}
+ 	suspend_console();
++	ftrace_save = __ftrace_enabled_save();
+ 	suspend_test_start();
+ 	error = device_suspend(PMSG_SUSPEND);
+ 	if (error) {
+@@ -352,6 +354,7 @@ int suspend_devices_and_enter(suspend_st
+ 	suspend_test_start();
+ 	device_resume(PMSG_RESUME);
+ 	suspend_test_finish("resume devices");
++	__ftrace_enabled_restore(ftrace_save);
+ 	resume_console();
+  Close:
+ 	if (suspend_ops->end)
 _
 
-Patches currently in -mm which might be from JosephChan@via.com.tw are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
-origin.patch
-sata_viac-add-support-for-vt8251-fix-the-internal-chips-issue-and.patch
-viafb-viafbmodes-viafbtxt.patch
-viafb-viafbmodes-viafbtxt-fix.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-makefile-kconfig.patch
-viafb-accelc-accelh.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-accelc-accelh-update.patch
-viafb-chiph-debugh.patch
-viafb-dvic-dvih-globalc-and-globalh.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-ifacec-ifaceh-ioctlc-ioctlh.patch
-viafb-lcdc-lcdh-lcdtblh.patch
-viafb-makefile-shareh.patch
-viafb-tbl1636c-tbl1636h-tbldpasettingc-tbldpasettingh.patch
-viafb-viafbdevc-viafbdevh.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-viafb-viafbdevc-update.patch
-viafb-via_i2cc-via_i2ch-viamodec-viamodeh.patch
-viafb-via_utilityc-via_utilityh-vt1636c-vt1636h.patch
-viafb-maintainers-entry.patch
+linux-next.patch
+kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
+ftrace-warn-on-failure-to-disable-mcount-callers.patch
+ftrace-disable-tracing-for-suspend-to-ram.patch
 
