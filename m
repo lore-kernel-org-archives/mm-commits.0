@@ -1,138 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - arm-use-bcd2bin-bin2bcd.patch removed from -mm tree
-Date: Thu, 28 Aug 2008 14:49:30 -0700
-Message-ID: <200808282149.m7SLnUCr016190@imap1.linux-foundation.org>
+Subject: - drivers-net-skfp-essc-fix-compile-warnings.patch removed from -mm tree
+Date: Thu, 28 Aug 2008 14:49:06 -0700
+Message-ID: <200808282149.m7SLn6YP016163@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32847 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52093 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754390AbYH1Vtn (ORCPT
+	by vger.kernel.org with ESMTP id S1755234AbYH1Vto (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Aug 2008 17:49:43 -0400
+	Thu, 28 Aug 2008 17:49:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: tiwai@suse.de, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arm: use bcd2bin/bin2bcd
+     drivers/net/skfp/ess.c: fix compile warnings
 has been removed from the -mm tree.  Its filename was
-     arm-use-bcd2bin-bin2bcd.patch
+     drivers-net-skfp-essc-fix-compile-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm: use bcd2bin/bin2bcd
-From: Adrian Bunk <bunk@kernel.org>
+Subject: drivers/net/skfp/ess.c: fix compile warnings
+From: Takashi Iwai <tiwai@suse.de>
 
-Change arm to use the new bcd2bin/bin2bcd functions instead of the
-obsolete BCD_TO_BIN/BIN_TO_BCD macros.
+  CC [M]  drivers/net/skfp/ess.o
+drivers/net/skfp/ess.c: In function 'ess_send_response':
+drivers/net/skfp/ess.c:513: warning: cast from pointer to integer of different size
+drivers/net/skfp/ess.c: In function 'ess_send_alc_req':
+drivers/net/skfp/ess.c:609: warning: cast from pointer to integer of different size
+drivers/net/skfp/ess.c:639: warning: cast from pointer to integer of different size
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-footbridge/time.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ drivers/net/skfp/ess.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/arm/mach-footbridge/time.c~arm-use-bcd2bin-bin2bcd arch/arm/mach-footbridge/time.c
---- a/arch/arm/mach-footbridge/time.c~arm-use-bcd2bin-bin2bcd
-+++ a/arch/arm/mach-footbridge/time.c
-@@ -49,12 +49,12 @@ static unsigned long __init get_isa_cmos
- 	} while (sec != CMOS_READ(RTC_SECONDS));
+diff -puN drivers/net/skfp/ess.c~drivers-net-skfp-essc-fix-compile-warnings drivers/net/skfp/ess.c
+--- a/drivers/net/skfp/ess.c~drivers-net-skfp-essc-fix-compile-warnings
++++ a/drivers/net/skfp/ess.c
+@@ -510,7 +510,7 @@ static void ess_send_response(struct s_s
+ 	chg->path.para.p_type = SMT_P320B ;
+ 	chg->path.para.p_len = sizeof(struct smt_p_320b) - PARA_LEN ;
+ 	chg->path.mib_index = SBAPATHINDEX ;
+-	chg->path.path_pad = (u_short)NULL ;
++	chg->path.path_pad = 0;
+ 	chg->path.path_index = PRIMARY_RING ;
  
- 	if (!(CMOS_READ(RTC_CONTROL) & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--		BCD_TO_BIN(sec);
--		BCD_TO_BIN(min);
--		BCD_TO_BIN(hour);
--		BCD_TO_BIN(day);
--		BCD_TO_BIN(mon);
--		BCD_TO_BIN(year);
-+		sec = bcd2bin(sec);
-+		min = bcd2bin(min);
-+		hour = bcd2bin(hour);
-+		day = bcd2bin(day);
-+		mon = bcd2bin(mon);
-+		year = bcd2bin(year);
- 	}
- 	if ((year += 1900) < 1970)
- 		year += 100;
-@@ -76,7 +76,7 @@ static int set_isa_cmos_time(void)
+ 	/* set P320F */
+@@ -606,7 +606,7 @@ static void ess_send_alc_req(struct s_sm
+ 	req->path.para.p_type = SMT_P320B ;
+ 	req->path.para.p_len = sizeof(struct smt_p_320b) - PARA_LEN ;
+ 	req->path.mib_index = SBAPATHINDEX ;
+-	req->path.path_pad = (u_short)NULL ;
++	req->path.path_pad = 0;
+ 	req->path.path_index = PRIMARY_RING ;
  
- 	cmos_minutes = CMOS_READ(RTC_MINUTES);
- 	if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
--		BCD_TO_BIN(cmos_minutes);
-+		cmos_minutes = bcd2bin(cmos_minutes);
+ 	/* set P0017 */
+@@ -636,7 +636,7 @@ static void ess_send_alc_req(struct s_sm
+ 	/* set P19 */
+ 	req->a_addr.para.p_type = SMT_P0019 ;
+ 	req->a_addr.para.p_len = sizeof(struct smt_p_0019) - PARA_LEN ;
+-	req->a_addr.sba_pad = (u_short)NULL ;
++	req->a_addr.sba_pad = 0;
+ 	req->a_addr.alloc_addr = null_addr ;
  
- 	/*
- 	 * since we're only adjusting minutes and seconds,
-@@ -92,8 +92,8 @@ static int set_isa_cmos_time(void)
- 
- 	if (abs(real_minutes - cmos_minutes) < 30) {
- 		if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--			BIN_TO_BCD(real_seconds);
--			BIN_TO_BCD(real_minutes);
-+			real_seconds = bin2bcd(real_seconds);
-+			real_minutes = bin2bcd(real_minutes);
- 		}
- 		CMOS_WRITE(real_seconds,RTC_SECONDS);
- 		CMOS_WRITE(real_minutes,RTC_MINUTES);
+ 	/* set P1A */
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from tiwai@suse.de are
 
 origin.patch
-ntfs-update-homepage.patch
 linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-m32r-dont-offer-config_isa.patch
-m32r-export-empty_zero_page.patch
-m32r-export-__ndelay.patch
-m32r-kernel-cleanups.patch
-the-overdue-eepro100-removal.patch
-parisc-lib-make-code-static.patch
-drivers-parisc-make-code-static.patch
-if-0-ses_match_host.patch
-scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
-drivers-scsi-a2091c-make-2-functions-static.patch
-drivers-scsi-a3000c-make-2-functions-static.patch
-fs_mbcache-dont-needlessly-make-it-built-in.patch
-git-xtensa.patch
-asm-h8300-mdh-remove-cvs-keyword.patch
-alpha-miata-remove-dead-url.patch
-uml-remove-the-dead-tty_log-code.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-maintainers-remove-hga-framebuffer-driver-entry.patch
-include-linux-mounth-remove-cvs-keyword.patch
-kernel-dmac-remove-a-cvs-keyword.patch
-binfmt_somc-add-module_license.patch
-make-probe_serial_gsc-static.patch
-pnp-remove-printk-with-outdated-version.patch
-telephony-remove-cvs-keywords.patch
-reiserfs-procfsc-remove-cvs-keywords.patch
-quota-remove-cvs-keywords.patch
-make-ptrace_untrace-static.patch
-fs-partitions-acornc-remove-dead-code.patch
-parport-remove-cvs-keywords.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-ipc-semc-make-free_un-static.patch
-make-fs-proc-proc_sysctlc-grab_header-static.patch
-make-hp_wmi_notify-static.patch
-make-kprobesc-kretprobe_table_lock-static.patch
-acpi-use-bcd2bin-bin2bcd.patch
-alpha-use-bcd2bin-bin2bcd.patch
-cris-use-bcd2bin-bin2bcd.patch
-drivers-rtc-use-bcd2bin-bin2bcd.patch
-rtc-use-bcd2bin-bin2bcd.patch
-mips-use-bcd2bin-bin2bcd.patch
-mn10300-use-bcd2bin-bin2bcd.patch
-i2c-use-bcd2bin-bin2bcd.patch
-drivers-scsi-sr_vendorc-use-bcd2bin.patch
-sparc64-use-bcd2bin-bin2bcd.patch
-remove-the-obsolete-bcdbin-binbcd-macros.patch
-include-linux-bcdh-remove-comments.patch
-reiser4.patch
+drivers-net-skfp-pmfc-use-offsetof-macro.patch
 
