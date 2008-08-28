@@ -1,90 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - ath5k-fix-bintval-setup.patch removed from -mm tree
-Date: Thu, 28 Aug 2008 14:48:54 -0700
-Message-ID: <200808282148.m7SLms8F016145@imap1.linux-foundation.org>
+Subject: - igb-remove-82576-quad-adapter.patch removed from -mm tree
+Date: Thu, 28 Aug 2008 14:49:08 -0700
+Message-ID: <200808282149.m7SLn8O8016166@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50988 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49726 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753911AbYH1VtD (ORCPT
+	by vger.kernel.org with ESMTP id S1754755AbYH1VtK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Aug 2008 17:49:03 -0400
+	Thu, 28 Aug 2008 17:49:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, linville@tuxdriver.com, mcgrof@gmail.com, mickflemm@gmail.com, mm-commits@vger.kernel.org
+To: alexander.h.duyck@intel.com, jeffrey.t.kirsher@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Ath5k: fix bintval setup
+     igb: remove 82576 quad adapter
 has been removed from the -mm tree.  Its filename was
-     ath5k-fix-bintval-setup.patch
+     igb-remove-82576-quad-adapter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Ath5k: fix bintval setup
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: igb: remove 82576 quad adapter
+From: Alexander Duyck <alexander.h.duyck@intel.com>
 
-bintval is set to the initial value at .config_interface which is too
-late, since it overwrites previously set value from .config.  Move the
-initialization to the .add_interface.
+Disable support for device 8086:10E8.  Currently the result of loading the
+driver with the device present causes system instability.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Nick Kossifidis <mickflemm@gmail.com>
-Cc: Luis R. Rodriguez <mcgrof@gmail.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k/base.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/net/igb/e1000_82575.c |    1 -
+ drivers/net/igb/e1000_hw.h    |    1 -
+ drivers/net/igb/igb_ethtool.c |    9 ---------
+ drivers/net/igb/igb_main.c    |   11 -----------
+ 4 files changed, 22 deletions(-)
 
-diff -puN drivers/net/wireless/ath5k/base.c~ath5k-fix-bintval-setup drivers/net/wireless/ath5k/base.c
---- a/drivers/net/wireless/ath5k/base.c~ath5k-fix-bintval-setup
-+++ a/drivers/net/wireless/ath5k/base.c
-@@ -2711,6 +2711,11 @@ static int ath5k_add_interface(struct ie
- 		ret = -EOPNOTSUPP;
- 		goto end;
+diff -puN drivers/net/igb/e1000_82575.c~igb-remove-82576-quad-adapter drivers/net/igb/e1000_82575.c
+--- a/drivers/net/igb/e1000_82575.c~igb-remove-82576-quad-adapter
++++ a/drivers/net/igb/e1000_82575.c
+@@ -87,7 +87,6 @@ static s32 igb_get_invariants_82575(stru
+ 	case E1000_DEV_ID_82576:
+ 	case E1000_DEV_ID_82576_FIBER:
+ 	case E1000_DEV_ID_82576_SERDES:
+-	case E1000_DEV_ID_82576_QUAD_COPPER:
+ 		mac->type = e1000_82576;
+ 		break;
+ 	default:
+diff -puN drivers/net/igb/e1000_hw.h~igb-remove-82576-quad-adapter drivers/net/igb/e1000_hw.h
+--- a/drivers/net/igb/e1000_hw.h~igb-remove-82576-quad-adapter
++++ a/drivers/net/igb/e1000_hw.h
+@@ -41,7 +41,6 @@ struct e1000_hw;
+ #define E1000_DEV_ID_82576                    0x10C9
+ #define E1000_DEV_ID_82576_FIBER              0x10E6
+ #define E1000_DEV_ID_82576_SERDES             0x10E7
+-#define E1000_DEV_ID_82576_QUAD_COPPER        0x10E8
+ #define E1000_DEV_ID_82575EB_COPPER           0x10A7
+ #define E1000_DEV_ID_82575EB_FIBER_SERDES     0x10A9
+ #define E1000_DEV_ID_82575GB_QUAD_COPPER      0x10D6
+diff -puN drivers/net/igb/igb_ethtool.c~igb-remove-82576-quad-adapter drivers/net/igb/igb_ethtool.c
+--- a/drivers/net/igb/igb_ethtool.c~igb-remove-82576-quad-adapter
++++ a/drivers/net/igb/igb_ethtool.c
+@@ -1746,15 +1746,6 @@ static int igb_wol_exclusion(struct igb_
+ 		/* return success for non excluded adapter ports */
+ 		retval = 0;
+ 		break;
+-	case E1000_DEV_ID_82576_QUAD_COPPER:
+-		/* quad port adapters only support WoL on port A */
+-		if (!(adapter->flags & IGB_FLAG_QUAD_PORT_A)) {
+-			wol->supported = 0;
+-			break;
+-		}
+-		/* return success for non excluded adapter ports */
+-		retval = 0;
+-		break;
+ 	default:
+ 		/* dual port cards only support WoL on port A from now on
+ 		 * unless it was enabled in the eeprom for port B
+diff -puN drivers/net/igb/igb_main.c~igb-remove-82576-quad-adapter drivers/net/igb/igb_main.c
+--- a/drivers/net/igb/igb_main.c~igb-remove-82576-quad-adapter
++++ a/drivers/net/igb/igb_main.c
+@@ -61,7 +61,6 @@ static struct pci_device_id igb_pci_tbl[
+ 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_82576), board_82575 },
+ 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_82576_FIBER), board_82575 },
+ 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_82576_SERDES), board_82575 },
+-	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_82576_QUAD_COPPER), board_82575 },
+ 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_82575EB_COPPER), board_82575 },
+ 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_82575EB_FIBER_SERDES), board_82575 },
+ 	{ PCI_VDEVICE(INTEL, E1000_DEV_ID_82575GB_QUAD_COPPER), board_82575 },
+@@ -1217,16 +1216,6 @@ static int __devinit igb_probe(struct pc
+ 		if (rd32(E1000_STATUS) & E1000_STATUS_FUNC_1)
+ 			adapter->eeprom_wol = 0;
+ 		break;
+-	case E1000_DEV_ID_82576_QUAD_COPPER:
+-		/* if quad port adapter, disable WoL on all but port A */
+-		if (global_quad_port_a != 0)
+-			adapter->eeprom_wol = 0;
+-		else
+-			adapter->flags |= IGB_FLAG_QUAD_PORT_A;
+-		/* Reset for multiple quad port adapters */
+-		if (++global_quad_port_a == 4)
+-			global_quad_port_a = 0;
+-		break;
  	}
-+
-+	/* Set to a reasonable value. Note that this will
-+	 * be set to mac80211's value at ath5k_config(). */
-+	sc->bintval = 1000;
-+
- 	ret = 0;
- end:
- 	mutex_unlock(&sc->lock);
-@@ -2755,9 +2760,6 @@ ath5k_config_interface(struct ieee80211_
- 	struct ath5k_hw *ah = sc->ah;
- 	int ret;
  
--	/* Set to a reasonable value. Note that this will
--	 * be set to mac80211's value at ath5k_config(). */
--	sc->bintval = 1000;
- 	mutex_lock(&sc->lock);
- 	if (sc->vif != vif) {
- 		ret = -EIO;
+ 	/* initialize the wol settings based on the eeprom settings */
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from alexander.h.duyck@intel.com are
 
 linux-next.patch
-mm-owner-fix-race-between-swap-and-exit-fix.patch
-char-sx-remove-bogus-iomap.patch
-serial-mpc52xx_uart-remove-code-associated-with-config_ppc_merge.patch
-viafb-viafbdevc-viafbdevh.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-char-merge-ip2main-and-ip2base.patch
-char-ip2-cleanup-globals.patch
-char-ip2-fix-sparse-warnings.patch
-char-ip2-init-deinit-cleanup.patch
-ip2-avoid-add_timer-with-pending-timer.patch
-char-ds1286-eliminate-busy-waiting.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-char-moxac-sparse-annotation.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
 
