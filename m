@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tdfxfb-do-not-make-changes-to-default-tdfx_fix.patch added to -mm tree
-Date: Thu, 28 Aug 2008 17:48:19 -0700
-Message-ID: <200808290048.m7T0mJMe023115@imap1.linux-foundation.org>
+Subject: + e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning.patch added to -mm tree
+Date: Thu, 28 Aug 2008 17:52:34 -0700
+Message-ID: <200808290052.m7T0qYJe023213@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58825 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52147 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753877AbYH2AtA (ORCPT
+	by vger.kernel.org with ESMTP id S1752377AbYH2Awi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Aug 2008 20:49:00 -0400
+	Thu, 28 Aug 2008 20:52:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, geert@linux-m68k.org
+Cc: elendil@planet.nl, jeffrey.t.kirsher@intel.com
 
 
 The patch titled
-     tdfxfb: do not make changes to default tdfx_fix
+     e1000e: avoid duplicated output of device name in kernel warning
 has been added to the -mm tree.  Its filename is
-     tdfxfb-do-not-make-changes-to-default-tdfx_fix.patch
+     e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,164 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tdfxfb: do not make changes to default tdfx_fix
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: e1000e: avoid duplicated output of device name in kernel warning
+From: Frans Pop <elendil@planet.nl>
 
-This was suggested by Geert Uytterhoeven to avoid overwriting of default
-values from the tdfx_fix.
+With 2.6.27-rc3 I noticed the following messages in my boot log:
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+0000:01:00.0: 0000:01:00.0: Warning: detected DSPD enabled in EEPROM
+0000:01:00.0: eth0: (PCI Express:2.5GB/s:Width x1) 00:16:76:04:ff:09
+
+The second seems correct, but the first has a silly repetition of the
+PCI device before the actual message. The message originates from
+e1000_eeprom_checks in e1000e/netdev.c.
+
+With this patch below the first message becomes
+
+  e1000e 0000:01:00.0: Warning: detected DSPD enabled in EEPROM
+
+which makes it similar to directly preceding messages.
+
+Use dev_warn instead of e_warn in e1000_eeprom_checks() as the interface
+name has not yet been assigned at that point.
+
+Signed-off-by: Frans Pop <elendil@planet.nl>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tdfxfb.c |   48 +++++++++++++++++++--------------------
- 1 file changed, 24 insertions(+), 24 deletions(-)
+ drivers/net/e1000e/netdev.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/tdfxfb.c~tdfxfb-do-not-make-changes-to-default-tdfx_fix drivers/video/tdfxfb.c
---- a/drivers/video/tdfxfb.c~tdfxfb-do-not-make-changes-to-default-tdfx_fix
-+++ a/drivers/video/tdfxfb.c
-@@ -1195,57 +1195,58 @@ static int __devinit tdfxfb_probe(struct
- 		return -ENOMEM;
- 
- 	default_par = info->par;
-+	info->fix = tdfx_fix;
- 
- 	/* Configure the default fb_fix_screeninfo first */
- 	switch (pdev->device) {
- 	case PCI_DEVICE_ID_3DFX_BANSHEE:
--		strcpy(tdfx_fix.id, "3Dfx Banshee");
-+		strcpy(info->fix.id, "3Dfx Banshee");
- 		default_par->max_pixclock = BANSHEE_MAX_PIXCLOCK;
- 		break;
- 	case PCI_DEVICE_ID_3DFX_VOODOO3:
--		strcpy(tdfx_fix.id, "3Dfx Voodoo3");
-+		strcpy(info->fix.id, "3Dfx Voodoo3");
- 		default_par->max_pixclock = VOODOO3_MAX_PIXCLOCK;
- 		break;
- 	case PCI_DEVICE_ID_3DFX_VOODOO5:
--		strcpy(tdfx_fix.id, "3Dfx Voodoo5");
-+		strcpy(info->fix.id, "3Dfx Voodoo5");
- 		default_par->max_pixclock = VOODOO5_MAX_PIXCLOCK;
- 		break;
+diff -puN drivers/net/e1000e/netdev.c~e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning drivers/net/e1000e/netdev.c
+--- a/drivers/net/e1000e/netdev.c~e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning
++++ a/drivers/net/e1000e/netdev.c
+@@ -4671,13 +4671,15 @@ static void e1000_eeprom_checks(struct e
+ 	ret_val = e1000_read_nvm(hw, NVM_INIT_CONTROL2_REG, 1, &buf);
+ 	if (!(le16_to_cpu(buf) & (1 << 0))) {
+ 		/* Deep Smart Power Down (DSPD) */
+-		e_warn("Warning: detected DSPD enabled in EEPROM\n");
++		dev_warn(&adapter->pdev-dev,
++		         "Warning: detected DSPD enabled in EEPROM\n");
  	}
  
--	tdfx_fix.mmio_start = pci_resource_start(pdev, 0);
--	tdfx_fix.mmio_len = pci_resource_len(pdev, 0);
--	if (!request_mem_region(tdfx_fix.mmio_start, tdfx_fix.mmio_len,
-+	info->fix.mmio_start = pci_resource_start(pdev, 0);
-+	info->fix.mmio_len = pci_resource_len(pdev, 0);
-+	if (!request_mem_region(info->fix.mmio_start, info->fix.mmio_len,
- 				"tdfx regbase")) {
- 		printk(KERN_ERR "tdfxfb: Can't reserve regbase\n");
- 		goto out_err;
+ 	ret_val = e1000_read_nvm(hw, NVM_INIT_3GIO_3, 1, &buf);
+ 	if (le16_to_cpu(buf) & (3 << 2)) {
+ 		/* ASPM enable */
+-		e_warn("Warning: detected ASPM enabled in EEPROM\n");
++		dev_warn(&adapter->pdev->dev,
++		         "Warning: detected ASPM enabled in EEPROM\n");
  	}
+ }
  
- 	default_par->regbase_virt =
--		ioremap_nocache(tdfx_fix.mmio_start, tdfx_fix.mmio_len);
-+		ioremap_nocache(info->fix.mmio_start, info->fix.mmio_len);
- 	if (!default_par->regbase_virt) {
- 		printk(KERN_ERR "fb: Can't remap %s register area.\n",
--				tdfx_fix.id);
-+				info->fix.id);
- 		goto out_err_regbase;
- 	}
- 
--	tdfx_fix.smem_start = pci_resource_start(pdev, 1);
--	tdfx_fix.smem_len = do_lfb_size(default_par, pdev->device);
--	if (!tdfx_fix.smem_len) {
--		printk(KERN_ERR "fb: Can't count %s memory.\n", tdfx_fix.id);
-+	info->fix.smem_start = pci_resource_start(pdev, 1);
-+	info->fix.smem_len = do_lfb_size(default_par, pdev->device);
-+	if (!info->fix.smem_len) {
-+		printk(KERN_ERR "fb: Can't count %s memory.\n", info->fix.id);
- 		goto out_err_regbase;
- 	}
- 
--	if (!request_mem_region(tdfx_fix.smem_start,
-+	if (!request_mem_region(info->fix.smem_start,
- 				pci_resource_len(pdev, 1), "tdfx smem")) {
- 		printk(KERN_ERR "tdfxfb: Can't reserve smem\n");
- 		goto out_err_regbase;
- 	}
- 
--	info->screen_base = ioremap_nocache(tdfx_fix.smem_start,
--					    tdfx_fix.smem_len);
-+	info->screen_base = ioremap_nocache(info->fix.smem_start,
-+					    info->fix.smem_len);
- 	if (!info->screen_base) {
- 		printk(KERN_ERR "fb: Can't remap %s framebuffer.\n",
--				tdfx_fix.id);
-+				info->fix.id);
- 		goto out_err_screenbase;
- 	}
- 
-@@ -1257,20 +1258,19 @@ static int __devinit tdfxfb_probe(struct
- 		goto out_err_screenbase;
- 	}
- 
--	printk(KERN_INFO "fb: %s memory = %dK\n", tdfx_fix.id,
--			tdfx_fix.smem_len >> 10);
-+	printk(KERN_INFO "fb: %s memory = %dK\n", info->fix.id,
-+			info->fix.smem_len >> 10);
- 
- 	default_par->mtrr_handle = -1;
- 	if (!nomtrr)
- 		default_par->mtrr_handle =
--			mtrr_add(tdfx_fix.smem_start, tdfx_fix.smem_len,
-+			mtrr_add(info->fix.smem_start, info->fix.smem_len,
- 				 MTRR_TYPE_WRCOMB, 1);
- 
--	tdfx_fix.ypanstep	= nopan ? 0 : 1;
--	tdfx_fix.ywrapstep	= nowrap ? 0 : 1;
-+	info->fix.ypanstep	= nopan ? 0 : 1;
-+	info->fix.ywrapstep	= nowrap ? 0 : 1;
- 
- 	info->fbops		= &tdfxfb_ops;
--	info->fix		= tdfx_fix;
- 	info->pseudo_palette	= default_par->palette;
- 	info->flags		= FBINFO_DEFAULT | FBINFO_HWACCEL_YPAN;
- #ifdef CONFIG_FB_3DFX_ACCEL
-@@ -1323,14 +1323,14 @@ out_err_iobase:
- out_err_screenbase:
- 	if (info->screen_base)
- 		iounmap(info->screen_base);
--	release_mem_region(tdfx_fix.smem_start, pci_resource_len(pdev, 1));
-+	release_mem_region(info->fix.smem_start, pci_resource_len(pdev, 1));
- out_err_regbase:
- 	/*
- 	 * Cleanup after anything that was remapped/allocated.
- 	 */
- 	if (default_par->regbase_virt)
- 		iounmap(default_par->regbase_virt);
--	release_mem_region(tdfx_fix.mmio_start, tdfx_fix.mmio_len);
-+	release_mem_region(info->fix.mmio_start, info->fix.mmio_len);
- out_err:
- 	framebuffer_release(info);
- 	return -ENXIO;
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from elendil@planet.nl are
 
-cirrusfb-check_par-fixes.patch
-tdfxfb-fix-sdram-memory-size-detection.patch
-tdfxfb-fix-frame-buffer-name-overrun.patch
-linux-next.patch
-fb-metronome-printk-format-warning.patch
-rtc-m48t59-reduce-structure-m48t59_private.patch
-rtc-m48t59-add-support-for-m48t02-and-m48t59-chips-2nd-rev.patch
-fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
-neofb-reduce-panning-function.patch
-viafb-accelc-accelh-update.patch
-viafb-viafbdevc-update.patch
-fbdev-kconfig-update.patch
-fbdev-kconfig-update-fix.patch
-neofb-kill-some-redundant-code.patch
-vga16fb-remove-open_lock-mutex.patch
-neofb-remove-open_lock-mutex.patch
-cirrusfb-remove-information-about-memory-size-during-mode-change.patch
-cirrusfb-simplify-clock-calculation.patch
-cirrusfb-remove-24-bpp-mode.patch
-cirrusfb-drop-device-pointers-from-cirrusfb_info.patch
-tdfxfb-do-not-make-changes-to-default-tdfx_fix.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
 
