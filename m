@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch added to -mm tree
-Date: Thu, 28 Aug 2008 22:17:04 -0700
-Message-ID: <200808290530.m7T5UWvO032546@imap1.linux-foundation.org>
+Subject: + container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch added to -mm tree
+Date: Thu, 28 Aug 2008 22:32:48 -0700
+Message-ID: <200808290546.m7T5kGOq000595@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55201 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56352 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750799AbYH2Fcp (ORCPT
+	by vger.kernel.org with ESMTP id S1751108AbYH2Fwz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Aug 2008 01:32:45 -0400
+	Fri, 29 Aug 2008 01:52:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, elendil@planet.nl, jeff@garzik.org, jeffrey.t.kirsher@intel.com
+Cc: akpm@linux-foundation.org, clg@fr.ibm.com, matthltc@us.ibm.com, pavel@suse.cz, rjw@sisk.pl, serue@us.ibm.com
 
 
 The patch titled
-     e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix
+     container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix
 has been added to the -mm tree.  Its filename is
-     e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
+     container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix
+Subject: container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-hm.
+ERROR: "thaw_process" [drivers/misc/thinkpad_acpi.ko] undefined!
 
-Cc: Frans Pop <elendil@planet.nl>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Matt Helsley <matthltc@us.ibm.com>
+Cc: Pavel Machek <pavel@suse.cz>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000e/netdev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/freezer.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/e1000e/netdev.c~e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix drivers/net/e1000e/netdev.c
---- a/drivers/net/e1000e/netdev.c~e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix
-+++ a/drivers/net/e1000e/netdev.c
-@@ -4671,7 +4671,7 @@ static void e1000_eeprom_checks(struct e
- 	ret_val = e1000_read_nvm(hw, NVM_INIT_CONTROL2_REG, 1, &buf);
- 	if (!(le16_to_cpu(buf) & (1 << 0))) {
- 		/* Deep Smart Power Down (DSPD) */
--		dev_warn(&adapter->pdev-dev,
-+		dev_warn(&adapter->pdev->dev,
- 			 "Warning: detected DSPD enabled in EEPROM\n");
- 	}
- 
+diff -puN kernel/freezer.c~container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix kernel/freezer.c
+--- a/kernel/freezer.c~container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix
++++ a/kernel/freezer.c
+@@ -151,3 +151,4 @@ int thaw_process(struct task_struct *p)
+ 	task_unlock(p);
+ 	return 0;
+ }
++EXPORT_SYMBOL(thaw_process);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,6 +111,7 @@ mm-rewrite-vmap-layer-fix-fix.patch
 h8300-generic_bug-support-checkpatch-fixes.patch
 pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
 container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
 fix-a-race-condtion-of-oops_in_progress-fix.patch
 vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
 autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
