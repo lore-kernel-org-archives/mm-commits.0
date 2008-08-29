@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gru-driver-minor-updates.patch added to -mm tree
-Date: Thu, 28 Aug 2008 17:07:58 -0700
-Message-ID: <200808290007.m7T07wgv021516@imap1.linux-foundation.org>
+Subject: + debugobjects-fix-lockdep-warning.patch added to -mm tree
+Date: Thu, 28 Aug 2008 17:17:22 -0700
+Message-ID: <200808290017.m7T0HMcO021866@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37281 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39141 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753780AbYH2AIC (ORCPT
+	by vger.kernel.org with ESMTP id S1755482AbYH2ASJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Aug 2008 20:08:02 -0400
+	Thu, 28 Aug 2008 20:18:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: steiner@sgi.com
+Cc: vegard.nossum@gmail.com, a.p.zijlstra@chello.nl, daniel.blueman@gmail.com, mingo@elte.hu, rjw@sisk.pl, tglx@linutronix.de
 
 
 The patch titled
-     GRU driver: minor updates
+     debugobjects: fix lockdep warning
 has been added to the -mm tree.  Its filename is
-     gru-driver-minor-updates.patch
+     debugobjects-fix-lockdep-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,268 +34,160 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: GRU driver: minor updates
-From: Jack Steiner <steiner@sgi.com>
+Subject: debugobjects: fix lockdep warning
+From: Vegard Nossum <vegard.nossum@gmail.com>
 
-A few minor updates for the GRU driver.
-	- documentation changes found in code reviews
-	- changes to #ifdefs to make them recognized by "unifdef"
-	  (used in simulator testing)
-	- change GRU context load/unload to prefetch data
+Daniel J. Blueman reported:
+> =======================================================
+> [ INFO: possible circular locking dependency detected ]
+> 2.6.27-rc4-224c #1
+> -------------------------------------------------------
+> hald/4680 is trying to acquire lock:
+>  (&n->list_lock){++..}, at: [<ffffffff802bfa26>] add_partial+0x26/0x80
+>
+> but task is already holding lock:
+>  (&obj_hash[i].lock){++..}, at: [<ffffffff8041cfdc>]
+> debug_object_free+0x5c/0x120
 
-Signed-off-by: Jack Steiner <steiner@sgi.com>
+We fix it by moving the actual freeing to outside the lock (the lock
+now only protects the list).
+
+The lock is also promoted to irq-safe (suggested by Dan).
+
+Reported-by: Daniel J Blueman <daniel.blueman@gmail.com>
+Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/gru.h              |    4 +--
- drivers/misc/sgi-gru/gru_instructions.h |   10 ++++---
- drivers/misc/sgi-gru/grufault.c         |   11 ++++----
- drivers/misc/sgi-gru/grufile.c          |    8 +++++-
- drivers/misc/sgi-gru/gruhandles.h       |    5 ---
- drivers/misc/sgi-gru/grukservices.c     |    1 
- drivers/misc/sgi-gru/grumain.c          |   29 +++++++++++++---------
- 7 files changed, 40 insertions(+), 28 deletions(-)
+ lib/debugobjects.c |   38 +++++++++++++++++++++++++++++---------
+ 1 file changed, 29 insertions(+), 9 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/gru.h~gru-driver-minor-updates drivers/misc/sgi-gru/gru.h
---- a/drivers/misc/sgi-gru/gru.h~gru-driver-minor-updates
-+++ a/drivers/misc/sgi-gru/gru.h
-@@ -30,9 +30,9 @@
- /*
-  * Size used to map GRU GSeg
-  */
--#if defined CONFIG_IA64
-+#if defined(CONFIG_IA64)
- #define GRU_GSEG_PAGESIZE	(256 * 1024UL)
--#elif defined CONFIG_X86_64
-+#elif defined(CONFIG_X86_64)
- #define GRU_GSEG_PAGESIZE	(256 * 1024UL)		/* ZZZ 2MB ??? */
- #else
- #error "Unsupported architecture"
-diff -puN drivers/misc/sgi-gru/gru_instructions.h~gru-driver-minor-updates drivers/misc/sgi-gru/gru_instructions.h
---- a/drivers/misc/sgi-gru/gru_instructions.h~gru-driver-minor-updates
-+++ a/drivers/misc/sgi-gru/gru_instructions.h
-@@ -26,7 +26,7 @@
-  * Architecture dependent functions
-  */
- 
--#if defined CONFIG_IA64
-+#if defined(CONFIG_IA64)
- #include <linux/compiler.h>
- #include <asm/intrinsics.h>
- #define __flush_cache(p)		ia64_fc(p)
-@@ -36,7 +36,7 @@
- 			barrier();					\
- 			*((volatile int *)(p)) = v; /* force st.rel */	\
- 		} while (0)
--#elif defined CONFIG_X86_64
-+#elif defined(CONFIG_X86_64)
- #define __flush_cache(p)		clflush(p)
- #define gru_ordered_store_int(p,v)					\
- 		do {							\
-@@ -299,6 +299,7 @@ static inline void gru_flush_cache(void 
- static inline void gru_start_instruction(struct gru_instruction *ins, int op32)
+diff -puN lib/debugobjects.c~debugobjects-fix-lockdep-warning lib/debugobjects.c
+--- a/lib/debugobjects.c~debugobjects-fix-lockdep-warning
++++ a/lib/debugobjects.c
+@@ -116,9 +116,10 @@ static struct debug_obj *lookup_object(v
+ static struct debug_obj *
+ alloc_object(void *addr, struct debug_bucket *b, struct debug_obj_descr *descr)
  {
- 	gru_ordered_store_int(ins, op32);
-+	gru_flush_cache(ins);
++	unsigned long flags;
+ 	struct debug_obj *obj = NULL;
+ 
+-	spin_lock(&pool_lock);
++	spin_lock_irqsave(&pool_lock, flags);
+ 	if (obj_pool.first) {
+ 		obj	    = hlist_entry(obj_pool.first, typeof(*obj), node);
+ 
+@@ -137,7 +138,7 @@ alloc_object(void *addr, struct debug_bu
+ 		if (obj_pool_free < obj_pool_min_free)
+ 			obj_pool_min_free = obj_pool_free;
+ 	}
+-	spin_unlock(&pool_lock);
++	spin_unlock_irqrestore(&pool_lock, flags);
+ 
+ 	return obj;
  }
- 
- 
-@@ -604,8 +605,9 @@ static inline int gru_get_cb_substatus(v
- static inline int gru_check_status(void *cb)
- {
- 	struct gru_control_block_status *cbs = (void *)cb;
--	int ret = cbs->istatus;
-+	int ret;
- 
-+	ret = cbs->istatus;
- 	if (ret == CBS_CALL_OS)
- 		ret = gru_check_status_proc(cb);
- 	return ret;
-@@ -617,7 +619,7 @@ static inline int gru_check_status(void 
- static inline int gru_wait(void *cb)
- {
- 	struct gru_control_block_status *cbs = (void *)cb;
--	int ret = cbs->istatus;;
-+	int ret = cbs->istatus;
- 
- 	if (ret != CBS_IDLE)
- 		ret = gru_wait_proc(cb);
-diff -puN drivers/misc/sgi-gru/grufault.c~gru-driver-minor-updates drivers/misc/sgi-gru/grufault.c
---- a/drivers/misc/sgi-gru/grufault.c~gru-driver-minor-updates
-+++ a/drivers/misc/sgi-gru/grufault.c
-@@ -220,6 +220,10 @@ static int non_atomic_pte_lookup(struct 
-  * Convert a user virtual address to a physical address
-  * Only supports Intel large pages (2MB only) on x86_64.
-  *	ZZZ - hugepage support is incomplete
-+ *
-+ * NOTE; mmap_sem is already held on entry to this function. This
-+ * guarantees existence of the apge tables.
-+ *
+@@ -147,18 +148,19 @@ alloc_object(void *addr, struct debug_bu
   */
- static int atomic_pte_lookup(struct vm_area_struct *vma, unsigned long vaddr,
- 	int write, unsigned long *paddr, int *pageshift)
-@@ -229,9 +233,6 @@ static int atomic_pte_lookup(struct vm_a
- 	pud_t *pudp;
- 	pte_t pte;
+ static void free_object(struct debug_obj *obj)
+ {
++	unsigned long flags;
+ 	unsigned long idx = (unsigned long)(obj - obj_static_pool);
  
--	WARN_ON(irqs_disabled());		/* ZZZ debug */
--
--	local_irq_disable();
- 	pgdp = pgd_offset(vma->vm_mm, vaddr);
- 	if (unlikely(pgd_none(*pgdp)))
- 		goto err;
-@@ -250,8 +251,6 @@ static int atomic_pte_lookup(struct vm_a
- #endif
- 		pte = *pte_offset_kernel(pmdp, vaddr);
+ 	if (obj_pool_free < ODEBUG_POOL_SIZE || idx < ODEBUG_POOL_SIZE) {
+-		spin_lock(&pool_lock);
++		spin_lock_irqsave(&pool_lock, flags);
+ 		hlist_add_head(&obj->node, &obj_pool);
+ 		obj_pool_free++;
+ 		obj_pool_used--;
+-		spin_unlock(&pool_lock);
++		spin_unlock_irqrestore(&pool_lock, flags);
+ 	} else {
+-		spin_lock(&pool_lock);
++		spin_lock_irqsave(&pool_lock, flags);
+ 		obj_pool_used--;
+-		spin_unlock(&pool_lock);
++		spin_unlock_irqrestore(&pool_lock, flags);
+ 		kmem_cache_free(obj_cache, obj);
+ 	}
+ }
+@@ -171,19 +173,28 @@ static void debug_objects_oom(void)
+ {
+ 	struct debug_bucket *db = obj_hash;
+ 	struct hlist_node *node, *tmp;
++	HLIST_HEAD(freelist);
+ 	struct debug_obj *obj;
+ 	unsigned long flags;
+ 	int i;
  
--	local_irq_enable();
--
- 	if (unlikely(!pte_present(pte) ||
- 		     (write && (!pte_write(pte) || !pte_dirty(pte)))))
- 		return 1;
-@@ -324,6 +323,7 @@ static int gru_try_dropin(struct gru_thr
- 	 * Atomic lookup is faster & usually works even if called in non-atomic
- 	 * context.
- 	 */
-+	rmb();	/* Must/check ms_range_active before loading PTEs */
- 	ret = atomic_pte_lookup(vma, vaddr, write, &paddr, &pageshift);
- 	if (ret) {
- 		if (!cb)
-@@ -543,6 +543,7 @@ int gru_get_exception_detail(unsigned lo
- 		ucbnum = get_cb_number((void *)excdet.cb);
- 		cbrnum = thread_cbr_number(gts, ucbnum);
- 		cbe = get_cbe_by_index(gts->ts_gru, cbrnum);
-+		prefetchw(cbe);		/* Harmless on hardware, required for emulator */
- 		excdet.opc = cbe->opccpy;
- 		excdet.exopc = cbe->exopccpy;
- 		excdet.ecause = cbe->ecause;
-diff -puN drivers/misc/sgi-gru/grufile.c~gru-driver-minor-updates drivers/misc/sgi-gru/grufile.c
---- a/drivers/misc/sgi-gru/grufile.c~gru-driver-minor-updates
-+++ a/drivers/misc/sgi-gru/grufile.c
-@@ -113,7 +113,7 @@ static int gru_file_mmap(struct file *fi
- 		return -EPERM;
+ 	printk(KERN_WARNING "ODEBUG: Out of memory. ODEBUG disabled\n");
  
- 	if (vma->vm_start & (GRU_GSEG_PAGESIZE - 1) ||
--			vma->vm_end & (GRU_GSEG_PAGESIZE - 1))
-+	    			vma->vm_end & (GRU_GSEG_PAGESIZE - 1))
- 		return -EINVAL;
- 
- 	vma->vm_flags |=
-@@ -398,6 +398,12 @@ static int __init gru_init(void)
- 	irq = get_base_irq();
- 	for (chip = 0; chip < GRU_CHIPLETS_PER_BLADE; chip++) {
- 		ret = request_irq(irq + chip, gru_intr, 0, id, NULL);
-+		/* TODO: fix irq handling on x86. For now ignore failures because
-+		 * interrupts are not required & not yet fully supported */
-+		if (ret) {
-+			printk("!!!WARNING: GRU ignoring request failure!!!\n");
-+			ret = 0;
++	/* XXX: Could probably be optimized by transplantation of more than
++	 * one entry at a time. */
+ 	for (i = 0; i < ODEBUG_HASH_SIZE; i++, db++) {
+ 		spin_lock_irqsave(&db->lock, flags);
+ 		hlist_for_each_entry_safe(obj, node, tmp, &db->list, node) {
+ 			hlist_del(&obj->node);
+-			free_object(obj);
++			hlist_add_head(&obj->node, &freelist);
+ 		}
+ 		spin_unlock_irqrestore(&db->lock, flags);
++
++		/* Now free them */
++		hlist_for_each_entry_safe(obj, node, tmp, &freelist, node) {
++			hlist_del(&obj->node);
++			free_object(obj);
 +		}
- 		if (ret) {
- 			printk(KERN_ERR "%s: request_irq failed\n",
- 			       GRU_DRIVER_ID_STR);
-diff -puN drivers/misc/sgi-gru/gruhandles.h~gru-driver-minor-updates drivers/misc/sgi-gru/gruhandles.h
---- a/drivers/misc/sgi-gru/gruhandles.h~gru-driver-minor-updates
-+++ a/drivers/misc/sgi-gru/gruhandles.h
-@@ -91,12 +91,7 @@
- #define GSEGPOFF(h) 		((h) & (GRU_SIZE - 1))
- 
- /* Convert an arbitrary handle address to the beginning of the GRU segment */
--#ifndef __PLUGIN__
- #define GRUBASE(h)		((void *)((unsigned long)(h) & ~(GRU_SIZE - 1)))
--#else
--extern void *gmu_grubase(void *h);
--#define GRUBASE(h)		gmu_grubase(h)
--#endif
- 
- /* General addressing macros. */
- static inline void *get_gseg_base_address(void *base, int ctxnum)
-diff -puN drivers/misc/sgi-gru/grukservices.c~gru-driver-minor-updates drivers/misc/sgi-gru/grukservices.c
---- a/drivers/misc/sgi-gru/grukservices.c~gru-driver-minor-updates
-+++ a/drivers/misc/sgi-gru/grukservices.c
-@@ -122,6 +122,7 @@ int gru_get_cb_exception_detail(void *cb
- 	struct gru_control_block_extended *cbe;
- 
- 	cbe = get_cbe(GRUBASE(cb), get_cb_number(cb));
-+	prefetchw(cbe);         /* Harmless on hardware, required for emulator */
- 	excdet->opc = cbe->opccpy;
- 	excdet->exopc = cbe->exopccpy;
- 	excdet->ecause = cbe->ecause;
-diff -puN drivers/misc/sgi-gru/grumain.c~gru-driver-minor-updates drivers/misc/sgi-gru/grumain.c
---- a/drivers/misc/sgi-gru/grumain.c~gru-driver-minor-updates
-+++ a/drivers/misc/sgi-gru/grumain.c
-@@ -432,29 +432,35 @@ static inline long gru_copy_handle(void 
- 	return GRU_HANDLE_BYTES;
+ 	}
  }
  
--/* rewrite in assembly & use lots of prefetch */
--static void gru_load_context_data(void *save, void *grubase, int ctxnum,
--				  unsigned long cbrmap, unsigned long dsrmap)
-+static void gru_prefetch_context(void *gseg, void *cb, void *cbe, unsigned long cbrmap,
-+				unsigned long length)
+@@ -498,8 +509,9 @@ void debug_object_free(void *addr, struc
+ 		return;
+ 	default:
+ 		hlist_del(&obj->node);
++		spin_unlock_irqrestore(&db->lock, flags);
+ 		free_object(obj);
+-		break;
++		return;
+ 	}
+ out_unlock:
+ 	spin_unlock_irqrestore(&db->lock, flags);
+@@ -510,6 +522,7 @@ static void __debug_check_no_obj_freed(c
  {
--	void *gseg, *cb, *cbe;
--	unsigned long length;
- 	int i, scr;
- 
--	gseg = grubase + ctxnum * GRU_GSEG_STRIDE;
--	length = hweight64(dsrmap) * GRU_DSR_AU_BYTES;
- 	prefetch_data(gseg + GRU_DS_BASE, length / GRU_CACHE_LINE_BYTES,
- 		      GRU_CACHE_LINE_BYTES);
- 
--	cb = gseg + GRU_CB_BASE;
--	cbe = grubase + GRU_CBE_BASE;
- 	for_each_cbr_in_allocation_map(i, &cbrmap, scr) {
- 		prefetch_data(cb, 1, GRU_CACHE_LINE_BYTES);
- 		prefetch_data(cbe + i * GRU_HANDLE_STRIDE, 1,
- 			      GRU_CACHE_LINE_BYTES);
- 		cb += GRU_HANDLE_STRIDE;
+ 	unsigned long flags, oaddr, saddr, eaddr, paddr, chunks;
+ 	struct hlist_node *node, *tmp;
++	HLIST_HEAD(freelist);
+ 	struct debug_obj_descr *descr;
+ 	enum debug_obj_state state;
+ 	struct debug_bucket *db;
+@@ -545,11 +558,18 @@ repeat:
+ 				goto repeat;
+ 			default:
+ 				hlist_del(&obj->node);
+-				free_object(obj);
++				hlist_add_head(&obj->node, &freelist);
+ 				break;
+ 			}
+ 		}
+ 		spin_unlock_irqrestore(&db->lock, flags);
++
++		/* Now free them */
++		hlist_for_each_entry_safe(obj, node, tmp, &freelist, node) {
++			hlist_del(&obj->node);
++			free_object(obj);
++		}
++
+ 		if (cnt > debug_objects_maxchain)
+ 			debug_objects_maxchain = cnt;
  	}
-+}
-+
-+static void gru_load_context_data(void *save, void *grubase, int ctxnum,
-+				  unsigned long cbrmap, unsigned long dsrmap)
-+{
-+	void *gseg, *cb, *cbe;
-+	unsigned long length;
-+	int i, scr;
- 
-+	gseg = grubase + ctxnum * GRU_GSEG_STRIDE;
- 	cb = gseg + GRU_CB_BASE;
-+	cbe = grubase + GRU_CBE_BASE;
-+	length = hweight64(dsrmap) * GRU_DSR_AU_BYTES;
-+	gru_prefetch_context(gseg, cb, cbe, cbrmap, length);
-+
- 	for_each_cbr_in_allocation_map(i, &cbrmap, scr) {
- 		save += gru_copy_handle(cb, save);
- 		save += gru_copy_handle(cbe + i * GRU_HANDLE_STRIDE, save);
-@@ -472,15 +478,16 @@ static void gru_unload_context_data(void
- 	int i, scr;
- 
- 	gseg = grubase + ctxnum * GRU_GSEG_STRIDE;
--
- 	cb = gseg + GRU_CB_BASE;
- 	cbe = grubase + GRU_CBE_BASE;
-+	length = hweight64(dsrmap) * GRU_DSR_AU_BYTES;
-+	gru_prefetch_context(gseg, cb, cbe, cbrmap, length);
-+
- 	for_each_cbr_in_allocation_map(i, &cbrmap, scr) {
- 		save += gru_copy_handle(save, cb);
- 		save += gru_copy_handle(save, cbe + i * GRU_HANDLE_STRIDE);
- 		cb += GRU_HANDLE_STRIDE;
- 	}
--	length = hweight64(dsrmap) * GRU_DSR_AU_BYTES;
- 	memcpy(save, gseg + GRU_DS_BASE, length);
- }
- 
 _
 
-Patches currently in -mm which might be from steiner@sgi.com are
+Patches currently in -mm which might be from vegard.nossum@gmail.com are
 
 origin.patch
 linux-next.patch
-sysfs-document-files-in-sys-firmware-sgi_uv.patch
-drivers-misc-use-div_round_up.patch
-gru-driver-minor-updates.patch
-gru-driver-minor-updates-fix.patch
+debugobjects-fix-lockdep-warning.patch
 
