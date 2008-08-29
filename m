@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-simplify-clock-calculation.patch added to -mm tree
-Date: Thu, 28 Aug 2008 17:48:13 -0700
-Message-ID: <200808290048.m7T0mDK8023106@imap1.linux-foundation.org>
+Subject: + cirrusfb-remove-information-about-memory-size-during-mode-change.patch added to -mm tree
+Date: Thu, 28 Aug 2008 17:48:11 -0700
+Message-ID: <200808290048.m7T0mBlb023103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59190 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60670 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753571AbYH2Asl (ORCPT
+	by vger.kernel.org with ESMTP id S1753612AbYH2Aso (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Aug 2008 20:48:41 -0400
+	Thu, 28 Aug 2008 20:48:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     cirrusfb: simplify clock calculation
+     cirrusfb: remove information about memory size during mode change
 has been added to the -mm tree.  Its filename is
-     cirrusfb-simplify-clock-calculation.patch
+     cirrusfb-remove-information-about-memory-size-during-mode-change.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: simplify clock calculation
+Subject: cirrusfb: remove information about memory size during mode change
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Simplify clock calculation.
+Remove information about memory size displayed twice each time a display
+mode change.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |   40 +++++++++++++++++--------------------
- 1 file changed, 19 insertions(+), 21 deletions(-)
+ drivers/video/cirrusfb.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-simplify-clock-calculation drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-simplify-clock-calculation
+diff -puN drivers/video/cirrusfb.c~cirrusfb-remove-information-about-memory-size-during-mode-change drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-remove-information-about-memory-size-during-mode-change
 +++ a/drivers/video/cirrusfb.c
-@@ -3075,38 +3075,36 @@ static void bestclock(long freq, long *b
- 	f = freq * 10;
+@@ -1949,8 +1949,6 @@ static void init_vgachip(struct fb_info 
+ 	/* misc... */
+ 	WHDR(cinfo, 0);	/* Hidden DAC register: - */
  
- 	for (n = 32; n < 128; n++) {
-+		int s = 0;
-+
- 		d = (143181 * n) / f;
- 		if ((d >= 7) && (d <= 63)) {
--			if (d > 31)
--				d = (d / 2) * 2;
--			h = (14318 * n) / d;
-+			int temp = d;
-+
-+			if (temp > 31) {
-+				s = 1;
-+				temp >>= 1;
-+			}
-+			h = ((14318 * n) / temp) >> s;
- 			if (abs(h - freq) < abs(*best - freq)) {
- 				*best = h;
- 				*nom = n;
--				if (d < 32) {
--					*den = d;
--					*div = 0;
--				} else {
--					*den = d / 2;
--					*div = 1;
--				}
-+				*den = temp;
-+				*div = s;
- 			}
- 		}
--		d = DIV_ROUND_UP(143181 * n, f);
-+		d++;
- 		if ((d >= 7) && (d <= 63)) {
--			if (d > 31)
--				d = (d / 2) * 2;
--			h = (14318 * n) / d;
-+			if (d > 31) {
-+				s = 1;
-+				d >>= 1;
-+			}
-+			h = ((14318 * n) / d) >> s;
- 			if (abs(h - freq) < abs(*best - freq)) {
- 				*best = h;
- 				*nom = n;
--				if (d < 32) {
--					*den = d;
--					*div = 0;
--				} else {
--					*den = d / 2;
--					*div = 1;
--				}
-+				*den = d;
-+				*div = s;
- 			}
- 		}
- 	}
+-	printk(KERN_DEBUG "cirrusfb: This board has %ld bytes of DRAM memory\n",
+-		info->screen_size);
+ 	DPRINTK("EXIT\n");
+ 	return;
+ }
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
