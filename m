@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix.patch added to -mm tree
-Date: Fri, 29 Aug 2008 12:55:00 -0700
-Message-ID: <200808291955.m7TJt00L001628@imap1.linux-foundation.org>
+Subject: + fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out.patch added to -mm tree
+Date: Fri, 29 Aug 2008 13:11:23 -0700
+Message-ID: <200808292011.m7TKBN14002192@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34113 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51298 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755831AbYH2Tzh (ORCPT
+	by vger.kernel.org with ESMTP id S1751816AbYH2UL2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Aug 2008 15:55:37 -0400
+	Fri, 29 Aug 2008 16:11:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aaron@merfinllc.com, mpm@selenic.com, stable@kernel.org, tytso@mit.edu
+Cc: adobriyan@gmail.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix
+     fs/Kconfig: move ext2, ext3, ext4, JBD, JBD2 out
 has been added to the -mm tree.  Its filename is
-     drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix.patch
+     fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,131 +34,586 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/Kconfig: move ext2, ext3, ext4, JBD, JBD2 out
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Cc: <stable@kernel.org>		[2.6.26.x]
-Cc: Aaron Straus <aaron@merfinllc.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Use fs/*/Kconfig more, which is good because everything related to one
+filesystem is in one place and fs/Kconfig is quite fat.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/Kconfig      |  258 ----------------------------------------------
+ fs/ext2/Kconfig |   55 +++++++++
+ fs/ext3/Kconfig |   67 +++++++++++
+ fs/ext4/Kconfig |   65 +++++++++++
+ fs/jbd/Kconfig  |   31 +++++
+ fs/jbd2/Kconfig |   32 +++++
+ 6 files changed, 255 insertions(+), 253 deletions(-)
 
-diff -puN drivers/char/random.c~drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix drivers/char/random.c
---- a/drivers/char/random.c~drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix
-+++ a/drivers/char/random.c
-@@ -407,7 +407,7 @@ struct entropy_store {
- 	/* read-write data: */
- 	spinlock_t lock;
- 	unsigned add_ptr;
--	int entropy_count;
-+	int entropy_count;	/* Must at no time exceed ->POOLBITS! */
- 	int input_rotate;
- };
+diff -puN fs/Kconfig~fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out fs/Kconfig
+--- a/fs/Kconfig~fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out
++++ a/fs/Kconfig
+@@ -6,61 +6,9 @@ menu "File systems"
  
+ if BLOCK
+ 
+-config EXT2_FS
+-	tristate "Second extended fs support"
+-	help
+-	  Ext2 is a standard Linux file system for hard disks.
+-
+-	  To compile this file system support as a module, choose M here: the
+-	  module will be called ext2.
+-
+-	  If unsure, say Y.
+-
+-config EXT2_FS_XATTR
+-	bool "Ext2 extended attributes"
+-	depends on EXT2_FS
+-	help
+-	  Extended attributes are name:value pairs associated with inodes by
+-	  the kernel or by users (see the attr(5) manual page, or visit
+-	  <http://acl.bestbits.at/> for details).
+-
+-	  If unsure, say N.
+-
+-config EXT2_FS_POSIX_ACL
+-	bool "Ext2 POSIX Access Control Lists"
+-	depends on EXT2_FS_XATTR
+-	select FS_POSIX_ACL
+-	help
+-	  Posix Access Control Lists (ACLs) support permissions for users and
+-	  groups beyond the owner/group/world scheme.
+-
+-	  To learn more about Access Control Lists, visit the Posix ACLs for
+-	  Linux website <http://acl.bestbits.at/>.
+-
+-	  If you don't know what Access Control Lists are, say N
+-
+-config EXT2_FS_SECURITY
+-	bool "Ext2 Security Labels"
+-	depends on EXT2_FS_XATTR
+-	help
+-	  Security labels support alternative access control models
+-	  implemented by security modules like SELinux.  This option
+-	  enables an extended attribute handler for file security
+-	  labels in the ext2 filesystem.
+-
+-	  If you are not using a security module that requires using
+-	  extended attributes for file security labels, say N.
+-
+-config EXT2_FS_XIP
+-	bool "Ext2 execute in place support"
+-	depends on EXT2_FS && MMU
+-	help
+-	  Execute in place can be used on memory-backed block devices. If you
+-	  enable this option, you can select to mount block devices which are
+-	  capable of this feature without using the page cache.
+-
+-	  If you do not use a block device that is capable of using this,
+-	  or if unsure, say N.
++source "fs/ext2/Kconfig"
++source "fs/ext3/Kconfig"
++source "fs/ext4/Kconfig"
+ 
+ config FS_XIP
+ # execute in place
+@@ -68,204 +16,8 @@ config FS_XIP
+ 	depends on EXT2_FS_XIP
+ 	default y
+ 
+-config EXT3_FS
+-	tristate "Ext3 journalling file system support"
+-	select JBD
+-	help
+-	  This is the journalling version of the Second extended file system
+-	  (often called ext3), the de facto standard Linux file system
+-	  (method to organize files on a storage device) for hard disks.
+-
+-	  The journalling code included in this driver means you do not have
+-	  to run e2fsck (file system checker) on your file systems after a
+-	  crash.  The journal keeps track of any changes that were being made
+-	  at the time the system crashed, and can ensure that your file system
+-	  is consistent without the need for a lengthy check.
+-
+-	  Other than adding the journal to the file system, the on-disk format
+-	  of ext3 is identical to ext2.  It is possible to freely switch
+-	  between using the ext3 driver and the ext2 driver, as long as the
+-	  file system has been cleanly unmounted, or e2fsck is run on the file
+-	  system.
+-
+-	  To add a journal on an existing ext2 file system or change the
+-	  behavior of ext3 file systems, you can use the tune2fs utility ("man
+-	  tune2fs").  To modify attributes of files and directories on ext3
+-	  file systems, use chattr ("man chattr").  You need to be using
+-	  e2fsprogs version 1.20 or later in order to create ext3 journals
+-	  (available at <http://sourceforge.net/projects/e2fsprogs/>).
+-
+-	  To compile this file system support as a module, choose M here: the
+-	  module will be called ext3.
+-
+-config EXT3_FS_XATTR
+-	bool "Ext3 extended attributes"
+-	depends on EXT3_FS
+-	default y
+-	help
+-	  Extended attributes are name:value pairs associated with inodes by
+-	  the kernel or by users (see the attr(5) manual page, or visit
+-	  <http://acl.bestbits.at/> for details).
+-
+-	  If unsure, say N.
+-
+-	  You need this for POSIX ACL support on ext3.
+-
+-config EXT3_FS_POSIX_ACL
+-	bool "Ext3 POSIX Access Control Lists"
+-	depends on EXT3_FS_XATTR
+-	select FS_POSIX_ACL
+-	help
+-	  Posix Access Control Lists (ACLs) support permissions for users and
+-	  groups beyond the owner/group/world scheme.
+-
+-	  To learn more about Access Control Lists, visit the Posix ACLs for
+-	  Linux website <http://acl.bestbits.at/>.
+-
+-	  If you don't know what Access Control Lists are, say N
+-
+-config EXT3_FS_SECURITY
+-	bool "Ext3 Security Labels"
+-	depends on EXT3_FS_XATTR
+-	help
+-	  Security labels support alternative access control models
+-	  implemented by security modules like SELinux.  This option
+-	  enables an extended attribute handler for file security
+-	  labels in the ext3 filesystem.
+-
+-	  If you are not using a security module that requires using
+-	  extended attributes for file security labels, say N.
+-
+-config EXT4DEV_FS
+-	tristate "Ext4dev/ext4 extended fs support development (EXPERIMENTAL)"
+-	depends on EXPERIMENTAL
+-	select JBD2
+-	select CRC16
+-	help
+-	  Ext4dev is a predecessor filesystem of the next generation
+-	  extended fs ext4, based on ext3 filesystem code. It will be
+-	  renamed ext4 fs later, once ext4dev is mature and stabilized.
+-
+-	  Unlike the change from ext2 filesystem to ext3 filesystem,
+-	  the on-disk format of ext4dev is not the same as ext3 any more:
+-	  it is based on extent maps and it supports 48-bit physical block
+-	  numbers. These combined on-disk format changes will allow
+-	  ext4dev/ext4 to handle more than 16 TB filesystem volumes --
+-	  a hard limit that ext3 cannot overcome without changing the
+-	  on-disk format.
+-
+-	  Other than extent maps and 48-bit block numbers, ext4dev also is
+-	  likely to have other new features such as persistent preallocation,
+-	  high resolution time stamps, and larger file support etc.  These
+-	  features will be added to ext4dev gradually.
+-
+-	  To compile this file system support as a module, choose M here. The
+-	  module will be called ext4dev.
+-
+-	  If unsure, say N.
+-
+-config EXT4DEV_FS_XATTR
+-	bool "Ext4dev extended attributes"
+-	depends on EXT4DEV_FS
+-	default y
+-	help
+-	  Extended attributes are name:value pairs associated with inodes by
+-	  the kernel or by users (see the attr(5) manual page, or visit
+-	  <http://acl.bestbits.at/> for details).
+-
+-	  If unsure, say N.
+-
+-	  You need this for POSIX ACL support on ext4dev/ext4.
+-
+-config EXT4DEV_FS_POSIX_ACL
+-	bool "Ext4dev POSIX Access Control Lists"
+-	depends on EXT4DEV_FS_XATTR
+-	select FS_POSIX_ACL
+-	help
+-	  POSIX Access Control Lists (ACLs) support permissions for users and
+-	  groups beyond the owner/group/world scheme.
+-
+-	  To learn more about Access Control Lists, visit the POSIX ACLs for
+-	  Linux website <http://acl.bestbits.at/>.
+-
+-	  If you don't know what Access Control Lists are, say N
+-
+-config EXT4DEV_FS_SECURITY
+-	bool "Ext4dev Security Labels"
+-	depends on EXT4DEV_FS_XATTR
+-	help
+-	  Security labels support alternative access control models
+-	  implemented by security modules like SELinux.  This option
+-	  enables an extended attribute handler for file security
+-	  labels in the ext4dev/ext4 filesystem.
+-
+-	  If you are not using a security module that requires using
+-	  extended attributes for file security labels, say N.
+-
+-config JBD
+-	tristate
+-	help
+-	  This is a generic journalling layer for block devices.  It is
+-	  currently used by the ext3 and OCFS2 file systems, but it could
+-	  also be used to add journal support to other file systems or block
+-	  devices such as RAID or LVM.
+-
+-	  If you are using the ext3 or OCFS2 file systems, you need to
+-	  say Y here. If you are not using ext3 OCFS2 then you will probably
+-	  want to say N.
+-
+-	  To compile this device as a module, choose M here: the module will be
+-	  called jbd.  If you are compiling ext3 or OCFS2 into the kernel,
+-	  you cannot compile this code as a module.
+-
+-config JBD_DEBUG
+-	bool "JBD (ext3) debugging support"
+-	depends on JBD && DEBUG_FS
+-	help
+-	  If you are using the ext3 journaled file system (or potentially any
+-	  other file system/device using JBD), this option allows you to
+-	  enable debugging output while the system is running, in order to
+-	  help track down any problems you are having.  By default the
+-	  debugging output will be turned off.
+-
+-	  If you select Y here, then you will be able to turn on debugging
+-	  with "echo N > /sys/kernel/debug/jbd/jbd-debug", where N is a
+-	  number between 1 and 5, the higher the number, the more debugging
+-	  output is generated.  To turn debugging off again, do
+-	  "echo 0 > /sys/kernel/debug/jbd/jbd-debug".
+-
+-config JBD2
+-	tristate
+-	select CRC32
+-	help
+-	  This is a generic journaling layer for block devices that support
+-	  both 32-bit and 64-bit block numbers.  It is currently used by
+-	  the ext4dev/ext4 filesystem, but it could also be used to add
+-	  journal support to other file systems or block devices such
+-	  as RAID or LVM.
+-
+-	  If you are using ext4dev/ext4, you need to say Y here. If you are not
+-	  using ext4dev/ext4 then you will probably want to say N.
+-
+-	  To compile this device as a module, choose M here. The module will be
+-	  called jbd2.  If you are compiling ext4dev/ext4 into the kernel,
+-	  you cannot compile this code as a module.
+-
+-config JBD2_DEBUG
+-	bool "JBD2 (ext4dev/ext4) debugging support"
+-	depends on JBD2 && DEBUG_FS
+-	help
+-	  If you are using the ext4dev/ext4 journaled file system (or
+-	  potentially any other filesystem/device using JBD2), this option
+-	  allows you to enable debugging output while the system is running,
+-	  in order to help track down any problems you are having.
+-	  By default, the debugging output will be turned off.
+-
+-	  If you select Y here, then you will be able to turn on debugging
+-	  with "echo N > /sys/kernel/debug/jbd2/jbd2-debug", where N is a
+-	  number between 1 and 5. The higher the number, the more debugging
+-	  output is generated.  To turn debugging off again, do
+-	  "echo 0 > /sys/kernel/debug/jbd2/jbd2-debug".
++source "fs/jbd/Kconfig"
++source "fs/jbd2/Kconfig"
+ 
+ config FS_MBCACHE
+ # Meta block cache for Extended Attributes (ext2/ext3/ext4)
+diff -puN /dev/null fs/ext2/Kconfig
+--- /dev/null
++++ a/fs/ext2/Kconfig
+@@ -0,0 +1,55 @@
++config EXT2_FS
++	tristate "Second extended fs support"
++	help
++	  Ext2 is a standard Linux file system for hard disks.
++
++	  To compile this file system support as a module, choose M here: the
++	  module will be called ext2.
++
++	  If unsure, say Y.
++
++config EXT2_FS_XATTR
++	bool "Ext2 extended attributes"
++	depends on EXT2_FS
++	help
++	  Extended attributes are name:value pairs associated with inodes by
++	  the kernel or by users (see the attr(5) manual page, or visit
++	  <http://acl.bestbits.at/> for details).
++
++	  If unsure, say N.
++
++config EXT2_FS_POSIX_ACL
++	bool "Ext2 POSIX Access Control Lists"
++	depends on EXT2_FS_XATTR
++	select FS_POSIX_ACL
++	help
++	  Posix Access Control Lists (ACLs) support permissions for users and
++	  groups beyond the owner/group/world scheme.
++
++	  To learn more about Access Control Lists, visit the Posix ACLs for
++	  Linux website <http://acl.bestbits.at/>.
++
++	  If you don't know what Access Control Lists are, say N
++
++config EXT2_FS_SECURITY
++	bool "Ext2 Security Labels"
++	depends on EXT2_FS_XATTR
++	help
++	  Security labels support alternative access control models
++	  implemented by security modules like SELinux.  This option
++	  enables an extended attribute handler for file security
++	  labels in the ext2 filesystem.
++
++	  If you are not using a security module that requires using
++	  extended attributes for file security labels, say N.
++
++config EXT2_FS_XIP
++	bool "Ext2 execute in place support"
++	depends on EXT2_FS && MMU
++	help
++	  Execute in place can be used on memory-backed block devices. If you
++	  enable this option, you can select to mount block devices which are
++	  capable of this feature without using the page cache.
++
++	  If you do not use a block device that is capable of using this,
++	  or if unsure, say N.
+diff -puN /dev/null fs/ext3/Kconfig
+--- /dev/null
++++ a/fs/ext3/Kconfig
+@@ -0,0 +1,67 @@
++config EXT3_FS
++	tristate "Ext3 journalling file system support"
++	select JBD
++	help
++	  This is the journalling version of the Second extended file system
++	  (often called ext3), the de facto standard Linux file system
++	  (method to organize files on a storage device) for hard disks.
++
++	  The journalling code included in this driver means you do not have
++	  to run e2fsck (file system checker) on your file systems after a
++	  crash.  The journal keeps track of any changes that were being made
++	  at the time the system crashed, and can ensure that your file system
++	  is consistent without the need for a lengthy check.
++
++	  Other than adding the journal to the file system, the on-disk format
++	  of ext3 is identical to ext2.  It is possible to freely switch
++	  between using the ext3 driver and the ext2 driver, as long as the
++	  file system has been cleanly unmounted, or e2fsck is run on the file
++	  system.
++
++	  To add a journal on an existing ext2 file system or change the
++	  behavior of ext3 file systems, you can use the tune2fs utility ("man
++	  tune2fs").  To modify attributes of files and directories on ext3
++	  file systems, use chattr ("man chattr").  You need to be using
++	  e2fsprogs version 1.20 or later in order to create ext3 journals
++	  (available at <http://sourceforge.net/projects/e2fsprogs/>).
++
++	  To compile this file system support as a module, choose M here: the
++	  module will be called ext3.
++
++config EXT3_FS_XATTR
++	bool "Ext3 extended attributes"
++	depends on EXT3_FS
++	default y
++	help
++	  Extended attributes are name:value pairs associated with inodes by
++	  the kernel or by users (see the attr(5) manual page, or visit
++	  <http://acl.bestbits.at/> for details).
++
++	  If unsure, say N.
++
++	  You need this for POSIX ACL support on ext3.
++
++config EXT3_FS_POSIX_ACL
++	bool "Ext3 POSIX Access Control Lists"
++	depends on EXT3_FS_XATTR
++	select FS_POSIX_ACL
++	help
++	  Posix Access Control Lists (ACLs) support permissions for users and
++	  groups beyond the owner/group/world scheme.
++
++	  To learn more about Access Control Lists, visit the Posix ACLs for
++	  Linux website <http://acl.bestbits.at/>.
++
++	  If you don't know what Access Control Lists are, say N
++
++config EXT3_FS_SECURITY
++	bool "Ext3 Security Labels"
++	depends on EXT3_FS_XATTR
++	help
++	  Security labels support alternative access control models
++	  implemented by security modules like SELinux.  This option
++	  enables an extended attribute handler for file security
++	  labels in the ext3 filesystem.
++
++	  If you are not using a security module that requires using
++	  extended attributes for file security labels, say N.
+diff -puN /dev/null fs/ext4/Kconfig
+--- /dev/null
++++ a/fs/ext4/Kconfig
+@@ -0,0 +1,65 @@
++config EXT4DEV_FS
++	tristate "Ext4dev/ext4 extended fs support development (EXPERIMENTAL)"
++	depends on EXPERIMENTAL
++	select JBD2
++	select CRC16
++	help
++	  Ext4dev is a predecessor filesystem of the next generation
++	  extended fs ext4, based on ext3 filesystem code. It will be
++	  renamed ext4 fs later, once ext4dev is mature and stabilized.
++
++	  Unlike the change from ext2 filesystem to ext3 filesystem,
++	  the on-disk format of ext4dev is not the same as ext3 any more:
++	  it is based on extent maps and it supports 48-bit physical block
++	  numbers. These combined on-disk format changes will allow
++	  ext4dev/ext4 to handle more than 16 TB filesystem volumes --
++	  a hard limit that ext3 cannot overcome without changing the
++	  on-disk format.
++
++	  Other than extent maps and 48-bit block numbers, ext4dev also is
++	  likely to have other new features such as persistent preallocation,
++	  high resolution time stamps, and larger file support etc.  These
++	  features will be added to ext4dev gradually.
++
++	  To compile this file system support as a module, choose M here. The
++	  module will be called ext4dev.
++
++	  If unsure, say N.
++
++config EXT4DEV_FS_XATTR
++	bool "Ext4dev extended attributes"
++	depends on EXT4DEV_FS
++	default y
++	help
++	  Extended attributes are name:value pairs associated with inodes by
++	  the kernel or by users (see the attr(5) manual page, or visit
++	  <http://acl.bestbits.at/> for details).
++
++	  If unsure, say N.
++
++	  You need this for POSIX ACL support on ext4dev/ext4.
++
++config EXT4DEV_FS_POSIX_ACL
++	bool "Ext4dev POSIX Access Control Lists"
++	depends on EXT4DEV_FS_XATTR
++	select FS_POSIX_ACL
++	help
++	  POSIX Access Control Lists (ACLs) support permissions for users and
++	  groups beyond the owner/group/world scheme.
++
++	  To learn more about Access Control Lists, visit the POSIX ACLs for
++	  Linux website <http://acl.bestbits.at/>.
++
++	  If you don't know what Access Control Lists are, say N
++
++config EXT4DEV_FS_SECURITY
++	bool "Ext4dev Security Labels"
++	depends on EXT4DEV_FS_XATTR
++	help
++	  Security labels support alternative access control models
++	  implemented by security modules like SELinux.  This option
++	  enables an extended attribute handler for file security
++	  labels in the ext4dev/ext4 filesystem.
++
++	  If you are not using a security module that requires using
++	  extended attributes for file security labels, say N.
+diff -puN /dev/null fs/jbd/Kconfig
+--- /dev/null
++++ a/fs/jbd/Kconfig
+@@ -0,0 +1,31 @@
++config JBD
++	tristate
++	help
++	  This is a generic journalling layer for block devices.  It is
++	  currently used by the ext3 and OCFS2 file systems, but it could
++	  also be used to add journal support to other file systems or block
++	  devices such as RAID or LVM.
++
++	  If you are using the ext3 or OCFS2 file systems, you need to
++	  say Y here. If you are not using ext3 OCFS2 then you will probably
++	  want to say N.
++
++	  To compile this device as a module, choose M here: the module will be
++	  called jbd.  If you are compiling ext3 or OCFS2 into the kernel,
++	  you cannot compile this code as a module.
++
++config JBD_DEBUG
++	bool "JBD (ext3) debugging support"
++	depends on JBD && DEBUG_FS
++	help
++	  If you are using the ext3 journaled file system (or potentially any
++	  other file system/device using JBD), this option allows you to
++	  enable debugging output while the system is running, in order to
++	  help track down any problems you are having.  By default the
++	  debugging output will be turned off.
++
++	  If you select Y here, then you will be able to turn on debugging
++	  with "echo N > /sys/kernel/debug/jbd/jbd-debug", where N is a
++	  number between 1 and 5, the higher the number, the more debugging
++	  output is generated.  To turn debugging off again, do
++	  "echo 0 > /sys/kernel/debug/jbd/jbd-debug".
+diff -puN /dev/null fs/jbd2/Kconfig
+--- /dev/null
++++ a/fs/jbd2/Kconfig
+@@ -0,0 +1,32 @@
++config JBD2
++	tristate
++	select CRC32
++	help
++	  This is a generic journaling layer for block devices that support
++	  both 32-bit and 64-bit block numbers.  It is currently used by
++	  the ext4dev/ext4 filesystem, but it could also be used to add
++	  journal support to other file systems or block devices such
++	  as RAID or LVM.
++
++	  If you are using ext4dev/ext4, you need to say Y here. If you are not
++	  using ext4dev/ext4 then you will probably want to say N.
++
++	  To compile this device as a module, choose M here. The module will be
++	  called jbd2.  If you are compiling ext4dev/ext4 into the kernel,
++	  you cannot compile this code as a module.
++
++config JBD2_DEBUG
++	bool "JBD2 (ext4dev/ext4) debugging support"
++	depends on JBD2 && DEBUG_FS
++	help
++	  If you are using the ext4dev/ext4 journaled file system (or
++	  potentially any other filesystem/device using JBD2), this option
++	  allows you to enable debugging output while the system is running,
++	  in order to help track down any problems you are having.
++	  By default, the debugging output will be turned off.
++
++	  If you select Y here, then you will be able to turn on debugging
++	  with "echo N > /sys/kernel/debug/jbd2/jbd2-debug", where N is a
++	  number between 1 and 5. The higher the number, the more debugging
++	  output is generated.  To turn debugging off again, do
++	  "echo 0 > /sys/kernel/debug/jbd2/jbd2-debug".
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
-acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
 linux-next.patch
-next-remove-localversion.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
-acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-x86-make-poll_idle-behave-more-like-the-other-idle-methods-checkpatch-fixes.patch
-fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
-git-ubi-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
-power-support-for-texas-instruments-bq27x00-battery-managers.patch
-power-support-for-texas-instruments-bq27x00-battery-managers-fix.patch
-drivers-pci-hotplug-ibmphp_ebdac-list_for_each-to-list_for_each_entry-checkpatch-fixes.patch
-pci-tidy-pme-support-messages-checkpatch-fixes.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-git-xtensa.patch
-drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug.patch
-drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
-fix-a-race-condtion-of-oops_in_progress-fix.patch
-vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-gru-driver-minor-updates-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-nilfs2-continuous-snapshotting-file-system-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+less-softirq-vectors.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+anondev-init-idr-statically.patch
+anondev-switch-to-ida.patch
+cpuset-use-seq_cpumask-seq_nodemask.patch
+sysctl-simplify-strategy.patch
+fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out.patch
+fs-kconfig-move-autofs-autofs4-out.patch
+fs-kconfig-move-jffs2-out.patch
+fs-kconfig-move-cifs-out.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+likely_prof-changed-to-use-proc_create.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
 
