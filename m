@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-remove-24-bpp-mode.patch added to -mm tree
-Date: Thu, 28 Aug 2008 17:48:15 -0700
-Message-ID: <200808290048.m7T0mFD0023109@imap1.linux-foundation.org>
+Subject: + cirrusfb-drop-device-pointers-from-cirrusfb_info.patch added to -mm tree
+Date: Thu, 28 Aug 2008 17:48:17 -0700
+Message-ID: <200808290048.m7T0mHBi023112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56656 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53501 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753612AbYH2Ass (ORCPT
+	by vger.kernel.org with ESMTP id S1753829AbYH2Ass (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 28 Aug 2008 20:48:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     cirrusfb: remove 24 bpp mode
+     cirrusfb: drop device pointers from cirrusfb_info
 has been added to the -mm tree.  Its filename is
-     cirrusfb-remove-24-bpp-mode.patch
+     cirrusfb-drop-device-pointers-from-cirrusfb_info.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: remove 24 bpp mode
+Subject: cirrusfb: drop device pointers from cirrusfb_info
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-The 24 bpp mode is not implemented.  Disallow it in the
-cirrusfb_check_var() and remove it from checks.
+The device pointer can be easily obtained from fb_info->device if needed.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/video/cirrusfb.c |   20 ++++++--------------
+ 1 file changed, 6 insertions(+), 14 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-remove-24-bpp-mode drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-remove-24-bpp-mode
+diff -puN drivers/video/cirrusfb.c~cirrusfb-drop-device-pointers-from-cirrusfb_info drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-drop-device-pointers-from-cirrusfb_info
 +++ a/drivers/video/cirrusfb.c
-@@ -638,7 +638,6 @@ static int cirrusfb_check_var(struct fb_
- 		break;		/* 8 pixel per byte, only 1/4th of mem usable */
- 	case 8:
- 	case 16:
--	case 24:
- 	case 32:
- 		break;		/* 1 pixel == 1 byte */
- 	default:
-@@ -713,7 +712,6 @@ static int cirrusfb_check_var(struct fb_
- 		var->blue.length = 5;
- 		break;
+@@ -367,15 +367,8 @@ struct cirrusfb_info {
  
--	case 24:
- 	case 32:
- 		if (isPReP) {
- 			var->red.offset = 8;
-@@ -782,7 +780,6 @@ static int cirrusfb_decode_var(const str
- 		break;
+ 	struct cirrusfb_regs currentmode;
+ 	int blank_mode;
++	u32 pseudo_palette[16];
  
- 	case 16:
--	case 24:
- 	case 32:
- 		info->fix.line_length = var->xres_virtual * maxclockidx;
- 		info->fix.visual = FB_VISUAL_DIRECTCOLOR;
-@@ -1360,7 +1357,7 @@ static int cirrusfb_set_par_foo(struct f
- 	 */
+-	u32	pseudo_palette[16];
+-
+-#ifdef CONFIG_ZORRO
+-	struct zorro_dev *zdev;
+-#endif
+-#ifdef CONFIG_PCI
+-	struct pci_dev *pdev;
+-#endif
+ 	void (*unmap)(struct fb_info *info);
+ };
  
- 	else if (var->bits_per_pixel == 32) {
--		DPRINTK("cirrusfb: preparing for 24/32 bit deep display\n");
-+		DPRINTK("cirrusfb: preparing for 32 bit deep display\n");
- 		switch (cinfo->btype) {
- 		case BT_SD64:
- 			/* Extended Sequencer Mode: 256c col. mode */
-@@ -2233,7 +2230,7 @@ static int cirrusfb_set_fbinfo(struct fb
- 	if (cinfo->btype == BT_GD5480) {
- 		if (var->bits_per_pixel == 16)
- 			info->screen_base += 1 * MB_;
--		if (var->bits_per_pixel == 24 || var->bits_per_pixel == 32)
-+		if (var->bits_per_pixel == 32)
- 			info->screen_base += 2 * MB_;
+@@ -2183,8 +2176,7 @@ static void get_pci_addrs(const struct p
+ 
+ static void cirrusfb_pci_unmap(struct fb_info *info)
+ {
+-	struct cirrusfb_info *cinfo = info->par;
+-	struct pci_dev *pdev = cinfo->pdev;
++	struct pci_dev *pdev = to_pci_dev(info->device);
+ 
+ 	iounmap(info->screen_base);
+ #if 0 /* if system didn't claim this region, we would... */
+@@ -2200,14 +2192,16 @@ static void cirrusfb_pci_unmap(struct fb
+ static void __devexit cirrusfb_zorro_unmap(struct fb_info *info)
+ {
+ 	struct cirrusfb_info *cinfo = info->par;
+-	zorro_release_device(cinfo->zdev);
++	struct zorro_dev *zdev = to_zorro_dev(info->device);
++
++	zorro_release_device(zdev);
+ 
+ 	if (cinfo->btype == BT_PICASSO4) {
+ 		cinfo->regbase -= 0x600000;
+ 		iounmap((void *)cinfo->regbase);
+ 		iounmap(info->screen_base);
+ 	} else {
+-		if (zorro_resource_start(cinfo->zdev) > 0x01000000)
++		if (zorro_resource_start(zdev) > 0x01000000)
+ 			iounmap(info->screen_base);
+ 	}
+ }
+@@ -2348,7 +2342,6 @@ static int cirrusfb_pci_register(struct 
  	}
  
+ 	cinfo = info->par;
+-	cinfo->pdev = pdev;
+ 	cinfo->btype = btype = (enum cirrus_board) ent->driver_data;
+ 
+ 	DPRINTK(" Found PCI device, base address 0 is 0x%x, btype set to %d\n",
+@@ -2484,7 +2477,6 @@ static int cirrusfb_zorro_register(struc
+ 	assert(z);
+ 	assert(btype != BT_NONE);
+ 
+-	cinfo->zdev = z;
+ 	board_addr = zorro_resource_start(z);
+ 	board_size = zorro_resource_len(z);
+ 	info->screen_size = size;
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
