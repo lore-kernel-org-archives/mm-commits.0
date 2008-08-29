@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 28 Aug 2008 17:53:26 -0700
-Message-ID: <200808290053.m7T0rR36023300@imap1.linux-foundation.org>
+Subject: + e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch added to -mm tree
+Date: Thu, 28 Aug 2008 22:17:04 -0700
+Message-ID: <200808290530.m7T5UWvO032546@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47815 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55201 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752980AbYH2Aze (ORCPT
+	by vger.kernel.org with ESMTP id S1750799AbYH2Fcp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Aug 2008 20:55:34 -0400
+	Fri, 29 Aug 2008 01:32:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, elendil@planet.nl, jeff@garzik.org, jeffrey.t.kir
 
 
 The patch titled
-     e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes
+     e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix
 has been added to the -mm tree.  Its filename is
-     e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
+     e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,24 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes
+Subject: e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#39: FILE: drivers/net/e1000e/netdev.c:4675:
-+^I^I         "Warning: detected DSPD enabled in EEPROM\n");$
-
-ERROR: code indent should use tabs where possible
-#47: FILE: drivers/net/e1000e/netdev.c:4682:
-+^I^I         "Warning: detected ASPM enabled in EEPROM\n");$
-
-total: 2 errors, 0 warnings, 17 lines checked
-
-./patches/e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+hm.
 
 Cc: Frans Pop <elendil@planet.nl>
 Cc: Jeff Garzik <jeff@garzik.org>
@@ -59,34 +45,25 @@ Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000e/netdev.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/e1000e/netdev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/e1000e/netdev.c~e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes drivers/net/e1000e/netdev.c
---- a/drivers/net/e1000e/netdev.c~e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes
+diff -puN drivers/net/e1000e/netdev.c~e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix drivers/net/e1000e/netdev.c
+--- a/drivers/net/e1000e/netdev.c~e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix
 +++ a/drivers/net/e1000e/netdev.c
-@@ -4672,14 +4672,14 @@ static void e1000_eeprom_checks(struct e
+@@ -4671,7 +4671,7 @@ static void e1000_eeprom_checks(struct e
+ 	ret_val = e1000_read_nvm(hw, NVM_INIT_CONTROL2_REG, 1, &buf);
  	if (!(le16_to_cpu(buf) & (1 << 0))) {
  		/* Deep Smart Power Down (DSPD) */
- 		dev_warn(&adapter->pdev-dev,
--		         "Warning: detected DSPD enabled in EEPROM\n");
-+			 "Warning: detected DSPD enabled in EEPROM\n");
+-		dev_warn(&adapter->pdev-dev,
++		dev_warn(&adapter->pdev->dev,
+ 			 "Warning: detected DSPD enabled in EEPROM\n");
  	}
- 
- 	ret_val = e1000_read_nvm(hw, NVM_INIT_3GIO_3, 1, &buf);
- 	if (le16_to_cpu(buf) & (3 << 2)) {
- 		/* ASPM enable */
- 		dev_warn(&adapter->pdev->dev,
--		         "Warning: detected ASPM enabled in EEPROM\n");
-+			 "Warning: detected ASPM enabled in EEPROM\n");
- 	}
- }
  
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
 vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
 acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
 linux-next.patch
@@ -107,6 +84,7 @@ git-ubi-git-rejects.patch
 sundance-set-carrier-status-on-link-change-events.patch
 cassini-use-request_firmware.patch
 e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
 power-support-for-texas-instruments-bq27x00-battery-managers.patch
