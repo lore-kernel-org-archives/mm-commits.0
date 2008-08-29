@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch added to -mm tree
-Date: Fri, 29 Aug 2008 15:13:10 -0700
-Message-ID: <200808292226.m7TMQdEx007478@imap1.linux-foundation.org>
+Subject: + drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix.patch added to -mm tree
+Date: Fri, 29 Aug 2008 15:27:30 -0700
+Message-ID: <200808292240.m7TMexbG007991@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52527 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45785 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755928AbYH2W1M (ORCPT
+	by vger.kernel.org with ESMTP id S1752831AbYH2Wlp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Aug 2008 18:27:12 -0400
+	Fri, 29 Aug 2008 18:41:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clg@fr.ibm.com, matthltc@us.ibm.com, nigel@tuxonice.net, pavel@suse.cz, rjw@sisk.pl, serue@us.ibm.com
+Cc: akpm@linux-foundation.org, aaron@merfinllc.com, mpm@selenic.com, stable@kernel.org, tytso@mit.edu
 
 
 The patch titled
-     container-freezer-add-tif_freeze-flag-to-all-architectures-fix
+     drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix
 has been added to the -mm tree.  Its filename is
-     container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+     drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: container-freezer-add-tif_freeze-flag-to-all-architectures-fix
+Subject: drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Matt Helsley <matthltc@us.ibm.com>
-Cc: Nigel Cunningham <nigel@tuxonice.net>
-Cc: Pavel Machek <pavel@suse.cz>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Serge E. Hallyn <serue@us.ibm.com>
+Cc: <stable@kernel.org>		[2.6.26.x]
+Cc: Aaron Straus <aaron@merfinllc.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/thread_info_32.h |    2 +-
+ drivers/char/random.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/sparc/include/asm/thread_info_32.h~container-freezer-add-tif_freeze-flag-to-all-architectures-fix arch/sparc/include/asm/thread_info_32.h
---- a/arch/sparc/include/asm/thread_info_32.h~container-freezer-add-tif_freeze-flag-to-all-architectures-fix
-+++ a/arch/sparc/include/asm/thread_info_32.h
-@@ -153,7 +153,7 @@ BTFIXUPDEF_CALL(void, free_thread_info, 
- #define _TIF_DO_NOTIFY_RESUME_MASK	(_TIF_NOTIFY_RESUME | \
- 					 _TIF_SIGPENDING | \
- 					 _TIF_RESTORE_SIGMASK)
--#define TIF_FREEZE		(1<<TIF_FREEZE)
-+#define _TIF_FREEZE		(1<<TIF_FREEZE)
+diff -puN drivers/char/random.c~drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix drivers/char/random.c
+--- a/drivers/char/random.c~drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix
++++ a/drivers/char/random.c
+@@ -535,13 +535,13 @@ static void credit_entropy_bits(struct e
+ 		entropy_count = 0;
+ 	} else if (entropy_count > r->poolinfo->POOLBITS)
+ 		entropy_count = r->poolinfo->POOLBITS;
++	r->entropy_count = entropy_count;
  
- #endif /* __KERNEL__ */
+ 	/* should we wake readers? */
+ 	if (r == &input_pool && entropy_count >= random_read_wakeup_thresh) {
+ 		wake_up_interruptible(&random_read_wait);
+ 		kill_fasync(&fasync, SIGIO, POLL_IN);
+ 	}
+-	r->entropy_count = entropy_count;
+ 	spin_unlock_irqrestore(&r->lock, flags);
+ }
  
 _
 
@@ -98,6 +102,7 @@ drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
 git-xtensa.patch
 drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug.patch
 drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix.patch
+drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
