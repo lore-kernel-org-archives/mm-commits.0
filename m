@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-kconfig-move-jffs2-out.patch added to -mm tree
-Date: Fri, 29 Aug 2008 13:11:27 -0700
-Message-ID: <200808292011.m7TKBRoX002202@imap1.linux-foundation.org>
+Subject: + forcdeth-increase-max_interrupt_work.patch added to -mm tree
+Date: Fri, 29 Aug 2008 13:38:46 -0700
+Message-ID: <200808292038.m7TKckwP003180@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40346 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34667 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752546AbYH2ULj (ORCPT
+	by vger.kernel.org with ESMTP id S1753158AbYH2UlA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Aug 2008 16:11:39 -0400
+	Fri, 29 Aug 2008 16:41:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, dwmw2@infradead.org
+Cc: joe.korty@ccur.com, aabdulla@nvidia.com, jeff@garzik.org
 
 
 The patch titled
-     fs/Kconfig: move JFFS2 out
+     forcdeth: increase max_interrupt_work
 has been added to the -mm tree.  Its filename is
-     fs-kconfig-move-jffs2-out.patch
+     forcdeth-increase-max_interrupt_work.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,426 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/Kconfig: move JFFS2 out
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: forcdeth: increase max_interrupt_work
+From: Joe Korty <joe.korty@ccur.com>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+This eliminates the following often-generated warning from my 64 bit
+Opteron SMP test stand:
+
+	eth0: too many iterations (6) in nv_nic_irq
+
+According to the web, the problem is that the forcedeth driver has a
+too-low value for max_interrupt_work.  Grepping the kernel I see that
+forcedeth has the second lowest value of all ethernet drivers (ie, 6). 
+Most are in the 20-40 range.  So this patch increases this a bit, from 6
+to 15 (at 15 forcedeth becomes the driver with third-lowest
+max_interrupt_work value).
+
+My test stand, which used to print out the above warnings repetitively
+whenever it was under heavy net load, no longer does so.
+
+Signed-off-by: Joe Korty <joe.korty@ccur.com>
+Cc: Ayaz Abdulla <aabdulla@nvidia.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig       |  190 ---------------------------------------------
- fs/jffs2/Kconfig |  188 ++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 189 insertions(+), 189 deletions(-)
+ drivers/net/forcedeth.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/Kconfig~fs-kconfig-move-jffs2-out fs/Kconfig
---- a/fs/Kconfig~fs-kconfig-move-jffs2-out
-+++ a/fs/Kconfig
-@@ -857,195 +857,7 @@ config EFS_FS
- 	  To compile the EFS file system support as a module, choose M here: the
- 	  module will be called efs.
+diff -puN drivers/net/forcedeth.c~forcdeth-increase-max_interrupt_work drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcdeth-increase-max_interrupt_work
++++ a/drivers/net/forcedeth.c
+@@ -818,7 +818,7 @@ struct fe_priv {
+  * Maximum number of loops until we assume that a bit in the irq mask
+  * is stuck. Overridable with module param.
+  */
+-static int max_interrupt_work = 5;
++static int max_interrupt_work = 15;
  
--config JFFS2_FS
--	tristate "Journalling Flash File System v2 (JFFS2) support"
--	select CRC32
--	depends on MTD
--	help
--	  JFFS2 is the second generation of the Journalling Flash File System
--	  for use on diskless embedded devices. It provides improved wear
--	  levelling, compression and support for hard links. You cannot use
--	  this on normal block devices, only on 'MTD' devices.
--
--	  Further information on the design and implementation of JFFS2 is
--	  available at <http://sources.redhat.com/jffs2/>.
--
--config JFFS2_FS_DEBUG
--	int "JFFS2 debugging verbosity (0 = quiet, 2 = noisy)"
--	depends on JFFS2_FS
--	default "0"
--	help
--	  This controls the amount of debugging messages produced by the JFFS2
--	  code. Set it to zero for use in production systems. For evaluation,
--	  testing and debugging, it's advisable to set it to one. This will
--	  enable a few assertions and will print debugging messages at the
--	  KERN_DEBUG loglevel, where they won't normally be visible. Level 2
--	  is unlikely to be useful - it enables extra debugging in certain
--	  areas which at one point needed debugging, but when the bugs were
--	  located and fixed, the detailed messages were relegated to level 2.
--
--	  If reporting bugs, please try to have available a full dump of the
--	  messages at debug level 1 while the misbehaviour was occurring.
--
--config JFFS2_FS_WRITEBUFFER
--	bool "JFFS2 write-buffering support"
--	depends on JFFS2_FS
--	default y
--	help
--	  This enables the write-buffering support in JFFS2.
--
--	  This functionality is required to support JFFS2 on the following
--	  types of flash devices:
--	    - NAND flash
--	    - NOR flash with transparent ECC
--	    - DataFlash
--
--config JFFS2_FS_WBUF_VERIFY
--	bool "Verify JFFS2 write-buffer reads"
--	depends on JFFS2_FS_WRITEBUFFER
--	default n
--	help
--	  This causes JFFS2 to read back every page written through the
--	  write-buffer, and check for errors.
--
--config JFFS2_SUMMARY
--	bool "JFFS2 summary support (EXPERIMENTAL)"
--	depends on JFFS2_FS && EXPERIMENTAL
--	default n
--	help
--	  This feature makes it possible to use summary information
--	  for faster filesystem mount.
--
--	  The summary information can be inserted into a filesystem image
--	  by the utility 'sumtool'.
--
--	  If unsure, say 'N'.
--
--config JFFS2_FS_XATTR
--	bool "JFFS2 XATTR support (EXPERIMENTAL)"
--	depends on JFFS2_FS && EXPERIMENTAL
--	default n
--	help
--	  Extended attributes are name:value pairs associated with inodes by
--	  the kernel or by users (see the attr(5) manual page, or visit
--	  <http://acl.bestbits.at/> for details).
--
--	  If unsure, say N.
--
--config JFFS2_FS_POSIX_ACL
--	bool "JFFS2 POSIX Access Control Lists"
--	depends on JFFS2_FS_XATTR
--	default y
--	select FS_POSIX_ACL
--	help
--	  Posix Access Control Lists (ACLs) support permissions for users and
--	  groups beyond the owner/group/world scheme.
--
--	  To learn more about Access Control Lists, visit the Posix ACLs for
--	  Linux website <http://acl.bestbits.at/>.
--
--	  If you don't know what Access Control Lists are, say N
--
--config JFFS2_FS_SECURITY
--	bool "JFFS2 Security Labels"
--	depends on JFFS2_FS_XATTR
--	default y
--	help
--	  Security labels support alternative access control models
--	  implemented by security modules like SELinux.  This option
--	  enables an extended attribute handler for file security
--	  labels in the jffs2 filesystem.
--
--	  If you are not using a security module that requires using
--	  extended attributes for file security labels, say N.
--
--config JFFS2_COMPRESSION_OPTIONS
--	bool "Advanced compression options for JFFS2"
--	depends on JFFS2_FS
--	default n
--	help
--	  Enabling this option allows you to explicitly choose which
--	  compression modules, if any, are enabled in JFFS2. Removing
--	  compressors can mean you cannot read existing file systems,
--	  and enabling experimental compressors can mean that you
--	  write a file system which cannot be read by a standard kernel.
--
--	  If unsure, you should _definitely_ say 'N'.
--
--config JFFS2_ZLIB
--	bool "JFFS2 ZLIB compression support" if JFFS2_COMPRESSION_OPTIONS
--	select ZLIB_INFLATE
--	select ZLIB_DEFLATE
--	depends on JFFS2_FS
--	default y
--	help
--	  Zlib is designed to be a free, general-purpose, legally unencumbered,
--	  lossless data-compression library for use on virtually any computer
--	  hardware and operating system. See <http://www.gzip.org/zlib/> for
--	  further information.
--
--	  Say 'Y' if unsure.
--
--config JFFS2_LZO
--	bool "JFFS2 LZO compression support" if JFFS2_COMPRESSION_OPTIONS
--	select LZO_COMPRESS
--	select LZO_DECOMPRESS
--	depends on JFFS2_FS
--	default n
--	help
--	  minilzo-based compression. Generally works better than Zlib.
--
--	  This feature was added in July, 2007. Say 'N' if you need
--	  compatibility with older bootloaders or kernels.
--
--config JFFS2_RTIME
--	bool "JFFS2 RTIME compression support" if JFFS2_COMPRESSION_OPTIONS
--	depends on JFFS2_FS
--	default y
--	help
--	  Rtime does manage to recompress already-compressed data. Say 'Y' if unsure.
--
--config JFFS2_RUBIN
--	bool "JFFS2 RUBIN compression support" if JFFS2_COMPRESSION_OPTIONS
--	depends on JFFS2_FS
--	default n
--	help
--	  RUBINMIPS and DYNRUBIN compressors. Say 'N' if unsure.
--
--choice
--	prompt "JFFS2 default compression mode" if JFFS2_COMPRESSION_OPTIONS
--	default JFFS2_CMODE_PRIORITY
--	depends on JFFS2_FS
--	help
--	  You can set here the default compression mode of JFFS2 from
--	  the available compression modes. Don't touch if unsure.
--
--config JFFS2_CMODE_NONE
--	bool "no compression"
--	help
--	  Uses no compression.
--
--config JFFS2_CMODE_PRIORITY
--	bool "priority"
--	help
--	  Tries the compressors in a predefined order and chooses the first
--	  successful one.
--
--config JFFS2_CMODE_SIZE
--	bool "size (EXPERIMENTAL)"
--	help
--	  Tries all compressors and chooses the one which has the smallest
--	  result.
--
--config JFFS2_CMODE_FAVOURLZO
--	bool "Favour LZO"
--	help
--	  Tries all compressors and chooses the one which has the smallest
--	  result but gives some preference to LZO (which has faster
--	  decompression) at the expense of size.
--
--endchoice
--
-+source "fs/jffs2/Kconfig"
- # UBIFS File system configuration
- source "fs/ubifs/Kconfig"
- 
-diff -puN /dev/null fs/jffs2/Kconfig
---- /dev/null
-+++ a/fs/jffs2/Kconfig
-@@ -0,0 +1,188 @@
-+config JFFS2_FS
-+	tristate "Journalling Flash File System v2 (JFFS2) support"
-+	select CRC32
-+	depends on MTD
-+	help
-+	  JFFS2 is the second generation of the Journalling Flash File System
-+	  for use on diskless embedded devices. It provides improved wear
-+	  levelling, compression and support for hard links. You cannot use
-+	  this on normal block devices, only on 'MTD' devices.
-+
-+	  Further information on the design and implementation of JFFS2 is
-+	  available at <http://sources.redhat.com/jffs2/>.
-+
-+config JFFS2_FS_DEBUG
-+	int "JFFS2 debugging verbosity (0 = quiet, 2 = noisy)"
-+	depends on JFFS2_FS
-+	default "0"
-+	help
-+	  This controls the amount of debugging messages produced by the JFFS2
-+	  code. Set it to zero for use in production systems. For evaluation,
-+	  testing and debugging, it's advisable to set it to one. This will
-+	  enable a few assertions and will print debugging messages at the
-+	  KERN_DEBUG loglevel, where they won't normally be visible. Level 2
-+	  is unlikely to be useful - it enables extra debugging in certain
-+	  areas which at one point needed debugging, but when the bugs were
-+	  located and fixed, the detailed messages were relegated to level 2.
-+
-+	  If reporting bugs, please try to have available a full dump of the
-+	  messages at debug level 1 while the misbehaviour was occurring.
-+
-+config JFFS2_FS_WRITEBUFFER
-+	bool "JFFS2 write-buffering support"
-+	depends on JFFS2_FS
-+	default y
-+	help
-+	  This enables the write-buffering support in JFFS2.
-+
-+	  This functionality is required to support JFFS2 on the following
-+	  types of flash devices:
-+	    - NAND flash
-+	    - NOR flash with transparent ECC
-+	    - DataFlash
-+
-+config JFFS2_FS_WBUF_VERIFY
-+	bool "Verify JFFS2 write-buffer reads"
-+	depends on JFFS2_FS_WRITEBUFFER
-+	default n
-+	help
-+	  This causes JFFS2 to read back every page written through the
-+	  write-buffer, and check for errors.
-+
-+config JFFS2_SUMMARY
-+	bool "JFFS2 summary support (EXPERIMENTAL)"
-+	depends on JFFS2_FS && EXPERIMENTAL
-+	default n
-+	help
-+	  This feature makes it possible to use summary information
-+	  for faster filesystem mount.
-+
-+	  The summary information can be inserted into a filesystem image
-+	  by the utility 'sumtool'.
-+
-+	  If unsure, say 'N'.
-+
-+config JFFS2_FS_XATTR
-+	bool "JFFS2 XATTR support (EXPERIMENTAL)"
-+	depends on JFFS2_FS && EXPERIMENTAL
-+	default n
-+	help
-+	  Extended attributes are name:value pairs associated with inodes by
-+	  the kernel or by users (see the attr(5) manual page, or visit
-+	  <http://acl.bestbits.at/> for details).
-+
-+	  If unsure, say N.
-+
-+config JFFS2_FS_POSIX_ACL
-+	bool "JFFS2 POSIX Access Control Lists"
-+	depends on JFFS2_FS_XATTR
-+	default y
-+	select FS_POSIX_ACL
-+	help
-+	  Posix Access Control Lists (ACLs) support permissions for users and
-+	  groups beyond the owner/group/world scheme.
-+
-+	  To learn more about Access Control Lists, visit the Posix ACLs for
-+	  Linux website <http://acl.bestbits.at/>.
-+
-+	  If you don't know what Access Control Lists are, say N
-+
-+config JFFS2_FS_SECURITY
-+	bool "JFFS2 Security Labels"
-+	depends on JFFS2_FS_XATTR
-+	default y
-+	help
-+	  Security labels support alternative access control models
-+	  implemented by security modules like SELinux.  This option
-+	  enables an extended attribute handler for file security
-+	  labels in the jffs2 filesystem.
-+
-+	  If you are not using a security module that requires using
-+	  extended attributes for file security labels, say N.
-+
-+config JFFS2_COMPRESSION_OPTIONS
-+	bool "Advanced compression options for JFFS2"
-+	depends on JFFS2_FS
-+	default n
-+	help
-+	  Enabling this option allows you to explicitly choose which
-+	  compression modules, if any, are enabled in JFFS2. Removing
-+	  compressors can mean you cannot read existing file systems,
-+	  and enabling experimental compressors can mean that you
-+	  write a file system which cannot be read by a standard kernel.
-+
-+	  If unsure, you should _definitely_ say 'N'.
-+
-+config JFFS2_ZLIB
-+	bool "JFFS2 ZLIB compression support" if JFFS2_COMPRESSION_OPTIONS
-+	select ZLIB_INFLATE
-+	select ZLIB_DEFLATE
-+	depends on JFFS2_FS
-+	default y
-+	help
-+	  Zlib is designed to be a free, general-purpose, legally unencumbered,
-+	  lossless data-compression library for use on virtually any computer
-+	  hardware and operating system. See <http://www.gzip.org/zlib/> for
-+	  further information.
-+
-+	  Say 'Y' if unsure.
-+
-+config JFFS2_LZO
-+	bool "JFFS2 LZO compression support" if JFFS2_COMPRESSION_OPTIONS
-+	select LZO_COMPRESS
-+	select LZO_DECOMPRESS
-+	depends on JFFS2_FS
-+	default n
-+	help
-+	  minilzo-based compression. Generally works better than Zlib.
-+
-+	  This feature was added in July, 2007. Say 'N' if you need
-+	  compatibility with older bootloaders or kernels.
-+
-+config JFFS2_RTIME
-+	bool "JFFS2 RTIME compression support" if JFFS2_COMPRESSION_OPTIONS
-+	depends on JFFS2_FS
-+	default y
-+	help
-+	  Rtime does manage to recompress already-compressed data. Say 'Y' if unsure.
-+
-+config JFFS2_RUBIN
-+	bool "JFFS2 RUBIN compression support" if JFFS2_COMPRESSION_OPTIONS
-+	depends on JFFS2_FS
-+	default n
-+	help
-+	  RUBINMIPS and DYNRUBIN compressors. Say 'N' if unsure.
-+
-+choice
-+	prompt "JFFS2 default compression mode" if JFFS2_COMPRESSION_OPTIONS
-+	default JFFS2_CMODE_PRIORITY
-+	depends on JFFS2_FS
-+	help
-+	  You can set here the default compression mode of JFFS2 from
-+	  the available compression modes. Don't touch if unsure.
-+
-+config JFFS2_CMODE_NONE
-+	bool "no compression"
-+	help
-+	  Uses no compression.
-+
-+config JFFS2_CMODE_PRIORITY
-+	bool "priority"
-+	help
-+	  Tries the compressors in a predefined order and chooses the first
-+	  successful one.
-+
-+config JFFS2_CMODE_SIZE
-+	bool "size (EXPERIMENTAL)"
-+	help
-+	  Tries all compressors and chooses the one which has the smallest
-+	  result.
-+
-+config JFFS2_CMODE_FAVOURLZO
-+	bool "Favour LZO"
-+	help
-+	  Tries all compressors and chooses the one which has the smallest
-+	  result but gives some preference to LZO (which has faster
-+	  decompression) at the expense of size.
-+
-+endchoice
+ /*
+  * Optimization can be either throuput mode or cpu mode
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from joe.korty@ccur.com are
 
-linux-next.patch
-less-softirq-vectors.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-anondev-init-idr-statically.patch
-anondev-switch-to-ida.patch
-cpuset-use-seq_cpumask-seq_nodemask.patch
-sysctl-simplify-strategy.patch
-fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out.patch
-fs-kconfig-move-autofs-autofs4-out.patch
-fs-kconfig-move-jffs2-out.patch
-fs-kconfig-move-cifs-out.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
+x86-make-poll_idle-behave-more-like-the-other-idle-methods.patch
+x86-make-poll_idle-behave-more-like-the-other-idle-methods-checkpatch-fixes.patch
+forcdeth-increase-max_interrupt_work.patch
+message-queues-increase-range-limits.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
 
