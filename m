@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + power-support-for-texas-instruments-bq27x00-battery-managers-fix.patch added to -mm tree
-Date: Fri, 29 Aug 2008 02:15:32 -0700
-Message-ID: <200808290915.m7T9FWcX008906@imap1.linux-foundation.org>
+Subject: + drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug.patch added to -mm tree
+Date: Fri, 29 Aug 2008 12:48:14 -0700
+Message-ID: <200808291948.m7TJmHgs001319@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48641 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34476 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755746AbYH2JQx (ORCPT
+	by vger.kernel.org with ESMTP id S1751526AbYH2TtB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Aug 2008 05:16:53 -0400
+	Fri, 29 Aug 2008 15:49:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cbouatmailru@gmail.com, dwmw2@infradead.org, giometti@linux.it, heiko.carstens@de.ibm.com, khali@linux-fr.org, schwidefsky@de.ibm.com
+Cc: akpm@linux-foundation.org, aaron@merfinllc.com, mpm@selenic.com, stable@kernel.org, tytso@mit.edu
 
 
 The patch titled
-     power-support-for-texas-instruments-bq27x00-battery-managers-fix
+     drivers/char/random.c: fix a race which can lead to a bogus BUG()
 has been added to the -mm tree.  Its filename is
-     power-support-for-texas-instruments-bq27x00-battery-managers-fix.patch
+     drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: power-support-for-texas-instruments-bq27x00-battery-managers-fix
+Subject: drivers/char/random.c: fix a race which can lead to a bogus BUG()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Mend s390
+Fix a bug reported by and diagnosed by Aaron Straus.
 
-Cc: Anton Vorontsov <cbouatmailru@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Rodolfo Giometti <giometti@linux.it>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+This is a regression intruduced into 2.6.26 by
+
+    commit adc782dae6c4c0f6fb679a48a544cfbcd79ae3dc
+    Author: Matt Mackall <mpm@selenic.com>
+    Date:   Tue Apr 29 01:03:07 2008 -0700
+
+        random: simplify and rename credit_entropy_store
+
+credit_entropy_bits() does:
+
+	spin_lock_irqsave(&r->lock, flags);
+	...
+	if (r->entropy_count > r->poolinfo->POOLBITS)
+		r->entropy_count = r->poolinfo->POOLBITS;
+
+so there is a time window in which this BUG_ON():
+
+static size_t account(struct entropy_store *r, size_t nbytes, int min,
+		      int reserved)
+{
+	unsigned long flags;
+
+	BUG_ON(r->entropy_count > r->poolinfo->POOLBITS);
+
+	/* Hold lock while accounting */
+	spin_lock_irqsave(&r->lock, flags);
+
+can trigger.
+
+We could fix this by moving the assertion inside the lock, but it seems
+safer and saner to revert to the old behaviour wherein
+entropy_store.entropy_count at no time exceeds
+entropy_store.poolinfo->POOLBITS.
+
+Reported-by: Aaron Straus <aaron@merfinllc.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: <stable@kernel.org>		[2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/Kconfig |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/char/random.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN drivers/power/Kconfig~power-support-for-texas-instruments-bq27x00-battery-managers-fix drivers/power/Kconfig
---- a/drivers/power/Kconfig~power-support-for-texas-instruments-bq27x00-battery-managers-fix
-+++ a/drivers/power/Kconfig
-@@ -70,8 +70,7 @@ config BATTERY_BQ27x00
+diff -puN drivers/char/random.c~drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug drivers/char/random.c
+--- a/drivers/char/random.c~drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug
++++ a/drivers/char/random.c
+@@ -520,6 +520,7 @@ static void mix_pool_bytes(struct entrop
+ static void credit_entropy_bits(struct entropy_store *r, int nbits)
+ {
+ 	unsigned long flags;
++	int entropy_count;
  
- config BATTERY_BQ27200
- 	bool "BQ27200 battery driver"
--	depends on BATTERY_BQ27x00
--	select I2C
-+	depends on I2c && BATTERY_BQ27x00
- 	help
- 	  Say Y here to enable support for batteries with BQ27200(I2C) chip.
+ 	if (!nbits)
+ 		return;
+@@ -527,20 +528,20 @@ static void credit_entropy_bits(struct e
+ 	spin_lock_irqsave(&r->lock, flags);
+ 
+ 	DEBUG_ENT("added %d entropy credits to %s\n", nbits, r->name);
+-	r->entropy_count += nbits;
+-	if (r->entropy_count < 0) {
++	entropy_count = r->entropy_count;
++	entropy_count += nbits;
++	if (entropy_count < 0) {
+ 		DEBUG_ENT("negative entropy/overflow\n");
+-		r->entropy_count = 0;
+-	} else if (r->entropy_count > r->poolinfo->POOLBITS)
+-		r->entropy_count = r->poolinfo->POOLBITS;
++		entropy_count = 0;
++	} else if (entropy_count > r->poolinfo->POOLBITS)
++		entropy_count = r->poolinfo->POOLBITS;
+ 
+ 	/* should we wake readers? */
+-	if (r == &input_pool &&
+-	    r->entropy_count >= random_read_wakeup_thresh) {
++	if (r == &input_pool && entropy_count >= random_read_wakeup_thresh) {
+ 		wake_up_interruptible(&random_read_wait);
+ 		kill_fasync(&fasync, SIGIO, POLL_IN);
+ 	}
+-
++	r->entropy_count = entropy_count;
+ 	spin_unlock_irqrestore(&r->lock, flags);
+ }
  
 _
 
@@ -98,6 +157,7 @@ pci-tidy-pme-support-messages-checkpatch-fixes.patch
 scsi-gdthc-use-unaligned-access-helpers.patch
 drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
 git-xtensa.patch
+drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
