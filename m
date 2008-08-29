@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch added to -mm tree
-Date: Fri, 29 Aug 2008 13:59:22 -0700
-Message-ID: <200808292112.m7TLCpjF004546@imap1.linux-foundation.org>
+Subject: + toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch added to -mm tree
+Date: Fri, 29 Aug 2008 14:46:11 -0700
+Message-ID: <200808292146.m7TLkB3P006028@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55804 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33166 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758873AbYH2VNg (ORCPT
+	by vger.kernel.org with ESMTP id S1757129AbYH2Vqd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Aug 2008 17:13:36 -0400
+	Fri, 29 Aug 2008 17:46:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, andi@firstfloor.org, hmh@hmh.eng.br, ivdoorn@gmai
 
 
 The patch titled
-     toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix
+     toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix
 has been added to the -mm tree.  Its filename is
-     toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch
+     toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix
+Subject: toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-ERROR: "rfkill_force_state" [drivers/acpi/toshiba_acpi.ko] undefined!
-ERROR: "rfkill_free" [drivers/acpi/toshiba_acpi.ko] undefined!
-ERROR: "rfkill_register" [drivers/acpi/toshiba_acpi.ko] undefined!
-ERROR: "rfkill_allocate" [drivers/acpi/toshiba_acpi.ko] undefined!
-ERROR: "rfkill_unregister" [drivers/acpi/toshiba_acpi.ko] undefined!
 
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
@@ -54,17 +48,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/acpi/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/acpi/Kconfig~toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix
+diff -puN drivers/acpi/Kconfig~toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix drivers/acpi/Kconfig
+--- a/drivers/acpi/Kconfig~toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix
 +++ a/drivers/acpi/Kconfig
 @@ -272,6 +272,7 @@ config ACPI_TOSHIBA
  	tristate "Toshiba Laptop Extras"
  	depends on X86
  	select INPUT_POLLDEV
-+	select RFKILL
++	select NET
+ 	select RFKILL
  	select BACKLIGHT_CLASS_DEVICE
  	---help---
- 	  This driver adds support for access to certain system settings
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,6 +72,7 @@ drivers-mfd-ucb1400_corec-further-unbork.patch
 kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
 acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
 toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch
+toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
 x86-make-poll_idle-behave-more-like-the-other-idle-methods-checkpatch-fixes.patch
 fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
