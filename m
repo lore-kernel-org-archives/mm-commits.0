@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-kconfig-move-autofs-autofs4-out.patch added to -mm tree
-Date: Fri, 29 Aug 2008 13:11:25 -0700
-Message-ID: <200808292011.m7TKBPQw002195@imap1.linux-foundation.org>
+Subject: + fs-kconfig-move-jffs2-out.patch added to -mm tree
+Date: Fri, 29 Aug 2008 13:11:27 -0700
+Message-ID: <200808292011.m7TKBRoX002202@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44997 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40346 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752506AbYH2ULa (ORCPT
+	by vger.kernel.org with ESMTP id S1752546AbYH2ULj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Aug 2008 16:11:30 -0400
+	Fri, 29 Aug 2008 16:11:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, raven@themaw.net
+Cc: adobriyan@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     fs/Kconfig: move autofs, autofs4 out
+     fs/Kconfig: move JFFS2 out
 has been added to the -mm tree.  Its filename is
-     fs-kconfig-move-autofs-autofs4-out.patch
+     fs-kconfig-move-jffs2-out.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,410 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/Kconfig: move autofs, autofs4 out
+Subject: fs/Kconfig: move JFFS2 out
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Ian Kent <raven@themaw.net>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig         |   44 +------------------------------------------
- fs/autofs/Kconfig  |   21 ++++++++++++++++++++
- fs/autofs4/Kconfig |   20 +++++++++++++++++++
- 3 files changed, 43 insertions(+), 42 deletions(-)
+ fs/Kconfig       |  190 ---------------------------------------------
+ fs/jffs2/Kconfig |  188 ++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 189 insertions(+), 189 deletions(-)
 
-diff -puN fs/Kconfig~fs-kconfig-move-autofs-autofs4-out fs/Kconfig
---- a/fs/Kconfig~fs-kconfig-move-autofs-autofs4-out
+diff -puN fs/Kconfig~fs-kconfig-move-jffs2-out fs/Kconfig
+--- a/fs/Kconfig~fs-kconfig-move-jffs2-out
 +++ a/fs/Kconfig
-@@ -350,48 +350,8 @@ config QUOTACTL
- 	depends on XFS_QUOTA || QUOTA
- 	default y
+@@ -857,195 +857,7 @@ config EFS_FS
+ 	  To compile the EFS file system support as a module, choose M here: the
+ 	  module will be called efs.
  
--config AUTOFS_FS
--	tristate "Kernel automounter support"
+-config JFFS2_FS
+-	tristate "Journalling Flash File System v2 (JFFS2) support"
+-	select CRC32
+-	depends on MTD
 -	help
--	  The automounter is a tool to automatically mount remote file systems
--	  on demand. This implementation is partially kernel-based to reduce
--	  overhead in the already-mounted case; this is unlike the BSD
--	  automounter (amd), which is a pure user space daemon.
+-	  JFFS2 is the second generation of the Journalling Flash File System
+-	  for use on diskless embedded devices. It provides improved wear
+-	  levelling, compression and support for hard links. You cannot use
+-	  this on normal block devices, only on 'MTD' devices.
 -
--	  To use the automounter you need the user-space tools from the autofs
--	  package; you can find the location in <file:Documentation/Changes>.
--	  You also want to answer Y to "NFS file system support", below.
+-	  Further information on the design and implementation of JFFS2 is
+-	  available at <http://sources.redhat.com/jffs2/>.
 -
--	  If you want to use the newer version of the automounter with more
--	  features, say N here and say Y to "Kernel automounter v4 support",
--	  below.
--
--	  To compile this support as a module, choose M here: the module will be
--	  called autofs.
--
--	  If you are not a part of a fairly large, distributed network, you
--	  probably do not need an automounter, and can say N here.
--
--config AUTOFS4_FS
--	tristate "Kernel automounter version 4 support (also supports v3)"
+-config JFFS2_FS_DEBUG
+-	int "JFFS2 debugging verbosity (0 = quiet, 2 = noisy)"
+-	depends on JFFS2_FS
+-	default "0"
 -	help
--	  The automounter is a tool to automatically mount remote file systems
--	  on demand. This implementation is partially kernel-based to reduce
--	  overhead in the already-mounted case; this is unlike the BSD
--	  automounter (amd), which is a pure user space daemon.
+-	  This controls the amount of debugging messages produced by the JFFS2
+-	  code. Set it to zero for use in production systems. For evaluation,
+-	  testing and debugging, it's advisable to set it to one. This will
+-	  enable a few assertions and will print debugging messages at the
+-	  KERN_DEBUG loglevel, where they won't normally be visible. Level 2
+-	  is unlikely to be useful - it enables extra debugging in certain
+-	  areas which at one point needed debugging, but when the bugs were
+-	  located and fixed, the detailed messages were relegated to level 2.
 -
--	  To use the automounter you need the user-space tools from
--	  <ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4/>; you also
--	  want to answer Y to "NFS file system support", below.
+-	  If reporting bugs, please try to have available a full dump of the
+-	  messages at debug level 1 while the misbehaviour was occurring.
 -
--	  To compile this support as a module, choose M here: the module will be
--	  called autofs4.  You will need to add "alias autofs autofs4" to your
--	  modules configuration file.
+-config JFFS2_FS_WRITEBUFFER
+-	bool "JFFS2 write-buffering support"
+-	depends on JFFS2_FS
+-	default y
+-	help
+-	  This enables the write-buffering support in JFFS2.
 -
--	  If you are not a part of a fairly large, distributed network or
--	  don't have a laptop which needs to dynamically reconfigure to the
--	  local network, you probably do not need an automounter, and can say
--	  N here.
-+source "fs/autofs/Kconfig"
-+source "fs/autofs4/Kconfig"
+-	  This functionality is required to support JFFS2 on the following
+-	  types of flash devices:
+-	    - NAND flash
+-	    - NOR flash with transparent ECC
+-	    - DataFlash
+-
+-config JFFS2_FS_WBUF_VERIFY
+-	bool "Verify JFFS2 write-buffer reads"
+-	depends on JFFS2_FS_WRITEBUFFER
+-	default n
+-	help
+-	  This causes JFFS2 to read back every page written through the
+-	  write-buffer, and check for errors.
+-
+-config JFFS2_SUMMARY
+-	bool "JFFS2 summary support (EXPERIMENTAL)"
+-	depends on JFFS2_FS && EXPERIMENTAL
+-	default n
+-	help
+-	  This feature makes it possible to use summary information
+-	  for faster filesystem mount.
+-
+-	  The summary information can be inserted into a filesystem image
+-	  by the utility 'sumtool'.
+-
+-	  If unsure, say 'N'.
+-
+-config JFFS2_FS_XATTR
+-	bool "JFFS2 XATTR support (EXPERIMENTAL)"
+-	depends on JFFS2_FS && EXPERIMENTAL
+-	default n
+-	help
+-	  Extended attributes are name:value pairs associated with inodes by
+-	  the kernel or by users (see the attr(5) manual page, or visit
+-	  <http://acl.bestbits.at/> for details).
+-
+-	  If unsure, say N.
+-
+-config JFFS2_FS_POSIX_ACL
+-	bool "JFFS2 POSIX Access Control Lists"
+-	depends on JFFS2_FS_XATTR
+-	default y
+-	select FS_POSIX_ACL
+-	help
+-	  Posix Access Control Lists (ACLs) support permissions for users and
+-	  groups beyond the owner/group/world scheme.
+-
+-	  To learn more about Access Control Lists, visit the Posix ACLs for
+-	  Linux website <http://acl.bestbits.at/>.
+-
+-	  If you don't know what Access Control Lists are, say N
+-
+-config JFFS2_FS_SECURITY
+-	bool "JFFS2 Security Labels"
+-	depends on JFFS2_FS_XATTR
+-	default y
+-	help
+-	  Security labels support alternative access control models
+-	  implemented by security modules like SELinux.  This option
+-	  enables an extended attribute handler for file security
+-	  labels in the jffs2 filesystem.
+-
+-	  If you are not using a security module that requires using
+-	  extended attributes for file security labels, say N.
+-
+-config JFFS2_COMPRESSION_OPTIONS
+-	bool "Advanced compression options for JFFS2"
+-	depends on JFFS2_FS
+-	default n
+-	help
+-	  Enabling this option allows you to explicitly choose which
+-	  compression modules, if any, are enabled in JFFS2. Removing
+-	  compressors can mean you cannot read existing file systems,
+-	  and enabling experimental compressors can mean that you
+-	  write a file system which cannot be read by a standard kernel.
+-
+-	  If unsure, you should _definitely_ say 'N'.
+-
+-config JFFS2_ZLIB
+-	bool "JFFS2 ZLIB compression support" if JFFS2_COMPRESSION_OPTIONS
+-	select ZLIB_INFLATE
+-	select ZLIB_DEFLATE
+-	depends on JFFS2_FS
+-	default y
+-	help
+-	  Zlib is designed to be a free, general-purpose, legally unencumbered,
+-	  lossless data-compression library for use on virtually any computer
+-	  hardware and operating system. See <http://www.gzip.org/zlib/> for
+-	  further information.
+-
+-	  Say 'Y' if unsure.
+-
+-config JFFS2_LZO
+-	bool "JFFS2 LZO compression support" if JFFS2_COMPRESSION_OPTIONS
+-	select LZO_COMPRESS
+-	select LZO_DECOMPRESS
+-	depends on JFFS2_FS
+-	default n
+-	help
+-	  minilzo-based compression. Generally works better than Zlib.
+-
+-	  This feature was added in July, 2007. Say 'N' if you need
+-	  compatibility with older bootloaders or kernels.
+-
+-config JFFS2_RTIME
+-	bool "JFFS2 RTIME compression support" if JFFS2_COMPRESSION_OPTIONS
+-	depends on JFFS2_FS
+-	default y
+-	help
+-	  Rtime does manage to recompress already-compressed data. Say 'Y' if unsure.
+-
+-config JFFS2_RUBIN
+-	bool "JFFS2 RUBIN compression support" if JFFS2_COMPRESSION_OPTIONS
+-	depends on JFFS2_FS
+-	default n
+-	help
+-	  RUBINMIPS and DYNRUBIN compressors. Say 'N' if unsure.
+-
+-choice
+-	prompt "JFFS2 default compression mode" if JFFS2_COMPRESSION_OPTIONS
+-	default JFFS2_CMODE_PRIORITY
+-	depends on JFFS2_FS
+-	help
+-	  You can set here the default compression mode of JFFS2 from
+-	  the available compression modes. Don't touch if unsure.
+-
+-config JFFS2_CMODE_NONE
+-	bool "no compression"
+-	help
+-	  Uses no compression.
+-
+-config JFFS2_CMODE_PRIORITY
+-	bool "priority"
+-	help
+-	  Tries the compressors in a predefined order and chooses the first
+-	  successful one.
+-
+-config JFFS2_CMODE_SIZE
+-	bool "size (EXPERIMENTAL)"
+-	help
+-	  Tries all compressors and chooses the one which has the smallest
+-	  result.
+-
+-config JFFS2_CMODE_FAVOURLZO
+-	bool "Favour LZO"
+-	help
+-	  Tries all compressors and chooses the one which has the smallest
+-	  result but gives some preference to LZO (which has faster
+-	  decompression) at the expense of size.
+-
+-endchoice
+-
++source "fs/jffs2/Kconfig"
+ # UBIFS File system configuration
+ source "fs/ubifs/Kconfig"
  
- config FUSE_FS
- 	tristate "Filesystem in Userspace support"
-diff -puN /dev/null fs/autofs/Kconfig
+diff -puN /dev/null fs/jffs2/Kconfig
 --- /dev/null
-+++ a/fs/autofs/Kconfig
-@@ -0,0 +1,21 @@
-+config AUTOFS_FS
-+	tristate "Kernel automounter support"
++++ a/fs/jffs2/Kconfig
+@@ -0,0 +1,188 @@
++config JFFS2_FS
++	tristate "Journalling Flash File System v2 (JFFS2) support"
++	select CRC32
++	depends on MTD
 +	help
-+	  The automounter is a tool to automatically mount remote file systems
-+	  on demand. This implementation is partially kernel-based to reduce
-+	  overhead in the already-mounted case; this is unlike the BSD
-+	  automounter (amd), which is a pure user space daemon.
++	  JFFS2 is the second generation of the Journalling Flash File System
++	  for use on diskless embedded devices. It provides improved wear
++	  levelling, compression and support for hard links. You cannot use
++	  this on normal block devices, only on 'MTD' devices.
 +
-+	  To use the automounter you need the user-space tools from the autofs
-+	  package; you can find the location in <file:Documentation/Changes>.
-+	  You also want to answer Y to "NFS file system support", below.
++	  Further information on the design and implementation of JFFS2 is
++	  available at <http://sources.redhat.com/jffs2/>.
 +
-+	  If you want to use the newer version of the automounter with more
-+	  features, say N here and say Y to "Kernel automounter v4 support",
-+	  below.
-+
-+	  To compile this support as a module, choose M here: the module will be
-+	  called autofs.
-+
-+	  If you are not a part of a fairly large, distributed network, you
-+	  probably do not need an automounter, and can say N here.
-diff -puN /dev/null fs/autofs4/Kconfig
---- /dev/null
-+++ a/fs/autofs4/Kconfig
-@@ -0,0 +1,20 @@
-+config AUTOFS4_FS
-+	tristate "Kernel automounter version 4 support (also supports v3)"
++config JFFS2_FS_DEBUG
++	int "JFFS2 debugging verbosity (0 = quiet, 2 = noisy)"
++	depends on JFFS2_FS
++	default "0"
 +	help
-+	  The automounter is a tool to automatically mount remote file systems
-+	  on demand. This implementation is partially kernel-based to reduce
-+	  overhead in the already-mounted case; this is unlike the BSD
-+	  automounter (amd), which is a pure user space daemon.
++	  This controls the amount of debugging messages produced by the JFFS2
++	  code. Set it to zero for use in production systems. For evaluation,
++	  testing and debugging, it's advisable to set it to one. This will
++	  enable a few assertions and will print debugging messages at the
++	  KERN_DEBUG loglevel, where they won't normally be visible. Level 2
++	  is unlikely to be useful - it enables extra debugging in certain
++	  areas which at one point needed debugging, but when the bugs were
++	  located and fixed, the detailed messages were relegated to level 2.
 +
-+	  To use the automounter you need the user-space tools from
-+	  <ftp://ftp.kernel.org/pub/linux/daemons/autofs/v4/>; you also
-+	  want to answer Y to "NFS file system support", below.
++	  If reporting bugs, please try to have available a full dump of the
++	  messages at debug level 1 while the misbehaviour was occurring.
 +
-+	  To compile this support as a module, choose M here: the module will be
-+	  called autofs4.  You will need to add "alias autofs autofs4" to your
-+	  modules configuration file.
++config JFFS2_FS_WRITEBUFFER
++	bool "JFFS2 write-buffering support"
++	depends on JFFS2_FS
++	default y
++	help
++	  This enables the write-buffering support in JFFS2.
 +
-+	  If you are not a part of a fairly large, distributed network or
-+	  don't have a laptop which needs to dynamically reconfigure to the
-+	  local network, you probably do not need an automounter, and can say
-+	  N here.
++	  This functionality is required to support JFFS2 on the following
++	  types of flash devices:
++	    - NAND flash
++	    - NOR flash with transparent ECC
++	    - DataFlash
++
++config JFFS2_FS_WBUF_VERIFY
++	bool "Verify JFFS2 write-buffer reads"
++	depends on JFFS2_FS_WRITEBUFFER
++	default n
++	help
++	  This causes JFFS2 to read back every page written through the
++	  write-buffer, and check for errors.
++
++config JFFS2_SUMMARY
++	bool "JFFS2 summary support (EXPERIMENTAL)"
++	depends on JFFS2_FS && EXPERIMENTAL
++	default n
++	help
++	  This feature makes it possible to use summary information
++	  for faster filesystem mount.
++
++	  The summary information can be inserted into a filesystem image
++	  by the utility 'sumtool'.
++
++	  If unsure, say 'N'.
++
++config JFFS2_FS_XATTR
++	bool "JFFS2 XATTR support (EXPERIMENTAL)"
++	depends on JFFS2_FS && EXPERIMENTAL
++	default n
++	help
++	  Extended attributes are name:value pairs associated with inodes by
++	  the kernel or by users (see the attr(5) manual page, or visit
++	  <http://acl.bestbits.at/> for details).
++
++	  If unsure, say N.
++
++config JFFS2_FS_POSIX_ACL
++	bool "JFFS2 POSIX Access Control Lists"
++	depends on JFFS2_FS_XATTR
++	default y
++	select FS_POSIX_ACL
++	help
++	  Posix Access Control Lists (ACLs) support permissions for users and
++	  groups beyond the owner/group/world scheme.
++
++	  To learn more about Access Control Lists, visit the Posix ACLs for
++	  Linux website <http://acl.bestbits.at/>.
++
++	  If you don't know what Access Control Lists are, say N
++
++config JFFS2_FS_SECURITY
++	bool "JFFS2 Security Labels"
++	depends on JFFS2_FS_XATTR
++	default y
++	help
++	  Security labels support alternative access control models
++	  implemented by security modules like SELinux.  This option
++	  enables an extended attribute handler for file security
++	  labels in the jffs2 filesystem.
++
++	  If you are not using a security module that requires using
++	  extended attributes for file security labels, say N.
++
++config JFFS2_COMPRESSION_OPTIONS
++	bool "Advanced compression options for JFFS2"
++	depends on JFFS2_FS
++	default n
++	help
++	  Enabling this option allows you to explicitly choose which
++	  compression modules, if any, are enabled in JFFS2. Removing
++	  compressors can mean you cannot read existing file systems,
++	  and enabling experimental compressors can mean that you
++	  write a file system which cannot be read by a standard kernel.
++
++	  If unsure, you should _definitely_ say 'N'.
++
++config JFFS2_ZLIB
++	bool "JFFS2 ZLIB compression support" if JFFS2_COMPRESSION_OPTIONS
++	select ZLIB_INFLATE
++	select ZLIB_DEFLATE
++	depends on JFFS2_FS
++	default y
++	help
++	  Zlib is designed to be a free, general-purpose, legally unencumbered,
++	  lossless data-compression library for use on virtually any computer
++	  hardware and operating system. See <http://www.gzip.org/zlib/> for
++	  further information.
++
++	  Say 'Y' if unsure.
++
++config JFFS2_LZO
++	bool "JFFS2 LZO compression support" if JFFS2_COMPRESSION_OPTIONS
++	select LZO_COMPRESS
++	select LZO_DECOMPRESS
++	depends on JFFS2_FS
++	default n
++	help
++	  minilzo-based compression. Generally works better than Zlib.
++
++	  This feature was added in July, 2007. Say 'N' if you need
++	  compatibility with older bootloaders or kernels.
++
++config JFFS2_RTIME
++	bool "JFFS2 RTIME compression support" if JFFS2_COMPRESSION_OPTIONS
++	depends on JFFS2_FS
++	default y
++	help
++	  Rtime does manage to recompress already-compressed data. Say 'Y' if unsure.
++
++config JFFS2_RUBIN
++	bool "JFFS2 RUBIN compression support" if JFFS2_COMPRESSION_OPTIONS
++	depends on JFFS2_FS
++	default n
++	help
++	  RUBINMIPS and DYNRUBIN compressors. Say 'N' if unsure.
++
++choice
++	prompt "JFFS2 default compression mode" if JFFS2_COMPRESSION_OPTIONS
++	default JFFS2_CMODE_PRIORITY
++	depends on JFFS2_FS
++	help
++	  You can set here the default compression mode of JFFS2 from
++	  the available compression modes. Don't touch if unsure.
++
++config JFFS2_CMODE_NONE
++	bool "no compression"
++	help
++	  Uses no compression.
++
++config JFFS2_CMODE_PRIORITY
++	bool "priority"
++	help
++	  Tries the compressors in a predefined order and chooses the first
++	  successful one.
++
++config JFFS2_CMODE_SIZE
++	bool "size (EXPERIMENTAL)"
++	help
++	  Tries all compressors and chooses the one which has the smallest
++	  result.
++
++config JFFS2_CMODE_FAVOURLZO
++	bool "Favour LZO"
++	help
++	  Tries all compressors and chooses the one which has the smallest
++	  result but gives some preference to LZO (which has faster
++	  decompression) at the expense of size.
++
++endchoice
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
