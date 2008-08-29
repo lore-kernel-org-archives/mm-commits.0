@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + debugobjects-fix-lockdep-warning.patch added to -mm tree
-Date: Thu, 28 Aug 2008 17:17:22 -0700
-Message-ID: <200808290017.m7T0HMcO021866@imap1.linux-foundation.org>
+Subject: + rtc-cmos-wake-again-from-s5.patch added to -mm tree
+Date: Thu, 28 Aug 2008 17:19:35 -0700
+Message-ID: <200808290019.m7T0Ja3F021941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39141 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35336 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755482AbYH2ASJ (ORCPT
+	by vger.kernel.org with ESMTP id S1752425AbYH2ATs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 28 Aug 2008 20:18:09 -0400
+	Thu, 28 Aug 2008 20:19:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vegard.nossum@gmail.com, a.p.zijlstra@chello.nl, daniel.blueman@gmail.com, mingo@elte.hu, rjw@sisk.pl, tglx@linutronix.de
+Cc: rjw@sisk.pl, dbrownell@users.sourceforge.net, rui.zhang@intel.com, yakui.zhao@intel.com
 
 
 The patch titled
-     debugobjects: fix lockdep warning
+     rtc-cmos: wake again from S5
 has been added to the -mm tree.  Its filename is
-     debugobjects-fix-lockdep-warning.patch
+     rtc-cmos-wake-again-from-s5.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,160 +34,150 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: debugobjects: fix lockdep warning
-From: Vegard Nossum <vegard.nossum@gmail.com>
+Subject: rtc-cmos: wake again from S5
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Daniel J. Blueman reported:
-> =======================================================
-> [ INFO: possible circular locking dependency detected ]
-> 2.6.27-rc4-224c #1
-> -------------------------------------------------------
-> hald/4680 is trying to acquire lock:
->  (&n->list_lock){++..}, at: [<ffffffff802bfa26>] add_partial+0x26/0x80
->
-> but task is already holding lock:
->  (&obj_hash[i].lock){++..}, at: [<ffffffff8041cfdc>]
-> debug_object_free+0x5c/0x120
+Update rtc-cmos shutdown handling to leave RTC alarms active, resolving
+http://bugzilla.kernel.org/show_bug.cgi?id=11411 on several boards.  There
+are still some systems where the ACPI event handling doesn't cooperate. 
+(Possibly related to bugid 11312, reporting the spontaneous disabling of
+RTC events.)
 
-We fix it by moving the actual freeing to outside the lock (the lock
-now only protects the list).
+Bug 11411 reported that changes to work around some ACPI event issues
+broke wake-from-S5 handling, as used for DVR applications.  (They like to
+power off, then wake later to record programs.)
 
-The lock is also promoted to irq-safe (suggested by Dan).
-
-Reported-by: Daniel J Blueman <daniel.blueman@gmail.com>
-Signed-off-by: Vegard Nossum <vegard.nossum@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+[yakui.zhao@intel.com: add shutdown for PNP devices]
+[dbrownell@users.sourceforge.net: update comments]
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/debugobjects.c |   38 +++++++++++++++++++++++++++++---------
- 1 file changed, 29 insertions(+), 9 deletions(-)
+ drivers/rtc/rtc-cmos.c |   38 ++++++++++++++++++++++++++++++++------
+ 1 file changed, 32 insertions(+), 6 deletions(-)
 
-diff -puN lib/debugobjects.c~debugobjects-fix-lockdep-warning lib/debugobjects.c
---- a/lib/debugobjects.c~debugobjects-fix-lockdep-warning
-+++ a/lib/debugobjects.c
-@@ -116,9 +116,10 @@ static struct debug_obj *lookup_object(v
- static struct debug_obj *
- alloc_object(void *addr, struct debug_bucket *b, struct debug_obj_descr *descr)
+diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-wake-again-from-s5 drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-cmos-wake-again-from-s5
++++ a/drivers/rtc/rtc-cmos.c
+@@ -800,7 +800,6 @@ static void __exit cmos_do_remove(struct
+ static int cmos_suspend(struct device *dev, pm_message_t mesg)
  {
-+	unsigned long flags;
- 	struct debug_obj *obj = NULL;
+ 	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
+-	int		do_wake = device_may_wakeup(dev);
+ 	unsigned char	tmp;
  
--	spin_lock(&pool_lock);
-+	spin_lock_irqsave(&pool_lock, flags);
- 	if (obj_pool.first) {
- 		obj	    = hlist_entry(obj_pool.first, typeof(*obj), node);
+ 	/* only the alarm might be a wakeup event source */
+@@ -809,7 +808,7 @@ static int cmos_suspend(struct device *d
+ 	if (tmp & (RTC_PIE|RTC_AIE|RTC_UIE)) {
+ 		unsigned char	mask;
  
-@@ -137,7 +138,7 @@ alloc_object(void *addr, struct debug_bu
- 		if (obj_pool_free < obj_pool_min_free)
- 			obj_pool_min_free = obj_pool_free;
- 	}
--	spin_unlock(&pool_lock);
-+	spin_unlock_irqrestore(&pool_lock, flags);
- 
- 	return obj;
+-		if (do_wake)
++		if (device_may_wakeup(dev))
+ 			mask = RTC_IRQMASK & ~RTC_AIE;
+ 		else
+ 			mask = RTC_IRQMASK;
+@@ -837,6 +836,17 @@ static int cmos_suspend(struct device *d
+ 	return 0;
  }
-@@ -147,18 +148,19 @@ alloc_object(void *addr, struct debug_bu
-  */
- static void free_object(struct debug_obj *obj)
- {
-+	unsigned long flags;
- 	unsigned long idx = (unsigned long)(obj - obj_static_pool);
  
- 	if (obj_pool_free < ODEBUG_POOL_SIZE || idx < ODEBUG_POOL_SIZE) {
--		spin_lock(&pool_lock);
-+		spin_lock_irqsave(&pool_lock, flags);
- 		hlist_add_head(&obj->node, &obj_pool);
- 		obj_pool_free++;
- 		obj_pool_used--;
--		spin_unlock(&pool_lock);
-+		spin_unlock_irqrestore(&pool_lock, flags);
- 	} else {
--		spin_lock(&pool_lock);
-+		spin_lock_irqsave(&pool_lock, flags);
- 		obj_pool_used--;
--		spin_unlock(&pool_lock);
-+		spin_unlock_irqrestore(&pool_lock, flags);
- 		kmem_cache_free(obj_cache, obj);
- 	}
- }
-@@ -171,19 +173,28 @@ static void debug_objects_oom(void)
- {
- 	struct debug_bucket *db = obj_hash;
- 	struct hlist_node *node, *tmp;
-+	HLIST_HEAD(freelist);
- 	struct debug_obj *obj;
- 	unsigned long flags;
- 	int i;
- 
- 	printk(KERN_WARNING "ODEBUG: Out of memory. ODEBUG disabled\n");
- 
-+	/* XXX: Could probably be optimized by transplantation of more than
-+	 * one entry at a time. */
- 	for (i = 0; i < ODEBUG_HASH_SIZE; i++, db++) {
- 		spin_lock_irqsave(&db->lock, flags);
- 		hlist_for_each_entry_safe(obj, node, tmp, &db->list, node) {
- 			hlist_del(&obj->node);
--			free_object(obj);
-+			hlist_add_head(&obj->node, &freelist);
- 		}
- 		spin_unlock_irqrestore(&db->lock, flags);
++/* We want RTC alarms to wake us from e.g. ACPI G2/S5 "soft off", even
++ * after a detour through G3 "mechanical off", although the ACPI spec
++ * says wakeup should only work from G1/S4 "hibernate".  To most users,
++ * distinctions between S4 and S5 are pointless.  So when the hardware
++ * allows, don't draw that distinction.
++ */
++static inline int cmos_poweroff(struct device *dev)
++{
++	return cmos_suspend(dev, PMSG_HIBERNATE);
++}
 +
-+		/* Now free them */
-+		hlist_for_each_entry_safe(obj, node, tmp, &freelist, node) {
-+			hlist_del(&obj->node);
-+			free_object(obj);
-+		}
- 	}
- }
+ static int cmos_resume(struct device *dev)
+ {
+ 	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
+@@ -884,6 +894,12 @@ static int cmos_resume(struct device *de
+ #else
+ #define	cmos_suspend	NULL
+ #define	cmos_resume	NULL
++
++static inline int cmos_poweroff(struct device *dev)
++{
++	return -ENOSYS;
++}
++
+ #endif
  
-@@ -498,8 +509,9 @@ void debug_object_free(void *addr, struc
- 		return;
- 	default:
- 		hlist_del(&obj->node);
-+		spin_unlock_irqrestore(&db->lock, flags);
- 		free_object(obj);
--		break;
+ /*----------------------------------------------------------------*/
+@@ -903,10 +919,6 @@ static int cmos_resume(struct device *de
+ static int __devinit
+ cmos_pnp_probe(struct pnp_dev *pnp, const struct pnp_device_id *id)
+ {
+-	/* REVISIT paranoia argues for a shutdown notifier, since PNP
+-	 * drivers can't provide shutdown() methods to disable IRQs.
+-	 * Or better yet, fix PNP to allow those methods...
+-	 */
+ 	if (pnp_port_start(pnp,0) == 0x70 && !pnp_irq_valid(pnp,0))
+ 		/* Some machines contain a PNP entry for the RTC, but
+ 		 * don't define the IRQ. It should always be safe to
+@@ -942,6 +954,13 @@ static int cmos_pnp_resume(struct pnp_de
+ #define	cmos_pnp_resume		NULL
+ #endif
+ 
++static void cmos_pnp_shutdown(struct device *pdev)
++{
++	if (system_state == SYSTEM_POWER_OFF && !cmos_poweroff(pdev))
 +		return;
- 	}
- out_unlock:
- 	spin_unlock_irqrestore(&db->lock, flags);
-@@ -510,6 +522,7 @@ static void __debug_check_no_obj_freed(c
++
++	cmos_do_shutdown();
++}
+ 
+ static const struct pnp_device_id rtc_ids[] = {
+ 	{ .id = "PNP0b00", },
+@@ -961,6 +980,10 @@ static struct pnp_driver cmos_pnp_driver
+ 	.flags		= PNP_DRIVER_RES_DO_NOT_CHANGE,
+ 	.suspend	= cmos_pnp_suspend,
+ 	.resume		= cmos_pnp_resume,
++	.driver		= {
++		.name	  = (char *)driver_name,
++		.shutdown = cmos_pnp_shutdown,
++	}
+ };
+ 
+ #endif	/* CONFIG_PNP */
+@@ -986,6 +1009,9 @@ static int __exit cmos_platform_remove(s
+ 
+ static void cmos_platform_shutdown(struct platform_device *pdev)
  {
- 	unsigned long flags, oaddr, saddr, eaddr, paddr, chunks;
- 	struct hlist_node *node, *tmp;
-+	HLIST_HEAD(freelist);
- 	struct debug_obj_descr *descr;
- 	enum debug_obj_state state;
- 	struct debug_bucket *db;
-@@ -545,11 +558,18 @@ repeat:
- 				goto repeat;
- 			default:
- 				hlist_del(&obj->node);
--				free_object(obj);
-+				hlist_add_head(&obj->node, &freelist);
- 				break;
- 			}
- 		}
- 		spin_unlock_irqrestore(&db->lock, flags);
++	if (system_state == SYSTEM_POWER_OFF && !cmos_poweroff(&pdev->dev))
++		return;
 +
-+		/* Now free them */
-+		hlist_for_each_entry_safe(obj, node, tmp, &freelist, node) {
-+			hlist_del(&obj->node);
-+			free_object(obj);
-+		}
-+
- 		if (cnt > debug_objects_maxchain)
- 			debug_objects_maxchain = cnt;
- 	}
+ 	cmos_do_shutdown();
+ }
+ 
 _
 
-Patches currently in -mm which might be from vegard.nossum@gmail.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
 linux-next.patch
+skge-adapt-skge-to-use-reworked-pci-pm.patch
+skty2-adapt-to-the-reworked-pci-pm.patch
+e100-adapt-to-the-reworked-pci-pm.patch
+pci-pm-introduce-function-pci_wake_from_d3-rev-2.patch
 debugobjects-fix-lockdep-warning.patch
+rtc-cmos-wake-again-from-s5.patch
+forcedeth-fix-kexec-regression.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures.patch
+container-freezer-make-refrigerator-always-available.patch
+container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process.patch
+container-freezer-implement-freezer-cgroup-subsystem-cleanup-comment.patch
+container-freezer-skip-frozen-cgroups-during-power-management-resume.patch
+vsprintf-use-new-vsprintf-symbolic-function-pointer-format.patch
+vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
+shrink_slab-handle-bad-shrinkers.patch
 
