@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out.patch added to -mm tree
-Date: Fri, 29 Aug 2008 13:11:23 -0700
-Message-ID: <200808292011.m7TKBN14002192@imap1.linux-foundation.org>
+Subject: + fs-kconfig-move-cifs-out.patch added to -mm tree
+Date: Fri, 29 Aug 2008 13:11:29 -0700
+Message-ID: <200808292011.m7TKBTst002205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51298 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51946 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751816AbYH2UL2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752498AbYH2ULe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 29 Aug 2008 16:11:28 -0400
+	Fri, 29 Aug 2008 16:11:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, linux-ext4@vger.kernel.org
+Cc: adobriyan@gmail.com, sfrench@us.ibm.com
 
 
 The patch titled
-     fs/Kconfig: move ext2, ext3, ext4, JBD, JBD2 out
+     fs/Kconfig: move CIFS out
 has been added to the -mm tree.  Its filename is
-     fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out.patch
+     fs-kconfig-move-cifs-out.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,570 +34,317 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/Kconfig: move ext2, ext3, ext4, JBD, JBD2 out
+Subject: fs/Kconfig: move CIFS out
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Use fs/*/Kconfig more, which is good because everything related to one
-filesystem is in one place and fs/Kconfig is quite fat.
-
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: <linux-ext4@vger.kernel.org>
+Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig      |  258 ----------------------------------------------
- fs/ext2/Kconfig |   55 +++++++++
- fs/ext3/Kconfig |   67 +++++++++++
- fs/ext4/Kconfig |   65 +++++++++++
- fs/jbd/Kconfig  |   31 +++++
- fs/jbd2/Kconfig |   32 +++++
- 6 files changed, 255 insertions(+), 253 deletions(-)
+ fs/Kconfig      |  143 ----------------------------------------------
+ fs/cifs/Kconfig |  142 +++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 143 insertions(+), 142 deletions(-)
 
-diff -puN fs/Kconfig~fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out fs/Kconfig
---- a/fs/Kconfig~fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out
+diff -puN fs/Kconfig~fs-kconfig-move-cifs-out fs/Kconfig
+--- a/fs/Kconfig~fs-kconfig-move-cifs-out
 +++ a/fs/Kconfig
-@@ -6,61 +6,9 @@ menu "File systems"
+@@ -1414,148 +1414,7 @@ config SMB_NLS_REMOTE
  
- if BLOCK
+ 	  smbmount from samba 2.2.0 or later supports this.
  
--config EXT2_FS
--	tristate "Second extended fs support"
+-config CIFS
+-	tristate "CIFS support (advanced network filesystem, SMBFS successor)"
+-	depends on INET
+-	select NLS
 -	help
--	  Ext2 is a standard Linux file system for hard disks.
+-	  This is the client VFS module for the Common Internet File System
+-	  (CIFS) protocol which is the successor to the Server Message Block 
+-	  (SMB) protocol, the native file sharing mechanism for most early
+-	  PC operating systems.  The CIFS protocol is fully supported by 
+-	  file servers such as Windows 2000 (including Windows 2003, NT 4  
+-	  and Windows XP) as well by Samba (which provides excellent CIFS
+-	  server support for Linux and many other operating systems). Limited
+-	  support for OS/2 and Windows ME and similar servers is provided as
+-	  well.
 -
--	  To compile this file system support as a module, choose M here: the
--	  module will be called ext2.
+-	  The cifs module provides an advanced network file system
+-	  client for mounting to CIFS compliant servers.  It includes
+-	  support for DFS (hierarchical name space), secure per-user
+-	  session establishment via Kerberos or NTLM or NTLMv2,
+-	  safe distributed caching (oplock), optional packet
+-	  signing, Unicode and other internationalization improvements.
+-	  If you need to mount to Samba or Windows from this machine, say Y.
 -
--	  If unsure, say Y.
+-config CIFS_STATS
+-        bool "CIFS statistics"
+-        depends on CIFS
+-        help
+-          Enabling this option will cause statistics for each server share
+-	  mounted by the cifs client to be displayed in /proc/fs/cifs/Stats
 -
--config EXT2_FS_XATTR
--	bool "Ext2 extended attributes"
--	depends on EXT2_FS
+-config CIFS_STATS2
+-	bool "Extended statistics"
+-	depends on CIFS_STATS
 -	help
--	  Extended attributes are name:value pairs associated with inodes by
--	  the kernel or by users (see the attr(5) manual page, or visit
--	  <http://acl.bestbits.at/> for details).
+-	  Enabling this option will allow more detailed statistics on SMB
+-	  request timing to be displayed in /proc/fs/cifs/DebugData and also
+-	  allow optional logging of slow responses to dmesg (depending on the
+-	  value of /proc/fs/cifs/cifsFYI, see fs/cifs/README for more details).
+-	  These additional statistics may have a minor effect on performance
+-	  and memory utilization.
+-
+-	  Unless you are a developer or are doing network performance analysis
+-	  or tuning, say N.
+-
+-config CIFS_WEAK_PW_HASH
+-	bool "Support legacy servers which use weaker LANMAN security"
+-	depends on CIFS
+-	help
+-	  Modern CIFS servers including Samba and most Windows versions
+-	  (since 1997) support stronger NTLM (and even NTLMv2 and Kerberos)
+-	  security mechanisms. These hash the password more securely
+-	  than the mechanisms used in the older LANMAN version of the
+-	  SMB protocol but LANMAN based authentication is needed to
+-	  establish sessions with some old SMB servers.
+-
+-	  Enabling this option allows the cifs module to mount to older
+-	  LANMAN based servers such as OS/2 and Windows 95, but such
+-	  mounts may be less secure than mounts using NTLM or more recent
+-	  security mechanisms if you are on a public network.  Unless you
+-	  have a need to access old SMB servers (and are on a private
+-	  network) you probably want to say N.  Even if this support
+-	  is enabled in the kernel build, LANMAN authentication will not be
+-	  used automatically. At runtime LANMAN mounts are disabled but
+-	  can be set to required (or optional) either in
+-	  /proc/fs/cifs (see fs/cifs/README for more detail) or via an
+-	  option on the mount command. This support is disabled by
+-	  default in order to reduce the possibility of a downgrade
+-	  attack.
 -
 -	  If unsure, say N.
 -
--config EXT2_FS_POSIX_ACL
--	bool "Ext2 POSIX Access Control Lists"
--	depends on EXT2_FS_XATTR
--	select FS_POSIX_ACL
+-config CIFS_UPCALL
+-	  bool "Kerberos/SPNEGO advanced session setup"
+-	  depends on CIFS && KEYS
+-	  help
+-	    Enables an upcall mechanism for CIFS which accesses
+-	    userspace helper utilities to provide SPNEGO packaged (RFC 4178)
+-	    Kerberos tickets which are needed to mount to certain secure servers
+-	    (for which more secure Kerberos authentication is required). If
+-	    unsure, say N.
+-
+-config CIFS_XATTR
+-        bool "CIFS extended attributes"
+-        depends on CIFS
+-        help
+-          Extended attributes are name:value pairs associated with inodes by
+-          the kernel or by users (see the attr(5) manual page, or visit
+-          <http://acl.bestbits.at/> for details).  CIFS maps the name of
+-          extended attributes beginning with the user namespace prefix
+-          to SMB/CIFS EAs. EAs are stored on Windows servers without the
+-          user namespace prefix, but their names are seen by Linux cifs clients
+-          prefaced by the user namespace prefix. The system namespace
+-          (used by some filesystems to store ACLs) is not supported at
+-          this time.
+-
+-          If unsure, say N.
+-
+-config CIFS_POSIX
+-        bool "CIFS POSIX Extensions"
+-        depends on CIFS_XATTR
+-        help
+-          Enabling this option will cause the cifs client to attempt to
+-	  negotiate a newer dialect with servers, such as Samba 3.0.5
+-	  or later, that optionally can handle more POSIX like (rather
+-	  than Windows like) file behavior.  It also enables
+-	  support for POSIX ACLs (getfacl and setfacl) to servers
+-	  (such as Samba 3.10 and later) which can negotiate
+-	  CIFS POSIX ACL support.  If unsure, say N.
+-
+-config CIFS_DEBUG2
+-	bool "Enable additional CIFS debugging routines"
+-	depends on CIFS
 -	help
--	  Posix Access Control Lists (ACLs) support permissions for users and
--	  groups beyond the owner/group/world scheme.
+-	   Enabling this option adds a few more debugging routines
+-	   to the cifs code which slightly increases the size of
+-	   the cifs module and can cause additional logging of debug
+-	   messages in some error paths, slowing performance. This
+-	   option can be turned off unless you are debugging
+-	   cifs problems.  If unsure, say N.
 -
--	  To learn more about Access Control Lists, visit the Posix ACLs for
--	  Linux website <http://acl.bestbits.at/>.
+-config CIFS_EXPERIMENTAL
+-	  bool "CIFS Experimental Features (EXPERIMENTAL)"
+-	  depends on CIFS && EXPERIMENTAL
+-	  help
+-	    Enables cifs features under testing. These features are
+-	    experimental and currently include DFS support and directory 
+-	    change notification ie fcntl(F_DNOTIFY), as well as the upcall
+-	    mechanism which will be used for Kerberos session negotiation
+-	    and uid remapping.  Some of these features also may depend on 
+-	    setting a value of 1 to the pseudo-file /proc/fs/cifs/Experimental
+-	    (which is disabled by default). See the file fs/cifs/README 
+-	    for more details.  If unsure, say N.
 -
--	  If you don't know what Access Control Lists are, say N
--
--config EXT2_FS_SECURITY
--	bool "Ext2 Security Labels"
--	depends on EXT2_FS_XATTR
--	help
--	  Security labels support alternative access control models
--	  implemented by security modules like SELinux.  This option
--	  enables an extended attribute handler for file security
--	  labels in the ext2 filesystem.
--
--	  If you are not using a security module that requires using
--	  extended attributes for file security labels, say N.
--
--config EXT2_FS_XIP
--	bool "Ext2 execute in place support"
--	depends on EXT2_FS && MMU
--	help
--	  Execute in place can be used on memory-backed block devices. If you
--	  enable this option, you can select to mount block devices which are
--	  capable of this feature without using the page cache.
--
--	  If you do not use a block device that is capable of using this,
--	  or if unsure, say N.
-+source "fs/ext2/Kconfig"
-+source "fs/ext3/Kconfig"
-+source "fs/ext4/Kconfig"
+-config CIFS_DFS_UPCALL
+-	  bool "DFS feature support (EXPERIMENTAL)"
+-	  depends on CIFS_EXPERIMENTAL
+-	  depends on KEYS
+-	  help
+-	    Enables an upcall mechanism for CIFS which contacts userspace
+-	    helper utilities to provide server name resolution (host names to
+-	    IP addresses) which is needed for implicit mounts of DFS junction
+-	    points. If unsure, say N.
++source "fs/cifs/Kconfig"
  
- config FS_XIP
- # execute in place
-@@ -68,204 +16,8 @@ config FS_XIP
- 	depends on EXT2_FS_XIP
- 	default y
- 
--config EXT3_FS
--	tristate "Ext3 journalling file system support"
--	select JBD
--	help
--	  This is the journalling version of the Second extended file system
--	  (often called ext3), the de facto standard Linux file system
--	  (method to organize files on a storage device) for hard disks.
--
--	  The journalling code included in this driver means you do not have
--	  to run e2fsck (file system checker) on your file systems after a
--	  crash.  The journal keeps track of any changes that were being made
--	  at the time the system crashed, and can ensure that your file system
--	  is consistent without the need for a lengthy check.
--
--	  Other than adding the journal to the file system, the on-disk format
--	  of ext3 is identical to ext2.  It is possible to freely switch
--	  between using the ext3 driver and the ext2 driver, as long as the
--	  file system has been cleanly unmounted, or e2fsck is run on the file
--	  system.
--
--	  To add a journal on an existing ext2 file system or change the
--	  behavior of ext3 file systems, you can use the tune2fs utility ("man
--	  tune2fs").  To modify attributes of files and directories on ext3
--	  file systems, use chattr ("man chattr").  You need to be using
--	  e2fsprogs version 1.20 or later in order to create ext3 journals
--	  (available at <http://sourceforge.net/projects/e2fsprogs/>).
--
--	  To compile this file system support as a module, choose M here: the
--	  module will be called ext3.
--
--config EXT3_FS_XATTR
--	bool "Ext3 extended attributes"
--	depends on EXT3_FS
--	default y
--	help
--	  Extended attributes are name:value pairs associated with inodes by
--	  the kernel or by users (see the attr(5) manual page, or visit
--	  <http://acl.bestbits.at/> for details).
--
--	  If unsure, say N.
--
--	  You need this for POSIX ACL support on ext3.
--
--config EXT3_FS_POSIX_ACL
--	bool "Ext3 POSIX Access Control Lists"
--	depends on EXT3_FS_XATTR
--	select FS_POSIX_ACL
--	help
--	  Posix Access Control Lists (ACLs) support permissions for users and
--	  groups beyond the owner/group/world scheme.
--
--	  To learn more about Access Control Lists, visit the Posix ACLs for
--	  Linux website <http://acl.bestbits.at/>.
--
--	  If you don't know what Access Control Lists are, say N
--
--config EXT3_FS_SECURITY
--	bool "Ext3 Security Labels"
--	depends on EXT3_FS_XATTR
--	help
--	  Security labels support alternative access control models
--	  implemented by security modules like SELinux.  This option
--	  enables an extended attribute handler for file security
--	  labels in the ext3 filesystem.
--
--	  If you are not using a security module that requires using
--	  extended attributes for file security labels, say N.
--
--config EXT4DEV_FS
--	tristate "Ext4dev/ext4 extended fs support development (EXPERIMENTAL)"
--	depends on EXPERIMENTAL
--	select JBD2
--	select CRC16
--	help
--	  Ext4dev is a predecessor filesystem of the next generation
--	  extended fs ext4, based on ext3 filesystem code. It will be
--	  renamed ext4 fs later, once ext4dev is mature and stabilized.
--
--	  Unlike the change from ext2 filesystem to ext3 filesystem,
--	  the on-disk format of ext4dev is not the same as ext3 any more:
--	  it is based on extent maps and it supports 48-bit physical block
--	  numbers. These combined on-disk format changes will allow
--	  ext4dev/ext4 to handle more than 16 TB filesystem volumes --
--	  a hard limit that ext3 cannot overcome without changing the
--	  on-disk format.
--
--	  Other than extent maps and 48-bit block numbers, ext4dev also is
--	  likely to have other new features such as persistent preallocation,
--	  high resolution time stamps, and larger file support etc.  These
--	  features will be added to ext4dev gradually.
--
--	  To compile this file system support as a module, choose M here. The
--	  module will be called ext4dev.
--
--	  If unsure, say N.
--
--config EXT4DEV_FS_XATTR
--	bool "Ext4dev extended attributes"
--	depends on EXT4DEV_FS
--	default y
--	help
--	  Extended attributes are name:value pairs associated with inodes by
--	  the kernel or by users (see the attr(5) manual page, or visit
--	  <http://acl.bestbits.at/> for details).
--
--	  If unsure, say N.
--
--	  You need this for POSIX ACL support on ext4dev/ext4.
--
--config EXT4DEV_FS_POSIX_ACL
--	bool "Ext4dev POSIX Access Control Lists"
--	depends on EXT4DEV_FS_XATTR
--	select FS_POSIX_ACL
--	help
--	  POSIX Access Control Lists (ACLs) support permissions for users and
--	  groups beyond the owner/group/world scheme.
--
--	  To learn more about Access Control Lists, visit the POSIX ACLs for
--	  Linux website <http://acl.bestbits.at/>.
--
--	  If you don't know what Access Control Lists are, say N
--
--config EXT4DEV_FS_SECURITY
--	bool "Ext4dev Security Labels"
--	depends on EXT4DEV_FS_XATTR
--	help
--	  Security labels support alternative access control models
--	  implemented by security modules like SELinux.  This option
--	  enables an extended attribute handler for file security
--	  labels in the ext4dev/ext4 filesystem.
--
--	  If you are not using a security module that requires using
--	  extended attributes for file security labels, say N.
--
--config JBD
--	tristate
--	help
--	  This is a generic journalling layer for block devices.  It is
--	  currently used by the ext3 and OCFS2 file systems, but it could
--	  also be used to add journal support to other file systems or block
--	  devices such as RAID or LVM.
--
--	  If you are using the ext3 or OCFS2 file systems, you need to
--	  say Y here. If you are not using ext3 OCFS2 then you will probably
--	  want to say N.
--
--	  To compile this device as a module, choose M here: the module will be
--	  called jbd.  If you are compiling ext3 or OCFS2 into the kernel,
--	  you cannot compile this code as a module.
--
--config JBD_DEBUG
--	bool "JBD (ext3) debugging support"
--	depends on JBD && DEBUG_FS
--	help
--	  If you are using the ext3 journaled file system (or potentially any
--	  other file system/device using JBD), this option allows you to
--	  enable debugging output while the system is running, in order to
--	  help track down any problems you are having.  By default the
--	  debugging output will be turned off.
--
--	  If you select Y here, then you will be able to turn on debugging
--	  with "echo N > /sys/kernel/debug/jbd/jbd-debug", where N is a
--	  number between 1 and 5, the higher the number, the more debugging
--	  output is generated.  To turn debugging off again, do
--	  "echo 0 > /sys/kernel/debug/jbd/jbd-debug".
--
--config JBD2
--	tristate
--	select CRC32
--	help
--	  This is a generic journaling layer for block devices that support
--	  both 32-bit and 64-bit block numbers.  It is currently used by
--	  the ext4dev/ext4 filesystem, but it could also be used to add
--	  journal support to other file systems or block devices such
--	  as RAID or LVM.
--
--	  If you are using ext4dev/ext4, you need to say Y here. If you are not
--	  using ext4dev/ext4 then you will probably want to say N.
--
--	  To compile this device as a module, choose M here. The module will be
--	  called jbd2.  If you are compiling ext4dev/ext4 into the kernel,
--	  you cannot compile this code as a module.
--
--config JBD2_DEBUG
--	bool "JBD2 (ext4dev/ext4) debugging support"
--	depends on JBD2 && DEBUG_FS
--	help
--	  If you are using the ext4dev/ext4 journaled file system (or
--	  potentially any other filesystem/device using JBD2), this option
--	  allows you to enable debugging output while the system is running,
--	  in order to help track down any problems you are having.
--	  By default, the debugging output will be turned off.
--
--	  If you select Y here, then you will be able to turn on debugging
--	  with "echo N > /sys/kernel/debug/jbd2/jbd2-debug", where N is a
--	  number between 1 and 5. The higher the number, the more debugging
--	  output is generated.  To turn debugging off again, do
--	  "echo 0 > /sys/kernel/debug/jbd2/jbd2-debug".
-+source "fs/jbd/Kconfig"
-+source "fs/jbd2/Kconfig"
- 
- config FS_MBCACHE
- # Meta block cache for Extended Attributes (ext2/ext3/ext4)
-diff -puN /dev/null fs/ext2/Kconfig
+ config NCP_FS
+ 	tristate "NCP file system support (to mount NetWare volumes)"
+diff -puN /dev/null fs/cifs/Kconfig
 --- /dev/null
-+++ a/fs/ext2/Kconfig
-@@ -0,0 +1,55 @@
-+config EXT2_FS
-+	tristate "Second extended fs support"
++++ a/fs/cifs/Kconfig
+@@ -0,0 +1,142 @@
++config CIFS
++	tristate "CIFS support (advanced network filesystem, SMBFS successor)"
++	depends on INET
++	select NLS
 +	help
-+	  Ext2 is a standard Linux file system for hard disks.
++	  This is the client VFS module for the Common Internet File System
++	  (CIFS) protocol which is the successor to the Server Message Block
++	  (SMB) protocol, the native file sharing mechanism for most early
++	  PC operating systems.  The CIFS protocol is fully supported by
++	  file servers such as Windows 2000 (including Windows 2003, NT 4
++	  and Windows XP) as well by Samba (which provides excellent CIFS
++	  server support for Linux and many other operating systems). Limited
++	  support for OS/2 and Windows ME and similar servers is provided as
++	  well.
 +
-+	  To compile this file system support as a module, choose M here: the
-+	  module will be called ext2.
++	  The cifs module provides an advanced network file system
++	  client for mounting to CIFS compliant servers.  It includes
++	  support for DFS (hierarchical name space), secure per-user
++	  session establishment via Kerberos or NTLM or NTLMv2,
++	  safe distributed caching (oplock), optional packet
++	  signing, Unicode and other internationalization improvements.
++	  If you need to mount to Samba or Windows from this machine, say Y.
 +
-+	  If unsure, say Y.
++config CIFS_STATS
++        bool "CIFS statistics"
++        depends on CIFS
++        help
++          Enabling this option will cause statistics for each server share
++	  mounted by the cifs client to be displayed in /proc/fs/cifs/Stats
 +
-+config EXT2_FS_XATTR
-+	bool "Ext2 extended attributes"
-+	depends on EXT2_FS
++config CIFS_STATS2
++	bool "Extended statistics"
++	depends on CIFS_STATS
 +	help
-+	  Extended attributes are name:value pairs associated with inodes by
-+	  the kernel or by users (see the attr(5) manual page, or visit
-+	  <http://acl.bestbits.at/> for details).
++	  Enabling this option will allow more detailed statistics on SMB
++	  request timing to be displayed in /proc/fs/cifs/DebugData and also
++	  allow optional logging of slow responses to dmesg (depending on the
++	  value of /proc/fs/cifs/cifsFYI, see fs/cifs/README for more details).
++	  These additional statistics may have a minor effect on performance
++	  and memory utilization.
++
++	  Unless you are a developer or are doing network performance analysis
++	  or tuning, say N.
++
++config CIFS_WEAK_PW_HASH
++	bool "Support legacy servers which use weaker LANMAN security"
++	depends on CIFS
++	help
++	  Modern CIFS servers including Samba and most Windows versions
++	  (since 1997) support stronger NTLM (and even NTLMv2 and Kerberos)
++	  security mechanisms. These hash the password more securely
++	  than the mechanisms used in the older LANMAN version of the
++	  SMB protocol but LANMAN based authentication is needed to
++	  establish sessions with some old SMB servers.
++
++	  Enabling this option allows the cifs module to mount to older
++	  LANMAN based servers such as OS/2 and Windows 95, but such
++	  mounts may be less secure than mounts using NTLM or more recent
++	  security mechanisms if you are on a public network.  Unless you
++	  have a need to access old SMB servers (and are on a private
++	  network) you probably want to say N.  Even if this support
++	  is enabled in the kernel build, LANMAN authentication will not be
++	  used automatically. At runtime LANMAN mounts are disabled but
++	  can be set to required (or optional) either in
++	  /proc/fs/cifs (see fs/cifs/README for more detail) or via an
++	  option on the mount command. This support is disabled by
++	  default in order to reduce the possibility of a downgrade
++	  attack.
 +
 +	  If unsure, say N.
 +
-+config EXT2_FS_POSIX_ACL
-+	bool "Ext2 POSIX Access Control Lists"
-+	depends on EXT2_FS_XATTR
-+	select FS_POSIX_ACL
++config CIFS_UPCALL
++	  bool "Kerberos/SPNEGO advanced session setup"
++	  depends on CIFS && KEYS
++	  help
++	    Enables an upcall mechanism for CIFS which accesses
++	    userspace helper utilities to provide SPNEGO packaged (RFC 4178)
++	    Kerberos tickets which are needed to mount to certain secure servers
++	    (for which more secure Kerberos authentication is required). If
++	    unsure, say N.
++
++config CIFS_XATTR
++        bool "CIFS extended attributes"
++        depends on CIFS
++        help
++          Extended attributes are name:value pairs associated with inodes by
++          the kernel or by users (see the attr(5) manual page, or visit
++          <http://acl.bestbits.at/> for details).  CIFS maps the name of
++          extended attributes beginning with the user namespace prefix
++          to SMB/CIFS EAs. EAs are stored on Windows servers without the
++          user namespace prefix, but their names are seen by Linux cifs clients
++          prefaced by the user namespace prefix. The system namespace
++          (used by some filesystems to store ACLs) is not supported at
++          this time.
++
++          If unsure, say N.
++
++config CIFS_POSIX
++        bool "CIFS POSIX Extensions"
++        depends on CIFS_XATTR
++        help
++          Enabling this option will cause the cifs client to attempt to
++	  negotiate a newer dialect with servers, such as Samba 3.0.5
++	  or later, that optionally can handle more POSIX like (rather
++	  than Windows like) file behavior.  It also enables
++	  support for POSIX ACLs (getfacl and setfacl) to servers
++	  (such as Samba 3.10 and later) which can negotiate
++	  CIFS POSIX ACL support.  If unsure, say N.
++
++config CIFS_DEBUG2
++	bool "Enable additional CIFS debugging routines"
++	depends on CIFS
 +	help
-+	  Posix Access Control Lists (ACLs) support permissions for users and
-+	  groups beyond the owner/group/world scheme.
++	   Enabling this option adds a few more debugging routines
++	   to the cifs code which slightly increases the size of
++	   the cifs module and can cause additional logging of debug
++	   messages in some error paths, slowing performance. This
++	   option can be turned off unless you are debugging
++	   cifs problems.  If unsure, say N.
 +
-+	  To learn more about Access Control Lists, visit the Posix ACLs for
-+	  Linux website <http://acl.bestbits.at/>.
++config CIFS_EXPERIMENTAL
++	  bool "CIFS Experimental Features (EXPERIMENTAL)"
++	  depends on CIFS && EXPERIMENTAL
++	  help
++	    Enables cifs features under testing. These features are
++	    experimental and currently include DFS support and directory
++	    change notification ie fcntl(F_DNOTIFY), as well as the upcall
++	    mechanism which will be used for Kerberos session negotiation
++	    and uid remapping.  Some of these features also may depend on
++	    setting a value of 1 to the pseudo-file /proc/fs/cifs/Experimental
++	    (which is disabled by default). See the file fs/cifs/README
++	    for more details.  If unsure, say N.
 +
-+	  If you don't know what Access Control Lists are, say N
-+
-+config EXT2_FS_SECURITY
-+	bool "Ext2 Security Labels"
-+	depends on EXT2_FS_XATTR
-+	help
-+	  Security labels support alternative access control models
-+	  implemented by security modules like SELinux.  This option
-+	  enables an extended attribute handler for file security
-+	  labels in the ext2 filesystem.
-+
-+	  If you are not using a security module that requires using
-+	  extended attributes for file security labels, say N.
-+
-+config EXT2_FS_XIP
-+	bool "Ext2 execute in place support"
-+	depends on EXT2_FS && MMU
-+	help
-+	  Execute in place can be used on memory-backed block devices. If you
-+	  enable this option, you can select to mount block devices which are
-+	  capable of this feature without using the page cache.
-+
-+	  If you do not use a block device that is capable of using this,
-+	  or if unsure, say N.
-diff -puN /dev/null fs/ext3/Kconfig
---- /dev/null
-+++ a/fs/ext3/Kconfig
-@@ -0,0 +1,67 @@
-+config EXT3_FS
-+	tristate "Ext3 journalling file system support"
-+	select JBD
-+	help
-+	  This is the journalling version of the Second extended file system
-+	  (often called ext3), the de facto standard Linux file system
-+	  (method to organize files on a storage device) for hard disks.
-+
-+	  The journalling code included in this driver means you do not have
-+	  to run e2fsck (file system checker) on your file systems after a
-+	  crash.  The journal keeps track of any changes that were being made
-+	  at the time the system crashed, and can ensure that your file system
-+	  is consistent without the need for a lengthy check.
-+
-+	  Other than adding the journal to the file system, the on-disk format
-+	  of ext3 is identical to ext2.  It is possible to freely switch
-+	  between using the ext3 driver and the ext2 driver, as long as the
-+	  file system has been cleanly unmounted, or e2fsck is run on the file
-+	  system.
-+
-+	  To add a journal on an existing ext2 file system or change the
-+	  behavior of ext3 file systems, you can use the tune2fs utility ("man
-+	  tune2fs").  To modify attributes of files and directories on ext3
-+	  file systems, use chattr ("man chattr").  You need to be using
-+	  e2fsprogs version 1.20 or later in order to create ext3 journals
-+	  (available at <http://sourceforge.net/projects/e2fsprogs/>).
-+
-+	  To compile this file system support as a module, choose M here: the
-+	  module will be called ext3.
-+
-+config EXT3_FS_XATTR
-+	bool "Ext3 extended attributes"
-+	depends on EXT3_FS
-+	default y
-+	help
-+	  Extended attributes are name:value pairs associated with inodes by
-+	  the kernel or by users (see the attr(5) manual page, or visit
-+	  <http://acl.bestbits.at/> for details).
-+
-+	  If unsure, say N.
-+
-+	  You need this for POSIX ACL support on ext3.
-+
-+config EXT3_FS_POSIX_ACL
-+	bool "Ext3 POSIX Access Control Lists"
-+	depends on EXT3_FS_XATTR
-+	select FS_POSIX_ACL
-+	help
-+	  Posix Access Control Lists (ACLs) support permissions for users and
-+	  groups beyond the owner/group/world scheme.
-+
-+	  To learn more about Access Control Lists, visit the Posix ACLs for
-+	  Linux website <http://acl.bestbits.at/>.
-+
-+	  If you don't know what Access Control Lists are, say N
-+
-+config EXT3_FS_SECURITY
-+	bool "Ext3 Security Labels"
-+	depends on EXT3_FS_XATTR
-+	help
-+	  Security labels support alternative access control models
-+	  implemented by security modules like SELinux.  This option
-+	  enables an extended attribute handler for file security
-+	  labels in the ext3 filesystem.
-+
-+	  If you are not using a security module that requires using
-+	  extended attributes for file security labels, say N.
-diff -puN /dev/null fs/ext4/Kconfig
---- /dev/null
-+++ a/fs/ext4/Kconfig
-@@ -0,0 +1,65 @@
-+config EXT4DEV_FS
-+	tristate "Ext4dev/ext4 extended fs support development (EXPERIMENTAL)"
-+	depends on EXPERIMENTAL
-+	select JBD2
-+	select CRC16
-+	help
-+	  Ext4dev is a predecessor filesystem of the next generation
-+	  extended fs ext4, based on ext3 filesystem code. It will be
-+	  renamed ext4 fs later, once ext4dev is mature and stabilized.
-+
-+	  Unlike the change from ext2 filesystem to ext3 filesystem,
-+	  the on-disk format of ext4dev is not the same as ext3 any more:
-+	  it is based on extent maps and it supports 48-bit physical block
-+	  numbers. These combined on-disk format changes will allow
-+	  ext4dev/ext4 to handle more than 16 TB filesystem volumes --
-+	  a hard limit that ext3 cannot overcome without changing the
-+	  on-disk format.
-+
-+	  Other than extent maps and 48-bit block numbers, ext4dev also is
-+	  likely to have other new features such as persistent preallocation,
-+	  high resolution time stamps, and larger file support etc.  These
-+	  features will be added to ext4dev gradually.
-+
-+	  To compile this file system support as a module, choose M here. The
-+	  module will be called ext4dev.
-+
-+	  If unsure, say N.
-+
-+config EXT4DEV_FS_XATTR
-+	bool "Ext4dev extended attributes"
-+	depends on EXT4DEV_FS
-+	default y
-+	help
-+	  Extended attributes are name:value pairs associated with inodes by
-+	  the kernel or by users (see the attr(5) manual page, or visit
-+	  <http://acl.bestbits.at/> for details).
-+
-+	  If unsure, say N.
-+
-+	  You need this for POSIX ACL support on ext4dev/ext4.
-+
-+config EXT4DEV_FS_POSIX_ACL
-+	bool "Ext4dev POSIX Access Control Lists"
-+	depends on EXT4DEV_FS_XATTR
-+	select FS_POSIX_ACL
-+	help
-+	  POSIX Access Control Lists (ACLs) support permissions for users and
-+	  groups beyond the owner/group/world scheme.
-+
-+	  To learn more about Access Control Lists, visit the POSIX ACLs for
-+	  Linux website <http://acl.bestbits.at/>.
-+
-+	  If you don't know what Access Control Lists are, say N
-+
-+config EXT4DEV_FS_SECURITY
-+	bool "Ext4dev Security Labels"
-+	depends on EXT4DEV_FS_XATTR
-+	help
-+	  Security labels support alternative access control models
-+	  implemented by security modules like SELinux.  This option
-+	  enables an extended attribute handler for file security
-+	  labels in the ext4dev/ext4 filesystem.
-+
-+	  If you are not using a security module that requires using
-+	  extended attributes for file security labels, say N.
-diff -puN /dev/null fs/jbd/Kconfig
---- /dev/null
-+++ a/fs/jbd/Kconfig
-@@ -0,0 +1,31 @@
-+config JBD
-+	tristate
-+	help
-+	  This is a generic journalling layer for block devices.  It is
-+	  currently used by the ext3 and OCFS2 file systems, but it could
-+	  also be used to add journal support to other file systems or block
-+	  devices such as RAID or LVM.
-+
-+	  If you are using the ext3 or OCFS2 file systems, you need to
-+	  say Y here. If you are not using ext3 OCFS2 then you will probably
-+	  want to say N.
-+
-+	  To compile this device as a module, choose M here: the module will be
-+	  called jbd.  If you are compiling ext3 or OCFS2 into the kernel,
-+	  you cannot compile this code as a module.
-+
-+config JBD_DEBUG
-+	bool "JBD (ext3) debugging support"
-+	depends on JBD && DEBUG_FS
-+	help
-+	  If you are using the ext3 journaled file system (or potentially any
-+	  other file system/device using JBD), this option allows you to
-+	  enable debugging output while the system is running, in order to
-+	  help track down any problems you are having.  By default the
-+	  debugging output will be turned off.
-+
-+	  If you select Y here, then you will be able to turn on debugging
-+	  with "echo N > /sys/kernel/debug/jbd/jbd-debug", where N is a
-+	  number between 1 and 5, the higher the number, the more debugging
-+	  output is generated.  To turn debugging off again, do
-+	  "echo 0 > /sys/kernel/debug/jbd/jbd-debug".
-diff -puN /dev/null fs/jbd2/Kconfig
---- /dev/null
-+++ a/fs/jbd2/Kconfig
-@@ -0,0 +1,32 @@
-+config JBD2
-+	tristate
-+	select CRC32
-+	help
-+	  This is a generic journaling layer for block devices that support
-+	  both 32-bit and 64-bit block numbers.  It is currently used by
-+	  the ext4dev/ext4 filesystem, but it could also be used to add
-+	  journal support to other file systems or block devices such
-+	  as RAID or LVM.
-+
-+	  If you are using ext4dev/ext4, you need to say Y here. If you are not
-+	  using ext4dev/ext4 then you will probably want to say N.
-+
-+	  To compile this device as a module, choose M here. The module will be
-+	  called jbd2.  If you are compiling ext4dev/ext4 into the kernel,
-+	  you cannot compile this code as a module.
-+
-+config JBD2_DEBUG
-+	bool "JBD2 (ext4dev/ext4) debugging support"
-+	depends on JBD2 && DEBUG_FS
-+	help
-+	  If you are using the ext4dev/ext4 journaled file system (or
-+	  potentially any other filesystem/device using JBD2), this option
-+	  allows you to enable debugging output while the system is running,
-+	  in order to help track down any problems you are having.
-+	  By default, the debugging output will be turned off.
-+
-+	  If you select Y here, then you will be able to turn on debugging
-+	  with "echo N > /sys/kernel/debug/jbd2/jbd2-debug", where N is a
-+	  number between 1 and 5. The higher the number, the more debugging
-+	  output is generated.  To turn debugging off again, do
-+	  "echo 0 > /sys/kernel/debug/jbd2/jbd2-debug".
++config CIFS_DFS_UPCALL
++	  bool "DFS feature support (EXPERIMENTAL)"
++	  depends on CIFS_EXPERIMENTAL
++	  depends on KEYS
++	  help
++	    Enables an upcall mechanism for CIFS which contacts userspace
++	    helper utilities to provide server name resolution (host names to
++	    IP addresses) which is needed for implicit mounts of DFS junction
++	    points. If unsure, say N.
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
