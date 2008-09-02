@@ -1,74 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: + e1000e-prevent-corruption-of-eeprom-nvm-fix.patch added to -mm tree
-Date: Tue, 02 Sep 2008 12:21:28 -0700
-Message-ID: <200809021921.m82JLS13008544@imap1.linux-foundation.org>
+Subject: - git-ubi-git-rejects.patch removed from -mm tree
+Date: Tue, 02 Sep 2008 12:46:20 -0700
+Message-ID: <200809021946.m82JkK4I009487@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33596 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46150 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751760AbYIBTWM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 15:22:12 -0400
+	by vger.kernel.org with ESMTP id S1752056AbYIBTqv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 15:46:51 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m82JkKei021818
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 2 Sep 2008 12:46:21 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arvidjaar@mail.ru, bruce.w.allan@intel.com, chrisl@vmware.com, jeff@garzik.org, jeffrey.t.kirsher@intel.com, jesse.brandeburg@intel.com, john.ronciak@intel.com, peter.p.waskiewicz.jr@intel.com, pratap@vmware.com, zach@vmware.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     e1000e-prevent-corruption-of-eeprom-nvm-fix
-has been added to the -mm tree.  Its filename is
-     e1000e-prevent-corruption-of-eeprom-nvm-fix.patch
+     git-ubi-git-rejects
+has been removed from the -mm tree.  Its filename was
+     git-ubi-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: e1000e-prevent-corruption-of-eeprom-nvm-fix
+Subject: git-ubi-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Use DEFINE_SPINLOCK to avoid confusing lockdep.
-
-(boggle@driver using 4-space indenting omgwtf)
-
-Cc: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: Bruce Allan <bruce.w.allan@intel.com>
-Cc: Christopher Li <chrisl@vmware.com>
-Cc: Christopher Li <chrisl@vmware.com> 
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
-Cc: John Ronciak <john.ronciak@intel.com>
-Cc: PJ Waskiewicz <peter.p.waskiewicz.jr@intel.com>
-Cc: Pratap Subrahmanyam <pratap@vmware.com>
-Cc: Zach Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000/e1000_hw.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mtd/ubi/cdev.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/net/e1000/e1000_hw.c~e1000e-prevent-corruption-of-eeprom-nvm-fix drivers/net/e1000/e1000_hw.c
---- a/drivers/net/e1000/e1000_hw.c~e1000e-prevent-corruption-of-eeprom-nvm-fix
-+++ a/drivers/net/e1000/e1000_hw.c
-@@ -170,7 +170,7 @@ u16 e1000_igp_2_cable_length_table[IGP02
-       83, 89, 95, 100, 105, 109, 113, 116, 119, 122, 124,
-       104, 109, 114, 118, 121, 124};
- 
--static spinlock_t e1000_eeprom_lock = SPIN_LOCK_UNLOCKED;
-+static DEFINE_SPINLOCK(e1000_eeprom_lock);
- 
- /******************************************************************************
-  * Set the phy type member in the hw struct.
+diff -puN drivers/mtd/ubi/cdev.c~git-ubi-git-rejects drivers/mtd/ubi/cdev.c
+--- a/drivers/mtd/ubi/cdev.c~git-ubi-git-rejects
++++ a/drivers/mtd/ubi/cdev.c
+@@ -40,10 +40,7 @@
+ #include <linux/ioctl.h>
+ #include <linux/capability.h>
+ #include <linux/uaccess.h>
+-<<<<<<< HEAD:drivers/mtd/ubi/cdev.c
+ #include <linux/smp_lock.h>
+-=======
+->>>>>>> FETCH_HEAD:drivers/mtd/ubi/cdev.c
+ #include <mtd/ubi-user.h>
+ #include <asm/div64.h>
+ #include "ubi.h"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,8 +79,10 @@ e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes
 e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
+git-battery.patch
 power-support-for-texas-instruments-bq27x00-battery-managers.patch
 power-support-for-texas-instruments-bq27x00-battery-managers-fix.patch
+git-pci-next.patch
 drivers-pci-hotplug-ibmphp_ebdac-list_for_each-to-list_for_each_entry-checkpatch-fixes.patch
 pci-tidy-pme-support-messages-checkpatch-fixes.patch
 scsi-gdthc-use-unaligned-access-helpers.patch
