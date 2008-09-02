@@ -1,241 +1,263 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 02 Sep 2008 13:14:27 -0700
-Message-ID: <200809022014.m82KERpq010647@imap1.linux-foundation.org>
+Subject: - sparc64-use-bcd2bin-bin2bcd.patch removed from -mm tree
+Date: Tue, 02 Sep 2008 13:34:09 -0700
+Message-ID: <200809022034.m82KY9A7011338@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56976 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39500 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751351AbYIBUOs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 16:14:48 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m82KERkG024150
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 2 Sep 2008 13:14:28 -0700
+	by vger.kernel.org with ESMTP id S1751246AbYIBUet (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 16:34:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: bunk@kernel.org, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     sparc64: use bcd2bin/bin2bcd
+has been removed from the -mm tree.  Its filename was
+     sparc64-use-bcd2bin-bin2bcd.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an alternative patch was merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sparc64: use bcd2bin/bin2bcd
+From: Adrian Bunk <bunk@kernel.org>
 
+Change sparc64 to use the new bcd2bin/bin2bcd functions instead of the
+obsolete BCD_TO_BIN/BIN_TO_BCD macros.
+
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/cmd-filter.c |    3 ---
- block/genhd.c      |   31 ++++++++++++++-----------------
- kernel/auditsc.c   |    4 ----
- 3 files changed, 14 insertions(+), 24 deletions(-)
+ arch/sparc64/kernel/time.c |   94 +++++++++++++++++------------------
+ 1 file changed, 47 insertions(+), 47 deletions(-)
 
-diff -puN block/cmd-filter.c~linux-next-git-rejects block/cmd-filter.c
---- a/block/cmd-filter.c~linux-next-git-rejects
-+++ a/block/cmd-filter.c
-@@ -227,7 +227,4 @@ void blk_unregister_filter(struct gendis
+diff -puN arch/sparc64/kernel/time.c~sparc64-use-bcd2bin-bin2bcd arch/sparc64/kernel/time.c
+--- a/arch/sparc64/kernel/time.c~sparc64-use-bcd2bin-bin2bcd
++++ a/arch/sparc64/kernel/time.c
+@@ -582,13 +582,13 @@ static void __init set_system_time(void)
  
- 	kobject_put(&filter->kobj);
- }
--<<<<<<< HEAD:block/cmd-filter.c
- EXPORT_SYMBOL(blk_unregister_filter);
--=======
-->>>>>>> FETCH_HEAD:block/cmd-filter.c
-diff -puN block/genhd.c~linux-next-git-rejects block/genhd.c
---- a/block/genhd.c~linux-next-git-rejects
-+++ a/block/genhd.c
-@@ -526,12 +526,9 @@ EXPORT_SYMBOL(del_gendisk);	/* in partit
+ 		writeb(val, bregs + 0x0e);
  
- void unlink_gendisk(struct gendisk *disk)
- {
--<<<<<<< HEAD:block/genhd.c
--	sysfs_remove_link(&disk->dev.kobj, "bdi");
--=======
-+//	sysfs_remove_link(&disk->dev.kobj, "bdi");
- 	blk_unregister_filter(disk);
- 	sysfs_remove_link(&disk_to_dev(disk)->kobj, "bdi");
-->>>>>>> FETCH_HEAD:block/genhd.c
- 	bdi_unregister(&disk->queue->backing_dev_info);
- 	blk_unregister_queue(disk);
- 	blk_unregister_region(disk_devt(disk), disk->minors);
-@@ -678,19 +675,19 @@ static void *disk_seqf_next(struct seq_f
- {
- 	struct device *dev;
+-		BCD_TO_BIN(sec);
+-		BCD_TO_BIN(min);
+-		BCD_TO_BIN(hour);
+-		BCD_TO_BIN(day);
+-		BCD_TO_BIN(mon);
+-		BCD_TO_BIN(year);
+-		BCD_TO_BIN(century);
++		sec = bcd2bin(sec);
++		min = bcd2bin(min);
++		hour = bcd2bin(hour);
++		day = bcd2bin(day);
++		mon = bcd2bin(mon);
++		year = bcd2bin(year);
++		century = bcd2bin(century);
  
--<<<<<<< HEAD:block/genhd.c
--	if (!k)
--		part->private = (void *)1LU;	/* tell show to print header */
--
--	mutex_lock(&block_class_lock);
--	dev = class_find_device(&block_class, NULL, &k, find_start);
--	if (dev) {
--		put_device(dev);
--=======
-+//<<<<<<< HEAD:block/genhd.c
-+//	if (!k)
-+//		part->private = (void *)1LU;	/* tell show to print header */
-+//
-+//	mutex_lock(&block_class_lock);
-+//	dev = class_find_device(&block_class, NULL, &k, find_start);
-+//	if (dev) {
-+//		put_device(dev);
-+//=======
- 	(*pos)++;
- 	dev = class_dev_iter_next(seqf->private);
- 	if (dev)
-->>>>>>> FETCH_HEAD:block/genhd.c
-+//>>>>>>> FETCH_HEAD:block/genhd.c
- 		return dev_to_disk(dev);
+ 		year += (century * 100);
+ 	} else {
+@@ -604,12 +604,12 @@ static void __init set_system_time(void)
+ 		} while (sec != CMOS_READ(RTC_SECONDS));
  
- 	return NULL;
-@@ -730,9 +727,9 @@ static int show_partition(struct seq_fil
- 	 * partition exists.  This hackery will be removed later with
- 	 * class iteration clean up.
- 	 */
--	if (part->private) {
--		seq_puts(part, "major minor  #blocks  name\n\n");
--		part->private = NULL;
-+	if (seqf->private) {
-+		seq_puts(seqf, "major minor  #blocks  name\n\n");
-+		seqf->private = NULL;
+ 		if (!(CMOS_READ(RTC_CONTROL) & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+-			BCD_TO_BIN(sec);
+-			BCD_TO_BIN(min);
+-			BCD_TO_BIN(hour);
+-			BCD_TO_BIN(day);
+-			BCD_TO_BIN(mon);
+-			BCD_TO_BIN(year);
++			sec = bcd2bin(sec);
++			min = bcd2bin(min);
++			hour = bcd2bin(hour);
++			day = bcd2bin(day);
++			mon = bcd2bin(mon);
++			year = bcd2bin(year);
+ 		}
+ 		if ((year += 1900) < 1970)
+ 			year += 100;
+@@ -1146,7 +1146,7 @@ static int set_rtc_mmss(unsigned long no
+ 		writeb(val | 0x08, bregs + 0x0e);
+ 
+ 		chip_minutes = readb(bregs + 0x02);
+-		BCD_TO_BIN(chip_minutes);
++		chip_minutes = bcd2bin(chip_minutes);
+ 		real_seconds = nowtime % 60;
+ 		real_minutes = nowtime / 60;
+ 		if (((abs(real_minutes - chip_minutes) + 15)/30) & 1)
+@@ -1154,8 +1154,8 @@ static int set_rtc_mmss(unsigned long no
+ 		real_minutes %= 60;
+ 
+ 		if (abs(real_minutes - chip_minutes) < 30) {
+-			BIN_TO_BCD(real_seconds);
+-			BIN_TO_BCD(real_minutes);
++			real_seconds = bin2bcd(real_seconds);
++			real_minutes = bin2bcd(real_minutes);
+ 			writeb(real_seconds, bregs + 0x00);
+ 			writeb(real_minutes, bregs + 0x02);
+ 		} else {
+@@ -1184,7 +1184,7 @@ static int set_rtc_mmss(unsigned long no
+ 
+ 		chip_minutes = CMOS_READ(RTC_MINUTES);
+ 		if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
+-			BCD_TO_BIN(chip_minutes);
++			chip_minutes = bcd2bin(chip_minutes);
+ 		real_seconds = nowtime % 60;
+ 		real_minutes = nowtime / 60;
+ 		if (((abs(real_minutes - chip_minutes) + 15)/30) & 1)
+@@ -1193,8 +1193,8 @@ static int set_rtc_mmss(unsigned long no
+ 
+ 		if (abs(real_minutes - chip_minutes) < 30) {
+ 			if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+-				BIN_TO_BCD(real_seconds);
+-				BIN_TO_BCD(real_minutes);
++				real_seconds = bin2bcd(real_seconds);
++				real_minutes = bin2bcd(real_minutes);
+ 			}
+ 			CMOS_WRITE(real_seconds,RTC_SECONDS);
+ 			CMOS_WRITE(real_minutes,RTC_MINUTES);
+@@ -1353,14 +1353,14 @@ static void bq4802_get_rtc_time(struct r
+ 
+ 	writeb(val, bq4802_regs + 0x0e);
+ 
+-	BCD_TO_BIN(time->tm_sec);
+-	BCD_TO_BIN(time->tm_min);
+-	BCD_TO_BIN(time->tm_hour);
+-	BCD_TO_BIN(time->tm_mday);
+-	BCD_TO_BIN(time->tm_mon);
+-	BCD_TO_BIN(time->tm_year);
+-	BCD_TO_BIN(time->tm_wday);
+-	BCD_TO_BIN(century);
++	time->tm_sec = bcd2bin(time->tm_sec);
++	time->tm_min = bcd2bin(time->tm_min);
++	time->tm_hour = bcd2bin(time->tm_hour);
++	time->tm_mday = bcd2bin(time->tm_mday);
++	time->tm_mon = bcd2bin(time->tm_mon);
++	time->tm_year = bcd2bin(time->tm_year);
++	time->tm_wday = bcd2bin(time->tm_wday);
++	century = bcd2bin(century);
+ 
+ 	time->tm_year += (century * 100);
+ 	time->tm_year -= 1900;
+@@ -1384,13 +1384,13 @@ static int bq4802_set_rtc_time(struct rt
+ 	min = time->tm_min;
+ 	sec = time->tm_sec;
+ 
+-	BIN_TO_BCD(sec);
+-	BIN_TO_BCD(min);
+-	BIN_TO_BCD(hrs);
+-	BIN_TO_BCD(day);
+-	BIN_TO_BCD(mon);
+-	BIN_TO_BCD(yrs);
+-	BIN_TO_BCD(century);
++	sec = bin2bcd(sec);
++	min = bin2bcd(min);
++	hrs = bin2bcd(hrs);
++	day = bin2bcd(day);
++	mon = bin2bcd(mon);
++	yrs = bin2bcd(yrs);
++	century = bin2bcd(century);
+ 
+ 	writeb(val | 0x08, bq4802_regs + 0x0e);
+ 
+@@ -1421,13 +1421,13 @@ static void cmos_get_rtc_time(struct rtc
+ 
+ 	ctrl = CMOS_READ(RTC_CONTROL);
+ 	if (!(ctrl & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+-		BCD_TO_BIN(rtc_tm->tm_sec);
+-		BCD_TO_BIN(rtc_tm->tm_min);
+-		BCD_TO_BIN(rtc_tm->tm_hour);
+-		BCD_TO_BIN(rtc_tm->tm_mday);
+-		BCD_TO_BIN(rtc_tm->tm_mon);
+-		BCD_TO_BIN(rtc_tm->tm_year);
+-		BCD_TO_BIN(rtc_tm->tm_wday);
++		rtc_tm->tm_sec = bcd2bin(rtc_tm->tm_sec);
++		rtc_tm->tm_min = bcd2bin(rtc_tm->tm_min);
++		rtc_tm->tm_hour = bcd2bin(rtc_tm->tm_hour);
++		rtc_tm->tm_mday = bcd2bin(rtc_tm->tm_mday);
++		rtc_tm->tm_mon = bcd2bin(rtc_tm->tm_mon);
++		rtc_tm->tm_year = bcd2bin(rtc_tm->tm_year);
++		rtc_tm->tm_wday = bcd2bin(rtc_tm->tm_wday);
  	}
  
- 	/* Don't show non-partitionable removeable devices or empty devices */
-diff -puN kernel/auditsc.c~linux-next-git-rejects kernel/auditsc.c
---- a/kernel/auditsc.c~linux-next-git-rejects
-+++ a/kernel/auditsc.c
-@@ -248,10 +248,6 @@ static int audit_match_perm(struct audit
- 		return 0;
- 	n = ctx->major;
+ 	if (rtc_tm->tm_year <= 69)
+@@ -1453,12 +1453,12 @@ static int cmos_set_rtc_time(struct rtc_
+ 		yrs -= 100;
  
--<<<<<<< HEAD:kernel/auditsc.c
--	n = ctx->major;
--=======
-->>>>>>> FETCH_HEAD:kernel/auditsc.c
- 	switch (audit_classify_syscall(ctx->arch, n)) {
- 	case 0:	/* native */
- 		if ((mask & AUDIT_PERM_WRITE) &&
+ 	if (!(CMOS_READ(RTC_CONTROL) & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
+-		BIN_TO_BCD(sec);
+-		BIN_TO_BCD(min);
+-		BIN_TO_BCD(hrs);
+-		BIN_TO_BCD(day);
+-		BIN_TO_BCD(mon);
+-		BIN_TO_BCD(yrs);
++		sec = bin2bcd(sec);
++		min = bin2bcd(min);
++		hrs = bin2bcd(hrs);
++		day = bin2bcd(day);
++		mon = bin2bcd(mon);
++		yrs = bin2bcd(yrs);
+ 	}
+ 
+ 	save_control = CMOS_READ(RTC_CONTROL);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
-acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
-drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug.patch
-drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix.patch
-drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix.patch
+origin.patch
+ntfs-update-homepage.patch
 linux-next.patch
-next-remove-localversion.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
-linux-next-git-rejects.patch
-acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-x86-make-poll_idle-behave-more-like-the-other-idle-methods-checkpatch-fixes.patch
-fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
-pci-tidy-pme-support-messages-checkpatch-fixes.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+m32r-remove-the-unused-nohighmem-option.patch
+m32r-dont-offer-config_isa.patch
+m32r-export-empty_zero_page.patch
+m32r-export-__ndelay.patch
+m32r-kernel-cleanups.patch
+the-overdue-eepro100-removal.patch
+parisc-lib-make-code-static.patch
+drivers-parisc-make-code-static.patch
+if-0-ses_match_host.patch
+scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
+drivers-scsi-a2091c-make-2-functions-static.patch
+drivers-scsi-a3000c-make-2-functions-static.patch
+fs_mbcache-dont-needlessly-make-it-built-in.patch
 git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-e1000e-prevent-corruption-of-eeprom-nvm-fix.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
-fix-a-race-condtion-of-oops_in_progress-fix.patch
-vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-gru-driver-minor-updates-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-nilfs2-continuous-snapshotting-file-system-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
+misdn-dsp_cmxc-fix-size-checks.patch
+asm-h8300-mdh-remove-cvs-keyword.patch
+alpha-miata-remove-dead-url.patch
+uml-remove-the-dead-tty_log-code.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+maintainers-remove-hga-framebuffer-driver-entry.patch
+include-linux-mounth-remove-cvs-keyword.patch
+kernel-dmac-remove-a-cvs-keyword.patch
+binfmt_somc-add-module_license.patch
+make-probe_serial_gsc-static.patch
+pnp-remove-printk-with-outdated-version.patch
+telephony-remove-cvs-keywords.patch
+reiserfs-procfsc-remove-cvs-keywords.patch
+quota-remove-cvs-keywords.patch
+make-ptrace_untrace-static.patch
+fs-partitions-acornc-remove-dead-code.patch
+parport-remove-cvs-keywords.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+ipc-semc-make-free_un-static.patch
+make-fs-proc-proc_sysctlc-grab_header-static.patch
+make-hp_wmi_notify-static.patch
+make-kprobesc-kretprobe_table_lock-static.patch
+acpi-use-bcd2bin-bin2bcd.patch
+alpha-use-bcd2bin-bin2bcd.patch
+cris-use-bcd2bin-bin2bcd.patch
+drivers-rtc-use-bcd2bin-bin2bcd.patch
+rtc-use-bcd2bin-bin2bcd.patch
+mips-use-bcd2bin-bin2bcd.patch
+mn10300-use-bcd2bin-bin2bcd.patch
+i2c-use-bcd2bin-bin2bcd.patch
+drivers-scsi-sr_vendorc-use-bcd2bin.patch
+sparc64-use-bcd2bin-bin2bcd.patch
+remove-the-obsolete-bcdbin-binbcd-macros.patch
+include-linux-bcdh-remove-comments.patch
 reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
