@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + x86-x86_physvirt_bits-field-also-for-i386.patch added to -mm tree
-Date: Tue, 02 Sep 2008 15:08:55 -0700
-Message-ID: <200809022208.m82M8te6015254@imap1.linux-foundation.org>
+Subject: + x86-64-reduce-boot-fixmap-space.patch added to -mm tree
+Date: Tue, 02 Sep 2008 15:09:01 -0700
+Message-ID: <200809022209.m82M924C015269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49016 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33769 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752113AbYIBWJw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 18:09:52 -0400
+	by vger.kernel.org with ESMTP id S1752732AbYIBWJy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 18:09:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jbeulich@novell.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     x86: x86_{phys,virt}_bits field also for i386
+     x86-64: reduce boot fixmap space
 has been added to the -mm tree.  Its filename is
-     x86-x86_physvirt_bits-field-also-for-i386.patch
+     x86-64-reduce-boot-fixmap-space.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: x86_{phys,virt}_bits field also for i386
+Subject: x86-64: reduce boot fixmap space
 From: Jan Beulich <jbeulich@novell.com>
 
-Make the x86_{phys,virt}_bits common for 32- and 64-bits, and use the
-former in ioremap's phys_addr_valid() check also on 32bit/PAE.
+Just like for 32-bit - as 256 entries are needed, aligning to a 256-entry
+boundary is sufficient and still guarantees the single pte table
+requirement.
+
+Likewise move up __end_of_permanent_fixed_addresses, to match 32-bit.
 
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -46,96 +49,42 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/common.c |   18 ++++++++++++++++++
- arch/x86/mm/ioremap.c        |   15 ++++++---------
- include/asm-x86/processor.h  |    4 ++--
- 3 files changed, 26 insertions(+), 11 deletions(-)
+ include/asm-x86/fixmap_64.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/common.c~x86-x86_physvirt_bits-field-also-for-i386 arch/x86/kernel/cpu/common.c
---- a/arch/x86/kernel/cpu/common.c~x86-x86_physvirt_bits-field-also-for-i386
-+++ a/arch/x86/kernel/cpu/common.c
-@@ -306,6 +306,18 @@ static void __cpuinit early_get_cap(stru
- 				c->x86_capability[1] = cpuid_edx(0x80000001);
- 				c->x86_capability[6] = cpuid_ecx(0x80000001);
- 			}
-+			if (xlvl >= 0x80000008) {
-+				u32 eax = cpuid_eax(0x80000008);
-+
-+				c->x86_phys_bits = eax & 0xff;
-+				c->x86_virt_bits = (eax >> 8) & 0xff;
-+				/* CPUID workaround for Intel 0F33/0F34 CPU */
-+				if (c->x86_vendor == X86_VENDOR_INTEL
-+				    && c->x86 == 0xF && c->x86_model == 0x3
-+				    && (c->x86_mask == 0x3
-+					|| c->x86_mask == 0x4))
-+					c->x86_phys_bits = 36;
-+			}
- 		}
- 
- 	}
-@@ -327,6 +339,12 @@ static void __init early_cpu_detect(void
- 
- 	c->x86_cache_alignment = 32;
- 	c->x86_clflush_size = 32;
-+#ifdef CONFIG_X86_PAE
-+	c->x86_phys_bits = 36;
-+#else
-+	c->x86_phys_bits = 32;
-+#endif
-+	c->x86_virt_bits = 32;
- 
- 	if (!have_cpuid_p())
- 		return;
-diff -puN arch/x86/mm/ioremap.c~x86-x86_physvirt_bits-field-also-for-i386 arch/x86/mm/ioremap.c
---- a/arch/x86/mm/ioremap.c~x86-x86_physvirt_bits-field-also-for-i386
-+++ a/arch/x86/mm/ioremap.c
-@@ -32,19 +32,16 @@ unsigned long __phys_addr(unsigned long 
- }
- EXPORT_SYMBOL(__phys_addr);
- 
--static inline int phys_addr_valid(unsigned long addr)
--{
--	return addr < (1UL << boot_cpu_data.x86_phys_bits);
--}
--
--#else
-+#endif
- 
--static inline int phys_addr_valid(unsigned long addr)
-+static inline int phys_addr_valid(resource_size_t addr)
- {
-+#ifdef CONFIG_RESOURCES_64BIT
-+	return !(addr >> boot_cpu_data.x86_phys_bits);
-+#else
- 	return 1;
--}
--
+diff -puN include/asm-x86/fixmap_64.h~x86-64-reduce-boot-fixmap-space include/asm-x86/fixmap_64.h
+--- a/include/asm-x86/fixmap_64.h~x86-64-reduce-boot-fixmap-space
++++ a/include/asm-x86/fixmap_64.h
+@@ -49,6 +49,7 @@ enum fixed_addresses {
+ #ifdef CONFIG_PARAVIRT
+ 	FIX_PARAVIRT_BOOTMAP,
  #endif
-+}
- 
- int page_is_ram(unsigned long pagenr)
- {
-diff -puN include/asm-x86/processor.h~x86-x86_physvirt_bits-field-also-for-i386 include/asm-x86/processor.h
---- a/include/asm-x86/processor.h~x86-x86_physvirt_bits-field-also-for-i386
-+++ a/include/asm-x86/processor.h
-@@ -73,8 +73,6 @@ struct cpuinfo_x86 {
- #else
- 	/* Number of 4K pages in DTLB/ITLB combined(in pages): */
- 	int			 x86_tlbsize;
--	__u8			x86_virt_bits;
--	__u8			x86_phys_bits;
- 	/* CPUID returned core id bits: */
- 	__u8			x86_coreid_bits;
- 	/* Max extended CPUID function supported: */
-@@ -99,6 +97,8 @@ struct cpuinfo_x86 {
- 	u16			apicid;
- 	u16			initial_apicid;
- 	u16			x86_clflush_size;
-+	u8			x86_virt_bits;
-+	u8			x86_phys_bits;
- #ifdef CONFIG_SMP
- 	/* number of cores as seen by the OS: */
- 	u16			booted_cores;
++	__end_of_permanent_fixed_addresses,
+ #ifdef CONFIG_ACPI
+ 	FIX_ACPI_BEGIN,
+ 	FIX_ACPI_END = FIX_ACPI_BEGIN + FIX_ACPI_PAGES - 1,
+@@ -56,18 +57,17 @@ enum fixed_addresses {
+ #ifdef CONFIG_PROVIDE_OHCI1394_DMA_INIT
+ 	FIX_OHCI1394_BASE,
+ #endif
+-	__end_of_permanent_fixed_addresses,
+ 	/*
+ 	 * 256 temporary boot-time mappings, used by early_ioremap(),
+ 	 * before ioremap() is functional.
+ 	 *
+-	 * We round it up to the next 512 pages boundary so that we
++	 * We round it up to the next 256 pages boundary so that we
+ 	 * can have a single pgd entry and a single pte table:
+ 	 */
+ #define NR_FIX_BTMAPS		64
+ #define FIX_BTMAPS_NESTING	4
+-	FIX_BTMAP_END = __end_of_permanent_fixed_addresses + 512 -
+-			(__end_of_permanent_fixed_addresses & 511),
++	FIX_BTMAP_END = __end_of_permanent_fixed_addresses + 256 -
++			(__end_of_permanent_fixed_addresses & 255),
+ 	FIX_BTMAP_BEGIN = FIX_BTMAP_END + NR_FIX_BTMAPS*FIX_BTMAPS_NESTING - 1,
+ 	__end_of_fixed_addresses
+ };
 _
 
 Patches currently in -mm which might be from jbeulich@novell.com are
