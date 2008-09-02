@@ -1,53 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch removed from -mm tree
-Date: Tue, 02 Sep 2008 14:32:30 -0700
-Message-ID: <200809022132.m82LWU3Y013572@imap1.linux-foundation.org>
+Subject: - drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix.patch removed from -mm tree
+Date: Tue, 02 Sep 2008 14:33:07 -0700
+Message-ID: <200809022133.m82LX7wc013610@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58717 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51800 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751568AbYIBVch (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 17:32:37 -0400
+	by vger.kernel.org with ESMTP id S1751686AbYIBVdv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 17:33:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@linux.intel.com, carlos@strangeworlds.co.uk, russ.dill@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aaron@merfinllc.com, mpm@selenic.com, stable@kernel.org, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acer-wmi-remove-debugfs-entries-upon-unloading-cleanup
+     drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix
 has been removed from the -mm tree.  Its filename was
-     acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
+     drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix.patch
 
-This patch was dropped because it was folded into acer-wmi-remove-debugfs-entries-upon-unloading.patch
+This patch was dropped because it was folded into drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acer-wmi-remove-debugfs-entries-upon-unloading-cleanup
+Subject: drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-somewhat irrelevant indenting fix.
-
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>
-Cc: Russ Dill <russ.dill@gmail.com>
+Cc: <stable@kernel.org>		[2.6.26.x]
+Cc: Aaron Straus <aaron@merfinllc.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/acer-wmi.c |    2 +-
+ drivers/char/random.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/acer-wmi.c~acer-wmi-remove-debugfs-entries-upon-unloading-cleanup drivers/misc/acer-wmi.c
---- a/drivers/misc/acer-wmi.c~acer-wmi-remove-debugfs-entries-upon-unloading-cleanup
-+++ a/drivers/misc/acer-wmi.c
-@@ -1186,7 +1186,7 @@ static int create_debugfs(void)
- 	return 0;
- 
- error_debugfs:
--		remove_debugfs();
-+	remove_debugfs();
- 	return -ENOMEM;
- }
+diff -puN drivers/char/random.c~drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix drivers/char/random.c
+--- a/drivers/char/random.c~drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix
++++ a/drivers/char/random.c
+@@ -407,7 +407,7 @@ struct entropy_store {
+ 	/* read-write data: */
+ 	spinlock_t lock;
+ 	unsigned add_ptr;
+-	int entropy_count;
++	int entropy_count;	/* Must at no time exceed ->POOLBITS! */
+ 	int input_rotate;
+ };
  
 _
 
@@ -55,7 +54,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails.patch
 acer-wmi-remove-debugfs-entries-upon-unloading.patch
-acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
 drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug.patch
 drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix.patch
 drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix.patch
