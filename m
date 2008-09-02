@@ -1,67 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch removed from -mm tree
-Date: Tue, 02 Sep 2008 14:31:53 -0700
-Message-ID: <200809022131.m82LVrjX013558@imap1.linux-foundation.org>
+Subject: - acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch removed from -mm tree
+Date: Tue, 02 Sep 2008 14:32:30 -0700
+Message-ID: <200809022132.m82LWU3Y013572@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60725 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58717 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751239AbYIBVb5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 17:31:57 -0400
+	by vger.kernel.org with ESMTP id S1751568AbYIBVch (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 17:32:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hifumi.hisashi@oss.ntt.co.jp, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@linux.intel.com, carlos@strangeworlds.co.uk, russ.dill@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix
+     acer-wmi-remove-debugfs-entries-upon-unloading-cleanup
 has been removed from the -mm tree.  Its filename was
-     vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
+     acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
 
-This patch was dropped because it was folded into vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails.patch
+This patch was dropped because it was folded into acer-wmi-remove-debugfs-entries-upon-unloading.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix
+Subject: acer-wmi-remove-debugfs-entries-upon-unloading-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+somewhat irrelevant indenting fix.
+
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Carlos Corbacho <carlos@strangeworlds.co.uk>
+Cc: Russ Dill <russ.dill@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/misc/acer-wmi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix mm/filemap.c
---- a/mm/filemap.c~vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix
-+++ a/mm/filemap.c
-@@ -2129,15 +2129,15 @@ generic_file_direct_write(struct kiocb *
- 	 * After a write we want buffered reads to be sure to go to disk to get
- 	 * the new data.  We invalidate clean cached page from the region we're
- 	 * about to write.  We do this *before* the write so that we can return
--	* without clobbering -EIOCBQUEUED from ->direct_IO().
-+	 * without clobbering -EIOCBQUEUED from ->direct_IO().
- 	 */
- 	if (mapping->nrpages) {
- 		written = invalidate_inode_pages2_range(mapping,
- 					pos >> PAGE_CACHE_SHIFT, end);
- 		/*
--		* If a page can not be invalidated, return 0 to fall back
--		* to buffered write.
--		*/
-+		 * If a page can not be invalidated, return 0 to fall back
-+		 * to buffered write.
-+		 */
- 		if (written) {
- 			if (written == -EBUSY)
- 				return 0;
+diff -puN drivers/misc/acer-wmi.c~acer-wmi-remove-debugfs-entries-upon-unloading-cleanup drivers/misc/acer-wmi.c
+--- a/drivers/misc/acer-wmi.c~acer-wmi-remove-debugfs-entries-upon-unloading-cleanup
++++ a/drivers/misc/acer-wmi.c
+@@ -1186,7 +1186,7 @@ static int create_debugfs(void)
+ 	return 0;
+ 
+ error_debugfs:
+-		remove_debugfs();
++	remove_debugfs();
+ 	return -ENOMEM;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails.patch
-vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
+acer-wmi-remove-debugfs-entries-upon-unloading.patch
 acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
 drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug.patch
 drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix.patch
