@@ -1,263 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: - sparc64-use-bcd2bin-bin2bcd.patch removed from -mm tree
-Date: Tue, 02 Sep 2008 13:34:09 -0700
-Message-ID: <200809022034.m82KY9A7011338@imap1.linux-foundation.org>
+Subject: - pci-pm-introduce-function-pci_wake_from_d3-rev-2.patch removed from -mm tree
+Date: Tue, 02 Sep 2008 13:41:37 -0700
+Message-ID: <200809022041.m82KfbLN011649@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39500 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60188 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751246AbYIBUet (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 16:34:49 -0400
+	by vger.kernel.org with ESMTP id S1752254AbYIBUlm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 16:41:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, davem@davemloft.net, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sparc64: use bcd2bin/bin2bcd
+     pc pm: introduce function pci_wake_from_d3
 has been removed from the -mm tree.  Its filename was
-     sparc64-use-bcd2bin-bin2bcd.patch
+     pci-pm-introduce-function-pci_wake_from_d3-rev-2.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sparc64: use bcd2bin/bin2bcd
-From: Adrian Bunk <bunk@kernel.org>
+Subject: pc pm: introduce function pci_wake_from_d3
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Change sparc64 to use the new bcd2bin/bin2bcd functions instead of the
-obsolete BCD_TO_BIN/BIN_TO_BCD macros.
+Many device drivers use the following sequence of statements to enable the
+device to wake up the system while being in the D3_hot or D3_cold low
+power state:
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+	pci_enable_wake(pdev, PCI_D3hot, 1);
+	pci_enable_wake(pdev, PCI_D3cold, 1);
+
+However, the second call is not necessary if the first one succeeds (the
+ordering of the statements above doesn't matter here) and it may even be
+harmful, because we are not supposed to enable PME# after the wake-up
+power has been enabled for the device.
+
+To allow drivers to overcome this problem, introduce function
+pci_wake_from_d3() that will enable the device to wake up the system from
+any of D3_hot and D3_cold as long as the wake-up from at least one of them
+is supported.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/kernel/time.c |   94 +++++++++++++++++------------------
- 1 file changed, 47 insertions(+), 47 deletions(-)
+ drivers/pci/pci.c   |   22 ++++++++++++++++++++++
+ include/linux/pci.h |    1 +
+ 2 files changed, 23 insertions(+)
 
-diff -puN arch/sparc64/kernel/time.c~sparc64-use-bcd2bin-bin2bcd arch/sparc64/kernel/time.c
---- a/arch/sparc64/kernel/time.c~sparc64-use-bcd2bin-bin2bcd
-+++ a/arch/sparc64/kernel/time.c
-@@ -582,13 +582,13 @@ static void __init set_system_time(void)
+diff -puN drivers/pci/pci.c~pci-pm-introduce-function-pci_wake_from_d3-rev-2 drivers/pci/pci.c
+--- a/drivers/pci/pci.c~pci-pm-introduce-function-pci_wake_from_d3-rev-2
++++ a/drivers/pci/pci.c
+@@ -1127,6 +1127,27 @@ int pci_enable_wake(struct pci_dev *dev,
+ }
  
- 		writeb(val, bregs + 0x0e);
- 
--		BCD_TO_BIN(sec);
--		BCD_TO_BIN(min);
--		BCD_TO_BIN(hour);
--		BCD_TO_BIN(day);
--		BCD_TO_BIN(mon);
--		BCD_TO_BIN(year);
--		BCD_TO_BIN(century);
-+		sec = bcd2bin(sec);
-+		min = bcd2bin(min);
-+		hour = bcd2bin(hour);
-+		day = bcd2bin(day);
-+		mon = bcd2bin(mon);
-+		year = bcd2bin(year);
-+		century = bcd2bin(century);
- 
- 		year += (century * 100);
- 	} else {
-@@ -604,12 +604,12 @@ static void __init set_system_time(void)
- 		} while (sec != CMOS_READ(RTC_SECONDS));
- 
- 		if (!(CMOS_READ(RTC_CONTROL) & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--			BCD_TO_BIN(sec);
--			BCD_TO_BIN(min);
--			BCD_TO_BIN(hour);
--			BCD_TO_BIN(day);
--			BCD_TO_BIN(mon);
--			BCD_TO_BIN(year);
-+			sec = bcd2bin(sec);
-+			min = bcd2bin(min);
-+			hour = bcd2bin(hour);
-+			day = bcd2bin(day);
-+			mon = bcd2bin(mon);
-+			year = bcd2bin(year);
- 		}
- 		if ((year += 1900) < 1970)
- 			year += 100;
-@@ -1146,7 +1146,7 @@ static int set_rtc_mmss(unsigned long no
- 		writeb(val | 0x08, bregs + 0x0e);
- 
- 		chip_minutes = readb(bregs + 0x02);
--		BCD_TO_BIN(chip_minutes);
-+		chip_minutes = bcd2bin(chip_minutes);
- 		real_seconds = nowtime % 60;
- 		real_minutes = nowtime / 60;
- 		if (((abs(real_minutes - chip_minutes) + 15)/30) & 1)
-@@ -1154,8 +1154,8 @@ static int set_rtc_mmss(unsigned long no
- 		real_minutes %= 60;
- 
- 		if (abs(real_minutes - chip_minutes) < 30) {
--			BIN_TO_BCD(real_seconds);
--			BIN_TO_BCD(real_minutes);
-+			real_seconds = bin2bcd(real_seconds);
-+			real_minutes = bin2bcd(real_minutes);
- 			writeb(real_seconds, bregs + 0x00);
- 			writeb(real_minutes, bregs + 0x02);
- 		} else {
-@@ -1184,7 +1184,7 @@ static int set_rtc_mmss(unsigned long no
- 
- 		chip_minutes = CMOS_READ(RTC_MINUTES);
- 		if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
--			BCD_TO_BIN(chip_minutes);
-+			chip_minutes = bcd2bin(chip_minutes);
- 		real_seconds = nowtime % 60;
- 		real_minutes = nowtime / 60;
- 		if (((abs(real_minutes - chip_minutes) + 15)/30) & 1)
-@@ -1193,8 +1193,8 @@ static int set_rtc_mmss(unsigned long no
- 
- 		if (abs(real_minutes - chip_minutes) < 30) {
- 			if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--				BIN_TO_BCD(real_seconds);
--				BIN_TO_BCD(real_minutes);
-+				real_seconds = bin2bcd(real_seconds);
-+				real_minutes = bin2bcd(real_minutes);
- 			}
- 			CMOS_WRITE(real_seconds,RTC_SECONDS);
- 			CMOS_WRITE(real_minutes,RTC_MINUTES);
-@@ -1353,14 +1353,14 @@ static void bq4802_get_rtc_time(struct r
- 
- 	writeb(val, bq4802_regs + 0x0e);
- 
--	BCD_TO_BIN(time->tm_sec);
--	BCD_TO_BIN(time->tm_min);
--	BCD_TO_BIN(time->tm_hour);
--	BCD_TO_BIN(time->tm_mday);
--	BCD_TO_BIN(time->tm_mon);
--	BCD_TO_BIN(time->tm_year);
--	BCD_TO_BIN(time->tm_wday);
--	BCD_TO_BIN(century);
-+	time->tm_sec = bcd2bin(time->tm_sec);
-+	time->tm_min = bcd2bin(time->tm_min);
-+	time->tm_hour = bcd2bin(time->tm_hour);
-+	time->tm_mday = bcd2bin(time->tm_mday);
-+	time->tm_mon = bcd2bin(time->tm_mon);
-+	time->tm_year = bcd2bin(time->tm_year);
-+	time->tm_wday = bcd2bin(time->tm_wday);
-+	century = bcd2bin(century);
- 
- 	time->tm_year += (century * 100);
- 	time->tm_year -= 1900;
-@@ -1384,13 +1384,13 @@ static int bq4802_set_rtc_time(struct rt
- 	min = time->tm_min;
- 	sec = time->tm_sec;
- 
--	BIN_TO_BCD(sec);
--	BIN_TO_BCD(min);
--	BIN_TO_BCD(hrs);
--	BIN_TO_BCD(day);
--	BIN_TO_BCD(mon);
--	BIN_TO_BCD(yrs);
--	BIN_TO_BCD(century);
-+	sec = bin2bcd(sec);
-+	min = bin2bcd(min);
-+	hrs = bin2bcd(hrs);
-+	day = bin2bcd(day);
-+	mon = bin2bcd(mon);
-+	yrs = bin2bcd(yrs);
-+	century = bin2bcd(century);
- 
- 	writeb(val | 0x08, bq4802_regs + 0x0e);
- 
-@@ -1421,13 +1421,13 @@ static void cmos_get_rtc_time(struct rtc
- 
- 	ctrl = CMOS_READ(RTC_CONTROL);
- 	if (!(ctrl & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--		BCD_TO_BIN(rtc_tm->tm_sec);
--		BCD_TO_BIN(rtc_tm->tm_min);
--		BCD_TO_BIN(rtc_tm->tm_hour);
--		BCD_TO_BIN(rtc_tm->tm_mday);
--		BCD_TO_BIN(rtc_tm->tm_mon);
--		BCD_TO_BIN(rtc_tm->tm_year);
--		BCD_TO_BIN(rtc_tm->tm_wday);
-+		rtc_tm->tm_sec = bcd2bin(rtc_tm->tm_sec);
-+		rtc_tm->tm_min = bcd2bin(rtc_tm->tm_min);
-+		rtc_tm->tm_hour = bcd2bin(rtc_tm->tm_hour);
-+		rtc_tm->tm_mday = bcd2bin(rtc_tm->tm_mday);
-+		rtc_tm->tm_mon = bcd2bin(rtc_tm->tm_mon);
-+		rtc_tm->tm_year = bcd2bin(rtc_tm->tm_year);
-+		rtc_tm->tm_wday = bcd2bin(rtc_tm->tm_wday);
- 	}
- 
- 	if (rtc_tm->tm_year <= 69)
-@@ -1453,12 +1453,12 @@ static int cmos_set_rtc_time(struct rtc_
- 		yrs -= 100;
- 
- 	if (!(CMOS_READ(RTC_CONTROL) & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--		BIN_TO_BCD(sec);
--		BIN_TO_BCD(min);
--		BIN_TO_BCD(hrs);
--		BIN_TO_BCD(day);
--		BIN_TO_BCD(mon);
--		BIN_TO_BCD(yrs);
-+		sec = bin2bcd(sec);
-+		min = bin2bcd(min);
-+		hrs = bin2bcd(hrs);
-+		day = bin2bcd(day);
-+		mon = bin2bcd(mon);
-+		yrs = bin2bcd(yrs);
- 	}
- 
- 	save_control = CMOS_READ(RTC_CONTROL);
+ /**
++ * pci_wake_from_d3 - enable/disable device to wake up from D3_hot or D3_cold
++ * @dev: PCI device to prepare
++ * @enable: True to enable wake-up event generation; false to disable
++ *
++ * Many drivers want the device to wake up the system from D3_hot or D3_cold
++ * and this function allows them to set that up cleanly - pci_enable_wake()
++ * should not be called twice in a row to enable wake-up due to PCI PM vs ACPI
++ * ordering constraints.
++ *
++ * This function only returns error code if the device is not capable of
++ * generating PME# from both D3_hot and D3_cold, and the platform is unable to
++ * enable wake-up power for it.
++ */
++int pci_wake_from_d3(struct pci_dev *dev, bool enable)
++{
++	return pci_pme_capable(dev, PCI_D3cold) ?
++			pci_enable_wake(dev, PCI_D3cold, enable) :
++			pci_enable_wake(dev, PCI_D3hot, enable);
++}
++
++/**
+  * pci_target_state - find an appropriate low power state for a given PCI dev
+  * @dev: PCI device
+  *
+@@ -1943,6 +1964,7 @@ EXPORT_SYMBOL(pci_restore_state);
+ EXPORT_SYMBOL(pci_pme_capable);
+ EXPORT_SYMBOL(pci_pme_active);
+ EXPORT_SYMBOL(pci_enable_wake);
++EXPORT_SYMBOL(pci_wake_from_d3);
+ EXPORT_SYMBOL(pci_target_state);
+ EXPORT_SYMBOL(pci_prepare_to_sleep);
+ EXPORT_SYMBOL(pci_back_from_sleep);
+diff -puN include/linux/pci.h~pci-pm-introduce-function-pci_wake_from_d3-rev-2 include/linux/pci.h
+--- a/include/linux/pci.h~pci-pm-introduce-function-pci_wake_from_d3-rev-2
++++ a/include/linux/pci.h
+@@ -642,6 +642,7 @@ pci_power_t pci_choose_state(struct pci_
+ bool pci_pme_capable(struct pci_dev *dev, pci_power_t state);
+ void pci_pme_active(struct pci_dev *dev, bool enable);
+ int pci_enable_wake(struct pci_dev *dev, pci_power_t state, int enable);
++int pci_wake_from_d3(struct pci_dev *dev, bool enable);
+ pci_power_t pci_target_state(struct pci_dev *dev);
+ int pci_prepare_to_sleep(struct pci_dev *dev);
+ int pci_back_from_sleep(struct pci_dev *dev);
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
-ntfs-update-homepage.patch
+debugobjects-fix-lockdep-warning.patch
+rtc-cmos-wake-again-from-s5.patch
 linux-next.patch
-m32r-remove-the-unused-nohighmem-option.patch
-m32r-dont-offer-config_isa.patch
-m32r-export-empty_zero_page.patch
-m32r-export-__ndelay.patch
-m32r-kernel-cleanups.patch
-the-overdue-eepro100-removal.patch
-parisc-lib-make-code-static.patch
-drivers-parisc-make-code-static.patch
-if-0-ses_match_host.patch
-scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
-drivers-scsi-a2091c-make-2-functions-static.patch
-drivers-scsi-a3000c-make-2-functions-static.patch
-fs_mbcache-dont-needlessly-make-it-built-in.patch
-git-xtensa.patch
-misdn-dsp_cmxc-fix-size-checks.patch
-asm-h8300-mdh-remove-cvs-keyword.patch
-alpha-miata-remove-dead-url.patch
-uml-remove-the-dead-tty_log-code.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-maintainers-remove-hga-framebuffer-driver-entry.patch
-include-linux-mounth-remove-cvs-keyword.patch
-kernel-dmac-remove-a-cvs-keyword.patch
-binfmt_somc-add-module_license.patch
-make-probe_serial_gsc-static.patch
-pnp-remove-printk-with-outdated-version.patch
-telephony-remove-cvs-keywords.patch
-reiserfs-procfsc-remove-cvs-keywords.patch
-quota-remove-cvs-keywords.patch
-make-ptrace_untrace-static.patch
-fs-partitions-acornc-remove-dead-code.patch
-parport-remove-cvs-keywords.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-ipc-semc-make-free_un-static.patch
-make-fs-proc-proc_sysctlc-grab_header-static.patch
-make-hp_wmi_notify-static.patch
-make-kprobesc-kretprobe_table_lock-static.patch
-acpi-use-bcd2bin-bin2bcd.patch
-alpha-use-bcd2bin-bin2bcd.patch
-cris-use-bcd2bin-bin2bcd.patch
-drivers-rtc-use-bcd2bin-bin2bcd.patch
-rtc-use-bcd2bin-bin2bcd.patch
-mips-use-bcd2bin-bin2bcd.patch
-mn10300-use-bcd2bin-bin2bcd.patch
-i2c-use-bcd2bin-bin2bcd.patch
-drivers-scsi-sr_vendorc-use-bcd2bin.patch
-sparc64-use-bcd2bin-bin2bcd.patch
-remove-the-obsolete-bcdbin-binbcd-macros.patch
-include-linux-bcdh-remove-comments.patch
-reiser4.patch
+skge-adapt-skge-to-use-reworked-pci-pm.patch
+skty2-adapt-to-the-reworked-pci-pm.patch
+e100-adapt-to-the-reworked-pci-pm.patch
+forcedeth-fix-kexec-regression.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+container-freezer-make-refrigerator-always-available.patch
+container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-cleanup-comment.patch
+container-freezer-skip-frozen-cgroups-during-power-management-resume.patch
+vsprintf-use-new-vsprintf-symbolic-function-pointer-format.patch
+vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
+shrink_slab-handle-bad-shrinkers.patch
 
