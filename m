@@ -1,59 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix.patch removed from -mm tree
-Date: Tue, 02 Sep 2008 14:33:10 -0700
-Message-ID: <200809022133.m82LXAJP013613@imap1.linux-foundation.org>
+Subject: - e1000e-prevent-corruption-of-eeprom-nvm-fix.patch removed from -mm tree
+Date: Tue, 02 Sep 2008 14:44:14 -0700
+Message-ID: <200809022144.m82LiEKq014161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47940 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36511 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751686AbYIBVdw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 17:33:52 -0400
+	by vger.kernel.org with ESMTP id S1752218AbYIBVpb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 17:45:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aaron@merfinllc.com, mpm@selenic.com, stable@kernel.org, tytso@mit.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arvidjaar@mail.ru, bruce.w.allan@intel.com, chrisl@vmware.com, jeff@garzik.org, jeffrey.t.kirsher@intel.com, jesse.brandeburg@intel.com, john.ronciak@intel.
 
 
 The patch titled
-     drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix
+     e1000e-prevent-corruption-of-eeprom-nvm-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix.patch
+     e1000e-prevent-corruption-of-eeprom-nvm-fix.patch
 
-This patch was dropped because it was folded into drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug.patch
+This patch was dropped because it was folded into e1000e-prevent-corruption-of-eeprom-nvm.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix
+Subject: e1000e-prevent-corruption-of-eeprom-nvm-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: <stable@kernel.org>		[2.6.26.x]
-Cc: Aaron Straus <aaron@merfinllc.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Use DEFINE_SPINLOCK to avoid confusing lockdep.
+
+(boggle@driver using 4-space indenting omgwtf)
+
+Cc: Andrey Borzenkov <arvidjaar@mail.ru>
+Cc: Bruce Allan <bruce.w.allan@intel.com>
+Cc: Christopher Li <chrisl@vmware.com>
+Cc: Christopher Li <chrisl@vmware.com> 
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
+Cc: John Ronciak <john.ronciak@intel.com>
+Cc: PJ Waskiewicz <peter.p.waskiewicz.jr@intel.com>
+Cc: Pratap Subrahmanyam <pratap@vmware.com>
+Cc: Zach Amsden <zach@vmware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |    2 +-
+ drivers/net/e1000/e1000_hw.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/random.c~drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix drivers/char/random.c
---- a/drivers/char/random.c~drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix
-+++ a/drivers/char/random.c
-@@ -535,13 +535,13 @@ static void credit_entropy_bits(struct e
- 		entropy_count = 0;
- 	} else if (entropy_count > r->poolinfo->POOLBITS)
- 		entropy_count = r->poolinfo->POOLBITS;
-+	r->entropy_count = entropy_count;
+diff -puN drivers/net/e1000/e1000_hw.c~e1000e-prevent-corruption-of-eeprom-nvm-fix drivers/net/e1000/e1000_hw.c
+--- a/drivers/net/e1000/e1000_hw.c~e1000e-prevent-corruption-of-eeprom-nvm-fix
++++ a/drivers/net/e1000/e1000_hw.c
+@@ -170,7 +170,7 @@ u16 e1000_igp_2_cable_length_table[IGP02
+       83, 89, 95, 100, 105, 109, 113, 116, 119, 122, 124,
+       104, 109, 114, 118, 121, 124};
  
- 	/* should we wake readers? */
- 	if (r == &input_pool && entropy_count >= random_read_wakeup_thresh) {
- 		wake_up_interruptible(&random_read_wait);
- 		kill_fasync(&fasync, SIGIO, POLL_IN);
- 	}
--	r->entropy_count = entropy_count;
- 	spin_unlock_irqrestore(&r->lock, flags);
- }
+-static spinlock_t e1000_eeprom_lock = SPIN_LOCK_UNLOCKED;
++static DEFINE_SPINLOCK(e1000_eeprom_lock);
  
+ /******************************************************************************
+  * Set the phy type member in the hw struct.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -61,7 +66,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails.patch
 acer-wmi-remove-debugfs-entries-upon-unloading.patch
 drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug.patch
-drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix.patch
 linux-next.patch
 next-remove-localversion.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
@@ -90,6 +94,7 @@ scsi-gdthc-use-unaligned-access-helpers.patch
 drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
+e1000e-prevent-corruption-of-eeprom-nvm.patch
 e1000e-prevent-corruption-of-eeprom-nvm-fix.patch
 mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
