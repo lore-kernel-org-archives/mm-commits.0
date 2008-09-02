@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-infiniband-core-use-a-null-test-rather-than-an-is_err-test.patch added to -mm tree
-Date: Tue, 02 Sep 2008 14:57:36 -0700
-Message-ID: <200809022157.m82LvasO014790@imap1.linux-foundation.org>
+Subject: + adjust-init-section-definitions.patch added to -mm tree
+Date: Tue, 02 Sep 2008 14:59:04 -0700
+Message-ID: <200809022159.m82Lx4O6014848@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37686 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44897 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752823AbYIBV5w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 17:57:52 -0400
+	by vger.kernel.org with ESMTP id S1753353AbYIBV7J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 17:59:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: brunel@diku.dk, julia@diku.dk, rolandd@cisco.com
+Cc: jbeulich@novell.com, sam@ravnborg.org
 
 
 The patch titled
-     drivers/infiniband/core: use a NULL test rather than an IS_ERR test
+     adjust init section definitions
 has been added to the -mm tree.  Its filename is
-     drivers-infiniband-core-use-a-null-test-rather-than-an-is_err-test.patch
+     adjust-init-section-definitions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/infiniband/core: use a NULL test rather than an IS_ERR test
-From: Julien Brunel <brunel@diku.dk>
+Subject: adjust init section definitions
+From: "Jan Beulich" <jbeulich@novell.com>
 
-In case of error, the function ucma_alloc_multicast returns a NULL
-pointer, but never returns an ERR pointer.  So after a call to this
-function, an IS_ERR test should be replaced by a NULL test.
+Add rodata equivalents for assembly use, and fix the section attributes
+used by __REFCONST.
 
-The semantic match that finds this problem is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@match bad_is_err_test@
-expression x, E;
-@@
-
-x = ucma_alloc_multicast(...)
-... when != x = E
-IS_ERR(x)
-// </smpl>
-
-Signed-off-by: Julien Brunel <brunel@diku.dk>
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Roland Dreier <rolandd@cisco.com>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/core/ucma.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/init.h |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/core/ucma.c~drivers-infiniband-core-use-a-null-test-rather-than-an-is_err-test drivers/infiniband/core/ucma.c
---- a/drivers/infiniband/core/ucma.c~drivers-infiniband-core-use-a-null-test-rather-than-an-is_err-test
-+++ a/drivers/infiniband/core/ucma.c
-@@ -904,8 +904,8 @@ static ssize_t ucma_join_multicast(struc
+diff -puN include/linux/init.h~adjust-init-section-definitions include/linux/init.h
+--- a/include/linux/init.h~adjust-init-section-definitions
++++ a/include/linux/init.h
+@@ -112,21 +112,25 @@
+ #define __FINIT		.previous
  
- 	mutex_lock(&file->mut);
- 	mc = ucma_alloc_multicast(ctx);
--	if (IS_ERR(mc)) {
--		ret = PTR_ERR(mc);
-+	if (mc == NULL) {
-+		ret = -ENOMEM;
- 		goto err1;
- 	}
+ #define __INITDATA	.section	".init.data","aw"
++#define __INITRODATA	.section	".init.rodata","a"
+ #define __FINITDATA	.previous
  
+ #define __DEVINIT        .section	".devinit.text", "ax"
+ #define __DEVINITDATA    .section	".devinit.data", "aw"
++#define __DEVINITRODATA  .section	".devinit.rodata", "a"
+ 
+ #define __CPUINIT        .section	".cpuinit.text", "ax"
+ #define __CPUINITDATA    .section	".cpuinit.data", "aw"
++#define __CPUINITRODATA  .section	".cpuinit.rodata", "a"
+ 
+ #define __MEMINIT        .section	".meminit.text", "ax"
+ #define __MEMINITDATA    .section	".meminit.data", "aw"
++#define __MEMINITRODATA  .section	".meminit.rodata", "a"
+ 
+ /* silence warnings when references are OK */
+ #define __REF            .section       ".ref.text", "ax"
+ #define __REFDATA        .section       ".ref.data", "aw"
+-#define __REFCONST       .section       ".ref.rodata", "aw"
++#define __REFCONST       .section       ".ref.rodata", "a"
+ 
+ #ifndef __ASSEMBLY__
+ /*
 _
 
-Patches currently in -mm which might be from brunel@diku.dk are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
 linux-next.patch
-drivers-infiniband-core-use-a-null-test-rather-than-an-is_err-test.patch
+adjust-init-section-definitions.patch
 
