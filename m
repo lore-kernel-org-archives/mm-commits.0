@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-64-add-two-__cpuinit-annotations.patch added to -mm tree
-Date: Tue, 02 Sep 2008 15:09:03 -0700
-Message-ID: <200809022209.m82M93PP015272@imap1.linux-foundation.org>
+Subject: + x86-fix-ticket-spin-lock-asm-constraints.patch added to -mm tree
+Date: Tue, 02 Sep 2008 15:08:59 -0700
+Message-ID: <200809022208.m82M8xqE015260@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45976 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44774 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751753AbYIBWKE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 18:10:04 -0400
+	by vger.kernel.org with ESMTP id S1752113AbYIBWKK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 18:10:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jbeulich@novell.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+Cc: jbeulich@novell.com, hpa@zytor.com, mingo@elte.hu, npiggin@suse.de, tglx@linutronix.de
 
 
 The patch titled
-     x86-64: add two __cpuinit annotations
+     x86: fix ticket spin lock asm constraints
 has been added to the -mm tree.  Its filename is
-     x86-64-add-two-__cpuinit-annotations.patch
+     x86-fix-ticket-spin-lock-asm-constraints.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-64: add two __cpuinit annotations
+Subject: x86: fix ticket spin lock asm constraints
 From: Jan Beulich <jbeulich@novell.com>
 
+In addition to these changes I doubt the 'volatile' on all the ticket lock
+asm()-s are really necessary.
+
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/common_64.c     |    2 +-
- arch/x86/kernel/cpu/mcheck/mce_64.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/asm-x86/spinlock.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/common_64.c~x86-64-add-two-__cpuinit-annotations arch/x86/kernel/cpu/common_64.c
---- a/arch/x86/kernel/cpu/common_64.c~x86-64-add-two-__cpuinit-annotations
-+++ a/arch/x86/kernel/cpu/common_64.c
-@@ -560,7 +560,7 @@ static int __init nonx32_setup(char *str
+diff -puN include/asm-x86/spinlock.h~x86-fix-ticket-spin-lock-asm-constraints include/asm-x86/spinlock.h
+--- a/include/asm-x86/spinlock.h~x86-fix-ticket-spin-lock-asm-constraints
++++ a/include/asm-x86/spinlock.h
+@@ -101,7 +101,7 @@ static __always_inline int __ticket_spin
+ 		     "1:"
+ 		     "sete %b1\n\t"
+ 		     "movzbl %b1,%0\n\t"
+-		     : "=&a" (tmp), "=Q" (new), "+m" (lock->slock)
++		     : "=&a" (tmp), "=&Q" (new), "+m" (lock->slock)
+ 		     :
+ 		     : "memory", "cc");
+ 
+@@ -146,7 +146,7 @@ static __always_inline void __ticket_spi
+ 		     /* don't need lfence here, because loads are in-order */
+ 		     "jmp 1b\n"
+ 		     "2:"
+-		     : "+Q" (inc), "+m" (lock->slock), "=r" (tmp)
++		     : "+r" (inc), "+m" (lock->slock), "=&r" (tmp)
+ 		     :
+ 		     : "memory", "cc");
  }
- __setup("noexec32=", nonx32_setup);
- 
--void pda_init(int cpu)
-+void __cpuinit pda_init(int cpu)
- {
- 	struct x8664_pda *pda = cpu_pda(cpu);
- 
-diff -puN arch/x86/kernel/cpu/mcheck/mce_64.c~x86-64-add-two-__cpuinit-annotations arch/x86/kernel/cpu/mcheck/mce_64.c
---- a/arch/x86/kernel/cpu/mcheck/mce_64.c~x86-64-add-two-__cpuinit-annotations
-+++ a/arch/x86/kernel/cpu/mcheck/mce_64.c
-@@ -860,7 +860,7 @@ error:
- 	return err;
- }
- 
--static void mce_remove_device(unsigned int cpu)
-+static __cpuinit void mce_remove_device(unsigned int cpu)
- {
- 	int i;
+@@ -166,7 +166,7 @@ static __always_inline int __ticket_spin
+ 		     "1:"
+ 		     "sete %b1\n\t"
+ 		     "movzbl %b1,%0\n\t"
+-		     : "=&a" (tmp), "=r" (new), "+m" (lock->slock)
++		     : "=&a" (tmp), "=&q" (new), "+m" (lock->slock)
+ 		     :
+ 		     : "memory", "cc");
  
 _
 
