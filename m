@@ -1,107 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: - dvb-fix-i2c-adapters-name-size.patch removed from -mm tree
-Date: Tue, 02 Sep 2008 13:41:20 -0700
-Message-ID: <200809022041.m82KfKvj011631@imap1.linux-foundation.org>
+Subject: - securityfs-do-not-depend-on-config_security.patch removed from -mm tree
+Date: Tue, 02 Sep 2008 13:42:00 -0700
+Message-ID: <200809022042.m82Kg0gU011679@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54616 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37879 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751530AbYIBUnC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 16:43:02 -0400
+	by vger.kernel.org with ESMTP id S1751687AbYIBUnH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 16:43:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, mchehab@infradead.org, mkrufky@linuxtv.org, patrick.boettcher@desy.de, stoth@hauppauge.com, uwe.bugla@gmx.de, mm-commits@vger.kernel.org
+To: eparis@redhat.com, chrisw@sous-sol.org, debora@linux.vnet.ibm.com, jmorris@namei.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dvb: fix I2C adapters name size
+     securityfs: do not depend on CONFIG_SECURITY
 has been removed from the -mm tree.  Its filename was
-     dvb-fix-i2c-adapters-name-size.patch
+     securityfs-do-not-depend-on-config_security.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dvb: fix I2C adapters name size
-From: Jean Delvare <khali@linux-fr.org>
+Subject: securityfs: do not depend on CONFIG_SECURITY
+From: Eric Paris <eparis@redhat.com>
 
-Some DVB drivers are incorrectly assuming that the size of
-i2c_adapter.name is I2C_NAME_SIZE.  Here's a fix.
+Add a new Kconfig option SECURITYFS which will build securityfs support
+but does not require CONFIG_SECURITY.  The only current user of securityfs
+does not depend on CONFIG_SECURITY and there is no reason the full LSM
+needs to be built to build this fs.
 
-Also change strncpy to strlcpy, as the former is error-prone (and was
-indeed incorrectly used.)
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Acked-by: Uwe Bugla <uwe.bugla@gmx.de>
-Reviewed-by: Michael Krufky <mkrufky@linuxtv.org>
-Acked-by: Steven Toth <stoth@hauppauge.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: <patrick.boettcher@desy.de>
+Signed-off-by: Eric Paris <eparis@redhat.com>
+Reviewed-by: James Morris <jmorris@namei.org>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Debora Velarde <debora@linux.vnet.ibm.com>
+Cc: Rajiv Andrade srajiv@linux.vnet.ibm.com>
+Cc: Marcel Selhorst tpm@selhorst.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/b2c2/flexcop-i2c.c  |   12 ++++++------
- drivers/media/dvb/frontends/cx24123.c |    4 ++--
- drivers/media/dvb/frontends/s5h1420.c |    3 ++-
- 3 files changed, 10 insertions(+), 9 deletions(-)
+ drivers/char/tpm/Kconfig |    1 
+ include/linux/security.h |   54 ++++++++++++++++++++-----------------
+ security/Kconfig         |    8 +++++
+ security/Makefile        |    3 +-
+ 4 files changed, 41 insertions(+), 25 deletions(-)
 
-diff -puN drivers/media/dvb/b2c2/flexcop-i2c.c~dvb-fix-i2c-adapters-name-size drivers/media/dvb/b2c2/flexcop-i2c.c
---- a/drivers/media/dvb/b2c2/flexcop-i2c.c~dvb-fix-i2c-adapters-name-size
-+++ a/drivers/media/dvb/b2c2/flexcop-i2c.c
-@@ -221,12 +221,12 @@ int flexcop_i2c_init(struct flexcop_devi
- 	fc->fc_i2c_adap[1].port = FC_I2C_PORT_EEPROM;
- 	fc->fc_i2c_adap[2].port = FC_I2C_PORT_TUNER;
+diff -puN drivers/char/tpm/Kconfig~securityfs-do-not-depend-on-config_security drivers/char/tpm/Kconfig
+--- a/drivers/char/tpm/Kconfig~securityfs-do-not-depend-on-config_security
++++ a/drivers/char/tpm/Kconfig
+@@ -6,6 +6,7 @@ menuconfig TCG_TPM
+ 	tristate "TPM Hardware Support"
+ 	depends on HAS_IOMEM
+ 	depends on EXPERIMENTAL
++	select SECURITYFS
+ 	---help---
+ 	  If you have a TPM security chip in your system, which
+ 	  implements the Trusted Computing Group's specification,
+diff -puN include/linux/security.h~securityfs-do-not-depend-on-config_security include/linux/security.h
+--- a/include/linux/security.h~securityfs-do-not-depend-on-config_security
++++ a/include/linux/security.h
+@@ -1540,11 +1540,6 @@ struct security_operations {
+ extern int security_init(void);
+ extern int security_module_enable(struct security_operations *ops);
+ extern int register_security(struct security_operations *ops);
+-extern struct dentry *securityfs_create_file(const char *name, mode_t mode,
+-					     struct dentry *parent, void *data,
+-					     const struct file_operations *fops);
+-extern struct dentry *securityfs_create_dir(const char *name, struct dentry *parent);
+-extern void securityfs_remove(struct dentry *dentry);
  
--	strncpy(fc->fc_i2c_adap[0].i2c_adap.name,
--		"B2C2 FlexCop I2C to demod", I2C_NAME_SIZE);
--	strncpy(fc->fc_i2c_adap[1].i2c_adap.name,
--		"B2C2 FlexCop I2C to eeprom", I2C_NAME_SIZE);
--	strncpy(fc->fc_i2c_adap[2].i2c_adap.name,
--		"B2C2 FlexCop I2C to tuner", I2C_NAME_SIZE);
-+	strlcpy(fc->fc_i2c_adap[0].i2c_adap.name, "B2C2 FlexCop I2C to demod",
-+		sizeof(fc->fc_i2c_adap[0].i2c_adap.name));
-+	strlcpy(fc->fc_i2c_adap[1].i2c_adap.name, "B2C2 FlexCop I2C to eeprom",
-+		sizeof(fc->fc_i2c_adap[1].i2c_adap.name));
-+	strlcpy(fc->fc_i2c_adap[2].i2c_adap.name, "B2C2 FlexCop I2C to tuner",
-+		sizeof(fc->fc_i2c_adap[2].i2c_adap.name));
+ /* Security operations */
+ int security_ptrace_may_access(struct task_struct *child, unsigned int mode);
+@@ -2398,25 +2393,6 @@ static inline int security_netlink_recv(
+ 	return cap_netlink_recv(skb, cap);
+ }
  
- 	i2c_set_adapdata(&fc->fc_i2c_adap[0].i2c_adap, &fc->fc_i2c_adap[0]);
- 	i2c_set_adapdata(&fc->fc_i2c_adap[1].i2c_adap, &fc->fc_i2c_adap[1]);
-diff -puN drivers/media/dvb/frontends/cx24123.c~dvb-fix-i2c-adapters-name-size drivers/media/dvb/frontends/cx24123.c
---- a/drivers/media/dvb/frontends/cx24123.c~dvb-fix-i2c-adapters-name-size
-+++ a/drivers/media/dvb/frontends/cx24123.c
-@@ -1072,8 +1072,8 @@ struct dvb_frontend* cx24123_attach(cons
-     if (config->dont_use_pll)
- 	cx24123_repeater_mode(state, 1, 0);
+-static inline struct dentry *securityfs_create_dir(const char *name,
+-					struct dentry *parent)
+-{
+-	return ERR_PTR(-ENODEV);
+-}
+-
+-static inline struct dentry *securityfs_create_file(const char *name,
+-						mode_t mode,
+-						struct dentry *parent,
+-						void *data,
+-						const struct file_operations *fops)
+-{
+-	return ERR_PTR(-ENODEV);
+-}
+-
+-static inline void securityfs_remove(struct dentry *dentry)
+-{
+-}
+-
+ static inline int security_secid_to_secctx(u32 secid, char **secdata, u32 *seclen)
+ {
+ 	return -EOPNOTSUPP;
+@@ -2780,5 +2756,35 @@ static inline void security_audit_rule_f
+ #endif /* CONFIG_SECURITY */
+ #endif /* CONFIG_AUDIT */
  
--	strncpy(state->tuner_i2c_adapter.name,
--		"CX24123 tuner I2C bus", I2C_NAME_SIZE);
-+	strlcpy(state->tuner_i2c_adapter.name, "CX24123 tuner I2C bus",
-+		sizeof(state->tuner_i2c_adapter.name));
- 	state->tuner_i2c_adapter.class     = I2C_CLASS_TV_DIGITAL,
- 	state->tuner_i2c_adapter.algo      = &cx24123_tuner_i2c_algo;
- 	state->tuner_i2c_adapter.algo_data = NULL;
-diff -puN drivers/media/dvb/frontends/s5h1420.c~dvb-fix-i2c-adapters-name-size drivers/media/dvb/frontends/s5h1420.c
---- a/drivers/media/dvb/frontends/s5h1420.c~dvb-fix-i2c-adapters-name-size
-+++ a/drivers/media/dvb/frontends/s5h1420.c
-@@ -915,7 +915,8 @@ struct dvb_frontend *s5h1420_attach(cons
- 	state->frontend.demodulator_priv = state;
++#ifdef CONFIG_SECURITYFS
++
++extern struct dentry *securityfs_create_file(const char *name, mode_t mode,
++					     struct dentry *parent, void *data,
++					     const struct file_operations *fops);
++extern struct dentry *securityfs_create_dir(const char *name, struct dentry *parent);
++extern void securityfs_remove(struct dentry *dentry);
++
++#else /* CONFIG_SECURITYFS */
++
++static inline struct dentry *securityfs_create_dir(const char *name,
++						   struct dentry *parent)
++{
++	return ERR_PTR(-ENODEV);
++}
++
++static inline struct dentry *securityfs_create_file(const char *name,
++						    mode_t mode,
++						    struct dentry *parent,
++						    void *data,
++						    const struct file_operations *fops)
++{
++	return ERR_PTR(-ENODEV);
++}
++
++static inline void securityfs_remove(struct dentry *dentry)
++{}
++
++#endif
++
+ #endif /* ! __LINUX_SECURITY_H */
  
- 	/* create tuner i2c adapter */
--	strncpy(state->tuner_i2c_adapter.name, "S5H1420-PN1010 tuner I2C bus", I2C_NAME_SIZE);
-+	strlcpy(state->tuner_i2c_adapter.name, "S5H1420-PN1010 tuner I2C bus",
-+		sizeof(state->tuner_i2c_adapter.name));
- 	state->tuner_i2c_adapter.class     = I2C_CLASS_TV_DIGITAL,
- 	state->tuner_i2c_adapter.algo      = &s5h1420_tuner_i2c_algo;
- 	state->tuner_i2c_adapter.algo_data = NULL;
+diff -puN security/Kconfig~securityfs-do-not-depend-on-config_security security/Kconfig
+--- a/security/Kconfig~securityfs-do-not-depend-on-config_security
++++ a/security/Kconfig
+@@ -51,6 +51,14 @@ config SECURITY
+ 
+ 	  If you are unsure how to answer this question, answer N.
+ 
++config SECURITYFS
++	bool "Enable the securityfs filesystem"
++	help
++	  This will build the securityfs filesystem.  It is currently used by
++	  the TPM bios character driver.  It is not used by SELinux or SMACK.
++
++	  If you are unsure how to answer this question, answer N.
++
+ config SECURITY_NETWORK
+ 	bool "Socket and Networking Security Hooks"
+ 	depends on SECURITY
+diff -puN security/Makefile~securityfs-do-not-depend-on-config_security security/Makefile
+--- a/security/Makefile~securityfs-do-not-depend-on-config_security
++++ a/security/Makefile
+@@ -10,7 +10,8 @@ subdir-$(CONFIG_SECURITY_SMACK)		+= smac
+ obj-y		+= commoncap.o
+ 
+ # Object file lists
+-obj-$(CONFIG_SECURITY)			+= security.o capability.o inode.o
++obj-$(CONFIG_SECURITY)			+= security.o capability.o
++obj-$(CONFIG_SECURITYFS)		+= inode.o
+ # Must precede capability.o in order to stack properly.
+ obj-$(CONFIG_SECURITY_SELINUX)		+= selinux/built-in.o
+ obj-$(CONFIG_SECURITY_SMACK)		+= smack/built-in.o
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from eparis@redhat.com are
 
 linux-next.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-radeonfb-revert-fix-radeon-ddc-regression.patch
-resource-add-resource_type-and-ioresource_type_bits.patch
-i2c-use-bcd2bin-bin2bcd.patch
+tpm-include-moderated-for-non-subscribers-notation-in-maintainers.patch
 
