@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix.patch removed from -mm tree
-Date: Tue, 02 Sep 2008 14:33:07 -0700
-Message-ID: <200809022133.m82LX7wc013610@imap1.linux-foundation.org>
+Subject: - drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix.patch removed from -mm tree
+Date: Tue, 02 Sep 2008 14:33:10 -0700
+Message-ID: <200809022133.m82LXAJP013613@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51800 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47940 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751686AbYIBVdv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 17:33:51 -0400
+	by vger.kernel.org with ESMTP id S1751686AbYIBVdw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 17:33:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, aaron@merfinllc.com, mpm@selenic.com, stable@kernel.org, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix
+     drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix.patch
+     drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix.patch
 
 This patch was dropped because it was folded into drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix
+Subject: drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: <stable@kernel.org>		[2.6.26.x]
@@ -36,17 +36,23 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/char/random.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/random.c~drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix drivers/char/random.c
---- a/drivers/char/random.c~drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix
+diff -puN drivers/char/random.c~drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix drivers/char/random.c
+--- a/drivers/char/random.c~drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix
 +++ a/drivers/char/random.c
-@@ -407,7 +407,7 @@ struct entropy_store {
- 	/* read-write data: */
- 	spinlock_t lock;
- 	unsigned add_ptr;
--	int entropy_count;
-+	int entropy_count;	/* Must at no time exceed ->POOLBITS! */
- 	int input_rotate;
- };
+@@ -535,13 +535,13 @@ static void credit_entropy_bits(struct e
+ 		entropy_count = 0;
+ 	} else if (entropy_count > r->poolinfo->POOLBITS)
+ 		entropy_count = r->poolinfo->POOLBITS;
++	r->entropy_count = entropy_count;
+ 
+ 	/* should we wake readers? */
+ 	if (r == &input_pool && entropy_count >= random_read_wakeup_thresh) {
+ 		wake_up_interruptible(&random_read_wait);
+ 		kill_fasync(&fasync, SIGIO, POLL_IN);
+ 	}
+-	r->entropy_count = entropy_count;
+ 	spin_unlock_irqrestore(&r->lock, flags);
+ }
  
 _
 
@@ -55,7 +61,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails.patch
 acer-wmi-remove-debugfs-entries-upon-unloading.patch
 drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug.patch
-drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix.patch
 drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug-fix-fix.patch
 linux-next.patch
 next-remove-localversion.patch
