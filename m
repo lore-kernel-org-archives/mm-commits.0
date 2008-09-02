@@ -1,26 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + intelfb-support-945gme-as-used-in-asus-eee-901.patch added to -mm tree
-Date: Tue, 02 Sep 2008 15:03:58 -0700
-Message-ID: <200809022203.m82M3wff015063@imap1.linux-foundation.org>
+Subject: + x86-pgd_cdtor-cleanup.patch added to -mm tree
+Date: Tue, 02 Sep 2008 15:08:53 -0700
+Message-ID: <200809022208.m82M8rmv015251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49034 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47833 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751360AbYIBWEd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 18:04:33 -0400
+	by vger.kernel.org with ESMTP id S1751771AbYIBWJw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 18:09:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: phil_wueww_endecott@chezphil.org, krzysztof.h1@wp.pl, spam_from_intelfb@chezphil.org
+Cc: jbeulich@novell.com, hpa@zytor.com, jeremy@goop.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     intelfb: support 945GME (as used in ASUS Eee 901)
+     x86: pgd_{c,d}tor() cleanup
 has been added to the -mm tree.  Its filename is
-     intelfb-support-945gme-as-used-in-asus-eee-901.patch
+     x86-pgd_cdtor-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -28,200 +25,70 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: intelfb: support 945GME (as used in ASUS Eee 901)
-=46rom: Phil Endecott <phil_wueww_endecott@chezphil.org>
+Subject: x86: pgd_{c,d}tor() cleanup
+From: Jan Beulich <jbeulich@novell.com>
 
-Add support for Intel's 945GME graphics chip to the intelfb driver.  I
-have assumed that the 945GME is identical to the already-supported 945G=
-M
-apart from its PCI IDs; this is based on a quick look at the X driver f=
-or
-these chips which seems to treat them identically.
+Giving pgd_ctor() a properly typed parameter allows eliminating a local
+variable.  Adjust pgd_dtor() to match.
 
-The 945GME is used in the ASUS Eee 901, and I coded this in the hope th=
-at
-I'd be able to use it to get a console at the native 1024x600 resolutio=
-n
-which is not known to the BIOS.  I realised too late that the intelfb
-driver does not support mode changing on laptops, so it won't be any
-use for me.
-
-Signed-off-by: Phil Endecott <spam_from_intelfb@chezphil.org>
-Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Acked-by: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fb/intelfb.txt        |    1 +
- drivers/video/intelfb/intelfb.h     |    7 +++++--
- drivers/video/intelfb/intelfb_i2c.c |    1 +
- drivers/video/intelfb/intelfbdrv.c  |    7 ++++++-
- drivers/video/intelfb/intelfbhw.c   |    7 +++++++
- 5 files changed, 20 insertions(+), 3 deletions(-)
+ arch/x86/mm/pgtable.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/fb/intelfb.txt~intelfb-support-945gme-as-used-i=
-n-asus-eee-901 Documentation/fb/intelfb.txt
---- a/Documentation/fb/intelfb.txt~intelfb-support-945gme-as-used-in-as=
-us-eee-901
-+++ a/Documentation/fb/intelfb.txt
-@@ -14,6 +14,7 @@ graphics devices.  These would include:
- 	Intel 915GM
- 	Intel 945G
- 	Intel 945GM
-+	Intel 945GME
- 	Intel 965G
- 	Intel 965GM
-=20
-diff -puN drivers/video/intelfb/intelfb.h~intelfb-support-945gme-as-use=
-d-in-asus-eee-901 drivers/video/intelfb/intelfb.h
---- a/drivers/video/intelfb/intelfb.h~intelfb-support-945gme-as-used-in=
--asus-eee-901
-+++ a/drivers/video/intelfb/intelfb.h
-@@ -12,9 +12,9 @@
- #endif
-=20
- /*** Version/name ***/
--#define INTELFB_VERSION			"0.9.5"
-+#define INTELFB_VERSION			"0.9.6"
- #define INTELFB_MODULE_NAME		"intelfb"
--#define SUPPORTED_CHIPSETS		"830M/845G/852GM/855GM/865G/915G/915GM/945=
-G/945GM/965G/965GM"
-+#define SUPPORTED_CHIPSETS		"830M/845G/852GM/855GM/865G/915G/915GM/945=
-G/945GM/945GME/965G/965GM"
-=20
-=20
- /*** Debug/feature defines ***/
-@@ -58,6 +58,7 @@
- #define PCI_DEVICE_ID_INTEL_915GM	0x2592
- #define PCI_DEVICE_ID_INTEL_945G	0x2772
- #define PCI_DEVICE_ID_INTEL_945GM	0x27A2
-+#define PCI_DEVICE_ID_INTEL_945GME	0x27AE
- #define PCI_DEVICE_ID_INTEL_965G	0x29A2
- #define PCI_DEVICE_ID_INTEL_965GM	0x2A02
-=20
-@@ -160,6 +161,7 @@ enum intel_chips {
- 	INTEL_915GM,
- 	INTEL_945G,
- 	INTEL_945GM,
-+	INTEL_945GME,
- 	INTEL_965G,
- 	INTEL_965GM,
- };
-@@ -363,6 +365,7 @@ struct intelfb_info {
- 			((dinfo)->chipset =3D=3D INTEL_915GM) ||	\
- 			((dinfo)->chipset =3D=3D INTEL_945G) ||	\
- 			((dinfo)->chipset =3D=3D INTEL_945GM) ||	\
-+			((dinfo)->chipset =3D=3D INTEL_945GME) ||	\
- 			((dinfo)->chipset =3D=3D INTEL_965G) ||	\
- 			((dinfo)->chipset =3D=3D INTEL_965GM))
-=20
-diff -puN drivers/video/intelfb/intelfb_i2c.c~intelfb-support-945gme-as=
--used-in-asus-eee-901 drivers/video/intelfb/intelfb_i2c.c
---- a/drivers/video/intelfb/intelfb_i2c.c~intelfb-support-945gme-as-use=
-d-in-asus-eee-901
-+++ a/drivers/video/intelfb/intelfb_i2c.c
-@@ -171,6 +171,7 @@ void intelfb_create_i2c_busses(struct in
- 		/* has some LVDS + tv-out */
- 	case INTEL_945G:
- 	case INTEL_945GM:
-+	case INTEL_945GME:
- 	case INTEL_965G:
- 	case INTEL_965GM:
- 		/* SDVO ports have a single control bus - 2 devices */
-diff -puN drivers/video/intelfb/intelfbdrv.c~intelfb-support-945gme-as-=
-used-in-asus-eee-901 drivers/video/intelfb/intelfbdrv.c
---- a/drivers/video/intelfb/intelfbdrv.c~intelfb-support-945gme-as-used=
--in-asus-eee-901
-+++ a/drivers/video/intelfb/intelfbdrv.c
-@@ -2,7 +2,7 @@
-  * intelfb
-  *
-  * Linux framebuffer driver for Intel(R) 830M/845G/852GM/855GM/865G/91=
-5G/915GM/
-- * 945G/945GM/965G/965GM integrated graphics chips.
-+ * 945G/945GM/945GME/965G/965GM integrated graphics chips.
-  *
-  * Copyright =C2=A9 2002, 2003 David Dawes <dawes@xfree86.org>
-  *                   2004 Sylvain Meyer
-@@ -102,6 +102,9 @@
-  *
-  *    04/2008 - Version 0.9.5
-  *              Add support for 965G/965GM. (Maik Broemme <mbroemme@pl=
-usserver.de>)
-+ *
-+ *    08/2008 - Version 0.9.6
-+ *              Add support for 945GME. (Phil Endecott <spam_from_inte=
-lfb@chezphil.org>)
-  */
-=20
- #include <linux/module.h>
-@@ -183,6 +186,7 @@ static struct pci_device_id intelfb_pci_
- 	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_915GM, PCI_ANY_ID, PCI_ANY=
-_ID, PCI_CLASS_DISPLAY_VGA << 8, INTELFB_CLASS_MASK, INTEL_915GM },
- 	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_945G, PCI_ANY_ID, PCI_ANY_=
-ID, PCI_CLASS_DISPLAY_VGA << 8, INTELFB_CLASS_MASK, INTEL_945G },
- 	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_945GM, PCI_ANY_ID, PCI_ANY=
-_ID, PCI_CLASS_DISPLAY_VGA << 8, INTELFB_CLASS_MASK, INTEL_945GM },
-+	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_945GME, PCI_ANY_ID, PCI_AN=
-Y_ID, PCI_CLASS_DISPLAY_VGA << 8, INTELFB_CLASS_MASK, INTEL_945GME },
- 	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_965G, PCI_ANY_ID, PCI_ANY_=
-ID, PCI_CLASS_DISPLAY_VGA << 8, INTELFB_CLASS_MASK, INTEL_965G },
- 	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_965GM, PCI_ANY_ID, PCI_ANY=
-_ID, PCI_CLASS_DISPLAY_VGA << 8, INTELFB_CLASS_MASK, INTEL_965GM },
- 	{ 0, }
-@@ -555,6 +559,7 @@ static int __devinit intelfb_pci_registe
- 	    (ent->device =3D=3D PCI_DEVICE_ID_INTEL_915GM) ||
- 	    (ent->device =3D=3D PCI_DEVICE_ID_INTEL_945G)  ||
- 	    (ent->device =3D=3D PCI_DEVICE_ID_INTEL_945GM) ||
-+	    (ent->device =3D=3D PCI_DEVICE_ID_INTEL_945GME) ||
- 	    (ent->device =3D=3D PCI_DEVICE_ID_INTEL_965G) ||
- 	    (ent->device =3D=3D PCI_DEVICE_ID_INTEL_965GM)) {
-=20
-diff -puN drivers/video/intelfb/intelfbhw.c~intelfb-support-945gme-as-u=
-sed-in-asus-eee-901 drivers/video/intelfb/intelfbhw.c
---- a/drivers/video/intelfb/intelfbhw.c~intelfb-support-945gme-as-used-=
-in-asus-eee-901
-+++ a/drivers/video/intelfb/intelfbhw.c
-@@ -143,6 +143,12 @@ int intelfbhw_get_chipset(struct pci_dev
- 		dinfo->mobile =3D 1;
- 		dinfo->pll_index =3D PLLS_I9xx;
- 		return 0;
-+	case PCI_DEVICE_ID_INTEL_945GME:
-+		dinfo->name =3D "Intel(R) 945GME";
-+		dinfo->chipset =3D INTEL_945GME;
-+		dinfo->mobile =3D 1;
-+		dinfo->pll_index =3D PLLS_I9xx;
-+		return 0;
- 	case PCI_DEVICE_ID_INTEL_965G:
- 		dinfo->name =3D "Intel(R) 965G";
- 		dinfo->chipset =3D INTEL_965G;
-@@ -186,6 +192,7 @@ int intelfbhw_get_memory(struct pci_dev=20
- 	case PCI_DEVICE_ID_INTEL_915GM:
- 	case PCI_DEVICE_ID_INTEL_945G:
- 	case PCI_DEVICE_ID_INTEL_945GM:
-+	case PCI_DEVICE_ID_INTEL_945GME:
- 	case PCI_DEVICE_ID_INTEL_965G:
- 	case PCI_DEVICE_ID_INTEL_965GM:
- 		/* 915, 945 and 965 chipsets support a 256MB aperture.
+diff -puN arch/x86/mm/pgtable.c~x86-pgd_cdtor-cleanup arch/x86/mm/pgtable.c
+--- a/arch/x86/mm/pgtable.c~x86-pgd_cdtor-cleanup
++++ a/arch/x86/mm/pgtable.c
+@@ -63,10 +63,8 @@ static inline void pgd_list_del(pgd_t *p
+ #define UNSHARED_PTRS_PER_PGD				\
+ 	(SHARED_KERNEL_PMD ? KERNEL_PGD_BOUNDARY : PTRS_PER_PGD)
+ 
+-static void pgd_ctor(void *p)
++static void pgd_ctor(pgd_t *pgd)
+ {
+-	pgd_t *pgd = p;
+-
+ 	/* If the pgd points to a shared pagetable level (either the
+ 	   ptes in non-PAE, or shared PMD in PAE), then just copy the
+ 	   references from swapper_pg_dir. */
+@@ -87,7 +85,7 @@ static void pgd_ctor(void *p)
+ 		pgd_list_add(pgd);
+ }
+ 
+-static void pgd_dtor(void *pgd)
++static void pgd_dtor(pgd_t *pgd)
+ {
+ 	unsigned long flags; /* can be called from interrupt context */
+ 
 _
 
-Patches currently in -mm which might be from phil_wueww_endecott@chezph=
-il.org are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
-intelfb-support-945gme-as-used-in-asus-eee-901.patch
+linux-next.patch
+x86-init-annotations-in-early_printk-setup.patch
+x86-adjust-dependencies-for-config_x86_cmov.patch
+x86-pgd_cdtor-cleanup.patch
+x86-x86_physvirt_bits-field-also-for-i386.patch
+x86-adjust-vmalloc_sync_all-for-xen-2nd-try.patch
+x86-fix-ticket-spin-lock-asm-constraints.patch
+x86-64-reduce-boot-fixmap-space.patch
+x86-64-add-two-__cpuinit-annotations.patch
+x86-64-eliminate-dead-code.patch
+x86-64-slightly-streamline-32-bit-syscall-entry-code.patch
+adjust-init-section-definitions.patch
+kconfig-eliminate-def_bool-n-constructs.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
