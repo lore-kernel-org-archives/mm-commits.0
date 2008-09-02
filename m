@@ -1,55 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-select-crc_t10dif-only-when-necessary.patch removed from -mm tree
-Date: Tue, 02 Sep 2008 12:48:32 -0700
-Message-ID: <200809021948.m82JmWcQ009548@imap1.linux-foundation.org>
+Subject: - exit-signals-use-of-uninitialized-field-notify_count.patch removed from -mm tree
+Date: Tue, 02 Sep 2008 12:48:29 -0700
+Message-ID: <200809021948.m82JmTiL009545@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32837 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42030 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751267AbYIBTsx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 15:48:53 -0400
+	by vger.kernel.org with ESMTP id S1754290AbYIBTus (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 15:50:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stefanr@s5r6.in-berlin.de, martin.petersen@oracle.com, mm-commits@vger.kernel.org
+To: vandebo-lkml@NerdBox.Net, mingo@elte.hu, oleg@tv-sign.ru, roland@redhat.comvandebo-lkml@NerdBox.Net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi: select CRC_T10DIF only when necessary
+     exit signals: use of uninitialized field notify_count
 has been removed from the -mm tree.  Its filename was
-     scsi-select-crc_t10dif-only-when-necessary.patch
+     exit-signals-use-of-uninitialized-field-notify_count.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: select CRC_T10DIF only when necessary
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: exit signals: use of uninitialized field notify_count
+From: Steve VanDeBogart <vandebo-lkml@NerdBox.Net>
 
-Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
+task->signal->notify_count is only initialized if
+task->signal->group_exit_task is not NULL.  Reorder a conditional so
+that uninitialised memory is not used.  Found by Valgrind.
+
+Signed-off-by: Steve VanDeBogart <vandebo-lkml@nerdbox.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/exit.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/Kconfig~scsi-select-crc_t10dif-only-when-necessary drivers/scsi/Kconfig
---- a/drivers/scsi/Kconfig~scsi-select-crc_t10dif-only-when-necessary
-+++ a/drivers/scsi/Kconfig
-@@ -63,7 +63,7 @@ comment "SCSI support type (disk, tape, 
- config BLK_DEV_SD
- 	tristate "SCSI disk support"
- 	depends on SCSI
--	select CRC_T10DIF
-+	select CRC_T10DIF if BLK_DEV_INTEGRITY
- 	---help---
- 	  If you want to use SCSI hard disks, Fibre Channel disks,
- 	  Serial ATA (SATA) or Parallel ATA (PATA) hard disks,
+diff -puN kernel/exit.c~exit-signals-use-of-uninitialized-field-notify_count kernel/exit.c
+--- a/kernel/exit.c~exit-signals-use-of-uninitialized-field-notify_count
++++ a/kernel/exit.c
+@@ -918,8 +918,8 @@ static void exit_notify(struct task_stru
+ 
+ 	/* mt-exec, de_thread() is waiting for us */
+ 	if (thread_group_leader(tsk) &&
+-	    tsk->signal->notify_count < 0 &&
+-	    tsk->signal->group_exit_task)
++	    tsk->signal->group_exit_task &&
++	    tsk->signal->notify_count < 0)
+ 		wake_up_process(tsk->signal->group_exit_task);
+ 
+ 	write_unlock_irq(&tasklist_lock);
 _
 
-Patches currently in -mm which might be from stefanr@s5r6.in-berlin.de are
+Patches currently in -mm which might be from vandebo-lkml@NerdBox.Net are
 
-linux-next.patch
-git-scsi-rc-fixes.patch
 
