@@ -1,445 +1,3080 @@
 From: akpm@linux-foundation.org
-Subject: - fs-kconfig-move-jffs2-out.patch removed from -mm tree
-Date: Tue, 02 Sep 2008 13:42:05 -0700
-Message-ID: <200809022042.m82Kg5KX011691@imap1.linux-foundation.org>
+Subject: - m68k-update-defconfigs.patch removed from -mm tree
+Date: Tue, 02 Sep 2008 13:41:02 -0700
+Message-ID: <200809022041.m82Kf2or011602@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39372 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43199 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752705AbYIBUmL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 16:42:11 -0400
+	by vger.kernel.org with ESMTP id S1752359AbYIBUlt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 16:41:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/Kconfig: move JFFS2 out
+     m68k: update defconfigs
 has been removed from the -mm tree.  Its filename was
-     fs-kconfig-move-jffs2-out.patch
+     m68k-update-defconfigs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/Kconfig: move JFFS2 out
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: m68k: update defconfigs
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig       |  190 ---------------------------------------------
- fs/jffs2/Kconfig |  188 ++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 189 insertions(+), 189 deletions(-)
+ arch/m68k/configs/amiga_defconfig    |   53 ++++++++++++---------
+ arch/m68k/configs/apollo_defconfig   |   53 ++++++++++++---------
+ arch/m68k/configs/atari_defconfig    |   60 ++++++++++++++----------
+ arch/m68k/configs/bvme6000_defconfig |   52 ++++++++++++--------
+ arch/m68k/configs/hp300_defconfig    |   52 ++++++++++++--------
+ arch/m68k/configs/mac_defconfig      |   53 ++++++++++++---------
+ arch/m68k/configs/multi_defconfig    |   62 ++++++++++++++-----------
+ arch/m68k/configs/mvme147_defconfig  |   52 ++++++++++++--------
+ arch/m68k/configs/mvme16x_defconfig  |   52 ++++++++++++--------
+ arch/m68k/configs/q40_defconfig      |   53 ++++++++++++---------
+ arch/m68k/configs/sun3_defconfig     |   54 ++++++++++++---------
+ arch/m68k/configs/sun3x_defconfig    |   52 ++++++++++++--------
+ 12 files changed, 390 insertions(+), 258 deletions(-)
 
-diff -puN fs/Kconfig~fs-kconfig-move-jffs2-out fs/Kconfig
---- a/fs/Kconfig~fs-kconfig-move-jffs2-out
-+++ a/fs/Kconfig
-@@ -857,195 +857,7 @@ config EFS_FS
- 	  To compile the EFS file system support as a module, choose M here: the
- 	  module will be called efs.
+diff -puN arch/m68k/configs/amiga_defconfig~m68k-update-defconfigs arch/m68k/configs/amiga_defconfig
+--- a/arch/m68k/configs/amiga_defconfig~m68k-update-defconfigs
++++ a/arch/m68k/configs/amiga_defconfig
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+-# Linux kernel version: 2.6.26-rc4
+-# Wed May 28 22:47:35 2008
++# Linux kernel version: 2.6.27-rc4
++# Sun Aug 24 11:25:48 2008
+ #
+ CONFIG_M68K=y
+ CONFIG_MMU=y
+@@ -52,7 +52,6 @@ CONFIG_SYSCTL=y
+ # CONFIG_EMBEDDED is not set
+ CONFIG_UID16=y
+ CONFIG_SYSCTL_SYSCALL=y
+-CONFIG_SYSCTL_SYSCALL_CHECK=y
+ CONFIG_KALLSYMS=y
+ # CONFIG_KALLSYMS_EXTRA_PASS is not set
+ CONFIG_HOTPLUG=y
+@@ -75,10 +74,16 @@ CONFIG_SLAB=y
+ # CONFIG_PROFILING is not set
+ # CONFIG_MARKERS is not set
+ # CONFIG_HAVE_OPROFILE is not set
++# CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS is not set
++# CONFIG_HAVE_IOREMAP_PROT is not set
+ # CONFIG_HAVE_KPROBES is not set
+ # CONFIG_HAVE_KRETPROBES is not set
++# CONFIG_HAVE_ARCH_TRACEHOOK is not set
+ # CONFIG_HAVE_DMA_ATTRS is not set
++# CONFIG_USE_GENERIC_SMP_HELPERS is not set
++# CONFIG_HAVE_CLK is not set
+ CONFIG_PROC_PAGE_MONITOR=y
++# CONFIG_HAVE_GENERIC_DMA_COHERENT is not set
+ CONFIG_SLABINFO=y
+ CONFIG_RT_MUTEXES=y
+ # CONFIG_TINY_SHMEM is not set
+@@ -95,6 +100,7 @@ CONFIG_BLOCK=y
+ # CONFIG_BLK_DEV_IO_TRACE is not set
+ # CONFIG_LSF is not set
+ CONFIG_BLK_DEV_BSG=y
++# CONFIG_BLK_DEV_INTEGRITY is not set
  
--config JFFS2_FS
--	tristate "Journalling Flash File System v2 (JFFS2) support"
--	select CRC32
--	depends on MTD
--	help
--	  JFFS2 is the second generation of the Journalling Flash File System
--	  for use on diskless embedded devices. It provides improved wear
--	  levelling, compression and support for hard links. You cannot use
--	  this on normal block devices, only on 'MTD' devices.
+ #
+ # IO Schedulers
+@@ -166,10 +172,6 @@ CONFIG_GENERIC_ISA_DMA=y
+ CONFIG_ZONE_DMA=y
+ # CONFIG_ARCH_SUPPORTS_MSI is not set
+ CONFIG_ZORRO_NAMES=y
 -
--	  Further information on the design and implementation of JFFS2 is
--	  available at <http://sources.redhat.com/jffs2/>.
--
--config JFFS2_FS_DEBUG
--	int "JFFS2 debugging verbosity (0 = quiet, 2 = noisy)"
--	depends on JFFS2_FS
--	default "0"
--	help
--	  This controls the amount of debugging messages produced by the JFFS2
--	  code. Set it to zero for use in production systems. For evaluation,
--	  testing and debugging, it's advisable to set it to one. This will
--	  enable a few assertions and will print debugging messages at the
--	  KERN_DEBUG loglevel, where they won't normally be visible. Level 2
--	  is unlikely to be useful - it enables extra debugging in certain
--	  areas which at one point needed debugging, but when the bugs were
--	  located and fixed, the detailed messages were relegated to level 2.
--
--	  If reporting bugs, please try to have available a full dump of the
--	  messages at debug level 1 while the misbehaviour was occurring.
--
--config JFFS2_FS_WRITEBUFFER
--	bool "JFFS2 write-buffering support"
--	depends on JFFS2_FS
--	default y
--	help
--	  This enables the write-buffering support in JFFS2.
--
--	  This functionality is required to support JFFS2 on the following
--	  types of flash devices:
--	    - NAND flash
--	    - NOR flash with transparent ECC
--	    - DataFlash
--
--config JFFS2_FS_WBUF_VERIFY
--	bool "Verify JFFS2 write-buffer reads"
--	depends on JFFS2_FS_WRITEBUFFER
--	default n
--	help
--	  This causes JFFS2 to read back every page written through the
--	  write-buffer, and check for errors.
--
--config JFFS2_SUMMARY
--	bool "JFFS2 summary support (EXPERIMENTAL)"
--	depends on JFFS2_FS && EXPERIMENTAL
--	default n
--	help
--	  This feature makes it possible to use summary information
--	  for faster filesystem mount.
--
--	  The summary information can be inserted into a filesystem image
--	  by the utility 'sumtool'.
--
--	  If unsure, say 'N'.
--
--config JFFS2_FS_XATTR
--	bool "JFFS2 XATTR support (EXPERIMENTAL)"
--	depends on JFFS2_FS && EXPERIMENTAL
--	default n
--	help
--	  Extended attributes are name:value pairs associated with inodes by
--	  the kernel or by users (see the attr(5) manual page, or visit
--	  <http://acl.bestbits.at/> for details).
--
--	  If unsure, say N.
--
--config JFFS2_FS_POSIX_ACL
--	bool "JFFS2 POSIX Access Control Lists"
--	depends on JFFS2_FS_XATTR
--	default y
--	select FS_POSIX_ACL
--	help
--	  Posix Access Control Lists (ACLs) support permissions for users and
--	  groups beyond the owner/group/world scheme.
--
--	  To learn more about Access Control Lists, visit the Posix ACLs for
--	  Linux website <http://acl.bestbits.at/>.
--
--	  If you don't know what Access Control Lists are, say N
--
--config JFFS2_FS_SECURITY
--	bool "JFFS2 Security Labels"
--	depends on JFFS2_FS_XATTR
--	default y
--	help
--	  Security labels support alternative access control models
--	  implemented by security modules like SELinux.  This option
--	  enables an extended attribute handler for file security
--	  labels in the jffs2 filesystem.
--
--	  If you are not using a security module that requires using
--	  extended attributes for file security labels, say N.
--
--config JFFS2_COMPRESSION_OPTIONS
--	bool "Advanced compression options for JFFS2"
--	depends on JFFS2_FS
--	default n
--	help
--	  Enabling this option allows you to explicitly choose which
--	  compression modules, if any, are enabled in JFFS2. Removing
--	  compressors can mean you cannot read existing file systems,
--	  and enabling experimental compressors can mean that you
--	  write a file system which cannot be read by a standard kernel.
--
--	  If unsure, you should _definitely_ say 'N'.
--
--config JFFS2_ZLIB
--	bool "JFFS2 ZLIB compression support" if JFFS2_COMPRESSION_OPTIONS
--	select ZLIB_INFLATE
--	select ZLIB_DEFLATE
--	depends on JFFS2_FS
--	default y
--	help
--	  Zlib is designed to be a free, general-purpose, legally unencumbered,
--	  lossless data-compression library for use on virtually any computer
--	  hardware and operating system. See <http://www.gzip.org/zlib/> for
--	  further information.
--
--	  Say 'Y' if unsure.
--
--config JFFS2_LZO
--	bool "JFFS2 LZO compression support" if JFFS2_COMPRESSION_OPTIONS
--	select LZO_COMPRESS
--	select LZO_DECOMPRESS
--	depends on JFFS2_FS
--	default n
--	help
--	  minilzo-based compression. Generally works better than Zlib.
--
--	  This feature was added in July, 2007. Say 'N' if you need
--	  compatibility with older bootloaders or kernels.
--
--config JFFS2_RTIME
--	bool "JFFS2 RTIME compression support" if JFFS2_COMPRESSION_OPTIONS
--	depends on JFFS2_FS
--	default y
--	help
--	  Rtime does manage to recompress already-compressed data. Say 'Y' if unsure.
--
--config JFFS2_RUBIN
--	bool "JFFS2 RUBIN compression support" if JFFS2_COMPRESSION_OPTIONS
--	depends on JFFS2_FS
--	default n
--	help
--	  RUBINMIPS and DYNRUBIN compressors. Say 'N' if unsure.
--
--choice
--	prompt "JFFS2 default compression mode" if JFFS2_COMPRESSION_OPTIONS
--	default JFFS2_CMODE_PRIORITY
--	depends on JFFS2_FS
--	help
--	  You can set here the default compression mode of JFFS2 from
--	  the available compression modes. Don't touch if unsure.
--
--config JFFS2_CMODE_NONE
--	bool "no compression"
--	help
--	  Uses no compression.
--
--config JFFS2_CMODE_PRIORITY
--	bool "priority"
--	help
--	  Tries the compressors in a predefined order and chooses the first
--	  successful one.
--
--config JFFS2_CMODE_SIZE
--	bool "size (EXPERIMENTAL)"
--	help
--	  Tries all compressors and chooses the one which has the smallest
--	  result.
--
--config JFFS2_CMODE_FAVOURLZO
--	bool "Favour LZO"
--	help
--	  Tries all compressors and chooses the one which has the smallest
--	  result but gives some preference to LZO (which has faster
--	  decompression) at the expense of size.
--
--endchoice
--
-+source "fs/jffs2/Kconfig"
- # UBIFS File system configuration
- source "fs/ubifs/Kconfig"
+-#
+-# Networking
+-#
+ CONFIG_NET=y
  
-diff -puN /dev/null fs/jffs2/Kconfig
---- /dev/null
-+++ a/fs/jffs2/Kconfig
-@@ -0,0 +1,188 @@
-+config JFFS2_FS
-+	tristate "Journalling Flash File System v2 (JFFS2) support"
-+	select CRC32
-+	depends on MTD
-+	help
-+	  JFFS2 is the second generation of the Journalling Flash File System
-+	  for use on diskless embedded devices. It provides improved wear
-+	  levelling, compression and support for hard links. You cannot use
-+	  this on normal block devices, only on 'MTD' devices.
-+
-+	  Further information on the design and implementation of JFFS2 is
-+	  available at <http://sources.redhat.com/jffs2/>.
-+
-+config JFFS2_FS_DEBUG
-+	int "JFFS2 debugging verbosity (0 = quiet, 2 = noisy)"
-+	depends on JFFS2_FS
-+	default "0"
-+	help
-+	  This controls the amount of debugging messages produced by the JFFS2
-+	  code. Set it to zero for use in production systems. For evaluation,
-+	  testing and debugging, it's advisable to set it to one. This will
-+	  enable a few assertions and will print debugging messages at the
-+	  KERN_DEBUG loglevel, where they won't normally be visible. Level 2
-+	  is unlikely to be useful - it enables extra debugging in certain
-+	  areas which at one point needed debugging, but when the bugs were
-+	  located and fixed, the detailed messages were relegated to level 2.
-+
-+	  If reporting bugs, please try to have available a full dump of the
-+	  messages at debug level 1 while the misbehaviour was occurring.
-+
-+config JFFS2_FS_WRITEBUFFER
-+	bool "JFFS2 write-buffering support"
-+	depends on JFFS2_FS
-+	default y
-+	help
-+	  This enables the write-buffering support in JFFS2.
-+
-+	  This functionality is required to support JFFS2 on the following
-+	  types of flash devices:
-+	    - NAND flash
-+	    - NOR flash with transparent ECC
-+	    - DataFlash
-+
-+config JFFS2_FS_WBUF_VERIFY
-+	bool "Verify JFFS2 write-buffer reads"
-+	depends on JFFS2_FS_WRITEBUFFER
-+	default n
-+	help
-+	  This causes JFFS2 to read back every page written through the
-+	  write-buffer, and check for errors.
-+
-+config JFFS2_SUMMARY
-+	bool "JFFS2 summary support (EXPERIMENTAL)"
-+	depends on JFFS2_FS && EXPERIMENTAL
-+	default n
-+	help
-+	  This feature makes it possible to use summary information
-+	  for faster filesystem mount.
-+
-+	  The summary information can be inserted into a filesystem image
-+	  by the utility 'sumtool'.
-+
-+	  If unsure, say 'N'.
-+
-+config JFFS2_FS_XATTR
-+	bool "JFFS2 XATTR support (EXPERIMENTAL)"
-+	depends on JFFS2_FS && EXPERIMENTAL
-+	default n
-+	help
-+	  Extended attributes are name:value pairs associated with inodes by
-+	  the kernel or by users (see the attr(5) manual page, or visit
-+	  <http://acl.bestbits.at/> for details).
-+
-+	  If unsure, say N.
-+
-+config JFFS2_FS_POSIX_ACL
-+	bool "JFFS2 POSIX Access Control Lists"
-+	depends on JFFS2_FS_XATTR
-+	default y
-+	select FS_POSIX_ACL
-+	help
-+	  Posix Access Control Lists (ACLs) support permissions for users and
-+	  groups beyond the owner/group/world scheme.
-+
-+	  To learn more about Access Control Lists, visit the Posix ACLs for
-+	  Linux website <http://acl.bestbits.at/>.
-+
-+	  If you don't know what Access Control Lists are, say N
-+
-+config JFFS2_FS_SECURITY
-+	bool "JFFS2 Security Labels"
-+	depends on JFFS2_FS_XATTR
-+	default y
-+	help
-+	  Security labels support alternative access control models
-+	  implemented by security modules like SELinux.  This option
-+	  enables an extended attribute handler for file security
-+	  labels in the jffs2 filesystem.
-+
-+	  If you are not using a security module that requires using
-+	  extended attributes for file security labels, say N.
-+
-+config JFFS2_COMPRESSION_OPTIONS
-+	bool "Advanced compression options for JFFS2"
-+	depends on JFFS2_FS
-+	default n
-+	help
-+	  Enabling this option allows you to explicitly choose which
-+	  compression modules, if any, are enabled in JFFS2. Removing
-+	  compressors can mean you cannot read existing file systems,
-+	  and enabling experimental compressors can mean that you
-+	  write a file system which cannot be read by a standard kernel.
-+
-+	  If unsure, you should _definitely_ say 'N'.
-+
-+config JFFS2_ZLIB
-+	bool "JFFS2 ZLIB compression support" if JFFS2_COMPRESSION_OPTIONS
-+	select ZLIB_INFLATE
-+	select ZLIB_DEFLATE
-+	depends on JFFS2_FS
-+	default y
-+	help
-+	  Zlib is designed to be a free, general-purpose, legally unencumbered,
-+	  lossless data-compression library for use on virtually any computer
-+	  hardware and operating system. See <http://www.gzip.org/zlib/> for
-+	  further information.
-+
-+	  Say 'Y' if unsure.
-+
-+config JFFS2_LZO
-+	bool "JFFS2 LZO compression support" if JFFS2_COMPRESSION_OPTIONS
-+	select LZO_COMPRESS
-+	select LZO_DECOMPRESS
-+	depends on JFFS2_FS
-+	default n
-+	help
-+	  minilzo-based compression. Generally works better than Zlib.
-+
-+	  This feature was added in July, 2007. Say 'N' if you need
-+	  compatibility with older bootloaders or kernels.
-+
-+config JFFS2_RTIME
-+	bool "JFFS2 RTIME compression support" if JFFS2_COMPRESSION_OPTIONS
-+	depends on JFFS2_FS
-+	default y
-+	help
-+	  Rtime does manage to recompress already-compressed data. Say 'Y' if unsure.
-+
-+config JFFS2_RUBIN
-+	bool "JFFS2 RUBIN compression support" if JFFS2_COMPRESSION_OPTIONS
-+	depends on JFFS2_FS
-+	default n
-+	help
-+	  RUBINMIPS and DYNRUBIN compressors. Say 'N' if unsure.
-+
-+choice
-+	prompt "JFFS2 default compression mode" if JFFS2_COMPRESSION_OPTIONS
-+	default JFFS2_CMODE_PRIORITY
-+	depends on JFFS2_FS
-+	help
-+	  You can set here the default compression mode of JFFS2 from
-+	  the available compression modes. Don't touch if unsure.
-+
-+config JFFS2_CMODE_NONE
-+	bool "no compression"
-+	help
-+	  Uses no compression.
-+
-+config JFFS2_CMODE_PRIORITY
-+	bool "priority"
-+	help
-+	  Tries the compressors in a predefined order and chooses the first
-+	  successful one.
-+
-+config JFFS2_CMODE_SIZE
-+	bool "size (EXPERIMENTAL)"
-+	help
-+	  Tries all compressors and chooses the one which has the smallest
-+	  result.
-+
-+config JFFS2_CMODE_FAVOURLZO
-+	bool "Favour LZO"
-+	help
-+	  Tries all compressors and chooses the one which has the smallest
-+	  result but gives some preference to LZO (which has faster
-+	  decompression) at the expense of size.
-+
-+endchoice
+ #
+@@ -183,6 +185,7 @@ CONFIG_XFRM=y
+ # CONFIG_XFRM_SUB_POLICY is not set
+ CONFIG_XFRM_MIGRATE=y
+ # CONFIG_XFRM_STATISTICS is not set
++CONFIG_XFRM_IPCOMP=m
+ CONFIG_NET_KEY=y
+ CONFIG_NET_KEY_MIGRATE=y
+ CONFIG_INET=y
+@@ -413,6 +416,7 @@ CONFIG_NET_CLS_ROUTE=y
+ #
+ # CONFIG_CFG80211 is not set
+ CONFIG_WIRELESS_EXT=y
++# CONFIG_WIRELESS_EXT_SYSFS is not set
+ # CONFIG_MAC80211 is not set
+ CONFIG_IEEE80211=m
+ # CONFIG_IEEE80211_DEBUG is not set
+@@ -432,7 +436,9 @@ CONFIG_IEEE80211_CRYPT_TKIP=m
+ CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+ CONFIG_STANDALONE=y
+ CONFIG_PREVENT_FIRMWARE_BUILD=y
+-CONFIG_FW_LOADER=m
++CONFIG_FW_LOADER=y
++# CONFIG_FIRMWARE_IN_KERNEL is not set
++CONFIG_EXTRA_FIRMWARE=""
+ # CONFIG_SYS_HYPERVISOR is not set
+ CONFIG_CONNECTOR=m
+ # CONFIG_MTD is not set
+@@ -460,6 +466,7 @@ CONFIG_CDROM_PKTCDVD=m
+ CONFIG_CDROM_PKTCDVD_BUFFERS=8
+ # CONFIG_CDROM_PKTCDVD_WCACHE is not set
+ CONFIG_ATA_OVER_ETH=m
++# CONFIG_BLK_DEV_HD is not set
+ CONFIG_MISC_DEVICES=y
+ # CONFIG_EEPROM_93CX6 is not set
+ # CONFIG_ENCLOSURE_SERVICES is not set
+@@ -470,6 +477,7 @@ CONFIG_BLK_DEV_IDE=y
+ #
+ # Please see Documentation/ide/ide.txt for help/info on IDE drives
+ #
++CONFIG_IDE_ATAPI=y
+ # CONFIG_BLK_DEV_IDE_SATA is not set
+ CONFIG_BLK_DEV_IDEDISK=y
+ # CONFIG_IDEDISK_MULTI_MODE is not set
+@@ -489,8 +497,6 @@ CONFIG_BLK_DEV_GAYLE=y
+ CONFIG_BLK_DEV_IDEDOUBLER=y
+ CONFIG_BLK_DEV_BUDDHA=y
+ # CONFIG_BLK_DEV_IDEDMA is not set
+-# CONFIG_BLK_DEV_HD_ONLY is not set
+-# CONFIG_BLK_DEV_HD is not set
+ 
+ #
+ # SCSI device support
+@@ -556,6 +562,7 @@ CONFIG_A2091_SCSI=y
+ CONFIG_GVP11_SCSI=y
+ CONFIG_SCSI_A4000T=y
+ CONFIG_SCSI_ZORRO7XX=y
++# CONFIG_SCSI_DH is not set
+ CONFIG_MD=y
+ CONFIG_BLK_DEV_MD=m
+ CONFIG_MD_LINEAR=m
+@@ -564,7 +571,7 @@ CONFIG_MD_RAID1=m
+ # CONFIG_MD_RAID10 is not set
+ CONFIG_MD_RAID456=m
+ CONFIG_MD_RAID5_RESHAPE=y
+-CONFIG_MD_MULTIPATH=m
++# CONFIG_MD_MULTIPATH is not set
+ # CONFIG_MD_FAULTY is not set
+ CONFIG_BLK_DEV_DM=m
+ # CONFIG_DM_DEBUG is not set
+@@ -573,13 +580,9 @@ CONFIG_DM_SNAPSHOT=m
+ CONFIG_DM_MIRROR=m
+ CONFIG_DM_ZERO=m
+ CONFIG_DM_MULTIPATH=m
+-CONFIG_DM_MULTIPATH_EMC=m
+-CONFIG_DM_MULTIPATH_RDAC=m
+-CONFIG_DM_MULTIPATH_HP=m
+ # CONFIG_DM_DELAY is not set
+ CONFIG_DM_UEVENT=y
+ CONFIG_NETDEVICES=y
+-# CONFIG_NETDEVICES_MULTIQUEUE is not set
+ CONFIG_DUMMY=m
+ # CONFIG_BONDING is not set
+ CONFIG_MACVLAN=m
+@@ -722,6 +725,7 @@ CONFIG_INPUT_M68K_BEEP=m
+ # Character devices
+ #
+ CONFIG_VT=y
++CONFIG_CONSOLE_TRANSLATIONS=y
+ CONFIG_VT_CONSOLE=y
+ CONFIG_HW_CONSOLE=y
+ CONFIG_VT_HW_CONSOLE_BINDING=y
+@@ -757,6 +761,7 @@ CONFIG_GEN_RTC_X=y
+ # CONFIG_POWER_SUPPLY is not set
+ # CONFIG_HWMON is not set
+ # CONFIG_THERMAL is not set
++# CONFIG_THERMAL_HWMON is not set
+ # CONFIG_WATCHDOG is not set
+ 
+ #
+@@ -768,8 +773,10 @@ CONFIG_SSB_POSSIBLE=y
+ #
+ # Multifunction device drivers
+ #
++# CONFIG_MFD_CORE is not set
+ # CONFIG_MFD_SM501 is not set
+ # CONFIG_HTC_PASIC3 is not set
++# CONFIG_MFD_TMIO is not set
+ 
+ #
+ # Multimedia devices
+@@ -844,10 +851,6 @@ CONFIG_LOGO=y
+ CONFIG_LOGO_LINUX_MONO=y
+ CONFIG_LOGO_LINUX_VGA16=y
+ CONFIG_LOGO_LINUX_CLUT224=y
+-
+-#
+-# Sound
+-#
+ CONFIG_SOUND=m
+ CONFIG_DMASOUND_PAULA=m
+ CONFIG_DMASOUND=m
+@@ -861,6 +864,7 @@ CONFIG_HIDRAW=y
+ # CONFIG_NEW_LEDS is not set
+ # CONFIG_ACCESSIBILITY is not set
+ # CONFIG_RTC_CLASS is not set
++# CONFIG_DMADEVICES is not set
+ # CONFIG_AUXDISPLAY is not set
+ # CONFIG_UIO is not set
+ 
+@@ -899,6 +903,7 @@ CONFIG_XFS_FS=m
+ CONFIG_OCFS2_FS=m
+ CONFIG_OCFS2_FS_O2CB=m
+ CONFIG_OCFS2_FS_USERSPACE_CLUSTER=m
++# CONFIG_OCFS2_FS_STATS is not set
+ # CONFIG_OCFS2_DEBUG_MASKLOG is not set
+ # CONFIG_OCFS2_DEBUG_FS is not set
+ CONFIG_DNOTIFY=y
+@@ -958,6 +963,7 @@ CONFIG_HFSPLUS_FS=m
+ CONFIG_CRAMFS=m
+ # CONFIG_VXFS_FS is not set
+ CONFIG_MINIX_FS=y
++# CONFIG_OMFS_FS is not set
+ CONFIG_HPFS_FS=m
+ # CONFIG_QNX4FS_FS is not set
+ # CONFIG_ROMFS_FS is not set
+@@ -980,7 +986,6 @@ CONFIG_EXPORTFS=m
+ CONFIG_NFS_COMMON=y
+ CONFIG_SUNRPC=m
+ CONFIG_SUNRPC_GSS=m
+-CONFIG_SUNRPC_BIND34=y
+ CONFIG_RPCSEC_GSS_KRB5=m
+ # CONFIG_RPCSEC_GSS_SPKM3 is not set
+ CONFIG_SMB_FS=m
+@@ -989,7 +994,6 @@ CONFIG_SMB_NLS_REMOTE="cp437"
+ # CONFIG_CIFS is not set
+ # CONFIG_NCP_FS is not set
+ CONFIG_CODA_FS=m
+-# CONFIG_CODA_FS_OLD_API is not set
+ # CONFIG_AFS_FS is not set
+ 
+ #
+@@ -1054,6 +1058,8 @@ CONFIG_MAGIC_SYSRQ=y
+ # CONFIG_HEADERS_CHECK is not set
+ # CONFIG_DEBUG_KERNEL is not set
+ CONFIG_DEBUG_BUGVERBOSE=y
++CONFIG_DEBUG_MEMORY_INIT=y
++CONFIG_SYSCTL_SYSCALL_CHECK=y
+ # CONFIG_SAMPLES is not set
+ 
+ #
+@@ -1113,6 +1119,10 @@ CONFIG_CRYPTO_CRC32C=m
+ CONFIG_CRYPTO_MD4=m
+ CONFIG_CRYPTO_MD5=m
+ CONFIG_CRYPTO_MICHAEL_MIC=m
++CONFIG_CRYPTO_RMD128=m
++CONFIG_CRYPTO_RMD160=m
++CONFIG_CRYPTO_RMD256=m
++CONFIG_CRYPTO_RMD320=m
+ CONFIG_CRYPTO_SHA1=m
+ CONFIG_CRYPTO_SHA256=m
+ CONFIG_CRYPTO_SHA512=m
+@@ -1154,6 +1164,7 @@ CONFIG_BITREVERSE=y
+ # CONFIG_GENERIC_FIND_NEXT_BIT is not set
+ CONFIG_CRC_CCITT=m
+ CONFIG_CRC16=m
++CONFIG_CRC_T10DIF=y
+ CONFIG_CRC_ITU_T=m
+ CONFIG_CRC32=y
+ # CONFIG_CRC7 is not set
+diff -puN arch/m68k/configs/apollo_defconfig~m68k-update-defconfigs arch/m68k/configs/apollo_defconfig
+--- a/arch/m68k/configs/apollo_defconfig~m68k-update-defconfigs
++++ a/arch/m68k/configs/apollo_defconfig
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+-# Linux kernel version: 2.6.26-rc4
+-# Wed May 28 22:47:35 2008
++# Linux kernel version: 2.6.27-rc4
++# Sun Aug 24 11:25:50 2008
+ #
+ CONFIG_M68K=y
+ CONFIG_MMU=y
+@@ -52,7 +52,6 @@ CONFIG_SYSCTL=y
+ # CONFIG_EMBEDDED is not set
+ CONFIG_UID16=y
+ CONFIG_SYSCTL_SYSCALL=y
+-CONFIG_SYSCTL_SYSCALL_CHECK=y
+ CONFIG_KALLSYMS=y
+ # CONFIG_KALLSYMS_EXTRA_PASS is not set
+ CONFIG_HOTPLUG=y
+@@ -75,10 +74,16 @@ CONFIG_SLAB=y
+ # CONFIG_PROFILING is not set
+ # CONFIG_MARKERS is not set
+ # CONFIG_HAVE_OPROFILE is not set
++# CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS is not set
++# CONFIG_HAVE_IOREMAP_PROT is not set
+ # CONFIG_HAVE_KPROBES is not set
+ # CONFIG_HAVE_KRETPROBES is not set
++# CONFIG_HAVE_ARCH_TRACEHOOK is not set
+ # CONFIG_HAVE_DMA_ATTRS is not set
++# CONFIG_USE_GENERIC_SMP_HELPERS is not set
++# CONFIG_HAVE_CLK is not set
+ CONFIG_PROC_PAGE_MONITOR=y
++# CONFIG_HAVE_GENERIC_DMA_COHERENT is not set
+ CONFIG_SLABINFO=y
+ CONFIG_RT_MUTEXES=y
+ # CONFIG_TINY_SHMEM is not set
+@@ -95,6 +100,7 @@ CONFIG_BLOCK=y
+ # CONFIG_BLK_DEV_IO_TRACE is not set
+ # CONFIG_LSF is not set
+ CONFIG_BLK_DEV_BSG=y
++# CONFIG_BLK_DEV_INTEGRITY is not set
+ 
+ #
+ # IO Schedulers
+@@ -161,10 +167,6 @@ CONFIG_HEARTBEAT=y
+ CONFIG_PROC_HARDWARE=y
+ CONFIG_ZONE_DMA=y
+ # CONFIG_ARCH_SUPPORTS_MSI is not set
+-
+-#
+-# Networking
+-#
+ CONFIG_NET=y
+ 
+ #
+@@ -178,6 +180,7 @@ CONFIG_XFRM=y
+ # CONFIG_XFRM_SUB_POLICY is not set
+ CONFIG_XFRM_MIGRATE=y
+ # CONFIG_XFRM_STATISTICS is not set
++CONFIG_XFRM_IPCOMP=m
+ CONFIG_NET_KEY=y
+ CONFIG_NET_KEY_MIGRATE=y
+ CONFIG_INET=y
+@@ -411,6 +414,7 @@ CONFIG_NET_CLS_ROUTE=y
+ #
+ # CONFIG_CFG80211 is not set
+ CONFIG_WIRELESS_EXT=y
++# CONFIG_WIRELESS_EXT_SYSFS is not set
+ # CONFIG_MAC80211 is not set
+ CONFIG_IEEE80211=m
+ # CONFIG_IEEE80211_DEBUG is not set
+@@ -430,7 +434,9 @@ CONFIG_IEEE80211_CRYPT_TKIP=m
+ CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+ CONFIG_STANDALONE=y
+ CONFIG_PREVENT_FIRMWARE_BUILD=y
+-CONFIG_FW_LOADER=m
++CONFIG_FW_LOADER=y
++# CONFIG_FIRMWARE_IN_KERNEL is not set
++CONFIG_EXTRA_FIRMWARE=""
+ # CONFIG_SYS_HYPERVISOR is not set
+ CONFIG_CONNECTOR=m
+ # CONFIG_MTD is not set
+@@ -448,6 +454,7 @@ CONFIG_CDROM_PKTCDVD=m
+ CONFIG_CDROM_PKTCDVD_BUFFERS=8
+ # CONFIG_CDROM_PKTCDVD_WCACHE is not set
+ CONFIG_ATA_OVER_ETH=m
++# CONFIG_BLK_DEV_HD is not set
+ CONFIG_MISC_DEVICES=y
+ # CONFIG_EEPROM_93CX6 is not set
+ # CONFIG_ENCLOSURE_SERVICES is not set
+@@ -499,6 +506,7 @@ CONFIG_SCSI_SRP_TGT_ATTRS=y
+ CONFIG_SCSI_LOWLEVEL=y
+ CONFIG_ISCSI_TCP=m
+ # CONFIG_SCSI_DEBUG is not set
++# CONFIG_SCSI_DH is not set
+ CONFIG_MD=y
+ CONFIG_BLK_DEV_MD=m
+ CONFIG_MD_LINEAR=m
+@@ -507,7 +515,7 @@ CONFIG_MD_RAID1=m
+ # CONFIG_MD_RAID10 is not set
+ CONFIG_MD_RAID456=m
+ CONFIG_MD_RAID5_RESHAPE=y
+-CONFIG_MD_MULTIPATH=m
++# CONFIG_MD_MULTIPATH is not set
+ # CONFIG_MD_FAULTY is not set
+ CONFIG_BLK_DEV_DM=m
+ # CONFIG_DM_DEBUG is not set
+@@ -516,13 +524,9 @@ CONFIG_DM_SNAPSHOT=m
+ CONFIG_DM_MIRROR=m
+ CONFIG_DM_ZERO=m
+ CONFIG_DM_MULTIPATH=m
+-CONFIG_DM_MULTIPATH_EMC=m
+-CONFIG_DM_MULTIPATH_RDAC=m
+-CONFIG_DM_MULTIPATH_HP=m
+ # CONFIG_DM_DELAY is not set
+ CONFIG_DM_UEVENT=y
+ CONFIG_NETDEVICES=y
+-# CONFIG_NETDEVICES_MULTIQUEUE is not set
+ CONFIG_DUMMY=m
+ # CONFIG_BONDING is not set
+ CONFIG_MACVLAN=m
+@@ -532,7 +536,6 @@ CONFIG_VETH=m
+ # CONFIG_PHYLIB is not set
+ CONFIG_NET_ETHERNET=y
+ # CONFIG_MII is not set
+-CONFIG_APOLLO_ELPLUS=y
+ # CONFIG_IBM_NEW_EMAC_ZMII is not set
+ # CONFIG_IBM_NEW_EMAC_RGMII is not set
+ # CONFIG_IBM_NEW_EMAC_TAH is not set
+@@ -627,6 +630,7 @@ CONFIG_SERIO_LIBPS2=m
+ # Character devices
+ #
+ CONFIG_VT=y
++CONFIG_CONSOLE_TRANSLATIONS=y
+ CONFIG_VT_CONSOLE=y
+ CONFIG_HW_CONSOLE=y
+ CONFIG_VT_HW_CONSOLE_BINDING=y
+@@ -657,6 +661,7 @@ CONFIG_GEN_RTC_X=y
+ # CONFIG_POWER_SUPPLY is not set
+ # CONFIG_HWMON is not set
+ # CONFIG_THERMAL is not set
++# CONFIG_THERMAL_HWMON is not set
+ # CONFIG_WATCHDOG is not set
+ 
+ #
+@@ -668,8 +673,10 @@ CONFIG_SSB_POSSIBLE=y
+ #
+ # Multifunction device drivers
+ #
++# CONFIG_MFD_CORE is not set
+ # CONFIG_MFD_SM501 is not set
+ # CONFIG_HTC_PASIC3 is not set
++# CONFIG_MFD_TMIO is not set
+ 
+ #
+ # Multimedia devices
+@@ -738,10 +745,6 @@ CONFIG_LOGO=y
+ CONFIG_LOGO_LINUX_MONO=y
+ # CONFIG_LOGO_LINUX_VGA16 is not set
+ # CONFIG_LOGO_LINUX_CLUT224 is not set
+-
+-#
+-# Sound
+-#
+ # CONFIG_SOUND is not set
+ CONFIG_HID_SUPPORT=y
+ CONFIG_HID=m
+@@ -753,6 +756,7 @@ CONFIG_HIDRAW=y
+ # CONFIG_NEW_LEDS is not set
+ # CONFIG_ACCESSIBILITY is not set
+ # CONFIG_RTC_CLASS is not set
++# CONFIG_DMADEVICES is not set
+ # CONFIG_UIO is not set
+ 
+ #
+@@ -789,6 +793,7 @@ CONFIG_XFS_FS=m
+ CONFIG_OCFS2_FS=m
+ CONFIG_OCFS2_FS_O2CB=m
+ CONFIG_OCFS2_FS_USERSPACE_CLUSTER=m
++# CONFIG_OCFS2_FS_STATS is not set
+ # CONFIG_OCFS2_DEBUG_MASKLOG is not set
+ # CONFIG_OCFS2_DEBUG_FS is not set
+ CONFIG_DNOTIFY=y
+@@ -848,6 +853,7 @@ CONFIG_HFSPLUS_FS=m
+ CONFIG_CRAMFS=m
+ # CONFIG_VXFS_FS is not set
+ CONFIG_MINIX_FS=y
++# CONFIG_OMFS_FS is not set
+ CONFIG_HPFS_FS=m
+ # CONFIG_QNX4FS_FS is not set
+ # CONFIG_ROMFS_FS is not set
+@@ -860,18 +866,17 @@ CONFIG_NFS_FS=y
+ CONFIG_NFS_V3=y
+ # CONFIG_NFS_V3_ACL is not set
+ CONFIG_NFS_V4=y
++CONFIG_ROOT_NFS=y
+ CONFIG_NFSD=m
+ CONFIG_NFSD_V3=y
+ # CONFIG_NFSD_V3_ACL is not set
+ # CONFIG_NFSD_V4 is not set
+-CONFIG_ROOT_NFS=y
+ CONFIG_LOCKD=y
+ CONFIG_LOCKD_V4=y
+ CONFIG_EXPORTFS=m
+ CONFIG_NFS_COMMON=y
+ CONFIG_SUNRPC=y
+ CONFIG_SUNRPC_GSS=y
+-CONFIG_SUNRPC_BIND34=y
+ CONFIG_RPCSEC_GSS_KRB5=y
+ # CONFIG_RPCSEC_GSS_SPKM3 is not set
+ CONFIG_SMB_FS=m
+@@ -880,7 +885,6 @@ CONFIG_SMB_NLS_REMOTE="cp437"
+ # CONFIG_CIFS is not set
+ # CONFIG_NCP_FS is not set
+ CONFIG_CODA_FS=m
+-# CONFIG_CODA_FS_OLD_API is not set
+ # CONFIG_AFS_FS is not set
+ 
+ #
+@@ -944,6 +948,8 @@ CONFIG_MAGIC_SYSRQ=y
+ # CONFIG_HEADERS_CHECK is not set
+ # CONFIG_DEBUG_KERNEL is not set
+ CONFIG_DEBUG_BUGVERBOSE=y
++CONFIG_DEBUG_MEMORY_INIT=y
++CONFIG_SYSCTL_SYSCALL_CHECK=y
+ # CONFIG_SAMPLES is not set
+ 
+ #
+@@ -1003,6 +1009,10 @@ CONFIG_CRYPTO_CRC32C=m
+ CONFIG_CRYPTO_MD4=m
+ CONFIG_CRYPTO_MD5=y
+ CONFIG_CRYPTO_MICHAEL_MIC=m
++CONFIG_CRYPTO_RMD128=m
++CONFIG_CRYPTO_RMD160=m
++CONFIG_CRYPTO_RMD256=m
++CONFIG_CRYPTO_RMD320=m
+ CONFIG_CRYPTO_SHA1=m
+ CONFIG_CRYPTO_SHA256=m
+ CONFIG_CRYPTO_SHA512=m
+@@ -1044,6 +1054,7 @@ CONFIG_BITREVERSE=y
+ # CONFIG_GENERIC_FIND_NEXT_BIT is not set
+ CONFIG_CRC_CCITT=m
+ CONFIG_CRC16=m
++CONFIG_CRC_T10DIF=y
+ CONFIG_CRC_ITU_T=m
+ CONFIG_CRC32=y
+ # CONFIG_CRC7 is not set
+diff -puN arch/m68k/configs/atari_defconfig~m68k-update-defconfigs arch/m68k/configs/atari_defconfig
+--- a/arch/m68k/configs/atari_defconfig~m68k-update-defconfigs
++++ a/arch/m68k/configs/atari_defconfig
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+-# Linux kernel version: 2.6.26-rc4
+-# Wed May 28 22:47:35 2008
++# Linux kernel version: 2.6.27-rc4
++# Sun Aug 24 11:25:51 2008
+ #
+ CONFIG_M68K=y
+ CONFIG_MMU=y
+@@ -52,7 +52,6 @@ CONFIG_SYSCTL=y
+ # CONFIG_EMBEDDED is not set
+ CONFIG_UID16=y
+ CONFIG_SYSCTL_SYSCALL=y
+-CONFIG_SYSCTL_SYSCALL_CHECK=y
+ CONFIG_KALLSYMS=y
+ # CONFIG_KALLSYMS_EXTRA_PASS is not set
+ CONFIG_HOTPLUG=y
+@@ -75,10 +74,16 @@ CONFIG_SLAB=y
+ # CONFIG_PROFILING is not set
+ # CONFIG_MARKERS is not set
+ # CONFIG_HAVE_OPROFILE is not set
++# CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS is not set
++# CONFIG_HAVE_IOREMAP_PROT is not set
+ # CONFIG_HAVE_KPROBES is not set
+ # CONFIG_HAVE_KRETPROBES is not set
++# CONFIG_HAVE_ARCH_TRACEHOOK is not set
+ # CONFIG_HAVE_DMA_ATTRS is not set
++# CONFIG_USE_GENERIC_SMP_HELPERS is not set
++# CONFIG_HAVE_CLK is not set
+ CONFIG_PROC_PAGE_MONITOR=y
++# CONFIG_HAVE_GENERIC_DMA_COHERENT is not set
+ CONFIG_SLABINFO=y
+ CONFIG_RT_MUTEXES=y
+ # CONFIG_TINY_SHMEM is not set
+@@ -95,6 +100,7 @@ CONFIG_BLOCK=y
+ # CONFIG_BLK_DEV_IO_TRACE is not set
+ # CONFIG_LSF is not set
+ CONFIG_BLK_DEV_BSG=y
++# CONFIG_BLK_DEV_INTEGRITY is not set
+ 
+ #
+ # IO Schedulers
+@@ -162,10 +168,6 @@ CONFIG_HEARTBEAT=y
+ CONFIG_PROC_HARDWARE=y
+ CONFIG_ZONE_DMA=y
+ # CONFIG_ARCH_SUPPORTS_MSI is not set
+-
+-#
+-# Networking
+-#
+ CONFIG_NET=y
+ 
+ #
+@@ -179,6 +181,7 @@ CONFIG_XFRM=y
+ # CONFIG_XFRM_SUB_POLICY is not set
+ CONFIG_XFRM_MIGRATE=y
+ # CONFIG_XFRM_STATISTICS is not set
++CONFIG_XFRM_IPCOMP=m
+ CONFIG_NET_KEY=y
+ CONFIG_NET_KEY_MIGRATE=y
+ CONFIG_INET=y
+@@ -409,6 +412,7 @@ CONFIG_NET_CLS_ROUTE=y
+ #
+ # CONFIG_CFG80211 is not set
+ CONFIG_WIRELESS_EXT=y
++# CONFIG_WIRELESS_EXT_SYSFS is not set
+ # CONFIG_MAC80211 is not set
+ CONFIG_IEEE80211=m
+ # CONFIG_IEEE80211_DEBUG is not set
+@@ -428,7 +432,9 @@ CONFIG_IEEE80211_CRYPT_TKIP=m
+ CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+ CONFIG_STANDALONE=y
+ CONFIG_PREVENT_FIRMWARE_BUILD=y
+-CONFIG_FW_LOADER=m
++CONFIG_FW_LOADER=y
++# CONFIG_FIRMWARE_IN_KERNEL is not set
++CONFIG_EXTRA_FIRMWARE=""
+ # CONFIG_SYS_HYPERVISOR is not set
+ CONFIG_CONNECTOR=m
+ # CONFIG_MTD is not set
+@@ -452,6 +458,7 @@ CONFIG_CDROM_PKTCDVD=m
+ CONFIG_CDROM_PKTCDVD_BUFFERS=8
+ # CONFIG_CDROM_PKTCDVD_WCACHE is not set
+ CONFIG_ATA_OVER_ETH=m
++# CONFIG_BLK_DEV_HD is not set
+ CONFIG_MISC_DEVICES=y
+ # CONFIG_EEPROM_93CX6 is not set
+ # CONFIG_ENCLOSURE_SERVICES is not set
+@@ -462,6 +469,7 @@ CONFIG_BLK_DEV_IDE=y
+ #
+ # Please see Documentation/ide/ide.txt for help/info on IDE drives
+ #
++CONFIG_IDE_ATAPI=y
+ # CONFIG_BLK_DEV_IDE_SATA is not set
+ CONFIG_BLK_DEV_IDEDISK=y
+ # CONFIG_IDEDISK_MULTI_MODE is not set
+@@ -479,8 +487,6 @@ CONFIG_IDE_PROC_FS=y
+ # CONFIG_BLK_DEV_PLATFORM is not set
+ CONFIG_BLK_DEV_FALCON_IDE=y
+ # CONFIG_BLK_DEV_IDEDMA is not set
+-# CONFIG_BLK_DEV_HD_ONLY is not set
+-# CONFIG_BLK_DEV_HD is not set
+ 
+ #
+ # SCSI device support
+@@ -530,6 +536,7 @@ CONFIG_ISCSI_TCP=m
+ CONFIG_ATARI_SCSI=y
+ # CONFIG_ATARI_SCSI_TOSHIBA_DELAY is not set
+ # CONFIG_ATARI_SCSI_RESET_BOOT is not set
++# CONFIG_SCSI_DH is not set
+ CONFIG_MD=y
+ CONFIG_BLK_DEV_MD=m
+ CONFIG_MD_LINEAR=m
+@@ -538,7 +545,7 @@ CONFIG_MD_RAID1=m
+ # CONFIG_MD_RAID10 is not set
+ CONFIG_MD_RAID456=m
+ CONFIG_MD_RAID5_RESHAPE=y
+-CONFIG_MD_MULTIPATH=m
++# CONFIG_MD_MULTIPATH is not set
+ # CONFIG_MD_FAULTY is not set
+ CONFIG_BLK_DEV_DM=m
+ # CONFIG_DM_DEBUG is not set
+@@ -547,13 +554,9 @@ CONFIG_DM_SNAPSHOT=m
+ CONFIG_DM_MIRROR=m
+ CONFIG_DM_ZERO=m
+ CONFIG_DM_MULTIPATH=m
+-CONFIG_DM_MULTIPATH_EMC=m
+-CONFIG_DM_MULTIPATH_RDAC=m
+-CONFIG_DM_MULTIPATH_HP=m
+ # CONFIG_DM_DELAY is not set
+ CONFIG_DM_UEVENT=y
+ CONFIG_NETDEVICES=y
+-# CONFIG_NETDEVICES_MULTIQUEUE is not set
+ CONFIG_DUMMY=m
+ # CONFIG_BONDING is not set
+ CONFIG_MACVLAN=m
+@@ -666,6 +669,7 @@ CONFIG_SERIO_LIBPS2=y
+ # Character devices
+ #
+ CONFIG_VT=y
++CONFIG_CONSOLE_TRANSLATIONS=y
+ CONFIG_VT_CONSOLE=y
+ CONFIG_HW_CONSOLE=y
+ CONFIG_VT_HW_CONSOLE_BINDING=y
+@@ -700,6 +704,7 @@ CONFIG_GEN_RTC_X=y
+ # CONFIG_POWER_SUPPLY is not set
+ # CONFIG_HWMON is not set
+ # CONFIG_THERMAL is not set
++# CONFIG_THERMAL_HWMON is not set
+ # CONFIG_WATCHDOG is not set
+ 
+ #
+@@ -711,8 +716,10 @@ CONFIG_SSB_POSSIBLE=y
+ #
+ # Multifunction device drivers
+ #
++# CONFIG_MFD_CORE is not set
+ # CONFIG_MFD_SM501 is not set
+ # CONFIG_HTC_PASIC3 is not set
++# CONFIG_MFD_TMIO is not set
+ 
+ #
+ # Multimedia devices
+@@ -782,10 +789,6 @@ CONFIG_LOGO=y
+ CONFIG_LOGO_LINUX_MONO=y
+ CONFIG_LOGO_LINUX_VGA16=y
+ CONFIG_LOGO_LINUX_CLUT224=y
+-
+-#
+-# Sound
+-#
+ CONFIG_SOUND=m
+ CONFIG_DMASOUND_ATARI=m
+ CONFIG_DMASOUND=m
+@@ -799,6 +802,7 @@ CONFIG_HIDRAW=y
+ # CONFIG_NEW_LEDS is not set
+ # CONFIG_ACCESSIBILITY is not set
+ # CONFIG_RTC_CLASS is not set
++# CONFIG_DMADEVICES is not set
+ # CONFIG_AUXDISPLAY is not set
+ # CONFIG_UIO is not set
+ 
+@@ -806,11 +810,8 @@ CONFIG_HIDRAW=y
+ # Character devices
+ #
+ CONFIG_ATARI_MFPSER=m
+-CONFIG_ATARI_SCC=y
+-CONFIG_ATARI_SCC_DMA=y
+ CONFIG_ATARI_MIDI=m
+ CONFIG_ATARI_DSP56K=m
+-# CONFIG_SERIAL_CONSOLE is not set
+ 
+ #
+ # File systems
+@@ -820,8 +821,10 @@ CONFIG_EXT2_FS=y
+ # CONFIG_EXT2_FS_XIP is not set
+ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_FS_XATTR is not set
+-# CONFIG_EXT4DEV_FS is not set
++CONFIG_EXT4DEV_FS=y
++# CONFIG_EXT4DEV_FS_XATTR is not set
+ CONFIG_JBD=y
++CONFIG_JBD2=y
+ CONFIG_REISERFS_FS=m
+ # CONFIG_REISERFS_CHECK is not set
+ # CONFIG_REISERFS_PROC_INFO is not set
+@@ -840,6 +843,7 @@ CONFIG_XFS_FS=m
+ CONFIG_OCFS2_FS=m
+ CONFIG_OCFS2_FS_O2CB=m
+ CONFIG_OCFS2_FS_USERSPACE_CLUSTER=m
++# CONFIG_OCFS2_FS_STATS is not set
+ # CONFIG_OCFS2_DEBUG_MASKLOG is not set
+ # CONFIG_OCFS2_DEBUG_FS is not set
+ CONFIG_DNOTIFY=y
+@@ -899,6 +903,7 @@ CONFIG_HFSPLUS_FS=m
+ CONFIG_CRAMFS=m
+ # CONFIG_VXFS_FS is not set
+ CONFIG_MINIX_FS=y
++# CONFIG_OMFS_FS is not set
+ CONFIG_HPFS_FS=m
+ # CONFIG_QNX4FS_FS is not set
+ # CONFIG_ROMFS_FS is not set
+@@ -920,7 +925,6 @@ CONFIG_LOCKD_V4=y
+ CONFIG_EXPORTFS=m
+ CONFIG_NFS_COMMON=y
+ CONFIG_SUNRPC=m
+-CONFIG_SUNRPC_BIND34=y
+ # CONFIG_RPCSEC_GSS_KRB5 is not set
+ # CONFIG_RPCSEC_GSS_SPKM3 is not set
+ CONFIG_SMB_FS=m
+@@ -929,7 +933,6 @@ CONFIG_SMB_NLS_REMOTE="cp437"
+ # CONFIG_CIFS is not set
+ # CONFIG_NCP_FS is not set
+ CONFIG_CODA_FS=m
+-# CONFIG_CODA_FS_OLD_API is not set
+ # CONFIG_AFS_FS is not set
+ 
+ #
+@@ -994,6 +997,8 @@ CONFIG_MAGIC_SYSRQ=y
+ # CONFIG_HEADERS_CHECK is not set
+ # CONFIG_DEBUG_KERNEL is not set
+ CONFIG_DEBUG_BUGVERBOSE=y
++CONFIG_DEBUG_MEMORY_INIT=y
++CONFIG_SYSCTL_SYSCALL_CHECK=y
+ # CONFIG_SAMPLES is not set
+ 
+ #
+@@ -1053,6 +1058,10 @@ CONFIG_CRYPTO_CRC32C=m
+ CONFIG_CRYPTO_MD4=m
+ CONFIG_CRYPTO_MD5=m
+ CONFIG_CRYPTO_MICHAEL_MIC=m
++CONFIG_CRYPTO_RMD128=m
++CONFIG_CRYPTO_RMD160=m
++CONFIG_CRYPTO_RMD256=m
++CONFIG_CRYPTO_RMD320=m
+ CONFIG_CRYPTO_SHA1=m
+ CONFIG_CRYPTO_SHA256=m
+ CONFIG_CRYPTO_SHA512=m
+@@ -1094,6 +1103,7 @@ CONFIG_BITREVERSE=y
+ # CONFIG_GENERIC_FIND_NEXT_BIT is not set
+ CONFIG_CRC_CCITT=m
+ CONFIG_CRC16=y
++CONFIG_CRC_T10DIF=y
+ CONFIG_CRC_ITU_T=m
+ CONFIG_CRC32=y
+ # CONFIG_CRC7 is not set
+diff -puN arch/m68k/configs/bvme6000_defconfig~m68k-update-defconfigs arch/m68k/configs/bvme6000_defconfig
+--- a/arch/m68k/configs/bvme6000_defconfig~m68k-update-defconfigs
++++ a/arch/m68k/configs/bvme6000_defconfig
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+-# Linux kernel version: 2.6.26-rc4
+-# Wed May 28 22:47:35 2008
++# Linux kernel version: 2.6.27-rc4
++# Sun Aug 24 11:25:52 2008
+ #
+ CONFIG_M68K=y
+ CONFIG_MMU=y
+@@ -52,7 +52,6 @@ CONFIG_SYSCTL=y
+ # CONFIG_EMBEDDED is not set
+ CONFIG_UID16=y
+ CONFIG_SYSCTL_SYSCALL=y
+-CONFIG_SYSCTL_SYSCALL_CHECK=y
+ CONFIG_KALLSYMS=y
+ # CONFIG_KALLSYMS_EXTRA_PASS is not set
+ CONFIG_HOTPLUG=y
+@@ -75,10 +74,16 @@ CONFIG_SLAB=y
+ # CONFIG_PROFILING is not set
+ # CONFIG_MARKERS is not set
+ # CONFIG_HAVE_OPROFILE is not set
++# CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS is not set
++# CONFIG_HAVE_IOREMAP_PROT is not set
+ # CONFIG_HAVE_KPROBES is not set
+ # CONFIG_HAVE_KRETPROBES is not set
++# CONFIG_HAVE_ARCH_TRACEHOOK is not set
+ # CONFIG_HAVE_DMA_ATTRS is not set
++# CONFIG_USE_GENERIC_SMP_HELPERS is not set
++# CONFIG_HAVE_CLK is not set
+ CONFIG_PROC_PAGE_MONITOR=y
++# CONFIG_HAVE_GENERIC_DMA_COHERENT is not set
+ CONFIG_SLABINFO=y
+ CONFIG_RT_MUTEXES=y
+ # CONFIG_TINY_SHMEM is not set
+@@ -95,6 +100,7 @@ CONFIG_BLOCK=y
+ # CONFIG_BLK_DEV_IO_TRACE is not set
+ # CONFIG_LSF is not set
+ CONFIG_BLK_DEV_BSG=y
++# CONFIG_BLK_DEV_INTEGRITY is not set
+ 
+ #
+ # IO Schedulers
+@@ -163,10 +169,6 @@ CONFIG_BINFMT_MISC=m
+ CONFIG_PROC_HARDWARE=y
+ CONFIG_ZONE_DMA=y
+ # CONFIG_ARCH_SUPPORTS_MSI is not set
+-
+-#
+-# Networking
+-#
+ CONFIG_NET=y
+ 
+ #
+@@ -180,6 +182,7 @@ CONFIG_XFRM=y
+ # CONFIG_XFRM_SUB_POLICY is not set
+ CONFIG_XFRM_MIGRATE=y
+ # CONFIG_XFRM_STATISTICS is not set
++CONFIG_XFRM_IPCOMP=m
+ CONFIG_NET_KEY=y
+ CONFIG_NET_KEY_MIGRATE=y
+ CONFIG_INET=y
+@@ -413,6 +416,7 @@ CONFIG_NET_CLS_ROUTE=y
+ #
+ # CONFIG_CFG80211 is not set
+ CONFIG_WIRELESS_EXT=y
++# CONFIG_WIRELESS_EXT_SYSFS is not set
+ # CONFIG_MAC80211 is not set
+ CONFIG_IEEE80211=m
+ # CONFIG_IEEE80211_DEBUG is not set
+@@ -432,7 +436,9 @@ CONFIG_IEEE80211_CRYPT_TKIP=m
+ CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+ CONFIG_STANDALONE=y
+ CONFIG_PREVENT_FIRMWARE_BUILD=y
+-CONFIG_FW_LOADER=m
++CONFIG_FW_LOADER=y
++# CONFIG_FIRMWARE_IN_KERNEL is not set
++CONFIG_EXTRA_FIRMWARE=""
+ # CONFIG_SYS_HYPERVISOR is not set
+ CONFIG_CONNECTOR=m
+ # CONFIG_MTD is not set
+@@ -450,6 +456,7 @@ CONFIG_CDROM_PKTCDVD=m
+ CONFIG_CDROM_PKTCDVD_BUFFERS=8
+ # CONFIG_CDROM_PKTCDVD_WCACHE is not set
+ CONFIG_ATA_OVER_ETH=m
++# CONFIG_BLK_DEV_HD is not set
+ CONFIG_MISC_DEVICES=y
+ # CONFIG_EEPROM_93CX6 is not set
+ # CONFIG_ENCLOSURE_SERVICES is not set
+@@ -503,6 +510,7 @@ CONFIG_ISCSI_TCP=m
+ CONFIG_53C700_BE_BUS=y
+ # CONFIG_SCSI_DEBUG is not set
+ CONFIG_BVME6000_SCSI=y
++# CONFIG_SCSI_DH is not set
+ CONFIG_MD=y
+ CONFIG_BLK_DEV_MD=m
+ CONFIG_MD_LINEAR=m
+@@ -511,7 +519,7 @@ CONFIG_MD_RAID1=m
+ # CONFIG_MD_RAID10 is not set
+ CONFIG_MD_RAID456=m
+ CONFIG_MD_RAID5_RESHAPE=y
+-CONFIG_MD_MULTIPATH=m
++# CONFIG_MD_MULTIPATH is not set
+ # CONFIG_MD_FAULTY is not set
+ CONFIG_BLK_DEV_DM=m
+ # CONFIG_DM_DEBUG is not set
+@@ -520,13 +528,9 @@ CONFIG_DM_SNAPSHOT=m
+ CONFIG_DM_MIRROR=m
+ CONFIG_DM_ZERO=m
+ CONFIG_DM_MULTIPATH=m
+-CONFIG_DM_MULTIPATH_EMC=m
+-CONFIG_DM_MULTIPATH_RDAC=m
+-CONFIG_DM_MULTIPATH_HP=m
+ # CONFIG_DM_DELAY is not set
+ CONFIG_DM_UEVENT=y
+ CONFIG_NETDEVICES=y
+-# CONFIG_NETDEVICES_MULTIQUEUE is not set
+ CONFIG_DUMMY=m
+ # CONFIG_BONDING is not set
+ CONFIG_MACVLAN=m
+@@ -631,6 +635,7 @@ CONFIG_SERIO_LIBPS2=m
+ # Character devices
+ #
+ CONFIG_VT=y
++CONFIG_CONSOLE_TRANSLATIONS=y
+ CONFIG_VT_CONSOLE=y
+ CONFIG_HW_CONSOLE=y
+ CONFIG_VT_HW_CONSOLE_BINDING=y
+@@ -661,6 +666,7 @@ CONFIG_GEN_RTC_X=y
+ # CONFIG_POWER_SUPPLY is not set
+ # CONFIG_HWMON is not set
+ # CONFIG_THERMAL is not set
++# CONFIG_THERMAL_HWMON is not set
+ # CONFIG_WATCHDOG is not set
+ 
+ #
+@@ -672,8 +678,10 @@ CONFIG_SSB_POSSIBLE=y
+ #
+ # Multifunction device drivers
+ #
++# CONFIG_MFD_CORE is not set
+ # CONFIG_MFD_SM501 is not set
+ # CONFIG_HTC_PASIC3 is not set
++# CONFIG_MFD_TMIO is not set
+ 
+ #
+ # Multimedia devices
+@@ -708,10 +716,6 @@ CONFIG_SSB_POSSIBLE=y
+ # Console display driver support
+ #
+ CONFIG_DUMMY_CONSOLE=y
+-
+-#
+-# Sound
+-#
+ # CONFIG_SOUND is not set
+ CONFIG_HID_SUPPORT=y
+ CONFIG_HID=m
+@@ -723,6 +727,7 @@ CONFIG_HIDRAW=y
+ # CONFIG_NEW_LEDS is not set
+ # CONFIG_ACCESSIBILITY is not set
+ # CONFIG_RTC_CLASS is not set
++# CONFIG_DMADEVICES is not set
+ # CONFIG_UIO is not set
+ 
+ #
+@@ -759,6 +764,7 @@ CONFIG_XFS_FS=m
+ CONFIG_OCFS2_FS=m
+ CONFIG_OCFS2_FS_O2CB=m
+ CONFIG_OCFS2_FS_USERSPACE_CLUSTER=m
++# CONFIG_OCFS2_FS_STATS is not set
+ # CONFIG_OCFS2_DEBUG_MASKLOG is not set
+ # CONFIG_OCFS2_DEBUG_FS is not set
+ CONFIG_DNOTIFY=y
+@@ -818,6 +824,7 @@ CONFIG_HFSPLUS_FS=m
+ CONFIG_CRAMFS=m
+ # CONFIG_VXFS_FS is not set
+ CONFIG_MINIX_FS=y
++# CONFIG_OMFS_FS is not set
+ CONFIG_HPFS_FS=m
+ # CONFIG_QNX4FS_FS is not set
+ # CONFIG_ROMFS_FS is not set
+@@ -830,18 +837,17 @@ CONFIG_NFS_FS=y
+ CONFIG_NFS_V3=y
+ # CONFIG_NFS_V3_ACL is not set
+ CONFIG_NFS_V4=y
++CONFIG_ROOT_NFS=y
+ CONFIG_NFSD=m
+ CONFIG_NFSD_V3=y
+ # CONFIG_NFSD_V3_ACL is not set
+ # CONFIG_NFSD_V4 is not set
+-CONFIG_ROOT_NFS=y
+ CONFIG_LOCKD=y
+ CONFIG_LOCKD_V4=y
+ CONFIG_EXPORTFS=m
+ CONFIG_NFS_COMMON=y
+ CONFIG_SUNRPC=y
+ CONFIG_SUNRPC_GSS=y
+-CONFIG_SUNRPC_BIND34=y
+ CONFIG_RPCSEC_GSS_KRB5=y
+ # CONFIG_RPCSEC_GSS_SPKM3 is not set
+ CONFIG_SMB_FS=m
+@@ -850,7 +856,6 @@ CONFIG_SMB_NLS_REMOTE="cp437"
+ # CONFIG_CIFS is not set
+ # CONFIG_NCP_FS is not set
+ CONFIG_CODA_FS=m
+-# CONFIG_CODA_FS_OLD_API is not set
+ # CONFIG_AFS_FS is not set
+ 
+ #
+@@ -915,6 +920,8 @@ CONFIG_MAGIC_SYSRQ=y
+ # CONFIG_HEADERS_CHECK is not set
+ # CONFIG_DEBUG_KERNEL is not set
+ CONFIG_DEBUG_BUGVERBOSE=y
++CONFIG_DEBUG_MEMORY_INIT=y
++CONFIG_SYSCTL_SYSCALL_CHECK=y
+ # CONFIG_SAMPLES is not set
+ 
+ #
+@@ -974,6 +981,10 @@ CONFIG_CRYPTO_CRC32C=m
+ CONFIG_CRYPTO_MD4=m
+ CONFIG_CRYPTO_MD5=y
+ CONFIG_CRYPTO_MICHAEL_MIC=m
++CONFIG_CRYPTO_RMD128=m
++CONFIG_CRYPTO_RMD160=m
++CONFIG_CRYPTO_RMD256=m
++CONFIG_CRYPTO_RMD320=m
+ CONFIG_CRYPTO_SHA1=m
+ CONFIG_CRYPTO_SHA256=m
+ CONFIG_CRYPTO_SHA512=m
+@@ -1015,6 +1026,7 @@ CONFIG_BITREVERSE=m
+ # CONFIG_GENERIC_FIND_NEXT_BIT is not set
+ CONFIG_CRC_CCITT=m
+ CONFIG_CRC16=m
++CONFIG_CRC_T10DIF=y
+ CONFIG_CRC_ITU_T=m
+ CONFIG_CRC32=m
+ # CONFIG_CRC7 is not set
+diff -puN arch/m68k/configs/hp300_defconfig~m68k-update-defconfigs arch/m68k/configs/hp300_defconfig
+--- a/arch/m68k/configs/hp300_defconfig~m68k-update-defconfigs
++++ a/arch/m68k/configs/hp300_defconfig
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+-# Linux kernel version: 2.6.26-rc4
+-# Wed May 28 22:47:35 2008
++# Linux kernel version: 2.6.27-rc4
++# Sun Aug 24 11:25:53 2008
+ #
+ CONFIG_M68K=y
+ CONFIG_MMU=y
+@@ -52,7 +52,6 @@ CONFIG_SYSCTL=y
+ # CONFIG_EMBEDDED is not set
+ CONFIG_UID16=y
+ CONFIG_SYSCTL_SYSCALL=y
+-CONFIG_SYSCTL_SYSCALL_CHECK=y
+ CONFIG_KALLSYMS=y
+ # CONFIG_KALLSYMS_EXTRA_PASS is not set
+ CONFIG_HOTPLUG=y
+@@ -75,10 +74,16 @@ CONFIG_SLAB=y
+ # CONFIG_PROFILING is not set
+ # CONFIG_MARKERS is not set
+ # CONFIG_HAVE_OPROFILE is not set
++# CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS is not set
++# CONFIG_HAVE_IOREMAP_PROT is not set
+ # CONFIG_HAVE_KPROBES is not set
+ # CONFIG_HAVE_KRETPROBES is not set
++# CONFIG_HAVE_ARCH_TRACEHOOK is not set
+ # CONFIG_HAVE_DMA_ATTRS is not set
++# CONFIG_USE_GENERIC_SMP_HELPERS is not set
++# CONFIG_HAVE_CLK is not set
+ CONFIG_PROC_PAGE_MONITOR=y
++# CONFIG_HAVE_GENERIC_DMA_COHERENT is not set
+ CONFIG_SLABINFO=y
+ CONFIG_RT_MUTEXES=y
+ # CONFIG_TINY_SHMEM is not set
+@@ -95,6 +100,7 @@ CONFIG_BLOCK=y
+ # CONFIG_BLK_DEV_IO_TRACE is not set
+ # CONFIG_LSF is not set
+ CONFIG_BLK_DEV_BSG=y
++# CONFIG_BLK_DEV_INTEGRITY is not set
+ 
+ #
+ # IO Schedulers
+@@ -162,10 +168,6 @@ CONFIG_HEARTBEAT=y
+ CONFIG_PROC_HARDWARE=y
+ CONFIG_ZONE_DMA=y
+ # CONFIG_ARCH_SUPPORTS_MSI is not set
+-
+-#
+-# Networking
+-#
+ CONFIG_NET=y
+ 
+ #
+@@ -179,6 +181,7 @@ CONFIG_XFRM=y
+ # CONFIG_XFRM_SUB_POLICY is not set
+ CONFIG_XFRM_MIGRATE=y
+ # CONFIG_XFRM_STATISTICS is not set
++CONFIG_XFRM_IPCOMP=m
+ CONFIG_NET_KEY=y
+ CONFIG_NET_KEY_MIGRATE=y
+ CONFIG_INET=y
+@@ -412,6 +415,7 @@ CONFIG_NET_CLS_ROUTE=y
+ #
+ # CONFIG_CFG80211 is not set
+ CONFIG_WIRELESS_EXT=y
++# CONFIG_WIRELESS_EXT_SYSFS is not set
+ # CONFIG_MAC80211 is not set
+ CONFIG_IEEE80211=m
+ # CONFIG_IEEE80211_DEBUG is not set
+@@ -431,7 +435,9 @@ CONFIG_IEEE80211_CRYPT_TKIP=m
+ CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+ CONFIG_STANDALONE=y
+ CONFIG_PREVENT_FIRMWARE_BUILD=y
+-CONFIG_FW_LOADER=m
++CONFIG_FW_LOADER=y
++# CONFIG_FIRMWARE_IN_KERNEL is not set
++CONFIG_EXTRA_FIRMWARE=""
+ # CONFIG_SYS_HYPERVISOR is not set
+ CONFIG_CONNECTOR=m
+ # CONFIG_MTD is not set
+@@ -449,6 +455,7 @@ CONFIG_CDROM_PKTCDVD=m
+ CONFIG_CDROM_PKTCDVD_BUFFERS=8
+ # CONFIG_CDROM_PKTCDVD_WCACHE is not set
+ CONFIG_ATA_OVER_ETH=m
++# CONFIG_BLK_DEV_HD is not set
+ CONFIG_MISC_DEVICES=y
+ # CONFIG_EEPROM_93CX6 is not set
+ # CONFIG_ENCLOSURE_SERVICES is not set
+@@ -500,6 +507,7 @@ CONFIG_SCSI_SRP_TGT_ATTRS=y
+ CONFIG_SCSI_LOWLEVEL=y
+ CONFIG_ISCSI_TCP=m
+ # CONFIG_SCSI_DEBUG is not set
++# CONFIG_SCSI_DH is not set
+ CONFIG_MD=y
+ CONFIG_BLK_DEV_MD=m
+ CONFIG_MD_LINEAR=m
+@@ -508,7 +516,7 @@ CONFIG_MD_RAID1=m
+ # CONFIG_MD_RAID10 is not set
+ CONFIG_MD_RAID456=m
+ CONFIG_MD_RAID5_RESHAPE=y
+-CONFIG_MD_MULTIPATH=m
++# CONFIG_MD_MULTIPATH is not set
+ # CONFIG_MD_FAULTY is not set
+ CONFIG_BLK_DEV_DM=m
+ # CONFIG_DM_DEBUG is not set
+@@ -517,13 +525,9 @@ CONFIG_DM_SNAPSHOT=m
+ CONFIG_DM_MIRROR=m
+ CONFIG_DM_ZERO=m
+ CONFIG_DM_MULTIPATH=m
+-CONFIG_DM_MULTIPATH_EMC=m
+-CONFIG_DM_MULTIPATH_RDAC=m
+-CONFIG_DM_MULTIPATH_HP=m
+ # CONFIG_DM_DELAY is not set
+ CONFIG_DM_UEVENT=y
+ CONFIG_NETDEVICES=y
+-# CONFIG_NETDEVICES_MULTIQUEUE is not set
+ CONFIG_DUMMY=m
+ # CONFIG_BONDING is not set
+ CONFIG_MACVLAN=m
+@@ -636,6 +640,7 @@ CONFIG_SERIO_LIBPS2=m
+ # Character devices
+ #
+ CONFIG_VT=y
++CONFIG_CONSOLE_TRANSLATIONS=y
+ CONFIG_VT_CONSOLE=y
+ CONFIG_HW_CONSOLE=y
+ CONFIG_VT_HW_CONSOLE_BINDING=y
+@@ -666,6 +671,7 @@ CONFIG_GEN_RTC_X=y
+ # CONFIG_POWER_SUPPLY is not set
+ # CONFIG_HWMON is not set
+ # CONFIG_THERMAL is not set
++# CONFIG_THERMAL_HWMON is not set
+ # CONFIG_WATCHDOG is not set
+ 
+ #
+@@ -677,8 +683,10 @@ CONFIG_SSB_POSSIBLE=y
+ #
+ # Multifunction device drivers
+ #
++# CONFIG_MFD_CORE is not set
+ # CONFIG_MFD_SM501 is not set
+ # CONFIG_HTC_PASIC3 is not set
++# CONFIG_MFD_TMIO is not set
+ 
+ #
+ # Multimedia devices
+@@ -747,10 +755,6 @@ CONFIG_LOGO=y
+ # CONFIG_LOGO_LINUX_MONO is not set
+ # CONFIG_LOGO_LINUX_VGA16 is not set
+ CONFIG_LOGO_LINUX_CLUT224=y
+-
+-#
+-# Sound
+-#
+ # CONFIG_SOUND is not set
+ CONFIG_HID_SUPPORT=y
+ CONFIG_HID=m
+@@ -762,6 +766,7 @@ CONFIG_HIDRAW=y
+ # CONFIG_NEW_LEDS is not set
+ # CONFIG_ACCESSIBILITY is not set
+ # CONFIG_RTC_CLASS is not set
++# CONFIG_DMADEVICES is not set
+ # CONFIG_UIO is not set
+ 
+ #
+@@ -796,6 +801,7 @@ CONFIG_XFS_FS=m
+ CONFIG_OCFS2_FS=m
+ CONFIG_OCFS2_FS_O2CB=m
+ CONFIG_OCFS2_FS_USERSPACE_CLUSTER=m
++# CONFIG_OCFS2_FS_STATS is not set
+ # CONFIG_OCFS2_DEBUG_MASKLOG is not set
+ # CONFIG_OCFS2_DEBUG_FS is not set
+ CONFIG_DNOTIFY=y
+@@ -855,6 +861,7 @@ CONFIG_HFSPLUS_FS=m
+ CONFIG_CRAMFS=m
+ # CONFIG_VXFS_FS is not set
+ CONFIG_MINIX_FS=y
++# CONFIG_OMFS_FS is not set
+ CONFIG_HPFS_FS=m
+ # CONFIG_QNX4FS_FS is not set
+ # CONFIG_ROMFS_FS is not set
+@@ -867,18 +874,17 @@ CONFIG_NFS_FS=y
+ CONFIG_NFS_V3=y
+ # CONFIG_NFS_V3_ACL is not set
+ CONFIG_NFS_V4=y
++CONFIG_ROOT_NFS=y
+ CONFIG_NFSD=m
+ CONFIG_NFSD_V3=y
+ # CONFIG_NFSD_V3_ACL is not set
+ # CONFIG_NFSD_V4 is not set
+-CONFIG_ROOT_NFS=y
+ CONFIG_LOCKD=y
+ CONFIG_LOCKD_V4=y
+ CONFIG_EXPORTFS=m
+ CONFIG_NFS_COMMON=y
+ CONFIG_SUNRPC=y
+ CONFIG_SUNRPC_GSS=y
+-CONFIG_SUNRPC_BIND34=y
+ CONFIG_RPCSEC_GSS_KRB5=y
+ # CONFIG_RPCSEC_GSS_SPKM3 is not set
+ CONFIG_SMB_FS=m
+@@ -887,7 +893,6 @@ CONFIG_SMB_NLS_REMOTE="cp437"
+ # CONFIG_CIFS is not set
+ # CONFIG_NCP_FS is not set
+ CONFIG_CODA_FS=m
+-# CONFIG_CODA_FS_OLD_API is not set
+ # CONFIG_AFS_FS is not set
+ 
+ #
+@@ -951,6 +956,8 @@ CONFIG_MAGIC_SYSRQ=y
+ # CONFIG_HEADERS_CHECK is not set
+ # CONFIG_DEBUG_KERNEL is not set
+ CONFIG_DEBUG_BUGVERBOSE=y
++CONFIG_DEBUG_MEMORY_INIT=y
++CONFIG_SYSCTL_SYSCALL_CHECK=y
+ # CONFIG_SAMPLES is not set
+ 
+ #
+@@ -1010,6 +1017,10 @@ CONFIG_CRYPTO_CRC32C=m
+ CONFIG_CRYPTO_MD4=m
+ CONFIG_CRYPTO_MD5=y
+ CONFIG_CRYPTO_MICHAEL_MIC=m
++CONFIG_CRYPTO_RMD128=m
++CONFIG_CRYPTO_RMD160=m
++CONFIG_CRYPTO_RMD256=m
++CONFIG_CRYPTO_RMD320=m
+ CONFIG_CRYPTO_SHA1=m
+ CONFIG_CRYPTO_SHA256=m
+ CONFIG_CRYPTO_SHA512=m
+@@ -1051,6 +1062,7 @@ CONFIG_BITREVERSE=y
+ # CONFIG_GENERIC_FIND_NEXT_BIT is not set
+ CONFIG_CRC_CCITT=m
+ CONFIG_CRC16=m
++CONFIG_CRC_T10DIF=y
+ CONFIG_CRC_ITU_T=m
+ CONFIG_CRC32=y
+ # CONFIG_CRC7 is not set
+diff -puN arch/m68k/configs/mac_defconfig~m68k-update-defconfigs arch/m68k/configs/mac_defconfig
+--- a/arch/m68k/configs/mac_defconfig~m68k-update-defconfigs
++++ a/arch/m68k/configs/mac_defconfig
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+-# Linux kernel version: 2.6.26-rc4
+-# Wed May 28 22:47:35 2008
++# Linux kernel version: 2.6.27-rc4
++# Sun Aug 24 11:25:54 2008
+ #
+ CONFIG_M68K=y
+ CONFIG_MMU=y
+@@ -52,7 +52,6 @@ CONFIG_SYSCTL=y
+ # CONFIG_EMBEDDED is not set
+ CONFIG_UID16=y
+ CONFIG_SYSCTL_SYSCALL=y
+-CONFIG_SYSCTL_SYSCALL_CHECK=y
+ CONFIG_KALLSYMS=y
+ # CONFIG_KALLSYMS_EXTRA_PASS is not set
+ CONFIG_HOTPLUG=y
+@@ -75,10 +74,16 @@ CONFIG_SLAB=y
+ # CONFIG_PROFILING is not set
+ # CONFIG_MARKERS is not set
+ # CONFIG_HAVE_OPROFILE is not set
++# CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS is not set
++# CONFIG_HAVE_IOREMAP_PROT is not set
+ # CONFIG_HAVE_KPROBES is not set
+ # CONFIG_HAVE_KRETPROBES is not set
++# CONFIG_HAVE_ARCH_TRACEHOOK is not set
+ # CONFIG_HAVE_DMA_ATTRS is not set
++# CONFIG_USE_GENERIC_SMP_HELPERS is not set
++# CONFIG_HAVE_CLK is not set
+ CONFIG_PROC_PAGE_MONITOR=y
++# CONFIG_HAVE_GENERIC_DMA_COHERENT is not set
+ CONFIG_SLABINFO=y
+ CONFIG_RT_MUTEXES=y
+ # CONFIG_TINY_SHMEM is not set
+@@ -95,6 +100,7 @@ CONFIG_BLOCK=y
+ # CONFIG_BLK_DEV_IO_TRACE is not set
+ # CONFIG_LSF is not set
+ CONFIG_BLK_DEV_BSG=y
++# CONFIG_BLK_DEV_INTEGRITY is not set
+ 
+ #
+ # IO Schedulers
+@@ -163,10 +169,6 @@ CONFIG_BINFMT_MISC=m
+ CONFIG_PROC_HARDWARE=y
+ CONFIG_ZONE_DMA=y
+ # CONFIG_ARCH_SUPPORTS_MSI is not set
+-
+-#
+-# Networking
+-#
+ CONFIG_NET=y
+ 
+ #
+@@ -180,6 +182,7 @@ CONFIG_XFRM=y
+ # CONFIG_XFRM_SUB_POLICY is not set
+ CONFIG_XFRM_MIGRATE=y
+ # CONFIG_XFRM_STATISTICS is not set
++CONFIG_XFRM_IPCOMP=m
+ CONFIG_NET_KEY=y
+ CONFIG_NET_KEY_MIGRATE=y
+ CONFIG_INET=y
+@@ -413,6 +416,7 @@ CONFIG_NET_CLS_ROUTE=y
+ #
+ # CONFIG_CFG80211 is not set
+ CONFIG_WIRELESS_EXT=y
++# CONFIG_WIRELESS_EXT_SYSFS is not set
+ # CONFIG_MAC80211 is not set
+ CONFIG_IEEE80211=m
+ # CONFIG_IEEE80211_DEBUG is not set
+@@ -432,7 +436,9 @@ CONFIG_IEEE80211_CRYPT_TKIP=m
+ CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+ CONFIG_STANDALONE=y
+ CONFIG_PREVENT_FIRMWARE_BUILD=y
+-CONFIG_FW_LOADER=m
++CONFIG_FW_LOADER=y
++# CONFIG_FIRMWARE_IN_KERNEL is not set
++CONFIG_EXTRA_FIRMWARE=""
+ # CONFIG_SYS_HYPERVISOR is not set
+ CONFIG_CONNECTOR=m
+ # CONFIG_MTD is not set
+@@ -450,6 +456,7 @@ CONFIG_CDROM_PKTCDVD=m
+ CONFIG_CDROM_PKTCDVD_BUFFERS=8
+ # CONFIG_CDROM_PKTCDVD_WCACHE is not set
+ CONFIG_ATA_OVER_ETH=m
++# CONFIG_BLK_DEV_HD is not set
+ CONFIG_MISC_DEVICES=y
+ # CONFIG_EEPROM_93CX6 is not set
+ # CONFIG_ENCLOSURE_SERVICES is not set
+@@ -460,6 +467,7 @@ CONFIG_BLK_DEV_IDE=y
+ #
+ # Please see Documentation/ide/ide.txt for help/info on IDE drives
+ #
++CONFIG_IDE_ATAPI=y
+ # CONFIG_BLK_DEV_IDE_SATA is not set
+ CONFIG_BLK_DEV_IDEDISK=y
+ # CONFIG_IDEDISK_MULTI_MODE is not set
+@@ -477,8 +485,6 @@ CONFIG_IDE_PROC_FS=y
+ # CONFIG_BLK_DEV_PLATFORM is not set
+ CONFIG_BLK_DEV_MAC_IDE=y
+ # CONFIG_BLK_DEV_IDEDMA is not set
+-# CONFIG_BLK_DEV_HD_ONLY is not set
+-# CONFIG_BLK_DEV_HD is not set
+ 
+ #
+ # SCSI device support
+@@ -527,6 +533,7 @@ CONFIG_ISCSI_TCP=m
+ # CONFIG_SCSI_DEBUG is not set
+ CONFIG_MAC_SCSI=y
+ CONFIG_SCSI_MAC_ESP=y
++# CONFIG_SCSI_DH is not set
+ CONFIG_MD=y
+ CONFIG_BLK_DEV_MD=m
+ CONFIG_MD_LINEAR=m
+@@ -535,7 +542,7 @@ CONFIG_MD_RAID1=m
+ # CONFIG_MD_RAID10 is not set
+ CONFIG_MD_RAID456=m
+ CONFIG_MD_RAID5_RESHAPE=y
+-CONFIG_MD_MULTIPATH=m
++# CONFIG_MD_MULTIPATH is not set
+ # CONFIG_MD_FAULTY is not set
+ CONFIG_BLK_DEV_DM=m
+ # CONFIG_DM_DEBUG is not set
+@@ -544,9 +551,6 @@ CONFIG_DM_SNAPSHOT=m
+ CONFIG_DM_MIRROR=m
+ CONFIG_DM_ZERO=m
+ CONFIG_DM_MULTIPATH=m
+-CONFIG_DM_MULTIPATH_EMC=m
+-CONFIG_DM_MULTIPATH_RDAC=m
+-CONFIG_DM_MULTIPATH_HP=m
+ # CONFIG_DM_DELAY is not set
+ CONFIG_DM_UEVENT=y
+ CONFIG_MACINTOSH_DRIVERS=y
+@@ -559,7 +563,6 @@ CONFIG_ADB_CUDA=y
+ CONFIG_INPUT_ADBHID=y
+ CONFIG_MAC_EMUMOUSEBTN=y
+ CONFIG_NETDEVICES=y
+-# CONFIG_NETDEVICES_MULTIQUEUE is not set
+ CONFIG_DUMMY=m
+ # CONFIG_BONDING is not set
+ CONFIG_MACVLAN=m
+@@ -670,6 +673,7 @@ CONFIG_SERIO_LIBPS2=m
+ # Character devices
+ #
+ CONFIG_VT=y
++CONFIG_CONSOLE_TRANSLATIONS=y
+ CONFIG_VT_CONSOLE=y
+ CONFIG_HW_CONSOLE=y
+ CONFIG_VT_HW_CONSOLE_BINDING=y
+@@ -700,6 +704,7 @@ CONFIG_GEN_RTC_X=y
+ # CONFIG_POWER_SUPPLY is not set
+ # CONFIG_HWMON is not set
+ # CONFIG_THERMAL is not set
++# CONFIG_THERMAL_HWMON is not set
+ # CONFIG_WATCHDOG is not set
+ 
+ #
+@@ -711,8 +716,10 @@ CONFIG_SSB_POSSIBLE=y
+ #
+ # Multifunction device drivers
+ #
++# CONFIG_MFD_CORE is not set
+ # CONFIG_MFD_SM501 is not set
+ # CONFIG_HTC_PASIC3 is not set
++# CONFIG_MFD_TMIO is not set
+ 
+ #
+ # Multimedia devices
+@@ -784,10 +791,6 @@ CONFIG_LOGO_LINUX_MONO=y
+ CONFIG_LOGO_LINUX_VGA16=y
+ CONFIG_LOGO_LINUX_CLUT224=y
+ CONFIG_LOGO_MAC_CLUT224=y
+-
+-#
+-# Sound
+-#
+ # CONFIG_SOUND is not set
+ CONFIG_HID_SUPPORT=y
+ CONFIG_HID=m
+@@ -799,6 +802,7 @@ CONFIG_HIDRAW=y
+ # CONFIG_NEW_LEDS is not set
+ # CONFIG_ACCESSIBILITY is not set
+ # CONFIG_RTC_CLASS is not set
++# CONFIG_DMADEVICES is not set
+ # CONFIG_UIO is not set
+ 
+ #
+@@ -836,6 +840,7 @@ CONFIG_XFS_FS=m
+ CONFIG_OCFS2_FS=m
+ CONFIG_OCFS2_FS_O2CB=m
+ CONFIG_OCFS2_FS_USERSPACE_CLUSTER=m
++# CONFIG_OCFS2_FS_STATS is not set
+ # CONFIG_OCFS2_DEBUG_MASKLOG is not set
+ # CONFIG_OCFS2_DEBUG_FS is not set
+ CONFIG_DNOTIFY=y
+@@ -895,6 +900,7 @@ CONFIG_HFSPLUS_FS=y
+ CONFIG_CRAMFS=m
+ # CONFIG_VXFS_FS is not set
+ CONFIG_MINIX_FS=y
++# CONFIG_OMFS_FS is not set
+ CONFIG_HPFS_FS=m
+ # CONFIG_QNX4FS_FS is not set
+ # CONFIG_ROMFS_FS is not set
+@@ -917,7 +923,6 @@ CONFIG_EXPORTFS=m
+ CONFIG_NFS_COMMON=y
+ CONFIG_SUNRPC=m
+ CONFIG_SUNRPC_GSS=m
+-CONFIG_SUNRPC_BIND34=y
+ CONFIG_RPCSEC_GSS_KRB5=m
+ # CONFIG_RPCSEC_GSS_SPKM3 is not set
+ CONFIG_SMB_FS=m
+@@ -926,7 +931,6 @@ CONFIG_SMB_NLS_REMOTE="cp437"
+ # CONFIG_CIFS is not set
+ # CONFIG_NCP_FS is not set
+ CONFIG_CODA_FS=m
+-# CONFIG_CODA_FS_OLD_API is not set
+ # CONFIG_AFS_FS is not set
+ 
+ #
+@@ -991,6 +995,8 @@ CONFIG_MAGIC_SYSRQ=y
+ # CONFIG_HEADERS_CHECK is not set
+ # CONFIG_DEBUG_KERNEL is not set
+ CONFIG_DEBUG_BUGVERBOSE=y
++CONFIG_DEBUG_MEMORY_INIT=y
++CONFIG_SYSCTL_SYSCALL_CHECK=y
+ # CONFIG_SAMPLES is not set
+ 
+ #
+@@ -1050,6 +1056,10 @@ CONFIG_CRYPTO_CRC32C=m
+ CONFIG_CRYPTO_MD4=m
+ CONFIG_CRYPTO_MD5=m
+ CONFIG_CRYPTO_MICHAEL_MIC=m
++CONFIG_CRYPTO_RMD128=m
++CONFIG_CRYPTO_RMD160=m
++CONFIG_CRYPTO_RMD256=m
++CONFIG_CRYPTO_RMD320=m
+ CONFIG_CRYPTO_SHA1=m
+ CONFIG_CRYPTO_SHA256=m
+ CONFIG_CRYPTO_SHA512=m
+@@ -1091,6 +1101,7 @@ CONFIG_BITREVERSE=y
+ # CONFIG_GENERIC_FIND_NEXT_BIT is not set
+ CONFIG_CRC_CCITT=m
+ CONFIG_CRC16=m
++CONFIG_CRC_T10DIF=y
+ CONFIG_CRC_ITU_T=m
+ CONFIG_CRC32=y
+ # CONFIG_CRC7 is not set
+diff -puN arch/m68k/configs/multi_defconfig~m68k-update-defconfigs arch/m68k/configs/multi_defconfig
+--- a/arch/m68k/configs/multi_defconfig~m68k-update-defconfigs
++++ a/arch/m68k/configs/multi_defconfig
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+-# Linux kernel version: 2.6.26-rc4
+-# Wed May 28 22:47:35 2008
++# Linux kernel version: 2.6.27-rc4
++# Sun Aug 24 11:25:55 2008
+ #
+ CONFIG_M68K=y
+ CONFIG_MMU=y
+@@ -52,7 +52,6 @@ CONFIG_SYSCTL=y
+ # CONFIG_EMBEDDED is not set
+ CONFIG_UID16=y
+ CONFIG_SYSCTL_SYSCALL=y
+-CONFIG_SYSCTL_SYSCALL_CHECK=y
+ CONFIG_KALLSYMS=y
+ # CONFIG_KALLSYMS_EXTRA_PASS is not set
+ CONFIG_HOTPLUG=y
+@@ -75,10 +74,16 @@ CONFIG_SLAB=y
+ # CONFIG_PROFILING is not set
+ # CONFIG_MARKERS is not set
+ # CONFIG_HAVE_OPROFILE is not set
++# CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS is not set
++# CONFIG_HAVE_IOREMAP_PROT is not set
+ # CONFIG_HAVE_KPROBES is not set
+ # CONFIG_HAVE_KRETPROBES is not set
++# CONFIG_HAVE_ARCH_TRACEHOOK is not set
+ # CONFIG_HAVE_DMA_ATTRS is not set
++# CONFIG_USE_GENERIC_SMP_HELPERS is not set
++# CONFIG_HAVE_CLK is not set
+ CONFIG_PROC_PAGE_MONITOR=y
++# CONFIG_HAVE_GENERIC_DMA_COHERENT is not set
+ CONFIG_SLABINFO=y
+ CONFIG_RT_MUTEXES=y
+ # CONFIG_TINY_SHMEM is not set
+@@ -95,6 +100,7 @@ CONFIG_BLOCK=y
+ # CONFIG_BLK_DEV_IO_TRACE is not set
+ # CONFIG_LSF is not set
+ CONFIG_BLK_DEV_BSG=y
++# CONFIG_BLK_DEV_INTEGRITY is not set
+ 
+ #
+ # IO Schedulers
+@@ -173,10 +179,6 @@ CONFIG_GENERIC_ISA_DMA=y
+ CONFIG_ZONE_DMA=y
+ # CONFIG_ARCH_SUPPORTS_MSI is not set
+ CONFIG_ZORRO_NAMES=y
+-
+-#
+-# Networking
+-#
+ CONFIG_NET=y
+ 
+ #
+@@ -190,6 +192,7 @@ CONFIG_XFRM=y
+ # CONFIG_XFRM_SUB_POLICY is not set
+ CONFIG_XFRM_MIGRATE=y
+ # CONFIG_XFRM_STATISTICS is not set
++CONFIG_XFRM_IPCOMP=m
+ CONFIG_NET_KEY=y
+ CONFIG_NET_KEY_MIGRATE=y
+ CONFIG_INET=y
+@@ -427,6 +430,7 @@ CONFIG_NET_CLS_ROUTE=y
+ #
+ # CONFIG_CFG80211 is not set
+ CONFIG_WIRELESS_EXT=y
++# CONFIG_WIRELESS_EXT_SYSFS is not set
+ # CONFIG_MAC80211 is not set
+ CONFIG_IEEE80211=m
+ # CONFIG_IEEE80211_DEBUG is not set
+@@ -446,7 +450,9 @@ CONFIG_IEEE80211_CRYPT_TKIP=m
+ CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+ CONFIG_STANDALONE=y
+ CONFIG_PREVENT_FIRMWARE_BUILD=y
+-CONFIG_FW_LOADER=m
++CONFIG_FW_LOADER=y
++# CONFIG_FIRMWARE_IN_KERNEL is not set
++CONFIG_EXTRA_FIRMWARE=""
+ # CONFIG_SYS_HYPERVISOR is not set
+ CONFIG_CONNECTOR=m
+ # CONFIG_MTD is not set
+@@ -476,6 +482,7 @@ CONFIG_CDROM_PKTCDVD=m
+ CONFIG_CDROM_PKTCDVD_BUFFERS=8
+ # CONFIG_CDROM_PKTCDVD_WCACHE is not set
+ CONFIG_ATA_OVER_ETH=m
++# CONFIG_BLK_DEV_HD is not set
+ CONFIG_MISC_DEVICES=y
+ # CONFIG_EEPROM_93CX6 is not set
+ # CONFIG_ENCLOSURE_SERVICES is not set
+@@ -486,6 +493,7 @@ CONFIG_BLK_DEV_IDE=y
+ #
+ # Please see Documentation/ide/ide.txt for help/info on IDE drives
+ #
++CONFIG_IDE_ATAPI=y
+ # CONFIG_BLK_DEV_IDE_SATA is not set
+ CONFIG_BLK_DEV_IDEDISK=y
+ # CONFIG_IDEDISK_MULTI_MODE is not set
+@@ -508,8 +516,6 @@ CONFIG_BLK_DEV_FALCON_IDE=y
+ CONFIG_BLK_DEV_MAC_IDE=y
+ CONFIG_BLK_DEV_Q40IDE=y
+ # CONFIG_BLK_DEV_IDEDMA is not set
+-# CONFIG_BLK_DEV_HD_ONLY is not set
+-# CONFIG_BLK_DEV_HD is not set
+ 
+ #
+ # SCSI device support
+@@ -584,6 +590,7 @@ CONFIG_MVME147_SCSI=y
+ CONFIG_MVME16x_SCSI=y
+ CONFIG_BVME6000_SCSI=y
+ CONFIG_SUN3X_ESP=y
++# CONFIG_SCSI_DH is not set
+ CONFIG_MD=y
+ CONFIG_BLK_DEV_MD=m
+ CONFIG_MD_LINEAR=m
+@@ -592,7 +599,7 @@ CONFIG_MD_RAID1=m
+ # CONFIG_MD_RAID10 is not set
+ CONFIG_MD_RAID456=m
+ CONFIG_MD_RAID5_RESHAPE=y
+-CONFIG_MD_MULTIPATH=m
++# CONFIG_MD_MULTIPATH is not set
+ # CONFIG_MD_FAULTY is not set
+ CONFIG_BLK_DEV_DM=m
+ # CONFIG_DM_DEBUG is not set
+@@ -601,9 +608,6 @@ CONFIG_DM_SNAPSHOT=m
+ CONFIG_DM_MIRROR=m
+ CONFIG_DM_ZERO=m
+ CONFIG_DM_MULTIPATH=m
+-CONFIG_DM_MULTIPATH_EMC=m
+-CONFIG_DM_MULTIPATH_RDAC=m
+-CONFIG_DM_MULTIPATH_HP=m
+ # CONFIG_DM_DELAY is not set
+ CONFIG_DM_UEVENT=y
+ CONFIG_MACINTOSH_DRIVERS=y
+@@ -616,7 +620,6 @@ CONFIG_ADB_CUDA=y
+ CONFIG_INPUT_ADBHID=y
+ CONFIG_MAC_EMUMOUSEBTN=y
+ CONFIG_NETDEVICES=y
+-# CONFIG_NETDEVICES_MULTIQUEUE is not set
+ CONFIG_DUMMY=m
+ # CONFIG_BONDING is not set
+ CONFIG_MACVLAN=m
+@@ -632,7 +635,6 @@ CONFIG_A2065=m
+ CONFIG_HYDRA=m
+ CONFIG_ZORRO8390=m
+ CONFIG_APNE=m
+-CONFIG_APOLLO_ELPLUS=y
+ CONFIG_MAC8390=y
+ CONFIG_MAC89x0=m
+ CONFIG_MACSONIC=m
+@@ -791,6 +793,7 @@ CONFIG_SERIO_LIBPS2=y
+ # Character devices
+ #
+ CONFIG_VT=y
++CONFIG_CONSOLE_TRANSLATIONS=y
+ CONFIG_VT_CONSOLE=y
+ CONFIG_HW_CONSOLE=y
+ CONFIG_VT_HW_CONSOLE_BINDING=y
+@@ -827,6 +830,7 @@ CONFIG_GEN_RTC_X=y
+ # CONFIG_POWER_SUPPLY is not set
+ # CONFIG_HWMON is not set
+ # CONFIG_THERMAL is not set
++# CONFIG_THERMAL_HWMON is not set
+ # CONFIG_WATCHDOG is not set
+ 
+ #
+@@ -838,8 +842,10 @@ CONFIG_SSB_POSSIBLE=y
+ #
+ # Multifunction device drivers
+ #
++# CONFIG_MFD_CORE is not set
+ # CONFIG_MFD_SM501 is not set
+ # CONFIG_HTC_PASIC3 is not set
++# CONFIG_MFD_TMIO is not set
+ 
+ #
+ # Multimedia devices
+@@ -923,10 +929,6 @@ CONFIG_LOGO_LINUX_MONO=y
+ CONFIG_LOGO_LINUX_VGA16=y
+ CONFIG_LOGO_LINUX_CLUT224=y
+ CONFIG_LOGO_MAC_CLUT224=y
+-
+-#
+-# Sound
+-#
+ CONFIG_SOUND=m
+ CONFIG_DMASOUND_ATARI=m
+ CONFIG_DMASOUND_PAULA=m
+@@ -942,6 +944,7 @@ CONFIG_HIDRAW=y
+ # CONFIG_NEW_LEDS is not set
+ # CONFIG_ACCESSIBILITY is not set
+ # CONFIG_RTC_CLASS is not set
++# CONFIG_DMADEVICES is not set
+ # CONFIG_AUXDISPLAY is not set
+ # CONFIG_UIO is not set
+ 
+@@ -949,8 +952,6 @@ CONFIG_HIDRAW=y
+ # Character devices
+ #
+ CONFIG_ATARI_MFPSER=m
+-CONFIG_ATARI_SCC=y
+-CONFIG_ATARI_SCC_DMA=y
+ CONFIG_ATARI_MIDI=m
+ CONFIG_ATARI_DSP56K=m
+ CONFIG_AMIGA_BUILTIN_SERIAL=y
+@@ -972,8 +973,10 @@ CONFIG_EXT2_FS=y
+ # CONFIG_EXT2_FS_XIP is not set
+ CONFIG_EXT3_FS=y
+ # CONFIG_EXT3_FS_XATTR is not set
+-# CONFIG_EXT4DEV_FS is not set
++CONFIG_EXT4DEV_FS=y
++# CONFIG_EXT4DEV_FS_XATTR is not set
+ CONFIG_JBD=y
++CONFIG_JBD2=y
+ CONFIG_REISERFS_FS=m
+ # CONFIG_REISERFS_CHECK is not set
+ # CONFIG_REISERFS_PROC_INFO is not set
+@@ -992,6 +995,7 @@ CONFIG_XFS_FS=m
+ CONFIG_OCFS2_FS=m
+ CONFIG_OCFS2_FS_O2CB=m
+ CONFIG_OCFS2_FS_USERSPACE_CLUSTER=m
++# CONFIG_OCFS2_FS_STATS is not set
+ # CONFIG_OCFS2_DEBUG_MASKLOG is not set
+ # CONFIG_OCFS2_DEBUG_FS is not set
+ CONFIG_DNOTIFY=y
+@@ -1051,6 +1055,7 @@ CONFIG_HFSPLUS_FS=y
+ CONFIG_CRAMFS=m
+ # CONFIG_VXFS_FS is not set
+ CONFIG_MINIX_FS=y
++# CONFIG_OMFS_FS is not set
+ CONFIG_HPFS_FS=m
+ # CONFIG_QNX4FS_FS is not set
+ # CONFIG_ROMFS_FS is not set
+@@ -1063,18 +1068,17 @@ CONFIG_NFS_FS=y
+ CONFIG_NFS_V3=y
+ # CONFIG_NFS_V3_ACL is not set
+ CONFIG_NFS_V4=y
++CONFIG_ROOT_NFS=y
+ CONFIG_NFSD=m
+ CONFIG_NFSD_V3=y
+ # CONFIG_NFSD_V3_ACL is not set
+ # CONFIG_NFSD_V4 is not set
+-CONFIG_ROOT_NFS=y
+ CONFIG_LOCKD=y
+ CONFIG_LOCKD_V4=y
+ CONFIG_EXPORTFS=m
+ CONFIG_NFS_COMMON=y
+ CONFIG_SUNRPC=y
+ CONFIG_SUNRPC_GSS=y
+-CONFIG_SUNRPC_BIND34=y
+ CONFIG_RPCSEC_GSS_KRB5=y
+ # CONFIG_RPCSEC_GSS_SPKM3 is not set
+ CONFIG_SMB_FS=m
+@@ -1083,7 +1087,6 @@ CONFIG_SMB_NLS_REMOTE="cp437"
+ # CONFIG_CIFS is not set
+ # CONFIG_NCP_FS is not set
+ CONFIG_CODA_FS=m
+-# CONFIG_CODA_FS_OLD_API is not set
+ # CONFIG_AFS_FS is not set
+ 
+ #
+@@ -1152,6 +1155,8 @@ CONFIG_MAGIC_SYSRQ=y
+ # CONFIG_HEADERS_CHECK is not set
+ # CONFIG_DEBUG_KERNEL is not set
+ CONFIG_DEBUG_BUGVERBOSE=y
++CONFIG_DEBUG_MEMORY_INIT=y
++CONFIG_SYSCTL_SYSCALL_CHECK=y
+ # CONFIG_SAMPLES is not set
+ 
+ #
+@@ -1211,6 +1216,10 @@ CONFIG_CRYPTO_CRC32C=m
+ CONFIG_CRYPTO_MD4=m
+ CONFIG_CRYPTO_MD5=y
+ CONFIG_CRYPTO_MICHAEL_MIC=m
++CONFIG_CRYPTO_RMD128=m
++CONFIG_CRYPTO_RMD160=m
++CONFIG_CRYPTO_RMD256=m
++CONFIG_CRYPTO_RMD320=m
+ CONFIG_CRYPTO_SHA1=m
+ CONFIG_CRYPTO_SHA256=m
+ CONFIG_CRYPTO_SHA512=m
+@@ -1252,6 +1261,7 @@ CONFIG_BITREVERSE=y
+ # CONFIG_GENERIC_FIND_NEXT_BIT is not set
+ CONFIG_CRC_CCITT=m
+ CONFIG_CRC16=y
++CONFIG_CRC_T10DIF=y
+ CONFIG_CRC_ITU_T=m
+ CONFIG_CRC32=y
+ # CONFIG_CRC7 is not set
+diff -puN arch/m68k/configs/mvme147_defconfig~m68k-update-defconfigs arch/m68k/configs/mvme147_defconfig
+--- a/arch/m68k/configs/mvme147_defconfig~m68k-update-defconfigs
++++ a/arch/m68k/configs/mvme147_defconfig
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+-# Linux kernel version: 2.6.26-rc4
+-# Wed May 28 22:47:35 2008
++# Linux kernel version: 2.6.27-rc4
++# Sun Aug 24 11:25:56 2008
+ #
+ CONFIG_M68K=y
+ CONFIG_MMU=y
+@@ -52,7 +52,6 @@ CONFIG_SYSCTL=y
+ # CONFIG_EMBEDDED is not set
+ CONFIG_UID16=y
+ CONFIG_SYSCTL_SYSCALL=y
+-CONFIG_SYSCTL_SYSCALL_CHECK=y
+ CONFIG_KALLSYMS=y
+ # CONFIG_KALLSYMS_EXTRA_PASS is not set
+ CONFIG_HOTPLUG=y
+@@ -75,10 +74,16 @@ CONFIG_SLAB=y
+ # CONFIG_PROFILING is not set
+ # CONFIG_MARKERS is not set
+ # CONFIG_HAVE_OPROFILE is not set
++# CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS is not set
++# CONFIG_HAVE_IOREMAP_PROT is not set
+ # CONFIG_HAVE_KPROBES is not set
+ # CONFIG_HAVE_KRETPROBES is not set
++# CONFIG_HAVE_ARCH_TRACEHOOK is not set
+ # CONFIG_HAVE_DMA_ATTRS is not set
++# CONFIG_USE_GENERIC_SMP_HELPERS is not set
++# CONFIG_HAVE_CLK is not set
+ CONFIG_PROC_PAGE_MONITOR=y
++# CONFIG_HAVE_GENERIC_DMA_COHERENT is not set
+ CONFIG_SLABINFO=y
+ CONFIG_RT_MUTEXES=y
+ # CONFIG_TINY_SHMEM is not set
+@@ -95,6 +100,7 @@ CONFIG_BLOCK=y
+ # CONFIG_BLK_DEV_IO_TRACE is not set
+ # CONFIG_LSF is not set
+ CONFIG_BLK_DEV_BSG=y
++# CONFIG_BLK_DEV_INTEGRITY is not set
+ 
+ #
+ # IO Schedulers
+@@ -163,10 +169,6 @@ CONFIG_BINFMT_MISC=m
+ CONFIG_PROC_HARDWARE=y
+ CONFIG_ZONE_DMA=y
+ # CONFIG_ARCH_SUPPORTS_MSI is not set
+-
+-#
+-# Networking
+-#
+ CONFIG_NET=y
+ 
+ #
+@@ -180,6 +182,7 @@ CONFIG_XFRM=y
+ # CONFIG_XFRM_SUB_POLICY is not set
+ CONFIG_XFRM_MIGRATE=y
+ # CONFIG_XFRM_STATISTICS is not set
++CONFIG_XFRM_IPCOMP=m
+ CONFIG_NET_KEY=y
+ CONFIG_NET_KEY_MIGRATE=y
+ CONFIG_INET=y
+@@ -413,6 +416,7 @@ CONFIG_NET_CLS_ROUTE=y
+ #
+ # CONFIG_CFG80211 is not set
+ CONFIG_WIRELESS_EXT=y
++# CONFIG_WIRELESS_EXT_SYSFS is not set
+ # CONFIG_MAC80211 is not set
+ CONFIG_IEEE80211=m
+ # CONFIG_IEEE80211_DEBUG is not set
+@@ -432,7 +436,9 @@ CONFIG_IEEE80211_CRYPT_TKIP=m
+ CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+ CONFIG_STANDALONE=y
+ CONFIG_PREVENT_FIRMWARE_BUILD=y
+-CONFIG_FW_LOADER=m
++CONFIG_FW_LOADER=y
++# CONFIG_FIRMWARE_IN_KERNEL is not set
++CONFIG_EXTRA_FIRMWARE=""
+ # CONFIG_SYS_HYPERVISOR is not set
+ CONFIG_CONNECTOR=m
+ # CONFIG_MTD is not set
+@@ -450,6 +456,7 @@ CONFIG_CDROM_PKTCDVD=m
+ CONFIG_CDROM_PKTCDVD_BUFFERS=8
+ # CONFIG_CDROM_PKTCDVD_WCACHE is not set
+ CONFIG_ATA_OVER_ETH=m
++# CONFIG_BLK_DEV_HD is not set
+ CONFIG_MISC_DEVICES=y
+ # CONFIG_EEPROM_93CX6 is not set
+ # CONFIG_ENCLOSURE_SERVICES is not set
+@@ -502,6 +509,7 @@ CONFIG_SCSI_LOWLEVEL=y
+ CONFIG_ISCSI_TCP=m
+ # CONFIG_SCSI_DEBUG is not set
+ CONFIG_MVME147_SCSI=y
++# CONFIG_SCSI_DH is not set
+ CONFIG_MD=y
+ CONFIG_BLK_DEV_MD=m
+ CONFIG_MD_LINEAR=m
+@@ -510,7 +518,7 @@ CONFIG_MD_RAID1=m
+ # CONFIG_MD_RAID10 is not set
+ CONFIG_MD_RAID456=m
+ CONFIG_MD_RAID5_RESHAPE=y
+-CONFIG_MD_MULTIPATH=m
++# CONFIG_MD_MULTIPATH is not set
+ # CONFIG_MD_FAULTY is not set
+ CONFIG_BLK_DEV_DM=m
+ # CONFIG_DM_DEBUG is not set
+@@ -519,13 +527,9 @@ CONFIG_DM_SNAPSHOT=m
+ CONFIG_DM_MIRROR=m
+ CONFIG_DM_ZERO=m
+ CONFIG_DM_MULTIPATH=m
+-CONFIG_DM_MULTIPATH_EMC=m
+-CONFIG_DM_MULTIPATH_RDAC=m
+-CONFIG_DM_MULTIPATH_HP=m
+ # CONFIG_DM_DELAY is not set
+ CONFIG_DM_UEVENT=y
+ CONFIG_NETDEVICES=y
+-# CONFIG_NETDEVICES_MULTIQUEUE is not set
+ CONFIG_DUMMY=m
+ # CONFIG_BONDING is not set
+ CONFIG_MACVLAN=m
+@@ -630,6 +634,7 @@ CONFIG_SERIO_LIBPS2=m
+ # Character devices
+ #
+ CONFIG_VT=y
++CONFIG_CONSOLE_TRANSLATIONS=y
+ CONFIG_VT_CONSOLE=y
+ CONFIG_HW_CONSOLE=y
+ CONFIG_VT_HW_CONSOLE_BINDING=y
+@@ -660,6 +665,7 @@ CONFIG_GEN_RTC_X=y
+ # CONFIG_POWER_SUPPLY is not set
+ # CONFIG_HWMON is not set
+ # CONFIG_THERMAL is not set
++# CONFIG_THERMAL_HWMON is not set
+ # CONFIG_WATCHDOG is not set
+ 
+ #
+@@ -671,8 +677,10 @@ CONFIG_SSB_POSSIBLE=y
+ #
+ # Multifunction device drivers
+ #
++# CONFIG_MFD_CORE is not set
+ # CONFIG_MFD_SM501 is not set
+ # CONFIG_HTC_PASIC3 is not set
++# CONFIG_MFD_TMIO is not set
+ 
+ #
+ # Multimedia devices
+@@ -707,10 +715,6 @@ CONFIG_SSB_POSSIBLE=y
+ # Console display driver support
+ #
+ CONFIG_DUMMY_CONSOLE=y
+-
+-#
+-# Sound
+-#
+ # CONFIG_SOUND is not set
+ CONFIG_HID_SUPPORT=y
+ CONFIG_HID=m
+@@ -722,6 +726,7 @@ CONFIG_HIDRAW=y
+ # CONFIG_NEW_LEDS is not set
+ # CONFIG_ACCESSIBILITY is not set
+ # CONFIG_RTC_CLASS is not set
++# CONFIG_DMADEVICES is not set
+ # CONFIG_UIO is not set
+ 
+ #
+@@ -758,6 +763,7 @@ CONFIG_XFS_FS=m
+ CONFIG_OCFS2_FS=m
+ CONFIG_OCFS2_FS_O2CB=m
+ CONFIG_OCFS2_FS_USERSPACE_CLUSTER=m
++# CONFIG_OCFS2_FS_STATS is not set
+ # CONFIG_OCFS2_DEBUG_MASKLOG is not set
+ # CONFIG_OCFS2_DEBUG_FS is not set
+ CONFIG_DNOTIFY=y
+@@ -817,6 +823,7 @@ CONFIG_HFSPLUS_FS=m
+ CONFIG_CRAMFS=m
+ # CONFIG_VXFS_FS is not set
+ CONFIG_MINIX_FS=y
++# CONFIG_OMFS_FS is not set
+ CONFIG_HPFS_FS=m
+ # CONFIG_QNX4FS_FS is not set
+ # CONFIG_ROMFS_FS is not set
+@@ -829,18 +836,17 @@ CONFIG_NFS_FS=y
+ CONFIG_NFS_V3=y
+ # CONFIG_NFS_V3_ACL is not set
+ CONFIG_NFS_V4=y
++CONFIG_ROOT_NFS=y
+ CONFIG_NFSD=m
+ CONFIG_NFSD_V3=y
+ # CONFIG_NFSD_V3_ACL is not set
+ # CONFIG_NFSD_V4 is not set
+-CONFIG_ROOT_NFS=y
+ CONFIG_LOCKD=y
+ CONFIG_LOCKD_V4=y
+ CONFIG_EXPORTFS=m
+ CONFIG_NFS_COMMON=y
+ CONFIG_SUNRPC=y
+ CONFIG_SUNRPC_GSS=y
+-CONFIG_SUNRPC_BIND34=y
+ CONFIG_RPCSEC_GSS_KRB5=y
+ # CONFIG_RPCSEC_GSS_SPKM3 is not set
+ CONFIG_SMB_FS=m
+@@ -849,7 +855,6 @@ CONFIG_SMB_NLS_REMOTE="cp437"
+ # CONFIG_CIFS is not set
+ # CONFIG_NCP_FS is not set
+ CONFIG_CODA_FS=m
+-# CONFIG_CODA_FS_OLD_API is not set
+ # CONFIG_AFS_FS is not set
+ 
+ #
+@@ -914,6 +919,8 @@ CONFIG_MAGIC_SYSRQ=y
+ # CONFIG_HEADERS_CHECK is not set
+ # CONFIG_DEBUG_KERNEL is not set
+ CONFIG_DEBUG_BUGVERBOSE=y
++CONFIG_DEBUG_MEMORY_INIT=y
++CONFIG_SYSCTL_SYSCALL_CHECK=y
+ # CONFIG_SAMPLES is not set
+ 
+ #
+@@ -973,6 +980,10 @@ CONFIG_CRYPTO_CRC32C=m
+ CONFIG_CRYPTO_MD4=m
+ CONFIG_CRYPTO_MD5=y
+ CONFIG_CRYPTO_MICHAEL_MIC=m
++CONFIG_CRYPTO_RMD128=m
++CONFIG_CRYPTO_RMD160=m
++CONFIG_CRYPTO_RMD256=m
++CONFIG_CRYPTO_RMD320=m
+ CONFIG_CRYPTO_SHA1=m
+ CONFIG_CRYPTO_SHA256=m
+ CONFIG_CRYPTO_SHA512=m
+@@ -1014,6 +1025,7 @@ CONFIG_BITREVERSE=y
+ # CONFIG_GENERIC_FIND_NEXT_BIT is not set
+ CONFIG_CRC_CCITT=m
+ CONFIG_CRC16=m
++CONFIG_CRC_T10DIF=y
+ CONFIG_CRC_ITU_T=m
+ CONFIG_CRC32=y
+ # CONFIG_CRC7 is not set
+diff -puN arch/m68k/configs/mvme16x_defconfig~m68k-update-defconfigs arch/m68k/configs/mvme16x_defconfig
+--- a/arch/m68k/configs/mvme16x_defconfig~m68k-update-defconfigs
++++ a/arch/m68k/configs/mvme16x_defconfig
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+-# Linux kernel version: 2.6.26-rc4
+-# Wed May 28 22:47:35 2008
++# Linux kernel version: 2.6.27-rc4
++# Sun Aug 24 11:25:58 2008
+ #
+ CONFIG_M68K=y
+ CONFIG_MMU=y
+@@ -52,7 +52,6 @@ CONFIG_SYSCTL=y
+ # CONFIG_EMBEDDED is not set
+ CONFIG_UID16=y
+ CONFIG_SYSCTL_SYSCALL=y
+-CONFIG_SYSCTL_SYSCALL_CHECK=y
+ CONFIG_KALLSYMS=y
+ # CONFIG_KALLSYMS_EXTRA_PASS is not set
+ CONFIG_HOTPLUG=y
+@@ -75,10 +74,16 @@ CONFIG_SLAB=y
+ # CONFIG_PROFILING is not set
+ # CONFIG_MARKERS is not set
+ # CONFIG_HAVE_OPROFILE is not set
++# CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS is not set
++# CONFIG_HAVE_IOREMAP_PROT is not set
+ # CONFIG_HAVE_KPROBES is not set
+ # CONFIG_HAVE_KRETPROBES is not set
++# CONFIG_HAVE_ARCH_TRACEHOOK is not set
+ # CONFIG_HAVE_DMA_ATTRS is not set
++# CONFIG_USE_GENERIC_SMP_HELPERS is not set
++# CONFIG_HAVE_CLK is not set
+ CONFIG_PROC_PAGE_MONITOR=y
++# CONFIG_HAVE_GENERIC_DMA_COHERENT is not set
+ CONFIG_SLABINFO=y
+ CONFIG_RT_MUTEXES=y
+ # CONFIG_TINY_SHMEM is not set
+@@ -95,6 +100,7 @@ CONFIG_BLOCK=y
+ # CONFIG_BLK_DEV_IO_TRACE is not set
+ # CONFIG_LSF is not set
+ CONFIG_BLK_DEV_BSG=y
++# CONFIG_BLK_DEV_INTEGRITY is not set
+ 
+ #
+ # IO Schedulers
+@@ -163,10 +169,6 @@ CONFIG_BINFMT_MISC=m
+ CONFIG_PROC_HARDWARE=y
+ CONFIG_ZONE_DMA=y
+ # CONFIG_ARCH_SUPPORTS_MSI is not set
+-
+-#
+-# Networking
+-#
+ CONFIG_NET=y
+ 
+ #
+@@ -180,6 +182,7 @@ CONFIG_XFRM=y
+ # CONFIG_XFRM_SUB_POLICY is not set
+ CONFIG_XFRM_MIGRATE=y
+ # CONFIG_XFRM_STATISTICS is not set
++CONFIG_XFRM_IPCOMP=m
+ CONFIG_NET_KEY=y
+ CONFIG_NET_KEY_MIGRATE=y
+ CONFIG_INET=y
+@@ -413,6 +416,7 @@ CONFIG_NET_CLS_ROUTE=y
+ #
+ # CONFIG_CFG80211 is not set
+ CONFIG_WIRELESS_EXT=y
++# CONFIG_WIRELESS_EXT_SYSFS is not set
+ # CONFIG_MAC80211 is not set
+ CONFIG_IEEE80211=m
+ # CONFIG_IEEE80211_DEBUG is not set
+@@ -432,7 +436,9 @@ CONFIG_IEEE80211_CRYPT_TKIP=m
+ CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+ CONFIG_STANDALONE=y
+ CONFIG_PREVENT_FIRMWARE_BUILD=y
+-CONFIG_FW_LOADER=m
++CONFIG_FW_LOADER=y
++# CONFIG_FIRMWARE_IN_KERNEL is not set
++CONFIG_EXTRA_FIRMWARE=""
+ # CONFIG_SYS_HYPERVISOR is not set
+ CONFIG_CONNECTOR=m
+ # CONFIG_MTD is not set
+@@ -450,6 +456,7 @@ CONFIG_CDROM_PKTCDVD=m
+ CONFIG_CDROM_PKTCDVD_BUFFERS=8
+ # CONFIG_CDROM_PKTCDVD_WCACHE is not set
+ CONFIG_ATA_OVER_ETH=m
++# CONFIG_BLK_DEV_HD is not set
+ CONFIG_MISC_DEVICES=y
+ # CONFIG_EEPROM_93CX6 is not set
+ # CONFIG_ENCLOSURE_SERVICES is not set
+@@ -503,6 +510,7 @@ CONFIG_ISCSI_TCP=m
+ CONFIG_53C700_BE_BUS=y
+ # CONFIG_SCSI_DEBUG is not set
+ CONFIG_MVME16x_SCSI=y
++# CONFIG_SCSI_DH is not set
+ CONFIG_MD=y
+ CONFIG_BLK_DEV_MD=m
+ CONFIG_MD_LINEAR=m
+@@ -511,7 +519,7 @@ CONFIG_MD_RAID1=m
+ # CONFIG_MD_RAID10 is not set
+ CONFIG_MD_RAID456=m
+ CONFIG_MD_RAID5_RESHAPE=y
+-CONFIG_MD_MULTIPATH=m
++# CONFIG_MD_MULTIPATH is not set
+ # CONFIG_MD_FAULTY is not set
+ CONFIG_BLK_DEV_DM=m
+ # CONFIG_DM_DEBUG is not set
+@@ -520,13 +528,9 @@ CONFIG_DM_SNAPSHOT=m
+ CONFIG_DM_MIRROR=m
+ CONFIG_DM_ZERO=m
+ CONFIG_DM_MULTIPATH=m
+-CONFIG_DM_MULTIPATH_EMC=m
+-CONFIG_DM_MULTIPATH_RDAC=m
+-CONFIG_DM_MULTIPATH_HP=m
+ # CONFIG_DM_DELAY is not set
+ CONFIG_DM_UEVENT=y
+ CONFIG_NETDEVICES=y
+-# CONFIG_NETDEVICES_MULTIQUEUE is not set
+ CONFIG_DUMMY=m
+ # CONFIG_BONDING is not set
+ CONFIG_MACVLAN=m
+@@ -631,6 +635,7 @@ CONFIG_SERIO_LIBPS2=m
+ # Character devices
+ #
+ CONFIG_VT=y
++CONFIG_CONSOLE_TRANSLATIONS=y
+ CONFIG_VT_CONSOLE=y
+ CONFIG_HW_CONSOLE=y
+ CONFIG_VT_HW_CONSOLE_BINDING=y
+@@ -661,6 +666,7 @@ CONFIG_GEN_RTC_X=y
+ # CONFIG_POWER_SUPPLY is not set
+ # CONFIG_HWMON is not set
+ # CONFIG_THERMAL is not set
++# CONFIG_THERMAL_HWMON is not set
+ # CONFIG_WATCHDOG is not set
+ 
+ #
+@@ -672,8 +678,10 @@ CONFIG_SSB_POSSIBLE=y
+ #
+ # Multifunction device drivers
+ #
++# CONFIG_MFD_CORE is not set
+ # CONFIG_MFD_SM501 is not set
+ # CONFIG_HTC_PASIC3 is not set
++# CONFIG_MFD_TMIO is not set
+ 
+ #
+ # Multimedia devices
+@@ -708,10 +716,6 @@ CONFIG_SSB_POSSIBLE=y
+ # Console display driver support
+ #
+ CONFIG_DUMMY_CONSOLE=y
+-
+-#
+-# Sound
+-#
+ # CONFIG_SOUND is not set
+ CONFIG_HID_SUPPORT=y
+ CONFIG_HID=m
+@@ -723,6 +727,7 @@ CONFIG_HIDRAW=y
+ # CONFIG_NEW_LEDS is not set
+ # CONFIG_ACCESSIBILITY is not set
+ # CONFIG_RTC_CLASS is not set
++# CONFIG_DMADEVICES is not set
+ # CONFIG_UIO is not set
+ 
+ #
+@@ -760,6 +765,7 @@ CONFIG_XFS_FS=m
+ CONFIG_OCFS2_FS=m
+ CONFIG_OCFS2_FS_O2CB=m
+ CONFIG_OCFS2_FS_USERSPACE_CLUSTER=m
++# CONFIG_OCFS2_FS_STATS is not set
+ # CONFIG_OCFS2_DEBUG_MASKLOG is not set
+ # CONFIG_OCFS2_DEBUG_FS is not set
+ CONFIG_DNOTIFY=y
+@@ -819,6 +825,7 @@ CONFIG_HFSPLUS_FS=m
+ CONFIG_CRAMFS=m
+ # CONFIG_VXFS_FS is not set
+ CONFIG_MINIX_FS=y
++# CONFIG_OMFS_FS is not set
+ CONFIG_HPFS_FS=m
+ # CONFIG_QNX4FS_FS is not set
+ # CONFIG_ROMFS_FS is not set
+@@ -831,18 +838,17 @@ CONFIG_NFS_FS=y
+ CONFIG_NFS_V3=y
+ # CONFIG_NFS_V3_ACL is not set
+ CONFIG_NFS_V4=y
++CONFIG_ROOT_NFS=y
+ CONFIG_NFSD=m
+ CONFIG_NFSD_V3=y
+ # CONFIG_NFSD_V3_ACL is not set
+ # CONFIG_NFSD_V4 is not set
+-CONFIG_ROOT_NFS=y
+ CONFIG_LOCKD=y
+ CONFIG_LOCKD_V4=y
+ CONFIG_EXPORTFS=m
+ CONFIG_NFS_COMMON=y
+ CONFIG_SUNRPC=y
+ CONFIG_SUNRPC_GSS=y
+-CONFIG_SUNRPC_BIND34=y
+ CONFIG_RPCSEC_GSS_KRB5=y
+ # CONFIG_RPCSEC_GSS_SPKM3 is not set
+ CONFIG_SMB_FS=m
+@@ -851,7 +857,6 @@ CONFIG_SMB_NLS_REMOTE="cp437"
+ # CONFIG_CIFS is not set
+ # CONFIG_NCP_FS is not set
+ CONFIG_CODA_FS=m
+-# CONFIG_CODA_FS_OLD_API is not set
+ # CONFIG_AFS_FS is not set
+ 
+ #
+@@ -916,6 +921,8 @@ CONFIG_MAGIC_SYSRQ=y
+ # CONFIG_HEADERS_CHECK is not set
+ # CONFIG_DEBUG_KERNEL is not set
+ CONFIG_DEBUG_BUGVERBOSE=y
++CONFIG_DEBUG_MEMORY_INIT=y
++CONFIG_SYSCTL_SYSCALL_CHECK=y
+ # CONFIG_SAMPLES is not set
+ 
+ #
+@@ -975,6 +982,10 @@ CONFIG_CRYPTO_CRC32C=m
+ CONFIG_CRYPTO_MD4=m
+ CONFIG_CRYPTO_MD5=y
+ CONFIG_CRYPTO_MICHAEL_MIC=m
++CONFIG_CRYPTO_RMD128=m
++CONFIG_CRYPTO_RMD160=m
++CONFIG_CRYPTO_RMD256=m
++CONFIG_CRYPTO_RMD320=m
+ CONFIG_CRYPTO_SHA1=m
+ CONFIG_CRYPTO_SHA256=m
+ CONFIG_CRYPTO_SHA512=m
+@@ -1016,6 +1027,7 @@ CONFIG_BITREVERSE=y
+ # CONFIG_GENERIC_FIND_NEXT_BIT is not set
+ CONFIG_CRC_CCITT=m
+ CONFIG_CRC16=m
++CONFIG_CRC_T10DIF=y
+ CONFIG_CRC_ITU_T=m
+ CONFIG_CRC32=y
+ # CONFIG_CRC7 is not set
+diff -puN arch/m68k/configs/q40_defconfig~m68k-update-defconfigs arch/m68k/configs/q40_defconfig
+--- a/arch/m68k/configs/q40_defconfig~m68k-update-defconfigs
++++ a/arch/m68k/configs/q40_defconfig
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+-# Linux kernel version: 2.6.26-rc4
+-# Wed May 28 22:47:35 2008
++# Linux kernel version: 2.6.27-rc4
++# Sun Aug 24 11:25:59 2008
+ #
+ CONFIG_M68K=y
+ CONFIG_MMU=y
+@@ -52,7 +52,6 @@ CONFIG_SYSCTL=y
+ # CONFIG_EMBEDDED is not set
+ CONFIG_UID16=y
+ CONFIG_SYSCTL_SYSCALL=y
+-CONFIG_SYSCTL_SYSCALL_CHECK=y
+ CONFIG_KALLSYMS=y
+ # CONFIG_KALLSYMS_EXTRA_PASS is not set
+ CONFIG_HOTPLUG=y
+@@ -75,10 +74,16 @@ CONFIG_SLAB=y
+ # CONFIG_PROFILING is not set
+ # CONFIG_MARKERS is not set
+ # CONFIG_HAVE_OPROFILE is not set
++# CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS is not set
++# CONFIG_HAVE_IOREMAP_PROT is not set
+ # CONFIG_HAVE_KPROBES is not set
+ # CONFIG_HAVE_KRETPROBES is not set
++# CONFIG_HAVE_ARCH_TRACEHOOK is not set
+ # CONFIG_HAVE_DMA_ATTRS is not set
++# CONFIG_USE_GENERIC_SMP_HELPERS is not set
++# CONFIG_HAVE_CLK is not set
+ CONFIG_PROC_PAGE_MONITOR=y
++# CONFIG_HAVE_GENERIC_DMA_COHERENT is not set
+ CONFIG_SLABINFO=y
+ CONFIG_RT_MUTEXES=y
+ # CONFIG_TINY_SHMEM is not set
+@@ -95,6 +100,7 @@ CONFIG_BLOCK=y
+ # CONFIG_BLK_DEV_IO_TRACE is not set
+ # CONFIG_LSF is not set
+ CONFIG_BLK_DEV_BSG=y
++# CONFIG_BLK_DEV_INTEGRITY is not set
+ 
+ #
+ # IO Schedulers
+@@ -163,10 +169,6 @@ CONFIG_ISA=y
+ CONFIG_GENERIC_ISA_DMA=y
+ CONFIG_ZONE_DMA=y
+ # CONFIG_ARCH_SUPPORTS_MSI is not set
+-
+-#
+-# Networking
+-#
+ CONFIG_NET=y
+ 
+ #
+@@ -180,6 +182,7 @@ CONFIG_XFRM=y
+ # CONFIG_XFRM_SUB_POLICY is not set
+ CONFIG_XFRM_MIGRATE=y
+ # CONFIG_XFRM_STATISTICS is not set
++CONFIG_XFRM_IPCOMP=m
+ CONFIG_NET_KEY=y
+ CONFIG_NET_KEY_MIGRATE=y
+ CONFIG_INET=y
+@@ -410,6 +413,7 @@ CONFIG_NET_CLS_ROUTE=y
+ #
+ # CONFIG_CFG80211 is not set
+ CONFIG_WIRELESS_EXT=y
++# CONFIG_WIRELESS_EXT_SYSFS is not set
+ # CONFIG_MAC80211 is not set
+ CONFIG_IEEE80211=m
+ # CONFIG_IEEE80211_DEBUG is not set
+@@ -429,7 +433,9 @@ CONFIG_IEEE80211_CRYPT_TKIP=m
+ CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+ CONFIG_STANDALONE=y
+ CONFIG_PREVENT_FIRMWARE_BUILD=y
+-CONFIG_FW_LOADER=m
++CONFIG_FW_LOADER=y
++# CONFIG_FIRMWARE_IN_KERNEL is not set
++CONFIG_EXTRA_FIRMWARE=""
+ # CONFIG_SYS_HYPERVISOR is not set
+ CONFIG_CONNECTOR=m
+ # CONFIG_MTD is not set
+@@ -448,6 +454,7 @@ CONFIG_CDROM_PKTCDVD=m
+ CONFIG_CDROM_PKTCDVD_BUFFERS=8
+ # CONFIG_CDROM_PKTCDVD_WCACHE is not set
+ CONFIG_ATA_OVER_ETH=m
++# CONFIG_BLK_DEV_HD is not set
+ CONFIG_MISC_DEVICES=y
+ # CONFIG_EEPROM_93CX6 is not set
+ # CONFIG_ENCLOSURE_SERVICES is not set
+@@ -458,6 +465,7 @@ CONFIG_BLK_DEV_IDE=y
+ #
+ # Please see Documentation/ide/ide.txt for help/info on IDE drives
+ #
++CONFIG_IDE_ATAPI=y
+ # CONFIG_BLK_DEV_IDE_SATA is not set
+ CONFIG_BLK_DEV_IDEDISK=y
+ # CONFIG_IDEDISK_MULTI_MODE is not set
+@@ -475,8 +483,6 @@ CONFIG_IDE_PROC_FS=y
+ # CONFIG_BLK_DEV_PLATFORM is not set
+ CONFIG_BLK_DEV_Q40IDE=y
+ # CONFIG_BLK_DEV_IDEDMA is not set
+-# CONFIG_BLK_DEV_HD_ONLY is not set
+-# CONFIG_BLK_DEV_HD is not set
+ 
+ #
+ # SCSI device support
+@@ -536,6 +542,7 @@ CONFIG_ISCSI_TCP=m
+ # CONFIG_SCSI_SYM53C416 is not set
+ # CONFIG_SCSI_T128 is not set
+ # CONFIG_SCSI_DEBUG is not set
++# CONFIG_SCSI_DH is not set
+ CONFIG_MD=y
+ CONFIG_BLK_DEV_MD=m
+ CONFIG_MD_LINEAR=m
+@@ -544,7 +551,7 @@ CONFIG_MD_RAID1=m
+ # CONFIG_MD_RAID10 is not set
+ CONFIG_MD_RAID456=m
+ CONFIG_MD_RAID5_RESHAPE=y
+-CONFIG_MD_MULTIPATH=m
++# CONFIG_MD_MULTIPATH is not set
+ # CONFIG_MD_FAULTY is not set
+ CONFIG_BLK_DEV_DM=m
+ # CONFIG_DM_DEBUG is not set
+@@ -553,13 +560,9 @@ CONFIG_DM_SNAPSHOT=m
+ CONFIG_DM_MIRROR=m
+ CONFIG_DM_ZERO=m
+ CONFIG_DM_MULTIPATH=m
+-CONFIG_DM_MULTIPATH_EMC=m
+-CONFIG_DM_MULTIPATH_RDAC=m
+-CONFIG_DM_MULTIPATH_HP=m
+ # CONFIG_DM_DELAY is not set
+ CONFIG_DM_UEVENT=y
+ CONFIG_NETDEVICES=y
+-# CONFIG_NETDEVICES_MULTIQUEUE is not set
+ CONFIG_DUMMY=m
+ # CONFIG_BONDING is not set
+ CONFIG_MACVLAN=m
+@@ -680,6 +683,7 @@ CONFIG_SERIO_LIBPS2=m
+ # Character devices
+ #
+ CONFIG_VT=y
++CONFIG_CONSOLE_TRANSLATIONS=y
+ CONFIG_VT_CONSOLE=y
+ CONFIG_HW_CONSOLE=y
+ CONFIG_VT_HW_CONSOLE_BINDING=y
+@@ -711,6 +715,7 @@ CONFIG_GEN_RTC_X=y
+ # CONFIG_POWER_SUPPLY is not set
+ # CONFIG_HWMON is not set
+ # CONFIG_THERMAL is not set
++# CONFIG_THERMAL_HWMON is not set
+ # CONFIG_WATCHDOG is not set
+ 
+ #
+@@ -722,8 +727,10 @@ CONFIG_SSB_POSSIBLE=y
+ #
+ # Multifunction device drivers
+ #
++# CONFIG_MFD_CORE is not set
+ # CONFIG_MFD_SM501 is not set
+ # CONFIG_HTC_PASIC3 is not set
++# CONFIG_MFD_TMIO is not set
+ 
+ #
+ # Multimedia devices
+@@ -792,10 +799,6 @@ CONFIG_LOGO=y
+ CONFIG_LOGO_LINUX_MONO=y
+ CONFIG_LOGO_LINUX_VGA16=y
+ CONFIG_LOGO_LINUX_CLUT224=y
+-
+-#
+-# Sound
+-#
+ CONFIG_SOUND=m
+ CONFIG_DMASOUND_Q40=m
+ CONFIG_DMASOUND=m
+@@ -809,6 +812,7 @@ CONFIG_HIDRAW=y
+ # CONFIG_NEW_LEDS is not set
+ # CONFIG_ACCESSIBILITY is not set
+ # CONFIG_RTC_CLASS is not set
++# CONFIG_DMADEVICES is not set
+ # CONFIG_UIO is not set
+ 
+ #
+@@ -843,6 +847,7 @@ CONFIG_XFS_FS=m
+ CONFIG_OCFS2_FS=m
+ CONFIG_OCFS2_FS_O2CB=m
+ CONFIG_OCFS2_FS_USERSPACE_CLUSTER=m
++# CONFIG_OCFS2_FS_STATS is not set
+ # CONFIG_OCFS2_DEBUG_MASKLOG is not set
+ # CONFIG_OCFS2_DEBUG_FS is not set
+ CONFIG_DNOTIFY=y
+@@ -902,6 +907,7 @@ CONFIG_HFSPLUS_FS=m
+ CONFIG_CRAMFS=m
+ # CONFIG_VXFS_FS is not set
+ CONFIG_MINIX_FS=y
++# CONFIG_OMFS_FS is not set
+ CONFIG_HPFS_FS=m
+ # CONFIG_QNX4FS_FS is not set
+ # CONFIG_ROMFS_FS is not set
+@@ -924,7 +930,6 @@ CONFIG_EXPORTFS=m
+ CONFIG_NFS_COMMON=y
+ CONFIG_SUNRPC=y
+ CONFIG_SUNRPC_GSS=y
+-CONFIG_SUNRPC_BIND34=y
+ CONFIG_RPCSEC_GSS_KRB5=y
+ # CONFIG_RPCSEC_GSS_SPKM3 is not set
+ CONFIG_SMB_FS=m
+@@ -933,7 +938,6 @@ CONFIG_SMB_NLS_REMOTE="cp437"
+ # CONFIG_CIFS is not set
+ # CONFIG_NCP_FS is not set
+ CONFIG_CODA_FS=m
+-# CONFIG_CODA_FS_OLD_API is not set
+ # CONFIG_AFS_FS is not set
+ 
+ #
+@@ -997,6 +1001,8 @@ CONFIG_MAGIC_SYSRQ=y
+ # CONFIG_HEADERS_CHECK is not set
+ # CONFIG_DEBUG_KERNEL is not set
+ CONFIG_DEBUG_BUGVERBOSE=y
++CONFIG_DEBUG_MEMORY_INIT=y
++CONFIG_SYSCTL_SYSCALL_CHECK=y
+ # CONFIG_SAMPLES is not set
+ 
+ #
+@@ -1056,6 +1062,10 @@ CONFIG_CRYPTO_CRC32C=m
+ CONFIG_CRYPTO_MD4=m
+ CONFIG_CRYPTO_MD5=y
+ CONFIG_CRYPTO_MICHAEL_MIC=m
++CONFIG_CRYPTO_RMD128=m
++CONFIG_CRYPTO_RMD160=m
++CONFIG_CRYPTO_RMD256=m
++CONFIG_CRYPTO_RMD320=m
+ CONFIG_CRYPTO_SHA1=m
+ CONFIG_CRYPTO_SHA256=m
+ CONFIG_CRYPTO_SHA512=m
+@@ -1097,6 +1107,7 @@ CONFIG_BITREVERSE=y
+ # CONFIG_GENERIC_FIND_NEXT_BIT is not set
+ CONFIG_CRC_CCITT=m
+ CONFIG_CRC16=m
++CONFIG_CRC_T10DIF=y
+ CONFIG_CRC_ITU_T=m
+ CONFIG_CRC32=y
+ # CONFIG_CRC7 is not set
+diff -puN arch/m68k/configs/sun3_defconfig~m68k-update-defconfigs arch/m68k/configs/sun3_defconfig
+--- a/arch/m68k/configs/sun3_defconfig~m68k-update-defconfigs
++++ a/arch/m68k/configs/sun3_defconfig
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+-# Linux kernel version: 2.6.26-rc4
+-# Wed May 28 22:47:35 2008
++# Linux kernel version: 2.6.27-rc4
++# Sun Aug 24 11:26:00 2008
+ #
+ CONFIG_M68K=y
+ CONFIG_MMU=y
+@@ -52,7 +52,6 @@ CONFIG_SYSCTL=y
+ # CONFIG_EMBEDDED is not set
+ CONFIG_UID16=y
+ CONFIG_SYSCTL_SYSCALL=y
+-CONFIG_SYSCTL_SYSCALL_CHECK=y
+ CONFIG_KALLSYMS=y
+ # CONFIG_KALLSYMS_EXTRA_PASS is not set
+ CONFIG_HOTPLUG=y
+@@ -75,10 +74,16 @@ CONFIG_SLAB=y
+ # CONFIG_PROFILING is not set
+ # CONFIG_MARKERS is not set
+ # CONFIG_HAVE_OPROFILE is not set
++# CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS is not set
++# CONFIG_HAVE_IOREMAP_PROT is not set
+ # CONFIG_HAVE_KPROBES is not set
+ # CONFIG_HAVE_KRETPROBES is not set
++# CONFIG_HAVE_ARCH_TRACEHOOK is not set
+ # CONFIG_HAVE_DMA_ATTRS is not set
++# CONFIG_USE_GENERIC_SMP_HELPERS is not set
++# CONFIG_HAVE_CLK is not set
+ CONFIG_PROC_PAGE_MONITOR=y
++# CONFIG_HAVE_GENERIC_DMA_COHERENT is not set
+ CONFIG_SLABINFO=y
+ CONFIG_RT_MUTEXES=y
+ # CONFIG_TINY_SHMEM is not set
+@@ -95,6 +100,7 @@ CONFIG_BLOCK=y
+ # CONFIG_BLK_DEV_IO_TRACE is not set
+ # CONFIG_LSF is not set
+ CONFIG_BLK_DEV_BSG=y
++# CONFIG_BLK_DEV_INTEGRITY is not set
+ 
+ #
+ # IO Schedulers
+@@ -149,10 +155,6 @@ CONFIG_BINFMT_MISC=m
+ CONFIG_PROC_HARDWARE=y
+ CONFIG_ZONE_DMA=y
+ # CONFIG_ARCH_SUPPORTS_MSI is not set
+-
+-#
+-# Networking
+-#
+ CONFIG_NET=y
+ 
+ #
+@@ -166,6 +168,7 @@ CONFIG_XFRM=y
+ # CONFIG_XFRM_SUB_POLICY is not set
+ CONFIG_XFRM_MIGRATE=y
+ # CONFIG_XFRM_STATISTICS is not set
++CONFIG_XFRM_IPCOMP=m
+ CONFIG_NET_KEY=y
+ CONFIG_NET_KEY_MIGRATE=y
+ CONFIG_INET=y
+@@ -399,6 +402,7 @@ CONFIG_NET_CLS_ROUTE=y
+ #
+ # CONFIG_CFG80211 is not set
+ CONFIG_WIRELESS_EXT=y
++# CONFIG_WIRELESS_EXT_SYSFS is not set
+ # CONFIG_MAC80211 is not set
+ CONFIG_IEEE80211=m
+ # CONFIG_IEEE80211_DEBUG is not set
+@@ -418,7 +422,9 @@ CONFIG_IEEE80211_CRYPT_TKIP=m
+ CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+ CONFIG_STANDALONE=y
+ CONFIG_PREVENT_FIRMWARE_BUILD=y
+-CONFIG_FW_LOADER=m
++CONFIG_FW_LOADER=y
++# CONFIG_FIRMWARE_IN_KERNEL is not set
++CONFIG_EXTRA_FIRMWARE=""
+ # CONFIG_SYS_HYPERVISOR is not set
+ CONFIG_CONNECTOR=m
+ # CONFIG_MTD is not set
+@@ -436,6 +442,7 @@ CONFIG_CDROM_PKTCDVD=m
+ CONFIG_CDROM_PKTCDVD_BUFFERS=8
+ # CONFIG_CDROM_PKTCDVD_WCACHE is not set
+ CONFIG_ATA_OVER_ETH=m
++# CONFIG_BLK_DEV_HD is not set
+ CONFIG_MISC_DEVICES=y
+ # CONFIG_EEPROM_93CX6 is not set
+ # CONFIG_ENCLOSURE_SERVICES is not set
+@@ -488,6 +495,7 @@ CONFIG_SCSI_LOWLEVEL=y
+ CONFIG_ISCSI_TCP=m
+ # CONFIG_SCSI_DEBUG is not set
+ CONFIG_SUN3_SCSI=y
++# CONFIG_SCSI_DH is not set
+ CONFIG_MD=y
+ CONFIG_BLK_DEV_MD=m
+ CONFIG_MD_LINEAR=m
+@@ -496,7 +504,7 @@ CONFIG_MD_RAID1=m
+ # CONFIG_MD_RAID10 is not set
+ CONFIG_MD_RAID456=m
+ CONFIG_MD_RAID5_RESHAPE=y
+-CONFIG_MD_MULTIPATH=m
++# CONFIG_MD_MULTIPATH is not set
+ # CONFIG_MD_FAULTY is not set
+ CONFIG_BLK_DEV_DM=m
+ # CONFIG_DM_DEBUG is not set
+@@ -505,13 +513,9 @@ CONFIG_DM_SNAPSHOT=m
+ CONFIG_DM_MIRROR=m
+ CONFIG_DM_ZERO=m
+ CONFIG_DM_MULTIPATH=m
+-CONFIG_DM_MULTIPATH_EMC=m
+-CONFIG_DM_MULTIPATH_RDAC=m
+-CONFIG_DM_MULTIPATH_HP=m
+ # CONFIG_DM_DELAY is not set
+ CONFIG_DM_UEVENT=y
+ CONFIG_NETDEVICES=y
+-# CONFIG_NETDEVICES_MULTIQUEUE is not set
+ CONFIG_DUMMY=m
+ # CONFIG_BONDING is not set
+ CONFIG_MACVLAN=m
+@@ -527,7 +531,6 @@ CONFIG_SUN3_82586=y
+ # CONFIG_IBM_NEW_EMAC_RGMII is not set
+ # CONFIG_IBM_NEW_EMAC_TAH is not set
+ # CONFIG_IBM_NEW_EMAC_EMAC4 is not set
+-# CONFIG_B44 is not set
+ # CONFIG_NETDEV_1000 is not set
+ # CONFIG_NETDEV_10000 is not set
+ 
+@@ -617,6 +620,7 @@ CONFIG_SERIO_LIBPS2=m
+ # Character devices
+ #
+ CONFIG_VT=y
++CONFIG_CONSOLE_TRANSLATIONS=y
+ CONFIG_VT_CONSOLE=y
+ CONFIG_HW_CONSOLE=y
+ CONFIG_VT_HW_CONSOLE_BINDING=y
+@@ -647,19 +651,20 @@ CONFIG_GEN_RTC_X=y
+ # CONFIG_POWER_SUPPLY is not set
+ # CONFIG_HWMON is not set
+ # CONFIG_THERMAL is not set
++# CONFIG_THERMAL_HWMON is not set
+ # CONFIG_WATCHDOG is not set
+ 
+ #
+ # Sonics Silicon Backplane
+ #
+-CONFIG_SSB_POSSIBLE=y
+-# CONFIG_SSB is not set
+ 
+ #
+ # Multifunction device drivers
+ #
++# CONFIG_MFD_CORE is not set
+ # CONFIG_MFD_SM501 is not set
+ # CONFIG_HTC_PASIC3 is not set
++# CONFIG_MFD_TMIO is not set
+ 
+ #
+ # Multimedia devices
+@@ -727,10 +732,6 @@ CONFIG_LOGO=y
+ CONFIG_LOGO_LINUX_MONO=y
+ CONFIG_LOGO_LINUX_VGA16=y
+ CONFIG_LOGO_LINUX_CLUT224=y
+-
+-#
+-# Sound
+-#
+ # CONFIG_SOUND is not set
+ CONFIG_HID_SUPPORT=y
+ CONFIG_HID=m
+@@ -776,6 +777,7 @@ CONFIG_XFS_FS=m
+ CONFIG_OCFS2_FS=m
+ CONFIG_OCFS2_FS_O2CB=m
+ CONFIG_OCFS2_FS_USERSPACE_CLUSTER=m
++# CONFIG_OCFS2_FS_STATS is not set
+ # CONFIG_OCFS2_DEBUG_MASKLOG is not set
+ # CONFIG_OCFS2_DEBUG_FS is not set
+ CONFIG_DNOTIFY=y
+@@ -835,6 +837,7 @@ CONFIG_HFSPLUS_FS=m
+ CONFIG_CRAMFS=m
+ # CONFIG_VXFS_FS is not set
+ CONFIG_MINIX_FS=y
++# CONFIG_OMFS_FS is not set
+ CONFIG_HPFS_FS=m
+ # CONFIG_QNX4FS_FS is not set
+ # CONFIG_ROMFS_FS is not set
+@@ -847,18 +850,17 @@ CONFIG_NFS_FS=y
+ CONFIG_NFS_V3=y
+ # CONFIG_NFS_V3_ACL is not set
+ CONFIG_NFS_V4=y
++CONFIG_ROOT_NFS=y
+ CONFIG_NFSD=m
+ CONFIG_NFSD_V3=y
+ # CONFIG_NFSD_V3_ACL is not set
+ # CONFIG_NFSD_V4 is not set
+-CONFIG_ROOT_NFS=y
+ CONFIG_LOCKD=y
+ CONFIG_LOCKD_V4=y
+ CONFIG_EXPORTFS=m
+ CONFIG_NFS_COMMON=y
+ CONFIG_SUNRPC=y
+ CONFIG_SUNRPC_GSS=y
+-CONFIG_SUNRPC_BIND34=y
+ CONFIG_RPCSEC_GSS_KRB5=y
+ # CONFIG_RPCSEC_GSS_SPKM3 is not set
+ CONFIG_SMB_FS=m
+@@ -867,7 +869,6 @@ CONFIG_SMB_NLS_REMOTE="cp437"
+ # CONFIG_CIFS is not set
+ # CONFIG_NCP_FS is not set
+ CONFIG_CODA_FS=m
+-# CONFIG_CODA_FS_OLD_API is not set
+ # CONFIG_AFS_FS is not set
+ 
+ #
+@@ -932,6 +933,8 @@ CONFIG_MAGIC_SYSRQ=y
+ # CONFIG_HEADERS_CHECK is not set
+ # CONFIG_DEBUG_KERNEL is not set
+ CONFIG_DEBUG_BUGVERBOSE=y
++CONFIG_DEBUG_MEMORY_INIT=y
++CONFIG_SYSCTL_SYSCALL_CHECK=y
+ # CONFIG_SAMPLES is not set
+ 
+ #
+@@ -991,6 +994,10 @@ CONFIG_CRYPTO_CRC32C=m
+ CONFIG_CRYPTO_MD4=m
+ CONFIG_CRYPTO_MD5=y
+ CONFIG_CRYPTO_MICHAEL_MIC=m
++CONFIG_CRYPTO_RMD128=m
++CONFIG_CRYPTO_RMD160=m
++CONFIG_CRYPTO_RMD256=m
++CONFIG_CRYPTO_RMD320=m
+ CONFIG_CRYPTO_SHA1=m
+ CONFIG_CRYPTO_SHA256=m
+ CONFIG_CRYPTO_SHA512=m
+@@ -1032,6 +1039,7 @@ CONFIG_BITREVERSE=y
+ # CONFIG_GENERIC_FIND_NEXT_BIT is not set
+ CONFIG_CRC_CCITT=m
+ CONFIG_CRC16=m
++CONFIG_CRC_T10DIF=y
+ CONFIG_CRC_ITU_T=m
+ CONFIG_CRC32=y
+ # CONFIG_CRC7 is not set
+diff -puN arch/m68k/configs/sun3x_defconfig~m68k-update-defconfigs arch/m68k/configs/sun3x_defconfig
+--- a/arch/m68k/configs/sun3x_defconfig~m68k-update-defconfigs
++++ a/arch/m68k/configs/sun3x_defconfig
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+-# Linux kernel version: 2.6.26-rc4
+-# Wed May 28 22:47:35 2008
++# Linux kernel version: 2.6.27-rc4
++# Sun Aug 24 11:26:01 2008
+ #
+ CONFIG_M68K=y
+ CONFIG_MMU=y
+@@ -52,7 +52,6 @@ CONFIG_SYSCTL=y
+ # CONFIG_EMBEDDED is not set
+ CONFIG_UID16=y
+ CONFIG_SYSCTL_SYSCALL=y
+-CONFIG_SYSCTL_SYSCALL_CHECK=y
+ CONFIG_KALLSYMS=y
+ # CONFIG_KALLSYMS_EXTRA_PASS is not set
+ CONFIG_HOTPLUG=y
+@@ -75,10 +74,16 @@ CONFIG_SLAB=y
+ # CONFIG_PROFILING is not set
+ # CONFIG_MARKERS is not set
+ # CONFIG_HAVE_OPROFILE is not set
++# CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS is not set
++# CONFIG_HAVE_IOREMAP_PROT is not set
+ # CONFIG_HAVE_KPROBES is not set
+ # CONFIG_HAVE_KRETPROBES is not set
++# CONFIG_HAVE_ARCH_TRACEHOOK is not set
+ # CONFIG_HAVE_DMA_ATTRS is not set
++# CONFIG_USE_GENERIC_SMP_HELPERS is not set
++# CONFIG_HAVE_CLK is not set
+ CONFIG_PROC_PAGE_MONITOR=y
++# CONFIG_HAVE_GENERIC_DMA_COHERENT is not set
+ CONFIG_SLABINFO=y
+ CONFIG_RT_MUTEXES=y
+ # CONFIG_TINY_SHMEM is not set
+@@ -95,6 +100,7 @@ CONFIG_BLOCK=y
+ # CONFIG_BLK_DEV_IO_TRACE is not set
+ # CONFIG_LSF is not set
+ CONFIG_BLK_DEV_BSG=y
++# CONFIG_BLK_DEV_INTEGRITY is not set
+ 
+ #
+ # IO Schedulers
+@@ -160,10 +166,6 @@ CONFIG_BINFMT_MISC=m
+ CONFIG_PROC_HARDWARE=y
+ CONFIG_ZONE_DMA=y
+ # CONFIG_ARCH_SUPPORTS_MSI is not set
+-
+-#
+-# Networking
+-#
+ CONFIG_NET=y
+ 
+ #
+@@ -177,6 +179,7 @@ CONFIG_XFRM=y
+ # CONFIG_XFRM_SUB_POLICY is not set
+ CONFIG_XFRM_MIGRATE=y
+ # CONFIG_XFRM_STATISTICS is not set
++CONFIG_XFRM_IPCOMP=m
+ CONFIG_NET_KEY=y
+ CONFIG_NET_KEY_MIGRATE=y
+ CONFIG_INET=y
+@@ -410,6 +413,7 @@ CONFIG_NET_CLS_ROUTE=y
+ #
+ # CONFIG_CFG80211 is not set
+ CONFIG_WIRELESS_EXT=y
++# CONFIG_WIRELESS_EXT_SYSFS is not set
+ # CONFIG_MAC80211 is not set
+ CONFIG_IEEE80211=m
+ # CONFIG_IEEE80211_DEBUG is not set
+@@ -429,7 +433,9 @@ CONFIG_IEEE80211_CRYPT_TKIP=m
+ CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+ CONFIG_STANDALONE=y
+ CONFIG_PREVENT_FIRMWARE_BUILD=y
+-CONFIG_FW_LOADER=m
++CONFIG_FW_LOADER=y
++# CONFIG_FIRMWARE_IN_KERNEL is not set
++CONFIG_EXTRA_FIRMWARE=""
+ # CONFIG_SYS_HYPERVISOR is not set
+ CONFIG_CONNECTOR=m
+ # CONFIG_MTD is not set
+@@ -447,6 +453,7 @@ CONFIG_CDROM_PKTCDVD=m
+ CONFIG_CDROM_PKTCDVD_BUFFERS=8
+ # CONFIG_CDROM_PKTCDVD_WCACHE is not set
+ CONFIG_ATA_OVER_ETH=m
++# CONFIG_BLK_DEV_HD is not set
+ CONFIG_MISC_DEVICES=y
+ # CONFIG_EEPROM_93CX6 is not set
+ # CONFIG_ENCLOSURE_SERVICES is not set
+@@ -499,6 +506,7 @@ CONFIG_SCSI_LOWLEVEL=y
+ CONFIG_ISCSI_TCP=m
+ # CONFIG_SCSI_DEBUG is not set
+ CONFIG_SUN3X_ESP=y
++# CONFIG_SCSI_DH is not set
+ CONFIG_MD=y
+ CONFIG_BLK_DEV_MD=m
+ CONFIG_MD_LINEAR=m
+@@ -507,7 +515,7 @@ CONFIG_MD_RAID1=m
+ # CONFIG_MD_RAID10 is not set
+ CONFIG_MD_RAID456=m
+ CONFIG_MD_RAID5_RESHAPE=y
+-CONFIG_MD_MULTIPATH=m
++# CONFIG_MD_MULTIPATH is not set
+ # CONFIG_MD_FAULTY is not set
+ CONFIG_BLK_DEV_DM=m
+ # CONFIG_DM_DEBUG is not set
+@@ -516,13 +524,9 @@ CONFIG_DM_SNAPSHOT=m
+ CONFIG_DM_MIRROR=m
+ CONFIG_DM_ZERO=m
+ CONFIG_DM_MULTIPATH=m
+-CONFIG_DM_MULTIPATH_EMC=m
+-CONFIG_DM_MULTIPATH_RDAC=m
+-CONFIG_DM_MULTIPATH_HP=m
+ # CONFIG_DM_DELAY is not set
+ CONFIG_DM_UEVENT=y
+ CONFIG_NETDEVICES=y
+-# CONFIG_NETDEVICES_MULTIQUEUE is not set
+ CONFIG_DUMMY=m
+ # CONFIG_BONDING is not set
+ CONFIG_MACVLAN=m
+@@ -627,6 +631,7 @@ CONFIG_SERIO_LIBPS2=m
+ # Character devices
+ #
+ CONFIG_VT=y
++CONFIG_CONSOLE_TRANSLATIONS=y
+ CONFIG_VT_CONSOLE=y
+ CONFIG_HW_CONSOLE=y
+ CONFIG_VT_HW_CONSOLE_BINDING=y
+@@ -657,6 +662,7 @@ CONFIG_GEN_RTC_X=y
+ # CONFIG_POWER_SUPPLY is not set
+ # CONFIG_HWMON is not set
+ # CONFIG_THERMAL is not set
++# CONFIG_THERMAL_HWMON is not set
+ # CONFIG_WATCHDOG is not set
+ 
+ #
+@@ -668,8 +674,10 @@ CONFIG_SSB_POSSIBLE=y
+ #
+ # Multifunction device drivers
+ #
++# CONFIG_MFD_CORE is not set
+ # CONFIG_MFD_SM501 is not set
+ # CONFIG_HTC_PASIC3 is not set
++# CONFIG_MFD_TMIO is not set
+ 
+ #
+ # Multimedia devices
+@@ -737,10 +745,6 @@ CONFIG_LOGO=y
+ CONFIG_LOGO_LINUX_MONO=y
+ CONFIG_LOGO_LINUX_VGA16=y
+ CONFIG_LOGO_LINUX_CLUT224=y
+-
+-#
+-# Sound
+-#
+ # CONFIG_SOUND is not set
+ CONFIG_HID_SUPPORT=y
+ CONFIG_HID=m
+@@ -752,6 +756,7 @@ CONFIG_HIDRAW=y
+ # CONFIG_NEW_LEDS is not set
+ # CONFIG_ACCESSIBILITY is not set
+ # CONFIG_RTC_CLASS is not set
++# CONFIG_DMADEVICES is not set
+ # CONFIG_UIO is not set
+ 
+ #
+@@ -786,6 +791,7 @@ CONFIG_XFS_FS=m
+ CONFIG_OCFS2_FS=m
+ CONFIG_OCFS2_FS_O2CB=m
+ CONFIG_OCFS2_FS_USERSPACE_CLUSTER=m
++# CONFIG_OCFS2_FS_STATS is not set
+ # CONFIG_OCFS2_DEBUG_MASKLOG is not set
+ # CONFIG_OCFS2_DEBUG_FS is not set
+ CONFIG_DNOTIFY=y
+@@ -845,6 +851,7 @@ CONFIG_HFSPLUS_FS=m
+ CONFIG_CRAMFS=m
+ # CONFIG_VXFS_FS is not set
+ CONFIG_MINIX_FS=y
++# CONFIG_OMFS_FS is not set
+ CONFIG_HPFS_FS=m
+ # CONFIG_QNX4FS_FS is not set
+ # CONFIG_ROMFS_FS is not set
+@@ -857,18 +864,17 @@ CONFIG_NFS_FS=y
+ CONFIG_NFS_V3=y
+ # CONFIG_NFS_V3_ACL is not set
+ CONFIG_NFS_V4=y
++CONFIG_ROOT_NFS=y
+ CONFIG_NFSD=m
+ CONFIG_NFSD_V3=y
+ # CONFIG_NFSD_V3_ACL is not set
+ # CONFIG_NFSD_V4 is not set
+-CONFIG_ROOT_NFS=y
+ CONFIG_LOCKD=y
+ CONFIG_LOCKD_V4=y
+ CONFIG_EXPORTFS=m
+ CONFIG_NFS_COMMON=y
+ CONFIG_SUNRPC=y
+ CONFIG_SUNRPC_GSS=y
+-CONFIG_SUNRPC_BIND34=y
+ CONFIG_RPCSEC_GSS_KRB5=y
+ # CONFIG_RPCSEC_GSS_SPKM3 is not set
+ CONFIG_SMB_FS=m
+@@ -877,7 +883,6 @@ CONFIG_SMB_NLS_REMOTE="cp437"
+ # CONFIG_CIFS is not set
+ # CONFIG_NCP_FS is not set
+ CONFIG_CODA_FS=m
+-# CONFIG_CODA_FS_OLD_API is not set
+ # CONFIG_AFS_FS is not set
+ 
+ #
+@@ -942,6 +947,8 @@ CONFIG_MAGIC_SYSRQ=y
+ # CONFIG_HEADERS_CHECK is not set
+ # CONFIG_DEBUG_KERNEL is not set
+ CONFIG_DEBUG_BUGVERBOSE=y
++CONFIG_DEBUG_MEMORY_INIT=y
++CONFIG_SYSCTL_SYSCALL_CHECK=y
+ # CONFIG_SAMPLES is not set
+ 
+ #
+@@ -1001,6 +1008,10 @@ CONFIG_CRYPTO_CRC32C=m
+ CONFIG_CRYPTO_MD4=m
+ CONFIG_CRYPTO_MD5=y
+ CONFIG_CRYPTO_MICHAEL_MIC=m
++CONFIG_CRYPTO_RMD128=m
++CONFIG_CRYPTO_RMD160=m
++CONFIG_CRYPTO_RMD256=m
++CONFIG_CRYPTO_RMD320=m
+ CONFIG_CRYPTO_SHA1=m
+ CONFIG_CRYPTO_SHA256=m
+ CONFIG_CRYPTO_SHA512=m
+@@ -1042,6 +1053,7 @@ CONFIG_BITREVERSE=y
+ # CONFIG_GENERIC_FIND_NEXT_BIT is not set
+ CONFIG_CRC_CCITT=m
+ CONFIG_CRC16=m
++CONFIG_CRC_T10DIF=y
+ CONFIG_CRC_ITU_T=m
+ CONFIG_CRC32=y
+ # CONFIG_CRC7 is not set
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
+origin.patch
+tdfxfb-fix-sdram-memory-size-detection.patch
+tdfxfb-fix-frame-buffer-name-overrun.patch
 linux-next.patch
-less-softirq-vectors.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-cpuset-use-seq_cpumask-seq_nodemask.patch
-sysctl-simplify-strategy.patch
-fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out.patch
-fs-kconfig-move-autofs-autofs4-out.patch
-fs-kconfig-move-cifs-out.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
+arch-m68k-bvme6000-rtcc-remove-duplicated-include.patch
+viafb-viafbmodes-viafbtxt.patch
+viafb-viafbmodes-viafbtxt-fix.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-makefile-kconfig.patch
+viafb-accelc-accelh.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-chiph-debugh.patch
+viafb-dvic-dvih-globalc-and-globalh.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-ifacec-ifaceh-ioctlc-ioctlh.patch
+viafb-lcdc-lcdh-lcdtblh.patch
+viafb-makefile-shareh.patch
+viafb-tbl1636c-tbl1636h-tbldpasettingc-tbldpasettingh.patch
+viafb-viafbdevc-viafbdevh.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+viafb-via_i2cc-via_i2ch-viamodec-viamodeh.patch
+viafb-via_utilityc-via_utilityh-vt1636c-vt1636h.patch
+fbdev-kconfig-update.patch
+fbdev-kconfig-update-fix.patch
+tdfxfb-do-not-make-changes-to-default-tdfx_fix.patch
 
