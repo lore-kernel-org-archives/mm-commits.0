@@ -1,192 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - v4l-dvb-follow-lspci-device-vendor-style.patch removed from -mm tree
-Date: Tue, 02 Sep 2008 13:41:29 -0700
-Message-ID: <200809022041.m82KfTXW011640@imap1.linux-foundation.org>
+Subject: - v4l-fix-return-value-of-meye-probe-callback.patch removed from -mm tree
+Date: Tue, 02 Sep 2008 13:41:24 -0700
+Message-ID: <200809022041.m82KfOlO011634@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43066 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46950 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751721AbYIBUle (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 16:41:34 -0400
+	by vger.kernel.org with ESMTP id S1751599AbYIBUlb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 16:41:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bjorn.helgaas@hp.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: henne@nachtwindheim.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     v4l/dvb: follow lspci device/vendor style
+     v4l: fix return value of meye probe callback
 has been removed from the -mm tree.  Its filename was
-     v4l-dvb-follow-lspci-device-vendor-style.patch
+     v4l-fix-return-value-of-meye-probe-callback.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: v4l/dvb: follow lspci device/vendor style
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: v4l: fix return value of meye probe callback
+From: Henrik Kretzschmar <henne@nachtwindheim.de>
 
-Use "[%04x:%04x]" for PCI vendor/device IDs to follow the format used by
-lspci(8).
+The return value of the probe function should return -ENOMEM instead of
+-EBUSY if video_device_alloc() fails.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Henrik Kretzschmar <henne@nachtwindheim.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/bt8xx/dvb-bt8xx.c               |    2 +-
- drivers/media/dvb/ttpci/av7110.c                  |    2 +-
- drivers/media/dvb/ttpci/budget-av.c               |    2 +-
- drivers/media/dvb/ttpci/budget-ci.c               |    2 +-
- drivers/media/dvb/ttpci/budget-patch.c            |    2 +-
- drivers/media/dvb/ttpci/budget.c                  |    2 +-
- drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c |    2 +-
- drivers/media/dvb/ttusb-dec/ttusb_dec.c           |    2 +-
- drivers/media/video/cx18/cx18-driver.c            |    4 ++--
- drivers/media/video/ivtv/ivtv-driver.c            |    4 ++--
- 10 files changed, 12 insertions(+), 12 deletions(-)
+ drivers/media/video/meye.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/dvb/bt8xx/dvb-bt8xx.c~v4l-dvb-follow-lspci-device-vendor-style drivers/media/dvb/bt8xx/dvb-bt8xx.c
---- a/drivers/media/dvb/bt8xx/dvb-bt8xx.c~v4l-dvb-follow-lspci-device-vendor-style
-+++ a/drivers/media/dvb/bt8xx/dvb-bt8xx.c
-@@ -702,7 +702,7 @@ static void frontend_init(struct dvb_bt8
+diff -puN drivers/media/video/meye.c~v4l-fix-return-value-of-meye-probe-callback drivers/media/video/meye.c
+--- a/drivers/media/video/meye.c~v4l-fix-return-value-of-meye-probe-callback
++++ a/drivers/media/video/meye.c
+@@ -1779,6 +1779,7 @@ static int __devinit meye_probe(struct p
+ 		goto outnotdev;
  	}
  
- 	if (card->fe == NULL)
--		printk("dvb-bt8xx: A frontend driver was not found for device %04x/%04x subsystem %04x/%04x\n",
-+		printk("dvb-bt8xx: A frontend driver was not found for device [%04x:%04x] subsystem [%04x:%04x]\n",
- 		       card->bt->dev->vendor,
- 		       card->bt->dev->device,
- 		       card->bt->dev->subsystem_vendor,
-diff -puN drivers/media/dvb/ttpci/av7110.c~v4l-dvb-follow-lspci-device-vendor-style drivers/media/dvb/ttpci/av7110.c
---- a/drivers/media/dvb/ttpci/av7110.c~v4l-dvb-follow-lspci-device-vendor-style
-+++ a/drivers/media/dvb/ttpci/av7110.c
-@@ -2240,7 +2240,7 @@ static int frontend_init(struct av7110 *
- 	if (!av7110->fe) {
- 		/* FIXME: propagate the failure code from the lower layers */
- 		ret = -ENOMEM;
--		printk("dvb-ttpci: A frontend driver was not found for device %04x/%04x subsystem %04x/%04x\n",
-+		printk("dvb-ttpci: A frontend driver was not found for device [%04x:%04x] subsystem [%04x:%04x]\n",
- 		       av7110->dev->pci->vendor,
- 		       av7110->dev->pci->device,
- 		       av7110->dev->pci->subsystem_vendor,
-diff -puN drivers/media/dvb/ttpci/budget-av.c~v4l-dvb-follow-lspci-device-vendor-style drivers/media/dvb/ttpci/budget-av.c
---- a/drivers/media/dvb/ttpci/budget-av.c~v4l-dvb-follow-lspci-device-vendor-style
-+++ a/drivers/media/dvb/ttpci/budget-av.c
-@@ -1049,7 +1049,7 @@ static void frontend_init(struct budget_
- 
- 	if (fe == NULL) {
- 		printk(KERN_ERR "budget-av: A frontend driver was not found "
--				"for device %04x/%04x subsystem %04x/%04x\n",
-+				"for device [%04x:%04x] subsystem [%04x:%04x]\n",
- 		       saa->pci->vendor,
- 		       saa->pci->device,
- 		       saa->pci->subsystem_vendor,
-diff -puN drivers/media/dvb/ttpci/budget-ci.c~v4l-dvb-follow-lspci-device-vendor-style drivers/media/dvb/ttpci/budget-ci.c
---- a/drivers/media/dvb/ttpci/budget-ci.c~v4l-dvb-follow-lspci-device-vendor-style
-+++ a/drivers/media/dvb/ttpci/budget-ci.c
-@@ -1153,7 +1153,7 @@ static void frontend_init(struct budget_
++	ret = -ENOMEM;
+ 	meye.mchip_dev = pcidev;
+ 	meye.video_dev = video_device_alloc();
+ 	if (!meye.video_dev) {
+@@ -1786,7 +1787,6 @@ static int __devinit meye_probe(struct p
+ 		goto outnotdev;
  	}
  
- 	if (budget_ci->budget.dvb_frontend == NULL) {
--		printk("budget-ci: A frontend driver was not found for device %04x/%04x subsystem %04x/%04x\n",
-+		printk("budget-ci: A frontend driver was not found for device [%04x:%04x] subsystem [%04x:%04x]\n",
- 		       budget_ci->budget.dev->pci->vendor,
- 		       budget_ci->budget.dev->pci->device,
- 		       budget_ci->budget.dev->pci->subsystem_vendor,
-diff -puN drivers/media/dvb/ttpci/budget-patch.c~v4l-dvb-follow-lspci-device-vendor-style drivers/media/dvb/ttpci/budget-patch.c
---- a/drivers/media/dvb/ttpci/budget-patch.c~v4l-dvb-follow-lspci-device-vendor-style
-+++ a/drivers/media/dvb/ttpci/budget-patch.c
-@@ -359,7 +359,7 @@ static void frontend_init(struct budget_
- 	}
- 
- 	if (budget->dvb_frontend == NULL) {
--		printk("dvb-ttpci: A frontend driver was not found for device %04x/%04x subsystem %04x/%04x\n",
-+		printk("dvb-ttpci: A frontend driver was not found for device [%04x:%04x] subsystem [%04x:%04x]\n",
- 		       budget->dev->pci->vendor,
- 		       budget->dev->pci->device,
- 		       budget->dev->pci->subsystem_vendor,
-diff -puN drivers/media/dvb/ttpci/budget.c~v4l-dvb-follow-lspci-device-vendor-style drivers/media/dvb/ttpci/budget.c
---- a/drivers/media/dvb/ttpci/budget.c~v4l-dvb-follow-lspci-device-vendor-style
-+++ a/drivers/media/dvb/ttpci/budget.c
-@@ -549,7 +549,7 @@ static void frontend_init(struct budget 
- 	}
- 
- 	if (budget->dvb_frontend == NULL) {
--		printk("budget: A frontend driver was not found for device %04x/%04x subsystem %04x/%04x\n",
-+		printk("budget: A frontend driver was not found for device [%04x:%04x] subsystem [%04x:%04x]\n",
- 		       budget->dev->pci->vendor,
- 		       budget->dev->pci->device,
- 		       budget->dev->pci->subsystem_vendor,
-diff -puN drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c~v4l-dvb-follow-lspci-device-vendor-style drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
---- a/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c~v4l-dvb-follow-lspci-device-vendor-style
-+++ a/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
-@@ -1614,7 +1614,7 @@ static void frontend_init(struct ttusb* 
- 	}
- 
- 	if (ttusb->fe == NULL) {
--		printk("dvb-ttusb-budget: A frontend driver was not found for device %04x/%04x\n",
-+		printk("dvb-ttusb-budget: A frontend driver was not found for device [%04x:%04x]\n",
- 		       le16_to_cpu(ttusb->dev->descriptor.idVendor),
- 		       le16_to_cpu(ttusb->dev->descriptor.idProduct));
- 	} else {
-diff -puN drivers/media/dvb/ttusb-dec/ttusb_dec.c~v4l-dvb-follow-lspci-device-vendor-style drivers/media/dvb/ttusb-dec/ttusb_dec.c
---- a/drivers/media/dvb/ttusb-dec/ttusb_dec.c~v4l-dvb-follow-lspci-device-vendor-style
-+++ a/drivers/media/dvb/ttusb-dec/ttusb_dec.c
-@@ -1665,7 +1665,7 @@ static int ttusb_dec_probe(struct usb_in
- 	}
- 
- 	if (dec->fe == NULL) {
--		printk("dvb-ttusb-dec: A frontend driver was not found for device %04x/%04x\n",
-+		printk("dvb-ttusb-dec: A frontend driver was not found for device [%04x:%04x]\n",
- 		       le16_to_cpu(dec->udev->descriptor.idVendor),
- 		       le16_to_cpu(dec->udev->descriptor.idProduct));
- 	} else {
-diff -puN drivers/media/video/cx18/cx18-driver.c~v4l-dvb-follow-lspci-device-vendor-style drivers/media/video/cx18/cx18-driver.c
---- a/drivers/media/video/cx18/cx18-driver.c~v4l-dvb-follow-lspci-device-vendor-style
-+++ a/drivers/media/video/cx18/cx18-driver.c
-@@ -395,9 +395,9 @@ done:
- 
- 	if (cx->card == NULL) {
- 		cx->card = cx18_get_card(CX18_CARD_HVR_1600_ESMT);
--		CX18_ERR("Unknown card: vendor/device: %04x/%04x\n",
-+		CX18_ERR("Unknown card: vendor/device: [%04x:%04x]\n",
- 		     cx->dev->vendor, cx->dev->device);
--		CX18_ERR("              subsystem vendor/device: %04x/%04x\n",
-+		CX18_ERR("              subsystem vendor/device: [%04x:%04x]\n",
- 		     cx->dev->subsystem_vendor, cx->dev->subsystem_device);
- 		CX18_ERR("Defaulting to %s card\n", cx->card->name);
- 		CX18_ERR("Please mail the vendor/device and subsystem vendor/device IDs and what kind of\n");
-diff -puN drivers/media/video/ivtv/ivtv-driver.c~v4l-dvb-follow-lspci-device-vendor-style drivers/media/video/ivtv/ivtv-driver.c
---- a/drivers/media/video/ivtv/ivtv-driver.c~v4l-dvb-follow-lspci-device-vendor-style
-+++ a/drivers/media/video/ivtv/ivtv-driver.c
-@@ -655,9 +655,9 @@ done:
- 
- 	if (itv->card == NULL) {
- 		itv->card = ivtv_get_card(IVTV_CARD_PVR_150);
--		IVTV_ERR("Unknown card: vendor/device: %04x/%04x\n",
-+		IVTV_ERR("Unknown card: vendor/device: [%04x:%04x]\n",
- 		     itv->dev->vendor, itv->dev->device);
--		IVTV_ERR("              subsystem vendor/device: %04x/%04x\n",
-+		IVTV_ERR("              subsystem vendor/device: [%04x:%04x]\n",
- 		     itv->dev->subsystem_vendor, itv->dev->subsystem_device);
- 		IVTV_ERR("              %s based\n", chipname);
- 		IVTV_ERR("Defaulting to %s card\n", itv->card->name);
+-	ret = -ENOMEM;
+ 	meye.grab_temp = vmalloc(MCHIP_NB_PAGES_MJPEG * PAGE_SIZE);
+ 	if (!meye.grab_temp) {
+ 		printk(KERN_ERR "meye: grab buffer allocation failed\n");
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from henne@nachtwindheim.de are
 
 linux-next.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-x86-use-dev_printk-in-quirk-message.patch
-agp-follow-lspci-device-vendor-style.patch
-irda-follow-lspci-device-vendor-style.patch
-pci-tidy-pme-support-messages-checkpatch-fixes.patch
-vsprintf-use-new-vsprintf-symbolic-function-pointer-format.patch
-vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
-pnp-remove-printk-with-outdated-version.patch
-pnp-make-the-resource-type-an-unsigned-long.patch
-pnp-make-the-resource-type-an-unsigned-long-fix.patch
-firmware-use-dev_printk-when-possible.patch
-resources-tidy-__request_region.patch
+v4l-fix-retval-in-vivi-driver-for-more-than-one-device.patch
 
