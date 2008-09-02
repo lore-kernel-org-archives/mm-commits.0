@@ -1,62 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - power-support-for-texas-instruments-bq27x00-battery-managers-fix.patch removed from -mm tree
-Date: Tue, 02 Sep 2008 13:41:34 -0700
-Message-ID: <200809022041.m82KfY3t011646@imap1.linux-foundation.org>
+Subject: - vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch removed from -mm tree
+Date: Tue, 02 Sep 2008 14:31:53 -0700
+Message-ID: <200809022131.m82LVrjX013558@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45254 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60725 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751600AbYIBUnT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 16:43:19 -0400
+	by vger.kernel.org with ESMTP id S1751239AbYIBVb5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 17:31:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cbouatmailru@gmail.com, dwmw2@infradead.org, giometti@linux.it, heiko.carstens@de.ibm.com, khali@linux-fr.org, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hifumi.hisashi@oss.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     power-support-for-texas-instruments-bq27x00-battery-managers-fix
+     vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix
 has been removed from the -mm tree.  Its filename was
-     power-support-for-texas-instruments-bq27x00-battery-managers-fix.patch
+     vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: power-support-for-texas-instruments-bq27x00-battery-managers-fix
+Subject: vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Mend s390
-
-Cc: Anton Vorontsov <cbouatmailru@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Rodolfo Giometti <giometti@linux.it>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/Kconfig |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/filemap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/power/Kconfig~power-support-for-texas-instruments-bq27x00-battery-managers-fix drivers/power/Kconfig
---- a/drivers/power/Kconfig~power-support-for-texas-instruments-bq27x00-battery-managers-fix
-+++ a/drivers/power/Kconfig
-@@ -70,8 +70,7 @@ config BATTERY_BQ27x00
- 
- config BATTERY_BQ27200
- 	bool "BQ27200 battery driver"
--	depends on BATTERY_BQ27x00
--	select I2C
-+	depends on I2C && BATTERY_BQ27x00
- 	help
- 	  Say Y here to enable support for batteries with BQ27200(I2C) chip.
- 
+diff -puN mm/filemap.c~vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix mm/filemap.c
+--- a/mm/filemap.c~vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix
++++ a/mm/filemap.c
+@@ -2129,15 +2129,15 @@ generic_file_direct_write(struct kiocb *
+ 	 * After a write we want buffered reads to be sure to go to disk to get
+ 	 * the new data.  We invalidate clean cached page from the region we're
+ 	 * about to write.  We do this *before* the write so that we can return
+-	* without clobbering -EIOCBQUEUED from ->direct_IO().
++	 * without clobbering -EIOCBQUEUED from ->direct_IO().
+ 	 */
+ 	if (mapping->nrpages) {
+ 		written = invalidate_inode_pages2_range(mapping,
+ 					pos >> PAGE_CACHE_SHIFT, end);
+ 		/*
+-		* If a page can not be invalidated, return 0 to fall back
+-		* to buffered write.
+-		*/
++		 * If a page can not be invalidated, return 0 to fall back
++		 * to buffered write.
++		 */
+ 		if (written) {
+ 			if (written == -EBUSY)
+ 				return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails.patch
 vfs-fix-dio-write-returning-eio-when-try_to_release_page-fails-fix.patch
 acer-wmi-remove-debugfs-entries-upon-unloading-cleanup.patch
 drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug.patch
