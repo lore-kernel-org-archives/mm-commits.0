@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-remove-retry-loop-in-ecryptfs_readdir.patch added to -mm tree
-Date: Tue, 02 Sep 2008 15:34:04 -0700
-Message-ID: <200809022234.m82MY4aG016290@imap1.linux-foundation.org>
+Subject: + dyn_array-use-%pf-instead-of-print_fn_descriptor_symbol.patch added to -mm tree
+Date: Tue, 02 Sep 2008 15:59:30 -0700
+Message-ID: <200809022259.m82MxUCi017219@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40460 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47423 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754843AbYIBWew (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 18:34:52 -0400
+	by vger.kernel.org with ESMTP id S1753224AbYIBW7u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 18:59:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhalcrow@us.ibm.com, viro@ZinIV.linux.org.uk
+Cc: yhlu.kernel@gmail.com, mingo@elte.hu
 
 
 The patch titled
-     eCryptfs: remove retry loop in ecryptfs_readdir()
+     dyn_array: use %pF instead of print_fn_descriptor_symbol
 has been added to the -mm tree.  Its filename is
-     ecryptfs-remove-retry-loop-in-ecryptfs_readdir.patch
+     dyn_array-use-%pf-instead-of-print_fn_descriptor_symbol.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,69 +33,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eCryptfs: remove retry loop in ecryptfs_readdir()
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: dyn_array: use %pF instead of print_fn_descriptor_symbol
+From: Yinghai Lu <yhlu.kernel@gmail.com>
 
-The retry block in ecryptfs_readdir() has been in the eCryptfs code base
-for a while, apparently for no good reason.  This loop could potentially
-run without terminating.  This patch removes the loop, instead erroring
-out if vfs_readdir() on the lower file fails.
-
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
-Reported-by: Al Viro <viro@ZinIV.linux.org.uk>
+Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/file.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ init/dyn_array.c |   21 +++++++++------------
+ 1 file changed, 9 insertions(+), 12 deletions(-)
 
-diff -puN fs/ecryptfs/file.c~ecryptfs-remove-retry-loop-in-ecryptfs_readdir fs/ecryptfs/file.c
---- a/fs/ecryptfs/file.c~ecryptfs-remove-retry-loop-in-ecryptfs_readdir
-+++ a/fs/ecryptfs/file.c
-@@ -71,12 +71,11 @@ struct ecryptfs_getdents_callback {
- 	void *dirent;
- 	struct dentry *dentry;
- 	filldir_t filldir;
--	int err;
- 	int filldir_called;
- 	int entries_written;
- };
+diff -puN init/dyn_array.c~dyn_array-use-%pf-instead-of-print_fn_descriptor_symbol init/dyn_array.c
+--- a/init/dyn_array.c~dyn_array-use-%pf-instead-of-print_fn_descriptor_symbol
++++ a/init/dyn_array.c
+@@ -17,10 +17,9 @@ void __init pre_alloc_dyn_array(void)
+ 	for (daa = __dyn_array_start ; daa < __dyn_array_end; daa++) {
+ 		struct dyn_array *da = *daa;
  
--/* Inspired by generic filldir in fs/readir.c */
-+/* Inspired by generic filldir in fs/readdir.c */
- static int
- ecryptfs_filldir(void *dirent, const char *name, int namelen, loff_t offset,
- 		 u64 ino, unsigned int d_type)
-@@ -125,18 +124,18 @@ static int ecryptfs_readdir(struct file 
- 	buf.dirent = dirent;
- 	buf.dentry = file->f_path.dentry;
- 	buf.filldir = filldir;
--retry:
- 	buf.filldir_called = 0;
- 	buf.entries_written = 0;
--	buf.err = 0;
- 	rc = vfs_readdir(lower_file, ecryptfs_filldir, (void *)&buf);
--	if (buf.err)
--		rc = buf.err;
--	if (buf.filldir_called && !buf.entries_written)
--		goto retry;
- 	file->f_pos = lower_file->f_pos;
-+	if (rc < 0)
-+		goto out;
-+	if (buf.filldir_called && !buf.entries_written)
-+		goto out;
- 	if (rc >= 0)
--		fsstack_copy_attr_atime(inode, lower_file->f_path.dentry->d_inode);
-+		fsstack_copy_attr_atime(inode,
-+					lower_file->f_path.dentry->d_inode);
-+out:
- 	return rc;
- }
++		printk(KERN_DEBUG "dyn_array %pF size:%#lx nr:%d align:%#lx\n",
++			da->name, da->size, *da->nr, da->align);
+ 		size = da->size * (*da->nr);
+-		print_fn_descriptor_symbol("dyn_array %s ", da->name);
+-		printk(KERN_CONT "size:%#lx nr:%d align:%#lx\n",
+-			da->size, *da->nr, da->align);
+ 		total_size += roundup(size, da->align);
+ 		if (da->align > max_align)
+ 			max_align = da->align;
+@@ -42,11 +41,10 @@ void __init pre_alloc_dyn_array(void)
+ 		struct dyn_array *da = *daa;
  
-_
-
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
-
-ecryptfs-remove-retry-loop-in-ecryptfs_readdir.patch
-notify_change-callers-must-hold-i_mutex.patch
-
+ 		size = da->size * (*da->nr);
+-		print_fn_descriptor_symbol("dyn_array %s ", da->name);
+-
+ 		phys = roundup(phys, da->align);
++		printk(KERN_DEBUG "dyn_array %pF ==> [%#lx - %#lx]\n",
++			da->name, phys, phys + size);
+ 		*da->name = phys_to_virt(phys);
+-		printk(KERN_CONT " ==> [%#lx - %#lx]\n", phys, phys + size);
+ 
+ 		phys += size;
+ 
+@@ -74,10 +72,9 @@ unsigned long __init per_cpu_dyn_array_s
+ 	for (daa = __per_cpu_dyn_array_start ; daa < __per_cpu_dyn_array_end; daa++) {
+ 		struct dyn_array *da = *daa;
+ 
++		printk(KERN_DEBUG "per_cpu_dyn_array %pF size:%#lx nr:%d align:%#lx\n",
++			da->name, da->size, *da->nr, da->align);
+ 		size = da->size * (*da->nr);
+-		print_fn_descriptor_symbol("per_cpu_dyn_array %s ", da->name);
+-		printk(KERN_CONT "size:%#lx nr:%d align:%#lx\n",
+-			da->size, *da->nr, da->align);
+ 		total_size += roundup(size, da->align);
+ 		if (da->align > max_align)
+ 			max_align = da->align;
+@@ -104,15 +101,15 @@ void __init per_cpu_alloc_dyn_array(int 
+ 		struct dyn_array *da = *daa;
+ 
+ 		size = da->size * (*da->nr);
+-		print_fn_descriptor_symbol("per_cpu_dyn_array %s ", da->name);
