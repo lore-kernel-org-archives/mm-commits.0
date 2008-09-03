@@ -1,172 +1,231 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-cmos-wake-again-from-s5.patch removed from -mm tree
-Date: Wed, 03 Sep 2008 09:12:03 -0700
-Message-ID: <200809031612.m83GC3oX023818@imap1.linux-foundation.org>
+Subject: - drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug.patch removed from -mm tree
+Date: Wed, 03 Sep 2008 09:12:09 -0700
+Message-ID: <200809031612.m83GC9pd023824@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50698 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44090 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752735AbYICQMp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2008 12:12:45 -0400
+	by vger.kernel.org with ESMTP id S1752092AbYICQMy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2008 12:12:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, dbrownell@users.sourceforge.net, rui.zhang@intel.com, stefan.bauer@cs.tu-chemnitz.de, yakui.zhao@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aaron@merfinllc.com, mpm@selenic.com, stable@kernel.org, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-cmos: wake again from S5
+     drivers/char/random.c: fix a race which can lead to a bogus BUG()
 has been removed from the -mm tree.  Its filename was
-     rtc-cmos-wake-again-from-s5.patch
+     drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-cmos: wake again from S5
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: drivers/char/random.c: fix a race which can lead to a bogus BUG()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Update rtc-cmos shutdown handling to leave RTC alarms active, resolving
-http://bugzilla.kernel.org/show_bug.cgi?id=11411 on several boards.  There
-are still some systems where the ACPI event handling doesn't cooperate. 
-(Possibly related to bugid 11312, reporting the spontaneous disabling of
-RTC events.)
+Fix a bug reported by and diagnosed by Aaron Straus.
 
-Bug 11411 reported that changes to work around some ACPI event issues
-broke wake-from-S5 handling, as used for DVR applications.  (They like to
-power off, then wake later to record programs.)
+This is a regression intruduced into 2.6.26 by
 
-[yakui.zhao@intel.com: add shutdown for PNP devices]
-[dbrownell@users.sourceforge.net: update comments]
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Stefan Bauer <stefan.bauer@cs.tu-chemnitz.de>
+    commit adc782dae6c4c0f6fb679a48a544cfbcd79ae3dc
+    Author: Matt Mackall <mpm@selenic.com>
+    Date:   Tue Apr 29 01:03:07 2008 -0700
+
+        random: simplify and rename credit_entropy_store
+
+credit_entropy_bits() does:
+
+	spin_lock_irqsave(&r->lock, flags);
+	...
+	if (r->entropy_count > r->poolinfo->POOLBITS)
+		r->entropy_count = r->poolinfo->POOLBITS;
+
+so there is a time window in which this BUG_ON():
+
+static size_t account(struct entropy_store *r, size_t nbytes, int min,
+		      int reserved)
+{
+	unsigned long flags;
+
+	BUG_ON(r->entropy_count > r->poolinfo->POOLBITS);
+
+	/* Hold lock while accounting */
+	spin_lock_irqsave(&r->lock, flags);
+
+can trigger.
+
+We could fix this by moving the assertion inside the lock, but it seems
+safer and saner to revert to the old behaviour wherein
+entropy_store.entropy_count at no time exceeds
+entropy_store.poolinfo->POOLBITS.
+
+Reported-by: Aaron Straus <aaron@merfinllc.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: <stable@kernel.org>		[2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |   38 ++++++++++++++++++++++++++++++++------
- 1 file changed, 32 insertions(+), 6 deletions(-)
+ drivers/char/random.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-wake-again-from-s5 drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-cmos-wake-again-from-s5
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -800,7 +800,6 @@ static void __exit cmos_do_remove(struct
- static int cmos_suspend(struct device *dev, pm_message_t mesg)
- {
- 	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
--	int		do_wake = device_may_wakeup(dev);
- 	unsigned char	tmp;
- 
- 	/* only the alarm might be a wakeup event source */
-@@ -809,7 +808,7 @@ static int cmos_suspend(struct device *d
- 	if (tmp & (RTC_PIE|RTC_AIE|RTC_UIE)) {
- 		unsigned char	mask;
- 
--		if (do_wake)
-+		if (device_may_wakeup(dev))
- 			mask = RTC_IRQMASK & ~RTC_AIE;
- 		else
- 			mask = RTC_IRQMASK;
-@@ -837,6 +836,17 @@ static int cmos_suspend(struct device *d
- 	return 0;
- }
- 
-+/* We want RTC alarms to wake us from e.g. ACPI G2/S5 "soft off", even
-+ * after a detour through G3 "mechanical off", although the ACPI spec
-+ * says wakeup should only work from G1/S4 "hibernate".  To most users,
-+ * distinctions between S4 and S5 are pointless.  So when the hardware
-+ * allows, don't draw that distinction.
-+ */
-+static inline int cmos_poweroff(struct device *dev)
-+{
-+	return cmos_suspend(dev, PMSG_HIBERNATE);
-+}
-+
- static int cmos_resume(struct device *dev)
- {
- 	struct cmos_rtc	*cmos = dev_get_drvdata(dev);
-@@ -884,6 +894,12 @@ static int cmos_resume(struct device *de
- #else
- #define	cmos_suspend	NULL
- #define	cmos_resume	NULL
-+
-+static inline int cmos_poweroff(struct device *dev)
-+{
-+	return -ENOSYS;
-+}
-+
- #endif
- 
- /*----------------------------------------------------------------*/
-@@ -903,10 +919,6 @@ static int cmos_resume(struct device *de
- static int __devinit
- cmos_pnp_probe(struct pnp_dev *pnp, const struct pnp_device_id *id)
- {
--	/* REVISIT paranoia argues for a shutdown notifier, since PNP
--	 * drivers can't provide shutdown() methods to disable IRQs.
--	 * Or better yet, fix PNP to allow those methods...
--	 */
- 	if (pnp_port_start(pnp,0) == 0x70 && !pnp_irq_valid(pnp,0))
- 		/* Some machines contain a PNP entry for the RTC, but
- 		 * don't define the IRQ. It should always be safe to
-@@ -942,6 +954,13 @@ static int cmos_pnp_resume(struct pnp_de
- #define	cmos_pnp_resume		NULL
- #endif
- 
-+static void cmos_pnp_shutdown(struct device *pdev)
-+{
-+	if (system_state == SYSTEM_POWER_OFF && !cmos_poweroff(pdev))
-+		return;
-+
-+	cmos_do_shutdown();
-+}
- 
- static const struct pnp_device_id rtc_ids[] = {
- 	{ .id = "PNP0b00", },
-@@ -961,6 +980,10 @@ static struct pnp_driver cmos_pnp_driver
- 	.flags		= PNP_DRIVER_RES_DO_NOT_CHANGE,
- 	.suspend	= cmos_pnp_suspend,
- 	.resume		= cmos_pnp_resume,
-+	.driver		= {
-+		.name	  = (char *)driver_name,
-+		.shutdown = cmos_pnp_shutdown,
-+	}
+diff -puN drivers/char/random.c~drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug drivers/char/random.c
+--- a/drivers/char/random.c~drivers-char-randomc-fix-a-race-which-can-lead-to-a-bogus-bug
++++ a/drivers/char/random.c
+@@ -407,7 +407,7 @@ struct entropy_store {
+ 	/* read-write data: */
+ 	spinlock_t lock;
+ 	unsigned add_ptr;
+-	int entropy_count;
++	int entropy_count;	/* Must at no time exceed ->POOLBITS! */
+ 	int input_rotate;
  };
  
- #endif	/* CONFIG_PNP */
-@@ -986,6 +1009,9 @@ static int __exit cmos_platform_remove(s
- 
- static void cmos_platform_shutdown(struct platform_device *pdev)
+@@ -520,6 +520,7 @@ static void mix_pool_bytes(struct entrop
+ static void credit_entropy_bits(struct entropy_store *r, int nbits)
  {
-+	if (system_state == SYSTEM_POWER_OFF && !cmos_poweroff(&pdev->dev))
-+		return;
-+
- 	cmos_do_shutdown();
+ 	unsigned long flags;
++	int entropy_count;
+ 
+ 	if (!nbits)
+ 		return;
+@@ -527,20 +528,20 @@ static void credit_entropy_bits(struct e
+ 	spin_lock_irqsave(&r->lock, flags);
+ 
+ 	DEBUG_ENT("added %d entropy credits to %s\n", nbits, r->name);
+-	r->entropy_count += nbits;
+-	if (r->entropy_count < 0) {
++	entropy_count = r->entropy_count;
++	entropy_count += nbits;
++	if (entropy_count < 0) {
+ 		DEBUG_ENT("negative entropy/overflow\n");
+-		r->entropy_count = 0;
+-	} else if (r->entropy_count > r->poolinfo->POOLBITS)
+-		r->entropy_count = r->poolinfo->POOLBITS;
++		entropy_count = 0;
++	} else if (entropy_count > r->poolinfo->POOLBITS)
++		entropy_count = r->poolinfo->POOLBITS;
++	r->entropy_count = entropy_count;
+ 
+ 	/* should we wake readers? */
+-	if (r == &input_pool &&
+-	    r->entropy_count >= random_read_wakeup_thresh) {
++	if (r == &input_pool && entropy_count >= random_read_wakeup_thresh) {
+ 		wake_up_interruptible(&random_read_wait);
+ 		kill_fasync(&fasync, SIGIO, POLL_IN);
+ 	}
+-
+ 	spin_unlock_irqrestore(&r->lock, flags);
  }
  
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-skge-adapt-skge-to-use-reworked-pci-pm.patch
-skty2-adapt-to-the-reworked-pci-pm.patch
-e100-adapt-to-the-reworked-pci-pm.patch
-forcedeth-fix-kexec-regression.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation.patch
+next-remove-localversion.patch
+linux-next-avoid-genhdc-oops.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
+acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
+toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch
+toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+x86-make-poll_idle-behave-more-like-the-other-idle-methods-checkpatch-fixes.patch
+drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
+fs-dlm-configc-choose-better-identifiers.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+git-jg-misc.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
+pci-tidy-pme-support-messages-checkpatch-fixes.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
+git-xtensa.patch
+modules-remove-stop_machine-during-module-load-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-media-video-cafe_ccicc-needs-mmh.patch
+e1000e-prevent-corruption-of-eeprom-nvm.patch
+drivers-net-mlx4-allocc-needs-mmh.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
 pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures.patch
 container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-make-refrigerator-always-available.patch
-container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
 container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-cleanup-comment.patch
-container-freezer-skip-frozen-cgroups-during-power-management-resume.patch
-vsprintf-use-new-vsprintf-symbolic-function-pointer-format.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
+fix-a-race-condtion-of-oops_in_progress-fix.patch
 vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
+applicomc-fix-apparently-broken-code-in-do_ac_read.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+gru-driver-minor-updates-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+nilfs2-continuous-snapshotting-file-system-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
