@@ -1,94 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - hp-wmi-add-proper-hotkey-support.patch removed from -mm tree
-Date: Wed, 03 Sep 2008 09:11:47 -0700
-Message-ID: <200809031611.m83GBlet023794@imap1.linux-foundation.org>
+Subject: - tdfxfb-fix-frame-buffer-name-overrun.patch removed from -mm tree
+Date: Wed, 03 Sep 2008 09:11:51 -0700
+Message-ID: <200809031611.m83GBpmc023800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50046 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33385 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751868AbYICQMF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2008 12:12:05 -0400
+	by vger.kernel.org with ESMTP id S1751851AbYICQMC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2008 12:12:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mjg59@srcf.ucam.org, mjg@redhat.com, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hp-wmi: add proper hotkey support
+     tdfxfb: fix frame buffer name overrun
 has been removed from the -mm tree.  Its filename was
-     hp-wmi-add-proper-hotkey-support.patch
+     tdfxfb-fix-frame-buffer-name-overrun.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hp-wmi: add proper hotkey support
-From: Matthew Garrett <mjg59@srcf.ucam.org>
+Subject: tdfxfb: fix frame buffer name overrun
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-It turns out that event 0x4 merely indcates that a hotkey has been
-pressed, not which one.  A further query is required in order to determine
-the actual keypress.  The following patch adds support for that along with
-the known keycodes.
+If there are more then one graphics card handled by the tdfxfb driver the
+name of the frame buffer overruns reserved size.
 
-Signed-off-by: Matthew Garrett <mjg@redhat.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/hp-wmi.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/video/tdfxfb.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/misc/hp-wmi.c~hp-wmi-add-proper-hotkey-support drivers/misc/hp-wmi.c
---- a/drivers/misc/hp-wmi.c~hp-wmi-add-proper-hotkey-support
-+++ a/drivers/misc/hp-wmi.c
-@@ -49,6 +49,7 @@ MODULE_ALIAS("wmi:5FB7F034-2C63-45e9-BE9
- #define HPWMI_ALS_QUERY 0x3
- #define HPWMI_DOCK_QUERY 0x4
- #define HPWMI_WIRELESS_QUERY 0x5
-+#define HPWMI_HOTKEY_QUERY 0xc
+diff -puN drivers/video/tdfxfb.c~tdfxfb-fix-frame-buffer-name-overrun drivers/video/tdfxfb.c
+--- a/drivers/video/tdfxfb.c~tdfxfb-fix-frame-buffer-name-overrun
++++ a/drivers/video/tdfxfb.c
+@@ -95,7 +95,6 @@ static inline int mtrr_del(int reg, unsi
+ #define VOODOO5_MAX_PIXCLOCK 350000
  
- static int __init hp_wmi_bios_setup(struct platform_device *device);
- static int __exit hp_wmi_bios_remove(struct platform_device *device);
-@@ -69,7 +70,7 @@ struct bios_return {
- 
- struct key_entry {
- 	char type;		/* See KE_* below */
--	u8 code;
-+	u16 code;
- 	u16 keycode;
- };
- 
-@@ -79,7 +80,9 @@ static struct key_entry hp_wmi_keymap[] 
- 	{KE_SW, 0x01, SW_DOCK},
- 	{KE_KEY, 0x02, KEY_BRIGHTNESSUP},
- 	{KE_KEY, 0x03, KEY_BRIGHTNESSDOWN},
--	{KE_KEY, 0x04, KEY_HELP},
-+	{KE_KEY, 0x20e6, KEY_PROG1},
-+	{KE_KEY, 0x2142, KEY_MEDIA},
-+	{KE_KEY, 0x231b, KEY_HELP},
- 	{KE_END, 0}
- };
- 
-@@ -318,6 +321,9 @@ void hp_wmi_notify(u32 value, void *cont
- 
- 	if (obj && obj->type == ACPI_TYPE_BUFFER && obj->buffer.length == 8) {
- 		int eventcode = *((u8 *) obj->buffer.pointer);
-+		if (eventcode == 0x4)
-+			eventcode = hp_wmi_perform_query(HPWMI_HOTKEY_QUERY, 0,
-+							 0);
- 		key = hp_wmi_get_entry_by_scancode(eventcode);
- 		if (key) {
- 			switch (key->type) {
+ static struct fb_fix_screeninfo tdfx_fix __devinitdata = {
+-	.id =		"3Dfx",
+ 	.type =		FB_TYPE_PACKED_PIXELS,
+ 	.visual =	FB_VISUAL_PSEUDOCOLOR,
+ 	.ypanstep =	1,
+@@ -1200,15 +1199,15 @@ static int __devinit tdfxfb_probe(struct
+ 	/* Configure the default fb_fix_screeninfo first */
+ 	switch (pdev->device) {
+ 	case PCI_DEVICE_ID_3DFX_BANSHEE:
+-		strcat(tdfx_fix.id, " Banshee");
++		strcpy(tdfx_fix.id, "3Dfx Banshee");
+ 		default_par->max_pixclock = BANSHEE_MAX_PIXCLOCK;
+ 		break;
+ 	case PCI_DEVICE_ID_3DFX_VOODOO3:
+-		strcat(tdfx_fix.id, " Voodoo3");
++		strcpy(tdfx_fix.id, "3Dfx Voodoo3");
+ 		default_par->max_pixclock = VOODOO3_MAX_PIXCLOCK;
+ 		break;
+ 	case PCI_DEVICE_ID_3DFX_VOODOO5:
+-		strcat(tdfx_fix.id, " Voodoo5");
++		strcpy(tdfx_fix.id, "3Dfx Voodoo5");
+ 		default_par->max_pixclock = VOODOO5_MAX_PIXCLOCK;
+ 		break;
+ 	}
 _
 
-Patches currently in -mm which might be from mjg59@srcf.ucam.org are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
 linux-next.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch
-acpi-toshiba_acpic-fix-sparse-signedness-mismatch-warnings.patch
-eeepc-laptop-use-standard-interfaces.patch
-rtc-cmos-strongly-avoid-hpet-emulation.patch
+fb-metronome-printk-format-warning.patch
+x86-delay-early-cpu-initialization-until-cpuid-is-done.patch
+x86-move-mtrr-cpu-cap-setting-early-in-early_init_xxxx.patch
+rtc-m48t59-reduce-structure-m48t59_private.patch
+rtc-m48t59-add-support-for-m48t02-and-m48t59-chips-2nd-rev.patch
+fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
+neofb-reduce-panning-function.patch
+viafb-accelc-accelh-update.patch
+viafb-viafbdevc-update.patch
+fbdev-kconfig-update.patch
+fbdev-kconfig-update-fix.patch
+neofb-kill-some-redundant-code.patch
+vga16fb-remove-open_lock-mutex.patch
+neofb-remove-open_lock-mutex.patch
+cirrusfb-remove-information-about-memory-size-during-mode-change.patch
+cirrusfb-simplify-clock-calculation.patch
+cirrusfb-remove-24-bpp-mode.patch
+cirrusfb-drop-device-pointers-from-cirrusfb_info.patch
+tdfxfb-do-not-make-changes-to-default-tdfx_fix.patch
+intelfb-support-945gme-as-used-in-asus-eee-901.patch
+cirrusfb-use-modedb-and-add-mode_option-parameter-2nd-rev.patch
 
