@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-check-line-endings-in-text-format-files.patch added to -mm tree
-Date: Tue, 02 Sep 2008 17:50:30 -0700
-Message-ID: <200809030050.m830oUDe021502@imap1.linux-foundation.org>
+Subject: + checkpatch-suppress-errors-triggered-by-short-patch.patch added to -mm tree
+Date: Tue, 02 Sep 2008 17:50:26 -0700
+Message-ID: <200809030050.m830oQFt021495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39427 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40884 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755079AbYICAuj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 20:50:39 -0400
+	by vger.kernel.org with ESMTP id S1755102AbYICAuh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 20:50:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org
+Cc: apw@shadowen.org, brunel@diku.dk
 
 
 The patch titled
-     checkpatch: check line endings in text format files
+     checkpatch: suppress errors triggered by short patch
 has been added to the -mm tree.  Its filename is
-     checkpatch-check-line-endings-in-text-format-files.patch
+     checkpatch-suppress-errors-triggered-by-short-patch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: check line endings in text format files
+Subject: checkpatch: suppress errors triggered by short patch
 From: Andy Whitcroft <apw@shadowen.org>
 
-Firmware may be included in the kernel as .ihex files.  These are
-inherantly text, but not source.  The line ending checks are applicable to
-these kinds of file, allow just these checks to apply to all files.
+When the last hunk of a patch is short it will trigger errors from
+checkpatch:
+
+    Use of uninitialized value in pattern match (m//)
+	    at /usr/local/bin/checkpatch.pl line 394.
+    Use of uninitialized value in concatenation (.) or string
+	    at /usr/local/bin/checkpatch.pl line 397.
+    Use of uninitialized value in pattern match (m//)
+
+Avoid touching beyond the last line.  Reported by Julien Brunel.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Cc: Julien Brunel <brunel@diku.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-check-line-endings-in-text-format-files scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-check-line-endings-in-text-format-files
+diff -puN scripts/checkpatch.pl~checkpatch-suppress-errors-triggered-by-short-patch scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-suppress-errors-triggered-by-short-patch
 +++ a/scripts/checkpatch.pl
-@@ -1241,9 +1241,6 @@ sub process {
- #ignore lines being removed
- 		if ($line=~/^-/) {next;}
- 
--# check we are in a valid source file if not then ignore this hunk
--		next if ($realfile !~ /\.(h|c|s|S|pl|sh)$/);
--
- #trailing whitespace
- 		if ($line =~ /^\+.*\015/) {
- 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
-@@ -1253,6 +1250,10 @@ sub process {
- 			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
- 			ERROR("trailing whitespace\n" . $herevet);
- 		}
-+
-+# check we are in a valid source file if not then ignore this hunk
-+		next if ($realfile !~ /\.(h|c|s|S|pl|sh)$/);
-+
- #80 column limit
- 		if ($line =~ /^\+/ && $prevrawline !~ /\/\*\*/ &&
- 		    $rawline !~ /^.\s*\*\s*\@$Ident\s/ &&
+@@ -408,6 +408,7 @@ sub ctx_statement_block {
+ 		# context.
+ 		if ($off >= $len) {
+ 			for (; $remain > 0; $line++) {
++				last if (!defined $lines[$line]);
+ 				next if ($lines[$line] =~ /^-/);
+ 				$remain--;
+ 				$loff = $len;
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
