@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + clockevents-prevent-clockevent-event_handler-ending-up-handler_noop.patch added to -mm tree
-Date: Wed, 03 Sep 2008 13:27:56 -0700
-Message-ID: <200809032027.m83KRuZa002414@imap1.linux-foundation.org>
+Subject: + initramfs-add-option-to-preserve-mtime-from-initramfs-cpio-images.patch added to -mm tree
+Date: Wed, 03 Sep 2008 15:22:41 -0700
+Message-ID: <200809032222.m83MMfe4007117@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39313 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54380 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752374AbYICU2w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2008 16:28:52 -0400
+	by vger.kernel.org with ESMTP id S1753543AbYICWXQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2008 18:23:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: venkatesh.pallipadi@intel.com, johnstul@us.ibm.com, mingo@elte.hu, shaohua.li@intel.com, stable@kernel.org, tglx@linutronix.de
+Cc: nyet@nyet.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     clockevents: prevent clockevent event_handler ending up handler_noop
+     initramfs: add option to preserve mtime from initramfs cpio images
 has been added to the -mm tree.  Its filename is
-     clockevents-prevent-clockevent-event_handler-ending-up-handler_noop.patch
+     initramfs-add-option-to-preserve-mtime-from-initramfs-cpio-images.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,93 +33,159 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clockevents: prevent clockevent event_handler ending up handler_noop
-From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Subject: initramfs: add option to preserve mtime from initramfs cpio images
+From: Nye Liu <nyet@nyet.org>
 
-There is a ordering related problem with clockevents code, due to which
-clockevents_register_device() called after tickless/highres switch will
-not work.  The new clockevent ends up with clockevents_handle_noop as
-event handler, resulting in no timer activity.
+When unpacking the cpio into the initramfs, mtimes are not preserved by
+default.  This patch adds an INITRAMFS_PRESERVE_MTIME option that allows
+mtimes stored in the cpio image to be used when constructing the
+initramfs.  For embedded applications that run exclusively out of the
+initramfs, this is invaluable.
 
-The problematic path seems to be
-
-* old device already has hrtimer_interrupt as the event_handler
-* new clockevent device registers with a higher rating
-* tick_check_new_device() is called
-  * clockevents_exchange_device() gets called
-    * old->event_handler is set to clockevents_handle_noop
-  * tick_setup_device() is called for the new device
-    * which sets new->event_handler using the old->event_handler which is noop.
-
-Change the ordering so that new device inherits the proper handler.
-
-This does not have any issue in normal case as most likely all the
-clockevent devices are setup before the highres switch.  But, can
-potentially be affecting some corner case where HPET force detect happens
-after the highres switch.  This was a problem with HPET in MSI mode code
-that we have been experimenting with.
-
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
+Signed-off-by: Nye Liu <nyet@nyet.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/clockchips.h |    2 ++
- kernel/time/clockevents.c  |    3 +--
- kernel/time/tick-common.c  |    1 +
- 3 files changed, 4 insertions(+), 2 deletions(-)
+ init/initramfs.c |   55 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 55 insertions(+)
 
-diff -puN include/linux/clockchips.h~clockevents-prevent-clockevent-event_handler-ending-up-handler_noop include/linux/clockchips.h
---- a/include/linux/clockchips.h~clockevents-prevent-clockevent-event_handler-ending-up-handler_noop
-+++ a/include/linux/clockchips.h
-@@ -127,6 +127,8 @@ extern int clockevents_register_notifier
- extern int clockevents_program_event(struct clock_event_device *dev,
- 				     ktime_t expires, ktime_t now);
+diff -puN init/initramfs.c~initramfs-add-option-to-preserve-mtime-from-initramfs-cpio-images init/initramfs.c
+--- a/init/initramfs.c~initramfs-add-option-to-preserve-mtime-from-initramfs-cpio-images
++++ a/init/initramfs.c
+@@ -7,6 +7,7 @@
+ #include <linux/string.h>
+ #include <linux/dirent.h>
+ #include <linux/syscalls.h>
++#include <linux/utime.h>
  
-+extern void clockevents_handle_noop(struct clock_event_device *dev);
-+
- #ifdef CONFIG_GENERIC_CLOCKEVENTS
- extern void clockevents_notify(unsigned long reason, void *arg);
- #else
-diff -puN kernel/time/clockevents.c~clockevents-prevent-clockevent-event_handler-ending-up-handler_noop kernel/time/clockevents.c
---- a/kernel/time/clockevents.c~clockevents-prevent-clockevent-event_handler-ending-up-handler_noop
-+++ a/kernel/time/clockevents.c
-@@ -177,7 +177,7 @@ void clockevents_register_device(struct 
- /*
-  * Noop handler when we shut down an event device
-  */
--static void clockevents_handle_noop(struct clock_event_device *dev)
-+void clockevents_handle_noop(struct clock_event_device *dev)
- {
+ static __initdata char *message;
+ static void __init error(char *x)
+@@ -73,6 +74,38 @@ static void __init free_hash(void)
+ 	}
  }
  
-@@ -199,7 +199,6 @@ void clockevents_exchange_device(struct 
- 	 * released list and do a notify add later.
- 	 */
- 	if (old) {
--		old->event_handler = clockevents_handle_noop;
- 		clockevents_set_mode(old, CLOCK_EVT_MODE_UNUSED);
- 		list_del(&old->list);
- 		list_add(&old->list, &clockevents_released);
-diff -puN kernel/time/tick-common.c~clockevents-prevent-clockevent-event_handler-ending-up-handler_noop kernel/time/tick-common.c
---- a/kernel/time/tick-common.c~clockevents-prevent-clockevent-event_handler-ending-up-handler_noop
-+++ a/kernel/time/tick-common.c
-@@ -161,6 +161,7 @@ static void tick_setup_device(struct tic
- 	} else {
- 		handler = td->evtdev->event_handler;
- 		next_event = td->evtdev->next_event;
-+		td->evtdev->event_handler = clockevents_handle_noop;
- 	}
++static __initdata LIST_HEAD(dir_list);
++struct dir_entry {
++	struct list_head list;
++	char *name;
++	struct utimbuf mtime;
++};
++
++static void __init dir_add(const char *name, struct utimbuf mtime)
++{
++	struct dir_entry *de = kmalloc(sizeof(struct dir_entry), GFP_KERNEL);
++	if (!de)
++		panic("can't allocate dir_entry buffer");
++	INIT_LIST_HEAD(&de->list);
++	de->name = kstrdup(name, GFP_KERNEL);
++	de->mtime = mtime;
++	list_add(&de->list, &dir_list);
++}
++
++static void __init dir_utime(void)
++{
++	struct list_head *e, *tmp;
++	list_for_each_safe(e, tmp, &dir_list) {
++		struct dir_entry *de = list_entry(e, struct dir_entry, list);
++		list_del(e);
++		sys_utime(de->name, &de->mtime);
++		kfree(de->name);
++		kfree(de);
++	}
++}
++
++static __initdata struct utimbuf mtime;
++
+ /* cpio header parsing */
  
- 	td->evtdev = newdev;
+ static __initdata unsigned long ino, major, minor, nlink;
+@@ -98,6 +131,7 @@ static void __init parse_header(char *s)
+ 	uid = parsed[2];
+ 	gid = parsed[3];
+ 	nlink = parsed[4];
++	mtime.actime = mtime.modtime = parsed[5];
+ 	body_len = parsed[6];
+ 	major = parsed[7];
+ 	minor = parsed[8];
+@@ -129,6 +163,7 @@ static inline void __init eat(unsigned n
+ 	count -= n;
+ }
+ 
++static __initdata char *vcollected;
+ static __initdata char *collected;
+ static __initdata int remains;
+ static __initdata char *collect;
+@@ -264,6 +299,7 @@ static int __init do_name(void)
+ 			if (wfd >= 0) {
+ 				sys_fchown(wfd, uid, gid);
+ 				sys_fchmod(wfd, mode);
++				vcollected = kstrdup(collected, GFP_KERNEL);
+ 				state = CopyFile;
+ 			}
+ 		}
+@@ -271,12 +307,14 @@ static int __init do_name(void)
+ 		sys_mkdir(collected, mode);
+ 		sys_chown(collected, uid, gid);
+ 		sys_chmod(collected, mode);
++		dir_add(collected, mtime);
+ 	} else if (S_ISBLK(mode) || S_ISCHR(mode) ||
+ 		   S_ISFIFO(mode) || S_ISSOCK(mode)) {
+ 		if (maybe_link() == 0) {
+ 			sys_mknod(collected, mode, rdev);
+ 			sys_chown(collected, uid, gid);
+ 			sys_chmod(collected, mode);
++			sys_utime(collected, &mtime);
+ 		}
+ 	}
+ 	return 0;
+@@ -287,6 +325,8 @@ static int __init do_copy(void)
+ 	if (count >= body_len) {
+ 		sys_write(wfd, victim, body_len);
+ 		sys_close(wfd);
++		sys_utime(vcollected, &mtime);
++		kfree(vcollected);
+ 		eat(body_len);
+ 		state = SkipIt;
+ 		return 0;
+@@ -298,12 +338,26 @@ static int __init do_copy(void)
+ 	}
+ }
+ 
++static long __init do_lutime(char __user *filename,
++	struct utimbuf __user *times)
++{
++	struct timespec t[2];
++
++	t[0].tv_sec = times->actime;
++	t[0].tv_nsec = 0;
++	t[1].tv_sec = times->modtime;
++	t[1].tv_nsec = 0;
++
++	return do_utimes(AT_FDCWD, filename, t, AT_SYMLINK_NOFOLLOW);
++}
++
+ static int __init do_symlink(void)
+ {
+ 	collected[N_ALIGN(name_len) + body_len] = '\0';
+ 	clean_path(collected, 0);
+ 	sys_symlink(collected + N_ALIGN(name_len), collected);
+ 	sys_lchown(collected, uid, gid);
++	do_lutime(collected, &mtime);
+ 	state = SkipIt;
+ 	next_state = Reset;
+ 	return 0;
+@@ -458,6 +512,7 @@ static char * __init unpack_to_rootfs(ch
+ 		buf += inptr;
+ 		len -= inptr;
+ 	}
++	dir_utime();
+ 	kfree(window);
+ 	kfree(name_buf);
+ 	kfree(symlink_buf);
 _
 
-Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
+Patches currently in -mm which might be from nyet@nyet.org are
 
-linux-next.patch
-clockevents-prevent-clockevent-event_handler-ending-up-handler_noop.patch
+initramfs-add-option-to-preserve-mtime-from-initramfs-cpio-images.patch
 
