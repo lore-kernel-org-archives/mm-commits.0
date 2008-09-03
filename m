@@ -1,33 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: - linux-next-avoid-tty-oops.patch removed from -mm tree
-Date: Wed, 03 Sep 2008 08:50:39 -0700
-Message-ID: <200809031550.m83FodRk022913@imap1.linux-foundation.org>
+Subject: + linux-next-avoid-genhdc-oops.patch added to -mm tree
+Date: Wed, 03 Sep 2008 09:06:46 -0700
+Message-ID: <200809031606.m83G6kPm023581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47643 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49393 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751856AbYICPut (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2008 11:50:49 -0400
+	by vger.kernel.org with ESMTP id S1751193AbYICQHu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2008 12:07:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     linux-next: avoid tty oops
-has been removed from the -mm tree.  Its filename was
-     linux-next-avoid-tty-oops.patch
+     linux-next: avoid genhd.c oops
+has been added to the -mm tree.  Its filename is
+     linux-next-avoid-genhdc-oops.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next: avoid tty oops
+Subject: linux-next: avoid genhd.c oops
 From: Andrew Morton <akpm@linux-foundation.org>
 
-BUG: unable to handle kernel NULL pointer dereference at 0000000c
-IP: [<c02afc15>] n_tty_set_termios+0x15/0x340
+BUG: unable to handle kernel NULL pointer dereference at 00000000
+IP: [<c03cb7fb>] klist_next+0xb/0xb0
 *pde = 00000000 
 Oops: 0000 [#1] SMP 
 last sysfs file: 
@@ -35,70 +45,51 @@ Dumping ftrace buffer:
    (ftrace buffer empty)
 Modules linked in:
 
-Pid: 1, comm: swapper Tainted: G        W (2.6.27-rc5-mm1 #2)
-EIP: 0060:[<c02afc15>] EFLAGS: 00010282 CPU: 0
-EIP is at n_tty_set_termios+0x15/0x340
-EAX: f709cdd0 EBX: f709cdd0 ECX: f64cd468 EDX: 00000000
-ESI: 00000000 EDI: f60ee000 EBP: f702fdf4 ESP: f702fde8
- DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
-Process swapper (pid: 1, ti=f702e000 task=f702d210 task.ti=f702e000)
-Stack: f709cdd0 f709cdd0 f60ee000 f702fe04 c02b0299 f7095070 f709cdd0 f702fe18 
-       c02b3493 f7095070 f709cdd0 00000000 f702fe3c c02ae9b5 f7095070 f702fe60 
-       00000000 fffffff4 f7095070 00000000 00500001 f702fe70 c02aedeb f707d078 
+Pid: 1262, comm: mount Not tainted (2.6.27-rc5 #6)
+EIP: 0060:[<c03cb7fb>] EFLAGS: 00010286 CPU: 0
+EIP is at klist_next+0xb/0xb0
+EAX: 00000000 EBX: 00000000 ECX: f61d7f2c EDX: f6aa0700
+ESI: 00000000 EDI: f6aa0700 EBP: f61d7ef8 ESP: f61d7ee4
+ DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
+Process mount (pid: 1262, ti=f61d6000 task=f667b6b0 task.ti=f61d6000)
+Stack: f61d7f00 fffffff4 00000000 f64b5b40 f6aa0700 f61d7f04 c02d03a7 c03f42dc 
+       f61d7f0c c027fcc2 f61d7f48 c01a7e1e 00000400 b7fa6000 f65406d8 f64b5b60 
+       00000000 0000003b 00000001 00000000 00000000 00000000 f7012da0 fffffffb 
 Call Trace:
- [<c02b0299>] ? n_tty_open+0x49/0xa0
- [<c02b3493>] ? tty_ldisc_setup+0x23/0x80
- [<c02ae9b5>] ? tty_init_dev+0x85/0x150
- [<c02aedeb>] ? tty_open+0x36b/0x440
- [<c01940fa>] ? chrdev_open+0x9a/0x190
- [<c018fded>] ? __dentry_open+0xad/0x230
- [<c0190d90>] ? nameidata_to_filp+0x50/0x60
- [<c0194060>] ? chrdev_open+0x0/0x190
- [<c019c41a>] ? do_filp_open+0x19a/0x700
- [<c01158a9>] ? cpa_fill_pool+0x99/0x120
- [<c01a4706>] ? alloc_fd+0x26/0xf0
- [<c01a47af>] ? alloc_fd+0xcf/0xf0
- [<c03e159d>] ? _spin_unlock+0x1d/0x20
- [<c018fc0b>] ? do_sys_open+0x4b/0xd0
- [<c0126e5b>] ? printk+0x1b/0x20
- [<c018fcf9>] ? sys_open+0x29/0x40
- [<c01011b7>] ? init_post+0x47/0x140
- [<c0103fff>] ? kernel_thread_helper+0x7/0x18
+ [<c02d03a7>] ? class_dev_iter_next+0x17/0x40
+ [<c027fcc2>] ? disk_seqf_next+0x12/0x20
+ [<c01a7e1e>] ? seq_read+0x1ee/0x2d0
+ [<c01a7c30>] ? seq_read+0x0/0x2d0
+ [<c01c4a8c>] ? proc_reg_read+0x5c/0x90
+ [<c018f574>] ? vfs_read+0x94/0x150
+ [<c028db28>] ? copy_to_user+0x48/0x60
+ [<c01c4a30>] ? proc_reg_read+0x0/0x90
+ [<c018f96d>] ? sys_read+0x3d/0x70
+ [<c010318d>] ? sysenter_do_call+0x12/0x31
  =======================
+Code: 55 83 c0 0c 89 e5 ba 90 b9 3c c0 e8 30 d3 eb ff 5d c3 8d b4 26 00 00 00 00 8d bc 27 00 00 00 00 55 89 e5 57 56 89 c6 53 83 ec 08 <8b> 00 8b 7e 04 8b 50 28 89 55 f0 e8 95 30 01 00 85 ff 74 71 8b 
+EIP: [<c03cb7fb>] klist_next+0xb/0xb0 SS:ESP 0068:f61d7ee4
 
-tty->termios is NULL.
-
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/n_tty.c |   12 ------------
- 1 file changed, 12 deletions(-)
+ block/genhd.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/char/n_tty.c~linux-next-avoid-tty-oops drivers/char/n_tty.c
---- a/drivers/char/n_tty.c~linux-next-avoid-tty-oops
-+++ a/drivers/char/n_tty.c
-@@ -1039,20 +1039,8 @@ int is_ignored(int sig)
+diff -puN block/genhd.c~linux-next-avoid-genhdc-oops block/genhd.c
+--- a/block/genhd.c~linux-next-avoid-genhdc-oops
++++ a/block/genhd.c
+@@ -674,6 +674,8 @@ static void *disk_seqf_next(struct seq_f
+ 	struct device *dev;
  
- static void n_tty_set_termios(struct tty_struct *tty, struct ktermios *old)
- {
--	int canon_change;
- 	BUG_ON(!tty);
- 
--	canon_change = (old->c_lflag ^ tty->termios->c_lflag) & ICANON;
--	if (canon_change) {
--		memset(&tty->read_flags, 0, sizeof tty->read_flags);
--		tty->canon_head = tty->read_tail;
--		tty->canon_data = 0;
--		tty->erasing = 0;
--	}
--
--	if (canon_change && !L_ICANON(tty) && tty->read_cnt)
--		wake_up_interruptible(&tty->read_wait);
--
- 	tty->icanon = (L_ICANON(tty) != 0);
- 	if (test_bit(TTY_HW_COOK_IN, &tty->flags)) {
- 		tty->raw = 1;
+ 	(*pos)++;
++	if (seqf->private == NULL)
++		return NULL;
+ 	dev = class_dev_iter_next(seqf->private);
+ 	if (dev)
+ 		return dev_to_disk(dev);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,10 +97,10 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 linux-next.patch
 next-remove-localversion.patch
+linux-next-avoid-genhdc-oops.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
 kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
-linux-next-avoid-tty-oops.patch
 git-acpi.patch
 acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
 toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch
