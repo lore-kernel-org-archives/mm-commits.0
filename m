@@ -1,163 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: - cirrusfb-check_par-fixes.patch removed from -mm tree
-Date: Wed, 03 Sep 2008 09:11:26 -0700
-Message-ID: <200809031611.m83GBQ0U023771@imap1.linux-foundation.org>
+Subject: - mm-show-quicklist-usage-in-proc-meminfo.patch removed from -mm tree
+Date: Wed, 03 Sep 2008 09:11:32 -0700
+Message-ID: <200809031611.m83GBWv0023777@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49832 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42226 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751760AbYICQLe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2008 12:11:34 -0400
+	by vger.kernel.org with ESMTP id S1751816AbYICQLh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2008 12:11:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, tokunaga.keiich@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cirrusfb: check_par fixes
+     mm: show quicklist usage in /proc/meminfo
 has been removed from the -mm tree.  Its filename was
-     cirrusfb-check_par-fixes.patch
+     mm-show-quicklist-usage-in-proc-meminfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: check_par fixes
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: mm: show quicklist usage in /proc/meminfo
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-1. Check if virtual resolution fits into memory.
-   Otherwise, Linux hangs during panning.
-2. When selected use all available memory to
-    maximize yres_virtual to speed up panning
-   (previously also xres_virtual was increased).
-3. Simplify memory restriction calculations.
+Quicklists can consume several GB of memory.  We should provide a means of
+monitoring this.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@poczta.fm>
+After this patch is applied, /proc/meminfo will output the following:
+
+% cat /proc/meminfo
+
+MemTotal:      7715392 kB
+MemFree:       5401600 kB
+Buffers:         80384 kB
+Cached:         300800 kB
+SwapCached:          0 kB
+Active:         235584 kB
+Inactive:       262656 kB
+SwapTotal:     2031488 kB
+SwapFree:      2031488 kB
+Dirty:            3520 kB
+Writeback:           0 kB
+AnonPages:      117696 kB
+Mapped:          38528 kB
+Slab:          1589952 kB
+SReclaimable:    23104 kB
+SUnreclaim:    1566848 kB
+PageTables:      14656 kB
+NFS_Unstable:        0 kB
+Bounce:              0 kB
+WritebackTmp:        0 kB
+CommitLimit:   5889152 kB
+Committed_AS:   393152 kB
+VmallocTotal: 17592177655808 kB
+VmallocUsed:     29056 kB
+VmallocChunk: 17592177626432 kB
+Quicklists:     130944 kB
+HugePages_Total:     0
+HugePages_Free:      0
+HugePages_Rsvd:      0
+HugePages_Surp:      0
+Hugepagesize:    262144 kB
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Keiichiro Tokunaga <tokunaga.keiich@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |   59 +++++++++++--------------------------
- 1 file changed, 18 insertions(+), 41 deletions(-)
+ fs/proc/proc_misc.c       |    7 +++++--
+ include/linux/quicklist.h |    7 +++++++
+ 2 files changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-check_par-fixes drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-check_par-fixes
-+++ a/drivers/video/cirrusfb.c
-@@ -628,27 +628,18 @@ static long cirrusfb_get_mclk(long freq,
- static int cirrusfb_check_var(struct fb_var_screeninfo *var,
- 			      struct fb_info *info)
- {
--	int nom, den;		/* translyting from pixels->bytes */
--	int yres, i;
--	static struct { int xres, yres; } modes[] =
--	{ { 1600, 1280 },
--	  { 1280, 1024 },
--	  { 1024, 768 },
--	  { 800, 600 },
--	  { 640, 480 },
--	  { -1, -1 } };
-+	int yres;
-+	/* memory size in pixels */
-+	unsigned pixels = info->screen_size * 8 / var->bits_per_pixel;
+diff -puN fs/proc/proc_misc.c~mm-show-quicklist-usage-in-proc-meminfo fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~mm-show-quicklist-usage-in-proc-meminfo
++++ a/fs/proc/proc_misc.c
+@@ -24,6 +24,7 @@
+ #include <linux/tty.h>
+ #include <linux/string.h>
+ #include <linux/mman.h>
++#include <linux/quicklist.h>
+ #include <linux/proc_fs.h>
+ #include <linux/ioport.h>
+ #include <linux/mm.h>
+@@ -189,7 +190,8 @@ static int meminfo_read_proc(char *page,
+ 		"Committed_AS: %8lu kB\n"
+ 		"VmallocTotal: %8lu kB\n"
+ 		"VmallocUsed:  %8lu kB\n"
+-		"VmallocChunk: %8lu kB\n",
++		"VmallocChunk: %8lu kB\n"
++		"Quicklists:   %8lu kB\n",
+ 		K(i.totalram),
+ 		K(i.freeram),
+ 		K(i.bufferram),
+@@ -221,7 +223,8 @@ static int meminfo_read_proc(char *page,
+ 		K(committed),
+ 		(unsigned long)VMALLOC_TOTAL >> 10,
+ 		vmi.used >> 10,
+-		vmi.largest_chunk >> 10
++		vmi.largest_chunk >> 10,
++		K(quicklist_total_size())
+ 		);
  
- 	switch (var->bits_per_pixel) {
- 	case 1:
--		nom = 4;
--		den = 8;
-+		pixels /= 4;
- 		break;		/* 8 pixel per byte, only 1/4th of mem usable */
- 	case 8:
- 	case 16:
- 	case 24:
- 	case 32:
--		nom = var->bits_per_pixel / 8;
--		den = 1;
- 		break;		/* 1 pixel == 1 byte */
- 	default:
- 		printk(KERN_ERR "cirrusfb: mode %dx%dx%d rejected..."
-@@ -658,43 +649,29 @@ static int cirrusfb_check_var(struct fb_
- 		return -EINVAL;
- 	}
+ 		len += hugetlb_report_meminfo(page + len);
+diff -puN include/linux/quicklist.h~mm-show-quicklist-usage-in-proc-meminfo include/linux/quicklist.h
+--- a/include/linux/quicklist.h~mm-show-quicklist-usage-in-proc-meminfo
++++ a/include/linux/quicklist.h
+@@ -80,6 +80,13 @@ void quicklist_trim(int nr, void (*dtor)
  
--	if (var->xres * nom / den * var->yres > info->screen_size) {
--		printk(KERN_ERR "cirrusfb: mode %dx%dx%d rejected..."
--			"resolution too high to fit into video memory!\n",
--			var->xres, var->yres, var->bits_per_pixel);
--		DPRINTK("EXIT - EINVAL error\n");
--		return -EINVAL;
--	}
--
-+	if (var->xres_virtual < var->xres)
-+		var->xres_virtual = var->xres;
- 	/* use highest possible virtual resolution */
--	if (var->xres_virtual == -1 &&
--	    var->yres_virtual == -1) {
--		printk(KERN_INFO
--		     "cirrusfb: using maximum available virtual resolution\n");
--		for (i = 0; modes[i].xres != -1; i++) {
--			int size = modes[i].xres * nom / den * modes[i].yres;
--			if (size < info->screen_size / 2)
--				break;
--		}
--		if (modes[i].xres == -1) {
--			printk(KERN_ERR "cirrusfb: could not find a virtual "
--				"resolution that fits into video memory!!\n");
--			DPRINTK("EXIT - EINVAL error\n");
--			return -EINVAL;
--		}
--		var->xres_virtual = modes[i].xres;
--		var->yres_virtual = modes[i].yres;
-+	if (var->yres_virtual == -1) {
-+		var->yres_virtual = pixels / var->xres_virtual;
+ unsigned long quicklist_total_size(void);
  
- 		printk(KERN_INFO "cirrusfb: virtual resolution set to "
- 			"maximum of %dx%d\n", var->xres_virtual,
- 			var->yres_virtual);
- 	}
--
--	if (var->xres_virtual < var->xres)
--		var->xres_virtual = var->xres;
- 	if (var->yres_virtual < var->yres)
- 		var->yres_virtual = var->yres;
- 
-+	if (var->xres_virtual * var->yres_virtual > pixels) {
-+		printk(KERN_ERR "cirrusfb: mode %dx%dx%d rejected... "
-+		      "virtual resolution too high to fit into video memory!\n",
-+			var->xres_virtual, var->yres_virtual,
-+			var->bits_per_pixel);
-+		DPRINTK("EXIT - EINVAL error\n");
-+		return -EINVAL;
-+	}
++#else
 +
++static inline unsigned long quicklist_total_size(void)
++{
++	return 0;
++}
 +
- 	if (var->xoffset < 0)
- 		var->xoffset = 0;
- 	if (var->yoffset < 0)
+ #endif
+ 
+ #endif /* LINUX_QUICKLIST_H */
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-linux-next.patch
-fb-metronome-printk-format-warning.patch
-x86-delay-early-cpu-initialization-until-cpuid-is-done.patch
-x86-move-mtrr-cpu-cap-setting-early-in-early_init_xxxx.patch
-rtc-m48t59-reduce-structure-m48t59_private.patch
-rtc-m48t59-add-support-for-m48t02-and-m48t59-chips-2nd-rev.patch
-fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
-neofb-reduce-panning-function.patch
-viafb-accelc-accelh-update.patch
-viafb-viafbdevc-update.patch
-fbdev-kconfig-update.patch
-fbdev-kconfig-update-fix.patch
-neofb-kill-some-redundant-code.patch
-vga16fb-remove-open_lock-mutex.patch
-neofb-remove-open_lock-mutex.patch
-cirrusfb-remove-information-about-memory-size-during-mode-change.patch
-cirrusfb-simplify-clock-calculation.patch
-cirrusfb-remove-24-bpp-mode.patch
-cirrusfb-drop-device-pointers-from-cirrusfb_info.patch
-tdfxfb-do-not-make-changes-to-default-tdfx_fix.patch
-intelfb-support-945gme-as-used-in-asus-eee-901.patch
-cirrusfb-use-modedb-and-add-mode_option-parameter-2nd-rev.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-infrastructure-nommu-fix.patch
+unevictable-lru-infrastructure-remember-pages-active-state.patch
+unevictable-lru-infrastructure-defer-vm-event-counting.patch
+unevictable-infrastructure-lru-add-event-counting-with-statistics.patch
+unevictable-lru-page-statistics.patch
+shm_locked-pages-are-unevictable.patch
+shm_locked-pages-are-unevictable-add-event-counts-to-list-scan.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+doc-unevictable-lru-and-mlocked-pages-documentation-update-2.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-__mlock_vma_pages_range-comment-block.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-backout-locked_vm-adjustment-during-mmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-return-value-for-munmap-mlock-vma-race.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-update-locked_vm-on-munmap-of-mlocked-region.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch
+swap-cull-unevictable-pages-in-fault-path.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+vmscam-kill-unused-lru-functions.patch
+mlock-revert-mainline-handling-of-mlock-error-return.patch
+mlock-make-mlock-error-return-posixly-correct.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-unlockless-reclaim.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
