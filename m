@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-dlm-configc-choose-better-identifiers.patch added to -mm tree
-Date: Tue, 02 Sep 2008 21:40:59 -0700
-Message-ID: <200809030454.m834sYwX030095@imap1.linux-foundation.org>
+Subject: + drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch added to -mm tree
+Date: Tue, 02 Sep 2008 22:05:53 -0700
+Message-ID: <200809030519.m835JS9Z030929@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50127 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33675 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751219AbYICEyv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2008 00:54:51 -0400
+	by vger.kernel.org with ESMTP id S1751246AbYICFUR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2008 01:20:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ccaulfie@redhat.com, teigland@redhat.com
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, davem@davemloft.net, david-b@pacbell.net
 
 
 The patch titled
-     fs/dlm/config.c: choose better identifiers
+     drivers/rtc/Kconfig: don't build rtc-cmos.o on sparc32
 has been added to the -mm tree.  Its filename is
-     fs-dlm-configc-choose-better-identifiers.patch
+     drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,218 +33,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/dlm/config.c: choose better identifiers
+Subject: drivers/rtc/Kconfig: don't build rtc-cmos.o on sparc32
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sparc32:
+Fix for linux-next's
 
-fs/dlm/config.c:397: error: expected identifier or '(' before '{' token
-fs/dlm/config.c: In function 'drop_node':
-fs/dlm/config.c:589: warning: initialization from incompatible pointer type
-fs/dlm/config.c:589: warning: initialization from incompatible pointer type
-fs/dlm/config.c: In function 'release_node':
-fs/dlm/config.c:601: warning: initialization from incompatible pointer type
-fs/dlm/config.c:601: warning: initialization from incompatible pointer type
-fs/dlm/config.c: In function 'show_node':
-fs/dlm/config.c:717: warning: initialization from incompatible pointer type
-fs/dlm/config.c:717: warning: initialization from incompatible pointer type
-fs/dlm/config.c: In function 'store_node':
-fs/dlm/config.c:726: warning: initialization from incompatible pointer type
-fs/dlm/config.c:726: warning: initialization from incompatible pointer type
+: Author: David S. Miller <davem@davemloft.net>  2008-08-28 19:54:17
+: Committer: David S. Miller <davem@davemloft.net>  2008-08-29 14:16:45
+: Parent: 7f60459921bd24e86b21e07c42244c510b4f46b2 (Blackfin RTC Driver: BF561 not have on-chip RTC)
+: Child:  cca4c231028405950a15f5a27d7326d18d909784 (rtc: Add TI BQ4802 RTC driver.)
+: Branches: git-alsa-tiwai, linux-next
+: Follows: v2.6.27-rc4
+: Precedes: next-20080902
+: 
+:     rtc: Allow RTC_DRV_CMOS to be used on SPARC.
 
-Cc: Christine Caulfield <ccaulfie@redhat.com>
-Cc: David Teigland <teigland@redhat.com>
+
+In file included from drivers/rtc/rtc-cmos.c:40:
+include/asm-generic/rtc.h: In function 'rtc_is_updating':
+include/asm-generic/rtc.h:40: error: 'rtc_port' undeclared (first use in this function)
+include/asm-generic/rtc.h:40: error: (Each undeclared identifier is reported only once
+include/asm-generic/rtc.h:40: error: for each function it appears in.)
+include/asm-generic/rtc.h: In function 'get_rtc_time':
+include/asm-generic/rtc.h:73: error: 'rtc_port' undeclared (first use in this function)
+include/asm-generic/rtc.h: In function 'set_rtc_time':
+include/asm-generic/rtc.h:160: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_read_alarm':
+drivers/rtc/rtc-cmos.c:193: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_checkintr':
+drivers/rtc/rtc-cmos.c:255: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_irq_enable':
+drivers/rtc/rtc-cmos.c:272: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_irq_disable':
+drivers/rtc/rtc-cmos.c:292: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_set_alarm':
+drivers/rtc/rtc-cmos.c:337: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_irq_set_freq':
+drivers/rtc/rtc-cmos.c:378: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_procfs':
+drivers/rtc/rtc-cmos.c:455: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_nvram_read':
+drivers/rtc/rtc-cmos.c:519: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_nvram_write':
+drivers/rtc/rtc-cmos.c:551: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_interrupt':
+drivers/rtc/rtc-cmos.c:588: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_do_probe':
+drivers/rtc/rtc-cmos.c:722: error: 'rtc_port' undeclared (first use in this function)
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/config.c |   44 ++++++++++++++++++++++----------------------
- 1 file changed, 22 insertions(+), 22 deletions(-)
+ drivers/rtc/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/dlm/config.c~fs-dlm-configc-choose-better-identifiers fs/dlm/config.c
---- a/fs/dlm/config.c~fs-dlm-configc-choose-better-identifiers
-+++ a/fs/dlm/config.c
-@@ -377,24 +377,24 @@ static struct config_item_type node_type
- 	.ct_owner = THIS_MODULE,
- };
+diff -puN drivers/rtc/Kconfig~drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32 drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32
++++ a/drivers/rtc/Kconfig
+@@ -329,7 +329,7 @@ comment "Platform RTC drivers"
  
--static struct dlm_cluster *to_cluster(struct config_item *i)
-+static struct dlm_cluster *config_item_to_cluster(struct config_item *i)
- {
- 	return i ? container_of(to_config_group(i), struct dlm_cluster, group) :
- 		   NULL;
- }
- 
--static struct dlm_space *to_space(struct config_item *i)
-+static struct dlm_space *config_item_to_space(struct config_item *i)
- {
- 	return i ? container_of(to_config_group(i), struct dlm_space, group) :
- 		   NULL;
- }
- 
--static struct dlm_comm *to_comm(struct config_item *i)
-+static struct dlm_comm *config_item_to_comm(struct config_item *i)
- {
- 	return i ? container_of(i, struct dlm_comm, item) : NULL;
- }
- 
--static struct dlm_node *to_node(struct config_item *i)
-+static struct dlm_node *config_item_to_node(struct config_item *i)
- {
- 	return i ? container_of(i, struct dlm_node, item) : NULL;
- }
-@@ -450,7 +450,7 @@ static struct config_group *make_cluster
- 
- static void drop_cluster(struct config_group *g, struct config_item *i)
- {
--	struct dlm_cluster *cl = to_cluster(i);
-+	struct dlm_cluster *cl = config_item_to_cluster(i);
- 	struct config_item *tmp;
- 	int j;
- 
-@@ -468,7 +468,7 @@ static void drop_cluster(struct config_g
- 
- static void release_cluster(struct config_item *i)
- {
--	struct dlm_cluster *cl = to_cluster(i);
-+	struct dlm_cluster *cl = config_item_to_cluster(i);
- 	kfree(cl->group.default_groups);
- 	kfree(cl);
- }
-@@ -507,7 +507,7 @@ static struct config_group *make_space(s
- 
- static void drop_space(struct config_group *g, struct config_item *i)
- {
--	struct dlm_space *sp = to_space(i);
-+	struct dlm_space *sp = config_item_to_space(i);
- 	struct config_item *tmp;
- 	int j;
- 
-@@ -524,7 +524,7 @@ static void drop_space(struct config_gro
- 
- static void release_space(struct config_item *i)
- {
--	struct dlm_space *sp = to_space(i);
-+	struct dlm_space *sp = config_item_to_space(i);
- 	kfree(sp->group.default_groups);
- 	kfree(sp);
- }
-@@ -546,7 +546,7 @@ static struct config_item *make_comm(str
- 
- static void drop_comm(struct config_group *g, struct config_item *i)
- {
--	struct dlm_comm *cm = to_comm(i);
-+	struct dlm_comm *cm = config_item_to_comm(i);
- 	if (local_comm == cm)
- 		local_comm = NULL;
- 	dlm_lowcomms_close(cm->nodeid);
-@@ -557,13 +557,13 @@ static void drop_comm(struct config_grou
- 
- static void release_comm(struct config_item *i)
- {
--	struct dlm_comm *cm = to_comm(i);
-+	struct dlm_comm *cm = config_item_to_comm(i);
- 	kfree(cm);
- }
- 
- static struct config_item *make_node(struct config_group *g, const char *name)
- {
--	struct dlm_space *sp = to_space(g->cg_item.ci_parent);
-+	struct dlm_space *sp = config_item_to_space(g->cg_item.ci_parent);
- 	struct dlm_node *nd;
- 
- 	nd = kzalloc(sizeof(struct dlm_node), GFP_KERNEL);
-@@ -585,8 +585,8 @@ static struct config_item *make_node(str
- 
- static void drop_node(struct config_group *g, struct config_item *i)
- {
--	struct dlm_space *sp = to_space(g->cg_item.ci_parent);
--	struct dlm_node *nd = to_node(i);
-+	struct dlm_space *sp = config_item_to_space(g->cg_item.ci_parent);
-+	struct dlm_node *nd = config_item_to_node(i);
- 
- 	mutex_lock(&sp->members_lock);
- 	list_del(&nd->list);
-@@ -598,7 +598,7 @@ static void drop_node(struct config_grou
- 
- static void release_node(struct config_item *i)
- {
--	struct dlm_node *nd = to_node(i);
-+	struct dlm_node *nd = config_item_to_node(i);
- 	kfree(nd);
- }
- 
-@@ -632,7 +632,7 @@ void dlm_config_exit(void)
- static ssize_t show_cluster(struct config_item *i, struct configfs_attribute *a,
- 			    char *buf)
- {
--	struct dlm_cluster *cl = to_cluster(i);
-+	struct dlm_cluster *cl = config_item_to_cluster(i);
- 	struct cluster_attribute *cla =
- 			container_of(a, struct cluster_attribute, attr);
- 	return cla->show ? cla->show(cl, buf) : 0;
-@@ -642,7 +642,7 @@ static ssize_t store_cluster(struct conf
- 			     struct configfs_attribute *a,
- 			     const char *buf, size_t len)
- {
--	struct dlm_cluster *cl = to_cluster(i);
-+	struct dlm_cluster *cl = config_item_to_cluster(i);
- 	struct cluster_attribute *cla =
- 		container_of(a, struct cluster_attribute, attr);
- 	return cla->store ? cla->store(cl, buf, len) : -EINVAL;
-@@ -651,7 +651,7 @@ static ssize_t store_cluster(struct conf
- static ssize_t show_comm(struct config_item *i, struct configfs_attribute *a,
- 			 char *buf)
- {
--	struct dlm_comm *cm = to_comm(i);
-+	struct dlm_comm *cm = config_item_to_comm(i);
- 	struct comm_attribute *cma =
- 			container_of(a, struct comm_attribute, attr);
- 	return cma->show ? cma->show(cm, buf) : 0;
-@@ -660,7 +660,7 @@ static ssize_t show_comm(struct config_i
- static ssize_t store_comm(struct config_item *i, struct configfs_attribute *a,
- 			  const char *buf, size_t len)
- {
--	struct dlm_comm *cm = to_comm(i);
-+	struct dlm_comm *cm = config_item_to_comm(i);
- 	struct comm_attribute *cma =
- 		container_of(a, struct comm_attribute, attr);
- 	return cma->store ? cma->store(cm, buf, len) : -EINVAL;
-@@ -714,7 +714,7 @@ static ssize_t comm_addr_write(struct dl
- static ssize_t show_node(struct config_item *i, struct configfs_attribute *a,
- 			 char *buf)
- {
--	struct dlm_node *nd = to_node(i);
-+	struct dlm_node *nd = config_item_to_node(i);
- 	struct node_attribute *nda =
- 			container_of(a, struct node_attribute, attr);
- 	return nda->show ? nda->show(nd, buf) : 0;
-@@ -723,7 +723,7 @@ static ssize_t show_node(struct config_i
- static ssize_t store_node(struct config_item *i, struct configfs_attribute *a,
- 			  const char *buf, size_t len)
- {
--	struct dlm_node *nd = to_node(i);
-+	struct dlm_node *nd = config_item_to_node(i);
- 	struct node_attribute *nda =
- 		container_of(a, struct node_attribute, attr);
- 	return nda->store ? nda->store(nd, buf, len) : -EINVAL;
-@@ -768,7 +768,7 @@ static struct dlm_space *get_space(char 
- 	i = config_group_find_item(space_list, name);
- 	mutex_unlock(&space_list->cg_subsys->su_mutex);
- 
--	return to_space(i);
-+	return config_item_to_space(i);
- }
- 
- static void put_space(struct dlm_space *sp)
-@@ -788,7 +788,7 @@ static struct dlm_comm *get_comm(int nod
- 	mutex_lock(&clusters_root.subsys.su_mutex);
- 
- 	list_for_each_entry(i, &comm_list->cg_children, ci_entry) {
--		cm = to_comm(i);
-+		cm = config_item_to_comm(i);
- 
- 		if (nodeid) {
- 			if (cm->nodeid != nodeid)
+ config RTC_DRV_CMOS
+ 	tristate "PC-style 'CMOS'"
+-	depends on X86 || ALPHA || ARM || M32R || ATARI || PPC || MIPS || SPARC
++	depends on X86 || ALPHA || ARM || M32R || ATARI || PPC || MIPS || SPARC64
+ 	default y if X86
+ 	help
+ 	  Say "yes" here to get direct support for the real time clock
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -265,6 +122,7 @@ zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
 x86-make-poll_idle-behave-more-like-the-other-idle-methods-checkpatch-fixes.patch
 drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
 fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
+fs-dlm-configc-choose-better-identifiers.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 git-jg-misc.patch
@@ -279,6 +137,7 @@ backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatc
 pci-tidy-pme-support-messages-checkpatch-fixes.patch
 scsi-gdthc-use-unaligned-access-helpers.patch
 drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
 git-xtensa.patch
 modules-remove-stop_machine-during-module-load-checkpatch-fixes.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
@@ -350,5 +209,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-fs-dlm-configc-choose-better-identifiers.patch
 
