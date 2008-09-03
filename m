@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + proc-proc_sys_root-tweak.patch added to -mm tree
-Date: Tue, 02 Sep 2008 17:34:08 -0700
-Message-ID: <200809030034.m830Y8t1020850@imap1.linux-foundation.org>
+Subject: + proc-remove-dummy-vmcore_open.patch added to -mm tree
+Date: Tue, 02 Sep 2008 17:34:10 -0700
+Message-ID: <200809030034.m830YAHp020857@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43643 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40072 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754267AbYICAeM (ORCPT
+	by vger.kernel.org with ESMTP id S1752473AbYICAeM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 20:34:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: adobriyan@gmail.com
 
 
 The patch titled
-     proc: proc_sys_root tweak
+     proc: remove dummy vmcore_open()
 has been added to the -mm tree.  Its filename is
-     proc-proc_sys_root-tweak.patch
+     proc-remove-dummy-vmcore_open.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: proc_sys_root tweak
+Subject: proc: remove dummy vmcore_open()
 From: Alexey Dobriyan <adobriyan@gmail.com>
+
+Empty ->open is equvivalent to always succeeding ->open.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/proc/vmcore.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN fs/proc/proc_sysctl.c~proc-proc_sys_root-tweak fs/proc/proc_sysctl.c
---- a/fs/proc/proc_sysctl.c~proc-proc_sys_root-tweak
-+++ a/fs/proc/proc_sysctl.c
-@@ -395,10 +395,10 @@ static struct dentry_operations proc_sys
- 	.d_compare	= proc_sys_compare,
+diff -puN fs/proc/vmcore.c~proc-remove-dummy-vmcore_open fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~proc-remove-dummy-vmcore_open
++++ a/fs/proc/vmcore.c
+@@ -162,14 +162,8 @@ static ssize_t read_vmcore(struct file *
+ 	return acc;
+ }
+ 
+-static int open_vmcore(struct inode *inode, struct file *filp)
+-{
+-	return 0;
+-}
+-
+ const struct file_operations proc_vmcore_operations = {
+ 	.read		= read_vmcore,
+-	.open		= open_vmcore,
  };
  
--static struct proc_dir_entry *proc_sys_root;
--
- int proc_sys_init(void)
- {
-+	struct proc_dir_entry *proc_sys_root;
-+
- 	proc_sys_root = proc_mkdir("sys", NULL);
- 	proc_sys_root->proc_iops = &proc_sys_dir_operations;
- 	proc_sys_root->proc_fops = &proc_sys_dir_file_operations;
+ static struct vmcore* __init get_new_element(void)
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
