@@ -1,118 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 03 Sep 2008 08:50:27 -0700
-Message-ID: <200809031550.m83FoR30022907@imap1.linux-foundation.org>
+Subject: - linux-next-avoid-tty-oops.patch removed from -mm tree
+Date: Wed, 03 Sep 2008 08:50:39 -0700
+Message-ID: <200809031550.m83FodRk022913@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56893 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47643 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751047AbYICPu3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2008 11:50:29 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m83FoRGF020494
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 3 Sep 2008 08:50:28 -0700
+	by vger.kernel.org with ESMTP id S1751856AbYICPut (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2008 11:50:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
+     linux-next: avoid tty oops
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     linux-next-avoid-tty-oops.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: linux-next: avoid tty oops
 From: Andrew Morton <akpm@linux-foundation.org>
 
+BUG: unable to handle kernel NULL pointer dereference at 0000000c
+IP: [<c02afc15>] n_tty_set_termios+0x15/0x340
+*pde = 00000000 
+Oops: 0000 [#1] SMP 
+last sysfs file: 
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+
+Pid: 1, comm: swapper Tainted: G        W (2.6.27-rc5-mm1 #2)
+EIP: 0060:[<c02afc15>] EFLAGS: 00010282 CPU: 0
+EIP is at n_tty_set_termios+0x15/0x340
+EAX: f709cdd0 EBX: f709cdd0 ECX: f64cd468 EDX: 00000000
+ESI: 00000000 EDI: f60ee000 EBP: f702fdf4 ESP: f702fde8
+ DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+Process swapper (pid: 1, ti=f702e000 task=f702d210 task.ti=f702e000)
+Stack: f709cdd0 f709cdd0 f60ee000 f702fe04 c02b0299 f7095070 f709cdd0 f702fe18 
+       c02b3493 f7095070 f709cdd0 00000000 f702fe3c c02ae9b5 f7095070 f702fe60 
+       00000000 fffffff4 f7095070 00000000 00500001 f702fe70 c02aedeb f707d078 
+Call Trace:
+ [<c02b0299>] ? n_tty_open+0x49/0xa0
+ [<c02b3493>] ? tty_ldisc_setup+0x23/0x80
+ [<c02ae9b5>] ? tty_init_dev+0x85/0x150
+ [<c02aedeb>] ? tty_open+0x36b/0x440
+ [<c01940fa>] ? chrdev_open+0x9a/0x190
+ [<c018fded>] ? __dentry_open+0xad/0x230
+ [<c0190d90>] ? nameidata_to_filp+0x50/0x60
+ [<c0194060>] ? chrdev_open+0x0/0x190
+ [<c019c41a>] ? do_filp_open+0x19a/0x700
+ [<c01158a9>] ? cpa_fill_pool+0x99/0x120
+ [<c01a4706>] ? alloc_fd+0x26/0xf0
+ [<c01a47af>] ? alloc_fd+0xcf/0xf0
+ [<c03e159d>] ? _spin_unlock+0x1d/0x20
+ [<c018fc0b>] ? do_sys_open+0x4b/0xd0
+ [<c0126e5b>] ? printk+0x1b/0x20
+ [<c018fcf9>] ? sys_open+0x29/0x40
+ [<c01011b7>] ? init_post+0x47/0x140
+ [<c0103fff>] ? kernel_thread_helper+0x7/0x18
+ =======================
+
+tty->termios is NULL.
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/cmd-filter.c |    3 ---
- block/genhd.c      |   21 ++++-----------------
- kernel/auditsc.c   |    4 ----
- 3 files changed, 4 insertions(+), 24 deletions(-)
+ drivers/char/n_tty.c |   12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff -puN block/cmd-filter.c~linux-next-git-rejects block/cmd-filter.c
---- a/block/cmd-filter.c~linux-next-git-rejects
-+++ a/block/cmd-filter.c
-@@ -227,7 +227,4 @@ void blk_unregister_filter(struct gendis
+diff -puN drivers/char/n_tty.c~linux-next-avoid-tty-oops drivers/char/n_tty.c
+--- a/drivers/char/n_tty.c~linux-next-avoid-tty-oops
++++ a/drivers/char/n_tty.c
+@@ -1039,20 +1039,8 @@ int is_ignored(int sig)
  
- 	kobject_put(&filter->kobj);
- }
--<<<<<<< HEAD:block/cmd-filter.c
- EXPORT_SYMBOL(blk_unregister_filter);
--=======
-->>>>>>> FETCH_HEAD:block/cmd-filter.c
-diff -puN block/genhd.c~linux-next-git-rejects block/genhd.c
---- a/block/genhd.c~linux-next-git-rejects
-+++ a/block/genhd.c
-@@ -526,12 +526,9 @@ EXPORT_SYMBOL(del_gendisk);	/* in partit
- 
- void unlink_gendisk(struct gendisk *disk)
+ static void n_tty_set_termios(struct tty_struct *tty, struct ktermios *old)
  {
--<<<<<<< HEAD:block/genhd.c
--	sysfs_remove_link(&disk->dev.kobj, "bdi");
--=======
-+//	sysfs_remove_link(&disk->dev.kobj, "bdi");
- 	blk_unregister_filter(disk);
- 	sysfs_remove_link(&disk_to_dev(disk)->kobj, "bdi");
-->>>>>>> FETCH_HEAD:block/genhd.c
- 	bdi_unregister(&disk->queue->backing_dev_info);
- 	blk_unregister_queue(disk);
- 	blk_unregister_region(disk_devt(disk), disk->minors);
-@@ -678,19 +675,9 @@ static void *disk_seqf_next(struct seq_f
- {
- 	struct device *dev;
+-	int canon_change;
+ 	BUG_ON(!tty);
  
--<<<<<<< HEAD:block/genhd.c
--	if (!k)
--		part->private = (void *)1LU;	/* tell show to print header */
+-	canon_change = (old->c_lflag ^ tty->termios->c_lflag) & ICANON;
+-	if (canon_change) {
+-		memset(&tty->read_flags, 0, sizeof tty->read_flags);
+-		tty->canon_head = tty->read_tail;
+-		tty->canon_data = 0;
+-		tty->erasing = 0;
+-	}
 -
--	mutex_lock(&block_class_lock);
--	dev = class_find_device(&block_class, NULL, &k, find_start);
--	if (dev) {
--		put_device(dev);
--=======
- 	(*pos)++;
- 	dev = class_dev_iter_next(seqf->private);
- 	if (dev)
-->>>>>>> FETCH_HEAD:block/genhd.c
- 		return dev_to_disk(dev);
- 
- 	return NULL;
-@@ -730,9 +717,9 @@ static int show_partition(struct seq_fil
- 	 * partition exists.  This hackery will be removed later with
- 	 * class iteration clean up.
- 	 */
--	if (part->private) {
--		seq_puts(part, "major minor  #blocks  name\n\n");
--		part->private = NULL;
-+	if (seqf->private) {
-+		seq_puts(seqf, "major minor  #blocks  name\n\n");
-+		seqf->private = NULL;
- 	}
- 
- 	/* Don't show non-partitionable removeable devices or empty devices */
-diff -puN kernel/auditsc.c~linux-next-git-rejects kernel/auditsc.c
---- a/kernel/auditsc.c~linux-next-git-rejects
-+++ a/kernel/auditsc.c
-@@ -248,10 +248,6 @@ static int audit_match_perm(struct audit
- 		return 0;
- 	n = ctx->major;
- 
--<<<<<<< HEAD:kernel/auditsc.c
--	n = ctx->major;
--=======
-->>>>>>> FETCH_HEAD:kernel/auditsc.c
- 	switch (audit_classify_syscall(ctx->arch, n)) {
- 	case 0:	/* native */
- 		if ((mask & AUDIT_PERM_WRITE) &&
+-	if (canon_change && !L_ICANON(tty) && tty->read_cnt)
+-		wake_up_interruptible(&tty->read_wait);
+-
+ 	tty->icanon = (L_ICANON(tty) != 0);
+ 	if (test_bit(TTY_HW_COOK_IN, &tty->flags)) {
+ 		tty->raw = 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,7 +109,6 @@ next-remove-localversion.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
 kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
-linux-next-git-rejects.patch
 linux-next-avoid-tty-oops.patch
 git-acpi.patch
 acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
