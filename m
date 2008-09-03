@@ -1,89 +1,193 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-hp-plus-fix-link-objects.patch added to -mm tree
-Date: Tue, 02 Sep 2008 17:55:25 -0700
-Message-ID: <200809030055.m830tP34021695@imap1.linux-foundation.org>
+Subject: - profiling-dynamically-enable-readprofile-at-runtime.patch removed from -mm tree
+Date: Tue, 02 Sep 2008 19:45:37 -0700
+Message-ID: <200809030259.m832xCE7025892@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40516 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53868 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754405AbYICA4U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 20:56:20 -0400
+	by vger.kernel.org with ESMTP id S1752823AbYICC7i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 22:59:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, alan@lxorguk.ukuu.org.uk, jeff@garzik.org
+To: dave@linux.vnet.ibm.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/net/hp-plus: fix link objects
-has been added to the -mm tree.  Its filename is
-     drivers-net-hp-plus-fix-link-objects.patch
+     profiling: dynamically enable readprofile at runtime
+has been removed from the -mm tree.  Its filename was
+     profiling-dynamically-enable-readprofile-at-runtime.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because i386 allmodconfig compile go splat
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/hp-plus: fix link objects
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: profiling: dynamically enable readprofile at runtime
+From: Dave Hansen <dave@linux.vnet.ibm.com>
 
-Fix hp-plus Makefile object file:
+Way too often, I have a machine that exhibits some kind of crappy
+behavior.  The CPU looks wedged in the kernel or it is spending way too
+much system time and I wonder what is responsible.
 
-drivers/built-in.o: In function `hpp_open':
-hp-plus.c:(.text+0xaf445): undefined reference to `ei_interrupt'
-hp-plus.c:(.text+0xaf4ac): undefined reference to `ei_open'
-drivers/built-in.o: In function `hpp_close':
-hp-plus.c:(.text+0xaf59d): undefined reference to `ei_close'
-drivers/built-in.o: In function `hpp_probe1':
-hp-plus.c:(.init.text+0x7314): undefined reference to `ei_poll'
-drivers/built-in.o: In function `hp_plus_probe':
-(.init.text+0x7407): undefined reference to `__alloc_ei_netdev'
-make[1]: *** [.tmp_vmlinux1] Error 1
+I try to run readprofile.  But, of course, Ubuntu doesn't enable it by
+default.  Dang!
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jeff Garzik <jeff@garzik.org>
+The reason we boot-time enable it is that it takes a big bufffer that we
+generally can only bootmem alloc.  But, does it hurt to at least try and
+runtime-alloc it?
+
+To use:
+echo 2 > /sys/kernel/profile
+
+Then run readprofile like normal.
+
+Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/ksysfs.c  |   29 +++++++++++++++++++++++++++++
+ kernel/profile.c |   33 ++++++++++++++++++++++++---------
+ 2 files changed, 53 insertions(+), 9 deletions(-)
 
-diff -puN drivers/net/Makefile~drivers-net-hp-plus-fix-link-objects drivers/net/Makefile
---- a/drivers/net/Makefile~drivers-net-hp-plus-fix-link-objects
-+++ a/drivers/net/Makefile
-@@ -110,7 +110,7 @@ obj-$(CONFIG_EL2) += 3c503.o 8390p.o
- obj-$(CONFIG_NE2000) += ne.o 8390p.o
- obj-$(CONFIG_NE2_MCA) += ne2.o 8390p.o
- obj-$(CONFIG_HPLAN) += hp.o 8390p.o
--obj-$(CONFIG_HPLAN_PLUS) += hp-plus.o 8390p.o
-+obj-$(CONFIG_HPLAN_PLUS) += hp-plus.o 8390.o
- obj-$(CONFIG_ULTRA) += smc-ultra.o 8390.o
- obj-$(CONFIG_ULTRAMCA) += smc-mca.o 8390.o
- obj-$(CONFIG_ULTRA32) += smc-ultra32.o 8390.o
+diff -puN kernel/ksysfs.c~profiling-dynamically-enable-readprofile-at-runtime kernel/ksysfs.c
+--- a/kernel/ksysfs.c~profiling-dynamically-enable-readprofile-at-runtime
++++ a/kernel/ksysfs.c
+@@ -14,6 +14,7 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/kexec.h>
++#include <linux/profile.h>
+ #include <linux/sched.h>
+ 
+ #define KERNEL_ATTR_RO(_name) \
+@@ -53,6 +54,31 @@ static ssize_t uevent_helper_store(struc
+ KERNEL_ATTR_RW(uevent_helper);
+ #endif
+ 
++#ifdef CONFIG_PROFILING
++/* uevent helper program, used during early boo */
++static ssize_t profiling_show(struct kobject *kobj,
++				  struct kobj_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%d\n", prof_on);
++}
++static ssize_t profiling_store(struct kobject *kobj,
++				   struct kobj_attribute *attr,
++				   const char *buf, size_t count)
++{
++	int ret;
++
++	profile_setup(buf);
++	profile_init();
++	if (!prof_buffer)
++		return -ENOMEM;
++	ret = create_proc_profile();
++	if (ret)
++		return ret;
++	return count;
++}
++KERNEL_ATTR_RW(profiling);
++#endif
++
+ #ifdef CONFIG_KEXEC
+ static ssize_t kexec_loaded_show(struct kobject *kobj,
+ 				 struct kobj_attribute *attr, char *buf)
+@@ -109,6 +135,9 @@ static struct attribute * kernel_attrs[]
+ 	&uevent_seqnum_attr.attr,
+ 	&uevent_helper_attr.attr,
+ #endif
++#ifdef CONFIG_PROFILING
++	&profiling_attr.attr,
++#endif
+ #ifdef CONFIG_KEXEC
+ 	&kexec_loaded_attr.attr,
+ 	&kexec_crash_loaded_attr.attr,
+diff -puN kernel/profile.c~profiling-dynamically-enable-readprofile-at-runtime kernel/profile.c
+--- a/kernel/profile.c~profiling-dynamically-enable-readprofile-at-runtime
++++ a/kernel/profile.c
+@@ -50,11 +50,11 @@ static DEFINE_PER_CPU(int, cpu_profile_f
+ static DEFINE_MUTEX(profile_flip_mutex);
+ #endif /* CONFIG_SMP */
+ 
+-static int __init profile_setup(char *str)
++int profile_setup(char *str)
+ {
+-	static char __initdata schedstr[] = "schedule";
+-	static char __initdata sleepstr[] = "sleep";
+-	static char __initdata kvmstr[] = "kvm";
++	static char schedstr[] = "schedule";
++	static char sleepstr[] = "sleep";
++	static char kvmstr[] = "kvm";
+ 	int par;
+ 
+ 	if (!strncmp(str, sleepstr, strlen(sleepstr))) {
+@@ -100,14 +100,29 @@ static int __init profile_setup(char *st
+ __setup("profile=", profile_setup);
+ 
+ 
+-void __init profile_init(void)
++void profile_init(void)
+ {
++	int buffer_bytes;
+ 	if (!prof_on)
+ 		return;
+ 
+ 	/* only text is profiled */
+ 	prof_len = (_etext - _stext) >> prof_shift;
+-	prof_buffer = alloc_bootmem(prof_len*sizeof(atomic_t));
++	buffer_bytes = prof_len*sizeof(atomic_t);
++	if (!slab_is_available()) {
++		prof_buffer = alloc_bootmem(buffer_bytes);
++		return;
++	}
++
++	prof_buffer = kzalloc(buffer_bytes, GFP_KERNEL);
++	if (prof_buffer)
++		return;
++
++	prof_buffer = alloc_pages_exact(buffer_bytes, GFP_KERNEL|__GFP_ZERO);
++	if (prof_buffer)
++		return;
++
++	prof_buffer = vmalloc(buffer_bytes);
+ }
+ 
+ /* Profile event notifications */
+@@ -527,7 +542,7 @@ static void __init profile_nop(void *unu
+ {
+ }
+ 
+-static int __init create_hash_tables(void)
++static int create_hash_tables(void)
+ {
+ 	int cpu;
+ 
+@@ -575,14 +590,14 @@ out_cleanup:
+ #define create_hash_tables()			({ 0; })
+ #endif
+ 
+-static int __init create_proc_profile(void)
++int create_proc_profile(void)
+ {
+ 	struct proc_dir_entry *entry;
+ 
+ 	if (!prof_on)
+ 		return 0;
+ 	if (create_hash_tables())
+-		return -1;
++		return -ENOMEM;
+ 	entry = proc_create("profile", S_IWUSR | S_IRUGO,
+ 			    NULL, &proc_profile_operations);
+ 	if (!entry)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
 
-origin.patch
+mm-make-setup_zone_migrate_reserve-aware-of-overlapping-nodes.patch
 linux-next.patch
-mfd-ucb1400-sound-driver-uses-depends-on-ac97_bus.patch
-fb-metronome-printk-format-warning.patch
-genksyms-track-symbol-checksum-changes.patch
-genksyms-allow-to-ignore-symbol-checksum-changes.patch
-lkdtm-fix-for-config_scsi=n.patch
-drivers-net-hp-plus-fix-link-objects.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-ath9k-uses-needs-led_classdev_register.patch
-w1-documentation-w1-masters-ds2490-update.patch
-profile-likely-unlikely-macros.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+profiling-dynamically-enable-readprofile-at-runtime.patch
 
