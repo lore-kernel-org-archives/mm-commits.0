@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-version-023.patch added to -mm tree
-Date: Tue, 02 Sep 2008 17:50:36 -0700
-Message-ID: <200809030050.m830oa9I021513@imap1.linux-foundation.org>
+Subject: + checkpatch-suspect-indent-count-condition-lines-correctly.patch added to -mm tree
+Date: Tue, 02 Sep 2008 17:50:32 -0700
+Message-ID: <200809030050.m830oWrY021505@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45497 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40312 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755235AbYICAuo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 20:50:44 -0400
+	by vger.kernel.org with ESMTP id S1755126AbYICAul (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 20:50:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: version: 0.23
+     checkpatch: suspect indent count condition lines correctly
 has been added to the -mm tree.  Its filename is
-     checkpatch-version-023.patch
+     checkpatch-suspect-indent-count-condition-lines-correctly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,28 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: version: 0.23
+Subject: checkpatch: suspect indent count condition lines correctly
 From: Andy Whitcroft <apw@shadowen.org>
+
+Correct calculation of the number of lines of condition where we have
+suspect indent.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-version-023 scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-version-023
+diff -puN scripts/checkpatch.pl~checkpatch-suspect-indent-count-condition-lines-correctly scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-suspect-indent-count-condition-lines-correctly
 +++ a/scripts/checkpatch.pl
-@@ -9,7 +9,7 @@ use strict;
- my $P = $0;
- $P =~ s@.*/@@g;
+@@ -1417,7 +1417,8 @@ sub process {
+ 			$s =~ s/\n./\n/gs;
  
--my $V = '0.22';
-+my $V = '0.23';
+ 			# Find out how long the conditional actually is.
+-			my $cond_lines = 0 + $c =~ /\n/gs;
++			my @newlines = ($c =~ /\n/gs);
++			my $cond_lines = 1 + $#newlines;
  
- use Getopt::Long qw(:config no_auto_abbrev);
- 
+ 			# We want to check the first line inside the block
+ 			# starting at the end of the conditional, so remove:
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
