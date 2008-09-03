@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch added to -mm tree
-Date: Tue, 02 Sep 2008 22:05:53 -0700
-Message-ID: <200809030519.m835JS9Z030929@imap1.linux-foundation.org>
+Subject: + drivers-net-mlx4-allocc-needs-mmh.patch added to -mm tree
+Date: Tue, 02 Sep 2008 22:11:07 -0700
+Message-ID: <200809030524.m835OgWN031114@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33675 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44150 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751246AbYICFUR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2008 01:20:17 -0400
+	by vger.kernel.org with ESMTP id S1751862AbYICFZU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Sep 2008 01:25:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, davem@davemloft.net, david-b@pacbell.net
+Cc: akpm@linux-foundation.org, davem@davemloft.net, jeff@garzik.org
 
 
 The patch titled
-     drivers/rtc/Kconfig: don't build rtc-cmos.o on sparc32
+     drivers/net/mlx4/alloc.c needs mm.h
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
+     drivers-net-mlx4-allocc-needs-mmh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,75 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/Kconfig: don't build rtc-cmos.o on sparc32
+Subject: drivers/net/mlx4/alloc.c needs mm.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix for linux-next's
+sparc32 allmodconfig with linux-next:
 
-: Author: David S. Miller <davem@davemloft.net>  2008-08-28 19:54:17
-: Committer: David S. Miller <davem@davemloft.net>  2008-08-29 14:16:45
-: Parent: 7f60459921bd24e86b21e07c42244c510b4f46b2 (Blackfin RTC Driver: BF561 not have on-chip RTC)
-: Child:  cca4c231028405950a15f5a27d7326d18d909784 (rtc: Add TI BQ4802 RTC driver.)
-: Branches: git-alsa-tiwai, linux-next
-: Follows: v2.6.27-rc4
-: Precedes: next-20080902
-: 
-:     rtc: Allow RTC_DRV_CMOS to be used on SPARC.
+drivers/net/mlx4/alloc.c: In function 'mlx4_buf_alloc':
+drivers/net/mlx4/alloc.c:164: error: 'PAGE_KERNEL' undeclared (first use in this function)
+drivers/net/mlx4/alloc.c:164: error: (Each undeclared identifier is reported only once
+drivers/net/mlx4/alloc.c:164: error: for each function it appears in.)
 
+this is due to some header shuffle in linux-next.  I didn't look to see what
+it was.  I'd sugges that this patch be merged ahead of a linux-next merge to
+avoid bisection breaks.
 
-In file included from drivers/rtc/rtc-cmos.c:40:
-include/asm-generic/rtc.h: In function 'rtc_is_updating':
-include/asm-generic/rtc.h:40: error: 'rtc_port' undeclared (first use in this function)
-include/asm-generic/rtc.h:40: error: (Each undeclared identifier is reported only once
-include/asm-generic/rtc.h:40: error: for each function it appears in.)
-include/asm-generic/rtc.h: In function 'get_rtc_time':
-include/asm-generic/rtc.h:73: error: 'rtc_port' undeclared (first use in this function)
-include/asm-generic/rtc.h: In function 'set_rtc_time':
-include/asm-generic/rtc.h:160: error: 'rtc_port' undeclared (first use in this function)
-drivers/rtc/rtc-cmos.c: In function 'cmos_read_alarm':
-drivers/rtc/rtc-cmos.c:193: error: 'rtc_port' undeclared (first use in this function)
-drivers/rtc/rtc-cmos.c: In function 'cmos_checkintr':
-drivers/rtc/rtc-cmos.c:255: error: 'rtc_port' undeclared (first use in this function)
-drivers/rtc/rtc-cmos.c: In function 'cmos_irq_enable':
-drivers/rtc/rtc-cmos.c:272: error: 'rtc_port' undeclared (first use in this function)
-drivers/rtc/rtc-cmos.c: In function 'cmos_irq_disable':
-drivers/rtc/rtc-cmos.c:292: error: 'rtc_port' undeclared (first use in this function)
-drivers/rtc/rtc-cmos.c: In function 'cmos_set_alarm':
-drivers/rtc/rtc-cmos.c:337: error: 'rtc_port' undeclared (first use in this function)
-drivers/rtc/rtc-cmos.c: In function 'cmos_irq_set_freq':
-drivers/rtc/rtc-cmos.c:378: error: 'rtc_port' undeclared (first use in this function)
-drivers/rtc/rtc-cmos.c: In function 'cmos_procfs':
-drivers/rtc/rtc-cmos.c:455: error: 'rtc_port' undeclared (first use in this function)
-drivers/rtc/rtc-cmos.c: In function 'cmos_nvram_read':
-drivers/rtc/rtc-cmos.c:519: error: 'rtc_port' undeclared (first use in this function)
-drivers/rtc/rtc-cmos.c: In function 'cmos_nvram_write':
-drivers/rtc/rtc-cmos.c:551: error: 'rtc_port' undeclared (first use in this function)
-drivers/rtc/rtc-cmos.c: In function 'cmos_interrupt':
-drivers/rtc/rtc-cmos.c:588: error: 'rtc_port' undeclared (first use in this function)
-drivers/rtc/rtc-cmos.c: In function 'cmos_do_probe':
-drivers/rtc/rtc-cmos.c:722: error: 'rtc_port' undeclared (first use in this function)
+We strictly only need asm/pgtable.h, but going direct to asm includes always
+seems grubby.
 
+Cc: Jeff Garzik <jeff@garzik.org>
 Cc: "David S. Miller" <davem@davemloft.net>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/mlx4/alloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/rtc/Kconfig~drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32 drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32
-+++ a/drivers/rtc/Kconfig
-@@ -329,7 +329,7 @@ comment "Platform RTC drivers"
+diff -puN drivers/net/mlx4/alloc.c~drivers-net-mlx4-allocc-needs-mmh drivers/net/mlx4/alloc.c
+--- a/drivers/net/mlx4/alloc.c~drivers-net-mlx4-allocc-needs-mmh
++++ a/drivers/net/mlx4/alloc.c
+@@ -33,6 +33,7 @@
  
- config RTC_DRV_CMOS
- 	tristate "PC-style 'CMOS'"
--	depends on X86 || ALPHA || ARM || M32R || ATARI || PPC || MIPS || SPARC
-+	depends on X86 || ALPHA || ARM || M32R || ATARI || PPC || MIPS || SPARC64
- 	default y if X86
- 	help
- 	  Say "yes" here to get direct support for the real time clock
+ #include <linux/errno.h>
+ #include <linux/slab.h>
++#include <linux/mm.h>
+ #include <linux/bitmap.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/vmalloc.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -142,6 +109,7 @@ git-xtensa.patch
 modules-remove-stop_machine-during-module-load-checkpatch-fixes.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 e1000e-prevent-corruption-of-eeprom-nvm.patch
+drivers-net-mlx4-allocc-needs-mmh.patch
 mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
