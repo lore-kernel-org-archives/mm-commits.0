@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-use-modedb-and-add-mode_option-parameter-2nd-rev.patch added to -mm tree
-Date: Tue, 02 Sep 2008 17:49:07 -0700
-Message-ID: <200809030049.m830n7eg021438@imap1.linux-foundation.org>
+Subject: + checkpatch-case-default-checks-should-only-check-changed-lines.patch added to -mm tree
+Date: Tue, 02 Sep 2008 17:50:24 -0700
+Message-ID: <200809030050.m830oOh4021490@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39697 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45557 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754625AbYICAtV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 20:49:21 -0400
+	by vger.kernel.org with ESMTP id S1754442AbYICAug (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 20:50:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, geert@linux-m68k.org
+Cc: apw@shadowen.org
 
 
 The patch titled
-     cirrusfb: use modedb and add mode_option parameter
+     checkpatch: case/default checks should only check changed lines
 has been added to the -mm tree.  Its filename is
-     cirrusfb-use-modedb-and-add-mode_option-parameter-2nd-rev.patch
+     checkpatch-case-default-checks-should-only-check-changed-lines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,229 +33,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: use modedb and add mode_option parameter
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: checkpatch: case/default checks should only check changed lines
+From: Andy Whitcroft <apw@shadowen.org>
 
-Use modedb for initial mode instead of table of few predefined modes.
+We should only be checking changes lines for the trailing statement check
+on case/default statements.
 
-Add mode_option module parameter as a step toward unification of frame
-buffers' parameters.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |  126 ++++++-------------------------------
- 1 file changed, 21 insertions(+), 105 deletions(-)
+ scripts/checkpatch.pl |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-use-modedb-and-add-mode_option-parameter-2nd-rev drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-use-modedb-and-add-mode_option-parameter-2nd-rev
-+++ a/drivers/video/cirrusfb.c
-@@ -372,98 +372,8 @@ struct cirrusfb_info {
- 	void (*unmap)(struct fb_info *info);
- };
- 
--static unsigned cirrusfb_def_mode = 1;
- static int noaccel;
--
--/*
-- *    Predefined Video Modes
-- */
--
--static const struct {
--	const char *name;
--	struct fb_var_screeninfo var;
--} cirrusfb_predefined[] = {
--	{
--		/* autodetect mode */
--		.name	= "Autodetect",
--	}, {
--		/* 640x480, 31.25 kHz, 60 Hz, 25 MHz PixClock */
--		.name	= "640x480",
--		.var	= {
--			.xres		= 640,
--			.yres		= 480,
--			.xres_virtual	= 640,
--			.yres_virtual	= 480,
--			.bits_per_pixel	= 8,
--			.red		= { .length = 8 },
--			.green		= { .length = 8 },
--			.blue		= { .length = 8 },
--			.width		= -1,
--			.height		= -1,
--			.pixclock	= 40000,
--			.left_margin	= 48,
--			.right_margin	= 16,
--			.upper_margin	= 32,
--			.lower_margin	= 8,
--			.hsync_len	= 96,
--			.vsync_len	= 4,
--			.sync	= FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
--			.vmode		= FB_VMODE_NONINTERLACED
--		 }
--	}, {
--		/* 800x600, 48 kHz, 76 Hz, 50 MHz PixClock */
--		.name	= "800x600",
--		.var	= {
--			.xres		= 800,
--			.yres		= 600,
--			.xres_virtual	= 800,
--			.yres_virtual	= 600,
--			.bits_per_pixel	= 8,
--			.red		= { .length = 8 },
--			.green		= { .length = 8 },
--			.blue		= { .length = 8 },
--			.width		= -1,
--			.height		= -1,
--			.pixclock	= 20000,
--			.left_margin	= 128,
--			.right_margin	= 16,
--			.upper_margin	= 24,
--			.lower_margin	= 2,
--			.hsync_len	= 96,
--			.vsync_len	= 6,
--			.vmode		= FB_VMODE_NONINTERLACED
--		 }
--	}, {
--		/*
--		 * Modeline from XF86Config:
--		 * Mode "1024x768" 80  1024 1136 1340 1432  768 770 774 805
--		 */
--		/* 1024x768, 55.8 kHz, 70 Hz, 80 MHz PixClock */
--		.name	= "1024x768",
--		.var	= {
--			.xres		= 1024,
--			.yres		= 768,
--			.xres_virtual	= 1024,
--			.yres_virtual	= 768,
--			.bits_per_pixel	= 8,
--			.red		= { .length = 8 },
--			.green		= { .length = 8 },
--			.blue		= { .length = 8 },
--			.width		= -1,
--			.height		= -1,
--			.pixclock	= 12500,
--			.left_margin	= 144,
--			.right_margin	= 32,
--			.upper_margin	= 30,
--			.lower_margin	= 2,
--			.hsync_len	= 192,
--			.vsync_len	= 6,
--			.vmode		= FB_VMODE_NONINTERLACED
+diff -puN scripts/checkpatch.pl~checkpatch-case-default-checks-should-only-check-changed-lines scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-case-default-checks-should-only-check-changed-lines
++++ a/scripts/checkpatch.pl
+@@ -1363,14 +1363,6 @@ sub process {
+ 				ERROR("switch and case should be at the same indent\n$hereline$err");
+ 			}
+ 		}
+-		if ($line =~ /^.\s*(?:case\s*.*|default\s*):/g &&
+-		    $line !~ /\G(?:
+-			(?:\s*{)?(?:\s*$;*)(?:\s*\\)?\s*$|
+-			\s*return\s+
+-		    )/xg)
+-		{
+-			ERROR("trailing statements should be on next line\n" . $herecurr);
 -		}
--	}
--};
--
--#define NUM_TOTAL_MODES    ARRAY_SIZE(cirrusfb_predefined)
-+static char *mode_option __devinitdata = "640x480@60";
  
- /****************************************************************************/
- /**** BEGIN PROTOTYPES ******************************************************/
-@@ -2267,23 +2177,27 @@ static int cirrusfb_register(struct fb_i
- 	/* sanity checks */
- 	assert(btype != BT_NONE);
+ # if/while/etc brace do not go on next line, unless defining a do while loop,
+ # or if that brace on the next line is for something else
+@@ -1986,6 +1978,15 @@ sub process {
+ 				ERROR("trailing statements should be on next line\n" . $herecurr);
+ 			}
+ 		}
++# case and default should not have general statements after them
++		if ($line =~ /^.\s*(?:case\s*.*|default\s*):/g &&
++		    $line !~ /\G(?:
++			(?:\s*{)?(?:\s*$;*)(?:\s*\\)?\s*$|
++			\s*return\s+
++		    )/xg)
++		{
++			ERROR("trailing statements should be on next line\n" . $herecurr);
++		}
  
-+	/* set all the vital stuff */
-+	cirrusfb_set_fbinfo(info);
-+
- 	DPRINTK("cirrusfb: (RAM start set to: 0x%p)\n", info->screen_base);
- 
--	/* Make pretend we've set the var so our structures are in a "good" */
--	/* state, even though we haven't written the mode to the hw yet...  */
--	info->var = cirrusfb_predefined[cirrusfb_def_mode].var;
-+	err = fb_find_mode(&info->var, info, mode_option, NULL, 0, NULL, 8);
-+	if (!err) {
-+		DPRINTK("wrong initial video mode\n");
-+		err = -EINVAL;
-+		goto err_dealloc_cmap;
-+	}
-+
- 	info->var.activate = FB_ACTIVATE_NOW;
- 
- 	err = cirrusfb_decode_var(&info->var, &cinfo->currentmode, info);
- 	if (err < 0) {
- 		/* should never happen */
- 		DPRINTK("choking on default var... umm, no good.\n");
--		goto err_unmap_cirrusfb;
-+		goto err_dealloc_cmap;
- 	}
- 
--	/* set all the vital stuff */
--	cirrusfb_set_fbinfo(info);
--
- 	err = register_framebuffer(info);
- 	if (err < 0) {
- 		printk(KERN_ERR "cirrusfb: could not register "
-@@ -2296,7 +2210,6 @@ static int cirrusfb_register(struct fb_i
- 
- err_dealloc_cmap:
- 	fb_dealloc_cmap(&info->cmap);
--err_unmap_cirrusfb:
- 	cinfo->unmap(info);
- 	framebuffer_release(info);
- 	return err;
-@@ -2608,17 +2521,17 @@ static int __init cirrusfb_setup(char *o
- 		return 0;
- 
- 	while ((this_opt = strsep(&options, ",")) != NULL) {
--		if (!*this_opt) continue;
-+		if (!*this_opt)
-+			continue;
- 
- 		DPRINTK("cirrusfb_setup: option '%s'\n", this_opt);
- 
--		for (i = 0; i < NUM_TOTAL_MODES; i++) {
--			sprintf(s, "mode:%s", cirrusfb_predefined[i].name);
--			if (strcmp(this_opt, s) == 0)
--				cirrusfb_def_mode = i;
--		}
- 		if (!strcmp(this_opt, "noaccel"))
- 			noaccel = 1;
-+		else if (!strncmp(this_opt, "mode:", 5))
-+			mode_option = this_opt + 5;
-+		else
-+			mode_option = this_opt;
- 	}
- 	return 0;
- }
-@@ -2644,6 +2557,9 @@ static void __exit cirrusfb_exit(void)
- 
- module_init(cirrusfb_init);
- 
-+module_param(mode_option, charp, 0);
-+MODULE_PARM_DESC(mode_option, "Initial video mode e.g. '648x480-8@60'");
-+
- #ifdef MODULE
- module_exit(cirrusfb_exit);
- #endif
+ 		# Check for }<nl>else {, these must be at the same
+ 		# indent level to be relevant to each other.
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from apw@shadowen.org are
 
-cirrusfb-check_par-fixes.patch
-tdfxfb-fix-sdram-memory-size-detection.patch
-tdfxfb-fix-frame-buffer-name-overrun.patch
-linux-next.patch
-fb-metronome-printk-format-warning.patch
-x86-delay-early-cpu-initialization-until-cpuid-is-done.patch
-x86-move-mtrr-cpu-cap-setting-early-in-early_init_xxxx.patch
-rtc-m48t59-reduce-structure-m48t59_private.patch
-rtc-m48t59-add-support-for-m48t02-and-m48t59-chips-2nd-rev.patch
-fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
-neofb-reduce-panning-function.patch
-viafb-accelc-accelh-update.patch
-viafb-viafbdevc-update.patch
-fbdev-kconfig-update.patch
-fbdev-kconfig-update-fix.patch
-neofb-kill-some-redundant-code.patch
-vga16fb-remove-open_lock-mutex.patch
-neofb-remove-open_lock-mutex.patch
-cirrusfb-remove-information-about-memory-size-during-mode-change.patch
-cirrusfb-simplify-clock-calculation.patch
-cirrusfb-remove-24-bpp-mode.patch
-cirrusfb-drop-device-pointers-from-cirrusfb_info.patch
-tdfxfb-do-not-make-changes-to-default-tdfx_fix.patch
-intelfb-support-945gme-as-used-in-asus-eee-901.patch
-cirrusfb-use-modedb-and-add-mode_option-parameter-2nd-rev.patch
+mm-make-setup_zone_migrate_reserve-aware-of-overlapping-nodes.patch
+mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
+checkpatch-square-brackets-exemption-for-array-slices-in-braces.patch
+checkpatch-values-double-ampersand-may-be-unary.patch
+checkpatch-conditional-indent-labels-have-different-indent-rules.patch
+checkpatch-switch-indent-allow-plain-return.patch
+checkpatch-add-tests-for-the-attribute-matcher.patch
+checkpatch-____cacheline_aligned-et-al-are-modifiers.patch
+checkpatch-complex-macros-fix-up-extension-handling.patch
+checkpatch-fix-up-comment-checks-search-to-scan-the-entire-block.patch
+checkpatch-include-asm-checks-should-be-anchored.patch
+checkpatch-reduce-warnings-for-include-of-asm-fooh-to-check-from-arch-barc.patch
+checkpatch-report-any-absolute-references-to-kernel-source-files.patch
+checkpatch-report-the-real-first-line-of-all-suspect-indents.patch
+checkpatch-suspect-indent-skip-over-preprocessor-label-and-blank-lines.patch
+checkpatch-%lx-tests-should-hand-%%-as-a-literal.patch
+checkpatch-report-the-correct-lines-for-single-statement-blocks.patch
+checkpatch-perform-indent-checks-on-perl.patch
+checkpatch-version-022.patch
+checkpatch-case-default-checks-should-only-check-changed-lines.patch
+checkpatch-suppress-errors-triggered-by-short-patch.patch
+checkpatch-handle-comment-quote-nesting-correctly.patch
+checkpatch-check-line-endings-in-text-format-files.patch
+checkpatch-suspect-indent-count-condition-lines-correctly.patch
+checkpatch-ensure-we-only-apply-checks-to-the-lines-within-hunks.patch
+checkpatch-version-023.patch
+page-owner-tracking-leak-detector.patch
 
