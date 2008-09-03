@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-suppress-errors-triggered-by-short-patch.patch added to -mm tree
-Date: Tue, 02 Sep 2008 17:50:26 -0700
-Message-ID: <200809030050.m830oQFt021495@imap1.linux-foundation.org>
+Subject: + checkpatch-handle-comment-quote-nesting-correctly.patch added to -mm tree
+Date: Tue, 02 Sep 2008 17:50:28 -0700
+Message-ID: <200809030050.m830oS4b021498@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40884 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35590 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755102AbYICAuh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 20:50:37 -0400
+	by vger.kernel.org with ESMTP id S1755211AbYICAuk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Sep 2008 20:50:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org, brunel@diku.dk
+Cc: apw@shadowen.org, jaswinder@infradead.org
 
 
 The patch titled
-     checkpatch: suppress errors triggered by short patch
+     checkpatch: handle comment/quote nesting correctly
 has been added to the -mm tree.  Its filename is
-     checkpatch-suppress-errors-triggered-by-short-patch.patch
+     checkpatch-handle-comment-quote-nesting-correctly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: suppress errors triggered by short patch
+Subject: checkpatch: handle comment/quote nesting correctly
 From: Andy Whitcroft <apw@shadowen.org>
 
-When the last hunk of a patch is short it will trigger errors from
-checkpatch:
-
-    Use of uninitialized value in pattern match (m//)
-	    at /usr/local/bin/checkpatch.pl line 394.
-    Use of uninitialized value in concatenation (.) or string
-	    at /usr/local/bin/checkpatch.pl line 397.
-    Use of uninitialized value in pattern match (m//)
-
-Avoid touching beyond the last line.  Reported by Julien Brunel.
+Ensure that a close comment cannot incorrectly trigger in the middle of a
+string.  Reported by Jaswinder Singh.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
-Cc: Julien Brunel <brunel@diku.dk>
+Cc: Jaswinder Singh <jaswinder@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-suppress-errors-triggered-by-short-patch scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-suppress-errors-triggered-by-short-patch
+diff -puN scripts/checkpatch.pl~checkpatch-handle-comment-quote-nesting-correctly scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-handle-comment-quote-nesting-correctly
 +++ a/scripts/checkpatch.pl
-@@ -408,6 +408,7 @@ sub ctx_statement_block {
- 		# context.
- 		if ($off >= $len) {
- 			for (; $remain > 0; $line++) {
-+				last if (!defined $lines[$line]);
- 				next if ($lines[$line] =~ /^-/);
- 				$remain--;
- 				$loff = $len;
+@@ -335,7 +335,7 @@ sub sanitise_line {
+ 			$off++;
+ 			next;
+ 		}
+-		if (substr($line, $off, 2) eq '*/') {
++		if ($sanitise_quote eq '*/' && substr($line, $off, 2) eq '*/') {
+ 			$sanitise_quote = '';
+ 			substr($res, $off, 2, "$;$;");
+ 			$off++;
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
