@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-s390-kernel-ptracec-fix-build.patch added to -mm tree
-Date: Thu, 04 Sep 2008 15:40:53 -0700
-Message-ID: <200809042254.m84MsVGB002966@imap1.linux-foundation.org>
+Subject: + w1-be-able-to-manually-add-and-remove-slaves-fix.patch added to -mm tree
+Date: Thu, 04 Sep 2008 15:48:16 -0700
+Message-ID: <200809042301.m84N1s4C003222@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60098 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39763 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754298AbYIDWzV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2008 18:55:21 -0400
+	by vger.kernel.org with ESMTP id S1751685AbYIDXDn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2008 19:03:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, schwidefsky@de.ibm.com
+Cc: akpm@linux-foundation.org, david@fries.net, johnpol@2ka.mipt.ru
 
 
 The patch titled
-     arch/s390/kernel/ptrace.c: fix build
+     w1-be-able-to-manually-add-and-remove-slaves-fix
 has been added to the -mm tree.  Its filename is
-     arch-s390-kernel-ptracec-fix-build.patch
+     w1-be-able-to-manually-add-and-remove-slaves-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/s390/kernel/ptrace.c: fix build
+Subject: w1-be-able-to-manually-add-and-remove-slaves-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix:
+s390:
 
-    commit 09ca972d957256df62d9edeffbb66e5eff67460a
-    Author: Martin Schwidefsky <schwidefsky@de.ibm.com>
-    Date:   Wed Sep 3 16:16:08 2008 +0200
+drivers/w1/w1.c: In function 'w1_atoreg_num':
+drivers/w1/w1.c:401: warning: format '%012llx' expects type 'long long unsigned int *', but argument 4 has type 'u64 *'
+drivers/w1/w1.c:401: warning: format '%012llx' expects type 'long long unsigned int *', but argument 4 has type 'u64 *'
 
-       [S390] ptrace changes
+We cannot pass uncast u64 into scanf() or printf() functions - we don't know
+what type it is!
 
-arch/s390/kernel/ptrace.c: In function 'do_syscall_trace_exit':
-arch/s390/kernel/ptrace.c:648: error: 'struct pt_regs' has no member named 'regs'
-arch/s390/kernel/ptrace.c:649: error: 'struct pt_regs' has no member named 'regs'
-
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: David Fries <david@fries.net>
+Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/ptrace.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/w1/w1.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN arch/s390/kernel/ptrace.c~arch-s390-kernel-ptracec-fix-build arch/s390/kernel/ptrace.c
---- a/arch/s390/kernel/ptrace.c~arch-s390-kernel-ptracec-fix-build
-+++ a/arch/s390/kernel/ptrace.c
-@@ -645,8 +645,8 @@ asmlinkage long do_syscall_trace_enter(s
- asmlinkage void do_syscall_trace_exit(struct pt_regs *regs)
+diff -puN drivers/w1/w1.c~w1-be-able-to-manually-add-and-remove-slaves-fix drivers/w1/w1.c
+--- a/drivers/w1/w1.c~w1-be-able-to-manually-add-and-remove-slaves-fix
++++ a/drivers/w1/w1.c
+@@ -398,9 +398,10 @@ static int w1_atoreg_num(struct device *
+ 	struct w1_reg_num *rn)
  {
- 	if (unlikely(current->audit_context))
--		audit_syscall_exit(AUDITSC_RESULT(regs->regs[9]),
--				   regs->regs[9]);
-+		audit_syscall_exit(AUDITSC_RESULT(regs->gprs[9]),
-+				   regs->gprs[9]);
+ 	unsigned int family;
+-	u64 id;
++	unsigned long long id;
+ 	int i;
+ 	u64 rn64_le;
++
+ 	/* The CRC value isn't read from the user because the sysfs directory
+ 	 * doesn't include it and most messages from the bus search don't
+ 	 * print it either.  It would be unreasonable for the user to then
+@@ -424,10 +425,10 @@ static int w1_atoreg_num(struct device *
+ 	rn64_le = cpu_to_le64(*(u64 *)rn);
+ 	rn->crc = w1_calc_crc8((u8 *)&rn64_le, 7);
  
- 	if (test_thread_flag(TIF_SYSCALL_TRACE))
- 		tracehook_report_syscall_exit(regs, 0);
+-	#if 0
++#if 0
+ 	dev_info(dev, "With CRC device is %02x.%012llx.%02x.\n",
+ 		  rn->family, (unsigned long long)rn->id, rn->crc);
+-	#endif
++#endif
+ 
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,6 +112,7 @@ e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
 pci-tidy-pme-support-messages-checkpatch-fixes.patch
+arch-s390-kernel-ptracec-fix-build.patch
 sched-clarify-ifdef-tangle.patch
 fix-fastboot-make-the-raid-autodetect-code-wait-for-all-devices-to-init.patch
 scsi-gdthc-use-unaligned-access-helpers.patch
@@ -158,6 +171,7 @@ memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatc
 message-queues-increase-range-limits-checkpatch-fixes.patch
 applicomc-fix-apparently-broken-code-in-do_ac_read.patch
 drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+w1-be-able-to-manually-add-and-remove-slaves-fix.patch
 gru-driver-minor-updates-fix.patch
 gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
 nilfs2-continuous-snapshotting-file-system-fix.patch
@@ -181,5 +195,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-arch-s390-kernel-ptracec-fix-build.patch
 
