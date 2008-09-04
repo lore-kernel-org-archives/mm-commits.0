@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + w1-be-able-to-manually-add-and-remove-slaves-fix.patch added to -mm tree
-Date: Thu, 04 Sep 2008 15:48:16 -0700
-Message-ID: <200809042301.m84N1s4C003222@imap1.linux-foundation.org>
+Subject: + drivers-mmc-card-blockc-fix-refcount-leak-in-mmc_block_open.patch added to -mm tree
+Date: Thu, 04 Sep 2008 16:08:12 -0700
+Message-ID: <200809042308.m84N8C7A003505@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39763 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46330 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751685AbYIDXDn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2008 19:03:43 -0400
+	by vger.kernel.org with ESMTP id S1753962AbYIDXIg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2008 19:08:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, david@fries.net, johnpol@2ka.mipt.ru
+Cc: akpm@linux-foundation.org, drzeus-list@drzeus.cx, sasin@solomon-systech.com, stable@kernel.org
 
 
 The patch titled
-     w1-be-able-to-manually-add-and-remove-slaves-fix
+     drivers/mmc/card/block.c: fix refcount leak in mmc_block_open()
 has been added to the -mm tree.  Its filename is
-     w1-be-able-to-manually-add-and-remove-slaves-fix.patch
+     drivers-mmc-card-blockc-fix-refcount-leak-in-mmc_block_open.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1-be-able-to-manually-add-and-remove-slaves-fix
+Subject: drivers/mmc/card/block.c: fix refcount leak in mmc_block_open()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-s390:
+mmc_block_open() increments md->usage although it returns with -EROFS when
+default mounting a MMC/SD card with write protect switch on.  This
+reference counting bug prevents /dev/mmcblkX from being released on card
+removal, and situation worsen with reinsertion until the minor number
+range runs out.
 
-drivers/w1/w1.c: In function 'w1_atoreg_num':
-drivers/w1/w1.c:401: warning: format '%012llx' expects type 'long long unsigned int *', but argument 4 has type 'u64 *'
-drivers/w1/w1.c:401: warning: format '%012llx' expects type 'long long unsigned int *', but argument 4 has type 'u64 *'
-
-We cannot pass uncast u64 into scanf() or printf() functions - we don't know
-what type it is!
-
-Cc: David Fries <david@fries.net>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Reported-by: <sasin@solomon-systech.com>
+Cc: Pierre Ossman <drzeus-list@drzeus.cx>
+Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/mmc/card/block.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/w1/w1.c~w1-be-able-to-manually-add-and-remove-slaves-fix drivers/w1/w1.c
---- a/drivers/w1/w1.c~w1-be-able-to-manually-add-and-remove-slaves-fix
-+++ a/drivers/w1/w1.c
-@@ -398,9 +398,10 @@ static int w1_atoreg_num(struct device *
- 	struct w1_reg_num *rn)
- {
- 	unsigned int family;
--	u64 id;
-+	unsigned long long id;
- 	int i;
- 	u64 rn64_le;
-+
- 	/* The CRC value isn't read from the user because the sysfs directory
- 	 * doesn't include it and most messages from the bus search don't
- 	 * print it either.  It would be unreasonable for the user to then
-@@ -424,10 +425,10 @@ static int w1_atoreg_num(struct device *
- 	rn64_le = cpu_to_le64(*(u64 *)rn);
- 	rn->crc = w1_calc_crc8((u8 *)&rn64_le, 7);
+diff -puN drivers/mmc/card/block.c~drivers-mmc-card-blockc-fix-refcount-leak-in-mmc_block_open drivers/mmc/card/block.c
+--- a/drivers/mmc/card/block.c~drivers-mmc-card-blockc-fix-refcount-leak-in-mmc_block_open
++++ a/drivers/mmc/card/block.c
+@@ -103,8 +103,10 @@ static int mmc_blk_open(struct inode *in
+ 			check_disk_change(inode->i_bdev);
+ 		ret = 0;
  
--	#if 0
-+#if 0
- 	dev_info(dev, "With CRC device is %02x.%012llx.%02x.\n",
- 		  rn->family, (unsigned long long)rn->id, rn->crc);
--	#endif
-+#endif
+-		if ((filp->f_mode & FMODE_WRITE) && md->read_only)
++		if ((filp->f_mode & FMODE_WRITE) && md->read_only) {
++			mmc_blk_put(md);
+ 			ret = -EROFS;
++		}
+ 	}
  
- 	return 0;
- }
+ 	return ret;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,6 +107,7 @@ git-xtensa.patch
 modules-remove-stop_machine-during-module-load-checkpatch-fixes.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 drivers-media-video-cafe_ccicc-needs-mmh.patch
+drivers-mmc-card-blockc-fix-refcount-leak-in-mmc_block_open.patch
 e1000e-prevent-corruption-of-eeprom-nvm.patch
 drivers-net-mlx4-allocc-needs-mmh.patch
 net-forcedeth-call-restore-mac-addr-in-nv_shutdown-path-v2-fix.patch
