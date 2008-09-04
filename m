@@ -1,81 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: + fix-fastboot-make-the-raid-autodetect-code-wait-for-all-devices-to-init.patch added to -mm tree
-Date: Wed, 03 Sep 2008 22:39:14 -0700
-Message-ID: <200809040539.m845dEgX022904@imap1.linux-foundation.org>
+Subject: - linux-next-avoid-genhdc-oops.patch removed from -mm tree
+Date: Thu, 04 Sep 2008 00:18:58 -0700
+Message-ID: <200809040718.m847IwiC026351@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40104 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59918 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751864AbYIDFkQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2008 01:40:16 -0400
+	by vger.kernel.org with ESMTP id S1751436AbYIDHTN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2008 03:19:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arjan@infradead.org, arjan@linux.intel.com, mingo@elte.hu
+To: akpm@linux-foundation.org, jens.axboe@oracle.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix "fastboot: make the raid autodetect code wait for all devices to init"
-has been added to the -mm tree.  Its filename is
-     fix-fastboot-make-the-raid-autodetect-code-wait-for-all-devices-to-init.patch
+     linux-next: avoid genhd.c oops
+has been removed from the -mm tree.  Its filename was
+     linux-next-avoid-genhdc-oops.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix "fastboot: make the raid autodetect code wait for all devices to init"
+Subject: linux-next: avoid genhd.c oops
 From: Andrew Morton <akpm@linux-foundation.org>
 
-: commit b52c36a95ed8026b6925fe8595ebcab6921ae62d
-: Author: Arjan van de Ven <arjan@linux.intel.com>
-: Date:   Sun Jul 20 13:07:09 2008 -0700
-:
-:     fastboot: make the raid autodetect code wait for all devices to init
+BUG: unable to handle kernel NULL pointer dereference at 00000000
+IP: [<c03cb7fb>] klist_next+0xb/0xb0
+*pde = 00000000 
+Oops: 0000 [#1] SMP 
+last sysfs file: 
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
 
-init/do_mounts_md.c: In function `md_run_setup':
-init/do_mounts_md.c:282: warning: ISO C90 forbids mixed declarations and code
+Pid: 1262, comm: mount Not tainted (2.6.27-rc5 #6)
+EIP: 0060:[<c03cb7fb>] EFLAGS: 00010286 CPU: 0
+EIP is at klist_next+0xb/0xb0
+EAX: 00000000 EBX: 00000000 ECX: f61d7f2c EDX: f6aa0700
+ESI: 00000000 EDI: f6aa0700 EBP: f61d7ef8 ESP: f61d7ee4
+ DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
+Process mount (pid: 1262, ti=f61d6000 task=f667b6b0 task.ti=f61d6000)
+Stack: f61d7f00 fffffff4 00000000 f64b5b40 f6aa0700 f61d7f04 c02d03a7 c03f42dc 
+       f61d7f0c c027fcc2 f61d7f48 c01a7e1e 00000400 b7fa6000 f65406d8 f64b5b60 
+       00000000 0000003b 00000001 00000000 00000000 00000000 f7012da0 fffffffb 
+Call Trace:
+ [<c02d03a7>] ? class_dev_iter_next+0x17/0x40
+ [<c027fcc2>] ? disk_seqf_next+0x12/0x20
+ [<c01a7e1e>] ? seq_read+0x1ee/0x2d0
+ [<c01a7c30>] ? seq_read+0x0/0x2d0
+ [<c01c4a8c>] ? proc_reg_read+0x5c/0x90
+ [<c018f574>] ? vfs_read+0x94/0x150
+ [<c028db28>] ? copy_to_user+0x48/0x60
+ [<c01c4a30>] ? proc_reg_read+0x0/0x90
+ [<c018f96d>] ? sys_read+0x3d/0x70
+ [<c010318d>] ? sysenter_do_call+0x12/0x31
+ =======================
+Code: 55 83 c0 0c 89 e5 ba 90 b9 3c c0 e8 30 d3 eb ff 5d c3 8d b4 26 00 00 00 00 8d bc 27 00 00 00 00 55 89 e5 57 56 89 c6 53 83 ec 08 <8b> 00 8b 7e 04 8b 50 28 89 55 f0 e8 95 30 01 00 85 ff 74 71 8b 
+EIP: [<c03cb7fb>] klist_next+0xb/0xb0 SS:ESP 0068:f61d7ee4
 
-How did this happen?
-
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts_md.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ block/genhd.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN init/do_mounts_md.c~fix-fastboot-make-the-raid-autodetect-code-wait-for-all-devices-to-init init/do_mounts_md.c
---- a/init/do_mounts_md.c~fix-fastboot-make-the-raid-autodetect-code-wait-for-all-devices-to-init
-+++ a/init/do_mounts_md.c
-@@ -271,6 +271,8 @@ void __init md_run_setup(void)
- 	if (raid_noautodetect)
- 		printk(KERN_INFO "md: Skipping autodetection of RAID arrays. (raid=noautodetect)\n");
- 	else {
-+		int fd;
-+
- 		/* 
- 		 * Since we don't want to detect and use half a raid array, we need to
- 		 * wait for the known devices to complete their probing
-@@ -279,7 +281,7 @@ void __init md_run_setup(void)
- 		printk(KERN_INFO "md: If you don't use raid, use raid=noautodetect\n");
- 		while (driver_probe_done() < 0)
- 			msleep(100);
--		int fd = sys_open("/dev/md0", 0, 0);
-+		fd = sys_open("/dev/md0", 0, 0);
- 		if (fd >= 0) {
- 			sys_ioctl(fd, RAID_AUTORUN, raid_autopart);
- 			sys_close(fd);
+diff -puN block/genhd.c~linux-next-avoid-genhdc-oops block/genhd.c
+--- a/block/genhd.c~linux-next-avoid-genhdc-oops
++++ a/block/genhd.c
+@@ -674,6 +674,8 @@ static void *disk_seqf_next(struct seq_f
+ 	struct device *dev;
+ 
+ 	(*pos)++;
++	if (seqf->private == NULL)
++		return NULL;
+ 	dev = class_dev_iter_next(seqf->private);
+ 	if (dev)
+ 		return dev_to_disk(dev);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -185,4 +189,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+linux-next-tree-for-september-3.patch
 
