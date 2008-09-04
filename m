@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tracehook-comment-pasto-fixes.patch added to -mm tree
-Date: Thu, 04 Sep 2008 14:27:19 -0700
-Message-ID: <200809042127.m84LRJwh031987@imap1.linux-foundation.org>
+Subject: + make-taint-bit-reliable-v3.patch added to -mm tree
+Date: Thu, 04 Sep 2008 14:35:19 -0700
+Message-ID: <200809042135.m84LZJTm032317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49140 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41830 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753208AbYIDV2R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2008 17:28:17 -0400
+	by vger.kernel.org with ESMTP id S1756842AbYIDVfg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2008 17:35:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roland@redhat.com, wenji.huang@oracle.com
+Cc: andi@firstfloor.org, ak@linux.intel.com, mingo@elte.hu
 
 
 The patch titled
-     tracehook: comment pasto fixes
+     Make the taint flags reliable
 has been added to the -mm tree.  Its filename is
-     tracehook-comment-pasto-fixes.patch
+     make-taint-bit-reliable-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,398 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tracehook: comment pasto fixes
-From: Roland McGrath <roland@redhat.com>
+Subject: Make the taint flags reliable
+From: Andi Kleen <andi@firstfloor.org>
 
-Fix some pasto's in comments in the new linux/tracehook.h and
-asm-generic/syscall.h files.
+It's somewhat unlikely that it happens, but right now a race window
+between interrupts or machine checks or oopses could corrupt the tainted
+bitmap because it is modified in a non atomic fashion.
 
-Reported-by: Wenji Huang <wenji.huang@oracle.com>
-Signed-off-by: Roland McGrath <roland@redhat.com>
+Convert the taint variable to an unsigned long and use only atomic bit
+operations on it.
+
+Unfortunately this means the intvec sysctl functions cannot be used on it
+anymore.
+
+It turned out the taint sysctl handler could actually be simplified a bit
+(since it only increases capabilities) so this patch actually removes
+code.
+
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/syscall.h |    2 +-
- include/linux/tracehook.h     |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/kernel/smpboot.c |   14 +++----
+ include/linux/kernel.h    |   25 ++++++-------
+ kernel/module.c           |   12 +++---
+ kernel/panic.c            |   64 +++++++++++++++++++++++++---------
+ kernel/softlockup.c       |    2 -
+ kernel/sysctl.c           |   67 +++++++++++++++---------------------
+ 6 files changed, 102 insertions(+), 82 deletions(-)
 
-diff -puN include/asm-generic/syscall.h~tracehook-comment-pasto-fixes include/asm-generic/syscall.h
---- a/include/asm-generic/syscall.h~tracehook-comment-pasto-fixes
-+++ a/include/asm-generic/syscall.h
-@@ -126,7 +126,7 @@ void syscall_get_arguments(struct task_s
-  * @args:	array of argument values to store
-  *
-  * Changes @n arguments to the system call starting with the @i'th argument.
-- * @n'th argument to @val.  Argument @i gets value @args[0], and so on.
-+ * Argument @i gets value @args[0], and so on.
-  * An arch inline version is probably optimal when @i and @n are constants.
-  *
-  * It's only valid to call this when @task is stopped for tracing on
-diff -puN include/linux/tracehook.h~tracehook-comment-pasto-fixes include/linux/tracehook.h
---- a/include/linux/tracehook.h~tracehook-comment-pasto-fixes
-+++ a/include/linux/tracehook.h
-@@ -272,7 +272,7 @@ static inline void tracehook_finish_clon
-  * tracehook_report_clone_complete().  This must prevent the child from
-  * self-reaping if tracehook_report_clone_complete() uses the @child
-  * pointer; otherwise it might have died and been released by the time
-- * tracehook_report_report_clone_complete() is called.
-+ * tracehook_report_clone_complete() is called.
-  *
-  * Called with no locks held, but the child cannot run until this returns.
+diff -puN arch/x86/kernel/smpboot.c~make-taint-bit-reliable-v3 arch/x86/kernel/smpboot.c
+--- a/arch/x86/kernel/smpboot.c~make-taint-bit-reliable-v3
++++ a/arch/x86/kernel/smpboot.c
+@@ -280,6 +280,8 @@ static void __cpuinit smp_callin(void)
+ 	cpu_set(cpuid, cpu_callin_map);
+ }
+ 
++static int __cpuinitdata unsafe_smp;
++
+ /*
+  * Activate a secondary processor.
   */
+@@ -392,7 +394,7 @@ static void __cpuinit smp_apply_quirks(s
+ 				goto valid_k7;
+ 
+ 		/* If we get here, not a certified SMP capable AMD system. */
+-		add_taint(TAINT_UNSAFE_SMP);
++		unsafe_smp = 1;
+ 	}
+ 
+ valid_k7:
+@@ -409,12 +411,10 @@ static void __cpuinit smp_checks(void)
+ 	 * Don't taint if we are running SMP kernel on a single non-MP
+ 	 * approved Athlon
+ 	 */
+-	if (tainted & TAINT_UNSAFE_SMP) {
+-		if (num_online_cpus())
+-			printk(KERN_INFO "WARNING: This combination of AMD"
+-				"processors is not suitable for SMP.\n");
+-		else
+-			tainted &= ~TAINT_UNSAFE_SMP;
++	if (unsafe_smp && num_online_cpus() > 1) {
++		printk(KERN_INFO "WARNING: This combination of AMD"
++			"processors is not suitable for SMP.\n");
++		add_taint(TAINT_UNSAFE_SMP);
+ 	}
+ }
+ 
+diff -puN include/linux/kernel.h~make-taint-bit-reliable-v3 include/linux/kernel.h
+--- a/include/linux/kernel.h~make-taint-bit-reliable-v3
++++ a/include/linux/kernel.h
+@@ -244,9 +244,10 @@ extern atomic_t oops_in_progress;
+ extern int panic_timeout;
+ extern int panic_on_oops;
+ extern int panic_on_unrecovered_nmi;
+-extern int tainted;
+ extern const char *print_tainted(void);
+-extern void add_taint(unsigned);
++extern void add_taint(unsigned flag);
++extern int test_taint(unsigned flag);
++extern unsigned long get_taint(void);
+ extern int root_mountflags;
+ 
+ /* Values used for system_state */
+@@ -259,16 +260,16 @@ extern enum system_states {
+ 	SYSTEM_SUSPEND_DISK,
+ } system_state;
+ 
+-#define TAINT_PROPRIETARY_MODULE	(1<<0)
+-#define TAINT_FORCED_MODULE		(1<<1)
+-#define TAINT_UNSAFE_SMP		(1<<2)
+-#define TAINT_FORCED_RMMOD		(1<<3)
+-#define TAINT_MACHINE_CHECK		(1<<4)
+-#define TAINT_BAD_PAGE			(1<<5)
+-#define TAINT_USER			(1<<6)
+-#define TAINT_DIE			(1<<7)
+-#define TAINT_OVERRIDDEN_ACPI_TABLE	(1<<8)
+-#define TAINT_WARN			(1<<9)
++#define TAINT_PROPRIETARY_MODULE	0
++#define TAINT_FORCED_MODULE		1
++#define TAINT_UNSAFE_SMP		2
++#define TAINT_FORCED_RMMOD		3
++#define TAINT_MACHINE_CHECK		4
++#define TAINT_BAD_PAGE			5
++#define TAINT_USER			6
++#define TAINT_DIE			7
++#define TAINT_OVERRIDDEN_ACPI_TABLE	8
++#define TAINT_WARN			9
+ 
+ extern void dump_stack(void) __cold;
+ 
+diff -puN kernel/module.c~make-taint-bit-reliable-v3 kernel/module.c
+--- a/kernel/module.c~make-taint-bit-reliable-v3
++++ a/kernel/module.c
+@@ -104,7 +104,7 @@ static inline int strong_try_module_get(
+ static inline void add_taint_module(struct module *mod, unsigned flag)
+ {
+ 	add_taint(flag);
+-	mod->taints |= flag;
++	mod->taints |= (1U << flag);
+ }
+ 
+ /*
+@@ -928,7 +928,7 @@ static const char vermagic[] = VERMAGIC_
+ static int try_to_force_load(struct module *mod, const char *symname)
+ {
+ #ifdef CONFIG_MODULE_FORCE_LOAD
+-	if (!(tainted & TAINT_FORCED_MODULE))
++	if (!test_taint(TAINT_FORCED_MODULE))
+ 		printk("%s: no version for \"%s\" found: kernel tainted.\n",
+ 		       mod->name, symname);
+ 	add_taint_module(mod, TAINT_FORCED_MODULE);
+@@ -1038,7 +1038,7 @@ static unsigned long resolve_symbol(Elf_
+ 	const unsigned long *crc;
+ 
+ 	ret = find_symbol(name, &owner, &crc,
+-			  !(mod->taints & TAINT_PROPRIETARY_MODULE), true);
++			  !(mod->taints & (1 << TAINT_PROPRIETARY_MODULE)), true);
+ 	if (!IS_ERR_VALUE(ret)) {
+ 		/* use_module can fail due to OOM,
+ 		   or module initialization or unloading */
+@@ -1631,7 +1631,7 @@ static void set_license(struct module *m
+ 		license = "unspecified";
+ 
+ 	if (!license_is_gpl_compatible(license)) {
+-		if (!(tainted & TAINT_PROPRIETARY_MODULE))
++		if (!test_taint(TAINT_PROPRIETARY_MODULE))
+ 			printk(KERN_WARNING "%s: module license '%s' taints "
+ 				"kernel.\n", mod->name, license);
+ 		add_taint_module(mod, TAINT_PROPRIETARY_MODULE);
+@@ -2616,9 +2616,9 @@ static char *module_flags(struct module 
+ 	    mod->state == MODULE_STATE_GOING ||
+ 	    mod->state == MODULE_STATE_COMING) {
+ 		buf[bx++] = '(';
+-		if (mod->taints & TAINT_PROPRIETARY_MODULE)
++		if (mod->taints & (1 << TAINT_PROPRIETARY_MODULE))
+ 			buf[bx++] = 'P';
+-		if (mod->taints & TAINT_FORCED_MODULE)
++		if (mod->taints & (1 << TAINT_FORCED_MODULE))
+ 			buf[bx++] = 'F';
+ 		/*
+ 		 * TAINT_FORCED_RMMOD: could be added.
+diff -puN kernel/panic.c~make-taint-bit-reliable-v3 kernel/panic.c
+--- a/kernel/panic.c~make-taint-bit-reliable-v3
++++ a/kernel/panic.c
+@@ -21,9 +21,10 @@
+ #include <linux/debug_locks.h>
+ #include <linux/random.h>
+ #include <linux/kallsyms.h>
++#include <linux/log2.h>
+ 
+ int panic_on_oops;
+-int tainted;
++static unsigned long tainted_mask;
+ static int pause_on_oops;
+ static int pause_on_oops_flag;
+ static DEFINE_SPINLOCK(pause_on_oops_lock);
+@@ -162,23 +163,41 @@ EXPORT_SYMBOL(panic);
+  *	The string is overwritten by the next call to print_taint().
+  */
+ 
++struct tnt {
++	u8 bit;
++	char true;
++	char false;
++};
++
++static const struct tnt tnts[] = {
++	{ TAINT_PROPRIETARY_MODULE, 'P', 'G' },
++	{ TAINT_FORCED_MODULE, 'F', ' ' },
++	{ TAINT_UNSAFE_SMP, 'S', ' ' },
++	{ TAINT_FORCED_RMMOD, 'R', ' ' },
++	{ TAINT_MACHINE_CHECK, 'M', ' ' },
++	{ TAINT_BAD_PAGE, 'B', ' ' },
++	{ TAINT_USER, 'U', ' ' },
++	{ TAINT_DIE, 'D', ' ' },
++	{ TAINT_OVERRIDDEN_ACPI_TABLE, 'A', ' ' },
++	{ TAINT_WARN, 'W', ' ' },
++};
++
+ const char *print_tainted(void)
+ {
+-	static char buf[20];
+-	if (tainted) {
+-		snprintf(buf, sizeof(buf), "Tainted: %c%c%c%c%c%c%c%c%c%c",
+-			tainted & TAINT_PROPRIETARY_MODULE ? 'P' : 'G',
+-			tainted & TAINT_FORCED_MODULE ? 'F' : ' ',
+-			tainted & TAINT_UNSAFE_SMP ? 'S' : ' ',
+-			tainted & TAINT_FORCED_RMMOD ? 'R' : ' ',
+-			tainted & TAINT_MACHINE_CHECK ? 'M' : ' ',
+-			tainted & TAINT_BAD_PAGE ? 'B' : ' ',
+-			tainted & TAINT_USER ? 'U' : ' ',
+-			tainted & TAINT_DIE ? 'D' : ' ',
+-			tainted & TAINT_OVERRIDDEN_ACPI_TABLE ? 'A' : ' ',
+-			tainted & TAINT_WARN ? 'W' : ' ');
+-	}
+-	else
++	static char buf[ARRAY_SIZE(tnts) + sizeof("Tainted: ") + 1];
++
++	if (tainted_mask) {
++		char *s;
++		int i;
++
++		s = buf + sprintf(buf, "Tainted: ");
++		for (i = 0; i < ARRAY_SIZE(tnts); i++) {
++			const struct tnt *t = &tnts[i];
++			*s++ = test_bit(t->bit, &tainted_mask) ?
++					t->true : t->false;
++		}
++		*s = 0;
++	} else
+ 		snprintf(buf, sizeof(buf), "Not tainted");
+ 	return(buf);
+ }
+@@ -186,10 +205,21 @@ const char *print_tainted(void)
+ void add_taint(unsigned flag)
+ {
+ 	debug_locks = 0; /* can't trust the integrity of the kernel anymore */
+-	tainted |= flag;
++	set_bit(flag, &tainted_mask);
+ }
+ EXPORT_SYMBOL(add_taint);
+ 
++int test_taint(unsigned flag)
++{
++	return test_bit(flag, &tainted_mask);
++}
++EXPORT_SYMBOL(test_taint);
++
++unsigned long get_taint(void)
++{
++	return tainted_mask;
++}
++
+ static int __init pause_on_oops_setup(char *str)
+ {
+ 	pause_on_oops = simple_strtoul(str, NULL, 0);
+diff -puN kernel/softlockup.c~make-taint-bit-reliable-v3 kernel/softlockup.c
+--- a/kernel/softlockup.c~make-taint-bit-reliable-v3
++++ a/kernel/softlockup.c
+@@ -226,7 +226,7 @@ static void check_hung_uninterruptible_t
+ 	 * If the system crashed already then all bets are off,
+ 	 * do not report extra hung tasks:
+ 	 */
+-	if ((tainted & TAINT_DIE) || did_panic)
++	if (test_taint(TAINT_DIE) || did_panic)
+ 		return;
+ 
+ 	read_lock(&tasklist_lock);
+diff -puN kernel/sysctl.c~make-taint-bit-reliable-v3 kernel/sysctl.c
+--- a/kernel/sysctl.c~make-taint-bit-reliable-v3
++++ a/kernel/sysctl.c
+@@ -153,7 +153,7 @@ extern int max_lock_depth;
+ #ifdef CONFIG_PROC_SYSCTL
+ static int proc_do_cad_pid(struct ctl_table *table, int write, struct file *filp,
+ 		  void __user *buffer, size_t *lenp, loff_t *ppos);
+-static int proc_dointvec_taint(struct ctl_table *table, int write, struct file *filp,
++static int proc_taint(struct ctl_table *table, int write, struct file *filp,
+ 			       void __user *buffer, size_t *lenp, loff_t *ppos);
+ #endif
+ 
+@@ -383,10 +383,9 @@ static struct ctl_table kern_table[] = {
+ #ifdef CONFIG_PROC_SYSCTL
+ 	{
+ 		.procname	= "tainted",
+-		.data		= &tainted,
+-		.maxlen		= sizeof(int),
++		.maxlen 	= sizeof(long),
+ 		.mode		= 0644,
+-		.proc_handler	= &proc_dointvec_taint,
++		.proc_handler	= &proc_taint,
+ 	},
+ #endif
+ #ifdef CONFIG_LATENCYTOP
+@@ -2283,49 +2282,39 @@ int proc_dointvec(struct ctl_table *tabl
+ 		    	    NULL,NULL);
+ }
+ 
+-#define OP_SET	0
+-#define OP_AND	1
+-#define OP_OR	2
+-
+-static int do_proc_dointvec_bset_conv(int *negp, unsigned long *lvalp,
+-				      int *valp,
+-				      int write, void *data)
+-{
+-	int op = *(int *)data;
+-	if (write) {
+-		int val = *negp ? -*lvalp : *lvalp;
+-		switch(op) {
+-		case OP_SET:	*valp = val; break;
+-		case OP_AND:	*valp &= val; break;
+-		case OP_OR:	*valp |= val; break;
+-		}
+-	} else {
+-		int val = *valp;
+-		if (val < 0) {
+-			*negp = -1;
+-			*lvalp = (unsigned long)-val;
+-		} else {
+-			*negp = 0;
+-			*lvalp = (unsigned long)val;
+-		}
+-	}
+-	return 0;
+-}
+-
+ /*
+- *	Taint values can only be increased
++ * Taint values can only be increased
++ * This means we can safely use a temporary.
+  */
+-static int proc_dointvec_taint(struct ctl_table *table, int write, struct file *filp,
++static int proc_taint(struct ctl_table *table, int write, struct file *filp,
+ 			       void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+-	int op;
++	struct ctl_table t;
++	unsigned long tmptaint = get_taint();
++	int err;
+ 
+ 	if (write && !capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 
+-	op = OP_OR;
+-	return do_proc_dointvec(table,write,filp,buffer,lenp,ppos,
+-				do_proc_dointvec_bset_conv,&op);
++	t = *table;
++	t.data = &tmptaint;
++	err = proc_doulongvec_minmax(&t, write, filp, buffer, lenp, ppos);
++	if (err < 0)
++		return err;
++
++	if (write) {
++		/*
++		 * Poor man's atomic or. Not worth adding a primitive
++		 * to everyone's atomic.h for this
++		 */
++		int i;
++		for (i = 0; i < BITS_PER_LONG && tmptaint >> i; i++) {
++			if ((tmptaint >> i) & 1)
++				add_taint(i);
++		}
++	}
++
++	return err;
+ }
+ 
+ struct do_proc_dointvec_minmax_conv_param {
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
-tracehook-comment-pasto-fixes.patch
+origin.patch
 linux-next.patch
-x86-tracehook-config_have_arch_tracehook.patch
-posix-timers-dont-switch-to-group_leader-if-it_process-dies.patch
-posix-timers-always-do-get_task_structtimer-it_process.patch
-posix-timers-sys_timer_create-remove-the-buggy-pf_exiting-check.patch
-posix-timers-sys_timer_create-simplify-and-s-tasklist-rcu.patch
-posix-timers-move-the-initialization-of-timer-sigq-from-send-to-create-path.patch
-posix-timers-sys_timer_create-cleanup-the-error-handling.patch
-posix-timers-kill-it_sigev_signo-and-it_sigev_value.patch
-posix-timers-lock_timer-kill-the-bogus-it_id-check.patch
-posix-timers-lock_timer-make-it-readable.patch
-posix-timers-use-struct-pid-instead-of-struct-task_struct.patch
-posix-timers-check-it_signal-instead-of-it_pid-to-validate-the-timer.patch
-posix-timers-simplify-de_thread-exit_itimers-path.patch
-make-ptrace_untrace-static.patch
+acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch
+acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
+toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7.patch
+toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch
+toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch
+acpi-toshiba_acpic-fix-sparse-signedness-mismatch-warnings.patch
+acpi-compal-laptop-use-rfkill-switch-subsystem.patch
+misdn-misc-timerdev-fixes.patch
+modules-remove-stop_machine-during-module-load.patch
+modules-remove-stop_machine-during-module-load-checkpatch-fixes.patch
+acpi_pmc-use-proper-read-function-also-in-errata-mode.patch
+acpi_pmc-check-for-monotonicity.patch
+make-taint-bit-reliable-v3.patch
+rtc-cmos-strongly-avoid-hpet-emulation.patch
+pnp-make-the-resource-type-an-unsigned-long.patch
+pnp-make-the-resource-type-an-unsigned-long-fix.patch
 coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
-kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
+acpi-use-bcd2bin-bin2bcd.patch
+profile-likely-unlikely-macros.patch
 
