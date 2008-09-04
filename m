@@ -1,186 +1,368 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch added to -mm tree
-Date: Thu, 04 Sep 2008 14:37:58 -0700
-Message-ID: <200809042151.m84LpaeY000582@imap1.linux-foundation.org>
+Subject: - v4l_compat_ioctl32-cleanup-in-compat=n-case.patch removed from -mm tree
+Date: Thu, 04 Sep 2008 15:07:11 -0700
+Message-ID: <200809042220.m84MKnRj001681@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58300 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48268 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753913AbYIDVwO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2008 17:52:14 -0400
+	by vger.kernel.org with ESMTP id S1756750AbYIDWVX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2008 18:21:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, yhlu.kernel@gmail.com
+To: adobriyan@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86/kernel/early_printk.c: remove unused enable_debug_console()
-has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
+     v4l_compat_ioctl32() cleanup in COMPAT=n case
+has been removed from the -mm tree.  Its filename was
+     v4l_compat_ioctl32-cleanup-in-compat=n-case.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/early_printk.c: remove unused enable_debug_console()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: v4l_compat_ioctl32() cleanup in COMPAT=n case
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+v4l_compat_ioctl32() exists even in COMPAT=n case which is unnecessary.
+Instead, totally compile it out. Introduce COMPAT_VIDEO_DEV for that.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/early_printk.c |   18 ------------------
- 1 file changed, 18 deletions(-)
+ drivers/media/Kconfig                           |    4 ++++
+ drivers/media/video/Makefile                    |    3 ++-
+ drivers/media/video/bt8xx/bttv-driver.c         |    4 ++++
+ drivers/media/video/compat_ioctl32.c            |    9 ---------
+ drivers/media/video/cx18/cx18-streams.c         |    2 ++
+ drivers/media/video/cx23885/cx23885-video.c     |    4 ++++
+ drivers/media/video/cx88/cx88-video.c           |    4 ++++
+ drivers/media/video/em28xx/em28xx-video.c       |    4 ++++
+ drivers/media/video/ivtv/ivtv-streams.c         |    4 ++++
+ drivers/media/video/s2255drv.c                  |    2 ++
+ drivers/media/video/saa7134/saa7134-video.c     |    4 ++++
+ drivers/media/video/usbvision/usbvision-video.c |    6 ++++++
+ drivers/media/video/uvc/uvc_v4l2.c              |    2 ++
+ drivers/media/video/vivi.c                      |    2 ++
+ include/media/v4l2-ioctl.h                      |    4 ++--
+ 15 files changed, 46 insertions(+), 12 deletions(-)
 
-diff -puN arch/x86/kernel/early_printk.c~arch-x86-kernel-early_printkc-remove-unused-enable_debug_console arch/x86/kernel/early_printk.c
---- a/arch/x86/kernel/early_printk.c~arch-x86-kernel-early_printkc-remove-unused-enable_debug_console
-+++ a/arch/x86/kernel/early_printk.c
-@@ -989,22 +989,4 @@ static int __init setup_early_printk(cha
- 	return 0;
- }
+diff -puN drivers/media/Kconfig~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/Kconfig
+--- a/drivers/media/Kconfig~v4l_compat_ioctl32-cleanup-in-compat=n-case
++++ a/drivers/media/Kconfig
+@@ -29,6 +29,10 @@ config VIDEO_DEV
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called videodev.
  
--static void __init enable_debug_console(char *buf)
++config COMPAT_VIDEO_DEV
++	bool
++	depends on COMPAT && VIDEO_DEV
++
+ config VIDEO_V4L2_COMMON
+ 	tristate
+ 	depends on (I2C || I2C=n) && VIDEO_DEV
+diff -puN drivers/media/video/Makefile~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/Makefile
+--- a/drivers/media/video/Makefile~v4l_compat_ioctl32-cleanup-in-compat=n-case
++++ a/drivers/media/video/Makefile
+@@ -12,7 +12,8 @@ stkwebcam-objs	:=	stk-webcam.o stk-senso
+ 
+ videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o
+ 
+-obj-$(CONFIG_VIDEO_DEV) += videodev.o compat_ioctl32.o v4l2-int-device.o
++obj-$(CONFIG_VIDEO_DEV) += videodev.o v4l2-int-device.o
++obj-$(CONFIG_COMPAT_VIDEO_DEV) += compat_ioctl32.o
+ 
+ obj-$(CONFIG_VIDEO_V4L2_COMMON) += v4l2-common.o
+ 
+diff -puN drivers/media/video/bt8xx/bttv-driver.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/bt8xx/bttv-driver.c
+--- a/drivers/media/video/bt8xx/bttv-driver.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
++++ a/drivers/media/video/bt8xx/bttv-driver.c
+@@ -3361,7 +3361,9 @@ static const struct file_operations bttv
+ 	.open	  = bttv_open,
+ 	.release  = bttv_release,
+ 	.ioctl	  = video_ioctl2,
++#ifdef CONFIG_COMPAT
+ 	.compat_ioctl	= v4l_compat_ioctl32,
++#endif
+ 	.llseek	  = no_llseek,
+ 	.read	  = bttv_read,
+ 	.mmap	  = bttv_mmap,
+@@ -3649,7 +3651,9 @@ static const struct file_operations radi
+ 	.open	  = radio_open,
+ 	.read     = radio_read,
+ 	.release  = radio_release,
++#ifdef CONFIG_COMPAT
+ 	.compat_ioctl	= v4l_compat_ioctl32,
++#endif
+ 	.ioctl	  = video_ioctl2,
+ 	.llseek	  = no_llseek,
+ 	.poll     = radio_poll,
+diff -puN drivers/media/video/compat_ioctl32.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/compat_ioctl32.c
+--- a/drivers/media/video/compat_ioctl32.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
++++ a/drivers/media/video/compat_ioctl32.c
+@@ -19,8 +19,6 @@
+ #include <linux/smp_lock.h>
+ #include <media/v4l2-ioctl.h>
+ 
+-#ifdef CONFIG_COMPAT
+-
+ #ifdef CONFIG_VIDEO_V4L1_COMPAT
+ struct video_tuner32 {
+ 	compat_int_t tuner;
+@@ -921,12 +919,5 @@ long v4l_compat_ioctl32(struct file *fil
+ 	}
+ 	return ret;
+ }
+-#else
+-long v4l_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
 -{
--#ifdef DBGP_DEBUG
--	struct console *old_early_console = NULL;
--
--	if (early_console_initialized && early_console) {
--		old_early_console = early_console;
--		unregister_console(early_console);
--		early_console_initialized = 0;
--	}
--
--	setup_early_printk(buf);
--
--	if (early_console == old_early_console && old_early_console)
--		register_console(old_early_console);
--#endif
+-	return -ENOIOCTLCMD;
 -}
+-#endif
+-EXPORT_SYMBOL_GPL(v4l_compat_ioctl32);
+ 
+ MODULE_LICENSE("GPL");
+diff -puN drivers/media/video/cx18/cx18-streams.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/cx18/cx18-streams.c
+--- a/drivers/media/video/cx18/cx18-streams.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
++++ a/drivers/media/video/cx18/cx18-streams.c
+@@ -41,7 +41,9 @@ static struct file_operations cx18_v4l2_
+ 	.open = cx18_v4l2_open,
+ 	/* FIXME change to video_ioctl2 if serialization lock can be removed */
+ 	.ioctl = cx18_v4l2_ioctl,
++#ifdef CONFIG_COMPAT
+ 	.compat_ioctl = v4l_compat_ioctl32,
++#endif
+ 	.release = cx18_v4l2_close,
+ 	.poll = cx18_v4l2_enc_poll,
+ };
+diff -puN drivers/media/video/cx23885/cx23885-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/cx23885/cx23885-video.c
+--- a/drivers/media/video/cx23885/cx23885-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
++++ a/drivers/media/video/cx23885/cx23885-video.c
+@@ -1436,7 +1436,9 @@ static const struct file_operations vide
+ 	.poll          = video_poll,
+ 	.mmap	       = video_mmap,
+ 	.ioctl	       = video_ioctl2,
++#ifdef CONFIG_COMPAT
+ 	.compat_ioctl  = v4l_compat_ioctl32,
++#endif
+ 	.llseek        = no_llseek,
+ };
+ 
+@@ -1490,7 +1492,9 @@ static const struct file_operations radi
+ 	.open          = video_open,
+ 	.release       = video_release,
+ 	.ioctl         = video_ioctl2,
++#ifdef CONFIG_COMPAT
+ 	.compat_ioctl  = v4l_compat_ioctl32,
++#endif
+ 	.llseek        = no_llseek,
+ };
+ 
+diff -puN drivers/media/video/cx88/cx88-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/cx88/cx88-video.c
+--- a/drivers/media/video/cx88/cx88-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
++++ a/drivers/media/video/cx88/cx88-video.c
+@@ -1685,7 +1685,9 @@ static const struct file_operations vide
+ 	.poll          = video_poll,
+ 	.mmap	       = video_mmap,
+ 	.ioctl	       = video_ioctl2,
++#ifdef CONFIG_COMPAT
+ 	.compat_ioctl  = v4l_compat_ioctl32,
++#endif
+ 	.llseek        = no_llseek,
+ };
+ 
+@@ -1741,7 +1743,9 @@ static const struct file_operations radi
+ 	.open          = video_open,
+ 	.release       = video_release,
+ 	.ioctl         = video_ioctl2,
++#ifdef CONFIG_COMPAT
+ 	.compat_ioctl  = v4l_compat_ioctl32,
++#endif
+ 	.llseek        = no_llseek,
+ };
+ 
+diff -puN drivers/media/video/em28xx/em28xx-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/em28xx/em28xx-video.c
+--- a/drivers/media/video/em28xx/em28xx-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
++++ a/drivers/media/video/em28xx/em28xx-video.c
+@@ -1766,7 +1766,9 @@ static const struct file_operations em28
+ 	.mmap          = em28xx_v4l2_mmap,
+ 	.ioctl	       = video_ioctl2,
+ 	.llseek        = no_llseek,
++#ifdef CONFIG_COMPAT
+ 	.compat_ioctl  = v4l_compat_ioctl32,
++#endif
+ };
+ 
+ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+@@ -1825,7 +1827,9 @@ static const struct file_operations radi
+ 	.open          = em28xx_v4l2_open,
+ 	.release       = em28xx_v4l2_close,
+ 	.ioctl	       = video_ioctl2,
++#ifdef CONFIG_COMPAT
+ 	.compat_ioctl  = v4l_compat_ioctl32,
++#endif
+ 	.llseek        = no_llseek,
+ };
+ 
+diff -puN drivers/media/video/ivtv/ivtv-streams.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/ivtv/ivtv-streams.c
+--- a/drivers/media/video/ivtv/ivtv-streams.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
++++ a/drivers/media/video/ivtv/ivtv-streams.c
+@@ -49,7 +49,9 @@ static const struct file_operations ivtv
+ 	.write = ivtv_v4l2_write,
+ 	.open = ivtv_v4l2_open,
+ 	.ioctl = ivtv_v4l2_ioctl,
++#ifdef CONFIG_COMPAT
+ 	.compat_ioctl = v4l_compat_ioctl32,
++#endif
+ 	.release = ivtv_v4l2_close,
+ 	.poll = ivtv_v4l2_enc_poll,
+ };
+@@ -60,7 +62,9 @@ static const struct file_operations ivtv
+ 	.write = ivtv_v4l2_write,
+ 	.open = ivtv_v4l2_open,
+ 	.ioctl = ivtv_v4l2_ioctl,
++#ifdef CONFIG_COMPAT
+ 	.compat_ioctl = v4l_compat_ioctl32,
++#endif
+ 	.release = ivtv_v4l2_close,
+ 	.poll = ivtv_v4l2_dec_poll,
+ };
+diff -puN drivers/media/video/s2255drv.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/s2255drv.c
+--- a/drivers/media/video/s2255drv.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
++++ a/drivers/media/video/s2255drv.c
+@@ -1764,7 +1764,9 @@ static const struct file_operations s225
+ 	.release = s2255_close,
+ 	.poll = s2255_poll,
+ 	.ioctl = video_ioctl2,	/* V4L2 ioctl handler */
++#ifdef CONFIG_COMPAT
+ 	.compat_ioctl = v4l_compat_ioctl32,
++#endif
+ 	.mmap = s2255_mmap_v4l,
+ 	.llseek = no_llseek,
+ };
+diff -puN drivers/media/video/saa7134/saa7134-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/saa7134/saa7134-video.c
+--- a/drivers/media/video/saa7134/saa7134-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
++++ a/drivers/media/video/saa7134/saa7134-video.c
+@@ -2371,7 +2371,9 @@ static const struct file_operations vide
+ 	.poll     = video_poll,
+ 	.mmap	  = video_mmap,
+ 	.ioctl	  = video_ioctl2,
++#ifdef CONFIG_COMPAT
+ 	.compat_ioctl	= v4l_compat_ioctl32,
++#endif
+ 	.llseek   = no_llseek,
+ };
+ 
+@@ -2431,7 +2433,9 @@ static const struct file_operations radi
+ 	.open	  = video_open,
+ 	.release  = video_release,
+ 	.ioctl	  = video_ioctl2,
++#ifdef CONFIG_COMPAT
+ 	.compat_ioctl	= v4l_compat_ioctl32,
++#endif
+ 	.llseek   = no_llseek,
+ };
+ 
+diff -puN drivers/media/video/usbvision/usbvision-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/usbvision/usbvision-video.c
+--- a/drivers/media/video/usbvision/usbvision-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
++++ a/drivers/media/video/usbvision/usbvision-video.c
+@@ -1306,7 +1306,9 @@ static const struct file_operations usbv
+ 	.ioctl		= video_ioctl2,
+ 	.llseek		= no_llseek,
+ /* 	.poll          = video_poll, */
++#ifdef CONFIG_COMPAT
+ 	.compat_ioctl  = v4l_compat_ioctl32,
++#endif
+ };
+ 
+ static const struct v4l2_ioctl_ops usbvision_ioctl_ops = {
+@@ -1361,7 +1363,9 @@ static const struct file_operations usbv
+ 	.release	= usbvision_radio_close,
+ 	.ioctl		= video_ioctl2,
+ 	.llseek		= no_llseek,
++#ifdef CONFIG_COMPAT
+ 	.compat_ioctl  = v4l_compat_ioctl32,
++#endif
+ };
+ 
+ static const struct v4l2_ioctl_ops usbvision_radio_ioctl_ops = {
+@@ -1398,7 +1402,9 @@ static const struct file_operations usbv
+ 	.release	= usbvision_vbi_close,
+ 	.ioctl		= usbvision_vbi_ioctl,
+ 	.llseek		= no_llseek,
++#ifdef CONFIG_COMPAT
+ 	.compat_ioctl  = v4l_compat_ioctl32,
++#endif
+ };
+ 
+ static struct video_device usbvision_vbi_template=
+diff -puN drivers/media/video/uvc/uvc_v4l2.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/uvc/uvc_v4l2.c
+--- a/drivers/media/video/uvc/uvc_v4l2.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
++++ a/drivers/media/video/uvc/uvc_v4l2.c
+@@ -1093,7 +1093,9 @@ struct file_operations uvc_fops = {
+ 	.open		= uvc_v4l2_open,
+ 	.release	= uvc_v4l2_release,
+ 	.ioctl		= uvc_v4l2_ioctl,
++#ifdef CONFIG_COMPAT
+ 	.compat_ioctl	= v4l_compat_ioctl32,
++#endif
+ 	.llseek		= no_llseek,
+ 	.read		= uvc_v4l2_read,
+ 	.mmap		= uvc_v4l2_mmap,
+diff -puN drivers/media/video/vivi.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/vivi.c
+--- a/drivers/media/video/vivi.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
++++ a/drivers/media/video/vivi.c
+@@ -1066,7 +1066,9 @@ static const struct file_operations vivi
+ 	.read           = vivi_read,
+ 	.poll		= vivi_poll,
+ 	.ioctl          = video_ioctl2, /* V4L2 ioctl handler */
++#ifdef CONFIG_COMPAT
+ 	.compat_ioctl   = v4l_compat_ioctl32,
++#endif
+ 	.mmap           = vivi_mmap,
+ 	.llseek         = no_llseek,
+ };
+diff -puN include/media/v4l2-ioctl.h~v4l_compat_ioctl32-cleanup-in-compat=n-case include/media/v4l2-ioctl.h
+--- a/include/media/v4l2-ioctl.h~v4l_compat_ioctl32-cleanup-in-compat=n-case
++++ a/include/media/v4l2-ioctl.h
+@@ -284,11 +284,11 @@ int v4l_compat_translate_ioctl(struct in
+ #else
+ #define v4l_compat_translate_ioctl(inode, file, cmd, arg, ioctl) (-EINVAL)
+ #endif
 -
- early_param("earlyprintk", setup_early_printk);
++#ifdef CONFIG_COMPAT
+ /* 32 Bits compatibility layer for 64 bits processors */
+ extern long v4l_compat_ioctl32(struct file *file, unsigned int cmd,
+ 				unsigned long arg);
+-
++#endif
+ extern int video_ioctl2(struct inode *inode, struct file *file,
+ 			  unsigned int cmd, unsigned long arg);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-origin.patch
 linux-next.patch
-next-remove-localversion.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
-acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-x86-make-poll_idle-behave-more-like-the-other-idle-methods-checkpatch-fixes.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
-fs-dlm-configc-choose-better-identifiers.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
-pci-tidy-pme-support-messages-checkpatch-fixes.patch
-sched-clarify-ifdef-tangle.patch
-fix-fastboot-make-the-raid-autodetect-code-wait-for-all-devices-to-init.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
-git-xtensa.patch
-modules-remove-stop_machine-during-module-load-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-media-video-cafe_ccicc-needs-mmh.patch
-e1000e-prevent-corruption-of-eeprom-nvm.patch
-drivers-net-mlx4-allocc-needs-mmh.patch
-net-forcedeth-call-restore-mac-addr-in-nv_shutdown-path-v2-fix.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
-fix-a-race-condtion-of-oops_in_progress-fix.patch
-vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
-make-taint-bit-reliable-v3-fix.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-gru-driver-minor-updates-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-nilfs2-continuous-snapshotting-file-system-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
+v4l_compat_ioctl32-cleanup-in-compat=n-case.patch
+less-softirq-vectors.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+cpuset-use-seq_cpumask-seq_nodemask.patch
+compat_binfmt_elf-definition-tweak.patch
+proc-move-sysrq-trigger-out-of-fs-proc.patch
+proc-fix-return-value-of-proc_reg_open-in-too-late-case.patch
+proc-proc_sys_root-tweak.patch
+proc-remove-dummy-vmcore_open.patch
+proc-remove-unused-get_dma_list.patch
+sysctl-simplify-strategy.patch
+fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out.patch
+fs-kconfig-move-autofs-autofs4-out.patch
+fs-kconfig-move-cifs-out.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+likely_prof-changed-to-use-proc_create.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
 
