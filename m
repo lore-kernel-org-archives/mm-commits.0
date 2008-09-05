@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-fix-16bpp-modes.patch added to -mm tree
-Date: Fri, 05 Sep 2008 14:55:57 -0700
-Message-ID: <200809052155.m85Ltv6T022249@imap1.linux-foundation.org>
+Subject: + cirrusfb-add-noaccel-module-parameter.patch added to -mm tree
+Date: Fri, 05 Sep 2008 14:55:55 -0700
+Message-ID: <200809052155.m85Ltt23022246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58899 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45845 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751926AbYIEV43 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2008 17:56:29 -0400
+	by vger.kernel.org with ESMTP id S1751848AbYIEV40 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2008 17:56:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     cirrusfb: fix 16bpp modes
+     cirrusfb: add noaccel module parameter
 has been added to the -mm tree.  Its filename is
-     cirrusfb-fix-16bpp-modes.patch
+     cirrusfb-add-noaccel-module-parameter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: fix 16bpp modes
+Subject: cirrusfb: add noaccel module parameter
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-The 16bpp mode did not work on the Cirrus cards as the visual type was set
-to DIRECTCOLOR instead of TRUECOLOR.  The Alpine family used one incorrect
-register setting so this 16bpp modes generated wrong horizontal frequency.
+The noaccel parameter is already handled if the driver is not built as
+module.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/video/cirrusfb.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-fix-16bpp-modes drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-fix-16bpp-modes
+diff -puN drivers/video/cirrusfb.c~cirrusfb-add-noaccel-module-parameter drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-add-noaccel-module-parameter
 +++ a/drivers/video/cirrusfb.c
-@@ -657,7 +657,7 @@ static int cirrusfb_decode_var(const str
- 	case 16:
- 	case 32:
- 		info->fix.line_length = var->xres_virtual * maxclockidx;
--		info->fix.visual = FB_VISUAL_DIRECTCOLOR;
-+		info->fix.visual = FB_VISUAL_TRUECOLOR;
- 		break;
+@@ -352,7 +352,7 @@ struct cirrusfb_info {
+ 	void (*unmap)(struct fb_info *info);
+ };
  
- 	default:
-@@ -1178,10 +1178,7 @@ static int cirrusfb_set_par_foo(struct f
+-static int noaccel;
++static int noaccel __devinitdata;
+ static char *mode_option __devinitdata = "640x480@60";
  
- 		case BT_ALPINE:
- 			DPRINTK(" (for GD543x)\n");
--			if (var->xres >= 1024)
--				vga_wseq(regbase, CL_SEQR7, 0xa7);
--			else
--				vga_wseq(regbase, CL_SEQR7, 0xa3);
-+			vga_wseq(regbase, CL_SEQR7, 0xa7);
- 			cirrusfb_set_mclk(cinfo, regs.mclk, regs.divMCLK);
- 			break;
+ /****************************************************************************/
+@@ -2525,6 +2525,8 @@ module_init(cirrusfb_init);
  
+ module_param(mode_option, charp, 0);
+ MODULE_PARM_DESC(mode_option, "Initial video mode e.g. '648x480-8@60'");
++module_param(noaccel, bool, 0);
++MODULE_PARM_DESC(noaccel, "Disable acceleration");
+ 
+ #ifdef MODULE
+ module_exit(cirrusfb_exit);
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
