@@ -1,114 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: - show-memory-section-to-node-relationship-in-sysfs.patch removed from -mm tree
-Date: Fri, 05 Sep 2008 12:41:21 -0700
-Message-ID: <200809051941.m85JfLgl017210@imap1.linux-foundation.org>
+Subject: - acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch removed from -mm tree
+Date: Fri, 05 Sep 2008 13:07:48 -0700
+Message-ID: <200809052007.m85K7mnL018159@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48565 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46852 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750844AbYIETmL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2008 15:42:11 -0400
+	by vger.kernel.org with ESMTP id S1750810AbYIEUIT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2008 16:08:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: garyhade@us.ibm.com, dave@linux.vnet.ibm.com, lcm@us.ibm.com, mel@csn.ul.ie, nish.aravamudan@gmail.com, pbadari@us.ibm.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: astarikovskiy@suse.de, andi@firstfloor.org, hmh@hmh.eng.br, maxi@daemonizer.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: show memory section to node relationship in sysfs
+     ACPI: EC: Don't degrade to poll mode at storm automatically
 has been removed from the -mm tree.  Its filename was
-     show-memory-section-to-node-relationship-in-sysfs.patch
+     acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: show memory section to node relationship in sysfs
-From: Gary Hade <garyhade@us.ibm.com>
+Subject: ACPI: EC: Don't degrade to poll mode at storm automatically
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-Show memory section to node relationship in sysfs
+Not all users of semi-broken EC devices want to degrade to poll mode, so
+give them right to choose.
 
-Add /sys/devices/system/memory/memoryX/node files to show
-the node on which each memory section resides.
+This fixes a regression in 2.6.26 (from 2.6.25.3).  Initially reported as
+"Asus Eee PC hotkeys stop working if pressed quickly" in bugzilla
+<http://bugzilla.kernel.org/show_bug.cgi?id=11089>.
 
-Signed-off-by: Gary Hade <garyhade@us.ibm.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Chris McDermott <lcm@us.ibm.com>
+The regression was caused by a recently added check for interrupt storms. 
+The Eee PC triggers this check and switches to polling.  When multiple
+events arrive between polling intervals, only one is fetched from the EC. 
+This causes erroneous behaviour; ultimately events stop being delivered
+altogether when the EC buffer overflows.
+
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Maximilian Engelhardt <maxi@daemonizer.de>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/memory-hotplug.txt |    1 -
- drivers/base/memory.c            |   20 ++++++++++++++++++++
- 2 files changed, 20 insertions(+), 1 deletion(-)
+ Documentation/kernel-parameters.txt |    5 +++
+ drivers/acpi/ec.c                   |   36 ++++++++++++++++++--------
+ 2 files changed, 31 insertions(+), 10 deletions(-)
 
-diff -puN Documentation/memory-hotplug.txt~show-memory-section-to-node-relationship-in-sysfs Documentation/memory-hotplug.txt
---- a/Documentation/memory-hotplug.txt~show-memory-section-to-node-relationship-in-sysfs
-+++ a/Documentation/memory-hotplug.txt
-@@ -365,7 +365,6 @@ node if necessary.
-   - allowing memory hot-add to ZONE_MOVABLE. maybe we need some switch like
-     sysctl or new control file.
-   - showing memory section and physical device relationship.
--  - showing memory section and node relationship (maybe good for NUMA)
-   - showing memory section is under ZONE_MOVABLE or not
-   - test and make it better memory offlining.
-   - support HugeTLB page migration and offlining.
-diff -puN drivers/base/memory.c~show-memory-section-to-node-relationship-in-sysfs drivers/base/memory.c
---- a/drivers/base/memory.c~show-memory-section-to-node-relationship-in-sysfs
-+++ a/drivers/base/memory.c
-@@ -150,6 +150,22 @@ static ssize_t show_mem_state(struct sys
- 	return len;
- }
+diff -puN Documentation/kernel-parameters.txt~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically
++++ a/Documentation/kernel-parameters.txt
+@@ -741,6 +741,11 @@ and is between 256 and 4096 characters. 
  
-+/*
-+ * node on which memory section resides
-+ */
-+static ssize_t show_mem_node(struct sys_device *dev,
-+			struct sysdev_attribute *attr, char *buf)
-+{
-+	unsigned long start_pfn;
-+	int ret;
-+	struct memory_block *mem =
-+		container_of(dev, struct memory_block, sysdev);
+ 	eata=		[HW,SCSI]
+ 
++	ec_intr=	[HW,ACPI] ACPI Embedded Controller interrupt mode
++			Format: <int>
++			0: polling mode
++			non-0: interrupt mode (default)
 +
-+	start_pfn = section_nr_to_pfn(mem->phys_index);
-+	ret = pfn_to_nid(start_pfn);
-+	return sprintf(buf, "%d\n", ret);
+ 	edd=		[EDD]
+ 			Format: {"off" | "on" | "skip[mbr]"}
+ 
+diff -puN drivers/acpi/ec.c~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically drivers/acpi/ec.c
+--- a/drivers/acpi/ec.c~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically
++++ a/drivers/acpi/ec.c
+@@ -110,6 +110,8 @@ static struct acpi_ec {
+ 	u8 handlers_installed;
+ } *boot_ec, *first_ec;
+ 
++int acpi_ec_intr = 1; /* Default is interrupt mode */
++
+ /* 
+  * Some Asus system have exchanged ECDT data/command IO addresses.
+  */
+@@ -516,12 +518,14 @@ static u32 acpi_ec_gpe_handler(void *dat
+ 	acpi_status status = AE_OK;
+ 	struct acpi_ec *ec = data;
+ 	u8 state = acpi_ec_read_status(ec);
++	static bool warn_done = 0;
+ 
+ 	pr_debug(PREFIX "~~~> interrupt\n");
+ 	atomic_inc(&ec->irq_count);
+-	if (atomic_read(&ec->irq_count) > 5) {
+-		pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
+-		ec_switch_to_poll_mode(ec);
++	if (!warn_done && atomic_read(&ec->irq_count) > 5) {
++		pr_warning(PREFIX "GPE storm detected, try to use ec_intr=0 "
++			"kernel option, if you see problems with keyboard.\n");
++		warn_done = 1;
+ 		goto end;
+ 	}
+ 	clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
+@@ -848,20 +852,21 @@ static int ec_install_handlers(struct ac
+ 	acpi_status status;
+ 	if (ec->handlers_installed)
+ 		return 0;
+-	status = acpi_install_gpe_handler(NULL, ec->gpe,
++	if (acpi_ec_intr) {
++		status = acpi_install_gpe_handler(NULL, ec->gpe,
+ 					  ACPI_GPE_EDGE_TRIGGERED,
+ 					  &acpi_ec_gpe_handler, ec);
+-	if (ACPI_FAILURE(status))
+-		return -ENODEV;
+-
+-	acpi_set_gpe_type(NULL, ec->gpe, ACPI_GPE_TYPE_RUNTIME);
+-	acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
++		if (ACPI_FAILURE(status))
++			return -ENODEV;
+ 
++		acpi_set_gpe_type(NULL, ec->gpe, ACPI_GPE_TYPE_RUNTIME);
++		acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
++	}
+ 	status = acpi_install_address_space_handler(ec->handle,
+ 						    ACPI_ADR_SPACE_EC,
+ 						    &acpi_ec_space_handler,
+ 						    NULL, ec);
+-	if (ACPI_FAILURE(status)) {
++	if (ACPI_FAILURE(status) && acpi_ec_intr) {
+ 		acpi_remove_gpe_handler(NULL, ec->gpe, &acpi_ec_gpe_handler);
+ 		return -ENODEV;
+ 	}
+@@ -1047,3 +1052,14 @@ static void __exit acpi_ec_exit(void)
+ 	return;
+ }
+ #endif	/* 0 */
++
++static int __init acpi_ec_set_intr_mode(char *str)
++{
++	if (!get_option(&str, &acpi_ec_intr)) {
++		acpi_ec_intr = 0;
++		return 0;
++	}
++	return 1;
 +}
 +
- int memory_notify(unsigned long val, void *v)
- {
- 	return blocking_notifier_call_chain(&memory_chain, val, v);
-@@ -278,6 +294,7 @@ static SYSDEV_ATTR(phys_index, 0444, sho
- static SYSDEV_ATTR(state, 0644, show_mem_state, store_mem_state);
- static SYSDEV_ATTR(phys_device, 0444, show_phys_device, NULL);
- static SYSDEV_ATTR(removable, 0444, show_mem_removable, NULL);
-+static SYSDEV_ATTR(node, 0444, show_mem_node, NULL);
- 
- #define mem_create_simple_file(mem, attr_name)	\
- 	sysdev_create_file(&mem->sysdev, &attr_##attr_name)
-@@ -368,6 +385,8 @@ static int add_memory_block(unsigned lon
- 		ret = mem_create_simple_file(mem, phys_device);
- 	if (!ret)
- 		ret = mem_create_simple_file(mem, removable);
-+	if (!ret)
-+		ret = mem_create_simple_file(mem, node);
- 
- 	return ret;
- }
-@@ -413,6 +432,7 @@ int remove_memory_block(unsigned long no
- 	mem_remove_simple_file(mem, state);
- 	mem_remove_simple_file(mem, phys_device);
- 	mem_remove_simple_file(mem, removable);
-+	mem_remove_simple_file(mem, node);
- 	unregister_memory(mem, section);
- 
- 	return 0;
++__setup("ec_intr=", acpi_ec_set_intr_mode);
 _
 
-Patches currently in -mm which might be from garyhade@us.ibm.com are
+Patches currently in -mm which might be from astarikovskiy@suse.de are
 
-x86_64-add-memory-hotremove-config-option.patch
-show-memory-section-to-node-relationship-in-sysfs.patch
+linux-next.patch
+acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch
+acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
 
