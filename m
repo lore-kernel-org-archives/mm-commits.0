@@ -1,184 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - fix-fastboot-make-the-raid-autodetect-code-wait-for-all-devices-to-init.patch removed from -mm tree
-Date: Fri, 05 Sep 2008 13:13:56 -0700
-Message-ID: <200809052013.m85KDuec018434@imap1.linux-foundation.org>
+Subject: - hid-fix-gyration-build-error.patch removed from -mm tree
+Date: Fri, 05 Sep 2008 13:13:53 -0700
+Message-ID: <200809052013.m85KDrUC018431@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49202 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52276 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752375AbYIEUOW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2008 16:14:22 -0400
+	by vger.kernel.org with ESMTP id S1751944AbYIEUOy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2008 16:14:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arjan@infradead.org, arjan@linux.intel.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, jkosina@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix "fastboot: make the raid autodetect code wait for all devices to init"
+     hid: fix gyration build error
 has been removed from the -mm tree.  Its filename was
-     fix-fastboot-make-the-raid-autodetect-code-wait-for-all-devices-to-init.patch
+     hid-fix-gyration-build-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix "fastboot: make the raid autodetect code wait for all devices to init"
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hid: fix gyration build error
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-: commit b52c36a95ed8026b6925fe8595ebcab6921ae62d
-: Author: Arjan van de Ven <arjan@linux.intel.com>
-: Date:   Sun Jul 20 13:07:09 2008 -0700
-:
-:     fastboot: make the raid autodetect code wait for all devices to init
+Fix config symbol name in ifdef to fix build error:
 
-init/do_mounts_md.c: In function `md_run_setup':
-init/do_mounts_md.c:282: warning: ISO C90 forbids mixed declarations and code
+ERROR: "hid_compat_gyration" [drivers/hid/hid-dummy.ko] undefined!
 
-How did this happen?
-
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts_md.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/hid/hid-dummy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/do_mounts_md.c~fix-fastboot-make-the-raid-autodetect-code-wait-for-all-devices-to-init init/do_mounts_md.c
---- a/init/do_mounts_md.c~fix-fastboot-make-the-raid-autodetect-code-wait-for-all-devices-to-init
-+++ a/init/do_mounts_md.c
-@@ -271,6 +271,8 @@ void __init md_run_setup(void)
- 	if (raid_noautodetect)
- 		printk(KERN_INFO "md: Skipping autodetection of RAID arrays. (raid=noautodetect)\n");
- 	else {
-+		int fd;
-+
- 		/* 
- 		 * Since we don't want to detect and use half a raid array, we need to
- 		 * wait for the known devices to complete their probing
-@@ -279,7 +281,7 @@ void __init md_run_setup(void)
- 		printk(KERN_INFO "md: If you don't use raid, use raid=noautodetect\n");
- 		while (driver_probe_done() < 0)
- 			msleep(100);
--		int fd = sys_open("/dev/md0", 0, 0);
-+		fd = sys_open("/dev/md0", 0, 0);
- 		if (fd >= 0) {
- 			sys_ioctl(fd, RAID_AUTORUN, raid_autopart);
- 			sys_close(fd);
+diff -puN drivers/hid/hid-dummy.c~hid-fix-gyration-build-error drivers/hid/hid-dummy.c
+--- a/drivers/hid/hid-dummy.c~hid-fix-gyration-build-error
++++ a/drivers/hid/hid-dummy.c
+@@ -28,7 +28,7 @@ static int __init hid_dummy_init(void)
+ #ifdef CONFIG_HID_EZKEY_MODULE
+ 	HID_COMPAT_CALL_DRIVER(ezkey);
+ #endif
+-#ifdef CONFIG_HID_EZKEY_MODULE
++#ifdef CONFIG_HID_GYRATION_MODULE
+ 	HID_COMPAT_CALL_DRIVER(gyration);
+ #endif
+ #ifdef CONFIG_HID_LOGITECH_MODULE
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-drivers-mmc-card-blockc-fix-refcount-leak-in-mmc_block_open.patch
 linux-next.patch
-next-remove-localversion.patch
-security-selinux-include-netlabelh-fix-two-build-errors.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-x86-make-poll_idle-behave-more-like-the-other-idle-methods-checkpatch-fixes.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
-fs-dlm-configc-choose-better-identifiers.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
-pci-tidy-pme-support-messages-checkpatch-fixes.patch
-arch-s390-kernel-ptracec-fix-build.patch
-sched-clarify-ifdef-tangle.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
-drivers-usb-musb-disable-it-on-superh.patch
-git-xtensa.patch
-modules-remove-stop_machine-during-module-load-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-media-video-cafe_ccicc-needs-mmh.patch
-e1000e-prevent-corruption-of-eeprom-nvm.patch
-drivers-net-mlx4-allocc-needs-mmh.patch
-net-forcedeth-call-restore-mac-addr-in-nv_shutdown-path-v2-fix.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
-fix-a-race-condtion-of-oops_in_progress-fix.patch
-vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
-make-taint-bit-reliable-v3-fix.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-gru-driver-minor-updates-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-nilfs2-continuous-snapshotting-file-system-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+mfd-ucb1400-sound-driver-uses-depends-on-ac97_bus.patch
+fb-metronome-printk-format-warning.patch
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+lkdtm-fix-for-config_scsi=n.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+ath9k-uses-needs-led_classdev_register.patch
+w1-documentation-w1-masters-ds2490-update.patch
 profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
