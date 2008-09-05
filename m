@@ -1,54 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch removed from -mm tree
-Date: Fri, 05 Sep 2008 13:08:58 -0700
-Message-ID: <200809052008.m85K8wwp018253@imap1.linux-foundation.org>
+Subject: - fix-fastboot-make-the-raid-autodetect-code-wait-for-all-devices-to-init.patch removed from -mm tree
+Date: Fri, 05 Sep 2008 13:13:56 -0700
+Message-ID: <200809052013.m85KDuec018434@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53761 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49202 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752000AbYIEUJG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2008 16:09:06 -0400
+	by vger.kernel.org with ESMTP id S1752375AbYIEUOW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2008 16:14:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, astarikovskiy@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arjan@infradead.org, arjan@linux.intel.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup
+     fix "fastboot: make the raid autodetect code wait for all devices to init"
 has been removed from the -mm tree.  Its filename was
-     acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
+     fix-fastboot-make-the-raid-autodetect-code-wait-for-all-devices-to-init.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup
+Subject: fix "fastboot: make the raid autodetect code wait for all devices to init"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-use bool properly.
+: commit b52c36a95ed8026b6925fe8595ebcab6921ae62d
+: Author: Arjan van de Ven <arjan@linux.intel.com>
+: Date:   Sun Jul 20 13:07:09 2008 -0700
+:
+:     fastboot: make the raid autodetect code wait for all devices to init
 
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Andi Kleen <andi@firstfloor.org>
+init/do_mounts_md.c: In function `md_run_setup':
+init/do_mounts_md.c:282: warning: ISO C90 forbids mixed declarations and code
+
+How did this happen?
+
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/ec.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/do_mounts_md.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-parameters.txt~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup Documentation/kernel-parameters.txt
-diff -puN drivers/acpi/ec.c~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup drivers/acpi/ec.c
---- a/drivers/acpi/ec.c~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup
-+++ a/drivers/acpi/ec.c
-@@ -518,7 +518,7 @@ static u32 acpi_ec_gpe_handler(void *dat
- 	acpi_status status = AE_OK;
- 	struct acpi_ec *ec = data;
- 	u8 state = acpi_ec_read_status(ec);
--	static bool warn_done = 0;
-+	static bool warn_done = false;
- 
- 	pr_debug(PREFIX "~~~> interrupt\n");
- 	atomic_inc(&ec->irq_count);
+diff -puN init/do_mounts_md.c~fix-fastboot-make-the-raid-autodetect-code-wait-for-all-devices-to-init init/do_mounts_md.c
+--- a/init/do_mounts_md.c~fix-fastboot-make-the-raid-autodetect-code-wait-for-all-devices-to-init
++++ a/init/do_mounts_md.c
+@@ -271,6 +271,8 @@ void __init md_run_setup(void)
+ 	if (raid_noautodetect)
+ 		printk(KERN_INFO "md: Skipping autodetection of RAID arrays. (raid=noautodetect)\n");
+ 	else {
++		int fd;
++
+ 		/* 
+ 		 * Since we don't want to detect and use half a raid array, we need to
+ 		 * wait for the known devices to complete their probing
+@@ -279,7 +281,7 @@ void __init md_run_setup(void)
+ 		printk(KERN_INFO "md: If you don't use raid, use raid=noautodetect\n");
+ 		while (driver_probe_done() < 0)
+ 			msleep(100);
+-		int fd = sys_open("/dev/md0", 0, 0);
++		fd = sys_open("/dev/md0", 0, 0);
+ 		if (fd >= 0) {
+ 			sys_ioctl(fd, RAID_AUTORUN, raid_autopart);
+ 			sys_close(fd);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -61,37 +78,27 @@ security-selinux-include-netlabelh-fix-two-build-errors.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
 kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
-acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
 toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch
 toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
 x86-make-poll_idle-behave-more-like-the-other-idle-methods-checkpatch-fixes.patch
 arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-git-alsa-tiwai.patch
-git-powerpc.patch
 fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
-git-drm.patch
-git-dlm.patch
 fs-dlm-configc-choose-better-identifiers.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 git-jg-misc.patch
-git-kvm.patch
 led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
 libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
-git-mtd.patch
 sundance-set-carrier-status-on-link-change-events.patch
 cassini-use-request_firmware.patch
 e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
 e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
-git-battery.patch
-git-pci-next.patch
 pci-tidy-pme-support-messages-checkpatch-fixes.patch
 arch-s390-kernel-ptracec-fix-build.patch
 sched-clarify-ifdef-tangle.patch
-fix-fastboot-make-the-raid-autodetect-code-wait-for-all-devices-to-init.patch
 scsi-gdthc-use-unaligned-access-helpers.patch
 drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
 drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
