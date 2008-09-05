@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-do-not-change-mclk-for-alpine-chips.patch added to -mm tree
-Date: Fri, 05 Sep 2008 14:55:59 -0700
-Message-ID: <200809052156.m85Lu0lS022252@imap1.linux-foundation.org>
+Subject: + cirrusfb-eliminate-crt-registers-from-global-structure-fix-up-debug-printk-types.patch added to -mm tree
+Date: Fri, 05 Sep 2008 14:55:42 -0700
+Message-ID: <200809052155.m85LtgqG022240@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47085 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58888 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751911AbYIEV4d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2008 17:56:33 -0400
+	by vger.kernel.org with ESMTP id S1751047AbYIEV4N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2008 17:56:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     cirrusfb: do not change MCLK for Alpine chips
+     cirrusfb: fix up debug printk types
 has been added to the -mm tree.  Its filename is
-     cirrusfb-do-not-change-mclk-for-alpine-chips.patch
+     cirrusfb-eliminate-crt-registers-from-global-structure-fix-up-debug-printk-types.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,214 +33,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: do not change MCLK for Alpine chips
+Subject: cirrusfb: fix up debug printk types
 From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-A memory clock value (MCLK) is changed to a minimum required by a current
-mode bandwidth.  This usually lowers the MCLK to its minimum (50 MHz) thus
-decreasing the card performance.  Just leave the MCLK value set by card
-BIOS.
-
-The CL-GD5446 Technical Reference Manual point 9.9.1.3 states that if a
-pixclock value is close (~1%) to the MCLK or MCLK/2 this may result in a
-jitter on the screen.  A countermeasure is to use the MCLK as pixclock
-source instead of a VCLK.  The patch implements this as well.
+Fix debug printk types mismatch after my earlier changes.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |  121 ++++++++++++++++---------------------
- 1 file changed, 54 insertions(+), 67 deletions(-)
+ drivers/video/cirrusfb.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-do-not-change-mclk-for-alpine-chips drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-do-not-change-mclk-for-alpine-chips
+diff -puN drivers/video/cirrusfb.c~cirrusfb-eliminate-crt-registers-from-global-structure-fix-up-debug-printk-types drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-eliminate-crt-registers-from-global-structure-fix-up-debug-printk-types
 +++ a/drivers/video/cirrusfb.c
-@@ -327,9 +327,7 @@ static const struct {
- #endif /* CONFIG_ZORRO */
+@@ -818,21 +818,21 @@ static int cirrusfb_set_par_foo(struct f
+ 	vga_wcrt(regbase, VGA_CRTC_V_SYNC_END, 0x20);	/* previously: 0x00) */
  
- struct cirrusfb_regs {
--	long multiplexing;
--	long mclk;
--	long divMCLK;
-+	int multiplexing;
- };
+ 	/* if debugging is enabled, all parameters get output before writing */
+-	DPRINTK("CRT0: %ld\n", htotal);
++	DPRINTK("CRT0: %d\n", htotal);
+ 	vga_wcrt(regbase, VGA_CRTC_H_TOTAL, htotal);
  
- #ifdef CIRRUSFB_DEBUG
-@@ -461,45 +459,28 @@ static int cirrusfb_release(struct fb_in
- /****************************************************************************/
- /**** BEGIN Hardware specific Routines **************************************/
+-	DPRINTK("CRT1: %ld\n", hdispend);
++	DPRINTK("CRT1: %d\n", hdispend);
+ 	vga_wcrt(regbase, VGA_CRTC_H_DISP, hdispend);
  
--/* Get a good MCLK value */
--static long cirrusfb_get_mclk(long freq, int bpp, long *div)
-+/* Check if the MCLK is not a better clock source */
-+static int cirrusfb_check_mclk(struct cirrusfb_info *cinfo, long freq)
- {
--	long mclk;
-+	long mclk = vga_rseq(cinfo->regbase, CL_SEQR1F) & 0x3f;
+-	DPRINTK("CRT2: %ld\n", var->xres / 8);
++	DPRINTK("CRT2: %d\n", var->xres / 8);
+ 	vga_wcrt(regbase, VGA_CRTC_H_BLANK_START, var->xres / 8);
  
--	assert(div != NULL);
--
--	/* Calculate MCLK, in case VCLK is high enough to require > 50MHz.
--	 * Assume a 64-bit data path for now.  The formula is:
--	 * ((B * PCLK * 2)/W) * 1.2
--	 * B = bytes per pixel, PCLK = pixclock, W = data width in bytes */
--	mclk = ((bpp / 8) * freq * 2) / 4;
--	mclk = (mclk * 12) / 10;
--	if (mclk < 50000)
--		mclk = 50000;
--	DPRINTK("Use MCLK of %ld kHz\n", mclk);
--
--	/* Calculate value for SR1F.  Multiply by 2 so we can round up. */
--	mclk = ((mclk * 16) / 14318);
--	mclk = (mclk + 1) / 2;
--	DPRINTK("Set SR1F[5:0] to 0x%lx\n", mclk);
-+	/* Read MCLK value */
-+	mclk = (14318 * mclk) >> 3;
-+	DPRINTK("Read MCLK of %ld kHz\n", mclk);
+ 	/*  + 128: Compatible read */
+-	DPRINTK("CRT3: 128+%ld\n", (htotal + 5) % 32);
++	DPRINTK("CRT3: 128+%d\n", (htotal + 5) % 32);
+ 	vga_wcrt(regbase, VGA_CRTC_H_BLANK_END,
+ 		 128 + ((htotal + 5) % 32));
  
- 	/* Determine if we should use MCLK instead of VCLK, and if so, what we
--	   * should divide it by to get VCLK */
--	switch (freq) {
--	case 24751 ... 25249:
--		*div = 2;
--		DPRINTK("Using VCLK = MCLK/2\n");
--		break;
--	case 49501 ... 50499:
--		*div = 1;
-+	 * should divide it by to get VCLK
-+	 */
-+
-+	if (abs(freq - mclk) < 250) {
- 		DPRINTK("Using VCLK = MCLK\n");
--		break;
--	default:
--		*div = 0;
--		break;
-+		return 1;
-+	} else if (abs(freq - (mclk / 2)) < 250) {
-+		DPRINTK("Using VCLK = MCLK/2\n");
-+		return 2;
- 	}
+-	DPRINTK("CRT4: %ld\n", hsyncstart);
++	DPRINTK("CRT4: %d\n", hsyncstart);
+ 	vga_wcrt(regbase, VGA_CRTC_H_SYNC_START, hsyncstart);
  
--	return mclk;
-+	return 0;
- }
+ 	tmp = hsyncend % 32;
+@@ -841,7 +841,7 @@ static int cirrusfb_set_par_foo(struct f
+ 	DPRINTK("CRT5: %d\n", tmp);
+ 	vga_wcrt(regbase, VGA_CRTC_H_SYNC_END, tmp);
  
- static int cirrusfb_check_var(struct fb_var_screeninfo *var,
-@@ -705,30 +686,27 @@ static int cirrusfb_decode_var(const str
- 		break;
- 	}
- #endif
--	regs->mclk = cirrusfb_get_mclk(freq, var->bits_per_pixel,
--					&regs->divMCLK);
--
- 	return 0;
- }
+-	DPRINTK("CRT6: %ld\n", vtotal & 0xff);
++	DPRINTK("CRT6: %d\n", vtotal & 0xff);
+ 	vga_wcrt(regbase, VGA_CRTC_V_TOTAL, vtotal & 0xff);
  
--static void cirrusfb_set_mclk(const struct cirrusfb_info *cinfo, int val,
--				int div)
-+static void cirrusfb_set_mclk_as_source(const struct cirrusfb_info *cinfo,
-+					int div)
- {
-+	unsigned char old1f, old1e;
- 	assert(cinfo != NULL);
-+	old1f = vga_rseq(cinfo->regbase, CL_SEQR1F) & ~0x40;
+ 	tmp = 16;		/* LineCompare bit #9 */
+@@ -870,19 +870,19 @@ static int cirrusfb_set_par_foo(struct f
+ 	DPRINTK("CRT9: %d\n", tmp);
+ 	vga_wcrt(regbase, VGA_CRTC_MAX_SCAN, tmp);
  
--	if (div == 2) {
--		/* VCLK = MCLK/2 */
--		unsigned char old = vga_rseq(cinfo->regbase, CL_SEQR1E);
--		vga_wseq(cinfo->regbase, CL_SEQR1E, old | 0x1);
--		vga_wseq(cinfo->regbase, CL_SEQR1F, 0x40 | (val & 0x3f));
--	} else if (div == 1) {
--		/* VCLK = MCLK */
--		unsigned char old = vga_rseq(cinfo->regbase, CL_SEQR1E);
--		vga_wseq(cinfo->regbase, CL_SEQR1E, old & ~0x1);
--		vga_wseq(cinfo->regbase, CL_SEQR1F, 0x40 | (val & 0x3f));
--	} else {
--		vga_wseq(cinfo->regbase, CL_SEQR1F, val & 0x3f);
-+	if (div) {
-+		DPRINTK("Set %s as pixclock source.\n",
-+					(div == 2) ? "MCLK/2" : "MCLK");
-+		old1f |= 0x40;
-+		old1e = vga_rseq(cinfo->regbase, CL_SEQR1E) & ~0x1;
-+		if (div == 2)
-+			old1e |= 1;
-+
-+		vga_wseq(cinfo->regbase, CL_SEQR1E, old1e);
- 	}
-+	vga_wseq(cinfo->regbase, CL_SEQR1F, old1f);
- }
+-	DPRINTK("CRT10: %ld\n", vsyncstart & 0xff);
++	DPRINTK("CRT10: %d\n", vsyncstart & 0xff);
+ 	vga_wcrt(regbase, VGA_CRTC_V_SYNC_START, vsyncstart & 0xff);
  
- /*************************************************************************
-@@ -904,19 +882,31 @@ static int cirrusfb_set_par_foo(struct f
- 	/* formula: VClk = (OSC * N) / (D * (1+P)) */
- 	/* Example: VClk = (14.31818 * 91) / (23 * (1+1)) = 28.325 MHz */
+-	DPRINTK("CRT11: 64+32+%ld\n", vsyncend % 16);
++	DPRINTK("CRT11: 64+32+%d\n", vsyncend % 16);
+ 	vga_wcrt(regbase, VGA_CRTC_V_SYNC_END, vsyncend % 16 + 64 + 32);
  
--	vga_wseq(regbase, CL_SEQRB, nom);
--	tmp = den << 1;
--	if (div != 0)
--		tmp |= 1;
--
--	/* 6 bit denom; ONLY 5434!!! (bugged me 10 days) */
--	if ((cinfo->btype == BT_SD64) ||
--	    (cinfo->btype == BT_ALPINE) ||
--	    (cinfo->btype == BT_GD5480))
--		tmp |= 0x80;
-+	if (cinfo->btype == BT_ALPINE) {
-+		/* if freq is close to mclk or mclk/2 select mclk
-+		 * as clock source
-+		 */
-+		int divMCLK = cirrusfb_check_mclk(cinfo, freq);
-+		if (divMCLK)  {
-+			nom = 0;
-+			cirrusfb_set_mclk_as_source(cinfo, divMCLK);
-+		}
-+	}
-+	if (nom) {
-+		vga_wseq(regbase, CL_SEQRB, nom);
-+		tmp = den << 1;
-+		if (div != 0)
-+			tmp |= 1;
-+
-+		/* 6 bit denom; ONLY 5434!!! (bugged me 10 days) */
-+		if ((cinfo->btype == BT_SD64) ||
-+		    (cinfo->btype == BT_ALPINE) ||
-+		    (cinfo->btype == BT_GD5480))
-+			tmp |= 0x80;
+-	DPRINTK("CRT12: %ld\n", vdispend & 0xff);
++	DPRINTK("CRT12: %d\n", vdispend & 0xff);
+ 	vga_wcrt(regbase, VGA_CRTC_V_DISP_END, vdispend & 0xff);
  
--	DPRINTK("CL_SEQR1B: %ld\n", (long) tmp);
--	vga_wseq(regbase, CL_SEQR1B, tmp);
-+		DPRINTK("CL_SEQR1B: %ld\n", (long) tmp);
-+		vga_wseq(regbase, CL_SEQR1B, tmp);
-+	}
+-	DPRINTK("CRT15: %ld\n", (vdispend + 1) & 0xff);
++	DPRINTK("CRT15: %d\n", (vdispend + 1) & 0xff);
+ 	vga_wcrt(regbase, VGA_CRTC_V_BLANK_START, (vdispend + 1) & 0xff);
  
- 	if (yres >= 1024)
- 		/* 1280x1024 */
-@@ -1106,7 +1096,6 @@ static int cirrusfb_set_par_foo(struct f
+-	DPRINTK("CRT16: %ld\n", vtotal & 0xff);
++	DPRINTK("CRT16: %d\n", vtotal & 0xff);
+ 	vga_wcrt(regbase, VGA_CRTC_V_BLANK_END, vtotal & 0xff);
  
- 		case BT_ALPINE:
- 			DPRINTK(" (for GD543x)\n");
--			cirrusfb_set_mclk(cinfo, regs.mclk, regs.divMCLK);
- 			/* We already set SRF and SR1F */
- 			break;
- 
-@@ -1179,7 +1168,6 @@ static int cirrusfb_set_par_foo(struct f
- 		case BT_ALPINE:
- 			DPRINTK(" (for GD543x)\n");
- 			vga_wseq(regbase, CL_SEQR7, 0xa7);
--			cirrusfb_set_mclk(cinfo, regs.mclk, regs.divMCLK);
- 			break;
- 
- 		case BT_GD5480:
-@@ -1257,7 +1245,6 @@ static int cirrusfb_set_par_foo(struct f
- 		case BT_ALPINE:
- 			DPRINTK(" (for GD543x)\n");
- 			vga_wseq(regbase, CL_SEQR7, 0xa9);
--			cirrusfb_set_mclk(cinfo, regs.mclk, regs.divMCLK);
- 			break;
- 
- 		case BT_GD5480:
+ 	DPRINTK("CRT18: 0xff\n");
 _
 
 Patches currently in -mm which might be from krzysztof.h1@wp.pl are
