@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cirrusfb-eliminate-crt-registers-from-global-structure-fix-up-debug-printk-types.patch added to -mm tree
-Date: Fri, 05 Sep 2008 14:55:42 -0700
-Message-ID: <200809052155.m85LtgqG022240@imap1.linux-foundation.org>
+Subject: + radeonfb-misc-cleanup-of-engine-and-dst-cache-handling.patch added to -mm tree
+Date: Fri, 05 Sep 2008 15:38:32 -0700
+Message-ID: <200809052238.m85McWWF023729@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58888 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50502 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751047AbYIEV4N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2008 17:56:13 -0400
+	by vger.kernel.org with ESMTP id S1750741AbYIEWip (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2008 18:38:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl
+Cc: benh@kernel.crashing.org, davem@davemloft.net, khc@pm.waw.pl
 
 
 The patch titled
-     cirrusfb: fix up debug printk types
+     radeonfb: misc cleanup of engine and dst cache handling
 has been added to the -mm tree.  Its filename is
-     cirrusfb-eliminate-crt-registers-from-global-structure-fix-up-debug-printk-types.patch
+     radeonfb-misc-cleanup-of-engine-and-dst-cache-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,115 +33,221 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cirrusfb: fix up debug printk types
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: radeonfb: misc cleanup of engine and dst cache handling
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-Fix debug printk types mismatch after my earlier changes.
+Fix a couple of incomplete tests of the chip families in the engine
+init/reset code and proper initialization of the destination cache mode. 
+The result should better match what the latest X radeon driver does.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Krzysztof Halasa <khc@pm.waw.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/cirrusfb.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/video/aty/radeon_accel.c |   22 +++++++++++--------
+ drivers/video/aty/radeon_base.c  |   13 ++++-------
+ drivers/video/aty/radeonfb.h     |   33 +++++++++++++++++------------
+ include/video/radeon.h           |    5 +++-
+ 4 files changed, 42 insertions(+), 31 deletions(-)
 
-diff -puN drivers/video/cirrusfb.c~cirrusfb-eliminate-crt-registers-from-global-structure-fix-up-debug-printk-types drivers/video/cirrusfb.c
---- a/drivers/video/cirrusfb.c~cirrusfb-eliminate-crt-registers-from-global-structure-fix-up-debug-printk-types
-+++ a/drivers/video/cirrusfb.c
-@@ -818,21 +818,21 @@ static int cirrusfb_set_par_foo(struct f
- 	vga_wcrt(regbase, VGA_CRTC_V_SYNC_END, 0x20);	/* previously: 0x00) */
+diff -puN drivers/video/aty/radeon_accel.c~radeonfb-misc-cleanup-of-engine-and-dst-cache-handling drivers/video/aty/radeon_accel.c
+--- a/drivers/video/aty/radeon_accel.c~radeonfb-misc-cleanup-of-engine-and-dst-cache-handling
++++ a/drivers/video/aty/radeon_accel.c
+@@ -211,9 +211,7 @@ void radeonfb_engine_reset(struct radeon
+ 	host_path_cntl = INREG(HOST_PATH_CNTL);
+ 	rbbm_soft_reset = INREG(RBBM_SOFT_RESET);
  
- 	/* if debugging is enabled, all parameters get output before writing */
--	DPRINTK("CRT0: %ld\n", htotal);
-+	DPRINTK("CRT0: %d\n", htotal);
- 	vga_wcrt(regbase, VGA_CRTC_H_TOTAL, htotal);
+-	if (rinfo->family == CHIP_FAMILY_R300 ||
+-	    rinfo->family == CHIP_FAMILY_R350 ||
+-	    rinfo->family == CHIP_FAMILY_RV350) {
++	if (IS_R300_VARIANT(rinfo)) {
+ 		u32 tmp;
  
--	DPRINTK("CRT1: %ld\n", hdispend);
-+	DPRINTK("CRT1: %d\n", hdispend);
- 	vga_wcrt(regbase, VGA_CRTC_H_DISP, hdispend);
+ 		OUTREG(RBBM_SOFT_RESET, (rbbm_soft_reset |
+@@ -249,9 +247,7 @@ void radeonfb_engine_reset(struct radeon
+ 	INREG(HOST_PATH_CNTL);
+ 	OUTREG(HOST_PATH_CNTL, host_path_cntl);
  
--	DPRINTK("CRT2: %ld\n", var->xres / 8);
-+	DPRINTK("CRT2: %d\n", var->xres / 8);
- 	vga_wcrt(regbase, VGA_CRTC_H_BLANK_START, var->xres / 8);
+-	if (rinfo->family != CHIP_FAMILY_R300 &&
+-	    rinfo->family != CHIP_FAMILY_R350 &&
+-	    rinfo->family != CHIP_FAMILY_RV350)
++	if (!IS_R300_VARIANT(rinfo))
+ 		OUTREG(RBBM_SOFT_RESET, rbbm_soft_reset);
  
- 	/*  + 128: Compatible read */
--	DPRINTK("CRT3: 128+%ld\n", (htotal + 5) % 32);
-+	DPRINTK("CRT3: 128+%d\n", (htotal + 5) % 32);
- 	vga_wcrt(regbase, VGA_CRTC_H_BLANK_END,
- 		 128 + ((htotal + 5) % 32));
+ 	OUTREG(CLOCK_CNTL_INDEX, clock_cntl_index);
+@@ -268,10 +264,18 @@ void radeonfb_engine_init (struct radeon
+ 	radeonfb_engine_reset(rinfo);
  
--	DPRINTK("CRT4: %ld\n", hsyncstart);
-+	DPRINTK("CRT4: %d\n", hsyncstart);
- 	vga_wcrt(regbase, VGA_CRTC_H_SYNC_START, hsyncstart);
+ 	radeon_fifo_wait (1);
+-	if ((rinfo->family != CHIP_FAMILY_R300) &&
+-	    (rinfo->family != CHIP_FAMILY_R350) &&
+-	    (rinfo->family != CHIP_FAMILY_RV350))
++	if (IS_R300_VARIANT(rinfo)) {
++		OUTREG(RB2D_DSTCACHE_MODE, INREG(RB2D_DSTCACHE_MODE) |
++		       RB2D_DC_AUTOFLUSH_ENABLE |
++		       RB2D_DC_DC_DISABLE_IGNORE_PE);
++	} else {
++		/* This needs to be double checked with ATI. Latest X driver
++		 * completely "forgets" to set this register on < r3xx, and
++		 * we used to just write 0 there... I'll keep the 0 and update
++		 * that when we have sorted things out on X side.
++		 */
+ 		OUTREG(RB2D_DSTCACHE_MODE, 0);
++	}
  
- 	tmp = hsyncend % 32;
-@@ -841,7 +841,7 @@ static int cirrusfb_set_par_foo(struct f
- 	DPRINTK("CRT5: %d\n", tmp);
- 	vga_wcrt(regbase, VGA_CRTC_H_SYNC_END, tmp);
+ 	radeon_fifo_wait (3);
+ 	/* We re-read MC_FB_LOCATION from card as it can have been
+diff -puN drivers/video/aty/radeon_base.c~radeonfb-misc-cleanup-of-engine-and-dst-cache-handling drivers/video/aty/radeon_base.c
+--- a/drivers/video/aty/radeon_base.c~radeonfb-misc-cleanup-of-engine-and-dst-cache-handling
++++ a/drivers/video/aty/radeon_base.c
+@@ -1286,11 +1286,10 @@ static void radeon_write_pll_regs(struct
+ 	radeon_pll_errata_after_data(rinfo);
  
--	DPRINTK("CRT6: %ld\n", vtotal & 0xff);
-+	DPRINTK("CRT6: %d\n", vtotal & 0xff);
- 	vga_wcrt(regbase, VGA_CRTC_V_TOTAL, vtotal & 0xff);
+ 	/* Set PPLL ref. div */
+-	if (rinfo->family == CHIP_FAMILY_R300 ||
++	if (IS_R300_VARIANT(rinfo) ||
+ 	    rinfo->family == CHIP_FAMILY_RS300 ||
+-	    rinfo->family == CHIP_FAMILY_R350 ||
+-	    rinfo->family == CHIP_FAMILY_RV350 ||
+-	    rinfo->family == CHIP_FAMILY_RV380 ) {
++	    rinfo->family == CHIP_FAMILY_RS400 ||
++	    rinfo->family == CHIP_FAMILY_RS480) {
+ 		if (mode->ppll_ref_div & R300_PPLL_REF_DIV_ACC_MASK) {
+ 			/* When restoring console mode, use saved PPLL_REF_DIV
+ 			 * setting.
+@@ -1461,10 +1460,7 @@ static void radeon_calc_pll_regs(struct 
+ 		/* Not all chip revs have the same format for this register,
+ 		 * extract the source selection
+ 		 */
+-		if (rinfo->family == CHIP_FAMILY_R200 ||
+-		    rinfo->family == CHIP_FAMILY_R300 ||
+-		    rinfo->family == CHIP_FAMILY_R350 ||
+-		    rinfo->family == CHIP_FAMILY_RV350) {
++		if (rinfo->family == CHIP_FAMILY_R200 || IS_R300_VARIANT(rinfo)) {
+ 			source = (fp2_gen_cntl >> 10) & 0x3;
+ 			/* sourced from transform unit, check for transform unit
+ 			 * own source
+@@ -2005,6 +2001,7 @@ static void radeon_identify_vram(struct 
+             (rinfo->family == CHIP_FAMILY_RS200) ||
+             (rinfo->family == CHIP_FAMILY_RS300) ||
+             (rinfo->family == CHIP_FAMILY_RC410) ||
++            (rinfo->family == CHIP_FAMILY_RS400) ||
+ 	    (rinfo->family == CHIP_FAMILY_RS480) ) {
+           u32 tom = INREG(NB_TOM);
+           tmp = ((((tom >> 16) - (tom & 0xffff) + 1) << 6) * 1024);
+diff -puN drivers/video/aty/radeonfb.h~radeonfb-misc-cleanup-of-engine-and-dst-cache-handling drivers/video/aty/radeonfb.h
+--- a/drivers/video/aty/radeonfb.h~radeonfb-misc-cleanup-of-engine-and-dst-cache-handling
++++ a/drivers/video/aty/radeonfb.h
+@@ -53,6 +53,7 @@ enum radeon_family {
+ 	CHIP_FAMILY_RV380,    /* RV370/RV380/M22/M24 */
+ 	CHIP_FAMILY_R420,     /* R420/R423/M18 */
+ 	CHIP_FAMILY_RC410,
++	CHIP_FAMILY_RS400,
+ 	CHIP_FAMILY_RS480,
+ 	CHIP_FAMILY_LAST,
+ };
+@@ -533,33 +534,39 @@ static inline u32 radeon_get_dstbpp(u16 
+ /*
+  * 2D Engine helper routines
+  */
+-static inline void radeon_engine_flush (struct radeonfb_info *rinfo)
++
++static inline void _radeon_fifo_wait(struct radeonfb_info *rinfo, int entries)
+ {
+ 	int i;
  
- 	tmp = 16;		/* LineCompare bit #9 */
-@@ -870,19 +870,19 @@ static int cirrusfb_set_par_foo(struct f
- 	DPRINTK("CRT9: %d\n", tmp);
- 	vga_wcrt(regbase, VGA_CRTC_MAX_SCAN, tmp);
+-	/* initiate flush */
+-	OUTREGP(RB2D_DSTCACHE_CTLSTAT, RB2D_DC_FLUSH_ALL,
+-	        ~RB2D_DC_FLUSH_ALL);
+-
+-	for (i=0; i < 2000000; i++) {
+-		if (!(INREG(RB2D_DSTCACHE_CTLSTAT) & RB2D_DC_BUSY))
++	for (i=0; i<2000000; i++) {
++		if ((INREG(RBBM_STATUS) & 0x7f) >= entries)
+ 			return;
+ 		udelay(1);
+ 	}
+-	printk(KERN_ERR "radeonfb: Flush Timeout !\n");
++	printk(KERN_ERR "radeonfb: FIFO Timeout !\n");
+ }
  
--	DPRINTK("CRT10: %ld\n", vsyncstart & 0xff);
-+	DPRINTK("CRT10: %d\n", vsyncstart & 0xff);
- 	vga_wcrt(regbase, VGA_CRTC_V_SYNC_START, vsyncstart & 0xff);
+-
+-static inline void _radeon_fifo_wait(struct radeonfb_info *rinfo, int entries)
++static inline void radeon_engine_flush (struct radeonfb_info *rinfo)
+ {
+ 	int i;
  
--	DPRINTK("CRT11: 64+32+%ld\n", vsyncend % 16);
-+	DPRINTK("CRT11: 64+32+%d\n", vsyncend % 16);
- 	vga_wcrt(regbase, VGA_CRTC_V_SYNC_END, vsyncend % 16 + 64 + 32);
+-	for (i=0; i<2000000; i++) {
+-		if ((INREG(RBBM_STATUS) & 0x7f) >= entries)
++	/* Initiate flush */
++	OUTREGP(DSTCACHE_CTLSTAT, RB2D_DC_FLUSH_ALL,
++	        ~RB2D_DC_FLUSH_ALL);
++
++	/* Ensure FIFO is empty, ie, make sure the flush commands
++	 * has reached the cache
++	 */
++	_radeon_fifo_wait (rinfo, 64);
++
++	/* Wait for the flush to complete */
++	for (i=0; i < 2000000; i++) {
++		if (!(INREG(DSTCACHE_CTLSTAT) & RB2D_DC_BUSY))
+ 			return;
+ 		udelay(1);
+ 	}
+-	printk(KERN_ERR "radeonfb: FIFO Timeout !\n");
++	printk(KERN_ERR "radeonfb: Flush Timeout !\n");
+ }
  
--	DPRINTK("CRT12: %ld\n", vdispend & 0xff);
-+	DPRINTK("CRT12: %d\n", vdispend & 0xff);
- 	vga_wcrt(regbase, VGA_CRTC_V_DISP_END, vdispend & 0xff);
  
--	DPRINTK("CRT15: %ld\n", (vdispend + 1) & 0xff);
-+	DPRINTK("CRT15: %d\n", (vdispend + 1) & 0xff);
- 	vga_wcrt(regbase, VGA_CRTC_V_BLANK_START, (vdispend + 1) & 0xff);
+diff -puN include/video/radeon.h~radeonfb-misc-cleanup-of-engine-and-dst-cache-handling include/video/radeon.h
+--- a/include/video/radeon.h~radeonfb-misc-cleanup-of-engine-and-dst-cache-handling
++++ a/include/video/radeon.h
+@@ -386,7 +386,7 @@
+ #define SC_BOTTOM_RIGHT                        0x16F0  
+ #define SRC_SC_BOTTOM_RIGHT                    0x16F4  
+ #define RB2D_DSTCACHE_MODE		       0x3428
+-#define RB2D_DSTCACHE_CTLSTAT		       0x342C
++#define RB2D_DSTCACHE_CTLSTAT_broken	       0x342C /* do not use */
+ #define LVDS_GEN_CNTL			       0x02d0
+ #define LVDS_PLL_CNTL			       0x02d4
+ #define FP2_GEN_CNTL                           0x0288
+@@ -532,6 +532,9 @@
+ #define RB2D_DC_FLUSH_ALL			   (RB2D_DC_FLUSH_2D | RB2D_DC_FREE_2D)
+ #define RB2D_DC_BUSY				   (1 << 31)
  
--	DPRINTK("CRT16: %ld\n", vtotal & 0xff);
-+	DPRINTK("CRT16: %d\n", vtotal & 0xff);
- 	vga_wcrt(regbase, VGA_CRTC_V_BLANK_END, vtotal & 0xff);
++/* DSTCACHE_MODE bits constants */
++#define RB2D_DC_AUTOFLUSH_ENABLE                   (1 << 8)
++#define RB2D_DC_DC_DISABLE_IGNORE_PE               (1 << 17)
  
- 	DPRINTK("CRT18: 0xff\n");
+ /* CRTC_GEN_CNTL bit constants */
+ #define CRTC_DBL_SCAN_EN                           0x00000001
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
 origin.patch
-atmel_lcdfb-fix-oops-in-rmmod-when-framebuffer-fails-to-register.patch
 linux-next.patch
-fb-metronome-printk-format-warning.patch
-sched-fix-compilation-with-gcc-346.patch
-x86-delay-early-cpu-initialization-until-cpuid-is-done.patch
-x86-move-mtrr-cpu-cap-setting-early-in-early_init_xxxx.patch
-fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
-neofb-reduce-panning-function.patch
-viafb-accelc-accelh-update.patch
-viafb-viafbdevc-update.patch
-fbdev-kconfig-update.patch
-fbdev-kconfig-update-fix.patch
-neofb-kill-some-redundant-code.patch
-vga16fb-remove-open_lock-mutex.patch
-neofb-remove-open_lock-mutex.patch
-tdfxfb-do-not-make-changes-to-default-tdfx_fix.patch
-intelfb-support-945gme-as-used-in-asus-eee-901.patch
-cirrusfb-remove-information-about-memory-size-during-mode-change.patch
-cirrusfb-simplify-clock-calculation.patch
-cirrusfb-remove-24-bpp-mode.patch
-cirrusfb-drop-device-pointers-from-cirrusfb_info.patch
-cirrusfb-use-modedb-and-add-mode_option-parameter-2nd-rev.patch
-cirrusfb-add-__devinit-attribute-to-probing-functions.patch
-cirrusfb-eliminate-crt-registers-from-global-structure.patch
-cirrusfb-eliminate-crt-registers-from-global-structure-fix-up-debug-printk-types.patch
-cirrusfb-drop-clock-fields-from-cirrusfb_regs-structure.patch
-cirrusfb-add-noaccel-module-parameter.patch
-cirrusfb-fix-16bpp-modes.patch
-cirrusfb-do-not-change-mclk-for-alpine-chips.patch
-atmel_lcdfb-disallow-setting-larger-resolution-than-the-framebuffer-memory-can-handle.patch
+powerpc-convert-config_ppc_merge-to-config_ppc-for-legacy-io-checks.patch
+pata_sil680-convert-config_ppc_merge-to-config_ppc.patch
+fs-enet-remove-code-associated-with-config_ppc_merge.patch
+netdev-drop-config_ppc_merge-from-kconfig.patch
+usb-remove-code-associated-with-config_ppc_merge.patch
+add-phys_addr_t-for-holding-physical-addresses.patch
+make-pfn_phys-explicitly-return-phys_addr_t.patch
+redefine-resource_size_t-as-phys_addr_t.patch
+compat-generic-compat-get-settimeofday.patch
+x86-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
+powerpc-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
+introduce-generic-iommu_num_pages-function.patch
+powerpc-use-iommu_num_pages-function-in-iommu-code.patch
+serial-mpc52xx_uart-remove-code-associated-with-config_ppc_merge.patch
+mpc52xx_psc_spi-remove-code-associated-with-config_ppc_merge.patch
+rtc-use-config_ppc-instead-of-config_ppc_merge.patch
+radeonfb-revert-fix-radeon-ddc-regression.patch
+radeonfb-misc-cleanup-of-engine-and-dst-cache-handling.patch
+radeonfb-accelerate-imageblit-and-other-improvements.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+powerpc-hugetlb-pgtable-cache-access-cleanup.patch
 
