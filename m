@@ -1,195 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: + security-selinux-include-netlabelh-fix-two-build-errors.patch added to -mm tree
-Date: Thu, 04 Sep 2008 20:26:11 -0700
-Message-ID: <200809050326.m853QB13012853@imap1.linux-foundation.org>
+Subject: - show-memory-section-to-node-relationship-in-sysfs.patch removed from -mm tree
+Date: Fri, 05 Sep 2008 12:41:21 -0700
+Message-ID: <200809051941.m85JfLgl017210@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47681 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48565 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752574AbYIED0P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2008 23:26:15 -0400
+	by vger.kernel.org with ESMTP id S1750844AbYIETmL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2008 15:42:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, paul.moore@hp.com
+To: garyhade@us.ibm.com, dave@linux.vnet.ibm.com, lcm@us.ibm.com, mel@csn.ul.ie, nish.aravamudan@gmail.com, pbadari@us.ibm.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     security/selinux/include/netlabel.h: fix two build errors
-has been added to the -mm tree.  Its filename is
-     security-selinux-include-netlabelh-fix-two-build-errors.patch
+     mm: show memory section to node relationship in sysfs
+has been removed from the -mm tree.  Its filename was
+     show-memory-section-to-node-relationship-in-sysfs.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: security/selinux/include/netlabel.h: fix two build errors
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: show memory section to node relationship in sysfs
+From: Gary Hade <garyhade@us.ibm.com>
 
-security/selinux/include/netlabel.h:74: error: two or more data types in declaration specifiers
-security/selinux/include/netlabel.h:106: error: expected ';', ',' or ')' before 'u32'
+Show memory section to node relationship in sysfs
 
-Caused by
+Add /sys/devices/system/memory/memoryX/node files to show
+the node on which each memory section resides.
 
-    commit b023202e2a41a61165f472cc889f37c4a260ba51
-    Author: Paul Moore <paul.moore@hp.com>
-    Date:   Tue Sep 2 10:24:41 2008 -0400
-
-        selinux: Fix missing calls to netlbl_skbuff_err()
-
-Cc: Paul Moore <paul.moore@hp.com>
+Signed-off-by: Gary Hade <garyhade@us.ibm.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Chris McDermott <lcm@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/include/netlabel.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/memory-hotplug.txt |    1 -
+ drivers/base/memory.c            |   20 ++++++++++++++++++++
+ 2 files changed, 20 insertions(+), 1 deletion(-)
 
-diff -puN security/selinux/include/netlabel.h~security-selinux-include-netlabelh-fix-two-build-errors security/selinux/include/netlabel.h
---- a/security/selinux/include/netlabel.h~security-selinux-include-netlabelh-fix-two-build-errors
-+++ a/security/selinux/include/netlabel.h
-@@ -71,7 +71,7 @@ static inline void selinux_netlbl_cache_
- 	return;
+diff -puN Documentation/memory-hotplug.txt~show-memory-section-to-node-relationship-in-sysfs Documentation/memory-hotplug.txt
+--- a/Documentation/memory-hotplug.txt~show-memory-section-to-node-relationship-in-sysfs
++++ a/Documentation/memory-hotplug.txt
+@@ -365,7 +365,6 @@ node if necessary.
+   - allowing memory hot-add to ZONE_MOVABLE. maybe we need some switch like
+     sysctl or new control file.
+   - showing memory section and physical device relationship.
+-  - showing memory section and node relationship (maybe good for NUMA)
+   - showing memory section is under ZONE_MOVABLE or not
+   - test and make it better memory offlining.
+   - support HugeTLB page migration and offlining.
+diff -puN drivers/base/memory.c~show-memory-section-to-node-relationship-in-sysfs drivers/base/memory.c
+--- a/drivers/base/memory.c~show-memory-section-to-node-relationship-in-sysfs
++++ a/drivers/base/memory.c
+@@ -150,6 +150,22 @@ static ssize_t show_mem_state(struct sys
+ 	return len;
  }
  
--static inline void void selinux_netlbl_err(struct sk_buff *skb,
-+static inline void selinux_netlbl_err(struct sk_buff *skb,
- 					   int error,
- 					   int gateway)
++/*
++ * node on which memory section resides
++ */
++static ssize_t show_mem_node(struct sys_device *dev,
++			struct sysdev_attribute *attr, char *buf)
++{
++	unsigned long start_pfn;
++	int ret;
++	struct memory_block *mem =
++		container_of(dev, struct memory_block, sysdev);
++
++	start_pfn = section_nr_to_pfn(mem->phys_index);
++	ret = pfn_to_nid(start_pfn);
++	return sprintf(buf, "%d\n", ret);
++}
++
+ int memory_notify(unsigned long val, void *v)
  {
-@@ -102,7 +102,7 @@ static inline int selinux_netlbl_skbuff_
- }
+ 	return blocking_notifier_call_chain(&memory_chain, val, v);
+@@ -278,6 +294,7 @@ static SYSDEV_ATTR(phys_index, 0444, sho
+ static SYSDEV_ATTR(state, 0644, show_mem_state, store_mem_state);
+ static SYSDEV_ATTR(phys_device, 0444, show_phys_device, NULL);
+ static SYSDEV_ATTR(removable, 0444, show_mem_removable, NULL);
++static SYSDEV_ATTR(node, 0444, show_mem_node, NULL);
  
- static inline int selinux_netlbl_skbuff_setsid(struct sk_buff *skb,
--					       u16 family
-+					       u16 family,
- 					       u32 sid)
- {
+ #define mem_create_simple_file(mem, attr_name)	\
+ 	sysdev_create_file(&mem->sysdev, &attr_##attr_name)
+@@ -368,6 +385,8 @@ static int add_memory_block(unsigned lon
+ 		ret = mem_create_simple_file(mem, phys_device);
+ 	if (!ret)
+ 		ret = mem_create_simple_file(mem, removable);
++	if (!ret)
++		ret = mem_create_simple_file(mem, node);
+ 
+ 	return ret;
+ }
+@@ -413,6 +432,7 @@ int remove_memory_block(unsigned long no
+ 	mem_remove_simple_file(mem, state);
+ 	mem_remove_simple_file(mem, phys_device);
+ 	mem_remove_simple_file(mem, removable);
++	mem_remove_simple_file(mem, node);
+ 	unregister_memory(mem, section);
+ 
  	return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from garyhade@us.ibm.com are
 
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
-acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-x86-make-poll_idle-behave-more-like-the-other-idle-methods-checkpatch-fixes.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
-fs-dlm-configc-choose-better-identifiers.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
-pci-tidy-pme-support-messages-checkpatch-fixes.patch
-arch-s390-kernel-ptracec-fix-build.patch
-sched-clarify-ifdef-tangle.patch
-fix-fastboot-make-the-raid-autodetect-code-wait-for-all-devices-to-init.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
-drivers-usb-musb-disable-it-on-superh.patch
-git-xtensa.patch
-modules-remove-stop_machine-during-module-load-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-media-video-cafe_ccicc-needs-mmh.patch
-drivers-mmc-card-blockc-fix-refcount-leak-in-mmc_block_open.patch
-e1000e-prevent-corruption-of-eeprom-nvm.patch
-drivers-net-mlx4-allocc-needs-mmh.patch
-net-forcedeth-call-restore-mac-addr-in-nv_shutdown-path-v2-fix.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
-fix-a-race-condtion-of-oops_in_progress-fix.patch
-vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
-make-taint-bit-reliable-v3-fix.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-gru-driver-minor-updates-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-nilfs2-continuous-snapshotting-file-system-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
-security-selinux-include-netlabelh-fix-two-build-errors.patch
+x86_64-add-memory-hotremove-config-option.patch
+show-memory-section-to-node-relationship-in-sysfs.patch
 
