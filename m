@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + efifb-imacfb-consolidation-hardware-support.patch added to -mm tree
-Date: Thu, 04 Sep 2008 17:10:13 -0700
-Message-ID: <200809050010.m850ADsU005927@imap1.linux-foundation.org>
+Date: Thu, 04 Sep 2008 17:11:30 -0700
+Message-ID: <200809050011.m850BUUI005966@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38306 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60603 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751448AbYIEALQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2008 20:11:16 -0400
+	by vger.kernel.org with ESMTP id S1752150AbYIEAMq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2008 20:12:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pjones@redhat.com, krzysztof.h1@poczta.fm
+Cc: pjones@redhat.com, Geert.Uytterhoeven@sonycom.com, jayakumar.lkml@gmail.com, krzysztof.h1@poczta.fm, macro@linux-mips.org, ralf@linux-mips.org
 
 
 The patch titled
@@ -42,6 +42,10 @@ newer Intel Apple hardware.  This has been fairly well tested; we've been
 shipping it in Fedora for some time.
 
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: Jaya Kumar <jayakumar.lkml@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Maciej W. Rozycki <macro@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
