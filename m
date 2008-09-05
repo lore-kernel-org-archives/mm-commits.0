@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-musb-disable-it-on-superh.patch added to -mm tree
-Date: Thu, 04 Sep 2008 16:17:44 -0700
-Message-ID: <200809042331.m84NVMXc004412@imap1.linux-foundation.org>
+Subject: + efifb-imacfb-consolidation-hardware-support.patch added to -mm tree
+Date: Thu, 04 Sep 2008 17:10:13 -0700
+Message-ID: <200809050010.m850ADsU005927@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51892 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38306 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751654AbYIDXcJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2008 19:32:09 -0400
+	by vger.kernel.org with ESMTP id S1751448AbYIEALQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Sep 2008 20:11:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, kkeil@suse.de, lethal@linux-sh.org
+Cc: pjones@redhat.com, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     drivers/usb/musb/: disable it on SuperH
+     efifb/imacfb consolidation + hardware support
 has been added to the -mm tree.  Its filename is
-     drivers-usb-musb-disable-it-on-superh.patch
+     efifb-imacfb-consolidation-hardware-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,161 +33,718 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/musb/: disable it on SuperH
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: efifb/imacfb consolidation + hardware support
+From: Peter Jones <pjones@redhat.com>
 
-In file included from drivers/usb/musb/musb_core.h:59,
-                 from drivers/usb/musb/musb_core.c:108:
-drivers/usb/musb/musb_io.h:42: error: conflicting types for '__raw_readsl'
-/usr/src/devel/arch/sh/include/asm/io.h:112: error: previous declaration of '__raw_readsl' was here
-drivers/usb/musb/musb_io.h:42: error: conflicting types for '__raw_readsl'
-/usr/src/devel/arch/sh/include/asm/io.h:112: error: previous declaration of '__raw_readsl' was here
-drivers/usb/musb/musb_io.h:44: error: conflicting types for 'readsw'
-/usr/src/devel/arch/sh/include/asm/io.h:164: error: previous definition of 'readsw' was here
-drivers/usb/musb/musb_io.h:46: error: conflicting types for 'readsb'
-/usr/src/devel/arch/sh/include/asm/io.h:163: error: previous definition of 'readsb' was here
-drivers/usb/musb/musb_io.h:49: error: conflicting types for '__raw_writesl'
-/usr/src/devel/arch/sh/include/asm/io.h:111: error: previous declaration of '__raw_writesl' was here
-drivers/usb/musb/musb_io.h:49: error: conflicting types for '__raw_writesl'
-/usr/src/devel/arch/sh/include/asm/io.h:111: error: previous declaration of '__raw_writesl' was here
-drivers/usb/musb/musb_io.h:51: error: conflicting types for 'writesw'
-/usr/src/devel/arch/sh/include/asm/io.h:164: error: previous definition of 'writesw' was here
-drivers/usb/musb/musb_io.h:53: error: conflicting types for 'writesb'
-/usr/src/devel/arch/sh/include/asm/io.h:163: error: previous definition of 'writesb' was here
+Remove imacfb entirely, merging its DMI table into the (otherwise very
+similar) efifb driver.  This also adds hardware support for many of the
+newer Intel Apple hardware.  This has been fairly well tested; we've been
+shipping it in Fedora for some time.
 
-Cc: Karsten Keil <kkeil@suse.de>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Greg KH <greg@kroah.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/musb/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/Kconfig  |   15 -
+ drivers/video/Makefile |    1 
+ drivers/video/efifb.c  |  191 ++++++++++++++++++-
+ drivers/video/imacfb.c |  376 ---------------------------------------
+ 4 files changed, 184 insertions(+), 399 deletions(-)
 
-diff -puN drivers/usb/musb/Kconfig~a drivers/usb/musb/Kconfig
---- a/drivers/usb/musb/Kconfig~a
-+++ a/drivers/usb/musb/Kconfig
-@@ -9,6 +9,7 @@ comment "Enable Host or Gadget support t
- # (M)HDRC = (Multipoint) Highspeed Dual-Role Controller
- config USB_MUSB_HDRC
- 	depends on (USB || USB_GADGET) && HAVE_CLK
-+	depends on !SUPERH
- 	select TWL4030_USB if MACH_OMAP_3430SDP
- 	tristate 'Inventra Highspeed Dual Role Controller (TI, ...)'
+diff -puN drivers/video/Kconfig~efifb-imacfb-consolidation-hardware-support drivers/video/Kconfig
+--- a/drivers/video/Kconfig~efifb-imacfb-consolidation-hardware-support
++++ a/drivers/video/Kconfig
+@@ -690,23 +690,14 @@ config FB_VESA
+ 
+ config FB_EFI
+ 	bool "EFI-based Framebuffer Support"
+-	depends on (FB = y) && X86
+-	select FB_CFB_FILLRECT
+-	select FB_CFB_COPYAREA
+-	select FB_CFB_IMAGEBLIT
+-	help
+-	  This is the EFI frame buffer device driver. If the firmware on
+-	  your platform is UEFI2.0, select Y to add support for
+-	  Graphics Output Protocol for early console messages to appear.
+-
+-config FB_IMAC
+-	bool "Intel-based Macintosh Framebuffer Support"
+ 	depends on (FB = y) && X86 && EFI
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
  	help
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-next-remove-localversion.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
-acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-x86-make-poll_idle-behave-more-like-the-other-idle-methods-checkpatch-fixes.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
-fs-dlm-configc-choose-better-identifiers.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
-pci-tidy-pme-support-messages-checkpatch-fixes.patch
-arch-s390-kernel-ptracec-fix-build.patch
-sched-clarify-ifdef-tangle.patch
-fix-fastboot-make-the-raid-autodetect-code-wait-for-all-devices-to-init.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
-git-xtensa.patch
-modules-remove-stop_machine-during-module-load-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-media-video-cafe_ccicc-needs-mmh.patch
-e1000e-prevent-corruption-of-eeprom-nvm.patch
-drivers-net-mlx4-allocc-needs-mmh.patch
-net-forcedeth-call-restore-mac-addr-in-nv_shutdown-path-v2-fix.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
-fix-a-race-condtion-of-oops_in_progress-fix.patch
-vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
-make-taint-bit-reliable-v3-fix.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-gru-driver-minor-updates-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-nilfs2-continuous-snapshotting-file-system-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
-drivers-usb-musb-disable-it-on-superh.patch
-
+-	  This is the frame buffer device driver for the Intel-based Macintosh
++	  This is the EFI frame buffer device driver. If the firmware on
++	  your platform is EFI 1.10 or UEFI 2.0, select Y to add support for
++	  using the EFI framebuffer as your console.
+ 
+ config FB_N411
+        tristate "N411 Apollo/Hecuba devkit support"
+diff -puN drivers/video/Makefile~efifb-imacfb-consolidation-hardware-support drivers/video/Makefile
+--- a/drivers/video/Makefile~efifb-imacfb-consolidation-hardware-support
++++ a/drivers/video/Makefile
+@@ -125,7 +125,6 @@ obj-$(CONFIG_FB_CARMINE)          += car
+ # Platform or fallback drivers go here
+ obj-$(CONFIG_FB_UVESA)            += uvesafb.o
+ obj-$(CONFIG_FB_VESA)             += vesafb.o
+-obj-$(CONFIG_FB_IMAC)             += imacfb.o
+ obj-$(CONFIG_FB_EFI)              += efifb.o
+ obj-$(CONFIG_FB_VGA16)            += vga16fb.o
+ obj-$(CONFIG_FB_OF)               += offb.o
+diff -puN drivers/video/efifb.c~efifb-imacfb-consolidation-hardware-support drivers/video/efifb.c
+--- a/drivers/video/efifb.c~efifb-imacfb-consolidation-hardware-support
++++ a/drivers/video/efifb.c
+@@ -12,6 +12,7 @@
+ #include <linux/fb.h>
+ #include <linux/platform_device.h>
+ #include <linux/screen_info.h>
++#include <linux/dmi.h>
+ 
+ #include <video/vga.h>
+ 
+@@ -33,6 +34,105 @@ static struct fb_fix_screeninfo efifb_fi
+ 	.visual			= FB_VISUAL_TRUECOLOR,
+ };
+ 
++enum {
++	M_I17,		/* 17-Inch iMac */
++	M_I20,		/* 20-Inch iMac */
++	M_I20_SR,	/* 20-Inch iMac (Santa Rosa) */
++	M_I24,		/* 24-Inch iMac */
++	M_MINI,		/* Mac Mini */
++	M_MB,		/* MacBook */
++	M_MB_2,		/* MacBook, 2nd rev. */
++	M_MB_3,		/* MacBook, 3rd rev. */
++	M_MB_SR,	/* MacBook, 2nd gen, (Santa Rosa) */
++	M_MBA,		/* MacBook Air */
++	M_MBP,		/* MacBook Pro */
++	M_MBP_2,	/* MacBook Pro 2nd gen */
++	M_MBP_SR,	/* MacBook Pro (Santa Rosa) */
++	M_MBP_4,	/* MacBook Pro, 4th gen */
++	M_UNKNOWN	/* placeholder */
++};
++
++static struct efifb_dmi_info {
++	char *optname;
++	unsigned long base;
++	int stride;
++	int width;
++	int height;
++} dmi_list[] = {
++	[M_I17] = { "i17", 0x80010000, 1472 * 4, 1440, 900 },
++	[M_I20] = { "i20", 0x80010000, 1728 * 4, 1680, 1050 }, /* guess */
++	[M_I20_SR] = { "imac7", 0x40010000, 1728 * 4, 1680, 1050 },
++	[M_I24] = { "i24", 0x80010000, 2048 * 4, 1920, 1200 }, /* guess */
++	[M_MINI]= { "mini", 0x80000000, 2048 * 4, 1024, 768 },
++	[M_MB] = { "macbook", 0x80000000, 2048 * 4, 1280, 800 },
++	[M_MBA] = { "mba", 0x80000000, 2048 * 4, 1280, 800 },
++	[M_MBP] = { "mbp", 0x80010000, 1472 * 4, 1440, 900 },
++	[M_MBP_2] = { "mbp2", 0, 0, 0, 0 }, /* placeholder */
++	[M_MBP_SR] = { "mbp3", 0x80030000, 2048 * 4, 1440, 900 },
++	[M_MBP_4] = { "mbp4", 0xc0060000, 2048 * 4, 1920, 1200 },
++	[M_UNKNOWN] = { NULL, 0, 0, 0, 0 }
++};
++
++static int set_system(const struct dmi_system_id *id);
++
++#define EFIFB_DMI_SYSTEM_ID(vendor, name, enumid)		\
++	{ set_system, name, {					\
++		DMI_MATCH(DMI_BIOS_VENDOR, vendor),		\
++		DMI_MATCH(DMI_PRODUCT_NAME, name) },		\
++	  &dmi_list[enumid] }
++
++static struct dmi_system_id __initdata dmi_system_table[] = {
++	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "iMac4,1", M_I17),
++	/* At least one of these two will be right; maybe both? */
++	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "iMac5,1", M_I20),
++	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "iMac5,1", M_I20),
++	/* At least one of these two will be right; maybe both? */
++	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "iMac6,1", M_I24),
++	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "iMac6,1", M_I24),
++	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "iMac7,1", M_I20_SR),
++	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "Macmini1,1", M_MINI),
++	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "MacBook1,1", M_MB),
++	/* At least one of these two will be right; maybe both? */
++	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "MacBook2,1", M_MB),
++	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBook2,1", M_MB),
++	/* At least one of these two will be right; maybe both? */
++	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "MacBook3,1", M_MB),
++	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBook3,1", M_MB),
++	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBook4,1", M_MB),
++	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBookAir1,1", M_MBA),
++	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "MacBookPro1,1", M_MBP),
++	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "MacBookPro2,1", M_MBP_2),
++	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBookPro2,1", M_MBP_2),
++	EFIFB_DMI_SYSTEM_ID("Apple Computer, Inc.", "MacBookPro3,1", M_MBP_SR),
++	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBookPro3,1", M_MBP_SR),
++	EFIFB_DMI_SYSTEM_ID("Apple Inc.", "MacBookPro4,1", M_MBP_4),
++	{},
++};
++
++static int set_system(const struct dmi_system_id *id)
++{
++	struct efifb_dmi_info *info = id->driver_data;
++	if (info->base == 0)
++		return -ENODEV;
++
++	printk(KERN_INFO "efifb: dmi detected %s - framebuffer at %p "
++			 "(%dx%d, stride %d)\n", id->ident,
++			 (void *)info->base, info->width, info->height,
++			 info->stride);
++
++	/* Trust the bootloader over the DMI tables */
++	if (screen_info.lfb_base == 0)
++		screen_info.lfb_base = info->base;
++	if (screen_info.lfb_linelength == 0)
++		screen_info.lfb_linelength = info->stride;
++	if (screen_info.lfb_width == 0)
++		screen_info.lfb_width = info->width;
++	if (screen_info.lfb_height == 0)
++		screen_info.lfb_height = info->height;
++
++	return 0;
++}
++
+ static int efifb_setcolreg(unsigned regno, unsigned red, unsigned green,
+ 			   unsigned blue, unsigned transp,
+ 			   struct fb_info *info)
+@@ -67,6 +167,38 @@ static struct fb_ops efifb_ops = {
+ 	.fb_imageblit	= cfb_imageblit,
+ };
+ 
++static int __init efifb_setup(char *options)
++{
++	char *this_opt;
++	int i;
++
++	if (!options || !*options)
++		return 0;
++
++	while ((this_opt = strsep(&options, ",")) != NULL) {
++		if (!*this_opt) continue;
++
++		for (i = 0; i < M_UNKNOWN; i++) {
++			if (!strcmp(this_opt, dmi_list[i].optname) &&
++					dmi_list[i].base != 0) {
++				screen_info.lfb_base = dmi_list[i].base;
++				screen_info.lfb_linelength = dmi_list[i].stride;
++				screen_info.lfb_width = dmi_list[i].width;
++				screen_info.lfb_height = dmi_list[i].height;
++			}
++		}
++		if (!strncmp(this_opt, "base:", 5))
++			screen_info.lfb_base = simple_strtoul(this_opt+5, NULL, 0);
++		else if (!strncmp(this_opt, "stride:", 7))
++			screen_info.lfb_linelength = simple_strtoul(this_opt+7, NULL, 0) * 4;
++		else if (!strncmp(this_opt, "height:", 7))
++			screen_info.lfb_height = simple_strtoul(this_opt+7, NULL, 0);
++		else if (!strncmp(this_opt, "width:", 6))
++			screen_info.lfb_width = simple_strtoul(this_opt+6, NULL, 0);
++	}
++	return 0;
++}
++
+ static int __init efifb_probe(struct platform_device *dev)
+ {
+ 	struct fb_info *info;
+@@ -74,6 +206,26 @@ static int __init efifb_probe(struct pla
+ 	unsigned int size_vmode;
+ 	unsigned int size_remap;
+ 	unsigned int size_total;
++	int request_succeeded = 0;
++
++	printk(KERN_INFO "efifb: probing for efifb\n");
++
++	if (!screen_info.lfb_depth)
++		screen_info.lfb_depth = 32;
++	if (!screen_info.pages)
++		screen_info.pages = 1;
++
++	/* just assume they're all unset if any are */
++	if (!screen_info.blue_size) {
++		screen_info.blue_size = 8;
++		screen_info.blue_pos = 0;
++		screen_info.green_size = 8;
++		screen_info.green_pos = 8;
++		screen_info.red_size = 8;
++		screen_info.red_pos = 16;
++		screen_info.rsvd_size = 8;
++		screen_info.rsvd_pos = 24;
++	}
+ 
+ 	efifb_fix.smem_start = screen_info.lfb_base;
+ 	efifb_defined.bits_per_pixel = screen_info.lfb_depth;
+@@ -98,21 +250,25 @@ static int __init efifb_probe(struct pla
+ 	 *                 option to simply use size_total as that
+ 	 *                 wastes plenty of kernel address space. */
+ 	size_remap  = size_vmode * 2;
+-	if (size_remap < size_vmode)
+-		size_remap = size_vmode;
+ 	if (size_remap > size_total)
+ 		size_remap = size_total;
++	if (size_remap % PAGE_SIZE)
++		size_remap += PAGE_SIZE - (size_remap % PAGE_SIZE);
+ 	efifb_fix.smem_len = size_remap;
+ 
+-	if (!request_mem_region(efifb_fix.smem_start, size_total, "efifb"))
++	if (request_mem_region(efifb_fix.smem_start, size_remap, "efifb")) {
++		request_succeeded = 1;
++	} else {
+ 		/* We cannot make this fatal. Sometimes this comes from magic
+ 		   spaces our resource handlers simply don't know about */
+ 		printk(KERN_WARNING
+ 		       "efifb: cannot reserve video memory at 0x%lx\n",
+ 			efifb_fix.smem_start);
++	}
+ 
+ 	info = framebuffer_alloc(sizeof(u32) * 16, &dev->dev);
+ 	if (!info) {
++		printk(KERN_ERR "efifb: cannot allocate framebuffer\n");
+ 		err = -ENOMEM;
+ 		goto err_release_mem;
+ 	}
+@@ -125,7 +281,7 @@ static int __init efifb_probe(struct pla
+ 				"0x%x @ 0x%lx\n",
+ 			efifb_fix.smem_len, efifb_fix.smem_start);
+ 		err = -EIO;
+-		goto err_unmap;
++		goto err_release_fb;
+ 	}
+ 
+ 	printk(KERN_INFO "efifb: framebuffer at 0x%lx, mapped to 0x%p, "
+@@ -178,25 +334,27 @@ static int __init efifb_probe(struct pla
+ 	info->fix = efifb_fix;
+ 	info->flags = FBINFO_FLAG_DEFAULT;
+ 
+-	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0) {
+-		err = -ENOMEM;
++	if ((err = fb_alloc_cmap(&info->cmap, 256, 0)) < 0) {
++		printk(KERN_ERR "efifb: cannot allocate colormap\n");
+ 		goto err_unmap;
+ 	}
+-	if (register_framebuffer(info) < 0) {
+-		err = -EINVAL;
++	if ((err = register_framebuffer(info)) < 0) {
++		printk(KERN_ERR "efifb: cannot register framebuffer\n");
+ 		goto err_fb_dealoc;
+ 	}
+ 	printk(KERN_INFO "fb%d: %s frame buffer device\n",
+-	       info->node, info->fix.id);
++		info->node, info->fix.id);
+ 	return 0;
+ 
+ err_fb_dealoc:
+ 	fb_dealloc_cmap(&info->cmap);
+ err_unmap:
+ 	iounmap(info->screen_base);
++err_release_fb:
+ 	framebuffer_release(info);
+ err_release_mem:
+-	release_mem_region(efifb_fix.smem_start, size_total);
++	if (request_succeeded)
++		release_mem_region(efifb_fix.smem_start, size_total);
+ 	return err;
+ }
+ 
+@@ -214,9 +372,22 @@ static struct platform_device efifb_devi
+ static int __init efifb_init(void)
+ {
+ 	int ret;
++	char *option = NULL;
+ 
+ 	if (screen_info.orig_video_isVGA != VIDEO_TYPE_EFI)
+ 		return -ENODEV;
++	dmi_check_system(dmi_system_table);
++
++	if (fb_get_options("efifb", &option))
++		return -ENODEV;
++	efifb_setup(option);
++
++	/* We don't get linelength from UGA Draw Protocol, only from
++	 * EFI Graphics Protocol.  So if it's not in DMI, and it's not
++	 * passed in from the user, we really can't use the framebuffer.
++	 */
++	if (!screen_info.lfb_linelength)
++		return -ENODEV;
+ 
+ 	ret = platform_driver_register(&efifb_driver);
+ 
+diff -puN drivers/video/imacfb.c~efifb-imacfb-consolidation-hardware-support drivers/video/imacfb.c
+--- a/drivers/video/imacfb.c~efifb-imacfb-consolidation-hardware-support
++++ a/drivers/video/imacfb.c
+@@ -1,376 +0,0 @@
+-/*
+- * framebuffer driver for Intel Based Mac's
+- *
+- * (c) 2006 Edgar Hucek <gimli@dark-green.com>
+- * Original imac driver written by Gerd Knorr <kraxel@goldbach.in-berlin.de>
+- *
+- */
+-
+-#include <linux/delay.h>
+-#include <linux/errno.h>
+-#include <linux/fb.h>
+-#include <linux/kernel.h>
+-#include <linux/init.h>
+-#include <linux/ioport.h>
+-#include <linux/mm.h>
+-#include <linux/module.h>
+-#include <linux/platform_device.h>
+-#include <linux/screen_info.h>
+-#include <linux/slab.h>
+-#include <linux/string.h>
+-#include <linux/dmi.h>
+-#include <linux/efi.h>
+-
+-#include <asm/io.h>
+-
+-#include <video/vga.h>
+-
+-typedef enum _MAC_TYPE {
+-	M_I17,
+-	M_I20,
+-	M_MINI,
+-	M_MACBOOK,
+-	M_UNKNOWN
+-} MAC_TYPE;
+-
+-/* --------------------------------------------------------------------- */
+-
+-static struct fb_var_screeninfo imacfb_defined __initdata = {
+-	.activate		= FB_ACTIVATE_NOW,
+-	.height			= -1,
+-	.width			= -1,
+-	.right_margin		= 32,
+-	.upper_margin		= 16,
+-	.lower_margin		= 4,
+-	.vsync_len		= 4,
+-	.vmode			= FB_VMODE_NONINTERLACED,
+-};
+-
+-static struct fb_fix_screeninfo imacfb_fix __initdata = {
+-	.id			= "IMAC VGA",
+-	.type			= FB_TYPE_PACKED_PIXELS,
+-	.accel			= FB_ACCEL_NONE,
+-	.visual			= FB_VISUAL_TRUECOLOR,
+-};
+-
+-static int inverse;
+-static int model		= M_UNKNOWN;
+-static int manual_height;
+-static int manual_width;
+-
+-static int set_system(const struct dmi_system_id *id)
+-{
+-	printk(KERN_INFO "imacfb: %s detected - set system to %ld\n",
+-		id->ident, (long)id->driver_data);
+-
+-	model = (long)id->driver_data;
+-
+-	return 0;
+-}
+-
+-static struct dmi_system_id __initdata dmi_system_table[] = {
+-	{ set_system, "iMac4,1", {
+-	  DMI_MATCH(DMI_BIOS_VENDOR,"Apple Computer, Inc."),
+-	  DMI_MATCH(DMI_PRODUCT_NAME,"iMac4,1") }, (void*)M_I17},
+-	{ set_system, "MacBookPro1,1", {
+-	  DMI_MATCH(DMI_BIOS_VENDOR,"Apple Computer, Inc."),
+-	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBookPro1,1") }, (void*)M_I17},
+-	{ set_system, "MacBook1,1", {
+-	  DMI_MATCH(DMI_BIOS_VENDOR,"Apple Computer, Inc."),
+-	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBook1,1")}, (void *)M_MACBOOK},
+-	{ set_system, "Macmini1,1", {
+-	  DMI_MATCH(DMI_BIOS_VENDOR,"Apple Computer, Inc."),
+-	  DMI_MATCH(DMI_PRODUCT_NAME,"Macmini1,1")}, (void *)M_MINI},
+-	{},
+-};
+-
+-#define	DEFAULT_FB_MEM	1024*1024*16
+-
+-/* --------------------------------------------------------------------- */
+-
+-static int imacfb_setcolreg(unsigned regno, unsigned red, unsigned green,
+-			    unsigned blue, unsigned transp,
+-			    struct fb_info *info)
+-{
+-	/*
+-	 *  Set a single color register. The values supplied are
+-	 *  already rounded down to the hardware's capabilities
+-	 *  (according to the entries in the `var' structure). Return
+-	 *  != 0 for invalid regno.
+-	 */
+-
+-	if (regno >= info->cmap.len)
+-		return 1;
+-
+-	if (regno < 16) {
+-		red   >>= 8;
+-		green >>= 8;
+-		blue  >>= 8;
+-		((u32 *)(info->pseudo_palette))[regno] =
+-			(red   << info->var.red.offset)   |
+-			(green << info->var.green.offset) |
+-			(blue  << info->var.blue.offset);
+-	}
+-	return 0;
+-}
+-
+-static struct fb_ops imacfb_ops = {
+-	.owner		= THIS_MODULE,
+-	.fb_setcolreg	= imacfb_setcolreg,
+-	.fb_fillrect	= cfb_fillrect,
+-	.fb_copyarea	= cfb_copyarea,
+-	.fb_imageblit	= cfb_imageblit,
+-};
+-
+-static int __init imacfb_setup(char *options)
+-{
+-	char *this_opt;
+-
+-	if (!options || !*options)
+-		return 0;
+-
+-	while ((this_opt = strsep(&options, ",")) != NULL) {
+-		if (!*this_opt) continue;
+-
+-		if (!strcmp(this_opt, "inverse"))
+-			inverse = 1;
+-		else if (!strcmp(this_opt, "i17"))
+-			model = M_I17;
+-		else if (!strcmp(this_opt, "i20"))
+-			model = M_I20;
+-		else if (!strcmp(this_opt, "mini"))
+-			model = M_MINI;
+-		else if (!strcmp(this_opt, "macbook"))
+-			model = M_MACBOOK;
+-		else if (!strncmp(this_opt, "height:", 7))
+-			manual_height = simple_strtoul(this_opt+7, NULL, 0);
+-		else if (!strncmp(this_opt, "width:", 6))
+-			manual_width = simple_strtoul(this_opt+6, NULL, 0);
+-	}
+-	return 0;
+-}
+-
+-static int __init imacfb_probe(struct platform_device *dev)
+-{
+-	struct fb_info *info;
+-	int err;
+-	unsigned int size_vmode;
+-	unsigned int size_remap;
+-	unsigned int size_total;
+-
+-	screen_info.lfb_depth = 32;
+-	screen_info.lfb_size = DEFAULT_FB_MEM / 0x10000;
+-	screen_info.pages=1;
+-	screen_info.blue_size = 8;
+-	screen_info.blue_pos = 0;
+-	screen_info.green_size = 8;
+-	screen_info.green_pos = 8;
+-	screen_info.red_size = 8;
+-	screen_info.red_pos = 16;
+-	screen_info.rsvd_size = 8;
+-	screen_info.rsvd_pos = 24;
+-
+-	switch (model) {
+-	case M_I17:
+-		screen_info.lfb_width = 1440;
+-		screen_info.lfb_height = 900;
+-		screen_info.lfb_linelength = 1472 * 4;
+-		screen_info.lfb_base = 0x80010000;
+-		break;
+-	case M_I20:
+-		screen_info.lfb_width = 1680;
+-		screen_info.lfb_height = 1050;
+-		screen_info.lfb_linelength = 1728 * 4;
+-		screen_info.lfb_base = 0x80010000;
+-		break;
+-	case M_MINI:
+-		screen_info.lfb_width = 1024;
+-		screen_info.lfb_height = 768;
+-		screen_info.lfb_linelength = 2048 * 4;
+-		screen_info.lfb_base = 0x80000000;
+-		break;
+-	case M_MACBOOK:
+-		screen_info.lfb_width = 1280;
+-		screen_info.lfb_height = 800;
+-		screen_info.lfb_linelength = 2048 * 4;
+-		screen_info.lfb_base = 0x80000000;
+-		break;
+- 	}
+-
+-	/* if the user wants to manually specify height/width,
+-	   we will override the defaults */
+-	/* TODO: eventually get auto-detection working */
+-	if (manual_height > 0)
+-		screen_info.lfb_height = manual_height;
+-	if (manual_width > 0)
+-		screen_info.lfb_width = manual_width;
+-
+-	imacfb_fix.smem_start = screen_info.lfb_base;
+-	imacfb_defined.bits_per_pixel = screen_info.lfb_depth;
+-	imacfb_defined.xres = screen_info.lfb_width;
+-	imacfb_defined.yres = screen_info.lfb_height;
+-	imacfb_fix.line_length = screen_info.lfb_linelength;
+-
+-	/*   size_vmode -- that is the amount of memory needed for the
+-	 *                 used video mode, i.e. the minimum amount of
+-	 *                 memory we need. */
+-	size_vmode = imacfb_defined.yres * imacfb_fix.line_length;
+-
+-	/*   size_total -- all video memory we have. Used for
+-	 *                 entries, ressource allocation and bounds
+-	 *                 checking. */
+-	size_total = screen_info.lfb_size * 65536;
+-	if (size_total < size_vmode)
+-		size_total = size_vmode;
+-
+-	/*   size_remap -- the amount of video memory we are going to
+-	 *                 use for imacfb.  With modern cards it is no
+-	 *                 option to simply use size_total as that
+-	 *                 wastes plenty of kernel address space. */
+-	size_remap  = size_vmode * 2;
+-	if (size_remap < size_vmode)
+-		size_remap = size_vmode;
+-	if (size_remap > size_total)
+-		size_remap = size_total;
+-	imacfb_fix.smem_len = size_remap;
+-
+-	if (!request_mem_region(imacfb_fix.smem_start, size_total, "imacfb")) {
+-		printk(KERN_WARNING
+-		       "imacfb: cannot reserve video memory at 0x%lx\n",
+-			imacfb_fix.smem_start);
+-		/* We cannot make this fatal. Sometimes this comes from magic
+-		   spaces our resource handlers simply don't know about */
+-	}
+-
+-	info = framebuffer_alloc(sizeof(u32) * 16, &dev->dev);
+-	if (!info) {
+-		err = -ENOMEM;
+-		goto err_release_mem;
+-	}
+-	info->pseudo_palette = info->par;
+-	info->par = NULL;
+-
+-	info->screen_base = ioremap(imacfb_fix.smem_start, imacfb_fix.smem_len);
+-	if (!info->screen_base) {
+-		printk(KERN_ERR "imacfb: abort, cannot ioremap video memory "
+-				"0x%x @ 0x%lx\n",
+-			imacfb_fix.smem_len, imacfb_fix.smem_start);
+-		err = -EIO;
+-		goto err_unmap;
+-	}
+-
+-	printk(KERN_INFO "imacfb: framebuffer at 0x%lx, mapped to 0x%p, "
+-	       "using %dk, total %dk\n",
+-	       imacfb_fix.smem_start, info->screen_base,
+-	       size_remap/1024, size_total/1024);
+-	printk(KERN_INFO "imacfb: mode is %dx%dx%d, linelength=%d, pages=%d\n",
+-	       imacfb_defined.xres, imacfb_defined.yres,
+-	       imacfb_defined.bits_per_pixel, imacfb_fix.line_length,
+-	       screen_info.pages);
+-
+-	imacfb_defined.xres_virtual = imacfb_defined.xres;
+-	imacfb_defined.yres_virtual = imacfb_fix.smem_len /
+-					imacfb_fix.line_length;
+-	printk(KERN_INFO "imacfb: scrolling: redraw\n");
+-	imacfb_defined.yres_virtual = imacfb_defined.yres;
+-
+-	/* some dummy values for timing to make fbset happy */
+-	imacfb_defined.pixclock     = 10000000 / imacfb_defined.xres *
+-					1000 / imacfb_defined.yres;
+-	imacfb_defined.left_margin  = (imacfb_defined.xres / 8) & 0xf8;
+-	imacfb_defined.hsync_len    = (imacfb_defined.xres / 8) & 0xf8;
+-
+-	imacfb_defined.red.offset    = screen_info.red_pos;
+-	imacfb_defined.red.length    = screen_info.red_size;
+-	imacfb_defined.green.offset  = screen_info.green_pos;
+-	imacfb_defined.green.length  = screen_info.green_size;
+-	imacfb_defined.blue.offset   = screen_info.blue_pos;
+-	imacfb_defined.blue.length   = screen_info.blue_size;
+-	imacfb_defined.transp.offset = screen_info.rsvd_pos;
+-	imacfb_defined.transp.length = screen_info.rsvd_size;
+-
+-	printk(KERN_INFO "imacfb: %s: "
+-	       "size=%d:%d:%d:%d, shift=%d:%d:%d:%d\n",
+-	       "Truecolor",
+-	       screen_info.rsvd_size,
+-	       screen_info.red_size,
+-	       screen_info.green_size,
+-	       screen_info.blue_size,
+-	       screen_info.rsvd_pos,
+-	       screen_info.red_pos,
+-	       screen_info.green_pos,
+-	       screen_info.blue_pos);
+-
+-	imacfb_fix.ypanstep  = 0;
+-	imacfb_fix.ywrapstep = 0;
+-
+-	/* request failure does not faze us, as vgacon probably has this
+-	 * region already (FIXME) */
+-	request_region(0x3c0, 32, "imacfb");
+-
+-	info->fbops = &imacfb_ops;
+-	info->var = imacfb_defined;
+-	info->fix = imacfb_fix;
+-	info->flags = FBINFO_FLAG_DEFAULT;
+-
+-	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0) {
+-		err = -ENOMEM;
+-		goto err_unmap;
+-	}
+-	if (register_framebuffer(info)<0) {
+-		err = -EINVAL;
+-		goto err_fb_dealoc;
+-	}
+-	printk(KERN_INFO "fb%d: %s frame buffer device\n",
+-	       info->node, info->fix.id);
+-	return 0;
+-
+-err_fb_dealoc:
+-	fb_dealloc_cmap(&info->cmap);
+-err_unmap:
+-	iounmap(info->screen_base);
+-	framebuffer_release(info);
+-err_release_mem:
+-	release_mem_region(imacfb_fix.smem_start, size_total);
+-	return err;
+-}
+-
+-static struct platform_driver imacfb_driver = {
+-	.probe	= imacfb_probe,
+-	.driver	= {
+-		.name	= "imacfb",
+-	},
+-};
+-
+-static struct platform_device imacfb_device = {
+-	.name	= "imacfb",
+-};
+-
+-static int __init imacfb_init(void)
+-{
+-	int ret;
+-	char *option = NULL;
+-
+-	if (!efi_enabled)
+-		return -ENODEV;
+-	if (!dmi_check_system(dmi_system_table))
+-		return -ENODEV;
+-	if (model == M_UNKNOWN)
+-		return -ENODEV;
+-
+-	if (fb_get_options("imacfb", &option))
+-		return -ENODEV;
+-
+-	imacfb_setup(option);
+-	ret = platform_driver_register(&imacfb_driver);
+-
+-	if (!ret) {
+-		ret = platform_device_register(&imacfb_device);
+-		if (ret)
+-			platform_driver_unregister(&imacfb_driver);
+-	}
+-	return ret;
+-}
+-module_init(imacfb_init);
