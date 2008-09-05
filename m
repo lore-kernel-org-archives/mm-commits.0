@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + proc-more-debugging-for-already-registered-case.patch added to -mm tree
-Date: Fri, 05 Sep 2008 14:43:58 -0700
-Message-ID: <200809052143.m85Lhw1W021864@imap1.linux-foundation.org>
+Subject: + sched-fix-compilation-with-gcc-346.patch added to -mm tree
+Date: Fri, 05 Sep 2008 14:45:20 -0700
+Message-ID: <200809052145.m85LjLHG021898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47402 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48514 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751047AbYIEVoc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2008 17:44:32 -0400
+	by vger.kernel.org with ESMTP id S1751607AbYIEVqI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2008 17:46:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com
+Cc: krzysztof.h1@poczta.fm, krzysztof.h1@wp.pl, mingo@elte.hu
 
 
 The patch titled
-     proc: more debugging for "already registered" case
+     sched: fix compilation with gcc 3.4.6
 has been added to the -mm tree.  Its filename is
-     proc-more-debugging-for-already-registered-case.patch
+     sched-fix-compilation-with-gcc-346.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,56 +33,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: more debugging for "already registered" case
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: sched: fix compilation with gcc 3.4.6
+From: Krzysztof Helt <krzysztof.h1@poczta.fm>
 
-Print parent directory name as well.
+kernel/sched.c: In function `start_rt_bandwidth':
+kernel/sched.c:208: sorry, unimplemented: inlining failed in call to 'rt_bandwidth_enabled': function body not available
+kernel/sched.c:214: sorry, unimplemented: called from here
 
-The aim is to catch non-creation of parent directory when proc_mkdir will
-return NULL and all subsequent registrations go directly in /proc instead
-of intended directory.
+It seems that the gcc 3.4.6 requires full inline definition before first usage.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/sched.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN fs/proc/generic.c~proc-more-debugging-for-already-registered-case fs/proc/generic.c
---- a/fs/proc/generic.c~proc-more-debugging-for-already-registered-case
-+++ a/fs/proc/generic.c
-@@ -547,8 +547,8 @@ static int proc_register(struct proc_dir
+diff -puN kernel/sched.c~sched-fix-compilation-with-gcc-346 kernel/sched.c
+--- a/kernel/sched.c~sched-fix-compilation-with-gcc-346
++++ a/kernel/sched.c
+@@ -205,7 +205,10 @@ void init_rt_bandwidth(struct rt_bandwid
+ 	rt_b->rt_period_timer.cb_mode = HRTIMER_CB_IRQSAFE_NO_SOFTIRQ;
+ }
  
- 	for (tmp = dir->subdir; tmp; tmp = tmp->next)
- 		if (strcmp(tmp->name, dp->name) == 0) {
--			printk(KERN_WARNING "proc_dir_entry '%s' already "
--					"registered\n", dp->name);
-+			printk(KERN_WARNING "proc_dir_entry '%s'/'%s' already "
-+					"registered\n", dir->name, dp->name);
- 			dump_stack();
- 			break;
- 		}
+-static inline int rt_bandwidth_enabled(void);
++static inline int rt_bandwidth_enabled(void)
++{
++	return sysctl_sched_rt_runtime >= 0;
++}
+ 
+ static void start_rt_bandwidth(struct rt_bandwidth *rt_b)
+ {
+@@ -844,11 +847,6 @@ static inline u64 global_rt_runtime(void
+ 	return (u64)sysctl_sched_rt_runtime * NSEC_PER_USEC;
+ }
+ 
+-static inline int rt_bandwidth_enabled(void)
+-{
+-	return sysctl_sched_rt_runtime >= 0;
+-}
+-
+ #ifndef prepare_arch_switch
+ # define prepare_arch_switch(next)	do { } while (0)
+ #endif
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from krzysztof.h1@poczta.fm are
 
-proc-more-debugging-for-already-registered-case.patch
+origin.patch
 linux-next.patch
-less-softirq-vectors.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-cpuset-use-seq_cpumask-seq_nodemask.patch
-compat_binfmt_elf-definition-tweak.patch
-proc-move-sysrq-trigger-out-of-fs-proc.patch
-proc-fix-return-value-of-proc_reg_open-in-too-late-case.patch
-proc-proc_sys_root-tweak.patch
-proc-remove-dummy-vmcore_open.patch
-proc-remove-unused-get_dma_list.patch
-sysctl-simplify-strategy.patch
-fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out.patch
-fs-kconfig-move-autofs-autofs4-out.patch
-fs-kconfig-move-cifs-out.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
+sched-fix-compilation-with-gcc-346.patch
+fb-push-down-the-bkl-in-the-ioctl-handler.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt.patch
+viafb-viafbmodes-viafbtxt-fix.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-makefile-kconfig.patch
+viafb-accelc-accelh.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-chiph-debugh.patch
+viafb-dvic-dvih-globalc-and-globalh.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-ifacec-ifaceh-ioctlc-ioctlh.patch
+viafb-lcdc-lcdh-lcdtblh.patch
+viafb-makefile-shareh.patch
+viafb-tbl1636c-tbl1636h-tbldpasettingc-tbldpasettingh.patch
+viafb-viafbdevc-viafbdevh.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+viafb-via_i2cc-via_i2ch-viamodec-viamodeh.patch
+viafb-via_utilityc-via_utilityh-vt1636c-vt1636h.patch
+efifb-imacfb-consolidation-hardware-support.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
 
