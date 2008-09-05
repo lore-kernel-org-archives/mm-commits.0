@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sched-fix-compilation-with-gcc-346.patch added to -mm tree
-Date: Fri, 05 Sep 2008 14:45:20 -0700
-Message-ID: <200809052145.m85LjLHG021898@imap1.linux-foundation.org>
+Subject: + cirrusfb-fix-16bpp-modes.patch added to -mm tree
+Date: Fri, 05 Sep 2008 14:55:57 -0700
+Message-ID: <200809052155.m85Ltv6T022249@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48514 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58899 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751607AbYIEVqI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2008 17:46:08 -0400
+	by vger.kernel.org with ESMTP id S1751926AbYIEV43 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2008 17:56:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@poczta.fm, krzysztof.h1@wp.pl, mingo@elte.hu
+Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     sched: fix compilation with gcc 3.4.6
+     cirrusfb: fix 16bpp modes
 has been added to the -mm tree.  Its filename is
-     sched-fix-compilation-with-gcc-346.patch
+     cirrusfb-fix-16bpp-modes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,78 +33,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sched: fix compilation with gcc 3.4.6
-From: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Subject: cirrusfb: fix 16bpp modes
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-kernel/sched.c: In function `start_rt_bandwidth':
-kernel/sched.c:208: sorry, unimplemented: inlining failed in call to 'rt_bandwidth_enabled': function body not available
-kernel/sched.c:214: sorry, unimplemented: called from here
-
-It seems that the gcc 3.4.6 requires full inline definition before first usage.
+The 16bpp mode did not work on the Cirrus cards as the visual type was set
+to DIRECTCOLOR instead of TRUECOLOR.  The Alpine family used one incorrect
+register setting so this 16bpp modes generated wrong horizontal frequency.
 
 Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/video/cirrusfb.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN kernel/sched.c~sched-fix-compilation-with-gcc-346 kernel/sched.c
---- a/kernel/sched.c~sched-fix-compilation-with-gcc-346
-+++ a/kernel/sched.c
-@@ -205,7 +205,10 @@ void init_rt_bandwidth(struct rt_bandwid
- 	rt_b->rt_period_timer.cb_mode = HRTIMER_CB_IRQSAFE_NO_SOFTIRQ;
- }
+diff -puN drivers/video/cirrusfb.c~cirrusfb-fix-16bpp-modes drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~cirrusfb-fix-16bpp-modes
++++ a/drivers/video/cirrusfb.c
+@@ -657,7 +657,7 @@ static int cirrusfb_decode_var(const str
+ 	case 16:
+ 	case 32:
+ 		info->fix.line_length = var->xres_virtual * maxclockidx;
+-		info->fix.visual = FB_VISUAL_DIRECTCOLOR;
++		info->fix.visual = FB_VISUAL_TRUECOLOR;
+ 		break;
  
--static inline int rt_bandwidth_enabled(void);
-+static inline int rt_bandwidth_enabled(void)
-+{
-+	return sysctl_sched_rt_runtime >= 0;
-+}
+ 	default:
+@@ -1178,10 +1178,7 @@ static int cirrusfb_set_par_foo(struct f
  
- static void start_rt_bandwidth(struct rt_bandwidth *rt_b)
- {
-@@ -844,11 +847,6 @@ static inline u64 global_rt_runtime(void
- 	return (u64)sysctl_sched_rt_runtime * NSEC_PER_USEC;
- }
+ 		case BT_ALPINE:
+ 			DPRINTK(" (for GD543x)\n");
+-			if (var->xres >= 1024)
+-				vga_wseq(regbase, CL_SEQR7, 0xa7);
+-			else
+-				vga_wseq(regbase, CL_SEQR7, 0xa3);
++			vga_wseq(regbase, CL_SEQR7, 0xa7);
+ 			cirrusfb_set_mclk(cinfo, regs.mclk, regs.divMCLK);
+ 			break;
  
--static inline int rt_bandwidth_enabled(void)
--{
--	return sysctl_sched_rt_runtime >= 0;
--}
--
- #ifndef prepare_arch_switch
- # define prepare_arch_switch(next)	do { } while (0)
- #endif
 _
 
-Patches currently in -mm which might be from krzysztof.h1@poczta.fm are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
+atmel_lcdfb-fix-oops-in-rmmod-when-framebuffer-fails-to-register.patch
 linux-next.patch
+fb-metronome-printk-format-warning.patch
 sched-fix-compilation-with-gcc-346.patch
-fb-push-down-the-bkl-in-the-ioctl-handler.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt.patch
-viafb-viafbmodes-viafbtxt-fix.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-makefile-kconfig.patch
-viafb-accelc-accelh.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-chiph-debugh.patch
-viafb-dvic-dvih-globalc-and-globalh.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-ifacec-ifaceh-ioctlc-ioctlh.patch
-viafb-lcdc-lcdh-lcdtblh.patch
-viafb-makefile-shareh.patch
-viafb-tbl1636c-tbl1636h-tbldpasettingc-tbldpasettingh.patch
-viafb-viafbdevc-viafbdevh.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-viafb-via_i2cc-via_i2ch-viamodec-viamodeh.patch
-viafb-via_utilityc-via_utilityh-vt1636c-vt1636h.patch
-efifb-imacfb-consolidation-hardware-support.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
+x86-delay-early-cpu-initialization-until-cpuid-is-done.patch
+x86-move-mtrr-cpu-cap-setting-early-in-early_init_xxxx.patch
+fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
+neofb-reduce-panning-function.patch
+viafb-accelc-accelh-update.patch
+viafb-viafbdevc-update.patch
+fbdev-kconfig-update.patch
+fbdev-kconfig-update-fix.patch
+neofb-kill-some-redundant-code.patch
+vga16fb-remove-open_lock-mutex.patch
+neofb-remove-open_lock-mutex.patch
+tdfxfb-do-not-make-changes-to-default-tdfx_fix.patch
+intelfb-support-945gme-as-used-in-asus-eee-901.patch
+cirrusfb-remove-information-about-memory-size-during-mode-change.patch
+cirrusfb-simplify-clock-calculation.patch
+cirrusfb-remove-24-bpp-mode.patch
+cirrusfb-drop-device-pointers-from-cirrusfb_info.patch
+cirrusfb-use-modedb-and-add-mode_option-parameter-2nd-rev.patch
+cirrusfb-add-__devinit-attribute-to-probing-functions.patch
+cirrusfb-eliminate-crt-registers-from-global-structure.patch
+cirrusfb-eliminate-crt-registers-from-global-structure-fix-up-debug-printk-types.patch
+cirrusfb-drop-clock-fields-from-cirrusfb_regs-structure.patch
+cirrusfb-add-noaccel-module-parameter.patch
+cirrusfb-fix-16bpp-modes.patch
+cirrusfb-do-not-change-mclk-for-alpine-chips.patch
+atmel_lcdfb-disallow-setting-larger-resolution-than-the-framebuffer-memory-can-handle.patch
 
