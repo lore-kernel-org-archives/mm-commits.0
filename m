@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch added to -mm tree
-Date: Fri, 05 Sep 2008 16:04:17 -0700
-Message-ID: <200809052304.m85N4Htr024728@imap1.linux-foundation.org>
+Subject: + acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch added to -mm tree
+Date: Fri, 05 Sep 2008 16:04:14 -0700
+Message-ID: <200809052304.m85N4FVB024725@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39486 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41833 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750844AbYIEXE0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2008 19:04:26 -0400
+	by vger.kernel.org with ESMTP id S1752235AbYIEXFE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Sep 2008 19:05:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, astarikovskiy@suse.de
+Cc: astarikovskiy@suse.de, andi@firstfloor.org, hmh@hmh.eng.br, maxi@daemonizer.de, stable@kernel.org
 
 
 The patch titled
-     acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup
+     ACPI: EC: Don't degrade to poll mode at storm automatically
 has been added to the -mm tree.  Its filename is
-     acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
+     acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,146 +33,130 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ACPI: EC: Don't degrade to poll mode at storm automatically
+From: Alexey Starikovskiy <astarikovskiy@suse.de>
 
-use bool properly.
+Not all users of semi-broken EC devices want to degrade to poll mode, so
+give them right to choose.
 
+This fixes a regression in 2.6.26 (from 2.6.25.3).  Initially reported as
+"Asus Eee PC hotkeys stop working if pressed quickly" in bugzilla
+<http://bugzilla.kernel.org/show_bug.cgi?id=11089>.
+
+The regression was caused by a recently added check for interrupt storms. 
+The Eee PC triggers this check and switches to polling.  When multiple
+events arrive between polling intervals, only one is fetched from the EC. 
+This causes erroneous behaviour; ultimately events stop being delivered
+altogether when the EC buffer overflows.
+
+Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
 Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Maximilian Engelhardt <maxi@daemonizer.de>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Cc: Andi Kleen <andi@firstfloor.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/ec.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/kernel-parameters.txt |    5 +++
+ drivers/acpi/ec.c                   |   36 ++++++++++++++++++--------
+ 2 files changed, 31 insertions(+), 10 deletions(-)
 
-diff -puN drivers/acpi/ec.c~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup drivers/acpi/ec.c
---- a/drivers/acpi/ec.c~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup
+diff -puN Documentation/kernel-parameters.txt~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically
++++ a/Documentation/kernel-parameters.txt
+@@ -742,6 +742,11 @@ and is between 256 and 4096 characters. 
+ 
+ 	eata=		[HW,SCSI]
+ 
++	ec_intr=	[HW,ACPI] ACPI Embedded Controller interrupt mode
++			Format: <int>
++			0: polling mode
++			non-0: interrupt mode (default)
++
+ 	edd=		[EDD]
+ 			Format: {"off" | "on" | "skip[mbr]"}
+ 
+diff -puN drivers/acpi/ec.c~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically drivers/acpi/ec.c
+--- a/drivers/acpi/ec.c~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically
 +++ a/drivers/acpi/ec.c
-@@ -518,7 +518,7 @@ static u32 acpi_ec_gpe_handler(void *dat
+@@ -110,6 +110,8 @@ static struct acpi_ec {
+ 	u8 handlers_installed;
+ } *boot_ec, *first_ec;
+ 
++int acpi_ec_intr = 1; /* Default is interrupt mode */
++
+ /* 
+  * Some Asus system have exchanged ECDT data/command IO addresses.
+  */
+@@ -516,12 +518,14 @@ static u32 acpi_ec_gpe_handler(void *dat
  	acpi_status status = AE_OK;
  	struct acpi_ec *ec = data;
  	u8 state = acpi_ec_read_status(ec);
--	static bool warn_done = 0;
-+	static bool warn_done = false;
++	static bool warn_done = 0;
  
  	pr_debug(PREFIX "~~~> interrupt\n");
  	atomic_inc(&ec->irq_count);
+-	if (atomic_read(&ec->irq_count) > 5) {
+-		pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
+-		ec_switch_to_poll_mode(ec);
++	if (!warn_done && atomic_read(&ec->irq_count) > 5) {
++		pr_warning(PREFIX "GPE storm detected, try to use ec_intr=0 "
++			"kernel option, if you see problems with keyboard.\n");
++		warn_done = 1;
+ 		goto end;
+ 	}
+ 	clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
+@@ -848,20 +852,21 @@ static int ec_install_handlers(struct ac
+ 	acpi_status status;
+ 	if (ec->handlers_installed)
+ 		return 0;
+-	status = acpi_install_gpe_handler(NULL, ec->gpe,
++	if (acpi_ec_intr) {
++		status = acpi_install_gpe_handler(NULL, ec->gpe,
+ 					  ACPI_GPE_EDGE_TRIGGERED,
+ 					  &acpi_ec_gpe_handler, ec);
+-	if (ACPI_FAILURE(status))
+-		return -ENODEV;
+-
+-	acpi_set_gpe_type(NULL, ec->gpe, ACPI_GPE_TYPE_RUNTIME);
+-	acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
++		if (ACPI_FAILURE(status))
++			return -ENODEV;
+ 
++		acpi_set_gpe_type(NULL, ec->gpe, ACPI_GPE_TYPE_RUNTIME);
++		acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
++	}
+ 	status = acpi_install_address_space_handler(ec->handle,
+ 						    ACPI_ADR_SPACE_EC,
+ 						    &acpi_ec_space_handler,
+ 						    NULL, ec);
+-	if (ACPI_FAILURE(status)) {
++	if (ACPI_FAILURE(status) && acpi_ec_intr) {
+ 		acpi_remove_gpe_handler(NULL, ec->gpe, &acpi_ec_gpe_handler);
+ 		return -ENODEV;
+ 	}
+@@ -1047,3 +1052,14 @@ static void __exit acpi_ec_exit(void)
+ 	return;
+ }
+ #endif	/* 0 */
++
++static int __init acpi_ec_set_intr_mode(char *str)
++{
++	if (!get_option(&str, &acpi_ec_intr)) {
++		acpi_ec_intr = 0;
++		return 0;
++	}
++	return 1;
++}
++
++__setup("ec_intr=", acpi_ec_set_intr_mode);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from astarikovskiy@suse.de are
 
-origin.patch
-drivers-mmc-card-blockc-fix-refcount-leak-in-mmc_block_open.patch
 linux-next.patch
-next-remove-localversion.patch
-security-selinux-include-netlabelh-fix-two-build-errors.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch
 revert-acpi-ec-do-transaction-from-interrupt-context.patch
+acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch
 acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically-cleanup.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-x86-make-poll_idle-behave-more-like-the-other-idle-methods-checkpatch-fixes.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
-fs-dlm-configc-choose-better-identifiers.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
-pci-tidy-pme-support-messages-checkpatch-fixes.patch
-arch-s390-kernel-ptracec-fix-build.patch
-sched-clarify-ifdef-tangle.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
-drivers-usb-musb-disable-it-on-superh.patch
-git-xtensa.patch
-modules-remove-stop_machine-during-module-load-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-media-video-cafe_ccicc-needs-mmh.patch
-e1000e-prevent-corruption-of-eeprom-nvm.patch
-drivers-net-mlx4-allocc-needs-mmh.patch
-net-forcedeth-call-restore-mac-addr-in-nv_shutdown-path-v2.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
-fix-a-race-condtion-of-oops_in_progress-fix.patch
-vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
-make-taint-bit-reliable-v3-fix.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-gru-driver-minor-updates-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-nilfs2-continuous-snapshotting-file-system-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
