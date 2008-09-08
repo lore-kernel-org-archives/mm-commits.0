@@ -1,134 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - acpi_pmc-check-for-monotonicity.patch removed from -mm tree
-Date: Sun, 07 Sep 2008 14:01:43 -0700
-Message-ID: <200809072101.m87L1hYu020778@imap1.linux-foundation.org>
+Subject: - h8300-kallsyms-exclude-local-symbols.patch removed from -mm tree
+Date: Sun, 07 Sep 2008 23:56:44 -0700
+Message-ID: <200809080656.m886uix5008379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34659 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41516 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755560AbYIGVDF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 7 Sep 2008 17:03:05 -0400
+	by vger.kernel.org with ESMTP id S1753216AbYIHG5L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 02:57:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@dominikbrodowski.net, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, andi@lisas.de, hirofumi@mail.parknet.co.jp, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commi
+To: ysato@users.sourceforge.jp, pmarques@grupopie.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi_pm.c: check for monotonicity
+     h8300: kallsyms: exclude local symbols
 has been removed from the -mm tree.  Its filename was
-     acpi_pmc-check-for-monotonicity.patch
+     h8300-kallsyms-exclude-local-symbols.patch
 
-This patch was dropped because it's kinda crappy
+This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi_pm.c: check for monotonicity
-From: Dominik Brodowski <linux@dominikbrodowski.net>
+Subject: h8300: kallsyms: exclude local symbols
+From: Yoshinori Sato <ysato@users.sourceforge.jp>
 
-The current check for monotonicity is way too weak: Andreas Mohr reports (
-http://lkml.org/lkml/2008/8/10/77 ) that on one of his test systems the
-current check only triggers in 50% of all cases, leading to catastrophic
-timer behaviour.  To fix this issue, expand the check for monotonicity by
-doing ten consecutive tests instead of one.
+h8300's nm output include '.Lfoo' local symbols.
 
-Cc: John Stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Andreas Mohr <andi@lisas.de>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Andi Kleen <andi@firstfloor.org>
+This is head of System.map
+00000000 T __vector
+00000100 T _interrupt_redirect_table
+00000100 T _text
+00000200 T __start
+00000200 T __stext
+0000024c t _exit
+00000252 T __platform_gpio_table
+0000025a t gpio_table
+00000270 t .LFB1596
+00000270 t .LM1
+00000270 t .LM2
+00000270 t .Ltext0
+00000270 t _run_init_process
+0000027a t .LM3
+00000286 t .LFB1597
+00000286 t .LFE1596
+00000286 t .LM4
+00000286 t .LM5
+00000286 t _init_post
+0000028a t .LM6
+00000296 t .LM7
+000002aa t .LM8
+000002ba t .L199
+000002ba t .LM9
+000002c0 t .LM10
+
+exclude these symbols from kallsyms.
+
+Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Paulo Marques <pmarques@grupopie.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/clocksource/acpi_pm.c |   46 ++++++++++++++++++++------------
- 1 file changed, 29 insertions(+), 17 deletions(-)
+ scripts/kallsyms.c    |    5 +++--
+ scripts/mod/modpost.c |    4 +++-
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/clocksource/acpi_pm.c~acpi_pmc-check-for-monotonicity drivers/clocksource/acpi_pm.c
---- a/drivers/clocksource/acpi_pm.c~acpi_pmc-check-for-monotonicity
-+++ a/drivers/clocksource/acpi_pm.c
-@@ -21,6 +21,7 @@
- #include <linux/errno.h>
- #include <linux/init.h>
- #include <linux/pci.h>
-+#include <linux/delay.h>
- #include <asm/io.h>
- 
- /*
-@@ -175,10 +176,13 @@ static int verify_pmtmr_rate(void)
- #define verify_pmtmr_rate() (0)
- #endif
- 
-+/* Number of monotonicity checks to perform during initialization */
-+#define ACPI_PM_MONOTONICITY_CHECKS 10
-+
- static int __init init_acpi_pm_clocksource(void)
+diff -puN scripts/kallsyms.c~h8300-kallsyms-exclude-local-symbols scripts/kallsyms.c
+--- a/scripts/kallsyms.c~h8300-kallsyms-exclude-local-symbols
++++ a/scripts/kallsyms.c
+@@ -105,8 +105,9 @@ static int read_symbol(FILE *in, struct 
+ 	else if (toupper(stype) == 'U' ||
+ 		 is_arm_mapping_symbol(sym))
+ 		return -1;
+-	/* exclude also MIPS ELF local symbols ($L123 instead of .L123) */
+-	else if (str[0] == '$')
++	/* exclude also MIPS ELF (e.g. $L123) and h8300 elf (e.g. .LM123)
++	   local symbols */
++ 	else if (str[0] == '$' || str[0] == '.')
+ 		return -1;
+ 	/* exclude debugging symbols */
+ 	else if (stype == 'N')
+diff -puN scripts/mod/modpost.c~h8300-kallsyms-exclude-local-symbols scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~h8300-kallsyms-exclude-local-symbols
++++ a/scripts/mod/modpost.c
+@@ -1042,7 +1042,9 @@ static inline int is_valid_name(struct e
  {
- 	cycle_t value1, value2;
--	unsigned int i;
-+	unsigned int i, j, good = 0;
+ 	const char *name = elf->strtab + sym->st_name;
  
- 	if (!pmtmr_ioport)
- 		return -ENODEV;
-@@ -187,24 +191,32 @@ static int __init init_acpi_pm_clocksour
- 						clocksource_acpi_pm.shift);
- 
- 	/* "verify" this timing source: */
--	value1 = clocksource_acpi_pm.read();
--	for (i = 0; i < 10000; i++) {
--		value2 = clocksource_acpi_pm.read();
--		if (value2 == value1)
--			continue;
--		if (value2 > value1)
--			goto pm_good;
--		if ((value2 < value1) && ((value2) < 0xFFF))
--			goto pm_good;
--		printk(KERN_INFO "PM-Timer had inconsistent results:"
--			" 0x%#llx, 0x%#llx - aborting.\n", value1, value2);
--		return -EINVAL;
-+	for (j = 0; j < ACPI_PM_MONOTONICITY_CHECKS; j++) {
-+		value1 = clocksource_acpi_pm.read();
-+		for (i = 0; i < 10000; i++) {
-+			value2 = clocksource_acpi_pm.read();
-+			if (value2 == value1)
-+				continue;
-+			if (value2 > value1)
-+				good++;
-+				break;
-+			if ((value2 < value1) && ((value2) < 0xFFF))
-+				good++;
-+				break;
-+			printk(KERN_INFO "PM-Timer had inconsistent results:"
-+			       " 0x%#llx, 0x%#llx - aborting.\n",
-+			       value1, value2);
-+			return -EINVAL;
-+		}
-+		udelay(300 * i);
-+	}
-+
-+	if (good != ACPI_PM_MONOTONICITY_CHECKS) {
-+		printk(KERN_INFO "PM-Timer failed consistency check "
-+		       " (0x%#llx) - aborting.\n", value1);
-+		return -ENODEV;
- 	}
--	printk(KERN_INFO "PM-Timer had no reasonable result:"
--			" 0x%#llx - aborting.\n", value1);
--	return -ENODEV;
- 
--pm_good:
- 	if (verify_pmtmr_rate() != 0)
- 		return -ENODEV;
- 
+-	if (!name || !strlen(name))
++	if (!name || !strlen(name) ||
++	/* exclude h8300 elf local symbols (e.g. .LM123) */
++	    name[0] == '.')
+ 		return 0;
+ 	return !is_arm_mapping_symbol(name);
+ }
 _
 
-Patches currently in -mm which might be from linux@dominikbrodowski.net are
+Patches currently in -mm which might be from ysato@users.sourceforge.jp are
 
-origin.patch
-linux-next.patch
-pcmcia-pccard-deadlock-fix.patch
-acpi_pmc-use-proper-read-function-also-in-errata-mode.patch
-acpi_pmc-check-for-monotonicity.patch
-make-sure-nobodys-leaking-resources.patch
+h8300-kallsyms-exclude-local-symbols.patch
+h8300-update-timer-handler-delete-files.patch
+h8300-update-timer-handler-new-files.patch
+h8300-update-timer-handler-misc-update.patch
+h8300-kconfig-cleanup.patch
+h8300-generic_bug-support.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+asm-h8300-mdh-remove-cvs-keyword.patch
+alpha-miata-remove-dead-url.patch
 
