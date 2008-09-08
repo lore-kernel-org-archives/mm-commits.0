@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-owner-fix-race-between-swap-and-exit-fix-fix.patch added to -mm tree
-Date: Mon, 08 Sep 2008 14:22:58 -0700
-Message-ID: <200809082122.m88LMwgn010983@imap1.linux-foundation.org>
+Subject: + ide-hpt3xx-fix-pointer-arithmetic.patch added to -mm tree
+Date: Mon, 08 Sep 2008 15:21:06 -0700
+Message-ID: <200809082221.m88ML6bf013229@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51927 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42250 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754073AbYIHVXo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 17:23:44 -0400
+	by vger.kernel.org with ESMTP id S1752987AbYIHW0Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 18:26:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nishimura@mxp.nes.nec.co.jp, balbir@in.ibm.com, hugh@veritas.com, jirislaby@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com
+Cc: masouds@google.com, bzolnier@gmail.com, rjw@sisk.pl, sshtylyov@ru.mvista.com
 
 
 The patch titled
-     memcg: handle null dereference of mm->owner
+     ide: hpt3xx: fix pointer arithmetic
 has been added to the -mm tree.  Its filename is
-     mm-owner-fix-race-between-swap-and-exit-fix-fix.patch
+     ide-hpt3xx-fix-pointer-arithmetic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,76 +33,119 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: handle null dereference of mm->owner
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: ide: hpt3xx: fix pointer arithmetic
+From: Masoud Sharbiani <masouds@google.com>
 
-mm_update_next_owner() may clear mm->owner to NULL
-if it races with swapoff, page migration, etc.
-(This behavior was introduced by mm-owner-fix-race-between-swap-and-exit.patch.)
+git commit 74811f355f4f69a187fa74892dcf2a684b84ce99 ("hpt366: convert to
+use ->host_priv") causes a crash at module load (or boot) time on my
+machine with a hpt374 controller.  Sergei says this is due to the pointer
+arithmetic.  This patch fixes that and makes my machine boot again.
 
-But memcg doesn't take account of this situation, and causes:
-
-  BUG: unable to handle kernel NULL pointer dereference at 0000000000000630
-
-This fixes it.
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: Hugh Dickins <hugh@veritas.com>
+Signed-off-by: Masoud Sharbiani <masouds@google.com>
+Acked-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ drivers/ide/pci/hpt366.c |   33 ++++++++++++++++-----------------
+ 1 file changed, 16 insertions(+), 17 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-owner-fix-race-between-swap-and-exit-fix-fix mm/memcontrol.c
---- a/mm/memcontrol.c~mm-owner-fix-race-between-swap-and-exit-fix-fix
-+++ a/mm/memcontrol.c
-@@ -250,6 +250,14 @@ static struct mem_cgroup *mem_cgroup_fro
- 
- struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p)
- {
-+	/*
-+	 * mm_update_next_owner() may clear mm->owner to NULL
-+	 * if it races with swapoff, page migration, etc.
-+	 * So this can be called with p == NULL.
-+	 */
-+	if (unlikely(!p))
-+		return NULL;
-+
- 	return container_of(task_subsys_state(p, mem_cgroup_subsys_id),
- 				struct mem_cgroup, css);
+diff -puN drivers/ide/pci/hpt366.c~ide-hpt3xx-fix-pointer-arithmetic drivers/ide/pci/hpt366.c
+--- a/drivers/ide/pci/hpt366.c~ide-hpt3xx-fix-pointer-arithmetic
++++ a/drivers/ide/pci/hpt366.c
+@@ -612,6 +612,14 @@ static int check_in_drive_list(ide_drive
+ 	return 0;
  }
-@@ -549,6 +557,11 @@ static int mem_cgroup_charge_common(stru
- 	if (likely(!memcg)) {
- 		rcu_read_lock();
- 		mem = mem_cgroup_from_task(rcu_dereference(mm->owner));
-+		if (unlikely(!mem)) {
-+			rcu_read_unlock();
-+			kmem_cache_free(page_cgroup_cache, pc);
-+			return 0;
-+		}
- 		/*
- 		 * For every charge from the cgroup, increment reference count
- 		 */
-@@ -801,6 +814,10 @@ int mem_cgroup_shrink_usage(struct mm_st
  
- 	rcu_read_lock();
- 	mem = mem_cgroup_from_task(rcu_dereference(mm->owner));
-+	if (unlikely(!mem)) {
-+		rcu_read_unlock();
-+		return 0;
-+	}
- 	css_get(&mem->css);
- 	rcu_read_unlock();
++static struct hpt_info *hpt3xx_get_info(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct ide_host *host	= pci_get_drvdata(pci_dev);
++	struct hpt_info *info	= (struct hpt_info *)host->host_priv;
++	return dev == host->dev[1] ? info + 1 : info;
++}
++
+ /*
+  * The Marvell bridge chips used on the HighPoint SATA cards do not seem
+  * to support the UltraDMA modes 1, 2, and 3 as well as any MWDMA modes...
+@@ -620,9 +628,7 @@ static int check_in_drive_list(ide_drive
+ static u8 hpt3xx_udma_filter(ide_drive_t *drive)
+ {
+ 	ide_hwif_t *hwif	= HWIF(drive);
+-	struct pci_dev *dev	= to_pci_dev(hwif->dev);
+-	struct ide_host *host	= pci_get_drvdata(dev);
+-	struct hpt_info *info	= host->host_priv + (hwif->dev == host->dev[1]);
++	struct hpt_info *info	= hpt3xx_get_info(hwif->dev);
+ 	u8 mask 		= hwif->ultra_mask;
+ 
+ 	switch (info->chip_type) {
+@@ -661,9 +667,7 @@ static u8 hpt3xx_udma_filter(ide_drive_t
+ static u8 hpt3xx_mdma_filter(ide_drive_t *drive)
+ {
+ 	ide_hwif_t *hwif	= HWIF(drive);
+-	struct pci_dev *dev	= to_pci_dev(hwif->dev);
+-	struct ide_host *host	= pci_get_drvdata(dev);
+-	struct hpt_info *info	= host->host_priv + (hwif->dev == host->dev[1]);
++	struct hpt_info *info	= hpt3xx_get_info(hwif->dev);
+ 
+ 	switch (info->chip_type) {
+ 	case HPT372 :
+@@ -699,8 +703,7 @@ static void hpt3xx_set_mode(ide_drive_t 
+ {
+ 	ide_hwif_t *hwif	= drive->hwif;
+ 	struct pci_dev *dev	= to_pci_dev(hwif->dev);
+-	struct ide_host *host	= pci_get_drvdata(dev);
+-	struct hpt_info *info	= host->host_priv + (hwif->dev == host->dev[1]);
++	struct hpt_info *info	= hpt3xx_get_info(hwif->dev);
+ 	struct hpt_timings *t	= info->timings;
+ 	u8  itr_addr		= 0x40 + (drive->dn * 4);
+ 	u32 old_itr		= 0;
+@@ -742,9 +745,8 @@ static void hpt3xx_quirkproc(ide_drive_t
+ static void hpt3xx_maskproc(ide_drive_t *drive, int mask)
+ {
+ 	ide_hwif_t *hwif	= HWIF(drive);
+-	struct pci_dev	*dev	= to_pci_dev(hwif->dev);
+-	struct ide_host *host	= pci_get_drvdata(dev);
+-	struct hpt_info *info	= host->host_priv + (hwif->dev == host->dev[1]);
++	struct pci_dev  *dev    = to_pci_dev(hwif->dev);
++	struct hpt_info *info	= hpt3xx_get_info(hwif->dev);
+ 
+ 	if (drive->quirk_list) {
+ 		if (info->chip_type >= HPT370) {
+@@ -999,8 +1001,7 @@ static void hpt3xx_disable_fast_irq(stru
+ static unsigned int init_chipset_hpt366(struct pci_dev *dev)
+ {
+ 	unsigned long io_base	= pci_resource_start(dev, 4);
+-	struct ide_host *host	= pci_get_drvdata(dev);
+-	struct hpt_info *info	= host->host_priv + (&dev->dev == host->dev[1]);
++	struct hpt_info *info	= hpt3xx_get_info(&dev->dev);
+ 	const char *name	= DRV_NAME;
+ 	u8 pci_clk,  dpll_clk	= 0;	/* PCI and DPLL clock in MHz */
+ 	u8 chip_type;
+@@ -1245,8 +1246,7 @@ static unsigned int init_chipset_hpt366(
+ static u8 hpt3xx_cable_detect(ide_hwif_t *hwif)
+ {
+ 	struct pci_dev	*dev	= to_pci_dev(hwif->dev);
+-	struct ide_host *host	= pci_get_drvdata(dev);
+-	struct hpt_info *info	= host->host_priv + (hwif->dev == host->dev[1]);
++	struct hpt_info *info	= hpt3xx_get_info(hwif->dev);
+ 	u8 chip_type		= info->chip_type;
+ 	u8 scr1 = 0, ata66	= hwif->channel ? 0x01 : 0x02;
+ 
+@@ -1290,8 +1290,7 @@ static u8 hpt3xx_cable_detect(ide_hwif_t
+ static void __devinit init_hwif_hpt366(ide_hwif_t *hwif)
+ {
+ 	struct pci_dev *dev	= to_pci_dev(hwif->dev);
+-	struct ide_host *host	= pci_get_drvdata(dev);
+-	struct hpt_info *info	= host->host_priv + (hwif->dev == host->dev[1]);
++	struct hpt_info *info	= hpt3xx_get_info(hwif->dev);
+ 	int serialize		= HPT_SERIALIZE_IO;
+ 	u8  chip_type		= info->chip_type;
  
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from masouds@google.com are
 
-mm-owner-fix-race-between-swap-and-exit-fix-fix.patch
-unevictable-lru-infrastructure.patch
+ide-hpt3xx-fix-pointer-arithmetic.patch
 
