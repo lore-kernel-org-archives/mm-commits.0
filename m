@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch added to -mm tree
-Date: Mon, 08 Sep 2008 13:51:43 -0700
-Message-ID: <200809082051.m88KphYA009760@imap1.linux-foundation.org>
+Subject: + cpuset-avoid-changing-cpusets-cpus-when-errno-returned.patch added to -mm tree
+Date: Mon, 08 Sep 2008 13:53:22 -0700
+Message-ID: <200809082053.m88KrMoJ009866@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35316 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39544 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753216AbYIHUvs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 16:51:48 -0400
+	by vger.kernel.org with ESMTP id S1753685AbYIHUyG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 16:54:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rydberg@euromail.se
+Cc: lizf@cn.fujitsu.com, menage@google.com, miaox@cn.fujitsu.com, pj@sgi.com
 
 
 The patch titled
-     input: mousedev: distinguish a moving finger from a tapping finger
+     cpuset: avoid changing cpuset's cpus when -errno returned
 has been added to the -mm tree.  Its filename is
-     input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
+     cpuset-avoid-changing-cpusets-cpus-when-errno-returned.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,81 +33,140 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: mousedev: distinguish a moving finger from a tapping finger
-From: Henrik Rydberg <rydberg@euromail.se>
+Subject: cpuset: avoid changing cpuset's cpus when -errno returned
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-The tap functionality of mousedev does not distinguish between a tap
-(on/off localized in time and space) and a quick move (on/off localized in
-time only).  This patch improves the tap detection by testing also for
-space locality.
+After the patch:
 
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+commit 0b2f630a28d53b5a2082a5275bc3334b10373508
+Author: Miao Xie <miaox@cn.fujitsu.com>
+Date:   Fri Jul 25 01:47:21 2008 -0700
+
+    cpusets: restructure the function update_cpumask() and update_nodemask()
+
+It might happen that 'echo 0 > /cpuset/sub/cpus' returned failure but 'cpus'
+has been changed, because cpus was changed before calling heap_init() which
+may return -ENOMEM.
+
+This patch restores the orginal behavior.
+
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Paul Menage <menage@google.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Miao Xie <miaox@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/mousedev.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ kernel/cpuset.c |   37 +++++++++++++++----------------------
+ 1 file changed, 15 insertions(+), 22 deletions(-)
 
-diff -puN drivers/input/mousedev.c~input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger drivers/input/mousedev.c
---- a/drivers/input/mousedev.c~input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger
-+++ a/drivers/input/mousedev.c
-@@ -49,6 +49,10 @@ static unsigned tap_time = 200;
- module_param(tap_time, uint, 0644);
- MODULE_PARM_DESC(tap_time, "Tap time for touchpads in absolute mode (msecs)");
- 
-+static unsigned tap_move = 20;
-+module_param(tap_move, uint, 0644);
-+MODULE_PARM_DESC(tap_move, "Tap distance for touchpads in absolute mode (res)");
-+
- struct mousedev_hw_data {
- 	int dx, dy, dz;
- 	int x, y;
-@@ -76,6 +80,7 @@ struct mousedev {
- 	int old_x[4], old_y[4];
- 	int frac_dx, frac_dy;
- 	unsigned long touch;
-+	int touch_dx, touch_dy;
- };
- 
- enum mousedev_emul {
-@@ -143,6 +148,7 @@ static void mousedev_touchpad_event(stru
- 			tmp = ((value - fx(2)) * 256 * FRACTION_DENOM) / size;
- 			tmp += mousedev->frac_dx;
- 			mousedev->packet.dx = tmp / FRACTION_DENOM;
-+			mousedev->touch_dx += mousedev->packet.dx;
- 			mousedev->frac_dx =
- 				tmp - mousedev->packet.dx * FRACTION_DENOM;
- 		}
-@@ -158,6 +164,7 @@ static void mousedev_touchpad_event(stru
- 			tmp = -((value - fy(2)) * 256 * FRACTION_DENOM) / size;
- 			tmp += mousedev->frac_dy;
- 			mousedev->packet.dy = tmp / FRACTION_DENOM;
-+			mousedev->touch_dy += mousedev->packet.dy;
- 			mousedev->frac_dy = tmp -
- 				mousedev->packet.dy * FRACTION_DENOM;
- 		}
-@@ -320,6 +327,8 @@ static void mousedev_touchpad_touch(stru
+diff -puN kernel/cpuset.c~cpuset-avoid-changing-cpusets-cpus-when-errno-returned kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-avoid-changing-cpusets-cpus-when-errno-returned
++++ a/kernel/cpuset.c
+@@ -774,37 +774,25 @@ static void cpuset_change_cpumask(struct
+ /**
+  * update_tasks_cpumask - Update the cpumasks of tasks in the cpuset.
+  * @cs: the cpuset in which each task's cpus_allowed mask needs to be changed
++ * @heap: if NULL, defer allocating heap memory to cgroup_scan_tasks()
+  *
+  * Called with cgroup_mutex held
+  *
+  * The cgroup_scan_tasks() function will scan all the tasks in a cgroup,
+  * calling callback functions for each.
+  *
+- * Return 0 if successful, -errno if not.
++ * No return value. It's guaranteed that cgroup_scan_tasks() always returns 0
++ * if @heap != NULL.
+  */
+-static int update_tasks_cpumask(struct cpuset *cs)
++static void update_tasks_cpumask(struct cpuset *cs, struct ptr_heap *heap)
  {
- 	if (!value) {
- 		if (mousedev->touch &&
-+		    abs(mousedev->touch_dx) < tap_move &&
-+		    abs(mousedev->touch_dy) < tap_move &&
- 		    time_before(jiffies,
- 				mousedev->touch + msecs_to_jiffies(tap_time))) {
- 			/*
-@@ -336,6 +345,7 @@ static void mousedev_touchpad_touch(stru
- 			clear_bit(0, &mousedev_mix->packet.buttons);
- 		}
- 		mousedev->touch = mousedev->pkt_count = 0;
-+		mousedev->touch_dx = mousedev->touch_dy = 0;
- 		mousedev->frac_dx = 0;
- 		mousedev->frac_dy = 0;
+ 	struct cgroup_scanner scan;
+-	struct ptr_heap heap;
+-	int retval;
+-
+-	/*
+-	 * cgroup_scan_tasks() will initialize heap->gt for us.
+-	 * heap_init() is still needed here for we should not change
+-	 * cs->cpus_allowed when heap_init() fails.
+-	 */
+-	retval = heap_init(&heap, PAGE_SIZE, GFP_KERNEL, NULL);
+-	if (retval)
+-		return retval;
  
+ 	scan.cg = cs->css.cgroup;
+ 	scan.test_task = cpuset_test_cpumask;
+ 	scan.process_task = cpuset_change_cpumask;
+-	scan.heap = &heap;
+-	retval = cgroup_scan_tasks(&scan);
+-
+-	heap_free(&heap);
+-	return retval;
++	scan.heap = heap;
++	cgroup_scan_tasks(&scan);
+ }
+ 
+ /**
+@@ -814,6 +802,7 @@ static int update_tasks_cpumask(struct c
+  */
+ static int update_cpumask(struct cpuset *cs, const char *buf)
+ {
++	struct ptr_heap heap;
+ 	struct cpuset trialcs;
+ 	int retval;
+ 	int is_load_balanced;
+@@ -848,6 +837,10 @@ static int update_cpumask(struct cpuset 
+ 	if (cpus_equal(cs->cpus_allowed, trialcs.cpus_allowed))
+ 		return 0;
+ 
++	retval = heap_init(&heap, PAGE_SIZE, GFP_KERNEL, NULL);
++	if (retval)
++		return retval;
++
+ 	is_load_balanced = is_sched_load_balance(&trialcs);
+ 
+ 	mutex_lock(&callback_mutex);
+@@ -858,9 +851,9 @@ static int update_cpumask(struct cpuset 
+ 	 * Scan tasks in the cpuset, and update the cpumasks of any
+ 	 * that need an update.
+ 	 */
+-	retval = update_tasks_cpumask(cs);
+-	if (retval < 0)
+-		return retval;
++	update_tasks_cpumask(cs, &heap);
++
++	heap_free(&heap);
+ 
+ 	if (is_load_balanced)
+ 		rebuild_sched_domains();
+@@ -1896,7 +1889,7 @@ static void scan_for_empty_cpusets(const
+ 		     nodes_empty(cp->mems_allowed))
+ 			remove_tasks_in_empty_cpuset(cp);
+ 		else {
+-			update_tasks_cpumask(cp);
++			update_tasks_cpumask(cp, NULL);
+ 			update_tasks_nodemask(cp, &oldmems);
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from rydberg@euromail.se are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
-input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
-input-mousedev-emulate-right-and-middle-buttons-for-single-button-touchpads.patch
+cpuset-avoid-changing-cpusets-cpus-when-errno-returned.patch
+linux-next.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+devcgroup-use-kmemdup.patch
+devcgroup-remove-unused-variable.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-setup-the-memrlimit-controller-mm_owner-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
 
