@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + smc911x-remove-duplicate-debug-printout.patch added to -mm tree
-Date: Mon, 08 Sep 2008 16:02:58 -0700
-Message-ID: <200809082302.m88N2wp5014763@imap1.linux-foundation.org>
+Subject: + coredump_filter-add-description-of-bit-4.patch added to -mm tree
+Date: Mon, 08 Sep 2008 16:19:43 -0700
+Message-ID: <200809082319.m88NJhhg015364@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48007 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51338 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752695AbYIHXDn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 19:03:43 -0400
+	by vger.kernel.org with ESMTP id S1754088AbYIHXU4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 19:20:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: damm@igel.co.jp, jacmet@sunsite.dk
+Cc: hidehiro.kawai.ez@hitachi.com, mel@csn.ul.ie, roland@redhat.com
 
 
 The patch titled
-     smc911x: remove duplicate debug printout
+     coredump_filter: add description of bit 4
 has been added to the -mm tree.  Its filename is
-     smc911x-remove-duplicate-debug-printout.patch
+     coredump_filter-add-description-of-bit-4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,24 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smc911x: remove duplicate debug printout
-From: Magnus Damm <damm@igel.co.jp>
+Subject: coredump_filter: add description of bit 4
+From: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
 
-Remove duplicated debug printout.
+There is no description of bit 4 of coredump_filter in the
+documentation.  This patch adds it.
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
+Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc:  Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/smc911x.c |    2 --
- 1 file changed, 2 deletions(-)
+ Documentation/filesystems/proc.txt |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/net/smc911x.c~smc911x-remove-duplicate-debug-printout drivers/net/smc911x.c
---- a/drivers/net/smc911x.c~smc911x-remove-duplicate-debug-printout
-+++ a/drivers/net/smc911x.c
-@@ -1174,8 +1174,6 @@ static irqreturn_t smc911x_interrupt(int
+diff -puN Documentation/filesystems/proc.txt~coredump_filter-add-description-of-bit-4 Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~coredump_filter-add-description-of-bit-4
++++ a/Documentation/filesystems/proc.txt
+@@ -2413,6 +2413,8 @@ The following 4 memory types are support
+   - (bit 1) anonymous shared memory
+   - (bit 2) file-backed private memory
+   - (bit 3) file-backed shared memory
++  - (bit 4) ELF header pages in file-backed private memory areas (it is
++            effective only if the bit 2 is cleared)
  
- 	spin_unlock_irqrestore(&lp->lock, flags);
- 
--	DBG(3, "%s: Interrupt done (%d loops)\n", dev->name, 8-timeout);
+   Note that MMIO pages such as frame buffer are never dumped and vDSO pages
+   are always dumped regardless of the bitmask status.
+_
+
+Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
+
+coredump_filter-add-description-of-bit-4.patch
+jbd-abort-when-failed-to-log-metadata-buffers.patch
+jbd-fix-error-handling-for-checkpoint-io.patch
+ext3-add-checks-for-errors-from-jbd.patch
+jbd-dont-dirty-original-metadata-buffer-on-abort.patch
+
