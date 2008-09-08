@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hid-fix-tty-hid-deadlock.patch added to -mm tree
-Date: Mon, 08 Sep 2008 13:36:29 -0700
-Message-ID: <200809082036.m88KaTYl009080@imap1.linux-foundation.org>
+Subject: + input-mousedev-emulate-right-and-middle-buttons-for-single-button-touchpads.patch added to -mm tree
+Date: Mon, 08 Sep 2008 13:51:45 -0700
+Message-ID: <200809082051.m88KpjE7009763@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35827 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50775 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752618AbYIHUhO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 16:37:14 -0400
+	by vger.kernel.org with ESMTP id S1753418AbYIHUvt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 16:51:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com, Valdis.Kletnieks@vt.edu, alan@lxorguk.ukuu.org.uk, jkosina@suse.cz
+Cc: rydberg@euromail.se
 
 
 The patch titled
-     HID: fix tty<->hid deadlock
+     input: mousedev: emulate right and middle buttons for single-button touchpads
 has been added to the -mm tree.  Its filename is
-     hid-fix-tty-hid-deadlock.patch
+     input-mousedev-emulate-right-and-middle-buttons-for-single-button-touchpads.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: HID: fix tty<->hid deadlock
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: input: mousedev: emulate right and middle buttons for single-button touchpads
+From: Henrik Rydberg <rydberg@euromail.se>
 
-hid_compat_load() runs on the default workqueue, it request_module(), it
-execs modprobe, it exits, tty flushes default workqueue, it hangs, because
-we are still in it.
+On most linux-based systems, the right and middle buttons are used
+extensively.  On computers lacking either of those buttons, such as the
+Apple Macbooks, emulation is needed.  This patch adds emulation of the
+missing buttons via two-fingers-and-click and three-fingers- and-click
+operations, which has recently become standard, both in MacOS and in the
+Xorg synaptics driver.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Tested-by: <Valdis.Kletnieks@vt.edu>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/hid-core.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/input/mousedev.c |   31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-diff -puN drivers/hid/hid-core.c~hid-fix-tty-hid-deadlock drivers/hid/hid-core.c
---- a/drivers/hid/hid-core.c~hid-fix-tty-hid-deadlock
-+++ a/drivers/hid/hid-core.c
-@@ -1655,6 +1655,7 @@ static void hid_compat_load(struct work_
- 	request_module("hid-dummy");
+diff -puN drivers/input/mousedev.c~input-mousedev-emulate-right-and-middle-buttons-for-single-button-touchpads drivers/input/mousedev.c
+--- a/drivers/input/mousedev.c~input-mousedev-emulate-right-and-middle-buttons-for-single-button-touchpads
++++ a/drivers/input/mousedev.c
+@@ -53,6 +53,14 @@ static unsigned tap_move = 20;
+ module_param(tap_move, uint, 0644);
+ MODULE_PARM_DESC(tap_move, "Tap distance for touchpads in absolute mode (res)");
+ 
++static unsigned two_finger_code = BTN_RIGHT;
++module_param(two_finger_code, uint, 0644);
++MODULE_PARM_DESC(two_finger_code, "Button code of two-finger click");
++
++static unsigned three_finger_code = BTN_MIDDLE;
++module_param(three_finger_code, uint, 0644);
++MODULE_PARM_DESC(three_finger_code, "Button code of three-finger click");
++
+ struct mousedev_hw_data {
+ 	int dx, dy, dz;
+ 	int x, y;
+@@ -81,6 +89,7 @@ struct mousedev {
+ 	int frac_dx, frac_dy;
+ 	unsigned long touch;
+ 	int touch_dx, touch_dy;
++	int double_tap, triple_tap;
+ };
+ 
+ enum mousedev_emul {
+@@ -225,11 +234,31 @@ static void mousedev_rel_event(struct mo
+ 	}
  }
- static DECLARE_WORK(hid_compat_work, hid_compat_load);
-+static struct workqueue_struct *hid_compat_wq;
- #endif
  
- static int __init hid_init(void)
-@@ -1672,7 +1673,12 @@ static int __init hid_init(void)
- 		goto err_bus;
- 
- #ifdef CONFIG_HID_COMPAT
--	schedule_work(&hid_compat_work);
-+	hid_compat_wq = create_workqueue("hid_compat");
-+	if (!hid_compat_wq) {
-+		hidraw_exit();
-+		goto err;
-+	}
-+	queue_work(hid_compat_wq, &hid_compat_work);
- #endif
- 
- 	return 0;
-@@ -1684,6 +1690,9 @@ err:
- 
- static void __exit hid_exit(void)
++/* multi-finger emulation of non-existing buttons */
++static unsigned int get_button_code(const struct mousedev *mousedev)
++{
++	unsigned int code = BTN_LEFT;
++	if (mousedev->double_tap)
++		code = two_finger_code;
++	if (mousedev->triple_tap)
++		code = three_finger_code;
++	if (test_bit(code, mousedev->handle.dev->keybit))
++		code = BTN_LEFT;
++	return code;
++}
++
+ static void mousedev_key_event(struct mousedev *mousedev,
+ 				unsigned int code, int value)
  {
-+#ifdef CONFIG_HID_COMPAT
-+	destroy_workqueue(hid_compat_wq);
-+#endif
- 	hidraw_exit();
- 	bus_unregister(&hid_bus_type);
- }
+ 	int index;
+ 
++	if (code == BTN_TOOL_DOUBLETAP)
++		mousedev->double_tap = value;
++	if (code == BTN_TOOL_TRIPLETAP)
++		mousedev->triple_tap = value;
++	if (code == BTN_LEFT)
++		code = get_button_code(mousedev);
++
+ 	switch (code) {
+ 
+ 	case BTN_TOUCH:
+@@ -327,6 +356,8 @@ static void mousedev_touchpad_touch(stru
+ {
+ 	if (!value) {
+ 		if (mousedev->touch &&
++		    !mousedev->double_tap &&
++		    !mousedev->triple_tap &&
+ 		    abs(mousedev->touch_dx) < tap_move &&
+ 		    abs(mousedev->touch_dy) < tap_move &&
+ 		    time_before(jiffies,
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from rydberg@euromail.se are
 
-linux-next.patch
-hid-fix-tty-hid-deadlock.patch
-mm-owner-fix-race-between-swap-and-exit-fix.patch
-serial-mpc52xx_uart-remove-code-associated-with-config_ppc_merge.patch
-viafb-viafbdevc-viafbdevh.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-ip2-fix-iielliscleanup-as-it-is-static-but-not-always-used.patch
-char-merge-ip2main-and-ip2base.patch
-char-ip2-cleanup-globals.patch
-char-ip2-fix-sparse-warnings.patch
-char-ip2-init-deinit-cleanup.patch
-ip2-avoid-add_timer-with-pending-timer.patch
-char-ds1286-eliminate-busy-waiting.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-char-moxac-sparse-annotation.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+origin.patch
+input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
+input-mousedev-emulate-right-and-middle-buttons-for-single-button-touchpads.patch
 
