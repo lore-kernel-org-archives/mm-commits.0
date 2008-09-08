@@ -1,92 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - x86-delay-early-cpu-initialization-until-cpuid-is-done.patch removed from -mm tree
-Date: Mon, 08 Sep 2008 12:07:39 -0700
-Message-ID: <200809081907.m88J7dm0005570@imap1.linux-foundation.org>
+Subject: - acpi_pmc-use-proper-read-function-also-in-errata-mode.patch removed from -mm tree
+Date: Mon, 08 Sep 2008 12:07:33 -0700
+Message-ID: <200809081907.m88J7XvU005564@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49465 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40483 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753787AbYIHTIP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 15:08:15 -0400
+	by vger.kernel.org with ESMTP id S1753796AbYIHTId (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 15:08:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, mingo@elte.hu, rct@gherkin.frus.com, tglx@linutronix.de, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
+To: linux@dominikbrodowski.net, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, andi@lisas.de, hirofumi@mail.parknet.co.jp, johnstul@us.ibm.com, mingo@elte.hu, tglx@linutronix.de, mm-commi
 
 
 The patch titled
-     x86: delay early cpu initialization until cpuid is done
+     acpi_pm.c: use proper read function also in errata mode
 has been removed from the -mm tree.  Its filename was
-     x86-delay-early-cpu-initialization-until-cpuid-is-done.patch
+     acpi_pmc-use-proper-read-function-also-in-errata-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: delay early cpu initialization until cpuid is done
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: acpi_pm.c: use proper read function also in errata mode
+From: Dominik Brodowski <linux@dominikbrodowski.net>
 
-Move early cpu initialization after cpu early get cap so the early cpu
-initialization can fix up cpu caps.
+On all hardware (some Intel ICH4, PIIX4 and PIIX4E chipsets) affected by a
+hardware errata there's about a 4.2% chance that initialization of the
+ACPI PMTMR fails.  On those chipsets, we need to read out the timer value
+at least three times to get a correct result, for every once in a while
+(i.e.  within a 3 ns window every 69.8 ns) the read returns a bogus
+result.  During normal operation we work around this issue, but during
+initialization reading a bogus value may lead to -EINVAL even though the
+hardware is usable.
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Thanks to Andreas Mohr for spotting this issue.
+
+Cc: John Stultz <johnstul@us.ibm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Bob Tracy <rct@gherkin.frus.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Andreas Mohr <andi@lisas.de>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/common.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/clocksource/acpi_pm.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/common.c~x86-delay-early-cpu-initialization-until-cpuid-is-done arch/x86/kernel/cpu/common.c
---- a/arch/x86/kernel/cpu/common.c~x86-delay-early-cpu-initialization-until-cpuid-is-done
-+++ a/arch/x86/kernel/cpu/common.c
-@@ -353,11 +353,11 @@ static void __init early_cpu_detect(void
+diff -puN drivers/clocksource/acpi_pm.c~acpi_pmc-use-proper-read-function-also-in-errata-mode drivers/clocksource/acpi_pm.c
+--- a/drivers/clocksource/acpi_pm.c~acpi_pmc-use-proper-read-function-also-in-errata-mode
++++ a/drivers/clocksource/acpi_pm.c
+@@ -151,13 +151,13 @@ DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_SE
+  */
+ static int verify_pmtmr_rate(void)
+ {
+-	u32 value1, value2;
++	cycle_t value1, value2;
+ 	unsigned long count, delta;
  
- 	get_cpu_vendor(c, 1);
+ 	mach_prepare_counter();
+-	value1 = read_pmtmr();
++	value1 = clocksource_acpi_pm.read();
+ 	mach_countup(&count);
+-	value2 = read_pmtmr();
++	value2 = clocksource_acpi_pm.read();
+ 	delta = (value2 - value1) & ACPI_PM_MASK;
  
-+	early_get_cap(c);
-+
- 	if (c->x86_vendor != X86_VENDOR_UNKNOWN &&
- 	    cpu_devs[c->x86_vendor]->c_early_init)
- 		cpu_devs[c->x86_vendor]->c_early_init(c);
--
--	early_get_cap(c);
- }
+ 	/* Check that the PMTMR delta is within 5% of what we expect */
+@@ -177,7 +177,7 @@ static int verify_pmtmr_rate(void)
  
- /*
+ static int __init init_acpi_pm_clocksource(void)
+ {
+-	u32 value1, value2;
++	cycle_t value1, value2;
+ 	unsigned int i;
+ 
+ 	if (!pmtmr_ioport)
+@@ -187,9 +187,9 @@ static int __init init_acpi_pm_clocksour
+ 						clocksource_acpi_pm.shift);
+ 
+ 	/* "verify" this timing source: */
+-	value1 = read_pmtmr();
++	value1 = clocksource_acpi_pm.read();
+ 	for (i = 0; i < 10000; i++) {
+-		value2 = read_pmtmr();
++		value2 = clocksource_acpi_pm.read();
+ 		if (value2 == value1)
+ 			continue;
+ 		if (value2 > value1)
+@@ -197,11 +197,11 @@ static int __init init_acpi_pm_clocksour
+ 		if ((value2 < value1) && ((value2) < 0xFFF))
+ 			goto pm_good;
+ 		printk(KERN_INFO "PM-Timer had inconsistent results:"
+-			" 0x%#x, 0x%#x - aborting.\n", value1, value2);
++			" 0x%#llx, 0x%#llx - aborting.\n", value1, value2);
+ 		return -EINVAL;
+ 	}
+ 	printk(KERN_INFO "PM-Timer had no reasonable result:"
+-			" 0x%#x - aborting.\n", value1);
++			" 0x%#llx - aborting.\n", value1);
+ 	return -ENODEV;
+ 
+ pm_good:
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from linux@dominikbrodowski.net are
 
 origin.patch
 linux-next.patch
-fb-metronome-printk-format-warning.patch
-sched-fix-compilation-with-gcc-346.patch
-fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
-neofb-reduce-panning-function.patch
-viafb-accelc-accelh-update.patch
-viafb-viafbdevc-update.patch
-fbdev-kconfig-update.patch
-fbdev-kconfig-update-fix.patch
-neofb-kill-some-redundant-code.patch
-vga16fb-remove-open_lock-mutex.patch
-neofb-remove-open_lock-mutex.patch
-tdfxfb-do-not-make-changes-to-default-tdfx_fix.patch
-intelfb-support-945gme-as-used-in-asus-eee-901.patch
-cirrusfb-remove-information-about-memory-size-during-mode-change.patch
-cirrusfb-simplify-clock-calculation.patch
-cirrusfb-remove-24-bpp-mode.patch
-cirrusfb-drop-device-pointers-from-cirrusfb_info.patch
-cirrusfb-use-modedb-and-add-mode_option-parameter-2nd-rev.patch
-cirrusfb-add-__devinit-attribute-to-probing-functions.patch
-cirrusfb-eliminate-crt-registers-from-global-structure.patch
-cirrusfb-eliminate-crt-registers-from-global-structure-fix-up-debug-printk-types.patch
-cirrusfb-drop-clock-fields-from-cirrusfb_regs-structure.patch
-cirrusfb-add-noaccel-module-parameter.patch
-cirrusfb-fix-16bpp-modes.patch
-cirrusfb-do-not-change-mclk-for-alpine-chips.patch
-atmel_lcdfb-disallow-setting-larger-resolution-than-the-framebuffer-memory-can-handle.patch
+pcmcia-pccard-deadlock-fix.patch
+make-sure-nobodys-leaking-resources.patch
 
