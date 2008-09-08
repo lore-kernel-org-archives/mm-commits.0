@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vmap-debugging.patch added to -mm tree
-Date: Mon, 08 Sep 2008 16:37:02 -0700
-Message-ID: <200809082337.m88Nb2OI015995@imap1.linux-foundation.org>
+Subject: + bfs-lockdep-warning.patch added to -mm tree
+Date: Mon, 08 Sep 2008 16:50:19 -0700
+Message-ID: <200809082350.m88NoKC1016526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52831 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40542 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753969AbYIHXhj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 19:37:39 -0400
+	by vger.kernel.org with ESMTP id S1753250AbYIHXuo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 19:50:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nickpiggin@yahoo.com.au, krzysztof.h1@poczta.fm
+Cc: snakebyte@gmx.de, tigran@aivazian.fsnet.co.uk
 
 
 The patch titled
-     vmap debugging
+     bfs: fix Lockdep warning
 has been added to the -mm tree.  Its filename is
-     vmap-debugging.patch
+     bfs-lockdep-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,282 +33,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmap debugging
-From: Nick Piggin <nickpiggin@yahoo.com.au>
+Subject: bfs: fix Lockdep warning
 
---Boundary-00=_MJPxIn75azxtDli
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-On Saturday 06 September 2008 16:50, Andrew Morton wrote:
-> On Sat, 6 Sep 2008 08:45:58 +0200 Krzysztof Helt <krzysztof.h1@poczta.fm>
-wrote:
-> > Hi,
-> >
-> > There is a dmesg dump  below from my Compaq AP550 workstation.
-> > It has 3 WARN_ON() dumps: 1 from acpi layer and 2 from vmap_pte_range()
-> > There is no such thing in 2.6.27-rc4 which I use daily so I assume
-> > it is something in the -mm tree.
->
-> yup thanks.  The acpi guys and Rusty are still scratching each others
-> heads over the acpi procfs one.
->
-> > Intel 82802 RNG detected
-> > Linux agpgart interface v0.103
-> > agpgart-intel 0000:00:00.0: Intel i840 Chipset
-> > ------------[ cut here ]------------
-> > WARNING: at mm/vmalloc.c:105 vmap_pte_range+0xcb/0x100()
-> > Modules linked in:
-> > Pid: 1, comm: swapper Tainted: G        W 2.6.27-rc5-mm1 #1
-> >  [<c012526f>] warn_on_slowpath+0x5f/0x90
-> >  [<c0217a5e>] fbcon_clear+0x13e/0x1a0
-> >  [<c0111da1>] xapic_wait_icr_idle+0x11/0x20
-> >  [<c01460cc>] generic_exec_single+0x9c/0xa0
-> >  [<c0109776>] read_tsc+0x6/0x30
-> >  [<c013e4f8>] getnstimeofday+0x38/0x150
-> >  [<c015496c>] buffered_rmqueue+0x12c/0x210
-> >  [<c011b53c>] update_curr+0x4c/0x70
-> >  [<c016768b>] vmap_pte_range+0xcb/0x100
-> >  [<c01676ed>] vmap_pmd_range+0x2d/0x40
-> >  [<c016772d>] vmap_pud_range+0x2d/0x40
-> >  [<c01677a6>] vmap_page_range+0x66/0x90
-> >  [<c016844f>] map_vm_area+0x2f/0x50
-> >  [<c0168996>] __vmalloc_area_node+0xb6/0x110
-> >  [<c0168a95>] __vmalloc_node+0x85/0xb0
-> >  [<c02603a2>] agp_backend_initialize+0x82/0x230
-> >  [<c0168b01>] vmalloc+0x21/0x30
-> >  [<c02603a2>] agp_backend_initialize+0x82/0x230
-> >  [<c02603a2>] agp_backend_initialize+0x82/0x230
-> >  [<c027f790>] __driver_attach+0x0/0xc0
-> >  [<c02606b5>] agp_add_bridge+0x55/0x1a0
-> >  [<c020955a>] pci_call_probe+0xa/0x10
-> >  [<c02095ae>] __pci_device_probe+0x4e/0x60
-> >  [<c02095e6>] pci_device_probe+0x26/0x60
-> >  [<c027f5cb>] really_probe+0x9b/0x130
-> >  [<c02094b0>] pci_match_device+0x10/0xb0
-> >  [<c027f6af>] driver_probe_device+0x3f/0x60
-> >  [<c027f819>] __driver_attach+0x89/0xc0
-> >  [<c027e519>] bus_for_each_dev+0x39/0x60
-> >  [<c027f866>] driver_attach+0x16/0x20
-> >  [<c027f790>] __driver_attach+0x0/0xc0
-> >  [<c027ed29>] bus_add_driver+0x109/0x1a0
-> >  [<c01f85ed>] kset_find_obj+0x2d/0x60
-> >  [<c0209660>] pci_device_shutdown+0x0/0x20
-> >  [<c0209660>] pci_device_shutdown+0x0/0x20
-> >  [<c027fcff>] driver_register+0x3f/0xd0
-> >  [<c0125b17>] printk+0x17/0x20
-> >  [<c0482250>] agp_intel_init+0x0/0x20
-> >  [<c02096c7>] __pci_register_driver+0x47/0x80
-> >  [<c0482250>] agp_intel_init+0x0/0x20
-> >  [<c0101032>] _stext+0x32/0x180
-> >  [<c0111da1>] xapic_wait_icr_idle+0x11/0x20
-> >  [<c011aeb4>] resched_task+0x54/0x60
-> >  [<c011e76e>] try_to_wake_up+0x12e/0x140
-> >  [<c0135211>] __create_workqueue_key+0x131/0x150
-> >  [<c046a8d3>] do_initcalls+0x53/0xd0
-> >  [<c046a9a0>] kernel_init+0x0/0xb0
-> >  [<c046a9f5>] kernel_init+0x55/0xb0
-> >  [<c0103f3b>] kernel_thread_helper+0x7/0x1c
-> >  =======================
-> > ---[ end trace 4eaa2a86a8e2da22 ]---
-> > agpgart-intel 0000:00:00.0: can't allocate memory for key lists
-> > agpgart-intel 0000:00:00.0: agp_backend_initialize() failed
-> > agpgart-intel: probe of 0000:00:00.0 failed with error -12
->
-> This one I reported to Nick and Dave yesterday - no response as yet.
->
-> > ------------[ cut here ]------------
-> > WARNING: at mm/vmalloc.c:105 vmap_pte_range+0xcb/0x100()
-> > Modules linked in:
-> > Pid: 776, comm: modprobe Tainted: G        W 2.6.27-rc5-mm1 #1
-> >  [<c012526f>] warn_on_slowpath+0x5f/0x90
-> >  [<c01617e9>] handle_mm_fault+0x1d9/0x210
-> >  [<c01bd0a0>] ext3_get_block+0x0/0x100
-> >  [<c011759b>] do_page_fault+0x12b/0x4f0
-> >  [<c0105dde>] do_IRQ+0x7e/0xd0
-> >  [<c0154ce4>] __alloc_pages_internal+0x94/0x410
-> >  [<c0117470>] do_page_fault+0x0/0x4f0
-> >  [<c038506a>] error_code+0x72/0x78
-> >  [<c015496c>] buffered_rmqueue+0x12c/0x210
-> >  [<c014fbab>] find_get_page+0x2b/0xa0
-> >  [<c016768b>] vmap_pte_range+0xcb/0x100
-> >  [<c01676ed>] vmap_pmd_range+0x2d/0x40
-> >  [<c016772d>] vmap_pud_range+0x2d/0x40
-> >  [<c01677a6>] vmap_page_range+0x66/0x90
-> >  [<c016844f>] map_vm_area+0x2f/0x50
-> >  [<c0168996>] __vmalloc_area_node+0xb6/0x110
-> >  [<c0168a95>] __vmalloc_node+0x85/0xb0
-> >  [<c0148eb9>] load_module+0x89/0xd90
-> >  [<c0168b01>] vmalloc+0x21/0x30
-> >  [<c0148eb9>] load_module+0x89/0xd90
-> >  [<c0148eb9>] load_module+0x89/0xd90
-> >  [<c01380e0>] autoremove_wake_function+0x0/0x50
-> >  [<c0177db0>] vfs_read+0x90/0x150
-> >  [<c0149c44>] sys_init_module+0x44/0x1a0
-> >  [<c0178111>] sys_read+0x41/0x70
-> >  [<c01031fa>] syscall_call+0x7/0xb
-> >  =======================
-> > ---[ end trace 4eaa2a86a8e2da22 ]---
-> > Intel ICH 0000:00:1f.5: PCI INT B -> GSI 17 (level, low) -> IRQ 17
-> > Intel ICH 0000:00:1f.5: setting latency timer to 64
->
-> That's coming out of the module loader and is a new one.  It's the same
->
-> warning as the agp one:
-> : static int vmap_pte_range(pmd_t *pmd, unsigned long addr,
-> : 		unsigned long end, pgprot_t prot, struct page **pages, int *nr)
-> : {
-> : 	pte_t *pte;
-> :
-> : 	/*
-> : 	 * nr is a running index into the array which helps higher level
-> : 	 * callers keep track of where we're up to.
-> : 	 */
-> :
-> : 	pte = pte_alloc_kernel(pmd, addr);
-> : 	if (!pte)
-> : 		return -ENOMEM;
-> : 	do {
-> : 		struct page *page = pages[*nr];
-> :
-> : -->>		if (WARN_ON(!pte_none(*pte)))
-> : 			return -EBUSY;
-> : 		if (WARN_ON(!page))
-> : 			return -ENOMEM;
-> : 		set_pte_at(&init_mm, addr, pte, mk_pte(page, prot));
-> : 		(*nr)++;
-> : 	} while (pte++, addr += PAGE_SIZE, addr != end);
-> : 	return 0;
-> : }
->
-> I'm suspecting an overactive assertion in the new vmap code?
+[ 2585.162442] =============================================
+[ 2585.162639] [ INFO: possible recursive locking detected ]
+[ 2585.162736] 2.6.27-rc5-00283-g70bb089 #68
+[ 2585.162822] ---------------------------------------------
+[ 2585.162992] touch/6855 is trying to acquire lock:
+[ 2585.163014]  (&info->bfs_lock){--..}, at: [<c02262f5>]
+bfs_delete_inode+0x9e/0x18c
+[ 2585.163014]
+[ 2585.163014] but task is already holding lock:
+[ 2585.163014]  (&info->bfs_lock){--..}, at: [<c0226c00>]
+bfs_create+0x45/0x187
+[ 2585.163014]
+[ 2585.163014] other info that might help us debug this:
+[ 2585.163014] 2 locks held by touch/6855:
+[ 2585.163014]  #0:  (&type->i_mutex_dir_key#5){--..}, at: [<c018ad13>]
+do_filp_open+0x10b/0x62f
+[ 2585.163014]  #1:  (&info->bfs_lock){--..}, at: [<c0226c00>]
+bfs_create+0x45/0x187
+[ 2585.163014]
+[ 2585.163014] stack backtrace:
+[ 2585.163014] Pid: 6855, comm: touch Not tainted
+2.6.27-rc5-00283-g70bb089 #68
+[ 2585.163014]  [<c013e769>] validate_chain+0x458/0x9f4
+[ 2585.163014]  [<c013bece>] ? trace_hardirqs_off+0xb/0xd
+[ 2585.163014]  [<c013f36b>] __lock_acquire+0x666/0x6e0
+[ 2585.163014]  [<c013f440>] lock_acquire+0x5b/0x77
+[ 2585.163014]  [<c02262f5>] ? bfs_delete_inode+0x9e/0x18c
+[ 2585.163014]  [<c06aab74>] mutex_lock_nested+0xbc/0x234
+[ 2585.163014]  [<c02262f5>] ? bfs_delete_inode+0x9e/0x18c
+[ 2585.163014]  [<c02262f5>] ? bfs_delete_inode+0x9e/0x18c
+[ 2585.163014]  [<c02262f5>] bfs_delete_inode+0x9e/0x18c
+[ 2585.163014]  [<c0226257>] ? bfs_delete_inode+0x0/0x18c
+[ 2585.163014]  [<c01925e1>] generic_delete_inode+0x94/0xfe
+[ 2585.163014]  [<c019265d>] generic_drop_inode+0x12/0x12f
+[ 2585.163014]  [<c0191b7e>] iput+0x4b/0x4e
+[ 2585.163014]  [<c0226d1e>] bfs_create+0x163/0x187
+[ 2585.163014]  [<c0188b42>] vfs_create+0xa6/0x114
+[ 2585.163014]  [<c018adb5>] do_filp_open+0x1ad/0x62f
+[ 2585.163014]  [<c0107cdc>] ? native_sched_clock+0x82/0x96
+[ 2585.163014]  [<c06ac309>] ? _spin_unlock+0x27/0x3c
+[ 2585.163014]  [<c019379e>] ? alloc_fd+0xbf/0xc9
+[ 2585.163014]  [<c06ae2f4>] ? sub_preempt_count+0x9d/0xab
+[ 2585.163014]  [<c019379e>] ? alloc_fd+0xbf/0xc9
+[ 2585.163014]  [<c0180391>] do_sys_open+0x42/0xb8
+[ 2585.163014]  [<c041d564>] ? trace_hardirqs_on_thunk+0xc/0x10
+[ 2585.163014]  [<c0180449>] sys_open+0x1e/0x26
+[ 2585.163014]  [<c01038bd>] sysenter_do_call+0x12/0x31
+[ 2585.163014]  =======================
 
-OK, would it be possible to test the following patch on the failing
-machine(s), and send me the complete dmesg trace afterwards, please?
+The problem is that we don't unlock the bfs->lock mutex before calling
+iput (we do in the other cases).
 
-The patch does a little bit of extra page table checking, and also
-prints a trace of operations on the vmap-space.
-
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Signed-off-by: Eric Sesterhenn <snakebyte@gmx.de>
+Cc: Tigran Aivazian <tigran@aivazian.fsnet.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   66 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 66 insertions(+)
+ fs/bfs/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~vmap-debugging mm/vmalloc.c
---- a/mm/vmalloc.c~vmap-debugging
-+++ a/mm/vmalloc.c
-@@ -31,6 +31,61 @@
- 
- /*** Page table manipulation functions ***/
- 
-+static void check_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end)
-+{
-+	pte_t *pte;
-+
-+	pte = pte_offset_kernel(pmd, addr);
-+	do {
-+		WARN_ON_ONCE(!pte_none(*pte));
-+	} while (pte++, addr += PAGE_SIZE, addr != end);
-+}
-+
-+static void check_pmd_range(pud_t *pud, unsigned long addr, unsigned long end)
-+{
-+	pmd_t *pmd;
-+	unsigned long next;
-+
-+	pmd = pmd_offset(pud, addr);
-+	do {
-+		next = pmd_addr_end(addr, end);
-+		if (pmd_none_or_clear_bad(pmd))
-+			continue;
-+		check_pte_range(pmd, addr, next);
-+	} while (pmd++, addr = next, addr != end);
-+}
-+
-+static void check_pud_range(pgd_t *pgd, unsigned long addr, unsigned long end)
-+{
-+	pud_t *pud;
-+	unsigned long next;
-+
-+	pud = pud_offset(pgd, addr);
-+	do {
-+		next = pud_addr_end(addr, end);
-+		if (pud_none_or_clear_bad(pud))
-+			continue;
-+		check_pmd_range(pud, addr, next);
-+	} while (pud++, addr = next, addr != end);
-+}
-+
-+static void check_page_range(unsigned long addr, unsigned long end)
-+{
-+	pgd_t *pgd;
-+	unsigned long next;
-+
-+	BUG_ON(addr >= end);
-+	pgd = pgd_offset_k(addr);
-+	flush_cache_vunmap(addr, end);
-+	do {
-+		next = pgd_addr_end(addr, end);
-+		if (pgd_none_or_clear_bad(pgd))
-+			continue;
-+		check_pud_range(pgd, addr, next);
-+	} while (pgd++, addr = next, addr != end);
-+}
-+
-+
- static void vunmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end)
- {
- 	pte_t *pte;
-@@ -75,6 +130,8 @@ static void vunmap_page_range(unsigned l
- 	pgd_t *pgd;
- 	unsigned long next;
- 
-+	printk("vunmap_page_range (%lx-%lx size=%lx)\n", addr, end, end-addr);
-+
- 	BUG_ON(addr >= end);
- 	pgd = pgd_offset_k(addr);
- 	flush_cache_vunmap(addr, end);
-@@ -160,6 +217,8 @@ static int vmap_page_range(unsigned long
- 	int err = 0;
- 	int nr = 0;
- 
-+	printk("vmap_page_range (%lx-%lx size=%lx)\n", addr, end, end-addr);
-+
- 	BUG_ON(addr >= end);
- 	pgd = pgd_offset_k(addr);
- 	do {
-@@ -371,6 +430,10 @@ found:
- 	va->va_end = addr + size;
- 	va->flags = 0;
- 	__insert_vmap_area(va);
-+
-+	printk("alloc_vmap_area within(%lx-%lx) size=%lx returns=(%lx-%lx)\n", vstart, vend, size, addr, addr+size);
-+	check_page_range(va->va_start, va->va_end);
-+
- 	spin_unlock(&vmap_area_lock);
- 
- 	return va;
-@@ -385,6 +448,9 @@ static void rcu_free_va(struct rcu_head 
- 
- static void __free_vmap_area(struct vmap_area *va)
- {
-+	printk("free_vmap_area (%lx-%lx size=%lx)\n", va->va_start, va->va_end, va->va_end - va->va_start);
-+	check_page_range(va->va_start, va->va_end);
-+
- 	BUG_ON(RB_EMPTY_NODE(&va->rb_node));
- 	rb_erase(&va->rb_node, &vmap_area_root);
- 	RB_CLEAR_NODE(&va->rb_node);
+diff -puN fs/bfs/dir.c~bfs-lockdep-warning fs/bfs/dir.c
+--- a/fs/bfs/dir.c~bfs-lockdep-warning
++++ a/fs/bfs/dir.c
+@@ -125,8 +125,8 @@ static int bfs_create(struct inode *dir,
+ 							inode->i_ino);
+ 	if (err) {
+ 		inode_dec_link_count(inode);
+-		iput(inode);
+ 		mutex_unlock(&info->bfs_lock);
++		iput(inode);
+ 		return err;
+ 	}
+ 	mutex_unlock(&info->bfs_lock);
 _
 
-Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
+Patches currently in -mm which might be from snakebyte@gmx.de are
 
-ramfs-and-ram-disk-pages-are-unevictable.patch
-vmap-debugging.patch
-powerpc-hugetlb-pgtable-cache-access-cleanup.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
+bfs-lockdep-warning.patch
+linux-next.patch
+hfsplus-fix-buffer-overflow-with-a-corrupted-image.patch
+hfsplus-check-read_mapping_page-return-value.patch
+hfsplus-fix-another-bug-when-reading-a-corrupted-image.patch
+hfsplus-check-hfs_bnode_find-return-value.patch
 
