@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + v4l_compat_ioctl32-cleanup-in-compat=n-case.patch added to -mm tree
-Date: Mon, 08 Sep 2008 14:08:16 -0700
-Message-ID: <200809082108.m88L8GkL010476@imap1.linux-foundation.org>
+Subject: + cgroups-convert-tasks-file-to-use-a-seq_file-with-shared-pid-array.patch added to -mm tree
+Date: Mon, 08 Sep 2008 14:16:41 -0700
+Message-ID: <200809082116.m88LGfDX010738@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34517 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36832 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753972AbYIHVIW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 17:08:22 -0400
+	by vger.kernel.org with ESMTP id S1754038AbYIHVRb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 17:17:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, mchehab@infradead.org
+Cc: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, laijs@cn.fujitsu.com, serue@us.ibm.com
 
 
 The patch titled
-     v4l_compat_ioctl32() cleanup in COMPAT=n case
+     cgroups: convert tasks file to use a seq_file with shared pid array
 has been added to the -mm tree.  Its filename is
-     v4l_compat_ioctl32-cleanup-in-compat=n-case.patch
+     cgroups-convert-tasks-file-to-use-a-seq_file-with-shared-pid-array.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,349 +33,380 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: v4l_compat_ioctl32() cleanup in COMPAT=n case
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: cgroups: convert tasks file to use a seq_file with shared pid array
+From: Paul Menage <menage@google.com>
 
-v4l_compat_ioctl32() exists even in COMPAT=n case which is unnecessary.
-Instead, totally compile it out, Introduce COMPAT_VIDEO_DEV for that.
+Rather than pre-generating the entire text for the "tasks" file each
+time the file is opened, we instead just generate/update the array of
+process ids and use a seq_file to report these to userspace.  All open
+file handles on the same "tasks" file can share a pid array, which may
+be updated any time that no thread is actively reading the array.  By
+sharing the array, the potential for userspace to DoS the system by
+opening many handles on the same "tasks" file is removed.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+[Based on a patch by Lai Jiangshan, extended to use seq_file]
+
+Signed-off-by: Paul Menage <menage@google.com>
+Reviewed-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/Kconfig                           |    5 +++++
- drivers/media/video/Makefile                    |    3 ++-
- drivers/media/video/bt8xx/bttv-driver.c         |    4 ++++
- drivers/media/video/compat_ioctl32.c            |    9 ---------
- drivers/media/video/cx18/cx18-streams.c         |    2 ++
- drivers/media/video/cx23885/cx23885-video.c     |    4 ++++
- drivers/media/video/cx88/cx88-video.c           |    4 ++++
- drivers/media/video/em28xx/em28xx-video.c       |    4 ++++
- drivers/media/video/ivtv/ivtv-streams.c         |    4 ++++
- drivers/media/video/s2255drv.c                  |    2 ++
- drivers/media/video/saa7134/saa7134-video.c     |    4 ++++
- drivers/media/video/usbvision/usbvision-video.c |    6 ++++++
- drivers/media/video/uvc/uvc_v4l2.c              |    2 ++
- drivers/media/video/vivi.c                      |    2 ++
- include/media/v4l2-ioctl.h                      |    4 ++--
- 15 files changed, 47 insertions(+), 12 deletions(-)
+ include/linux/cgroup.h |   10 +
+ kernel/cgroup.c        |  226 ++++++++++++++++++++++++---------------
+ 2 files changed, 151 insertions(+), 85 deletions(-)
 
-diff -puN drivers/media/Kconfig~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/Kconfig
---- a/drivers/media/Kconfig~v4l_compat_ioctl32-cleanup-in-compat=n-case
-+++ a/drivers/media/Kconfig
-@@ -29,6 +29,11 @@ config VIDEO_DEV
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called videodev.
+diff -puN include/linux/cgroup.h~cgroups-convert-tasks-file-to-use-a-seq_file-with-shared-pid-array include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroups-convert-tasks-file-to-use-a-seq_file-with-shared-pid-array
++++ a/include/linux/cgroup.h
+@@ -15,6 +15,7 @@
+ #include <linux/rcupdate.h>
+ #include <linux/cgroupstats.h>
+ #include <linux/prio_heap.h>
++#include <linux/rwsem.h>
  
-+config COMPAT_VIDEO_DEV
-+	bool
-+	default y
-+	depends on COMPAT && VIDEO_DEV
+ #ifdef CONFIG_CGROUPS
+ 
+@@ -137,6 +138,15 @@ struct cgroup {
+ 	 * release_list_lock
+ 	 */
+ 	struct list_head release_list;
 +
- config VIDEO_V4L2_COMMON
- 	tristate
- 	depends on (I2C || I2C=n) && VIDEO_DEV
-diff -puN drivers/media/video/Makefile~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/Makefile
---- a/drivers/media/video/Makefile~v4l_compat_ioctl32-cleanup-in-compat=n-case
-+++ a/drivers/media/video/Makefile
-@@ -12,7 +12,8 @@ stkwebcam-objs	:=	stk-webcam.o stk-senso
++	/* pids_mutex protects the fields below */
++	struct rw_semaphore pids_mutex;
++	/* Array of process ids in the cgroup */
++	pid_t *tasks_pids;
++	/* How many files are using the current tasks_pids array */
++	int pids_use_count;
++	/* Length of the current tasks_pids array */
++	int pids_length;
+ };
  
- videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o
+ /* A css_set is a structure holding pointers to a set of
+diff -puN kernel/cgroup.c~cgroups-convert-tasks-file-to-use-a-seq_file-with-shared-pid-array kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-convert-tasks-file-to-use-a-seq_file-with-shared-pid-array
++++ a/kernel/cgroup.c
+@@ -888,6 +888,14 @@ static struct super_operations cgroup_op
+ 	.remount_fs = cgroup_remount,
+ };
  
--obj-$(CONFIG_VIDEO_DEV) += videodev.o compat_ioctl32.o v4l2-int-device.o
-+obj-$(CONFIG_VIDEO_DEV) += videodev.o v4l2-int-device.o
-+obj-$(CONFIG_COMPAT_VIDEO_DEV) += compat_ioctl32.o
- 
- obj-$(CONFIG_VIDEO_V4L2_COMMON) += v4l2-common.o
- 
-diff -puN drivers/media/video/bt8xx/bttv-driver.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/bt8xx/bttv-driver.c
---- a/drivers/media/video/bt8xx/bttv-driver.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
-+++ a/drivers/media/video/bt8xx/bttv-driver.c
-@@ -3361,7 +3361,9 @@ static const struct file_operations bttv
- 	.open	  = bttv_open,
- 	.release  = bttv_release,
- 	.ioctl	  = video_ioctl2,
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl	= v4l_compat_ioctl32,
-+#endif
- 	.llseek	  = no_llseek,
- 	.read	  = bttv_read,
- 	.mmap	  = bttv_mmap,
-@@ -3649,7 +3651,9 @@ static const struct file_operations radi
- 	.open	  = radio_open,
- 	.read     = radio_read,
- 	.release  = radio_release,
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl	= v4l_compat_ioctl32,
-+#endif
- 	.ioctl	  = video_ioctl2,
- 	.llseek	  = no_llseek,
- 	.poll     = radio_poll,
-diff -puN drivers/media/video/compat_ioctl32.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/compat_ioctl32.c
---- a/drivers/media/video/compat_ioctl32.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
-+++ a/drivers/media/video/compat_ioctl32.c
-@@ -19,8 +19,6 @@
- #include <linux/smp_lock.h>
- #include <media/v4l2-ioctl.h>
- 
--#ifdef CONFIG_COMPAT
--
- #ifdef CONFIG_VIDEO_V4L1_COMPAT
- struct video_tuner32 {
- 	compat_int_t tuner;
-@@ -921,12 +919,5 @@ long v4l_compat_ioctl32(struct file *fil
- 	}
- 	return ret;
++static void init_cgroup_housekeeping(struct cgroup *cgrp)
++{
++	INIT_LIST_HEAD(&cgrp->sibling);
++	INIT_LIST_HEAD(&cgrp->children);
++	INIT_LIST_HEAD(&cgrp->css_sets);
++	INIT_LIST_HEAD(&cgrp->release_list);
++	init_rwsem(&cgrp->pids_mutex);
++}
+ static void init_cgroup_root(struct cgroupfs_root *root)
+ {
+ 	struct cgroup *cgrp = &root->top_cgroup;
+@@ -896,10 +904,7 @@ static void init_cgroup_root(struct cgro
+ 	root->number_of_cgroups = 1;
+ 	cgrp->root = root;
+ 	cgrp->top_cgroup = cgrp;
+-	INIT_LIST_HEAD(&cgrp->sibling);
+-	INIT_LIST_HEAD(&cgrp->children);
+-	INIT_LIST_HEAD(&cgrp->css_sets);
+-	INIT_LIST_HEAD(&cgrp->release_list);
++	init_cgroup_housekeeping(cgrp);
  }
--#else
--long v4l_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
--{
--	return -ENOIOCTLCMD;
+ 
+ static int cgroup_test_super(struct super_block *sb, void *data)
+@@ -2018,16 +2023,7 @@ int cgroup_scan_tasks(struct cgroup_scan
+  * but we cannot guarantee that the information we produce is correct
+  * unless we produce it entirely atomically.
+  *
+- * Upon tasks file open(), a struct ctr_struct is allocated, that
+- * will have a pointer to an array (also allocated here).  The struct
+- * ctr_struct * is stored in file->private_data.  Its resources will
+- * be freed by release() when the file is closed.  The array is used
+- * to sprintf the PIDs and then used by read().
+  */
+-struct ctr_struct {
+-	char *buf;
+-	int bufsz;
+-};
+ 
+ /*
+  * Load into 'pidarray' up to 'npids' of the tasks using cgroup
+@@ -2109,42 +2105,132 @@ static int cmppid(const void *a, const v
+ 	return *(pid_t *)a - *(pid_t *)b;
+ }
+ 
++
+ /*
+- * Convert array 'a' of 'npids' pid_t's to a string of newline separated
+- * decimal pids in 'buf'.  Don't write more than 'sz' chars, but return
+- * count 'cnt' of how many chars would be written if buf were large enough.
++ * seq_file methods for the "tasks" file. The seq_file position is the
++ * next pid to display; the seq_file iterator is a pointer to the pid
++ * in the cgroup->tasks_pids array.
+  */
+-static int pid_array_to_buf(char *buf, int sz, pid_t *a, int npids)
++
++static void *cgroup_tasks_start(struct seq_file *s, loff_t *pos)
+ {
+-	int cnt = 0;
+-	int i;
++	/*
++	 * Initially we receive a position value that corresponds to
++	 * one more than the last pid shown (or 0 on the first call or
++	 * after a seek to the start). Use a binary-search to find the
++	 * next pid to display, if any
++	 */
++	struct cgroup *cgrp = s->private;
++	int index = 0, pid = *pos;
++	int *iter;
++
++	down_read(&cgrp->pids_mutex);
++	if (pid) {
++		int end = cgrp->pids_length;
++		int i;
++		while (index < end) {
++			int mid = (index + end) / 2;
++			if (cgrp->tasks_pids[mid] == pid) {
++				index = mid;
++				break;
++			} else if (cgrp->tasks_pids[mid] <= pid)
++				index = mid + 1;
++			else
++				end = mid;
++		}
++	}
++	/* If we're off the end of the array, we're done */
++	if (index >= cgrp->pids_length)
++		return NULL;
++	/* Update the abstract position to be the actual pid that we found */
++	iter = cgrp->tasks_pids + index;
++	*pos = *iter;
++	return iter;
++}
++
++static void cgroup_tasks_stop(struct seq_file *s, void *v)
++{
++	struct cgroup *cgrp = s->private;
++	up_read(&cgrp->pids_mutex);
++}
++
++static void *cgroup_tasks_next(struct seq_file *s, void *v, loff_t *pos)
++{
++	struct cgroup *cgrp = s->private;
++	int *p = v;
++	int *end = cgrp->tasks_pids + cgrp->pids_length;
++
++	/*
++	 * Advance to the next pid in the array. If this goes off the
++	 * end, we're done
++	 */
++	p++;
++	if (p >= end) {
++		return NULL;
++	} else {
++		*pos = *p;
++		return p;
++	}
++}
++
++static int cgroup_tasks_show(struct seq_file *s, void *v)
++{
++	return seq_printf(s, "%d\n", *(int *)v);
++}
+ 
+-	for (i = 0; i < npids; i++)
+-		cnt += snprintf(buf + cnt, max(sz - cnt, 0), "%d\n", a[i]);
+-	return cnt;
++static struct seq_operations cgroup_tasks_seq_operations = {
++	.start = cgroup_tasks_start,
++	.stop = cgroup_tasks_stop,
++	.next = cgroup_tasks_next,
++	.show = cgroup_tasks_show,
++};
++
++static void release_cgroup_pid_array(struct cgroup *cgrp)
++{
++	down_write(&cgrp->pids_mutex);
++	BUG_ON(!cgrp->pids_use_count);
++	if (!--cgrp->pids_use_count) {
++		kfree(cgrp->tasks_pids);
++		cgrp->tasks_pids = NULL;
++		cgrp->pids_length = 0;
++	}
++	up_write(&cgrp->pids_mutex);
++}
++
++static int cgroup_tasks_release(struct inode *inode, struct file *file)
++{
++	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
++
++	if (!(file->f_mode & FMODE_READ))
++		return 0;
++
++	release_cgroup_pid_array(cgrp);
++	return seq_release(inode, file);
+ }
+ 
++static struct file_operations cgroup_tasks_operations = {
++	.read = seq_read,
++	.llseek = seq_lseek,
++	.write = cgroup_file_write,
++	.release = cgroup_tasks_release,
++};
++
+ /*
+- * Handle an open on 'tasks' file.  Prepare a buffer listing the
++ * Handle an open on 'tasks' file.  Prepare an array containing the
+  * process id's of tasks currently attached to the cgroup being opened.
+- *
+- * Does not require any specific cgroup mutexes, and does not take any.
+  */
++
+ static int cgroup_tasks_open(struct inode *unused, struct file *file)
+ {
+ 	struct cgroup *cgrp = __d_cgrp(file->f_dentry->d_parent);
+-	struct ctr_struct *ctr;
+ 	pid_t *pidarray;
+ 	int npids;
+-	char c;
++	int retval;
+ 
++	/* Nothing to do for write-only files */
+ 	if (!(file->f_mode & FMODE_READ))
+ 		return 0;
+ 
+-	ctr = kmalloc(sizeof(*ctr), GFP_KERNEL);
+-	if (!ctr)
+-		goto err0;
+-
+ 	/*
+ 	 * If cgroup gets more users after we read count, we won't have
+ 	 * enough space - tough.  This race is indistinguishable to the
+@@ -2152,57 +2238,31 @@ static int cgroup_tasks_open(struct inod
+ 	 * show up until sometime later on.
+ 	 */
+ 	npids = cgroup_task_count(cgrp);
+-	if (npids) {
+-		pidarray = kmalloc(npids * sizeof(pid_t), GFP_KERNEL);
+-		if (!pidarray)
+-			goto err1;
+-
+-		npids = pid_array_load(pidarray, npids, cgrp);
+-		sort(pidarray, npids, sizeof(pid_t), cmppid, NULL);
+-
+-		/* Call pid_array_to_buf() twice, first just to get bufsz */
+-		ctr->bufsz = pid_array_to_buf(&c, sizeof(c), pidarray, npids) + 1;
+-		ctr->buf = kmalloc(ctr->bufsz, GFP_KERNEL);
+-		if (!ctr->buf)
+-			goto err2;
+-		ctr->bufsz = pid_array_to_buf(ctr->buf, ctr->bufsz, pidarray, npids);
+-
+-		kfree(pidarray);
+-	} else {
+-		ctr->buf = NULL;
+-		ctr->bufsz = 0;
+-	}
+-	file->private_data = ctr;
+-	return 0;
+-
+-err2:
+-	kfree(pidarray);
+-err1:
+-	kfree(ctr);
+-err0:
+-	return -ENOMEM;
 -}
--#endif
--EXPORT_SYMBOL_GPL(v4l_compat_ioctl32);
- 
- MODULE_LICENSE("GPL");
-diff -puN drivers/media/video/cx18/cx18-streams.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/cx18/cx18-streams.c
---- a/drivers/media/video/cx18/cx18-streams.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
-+++ a/drivers/media/video/cx18/cx18-streams.c
-@@ -41,7 +41,9 @@ static struct file_operations cx18_v4l2_
- 	.open = cx18_v4l2_open,
- 	/* FIXME change to video_ioctl2 if serialization lock can be removed */
- 	.ioctl = cx18_v4l2_ioctl,
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl = v4l_compat_ioctl32,
-+#endif
- 	.release = cx18_v4l2_close,
- 	.poll = cx18_v4l2_enc_poll,
- };
-diff -puN drivers/media/video/cx23885/cx23885-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/cx23885/cx23885-video.c
---- a/drivers/media/video/cx23885/cx23885-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
-+++ a/drivers/media/video/cx23885/cx23885-video.c
-@@ -1436,7 +1436,9 @@ static const struct file_operations vide
- 	.poll          = video_poll,
- 	.mmap	       = video_mmap,
- 	.ioctl	       = video_ioctl2,
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl  = v4l_compat_ioctl32,
-+#endif
- 	.llseek        = no_llseek,
- };
- 
-@@ -1490,7 +1492,9 @@ static const struct file_operations radi
- 	.open          = video_open,
- 	.release       = video_release,
- 	.ioctl         = video_ioctl2,
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl  = v4l_compat_ioctl32,
-+#endif
- 	.llseek        = no_llseek,
- };
- 
-diff -puN drivers/media/video/cx88/cx88-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/cx88/cx88-video.c
---- a/drivers/media/video/cx88/cx88-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
-+++ a/drivers/media/video/cx88/cx88-video.c
-@@ -1685,7 +1685,9 @@ static const struct file_operations vide
- 	.poll          = video_poll,
- 	.mmap	       = video_mmap,
- 	.ioctl	       = video_ioctl2,
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl  = v4l_compat_ioctl32,
-+#endif
- 	.llseek        = no_llseek,
- };
- 
-@@ -1741,7 +1743,9 @@ static const struct file_operations radi
- 	.open          = video_open,
- 	.release       = video_release,
- 	.ioctl         = video_ioctl2,
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl  = v4l_compat_ioctl32,
-+#endif
- 	.llseek        = no_llseek,
- };
- 
-diff -puN drivers/media/video/em28xx/em28xx-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/em28xx/em28xx-video.c
---- a/drivers/media/video/em28xx/em28xx-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
-+++ a/drivers/media/video/em28xx/em28xx-video.c
-@@ -1766,7 +1766,9 @@ static const struct file_operations em28
- 	.mmap          = em28xx_v4l2_mmap,
- 	.ioctl	       = video_ioctl2,
- 	.llseek        = no_llseek,
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl  = v4l_compat_ioctl32,
-+#endif
- };
- 
- static const struct v4l2_ioctl_ops video_ioctl_ops = {
-@@ -1825,7 +1827,9 @@ static const struct file_operations radi
- 	.open          = em28xx_v4l2_open,
- 	.release       = em28xx_v4l2_close,
- 	.ioctl	       = video_ioctl2,
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl  = v4l_compat_ioctl32,
-+#endif
- 	.llseek        = no_llseek,
- };
- 
-diff -puN drivers/media/video/ivtv/ivtv-streams.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/ivtv/ivtv-streams.c
---- a/drivers/media/video/ivtv/ivtv-streams.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
-+++ a/drivers/media/video/ivtv/ivtv-streams.c
-@@ -49,7 +49,9 @@ static const struct file_operations ivtv
- 	.write = ivtv_v4l2_write,
- 	.open = ivtv_v4l2_open,
- 	.ioctl = ivtv_v4l2_ioctl,
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl = v4l_compat_ioctl32,
-+#endif
- 	.release = ivtv_v4l2_close,
- 	.poll = ivtv_v4l2_enc_poll,
- };
-@@ -60,7 +62,9 @@ static const struct file_operations ivtv
- 	.write = ivtv_v4l2_write,
- 	.open = ivtv_v4l2_open,
- 	.ioctl = ivtv_v4l2_ioctl,
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl = v4l_compat_ioctl32,
-+#endif
- 	.release = ivtv_v4l2_close,
- 	.poll = ivtv_v4l2_dec_poll,
- };
-diff -puN drivers/media/video/s2255drv.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/s2255drv.c
---- a/drivers/media/video/s2255drv.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
-+++ a/drivers/media/video/s2255drv.c
-@@ -1764,7 +1764,9 @@ static const struct file_operations s225
- 	.release = s2255_close,
- 	.poll = s2255_poll,
- 	.ioctl = video_ioctl2,	/* V4L2 ioctl handler */
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl = v4l_compat_ioctl32,
-+#endif
- 	.mmap = s2255_mmap_v4l,
- 	.llseek = no_llseek,
- };
-diff -puN drivers/media/video/saa7134/saa7134-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/saa7134/saa7134-video.c
---- a/drivers/media/video/saa7134/saa7134-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
-+++ a/drivers/media/video/saa7134/saa7134-video.c
-@@ -2371,7 +2371,9 @@ static const struct file_operations vide
- 	.poll     = video_poll,
- 	.mmap	  = video_mmap,
- 	.ioctl	  = video_ioctl2,
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl	= v4l_compat_ioctl32,
-+#endif
- 	.llseek   = no_llseek,
- };
- 
-@@ -2431,7 +2433,9 @@ static const struct file_operations radi
- 	.open	  = video_open,
- 	.release  = video_release,
- 	.ioctl	  = video_ioctl2,
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl	= v4l_compat_ioctl32,
-+#endif
- 	.llseek   = no_llseek,
- };
- 
-diff -puN drivers/media/video/usbvision/usbvision-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/usbvision/usbvision-video.c
---- a/drivers/media/video/usbvision/usbvision-video.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
-+++ a/drivers/media/video/usbvision/usbvision-video.c
-@@ -1306,7 +1306,9 @@ static const struct file_operations usbv
- 	.ioctl		= video_ioctl2,
- 	.llseek		= no_llseek,
- /* 	.poll          = video_poll, */
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl  = v4l_compat_ioctl32,
-+#endif
- };
- 
- static const struct v4l2_ioctl_ops usbvision_ioctl_ops = {
-@@ -1361,7 +1363,9 @@ static const struct file_operations usbv
- 	.release	= usbvision_radio_close,
- 	.ioctl		= video_ioctl2,
- 	.llseek		= no_llseek,
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl  = v4l_compat_ioctl32,
-+#endif
- };
- 
- static const struct v4l2_ioctl_ops usbvision_radio_ioctl_ops = {
-@@ -1398,7 +1402,9 @@ static const struct file_operations usbv
- 	.release	= usbvision_vbi_close,
- 	.ioctl		= usbvision_vbi_ioctl,
- 	.llseek		= no_llseek,
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl  = v4l_compat_ioctl32,
-+#endif
- };
- 
- static struct video_device usbvision_vbi_template=
-diff -puN drivers/media/video/uvc/uvc_v4l2.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/uvc/uvc_v4l2.c
---- a/drivers/media/video/uvc/uvc_v4l2.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
-+++ a/drivers/media/video/uvc/uvc_v4l2.c
-@@ -1093,7 +1093,9 @@ struct file_operations uvc_fops = {
- 	.open		= uvc_v4l2_open,
- 	.release	= uvc_v4l2_release,
- 	.ioctl		= uvc_v4l2_ioctl,
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl	= v4l_compat_ioctl32,
-+#endif
- 	.llseek		= no_llseek,
- 	.read		= uvc_v4l2_read,
- 	.mmap		= uvc_v4l2_mmap,
-diff -puN drivers/media/video/vivi.c~v4l_compat_ioctl32-cleanup-in-compat=n-case drivers/media/video/vivi.c
---- a/drivers/media/video/vivi.c~v4l_compat_ioctl32-cleanup-in-compat=n-case
-+++ a/drivers/media/video/vivi.c
-@@ -1066,7 +1066,9 @@ static const struct file_operations vivi
- 	.read           = vivi_read,
- 	.poll		= vivi_poll,
- 	.ioctl          = video_ioctl2, /* V4L2 ioctl handler */
-+#ifdef CONFIG_COMPAT
- 	.compat_ioctl   = v4l_compat_ioctl32,
-+#endif
- 	.mmap           = vivi_mmap,
- 	.llseek         = no_llseek,
- };
-diff -puN include/media/v4l2-ioctl.h~v4l_compat_ioctl32-cleanup-in-compat=n-case include/media/v4l2-ioctl.h
---- a/include/media/v4l2-ioctl.h~v4l_compat_ioctl32-cleanup-in-compat=n-case
-+++ a/include/media/v4l2-ioctl.h
-@@ -284,11 +284,11 @@ int v4l_compat_translate_ioctl(struct in
- #else
- #define v4l_compat_translate_ioctl(inode, file, cmd, arg, ioctl) (-EINVAL)
- #endif
 -
-+#ifdef CONFIG_COMPAT
- /* 32 Bits compatibility layer for 64 bits processors */
- extern long v4l_compat_ioctl32(struct file *file, unsigned int cmd,
- 				unsigned long arg);
+-static ssize_t cgroup_tasks_read(struct cgroup *cgrp,
+-				    struct cftype *cft,
+-				    struct file *file, char __user *buf,
+-				    size_t nbytes, loff_t *ppos)
+-{
+-	struct ctr_struct *ctr = file->private_data;
 -
-+#endif
- extern int video_ioctl2(struct inode *inode, struct file *file,
- 			  unsigned int cmd, unsigned long arg);
+-	return simple_read_from_buffer(buf, nbytes, ppos, ctr->buf, ctr->bufsz);
+-}
+-
+-static int cgroup_tasks_release(struct inode *unused_inode,
+-					struct file *file)
+-{
+-	struct ctr_struct *ctr;
++	pidarray = kmalloc(npids * sizeof(pid_t), GFP_KERNEL);
++	if (!pidarray)
++		return -ENOMEM;
++	npids = pid_array_load(pidarray, npids, cgrp);
++	sort(pidarray, npids, sizeof(pid_t), cmppid, NULL);
  
+-	if (file->f_mode & FMODE_READ) {
+-		ctr = file->private_data;
+-		kfree(ctr->buf);
+-		kfree(ctr);
++	/*
++	 * Store the array in the cgroup, freeing the old
++	 * array if necessary
++	 */
++	down_write(&cgrp->pids_mutex);
++	kfree(cgrp->tasks_pids);
++	cgrp->tasks_pids = pidarray;
++	cgrp->pids_length = npids;
++	cgrp->pids_use_count++;
++	up_write(&cgrp->pids_mutex);
++
++	file->f_op = &cgroup_tasks_operations;
++
++	retval = seq_open(file, &cgroup_tasks_seq_operations);
++	if (retval) {
++		release_cgroup_pid_array(cgrp);
++		return retval;
+ 	}
++	((struct seq_file *)file->private_data)->private = cgrp;
+ 	return 0;
+ }
+ 
+@@ -2231,7 +2291,6 @@ static struct cftype files[] = {
+ 	{
+ 		.name = "tasks",
+ 		.open = cgroup_tasks_open,
+-		.read = cgroup_tasks_read,
+ 		.write_u64 = cgroup_tasks_write,
+ 		.release = cgroup_tasks_release,
+ 		.private = FILE_TASKLIST,
+@@ -2321,10 +2380,7 @@ static long cgroup_create(struct cgroup 
+ 
+ 	mutex_lock(&cgroup_mutex);
+ 
+-	INIT_LIST_HEAD(&cgrp->sibling);
+-	INIT_LIST_HEAD(&cgrp->children);
+-	INIT_LIST_HEAD(&cgrp->css_sets);
+-	INIT_LIST_HEAD(&cgrp->release_list);
++	init_cgroup_housekeeping(cgrp);
+ 
+ 	cgrp->parent = parent;
+ 	cgrp->root = parent->root;
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from menage@google.com are
 
-proc-more-debugging-for-already-registered-case.patch
+origin.patch
+cpuset-avoid-changing-cpusets-cpus-when-errno-returned.patch
+cpuset-hotplug-documentation-fix.patch
 linux-next.patch
-v4l_compat_ioctl32-cleanup-in-compat=n-case.patch
-git-net.patch
-less-softirq-vectors.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-cpuset-use-seq_cpumask-seq_nodemask.patch
-compat_binfmt_elf-definition-tweak.patch
-proc-move-sysrq-trigger-out-of-fs-proc.patch
-proc-fix-return-value-of-proc_reg_open-in-too-late-case.patch
-proc-proc_sys_root-tweak.patch
-proc-remove-dummy-vmcore_open.patch
-proc-remove-unused-get_dma_list.patch
-sysctl-simplify-strategy.patch
-fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out.patch
-fs-kconfig-move-autofs-autofs4-out.patch
-fs-kconfig-move-cifs-out.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+container-freezer-document-the-cgroup-freezer-subsystem.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+cgroups-convert-tasks-file-to-use-a-seq_file-with-shared-pid-array.patch
+devcgroup-use-kmemdup.patch
+devcgroup-remove-unused-variable.patch
+devcgroup-remove-spin_lock.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+add-a-refcount-check-in-dput.patch
 
