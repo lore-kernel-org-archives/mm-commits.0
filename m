@@ -1,82 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - tmio_nand-fix-base-address-programming.patch removed from -mm tree
-Date: Mon, 08 Sep 2008 12:07:21 -0700
-Message-ID: <200809081907.m88J7L2h005549@imap1.linux-foundation.org>
+Subject: - tracehook-comment-pasto-fixes.patch removed from -mm tree
+Date: Mon, 08 Sep 2008 12:07:07 -0700
+Message-ID: <200809081907.m88J778r005518@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40794 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46693 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753759AbYIHTHb (ORCPT
+	by vger.kernel.org with ESMTP id S1753717AbYIHTHb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 15:07:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbaryshkov@gmail.com, spyro@f2s.com, mm-commits@vger.kernel.org
+To: roland@redhat.com, wenji.huang@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tmio_nand: fix base address programming
+     tracehook: comment pasto fixes
 has been removed from the -mm tree.  Its filename was
-     tmio_nand-fix-base-address-programming.patch
+     tracehook-comment-pasto-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tmio_nand: fix base address programming
-From: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Subject: tracehook: comment pasto fixes
+From: Roland McGrath <roland@redhat.com>
 
-Fix offset of second word used for programming base address of memory
-window.  Also program tmio with offset of the FCR, not with physical
-memory location.
+Fix some pasto's in comments in the new linux/tracehook.h and
+asm-generic/syscall.h files.
 
-Signed-off-by: Dmitry Baryshkov <dbaryshkov@gmail.com>
-Acked-by: Ian Molton <spyro@f2s.com>
+Reported-by: Wenji Huang <wenji.huang@oracle.com>
+Signed-off-by: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/tmio_nand.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/asm-generic/syscall.h |    2 +-
+ include/linux/tracehook.h     |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/nand/tmio_nand.c~tmio_nand-fix-base-address-programming drivers/mtd/nand/tmio_nand.c
---- a/drivers/mtd/nand/tmio_nand.c~tmio_nand-fix-base-address-programming
-+++ a/drivers/mtd/nand/tmio_nand.c
-@@ -109,7 +109,7 @@ struct tmio_nand {
- 
- 	void __iomem *ccr;
- 	void __iomem *fcr;
--	unsigned long fcr_phys;
-+	unsigned long fcr_base;
- 
- 	unsigned int irq;
- 
-@@ -316,8 +316,8 @@ static int tmio_hw_init(struct platform_
- 	tmio_iowrite8(0x81, tmio->ccr + CCR_ICC);
- 
- 	/* (10h)BaseAddress    0x1000 spba.spba2 */
--	tmio_iowrite16(tmio->fcr_phys, tmio->ccr + CCR_BASE);
--	tmio_iowrite16(tmio->fcr_phys >> 16, tmio->ccr + CCR_BASE + 16);
-+	tmio_iowrite16(tmio->fcr_base, tmio->ccr + CCR_BASE);
-+	tmio_iowrite16(tmio->fcr_base >> 16, tmio->ccr + CCR_BASE + 2);
- 
- 	/* (04h)Command Register I/O spcmd */
- 	tmio_iowrite8(0x02, tmio->ccr + CCR_COMMAND);
-@@ -395,7 +395,7 @@ static int tmio_probe(struct platform_de
- 		goto err_iomap_ccr;
- 	}
- 
--	tmio->fcr_phys = (unsigned long)fcr->start;
-+	tmio->fcr_base = fcr->start & 0xfffff;
- 	tmio->fcr = ioremap(fcr->start, fcr->end - fcr->start + 1);
- 	if (!tmio->fcr) {
- 		retval = -EIO;
+diff -puN include/asm-generic/syscall.h~tracehook-comment-pasto-fixes include/asm-generic/syscall.h
+--- a/include/asm-generic/syscall.h~tracehook-comment-pasto-fixes
++++ a/include/asm-generic/syscall.h
+@@ -126,7 +126,7 @@ void syscall_get_arguments(struct task_s
+  * @args:	array of argument values to store
+  *
+  * Changes @n arguments to the system call starting with the @i'th argument.
+- * @n'th argument to @val.  Argument @i gets value @args[0], and so on.
++ * Argument @i gets value @args[0], and so on.
+  * An arch inline version is probably optimal when @i and @n are constants.
+  *
+  * It's only valid to call this when @task is stopped for tracing on
+diff -puN include/linux/tracehook.h~tracehook-comment-pasto-fixes include/linux/tracehook.h
+--- a/include/linux/tracehook.h~tracehook-comment-pasto-fixes
++++ a/include/linux/tracehook.h
+@@ -272,7 +272,7 @@ static inline void tracehook_finish_clon
+  * tracehook_report_clone_complete().  This must prevent the child from
+  * self-reaping if tracehook_report_clone_complete() uses the @child
+  * pointer; otherwise it might have died and been released by the time
+- * tracehook_report_report_clone_complete() is called.
++ * tracehook_report_clone_complete() is called.
+  *
+  * Called with no locks held, but the child cannot run until this returns.
+  */
 _
 
-Patches currently in -mm which might be from dbaryshkov@gmail.com are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
 linux-next.patch
-platform-add-new-device-registration-helper.patch
-make-gpiochip-label-const.patch
-gpio-max7301-fix-the-race-between-chip-addition-and-pins-reconfiguration.patch
+x86-tracehook-config_have_arch_tracehook.patch
+posix-timers-dont-switch-to-group_leader-if-it_process-dies.patch
+posix-timers-always-do-get_task_structtimer-it_process.patch
+posix-timers-sys_timer_create-remove-the-buggy-pf_exiting-check.patch
+posix-timers-sys_timer_create-simplify-and-s-tasklist-rcu.patch
+posix-timers-move-the-initialization-of-timer-sigq-from-send-to-create-path.patch
+posix-timers-sys_timer_create-cleanup-the-error-handling.patch
+posix-timers-kill-it_sigev_signo-and-it_sigev_value.patch
+posix-timers-lock_timer-kill-the-bogus-it_id-check.patch
+posix-timers-lock_timer-make-it-readable.patch
+posix-timers-use-struct-pid-instead-of-struct-task_struct.patch
+posix-timers-check-it_signal-instead-of-it_pid-to-validate-the-timer.patch
+posix-timers-simplify-de_thread-exit_itimers-path.patch
+make-ptrace_untrace-static.patch
+coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
+kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
 
