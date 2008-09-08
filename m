@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cpuset-avoid-changing-cpusets-cpus-when-errno-returned.patch added to -mm tree
-Date: Mon, 08 Sep 2008 13:53:22 -0700
-Message-ID: <200809082053.m88KrMoJ009866@imap1.linux-foundation.org>
+Subject: + cpuset-hotplug-documentation-fix.patch added to -mm tree
+Date: Mon, 08 Sep 2008 13:59:50 -0700
+Message-ID: <200809082059.m88KxocS010105@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39544 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45664 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753685AbYIHUyG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 16:54:06 -0400
+	by vger.kernel.org with ESMTP id S1753887AbYIHVA1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 17:00:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, menage@google.com, miaox@cn.fujitsu.com, pj@sgi.com
+Cc: lizf@cn.fujitsu.com, menage@google.com, pj@sgi.com
 
 
 The patch titled
-     cpuset: avoid changing cpuset's cpus when -errno returned
+     cpuset: hotplug documentation fix
 has been added to the -mm tree.  Its filename is
-     cpuset-avoid-changing-cpusets-cpus-when-errno-returned.patch
+     cpuset-hotplug-documentation-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,127 +33,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset: avoid changing cpuset's cpus when -errno returned
+Subject: cpuset: hotplug documentation fix
 From: Li Zefan <lizf@cn.fujitsu.com>
 
-After the patch:
-
-commit 0b2f630a28d53b5a2082a5275bc3334b10373508
-Author: Miao Xie <miaox@cn.fujitsu.com>
-Date:   Fri Jul 25 01:47:21 2008 -0700
-
-    cpusets: restructure the function update_cpumask() and update_nodemask()
-
-It might happen that 'echo 0 > /cpuset/sub/cpus' returned failure but 'cpus'
-has been changed, because cpus was changed before calling heap_init() which
-may return -ENOMEM.
-
-This patch restores the orginal behavior.
+If all the cpus in a cpuset are offlined, the tasks in it will be moved to
+the nearest ancestor with non-empty cpus.
 
 Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Miao Xie <miaox@cn.fujitsu.com>
+Acked-by: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   37 +++++++++++++++----------------------
- 1 file changed, 15 insertions(+), 22 deletions(-)
+ Documentation/cpusets.txt |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN kernel/cpuset.c~cpuset-avoid-changing-cpusets-cpus-when-errno-returned kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-avoid-changing-cpusets-cpus-when-errno-returned
-+++ a/kernel/cpuset.c
-@@ -774,37 +774,25 @@ static void cpuset_change_cpumask(struct
- /**
-  * update_tasks_cpumask - Update the cpumasks of tasks in the cpuset.
-  * @cs: the cpuset in which each task's cpus_allowed mask needs to be changed
-+ * @heap: if NULL, defer allocating heap memory to cgroup_scan_tasks()
-  *
-  * Called with cgroup_mutex held
-  *
-  * The cgroup_scan_tasks() function will scan all the tasks in a cgroup,
-  * calling callback functions for each.
-  *
-- * Return 0 if successful, -errno if not.
-+ * No return value. It's guaranteed that cgroup_scan_tasks() always returns 0
-+ * if @heap != NULL.
-  */
--static int update_tasks_cpumask(struct cpuset *cs)
-+static void update_tasks_cpumask(struct cpuset *cs, struct ptr_heap *heap)
- {
- 	struct cgroup_scanner scan;
--	struct ptr_heap heap;
--	int retval;
--
--	/*
--	 * cgroup_scan_tasks() will initialize heap->gt for us.
--	 * heap_init() is still needed here for we should not change
--	 * cs->cpus_allowed when heap_init() fails.
--	 */
--	retval = heap_init(&heap, PAGE_SIZE, GFP_KERNEL, NULL);
--	if (retval)
--		return retval;
+diff -puN Documentation/cpusets.txt~cpuset-hotplug-documentation-fix Documentation/cpusets.txt
+--- a/Documentation/cpusets.txt~cpuset-hotplug-documentation-fix
++++ a/Documentation/cpusets.txt
+@@ -635,14 +635,16 @@ prior 'mems' setting, will not be moved.
  
- 	scan.cg = cs->css.cgroup;
- 	scan.test_task = cpuset_test_cpumask;
- 	scan.process_task = cpuset_change_cpumask;
--	scan.heap = &heap;
--	retval = cgroup_scan_tasks(&scan);
--
--	heap_free(&heap);
--	return retval;
-+	scan.heap = heap;
-+	cgroup_scan_tasks(&scan);
- }
+ There is an exception to the above.  If hotplug functionality is used
+ to remove all the CPUs that are currently assigned to a cpuset,
+-then the kernel will automatically update the cpus_allowed of all
+-tasks attached to CPUs in that cpuset to allow all CPUs.  When memory
+-hotplug functionality for removing Memory Nodes is available, a
+-similar exception is expected to apply there as well.  In general,
+-the kernel prefers to violate cpuset placement, over starving a task
+-that has had all its allowed CPUs or Memory Nodes taken offline.  User
+-code should reconfigure cpusets to only refer to online CPUs and Memory
+-Nodes when using hotplug to add or remove such resources.
++then all the tasks in that cpuset will be moved to the nearest ancestor
++with non-empty cpus.  But the moving of some (or all) tasks might fail if
++cpuset is bound with another cgroup subsystem which has some restrictions
++on task attaching.  In this failing case, those tasks will stay
++in the original cpuset, and the kernel will automatically update
++their cpus_allowed to allow all online CPUs.  When memory hotplug
++functionality for removing Memory Nodes is available, a similar exception
++is expected to apply there as well.  In general, the kernel prefers to
++violate cpuset placement, over starving a task that has had all
++its allowed CPUs or Memory Nodes taken offline.
  
- /**
-@@ -814,6 +802,7 @@ static int update_tasks_cpumask(struct c
-  */
- static int update_cpumask(struct cpuset *cs, const char *buf)
- {
-+	struct ptr_heap heap;
- 	struct cpuset trialcs;
- 	int retval;
- 	int is_load_balanced;
-@@ -848,6 +837,10 @@ static int update_cpumask(struct cpuset 
- 	if (cpus_equal(cs->cpus_allowed, trialcs.cpus_allowed))
- 		return 0;
- 
-+	retval = heap_init(&heap, PAGE_SIZE, GFP_KERNEL, NULL);
-+	if (retval)
-+		return retval;
-+
- 	is_load_balanced = is_sched_load_balance(&trialcs);
- 
- 	mutex_lock(&callback_mutex);
-@@ -858,9 +851,9 @@ static int update_cpumask(struct cpuset 
- 	 * Scan tasks in the cpuset, and update the cpumasks of any
- 	 * that need an update.
- 	 */
--	retval = update_tasks_cpumask(cs);
--	if (retval < 0)
--		return retval;
-+	update_tasks_cpumask(cs, &heap);
-+
-+	heap_free(&heap);
- 
- 	if (is_load_balanced)
- 		rebuild_sched_domains();
-@@ -1896,7 +1889,7 @@ static void scan_for_empty_cpusets(const
- 		     nodes_empty(cp->mems_allowed))
- 			remove_tasks_in_empty_cpuset(cp);
- 		else {
--			update_tasks_cpumask(cp);
-+			update_tasks_cpumask(cp, NULL);
- 			update_tasks_nodemask(cp, &oldmems);
- 		}
- 	}
+ There is a second exception to the above.  GFP_ATOMIC requests are
+ kernel internal allocations that must be satisfied, immediately.
 _
 
 Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
 cpuset-avoid-changing-cpusets-cpus-when-errno-returned.patch
+cpuset-hotplug-documentation-fix.patch
 linux-next.patch
 memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
 devcgroup-use-kmemdup.patch
