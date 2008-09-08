@@ -1,87 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - ntp-fix-calculation-of-the-next-jiffie-to-trigger-rtc-sync.patch removed from -mm tree
-Date: Mon, 08 Sep 2008 12:07:30 -0700
-Message-ID: <200809081907.m88J7UW5005561@imap1.linux-foundation.org>
+Subject: - x86-delay-early-cpu-initialization-until-cpuid-is-done.patch removed from -mm tree
+Date: Mon, 08 Sep 2008 12:07:39 -0700
+Message-ID: <200809081907.m88J7dm0005570@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46632 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49465 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753762AbYIHTIA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 15:08:00 -0400
+	by vger.kernel.org with ESMTP id S1753787AbYIHTIP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 15:08:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: macro@linux-mips.org, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, mingo@elte.hu, rct@gherkin.frus.com, tglx@linutronix.de, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ntp: fix calculation of the next jiffie to trigger RTC sync
+     x86: delay early cpu initialization until cpuid is done
 has been removed from the -mm tree.  Its filename was
-     ntp-fix-calculation-of-the-next-jiffie-to-trigger-rtc-sync.patch
+     x86-delay-early-cpu-initialization-until-cpuid-is-done.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ntp: fix calculation of the next jiffie to trigger RTC sync
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
+Subject: x86: delay early cpu initialization until cpuid is done
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-We have a bug in the calculation of the next jiffie to trigger the RTC
-synchronisation.  The aim here is to run sync_cmos_clock() as close as
-possible to the middle of a second.  Which means we want this function to
-be called less than or equal to half a jiffie away from when now.tv_nsec
-equals 5e8 (500000000).
+Move early cpu initialization after cpu early get cap so the early cpu
+initialization can fix up cpu caps.
 
-If this is not the case for a given call to the function, for this purpose
-instead of updating the RTC we calculate the offset in nanoseconds to the
-next point in time where now.tv_nsec will be equal 5e8.  The calculated
-offset is then converted to jiffies as these are the unit used by the
-timer.
-
-Hovewer timespec_to_jiffies() used here uses a ceil()-type rounding mode,
-where the resulting value is rounded up.  As a result the range of
-now.tv_nsec when the timer will trigger is from 5e8 to 5e8 + TICK_NSEC
-rather than the desired 5e8 - TICK_NSEC / 2 to 5e8 + TICK_NSEC / 2.
-
-As a result if for example sync_cmos_clock() happens to be called at the
-time when now.tv_nsec is between 5e8 + TICK_NSEC / 2 and 5e8 to 5e8 +
-TICK_NSEC, it will simply be rescheduled HZ jiffies later, falling in the
-same range of now.tv_nsec again.  Similarly for cases offsetted by an
-integer multiple of TICK_NSEC.
-
-This change addresses the problem by subtracting TICK_NSEC / 2 from the
-nanosecond offset to the next point in time where now.tv_nsec will be
-equal 5e8, effectively shifting the following rounding in
-timespec_to_jiffies() so that it produces a rounded-to-nearest result.
-
-Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Bob Tracy <rct@gherkin.frus.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/ntp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/cpu/common.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/time/ntp.c~ntp-fix-calculation-of-the-next-jiffie-to-trigger-rtc-sync kernel/time/ntp.c
---- a/kernel/time/ntp.c~ntp-fix-calculation-of-the-next-jiffie-to-trigger-rtc-sync
-+++ a/kernel/time/ntp.c
-@@ -245,7 +245,7 @@ static void sync_cmos_clock(struct work_
- 	if (abs(now.tv_nsec - (NSEC_PER_SEC / 2)) <= tick_nsec / 2)
- 		fail = update_persistent_clock(now);
+diff -puN arch/x86/kernel/cpu/common.c~x86-delay-early-cpu-initialization-until-cpuid-is-done arch/x86/kernel/cpu/common.c
+--- a/arch/x86/kernel/cpu/common.c~x86-delay-early-cpu-initialization-until-cpuid-is-done
++++ a/arch/x86/kernel/cpu/common.c
+@@ -353,11 +353,11 @@ static void __init early_cpu_detect(void
  
--	next.tv_nsec = (NSEC_PER_SEC / 2) - now.tv_nsec;
-+	next.tv_nsec = (NSEC_PER_SEC / 2) - now.tv_nsec - (TICK_NSEC / 2);
- 	if (next.tv_nsec <= 0)
- 		next.tv_nsec += NSEC_PER_SEC;
+ 	get_cpu_vendor(c, 1);
  
++	early_get_cap(c);
++
+ 	if (c->x86_vendor != X86_VENDOR_UNKNOWN &&
+ 	    cpu_devs[c->x86_vendor]->c_early_init)
+ 		cpu_devs[c->x86_vendor]->c_early_init(c);
+-
+-	early_get_cap(c);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from macro@linux-mips.org are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
 linux-next.patch
-ntp-let-update_persistent_clock-sleep.patch
-rtc-rtc-m41t80c-add-support-for-the-st-m41t65-rtc.patch
-efifb-imacfb-consolidation-hardware-support.patch
+fb-metronome-printk-format-warning.patch
+sched-fix-compilation-with-gcc-346.patch
+fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
+neofb-reduce-panning-function.patch
+viafb-accelc-accelh-update.patch
+viafb-viafbdevc-update.patch
+fbdev-kconfig-update.patch
+fbdev-kconfig-update-fix.patch
+neofb-kill-some-redundant-code.patch
+vga16fb-remove-open_lock-mutex.patch
+neofb-remove-open_lock-mutex.patch
+tdfxfb-do-not-make-changes-to-default-tdfx_fix.patch
+intelfb-support-945gme-as-used-in-asus-eee-901.patch
+cirrusfb-remove-information-about-memory-size-during-mode-change.patch
+cirrusfb-simplify-clock-calculation.patch
+cirrusfb-remove-24-bpp-mode.patch
+cirrusfb-drop-device-pointers-from-cirrusfb_info.patch
+cirrusfb-use-modedb-and-add-mode_option-parameter-2nd-rev.patch
+cirrusfb-add-__devinit-attribute-to-probing-functions.patch
+cirrusfb-eliminate-crt-registers-from-global-structure.patch
+cirrusfb-eliminate-crt-registers-from-global-structure-fix-up-debug-printk-types.patch
+cirrusfb-drop-clock-fields-from-cirrusfb_regs-structure.patch
+cirrusfb-add-noaccel-module-parameter.patch
+cirrusfb-fix-16bpp-modes.patch
+cirrusfb-do-not-change-mclk-for-alpine-chips.patch
+atmel_lcdfb-disallow-setting-larger-resolution-than-the-framebuffer-memory-can-handle.patch
 
