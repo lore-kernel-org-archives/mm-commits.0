@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-ifdef-quicklists-in-proc-meminfo.patch added to -mm tree
-Date: Mon, 08 Sep 2008 17:05:58 -0700
-Message-ID: <200809090005.m8905wqp017037@imap1.linux-foundation.org>
+Subject: + hfs-fix-namelength-memory-corruption.patch added to -mm tree
+Date: Mon, 08 Sep 2008 17:15:31 -0700
+Message-ID: <200809090015.m890FWG7017388@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41645 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49399 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754724AbYIIAGk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 20:06:40 -0400
+	by vger.kernel.org with ESMTP id S1753980AbYIIAPp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Sep 2008 20:15:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com
+Cc: snakebyte@gmx.de, zippel@linux-m68k.org
 
 
 The patch titled
-     mm: ifdef Quicklists in /proc/meminfo
+     hfs: fix namelength memory corruption
 has been added to the -mm tree.  Its filename is
-     mm-ifdef-quicklists-in-proc-meminfo.patch
+     hfs-fix-namelength-memory-corruption.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,92 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: ifdef Quicklists in /proc/meminfo
-From: Hugh Dickins <hugh@veritas.com>
+Subject: hfs: fix namelength memory corruption
+From: Eric Sesterhenn <snakebyte@gmx.de>
 
-A "Quicklists:          0 kB" line has just started appearing in
-/proc/meminfo, but most architectures (including x86) don't have
-them configured: may we please #ifdef it, like the highmem lines?
-
-And those architectures which do have quicklists configured are
-using them for page tables: so let's place it next to PageTables.
-
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Acked-by: Christoph Lameter <cl@linux-foundation.org>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Eric Sesterhenn <snakebyte@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ fs/hfs/catalog.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/proc/proc_misc.c~mm-ifdef-quicklists-in-proc-meminfo fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~mm-ifdef-quicklists-in-proc-meminfo
-+++ a/fs/proc/proc_misc.c
-@@ -183,6 +183,9 @@ static int meminfo_read_proc(char *page,
- 		"SReclaimable: %8lu kB\n"
- 		"SUnreclaim:   %8lu kB\n"
- 		"PageTables:   %8lu kB\n"
-+#ifdef CONFIG_QUICKLIST
-+		"Quicklists:   %8lu kB\n"
-+#endif
- 		"NFS_Unstable: %8lu kB\n"
- 		"Bounce:       %8lu kB\n"
- 		"WritebackTmp: %8lu kB\n"
-@@ -190,8 +193,7 @@ static int meminfo_read_proc(char *page,
- 		"Committed_AS: %8lu kB\n"
- 		"VmallocTotal: %8lu kB\n"
- 		"VmallocUsed:  %8lu kB\n"
--		"VmallocChunk: %8lu kB\n"
--		"Quicklists:   %8lu kB\n",
-+		"VmallocChunk: %8lu kB\n",
- 		K(i.totalram),
- 		K(i.freeram),
- 		K(i.bufferram),
-@@ -216,6 +218,9 @@ static int meminfo_read_proc(char *page,
- 		K(global_page_state(NR_SLAB_RECLAIMABLE)),
- 		K(global_page_state(NR_SLAB_UNRECLAIMABLE)),
- 		K(global_page_state(NR_PAGETABLE)),
-+#ifdef CONFIG_QUICKLIST
-+		K(quicklist_total_size()),
-+#endif
- 		K(global_page_state(NR_UNSTABLE_NFS)),
- 		K(global_page_state(NR_BOUNCE)),
- 		K(global_page_state(NR_WRITEBACK_TEMP)),
-@@ -223,8 +228,7 @@ static int meminfo_read_proc(char *page,
- 		K(committed),
- 		(unsigned long)VMALLOC_TOTAL >> 10,
- 		vmi.used >> 10,
--		vmi.largest_chunk >> 10,
--		K(quicklist_total_size())
-+		vmi.largest_chunk >> 10
- 		);
+diff -puN fs/hfs/catalog.c~hfs-fix-namelength-memory-corruption fs/hfs/catalog.c
+--- a/fs/hfs/catalog.c~hfs-fix-namelength-memory-corruption
++++ a/fs/hfs/catalog.c
+@@ -190,6 +190,10 @@ int hfs_cat_find_brec(struct super_block
  
- 		len += hugetlb_report_meminfo(page + len);
+ 	fd->search_key->cat.ParID = rec.thread.ParID;
+ 	len = fd->search_key->cat.CName.len = rec.thread.CName.len;
++	if (len > HFS_NAMELEN) {
++		printk(KERN_ERR "hfs: bad catalog namelength\n");
++		return -EIO;
++	}
+ 	memcpy(fd->search_key->cat.CName.name, rec.thread.CName.name, len);
+ 	return hfs_brec_find(fd);
+ }
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from snakebyte@gmx.de are
 
-origin.patch
-mm-ifdef-quicklists-in-proc-meminfo.patch
-git-powerpc-merge.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-mm-owner-fix-race-between-swap-and-exit.patch
-mm-owner-fix-race-between-swap-and-exit-fix.patch
-mm-owner-fix-race-between-swap-and-exit-fix-fix.patch
-hugetlb-handle-updating-of-accessed-and-dirty-in-hugetlb_fault.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mmapc-deinline-a-few-functions.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-prio_tree-debugging-patch.patch
+bfs-lockdep-warning.patch
+linux-next.patch
+hfs-fix-namelength-memory-corruption.patch
+hfsplus-fix-buffer-overflow-with-a-corrupted-image.patch
+hfsplus-check-read_mapping_page-return-value.patch
+hfsplus-fix-another-bug-when-reading-a-corrupted-image.patch
+hfsplus-check-hfs_bnode_find-return-value.patch
 
