@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + xen-fix-pinning-when-not-using-split-pte-locks.patch added to -mm tree
-Date: Tue, 09 Sep 2008 15:52:02 -0700
-Message-ID: <200809092252.m89Mq2B9007467@imap1.linux-foundation.org>
+Subject: + x86-sysfs-kill-owner-field-from-attribute-fix.patch added to -mm tree
+Date: Tue, 09 Sep 2008 16:26:16 -0700
+Message-ID: <200809092326.m89NQH9w008908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53586 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46085 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753753AbYIIWwf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Sep 2008 18:52:35 -0400
+	by vger.kernel.org with ESMTP id S1751880AbYIIX1u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Sep 2008 19:27:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, alex.nixon@citrix.com, hugh@veritas.com, jeremy.fitzhardinge@citrix.com, mingo@elte.hu
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, greg@kroah.com, htejun@gmail.com, jens.axboe@oracle.com, khali@linux-fr.org, lenb@kernel.org, mingo@elte.hu, parag.lkml@gmail.com, rolandd@cisco.com
 
 
 The patch titled
-     xen: fix pinning when not using split pte locks
+     x86-sysfs-kill-owner-field-from-attribute-fix
 has been added to the -mm tree.  Its filename is
-     xen-fix-pinning-when-not-using-split-pte-locks.patch
+     x86-sysfs-kill-owner-field-from-attribute-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,156 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xen: fix pinning when not using split pte locks
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: x86-sysfs-kill-owner-field-from-attribute-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-We only pin PTE pages when using split PTE locks, so don't do the
-pin/unpin when attaching/detaching pte pages to a pinned pagetable.
-
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Cc: Alex Nixon <alex.nixon@citrix.com>
+Cc: "Parag Warudkar" <parag.lkml@gmail.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Greg KH <greg@kroah.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Parag Warudkar <parag.lkml@gmail.com>
+Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/xen/enlighten.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/sysfs.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/xen/enlighten.c~xen-fix-pinning-when-not-using-split-pte-locks arch/x86/xen/enlighten.c
---- a/arch/x86/xen/enlighten.c~xen-fix-pinning-when-not-using-split-pte-locks
-+++ a/arch/x86/xen/enlighten.c
-@@ -858,7 +858,7 @@ static void xen_alloc_ptpage(struct mm_s
- 
- 		if (!PageHighMem(page)) {
- 			make_lowmem_page_readonly(__va(PFN_PHYS((unsigned long)pfn)));
--			if (level == PT_PTE)
-+			if (level == PT_PTE && USE_SPLIT_PTLOCKS)
- 				pin_pagetable_pfn(MMUEXT_PIN_L1_TABLE, pfn);
- 		} else
- 			/* make sure there are no stray mappings of
-@@ -926,7 +926,7 @@ static void xen_release_ptpage(unsigned 
- 
- 	if (PagePinned(page)) {
- 		if (!PageHighMem(page)) {
--			if (level == PT_PTE)
-+			if (level == PT_PTE && USE_SPLIT_PTLOCKS)
- 				pin_pagetable_pfn(MMUEXT_UNPIN_TABLE, pfn);
- 			make_lowmem_page_readwrite(__va(PFN_PHYS(pfn)));
- 		}
+diff -puN include/linux/sysfs.h~x86-sysfs-kill-owner-field-from-attribute-fix include/linux/sysfs.h
+--- a/include/linux/sysfs.h~x86-sysfs-kill-owner-field-from-attribute-fix
++++ a/include/linux/sysfs.h
+@@ -27,7 +27,7 @@ struct module;
+  */
+ struct attribute {
+ 	const char		*name;
+-#if !defined(CONFIG_X86_64) && !defined(CONFIG_X86_32)
++#ifndef CONFIG_X86
+ 	struct module		*owner;
+ #endif
+ 	mode_t			mode;
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+include-linux-ioporth-add-missing-macro-argument-for-devm_release_-family-checkpatch-fixes.patch
 linux-next.patch
-x86-pgd_cdtor-cleanup.patch
-x86-adjust-vmalloc_sync_all-for-xen-2nd-try.patch
-mm-define-use_split_ptlocks-rather-than-repeating-expression.patch
-xen-fix-pinning-when-not-using-split-pte-locks.patch
-mm-rewrite-vmap-layer.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+security-selinux-include-netlabelh-fix-two-build-errors.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
+toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch
+toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch
+revert-acpi-ec-do-transaction-from-interrupt-context.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+x86-make-poll_idle-behave-more-like-the-other-idle-methods-checkpatch-fixes.patch
+arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
+fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
+fs-dlm-configc-choose-better-identifiers.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+git-jg-misc.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
+pci-tidy-pme-support-messages-checkpatch-fixes.patch
+arch-s390-kernel-ptracec-fix-build.patch
+sched-clarify-ifdef-tangle.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
+drivers-usb-musb-disable-it-on-superh.patch
+git-xtensa.patch
+modules-remove-stop_machine-during-module-load-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-media-video-cafe_ccicc-needs-mmh.patch
+e1000e-prevent-corruption-of-eeprom-nvm.patch
+drivers-net-mlx4-allocc-needs-mmh.patch
+net-forcedeth-call-restore-mac-addr-in-nv_shutdown-path-v2.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
 mm-rewrite-vmap-layer-fix.patch
 mm-rewrite-vmap-layer-fix-fix.patch
 mm-rewrite-vmap-layer-fix-fix-fix.patch
-add-phys_addr_t-for-holding-physical-addresses.patch
-make-pfn_phys-explicitly-return-phys_addr_t.patch
-redefine-resource_size_t-as-phys_addr_t.patch
-drivers-net-xen-netfrontc-use-div_round_up.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
+fix-a-race-condtion-of-oops_in_progress-fix.patch
+vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
+make-taint-bit-reliable-v3-fix.patch
+compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
+allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
+applicomc-fix-apparently-broken-code-in-do_ac_read.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+w1-be-able-to-manually-add-and-remove-slaves-fix.patch
+gru-driver-minor-updates-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+x86-sysfs-kill-owner-field-from-attribute-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
