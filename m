@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + firmware-allow-release-specific-firmware-dir.patch added to -mm tree
-Date: Wed, 10 Sep 2008 15:35:52 -0700
-Message-ID: <200809102235.m8AMZqu0029980@imap1.linux-foundation.org>
+Subject: + drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci.patch added to -mm tree
+Date: Wed, 10 Sep 2008 15:45:43 -0700
+Message-ID: <200809102245.m8AMjhUj030444@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50988 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45847 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752294AbYIJWga (ORCPT
+	by vger.kernel.org with ESMTP id S1751852AbYIJWpu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Sep 2008 18:36:30 -0400
+	Wed, 10 Sep 2008 18:45:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeffm@suse.com, dwmw2@infradead.org, greg@kroah.com, sam@ravnborg.org
+Cc: steven.noonan@uplinklabs.net, greg@kroah.com, stern@rowland.harvard.edu, steven@uplinklabs.net
 
 
 The patch titled
-     firmware: allow release-specific firmware dir
+     drivers/usb/host/pci-quirks.c: wait for EHCI handoff far too long in quirk_usb_disable_ehci()
 has been added to the -mm tree.  Its filename is
-     firmware-allow-release-specific-firmware-dir.patch
+     drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: firmware: allow release-specific firmware dir
-From: Jeff Mahoney <jeffm@suse.com>
+Subject: drivers/usb/host/pci-quirks.c: wait for EHCI handoff far too long in quirk_usb_disable_ehci()
+From: Steven Noonan <steven.noonan@uplinklabs.net>
 
-Every kernel package trying to provide files under /lib/firmware runs into
-problems really quickly with multiple kernels installed, especially with
-respect to distribution package tracking of the files.
+Instead of waiting a painful 5000ms, quirk_usb_disable_ehci() now does a
+250ms loop to verify the EHCI handoff completed.  If it didn't, it tries
+to force the ownership by writing the OS ownership bit.  It then does a
+second 250ms loop which will terminate early if the bit change is
+reflected when reading the ownership state.  If it's still not proper,
+print a warning.
 
-This patch moves them to /lib/firmware/$KERNELRELEASE.  udev v127's
-firmware.sh looks there first before falling back to /lib/firmware.
-
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Signed-off-by: Steven Noonan <steven@uplinklabs.net>
+Cc: Alan Stern <stern@rowland.harvard.edu>
 Cc: Greg KH <greg@kroah.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/host/pci-quirks.c |   19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
-diff -puN Makefile~firmware-allow-release-specific-firmware-dir Makefile
---- a/Makefile~firmware-allow-release-specific-firmware-dir
-+++ a/Makefile
-@@ -1026,7 +1026,7 @@ depend dep:
+diff -puN drivers/usb/host/pci-quirks.c~drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci drivers/usb/host/pci-quirks.c
+--- a/drivers/usb/host/pci-quirks.c~drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci
++++ a/drivers/usb/host/pci-quirks.c
+@@ -271,7 +271,7 @@ static void __devinit quirk_usb_disable_
+ 			/* if boot firmware now owns EHCI, spin till
+ 			 * it hands it over.
+ 			 */
+-			msec = 5000;
++			msec = 250;
+ 			while ((cap & EHCI_USBLEGSUP_BIOS) && (msec > 0)) {
+ 				tried_handoff = 1;
+ 				msleep(10);
+@@ -283,9 +283,16 @@ static void __devinit quirk_usb_disable_
+ 				/* well, possibly buggy BIOS... try to shut
+ 				 * it down, and hope nothing goes too wrong
+ 				 */
+-				dev_warn(&pdev->dev, "EHCI: BIOS handoff failed"
+-						" (BIOS bug?) %08x\n", cap);
++				dev_warn(&pdev->dev, "EHCI: Forcing OS ownership\n");
+ 				pci_write_config_byte(pdev, offset + 2, 0);
++
++				/* verify that the BIOS handoff was forced */
++				msec = 250;
++				while ((cap & EHCI_USBLEGSUP_BIOS) && (msec > 0)) {
++					msleep(10);
++					msec -= 10;
++					pci_read_config_dword(pdev, offset, &cap);
++				}
+ 			}
  
- # ---------------------------------------------------------------------------
- # Firmware install
--INSTALL_FW_PATH=$(INSTALL_MOD_PATH)/lib/firmware
-+INSTALL_FW_PATH=$(INSTALL_MOD_PATH)/lib/firmware/$(KERNELRELEASE)
- export INSTALL_FW_PATH
+ 			/* just in case, always disable EHCI SMIs */
+@@ -293,6 +300,12 @@ static void __devinit quirk_usb_disable_
+ 					offset + EHCI_USBLEGCTLSTS,
+ 					0);
  
- PHONY += firmware_install
++			pci_read_config_dword(pdev, offset, &cap);
++			if (cap & EHCI_USBLEGSUP_BIOS) {
++				dev_warn(&pdev->dev, "EHCI: BIOS handoff failed"
++						" (BIOS bug?) %08x\n", cap);
++			}
++
+ 			/* If the BIOS ever owned the controller then we
+ 			 * can't expect any power sessions to remain intact.
+ 			 */
 _
 
-Patches currently in -mm which might be from jeffm@suse.com are
+Patches currently in -mm which might be from steven.noonan@uplinklabs.net are
 
-firmware-allow-release-specific-firmware-dir.patch
-fs-reiserfs-use-an-is_err-test-rather-than-a-null-test.patch
+drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci.patch
 
