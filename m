@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + jbd-test-bh_write_eio-to-detect-errors-on-metadata-buffers.patch added to -mm tree
-Date: Wed, 10 Sep 2008 14:51:03 -0700
-Message-ID: <200809102151.m8ALp3Cn028025@imap1.linux-foundation.org>
+Subject: + ext3-add-an-option-to-control-error-handling-on-file-data.patch added to -mm tree
+Date: Wed, 10 Sep 2008 14:53:53 -0700
+Message-ID: <200809102153.m8ALrscL028092@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41557 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56789 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752481AbYIJVvK (ORCPT
+	by vger.kernel.org with ESMTP id S1752535AbYIJVyF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Sep 2008 17:51:10 -0400
+	Wed, 10 Sep 2008 17:54:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidehiro.kawai.ez@hitachi.com, jack@suse.cz
+Cc: hidehiro.kawai.ez@hitachi.com, jack@ucw.cz
 
 
 The patch titled
-     jbd: test BH_Write_EIO to detect errors on metadata buffers
+     ext3: add an option to control error handling on file data
 has been added to the -mm tree.  Its filename is
-     jbd-test-bh_write_eio-to-detect-errors-on-metadata-buffers.patch
+     ext3-add-an-option-to-control-error-handling-on-file-data.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,140 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: test BH_Write_EIO to detect errors on metadata buffers
+Subject: ext3: add an option to control error handling on file data
 From: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
 
-__try_to_free_cp_buf(), __process_buffer(), and __wait_cp_io() test
-BH_Uptodate flag to detect write I/O errors on metadata buffers.  But by
-commit 95450f5a7e53d5752ce1a0d0b8282e10fe745ae0 "ext3: don't read inode
-block if the buffer has a write error"(*), BH_Uptodate flag can be set to
-inode buffers with BH_Write_EIO in order to avoid reading old inode data. 
-So now, we have to test BH_Write_EIO flag of checkpointing inode buffers
-instead of BH_Uptodate.  This patch does it.
+If the journal doesn't abort when it gets an IO error in file data blocks,
+the file data corruption will spread silently.  Because most of
+applications and commands do buffered writes without fsync(), they don't
+notice the IO error.  It's scary for mission critical systems.  On the
+other hand, if the journal aborts whenever it gets an IO error in file
+data blocks, the system will easily become inoperable.  So this patch
+introduces a filesystem option to determine whether it aborts the journal
+or just call printk() when it gets an IO error in file data.
+
+If you mount a ext3 fs with data_err=abort option, it aborts on file data
+write error.  If you mount it with data_err=ignore, it doesn't abort, just
+call printk().  data_err=ignore is the default.
 
 Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Acked-by: Jan Kara <jack@suse.cz>
+Cc: Jan Kara <jack@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/checkpoint.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/filesystems/ext3.txt |    5 +++++
+ fs/ext3/super.c                    |   16 ++++++++++++++++
+ fs/jbd/commit.c                    |    2 ++
+ include/linux/ext3_fs.h            |    2 ++
+ include/linux/jbd.h                |    3 +++
+ 5 files changed, 28 insertions(+)
 
-diff -puN fs/jbd/checkpoint.c~jbd-test-bh_write_eio-to-detect-errors-on-metadata-buffers fs/jbd/checkpoint.c
---- a/fs/jbd/checkpoint.c~jbd-test-bh_write_eio-to-detect-errors-on-metadata-buffers
-+++ a/fs/jbd/checkpoint.c
-@@ -94,7 +94,7 @@ static int __try_to_free_cp_buf(struct j
- 	struct buffer_head *bh = jh2bh(jh);
+diff -puN Documentation/filesystems/ext3.txt~ext3-add-an-option-to-control-error-handling-on-file-data Documentation/filesystems/ext3.txt
+--- a/Documentation/filesystems/ext3.txt~ext3-add-an-option-to-control-error-handling-on-file-data
++++ a/Documentation/filesystems/ext3.txt
+@@ -96,6 +96,11 @@ errors=remount-ro(*)	Remount the filesys
+ errors=continue		Keep going on a filesystem error.
+ errors=panic		Panic and halt the machine if an error occurs.
  
- 	if (jh->b_jlist == BJ_None && !buffer_locked(bh) &&
--	    !buffer_dirty(bh) && buffer_uptodate(bh)) {
-+	    !buffer_dirty(bh) && !buffer_write_io_error(bh)) {
- 		JBUFFER_TRACE(jh, "remove from checkpoint list");
- 		ret = __journal_remove_checkpoint(jh) + 1;
- 		jbd_unlock_bh_state(bh);
-@@ -199,7 +199,7 @@ restart:
- 			spin_lock(&journal->j_list_lock);
- 			goto restart;
- 		}
--		if (unlikely(!buffer_uptodate(bh)))
-+		if (unlikely(buffer_write_io_error(bh)))
- 			ret = -EIO;
++data_err=ignore(*)	Just print an error message if an error occurs
++			in a file data buffer in ordered mode.
++data_err=abort		Abort the journal if an error occurs in a file
++			data buffer in ordered mode.
++
+ grpid			Give objects the same group ID as their creator.
+ bsdgroups
  
- 		/*
-@@ -268,7 +268,7 @@ static int __process_buffer(journal_t *j
- 		ret = 1;
- 	} else if (!buffer_dirty(bh)) {
- 		ret = 1;
--		if (unlikely(!buffer_uptodate(bh)))
-+		if (unlikely(buffer_write_io_error(bh)))
- 			ret = -EIO;
- 		J_ASSERT_JH(jh, !buffer_jbddirty(bh));
- 		BUFFER_TRACE(bh, "remove from checkpoint");
+diff -puN fs/ext3/super.c~ext3-add-an-option-to-control-error-handling-on-file-data fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-add-an-option-to-control-error-handling-on-file-data
++++ a/fs/ext3/super.c
+@@ -634,6 +634,9 @@ static int ext3_show_options(struct seq_
+ 	else if (test_opt(sb, DATA_FLAGS) == EXT3_MOUNT_WRITEBACK_DATA)
+ 		seq_puts(seq, ",data=writeback");
+ 
++	if (test_opt(sb, DATA_ERR_ABORT))
++		seq_puts(seq, ",data_err=abort");
++
+ 	ext3_show_quota_options(seq, sb);
+ 
+ 	return 0;
+@@ -763,6 +766,7 @@ enum {
+ 	Opt_reservation, Opt_noreservation, Opt_noload, Opt_nobh, Opt_bh,
+ 	Opt_commit, Opt_journal_update, Opt_journal_inum, Opt_journal_dev,
+ 	Opt_abort, Opt_data_journal, Opt_data_ordered, Opt_data_writeback,
++	Opt_data_err_abort, Opt_data_err_ignore,
+ 	Opt_usrjquota, Opt_grpjquota, Opt_offusrjquota, Opt_offgrpjquota,
+ 	Opt_jqfmt_vfsold, Opt_jqfmt_vfsv0, Opt_quota, Opt_noquota,
+ 	Opt_ignore, Opt_barrier, Opt_err, Opt_resize, Opt_usrquota,
+@@ -805,6 +809,8 @@ static const match_table_t tokens = {
+ 	{Opt_data_journal, "data=journal"},
+ 	{Opt_data_ordered, "data=ordered"},
+ 	{Opt_data_writeback, "data=writeback"},
++	{Opt_data_err_abort, "data_err=abort"},
++	{Opt_data_err_ignore, "data_err=ignore"},
+ 	{Opt_offusrjquota, "usrjquota="},
+ 	{Opt_usrjquota, "usrjquota=%s"},
+ 	{Opt_offgrpjquota, "grpjquota="},
+@@ -1020,6 +1026,12 @@ static int parse_options (char *options,
+ 				sbi->s_mount_opt |= data_opt;
+ 			}
+ 			break;
++		case Opt_data_err_abort:
++			set_opt(sbi->s_mount_opt, DATA_ERR_ABORT);
++			break;
++		case Opt_data_err_ignore:
++			clear_opt(sbi->s_mount_opt, DATA_ERR_ABORT);
++			break;
+ #ifdef CONFIG_QUOTA
+ 		case Opt_usrjquota:
+ 			qtype = USRQUOTA;
+@@ -1995,6 +2007,10 @@ static void ext3_init_journal_params(str
+ 		journal->j_flags |= JFS_BARRIER;
+ 	else
+ 		journal->j_flags &= ~JFS_BARRIER;
++	if (test_opt(sb, DATA_ERR_ABORT))
++		journal->j_flags |= JFS_ABORT_ON_SYNCDATA_ERR;
++	else
++		journal->j_flags &= ~JFS_ABORT_ON_SYNCDATA_ERR;
+ 	spin_unlock(&journal->j_state_lock);
+ }
+ 
+diff -puN fs/jbd/commit.c~ext3-add-an-option-to-control-error-handling-on-file-data fs/jbd/commit.c
+--- a/fs/jbd/commit.c~ext3-add-an-option-to-control-error-handling-on-file-data
++++ a/fs/jbd/commit.c
+@@ -482,6 +482,8 @@ void journal_commit_transaction(journal_
+ 		printk(KERN_WARNING
+ 			"JBD: Detected IO errors while flushing file data "
+ 			"on %s\n", bdevname(journal->j_fs_dev, b));
++		if (journal->j_flags & JFS_ABORT_ON_SYNCDATA_ERR)
++			journal_abort(journal, err);
+ 		err = 0;
+ 	}
+ 
+diff -puN include/linux/ext3_fs.h~ext3-add-an-option-to-control-error-handling-on-file-data include/linux/ext3_fs.h
+--- a/include/linux/ext3_fs.h~ext3-add-an-option-to-control-error-handling-on-file-data
++++ a/include/linux/ext3_fs.h
+@@ -380,6 +380,8 @@ struct ext3_inode {
+ #define EXT3_MOUNT_QUOTA		0x80000 /* Some quota option set */
+ #define EXT3_MOUNT_USRQUOTA		0x100000 /* "old" user quota */
+ #define EXT3_MOUNT_GRPQUOTA		0x200000 /* "old" group quota */
++#define EXT3_MOUNT_DATA_ERR_ABORT	0x400000 /* Abort on file data write
++						  * error in ordered mode */
+ 
+ /* Compatibility, for having both ext2_fs.h and ext3_fs.h included at once */
+ #ifndef _LINUX_EXT2_FS_H
+diff -puN include/linux/jbd.h~ext3-add-an-option-to-control-error-handling-on-file-data include/linux/jbd.h
+--- a/include/linux/jbd.h~ext3-add-an-option-to-control-error-handling-on-file-data
++++ a/include/linux/jbd.h
+@@ -816,6 +816,9 @@ struct journal_s
+ #define JFS_FLUSHED	0x008	/* The journal superblock has been flushed */
+ #define JFS_LOADED	0x010	/* The journal superblock has been loaded */
+ #define JFS_BARRIER	0x020	/* Use IDE barriers */
++#define JFS_ABORT_ON_SYNCDATA_ERR	0x040  /* Abort the journal on file
++						* data write error in ordered
++						* mode */
+ 
+ /*
+  * Function declarations for the journaling transaction and buffer
 _
 
 Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
@@ -93,4 +178,6 @@ jbd-fix-error-handling-for-checkpoint-io.patch
 ext3-add-checks-for-errors-from-jbd.patch
 jbd-dont-dirty-original-metadata-buffer-on-abort.patch
 jbd-test-bh_write_eio-to-detect-errors-on-metadata-buffers.patch
+ext3-add-an-option-to-control-error-handling-on-file-data.patch
+jbd-ordered-data-integrity-fix.patch
 
