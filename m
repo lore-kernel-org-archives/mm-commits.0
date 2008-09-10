@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci.patch added to -mm tree
-Date: Wed, 10 Sep 2008 15:45:43 -0700
-Message-ID: <200809102245.m8AMjhUj030444@imap1.linux-foundation.org>
+Subject: + profiling-dynamically-enable-readprofile-at-runtime.patch added to -mm tree
+Date: Wed, 10 Sep 2008 16:00:23 -0700
+Message-ID: <200809102300.m8AN0NBl031067@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45847 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52291 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751852AbYIJWpu (ORCPT
+	by vger.kernel.org with ESMTP id S1752205AbYIJXA5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Sep 2008 18:45:50 -0400
+	Wed, 10 Sep 2008 19:00:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: steven.noonan@uplinklabs.net, greg@kroah.com, stern@rowland.harvard.edu, steven@uplinklabs.net
+Cc: dave@linux.vnet.ibm.com, mingo@elte.hu
 
 
 The patch titled
-     drivers/usb/host/pci-quirks.c: wait for EHCI handoff far too long in quirk_usb_disable_ehci()
+     profiling: dynamically enable readprofile at runtime
 has been added to the -mm tree.  Its filename is
-     drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci.patch
+     profiling-dynamically-enable-readprofile-at-runtime.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,72 +34,239 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/host/pci-quirks.c: wait for EHCI handoff far too long in quirk_usb_disable_ehci()
-From: Steven Noonan <steven.noonan@uplinklabs.net>
+Subject: profiling: dynamically enable readprofile at runtime
+From: Dave Hansen <dave@linux.vnet.ibm.com>
 
-Instead of waiting a painful 5000ms, quirk_usb_disable_ehci() now does a
-250ms loop to verify the EHCI handoff completed.  If it didn't, it tries
-to force the ownership by writing the OS ownership bit.  It then does a
-second 250ms loop which will terminate early if the bit change is
-reflected when reading the ownership state.  If it's still not proper,
-print a warning.
+Way too often, I have a machine that exhibits some kind of crappy
+behavior.  The CPU looks wedged in the kernel or it is spending way too
+much system time and I wonder what is responsible.
 
-Signed-off-by: Steven Noonan <steven@uplinklabs.net>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <greg@kroah.com>
+I try to run readprofile.  But, of course, Ubuntu doesn't enable it by
+default.  Dang!
+
+The reason we boot-time enable it is that it takes a big bufffer that we
+generally can only bootmem alloc.  But, does it hurt to at least try and
+runtime-alloc it?
+
+To use:
+echo 2 > /sys/kernel/profile
+
+Then run readprofile like normal.
+
+This should fix the compile issue with allmodconfig.  I've compile-tested
+on a bunch more configs now including a few more architectures.
+
+Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/pci-quirks.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ Documentation/ABI/testing/sysfs-profiling |   13 ++++++
+ include/linux/profile.h                   |    8 ++-
+ kernel/ksysfs.c                           |   35 +++++++++++++++++
+ kernel/profile.c                          |   41 +++++++++++++++-----
+ 4 files changed, 84 insertions(+), 13 deletions(-)
 
-diff -puN drivers/usb/host/pci-quirks.c~drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci drivers/usb/host/pci-quirks.c
---- a/drivers/usb/host/pci-quirks.c~drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci
-+++ a/drivers/usb/host/pci-quirks.c
-@@ -271,7 +271,7 @@ static void __devinit quirk_usb_disable_
- 			/* if boot firmware now owns EHCI, spin till
- 			 * it hands it over.
- 			 */
--			msec = 5000;
-+			msec = 250;
- 			while ((cap & EHCI_USBLEGSUP_BIOS) && (msec > 0)) {
- 				tried_handoff = 1;
- 				msleep(10);
-@@ -283,9 +283,16 @@ static void __devinit quirk_usb_disable_
- 				/* well, possibly buggy BIOS... try to shut
- 				 * it down, and hope nothing goes too wrong
- 				 */
--				dev_warn(&pdev->dev, "EHCI: BIOS handoff failed"
--						" (BIOS bug?) %08x\n", cap);
-+				dev_warn(&pdev->dev, "EHCI: Forcing OS ownership\n");
- 				pci_write_config_byte(pdev, offset + 2, 0);
+diff -puN /dev/null Documentation/ABI/testing/sysfs-profiling
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-profiling
+@@ -0,0 +1,13 @@
++What:		/sys/kernel/profile
++Date:		September 2008
++Contact:	Dave Hansen <dave@linux.vnet.ibm.com>
++Description:
++		/sys/kernel/profile is the runtime equivalent
++		of the boot-time profile= option.
 +
-+				/* verify that the BIOS handoff was forced */
-+				msec = 250;
-+				while ((cap & EHCI_USBLEGSUP_BIOS) && (msec > 0)) {
-+					msleep(10);
-+					msec -= 10;
-+					pci_read_config_dword(pdev, offset, &cap);
-+				}
- 			}
- 
- 			/* just in case, always disable EHCI SMIs */
-@@ -293,6 +300,12 @@ static void __devinit quirk_usb_disable_
- 					offset + EHCI_USBLEGCTLSTS,
- 					0);
- 
-+			pci_read_config_dword(pdev, offset, &cap);
-+			if (cap & EHCI_USBLEGSUP_BIOS) {
-+				dev_warn(&pdev->dev, "EHCI: BIOS handoff failed"
-+						" (BIOS bug?) %08x\n", cap);
-+			}
++		You can get the same effect running:
 +
- 			/* If the BIOS ever owned the controller then we
- 			 * can't expect any power sessions to remain intact.
- 			 */
++			echo 2 > /sys/kernel/profile
++
++		as you would by issuing profile=2 on the boot
++		command line.
+diff -puN include/linux/profile.h~profiling-dynamically-enable-readprofile-at-runtime include/linux/profile.h
+--- a/include/linux/profile.h~profiling-dynamically-enable-readprofile-at-runtime
++++ a/include/linux/profile.h
+@@ -35,7 +35,9 @@ enum profile_type {
+ extern int prof_on __read_mostly;
+ 
+ /* init basic kernel profiler */
+-void __init profile_init(void);
++int profile_init(void);
++int profile_setup(char *str);
++int create_proc_profile(void);
+ void profile_tick(int type);
+ 
+ /*
+@@ -84,9 +86,9 @@ struct pt_regs;
+ 
+ #define prof_on 0
+ 
+-static inline void profile_init(void)
++static inline int profile_init(void)
+ {
+-	return;
++	return 0;
+ }
+ 
+ static inline void profile_tick(int type)
+diff -puN kernel/ksysfs.c~profiling-dynamically-enable-readprofile-at-runtime kernel/ksysfs.c
+--- a/kernel/ksysfs.c~profiling-dynamically-enable-readprofile-at-runtime
++++ a/kernel/ksysfs.c
+@@ -14,6 +14,7 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/kexec.h>
++#include <linux/profile.h>
+ #include <linux/sched.h>
+ 
+ #define KERNEL_ATTR_RO(_name) \
+@@ -53,6 +54,37 @@ static ssize_t uevent_helper_store(struc
+ KERNEL_ATTR_RW(uevent_helper);
+ #endif
+ 
++#ifdef CONFIG_PROFILING
++static ssize_t profiling_show(struct kobject *kobj,
++				  struct kobj_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%d\n", prof_on);
++}
++static ssize_t profiling_store(struct kobject *kobj,
++				   struct kobj_attribute *attr,
++				   const char *buf, size_t count)
++{
++	int ret;
++
++	if (prof_on)
++		return -EEXIST;
++	/*
++	 * This eventually calls into get_option() which
++	 * has a ton of callers and is not const.  It is
++	 * easiest to cast it away here.
++	 */
++	profile_setup((char *)buf);
++	ret = profile_init();
++	if (ret)
++		return ret;
++	ret = create_proc_profile();
++	if (ret)
++		return ret;
++	return count;
++}
++KERNEL_ATTR_RW(profiling);
++#endif
++
+ #ifdef CONFIG_KEXEC
+ static ssize_t kexec_loaded_show(struct kobject *kobj,
+ 				 struct kobj_attribute *attr, char *buf)
+@@ -109,6 +141,9 @@ static struct attribute * kernel_attrs[]
+ 	&uevent_seqnum_attr.attr,
+ 	&uevent_helper_attr.attr,
+ #endif
++#ifdef CONFIG_PROFILING
++	&profiling_attr.attr,
++#endif
+ #ifdef CONFIG_KEXEC
+ 	&kexec_loaded_attr.attr,
+ 	&kexec_crash_loaded_attr.attr,
+diff -puN kernel/profile.c~profiling-dynamically-enable-readprofile-at-runtime kernel/profile.c
+--- a/kernel/profile.c~profiling-dynamically-enable-readprofile-at-runtime
++++ a/kernel/profile.c
+@@ -22,6 +22,8 @@
+ #include <linux/cpu.h>
+ #include <linux/highmem.h>
+ #include <linux/mutex.h>
++#include <linux/slab.h>
++#include <linux/vmalloc.h>
+ #include <asm/sections.h>
+ #include <asm/irq_regs.h>
+ #include <asm/ptrace.h>
+@@ -50,11 +52,11 @@ static DEFINE_PER_CPU(int, cpu_profile_f
+ static DEFINE_MUTEX(profile_flip_mutex);
+ #endif /* CONFIG_SMP */
+ 
+-static int __init profile_setup(char *str)
++int profile_setup(char *str)
+ {
+-	static char __initdata schedstr[] = "schedule";
+-	static char __initdata sleepstr[] = "sleep";
+-	static char __initdata kvmstr[] = "kvm";
++	static char schedstr[] = "schedule";
++	static char sleepstr[] = "sleep";
++	static char kvmstr[] = "kvm";
+ 	int par;
+ 
+ 	if (!strncmp(str, sleepstr, strlen(sleepstr))) {
+@@ -100,14 +102,33 @@ static int __init profile_setup(char *st
+ __setup("profile=", profile_setup);
+ 
+ 
+-void __init profile_init(void)
++int profile_init(void)
+ {
++	int buffer_bytes;
+ 	if (!prof_on)
+-		return;
++		return 0;
+ 
+ 	/* only text is profiled */
+ 	prof_len = (_etext - _stext) >> prof_shift;
+-	prof_buffer = alloc_bootmem(prof_len*sizeof(atomic_t));
++	buffer_bytes = prof_len*sizeof(atomic_t);
++	if (!slab_is_available()) {
++		prof_buffer = alloc_bootmem(buffer_bytes);
++		return 0;
++	}
++
++	prof_buffer = kzalloc(buffer_bytes, GFP_KERNEL);
++	if (prof_buffer)
++		return 0;
++
++	prof_buffer = alloc_pages_exact(buffer_bytes, GFP_KERNEL|__GFP_ZERO);
++	if (prof_buffer)
++		return 0;
++
++	prof_buffer = vmalloc(buffer_bytes);
++	if (prof_buffer)
++		return 0;
++
++	return -ENOMEM;
+ }
+ 
+ /* Profile event notifications */
+@@ -527,7 +548,7 @@ static void __init profile_nop(void *unu
+ {
+ }
+ 
+-static int __init create_hash_tables(void)
++static int create_hash_tables(void)
+ {
+ 	int cpu;
+ 
+@@ -575,14 +596,14 @@ out_cleanup:
+ #define create_hash_tables()			({ 0; })
+ #endif
+ 
+-static int __init create_proc_profile(void)
++int create_proc_profile(void)
+ {
+ 	struct proc_dir_entry *entry;
+ 
+ 	if (!prof_on)
+ 		return 0;
+ 	if (create_hash_tables())
+-		return -1;
++		return -ENOMEM;
+ 	entry = proc_create("profile", S_IWUSR | S_IRUGO,
+ 			    NULL, &proc_profile_operations);
+ 	if (!entry)
 _
 
-Patches currently in -mm which might be from steven.noonan@uplinklabs.net are
+Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
 
-drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci.patch
+origin.patch
+linux-next.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+profiling-dynamically-enable-readprofile-at-runtime.patch
 
