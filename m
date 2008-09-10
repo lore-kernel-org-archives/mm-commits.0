@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + jbd-ordered-data-integrity-fix.patch added to -mm tree
-Date: Wed, 10 Sep 2008 14:53:56 -0700
-Message-ID: <200809102153.m8ALrvEQ028095@imap1.linux-foundation.org>
+Subject: + sysrq-add-enable_mask-in-sysrq_moom_op.patch added to -mm tree
+Date: Wed, 10 Sep 2008 14:57:20 -0700
+Message-ID: <200809102157.m8ALvKcH028273@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33884 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49353 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751636AbYIJVyD (ORCPT
+	by vger.kernel.org with ESMTP id S1753390AbYIJV5X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Sep 2008 17:54:03 -0400
+	Wed, 10 Sep 2008 17:57:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidehiro.kawai.ez@hitachi.com, jack@suse.cz
+Cc: nooiwa@miraclelinux.com
 
 
 The patch titled
-     jbd: ordered data integrity fix
+     sysrq: add enable_mask in sysrq_moom_op
 has been added to the -mm tree.  Its filename is
-     jbd-ordered-data-integrity-fix.patch
+     sysrq-add-enable_mask-in-sysrq_moom_op.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: ordered data integrity fix
-From: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Subject: sysrq: add enable_mask in sysrq_moom_op
+From: Naohiro Ooiwa <nooiwa@miraclelinux.com>
 
-In ordered mode, if a file data buffer being dirtied exists in the
-committing transaction, we write the buffer to the disk, move it from the
-committing transaction to the running transaction, then dirty it.  But we
-don't have to remove the buffer from the committing transaction when the
-buffer couldn't be written out, otherwise it would miss the error and the
-committing transaction would not abort.
+It is written in the Documentation/sysrq.txt that oom-killer is enabled
+when we set "64" in /proc/sys/kernel/sysrq:
 
-This patch adds an error check before removing the buffer from the
-committing transaction.
+<Documentation/sysrq.txt>
 
-Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Acked-by: Jan Kara <jack@suse.cz>
+    Here is the list of possible values in /proc/sys/kernel/sysrq:
+         64 - enable signalling of processes (term, kill, oom-kill)
+                                                          ^^^^^^^^
+
+but enable_mask is not set in sysrq_moom_op.
+
+Signed-off-by: Naohiro Ooiwa <nooiwa@miraclelinux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/transaction.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ drivers/char/sysrq.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/jbd/transaction.c~jbd-ordered-data-integrity-fix fs/jbd/transaction.c
---- a/fs/jbd/transaction.c~jbd-ordered-data-integrity-fix
-+++ a/fs/jbd/transaction.c
-@@ -954,9 +954,10 @@ int journal_dirty_data(handle_t *handle,
- 	journal_t *journal = handle->h_transaction->t_journal;
- 	int need_brelse = 0;
- 	struct journal_head *jh;
-+	int ret = 0;
+diff -puN drivers/char/sysrq.c~sysrq-add-enable_mask-in-sysrq_moom_op drivers/char/sysrq.c
+--- a/drivers/char/sysrq.c~sysrq-add-enable_mask-in-sysrq_moom_op
++++ a/drivers/char/sysrq.c
+@@ -326,6 +326,7 @@ static struct sysrq_key_op sysrq_moom_op
+ 	.handler	= sysrq_handle_moom,
+ 	.help_msg	= "Full",
+ 	.action_msg	= "Manual OOM execution",
++	.enable_mask	= SYSRQ_ENABLE_SIGNAL,
+ };
  
- 	if (is_handle_aborted(handle))
--		return 0;
-+		return ret;
- 
- 	jh = journal_add_journal_head(bh);
- 	JBUFFER_TRACE(jh, "entry");
-@@ -1067,7 +1068,16 @@ int journal_dirty_data(handle_t *handle,
- 				   time if it is redirtied */
- 			}
- 
--			/* journal_clean_data_list() may have got there first */
-+			/*
-+			 * We cannot remove the buffer with io error from the
-+			 * committing transaction, because otherwise it would
-+			 * miss the error and the commit would not abort.
-+			 */
-+			if (unlikely(!buffer_uptodate(bh))) {
-+				ret = -EIO;
-+				goto no_journal;
-+			}
-+
- 			if (jh->b_transaction != NULL) {
- 				JBUFFER_TRACE(jh, "unfile from commit");
- 				__journal_temp_unlink_buffer(jh);
-@@ -1108,7 +1118,7 @@ no_journal:
- 	}
- 	JBUFFER_TRACE(jh, "exit");
- 	journal_put_journal_head(jh);
--	return 0;
-+	return ret;
- }
- 
- /**
+ static void sysrq_handle_kill(int key, struct tty_struct *tty)
 _
 
-Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
+Patches currently in -mm which might be from nooiwa@miraclelinux.com are
 
-coredump_filter-add-description-of-bit-4.patch
-jbd-abort-when-failed-to-log-metadata-buffers.patch
-jbd-fix-error-handling-for-checkpoint-io.patch
-ext3-add-checks-for-errors-from-jbd.patch
-jbd-dont-dirty-original-metadata-buffer-on-abort.patch
-jbd-test-bh_write_eio-to-detect-errors-on-metadata-buffers.patch
-ext3-add-an-option-to-control-error-handling-on-file-data.patch
-jbd-ordered-data-integrity-fix.patch
+sysrq-add-enable_mask-in-sysrq_moom_op.patch
 
