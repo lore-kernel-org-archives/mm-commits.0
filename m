@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nec-fix-suspend-and-resume-for-isa-pnp-cards.patch added to -mm tree
-Date: Wed, 10 Sep 2008 14:17:37 -0700
-Message-ID: <200809102117.m8ALHbR6026647@imap1.linux-foundation.org>
+Subject: + mm-rewrite-vmap-layer-fix-fix-fix-fix.patch added to -mm tree
+Date: Wed, 10 Sep 2008 14:19:07 -0700
+Message-ID: <200809102119.m8ALJ7cH026747@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43182 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35498 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752479AbYIJVS4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752873AbYIJVTh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Sep 2008 17:18:56 -0400
+	Wed, 10 Sep 2008 17:19:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david@fries.net, alan@lxorguk.ukuu.org.uk, anemo@mba.ocn.ne.jp, jeff@garzik.org, p_gortmaker@yahoo.com
+Cc: nickpiggin@yahoo.com.au, krzysztof.h1@wp.pl
 
 
 The patch titled
-     ne.c: fix suspend and resume for ISA PnP cards
+     Re: 2.6.27-rc5-mm1: 3 WARN_ON dumps during boot (acpi + vmap_pte_range)
 has been added to the -mm tree.  Its filename is
-     nec-fix-suspend-and-resume-for-isa-pnp-cards.patch
+     mm-rewrite-vmap-layer-fix-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ne.c: fix suspend and resume for ISA PnP cards
-From: David Fries <david@fries.net>
+Subject: Re: 2.6.27-rc5-mm1: 3 WARN_ON dumps during boot (acpi + vmap_pte_range)
+From: Nick Piggin <nickpiggin@yahoo.com.au>
 
-A call to pnp_stop_dev and pnp_start_dev now shuts down and initializes
-plug and play devices for suspend and resume.
+The virtual address allocator is allowing an overlapping allocation after
+a vm_unmap_aliases() call.  Unfortunately, my "random" test case happened
+not to trigger that...  I should have paid more attention to edge cases
+rather than just random testing.
 
-Signed-off-by: David Fries <david@fries.net>
-Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jeff Garzik <jeff@garzik.org>
+Tested-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ne.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/ne.c~nec-fix-suspend-and-resume-for-isa-pnp-cards drivers/net/ne.c
---- a/drivers/net/ne.c~nec-fix-suspend-and-resume-for-isa-pnp-cards
-+++ a/drivers/net/ne.c
-@@ -876,8 +876,12 @@ static int ne_drv_suspend(struct platfor
- {
- 	struct net_device *dev = platform_get_drvdata(pdev);
- 
--	if (netif_running(dev))
-+	if (netif_running(dev)) {
-+		struct pnp_dev *idev = (struct pnp_dev *)ei_status.priv;
- 		netif_device_detach(dev);
-+		if (idev)
-+			pnp_stop_dev(idev);
-+	}
- 	return 0;
- }
- 
-@@ -886,6 +890,9 @@ static int ne_drv_resume(struct platform
- 	struct net_device *dev = platform_get_drvdata(pdev);
- 
- 	if (netif_running(dev)) {
-+		struct pnp_dev *idev = (struct pnp_dev *)ei_status.priv;
-+		if (idev)
-+			pnp_start_dev(idev);
- 		ne_reset_8390(dev);
- 		NS8390p_init(dev, 1);
- 		netif_device_attach(dev);
+diff -puN mm/vmalloc.c~mm-rewrite-vmap-layer-fix-fix-fix-fix mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-rewrite-vmap-layer-fix-fix-fix-fix
++++ a/mm/vmalloc.c
+@@ -321,7 +321,7 @@ retry:
+ 			struct vmap_area *tmp;
+ 			tmp = rb_entry(n, struct vmap_area, rb_node);
+ 			if (tmp->va_end >= addr) {
+-				if (!first && tmp->va_start <= addr)
++				if (!first && tmp->va_start < addr + size)
+ 					first = tmp;
+ 				n = n->rb_left;
+ 			} else {
 _
 
-Patches currently in -mm which might be from david@fries.net are
+Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
 
-nec-fix-rmmod-platform-driver-improvements.patch
-nec-fix-suspend-and-resume-for-isa-pnp-cards.patch
-w1-fix-deadlocks-and-remove-w1_control_thread.patch
-w1-abort-search-early-on-on-exit.patch
-w1-dont-delay-search-start.patch
-w1-w1_process-block-or-sleep.patch
-w1-feature-enable-hardware-strong-pullup.patch
-w1-feature-w1_thermc-use-strong-pullup-and-documentation.patch
-w1-be-able-to-manually-add-and-remove-slaves.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-recode-w1_slave_found-logic.patch
-w1-new-module-parameter-search_count.patch
-w1-document-add-remove-search_count-and-pullup.patch
-w1-w1_slave_read_id-read-bug-use-device_attribute.patch
-w1-w1_therm-fix-user-buffer-overflow-and-cat.patch
-w1-w1_family-remove-unused-variable-need_exit.patch
-w1-w1_therm-consistent-mutex-access-code-cleanup.patch
-w1-w1_intc-use-first-available-master-number.patch
-w1-w1c-s-printk-dev_dbg.patch
-w1-w1_ioc-reset-comments-and-msleep.patch
-w1-ds1wmc-msleep-for-reset.patch
-w1-ds2490c-correct-print-message.patch
-w1-ds2490c-add-support-for-strong-pullup.patch
-w1-ds2490c-ds_write_bit-grouping-error-disable-readback.patch
-w1-ds2490c-disable-bit-read-and-write.patch
-w1-ds2490c-simplify-and-fix-ds_touch_bit.patch
-w1-ds2490c-ds_dump_status-rework.patch
-w1-ds2490c-ds_reset-remove-ds_wait_status.patch
-w1-ds2490c-reset-ds2490-in-init.patch
-w1-ds2490c-magic-number-work.patch
-w1-ds2490c-ds_write_block-remove-extra-ds_wait_status.patch
-w1-documentation-w1-masters-ds2490-update.patch
-w1-ds2490c-optimize-ds_set_pullup.patch
+ramfs-and-ram-disk-pages-are-unevictable.patch
+mm-rewrite-vmap-layer-fix-fix-fix-fix.patch
+powerpc-hugetlb-pgtable-cache-access-cleanup.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
 
