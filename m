@@ -1,125 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-pc87360-separate-alarm-files-add-dev_dbg-help.patch added to -mm tree
-Date: Wed, 10 Sep 2008 17:03:33 -0700
-Message-ID: <200809110003.m8B03Xe4001235@imap1.linux-foundation.org>
+Subject: - input-mousedev-emulate-right-and-middle-buttons-for-single-button-touchpads.patch removed from -mm tree
+Date: Wed, 10 Sep 2008 17:09:32 -0700
+Message-ID: <200809110009.m8B09W5d001510@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57280 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53028 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752382AbYIKADo (ORCPT
+	by vger.kernel.org with ESMTP id S1752378AbYIKAJl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Sep 2008 20:03:44 -0400
+	Wed, 10 Sep 2008 20:09:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jim.cromie@gmail.com, khali@linux-fr.org, mhoffman@lightlink.com
+To: rydberg@euromail.se, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwmon/pc87360 separate alarm files: add dev_dbg help
-has been added to the -mm tree.  Its filename is
-     hwmon-pc87360-separate-alarm-files-add-dev_dbg-help.patch
+     input: mousedev: emulate right and middle buttons for single-button touchpads
+has been removed from the -mm tree.  Its filename was
+     input-mousedev-emulate-right-and-middle-buttons-for-single-button-touchpads.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon/pc87360 separate alarm files: add dev_dbg help
-From: Jim Cromie <jim.cromie@gmail.com>
+Subject: input: mousedev: emulate right and middle buttons for single-button touchpads
+From: Henrik Rydberg <rydberg@euromail.se>
 
-temp and vin status register values may be set by chip specifications, set
-again by bios, or by this previously loaded driver.  Debug output nicely
-displays modprobe init=\d actions.
+On most linux-based systems, the right and middle buttons are used
+extensively.  On computers lacking either of those buttons, such as the
+Apple Macbooks, emulation is needed.  This patch adds emulation of the
+missing buttons via two-fingers-and-click and three-fingers- and-click
+operations, which has recently become standard, both in MacOS and in the
+Xorg synaptics driver.
 
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/pc87360.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ drivers/input/mousedev.c |   31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-diff -puN drivers/hwmon/pc87360.c~hwmon-pc87360-separate-alarm-files-add-dev_dbg-help drivers/hwmon/pc87360.c
---- a/drivers/hwmon/pc87360.c~hwmon-pc87360-separate-alarm-files-add-dev_dbg-help
-+++ a/drivers/hwmon/pc87360.c
-@@ -1290,10 +1290,11 @@ static void pc87360_init_device(struct p
+diff -puN drivers/input/mousedev.c~input-mousedev-emulate-right-and-middle-buttons-for-single-button-touchpads drivers/input/mousedev.c
+--- a/drivers/input/mousedev.c~input-mousedev-emulate-right-and-middle-buttons-for-single-button-touchpads
++++ a/drivers/input/mousedev.c
+@@ -53,6 +53,14 @@ static unsigned tap_move = 20;
+ module_param(tap_move, uint, 0644);
+ MODULE_PARM_DESC(tap_move, "Tap distance for touchpads in absolute mode (res)");
  
- 	nr = data->innr < 11 ? data->innr : 11;
- 	for (i = 0; i < nr; i++) {
-+		reg = pc87360_read_value(data, LD_IN, i,
-+					 PC87365_REG_IN_STATUS);
-+		dev_dbg(&pdev->dev, "bios in%d status:0x%02x\n", i, reg);
- 		if (init >= init_in[i]) {
- 			/* Forcibly enable voltage channel */
--			reg = pc87360_read_value(data, LD_IN, i,
--						 PC87365_REG_IN_STATUS);
- 			if (!(reg & CHAN_ENA)) {
- 				dev_dbg(&pdev->dev, "Forcibly "
- 					"enabling in%d\n", i);
-@@ -1306,18 +1307,23 @@ static void pc87360_init_device(struct p
++static unsigned two_finger_code = BTN_RIGHT;
++module_param(two_finger_code, uint, 0644);
++MODULE_PARM_DESC(two_finger_code, "Button code of two-finger click");
++
++static unsigned three_finger_code = BTN_MIDDLE;
++module_param(three_finger_code, uint, 0644);
++MODULE_PARM_DESC(three_finger_code, "Button code of three-finger click");
++
+ struct mousedev_hw_data {
+ 	int dx, dy, dz;
+ 	int x, y;
+@@ -81,6 +89,7 @@ struct mousedev {
+ 	int frac_dx, frac_dy;
+ 	unsigned long touch;
+ 	int touch_dx, touch_dy;
++	int double_tap, triple_tap;
+ };
  
- 	/* We can't blindly trust the Super-I/O space configuration bit,
- 	   most BIOS won't set it properly */
-+	dev_dbg(&pdev->dev, "bios thermistors:%d\n", use_thermistors);
- 	for (i = 11; i < data->innr; i++) {
- 		reg = pc87360_read_value(data, LD_IN, i,
- 					 PC87365_REG_TEMP_STATUS);
- 		use_thermistors = use_thermistors || (reg & CHAN_ENA);
-+		/* thermistors are temp[4-6], measured on vin[11-14] */
-+		dev_dbg(&pdev->dev, "bios temp%d_status:0x%02x\n", i-7, reg);
+ enum mousedev_emul {
+@@ -225,11 +234,31 @@ static void mousedev_rel_event(struct mo
  	}
-+	dev_dbg(&pdev->dev, "using thermistors:%d\n", use_thermistors);
+ }
  
- 	i = use_thermistors ? 2 : 0;
- 	for (; i < data->tempnr; i++) {
-+		reg = pc87360_read_value(data, LD_TEMP, i,
-+					 PC87365_REG_TEMP_STATUS);
-+		dev_dbg(&pdev->dev, "bios temp%d_status:0x%02x\n", i+1, reg);
- 		if (init >= init_temp[i]) {
- 			/* Forcibly enable temperature channel */
--			reg = pc87360_read_value(data, LD_TEMP, i,
--						 PC87365_REG_TEMP_STATUS);
- 			if (!(reg & CHAN_ENA)) {
- 				dev_dbg(&pdev->dev, "Forcibly "
- 					"enabling temp%d\n", i+1);
-@@ -1359,6 +1365,7 @@ static void pc87360_init_device(struct p
- 	if (data->innr) {
- 		reg = pc87360_read_value(data, LD_IN, NO_BANK,
- 					 PC87365_REG_IN_CONFIG);
-+		dev_dbg(&pdev->dev, "bios vin-cfg:0x%02x\n", reg);
- 		if (reg & CHAN_ENA) {
- 			dev_dbg(&pdev->dev, "Forcibly "
- 				"enabling monitoring (VLM)\n");
-@@ -1371,6 +1378,7 @@ static void pc87360_init_device(struct p
- 	if (data->tempnr) {
- 		reg = pc87360_read_value(data, LD_TEMP, NO_BANK,
- 					 PC87365_REG_TEMP_CONFIG);
-+		dev_dbg(&pdev->dev, "bios temp-cfg:0x%02x\n", reg);
- 		if (reg & CHAN_ENA) {
- 			dev_dbg(&pdev->dev, "Forcibly enabling "
- 				"monitoring (TMS)\n");
++/* multi-finger emulation of non-existing buttons */
++static unsigned int get_button_code(const struct mousedev *mousedev)
++{
++	unsigned int code = BTN_LEFT;
++	if (mousedev->double_tap)
++		code = two_finger_code;
++	if (mousedev->triple_tap)
++		code = three_finger_code;
++	if (test_bit(code, mousedev->handle.dev->keybit))
++		code = BTN_LEFT;
++	return code;
++}
++
+ static void mousedev_key_event(struct mousedev *mousedev,
+ 				unsigned int code, int value)
+ {
+ 	int index;
+ 
++	if (code == BTN_TOOL_DOUBLETAP)
++		mousedev->double_tap = value;
++	if (code == BTN_TOOL_TRIPLETAP)
++		mousedev->triple_tap = value;
++	if (code == BTN_LEFT)
++		code = get_button_code(mousedev);
++
+ 	switch (code) {
+ 
+ 	case BTN_TOUCH:
+@@ -327,6 +356,8 @@ static void mousedev_touchpad_touch(stru
+ {
+ 	if (!value) {
+ 		if (mousedev->touch &&
++		    !mousedev->double_tap &&
++		    !mousedev->triple_tap &&
+ 		    abs(mousedev->touch_dx) < tap_move &&
+ 		    abs(mousedev->touch_dy) < tap_move &&
+ 		    time_before(jiffies,
 _
 
-Patches currently in -mm which might be from jim.cromie@gmail.com are
+Patches currently in -mm which might be from rydberg@euromail.se are
 
-hwmon-pc87360-separate-alarm-files-define-some-constants.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-define-ldni_max-const.patch
-hwmon-pc87360-separate-alarm-files-add-dev_dbg-help.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
+origin.patch
+input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
+input-mousedev-emulate-right-and-middle-buttons-for-single-button-touchpads.patch
 
