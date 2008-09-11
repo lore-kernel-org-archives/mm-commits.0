@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-fix-probable-race-with-put_css_set-and-find_css_set-cgroups-eliminate-race-in-css_set-refcounting.patch added to -mm tree
-Date: Wed, 10 Sep 2008 19:23:00 -0700
-Message-ID: <200809110223.m8B2N0U2006214@imap1.linux-foundation.org>
+Subject: + pxa2xx_spi-chipselect-bugfixes.patch added to -mm tree
+Date: Wed, 10 Sep 2008 19:25:19 -0700
+Message-ID: <200809110225.m8B2PJ1w006341@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48673 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39966 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751761AbYIKCXX (ORCPT
+	by vger.kernel.org with ESMTP id S1751713AbYIKCZ2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Sep 2008 22:23:23 -0400
+	Wed, 10 Sep 2008 22:25:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, laijs@cn.fujitsu.com
+Cc: nforrester@whoi.edu, dbrownell@users.sourceforge.net, eric.y.miao@gmail.com, vernoninhand@gmail.com
 
 
 The patch titled
-     cgroups: eliminate race in css_set refcounting
+     pxa2xx_spi: chipselect bugfixes
 has been added to the -mm tree.  Its filename is
-     cgroups-fix-probable-race-with-put_css_set-and-find_css_set-cgroups-eliminate-race-in-css_set-refcounting.patch
+     pxa2xx_spi-chipselect-bugfixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,209 +34,165 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: eliminate race in css_set refcounting
-From: Paul Menage <menage@google.com>
+Subject: pxa2xx_spi: chipselect bugfixes
+From: Ned Forrester <nforrester@whoi.edu>
 
-Eliminate race in css_set refcounting
+Fixes several chipselect bugs in the pxa2xx_spi driver.  These bugs are in
+all versions of this driver and prevent using it with chips like m25p16
+flash.
 
-This patch replaces the use of krefs in struct css_set with a plain
-atomic_t, and ensures that the reference count of a css_set never hits
-zero outside of a write_lock(&css_set_lock) critical section
+ 1. The spi_transfer.cs_change flag is handled too early:
+    before spi_transfer.delay_usecs applies, thus making the
+    delay ineffective at holding chip select.
 
-This prevents a race between find_css_set() and put_css_set*() where
-the reference count can hit zero when the css_set object is still
-accessible to readers of the hash table.
+ 2. spi_transfer.delay_usecs is ignored on the last transfer
+    of a message (likewise not holding chipselect long enough).
 
-Signed-off-by: Paul Menage <menage@google.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+ 3. If spi_transfer.cs_change is set on the last transfer, the
+    chip select is always disabled, instead of the intended
+    meaning: optionally holding chip select enabled for the
+    next message.
+
+Those first three bugs were fixed with a relocation of delays
+and chip select de-assertions.
+
+ 4. If a message has the cs_change flag set on the last transfer,
+    and had the chip select stayed enabled as requested (see 3,
+    above), it would not have been disabled if the next message is
+    for a different chip.  Fixed by dropping chip select regardless
+    of cs_change at end of a message, if there is no next message
+    or if the next message is for a different chip.
+
+This patch should apply to all kernels back to and including 2.6.20;
+it was test patched against 2.6.20.  An additional patch would be
+required for older kernels, but those versions are very buggy anyway.
+
+Signed-off-by: Ned Forrester <nforrester@whoi.edu>
+Cc: Vernon Sauder <vernoninhand@gmail.com>
+Cc: Eric Miao <eric.y.miao@gmail.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |    3 --
- kernel/cgroup.c        |   51 +++++++++++----------------------------
- kernel/cgroup_debug.c  |    4 +--
- 3 files changed, 18 insertions(+), 40 deletions(-)
+ drivers/spi/pxa2xx_spi.c |   59 ++++++++++++++++++++++++++++++-------
+ 1 file changed, 48 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroups-fix-probable-race-with-put_css_set-and-find_css_set-cgroups-eliminate-race-in-css_set-refcounting include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroups-fix-probable-race-with-put_css_set-and-find_css_set-cgroups-eliminate-race-in-css_set-refcounting
-+++ a/include/linux/cgroup.h
-@@ -9,7 +9,6 @@
-  */
+diff -puN drivers/spi/pxa2xx_spi.c~pxa2xx_spi-chipselect-bugfixes drivers/spi/pxa2xx_spi.c
+--- a/drivers/spi/pxa2xx_spi.c~pxa2xx_spi-chipselect-bugfixes
++++ a/drivers/spi/pxa2xx_spi.c
+@@ -144,7 +144,6 @@ struct driver_data {
+ 	size_t tx_map_len;
+ 	u8 n_bytes;
+ 	u32 dma_width;
+-	int cs_change;
+ 	int (*write)(struct driver_data *drv_data);
+ 	int (*read)(struct driver_data *drv_data);
+ 	irqreturn_t (*transfer_handler)(struct driver_data *drv_data);
+@@ -406,8 +405,45 @@ static void giveback(struct driver_data 
+ 					struct spi_transfer,
+ 					transfer_list);
  
- #include <linux/sched.h>
--#include <linux/kref.h>
- #include <linux/cpumask.h>
- #include <linux/nodemask.h>
- #include <linux/rcupdate.h>
-@@ -149,7 +148,7 @@ struct cgroup {
- struct css_set {
- 
- 	/* Reference count */
--	struct kref ref;
-+	atomic_t refcount;
- 
- 	/*
- 	 * List running through all cgroup groups in the same hash
-diff -puN kernel/cgroup.c~cgroups-fix-probable-race-with-put_css_set-and-find_css_set-cgroups-eliminate-race-in-css_set-refcounting kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-fix-probable-race-with-put_css_set-and-find_css_set-cgroups-eliminate-race-in-css_set-refcounting
-+++ a/kernel/cgroup.c
-@@ -252,14 +252,18 @@ static void unlink_css_set(struct css_se
- 	}
- }
- 
--static void __release_css_set(struct kref *k, int taskexit)
-+static void __put_css_set(struct css_set *cg, int taskexit)
- {
- 	int i;
--	struct css_set *cg = container_of(k, struct css_set, ref);
--
-+	/*
-+	 * Ensure that the refcount doesn't hit zero while any readers
-+	 * can see it. Similar to atomic_dec_and_lock(), but for an
-+	 * rwlock
++	/* Delay if requested before any change in chip select */
++	if (last_transfer->delay_usecs)
++		udelay(last_transfer->delay_usecs);
++
++	/* Drop chip select UNLESS cs_change is true or we are returning
++	 * a message with an error, or next message is for another chip
 +	 */
-+	if (atomic_add_unless(&cg->refcount, -1, 1))
-+		return;
- 	write_lock(&css_set_lock);
--	if (atomic_read(&k->refcount) > 0) {
--		/* See find_css_set()'s read_lock()ed section */
-+	if (!atomic_dec_and_test(&cg->refcount)) {
- 		write_unlock(&css_set_lock);
+ 	if (!last_transfer->cs_change)
+ 		drv_data->cs_control(PXA2XX_CS_DEASSERT);
++	else {
++		struct spi_message *next_msg;
++
++		/* Holding of cs was hinted, but we need to make sure
++		 * the next message is for the same chip.  Don't waste
++		 * time with the following tests unless this was hinted.
++		 *
++		 * We cannot postpone this until pump_messages, because
++		 * after calling msg->complete (below) the driver that
++		 * sent the current message could be unloaded, which
++		 * could invalidate the cs_control() callback...
++		 */
++
++		/* get a pointer to the next message, if any */
++		spin_lock_irqsave(&drv_data->lock, flags);
++		if (list_empty(&drv_data->queue))
++			next_msg = NULL;
++		else
++			next_msg = list_entry(drv_data->queue.next,
++					struct spi_message, queue);
++		spin_unlock_irqrestore(&drv_data->lock, flags);
++
++		/* see if the next and current messages point
++		 * to the same chip
++		 */
++		if (next_msg && next_msg->spi != msg->spi)
++			next_msg = NULL;
++		if (!next_msg || msg->state == ERROR_STATE)
++			drv_data->cs_control(PXA2XX_CS_DEASSERT);
++	}
+ 
+ 	msg->state = NULL;
+ 	if (msg->complete)
+@@ -490,10 +526,9 @@ static void dma_transfer_complete(struct
+ 	msg->actual_length += drv_data->len -
+ 				(drv_data->rx_end - drv_data->rx);
+ 
+-	/* Release chip select if requested, transfer delays are
+-	 * handled in pump_transfers */
+-	if (drv_data->cs_change)
+-		drv_data->cs_control(PXA2XX_CS_DEASSERT);
++	/* Transfer delays and chip select release are
++	 * handled in pump_transfers or giveback
++	 */
+ 
+ 	/* Move to next transfer */
+ 	msg->state = next_transfer(drv_data);
+@@ -602,10 +637,9 @@ static void int_transfer_complete(struct
+ 	drv_data->cur_msg->actual_length += drv_data->len -
+ 				(drv_data->rx_end - drv_data->rx);
+ 
+-	/* Release chip select if requested, transfer delays are
+-	 * handled in pump_transfers */
+-	if (drv_data->cs_change)
+-		drv_data->cs_control(PXA2XX_CS_DEASSERT);
++	/* Transfer delays and chip select release are
++	 * handled in pump_transfers or giveback
++	 */
+ 
+ 	/* Move to next transfer */
+ 	drv_data->cur_msg->state = next_transfer(drv_data);
+@@ -840,13 +874,17 @@ static void pump_transfers(unsigned long
  		return;
  	}
-@@ -280,32 +284,22 @@ static void __release_css_set(struct kre
- 	kfree(cg);
- }
  
--static void release_css_set(struct kref *k)
--{
--	__release_css_set(k, 0);
--}
--
--static void release_css_set_taskexit(struct kref *k)
--{
--	__release_css_set(k, 1);
--}
--
- /*
-  * refcounted get/put for css_set objects
-  */
- static inline void get_css_set(struct css_set *cg)
- {
--	kref_get(&cg->ref);
-+	atomic_inc(&cg->refcount);
- }
- 
- static inline void put_css_set(struct css_set *cg)
- {
--	kref_put(&cg->ref, release_css_set);
-+	__put_css_set(cg, 0);
- }
- 
- static inline void put_css_set_taskexit(struct css_set *cg)
- {
--	kref_put(&cg->ref, release_css_set_taskexit);
-+	__put_css_set(cg, 1);
- }
- 
- /*
-@@ -414,20 +408,6 @@ static struct css_set *find_css_set(
- 	 * the desired set */
- 	read_lock(&css_set_lock);
- 	res = find_existing_css_set(oldcg, cgrp, template);
--	/*
--	 * put_css_set[_taskexit]() may race with find_css_set(), in that
--	 * find_css_set() got the css_set after put_css_set() had released it.
--	 *
--	 * We should put the whole put_css_set[_taskexit]() into css_set_lock's
--	 * write_lock critical setion to avoid this race. But it will increase
--	 * overhead for do_exit().
--	 *
--	 * So we do not avoid this race but put it under control:
--	 * __release_css_set() will re-check the refcount
--	 * with css_set_lock held.
--	 *
--	 * This race may trigger the warning in kref_get().
--	 */
- 	if (res)
- 		get_css_set(res);
- 	read_unlock(&css_set_lock);
-@@ -445,7 +425,7 @@ static struct css_set *find_css_set(
- 		return NULL;
+-	/* Delay if requested at end of transfer*/
++	/* Delay if requested at end of transfer before CS change */
+ 	if (message->state == RUNNING_STATE) {
+ 		previous = list_entry(transfer->transfer_list.prev,
+ 					struct spi_transfer,
+ 					transfer_list);
+ 		if (previous->delay_usecs)
+ 			udelay(previous->delay_usecs);
++
++		/* Drop chip select only if cs_change is requested */
++		if (previous->cs_change)
++			drv_data->cs_control(PXA2XX_CS_DEASSERT);
  	}
  
--	kref_init(&res->ref);
-+	atomic_set(&res->refcount, 1);
- 	INIT_LIST_HEAD(&res->cg_links);
- 	INIT_LIST_HEAD(&res->tasks);
- 	INIT_HLIST_NODE(&res->hlist);
-@@ -1749,7 +1729,7 @@ int cgroup_task_count(const struct cgrou
+ 	/* Check transfer length */
+@@ -878,7 +916,6 @@ static void pump_transfers(unsigned long
+ 	drv_data->len = transfer->len & DCMD_LENGTH;
+ 	drv_data->write = drv_data->tx ? chip->write : null_writer;
+ 	drv_data->read = drv_data->rx ? chip->read : null_reader;
+-	drv_data->cs_change = transfer->cs_change;
  
- 	read_lock(&css_set_lock);
- 	list_for_each_entry(link, &cgrp->css_sets, cgrp_link_list) {
--		count += atomic_read(&link->cg->ref.refcount);
-+		count += atomic_read(&link->cg->refcount);
- 	}
- 	read_unlock(&css_set_lock);
- 	return count;
-@@ -2516,8 +2496,7 @@ static void __init cgroup_init_subsys(st
- int __init cgroup_init_early(void)
- {
- 	int i;
--	kref_init(&init_css_set.ref);
--	kref_get(&init_css_set.ref);
-+	atomic_set(&init_css_set.refcount, 1);
- 	INIT_LIST_HEAD(&init_css_set.cg_links);
- 	INIT_LIST_HEAD(&init_css_set.tasks);
- 	INIT_HLIST_NODE(&init_css_set.hlist);
-diff -puN kernel/cgroup_debug.c~cgroups-fix-probable-race-with-put_css_set-and-find_css_set-cgroups-eliminate-race-in-css_set-refcounting kernel/cgroup_debug.c
---- a/kernel/cgroup_debug.c~cgroups-fix-probable-race-with-put_css_set-and-find_css_set-cgroups-eliminate-race-in-css_set-refcounting
-+++ a/kernel/cgroup_debug.c
-@@ -57,7 +57,7 @@ static u64 current_css_set_refcount_read
- 	u64 count;
- 
- 	rcu_read_lock();
--	count = atomic_read(&current->cgroups->ref.refcount);
-+	count = atomic_read(&current->cgroups->refcount);
- 	rcu_read_unlock();
- 	return count;
- }
-@@ -90,7 +90,7 @@ static struct cftype files[] =  {
- 	{
- 		.name = "releasable",
- 		.read_u64 = releasable_read,
--	}
-+	},
- };
- 
- static int debug_populate(struct cgroup_subsys *ss, struct cgroup *cont)
+ 	/* Change speed and bit per word on a per transfer */
+ 	cr0 = chip->cr0;
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from nforrester@whoi.edu are
 
-origin.patch
-cpuset-avoid-changing-cpusets-cpus-when-errno-returned.patch
-cpuset-hotplug-documentation-fix.patch
-linux-next.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-mm-owner-fix-race-between-swap-and-exit-fix-fix.patch
-container-freezer-document-the-cgroup-freezer-subsystem.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-cgroups-eliminate-race-in-css_set-refcounting.patch
-cgroups-convert-tasks-file-to-use-a-seq_file-with-shared-pid-array.patch
-devcgroup-use-kmemdup.patch
-devcgroup-remove-unused-variable.patch
-devcgroup-remove-spin_lock.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-add-a-refcount-check-in-dput.patch
+pxa2xx_spi-chipselect-bugfixes.patch
+pxa2xx_spi-dma-bugfixes.patch
 
