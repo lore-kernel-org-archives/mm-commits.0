@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + memstick-fix-msprohg-8-bit-interface-mode-support.patch added to -mm tree
-Date: Wed, 10 Sep 2008 17:41:33 -0700
-Message-ID: <200809110041.m8B0fXlX002668@imap1.linux-foundation.org>
+Subject: + linux-next-fixups.patch added to -mm tree
+Date: Wed, 10 Sep 2008 17:44:57 -0700
+Message-ID: <200809110044.m8B0ivRg002815@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49621 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57157 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752370AbYIKAlg (ORCPT
+	by vger.kernel.org with ESMTP id S1752067AbYIKApA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Sep 2008 20:41:36 -0400
+	Wed, 10 Sep 2008 20:45:00 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m8B0iwlZ012811
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 10 Sep 2008 17:44:59 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oakad@yahoo.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     From: oakad@exemail.com.au
+     linux-next-fixups
 has been added to the -mm tree.  Its filename is
-     memstick-fix-msprohg-8-bit-interface-mode-support.patch
+     linux-next-fixups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,481 +38,152 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: oakad@exemail.com.au
-From: Alex Dubov <oakad@yahoo.com>
+Subject: linux-next-fixups
+From: Andrew Morton <akpm@linux-foundation.org>
 
-
-* Fix support of 8-bit interface mode
-* Make driver to fallback to highest supported mode instead of always
-  falling back to serial
-* Edit some macros for better conformance to Sony documentation
-
-Signed-off-by: Alex Dubov <oakad@yahoo.com>
----
-
-index a380050..cea4690 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/memstick.c    |   10 +-
- drivers/memstick/core/mspro_block.c |   33 ++++++--
- drivers/memstick/host/jmb38x_ms.c   |   39 +++++++---
- include/linux/memstick.h            |   97 +++++++++++++-------------
- 4 files changed, 106 insertions(+), 73 deletions(-)
+ drivers/memstick/core/mspro_block.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/memstick/core/memstick.c~memstick-fix-msprohg-8-bit-interface-mode-support drivers/memstick/core/memstick.c
---- a/drivers/memstick/core/memstick.c~memstick-fix-msprohg-8-bit-interface-mode-support
-+++ a/drivers/memstick/core/memstick.c
-@@ -185,7 +185,7 @@ static void memstick_free(struct device 
- }
- 
- static struct class memstick_host_class = {
--	.name       = "memstick_host",
-+	.name        = "memstick_host",
- 	.dev_release = memstick_free
- };
- 
-@@ -264,7 +264,7 @@ EXPORT_SYMBOL(memstick_new_req);
-  * @sg - TPC argument
-  */
- void memstick_init_req_sg(struct memstick_request *mrq, unsigned char tpc,
--			  struct scatterlist *sg)
-+			  const struct scatterlist *sg)
- {
- 	mrq->tpc = tpc;
- 	if (tpc & 8)
-@@ -294,7 +294,7 @@ EXPORT_SYMBOL(memstick_init_req_sg);
-  * user supplied buffer.
-  */
- void memstick_init_req(struct memstick_request *mrq, unsigned char tpc,
--		       void *buf, size_t length)
-+		       const void *buf, size_t length)
- {
- 	mrq->tpc = tpc;
- 	if (tpc & 8)
-@@ -439,7 +439,7 @@ static void memstick_check(struct work_s
- 	if (!host->card) {
- 		if (memstick_power_on(host))
- 			goto out_power_off;
--	} else
-+	} else if (host->card->stop)
- 		host->card->stop(host->card);
- 
- 	card = memstick_alloc_card(host);
-@@ -458,7 +458,7 @@ static void memstick_check(struct work_s
- 			    || !(host->card->check(host->card))) {
- 				device_unregister(&host->card->dev);
- 				host->card = NULL;
--			} else
-+			} else if (host->card->start)
- 				host->card->start(host->card);
- 		}
- 
-diff -puN drivers/memstick/core/mspro_block.c~memstick-fix-msprohg-8-bit-interface-mode-support drivers/memstick/core/mspro_block.c
---- a/drivers/memstick/core/mspro_block.c~memstick-fix-msprohg-8-bit-interface-mode-support
+diff -puN drivers/memstick/core/mspro_block.c~linux-next-fixups drivers/memstick/core/mspro_block.c
+--- a/drivers/memstick/core/mspro_block.c~linux-next-fixups
 +++ a/drivers/memstick/core/mspro_block.c
-@@ -30,6 +30,8 @@ module_param(major, int, 0644);
- #define MSPRO_BLOCK_SIGNATURE        0xa5c3
- #define MSPRO_BLOCK_MAX_ATTRIBUTES   41
- 
-+#define MSPRO_BLOCK_PART_SHIFT 3
-+
- enum {
- 	MSPRO_BLOCK_ID_SYSINFO         = 0x10,
- 	MSPRO_BLOCK_ID_MODELNAME       = 0x15,
-@@ -195,7 +197,7 @@ static int mspro_block_bd_open(struct in
+@@ -197,7 +197,7 @@ static int mspro_block_bd_open(struct in
  static int mspro_block_disk_release(struct gendisk *disk)
  {
  	struct mspro_block_data *msb = disk->private_data;
--	int disk_id = disk->first_minor >> MEMSTICK_PART_SHIFT;
-+	int disk_id = disk->first_minor >> MSPRO_BLOCK_PART_SHIFT;
+-	int disk_id = disk->first_minor >> MSPRO_BLOCK_PART_SHIFT;
++	int disk_id = MINOR(disk_devt(disk)) >> MSPRO_BLOCK_PART_SHIFT;
  
  	mutex_lock(&mspro_block_disk_lock);
  
-@@ -877,6 +879,7 @@ static int mspro_block_switch_interface(
- 	struct mspro_block_data *msb = memstick_get_drvdata(card);
- 	int rc = 0;
- 
-+try_again:
- 	if (msb->caps & MEMSTICK_CAP_PAR4)
- 		rc = mspro_block_set_interface(card, MEMSTICK_SYS_PAR4);
- 	else
-@@ -930,6 +933,18 @@ static int mspro_block_switch_interface(
- 		rc = memstick_set_rw_addr(card);
- 		if (!rc)
- 			rc = mspro_block_set_interface(card, msb->system);
-+
-+		if (!rc) {
-+			msleep(150);
-+			rc = mspro_block_wait_for_ced(card);
-+			if (rc)
-+				return rc;
-+
-+			if (msb->caps & MEMSTICK_CAP_PAR8) {
-+				msb->caps &= ~MEMSTICK_CAP_PAR8;
-+				goto try_again;
-+			}
-+		}
- 	}
- 	return rc;
- }
-@@ -1117,14 +1132,16 @@ static int mspro_block_init_card(struct 
- 		return -EIO;
- 
- 	msb->caps = host->caps;
--	rc = mspro_block_switch_interface(card);
-+
-+	msleep(150);
-+	rc = mspro_block_wait_for_ced(card);
- 	if (rc)
- 		return rc;
- 
--	msleep(200);
--	rc = mspro_block_wait_for_ced(card);
-+	rc = mspro_block_switch_interface(card);
- 	if (rc)
- 		return rc;
-+
- 	dev_dbg(&card->dev, "card activated\n");
- 	if (msb->system != MEMSTICK_SYS_SERIAL)
- 		msb->caps |= MEMSTICK_CAP_AUTO_GET_INT;
-@@ -1192,12 +1209,12 @@ static int mspro_block_init_disk(struct 
- 	if (rc)
- 		return rc;
- 
--	if ((disk_id << MEMSTICK_PART_SHIFT) > 255) {
-+	if ((disk_id << MSPRO_BLOCK_PART_SHIFT) > 255) {
- 		rc = -ENOSPC;
- 		goto out_release_id;
- 	}
- 
--	msb->disk = alloc_disk(1 << MEMSTICK_PART_SHIFT);
-+	msb->disk = alloc_disk(1 << MSPRO_BLOCK_PART_SHIFT);
- 	if (!msb->disk) {
- 		rc = -ENOMEM;
- 		goto out_release_id;
-@@ -1220,7 +1237,7 @@ static int mspro_block_init_disk(struct 
- 				   MSPRO_BLOCK_MAX_PAGES * msb->page_size);
- 
- 	msb->disk->major = major;
--	msb->disk->first_minor = disk_id << MEMSTICK_PART_SHIFT;
-+	msb->disk->first_minor = disk_id << MSPRO_BLOCK_PART_SHIFT;
- 	msb->disk->fops = &ms_block_bdops;
- 	msb->usage_count = 1;
- 	msb->disk->private_data = msb;
-@@ -1416,7 +1433,7 @@ out_unlock:
- 
- static struct memstick_device_id mspro_block_id_tbl[] = {
- 	{MEMSTICK_MATCH_ALL, MEMSTICK_TYPE_PRO, MEMSTICK_CATEGORY_STORAGE_DUO,
--	 MEMSTICK_CLASS_GENERIC_DUO},
-+	 MEMSTICK_CLASS_DUO},
- 	{}
- };
- 
-diff -puN drivers/memstick/host/jmb38x_ms.c~memstick-fix-msprohg-8-bit-interface-mode-support drivers/memstick/host/jmb38x_ms.c
---- a/drivers/memstick/host/jmb38x_ms.c~memstick-fix-msprohg-8-bit-interface-mode-support
-+++ a/drivers/memstick/host/jmb38x_ms.c
-@@ -81,6 +81,8 @@ struct jmb38x_ms {
- #define TPC_CODE_SZ_MASK       0x00000700
- #define TPC_DATA_SZ_MASK       0x00000007
- 
-+#define HOST_CONTROL_TDELAY_EN 0x00040000
-+#define HOST_CONTROL_HW_OC_P   0x00010000
- #define HOST_CONTROL_RESET_REQ 0x00008000
- #define HOST_CONTROL_REI       0x00004000
- #define HOST_CONTROL_LED       0x00000400
-@@ -88,6 +90,7 @@ struct jmb38x_ms {
- #define HOST_CONTROL_RESET     0x00000100
- #define HOST_CONTROL_POWER_EN  0x00000080
- #define HOST_CONTROL_CLOCK_EN  0x00000040
-+#define HOST_CONTROL_REO       0x00000008
- #define HOST_CONTROL_IF_SHIFT  4
- 
- #define HOST_CONTROL_IF_SERIAL 0x0
-@@ -133,11 +136,15 @@ struct jmb38x_ms {
- #define PAD_PU_PD_ON_MS_SOCK1 0x0f0f0000
- 
- #define CLOCK_CONTROL_40MHZ   0x00000001
--#define CLOCK_CONTROL_50MHZ   0x00000002
-+#define CLOCK_CONTROL_50MHZ   0x0000000a
- #define CLOCK_CONTROL_60MHZ   0x00000008
- #define CLOCK_CONTROL_62_5MHZ 0x0000000c
- #define CLOCK_CONTROL_OFF     0x00000000
- 
-+#define PCI_CTL_CLOCK_DLY_ADDR   0x000000b0
-+#define PCI_CTL_CLOCK_DLY_MASK_A 0x00000f00
-+#define PCI_CTL_CLOCK_DLY_MASK_B 0x0000f000
-+
- enum {
- 	CMD_READY    = 0x01,
- 	FIFO_READY   = 0x02,
-@@ -367,8 +374,7 @@ static int jmb38x_ms_issue_cmd(struct me
- 		return host->req->error;
- 	}
- 
--	dev_dbg(&msh->dev, "control %08x\n",
--		readl(host->addr + HOST_CONTROL));
-+	dev_dbg(&msh->dev, "control %08x\n", readl(host->addr + HOST_CONTROL));
- 	dev_dbg(&msh->dev, "status %08x\n", readl(host->addr + INT_STATUS));
- 	dev_dbg(&msh->dev, "hstatus %08x\n", readl(host->addr + STATUS));
- 
-@@ -637,7 +643,7 @@ static int jmb38x_ms_reset(struct jmb38x
- 		ndelay(20);
- 	}
- 	dev_dbg(&host->chip->pdev->dev, "reset_req timeout\n");
--	return -EIO;
-+	/* return -EIO; */
- 
- reset_next:
- 	writel(HOST_CONTROL_RESET | HOST_CONTROL_CLOCK_EN
-@@ -680,7 +686,9 @@ static int jmb38x_ms_set_param(struct me
- 
- 			host_ctl = 7;
- 			host_ctl |= HOST_CONTROL_POWER_EN
--				 | HOST_CONTROL_CLOCK_EN;
-+				    | HOST_CONTROL_CLOCK_EN
-+				    | HOST_CONTROL_HW_OC_P
-+				    | HOST_CONTROL_TDELAY_EN;
- 			writel(host_ctl, host->addr + HOST_CONTROL);
- 
- 			writel(host->id ? PAD_PU_PD_ON_MS_SOCK1
-@@ -704,33 +712,40 @@ static int jmb38x_ms_set_param(struct me
- 		break;
- 	case MEMSTICK_INTERFACE:
- 		host_ctl &= ~(3 << HOST_CONTROL_IF_SHIFT);
-+		pci_read_config_dword(host->chip->pdev,
-+				      PCI_CTL_CLOCK_DLY_ADDR,
-+				      &clock_delay);
-+		clock_delay &= host->id ? ~PCI_CTL_CLOCK_DLY_MASK_B
-+					: ~PCI_CTL_CLOCK_DLY_MASK_A;
- 
- 		if (value == MEMSTICK_SERIAL) {
- 			host_ctl &= ~HOST_CONTROL_FAST_CLK;
-+			host_ctl &= ~HOST_CONTROL_REO;
- 			host_ctl |= HOST_CONTROL_IF_SERIAL
- 				    << HOST_CONTROL_IF_SHIFT;
- 			host_ctl |= HOST_CONTROL_REI;
- 			clock_ctl = CLOCK_CONTROL_40MHZ;
--			clock_delay = 0;
- 		} else if (value == MEMSTICK_PAR4) {
--			host_ctl |= HOST_CONTROL_FAST_CLK;
-+			host_ctl |= HOST_CONTROL_FAST_CLK | HOST_CONTROL_REO;
- 			host_ctl |= HOST_CONTROL_IF_PAR4
- 				    << HOST_CONTROL_IF_SHIFT;
- 			host_ctl &= ~HOST_CONTROL_REI;
- 			clock_ctl = CLOCK_CONTROL_40MHZ;
--			clock_delay = 4;
-+			clock_delay |= host->id ? (4 << 12) : (4 << 8);
- 		} else if (value == MEMSTICK_PAR8) {
- 			host_ctl |= HOST_CONTROL_FAST_CLK;
- 			host_ctl |= HOST_CONTROL_IF_PAR8
- 				    << HOST_CONTROL_IF_SHIFT;
--			host_ctl &= ~HOST_CONTROL_REI;
--			clock_ctl = CLOCK_CONTROL_60MHZ;
--			clock_delay = 0;
-+			host_ctl &= ~(HOST_CONTROL_REI | HOST_CONTROL_REO);
-+			clock_ctl = CLOCK_CONTROL_50MHZ;
- 		} else
- 			return -EINVAL;
-+
- 		writel(host_ctl, host->addr + HOST_CONTROL);
- 		writel(clock_ctl, host->addr + CLOCK_CONTROL);
--		writel(clock_delay, host->addr + CLOCK_DELAY);
-+		pci_write_config_dword(host->chip->pdev,
-+				       PCI_CTL_CLOCK_DLY_ADDR,
-+				       clock_delay);
- 		break;
- 	};
- 	return 0;
-diff -puN include/linux/memstick.h~memstick-fix-msprohg-8-bit-interface-mode-support include/linux/memstick.h
---- a/include/linux/memstick.h~memstick-fix-msprohg-8-bit-interface-mode-support
-+++ a/include/linux/memstick.h
-@@ -21,30 +21,30 @@
- struct ms_status_register {
- 	unsigned char reserved;
- 	unsigned char interrupt;
--#define MEMSTICK_INT_CMDNAK             0x0001
--#define MEMSTICK_INT_IOREQ              0x0008
--#define MEMSTICK_INT_IOBREQ             0x0010
--#define MEMSTICK_INT_BREQ               0x0020
--#define MEMSTICK_INT_ERR                0x0040
--#define MEMSTICK_INT_CED                0x0080
-+#define MEMSTICK_INT_CMDNAK 0x01
-+#define MEMSTICK_INT_IOREQ  0x08
-+#define MEMSTICK_INT_IOBREQ 0x10
-+#define MEMSTICK_INT_BREQ   0x20
-+#define MEMSTICK_INT_ERR    0x40
-+#define MEMSTICK_INT_CED    0x80
- 
- 	unsigned char status0;
--#define MEMSTICK_STATUS0_WP             0x0001
--#define MEMSTICK_STATUS0_SL             0x0002
--#define MEMSTICK_STATUS0_BF             0x0010
--#define MEMSTICK_STATUS0_BE             0x0020
--#define MEMSTICK_STATUS0_FB0            0x0040
--#define MEMSTICK_STATUS0_MB             0x0080
-+#define MEMSTICK_STATUS0_WP  0x01
-+#define MEMSTICK_STATUS0_SL  0x02
-+#define MEMSTICK_STATUS0_BF  0x10
-+#define MEMSTICK_STATUS0_BE  0x20
-+#define MEMSTICK_STATUS0_FB0 0x40
-+#define MEMSTICK_STATUS0_MB  0x80
- 
- 	unsigned char status1;
--#define MEMSTICK_STATUS1_UCFG           0x0001
--#define MEMSTICK_STATUS1_FGER           0x0002
--#define MEMSTICK_STATUS1_UCEX           0x0004
--#define MEMSTICK_STATUS1_EXER           0x0008
--#define MEMSTICK_STATUS1_UCDT           0x0010
--#define MEMSTICK_STATUS1_DTER           0x0020
--#define MEMSTICK_STATUS1_FBI            0x0040
--#define MEMSTICK_STATUS1_MB             0x0080
-+#define MEMSTICK_STATUS1_UCFG 0x01
-+#define MEMSTICK_STATUS1_FGER 0x02
-+#define MEMSTICK_STATUS1_UCEX 0x04
-+#define MEMSTICK_STATUS1_EXER 0x08
-+#define MEMSTICK_STATUS1_UCDT 0x10
-+#define MEMSTICK_STATUS1_DTER 0x20
-+#define MEMSTICK_STATUS1_FB1  0x40
-+#define MEMSTICK_STATUS1_MB   0x80
- } __attribute__((packed));
- 
- struct ms_id_register {
-@@ -56,32 +56,32 @@ struct ms_id_register {
- 
- struct ms_param_register {
- 	unsigned char system;
--#define MEMSTICK_SYS_ATEN 0xc0
--#define MEMSTICK_SYS_BAMD 0x80
- #define MEMSTICK_SYS_PAM  0x08
-+#define MEMSTICK_SYS_BAMD 0x80
- 
- 	unsigned char block_address_msb;
- 	unsigned short block_address;
- 	unsigned char cp;
--#define MEMSTICK_CP_BLOCK               0x0000
--#define MEMSTICK_CP_PAGE                0x0020
--#define MEMSTICK_CP_EXTRA               0x0040
--#define MEMSTICK_CP_OVERWRITE           0x0080
-+#define MEMSTICK_CP_BLOCK     0x00
-+#define MEMSTICK_CP_PAGE      0x20
-+#define MEMSTICK_CP_EXTRA     0x40
-+#define MEMSTICK_CP_OVERWRITE 0x80
- 
- 	unsigned char page_address;
- } __attribute__((packed));
- 
- struct ms_extra_data_register {
- 	unsigned char  overwrite_flag;
--#define MEMSTICK_OVERWRITE_UPDATA       0x0010
--#define MEMSTICK_OVERWRITE_PAGE         0x0060
--#define MEMSTICK_OVERWRITE_BLOCK        0x0080
-+#define MEMSTICK_OVERWRITE_UDST  0x10
-+#define MEMSTICK_OVERWRITE_PGST1 0x20
-+#define MEMSTICK_OVERWRITE_PGST0 0x40
-+#define MEMSTICK_OVERWRITE_BKST  0x80
- 
- 	unsigned char  management_flag;
--#define MEMSTICK_MANAGEMENT_SYSTEM      0x0004
--#define MEMSTICK_MANAGEMENT_TRANS_TABLE 0x0008
--#define MEMSTICK_MANAGEMENT_COPY        0x0010
--#define MEMSTICK_MANAGEMENT_ACCESS      0x0020
-+#define MEMSTICK_MANAGEMENT_SYSFLG 0x04
-+#define MEMSTICK_MANAGEMENT_ATFLG  0x08
-+#define MEMSTICK_MANAGEMENT_SCMS1  0x10
-+#define MEMSTICK_MANAGEMENT_SCMS0  0x20
- 
- 	unsigned short logical_address;
- } __attribute__((packed));
-@@ -96,9 +96,9 @@ struct ms_register {
- 
- struct mspro_param_register {
- 	unsigned char  system;
--#define MEMSTICK_SYS_SERIAL 0x80
- #define MEMSTICK_SYS_PAR4   0x00
- #define MEMSTICK_SYS_PAR8   0x40
-+#define MEMSTICK_SYS_SERIAL 0x80
- 
- 	unsigned short data_count;
- 	unsigned int   data_address;
-@@ -147,7 +147,7 @@ struct ms_register_addr {
- 	unsigned char w_length;
- } __attribute__((packed));
- 
--enum {
-+enum memstick_tpc {
- 	MS_TPC_READ_MG_STATUS   = 0x01,
- 	MS_TPC_READ_LONG_DATA   = 0x02,
- 	MS_TPC_READ_SHORT_DATA  = 0x03,
-@@ -167,7 +167,7 @@ enum {
- 	MS_TPC_SET_CMD          = 0x0e
- };
- 
--enum {
-+enum memstick_command {
- 	MS_CMD_BLOCK_END       = 0x33,
- 	MS_CMD_RESET           = 0x3c,
- 	MS_CMD_BLOCK_WRITE     = 0x55,
-@@ -201,8 +201,6 @@ enum {
- 
- /*** Driver structures and functions ***/
- 
--#define MEMSTICK_PART_SHIFT 3
--
- enum memstick_param { MEMSTICK_POWER = 1, MEMSTICK_INTERFACE };
- 
- #define MEMSTICK_POWER_OFF 0
-@@ -215,24 +213,27 @@ enum memstick_param { MEMSTICK_POWER = 1
- struct memstick_host;
- struct memstick_driver;
- 
-+struct memstick_device_id {
-+	unsigned char match_flags;
- #define MEMSTICK_MATCH_ALL            0x01
- 
-+	unsigned char type;
- #define MEMSTICK_TYPE_LEGACY          0xff
- #define MEMSTICK_TYPE_DUO             0x00
- #define MEMSTICK_TYPE_PRO             0x01
- 
-+	unsigned char category;
- #define MEMSTICK_CATEGORY_STORAGE     0xff
- #define MEMSTICK_CATEGORY_STORAGE_DUO 0x00
-+#define MEMSTICK_CATEGORY_IO          0x01
-+#define MEMSTICK_CATEGORY_IO_PRO      0x10
- 
--#define MEMSTICK_CLASS_GENERIC        0xff
--#define MEMSTICK_CLASS_GENERIC_DUO    0x00
--
--
--struct memstick_device_id {
--	unsigned char match_flags;
--	unsigned char type;
--	unsigned char category;
- 	unsigned char class;
-+#define MEMSTICK_CLASS_FLASH          0xff
-+#define MEMSTICK_CLASS_DUO            0x00
-+#define MEMSTICK_CLASS_ROM            0x01
-+#define MEMSTICK_CLASS_RO             0x02
-+#define MEMSTICK_CLASS_WP             0x03
- };
- 
- struct memstick_request {
-@@ -319,9 +320,9 @@ void memstick_suspend_host(struct memsti
- void memstick_resume_host(struct memstick_host *host);
- 
- void memstick_init_req_sg(struct memstick_request *mrq, unsigned char tpc,
--			  struct scatterlist *sg);
-+			  const struct scatterlist *sg);
- void memstick_init_req(struct memstick_request *mrq, unsigned char tpc,
--		       void *buf, size_t length);
-+		       const void *buf, size_t length);
- int memstick_next_req(struct memstick_host *host,
- 		      struct memstick_request **mrq);
- void memstick_new_req(struct memstick_host *host);
 _
 
-Patches currently in -mm which might be from oakad@yahoo.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memstick-fix-msprohg-8-bit-interface-mode-support.patch
+origin.patch
+include-linux-ioporth-add-missing-macro-argument-for-devm_release_-family-checkpatch-fixes.patch
+linux-next.patch
+linux-next-fixups.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+security-selinux-include-netlabelh-fix-two-build-errors.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
+toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch
+toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch
+revert-acpi-ec-do-transaction-from-interrupt-context.patch
+acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch
+acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+x86-make-poll_idle-behave-more-like-the-other-idle-methods-checkpatch-fixes.patch
+arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
+fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
+fs-dlm-configc-choose-better-identifiers.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+git-jg-misc.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
+pci-tidy-pme-support-messages-checkpatch-fixes.patch
+arch-s390-kernel-ptracec-fix-build.patch
+sched-clarify-ifdef-tangle.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
+drivers-usb-musb-disable-it-on-superh.patch
+git-xtensa.patch
+modules-remove-stop_machine-during-module-load-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-media-video-cafe_ccicc-needs-mmh.patch
+e1000e-prevent-corruption-of-eeprom-nvm.patch
+drivers-net-mlx4-allocc-needs-mmh.patch
+net-forcedeth-call-restore-mac-addr-in-nv_shutdown-path-v2.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
+fix-a-race-condtion-of-oops_in_progress-fix.patch
+vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
+make-taint-bit-reliable-v3-fix.patch
+compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
+allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
+tty-fix-echo-tab-erase-and-locking-fix.patch
+applicomc-fix-apparently-broken-code-in-do_ac_read.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+w1-be-able-to-manually-add-and-remove-slaves-fix.patch
+gru-driver-minor-updates-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+x86-sysfs-kill-owner-field-from-attribute-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
