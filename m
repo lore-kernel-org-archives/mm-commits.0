@@ -1,91 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: + pxa2xx_spi-minor-cleanup.patch added to -mm tree
-Date: Thu, 11 Sep 2008 14:48:54 -0700
-Message-ID: <200809112148.m8BLmsTb018183@imap1.linux-foundation.org>
+Subject: - audit-fix-nul-handling-in-untrusted-strings.patch removed from -mm tree
+Date: Thu, 11 Sep 2008 15:33:28 -0700
+Message-ID: <200809112233.m8BMXSff019905@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46856 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34370 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753954AbYIKVtP (ORCPT
+	by vger.kernel.org with ESMTP id S1752120AbYIKWdn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Sep 2008 17:49:15 -0400
+	Thu, 11 Sep 2008 18:33:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: g.liakhovetski@pengutronix.de, dbrownell@users.sourceforge.net
+To: mitr@redhat.com, eparis@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pxa2xx_spi: minor cleanup
-has been added to the -mm tree.  Its filename is
-     pxa2xx_spi-minor-cleanup.patch
+     audit: fix NUL handling in untrusted strings
+has been removed from the -mm tree.  Its filename was
+     audit-fix-nul-handling-in-untrusted-strings.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pxa2xx_spi: minor cleanup
-From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+Subject: audit: fix NUL handling in untrusted strings
+From: Miloslav Trmac <mitr@redhat.com>
 
-Minor fixes: remove redundant local variable initialization, fix "can not"
-to what I _think_ is a preferred spelling, output IRQ number if requesting
-it failed.
+audit_string_contains_control() stops checking at the first NUL byte.  If
+audit_string_contains_control() returns FALSE,
+audit_log_n_untrustedstring() submits the complete string - including the
+NUL byte and all following bytes, up to the specified maximum length - to
+audit_log_n_string(), which copies the data unchanged into the audit
+record.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+The audit record can thus contain a NUL byte (and some unchecked data
+after that).  Because the user-space audit daemon treats audit records as
+NUL-terminated strings, an untrusted string that is shorter than the
+specified maximum length effectively terminates the audit record.
+
+This patch modifies audit_log_n_untrustedstring() to only log the data
+before the first NUL byte, if any.
+
+Signed-off-by: Miloslav Trmac <mitr@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/pxa2xx_spi.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/audit.c |   21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
-diff -puN drivers/spi/pxa2xx_spi.c~pxa2xx_spi-minor-cleanup drivers/spi/pxa2xx_spi.c
---- a/drivers/spi/pxa2xx_spi.c~pxa2xx_spi-minor-cleanup
-+++ a/drivers/spi/pxa2xx_spi.c
-@@ -1407,9 +1407,9 @@ static int __init pxa2xx_spi_probe(struc
- 	struct device *dev = &pdev->dev;
- 	struct pxa2xx_spi_master *platform_info;
- 	struct spi_master *master;
--	struct driver_data *drv_data = NULL;
-+	struct driver_data *drv_data;
- 	struct ssp_device *ssp;
--	int status = 0;
-+	int status;
+diff -puN kernel/audit.c~audit-fix-nul-handling-in-untrusted-strings kernel/audit.c
+--- a/kernel/audit.c~audit-fix-nul-handling-in-untrusted-strings
++++ a/kernel/audit.c
+@@ -1362,6 +1362,12 @@ void audit_log_n_string(struct audit_buf
+ 	skb_put(skb, slen + 2);	/* don't include null terminator */
+ }
  
- 	platform_info = dev->platform_data;
- 
-@@ -1422,7 +1422,7 @@ static int __init pxa2xx_spi_probe(struc
- 	/* Allocate master with space for drv_data and null dma buffer */
- 	master = spi_alloc_master(dev, sizeof(struct driver_data) + 16);
- 	if (!master) {
--		dev_err(&pdev->dev, "can not alloc spi_master\n");
-+		dev_err(&pdev->dev, "cannot alloc spi_master\n");
- 		ssp_free(ssp);
- 		return -ENOMEM;
++static inline int
++audit_is_control_character(unsigned char c)
++{
++	return c == '"' || c < 0x21 || c > 0x7E;
++}
++
+ /**
+  * audit_string_contains_control - does a string need to be logged in hex
+  * @string: string to be checked
+@@ -1371,7 +1377,7 @@ int audit_string_contains_control(const 
+ {
+ 	const unsigned char *p;
+ 	for (p = string; p < (const unsigned char *)string + len && *p; p++) {
+-		if (*p == '"' || *p < 0x21 || *p > 0x7e)
++		if (audit_is_control_character(*p))
+ 			return 1;
  	}
-@@ -1458,7 +1458,7 @@ static int __init pxa2xx_spi_probe(struc
+ 	return 0;
+@@ -1394,10 +1400,15 @@ int audit_string_contains_control(const 
+ void audit_log_n_untrustedstring(struct audit_buffer *ab, const char *string,
+ 				 size_t len)
+ {
+-	if (audit_string_contains_control(string, len))
+-		audit_log_n_hex(ab, string, len);
+-	else
+-		audit_log_n_string(ab, string, len);
++	const unsigned char *p;
++
++	for (p = string; p < (const unsigned char *)string + len && *p; p++) {
++		if (audit_is_control_character(*p)) {
++			audit_log_n_hex(ab, string, len);
++			return;
++		}
++	}
++	audit_log_n_string(ab, string, p - (const unsigned char *)string);
+ }
  
- 	status = request_irq(ssp->irq, ssp_int, 0, dev->bus_id, drv_data);
- 	if (status < 0) {
--		dev_err(&pdev->dev, "can not get IRQ\n");
-+		dev_err(&pdev->dev, "cannot get IRQ %d\n", ssp->irq);
- 		goto out_error_master_alloc;
- 	}
- 
+ /**
 _
 
-Patches currently in -mm which might be from g.liakhovetski@pengutronix.de are
+Patches currently in -mm which might be from mitr@redhat.com are
 
-pxa2xx_spi-minor-cleanup.patch
-gpio-max7301-fix-the-race-between-chip-addition-and-pins-reconfiguration.patch
+audit-fix-nul-handling-in-untrusted-strings.patch
+audit-handle-embedded-nul-in-tty-input-auditing.patch
 
