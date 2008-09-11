@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi_s3c24xx-pin-configuration-updates.patch added to -mm tree
-Date: Thu, 11 Sep 2008 12:46:16 -0700
-Message-ID: <200809111946.m8BJkUsh013124@imap1.linux-foundation.org>
+Subject: + mm-mark-the-correct-zone-as-full-when-scanning-zonelists.patch added to -mm tree
+Date: Thu, 11 Sep 2008 14:42:15 -0700
+Message-ID: <200809112142.m8BLgFRK017961@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60164 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56666 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752634AbYIKTrn (ORCPT
+	by vger.kernel.org with ESMTP id S1753600AbYIKVmg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Sep 2008 15:47:43 -0400
+	Thu, 11 Sep 2008 17:42:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben-linux@fluff.org, dbrownell@users.sourceforge.net
+Cc: mel@csn.ul.ie, apw@shadowen.org, kamezawa.hiroyu@jp.fujitsu.com, stable@kernel.org
 
 
 The patch titled
-     spi_s3c24xx: pin configuration updates
+     mm: mark the correct zone as full when scanning zonelists
 has been added to the -mm tree.  Its filename is
-     spi_s3c24xx-pin-configuration-updates.patch
+     mm-mark-the-correct-zone-as-full-when-scanning-zonelists.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi_s3c24xx: pin configuration updates
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: mm: mark the correct zone as full when scanning zonelists
+From: Mel Gorman <mel@csn.ul.ie>
 
-Add a pin configuration callback for the s3c24xx SPI driver, as there are
-several options depending on the channel and the chip in use.
+The for_each_zone_zonelist() uses a struct zoneref *z cursor when scanning
+zonelists to keep track of where in the zonelist it is. The zoneref that
+is returned corresponds to the the next zone that is to be scanned, not
+the current one as it originally thought of as an opaque list.
 
-This is needed as the controller may not have been setup by the initial
-bootloader and the fact that the SPI controller gets reset over
-suspend/resume into slave mode but the GPIO function registers do not.
+When the page allocator is scanning a zonelist, it marks zones that it
+temporarily full zones to eliminate near-future scanning attempts. It uses
+the zoneref for the marking and consequently the incorrect zone gets marked
+full. This leads to a suitable zone being skipped in the mistaken belief
+it is full. This patch corrects the problem by changing zoneref to be the
+current zone being scanned instead of the next one.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: <stable@kernel.org>		[2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-s3c2410/include/mach/spi.h |    1 +
- drivers/spi/spi_s3c24xx.c                |    6 ++++++
- 2 files changed, 7 insertions(+)
+ include/linux/mmzone.h |   12 ++++++------
+ mm/mmzone.c            |    2 +-
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN arch/arm/mach-s3c2410/include/mach/spi.h~spi_s3c24xx-pin-configuration-updates arch/arm/mach-s3c2410/include/mach/spi.h
---- a/arch/arm/mach-s3c2410/include/mach/spi.h~spi_s3c24xx-pin-configuration-updates
-+++ a/arch/arm/mach-s3c2410/include/mach/spi.h
-@@ -18,6 +18,7 @@ struct s3c2410_spi_info {
- 	unsigned int		 num_cs;	/* total chipselects */
- 	int			 bus_num;       /* bus number to use. */
+diff -puN include/linux/mmzone.h~mm-mark-the-correct-zone-as-full-when-scanning-zonelists include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-mark-the-correct-zone-as-full-when-scanning-zonelists
++++ a/include/linux/mmzone.h
+@@ -751,8 +751,9 @@ static inline int zonelist_node_idx(stru
+  *
+  * This function returns the next zone at or below a given zone index that is
+  * within the allowed nodemask using a cursor as the starting point for the
+- * search. The zoneref returned is a cursor that is used as the next starting
+- * point for future calls to next_zones_zonelist().
++ * search. The zoneref returned is a cursor that represents the current zone
++ * being examined. It should be advanced by one before calling
++ * next_zones_zonelist again.
+  */
+ struct zoneref *next_zones_zonelist(struct zoneref *z,
+ 					enum zone_type highest_zoneidx,
+@@ -768,9 +769,8 @@ struct zoneref *next_zones_zonelist(stru
+  *
+  * This function returns the first zone at or below a given zone index that is
+  * within the allowed nodemask. The zoneref returned is a cursor that can be
+- * used to iterate the zonelist with next_zones_zonelist. The cursor should
+- * not be used by the caller as it does not match the value of the zone
+- * returned.
++ * used to iterate the zonelist with next_zones_zonelist by advancing it by
++ * one before calling.
+  */
+ static inline struct zoneref *first_zones_zonelist(struct zonelist *zonelist,
+ 					enum zone_type highest_zoneidx,
+@@ -795,7 +795,7 @@ static inline struct zoneref *first_zone
+ #define for_each_zone_zonelist_nodemask(zone, z, zlist, highidx, nodemask) \
+ 	for (z = first_zones_zonelist(zlist, highidx, nodemask, &zone);	\
+ 		zone;							\
+-		z = next_zones_zonelist(z, highidx, nodemask, &zone))	\
++		z = next_zones_zonelist(++z, highidx, nodemask, &zone))	\
  
-+	void (*gpio_setup)(struct s3c2410_spi_info *spi, int enable);
- 	void (*set_cs)(struct s3c2410_spi_info *spi, int cs, int pol);
- };
+ /**
+  * for_each_zone_zonelist - helper macro to iterate over valid zones in a zonelist at or below a given zone index
+diff -puN mm/mmzone.c~mm-mark-the-correct-zone-as-full-when-scanning-zonelists mm/mmzone.c
+--- a/mm/mmzone.c~mm-mark-the-correct-zone-as-full-when-scanning-zonelists
++++ a/mm/mmzone.c
+@@ -69,6 +69,6 @@ struct zoneref *next_zones_zonelist(stru
+ 				(z->zone && !zref_in_nodemask(z, nodes)))
+ 			z++;
  
-diff -puN drivers/spi/spi_s3c24xx.c~spi_s3c24xx-pin-configuration-updates drivers/spi/spi_s3c24xx.c
---- a/drivers/spi/spi_s3c24xx.c~spi_s3c24xx-pin-configuration-updates
-+++ a/drivers/spi/spi_s3c24xx.c
-@@ -247,6 +247,9 @@ static void s3c24xx_spi_initialsetup(str
- 	writeb(0xff, hw->regs + S3C2410_SPPRE);
- 	writeb(SPPIN_DEFAULT, hw->regs + S3C2410_SPPIN);
- 	writeb(SPCON_DEFAULT, hw->regs + S3C2410_SPCON);
-+
-+	if (hw->pdata && hw->pdata->gpio_setup)
-+		hw->pdata->gpio_setup(hw->pdata, 1);
- }
- 
- static int __init s3c24xx_spi_probe(struct platform_device *pdev)
-@@ -412,6 +415,9 @@ static int s3c24xx_spi_suspend(struct pl
- {
- 	struct s3c24xx_spi *hw = platform_get_drvdata(pdev);
- 
-+	if (hw->pdata && hw->pdata->gpio_setup)
-+		hw->pdata->gpio_setup(hw->pdata, 0);
-+
- 	clk_disable(hw->clk);
- 	return 0;
+-	*zone = zonelist_zone(z++);
++	*zone = zonelist_zone(z);
+ 	return z;
  }
 _
 
-Patches currently in -mm which might be from ben-linux@fluff.org are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-linux-next.patch
-spi_s3c24xx-pin-configuration-updates.patch
-resource-add-resource_type-and-ioresource_type_bits.patch
+origin.patch
+coredump_filter-add-description-of-bit-4.patch
+mm-mark-the-correct-zone-as-full-when-scanning-zonelists.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+mm-cleanup-to-make-remove_memory-arch-neutral.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
+page-owner-tracking-leak-detector.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
