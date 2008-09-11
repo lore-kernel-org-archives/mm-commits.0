@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mark-the-correct-zone-as-full-when-scanning-zonelists.patch added to -mm tree
-Date: Thu, 11 Sep 2008 14:42:15 -0700
-Message-ID: <200809112142.m8BLgFRK017961@imap1.linux-foundation.org>
+Subject: + pxa2xx_spi-minor-cleanup.patch added to -mm tree
+Date: Thu, 11 Sep 2008 14:48:54 -0700
+Message-ID: <200809112148.m8BLmsTb018183@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56666 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46856 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753600AbYIKVmg (ORCPT
+	by vger.kernel.org with ESMTP id S1753954AbYIKVtP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Sep 2008 17:42:36 -0400
+	Thu, 11 Sep 2008 17:49:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mel@csn.ul.ie, apw@shadowen.org, kamezawa.hiroyu@jp.fujitsu.com, stable@kernel.org
+Cc: g.liakhovetski@pengutronix.de, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     mm: mark the correct zone as full when scanning zonelists
+     pxa2xx_spi: minor cleanup
 has been added to the -mm tree.  Its filename is
-     mm-mark-the-correct-zone-as-full-when-scanning-zonelists.patch
+     pxa2xx_spi-minor-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: mark the correct zone as full when scanning zonelists
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: pxa2xx_spi: minor cleanup
+From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
 
-The for_each_zone_zonelist() uses a struct zoneref *z cursor when scanning
-zonelists to keep track of where in the zonelist it is. The zoneref that
-is returned corresponds to the the next zone that is to be scanned, not
-the current one as it originally thought of as an opaque list.
+Minor fixes: remove redundant local variable initialization, fix "can not"
+to what I _think_ is a preferred spelling, output IRQ number if requesting
+it failed.
 
-When the page allocator is scanning a zonelist, it marks zones that it
-temporarily full zones to eliminate near-future scanning attempts. It uses
-the zoneref for the marking and consequently the incorrect zone gets marked
-full. This leads to a suitable zone being skipped in the mistaken belief
-it is full. This patch corrects the problem by changing zoneref to be the
-current zone being scanned instead of the next one.
-
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: <stable@kernel.org>		[2.6.26.x]
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   12 ++++++------
- mm/mmzone.c            |    2 +-
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/spi/pxa2xx_spi.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-mark-the-correct-zone-as-full-when-scanning-zonelists include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-mark-the-correct-zone-as-full-when-scanning-zonelists
-+++ a/include/linux/mmzone.h
-@@ -751,8 +751,9 @@ static inline int zonelist_node_idx(stru
-  *
-  * This function returns the next zone at or below a given zone index that is
-  * within the allowed nodemask using a cursor as the starting point for the
-- * search. The zoneref returned is a cursor that is used as the next starting
-- * point for future calls to next_zones_zonelist().
-+ * search. The zoneref returned is a cursor that represents the current zone
-+ * being examined. It should be advanced by one before calling
-+ * next_zones_zonelist again.
-  */
- struct zoneref *next_zones_zonelist(struct zoneref *z,
- 					enum zone_type highest_zoneidx,
-@@ -768,9 +769,8 @@ struct zoneref *next_zones_zonelist(stru
-  *
-  * This function returns the first zone at or below a given zone index that is
-  * within the allowed nodemask. The zoneref returned is a cursor that can be
-- * used to iterate the zonelist with next_zones_zonelist. The cursor should
-- * not be used by the caller as it does not match the value of the zone
-- * returned.
-+ * used to iterate the zonelist with next_zones_zonelist by advancing it by
-+ * one before calling.
-  */
- static inline struct zoneref *first_zones_zonelist(struct zonelist *zonelist,
- 					enum zone_type highest_zoneidx,
-@@ -795,7 +795,7 @@ static inline struct zoneref *first_zone
- #define for_each_zone_zonelist_nodemask(zone, z, zlist, highidx, nodemask) \
- 	for (z = first_zones_zonelist(zlist, highidx, nodemask, &zone);	\
- 		zone;							\
--		z = next_zones_zonelist(z, highidx, nodemask, &zone))	\
-+		z = next_zones_zonelist(++z, highidx, nodemask, &zone))	\
+diff -puN drivers/spi/pxa2xx_spi.c~pxa2xx_spi-minor-cleanup drivers/spi/pxa2xx_spi.c
+--- a/drivers/spi/pxa2xx_spi.c~pxa2xx_spi-minor-cleanup
++++ a/drivers/spi/pxa2xx_spi.c
+@@ -1407,9 +1407,9 @@ static int __init pxa2xx_spi_probe(struc
+ 	struct device *dev = &pdev->dev;
+ 	struct pxa2xx_spi_master *platform_info;
+ 	struct spi_master *master;
+-	struct driver_data *drv_data = NULL;
++	struct driver_data *drv_data;
+ 	struct ssp_device *ssp;
+-	int status = 0;
++	int status;
  
- /**
-  * for_each_zone_zonelist - helper macro to iterate over valid zones in a zonelist at or below a given zone index
-diff -puN mm/mmzone.c~mm-mark-the-correct-zone-as-full-when-scanning-zonelists mm/mmzone.c
---- a/mm/mmzone.c~mm-mark-the-correct-zone-as-full-when-scanning-zonelists
-+++ a/mm/mmzone.c
-@@ -69,6 +69,6 @@ struct zoneref *next_zones_zonelist(stru
- 				(z->zone && !zref_in_nodemask(z, nodes)))
- 			z++;
+ 	platform_info = dev->platform_data;
  
--	*zone = zonelist_zone(z++);
-+	*zone = zonelist_zone(z);
- 	return z;
- }
+@@ -1422,7 +1422,7 @@ static int __init pxa2xx_spi_probe(struc
+ 	/* Allocate master with space for drv_data and null dma buffer */
+ 	master = spi_alloc_master(dev, sizeof(struct driver_data) + 16);
+ 	if (!master) {
+-		dev_err(&pdev->dev, "can not alloc spi_master\n");
++		dev_err(&pdev->dev, "cannot alloc spi_master\n");
+ 		ssp_free(ssp);
+ 		return -ENOMEM;
+ 	}
+@@ -1458,7 +1458,7 @@ static int __init pxa2xx_spi_probe(struc
+ 
+ 	status = request_irq(ssp->irq, ssp_int, 0, dev->bus_id, drv_data);
+ 	if (status < 0) {
+-		dev_err(&pdev->dev, "can not get IRQ\n");
++		dev_err(&pdev->dev, "cannot get IRQ %d\n", ssp->irq);
+ 		goto out_error_master_alloc;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from g.liakhovetski@pengutronix.de are
 
-origin.patch
-coredump_filter-add-description-of-bit-4.patch
-mm-mark-the-correct-zone-as-full-when-scanning-zonelists.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-mm-cleanup-to-make-remove_memory-arch-neutral.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-page-owner-tracking-leak-detector.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+pxa2xx_spi-minor-cleanup.patch
+gpio-max7301-fix-the-race-between-chip-addition-and-pins-reconfiguration.patch
 
