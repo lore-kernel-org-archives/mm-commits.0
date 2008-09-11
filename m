@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-dont-create-empty-filenames-in-sys-firmware-acpi-tables.patch added to -mm tree
-Date: Thu, 11 Sep 2008 12:30:05 -0700
-Message-ID: <200809111930.m8BJU6jY012531@imap1.linux-foundation.org>
+Subject: + fix-cred-wrap-current-cred-and-a-few-other-accessors-on-mips.patch added to -mm tree
+Date: Thu, 11 Sep 2008 12:38:16 -0700
+Message-ID: <200809111938.m8BJcGPi012772@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47371 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49778 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752239AbYIKTaS (ORCPT
+	by vger.kernel.org with ESMTP id S1752722AbYIKTlD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Sep 2008 15:30:18 -0400
+	Thu, 11 Sep 2008 15:41:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nokos@gmx.net, len.brown@intel.com, ming.m.lin@intel.com, robert.moore@intel.com, stable@kernel.org
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, dmitri.vorobiev@movial.fi, jmorris@namei.org, ralf@linux-mips.org, serue@us.ibm.com
 
 
 The patch titled
-     acpi: don't create empty filenames in /sys/firmware/acpi/tables
+     fix "CRED: Wrap current->cred and a few other accessors" on MIPS
 has been added to the -mm tree.  Its filename is
-     acpi-dont-create-empty-filenames-in-sys-firmware-acpi-tables.patch
+     fix-cred-wrap-current-cred-and-a-few-other-accessors-on-mips.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,82 +34,176 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: don't create empty filenames in /sys/firmware/acpi/tables
-From: Peter Gruber <nokos@gmx.net>
+Subject: fix "CRED: Wrap current->cred and a few other accessors" on MIPS
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Taken from http://bugzilla.kernel.org/show_bug.cgi?id=11539
+Repair this linux-next patch:
 
-Since commit bc45b1d39a925b56796bebf8a397a0491489d85c acpi tables are
-allowed to have an empty signature and /sys/firmware/acpi/tables uses the
-signature as filename.  Applications using naive recursion through /sys
-loop forever.  A possible solution would be: (replacing the zero length
-filename with the string "NULL")
+  commit ca1633259d306b15d3b3c42f385b226a7051c15b
+  Author:     David Howells <dhowells@redhat.com>
+  AuthorDate: Thu Aug 7 20:02:15 2008 +1000
+  Commit:     James Morris <jmorris@namei.org>
+  CommitDate: Thu Aug 7 20:02:15 2008 +1000
+  
+      CRED: Wrap current->cred and a few other accessors
+      
+      Wrap current->cred and a few other accessors to hide their actual
+      implementation.
+      
+      Signed-off-by: David Howells <dhowells@redhat.com>
+      Acked-by: James Morris <jmorris@namei.org>
+      Acked-by: Serge Hallyn <serue@us.ibm.com>
 
-Cc: Bob Moore <robert.moore@intel.com>
-Cc: Lin Ming <ming.m.lin@intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: <stable@kernel.org>		[2.6.26.x]
+Cc: David Howells <dhowells@redhat.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Reported-by: Dmitri Vorobiev <dmitri.vorobiev@movial.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/system.c |   25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ arch/mips/kernel/mips-mt-fpaff.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/system.c~acpi-dont-create-empty-filenames-in-sys-firmware-acpi-tables drivers/acpi/system.c
---- a/drivers/acpi/system.c~acpi-dont-create-empty-filenames-in-sys-firmware-acpi-tables
-+++ a/drivers/acpi/system.c
-@@ -78,9 +78,15 @@ static ssize_t acpi_table_show(struct ko
- 	    container_of(bin_attr, struct acpi_table_attr, attr);
- 	struct acpi_table_header *table_header = NULL;
- 	acpi_status status;
-+	char name[ACPI_NAME_SIZE];
-+
-+	if (strncmp(table_attr->name, "NULL", 4))
-+		memcpy(name, table_attr->name, ACPI_NAME_SIZE);
-+	else
-+		memcpy(name, "\0\0\0\0", 4);
+diff -puN arch/mips/kernel/mips-mt-fpaff.c~fix-cred-wrap-current-cred-and-a-few-other-accessors-on-mips arch/mips/kernel/mips-mt-fpaff.c
+--- a/arch/mips/kernel/mips-mt-fpaff.c~fix-cred-wrap-current-cred-and-a-few-other-accessors-on-mips
++++ a/arch/mips/kernel/mips-mt-fpaff.c
+@@ -79,7 +79,8 @@ asmlinkage long mipsmt_sys_sched_setaffi
  
- 	status =
--	    acpi_get_table(table_attr->name, table_attr->instance,
-+	    acpi_get_table(name, table_attr->instance,
- 			   &table_header);
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
-@@ -95,21 +101,24 @@ static void acpi_table_attr_init(struct 
- 	struct acpi_table_header *header = NULL;
- 	struct acpi_table_attr *attr = NULL;
- 
--	memcpy(table_attr->name, table_header->signature, ACPI_NAME_SIZE);
-+	if (table_header->signature[0] != '\0')
-+		memcpy(table_attr->name, table_header->signature,
-+			ACPI_NAME_SIZE);
-+	else
-+		memcpy(table_attr->name, "NULL", 4);
- 
- 	list_for_each_entry(attr, &acpi_table_attr_list, node) {
--		if (!memcmp(table_header->signature, attr->name,
--			    ACPI_NAME_SIZE))
-+		if (!memcmp(table_attr->name, attr->name, ACPI_NAME_SIZE))
- 			if (table_attr->instance < attr->instance)
- 				table_attr->instance = attr->instance;
+ 	euid = current_euid();
+ 	retval = -EPERM;
+-	if (euid != p->euid && euid != p->uid && !capable(CAP_SYS_NICE)) {
++	if (euid != task_euid(p) && euid != task_uid(p) &&
++			!capable(CAP_SYS_NICE)) {
+ 		read_unlock(&tasklist_lock);
+ 		goto out_unlock;
  	}
- 	table_attr->instance++;
- 
- 	if (table_attr->instance > 1 || (table_attr->instance == 1 &&
--					 !acpi_get_table(table_header->
--							 signature, 2,
--							 &header)))
--		sprintf(table_attr->name + 4, "%d", table_attr->instance);
-+					!acpi_get_table
-+					(table_header->signature, 2, &header)))
-+		sprintf(table_attr->name + ACPI_NAME_SIZE, "%d",
-+			table_attr->instance);
- 
- 	table_attr->attr.size = 0;
- 	table_attr->attr.read = acpi_table_show;
 _
 
-Patches currently in -mm which might be from nokos@gmx.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-acpi-dont-create-empty-filenames-in-sys-firmware-acpi-tables.patch
+origin.patch
+include-linux-ioporth-add-missing-macro-argument-for-devm_release_-family-checkpatch-fixes.patch
+linux-next.patch
+linux-next-fixups.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+security-selinux-include-netlabelh-fix-two-build-errors.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
+toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch
+toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch
+revert-acpi-ec-do-transaction-from-interrupt-context.patch
+acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch
+acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+x86-make-poll_idle-behave-more-like-the-other-idle-methods-checkpatch-fixes.patch
+arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
+fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
+fs-dlm-configc-choose-better-identifiers.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+git-jg-misc.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
+fix-cred-wrap-current-cred-and-a-few-other-accessors-on-mips.patch
+pci-tidy-pme-support-messages-checkpatch-fixes.patch
+arch-s390-kernel-ptracec-fix-build.patch
+sched-clarify-ifdef-tangle.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
+drivers-usb-musb-disable-it-on-superh.patch
+git-xtensa.patch
+modules-remove-stop_machine-during-module-load-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-media-video-cafe_ccicc-needs-mmh.patch
+e1000e-prevent-corruption-of-eeprom-nvm.patch
+drivers-net-mlx4-allocc-needs-mmh.patch
+net-forcedeth-call-restore-mac-addr-in-nv_shutdown-path-v2.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
+fix-a-race-condtion-of-oops_in_progress-fix.patch
+vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
+make-taint-bit-reliable-v3-fix.patch
+compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
+allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
+tty-fix-echo-tab-erase-and-locking-fix.patch
+applicomc-fix-apparently-broken-code-in-do_ac_read.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+w1-be-able-to-manually-add-and-remove-slaves-fix.patch
+gru-driver-minor-updates-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+x86-sysfs-kill-owner-field-from-attribute-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
