@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ftdi_sio-fix-product-parameter-description.patch added to -mm tree
-Date: Thu, 11 Sep 2008 11:57:31 -0700
-Message-ID: <200809111857.m8BIvVsP011148@imap1.linux-foundation.org>
+Subject: + pm-document-use-of-rtc-in-pm_trace.patch added to -mm tree
+Date: Thu, 11 Sep 2008 11:58:09 -0700
+Message-ID: <200809111858.m8BIw9UD011180@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54844 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59697 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753016AbYIKS5l (ORCPT
+	by vger.kernel.org with ESMTP id S1752840AbYIKS6P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Sep 2008 14:57:41 -0400
+	Thu, 11 Sep 2008 14:58:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paulius.zaleckas@teltonika.lt, greg@kroah.com
+Cc: elendil@planet.nl
 
 
 The patch titled
-     ftdi_sio: fix 'product' parameter description
+     pm: document use of RTC in pm_trace
 has been added to the -mm tree.  Its filename is
-     ftdi_sio-fix-product-parameter-description.patch
+     pm-document-use-of-rtc-in-pm_trace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ftdi_sio: fix 'product' parameter description
-From: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+Subject: pm: document use of RTC in pm_trace
+From: Frans Pop <elendil@planet.nl>
 
-Signed-off-by: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-Cc: Greg KH <greg@kroah.com>
+As pm_trace uses the system's hardware clock to save its magic value,
+users of that option should be warned that using this debug option will
+result in an incorrect system time after resume.
+
+Signed-off-by: Frans Pop <elendil@planet.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/ftdi_sio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/power/s2ram.txt |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN drivers/usb/serial/ftdi_sio.c~ftdi_sio-fix-product-parameter-description drivers/usb/serial/ftdi_sio.c
---- a/drivers/usb/serial/ftdi_sio.c~ftdi_sio-fix-product-parameter-description
-+++ a/drivers/usb/serial/ftdi_sio.c
-@@ -2475,5 +2475,5 @@ module_param(vendor, ushort, 0);
- MODULE_PARM_DESC(vendor, "User specified vendor ID (default="
- 		__MODULE_STRING(FTDI_VID)")");
- module_param(product, ushort, 0);
--MODULE_PARM_DESC(vendor, "User specified product ID");
-+MODULE_PARM_DESC(product, "User specified product ID");
- 
+diff -puN Documentation/power/s2ram.txt~pm-document-use-of-rtc-in-pm_trace Documentation/power/s2ram.txt
+--- a/Documentation/power/s2ram.txt~pm-document-use-of-rtc-in-pm_trace
++++ a/Documentation/power/s2ram.txt
+@@ -54,3 +54,21 @@ used to run with "radeonfb" (it's an ATI
+ that "radeonfb" simply cannot resume that device - it tries to set the
+ PLL's, and it just _hangs_. Using the regular VGA console and letting X
+ resume it instead works fine.
++
++NOTE
++====
++pm_trace uses the system's Real Time Clock (RTC) to save the magic number.
++Reason for this is that the RTC is the only reliably available piece of
++hardware during resume operations where a value can be set that will
++survive a reboot.
++
++Consequence is that after a resume (even if it is successful) your system
++clock will have a value corresponding to the magic mumber instead of the
++correct date/time! It is therefore advisable to use a program like ntp-date
++or rdate to reset the correct date/time from an external time source when
++using this trace option.
++
++As the clock keeps ticking it is also essential that the reboot is done
++quickly after the resume failure. The trace option does not use the seconds
++or the low order bits of the minutes of the RTC, but a too long delay will
++corrupt the magic value.
 _
 
-Patches currently in -mm which might be from paulius.zaleckas@teltonika.lt are
+Patches currently in -mm which might be from elendil@planet.nl are
 
-ftdi_sio-fix-product-parameter-description.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
+e100-adapt-to-the-reworked-pci-pm.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+pm-document-use-of-rtc-in-pm_trace.patch
 
