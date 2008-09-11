@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + md-check-for-memory-allocation-failure-in-faulty-personality.patch added to -mm tree
-Date: Thu, 11 Sep 2008 12:00:42 -0700
-Message-ID: <200809111900.m8BJ0gMk011330@imap1.linux-foundation.org>
+Subject: + swiotlb-fix-oops-on-memory-exhaustion.patch added to -mm tree
+Date: Thu, 11 Sep 2008 12:05:02 -0700
+Message-ID: <200809111905.m8BJ52fe011499@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42370 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54545 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752771AbYIKTAu (ORCPT
+	by vger.kernel.org with ESMTP id S1752352AbYIKTFe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Sep 2008 15:00:50 -0400
+	Thu, 11 Sep 2008 15:05:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sven.wegener@stealer.net, neilb@suse.de
+Cc: daniel.blueman@gmail.com, fujita.tomonori@lab.ntt.co.jp, jbeulich@novell.com, jens.axboe@oracle.com, stable@kernel.org, tony.luck@intel.com
 
 
 The patch titled
-     md: check for memory allocation failure in faulty personality
+     swiotlb: fix oops on memory exhaustion
 has been added to the -mm tree.  Its filename is
-     md-check-for-memory-allocation-failure-in-faulty-personality.patch
+     swiotlb-fix-oops-on-memory-exhaustion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: check for memory allocation failure in faulty personality
-From: Sven Wegener <sven.wegener@stealer.net>
+Subject: swiotlb: fix oops on memory exhaustion
+From: "Daniel J Blueman" <daniel.blueman@gmail.com>
 
-It's a fault injection module, but I don't think we should oops here.
+With SWIOTLB being enabled and straight-forward page allocation failure
+[1], the swiotlb_alloc_coherent fall-back path hits an issue [2],
+resulting in my webcam failing to work.
 
-Signed-off-by: Sven Wegener <sven.wegener@stealer.net>
-Cc: Neil Brown <neilb@suse.de>
+At the time of oops, RDI is clearly a pointer to a structure which has
+arrived as NULL, leading to the typo in swiotlb_map_single's callsite
+arguments.
+
+Correctly passing the device structure [3] addresses the issue and gets my
+webcam working again (the allocation failure still occuring).
+
+Signed-off-by: Daniel J Blueman <daniel.blueman@gmail.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Jan Beulich <jbeulich@novell.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/faulty.c |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/swiotlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/md/faulty.c~md-check-for-memory-allocation-failure-in-faulty-personality drivers/md/faulty.c
---- a/drivers/md/faulty.c~md-check-for-memory-allocation-failure-in-faulty-personality
-+++ a/drivers/md/faulty.c
-@@ -287,6 +287,8 @@ static int run(mddev_t *mddev)
- 	int i;
+diff -puN lib/swiotlb.c~swiotlb-fix-oops-on-memory-exhaustion lib/swiotlb.c
+--- a/lib/swiotlb.c~swiotlb-fix-oops-on-memory-exhaustion
++++ a/lib/swiotlb.c
+@@ -491,7 +491,7 @@ swiotlb_alloc_coherent(struct device *hw
+ 		 * the lowest available address range.
+ 		 */
+ 		dma_addr_t handle;
+-		handle = swiotlb_map_single(NULL, NULL, size, DMA_FROM_DEVICE);
++		handle = swiotlb_map_single(hwdev, NULL, size, DMA_FROM_DEVICE);
+ 		if (swiotlb_dma_mapping_error(hwdev, handle))
+ 			return NULL;
  
- 	conf_t *conf = kmalloc(sizeof(*conf), GFP_KERNEL);
-+	if (!conf)
-+		return -ENOMEM;
- 
- 	for (i=0; i<Modes; i++) {
- 		atomic_set(&conf->counters[i], 0);
 _
 
-Patches currently in -mm which might be from sven.wegener@stealer.net are
+Patches currently in -mm which might be from daniel.blueman@gmail.com are
 
-linux-next.patch
-i2c-dev-return-correct-error-code-on-class_create-failure.patch
-leds-avoid-needless-strlen-for-attributes.patch
-leds-wrap-use-default-on-trigger-for-power-led.patch
-leds-fsg-change-order-of-initialization-and-deinitialization.patch
-leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling.patch
-md-check-for-memory-allocation-failure-in-faulty-personality.patch
+origin.patch
+swiotlb-fix-oops-on-memory-exhaustion.patch
 
