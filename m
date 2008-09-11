@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-pc87360-separate-alarm-files-define-ldni_max-const.patch added to -mm tree
-Date: Wed, 10 Sep 2008 17:03:31 -0700
-Message-ID: <200809110003.m8B03VkW001232@imap1.linux-foundation.org>
+Subject: + hwmon-pc87360-separate-alarm-files-add-dev_dbg-help.patch added to -mm tree
+Date: Wed, 10 Sep 2008 17:03:33 -0700
+Message-ID: <200809110003.m8B03Xe4001235@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44332 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57280 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752304AbYIKADm (ORCPT
+	by vger.kernel.org with ESMTP id S1752382AbYIKADo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 10 Sep 2008 20:03:42 -0400
+	Wed, 10 Sep 2008 20:03:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jim.cromie@gmail.com, khali@linux-fr.org, mhoffman@lightlink.com
 
 
 The patch titled
-     hwmon/pc87360 separate alarm files: define LDNI_MAX const
+     hwmon/pc87360 separate alarm files: add dev_dbg help
 has been added to the -mm tree.  Its filename is
-     hwmon-pc87360-separate-alarm-files-define-ldni_max-const.patch
+     hwmon-pc87360-separate-alarm-files-add-dev_dbg-help.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon/pc87360 separate alarm files: define LDNI_MAX const
+Subject: hwmon/pc87360 separate alarm files: add dev_dbg help
 From: Jim Cromie <jim.cromie@gmail.com>
 
-Driver handles 3 logical devices in fixed length array.  Give this a
-define-d constant.
+temp and vin status register values may be set by chip specifications, set
+again by bios, or by this previously loaded driver.  Debug output nicely
+displays modprobe init=\d actions.
 
 Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
 Cc: Jean Delvare <khali@linux-fr.org>
@@ -46,31 +47,68 @@ Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/pc87360.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/hwmon/pc87360.c |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN drivers/hwmon/pc87360.c~hwmon-pc87360-separate-alarm-files-define-ldni_max-const drivers/hwmon/pc87360.c
---- a/drivers/hwmon/pc87360.c~hwmon-pc87360-separate-alarm-files-define-ldni_max-const
+diff -puN drivers/hwmon/pc87360.c~hwmon-pc87360-separate-alarm-files-add-dev_dbg-help drivers/hwmon/pc87360.c
+--- a/drivers/hwmon/pc87360.c~hwmon-pc87360-separate-alarm-files-add-dev_dbg-help
 +++ a/drivers/hwmon/pc87360.c
-@@ -75,7 +75,8 @@ MODULE_PARM_DESC(force_id, "Override the
- #define FSCM	0x09	/* Logical device: fans */
- #define VLM	0x0d	/* Logical device: voltages */
- #define TMS	0x0e	/* Logical device: temperatures */
--static const u8 logdev[3] = { FSCM, VLM, TMS };
-+#define LDNI_MAX 3
-+static const u8 logdev[LDNI_MAX] = { FSCM, VLM, TMS };
+@@ -1290,10 +1290,11 @@ static void pc87360_init_device(struct p
  
- #define LD_FAN		0
- #define LD_IN		1
-@@ -1074,7 +1075,7 @@ static int __devinit pc87360_probe(struc
- 	mutex_init(&data->update_lock);
- 	platform_set_drvdata(pdev, data);
+ 	nr = data->innr < 11 ? data->innr : 11;
+ 	for (i = 0; i < nr; i++) {
++		reg = pc87360_read_value(data, LD_IN, i,
++					 PC87365_REG_IN_STATUS);
++		dev_dbg(&pdev->dev, "bios in%d status:0x%02x\n", i, reg);
+ 		if (init >= init_in[i]) {
+ 			/* Forcibly enable voltage channel */
+-			reg = pc87360_read_value(data, LD_IN, i,
+-						 PC87365_REG_IN_STATUS);
+ 			if (!(reg & CHAN_ENA)) {
+ 				dev_dbg(&pdev->dev, "Forcibly "
+ 					"enabling in%d\n", i);
+@@ -1306,18 +1307,23 @@ static void pc87360_init_device(struct p
  
--	for (i = 0; i < 3; i++) {
-+	for (i = 0; i < LDNI_MAX; i++) {
- 		if (((data->address[i] = extra_isa[i]))
- 		 && !request_region(extra_isa[i], PC87360_EXTENT,
- 		 		    pc87360_driver.driver.name)) {
+ 	/* We can't blindly trust the Super-I/O space configuration bit,
+ 	   most BIOS won't set it properly */
++	dev_dbg(&pdev->dev, "bios thermistors:%d\n", use_thermistors);
+ 	for (i = 11; i < data->innr; i++) {
+ 		reg = pc87360_read_value(data, LD_IN, i,
+ 					 PC87365_REG_TEMP_STATUS);
+ 		use_thermistors = use_thermistors || (reg & CHAN_ENA);
++		/* thermistors are temp[4-6], measured on vin[11-14] */
++		dev_dbg(&pdev->dev, "bios temp%d_status:0x%02x\n", i-7, reg);
+ 	}
++	dev_dbg(&pdev->dev, "using thermistors:%d\n", use_thermistors);
+ 
+ 	i = use_thermistors ? 2 : 0;
+ 	for (; i < data->tempnr; i++) {
++		reg = pc87360_read_value(data, LD_TEMP, i,
++					 PC87365_REG_TEMP_STATUS);
++		dev_dbg(&pdev->dev, "bios temp%d_status:0x%02x\n", i+1, reg);
+ 		if (init >= init_temp[i]) {
+ 			/* Forcibly enable temperature channel */
+-			reg = pc87360_read_value(data, LD_TEMP, i,
+-						 PC87365_REG_TEMP_STATUS);
+ 			if (!(reg & CHAN_ENA)) {
+ 				dev_dbg(&pdev->dev, "Forcibly "
+ 					"enabling temp%d\n", i+1);
+@@ -1359,6 +1365,7 @@ static void pc87360_init_device(struct p
+ 	if (data->innr) {
+ 		reg = pc87360_read_value(data, LD_IN, NO_BANK,
+ 					 PC87365_REG_IN_CONFIG);
++		dev_dbg(&pdev->dev, "bios vin-cfg:0x%02x\n", reg);
+ 		if (reg & CHAN_ENA) {
+ 			dev_dbg(&pdev->dev, "Forcibly "
+ 				"enabling monitoring (VLM)\n");
+@@ -1371,6 +1378,7 @@ static void pc87360_init_device(struct p
+ 	if (data->tempnr) {
+ 		reg = pc87360_read_value(data, LD_TEMP, NO_BANK,
+ 					 PC87365_REG_TEMP_CONFIG);
++		dev_dbg(&pdev->dev, "bios temp-cfg:0x%02x\n", reg);
+ 		if (reg & CHAN_ENA) {
+ 			dev_dbg(&pdev->dev, "Forcibly enabling "
+ 				"monitoring (TMS)\n");
 _
 
 Patches currently in -mm which might be from jim.cromie@gmail.com are
