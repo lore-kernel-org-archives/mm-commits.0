@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-atm-lecc-drop-code-after-return.patch added to -mm tree
-Date: Fri, 12 Sep 2008 12:40:12 -0700
-Message-ID: <200809121940.m8CJeCqU000574@imap1.linux-foundation.org>
+Subject: + drivers-dma-ioat_dmac-drop-code-after-return.patch added to -mm tree
+Date: Fri, 12 Sep 2008 12:40:15 -0700
+Message-ID: <200809121940.m8CJeFam000577@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60689 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56185 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753779AbYILTkx (ORCPT
+	by vger.kernel.org with ESMTP id S1752013AbYILToV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Sep 2008 15:40:53 -0400
+	Fri, 12 Sep 2008 15:44:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, chas@cmf.nrl.navy.mil, richard.genoud@gmail.com
+Cc: julia@diku.dk, dan.j.williams@intel.com, richard.genoud@gmail.com
 
 
 The patch titled
-     net/atm/lec.c: drop code after return
+     drivers/dma/ioat_dma.c: drop code after return
 has been added to the -mm tree.  Its filename is
-     net-atm-lecc-drop-code-after-return.patch
+     drivers-dma-ioat_dmac-drop-code-after-return.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/atm/lec.c: drop code after return
+Subject: drivers/dma/ioat_dma.c: drop code after return
 From: Julia Lawall <julia@diku.dk>
 
 The break after the return serves no purpose.
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
 Reviewed-by: Richard Genoud <richard.genoud@gmail.com>
-Cc: Chas Williams <chas@cmf.nrl.navy.mil>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/atm/lec.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/dma/ioat_dma.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN net/atm/lec.c~net-atm-lecc-drop-code-after-return net/atm/lec.c
---- a/net/atm/lec.c~net-atm-lecc-drop-code-after-return
-+++ a/net/atm/lec.c
-@@ -1931,7 +1931,6 @@ static struct atm_vcc *lec_arp_resolve(s
- 		switch (priv->lane_version) {
- 		case 1:
- 			return priv->mcast_vcc;
--			break;
- 		case 2:	/* LANE2 wants arp for multicast addresses */
- 			if (!compare_ether_addr(mac_to_find, bus_mac))
- 				return priv->mcast_vcc;
+diff -puN drivers/dma/ioat_dma.c~drivers-dma-ioat_dmac-drop-code-after-return drivers/dma/ioat_dma.c
+--- a/drivers/dma/ioat_dma.c~drivers-dma-ioat_dmac-drop-code-after-return
++++ a/drivers/dma/ioat_dma.c
+@@ -971,11 +971,9 @@ static struct ioat_desc_sw *ioat_dma_get
+ 	switch (ioat_chan->device->version) {
+ 	case IOAT_VER_1_2:
+ 		return ioat1_dma_get_next_descriptor(ioat_chan);
+-		break;
+ 	case IOAT_VER_2_0:
+ 	case IOAT_VER_3_0:
+ 		return ioat2_dma_get_next_descriptor(ioat_chan);
+-		break;
+ 	}
+ 	return NULL;
+ }
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
