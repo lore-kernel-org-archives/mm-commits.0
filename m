@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rlimit-permit-setting-rlimit_nofile-to-rlim_infinity-fix.patch added to -mm tree
-Date: Fri, 12 Sep 2008 13:05:52 -0700
-Message-ID: <200809122005.m8CK5sFM001511@imap1.linux-foundation.org>
+Subject: + mm-make-do_move_pages-complexity-linear.patch added to -mm tree
+Date: Fri, 12 Sep 2008 13:10:17 -0700
+Message-ID: <200809122010.m8CKAHRM001666@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60694 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59451 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753724AbYILUGC (ORCPT
+	by vger.kernel.org with ESMTP id S1752934AbYILUKc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Sep 2008 16:06:02 -0400
+	Fri, 12 Sep 2008 16:10:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vonsch@gmail.com, mtk.manpages@googlemail.com, schwab@suse.de
+Cc: Brice.Goglin@inria.fr, Nathalie.Furmento@labri.fr, cl@linux-foundation.org, mel@csn.ul.ie
 
 
 The patch titled
-     rlimit-permit-setting-rlimit_nofile-to-rlim_infinity-fix
+     mm: make do_move_pages() complexity linear
 has been added to the -mm tree.  Its filename is
-     rlimit-permit-setting-rlimit_nofile-to-rlim_infinity-fix.patch
+     mm-make-do_move_pages-complexity-linear.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rlimit-permit-setting-rlimit_nofile-to-rlim_infinity-fix
-From: Adam Tkac <vonsch@gmail.com>
+Subject: mm: make do_move_pages() complexity linear
+From: Brice Goglin <Brice.Goglin@inria.fr>
 
-When cur > max && cur != INF after adjustment EINVAL is returned.  (cur
-can be also set to max but it seems like bad solution for me)
+Page migration is currently very slow because its overhead is quadratic
+with the number of pages.  This is caused by each single page migration
+doing a linear lookup in the page array in new_page_node().
 
-Cc: Andreas Schwab <schwab@suse.de>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Since pages are stored in the array order in the pagelist and
+do_move_pages process this list in order, new_page_node() can increase the
+"pm" pointer to the page array so that the next iteration will find the
+next page in 0 or few lookup steps.
+
+Signed-off-by: Brice Goglin <Brice.Goglin@inria.fr>
+Signed-off-by: Nathalie Furmento <Nathalie.Furmento@labri.fr>
+Acked-by: Christoph Lameter <cl@linux-foundation.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/migrate.c |   19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
-diff -puN kernel/sys.c~rlimit-permit-setting-rlimit_nofile-to-rlim_infinity-fix kernel/sys.c
---- a/kernel/sys.c~rlimit-permit-setting-rlimit_nofile-to-rlim_infinity-fix
-+++ a/kernel/sys.c
-@@ -1526,12 +1526,11 @@ asmlinkage long sys_setrlimit(unsigned i
- 		return -EINVAL;
- 	if (copy_from_user(&new_rlim, rlim, sizeof(*rlim)))
- 		return -EFAULT;
--	if (new_rlim.rlim_cur > new_rlim.rlim_max)
--		return -EINVAL;
- 	old_rlim = current->signal->rlim + resource;
- 	if ((new_rlim.rlim_max > old_rlim->rlim_max) &&
- 	    !capable(CAP_SYS_RESOURCE))
- 		return -EPERM;
+diff -puN mm/migrate.c~mm-make-do_move_pages-complexity-linear mm/migrate.c
+--- a/mm/migrate.c~mm-make-do_move_pages-complexity-linear
++++ a/mm/migrate.c
+@@ -837,14 +837,23 @@ struct page_to_node {
+ 	int status;
+ };
+ 
++/*
++ * Allocate a page on the node given as a page_to_node in private.
++ * Increase private to point to the next page_to_node so that the
++ * next iteration does not have to traverse the whole pm array.
++ */
+ static struct page *new_page_node(struct page *p, unsigned long private,
+ 		int **result)
+ {
+-	struct page_to_node *pm = (struct page_to_node *)private;
++	struct page_to_node **pmptr = (struct page_to_node **)private;
++	struct page_to_node *pm = *pmptr;
+ 
+ 	while (pm->node != MAX_NUMNODES && pm->page != p)
+ 		pm++;
+ 
++	/* prepare for the next iteration */
++	*pmptr = pm + 1;
 +
- 	if (resource == RLIMIT_NOFILE) {
- 		if (new_rlim.rlim_max == RLIM_INFINITY)
- 			new_rlim.rlim_max = sysctl_nr_open;
-@@ -1541,6 +1540,9 @@ asmlinkage long sys_setrlimit(unsigned i
- 			return -EPERM;
+ 	if (pm->node == MAX_NUMNODES)
+ 		return NULL;
+ 
+@@ -926,10 +935,12 @@ set_status:
+ 		pp->status = err;
  	}
  
-+	if (new_rlim.rlim_cur > new_rlim.rlim_max)
-+		return -EINVAL;
-+
- 	retval = security_task_setrlimit(resource, &new_rlim);
- 	if (retval)
- 		return retval;
+-	if (!list_empty(&pagelist))
++	if (!list_empty(&pagelist)) {
++		/* new_page_node() will modify tmp */
++		struct page_to_node *tmp = pm;
+ 		err = migrate_pages(&pagelist, new_page_node,
+-				(unsigned long)pm);
+-	else
++				    (unsigned long)&tmp);
++	} else
+ 		err = -ENOENT;
+ 
+ 	up_read(&mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from vonsch@gmail.com are
+Patches currently in -mm which might be from Brice.Goglin@inria.fr are
 
-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity-fix.patch
+mm-make-do_move_pages-complexity-linear.patch
 
