@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + debug_locks_warn_on-disable-if-oops_in_progress.patch added to -mm tree
-Date: Thu, 11 Sep 2008 17:05:55 -0700
-Message-ID: <200809120005.m8C05tLM023357@imap1.linux-foundation.org>
+Subject: + pxa2xx_spi-fix-chip_info-defaults-and-documentation.patch added to -mm tree
+Date: Fri, 12 Sep 2008 11:40:45 -0700
+Message-ID: <200809121840.m8CIejqZ030791@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56391 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60380 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751893AbYILAGy (ORCPT
+	by vger.kernel.org with ESMTP id S1753482AbYILSlY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 11 Sep 2008 20:06:54 -0400
+	Fri, 12 Sep 2008 14:41:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mingo@elte.hu, tglx@linutronix.de
+Cc: vernoninhand@gmail.com, VernonInHand@gmail.com, dbrownell@users.sourceforge.net, nforrester@whoi.edu
 
 
 The patch titled
-     DEBUG_LOCKS_WARN_ON(): disable if oops_in_progress
+     pxa2xx_spi: fix chip_info defaults and documentation.
 has been added to the -mm tree.  Its filename is
-     debug_locks_warn_on-disable-if-oops_in_progress.patch
+     pxa2xx_spi-fix-chip_info-defaults-and-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,165 +34,209 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: DEBUG_LOCKS_WARN_ON(): disable if oops_in_progress
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pxa2xx_spi: fix chip_info defaults and documentation.
+From: Vernon Sauder <vernoninhand@gmail.com>
 
-The locking debug code likes to spew messages via mutex_trylock() when the
-kernel is oopsing.  This stops us from obtaining a clean trace from the
-real oops.
+Make the chip info structure data optional by providing reasonable
+defaults.  Improve corresponding documentation, and highlight the drawback
+of not providing explicit chipselect control.
 
-So disable the debug code is the kernel is oopsing.
+DMA can determine appropriate dma_burst_size and thresholds automatically
+so use DMA even if dma_burst_size is not specified.
 
-(warning: quick hack, might not work)
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Vernon Sauder <VernonInHand@gmail.com>
+Reviewed-by: Ned Forrester <nforrester@whoi.edu>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/debug_locks.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/spi/pxa2xx |   34 +++++++++++++++++++---------
+ drivers/spi/pxa2xx_spi.c |   44 ++++++++++++++++++++++---------------
+ 2 files changed, 50 insertions(+), 28 deletions(-)
 
-diff -puN include/linux/debug_locks.h~debug_locks_warn_on-disable-if-oops_in_progress include/linux/debug_locks.h
---- a/include/linux/debug_locks.h~debug_locks_warn_on-disable-if-oops_in_progress
-+++ a/include/linux/debug_locks.h
-@@ -17,7 +17,7 @@ extern int debug_locks_off(void);
- ({									\
- 	int __ret = 0;							\
- 									\
--	if (unlikely(c)) {						\
-+	if (!oops_in_progress && unlikely(c)) {				\
- 		if (debug_locks_off() && !debug_locks_silent)		\
- 			WARN_ON(1);					\
- 		__ret = 1;						\
+diff -puN Documentation/spi/pxa2xx~pxa2xx_spi-fix-chip_info-defaults-and-documentation Documentation/spi/pxa2xx
+--- a/Documentation/spi/pxa2xx~pxa2xx_spi-fix-chip_info-defaults-and-documentation
++++ a/Documentation/spi/pxa2xx
+@@ -96,7 +96,7 @@ Each slave device attached to the PXA mu
+ information via the structure "pxa2xx_spi_chip" found in
+ "arch/arm/mach-pxa/include/mach/pxa2xx_spi.h".  The pxa2xx_spi master controller driver
+ will uses the configuration whenever the driver communicates with the slave
+-device.
++device. All fields are optional.
+ 
+ struct pxa2xx_spi_chip {
+ 	u8 tx_threshold;
+@@ -112,14 +112,17 @@ used to configure the SSP hardware fifo.
+ performance of pxa2xx_spi driver and misconfiguration will result in rx
+ fifo overruns (especially in PIO mode transfers). Good default values are
+ 
+-	.tx_threshold = 12,
+-	.rx_threshold = 4,
++	.tx_threshold = 8,
++	.rx_threshold = 8,
++
++The range is 1 to 16 where zero indicates "use default".
+ 
+ The "pxa2xx_spi_chip.dma_burst_size" field is used to configure PXA2xx DMA
+ engine and is related the "spi_device.bits_per_word" field.  Read and understand
+ the PXA2xx "Developer Manual" sections on the DMA controller and SSP Controllers
+ to determine the correct value. An SSP configured for byte-wide transfers would
+-use a value of 8.
++use a value of 8. The driver will determine a reasonable default if
++dma_burst_size == 0.
+ 
+ The "pxa2xx_spi_chip.timeout" fields is used to efficiently handle
+ trailing bytes in the SSP receiver fifo.  The correct value for this field is
+@@ -137,7 +140,13 @@ function for asserting/deasserting a sla
+ NULL, the pxa2xx_spi master controller driver assumes that the SSP port is
+ configured to use SSPFRM instead.
+ 
+-NSSP SALVE SAMPLE
++NOTE: the SPI driver cannot control the chip select if SSPFRM is used, so the
++chipselect is dropped after each spi_transfer.  Most devices need chip select
++asserted around the complete message.  Use SSPFRM as a GPIO (through cs_control)
++to accomodate these chips.
++
++
++NSSP SLAVE SAMPLE
+ -----------------
+ The pxa2xx_spi_chip structure is passed to the pxa2xx_spi driver in the
+ "spi_board_info.controller_data" field. Below is a sample configuration using
+@@ -206,18 +215,21 @@ static void __init streetracer_init(void
+ 
+ DMA and PIO I/O Support
+ -----------------------
+-The pxa2xx_spi driver support both DMA and interrupt driven PIO message
+-transfers.  The driver defaults to PIO mode and DMA transfers must enabled by
+-setting the "enable_dma" flag in the "pxa2xx_spi_master" structure and
+-ensuring that the "pxa2xx_spi_chip.dma_burst_size" field is non-zero.  The DMA
+-mode support both coherent and stream based DMA mappings.
++The pxa2xx_spi driver supports both DMA and interrupt driven PIO message
++transfers.  The driver defaults to PIO mode and DMA transfers must be enabled
++by setting the "enable_dma" flag in the "pxa2xx_spi_master" structure.  The DMA
++mode supports both coherent and stream based DMA mappings.
+ 
+ The following logic is used to determine the type of I/O to be used on
+ a per "spi_transfer" basis:
+ 
+-if !enable_dma or dma_burst_size == 0 then
++if !enable_dma then
+ 	always use PIO transfers
+ 
++if spi_message.len > 8191 then
++	print "rate limited" warning
++	use PIO transfers
++
+ if spi_message.is_dma_mapped and rx_dma_buf != 0 and tx_dma_buf != 0 then
+ 	use coherent DMA mode
+ 
+diff -puN drivers/spi/pxa2xx_spi.c~pxa2xx_spi-fix-chip_info-defaults-and-documentation drivers/spi/pxa2xx_spi.c
+--- a/drivers/spi/pxa2xx_spi.c~pxa2xx_spi-fix-chip_info-defaults-and-documentation
++++ a/drivers/spi/pxa2xx_spi.c
+@@ -47,6 +47,10 @@ MODULE_ALIAS("platform:pxa2xx-spi");
+ 
+ #define MAX_BUSES 3
+ 
++#define RX_THRESH_DFLT 	8
++#define TX_THRESH_DFLT 	8
++#define TIMOUT_DFLT		1000
++
+ #define DMA_INT_MASK		(DCSR_ENDINTR | DCSR_STARTINTR | DCSR_BUSERR)
+ #define RESET_DMA_CHANNEL	(DCSR_NODESC | DMA_INT_MASK)
+ #define IS_DMA_ALIGNED(x)	(((x) & 0x07) == 0)
+@@ -1171,6 +1175,8 @@ static int setup(struct spi_device *spi)
+ 	struct driver_data *drv_data = spi_master_get_devdata(spi->master);
+ 	struct ssp_device *ssp = drv_data->ssp;
+ 	unsigned int clk_div;
++	uint tx_thres = TX_THRESH_DFLT;
++	uint rx_thres = RX_THRESH_DFLT;
+ 
+ 	if (!spi->bits_per_word)
+ 		spi->bits_per_word = 8;
+@@ -1209,8 +1215,7 @@ static int setup(struct spi_device *spi)
+ 
+ 		chip->cs_control = null_cs_control;
+ 		chip->enable_dma = 0;
+-		chip->timeout = 1000;
+-		chip->threshold = SSCR1_RxTresh(1) | SSCR1_TxTresh(1);
++		chip->timeout = TIMOUT_DFLT;
+ 		chip->dma_burst_size = drv_data->master_info->enable_dma ?
+ 					DCMD_BURST8 : 0;
+ 	}
+@@ -1225,21 +1230,22 @@ static int setup(struct spi_device *spi)
+ 		if (chip_info->cs_control)
+ 			chip->cs_control = chip_info->cs_control;
+ 
+-		chip->timeout = chip_info->timeout;
+-
+-		chip->threshold = (SSCR1_RxTresh(chip_info->rx_threshold) &
+-								SSCR1_RFT) |
+-				(SSCR1_TxTresh(chip_info->tx_threshold) &
+-								SSCR1_TFT);
+-
+-		chip->enable_dma = chip_info->dma_burst_size != 0
+-					&& drv_data->master_info->enable_dma;
++		if (chip_info->timeout)
++			chip->timeout = chip_info->timeout;
++		if (chip_info->tx_threshold)
++			tx_thres = chip_info->tx_threshold;
++		if (chip_info->rx_threshold)
++			rx_thres = chip_info->rx_threshold;
++		chip->enable_dma = drv_data->master_info->enable_dma;
+ 		chip->dma_threshold = 0;
+ 
+ 		if (chip_info->enable_loopback)
+ 			chip->cr1 = SSCR1_LBM;
+ 	}
+ 
++	chip->threshold = (SSCR1_RxTresh(rx_thres) & SSCR1_RFT) |
++			(SSCR1_TxTresh(tx_thres) & SSCR1_TFT);
++
+ 	/* set dma burst and threshold outside of chip_info path so that if
+ 	 * chip_info goes away after setting chip->enable_dma, the
+ 	 * burst and threshold can still respond to changes in bits_per_word */
+@@ -1268,17 +1274,19 @@ static int setup(struct spi_device *spi)
+ 
+ 	/* NOTE:  PXA25x_SSP _could_ use external clocking ... */
+ 	if (drv_data->ssp_type != PXA25x_SSP)
+-		dev_dbg(&spi->dev, "%d bits/word, %ld Hz, mode %d\n",
++		dev_dbg(&spi->dev, "%d bits/word, %ld Hz, mode %d, %s\n",
+ 				spi->bits_per_word,
+ 				clk_get_rate(ssp->clk)
+ 					/ (1 + ((chip->cr0 & SSCR0_SCR) >> 8)),
+-				spi->mode & 0x3);
++				spi->mode & 0x3,
++				chip->enable_dma ? "DMA" : "PIO");
+ 	else
+-		dev_dbg(&spi->dev, "%d bits/word, %ld Hz, mode %d\n",
++		dev_dbg(&spi->dev, "%d bits/word, %ld Hz, mode %d, %s\n",
+ 				spi->bits_per_word,
+-				clk_get_rate(ssp->clk)
++				clk_get_rate(ssp->clk) / 2
+ 					/ (1 + ((chip->cr0 & SSCR0_SCR) >> 8)),
+-				spi->mode & 0x3);
++				spi->mode & 0x3,
++				chip->enable_dma ? "DMA" : "PIO");
+ 
+ 	if (spi->bits_per_word <= 8) {
+ 		chip->n_bytes = 1;
+@@ -1498,7 +1506,9 @@ static int __init pxa2xx_spi_probe(struc
+ 
+ 	/* Load default SSP configuration */
+ 	write_SSCR0(0, drv_data->ioaddr);
+-	write_SSCR1(SSCR1_RxTresh(4) | SSCR1_TxTresh(12), drv_data->ioaddr);
++	write_SSCR1(SSCR1_RxTresh(RX_THRESH_DFLT) |
++				SSCR1_TxTresh(TX_THRESH_DFLT),
++				drv_data->ioaddr);
+ 	write_SSCR0(SSCR0_SerClkDiv(2)
+ 			| SSCR0_Motorola
+ 			| SSCR0_DataSize(8),
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vernoninhand@gmail.com are
 
-origin.patch
-include-linux-ioporth-add-missing-macro-argument-for-devm_release_-family-checkpatch-fixes.patch
-linux-next.patch
-linux-next-fixups.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-security-selinux-include-netlabelh-fix-two-build-errors.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch
-revert-acpi-ec-do-transaction-from-interrupt-context.patch
-acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch
-acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-x86-make-poll_idle-behave-more-like-the-other-idle-methods-checkpatch-fixes.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
-fs-dlm-configc-choose-better-identifiers.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
-fix-cred-wrap-current-cred-and-a-few-other-accessors-on-mips.patch
-pci-tidy-pme-support-messages-checkpatch-fixes.patch
-arch-s390-kernel-ptracec-fix-build.patch
-sched-clarify-ifdef-tangle.patch
-debug_locks_warn_on-disable-if-oops_in_progress.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
-drivers-usb-musb-disable-it-on-superh.patch
-git-xtensa.patch
-modules-remove-stop_machine-during-module-load-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-media-video-cafe_ccicc-needs-mmh.patch
-e1000e-prevent-corruption-of-eeprom-nvm.patch
-drivers-net-mlx4-allocc-needs-mmh.patch
-net-forcedeth-call-restore-mac-addr-in-nv_shutdown-path-v2.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
-fix-a-race-condtion-of-oops_in_progress-fix.patch
-vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
-make-taint-bit-reliable-v3-fix.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-tty-fix-echo-tab-erase-and-locking-fix.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-gru-driver-minor-updates-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+pxa2xx_spi-chipselect-bugfixes.patch
+pxa2xx_spi-dma-bugfixes.patch
+spi-simplify-spi_write_then_read.patch
+pxa2xx_spi-fix-chip_info-defaults-and-documentation.patch
 
