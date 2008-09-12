@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-infiniband-hw-drop-code-after-return.patch added to -mm tree
-Date: Fri, 12 Sep 2008 12:40:06 -0700
-Message-ID: <200809121940.m8CJe6Kk000565@imap1.linux-foundation.org>
+Subject: + fs-namespacec-drop-code-after-return.patch added to -mm tree
+Date: Fri, 12 Sep 2008 12:40:10 -0700
+Message-ID: <200809121940.m8CJeAIb000571@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39568 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58716 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753202AbYILTko (ORCPT
+	by vger.kernel.org with ESMTP id S1753203AbYILTkw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Sep 2008 15:40:44 -0400
+	Fri, 12 Sep 2008 15:40:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, richard.genoud@gmail.com, rolandd@cisco.com
+Cc: julia@diku.dk, hch@lst.de, richard.genoud@gmail.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     drivers/infiniband/hw: drop code after return
+     fs/namespace.c: drop code after return
 has been added to the -mm tree.  Its filename is
-     drivers-infiniband-hw-drop-code-after-return.patch
+     fs-namespacec-drop-code-after-return.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/infiniband/hw: drop code after return
+Subject: fs/namespace.c: drop code after return
 From: Julia Lawall <julia@diku.dk>
 
-The break after the return serves no purpose.
+The extra semicolon serves no purpose.
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
 Reviewed-by: Richard Genoud <richard.genoud@gmail.com>
-Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/amso1100/c2_provider.c |    1 -
- drivers/infiniband/hw/nes/nes_verbs.c        |    3 ---
- 2 files changed, 4 deletions(-)
+ fs/namespace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/hw/amso1100/c2_provider.c~drivers-infiniband-hw-drop-code-after-return drivers/infiniband/hw/amso1100/c2_provider.c
---- a/drivers/infiniband/hw/amso1100/c2_provider.c~drivers-infiniband-hw-drop-code-after-return
-+++ a/drivers/infiniband/hw/amso1100/c2_provider.c
-@@ -272,7 +272,6 @@ static struct ib_qp *c2_create_qp(struct
- 		pr_debug("%s: Invalid QP type: %d\n", __func__,
- 			init_attr->qp_type);
- 		return ERR_PTR(-EINVAL);
--		break;
+diff -puN fs/namespace.c~fs-namespacec-drop-code-after-return fs/namespace.c
+--- a/fs/namespace.c~fs-namespacec-drop-code-after-return
++++ a/fs/namespace.c
+@@ -1985,7 +1985,7 @@ static struct mnt_namespace *dup_mnt_ns(
+ 	if (!new_ns->root) {
+ 		up_write(&namespace_sem);
+ 		kfree(new_ns);
+-		return ERR_PTR(-ENOMEM);;
++		return ERR_PTR(-ENOMEM);
  	}
- 
- 	if (err) {
-diff -puN drivers/infiniband/hw/nes/nes_verbs.c~drivers-infiniband-hw-drop-code-after-return drivers/infiniband/hw/nes/nes_verbs.c
---- a/drivers/infiniband/hw/nes/nes_verbs.c~drivers-infiniband-hw-drop-code-after-return
-+++ a/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -1467,7 +1467,6 @@ static struct ib_qp *nes_create_qp(struc
- 		default:
- 			nes_debug(NES_DBG_QP, "Invalid QP type: %d\n", init_attr->qp_type);
- 			return ERR_PTR(-EINVAL);
--			break;
- 	}
- 
- 	/* update the QP table */
-@@ -2498,7 +2497,6 @@ static struct ib_mr *nes_reg_user_mr(str
- 			nes_debug(NES_DBG_MR, "Leaving, ibmr=%p", ibmr);
- 
- 			return ibmr;
--			break;
- 		case IWNES_MEMREG_TYPE_QP:
- 		case IWNES_MEMREG_TYPE_CQ:
- 			nespbl = kzalloc(sizeof(*nespbl), GFP_KERNEL);
-@@ -2572,7 +2570,6 @@ static struct ib_mr *nes_reg_user_mr(str
- 			nesmr->ibmr.lkey = -1;
- 			nesmr->mode = req.reg_type;
- 			return &nesmr->ibmr;
--			break;
- 	}
- 
- 	return ERR_PTR(-ENOSYS);
+ 	spin_lock(&vfsmount_lock);
+ 	list_add_tail(&new_ns->list, &new_ns->root->mnt_list);
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
