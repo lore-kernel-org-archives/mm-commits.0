@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysfs-fix-deadlock.patch added to -mm tree
-Date: Fri, 12 Sep 2008 12:58:31 -0700
-Message-ID: <200809121958.m8CJwVD5001174@imap1.linux-foundation.org>
+Subject: + atmel_lcdfb-disable-lcd-and-dma-engines-when-suspending.patch added to -mm tree
+Date: Fri, 12 Sep 2008 13:00:10 -0700
+Message-ID: <200809122000.m8CK0AeX001312@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54272 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56448 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752922AbYILT64 (ORCPT
+	by vger.kernel.org with ESMTP id S1752329AbYILUAn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Sep 2008 15:58:56 -0400
+	Fri, 12 Sep 2008 16:00:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu, a.p.zijlstra@chello.nl, greg@kroah.com, npiggin@suse.de
+Cc: haavard.skinnemoen@atmel.com, nicolas.ferre@atmel.com
 
 
 The patch titled
-     sysfs: fix deadlock
+     atmel_lcdfb: disable LCD and DMA engines when suspending
 has been added to the -mm tree.  Its filename is
-     sysfs-fix-deadlock.patch
+     atmel_lcdfb-disable-lcd-and-dma-engines-when-suspending.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,248 +34,177 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysfs: fix deadlock
+Subject: atmel_lcdfb: disable LCD and DMA engines when suspending
+From: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
 
+When suspending the system with atmel_lcdfb enabled, I sometimes see
+this:
 
-=======================================================
-[ INFO: possible circular locking dependency detected ]
-2.6.27-rc6-tip #1
--------------------------------------------------------
-X/4873 is trying to acquire lock:
- (&bb->mutex){--..}, at: [<c020ba20>] mmap+0x40/0xa0
+[17179610.896000] atmel_lcdfb atmel_lcdfb.0: FIFO underflow 0x10
 
-but task is already holding lock:
- (&mm->mmap_sem){----}, at: [<c0125a1e>] sys_mmap2+0x8e/0xc0
+Which can be explained by the fact that we're not stopping the LCD
+controller and its DMA engine when suspending, we're just gating the
+clocks to them.
 
-which lock already depends on the new lock.
+There's another potential issue which may be harder to trigger but
+much more nasty: If we gate the clocks at _just_ the right moment,
+e.g. when the DMA engine is doing a bus transaction, we may cause the
+DMA engine to violate the system bus protocol and cause a lockup.
 
+Avoid these issues by shutting down the LCD controller before entering
+suspend (and restarting it when resuming). This prevents the underrun
+from happening in the first place, and prevents whatever nastiness is
+happening when the bus clock stops in the middle of a DMA transfer.
 
-the existing dependency chain (in reverse order) is:
-
--> #1 (&mm->mmap_sem){----}:
-       [<c017dc96>] validate_chain+0xa96/0xf50
-       [<c017ef2b>] __lock_acquire+0x2cb/0x5b0
-       [<c017f299>] lock_acquire+0x89/0xc0
-       [<c01aa8fb>] might_fault+0x6b/0x90
-       [<c040b618>] copy_to_user+0x38/0x60
-       [<c020bcfb>] read+0xfb/0x170
-       [<c01c09a5>] vfs_read+0x95/0x110
-       [<c01c1443>] sys_pread64+0x63/0x80
-       [<c012146f>] sysenter_do_call+0x12/0x43
-       [<ffffffff>] 0xffffffff
-
--> #0 (&bb->mutex){--..}:
-       [<c017d8b7>] validate_chain+0x6b7/0xf50
-       [<c017ef2b>] __lock_acquire+0x2cb/0x5b0
-       [<c017f299>] lock_acquire+0x89/0xc0
-       [<c0d6f2ab>] __mutex_lock_common+0xab/0x3c0
-       [<c0d6f698>] mutex_lock_nested+0x38/0x50
-       [<c020ba20>] mmap+0x40/0xa0
-       [<c01b111e>] mmap_region+0x14e/0x450
-       [<c01b170f>] do_mmap_pgoff+0x2ef/0x310
-       [<c0125a3d>] sys_mmap2+0xad/0xc0
-       [<c012146f>] sysenter_do_call+0x12/0x43
-       [<ffffffff>] 0xffffffff
-
-other info that might help us debug this:
-
-1 lock held by X/4873:
- #0:  (&mm->mmap_sem){----}, at: [<c0125a1e>] sys_mmap2+0x8e/0xc0
-
-stack backtrace:
-Pid: 4873, comm: X Not tainted 2.6.27-rc6-tip #1
- [<c017cd09>] print_circular_bug_tail+0x79/0xc0
- [<c017d8b7>] validate_chain+0x6b7/0xf50
- [<c017a5b5>] ? trace_hardirqs_off_caller+0x15/0xb0
- [<c017ef2b>] __lock_acquire+0x2cb/0x5b0
- [<c017f299>] lock_acquire+0x89/0xc0
- [<c020ba20>] ? mmap+0x40/0xa0
- [<c0d6f2ab>] __mutex_lock_common+0xab/0x3c0
- [<c020ba20>] ? mmap+0x40/0xa0
- [<c0d6f698>] mutex_lock_nested+0x38/0x50
- [<c020ba20>] ? mmap+0x40/0xa0
- [<c020ba20>] mmap+0x40/0xa0
- [<c01b111e>] mmap_region+0x14e/0x450
- [<c01afb88>] ? arch_get_unmapped_area_topdown+0xf8/0x160
- [<c01b170f>] do_mmap_pgoff+0x2ef/0x310
- [<c0125a3d>] sys_mmap2+0xad/0xc0
- [<c012146f>] sysenter_do_call+0x12/0x43
- [<c0120000>] ? __switch_to+0x130/0x220
- =======================
-evbug.c: Event. Dev: input3, Type: 20, Code: 0, Value: 500
-warning: `sudo' uses deprecated v2 capabilities in a way that may be insecure.
-
-
-bin.c takes bb->mutex under mmap_sem when it is mmapped, and then does its
-copy_*_user under bb->mutex too.
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Reported-by: Nick Piggin <npiggin@suse.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/bin.c |   42 +++++++++++++++++++++++++++++++-----------
- 1 file changed, 31 insertions(+), 11 deletions(-)
+ drivers/video/atmel_lcdfb.c |   84 +++++++++++++++++++---------------
+ 1 file changed, 49 insertions(+), 35 deletions(-)
 
-diff -puN fs/sysfs/bin.c~sysfs-fix-deadlock fs/sysfs/bin.c
---- a/fs/sysfs/bin.c~sysfs-fix-deadlock
-+++ a/fs/sysfs/bin.c
-@@ -61,6 +61,7 @@ read(struct file *file, char __user *use
- 	int size = dentry->d_inode->i_size;
- 	loff_t offs = *off;
- 	int count = min_t(size_t, bytes, PAGE_SIZE);
-+	char *temp;
- 
- 	if (size) {
- 		if (offs > size)
-@@ -69,23 +70,33 @@ read(struct file *file, char __user *use
- 			count = size - offs;
- 	}
- 
-+	temp = kmalloc(count, GFP_KERNEL);
-+	if (!temp)
-+		return -ENOMEM;
-+
- 	mutex_lock(&bb->mutex);
- 
- 	count = fill_read(dentry, bb->buffer, offs, count);
--	if (count < 0)
--		goto out_unlock;
-+	if (count < 0) {
-+		mutex_unlock(&bb->mutex);
-+		goto out_free;
-+	}
- 
--	if (copy_to_user(userbuf, bb->buffer, count)) {
-+	memcpy(temp, bb->buffer, count);
-+
-+	mutex_unlock(&bb->mutex);
-+
-+	if (copy_to_user(userbuf, temp, count)) {
- 		count = -EFAULT;
--		goto out_unlock;
-+		goto out_free;
- 	}
- 
- 	pr_debug("offs = %lld, *off = %lld, count = %d\n", offs, *off, count);
- 
- 	*off = offs + count;
- 
-- out_unlock:
--	mutex_unlock(&bb->mutex);
-+ out_free:
-+	kfree(temp);
- 	return count;
+diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-disable-lcd-and-dma-engines-when-suspending drivers/video/atmel_lcdfb.c
+--- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-disable-lcd-and-dma-engines-when-suspending
++++ a/drivers/video/atmel_lcdfb.c
+@@ -208,6 +208,36 @@ static unsigned long compute_hozval(unsi
+ 	return value;
  }
  
-@@ -118,6 +129,7 @@ static ssize_t write(struct file *file, 
- 	int size = dentry->d_inode->i_size;
- 	loff_t offs = *off;
- 	int count = min_t(size_t, bytes, PAGE_SIZE);
-+	char *temp;
- 
- 	if (size) {
- 		if (offs > size)
-@@ -126,19 +138,27 @@ static ssize_t write(struct file *file, 
- 			count = size - offs;
- 	}
- 
--	mutex_lock(&bb->mutex);
-+	temp = kmalloc(count, GFP_KERNEL);
-+	if (!temp)
-+		return -ENOMEM;
- 
--	if (copy_from_user(bb->buffer, userbuf, count)) {
-+	if (copy_from_user(temp, userbuf, count)) {
- 		count = -EFAULT;
--		goto out_unlock;
-+		goto out_free;
- 	}
- 
-+	mutex_lock(&bb->mutex);
++static void atmel_lcdfb_stop_nowait(struct atmel_lcdfb_info *sinfo)
++{
++	/* Turn off the LCD controller and the DMA controller */
++	lcdc_writel(sinfo, ATMEL_LCDC_PWRCON,
++			sinfo->guard_time << ATMEL_LCDC_GUARDT_OFFSET);
 +
-+	memcpy(bb->buffer, temp, count);
++	/* Wait for the LCDC core to become idle */
++	while (lcdc_readl(sinfo, ATMEL_LCDC_PWRCON) & ATMEL_LCDC_BUSY)
++		msleep(10);
 +
- 	count = flush_write(dentry, bb->buffer, offs, count);
-+	mutex_unlock(&bb->mutex);
++	lcdc_writel(sinfo, ATMEL_LCDC_DMACON, 0);
++}
 +
- 	if (count > 0)
- 		*off = offs + count;
++static void atmel_lcdfb_stop(struct atmel_lcdfb_info *sinfo)
++{
++	atmel_lcdfb_stop_nowait(sinfo);
++
++	/* Wait for DMA engine to become idle... */
++	while (lcdc_readl(sinfo, ATMEL_LCDC_DMACON) & ATMEL_LCDC_DMABUSY)
++		msleep(10);
++}
++
++static void atmel_lcdfb_start(struct atmel_lcdfb_info *sinfo)
++{
++	lcdc_writel(sinfo, ATMEL_LCDC_DMACON, sinfo->default_dmacon);
++	lcdc_writel(sinfo, ATMEL_LCDC_PWRCON,
++		(sinfo->guard_time << ATMEL_LCDC_GUARDT_OFFSET)
++		| ATMEL_LCDC_PWR);
++}
++
+ static void atmel_lcdfb_update_dma(struct fb_info *info,
+ 			       struct fb_var_screeninfo *var)
+ {
+@@ -420,26 +450,8 @@ static void atmel_lcdfb_reset(struct atm
+ {
+ 	might_sleep();
  
-- out_unlock:
--	mutex_unlock(&bb->mutex);
-+out_free:
-+	kfree(temp);
- 	return count;
+-	/* LCD power off */
+-	lcdc_writel(sinfo, ATMEL_LCDC_PWRCON, sinfo->guard_time << ATMEL_LCDC_GUARDT_OFFSET);
+-
+-	/* wait for the LCDC core to become idle */
+-	while (lcdc_readl(sinfo, ATMEL_LCDC_PWRCON) & ATMEL_LCDC_BUSY)
+-		msleep(10);
+-
+-	/* DMA disable */
+-	lcdc_writel(sinfo, ATMEL_LCDC_DMACON, 0);
+-
+-	/* wait for DMA engine to become idle */
+-	while (lcdc_readl(sinfo, ATMEL_LCDC_DMACON) & ATMEL_LCDC_DMABUSY)
+-		msleep(10);
+-
+-	/* LCD power on */
+-	lcdc_writel(sinfo, ATMEL_LCDC_PWRCON,
+-		(sinfo->guard_time << ATMEL_LCDC_GUARDT_OFFSET) | ATMEL_LCDC_PWR);
+-
+-	/* DMA enable */
+-	lcdc_writel(sinfo, ATMEL_LCDC_DMACON, sinfo->default_dmacon);
++	atmel_lcdfb_stop(sinfo);
++	atmel_lcdfb_start(sinfo);
+ }
+ 
+ /**
+@@ -471,14 +483,7 @@ static int atmel_lcdfb_set_par(struct fb
+ 		 info->var.xres, info->var.yres,
+ 		 info->var.xres_virtual, info->var.yres_virtual);
+ 
+-	/* Turn off the LCD controller and the DMA controller */
+-	lcdc_writel(sinfo, ATMEL_LCDC_PWRCON, sinfo->guard_time << ATMEL_LCDC_GUARDT_OFFSET);
+-
+-	/* Wait for the LCDC core to become idle */
+-	while (lcdc_readl(sinfo, ATMEL_LCDC_PWRCON) & ATMEL_LCDC_BUSY)
+-		msleep(10);
+-
+-	lcdc_writel(sinfo, ATMEL_LCDC_DMACON, 0);
++	atmel_lcdfb_stop_nowait(sinfo);
+ 
+ 	if (info->var.bits_per_pixel == 1)
+ 		info->fix.visual = FB_VISUAL_MONO01;
+@@ -583,13 +588,7 @@ static int atmel_lcdfb_set_par(struct fb
+ 	while (lcdc_readl(sinfo, ATMEL_LCDC_DMACON) & ATMEL_LCDC_DMABUSY)
+ 		msleep(10);
+ 
+-	dev_dbg(info->device, "  * re-enable DMA engine\n");
+-	/* ...and enable it with updated configuration */
+-	lcdc_writel(sinfo, ATMEL_LCDC_DMACON, sinfo->default_dmacon);
+-
+-	dev_dbg(info->device, "  * re-enable LCDC core\n");
+-	lcdc_writel(sinfo, ATMEL_LCDC_PWRCON,
+-		(sinfo->guard_time << ATMEL_LCDC_GUARDT_OFFSET) | ATMEL_LCDC_PWR);
++	atmel_lcdfb_start(sinfo);
+ 
+ 	dev_dbg(info->device, "  * DONE\n");
+ 
+@@ -1032,11 +1031,20 @@ static int atmel_lcdfb_suspend(struct pl
+ 	struct fb_info *info = platform_get_drvdata(pdev);
+ 	struct atmel_lcdfb_info *sinfo = info->par;
+ 
++	/*
++	 * We don't want to handle interrupts while the clock is
++	 * stopped. It may take forever.
++	 */
++	lcdc_writel(sinfo, ATMEL_LCDC_IDR, ~0UL);
++
+ 	sinfo->saved_lcdcon = lcdc_readl(sinfo, ATMEL_LCDC_CONTRAST_VAL);
+ 	lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_CTR, 0);
+ 	if (sinfo->atmel_lcdfb_power_control)
+ 		sinfo->atmel_lcdfb_power_control(0);
++
++	atmel_lcdfb_stop(sinfo);
+ 	atmel_lcdfb_stop_clock(sinfo);
++
+ 	return 0;
+ }
+ 
+@@ -1046,9 +1054,15 @@ static int atmel_lcdfb_resume(struct pla
+ 	struct atmel_lcdfb_info *sinfo = info->par;
+ 
+ 	atmel_lcdfb_start_clock(sinfo);
++	atmel_lcdfb_start(sinfo);
+ 	if (sinfo->atmel_lcdfb_power_control)
+ 		sinfo->atmel_lcdfb_power_control(1);
+ 	lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_CTR, sinfo->saved_lcdcon);
++
++	/* Enable FIFO & DMA errors */
++	lcdc_writel(sinfo, ATMEL_LCDC_IER, ATMEL_LCDC_UFLWI
++			| ATMEL_LCDC_OWRI | ATMEL_LCDC_MERI);
++
+ 	return 0;
  }
  
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from haavard.skinnemoen@atmel.com are
 
-origin.patch
+atmel_lcdfb-disable-lcd-and-dma-engines-when-suspending.patch
 linux-next.patch
-kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
-introduce-generic-header-file-for-the-software-io-tlb.patch
-x86-remove-init_mm-export-as-planned-for-2626.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-x86-tracehook-config_have_arch_tracehook.patch
-x86-make-poll_idle-behave-more-like-the-other-idle-methods.patch
-x86-make-poll_idle-behave-more-like-the-other-idle-methods-checkpatch-fixes.patch
-x86-init-annotations-in-early_printk-setup.patch
-x86-adjust-dependencies-for-config_x86_cmov.patch
-x86-pgd_cdtor-cleanup.patch
-x86-x86_physvirt_bits-field-also-for-i386.patch
-x86-adjust-vmalloc_sync_all-for-xen-2nd-try.patch
-x86-fix-ticket-spin-lock-asm-constraints.patch
-x86-64-reduce-boot-fixmap-space.patch
-x86-64-add-two-__cpuinit-annotations.patch
-x86-64-eliminate-dead-code.patch
-x86-64-slightly-streamline-32-bit-syscall-entry-code.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-x86-use-common-header-for-software-io-tlb.patch
-sysfs-fix-deadlock.patch
-initramfs-fix-compilation-warning.patch
-less-softirq-vectors.patch
-dyn_array-use-%pf-instead-of-print_fn_descriptor_symbol.patch
-dyn_array-fix-typo.patch
-sched-fix-init_hrtick-section-mismatch-warning.patch
-sched-clarify-ifdef-tangle.patch
-sched-fix-compilation-with-gcc-346.patch
-debug_locks_warn_on-disable-if-oops_in_progress.patch
-rcu-spinlocks-take-an-unsigned-long-flags.patch
-rcu-fix-sparse-shadowed-variable-warning.patch
-ftrace-warn-on-failure-to-disable-mcount-callers.patch
-sched-reinitialise-rt_rq-rt_throttled-in-__enable_runtime.patch
-mm-define-use_split_ptlocks-rather-than-repeating-expression.patch
-xen-fix-pinning-when-not-using-split-pte-locks.patch
-add-phys_addr_t-for-holding-physical-addresses.patch
-make-pfn_phys-explicitly-return-phys_addr_t.patch
-redefine-resource_size_t-as-phys_addr_t.patch
-wait-kill-is_sync_wait.patch
-kconfig-eliminate-def_bool-n-constructs.patch
-make-taint-bit-reliable-v3.patch
-make-taint-bit-reliable-v3-fix.patch
-profiling-dynamically-enable-readprofile-at-runtime.patch
-compat-generic-compat-get-settimeofday.patch
-x86-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
-introduce-generic-iommu_num_pages-function.patch
-x86-convert-gart-driver-to-generic-iommu_num_pages-function.patch
-x86-amd-iommu-convert-driver-to-generic-iommu_num_pages-function.patch
-x86-convert-calgary-iommu-driver-to-generic-iommu_num_pages-function.patch
-legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
-rtc-cmos-export-second-nvram-bank.patch
-genirq-record-trigger-type.patch
-genirq-record-trigger-type-fix.patch
-irq-warn-about-irqf_disabledirqf_shared.patch
-kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
-kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore.patch
-x86-sysfs-kill-owner-field-from-attribute.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-likely-profiling-disable-ftrace.patch
 
