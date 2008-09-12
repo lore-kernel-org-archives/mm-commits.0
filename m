@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + apci-dump-slit.patch added to -mm tree
-Date: Fri, 12 Sep 2008 13:29:58 -0700
-Message-ID: <200809122029.m8CKTwSR002496@imap1.linux-foundation.org>
+Subject: + fs-9p-use-an-is_err-test-rather-than-a-null-test.patch added to -mm tree
+Date: Fri, 12 Sep 2008 14:59:31 -0700
+Message-ID: <200809122159.m8CLxVDH006511@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58370 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35975 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755720AbYILUaw (ORCPT
+	by vger.kernel.org with ESMTP id S1756560AbYILV7n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Sep 2008 16:30:52 -0400
+	Fri, 12 Sep 2008 17:59:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yhlu.kernel@gmail.com, lenb@kernel.org, mingo@elte.hu
+Cc: brunel@diku.dk, ericvh@gmail.com, julia@diku.dk, lucho@ionkov.net, rminnich@sandia.gov
 
 
 The patch titled
-     apci: dump slit
+     fs/9p: use an IS_ERR test rather than a NULL test
 has been added to the -mm tree.  Its filename is
-     apci-dump-slit.patch
+     fs-9p-use-an-is_err-test-rather-than-a-null-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: apci: dump slit
-From: Yinghai Lu <yhlu.kernel@gmail.com>
+Subject: fs/9p: use an IS_ERR test rather than a NULL test
+From: Julien Brunel <brunel@diku.dk>
 
-(akpm: apparently this has something to do with BIOS bugs)
+In case of error, the function p9_client_walk returns an ERR pointer, but
+never returns a NULL pointer.  So a NULL test that comes after an IS_ERR
+test should be deleted.
 
-Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Len Brown <lenb@kernel.org>
+The semantic match that finds this problem is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@match_bad_null_test@
+expression x, E;
+statement S1,S2;
+@@
+x = p9_client_walk(...)
+... when != x = E
+*  if (x != NULL)
+S1 else S2
+// </smpl>
+
+Signed-off-by: Julien Brunel <brunel@diku.dk>
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Cc: Ron Minnich <rminnich@sandia.gov>
+Cc: Latchesar Ionkov <lucho@ionkov.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/numa.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ fs/9p/vfs_inode.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/acpi/numa.c~apci-dump-slit drivers/acpi/numa.c
---- a/drivers/acpi/numa.c~apci-dump-slit
-+++ a/drivers/acpi/numa.c
-@@ -150,6 +150,14 @@ static __init int slit_valid(struct acpi
- {
- 	int i, j;
- 	int d = slit->locality_count;
-+	printk(KERN_DEBUG "ACPI: SLIT: nodes = %d\n", d);
-+	for (i = 0; i < d; i++) {
-+		for (j = 0; j < d; j++)  {
-+			u8 val = slit->entry[d*i + j];
-+			printk(" %d", val);
-+		}
-+		printk("\n");
-+	}
- 	for (i = 0; i < d; i++) {
- 		for (j = 0; j < d; j++)  {
- 			u8 val = slit->entry[d*i + j];
+diff -puN fs/9p/vfs_inode.c~fs-9p-use-an-is_err-test-rather-than-a-null-test fs/9p/vfs_inode.c
+--- a/fs/9p/vfs_inode.c~fs-9p-use-an-is_err-test-rather-than-a-null-test
++++ a/fs/9p/vfs_inode.c
+@@ -626,8 +626,7 @@ static struct dentry *v9fs_vfs_lookup(st
+ 	return NULL;
+ 
+ error:
+-	if (fid)
+-		p9_client_clunk(fid);
++	p9_client_clunk(fid);
+ 
+ 	return ERR_PTR(result);
+ }
 _
 
-Patches currently in -mm which might be from yhlu.kernel@gmail.com are
+Patches currently in -mm which might be from brunel@diku.dk are
 
 origin.patch
 linux-next.patch
-apci-dump-slit.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-pci-fix-merging-left-out-for-bar-print-out-v2.patch
-dyn_array-use-%pf-instead-of-print_fn_descriptor_symbol.patch
-dyn_array-fix-typo.patch
-net-forcedeth-call-restore-mac-addr-in-nv_shutdown-path-v2.patch
+fs-gfs2-use-an-is_err-test-rather-than-a-null-test.patch
+drivers-usb-misc-use-an-is_err-test-rather-than-a-null-test.patch
+fs-9p-use-an-is_err-test-rather-than-a-null-test.patch
+checkpatch-suppress-errors-triggered-by-short-patch.patch
+fs-reiserfs-use-an-is_err-test-rather-than-a-null-test.patch
 
