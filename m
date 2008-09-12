@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + itimers-fix-itimer-many-thread-hang-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 12 Sep 2008 16:55:06 -0700
-Message-ID: <200809122355.m8CNt7rG011428@imap1.linux-foundation.org>
+Subject: + rescan_partitions-make-device-capacity-errors-non-fatal.patch added to -mm tree
+Date: Fri, 12 Sep 2008 16:57:04 -0700
+Message-ID: <200809122357.m8CNv41i011467@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56055 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47638 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753137AbYILX4U (ORCPT
+	by vger.kernel.org with ESMTP id S1753137AbYILX6N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Sep 2008 19:56:20 -0400
+	Fri, 12 Sep 2008 19:58:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@gmail.com, fmayhar@google.com, mingo@elte.hu, oleg@tv-sign.ru, roland@redhat.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, david-b@pacbell.net, draconux@gmail.com, herton@mandriva.com.br, jens.axboe@oracle.com, stern@rowland.harvard.edu
 
 
 The patch titled
-     itimers-fix-itimer-many-thread-hang-checkpatch-fixes
+     rescan_partitions(): make device capacity errors non-fatal
 has been added to the -mm tree.  Its filename is
-     itimers-fix-itimer-many-thread-hang-checkpatch-fixes.patch
+     rescan_partitions-make-device-capacity-errors-non-fatal.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,92 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: itimers-fix-itimer-many-thread-hang-checkpatch-fixes
+Subject: rescan_partitions(): make device capacity errors non-fatal
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#400: FILE: include/linux/sched.h:2096:
-+extern void thread_group_cputime_smp(struct task_struct *, struct task_cputime *);
+Herton Krzesinski reports that the error-checking changes in
+04ebd4aee52b06a2c38127d9208546e5b96f3a19 ("block/ioctl.c and
+fs/partition/check.c: check value returned by add_partition") cause his
+buggy USB camera to no longer mount.  "The camera is an Olympus X-840. 
+The original issue comes from the camera itself: its format program
+creates a partition with an off by one error".
 
-ERROR: code indent should use tabs where possible
-#1079: FILE: kernel/posix-cpu-timers.c:97:
-+            cputime_lt(current->signal->it_prof_expires, cputime)) {$
+Buggy devices happen.  It is better for the kernel to warn and to proceed
+with the mount.
 
-WARNING: braces {} are not necessary for single statement blocks
-#1577: FILE: kernel/posix-cpu-timers.c:1375:
-+	if (unlikely(!sig) || !fastpath_timer_check(tsk, sig)) {
-+		return;
-+	}
-
-total: 1 errors, 2 warnings, 1612 lines checked
-
-./patches/itimers-fix-itimer-many-thread-hang.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Frank Mayhar <fmayhar@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Reported-by: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
+Cc: Abdel Benamrouche <draconux@gmail.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h     |    3 ++-
- kernel/posix-cpu-timers.c |   10 ++++------
- 2 files changed, 6 insertions(+), 7 deletions(-)
+ fs/partitions/check.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/sched.h~itimers-fix-itimer-many-thread-hang-checkpatch-fixes include/linux/sched.h
---- a/include/linux/sched.h~itimers-fix-itimer-many-thread-hang-checkpatch-fixes
-+++ a/include/linux/sched.h
-@@ -2093,7 +2093,8 @@ static inline int spin_needbreak(spinloc
- #ifdef CONFIG_SMP
- 
- extern int thread_group_cputime_alloc_smp(struct task_struct *);
--extern void thread_group_cputime_smp(struct task_struct *, struct task_cputime *);
-+extern void thread_group_cputime_smp(struct task_struct *tsk,
-+					struct task_cputime *times);
- 
- static inline void thread_group_cputime_init(struct signal_struct *sig)
- {
-diff -puN kernel/posix-cpu-timers.c~itimers-fix-itimer-many-thread-hang-checkpatch-fixes kernel/posix-cpu-timers.c
---- a/kernel/posix-cpu-timers.c~itimers-fix-itimer-many-thread-hang-checkpatch-fixes
-+++ a/kernel/posix-cpu-timers.c
-@@ -58,9 +58,8 @@ int thread_group_cputime_alloc_smp(struc
-  * Walk the list of CPUs to sum the per-CPU time fields in the thread group
-  * time structure.
-  */
--void thread_group_cputime_smp(
--	struct task_struct *tsk,
--	struct task_cputime *times)
-+void thread_group_cputime_smp(struct task_struct *tsk,
-+				struct task_cputime *times)
- {
- 	struct signal_struct *sig;
- 	int i;
-@@ -94,7 +93,7 @@ void update_rlimit_cpu(unsigned long rli
- 
- 	cputime = secs_to_cputime(rlim_new);
- 	if (cputime_eq(current->signal->it_prof_expires, cputime_zero) ||
--            cputime_lt(current->signal->it_prof_expires, cputime)) {
-+	    cputime_lt(current->signal->it_prof_expires, cputime)) {
- 		spin_lock_irq(&current->sighand->siglock);
- 		set_process_cpu_timer(current, CPUCLOCK_PROF, &cputime, NULL);
- 		spin_unlock_irq(&current->sighand->siglock);
-@@ -1372,9 +1371,8 @@ void run_posix_cpu_timers(struct task_st
- 	 * tsk->signal is non-NULL; this probably can't happen but cover the
- 	 * possibility anyway.
- 	 */
--	if (unlikely(!sig) || !fastpath_timer_check(tsk, sig)) {
-+	if (unlikely(!sig) || !fastpath_timer_check(tsk, sig))
- 		return;
--	}
- 	sighand = lock_task_sighand(tsk, &flags);
- 	if (likely(sighand)) {
- 		/*
+diff -puN fs/partitions/check.c~rescan_partitions-make-device-capacity-errors-non-fatal fs/partitions/check.c
+--- a/fs/partitions/check.c~rescan_partitions-make-device-capacity-errors-non-fatal
++++ a/fs/partitions/check.c
+@@ -499,9 +499,9 @@ int rescan_partitions(struct gendisk *di
+ 		if (!size)
+ 			continue;
+ 		if (from + size > get_capacity(disk)) {
+-			printk(KERN_ERR " %s: p%d exceeds device capacity\n",
++			printk(KERN_WARNING
++				"%s: p%d exceeds device capacity\n",
+ 				disk->disk_name, p);
+-			continue;
+ 		}
+ 		res = add_partition(disk, p, from, size, state->parts[p].flags);
+ 		if (res) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
