@@ -1,150 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - x86-64-slightly-streamline-32-bit-syscall-entry-code.patch removed from -mm tree
-Date: Sat, 13 Sep 2008 00:45:33 -0700
-Message-ID: <200809130745.m8D7jXZf026776@imap1.linux-foundation.org>
+Subject: - arch-ia64-sn-pci-tioca_providerc-introduce-missing-kfree.patch removed from -mm tree
+Date: Sat, 13 Sep 2008 00:45:52 -0700
+Message-ID: <200809130745.m8D7jqJk026797@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46511 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45735 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753058AbYIMHpz (ORCPT
+	by vger.kernel.org with ESMTP id S1753139AbYIMHp4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 13 Sep 2008 03:45:55 -0400
+	Sat, 13 Sep 2008 03:45:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbeulich@novell.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: julia@diku.dk, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-64: slightly streamline 32-bit syscall entry code
+     arch/ia64/sn/pci/tioca_provider.c: introduce missing kfree
 has been removed from the -mm tree.  Its filename was
-     x86-64-slightly-streamline-32-bit-syscall-entry-code.patch
+     arch-ia64-sn-pci-tioca_providerc-introduce-missing-kfree.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-64: slightly streamline 32-bit syscall entry code
-From: Jan Beulich <jbeulich@novell.com>
+Subject: arch/ia64/sn/pci/tioca_provider.c: introduce missing kfree
+From: Julia Lawall <julia@diku.dk>
 
-Avoid updating registers or memory twice as well as needlessly loading
-or copying registers.
+Error handling code following a kmalloc should free the allocated data.
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+The semantic match that finds the problem is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@r exists@
+local idexpression x;
+statement S;
+expression E;
+identifier f,l;
+position p1,p2;
+expression *ptr != NULL;
+@@
+
+(
+if ((x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...)) == NULL) S
+|
+x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...);
+...
+if (x == NULL) S
+)
+<... when != x
+     when != if (...) { <+...x...+> }
+x->f = E
+...>
+(
+ return \(0\|<+...x...+>\|ptr\);
+|
+ return@p2 ...;
+)
+
+@script:python@
+p1 << r.p1;
+p2 << r.p2;
+@@
+
+print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/ia32/ia32entry.S |   26 ++++++++++----------------
- 1 file changed, 10 insertions(+), 16 deletions(-)
+ arch/ia64/sn/pci/tioca_provider.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/ia32/ia32entry.S~x86-64-slightly-streamline-32-bit-syscall-entry-code arch/x86/ia32/ia32entry.S
---- a/arch/x86/ia32/ia32entry.S~x86-64-slightly-streamline-32-bit-syscall-entry-code
-+++ a/arch/x86/ia32/ia32entry.S
-@@ -39,11 +39,11 @@
- 	.endm 
+diff -puN arch/ia64/sn/pci/tioca_provider.c~arch-ia64-sn-pci-tioca_providerc-introduce-missing-kfree arch/ia64/sn/pci/tioca_provider.c
+--- a/arch/ia64/sn/pci/tioca_provider.c~arch-ia64-sn-pci-tioca_providerc-introduce-missing-kfree
++++ a/arch/ia64/sn/pci/tioca_provider.c
+@@ -420,8 +420,10 @@ tioca_dma_mapped(struct pci_dev *pdev, u
+ 		entry = find_next_zero_bit(map, mapsize, last_entry);
+ 	}
  
- 	/* clobbers %eax */	
--	.macro  CLEAR_RREGS
-+	.macro  CLEAR_RREGS _r9=rax
- 	xorl 	%eax,%eax
- 	movq	%rax,R11(%rsp)
- 	movq	%rax,R10(%rsp)
--	movq	%rax,R9(%rsp)
-+	movq	%\_r9,R9(%rsp)
- 	movq	%rax,R8(%rsp)
- 	.endm
+-	if (entry > mapsize)
++	if (entry > mapsize) {
++		kfree(ca_dmamap);
+ 		goto map_return;
++	}
  
-@@ -52,11 +52,10 @@
- 	 * We don't reload %eax because syscall_trace_enter() returned
- 	 * the value it wants us to use in the table lookup.
- 	 */
--	.macro LOAD_ARGS32 offset
--	movl \offset(%rsp),%r11d
--	movl \offset+8(%rsp),%r10d
-+	.macro LOAD_ARGS32 offset, _r9=0
-+	.if \_r9
- 	movl \offset+16(%rsp),%r9d
--	movl \offset+24(%rsp),%r8d
-+	.endif
- 	movl \offset+40(%rsp),%ecx
- 	movl \offset+48(%rsp),%edx
- 	movl \offset+56(%rsp),%esi
-@@ -145,7 +144,7 @@ ENTRY(ia32_sysenter_target)
- 	SAVE_ARGS 0,0,1
-  	/* no need to do an access_ok check here because rbp has been
-  	   32bit zero extended */ 
--1:	movl	(%rbp),%r9d
-+1:	movl	(%rbp),%ebp
-  	.section __ex_table,"a"
-  	.quad 1b,ia32_badarg
-  	.previous	
-@@ -157,7 +156,7 @@ ENTRY(ia32_sysenter_target)
- 	cmpl	$(IA32_NR_syscalls-1),%eax
- 	ja	ia32_badsys
- sysenter_do_call:
--	IA32_ARG_FIXUP 1
-+	IA32_ARG_FIXUP
- sysenter_dispatch:
- 	call	*ia32_sys_call_table(,%rax,8)
- 	movq	%rax,RAX-ARGOFFSET(%rsp)
-@@ -234,20 +233,17 @@ sysexit_audit:
- #endif
- 
- sysenter_tracesys:
--	xchgl	%r9d,%ebp
- #ifdef CONFIG_AUDITSYSCALL
- 	testl	$(_TIF_WORK_SYSCALL_ENTRY & ~_TIF_SYSCALL_AUDIT),TI_flags(%r10)
- 	jz	sysenter_auditsys
- #endif
- 	SAVE_REST
- 	CLEAR_RREGS
--	movq	%r9,R9(%rsp)
- 	movq	$-ENOSYS,RAX(%rsp)/* ptrace can change this for a bad syscall */
- 	movq	%rsp,%rdi        /* &pt_regs -> arg1 */
- 	call	syscall_trace_enter
- 	LOAD_ARGS32 ARGOFFSET  /* reload args from stack in case ptrace changed it */
- 	RESTORE_REST
--	xchgl	%ebp,%r9d
- 	cmpl	$(IA32_NR_syscalls-1),%eax
- 	ja	int_ret_from_sys_call /* sysenter_tracesys has set RAX(%rsp) */
- 	jmp	sysenter_do_call
-@@ -314,9 +310,9 @@ ENTRY(ia32_cstar_target)
- 	testl $_TIF_WORK_SYSCALL_ENTRY,TI_flags(%r10)
- 	CFI_REMEMBER_STATE
- 	jnz   cstar_tracesys
--cstar_do_call:	
- 	cmpl $IA32_NR_syscalls-1,%eax
- 	ja  ia32_badsys
-+cstar_do_call:
- 	IA32_ARG_FIXUP 1
- cstar_dispatch:
- 	call *ia32_sys_call_table(,%rax,8)
-@@ -357,15 +353,13 @@ cstar_tracesys:
- #endif
- 	xchgl %r9d,%ebp
- 	SAVE_REST
--	CLEAR_RREGS
--	movq %r9,R9(%rsp)
-+	CLEAR_RREGS r9
- 	movq $-ENOSYS,RAX(%rsp)	/* ptrace can change this for a bad syscall */
- 	movq %rsp,%rdi        /* &pt_regs -> arg1 */
- 	call syscall_trace_enter
--	LOAD_ARGS32 ARGOFFSET  /* reload args from stack in case ptrace changed it */
-+	LOAD_ARGS32 ARGOFFSET, 1  /* reload args from stack in case ptrace changed it */
- 	RESTORE_REST
- 	xchgl %ebp,%r9d
--	movl RSP-ARGOFFSET(%rsp), %r8d
- 	cmpl $(IA32_NR_syscalls-1),%eax
- 	ja int_ret_from_sys_call /* cstar_tracesys has set RAX(%rsp) */
- 	jmp cstar_do_call
+ 	for (i = 0; i < entries; i++)
+ 		set_bit(entry + i, map);
 _
 
-Patches currently in -mm which might be from jbeulich@novell.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
+origin.patch
 linux-next.patch
-adjust-init-section-definitions.patch
-kconfig-eliminate-def_bool-n-constructs.patch
+drivers-media-common-tuners-drop-code-after-return-or-goto.patch
+drivers-infiniband-hw-drop-code-after-return.patch
+drivers-atm-use-div_round_up.patch
+net-atm-lecc-drop-code-after-return.patch
+drivers-net-wan-use-div_round_up.patch
+drivers-isdn-capi-kcapic-adjust-error-handling-code-involving-capi_ctr_put.patch
+drivers-dma-ioat_dmac-drop-code-after-return.patch
+drivers-scsi-use-div_round_up.patch
+drivers-scsi-megaraid-use-div_round_up.patch
+drivers-block-use-div_round_up.patch
+net-9p-trans_fdc-introduce-missing-kfree.patch
+fs-9p-use-an-is_err-test-rather-than-a-null-test.patch
+fs-namespacec-drop-code-after-return.patch
+drivers-misc-use-div_round_up.patch
+drivers-net-xen-netfrontc-use-div_round_up.patch
+fs-reiserfs-use-an-is_err-test-rather-than-a-null-test.patch
 
