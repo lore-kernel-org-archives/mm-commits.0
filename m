@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rescan_partitions-make-device-capacity-errors-non-fatal.patch added to -mm tree
-Date: Fri, 12 Sep 2008 16:57:04 -0700
-Message-ID: <200809122357.m8CNv41i011467@imap1.linux-foundation.org>
+Subject: + serial-make-uart_ports-ioport-unsigned-long.patch added to -mm tree
+Date: Fri, 12 Sep 2008 21:59:14 -0700
+Message-ID: <200809130459.m8D4xEqQ021386@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47638 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40106 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753137AbYILX6N (ORCPT
+	by vger.kernel.org with ESMTP id S1751284AbYIMFAF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 12 Sep 2008 19:58:13 -0400
+	Sat, 13 Sep 2008 01:00:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, david-b@pacbell.net, draconux@gmail.com, herton@mandriva.com.br, jens.axboe@oracle.com, stern@rowland.harvard.edu
+Cc: davem@davemloft.net, alan@lxorguk.ukuu.org.uk, joy@entuzijast.net
 
 
 The patch titled
-     rescan_partitions(): make device capacity errors non-fatal
+     serial: make uart_port's ioport "unsigned long"
 has been added to the -mm tree.  Its filename is
-     rescan_partitions-make-device-capacity-errors-non-fatal.patch
+     serial-make-uart_ports-ioport-unsigned-long.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,176 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rescan_partitions(): make device capacity errors non-fatal
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: serial: make uart_port's ioport "unsigned long"
+From: David Miller <davem@davemloft.net>
 
-Herton Krzesinski reports that the error-checking changes in
-04ebd4aee52b06a2c38127d9208546e5b96f3a19 ("block/ioctl.c and
-fs/partition/check.c: check value returned by add_partition") cause his
-buggy USB camera to no longer mount.  "The camera is an Olympus X-840. 
-The original issue comes from the camera itself: its format program
-creates a partition with an off by one error".
+Otherwise the top 32-bits of the resource value get chopped off on 64-bit
+systems, and the resulting I/O accesses go to random places.
 
-Buggy devices happen.  It is better for the kernel to warn and to proceed
-with the mount.
+Thanks to testing and debugging by Josip Rodin, which helped track this
+down.
 
-Reported-by: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
-Cc: Abdel Benamrouche <draconux@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Josip Rodin <joy@entuzijast.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/check.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/serial_core.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/partitions/check.c~rescan_partitions-make-device-capacity-errors-non-fatal fs/partitions/check.c
---- a/fs/partitions/check.c~rescan_partitions-make-device-capacity-errors-non-fatal
-+++ a/fs/partitions/check.c
-@@ -499,9 +499,9 @@ int rescan_partitions(struct gendisk *di
- 		if (!size)
- 			continue;
- 		if (from + size > get_capacity(disk)) {
--			printk(KERN_ERR " %s: p%d exceeds device capacity\n",
-+			printk(KERN_WARNING
-+				"%s: p%d exceeds device capacity\n",
- 				disk->disk_name, p);
--			continue;
- 		}
- 		res = add_partition(disk, p, from, size, state->parts[p].flags);
- 		if (res) {
+diff -puN include/linux/serial_core.h~serial-make-uart_ports-ioport-unsigned-long include/linux/serial_core.h
+--- a/include/linux/serial_core.h~serial-make-uart_ports-ioport-unsigned-long
++++ a/include/linux/serial_core.h
+@@ -241,7 +241,7 @@ typedef unsigned int __bitwise__ upf_t;
+ 
+ struct uart_port {
+ 	spinlock_t		lock;			/* port lock */
+-	unsigned int		iobase;			/* in/out[bwl] */
++	unsigned long		iobase;			/* in/out[bwl] */
+ 	unsigned char __iomem	*membase;		/* read/write[bwl] */
+ 	unsigned int		irq;			/* irq number */
+ 	unsigned int		uartclk;		/* base uart clock */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from davem@davemloft.net are
 
 origin.patch
-include-linux-ioporth-add-missing-macro-argument-for-devm_release_-family-checkpatch-fixes.patch
-rescan_partitions-make-device-capacity-errors-non-fatal.patch
 linux-next.patch
-linux-next-fixups.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-security-selinux-include-netlabelh-fix-two-build-errors.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch
-toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch
-revert-acpi-ec-do-transaction-from-interrupt-context.patch
-acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch
-acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-x86-make-poll_idle-behave-more-like-the-other-idle-methods-checkpatch-fixes.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
-fs-dlm-configc-choose-better-identifiers.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-itimers-fix-itimer-many-thread-hang-checkpatch-fixes.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
-fix-cred-wrap-current-cred-and-a-few-other-accessors-on-mips.patch
-pci-tidy-pme-support-messages-checkpatch-fixes.patch
-arch-s390-kernel-ptracec-fix-build.patch
-sched-clarify-ifdef-tangle.patch
-debug_locks_warn_on-disable-if-oops_in_progress.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+git-net.patch
+configure-out-igmp-support.patch
+drivers-isdn-capi-kcapic-adjust-error-handling-code-involving-capi_ctr_put.patch
+sunrpc-do-not-pin-sunrpc-module-in-the-memory.patch
 drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
-drivers-usb-musb-disable-it-on-superh.patch
-git-xtensa.patch
-modules-remove-stop_machine-during-module-load-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-media-video-cafe_ccicc-needs-mmh.patch
-e1000e-prevent-corruption-of-eeprom-nvm.patch
 drivers-net-mlx4-allocc-needs-mmh.patch
-net-forcedeth-call-restore-mac-addr-in-nv_shutdown-path-v2.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
 separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
-fix-a-race-condtion-of-oops_in_progress-fix.patch
-vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
-make-taint-bit-reliable-v3-fix.patch
-kernel-sysc-improve-code-generation.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-genirq-record-trigger-type-fix.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-tty-fix-echo-tab-erase-and-locking-fix.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-gru-driver-minor-updates-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix.patch
-nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
+compat-generic-compat-get-settimeofday.patch
+x86-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
+sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
+introduce-generic-iommu_num_pages-function.patch
+sparc64-use-iommu_num_pages-function-in-iommu-code.patch
+serial-make-uart_ports-ioport-unsigned-long.patch
+serial-allow-8250-to-be-used-on-sparc.patch
+kprobes-indirectly-call-kprobe_target.patch
+kprobes-add-tests-for-register_kprobes.patch
+radeonfb-misc-cleanup-of-engine-and-dst-cache-handling.patch
+radeonfb-accelerate-imageblit-and-other-improvements.patch
+sysctl-simplify-strategy.patch
+byteorder-use-generic-c-version-for-value-byteswapping.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
