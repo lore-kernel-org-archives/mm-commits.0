@@ -1,37 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - x86-64-reduce-boot-fixmap-space.patch removed from -mm tree
-Date: Sat, 13 Sep 2008 00:45:29 -0700
-Message-ID: <200809130745.m8D7jTsx026770@imap1.linux-foundation.org>
+Subject: - x86-64-slightly-streamline-32-bit-syscall-entry-code.patch removed from -mm tree
+Date: Sat, 13 Sep 2008 00:45:33 -0700
+Message-ID: <200809130745.m8D7jXZf026776@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47142 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46511 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753056AbYIMHpx (ORCPT
+	by vger.kernel.org with ESMTP id S1753058AbYIMHpz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 13 Sep 2008 03:45:53 -0400
+	Sat, 13 Sep 2008 03:45:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jbeulich@novell.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-64: reduce boot fixmap space
+     x86-64: slightly streamline 32-bit syscall entry code
 has been removed from the -mm tree.  Its filename was
-     x86-64-reduce-boot-fixmap-space.patch
+     x86-64-slightly-streamline-32-bit-syscall-entry-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-64: reduce boot fixmap space
+Subject: x86-64: slightly streamline 32-bit syscall entry code
 From: Jan Beulich <jbeulich@novell.com>
 
-Just like for 32-bit - as 256 entries are needed, aligning to a 256-entry
-boundary is sufficient and still guarantees the single pte table
-requirement.
-
-Likewise move up __end_of_permanent_fixed_addresses, to match 32-bit.
+Avoid updating registers or memory twice as well as needlessly loading
+or copying registers.
 
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -40,42 +37,109 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/fixmap_64.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/ia32/ia32entry.S |   26 ++++++++++----------------
+ 1 file changed, 10 insertions(+), 16 deletions(-)
 
-diff -puN include/asm-x86/fixmap_64.h~x86-64-reduce-boot-fixmap-space include/asm-x86/fixmap_64.h
---- a/include/asm-x86/fixmap_64.h~x86-64-reduce-boot-fixmap-space
-+++ a/include/asm-x86/fixmap_64.h
-@@ -49,6 +49,7 @@ enum fixed_addresses {
- #ifdef CONFIG_PARAVIRT
- 	FIX_PARAVIRT_BOOTMAP,
- #endif
-+	__end_of_permanent_fixed_addresses,
- #ifdef CONFIG_ACPI
- 	FIX_ACPI_BEGIN,
- 	FIX_ACPI_END = FIX_ACPI_BEGIN + FIX_ACPI_PAGES - 1,
-@@ -56,18 +57,17 @@ enum fixed_addresses {
- #ifdef CONFIG_PROVIDE_OHCI1394_DMA_INIT
- 	FIX_OHCI1394_BASE,
- #endif
--	__end_of_permanent_fixed_addresses,
- 	/*
- 	 * 256 temporary boot-time mappings, used by early_ioremap(),
- 	 * before ioremap() is functional.
- 	 *
--	 * We round it up to the next 512 pages boundary so that we
-+	 * We round it up to the next 256 pages boundary so that we
- 	 * can have a single pgd entry and a single pte table:
+diff -puN arch/x86/ia32/ia32entry.S~x86-64-slightly-streamline-32-bit-syscall-entry-code arch/x86/ia32/ia32entry.S
+--- a/arch/x86/ia32/ia32entry.S~x86-64-slightly-streamline-32-bit-syscall-entry-code
++++ a/arch/x86/ia32/ia32entry.S
+@@ -39,11 +39,11 @@
+ 	.endm 
+ 
+ 	/* clobbers %eax */	
+-	.macro  CLEAR_RREGS
++	.macro  CLEAR_RREGS _r9=rax
+ 	xorl 	%eax,%eax
+ 	movq	%rax,R11(%rsp)
+ 	movq	%rax,R10(%rsp)
+-	movq	%rax,R9(%rsp)
++	movq	%\_r9,R9(%rsp)
+ 	movq	%rax,R8(%rsp)
+ 	.endm
+ 
+@@ -52,11 +52,10 @@
+ 	 * We don't reload %eax because syscall_trace_enter() returned
+ 	 * the value it wants us to use in the table lookup.
  	 */
- #define NR_FIX_BTMAPS		64
- #define FIX_BTMAPS_NESTING	4
--	FIX_BTMAP_END = __end_of_permanent_fixed_addresses + 512 -
--			(__end_of_permanent_fixed_addresses & 511),
-+	FIX_BTMAP_END = __end_of_permanent_fixed_addresses + 256 -
-+			(__end_of_permanent_fixed_addresses & 255),
- 	FIX_BTMAP_BEGIN = FIX_BTMAP_END + NR_FIX_BTMAPS*FIX_BTMAPS_NESTING - 1,
- 	__end_of_fixed_addresses
- };
+-	.macro LOAD_ARGS32 offset
+-	movl \offset(%rsp),%r11d
+-	movl \offset+8(%rsp),%r10d
++	.macro LOAD_ARGS32 offset, _r9=0
++	.if \_r9
+ 	movl \offset+16(%rsp),%r9d
+-	movl \offset+24(%rsp),%r8d
++	.endif
+ 	movl \offset+40(%rsp),%ecx
+ 	movl \offset+48(%rsp),%edx
+ 	movl \offset+56(%rsp),%esi
+@@ -145,7 +144,7 @@ ENTRY(ia32_sysenter_target)
+ 	SAVE_ARGS 0,0,1
+  	/* no need to do an access_ok check here because rbp has been
+  	   32bit zero extended */ 
+-1:	movl	(%rbp),%r9d
++1:	movl	(%rbp),%ebp
+  	.section __ex_table,"a"
+  	.quad 1b,ia32_badarg
+  	.previous	
+@@ -157,7 +156,7 @@ ENTRY(ia32_sysenter_target)
+ 	cmpl	$(IA32_NR_syscalls-1),%eax
+ 	ja	ia32_badsys
+ sysenter_do_call:
+-	IA32_ARG_FIXUP 1
++	IA32_ARG_FIXUP
+ sysenter_dispatch:
+ 	call	*ia32_sys_call_table(,%rax,8)
+ 	movq	%rax,RAX-ARGOFFSET(%rsp)
+@@ -234,20 +233,17 @@ sysexit_audit:
+ #endif
+ 
+ sysenter_tracesys:
+-	xchgl	%r9d,%ebp
+ #ifdef CONFIG_AUDITSYSCALL
+ 	testl	$(_TIF_WORK_SYSCALL_ENTRY & ~_TIF_SYSCALL_AUDIT),TI_flags(%r10)
+ 	jz	sysenter_auditsys
+ #endif
+ 	SAVE_REST
+ 	CLEAR_RREGS
+-	movq	%r9,R9(%rsp)
+ 	movq	$-ENOSYS,RAX(%rsp)/* ptrace can change this for a bad syscall */
+ 	movq	%rsp,%rdi        /* &pt_regs -> arg1 */
+ 	call	syscall_trace_enter
+ 	LOAD_ARGS32 ARGOFFSET  /* reload args from stack in case ptrace changed it */
+ 	RESTORE_REST
+-	xchgl	%ebp,%r9d
+ 	cmpl	$(IA32_NR_syscalls-1),%eax
+ 	ja	int_ret_from_sys_call /* sysenter_tracesys has set RAX(%rsp) */
+ 	jmp	sysenter_do_call
+@@ -314,9 +310,9 @@ ENTRY(ia32_cstar_target)
+ 	testl $_TIF_WORK_SYSCALL_ENTRY,TI_flags(%r10)
+ 	CFI_REMEMBER_STATE
+ 	jnz   cstar_tracesys
+-cstar_do_call:	
+ 	cmpl $IA32_NR_syscalls-1,%eax
+ 	ja  ia32_badsys
++cstar_do_call:
+ 	IA32_ARG_FIXUP 1
+ cstar_dispatch:
+ 	call *ia32_sys_call_table(,%rax,8)
+@@ -357,15 +353,13 @@ cstar_tracesys:
+ #endif
+ 	xchgl %r9d,%ebp
+ 	SAVE_REST
+-	CLEAR_RREGS
+-	movq %r9,R9(%rsp)
++	CLEAR_RREGS r9
+ 	movq $-ENOSYS,RAX(%rsp)	/* ptrace can change this for a bad syscall */
+ 	movq %rsp,%rdi        /* &pt_regs -> arg1 */
+ 	call syscall_trace_enter
+-	LOAD_ARGS32 ARGOFFSET  /* reload args from stack in case ptrace changed it */
++	LOAD_ARGS32 ARGOFFSET, 1  /* reload args from stack in case ptrace changed it */
+ 	RESTORE_REST
+ 	xchgl %ebp,%r9d
+-	movl RSP-ARGOFFSET(%rsp), %r8d
+ 	cmpl $(IA32_NR_syscalls-1),%eax
+ 	ja int_ret_from_sys_call /* cstar_tracesys has set RAX(%rsp) */
+ 	jmp cstar_do_call
 _
 
 Patches currently in -mm which might be from jbeulich@novell.com are
