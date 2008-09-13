@@ -1,78 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-usb-misc-use-an-is_err-test-rather-than-a-null-test.patch removed from -mm tree
-Date: Sat, 13 Sep 2008 00:46:22 -0700
-Message-ID: <200809130746.m8D7kMmO026848@imap1.linux-foundation.org>
+Subject: - initramfs-fix-compilation-warning.patch removed from -mm tree
+Date: Sat, 13 Sep 2008 00:46:01 -0700
+Message-ID: <200809130746.m8D7k1mh026813@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39445 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46337 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753394AbYIMHq0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753546AbYIMHq0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 13 Sep 2008 03:46:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: brunel@diku.dk, greg@kroah.com, julia@diku.dk, mm-commits@vger.kernel.org
+To: h-shimamoto@ct.jp.nec.com, arjan@infradead.org, mingo@elte.hu, shaohua.li@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/usb/misc: Use an IS_ERR test rather than a NULL test
+     initramfs: fix compilation warning
 has been removed from the -mm tree.  Its filename was
-     drivers-usb-misc-use-an-is_err-test-rather-than-a-null-test.patch
+     initramfs-fix-compilation-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/misc: Use an IS_ERR test rather than a NULL test
-From: Julien Brunel <brunel@diku.dk>
+Subject: initramfs: fix compilation warning
+From: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
 
-In case of error, the function backlight_device_register returns an
-ERR pointer, but never returns a NULL pointer. So a NULL test that may
-come after a call to this function should be strengthened by an IS_ERR
-test.
+  CC      init/initramfs.o
+init/initramfs.c:517: warning: 'clean_rootfs' defined but not used
 
-The semantic match that finds this problem is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
+clean_rootfs is not used when CONFIG_BLK_DEV_RAM disabled.
 
-// <smpl>
-@match_bad_null_test@
-expression x, E;
-statement S1,S2;
-@@
-x = backlight_device_register(...)
-... when != x = E
-* if (x != NULL)
-S1 else S2
-// </smpl>
+(akpm: fixes "fastboot: remove duplicate unpack_to_rootfs()")
 
-Signed-off-by: Julien Brunel <brunel@diku.dk>
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/appledisplay.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/initramfs.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/usb/misc/appledisplay.c~drivers-usb-misc-use-an-is_err-test-rather-than-a-null-test drivers/usb/misc/appledisplay.c
---- a/drivers/usb/misc/appledisplay.c~drivers-usb-misc-use-an-is_err-test-rather-than-a-null-test
-+++ a/drivers/usb/misc/appledisplay.c
-@@ -314,7 +314,7 @@ error:
- 					pdata->urbdata, pdata->urb->transfer_dma);
- 			usb_free_urb(pdata->urb);
- 		}
--		if (pdata->bd)
-+		if (pdata->bd && !IS_ERR(pdata->bd))
- 			backlight_device_unregister(pdata->bd);
- 		kfree(pdata->msgdata);
- 	}
+diff -puN init/initramfs.c~initramfs-fix-compilation-warning init/initramfs.c
+--- a/init/initramfs.c~initramfs-fix-compilation-warning
++++ a/init/initramfs.c
+@@ -512,6 +512,7 @@ skip:
+ 	initrd_end = 0;
+ }
+ 
++#ifdef CONFIG_BLK_DEV_RAM
+ #define BUF_SIZE 1024
+ static void __init clean_rootfs(void)
+ {
+@@ -558,6 +559,7 @@ static void __init clean_rootfs(void)
+ 	sys_close(fd);
+ 	kfree(buf);
+ }
++#endif
+ 
+ static int __init populate_rootfs(void)
+ {
 _
 
-Patches currently in -mm which might be from brunel@diku.dk are
+Patches currently in -mm which might be from h-shimamoto@ct.jp.nec.com are
 
 linux-next.patch
-fs-9p-use-an-is_err-test-rather-than-a-null-test.patch
-checkpatch-suppress-errors-triggered-by-short-patch.patch
-fs-reiserfs-use-an-is_err-test-rather-than-a-null-test.patch
+net-fix-compilation-ng-when-config_module.patch
+unevictable-lru-page-statistics.patch
 
