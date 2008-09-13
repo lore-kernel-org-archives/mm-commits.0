@@ -1,76 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: - ath9k-uses-needs-led_classdev_register.patch removed from -mm tree
-Date: Sat, 13 Sep 2008 00:46:25 -0700
-Message-ID: <200809130746.m8D7kPx7026851@imap1.linux-foundation.org>
+Subject: - ide-hpt3xx-fix-pointer-arithmetic.patch removed from -mm tree
+Date: Sat, 13 Sep 2008 00:46:36 -0700
+Message-ID: <200809130746.m8D7kaUe026863@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35412 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34870 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754431AbYIMHrL (ORCPT
+	by vger.kernel.org with ESMTP id S1754150AbYIMHrJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 13 Sep 2008 03:47:11 -0400
+	Sat, 13 Sep 2008 03:47:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, jmalinen@atheros.com, linville@tuxdriver.com, lrodriguez@atheros.com, mm-commits@vger.kernel.org
+To: masouds@google.com, bzolnier@gmail.com, rjw@sisk.pl, sshtylyov@ru.mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ath9k: uses/needs led_classdev_[un]register
+     ide: hpt3xx: fix pointer arithmetic
 has been removed from the -mm tree.  Its filename was
-     ath9k-uses-needs-led_classdev_register.patch
+     ide-hpt3xx-fix-pointer-arithmetic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ath9k: uses/needs led_classdev_[un]register
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: ide: hpt3xx: fix pointer arithmetic
+From: Masoud Sharbiani <masouds@google.com>
 
-ath9k uses LED classdev functions, so it needs to either select or depend
-on them.  This patch uses the same selects that ath5k uses...
+git commit 74811f355f4f69a187fa74892dcf2a684b84ce99 ("hpt366: convert to
+use ->host_priv") causes a crash at module load (or boot) time on my
+machine with a hpt374 controller.  Sergei says this is due to the pointer
+arithmetic.  This patch fixes that and makes my machine boot again.
 
-drivers/built-in.o: In function `ath_unregister_led':
-main.c:(.text+0x138c1d): undefined reference to `led_classdev_unregister'
-drivers/built-in.o: In function `ath_register_led':
-main.c:(.text+0x139c16): undefined reference to `led_classdev_register'
-make[1]: *** [.tmp_vmlinux1] Error 1
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Luis R. Rodriguez <lrodriguez@atheros.com>
-Cc: Jouni Malinen <jmalinen@atheros.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Signed-off-by: Masoud Sharbiani <masouds@google.com>
+Acked-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath9k/Kconfig |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/ide/pci/hpt366.c |   31 +++++++++++++++----------------
+ 1 file changed, 15 insertions(+), 16 deletions(-)
 
-diff -puN drivers/net/wireless/ath9k/Kconfig~ath9k-uses-needs-led_classdev_register drivers/net/wireless/ath9k/Kconfig
---- a/drivers/net/wireless/ath9k/Kconfig~ath9k-uses-needs-led_classdev_register
-+++ a/drivers/net/wireless/ath9k/Kconfig
-@@ -1,6 +1,9 @@
- config ATH9K
- 	tristate "Atheros 802.11n wireless cards support"
- 	depends on PCI && MAC80211 && WLAN_80211
-+	select MAC80211_LEDS
-+	select LEDS_CLASS
-+	select NEW_LEDS
- 	---help---
- 	  This module adds support for wireless adapters based on
- 	  Atheros IEEE 802.11n AR5008 and AR9001 family of chipsets.
+diff -puN drivers/ide/pci/hpt366.c~ide-hpt3xx-fix-pointer-arithmetic drivers/ide/pci/hpt366.c
+--- a/drivers/ide/pci/hpt366.c~ide-hpt3xx-fix-pointer-arithmetic
++++ a/drivers/ide/pci/hpt366.c
+@@ -612,6 +612,14 @@ static int check_in_drive_list(ide_drive
+ 	return 0;
+ }
+ 
++static struct hpt_info *hpt3xx_get_info(struct device *dev)
++{
++	struct ide_host *host	= pci_get_drvdata(to_pci_dev(pci_dev));
++	struct hpt_info *info	= (struct hpt_info *)host->host_priv;
++
++	return dev == host->dev[1] ? info + 1 : info;
++}
++
+ /*
+  * The Marvell bridge chips used on the HighPoint SATA cards do not seem
+  * to support the UltraDMA modes 1, 2, and 3 as well as any MWDMA modes...
+@@ -620,9 +628,7 @@ static int check_in_drive_list(ide_drive
+ static u8 hpt3xx_udma_filter(ide_drive_t *drive)
+ {
+ 	ide_hwif_t *hwif	= HWIF(drive);
+-	struct pci_dev *dev	= to_pci_dev(hwif->dev);
+-	struct ide_host *host	= pci_get_drvdata(dev);
+-	struct hpt_info *info	= host->host_priv + (hwif->dev == host->dev[1]);
++	struct hpt_info *info	= hpt3xx_get_info(hwif->dev);
+ 	u8 mask 		= hwif->ultra_mask;
+ 
+ 	switch (info->chip_type) {
+@@ -661,9 +667,7 @@ static u8 hpt3xx_udma_filter(ide_drive_t
+ static u8 hpt3xx_mdma_filter(ide_drive_t *drive)
+ {
+ 	ide_hwif_t *hwif	= HWIF(drive);
+-	struct pci_dev *dev	= to_pci_dev(hwif->dev);
+-	struct ide_host *host	= pci_get_drvdata(dev);
+-	struct hpt_info *info	= host->host_priv + (hwif->dev == host->dev[1]);
++	struct hpt_info *info	= hpt3xx_get_info(hwif->dev);
+ 
+ 	switch (info->chip_type) {
+ 	case HPT372 :
+@@ -699,8 +703,7 @@ static void hpt3xx_set_mode(ide_drive_t 
+ {
+ 	ide_hwif_t *hwif	= drive->hwif;
+ 	struct pci_dev *dev	= to_pci_dev(hwif->dev);
+-	struct ide_host *host	= pci_get_drvdata(dev);
+-	struct hpt_info *info	= host->host_priv + (hwif->dev == host->dev[1]);
++	struct hpt_info *info	= hpt3xx_get_info(hwif->dev);
+ 	struct hpt_timings *t	= info->timings;
+ 	u8  itr_addr		= 0x40 + (drive->dn * 4);
+ 	u32 old_itr		= 0;
+@@ -743,8 +746,7 @@ static void hpt3xx_maskproc(ide_drive_t 
+ {
+ 	ide_hwif_t *hwif	= HWIF(drive);
+ 	struct pci_dev	*dev	= to_pci_dev(hwif->dev);
+-	struct ide_host *host	= pci_get_drvdata(dev);
+-	struct hpt_info *info	= host->host_priv + (hwif->dev == host->dev[1]);
++	struct hpt_info *info	= hpt3xx_get_info(hwif->dev);
+ 
+ 	if (drive->quirk_list) {
+ 		if (info->chip_type >= HPT370) {
+@@ -999,8 +1001,7 @@ static void hpt3xx_disable_fast_irq(stru
+ static unsigned int init_chipset_hpt366(struct pci_dev *dev)
+ {
+ 	unsigned long io_base	= pci_resource_start(dev, 4);
+-	struct ide_host *host	= pci_get_drvdata(dev);
+-	struct hpt_info *info	= host->host_priv + (&dev->dev == host->dev[1]);
++	struct hpt_info *info	= hpt3xx_get_info(&dev->dev);
+ 	const char *name	= DRV_NAME;
+ 	u8 pci_clk,  dpll_clk	= 0;	/* PCI and DPLL clock in MHz */
+ 	u8 chip_type;
+@@ -1245,8 +1246,7 @@ static unsigned int init_chipset_hpt366(
+ static u8 hpt3xx_cable_detect(ide_hwif_t *hwif)
+ {
+ 	struct pci_dev	*dev	= to_pci_dev(hwif->dev);
+-	struct ide_host *host	= pci_get_drvdata(dev);
+-	struct hpt_info *info	= host->host_priv + (hwif->dev == host->dev[1]);
++	struct hpt_info *info	= hpt3xx_get_info(hwif->dev);
+ 	u8 chip_type		= info->chip_type;
+ 	u8 scr1 = 0, ata66	= hwif->channel ? 0x01 : 0x02;
+ 
+@@ -1290,8 +1290,7 @@ static u8 hpt3xx_cable_detect(ide_hwif_t
+ static void __devinit init_hwif_hpt366(ide_hwif_t *hwif)
+ {
+ 	struct pci_dev *dev	= to_pci_dev(hwif->dev);
+-	struct ide_host *host	= pci_get_drvdata(dev);
+-	struct hpt_info *info	= host->host_priv + (hwif->dev == host->dev[1]);
++	struct hpt_info *info	= hpt3xx_get_info(hwif->dev);
+ 	int serialize		= HPT_SERIALIZE_IO;
+ 	u8  chip_type		= info->chip_type;
+ 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from masouds@google.com are
 
+origin.patch
 linux-next.patch
-mfd-ucb1400-sound-driver-uses-depends-on-ac97_bus.patch
-fb-metronome-printk-format-warning.patch
-genksyms-track-symbol-checksum-changes.patch
-genksyms-allow-to-ignore-symbol-checksum-changes.patch
-lkdtm-fix-for-config_scsi=n.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-dontdiff-more-updates-to-be-closer-to-gitignore.patch
-w1-documentation-w1-masters-ds2490-update.patch
-profile-likely-unlikely-macros.patch
 
