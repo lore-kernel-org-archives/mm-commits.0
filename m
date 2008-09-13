@@ -1,433 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: - toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7.patch removed from -mm tree
-Date: Sat, 13 Sep 2008 00:45:04 -0700
-Message-ID: <200809130745.m8D7j4kX026736@imap1.linux-foundation.org>
+Subject: - toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch removed from -mm tree
+Date: Sat, 13 Sep 2008 00:45:08 -0700
+Message-ID: <200809130745.m8D7j8Wh026742@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59502 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48882 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751542AbYIMHp3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751581AbYIMHp3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 13 Sep 2008 03:45:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: philipl@overt.org, andi@firstfloor.org, hmh@hmh.eng.br, ivdoorn@gmail.com, mjg59@srcf.ucam.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andi@firstfloor.org, hmh@hmh.eng.br, ivdoorn@gmail.com, mjg59@srcf.ucam.org, philipl@overt.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     toshiba_acpi: add support for bluetooth toggling through rfkill
+     toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix
 has been removed from the -mm tree.  Its filename was
-     toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7.patch
+     toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: toshiba_acpi: add support for bluetooth toggling through rfkill
-From: Philip Langdale <philipl@overt.org>
+Subject: toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-There's been a patch floating around for toshiba_acpi that exports an
-ad-hoc /proc interface to toggle the bluetooth adapter in a large number
-of Toshiba laptops.  I'm not sure if it's still relevant for the latest
-models, but it is still required for older models such as my Tecra M3.
+ERROR: "rfkill_force_state" [drivers/acpi/toshiba_acpi.ko] undefined!
+ERROR: "rfkill_free" [drivers/acpi/toshiba_acpi.ko] undefined!
+ERROR: "rfkill_register" [drivers/acpi/toshiba_acpi.ko] undefined!
+ERROR: "rfkill_allocate" [drivers/acpi/toshiba_acpi.ko] undefined!
+ERROR: "rfkill_unregister" [drivers/acpi/toshiba_acpi.ko] undefined!
 
-This change pulls in the low level Toshiba-specific code from the old
-patch and sets up an rfkill device and a polled input device to track the
-state of the hardware kill-switch.
-
-Signed-off-by: Philip Langdale <philipl@overt.org>
-Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Ivo van Doorn <ivdoorn@gmail.com>
 Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Ivo van Doorn <ivdoorn@gmail.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
+Cc: Philip Langdale <philipl@overt.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/Kconfig        |    1 
- drivers/acpi/toshiba_acpi.c |  261 ++++++++++++++++++++++++++++++++--
- 2 files changed, 254 insertions(+), 8 deletions(-)
+ drivers/acpi/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/acpi/Kconfig~toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7 drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7
+diff -puN drivers/acpi/Kconfig~toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix drivers/acpi/Kconfig
+--- a/drivers/acpi/Kconfig~toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix
 +++ a/drivers/acpi/Kconfig
-@@ -271,6 +271,7 @@ config ACPI_PANASONIC
- config ACPI_TOSHIBA
+@@ -272,6 +272,7 @@ config ACPI_TOSHIBA
  	tristate "Toshiba Laptop Extras"
  	depends on X86
-+	select INPUT_POLLDEV
+ 	select INPUT_POLLDEV
++	select RFKILL
  	select BACKLIGHT_CLASS_DEVICE
  	---help---
  	  This driver adds support for access to certain system settings
-diff -puN drivers/acpi/toshiba_acpi.c~toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7 drivers/acpi/toshiba_acpi.c
---- a/drivers/acpi/toshiba_acpi.c~toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7
-+++ a/drivers/acpi/toshiba_acpi.c
-@@ -3,6 +3,7 @@
-  *
-  *
-  *  Copyright (C) 2002-2004 John Belmonte
-+ *  Copyright (C) 2008 Philip Langdale
-  *
-  *  This program is free software; you can redistribute it and/or modify
-  *  it under the terms of the GNU General Public License as published by
-@@ -33,7 +34,7 @@
-  *
-  */
- 
--#define TOSHIBA_ACPI_VERSION	"0.18"
-+#define TOSHIBA_ACPI_VERSION	"0.19"
- #define PROC_INTERFACE_VERSION	1
- 
- #include <linux/kernel.h>
-@@ -42,6 +43,9 @@
- #include <linux/types.h>
- #include <linux/proc_fs.h>
- #include <linux/backlight.h>
-+#include <linux/platform_device.h>
-+#include <linux/rfkill.h>
-+#include <linux/input-polldev.h>
- 
- #include <asm/uaccess.h>
- 
-@@ -90,6 +94,7 @@ MODULE_LICENSE("GPL");
- #define HCI_VIDEO_OUT			0x001c
- #define HCI_HOTKEY_EVENT		0x001e
- #define HCI_LCD_BRIGHTNESS		0x002a
-+#define HCI_WIRELESS			0x0056
- 
- /* field definitions */
- #define HCI_LCD_BRIGHTNESS_BITS		3
-@@ -98,9 +103,14 @@ MODULE_LICENSE("GPL");
- #define HCI_VIDEO_OUT_LCD		0x1
- #define HCI_VIDEO_OUT_CRT		0x2
- #define HCI_VIDEO_OUT_TV		0x4
-+#define HCI_WIRELESS_KILL_SWITCH	0x01
-+#define HCI_WIRELESS_BT_PRESENT		0x0f
-+#define HCI_WIRELESS_BT_ATTACH		0x40
-+#define HCI_WIRELESS_BT_POWER		0x80
- 
- static const struct acpi_device_id toshiba_device_ids[] = {
- 	{"TOS6200", 0},
-+	{"TOS6208", 0},
- 	{"TOS1900", 0},
- 	{"", 0},
- };
-@@ -193,7 +203,7 @@ static acpi_status hci_raw(const u32 in[
- 	return status;
- }
- 
--/* common hci tasks (get or set one value)
-+/* common hci tasks (get or set one or two value)
-  *
-  * In addition to the ACPI status, the HCI system returns a result which
-  * may be useful (such as "not supported").
-@@ -218,6 +228,152 @@ static acpi_status hci_read1(u32 reg, u3
- 	return status;
- }
- 
-+static acpi_status hci_write2(u32 reg, u32 in1, u32 in2, u32 *result)
-+{
-+	u32 in[HCI_WORDS] = { HCI_SET, reg, in1, in2, 0, 0 };
-+	u32 out[HCI_WORDS];
-+	acpi_status status = hci_raw(in, out);
-+	*result = (status == AE_OK) ? out[0] : HCI_FAILURE;
-+	return status;
-+}
-+
-+static acpi_status hci_read2(u32 reg, u32 *out1, u32 *out2, u32 *result)
-+{
-+	u32 in[HCI_WORDS] = { HCI_GET, reg, *out1, *out2, 0, 0 };
-+	u32 out[HCI_WORDS];
-+	acpi_status status = hci_raw(in, out);
-+	*out1 = out[2];
-+	*out2 = out[3];
-+	*result = (status == AE_OK) ? out[0] : HCI_FAILURE;
-+	return status;
-+}
-+
-+struct toshiba_acpi_dev {
-+	struct platform_device *p_dev;
-+	struct rfkill *rfk_dev;
-+	struct input_polled_dev *poll_dev;
-+
-+	const char *bt_name;
-+	const char *rfk_name;
-+
-+	bool last_rfk_state;
-+
-+	struct mutex mutex;
-+};
-+
-+static struct toshiba_acpi_dev toshiba_acpi = {
-+	.bt_name = "Toshiba Bluetooth",
-+	.rfk_name = "Toshiba RFKill Switch",
-+	.last_rfk_state = false,
-+};
-+
-+/* Bluetooth rfkill handlers */
-+
-+static u32 hci_get_bt_present(bool *present)
-+{
-+	u32 hci_result;
-+	u32 value, value2;
-+
-+	value = 0;
-+	value2 = 0;
-+	hci_read2(HCI_WIRELESS, &value, &value2, &hci_result);
-+	if (hci_result == HCI_SUCCESS)
-+		*present = (value & HCI_WIRELESS_BT_PRESENT) ? true : false;
-+
-+	return hci_result;
-+}
-+
-+static u32 hci_get_bt_on(bool *on)
-+{
-+	u32 hci_result;
-+	u32 value, value2;
-+
-+	value = 0;
-+	value2 = 0x0001;
-+	hci_read2(HCI_WIRELESS, &value, &value2, &hci_result);
-+	if (hci_result == HCI_SUCCESS)
-+		*on = (value & HCI_WIRELESS_BT_POWER) &&
-+		      (value & HCI_WIRELESS_BT_ATTACH);
-+
-+	return hci_result;
-+}
-+
-+static u32 hci_get_radio_state(bool *radio_state)
-+{
-+	u32 hci_result;
-+	u32 value, value2;
-+
-+	value = 0;
-+	value2 = 0x0001;
-+	hci_read2(HCI_WIRELESS, &value, &value2, &hci_result);
-+
-+	*radio_state = value & HCI_WIRELESS_KILL_SWITCH;
-+	return hci_result;
-+}
-+
-+static int bt_rfkill_toggle_radio(void *data, enum rfkill_state state)
-+{
-+	u32 result1, result2;
-+	u32 value;
-+	bool radio_state;
-+	struct toshiba_acpi_dev *dev = data;
-+
-+	value = (state == RFKILL_STATE_UNBLOCKED);
-+
-+	if (hci_get_radio_state(&radio_state) != HCI_SUCCESS)
-+		return -EFAULT;
-+
-+	switch (state) {
-+	case RFKILL_STATE_UNBLOCKED:
-+		if (!radio_state)
-+			return -EPERM;
-+		break;
-+	case RFKILL_STATE_SOFT_BLOCKED:
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	mutex_lock(&dev->mutex);
-+	hci_write2(HCI_WIRELESS, value, HCI_WIRELESS_BT_POWER, &result1);
-+	hci_write2(HCI_WIRELESS, value, HCI_WIRELESS_BT_ATTACH, &result2);
-+	mutex_unlock(&dev->mutex);
-+
-+	if (result1 != HCI_SUCCESS || result2 != HCI_SUCCESS)
-+		return -EFAULT;
-+
-+	return 0;
-+}
-+
-+static void bt_poll_rfkill(struct input_polled_dev *poll_dev)
-+{
-+	bool state_changed;
-+	bool new_rfk_state;
-+	bool value;
-+	u32 hci_result;
-+	struct toshiba_acpi_dev *dev = poll_dev->private;
-+
-+	hci_result = hci_get_radio_state(&value);
-+	if (hci_result != HCI_SUCCESS)
-+		return; /* Can't do anything useful */
-+
-+	new_rfk_state = value;
-+
-+	mutex_lock(&dev->mutex);
-+	state_changed = new_rfk_state != dev->last_rfk_state;
-+	dev->last_rfk_state = new_rfk_state;
-+	mutex_unlock(&dev->mutex);
-+
-+	if (unlikely(state_changed)) {
-+		rfkill_force_state(dev->rfk_dev,
-+				   new_rfk_state ?
-+				   RFKILL_STATE_SOFT_BLOCKED :
-+				   RFKILL_STATE_HARD_BLOCKED);
-+		input_report_switch(poll_dev->input, SW_RFKILL_ALL,
-+				    new_rfk_state);
-+	}
-+}
-+
- static struct proc_dir_entry *toshiba_proc_dir /*= 0*/ ;
- static struct backlight_device *toshiba_backlight_device;
- static int force_fan;
-@@ -547,6 +703,14 @@ static struct backlight_ops toshiba_back
- 
- static void toshiba_acpi_exit(void)
- {
-+	if (toshiba_acpi.poll_dev) {
-+		input_unregister_polled_device(toshiba_acpi.poll_dev);
-+		input_free_polled_device(toshiba_acpi.poll_dev);
-+	}
-+
-+	if (toshiba_acpi.rfk_dev)
-+		rfkill_unregister(toshiba_acpi.rfk_dev);
-+
- 	if (toshiba_backlight_device)
- 		backlight_device_unregister(toshiba_backlight_device);
- 
-@@ -555,6 +719,8 @@ static void toshiba_acpi_exit(void)
- 	if (toshiba_proc_dir)
- 		remove_proc_entry(PROC_TOSHIBA, acpi_root_dir);
- 
-+	platform_device_unregister(toshiba_acpi.p_dev);
-+
- 	return;
- }
- 
-@@ -562,6 +728,10 @@ static int __init toshiba_acpi_init(void
- {
- 	acpi_status status = AE_OK;
- 	u32 hci_result;
-+	bool bt_present;
-+	bool bt_on;
-+	bool radio_on;
-+	int ret = 0;
- 
- 	if (acpi_disabled)
- 		return -ENODEV;
-@@ -578,6 +748,18 @@ static int __init toshiba_acpi_init(void
- 	       TOSHIBA_ACPI_VERSION);
- 	printk(MY_INFO "    HCI method: %s\n", method_hci);
- 
-+	mutex_init(&toshiba_acpi.mutex);
-+
-+	toshiba_acpi.p_dev = platform_device_register_simple("toshiba_acpi",
-+							      -1, NULL, 0);
-+	if (IS_ERR(toshiba_acpi.p_dev)) {
-+		ret = PTR_ERR(toshiba_acpi.p_dev);
-+		printk(MY_ERR "unable to register platform device\n");
-+		toshiba_acpi.p_dev = NULL;
-+		toshiba_acpi_exit();
-+		return ret;
-+	}
-+
- 	force_fan = 0;
- 	key_event_valid = 0;
- 
-@@ -586,19 +768,23 @@ static int __init toshiba_acpi_init(void
- 
- 	toshiba_proc_dir = proc_mkdir(PROC_TOSHIBA, acpi_root_dir);
- 	if (!toshiba_proc_dir) {
--		status = AE_ERROR;
-+		toshiba_acpi_exit();
-+		return -ENODEV;
- 	} else {
- 		toshiba_proc_dir->owner = THIS_MODULE;
- 		status = add_device();
--		if (ACPI_FAILURE(status))
--			remove_proc_entry(PROC_TOSHIBA, acpi_root_dir);
-+		if (ACPI_FAILURE(status)) {
-+			toshiba_acpi_exit();
-+			return -ENODEV;
-+		}
- 	}
- 
--	toshiba_backlight_device = backlight_device_register("toshiba",NULL,
-+	toshiba_backlight_device = backlight_device_register("toshiba",
-+						&toshiba_acpi.p_dev->dev,
- 						NULL,
- 						&toshiba_backlight_data);
-         if (IS_ERR(toshiba_backlight_device)) {
--		int ret = PTR_ERR(toshiba_backlight_device);
-+		ret = PTR_ERR(toshiba_backlight_device);
- 
- 		printk(KERN_ERR "Could not register toshiba backlight device\n");
- 		toshiba_backlight_device = NULL;
-@@ -607,7 +793,66 @@ static int __init toshiba_acpi_init(void
- 	}
-         toshiba_backlight_device->props.max_brightness = HCI_LCD_BRIGHTNESS_LEVELS - 1;
- 
--	return (ACPI_SUCCESS(status)) ? 0 : -ENODEV;
-+	/* Register rfkill switch for Bluetooth */
-+	if (hci_get_bt_present(&bt_present) == HCI_SUCCESS && bt_present) {
-+		toshiba_acpi.rfk_dev = rfkill_allocate(&toshiba_acpi.p_dev->dev,
-+							RFKILL_TYPE_BLUETOOTH);
-+		if (!toshiba_acpi.rfk_dev) {
-+			printk(MY_ERR "unable to allocate rfkill device\n");
-+			toshiba_acpi_exit();
-+			return -ENOMEM;
-+		}
-+
-+		toshiba_acpi.rfk_dev->name = toshiba_acpi.bt_name;
-+		toshiba_acpi.rfk_dev->toggle_radio = bt_rfkill_toggle_radio;
-+		toshiba_acpi.rfk_dev->user_claim_unsupported = 1;
-+		toshiba_acpi.rfk_dev->data = &toshiba_acpi;
-+
-+		if (hci_get_bt_on(&bt_on) == HCI_SUCCESS && bt_on) {
-+			toshiba_acpi.rfk_dev->state = RFKILL_STATE_UNBLOCKED;
-+		} else if (hci_get_radio_state(&radio_on) == HCI_SUCCESS &&
-+			   radio_on) {
-+			toshiba_acpi.rfk_dev->state = RFKILL_STATE_SOFT_BLOCKED;
-+		} else {
-+			toshiba_acpi.rfk_dev->state = RFKILL_STATE_HARD_BLOCKED;
-+		}
-+
-+		ret = rfkill_register(toshiba_acpi.rfk_dev);
-+		if (ret) {
-+			printk(MY_ERR "unable to register rfkill device\n");
-+			toshiba_acpi_exit();
-+			return -ENOMEM;
-+		}
-+	}
-+
-+	/* Register input device for kill switch */
-+	toshiba_acpi.poll_dev = input_allocate_polled_device();
-+	if (!toshiba_acpi.poll_dev) {
-+		printk(MY_ERR "unable to allocate kill-switch input device\n");
-+		toshiba_acpi_exit();
-+		return -ENOMEM;
-+	}
-+	toshiba_acpi.poll_dev->private = &toshiba_acpi;
-+	toshiba_acpi.poll_dev->poll = bt_poll_rfkill;
-+	toshiba_acpi.poll_dev->poll_interval = 1000; /* msecs */
-+
-+	toshiba_acpi.poll_dev->input->name = toshiba_acpi.rfk_name;
-+	toshiba_acpi.poll_dev->input->id.bustype = BUS_HOST;
-+	toshiba_acpi.poll_dev->input->id.vendor = 0x0930; /* Toshiba USB ID */
-+	set_bit(EV_SW, toshiba_acpi.poll_dev->input->evbit);
-+	set_bit(SW_RFKILL_ALL, toshiba_acpi.poll_dev->input->swbit);
-+	input_report_switch(toshiba_acpi.poll_dev->input, SW_RFKILL_ALL, TRUE);
-+
-+	ret = input_register_polled_device(toshiba_acpi.poll_dev);
-+	if (ret) {
-+		printk(MY_ERR "unable to register kill-switch input device\n");
-+		rfkill_free(toshiba_acpi.rfk_dev);
-+		toshiba_acpi.rfk_dev = NULL;
-+		toshiba_acpi_exit();
-+		return ret;
-+	}
-+
-+	return 0;
- }
- 
- module_init(toshiba_acpi_init);
 _
 
-Patches currently in -mm which might be from philipl@overt.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+include-linux-ioporth-add-missing-macro-argument-for-devm_release_-family-checkpatch-fixes.patch
+rescan_partitions-make-device-capacity-errors-non-fatal.patch
 linux-next.patch
+linux-next-fixups.patch
+next-remove-localversion.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+revert-acpi-ec-do-transaction-from-interrupt-context.patch
+acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch
+acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
+fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+itimers-fix-itimer-many-thread-hang-checkpatch-fixes.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+git-jg-misc.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
+fix-cred-wrap-current-cred-and-a-few-other-accessors-on-mips.patch
+pci-tidy-pme-support-messages-checkpatch-fixes.patch
+sched-clarify-ifdef-tangle.patch
+debug_locks_warn_on-disable-if-oops_in_progress.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
+drivers-usb-musb-disable-it-on-superh.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-media-video-cafe_ccicc-needs-mmh.patch
+e1000e-prevent-corruption-of-eeprom-nvm.patch
+drivers-net-mlx4-allocc-needs-mmh.patch
+net-forcedeth-call-restore-mac-addr-in-nv_shutdown-path-v2.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
+fix-a-race-condtion-of-oops_in_progress-fix.patch
+vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
+make-taint-bit-reliable-v3-fix.patch
+kernel-sysc-improve-code-generation.patch
+compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
+allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+genirq-record-trigger-type-fix.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
+tty-fix-echo-tab-erase-and-locking-fix.patch
+applicomc-fix-apparently-broken-code-in-do_ac_read.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+w1-be-able-to-manually-add-and-remove-slaves-fix.patch
+gru-driver-minor-updates-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+x86-sysfs-kill-owner-field-from-attribute-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
