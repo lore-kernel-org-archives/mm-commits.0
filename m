@@ -1,83 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - ftrace-use-ftrace_release-for-all-dynamic-ftrace-functions.patch removed from -mm tree
-Date: Sat, 13 Sep 2008 00:46:18 -0700
-Message-ID: <200809130746.m8D7kILS026842@imap1.linux-foundation.org>
+Subject: - oss-remove-references-to-dead-sound-oss-vars-aedsp16_msssbpro.patch removed from -mm tree
+Date: Sat, 13 Sep 2008 00:46:46 -0700
+Message-ID: <200809130746.m8D7kk4s026875@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32834 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753639AbYIMHqd (ORCPT
+	by vger.kernel.org with ESMTP id S1753908AbYIMHqu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 13 Sep 2008 03:46:33 -0400
+	Sat, 13 Sep 2008 03:46:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rostedt@goodmis.org, srostedt@redhat.com, mm-commits@vger.kernel.org
+To: rpjday@crashcourse.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ftrace: use ftrace_release for all dynamic ftrace functions
+     oss: remove references to dead sound/oss vars AEDSP16_{MSS,SBPRO}
 has been removed from the -mm tree.  Its filename was
-     ftrace-use-ftrace_release-for-all-dynamic-ftrace-functions.patch
+     oss-remove-references-to-dead-sound-oss-vars-aedsp16_msssbpro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ftrace: use ftrace_release for all dynamic ftrace functions
-From: Steven Rostedt <rostedt@goodmis.org>
+Subject: oss: remove references to dead sound/oss vars AEDSP16_{MSS,SBPRO}
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-ftrace_release is necessary for all uses of dynamic ftrace and not just
-the archs that have CONFIG_FTRACE_MCOUNT_RECORD defined.
+Remove the Kconfig definitions of unused variables AEDSP16_MSS and
+AEDSP16_SBPRO since they're:
 
-Signed-off-by: Steven Rostedt <srostedt@redhat.com>
+1) unused, and
+2) referenced incorrectly anyway.
+
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ftrace.h |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ sound/oss/Kconfig   |   28 ----------------------------
+ sound/oss/aedsp16.c |    8 --------
+ 2 files changed, 36 deletions(-)
 
-diff -puN include/linux/ftrace.h~ftrace-use-ftrace_release-for-all-dynamic-ftrace-functions include/linux/ftrace.h
---- a/include/linux/ftrace.h~ftrace-use-ftrace_release-for-all-dynamic-ftrace-functions
-+++ a/include/linux/ftrace.h
-@@ -77,8 +77,10 @@ extern void mcount_call(void);
+diff -puN sound/oss/Kconfig~oss-remove-references-to-dead-sound-oss-vars-aedsp16_msssbpro sound/oss/Kconfig
+--- a/sound/oss/Kconfig~oss-remove-references-to-dead-sound-oss-vars-aedsp16_msssbpro
++++ a/sound/oss/Kconfig
+@@ -539,34 +539,6 @@ config SC6600_CDROMBASE
+ 	  Base I/O port address for the CD-ROM interface of the Audio Excel
+ 	  DSP 16 card.
  
- extern int skip_trace(unsigned long ip);
+-choice
+-	prompt "Audio Excel DSP 16"
+-	optional
+-	depends on SOUND_AEDSP16
+-
+-config AEDSP16_MSS
+-	bool "MSS emulation"
+-	depends on SOUND_MSS
+-	help
+-	  Answer Y if you want your audio card to emulate Microsoft Sound
+-	  System. You should then say Y to "Microsoft Sound System support"
+-	  and say N to "Audio Excel DSP 16 (SBPro emulation)".
+-
+-config AEDSP16_SBPRO
+-	bool "SBPro emulation"
+-	depends on SOUND_SB
+-	help
+-	  Answer Y if you want your audio card to emulate Sound Blaster Pro.
+-	  You should then say Y to "100% Sound Blaster compatibles
+-	  (SB16/32/64, ESS, Jazz16) support" and N to "Audio Excel DSP 16 (MSS
+-	  emulation)".
+-
+-	  If you compile the driver into the kernel, you have to add
+-	  "aedsp16=<io>,<irq>,<dma>,<mssio>,<mpuio>,<mouirq>" to the kernel
+-	  command line.
+-
+-endchoice
+-
+ config SOUND_VIDC
+ 	tristate "VIDC 16-bit sound"
+ 	depends on ARM && (ARCH_ACORN || ARCH_CLPS7500)
+diff -puN sound/oss/aedsp16.c~oss-remove-references-to-dead-sound-oss-vars-aedsp16_msssbpro sound/oss/aedsp16.c
+--- a/sound/oss/aedsp16.c~oss-remove-references-to-dead-sound-oss-vars-aedsp16_msssbpro
++++ a/sound/oss/aedsp16.c
+@@ -29,14 +29,6 @@
+ #include "sound_config.h"
  
--void ftrace_disable_daemon(void);
--void ftrace_enable_daemon(void);
-+extern void ftrace_release(void *start, unsigned long size);
-+
-+extern void ftrace_disable_daemon(void);
-+extern void ftrace_enable_daemon(void);
- 
- #else
- # define skip_trace(ip)				({ 0; })
-@@ -86,6 +88,7 @@ void ftrace_enable_daemon(void);
- # define ftrace_set_filter(buf, len, reset)	do { } while (0)
- # define ftrace_disable_daemon()		do { } while (0)
- # define ftrace_enable_daemon()			do { } while (0)
-+static inline void ftrace_release(void *start, unsigned long size) { }
- #endif /* CONFIG_DYNAMIC_FTRACE */
- 
- /* totally disable ftrace - can not re-enable after this */
-@@ -199,12 +202,10 @@ static inline void ftrace_dump(void) { }
- #ifdef CONFIG_FTRACE_MCOUNT_RECORD
- extern void ftrace_init(void);
- extern void ftrace_init_module(unsigned long *start, unsigned long *end);
--extern void ftrace_release(void *start, unsigned long size);
- #else
- static inline void ftrace_init(void) { }
- static inline void
- ftrace_init_module(unsigned long *start, unsigned long *end) { }
--static inline void ftrace_release(void *start, unsigned long size) { }
- #endif
- 
- 
-_
-
-Patches currently in -mm which might be from rostedt@goodmis.org are
-
-linux-next.patch
-ftrace-warn-on-failure-to-disable-mcount-callers.patch
-
+ /*
+- * Sanity checks
+- */
+-
+-#if defined(CONFIG_SOUND_AEDSP16_SBPRO) && defined(CONFIG_SOUND_AEDSP16_MSS)
+-#error You have to enable only one of the MSS and SBPRO emulations.
+-#endif
