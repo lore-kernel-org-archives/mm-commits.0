@@ -1,54 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch removed from -mm tree
-Date: Sat, 13 Sep 2008 00:45:10 -0700
-Message-ID: <200809130745.m8D7jALs026745@imap1.linux-foundation.org>
+Subject: - kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch removed from -mm tree
+Date: Sat, 13 Sep 2008 00:45:01 -0700
+Message-ID: <200809130745.m8D7j1nM026724@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47645 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35062 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752448AbYIMHpa (ORCPT
+	by vger.kernel.org with ESMTP id S1752745AbYIMHph (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 13 Sep 2008 03:45:30 -0400
+	Sat, 13 Sep 2008 03:45:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, hmh@hmh.eng.br, ivdoorn@gmail.com, mjg59@srcf.ucam.org, philipl@overt.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, rostedt@goodmis.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix
+     kbuild: ftrace: don't assume that scripts/recordmcount.pl is executable
 has been removed from the -mm tree.  Its filename was
-     toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix.patch
+     kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix
+Subject: kbuild: ftrace: don't assume that scripts/recordmcount.pl is executable
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Ivo van Doorn <ivdoorn@gmail.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Philip Langdale <philipl@overt.org>
+  CHK     include/linux/version.h
+  CHK     include/linux/utsrelease.h
+  CC      scripts/mod/empty.o
+/bin/sh: /usr/src/25/scripts/recordmcount.pl: Permission denied
+
+We shouldn't assume that files have their `x' bits set.  There are various
+ways in which file permissions get lost, including use of patch(1).
+
+It might not be correct to assume that perl lives in $PATH?
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/Makefile.build |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/Kconfig~toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~toshiba_acpi-add-support-for-bluetooth-toggling-through-rfkill-v7-fix-fix
-+++ a/drivers/acpi/Kconfig
-@@ -272,6 +272,7 @@ config ACPI_TOSHIBA
- 	tristate "Toshiba Laptop Extras"
- 	depends on X86
- 	select INPUT_POLLDEV
-+	select NET
- 	select RFKILL
- 	select BACKLIGHT_CLASS_DEVICE
- 	---help---
+diff -puN scripts/Makefile.build~kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable scripts/Makefile.build
+--- a/scripts/Makefile.build~kbuild-ftrace-dont-assume-that-scripts-recordmcountpl-is-executable
++++ a/scripts/Makefile.build
+@@ -199,8 +199,9 @@ cmd_modversions =							\
+ endif
+ 
+ ifdef CONFIG_FTRACE_MCOUNT_RECORD
+-cmd_record_mcount = $(srctree)/scripts/recordmcount.pl "$(ARCH)" \
+-	"$(OBJDUMP)" "$(OBJCOPY)" "$(CC)" "$(LD)" "$(NM)" "$(RM)" "$(MV)" "$(@)";
++cmd_record_mcount = perl $(srctree)/scripts/recordmcount.pl \
++	"$(ARCH)" "$(OBJDUMP)" "$(OBJCOPY)" "$(CC)" "$(LD)" "$(NM)" "$(RM)" \
++	"$(MV)" "$(@)";
+ endif
+ 
+ define rule_cc_o_c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
