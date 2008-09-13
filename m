@@ -1,87 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - less-softirq-vectors.patch removed from -mm tree
-Date: Sat, 13 Sep 2008 00:46:04 -0700
-Message-ID: <200809130746.m8D7k4kI026821@imap1.linux-foundation.org>
+Subject: - ftrace-use-ftrace_release-for-all-dynamic-ftrace-functions.patch removed from -mm tree
+Date: Sat, 13 Sep 2008 00:46:18 -0700
+Message-ID: <200809130746.m8D7kILS026842@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34752 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32834 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753480AbYIMHqT (ORCPT
+	by vger.kernel.org with ESMTP id S1753639AbYIMHqd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 13 Sep 2008 03:46:19 -0400
+	Sat, 13 Sep 2008 03:46:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: rostedt@goodmis.org, srostedt@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Less softirq vectors
+     ftrace: use ftrace_release for all dynamic ftrace functions
 has been removed from the -mm tree.  Its filename was
-     less-softirq-vectors.patch
+     ftrace-use-ftrace_release-for-all-dynamic-ftrace-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Less softirq vectors
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: ftrace: use ftrace_release for all dynamic ftrace functions
+From: Steven Rostedt <rostedt@goodmis.org>
 
-We don't need whole 32 of them, only NR_SOFTIRQS.
+ftrace_release is necessary for all uses of dynamic ftrace and not just
+the archs that have CONFIG_FTRACE_MCOUNT_RECORD defined.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Steven Rostedt <srostedt@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/interrupt.h |    2 ++
- kernel/softirq.c          |    2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ include/linux/ftrace.h |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/interrupt.h~less-softirq-vectors include/linux/interrupt.h
---- a/include/linux/interrupt.h~less-softirq-vectors
-+++ a/include/linux/interrupt.h
-@@ -259,6 +259,8 @@ enum
- 	HRTIMER_SOFTIRQ,
- #endif
- 	RCU_SOFTIRQ, 	/* Preferable RCU should always be the last softirq */
+diff -puN include/linux/ftrace.h~ftrace-use-ftrace_release-for-all-dynamic-ftrace-functions include/linux/ftrace.h
+--- a/include/linux/ftrace.h~ftrace-use-ftrace_release-for-all-dynamic-ftrace-functions
++++ a/include/linux/ftrace.h
+@@ -77,8 +77,10 @@ extern void mcount_call(void);
+ 
+ extern int skip_trace(unsigned long ip);
+ 
+-void ftrace_disable_daemon(void);
+-void ftrace_enable_daemon(void);
++extern void ftrace_release(void *start, unsigned long size);
 +
-+	NR_SOFTIRQS
- };
++extern void ftrace_disable_daemon(void);
++extern void ftrace_enable_daemon(void);
  
- /* softirq mask and active fields moved to irq_cpustat_t in
-diff -puN kernel/softirq.c~less-softirq-vectors kernel/softirq.c
---- a/kernel/softirq.c~less-softirq-vectors
-+++ a/kernel/softirq.c
-@@ -46,7 +46,7 @@ irq_cpustat_t irq_stat[NR_CPUS] ____cach
- EXPORT_SYMBOL(irq_stat);
+ #else
+ # define skip_trace(ip)				({ 0; })
+@@ -86,6 +88,7 @@ void ftrace_enable_daemon(void);
+ # define ftrace_set_filter(buf, len, reset)	do { } while (0)
+ # define ftrace_disable_daemon()		do { } while (0)
+ # define ftrace_enable_daemon()			do { } while (0)
++static inline void ftrace_release(void *start, unsigned long size) { }
+ #endif /* CONFIG_DYNAMIC_FTRACE */
+ 
+ /* totally disable ftrace - can not re-enable after this */
+@@ -199,12 +202,10 @@ static inline void ftrace_dump(void) { }
+ #ifdef CONFIG_FTRACE_MCOUNT_RECORD
+ extern void ftrace_init(void);
+ extern void ftrace_init_module(unsigned long *start, unsigned long *end);
+-extern void ftrace_release(void *start, unsigned long size);
+ #else
+ static inline void ftrace_init(void) { }
+ static inline void
+ ftrace_init_module(unsigned long *start, unsigned long *end) { }
+-static inline void ftrace_release(void *start, unsigned long size) { }
  #endif
  
--static struct softirq_action softirq_vec[32] __cacheline_aligned_in_smp;
-+static struct softirq_action softirq_vec[NR_SOFTIRQS] __cacheline_aligned_in_smp;
- 
- static DEFINE_PER_CPU(struct task_struct *, ksoftirqd);
  
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
-proc-more-debugging-for-already-registered-case.patch
 linux-next.patch
-itimers-fix-itimer-many-thread-hang.patch
-itimers-fix-itimer-many-thread-hang-checkpatch-fixes.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-cpuset-use-seq_cpumask-seq_nodemask.patch
-compat_binfmt_elf-definition-tweak.patch
-proc-move-sysrq-trigger-out-of-fs-proc.patch
-proc-fix-return-value-of-proc_reg_open-in-too-late-case.patch
-proc-proc_sys_root-tweak.patch
-proc-remove-dummy-vmcore_open.patch
-proc-remove-unused-get_dma_list.patch
-sysctl-simplify-strategy.patch
-fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out.patch
-fs-kconfig-move-cifs-out.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
+ftrace-warn-on-failure-to-disable-mcount-callers.patch
 
