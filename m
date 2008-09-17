@@ -1,133 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: + mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 17 Sep 2008 13:16:06 -0700
-Message-ID: <200809172016.m8HKG6di028554@imap1.linux-foundation.org>
+Subject: - nilfs2-continuous-snapshotting-file-system-fix.patch removed from -mm tree
+Date: Wed, 17 Sep 2008 13:23:38 -0700
+Message-ID: <200809172023.m8HKNcRO028792@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38185 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44018 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752513AbYIQUSY (ORCPT
+	by vger.kernel.org with ESMTP id S1753193AbYIQUXm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Sep 2008 16:18:24 -0400
+	Wed, 17 Sep 2008 16:23:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, hugh@veritas.com, mingo@elte.hu, mpm@selenic.com, npiggin@suse.de
+To: akpm@linux-foundation.org, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes.patch
+     nilfs2-continuous-snapshotting-file-system-fix
+has been removed from the -mm tree.  Its filename was
+     nilfs2-continuous-snapshotting-file-system-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes
+Subject: nilfs2-continuous-snapshotting-file-system-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-(wtf?)
-
-ERROR: code indent should use tabs where possible
-#27: FILE: mm/tiny-shmem.c:68:
-+        error = -ENFILE;$
-
-ERROR: code indent should use tabs where possible
-#28: FILE: mm/tiny-shmem.c:69:
-+        file = get_empty_filp();$
-
-ERROR: code indent should use tabs where possible
-#29: FILE: mm/tiny-shmem.c:70:
-+        if (!file)$
-
-ERROR: code indent should use tabs where possible
-#30: FILE: mm/tiny-shmem.c:71:
-+                goto put_dentry;$
-
-ERROR: code indent should use tabs where possible
-#51: FILE: mm/tiny-shmem.c:78:
-+        d_instantiate(dentry, inode);$
-
-ERROR: code indent should use tabs where possible
-#52: FILE: mm/tiny-shmem.c:79:
-+        inode->i_size = size;$
-
-ERROR: code indent should use tabs where possible
-#53: FILE: mm/tiny-shmem.c:80:
-+        inode->i_nlink = 0;     /* It is unlinked */$
-
-ERROR: code indent should use tabs where possible
-#54: FILE: mm/tiny-shmem.c:81:
-+        init_file(file, shm_mnt, dentry, FMODE_WRITE | FMODE_READ,$
-
-ERROR: code indent should use tabs where possible
-#55: FILE: mm/tiny-shmem.c:82:
-+                        &ramfs_file_operations);$
-
-total: 9 errors, 0 warnings, 41 lines checked
-
-./patches/mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/tiny-shmem.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ fs/nilfs2/inode.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/tiny-shmem.c~mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes mm/tiny-shmem.c
---- a/mm/tiny-shmem.c~mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes
-+++ a/mm/tiny-shmem.c
-@@ -65,21 +65,21 @@ struct file *shmem_file_setup(char *name
- 	if (!dentry)
- 		goto put_memory;
+diff -puN fs/nilfs2/inode.c~nilfs2-continuous-snapshotting-file-system-fix fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~nilfs2-continuous-snapshotting-file-system-fix
++++ a/fs/nilfs2/inode.c
+@@ -279,13 +279,13 @@ struct inode *nilfs_new_inode(struct ino
  
--        error = -ENFILE;
--        file = get_empty_filp();
--        if (!file)
--                goto put_dentry;
-+	error = -ENFILE;
-+	file = get_empty_filp();
-+	if (!file)
-+		goto put_dentry;
+ 	atomic_inc(&sbi->s_inodes_count);
  
- 	error = -ENOSPC;
- 	inode = ramfs_get_inode(root->d_sb, S_IFREG | S_IRWXUGO, 0);
- 	if (!inode)
- 		goto close_file;
+-	inode->i_uid = current->fsuid;
++	inode->i_uid = current_fsuid();
+ 	if (dir->i_mode & S_ISGID) {
+ 		inode->i_gid = dir->i_gid;
+ 		if (S_ISDIR(mode))
+ 			mode |= S_ISGID;
+ 	} else
+-		inode->i_gid = current->fsgid;
++		inode->i_gid = current_fsgid();
  
--        d_instantiate(dentry, inode);
--        inode->i_size = size;
--        inode->i_nlink = 0;     /* It is unlinked */
--        init_file(file, shm_mnt, dentry, FMODE_WRITE | FMODE_READ,
--                        &ramfs_file_operations);
-+	d_instantiate(dentry, inode);
-+	inode->i_size = size;
-+	inode->i_nlink = 0;	/* It is unlinked */
-+	init_file(file, shm_mnt, dentry, FMODE_WRITE | FMODE_READ,
-+			&ramfs_file_operations);
- 	return file;
- 
- close_file:
+ 	inode->i_mode = mode;
+ 	inode->i_ino = ino;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
