@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-truncate-block-allocated-on-a-failed-ext3_write_begin.patch added to -mm tree
-Date: Wed, 17 Sep 2008 12:30:37 -0700
-Message-ID: <200809171930.m8HJUbC1026849@imap1.linux-foundation.org>
+Subject: + ext3-avoid-printk-floods-in-the-face-of-directory-corruption.patch added to -mm tree
+Date: Wed, 17 Sep 2008 12:31:04 -0700
+Message-ID: <200809171931.m8HJV479026869@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34957 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36749 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752769AbYIQTbb (ORCPT
+	by vger.kernel.org with ESMTP id S1752830AbYIQTb4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Sep 2008 15:31:31 -0400
+	Wed, 17 Sep 2008 15:31:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aneesh.kumar@linux.vnet.ibm.com, tytso@mit.edu
+Cc: sandeen@redhat.com, eugeneteo@kernel.sg, tytso@mit.edu
 
 
 The patch titled
-     ext3: truncate block allocated on a failed ext3_write_begin
+     ext3: avoid printk floods in the face of directory corruption
 has been added to the -mm tree.  Its filename is
-     ext3-truncate-block-allocated-on-a-failed-ext3_write_begin.patch
+     ext3-avoid-printk-floods-in-the-face-of-directory-corruption.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: truncate block allocated on a failed ext3_write_begin
-From: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Subject: ext3: avoid printk floods in the face of directory corruption
+From: Eric Sandeen <sandeen@redhat.com>
 
-For blocksize < pagesize we need to remove blocks that got allocated in
-block_write_begin() if we fail with ENOSPC for later blocks. 
-block_write_begin() internally does this if it allocated page locally. 
-This makes sure we don't have blocks outside inode.i_size during ENOSPC.
+Note: some people thinks this represents a security bug, since it might
+make the system go away while it is printing a large number of console
+messages, especially if a serial console is involved.  Hence, it has been
+assigned CVE-2008-3528, but it requires that the attacker either has
+physical access to your machine to insert a USB disk with a corrupted
+filesystem image (at which point why not just hit the power button), or is
+otherwise able to convince the system administrator to mount an arbitrary
+filesystem image (at which point why not just include a setuid shell or
+world-writable hard disk device file or some such).  Me, I think they're
+just being silly.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
 Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Eugene Teo <eugeneteo@kernel.sg>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/inode.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ fs/ext3/dir.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN fs/ext3/inode.c~ext3-truncate-block-allocated-on-a-failed-ext3_write_begin fs/ext3/inode.c
---- a/fs/ext3/inode.c~ext3-truncate-block-allocated-on-a-failed-ext3_write_begin
-+++ a/fs/ext3/inode.c
-@@ -1178,6 +1178,13 @@ write_begin_failed:
- 		ext3_journal_stop(handle);
- 		unlock_page(page);
- 		page_cache_release(page);
-+		/*
-+		 * block_write_begin may have instantiated a few blocks
-+		 * outside i_size.  Trim these off again. Don't need
-+		 * i_size_read because we hold i_mutex.
-+		 */
-+		if (pos + len > inode->i_size)
-+			vmtruncate(inode, inode->i_size);
- 	}
- 	if (ret == -ENOSPC && ext3_should_retry_alloc(inode->i_sb, &retries))
- 		goto retry;
+diff -puN fs/ext3/dir.c~ext3-avoid-printk-floods-in-the-face-of-directory-corruption fs/ext3/dir.c
+--- a/fs/ext3/dir.c~ext3-avoid-printk-floods-in-the-face-of-directory-corruption
++++ a/fs/ext3/dir.c
+@@ -102,6 +102,7 @@ static int ext3_readdir(struct file * fi
+ 	int err;
+ 	struct inode *inode = filp->f_path.dentry->d_inode;
+ 	int ret = 0;
++	int dir_has_error = 0;
+ 
+ 	sb = inode->i_sb;
+ 
+@@ -148,9 +149,12 @@ static int ext3_readdir(struct file * fi
+ 		 * of recovering data when there's a bad sector
+ 		 */
+ 		if (!bh) {
+-			ext3_error (sb, "ext3_readdir",
+-				"directory #%lu contains a hole at offset %lu",
+-				inode->i_ino, (unsigned long)filp->f_pos);
++			if (!dir_has_error) {
++				ext3_error(sb, __func__, "directory #%lu "
++					"contains a hole at offset %lld",
++					inode->i_ino, filp->f_pos);
++				dir_has_error = 1;
++			}
+ 			/* corrupt size?  Maybe no more blocks to read */
+ 			if (filp->f_pos > inode->i_blocks << 9)
+ 				break;
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
-ext3-truncate-block-allocated-on-a-failed-ext3_write_begin.patch
+linux-next.patch
+ext2-avoid-printk-floods-in-the-face-of-directory-corruption.patch
+ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
+jbd-test-bh_write_eio-to-detect-errors-on-metadata-buffers.patch
+ext3-avoid-printk-floods-in-the-face-of-directory-corruption.patch
 
