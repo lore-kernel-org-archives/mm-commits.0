@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + gpio_free-might-sleep-blackfin-architecture.patch added to -mm tree
-Date: Wed, 17 Sep 2008 14:40:14 -0700
-Message-ID: <200809172140.m8HLeE64031815@imap1.linux-foundation.org>
+Subject: + gpio_free-might-sleep-mips-architecture.patch added to -mm tree
+Date: Wed, 17 Sep 2008 14:40:12 -0700
+Message-ID: <200809172140.m8HLeCwk031812@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49988 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44369 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753532AbYIQVki (ORCPT
+	by vger.kernel.org with ESMTP id S1753466AbYIQVkb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Sep 2008 17:40:38 -0400
+	Wed, 17 Sep 2008 17:40:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ukleinek@informatik.uni-freiburg.de, cooloney@kernel.org, david-b@pacbell.net
+Cc: ukleinek@informatik.uni-freiburg.de, david-b@pacbell.net, ralf@linux-mips.org
 
 
 The patch titled
-     gpio_free might sleep, blackfin architecture
+     gpio_free might sleep, mips architecture
 has been added to the -mm tree.  Its filename is
-     gpio_free-might-sleep-blackfin-architecture.patch
+     gpio_free-might-sleep-mips-architecture.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +39,7 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: gpio_free might sleep, blackfin architecture
+Subject: gpio_free might sleep, mips architecture
 =46rom: Uwe Kleine-K=F6nig <ukleinek@informatik.uni-freiburg.de>
 
 According to the documentation gpio_free should only be called from tas=
@@ -47,33 +47,76 @@ k
 context only.  To make this more explicit add a might sleep to all
 implementations.
 
-This patch changes the gpio_free implementations for the blackfin
+This patch changes the gpio_free implementations for the mips
 architecture.
 
 Signed-off-by: Uwe Kleine-K=F6nig <ukleinek@informatik.uni-freiburg.de>
 Cc: David Brownell <david-b@pacbell.net>
-Acked-by: Bryan Wu <cooloney@kernel.org
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/bfin_gpio.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/asm-mips/mach-au1x00/gpio.h  |    2 ++
+ include/asm-mips/mach-bcm47xx/gpio.h |    3 +++
+ include/asm-mips/mach-rc32434/gpio.h |    1 +
+ 3 files changed, 6 insertions(+)
 
-diff -puN arch/blackfin/kernel/bfin_gpio.c~gpio_free-might-sleep-blackf=
-in-architecture arch/blackfin/kernel/bfin_gpio.c
---- a/arch/blackfin/kernel/bfin_gpio.c~gpio_free-might-sleep-blackfin-a=
-rchitecture
-+++ a/arch/blackfin/kernel/bfin_gpio.c
-@@ -1151,6 +1151,8 @@ void gpio_free(unsigned gpio)
- 	if (check_gpio(gpio) < 0)
- 		return;
+diff -puN include/asm-mips/mach-au1x00/gpio.h~gpio_free-might-sleep-mip=
+s-architecture include/asm-mips/mach-au1x00/gpio.h
+--- a/include/asm-mips/mach-au1x00/gpio.h~gpio_free-might-sleep-mips-ar=
+chitecture
++++ a/include/asm-mips/mach-au1x00/gpio.h
+@@ -1,6 +1,7 @@
+ #ifndef _AU1XXX_GPIO_H_
+ #define _AU1XXX_GPIO_H_
 =20
-+	might_sleep();
-+
- 	local_irq_save(flags);
++#include <linux/kernel.h>
+ #include <linux/types.h>
 =20
- 	if (unlikely(!(reserved_gpio_map[gpio_bank(gpio)] & gpio_bit(gpio))))=
+ #define AU1XXX_GPIO_BASE	200
+@@ -31,6 +32,7 @@ static inline int gpio_request(unsigned=20
+ static inline void gpio_free(unsigned gpio)
  {
+ 	/* Not yet implemented */
++	might_sleep();
+ }
+=20
+ static inline int gpio_direction_input(unsigned gpio)
+diff -puN include/asm-mips/mach-bcm47xx/gpio.h~gpio_free-might-sleep-mi=
+ps-architecture include/asm-mips/mach-bcm47xx/gpio.h
+--- a/include/asm-mips/mach-bcm47xx/gpio.h~gpio_free-might-sleep-mips-a=
+rchitecture
++++ a/include/asm-mips/mach-bcm47xx/gpio.h
+@@ -9,6 +9,8 @@
+ #ifndef __BCM47XX_GPIO_H
+ #define __BCM47XX_GPIO_H
+=20
++#include <linux/kernel.h>
++
+ #define BCM47XX_EXTIF_GPIO_LINES	5
+ #define BCM47XX_CHIPCO_GPIO_LINES	16
+=20
+@@ -25,6 +27,7 @@ static inline int gpio_request(unsigned=20
+=20
+ static inline void gpio_free(unsigned gpio)
+ {
++	might_sleep();
+ }
+=20
+ static inline int gpio_to_irq(unsigned gpio)
+diff -puN include/asm-mips/mach-rc32434/gpio.h~gpio_free-might-sleep-mi=
+ps-architecture include/asm-mips/mach-rc32434/gpio.h
+--- a/include/asm-mips/mach-rc32434/gpio.h~gpio_free-might-sleep-mips-a=
+rchitecture
++++ a/include/asm-mips/mach-rc32434/gpio.h
+@@ -13,6 +13,7 @@
+ #ifndef _RC32434_GPIO_H_
+ #define _RC32434_GPIO_H_
+=20
++#include <linux/kernel.h>
+ #include <linux/types.h>
+=20
+ #define gpio_get_value __gpio_get_value
 _
 
 Patches currently in -mm which might be from ukleinek@informatik.uni-fr=
