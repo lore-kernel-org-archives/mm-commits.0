@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-disk-address-translator.patch added to -mm tree
-Date: Wed, 17 Sep 2008 13:27:39 -0700
-Message-ID: <200809172027.m8HKRdb1028980@imap1.linux-foundation.org>
+Subject: + nilfs2-persistent-object-allocator.patch added to -mm tree
+Date: Wed, 17 Sep 2008 13:27:36 -0700
+Message-ID: <200809172027.m8HKRaPC028957@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47346 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48206 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753851AbYIQU1y (ORCPT
+	by vger.kernel.org with ESMTP id S1753859AbYIQU15 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Sep 2008 16:27:54 -0400
+	Wed, 17 Sep 2008 16:27:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sato.koji@lab.ntt.co.jp, konishi.ryusuke@lab.ntt.co.jp
+Cc: konishi.ryusuke@lab.ntt.co.jp, amagai.yoshiji@lab.ntt.co.jp, sato.koji@lab.ntt.co.jp
 
 
 The patch titled
-     nilfs2: disk address translator
+     nilfs2: persistent object allocator
 has been added to the -mm tree.  Its filename is
-     nilfs2-disk-address-translator.patch
+     nilfs2-persistent-object-allocator.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: disk address translator
-From: Koji Sato <sato.koji@lab.ntt.co.jp>
+Subject: nilfs2: persistent object allocator
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-This adds the disk address translation file (DAT) whose primary function
-is to convert virtual disk block numbers to actual disk block numbers.
-
-The virtual block numbers of NILFS are associated with checkpoint
-generation numbers, and this file also provides functions to manage the
-lifetime information of each virtual block number.
+This adds common functions to allocate or deallocate entries with bitmaps
+on a meta data file.  This feature is used by the DAT and ifile.
 
 Signed-off-by: Koji Sato <sato.koji@lab.ntt.co.jp>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Signed-off-by: Yoshiji Amagai <amagai.yoshiji@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/dat.c |  429 ++++++++++++++++++++++++++++++++++++++++++++++
- fs/nilfs2/dat.h |   52 +++++
- 2 files changed, 481 insertions(+)
+ fs/nilfs2/alloc.c |  504 ++++++++++++++++++++++++++++++++++++++++++++
+ fs/nilfs2/alloc.h |   72 ++++++
+ 2 files changed, 576 insertions(+)
 
-diff -puN /dev/null fs/nilfs2/dat.c
+diff -puN /dev/null fs/nilfs2/alloc.c
 --- /dev/null
-+++ a/fs/nilfs2/dat.c
-@@ -0,0 +1,429 @@
++++ a/fs/nilfs2/alloc.c
+@@ -0,0 +1,504 @@
 +/*
-+ * dat.c - NILFS disk address translation.
++ * alloc.c - NILFS dat/inode allocator
 + *
 + * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
 + *
@@ -76,422 +73,497 @@ diff -puN /dev/null fs/nilfs2/dat.c
 + * along with this program; if not, write to the Free Software
 + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 + *
-+ * Written by Koji Sato <koji@osrg.net>.
++ * Original code was written by Koji Sato <koji@osrg.net>.
++ * Two allocators were unified by Ryusuke Konishi <ryusuke@osrg.net>,
++ *                                Amagai Yoshiji <amagai@osrg.net>.
 + */
 +
 +#include <linux/types.h>
 +#include <linux/buffer_head.h>
-+#include <linux/string.h>
-+#include <linux/errno.h>
-+#include "nilfs.h"
++#include <linux/fs.h>
++#include <linux/bitops.h>
 +#include "mdt.h"
 +#include "alloc.h"
-+#include "dat.h"
 +
 +
-+#define NILFS_CNO_MIN	((__u64)1)
-+#define NILFS_CNO_MAX	(~(__u64)0)
-+
-+static int nilfs_dat_prepare_entry(struct inode *dat,
-+				   struct nilfs_palloc_req *req, int create)
++static inline unsigned long
++nilfs_palloc_groups_per_desc_block(const struct inode *inode)
 +{
-+	return nilfs_palloc_get_entry_block(dat, req->pr_entry_nr,
-+					    create, &req->pr_entry_bh);
++	return (1UL << inode->i_blkbits) /
++		sizeof(struct nilfs_palloc_group_desc);
 +}
 +
-+static void nilfs_dat_commit_entry(struct inode *dat,
-+				   struct nilfs_palloc_req *req)
++static inline unsigned long
++nilfs_palloc_groups_count(const struct inode *inode)
 +{
-+	nilfs_mdt_mark_buffer_dirty(req->pr_entry_bh);
-+	nilfs_mdt_mark_dirty(dat);
-+	brelse(req->pr_entry_bh);
++	return 1UL << (BITS_PER_LONG - (inode->i_blkbits + 3 /* log2(8) */));
 +}
 +
-+static void nilfs_dat_abort_entry(struct inode *dat,
-+				  struct nilfs_palloc_req *req)
++int nilfs_palloc_init_blockgroup(struct inode *inode, unsigned entry_size)
 +{
-+	brelse(req->pr_entry_bh);
-+}
++	struct nilfs_mdt_info *mi = NILFS_MDT(inode);
 +
-+int nilfs_dat_prepare_alloc(struct inode *dat, struct nilfs_palloc_req *req)
-+{
-+	int ret;
++	mi->mi_bgl = kmalloc(sizeof(*mi->mi_bgl), GFP_NOFS);
++	if (!mi->mi_bgl)
++		return -ENOMEM;
 +
-+	ret = nilfs_palloc_prepare_alloc_entry(dat, req);
-+	if (ret < 0)
-+		return ret;
++	bgl_lock_init(mi->mi_bgl);
 +
-+	ret = nilfs_dat_prepare_entry(dat, req, 1);
-+	if (ret < 0)
-+		nilfs_palloc_abort_alloc_entry(dat, req);
++	nilfs_mdt_set_entry_size(inode, entry_size, 0);
 +
-+	return ret;
-+}
-+
-+void nilfs_dat_commit_alloc(struct inode *dat, struct nilfs_palloc_req *req)
-+{
-+	struct nilfs_dat_entry *entry;
-+	void *kaddr;
-+
-+	kaddr = kmap_atomic(req->pr_entry_bh->b_page, KM_USER0);
-+	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
-+					     req->pr_entry_bh, kaddr);
-+	entry->de_start = cpu_to_le64(NILFS_CNO_MIN);
-+	entry->de_end = cpu_to_le64(NILFS_CNO_MAX);
-+	entry->de_blocknr = cpu_to_le64(0);
-+	kunmap_atomic(kaddr, KM_USER0);
-+
-+	nilfs_palloc_commit_alloc_entry(dat, req);
-+	nilfs_dat_commit_entry(dat, req);
-+}
-+
-+void nilfs_dat_abort_alloc(struct inode *dat, struct nilfs_palloc_req *req)
-+{
-+	nilfs_dat_abort_entry(dat, req);
-+	nilfs_palloc_abort_alloc_entry(dat, req);
-+}
-+
-+int nilfs_dat_prepare_free(struct inode *dat, struct nilfs_palloc_req *req)
-+{
-+	int ret;
-+
-+	ret = nilfs_palloc_prepare_free_entry(dat, req);
-+	if (ret < 0)
-+		return ret;
-+	ret = nilfs_dat_prepare_entry(dat, req, 0);
-+	if (ret < 0) {
-+		nilfs_palloc_abort_free_entry(dat, req);
-+		return ret;
-+	}
++	mi->mi_blocks_per_group =
++		DIV_ROUND_UP(nilfs_palloc_entries_per_group(inode),
++			     mi->mi_entries_per_block) + 1;
++		/* Number of blocks in a group including entry blocks and
++		   a bitmap block */
++	mi->mi_blocks_per_desc_block =
++		nilfs_palloc_groups_per_desc_block(inode) *
++		mi->mi_blocks_per_group + 1;
++		/* Number of blocks per descriptor including the
++		   descriptor block */
 +	return 0;
 +}
 +
-+void nilfs_dat_commit_free(struct inode *dat, struct nilfs_palloc_req *req)
++static unsigned long nilfs_palloc_group(const struct inode *inode, __u64 nr,
++					unsigned long *offset)
 +{
-+	struct nilfs_dat_entry *entry;
-+	void *kaddr;
++	__u64 group = nr;
 +
-+	kaddr = kmap_atomic(req->pr_entry_bh->b_page, KM_USER0);
-+	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
-+					     req->pr_entry_bh, kaddr);
-+	entry->de_start = cpu_to_le64(NILFS_CNO_MIN);
-+	entry->de_end = cpu_to_le64(NILFS_CNO_MIN);
-+	entry->de_blocknr = cpu_to_le64(0);
-+	kunmap_atomic(kaddr, KM_USER0);
-+
-+	nilfs_dat_commit_entry(dat, req);
-+	nilfs_palloc_commit_free_entry(dat, req);
++	*offset = do_div(group, nilfs_palloc_entries_per_group(inode));
++	return group;
 +}
 +
-+void nilfs_dat_abort_free(struct inode *dat, struct nilfs_palloc_req *req)
++static unsigned long
++nilfs_palloc_desc_blkoff(const struct inode *inode, unsigned long group)
 +{
-+	nilfs_dat_abort_entry(dat, req);
-+	nilfs_palloc_abort_free_entry(dat, req);
++	unsigned long desc_block =
++		group / nilfs_palloc_groups_per_desc_block(inode);
++	return desc_block * NILFS_MDT(inode)->mi_blocks_per_desc_block;
 +}
 +
-+int nilfs_dat_prepare_start(struct inode *dat, struct nilfs_palloc_req *req)
++static unsigned long
++nilfs_palloc_bitmap_blkoff(const struct inode *inode, unsigned long group)
 +{
-+	int ret;
-+
-+	ret = nilfs_dat_prepare_entry(dat, req, 0);
-+	BUG_ON(ret == -ENOENT);
-+	return ret;
++	unsigned long desc_offset =
++		group % nilfs_palloc_groups_per_desc_block(inode);
++	return nilfs_palloc_desc_blkoff(inode, group) + 1 +
++		desc_offset * NILFS_MDT(inode)->mi_blocks_per_group;
 +}
 +
-+void nilfs_dat_commit_start(struct inode *dat, struct nilfs_palloc_req *req,
-+			    sector_t blocknr)
++static unsigned long
++nilfs_palloc_group_desc_nfrees(struct inode *inode, unsigned long group,
++			       const struct nilfs_palloc_group_desc *desc)
 +{
-+	struct nilfs_dat_entry *entry;
-+	void *kaddr;
++	unsigned long nfree;
 +
-+	kaddr = kmap_atomic(req->pr_entry_bh->b_page, KM_USER0);
-+	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
-+					     req->pr_entry_bh, kaddr);
-+	entry->de_start = cpu_to_le64(nilfs_mdt_cno(dat));
-+	if (entry->de_blocknr != cpu_to_le64(0) ||
-+	    entry->de_end != cpu_to_le64(NILFS_CNO_MAX)) {
-+		printk(KERN_CRIT
-+		       "%s: vbn = %llu, start = %llu, end = %llu, pbn = %llu\n",
-+		       __func__, (unsigned long long)req->pr_entry_nr,
-+		       (unsigned long long)le64_to_cpu(entry->de_start),
-+		       (unsigned long long)le64_to_cpu(entry->de_end),
-+		       (unsigned long long)le64_to_cpu(entry->de_blocknr));
-+		BUG();
++	spin_lock(nilfs_mdt_bgl_lock(inode, group));
++	nfree = le32_to_cpu(desc->pg_nfrees);
++	spin_unlock(nilfs_mdt_bgl_lock(inode, group));
++	return nfree;
++}
++
++static void
++nilfs_palloc_group_desc_add_entries(struct inode *inode,
++				    unsigned long group,
++				    struct nilfs_palloc_group_desc *desc,
++				    u32 n)
++{
++	spin_lock(nilfs_mdt_bgl_lock(inode, group));
++	le32_add_cpu(&desc->pg_nfrees, n);
++	spin_unlock(nilfs_mdt_bgl_lock(inode, group));
++}
++
++static unsigned long
++nilfs_palloc_entry_blkoff(const struct inode *inode, __u64 nr)
++{
++	unsigned long group, group_offset;
++
++	group = nilfs_palloc_group(inode, nr, &group_offset);
++
++	return nilfs_palloc_bitmap_blkoff(inode, group) + 1 +
++		group_offset / NILFS_MDT(inode)->mi_entries_per_block;
++}
++
++static void nilfs_palloc_desc_block_init(struct inode *inode,
++					 struct buffer_head *bh, void *kaddr)
++{
++	struct nilfs_palloc_group_desc *desc = kaddr + bh_offset(bh);
++	unsigned long n = nilfs_palloc_groups_per_desc_block(inode);
++	__le32 nfrees;
++
++	nfrees = cpu_to_le32(nilfs_palloc_entries_per_group(inode));
++	while (n-- > 0) {
++		desc->pg_nfrees = nfrees;
++		desc++;
 +	}
-+	entry->de_blocknr = cpu_to_le64(blocknr);
-+	kunmap_atomic(kaddr, KM_USER0);
-+
-+	nilfs_dat_commit_entry(dat, req);
 +}
 +
-+void nilfs_dat_abort_start(struct inode *dat, struct nilfs_palloc_req *req)
++static int nilfs_palloc_get_desc_block(struct inode *inode,
++				       unsigned long group,
++				       int create, struct buffer_head **bhp)
 +{
-+	nilfs_dat_abort_entry(dat, req);
++	return nilfs_mdt_get_block(inode,
++				   nilfs_palloc_desc_blkoff(inode, group),
++				   create, nilfs_palloc_desc_block_init, bhp);
 +}
 +
-+int nilfs_dat_prepare_end(struct inode *dat, struct nilfs_palloc_req *req)
++static int nilfs_palloc_get_bitmap_block(struct inode *inode,
++					 unsigned long group,
++					 int create, struct buffer_head **bhp)
 +{
-+	struct nilfs_dat_entry *entry;
-+	__u64 start;
-+	sector_t blocknr;
-+	void *kaddr;
-+	int ret;
++	return nilfs_mdt_get_block(inode,
++				   nilfs_palloc_bitmap_blkoff(inode, group),
++				   create, NULL, bhp);
++}
 +
-+	ret = nilfs_dat_prepare_entry(dat, req, 0);
-+	if (ret < 0) {
-+		BUG_ON(ret == -ENOENT);
-+		return ret;
-+	}
++int nilfs_palloc_get_entry_block(struct inode *inode, __u64 nr,
++				 int create, struct buffer_head **bhp)
++{
++	return nilfs_mdt_get_block(inode, nilfs_palloc_entry_blkoff(inode, nr),
++				   create, NULL, bhp);
++}
 +
-+	kaddr = kmap_atomic(req->pr_entry_bh->b_page, KM_USER0);
-+	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
-+					     req->pr_entry_bh, kaddr);
-+	start = le64_to_cpu(entry->de_start);
-+	blocknr = le64_to_cpu(entry->de_blocknr);
-+	kunmap_atomic(kaddr, KM_USER0);
++static struct nilfs_palloc_group_desc *
++nilfs_palloc_block_get_group_desc(const struct inode *inode,
++				  unsigned long group,
++				  const struct buffer_head *bh, void *kaddr)
++{
++	return (struct nilfs_palloc_group_desc *)(kaddr + bh_offset(bh)) +
++		group % nilfs_palloc_groups_per_desc_block(inode);
++}
 +
-+	if (blocknr == 0) {
-+		ret = nilfs_palloc_prepare_free_entry(dat, req);
-+		if (ret < 0) {
-+			nilfs_dat_abort_entry(dat, req);
-+			return ret;
++static unsigned char *
++nilfs_palloc_block_get_bitmap(const struct inode *inode,
++			      const struct buffer_head *bh, void *kaddr)
++{
++	return (unsigned char *)(kaddr + bh_offset(bh));
++}
++
++void *nilfs_palloc_block_get_entry(const struct inode *inode, __u64 nr,
++				   const struct buffer_head *bh, void *kaddr)
++{
++	unsigned long entry_offset, group_offset;
++
++	nilfs_palloc_group(inode, nr, &group_offset);
++	entry_offset = group_offset % NILFS_MDT(inode)->mi_entries_per_block;
++
++	return kaddr + bh_offset(bh) +
++		entry_offset * NILFS_MDT(inode)->mi_entry_size;
++}
++
++static int nilfs_palloc_find_available_slot(struct inode *inode,
++					    unsigned long group,
++					    unsigned long target,
++					    unsigned char *bitmap,
++					    int bsize)  /* size in bits */
++{
++	int curr, pos, end, i;
++
++	if (target > 0) {
++		end = (target + BITS_PER_LONG - 1) & ~(BITS_PER_LONG - 1);
++		if (end > bsize)
++			end = bsize;
++		pos = nilfs_find_next_zero_bit(bitmap, end, target);
++		if (pos < end &&
++		    !nilfs_set_bit_atomic(
++			    nilfs_mdt_bgl_lock(inode, group), pos, bitmap))
++			return pos;
++	} else
++		end = 0;
++
++	for (i = 0, curr = end;
++	     i < bsize;
++	     i += BITS_PER_LONG, curr += BITS_PER_LONG) {
++		/* wrap around */
++		if (curr >= bsize)
++			curr = 0;
++		while (*((unsigned long *)bitmap + curr / BITS_PER_LONG)
++		       != ~0UL) {
++			end = curr + BITS_PER_LONG;
++			if (end > bsize)
++				end = bsize;
++			pos = nilfs_find_next_zero_bit(bitmap, end, curr);
++			if ((pos < end) &&
++			    !nilfs_set_bit_atomic(
++				    nilfs_mdt_bgl_lock(inode, group), pos,
++				    bitmap))
++				return pos;
 +		}
 +	}
-+
-+	return 0;
++	return -ENOSPC;
 +}
 +
-+void nilfs_dat_commit_end(struct inode *dat, struct nilfs_palloc_req *req,
-+			  int dead)
++static unsigned long
++nilfs_palloc_rest_groups_in_desc_block(const struct inode *inode,
++				       unsigned long curr, unsigned long max)
 +{
-+	struct nilfs_dat_entry *entry;
-+	__u64 start, end;
-+	sector_t blocknr;
-+	void *kaddr;
-+
-+	kaddr = kmap_atomic(req->pr_entry_bh->b_page, KM_USER0);
-+	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
-+					     req->pr_entry_bh, kaddr);
-+	end = start = le64_to_cpu(entry->de_start);
-+	if (!dead) {
-+		end = nilfs_mdt_cno(dat);
-+		BUG_ON(start > end);
-+	}
-+	entry->de_end = cpu_to_le64(end);
-+	blocknr = le64_to_cpu(entry->de_blocknr);
-+	kunmap_atomic(kaddr, KM_USER0);
-+
-+	if (blocknr == 0)
-+		nilfs_dat_commit_free(dat, req);
-+	else
-+		nilfs_dat_commit_entry(dat, req);
++	return min_t(unsigned long,
++		     nilfs_palloc_groups_per_desc_block(inode) -
++		     curr % nilfs_palloc_groups_per_desc_block(inode),
++		     max - curr + 1);
 +}
 +
-+void nilfs_dat_abort_end(struct inode *dat, struct nilfs_palloc_req *req)
++int nilfs_palloc_prepare_alloc_entry(struct inode *inode,
++				     struct nilfs_palloc_req *req)
 +{
-+	struct nilfs_dat_entry *entry;
-+	__u64 start;
-+	sector_t blocknr;
-+	void *kaddr;
++	struct buffer_head *desc_bh, *bitmap_bh;
++	struct nilfs_palloc_group_desc *desc;
++	unsigned char *bitmap;
++	void *desc_kaddr, *bitmap_kaddr;
++	unsigned long group, maxgroup, ngroups;
++	unsigned long group_offset, maxgroup_offset;
++	unsigned long n, entries_per_group, groups_per_desc_block;
++	unsigned long i, j;
++	int pos, ret;
 +
-+	kaddr = kmap_atomic(req->pr_entry_bh->b_page, KM_USER0);
-+	entry = nilfs_palloc_block_get_entry(dat, req->pr_entry_nr,
-+					     req->pr_entry_bh, kaddr);
-+	start = le64_to_cpu(entry->de_start);
-+	blocknr = le64_to_cpu(entry->de_blocknr);
-+	kunmap_atomic(kaddr, KM_USER0);
++	ngroups = nilfs_palloc_groups_count(inode);
++	maxgroup = ngroups - 1;
++	group = nilfs_palloc_group(inode, req->pr_entry_nr, &group_offset);
++	entries_per_group = nilfs_palloc_entries_per_group(inode);
++	groups_per_desc_block = nilfs_palloc_groups_per_desc_block(inode);
 +
-+	if (start == nilfs_mdt_cno(dat) && blocknr == 0)
-+		nilfs_palloc_abort_free_entry(dat, req);
-+	nilfs_dat_abort_entry(dat, req);
-+}
-+
-+/**
-+ * nilfs_dat_mark_dirty -
-+ * @dat: DAT file inode
-+ * @vblocknr: virtual block number
-+ *
-+ * Description:
-+ *
-+ * Return Value: On success, 0 is returned. On error, one of the following
-+ * negative error codes is returned.
-+ *
-+ * %-EIO - I/O error.
-+ *
-+ * %-ENOMEM - Insufficient amount of memory available.
-+ */
-+int nilfs_dat_mark_dirty(struct inode *dat, __u64 vblocknr)
-+{
-+	struct nilfs_palloc_req req;
-+	int ret;
-+
-+	req.pr_entry_nr = vblocknr;
-+	ret = nilfs_dat_prepare_entry(dat, &req, 0);
-+	if (ret == 0)
-+		nilfs_dat_commit_entry(dat, &req);
-+	return ret;
-+}
-+
-+/**
-+ * nilfs_dat_freev - free virtual block numbers
-+ * @dat: DAT file inode
-+ * @vblocknrs: array of virtual block numbers
-+ * @nitems: number of virtual block numbers
-+ *
-+ * Description: nilfs_dat_freev() frees the virtual block numbers specified by
-+ * @vblocknrs and @nitems.
-+ *
-+ * Return Value: On success, 0 is returned. On error, one of the following
-+ * nagative error codes is returned.
-+ *
-+ * %-EIO - I/O error.
-+ *
-+ * %-ENOMEM - Insufficient amount of memory available.
-+ *
-+ * %-ENOENT - The virtual block number have not been allocated.
-+ */
-+int nilfs_dat_freev(struct inode *dat, __u64 *vblocknrs, size_t nitems)
-+{
-+	return nilfs_palloc_freev(dat, vblocknrs, nitems);
-+}
-+
-+/**
-+ * nilfs_dat_move - change a block number
-+ * @dat: DAT file inode
-+ * @vblocknr: virtual block number
-+ * @blocknr: block number
-+ *
-+ * Description: nilfs_dat_move() changes the block number associated with
-+ * @vblocknr to @blocknr.
-+ *
-+ * Return Value: On success, 0 is returned. On error, one of the following
-+ * negative error codes is returned.
-+ *
-+ * %-EIO - I/O error.
-+ *
-+ * %-ENOMEM - Insufficient amount of memory available.
-+ */
-+int nilfs_dat_move(struct inode *dat, __u64 vblocknr, sector_t blocknr)
-+{
-+	struct buffer_head *entry_bh;
-+	struct nilfs_dat_entry *entry;
-+	void *kaddr;
-+	int ret;
-+
-+	ret = nilfs_palloc_get_entry_block(dat, vblocknr, 0, &entry_bh);
-+	if (ret < 0)
-+		return ret;
-+	kaddr = kmap_atomic(entry_bh->b_page, KM_USER0);
-+	entry = nilfs_palloc_block_get_entry(dat, vblocknr, entry_bh, kaddr);
-+	if (entry->de_blocknr == cpu_to_le64(0)) {
-+		printk(KERN_CRIT "%s: vbn = %llu, [%llu, %llu)\n", __func__,
-+		       (unsigned long long)vblocknr,
-+		       (unsigned long long)le64_to_cpu(entry->de_start),
-+		       (unsigned long long)le64_to_cpu(entry->de_end));
-+		BUG();
-+	}
-+	BUG_ON(blocknr == 0);
-+	entry->de_blocknr = cpu_to_le64(blocknr);
-+	kunmap_atomic(kaddr, KM_USER0);
-+
-+	nilfs_mdt_mark_buffer_dirty(entry_bh);
-+	nilfs_mdt_mark_dirty(dat);
-+
-+	brelse(entry_bh);
-+
-+	return 0;
-+}
-+
-+/**
-+ * nilfs_dat_translate - translate a virtual block number to a block number
-+ * @dat: DAT file inode
-+ * @vblocknr: virtual block number
-+ * @blocknrp: pointer to a block number
-+ *
-+ * Description: nilfs_dat_translate() maps the virtual block number @vblocknr
-+ * to the corresponding block number.
-+ *
-+ * Return Value: On success, 0 is returned and the block number associated
-+ * with @vblocknr is stored in the place pointed by @blocknrp. On error, one
-+ * of the following negative error codes is returned.
-+ *
-+ * %-EIO - I/O error.
-+ *
-+ * %-ENOMEM - Insufficient amount of memory available.
-+ *
-+ * %-ENOENT - A block number associated with @vblocknr does not exist.
-+ */
-+int nilfs_dat_translate(struct inode *dat, __u64 vblocknr, sector_t *blocknrp)
-+{
-+	struct buffer_head *entry_bh;
-+	struct nilfs_dat_entry *entry;
-+	sector_t blocknr;
-+	void *kaddr;
-+	int ret;
-+
-+	ret = nilfs_palloc_get_entry_block(dat, vblocknr, 0, &entry_bh);
-+	if (ret < 0)
-+		return ret;
-+
-+	kaddr = kmap_atomic(entry_bh->b_page, KM_USER0);
-+	entry = nilfs_palloc_block_get_entry(dat, vblocknr, entry_bh, kaddr);
-+	blocknr = le64_to_cpu(entry->de_blocknr);
-+	if (blocknr == 0) {
-+		ret = -ENOENT;
-+		goto out;
-+	}
-+	if (blocknrp != NULL)
-+		*blocknrp = blocknr;
-+
-+ out:
-+	kunmap_atomic(kaddr, KM_USER0);
-+	brelse(entry_bh);
-+	return ret;
-+}
-+
-+ssize_t nilfs_dat_get_vinfo(struct inode *dat, struct nilfs_vinfo *vinfo,
-+			    size_t nvi)
-+{
-+	struct buffer_head *entry_bh;
-+	struct nilfs_dat_entry *entry;
-+	__u64 first, last;
-+	void *kaddr;
-+	unsigned long entries_per_block = NILFS_MDT(dat)->mi_entries_per_block;
-+	int i, j, n, ret;
-+
-+	for (i = 0; i < nvi; i += n) {
-+		ret = nilfs_palloc_get_entry_block(dat, vinfo[i].vi_vblocknr,
-+						   0, &entry_bh);
++	for (i = 0; i < ngroups; i += n) {
++		if (group >= ngroups) {
++			/* wrap around */
++			group = 0;
++			maxgroup = nilfs_palloc_group(inode, req->pr_entry_nr,
++						      &maxgroup_offset) - 1;
++		}
++		ret = nilfs_palloc_get_desc_block(inode, group, 1, &desc_bh);
 +		if (ret < 0)
 +			return ret;
-+		kaddr = kmap_atomic(entry_bh->b_page, KM_USER0);
-+		/* last virtual block number in this block */
-+		first = vinfo[i].vi_vblocknr;
-+		do_div(first, entries_per_block);
-+		first *= entries_per_block;
-+		last = first + entries_per_block - 1;
-+		for (j = i, n = 0;
-+		     j < nvi && vinfo[j].vi_vblocknr >= first &&
-+			     vinfo[j].vi_vblocknr <= last;
-+		     j++, n++) {
-+			entry = nilfs_palloc_block_get_entry(
-+				dat, vinfo[j].vi_vblocknr, entry_bh, kaddr);
-+			vinfo[j].vi_start = le64_to_cpu(entry->de_start);
-+			vinfo[j].vi_end = le64_to_cpu(entry->de_end);
-+			vinfo[j].vi_blocknr = le64_to_cpu(entry->de_blocknr);
++		desc_kaddr = kmap(desc_bh->b_page);
++		desc = nilfs_palloc_block_get_group_desc(
++			inode, group, desc_bh, desc_kaddr);
++		n = nilfs_palloc_rest_groups_in_desc_block(inode, group,
++							   maxgroup);
++		for (j = 0; j < n; j++, desc++, group++) {
++			if (nilfs_palloc_group_desc_nfrees(inode, group, desc)
++			    > 0) {
++				ret = nilfs_palloc_get_bitmap_block(
++					inode, group, 1, &bitmap_bh);
++				if (ret < 0)
++					goto out_desc;
++				bitmap_kaddr = kmap(bitmap_bh->b_page);
++				bitmap = nilfs_palloc_block_get_bitmap(
++					inode, bitmap_bh, bitmap_kaddr);
++				pos = nilfs_palloc_find_available_slot(
++					inode, group, group_offset, bitmap,
++					entries_per_group);
++				if (pos >= 0) {
++					/* found a free entry */
++					nilfs_palloc_group_desc_add_entries(
++						inode, group, desc, -1);
++					req->pr_entry_nr =
++						entries_per_group * group + pos;
++					kunmap(desc_bh->b_page);
++					kunmap(bitmap_bh->b_page);
++
++					req->pr_desc_bh = desc_bh;
++					req->pr_bitmap_bh = bitmap_bh;
++					return 0;
++				}
++				kunmap(bitmap_bh->b_page);
++				brelse(bitmap_bh);
++			}
++
++			group_offset = 0;
 +		}
-+		kunmap_atomic(kaddr, KM_USER0);
-+		brelse(entry_bh);
++
++		kunmap(desc_bh->b_page);
++		brelse(desc_bh);
 +	}
 +
-+	return nvi;
++	/* no entries left */
++	return -ENOSPC;
++
++ out_desc:
++	kunmap(desc_bh->b_page);
++	brelse(desc_bh);
++	return ret;
 +}
-diff -puN /dev/null fs/nilfs2/dat.h
++
++void nilfs_palloc_commit_alloc_entry(struct inode *inode,
++				     struct nilfs_palloc_req *req)
++{
++	nilfs_mdt_mark_buffer_dirty(req->pr_bitmap_bh);
++	nilfs_mdt_mark_buffer_dirty(req->pr_desc_bh);
++	nilfs_mdt_mark_dirty(inode);
++
++	brelse(req->pr_bitmap_bh);
++	brelse(req->pr_desc_bh);
++}
++
++void nilfs_palloc_commit_free_entry(struct inode *inode,
++				    struct nilfs_palloc_req *req)
++{
++	struct nilfs_palloc_group_desc *desc;
++	unsigned long group, group_offset;
++	unsigned char *bitmap;
++	void *desc_kaddr, *bitmap_kaddr;
++
++	group = nilfs_palloc_group(inode, req->pr_entry_nr, &group_offset);
++	desc_kaddr = kmap(req->pr_desc_bh->b_page);
++	desc = nilfs_palloc_block_get_group_desc(inode, group,
++						 req->pr_desc_bh, desc_kaddr);
++	bitmap_kaddr = kmap(req->pr_bitmap_bh->b_page);
++	bitmap = nilfs_palloc_block_get_bitmap(inode, req->pr_bitmap_bh,
++					       bitmap_kaddr);
++
++	if (!nilfs_clear_bit_atomic(nilfs_mdt_bgl_lock(inode, group),
++				    group_offset, bitmap))
++		printk(KERN_WARNING "%s: entry number %llu already freed\n",
++		       __func__, (unsigned long long)req->pr_entry_nr);
++
++	nilfs_palloc_group_desc_add_entries(inode, group, desc, 1);
++
++	kunmap(req->pr_bitmap_bh->b_page);
++	kunmap(req->pr_desc_bh->b_page);
++
++	nilfs_mdt_mark_buffer_dirty(req->pr_desc_bh);
++	nilfs_mdt_mark_buffer_dirty(req->pr_bitmap_bh);
++	nilfs_mdt_mark_dirty(inode);
++
++	brelse(req->pr_bitmap_bh);
++	brelse(req->pr_desc_bh);
++}
++
++void nilfs_palloc_abort_alloc_entry(struct inode *inode,
++				    struct nilfs_palloc_req *req)
++{
++	struct nilfs_palloc_group_desc *desc;
++	void *desc_kaddr, *bitmap_kaddr;
++	unsigned char *bitmap;
++	unsigned long group, group_offset;
++
++	group = nilfs_palloc_group(inode, req->pr_entry_nr, &group_offset);
++	desc_kaddr = kmap(req->pr_desc_bh->b_page);
++	desc = nilfs_palloc_block_get_group_desc(inode, group,
++						 req->pr_desc_bh, desc_kaddr);
++	bitmap_kaddr = kmap(req->pr_bitmap_bh->b_page);
++	bitmap = nilfs_palloc_block_get_bitmap(inode, req->pr_bitmap_bh,
++					       bitmap_kaddr);
++	if (!nilfs_clear_bit_atomic(nilfs_mdt_bgl_lock(inode, group),
++				    group_offset, bitmap))
++		printk(KERN_WARNING "%s: entry numer %llu already freed\n",
++		       __func__, (unsigned long long)req->pr_entry_nr);
++
++	nilfs_palloc_group_desc_add_entries(inode, group, desc, 1);
++
++	kunmap(req->pr_bitmap_bh->b_page);
++	kunmap(req->pr_desc_bh->b_page);
++
++	brelse(req->pr_bitmap_bh);
++	brelse(req->pr_desc_bh);
++
++	req->pr_entry_nr = 0;
++	req->pr_bitmap_bh = NULL;
++	req->pr_desc_bh = NULL;
++}
++
++int nilfs_palloc_prepare_free_entry(struct inode *inode,
++				    struct nilfs_palloc_req *req)
++{
++	struct buffer_head *desc_bh, *bitmap_bh;
++	unsigned long group, group_offset;
++	int ret;
++
++	group = nilfs_palloc_group(inode, req->pr_entry_nr, &group_offset);
++	ret = nilfs_palloc_get_desc_block(inode, group, 1, &desc_bh);
++	if (ret < 0)
++		return ret;
++	ret = nilfs_palloc_get_bitmap_block(inode, group, 1, &bitmap_bh);
++	if (ret < 0) {
++		brelse(desc_bh);
++		return ret;
++	}
++
++	req->pr_desc_bh = desc_bh;
++	req->pr_bitmap_bh = bitmap_bh;
++	return 0;
++}
++
++void nilfs_palloc_abort_free_entry(struct inode *inode,
++				   struct nilfs_palloc_req *req)
++{
++	brelse(req->pr_bitmap_bh);
++	brelse(req->pr_desc_bh);
++
++	req->pr_entry_nr = 0;
++	req->pr_bitmap_bh = NULL;
++	req->pr_desc_bh = NULL;
++}
++
++static int
++nilfs_palloc_group_is_in(struct inode *inode, unsigned long group, __u64 nr)
++{
++	__u64 first, last;
++
++	first = group * nilfs_palloc_entries_per_group(inode);
++	last = first + nilfs_palloc_entries_per_group(inode) - 1;
++	return (nr >= first) && (nr <= last);
++}
++
++int nilfs_palloc_freev(struct inode *inode, __u64 *entry_nrs, size_t nitems)
++{
++	struct buffer_head *desc_bh, *bitmap_bh;
++	struct nilfs_palloc_group_desc *desc;
++	unsigned char *bitmap;
++	void *desc_kaddr, *bitmap_kaddr;
++	unsigned long group, group_offset;
++	int i, j, n, ret;
++
++	for (i = 0; i < nitems; i += n) {
++		group = nilfs_palloc_group(inode, entry_nrs[i], &group_offset);
++		ret = nilfs_palloc_get_desc_block(inode, group, 0, &desc_bh);
++		if (ret < 0)
++			return ret;
++		ret = nilfs_palloc_get_bitmap_block(inode, group, 0,
++						    &bitmap_bh);
++		if (ret < 0) {
++			brelse(desc_bh);
++			return ret;
++		}
++		desc_kaddr = kmap(desc_bh->b_page);
++		desc = nilfs_palloc_block_get_group_desc(
++			inode, group, desc_bh, desc_kaddr);
++		bitmap_kaddr = kmap(bitmap_bh->b_page);
++		bitmap = nilfs_palloc_block_get_bitmap(
++			inode, bitmap_bh, bitmap_kaddr);
++		for (j = i, n = 0;
++		     (j < nitems) && nilfs_palloc_group_is_in(inode, group,
++							      entry_nrs[j]);
++		     j++, n++) {
++			nilfs_palloc_group(inode, entry_nrs[j], &group_offset);
++			if (!nilfs_clear_bit_atomic(
++				    nilfs_mdt_bgl_lock(inode, group),
++				    group_offset, bitmap)) {
++				printk(KERN_WARNING
++				       "%s: entry number %llu already freed\n",
++				       __func__,
++				       (unsigned long long)entry_nrs[j]);
++			}
++		}
++		nilfs_palloc_group_desc_add_entries(inode, group, desc, n);
++
++		kunmap(bitmap_bh->b_page);
++		kunmap(desc_bh->b_page);
++
++		nilfs_mdt_mark_buffer_dirty(desc_bh);
++		nilfs_mdt_mark_buffer_dirty(bitmap_bh);
++		nilfs_mdt_mark_dirty(inode);
++
++		brelse(bitmap_bh);
++		brelse(desc_bh);
++	}
++	return 0;
++}
+diff -puN /dev/null fs/nilfs2/alloc.h
 --- /dev/null
-+++ a/fs/nilfs2/dat.h
-@@ -0,0 +1,52 @@
++++ a/fs/nilfs2/alloc.h
+@@ -0,0 +1,72 @@
 +/*
-+ * dat.h - NILFS disk address translation.
++ * alloc.h - persistent object (dat entry/disk inode) allocator/deallocator
 + *
 + * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
 + *
@@ -509,51 +581,88 @@ diff -puN /dev/null fs/nilfs2/dat.h
 + * along with this program; if not, write to the Free Software
 + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 + *
-+ * Written by Koji Sato <koji@osrg.net>.
++ * Original code was written by Koji Sato <koji@osrg.net>.
++ * Two allocators were unified by Ryusuke Konishi <ryusuke@osrg.net>,
++ *                                Amagai Yoshiji <amagai@osrg.net>.
 + */
 +
-+#ifndef _NILFS_DAT_H
-+#define _NILFS_DAT_H
++#ifndef _NILFS_ALLOC_H
++#define _NILFS_ALLOC_H
 +
 +#include <linux/types.h>
 +#include <linux/buffer_head.h>
 +#include <linux/fs.h>
 +
-+#define NILFS_DAT_GFP	NILFS_MDT_GFP
++static inline unsigned long
++nilfs_palloc_entries_per_group(const struct inode *inode)
++{
++	return 1UL << (inode->i_blkbits + 3 /* log2(8 = CHAR_BITS) */);
++}
 +
-+struct nilfs_palloc_req;
++int nilfs_palloc_init_blockgroup(struct inode *, unsigned);
++int nilfs_palloc_get_entry_block(struct inode *, __u64, int,
++				 struct buffer_head **);
++void *nilfs_palloc_block_get_entry(const struct inode *, __u64,
++				   const struct buffer_head *, void *);
 +
-+int nilfs_dat_translate(struct inode *, __u64, sector_t *);
++/**
++ * nilfs_palloc_req - persistent alloctor request and reply
++ * @pr_entry_nr: entry number (vblocknr or inode number)
++ * @pr_desc_bh: buffer head of the buffer containing block group descriptors
++ * @pr_bitmap_bh: buffer head of the buffer containing a block group bitmap
++ * @pr_entry_bh: buffer head of the buffer containing translation entries
++ */
++struct nilfs_palloc_req {
++	__u64 pr_entry_nr;
++	struct buffer_head *pr_desc_bh;
++	struct buffer_head *pr_bitmap_bh;
++	struct buffer_head *pr_entry_bh;
++};
 +
-+int nilfs_dat_prepare_alloc(struct inode *, struct nilfs_palloc_req *);
-+void nilfs_dat_commit_alloc(struct inode *, struct nilfs_palloc_req *);
-+void nilfs_dat_abort_alloc(struct inode *, struct nilfs_palloc_req *);
-+int nilfs_dat_prepare_start(struct inode *, struct nilfs_palloc_req *);
-+void nilfs_dat_commit_start(struct inode *, struct nilfs_palloc_req *,
-+			    sector_t);
-+void nilfs_dat_abort_start(struct inode *, struct nilfs_palloc_req *);
-+int nilfs_dat_prepare_end(struct inode *, struct nilfs_palloc_req *);
-+void nilfs_dat_commit_end(struct inode *, struct nilfs_palloc_req *, int);
-+void nilfs_dat_abort_end(struct inode *, struct nilfs_palloc_req *);
++int nilfs_palloc_prepare_alloc_entry(struct inode *,
++				     struct nilfs_palloc_req *);
++void nilfs_palloc_commit_alloc_entry(struct inode *,
++				     struct nilfs_palloc_req *);
++void nilfs_palloc_abort_alloc_entry(struct inode *, struct nilfs_palloc_req *);
++void nilfs_palloc_commit_free_entry(struct inode *, struct nilfs_palloc_req *);
++int nilfs_palloc_prepare_free_entry(struct inode *, struct nilfs_palloc_req *);
++void nilfs_palloc_abort_free_entry(struct inode *, struct nilfs_palloc_req *);
++int nilfs_palloc_freev(struct inode *, __u64 *, size_t);
 +
-+int nilfs_dat_mark_dirty(struct inode *, __u64);
-+int nilfs_dat_freev(struct inode *, __u64 *, size_t);
-+int nilfs_dat_move(struct inode *, __u64, sector_t);
-+ssize_t nilfs_dat_get_vinfo(struct inode *, struct nilfs_vinfo *, size_t);
++#define nilfs_set_bit_atomic		ext2_set_bit_atomic
++#define nilfs_clear_bit_atomic		ext2_clear_bit_atomic
++#define nilfs_find_next_zero_bit	ext2_find_next_zero_bit
 +
-+#endif	/* _NILFS_DAT_H */
++#endif	/* _NILFS_ALLOC_H */
 _
 
-Patches currently in -mm which might be from sato.koji@lab.ntt.co.jp are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
+nilfs2-add-document.patch
 nilfs2-disk-format-and-userland-interface.patch
 nilfs2-add-inode-and-other-major-structures.patch
 nilfs2-integrated-block-mapping.patch
 nilfs2-b-tree-based-block-mapping.patch
 nilfs2-direct-block-mapping.patch
+nilfs2-b-tree-node-cache.patch
+nilfs2-buffer-and-page-operations.patch
+nilfs2-meta-data-file.patch
 nilfs2-persistent-object-allocator.patch
 nilfs2-disk-address-translator.patch
+nilfs2-inode-map-file.patch
 nilfs2-checkpoint-file.patch
 nilfs2-segment-usage-file.patch
+nilfs2-inode-operations.patch
+nilfs2-file-operations.patch
+nilfs2-directory-entry-operations.patch
+nilfs2-pathname-operations.patch
+nilfs2-operations-for-the_nilfs-core-object.patch
+nilfs2-super-block-operations.patch
+nilfs2-segment-buffer.patch
+nilfs2-segment-constructor.patch
+nilfs2-recovery-functions.patch
+nilfs2-another-dat-for-garbage-collection.patch
+nilfs2-block-cache-for-garbage-collection.patch
 nilfs2-ioctl-operations.patch
+nilfs2-update-makefile-and-kconfig.patch
 
