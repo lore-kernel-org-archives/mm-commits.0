@@ -1,29 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-fix-compilation-warning-discards-qualifiers-from-pointer-target-type-in-io_32h.patch added to -mm tree
-Date: Wed, 17 Sep 2008 11:45:11 -0700
-Message-ID: <200809171845.m8HIjBSM024974@imap1.linux-foundation.org>
+Subject: + inotify-fix-lock-ordering-wrt-do_page_faults-mmap_sem.patch added to -mm tree
+Date: Wed, 17 Sep 2008 11:47:17 -0700
+Message-ID: <200809171847.m8HIlHWg025003@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43362 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45775 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754852AbYIQSqH (ORCPT
+	by vger.kernel.org with ESMTP id S1755056AbYIQSsR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Sep 2008 14:46:07 -0400
+	Wed, 17 Sep 2008 14:48:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rvsjoen@gmail.com, mingo@elte.hu, tglx@linutronix.de
+Cc: nickpiggin@yahoo.com.au, a.p.zijlstra@chello.nl, daniel.blueman@gmail.com, mingo@elte.hu, npiggin@suse.de
 
 
 The patch titled
-     x86: fix compilation warning "discards qualifiers from pointer tar=
-get type" in io_32.h
+     inotify: fix lock ordering wrt do_page_fault's mmap_sem
 has been added to the -mm tree.  Its filename is
-     x86-fix-compilation-warning-discards-qualifiers-from-pointer-targe=
-t-type-in-io_32h.patch
+     inotify-fix-lock-ordering-wrt-do_page_faults-mmap_sem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,55 +26,139 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: fix compilation warning "discards qualifiers from pointer=
- target type" in io_32.h
-=46rom: "Rune V. Sj=F8en" <rvsjoen@gmail.com>
+Subject: inotify: fix lock ordering wrt do_page_fault's mmap_sem
+From: Nick Piggin <nickpiggin@yahoo.com.au>
 
-=46ixes compilation warning "discards qualifiers from pointer target
-type" in io_32.h
+Fix inotify lock order reversal with mmap_sem due to holding locks over
+copy_to_user.
 
-Signed-off-by: "Rune V. Sj=F8en" <rvsjoen@gmail.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Reported-by: "Daniel J Blueman" <daniel.blueman@gmail.com>
+Tested-by: "Daniel J Blueman" <daniel.blueman@gmail.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/io_32.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/inotify_user.c            |   27 ++++++++++++++++++++-------
+ include/asm-x86/uaccess_64.h |    1 +
+ 2 files changed, 21 insertions(+), 7 deletions(-)
 
-diff -puN include/asm-x86/io_32.h~x86-fix-compilation-warning-discards-=
-qualifiers-from-pointer-target-type-in-io_32h include/asm-x86/io_32.h
---- a/include/asm-x86/io_32.h~x86-fix-compilation-warning-discards-qual=
-ifiers-from-pointer-target-type-in-io_32h
-+++ a/include/asm-x86/io_32.h
-@@ -152,7 +152,7 @@ memcpy_fromio(void *dst, const volatile=20
+diff -puN fs/inotify_user.c~inotify-fix-lock-ordering-wrt-do_page_faults-mmap_sem fs/inotify_user.c
+--- a/fs/inotify_user.c~inotify-fix-lock-ordering-wrt-do_page_faults-mmap_sem
++++ a/fs/inotify_user.c
+@@ -323,7 +323,7 @@ out:
  }
-=20
- static inline void
--memcpy_toio(volatile void __iomem *dst, const void *src, int count)
-+memcpy_toio(void __iomem *dst, const void *src, int count)
- {
- 	__memcpy((void __force *)dst, src, count);
+ 
+ /*
+- * remove_kevent - cleans up and ultimately frees the given kevent
++ * remove_kevent - cleans up the given kevent
+  *
+  * Caller must hold dev->ev_mutex.
+  */
+@@ -334,7 +334,13 @@ static void remove_kevent(struct inotify
+ 
+ 	dev->event_count--;
+ 	dev->queue_size -= sizeof(struct inotify_event) + kevent->event.len;
++}
+ 
++/*
++ * free_kevent - frees the given kevent.
++ */
++static void free_kevent(struct inotify_kernel_event *kevent)
++{
+ 	kfree(kevent->name);
+ 	kmem_cache_free(event_cachep, kevent);
  }
+@@ -350,6 +356,7 @@ static void inotify_dev_event_dequeue(st
+ 		struct inotify_kernel_event *kevent;
+ 		kevent = inotify_dev_get_event(dev);
+ 		remove_kevent(dev, kevent);
++		free_kevent(kevent);
+ 	}
+ }
+ 
+@@ -433,17 +440,15 @@ static ssize_t inotify_read(struct file 
+ 	dev = file->private_data;
+ 
+ 	while (1) {
+-		int events;
+ 
+ 		prepare_to_wait(&dev->wq, &wait, TASK_INTERRUPTIBLE);
+ 
+ 		mutex_lock(&dev->ev_mutex);
+-		events = !list_empty(&dev->events);
+-		mutex_unlock(&dev->ev_mutex);
+-		if (events) {
++		if (!list_empty(&dev->events)) {
+ 			ret = 0;
+ 			break;
+ 		}
++		mutex_unlock(&dev->ev_mutex);
+ 
+ 		if (file->f_flags & O_NONBLOCK) {
+ 			ret = -EAGAIN;
+@@ -462,7 +467,6 @@ static ssize_t inotify_read(struct file 
+ 	if (ret)
+ 		return ret;
+ 
+-	mutex_lock(&dev->ev_mutex);
+ 	while (1) {
+ 		struct inotify_kernel_event *kevent;
+ 
+@@ -481,6 +485,13 @@ static ssize_t inotify_read(struct file 
+ 			}
+ 			break;
+ 		}
++		remove_kevent(dev, kevent);
++
++		/*
++		 * Must perform the copy_to_user outside the mutex in order
++		 * to avoid a lock order reversal with mmap_sem.
++		 */
++		mutex_unlock(&dev->ev_mutex);
+ 
+ 		if (copy_to_user(buf, &kevent->event, event_size)) {
+ 			ret = -EFAULT;
+@@ -498,7 +509,9 @@ static ssize_t inotify_read(struct file 
+ 			count -= kevent->event.len;
+ 		}
+ 
+-		remove_kevent(dev, kevent);
++		free_kevent(kevent);
++
++		mutex_lock(&dev->ev_mutex);
+ 	}
+ 	mutex_unlock(&dev->ev_mutex);
+ 
+diff -puN include/asm-x86/uaccess_64.h~inotify-fix-lock-ordering-wrt-do_page_faults-mmap_sem include/asm-x86/uaccess_64.h
+--- a/include/asm-x86/uaccess_64.h~inotify-fix-lock-ordering-wrt-do_page_faults-mmap_sem
++++ a/include/asm-x86/uaccess_64.h
+@@ -7,6 +7,7 @@
+ #include <linux/compiler.h>
+ #include <linux/errno.h>
+ #include <linux/prefetch.h>
++#include <linux/lockdep.h>
+ #include <asm/page.h>
+ 
+ /*
 _
 
-Patches currently in -mm which might be from rvsjoen@gmail.com are
+Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
 
-x86-fix-compilation-warning-discards-qualifiers-from-pointer-target-typ=
-e-in-io_32h.patch
+linux-next.patch
+inotify-fix-lock-ordering-wrt-do_page_faults-mmap_sem.patch
+ramfs-and-ram-disk-pages-are-unevictable.patch
+mm-rewrite-vmap-layer-fix-fix-fix-fix.patch
+powerpc-hugetlb-pgtable-cache-access-cleanup.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
