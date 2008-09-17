@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-operations-for-the_nilfs-core-object.patch added to -mm tree
-Date: Wed, 17 Sep 2008 13:28:04 -0700
-Message-ID: <200809172028.m8HKS5Le029018@imap1.linux-foundation.org>
+Subject: + nilfs2-checkpoint-file.patch added to -mm tree
+Date: Wed, 17 Sep 2008 13:27:44 -0700
+Message-ID: <200809172027.m8HKRiGj028987@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39739 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36750 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753963AbYIQU2J (ORCPT
+	by vger.kernel.org with ESMTP id S1753871AbYIQU14 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Sep 2008 16:28:09 -0400
+	Wed, 17 Sep 2008 16:27:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: konishi.ryusuke@lab.ntt.co.jp
+Cc: sato.koji@lab.ntt.co.jp, konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     nilfs2: operations for the_nilfs core object
+     nilfs2: checkpoint file
 has been added to the -mm tree.  Its filename is
-     nilfs2-operations-for-the_nilfs-core-object.patch
+     nilfs2-checkpoint-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: operations for the_nilfs core object
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: nilfs2: checkpoint file
+From: Koji Sato <sato.koji@lab.ntt.co.jp>
 
-This adds functions on the_nilfs object, which keeps shared resources and
-states among a read/write mount and snapshots mounts going individually.
+This adds a meta data file which holds checkpoint entries in its data
+blocks.
 
-the_nilfs is allocated per block device; it is created when user first
-mount a snapshot or a read/write mount on the device, then it is reused
-for successive mounts.  It will be freed when all mount instances on the
-device are detached.
-
+Signed-off-by: Koji Sato <sato.koji@lab.ntt.co.jp>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/the_nilfs.c |  524 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 524 insertions(+)
+ fs/nilfs2/cpfile.c |  908 +++++++++++++++++++++++++++++++++++++++++++
+ fs/nilfs2/cpfile.h |   45 ++
+ 2 files changed, 953 insertions(+)
 
-diff -puN /dev/null fs/nilfs2/the_nilfs.c
+diff -puN /dev/null fs/nilfs2/cpfile.c
 --- /dev/null
-+++ a/fs/nilfs2/the_nilfs.c
-@@ -0,0 +1,524 @@
++++ a/fs/nilfs2/cpfile.c
+@@ -0,0 +1,908 @@
 +/*
-+ * the_nilfs.c - the_nilfs shared structure.
++ * cpfile.c - NILFS checkpoint file.
 + *
-+ * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
++ * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License as published by
@@ -75,540 +72,956 @@ diff -puN /dev/null fs/nilfs2/the_nilfs.c
 + * along with this program; if not, write to the Free Software
 + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 + *
-+ * Written by Ryusuke Konishi <ryusuke@osrg.net>
-+ *
++ * Written by Koji Sato <koji@osrg.net>.
 + */
 +
++#include <linux/kernel.h>
++#include <linux/fs.h>
++#include <linux/string.h>
 +#include <linux/buffer_head.h>
-+#include <linux/slab.h>
-+#include <linux/blkdev.h>
-+#include <linux/backing-dev.h>
-+#include "nilfs.h"
-+#include "segment.h"
-+#include "alloc.h"
++#include <linux/errno.h>
++#include <linux/nilfs2_fs.h>
++#include "mdt.h"
 +#include "cpfile.h"
-+#include "sufile.h"
-+#include "dat.h"
-+#include "seglist.h"
-+#include "segbuf.h"
 +
-+void nilfs_set_last_segment(struct the_nilfs *nilfs,
-+			    sector_t start_blocknr, u64 seq, __u64 cno)
++
++static inline unsigned long
++nilfs_cpfile_checkpoints_per_block(const struct inode *cpfile)
 +{
-+	spin_lock(&nilfs->ns_last_segment_lock);
-+	nilfs->ns_last_pseg = start_blocknr;
-+	nilfs->ns_last_seq = seq;
-+	nilfs->ns_last_cno = cno;
-+	spin_unlock(&nilfs->ns_last_segment_lock);
++	return NILFS_MDT(cpfile)->mi_entries_per_block;
++}
++
++/* block number from the beginning of the file */
++static unsigned long
++nilfs_cpfile_get_blkoff(const struct inode *cpfile, __u64 cno)
++{
++	__u64 tcno;
++
++	BUG_ON(cno == 0); /* checkpoint number 0 is invalid */
++	tcno = cno + NILFS_MDT(cpfile)->mi_first_entry_offset - 1;
++	do_div(tcno, nilfs_cpfile_checkpoints_per_block(cpfile));
++	return (unsigned long)tcno;
++}
++
++/* offset in block */
++static unsigned long
++nilfs_cpfile_get_offset(const struct inode *cpfile, __u64 cno)
++{
++	__u64 tcno = cno + NILFS_MDT(cpfile)->mi_first_entry_offset - 1;
++	return do_div(tcno, nilfs_cpfile_checkpoints_per_block(cpfile));
++}
++
++static unsigned long
++nilfs_cpfile_checkpoints_in_block(const struct inode *cpfile,
++				  __u64 curr,
++				  __u64 max)
++{
++	return min_t(__u64,
++		     nilfs_cpfile_checkpoints_per_block(cpfile) -
++		     nilfs_cpfile_get_offset(cpfile, curr),
++		     max - curr);
++}
++
++static inline int nilfs_cpfile_is_in_first(const struct inode *cpfile,
++					   __u64 cno)
++{
++	return nilfs_cpfile_get_blkoff(cpfile, cno) == 0;
++}
++
++static unsigned int
++nilfs_cpfile_block_add_valid_checkpoints(const struct inode *cpfile,
++					 struct buffer_head *bh,
++					 void *kaddr,
++					 unsigned int n)
++{
++	struct nilfs_checkpoint *cp = kaddr + bh_offset(bh);
++	unsigned int count;
++
++	count = le32_to_cpu(cp->cp_checkpoints_count) + n;
++	cp->cp_checkpoints_count = cpu_to_le32(count);
++	return count;
++}
++
++static unsigned int
++nilfs_cpfile_block_sub_valid_checkpoints(const struct inode *cpfile,
++					 struct buffer_head *bh,
++					 void *kaddr,
++					 unsigned int n)
++{
++	struct nilfs_checkpoint *cp = kaddr + bh_offset(bh);
++	unsigned int count;
++
++	BUG_ON(le32_to_cpu(cp->cp_checkpoints_count) < n);
++	count = le32_to_cpu(cp->cp_checkpoints_count) - n;
++	cp->cp_checkpoints_count = cpu_to_le32(count);
++	return count;
++}
++
++static inline struct nilfs_cpfile_header *
++nilfs_cpfile_block_get_header(const struct inode *cpfile,
++			      struct buffer_head *bh,
++			      void *kaddr)
++{
++	return kaddr + bh_offset(bh);
++}
++
++static struct nilfs_checkpoint *
++nilfs_cpfile_block_get_checkpoint(const struct inode *cpfile, __u64 cno,
++				  struct buffer_head *bh,
++				  void *kaddr)
++{
++	return kaddr + bh_offset(bh) + nilfs_cpfile_get_offset(cpfile, cno) *
++		NILFS_MDT(cpfile)->mi_entry_size;
++}
++
++static void nilfs_cpfile_block_init(struct inode *cpfile,
++				    struct buffer_head *bh,
++				    void *kaddr)
++{
++	struct nilfs_checkpoint *cp = kaddr + bh_offset(bh);
++	size_t cpsz = NILFS_MDT(cpfile)->mi_entry_size;
++	int n = nilfs_cpfile_checkpoints_per_block(cpfile);
++
++	while (n-- > 0) {
++		nilfs_checkpoint_set_invalid(cp);
++		cp = (void *)cp + cpsz;
++	}
++}
++
++static inline int nilfs_cpfile_get_header_block(struct inode *cpfile,
++						struct buffer_head **bhp)
++{
++	return nilfs_mdt_get_block(cpfile, 0, 0, NULL, bhp);
++}
++
++static inline int nilfs_cpfile_get_checkpoint_block(struct inode *cpfile,
++						    __u64 cno,
++						    int create,
++						    struct buffer_head **bhp)
++{
++	return nilfs_mdt_get_block(cpfile,
++				   nilfs_cpfile_get_blkoff(cpfile, cno),
++				   create, nilfs_cpfile_block_init, bhp);
++}
++
++static inline int nilfs_cpfile_delete_checkpoint_block(struct inode *cpfile,
++						       __u64 cno)
++{
++	return nilfs_mdt_delete_block(cpfile,
++				      nilfs_cpfile_get_blkoff(cpfile, cno));
 +}
 +
 +/**
-+ * alloc_nilfs - allocate the_nilfs structure
-+ * @bdev: block device to which the_nilfs is related
++ * nilfs_cpfile_get_checkpoint - get a checkpoint
++ * @cpfile: inode of checkpoint file
++ * @cno: checkpoint number
++ * @create: create flag
++ * @cpp: pointer to a checkpoint
++ * @bhp: pointer to a buffer head
 + *
-+ * alloc_nilfs() allocates memory for the_nilfs and
-+ * initializes its reference count and locks.
++ * Description: nilfs_cpfile_get_checkpoint() acquires the checkpoint
++ * specified by @cno. A new checkpoint will be created if @cno is the current
++ * checkpoint number and @create is nonzero.
 + *
-+ * Return Value: On success, pointer to the_nilfs is returned.
-+ * On error, NULL is returned.
++ * Return Value: On success, 0 is returned, and the checkpoint and the
++ * buffer head of the buffer on which the checkpoint is located are stored in
++ * the place pointed by @cpp and @bhp, respectively. On error, one of the
++ * following negative error codes is returned.
++ *
++ * %-EIO - I/O error.
++ *
++ * %-ENOMEM - Insufficient amount of memory available.
++ *
++ * %-ENOENT - No such checkpoint.
 + */
-+struct the_nilfs *alloc_nilfs(struct block_device *bdev)
++int nilfs_cpfile_get_checkpoint(struct inode *cpfile,
++				__u64 cno,
++				int create,
++				struct nilfs_checkpoint **cpp,
++				struct buffer_head **bhp)
 +{
-+	struct the_nilfs *nilfs;
-+
-+	nilfs = kzalloc(sizeof(*nilfs), GFP_KERNEL);
-+	if (!nilfs)
-+		return NULL;
-+
-+	nilfs->ns_bdev = bdev;
-+	atomic_set(&nilfs->ns_count, 1);
-+	atomic_set(&nilfs->ns_writer_refcount, -1);
-+	atomic_set(&nilfs->ns_ndirtyblks, 0);
-+	init_rwsem(&nilfs->ns_sem);
-+	mutex_init(&nilfs->ns_writer_mutex);
-+	INIT_LIST_HEAD(&nilfs->ns_supers);
-+	spin_lock_init(&nilfs->ns_last_segment_lock);
-+	nilfs->ns_gc_inodes_h = NULL;
-+	INIT_LIST_HEAD(&nilfs->ns_used_segments);
-+	init_rwsem(&nilfs->ns_segctor_sem);
-+	init_waitqueue_head(&nilfs->ns_cleanerd_wq);
-+
-+	return nilfs;
-+}
-+
-+/**
-+ * put_nilfs - release a reference to the_nilfs
-+ * @nilfs: the_nilfs structure to be released
-+ *
-+ * put_nilfs() decrements a reference counter of the_nilfs.
-+ * If the reference count reaches zero, the_nilfs is freed.
-+ */
-+void put_nilfs(struct the_nilfs *nilfs)
-+{
-+	if (!atomic_dec_and_test(&nilfs->ns_count))
-+		return;
-+	/*
-+	 * Increment of ns_count never occur below because the caller
-+	 * of get_nilfs() holds at least one reference to the_nilfs.
-+	 * Thus its exclusion control is not required here.
-+	 */
-+	might_sleep();
-+	if (nilfs_loaded(nilfs)) {
-+		nilfs_dispose_used_segments(nilfs);
-+		nilfs_mdt_clear(nilfs->ns_sufile);
-+		nilfs_mdt_destroy(nilfs->ns_sufile);
-+		nilfs_mdt_clear(nilfs->ns_cpfile);
-+		nilfs_mdt_destroy(nilfs->ns_cpfile);
-+		nilfs_mdt_clear(nilfs->ns_dat);
-+		nilfs_mdt_destroy(nilfs->ns_dat);
-+		/* XXX: how and when to clear nilfs->ns_gc_dat? */
-+		nilfs_mdt_destroy(nilfs->ns_gc_dat);
-+	}
-+	if (nilfs_init(nilfs)) {
-+		nilfs_destroy_gccache(nilfs);
-+		brelse(nilfs->ns_sbh);
-+	}
-+	kfree(nilfs);
-+}
-+
-+static int nilfs_load_super_root(struct the_nilfs *nilfs,
-+				 struct nilfs_sb_info *sbi, sector_t sr_block)
-+{
-+	struct buffer_head *bh_sr;
-+	struct nilfs_super_root *raw_sr;
-+	unsigned dat_entry_size, segment_usage_size, checkpoint_size;
-+	unsigned inode_size;
-+	int err;
-+
-+	err = nilfs_read_super_root_block(sbi->s_super, sr_block, &bh_sr, 1);
-+	if (unlikely(err))
-+		return err;
-+
-+	down_read(&nilfs->ns_sem);
-+	dat_entry_size = le16_to_cpu(nilfs->ns_sbp->s_dat_entry_size);
-+	checkpoint_size = le16_to_cpu(nilfs->ns_sbp->s_checkpoint_size);
-+	segment_usage_size = le16_to_cpu(nilfs->ns_sbp->s_segment_usage_size);
-+	up_read(&nilfs->ns_sem);
-+
-+	inode_size = nilfs->ns_inode_size;
-+
-+	err = -ENOMEM;
-+	nilfs->ns_dat = nilfs_mdt_new(
-+		nilfs, NULL, NILFS_DAT_INO, NILFS_DAT_GFP);
-+	if (unlikely(!nilfs->ns_dat))
-+		goto failed;
-+
-+	nilfs->ns_gc_dat = nilfs_mdt_new(
-+		nilfs, NULL, NILFS_DAT_INO, NILFS_DAT_GFP);
-+	if (unlikely(!nilfs->ns_gc_dat))
-+		goto failed_dat;
-+
-+	nilfs->ns_cpfile = nilfs_mdt_new(
-+		nilfs, NULL, NILFS_CPFILE_INO, NILFS_CPFILE_GFP);
-+	if (unlikely(!nilfs->ns_cpfile))
-+		goto failed_gc_dat;
-+
-+	nilfs->ns_sufile = nilfs_mdt_new(
-+		nilfs, NULL, NILFS_SUFILE_INO, NILFS_SUFILE_GFP);
-+	if (unlikely(!nilfs->ns_sufile))
-+		goto failed_cpfile;
-+
-+	err = nilfs_palloc_init_blockgroup(nilfs->ns_dat, dat_entry_size);
-+	if (unlikely(err))
-+		goto failed_sufile;
-+
-+	err = nilfs_palloc_init_blockgroup(nilfs->ns_gc_dat, dat_entry_size);
-+	if (unlikely(err))
-+		goto failed_sufile;
-+
-+	nilfs_mdt_set_shadow(nilfs->ns_dat, nilfs->ns_gc_dat);
-+	nilfs_mdt_set_entry_size(nilfs->ns_cpfile, checkpoint_size,
-+				 sizeof(struct nilfs_cpfile_header));
-+	nilfs_mdt_set_entry_size(nilfs->ns_sufile, segment_usage_size,
-+				 sizeof(struct nilfs_sufile_header));
-+
-+	err = nilfs_mdt_read_inode_direct(
-+		nilfs->ns_dat, bh_sr, NILFS_SR_DAT_OFFSET(inode_size));
-+	if (unlikely(err))
-+		goto failed_sufile;
-+
-+	err = nilfs_mdt_read_inode_direct(
-+		nilfs->ns_cpfile, bh_sr, NILFS_SR_CPFILE_OFFSET(inode_size));
-+	if (unlikely(err))
-+		goto failed_sufile;
-+
-+	err = nilfs_mdt_read_inode_direct(
-+		nilfs->ns_sufile, bh_sr, NILFS_SR_SUFILE_OFFSET(inode_size));
-+	if (unlikely(err))
-+		goto failed_sufile;
-+
-+	raw_sr = (struct nilfs_super_root *)bh_sr->b_data;
-+	nilfs->ns_nongc_ctime = le64_to_cpu(raw_sr->sr_nongc_ctime);
-+
-+ failed:
-+	brelse(bh_sr);
-+	return err;
-+
-+ failed_sufile:
-+	nilfs_mdt_destroy(nilfs->ns_sufile);
-+
-+ failed_cpfile:
-+	nilfs_mdt_destroy(nilfs->ns_cpfile);
-+
-+ failed_gc_dat:
-+	nilfs_mdt_destroy(nilfs->ns_gc_dat);
-+
-+ failed_dat:
-+	nilfs_mdt_destroy(nilfs->ns_dat);
-+	goto failed;
-+}
-+
-+static void nilfs_init_recovery_info(struct nilfs_recovery_info *ri)
-+{
-+	memset(ri, 0, sizeof(*ri));
-+	INIT_LIST_HEAD(&ri->ri_used_segments);
-+}
-+
-+static void nilfs_clear_recovery_info(struct nilfs_recovery_info *ri)
-+{
-+	nilfs_dispose_segment_list(&ri->ri_used_segments);
-+}
-+
-+/**
-+ * load_nilfs - load and recover the nilfs
-+ * @nilfs: the_nilfs structure to be released
-+ * @sbi: nilfs_sb_info used to recover past segment
-+ *
-+ * load_nilfs() searches and load the latest super root,
-+ * attaches the last segment, and does recovery if needed.
-+ * The caller must call this exclusively for simultaneous mounts.
-+ */
-+int load_nilfs(struct the_nilfs *nilfs, struct nilfs_sb_info *sbi)
-+{
-+	struct nilfs_recovery_info ri;
-+	unsigned int s_flags = sbi->s_super->s_flags;
-+	int really_read_only = bdev_read_only(nilfs->ns_bdev);
-+	unsigned valid_fs;
-+	int err = 0;
-+
-+	nilfs_init_recovery_info(&ri);
-+
-+	down_write(&nilfs->ns_sem);
-+	valid_fs = (nilfs->ns_mount_state & NILFS_VALID_FS);
-+	up_write(&nilfs->ns_sem);
-+
-+	if (!valid_fs && (s_flags & MS_RDONLY)) {
-+		printk(KERN_INFO "NILFS: INFO: recovery "
-+		       "required for readonly filesystem.\n");
-+		if (really_read_only) {
-+			printk(KERN_ERR "NILFS: write access "
-+			       "unavailable, cannot proceed.\n");
-+			err = -EROFS;
-+			goto failed;
-+		}
-+		printk(KERN_INFO "NILFS: write access will "
-+		       "be enabled during recovery.\n");
-+		sbi->s_super->s_flags &= ~MS_RDONLY;
-+	}
-+
-+	err = nilfs_search_super_root(nilfs, sbi, &ri);
-+	if (unlikely(err)) {
-+		printk(KERN_ERR "NILFS: error searching super root.\n");
-+		goto failed;
-+	}
-+
-+	err = nilfs_load_super_root(nilfs, sbi, ri.ri_super_root);
-+	if (unlikely(err)) {
-+		printk(KERN_ERR "NILFS: error loading super root.\n");
-+		goto failed;
-+	}
-+
-+	if (!valid_fs) {
-+		err = nilfs_recover_logical_segments(nilfs, sbi, &ri);
-+		if (unlikely(err)) {
-+			nilfs_mdt_destroy(nilfs->ns_cpfile);
-+			nilfs_mdt_destroy(nilfs->ns_sufile);
-+			nilfs_mdt_destroy(nilfs->ns_dat);
-+			goto failed;
-+		}
-+		if (ri.ri_need_recovery == NILFS_RECOVERY_SR_UPDATED) {
-+			down_write(&nilfs->ns_sem);
-+			nilfs_update_last_segment(sbi, 0);
-+			up_write(&nilfs->ns_sem);
-+		}
-+	}
-+
-+	set_nilfs_loaded(nilfs);
-+
-+ failed:
-+	nilfs_clear_recovery_info(&ri);
-+	sbi->s_super->s_flags = s_flags;
-+	return err;
-+}
-+
-+static unsigned long long nilfs_max_size(unsigned int blkbits)
-+{
-+	unsigned int max_bits;
-+	unsigned long long res = MAX_LFS_FILESIZE; /* page cache limit */
-+
-+	max_bits = blkbits + NILFS_BMAP_KEY_BIT; /* bmap size limit */
-+	if (max_bits < 64)
-+		res = min_t(unsigned long long, res, (1ULL << max_bits) - 1);
-+	return res;
-+}
-+
-+static int
-+nilfs_store_disk_layout(struct the_nilfs *nilfs, struct super_block *sb,
-+			struct nilfs_super_block *sbp)
-+{
-+	if (le32_to_cpu(sbp->s_rev_level) != NILFS_CURRENT_REV) {
-+		printk(KERN_ERR "NILFS: revision mismatch "
-+		       "(superblock rev.=%d.%d, current rev.=%d.%d). "
-+		       "Please check the version of mkfs.nilfs.\n",
-+		       le32_to_cpu(sbp->s_rev_level),
-+		       le16_to_cpu(sbp->s_minor_rev_level),
-+		       NILFS_CURRENT_REV, NILFS_MINOR_REV);
-+		return -EINVAL;
-+	}
-+	nilfs->ns_inode_size = le16_to_cpu(sbp->s_inode_size);
-+	nilfs->ns_first_ino = le32_to_cpu(sbp->s_first_ino);
-+
-+	nilfs->ns_blocks_per_segment = le32_to_cpu(sbp->s_blocks_per_segment);
-+	if (nilfs->ns_blocks_per_segment < NILFS_SEG_MIN_BLOCKS) {
-+		printk(KERN_ERR "NILFS: too short segment. \n");
-+		return -EINVAL;
-+	}
-+
-+	nilfs->ns_first_data_block = le64_to_cpu(sbp->s_first_data_block);
-+	nilfs->ns_nsegments = le64_to_cpu(sbp->s_nsegments);
-+	nilfs->ns_r_segments_percentage =
-+		le32_to_cpu(sbp->s_r_segments_percentage);
-+	nilfs->ns_nrsvsegs =
-+		max_t(unsigned long, NILFS_MIN_NRSVSEGS,
-+		      DIV_ROUND_UP(nilfs->ns_nsegments *
-+				   nilfs->ns_r_segments_percentage, 100));
-+	nilfs->ns_crc_seed = le32_to_cpu(sbp->s_crc_seed);
-+	return 0;
-+}
-+
-+/**
-+ * init_nilfs - initialize a NILFS instance.
-+ * @nilfs: the_nilfs structure
-+ * @sbi: nilfs_sb_info
-+ * @sb: super block
-+ * @data: mount options
-+ *
-+ * init_nilfs() performs common initialization per block device (e.g.
-+ * reading the super block, getting disk layout information, initializing
-+ * shared fields in the_nilfs). It takes on some portion of the jobs
-+ * typically done by a fill_super() routine. This division arises from
-+ * the nature that multiple NILFS instances may be simultaneously
-+ * mounted on a device.
-+ * For multiple mounts on the same device, only the first mount
-+ * invokes these tasks.
-+ *
-+ * Return Value: On success, 0 is returned. On error, a negative error
-+ * code is returned.
-+ */
-+int init_nilfs(struct the_nilfs *nilfs, struct nilfs_sb_info *sbi, char *data)
-+{
-+	struct super_block *sb = sbi->s_super;
-+	struct buffer_head *sbh;
-+	struct nilfs_super_block *sbp;
-+	struct backing_dev_info *bdi;
-+	int blocksize;
-+	int err = 0;
-+
-+	down_write(&nilfs->ns_sem);
-+	if (nilfs_init(nilfs)) {
-+		/* Load values from existing the_nilfs */
-+		sbp = nilfs->ns_sbp;
-+		err = nilfs_store_magic_and_option(sb, sbp, data);
-+		if (err)
-+			goto out;
-+
-+		blocksize = BLOCK_SIZE << le32_to_cpu(sbp->s_log_block_size);
-+		if (sb->s_blocksize != blocksize &&
-+		    !sb_set_blocksize(sb, blocksize)) {
-+			printk(KERN_ERR "NILFS: blocksize %d unfit to device\n",
-+			       blocksize);
-+			err = -EINVAL;
-+		}
-+		sb->s_maxbytes = nilfs_max_size(sb->s_blocksize_bits);
-+		goto out;
-+	}
-+
-+	sbp = nilfs_load_super_block(sb, &sbh);
-+	if (!sbp) {
-+		err = -EINVAL;
-+		goto out;
-+	}
-+	err = nilfs_store_magic_and_option(sb, sbp, data);
-+	if (err)
-+		goto failed_sbh;
-+
-+	blocksize = BLOCK_SIZE << le32_to_cpu(sbp->s_log_block_size);
-+	if (sb->s_blocksize != blocksize) {
-+		sbp = nilfs_reload_super_block(sb, &sbh, blocksize);
-+		if (!sbp) {
-+			err = -EINVAL;
-+			goto out;
-+			/* not failed_sbh; sbh is released automatically
-+			   when reloading fails. */
-+		}
-+	}
-+	nilfs->ns_blocksize_bits = sb->s_blocksize_bits;
-+
-+	err = nilfs_store_disk_layout(nilfs, sb, sbp);
-+	if (err)
-+		goto failed_sbh;
-+
-+	sb->s_maxbytes = nilfs_max_size(sb->s_blocksize_bits);
-+
-+	nilfs->ns_mount_state = le16_to_cpu(sbp->s_state);
-+	nilfs->ns_sbh = sbh;
-+	nilfs->ns_sbp = sbp;
-+
-+	bdi = nilfs->ns_bdev->bd_inode_backing_dev_info;
-+	if (!bdi)
-+		bdi = nilfs->ns_bdev->bd_inode->i_mapping->backing_dev_info;
-+	nilfs->ns_bdi = bdi ? : &default_backing_dev_info;
-+
-+	/* Finding last segment */
-+	nilfs->ns_last_pseg = le64_to_cpu(sbp->s_last_pseg);
-+	nilfs->ns_last_cno = le64_to_cpu(sbp->s_last_cno);
-+	nilfs->ns_last_seq = le64_to_cpu(sbp->s_last_seq);
-+
-+	nilfs->ns_seg_seq = nilfs->ns_last_seq;
-+	nilfs->ns_segnum =
-+		nilfs_get_segnum_of_block(nilfs, nilfs->ns_last_pseg);
-+	nilfs->ns_cno = nilfs->ns_last_cno + 1;
-+	if (nilfs->ns_segnum >= nilfs->ns_nsegments) {
-+		printk(KERN_ERR "NILFS invalid last segment number.\n");
-+		err = -EINVAL;
-+		goto failed_sbh;
-+	}
-+	/* Dummy values  */
-+	nilfs->ns_free_segments_count =
-+		nilfs->ns_nsegments - (nilfs->ns_segnum + 1);
-+
-+	/* Initialize gcinode cache */
-+	err = nilfs_init_gccache(nilfs);
-+	if (err)
-+		goto failed_sbh;
-+
-+	set_nilfs_init(nilfs);
-+	err = 0;
-+ out:
-+	up_write(&nilfs->ns_sem);
-+	return err;
-+
-+ failed_sbh:
-+	brelse(sbh);
-+	goto out;
-+}
-+
-+int nilfs_count_free_blocks(struct the_nilfs *nilfs, sector_t *nblocks)
-+{
-+	struct inode *dat = nilfs_dat_inode(nilfs);
-+	unsigned long ncleansegs;
-+	int err;
-+
-+	down_read(&NILFS_MDT(dat)->mi_sem);	/* XXX */
-+	err = nilfs_sufile_get_ncleansegs(nilfs->ns_sufile, &ncleansegs);
-+	up_read(&NILFS_MDT(dat)->mi_sem);	/* XXX */
-+	if (likely(!err))
-+		*nblocks = (sector_t)ncleansegs * nilfs->ns_blocks_per_segment;
-+	return err;
-+}
-+
-+void nilfs_dispose_used_segments(struct the_nilfs *nilfs)
-+{
-+	struct nilfs_segment_entry *ent, *n;
-+
-+	/* nilfs->sem must be locked by the caller. */
-+	if (!nilfs_loaded(nilfs))
-+		return;
-+
-+	list_for_each_entry_safe(ent, n, &nilfs->ns_used_segments, list) {
-+		list_del_init(&ent->list);
-+		nilfs_segment_usage_clear_volatile_active(ent->raw_su);
-+		nilfs_close_segment_entry(ent, nilfs->ns_sufile);
-+		nilfs_free_segment_entry(ent);
-+	}
-+}
-+
-+int nilfs_near_disk_full(struct the_nilfs *nilfs)
-+{
-+	struct inode *sufile = nilfs->ns_sufile;
-+	unsigned long ncleansegs, nincsegs;
++	struct buffer_head *header_bh, *cp_bh;
++	struct nilfs_cpfile_header *header;
++	struct nilfs_checkpoint *cp;
++	void *kaddr;
 +	int ret;
 +
-+	ret = nilfs_sufile_get_ncleansegs(sufile, &ncleansegs);
-+	if (likely(!ret)) {
-+		nincsegs = atomic_read(&nilfs->ns_ndirtyblks) /
-+			nilfs->ns_blocks_per_segment + 1;
-+		if (ncleansegs <= nilfs->ns_nrsvsegs + nincsegs)
-+			ret++;
++	BUG_ON(cno < 1 || cno > nilfs_mdt_cno(cpfile) ||
++	       (cno < nilfs_mdt_cno(cpfile) && create));
++
++	down_write(&NILFS_MDT(cpfile)->mi_sem);
++
++	ret = nilfs_cpfile_get_header_block(cpfile, &header_bh);
++	if (ret < 0)
++		goto out_sem;
++	ret = nilfs_cpfile_get_checkpoint_block(cpfile, cno, create, &cp_bh);
++	if (ret < 0)
++		goto out_header;
++	kaddr = kmap(cp_bh->b_page);
++	cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, cp_bh, kaddr);
++	if (nilfs_checkpoint_invalid(cp)) {
++		if (!create) {
++			kunmap(cp_bh->b_page);
++			brelse(cp_bh);
++			ret = -ENOENT;
++			goto out_header;
++		}
++		/* a newly-created checkpoint */
++		nilfs_checkpoint_clear_invalid(cp);
++		if (!nilfs_cpfile_is_in_first(cpfile, cno))
++			nilfs_cpfile_block_add_valid_checkpoints(cpfile, cp_bh,
++								 kaddr, 1);
++		nilfs_mdt_mark_buffer_dirty(cp_bh);
++
++		kaddr = kmap_atomic(header_bh->b_page, KM_USER0);
++		header = nilfs_cpfile_block_get_header(cpfile, header_bh,
++						       kaddr);
++		le64_add_cpu(&header->ch_ncheckpoints, 1);
++		kunmap_atomic(kaddr, KM_USER0);
++		nilfs_mdt_mark_buffer_dirty(header_bh);
++		nilfs_mdt_mark_dirty(cpfile);
 +	}
++
++	if (cpp != NULL)
++		*cpp = cp;
++	*bhp = cp_bh;
++
++ out_header:
++	brelse(header_bh);
++
++ out_sem:
++	up_write(&NILFS_MDT(cpfile)->mi_sem);
 +	return ret;
 +}
 +
-+int nilfs_checkpoint_is_mounted(struct the_nilfs *nilfs, __u64 cno,
-+				int snapshot_mount)
++/**
++ * nilfs_cpfile_put_checkpoint - put a checkpoint
++ * @cpfile: inode of checkpoint file
++ * @cno: checkpoint number
++ * @bh: buffer head
++ *
++ * Description: nilfs_cpfile_put_checkpoint() releases the checkpoint
++ * specified by @cno. @bh must be the buffer head which has been returned by
++ * a previous call to nilfs_cpfile_get_checkpoint() with @cno.
++ */
++void nilfs_cpfile_put_checkpoint(struct inode *cpfile, __u64 cno,
++				 struct buffer_head *bh)
 +{
-+	struct nilfs_sb_info *sbi;
-+	int ret = 0;
++	kunmap(bh->b_page);
++	brelse(bh);
++}
 +
-+	down_read(&nilfs->ns_sem);
-+	if (cno == 0 || cno > nilfs->ns_cno)
-+		goto out_unlock;
++/**
++ * nilfs_cpfile_delete_checkpoints - delete checkpoints
++ * @cpfile: inode of checkpoint file
++ * @start: start checkpoint number
++ * @end: end checkpoint numer
++ *
++ * Description: nilfs_cpfile_delete_checkpoints() deletes the checkpoints in
++ * the period from @start to @end, excluding @end itself. The checkpoints
++ * which have been already deleted are ignored.
++ *
++ * Return Value: On success, 0 is returned. On error, one of the following
++ * negative error codes is returned.
++ *
++ * %-EIO - I/O error.
++ *
++ * %-ENOMEM - Insufficient amount of memory available.
++ *
++ * %-EINVAL - invalid checkpoints.
++ */
++int nilfs_cpfile_delete_checkpoints(struct inode *cpfile,
++				    __u64 start,
++				    __u64 end)
++{
++	struct buffer_head *header_bh, *cp_bh;
++	struct nilfs_cpfile_header *header;
++	struct nilfs_checkpoint *cp;
++	size_t cpsz = NILFS_MDT(cpfile)->mi_entry_size;
++	__u64 cno;
++	void *kaddr;
++	unsigned long tnicps;
++	int ret, ncps, nicps, count, i;
 +
-+	list_for_each_entry(sbi, &nilfs->ns_supers, s_list) {
-+		if (sbi->s_snapshot_cno == cno &&
-+		    (!snapshot_mount || nilfs_test_opt(sbi, SNAPSHOT))) {
-+					/* exclude read-only mounts */
-+			ret++;
++	if ((start == 0) || (start > end)) {
++		printk(KERN_CRIT "%s: start = %llu, end = %llu\n",
++		       __func__,
++		       (unsigned long long)start,
++		       (unsigned long long)end);
++		BUG();
++	}
++
++	/* cannot delete the latest checkpoint */
++	if (start == nilfs_mdt_cno(cpfile) - 1)
++		return -EPERM;
++
++	down_write(&NILFS_MDT(cpfile)->mi_sem);
++
++	ret = nilfs_cpfile_get_header_block(cpfile, &header_bh);
++	if (ret < 0)
++		goto out_sem;
++	tnicps = 0;
++
++	for (cno = start; cno < end; cno += ncps) {
++		ncps = nilfs_cpfile_checkpoints_in_block(cpfile, cno, end);
++		ret = nilfs_cpfile_get_checkpoint_block(cpfile, cno, 0, &cp_bh);
++		if (ret < 0) {
++			if (ret != -ENOENT)
++				goto out_sem;
++			/* skip hole */
++			ret = 0;
++			continue;
++		}
++
++		kaddr = kmap_atomic(cp_bh->b_page, KM_USER0);
++		cp = nilfs_cpfile_block_get_checkpoint(
++			cpfile, cno, cp_bh, kaddr);
++		nicps = 0;
++		for (i = 0; i < ncps; i++, cp = (void *)cp + cpsz) {
++			BUG_ON(nilfs_checkpoint_snapshot(cp));
++			if (!nilfs_checkpoint_invalid(cp)) {
++				nilfs_checkpoint_set_invalid(cp);
++				nicps++;
++			}
++		}
++		if (nicps > 0) {
++			tnicps += nicps;
++			nilfs_mdt_mark_buffer_dirty(cp_bh);
++			nilfs_mdt_mark_dirty(cpfile);
++			if (!nilfs_cpfile_is_in_first(cpfile, cno) &&
++			    (count = nilfs_cpfile_block_sub_valid_checkpoints(
++				    cpfile, cp_bh, kaddr, nicps)) == 0) {
++				/* make hole */
++				kunmap_atomic(kaddr, KM_USER0);
++				brelse(cp_bh);
++				ret = nilfs_cpfile_delete_checkpoint_block(
++					cpfile, cno);
++				if (ret == 0)
++					continue;
++				printk(KERN_ERR "%s: cannot delete block\n",
++				       __func__);
++				goto out_sem;
++			}
++		}
++
++		kunmap_atomic(kaddr, KM_USER0);
++		brelse(cp_bh);
++	}
++
++	if (tnicps > 0) {
++		kaddr = kmap_atomic(header_bh->b_page, KM_USER0);
++		header = nilfs_cpfile_block_get_header(cpfile, header_bh,
++						       kaddr);
++		le64_add_cpu(&header->ch_ncheckpoints, -tnicps);
++		nilfs_mdt_mark_buffer_dirty(header_bh);
++		nilfs_mdt_mark_dirty(cpfile);
++		kunmap_atomic(kaddr, KM_USER0);
++	}
++	brelse(header_bh);
++
++ out_sem:
++	up_write(&NILFS_MDT(cpfile)->mi_sem);
++	return ret;
++}
++
++static void nilfs_cpfile_checkpoint_to_cpinfo(struct inode *cpfile,
++					      struct nilfs_checkpoint *cp,
++					      struct nilfs_cpinfo *ci)
++{
++	ci->ci_flags = le32_to_cpu(cp->cp_flags);
++	ci->ci_cno = le64_to_cpu(cp->cp_cno);
++	ci->ci_create = le64_to_cpu(cp->cp_create);
++	ci->ci_nblk_inc = le64_to_cpu(cp->cp_nblk_inc);
++	ci->ci_inodes_count = le64_to_cpu(cp->cp_inodes_count);
++	ci->ci_blocks_count = le64_to_cpu(cp->cp_blocks_count);
++	ci->ci_next = le64_to_cpu(cp->cp_snapshot_list.ssl_next);
++}
++
++static ssize_t nilfs_cpfile_do_get_cpinfo(struct inode *cpfile, __u64 cno,
++					  struct nilfs_cpinfo *ci, size_t nci)
++{
++	struct nilfs_checkpoint *cp;
++	struct buffer_head *bh;
++	size_t cpsz = NILFS_MDT(cpfile)->mi_entry_size;
++	__u64 cur_cno = nilfs_mdt_cno(cpfile);
++	void *kaddr;
++	int n, ret;
++	int ncps, i;
++
++	down_read(&NILFS_MDT(cpfile)->mi_sem);
++
++	for (n = 0; cno < cur_cno && n < nci; cno += ncps) {
++		ncps = nilfs_cpfile_checkpoints_in_block(cpfile, cno, cur_cno);
++		ret = nilfs_cpfile_get_checkpoint_block(cpfile, cno, 0, &bh);
++		if (ret < 0) {
++			if (ret != -ENOENT)
++				goto out;
++			continue; /* skip hole */
++		}
++
++		kaddr = kmap_atomic(bh->b_page, KM_USER0);
++		cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, bh, kaddr);
++		for (i = 0; i < ncps && n < nci; i++, cp = (void *)cp + cpsz) {
++			if (!nilfs_checkpoint_invalid(cp))
++				nilfs_cpfile_checkpoint_to_cpinfo(
++					cpfile, cp, &ci[n++]);
++		}
++		kunmap_atomic(kaddr, KM_USER0);
++		brelse(bh);
++	}
++
++	ret = n;
++
++ out:
++	up_read(&NILFS_MDT(cpfile)->mi_sem);
++	return ret;
++}
++
++static ssize_t nilfs_cpfile_do_get_ssinfo(struct inode *cpfile, __u64 cno,
++					  struct nilfs_cpinfo *ci, size_t nci)
++{
++	struct buffer_head *bh;
++	struct nilfs_cpfile_header *header;
++	struct nilfs_checkpoint *cp;
++	__u64 curr, next;
++	unsigned long curr_blkoff, next_blkoff;
++	void *kaddr;
++	int n, ret;
++
++	down_read(&NILFS_MDT(cpfile)->mi_sem);
++
++	if (cno == 0) {
++		ret = nilfs_cpfile_get_header_block(cpfile, &bh);
++		if (ret < 0)
++			goto out;
++		kaddr = kmap_atomic(bh->b_page, KM_USER0);
++		header = nilfs_cpfile_block_get_header(cpfile, bh, kaddr);
++		curr = le64_to_cpu(header->ch_snapshot_list.ssl_next);
++		kunmap_atomic(kaddr, KM_USER0);
++		brelse(bh);
++		if (curr == 0) {
++			ret = 0;
++			goto out;
++		}
++	} else
++		curr = cno;
++	curr_blkoff = nilfs_cpfile_get_blkoff(cpfile, curr);
++	ret = nilfs_cpfile_get_checkpoint_block(cpfile, curr, 0, &bh);
++	if (ret < 0)
++		goto out;
++	kaddr = kmap_atomic(bh->b_page, KM_USER0);
++	for (n = 0; n < nci; n++) {
++		cp = nilfs_cpfile_block_get_checkpoint(
++			cpfile, curr, bh, kaddr);
++		nilfs_cpfile_checkpoint_to_cpinfo(cpfile, cp, &ci[n]);
++		next = le64_to_cpu(cp->cp_snapshot_list.ssl_next);
++		if (next == 0) {
++			curr = next;
++			n++;
 +			break;
 +		}
++		next_blkoff = nilfs_cpfile_get_blkoff(cpfile, next);
++		if (curr_blkoff != next_blkoff) {
++			kunmap_atomic(kaddr, KM_USER0);
++			brelse(bh);
++			ret = nilfs_cpfile_get_checkpoint_block(cpfile, next,
++								0, &bh);
++			if (ret < 0)
++				goto out;
++			kaddr = kmap_atomic(bh->b_page, KM_USER0);
++		}
++		curr = next;
++		curr_blkoff = next_blkoff;
 +	}
-+	/* for protecting recent checkpoints */
-+	if (cno >= nilfs_last_cno(nilfs))
-+		ret++;
++	kunmap_atomic(kaddr, KM_USER0);
++	brelse(bh);
++	ret = n;
 +
-+ out_unlock:
-+	up_read(&nilfs->ns_sem);
++ out:
++	up_read(&NILFS_MDT(cpfile)->mi_sem);
 +	return ret;
 +}
++
++/**
++ * nilfs_cpfile_get_cpinfo -
++ * @cpfile:
++ * @cno:
++ * @ci:
++ * @nci:
++ */
++ssize_t nilfs_cpfile_get_cpinfo(struct inode *cpfile,
++				__u64 cno, int mode,
++				struct nilfs_cpinfo *ci, size_t nci)
++{
++	switch (mode) {
++	case NILFS_CHECKPOINT:
++		return nilfs_cpfile_do_get_cpinfo(cpfile, cno, ci, nci);
++	case NILFS_SNAPSHOT:
++		return nilfs_cpfile_do_get_ssinfo(cpfile, cno, ci, nci);
++	default:
++		return -EINVAL;
++	}
++}
++
++/**
++ * nilfs_cpfile_delete_checkpoint -
++ * @cpfile:
++ * @cno:
++ */
++int nilfs_cpfile_delete_checkpoint(struct inode *cpfile, __u64 cno)
++{
++	struct nilfs_cpinfo ci;
++	ssize_t nci;
++	int ret;
++
++	/* checkpoint number 0 is invalid */
++	if (cno == 0)
++		return -ENOENT;
++	nci = nilfs_cpfile_do_get_cpinfo(cpfile, cno, &ci, 1);
++	if (nci < 0)
++		return nci;
++	else if (nci == 0 || ci.ci_cno != cno)
++		return -ENOENT;
++
++	/* cannot delete the latest checkpoint nor snapshots */
++	ret = nilfs_cpinfo_snapshot(&ci);
++	if (ret < 0)
++		return ret;
++	else if (ret > 0 || cno == nilfs_mdt_cno(cpfile) - 1)
++		return -EPERM;
++
++	return nilfs_cpfile_delete_checkpoints(cpfile, cno, cno + 1);
++}
++
++static struct nilfs_snapshot_list *
++nilfs_cpfile_block_get_snapshot_list(const struct inode *cpfile,
++				     __u64 cno,
++				     struct buffer_head *bh,
++				     void *kaddr)
++{
++	struct nilfs_cpfile_header *header;
++	struct nilfs_checkpoint *cp;
++	struct nilfs_snapshot_list *list;
++
++	if (cno != 0) {
++		cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, bh, kaddr);
++		list = &cp->cp_snapshot_list;
++	} else {
++		header = nilfs_cpfile_block_get_header(cpfile, bh, kaddr);
++		list = &header->ch_snapshot_list;
++	}
++	return list;
++}
++
++static int nilfs_cpfile_set_snapshot(struct inode *cpfile, __u64 cno)
++{
++	struct buffer_head *header_bh, *curr_bh, *prev_bh, *cp_bh;
++	struct nilfs_cpfile_header *header;
++	struct nilfs_checkpoint *cp;
++	struct nilfs_snapshot_list *list;
++	__u64 curr, prev;
++	unsigned long curr_blkoff, prev_blkoff;
++	void *kaddr;
++	int ret;
++
++	down_write(&NILFS_MDT(cpfile)->mi_sem);
++
++	ret = nilfs_cpfile_get_checkpoint_block(cpfile, cno, 0, &cp_bh);
++	if (ret < 0)
++		goto out_sem;
++	kaddr = kmap_atomic(cp_bh->b_page, KM_USER0);
++	cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, cp_bh, kaddr);
++	if (nilfs_checkpoint_invalid(cp)) {
++		ret = -ENOENT;
++		kunmap_atomic(kaddr, KM_USER0);
++		goto out_cp;
++	}
++	if (nilfs_checkpoint_snapshot(cp)) {
++		ret = 0;
++		kunmap_atomic(kaddr, KM_USER0);
++		goto out_cp;
++	}
++	kunmap_atomic(kaddr, KM_USER0);
++
++	ret = nilfs_cpfile_get_header_block(cpfile, &header_bh);
++	if (ret < 0)
++		goto out_cp;
++	kaddr = kmap_atomic(header_bh->b_page, KM_USER0);
++	header = nilfs_cpfile_block_get_header(cpfile, header_bh, kaddr);
++	list = &header->ch_snapshot_list;
++	curr_bh = header_bh;
++	get_bh(curr_bh);
++	curr = 0;
++	curr_blkoff = 0;
++	prev = le64_to_cpu(list->ssl_prev);
++	while (prev > cno) {
++		prev_blkoff = nilfs_cpfile_get_blkoff(cpfile, prev);
++		curr = prev;
++		if (curr_blkoff != prev_blkoff) {
++			kunmap_atomic(kaddr, KM_USER0);
++			brelse(curr_bh);
++			ret = nilfs_cpfile_get_checkpoint_block(cpfile, curr,
++								0, &curr_bh);
++			if (ret < 0)
++				goto out_header;
++			kaddr = kmap_atomic(curr_bh->b_page, KM_USER0);
++		}
++		curr_blkoff = prev_blkoff;
++		cp = nilfs_cpfile_block_get_checkpoint(
++			cpfile, curr, curr_bh, kaddr);
++		list = &cp->cp_snapshot_list;
++		prev = le64_to_cpu(list->ssl_prev);
++	}
++	kunmap_atomic(kaddr, KM_USER0);
++
++	if (prev != 0) {
++		ret = nilfs_cpfile_get_checkpoint_block(cpfile, prev, 0,
++							&prev_bh);
++		if (ret < 0)
++			goto out_curr;
++	} else {
++		prev_bh = header_bh;
++		get_bh(prev_bh);
++	}
++
++	kaddr = kmap_atomic(curr_bh->b_page, KM_USER0);
++	list = nilfs_cpfile_block_get_snapshot_list(
++		cpfile, curr, curr_bh, kaddr);
++	list->ssl_prev = cpu_to_le64(cno);
++	kunmap_atomic(kaddr, KM_USER0);
++
++	kaddr = kmap_atomic(cp_bh->b_page, KM_USER0);
++	cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, cp_bh, kaddr);
++	cp->cp_snapshot_list.ssl_next = cpu_to_le64(curr);
++	cp->cp_snapshot_list.ssl_prev = cpu_to_le64(prev);
++	nilfs_checkpoint_set_snapshot(cp);
++	kunmap_atomic(kaddr, KM_USER0);
++
++	kaddr = kmap_atomic(prev_bh->b_page, KM_USER0);
++	list = nilfs_cpfile_block_get_snapshot_list(
++		cpfile, prev, prev_bh, kaddr);
++	list->ssl_next = cpu_to_le64(cno);
++	kunmap_atomic(kaddr, KM_USER0);
++
++	kaddr = kmap_atomic(header_bh->b_page, KM_USER0);
++	header = nilfs_cpfile_block_get_header(cpfile, header_bh, kaddr);
++	le64_add_cpu(&header->ch_nsnapshots, 1);
++	kunmap_atomic(kaddr, KM_USER0);
++
++	nilfs_mdt_mark_buffer_dirty(prev_bh);
++	nilfs_mdt_mark_buffer_dirty(curr_bh);
++	nilfs_mdt_mark_buffer_dirty(cp_bh);
++	nilfs_mdt_mark_buffer_dirty(header_bh);
++	nilfs_mdt_mark_dirty(cpfile);
++
++	brelse(prev_bh);
++
++ out_curr:
++	brelse(curr_bh);
++
++ out_header:
++	brelse(header_bh);
++
++ out_cp:
++	brelse(cp_bh);
++
++ out_sem:
++	up_write(&NILFS_MDT(cpfile)->mi_sem);
++	return ret;
++}
++
++static int nilfs_cpfile_clear_snapshot(struct inode *cpfile, __u64 cno)
++{
++	struct buffer_head *header_bh, *next_bh, *prev_bh, *cp_bh;
++	struct nilfs_cpfile_header *header;
++	struct nilfs_checkpoint *cp;
++	struct nilfs_snapshot_list *list;
++	__u64 next, prev;
++	void *kaddr;
++	int ret;
++
++	down_write(&NILFS_MDT(cpfile)->mi_sem);
++
++	ret = nilfs_cpfile_get_checkpoint_block(cpfile, cno, 0, &cp_bh);
++	if (ret < 0)
++		goto out_sem;
++	kaddr = kmap_atomic(cp_bh->b_page, KM_USER0);
++	cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, cp_bh, kaddr);
++	if (nilfs_checkpoint_invalid(cp)) {
++		ret = -ENOENT;
++		kunmap_atomic(kaddr, KM_USER0);
++		goto out_cp;
++	}
++	if (!nilfs_checkpoint_snapshot(cp)) {
++		ret = 0;
++		kunmap_atomic(kaddr, KM_USER0);
++		goto out_cp;
++	}
++
++	list = &cp->cp_snapshot_list;
++	next = le64_to_cpu(list->ssl_next);
++	prev = le64_to_cpu(list->ssl_prev);
++	kunmap_atomic(kaddr, KM_USER0);
++
++	ret = nilfs_cpfile_get_header_block(cpfile, &header_bh);
++	if (ret < 0)
++		goto out_cp;
++	if (next != 0) {
++		ret = nilfs_cpfile_get_checkpoint_block(cpfile, next, 0,
++							&next_bh);
++		if (ret < 0)
++			goto out_header;
++	} else {
++		next_bh = header_bh;
++		get_bh(next_bh);
++	}
++	if (prev != 0) {
++		ret = nilfs_cpfile_get_checkpoint_block(cpfile, prev, 0,
++							&prev_bh);
++		if (ret < 0)
++			goto out_next;
++	} else {
++		prev_bh = header_bh;
++		get_bh(prev_bh);
++	}
++
++	kaddr = kmap_atomic(next_bh->b_page, KM_USER0);
++	list = nilfs_cpfile_block_get_snapshot_list(
++		cpfile, next, next_bh, kaddr);
++	list->ssl_prev = cpu_to_le64(prev);
++	kunmap_atomic(kaddr, KM_USER0);
++
++	kaddr = kmap_atomic(prev_bh->b_page, KM_USER0);
++	list = nilfs_cpfile_block_get_snapshot_list(
++		cpfile, prev, prev_bh, kaddr);
++	list->ssl_next = cpu_to_le64(next);
++	kunmap_atomic(kaddr, KM_USER0);
++
++	kaddr = kmap_atomic(cp_bh->b_page, KM_USER0);
++	cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, cp_bh, kaddr);
++	cp->cp_snapshot_list.ssl_next = cpu_to_le64(0);
++	cp->cp_snapshot_list.ssl_prev = cpu_to_le64(0);
++	nilfs_checkpoint_clear_snapshot(cp);
++	kunmap_atomic(kaddr, KM_USER0);
++
++	kaddr = kmap_atomic(header_bh->b_page, KM_USER0);
++	header = nilfs_cpfile_block_get_header(cpfile, header_bh, kaddr);
++	le64_add_cpu(&header->ch_nsnapshots, -1);
++	kunmap_atomic(kaddr, KM_USER0);
++
++	nilfs_mdt_mark_buffer_dirty(next_bh);
++	nilfs_mdt_mark_buffer_dirty(prev_bh);
++	nilfs_mdt_mark_buffer_dirty(cp_bh);
++	nilfs_mdt_mark_buffer_dirty(header_bh);
++	nilfs_mdt_mark_dirty(cpfile);
++
++	brelse(prev_bh);
++
++ out_next:
++	brelse(next_bh);
++
++ out_header:
++	brelse(header_bh);
++
++ out_cp:
++	brelse(cp_bh);
++
++ out_sem:
++	up_write(&NILFS_MDT(cpfile)->mi_sem);
++	return ret;
++}
++
++/**
++ * nilfs_cpfile_is_snapshot -
++ * @cpfile: inode of checkpoint file
++ * @cno: checkpoint number
++ *
++ * Description:
++ *
++ * Return Value: On success, 1 is returned if the checkpoint specified by
++ * @cno is a snapshot, or 0 if not. On error, one of the following negative
++ * error codes is returned.
++ *
++ * %-EIO - I/O error.
++ *
++ * %-ENOMEM - Insufficient amount of memory available.
++ *
++ * %-ENOENT - No such checkpoint.
++ */
++int nilfs_cpfile_is_snapshot(struct inode *cpfile, __u64 cno)
++{
++	struct buffer_head *bh;
++	struct nilfs_checkpoint *cp;
++	void *kaddr;
++	int ret;
++
++	down_read(&NILFS_MDT(cpfile)->mi_sem);
++
++	ret = nilfs_cpfile_get_checkpoint_block(cpfile, cno, 0, &bh);
++	if (ret < 0)
++		goto out;
++	kaddr = kmap_atomic(bh->b_page, KM_USER0);
++	cp = nilfs_cpfile_block_get_checkpoint(cpfile, cno, bh, kaddr);
++	ret = nilfs_checkpoint_snapshot(cp);
++	kunmap_atomic(kaddr, KM_USER0);
++	brelse(bh);
++
++ out:
++	up_read(&NILFS_MDT(cpfile)->mi_sem);
++	return ret;
++}
++
++/**
++ * nilfs_cpfile_change_cpmode - change checkpoint mode
++ * @cpfile: inode of checkpoint file
++ * @cno: checkpoint number
++ * @status: mode of checkpoint
++ *
++ * Description: nilfs_change_cpmode() changes the mode of the checkpoint
++ * specified by @cno. The mode @mode is NILFS_CHECKPOINT or NILFS_SNAPSHOT.
++ *
++ * Return Value: On success, 0 is returned. On error, one of the following
++ * negative error codes is returned.
++ *
++ * %-EIO - I/O error.
++ *
++ * %-ENOMEM - Insufficient amount of memory available.
++ *
++ * %-ENOENT - No such checkpoint.
++ */
++int nilfs_cpfile_change_cpmode(struct inode *cpfile, __u64 cno, int mode)
++{
++	struct the_nilfs *nilfs;
++	int ret;
++
++	nilfs = NILFS_MDT(cpfile)->mi_nilfs;
++
++	switch (mode) {
++	case NILFS_CHECKPOINT:
++		/*
++		 * Check for protecting existing snapshot mounts:
++		 * bd_mount_sem is used to make this operation atomic and
++		 * exclusive with a new mount job.  Though it doesn't cover
++		 * umount, it's enough for the purpose.
++		 */
++		down(&nilfs->ns_bdev->bd_mount_sem);
++		if (nilfs_checkpoint_is_mounted(nilfs, cno, 1)) {
++			/* Current implementation does not have to protect
++			   plain read-only mounts since they are exclusive
++			   with a read/write mount and are protected from the
++			   cleaner. */
++			ret = -EBUSY;
++		} else
++			ret = nilfs_cpfile_clear_snapshot(cpfile, cno);
++		up(&nilfs->ns_bdev->bd_mount_sem);
++		return ret;
++	case NILFS_SNAPSHOT:
++		return nilfs_cpfile_set_snapshot(cpfile, cno);
++	default:
++		return -EINVAL;
++	}
++}
++
++/**
++ * nilfs_cpfile_get_stat - get checkpoint statistics
++ * @cpfile: inode of checkpoint file
++ * @stat: pointer to a structure of checkpoint statistics
++ *
++ * Description: nilfs_cpfile_get_stat() returns information about checkpoints.
++ *
++ * Return Value: On success, 0 is returned, and checkpoints information is
++ * stored in the place pointed by @stat. On error, one of the following
++ * negative error codes is returned.
++ *
++ * %-EIO - I/O error.
++ *
++ * %-ENOMEM - Insufficient amount of memory available.
++ */
++int nilfs_cpfile_get_stat(struct inode *cpfile, struct nilfs_cpstat *cpstat)
++{
++	struct buffer_head *bh;
++	struct nilfs_cpfile_header *header;
++	void *kaddr;
++	int ret;
++
++	down_read(&NILFS_MDT(cpfile)->mi_sem);
++
++	ret = nilfs_cpfile_get_header_block(cpfile, &bh);
++	if (ret < 0)
++		goto out_sem;
++	kaddr = kmap_atomic(bh->b_page, KM_USER0);
++	header = nilfs_cpfile_block_get_header(cpfile, bh, kaddr);
++	cpstat->cs_cno = nilfs_mdt_cno(cpfile);
++	cpstat->cs_ncps = le64_to_cpu(header->ch_ncheckpoints);
++	cpstat->cs_nsss = le64_to_cpu(header->ch_nsnapshots);
++	kunmap_atomic(kaddr, KM_USER0);
++	brelse(bh);
++
++ out_sem:
++	up_read(&NILFS_MDT(cpfile)->mi_sem);
++	return ret;
++}
+diff -puN /dev/null fs/nilfs2/cpfile.h
+--- /dev/null
++++ a/fs/nilfs2/cpfile.h
+@@ -0,0 +1,45 @@
++/*
++ * cpfile.h - NILFS checkpoint file.
++ *
++ * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++ *
++ * Written by Koji Sato <koji@osrg.net>.
++ */
++
++#ifndef _NILFS_CPFILE_H
++#define _NILFS_CPFILE_H
++
++#include <linux/fs.h>
++#include <linux/buffer_head.h>
++#include <linux/nilfs2_fs.h>
++
++#define NILFS_CPFILE_GFP	NILFS_MDT_GFP
++
++
++int nilfs_cpfile_get_checkpoint(struct inode *, __u64, int,
++				struct nilfs_checkpoint **,
++				struct buffer_head **);
++void nilfs_cpfile_put_checkpoint(struct inode *, __u64, struct buffer_head *);
++int nilfs_cpfile_delete_checkpoints(struct inode *, __u64, __u64);
++int nilfs_cpfile_delete_checkpoint(struct inode *, __u64);
++int nilfs_cpfile_change_cpmode(struct inode *, __u64, int);
++int nilfs_cpfile_is_snapshot(struct inode *, __u64);
++int nilfs_cpfile_get_stat(struct inode *, struct nilfs_cpstat *);
++ssize_t nilfs_cpfile_get_cpinfo(struct inode *, __u64, int,
++				struct nilfs_cpinfo *, size_t);
++
++#endif	/* _NILFS_CPFILE_H */
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from sato.koji@lab.ntt.co.jp are
 
-nilfs2-add-document.patch
 nilfs2-disk-format-and-userland-interface.patch
 nilfs2-add-inode-and-other-major-structures.patch
 nilfs2-integrated-block-mapping.patch
 nilfs2-b-tree-based-block-mapping.patch
 nilfs2-direct-block-mapping.patch
-nilfs2-b-tree-node-cache.patch
-nilfs2-buffer-and-page-operations.patch
-nilfs2-meta-data-file.patch
 nilfs2-persistent-object-allocator.patch
 nilfs2-disk-address-translator.patch
-nilfs2-inode-map-file.patch
 nilfs2-checkpoint-file.patch
 nilfs2-segment-usage-file.patch
-nilfs2-inode-operations.patch
-nilfs2-file-operations.patch
-nilfs2-directory-entry-operations.patch
-nilfs2-pathname-operations.patch
-nilfs2-operations-for-the_nilfs-core-object.patch
-nilfs2-super-block-operations.patch
-nilfs2-segment-buffer.patch
-nilfs2-segment-constructor.patch
-nilfs2-recovery-functions.patch
-nilfs2-another-dat-for-garbage-collection.patch
-nilfs2-block-cache-for-garbage-collection.patch
 nilfs2-ioctl-operations.patch
-nilfs2-update-makefile-and-kconfig.patch
 
