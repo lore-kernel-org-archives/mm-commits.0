@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + w1-new-driver-ds2431-chip-fix.patch added to -mm tree
-Date: Wed, 17 Sep 2008 16:00:19 -0700
-Message-ID: <200809172300.m8HN0Jgl002629@imap1.linux-foundation.org>
+Subject: + fix-vma-display-mismatch-between-proc-pid-mapssmaps.patch added to -mm tree
+Date: Wed, 17 Sep 2008 16:01:42 -0700
+Message-ID: <200809172301.m8HN1gaj002663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52462 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47886 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752991AbYIQXBs (ORCPT
+	by vger.kernel.org with ESMTP id S1753149AbYIQXCA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Sep 2008 19:01:48 -0400
+	Wed, 17 Sep 2008 19:02:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bernhard.weirich@riedel.net, bgardner@wabtec.com, johnpol@2ka.mipt.ru
+Cc: joe.korty@ccur.com, mpm@selenic.com
 
 
 The patch titled
-     w1-new-driver-ds2431-chip-fix
+     Fix VMA display mismatch between /proc/pid/{maps,smaps}
 has been added to the -mm tree.  Its filename is
-     w1-new-driver-ds2431-chip-fix.patch
+     fix-vma-display-mismatch-between-proc-pid-mapssmaps.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,206 +34,143 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1-new-driver-ds2431-chip-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Fix VMA display mismatch between /proc/pid/{maps,smaps}
+From: Joe Korty <joe.korty@ccur.com>
 
-Cc: Ben Gardner <bgardner@wabtec.com>
-Cc: Bernhard Weirich <bernhard.weirich@riedel.net>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Fix vma display mismatch between /proc/pid/{maps,smaps}
+
+The following commit
+
+    From 4752c369789250eafcd7813e11c8fb689235b0d2
+    From: Matt Mackall <mpm@selenic.com>
+    Date: Mon, 4 Feb 2008 22:29:02 -0800
+    Subject: [PATCH] maps4: simplify interdependence of maps and smaps
+
+broke /proc/pid/smaps, causing it to display some vmas twice and other
+vmas not at all.  For example:
+
+    grep .- /proc/1/smaps >/tmp/smaps; diff /proc/1/maps /tmp/smaps
+
+    1  25d24
+    2  < 7fd7e23aa000-7fd7e23ac000 rw-p 7fd7e23aa000 00:00 0
+    3  28a28
+    4  > ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0  [vsyscall]
+
+The bug has something to do with setting m->version before all the
+seq_printf's have been performed.  show_map was doing this correctly,
+but show_smap was doing this in the middle of its seq_printf sequence.
+This patch arranges things so that the setting of m->version in show_smap
+is also done at the end of its seq_printf sequence.
+
+Testing: in addition to the above grep test, for each process I summed
+up the 'Rss' fields of /proc/pid/smaps and compared that to the 'VmRSS'
+field of /proc/pid/status.  All matched except for Xorg (which has a
+/dev/mem mapping which Rss accounts for but VmRSS does not).  This result
+gives us some confidence that neither /proc/pid/maps nor /proc/pid/smaps
+are any longer skipping or double-counting vmas.
+
+Signed-off-by: Joe Korty <joe.korty@ccur.com>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/w1_ds2431.c |   16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+ fs/proc/task_mmu.c |   37 ++++++++++++++++++++++++-------------
+ 1 file changed, 24 insertions(+), 13 deletions(-)
 
-diff -puN drivers/w1/slaves/w1_ds2431.c~w1-new-driver-ds2431-chip-fix drivers/w1/slaves/w1_ds2431.c
---- a/drivers/w1/slaves/w1_ds2431.c~w1-new-driver-ds2431-chip-fix
-+++ a/drivers/w1/slaves/w1_ds2431.c
-@@ -1,5 +1,5 @@
- /*
-- *	w1_DS2431.c - w1 family 2d (DS2431) driver
-+ * w1_ds2431.c - w1 family 2d (DS2431) driver
-  *
-  * Copyright (c) 2008 Bernhard Weirich <bernhard.weirich@riedel.net>
-  *
-@@ -41,7 +41,7 @@
- #define W1_F2D_READ_RETRIES		10
- #define W1_F2D_READ_MAXLEN		8
- 
--/**
-+/*
-  * Check the file size bounds and adjusts count as needed.
-  * This would not be needed if the file size didn't reset to 0 after a write.
-  */
-@@ -56,7 +56,7 @@ static inline size_t w1_f2d_fix_count(lo
- 	return count;
+diff -puN fs/proc/task_mmu.c~fix-vma-display-mismatch-between-proc-pid-mapssmaps fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~fix-vma-display-mismatch-between-proc-pid-mapssmaps
++++ a/fs/proc/task_mmu.c
+@@ -198,11 +198,8 @@ static int do_maps_open(struct inode *in
+ 	return ret;
  }
  
--/**
-+/*
-  * Read a block from W1 ROM two times and compares the results.
-  * If they are equal they are returned, otherwise the read
-  * is repeated W1_F2D_READ_RETRIES times.
-@@ -88,8 +88,6 @@ static int w1_f2d_readblock(struct w1_sl
- 
- 		if (!memcmp(cmp, buf, count))
- 			return 0;
--
--
- 	} while (--tries);
- 
- 	dev_err(&sl->dev, "proof reading failed %d times\n",
-@@ -98,7 +96,6 @@ static int w1_f2d_readblock(struct w1_sl
- 	return -1;
- }
- 
--
- static ssize_t w1_f2d_read_bin(struct kobject *kobj,
- 			       struct bin_attribute *bin_attr,
- 			       char *buf, loff_t off, size_t count)
-@@ -134,7 +131,7 @@ static ssize_t w1_f2d_read_bin(struct ko
- 	return count;
- }
- 
--/**
-+/*
-  * Writes to the scratchpad and reads it back for verification.
-  * Then copies the scratchpad to EEPROM.
-  * The data must be aligned at W1_F2D_SCRATCH_SIZE bytes and
-@@ -279,10 +276,7 @@ static struct bin_attribute w1_f2d_bin_a
- 
- static int w1_f2d_add_slave(struct w1_slave *sl)
+-static int show_map(struct seq_file *m, void *v)
++static void show_map_vma(struct seq_file *m, struct vm_area_struct *vma)
  {
--	int err;
--	err = sysfs_create_bin_file(&sl->dev.kobj, &w1_f2d_bin_attr);
+-	struct proc_maps_private *priv = m->private;
+-	struct task_struct *task = priv->task;
+-	struct vm_area_struct *vma = v;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct file *file = vma->vm_file;
+ 	int flags = vma->vm_flags;
+@@ -210,9 +207,6 @@ static int show_map(struct seq_file *m, 
+ 	dev_t dev = 0;
+ 	int len;
+ 
+-	if (maps_protect && !ptrace_may_access(task, PTRACE_MODE_READ))
+-		return -EACCES;
 -
--	return err;
-+	return sysfs_create_bin_file(&sl->dev.kobj, &w1_f2d_bin_attr);
+ 	if (file) {
+ 		struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
+ 		dev = inode->i_sb->s_dev;
+@@ -257,9 +251,21 @@ static int show_map(struct seq_file *m, 
+ 		}
+ 	}
+ 	seq_putc(m, '\n');
++}
++
++static int show_map(struct seq_file *m, void *v)
++{
++	struct vm_area_struct *vma = v;
++	struct proc_maps_private *priv = m->private;
++	struct task_struct *task = priv->task;
++
++	if (maps_protect && !ptrace_may_access(task, PTRACE_MODE_READ))
++		return -EACCES;
++
++	show_map_vma(m, vma);
+ 
+ 	if (m->count < m->size)  /* vma is copied successfully */
+-		m->version = (vma != get_gate_vma(task))? vma->vm_start: 0;
++		m->version = (vma != get_gate_vma(task)) ? vma->vm_start : 0;
+ 	return 0;
  }
  
- static void w1_f2d_remove_slave(struct w1_slave *sl)
+@@ -367,9 +373,10 @@ static int smaps_pte_range(pmd_t *pmd, u
+ 
+ static int show_smap(struct seq_file *m, void *v)
+ {
++	struct proc_maps_private *priv = m->private;
++	struct task_struct *task = priv->task;
+ 	struct vm_area_struct *vma = v;
+ 	struct mem_size_stats mss;
+-	int ret;
+ 	struct mm_walk smaps_walk = {
+ 		.pmd_entry = smaps_pte_range,
+ 		.mm = vma->vm_mm,
+@@ -381,9 +388,10 @@ static int show_smap(struct seq_file *m,
+ 	if (vma->vm_mm && !is_vm_hugetlb_page(vma))
+ 		walk_page_range(vma->vm_start, vma->vm_end, &smaps_walk);
+ 
+-	ret = show_map(m, v);
+-	if (ret)
+-		return ret;
++	if (maps_protect && !ptrace_may_access(task, PTRACE_MODE_READ))
++		return -EACCES;
++
++	show_map_vma(m, vma);
+ 
+ 	seq_printf(m,
+ 		   "Size:           %8lu kB\n"
+@@ -405,7 +413,10 @@ static int show_smap(struct seq_file *m,
+ 		   mss.referenced >> 10,
+ 		   mss.swap >> 10);
+ 
+-	return ret;
++	if (m->count < m->size)  /* vma is copied successfully */
++		m->version = (vma != get_gate_vma(task)) ? vma->vm_start : 0;
++
++	return 0;
+ }
+ 
+ static const struct seq_operations proc_pid_smaps_op = {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe.korty@ccur.com are
 
-origin.patch
-include-linux-ioporth-add-missing-macro-argument-for-devm_release_-family.patch
-rescan_partitions-make-device-capacity-errors-non-fatal.patch
 linux-next.patch
-linux-next-fixups.patch
-next-remove-localversion.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-revert-acpi-ec-do-transaction-from-interrupt-context.patch
-acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch
-acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
-fix-cred-wrap-current-cred-and-a-few-other-accessors-on-mips.patch
-pci-tidy-pme-support-messages-checkpatch-fixes.patch
-sched-clarify-ifdef-tangle.patch
-debug_locks_warn_on-disable-if-oops_in_progress.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
-drivers-usb-musb-disable-it-on-superh.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-media-video-cafe_ccicc-needs-mmh.patch
-e1000e-prevent-corruption-of-eeprom-nvm.patch
-drivers-net-mlx4-allocc-needs-mmh.patch
-net-forcedeth-call-restore-mac-addr-in-nv_shutdown-path-v2.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
-fix-a-race-condtion-of-oops_in_progress-fix.patch
-vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
-make-taint-bit-reliable-v3-fix.patch
-kernel-sysc-improve-code-generation.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
-ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-genirq-record-trigger-type-fix.patch
+forcdeth-increase-max_interrupt_work.patch
+fix-vma-display-mismatch-between-proc-pid-mapssmaps.patch
+message-queues-increase-range-limits.patch
 message-queues-increase-range-limits-checkpatch-fixes.patch
-tty-fix-echo-tab-erase-and-locking-fix.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-new-driver-ds2431-chip-fix.patch
-gru-driver-minor-updates-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
