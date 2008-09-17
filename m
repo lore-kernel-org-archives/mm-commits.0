@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + lib-trivial-whitespace-tidy.patch added to -mm tree
-Date: Wed, 17 Sep 2008 16:06:12 -0700
-Message-ID: <200809172306.m8HN6CWm002904@imap1.linux-foundation.org>
+Subject: + lib-pull-base-guessing-logic-to-helper-function.patch added to -mm tree
+Date: Wed, 17 Sep 2008 16:06:10 -0700
+Message-ID: <200809172306.m8HN6ATp002901@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38696 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41545 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755870AbYIQXGP (ORCPT
+	by vger.kernel.org with ESMTP id S1755066AbYIQXGN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Sep 2008 19:06:15 -0400
+	Wed, 17 Sep 2008 19:06:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: harvey.harrison@gmail.com, yi.y.yang@intel.com
 
 
 The patch titled
-     lib: trivial whitespace tidy
+     lib: pull base-guessing logic to helper function
 has been added to the -mm tree.  Its filename is
-     lib-trivial-whitespace-tidy.patch
+     lib-pull-base-guessing-logic-to-helper-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,127 +34,141 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib: trivial whitespace tidy
+Subject: lib: pull base-guessing logic to helper function
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Remove extra lines before the EXPORT_SYMBOL()s
+There is a small behavior change in this patch, previously, when no base
+was specified and the string began with 0x?  the base would be guessed as
+8, unless isxdigit(?) was true.  This would then return 0 as 'x' was
+larger than 8.  Now, the base is always guessed as 16 if the string starts
+with '0x'
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Yi Yang <yi.y.yang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   26 +++++++++-----------------
- 1 file changed, 9 insertions(+), 17 deletions(-)
+ lib/vsprintf.c |   80 ++++++++++++++++++++++++-----------------------
+ 1 file changed, 42 insertions(+), 38 deletions(-)
 
-diff -puN lib/vsprintf.c~lib-trivial-whitespace-tidy lib/vsprintf.c
---- a/lib/vsprintf.c~lib-trivial-whitespace-tidy
+diff -puN lib/vsprintf.c~lib-pull-base-guessing-logic-to-helper-function lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-pull-base-guessing-logic-to-helper-function
 +++ a/lib/vsprintf.c
-@@ -50,7 +50,7 @@ static unsigned int simple_guess_base(co
-  * @endp: A pointer to the end of the parsed string will be placed here
-  * @base: The number base to use
+@@ -32,6 +32,18 @@
+ /* Works only for digits and letters, but small and fast */
+ #define TOLOWER(x) ((x) | 0x20)
+ 
++static unsigned int simple_guess_base(const char *cp)
++{
++	if (cp[0] == '0') {
++		if (TOLOWER(cp[1]) == 'x')
++			return 16;
++		else
++			return 8;
++	} else {
++		return 10;
++	}
++}
++
+ /**
+  * simple_strtoul - convert a string to an unsigned long
+  * @cp: The start of the string
+@@ -40,32 +52,28 @@
   */
--unsigned long simple_strtoul(const char *cp,char **endp,unsigned int base)
-+unsigned long simple_strtoul(const char *cp, char **endp, unsigned int base)
+ unsigned long simple_strtoul(const char *cp,char **endp,unsigned int base)
  {
- 	unsigned long result = 0;
+-	unsigned long result = 0,value;
++	unsigned long result = 0;
  
-@@ -82,13 +82,12 @@ EXPORT_SYMBOL(simple_strtoul);
-  * @endp: A pointer to the end of the parsed string will be placed here
-  * @base: The number base to use
+-	if (!base) {
+-		base = 10;
+-		if (*cp == '0') {
+-			base = 8;
+-			cp++;
+-			if ((TOLOWER(*cp) == 'x') && isxdigit(cp[1])) {
+-				cp++;
+-				base = 16;
+-			}
+-		}
+-	} else if (base == 16) {
+-		if (cp[0] == '0' && TOLOWER(cp[1]) == 'x')
+-			cp += 2;
+-	}
+-	while (isxdigit(*cp) &&
+-	       (value = isdigit(*cp) ? *cp-'0' : TOLOWER(*cp)-'a'+10) < base) {
+-		result = result*base + value;
++	if (!base)
++		base = simple_guess_base(cp);
++
++	if (base == 16 && cp[0] == '0' && TOLOWER(cp[1]) == 'x')
++		cp += 2;
++
++	while (isxdigit(*cp)) {
++		unsigned int value;
++
++		value = isdigit(*cp) ? *cp - '0' : TOLOWER(*cp) - 'a' + 10;
++		if (value >= base)
++			break;
++		result = result * base + value;
+ 		cp++;
+ 	}
++
+ 	if (endp)
+ 		*endp = (char *)cp;
+ 	return result;
+ }
+-
+ EXPORT_SYMBOL(simple_strtoul);
+ 
+ /**
+@@ -91,32 +99,28 @@ EXPORT_SYMBOL(simple_strtol);
   */
--long simple_strtol(const char *cp,char **endp,unsigned int base)
-+long simple_strtol(const char *cp, char **endp, unsigned int base)
+ unsigned long long simple_strtoull(const char *cp,char **endp,unsigned int base)
  {
--	if(*cp=='-')
--		return -simple_strtoul(cp+1,endp,base);
--	return simple_strtoul(cp,endp,base);
-+	if(*cp == '-')
-+		return -simple_strtoul(cp + 1, endp, base);
-+	return simple_strtoul(cp, endp, base);
+-	unsigned long long result = 0,value;
++	unsigned long long result = 0;
+ 
+-	if (!base) {
+-		base = 10;
+-		if (*cp == '0') {
+-			base = 8;
+-			cp++;
+-			if ((TOLOWER(*cp) == 'x') && isxdigit(cp[1])) {
+-				cp++;
+-				base = 16;
+-			}
+-		}
+-	} else if (base == 16) {
+-		if (cp[0] == '0' && TOLOWER(cp[1]) == 'x')
+-			cp += 2;
+-	}
+-	while (isxdigit(*cp)
+-	 && (value = isdigit(*cp) ? *cp-'0' : TOLOWER(*cp)-'a'+10) < base) {
+-		result = result*base + value;
++	if (!base)
++		base = simple_guess_base(cp);
++
++	if (base == 16 && cp[0] == '0' && TOLOWER(cp[1]) == 'x')
++		cp += 2;
++
++	while (isxdigit(*cp)) {
++		unsigned int value;
++
++		value = isdigit(*cp) ? *cp - '0' : TOLOWER(*cp) - 'a' + 10;
++		if (value >= base)
++			break;
++		result = result * base + value;
+ 		cp++;
+ 	}
++
+ 	if (endp)
+ 		*endp = (char *)cp;
+ 	return result;
  }
 -
- EXPORT_SYMBOL(simple_strtol);
+ EXPORT_SYMBOL(simple_strtoull);
  
  /**
-@@ -97,7 +96,7 @@ EXPORT_SYMBOL(simple_strtol);
-  * @endp: A pointer to the end of the parsed string will be placed here
-  * @base: The number base to use
-  */
--unsigned long long simple_strtoull(const char *cp,char **endp,unsigned int base)
-+unsigned long long simple_strtoull(const char *cp, char **endp, unsigned int base)
- {
- 	unsigned long long result = 0;
- 
-@@ -129,11 +128,11 @@ EXPORT_SYMBOL(simple_strtoull);
-  * @endp: A pointer to the end of the parsed string will be placed here
-  * @base: The number base to use
-  */
--long long simple_strtoll(const char *cp,char **endp,unsigned int base)
-+long long simple_strtoll(const char *cp, char **endp, unsigned int base)
- {
- 	if(*cp=='-')
--		return -simple_strtoull(cp+1,endp,base);
--	return simple_strtoull(cp,endp,base);
-+		return -simple_strtoull(cp + 1, endp, base);
-+	return simple_strtoull(cp, endp, base);
- }
- 
- 
-@@ -794,7 +793,6 @@ int vsnprintf(char *buf, size_t size, co
- 	/* the trailing null byte doesn't count towards the total */
- 	return str-buf;
- }
--
- EXPORT_SYMBOL(vsnprintf);
- 
- /**
-@@ -818,7 +816,6 @@ int vscnprintf(char *buf, size_t size, c
- 	i=vsnprintf(buf,size,fmt,args);
- 	return (i >= size) ? (size - 1) : i;
- }
--
- EXPORT_SYMBOL(vscnprintf);
- 
- /**
-@@ -843,7 +840,6 @@ int snprintf(char * buf, size_t size, co
- 	va_end(args);
- 	return i;
- }
--
- EXPORT_SYMBOL(snprintf);
- 
- /**
-@@ -886,7 +882,6 @@ int vsprintf(char *buf, const char *fmt,
- {
- 	return vsnprintf(buf, INT_MAX, fmt, args);
- }
--
- EXPORT_SYMBOL(vsprintf);
- 
- /**
-@@ -909,7 +904,6 @@ int sprintf(char * buf, const char *fmt,
- 	va_end(args);
- 	return i;
- }
--
- EXPORT_SYMBOL(sprintf);
- 
- /**
-@@ -1138,7 +1132,6 @@ int vsscanf(const char * buf, const char
- 
- 	return num;
- }
--
- EXPORT_SYMBOL(vsscanf);
- 
- /**
-@@ -1157,5 +1150,4 @@ int sscanf(const char * buf, const char 
- 	va_end(args);
- 	return i;
- }
--
- EXPORT_SYMBOL(sscanf);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
