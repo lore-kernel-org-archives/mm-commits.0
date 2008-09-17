@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + mmc_block-handle-error-from-mmc_register_driver.patch added to -mm tree
-Date: Wed, 17 Sep 2008 12:10:34 -0700
-Message-ID: <200809171910.m8HJAYp9025968@imap1.linux-foundation.org>
+Subject: + mmc_test-initialize-mmc_test_lock-statically.patch added to -mm tree
+Date: Wed, 17 Sep 2008 12:10:36 -0700
+Message-ID: <200809171910.m8HJAbFT025973@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48916 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58703 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754740AbYIQTKo (ORCPT
+	by vger.kernel.org with ESMTP id S1754759AbYIQTKo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 17 Sep 2008 15:10:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akinobu.mita@gmail.com, drzeus-mmc@drzeus.cx
 
 
 The patch titled
-     mmc_block: handle error from mmc_register_driver()
+     mmc_test: initialize mmc_test_lock statically
 has been added to the -mm tree.  Its filename is
-     mmc_block-handle-error-from-mmc_register_driver.patch
+     mmc_test-initialize-mmc_test_lock-statically.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc_block: handle error from mmc_register_driver()
+Subject: mmc_test: initialize mmc_test_lock statically
 From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Check error from mmc_register_driver() and properly unwind block device
-registration.
+The mutex mmc_test_lock is initialized at every time mmc_test device is
+probed.  Probing another mmc_test device may break the mutex, if the probe
+function is called while the mutex is locked.
+
+This patch fixes it by statically initializing mmc_test_lock.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Pierre Ossman <drzeus-mmc@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/card/block.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ drivers/mmc/card/mmc_test.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/mmc/card/block.c~mmc_block-handle-error-from-mmc_register_driver drivers/mmc/card/block.c
---- a/drivers/mmc/card/block.c~mmc_block-handle-error-from-mmc_register_driver
-+++ a/drivers/mmc/card/block.c
-@@ -585,14 +585,19 @@ static struct mmc_driver mmc_driver = {
+diff -puN drivers/mmc/card/mmc_test.c~mmc_test-initialize-mmc_test_lock-statically drivers/mmc/card/mmc_test.c
+--- a/drivers/mmc/card/mmc_test.c~mmc_test-initialize-mmc_test_lock-statically
++++ a/drivers/mmc/card/mmc_test.c
+@@ -1040,7 +1040,7 @@ static const struct mmc_test_case mmc_te
  
- static int __init mmc_blk_init(void)
+ };
+ 
+-static struct mutex mmc_test_lock;
++static DEFINE_MUTEX(mmc_test_lock);
+ 
+ static void mmc_test_run(struct mmc_test_card *test, int testcase)
  {
--	int res = -ENOMEM;
-+	int res;
+@@ -1171,8 +1171,6 @@ static int mmc_test_probe(struct mmc_car
+ 	if ((card->type != MMC_TYPE_MMC) && (card->type != MMC_TYPE_SD))
+ 		return -ENODEV;
  
- 	res = register_blkdev(MMC_BLOCK_MAJOR, "mmc");
- 	if (res)
- 		goto out;
- 
--	return mmc_register_driver(&mmc_driver);
-+	res = mmc_register_driver(&mmc_driver);
-+	if (res)
-+		goto out2;
- 
-+	return 0;
-+ out2:
-+	unregister_blkdev(MMC_BLOCK_MAJOR, "mmc");
-  out:
- 	return res;
- }
-_
-
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
-
-ibmasr-remove-unnecessary-spin_unlock.patch
-linux-next.patch
-mmc_block-handle-error-from-mmc_register_driver.patch
-mmc_test-initialize-mmc_test_lock-statically.patch
-anysee-initialize-anysee_usb_mutex-statically.patch
-ipr-use-memory_read_from_buffer.patch
-char-merge-ip2main-and-ip2base.patch
-char-ip2-cleanup-globals.patch
-char-ip2-fix-sparse-warnings.patch
-char-ip2-init-deinit-cleanup.patch
-ip2-avoid-add_timer-with-pending-timer.patch
-
+-	mutex_init(&mmc_test_lock);
