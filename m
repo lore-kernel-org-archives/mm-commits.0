@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext2-avoid-printk-floods-in-the-face-of-directory-corruption.patch added to -mm tree
-Date: Wed, 17 Sep 2008 12:26:12 -0700
-Message-ID: <200809171926.m8HJQCGu026649@imap1.linux-foundation.org>
+Subject: + ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 17 Sep 2008 12:26:47 -0700
+Message-ID: <200809171926.m8HJQmO0026652@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38323 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36543 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752821AbYIQT1C (ORCPT
+	by vger.kernel.org with ESMTP id S1755986AbYIQT1V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Sep 2008 15:27:02 -0400
+	Wed, 17 Sep 2008 15:27:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sandeen@redhat.com, eugeneteo@kernel.sg, tytso@mit.edu
+Cc: akpm@linux-foundation.org, sandeen@redhat.com, tytso@mit.edu
 
 
 The patch titled
-     ext2: avoid printk floods in the face of directory corruption
+     ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     ext2-avoid-printk-floods-in-the-face-of-directory-corruption.patch
+     ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,187 +34,168 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext2: avoid printk floods in the face of directory corruption
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Note: some people thinks this represents a security bug, since it might
-make the system go away while it is printing a large number of console
-messages, especially if a serial console is involved.  Hence, it has been
-assigned CVE-2008-3528, but it requires that the attacker either has
-physical access to your machine to insert a USB disk with a corrupted
-filesystem image (at which point why not just hit the power button), or is
-otherwise able to convince the system administrator to mount an arbitrary
-filesystem image (at which point why not just include a setuid shell or
-world-writable hard disk device file or some such).  Me, I think they're
-just being silly.
+WARNING: space prohibited between function name and open parenthesis '('
+#75: FILE: fs/ext2/dir.c:179:
++		ext2_error (sb, "ext2_check_page",
 
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Eugene Teo <eugeneteo@kernel.sg>
+ERROR: "foo * bar" should be "foo *bar"
+#87: FILE: fs/ext2/dir.c:190:
++static struct page * ext2_get_page(struct inode *dir, unsigned long n,
+
+total: 1 errors, 1 warnings, 139 lines checked
+
+./patches/ext2-avoid-printk-floods-in-the-face-of-directory-corruption.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Eric Sandeen <sandeen@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/dir.c |   60 ++++++++++++++++++++++++++++--------------------
- 1 file changed, 35 insertions(+), 25 deletions(-)
+ fs/ext2/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext2/dir.c~ext2-avoid-printk-floods-in-the-face-of-directory-corruption fs/ext2/dir.c
---- a/fs/ext2/dir.c~ext2-avoid-printk-floods-in-the-face-of-directory-corruption
+diff -puN fs/ext2/dir.c~ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes fs/ext2/dir.c
+--- a/fs/ext2/dir.c~ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes
 +++ a/fs/ext2/dir.c
-@@ -103,7 +103,7 @@ static int ext2_commit_chunk(struct page
- 	return err;
- }
- 
--static void ext2_check_page(struct page *page)
-+static void ext2_check_page(struct page *page, int quiet)
- {
- 	struct inode *dir = page->mapping->host;
- 	struct super_block *sb = dir->i_sb;
-@@ -146,10 +146,10 @@ out:
- 	/* Too bad, we had an error */
- 
- Ebadsize:
--	ext2_error(sb, "ext2_check_page",
--		"size of directory #%lu is not a multiple of chunk size",
--		dir->i_ino
--	);
-+	if (!quiet)
-+		ext2_error(sb, __func__,
-+			"size of directory #%lu is not a multiple "
-+			"of chunk size", dir->i_ino);
- 	goto fail;
- Eshort:
- 	error = "rec_len is smaller than minimal";
-@@ -166,32 +166,36 @@ Espan:
- Einumber:
- 	error = "inode out of bounds";
- bad_entry:
--	ext2_error (sb, "ext2_check_page", "bad entry in directory #%lu: %s - "
--		"offset=%lu, inode=%lu, rec_len=%d, name_len=%d",
--		dir->i_ino, error, (page->index<<PAGE_CACHE_SHIFT)+offs,
--		(unsigned long) le32_to_cpu(p->inode),
--		rec_len, p->name_len);
-+	if (!quiet)
-+		ext2_error(sb, __func__, "bad entry in directory #%lu: : %s - "
-+			"offset=%lu, inode=%lu, rec_len=%d, name_len=%d",
-+			dir->i_ino, error, (page->index<<PAGE_CACHE_SHIFT)+offs,
-+			(unsigned long) le32_to_cpu(p->inode),
-+			rec_len, p->name_len);
- 	goto fail;
+@@ -176,7 +176,7 @@ bad_entry:
  Eend:
--	p = (ext2_dirent *)(kaddr + offs);
--	ext2_error (sb, "ext2_check_page",
--		"entry in directory #%lu spans the page boundary"
--		"offset=%lu, inode=%lu",
--		dir->i_ino, (page->index<<PAGE_CACHE_SHIFT)+offs,
--		(unsigned long) le32_to_cpu(p->inode));
-+	if (!quiet) {
-+		p = (ext2_dirent *)(kaddr + offs);
-+		ext2_error (sb, "ext2_check_page",
-+			"entry in directory #%lu spans the page boundary"
-+			"offset=%lu, inode=%lu",
-+			dir->i_ino, (page->index<<PAGE_CACHE_SHIFT)+offs,
-+			(unsigned long) le32_to_cpu(p->inode));
-+	}
- fail:
- 	SetPageChecked(page);
- 	SetPageError(page);
- }
- 
--static struct page * ext2_get_page(struct inode *dir, unsigned long n)
-+static struct page * ext2_get_page(struct inode *dir, unsigned long n,
-+				   int quiet)
- {
- 	struct address_space *mapping = dir->i_mapping;
- 	struct page *page = read_mapping_page(mapping, n, NULL);
- 	if (!IS_ERR(page)) {
- 		kmap(page);
- 		if (!PageChecked(page))
--			ext2_check_page(page);
-+			ext2_check_page(page, quiet);
- 		if (PageError(page))
- 			goto fail;
- 	}
-@@ -292,7 +296,7 @@ ext2_readdir (struct file * filp, void *
- 	for ( ; n < npages; n++, offset = 0) {
- 		char *kaddr, *limit;
- 		ext2_dirent *de;
--		struct page *page = ext2_get_page(inode, n);
-+		struct page *page = ext2_get_page(inode, n, 0);
- 
- 		if (IS_ERR(page)) {
- 			ext2_error(sb, __func__,
-@@ -361,6 +365,7 @@ struct ext2_dir_entry_2 *ext2_find_entry
- 	struct page *page = NULL;
- 	struct ext2_inode_info *ei = EXT2_I(dir);
- 	ext2_dirent * de;
-+	int dir_has_error = 0;
- 
- 	if (npages == 0)
- 		goto out;
-@@ -374,7 +379,7 @@ struct ext2_dir_entry_2 *ext2_find_entry
- 	n = start;
- 	do {
- 		char *kaddr;
--		page = ext2_get_page(dir, n);
-+		page = ext2_get_page(dir, n, dir_has_error);
- 		if (!IS_ERR(page)) {
- 			kaddr = page_address(page);
- 			de = (ext2_dirent *) kaddr;
-@@ -391,7 +396,9 @@ struct ext2_dir_entry_2 *ext2_find_entry
- 				de = ext2_next_entry(de);
- 			}
- 			ext2_put_page(page);
--		}
-+		} else
-+			dir_has_error = 1;
-+
- 		if (++n >= npages)
- 			n = 0;
- 		/* next page is past the blocks we've got */
-@@ -414,7 +421,7 @@ found:
- 
- struct ext2_dir_entry_2 * ext2_dotdot (struct inode *dir, struct page **p)
- {
--	struct page *page = ext2_get_page(dir, 0);
-+	struct page *page = ext2_get_page(dir, 0, 0);
- 	ext2_dirent *de = NULL;
- 
- 	if (!IS_ERR(page)) {
-@@ -487,7 +494,7 @@ int ext2_add_link (struct dentry *dentry
- 	for (n = 0; n <= npages; n++) {
- 		char *dir_end;
- 
--		page = ext2_get_page(dir, n);
-+		page = ext2_get_page(dir, n, 0);
- 		err = PTR_ERR(page);
- 		if (IS_ERR(page))
- 			goto out;
-@@ -655,14 +662,17 @@ int ext2_empty_dir (struct inode * inode
- {
- 	struct page *page = NULL;
- 	unsigned long i, npages = dir_pages(inode);
-+	int dir_has_error = 0;
- 
- 	for (i = 0; i < npages; i++) {
- 		char *kaddr;
- 		ext2_dirent * de;
--		page = ext2_get_page(inode, i);
-+		page = ext2_get_page(inode, i, dir_has_error);
- 
--		if (IS_ERR(page))
-+		if (IS_ERR(page)) {
-+			dir_has_error = 1;
- 			continue;
-+		}
- 
- 		kaddr = page_address(page);
- 		de = (ext2_dirent *)kaddr;
+ 	if (!quiet) {
+ 		p = (ext2_dirent *)(kaddr + offs);
+-		ext2_error (sb, "ext2_check_page",
++		ext2_error(sb, "ext2_check_page",
+ 			"entry in directory #%lu spans the page boundary"
+ 			"offset=%lu, inode=%lu",
+ 			dir->i_ino, (page->index<<PAGE_CACHE_SHIFT)+offs,
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+include-linux-ioporth-add-missing-macro-argument-for-devm_release_-family.patch
+rescan_partitions-make-device-capacity-errors-non-fatal.patch
 linux-next.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption.patch
-jbd-test-bh_write_eio-to-detect-errors-on-metadata-buffers.patch
-ext3-avoid-printk-floods-in-the-face-of-directory-corruption.patch
+linux-next-fixups.patch
+next-remove-localversion.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+revert-acpi-ec-do-transaction-from-interrupt-context.patch
+acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch
+acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
+fs-sysfs-dirc-remove-unused-__sysfs_get_dentry.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+itimers-fix-itimer-many-thread-hang-checkpatch-fixes.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+git-jg-misc.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
+fix-cred-wrap-current-cred-and-a-few-other-accessors-on-mips.patch
+pci-tidy-pme-support-messages-checkpatch-fixes.patch
+sched-clarify-ifdef-tangle.patch
+debug_locks_warn_on-disable-if-oops_in_progress.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
+drivers-usb-musb-disable-it-on-superh.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+drivers-media-video-cafe_ccicc-needs-mmh.patch
+e1000e-prevent-corruption-of-eeprom-nvm.patch
+drivers-net-mlx4-allocc-needs-mmh.patch
+net-forcedeth-call-restore-mac-addr-in-nv_shutdown-path-v2.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
+fix-a-race-condtion-of-oops_in_progress-fix.patch
+vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
+make-taint-bit-reliable-v3-fix.patch
+kernel-sysc-improve-code-generation.patch
+compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
+allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+eink_apollofb-new-driver-for-apollo-eink-controller.patch
+ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+genirq-record-trigger-type-fix.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
+tty-fix-echo-tab-erase-and-locking-fix.patch
+applicomc-fix-apparently-broken-code-in-do_ac_read.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+w1-be-able-to-manually-add-and-remove-slaves-fix.patch
+gru-driver-minor-updates-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+x86-sysfs-kill-owner-field-from-attribute-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix.patch
+nilfs2-continuous-snapshotting-file-system-fix-fix-2.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
