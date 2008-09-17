@@ -1,22 +1,22 @@
 From: akpm@linux-foundation.org
 Subject: + tags-skip-in-filenames.patch added to -mm tree
-Date: Wed, 17 Sep 2008 14:20:16 -0700
-Message-ID: <200809172120.m8HLKGUO030979@imap1.linux-foundation.org>
+Date: Wed, 17 Sep 2008 14:20:33 -0700
+Message-ID: <200809172120.m8HLKYkm030989@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38805 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40442 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752769AbYIQVUt (ORCPT
+	by vger.kernel.org with ESMTP id S1752830AbYIQVVK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Sep 2008 17:20:49 -0400
+	Wed, 17 Sep 2008 17:21:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com
+Cc: adobriyan@gmail.com, sam@ravnborg.org
 
 
 The patch titled
-     From: Alexey Dobriyan <adobriyan@gmail.com>
+     tags: skip ./ in filenames
 has been added to the -mm tree.  Its filename is
      tags-skip-in-filenames.patch
 
@@ -34,16 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: From: Alexey Dobriyan <adobriyan@gmail.com>
-
+Subject: tags: skip ./ in filenames
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
 This drives size of tags file from 68.9 MB down to 67.7 MB.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
----
-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
