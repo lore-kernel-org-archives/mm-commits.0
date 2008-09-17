@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + configure-out-aio-support-fix.patch added to -mm tree
-Date: Wed, 17 Sep 2008 14:30:48 -0700
-Message-ID: <200809172130.m8HLUmSk031430@imap1.linux-foundation.org>
+Subject: + eeepc-laptop-use-standard-interfaces-fix.patch added to -mm tree
+Date: Wed, 17 Sep 2008 14:32:17 -0700
+Message-ID: <200809172132.m8HLWIG3031469@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53609 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56696 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754225AbYIQVbv (ORCPT
+	by vger.kernel.org with ESMTP id S1753094AbYIQVeW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Sep 2008 17:31:51 -0400
+	Wed, 17 Sep 2008 17:34:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, mpm@selenic.com, thomas.petazzoni@free-electrons.com
+Cc: randy.dunlap@oracle.com, corentincj@iksaif.net, hmh@hmh.eng.br, mjg@redhat.com, sziwan@users.sourceforge.net
 
 
 The patch titled
-     aio: fix sysctl build error
+     eeepc: depends on RFKILL
 has been added to the -mm tree.  Its filename is
-     configure-out-aio-support-fix.patch
+     eeepc-laptop-use-standard-interfaces-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aio: fix sysctl build error
+Subject: eeepc: depends on RFKILL
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Put aio_nr sysctl inside ifdef CONFIG_AIO block to fix this build error:
+EEEPC_LAPTOP uses RFKILL, so the former should depend on RFKILL.
+Build errors happen when EEEPC_LAPTOP=y and RFKILL=m.
 
-kernel/built-in.o:(.data+0x2a2c): undefined reference to `aio_nr'
+eeepc-laptop.c:(.text+0xd5a7b): undefined reference to `rfkill_allocate'
+eeepc-laptop.c:(.text+0xd5b04): undefined reference to `rfkill_register'
+eeepc-laptop.c:(.text+0xd5b48): undefined reference to `rfkill_allocate'
+eeepc-laptop.c:(.text+0xd5bd4): undefined reference to `rfkill_register'
+eeepc-laptop.c:(.text+0xd5ece): undefined reference to `rfkill_unregister'
+eeepc-laptop.c:(.text+0xd5ef6): undefined reference to `rfkill_unregister'
+make[1]: *** [.tmp_vmlinux1] Error 1
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: Matt Mackall <mpm@selenic.com>
+Cc: Corentin Chary <corentincj@iksaif.net>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Karol Kozimor <sziwan@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/sysctl.c~configure-out-aio-support-fix kernel/sysctl.c
---- a/kernel/sysctl.c~configure-out-aio-support-fix
-+++ a/kernel/sysctl.c
-@@ -1336,6 +1336,7 @@ static struct ctl_table fs_table[] = {
- 		.extra2		= &two,
- 	},
- #endif
-+#ifdef CONFIG_AIO
- 	{
- 		.procname	= "aio-nr",
- 		.data		= &aio_nr,
-@@ -1343,7 +1344,6 @@ static struct ctl_table fs_table[] = {
- 		.mode		= 0444,
- 		.proc_handler	= &proc_doulongvec_minmax,
- 	},
--#ifdef CONFIG_AIO
- 	{
- 		.procname	= "aio-max-nr",
- 		.data		= &aio_max_nr,
+diff -puN drivers/misc/Kconfig~eeepc-laptop-use-standard-interfaces-fix drivers/misc/Kconfig
+--- a/drivers/misc/Kconfig~eeepc-laptop-use-standard-interfaces-fix
++++ a/drivers/misc/Kconfig
+@@ -410,6 +410,7 @@ config EEEPC_LAPTOP
+ 	depends on BACKLIGHT_CLASS_DEVICE
+ 	depends on HWMON
+ 	depends on EXPERIMENTAL
++	depends on RFKILL
+ 	---help---
+ 	  This driver supports the Fn-Fx keys on Eee PC laptops.
+ 	  It also adds the ability to switch camera/wlan on/off.
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -82,6 +83,7 @@ genksyms-allow-to-ignore-symbol-checksum-changes.patch
 lkdtm-fix-for-config_scsi=n.patch
 e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
 drivers-net-hp-plusc-fix-build-error.patch
+eeepc-laptop-use-standard-interfaces-fix.patch
 dontdiff-more-updates-to-be-closer-to-gitignore.patch
 w1-documentation-w1-masters-ds2490-update.patch
 configure-out-aio-support-fix.patch
