@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-b-tree-node-cache.patch added to -mm tree
-Date: Wed, 17 Sep 2008 13:27:26 -0700
-Message-ID: <200809172027.m8HKRQCP028945@imap1.linux-foundation.org>
+Subject: + nilfs2-meta-data-file.patch added to -mm tree
+Date: Wed, 17 Sep 2008 13:27:33 -0700
+Message-ID: <200809172027.m8HKRXGc028954@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44584 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43747 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753851AbYIQU1k (ORCPT
+	by vger.kernel.org with ESMTP id S1753592AbYIQU1m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Sep 2008 16:27:40 -0400
+	Wed, 17 Sep 2008 16:27:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: konishi.ryusuke@lab.ntt.co.jp, kihara.seiji@lab.ntt.co.jp
+Cc: konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     nilfs2: B-tree node cache
+     nilfs2: meta data file
 has been added to the -mm tree.  Its filename is
-     nilfs2-b-tree-node-cache.patch
+     nilfs2-meta-data-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,26 +34,26 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: B-tree node cache
+Subject: nilfs2: meta data file
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-This adds routines for B-tree node buffers.
+This adds the meta data file, which serves common buffer functions to the
+DAT, sufile, cpfile, ifile, and so forth.
 
-Signed-off-by: Seiji Kihara <kihara.seiji@lab.ntt.co.jp>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/btnode.c |  316 +++++++++++++++++++++++++++++++++++++++++++
- fs/nilfs2/btnode.h |   58 +++++++
- 2 files changed, 374 insertions(+)
+ fs/nilfs2/mdt.c |  562 ++++++++++++++++++++++++++++++++++++++++++++++
+ fs/nilfs2/mdt.h |  125 ++++++++++
+ 2 files changed, 687 insertions(+)
 
-diff -puN /dev/null fs/nilfs2/btnode.c
+diff -puN /dev/null fs/nilfs2/mdt.c
 --- /dev/null
-+++ a/fs/nilfs2/btnode.c
-@@ -0,0 +1,316 @@
++++ a/fs/nilfs2/mdt.c
+@@ -0,0 +1,562 @@
 +/*
-+ * btnode.c - NILFS B-tree node cache
++ * mdt.c - meta data file for NILFS
 + *
 + * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
 + *
@@ -71,309 +71,555 @@ diff -puN /dev/null fs/nilfs2/btnode.c
 + * along with this program; if not, write to the Free Software
 + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 + *
-+ * This file was originally written by Seiji Kihara <kihara@osrg.net>
-+ * and fully revised by Ryusuke Konishi <ryusuke@osrg.net> for
-+ * stabilization and simplification.
-+ *
++ * Written by Ryusuke Konishi <ryusuke@osrg.net>
 + */
 +
-+#include <linux/types.h>
 +#include <linux/buffer_head.h>
++#include <linux/mpage.h>
 +#include <linux/mm.h>
++#include <linux/writeback.h>
 +#include <linux/backing-dev.h>
++#include <linux/swap.h>
 +#include "nilfs.h"
-+#include "mdt.h"
-+#include "dat.h"
++#include "segment.h"
 +#include "page.h"
-+#include "btnode.h"
++#include "mdt.h"
 +
 +
-+void nilfs_btnode_cache_init_once(struct address_space *btnc)
++#define NILFS_MDT_MAX_RA_BLOCKS		(16 - 1)
++
++#define INIT_UNUSED_INODE_FIELDS
++
++static int
++nilfs_mdt_insert_new_block(struct inode *inode, unsigned long block,
++			   struct buffer_head *bh,
++			   void (*init_block)(struct inode *,
++					      struct buffer_head *, void *))
 +{
-+	INIT_RADIX_TREE(&btnc->page_tree, GFP_ATOMIC);
-+	spin_lock_init(&btnc->tree_lock);
-+	INIT_LIST_HEAD(&btnc->private_list);
-+	spin_lock_init(&btnc->private_lock);
++	struct nilfs_inode_info *ii = NILFS_I(inode);
++	void *kaddr;
++	int ret;
 +
-+	spin_lock_init(&btnc->i_mmap_lock);
-+	INIT_RAW_PRIO_TREE_ROOT(&btnc->i_mmap);
-+	INIT_LIST_HEAD(&btnc->i_mmap_nonlinear);
-+}
++	/* Caller exclude read accesses using page lock */
 +
-+static struct address_space_operations def_btnode_aops;
++	/* set_buffer_new(bh); */
++	bh->b_blocknr = 0;
 +
-+void nilfs_btnode_cache_init(struct address_space *btnc)
-+{
-+	btnc->host = NULL;  /* can safely set to host inode ? */
-+	btnc->flags = 0;
-+	mapping_set_gfp_mask(btnc, GFP_NOFS);
-+	btnc->assoc_mapping = NULL;
-+	btnc->backing_dev_info = &default_backing_dev_info;
-+	btnc->a_ops = &def_btnode_aops;
-+}
++	ret = nilfs_bmap_insert(ii->i_bmap, block, (unsigned long)bh);
++	if (unlikely(ret))
++		return ret;
 +
-+void nilfs_btnode_cache_clear(struct address_space *btnc)
-+{
-+	invalidate_mapping_pages(btnc, 0, -1);
-+	truncate_inode_pages(btnc, 0);
-+}
-+
-+int nilfs_btnode_submit_block(struct address_space *btnc, __u64 blocknr,
-+			      sector_t pblocknr, struct buffer_head **pbh,
-+			      int newblk)
-+{
-+	struct buffer_head *bh;
-+	struct inode *inode = NILFS_BTNC_I(btnc);
-+	int err;
-+
-+	bh = nilfs_grab_buffer(inode, btnc, blocknr, 1 << BH_NILFS_Node);
-+	if (unlikely(!bh))
-+		return -ENOMEM;
-+
-+	err = -EEXIST; /* internal code */
-+	if (newblk) {
-+		if (unlikely(buffer_mapped(bh) || buffer_uptodate(bh) ||
-+			     buffer_dirty(bh))) {
-+			brelse(bh);
-+			BUG();
-+		}
-+		bh->b_bdev = NILFS_I_NILFS(inode)->ns_bdev;
-+		bh->b_blocknr = blocknr;
-+		set_buffer_mapped(bh);
-+		set_buffer_uptodate(bh);
-+		goto found;
-+	}
-+
-+	if (buffer_uptodate(bh) || buffer_dirty(bh))
-+		goto found;
-+
-+	if (pblocknr == 0) {
-+		pblocknr = blocknr;
-+		if (inode->i_ino != NILFS_DAT_INO) {
-+			struct inode *dat =
-+				nilfs_dat_inode(NILFS_I_NILFS(inode));
-+
-+			/* blocknr is a virtual block number */
-+			err = nilfs_dat_translate(dat, blocknr, &pblocknr);
-+			if (unlikely(err)) {
-+				brelse(bh);
-+				goto out_locked;
-+			}
-+		}
-+	}
-+	lock_buffer(bh);
-+	if (buffer_uptodate(bh)) {
-+		unlock_buffer(bh);
-+		err = -EEXIST; /* internal code */
-+		goto found;
-+	}
 +	set_buffer_mapped(bh);
-+	bh->b_bdev = NILFS_I_NILFS(inode)->ns_bdev;
-+	bh->b_blocknr = pblocknr; /* set block address for read */
-+	bh->b_end_io = end_buffer_read_sync;
-+	get_bh(bh);
-+	submit_bh(READ, bh);
-+	bh->b_blocknr = blocknr; /* set back to the given block address */
-+	err = 0;
-+found:
-+	*pbh = bh;
 +
-+out_locked:
-+	unlock_page(bh->b_page);
-+	page_cache_release(bh->b_page);
-+	return err;
-+}
++	kaddr = kmap_atomic(bh->b_page, KM_USER0);
++	memset(kaddr + bh_offset(bh), 0, 1 << inode->i_blkbits);
++	if (init_block)
++		init_block(inode, bh, kaddr);
++	flush_dcache_page(bh->b_page);
++	kunmap_atomic(kaddr, KM_USER0);
 +
-+int nilfs_btnode_get(struct address_space *btnc, __u64 blocknr,
-+		     sector_t pblocknr, struct buffer_head **pbh, int newblk)
-+{
-+	struct buffer_head *bh;
-+	int err;
-+
-+	err = nilfs_btnode_submit_block(btnc, blocknr, pblocknr, pbh, newblk);
-+	if (err == -EEXIST) /* internal code (cache hit) */
-+		return 0;
-+	if (unlikely(err))
-+		return err;
-+
-+	bh = *pbh;
-+	wait_on_buffer(bh);
-+	if (!buffer_uptodate(bh)) {
-+		brelse(bh);
-+		return -EIO;
-+	}
++	set_buffer_uptodate(bh);
++	nilfs_mark_buffer_dirty(bh);
++	nilfs_mdt_mark_dirty(inode);
 +	return 0;
 +}
 +
-+/**
-+ * nilfs_btnode_delete - delete B-tree node buffer
-+ * @bh: buffer to be deleted
-+ *
-+ * nilfs_btnode_delete() invalidates the specified buffer and delete the page
-+ * including the buffer if the page gets unbusy.
-+ */
-+void nilfs_btnode_delete(struct buffer_head *bh)
++static int nilfs_mdt_create_block(struct inode *inode, unsigned long block,
++				  struct buffer_head **out_bh,
++				  void (*init_block)(struct inode *,
++						     struct buffer_head *,
++						     void *))
 +{
-+	struct address_space *mapping;
-+	struct page *page = bh->b_page;
-+	pgoff_t index = page_index(page);
++	struct the_nilfs *nilfs = NILFS_MDT(inode)->mi_nilfs;
++	struct nilfs_sb_info *writer = NULL;
++	struct super_block *sb = inode->i_sb;
++	struct nilfs_transaction_info ti;
++	struct buffer_head *bh;
++	int err;
++
++	if (!sb) {
++		writer = nilfs_get_writer(nilfs);
++		if (!writer) {
++			err = -EROFS;
++			goto out;
++		}
++		sb = writer->s_super;
++	}
++
++	nilfs_transaction_begin(sb, &ti, 0);
++
++	err = -ENOMEM;
++	bh = nilfs_grab_buffer(inode, inode->i_mapping, block, 0);
++	if (unlikely(!bh))
++		goto failed_unlock;
++
++	err = -EEXIST;
++	if (buffer_uptodate(bh) || buffer_mapped(bh))
++		goto failed_bh;
++#if 0
++	/* The uptodate flag is not protected by the page lock, but
++	   the mapped flag is.  Thus, we don't have to wait the buffer. */
++	wait_on_buffer(bh);
++	if (buffer_uptodate(bh))
++		goto failed_bh;
++#endif
++
++	bh->b_bdev = nilfs->ns_bdev;
++	err = nilfs_mdt_insert_new_block(inode, block, bh, init_block);
++	if (likely(!err)) {
++		get_bh(bh);
++		*out_bh = bh;
++	}
++
++ failed_bh:
++	unlock_page(bh->b_page);
++	page_cache_release(bh->b_page);
++	brelse(bh);
++
++ failed_unlock:
++	nilfs_transaction_end(sb, !err);
++	if (writer)
++		nilfs_put_writer(nilfs);
++ out:
++	return err;
++}
++
++static int
++nilfs_mdt_submit_block(struct inode *inode, unsigned long blkoff,
++		       int mode, struct buffer_head **out_bh)
++{
++	struct buffer_head *bh;
++	unsigned long blknum = 0;
++	int ret = -ENOMEM;
++
++	bh = nilfs_grab_buffer(inode, inode->i_mapping, blkoff, 0);
++	if (unlikely(!bh))
++		goto failed;
++
++	ret = -EEXIST; /* internal code */
++	if (buffer_uptodate(bh))
++		goto out;
++
++	if (mode == READA) {
++		if (!trylock_buffer(bh)) {
++			ret = -EBUSY;
++			goto failed_bh;
++		}
++	} else {
++		BUG_ON(mode != READ);
++		lock_buffer(bh);
++	}
++
++	if (buffer_uptodate(bh)) {
++		unlock_buffer(bh);
++		goto out;
++	}
++	if (!buffer_mapped(bh)) { /* unused buffer */
++		ret = nilfs_bmap_lookup(NILFS_I(inode)->i_bmap, blkoff,
++					&blknum);
++		if (unlikely(ret)) {
++			unlock_buffer(bh);
++			goto failed_bh;
++		}
++		bh->b_bdev = NILFS_MDT(inode)->mi_nilfs->ns_bdev;
++		bh->b_blocknr = blknum;
++		set_buffer_mapped(bh);
++	}
++
++	bh->b_end_io = end_buffer_read_sync;
++	get_bh(bh);
++	submit_bh(mode, bh);
++	ret = 0;
++ out:
++	get_bh(bh);
++	*out_bh = bh;
++
++ failed_bh:
++	unlock_page(bh->b_page);
++	page_cache_release(bh->b_page);
++	brelse(bh);
++ failed:
++	return ret;
++}
++
++static int nilfs_mdt_read_block(struct inode *inode, unsigned long block,
++				struct buffer_head **out_bh)
++{
++	struct buffer_head *first_bh, *bh;
++	unsigned long blkoff;
++	int i, nr_ra_blocks = NILFS_MDT_MAX_RA_BLOCKS;
++	int err;
++
++	err = nilfs_mdt_submit_block(inode, block, READ, &first_bh);
++	if (err == -EEXIST) /* internal code */
++		goto out;
++
++	if (unlikely(err))
++		goto failed;
++
++	blkoff = block + 1;
++	for (i = 0; i < nr_ra_blocks; i++, blkoff++) {
++		err = nilfs_mdt_submit_block(inode, blkoff, READA, &bh);
++		if (likely(!err || err == -EEXIST))
++			brelse(bh);
++		else if (err != -EBUSY)
++			break; /* abort readahead if bmap lookup failed */
++
++		if (!buffer_locked(first_bh))
++			goto out_no_wait;
++	}
++
++	wait_on_buffer(first_bh);
++
++ out_no_wait:
++	err = -EIO;
++	if (!buffer_uptodate(first_bh))
++		goto failed_bh;
++ out:
++	*out_bh = first_bh;
++	return 0;
++
++ failed_bh:
++	brelse(first_bh);
++ failed:
++	return err;
++}
++
++/**
++ * nilfs_mdt_get_block - read or create a buffer on meta data file.
++ * @inode: inode of the meta data file
++ * @blkoff: block offset
++ * @create: create flag
++ * @init_block: initializer used for newly allocated block
++ * @out_bh: output of a pointer to the buffer_head
++ *
++ * nilfs_mdt_get_block() looks up the specified buffer and tries to create
++ * a new buffer if @create is not zero.  On success, the returned buffer is
++ * assured to be either existing or formatted using a buffer lock on success.
++ * @out_bh is substituted only when zero is returned.
++ *
++ * Return Value: On success, it returns 0. On error, the following negative
++ * error code is returned.
++ *
++ * %-ENOMEM - Insufficient memory available.
++ *
++ * %-EIO - I/O error
++ *
++ * %-ENOENT - the specified block does not exist (hole block)
++ *
++ * %-EINVAL - bmap is broken. (the caller should call nilfs_error())
++ *
++ * %-EROFS - Read only filesystem (for create mode)
++ */
++int nilfs_mdt_get_block(struct inode *inode, unsigned long blkoff, int create,
++			void (*init_block)(struct inode *,
++					   struct buffer_head *, void *),
++			struct buffer_head **out_bh)
++{
++	int ret;
++
++	/* Should be rewritten with merging nilfs_mdt_read_block() */
++ retry:
++	ret = nilfs_mdt_read_block(inode, blkoff, out_bh);
++	if (!create || ret != -ENOENT)
++		return ret;
++
++	ret = nilfs_mdt_create_block(inode, blkoff, out_bh, init_block);
++	if (unlikely(ret == -EEXIST)) {
++		/* create = 0; */  /* limit read-create loop retries */
++		goto retry;
++	}
++	return ret;
++}
++
++/**
++ * nilfs_mdt_delete_block - make a hole on the meta data file.
++ * @inode: inode of the meta data file
++ * @block: block offset
++ *
++ * Return Value: On success, zero is returned.
++ * On error, one of the following negative error code is returned.
++ *
++ * %-ENOMEM - Insufficient memory available.
++ *
++ * %-EIO - I/O error
++ *
++ * %-EINVAL - bmap is broken. (the caller should call nilfs_error())
++ */
++int nilfs_mdt_delete_block(struct inode *inode, unsigned long block)
++{
++	struct nilfs_inode_info *ii = NILFS_I(inode);
++	int err;
++
++	err = nilfs_bmap_delete(ii->i_bmap, block);
++	if (likely(!err)) {
++		nilfs_mdt_mark_dirty(inode);
++		nilfs_mdt_forget_block(inode, block);
++	}
++	return err;
++}
++
++/**
++ * nilfs_mdt_forget_block - discard dirty state and try to remove the page
++ * @inode: inode of the meta data file
++ * @block: block offset
++ *
++ * nilfs_mdt_forget_block() clears a dirty flag of the specified buffer, and
++ * tries to release the page including the buffer from a page cache.
++ *
++ * Return Value: On success, 0 is returned. On error, one of the following
++ * negative error code is returned.
++ *
++ * %-EBUSY - page has an active buffer.
++ *
++ * %-ENOENT - page cache has no page addressed by the offset.
++ */
++int nilfs_mdt_forget_block(struct inode *inode, unsigned long block)
++{
++	pgoff_t index = (pgoff_t)block >>
++		(PAGE_CACHE_SHIFT - inode->i_blkbits);
++	struct page *page;
++	unsigned long first_block;
++	int ret = 0;
 +	int still_dirty;
 +
-+	page_cache_get(page);
-+	lock_page(page);
++	page = find_lock_page(inode->i_mapping, index);
++	if (!page)
++		return -ENOENT;
++
 +	wait_on_page_writeback(page);
 +
-+	nilfs_forget_buffer(bh);
++	first_block = (unsigned long)index <<
++		(PAGE_CACHE_SHIFT - inode->i_blkbits);
++	if (page_has_buffers(page)) {
++		struct buffer_head *bh;
++
++		bh = nilfs_page_get_nth_block(page, block - first_block);
++		nilfs_forget_buffer(bh);
++	}
 +	still_dirty = PageDirty(page);
-+	mapping = page->mapping;
 +	unlock_page(page);
 +	page_cache_release(page);
 +
-+	if (!still_dirty && mapping)
-+		invalidate_inode_pages2_range(mapping, index, index);
++	if (still_dirty ||
++	    invalidate_inode_pages2_range(inode->i_mapping, index, index) != 0)
++		ret = -EBUSY;
++	return ret;
 +}
 +
 +/**
-+ * nilfs_btnode_prepare_change_key
-+ *  prepare to move contents of the block for old key to one of new key.
-+ *  the old buffer will not be removed, but might be reused for new buffer.
-+ *  it might return -ENOMEM because of memory allocation errors,
-+ *  and might return -EIO because of disk read errors.
++ * nilfs_mdt_mark_block_dirty - mark a block on the meta data file dirty.
++ * @inode: inode of the meta data file
++ * @block: block offset
++ *
++ * Return Value: On success, it returns 0. On error, the following negative
++ * error code is returned.
++ *
++ * %-ENOMEM - Insufficient memory available.
++ *
++ * %-EIO - I/O error
++ *
++ * %-ENOENT - the specified block does not exist (hole block)
++ *
++ * %-EINVAL - bmap is broken. (the caller should call nilfs_error())
 + */
-+int nilfs_btnode_prepare_change_key(struct address_space *btnc,
-+				    struct nilfs_btnode_chkey_ctxt *ctxt)
++int nilfs_mdt_mark_block_dirty(struct inode *inode, unsigned long block)
 +{
-+	struct buffer_head *obh, *nbh;
-+	struct inode *inode = NILFS_BTNC_I(btnc);
-+	__u64 oldkey = ctxt->oldkey, newkey = ctxt->newkey;
++	struct buffer_head *bh;
 +	int err;
 +
-+	if (oldkey == newkey)
-+		return 0;
++	err = nilfs_mdt_read_block(inode, block, &bh);
++	if (unlikely(err))
++		return err;
++	nilfs_mark_buffer_dirty(bh);
++	nilfs_mdt_mark_dirty(inode);
++	brelse(bh);
++	return 0;
++}
 +
-+	obh = ctxt->bh;
-+	ctxt->newbh = NULL;
++int nilfs_mdt_fetch_dirty(struct inode *inode)
++{
++	struct nilfs_inode_info *ii = NILFS_I(inode);
 +
-+	if (inode->i_blkbits == PAGE_CACHE_SHIFT) {
-+		lock_page(obh->b_page);
-+		/*
-+		 * We cannot call radix_tree_preload for the kernels older
-+		 * than 2.6.23, because it is not exported for modules.
-+		 */
-+		err = radix_tree_preload(GFP_NOFS & ~__GFP_HIGHMEM);
-+		if (err)
-+			goto failed_unlock;
-+		/* BUG_ON(oldkey != obh->b_page->index); */
-+		if (unlikely(oldkey != obh->b_page->index))
-+			NILFS_PAGE_BUG(obh->b_page,
-+				       "invalid oldkey %lld (newkey=%lld)",
-+				       (unsigned long long)oldkey,
-+				       (unsigned long long)newkey);
++	if (nilfs_bmap_test_and_clear_dirty(ii->i_bmap)) {
++		set_bit(NILFS_I_DIRTY, &ii->i_state);
++		return 1;
++	}
++	return test_bit(NILFS_I_DIRTY, &ii->i_state);
++}
 +
-+retry:
-+		spin_lock_irq(&btnc->tree_lock);
-+		err = radix_tree_insert(&btnc->page_tree, newkey, obh->b_page);
-+		spin_unlock_irq(&btnc->tree_lock);
-+		/*
-+		 * Note: page->index will not change to newkey until
-+		 * nilfs_btnode_commit_change_key() will be called.
-+		 * To protect the page in intermediate state, the page lock
-+		 * is held.
-+		 */
-+		radix_tree_preload_end();
-+		if (!err)
-+			return 0;
-+		else if (err != -EEXIST)
-+			goto failed_unlock;
++static int
++nilfs_mdt_write_page(struct page *page, struct writeback_control *wbc)
++{
++	struct inode *inode = container_of(page->mapping,
++					   struct inode, i_data);
++	struct super_block *sb = inode->i_sb;
++	struct nilfs_sb_info *writer = NULL;
++	int err = 0;
 +
-+		err = invalidate_inode_pages2_range(btnc, newkey, newkey);
-+		if (!err)
-+			goto retry;
-+		/* fallback to copy mode */
-+		unlock_page(obh->b_page);
++	redirty_page_for_writepage(wbc, page);
++	unlock_page(page);
++
++	if (page->mapping->assoc_mapping)
++		return 0; /* Do not request flush for shadow page cache */
++	if (!sb) {
++		writer = nilfs_get_writer(NILFS_MDT(inode)->mi_nilfs);
++		if (!writer)
++			return -EROFS;
++		sb = writer->s_super;
 +	}
 +
-+	err = nilfs_btnode_get(btnc, newkey, 0, &nbh, 1);
-+	if (likely(!err)) {
-+		BUG_ON(nbh == obh);
-+		ctxt->newbh = nbh;
-+	}
-+	return err;
++	if (wbc->sync_mode == WB_SYNC_ALL)
++		err = nilfs_construct_segment(sb);
++	else if (wbc->for_reclaim)
++		nilfs_flush_segment(sb, inode->i_ino);
 +
-+ failed_unlock:
-+	unlock_page(obh->b_page);
++	if (writer)
++		nilfs_put_writer(NILFS_MDT(inode)->mi_nilfs);
 +	return err;
 +}
 +
-+/**
-+ * nilfs_btnode_commit_change_key
-+ *  commit the change_key operation prepared by prepare_change_key().
-+ */
-+void nilfs_btnode_commit_change_key(struct address_space *btnc,
-+				    struct nilfs_btnode_chkey_ctxt *ctxt)
-+{
-+	struct buffer_head *obh = ctxt->bh, *nbh = ctxt->newbh;
-+	__u64 oldkey = ctxt->oldkey, newkey = ctxt->newkey;
-+	struct page *opage;
 +
-+	if (oldkey == newkey)
-+		return;
++static struct address_space_operations def_mdt_aops = {
++	.writepage		= nilfs_mdt_write_page,
++};
 +
-+	if (nbh == NULL) {	/* blocksize == pagesize */
-+		opage = obh->b_page;
-+		if (unlikely(oldkey != opage->index))
-+			NILFS_PAGE_BUG(opage,
-+				       "invalid oldkey %lld (newkey=%lld)",
-+				       (unsigned long long)oldkey,
-+				       (unsigned long long)newkey);
-+		if (!test_set_buffer_dirty(obh) && TestSetPageDirty(opage))
-+			BUG();
++static struct inode_operations def_mdt_iops;
++static struct file_operations def_mdt_fops;
 +
-+		spin_lock_irq(&btnc->tree_lock);
-+		radix_tree_delete(&btnc->page_tree, oldkey);
-+		radix_tree_tag_set(&btnc->page_tree, newkey,
-+				   PAGECACHE_TAG_DIRTY);
-+		spin_unlock_irq(&btnc->tree_lock);
-+
-+		opage->index = obh->b_blocknr = newkey;
-+		unlock_page(opage);
-+	} else {
-+		nilfs_copy_buffer(nbh, obh);
-+		nilfs_btnode_mark_dirty(nbh);
-+
-+		nbh->b_blocknr = newkey;
-+		ctxt->bh = nbh;
-+		nilfs_btnode_delete(obh); /* will decrement bh->b_count */
-+	}
-+}
-+
-+/**
-+ * nilfs_btnode_abort_change_key
-+ *  abort the change_key operation prepared by prepare_change_key().
-+ */
-+void nilfs_btnode_abort_change_key(struct address_space *btnc,
-+				   struct nilfs_btnode_chkey_ctxt *ctxt)
-+{
-+	struct buffer_head *nbh = ctxt->newbh;
-+	__u64 oldkey = ctxt->oldkey, newkey = ctxt->newkey;
-+
-+	if (oldkey == newkey)
-+		return;
-+
-+	if (nbh == NULL) {	/* blocksize == pagesize */
-+		spin_lock_irq(&btnc->tree_lock);
-+		radix_tree_delete(&btnc->page_tree, newkey);
-+		spin_unlock_irq(&btnc->tree_lock);
-+		unlock_page(ctxt->bh->b_page);
-+	} else
-+		brelse(nbh);
-+}
-diff -puN /dev/null fs/nilfs2/btnode.h
---- /dev/null
-+++ a/fs/nilfs2/btnode.h
-@@ -0,0 +1,58 @@
 +/*
-+ * btnode.h - NILFS B-tree node cache
++ * NILFS2 uses pseudo inodes for meta data files such as DAT, cpfile, sufile,
++ * ifile, or gcinodes.  This allows the B-tree code and segment constructor
++ * to treat them like regular files, and this helps to simplify the
++ * implementation.
++ *   On the other hand, some of the pseudo inodes have an irregular point:
++ * They don't have valid inode->i_sb pointer because their lifetimes are
++ * longer than those of the super block structs; they may continue for
++ * several consecutive mounts/umounts.  This would need discussions.
++ */
++struct inode *
++nilfs_mdt_new_common(struct the_nilfs *nilfs, struct super_block *sb,
++		     ino_t ino, gfp_t gfp_mask)
++{
++	struct inode *inode = nilfs_alloc_inode(sb);
++
++	if (!inode)
++		return NULL;
++	else {
++		struct address_space * const mapping = &inode->i_data;
++		struct nilfs_mdt_info *mi = kzalloc(sizeof(*mi), GFP_NOFS);
++
++		if (!mi) {
++			nilfs_destroy_inode(inode);
++			return NULL;
++		}
++		mi->mi_nilfs = nilfs;
++		init_rwsem(&mi->mi_sem);
++
++		inode->i_sb = sb; /* sb may be NULL for some meta data files */
++		inode->i_blkbits = nilfs->ns_blocksize_bits;
++		inode->i_flags = 0;
++		atomic_set(&inode->i_count, 1);
++		inode->i_nlink = 1;
++		inode->i_ino = ino;
++		inode->i_mode = S_IFREG;
++		inode->i_private = mi;
++
++#ifdef INIT_UNUSED_INODE_FIELDS
++		atomic_set(&inode->i_writecount, 0);
++		inode->i_size = 0;
++		inode->i_blocks = 0;
++		inode->i_bytes = 0;
++		inode->i_generation = 0;
++#ifdef CONFIG_QUOTA
++		memset(&inode->i_dquot, 0, sizeof(inode->i_dquot));
++#endif
++		inode->i_pipe = NULL;
++		inode->i_bdev = NULL;
++		inode->i_cdev = NULL;
++		inode->i_rdev = 0;
++#ifdef CONFIG_SECURITY
++		inode->i_security = NULL;
++#endif
++		inode->dirtied_when = 0;
++
++		INIT_LIST_HEAD(&inode->i_list);
++		INIT_LIST_HEAD(&inode->i_sb_list);
++		inode->i_state = 0;
++#endif
++
++		spin_lock_init(&inode->i_lock);
++		mutex_init(&inode->i_mutex);
++		init_rwsem(&inode->i_alloc_sem);
++
++		mapping->host = NULL;  /* instead of inode */
++		mapping->flags = 0;
++		mapping_set_gfp_mask(mapping, gfp_mask);
++		mapping->assoc_mapping = NULL;
++		mapping->backing_dev_info = nilfs->ns_bdi;
++
++		inode->i_mapping = mapping;
++	}
++
++	return inode;
++}
++
++struct inode *nilfs_mdt_new(struct the_nilfs *nilfs, struct super_block *sb,
++			    ino_t ino, gfp_t gfp_mask)
++{
++	struct inode *inode = nilfs_mdt_new_common(nilfs, sb, ino, gfp_mask);
++
++	if (!inode)
++		return NULL;
++
++	inode->i_op = &def_mdt_iops;
++	inode->i_fop = &def_mdt_fops;
++	inode->i_mapping->a_ops = &def_mdt_aops;
++	return inode;
++}
++
++void nilfs_mdt_set_entry_size(struct inode *inode, unsigned entry_size,
++			      unsigned header_size)
++{
++	struct nilfs_mdt_info *mi = NILFS_MDT(inode);
++
++	mi->mi_entry_size = entry_size;
++	mi->mi_entries_per_block = (1 << inode->i_blkbits) / entry_size;
++	mi->mi_first_entry_offset = DIV_ROUND_UP(header_size, entry_size);
++}
++
++void nilfs_mdt_set_shadow(struct inode *orig, struct inode *shadow)
++{
++	shadow->i_mapping->assoc_mapping = orig->i_mapping;
++	NILFS_I(shadow)->i_btnode_cache.assoc_mapping =
++		&NILFS_I(orig)->i_btnode_cache;
++}
++
++void nilfs_mdt_clear(struct inode *inode)
++{
++	struct nilfs_inode_info *ii = NILFS_I(inode);
++
++	invalidate_mapping_pages(inode->i_mapping, 0, -1);
++	truncate_inode_pages(inode->i_mapping, 0);
++
++	nilfs_bmap_clear(ii->i_bmap);
++	nilfs_btnode_cache_clear(&ii->i_btnode_cache);
++}
++
++void nilfs_mdt_destroy(struct inode *inode)
++{
++	struct nilfs_mdt_info *mdi = NILFS_MDT(inode);
++
++	kfree(mdi->mi_bgl); /* kfree(NULL) is safe */
++	kfree(mdi);
++	nilfs_destroy_inode(inode);
++}
+diff -puN /dev/null fs/nilfs2/mdt.h
+--- /dev/null
++++ a/fs/nilfs2/mdt.h
+@@ -0,0 +1,125 @@
++/*
++ * mdt.h - NILFS meta data file prototype and definitions
 + *
 + * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
 + *
@@ -391,45 +637,112 @@ diff -puN /dev/null fs/nilfs2/btnode.h
 + * along with this program; if not, write to the Free Software
 + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 + *
-+ * Written by Seiji Kihara <kihara@osrg.net>
-+ * Revised by Ryusuke Konishi <ryusuke@osrg.net>
++ * Written by Ryusuke Konishi <ryusuke@osrg.net>
 + */
 +
-+#ifndef _NILFS_BTNODE_H
-+#define _NILFS_BTNODE_H
++#ifndef _NILFS_MDT_H
++#define _NILFS_MDT_H
 +
-+#include <linux/types.h>
 +#include <linux/buffer_head.h>
-+#include <linux/fs.h>
-+#include <linux/backing-dev.h>
++#include <linux/blockgroup_lock.h>
++#include "nilfs.h"
++#include "page.h"
 +
-+
-+struct nilfs_btnode_chkey_ctxt {
-+	__u64 oldkey;
-+	__u64 newkey;
-+	struct buffer_head *bh;
-+	struct buffer_head *newbh;
++/**
++ * struct nilfs_mdt_info - on-memory private data of meta data files
++ * @mi_nilfs: back pointer to the_nilfs struct
++ * @mi_sem: reader/writer semaphore for meta data operations
++ * @mi_bgl: per-blockgroup locking
++ * @mi_entry_size: size of an entry
++ * @mi_first_entry_offset: offset to the first entry
++ * @mi_entries_per_block: number of entries in a block
++ * @mi_blocks_per_group: number of blocks in a group
++ * @mi_blocks_per_desc_block: number of blocks per descriptor block
++ */
++struct nilfs_mdt_info {
++	struct the_nilfs       *mi_nilfs;
++	struct rw_semaphore	mi_sem;
++	struct blockgroup_lock *mi_bgl;
++	unsigned		mi_entry_size;
++	unsigned		mi_first_entry_offset;
++	unsigned long		mi_entries_per_block;
++	unsigned long		mi_blocks_per_group;
++	unsigned long		mi_blocks_per_desc_block;
 +};
 +
-+void nilfs_btnode_cache_init_once(struct address_space *);
-+void nilfs_btnode_cache_init(struct address_space *);
-+void nilfs_btnode_cache_clear(struct address_space *);
-+int nilfs_btnode_submit_block(struct address_space *, __u64, sector_t,
-+			      struct buffer_head **, int);
-+int nilfs_btnode_get(struct address_space *, __u64, sector_t,
-+		     struct buffer_head **, int);
-+void nilfs_btnode_delete(struct buffer_head *);
-+int nilfs_btnode_prepare_change_key(struct address_space *,
-+				    struct nilfs_btnode_chkey_ctxt *);
-+void nilfs_btnode_commit_change_key(struct address_space *,
-+				    struct nilfs_btnode_chkey_ctxt *);
-+void nilfs_btnode_abort_change_key(struct address_space *,
-+				   struct nilfs_btnode_chkey_ctxt *);
++static inline struct nilfs_mdt_info *NILFS_MDT(const struct inode *inode)
++{
++	return inode->i_private;
++}
 +
-+#define nilfs_btnode_mark_dirty(bh)	nilfs_mark_buffer_dirty(bh)
++static inline struct the_nilfs *NILFS_I_NILFS(struct inode *inode)
++{
++	struct super_block *sb = inode->i_sb;
++
++	return sb ? NILFS_SB(sb)->s_nilfs : NILFS_MDT(inode)->mi_nilfs;
++}
++
++/* Default GFP flags using highmem */
++#define NILFS_MDT_GFP      (__GFP_WAIT | __GFP_IO | __GFP_HIGHMEM)
++
++int nilfs_mdt_get_block(struct inode *, unsigned long, int,
++			void (*init_block)(struct inode *,
++					   struct buffer_head *, void *),
++			struct buffer_head **);
++int nilfs_mdt_delete_block(struct inode *, unsigned long);
++int nilfs_mdt_forget_block(struct inode *, unsigned long);
++int nilfs_mdt_mark_block_dirty(struct inode *, unsigned long);
++int nilfs_mdt_fetch_dirty(struct inode *);
++
++struct inode *nilfs_mdt_new(struct the_nilfs *, struct super_block *, ino_t,
++			    gfp_t);
++struct inode *nilfs_mdt_new_common(struct the_nilfs *, struct super_block *,
++				   ino_t, gfp_t);
++void nilfs_mdt_destroy(struct inode *);
++void nilfs_mdt_clear(struct inode *);
++void nilfs_mdt_set_entry_size(struct inode *, unsigned, unsigned);
++void nilfs_mdt_set_shadow(struct inode *, struct inode *);
 +
 +
-+#endif	/* _NILFS_BTNODE_H */
++#define nilfs_mdt_mark_buffer_dirty(bh)	nilfs_mark_buffer_dirty(bh)
++
++static inline void nilfs_mdt_mark_dirty(struct inode *inode)
++{
++	if (!test_bit(NILFS_I_DIRTY, &NILFS_I(inode)->i_state))
++		set_bit(NILFS_I_DIRTY, &NILFS_I(inode)->i_state);
++}
++
++static inline void nilfs_mdt_clear_dirty(struct inode *inode)
++{
++	clear_bit(NILFS_I_DIRTY, &NILFS_I(inode)->i_state);
++}
++
++static inline __u64 nilfs_mdt_cno(struct inode *inode)
++{
++	return NILFS_MDT(inode)->mi_nilfs->ns_cno;
++}
++
++#define nilfs_mdt_bgl_lock(inode, bg) \
++	(&NILFS_MDT(inode)->mi_bgl->locks[(bg) & (NR_BG_LOCKS-1)].lock)
++
++
++static inline int
++nilfs_mdt_read_inode_direct(struct inode *inode, struct buffer_head *bh,
++			    unsigned n)
++{
++	return nilfs_read_inode_common(
++		inode, (struct nilfs_inode *)(bh->b_data + n));
++}
++
++static inline void
++nilfs_mdt_write_inode_direct(struct inode *inode, struct buffer_head *bh,
++			     unsigned n)
++{
++	nilfs_write_inode_common(
++		inode, (struct nilfs_inode *)(bh->b_data + n), 1);
++}
++
++#endif /* _NILFS_MDT_H */
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
