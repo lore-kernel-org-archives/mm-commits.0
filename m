@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-directory-entry-operations.patch added to -mm tree
-Date: Wed, 17 Sep 2008 13:27:57 -0700
-Message-ID: <200809172027.m8HKRvYs029001@imap1.linux-foundation.org>
+Subject: + nilfs2-segment-buffer.patch added to -mm tree
+Date: Wed, 17 Sep 2008 13:28:12 -0700
+Message-ID: <200809172028.m8HKSC8v029024@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46655 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42735 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752733AbYIQU2M (ORCPT
+	by vger.kernel.org with ESMTP id S1753164AbYIQU2U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Sep 2008 16:28:12 -0400
+	Wed, 17 Sep 2008 16:28:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amagai.yoshiji@lab.ntt.co.jp, konishi.ryusuke@lab.ntt.co.jp
+Cc: konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     nilfs2: directory entry operations
+     nilfs2: segment buffer
 has been added to the -mm tree.  Its filename is
-     nilfs2-directory-entry-operations.patch
+     nilfs2-segment-buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,26 +34,25 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: directory entry operations
-From: Yoshiji Amagai <amagai.yoshiji@lab.ntt.co.jp>
+Subject: nilfs2: segment buffer
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-This adds directory handling functions, most of which comes from the ext2
-file system.
+This adds the segment buffer which is used to constuct logs.
 
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Signed-off-by: Yoshiji Amagai <amagai.yoshiji@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/dir.c |  711 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 711 insertions(+)
+ fs/nilfs2/segbuf.c |  461 +++++++++++++++++++++++++++++++++++++++++++
+ fs/nilfs2/segbuf.h |  203 ++++++++++++++++++
+ 2 files changed, 664 insertions(+)
 
-diff -puN /dev/null fs/nilfs2/dir.c
+diff -puN /dev/null fs/nilfs2/segbuf.c
 --- /dev/null
-+++ a/fs/nilfs2/dir.c
-@@ -0,0 +1,711 @@
++++ a/fs/nilfs2/segbuf.c
+@@ -0,0 +1,461 @@
 +/*
-+ * dir.c - NILFS directory entry operations
++ * segbuf.c - NILFS segment buffer
 + *
 + * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
 + *
@@ -71,705 +70,684 @@ diff -puN /dev/null fs/nilfs2/dir.c
 + * along with this program; if not, write to the Free Software
 + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 + *
-+ * Modified for NILFS by Amagai Yoshiji <amagai@osrg.net>
-+ */
-+/*
-+ *  linux/fs/ext2/dir.c
++ * Written by Ryusuke Konishi <ryusuke@osrg.net>
 + *
-+ * Copyright (C) 1992, 1993, 1994, 1995
-+ * Remy Card (card@masi.ibp.fr)
-+ * Laboratoire MASI - Institut Blaise Pascal
-+ * Universite Pierre et Marie Curie (Paris VI)
-+ *
-+ *  from
-+ *
-+ *  linux/fs/minix/dir.c
-+ *
-+ *  Copyright (C) 1991, 1992  Linus Torvalds
-+ *
-+ *  ext2 directory handling functions
-+ *
-+ *  Big-endian to little-endian byte-swapping/bitmaps by
-+ *        David S. Miller (davem@caip.rutgers.edu), 1995
-+ *
-+ * All code that works with directory layout had been switched to pagecache
-+ * and moved here. AV
 + */
 +
-+#include <linux/pagemap.h>
-+#include <linux/smp_lock.h>
-+#include "nilfs.h"
++#include <linux/buffer_head.h>
++#include <linux/writeback.h>
++#include <linux/crc32.h>
 +#include "page.h"
++#include "segbuf.h"
++#include "seglist.h"
 +
-+/*
-+ * nilfs uses block-sized chunks. Arguably, sector-sized ones would be
-+ * more robust, but we have what we have
-+ */
-+static inline unsigned nilfs_chunk_size(struct inode *inode)
++
++static struct kmem_cache *nilfs_segbuf_cachep;
++
++static void nilfs_segbuf_init_once(void *obj)
 +{
-+	return inode->i_sb->s_blocksize;
++	memset(obj, 0, sizeof(struct nilfs_segment_buffer));
 +}
 +
-+static inline void nilfs_put_page(struct page *page)
++int __init nilfs_init_segbuf_cache(void)
 +{
-+	kunmap(page);
-+	page_cache_release(page);
++	nilfs_segbuf_cachep =
++		kmem_cache_create("nilfs2_segbuf_cache",
++				  sizeof(struct nilfs_segment_buffer),
++				  0, SLAB_RECLAIM_ACCOUNT,
++				  nilfs_segbuf_init_once);
++
++	return (nilfs_segbuf_cachep == NULL) ? -ENOMEM : 0;
 +}
 +
-+static inline unsigned long dir_pages(struct inode *inode)
++void nilfs_destroy_segbuf_cache(void)
 +{
-+	return (inode->i_size+PAGE_CACHE_SIZE-1)>>PAGE_CACHE_SHIFT;
++	kmem_cache_destroy(nilfs_segbuf_cachep);
 +}
 +
-+/*
-+ * Return the offset into page `page_nr' of the last valid
-+ * byte in that page, plus one.
-+ */
-+static unsigned nilfs_last_byte(struct inode *inode, unsigned long page_nr)
++struct nilfs_segment_buffer *nilfs_segbuf_new(struct super_block *sb)
 +{
-+	unsigned last_byte = inode->i_size;
++	struct nilfs_segment_buffer *segbuf;
 +
-+	last_byte -= page_nr << PAGE_CACHE_SHIFT;
-+	if (last_byte > PAGE_CACHE_SIZE)
-+		last_byte = PAGE_CACHE_SIZE;
-+	return last_byte;
++	segbuf = kmem_cache_alloc(nilfs_segbuf_cachep, GFP_NOFS);
++	if (unlikely(!segbuf))
++		return NULL;
++
++	segbuf->sb_super = sb;
++	INIT_LIST_HEAD(&segbuf->sb_list);
++	INIT_LIST_HEAD(&segbuf->sb_segsum_buffers);
++	INIT_LIST_HEAD(&segbuf->sb_payload_buffers);
++	segbuf->sb_segent = NULL;
++	return segbuf;
 +}
 +
-+static int nilfs_prepare_chunk_uninterruptible(struct page *page,
-+					       struct address_space *mapping,
-+					       unsigned from, unsigned to)
++void nilfs_segbuf_free(struct nilfs_segment_buffer *segbuf)
 +{
-+	loff_t pos = page_offset(page) + from;
-+	return block_write_begin(NULL, mapping, pos, to - from,
-+				 AOP_FLAG_UNINTERRUPTIBLE, &page,
-+				 NULL, nilfs_get_block);
-+}
++	struct nilfs_segment_entry *ent = segbuf->sb_segent;
 +
-+static int nilfs_prepare_chunk(struct page *page,
-+			       struct address_space *mapping,
-+			       unsigned from, unsigned to)
-+{
-+	loff_t pos = page_offset(page) + from;
-+	return block_write_begin(NULL, mapping, pos, to - from, 0, &page,
-+				 NULL, nilfs_get_block);
-+}
-+
-+static int nilfs_commit_chunk(struct page *page,
-+			      struct address_space *mapping,
-+			      unsigned from, unsigned to)
-+{
-+	struct inode *dir = mapping->host;
-+	struct nilfs_sb_info *sbi = NILFS_SB(dir->i_sb);
-+	loff_t pos = page_offset(page) + from;
-+	unsigned len = to - from;
-+	unsigned nr_dirty, copied;
-+	int err;
-+
-+	nr_dirty = nilfs_page_count_clean_buffers(page, from, to);
-+	copied = block_write_end(NULL, mapping, pos, len, len, page, NULL);
-+	if (pos + copied > dir->i_size) {
-+		i_size_write(dir, pos + copied);
-+		mark_inode_dirty(dir);
++	if (ent != NULL && list_empty(&ent->list)) {
++		/* free isolated segment list head */
++		nilfs_free_segment_entry(segbuf->sb_segent);
++		segbuf->sb_segent = NULL;
 +	}
-+	if (IS_DIRSYNC(dir))
-+		nilfs_set_transaction_flag(NILFS_TI_SYNC);
-+	err = nilfs_set_file_dirty(sbi, dir, nr_dirty);
-+	unlock_page(page);
-+	return err;
++	kmem_cache_free(nilfs_segbuf_cachep, segbuf);
 +}
 +
-+static void nilfs_check_page(struct page *page)
++int nilfs_segbuf_map(struct nilfs_segment_buffer *segbuf, __u64 segnum,
++		     unsigned long offset, struct the_nilfs *nilfs)
 +{
-+	struct inode *dir = page->mapping->host;
-+	struct super_block *sb = dir->i_sb;
-+	unsigned chunk_size = nilfs_chunk_size(dir);
-+	char *kaddr = page_address(page);
-+	unsigned offs, rec_len;
-+	unsigned limit = PAGE_CACHE_SIZE;
-+	struct nilfs_dir_entry *p;
-+	char *error;
++	struct nilfs_segment_entry *ent;
 +
-+	if ((dir->i_size >> PAGE_CACHE_SHIFT) == page->index) {
-+		limit = dir->i_size & ~PAGE_CACHE_MASK;
-+		if (limit & (chunk_size - 1))
-+			goto Ebadsize;
-+		if (!limit)
-+			goto out;
++	segbuf->sb_segnum = segnum;
++	nilfs_get_segment_range(nilfs, segnum, &segbuf->sb_fseg_start,
++				&segbuf->sb_fseg_end);
++
++	segbuf->sb_pseg_start = segbuf->sb_fseg_start + offset;
++	segbuf->sb_rest_blocks =
++		segbuf->sb_fseg_end - segbuf->sb_pseg_start + 1;
++
++	/* Attach a segment list head */
++	ent = segbuf->sb_segent;
++	if (ent == NULL) {
++		segbuf->sb_segent = nilfs_alloc_segment_entry(segnum);
++		if (unlikely(!segbuf->sb_segent))
++			return -ENOMEM;
++	} else {
++		BUG_ON(ent->bh_su || !list_empty(&ent->list));
++		ent->segnum = segnum;
 +	}
-+	for (offs = 0; offs <= limit - NILFS_DIR_REC_LEN(1); offs += rec_len) {
-+		p = (struct nilfs_dir_entry *)(kaddr + offs);
-+		rec_len = le16_to_cpu(p->rec_len);
-+
-+		if (rec_len < NILFS_DIR_REC_LEN(1))
-+			goto Eshort;
-+		if (rec_len & 3)
-+			goto Ealign;
-+		if (rec_len < NILFS_DIR_REC_LEN(p->name_len))
-+			goto Enamelen;
-+		if (((offs + rec_len - 1) ^ offs) & ~(chunk_size-1))
-+			goto Espan;
-+	}
-+	if (offs != limit)
-+		goto Eend;
-+out:
-+	SetPageChecked(page);
-+	return;
-+
-+	/* Too bad, we had an error */
-+
-+Ebadsize:
-+	nilfs_error(sb, "nilfs_check_page",
-+		    "size of directory #%lu is not a multiple of chunk size",
-+		    dir->i_ino
-+	);
-+	goto fail;
-+Eshort:
-+	error = "rec_len is smaller than minimal";
-+	goto bad_entry;
-+Ealign:
-+	error = "unaligned directory entry";
-+	goto bad_entry;
-+Enamelen:
-+	error = "rec_len is too small for name_len";
-+	goto bad_entry;
-+Espan:
-+	error = "directory entry across blocks";
-+bad_entry:
-+	nilfs_error(sb, "nilfs_check_page", "bad entry in directory #%lu: %s - "
-+		    "offset=%lu, inode=%lu, rec_len=%d, name_len=%d",
-+		    dir->i_ino, error, (page->index<<PAGE_CACHE_SHIFT)+offs,
-+		    (unsigned long) le64_to_cpu(p->inode),
-+		    rec_len, p->name_len);
-+	goto fail;
-+Eend:
-+	p = (struct nilfs_dir_entry *)(kaddr + offs);
-+	nilfs_error(sb, "nilfs_check_page",
-+		    "entry in directory #%lu spans the page boundary"
-+		    "offset=%lu, inode=%lu",
-+		    dir->i_ino, (page->index<<PAGE_CACHE_SHIFT)+offs,
-+		    (unsigned long) le64_to_cpu(p->inode));
-+fail:
-+	SetPageChecked(page);
-+	SetPageError(page);
-+}
-+
-+static struct page *nilfs_get_page(struct inode *dir, unsigned long n)
-+{
-+	struct address_space *mapping = dir->i_mapping;
-+	struct page *page = read_cache_page(mapping, n,
-+				(filler_t *)mapping->a_ops->readpage, NULL);
-+	if (!IS_ERR(page)) {
-+		wait_on_page_locked(page);
-+		kmap(page);
-+		if (!PageUptodate(page))
-+			goto fail;
-+		if (!PageChecked(page))
-+			nilfs_check_page(page);
-+		if (PageError(page))
-+			goto fail;
-+	}
-+	return page;
-+
-+fail:
-+	nilfs_put_page(page);
-+	return ERR_PTR(-EIO);
-+}
-+
-+/*
-+ * NOTE! unlike strncmp, nilfs_match returns 1 for success, 0 for failure.
-+ *
-+ * len <= NILFS_NAME_LEN and de != NULL are guaranteed by caller.
-+ */
-+static int
-+nilfs_match(int len, const char * const name, struct nilfs_dir_entry *de)
-+{
-+	if (len != de->name_len)
-+		return 0;
-+	if (!de->inode)
-+		return 0;
-+	return !memcmp(name, de->name, len);
-+}
-+
-+/*
-+ * p is at least 6 bytes before the end of page
-+ */
-+static struct nilfs_dir_entry *nilfs_next_entry(struct nilfs_dir_entry *p)
-+{
-+	return (struct nilfs_dir_entry *)((char *)p + le16_to_cpu(p->rec_len));
-+}
-+
-+static unsigned char
-+nilfs_filetype_table[NILFS_FT_MAX] = {
-+	[NILFS_FT_UNKNOWN]	= DT_UNKNOWN,
-+	[NILFS_FT_REG_FILE]	= DT_REG,
-+	[NILFS_FT_DIR]		= DT_DIR,
-+	[NILFS_FT_CHRDEV]	= DT_CHR,
-+	[NILFS_FT_BLKDEV]	= DT_BLK,
-+	[NILFS_FT_FIFO]		= DT_FIFO,
-+	[NILFS_FT_SOCK]		= DT_SOCK,
-+	[NILFS_FT_SYMLINK]	= DT_LNK,
-+};
-+
-+#define S_SHIFT 12
-+static unsigned char
-+nilfs_type_by_mode[S_IFMT >> S_SHIFT] = {
-+	[S_IFREG >> S_SHIFT]	= NILFS_FT_REG_FILE,
-+	[S_IFDIR >> S_SHIFT]	= NILFS_FT_DIR,
-+	[S_IFCHR >> S_SHIFT]	= NILFS_FT_CHRDEV,
-+	[S_IFBLK >> S_SHIFT]	= NILFS_FT_BLKDEV,
-+	[S_IFIFO >> S_SHIFT]	= NILFS_FT_FIFO,
-+	[S_IFSOCK >> S_SHIFT]	= NILFS_FT_SOCK,
-+	[S_IFLNK >> S_SHIFT]	= NILFS_FT_SYMLINK,
-+};
-+
-+static void nilfs_set_de_type(struct nilfs_dir_entry *de, struct inode *inode)
-+{
-+	mode_t mode = inode->i_mode;
-+
-+	de->file_type = nilfs_type_by_mode[(mode & S_IFMT)>>S_SHIFT];
-+}
-+
-+static int nilfs_readdir(struct file *filp, void *dirent, filldir_t filldir)
-+{
-+	loff_t pos = filp->f_pos;
-+	struct inode *inode = filp->f_dentry->d_inode;
-+	struct super_block *sb = inode->i_sb;
-+	unsigned int offset = pos & ~PAGE_CACHE_MASK;
-+	unsigned long n = pos >> PAGE_CACHE_SHIFT;
-+	unsigned long npages = dir_pages(inode);
-+/*	unsigned chunk_mask = ~(nilfs_chunk_size(inode)-1); */
-+	unsigned char *types = NULL;
-+	int ret;
-+
-+	if (pos > inode->i_size - NILFS_DIR_REC_LEN(1))
-+		goto success;
-+
-+	types = nilfs_filetype_table;
-+
-+	for ( ; n < npages; n++, offset = 0) {
-+		char *kaddr, *limit;
-+		struct nilfs_dir_entry *de;
-+		struct page *page = nilfs_get_page(inode, n);
-+
-+		if (IS_ERR(page)) {
-+			nilfs_error(sb, __func__, "bad page in #%lu",
-+				    inode->i_ino);
-+			filp->f_pos += PAGE_CACHE_SIZE - offset;
-+			ret = -EIO;
-+			goto done;
-+		}
-+		kaddr = page_address(page);
-+		de = (struct nilfs_dir_entry *)(kaddr + offset);
-+		limit = kaddr + nilfs_last_byte(inode, n) -
-+			NILFS_DIR_REC_LEN(1);
-+		for ( ; (char *)de <= limit; de = nilfs_next_entry(de)) {
-+			if (de->rec_len == 0) {
-+				nilfs_error(sb, __func__,
-+					    "zero-length directory entry");
-+				ret = -EIO;
-+				nilfs_put_page(page);
-+				goto done;
-+			}
-+			if (de->inode) {
-+				int over;
-+				unsigned char d_type = DT_UNKNOWN;
-+
-+				if (types && de->file_type < NILFS_FT_MAX)
-+					d_type = types[de->file_type];
-+
-+				offset = (char *)de - kaddr;
-+				over = filldir(dirent, de->name, de->name_len,
-+						(n<<PAGE_CACHE_SHIFT) | offset,
-+						le64_to_cpu(de->inode), d_type);
-+				if (over) {
-+					nilfs_put_page(page);
-+					goto success;
-+				}
-+			}
-+			filp->f_pos += le16_to_cpu(de->rec_len);
-+		}
-+		nilfs_put_page(page);
-+	}
-+
-+success:
-+	ret = 0;
-+done:
-+	return ret;
-+}
-+
-+/*
-+ *	nilfs_find_entry()
-+ *
-+ * finds an entry in the specified directory with the wanted name. It
-+ * returns the page in which the entry was found, and the entry itself
-+ * (as a parameter - res_dir). Page is returned mapped and unlocked.
-+ * Entry is guaranteed to be valid.
-+ */
-+struct nilfs_dir_entry *
-+nilfs_find_entry(struct inode *dir, struct dentry *dentry,
-+		 struct page **res_page)
-+{
-+	const char *name = dentry->d_name.name;
-+	int namelen = dentry->d_name.len;
-+	unsigned reclen = NILFS_DIR_REC_LEN(namelen);
-+	unsigned long start, n;
-+	unsigned long npages = dir_pages(dir);
-+	struct page *page = NULL;
-+	struct nilfs_inode_info *ei = NILFS_I(dir);
-+	struct nilfs_dir_entry *de;
-+
-+	if (npages == 0)
-+		goto out;
-+
-+	/* OFFSET_CACHE */
-+	*res_page = NULL;
-+
-+	start = ei->i_dir_start_lookup;
-+	if (start >= npages)
-+		start = 0;
-+	n = start;
-+	do {
-+		char *kaddr;
-+		page = nilfs_get_page(dir, n);
-+		if (!IS_ERR(page)) {
-+			kaddr = page_address(page);
-+			de = (struct nilfs_dir_entry *)kaddr;
-+			kaddr += nilfs_last_byte(dir, n) - reclen;
-+			while ((char *) de <= kaddr) {
-+				if (de->rec_len == 0) {
-+					nilfs_error(dir->i_sb, __func__,
-+						"zero-length directory entry");
-+					nilfs_put_page(page);
-+					goto out;
-+				}
-+				if (nilfs_match(namelen, name, de))
-+					goto found;
-+				de = nilfs_next_entry(de);
-+			}
-+			nilfs_put_page(page);
-+		}
-+		if (++n >= npages)
-+			n = 0;
-+		/* next page is past the blocks we've got */
-+		if (unlikely(n > (dir->i_blocks >> (PAGE_CACHE_SHIFT - 9)))) {
-+			nilfs_error(dir->i_sb, __func__,
-+			       "dir %lu size %lld exceeds block cout %llu",
-+			       dir->i_ino, dir->i_size,
-+			       (unsigned long long)dir->i_blocks);
-+			goto out;
-+		}
-+	} while (n != start);
-+out:
-+	return NULL;
-+
-+found:
-+	*res_page = page;
-+	ei->i_dir_start_lookup = n;
-+	return de;
-+}
-+
-+struct nilfs_dir_entry *nilfs_dotdot(struct inode *dir, struct page **p)
-+{
-+	struct page *page = nilfs_get_page(dir, 0);
-+	struct nilfs_dir_entry *de = NULL;
-+
-+	if (!IS_ERR(page)) {
-+		de = nilfs_next_entry(
-+			(struct nilfs_dir_entry *)page_address(page));
-+		*p = page;
-+	}
-+	return de;
-+}
-+
-+ino_t nilfs_inode_by_name(struct inode *dir, struct dentry *dentry)
-+{
-+	ino_t res = 0;
-+	struct nilfs_dir_entry *de;
-+	struct page *page;
-+
-+	de = nilfs_find_entry(dir, dentry, &page);
-+	if (de) {
-+		res = le64_to_cpu(de->inode);
-+		kunmap(page);
-+		page_cache_release(page);
-+	}
-+	return res;
-+}
-+
-+/* Releases the page */
-+void nilfs_set_link(struct inode *dir, struct nilfs_dir_entry *de,
-+		    struct page *page, struct inode *inode)
-+{
-+	unsigned from = (char *) de - (char *) page_address(page);
-+	unsigned to = from + le16_to_cpu(de->rec_len);
-+	struct address_space *mapping = page->mapping;
-+	int err;
-+
-+	lock_page(page);
-+	err = nilfs_prepare_chunk_uninterruptible(page, mapping, from, to);
-+	BUG_ON(err);
-+	de->inode = cpu_to_le64(inode->i_ino);
-+	nilfs_set_de_type(de, inode);
-+	err = nilfs_commit_chunk(page, mapping, from, to);
-+	nilfs_put_page(page);
-+	dir->i_mtime = dir->i_ctime = CURRENT_TIME;
-+/*	NILFS_I(dir)->i_flags &= ~NILFS_BTREE_FL; */
-+	mark_inode_dirty(dir);
-+}
-+
-+/*
-+ *	Parent is locked.
-+ */
-+int nilfs_add_link(struct dentry *dentry, struct inode *inode)
-+{
-+	struct inode *dir = dentry->d_parent->d_inode;
-+	const char *name = dentry->d_name.name;
-+	int namelen = dentry->d_name.len;
-+	unsigned chunk_size = nilfs_chunk_size(dir);
-+	unsigned reclen = NILFS_DIR_REC_LEN(namelen);
-+	unsigned short rec_len, name_len;
-+	struct page *page = NULL;
-+	struct nilfs_dir_entry *de;
-+	unsigned long npages = dir_pages(dir);
-+	unsigned long n;
-+	char *kaddr;
-+	unsigned from, to;
-+	int err;
-+
-+	/*
-+	 * We take care of directory expansion in the same loop.
-+	 * This code plays outside i_size, so it locks the page
-+	 * to protect that region.
-+	 */
-+	for (n = 0; n <= npages; n++) {
-+		char *dir_end;
-+
-+		page = nilfs_get_page(dir, n);
-+		err = PTR_ERR(page);
-+		if (IS_ERR(page))
-+			goto out;
-+		lock_page(page);
-+		kaddr = page_address(page);
-+		dir_end = kaddr + nilfs_last_byte(dir, n);
-+		de = (struct nilfs_dir_entry *)kaddr;
-+		kaddr += PAGE_CACHE_SIZE - reclen;
-+		while ((char *)de <= kaddr) {
-+			if ((char *)de == dir_end) {
-+				/* We hit i_size */
-+				name_len = 0;
-+				rec_len = chunk_size;
-+				de->rec_len = cpu_to_le16(chunk_size);
-+				de->inode = 0;
-+				goto got_it;
-+			}
-+			if (de->rec_len == 0) {
-+				nilfs_error(dir->i_sb, __func__,
-+					    "zero-length directory entry");
-+				err = -EIO;
-+				goto out_unlock;
-+			}
-+			err = -EEXIST;
-+			if (nilfs_match(namelen, name, de))
-+				goto out_unlock;
-+			name_len = NILFS_DIR_REC_LEN(de->name_len);
-+			rec_len = le16_to_cpu(de->rec_len);
-+			if (!de->inode && rec_len >= reclen)
-+				goto got_it;
-+			if (rec_len >= name_len + reclen)
-+				goto got_it;
-+			de = (struct nilfs_dir_entry *)((char *)de + rec_len);
-+		}
-+		unlock_page(page);
-+		nilfs_put_page(page);
-+	}
-+	BUG();
-+	return -EINVAL;
-+
-+got_it:
-+	from = (char *)de - (char *)page_address(page);
-+	to = from + rec_len;
-+	err = nilfs_prepare_chunk(page, page->mapping, from, to);
-+	if (err)
-+		goto out_unlock;
-+	if (de->inode) {
-+		struct nilfs_dir_entry *de1;
-+
-+		de1 = (struct nilfs_dir_entry *)((char *)de + name_len);
-+		de1->rec_len = cpu_to_le16(rec_len - name_len);
-+		de->rec_len = cpu_to_le16(name_len);
-+		de = de1;
-+	}
-+	de->name_len = namelen;
-+	memcpy(de->name, name, namelen);
-+	de->inode = cpu_to_le64(inode->i_ino);
-+	nilfs_set_de_type(de, inode);
-+	err = nilfs_commit_chunk(page, page->mapping, from, to);
-+	dir->i_mtime = dir->i_ctime = CURRENT_TIME;
-+/*	NILFS_I(dir)->i_flags &= ~NILFS_BTREE_FL; */
-+	mark_inode_dirty(dir);
-+	/* OFFSET_CACHE */
-+out_put:
-+	nilfs_put_page(page);
-+out:
-+	return err;
-+out_unlock:
-+	unlock_page(page);
-+	goto out_put;
-+}
-+
-+/*
-+ * nilfs_delete_entry deletes a directory entry by merging it with the
-+ * previous entry. Page is up-to-date. Releases the page.
-+ */
-+int nilfs_delete_entry(struct nilfs_dir_entry *dir, struct page *page)
-+{
-+	struct address_space *mapping = page->mapping;
-+	struct inode *inode = mapping->host;
-+	char *kaddr = page_address(page);
-+	unsigned from = ((char *)dir - kaddr) & ~(nilfs_chunk_size(inode) - 1);
-+	unsigned to = ((char *)dir - kaddr) + le16_to_cpu(dir->rec_len);
-+	struct nilfs_dir_entry *pde = NULL;
-+	struct nilfs_dir_entry *de = (struct nilfs_dir_entry *)(kaddr + from);
-+	int err;
-+
-+	while ((char *)de < (char *)dir) {
-+		if (de->rec_len == 0) {
-+			nilfs_error(inode->i_sb, __func__,
-+				    "zero-length directory entry");
-+			err = -EIO;
-+			goto out;
-+		}
-+		pde = de;
-+		de = nilfs_next_entry(de);
-+	}
-+	if (pde)
-+		from = (char *)pde - (char *)page_address(page);
-+	lock_page(page);
-+	err = nilfs_prepare_chunk(page, mapping, from, to);
-+	BUG_ON(err);
-+	if (pde)
-+		pde->rec_len = cpu_to_le16(to - from);
-+	dir->inode = 0;
-+	err = nilfs_commit_chunk(page, mapping, from, to);
-+	inode->i_ctime = inode->i_mtime = CURRENT_TIME;
-+/*	NILFS_I(inode)->i_flags &= ~NILFS_BTREE_FL; */
-+	mark_inode_dirty(inode);
-+out:
-+	nilfs_put_page(page);
-+	return err;
-+}
-+
-+/*
-+ * Set the first fragment of directory.
-+ */
-+int nilfs_make_empty(struct inode *inode, struct inode *parent)
-+{
-+	struct address_space *mapping = inode->i_mapping;
-+	struct page *page = grab_cache_page(mapping, 0);
-+	unsigned chunk_size = nilfs_chunk_size(inode);
-+	struct nilfs_dir_entry *de;
-+	int err;
-+	void *kaddr;
-+
-+	if (!page)
-+		return -ENOMEM;
-+
-+	err = nilfs_prepare_chunk(page, mapping, 0, chunk_size);
-+	if (unlikely(err)) {
-+		unlock_page(page);
-+		goto fail;
-+	}
-+	kaddr = kmap_atomic(page, KM_USER0);
-+	memset(kaddr, 0, chunk_size);
-+	de = (struct nilfs_dir_entry *)kaddr;
-+	de->name_len = 1;
-+	de->rec_len = cpu_to_le16(NILFS_DIR_REC_LEN(1));
-+	memcpy(de->name, ".\0\0", 4);
-+	de->inode = cpu_to_le64(inode->i_ino);
-+	nilfs_set_de_type(de, inode);
-+
-+	de = (struct nilfs_dir_entry *)(kaddr + NILFS_DIR_REC_LEN(1));
-+	de->name_len = 2;
-+	de->rec_len = cpu_to_le16(chunk_size - NILFS_DIR_REC_LEN(1));
-+	de->inode = cpu_to_le64(parent->i_ino);
-+	memcpy(de->name, "..\0", 4);
-+	nilfs_set_de_type(de, inode);
-+	kunmap_atomic(kaddr, KM_USER0);
-+	err = nilfs_commit_chunk(page, mapping, 0, chunk_size);
-+fail:
-+	page_cache_release(page);
-+	return err;
-+}
-+
-+/*
-+ * routine to check that the specified directory is empty (for rmdir)
-+ */
-+int nilfs_empty_dir(struct inode *inode)
-+{
-+	struct page *page = NULL;
-+	unsigned long i, npages = dir_pages(inode);
-+
-+	for (i = 0; i < npages; i++) {
-+		char *kaddr;
-+		struct nilfs_dir_entry *de;
-+
-+		page = nilfs_get_page(inode, i);
-+		if (IS_ERR(page))
-+			continue;
-+
-+		kaddr = page_address(page);
-+		de = (struct nilfs_dir_entry *)kaddr;
-+		kaddr += nilfs_last_byte(inode, i) - NILFS_DIR_REC_LEN(1);
-+
-+		while ((char *)de <= kaddr) {
-+			if (de->rec_len == 0) {
-+				nilfs_error(inode->i_sb, __func__,
-+					    "zero-length directory entry "
-+					    "(kaddr=%p, de=%p)\n", kaddr, de);
-+				goto not_empty;
-+			}
-+			if (de->inode != 0) {
-+				/* check for . and .. */
-+				if (de->name[0] != '.')
-+					goto not_empty;
-+				if (de->name_len > 2)
-+					goto not_empty;
-+				if (de->name_len < 2) {
-+					if (de->inode !=
-+					    cpu_to_le64(inode->i_ino))
-+						goto not_empty;
-+				} else if (de->name[1] != '.')
-+					goto not_empty;
-+			}
-+			de = nilfs_next_entry(de);
-+		}
-+		nilfs_put_page(page);
-+	}
-+	return 1;
-+
-+not_empty:
-+	nilfs_put_page(page);
 +	return 0;
 +}
 +
-+struct file_operations nilfs_dir_operations = {
-+	.llseek		= generic_file_llseek,
-+	.read		= generic_read_dir,
-+	.readdir	= nilfs_readdir,
-+	.ioctl		= nilfs_ioctl,
-+#ifdef CONFIG_COMPAT
-+	.compat_ioctl	= nilfs_compat_ioctl,
-+#endif	/* CONFIG_COMPAT */
-+	.fsync		= nilfs_sync_file,
++void nilfs_segbuf_set_next_segnum(struct nilfs_segment_buffer *segbuf,
++				  __u64 nextnum, struct the_nilfs *nilfs)
++{
++	segbuf->sb_nextnum = nextnum;
++	segbuf->sb_sum.next = nilfs_get_segment_start_blocknr(nilfs, nextnum);
++}
 +
++int nilfs_segbuf_extend_segsum(struct nilfs_segment_buffer *segbuf)
++{
++	struct buffer_head *bh;
++
++	bh = sb_getblk(segbuf->sb_super,
++		       segbuf->sb_pseg_start + segbuf->sb_sum.nsumblk);
++	if (unlikely(!bh))
++		return -ENOMEM;
++
++	nilfs_segbuf_add_segsum_buffer(segbuf, bh);
++	return 0;
++}
++
++int nilfs_segbuf_extend_payload(struct nilfs_segment_buffer *segbuf,
++				struct buffer_head **bhp)
++{
++	struct buffer_head *bh;
++
++	bh = sb_getblk(segbuf->sb_super,
++		       segbuf->sb_pseg_start + segbuf->sb_sum.nblocks);
++	if (unlikely(!bh))
++		return -ENOMEM;
++
++	nilfs_segbuf_add_payload_buffer(segbuf, bh);
++	*bhp = bh;
++	return 0;
++}
++
++int nilfs_segbuf_reset(struct nilfs_segment_buffer *segbuf, unsigned flags,
++		       time_t ctime)
++{
++	int err;
++
++	segbuf->sb_sum.nblocks = segbuf->sb_sum.nsumblk = 0;
++	err = nilfs_segbuf_extend_segsum(segbuf);
++	if (unlikely(err))
++		return err;
++
++	segbuf->sb_sum.flags = flags;
++	segbuf->sb_sum.sumbytes = sizeof(struct nilfs_segment_summary);
++	segbuf->sb_sum.nfinfo = segbuf->sb_sum.nfileblk = 0;
++	segbuf->sb_sum.ctime = ctime;
++
++	segbuf->sb_io_error = 0;
++	return 0;
++}
++
++/*
++ * Setup segument summary
++ */
++void nilfs_segbuf_fill_in_segsum(struct nilfs_segment_buffer *segbuf)
++{
++	struct nilfs_segment_summary *raw_sum;
++	struct buffer_head *bh_sum;
++
++	bh_sum = list_entry(segbuf->sb_segsum_buffers.next,
++			    struct buffer_head, b_assoc_buffers);
++	raw_sum = (struct nilfs_segment_summary *)bh_sum->b_data;
++
++	raw_sum->ss_magic    = cpu_to_le32(NILFS_SEGSUM_MAGIC);
++	raw_sum->ss_bytes    = cpu_to_le16(sizeof(*raw_sum));
++	raw_sum->ss_flags    = cpu_to_le16(segbuf->sb_sum.flags);
++	raw_sum->ss_seq      = cpu_to_le64(segbuf->sb_sum.seg_seq);
++	raw_sum->ss_create   = cpu_to_le64(segbuf->sb_sum.ctime);
++	raw_sum->ss_next     = cpu_to_le64(segbuf->sb_sum.next);
++	raw_sum->ss_nblocks  = cpu_to_le32(segbuf->sb_sum.nblocks);
++	raw_sum->ss_nfinfo   = cpu_to_le32(segbuf->sb_sum.nfinfo);
++	raw_sum->ss_sumbytes = cpu_to_le32(segbuf->sb_sum.sumbytes);
++	raw_sum->ss_pad      = 0;
++}
++
++/*
++ * CRC calculation routines
++ */
++void nilfs_segbuf_fill_in_segsum_crc(struct nilfs_segment_buffer *segbuf,
++				     u32 seed)
++{
++	struct buffer_head *bh;
++	struct nilfs_segment_summary *raw_sum;
++	unsigned long size, bytes = segbuf->sb_sum.sumbytes;
++	u32 crc;
++
++	bh = list_entry(segbuf->sb_segsum_buffers.next, struct buffer_head,
++			b_assoc_buffers);
++
++	raw_sum = (struct nilfs_segment_summary *)bh->b_data;
++	size = min_t(unsigned long, bytes, bh->b_size);
++	crc = crc32_le(seed,
++		       (unsigned char *)raw_sum +
++		       sizeof(raw_sum->ss_datasum) + sizeof(raw_sum->ss_sumsum),
++		       size - (sizeof(raw_sum->ss_datasum) +
++			       sizeof(raw_sum->ss_sumsum)));
++
++	list_for_each_entry_continue(bh, &segbuf->sb_segsum_buffers,
++				     b_assoc_buffers) {
++		bytes -= size;
++		size = min_t(unsigned long, bytes, bh->b_size);
++		crc = crc32_le(crc, bh->b_data, size);
++	}
++	raw_sum->ss_sumsum = cpu_to_le32(crc);
++}
++
++void nilfs_segbuf_fill_in_data_crc(struct nilfs_segment_buffer *segbuf,
++				   u32 seed)
++{
++	struct buffer_head *bh;
++	struct nilfs_segment_summary *raw_sum;
++	void *kaddr;
++	u32 crc;
++
++	bh = list_entry(segbuf->sb_segsum_buffers.next, struct buffer_head,
++			b_assoc_buffers);
++	raw_sum = (struct nilfs_segment_summary *)bh->b_data;
++	crc = crc32_le(seed,
++		       (unsigned char *)raw_sum + sizeof(raw_sum->ss_datasum),
++		       bh->b_size - sizeof(raw_sum->ss_datasum));
++
++	list_for_each_entry_continue(bh, &segbuf->sb_segsum_buffers,
++				     b_assoc_buffers) {
++		crc = crc32_le(crc, bh->b_data, bh->b_size);
++	}
++	list_for_each_entry(bh, &segbuf->sb_payload_buffers, b_assoc_buffers) {
++		kaddr = kmap_atomic(bh->b_page, KM_USER0);
++		crc = crc32_le(crc, kaddr + bh_offset(bh), bh->b_size);
++		kunmap_atomic(kaddr, KM_USER0);
++	}
++	raw_sum->ss_datasum = cpu_to_le32(crc);
++}
++
++void nilfs_release_buffers(struct list_head *list)
++{
++	struct buffer_head *bh, *n;
++
++	list_for_each_entry_safe(bh, n, list, b_assoc_buffers) {
++		list_del_init(&bh->b_assoc_buffers);
++		if (buffer_nilfs_allocated(bh)) {
++			struct page *clone_page = bh->b_page;
++
++			/* remove clone page */
++			brelse(bh);
++			page_cache_release(clone_page); /* for each bh */
++			if (page_count(clone_page) <= 2) {
++				lock_page(clone_page);
++				nilfs_free_private_page(clone_page);
++			}
++			continue;
++		}
++		brelse(bh);
++	}
++}
++
++/*
++ * BIO operations
++ */
++static void nilfs_end_bio_write(struct bio *bio, int err)
++{
++	const int uptodate = test_bit(BIO_UPTODATE, &bio->bi_flags);
++	struct nilfs_write_info *wi = bio->bi_private;
++
++	if (err == -EOPNOTSUPP) {
++		set_bit(BIO_EOPNOTSUPP, &bio->bi_flags);
++		bio_put(bio);
++		/* to be detected by submit_seg_bio() */
++	}
++
++	if (!uptodate)
++		atomic_inc(&wi->err);
++
++	bio_put(bio);
++	complete(&wi->bio_event);
++}
++
++static int nilfs_submit_seg_bio(struct nilfs_write_info *wi, int mode)
++{
++	struct bio *bio = wi->bio;
++	int err;
++
++	if (wi->nbio > 0 && bdi_write_congested(wi->bdi)) {
++		wait_for_completion(&wi->bio_event);
++		wi->nbio--;
++		if (unlikely(atomic_read(&wi->err))) {
++			bio_put(bio);
++			err = -EIO;
++			goto failed;
++		}
++	}
++
++	bio->bi_end_io = nilfs_end_bio_write;
++	bio->bi_private = wi;
++	bio_get(bio);
++	submit_bio(mode, bio);
++	if (bio_flagged(bio, BIO_EOPNOTSUPP)) {
++		bio_put(bio);
++		err = -EOPNOTSUPP;
++		goto failed;
++	}
++	wi->nbio++;
++	bio_put(bio);
++
++	wi->bio = NULL;
++	wi->rest_blocks -= wi->end - wi->start;
++	wi->nr_vecs = min(wi->max_pages, wi->rest_blocks);
++	wi->start = wi->end;
++	return 0;
++
++ failed:
++	wi->bio = NULL;
++	return err;
++}
++
++/**
++ * nilfs_alloc_seg_bio - allocate a bio for writing segment.
++ * @sb: super block
++ * @start: beginning disk block number of this BIO.
++ * @nr_vecs: request size of page vector.
++ *
++ * alloc_seg_bio() allocates a new BIO structure and initialize it.
++ *
++ * Return Value: On success, pointer to the struct bio is returned.
++ * On error, NULL is returned.
++ */
++static struct bio *nilfs_alloc_seg_bio(struct super_block *sb, sector_t start,
++				       int nr_vecs)
++{
++	struct bio *bio;
++
++	bio = bio_alloc(GFP_NOWAIT, nr_vecs);
++	if (bio == NULL) {
++		while (!bio && (nr_vecs >>= 1))
++			bio = bio_alloc(GFP_NOWAIT, nr_vecs);
++	}
++	if (likely(bio)) {
++		bio->bi_bdev = sb->s_bdev;
++		bio->bi_sector = (sector_t)start << (sb->s_blocksize_bits - 9);
++	}
++	return bio;
++}
++
++void nilfs_segbuf_prepare_write(struct nilfs_segment_buffer *segbuf,
++				struct nilfs_write_info *wi)
++{
++	wi->bio = NULL;
++	wi->rest_blocks = segbuf->sb_sum.nblocks;
++	wi->max_pages = bio_get_nr_vecs(wi->sb->s_bdev);
++	wi->nr_vecs = min(wi->max_pages, wi->rest_blocks);
++	wi->start = wi->end = 0;
++	wi->nbio = 0;
++	wi->blocknr = segbuf->sb_pseg_start;
++
++	atomic_set(&wi->err, 0);
++	init_completion(&wi->bio_event);
++}
++
++static int nilfs_submit_bh(struct nilfs_write_info *wi, struct buffer_head *bh,
++			   int mode)
++{
++	int len, err;
++
++	BUG_ON(wi->nr_vecs <= 0);
++ repeat:
++	if (!wi->bio) {
++		wi->bio = nilfs_alloc_seg_bio(wi->sb, wi->blocknr + wi->end,
++					      wi->nr_vecs);
++		if (unlikely(!wi->bio))
++			return -ENOMEM;
++	}
++
++	len = bio_add_page(wi->bio, bh->b_page, bh->b_size, bh_offset(bh));
++	if (len == bh->b_size) {
++		wi->end++;
++		return 0;
++	}
++	/* bio is FULL */
++	err = nilfs_submit_seg_bio(wi, mode);
++	/* never submit current bh */
++	if (likely(!err))
++		goto repeat;
++	return err;
++}
++
++int nilfs_segbuf_write(struct nilfs_segment_buffer *segbuf,
++		       struct nilfs_write_info *wi)
++{
++	struct buffer_head *bh;
++	int res, rw = WRITE;
++
++	list_for_each_entry(bh, &segbuf->sb_segsum_buffers, b_assoc_buffers) {
++		res = nilfs_submit_bh(wi, bh, rw);
++		if (unlikely(res))
++			goto failed_bio;
++	}
++
++	list_for_each_entry(bh, &segbuf->sb_payload_buffers, b_assoc_buffers) {
++		res = nilfs_submit_bh(wi, bh, rw);
++		if (unlikely(res))
++			goto failed_bio;
++	}
++
++	if (wi->bio) {
++		/*
++		 * Last BIO is always sent through the following
++		 * submission.
++		 */
++		rw |= (1 << BIO_RW_SYNC);
++		res = nilfs_submit_seg_bio(wi, rw);
++		if (unlikely(res))
++			goto failed_bio;
++	}
++
++	res = 0;
++ out:
++	return res;
++
++ failed_bio:
++	atomic_inc(&wi->err);
++	goto out;
++}
++
++/**
++ * nilfs_segbuf_wait - wait for completion of requested BIOs
++ * @wi: nilfs_write_info
++ *
++ * Return Value: On Success, 0 is returned. On Error, one of the following
++ * negative error code is returned.
++ *
++ * %-EIO - I/O error
++ */
++int nilfs_segbuf_wait(struct nilfs_segment_buffer *segbuf,
++		      struct nilfs_write_info *wi)
++{
++	int err = 0;
++
++	if (!wi->nbio)
++		return 0;
++
++	do {
++		wait_for_completion(&wi->bio_event);
++	} while (--wi->nbio > 0);
++
++	if (unlikely(atomic_read(&wi->err) > 0)) {
++		printk(KERN_ERR "NILFS: IO error writing segment\n");
++		err = -EIO;
++		segbuf->sb_io_error = 1;
++	}
++	return err;
++}
+diff -puN /dev/null fs/nilfs2/segbuf.h
+--- /dev/null
++++ a/fs/nilfs2/segbuf.h
+@@ -0,0 +1,203 @@
++/*
++ * segbuf.h - NILFS Segment buffer prototypes and definitions
++ *
++ * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++ *
++ * Written by Ryusuke Konishi <ryusuke@osrg.net>
++ *
++ */
++#ifndef _NILFS_SEGBUF_H
++#define _NILFS_SEGBUF_H
++
++#include <linux/fs.h>
++#include <linux/buffer_head.h>
++#include <linux/bio.h>
++#include <linux/completion.h>
++#include <linux/backing-dev.h>
++
++/**
++ * struct nilfs_segsum_info - On-memory segment summary
++ * @flags: Flags
++ * @nfinfo: Number of file information structures
++ * @nblocks: Number of blocks included in the partial segment
++ * @nsumblk: Number of summary blocks
++ * @sumbytes: Byte count of segment summary
++ * @nfileblk: Total number of file blocks
++ * @seg_seq: Segment sequence number
++ * @ctime: Creation time
++ * @next: Block number of the next full segment
++ */
++struct nilfs_segsum_info {
++	unsigned int		flags;
++	unsigned long		nfinfo;
++	unsigned long		nblocks;
++	unsigned long		nsumblk;
++	unsigned long		sumbytes;
++	unsigned long		nfileblk;
++	u64			seg_seq;
++	time_t			ctime;
++	sector_t		next;
 +};
++
++/* macro for the flags */
++#define NILFS_SEG_HAS_SR(sum)    ((sum)->flags & NILFS_SS_SR)
++#define NILFS_SEG_LOGBGN(sum)    ((sum)->flags & NILFS_SS_LOGBGN)
++#define NILFS_SEG_LOGEND(sum)    ((sum)->flags & NILFS_SS_LOGEND)
++#define NILFS_SEG_DSYNC(sum)     ((sum)->flags & NILFS_SS_SYNDT)
++#define NILFS_SEG_SIMPLEX(sum) \
++	(((sum)->flags & (NILFS_SS_LOGBGN | NILFS_SS_LOGEND)) == \
++	 (NILFS_SS_LOGBGN | NILFS_SS_LOGEND))
++
++#define NILFS_SEG_EMPTY(sum)	((sum)->nblocks == (sum)->nsumblk)
++
++/**
++ * struct nilfs_segment_buffer - Segment buffer
++ * @sb_super: back pointer to a superblock struct
++ * @sb_list: List head to chain this structure
++ * @sb_segent: Pointer for attaching a segment entry
++ * @sb_sum: On-memory segment summary
++ * @sb_segnum: Index number of the full segment
++ * @sb_nextnum: Index number of the next full segment
++ * @sb_fseg_start: Start block number of the full segment
++ * @sb_fseg_end: End block number of the full segment
++ * @sb_pseg_start: Disk block number of partial segment
++ * @sb_rest_blocks: Number of residual blocks in the current segment
++ * @sb_segsum_buffers: List of buffers for segment summaries
++ * @sb_payload_buffers: List of buffers for segment payload
++ * @sb_io_error: I/O error status
++ */
++struct nilfs_segment_buffer {
++	struct super_block     *sb_super;
++	struct list_head	sb_list;
++	struct nilfs_segment_entry *sb_segent;
++
++	/* Segment information */
++	struct nilfs_segsum_info sb_sum;
++	__u64			sb_segnum;
++	__u64			sb_nextnum;
++	sector_t		sb_fseg_start, sb_fseg_end;
++	sector_t		sb_pseg_start;
++	unsigned		sb_rest_blocks;
++
++	/* Buffers */
++	struct list_head	sb_segsum_buffers;
++	struct list_head	sb_payload_buffers; /* including super root */
++
++	/* io status */
++	int			sb_io_error;
++};
++
++#define NILFS_LIST_SEGBUF(head)  \
++	list_entry((head), struct nilfs_segment_buffer, sb_list)
++#define NILFS_NEXT_SEGBUF(segbuf)  NILFS_LIST_SEGBUF((segbuf)->sb_list.next)
++#define NILFS_PREV_SEGBUF(segbuf)  NILFS_LIST_SEGBUF((segbuf)->sb_list.prev)
++#define NILFS_LAST_SEGBUF(head)    NILFS_LIST_SEGBUF((head)->prev)
++#define NILFS_FIRST_SEGBUF(head)   NILFS_LIST_SEGBUF((head)->next)
++#define NILFS_SEGBUF_IS_LAST(segbuf, head)  ((segbuf)->sb_list.next == (head))
++
++#define nilfs_for_each_segbuf_before(s, t, h) \
++	for ((s) = NILFS_FIRST_SEGBUF(h); (s) != (t); \
++	     (s) = NILFS_NEXT_SEGBUF(s))
++
++#define NILFS_SEGBUF_FIRST_BH(head)  \
++	(list_entry((head)->next, struct buffer_head, b_assoc_buffers))
++#define NILFS_SEGBUF_NEXT_BH(bh)  \
++	(list_entry((bh)->b_assoc_buffers.next, struct buffer_head, \
++		    b_assoc_buffers))
++#define NILFS_SEGBUF_BH_IS_LAST(bh, head)  ((bh)->b_assoc_buffers.next == head)
++
++
++int __init nilfs_init_segbuf_cache(void);
++void nilfs_destroy_segbuf_cache(void);
++struct nilfs_segment_buffer *nilfs_segbuf_new(struct super_block *);
++void nilfs_segbuf_free(struct nilfs_segment_buffer *);
++int nilfs_segbuf_map(struct nilfs_segment_buffer *, __u64, unsigned long,
++		     struct the_nilfs *);
++void nilfs_segbuf_set_next_segnum(struct nilfs_segment_buffer *, __u64,
++				  struct the_nilfs *);
++int nilfs_segbuf_reset(struct nilfs_segment_buffer *, unsigned, time_t);
++int nilfs_segbuf_extend_segsum(struct nilfs_segment_buffer *);
++int nilfs_segbuf_extend_payload(struct nilfs_segment_buffer *,
++				struct buffer_head **);
++void nilfs_segbuf_fill_in_segsum(struct nilfs_segment_buffer *);
++void nilfs_segbuf_fill_in_segsum_crc(struct nilfs_segment_buffer *, u32);
++void nilfs_segbuf_fill_in_data_crc(struct nilfs_segment_buffer *, u32);
++
++static inline void
++nilfs_segbuf_add_segsum_buffer(struct nilfs_segment_buffer *segbuf,
++			       struct buffer_head *bh)
++{
++	list_add_tail(&bh->b_assoc_buffers, &segbuf->sb_segsum_buffers);
++	segbuf->sb_sum.nblocks++;
++	segbuf->sb_sum.nsumblk++;
++}
++
++static inline void
++nilfs_segbuf_add_payload_buffer(struct nilfs_segment_buffer *segbuf,
++				struct buffer_head *bh)
++{
++	list_add_tail(&bh->b_assoc_buffers, &segbuf->sb_payload_buffers);
++	segbuf->sb_sum.nblocks++;
++}
++
++static inline void
++nilfs_segbuf_add_file_buffer(struct nilfs_segment_buffer *segbuf,
++			     struct buffer_head *bh)
++{
++	get_bh(bh);
++	nilfs_segbuf_add_payload_buffer(segbuf, bh);
++	segbuf->sb_sum.nfileblk++;
++}
++
++void nilfs_release_buffers(struct list_head *);
++
++static inline void nilfs_segbuf_clear(struct nilfs_segment_buffer *segbuf)
++{
++	nilfs_release_buffers(&segbuf->sb_segsum_buffers);
++	nilfs_release_buffers(&segbuf->sb_payload_buffers);
++}
++
++struct nilfs_write_info {
++	struct bio	       *bio;
++	int 			start, end; /* The region to be submitted */
++	int			rest_blocks;
++	int			max_pages;
++	int			nr_vecs;
++	sector_t		blocknr;
++
++	int			nbio;
++	atomic_t		err;
++	struct completion	bio_event;
++				/* completion event of segment write */
++
++	/*
++	 * The following fields must be set explicitly
++	 */
++	struct super_block     *sb;
++	struct backing_dev_info *bdi; /* backing dev info */
++	struct buffer_head     *bh_sr;
++};
++
++
++void nilfs_segbuf_prepare_write(struct nilfs_segment_buffer *,
++				struct nilfs_write_info *);
++int nilfs_segbuf_write(struct nilfs_segment_buffer *,
++		       struct nilfs_write_info *);
++int nilfs_segbuf_wait(struct nilfs_segment_buffer *,
++		      struct nilfs_write_info *);
++
++#endif /* _NILFS_SEGBUF_H */
 _
 
-Patches currently in -mm which might be from amagai.yoshiji@lab.ntt.co.jp are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
+nilfs2-add-document.patch
+nilfs2-disk-format-and-userland-interface.patch
+nilfs2-add-inode-and-other-major-structures.patch
+nilfs2-integrated-block-mapping.patch
+nilfs2-b-tree-based-block-mapping.patch
+nilfs2-direct-block-mapping.patch
+nilfs2-b-tree-node-cache.patch
+nilfs2-buffer-and-page-operations.patch
+nilfs2-meta-data-file.patch
 nilfs2-persistent-object-allocator.patch
+nilfs2-disk-address-translator.patch
 nilfs2-inode-map-file.patch
+nilfs2-checkpoint-file.patch
+nilfs2-segment-usage-file.patch
+nilfs2-inode-operations.patch
+nilfs2-file-operations.patch
 nilfs2-directory-entry-operations.patch
+nilfs2-pathname-operations.patch
+nilfs2-operations-for-the_nilfs-core-object.patch
+nilfs2-super-block-operations.patch
+nilfs2-segment-buffer.patch
+nilfs2-segment-constructor.patch
+nilfs2-recovery-functions.patch
 nilfs2-another-dat-for-garbage-collection.patch
 nilfs2-block-cache-for-garbage-collection.patch
+nilfs2-ioctl-operations.patch
+nilfs2-update-makefile-and-kconfig.patch
 
