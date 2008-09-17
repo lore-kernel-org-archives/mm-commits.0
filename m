@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-update-makefile-and-kconfig.patch added to -mm tree
-Date: Wed, 17 Sep 2008 13:28:33 -0700
-Message-ID: <200809172028.m8HKSXcK029042@imap1.linux-foundation.org>
+Subject: + nilfs2-block-cache-for-garbage-collection.patch added to -mm tree
+Date: Wed, 17 Sep 2008 13:28:28 -0700
+Message-ID: <200809172028.m8HKSSIC029036@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35661 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46327 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753629AbYIQU2k (ORCPT
+	by vger.kernel.org with ESMTP id S1754100AbYIQU2s (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Sep 2008 16:28:40 -0400
+	Wed, 17 Sep 2008 16:28:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: konishi.ryusuke@lab.ntt.co.jp
+Cc: konishi.ryusuke@lab.ntt.co.jp, amagai.yoshiji@lab.ntt.co.jp, kihara.seiji@lab.ntt.co.jp
 
 
 The patch titled
-     nilfs2: update makefile and Kconfig
+     nilfs2: block cache for garbage collection
 has been added to the -mm tree.  Its filename is
-     nilfs2-update-makefile-and-kconfig.patch
+     nilfs2-block-cache-for-garbage-collection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,297 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: update makefile and Kconfig
+Subject: nilfs2: block cache for garbage collection
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-This adds a Makefile for the nilfs2 file system, and updates the
-makefile and Kconfig file in the file system directory.
+This adds the cache of on-disk blocks to be moved in garbage
+collection.  The disk blocks are held with dummy inodes (called
+gcinodes), and this file provides lookup function of the dummy inodes,
+and their buffer read function.
 
+Signed-off-by: Seiji Kihara <kihara.seiji@lab.ntt.co.jp>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Signed-off-by: Yoshiji Amagai <amagai.yoshiji@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig         |   26 ++++++++++++++++++++++++++
- fs/Makefile        |    1 +
- fs/nilfs2/Makefile |    5 +++++
- 3 files changed, 32 insertions(+)
+ fs/nilfs2/gcinode.c |  270 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 270 insertions(+)
 
-diff -puN fs/Kconfig~nilfs2-update-makefile-and-kconfig fs/Kconfig
---- a/fs/Kconfig~nilfs2-update-makefile-and-kconfig
-+++ a/fs/Kconfig
-@@ -1162,6 +1162,32 @@ config MINIX_FS
- 	  partition (the one containing the directory /) cannot be compiled as
- 	  a module.
- 
-+config NILFS2_FS
-+	tristate "NILFS2 file system support (EXPERIMENTAL)"
-+	depends on BLOCK && EXPERIMENTAL
-+	select CRC32
-+	help
-+	  NILFS2 is a log-structured file system (LFS) supporting continuous
-+	  snapshotting.  In addition to versioning capability of the entire
-+	  file system, users can even restore files mistakenly overwritten or
-+	  destroyed just a few seconds ago.  Since this file system can keep
-+	  consistency like conventional LFS, it achieves quick recovery after
-+	  system crashes.
-+
-+	  NILFS2 creates a number of checkpoints every few seconds or per
-+	  synchronous write basis (unless there is no change).  Users can
-+	  select significant versions among continuously created checkpoints,
-+	  and can change them into snapshots which will be preserved for long
-+	  periods until they are changed back to checkpoints.  Each
-+	  snapshot is mountable as a read-only file system concurrently with
-+	  its writable mount, and this feature is convenient for online backup.
-+
-+	  Some features including atime, extended attributes, and POSIX ACLs,
-+	  are not supported yet.
-+
-+	  To compile this file system support as a module, choose M here: the
-+	  module will be called nilfs2.  If unsure, say N.
-+
- config OMFS_FS
- 	tristate "SonicBlue Optimized MPEG File System support"
- 	depends on BLOCK
-diff -puN fs/Makefile~nilfs2-update-makefile-and-kconfig fs/Makefile
---- a/fs/Makefile~nilfs2-update-makefile-and-kconfig
-+++ a/fs/Makefile
-@@ -124,3 +124,4 @@ obj-$(CONFIG_HPPFS)		+= hppfs/
- obj-$(CONFIG_DEBUG_FS)		+= debugfs/
- obj-$(CONFIG_OCFS2_FS)		+= ocfs2/
- obj-$(CONFIG_GFS2_FS)           += gfs2/
-+obj-$(CONFIG_NILFS2_FS)		+= nilfs2/
-diff -puN /dev/null fs/nilfs2/Makefile
+diff -puN /dev/null fs/nilfs2/gcinode.c
 --- /dev/null
-+++ a/fs/nilfs2/Makefile
-@@ -0,0 +1,5 @@
-+obj-$(CONFIG_NILFS2_FS) += nilfs2.o
-+nilfs2-y := inode.o file.o dir.o super.o namei.o page.o mdt.o \
-+	btnode.o bmap.o btree.o direct.o dat.o recovery.o \
-+	the_nilfs.o segbuf.o segment.o cpfile.o sufile.o \
-+	ifile.o alloc.o gcinode.o ioctl.o gcdat.o
++++ a/fs/nilfs2/gcinode.c
+@@ -0,0 +1,270 @@
++/*
++ * gcinode.c - NILFS memory inode for GC
++ *
++ * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++ *
++ * Written by Seiji Kihara <kihara@osrg.net>, Amagai Yoshiji <amagai@osrg.net>,
++ *            and Ryusuke Konishi <ryusuke@osrg.net>.
++ * Revised by Ryusuke Konishi <ryusuke@osrg.net>.
++ *
++ */
++
++#include <linux/buffer_head.h>
++#include <linux/mpage.h>
++#include <linux/hash.h>
++#include <linux/swap.h>
++#include "nilfs.h"
++#include "page.h"
++#include "mdt.h"
++#include "dat.h"
++#include "ifile.h"
++
++static struct address_space_operations def_gcinode_aops = {};
++/* XXX need def_gcinode_iops/fops? */
++
++/*
++ * nilfs_gccache_submit_read_data() - add data buffer and submit read request
++ * @inode - gc inode
++ * @blkoff - dummy offset treated as the key for the page cache
++ * @pbn - physical block number of the block
++ * @vbn - virtual block number of the block, 0 for non-virtual block
++ * @out_bh - indirect pointer to a buffer_head struct to receive the results
++ *
++ * Description: nilfs_gccache_submit_read_data() registers the data buffer
++ * specified by @pbn to the GC pagecache with the key @blkoff.
++ * This function sets @vbn (@pbn if @vbn is zero) in b_blocknr of the buffer.
++ *
++ * Return Value: On success, 0 is returned. On Error, one of the following
++ * negative error code is returned.
++ *
++ * %-EIO - I/O error.
++ *
++ * %-ENOMEM - Insufficient amount of memory available.
++ *
++ * %-ENOENT - The block specified with @pbn does not exist.
++ */
++int nilfs_gccache_submit_read_data(struct inode *inode, sector_t blkoff,
++				   sector_t pbn, __u64 vbn,
++				   struct buffer_head **out_bh)
++{
++	struct buffer_head *bh;
++	int err;
++
++	bh = nilfs_grab_buffer(inode, inode->i_mapping, blkoff, 0);
++	if (unlikely(!bh))
++		return -ENOMEM;
++
++	if (buffer_uptodate(bh))
++		goto out;
++
++	if (pbn == 0) {
++		struct inode *dat_inode = NILFS_I_NILFS(inode)->ns_dat;
++					  /* use original dat, not gc dat. */
++		err = nilfs_dat_translate(dat_inode, vbn, &pbn);
++		if (unlikely(err)) { /* -EIO, -ENOMEM, -ENOENT */
++			brelse(bh);
++			goto failed;
++		}
++	}
++
++	lock_buffer(bh);
++	if (buffer_uptodate(bh)) {
++		unlock_buffer(bh);
++		goto out;
++	}
++
++	if (!buffer_mapped(bh)) {
++		bh->b_bdev = NILFS_I_NILFS(inode)->ns_bdev;
++		set_buffer_mapped(bh);
++	}
++	bh->b_blocknr = pbn;
++	bh->b_end_io = end_buffer_read_sync;
++	get_bh(bh);
++	submit_bh(READ, bh);
++	if (vbn)
++		bh->b_blocknr = vbn;
++ out:
++	err = 0;
++	*out_bh = bh;
++
++ failed:
++	unlock_page(bh->b_page);
++	page_cache_release(bh->b_page);
++	return err;
++}
++
++/*
++ * nilfs_gccache_submit_read_node() - add node buffer and submit read request
++ * @inode - gc inode
++ * @pbn - physical block number for the block
++ * @vbn - virtual block number for the block
++ * @out_bh - indirect pointer to a buffer_head struct to receive the results
++ *
++ * Description: nilfs_gccache_submit_read_node() registers the node buffer
++ * specified by @vbn to the GC pagecache.  @pbn can be supplied by the
++ * caller to avoid translation of the disk block address.
++ *
++ * Return Value: On success, 0 is returned. On Error, one of the following
++ * negative error code is returned.
++ *
++ * %-EIO - I/O error.
++ *
++ * %-ENOMEM - Insufficient amount of memory available.
++ */
++int nilfs_gccache_submit_read_node(struct inode *inode, sector_t pbn,
++				   __u64 vbn, struct buffer_head **out_bh)
++{
++	int ret = nilfs_btnode_submit_block(&NILFS_I(inode)->i_btnode_cache,
++					    vbn ? : pbn, pbn, out_bh, 0);
++	if (ret == -EEXIST) /* internal code (cache hit) */
++		ret = 0;
++	return ret;
++}
++
++int nilfs_gccache_wait_and_mark_dirty(struct buffer_head *bh)
++{
++	wait_on_buffer(bh);
++	if (!buffer_uptodate(bh))
++		return -EIO;
++	if (buffer_dirty(bh))
++		return -EEXIST;
++
++	if (buffer_nilfs_node(bh))
++		nilfs_btnode_mark_dirty(bh);
++	else
++		nilfs_mdt_mark_buffer_dirty(bh);
++	return 0;
++}
++
++/*
++ * nilfs_init_gccache() - allocate and initialize gc_inode hash table
++ * @nilfs - the_nilfs
++ *
++ * Return Value: On success, 0.
++ * On error, a negative error code is returned.
++ */
++int nilfs_init_gccache(struct the_nilfs *nilfs)
++{
++	int loop;
++
++	BUG_ON(nilfs->ns_gc_inodes_h);
++
++	INIT_LIST_HEAD(&nilfs->ns_gc_inodes);
++
++	nilfs->ns_gc_inodes_h =
++		kmalloc(sizeof(struct hlist_head) * NILFS_GCINODE_HASH_SIZE,
++			GFP_NOFS);
++	if (nilfs->ns_gc_inodes_h == NULL)
++		return -ENOMEM;
++
++	for (loop = 0; loop < NILFS_GCINODE_HASH_SIZE; loop++)
++		INIT_HLIST_HEAD(&nilfs->ns_gc_inodes_h[loop]);
++	return 0;
++}
++
++/*
++ * nilfs_destroy_gccache() - free gc_inode hash table
++ * @nilfs - the nilfs
++ */
++void nilfs_destroy_gccache(struct the_nilfs *nilfs)
++{
++	if (nilfs->ns_gc_inodes_h) {
++		nilfs_remove_all_gcinode(nilfs);
++		kfree(nilfs->ns_gc_inodes_h);
++		nilfs->ns_gc_inodes_h = NULL;
++	}
++}
++
++static struct inode *alloc_gcinode(struct the_nilfs *nilfs, ino_t ino,
++				   __u64 cno)
++{
++	struct inode *inode = nilfs_mdt_new_common(nilfs, NULL, ino, GFP_NOFS);
++	struct nilfs_inode_info *ii;
++
++	if (!inode)
++		return NULL;
++
++	inode->i_op = NULL;
++	inode->i_fop = NULL;
++	inode->i_mapping->a_ops = &def_gcinode_aops;
++
++	ii = NILFS_I(inode);
++	ii->i_cno = cno;
++	ii->i_flags = 0;
++	ii->i_state = 1 << NILFS_I_GCINODE;
++	ii->i_bh = NULL;
++	ii->i_dtime = 0;
++	nilfs_bmap_init_gc(ii->i_bmap);
++
++	return inode;
++}
++
++static unsigned long ihash(ino_t ino, __u64 cno)
++{
++	return hash_long((unsigned long)((ino << 2) + cno),
++			 NILFS_GCINODE_HASH_BITS);
++}
++
++/*
++ * nilfs_gc_iget() - find or create gc inode with specified (ino,cno)
++ */
++struct inode *nilfs_gc_iget(struct the_nilfs *nilfs, ino_t ino, __u64 cno)
++{
++	struct hlist_head *head = nilfs->ns_gc_inodes_h + ihash(ino, cno);
++	struct hlist_node *node;
++	struct inode *inode;
++
++	hlist_for_each_entry(inode, node, head, i_hash) {
++		if (inode->i_ino == ino && NILFS_I(inode)->i_cno == cno)
++			return inode;
++	}
++
++	inode = alloc_gcinode(nilfs, ino, cno);
++	if (likely(inode)) {
++		hlist_add_head(&inode->i_hash, head);
++		list_add(&NILFS_I(inode)->i_dirty, &nilfs->ns_gc_inodes);
++	}
++	return inode;
++}
++
++/*
++ * nilfs_clear_gcinode() - clear and free a gc inode
++ */
++void nilfs_clear_gcinode(struct inode *inode)
++{
++	nilfs_mdt_clear(inode);
++	nilfs_mdt_destroy(inode);
++}
++
++/*
++ * nilfs_remove_all_gcinode() - remove all inodes from the_nilfs
++ */
++void nilfs_remove_all_gcinode(struct the_nilfs *nilfs)
++{
++	struct hlist_head *head = nilfs->ns_gc_inodes_h;
++	struct hlist_node *node, *n;
++	struct inode *inode;
++	int loop;
++
++	for (loop = 0; loop < NILFS_GCINODE_HASH_SIZE; loop++, head++) {
++		hlist_for_each_entry_safe(inode, node, n, head, i_hash) {
++			hlist_del_init(&inode->i_hash);
++			list_del_init(&NILFS_I(inode)->i_dirty);
++			nilfs_clear_gcinode(inode); /* might sleep */
++		}
++	}
++}
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
