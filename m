@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-add-document.patch added to -mm tree
-Date: Wed, 17 Sep 2008 13:27:03 -0700
-Message-ID: <200809172027.m8HKR31A028921@imap1.linux-foundation.org>
+Subject: + nilfs2-disk-format-and-userland-interface.patch added to -mm tree
+Date: Wed, 17 Sep 2008 13:27:05 -0700
+Message-ID: <200809172027.m8HKR5HO028925@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58791 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53825 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753074AbYIQU1H (ORCPT
+	by vger.kernel.org with ESMTP id S1752380AbYIQU1U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Sep 2008 16:27:07 -0400
+	Wed, 17 Sep 2008 16:27:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: konishi.ryusuke@lab.ntt.co.jp
+Cc: sato.koji@lab.ntt.co.jp, konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     nilfs2: add document
+     nilfs2: disk format and userland interface
 has been added to the -mm tree.  Its filename is
-     nilfs2-add-document.patch
+     nilfs2-disk-format-and-userland-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,267 +34,890 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: add document
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: nilfs2: disk format and userland interface
+From: Koji Sato <sato.koji@lab.ntt.co.jp>
 
-This adds a document describing the features, mount options, userland
-tools, usage, disk format, and related URLs for the nilfs2 file system.
+This adds a header file which specifies the on-disk format and ioctl
+interface of the nilfs2 file system.
 
+Signed-off-by: Koji Sato <sato.koji@lab.ntt.co.jp>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/00-INDEX   |    2 
- Documentation/filesystems/nilfs2.txt |  202 +++++++++++++++++++++++++
- 2 files changed, 204 insertions(+)
+ include/linux/nilfs2_fs.h |  854 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 854 insertions(+)
 
-diff -puN Documentation/filesystems/00-INDEX~nilfs2-add-document Documentation/filesystems/00-INDEX
---- a/Documentation/filesystems/00-INDEX~nilfs2-add-document
-+++ a/Documentation/filesystems/00-INDEX
-@@ -68,6 +68,8 @@ ncpfs.txt
- 	- info on Novell Netware(tm) filesystem using NCP protocol.
- nfsroot.txt
- 	- short guide on setting up a diskless box with NFS root filesystem.
-+nilfs2.txt
-+	- info and mount options for the NILFS2 filesystem.
- ntfs.txt
- 	- info and mount options for the NTFS filesystem (Windows NT).
- ocfs2.txt
-diff -puN /dev/null Documentation/filesystems/nilfs2.txt
+diff -puN /dev/null include/linux/nilfs2_fs.h
 --- /dev/null
-+++ a/Documentation/filesystems/nilfs2.txt
-@@ -0,0 +1,202 @@
-+NILFS2
-+------
++++ a/include/linux/nilfs2_fs.h
+@@ -0,0 +1,854 @@
++/*
++ * nilfs2_fs.h - NILFS2 on-disk structures and common declarations.
++ *
++ * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++ *
++ * Written by Koji Sato <koji@osrg.net>
++ *            Ryusuke Konishi <ryusuke@osrg.net>
++ */
++/*
++ *  linux/include/linux/ext2_fs.h
++ *
++ * Copyright (C) 1992, 1993, 1994, 1995
++ * Remy Card (card@masi.ibp.fr)
++ * Laboratoire MASI - Institut Blaise Pascal
++ * Universite Pierre et Marie Curie (Paris VI)
++ *
++ *  from
++ *
++ *  linux/include/linux/minix_fs.h
++ *
++ *  Copyright (C) 1991, 1992  Linus Torvalds
++ */
 +
-+NILFS2 is a log-structured file system (LFS) supporting continuous
-+snapshotting.  In addition to versioning capability of the entire file
-+system, users can even restore files mistakenly overwritten or
-+destroyed just a few seconds ago.  Since NILFS2 can keep consistency
-+like conventional LFS, it achieves quick recovery after system
-+crashes.
++#ifndef _LINUX_NILFS_FS_H
++#define _LINUX_NILFS_FS_H
 +
-+NILFS2 creates a number of checkpoints every few seconds or per
-+synchronous write basis (unless there is no change).  Users can select
-+significant versions among continuously created checkpoints, and can
-+change them into snapshots which will be preserved until they are
-+changed back to checkpoints.
++#include <linux/types.h>
++#include <linux/ioctl.h>
 +
-+There is no limit on the number of snapshots until the volume gets
-+full.  Each snapshot is mountable as a read-only file system
-+concurrently with its writable mount, and this feature is convenient
-+for online backup.
++/*
++ * Inode flags stored in nilfs_inode and on-memory nilfs inode
++ *
++ * We define these flags based on ext2-fs because of the
++ * compatibility reason; to avoid problems in chattr(1)
++ */
++#define NILFS_SECRM_FL		0x00000001 /* Secure deletion */
++#define NILFS_UNRM_FL		0x00000002 /* Undelete */
++#define NILFS_SYNC_FL		0x00000008 /* Synchronous updates */
++#define NILFS_IMMUTABLE_FL	0x00000010 /* Immutable file */
++#define NILFS_APPEND_FL		0x00000020 /* writes to file may only append */
++#define NILFS_NODUMP_FL		0x00000040 /* do not dump file */
++#define NILFS_NOATIME_FL	0x00000080 /* do not update atime */
++/* Reserved for compression usage... */
++#define NILFS_NOTAIL_FL		0x00008000 /* file tail should not be merged */
++#define NILFS_DIRSYNC_FL	0x00010000 /* dirsync behaviour */
 +
-+The userland tools are included in nilfs-utils package, which is
-+available from the following download page.  At least "mkfs.nilfs2",
-+"mount.nilfs2", "umount.nilfs2", and "nilfs_cleanerd" (so called
-+cleaner or garbage collector) are required.  Details on the tools are
-+described in the man pages included in the package.
-+
-+Project web page:    http://www.nilfs.org/en/
-+Download page:       http://www.nilfs.org/en/download.html
-+Git tree web page:   http://www.nilfs.org/git/
-+NILFS mailing lists: http://www.nilfs.org/mailman/listinfo/users
-+
-+Caveats
-+=======
-+
-+Features which NILFS2 does not support yet:
-+
-+	- atime
-+	- extended attributes
-+	- POSIX ACLs
-+	- quotas
-+	- writable snapshots
-+	- remote backup (CDP)
-+	- data integrity
-+	- defragmentation
-+
-+Mount options
-+=============
-+
-+NILFS2 supports the following mount options:
-+(*) == default
-+
-+barrier=on(*)		This enables/disables barriers. barrier=off disables
-+			it, barrier=on enables it.
-+errors=continue(*)	Keep going on a filesystem error.
-+errors=remount-ro	Remount the filesystem read-only on an error.
-+errors=panic		Panic and halt the machine if an error occurs.
-+cp=n			Specify the checkpoint-number of the snapshot to be
-+			mounted.  Checkpoints and snapshots are listed by lscp
-+			user command.  Only the checkpoints marked as snapshot
-+			are mountable with this option.  Snapshot is read-only,
-+			so a read-only mount option must be specified together.
-+order=relaxed(*)	Apply relaxed order semantics that allows modified data
-+			blocks to be written to disk without making a
-+			checkpoint if no metadata update is going.  This mode
-+			is equivalent to the ordered data mode of the ext3
-+			filesystem except for the updates on data blocks still
-+			conserve atomicity.  This will improve synchronous
-+			write performance for overwriting.
-+order=strict		Apply strict in-order semantics that preserves sequence
-+			of all file operations including overwriting of data
-+			blocks.  That means, it is guaranteed that no
-+			overtaking of events occurs in the recovered file
-+			system after a crash.
-+
-+NILFS2 usage
-+============
-+
-+To use nilfs2 as a local file system, simply:
-+
-+ # mkfs -t nilfs2 /dev/block_device
-+ # mount -t nilfs2 /dev/block_device /dir
-+
-+This will also invoke the cleaner through the mount helper program
-+(mount.nilfs2).
-+
-+Checkpoints and snapshots are managed by the following commands.
-+Their manpages are included in the nilfs-utils package above.
-+
-+  lscp     list checkpoints or snapshots.
-+  mkcp     make a checkpoint or a snapshot.
-+  chcp     change an existing checkpoint to a snapshot or vice versa.
-+  rmcp     invalidate specified checkpoint(s).
-+
-+To mount a snapshot,
-+
-+ # mount -t nilfs2 -r -o cp=<cno> /dev/block_device /snap_dir
-+
-+where <cno> is the checkpoint number of the snapshot.
-+
-+To unmount the NILFS2 mount point or snapshot, simply:
-+
-+ # umount /dir
-+
-+Then, the cleaner daemon is automatically shut down by the umount
-+helper program (umount.nilfs2).
-+
-+Disk format
-+===========
-+
-+A nilfs2 volume is equally divided into a number of segments except
-+for the super block (SB) and segment #0.  A segment is the container
-+of logs.  Each log is composed of summary information blocks, payload
-+blocks, and an optional super root block (SR):
-+
-+   ______________________________________________________
-+  | |SB| | Segment | Segment | Segment | ... | Segment | |
-+  |_|__|_|____0____|____1____|____2____|_____|____N____|_|
-+  0 +1K +4K       +8M       +16M      +24M  +(8MB x N)
-+       .             .            (Typical offsets for 4KB-block)
-+    .                  .
-+  .______________________.
-+  | log | log |... | log |
-+  |__1__|__2__|____|__m__|
-+        .       .
-+      .               .
-+    .                       .
-+  .______________________________.
-+  | Summary | Payload blocks  |SR|
-+  |_blocks__|_________________|__|
-+
-+The payload blocks are organized per file, and each file consists of
-+data blocks and B-tree node blocks:
-+
-+    |<---       File-A        --->|<---       File-B        --->|
-+   _______________________________________________________________
-+    | Data blocks | B-tree blocks | Data blocks | B-tree blocks | ...
-+   _|_____________|_______________|_____________|_______________|_
++#define NILFS_FL_USER_VISIBLE	0x0003DFFF /* User visible flags */
++#define NILFS_FL_USER_MODIFIABLE	0x000380FF /* User modifiable flags */
 +
 +
-+Since only the modified blocks are written in the log, it may have
-+files without data blocks or B-tree node blocks.
++#define NILFS_INODE_BMAP_SIZE	7
++/**
++ * struct nilfs_inode - structure of an inode on disk
++ * @i_blocks: blocks count
++ * @i_size: size in bytes
++ * @i_ctime: creation time
++ * @i_mtime: modification time
++ * @i_dtime: deletion time
++ * @i_uid: user id
++ * @i_gid: group id
++ * @i_mode: file mode
++ * @i_links_count: links count
++ * @i_flags: file flags
++ * @i_bmap: block mapping
++ * @i_xattr: extended attributes
++ * @i_generation: file generation (for NFS)
++ * @i_pad:	padding
++ */
++struct nilfs_inode {
++	__le64	i_blocks;
++	__le64	i_size;
++	__le64	i_ctime;
++	__le64	i_mtime;
++	__le64	i_dtime;
++	__le32	i_uid;
++	__le32	i_gid;
++	__le16	i_mode;
++	__le16	i_links_count;
++	__le32	i_flags;
++	__le64	i_bmap[NILFS_INODE_BMAP_SIZE];
++#define i_device_code	i_bmap[0]
++	__le64	i_xattr;
++	__le32	i_generation;
++	__le32	i_pad;
++};
 +
-+The organization of the blocks is recorded in the summary information
-+blocks, which contains a header structure (nilfs_segment_summary), per
-+file structures (nilfs_finfo), and per block structures (nilfs_binfo):
++/**
++ * struct nilfs_super_root - structure of super root
++ * @sr_sum: check sum
++ * @sr_bytes: byte count of the structure
++ * @sr_flags: flags (reserved)
++ * @sr_nongc_ctime: write time of the last segment not for cleaner operation
++ * @sr_dat: DAT file inode
++ * @sr_cpfile: checkpoint file inode
++ * @sr_sufile: segment usage file inode
++ */
++struct nilfs_super_root {
++	__le32 sr_sum;
++	__le16 sr_bytes;
++	__le16 sr_flags;
++	__le64 sr_nongc_ctime;
++	struct nilfs_inode sr_dat;
++	struct nilfs_inode sr_cpfile;
++	struct nilfs_inode sr_sufile;
++};
 +
-+  _________________________________________________________________________
-+ | Summary | finfo | binfo | ... | binfo | finfo | binfo | ... | binfo |...
-+ |_blocks__|___A___|_(A,1)_|_____|(A,Na)_|___B___|_(B,1)_|_____|(B,Nb)_|___
++#define NILFS_SR_MDT_OFFSET(inode_size, i)  \
++	((unsigned long)&((struct nilfs_super_root *)0)->sr_dat + \
++			(inode_size) * (i))
++#define NILFS_SR_DAT_OFFSET(inode_size)     NILFS_SR_MDT_OFFSET(inode_size, 0)
++#define NILFS_SR_CPFILE_OFFSET(inode_size)  NILFS_SR_MDT_OFFSET(inode_size, 1)
++#define NILFS_SR_SUFILE_OFFSET(inode_size)  NILFS_SR_MDT_OFFSET(inode_size, 2)
++#define NILFS_SR_BYTES                  (sizeof(struct nilfs_super_root))
++
++/*
++ * Maximal mount counts
++ */
++#define NILFS_DFL_MAX_MNT_COUNT		50      /* 50 mounts */
++
++/*
++ * File system states (sbp->s_state, nilfs->ns_mount_state)
++ */
++#define NILFS_VALID_FS			0x0001  /* Unmounted cleanly */
++#define NILFS_ERROR_FS			0x0002  /* Errors detected */
++#define NILFS_RESIZE_FS			0x0004	/* Resize required */
++
++/*
++ * Mount flags (sbi->s_mount_opt)
++ */
++#define NILFS_MOUNT_ERROR_MODE		0x0070  /* Error mode mask */
++#define NILFS_MOUNT_ERRORS_CONT		0x0010  /* Continue on errors */
++#define NILFS_MOUNT_ERRORS_RO		0x0020  /* Remount fs ro on errors */
++#define NILFS_MOUNT_ERRORS_PANIC	0x0040  /* Panic on errors */
++#define NILFS_MOUNT_SNAPSHOT		0x0080  /* Snapshot flag */
++#define NILFS_MOUNT_BARRIER		0x1000  /* Use block barriers */
++#define NILFS_MOUNT_STRICT_ORDER	0x2000  /* Apply strict in-order
++						   semantics also for data */
 +
 +
-+The logs include regular files, directory files, symbolic link files
-+and several meta data files.  The mata data files are the files used
-+to maintain file system meta data.  The current version of NILFS2 uses
-+the following meta data files:
++/**
++ * struct nilfs_super_block - structure of super block on disk
++ */
++struct nilfs_super_block {
++	__le32	s_rev_level;		/* Revision level */
++	__le16	s_minor_rev_level;	/* minor revision level */
++	__le16	s_magic;		/* Magic signature */
 +
-+ 1) Inode file (ifile)             -- Stores on-disk inodes
-+ 2) Checkpoint file (cpfile)       -- Stores checkpoints
-+ 3) Segment usage file (sufile)    -- Stores allocation state of segments
-+ 4) Data address translation file  -- Maps virtual block numbers to usual
-+    (DAT)                             block numbers.  This file serves to
-+                                      make on-disk blocks relocatable.
-+ 5) Sketch file (sketch)           -- Keeps read-only data which can be
-+                                      associated with checkpoints (optional)
++	__le16  s_bytes;		/* Bytes count of CRC calculation
++					   for this structure. s_reserved
++					   is excluded. */
++	__le16  s_flags;		/* flags */
++	__le32  s_crc_seed;		/* Seed value of CRC calculation */
++	__le32	s_sum;			/* Check sum of super block */
 +
-+The following figure shows a typical organization of the logs:
++	__le32	s_log_block_size;	/* Block size represented as follows
++					   blocksize =
++					       1 << (s_log_block_size + 10) */
++	__le64  s_nsegments;		/* Number of segments in filesystem */
++	__le64  s_dev_size;		/* block device size in bytes */
++	__le64	s_first_data_block;	/* 1st seg disk block number */
++	__le32  s_blocks_per_segment;   /* number of blocks per full segment */
++	__le32	s_r_segments_percentage; /* Reserved segments percentage */
 +
-+  _________________________________________________________________________
-+ | Summary | regular file | file  | ... | ifile | cpfile | sufile | DAT |SR|
-+ |_blocks__|_or_directory_|_______|_____|_______|________|________|_____|__|
++	__le64  s_last_cno;		/* Last checkpoint number */
++	__le64  s_last_pseg;		/* disk block addr pseg written last */
++	__le64  s_last_seq;             /* seq. number of seg written last */
++	__le64	s_free_blocks_count;	/* Free blocks count */
++
++	__le64	s_ctime;		/* Creation time (execution time of
++					   newfs) */
++	__le64	s_mtime;		/* Mount time */
++	__le64	s_wtime;		/* Write time */
++	__le16	s_mnt_count;		/* Mount count */
++	__le16	s_max_mnt_count;	/* Maximal mount count */
++	__le16	s_state;		/* File system state */
++	__le16	s_errors;		/* Behaviour when detecting errors */
++	__le64	s_lastcheck;		/* time of last check */
++
++	__le32	s_checkinterval;	/* max. time between checks */
++	__le32	s_creator_os;		/* OS */
++	__le16	s_def_resuid;		/* Default uid for reserved blocks */
++	__le16	s_def_resgid;		/* Default gid for reserved blocks */
++	__le32	s_first_ino; 		/* First non-reserved inode */
++
++	__le16  s_inode_size; 		/* Size of an inode */
++	__le16  s_dat_entry_size;       /* Size of a dat entry */
++	__le16  s_checkpoint_size;      /* Size of a checkpoint */
++	__le16	s_segment_usage_size;	/* Size of a segment usage */
++
++	__u8	s_uuid[16];		/* 128-bit uuid for volume */
++	char	s_volume_name[16]; 	/* volume name */
++	char	s_last_mounted[64]; 	/* directory where last mounted */
++
++	__le32  s_c_interval;           /* Commit interval of segment */
++	__le32  s_c_block_max;          /* Threshold of data amount for
++					   the segment construction */
++	__u32	s_reserved[192];	/* padding to the end of the block */
++};
++
++/*
++ * Codes for operating systems
++ */
++#define NILFS_OS_LINUX		0
++/* Codes from 1 to 4 are reserved to keep compatibility with ext2 creator-OS */
++
++/*
++ * Revision levels
++ */
++#define NILFS_CURRENT_REV	2	/* current major revision */
++#define NILFS_MINOR_REV		0	/* minor revision */
++
++/*
++ * Bytes count of super_block for CRC-calculation
++ */
++#define NILFS_SB_BYTES  \
++	((long)&((struct nilfs_super_block *)0)->s_reserved)
++
++/*
++ * Special inode number
++ */
++#define NILFS_ROOT_INO		2	/* Root file inode */
++#define NILFS_DAT_INO		3	/* DAT file */
++#define NILFS_CPFILE_INO	4	/* checkpoint file */
++#define NILFS_SUFILE_INO	5	/* segment usage file */
++#define NILFS_IFILE_INO		6	/* ifile */
++#define NILFS_ATIME_INO		7	/* Atime file (reserved) */
++#define NILFS_XATTR_INO		8	/* Xattribute file (reserved) */
++#define NILFS_SKETCH_INO	10	/* Sketch file */
++#define NILFS_USER_INO		11	/* Fisrt user's file inode number */
++
++#define NILFS_SB_OFFSET_BYTES	1024	/* byte offset of nilfs superblock */
++#define NILFS_SUPER_MAGIC	0x3434	/* NILFS filesystem  magic number */
++
++#define NILFS_SEG_MIN_BLOCKS	16	/* Minimum number of blocks in
++					   a full segment */
++#define NILFS_PSEG_MIN_BLOCKS	2	/* Minimum number of blocks in
++					   a partial segment */
++#define NILFS_MIN_NRSVSEGS	8	/* Minimum number of reserved
++					   segments */
 +
 +
-+To stride over segment boundaries, this sequence of files may be split
-+into multiple logs.  The sequence of logs that should be treated as
-+logically one log, is delimited with flags marked in the segment
-+summary.  The recovery code of nilfs2 looks this boundary information
-+to ensure atomicity of updates.
++/*
++ * Maximal count of links to a file
++ */
++#define NILFS_LINK_MAX		32000
 +
-+The super root block is inserted for every checkpoints.  It includes
-+three special inodes, inodes for the DAT, cpfile, and sufile.  Inodes
-+of regular files, directories, symlinks and other special files, are
-+included in the ifile.  The inode of ifile itself is included in the
-+corresponding checkpoint entry in the cpfile.  Thus, the hierarchy
-+among NILFS2 files can be depicted as follows:
++/*
++ * Structure of a directory entry
++ *  (Same as ext2)
++ */
 +
-+  Super block (SB)
-+       |
-+       v
-+  Super root block (the latest cno=xx)
-+       |-- DAT
-+       |-- sufile
-+       `-- cpfile
-+              |-- ifile (cno=c1)
-+              |-- ifile (cno=c2) ---- file (ino=i1)
-+              :        :          |-- file (ino=i2)
-+              `-- ifile (cno=xx)  |-- file (ino=i3)
-+                                  :        :
-+                                  `-- file (ino=yy)
-+                                    ( regular file, directory, or symlink )
++#define NILFS_NAME_LEN 255
 +
-+For detail on the format of each file, please see include/linux/nilfs2_fs.h.
++/*
++ * The new version of the directory entry.  Since V0 structures are
++ * stored in intel byte order, and the name_len field could never be
++ * bigger than 255 chars, it's safe to reclaim the extra byte for the
++ * file_type field.
++ */
++struct nilfs_dir_entry {
++	__le64	inode;			/* Inode number */
++	__le16	rec_len;		/* Directory entry length */
++	__u8	name_len;		/* Name length */
++	__u8	file_type;
++	char	name[NILFS_NAME_LEN];	/* File name */
++	char    pad;
++};
++
++/*
++ * NILFS directory file types.  Only the low 3 bits are used.  The
++ * other bits are reserved for now.
++ */
++enum {
++	NILFS_FT_UNKNOWN,
++	NILFS_FT_REG_FILE,
++	NILFS_FT_DIR,
++	NILFS_FT_CHRDEV,
++	NILFS_FT_BLKDEV,
++	NILFS_FT_FIFO,
++	NILFS_FT_SOCK,
++	NILFS_FT_SYMLINK,
++	NILFS_FT_MAX
++};
++
++/*
++ * NILFS_DIR_PAD defines the directory entries boundaries
++ *
++ * NOTE: It must be a multiple of 8
++ */
++#define NILFS_DIR_PAD			8
++#define NILFS_DIR_ROUND			(NILFS_DIR_PAD - 1)
++#define NILFS_DIR_REC_LEN(name_len)	(((name_len) + 12 + NILFS_DIR_ROUND) & \
++					~NILFS_DIR_ROUND)
++
++
++/**
++ * struct nilfs_finfo - file information
++ * @fi_ino: inode number
++ * @fi_cno: checkpoint number
++ * @fi_nblocks: number of blocks (including intermediate blocks)
++ * @fi_ndatablk: number of file data blocks
++ */
++struct nilfs_finfo {
++	__le64 fi_ino;
++	__le64 fi_cno;
++	__le32 fi_nblocks;
++	__le32 fi_ndatablk;
++	/* array of virtual block numbers */
++};
++
++/**
++ * struct nilfs_binfo_v - information for the block to which a virtual block number is assigned
++ * @bi_vblocknr: virtual block number
++ * @bi_blkoff: block offset
++ */
++struct nilfs_binfo_v {
++	__le64 bi_vblocknr;
++	__le64 bi_blkoff;
++};
++
++/**
++ * struct nilfs_binfo_dat - information for the block which belongs to the DAT file
++ * @bi_blkoff: block offset
++ * @bi_level: level
++ * @bi_pad: padding
++ */
++struct nilfs_binfo_dat {
++	__le64 bi_blkoff;
++	__u8 bi_level;
++	__u8 bi_pad[7];
++};
++
++/**
++ * union nilfs_binfo: block information
++ * @bi_v: nilfs_binfo_v structure
++ * @bi_dat: nilfs_binfo_dat structure
++ */
++union nilfs_binfo {
++	struct nilfs_binfo_v bi_v;
++	struct nilfs_binfo_dat bi_dat;
++};
++
++/**
++ * struct nilfs_segment_summary - segment summary
++ * @ss_datasum: checksum of data
++ * @ss_sumsum: checksum of segment summary
++ * @ss_magic: magic number
++ * @ss_bytes: size of this structure in bytes
++ * @ss_flags: flags
++ * @ss_seq: sequence number
++ * @ss_create: creation timestamp
++ * @ss_next: next segment
++ * @ss_nblocks: number of blocks
++ * @ss_nfinfo: number of finfo structures
++ * @ss_sumbytes: total size of segment summary in bytes
++ * @ss_pad: padding
++ */
++struct nilfs_segment_summary {
++	__le32 ss_datasum;
++	__le32 ss_sumsum;
++	__le32 ss_magic;
++	__le16 ss_bytes;
++	__le16 ss_flags;
++	__le64 ss_seq;
++	__le64 ss_create;
++	__le64 ss_next;
++	__le32 ss_nblocks;
++	__le32 ss_nfinfo;
++	__le32 ss_sumbytes;
++	__le32 ss_pad;
++	/* array of finfo structures */
++};
++
++#define NILFS_SEGSUM_MAGIC	0x1eaffa11  /* segment summary magic number */
++
++/*
++ * Segment summary flags
++ */
++#define NILFS_SS_LOGBGN 0x0001  /* begins a logical segment */
++#define NILFS_SS_LOGEND 0x0002  /* ends a logical segment */
++#define NILFS_SS_SR     0x0004  /* has super root */
++#define NILFS_SS_SYNDT  0x0008  /* includes data only updates */
++#define NILFS_SS_GC     0x0010  /* segment written for cleaner operation */
++
++/**
++ * struct nilfs_palloc_group_desc - block group descriptor
++ * @pg_nfrees: number of free entries in block group
++ */
++struct nilfs_palloc_group_desc {
++	__le32 pg_nfrees;
++};
++
++/**
++ * struct nilfs_dat_entry - disk address translation entry
++ * @dt_blocknr: block number
++ * @dt_start: start checkpoint number
++ * @dt_end: end checkpoint number
++ * @dt_rsv: reserved for future use
++ */
++struct nilfs_dat_entry {
++	__le64 de_blocknr;
++	__le64 de_start;
++	__le64 de_end;
++	__le64 de_rsv;
++};
++
++/**
++ * struct nilfs_dat_group_desc - block group descriptor
++ * @dg_nfrees: number of free virtual block numbers in block group
++ */
++struct nilfs_dat_group_desc {
++	__le32 dg_nfrees;
++};
++
++
++/**
++ * struct nilfs_snapshot_list - snapshot list
++ * @ssl_next: next checkpoint number on snapshot list
++ * @ssl_prev: previous checkpoint number on snapshot list
++ */
++struct nilfs_snapshot_list {
++	__le64 ssl_next;
++	__le64 ssl_prev;
++};
++
++/**
++ * struct nilfs_checkpoint - checkpoint structure
++ * @cp_flags: flags
++ * @cp_checkpoints_count: checkpoints count in a block
++ * @cp_snapshot_list: snapshot list
++ * @cp_cno: checkpoint number
++ * @cp_create: creation timestamp
++ * @cp_nblk_inc: number of blocks incremented by this checkpoint
++ * @cp_inodes_count: inodes count
++ * @cp_blocks_count: blocks count
++ * @cp_ifile_inode: inode of ifile
++ */
++struct nilfs_checkpoint {
++	__le32 cp_flags;
++	__le32 cp_checkpoints_count;
++	struct nilfs_snapshot_list cp_snapshot_list;
++	__le64 cp_cno;
++	__le64 cp_create;
++	__le64 cp_nblk_inc;
++	__le64 cp_inodes_count;
++	__le64 cp_blocks_count;		/* Reserved (might be deleted) */
++
++	/* Do not change the byte offset of ifile inode.
++	   To keep the compatibility of the disk format,
++	   additional fields should be added behind cp_ifile_inode. */
++	struct nilfs_inode cp_ifile_inode;
++};
++
++/* checkpoint flags */
++enum {
++	NILFS_CHECKPOINT_SNAPSHOT,
++	NILFS_CHECKPOINT_INVALID,
++	NILFS_CHECKPOINT_SKETCH,
++};
++
++#define NILFS_CHECKPOINT_FNS(flag, name)				\
++static inline void							\
++nilfs_checkpoint_set_##name(struct nilfs_checkpoint *cp)		\
++{									\
++	cp->cp_flags = cpu_to_le32(le32_to_cpu(cp->cp_flags) |		\
++				   (1UL << NILFS_CHECKPOINT_##flag));	\
++}									\
++static inline void							\
++nilfs_checkpoint_clear_##name(struct nilfs_checkpoint *cp)		\
++{									\
++	cp->cp_flags = cpu_to_le32(le32_to_cpu(cp->cp_flags) &		\
++				   ~(1UL << NILFS_CHECKPOINT_##flag));	\
++}									\
++static inline int							\
++nilfs_checkpoint_##name(const struct nilfs_checkpoint *cp)		\
++{									\
++	return !!(le32_to_cpu(cp->cp_flags) &				\
++		  (1UL << NILFS_CHECKPOINT_##flag));			\
++}
++
++NILFS_CHECKPOINT_FNS(SNAPSHOT, snapshot)
++NILFS_CHECKPOINT_FNS(INVALID, invalid)
++NILFS_CHECKPOINT_FNS(SKETCH, sketch)
++
++/**
++ * struct nilfs_cpinfo - checkpoint information
++ * @ci_flags: flags
++ * @ci_cno: checkpoint number
++ * @ci_create: creation timestamp
++ * @ci_nblk_inc: number of blocks incremented by this checkpoint
++ * @ci_inodes_count: inodes count
++ * @ci_blocks_count: blocks count
++ * @ci_next: next checkpoint number in snapshot list
++ */
++struct nilfs_cpinfo {
++	__u32 ci_flags;
++	__u64 ci_cno;
++	__u64 ci_create;
++	__u64 ci_nblk_inc;
++	__u64 ci_inodes_count;
++	__u64 ci_blocks_count;
++	__u64 ci_next;
++};
++
++#define NILFS_CPINFO_FNS(flag, name)					\
++static inline int							\
++nilfs_cpinfo_##name(const struct nilfs_cpinfo *cpinfo)			\
++{									\
++	return !!(cpinfo->ci_flags & (1UL << NILFS_CHECKPOINT_##flag));	\
++}
++
++NILFS_CPINFO_FNS(SNAPSHOT, snapshot)
++NILFS_CPINFO_FNS(INVALID, invalid)
++NILFS_CPINFO_FNS(SKETCH, sketch)
++
++
++/**
++ * struct nilfs_cpfile_header - checkpoint file header
++ * @ch_ncheckpoints: number of checkpoints
++ * @ch_nsnapshots: number of snapshots
++ * @ch_snapshot_list: snapshot list
++ */
++struct nilfs_cpfile_header {
++	__le64 ch_ncheckpoints;
++	__le64 ch_nsnapshots;
++	struct nilfs_snapshot_list ch_snapshot_list;
++};
++
++#define NILFS_CPFILE_FIRST_CHECKPOINT_OFFSET	\
++	((sizeof(struct nilfs_cpfile_header) +				\
++	  sizeof(struct nilfs_checkpoint) - 1) /			\
++			sizeof(struct nilfs_checkpoint))
++
++/**
++ * struct nilfs_segment_usage - segment usage
++ * @su_lastmod: last modified timestamp
++ * @su_nblocks: number of blocks in segment
++ * @su_flags: flags
++ */
++struct nilfs_segment_usage {
++	__le64 su_lastmod;
++	__le32 su_nblocks;
++	__le32 su_flags;
++};
++
++/* segment usage flag */
++enum {
++	NILFS_SEGMENT_USAGE_ACTIVE,
++	NILFS_SEGMENT_USAGE_DIRTY,
++	NILFS_SEGMENT_USAGE_ERROR,
++
++	/* on-memory only */
++	NILFS_SEGMENT_USAGE_VOLATILE_ACTIVE,
++	/* ... */
++};
++
++#define NILFS_SEGMENT_USAGE_FNS(flag, name)				\
++static inline void							\
++nilfs_segment_usage_set_##name(struct nilfs_segment_usage *su)		\
++{									\
++	su->su_flags = cpu_to_le32(le32_to_cpu(su->su_flags) |		\
++				   (1UL << NILFS_SEGMENT_USAGE_##flag));\
++}									\
++static inline void							\
++nilfs_segment_usage_clear_##name(struct nilfs_segment_usage *su)	\
++{									\
++	su->su_flags =							\
++		cpu_to_le32(le32_to_cpu(su->su_flags) &			\
++			    ~(1UL << NILFS_SEGMENT_USAGE_##flag));      \
++}									\
++static inline int							\
++nilfs_segment_usage_##name(const struct nilfs_segment_usage *su)	\
++{									\
++	return !!(le32_to_cpu(su->su_flags) &				\
++		  (1UL << NILFS_SEGMENT_USAGE_##flag));			\
++}
++
++NILFS_SEGMENT_USAGE_FNS(ACTIVE, active)
++NILFS_SEGMENT_USAGE_FNS(DIRTY, dirty)
++NILFS_SEGMENT_USAGE_FNS(ERROR, error)
++NILFS_SEGMENT_USAGE_FNS(VOLATILE_ACTIVE, volatile_active)
++
++static inline void
++nilfs_segment_usage_set_clean(struct nilfs_segment_usage *su)
++{
++	su->su_lastmod = cpu_to_le64(0);
++	su->su_nblocks = cpu_to_le32(0);
++	su->su_flags = cpu_to_le32(0);
++}
++
++static inline int
++nilfs_segment_usage_clean(const struct nilfs_segment_usage *su)
++{
++	return !le32_to_cpu(su->su_flags);
++}
++
++/**
++ * struct nilfs_sufile_header - segment usage file header
++ * @sh_ncleansegs: number of clean segments
++ * @sh_ndirtysegs: number of dirty segments
++ * @sh_last_alloc: last allocated segment number
++ */
++struct nilfs_sufile_header {
++	__le64 sh_ncleansegs;
++	__le64 sh_ndirtysegs;
++	__le64 sh_last_alloc;
++	/* ... */
++};
++
++#define NILFS_SUFILE_FIRST_SEGMENT_USAGE_OFFSET	\
++	((sizeof(struct nilfs_sufile_header) +				\
++	  sizeof(struct nilfs_segment_usage) - 1) /			\
++			 sizeof(struct nilfs_segment_usage))
++
++/**
++ * nilfs_suinfo - segment usage information
++ * @sui_lastmod:
++ * @sui_nblocks:
++ * @sui_flags:
++ */
++struct nilfs_suinfo {
++	__u64 sui_lastmod;
++	__u32 sui_nblocks;
++	__u32 sui_flags;
++};
++
++#define NILFS_SUINFO_FNS(flag, name)					\
++static inline int							\
++nilfs_suinfo_##name(const struct nilfs_suinfo *si)			\
++{									\
++	return si->sui_flags & (1UL << NILFS_SEGMENT_USAGE_##flag);	\
++}
++
++NILFS_SUINFO_FNS(ACTIVE, active)
++NILFS_SUINFO_FNS(DIRTY, dirty)
++NILFS_SUINFO_FNS(ERROR, error)
++NILFS_SUINFO_FNS(VOLATILE_ACTIVE, volatile_active)
++
++static inline int nilfs_suinfo_clean(const struct nilfs_suinfo *si)
++{
++	return !si->sui_flags;
++}
++
++/* ioctl */
++enum {
++	NILFS_CHECKPOINT,
++	NILFS_SNAPSHOT,
++};
++
++/**
++ * struct nilfs_cpmode -
++ * @cc_cno:
++ * @cc_mode:
++ */
++struct nilfs_cpmode {
++	__u64 cm_cno;
++	int cm_mode;
++};
++
++/**
++ * struct nilfs_argv - argument vector
++ * @v_base:
++ * @v_nmembs:
++ * @v_size:
++ * @v_index:
++ * @v_flags:
++ */
++struct nilfs_argv {
++	void *v_base;
++	size_t v_nmembs;	/* number of members */
++	size_t v_size;		/* size of members */
++	int v_index;
++	int v_flags;
++};
++
++/**
++ * struct nilfs_period -
++ * @p_start:
++ * @p_end:
++ */
++struct nilfs_period {
++	__u64 p_start;
++	__u64 p_end;
++};
++
++/**
++ * struct nilfs_cpstat -
++ * @cs_cno: checkpoint number
++ * @cs_ncps: number of checkpoints
++ * @cs_nsss: number of snapshots
++ */
++struct nilfs_cpstat {
++	__u64 cs_cno;
++	__u64 cs_ncps;
++	__u64 cs_nsss;
++};
++
++/**
++ * struct nilfs_sustat -
++ * @ss_nsegs: number of segments
++ * @ss_ncleansegs: number of clean segments
++ * @ss_ndirtysegs: number of dirty segments
++ * @ss_ctime:
++ * @ss_nongc_ctime:
++ */
++struct nilfs_sustat {
++	__u64 ss_nsegs;
++	__u64 ss_ncleansegs;
++	__u64 ss_ndirtysegs;
++	time_t ss_ctime;
++	time_t ss_nongc_ctime;
++};
++
++/**
++ * struct nilfs_vinfo - virtual block number information
++ * @vi_vblocknr:
++ * @vi_start:
++ * @vi_end:
++ * @vi_blocknr:
++ */
++struct nilfs_vinfo {
++	__u64 vi_vblocknr;
++	__u64 vi_start;
++	__u64 vi_end;
++	__u64 vi_blocknr;
++};
++
++/**
++ * struct nilfs_vdesc -
++ */
++struct nilfs_vdesc {
++	__u64 vd_ino;
++	__u64 vd_cno;
++	__u64 vd_vblocknr;
++	struct nilfs_period vd_period;
++	__u64 vd_blocknr;
++	__u64 vd_offset;
++	__u32 vd_flags;
++};
++
++/**
++ * struct nilfs_bdesc -
++ */
++struct nilfs_bdesc {
++	__u64 bd_ino;
++	__u64 bd_oblocknr;
++	__u64 bd_blocknr;
++	__u64 bd_offset;
++	__u32 bd_level;
++};
++
++#define	NILFS_TIMEDWAIT_WRITE_LOCKED	0x1
++#define	NILFS_TIMEDWAIT_SEG_WRITE	0x2
++
++/**
++ * struct nilfs_wait_cond -
++ */
++struct nilfs_wait_cond {
++	int wc_cond;
++	int wc_flags;
++	struct timespec wc_timeout;
++};
++
++#define NILFS_IOCTL_IDENT		'n'
++
++#define NILFS_IOCTL_CHANGE_CPMODE  \
++	_IOW(NILFS_IOCTL_IDENT, 0x80, struct nilfs_cpmode)
++#define NILFS_IOCTL_DELETE_CHECKPOINT  \
++	_IOW(NILFS_IOCTL_IDENT, 0x81, __u64)
++#define NILFS_IOCTL_GET_CPINFO  \
++	_IOR(NILFS_IOCTL_IDENT, 0x82, struct nilfs_argv)
++#define NILFS_IOCTL_GET_CPSTAT  \
++	_IOR(NILFS_IOCTL_IDENT, 0x83, struct nilfs_cpstat)
++#define NILFS_IOCTL_GET_SUINFO  \
++	_IOR(NILFS_IOCTL_IDENT, 0x84, struct nilfs_argv)
++#define NILFS_IOCTL_GET_SUSTAT  \
++	_IOR(NILFS_IOCTL_IDENT, 0x85, struct nilfs_sustat)
++#define NILFS_IOCTL_GET_VINFO  \
++	_IOWR(NILFS_IOCTL_IDENT, 0x86, struct nilfs_argv)
++#define NILFS_IOCTL_GET_BDESCS  \
++	_IOWR(NILFS_IOCTL_IDENT, 0x87, struct nilfs_argv)
++#define NILFS_IOCTL_CLEAN_SEGMENTS  \
++	_IOW(NILFS_IOCTL_IDENT, 0x88, struct nilfs_argv[5])
++#define NILFS_IOCTL_TIMEDWAIT  \
++	_IOWR(NILFS_IOCTL_IDENT, 0x89, struct nilfs_wait_cond)
++#define NILFS_IOCTL_SYNC  \
++	_IOR(NILFS_IOCTL_IDENT, 0x8A, __u64)
++#define NILFS_IOCTL_RESIZE  \
++	_IOW(NILFS_IOCTL_IDENT, 0x8B, __u64)
++
++/* compat_ioctl */
++#ifdef CONFIG_COMPAT
++#include <linux/compat.h>
++
++struct nilfs_cpmode32 {
++	__u64 cm_cno;
++	compat_int_t cm_mode;
++};
++
++struct nilfs_argv32 {
++	compat_caddr_t v_base;
++	compat_size_t v_nmembs;
++	compat_size_t v_size;
++	compat_int_t v_index;
++	compat_int_t v_flags;
++};
++
++struct nilfs_sustat32 {
++	__u64 ss_nsegs;
++	__u64 ss_ncleansegs;
++	__u64 ss_ndirtysegs;
++	compat_time_t ss_ctime;
++	compat_time_t ss_nongc_ctime;
++};
++
++struct nilfs_wait_cond32 {
++	compat_int_t wc_cond;
++	compat_int_t wc_flags;
++	struct compat_timespec wc_timeout;
++};
++
++#define NILFS_IOCTL32_CHANGE_CPMODE  \
++	_IOW(NILFS_IOCTL_IDENT, 0x80, struct nilfs_cpmode32)
++#define NILFS_IOCTL32_GET_CPINFO  \
++	_IOR(NILFS_IOCTL_IDENT, 0x82, struct nilfs_argv32)
++#define NILFS_IOCTL32_GET_SUINFO  \
++	_IOR(NILFS_IOCTL_IDENT, 0x84, struct nilfs_argv32)
++#define NILFS_IOCTL32_GET_SUSTAT  \
++	_IOR(NILFS_IOCTL_IDENT, 0x85, struct nilfs_sustat32)
++#define NILFS_IOCTL32_GET_VINFO  \
++	_IOWR(NILFS_IOCTL_IDENT, 0x86, struct nilfs_argv32)
++#define NILFS_IOCTL32_GET_BDESCS  \
++	_IOWR(NILFS_IOCTL_IDENT, 0x87, struct nilfs_argv32)
++#define NILFS_IOCTL32_CLEAN_SEGMENTS  \
++	_IOW(NILFS_IOCTL_IDENT, 0x88, struct nilfs_argv32[5])
++#define NILFS_IOCTL32_TIMEDWAIT  \
++	_IOWR(NILFS_IOCTL_IDENT, 0x89, struct nilfs_wait_cond32)
++#endif	/* CONFIG_COMPAT */
++
++#endif	/* _LINUX_NILFS_FS_H */
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from sato.koji@lab.ntt.co.jp are
 
-nilfs2-add-document.patch
 nilfs2-disk-format-and-userland-interface.patch
 nilfs2-add-inode-and-other-major-structures.patch
 nilfs2-integrated-block-mapping.patch
 nilfs2-b-tree-based-block-mapping.patch
 nilfs2-direct-block-mapping.patch
-nilfs2-b-tree-node-cache.patch
-nilfs2-buffer-and-page-operations.patch
-nilfs2-meta-data-file.patch
 nilfs2-persistent-object-allocator.patch
 nilfs2-disk-address-translator.patch
-nilfs2-inode-map-file.patch
 nilfs2-checkpoint-file.patch
 nilfs2-segment-usage-file.patch
-nilfs2-inode-operations.patch
-nilfs2-file-operations.patch
-nilfs2-directory-entry-operations.patch
-nilfs2-pathname-operations.patch
-nilfs2-operations-for-the_nilfs-core-object.patch
-nilfs2-super-block-operations.patch
-nilfs2-segment-buffer.patch
-nilfs2-segment-constructor.patch
-nilfs2-recovery-functions.patch
-nilfs2-another-dat-for-garbage-collection.patch
-nilfs2-block-cache-for-garbage-collection.patch
 nilfs2-ioctl-operations.patch
-nilfs2-update-makefile-and-kconfig.patch
 
