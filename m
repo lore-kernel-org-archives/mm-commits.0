@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-inode-operations.patch added to -mm tree
-Date: Wed, 17 Sep 2008 13:27:52 -0700
-Message-ID: <200809172027.m8HKRqef028995@imap1.linux-foundation.org>
+Subject: + nilfs2-operations-for-the_nilfs-core-object.patch added to -mm tree
+Date: Wed, 17 Sep 2008 13:28:04 -0700
+Message-ID: <200809172028.m8HKS5Le029018@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41097 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39739 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753852AbYIQU15 (ORCPT
+	by vger.kernel.org with ESMTP id S1753963AbYIQU2J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Sep 2008 16:27:57 -0400
+	Wed, 17 Sep 2008 16:28:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     nilfs2: inode operations
+     nilfs2: operations for the_nilfs core object
 has been added to the -mm tree.  Its filename is
-     nilfs2-inode-operations.patch
+     nilfs2-operations-for-the_nilfs-core-object.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,24 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: inode operations
+Subject: nilfs2: operations for the_nilfs core object
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-This adds inode level operations of the nilfs2 file system.
+This adds functions on the_nilfs object, which keeps shared resources and
+states among a read/write mount and snapshots mounts going individually.
+
+the_nilfs is allocated per block device; it is created when user first
+mount a snapshot or a read/write mount on the device, then it is reused
+for successive mounts.  It will be freed when all mount instances on the
+device are detached.
 
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/inode.c |  819 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 819 insertions(+)
+ fs/nilfs2/the_nilfs.c |  524 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 524 insertions(+)
 
-diff -puN /dev/null fs/nilfs2/inode.c
+diff -puN /dev/null fs/nilfs2/the_nilfs.c
 --- /dev/null
-+++ a/fs/nilfs2/inode.c
-@@ -0,0 +1,819 @@
++++ a/fs/nilfs2/the_nilfs.c
+@@ -0,0 +1,524 @@
 +/*
-+ * inode.c - NILFS inode operations.
++ * the_nilfs.c - the_nilfs shared structure.
 + *
 + * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
 + *
@@ -74,800 +80,505 @@ diff -puN /dev/null fs/nilfs2/inode.c
 + */
 +
 +#include <linux/buffer_head.h>
-+#include <linux/mpage.h>
-+#include <linux/writeback.h>
++#include <linux/slab.h>
++#include <linux/blkdev.h>
++#include <linux/backing-dev.h>
 +#include "nilfs.h"
 +#include "segment.h"
-+#include "page.h"
-+#include "mdt.h"
++#include "alloc.h"
 +#include "cpfile.h"
-+#include "ifile.h"
++#include "sufile.h"
++#include "dat.h"
++#include "seglist.h"
++#include "segbuf.h"
 +
++void nilfs_set_last_segment(struct the_nilfs *nilfs,
++			    sector_t start_blocknr, u64 seq, __u64 cno)
++{
++	spin_lock(&nilfs->ns_last_segment_lock);
++	nilfs->ns_last_pseg = start_blocknr;
++	nilfs->ns_last_seq = seq;
++	nilfs->ns_last_cno = cno;
++	spin_unlock(&nilfs->ns_last_segment_lock);
++}
 +
 +/**
-+ * nilfs_get_block() - get a file block on the filesystem (callback function)
-+ * @inode - inode struct of the target file
-+ * @blkoff - file block number
-+ * @bh_result - buffer head to be mapped on
-+ * @create - indicate whether allocating the block or not when it has not
-+ *      been allocated yet.
++ * alloc_nilfs - allocate the_nilfs structure
++ * @bdev: block device to which the_nilfs is related
 + *
-+ * This function does not issue actual read request of the specified data
-+ * block. It is done by VFS.
-+ * Bulk read for direct-io is not supported yet. (should be supported)
++ * alloc_nilfs() allocates memory for the_nilfs and
++ * initializes its reference count and locks.
++ *
++ * Return Value: On success, pointer to the_nilfs is returned.
++ * On error, NULL is returned.
 + */
-+int nilfs_get_block(struct inode *inode, sector_t blkoff,
-+		    struct buffer_head *bh_result, int create)
++struct the_nilfs *alloc_nilfs(struct block_device *bdev)
 +{
-+	struct nilfs_inode_info *ii = NILFS_I(inode);
-+	unsigned long blknum = 0;
-+	int err = 0, ret;
-+	struct inode *dat = nilfs_dat_inode(NILFS_I_NILFS(inode));
++	struct the_nilfs *nilfs;
 +
-+	/* This exclusion control is a workaround; should be revised */
-+	down_read(&NILFS_MDT(dat)->mi_sem);	/* XXX */
-+	ret = nilfs_bmap_lookup(ii->i_bmap, (unsigned long)blkoff, &blknum);
-+	up_read(&NILFS_MDT(dat)->mi_sem);	/* XXX */
-+	if (ret == 0) {	/* found */
-+		map_bh(bh_result, inode->i_sb, blknum);
-+		goto out;
-+	}
-+	if (unlikely(ret == 1)) {
-+		printk(KERN_ERR "nilfs_get_block: bmap_lookup returns "
-+		       "buffer_head pointer (blkoff=%llu, blknum=%lu)\n",
-+		       (unsigned long long)blkoff, blknum);
-+		BUG();
-+	}
-+	/* data block was not found */
-+	if (ret == -ENOENT && create) {
-+		struct nilfs_transaction_info ti;
++	nilfs = kzalloc(sizeof(*nilfs), GFP_KERNEL);
++	if (!nilfs)
++		return NULL;
 +
-+		bh_result->b_blocknr = 0;
-+		err = nilfs_transaction_begin(inode->i_sb, &ti, 1);
-+		if (unlikely(err))
-+			goto out;
-+		err = nilfs_bmap_insert(ii->i_bmap, (unsigned long)blkoff,
-+					(unsigned long)bh_result);
-+		nilfs_transaction_end(inode->i_sb, !err);
-+		if (unlikely(err != 0)) {
-+			if (err == -EEXIST) {
-+				/*
-+				 * The get_block() function could be called
-+				 * from multiple callers for an inode.
-+				 * However, the page having this block must
-+				 * be locked in this case.
-+				 */
-+				printk(KERN_ERR
-+				       "nilfs_get_block: a race condition "
-+				       "while inserting a data block. "
-+				       "(inode number=%lu, file block "
-+				       "offset=%llu)\n",
-+				       inode->i_ino,
-+				       (unsigned long long)blkoff);
-+				BUG();
-+			} else if (err == -EINVAL) {
-+				nilfs_error(inode->i_sb, __func__,
-+					    "broken bmap (inode=%lu)\n",
-+					    inode->i_ino);
-+				err = -EIO;
-+			}
-+			goto out;
-+		}
-+		/* Error handling should be detailed */
-+		set_buffer_new(bh_result);
-+		map_bh(bh_result, inode->i_sb, 0); /* dbn must be changed
-+						      to proper value */
-+	} else if (ret == -ENOENT) {
-+		/* not found is not error (e.g. hole); must return without
-+		   the mapped state flag. */
-+		;
-+	} else {
-+		err = ret;
-+	}
++	nilfs->ns_bdev = bdev;
++	atomic_set(&nilfs->ns_count, 1);
++	atomic_set(&nilfs->ns_writer_refcount, -1);
++	atomic_set(&nilfs->ns_ndirtyblks, 0);
++	init_rwsem(&nilfs->ns_sem);
++	mutex_init(&nilfs->ns_writer_mutex);
++	INIT_LIST_HEAD(&nilfs->ns_supers);
++	spin_lock_init(&nilfs->ns_last_segment_lock);
++	nilfs->ns_gc_inodes_h = NULL;
++	INIT_LIST_HEAD(&nilfs->ns_used_segments);
++	init_rwsem(&nilfs->ns_segctor_sem);
++	init_waitqueue_head(&nilfs->ns_cleanerd_wq);
 +
-+ out:
-+	return err;
++	return nilfs;
 +}
 +
 +/**
-+ * nilfs_readpage() - implement readpage() method of nilfs_aops {}
-+ * address_space_operations.
-+ * @file - file struct of the file to be read
-+ * @page - the page to be read
++ * put_nilfs - release a reference to the_nilfs
++ * @nilfs: the_nilfs structure to be released
++ *
++ * put_nilfs() decrements a reference counter of the_nilfs.
++ * If the reference count reaches zero, the_nilfs is freed.
 + */
-+static int nilfs_readpage(struct file *file, struct page *page)
++void put_nilfs(struct the_nilfs *nilfs)
 +{
-+	return mpage_readpage(page, nilfs_get_block);
-+}
-+
-+/**
-+ * nilfs_readpages() - implement readpages() method of nilfs_aops {}
-+ * address_space_operations.
-+ * @file - file struct of the file to be read
-+ * @mapping - address_space struct used for reading multiple pages
-+ * @pages - the pages to be read
-+ * @nr_pages - number of pages to be read
-+ */
-+static int nilfs_readpages(struct file *file, struct address_space *mapping,
-+			   struct list_head *pages, unsigned nr_pages)
-+{
-+	return mpage_readpages(mapping, pages, nr_pages, nilfs_get_block);
-+}
-+
-+static int nilfs_writepages(struct address_space *mapping,
-+			    struct writeback_control *wbc)
-+{
-+	/* This empty method is required not to call generic_writepages() */
-+	return 0;
-+}
-+
-+static int nilfs_writepage(struct page *page, struct writeback_control *wbc)
-+{
-+	struct inode *inode = page->mapping->host;
-+	int err;
-+
-+	redirty_page_for_writepage(wbc, page);
-+	unlock_page(page);
-+
-+	if (wbc->sync_mode == WB_SYNC_ALL) {
-+		err = nilfs_construct_segment(inode->i_sb);
-+		if (unlikely(err))
-+			return err;
-+	} else if (wbc->for_reclaim)
-+		nilfs_flush_segment(inode->i_sb, inode->i_ino);
-+
-+	return 0;
-+}
-+
-+static int nilfs_set_page_dirty(struct page *page)
-+{
-+	int ret = __set_page_dirty_buffers(page);
-+
-+	if (ret) {
-+		struct inode *inode = page->mapping->host;
-+		struct nilfs_sb_info *sbi = NILFS_SB(inode->i_sb);
-+		unsigned nr_dirty = 1 << (PAGE_SHIFT - inode->i_blkbits);
-+
-+		nilfs_set_file_dirty(sbi, inode, nr_dirty);
++	if (!atomic_dec_and_test(&nilfs->ns_count))
++		return;
++	/*
++	 * Increment of ns_count never occur below because the caller
++	 * of get_nilfs() holds at least one reference to the_nilfs.
++	 * Thus its exclusion control is not required here.
++	 */
++	might_sleep();
++	if (nilfs_loaded(nilfs)) {
++		nilfs_dispose_used_segments(nilfs);
++		nilfs_mdt_clear(nilfs->ns_sufile);
++		nilfs_mdt_destroy(nilfs->ns_sufile);
++		nilfs_mdt_clear(nilfs->ns_cpfile);
++		nilfs_mdt_destroy(nilfs->ns_cpfile);
++		nilfs_mdt_clear(nilfs->ns_dat);
++		nilfs_mdt_destroy(nilfs->ns_dat);
++		/* XXX: how and when to clear nilfs->ns_gc_dat? */
++		nilfs_mdt_destroy(nilfs->ns_gc_dat);
 +	}
-+	return ret;
++	if (nilfs_init(nilfs)) {
++		nilfs_destroy_gccache(nilfs);
++		brelse(nilfs->ns_sbh);
++	}
++	kfree(nilfs);
 +}
 +
-+static int nilfs_write_begin(struct file *file, struct address_space *mapping,
-+			     loff_t pos, unsigned len, unsigned flags,
-+			     struct page **pagep, void **fsdata)
-+
++static int nilfs_load_super_root(struct the_nilfs *nilfs,
++				 struct nilfs_sb_info *sbi, sector_t sr_block)
 +{
-+	struct inode *inode = mapping->host;
-+	int err = nilfs_transaction_begin(inode->i_sb, NULL, 1);
++	struct buffer_head *bh_sr;
++	struct nilfs_super_root *raw_sr;
++	unsigned dat_entry_size, segment_usage_size, checkpoint_size;
++	unsigned inode_size;
++	int err;
 +
++	err = nilfs_read_super_root_block(sbi->s_super, sr_block, &bh_sr, 1);
 +	if (unlikely(err))
 +		return err;
 +
-+	*pagep = NULL;
-+	err = block_write_begin(file, mapping, pos, len, flags, pagep,
-+				fsdata, nilfs_get_block);
-+	if (unlikely(err))
-+		nilfs_transaction_end(inode->i_sb, 0);
-+	return err;
-+}
++	down_read(&nilfs->ns_sem);
++	dat_entry_size = le16_to_cpu(nilfs->ns_sbp->s_dat_entry_size);
++	checkpoint_size = le16_to_cpu(nilfs->ns_sbp->s_checkpoint_size);
++	segment_usage_size = le16_to_cpu(nilfs->ns_sbp->s_segment_usage_size);
++	up_read(&nilfs->ns_sem);
 +
-+static int nilfs_write_end(struct file *file, struct address_space *mapping,
-+			   loff_t pos, unsigned len, unsigned copied,
-+			   struct page *page, void *fsdata)
-+{
-+	struct inode *inode = mapping->host;
-+	unsigned start = pos & (PAGE_CACHE_SIZE - 1);
-+	unsigned nr_dirty;
-+	int err;
++	inode_size = nilfs->ns_inode_size;
 +
-+	nr_dirty = nilfs_page_count_clean_buffers(page, start,
-+						  start + copied);
-+	copied = generic_write_end(file, mapping, pos, len, copied, page,
-+				   fsdata);
-+	nilfs_set_file_dirty(NILFS_SB(inode->i_sb), inode, nr_dirty);
-+	err = nilfs_transaction_end(inode->i_sb, 1);
-+	return err ? : copied;
-+}
-+
-+static ssize_t
-+nilfs_direct_IO(int rw, struct kiocb *iocb, const struct iovec *iov,
-+		loff_t offset, unsigned long nr_segs)
-+{
-+	struct file *file = iocb->ki_filp;
-+	struct inode *inode = file->f_mapping->host;
-+	ssize_t size;
-+	int err;
-+
-+	err = nilfs_construct_dsync_segment(inode->i_sb, inode);
-+	if (unlikely(err))
-+		return err;
-+
-+	if (rw == WRITE)
-+		return 0;
-+
-+	/* Needs synchronization with the cleaner */
-+	size = blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev, iov,
-+				  offset, nr_segs, nilfs_get_block, NULL);
-+	return size;
-+}
-+
-+struct address_space_operations nilfs_aops = {
-+	.writepage		= nilfs_writepage,
-+	.readpage		= nilfs_readpage,
-+	/* .sync_page		= nilfs_sync_page, */
-+	.writepages		= nilfs_writepages,
-+	.set_page_dirty		= nilfs_set_page_dirty,
-+	.readpages		= nilfs_readpages,
-+	.write_begin		= nilfs_write_begin,
-+	.write_end		= nilfs_write_end,
-+	/* .releasepage		= nilfs_releasepage, */
-+	.invalidatepage		= block_invalidatepage,
-+	.direct_IO		= nilfs_direct_IO,
-+};
-+
-+struct inode *nilfs_new_inode(struct inode *dir, int mode)
-+{
-+	struct super_block *sb = dir->i_sb;
-+	struct nilfs_sb_info *sbi = NILFS_SB(sb);
-+	struct inode *inode;
-+	struct nilfs_inode_info *ii;
-+	int err = -ENOMEM;
-+	ino_t ino;
-+
-+	inode = new_inode(sb);
-+	if (unlikely(!inode))
++	err = -ENOMEM;
++	nilfs->ns_dat = nilfs_mdt_new(
++		nilfs, NULL, NILFS_DAT_INO, NILFS_DAT_GFP);
++	if (unlikely(!nilfs->ns_dat))
 +		goto failed;
 +
-+	mapping_set_gfp_mask(inode->i_mapping,
-+			     mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
++	nilfs->ns_gc_dat = nilfs_mdt_new(
++		nilfs, NULL, NILFS_DAT_INO, NILFS_DAT_GFP);
++	if (unlikely(!nilfs->ns_gc_dat))
++		goto failed_dat;
 +
-+	ii = NILFS_I(inode);
-+	ii->i_state = 1 << NILFS_I_NEW;
++	nilfs->ns_cpfile = nilfs_mdt_new(
++		nilfs, NULL, NILFS_CPFILE_INO, NILFS_CPFILE_GFP);
++	if (unlikely(!nilfs->ns_cpfile))
++		goto failed_gc_dat;
 +
-+	err = nilfs_ifile_create_inode(sbi->s_ifile, &ino, &ii->i_bh);
++	nilfs->ns_sufile = nilfs_mdt_new(
++		nilfs, NULL, NILFS_SUFILE_INO, NILFS_SUFILE_GFP);
++	if (unlikely(!nilfs->ns_sufile))
++		goto failed_cpfile;
++
++	err = nilfs_palloc_init_blockgroup(nilfs->ns_dat, dat_entry_size);
 +	if (unlikely(err))
-+		goto failed_ifile_create_inode;
-+	/* reference count of i_bh inherits from nilfs_mdt_read_block() */
++		goto failed_sufile;
 +
-+	atomic_inc(&sbi->s_inodes_count);
-+
-+	inode->i_uid = current->fsuid;
-+	if (dir->i_mode & S_ISGID) {
-+		inode->i_gid = dir->i_gid;
-+		if (S_ISDIR(mode))
-+			mode |= S_ISGID;
-+	} else
-+		inode->i_gid = current->fsgid;
-+
-+	inode->i_mode = mode;
-+	inode->i_ino = ino;
-+	inode->i_mtime = inode->i_atime = inode->i_ctime = CURRENT_TIME;
-+
-+	if (S_ISREG(mode) || S_ISDIR(mode) || S_ISLNK(mode)) {
-+		err = nilfs_bmap_read(ii->i_bmap, NULL);
-+		if (err < 0)
-+			goto failed_bmap;
-+
-+		set_bit(NILFS_I_BMAP, &ii->i_state);
-+		/* No lock is needed; iget() ensures it. */
-+	}
-+
-+	ii->i_flags = NILFS_I(dir)->i_flags;
-+	if (S_ISLNK(mode))
-+		ii->i_flags &= ~(NILFS_IMMUTABLE_FL | NILFS_APPEND_FL);
-+	if (!S_ISDIR(mode))
-+		ii->i_flags &= ~NILFS_DIRSYNC_FL;
-+
-+	/* ii->i_file_acl = 0; */
-+	/* ii->i_dir_acl = 0; */
-+	ii->i_dtime = 0;
-+	ii->i_dir_start_lookup = 0;
-+#ifdef CONFIG_NILFS_FS_POSIX_ACL
-+	ii->i_acl = NULL;
-+	ii->i_default_acl = NULL;
-+#endif
-+	ii->i_cno = 0;
-+	nilfs_set_inode_flags(inode);
-+	spin_lock(&sbi->s_next_gen_lock);
-+	inode->i_generation = sbi->s_next_generation++;
-+	spin_unlock(&sbi->s_next_gen_lock);
-+	insert_inode_hash(inode);
-+
-+	err = nilfs_init_acl(inode, dir);
++	err = nilfs_palloc_init_blockgroup(nilfs->ns_gc_dat, dat_entry_size);
 +	if (unlikely(err))
-+		goto failed_acl; /* never occur. When supporting
-+				    nilfs_init_acl(), proper cancellation of
-+				    above jobs should be considered */
++		goto failed_sufile;
 +
-+	mark_inode_dirty(inode);
-+	return inode;
++	nilfs_mdt_set_shadow(nilfs->ns_dat, nilfs->ns_gc_dat);
++	nilfs_mdt_set_entry_size(nilfs->ns_cpfile, checkpoint_size,
++				 sizeof(struct nilfs_cpfile_header));
++	nilfs_mdt_set_entry_size(nilfs->ns_sufile, segment_usage_size,
++				 sizeof(struct nilfs_sufile_header));
 +
-+ failed_acl:
-+ failed_bmap:
-+	inode->i_nlink = 0;
-+	iput(inode);  /* raw_inode will be deleted through
-+			 generic_delete_inode() */
-+	goto failed;
++	err = nilfs_mdt_read_inode_direct(
++		nilfs->ns_dat, bh_sr, NILFS_SR_DAT_OFFSET(inode_size));
++	if (unlikely(err))
++		goto failed_sufile;
 +
-+ failed_ifile_create_inode:
-+	make_bad_inode(inode);
-+	iput(inode);  /* if i_nlink == 1, generic_forget_inode() will be
-+			 called */
++	err = nilfs_mdt_read_inode_direct(
++		nilfs->ns_cpfile, bh_sr, NILFS_SR_CPFILE_OFFSET(inode_size));
++	if (unlikely(err))
++		goto failed_sufile;
++
++	err = nilfs_mdt_read_inode_direct(
++		nilfs->ns_sufile, bh_sr, NILFS_SR_SUFILE_OFFSET(inode_size));
++	if (unlikely(err))
++		goto failed_sufile;
++
++	raw_sr = (struct nilfs_super_root *)bh_sr->b_data;
++	nilfs->ns_nongc_ctime = le64_to_cpu(raw_sr->sr_nongc_ctime);
++
 + failed:
-+	return ERR_PTR(err);
++	brelse(bh_sr);
++	return err;
++
++ failed_sufile:
++	nilfs_mdt_destroy(nilfs->ns_sufile);
++
++ failed_cpfile:
++	nilfs_mdt_destroy(nilfs->ns_cpfile);
++
++ failed_gc_dat:
++	nilfs_mdt_destroy(nilfs->ns_gc_dat);
++
++ failed_dat:
++	nilfs_mdt_destroy(nilfs->ns_dat);
++	goto failed;
 +}
 +
-+void nilfs_free_inode(struct inode *inode)
++static void nilfs_init_recovery_info(struct nilfs_recovery_info *ri)
 +{
-+	struct super_block *sb = inode->i_sb;
-+	struct nilfs_sb_info *sbi = NILFS_SB(sb);
-+
-+	clear_inode(inode);
-+	/* XXX: check error code? Is there any thing I can do? */
-+	(void) nilfs_ifile_delete_inode(sbi->s_ifile, inode->i_ino);
-+	atomic_dec(&sbi->s_inodes_count);
++	memset(ri, 0, sizeof(*ri));
++	INIT_LIST_HEAD(&ri->ri_used_segments);
 +}
 +
-+void nilfs_set_inode_flags(struct inode *inode)
++static void nilfs_clear_recovery_info(struct nilfs_recovery_info *ri)
 +{
-+	unsigned int flags = NILFS_I(inode)->i_flags;
-+
-+	inode->i_flags &= ~(S_SYNC | S_APPEND | S_IMMUTABLE | S_NOATIME |
-+			    S_DIRSYNC);
-+	if (flags & NILFS_SYNC_FL)
-+		inode->i_flags |= S_SYNC;
-+	if (flags & NILFS_APPEND_FL)
-+		inode->i_flags |= S_APPEND;
-+	if (flags & NILFS_IMMUTABLE_FL)
-+		inode->i_flags |= S_IMMUTABLE;
-+#ifndef NILFS_ATIME_DISABLE
-+	if (flags & NILFS_NOATIME_FL)
-+#endif
-+		inode->i_flags |= S_NOATIME;
-+	if (flags & NILFS_DIRSYNC_FL)
-+		inode->i_flags |= S_DIRSYNC;
-+	mapping_set_gfp_mask(inode->i_mapping,
-+			     mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
++	nilfs_dispose_segment_list(&ri->ri_used_segments);
 +}
 +
-+int nilfs_read_inode_common(struct inode *inode,
-+			    struct nilfs_inode *raw_inode)
++/**
++ * load_nilfs - load and recover the nilfs
++ * @nilfs: the_nilfs structure to be released
++ * @sbi: nilfs_sb_info used to recover past segment
++ *
++ * load_nilfs() searches and load the latest super root,
++ * attaches the last segment, and does recovery if needed.
++ * The caller must call this exclusively for simultaneous mounts.
++ */
++int load_nilfs(struct the_nilfs *nilfs, struct nilfs_sb_info *sbi)
 +{
-+	struct nilfs_inode_info *ii = NILFS_I(inode);
-+	int err;
-+
-+	inode->i_mode = le16_to_cpu(raw_inode->i_mode);
-+	inode->i_uid = (uid_t)le32_to_cpu(raw_inode->i_uid);
-+	inode->i_gid = (gid_t)le32_to_cpu(raw_inode->i_gid);
-+	inode->i_nlink = le16_to_cpu(raw_inode->i_links_count);
-+	inode->i_size = le64_to_cpu(raw_inode->i_size);
-+	inode->i_atime.tv_sec = le64_to_cpu(raw_inode->i_mtime);
-+	inode->i_ctime.tv_sec = le64_to_cpu(raw_inode->i_ctime);
-+	inode->i_mtime.tv_sec = le64_to_cpu(raw_inode->i_mtime);
-+	inode->i_atime.tv_nsec = 0;
-+	inode->i_ctime.tv_nsec = 0;
-+	inode->i_mtime.tv_nsec = 0;
-+	ii->i_dtime = le64_to_cpu(raw_inode->i_dtime);
-+	if (inode->i_nlink == 0 && (inode->i_mode == 0 || ii->i_dtime))
-+		return -EINVAL; /* this inode is deleted */
-+
-+	inode->i_blocks = le64_to_cpu(raw_inode->i_blocks);
-+	ii->i_flags = le32_to_cpu(raw_inode->i_flags);
-+#if 0
-+	ii->i_file_acl = le32_to_cpu(raw_inode->i_file_acl);
-+	ii->i_dir_acl = S_ISREG(inode->i_mode) ?
-+		0 : le32_to_cpu(raw_inode->i_dir_acl);
-+#endif
-+	ii->i_cno = 0;
-+	inode->i_generation = le32_to_cpu(raw_inode->i_generation);
-+
-+	if (S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode) ||
-+	    S_ISLNK(inode->i_mode)) {
-+		err = nilfs_bmap_read(ii->i_bmap, raw_inode);
-+		if (err < 0)
-+			return err;
-+		set_bit(NILFS_I_BMAP, &ii->i_state);
-+		/* No lock is needed; iget() ensures it. */
-+	}
-+	return 0;
-+}
-+
-+static int nilfs_read_sketch_inode(struct inode *inode)
-+{
-+	struct nilfs_sb_info *sbi = NILFS_SB(inode->i_sb);
++	struct nilfs_recovery_info ri;
++	unsigned int s_flags = sbi->s_super->s_flags;
++	int really_read_only = bdev_read_only(nilfs->ns_bdev);
++	unsigned valid_fs;
 +	int err = 0;
 +
-+	if (sbi->s_snapshot_cno) {
-+		struct the_nilfs *nilfs = sbi->s_nilfs;
-+		struct buffer_head *bh_cp;
-+		struct nilfs_checkpoint *raw_cp;
++	nilfs_init_recovery_info(&ri);
 +
-+		err = nilfs_cpfile_get_checkpoint(
-+			nilfs->ns_cpfile, sbi->s_snapshot_cno, 0, &raw_cp,
-+			&bh_cp);
-+		if (likely(!err)) {
-+			if (!nilfs_checkpoint_sketch(raw_cp))
-+				inode->i_size = 0;
-+			nilfs_cpfile_put_checkpoint(
-+				nilfs->ns_cpfile, sbi->s_snapshot_cno, bh_cp);
++	down_write(&nilfs->ns_sem);
++	valid_fs = (nilfs->ns_mount_state & NILFS_VALID_FS);
++	up_write(&nilfs->ns_sem);
++
++	if (!valid_fs && (s_flags & MS_RDONLY)) {
++		printk(KERN_INFO "NILFS: INFO: recovery "
++		       "required for readonly filesystem.\n");
++		if (really_read_only) {
++			printk(KERN_ERR "NILFS: write access "
++			       "unavailable, cannot proceed.\n");
++			err = -EROFS;
++			goto failed;
 +		}
-+		inode->i_flags |= S_NOCMTIME;
++		printk(KERN_INFO "NILFS: write access will "
++		       "be enabled during recovery.\n");
++		sbi->s_super->s_flags &= ~MS_RDONLY;
 +	}
-+	return err;
-+}
 +
-+static int __nilfs_read_inode(struct super_block *sb, unsigned long ino,
-+			      struct inode *inode)
-+{
-+	struct nilfs_sb_info *sbi = NILFS_SB(sb);
-+	struct inode *dat = nilfs_dat_inode(sbi->s_nilfs);
-+	struct buffer_head *bh;
-+	struct nilfs_inode *raw_inode;
-+	int err;
-+
-+	down_read(&NILFS_MDT(dat)->mi_sem);	/* XXX */
-+	err = nilfs_ifile_get_inode_block(sbi->s_ifile, ino, &bh);
-+	if (unlikely(err))
-+		goto bad_inode;
-+
-+	raw_inode = nilfs_ifile_map_inode(sbi->s_ifile, ino, bh);
-+
-+#ifdef CONFIG_NILFS_FS_POSIX_ACL
-+	ii->i_acl = NILFS_ACL_NOT_CACHED;
-+	ii->i_default_acl = NILFS_ACL_NOT_CACHED;
-+#endif
-+	if (nilfs_read_inode_common(inode, raw_inode))
-+		goto failed_unmap;
-+
-+	if (S_ISREG(inode->i_mode)) {
-+		inode->i_op = &nilfs_file_inode_operations;
-+		inode->i_fop = &nilfs_file_operations;
-+		inode->i_mapping->a_ops = &nilfs_aops;
-+		if (unlikely(inode->i_ino == NILFS_SKETCH_INO)) {
-+			err = nilfs_read_sketch_inode(inode);
-+			if (unlikely(err))
-+				goto failed_unmap;
-+		}
-+	} else if (S_ISDIR(inode->i_mode)) {
-+		inode->i_op = &nilfs_dir_inode_operations;
-+		inode->i_fop = &nilfs_dir_operations;
-+		inode->i_mapping->a_ops = &nilfs_aops;
-+	} else if (S_ISLNK(inode->i_mode)) {
-+		inode->i_op = &nilfs_symlink_inode_operations;
-+		inode->i_mapping->a_ops = &nilfs_aops;
-+	} else {
-+		inode->i_op = &nilfs_special_inode_operations;
-+		init_special_inode(
-+			inode, inode->i_mode,
-+			new_decode_dev(le64_to_cpu(raw_inode->i_device_code)));
-+	}
-+	nilfs_ifile_unmap_inode(sbi->s_ifile, ino, bh);
-+	brelse(bh);
-+	up_read(&NILFS_MDT(dat)->mi_sem);	/* XXX */
-+	nilfs_set_inode_flags(inode);
-+	return 0;
-+
-+ failed_unmap:
-+	nilfs_ifile_unmap_inode(sbi->s_ifile, ino, bh);
-+	brelse(bh);
-+
-+ bad_inode:
-+	up_read(&NILFS_MDT(dat)->mi_sem);	/* XXX */
-+	return err;
-+}
-+
-+struct inode *nilfs_iget(struct super_block *sb, unsigned long ino)
-+{
-+	struct inode *inode;
-+	int err;
-+
-+	inode = iget_locked(sb, ino);
-+	if (unlikely(!inode))
-+		return ERR_PTR(-ENOMEM);
-+	if (!(inode->i_state & I_NEW))
-+		return inode;
-+
-+	err = __nilfs_read_inode(sb, ino, inode);
++	err = nilfs_search_super_root(nilfs, sbi, &ri);
 +	if (unlikely(err)) {
-+		iget_failed(inode);
-+		return ERR_PTR(err);
-+	}
-+	unlock_new_inode(inode);
-+	return inode;
-+}
-+
-+void nilfs_write_inode_common(struct inode *inode,
-+			      struct nilfs_inode *raw_inode, int has_bmap)
-+{
-+	struct nilfs_inode_info *ii = NILFS_I(inode);
-+
-+	raw_inode->i_mode = cpu_to_le16(inode->i_mode);
-+	raw_inode->i_uid = cpu_to_le32(inode->i_uid);
-+	raw_inode->i_gid = cpu_to_le32(inode->i_gid);
-+	raw_inode->i_links_count = cpu_to_le16(inode->i_nlink);
-+	raw_inode->i_size = cpu_to_le64(inode->i_size);
-+	raw_inode->i_ctime = cpu_to_le64(inode->i_ctime.tv_sec);
-+	raw_inode->i_mtime = cpu_to_le64(inode->i_mtime.tv_sec);
-+	raw_inode->i_blocks = cpu_to_le64(inode->i_blocks);
-+
-+	raw_inode->i_dtime = cpu_to_le64(ii->i_dtime);
-+	raw_inode->i_flags = cpu_to_le32(ii->i_flags);
-+	raw_inode->i_generation = cpu_to_le32(inode->i_generation);
-+
-+	if (has_bmap)
-+		nilfs_bmap_write(ii->i_bmap, raw_inode);
-+	else if (S_ISCHR(inode->i_mode) || S_ISBLK(inode->i_mode))
-+		raw_inode->i_device_code =
-+			cpu_to_le64(new_encode_dev(inode->i_rdev));
-+	/* When extending inode, nilfs->ns_inode_size should be checked
-+	   for substitutions of appended fields */
-+}
-+
-+void nilfs_update_inode(struct inode *inode, struct buffer_head *ibh)
-+{
-+	ino_t ino = inode->i_ino;
-+	struct nilfs_inode_info *ii = NILFS_I(inode);
-+	struct super_block *sb = inode->i_sb;
-+	struct nilfs_sb_info *sbi = NILFS_SB(sb);
-+	struct nilfs_inode *raw_inode;
-+
-+	raw_inode = nilfs_ifile_map_inode(sbi->s_ifile, ino, ibh);
-+
-+	/* The buffer is guarded with lock_buffer() by the caller */
-+	if (test_and_clear_bit(NILFS_I_NEW, &ii->i_state))
-+		memset(raw_inode, 0, NILFS_MDT(sbi->s_ifile)->mi_entry_size);
-+	set_bit(NILFS_I_INODE_DIRTY, &ii->i_state);
-+
-+	nilfs_write_inode_common(inode, raw_inode, 0);
-+		/* XXX: call with has_bmap = 0 is a workaround to avoid
-+		   deadlock of bmap. This delays update of i_bmap to just
-+		   before writing */
-+	nilfs_ifile_unmap_inode(sbi->s_ifile, ino, ibh);
-+}
-+
-+#define NILFS_MAX_TRUNCATE_BLOCKS	16384  /* 64MB for 4KB block */
-+
-+static void nilfs_truncate_bmap(struct nilfs_inode_info *ii,
-+				unsigned long from)
-+{
-+	unsigned long b;
-+	int ret;
-+
-+	if (!test_bit(NILFS_I_BMAP, &ii->i_state))
-+		return;
-+ repeat:
-+	ret = nilfs_bmap_last_key(ii->i_bmap, &b);
-+	if (ret == -ENOENT)
-+		return;
-+	else if (ret < 0)
++		printk(KERN_ERR "NILFS: error searching super root.\n");
 +		goto failed;
++	}
 +
-+	if (b < from)
-+		return;
++	err = nilfs_load_super_root(nilfs, sbi, ri.ri_super_root);
++	if (unlikely(err)) {
++		printk(KERN_ERR "NILFS: error loading super root.\n");
++		goto failed;
++	}
 +
-+	b -= min_t(unsigned long, NILFS_MAX_TRUNCATE_BLOCKS, b - from);
-+	ret = nilfs_bmap_truncate(ii->i_bmap, b);
-+	nilfs_relax_pressure_in_lock(ii->vfs_inode.i_sb);
-+	if (!ret || (ret == -ENOMEM &&
-+		     nilfs_bmap_truncate(ii->i_bmap, b) == 0))
-+		goto repeat;
++	if (!valid_fs) {
++		err = nilfs_recover_logical_segments(nilfs, sbi, &ri);
++		if (unlikely(err)) {
++			nilfs_mdt_destroy(nilfs->ns_cpfile);
++			nilfs_mdt_destroy(nilfs->ns_sufile);
++			nilfs_mdt_destroy(nilfs->ns_dat);
++			goto failed;
++		}
++		if (ri.ri_need_recovery == NILFS_RECOVERY_SR_UPDATED) {
++			down_write(&nilfs->ns_sem);
++			nilfs_update_last_segment(sbi, 0);
++			up_write(&nilfs->ns_sem);
++		}
++	}
++
++	set_nilfs_loaded(nilfs);
 +
 + failed:
-+	if (ret == -EINVAL)
-+		nilfs_error(ii->vfs_inode.i_sb, __func__,
-+			    "bmap is broken (ino=%lu)", ii->vfs_inode.i_ino);
-+	else
-+		nilfs_warning(ii->vfs_inode.i_sb, __func__,
-+			      "failed to truncate bmap (ino=%lu, err=%d)",
-+			      ii->vfs_inode.i_ino, ret);
++	nilfs_clear_recovery_info(&ri);
++	sbi->s_super->s_flags = s_flags;
++	return err;
 +}
 +
-+void nilfs_truncate(struct inode *inode)
++static unsigned long long nilfs_max_size(unsigned int blkbits)
 +{
-+	unsigned long blkoff;
-+	unsigned int blocksize;
-+	struct nilfs_transaction_info ti;
-+	struct super_block *sb = inode->i_sb;
-+	struct nilfs_inode_info *ii = NILFS_I(inode);
-+	int ret;
++	unsigned int max_bits;
++	unsigned long long res = MAX_LFS_FILESIZE; /* page cache limit */
 +
-+	if (!test_bit(NILFS_I_BMAP, &ii->i_state))
-+		return;
-+	if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
-+		return;
-+
-+	blocksize = sb->s_blocksize;
-+	blkoff = (inode->i_size + blocksize - 1) >> sb->s_blocksize_bits;
-+	ret = nilfs_transaction_begin(sb, &ti, 0);
-+	BUG_ON(ret);
-+
-+	block_truncate_page(inode->i_mapping, inode->i_size, nilfs_get_block);
-+
-+	nilfs_truncate_bmap(ii, blkoff);
-+
-+	inode->i_mtime = inode->i_ctime = CURRENT_TIME;
-+	if (IS_SYNC(inode))
-+		nilfs_set_transaction_flag(NILFS_TI_SYNC);
-+
-+	nilfs_set_file_dirty(NILFS_SB(sb), inode, 0);
-+	nilfs_transaction_end(sb, 1);
-+	/* May construct a logical segment and may fail in sync mode.
-+	   But truncate has no return value. */
++	max_bits = blkbits + NILFS_BMAP_KEY_BIT; /* bmap size limit */
++	if (max_bits < 64)
++		res = min_t(unsigned long long, res, (1ULL << max_bits) - 1);
++	return res;
 +}
 +
-+void nilfs_delete_inode(struct inode *inode)
++static int
++nilfs_store_disk_layout(struct the_nilfs *nilfs, struct super_block *sb,
++			struct nilfs_super_block *sbp)
 +{
-+	struct nilfs_transaction_info ti;
-+	struct super_block *sb = inode->i_sb;
-+	struct nilfs_inode_info *ii = NILFS_I(inode);
-+	int err;
-+
-+	if (unlikely(is_bad_inode(inode))) {
-+		if (inode->i_data.nrpages)
-+			truncate_inode_pages(&inode->i_data, 0);
-+		clear_inode(inode);
-+		return;
++	if (le32_to_cpu(sbp->s_rev_level) != NILFS_CURRENT_REV) {
++		printk(KERN_ERR "NILFS: revision mismatch "
++		       "(superblock rev.=%d.%d, current rev.=%d.%d). "
++		       "Please check the version of mkfs.nilfs.\n",
++		       le32_to_cpu(sbp->s_rev_level),
++		       le16_to_cpu(sbp->s_minor_rev_level),
++		       NILFS_CURRENT_REV, NILFS_MINOR_REV);
++		return -EINVAL;
 +	}
-+	err = nilfs_transaction_begin(sb, &ti, 0);
-+	BUG_ON(err);
-+	if (inode->i_data.nrpages)
-+		truncate_inode_pages(&inode->i_data, 0);
++	nilfs->ns_inode_size = le16_to_cpu(sbp->s_inode_size);
++	nilfs->ns_first_ino = le32_to_cpu(sbp->s_first_ino);
 +
-+	nilfs_truncate_bmap(ii, 0);
-+	nilfs_free_inode(inode);
-+	/* nilfs_free_inode() marks inode buffer dirty */
-+	if (IS_SYNC(inode))
-+		nilfs_set_transaction_flag(NILFS_TI_SYNC);
-+	nilfs_transaction_end(sb, 1);
-+	/* May construct a logical segment and may fail in sync mode.
-+	   But delete_inode has no return value. */
-+}
-+
-+int nilfs_setattr(struct dentry *dentry, struct iattr *iattr)
-+{
-+	struct nilfs_transaction_info ti;
-+	struct inode *inode = dentry->d_inode;
-+	struct super_block *sb = inode->i_sb;
-+	int err, err2;
-+
-+	err = inode_change_ok(inode, iattr);
-+	if (err)
-+		return err;
-+
-+	err = nilfs_transaction_begin(sb, &ti, 0);
-+	if (unlikely(err))
-+		return err;
-+	err = inode_setattr(inode, iattr);
-+	if (!err && (iattr->ia_valid & ATTR_MODE))
-+		err = nilfs_acl_chmod(inode);
-+	err2 = nilfs_transaction_end(sb, 1);
-+	return err ? : err2;
-+}
-+
-+int nilfs_load_inode_block(struct nilfs_sb_info *sbi, struct inode *inode,
-+			   struct buffer_head **pbh)
-+{
-+	struct nilfs_inode_info *ii = NILFS_I(inode);
-+	int err;
-+
-+	spin_lock(&sbi->s_inode_lock);
-+	/* Caller of this function MUST lock s_inode_lock */
-+	if (ii->i_bh == NULL) {
-+		spin_unlock(&sbi->s_inode_lock);
-+		err = nilfs_ifile_get_inode_block(sbi->s_ifile, inode->i_ino,
-+						  pbh);
-+		if (unlikely(err))
-+			return err;
-+		spin_lock(&sbi->s_inode_lock);
-+		if (ii->i_bh == NULL)
-+			ii->i_bh = *pbh;
-+		else {
-+			brelse(*pbh);
-+			*pbh = ii->i_bh;
-+		}
-+	} else
-+		*pbh = ii->i_bh;
-+
-+	get_bh(*pbh);
-+	spin_unlock(&sbi->s_inode_lock);
-+	return 0;
-+}
-+
-+int nilfs_inode_dirty(struct inode *inode)
-+{
-+	struct nilfs_inode_info *ii = NILFS_I(inode);
-+	struct nilfs_sb_info *sbi = NILFS_SB(inode->i_sb);
-+	int ret = 0;
-+
-+	if (!list_empty(&ii->i_dirty)) {
-+		spin_lock(&sbi->s_inode_lock);
-+		ret = test_bit(NILFS_I_DIRTY, &ii->i_state) ||
-+			test_bit(NILFS_I_BUSY, &ii->i_state);
-+		spin_unlock(&sbi->s_inode_lock);
++	nilfs->ns_blocks_per_segment = le32_to_cpu(sbp->s_blocks_per_segment);
++	if (nilfs->ns_blocks_per_segment < NILFS_SEG_MIN_BLOCKS) {
++		printk(KERN_ERR "NILFS: too short segment. \n");
++		return -EINVAL;
 +	}
-+	return ret;
-+}
 +
-+int nilfs_set_file_dirty(struct nilfs_sb_info *sbi, struct inode *inode,
-+			 unsigned nr_dirty)
-+{
-+	struct nilfs_inode_info *ii = NILFS_I(inode);
-+
-+	atomic_add(nr_dirty, &sbi->s_nilfs->ns_ndirtyblks);
-+
-+	if (test_and_set_bit(NILFS_I_DIRTY, &ii->i_state) ||
-+	    unlikely(inode->i_ino == NILFS_SKETCH_INO))
-+		return 0;
-+
-+	spin_lock(&sbi->s_inode_lock);
-+	if (!test_bit(NILFS_I_QUEUED, &ii->i_state) &&
-+	    !test_bit(NILFS_I_BUSY, &ii->i_state)) {
-+		/* Because this routine may race with nilfs_dispose_list(),
-+		   we have to check NILFS_I_QUEUED here, too. */
-+		if (list_empty(&ii->i_dirty) && igrab(inode) == NULL) {
-+			/* This will happen when somebody is freeing
-+			   this inode. */
-+			nilfs_warning(sbi->s_super, __func__,
-+				      "cannot get inode (ino=%lu)\n",
-+				      inode->i_ino);
-+			spin_unlock(&sbi->s_inode_lock);
-+			return -EINVAL; /* NILFS_I_DIRTY may remain for
-+					   freeing inode */
-+		}
-+		list_del(&ii->i_dirty);
-+		list_add_tail(&ii->i_dirty, &sbi->s_dirty_files);
-+		set_bit(NILFS_I_QUEUED, &ii->i_state);
-+	}
-+	spin_unlock(&sbi->s_inode_lock);
-+	return 0;
-+}
-+
-+int nilfs_mark_inode_dirty(struct inode *inode)
-+{
-+	struct nilfs_sb_info *sbi = NILFS_SB(inode->i_sb);
-+	struct buffer_head *ibh;
-+	int err;
-+
-+	err = nilfs_load_inode_block(sbi, inode, &ibh);
-+	if (unlikely(err)) {
-+		nilfs_warning(inode->i_sb, __func__,
-+			      "failed to reget inode block.\n");
-+		return err;
-+	}
-+	lock_buffer(ibh);
-+	nilfs_update_inode(inode, ibh);
-+	unlock_buffer(ibh);
-+	nilfs_mdt_mark_buffer_dirty(ibh);
-+	nilfs_mdt_mark_dirty(sbi->s_ifile);
-+	brelse(ibh);
++	nilfs->ns_first_data_block = le64_to_cpu(sbp->s_first_data_block);
++	nilfs->ns_nsegments = le64_to_cpu(sbp->s_nsegments);
++	nilfs->ns_r_segments_percentage =
++		le32_to_cpu(sbp->s_r_segments_percentage);
++	nilfs->ns_nrsvsegs =
++		max_t(unsigned long, NILFS_MIN_NRSVSEGS,
++		      DIV_ROUND_UP(nilfs->ns_nsegments *
++				   nilfs->ns_r_segments_percentage, 100));
++	nilfs->ns_crc_seed = le32_to_cpu(sbp->s_crc_seed);
 +	return 0;
 +}
 +
 +/**
-+ * nilfs_dirty_inode - reflect changes on given inode to an inode block.
-+ * @inode: inode of the file to be registered.
++ * init_nilfs - initialize a NILFS instance.
++ * @nilfs: the_nilfs structure
++ * @sbi: nilfs_sb_info
++ * @sb: super block
++ * @data: mount options
 + *
-+ * nilfs_dirty_inode() loads a inode block containing the specified
-+ * @inode and copies data from a nilfs_inode to a corresponding inode
-+ * entry in the inode block. This operation is excluded from the segment
-+ * construction. This function can be called both as a single operation
-+ * and as a part of indivisible file operations.
++ * init_nilfs() performs common initialization per block device (e.g.
++ * reading the super block, getting disk layout information, initializing
++ * shared fields in the_nilfs). It takes on some portion of the jobs
++ * typically done by a fill_super() routine. This division arises from
++ * the nature that multiple NILFS instances may be simultaneously
++ * mounted on a device.
++ * For multiple mounts on the same device, only the first mount
++ * invokes these tasks.
++ *
++ * Return Value: On success, 0 is returned. On error, a negative error
++ * code is returned.
 + */
-+void nilfs_dirty_inode(struct inode *inode)
++int init_nilfs(struct the_nilfs *nilfs, struct nilfs_sb_info *sbi, char *data)
 +{
-+	struct nilfs_transaction_info ti;
++	struct super_block *sb = sbi->s_super;
++	struct buffer_head *sbh;
++	struct nilfs_super_block *sbp;
++	struct backing_dev_info *bdi;
++	int blocksize;
++	int err = 0;
 +
-+	if (is_bad_inode(inode)) {
-+		nilfs_warning(inode->i_sb, __func__,
-+			      "tried to mark bad_inode dirty. ignored.\n");
-+		dump_stack();
-+		return;
++	down_write(&nilfs->ns_sem);
++	if (nilfs_init(nilfs)) {
++		/* Load values from existing the_nilfs */
++		sbp = nilfs->ns_sbp;
++		err = nilfs_store_magic_and_option(sb, sbp, data);
++		if (err)
++			goto out;
++
++		blocksize = BLOCK_SIZE << le32_to_cpu(sbp->s_log_block_size);
++		if (sb->s_blocksize != blocksize &&
++		    !sb_set_blocksize(sb, blocksize)) {
++			printk(KERN_ERR "NILFS: blocksize %d unfit to device\n",
++			       blocksize);
++			err = -EINVAL;
++		}
++		sb->s_maxbytes = nilfs_max_size(sb->s_blocksize_bits);
++		goto out;
 +	}
-+	nilfs_transaction_begin(inode->i_sb, &ti, 0);
-+	if (likely(inode->i_ino != NILFS_SKETCH_INO))
-+		nilfs_mark_inode_dirty(inode);
-+	nilfs_transaction_end(inode->i_sb, 1); /* never fails */
++
++	sbp = nilfs_load_super_block(sb, &sbh);
++	if (!sbp) {
++		err = -EINVAL;
++		goto out;
++	}
++	err = nilfs_store_magic_and_option(sb, sbp, data);
++	if (err)
++		goto failed_sbh;
++
++	blocksize = BLOCK_SIZE << le32_to_cpu(sbp->s_log_block_size);
++	if (sb->s_blocksize != blocksize) {
++		sbp = nilfs_reload_super_block(sb, &sbh, blocksize);
++		if (!sbp) {
++			err = -EINVAL;
++			goto out;
++			/* not failed_sbh; sbh is released automatically
++			   when reloading fails. */
++		}
++	}
++	nilfs->ns_blocksize_bits = sb->s_blocksize_bits;
++
++	err = nilfs_store_disk_layout(nilfs, sb, sbp);
++	if (err)
++		goto failed_sbh;
++
++	sb->s_maxbytes = nilfs_max_size(sb->s_blocksize_bits);
++
++	nilfs->ns_mount_state = le16_to_cpu(sbp->s_state);
++	nilfs->ns_sbh = sbh;
++	nilfs->ns_sbp = sbp;
++
++	bdi = nilfs->ns_bdev->bd_inode_backing_dev_info;
++	if (!bdi)
++		bdi = nilfs->ns_bdev->bd_inode->i_mapping->backing_dev_info;
++	nilfs->ns_bdi = bdi ? : &default_backing_dev_info;
++
++	/* Finding last segment */
++	nilfs->ns_last_pseg = le64_to_cpu(sbp->s_last_pseg);
++	nilfs->ns_last_cno = le64_to_cpu(sbp->s_last_cno);
++	nilfs->ns_last_seq = le64_to_cpu(sbp->s_last_seq);
++
++	nilfs->ns_seg_seq = nilfs->ns_last_seq;
++	nilfs->ns_segnum =
++		nilfs_get_segnum_of_block(nilfs, nilfs->ns_last_pseg);
++	nilfs->ns_cno = nilfs->ns_last_cno + 1;
++	if (nilfs->ns_segnum >= nilfs->ns_nsegments) {
++		printk(KERN_ERR "NILFS invalid last segment number.\n");
++		err = -EINVAL;
++		goto failed_sbh;
++	}
++	/* Dummy values  */
++	nilfs->ns_free_segments_count =
++		nilfs->ns_nsegments - (nilfs->ns_segnum + 1);
++
++	/* Initialize gcinode cache */
++	err = nilfs_init_gccache(nilfs);
++	if (err)
++		goto failed_sbh;
++
++	set_nilfs_init(nilfs);
++	err = 0;
++ out:
++	up_write(&nilfs->ns_sem);
++	return err;
++
++ failed_sbh:
++	brelse(sbh);
++	goto out;
++}
++
++int nilfs_count_free_blocks(struct the_nilfs *nilfs, sector_t *nblocks)
++{
++	struct inode *dat = nilfs_dat_inode(nilfs);
++	unsigned long ncleansegs;
++	int err;
++
++	down_read(&NILFS_MDT(dat)->mi_sem);	/* XXX */
++	err = nilfs_sufile_get_ncleansegs(nilfs->ns_sufile, &ncleansegs);
++	up_read(&NILFS_MDT(dat)->mi_sem);	/* XXX */
++	if (likely(!err))
++		*nblocks = (sector_t)ncleansegs * nilfs->ns_blocks_per_segment;
++	return err;
++}
++
++void nilfs_dispose_used_segments(struct the_nilfs *nilfs)
++{
++	struct nilfs_segment_entry *ent, *n;
++
++	/* nilfs->sem must be locked by the caller. */
++	if (!nilfs_loaded(nilfs))
++		return;
++
++	list_for_each_entry_safe(ent, n, &nilfs->ns_used_segments, list) {
++		list_del_init(&ent->list);
++		nilfs_segment_usage_clear_volatile_active(ent->raw_su);
++		nilfs_close_segment_entry(ent, nilfs->ns_sufile);
++		nilfs_free_segment_entry(ent);
++	}
++}
++
++int nilfs_near_disk_full(struct the_nilfs *nilfs)
++{
++	struct inode *sufile = nilfs->ns_sufile;
++	unsigned long ncleansegs, nincsegs;
++	int ret;
++
++	ret = nilfs_sufile_get_ncleansegs(sufile, &ncleansegs);
++	if (likely(!ret)) {
++		nincsegs = atomic_read(&nilfs->ns_ndirtyblks) /
++			nilfs->ns_blocks_per_segment + 1;
++		if (ncleansegs <= nilfs->ns_nrsvsegs + nincsegs)
++			ret++;
++	}
++	return ret;
++}
++
++int nilfs_checkpoint_is_mounted(struct the_nilfs *nilfs, __u64 cno,
++				int snapshot_mount)
++{
++	struct nilfs_sb_info *sbi;
++	int ret = 0;
++
++	down_read(&nilfs->ns_sem);
++	if (cno == 0 || cno > nilfs->ns_cno)
++		goto out_unlock;
++
++	list_for_each_entry(sbi, &nilfs->ns_supers, s_list) {
++		if (sbi->s_snapshot_cno == cno &&
++		    (!snapshot_mount || nilfs_test_opt(sbi, SNAPSHOT))) {
++					/* exclude read-only mounts */
++			ret++;
++			break;
++		}
++	}
++	/* for protecting recent checkpoints */
++	if (cno >= nilfs_last_cno(nilfs))
++		ret++;
++
++ out_unlock:
++	up_read(&nilfs->ns_sem);
++	return ret;
 +}
 _
 
