@@ -1,68 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - apci-dump-slit.patch removed from -mm tree
-Date: Wed, 17 Sep 2008 14:11:54 -0700
-Message-ID: <200809172111.m8HLBtKx030615@imap1.linux-foundation.org>
+Subject: + cifs-dont-use-gfp_kernel-with-gfp_nofs.patch added to -mm tree
+Date: Wed, 17 Sep 2008 14:12:25 -0700
+Message-ID: <200809172112.m8HLCPfM030624@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32855 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39703 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752979AbYIQVMP (ORCPT
+	by vger.kernel.org with ESMTP id S1753030AbYIQVMd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Sep 2008 17:12:15 -0400
+	Wed, 17 Sep 2008 17:12:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yhlu.kernel@gmail.com, lenb@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: penberg@cs.helsinki.fi, sfrench@samba.org
 
 
 The patch titled
-     acpi: dump slit
-has been removed from the -mm tree.  Its filename was
-     apci-dump-slit.patch
+     cifs: don't use GFP_KERNEL with GFP_NOFS
+has been added to the -mm tree.  Its filename is
+     cifs-dont-use-gfp_kernel-with-gfp_nofs.patch
 
-This patch was dropped because it keeps changing and has no changelog
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: dump slit
-From: Yinghai Lu <yhlu.kernel@gmail.com>
+Subject: cifs: don't use GFP_KERNEL with GFP_NOFS
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-(akpm: apparently this has something to do with BIOS bugs)
+GFP_KERNEL and GFP_NOFS are mutually exclusive.  If you combine them, you
+end up with plain GFP_KERNEL which can deadlock in cases where you really
+want GFP_NOFS.
 
-Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Steve French <sfrench@samba.org>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/numa.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ fs/cifs/misc.c      |    6 ++----
+ fs/cifs/transport.c |    3 +--
+ 2 files changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN drivers/acpi/numa.c~apci-dump-slit drivers/acpi/numa.c
---- a/drivers/acpi/numa.c~apci-dump-slit
-+++ a/drivers/acpi/numa.c
-@@ -150,6 +150,14 @@ static __init int slit_valid(struct acpi
- {
- 	int i, j;
- 	int d = slit->locality_count;
-+	printk(KERN_DEBUG "ACPI: SLIT: nodes = %d\n", d);
-+	for (i = 0; i < d; i++) {
-+		for (j = 0; j < d; j++)  {
-+			u8 val = slit->entry[d*i + j];
-+			printk(" %d", val);
-+		}
-+		printk("\n");
-+	}
- 	for (i = 0; i < d; i++) {
- 		for (j = 0; j < d; j++)  {
- 			u8 val = slit->entry[d*i + j];
+diff -puN fs/cifs/misc.c~cifs-dont-use-gfp_kernel-with-gfp_nofs fs/cifs/misc.c
+--- a/fs/cifs/misc.c~cifs-dont-use-gfp_kernel-with-gfp_nofs
++++ a/fs/cifs/misc.c
+@@ -150,8 +150,7 @@ cifs_buf_get(void)
+    but it may be more efficient to always alloc same size
+    albeit slightly larger than necessary and maxbuffersize
+    defaults to this and can not be bigger */
+-	ret_buf = (struct smb_hdr *) mempool_alloc(cifs_req_poolp,
+-						   GFP_KERNEL | GFP_NOFS);
++	ret_buf = mempool_alloc(cifs_req_poolp, GFP_NOFS);
+ 
+ 	/* clear the first few header bytes */
+ 	/* for most paths, more is cleared in header_assemble */
+@@ -188,8 +187,7 @@ cifs_small_buf_get(void)
+    but it may be more efficient to always alloc same size
+    albeit slightly larger than necessary and maxbuffersize
+    defaults to this and can not be bigger */
+-	ret_buf = (struct smb_hdr *) mempool_alloc(cifs_sm_req_poolp,
+-						   GFP_KERNEL | GFP_NOFS);
++	ret_buf = mempool_alloc(cifs_sm_req_poolp, GFP_NOFS);
+ 	if (ret_buf) {
+ 	/* No need to clear memory here, cleared in header assemble */
+ 	/*	memset(ret_buf, 0, sizeof(struct smb_hdr) + 27);*/
+diff -puN fs/cifs/transport.c~cifs-dont-use-gfp_kernel-with-gfp_nofs fs/cifs/transport.c
+--- a/fs/cifs/transport.c~cifs-dont-use-gfp_kernel-with-gfp_nofs
++++ a/fs/cifs/transport.c
+@@ -50,8 +50,7 @@ AllocMidQEntry(const struct smb_hdr *smb
+ 		return NULL;
+ 	}
+ 
+-	temp = (struct mid_q_entry *) mempool_alloc(cifs_mid_poolp,
+-						    GFP_KERNEL | GFP_NOFS);
++	temp = mempool_alloc(cifs_mid_poolp, GFP_NOFS);
+ 	if (temp == NULL)
+ 		return temp;
+ 	else {
 _
 
-Patches currently in -mm which might be from yhlu.kernel@gmail.com are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
+repeatable-slab-corruption-with-ltp-msgctl08.patch
 linux-next.patch
-apci-dump-slit.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-dyn_array-use-%pf-instead-of-print_fn_descriptor_symbol.patch
-net-forcedeth-call-restore-mac-addr-in-nv_shutdown-path-v2.patch
+cifs-dont-use-gfp_kernel-with-gfp_nofs.patch
+hfsplus-fix-buffer-overflow-with-a-corrupted-image.patch
+slab-leaks3-default-y.patch
 
