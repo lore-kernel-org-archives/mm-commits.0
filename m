@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-direct-block-mapping.patch added to -mm tree
-Date: Wed, 17 Sep 2008 13:27:23 -0700
-Message-ID: <200809172027.m8HKRNoe028942@imap1.linux-foundation.org>
+Subject: + nilfs2-b-tree-node-cache.patch added to -mm tree
+Date: Wed, 17 Sep 2008 13:27:26 -0700
+Message-ID: <200809172027.m8HKRQCP028945@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60599 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44584 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753592AbYIQU1i (ORCPT
+	by vger.kernel.org with ESMTP id S1753851AbYIQU1k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 17 Sep 2008 16:27:38 -0400
+	Wed, 17 Sep 2008 16:27:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sato.koji@lab.ntt.co.jp, konishi.ryusuke@lab.ntt.co.jp
+Cc: konishi.ryusuke@lab.ntt.co.jp, kihara.seiji@lab.ntt.co.jp
 
 
 The patch titled
-     nilfs2: direct block mapping
+     nilfs2: B-tree node cache
 has been added to the -mm tree.  Its filename is
-     nilfs2-direct-block-mapping.patch
+     nilfs2-b-tree-node-cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2: direct block mapping
-From: Koji Sato <sato.koji@lab.ntt.co.jp>
+Subject: nilfs2: B-tree node cache
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 
-This adds block mappings using direct pointers which are stored in the
-i_bmap array of inode.
+This adds routines for B-tree node buffers.
 
-Signed-off-by: Koji Sato <sato.koji@lab.ntt.co.jp>
+Signed-off-by: Seiji Kihara <kihara.seiji@lab.ntt.co.jp>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/direct.c |  429 +++++++++++++++++++++++++++++++++++++++++++
- fs/nilfs2/direct.h |   78 +++++++
- 2 files changed, 507 insertions(+)
+ fs/nilfs2/btnode.c |  316 +++++++++++++++++++++++++++++++++++++++++++
+ fs/nilfs2/btnode.h |   58 +++++++
+ 2 files changed, 374 insertions(+)
 
-diff -puN /dev/null fs/nilfs2/direct.c
+diff -puN /dev/null fs/nilfs2/btnode.c
 --- /dev/null
-+++ a/fs/nilfs2/direct.c
-@@ -0,0 +1,429 @@
++++ a/fs/nilfs2/btnode.c
+@@ -0,0 +1,316 @@
 +/*
-+ * direct.c - NILFS direct block pointer.
++ * btnode.c - NILFS B-tree node cache
 + *
-+ * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
++ * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License as published by
@@ -72,510 +71,394 @@ diff -puN /dev/null fs/nilfs2/direct.c
 + * along with this program; if not, write to the Free Software
 + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 + *
-+ * Written by Koji Sato <koji@osrg.net>.
++ * This file was originally written by Seiji Kihara <kihara@osrg.net>
++ * and fully revised by Ryusuke Konishi <ryusuke@osrg.net> for
++ * stabilization and simplification.
++ *
 + */
-+
-+#include <linux/errno.h>
-+#include "nilfs.h"
-+#include "page.h"
-+#include "direct.h"
-+#include "alloc.h"
-+
-+static inline __le64 *nilfs_direct_dptrs(const struct nilfs_direct *direct)
-+{
-+	return (__le64 *)
-+		((struct nilfs_direct_node *)direct->d_bmap.b_u.u_data + 1);
-+}
-+
-+static inline __u64
-+nilfs_direct_get_ptr(const struct nilfs_direct *direct, __u64 key)
-+{
-+	return nilfs_bmap_dptr_to_ptr(*(nilfs_direct_dptrs(direct) + key));
-+}
-+
-+static inline void nilfs_direct_set_ptr(struct nilfs_direct *direct,
-+					__u64 key, __u64 ptr)
-+{
-+	*(nilfs_direct_dptrs(direct) + key) = nilfs_bmap_ptr_to_dptr(ptr);
-+}
-+
-+static int nilfs_direct_lookup(const struct nilfs_bmap *bmap,
-+			       __u64 key, int level, __u64 *ptrp)
-+{
-+	struct nilfs_direct *direct;
-+	__u64 ptr;
-+
-+	direct = (struct nilfs_direct *)bmap;
-+	if ((key > NILFS_DIRECT_KEY_MAX) ||
-+	    (level != 1) ||	/* XXX: use macro for level 1 */
-+	    ((ptr = nilfs_direct_get_ptr(direct, key)) ==
-+	     NILFS_BMAP_INVALID_PTR))
-+		return -ENOENT;
-+
-+	if (ptrp != NULL)
-+		*ptrp = ptr;
-+	return 0;
-+}
-+
-+static __u64
-+nilfs_direct_find_target_v(const struct nilfs_direct *direct, __u64 key)
-+{
-+	__u64 ptr;
-+
-+	ptr = nilfs_bmap_find_target_seq(&direct->d_bmap, key);
-+	if (ptr != NILFS_BMAP_INVALID_PTR)
-+		/* sequential access */
-+		return ptr;
-+	else
-+		/* block group */
-+		return nilfs_bmap_find_target_in_group(&direct->d_bmap);
-+}
-+
-+static void nilfs_direct_set_target_v(struct nilfs_direct *direct,
-+				      __u64 key, __u64 ptr)
-+{
-+	direct->d_bmap.b_last_allocated_key = key;
-+	direct->d_bmap.b_last_allocated_ptr = ptr;
-+}
-+
-+static int nilfs_direct_prepare_insert(struct nilfs_direct *direct,
-+				       __u64 key,
-+				       union nilfs_bmap_ptr_req *req,
-+				       struct nilfs_bmap_stats *stats)
-+{
-+	int ret;
-+
-+	if (direct->d_ops->dop_find_target != NULL)
-+		req->bpr_ptr = (*direct->d_ops->dop_find_target)(direct, key);
-+	ret = (*direct->d_bmap.b_pops->bpop_prepare_alloc_ptr)(&direct->d_bmap,
-+							       req);
-+	if (ret < 0)
-+		return ret;
-+
-+	stats->bs_nblocks = 1;
-+	return 0;
-+}
-+
-+static void nilfs_direct_commit_insert(struct nilfs_direct *direct,
-+				       union nilfs_bmap_ptr_req *req,
-+				       __u64 key, __u64 ptr)
-+{
-+	struct buffer_head *bh;
-+
-+	/* ptr must be a pointer to a buffer head. */
-+	bh = (struct buffer_head *)((unsigned long)ptr);
-+	set_buffer_nilfs_volatile(bh);
-+
-+	if (direct->d_bmap.b_pops->bpop_commit_alloc_ptr != NULL)
-+		(*direct->d_bmap.b_pops->bpop_commit_alloc_ptr)(
-+			&direct->d_bmap, req);
-+	nilfs_direct_set_ptr(direct, key, req->bpr_ptr);
-+
-+	if (!nilfs_bmap_dirty(&direct->d_bmap))
-+		nilfs_bmap_set_dirty(&direct->d_bmap);
-+
-+	if (direct->d_ops->dop_set_target != NULL)
-+		(*direct->d_ops->dop_set_target)(direct, key, req->bpr_ptr);
-+}
-+
-+static int nilfs_direct_insert(struct nilfs_bmap *bmap, __u64 key, __u64 ptr)
-+{
-+	struct nilfs_direct *direct;
-+	union nilfs_bmap_ptr_req req;
-+	struct nilfs_bmap_stats stats;
-+	int ret;
-+
-+	direct = (struct nilfs_direct *)bmap;
-+	if (key > NILFS_DIRECT_KEY_MAX)
-+		return -ENOENT;
-+	if (nilfs_direct_get_ptr(direct, key) != NILFS_BMAP_INVALID_PTR)
-+		return -EEXIST;
-+
-+	ret = nilfs_direct_prepare_insert(direct, key, &req, &stats);
-+	if (ret < 0)
-+		return ret;
-+	nilfs_direct_commit_insert(direct, &req, key, ptr);
-+	nilfs_bmap_add_blocks(bmap, stats.bs_nblocks);
-+
-+	return 0;
-+}
-+
-+static int nilfs_direct_prepare_delete(struct nilfs_direct *direct,
-+				       union nilfs_bmap_ptr_req *req,
-+				       __u64 key,
-+				       struct nilfs_bmap_stats *stats)
-+{
-+	int ret;
-+
-+	if (direct->d_bmap.b_pops->bpop_prepare_end_ptr != NULL) {
-+		req->bpr_ptr = nilfs_direct_get_ptr(direct, key);
-+		ret = (*direct->d_bmap.b_pops->bpop_prepare_end_ptr)(
-+			&direct->d_bmap, req);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	stats->bs_nblocks = 1;
-+	return 0;
-+}
-+
-+static void nilfs_direct_commit_delete(struct nilfs_direct *direct,
-+				       union nilfs_bmap_ptr_req *req,
-+				       __u64 key)
-+{
-+	if (direct->d_bmap.b_pops->bpop_commit_end_ptr != NULL)
-+		(*direct->d_bmap.b_pops->bpop_commit_end_ptr)(
-+			&direct->d_bmap, req);
-+	nilfs_direct_set_ptr(direct, key, NILFS_BMAP_INVALID_PTR);
-+}
-+
-+static int nilfs_direct_delete(struct nilfs_bmap *bmap, __u64 key)
-+{
-+	struct nilfs_direct *direct;
-+	union nilfs_bmap_ptr_req req;
-+	struct nilfs_bmap_stats stats;
-+	int ret;
-+
-+	direct = (struct nilfs_direct *)bmap;
-+	if ((key > NILFS_DIRECT_KEY_MAX) ||
-+	    nilfs_direct_get_ptr(direct, key) == NILFS_BMAP_INVALID_PTR)
-+		return -ENOENT;
-+
-+	ret = nilfs_direct_prepare_delete(direct, &req, key, &stats);
-+	if (ret < 0)
-+		return ret;
-+	nilfs_direct_commit_delete(direct, &req, key);
-+	nilfs_bmap_sub_blocks(bmap, stats.bs_nblocks);
-+
-+	return 0;
-+}
-+
-+static int nilfs_direct_last_key(const struct nilfs_bmap *bmap, __u64 *keyp)
-+{
-+	struct nilfs_direct *direct;
-+	__u64 key, lastkey;
-+
-+	direct = (struct nilfs_direct *)bmap;
-+	lastkey = NILFS_DIRECT_KEY_MAX + 1;
-+	for (key = NILFS_DIRECT_KEY_MIN; key <= NILFS_DIRECT_KEY_MAX; key++)
-+		if (nilfs_direct_get_ptr(direct, key) !=
-+		    NILFS_BMAP_INVALID_PTR)
-+			lastkey = key;
-+
-+	if (lastkey == NILFS_DIRECT_KEY_MAX + 1)
-+		return -ENOENT;
-+
-+	BUG_ON(keyp == NULL);
-+	*keyp = lastkey;
-+
-+	return 0;
-+}
-+
-+static int nilfs_direct_check_insert(const struct nilfs_bmap *bmap, __u64 key)
-+{
-+	return key > NILFS_DIRECT_KEY_MAX;
-+}
-+
-+static int nilfs_direct_gather_data(struct nilfs_bmap *bmap,
-+				    __u64 *keys, __u64 *ptrs, int nitems)
-+{
-+	struct nilfs_direct *direct;
-+	__u64 key;
-+	__u64 ptr;
-+	int n;
-+
-+	direct = (struct nilfs_direct *)bmap;
-+	if (nitems > NILFS_DIRECT_NBLOCKS)
-+		nitems = NILFS_DIRECT_NBLOCKS;
-+	n = 0;
-+	for (key = 0; key < nitems; key++) {
-+		ptr = nilfs_direct_get_ptr(direct, key);
-+		if (ptr != NILFS_BMAP_INVALID_PTR) {
-+			keys[n] = key;
-+			ptrs[n] = ptr;
-+			n++;
-+		}
-+	}
-+	return n;
-+}
-+
-+int nilfs_direct_delete_and_convert(struct nilfs_bmap *bmap,
-+				    __u64 key, __u64 *keys, __u64 *ptrs,
-+				    int n, __u64 low, __u64 high)
-+{
-+	struct nilfs_direct *direct;
-+	__le64 *dptrs;
-+	int ret, i, j;
-+
-+	/* no need to allocate any resource for conversion */
-+
-+	/* delete */
-+	ret = (*bmap->b_ops->bop_delete)(bmap, key);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* free resources */
-+	if (bmap->b_ops->bop_clear != NULL)
-+		(*bmap->b_ops->bop_clear)(bmap);
-+
-+	/* convert */
-+	direct = (struct nilfs_direct *)bmap;
-+	dptrs = nilfs_direct_dptrs(direct);
-+	for (i = 0, j = 0; i < NILFS_DIRECT_NBLOCKS; i++) {
-+		if ((j < n) && (i == keys[j])) {
-+			dptrs[i] = (i != key) ?
-+				nilfs_bmap_ptr_to_dptr(ptrs[j]) :
-+				NILFS_BMAP_INVALID_PTR;
-+			j++;
-+		} else
-+			dptrs[i] = NILFS_BMAP_INVALID_PTR;
-+	}
-+
-+	nilfs_direct_init(bmap, low, high);
-+
-+	return 0;
-+}
-+
-+static int nilfs_direct_propagate_v(struct nilfs_direct *direct,
-+				    struct buffer_head *bh)
-+{
-+	union nilfs_bmap_ptr_req oldreq, newreq;
-+	__u64 key;
-+	__u64 ptr;
-+	int ret;
-+
-+	key = nilfs_bmap_data_get_key(&direct->d_bmap, bh);
-+	ptr = nilfs_direct_get_ptr(direct, key);
-+	if (!buffer_nilfs_volatile(bh)) {
-+		oldreq.bpr_ptr = ptr;
-+		newreq.bpr_ptr = ptr;
-+		ret = nilfs_bmap_prepare_update(&direct->d_bmap, &oldreq,
-+						&newreq);
-+		if (ret < 0)
-+			return ret;
-+		nilfs_bmap_commit_update(&direct->d_bmap, &oldreq, &newreq);
-+		set_buffer_nilfs_volatile(bh);
-+		nilfs_direct_set_ptr(direct, key, newreq.bpr_ptr);
-+	} else
-+		ret = nilfs_bmap_mark_dirty(&direct->d_bmap, ptr);
-+
-+	return ret;
-+}
-+
-+static int nilfs_direct_propagate(const struct nilfs_bmap *bmap,
-+				  struct buffer_head *bh)
-+{
-+	struct nilfs_direct *direct;
-+
-+	direct = (struct nilfs_direct *)bmap;
-+	return (direct->d_ops->dop_propagate != NULL) ?
-+		(*direct->d_ops->dop_propagate)(direct, bh) :
-+		0;
-+}
-+
-+static int nilfs_direct_assign_v(struct nilfs_direct *direct,
-+				 __u64 key, __u64 ptr,
-+				 struct buffer_head **bh,
-+				 sector_t blocknr,
-+				 union nilfs_binfo *binfo)
-+{
-+	union nilfs_bmap_ptr_req req;
-+	int ret;
-+
-+	req.bpr_ptr = ptr;
-+	ret = (*direct->d_bmap.b_pops->bpop_prepare_start_ptr)(
-+		&direct->d_bmap, &req);
-+	if (ret < 0)
-+		return ret;
-+	(*direct->d_bmap.b_pops->bpop_commit_start_ptr)(&direct->d_bmap,
-+							&req, blocknr);
-+
-+	binfo->bi_v.bi_vblocknr = nilfs_bmap_ptr_to_dptr(ptr);
-+	binfo->bi_v.bi_blkoff = nilfs_bmap_key_to_dkey(key);
-+
-+	return 0;
-+}
-+
-+static int nilfs_direct_assign_p(struct nilfs_direct *direct,
-+				 __u64 key, __u64 ptr,
-+				 struct buffer_head **bh,
-+				 sector_t blocknr,
-+				 union nilfs_binfo *binfo)
-+{
-+	nilfs_direct_set_ptr(direct, key, blocknr);
-+
-+	binfo->bi_dat.bi_blkoff = nilfs_bmap_key_to_dkey(key);
-+	binfo->bi_dat.bi_level = 0;
-+
-+	return 0;
-+}
-+
-+static int nilfs_direct_assign(struct nilfs_bmap *bmap,
-+			       struct buffer_head **bh,
-+			       sector_t blocknr,
-+			       union nilfs_binfo *binfo)
-+{
-+	struct nilfs_direct *direct;
-+	__u64 key;
-+	__u64 ptr;
-+
-+	direct = (struct nilfs_direct *)bmap;
-+	key = nilfs_bmap_data_get_key(bmap, *bh);
-+	BUG_ON(key > NILFS_DIRECT_KEY_MAX);
-+	ptr = nilfs_direct_get_ptr(direct, key);
-+	BUG_ON(ptr == NILFS_BMAP_INVALID_PTR);
-+
-+	return (*direct->d_ops->dop_assign)(direct, key, ptr, bh,
-+					    blocknr, binfo);
-+}
-+
-+static const struct nilfs_bmap_operations nilfs_direct_ops = {
-+	.bop_lookup		=	nilfs_direct_lookup,
-+	.bop_insert		=	nilfs_direct_insert,
-+	.bop_delete		=	nilfs_direct_delete,
-+	.bop_clear		=	NULL,
-+
-+	.bop_propagate		=	nilfs_direct_propagate,
-+
-+	.bop_lookup_dirty_buffers	=	NULL,
-+
-+	.bop_assign		=	nilfs_direct_assign,
-+	.bop_mark		=	NULL,
-+
-+	.bop_last_key		=	nilfs_direct_last_key,
-+	.bop_check_insert	=	nilfs_direct_check_insert,
-+	.bop_check_delete	=	NULL,
-+	.bop_gather_data	=	nilfs_direct_gather_data,
-+};
-+
-+
-+static const struct nilfs_direct_operations nilfs_direct_ops_v = {
-+	.dop_find_target	=	nilfs_direct_find_target_v,
-+	.dop_set_target		=	nilfs_direct_set_target_v,
-+	.dop_propagate		=	nilfs_direct_propagate_v,
-+	.dop_assign		=	nilfs_direct_assign_v,
-+};
-+
-+static const struct nilfs_direct_operations nilfs_direct_ops_p = {
-+	.dop_find_target	=	NULL,
-+	.dop_set_target		=	NULL,
-+	.dop_propagate		=	NULL,
-+	.dop_assign		=	nilfs_direct_assign_p,
-+};
-+
-+int nilfs_direct_init(struct nilfs_bmap *bmap, __u64 low, __u64 high)
-+{
-+	struct nilfs_direct *direct;
-+
-+	direct = (struct nilfs_direct *)bmap;
-+	bmap->b_ops = &nilfs_direct_ops;
-+	bmap->b_low = low;
-+	bmap->b_high = high;
-+	switch (bmap->b_inode->i_ino) {
-+	case NILFS_DAT_INO:
-+		direct->d_ops = &nilfs_direct_ops_p;
-+		break;
-+	default:
-+		direct->d_ops = &nilfs_direct_ops_v;
-+		break;
-+	}
-+
-+	return 0;
-+}
-diff -puN /dev/null fs/nilfs2/direct.h
---- /dev/null
-+++ a/fs/nilfs2/direct.h
-@@ -0,0 +1,78 @@
-+/*
-+ * direct.h - NILFS direct block pointer.
-+ *
-+ * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+ *
-+ * Written by Koji Sato <koji@osrg.net>.
-+ */
-+
-+#ifndef _NILFS_DIRECT_H
-+#define _NILFS_DIRECT_H
 +
 +#include <linux/types.h>
 +#include <linux/buffer_head.h>
-+#include "bmap.h"
++#include <linux/mm.h>
++#include <linux/backing-dev.h>
++#include "nilfs.h"
++#include "mdt.h"
++#include "dat.h"
++#include "page.h"
++#include "btnode.h"
 +
 +
-+struct nilfs_direct;
++void nilfs_btnode_cache_init_once(struct address_space *btnc)
++{
++	INIT_RADIX_TREE(&btnc->page_tree, GFP_ATOMIC);
++	spin_lock_init(&btnc->tree_lock);
++	INIT_LIST_HEAD(&btnc->private_list);
++	spin_lock_init(&btnc->private_lock);
++
++	spin_lock_init(&btnc->i_mmap_lock);
++	INIT_RAW_PRIO_TREE_ROOT(&btnc->i_mmap);
++	INIT_LIST_HEAD(&btnc->i_mmap_nonlinear);
++}
++
++static struct address_space_operations def_btnode_aops;
++
++void nilfs_btnode_cache_init(struct address_space *btnc)
++{
++	btnc->host = NULL;  /* can safely set to host inode ? */
++	btnc->flags = 0;
++	mapping_set_gfp_mask(btnc, GFP_NOFS);
++	btnc->assoc_mapping = NULL;
++	btnc->backing_dev_info = &default_backing_dev_info;
++	btnc->a_ops = &def_btnode_aops;
++}
++
++void nilfs_btnode_cache_clear(struct address_space *btnc)
++{
++	invalidate_mapping_pages(btnc, 0, -1);
++	truncate_inode_pages(btnc, 0);
++}
++
++int nilfs_btnode_submit_block(struct address_space *btnc, __u64 blocknr,
++			      sector_t pblocknr, struct buffer_head **pbh,
++			      int newblk)
++{
++	struct buffer_head *bh;
++	struct inode *inode = NILFS_BTNC_I(btnc);
++	int err;
++
++	bh = nilfs_grab_buffer(inode, btnc, blocknr, 1 << BH_NILFS_Node);
++	if (unlikely(!bh))
++		return -ENOMEM;
++
++	err = -EEXIST; /* internal code */
++	if (newblk) {
++		if (unlikely(buffer_mapped(bh) || buffer_uptodate(bh) ||
++			     buffer_dirty(bh))) {
++			brelse(bh);
++			BUG();
++		}
++		bh->b_bdev = NILFS_I_NILFS(inode)->ns_bdev;
++		bh->b_blocknr = blocknr;
++		set_buffer_mapped(bh);
++		set_buffer_uptodate(bh);
++		goto found;
++	}
++
++	if (buffer_uptodate(bh) || buffer_dirty(bh))
++		goto found;
++
++	if (pblocknr == 0) {
++		pblocknr = blocknr;
++		if (inode->i_ino != NILFS_DAT_INO) {
++			struct inode *dat =
++				nilfs_dat_inode(NILFS_I_NILFS(inode));
++
++			/* blocknr is a virtual block number */
++			err = nilfs_dat_translate(dat, blocknr, &pblocknr);
++			if (unlikely(err)) {
++				brelse(bh);
++				goto out_locked;
++			}
++		}
++	}
++	lock_buffer(bh);
++	if (buffer_uptodate(bh)) {
++		unlock_buffer(bh);
++		err = -EEXIST; /* internal code */
++		goto found;
++	}
++	set_buffer_mapped(bh);
++	bh->b_bdev = NILFS_I_NILFS(inode)->ns_bdev;
++	bh->b_blocknr = pblocknr; /* set block address for read */
++	bh->b_end_io = end_buffer_read_sync;
++	get_bh(bh);
++	submit_bh(READ, bh);
++	bh->b_blocknr = blocknr; /* set back to the given block address */
++	err = 0;
++found:
++	*pbh = bh;
++
++out_locked:
++	unlock_page(bh->b_page);
++	page_cache_release(bh->b_page);
++	return err;
++}
++
++int nilfs_btnode_get(struct address_space *btnc, __u64 blocknr,
++		     sector_t pblocknr, struct buffer_head **pbh, int newblk)
++{
++	struct buffer_head *bh;
++	int err;
++
++	err = nilfs_btnode_submit_block(btnc, blocknr, pblocknr, pbh, newblk);
++	if (err == -EEXIST) /* internal code (cache hit) */
++		return 0;
++	if (unlikely(err))
++		return err;
++
++	bh = *pbh;
++	wait_on_buffer(bh);
++	if (!buffer_uptodate(bh)) {
++		brelse(bh);
++		return -EIO;
++	}
++	return 0;
++}
 +
 +/**
-+ * struct nilfs_direct_operations - direct mapping operation table
++ * nilfs_btnode_delete - delete B-tree node buffer
++ * @bh: buffer to be deleted
++ *
++ * nilfs_btnode_delete() invalidates the specified buffer and delete the page
++ * including the buffer if the page gets unbusy.
 + */
-+struct nilfs_direct_operations {
-+	__u64 (*dop_find_target)(const struct nilfs_direct *, __u64);
-+	void (*dop_set_target)(struct nilfs_direct *, __u64, __u64);
-+	int (*dop_propagate)(struct nilfs_direct *, struct buffer_head *);
-+	int (*dop_assign)(struct nilfs_direct *, __u64, __u64,
-+			  struct buffer_head **, sector_t,
-+			  union nilfs_binfo *);
-+};
++void nilfs_btnode_delete(struct buffer_head *bh)
++{
++	struct address_space *mapping;
++	struct page *page = bh->b_page;
++	pgoff_t index = page_index(page);
++	int still_dirty;
++
++	page_cache_get(page);
++	lock_page(page);
++	wait_on_page_writeback(page);
++
++	nilfs_forget_buffer(bh);
++	still_dirty = PageDirty(page);
++	mapping = page->mapping;
++	unlock_page(page);
++	page_cache_release(page);
++
++	if (!still_dirty && mapping)
++		invalidate_inode_pages2_range(mapping, index, index);
++}
 +
 +/**
-+ * struct nilfs_direct_node - direct node
-+ * @dn_flags: flags
-+ * @dn_pad: padding
++ * nilfs_btnode_prepare_change_key
++ *  prepare to move contents of the block for old key to one of new key.
++ *  the old buffer will not be removed, but might be reused for new buffer.
++ *  it might return -ENOMEM because of memory allocation errors,
++ *  and might return -EIO because of disk read errors.
 + */
-+struct nilfs_direct_node {
-+	__u8 dn_flags;
-+	__u8 pad[7];
-+};
++int nilfs_btnode_prepare_change_key(struct address_space *btnc,
++				    struct nilfs_btnode_chkey_ctxt *ctxt)
++{
++	struct buffer_head *obh, *nbh;
++	struct inode *inode = NILFS_BTNC_I(btnc);
++	__u64 oldkey = ctxt->oldkey, newkey = ctxt->newkey;
++	int err;
++
++	if (oldkey == newkey)
++		return 0;
++
++	obh = ctxt->bh;
++	ctxt->newbh = NULL;
++
++	if (inode->i_blkbits == PAGE_CACHE_SHIFT) {
++		lock_page(obh->b_page);
++		/*
++		 * We cannot call radix_tree_preload for the kernels older
++		 * than 2.6.23, because it is not exported for modules.
++		 */
++		err = radix_tree_preload(GFP_NOFS & ~__GFP_HIGHMEM);
++		if (err)
++			goto failed_unlock;
++		/* BUG_ON(oldkey != obh->b_page->index); */
++		if (unlikely(oldkey != obh->b_page->index))
++			NILFS_PAGE_BUG(obh->b_page,
++				       "invalid oldkey %lld (newkey=%lld)",
++				       (unsigned long long)oldkey,
++				       (unsigned long long)newkey);
++
++retry:
++		spin_lock_irq(&btnc->tree_lock);
++		err = radix_tree_insert(&btnc->page_tree, newkey, obh->b_page);
++		spin_unlock_irq(&btnc->tree_lock);
++		/*
++		 * Note: page->index will not change to newkey until
++		 * nilfs_btnode_commit_change_key() will be called.
++		 * To protect the page in intermediate state, the page lock
++		 * is held.
++		 */
++		radix_tree_preload_end();
++		if (!err)
++			return 0;
++		else if (err != -EEXIST)
++			goto failed_unlock;
++
++		err = invalidate_inode_pages2_range(btnc, newkey, newkey);
++		if (!err)
++			goto retry;
++		/* fallback to copy mode */
++		unlock_page(obh->b_page);
++	}
++
++	err = nilfs_btnode_get(btnc, newkey, 0, &nbh, 1);
++	if (likely(!err)) {
++		BUG_ON(nbh == obh);
++		ctxt->newbh = nbh;
++	}
++	return err;
++
++ failed_unlock:
++	unlock_page(obh->b_page);
++	return err;
++}
 +
 +/**
-+ * struct nilfs_direct - direct mapping
-+ * @d_bmap: bmap structure
-+ * @d_ops: direct mapping operation table
++ * nilfs_btnode_commit_change_key
++ *  commit the change_key operation prepared by prepare_change_key().
 + */
-+struct nilfs_direct {
-+	struct nilfs_bmap d_bmap;
++void nilfs_btnode_commit_change_key(struct address_space *btnc,
++				    struct nilfs_btnode_chkey_ctxt *ctxt)
++{
++	struct buffer_head *obh = ctxt->bh, *nbh = ctxt->newbh;
++	__u64 oldkey = ctxt->oldkey, newkey = ctxt->newkey;
++	struct page *opage;
 +
-+	/* direct-mapping-specific members */
-+	const struct nilfs_direct_operations *d_ops;
++	if (oldkey == newkey)
++		return;
++
++	if (nbh == NULL) {	/* blocksize == pagesize */
++		opage = obh->b_page;
++		if (unlikely(oldkey != opage->index))
++			NILFS_PAGE_BUG(opage,
++				       "invalid oldkey %lld (newkey=%lld)",
++				       (unsigned long long)oldkey,
++				       (unsigned long long)newkey);
++		if (!test_set_buffer_dirty(obh) && TestSetPageDirty(opage))
++			BUG();
++
++		spin_lock_irq(&btnc->tree_lock);
++		radix_tree_delete(&btnc->page_tree, oldkey);
++		radix_tree_tag_set(&btnc->page_tree, newkey,
++				   PAGECACHE_TAG_DIRTY);
++		spin_unlock_irq(&btnc->tree_lock);
++
++		opage->index = obh->b_blocknr = newkey;
++		unlock_page(opage);
++	} else {
++		nilfs_copy_buffer(nbh, obh);
++		nilfs_btnode_mark_dirty(nbh);
++
++		nbh->b_blocknr = newkey;
++		ctxt->bh = nbh;
++		nilfs_btnode_delete(obh); /* will decrement bh->b_count */
++	}
++}
++
++/**
++ * nilfs_btnode_abort_change_key
++ *  abort the change_key operation prepared by prepare_change_key().
++ */
++void nilfs_btnode_abort_change_key(struct address_space *btnc,
++				   struct nilfs_btnode_chkey_ctxt *ctxt)
++{
++	struct buffer_head *nbh = ctxt->newbh;
++	__u64 oldkey = ctxt->oldkey, newkey = ctxt->newkey;
++
++	if (oldkey == newkey)
++		return;
++
++	if (nbh == NULL) {	/* blocksize == pagesize */
++		spin_lock_irq(&btnc->tree_lock);
++		radix_tree_delete(&btnc->page_tree, newkey);
++		spin_unlock_irq(&btnc->tree_lock);
++		unlock_page(ctxt->bh->b_page);
++	} else
++		brelse(nbh);
++}
+diff -puN /dev/null fs/nilfs2/btnode.h
+--- /dev/null
++++ a/fs/nilfs2/btnode.h
+@@ -0,0 +1,58 @@
++/*
++ * btnode.h - NILFS B-tree node cache
++ *
++ * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++ *
++ * Written by Seiji Kihara <kihara@osrg.net>
++ * Revised by Ryusuke Konishi <ryusuke@osrg.net>
++ */
++
++#ifndef _NILFS_BTNODE_H
++#define _NILFS_BTNODE_H
++
++#include <linux/types.h>
++#include <linux/buffer_head.h>
++#include <linux/fs.h>
++#include <linux/backing-dev.h>
++
++
++struct nilfs_btnode_chkey_ctxt {
++	__u64 oldkey;
++	__u64 newkey;
++	struct buffer_head *bh;
++	struct buffer_head *newbh;
 +};
 +
++void nilfs_btnode_cache_init_once(struct address_space *);
++void nilfs_btnode_cache_init(struct address_space *);
++void nilfs_btnode_cache_clear(struct address_space *);
++int nilfs_btnode_submit_block(struct address_space *, __u64, sector_t,
++			      struct buffer_head **, int);
++int nilfs_btnode_get(struct address_space *, __u64, sector_t,
++		     struct buffer_head **, int);
++void nilfs_btnode_delete(struct buffer_head *);
++int nilfs_btnode_prepare_change_key(struct address_space *,
++				    struct nilfs_btnode_chkey_ctxt *);
++void nilfs_btnode_commit_change_key(struct address_space *,
++				    struct nilfs_btnode_chkey_ctxt *);
++void nilfs_btnode_abort_change_key(struct address_space *,
++				   struct nilfs_btnode_chkey_ctxt *);
 +
-+#define NILFS_DIRECT_NBLOCKS	(NILFS_BMAP_SIZE / sizeof(__le64) - 1)
-+#define NILFS_DIRECT_KEY_MIN	0
-+#define NILFS_DIRECT_KEY_MAX	(NILFS_DIRECT_NBLOCKS - 1)
++#define nilfs_btnode_mark_dirty(bh)	nilfs_mark_buffer_dirty(bh)
 +
 +
-+int nilfs_direct_init(struct nilfs_bmap *, __u64, __u64);
-+int nilfs_direct_delete_and_convert(struct nilfs_bmap *, __u64, __u64 *,
-+				    __u64 *, int, __u64, __u64);
-+
-+
-+#endif	/* _NILFS_DIRECT_H */
++#endif	/* _NILFS_BTNODE_H */
 _
 
-Patches currently in -mm which might be from sato.koji@lab.ntt.co.jp are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
+nilfs2-add-document.patch
 nilfs2-disk-format-and-userland-interface.patch
 nilfs2-add-inode-and-other-major-structures.patch
 nilfs2-integrated-block-mapping.patch
 nilfs2-b-tree-based-block-mapping.patch
 nilfs2-direct-block-mapping.patch
+nilfs2-b-tree-node-cache.patch
+nilfs2-buffer-and-page-operations.patch
+nilfs2-meta-data-file.patch
 nilfs2-persistent-object-allocator.patch
 nilfs2-disk-address-translator.patch
+nilfs2-inode-map-file.patch
 nilfs2-checkpoint-file.patch
 nilfs2-segment-usage-file.patch
+nilfs2-inode-operations.patch
+nilfs2-file-operations.patch
+nilfs2-directory-entry-operations.patch
+nilfs2-pathname-operations.patch
+nilfs2-operations-for-the_nilfs-core-object.patch
+nilfs2-super-block-operations.patch
+nilfs2-segment-buffer.patch
+nilfs2-segment-constructor.patch
+nilfs2-recovery-functions.patch
+nilfs2-another-dat-for-garbage-collection.patch
+nilfs2-block-cache-for-garbage-collection.patch
 nilfs2-ioctl-operations.patch
+nilfs2-update-makefile-and-kconfig.patch
 
