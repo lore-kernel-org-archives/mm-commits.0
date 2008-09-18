@@ -1,99 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - net-compile-fix-depcac.patch removed from -mm tree
-Date: Thu, 18 Sep 2008 13:56:35 -0700
-Message-ID: <200809182056.m8IKuZ5j019199@imap1.linux-foundation.org>
+Subject: - dyn_array-use-%pf-instead-of-print_fn_descriptor_symbol.patch removed from -mm tree
+Date: Thu, 18 Sep 2008 13:56:44 -0700
+Message-ID: <200809182056.m8IKuieA019210@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57644 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42994 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754828AbYIRU4k (ORCPT
+	by vger.kernel.org with ESMTP id S1754400AbYIRU5B (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 16:56:40 -0400
+	Thu, 18 Sep 2008 16:57:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, gregkh@suse.de, hare@suse.de, mm-commits@vger.kernel.org
+To: yhlu.kernel@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net: compile fix depca.c
+     dyn_array: use %pF instead of print_fn_descriptor_symbol
 has been removed from the -mm tree.  Its filename was
-     net-compile-fix-depcac.patch
+     dyn_array-use-%pf-instead-of-print_fn_descriptor_symbol.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net: compile fix depca.c
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: dyn_array: use %pF instead of print_fn_descriptor_symbol
+From: Yinghai Lu <yhlu.kernel@gmail.com>
 
-Adding accessors to the ->driver_data field missed a forward
-declaration that is needed to compile.
-
-Caused by:
-commit 107aeb9753159da848f066b26557f0aaab900a90
-Author: Hannes Reinecke <hare@suse.de>
-Date:   Wed Sep 10 14:16:04 2008 +0200
-
-    Driver core: Use dev_get_drvdata() accessors
-
-Otherwise:
-drivers/net/depca.c:404:9: error: undefined identifier 'depca_common_remove'
-drivers/net/depca.c: In function `depca_isa_remove':
-drivers/net/depca.c:404: error: implicit declaration of function `depca_common_remove'
-drivers/net/depca.c: At top level:
-drivers/net/depca.c:1601: error: static declaration of `depca_common_remove' follows non-static declaration
-drivers/net/depca.c:404: error: previous implicit declaration of `depca_common_remove' was here
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Greg KH <gregkh@suse.de>
-Cc: Hannes Reinecke <hare@suse.de>
+Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/depca.c |    1 +
- 1 file changed, 1 insertion(+)
+ init/dyn_array.c |   21 +++++++++------------
+ 1 file changed, 9 insertions(+), 12 deletions(-)
 
-diff -puN drivers/net/depca.c~net-compile-fix-depcac drivers/net/depca.c
---- a/drivers/net/depca.c~net-compile-fix-depcac
-+++ a/drivers/net/depca.c
-@@ -398,6 +398,7 @@ static struct mca_driver depca_mca_drive
- #endif
+diff -puN init/dyn_array.c~dyn_array-use-%pf-instead-of-print_fn_descriptor_symbol init/dyn_array.c
+--- a/init/dyn_array.c~dyn_array-use-%pf-instead-of-print_fn_descriptor_symbol
++++ a/init/dyn_array.c
+@@ -17,10 +17,9 @@ void __init pre_alloc_dyn_array(void)
+ 	for (daa = __dyn_array_start ; daa < __dyn_array_end; daa++) {
+ 		struct dyn_array *da = *daa;
  
- static int depca_isa_probe (struct platform_device *);
-+static int depca_common_remove(struct net_device *dev);
++		printk(KERN_DEBUG "dyn_array %pF size:%#lx nr:%d align:%#lx\n",
++			da->name, da->size, *da->nr, da->align);
+ 		size = da->size * (*da->nr);
+-		print_fn_descriptor_symbol("dyn_array %s ", da->name);
+-		printk(KERN_CONT "size:%#lx nr:%d align:%#lx\n",
+-			da->size, *da->nr, da->align);
+ 		total_size += roundup(size, da->align);
+ 		if (da->align > max_align)
+ 			max_align = da->align;
+@@ -42,11 +41,10 @@ void __init pre_alloc_dyn_array(void)
+ 		struct dyn_array *da = *daa;
  
- static int __devexit depca_isa_remove(struct platform_device *pdev)
- {
-_
-
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
-
-linux-next.patch
-acpi-toshiba_acpic-fix-sparse-signedness-mismatch-warnings.patch
-x86-fix-shadowed-variable-warning.patch
-cifs-remove-global_extern-macro.patch
-input-ads7846c-sparse-lock-annotation.patch
-misdn-endian-annotations-for-struct-zt.patch
-misdn-annotate-iomem-pointer-and-add-statics.patch
-drivers-net-replace-__function__-with-__func__.patch
-bq27x00_battery-use-unaligned-access-helper.patch
-rcu-fix-sparse-shadowed-variable-warning.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-fbcon-fix-monochrome-color-value-calculation.patch
-mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-include-replace-__function__-with-__func__.patch
-misc-replace-__function__-with-__func__.patch
-befs-annotate-fs32-on-tests-for-superblock-endianness.patch
-char-moxac-sparse-annotation.patch
-byteorder-add-new-headers-for-make-headers-install.patch
-byteorder-use-generic-c-version-for-value-byteswapping.patch
-lib-pull-base-guessing-logic-to-helper-function.patch
-lib-trivial-whitespace-tidy.patch
-lib-remove-defining-macros-for-strict_strto.patch
-
+ 		size = da->size * (*da->nr);
+-		print_fn_descriptor_symbol("dyn_array %s ", da->name);
+-
+ 		phys = roundup(phys, da->align);
++		printk(KERN_DEBUG "dyn_array %pF ==> [%#lx - %#lx]\n",
++			da->name, phys, phys + size);
+ 		*da->name = phys_to_virt(phys);
+-		printk(KERN_CONT " ==> [%#lx - %#lx]\n", phys, phys + size);
+ 
+ 		phys += size;
+ 
+@@ -74,10 +72,9 @@ unsigned long __init per_cpu_dyn_array_s
+ 	for (daa = __per_cpu_dyn_array_start ; daa < __per_cpu_dyn_array_end; daa++) {
+ 		struct dyn_array *da = *daa;
+ 
++		printk(KERN_DEBUG "per_cpu_dyn_array %pF size:%#lx nr:%d align:%#lx\n",
++			da->name, da->size, *da->nr, da->align);
+ 		size = da->size * (*da->nr);
+-		print_fn_descriptor_symbol("per_cpu_dyn_array %s ", da->name);
+-		printk(KERN_CONT "size:%#lx nr:%d align:%#lx\n",
+-			da->size, *da->nr, da->align);
+ 		total_size += roundup(size, da->align);
+ 		if (da->align > max_align)
+ 			max_align = da->align;
+@@ -104,15 +101,15 @@ void __init per_cpu_alloc_dyn_array(int 
+ 		struct dyn_array *da = *daa;
+ 
+ 		size = da->size * (*da->nr);
+-		print_fn_descriptor_symbol("per_cpu_dyn_array %s ", da->name);
