@@ -1,54 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - linux-next-fixups.patch removed from -mm tree
-Date: Thu, 18 Sep 2008 13:01:45 -0700
-Message-ID: <200809182001.m8IK1j0U016975@imap1.linux-foundation.org>
+Subject: + acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix.patch added to -mm tree
+Date: Thu, 18 Sep 2008 13:08:28 -0700
+Message-ID: <200809182008.m8IK8SuM017264@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44257 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45926 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755065AbYIRUCS (ORCPT
+	by vger.kernel.org with ESMTP id S1754968AbYIRUKW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 16:02:18 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m8IK1kUJ014065
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 18 Sep 2008 13:01:47 -0700
+	Thu, 18 Sep 2008 16:10:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, abelay@novell.com, bjorn.helgaas@hp.com, cebbert@redhat.com, dbrownell@users.sourceforge.net, lenb@kernel.org, mingo@elte.hu, rik.theys@esat.kuleuven.be, stable@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     linux-next-fixups
-has been removed from the -mm tree.  Its filename was
-     linux-next-fixups.patch
+     acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix
+has been added to the -mm tree.  Its filename is
+     acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-fixups
+Subject: acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: <stable@kernel.org>
+Cc: Adam Belay <abelay@novell.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Chuck Ebbert <cebbert@redhat.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Rik Theys <rik.theys@esat.kuleuven.be>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/mspro_block.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-x86/mc146818rtc.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/memstick/core/mspro_block.c~linux-next-fixups drivers/memstick/core/mspro_block.c
---- a/drivers/memstick/core/mspro_block.c~linux-next-fixups
-+++ a/drivers/memstick/core/mspro_block.c
-@@ -197,7 +197,7 @@ static int mspro_block_bd_open(struct in
- static int mspro_block_disk_release(struct gendisk *disk)
- {
- 	struct mspro_block_data *msb = disk->private_data;
--	int disk_id = disk->first_minor >> MSPRO_BLOCK_PART_SHIFT;
-+	int disk_id = MINOR(disk_devt(disk)) >> MSPRO_BLOCK_PART_SHIFT;
+diff -puN include/asm-x86/mc146818rtc.h~acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix include/asm-x86/mc146818rtc.h
+--- a/include/asm-x86/mc146818rtc.h~acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix
++++ a/include/asm-x86/mc146818rtc.h
+@@ -9,6 +9,8 @@
+ #include <asm/processor.h>
+ #include <linux/mc146818rtc.h>
  
- 	mutex_lock(&mspro_block_disk_lock);
- 
++struct device;
++
+ #ifndef RTC_PORT
+ #define RTC_PORT(x)	(0x70 + (x))
+ #define RTC_ALWAYS_BCD	1	/* RTC operates in binary mode */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -56,7 +72,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes.patch
 linux-next.patch
-linux-next-fixups.patch
 next-remove-localversion.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
@@ -65,31 +80,20 @@ acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch
 acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
 arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-git-alsa-tiwai.patch
-git-powerpc.patch
-git-drm.patch
-git-dlm.patch
-git-hid.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 git-jg-misc.patch
-git-kvm.patch
 led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
 libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
-git-async-tx.patch
-git-mtd.patch
 sundance-set-carrier-status-on-link-change-events.patch
 cassini-use-request_firmware.patch
 e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
 e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
-git-battery.patch
 fix-cred-wrap-current-cred-and-a-few-other-accessors-on-mips.patch
-git-pci-next.patch
 pci-tidy-pme-support-messages-checkpatch-fixes.patch
 sched-clarify-ifdef-tangle.patch
-debug_locks_warn_on-disable-if-oops_in_progress.patch
 scsi-gdthc-use-unaligned-access-helpers.patch
 drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
 drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
@@ -97,6 +101,7 @@ drivers-usb-musb-disable-it-on-superh.patch
 git-watchdog.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
+acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix.patch
 drivers-media-video-cafe_ccicc-needs-mmh.patch
 e1000e-prevent-corruption-of-eeprom-nvm.patch
 drivers-net-mlx4-allocc-needs-mmh.patch
