@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + eeepc-laptop-use-standard-interfaces-fix-fix.patch added to -mm tree
-Date: Thu, 18 Sep 2008 16:23:13 -0700
-Message-ID: <200809182337.m8INb9b5025343@imap1.linux-foundation.org>
+Subject: + drivers-media-video-tda9840c-unbreak.patch added to -mm tree
+Date: Thu, 18 Sep 2008 16:26:35 -0700
+Message-ID: <200809182340.m8INeVhG025508@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58692 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52225 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754944AbYIRXiS (ORCPT
+	by vger.kernel.org with ESMTP id S1755572AbYIRXkg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 19:38:18 -0400
+	Thu, 18 Sep 2008 19:40:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, corentincj@iksaif.net, hmh@hmh.eng.br, mjg@redhat.com, randy.dunlap@oracle.com, sziwan@users.sourceforge.net
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     eeepc-laptop-use-standard-interfaces-fix-fix
+     drivers/media/video/tda9840.c: unbreak
 has been added to the -mm tree.  Its filename is
-     eeepc-laptop-use-standard-interfaces-fix-fix.patch
+     drivers-media-video-tda9840c-unbreak.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eeepc-laptop-use-standard-interfaces-fix-fix
+Subject: drivers/media/video/tda9840.c: unbreak
 From: Andrew Morton <akpm@linux-foundation.org>
 
-I'm trying to eliminate this abomination.
+drivers/media/video/tda9840.c: In function 'tda9840_command':
+drivers/media/video/tda9840.c:152: warning: 'result' is used uninitialized in this function
 
-Cc: Corentin Chary <corentincj@iksaif.net>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Karol Kozimor <sziwan@users.sourceforge.net>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/eeepc-laptop.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/tda9840.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/misc/eeepc-laptop.c~eeepc-laptop-use-standard-interfaces-fix-fix drivers/misc/eeepc-laptop.c
---- a/drivers/misc/eeepc-laptop.c~eeepc-laptop-use-standard-interfaces-fix-fix
-+++ a/drivers/misc/eeepc-laptop.c
-@@ -554,7 +554,7 @@ static int eeepc_hotk_add(struct acpi_de
- 	ehotk->handle = device->handle;
- 	strcpy(acpi_device_name(device), EEEPC_HOTK_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), EEEPC_HOTK_CLASS);
--	acpi_driver_data(device) = ehotk;
-+	device->driver_data = ehotk;
- 	ehotk->device = device;
- 	result = eeepc_hotk_check();
- 	if (result)
+diff -puN drivers/media/video/tda9840.c~drivers-media-video-tda9840c-unbreak drivers/media/video/tda9840.c
+--- a/drivers/media/video/tda9840.c~drivers-media-video-tda9840c-unbreak
++++ a/drivers/media/video/tda9840.c
+@@ -62,7 +62,6 @@ static void tda9840_write(struct i2c_cli
+ 
+ static int tda9840_command(struct i2c_client *client, unsigned cmd, void *arg)
+ {
+-	int result;
+ 	int byte = *(int *)arg;
+ 
+ 	switch (cmd) {
+@@ -134,7 +133,6 @@ static int tda9840_command(struct i2c_cl
+ 
+ 		v4l_dbg(1, debug, client, "TDA9840_DETECT: byte: 0x%02x\n", byte);
+ 		*ret = (byte & 0x60) >> 5;
+-		result = 0;
+ 		break;
+ 	}
+ 	case TDA9840_TEST:
+@@ -149,9 +147,6 @@ static int tda9840_command(struct i2c_cl
+ 		return -ENOIOCTLCMD;
+ 	}
+ 
+-	if (result)
+-		return -EIO;
+-
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -192,4 +206,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+drivers-media-video-tda9840c-unbreak.patch
 
