@@ -1,162 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - cpuset-avoid-changing-cpusets-cpus-when-errno-returned.patch removed from -mm tree
-Date: Thu, 18 Sep 2008 13:55:39 -0700
-Message-ID: <200809182055.m8IKtdN2019116@imap1.linux-foundation.org>
+Subject: - mm-ifdef-quicklists-in-proc-meminfo.patch removed from -mm tree
+Date: Thu, 18 Sep 2008 13:55:50 -0700
+Message-ID: <200809182055.m8IKtoXg019137@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55251 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50181 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754543AbYIRUzv (ORCPT
+	by vger.kernel.org with ESMTP id S1754472AbYIRU4C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 16:55:51 -0400
+	Thu, 18 Sep 2008 16:56:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, menage@google.com, miaox@cn.fujitsu.com, pj@sgi.com, mm-commits@vger.kernel.org
+To: hugh@veritas.com, cl@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpuset: avoid changing cpuset's cpus when -errno returned
+     mm: ifdef Quicklists in /proc/meminfo
 has been removed from the -mm tree.  Its filename was
-     cpuset-avoid-changing-cpusets-cpus-when-errno-returned.patch
+     mm-ifdef-quicklists-in-proc-meminfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset: avoid changing cpuset's cpus when -errno returned
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: mm: ifdef Quicklists in /proc/meminfo
+From: Hugh Dickins <hugh@veritas.com>
 
-After the patch:
+A "Quicklists:          0 kB" line has just started appearing in
+/proc/meminfo, but most architectures (including x86) don't have
+them configured, so #ifdef it, like the highmem lines.
 
-commit 0b2f630a28d53b5a2082a5275bc3334b10373508
-Author: Miao Xie <miaox@cn.fujitsu.com>
-Date:   Fri Jul 25 01:47:21 2008 -0700
+And those architectures which do have quicklists configured are
+using them for page tables: so let's place it next to PageTables.
 
-    cpusets: restructure the function update_cpumask() and update_nodemask()
-
-It might happen that 'echo 0 > /cpuset/sub/cpus' returned failure but 'cpus'
-has been changed, because cpus was changed before calling heap_init() which
-may return -ENOMEM.
-
-This patch restores the orginal behavior.
-
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Miao Xie <miaox@cn.fujitsu.com>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Acked-by: Christoph Lameter <cl@linux-foundation.org>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   37 +++++++++++++++----------------------
- 1 file changed, 15 insertions(+), 22 deletions(-)
+ fs/proc/proc_misc.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN kernel/cpuset.c~cpuset-avoid-changing-cpusets-cpus-when-errno-returned kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-avoid-changing-cpusets-cpus-when-errno-returned
-+++ a/kernel/cpuset.c
-@@ -843,37 +843,25 @@ static void cpuset_change_cpumask(struct
- /**
-  * update_tasks_cpumask - Update the cpumasks of tasks in the cpuset.
-  * @cs: the cpuset in which each task's cpus_allowed mask needs to be changed
-+ * @heap: if NULL, defer allocating heap memory to cgroup_scan_tasks()
-  *
-  * Called with cgroup_mutex held
-  *
-  * The cgroup_scan_tasks() function will scan all the tasks in a cgroup,
-  * calling callback functions for each.
-  *
-- * Return 0 if successful, -errno if not.
-+ * No return value. It's guaranteed that cgroup_scan_tasks() always returns 0
-+ * if @heap != NULL.
-  */
--static int update_tasks_cpumask(struct cpuset *cs)
-+static void update_tasks_cpumask(struct cpuset *cs, struct ptr_heap *heap)
- {
- 	struct cgroup_scanner scan;
--	struct ptr_heap heap;
--	int retval;
--
--	/*
--	 * cgroup_scan_tasks() will initialize heap->gt for us.
--	 * heap_init() is still needed here for we should not change
--	 * cs->cpus_allowed when heap_init() fails.
--	 */
--	retval = heap_init(&heap, PAGE_SIZE, GFP_KERNEL, NULL);
--	if (retval)
--		return retval;
+diff -puN fs/proc/proc_misc.c~mm-ifdef-quicklists-in-proc-meminfo fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~mm-ifdef-quicklists-in-proc-meminfo
++++ a/fs/proc/proc_misc.c
+@@ -183,6 +183,9 @@ static int meminfo_read_proc(char *page,
+ 		"SReclaimable: %8lu kB\n"
+ 		"SUnreclaim:   %8lu kB\n"
+ 		"PageTables:   %8lu kB\n"
++#ifdef CONFIG_QUICKLIST
++		"Quicklists:   %8lu kB\n"
++#endif
+ 		"NFS_Unstable: %8lu kB\n"
+ 		"Bounce:       %8lu kB\n"
+ 		"WritebackTmp: %8lu kB\n"
+@@ -190,8 +193,7 @@ static int meminfo_read_proc(char *page,
+ 		"Committed_AS: %8lu kB\n"
+ 		"VmallocTotal: %8lu kB\n"
+ 		"VmallocUsed:  %8lu kB\n"
+-		"VmallocChunk: %8lu kB\n"
+-		"Quicklists:   %8lu kB\n",
++		"VmallocChunk: %8lu kB\n",
+ 		K(i.totalram),
+ 		K(i.freeram),
+ 		K(i.bufferram),
+@@ -216,6 +218,9 @@ static int meminfo_read_proc(char *page,
+ 		K(global_page_state(NR_SLAB_RECLAIMABLE)),
+ 		K(global_page_state(NR_SLAB_UNRECLAIMABLE)),
+ 		K(global_page_state(NR_PAGETABLE)),
++#ifdef CONFIG_QUICKLIST
++		K(quicklist_total_size()),
++#endif
+ 		K(global_page_state(NR_UNSTABLE_NFS)),
+ 		K(global_page_state(NR_BOUNCE)),
+ 		K(global_page_state(NR_WRITEBACK_TEMP)),
+@@ -223,8 +228,7 @@ static int meminfo_read_proc(char *page,
+ 		K(committed),
+ 		(unsigned long)VMALLOC_TOTAL >> 10,
+ 		vmi.used >> 10,
+-		vmi.largest_chunk >> 10,
+-		K(quicklist_total_size())
++		vmi.largest_chunk >> 10
+ 		);
  
- 	scan.cg = cs->css.cgroup;
- 	scan.test_task = cpuset_test_cpumask;
- 	scan.process_task = cpuset_change_cpumask;
--	scan.heap = &heap;
--	retval = cgroup_scan_tasks(&scan);
--
--	heap_free(&heap);
--	return retval;
-+	scan.heap = heap;
-+	cgroup_scan_tasks(&scan);
- }
- 
- /**
-@@ -883,6 +871,7 @@ static int update_tasks_cpumask(struct c
-  */
- static int update_cpumask(struct cpuset *cs, const char *buf)
- {
-+	struct ptr_heap heap;
- 	struct cpuset trialcs;
- 	int retval;
- 	int is_load_balanced;
-@@ -917,6 +906,10 @@ static int update_cpumask(struct cpuset 
- 	if (cpus_equal(cs->cpus_allowed, trialcs.cpus_allowed))
- 		return 0;
- 
-+	retval = heap_init(&heap, PAGE_SIZE, GFP_KERNEL, NULL);
-+	if (retval)
-+		return retval;
-+
- 	is_load_balanced = is_sched_load_balance(&trialcs);
- 
- 	mutex_lock(&callback_mutex);
-@@ -927,9 +920,9 @@ static int update_cpumask(struct cpuset 
- 	 * Scan tasks in the cpuset, and update the cpumasks of any
- 	 * that need an update.
- 	 */
--	retval = update_tasks_cpumask(cs);
--	if (retval < 0)
--		return retval;
-+	update_tasks_cpumask(cs, &heap);
-+
-+	heap_free(&heap);
- 
- 	if (is_load_balanced)
- 		async_rebuild_sched_domains();
-@@ -1965,7 +1958,7 @@ static void scan_for_empty_cpusets(const
- 		     nodes_empty(cp->mems_allowed))
- 			remove_tasks_in_empty_cpuset(cp);
- 		else {
--			update_tasks_cpumask(cp);
-+			update_tasks_cpumask(cp, NULL);
- 			update_tasks_nodemask(cp, &oldmems);
- 		}
- 	}
+ 		len += hugetlb_report_meminfo(page + len);
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
+mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex.patch
+mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes.patch
 linux-next.patch
 memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-devcgroup-use-kmemdup.patch
-devcgroup-remove-unused-variable.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-setup-the-memrlimit-controller-mm_owner-fix.patch
+mm-owner-fix-race-between-swap-and-exit.patch
+mm-owner-fix-race-between-swap-and-exit-fix.patch
+mm-owner-fix-race-between-swap-and-exit-fix-fix.patch
+hugetlb-handle-updating-of-accessed-and-dirty-in-hugetlb_fault.patch
+mm-define-use_split_ptlocks-rather-than-repeating-expression.patch
+xen-fix-pinning-when-not-using-split-pte-locks.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mmapc-deinline-a-few-functions.patch
 memrlimit-add-memrlimit-controller-accounting-and-control.patch
 memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
 memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
 memrlimit-improve-error-handling.patch
 memrlimit-improve-error-handling-update.patch
 memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+prio_tree-debugging-patch.patch
 
