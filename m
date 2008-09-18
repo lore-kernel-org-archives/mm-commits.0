@@ -1,228 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - sysfs-fix-deadlock.patch removed from -mm tree
-Date: Thu, 18 Sep 2008 13:56:32 -0700
-Message-ID: <200809182056.m8IKuWjd019195@imap1.linux-foundation.org>
+Subject: - net-compile-fix-depcac.patch removed from -mm tree
+Date: Thu, 18 Sep 2008 13:56:35 -0700
+Message-ID: <200809182056.m8IKuZ5j019199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34743 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57644 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754390AbYIRU5A (ORCPT
+	by vger.kernel.org with ESMTP id S1754828AbYIRU4k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 16:57:00 -0400
+	Thu, 18 Sep 2008 16:56:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, a.p.zijlstra@chello.nl, greg@kroah.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, gregkh@suse.de, hare@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysfs: fix deadlock
+     net: compile fix depca.c
 has been removed from the -mm tree.  Its filename was
-     sysfs-fix-deadlock.patch
+     net-compile-fix-depcac.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysfs: fix deadlock
-From: Nick Piggin <npiggin@suse.de>
+Subject: net: compile fix depca.c
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-=======================================================
-[ INFO: possible circular locking dependency detected ]
-2.6.27-rc6-tip #1
--------------------------------------------------------
-X/4873 is trying to acquire lock:
- (&bb->mutex){--..}, at: [<c020ba20>] mmap+0x40/0xa0
+Adding accessors to the ->driver_data field missed a forward
+declaration that is needed to compile.
 
-but task is already holding lock:
- (&mm->mmap_sem){----}, at: [<c0125a1e>] sys_mmap2+0x8e/0xc0
+Caused by:
+commit 107aeb9753159da848f066b26557f0aaab900a90
+Author: Hannes Reinecke <hare@suse.de>
+Date:   Wed Sep 10 14:16:04 2008 +0200
 
-which lock already depends on the new lock.
+    Driver core: Use dev_get_drvdata() accessors
 
+Otherwise:
+drivers/net/depca.c:404:9: error: undefined identifier 'depca_common_remove'
+drivers/net/depca.c: In function `depca_isa_remove':
+drivers/net/depca.c:404: error: implicit declaration of function `depca_common_remove'
+drivers/net/depca.c: At top level:
+drivers/net/depca.c:1601: error: static declaration of `depca_common_remove' follows non-static declaration
+drivers/net/depca.c:404: error: previous implicit declaration of `depca_common_remove' was here
 
-the existing dependency chain (in reverse order) is:
-
--> #1 (&mm->mmap_sem){----}:
-       [<c017dc96>] validate_chain+0xa96/0xf50
-       [<c017ef2b>] __lock_acquire+0x2cb/0x5b0
-       [<c017f299>] lock_acquire+0x89/0xc0
-       [<c01aa8fb>] might_fault+0x6b/0x90
-       [<c040b618>] copy_to_user+0x38/0x60
-       [<c020bcfb>] read+0xfb/0x170
-       [<c01c09a5>] vfs_read+0x95/0x110
-       [<c01c1443>] sys_pread64+0x63/0x80
-       [<c012146f>] sysenter_do_call+0x12/0x43
-       [<ffffffff>] 0xffffffff
-
--> #0 (&bb->mutex){--..}:
-       [<c017d8b7>] validate_chain+0x6b7/0xf50
-       [<c017ef2b>] __lock_acquire+0x2cb/0x5b0
-       [<c017f299>] lock_acquire+0x89/0xc0
-       [<c0d6f2ab>] __mutex_lock_common+0xab/0x3c0
-       [<c0d6f698>] mutex_lock_nested+0x38/0x50
-       [<c020ba20>] mmap+0x40/0xa0
-       [<c01b111e>] mmap_region+0x14e/0x450
-       [<c01b170f>] do_mmap_pgoff+0x2ef/0x310
-       [<c0125a3d>] sys_mmap2+0xad/0xc0
-       [<c012146f>] sysenter_do_call+0x12/0x43
-       [<ffffffff>] 0xffffffff
-
-other info that might help us debug this:
-
-1 lock held by X/4873:
- #0:  (&mm->mmap_sem){----}, at: [<c0125a1e>] sys_mmap2+0x8e/0xc0
-
-stack backtrace:
-Pid: 4873, comm: X Not tainted 2.6.27-rc6-tip #1
- [<c017cd09>] print_circular_bug_tail+0x79/0xc0
- [<c017d8b7>] validate_chain+0x6b7/0xf50
- [<c017a5b5>] ? trace_hardirqs_off_caller+0x15/0xb0
- [<c017ef2b>] __lock_acquire+0x2cb/0x5b0
- [<c017f299>] lock_acquire+0x89/0xc0
- [<c020ba20>] ? mmap+0x40/0xa0
- [<c0d6f2ab>] __mutex_lock_common+0xab/0x3c0
- [<c020ba20>] ? mmap+0x40/0xa0
- [<c0d6f698>] mutex_lock_nested+0x38/0x50
- [<c020ba20>] ? mmap+0x40/0xa0
- [<c020ba20>] mmap+0x40/0xa0
- [<c01b111e>] mmap_region+0x14e/0x450
- [<c01afb88>] ? arch_get_unmapped_area_topdown+0xf8/0x160
- [<c01b170f>] do_mmap_pgoff+0x2ef/0x310
- [<c0125a3d>] sys_mmap2+0xad/0xc0
- [<c012146f>] sysenter_do_call+0x12/0x43
- [<c0120000>] ? __switch_to+0x130/0x220
- =======================
-evbug.c: Event. Dev: input3, Type: 20, Code: 0, Value: 500
-warning: `sudo' uses deprecated v2 capabilities in a way that may be insecure.
-
-
-bin.c takes bb->mutex under mmap_sem when it is mmapped, and then does its
-copy_*_user under bb->mutex too.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Reported-by: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Hannes Reinecke <hare@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/bin.c |   42 +++++++++++++++++++++++++++++++-----------
- 1 file changed, 31 insertions(+), 11 deletions(-)
+ drivers/net/depca.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/sysfs/bin.c~sysfs-fix-deadlock fs/sysfs/bin.c
---- a/fs/sysfs/bin.c~sysfs-fix-deadlock
-+++ a/fs/sysfs/bin.c
-@@ -61,6 +61,7 @@ read(struct file *file, char __user *use
- 	int size = dentry->d_inode->i_size;
- 	loff_t offs = *off;
- 	int count = min_t(size_t, bytes, PAGE_SIZE);
-+	char *temp;
+diff -puN drivers/net/depca.c~net-compile-fix-depcac drivers/net/depca.c
+--- a/drivers/net/depca.c~net-compile-fix-depcac
++++ a/drivers/net/depca.c
+@@ -398,6 +398,7 @@ static struct mca_driver depca_mca_drive
+ #endif
  
- 	if (size) {
- 		if (offs > size)
-@@ -69,23 +70,33 @@ read(struct file *file, char __user *use
- 			count = size - offs;
- 	}
+ static int depca_isa_probe (struct platform_device *);
++static int depca_common_remove(struct net_device *dev);
  
-+	temp = kmalloc(count, GFP_KERNEL);
-+	if (!temp)
-+		return -ENOMEM;
-+
- 	mutex_lock(&bb->mutex);
- 
- 	count = fill_read(dentry, bb->buffer, offs, count);
--	if (count < 0)
--		goto out_unlock;
-+	if (count < 0) {
-+		mutex_unlock(&bb->mutex);
-+		goto out_free;
-+	}
- 
--	if (copy_to_user(userbuf, bb->buffer, count)) {
-+	memcpy(temp, bb->buffer, count);
-+
-+	mutex_unlock(&bb->mutex);
-+
-+	if (copy_to_user(userbuf, temp, count)) {
- 		count = -EFAULT;
--		goto out_unlock;
-+		goto out_free;
- 	}
- 
- 	pr_debug("offs = %lld, *off = %lld, count = %d\n", offs, *off, count);
- 
- 	*off = offs + count;
- 
-- out_unlock:
--	mutex_unlock(&bb->mutex);
-+ out_free:
-+	kfree(temp);
- 	return count;
- }
- 
-@@ -118,6 +129,7 @@ static ssize_t write(struct file *file, 
- 	int size = dentry->d_inode->i_size;
- 	loff_t offs = *off;
- 	int count = min_t(size_t, bytes, PAGE_SIZE);
-+	char *temp;
- 
- 	if (size) {
- 		if (offs > size)
-@@ -126,19 +138,27 @@ static ssize_t write(struct file *file, 
- 			count = size - offs;
- 	}
- 
--	mutex_lock(&bb->mutex);
-+	temp = kmalloc(count, GFP_KERNEL);
-+	if (!temp)
-+		return -ENOMEM;
- 
--	if (copy_from_user(bb->buffer, userbuf, count)) {
-+	if (copy_from_user(temp, userbuf, count)) {
- 		count = -EFAULT;
--		goto out_unlock;
-+		goto out_free;
- 	}
- 
-+	mutex_lock(&bb->mutex);
-+
-+	memcpy(bb->buffer, temp, count);
-+
- 	count = flush_write(dentry, bb->buffer, offs, count);
-+	mutex_unlock(&bb->mutex);
-+
- 	if (count > 0)
- 		*off = offs + count;
- 
-- out_unlock:
--	mutex_unlock(&bb->mutex);
-+out_free:
-+	kfree(temp);
- 	return count;
- }
- 
+ static int __devexit depca_isa_remove(struct platform_device *pdev)
+ {
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex.patch
-mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes.patch
 linux-next.patch
-inotify-fix-lock-ordering-wrt-do_page_faults-mmap_sem.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmstat-mlocked-pages-statistics.patch
-mm-pagecache-insertion-fewer-atomics.patch
-mm-unlockless-reclaim.patch
-mm-page-lock-use-lock-bitops.patch
-fs-buffer-lock-use-lock-bitops.patch
-mm-page-allocator-minor-speedup.patch
-mm-rewrite-vmap-layer.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+acpi-toshiba_acpic-fix-sparse-signedness-mismatch-warnings.patch
+x86-fix-shadowed-variable-warning.patch
+cifs-remove-global_extern-macro.patch
+input-ads7846c-sparse-lock-annotation.patch
+misdn-endian-annotations-for-struct-zt.patch
+misdn-annotate-iomem-pointer-and-add-statics.patch
+drivers-net-replace-__function__-with-__func__.patch
+bq27x00_battery-use-unaligned-access-helper.patch
+rcu-fix-sparse-shadowed-variable-warning.patch
+scsi-replace-__inline-with-inline.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+fbcon-fix-monochrome-color-value-calculation.patch
+mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
+olpc-olpc_batteryc-sparse-endian-annotations.patch
+include-replace-__function__-with-__func__.patch
+misc-replace-__function__-with-__func__.patch
+befs-annotate-fs32-on-tests-for-superblock-endianness.patch
+char-moxac-sparse-annotation.patch
+byteorder-add-new-headers-for-make-headers-install.patch
+byteorder-use-generic-c-version-for-value-byteswapping.patch
+lib-pull-base-guessing-logic-to-helper-function.patch
+lib-trivial-whitespace-tidy.patch
+lib-remove-defining-macros-for-strict_strto.patch
 
