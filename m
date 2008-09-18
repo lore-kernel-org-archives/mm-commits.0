@@ -1,118 +1,189 @@
 From: akpm@linux-foundation.org
-Subject: - mm-mark-the-correct-zone-as-full-when-scanning-zonelists.patch removed from -mm tree
-Date: Thu, 18 Sep 2008 13:56:05 -0700
-Message-ID: <200809182056.m8IKu5Aa019164@imap1.linux-foundation.org>
+Subject: - pxa2xx_spi-chipselect-bugfixes.patch removed from -mm tree
+Date: Thu, 18 Sep 2008 13:55:58 -0700
+Message-ID: <200809182055.m8IKtwFU019152@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43236 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44984 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754741AbYIRU40 (ORCPT
+	by vger.kernel.org with ESMTP id S1754356AbYIRU41 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 16:56:26 -0400
+	Thu, 18 Sep 2008 16:56:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mel@csn.ul.ie, apw@shadowen.org, kamezawa.hiroyu@jp.fujitsu.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: nforrester@whoi.edu, dbrownell@users.sourceforge.net, eric.y.miao@gmail.com, stable@kernel.org, vernoninhand@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: mark the correct zone as full when scanning zonelists
+     pxa2xx_spi: chipselect bugfixes
 has been removed from the -mm tree.  Its filename was
-     mm-mark-the-correct-zone-as-full-when-scanning-zonelists.patch
+     pxa2xx_spi-chipselect-bugfixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: mark the correct zone as full when scanning zonelists
-From: Mel Gorman <mel@csn.ul.ie>
+Subject: pxa2xx_spi: chipselect bugfixes
+From: Ned Forrester <nforrester@whoi.edu>
 
-The iterator for_each_zone_zonelist() uses a struct zoneref *z cursor when
-scanning zonelists to keep track of where in the zonelist it is.  The
-zoneref that is returned corresponds to the the next zone that is to be
-scanned, not the current one.  It was intended to be treated as an opaque
-list.
+Fixes several chipselect bugs in the pxa2xx_spi driver.  These bugs are in
+all versions of this driver and prevent using it with chips like m25p16
+flash.
 
-When the page allocator is scanning a zonelist, it marks elements in the
-zonelist corresponding to zones that are temporarily full.  As the
-zonelist is being updated, it uses the cursor here;
+ 1. The spi_transfer.cs_change flag is handled too early:
+    before spi_transfer.delay_usecs applies, thus making the
+    delay ineffective at holding chip select.
 
-  if (NUMA_BUILD)
-        zlc_mark_zone_full(zonelist, z);
+ 2. spi_transfer.delay_usecs is ignored on the last transfer
+    of a message (likewise not holding chipselect long enough).
 
-This is intended to prevent rescanning in the near future but the zoneref
-cursor does not correspond to the zone that has been found to be full. 
-This is an easy misunderstanding to make so this patch corrects the
-problem by changing zoneref cursor to be the current zone being scanned
-instead of the next one.
+ 3. If spi_transfer.cs_change is set on the last transfer, the
+    chip select is always disabled, instead of the intended
+    meaning: optionally holding chip select enabled for the
+    next message.
 
-Signed-off-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: <stable@kernel.org>		[2.6.26.x]
+Those first three bugs were fixed with a relocation of delays
+and chip select de-assertions.
+
+ 4. If a message has the cs_change flag set on the last transfer,
+    and had the chip select stayed enabled as requested (see 3,
+    above), it would not have been disabled if the next message is
+    for a different chip.  Fixed by dropping chip select regardless
+    of cs_change at end of a message, if there is no next message
+    or if the next message is for a different chip.
+
+This patch should apply to all kernels back to and including 2.6.20;
+it was test patched against 2.6.20.  An additional patch would be
+required for older kernels, but those versions are very buggy anyway.
+
+Signed-off-by: Ned Forrester <nforrester@whoi.edu>
+Cc: Vernon Sauder <vernoninhand@gmail.com>
+Cc: Eric Miao <eric.y.miao@gmail.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   12 ++++++------
- mm/mmzone.c            |    2 +-
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/spi/pxa2xx_spi.c |   59 ++++++++++++++++++++++++++++++-------
+ 1 file changed, 48 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-mark-the-correct-zone-as-full-when-scanning-zonelists include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-mark-the-correct-zone-as-full-when-scanning-zonelists
-+++ a/include/linux/mmzone.h
-@@ -751,8 +751,9 @@ static inline int zonelist_node_idx(stru
-  *
-  * This function returns the next zone at or below a given zone index that is
-  * within the allowed nodemask using a cursor as the starting point for the
-- * search. The zoneref returned is a cursor that is used as the next starting
-- * point for future calls to next_zones_zonelist().
-+ * search. The zoneref returned is a cursor that represents the current zone
-+ * being examined. It should be advanced by one before calling
-+ * next_zones_zonelist again.
-  */
- struct zoneref *next_zones_zonelist(struct zoneref *z,
- 					enum zone_type highest_zoneidx,
-@@ -768,9 +769,8 @@ struct zoneref *next_zones_zonelist(stru
-  *
-  * This function returns the first zone at or below a given zone index that is
-  * within the allowed nodemask. The zoneref returned is a cursor that can be
-- * used to iterate the zonelist with next_zones_zonelist. The cursor should
-- * not be used by the caller as it does not match the value of the zone
-- * returned.
-+ * used to iterate the zonelist with next_zones_zonelist by advancing it by
-+ * one before calling.
-  */
- static inline struct zoneref *first_zones_zonelist(struct zonelist *zonelist,
- 					enum zone_type highest_zoneidx,
-@@ -795,7 +795,7 @@ static inline struct zoneref *first_zone
- #define for_each_zone_zonelist_nodemask(zone, z, zlist, highidx, nodemask) \
- 	for (z = first_zones_zonelist(zlist, highidx, nodemask, &zone);	\
- 		zone;							\
--		z = next_zones_zonelist(z, highidx, nodemask, &zone))	\
-+		z = next_zones_zonelist(++z, highidx, nodemask, &zone))	\
+diff -puN drivers/spi/pxa2xx_spi.c~pxa2xx_spi-chipselect-bugfixes drivers/spi/pxa2xx_spi.c
+--- a/drivers/spi/pxa2xx_spi.c~pxa2xx_spi-chipselect-bugfixes
++++ a/drivers/spi/pxa2xx_spi.c
+@@ -144,7 +144,6 @@ struct driver_data {
+ 	size_t tx_map_len;
+ 	u8 n_bytes;
+ 	u32 dma_width;
+-	int cs_change;
+ 	int (*write)(struct driver_data *drv_data);
+ 	int (*read)(struct driver_data *drv_data);
+ 	irqreturn_t (*transfer_handler)(struct driver_data *drv_data);
+@@ -406,8 +405,45 @@ static void giveback(struct driver_data 
+ 					struct spi_transfer,
+ 					transfer_list);
  
- /**
-  * for_each_zone_zonelist - helper macro to iterate over valid zones in a zonelist at or below a given zone index
-diff -puN mm/mmzone.c~mm-mark-the-correct-zone-as-full-when-scanning-zonelists mm/mmzone.c
---- a/mm/mmzone.c~mm-mark-the-correct-zone-as-full-when-scanning-zonelists
-+++ a/mm/mmzone.c
-@@ -69,6 +69,6 @@ struct zoneref *next_zones_zonelist(stru
- 				(z->zone && !zref_in_nodemask(z, nodes)))
- 			z++;
++	/* Delay if requested before any change in chip select */
++	if (last_transfer->delay_usecs)
++		udelay(last_transfer->delay_usecs);
++
++	/* Drop chip select UNLESS cs_change is true or we are returning
++	 * a message with an error, or next message is for another chip
++	 */
+ 	if (!last_transfer->cs_change)
+ 		drv_data->cs_control(PXA2XX_CS_DEASSERT);
++	else {
++		struct spi_message *next_msg;
++
++		/* Holding of cs was hinted, but we need to make sure
++		 * the next message is for the same chip.  Don't waste
++		 * time with the following tests unless this was hinted.
++		 *
++		 * We cannot postpone this until pump_messages, because
++		 * after calling msg->complete (below) the driver that
++		 * sent the current message could be unloaded, which
++		 * could invalidate the cs_control() callback...
++		 */
++
++		/* get a pointer to the next message, if any */
++		spin_lock_irqsave(&drv_data->lock, flags);
++		if (list_empty(&drv_data->queue))
++			next_msg = NULL;
++		else
++			next_msg = list_entry(drv_data->queue.next,
++					struct spi_message, queue);
++		spin_unlock_irqrestore(&drv_data->lock, flags);
++
++		/* see if the next and current messages point
++		 * to the same chip
++		 */
++		if (next_msg && next_msg->spi != msg->spi)
++			next_msg = NULL;
++		if (!next_msg || msg->state == ERROR_STATE)
++			drv_data->cs_control(PXA2XX_CS_DEASSERT);
++	}
  
--	*zone = zonelist_zone(z++);
-+	*zone = zonelist_zone(z);
- 	return z;
- }
+ 	msg->state = NULL;
+ 	if (msg->complete)
+@@ -490,10 +526,9 @@ static void dma_transfer_complete(struct
+ 	msg->actual_length += drv_data->len -
+ 				(drv_data->rx_end - drv_data->rx);
+ 
+-	/* Release chip select if requested, transfer delays are
+-	 * handled in pump_transfers */
+-	if (drv_data->cs_change)
+-		drv_data->cs_control(PXA2XX_CS_DEASSERT);
++	/* Transfer delays and chip select release are
++	 * handled in pump_transfers or giveback
++	 */
+ 
+ 	/* Move to next transfer */
+ 	msg->state = next_transfer(drv_data);
+@@ -602,10 +637,9 @@ static void int_transfer_complete(struct
+ 	drv_data->cur_msg->actual_length += drv_data->len -
+ 				(drv_data->rx_end - drv_data->rx);
+ 
+-	/* Release chip select if requested, transfer delays are
+-	 * handled in pump_transfers */
+-	if (drv_data->cs_change)
+-		drv_data->cs_control(PXA2XX_CS_DEASSERT);
++	/* Transfer delays and chip select release are
++	 * handled in pump_transfers or giveback
++	 */
+ 
+ 	/* Move to next transfer */
+ 	drv_data->cur_msg->state = next_transfer(drv_data);
+@@ -840,13 +874,17 @@ static void pump_transfers(unsigned long
+ 		return;
+ 	}
+ 
+-	/* Delay if requested at end of transfer*/
++	/* Delay if requested at end of transfer before CS change */
+ 	if (message->state == RUNNING_STATE) {
+ 		previous = list_entry(transfer->transfer_list.prev,
+ 					struct spi_transfer,
+ 					transfer_list);
+ 		if (previous->delay_usecs)
+ 			udelay(previous->delay_usecs);
++
++		/* Drop chip select only if cs_change is requested */
++		if (previous->cs_change)
++			drv_data->cs_control(PXA2XX_CS_DEASSERT);
+ 	}
+ 
+ 	/* Check transfer length */
+@@ -878,7 +916,6 @@ static void pump_transfers(unsigned long
+ 	drv_data->len = transfer->len & DCMD_LENGTH;
+ 	drv_data->write = drv_data->tx ? chip->write : null_writer;
+ 	drv_data->read = drv_data->rx ? chip->read : null_reader;
+-	drv_data->cs_change = transfer->cs_change;
+ 
+ 	/* Change speed and bit per word on a per transfer */
+ 	cr0 = chip->cr0;
 _
 
-Patches currently in -mm which might be from mel@csn.ul.ie are
+Patches currently in -mm which might be from nforrester@whoi.edu are
 
 origin.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-mm-cleanup-to-make-remove_memory-arch-neutral.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-mm-make-do_move_pages-complexity-linear.patch
-page-owner-tracking-leak-detector.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
+pxa2xx_spi-fix-chip_info-defaults-and-documentation.patch
 
