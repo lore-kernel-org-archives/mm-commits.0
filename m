@@ -1,178 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - serial-driver-handle-multiple-consecutive-sysrq-from-the-serial-fix.patch removed from -mm tree
-Date: Thu, 18 Sep 2008 01:19:24 -0700
-Message-ID: <200809180819.m8I8JOj9022025@imap1.linux-foundation.org>
+Subject: + gpio_free-might-sleep-mips-architecture.patch added to -mm tree
+Date: Thu, 18 Sep 2008 02:44:06 -0700
+Message-ID: <200809180944.m8I9i7Bg025037@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51089 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59983 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756156AbYIRITp (ORCPT
+	by vger.kernel.org with ESMTP id S1751210AbYIRJpO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 04:19:45 -0400
+	Thu, 18 Sep 2008 05:45:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, liberty@extricom.com, liberty@extricom.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ukleinek@informatik.uni-freiburg.de, david-b@pacbell.net, ralf@linux-mips.org
 
 
 The patch titled
-     serial-driver-handle-multiple-consecutive-sysrq-from-the-serial-fix
-has been removed from the -mm tree.  Its filename was
-     serial-driver-handle-multiple-consecutive-sysrq-from-the-serial-fix.patch
+     gpio_free might sleep, mips architecture
+has been added to the -mm tree.  Its filename is
+     gpio_free-might-sleep-mips-architecture.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: serial-driver-handle-multiple-consecutive-sysrq-from-the-serial-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: gpio_free might sleep, mips architecture
+=46rom: Uwe Kleine-K=F6nig <ukleinek@informatik.uni-freiburg.de>
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Eran Liberty <liberty@extricom.com>
-Cc: Eran Liberty <liberty@extricom.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
+According to the documentation gpio_free should only be called from tas=
+k
+context only.  To make this more explicit add a might sleep to all
+implementations.
+
+This patch changes the gpio_free implementations for the mips
+architecture.
+
+Signed-off-by: Uwe Kleine-K=F6nig <ukleinek@informatik.uni-freiburg.de>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/serial_core.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/asm-mips/mach-au1x00/gpio.h  |    2 ++
+ include/asm-mips/mach-bcm47xx/gpio.h |    3 +++
+ 2 files changed, 5 insertions(+)
 
-diff -puN include/linux/serial_core.h~serial-driver-handle-multiple-consecutive-sysrq-from-the-serial-fix include/linux/serial_core.h
---- a/include/linux/serial_core.h~serial-driver-handle-multiple-consecutive-sysrq-from-the-serial-fix
-+++ a/include/linux/serial_core.h
-@@ -444,8 +444,7 @@ static inline int
- uart_handle_sysrq_char(struct uart_port *port, unsigned int ch)
+diff -puN include/asm-mips/mach-au1x00/gpio.h~gpio_free-might-sleep-mip=
+s-architecture include/asm-mips/mach-au1x00/gpio.h
+--- a/include/asm-mips/mach-au1x00/gpio.h~gpio_free-might-sleep-mips-ar=
+chitecture
++++ a/include/asm-mips/mach-au1x00/gpio.h
+@@ -1,6 +1,7 @@
+ #ifndef _AU1XXX_GPIO_H_
+ #define _AU1XXX_GPIO_H_
+=20
++#include <linux/kernel.h>
+ #include <linux/types.h>
+=20
+ #define AU1XXX_GPIO_BASE	200
+@@ -31,6 +32,7 @@ static inline int gpio_request(unsigned=20
+ static inline void gpio_free(unsigned gpio)
  {
- #ifdef SUPPORT_SYSRQ
--	if (port->sysrq && time_after(jiffies, port->sysrq +
--					(unsigned long)(HZ*0.01))) {
-+	if (port->sysrq && time_after(jiffies, port->sysrq + HZ / 50)) {
- 		if (ch && time_before(jiffies, port->sysrq + HZ*5)) {
- 			handle_sysrq(ch, port->info ? port->info->port.tty : NULL);
- 			port->sysrq = 0;
+ 	/* Not yet implemented */
++	might_sleep();
+ }
+=20
+ static inline int gpio_direction_input(unsigned gpio)
+diff -puN include/asm-mips/mach-bcm47xx/gpio.h~gpio_free-might-sleep-mi=
+ps-architecture include/asm-mips/mach-bcm47xx/gpio.h
+--- a/include/asm-mips/mach-bcm47xx/gpio.h~gpio_free-might-sleep-mips-a=
+rchitecture
++++ a/include/asm-mips/mach-bcm47xx/gpio.h
+@@ -9,6 +9,8 @@
+ #ifndef __BCM47XX_GPIO_H
+ #define __BCM47XX_GPIO_H
+=20
++#include <linux/kernel.h>
++
+ #define BCM47XX_EXTIF_GPIO_LINES	5
+ #define BCM47XX_CHIPCO_GPIO_LINES	16
+=20
+@@ -25,6 +27,7 @@ static inline int gpio_request(unsigned=20
+=20
+ static inline void gpio_free(unsigned gpio)
+ {
++	might_sleep();
+ }
+=20
+ static inline int gpio_to_irq(unsigned gpio)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ukleinek@informatik.uni-fr=
+eiburg.de are
 
-origin.patch
-include-linux-ioporth-add-missing-macro-argument-for-devm_release_-family.patch
-rescan_partitions-make-device-capacity-errors-non-fatal.patch
 linux-next.patch
-linux-next-fixups.patch
-next-remove-localversion.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-revert-acpi-ec-do-transaction-from-interrupt-context.patch
-acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch
-acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
-fix-cred-wrap-current-cred-and-a-few-other-accessors-on-mips.patch
-pci-tidy-pme-support-messages-checkpatch-fixes.patch
-sched-clarify-ifdef-tangle.patch
-debug_locks_warn_on-disable-if-oops_in_progress.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
-drivers-usb-musb-disable-it-on-superh.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-media-video-cafe_ccicc-needs-mmh.patch
-e1000e-prevent-corruption-of-eeprom-nvm.patch
-drivers-net-mlx4-allocc-needs-mmh.patch
-net-forcedeth-call-restore-mac-addr-in-nv_shutdown-path-v2.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
-fix-a-race-condtion-of-oops_in_progress-fix.patch
-vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
-make-taint-bit-reliable-v3-fix.patch
-kernel-sysc-improve-code-generation.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
-serial-driver-handle-multiple-consecutive-sysrq-from-the-serial-fix.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
-ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-genirq-record-trigger-type-fix.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-tty-fix-echo-tab-erase-and-locking-fix.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-new-driver-ds2431-chip-fix.patch
-gru-driver-minor-updates-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+snd-aica-platform-driver-fix-section-mismatch.patch
+gpio_free-might-sleep-arm-architecture.patch
+gpio_free-might-sleep-mips-architecture.patch
+gpio_free-might-sleep-blackfin-architecture.patch
+gpio_free-might-sleep-generic-part.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
