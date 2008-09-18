@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-x86-sparse_irq-needs-spin_lock-in-allocations.patch added to -mm tree
-Date: Thu, 18 Sep 2008 16:10:48 -0700
-Message-ID: <200809182324.m8INOi6B024950@imap1.linux-foundation.org>
+Subject: + nilfs2-inode-operations-fix.patch added to -mm tree
+Date: Thu, 18 Sep 2008 16:21:11 -0700
+Message-ID: <200809182335.m8INZ7a4025309@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46125 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44476 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754944AbYIRXZe (ORCPT
+	by vger.kernel.org with ESMTP id S1753368AbYIRXfM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 19:25:34 -0400
+	Thu, 18 Sep 2008 19:35:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, yhlu.kernel@gmail.com
+Cc: akpm@linux-foundation.org, konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     fix "x86: sparse_irq needs spin_lock in allocations"
+     nilfs2-inode-operations-fix
 has been added to the -mm tree.  Its filename is
-     fix-x86-sparse_irq-needs-spin_lock-in-allocations.patch
+     nilfs2-inode-operations-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix "x86: sparse_irq needs spin_lock in allocations"
+Subject: nilfs2-inode-operations-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/irq/handle.c:117: warning: 'sparse_irq_lock' defined but not used
-
-caused by
-
-commit a532e19680ada3b8579b81e67e76d3ebd19c340f
-Author: Yinghai Lu <yhlu.kernel@gmail.com>
-Date:   Wed Aug 20 20:46:25 2008 -0700
-
-    x86: sparse_irq needs spin_lock in allocations
-    
-    Suresh Siddha noticed that we should have a spinlock around it.
-    
-    Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
-    Signed-off-by: Ingo Molnar <mingo@elte.hu>
-
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/handle.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/nilfs2/inode.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/irq/handle.c~fix-x86-sparse_irq-needs-spin_lock-in-allocations kernel/irq/handle.c
---- a/kernel/irq/handle.c~fix-x86-sparse_irq-needs-spin_lock-in-allocations
-+++ a/kernel/irq/handle.c
-@@ -111,12 +111,11 @@ static void init_kstat_irqs(struct irq_d
- 	}
- }
+diff -puN fs/nilfs2/inode.c~nilfs2-inode-operations-fix fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~nilfs2-inode-operations-fix
++++ a/fs/nilfs2/inode.c
+@@ -280,13 +280,13 @@ struct inode *nilfs_new_inode(struct ino
  
-+#ifdef CONFIG_HAVE_SPARSE_IRQ
- /*
-  * Protect the sparse_irqs_free freelist:
-  */
- static DEFINE_SPINLOCK(sparse_irq_lock);
--
--#ifdef CONFIG_HAVE_SPARSE_IRQ
- static struct irq_desc *sparse_irqs_free;
- struct irq_desc *sparse_irqs;
- #endif
+ 	atomic_inc(&sbi->s_inodes_count);
+ 
+-	inode->i_uid = current->fsuid;
++	inode->i_uid = current_fsuid();
+ 	if (dir->i_mode & S_ISGID) {
+ 		inode->i_gid = dir->i_gid;
+ 		if (S_ISDIR(mode))
+ 			mode |= S_ISGID;
+ 	} else
+-		inode->i_gid = current->fsgid;
++		inode->i_gid = current_fsgid();
+ 
+ 	inode->i_mode = mode;
+ 	inode->i_ino = ino;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -186,6 +172,7 @@ drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
 x86-sysfs-kill-owner-field-from-attribute-fix.patch
 x86-sysfs-kill-owner-field-from-attribute-fix-fix.patch
 x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
+nilfs2-inode-operations-fix.patch
 reiser4.patch
 reiser4-tree_lock-fixes.patch
 reiser4-tree_lock-fixes-fix.patch
