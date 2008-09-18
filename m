@@ -1,158 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - h8300-kconfig-cleanup.patch removed from -mm tree
-Date: Thu, 18 Sep 2008 13:11:19 -0700
-Message-ID: <200809182011.m8IKBJD8017327@imap1.linux-foundation.org>
+Subject: - tg3-debugging.patch removed from -mm tree
+Date: Thu, 18 Sep 2008 13:40:54 -0700
+Message-ID: <200809182040.m8IKesr4018516@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48177 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45754 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755825AbYIRULg (ORCPT
+	by vger.kernel.org with ESMTP id S1755271AbYIRUl1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 16:11:36 -0400
+	Thu, 18 Sep 2008 16:41:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: mchan@broadcom.com, andy@greyhouse.net, mcarlson@broadcom.com, ralf.hildebrandt@charite.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     h8300: Kconfig cleanup
+     tg3 debugging
 has been removed from the -mm tree.  Its filename was
-     h8300-kconfig-cleanup.patch
+     tg3-debugging.patch
 
-This patch was dropped because of linux-next rejects
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: h8300: Kconfig cleanup
-From: Yoshinori Sato <ysato@users.sourceforge.jp>
+Subject: tg3 debugging
+From: "Michael Chan" <mchan@broadcom.com>
 
-Use common Kconfig file.
+http://bugzilla.kernel.org/show_bug.cgi?id=9990
 
-Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
+This patch stores the nr_frags when transmitting an SKB.  During tx
+completion, it will compare the stored nr_frags with the one in the SKB and
+will print out something in dmesg if they don't match.
+
+Cc: "Andy Gospodarek" <andy@greyhouse.net>
+Cc: "Matt Carlson" <mcarlson@broadcom.com>
+Cc: <ralf.hildebrandt@charite.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/Kconfig |  116 -------------------------------------------
- 1 file changed, 1 insertion(+), 115 deletions(-)
+ drivers/net/tg3.c |   13 ++++++++++++-
+ drivers/net/tg3.h |    1 +
+ 2 files changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN arch/h8300/Kconfig~h8300-kconfig-cleanup arch/h8300/Kconfig
---- a/arch/h8300/Kconfig~h8300-kconfig-cleanup
-+++ a/arch/h8300/Kconfig
-@@ -99,121 +99,7 @@ endmenu
+diff -puN drivers/net/tg3.c~tg3-debugging drivers/net/tg3.c
+--- a/drivers/net/tg3.c~tg3-debugging
++++ a/drivers/net/tg3.c
+@@ -3859,12 +3859,20 @@ static void tg3_tx(struct tg3 *tp)
+ 		struct tx_ring_info *ri = &tp->tx_buffers[sw_idx];
+ 		struct sk_buff *skb = ri->skb;
+ 		int i, tx_bug = 0;
++		unsigned short nr_frags = ri->nr_frags;
  
- source "net/Kconfig"
+ 		if (unlikely(skb == NULL)) {
+ 			tg3_tx_recover(tp);
+ 			return;
+ 		}
  
--source "drivers/base/Kconfig"
--
--source "drivers/mtd/Kconfig"
--
--source "drivers/block/Kconfig"
--
--source "drivers/ide/Kconfig"
--
--source "arch/h8300/Kconfig.ide"
--
--source "drivers/net/Kconfig"
--
--#
--# input - input/joystick depends on it. As does USB.
--#
--source "drivers/input/Kconfig"
--
--menu "Character devices"
--
--config VT
--	bool "Virtual terminal"
--	---help---
--	  If you say Y here, you will get support for terminal devices with
--	  display and keyboard devices. These are called "virtual" because you
--	  can run several virtual terminals (also called virtual consoles) on
--	  one physical terminal. This is rather useful, for example one
--	  virtual terminal can collect system messages and warnings, another
--	  one can be used for a text-mode user session, and a third could run
--	  an X session, all in parallel. Switching between virtual terminals
--	  is done with certain key combinations, usually Alt-<function key>.
--
--	  The setterm command ("man setterm") can be used to change the
--	  properties (such as colors or beeping) of a virtual terminal. The
--	  man page console_codes(4) ("man console_codes") contains the special
--	  character sequences that can be used to change those properties
--	  directly. The fonts used on virtual terminals can be changed with
--	  the setfont ("man setfont") command and the key bindings are defined
--	  with the loadkeys ("man loadkeys") command.
--
--	  You need at least one virtual terminal device in order to make use
--	  of your keyboard and monitor. Therefore, only people configuring an
--	  embedded system would want to say N here in order to save some
--	  memory; the only way to log into such a system is then via a serial
--	  or network connection.
--
--	  If unsure, say Y, or else you won't be able to do much with your new
--	  shiny Linux system :-)
--
--config VT_CONSOLE
--	bool "Support for console on virtual terminal"
--	depends on VT
--	---help---
--	  The system console is the device which receives all kernel messages
--	  and warnings and which allows logins in single user mode. If you
--	  answer Y here, a virtual terminal (the device used to interact with
--	  a physical terminal) can be used as system console. This is the most
--	  common mode of operations, so you should say Y here unless you want
--	  the kernel messages be output only to a serial port (in which case
--	  you should say Y to "Console on serial port", below).
--
--	  If you do say Y here, by default the currently visible virtual
--	  terminal (/dev/tty0) will be used as system console. You can change
--	  that with a kernel command line option such as "console=tty3" which
--	  would use the third virtual terminal as system console. (Try "man
--	  bootparam" or see the documentation of your boot loader (lilo or
--	  loadlin) about how to pass options to the kernel at boot time.)
--
--	  If unsure, say Y.
--
--config HW_CONSOLE
--	bool
--	depends on VT && !S390 && !UM
--	default y
--
--comment "Unix98 PTY support"
--
--config UNIX98_PTYS
--	bool "Unix98 PTY support"
--	---help---
--	  A pseudo terminal (PTY) is a software device consisting of two
--	  halves: a master and a slave. The slave device behaves identical to
--	  a physical terminal; the master device is used by a process to
--	  read data from and write data to the slave, thereby emulating a
--	  terminal. Typical programs for the master side are telnet servers
--	  and xterms.
--
--	  Linux has traditionally used the BSD-like names /dev/ptyxx for
--	  masters and /dev/ttyxx for slaves of pseudo terminals. This scheme
--	  has a number of problems. The GNU C library glibc 2.1 and later,
--	  however, supports the Unix98 naming standard: in order to acquire a
--	  pseudo terminal, a process opens /dev/ptmx; the number of the pseudo
--	  terminal is then made available to the process and the pseudo
--	  terminal slave can be accessed as /dev/pts/<number>. What was
--	  traditionally /dev/ttyp2 will then be /dev/pts/2, for example.
--
--	  The entries in /dev/pts/ are created on the fly by a virtual
--	  file system; therefore, if you say Y here you should say Y to
--	  "/dev/pts file system for Unix98 PTYs" as well.
--
--	  If you want to say Y here, you need to have the C library glibc 2.1
--	  or later (equal to libc-6.1, check with "ls -l /lib/libc.so.*").
--	  Read the instructions in <file:Documentation/Changes> pertaining to
--	  pseudo terminals. It's safe to say N.
--
--source "drivers/char/pcmcia/Kconfig"
--
--source "drivers/serial/Kconfig"
--
--source "drivers/i2c/Kconfig"
--
--source "drivers/hwmon/Kconfig"
--
--source "drivers/usb/Kconfig"
++		if (nr_frags != skb_shinfo(skb)->nr_frags) {
++			printk(KERN_ALERT "tg3: %s: Tx skb->nr_frags corrupted "
++				"before skb is freed. Expected nr_frags %d, "
++				"corrupted nr_frags %d\n", tp->dev->name,
++				nr_frags, skb_shinfo(skb)->nr_frags);
++		}
++
+ 		pci_unmap_single(tp->pdev,
+ 				 pci_unmap_addr(ri, mapping),
+ 				 skb_headlen(skb),
+@@ -3874,7 +3882,7 @@ static void tg3_tx(struct tg3 *tp)
+ 
+ 		sw_idx = NEXT_TX(sw_idx);
+ 
+-		for (i = 0; i < skb_shinfo(skb)->nr_frags; i++) {
++		for (i = 0; i < nr_frags; i++) {
+ 			ri = &tp->tx_buffers[sw_idx];
+ 			if (unlikely(ri->skb != NULL || sw_idx == hw_idx))
+ 				tx_bug = 1;
+@@ -4667,6 +4675,7 @@ static int tigon3_dma_hwbug_workaround(s
+ 				 len, PCI_DMA_TODEVICE);
+ 		if (i == 0) {
+ 			tp->tx_buffers[entry].skb = new_skb;
++			tp->tx_buffers[entry].nr_frags = 0;
+ 			pci_unmap_addr_set(&tp->tx_buffers[entry], mapping, new_addr);
+ 		} else {
+ 			tp->tx_buffers[entry].skb = NULL;
+@@ -4773,6 +4782,7 @@ static int tg3_start_xmit(struct sk_buff
+ 	mapping = pci_map_single(tp->pdev, skb->data, len, PCI_DMA_TODEVICE);
+ 
+ 	tp->tx_buffers[entry].skb = skb;
++	tp->tx_buffers[entry].nr_frags = skb_shinfo(skb)->nr_frags;
+ 	pci_unmap_addr_set(&tp->tx_buffers[entry], mapping, mapping);
+ 
+ 	tg3_set_txd(tp, entry, mapping, len, base_flags,
+@@ -4950,6 +4960,7 @@ static int tg3_start_xmit_dma_bug(struct
+ 	mapping = pci_map_single(tp->pdev, skb->data, len, PCI_DMA_TODEVICE);
+ 
+ 	tp->tx_buffers[entry].skb = skb;
++	tp->tx_buffers[entry].nr_frags = skb_shinfo(skb)->nr_frags;
+ 	pci_unmap_addr_set(&tp->tx_buffers[entry], mapping, mapping);
+ 
+ 	would_hit_hwbug = 0;
+diff -puN drivers/net/tg3.h~tg3-debugging drivers/net/tg3.h
+--- a/drivers/net/tg3.h~tg3-debugging
++++ a/drivers/net/tg3.h
+@@ -2199,6 +2199,7 @@ struct tx_ring_info {
+ 	struct sk_buff			*skb;
+ 	DECLARE_PCI_UNMAP_ADDR(mapping)
+ 	u32				prev_vlan_tag;
++	unsigned short			nr_frags;
+ };
+ 
+ struct tg3_config_info {
+_
+
+Patches currently in -mm which might be from mchan@broadcom.com are
+
+bnx2-promote-vector-field-in-bnx2_irq-structure-from-u16-to-unsigned-int.patch
+tg3-debugging.patch
+
