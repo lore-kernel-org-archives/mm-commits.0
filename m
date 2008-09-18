@@ -1,200 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_lcdfb-disable-lcd-and-dma-engines-when-suspending.patch removed from -mm tree
-Date: Thu, 18 Sep 2008 13:56:15 -0700
-Message-ID: <200809182056.m8IKuFXo019180@imap1.linux-foundation.org>
+Subject: - pxa2xx_spi-dma-bugfixes.patch removed from -mm tree
+Date: Thu, 18 Sep 2008 13:56:02 -0700
+Message-ID: <200809182056.m8IKu2WA019161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38986 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60689 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754631AbYIRU4U (ORCPT
+	by vger.kernel.org with ESMTP id S1754399AbYIRU42 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 16:56:20 -0400
+	Thu, 18 Sep 2008 16:56:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haavard.skinnemoen@atmel.com, nicolas.ferre@atmel.com, mm-commits@vger.kernel.org
+To: nforrester@whoi.edu, dbrownell@users.sourceforge.net, eric.y.miao@gmail.com, stable@kernel.org, vernoninhand@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_lcdfb: disable LCD and DMA engines when suspending
+     pxa2xx_spi: dma bugfixes
 has been removed from the -mm tree.  Its filename was
-     atmel_lcdfb-disable-lcd-and-dma-engines-when-suspending.patch
+     pxa2xx_spi-dma-bugfixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_lcdfb: disable LCD and DMA engines when suspending
-From: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Subject: pxa2xx_spi: dma bugfixes
+From: Ned Forrester <nforrester@whoi.edu>
 
-When suspending the system with atmel_lcdfb enabled, I sometimes see
-this:
+Fixes two DMA bugs in the pxa2xx_spi driver.  The first bug is in all
+versions of this driver; the second was introduced in the 2.6.20 kernel,
+and prevents using the driver with chips like m25p16 flash (which can
+issue large DMA reads).
 
-[17179610.896000] atmel_lcdfb atmel_lcdfb.0: FIFO underflow 0x10
+ 1. Zero length transfers are permitted for use to insert timing,
+    but pxa2xx_spi.c will fail if this is requested in DMA mode.
+    Fixed by using programmed I/O (PIO) mode for such transfers.
 
-Which can be explained by the fact that we're not stopping the LCD
-controller and its DMA engine when suspending, we're just gating the
-clocks to them.
+ 2. Transfers larger than 8191 are not permitted in DMA mode.  A
+    test for length rejects all large transfers regardless of DMA
+    or PIO mode.  Worked around by rejecting only large transfers
+    with DMA mapped buffers, and forcing all other transfers
+    larger than 8191 to use PIO mode.  A rate limited warning is
+    issued for DMA transfers forced to PIO mode.
 
-There's another potential issue which may be harder to trigger but
-much more nasty: If we gate the clocks at _just_ the right moment,
-e.g. when the DMA engine is doing a bus transaction, we may cause the
-DMA engine to violate the system bus protocol and cause a lockup.
+This patch should apply to all kernels back to and including 2.6.20;
+it was test patched against 2.6.20.  An additional patch would be
+required for older kernels, but those versions are very buggy anyway.
 
-Avoid these issues by shutting down the LCD controller before entering
-suspend (and restarting it when resuming). This prevents the underrun
-from happening in the first place, and prevents whatever nastiness is
-happening when the bus clock stops in the middle of a DMA transfer.
-
-Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
-Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Signed-off-by: Ned Forrester <nforrester@whoi.edu>
+Cc: Vernon Sauder <vernoninhand@gmail.com>
+Cc: Eric Miao <eric.y.miao@gmail.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/atmel_lcdfb.c |   84 +++++++++++++++++++---------------
- 1 file changed, 49 insertions(+), 35 deletions(-)
+ drivers/spi/pxa2xx_spi.c |   57 +++++++++++++++++++++++++++----------
+ 1 file changed, 43 insertions(+), 14 deletions(-)
 
-diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-disable-lcd-and-dma-engines-when-suspending drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-disable-lcd-and-dma-engines-when-suspending
-+++ a/drivers/video/atmel_lcdfb.c
-@@ -208,6 +208,36 @@ static unsigned long compute_hozval(unsi
- 	return value;
- }
+diff -puN drivers/spi/pxa2xx_spi.c~pxa2xx_spi-dma-bugfixes drivers/spi/pxa2xx_spi.c
+--- a/drivers/spi/pxa2xx_spi.c~pxa2xx_spi-dma-bugfixes
++++ a/drivers/spi/pxa2xx_spi.c
+@@ -47,9 +47,10 @@ MODULE_ALIAS("platform:pxa2xx-spi");
  
-+static void atmel_lcdfb_stop_nowait(struct atmel_lcdfb_info *sinfo)
-+{
-+	/* Turn off the LCD controller and the DMA controller */
-+	lcdc_writel(sinfo, ATMEL_LCDC_PWRCON,
-+			sinfo->guard_time << ATMEL_LCDC_GUARDT_OFFSET);
+ #define MAX_BUSES 3
+ 
+-#define DMA_INT_MASK (DCSR_ENDINTR | DCSR_STARTINTR | DCSR_BUSERR)
+-#define RESET_DMA_CHANNEL (DCSR_NODESC | DMA_INT_MASK)
+-#define IS_DMA_ALIGNED(x) (((u32)(x)&0x07)==0)
++#define DMA_INT_MASK		(DCSR_ENDINTR | DCSR_STARTINTR | DCSR_BUSERR)
++#define RESET_DMA_CHANNEL	(DCSR_NODESC | DMA_INT_MASK)
++#define IS_DMA_ALIGNED(x)	(((x) & 0x07) == 0)
++#define MAX_DMA_LEN		8191
+ 
+ /*
+  * for testing SSCR1 changes that require SSP restart, basically
+@@ -887,14 +888,27 @@ static void pump_transfers(unsigned long
+ 			drv_data->cs_control(PXA2XX_CS_DEASSERT);
+ 	}
+ 
+-	/* Check transfer length */
+-	if (transfer->len > 8191)
+-	{
+-		dev_warn(&drv_data->pdev->dev, "pump_transfers: transfer "
+-				"length greater than 8191\n");
+-		message->status = -EINVAL;
+-		giveback(drv_data);
+-		return;
++	/* Check for transfers that need multiple DMA segments */
++	if (transfer->len > MAX_DMA_LEN && chip->enable_dma) {
 +
-+	/* Wait for the LCDC core to become idle */
-+	while (lcdc_readl(sinfo, ATMEL_LCDC_PWRCON) & ATMEL_LCDC_BUSY)
-+		msleep(10);
++		/* reject already-mapped transfers; PIO won't always work */
++		if (message->is_dma_mapped
++				|| transfer->rx_dma || transfer->tx_dma) {
++			dev_err(&drv_data->pdev->dev,
++				"pump_transfers: mapped transfer length "
++				"of %lu is greater than %d\n",
++				transfer->len, MAX_DMA_LEN);
++			message->status = -EINVAL;
++			giveback(drv_data);
++			return;
++		}
 +
-+	lcdc_writel(sinfo, ATMEL_LCDC_DMACON, 0);
-+}
-+
-+static void atmel_lcdfb_stop(struct atmel_lcdfb_info *sinfo)
-+{
-+	atmel_lcdfb_stop_nowait(sinfo);
-+
-+	/* Wait for DMA engine to become idle... */
-+	while (lcdc_readl(sinfo, ATMEL_LCDC_DMACON) & ATMEL_LCDC_DMABUSY)
-+		msleep(10);
-+}
-+
-+static void atmel_lcdfb_start(struct atmel_lcdfb_info *sinfo)
-+{
-+	lcdc_writel(sinfo, ATMEL_LCDC_DMACON, sinfo->default_dmacon);
-+	lcdc_writel(sinfo, ATMEL_LCDC_PWRCON,
-+		(sinfo->guard_time << ATMEL_LCDC_GUARDT_OFFSET)
-+		| ATMEL_LCDC_PWR);
-+}
-+
- static void atmel_lcdfb_update_dma(struct fb_info *info,
- 			       struct fb_var_screeninfo *var)
- {
-@@ -420,26 +450,8 @@ static void atmel_lcdfb_reset(struct atm
- {
- 	might_sleep();
++		/* warn ... we force this to PIO mode */
++		if (printk_ratelimit())
++			dev_warn(&message->spi->dev, "pump_transfers: "
++				"DMA disabled for transfer length %ld "
++				"greater than %d\n",
++				(long)drv_data->len, MAX_DMA_LEN);
+ 	}
  
--	/* LCD power off */
--	lcdc_writel(sinfo, ATMEL_LCDC_PWRCON, sinfo->guard_time << ATMEL_LCDC_GUARDT_OFFSET);
--
--	/* wait for the LCDC core to become idle */
--	while (lcdc_readl(sinfo, ATMEL_LCDC_PWRCON) & ATMEL_LCDC_BUSY)
--		msleep(10);
--
--	/* DMA disable */
--	lcdc_writel(sinfo, ATMEL_LCDC_DMACON, 0);
--
--	/* wait for DMA engine to become idle */
--	while (lcdc_readl(sinfo, ATMEL_LCDC_DMACON) & ATMEL_LCDC_DMABUSY)
--		msleep(10);
--
--	/* LCD power on */
--	lcdc_writel(sinfo, ATMEL_LCDC_PWRCON,
--		(sinfo->guard_time << ATMEL_LCDC_GUARDT_OFFSET) | ATMEL_LCDC_PWR);
--
--	/* DMA enable */
--	lcdc_writel(sinfo, ATMEL_LCDC_DMACON, sinfo->default_dmacon);
-+	atmel_lcdfb_stop(sinfo);
-+	atmel_lcdfb_start(sinfo);
- }
+ 	/* Setup the transfer state based on the type of transfer */
+@@ -962,7 +976,7 @@ static void pump_transfers(unsigned long
+ 							&dma_thresh))
+ 				if (printk_ratelimit())
+ 					dev_warn(&message->spi->dev,
+-						"pump_transfer: "
++						"pump_transfers: "
+ 						"DMA burst size reduced to "
+ 						"match bits_per_word\n");
+ 		}
+@@ -976,8 +990,23 @@ static void pump_transfers(unsigned long
  
- /**
-@@ -471,14 +483,7 @@ static int atmel_lcdfb_set_par(struct fb
- 		 info->var.xres, info->var.yres,
- 		 info->var.xres_virtual, info->var.yres_virtual);
+ 	message->state = RUNNING_STATE;
  
--	/* Turn off the LCD controller and the DMA controller */
--	lcdc_writel(sinfo, ATMEL_LCDC_PWRCON, sinfo->guard_time << ATMEL_LCDC_GUARDT_OFFSET);
--
--	/* Wait for the LCDC core to become idle */
--	while (lcdc_readl(sinfo, ATMEL_LCDC_PWRCON) & ATMEL_LCDC_BUSY)
--		msleep(10);
--
--	lcdc_writel(sinfo, ATMEL_LCDC_DMACON, 0);
-+	atmel_lcdfb_stop_nowait(sinfo);
- 
- 	if (info->var.bits_per_pixel == 1)
- 		info->fix.visual = FB_VISUAL_MONO01;
-@@ -583,13 +588,7 @@ static int atmel_lcdfb_set_par(struct fb
- 	while (lcdc_readl(sinfo, ATMEL_LCDC_DMACON) & ATMEL_LCDC_DMABUSY)
- 		msleep(10);
- 
--	dev_dbg(info->device, "  * re-enable DMA engine\n");
--	/* ...and enable it with updated configuration */
--	lcdc_writel(sinfo, ATMEL_LCDC_DMACON, sinfo->default_dmacon);
--
--	dev_dbg(info->device, "  * re-enable LCDC core\n");
--	lcdc_writel(sinfo, ATMEL_LCDC_PWRCON,
--		(sinfo->guard_time << ATMEL_LCDC_GUARDT_OFFSET) | ATMEL_LCDC_PWR);
-+	atmel_lcdfb_start(sinfo);
- 
- 	dev_dbg(info->device, "  * DONE\n");
- 
-@@ -1032,11 +1031,20 @@ static int atmel_lcdfb_suspend(struct pl
- 	struct fb_info *info = platform_get_drvdata(pdev);
- 	struct atmel_lcdfb_info *sinfo = info->par;
- 
-+	/*
-+	 * We don't want to handle interrupts while the clock is
-+	 * stopped. It may take forever.
+-	/* Try to map dma buffer and do a dma transfer if successful */
+-	if ((drv_data->dma_mapped = map_dma_buffers(drv_data))) {
++	/* Try to map dma buffer and do a dma transfer if successful, but
++	 * only if the length is non-zero and less than MAX_DMA_LEN.
++	 *
++	 * Zero-length non-descriptor DMA is illegal on PXA2xx; force use
++	 * of PIO instead.  Care is needed above because the transfer may
++	 * have have been passed with buffers that are already dma mapped.
++	 * A zero-length transfer in PIO mode will not try to write/read
++	 * to/from the buffers
++	 *
++	 * REVISIT large transfers are exactly where we most want to be
++	 * using DMA.  If this happens much, split those transfers into
++	 * multiple DMA segments rather than forcing PIO.
 +	 */
-+	lcdc_writel(sinfo, ATMEL_LCDC_IDR, ~0UL);
-+
- 	sinfo->saved_lcdcon = lcdc_readl(sinfo, ATMEL_LCDC_CONTRAST_VAL);
- 	lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_CTR, 0);
- 	if (sinfo->atmel_lcdfb_power_control)
- 		sinfo->atmel_lcdfb_power_control(0);
-+
-+	atmel_lcdfb_stop(sinfo);
- 	atmel_lcdfb_stop_clock(sinfo);
-+
- 	return 0;
- }
++	drv_data->dma_mapped = 0;
++	if (drv_data->len > 0 && drv_data->len <= MAX_DMA_LEN)
++		drv_data->dma_mapped = map_dma_buffers(drv_data);
++	if (drv_data->dma_mapped) {
  
-@@ -1046,9 +1054,15 @@ static int atmel_lcdfb_resume(struct pla
- 	struct atmel_lcdfb_info *sinfo = info->par;
- 
- 	atmel_lcdfb_start_clock(sinfo);
-+	atmel_lcdfb_start(sinfo);
- 	if (sinfo->atmel_lcdfb_power_control)
- 		sinfo->atmel_lcdfb_power_control(1);
- 	lcdc_writel(sinfo, ATMEL_LCDC_CONTRAST_CTR, sinfo->saved_lcdcon);
-+
-+	/* Enable FIFO & DMA errors */
-+	lcdc_writel(sinfo, ATMEL_LCDC_IER, ATMEL_LCDC_UFLWI
-+			| ATMEL_LCDC_OWRI | ATMEL_LCDC_MERI);
-+
- 	return 0;
- }
- 
+ 		/* Ensure we have the correct interrupt handler */
+ 		drv_data->transfer_handler = dma_transfer;
 _
 
-Patches currently in -mm which might be from haavard.skinnemoen@atmel.com are
+Patches currently in -mm which might be from nforrester@whoi.edu are
 
 origin.patch
-linux-next.patch
+pxa2xx_spi-fix-chip_info-defaults-and-documentation.patch
 
