@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-sfc-falconc-fix-min-warnings.patch added to -mm tree
-Date: Thu, 18 Sep 2008 16:40:59 -0700
-Message-ID: <200809182354.m8INstg4026171@imap1.linux-foundation.org>
+Subject: + acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix.patch added to -mm tree
+Date: Thu, 18 Sep 2008 16:42:24 -0700
+Message-ID: <200809182356.m8INuKc3026213@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38980 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41620 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754944AbYIRXzO (ORCPT
+	by vger.kernel.org with ESMTP id S1757409AbYIRX4h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 19:55:14 -0400
+	Thu, 18 Sep 2008 19:56:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bhutchings@solarflare.com, jgarzik@redhat.com
+Cc: akpm@linux-foundation.org, hare@suse.de, lenb@kernel.org, pavel@suse.cz
 
 
 The patch titled
-     drivers/net/sfc/falcon.c: fix min() warnings
+     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     drivers-net-sfc-falconc-fix-min-warnings.patch
+     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/sfc/falcon.c: fix min() warnings
+Subject: acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/sfc/falcon.c: In function 'falcon_spi_write_limit':
-drivers/net/sfc/falcon.c:1679: warning: comparison of distinct pointer types lacks a cast
-drivers/net/sfc/falcon.c: In function 'falcon_spi_read':
-drivers/net/sfc/falcon.c:1720: warning: comparison of distinct pointer types lacks a cast
+it's a zombie abomination!
 
-Driver seems rather confused about types.  Try to help it.
-
-Cc: Ben Hutchings <bhutchings@solarflare.com>
-Cc: Jeff Garzik <jgarzik@redhat.com>
+Cc: Hannes Reinecke <hare@suse.de>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sfc/falcon.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/misc/thinkpad_acpi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/sfc/falcon.c~drivers-net-sfc-falconc-fix-min-warnings drivers/net/sfc/falcon.c
---- a/drivers/net/sfc/falcon.c~drivers-net-sfc-falconc-fix-min-warnings
-+++ a/drivers/net/sfc/falcon.c
-@@ -1673,8 +1673,8 @@ static int falcon_spi_cmd(const struct e
- 	return 0;
- }
+diff -puN drivers/misc/thinkpad_acpi.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix drivers/misc/thinkpad_acpi.c
+--- a/drivers/misc/thinkpad_acpi.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix
++++ a/drivers/misc/thinkpad_acpi.c
+@@ -543,7 +543,7 @@ static int __init setup_acpi_notify(stru
+ 		return -ENODEV;
+ 	}
  
--static unsigned int
--falcon_spi_write_limit(const struct efx_spi_device *spi, unsigned int start)
-+static size_t
-+falcon_spi_write_limit(const struct efx_spi_device *spi, size_t start)
- {
- 	return min(FALCON_SPI_MAX_LEN,
- 		   (spi->block_size - (start & (spi->block_size - 1))));
-@@ -1717,8 +1717,7 @@ int falcon_spi_read(const struct efx_spi
- 	int rc = 0;
- 
- 	while (pos < len) {
--		block_len = min((unsigned int)len - pos,
--				FALCON_SPI_MAX_LEN);
-+		block_len = min(len - pos, FALCON_SPI_MAX_LEN);
- 
- 		command = efx_spi_munge_command(spi, SPI_READ, start + pos);
- 		rc = falcon_spi_cmd(spi, command, start + pos, NULL,
-@@ -1752,7 +1751,7 @@ int falcon_spi_write(const struct efx_sp
- 		if (rc)
- 			break;
- 
--		block_len = min((unsigned int)len - pos,
-+		block_len = min(len - pos,
- 				falcon_spi_write_limit(spi, start + pos));
- 		command = efx_spi_munge_command(spi, SPI_WRITE, start + pos);
- 		rc = falcon_spi_cmd(spi, command, start + pos,
+-	acpi_driver_data(ibm->acpi->device) = ibm;
++	ibm->acpi->device->driver_data = ibm;
+ 	sprintf(acpi_device_class(ibm->acpi->device), "%s/%s",
+ 		TPACPI_ACPI_EVENT_PREFIX,
+ 		ibm->name);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -114,6 +89,7 @@ sundance-set-carrier-status-on-link-change-events.patch
 cassini-use-request_firmware.patch
 e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
 e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
 fix-cred-wrap-current-cred-and-a-few-other-accessors-on-mips.patch
@@ -216,5 +192,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-net-sfc-falconc-fix-min-warnings.patch
+acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix.patch
 
