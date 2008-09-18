@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-inode-operations-fix.patch added to -mm tree
-Date: Thu, 18 Sep 2008 16:21:11 -0700
-Message-ID: <200809182335.m8INZ7a4025309@imap1.linux-foundation.org>
+Subject: + eeepc-laptop-use-standard-interfaces-fix-fix.patch added to -mm tree
+Date: Thu, 18 Sep 2008 16:23:13 -0700
+Message-ID: <200809182337.m8INb9b5025343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44476 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58692 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753368AbYIRXfM (ORCPT
+	by vger.kernel.org with ESMTP id S1754944AbYIRXiS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 19:35:12 -0400
+	Thu, 18 Sep 2008 19:38:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, konishi.ryusuke@lab.ntt.co.jp
+Cc: akpm@linux-foundation.org, corentincj@iksaif.net, hmh@hmh.eng.br, mjg@redhat.com, randy.dunlap@oracle.com, sziwan@users.sourceforge.net
 
 
 The patch titled
-     nilfs2-inode-operations-fix
+     eeepc-laptop-use-standard-interfaces-fix-fix
 has been added to the -mm tree.  Its filename is
-     nilfs2-inode-operations-fix.patch
+     eeepc-laptop-use-standard-interfaces-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2-inode-operations-fix
+Subject: eeepc-laptop-use-standard-interfaces-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+I'm trying to eliminate this abomination.
+
+Cc: Corentin Chary <corentincj@iksaif.net>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Karol Kozimor <sziwan@users.sourceforge.net>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/inode.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/misc/eeepc-laptop.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nilfs2/inode.c~nilfs2-inode-operations-fix fs/nilfs2/inode.c
---- a/fs/nilfs2/inode.c~nilfs2-inode-operations-fix
-+++ a/fs/nilfs2/inode.c
-@@ -280,13 +280,13 @@ struct inode *nilfs_new_inode(struct ino
- 
- 	atomic_inc(&sbi->s_inodes_count);
- 
--	inode->i_uid = current->fsuid;
-+	inode->i_uid = current_fsuid();
- 	if (dir->i_mode & S_ISGID) {
- 		inode->i_gid = dir->i_gid;
- 		if (S_ISDIR(mode))
- 			mode |= S_ISGID;
- 	} else
--		inode->i_gid = current->fsgid;
-+		inode->i_gid = current_fsgid();
- 
- 	inode->i_mode = mode;
- 	inode->i_ino = ino;
+diff -puN drivers/misc/eeepc-laptop.c~eeepc-laptop-use-standard-interfaces-fix-fix drivers/misc/eeepc-laptop.c
+--- a/drivers/misc/eeepc-laptop.c~eeepc-laptop-use-standard-interfaces-fix-fix
++++ a/drivers/misc/eeepc-laptop.c
+@@ -554,7 +554,7 @@ static int eeepc_hotk_add(struct acpi_de
+ 	ehotk->handle = device->handle;
+ 	strcpy(acpi_device_name(device), EEEPC_HOTK_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), EEEPC_HOTK_CLASS);
+-	acpi_driver_data(device) = ehotk;
++	device->driver_data = ehotk;
+ 	ehotk->device = device;
+ 	result = eeepc_hotk_check();
+ 	if (result)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -131,6 +130,7 @@ pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patc
 container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
 container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
 container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+eeepc-laptop-use-standard-interfaces-fix-fix.patch
 separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
 separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
 fix-a-race-condtion-of-oops_in_progress-fix.patch
