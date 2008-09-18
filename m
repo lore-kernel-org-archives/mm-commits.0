@@ -1,106 +1,228 @@
 From: akpm@linux-foundation.org
-Subject: - snd-aica-platform-driver-fix-section-mismatch.patch removed from -mm tree
-Date: Thu, 18 Sep 2008 13:56:28 -0700
-Message-ID: <200809182056.m8IKuSbP019192@imap1.linux-foundation.org>
+Subject: - sysfs-fix-deadlock.patch removed from -mm tree
+Date: Thu, 18 Sep 2008 13:56:32 -0700
+Message-ID: <200809182056.m8IKuWjd019195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58813 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34743 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754883AbYIRU4o (ORCPT
+	by vger.kernel.org with ESMTP id S1754390AbYIRU5A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 16:56:44 -0400
+	Thu, 18 Sep 2008 16:57:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ukleinek@informatik.uni-freiburg.de, adrian@mcmen.demon.co.uk, lethal@linux-sh.org, tiwai@suse.de, mm-commits@vger.kernel.org
+To: npiggin@suse.de, a.p.zijlstra@chello.nl, greg@kroah.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     snd-aica platform driver: fix section mismatch
+     sysfs: fix deadlock
 has been removed from the -mm tree.  Its filename was
-     snd-aica-platform-driver-fix-section-mismatch.patch
+     sysfs-fix-deadlock.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: snd-aica platform driver: fix section mismatch
-=46rom: Uwe Kleine-K=F6nig <ukleinek@informatik.uni-freiburg.de>
+Subject: sysfs: fix deadlock
+From: Nick Piggin <npiggin@suse.de>
 
-Don't use __init but __devinit to define probe function.  A pointer to
-snd_aica_probe is passed to the core via platform_driver_register and s=
-o the
-function must not disappear after the module is loaded.  Using __init
-and having HOTPLUG=3Dy and SND_AICA=3Dm the following probably oopses:
+=======================================================
+[ INFO: possible circular locking dependency detected ]
+2.6.27-rc6-tip #1
+-------------------------------------------------------
+X/4873 is trying to acquire lock:
+ (&bb->mutex){--..}, at: [<c020ba20>] mmap+0x40/0xa0
 
-	echo -n AICA > /sys/bus/platform/driver/AICA/unbind
-	echo -n AICA > /sys/bus/platform/driver/AICA/bind
+but task is already holding lock:
+ (&mm->mmap_sem){----}, at: [<c0125a1e>] sys_mmap2+0x8e/0xc0
 
-Strange enough add_aicamixer_controls which is only called by
-snd_aica_probe was already using __devinit.
+which lock already depends on the new lock.
 
-While at it move the remove function to .devexit.text section.
 
-Signed-off-by: Uwe Kleine-K=F6nig <ukleinek@informatik.uni-freiburg.de>
-Cc: Adrian McMenamin <adrian@mcmen.demon.co.uk>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Takashi Iwai <tiwai@suse.de>
+the existing dependency chain (in reverse order) is:
+
+-> #1 (&mm->mmap_sem){----}:
+       [<c017dc96>] validate_chain+0xa96/0xf50
+       [<c017ef2b>] __lock_acquire+0x2cb/0x5b0
+       [<c017f299>] lock_acquire+0x89/0xc0
+       [<c01aa8fb>] might_fault+0x6b/0x90
+       [<c040b618>] copy_to_user+0x38/0x60
+       [<c020bcfb>] read+0xfb/0x170
+       [<c01c09a5>] vfs_read+0x95/0x110
+       [<c01c1443>] sys_pread64+0x63/0x80
+       [<c012146f>] sysenter_do_call+0x12/0x43
+       [<ffffffff>] 0xffffffff
+
+-> #0 (&bb->mutex){--..}:
+       [<c017d8b7>] validate_chain+0x6b7/0xf50
+       [<c017ef2b>] __lock_acquire+0x2cb/0x5b0
+       [<c017f299>] lock_acquire+0x89/0xc0
+       [<c0d6f2ab>] __mutex_lock_common+0xab/0x3c0
+       [<c0d6f698>] mutex_lock_nested+0x38/0x50
+       [<c020ba20>] mmap+0x40/0xa0
+       [<c01b111e>] mmap_region+0x14e/0x450
+       [<c01b170f>] do_mmap_pgoff+0x2ef/0x310
+       [<c0125a3d>] sys_mmap2+0xad/0xc0
+       [<c012146f>] sysenter_do_call+0x12/0x43
+       [<ffffffff>] 0xffffffff
+
+other info that might help us debug this:
+
+1 lock held by X/4873:
+ #0:  (&mm->mmap_sem){----}, at: [<c0125a1e>] sys_mmap2+0x8e/0xc0
+
+stack backtrace:
+Pid: 4873, comm: X Not tainted 2.6.27-rc6-tip #1
+ [<c017cd09>] print_circular_bug_tail+0x79/0xc0
+ [<c017d8b7>] validate_chain+0x6b7/0xf50
+ [<c017a5b5>] ? trace_hardirqs_off_caller+0x15/0xb0
+ [<c017ef2b>] __lock_acquire+0x2cb/0x5b0
+ [<c017f299>] lock_acquire+0x89/0xc0
+ [<c020ba20>] ? mmap+0x40/0xa0
+ [<c0d6f2ab>] __mutex_lock_common+0xab/0x3c0
+ [<c020ba20>] ? mmap+0x40/0xa0
+ [<c0d6f698>] mutex_lock_nested+0x38/0x50
+ [<c020ba20>] ? mmap+0x40/0xa0
+ [<c020ba20>] mmap+0x40/0xa0
+ [<c01b111e>] mmap_region+0x14e/0x450
+ [<c01afb88>] ? arch_get_unmapped_area_topdown+0xf8/0x160
+ [<c01b170f>] do_mmap_pgoff+0x2ef/0x310
+ [<c0125a3d>] sys_mmap2+0xad/0xc0
+ [<c012146f>] sysenter_do_call+0x12/0x43
+ [<c0120000>] ? __switch_to+0x130/0x220
+ =======================
+evbug.c: Event. Dev: input3, Type: 20, Code: 0, Value: 500
+warning: `sudo' uses deprecated v2 capabilities in a way that may be insecure.
+
+
+bin.c takes bb->mutex under mmap_sem when it is mmapped, and then does its
+copy_*_user under bb->mutex too.
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Reported-by: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/sh/aica.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/sysfs/bin.c |   42 +++++++++++++++++++++++++++++++-----------
+ 1 file changed, 31 insertions(+), 11 deletions(-)
 
-diff -puN sound/sh/aica.c~snd-aica-platform-driver-fix-section-mismatch=
- sound/sh/aica.c
---- a/sound/sh/aica.c~snd-aica-platform-driver-fix-section-mismatch
-+++ a/sound/sh/aica.c
-@@ -590,7 +590,7 @@ static int __devinit add_aicamixer_contr
- 	return 0;
+diff -puN fs/sysfs/bin.c~sysfs-fix-deadlock fs/sysfs/bin.c
+--- a/fs/sysfs/bin.c~sysfs-fix-deadlock
++++ a/fs/sysfs/bin.c
+@@ -61,6 +61,7 @@ read(struct file *file, char __user *use
+ 	int size = dentry->d_inode->i_size;
+ 	loff_t offs = *off;
+ 	int count = min_t(size_t, bytes, PAGE_SIZE);
++	char *temp;
+ 
+ 	if (size) {
+ 		if (offs > size)
+@@ -69,23 +70,33 @@ read(struct file *file, char __user *use
+ 			count = size - offs;
+ 	}
+ 
++	temp = kmalloc(count, GFP_KERNEL);
++	if (!temp)
++		return -ENOMEM;
++
+ 	mutex_lock(&bb->mutex);
+ 
+ 	count = fill_read(dentry, bb->buffer, offs, count);
+-	if (count < 0)
+-		goto out_unlock;
++	if (count < 0) {
++		mutex_unlock(&bb->mutex);
++		goto out_free;
++	}
+ 
+-	if (copy_to_user(userbuf, bb->buffer, count)) {
++	memcpy(temp, bb->buffer, count);
++
++	mutex_unlock(&bb->mutex);
++
++	if (copy_to_user(userbuf, temp, count)) {
+ 		count = -EFAULT;
+-		goto out_unlock;
++		goto out_free;
+ 	}
+ 
+ 	pr_debug("offs = %lld, *off = %lld, count = %d\n", offs, *off, count);
+ 
+ 	*off = offs + count;
+ 
+- out_unlock:
+-	mutex_unlock(&bb->mutex);
++ out_free:
++	kfree(temp);
+ 	return count;
  }
-=20
--static int snd_aica_remove(struct platform_device *devptr)
-+static int __devexit snd_aica_remove(struct platform_device *devptr)
- {
- 	struct snd_card_aica *dreamcastcard;
- 	dreamcastcard =3D platform_get_drvdata(devptr);
-@@ -602,7 +602,7 @@ static int snd_aica_remove(struct platfo
- 	return 0;
+ 
+@@ -118,6 +129,7 @@ static ssize_t write(struct file *file, 
+ 	int size = dentry->d_inode->i_size;
+ 	loff_t offs = *off;
+ 	int count = min_t(size_t, bytes, PAGE_SIZE);
++	char *temp;
+ 
+ 	if (size) {
+ 		if (offs > size)
+@@ -126,19 +138,27 @@ static ssize_t write(struct file *file, 
+ 			count = size - offs;
+ 	}
+ 
+-	mutex_lock(&bb->mutex);
++	temp = kmalloc(count, GFP_KERNEL);
++	if (!temp)
++		return -ENOMEM;
+ 
+-	if (copy_from_user(bb->buffer, userbuf, count)) {
++	if (copy_from_user(temp, userbuf, count)) {
+ 		count = -EFAULT;
+-		goto out_unlock;
++		goto out_free;
+ 	}
+ 
++	mutex_lock(&bb->mutex);
++
++	memcpy(bb->buffer, temp, count);
++
+ 	count = flush_write(dentry, bb->buffer, offs, count);
++	mutex_unlock(&bb->mutex);
++
+ 	if (count > 0)
+ 		*off = offs + count;
+ 
+- out_unlock:
+-	mutex_unlock(&bb->mutex);
++out_free:
++	kfree(temp);
+ 	return count;
  }
-=20
--static int __init snd_aica_probe(struct platform_device *devptr)
-+static int __devinit snd_aica_probe(struct platform_device *devptr)
- {
- 	int err;
- 	struct snd_card_aica *dreamcastcard;
-@@ -651,7 +651,7 @@ static int __init snd_aica_probe(struct=20
-=20
- static struct platform_driver snd_aica_driver =3D {
- 	.probe =3D snd_aica_probe,
--	.remove =3D snd_aica_remove,
-+	.remove =3D __devexit_p(snd_aica_remove),
- 	.driver =3D {
- 		   .name =3D SND_AICA_DRIVER},
- };
+ 
 _
 
-Patches currently in -mm which might be from ukleinek@informatik.uni-fr=
-eiburg.de are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-origin.patch
+mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex.patch
+mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes.patch
 linux-next.patch
-gpio_free-might-sleep-arm-architecture.patch
-gpio_free-might-sleep-mips-architecture.patch
-gpio_free-might-sleep-blackfin-architecture.patch
-gpio_free-might-sleep-generic-part.patch
+inotify-fix-lock-ordering-wrt-do_page_faults-mmap_sem.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmstat-mlocked-pages-statistics.patch
+mm-pagecache-insertion-fewer-atomics.patch
+mm-unlockless-reclaim.patch
+mm-page-lock-use-lock-bitops.patch
+fs-buffer-lock-use-lock-bitops.patch
+mm-page-allocator-minor-speedup.patch
+mm-rewrite-vmap-layer.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+reiser4.patch
+likeliness-accounting-change-and-cleanup.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
