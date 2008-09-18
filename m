@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix.patch added to -mm tree
-Date: Thu, 18 Sep 2008 16:10:28 -0700
-Message-ID: <200809182324.m8INOOFx024944@imap1.linux-foundation.org>
+Subject: + fix-x86-hpet_msi-initialise-per-cpu-hpet-timers.patch added to -mm tree
+Date: Thu, 18 Sep 2008 16:10:39 -0700
+Message-ID: <200809182324.m8INOZKI024947@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43328 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47197 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754472AbYIRXZP (ORCPT
+	by vger.kernel.org with ESMTP id S1754452AbYIRXZZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 19:25:15 -0400
+	Thu, 18 Sep 2008 19:25:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hare@suse.de, lenb@kernel.org, pavel@suse.cz
+Cc: akpm@linux-foundation.org, mingo@elte.hu, shaohua.li@intel.com, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix
+     fix "x86: HPET_MSI Initialise per-cpu HPET timers"
 has been added to the -mm tree.  Its filename is
-     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix.patch
+     fix-x86-hpet_msi-initialise-per-cpu-hpet-timers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix
+Subject: fix "x86: HPET_MSI Initialise per-cpu HPET timers"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Hannes Reinecke <hare@suse.de>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@suse.cz>
+arch/x86/kernel/hpet.c:48: warning: 'hpet_devs' defined but not used
+arch/x86/kernel/hpet.c:50: warning: 'per_cpu__cpu_hpet_dev' defined but not used
+
+caused by
+
+commit 45efe60daf77bf628c0dcfdbd2abc3fb531b5114
+Author: venkatesh.pallipadi@intel.com <venkatesh.pallipadi@intel.com>
+Date:   Fri Sep 5 18:02:18 2008 -0700
+
+    x86: HPET_MSI Initialise per-cpu HPET timers
+    
+    Initialize a per CPU HPET MSI timer when possible. We retain the HPET
+    timer 0 (IRQ 0) and timer 1 (IRQ 8) as is when legacy mode is being used. We
+    setup the remaining HPET timers as per CPU MSI based timers. This per CPU
+    timer will eliminate the need for timer broadcasting with IRQ 0 when there
+    is non-functional LAPIC timer across CPU deep C-states.
+    
+    If there are more CPUs than number of available timers, CPUs that do not
+    find any timer to use will continue using LAPIC and IRQ 0 broadcast.
+    
+    Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+    Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+    Signed-off-by: Ingo Molnar <mingo@elte.hu>
+
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/asus-laptop.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/hpet.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/misc/asus-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix drivers/misc/asus-laptop.c
---- a/drivers/misc/asus-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix
-+++ a/drivers/misc/asus-laptop.c
-@@ -996,7 +996,7 @@ static int asus_hotk_add(struct acpi_dev
- 	hotk->handle = device->handle;
- 	strcpy(acpi_device_name(device), ASUS_HOTK_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ASUS_HOTK_CLASS);
--	acpi_driver_data(device) = hotk;
-+	device->driver_data = hotk;
- 	hotk->device = device;
+diff -puN arch/x86/kernel/hpet.c~fix-x86-hpet_msi-initialise-per-cpu-hpet-timers arch/x86/kernel/hpet.c
+--- a/arch/x86/kernel/hpet.c~fix-x86-hpet_msi-initialise-per-cpu-hpet-timers
++++ a/arch/x86/kernel/hpet.c
+@@ -45,9 +45,10 @@ struct hpet_dev {
+ 	char				name[10];
+ };
  
- 	result = asus_hotk_check();
+-static struct hpet_dev			*hpet_devs;
+-
++#ifdef CONFIG_HPET
++static struct hpet_dev *hpet_devs;
+ static DEFINE_PER_CPU(struct hpet_dev *, cpu_hpet_dev);
++#endif
+ 
+ unsigned long hpet_readl(unsigned long a)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
