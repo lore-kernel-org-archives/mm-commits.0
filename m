@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-x86-hpet_msi-initialise-per-cpu-hpet-timers.patch added to -mm tree
-Date: Thu, 18 Sep 2008 16:10:39 -0700
-Message-ID: <200809182324.m8INOZKI024947@imap1.linux-foundation.org>
+Subject: + fix-x86-sparse_irq-needs-spin_lock-in-allocations.patch added to -mm tree
+Date: Thu, 18 Sep 2008 16:10:48 -0700
+Message-ID: <200809182324.m8INOi6B024950@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47197 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46125 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754452AbYIRXZZ (ORCPT
+	by vger.kernel.org with ESMTP id S1754944AbYIRXZe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 19:25:25 -0400
+	Thu, 18 Sep 2008 19:25:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, shaohua.li@intel.com, venkatesh.pallipadi@intel.com
+Cc: akpm@linux-foundation.org, mingo@elte.hu, yhlu.kernel@gmail.com
 
 
 The patch titled
-     fix "x86: HPET_MSI Initialise per-cpu HPET timers"
+     fix "x86: sparse_irq needs spin_lock in allocations"
 has been added to the -mm tree.  Its filename is
-     fix-x86-hpet_msi-initialise-per-cpu-hpet-timers.patch
+     fix-x86-sparse_irq-needs-spin_lock-in-allocations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix "x86: HPET_MSI Initialise per-cpu HPET timers"
+Subject: fix "x86: sparse_irq needs spin_lock in allocations"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/hpet.c:48: warning: 'hpet_devs' defined but not used
-arch/x86/kernel/hpet.c:50: warning: 'per_cpu__cpu_hpet_dev' defined but not used
+kernel/irq/handle.c:117: warning: 'sparse_irq_lock' defined but not used
 
 caused by
 
-commit 45efe60daf77bf628c0dcfdbd2abc3fb531b5114
-Author: venkatesh.pallipadi@intel.com <venkatesh.pallipadi@intel.com>
-Date:   Fri Sep 5 18:02:18 2008 -0700
+commit a532e19680ada3b8579b81e67e76d3ebd19c340f
+Author: Yinghai Lu <yhlu.kernel@gmail.com>
+Date:   Wed Aug 20 20:46:25 2008 -0700
 
-    x86: HPET_MSI Initialise per-cpu HPET timers
+    x86: sparse_irq needs spin_lock in allocations
     
-    Initialize a per CPU HPET MSI timer when possible. We retain the HPET
-    timer 0 (IRQ 0) and timer 1 (IRQ 8) as is when legacy mode is being used. We
-    setup the remaining HPET timers as per CPU MSI based timers. This per CPU
-    timer will eliminate the need for timer broadcasting with IRQ 0 when there
-    is non-functional LAPIC timer across CPU deep C-states.
+    Suresh Siddha noticed that we should have a spinlock around it.
     
-    If there are more CPUs than number of available timers, CPUs that do not
-    find any timer to use will continue using LAPIC and IRQ 0 broadcast.
-    
-    Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-    Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+    Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
     Signed-off-by: Ingo Molnar <mingo@elte.hu>
 
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/hpet.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/irq/handle.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/hpet.c~fix-x86-hpet_msi-initialise-per-cpu-hpet-timers arch/x86/kernel/hpet.c
---- a/arch/x86/kernel/hpet.c~fix-x86-hpet_msi-initialise-per-cpu-hpet-timers
-+++ a/arch/x86/kernel/hpet.c
-@@ -45,9 +45,10 @@ struct hpet_dev {
- 	char				name[10];
- };
+diff -puN kernel/irq/handle.c~fix-x86-sparse_irq-needs-spin_lock-in-allocations kernel/irq/handle.c
+--- a/kernel/irq/handle.c~fix-x86-sparse_irq-needs-spin_lock-in-allocations
++++ a/kernel/irq/handle.c
+@@ -111,12 +111,11 @@ static void init_kstat_irqs(struct irq_d
+ 	}
+ }
  
--static struct hpet_dev			*hpet_devs;
++#ifdef CONFIG_HAVE_SPARSE_IRQ
+ /*
+  * Protect the sparse_irqs_free freelist:
+  */
+ static DEFINE_SPINLOCK(sparse_irq_lock);
 -
-+#ifdef CONFIG_HPET
-+static struct hpet_dev *hpet_devs;
- static DEFINE_PER_CPU(struct hpet_dev *, cpu_hpet_dev);
-+#endif
- 
- unsigned long hpet_readl(unsigned long a)
- {
+-#ifdef CONFIG_HAVE_SPARSE_IRQ
+ static struct irq_desc *sparse_irqs_free;
+ struct irq_desc *sparse_irqs;
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
