@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sata-blacklist-systems-that-spin-off-disks-during-acpi-power-offpatch-added-to-mm-tree-2-fix.patch added to -mm tree
-Date: Thu, 18 Sep 2008 15:35:20 -0700
-Message-ID: <200809182249.m8IMnHSK023675@imap1.linux-foundation.org>
+Subject: + x86-sysfs-kill-owner-field-from-attribute-fix-3.patch added to -mm tree
+Date: Thu, 18 Sep 2008 15:52:14 -0700
+Message-ID: <200809182306.m8IN6As1024221@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50912 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52120 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754968AbYIRWwT (ORCPT
+	by vger.kernel.org with ESMTP id S1755518AbYIRXHT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 18:52:19 -0400
+	Thu, 18 Sep 2008 19:07:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, htejun@gmail.com, jeff@garzik.org, rjw@sisk.pl
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, greg@kroah.com, htejun@gmail.com, jens.axboe@oracle.com, khali@linux-fr.org, lenb@kernel.org, mingo@elte.hu, parag.lkml@gmail.com, rolandd@cisco.com
 
 
 The patch titled
-     sata-blacklist-systems-that-spin-off-disks-during-acpi-power-offpatch-added-to-mm-tree-2-fix
+     x86-sysfs-kill-owner-field-from-attribute-fix-3
 has been added to the -mm tree.  Its filename is
-     sata-blacklist-systems-that-spin-off-disks-during-acpi-power-offpatch-added-to-mm-tree-2-fix.patch
+     x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sata-blacklist-systems-that-spin-off-disks-during-acpi-power-offpatch-added-to-mm-tree-2-fix
+Subject: x86-sysfs-kill-owner-field-from-attribute-fix-3
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/firmware/dmi_scan.c: In function 'dmi_first_match':
-drivers/firmware/dmi_scan.c:478: warning: return discards qualifiers from pointer target type
-drivers/firmware/dmi_scan.c:473: warning: unused variable 'i'
+OK, this needs to be a two-phase thing.
 
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: "Parag Warudkar" <parag.lkml@gmail.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Parag Warudkar <parag.lkml@gmail.com>
+Cc: Roland Dreier <rolandd@cisco.com>
 Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/dmi_scan.c |    3 +--
- include/linux/dmi.h         |    2 +-
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ include/linux/sysfs.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/firmware/dmi_scan.c~sata-blacklist-systems-that-spin-off-disks-during-acpi-power-offpatch-added-to-mm-tree-2-fix drivers/firmware/dmi_scan.c
---- a/drivers/firmware/dmi_scan.c~sata-blacklist-systems-that-spin-off-disks-during-acpi-power-offpatch-added-to-mm-tree-2-fix
-+++ a/drivers/firmware/dmi_scan.c
-@@ -468,9 +468,8 @@ EXPORT_SYMBOL(dmi_check_system);
-  *	Walk the blacklist table until the first match is found.  Return the
-  *	pointer to the matching entry or NULL if there's no match.
+diff -puN include/linux/sysfs.h~x86-sysfs-kill-owner-field-from-attribute-fix-3 include/linux/sysfs.h
+--- a/include/linux/sysfs.h~x86-sysfs-kill-owner-field-from-attribute-fix-3
++++ a/include/linux/sysfs.h
+@@ -27,9 +27,7 @@ struct module;
   */
--struct dmi_system_id *dmi_first_match(const struct dmi_system_id *list)
-+const struct dmi_system_id *dmi_first_match(const struct dmi_system_id *list)
- {
--	int i;
- 	const struct dmi_system_id *d;
+ struct attribute {
+ 	const char		*name;
+-#ifndef CONFIG_X86
+ 	struct module		*owner;
+-#endif
+ 	mode_t			mode;
+ };
  
- 	for (d = list; d->ident; d++)
-diff -puN include/linux/dmi.h~sata-blacklist-systems-that-spin-off-disks-during-acpi-power-offpatch-added-to-mm-tree-2-fix include/linux/dmi.h
---- a/include/linux/dmi.h~sata-blacklist-systems-that-spin-off-disks-during-acpi-power-offpatch-added-to-mm-tree-2-fix
-+++ a/include/linux/dmi.h
-@@ -75,7 +75,7 @@ struct dmi_device {
- #ifdef CONFIG_DMI
- 
- extern int dmi_check_system(const struct dmi_system_id *list);
--struct dmi_system_id *dmi_first_match(const struct dmi_system_id *list);
-+const struct dmi_system_id *dmi_first_match(const struct dmi_system_id *list);
- extern const char * dmi_get_system_info(int field);
- extern const struct dmi_device * dmi_find_device(int type, const char *name,
- 	const struct dmi_device *from);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,6 +82,8 @@ drivers-mfd-ucb1400_corec-further-unbork.patch
 revert-acpi-ec-do-transaction-from-interrupt-context.patch
 acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch
 acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix.patch
+fix-x86-sparse_irq-needs-spin_lock-in-allocations.patch
+fix-x86-hpet_msi-initialise-per-cpu-hpet-timers.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
 arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
@@ -182,6 +176,7 @@ gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
 drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
 x86-sysfs-kill-owner-field-from-attribute-fix.patch
 x86-sysfs-kill-owner-field-from-attribute-fix-fix.patch
+x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
 reiser4.patch
 reiser4-tree_lock-fixes.patch
 reiser4-tree_lock-fixes-fix.patch
