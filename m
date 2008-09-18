@@ -1,127 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: + sys_paccept-disable-paccept-until-api-design-is-resolved.patch added to -mm tree
-Date: Wed, 17 Sep 2008 23:48:28 -0700
-Message-ID: <200809180648.m8I6mS4R018833@imap1.linux-foundation.org>
+Subject: - serial-driver-handle-multiple-consecutive-sysrq-from-the-serial.patch removed from -mm tree
+Date: Thu, 18 Sep 2008 01:19:26 -0700
+Message-ID: <200809180819.m8I8JQDc022028@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50086 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44024 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752640AbYIRGtN (ORCPT
+	by vger.kernel.org with ESMTP id S1754762AbYIRITo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 02:49:13 -0400
+	Thu, 18 Sep 2008 04:19:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mtk.manpages@googlemail.com, alan@redhat.com, davem@davemloft.net, davidel@xmailserver.org, drepper@redhat.com, hch@lst.de, jakub@redhat.com, mtk.manpages@gmail.com, oleg@tv-sign.ru, roland@redhat.com, torvalds@linux-foundation.org
+To: liberty@extricom.com, alan@lxorguk.ukuu.org.uk, liberty@extricom.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sys_paccept: disable paccept() until API design is resolved
-has been added to the -mm tree.  Its filename is
-     sys_paccept-disable-paccept-until-api-design-is-resolved.patch
+     serial driver: handle multiple consecutive sysrq characters
+has been removed from the -mm tree.  Its filename was
+     serial-driver-handle-multiple-consecutive-sysrq-from-the-serial.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sys_paccept: disable paccept() until API design is resolved
-From: Michael Kerrisk <mtk.manpages@googlemail.com>
+Subject: serial driver: handle multiple consecutive sysrq characters
+From: Eran Liberty <liberty@extricom.com>
 
-The reasons for disabling paccept() are as follows:
+Let me start of by saying my particular hardware must be buggy in some
+way.  When I issue a sysrq (Ctrl A+ F from minicom) I get a lot of sysrq
+triggers.
 
-* The API is more complex than needed.  There is AFAICS no demonstrated
-  use case that the sigset argument of this syscall serves that couldn't
-  equally be served by the use of pselect/ppoll/epoll_pwait + traditional
-  accept().  Roland seems to concur with this opinion
-  (http://thread.gmane.org/gmane.linux.kernel/723953/focus=732255).  I
-  have (more than once) asked Ulrich to explain otherwise
-  (http://thread.gmane.org/gmane.linux.kernel/723952/focus=731018), but he
-  does not respond, so one is left to assume that he doesn't know of such
-  a case.
+I have worked around the problem and I think this workaround is a viable
+patch even for platforms which do not exhibit this peculiar behavior.
 
-* The use of a sigset argument is not consistent with other I/O APIs
-  that can block on a single file descriptor (e.g., read(), recv(),
-  connect()).
+upon getting numerous interrupts which request sysrq the function
+uart_handle_break in include/linux/serial_core.h is hit multiple times.
+The current code which looks like this:
 
-* The behavior of paccept() when interrupted by a signal is IMO strange:
-  the kernel restarts the system call if SA_RESTART was set for the
-  handler.  I think that it should not do this -- that it should behave
-  consistently with paccept()/ppoll()/epoll_pwait(), which never restart,
-  regardless of SA_RESTART.  The reasoning here is that the very purpose
-  of paccept() is to wait for a connection or a signal, and that
-  restarting in the latter case is probably never useful.  (Note: Roland
-  disagrees on this point, believing that rather paccept() should be
-  consistent with accept() in its behavior wrt EINTR
-  (http://thread.gmane.org/gmane.linux.kernel/723953/focus=732255).)
+static inline int uart_handle_break(struct uart_port *port)
+ {
+        struct uart_info *info = port->info;
+ #ifdef SUPPORT_SYSRQ
+        if (port->cons && port->cons->index == port->line) {
+               if (!port->sysrq) {
+                       port->sysrq = jiffies + HZ*5;
+                       return 1;
+               }
+               port->sysrq = 0;
+        }
+ #endif
+        if (port->flags & UPF_SAK)
+                do_SAK(info->tty);
+       return 0;
+}
 
-I believe that instead, a simpler API, consistent with Ulrich's other
-recent additions, is preferable:
+Will basicly toggle port->sysrq between a timeout value and zero.  If you
+are lucky this penguin rullet will stop on timeout and the next character
+hit will trigger the sysrq in the function "uart_handle_sysrq_char".  But
+if you are not so lucky the last sysrq interupt will toggle port->sysrq to
+zero and the next char hit will be ignored (not trigger sysrq).
 
-accept4(int fd, struct sockaddr *sa, socklen_t *salen, ind flags);
+The suggested patch will do the next few things:
 
-(This simpler API was originally proposed by Ulrich:
-http://thread.gmane.org/gmane.linux.network/92072)
+1. "port->sysrq" is now the time when the last sysrq was triggered and
+not the timeout for the the next char
+2. Stamped "port->sysrq" every time there is a sysrq rather then toggled
+it up and down.
+3. Always continue to consider UPF_SAK.
+4. "port->sysrq" is toggled back to zero only in uart_handle_break() and
+only if the a char has been accepted after the sysrq timeout (5 sec)
+5. uart_handle_break() will ignore extra chars received in super human
+speed after the last sysrq (0.01 sec)
 
-If this simpler API is added, then if we later decide that the sigset
-argument really is required, then a suitable bit in 'flags' could be added
-to indicate the presence of the sigset argument.
-
-At this point, I am hoping we either will get a counter-argument from
-Ulrich about why we really do need paccept()'s sigset argument, or that he
-will resubmit the original accept4() patch.
-
-Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Alan Cox <alan@redhat.com>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Jakub Jelinek <jakub@redhat.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Eran Liberty <liberty@extricom.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/socket.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/serial_core.h |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN net/socket.c~sys_paccept-disable-paccept-until-api-design-is-resolved net/socket.c
---- a/net/socket.c~sys_paccept-disable-paccept-until-api-design-is-resolved
-+++ a/net/socket.c
-@@ -1511,6 +1511,7 @@ out_fd:
- 	goto out_put;
- }
- 
-+#if 0
- #ifdef HAVE_SET_RESTORE_SIGMASK
- asmlinkage long sys_paccept(int fd, struct sockaddr __user *upeer_sockaddr,
- 			    int __user *upeer_addrlen,
-@@ -1564,6 +1565,7 @@ asmlinkage long sys_paccept(int fd, stru
- 	return do_accept(fd, upeer_sockaddr, upeer_addrlen, flags);
- }
+diff -puN include/linux/serial_core.h~serial-driver-handle-multiple-consecutive-sysrq-from-the-serial include/linux/serial_core.h
+--- a/include/linux/serial_core.h~serial-driver-handle-multiple-consecutive-sysrq-from-the-serial
++++ a/include/linux/serial_core.h
+@@ -444,8 +444,9 @@ static inline int
+ uart_handle_sysrq_char(struct uart_port *port, unsigned int ch)
+ {
+ #ifdef SUPPORT_SYSRQ
+-	if (port->sysrq) {
+-		if (ch && time_before(jiffies, port->sysrq)) {
++	if (port->sysrq && time_after(jiffies, port->sysrq +
++					(unsigned long)(HZ*0.01))) {
++		if (ch && time_before(jiffies, port->sysrq + HZ*5)) {
+ 			handle_sysrq(ch, port->info ? port->info->port.tty : NULL);
+ 			port->sysrq = 0;
+ 			return 1;
+@@ -464,19 +465,17 @@ uart_handle_sysrq_char(struct uart_port 
+  */
+ static inline int uart_handle_break(struct uart_port *port)
+ {
++	int ret = 0;
+ 	struct uart_info *info = port->info;
+ #ifdef SUPPORT_SYSRQ
+ 	if (port->cons && port->cons->index == port->line) {
+-		if (!port->sysrq) {
+-			port->sysrq = jiffies + HZ*5;
+-			return 1;
+-		}
+-		port->sysrq = 0;
++		port->sysrq = jiffies;
++		ret = 1;
+ 	}
  #endif
-+#endif
+ 	if (port->flags & UPF_SAK)
+ 		do_SAK(info->port.tty);
+-	return 0;
++	return ret;
+ }
  
- asmlinkage long sys_accept(int fd, struct sockaddr __user *upeer_sockaddr,
- 			   int __user *upeer_addrlen)
+ /**
 _
 
-Patches currently in -mm which might be from mtk.manpages@googlemail.com are
+Patches currently in -mm which might be from liberty@extricom.com are
 
-sys_paccept-disable-paccept-until-api-design-is-resolved.patch
-floppy-support-arbitrary-first-sector-numbers.patch
-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
-rlimit-permit-setting-rlimit_nofile-to-rlim_infinity-fix.patch
-coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
+serial-driver-handle-multiple-consecutive-sysrq-from-the-serial.patch
 
