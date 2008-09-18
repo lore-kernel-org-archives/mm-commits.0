@@ -1,67 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - coredump_filter-add-description-of-bit-4.patch removed from -mm tree
-Date: Thu, 18 Sep 2008 13:55:43 -0700
-Message-ID: <200809182055.m8IKthLH019125@imap1.linux-foundation.org>
+Subject: - ia64-fix-panic-during-modprobe-r-xpc.patch removed from -mm tree
+Date: Thu, 18 Sep 2008 13:56:13 -0700
+Message-ID: <200809182056.m8IKuDVr019177@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50562 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46574 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754543AbYIRU4J (ORCPT
+	by vger.kernel.org with ESMTP id S1754588AbYIRU4R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 16:56:09 -0400
+	Thu, 18 Sep 2008 16:56:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidehiro.kawai.ez@hitachi.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, roland@redhat.com, mm-commits@vger.kernel.org
+To: holt@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     coredump_filter: add description of bit 4
+     ia64: fix panic during `modprobe -r xpc'
 has been removed from the -mm tree.  Its filename was
-     coredump_filter-add-description-of-bit-4.patch
+     ia64-fix-panic-during-modprobe-r-xpc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump_filter: add description of bit 4
-From: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Subject: ia64: fix panic during `modprobe -r xpc'
+From: Robin Holt <holt@sgi.com>
 
-There is no description of bit 4 of coredump_filter in the
-documentation.  This patch adds it.
+If you are on ia64 and you modprobe xpc then modprobe -r xpc, you
+immediately get a panic.  xpc depends on xp which depends on gru for a
+symbol.  That symbol is only used when we are running on UV hardware.
 
-Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Currently, the GRU driver detects we are not on UV hardware and does no
+initializing.  It does not do the same check when unloading.  As a result,
+the gru driver attempts to tear down stuff that was not setup.
+
+This is a simple two-line workaround to get us through this release.  Once
+2.6.28 is opened, we need to rework the symbols that xp is depending on
+from gru so the gru driver can properly fail to load when hardware is not
+available.
+
+Signed-off-by: Robin Holt <holt@sgi.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/misc/sgi-gru/grufile.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN Documentation/filesystems/proc.txt~coredump_filter-add-description-of-bit-4 Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~coredump_filter-add-description-of-bit-4
-+++ a/Documentation/filesystems/proc.txt
-@@ -2413,6 +2413,8 @@ The following 4 memory types are support
-   - (bit 1) anonymous shared memory
-   - (bit 2) file-backed private memory
-   - (bit 3) file-backed shared memory
-+  - (bit 4) ELF header pages in file-backed private memory areas (it is
-+            effective only if the bit 2 is cleared)
+diff -puN drivers/misc/sgi-gru/grufile.c~ia64-fix-panic-during-modprobe-r-xpc drivers/misc/sgi-gru/grufile.c
+--- a/drivers/misc/sgi-gru/grufile.c~ia64-fix-panic-during-modprobe-r-xpc
++++ a/drivers/misc/sgi-gru/grufile.c
+@@ -445,6 +445,9 @@ static void __exit gru_exit(void)
+ 	int order = get_order(sizeof(struct gru_state) *
+ 			      GRU_CHIPLETS_PER_BLADE);
  
-   Note that MMIO pages such as frame buffer are never dumped and vDSO pages
-   are always dumped regardless of the bitmask status.
++	if (!IS_UV())
++		return;
++
+ 	for (i = 0; i < GRU_CHIPLETS_PER_BLADE; i++)
+ 		free_irq(IRQ_GRU + i, NULL);
+ 
 _
 
-Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
+Patches currently in -mm which might be from holt@sgi.com are
 
 origin.patch
-jbd-abort-when-failed-to-log-metadata-buffers.patch
-jbd-fix-error-handling-for-checkpoint-io.patch
-ext3-add-checks-for-errors-from-jbd.patch
-jbd-dont-dirty-original-metadata-buffer-on-abort.patch
-jbd-test-bh_write_eio-to-detect-errors-on-metadata-buffers.patch
-ext3-add-an-option-to-control-error-handling-on-file-data.patch
-jbd-ordered-data-integrity-fix.patch
 
