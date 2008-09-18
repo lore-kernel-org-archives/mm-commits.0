@@ -1,190 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix.patch added to -mm tree
-Date: Thu, 18 Sep 2008 13:08:28 -0700
-Message-ID: <200809182008.m8IK8SuM017264@imap1.linux-foundation.org>
+Subject: - h8300-kconfig-cleanup.patch removed from -mm tree
+Date: Thu, 18 Sep 2008 13:11:19 -0700
+Message-ID: <200809182011.m8IKBJD8017327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45926 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48177 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754968AbYIRUKW (ORCPT
+	by vger.kernel.org with ESMTP id S1755825AbYIRULg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 16:10:22 -0400
+	Thu, 18 Sep 2008 16:11:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, abelay@novell.com, bjorn.helgaas@hp.com, cebbert@redhat.com, dbrownell@users.sourceforge.net, lenb@kernel.org, mingo@elte.hu, rik.theys@esat.kuleuven.be, stable@kernel.org, tglx@linutronix.de
+To: ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix
-has been added to the -mm tree.  Its filename is
-     acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix.patch
+     h8300: Kconfig cleanup
+has been removed from the -mm tree.  Its filename was
+     h8300-kconfig-cleanup.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because of linux-next rejects
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: h8300: Kconfig cleanup
+From: Yoshinori Sato <ysato@users.sourceforge.jp>
 
-Cc: <stable@kernel.org>
-Cc: Adam Belay <abelay@novell.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Chuck Ebbert <cebbert@redhat.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Rik Theys <rik.theys@esat.kuleuven.be>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Use common Kconfig file.
+
+Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/mc146818rtc.h |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/h8300/Kconfig |  116 -------------------------------------------
+ 1 file changed, 1 insertion(+), 115 deletions(-)
 
-diff -puN include/asm-x86/mc146818rtc.h~acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix include/asm-x86/mc146818rtc.h
---- a/include/asm-x86/mc146818rtc.h~acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix
-+++ a/include/asm-x86/mc146818rtc.h
-@@ -9,6 +9,8 @@
- #include <asm/processor.h>
- #include <linux/mc146818rtc.h>
+diff -puN arch/h8300/Kconfig~h8300-kconfig-cleanup arch/h8300/Kconfig
+--- a/arch/h8300/Kconfig~h8300-kconfig-cleanup
++++ a/arch/h8300/Kconfig
+@@ -99,121 +99,7 @@ endmenu
  
-+struct device;
-+
- #ifndef RTC_PORT
- #define RTC_PORT(x)	(0x70 + (x))
- #define RTC_ALWAYS_BCD	1	/* RTC operates in binary mode */
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes.patch
-linux-next.patch
-next-remove-localversion.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-revert-acpi-ec-do-transaction-from-interrupt-context.patch
-acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch
-acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
-fix-cred-wrap-current-cred-and-a-few-other-accessors-on-mips.patch
-pci-tidy-pme-support-messages-checkpatch-fixes.patch
-sched-clarify-ifdef-tangle.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
-drivers-usb-musb-disable-it-on-superh.patch
-git-watchdog.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix.patch
-drivers-media-video-cafe_ccicc-needs-mmh.patch
-e1000e-prevent-corruption-of-eeprom-nvm.patch
-drivers-net-mlx4-allocc-needs-mmh.patch
-net-forcedeth-call-restore-mac-addr-in-nv_shutdown-path-v2.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
-fix-a-race-condtion-of-oops_in_progress-fix.patch
-vsprintf-use-new-vsprintf-symbolic-function-pointer-format-cleanup.patch
-make-taint-bit-reliable-v3-fix.patch
-kernel-sysc-improve-code-generation.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
-ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-genirq-record-trigger-type-fix.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-tty-fix-echo-tab-erase-and-locking-fix.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-new-driver-ds2431-chip-fix.patch
-gru-driver-minor-updates-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
-
+ source "net/Kconfig"
+ 
+-source "drivers/base/Kconfig"
+-
+-source "drivers/mtd/Kconfig"
+-
+-source "drivers/block/Kconfig"
+-
+-source "drivers/ide/Kconfig"
+-
+-source "arch/h8300/Kconfig.ide"
+-
+-source "drivers/net/Kconfig"
+-
+-#
+-# input - input/joystick depends on it. As does USB.
+-#
+-source "drivers/input/Kconfig"
+-
+-menu "Character devices"
+-
+-config VT
+-	bool "Virtual terminal"
+-	---help---
+-	  If you say Y here, you will get support for terminal devices with
+-	  display and keyboard devices. These are called "virtual" because you
+-	  can run several virtual terminals (also called virtual consoles) on
+-	  one physical terminal. This is rather useful, for example one
+-	  virtual terminal can collect system messages and warnings, another
+-	  one can be used for a text-mode user session, and a third could run
+-	  an X session, all in parallel. Switching between virtual terminals
+-	  is done with certain key combinations, usually Alt-<function key>.
+-
+-	  The setterm command ("man setterm") can be used to change the
+-	  properties (such as colors or beeping) of a virtual terminal. The
+-	  man page console_codes(4) ("man console_codes") contains the special
+-	  character sequences that can be used to change those properties
+-	  directly. The fonts used on virtual terminals can be changed with
+-	  the setfont ("man setfont") command and the key bindings are defined
+-	  with the loadkeys ("man loadkeys") command.
+-
+-	  You need at least one virtual terminal device in order to make use
+-	  of your keyboard and monitor. Therefore, only people configuring an
+-	  embedded system would want to say N here in order to save some
+-	  memory; the only way to log into such a system is then via a serial
+-	  or network connection.
+-
+-	  If unsure, say Y, or else you won't be able to do much with your new
+-	  shiny Linux system :-)
+-
+-config VT_CONSOLE
+-	bool "Support for console on virtual terminal"
+-	depends on VT
+-	---help---
+-	  The system console is the device which receives all kernel messages
+-	  and warnings and which allows logins in single user mode. If you
+-	  answer Y here, a virtual terminal (the device used to interact with
+-	  a physical terminal) can be used as system console. This is the most
+-	  common mode of operations, so you should say Y here unless you want
+-	  the kernel messages be output only to a serial port (in which case
+-	  you should say Y to "Console on serial port", below).
+-
+-	  If you do say Y here, by default the currently visible virtual
+-	  terminal (/dev/tty0) will be used as system console. You can change
+-	  that with a kernel command line option such as "console=tty3" which
+-	  would use the third virtual terminal as system console. (Try "man
+-	  bootparam" or see the documentation of your boot loader (lilo or
+-	  loadlin) about how to pass options to the kernel at boot time.)
+-
+-	  If unsure, say Y.
+-
+-config HW_CONSOLE
+-	bool
+-	depends on VT && !S390 && !UM
+-	default y
+-
+-comment "Unix98 PTY support"
+-
+-config UNIX98_PTYS
+-	bool "Unix98 PTY support"
+-	---help---
+-	  A pseudo terminal (PTY) is a software device consisting of two
+-	  halves: a master and a slave. The slave device behaves identical to
+-	  a physical terminal; the master device is used by a process to
+-	  read data from and write data to the slave, thereby emulating a
+-	  terminal. Typical programs for the master side are telnet servers
+-	  and xterms.
+-
+-	  Linux has traditionally used the BSD-like names /dev/ptyxx for
+-	  masters and /dev/ttyxx for slaves of pseudo terminals. This scheme
+-	  has a number of problems. The GNU C library glibc 2.1 and later,
+-	  however, supports the Unix98 naming standard: in order to acquire a
+-	  pseudo terminal, a process opens /dev/ptmx; the number of the pseudo
+-	  terminal is then made available to the process and the pseudo
+-	  terminal slave can be accessed as /dev/pts/<number>. What was
+-	  traditionally /dev/ttyp2 will then be /dev/pts/2, for example.
+-
+-	  The entries in /dev/pts/ are created on the fly by a virtual
+-	  file system; therefore, if you say Y here you should say Y to
+-	  "/dev/pts file system for Unix98 PTYs" as well.
+-
+-	  If you want to say Y here, you need to have the C library glibc 2.1
+-	  or later (equal to libc-6.1, check with "ls -l /lib/libc.so.*").
+-	  Read the instructions in <file:Documentation/Changes> pertaining to
+-	  pseudo terminals. It's safe to say N.
+-
+-source "drivers/char/pcmcia/Kconfig"
+-
+-source "drivers/serial/Kconfig"
+-
+-source "drivers/i2c/Kconfig"
+-
+-source "drivers/hwmon/Kconfig"
+-
+-source "drivers/usb/Kconfig"
