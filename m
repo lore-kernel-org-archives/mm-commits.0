@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix.patch added to -mm tree
-Date: Thu, 18 Sep 2008 16:42:24 -0700
-Message-ID: <200809182356.m8INuKc3026213@imap1.linux-foundation.org>
+Subject: + nilfs2-pathname-operations-fix.patch added to -mm tree
+Date: Thu, 18 Sep 2008 16:46:06 -0700
+Message-ID: <200809190000.m8J002NT026422@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41620 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34206 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757409AbYIRX4h (ORCPT
+	by vger.kernel.org with ESMTP id S1755623AbYISAAH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 19:56:37 -0400
+	Thu, 18 Sep 2008 20:00:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hare@suse.de, lenb@kernel.org, pavel@suse.cz
+Cc: akpm@linux-foundation.org, konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix
+     nilfs2-continuous-snapshotting-file-system-fix
 has been added to the -mm tree.  Its filename is
-     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix.patch
+     nilfs2-pathname-operations-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix
+Subject: nilfs2-continuous-snapshotting-file-system-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-it's a zombie abomination!
-
-Cc: Hannes Reinecke <hare@suse.de>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@suse.cz>
+Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/thinkpad_acpi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nilfs2/namei.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN drivers/misc/thinkpad_acpi.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix drivers/misc/thinkpad_acpi.c
---- a/drivers/misc/thinkpad_acpi.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix
-+++ a/drivers/misc/thinkpad_acpi.c
-@@ -543,7 +543,7 @@ static int __init setup_acpi_notify(stru
- 		return -ENODEV;
- 	}
+diff -puN fs/nilfs2/namei.c~nilfs2-pathname-operations-fix fs/nilfs2/namei.c
+--- a/fs/nilfs2/namei.c~nilfs2-pathname-operations-fix
++++ a/fs/nilfs2/namei.c
+@@ -80,7 +80,6 @@ nilfs_lookup(struct inode *dir, struct d
+ struct dentry *nilfs_get_parent(struct dentry *child)
+ {
+ 	unsigned long ino;
+-	struct dentry *parent;
+ 	struct inode *inode;
+ 	struct dentry dotdot;
  
--	acpi_driver_data(ibm->acpi->device) = ibm;
-+	ibm->acpi->device->driver_data = ibm;
- 	sprintf(acpi_device_class(ibm->acpi->device), "%s/%s",
- 		TPACPI_ACPI_EVENT_PREFIX,
- 		ibm->name);
+@@ -94,12 +93,7 @@ struct dentry *nilfs_get_parent(struct d
+ 	inode = nilfs_iget(child->d_inode->i_sb, ino);
+ 	if (IS_ERR(inode))
+ 		return ERR_CAST(inode);
+-	parent = d_alloc_anon(inode);
+-	if (!parent) {
+-		iput(inode);
+-		parent = ERR_PTR(-ENOMEM);
+-	}
+-	return parent;
++	return d_obtain_alias(inode);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,6 +83,7 @@ revert-acpi-ec-do-transaction-from-interrupt-context.patch
 acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch
 acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix.patch
 acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix.patch
+acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix.patch
 fix-x86-sparse_irq-needs-spin_lock-in-allocations.patch
 fix-x86-hpet_msi-initialise-per-cpu-hpet-timers.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
@@ -173,6 +183,7 @@ x86-sysfs-kill-owner-field-from-attribute-fix.patch
 x86-sysfs-kill-owner-field-from-attribute-fix-fix.patch
 x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
 nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
 reiser4.patch
 reiser4-tree_lock-fixes.patch
 reiser4-tree_lock-fixes-fix.patch
@@ -192,5 +203,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix.patch
 
