@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-sysfs-kill-owner-field-from-attribute-fix-3.patch added to -mm tree
-Date: Thu, 18 Sep 2008 15:52:14 -0700
-Message-ID: <200809182306.m8IN6As1024221@imap1.linux-foundation.org>
+Subject: + acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix.patch added to -mm tree
+Date: Thu, 18 Sep 2008 16:10:28 -0700
+Message-ID: <200809182324.m8INOOFx024944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52120 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43328 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755518AbYIRXHT (ORCPT
+	by vger.kernel.org with ESMTP id S1754472AbYIRXZP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 19:07:19 -0400
+	Thu, 18 Sep 2008 19:25:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, greg@kroah.com, htejun@gmail.com, jens.axboe@oracle.com, khali@linux-fr.org, lenb@kernel.org, mingo@elte.hu, parag.lkml@gmail.com, rolandd@cisco.com
+Cc: akpm@linux-foundation.org, hare@suse.de, lenb@kernel.org, pavel@suse.cz
 
 
 The patch titled
-     x86-sysfs-kill-owner-field-from-attribute-fix-3
+     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
+     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-sysfs-kill-owner-field-from-attribute-fix-3
+Subject: acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-OK, this needs to be a two-phase thing.
-
-Cc: "Parag Warudkar" <parag.lkml@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Greg KH <greg@kroah.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Hannes Reinecke <hare@suse.de>
 Cc: Len Brown <lenb@kernel.org>
-Cc: Parag Warudkar <parag.lkml@gmail.com>
-Cc: Roland Dreier <rolandd@cisco.com>
-Cc: Tejun Heo <htejun@gmail.com>
+Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysfs.h |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/misc/asus-laptop.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/sysfs.h~x86-sysfs-kill-owner-field-from-attribute-fix-3 include/linux/sysfs.h
---- a/include/linux/sysfs.h~x86-sysfs-kill-owner-field-from-attribute-fix-3
-+++ a/include/linux/sysfs.h
-@@ -27,9 +27,7 @@ struct module;
-  */
- struct attribute {
- 	const char		*name;
--#ifndef CONFIG_X86
- 	struct module		*owner;
--#endif
- 	mode_t			mode;
- };
+diff -puN drivers/misc/asus-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix drivers/misc/asus-laptop.c
+--- a/drivers/misc/asus-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix
++++ a/drivers/misc/asus-laptop.c
+@@ -996,7 +996,7 @@ static int asus_hotk_add(struct acpi_dev
+ 	hotk->handle = device->handle;
+ 	strcpy(acpi_device_name(device), ASUS_HOTK_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ASUS_HOTK_CLASS);
+-	acpi_driver_data(device) = hotk;
++	device->driver_data = hotk;
+ 	hotk->device = device;
  
+ 	result = asus_hotk_check();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,6 +71,7 @@ drivers-mfd-ucb1400_corec-further-unbork.patch
 revert-acpi-ec-do-transaction-from-interrupt-context.patch
 acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch
 acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix.patch
+acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix.patch
 fix-x86-sparse_irq-needs-spin_lock-in-allocations.patch
 fix-x86-hpet_msi-initialise-per-cpu-hpet-timers.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
