@@ -1,79 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - proc-more-debugging-for-already-registered-case.patch removed from -mm tree
-Date: Thu, 18 Sep 2008 13:55:35 -0700
-Message-ID: <200809182055.m8IKtZoG019108@imap1.linux-foundation.org>
+Subject: - cpuset-hotplug-documentation-fix.patch removed from -mm tree
+Date: Thu, 18 Sep 2008 13:55:41 -0700
+Message-ID: <200809182055.m8IKtfu9019122@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44632 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48887 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754352AbYIRUzi (ORCPT
+	by vger.kernel.org with ESMTP id S1754352AbYIRUzu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 16:55:38 -0400
+	Thu, 18 Sep 2008 16:55:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, menage@google.com, pj@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: more debugging for "already registered" case
+     cpuset: hotplug documentation fix
 has been removed from the -mm tree.  Its filename was
-     proc-more-debugging-for-already-registered-case.patch
+     cpuset-hotplug-documentation-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: more debugging for "already registered" case
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: cpuset: hotplug documentation fix
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-Print parent directory name as well.
+If all the cpus in a cpuset are offlined, the tasks in it will be moved to
+the nearest ancestor with non-empty cpus.
 
-The aim is to catch non-creation of parent directory when proc_mkdir will
-return NULL and all subsequent registrations go directly in /proc instead
-of intended directory.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Paul Jackson <pj@sgi.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/cpusets.txt |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN fs/proc/generic.c~proc-more-debugging-for-already-registered-case fs/proc/generic.c
---- a/fs/proc/generic.c~proc-more-debugging-for-already-registered-case
-+++ a/fs/proc/generic.c
-@@ -547,8 +547,8 @@ static int proc_register(struct proc_dir
+diff -puN Documentation/cpusets.txt~cpuset-hotplug-documentation-fix Documentation/cpusets.txt
+--- a/Documentation/cpusets.txt~cpuset-hotplug-documentation-fix
++++ a/Documentation/cpusets.txt
+@@ -635,14 +635,16 @@ prior 'mems' setting, will not be moved.
  
- 	for (tmp = dir->subdir; tmp; tmp = tmp->next)
- 		if (strcmp(tmp->name, dp->name) == 0) {
--			printk(KERN_WARNING "proc_dir_entry '%s' already "
--					"registered\n", dp->name);
-+			printk(KERN_WARNING "proc_dir_entry '%s'/'%s' already "
-+					"registered\n", dir->name, dp->name);
- 			dump_stack();
- 			break;
- 		}
+ There is an exception to the above.  If hotplug functionality is used
+ to remove all the CPUs that are currently assigned to a cpuset,
+-then the kernel will automatically update the cpus_allowed of all
+-tasks attached to CPUs in that cpuset to allow all CPUs.  When memory
+-hotplug functionality for removing Memory Nodes is available, a
+-similar exception is expected to apply there as well.  In general,
+-the kernel prefers to violate cpuset placement, over starving a task
+-that has had all its allowed CPUs or Memory Nodes taken offline.  User
+-code should reconfigure cpusets to only refer to online CPUs and Memory
+-Nodes when using hotplug to add or remove such resources.
++then all the tasks in that cpuset will be moved to the nearest ancestor
++with non-empty cpus.  But the moving of some (or all) tasks might fail if
++cpuset is bound with another cgroup subsystem which has some restrictions
++on task attaching.  In this failing case, those tasks will stay
++in the original cpuset, and the kernel will automatically update
++their cpus_allowed to allow all online CPUs.  When memory hotplug
++functionality for removing Memory Nodes is available, a similar exception
++is expected to apply there as well.  In general, the kernel prefers to
++violate cpuset placement, over starving a task that has had all
++its allowed CPUs or Memory Nodes taken offline.
+ 
+ There is a second exception to the above.  GFP_ATOMIC requests are
+ kernel internal allocations that must be satisfied, immediately.
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
 linux-next.patch
-tags-skip-in-filenames.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-ext4-fix-11321-create-proc-ext4-stats-et-al-more-carefully.patch
-cpuset-use-seq_cpumask-seq_nodemask.patch
-compat_binfmt_elf-definition-tweak.patch
-proc-move-sysrq-trigger-out-of-fs-proc.patch
-proc-fix-return-value-of-proc_reg_open-in-too-late-case.patch
-proc-proc_sys_root-tweak.patch
-proc-remove-dummy-vmcore_open.patch
-proc-remove-unused-get_dma_list.patch
-sysctl-simplify-strategy.patch
-fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out.patch
-fs-kconfig-move-cifs-out.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+devcgroup-use-kmemdup.patch
+devcgroup-remove-unused-variable.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-setup-the-memrlimit-controller-mm_owner-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
 
