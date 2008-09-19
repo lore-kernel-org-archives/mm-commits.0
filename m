@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-pathname-operations-fix.patch added to -mm tree
-Date: Thu, 18 Sep 2008 16:46:06 -0700
-Message-ID: <200809190000.m8J002NT026422@imap1.linux-foundation.org>
+Subject: + acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix.patch added to -mm tree
+Date: Thu, 18 Sep 2008 17:01:46 -0700
+Message-ID: <200809190015.m8J0Fg0N026943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34206 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52735 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755623AbYISAAH (ORCPT
+	by vger.kernel.org with ESMTP id S1755746AbYISAP7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 20:00:07 -0400
+	Thu, 18 Sep 2008 20:15:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, konishi.ryusuke@lab.ntt.co.jp
+Cc: akpm@linux-foundation.org, hare@suse.de, lenb@kernel.org, pavel@suse.cz
 
 
 The patch titled
-     nilfs2-continuous-snapshotting-file-system-fix
+     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     nilfs2-pathname-operations-fix.patch
+     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2-continuous-snapshotting-file-system-fix
+Subject: acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: Hannes Reinecke <hare@suse.de>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/namei.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ drivers/misc/fujitsu-laptop.c |    4 ++--
+ drivers/misc/intel_menlow.c   |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/nilfs2/namei.c~nilfs2-pathname-operations-fix fs/nilfs2/namei.c
---- a/fs/nilfs2/namei.c~nilfs2-pathname-operations-fix
-+++ a/fs/nilfs2/namei.c
-@@ -80,7 +80,6 @@ nilfs_lookup(struct inode *dir, struct d
- struct dentry *nilfs_get_parent(struct dentry *child)
- {
- 	unsigned long ino;
--	struct dentry *parent;
- 	struct inode *inode;
- 	struct dentry dotdot;
+diff -puN drivers/misc/fujitsu-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix drivers/misc/fujitsu-laptop.c
+--- a/drivers/misc/fujitsu-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix
++++ a/drivers/misc/fujitsu-laptop.c
+@@ -490,7 +490,7 @@ static int acpi_fujitsu_add(struct acpi_
+ 	fujitsu->acpi_handle = device->handle;
+ 	sprintf(acpi_device_name(device), "%s", ACPI_FUJITSU_DEVICE_NAME);
+ 	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
+-	acpi_driver_data(device) = fujitsu;
++	device->driver_data = fujitsu;
  
-@@ -94,12 +93,7 @@ struct dentry *nilfs_get_parent(struct d
- 	inode = nilfs_iget(child->d_inode->i_sb, ino);
- 	if (IS_ERR(inode))
- 		return ERR_CAST(inode);
--	parent = d_alloc_anon(inode);
--	if (!parent) {
--		iput(inode);
--		parent = ERR_PTR(-ENOMEM);
--	}
--	return parent;
-+	return d_obtain_alias(inode);
- }
+ 	status = acpi_install_notify_handler(device->handle,
+ 					     ACPI_DEVICE_NOTIFY,
+@@ -703,7 +703,7 @@ static int acpi_fujitsu_hotkey_add(struc
+ 	sprintf(acpi_device_name(device), "%s",
+ 		ACPI_FUJITSU_HOTKEY_DEVICE_NAME);
+ 	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
+-	acpi_driver_data(device) = fujitsu_hotkey;
++	device->driver_data = fujitsu_hotkey;
  
- /*
+ 	status = acpi_install_notify_handler(device->handle,
+ 					     ACPI_DEVICE_NOTIFY,
+diff -puN drivers/misc/intel_menlow.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix drivers/misc/intel_menlow.c
+--- a/drivers/misc/intel_menlow.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix
++++ a/drivers/misc/intel_menlow.c
+@@ -175,7 +175,7 @@ static int intel_menlow_memory_add(struc
+ 		goto end;
+ 	}
+ 
+-	acpi_driver_data(device) = cdev;
++	device->driver_data = cdev;
+ 	result = sysfs_create_link(&device->dev.kobj,
+ 				&cdev->device.kobj, "thermal_cooling");
+ 	if (result)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -203,4 +214,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix.patch
 
