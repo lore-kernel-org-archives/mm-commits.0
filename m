@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix.patch added to -mm tree
-Date: Thu, 18 Sep 2008 17:01:46 -0700
-Message-ID: <200809190015.m8J0Fg0N026943@imap1.linux-foundation.org>
+Subject: + serial-make-uart_ports-ioport-unsigned-long-fix.patch added to -mm tree
+Date: Thu, 18 Sep 2008 17:04:42 -0700
+Message-ID: <200809190018.m8J0IdkF027000@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52735 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42852 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755746AbYISAP7 (ORCPT
+	by vger.kernel.org with ESMTP id S1755720AbYISATC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 20:15:59 -0400
+	Thu, 18 Sep 2008 20:19:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hare@suse.de, lenb@kernel.org, pavel@suse.cz
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, davem@davemloft.net, joy@entuzijast.net
 
 
 The patch titled
-     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix
+     serial-make-uart_ports-ioport-unsigned-long-fix
 has been added to the -mm tree.  Its filename is
-     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix.patch
+     serial-make-uart_ports-ioport-unsigned-long-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix
+Subject: serial-make-uart_ports-ioport-unsigned-long-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Hannes Reinecke <hare@suse.de>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@suse.cz>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: David Miller <davem@davemloft.net>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Josip Rodin <joy@entuzijast.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/fujitsu-laptop.c |    4 ++--
- drivers/misc/intel_menlow.c   |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/serial/serial_core.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/misc/fujitsu-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix drivers/misc/fujitsu-laptop.c
---- a/drivers/misc/fujitsu-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix
-+++ a/drivers/misc/fujitsu-laptop.c
-@@ -490,7 +490,7 @@ static int acpi_fujitsu_add(struct acpi_
- 	fujitsu->acpi_handle = device->handle;
- 	sprintf(acpi_device_name(device), "%s", ACPI_FUJITSU_DEVICE_NAME);
- 	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
--	acpi_driver_data(device) = fujitsu;
-+	device->driver_data = fujitsu;
+diff -puN drivers/serial/serial_core.c~serial-make-uart_ports-ioport-unsigned-long-fix drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~serial-make-uart_ports-ioport-unsigned-long-fix
++++ a/drivers/serial/serial_core.c
+@@ -2154,12 +2154,11 @@ uart_report_port(struct uart_driver *drv
  
- 	status = acpi_install_notify_handler(device->handle,
- 					     ACPI_DEVICE_NOTIFY,
-@@ -703,7 +703,7 @@ static int acpi_fujitsu_hotkey_add(struc
- 	sprintf(acpi_device_name(device), "%s",
- 		ACPI_FUJITSU_HOTKEY_DEVICE_NAME);
- 	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
--	acpi_driver_data(device) = fujitsu_hotkey;
-+	device->driver_data = fujitsu_hotkey;
- 
- 	status = acpi_install_notify_handler(device->handle,
- 					     ACPI_DEVICE_NOTIFY,
-diff -puN drivers/misc/intel_menlow.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix drivers/misc/intel_menlow.c
---- a/drivers/misc/intel_menlow.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix
-+++ a/drivers/misc/intel_menlow.c
-@@ -175,7 +175,7 @@ static int intel_menlow_memory_add(struc
- 		goto end;
- 	}
- 
--	acpi_driver_data(device) = cdev;
-+	device->driver_data = cdev;
- 	result = sysfs_create_link(&device->dev.kobj,
- 				&cdev->device.kobj, "thermal_cooling");
- 	if (result)
+ 	switch (port->iotype) {
+ 	case UPIO_PORT:
+-		snprintf(address, sizeof(address),
+-			 "I/O 0x%x", port->iobase);
++		snprintf(address, sizeof(address), "I/O 0x%lx", port->iobase);
+ 		break;
+ 	case UPIO_HUB6:
+ 		snprintf(address, sizeof(address),
+-			 "I/O 0x%x offset 0x%x", port->iobase, port->hub6);
++			 "I/O 0x%lx offset 0x%x", port->iobase, port->hub6);
+ 		break;
+ 	case UPIO_MEM:
+ 	case UPIO_MEM32:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,6 +80,7 @@ acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch
 acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix.patch
 acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix.patch
 acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix.patch
+acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix.patch
 fix-x86-sparse_irq-needs-spin_lock-in-allocations.patch
 fix-x86-hpet_msi-initialise-per-cpu-hpet-timers.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
@@ -163,6 +149,7 @@ hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
 hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
 hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
 allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
+serial-make-uart_ports-ioport-unsigned-long-fix.patch
 autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
 autofs4-add-miscellaneous-device-for-ioctls-fix.patch
 autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
@@ -214,5 +201,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix.patch
 
