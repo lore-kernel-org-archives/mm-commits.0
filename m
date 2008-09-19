@@ -1,81 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - fix-x86-hpet_msi-initialise-per-cpu-hpet-timers.patch removed from -mm tree
-Date: Fri, 19 Sep 2008 01:37:35 -0700
-Message-ID: <200809190837.m8J8bZqO011312@imap1.linux-foundation.org>
+Subject: + documentation-sysctl-kerneltxt-fix-softlockup_thresh-description.patch added to -mm tree
+Date: Fri, 19 Sep 2008 01:56:23 -0700
+Message-ID: <200809190856.m8J8uNGc012048@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43691 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46320 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751017AbYISIhz (ORCPT
+	by vger.kernel.org with ESMTP id S1750977AbYISI4h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Sep 2008 04:37:55 -0400
+	Fri, 19 Sep 2008 04:56:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, shaohua.li@intel.com, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     fix "x86: HPET_MSI Initialise per-cpu HPET timers"
-has been removed from the -mm tree.  Its filename was
-     fix-x86-hpet_msi-initialise-per-cpu-hpet-timers.patch
+     Documentation/sysctl/kernel.txt: fix softlockup_thresh description
+has been added to the -mm tree.  Its filename is
+     documentation-sysctl-kerneltxt-fix-softlockup_thresh-description.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix "x86: HPET_MSI Initialise per-cpu HPET timers"
+Subject: Documentation/sysctl/kernel.txt: fix softlockup_thresh description
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/hpet.c:48: warning: 'hpet_devs' defined but not used
-arch/x86/kernel/hpet.c:50: warning: 'per_cpu__cpu_hpet_dev' defined but not used
+- s/s/seconds/
 
-caused by
+- s/10 seconds/60 seconds/
 
-commit 45efe60daf77bf628c0dcfdbd2abc3fb531b5114
-Author: venkatesh.pallipadi@intel.com <venkatesh.pallipadi@intel.com>
-Date:   Fri Sep 5 18:02:18 2008 -0700
+- Mention the zero-disables-it feature.
 
-    x86: HPET_MSI Initialise per-cpu HPET timers
-    
-    Initialize a per CPU HPET MSI timer when possible. We retain the HPET
-    timer 0 (IRQ 0) and timer 1 (IRQ 8) as is when legacy mode is being used. We
-    setup the remaining HPET timers as per CPU MSI based timers. This per CPU
-    timer will eliminate the need for timer broadcasting with IRQ 0 when there
-    is non-functional LAPIC timer across CPU deep C-states.
-    
-    If there are more CPUs than number of available timers, CPUs that do not
-    find any timer to use will continue using LAPIC and IRQ 0 broadcast.
-    
-    Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-    Signed-off-by: Shaohua Li <shaohua.li@intel.com>
-    Signed-off-by: Ingo Molnar <mingo@elte.hu>
-
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/hpet.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ Documentation/sysctl/kernel.txt |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/hpet.c~fix-x86-hpet_msi-initialise-per-cpu-hpet-timers arch/x86/kernel/hpet.c
---- a/arch/x86/kernel/hpet.c~fix-x86-hpet_msi-initialise-per-cpu-hpet-timers
-+++ a/arch/x86/kernel/hpet.c
-@@ -45,9 +45,10 @@ struct hpet_dev {
- 	char				name[10];
- };
+diff -puN Documentation/sysctl/kernel.txt~documentation-sysctl-kerneltxt-fix-softlockup_thresh-description Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~documentation-sysctl-kerneltxt-fix-softlockup_thresh-description
++++ a/Documentation/sysctl/kernel.txt
+@@ -351,9 +351,10 @@ kernel.  This value defaults to SHMMAX.
  
--static struct hpet_dev			*hpet_devs;
--
-+#ifdef CONFIG_HPET
-+static struct hpet_dev *hpet_devs;
- static DEFINE_PER_CPU(struct hpet_dev *, cpu_hpet_dev);
-+#endif
+ softlockup_thresh:
  
- unsigned long hpet_readl(unsigned long a)
- {
+-This value can be used to lower the softlockup tolerance
+-threshold. The default threshold is 10s.  If a cpu is locked up
+-for 10s, the kernel complains.  Valid values are 1-60s.
++This value can be used to lower the softlockup tolerance threshold.  The
++default threshold is 60 seconds.  If a cpu is locked up for 60 seconds,
++the kernel complains.  Valid values are 1-60 seconds.  Setting this
++tunable to zero will disable the softlockup detection altogether.
+ 
+ ==============================================================
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,7 +84,6 @@ acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix.patch
 acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix.patch
 acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix.patch
 fix-x86-sparse_irq-needs-spin_lock-in-allocations.patch
-fix-x86-hpet_msi-initialise-per-cpu-hpet-timers.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
 arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
 drivers-media-video-tda9840c-unbreak.patch
@@ -212,4 +202,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+documentation-sysctl-kerneltxt-fix-softlockup_thresh-description.patch
 
