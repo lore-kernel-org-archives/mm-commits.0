@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + introduce-new-lsm-hooks-where-vfsmount-is-available-fix.patch added to -mm tree
-Date: Thu, 18 Sep 2008 17:21:14 -0700
-Message-ID: <200809190035.m8J0ZB46027635@imap1.linux-foundation.org>
+Date: Thu, 18 Sep 2008 17:21:50 -0700
+Message-ID: <200809190035.m8J0ZlPC027667@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59673 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41552 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755655AbYISAf4 (ORCPT
+	by vger.kernel.org with ESMTP id S1755691AbYISAgU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 20:35:56 -0400
+	Thu, 18 Sep 2008 20:36:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -60,7 +60,7 @@ diff -puN security/security.c~introduce-new-lsm-hooks-where-vfsmount-is-availabl
  		return 0;
  	return security_ops->path_mknod(path, dentry, mode, dev);
  }
-+EXPORT_SYMBOLsecurity_path_mknod);
++EXPORT_SYMBOL(security_path_mknod);
  
  int security_path_mkdir(struct path *path, struct dentry *dentry, int mode)
  {
