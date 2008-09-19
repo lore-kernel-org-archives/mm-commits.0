@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cdrom-update-ioctl-documentation.patch added to -mm tree
-Date: Fri, 19 Sep 2008 15:40:47 -0700
-Message-ID: <200809192240.m8JMelbX010169@imap1.linux-foundation.org>
+Subject: + fix-typo-in-the-firmware_in_kernel-help.patch added to -mm tree
+Date: Fri, 19 Sep 2008 15:49:33 -0700
+Message-ID: <200809192249.m8JMnXWi010479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37355 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46042 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755496AbYISWk6 (ORCPT
+	by vger.kernel.org with ESMTP id S1750876AbYISWtp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Sep 2008 18:40:58 -0400
+	Fri, 19 Sep 2008 18:49:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nm127@freemail.hu, bzolnier@gmail.com
+Cc: albertito@blitiri.com.ar
 
 
 The patch titled
-     cdrom: update ioctl documentation
+     Fix typo in the FIRMWARE_IN_KERNEL help
 has been added to the -mm tree.  Its filename is
-     cdrom-update-ioctl-documentation.patch
+     fix-typo-in-the-firmware_in_kernel-help.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,61 +26,39 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cdrom: update ioctl documentation
-=46rom: M=E1rton N=E9meth <nm127@freemail.hu>
+Subject: Fix typo in the FIRMWARE_IN_KERNEL help
+From: Alberto Bertogli <albertito@blitiri.com.ar>
 
-Correct copy-paste problem: CDROMCLOSETRAY is about closing the tray,
-not opening it.
-
-Signed-off-by: M=E1rton N=E9meth <nm127@freemail.hu>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Signed-off-by: Alberto Bertogli <albertito@blitiri.com.ar>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ioctl/cdrom.txt |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/base/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/ioctl/cdrom.txt~cdrom-update-ioctl-documentatio=
-n Documentation/ioctl/cdrom.txt
---- a/Documentation/ioctl/cdrom.txt~cdrom-update-ioctl-documentation
-+++ a/Documentation/ioctl/cdrom.txt
-@@ -271,14 +271,14 @@ CDROMCLOSETRAY			pendant of CDROMEJECT
-=20
- 	usage:
-=20
--	  ioctl(fd, CDROMEJECT, 0);
-+	  ioctl(fd, CDROMCLOSETRAY, 0);
-=20
- 	inputs:		none
-=20
- 	outputs:	none
-=20
- 	error returns:
--	  ENOSYS	cd drive not capable of ejecting
-+	  ENOSYS	cd drive not capable of closing the tray
- 	  EBUSY		other processes are accessing drive, or door is locked
-=20
- 	notes:
-diff -puN /dev/null /dev/null
+diff -puN drivers/base/Kconfig~fix-typo-in-the-firmware_in_kernel-help drivers/base/Kconfig
+--- a/drivers/base/Kconfig~fix-typo-in-the-firmware_in_kernel-help
++++ a/drivers/base/Kconfig
+@@ -54,7 +54,7 @@ config FIRMWARE_IN_KERNEL
+ 	  such firmware, and do not wish to use an initrd.
+ 
+ 	  This single option controls the inclusion of firmware for
+-	  every driver which usees request_firmare() and ships its
++	  every driver which uses request_firmare() and ships its
+ 	  firmware in the kernel source tree, to avoid a proliferation
+ 	  of 'Include firmware for xxx device' options.
+ 
 _
 
-Patches currently in -mm which might be from nm127@freemail.hu are
+Patches currently in -mm which might be from albertito@blitiri.com.ar are
 
-cdrom-update-ioctl-documentation.patch
-smc-ultra-get-rid-of-eth%d-message.patch
+fix-typo-in-the-firmware_in_kernel-help.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
