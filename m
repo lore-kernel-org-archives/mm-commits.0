@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-set-correct-baud_base-for-oxford-semiconductor-ltd-exsys-ex-41092-dual-16950-serial-adapter.patch added to -mm tree
-Date: Fri, 19 Sep 2008 16:12:28 -0700
-Message-ID: <200809192312.m8JNCSki011271@imap1.linux-foundation.org>
+Subject: + dmatest-properly-handle-duplicate-dma-channels.patch added to -mm tree
+Date: Fri, 19 Sep 2008 16:32:34 -0700
+Message-ID: <200809192332.m8JNWYON012019@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36550 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38380 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751333AbYISXMr (ORCPT
+	by vger.kernel.org with ESMTP id S1752678AbYISXcn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Sep 2008 19:12:47 -0400
+	Fri, 19 Sep 2008 19:32:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: niels.devos@wincor-nixdorf.com, alan@lxorguk.ukuu.org.uk, rmk@arm.linux.org.uk
+Cc: timur@freescale.com, dan.j.williams@intel.com, haavard.skinnemoen@atmel.com
 
 
 The patch titled
-     serial: set correct baud_base for Oxford Semiconductor Ltd EXSYS EX-41092 Dual 16950 Serial adapter
+     dmatest: properly handle duplicate DMA channels
 has been added to the -mm tree.  Its filename is
-     serial-set-correct-baud_base-for-oxford-semiconductor-ltd-exsys-ex-41092-dual-16950-serial-adapter.patch
+     dmatest-properly-handle-duplicate-dma-channels.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: set correct baud_base for Oxford Semiconductor Ltd EXSYS EX-41092 Dual 16950 Serial adapter
-From: "Niels de Vos" <niels.devos@wincor-nixdorf.com>
+Subject: dmatest: properly handle duplicate DMA channels
+From: Timur Tabi <timur@freescale.com>
 
-This card is only usable with other devices (not the same card) after
-doing a setserial /dev/ttyS<n> baud_base 115200.  This baud_base should be
-default for this card.
+Update the the dmatest driver so that it handles duplicate DMA channels
+properly.
 
-This card was the last/only user of pbn_b0_2_1130000, therefore removed.
+When a DMA client is notified of an available DMA channel, it must check
+if it has already allocated resources for that channel.  If so, it should
+return DMA_DUP.  This can happen, for example, if a DMA driver calls
+dma_async_device_register() more than once.
 
-Signed-off-by: Niels de Vos <niels.devos@wincor-nixdorf.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Timur Tabi <timur@freescale.com>
+Cc: "Williams, Dan J" <dan.j.williams@intel.com>
+Acked-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |   11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ drivers/dma/dmatest.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/serial/8250_pci.c~serial-set-correct-baud_base-for-oxford-semiconductor-ltd-exsys-ex-41092-dual-16950-serial-adapter drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~serial-set-correct-baud_base-for-oxford-semiconductor-ltd-exsys-ex-41092-dual-16950-serial-adapter
-+++ a/drivers/serial/8250_pci.c
-@@ -1089,8 +1089,6 @@ enum pci_board_num_t {
- 	pbn_b0_2_921600,
- 	pbn_b0_4_921600,
+diff -puN drivers/dma/dmatest.c~dmatest-properly-handle-duplicate-dma-channels drivers/dma/dmatest.c
+--- a/drivers/dma/dmatest.c~dmatest-properly-handle-duplicate-dma-channels
++++ a/drivers/dma/dmatest.c
+@@ -321,10 +321,15 @@ static void dmatest_cleanup_channel(stru
  
--	pbn_b0_2_1130000,
--
- 	pbn_b0_4_1152000,
+ static enum dma_state_client dmatest_add_channel(struct dma_chan *chan)
+ {
+-	struct dmatest_chan	*dtc;
++	struct dmatest_chan	*dtc, *_dtc;
+ 	struct dmatest_thread	*thread;
+ 	unsigned int		i;
  
- 	pbn_b0_2_1843200,
-@@ -1245,13 +1243,6 @@ static struct pciserial_board pci_boards
- 		.uart_offset	= 8,
- 	},
- 
--	[pbn_b0_2_1130000] = {
--		.flags          = FL_BASE0,
--		.num_ports      = 2,
--		.base_baud      = 1130000,
--		.uart_offset    = 8,
--	},
++	/* Have we already been told about this channel? */
++	list_for_each_entry_safe(dtc, _dtc, &dmatest_channels, node)
++		if (dtc->chan == chan)
++			return DMA_DUP;
++
+ 	dtc = kmalloc(sizeof(struct dmatest_chan), GFP_ATOMIC);
+ 	if (!dtc) {
+ 		pr_warning("dmatest: No memory for %s\n", chan->dev.bus_id);
+_
+
+Patches currently in -mm which might be from timur@freescale.com are
+
+linux-next.patch
+dmatest-properly-handle-duplicate-dma-channels.patch
+drivers-dma-dmatestc-switch-a-gfp_atomic-to-gfp_kernel.patch
+
