@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + atmel_serial-update-the-powersave-handler-to-match-serial-core.patch added to -mm tree
-Date: Fri, 19 Sep 2008 14:40:40 -0700
-Message-ID: <200809192140.m8JLee70007891@imap1.linux-foundation.org>
+Date: Fri, 19 Sep 2008 14:41:50 -0700
+Message-ID: <200809192141.m8JLfocM007900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43180 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34091 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750842AbYISVlO (ORCPT
+	by vger.kernel.org with ESMTP id S1751023AbYISVmP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Sep 2008 17:41:14 -0400
+	Fri, 19 Sep 2008 17:42:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anti.sullin@artecdesign.ee, haavard.skinnemoen@atmel.com
+Cc: anti.sullin@artecdesign.ee, haavard.skinnemoen@atmel.com, linux@maxim.org.za, trimarchimichael@yahoo.it
 
 
 The patch titled
@@ -54,6 +54,8 @@ and thus all other sysc interrupts.
 
 Signed-off-by: Anti Sullin <anti.sullin@artecdesign.ee>
 Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Cc: Michael Trimarchi <trimarchimichael@yahoo.it>
+Cc: Andrew Victor <linux@maxim.org.za>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
