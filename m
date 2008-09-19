@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-make-uart_ports-ioport-unsigned-long-fix.patch added to -mm tree
-Date: Thu, 18 Sep 2008 17:04:42 -0700
-Message-ID: <200809190018.m8J0IdkF027000@imap1.linux-foundation.org>
+Subject: + introduce-new-lsm-hooks-where-vfsmount-is-available-fix.patch added to -mm tree
+Date: Thu, 18 Sep 2008 17:21:14 -0700
+Message-ID: <200809190035.m8J0ZB46027635@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42852 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59673 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755720AbYISATC (ORCPT
+	by vger.kernel.org with ESMTP id S1755655AbYISAf4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 18 Sep 2008 20:19:02 -0400
+	Thu, 18 Sep 2008 20:35:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, davem@davemloft.net, joy@entuzijast.net
+Cc: akpm@linux-foundation.org, casey@schaufler-ca.com, crispin@crispincowan.com, haradats@nttdata.co.jp, hch@lst.de, penguin-kernel@I-love.SAKURA.ne.jp, sds@tycho.nsa.gov, takedakn@nttdata.co.jp, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     serial-make-uart_ports-ioport-unsigned-long-fix
+     introduce-new-lsm-hooks-where-vfsmount-is-available-fix
 has been added to the -mm tree.  Its filename is
-     serial-make-uart_ports-ioport-unsigned-long-fix.patch
+     introduce-new-lsm-hooks-where-vfsmount-is-available-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial-make-uart_ports-ioport-unsigned-long-fix
+Subject: introduce-new-lsm-hooks-where-vfsmount-is-available-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: David Miller <davem@davemloft.net>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Josip Rodin <joy@entuzijast.net>
+ERROR: "security_path_mknod" [net/unix/unix.ko] undefined!
+
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Casey Schaufler <casey@schaufler-ca.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Crispin Cowan <crispin@crispincowan.com>
+Cc: Kentaro Takeda <takedakn@nttdata.co.jp>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Toshiharu Harada <haradats@nttdata.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_core.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ security/security.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/serial/serial_core.c~serial-make-uart_ports-ioport-unsigned-long-fix drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~serial-make-uart_ports-ioport-unsigned-long-fix
-+++ a/drivers/serial/serial_core.c
-@@ -2154,12 +2154,11 @@ uart_report_port(struct uart_driver *drv
+diff -puN security/security.c~introduce-new-lsm-hooks-where-vfsmount-is-available-fix security/security.c
+--- a/security/security.c~introduce-new-lsm-hooks-where-vfsmount-is-available-fix
++++ a/security/security.c
+@@ -348,6 +348,7 @@ int security_path_mknod(struct path *pat
+ 		return 0;
+ 	return security_ops->path_mknod(path, dentry, mode, dev);
+ }
++EXPORT_SYMBOLsecurity_path_mknod);
  
- 	switch (port->iotype) {
- 	case UPIO_PORT:
--		snprintf(address, sizeof(address),
--			 "I/O 0x%x", port->iobase);
-+		snprintf(address, sizeof(address), "I/O 0x%lx", port->iobase);
- 		break;
- 	case UPIO_HUB6:
- 		snprintf(address, sizeof(address),
--			 "I/O 0x%x offset 0x%x", port->iobase, port->hub6);
-+			 "I/O 0x%lx offset 0x%x", port->iobase, port->hub6);
- 		break;
- 	case UPIO_MEM:
- 	case UPIO_MEM32:
+ int security_path_mkdir(struct path *path, struct dentry *dentry, int mode)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,6 +105,7 @@ scsi-gdthc-use-unaligned-access-helpers.patch
 drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
 drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
 drivers-usb-musb-disable-it-on-superh.patch
+introduce-new-lsm-hooks-where-vfsmount-is-available-fix.patch
 git-watchdog.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
