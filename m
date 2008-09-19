@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memrlimit-add-memrlimit-controller-accounting-and-control-fixes.patch added to -mm tree
-Date: Fri, 19 Sep 2008 13:17:52 -0700
-Message-ID: <200809192017.m8JKHqaB004781@imap1.linux-foundation.org>
+Subject: + atmel_serial-update-the-powersave-handler-to-match-serial-core.patch added to -mm tree
+Date: Fri, 19 Sep 2008 14:40:40 -0700
+Message-ID: <200809192140.m8JLee70007891@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55077 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43180 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754586AbYISUaU (ORCPT
+	by vger.kernel.org with ESMTP id S1750842AbYISVlO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Sep 2008 16:30:20 -0400
+	Fri, 19 Sep 2008 17:41:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mingo@elte.hu, rientjes@google.com, skumar@linux.vnet.ibm.com, vgoyal@redhat.com, xemul@openvz.org, yamamoto@valinux.co.jp
+Cc: anti.sullin@artecdesign.ee, haavard.skinnemoen@atmel.com
 
 
 The patch titled
-     memrlimit-add-memrlimit-controller-accounting-and-control fixes
+     atmel_serial: update the powersave handler to match serial core
 has been added to the -mm tree.  Its filename is
-     memrlimit-add-memrlimit-controller-accounting-and-control-fixes.patch
+     atmel_serial-update-the-powersave-handler-to-match-serial-core.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,107 +34,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memrlimit-add-memrlimit-controller-accounting-and-control fixes
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: atmel_serial: update the powersave handler to match serial core
+From: Anti Sullin <anti.sullin@artecdesign.ee>
 
-recover from x86 depredations.
+This problem seems to be unnoticed so far:
 
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Sudhir Kumar <skumar@linux.vnet.ibm.com>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Cc: Paul Menage <menage@google.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=b3b708fa2780cd2b5d8266a8f0c3a1cab364d4d2
+
+has changed the serial core behavior to not to suspend the port if the
+device is enabled as a wakeup source.  If the AT91 system goes to slow
+clock mode, the port should be suspended always and the clocks should be
+switched off.  The patch attached updates the atmel_serial driver to match
+the changes in serial core.
+
+Also, the interrupts are disabled when the clock is disabled.  If we
+disable the clock with interrupts enabled, an interrupt may get stuck.  If
+this is the DBGU interrupt, this blocks the OR logic at system controller
+and thus all other sysc interrupts.
+
+Signed-off-by: Anti Sullin <anti.sullin@artecdesign.ee>
+Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/ds.c     |   13 ++++++++++---
- arch/x86/kernel/ptrace.c |    1 -
- 2 files changed, 10 insertions(+), 4 deletions(-)
+ drivers/serial/atmel_serial.c |   32 +++++++++++++++++++-------------
+ 1 file changed, 19 insertions(+), 13 deletions(-)
 
-diff -puN arch/x86/kernel/ds.c~memrlimit-add-memrlimit-controller-accounting-and-control-fixes arch/x86/kernel/ds.c
---- a/arch/x86/kernel/ds.c~memrlimit-add-memrlimit-controller-accounting-and-control-fixes
-+++ a/arch/x86/kernel/ds.c
-@@ -30,6 +30,7 @@
- #include <linux/slab.h>
- #include <linux/sched.h>
- #include <linux/mm.h>
-+#include <linux/memrlimitcgroup.h>
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-update-the-powersave-handler-to-match-serial-core drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-update-the-powersave-handler-to-match-serial-core
++++ a/drivers/serial/atmel_serial.c
+@@ -131,7 +131,8 @@ struct atmel_uart_char {
+ struct atmel_uart_port {
+ 	struct uart_port	uart;		/* uart */
+ 	struct clk		*clk;		/* uart clock */
+-	unsigned short		suspended;	/* is port suspended? */
++	int			may_wakeup;	/* cached value of device_may_wakeup for times we need to disable it */
++	u32			backup_imr;	/* IMR saved during suspend */
+ 	int			break_active;	/* break being received */
  
- 
- /*
-@@ -339,19 +340,22 @@ static inline void *ds_allocate_buffer(s
- 
- 	pgsz = PAGE_ALIGN(size) >> PAGE_SHIFT;
- 
-+	if (memrlimit_cgroup_charge_as(current->mm, pgsz << PAGE_SHIFT))
-+		return NULL;
+ 	short			use_dma_rx;	/* enable PDC receiver */
+@@ -984,8 +985,15 @@ static void atmel_serial_pm(struct uart_
+ 		 * This is called on uart_open() or a resume event.
+ 		 */
+ 		clk_enable(atmel_port->clk);
 +
- 	rlim = current->signal->rlim[RLIMIT_AS].rlim_cur >> PAGE_SHIFT;
- 	vm   = current->mm->total_vm  + pgsz;
- 	if (rlim < vm)
--		return NULL;
-+		goto uncharge;
++		/* re-enable interrupts if we disabled some on suspend */
++		UART_PUT_IER(port, atmel_port->backup_imr);
+ 		break;
+ 	case 3:
++		/* Back up the interrupt mask and disable all interrupts */
++		atmel_port->backup_imr = UART_GET_IMR(port);
++		UART_PUT_IDR(port, -1);
++
+ 		/*
+ 		 * Disable the peripheral clock for this serial port.
+ 		 * This is called on uart_close() or a suspend event.
+@@ -1475,13 +1483,12 @@ static int atmel_serial_suspend(struct p
+ 			cpu_relax();
+ 	}
  
- 	rlim = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur >> PAGE_SHIFT;
- 	vm   = current->mm->locked_vm  + pgsz;
- 	if (rlim < vm)
--		return NULL;
-+		goto uncharge;
+-	if (device_may_wakeup(&pdev->dev)
+-	    && !atmel_serial_clk_will_stop())
+-		enable_irq_wake(port->irq);
+-	else {
+-		uart_suspend_port(&atmel_uart, port);
+-		atmel_port->suspended = 1;
+-	}
++	/* we can not wake up if we're running on slow clock */
++	atmel_port->may_wakeup = device_may_wakeup(&pdev->dev);
++	if (atmel_serial_clk_will_stop())
++		device_set_wakeup_enable(&pdev->dev, 0);
++
++	uart_suspend_port(&atmel_uart, port);
  
- 	buffer = kzalloc(size, GFP_KERNEL);
- 	if (!buffer)
--		return NULL;
-+		goto uncharge;
- 
- 	current->mm->total_vm  += pgsz;
- 	current->mm->locked_vm += pgsz;
-@@ -360,6 +364,9 @@ static inline void *ds_allocate_buffer(s
- 		*pages = pgsz;
- 
- 	return buffer;
-+uncharge:
-+	memrlimit_cgroup_uncharge_as(current->mm, pgsz << PAGE_SHIFT);
-+	return NULL;
+ 	return 0;
  }
+@@ -1491,11 +1498,8 @@ static int atmel_serial_resume(struct pl
+ 	struct uart_port *port = platform_get_drvdata(pdev);
+ 	struct atmel_uart_port *atmel_port = to_atmel_uart_port(port);
  
- static int ds_request(struct task_struct *task, void *base, size_t size,
-diff -puN arch/x86/kernel/ptrace.c~memrlimit-add-memrlimit-controller-accounting-and-control-fixes arch/x86/kernel/ptrace.c
---- a/arch/x86/kernel/ptrace.c~memrlimit-add-memrlimit-controller-accounting-and-control-fixes
-+++ a/arch/x86/kernel/ptrace.c
-@@ -21,7 +21,6 @@
- #include <linux/audit.h>
- #include <linux/seccomp.h>
- #include <linux/signal.h>
--#include <linux/memrlimitcgroup.h>
+-	if (atmel_port->suspended) {
+-		uart_resume_port(&atmel_uart, port);
+-		atmel_port->suspended = 0;
+-	} else
+-		disable_irq_wake(port->irq);
++	uart_resume_port(&atmel_uart, port);
++	device_set_wakeup_enable(&pdev->dev, atmel_port->may_wakeup);
  
- #include <asm/uaccess.h>
- #include <asm/pgtable.h>
+ 	return 0;
+ }
+@@ -1513,6 +1517,8 @@ static int __devinit atmel_serial_probe(
+ 	BUILD_BUG_ON(!is_power_of_2(ATMEL_SERIAL_RINGSIZE));
+ 
+ 	port = &atmel_ports[pdev->id];
++	port->backup_imr = 0;
++
+ 	atmel_init_port(port, pdev);
+ 
+ 	if (!atmel_use_dma_rx(&port->uart)) {
 _
 
-Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
+Patches currently in -mm which might be from anti.sullin@artecdesign.ee are
 
-linux-next.patch
-memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
-mm-owner-fix-race-between-swap-and-exit.patch
-mm-owner-fix-race-between-swap-and-exit-fix.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-setup-the-memrlimit-controller-mm_owner-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-fixes.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-gcov-architecture-specific-compile-flag-adjustments-x86_64-fix.patch
+atmel_serial-update-the-powersave-handler-to-match-serial-core.patch
 
