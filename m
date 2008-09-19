@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-check-under-limit-at-shrink_usage.patch added to -mm tree
-Date: Fri, 19 Sep 2008 12:57:48 -0700
-Message-ID: <200809191957.m8JJvmJ0004016@imap1.linux-foundation.org>
+Subject: + memrlimit-add-memrlimit-controller-accounting-and-control-fixes.patch added to -mm tree
+Date: Fri, 19 Sep 2008 13:17:52 -0700
+Message-ID: <200809192017.m8JKHqaB004781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33011 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55077 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753268AbYIST6P (ORCPT
+	by vger.kernel.org with ESMTP id S1754586AbYISUaU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 19 Sep 2008 15:58:15 -0400
+	Fri, 19 Sep 2008 16:30:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nishimura@mxp.nes.nec.co.jp, balbir@in.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, xemul@openvz.org
+Cc: balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mingo@elte.hu, rientjes@google.com, skumar@linux.vnet.ibm.com, vgoyal@redhat.com, xemul@openvz.org, yamamoto@valinux.co.jp
 
 
 The patch titled
-     memcg: check under limit at shrink_usage
+     memrlimit-add-memrlimit-controller-accounting-and-control fixes
 has been added to the -mm tree.  Its filename is
-     memcg-check-under-limit-at-shrink_usage.patch
+     memrlimit-add-memrlimit-controller-accounting-and-control-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: check under limit at shrink_usage
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: memrlimit-add-memrlimit-controller-accounting-and-control fixes
+From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-Current memory cgroup(both in mainline and -mm) doesn't account swap
-caches as memory(swap cache support is dropped temporarily now).
+recover from x86 depredations.
 
-So try_to_free_mem_cgroup_pages doesn't reflect the count of pages that
-have been moved to swap cache.
-
-But this makes mem_cgroup_shrink_usage fail easily if most of the pages
-are anon/shmem, and then shmem_getpage returns -ENOMEM and the process
-will be killed.
-
-This patch adds res_counter_check_under_limit to avoid these cases.
-
-BTW, even if swap cache support is enabled again, if a process is moved to
-another cgroup, which has been just made, between precharge and
-shrink_usage in shmem_getpage, shrink_usage may fail just because there is
-no pages to reclaim.
-
-So this change would make sense anyway.
-
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Sudhir Kumar <skumar@linux.vnet.ibm.com>
+Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Cc: Paul Menage <menage@google.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/kernel/ds.c     |   13 ++++++++++---
+ arch/x86/kernel/ptrace.c |    1 -
+ 2 files changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-check-under-limit-at-shrink_usage mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-check-under-limit-at-shrink_usage
-+++ a/mm/memcontrol.c
-@@ -806,6 +806,7 @@ int mem_cgroup_shrink_usage(struct mm_st
+diff -puN arch/x86/kernel/ds.c~memrlimit-add-memrlimit-controller-accounting-and-control-fixes arch/x86/kernel/ds.c
+--- a/arch/x86/kernel/ds.c~memrlimit-add-memrlimit-controller-accounting-and-control-fixes
++++ a/arch/x86/kernel/ds.c
+@@ -30,6 +30,7 @@
+ #include <linux/slab.h>
+ #include <linux/sched.h>
+ #include <linux/mm.h>
++#include <linux/memrlimitcgroup.h>
  
- 	do {
- 		progress = try_to_free_mem_cgroup_pages(mem, gfp_mask);
-+		progress += res_counter_check_under_limit(&mem->res);
- 	} while (!progress && --retry);
  
- 	css_put(&mem->css);
+ /*
+@@ -339,19 +340,22 @@ static inline void *ds_allocate_buffer(s
+ 
+ 	pgsz = PAGE_ALIGN(size) >> PAGE_SHIFT;
+ 
++	if (memrlimit_cgroup_charge_as(current->mm, pgsz << PAGE_SHIFT))
++		return NULL;
++
+ 	rlim = current->signal->rlim[RLIMIT_AS].rlim_cur >> PAGE_SHIFT;
+ 	vm   = current->mm->total_vm  + pgsz;
+ 	if (rlim < vm)
+-		return NULL;
++		goto uncharge;
+ 
+ 	rlim = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur >> PAGE_SHIFT;
+ 	vm   = current->mm->locked_vm  + pgsz;
+ 	if (rlim < vm)
+-		return NULL;
++		goto uncharge;
+ 
+ 	buffer = kzalloc(size, GFP_KERNEL);
+ 	if (!buffer)
+-		return NULL;
++		goto uncharge;
+ 
+ 	current->mm->total_vm  += pgsz;
+ 	current->mm->locked_vm += pgsz;
+@@ -360,6 +364,9 @@ static inline void *ds_allocate_buffer(s
+ 		*pages = pgsz;
+ 
+ 	return buffer;
++uncharge:
++	memrlimit_cgroup_uncharge_as(current->mm, pgsz << PAGE_SHIFT);
++	return NULL;
+ }
+ 
+ static int ds_request(struct task_struct *task, void *base, size_t size,
+diff -puN arch/x86/kernel/ptrace.c~memrlimit-add-memrlimit-controller-accounting-and-control-fixes arch/x86/kernel/ptrace.c
+--- a/arch/x86/kernel/ptrace.c~memrlimit-add-memrlimit-controller-accounting-and-control-fixes
++++ a/arch/x86/kernel/ptrace.c
+@@ -21,7 +21,6 @@
+ #include <linux/audit.h>
+ #include <linux/seccomp.h>
+ #include <linux/signal.h>
+-#include <linux/memrlimitcgroup.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/pgtable.h>
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
 
-memcg-check-under-limit-at-shrink_usage.patch
-mm-owner-fix-race-between-swap-and-exit-fix-fix.patch
-vmscan-split-lru-lists-into-anon-file-sets-memcg-fix-handling-of-shmem-migrationv2.patch
-unevictable-lru-infrastructure.patch
+linux-next.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+mm-owner-fix-race-between-swap-and-exit.patch
+mm-owner-fix-race-between-swap-and-exit-fix.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-setup-the-memrlimit-controller-mm_owner-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-fixes.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+gcov-architecture-specific-compile-flag-adjustments-x86_64-fix.patch
 
