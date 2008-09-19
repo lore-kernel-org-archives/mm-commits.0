@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-applesmc-fix-the-wait-status-failed-c-=-8-problem.patch added to -mm tree
-Date: Fri, 19 Sep 2008 15:55:37 -0700
-Message-ID: <200809192255.m8JMtcjn010701@imap1.linux-foundation.org>
+Subject: + hwmon-applesmc-specified-number-of-bytes-to-read-should-match-actual.patch added to -mm tree
+Date: Fri, 19 Sep 2008 15:55:33 -0700
+Message-ID: <200809192255.m8JMtXU4010698@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35830 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55263 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751333AbYISWz4 (ORCPT
+	by vger.kernel.org with ESMTP id S1750908AbYISWz4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 19 Sep 2008 18:55:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: rydberg@euromail.se, khali@linux-fr.org, mhoffman@lightlink.com, nicolas@boi
 
 
 The patch titled
-     hwmon: applesmc: fix the 'wait status failed: c != 8' problem
+     hwmon: applesmc: specified number of bytes to read should match actual
 has been added to the -mm tree.  Its filename is
-     hwmon-applesmc-fix-the-wait-status-failed-c-=-8-problem.patch
+     hwmon-applesmc-specified-number-of-bytes-to-read-should-match-actual.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,24 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: applesmc: fix the 'wait status failed: c != 8' problem
+Subject: hwmon: applesmc: specified number of bytes to read should match actual
 From: Henrik Rydberg <rydberg@euromail.se>
 
-On many Macbooks since mid 2007, the Pro, C2D and Air models, applesmc
-fails to read some or all SMC ports.  This problem has various effects,
-such as flooded logfiles, malfunctioning temperature sensors,
-accelerometers failing to initialize, and difficulties getting backlight
-functionality to work properly.
-
-The root of the problem seems to be the command protocol.  The current
-code sends out a command byte, then repeatedly polls for an ack before
-continuing to send or recieve data.  From experiments leading to this
-patch, it seems the command protocol never quite worked or changed so that
-one now sends a command byte, waits a little bit, polls for an ack, and if
-it fails, repeats the whole thing by sending the command byte again.
-
-This patch implements a send_command function according to the new
-interpretation of the protocol, and should work also for earlier models.
+At one single place in the code, the specified number of bytes to read and
+the actual number of bytes read differ by one.  This one-liner patch fixes
+that inconsistency.
 
 Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
 Cc: Nicolas Boichat <nicolas@boichat.ch>
@@ -61,79 +49,21 @@ Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/applesmc.c |   32 ++++++++++++++++++++++++--------
- 1 file changed, 24 insertions(+), 8 deletions(-)
+ drivers/hwmon/applesmc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-fix-the-wait-status-failed-c-=-8-problem drivers/hwmon/applesmc.c
---- a/drivers/hwmon/applesmc.c~hwmon-applesmc-fix-the-wait-status-failed-c-=-8-problem
+diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-specified-number-of-bytes-to-read-should-match-actual drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~hwmon-applesmc-specified-number-of-bytes-to-read-should-match-actual
 +++ a/drivers/hwmon/applesmc.c
-@@ -191,6 +191,26 @@ static int __wait_status(u8 val)
- }
- 
- /*
-+ * special treatment of command port - on newer macbooks, it seems necessary
-+ * to resend the command byte before polling the status again. Callers must
-+ * hold applesmc_lock.
-+ */
-+static int send_command(u8 cmd)
-+{
-+	int i;
-+	for (i = 0; i < 1000; i++) {
-+		outb(cmd, APPLESMC_CMD_PORT);
-+		udelay(5);
-+		if ((inb(APPLESMC_CMD_PORT) & APPLESMC_STATUS_MASK) == 0x0c)
-+			return 0;
-+		udelay(5);
-+	}
-+	printk(KERN_WARNING "applesmc: command failed: %x -> %x\n",
-+		cmd, inb(APPLESMC_CMD_PORT));
-+	return -EIO;
-+}
-+
-+/*
-  * applesmc_read_key - reads len bytes from a given key, and put them in buffer.
-  * Returns zero on success or a negative error on failure. Callers must
-  * hold applesmc_lock.
-@@ -205,8 +225,7 @@ static int applesmc_read_key(const char*
- 		return -EINVAL;
+@@ -325,7 +325,7 @@ static int applesmc_get_key_type(char* k
+ 			return -EIO;
  	}
  
--	outb(APPLESMC_READ_CMD, APPLESMC_CMD_PORT);
--	if (__wait_status(0x0c))
-+	if (send_command(APPLESMC_READ_CMD))
- 		return -EIO;
+-	outb(5, APPLESMC_DATA_PORT);
++	outb(6, APPLESMC_DATA_PORT);
  
- 	for (i = 0; i < 4; i++) {
-@@ -249,8 +268,7 @@ static int applesmc_write_key(const char
- 		return -EINVAL;
- 	}
- 
--	outb(APPLESMC_WRITE_CMD, APPLESMC_CMD_PORT);
--	if (__wait_status(0x0c))
-+	if (send_command(APPLESMC_WRITE_CMD))
- 		return -EIO;
- 
- 	for (i = 0; i < 4; i++) {
-@@ -284,8 +302,7 @@ static int applesmc_get_key_at_index(int
- 	readkey[2] = index >> 8;
- 	readkey[3] = index;
- 
--	outb(APPLESMC_GET_KEY_BY_INDEX_CMD, APPLESMC_CMD_PORT);
--	if (__wait_status(0x0c))
-+	if (send_command(APPLESMC_GET_KEY_BY_INDEX_CMD))
- 		return -EIO;
- 
- 	for (i = 0; i < 4; i++) {
-@@ -315,8 +332,7 @@ static int applesmc_get_key_type(char* k
- {
- 	int i;
- 
--	outb(APPLESMC_GET_KEY_TYPE_CMD, APPLESMC_CMD_PORT);
--	if (__wait_status(0x0c))
-+	if (send_command(APPLESMC_GET_KEY_TYPE_CMD))
- 		return -EIO;
- 
- 	for (i = 0; i < 4; i++) {
+ 	for (i = 0; i < 6; i++) {
+ 		if (__wait_status(0x05))
 _
 
 Patches currently in -mm which might be from rydberg@euromail.se are
