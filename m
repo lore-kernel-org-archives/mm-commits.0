@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + braille_console-only-register-notifiers-when-the-braille-console-is-used.patch added to -mm tree
-Date: Mon, 22 Sep 2008 16:36:59 -0700
-Message-ID: <200809222336.m8MNaxwW004085@imap1.linux-foundation.org>
+Subject: + leds-make-the-default-trigger-name-const.patch added to -mm tree
+Date: Mon, 22 Sep 2008 16:37:34 -0700
+Message-ID: <200809222337.m8MNbYw3004094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46375 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55979 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754033AbYIVXiB (ORCPT
+	by vger.kernel.org with ESMTP id S1753466AbYIVXiP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Sep 2008 19:38:01 -0400
+	Mon, 22 Sep 2008 19:38:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pterjan@mandriva.com, samuel.thibault@ens-lyon.org, stable@kernel.org
+Cc: tpiepho@freescale.com, rpurdie@rpsys.net
 
 
 The patch titled
-     braille_console: only register notifiers when the braille console is used
+     leds: make the default trigger name const
 has been added to the -mm tree.  Its filename is
-     braille_console-only-register-notifiers-when-the-braille-console-is-used.patch
+     leds-make-the-default-trigger-name-const.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: braille_console: only register notifiers when the braille console is used
-From: Pascal Terjan <pterjan@mandriva.com>
+Subject: leds: make the default trigger name const
+From: Trent Piepho <tpiepho@freescale.com>
 
-Only register the braille driver VT and keyboard notifiers when the
-braille console is used.  Avoids eating insert or backspace keys.
+The default_trigger fields of struct gpio_led and thus struct led_classdev
+are pretty much always assigned from a string literal, which means the
+string can't be modified.  Which is fine, since there is no reason to
+modify the string and in fact it never is.
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=11242
+But they should be marked const to prevent such code from being added, to
+prevent warnings if -Wwrite-strings is used, when assigned from a constant
+string other than a string literal (which produces a warning under current
+kernel compiler flags), and for general good coding practices.
 
-Signed-off-by: Pascal Terjan <pterjan@mandriva.com>
-Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Trent Piepho <tpiepho@freescale.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/accessibility/braille/braille_console.c |   13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ include/linux/leds.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/accessibility/braille/braille_console.c~braille_console-only-register-notifiers-when-the-braille-console-is-used drivers/accessibility/braille/braille_console.c
---- a/drivers/accessibility/braille/braille_console.c~braille_console-only-register-notifiers-when-the-braille-console-is-used
-+++ a/drivers/accessibility/braille/braille_console.c
-@@ -376,6 +376,8 @@ int braille_register_console(struct cons
- 	console->flags |= CON_ENABLED;
- 	console->index = index;
- 	braille_co = console;
-+	register_keyboard_notifier(&keyboard_notifier_block);
-+	register_vt_notifier(&vt_notifier_block);
- 	return 0;
- }
+diff -puN include/linux/leds.h~leds-make-the-default-trigger-name-const include/linux/leds.h
+--- a/include/linux/leds.h~leds-make-the-default-trigger-name-const
++++ a/include/linux/leds.h
+@@ -123,7 +123,7 @@ extern void ledtrig_ide_activity(void);
+  */
+ struct led_info {
+ 	const char	*name;
+-	char		*default_trigger;
++	const char	*default_trigger;
+ 	int		flags;
+ };
  
-@@ -383,15 +385,8 @@ int braille_unregister_console(struct co
- {
- 	if (braille_co != console)
- 		return -EINVAL;
-+	unregister_keyboard_notifier(&keyboard_notifier_block);
-+	unregister_vt_notifier(&vt_notifier_block);
- 	braille_co = NULL;
- 	return 0;
- }
--
--static int __init braille_init(void)
--{
--	register_keyboard_notifier(&keyboard_notifier_block);
--	register_vt_notifier(&vt_notifier_block);
--	return 0;
--}
+@@ -135,7 +135,7 @@ struct led_platform_data {
+ /* For the leds-gpio driver */
+ struct gpio_led {
+ 	const char *name;
+-	char *default_trigger;
++	const char *default_trigger;
+ 	unsigned 	gpio;
+ 	u8 		active_low;
+ };
+_
+
+Patches currently in -mm which might be from tpiepho@freescale.com are
+
+leds-make-the-default-trigger-name-const.patch
+
