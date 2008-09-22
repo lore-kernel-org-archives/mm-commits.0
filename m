@@ -1,85 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch removed from -mm tree
-Date: Mon, 22 Sep 2008 14:46:27 -0700
-Message-ID: <200809222146.m8MLkRAE031645@imap1.linux-foundation.org>
+Subject: - e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 22 Sep 2008 14:51:16 -0700
+Message-ID: <200809222151.m8MLpHdu031911@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45372 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35883 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752894AbYIVVrR (ORCPT
+	by vger.kernel.org with ESMTP id S1752981AbYIVVwY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Sep 2008 17:47:17 -0400
+	Mon, 22 Sep 2008 17:52:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cooloney@kernel.org, jeff@garzik.org, sonic.zhang@analog.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, elendil@planet.nl, jeff@garzik.org, jeffrey.t.kirsher@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix
+     e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
+     e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
+This patch was dropped because it was folded into e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix
+Subject: e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-- remove the ifdefs using the usual pattern
+ERROR: code indent should use tabs where possible
+#39: FILE: drivers/net/e1000e/netdev.c:4675:
++^I^I         "Warning: detected DSPD enabled in EEPROM\n");$
 
-- make things static
+ERROR: code indent should use tabs where possible
+#47: FILE: drivers/net/e1000e/netdev.c:4682:
++^I^I         "Warning: detected ASPM enabled in EEPROM\n");$
 
-Cc: Bryan Wu <cooloney@kernel.org>
+total: 2 errors, 0 warnings, 17 lines checked
+
+./patches/e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Frans Pop <elendil@planet.nl>
 Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Sonic Zhang <sonic.zhang@analog.com>
+Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_bf54x.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/net/e1000e/netdev.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_bf54x.c~libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix drivers/ata/pata_bf54x.c
---- a/drivers/ata/pata_bf54x.c~libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix
-+++ a/drivers/ata/pata_bf54x.c
-@@ -1658,7 +1658,7 @@ static int __devexit bfin_atapi_remove(s
+diff -puN drivers/net/e1000e/netdev.c~e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes drivers/net/e1000e/netdev.c
+--- a/drivers/net/e1000e/netdev.c~e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes
++++ a/drivers/net/e1000e/netdev.c
+@@ -4672,14 +4672,14 @@ static void e1000_eeprom_checks(struct e
+ 	if (!(le16_to_cpu(buf) & (1 << 0))) {
+ 		/* Deep Smart Power Down (DSPD) */
+ 		dev_warn(&adapter->pdev-dev,
+-		         "Warning: detected DSPD enabled in EEPROM\n");
++			 "Warning: detected DSPD enabled in EEPROM\n");
+ 	}
+ 
+ 	ret_val = e1000_read_nvm(hw, NVM_INIT_3GIO_3, 1, &buf);
+ 	if (le16_to_cpu(buf) & (3 << 2)) {
+ 		/* ASPM enable */
+ 		dev_warn(&adapter->pdev->dev,
+-		         "Warning: detected ASPM enabled in EEPROM\n");
++			 "Warning: detected ASPM enabled in EEPROM\n");
+ 	}
  }
  
- #ifdef CONFIG_PM
--int bfin_atapi_suspend(struct platform_device *pdev, pm_message_t state)
-+static int bfin_atapi_suspend(struct platform_device *pdev, pm_message_t state)
- {
- 	struct ata_host *host = dev_get_drvdata(&pdev->dev);
- 	if (host)
-@@ -1667,7 +1667,7 @@ int bfin_atapi_suspend(struct platform_d
- 		return 0;
- }
- 
--int bfin_atapi_resume(struct platform_device *pdev)
-+static int bfin_atapi_resume(struct platform_device *pdev)
- {
- 	struct ata_host *host = dev_get_drvdata(&pdev->dev);
- 	int ret;
-@@ -1683,15 +1683,16 @@ int bfin_atapi_resume(struct platform_de
- 
- 	return 0;
- }
-+#else
-+#define bfin_atapi_suspend NULL
-+#define bfin_atapi_resume NULL
- #endif
- 
- static struct platform_driver bfin_atapi_driver = {
- 	.probe			= bfin_atapi_probe,
- 	.remove			= __devexit_p(bfin_atapi_remove),
--#ifdef CONFIG_PM
- 	.suspend		= bfin_atapi_suspend,
- 	.resume			= bfin_atapi_resume,
--#endif
- 	.driver = {
- 		.name		= DRV_NAME,
- 		.owner		= THIS_MODULE,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,10 +93,10 @@ drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 git-jg-misc.patch
 led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
 libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver-fix.patch
 drivers-dma-dmatestc-switch-a-gfp_atomic-to-gfp_kernel.patch
 sundance-set-carrier-status-on-link-change-events.patch
 cassini-use-request_firmware.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning.patch
 e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
 e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
 drivers-net-sfc-falconc-fix-min-warnings.patch
