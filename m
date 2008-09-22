@@ -1,112 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - e1000e-prevent-corruption-of-eeprom-nvm.patch removed from -mm tree
-Date: Mon, 22 Sep 2008 00:12:09 -0700
-Message-ID: <200809220712.m8M7C9Gj028713@imap1.linux-foundation.org>
+Subject: - bnx2-promote-vector-field-in-bnx2_irq-structure-from-u16-to-unsigned-int.patch removed from -mm tree
+Date: Mon, 22 Sep 2008 00:12:06 -0700
+Message-ID: <200809220712.m8M7C6a2028710@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47129 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56658 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750950AbYIVHM6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751393AbYIVHNd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Sep 2008 03:12:58 -0400
+	Mon, 22 Sep 2008 03:13:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chrisl@vmware.com, arvidjaar@mail.ru, bruce.w.allan@intel.com, jeff@garzik.org, jeffrey.t.kirsher@intel.com, jesse.brandeburg@intel.com, john.ronciak@intel.com, peter.p.waskiewicz.jr@
+To: benli@broadcom.com, jeff@garzik.org, mchan@broadcom.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     e1000: prevent corruption of EEPROM/NVM
+     bnx2: promote vector field in bnx2_irq structure from u16 to unsigned int
 has been removed from the -mm tree.  Its filename was
-     e1000e-prevent-corruption-of-eeprom-nvm.patch
+     bnx2-promote-vector-field-in-bnx2_irq-structure-from-u16-to-unsigned-int.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: e1000: prevent corruption of EEPROM/NVM
-From: Christopher Li <chrisl@vmware.com>
+Subject: bnx2: promote vector field in bnx2_irq structure from u16 to unsigned int
+From: Benjamin Li <benli@broadcom.com>
 
-Andrey reports e1000 corruption, and that a patch in vmware's ESX fixed
-it.
+The bnx2 driver stores/uses the irq value from the pci_dev internally. 
+But when it stores the irq value, it has been performing an integer
+demotion.  Because of the recent changes made to
+arch/x86/kernel/io_apic.c, the new method in creating the irq value (using
+build_irq_for_pci_dev()) has exposed this bug on x86 systems.
 
-The EEPROM corruption is triggered by concurrent access of the EEPROM
-read/write. Putting a lock around it solve the problem.
+Because of this demotion when calling request_irq() from
+bnx2_request_irq(), the driver would get a return code of -EINVAL.  This
+is because the kernel could not find the requested irq descriptor.  By
+storing the irq value properly, the kernel can find the correct irq
+descriptor and the bnx2 driver can operate normally.
 
-[akpm@linux-foundation.org: use DEFINE_SPINLOCK to avoid confusing lockdep]
-Signed-off-by: Christopher Li <chrisl@vmware.com>
-Reported-by: Andrey Borzenkov <arvidjaar@mail.ru>
-Cc: Zach Amsden <zach@vmware.com>
-Cc: Pratap Subrahmanyam <pratap@vmware.com>
-Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
-Cc: Bruce Allan <bruce.w.allan@intel.com>
-Cc: PJ Waskiewicz <peter.p.waskiewicz.jr@intel.com>
-Cc: John Ronciak <john.ronciak@intel.com>
+Signed-off-by: Benjamin Li <benli@broadcom.com>
+Signed-off-by: Michael Chan <mchan@broadcom.com>
 Cc: Jeff Garzik <jeff@garzik.org>
-Cc: "Allan, Bruce W" <bruce.w.allan@intel.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000/e1000_hw.c |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ drivers/net/bnx2.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/e1000/e1000_hw.c~e1000e-prevent-corruption-of-eeprom-nvm drivers/net/e1000/e1000_hw.c
---- a/drivers/net/e1000/e1000_hw.c~e1000e-prevent-corruption-of-eeprom-nvm
-+++ a/drivers/net/e1000/e1000_hw.c
-@@ -144,6 +144,8 @@ static s32 e1000_host_if_read_cookie(str
- static u8 e1000_calculate_mng_checksum(char *buffer, u32 length);
- static s32 e1000_configure_kmrn_for_10_100(struct e1000_hw *hw, u16 duplex);
- static s32 e1000_configure_kmrn_for_1000(struct e1000_hw *hw);
-+static s32 e1000_do_read_eeprom(struct e1000_hw *hw, u16 offset, u16 words, u16 *data);
-+static s32 e1000_do_write_eeprom(struct e1000_hw *hw, u16 offset, u16 words, u16 *data);
+diff -puN drivers/net/bnx2.h~bnx2-promote-vector-field-in-bnx2_irq-structure-from-u16-to-unsigned-int drivers/net/bnx2.h
+--- a/drivers/net/bnx2.h~bnx2-promote-vector-field-in-bnx2_irq-structure-from-u16-to-unsigned-int
++++ a/drivers/net/bnx2.h
+@@ -6597,7 +6597,7 @@ struct flash_spec {
  
- /* IGP cable length table */
- static const
-@@ -168,6 +170,8 @@ u16 e1000_igp_2_cable_length_table[IGP02
-       83, 89, 95, 100, 105, 109, 113, 116, 119, 122, 124,
-       104, 109, 114, 118, 121, 124};
- 
-+static DEFINE_SPINLOCK(e1000_eeprom_lock);
-+
- /******************************************************************************
-  * Set the phy type member in the hw struct.
-  *
-@@ -4904,6 +4908,15 @@ static s32 e1000_spi_eeprom_ready(struct
-  *****************************************************************************/
- s32 e1000_read_eeprom(struct e1000_hw *hw, u16 offset, u16 words, u16 *data)
- {
-+    s32 ret;
-+    spin_lock(&e1000_eeprom_lock);
-+    ret = e1000_do_read_eeprom(hw, offset, words, data);
-+    spin_unlock(&e1000_eeprom_lock);
-+    return ret;
-+}
-+
-+static s32 e1000_do_read_eeprom(struct e1000_hw *hw, u16 offset, u16 words, u16 *data)
-+{
-     struct e1000_eeprom_info *eeprom = &hw->eeprom;
-     u32 i = 0;
- 
-@@ -5236,6 +5249,16 @@ s32 e1000_update_eeprom_checksum(struct 
-  *****************************************************************************/
- s32 e1000_write_eeprom(struct e1000_hw *hw, u16 offset, u16 words, u16 *data)
- {
-+    s32 ret;
-+    spin_lock(&e1000_eeprom_lock);
-+    ret = e1000_do_write_eeprom(hw, offset, words, data);
-+    spin_unlock(&e1000_eeprom_lock);
-+    return ret;
-+}
-+
-+
-+static s32 e1000_do_write_eeprom(struct e1000_hw *hw, u16 offset, u16 words, u16 *data)
-+{
-     struct e1000_eeprom_info *eeprom = &hw->eeprom;
-     s32 status = 0;
- 
+ struct bnx2_irq {
+ 	irq_handler_t	handler;
+-	u16		vector;
++	unsigned int	vector;
+ 	u8		requested;
+ 	char		name[16];
+ };
 _
 
-Patches currently in -mm which might be from chrisl@vmware.com are
+Patches currently in -mm which might be from benli@broadcom.com are
 
 
