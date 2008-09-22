@@ -1,118 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch added to -mm tree
-Date: Mon, 22 Sep 2008 12:57:44 -0700
-Message-ID: <200809221957.m8MJvlDb026851@imap1.linux-foundation.org>
+Subject: - mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 22 Sep 2008 13:05:28 -0700
+Message-ID: <200809222005.m8MK5SJH027207@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43394 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46459 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751080AbYIVUBT (ORCPT
+	by vger.kernel.org with ESMTP id S1751332AbYIVUGi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Sep 2008 16:01:19 -0400
+	Mon, 22 Sep 2008 16:06:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, garyhade@us.ibm.com, heiko.carstens@de.ibm.com, lethal@linux-sh.org, mel@csn.ul.ie, mingo@elte.hu, paulus@samba.org, pbadari@us.ibm.com, randy.dunlap@oracle.com, schwidefsky@de.ibm.com, tglx@linutronix.de, tony.luck@intel.com, y-goto@jp.fujitsu.com
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, hugh@veritas.com, mingo@elte.hu, mpm@selenic.com, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix
-has been added to the -mm tree.  Its filename is
-     mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+     mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix
+Subject: mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Gary Hade <garyhade@us.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
+(wtf?)
+
+ERROR: code indent should use tabs where possible
+#27: FILE: mm/tiny-shmem.c:68:
++        error = -ENFILE;$
+
+ERROR: code indent should use tabs where possible
+#28: FILE: mm/tiny-shmem.c:69:
++        file = get_empty_filp();$
+
+ERROR: code indent should use tabs where possible
+#29: FILE: mm/tiny-shmem.c:70:
++        if (!file)$
+
+ERROR: code indent should use tabs where possible
+#30: FILE: mm/tiny-shmem.c:71:
++                goto put_dentry;$
+
+ERROR: code indent should use tabs where possible
+#51: FILE: mm/tiny-shmem.c:78:
++        d_instantiate(dentry, inode);$
+
+ERROR: code indent should use tabs where possible
+#52: FILE: mm/tiny-shmem.c:79:
++        inode->i_size = size;$
+
+ERROR: code indent should use tabs where possible
+#53: FILE: mm/tiny-shmem.c:80:
++        inode->i_nlink = 0;     /* It is unlinked */$
+
+ERROR: code indent should use tabs where possible
+#54: FILE: mm/tiny-shmem.c:81:
++        init_file(file, shm_mnt, dentry, FMODE_WRITE | FMODE_READ,$
+
+ERROR: code indent should use tabs where possible
+#55: FILE: mm/tiny-shmem.c:82:
++                        &ramfs_file_operations);$
+
+total: 9 errors, 0 warnings, 41 lines checked
+
+./patches/mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Hugh Dickins <hugh@veritas.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/init.c     |   16 ----------------
- arch/x86/mm/init_64.c |   18 ------------------
- 2 files changed, 34 deletions(-)
+ mm/tiny-shmem.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN arch/sh/mm/init.c~mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix arch/sh/mm/init.c
---- a/arch/sh/mm/init.c~mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix
-+++ a/arch/sh/mm/init.c
-@@ -293,20 +293,4 @@ int memory_add_physaddr_to_nid(u64 addr)
- EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
- #endif
+diff -puN mm/tiny-shmem.c~mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes mm/tiny-shmem.c
+--- a/mm/tiny-shmem.c~mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes
++++ a/mm/tiny-shmem.c
+@@ -65,21 +65,21 @@ struct file *shmem_file_setup(char *name
+ 	if (!dentry)
+ 		goto put_memory;
  
--#ifdef CONFIG_MEMORY_HOTREMOVE
--int remove_memory(u64 start, u64 size)
--{
--	unsigned long start_pfn = start >> PAGE_SHIFT;
--	unsigned long end_pfn = start_pfn + (size >> PAGE_SHIFT);
--	int ret;
--
--	ret = offline_pages(start_pfn, end_pfn, 120 * HZ);
--	if (unlikely(ret))
--		printk("%s: Failed, offline_pages() == %d\n", __func__, ret);
--
--	return ret;
--}
--EXPORT_SYMBOL_GPL(remove_memory);
--#endif
--
- #endif /* CONFIG_MEMORY_HOTPLUG */
-diff -puN arch/x86/mm/init_64.c~mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix
-+++ a/arch/x86/mm/init_64.c
-@@ -796,24 +796,6 @@ int memory_add_physaddr_to_nid(u64 start
- EXPORT_SYMBOL_GPL(memory_add_physaddr_to_nid);
- #endif
+-        error = -ENFILE;
+-        file = get_empty_filp();
+-        if (!file)
+-                goto put_dentry;
++	error = -ENFILE;
++	file = get_empty_filp();
++	if (!file)
++		goto put_dentry;
  
--#ifdef CONFIG_MEMORY_HOTREMOVE
--int remove_memory(u64 start, u64 size)
--{
--	unsigned long start_pfn, end_pfn;
--	unsigned long timeout = 120 * HZ;
--	int ret;
--	start_pfn = start >> PAGE_SHIFT;
--	end_pfn = start_pfn + (size >> PAGE_SHIFT);
--	ret = offline_pages(start_pfn, end_pfn, timeout);
--	if (ret)
--		goto out;
--	/* Arch-specific calls go here */
--out:
--	return ret;
--}
--EXPORT_SYMBOL_GPL(remove_memory);
--#endif /* CONFIG_MEMORY_HOTREMOVE */
--
- #endif /* CONFIG_MEMORY_HOTPLUG */
+ 	error = -ENOSPC;
+ 	inode = ramfs_get_inode(root->d_sb, S_IFREG | S_IRWXUGO, 0);
+ 	if (!inode)
+ 		goto close_file;
  
- /*
+-        d_instantiate(dentry, inode);
+-        inode->i_size = size;
+-        inode->i_nlink = 0;     /* It is unlinked */
+-        init_file(file, shm_mnt, dentry, FMODE_WRITE | FMODE_READ,
+-                        &ramfs_file_operations);
++	d_instantiate(dentry, inode);
++	inode->i_size = size;
++	inode->i_nlink = 0;	/* It is unlinked */
++	init_file(file, shm_mnt, dentry, FMODE_WRITE | FMODE_READ,
++			&ramfs_file_operations);
+ 	return file;
+ 
+ close_file:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex.patch
 mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes.patch
 documentation-sysctl-kerneltxt-fix-softlockup_thresh-description.patch
 linux-next.patch
