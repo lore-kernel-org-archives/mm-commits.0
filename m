@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + leds-pca955x-mark-pca955x_led_set-static.patch added to -mm tree
-Date: Mon, 22 Sep 2008 15:42:08 -0700
-Message-ID: <200809222242.m8MMg85Y001862@imap1.linux-foundation.org>
+Subject: + leds-pca9532-mark-pca9532_event-static.patch added to -mm tree
+Date: Mon, 22 Sep 2008 15:42:10 -0700
+Message-ID: <200809222242.m8MMgAcC001865@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55598 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51073 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753447AbYIVWmo (ORCPT
+	by vger.kernel.org with ESMTP id S1753559AbYIVWmo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 22 Sep 2008 18:42:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: sven.wegener@stealer.net
 
 
 The patch titled
-     leds-pca955x: mark pca955x_led_set() static
+     leds-pca9532: mark pca9532_event() static
 has been added to the -mm tree.  Its filename is
-     leds-pca955x-mark-pca955x_led_set-static.patch
+     leds-pca9532-mark-pca9532_event-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds-pca955x: mark pca955x_led_set() static
+Subject: leds-pca9532: mark pca9532_event() static
 From: Sven Wegener <sven.wegener@stealer.net>
 
 Signed-off-by: Sven Wegener <sven.wegener@stealer.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-pca955x.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/leds/leds-pca9532.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/leds/leds-pca955x.c~leds-pca955x-mark-pca955x_led_set-static drivers/leds/leds-pca955x.c
---- a/drivers/leds/leds-pca955x.c~leds-pca955x-mark-pca955x_led_set-static
-+++ a/drivers/leds/leds-pca955x.c
-@@ -226,7 +226,8 @@ static void pca955x_led_work(struct work
- 	pca955x_write_ls(pca955x->client, chip_ls, ls);
+diff -puN drivers/leds/leds-pca9532.c~leds-pca9532-mark-pca9532_event-static drivers/leds/leds-pca9532.c
+--- a/drivers/leds/leds-pca9532.c~leds-pca9532-mark-pca9532_event-static
++++ a/drivers/leds/leds-pca9532.c
+@@ -151,8 +151,8 @@ static int pca9532_set_blink(struct led_
+ 	return pca9532_setpwm(client, 0, psc, led_cdev->brightness);
  }
  
--void pca955x_led_set(struct led_classdev *led_cdev, enum led_brightness value)
-+static void pca955x_led_set(struct led_classdev *led_cdev,
-+				enum led_brightness value)
+-int pca9532_event(struct input_dev *dev, unsigned int type, unsigned int code,
+-	int value)
++static int pca9532_event(struct input_dev *dev, unsigned int type,
++	unsigned int code, int value)
  {
- 	struct pca955x_led *pca955x;
+ 	struct pca9532_data *data = input_get_drvdata(dev);
  
 _
 
