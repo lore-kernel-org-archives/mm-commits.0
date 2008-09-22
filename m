@@ -1,190 +1,191 @@
 From: akpm@linux-foundation.org
-Subject: - backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 22 Sep 2008 14:52:37 -0700
-Message-ID: <200809222152.m8MLqbS8032014@imap1.linux-foundation.org>
+Subject: - backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2.patch removed from -mm tree
+Date: Mon, 22 Sep 2008 14:52:34 -0700
+Message-ID: <200809222152.m8MLqYbI032007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39749 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33451 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753198AbYIVVxM (ORCPT
+	by vger.kernel.org with ESMTP id S1753871AbYIVV5i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Sep 2008 17:53:12 -0400
+	Mon, 22 Sep 2008 17:57:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, private@claudio.ch, mm-commits@vger.kernel.org
+To: private@claudio.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes
+     From: Claudio Nieder <private@claudio.ch>
 has been removed from the -mm tree.  Its filename was
-     backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
+     backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2.patch
 
 This patch was dropped because it was folded into backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: From: Claudio Nieder <private@claudio.ch>
 
-WARNING: space prohibited between function name and open parenthesis '('
-#135: FILE: drivers/video/backlight/kb3886_bl.c:161:
-+	if (IS_ERR (kb3886_backlight_device))
 
-total: 0 errors, 1 warnings, 104 lines checked
+Hi,
 
-./patches/backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+> These two empty initializers are not needed.
 
-Please run checkpatch prior to sending patches
+Fixed.
 
-Cc: Claudio Nieder <private@claudio.ch>
+> Now let's add module alias to ensure driver autoloading.
+> IMHO the line below should do the trick:
+>
+> MODULE_ALIAS("dmi:*:svnSDV:pniTouchT201:*");
+
+I usually built the kernel with my driver included. For once I tried to build as
+module first without that line added and then with. And by magic the module is
+loaded right at boot time. Thank you for your help.
+
+Once again the patch in which all your suggestions are included. Furthermore I
+noticed that I had "default y" in Kconfig. Handy for me, but a tad selfish I
+think and so corrected that by setting it to "n".
+
+Here the fixed patch:
+
+Signed-off-by: Claudio Nieder <private@claudio.ch>
+
+Backlight driver for Tabletkiosk Sahara TouchIT-213 Tablet PC
+---
+
+index 452b770..7dd0ecd 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/kb3886_bl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/Kconfig     |    2 -
+ drivers/video/backlight/kb3886_bl.c |   45 +++++++++++---------------
+ 2 files changed, 21 insertions(+), 26 deletions(-)
 
-diff -puN drivers/video/backlight/kb3886_bl.c~backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes drivers/video/backlight/kb3886_bl.c
---- a/drivers/video/backlight/kb3886_bl.c~backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes
+diff -puN drivers/video/backlight/Kconfig~backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2 drivers/video/backlight/Kconfig
+--- a/drivers/video/backlight/Kconfig~backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2
++++ a/drivers/video/backlight/Kconfig
+@@ -167,7 +167,7 @@ config BACKLIGHT_MBP_NVIDIA
+ config BACKLIGHT_SAHARA
+ 	tristate "Tabletkiosk Sahara Touch-iT Backlight Driver"
+ 	depends on BACKLIGHT_CLASS_DEVICE && X86
+-	default y
++	default n
+ 	help
+ 	  If you have a Tabletkiosk Sahara Touch-iT, say y to enable the
+ 	  backlight driver.
+diff -puN drivers/video/backlight/kb3886_bl.c~backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2 drivers/video/backlight/kb3886_bl.c
+--- a/drivers/video/backlight/kb3886_bl.c~backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2
 +++ a/drivers/video/backlight/kb3886_bl.c
-@@ -158,7 +158,7 @@ static int kb3886bl_probe(struct platfor
+@@ -1,7 +1,7 @@
+ /*
+  *  Backlight Driver for the KB3886 Backlight
+  *
+- *  Copyright (c) 2007 Claudio Nieder
++ *  Copyright (c) 2007-2008 Claudio Nieder
+  *
+  *  Based on corgi_bl.c by Richard Purdie and kb3886 driver by Robert Woerle
+  *
+@@ -19,7 +19,7 @@
+ #include <linux/fb.h>
+ #include <linux/backlight.h>
+ #include <linux/delay.h>
+-
++#include <linux/dmi.h>
+ 
+ /*
+  * The following is what corgi has in arch/arm/mach-pxa/corgi.c and
+@@ -35,7 +35,7 @@
+ 
+ static DEFINE_MUTEX(bl_mutex);
+ 
+-void kb3886_bl_set_intensity(int intensity)
++static void kb3886_bl_set_intensity(int intensity)
+ {
+ 	mutex_lock(&bl_mutex);
+ 	intensity = intensity&0xff;
+@@ -73,11 +73,6 @@ static struct platform_device *devices[]
+ 	&kb3886bl_device,
+ };
+ 
+-static void __init sahara_init(void)
+-{
+-	platform_add_devices(devices, ARRAY_SIZE(devices));
+-}
+-
+ /*
+  * Back to driver
+  */
+@@ -90,6 +85,17 @@ static unsigned long kb3886bl_flags;
+ #define KB3886BL_SUSPENDED     0x01
+ #define KB3886BL_BATTLOW       0x02
+ 
++static struct dmi_system_id __initdata kb3886bl_device_table[] = {
++	{
++		.ident = "Sahara Touch-iT",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "SDV"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "iTouch T201"),
++		},
++	},
++	{ }
++};
++
+ static int kb3886bl_send_intensity(struct backlight_device *bd)
+ {
+ 	int intensity = bd->props.brightness;
+@@ -137,21 +143,6 @@ static int kb3886bl_get_intensity(struct
+ 	return kb3886bl_intensity;
+ }
+ 
+-/*
+- * Called when the battery is low to limit the backlight intensity.
+- * If limit==0 clear any limit, otherwise limit the intensity
+- */
+-void kb3886bl_limit_intensity(int limit)
+-{
+-	if (limit)
+-		kb3886bl_flags |= KB3886BL_BATTLOW;
+-	else
+-		kb3886bl_flags &= ~KB3886BL_BATTLOW;
+-	backlight_update_status(kb3886_backlight_device);
+-}
+-EXPORT_SYMBOL(kb3886bl_limit_intensity);
+-
+-
+ static struct backlight_ops kb3886bl_ops = {
+ 	.get_brightness = kb3886bl_get_intensity,
+ 	.update_status  = kb3886bl_send_intensity,
+@@ -167,7 +158,7 @@ static int kb3886bl_probe(struct platfor
  
  	kb3886_backlight_device = backlight_device_register("kb3886-bl",
  		&pdev->dev, NULL, &kb3886bl_ops);
--	if (IS_ERR (kb3886_backlight_device))
-+	if (IS_ERR(kb3886_backlight_device))
+-	if (IS_ERR(kb3886_backlight_device))
++	if (IS_ERR (kb3886_backlight_device))
  		return PTR_ERR(kb3886_backlight_device);
  
  	platform_set_drvdata(pdev, kb3886_backlight_device);
+@@ -201,7 +192,10 @@ static struct platform_driver kb3886bl_d
+ 
+ static int __init kb3886_init(void)
+ {
+-	sahara_init();
++	if (!dmi_check_system(kb3886bl_device_table))
++		return -ENODEV;
++
++	platform_add_devices(devices, ARRAY_SIZE(devices));
+ 	return platform_driver_register(&kb3886bl_driver);
+ }
+ 
+@@ -216,3 +210,4 @@ module_exit(kb3886_exit);
+ MODULE_AUTHOR("Claudio Nieder <private@claudio.ch>");
+ MODULE_DESCRIPTION("Tabletkiosk Sahara Touch-iT Backlight Driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("dmi:*:svnSDV:pniTouchT201:*");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from private@claudio.ch are
 
-mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex.patch
-documentation-sysctl-kerneltxt-fix-softlockup_thresh-description.patch
-linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-revert-acpi-ec-do-transaction-from-interrupt-context.patch
-fix-x86-sparse_irq-needs-spin_lock-in-allocations.patch
-zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-drivers-media-video-tda9840c-unbreak.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-git-jg-misc.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
-drivers-dma-dmatestc-switch-a-gfp_atomic-to-gfp_kernel.patch
-sundance-set-carrier-status-on-link-change-events.patch
-cassini-use-request_firmware.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
-drivers-net-sfc-falconc-fix-min-warnings.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
-fix-cred-wrap-current-cred-and-a-few-other-accessors-on-mips.patch
-sched-clarify-ifdef-tangle.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
-drivers-usb-musb-disable-it-on-superh.patch
-introduce-new-lsm-hooks-where-vfsmount-is-available-fix.patch
-git-xtensa.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry.patch
-drivers-media-video-cafe_ccicc-needs-mmh.patch
-drivers-net-mlx4-allocc-needs-mmh.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-eeepc-laptop-use-standard-interfaces-fix-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
-fix-a-race-condtion-of-oops_in_progress-fix.patch
-make-taint-bit-reliable-v3-fix.patch
-kernel-sysc-improve-code-generation.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-drivers-hwmon-applesmcc-remove-unneeded-casts.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
-serial-make-uart_ports-ioport-unsigned-long-fix.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-eink_apollofb-new-driver-for-apollo-eink-controller.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
-ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-genirq-record-trigger-type-fix.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-tty-fix-echo-tab-erase-and-locking-fix.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-new-driver-ds2431-chip-fix.patch
-gru-driver-minor-updates-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-x86-sysfs-kill-owner-field-from-attribute-fix-fix.patch
-x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
