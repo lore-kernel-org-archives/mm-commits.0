@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix.patch removed from -mm tree
-Date: Mon, 22 Sep 2008 14:35:27 -0700
-Message-ID: <200809222135.m8MLZR2Z030950@imap1.linux-foundation.org>
+Subject: - acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix.patch removed from -mm tree
+Date: Mon, 22 Sep 2008 14:35:41 -0700
+Message-ID: <200809222135.m8MLZfIN030963@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57616 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55787 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753188AbYIVVgQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753178AbYIVVg1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Sep 2008 17:36:16 -0400
+	Mon, 22 Sep 2008 17:36:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, hare@suse.de, lenb@kernel.org, pavel@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix
+     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix
 has been removed from the -mm tree.  Its filename was
-     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix.patch
+     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix.patch
 
 This patch was dropped because it was folded into acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix
+Subject: acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Hannes Reinecke <hare@suse.de>
@@ -33,21 +33,43 @@ Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/acpi_memhotplug.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/misc/fujitsu-laptop.c |    4 ++--
+ drivers/misc/intel_menlow.c   |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/acpi/acpi_memhotplug.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix drivers/acpi/acpi_memhotplug.c
---- a/drivers/acpi/acpi_memhotplug.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix
-+++ a/drivers/acpi/acpi_memhotplug.c
-@@ -403,7 +403,7 @@ static int acpi_memory_device_add(struct
- 	mem_device->device = device;
- 	sprintf(acpi_device_name(device), "%s", ACPI_MEMORY_DEVICE_NAME);
- 	sprintf(acpi_device_class(device), "%s", ACPI_MEMORY_DEVICE_CLASS);
--	acpi_driver_data(device) = mem_device;
-+	device->driver_data = mem_device;
+diff -puN drivers/misc/fujitsu-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix drivers/misc/fujitsu-laptop.c
+--- a/drivers/misc/fujitsu-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix
++++ a/drivers/misc/fujitsu-laptop.c
+@@ -490,7 +490,7 @@ static int acpi_fujitsu_add(struct acpi_
+ 	fujitsu->acpi_handle = device->handle;
+ 	sprintf(acpi_device_name(device), "%s", ACPI_FUJITSU_DEVICE_NAME);
+ 	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
+-	acpi_driver_data(device) = fujitsu;
++	device->driver_data = fujitsu;
  
- 	/* Get the range from the _CRS */
- 	result = acpi_memory_get_device_resources(mem_device);
+ 	status = acpi_install_notify_handler(device->handle,
+ 					     ACPI_DEVICE_NOTIFY,
+@@ -703,7 +703,7 @@ static int acpi_fujitsu_hotkey_add(struc
+ 	sprintf(acpi_device_name(device), "%s",
+ 		ACPI_FUJITSU_HOTKEY_DEVICE_NAME);
+ 	sprintf(acpi_device_class(device), "%s", ACPI_FUJITSU_CLASS);
+-	acpi_driver_data(device) = fujitsu_hotkey;
++	device->driver_data = fujitsu_hotkey;
+ 
+ 	status = acpi_install_notify_handler(device->handle,
+ 					     ACPI_DEVICE_NOTIFY,
+diff -puN drivers/misc/intel_menlow.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix drivers/misc/intel_menlow.c
+--- a/drivers/misc/intel_menlow.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix
++++ a/drivers/misc/intel_menlow.c
+@@ -175,7 +175,7 @@ static int intel_menlow_memory_add(struc
+ 		goto end;
+ 	}
+ 
+-	acpi_driver_data(device) = cdev;
++	device->driver_data = cdev;
+ 	result = sysfs_create_link(&device->dev.kobj,
+ 				&cdev->device.kobj, "thermal_cooling");
+ 	if (result)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -61,9 +83,6 @@ drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
 revert-acpi-ec-do-transaction-from-interrupt-context.patch
 acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type.patch
-acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix.patch
-acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix.patch
-acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix.patch
 acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix.patch
 fix-x86-sparse_irq-needs-spin_lock-in-allocations.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
