@@ -1,129 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 22 Sep 2008 13:05:28 -0700
-Message-ID: <200809222005.m8MK5SJH027207@imap1.linux-foundation.org>
+Subject: - acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix.patch removed from -mm tree
+Date: Mon, 22 Sep 2008 14:03:51 -0700
+Message-ID: <200809222103.m8ML3pOS029499@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46459 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34877 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751332AbYIVUGi (ORCPT
+	by vger.kernel.org with ESMTP id S1752870AbYIVVFr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Sep 2008 16:06:38 -0400
+	Mon, 22 Sep 2008 17:05:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, hugh@veritas.com, mingo@elte.hu, mpm@selenic.com, npiggin@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, abelay@novell.com, bjorn.helgaas@hp.com, cebbert@redhat.com, dbrownell@users.sourceforge.net, lenb@kernel.org, mingo@elte.hu, rik.they
 
 
 The patch titled
-     mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes
+     acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix
 has been removed from the -mm tree.  Its filename was
-     mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes.patch
+     acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix.patch
 
-This patch was dropped because it was folded into mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex.patch
+This patch was dropped because it was folded into acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes
+Subject: acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-(wtf?)
-
-ERROR: code indent should use tabs where possible
-#27: FILE: mm/tiny-shmem.c:68:
-+        error = -ENFILE;$
-
-ERROR: code indent should use tabs where possible
-#28: FILE: mm/tiny-shmem.c:69:
-+        file = get_empty_filp();$
-
-ERROR: code indent should use tabs where possible
-#29: FILE: mm/tiny-shmem.c:70:
-+        if (!file)$
-
-ERROR: code indent should use tabs where possible
-#30: FILE: mm/tiny-shmem.c:71:
-+                goto put_dentry;$
-
-ERROR: code indent should use tabs where possible
-#51: FILE: mm/tiny-shmem.c:78:
-+        d_instantiate(dentry, inode);$
-
-ERROR: code indent should use tabs where possible
-#52: FILE: mm/tiny-shmem.c:79:
-+        inode->i_size = size;$
-
-ERROR: code indent should use tabs where possible
-#53: FILE: mm/tiny-shmem.c:80:
-+        inode->i_nlink = 0;     /* It is unlinked */$
-
-ERROR: code indent should use tabs where possible
-#54: FILE: mm/tiny-shmem.c:81:
-+        init_file(file, shm_mnt, dentry, FMODE_WRITE | FMODE_READ,$
-
-ERROR: code indent should use tabs where possible
-#55: FILE: mm/tiny-shmem.c:82:
-+                        &ramfs_file_operations);$
-
-total: 9 errors, 0 warnings, 41 lines checked
-
-./patches/mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Hugh Dickins <hugh@veritas.com>
+Cc: <stable@kernel.org>
+Cc: Adam Belay <abelay@novell.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Chuck Ebbert <cebbert@redhat.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Rik Theys <rik.theys@esat.kuleuven.be>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/tiny-shmem.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ include/asm-x86/mc146818rtc.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/tiny-shmem.c~mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes mm/tiny-shmem.c
---- a/mm/tiny-shmem.c~mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes
-+++ a/mm/tiny-shmem.c
-@@ -65,21 +65,21 @@ struct file *shmem_file_setup(char *name
- 	if (!dentry)
- 		goto put_memory;
+diff -puN include/asm-x86/mc146818rtc.h~acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix include/asm-x86/mc146818rtc.h
+--- a/include/asm-x86/mc146818rtc.h~acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix
++++ a/include/asm-x86/mc146818rtc.h
+@@ -9,6 +9,8 @@
+ #include <asm/processor.h>
+ #include <linux/mc146818rtc.h>
  
--        error = -ENFILE;
--        file = get_empty_filp();
--        if (!file)
--                goto put_dentry;
-+	error = -ENFILE;
-+	file = get_empty_filp();
-+	if (!file)
-+		goto put_dentry;
- 
- 	error = -ENOSPC;
- 	inode = ramfs_get_inode(root->d_sb, S_IFREG | S_IRWXUGO, 0);
- 	if (!inode)
- 		goto close_file;
- 
--        d_instantiate(dentry, inode);
--        inode->i_size = size;
--        inode->i_nlink = 0;     /* It is unlinked */
--        init_file(file, shm_mnt, dentry, FMODE_WRITE | FMODE_READ,
--                        &ramfs_file_operations);
-+	d_instantiate(dentry, inode);
-+	inode->i_size = size;
-+	inode->i_nlink = 0;	/* It is unlinked */
-+	init_file(file, shm_mnt, dentry, FMODE_WRITE | FMODE_READ,
-+			&ramfs_file_operations);
- 	return file;
- 
- close_file:
++struct device;
++
+ #ifndef RTC_PORT
+ #define RTC_PORT(x)	(0x70 + (x))
+ #define RTC_ALWAYS_BCD	1	/* RTC operates in binary mode */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex.patch
-mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex-checkpatch-fixes.patch
 documentation-sysctl-kerneltxt-fix-softlockup_thresh-description.patch
 linux-next.patch
 next-remove-localversion.patch
@@ -162,6 +98,7 @@ drivers-usb-musb-disable-it-on-superh.patch
 introduce-new-lsm-hooks-where-vfsmount-is-available-fix.patch
 git-xtensa.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
+acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry.patch
 acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry-fix.patch
 drivers-media-video-cafe_ccicc-needs-mmh.patch
 drivers-net-mlx4-allocc-needs-mmh.patch
