@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + introduce-new-lsm-hooks-where-vfsmount-is-available.patch added to -mm tree
-Date: Mon, 22 Sep 2008 16:04:05 -0700
-Message-ID: <200809222304.m8MN46Rh002729@imap1.linux-foundation.org>
+Subject: - introduce-new-lsm-hooks-where-vfsmount-is-available.patch removed from -mm tree
+Date: Mon, 22 Sep 2008 16:03:09 -0700
+Message-ID: <200809222303.m8MN39Eb002701@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57270 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45816 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753363AbYIVXQC (ORCPT
+	by vger.kernel.org with ESMTP id S1753427AbYIVXQd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Sep 2008 19:16:02 -0400
+	Mon, 22 Sep 2008 19:16:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: takedakn@nttdata.co.jp, casey@schaufler-ca.com, crispin@crispincowan.com, haradats@nttdata.co.jp, hch@lst.de, penguin-kernel@I-love.SAKURA.ne.jp, sds@tycho.nsa.gov, viro@zeniv.linux.org.uk
+To: takedakn@nttdata.co.jp, casey@schaufler-ca.com, crispin@crispincowan.com, haradats@nttdata.co.jp, hch@lst.de, penguin-kernel@I-love.SAKURA.ne.jp, sds@tycho.nsa.gov, viro@zeniv.linux.o
 
 
 The patch titled
      vfs: introduce new LSM hooks where vfsmount is available.
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      introduce-new-lsm-hooks-where-vfsmount-is-available.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -37,94 +27,8 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 Subject: vfs: introduce new LSM hooks where vfsmount is available.
 From: Kentaro Takeda <takedakn@nttdata.co.jp>
 
------ What is this patch for? -----
-
-There are security_inode_*() LSM hooks for attribute-based MAC, but they are not
-suitable for pathname-based MAC because they don't receive "struct vfsmount"
-information.
-
------ How this patch was developed? -----
-
-Two pathname-based MACs, AppArmor and TOMOYO Linux, are trying to merge
-upstream. But because of "struct vfsmount" problem, they have been unable to
-merge upstream.
-
-Here are the list of approaches and the reasons of denial.
-
-(1) Not using LSM
- http://lwn.net/Articles/277833/
-
- This approach was rejected because security modules should use LSM because the
- whole idea behind LSM was to have a single set of hooks for all security
- modules; if every module now adds its own set of hooks, that purpose will have
- been defeated and the kernel will turn into a big mess of security hooks.
-
-(2) Retrieving "struct vfsmount" from "struct task_struct".
- http://lkml.org/lkml/2007/11/5/388
-
- Since "struct task_struct" contains list of "struct vfsmount",
- "struct vfsmount" which corresponds to "struct dentry" can be retrieved from
- the list unless "mount --bind" is used.
-
- This approach turned out to cause a critical problem that getting namespace_sem
- lock from security_inode_*() triggers AB-BA deadlock.
-
-(3) Adding "struct vfsmount" parameter to VFS helper functions.
- http://lkml.org/lkml/2008/5/29/207
-
- This approach adds "struct vfsmount" to VFS helper functions (e.g. vfs_mkdir()
- and vfs_symlink()) and LSM hooks inside VFS helper functions. This approach is
- helpful for not only AppArmor and TOMOYO Linux 2.x but also SELinux and
- auditing purpose, for this approach allows existent LSM users to use pathnames
- in their access control and audit logs.
-
- This approach was rejected by Al Viro, the VFS maintainer, because he thinks
- individual filesystem should remain "struct vfsmount"-unaware and VFS helper
- functions should not receive "struct vfsmount".
-
- Al Viro also suggested to move existing security_inode_*() to out of VFS
- helper functions so that security_inode_*() can receive "struct vfsmount"
- without modifying VFS helper functions, but this suggestion was opposed by
- Stephen Smalley because changing the order of permission checks (i.e.
- MAC checks before DAC checks) is not acceptable.
-
-(4) Passing "struct vfsmount" via "struct task_struct".
- http://lkml.org/lkml/2007/11/16/157
-
- Since we didn't understand the reason why accessing "struct vfsmount" from
- LSM hooks inside VFS helper functions is not acceptable, we thought the reason
- why VFS helper functions don't receive "struct vfsmount" is the amount of
- modifications needed to do so. Thus, we proposed to pass "struct vfsmount" via
- "struct task_struct" so that modifications remain minimal.
-
- This approach was rejected because this is an abuse of "struct task_struct".
-
-(5) Remembering pathname of "struct vfsmount" via "struct task_struct".
- http://lkml.org/lkml/2008/8/19/16
-
- Since pathname of a "struct dentry" up to the mount point can be calculated
- without "struct vfsmount", absolute pathname of a "struct dentry" can be
- calculated if "struct task_struct" can remember absolute pathname of a
- "struct vfsmount" which corresponds to "struct dentry".
- As we now understand that Al Viro is opposing to access "struct vfsmount" from
- LSM hooks inside VFS helper functions, we gave up delivering "struct vfsmount"
- to LSM hooks inside VFS helper functions.
- Kernel 2.6.26 introduced read-only bind mount feature, and hooks for that
- feature (i.e. mnt_want_write() and mnt_drop_write()) were inserted around
- VFS helper functions call. Since mnt_want_write() receives "struct vfsmount"
- which corresponds to "struct dentry" that will be passed to subsequent VFS
- helper functions call, we associated pathname of "struct vfsmount" with
- "struct task_struct" instead of associating "struct vfsmount" itself.
-
- This approach was not explicitly rejected, but there seems to be performance
- problem.
-
-(6) Introducing new LSM hooks.
- (this patch)
-
- We understand that adding new LSM hooks which receive "struct vfsmount" outside
- VFS helper functions is the most straightforward approach. This approach has
- less impact to existing LSM module and no impact to VFS helper functions.
+Allow an LSM to check permission using "struct vfsmount" without passing
+"struct vfsmount" to VFS helper functions.
 
 Signed-off-by: Kentaro Takeda <takedakn@nttdata.co.jp>
 Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
@@ -142,8 +46,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  include/linux/security.h |  135 +++++++++++++++++++++++++++++++++++++
  net/unix/af_unix.c       |    4 +
  security/capability.c    |   53 ++++++++++++++
- security/security.c      |   64 +++++++++++++++++
- 6 files changed, 298 insertions(+)
+ security/security.c      |   63 +++++++++++++++++
+ 6 files changed, 297 insertions(+)
 
 diff -puN fs/namei.c~introduce-new-lsm-hooks-where-vfsmount-is-available fs/namei.c
 --- a/fs/namei.c~introduce-new-lsm-hooks-where-vfsmount-is-available
@@ -583,7 +487,7 @@ diff -puN security/capability.c~introduce-new-lsm-hooks-where-vfsmount-is-availa
 diff -puN security/security.c~introduce-new-lsm-hooks-where-vfsmount-is-available security/security.c
 --- a/security/security.c~introduce-new-lsm-hooks-where-vfsmount-is-available
 +++ a/security/security.c
-@@ -341,6 +341,70 @@ int security_inode_init_security(struct 
+@@ -341,6 +341,69 @@ int security_inode_init_security(struct 
  }
  EXPORT_SYMBOL(security_inode_init_security);
  
@@ -594,7 +498,6 @@ diff -puN security/security.c~introduce-new-lsm-hooks-where-vfsmount-is-availabl
 +		return 0;
 +	return security_ops->path_mknod(path, dentry, mode, dev);
 +}
-+EXPORT_SYMBOL(security_path_mknod);
 +
 +int security_path_mkdir(struct path *path, struct dentry *dentry, int mode)
 +{
