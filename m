@@ -1,33 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix.patch removed from -mm tree
-Date: Mon, 22 Sep 2008 14:35:34 -0700
-Message-ID: <200809222135.m8MLZZ4N030956@imap1.linux-foundation.org>
+Subject: - acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix.patch removed from -mm tree
+Date: Mon, 22 Sep 2008 14:35:30 -0700
+Message-ID: <200809222135.m8MLZUbu030953@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42689 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42366 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753018AbYIVVfx (ORCPT
+	by vger.kernel.org with ESMTP id S1753145AbYIVVgO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Sep 2008 17:35:53 -0400
+	Mon, 22 Sep 2008 17:36:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, hare@suse.de, lenb@kernel.org, pavel@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix
+     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix
 has been removed from the -mm tree.  Its filename was
-     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix.patch
+     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix.patch
 
 This patch was dropped because it was folded into acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix
+Subject: acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-it's a zombie abomination!
 
 Cc: Hannes Reinecke <hare@suse.de>
 Cc: Len Brown <lenb@kernel.org>
@@ -35,21 +33,21 @@ Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/thinkpad_acpi.c |    2 +-
+ drivers/misc/asus-laptop.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/thinkpad_acpi.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix drivers/misc/thinkpad_acpi.c
---- a/drivers/misc/thinkpad_acpi.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix
-+++ a/drivers/misc/thinkpad_acpi.c
-@@ -543,7 +543,7 @@ static int __init setup_acpi_notify(stru
- 		return -ENODEV;
- 	}
+diff -puN drivers/misc/asus-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix drivers/misc/asus-laptop.c
+--- a/drivers/misc/asus-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix
++++ a/drivers/misc/asus-laptop.c
+@@ -996,7 +996,7 @@ static int asus_hotk_add(struct acpi_dev
+ 	hotk->handle = device->handle;
+ 	strcpy(acpi_device_name(device), ASUS_HOTK_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ASUS_HOTK_CLASS);
+-	acpi_driver_data(device) = hotk;
++	device->driver_data = hotk;
+ 	hotk->device = device;
  
--	acpi_driver_data(ibm->acpi->device) = ibm;
-+	ibm->acpi->device->driver_data = ibm;
- 	sprintf(acpi_device_class(ibm->acpi->device), "%s/%s",
- 		TPACPI_ACPI_EVENT_PREFIX,
- 		ibm->name);
+ 	result = asus_hotk_check();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,6 +61,7 @@ drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
 revert-acpi-ec-do-transaction-from-interrupt-context.patch
 acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type.patch
+acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix.patch
 acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix.patch
 acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix-fix-fix-fix-fix.patch
 fix-x86-sparse_irq-needs-spin_lock-in-allocations.patch
