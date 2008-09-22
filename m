@@ -1,73 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: + leds-pca9532-mark-pca9532_event-static.patch added to -mm tree
-Date: Mon, 22 Sep 2008 15:42:10 -0700
-Message-ID: <200809222242.m8MMgAcC001865@imap1.linux-foundation.org>
+Subject: - audit-ignore-terminating-nul-in-audit_user_tty-messages.patch removed from -mm tree
+Date: Mon, 22 Sep 2008 15:45:53 -0700
+Message-ID: <200809222245.m8MMjrmw002023@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51073 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58582 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753559AbYIVWmo (ORCPT
+	by vger.kernel.org with ESMTP id S1753668AbYIVWqa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Sep 2008 18:42:44 -0400
+	Mon, 22 Sep 2008 18:46:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: sven.wegener@stealer.net
+To: mitr@redhat.com, eparis@redhat.com, sgrubb@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     leds-pca9532: mark pca9532_event() static
-has been added to the -mm tree.  Its filename is
-     leds-pca9532-mark-pca9532_event-static.patch
+     audit: ignore terminating NUL in AUDIT_USER_TTY messages
+has been removed from the -mm tree.  Its filename was
+     audit-ignore-terminating-nul-in-audit_user_tty-messages.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds-pca9532: mark pca9532_event() static
-From: Sven Wegener <sven.wegener@stealer.net>
+Subject: audit: ignore terminating NUL in AUDIT_USER_TTY messages
+From: Miloslav Trmac <mitr@redhat.com>
 
-Signed-off-by: Sven Wegener <sven.wegener@stealer.net>
+AUDIT_USER_TTY, like all other messages sent from user-space, is sent
+NUL-terminated.  Unlike other user-space audit messages, which come only
+from trusted sources, AUDIT_USER_TTY messages are processed using
+audit_log_n_untrustedstring().
+
+This patch modifies AUDIT_USER_TTY handling to ignore the trailing NUL
+and use the "quoted_string" representation of the message if possible.
+
+Signed-off-by: Miloslav Trmac <mitr@redhat.com>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Steve Grubb <sgrubb@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-pca9532.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/audit.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/leds/leds-pca9532.c~leds-pca9532-mark-pca9532_event-static drivers/leds/leds-pca9532.c
---- a/drivers/leds/leds-pca9532.c~leds-pca9532-mark-pca9532_event-static
-+++ a/drivers/leds/leds-pca9532.c
-@@ -151,8 +151,8 @@ static int pca9532_set_blink(struct led_
- 	return pca9532_setpwm(client, 0, psc, led_cdev->brightness);
- }
+diff -puN kernel/audit.c~audit-ignore-terminating-nul-in-audit_user_tty-messages kernel/audit.c
+--- a/kernel/audit.c~audit-ignore-terminating-nul-in-audit_user_tty-messages
++++ a/kernel/audit.c
+@@ -763,6 +763,9 @@ static int audit_receive_msg(struct sk_b
  
--int pca9532_event(struct input_dev *dev, unsigned int type, unsigned int code,
--	int value)
-+static int pca9532_event(struct input_dev *dev, unsigned int type,
-+	unsigned int code, int value)
- {
- 	struct pca9532_data *data = input_get_drvdata(dev);
- 
+ 				audit_log_format(ab, " msg=");
+ 				size = nlmsg_len(nlh);
++				if (size > 0 &&
++				    ((unsigned char *)data)[size - 1] == '\0')
++					size--;
+ 				audit_log_n_untrustedstring(ab, data, size);
+ 			}
+ 			audit_set_pid(ab, pid);
 _
 
-Patches currently in -mm which might be from sven.wegener@stealer.net are
+Patches currently in -mm which might be from mitr@redhat.com are
 
 linux-next.patch
-leds-avoid-needless-strlen-for-attributes.patch
-leds-wrap-use-default-on-trigger-for-power-led.patch
-leds-pca955x-mark-pca955x_led_set-static.patch
-leds-pca9532-mark-pca9532_event-static.patch
-leds-fsg-change-order-of-initialization-and-deinitialization.patch
-leds-pca955x-add-proper-error-handling-and-fix-bogus-memory-handling.patch
-md-check-for-memory-allocation-failure-in-faulty-personality.patch
+audit-ignore-terminating-nul-in-audit_user_tty-messages.patch
 
