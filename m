@@ -1,77 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 22 Sep 2008 14:51:16 -0700
-Message-ID: <200809222151.m8MLpHdu031911@imap1.linux-foundation.org>
+Subject: - backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 22 Sep 2008 14:52:37 -0700
+Message-ID: <200809222152.m8MLqbS8032014@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35883 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39749 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752981AbYIVVwY (ORCPT
+	by vger.kernel.org with ESMTP id S1753198AbYIVVxM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Sep 2008 17:52:24 -0400
+	Mon, 22 Sep 2008 17:53:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, elendil@planet.nl, jeff@garzik.org, jeffrey.t.kirsher@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, private@claudio.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes
+     backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
+     backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning.patch
+This patch was dropped because it was folded into backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes
+Subject: backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: code indent should use tabs where possible
-#39: FILE: drivers/net/e1000e/netdev.c:4675:
-+^I^I         "Warning: detected DSPD enabled in EEPROM\n");$
+WARNING: space prohibited between function name and open parenthesis '('
+#135: FILE: drivers/video/backlight/kb3886_bl.c:161:
++	if (IS_ERR (kb3886_backlight_device))
 
-ERROR: code indent should use tabs where possible
-#47: FILE: drivers/net/e1000e/netdev.c:4682:
-+^I^I         "Warning: detected ASPM enabled in EEPROM\n");$
+total: 0 errors, 1 warnings, 104 lines checked
 
-total: 2 errors, 0 warnings, 17 lines checked
-
-./patches/e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning.patch has style problems, please review.  If any of these errors
+./patches/backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Frans Pop <elendil@planet.nl>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc: Claudio Nieder <private@claudio.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000e/netdev.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/backlight/kb3886_bl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/e1000e/netdev.c~e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes drivers/net/e1000e/netdev.c
---- a/drivers/net/e1000e/netdev.c~e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes
-+++ a/drivers/net/e1000e/netdev.c
-@@ -4672,14 +4672,14 @@ static void e1000_eeprom_checks(struct e
- 	if (!(le16_to_cpu(buf) & (1 << 0))) {
- 		/* Deep Smart Power Down (DSPD) */
- 		dev_warn(&adapter->pdev-dev,
--		         "Warning: detected DSPD enabled in EEPROM\n");
-+			 "Warning: detected DSPD enabled in EEPROM\n");
- 	}
+diff -puN drivers/video/backlight/kb3886_bl.c~backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes drivers/video/backlight/kb3886_bl.c
+--- a/drivers/video/backlight/kb3886_bl.c~backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc-update-2-checkpatch-fixes
++++ a/drivers/video/backlight/kb3886_bl.c
+@@ -158,7 +158,7 @@ static int kb3886bl_probe(struct platfor
  
- 	ret_val = e1000_read_nvm(hw, NVM_INIT_3GIO_3, 1, &buf);
- 	if (le16_to_cpu(buf) & (3 << 2)) {
- 		/* ASPM enable */
- 		dev_warn(&adapter->pdev->dev,
--		         "Warning: detected ASPM enabled in EEPROM\n");
-+			 "Warning: detected ASPM enabled in EEPROM\n");
- 	}
- }
+ 	kb3886_backlight_device = backlight_device_register("kb3886-bl",
+ 		&pdev->dev, NULL, &kb3886bl_ops);
+-	if (IS_ERR (kb3886_backlight_device))
++	if (IS_ERR(kb3886_backlight_device))
+ 		return PTR_ERR(kb3886_backlight_device);
  
+ 	platform_set_drvdata(pdev, kb3886_backlight_device);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,7 +83,6 @@ drivers-dma-dmatestc-switch-a-gfp_atomic-to-gfp_kernel.patch
 sundance-set-carrier-status-on-link-change-events.patch
 cassini-use-request_firmware.patch
 e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning.patch
-e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-checkpatch-fixes.patch
 e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
 drivers-net-sfc-falconc-fix-min-warnings.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
