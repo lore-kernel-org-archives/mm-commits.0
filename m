@@ -1,123 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-gdthc-use-unaligned-access-helpers.patch removed from -mm tree
-Date: Tue, 23 Sep 2008 00:14:14 -0700
-Message-ID: <200809230714.m8N7EEVq020618@imap1.linux-foundation.org>
+Subject: + spi-pxa2xx_spi-buildfix.patch added to -mm tree
+Date: Tue, 23 Sep 2008 02:02:03 -0700
+Message-ID: <200809230902.m8N923uU024456@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33300 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58134 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752074AbYIWHO0 (ORCPT
+	by vger.kernel.org with ESMTP id S1750822AbYIWJCu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Sep 2008 03:14:26 -0400
+	Tue, 23 Sep 2008 05:02:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, James.Bottomley@HansenPartnership.com, bharrosh@panasas.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mike@compulab.co.il, dbrownell@users.sourceforge.net, eric.miao@marvell.com
 
 
 The patch titled
-     scsi: gdth.c use unaligned access helpers
-has been removed from the -mm tree.  Its filename was
-     scsi-gdthc-use-unaligned-access-helpers.patch
+     spi: pxa2xx_spi buildfix
+has been added to the -mm tree.  Its filename is
+     spi-pxa2xx_spi-buildfix.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: gdth.c use unaligned access helpers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: spi: pxa2xx_spi buildfix
+From: Mike Rapoport <mike@compulab.co.il>
 
-Remove two now unnecessary local vars.
+Fix a build error in the pxa2xx-spi driver, introduced by commit
+7e96445533ac3f4f7964646a202ff3620602fab4 ("pxa2xx_spi: dma bugfixes").
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Boaz Harrosh <bharrosh@panasas.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+
+[dbrownell@users.sourceforge.net: fix sparse warning too]
+Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+Acked-by: Eric Miao <eric.miao@marvell.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/gdth.c |   23 ++++++++++-------------
- 1 file changed, 10 insertions(+), 13 deletions(-)
+ drivers/spi/pxa2xx_spi.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/gdth.c~scsi-gdthc-use-unaligned-access-helpers drivers/scsi/gdth.c
---- a/drivers/scsi/gdth.c~scsi-gdthc-use-unaligned-access-helpers
-+++ a/drivers/scsi/gdth.c
-@@ -131,6 +131,7 @@
- #include <asm/system.h>
- #include <asm/io.h>
- #include <asm/uaccess.h>
-+#include <asm/unaligned.h>
- #include <linux/spinlock.h>
- #include <linux/blkdev.h>
- #include <linux/scatterlist.h>
-@@ -2429,8 +2430,8 @@ static int gdth_fill_cache_cmd(gdth_ha_s
- {
-     register gdth_cmd_str *cmdp;
-     struct gdth_cmndinfo *cmndinfo = gdth_cmnd_priv(scp);
--    ulong32 cnt, blockcnt;
--    ulong64 no, blockno;
-+    ulong32 blockcnt;
-+    ulong64 blockno;
-     int i, cmd_index, read_write, sgcnt, mode64;
+diff -puN drivers/spi/pxa2xx_spi.c~spi-pxa2xx_spi-buildfix drivers/spi/pxa2xx_spi.c
+--- a/drivers/spi/pxa2xx_spi.c~spi-pxa2xx_spi-buildfix
++++ a/drivers/spi/pxa2xx_spi.c
+@@ -49,7 +49,7 @@ MODULE_ALIAS("platform:pxa2xx-spi");
  
-     cmdp = ha->pccb;
-@@ -2498,19 +2499,15 @@ static int gdth_fill_cache_cmd(gdth_ha_s
+ #define DMA_INT_MASK		(DCSR_ENDINTR | DCSR_STARTINTR | DCSR_BUSERR)
+ #define RESET_DMA_CHANNEL	(DCSR_NODESC | DMA_INT_MASK)
+-#define IS_DMA_ALIGNED(x)	(((x) & 0x07) == 0)
++#define IS_DMA_ALIGNED(x)	((((u32)(x)) & 0x07) == 0)
+ #define MAX_DMA_LEN		8191
  
-     if (read_write) {
-         if (scp->cmd_len == 16) {
--            memcpy(&no, &scp->cmnd[2], sizeof(ulong64));
--            blockno = be64_to_cpu(no);
--            memcpy(&cnt, &scp->cmnd[10], sizeof(ulong32));
--            blockcnt = be32_to_cpu(cnt);
-+		blockno = get_unaligned_be64(&scp->cmnd[2]);
-+		blockcnt = get_unaligned_be64(&scp->cmnd[10]);
-         } else if (scp->cmd_len == 10) {
--            memcpy(&no, &scp->cmnd[2], sizeof(ulong32));
--            blockno = be32_to_cpu(no);
--            memcpy(&cnt, &scp->cmnd[7], sizeof(ushort));
--            blockcnt = be16_to_cpu(cnt);
-+		blockno = get_unaligned_be32(&scp->cmnd[2]);
-+		blockcnt = get_unaligned_be16(&scp->cmnd[7]);
-         } else {
--            memcpy(&no, &scp->cmnd[0], sizeof(ulong32));
--            blockno = be32_to_cpu(no) & 0x001fffffUL;
--            blockcnt= scp->cmnd[4]==0 ? 0x100 : scp->cmnd[4];
-+		blockno = get_unaligned_be32(&scp->cmnd[2]);
-+		blockno &= 0x001fffffUL;
-+		blockcnt = scp->cmnd[4] == 0 ? 0x100 : scp->cmnd[4];
-         }
-         if (mode64) {
-             cmdp->u.cache64.BlockNo = blockno;
+ /*
+@@ -896,7 +896,7 @@ static void pump_transfers(unsigned long
+ 				|| transfer->rx_dma || transfer->tx_dma) {
+ 			dev_err(&drv_data->pdev->dev,
+ 				"pump_transfers: mapped transfer length "
+-				"of %lu is greater than %d\n",
++				"of %u is greater than %d\n",
+ 				transfer->len, MAX_DMA_LEN);
+ 			message->status = -EINVAL;
+ 			giveback(drv_data);
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from mike@compulab.co.il are
 
-fbcon-fix-monochrome-color-value-calculation.patch
+spi-pxa2xx_spi-buildfix.patch
 linux-next.patch
-acpi-toshiba_acpic-fix-sparse-signedness-mismatch-warnings.patch
-x86-fix-shadowed-variable-warning.patch
-cifs-remove-global_extern-macro.patch
-input-ads7846c-sparse-lock-annotation.patch
-net-em_cmpc-use-unaligned-access-helpers.patch
-misdn-endian-annotations-for-struct-zt.patch
-misdn-annotate-iomem-pointer-and-add-statics.patch
-drivers-net-replace-__function__-with-__func__.patch
-bq27x00_battery-use-unaligned-access-helper.patch
-rcu-fix-sparse-shadowed-variable-warning.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-include-replace-__function__-with-__func__.patch
-misc-replace-__function__-with-__func__.patch
-befs-annotate-fs32-on-tests-for-superblock-endianness.patch
-char-moxac-sparse-annotation.patch
-byteorder-add-new-headers-for-make-headers-install.patch
-byteorder-use-generic-c-version-for-value-byteswapping.patch
-lib-pull-base-guessing-logic-to-helper-function.patch
-lib-trivial-whitespace-tidy.patch
-lib-remove-defining-macros-for-strict_strto.patch
 
