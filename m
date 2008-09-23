@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - misdn-misc-timerdev-fixes-fix.patch removed from -mm tree
-Date: Tue, 23 Sep 2008 10:46:51 -0700
-Message-ID: <200809231746.m8NHkpV2012939@imap1.linux-foundation.org>
+Subject: + misdn-misc-timerdev-fixes-fix.patch added to -mm tree
+Date: Tue, 23 Sep 2008 10:47:38 -0700
+Message-ID: <200809231747.m8NHlcM3012957@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51278 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37163 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751630AbYIWRrJ (ORCPT
+	by vger.kernel.org with ESMTP id S1753086AbYIWSD5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Sep 2008 13:47:09 -0400
+	Tue, 23 Sep 2008 14:03:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, hch@lst.de, kkeil@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, andi@firstfloor.org, hch@lst.de, kkeil@suse.de
 
 
 The patch titled
      misdn-misc-timerdev-fixes-fix
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      misdn-misc-timerdev-fixes-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
