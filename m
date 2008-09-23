@@ -1,26 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2008-09-23-11-24 uploaded
-Date: Tue, 23 Sep 2008 11:27:16 -0700
-Message-ID: <200809231827.m8NIRGQU014563@imap1.linux-foundation.org>
+Subject: mmotm 2008-09-23-11-27 uploaded
+Date: Tue, 23 Sep 2008 11:29:59 -0700
+Message-ID: <200809231830.m8NIU01n014712@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52631 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46516 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751766AbYIWS1s (ORCPT
+	by vger.kernel.org with ESMTP id S1751535AbYIWSab (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Sep 2008 14:27:48 -0400
+	Tue, 23 Sep 2008 14:30:31 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m8NIRG5s007368
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m8NIU09X007640
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2008 11:27:17 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2008 11:30:01 -0700
 Received: from localhost.localdomain (localhost [127.0.0.1])
-	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m8NIRGQU014563
-	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2008 11:27:16 -0700
+	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m8NIU01n014712
+	for <mm-commits@vger.kernel.org>; Tue, 23 Sep 2008 11:30:00 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 
-The mm-of-the-moment snapshot 2008-09-23-11-24 has been uploaded to
+The mm-of-the-moment snapshot 2008-09-23-11-27 has been uploaded to
 
    http://userweb.kernel.org/~akpm/mmotm/
 
