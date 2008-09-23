@@ -1,151 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch removed from -mm tree
-Date: Mon, 22 Sep 2008 18:40:09 -0700
-Message-ID: <200809230140.m8N1e9Kg008631@imap1.linux-foundation.org>
+Subject: - ia64-uv-provide-a-led-driver-for-uv-systems.patch removed from -mm tree
+Date: Mon, 22 Sep 2008 18:43:19 -0700
+Message-ID: <200809230143.m8N1hJkc008794@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49315 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40003 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753885AbYIWBkg (ORCPT
+	by vger.kernel.org with ESMTP id S1753469AbYIWBnX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 22 Sep 2008 21:40:36 -0400
+	Mon, 22 Sep 2008 21:43:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: astarikovskiy@suse.de, andi@firstfloor.org, hmh@hmh.eng.br, maxi@daemonizer.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: travis@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: EC: Don't degrade to poll mode at storm automatically
+     ia64 UV: provide a LED driver for UV Systems
 has been removed from the -mm tree.  Its filename was
-     acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch
+     ia64-uv-provide-a-led-driver-for-uv-systems.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ACPI: EC: Don't degrade to poll mode at storm automatically
-From: Alexey Starikovskiy <astarikovskiy@suse.de>
+Subject: ia64 UV: provide a LED driver for UV Systems
+From: Mike Travis <travis@sgi.com>
 
-Not all users of semi-broken EC devices want to degrade to poll mode, so
-give them right to choose.
+  * Add base functionality for writing to the LED's on
+    the ia64 UV architecture.
 
-This fixes a regression in 2.6.26 (from 2.6.25.3).  Initially reported as
-"Asus Eee PC hotkeys stop working if pressed quickly" in bugzilla
-<http://bugzilla.kernel.org/show_bug.cgi?id=11089>.
+Note that this is a RAS feature that allows external monitoring of
+various cpu state indicators, not just providing "pretty blinking
+lights", as the LED state is readable by the system controller.
 
-The regression was caused by a recently added check for interrupt storms. 
-The Eee PC triggers this check and switches to polling.  When multiple
-events arrive between polling intervals, only one is fetched from the EC. 
-This causes erroneous behaviour; ultimately events stop being delivered
-altogether when the EC buffer overflows.
-
-Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Maximilian Engelhardt <maxi@daemonizer.de>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Mike Travis <travis@sgi.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    5 +++
- drivers/acpi/ec.c                   |   36 ++++++++++++++++++--------
- 2 files changed, 31 insertions(+), 10 deletions(-)
+ arch/ia64/include/asm/uv/uv_hub.h |   61 +++++++++++++++++++++++++++-
+ arch/ia64/uv/kernel/setup.c       |    2 
+ 2 files changed, 62 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-parameters.txt~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically
-+++ a/Documentation/kernel-parameters.txt
-@@ -736,6 +736,11 @@ and is between 256 and 4096 characters. 
+diff -puN arch/ia64/include/asm/uv/uv_hub.h~ia64-uv-provide-a-led-driver-for-uv-systems arch/ia64/include/asm/uv/uv_hub.h
+--- a/arch/ia64/include/asm/uv/uv_hub.h~ia64-uv-provide-a-led-driver-for-uv-systems
++++ a/arch/ia64/include/asm/uv/uv_hub.h
+@@ -99,6 +99,7 @@ struct uv_hub_info_s {
+ 	unsigned long	gnode_upper;
+ 	unsigned long	lowmem_remap_top;
+ 	unsigned long	lowmem_remap_base;
++	unsigned long	led_offset;
+ 	unsigned short	pnode;
+ 	unsigned short	pnode_mask;
+ 	unsigned short	coherency_domain_number;
+@@ -106,6 +107,7 @@ struct uv_hub_info_s {
+ 	unsigned char	blade_processor_id;
+ 	unsigned char	m_val;
+ 	unsigned char	n_val;
++	unsigned char	led_state;
+ };
+ DECLARE_PER_CPU(struct uv_hub_info_s, __uv_hub_info);
+ #define uv_hub_info 		(&__get_cpu_var(__uv_hub_info))
+@@ -134,6 +136,20 @@ DECLARE_PER_CPU(struct uv_hub_info_s, __
+ #define UV_GLOBAL_MMR64_PNODE_BITS(p)					\
+ 	((unsigned long)(p) << UV_GLOBAL_MMR64_PNODE_SHIFT)
  
- 	eata=		[HW,SCSI]
- 
-+	ec_intr=	[HW,ACPI] ACPI Embedded Controller interrupt mode
-+			Format: <int>
-+			0: polling mode
-+			non-0: interrupt mode (default)
++/* Local Bus from cpu's perspective */
++#define LOCAL_BUS_BASE		0x1c00000
++#define LOCAL_BUS_SIZE		(4 * 1024 * 1024)
 +
- 	edd=		[EDD]
- 			Format: {"off" | "on" | "skip[mbr]"}
- 
-diff -puN drivers/acpi/ec.c~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically drivers/acpi/ec.c
---- a/drivers/acpi/ec.c~acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically
-+++ a/drivers/acpi/ec.c
-@@ -110,6 +110,8 @@ static struct acpi_ec {
- 	u8 handlers_installed;
- } *boot_ec, *first_ec;
- 
-+int acpi_ec_intr = 1; /* Default is interrupt mode */
++/* LED windows - located at top of ACPI MMR space */
++#define LED_WINDOW_COUNT	64
++#define LED_LOCAL_MMR_BASE	(LOCAL_BUS_BASE + LOCAL_BUS_SIZE - \
++							LED_WINDOW_COUNT)
 +
- /* 
-  * Some Asus system have exchanged ECDT data/command IO addresses.
-  */
-@@ -516,12 +518,14 @@ static u32 acpi_ec_gpe_handler(void *dat
- 	acpi_status status = AE_OK;
- 	struct acpi_ec *ec = data;
- 	u8 state = acpi_ec_read_status(ec);
-+	static bool warn_done = false;
- 
- 	pr_debug(PREFIX "~~~> interrupt\n");
- 	atomic_inc(&ec->irq_count);
--	if (atomic_read(&ec->irq_count) > 5) {
--		pr_err(PREFIX "GPE storm detected, disabling EC GPE\n");
--		ec_switch_to_poll_mode(ec);
-+	if (!warn_done && atomic_read(&ec->irq_count) > 5) {
-+		pr_warning(PREFIX "GPE storm detected, try to use ec_intr=0 "
-+			"kernel option, if you see problems with keyboard.\n");
-+		warn_done = 1;
- 		goto end;
- 	}
- 	clear_bit(EC_FLAGS_WAIT_GPE, &ec->flags);
-@@ -848,20 +852,21 @@ static int ec_install_handlers(struct ac
- 	acpi_status status;
- 	if (ec->handlers_installed)
- 		return 0;
--	status = acpi_install_gpe_handler(NULL, ec->gpe,
-+	if (acpi_ec_intr) {
-+		status = acpi_install_gpe_handler(NULL, ec->gpe,
- 					  ACPI_GPE_EDGE_TRIGGERED,
- 					  &acpi_ec_gpe_handler, ec);
--	if (ACPI_FAILURE(status))
--		return -ENODEV;
--
--	acpi_set_gpe_type(NULL, ec->gpe, ACPI_GPE_TYPE_RUNTIME);
--	acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
-+		if (ACPI_FAILURE(status))
-+			return -ENODEV;
- 
-+		acpi_set_gpe_type(NULL, ec->gpe, ACPI_GPE_TYPE_RUNTIME);
-+		acpi_enable_gpe(NULL, ec->gpe, ACPI_NOT_ISR);
-+	}
- 	status = acpi_install_address_space_handler(ec->handle,
- 						    ACPI_ADR_SPACE_EC,
- 						    &acpi_ec_space_handler,
- 						    NULL, ec);
--	if (ACPI_FAILURE(status)) {
-+	if (ACPI_FAILURE(status) && acpi_ec_intr) {
- 		acpi_remove_gpe_handler(NULL, ec->gpe, &acpi_ec_gpe_handler);
- 		return -ENODEV;
- 	}
-@@ -1047,3 +1052,14 @@ static void __exit acpi_ec_exit(void)
- 	return;
++#define LED_CPU_HEARTBEAT	0x01	/* timer interrupt */
++#define LED_CPU_ACTIVITY	0x02	/* not idle */
++#define LED_CPU_BLINK		0xffff	/* blink led */
++#define LED_CPU_HB_INTERVAL	(HZ/2)	/* blink once per second */
++
+ /*
+  * Macros for converting between kernel virtual addresses, socket local physical
+  * addresses, and UV global physical addresses.
+@@ -240,6 +256,16 @@ static inline void uv_write_local_mmr(un
+ 	*uv_local_mmr_address(offset) = val;
  }
- #endif	/* 0 */
-+
-+static int __init acpi_ec_set_intr_mode(char *str)
+ 
++static inline unsigned char uv_read_local_mmr8(unsigned long offset)
 +{
-+	if (!get_option(&str, &acpi_ec_intr)) {
-+		acpi_ec_intr = 0;
-+		return 0;
-+	}
-+	return 1;
++	return *((unsigned char *)uv_local_mmr_address(offset));
 +}
 +
-+__setup("ec_intr=", acpi_ec_set_intr_mode);
++static inline void uv_write_local_mmr8(unsigned long offset, unsigned char val)
++{
++	*((unsigned char *)uv_local_mmr_address(offset)) = val;
++}
++
+ /*
+  * Structures and definitions for converting between cpu, node, pnode, and blade
+  * numbers.
+@@ -305,5 +331,38 @@ static inline int uv_num_possible_blades
+ 	return 1;
+ }
+ 
+-#endif /* __ASM_IA64_UV_HUB__ */
++/* Light up the leds */
++static inline void uv_set_led_bits(unsigned short value, unsigned char mask)
++{
++	unsigned char state = uv_hub_info->led_state;
++
++	if (value == LED_CPU_BLINK)
++		state ^= mask;
++	else
++		state = (state & ~mask) | (value & mask);
+ 
++	if (uv_hub_info->led_state != state) {
++		uv_hub_info->led_state = state;
++		uv_write_local_mmr8(uv_hub_info->led_offset, state);
++	}
++}
++
++/* Light up the leds */
++static inline void uv_set_led_bits_on(int cpu, unsigned short value,
++					       unsigned char mask)
++
++{
++	unsigned char state = uv_cpu_hub_info(cpu)->led_state;
++
++	if (value == LED_CPU_BLINK)
++		state ^= mask;
++	else
++		state = (state & ~mask) | (value & mask);
++
++	if (uv_cpu_hub_info(cpu)->led_state != state) {
++		uv_cpu_hub_info(cpu)->led_state = state;
++		uv_write_local_mmr8(uv_cpu_hub_info(cpu)->led_offset, state);
++	}
++}
++
++#endif /* __ASM_IA64_UV_HUB__ */
+diff -puN arch/ia64/uv/kernel/setup.c~ia64-uv-provide-a-led-driver-for-uv-systems arch/ia64/uv/kernel/setup.c
+--- a/arch/ia64/uv/kernel/setup.c~ia64-uv-provide-a-led-driver-for-uv-systems
++++ a/arch/ia64/uv/kernel/setup.c
+@@ -104,6 +104,8 @@ void __init uv_setup(char **cmdline_p)
+ 		uv_cpu_hub_info(cpu)->gnode_upper = gnode_upper;
+ 		uv_cpu_hub_info(cpu)->global_mmr_base = mmr_base;
+ 		uv_cpu_hub_info(cpu)->coherency_domain_number = 0;/* ZZZ */
++		uv_cpu_hub_info(cpu)->led_offset = LED_LOCAL_MMR_BASE + lcpu;
++		uv_cpu_hub_info(cpu)->led_state = 0;
+ 		printk(KERN_DEBUG "UV cpu %d, nid %d\n", cpu, nid);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from astarikovskiy@suse.de are
+Patches currently in -mm which might be from travis@sgi.com are
 
 linux-next.patch
-acpi-ec-dont-degrade-to-poll-mode-at-storm-automatically.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+ia64-uv-provide-a-led-driver-for-uv-systems.patch
+ia64-uv-use-led-to-indicate-cpu-is-active.patch
+ia64-uv-use-blinking-led-for-heartbeat-display.patch
+cpuset-use-seq_cpumask-seq_nodemask.patch
 
