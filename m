@@ -1,50 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - net-fix-compilation-ng-when-config_module.patch removed from -mm tree
-Date: Mon, 22 Sep 2008 21:12:22 -0700
-Message-ID: <200809230412.m8N4CMn7014229@imap1.linux-foundation.org>
+Subject: - scsi-gdthc-use-unaligned-access-helpers.patch removed from -mm tree
+Date: Tue, 23 Sep 2008 00:14:14 -0700
+Message-ID: <200809230714.m8N7EEVq020618@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53141 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33300 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750907AbYIWEM4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752074AbYIWHO0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 23 Sep 2008 00:12:56 -0400
+	Tue, 23 Sep 2008 03:14:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: h-shimamoto@ct.jp.nec.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, James.Bottomley@HansenPartnership.com, bharrosh@panasas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net: fix compilation NG when !CONFIG_MODULE
+     scsi: gdth.c use unaligned access helpers
 has been removed from the -mm tree.  Its filename was
-     net-fix-compilation-ng-when-config_module.patch
+     scsi-gdthc-use-unaligned-access-helpers.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net: fix compilation NG when !CONFIG_MODULE
-From: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Subject: scsi: gdth.c use unaligned access helpers
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-  CC      net/core/dev.o
-net/core/dev.c:1001: error: redefinition of 'dev_load'
-include/linux/netdevice.h:1645: error: previous definition of 'dev_load' was here
-make[2]: *** [net/core/dev.o] Error 1
+Remove two now unnecessary local vars.
 
-dev_load() is not used when CONFIG_MODULE disabled.
-
-Signed-off-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Boaz Harrosh <bharrosh@panasas.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/dev.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/scsi/gdth.c |   23 ++++++++++-------------
+ 1 file changed, 10 insertions(+), 13 deletions(-)
 
-diff -puN net/core/dev.c~net-fix-compilation-ng-when-config_module net/core/dev.c
---- a/net/core/dev.c~net-fix-compilation-ng-when-config_module
-+++ a/net/core/dev.c
-@@ -997,7 +997,7 @@ EXPORT_SYMBOL(netdev_bonding_change);
-  *	privileges this function loads the module. If module loading is not
-  *	available in this kernel then it becomes a nop.
-  */
+diff -puN drivers/scsi/gdth.c~scsi-gdthc-use-unaligned-access-helpers drivers/scsi/gdth.c
+--- a/drivers/scsi/gdth.c~scsi-gdthc-use-unaligned-access-helpers
++++ a/drivers/scsi/gdth.c
+@@ -131,6 +131,7 @@
+ #include <asm/system.h>
+ #include <asm/io.h>
+ #include <asm/uaccess.h>
++#include <asm/unaligned.h>
+ #include <linux/spinlock.h>
+ #include <linux/blkdev.h>
+ #include <linux/scatterlist.h>
+@@ -2429,8 +2430,8 @@ static int gdth_fill_cache_cmd(gdth_ha_s
+ {
+     register gdth_cmd_str *cmdp;
+     struct gdth_cmndinfo *cmndinfo = gdth_cmnd_priv(scp);
+-    ulong32 cnt, blockcnt;
+-    ulong64 no, blockno;
++    ulong32 blockcnt;
++    ulong64 blockno;
+     int i, cmd_index, read_write, sgcnt, mode64;
+ 
+     cmdp = ha->pccb;
+@@ -2498,19 +2499,15 @@ static int gdth_fill_cache_cmd(gdth_ha_s
+ 
+     if (read_write) {
+         if (scp->cmd_len == 16) {
+-            memcpy(&no, &scp->cmnd[2], sizeof(ulong64));
+-            blockno = be64_to_cpu(no);
+-            memcpy(&cnt, &scp->cmnd[10], sizeof(ulong32));
+-            blockcnt = be32_to_cpu(cnt);
++		blockno = get_unaligned_be64(&scp->cmnd[2]);
++		blockcnt = get_unaligned_be64(&scp->cmnd[10]);
+         } else if (scp->cmd_len == 10) {
+-            memcpy(&no, &scp->cmnd[2], sizeof(ulong32));
+-            blockno = be32_to_cpu(no);
+-            memcpy(&cnt, &scp->cmnd[7], sizeof(ushort));
+-            blockcnt = be16_to_cpu(cnt);
++		blockno = get_unaligned_be32(&scp->cmnd[2]);
++		blockcnt = get_unaligned_be16(&scp->cmnd[7]);
+         } else {
+-            memcpy(&no, &scp->cmnd[0], sizeof(ulong32));
+-            blockno = be32_to_cpu(no) & 0x001fffffUL;
+-            blockcnt= scp->cmnd[4]==0 ? 0x100 : scp->cmnd[4];
++		blockno = get_unaligned_be32(&scp->cmnd[2]);
++		blockno &= 0x001fffffUL;
++		blockcnt = scp->cmnd[4] == 0 ? 0x100 : scp->cmnd[4];
+         }
+         if (mode64) {
+             cmdp->u.cache64.BlockNo = blockno;
+_
+
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
+
+fbcon-fix-monochrome-color-value-calculation.patch
+linux-next.patch
+acpi-toshiba_acpic-fix-sparse-signedness-mismatch-warnings.patch
+x86-fix-shadowed-variable-warning.patch
+cifs-remove-global_extern-macro.patch
+input-ads7846c-sparse-lock-annotation.patch
+net-em_cmpc-use-unaligned-access-helpers.patch
+misdn-endian-annotations-for-struct-zt.patch
+misdn-annotate-iomem-pointer-and-add-statics.patch
+drivers-net-replace-__function__-with-__func__.patch
+bq27x00_battery-use-unaligned-access-helper.patch
+rcu-fix-sparse-shadowed-variable-warning.patch
+scsi-replace-__inline-with-inline.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
+olpc-olpc_batteryc-sparse-endian-annotations.patch
+include-replace-__function__-with-__func__.patch
+misc-replace-__function__-with-__func__.patch
+befs-annotate-fs32-on-tests-for-superblock-endianness.patch
+char-moxac-sparse-annotation.patch
+byteorder-add-new-headers-for-make-headers-install.patch
+byteorder-use-generic-c-version-for-value-byteswapping.patch
+lib-pull-base-guessing-logic-to-helper-function.patch
+lib-trivial-whitespace-tidy.patch
+lib-remove-defining-macros-for-strict_strto.patch
+
