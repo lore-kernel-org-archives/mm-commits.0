@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 24 Sep 2008 01:08:07 -0700
-Message-ID: <200809240808.m8O887p0017136@imap1.linux-foundation.org>
+Subject: - serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 24 Sep 2008 01:08:19 -0700
+Message-ID: <200809240808.m8O88JRi017142@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36408 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43857 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751337AbYIXIIN (ORCPT
+	by vger.kernel.org with ESMTP id S1751418AbYIXIIa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Sep 2008 04:08:13 -0400
+	Wed, 24 Sep 2008 04:08:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, davem@davemloft.net
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
      serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -150,6 +140,7 @@ hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
 drivers-hwmon-applesmcc-remove-unneeded-casts.patch
 allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
 serial-make-uart_ports-ioport-unsigned-long-fix.patch
+serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers.patch
 serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers-checkpatch-fixes.patch
 autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
 autofs4-add-miscellaneous-device-for-ioctls-fix.patch
