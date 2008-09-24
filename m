@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers.patch added to -mm tree
-Date: Wed, 24 Sep 2008 01:06:52 -0700
-Message-ID: <200809240806.m8O86qRa017027@imap1.linux-foundation.org>
+Subject: + serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 24 Sep 2008 01:08:07 -0700
+Message-ID: <200809240808.m8O887p0017136@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36219 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36408 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751205AbYIXIHE (ORCPT
+	by vger.kernel.org with ESMTP id S1751337AbYIXIIN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 24 Sep 2008 04:07:04 -0400
+	Wed, 24 Sep 2008 04:08:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davem@davemloft.net, alan@lxorguk.ukuu.org.uk
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, davem@davemloft.net
 
 
 The patch titled
-     serial: fix device name reporting when minor space is shared between drivers
+     serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers.patch
+     serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,150 +34,171 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: fix device name reporting when minor space is shared between drivers
-From: David S. Miller <davem@davemloft.net>
+Subject: serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-The multiple drivers share the minor space occupied by a particular major
-number, the actual index within the device name's space is indicated by
-the tty_driver->name_base + uart_port->line
+WARNING: line over 80 characters
+#43: FILE: drivers/serial/8250.c:1011:
++		       serial_index(&up->port), up->port.iobase, up->port.membase);
 
-Another usable formula is (uart_driver->minor - MINOR_BASE) + port->line
+WARNING: printk() should include KERN_ facility level
+#63: FILE: drivers/serial/8250.c:1912:
++		printk("ttyS%d: LSR safety check engaged!\n",
 
-Use those to print the device names properly in such situations in
-serial_core.c and 8250.c
+total: 0 errors, 2 warnings, 83 lines checked
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+./patches/serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250.c        |   22 +++++++++++++++-------
- drivers/serial/serial_core.c |    7 +++++--
- 2 files changed, 20 insertions(+), 9 deletions(-)
+ drivers/serial/8250.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/8250.c~serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers drivers/serial/8250.c
---- a/drivers/serial/8250.c~serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers
+diff -puN drivers/serial/8250.c~serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers-checkpatch-fixes drivers/serial/8250.c
+--- a/drivers/serial/8250.c~serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers-checkpatch-fixes
 +++ a/drivers/serial/8250.c
-@@ -57,6 +57,13 @@ static unsigned int share_irqs = SERIAL8
- 
- static unsigned int nr_uarts = CONFIG_SERIAL_8250_RUNTIME_UARTS;
- 
-+static struct uart_driver serial8250_reg;
-+
-+static int serial_index(struct uart_port *port)
-+{
-+	return (serial8250_reg.minor - 64) + port->line;
-+}
-+
- /*
-  * Debugging.
-  */
-@@ -1001,7 +1008,7 @@ static void autoconfig(struct uart_8250_
- 		return;
- 
- 	DEBUG_AUTOCONF("ttyS%d: autoconf (0x%04x, 0x%p): ",
--			up->port.line, up->port.iobase, up->port.membase);
-+		       serial_index(&up->port), up->port.iobase, up->port.membase);
- 
- 	/*
- 	 * We really do need global IRQs disabled here - we're going to
-@@ -1136,8 +1143,8 @@ static void autoconfig(struct uart_8250_
- 	if (up->capabilities != uart_config[up->port.type].flags) {
- 		printk(KERN_WARNING
- 		       "ttyS%d: detected caps %08x should be %08x\n",
--			up->port.line, up->capabilities,
--			uart_config[up->port.type].flags);
-+		       serial_index(&up->port), up->capabilities,
-+		       uart_config[up->port.type].flags);
- 	}
- 
- 	up->port.fifosize = uart_config[up->port.type].fifo_size;
-@@ -1902,7 +1909,8 @@ static int serial8250_startup(struct uar
+@@ -1909,7 +1909,7 @@ static int serial8250_startup(struct uar
  	 */
  	if (!(up->port.flags & UPF_BUGGY_UART) &&
  	    (serial_inp(up, UART_LSR) == 0xff)) {
--		printk("ttyS%d: LSR safety check engaged!\n", up->port.line);
-+		printk("ttyS%d: LSR safety check engaged!\n",
-+		       serial_index(&up->port));
+-		printk("ttyS%d: LSR safety check engaged!\n",
++		printk(KERN_INFO "ttyS%d: LSR safety check engaged!\n",
+ 		       serial_index(&up->port));
  		return -ENODEV;
  	}
- 
-@@ -1957,7 +1965,8 @@ static int serial8250_startup(struct uar
- 		 */
- 		if (!(iir1 & UART_IIR_NO_INT) && (iir & UART_IIR_NO_INT)) {
- 			up->bugs |= UART_BUG_THRE;
--			pr_debug("ttyS%d - using backup timer\n", port->line);
-+			pr_debug("ttyS%d - using backup timer\n",
-+				 serial_index(port));
- 		}
- 	}
- 
-@@ -2017,7 +2026,7 @@ static int serial8250_startup(struct uar
- 		if (!(up->bugs & UART_BUG_TXEN)) {
- 			up->bugs |= UART_BUG_TXEN;
- 			pr_debug("ttyS%d - enabling bad tx status workarounds\n",
--				 port->line);
-+				 serial_index(port));
- 		}
- 	} else {
- 		up->bugs &= ~UART_BUG_TXEN;
-@@ -2685,7 +2694,6 @@ static int serial8250_console_early_setu
- 	return serial8250_find_port_for_earlycon();
- }
- 
--static struct uart_driver serial8250_reg;
- static struct console serial8250_console = {
- 	.name		= "ttyS",
- 	.write		= serial8250_console_write,
-diff -puN drivers/serial/serial_core.c~serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers
-+++ a/drivers/serial/serial_core.c
-@@ -2051,7 +2051,8 @@ int uart_suspend_port(struct uart_driver
- 					"transmitter\n",
- 			       port->dev ? port->dev->bus_id : "",
- 			       port->dev ? ": " : "",
--			       drv->dev_name, port->line);
-+			       drv->dev_name,
-+			       drv->tty_driver->name_base + port->line);
- 
- 		ops->shutdown(port);
- 	}
-@@ -2176,7 +2177,9 @@ uart_report_port(struct uart_driver *drv
- 	printk(KERN_INFO "%s%s%s%d at %s (irq = %d) is a %s\n",
- 	       port->dev ? port->dev->bus_id : "",
- 	       port->dev ? ": " : "",
--	       drv->dev_name, port->line, address, port->irq, uart_type(port));
-+	       drv->dev_name,
-+	       drv->tty_driver->name_base + port->line,
-+	       address, port->irq, uart_type(port));
- }
- 
- static void
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-sys_paccept-disable-paccept-until-api-design-is-resolved.patch
+mm-tiny-shmem-fix-lor-mmap_sem-vs-i_mutex.patch
+documentation-sysctl-kerneltxt-fix-softlockup_thresh-description.patch
 linux-next.patch
-git-net.patch
-drivers-isdn-capi-kcapic-adjust-error-handling-code-involving-capi_ctr_put.patch
-sunrpc-do-not-pin-sunrpc-module-in-the-memory.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+fix-x86-sparse_irq-needs-spin_lock-in-allocations.patch
+zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
+arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
+drivers-media-video-tda9840c-unbreak.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+git-jg-misc.patch
+kvm-provide-intel_iommu_found-stub-if-config_dmar=n.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
+drivers-dma-dmatestc-switch-a-gfp_atomic-to-gfp_kernel.patch
+misdn-misc-timerdev-fixes-fix.patch
+sundance-set-carrier-status-on-link-change-events.patch
+cassini-use-request_firmware.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning.patch
+e1000e-avoid-duplicated-output-of-device-name-in-kernel-warning-fix.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+fix-cred-wrap-current-cred-and-a-few-other-accessors-on-mips.patch
+sched-clarify-ifdef-tangle.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
 drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
+drivers-usb-musb-disable-it-on-superh.patch
+git-xtensa.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry.patch
+drivers-media-video-cafe_ccicc-needs-mmh.patch
 drivers-net-mlx4-allocc-needs-mmh.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+eeepc-laptop-use-standard-interfaces-fix-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
 separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
-compat-generic-compat-get-settimeofday.patch
-x86-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
-sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
-introduce-generic-iommu_num_pages-function.patch
-sparc64-use-iommu_num_pages-function-in-iommu-code.patch
+fix-a-race-condtion-of-oops_in_progress-fix.patch
+make-taint-bit-reliable-v3-fix.patch
+kernel-sysc-improve-code-generation.patch
+compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
+drivers-hwmon-applesmcc-remove-unneeded-casts.patch
+allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
 serial-make-uart_ports-ioport-unsigned-long-fix.patch
-serial-allow-8250-to-be-used-on-sparc.patch
-serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers.patch
-kprobes-indirectly-call-kprobe_target.patch
-kprobes-add-tests-for-register_kprobes.patch
-radeonfb-misc-cleanup-of-engine-and-dst-cache-handling.patch
-radeonfb-accelerate-imageblit-and-other-improvements.patch
-sysctl-simplify-strategy.patch
-byteorder-use-generic-c-version-for-value-byteswapping.patch
+serial-fix-device-name-reporting-when-minor-space-is-shared-between-drivers-checkpatch-fixes.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
+ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+genirq-record-trigger-type-fix.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
+tty-fix-echo-tab-erase-and-locking-fix.patch
+applicomc-fix-apparently-broken-code-in-do_ac_read.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+w1-be-able-to-manually-add-and-remove-slaves-fix.patch
+w1-new-driver-ds2431-chip-fix.patch
+gru-driver-minor-updates-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+x86-sysfs-kill-owner-field-from-attribute-fix.patch
+x86-sysfs-kill-owner-field-from-attribute-fix-fix.patch
+x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
