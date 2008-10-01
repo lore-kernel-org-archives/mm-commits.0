@@ -1,112 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: - fix-a-race-condtion-of-oops_in_progress-fix2.patch removed from -mm tree
-Date: Wed, 01 Oct 2008 14:38:44 -0700
-Message-ID: <200810012138.m91LcijR005266@imap1.linux-foundation.org>
+Subject: - fix-a-race-condtion-of-oops_in_progress-fix.patch removed from -mm tree
+Date: Wed, 01 Oct 2008 14:38:59 -0700
+Message-ID: <200810012138.m91LcxJ8005283@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50633 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34325 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750769AbYJAVjT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:39:19 -0400
+	by vger.kernel.org with ESMTP id S1750769AbYJAVjc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:39:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     build error fix of "fix a race condition of oops_in_progress"
+     fix-a-race-condtion-of-oops_in_progress-fix
 has been removed from the -mm tree.  Its filename was
-     fix-a-race-condtion-of-oops_in_progress-fix2.patch
+     fix-a-race-condtion-of-oops_in_progress-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: build error fix of "fix a race condition of oops_in_progress"
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: fix-a-race-condtion-of-oops_in_progress-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Patch against: mmotm 09/13
-Patch name: fix-a-race-condtion-of-oops_in_progress-fix2.patch
-Applied after: fix-a-race-condtion-of-oops_in_progress-fix.patch
-
-if CONFIG_DEBUG_MUTEXES=y, mutex.c makes following build error.
-because oops_in_progress was changed from int to atomic_t.
-
-------------------------------------------------------------------
-  CC      kernel/mutex.o
-kernel/mutex.c: In function '__mutex_lock_common':
-kernel/mutex.c:135: error: wrong type argument to unary exclamation mark
-kernel/mutex.c:135: error: wrong type argument to unary exclamation mark
-kernel/mutex.c:183: error: wrong type argument to unary exclamation mark
-kernel/mutex.c:183: error: wrong type argument to unary exclamation mark
-kernel/mutex.c: In function '__mutex_unlock_common_slowpath':
-kernel/mutex.c:240: error: wrong type argument to unary exclamation mark
-kernel/mutex.c:240: error: wrong type argument to unary exclamation mark
-kernel/mutex.c: In function '__mutex_trylock_slowpath':
-kernel/mutex.c:351: error: wrong type argument to unary exclamation mark
-kernel/mutex.c:351: error: wrong type argument to unary exclamation mark
-make[1]: *** [kernel/mutex.o] Error 1
-make: *** [kernel] Error 2
----------------------------------------------------------------
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/debug_locks.h |    2 +-
+ lib/debug_locks.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/debug_locks.h~fix-a-race-condtion-of-oops_in_progress-fix2 include/linux/debug_locks.h
---- a/include/linux/debug_locks.h~fix-a-race-condtion-of-oops_in_progress-fix2
-+++ a/include/linux/debug_locks.h
-@@ -17,7 +17,7 @@ extern int debug_locks_off(void);
- ({									\
- 	int __ret = 0;							\
- 									\
--	if (!oops_in_progress && unlikely(c)) {				\
-+	if (!atomic_read(&oops_in_progress) && unlikely(c)) {		\
- 		if (debug_locks_off() && !debug_locks_silent)		\
- 			WARN_ON(1);					\
- 		__ret = 1;						\
+diff -puN lib/debug_locks.c~fix-a-race-condtion-of-oops_in_progress-fix lib/debug_locks.c
+--- a/lib/debug_locks.c~fix-a-race-condtion-of-oops_in_progress-fix
++++ a/lib/debug_locks.c
+@@ -38,7 +38,7 @@ int debug_locks_off(void)
+ {
+ 	if (xchg(&debug_locks, 0)) {
+ 		if (!debug_locks_silent) {
+-			oops_in_progress = 1;
++			atomic_set(&oops_in_progress, 1);
+ 			console_verbose();
+ 			return 1;
+ 		}
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-do_generic_file_read-never-gets-a-null-filp-argument.patch
-vmscan-use-an-indexed-array-for-lru-variables.patch
-swap-use-an-array-for-the-lru-pagevecs.patch
+git-powerpc.patch
+git-sparc.patch
+git-x86.patch
+git-xtensa.patch
+git-ftrace.patch
+git-pci.patch
+git-hid.patch
+git-v4l-dvb.patch
+git-nfsd.patch
+git-dlm.patch
+git-async_tx.patch
+git-net.patch
+git-mtd.patch
+git-sound.patch
+git-sound-rejects.patch
+git-input.patch
+git-block.patch
+git-battery.patch
+git-mfd.patch
+git-drm.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
+drivers-media-video-tda9840c-unbreak.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
+misdn-misc-timerdev-fixes-fix.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry.patch
+drivers-media-video-cafe_ccicc-needs-mmh.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
 vmscan-split-lru-lists-into-anon-file-sets.patch
-vmscan-second-chance-replacement-for-anonymous-pages.patch
 unevictable-lru-infrastructure.patch
-unevictable-lru-infrastructure-nommu-fix.patch
-unevictable-lru-infrastructure-remember-pages-active-state.patch
-unevictable-lru-infrastructure-defer-vm-event-counting.patch
-unevictable-infrastructure-lru-add-event-counting-with-statistics.patch
 unevictable-lru-page-statistics.patch
-shm_locked-pages-are-unevictable.patch
-shm_locked-pages-are-unevictable-add-event-counts-to-list-scan.patch
 mlock-mlocked-pages-are-unevictable.patch
 mlock-mlocked-pages-are-unevictable-fix.patch
-doc-unevictable-lru-and-mlocked-pages-documentation-update-2.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-__mlock_vma_pages_range-comment-block.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-backout-locked_vm-adjustment-during-mmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-return-value-for-munmap-mlock-vma-race.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-update-locked_vm-on-munmap-of-mlocked-region.patch
-vmstat-mlocked-pages-statistics.patch
-vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch
-swap-cull-unevictable-pages-in-fault-path.patch
 vmscan-unevictable-lru-scan-sysctl.patch
-vmscam-kill-unused-lru-functions.patch
-mlock-revert-mainline-handling-of-mlock-error-return.patch
-mlock-make-mlock-error-return-posixly-correct.patch
 mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-unlockless-reclaim.patch
-fix-a-race-condtion-of-oops_in_progress-fix2.patch
-mm-more-likely-reclaim-madv_sequential-mappings.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+eeepc-laptop-use-standard-interfaces-fix-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
+fix-a-race-condtion-of-oops_in_progress-fix.patch
+make-taint-bit-reliable-v3-fix.patch
+kernel-sysc-improve-code-generation.patch
+compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
+drivers-hwmon-applesmcc-remove-unneeded-casts.patch
+allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
+serial-make-uart_ports-ioport-unsigned-long-fix.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
+ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+genirq-record-trigger-type-fix.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
+tty-fix-echo-tab-erase-and-locking-fix.patch
+applicomc-fix-apparently-broken-code-in-do_ac_read.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+w1-be-able-to-manually-add-and-remove-slaves-fix.patch
+w1-new-driver-ds2431-chip-fix.patch
+gru-driver-minor-updates-fix.patch
+gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
+drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+x86-sysfs-kill-owner-field-from-attribute-fix.patch
+x86-sysfs-kill-owner-field-from-attribute-fix-fix.patch
+x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
