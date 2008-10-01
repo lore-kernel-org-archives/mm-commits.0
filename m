@@ -1,54 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: - genirq-record-trigger-type-fix.patch removed from -mm tree
-Date: Wed, 01 Oct 2008 14:46:21 -0700
-Message-ID: <200810012146.m91LkLJ6005627@imap1.linux-foundation.org>
+Subject: - x86-sysfs-kill-owner-field-from-attribute-fix-fix.patch removed from -mm tree
+Date: Wed, 01 Oct 2008 14:49:25 -0700
+Message-ID: <200810012149.m91LnP9h005710@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42474 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50987 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751037AbYJAVqe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:46:34 -0400
+	by vger.kernel.org with ESMTP id S1753038AbYJAVt2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:49:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dbrownell@users.sourceforge.net, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, parag.lkml@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     genirq-record-trigger-type-fix
+     x86-sysfs-kill-owner-field-from-attribute-fix-fix
 has been removed from the -mm tree.  Its filename was
-     genirq-record-trigger-type-fix.patch
+     x86-sysfs-kill-owner-field-from-attribute-fix-fix.patch
 
-This patch was dropped because everyone's trees are all incredibly fucked up
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: genirq-record-trigger-type-fix
+Subject: x86-sysfs-kill-owner-field-from-attribute-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-remove now-unneeded initialisation.
-
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Greg KH <greg@kroah.com>
+Cc: Parag Warudkar <parag.lkml@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/chip.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/lpfc/lpfc_attr.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN kernel/irq/chip.c~genirq-record-trigger-type-fix kernel/irq/chip.c
---- a/kernel/irq/chip.c~genirq-record-trigger-type-fix
-+++ a/kernel/irq/chip.c
-@@ -121,7 +121,7 @@ int set_irq_type(unsigned int irq, unsig
- {
- 	struct irq_desc *desc;
- 	unsigned long flags;
--	int ret = -ENXIO;
-+	int ret;
- 
- 	desc = irq_to_desc(irq);
- 	if (!desc) {
+diff -puN drivers/scsi/lpfc/lpfc_attr.c~x86-sysfs-kill-owner-field-from-attribute-fix-fix drivers/scsi/lpfc/lpfc_attr.c
+--- a/drivers/scsi/lpfc/lpfc_attr.c~x86-sysfs-kill-owner-field-from-attribute-fix-fix
++++ a/drivers/scsi/lpfc/lpfc_attr.c
+@@ -2506,7 +2506,6 @@ static struct bin_attribute sysfs_drvr_s
+ 	.attr = {
+ 		.name = "lpfc_drvr_stat_data",
+ 		.mode = S_IRUSR,
+-		.owner = THIS_MODULE,
+ 	},
+ 	.size = LPFC_MAX_TARGET * MAX_STAT_DATA_SIZE_PER_TARGET,
+ 	.read = sysfs_drvr_stat_data_read,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -141,7 +137,6 @@ ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.pa
 ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
 cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
 memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-genirq-record-trigger-type-fix.patch
 message-queues-increase-range-limits-checkpatch-fixes.patch
 tty-fix-echo-tab-erase-and-locking-fix.patch
 applicomc-fix-apparently-broken-code-in-do_ac_read.patch
@@ -149,7 +144,6 @@ drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
 w1-be-able-to-manually-add-and-remove-slaves-fix.patch
 w1-new-driver-ds2431-chip-fix.patch
 gru-driver-minor-updates-fix.patch
-gcov-architecture-specific-compile-flag-adjustments-powerpc-moved-stuff.patch
 drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
 x86-sysfs-kill-owner-field-from-attribute-fix.patch
 x86-sysfs-kill-owner-field-from-attribute-fix-fix.patch
