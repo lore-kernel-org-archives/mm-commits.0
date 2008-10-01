@@ -1,138 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: - misdn-annotate-iomem-pointer-and-add-statics.patch removed from -mm tree
-Date: Wed, 01 Oct 2008 14:51:11 -0700
-Message-ID: <200810012151.m91LpBDk005906@imap1.linux-foundation.org>
+Subject: - drivers-isdn-capi-kcapic-adjust-error-handling-code-involving-capi_ctr_put.patch removed from -mm tree
+Date: Wed, 01 Oct 2008 14:51:06 -0700
+Message-ID: <200810012151.m91Lp6wm005900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36637 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59899 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753811AbYJAVvQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:51:16 -0400
+	by vger.kernel.org with ESMTP id S1753815AbYJAVvN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:51:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, kkeil@suse.de, mm-commits@vger.kernel.org
+To: julia@diku.dk, davem@davemloft.net, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mISDN: annotate iomem pointer and add statics
+     drivers/isdn/capi/kcapi.c: Adjust error handling code involving capi_ctr_put
 has been removed from the -mm tree.  Its filename was
-     misdn-annotate-iomem-pointer-and-add-statics.patch
+     drivers-isdn-capi-kcapic-adjust-error-handling-code-involving-capi_ctr_put.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mISDN: annotate iomem pointer and add statics
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: drivers/isdn/capi/kcapi.c: Adjust error handling code involving capi_ctr_put
+From: Julia Lawall <julia@diku.dk>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+After calling capi_ctr_get, error handling code should call capi_ctr_put.
+
+The semantic match that finds this problem is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@r@
+expression x,E;
+statement S;
+position p1,p2,p3;
+@@
+
+(
+if ((x = capi_ctr_get@p1(...)) == NULL || ...) S
+|
+x = capi_ctr_get@p1(...)
+... when != x
+if (x == NULL || ...) S
+)
+<...
+if@p3 (...) { ... when != capi_ctr_put(x)
+                  when != if (x) { ... capi_ctr_put(x); ...}
+    return@p2 ...;
+}
+...>
+(
+return x;
+|
+return 0;
+|
+x = E
+|
+E = x
+|
+capi_ctr_put(x)
+)
+
+@exists@
+position r.p1,r.p2,r.p3;
+expression x;
+int ret != 0;
+statement S;
+@@
+
+* x = capi_ctr_get@p1(...)
+  <...
+* if@p3 (...)
+  S
+  ...>
+* return@p2 \(NULL\|ret\);
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
 Cc: Karsten Keil <kkeil@suse.de>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/mISDN/hfcpci.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/isdn/capi/kcapi.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/isdn/hardware/mISDN/hfcpci.c~misdn-annotate-iomem-pointer-and-add-statics drivers/isdn/hardware/mISDN/hfcpci.c
---- a/drivers/isdn/hardware/mISDN/hfcpci.c~misdn-annotate-iomem-pointer-and-add-statics
-+++ a/drivers/isdn/hardware/mISDN/hfcpci.c
-@@ -43,7 +43,7 @@ MODULE_LICENSE("GPL");
- module_param(debug, uint, 0);
+diff -puN drivers/isdn/capi/kcapi.c~drivers-isdn-capi-kcapic-adjust-error-handling-code-involving-capi_ctr_put drivers/isdn/capi/kcapi.c
+--- a/drivers/isdn/capi/kcapi.c~drivers-isdn-capi-kcapic-adjust-error-handling-code-involving-capi_ctr_put
++++ a/drivers/isdn/capi/kcapi.c
+@@ -828,15 +828,18 @@ static int old_capi_manufacturer(unsigne
+ 			return -ESRCH;
+ 		if (card->load_firmware == NULL) {
+ 			printk(KERN_DEBUG "kcapi: load: no load function\n");
++			capi_ctr_put(card);
+ 			return -ESRCH;
+ 		}
  
- static LIST_HEAD(HFClist);
--DEFINE_RWLOCK(HFClock);
-+static DEFINE_RWLOCK(HFClock);
+ 		if (ldef.t4file.len <= 0) {
+ 			printk(KERN_DEBUG "kcapi: load: invalid parameter: length of t4file is %d ?\n", ldef.t4file.len);
++			capi_ctr_put(card);
+ 			return -EINVAL;
+ 		}
+ 		if (ldef.t4file.data == NULL) {
+ 			printk(KERN_DEBUG "kcapi: load: invalid parameter: dataptr is 0\n");
++			capi_ctr_put(card);
+ 			return -EINVAL;
+ 		}
  
- enum {
- 	HFC_CCD_2BD0,
-@@ -88,7 +88,7 @@ struct hfcPCI_hw {
- 	unsigned char		bswapped;
- 	unsigned char		protocol;
- 	int			nt_timer;
--	unsigned char		*pci_io; /* start of PCI IO memory */
-+	unsigned char __iomem 	*pci_io; /* start of PCI IO memory */
- 	dma_addr_t		dmahandle;
- 	void			*fifos; /* FIFO memory */
- 	int			last_bfifo_cnt[2];
-@@ -153,7 +153,7 @@ release_io_hfcpci(struct hfc_pci *hc)
- 	pci_write_config_word(hc->pdev, PCI_COMMAND, 0);
- 	del_timer(&hc->hw.timer);
- 	pci_free_consistent(hc->pdev, 0x8000, hc->hw.fifos, hc->hw.dmahandle);
--	iounmap((void *)hc->hw.pci_io);
-+	iounmap(hc->hw.pci_io);
- }
+@@ -849,6 +852,7 @@ static int old_capi_manufacturer(unsigne
  
- /*
-@@ -522,7 +522,7 @@ receive_dmsg(struct hfc_pci *hc)
- /*
-  * check for transparent receive data and read max one threshold size if avail
-  */
--int
-+static int
- hfcpci_empty_fifo_trans(struct bchannel *bch, struct bzfifo *bz, u_char *bdata)
- {
- 	 __le16 *z1r, *z2r;
-@@ -575,7 +575,7 @@ hfcpci_empty_fifo_trans(struct bchannel 
- /*
-  * B-channel main receive routine
-  */
--void
-+static void
- main_rec_hfcpci(struct bchannel *bch)
- {
- 	struct hfc_pci	*hc = bch->hw;
-@@ -1678,7 +1678,7 @@ hfcpci_l2l1B(struct mISDNchannel *ch, st
-  * called for card init message
-  */
- 
--void
-+static void
- inithfcpci(struct hfc_pci *hc)
- {
- 	printk(KERN_DEBUG "inithfcpci: entered\n");
-@@ -1965,7 +1965,7 @@ setup_hw(struct hfc_pci *hc)
- 		printk(KERN_WARNING "HFC-PCI: No IRQ for PCI card found\n");
- 		return 1;
- 	}
--	hc->hw.pci_io = (char *)(ulong)hc->pdev->resource[1].start;
-+	hc->hw.pci_io = (char __iomem *)(unsigned long)hc->pdev->resource[1].start;
- 
- 	if (!hc->hw.pci_io) {
- 		printk(KERN_WARNING "HFC-PCI: No IO-Mem for PCI card found\n");
+ 		if (card->cardstate != CARD_DETECTED) {
+ 			printk(KERN_INFO "kcapi: load: contr=%d not in detect state\n", ldef.contr);
++			capi_ctr_put(card);
+ 			return -EBUSY;
+ 		}
+ 		card->cardstate = CARD_LOADING;
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
-fbcon-fix-monochrome-color-value-calculation.patch
-git-avr32.patch
-git-powerpc.patch
-git-x86.patch
-git-xtensa.patch
-git-hid.patch
 git-v4l-dvb.patch
-git-xfs.patch
+git-infiniband.patch
+git-ieee1394.patch
+git-async_tx.patch
 git-net.patch
+git-mtd.patch
 git-sound.patch
+git-cpufreq.patch
+git-gfs2.patch
+git-ubifs.patch
 git-block.patch
-git-pcmcia.patch
-git-battery.patch
-acpi-toshiba_acpic-fix-sparse-signedness-mismatch-warnings.patch
-cifs-remove-global_extern-macro.patch
-input-ads7846c-sparse-lock-annotation.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-include-replace-__function__-with-__func__.patch
-misc-replace-__function__-with-__func__.patch
-befs-annotate-fs32-on-tests-for-superblock-endianness.patch
-char-moxac-sparse-annotation.patch
-byteorder-add-new-headers-for-make-headers-install.patch
-byteorder-use-generic-c-version-for-value-byteswapping.patch
-lib-pull-base-guessing-logic-to-helper-function.patch
-lib-trivial-whitespace-tidy.patch
-lib-remove-defining-macros-for-strict_strto.patch
+drivers-media-common-tuners-drop-code-after-return-or-goto.patch
+drivers-scsi-use-div_round_up.patch
+drivers-scsi-megaraid-use-div_round_up.patch
+fs-namespacec-drop-code-after-return.patch
+drivers-misc-use-div_round_up.patch
+drivers-net-xen-netfrontc-use-div_round_up.patch
+fs-reiserfs-use-an-is_err-test-rather-than-a-null-test.patch
 
