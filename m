@@ -1,80 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: - hci_usb-replace-mb-with-smp_mb.patch removed from -mm tree
-Date: Wed, 01 Oct 2008 14:51:00 -0700
-Message-ID: <200810012151.m91Lp01B005888@imap1.linux-foundation.org>
+Subject: - misdn-endian-annotations-for-struct-zt.patch removed from -mm tree
+Date: Wed, 01 Oct 2008 14:51:09 -0700
+Message-ID: <200810012151.m91Lp9tW005903@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33908 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46766 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753757AbYJAVvJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:51:09 -0400
+	by vger.kernel.org with ESMTP id S1753811AbYJAVvO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:51:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tom.leiming@gmail.com, hidave.darkstar@gmail.com, marcel@holtmann.org, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hci_usb: replace mb with smp_mb
+     mISDN: endian annotations for struct zt
 has been removed from the -mm tree.  Its filename was
-     hci_usb-replace-mb-with-smp_mb.patch
+     misdn-endian-annotations-for-struct-zt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hci_usb: replace mb with smp_mb
-From: Ming Lei <tom.leiming@gmail.com>
+Subject: mISDN: endian annotations for struct zt
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-smp_mb is enough for ordering memory operations among processors,and mb is
-more expensive than smp_mb for UP machine, so replace it with smp_mb().
+Found two possible bugs where the z1 value was used directly without
+byteswapping.
 
-Signed-off-by: Ming Lei <tom.leiming@gmail.com>
-Acked-by: Marcel Holtmann <marcel@holtmann.org>
-Cc: Dave Young <hidave.darkstar@gmail.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/bluetooth/hci_usb.h |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/isdn/hardware/mISDN/hfc_pci.h |    4 ++--
+ drivers/isdn/hardware/mISDN/hfcpci.c  |    9 ++++-----
+ 2 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN drivers/bluetooth/hci_usb.h~hci_usb-replace-mb-with-smp_mb drivers/bluetooth/hci_usb.h
---- a/drivers/bluetooth/hci_usb.h~hci_usb-replace-mb-with-smp_mb
-+++ a/drivers/bluetooth/hci_usb.h
-@@ -70,8 +70,8 @@ static inline void _urb_queue_head(struc
+diff -puN drivers/isdn/hardware/mISDN/hfc_pci.h~misdn-endian-annotations-for-struct-zt drivers/isdn/hardware/mISDN/hfc_pci.h
+--- a/drivers/isdn/hardware/mISDN/hfc_pci.h~misdn-endian-annotations-for-struct-zt
++++ a/drivers/isdn/hardware/mISDN/hfc_pci.h
+@@ -183,8 +183,8 @@
+ #define D_FREG_MASK  0xF
+ 
+ struct zt {
+-	unsigned short z1;  /* Z1 pointer 16 Bit */
+-	unsigned short z2;  /* Z2 pointer 16 Bit */
++	__le16 z1;  /* Z1 pointer 16 Bit */
++	__le16 z2;  /* Z2 pointer 16 Bit */
+ };
+ 
+ struct dfifo {
+diff -puN drivers/isdn/hardware/mISDN/hfcpci.c~misdn-endian-annotations-for-struct-zt drivers/isdn/hardware/mISDN/hfcpci.c
+--- a/drivers/isdn/hardware/mISDN/hfcpci.c~misdn-endian-annotations-for-struct-zt
++++ a/drivers/isdn/hardware/mISDN/hfcpci.c
+@@ -366,8 +366,7 @@ static void hfcpci_clear_fifo_tx(struct 
+ 	bzt->f2 = MAX_B_FRAMES;
+ 	bzt->f1 = bzt->f2;	/* init F pointers to remain constant */
+ 	bzt->za[MAX_B_FRAMES].z1 = cpu_to_le16(B_FIFO_SIZE + B_SUB_VAL - 1);
+-	bzt->za[MAX_B_FRAMES].z2 = cpu_to_le16(
+-	    le16_to_cpu(bzt->za[MAX_B_FRAMES].z1 - 1));
++	bzt->za[MAX_B_FRAMES].z2 = cpu_to_le16(B_FIFO_SIZE + B_SUB_VAL - 2);
+ 	if (fifo_state)
+ 		hc->hw.fifo_en |= fifo_state;
+ 	Write_hfc(hc, HFCPCI_FIFO_EN, hc->hw.fifo_en);
+@@ -482,7 +481,7 @@ receive_dmsg(struct hfc_pci *hc)
+ 			df->f2 = ((df->f2 + 1) & MAX_D_FRAMES) |
+ 			    (MAX_D_FRAMES + 1);	/* next buffer */
+ 			df->za[df->f2 & D_FREG_MASK].z2 =
+-			    cpu_to_le16((zp->z2 + rcnt) & (D_FIFO_SIZE - 1));
++			    cpu_to_le16((le16_to_cpu(zp->z2) + rcnt) & (D_FIFO_SIZE - 1));
+ 		} else {
+ 			dch->rx_skb = mI_alloc_skb(rcnt - 3, GFP_ATOMIC);
+ 			if (!dch->rx_skb) {
+@@ -526,7 +525,7 @@ receive_dmsg(struct hfc_pci *hc)
+ int
+ hfcpci_empty_fifo_trans(struct bchannel *bch, struct bzfifo *bz, u_char *bdata)
  {
- 	unsigned long flags;
- 	spin_lock_irqsave(&q->lock, flags);
--	/* _urb_unlink needs to know which spinlock to use, thus mb(). */
--	_urb->queue = q; mb(); list_add(&_urb->list, &q->head);
-+	/* _urb_unlink needs to know which spinlock to use, thus smp_mb(). */
-+	_urb->queue = q; smp_mb(); list_add(&_urb->list, &q->head);
- 	spin_unlock_irqrestore(&q->lock, flags);
- }
+-	unsigned short	*z1r, *z2r;
++	 __le16 *z1r, *z2r;
+ 	int		new_z2, fcnt, maxlen;
+ 	u_char		*ptr, *ptr1;
  
-@@ -79,8 +79,8 @@ static inline void _urb_queue_tail(struc
- {
- 	unsigned long flags;
- 	spin_lock_irqsave(&q->lock, flags);
--	/* _urb_unlink needs to know which spinlock to use, thus mb(). */
--	_urb->queue = q; mb(); list_add_tail(&_urb->list, &q->head);
-+	/* _urb_unlink needs to know which spinlock to use, thus smp_mb(). */
-+	_urb->queue = q; smp_mb(); list_add_tail(&_urb->list, &q->head);
- 	spin_unlock_irqrestore(&q->lock, flags);
- }
+@@ -724,7 +723,7 @@ hfcpci_fill_fifo(struct bchannel *bch)
+ 	struct bzfifo	*bz;
+ 	u_char		*bdata;
+ 	u_char		new_f1, *src, *dst;
+-	unsigned short	*z1t, *z2t;
++	__le16 *z1t, *z2t;
  
-@@ -89,7 +89,7 @@ static inline void _urb_unlink(struct _u
- 	struct _urb_queue *q;
- 	unsigned long flags;
- 
--	mb();
-+	smp_mb();
- 	q = _urb->queue;
- 	/* If q is NULL, it will die at easy-to-debug NULL pointer dereference.
- 	   No need to BUG(). */
+ 	if ((bch->debug & DEBUG_HW_BCHANNEL) && !(bch->debug & DEBUG_HW_BFIFO))
+ 		printk(KERN_DEBUG "%s\n", __func__);
 _
 
-Patches currently in -mm which might be from tom.leiming@gmail.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
+fbcon-fix-monochrome-color-value-calculation.patch
+git-avr32.patch
+git-powerpc.patch
+git-x86.patch
+git-xtensa.patch
+git-hid.patch
+git-v4l-dvb.patch
+git-xfs.patch
 git-net.patch
+git-sound.patch
+git-block.patch
+git-pcmcia.patch
+git-battery.patch
+acpi-toshiba_acpic-fix-sparse-signedness-mismatch-warnings.patch
+cifs-remove-global_extern-macro.patch
+input-ads7846c-sparse-lock-annotation.patch
+scsi-replace-__inline-with-inline.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
+olpc-olpc_batteryc-sparse-endian-annotations.patch
+include-replace-__function__-with-__func__.patch
+misc-replace-__function__-with-__func__.patch
+befs-annotate-fs32-on-tests-for-superblock-endianness.patch
+char-moxac-sparse-annotation.patch
+byteorder-add-new-headers-for-make-headers-install.patch
+byteorder-use-generic-c-version-for-value-byteswapping.patch
+lib-pull-base-guessing-logic-to-helper-function.patch
+lib-trivial-whitespace-tidy.patch
+lib-remove-defining-macros-for-strict_strto.patch
 
