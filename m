@@ -1,299 +1,218 @@
 From: akpm@linux-foundation.org
-Subject: - usb-remove-code-associated-with-config_ppc_merge.patch removed from -mm tree
-Date: Wed, 01 Oct 2008 14:52:04 -0700
-Message-ID: <200810012152.m91Lq4mj006020@imap1.linux-foundation.org>
+Subject: - drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch removed from -mm tree
+Date: Wed, 01 Oct 2008 14:52:01 -0700
+Message-ID: <200810012152.m91Lq1EC005991@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54924 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37184 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753873AbYJAVwI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:52:08 -0400
+	by vger.kernel.org with ESMTP id S1753883AbYJAVwQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:52:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: galak@kernel.crashing.org, benh@kernel.crashing.org, greg@kroah.com, paulus@samba.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, davem@davemloft.net, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: remove code associated with !CONFIG_PPC_MERGE
+     drivers/rtc/Kconfig: don't build rtc-cmos.o on sparc32
 has been removed from the -mm tree.  Its filename was
-     usb-remove-code-associated-with-config_ppc_merge.patch
+     drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: remove code associated with !CONFIG_PPC_MERGE
-From: Kumar Gala <galak@kernel.crashing.org>
+Subject: drivers/rtc/Kconfig: don't build rtc-cmos.o on sparc32
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Now that arch/ppc is gone we don't need CONFIG_PPC_MERGE anymore remove
-the dead code associated with !CONFIG_PPC_MERGE.
+Fix for linux-next's
 
-Signed-off-by: Kumar Gala <galak@kernel.crashing.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Greg KH <greg@kroah.com>
+: Author: David S. Miller <davem@davemloft.net>  2008-08-28 19:54:17
+: Committer: David S. Miller <davem@davemloft.net>  2008-08-29 14:16:45
+: Parent: 7f60459921bd24e86b21e07c42244c510b4f46b2 (Blackfin RTC Driver: BF561 not have on-chip RTC)
+: Child:  cca4c231028405950a15f5a27d7326d18d909784 (rtc: Add TI BQ4802 RTC driver.)
+: Branches: git-alsa-tiwai, linux-next
+: Follows: v2.6.27-rc4
+: Precedes: next-20080902
+: 
+:     rtc: Allow RTC_DRV_CMOS to be used on SPARC.
+
+
+In file included from drivers/rtc/rtc-cmos.c:40:
+include/asm-generic/rtc.h: In function 'rtc_is_updating':
+include/asm-generic/rtc.h:40: error: 'rtc_port' undeclared (first use in this function)
+include/asm-generic/rtc.h:40: error: (Each undeclared identifier is reported only once
+include/asm-generic/rtc.h:40: error: for each function it appears in.)
+include/asm-generic/rtc.h: In function 'get_rtc_time':
+include/asm-generic/rtc.h:73: error: 'rtc_port' undeclared (first use in this function)
+include/asm-generic/rtc.h: In function 'set_rtc_time':
+include/asm-generic/rtc.h:160: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_read_alarm':
+drivers/rtc/rtc-cmos.c:193: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_checkintr':
+drivers/rtc/rtc-cmos.c:255: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_irq_enable':
+drivers/rtc/rtc-cmos.c:272: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_irq_disable':
+drivers/rtc/rtc-cmos.c:292: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_set_alarm':
+drivers/rtc/rtc-cmos.c:337: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_irq_set_freq':
+drivers/rtc/rtc-cmos.c:378: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_procfs':
+drivers/rtc/rtc-cmos.c:455: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_nvram_read':
+drivers/rtc/rtc-cmos.c:519: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_nvram_write':
+drivers/rtc/rtc-cmos.c:551: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_interrupt':
+drivers/rtc/rtc-cmos.c:588: error: 'rtc_port' undeclared (first use in this function)
+drivers/rtc/rtc-cmos.c: In function 'cmos_do_probe':
+drivers/rtc/rtc-cmos.c:722: error: 'rtc_port' undeclared (first use in this function)
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/ehci-hcd.c     |    5 
- drivers/usb/host/ehci-ppc-soc.c |  201 ------------------------------
- drivers/usb/host/ehci.h         |    9 -
- drivers/usb/host/ohci.h         |    8 -
- 4 files changed, 223 deletions(-)
+ drivers/rtc/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/host/ehci-hcd.c~usb-remove-code-associated-with-config_ppc_merge drivers/usb/host/ehci-hcd.c
---- a/drivers/usb/host/ehci-hcd.c~usb-remove-code-associated-with-config_ppc_merge
-+++ a/drivers/usb/host/ehci-hcd.c
-@@ -1020,11 +1020,6 @@ MODULE_LICENSE ("GPL");
- #define	PS3_SYSTEM_BUS_DRIVER	ps3_ehci_driver
- #endif
+diff -puN drivers/rtc/Kconfig~drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32 drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~drivers-rtc-kconfig-dont-build-rtc-cmoso-on-sparc32
++++ a/drivers/rtc/Kconfig
+@@ -329,7 +329,7 @@ comment "Platform RTC drivers"
  
--#if defined(CONFIG_440EPX) && !defined(CONFIG_PPC_MERGE)
--#include "ehci-ppc-soc.c"
--#define	PLATFORM_DRIVER		ehci_ppc_soc_driver
--#endif
--
- #ifdef CONFIG_USB_EHCI_HCD_PPC_OF
- #include "ehci-ppc-of.c"
- #define OF_PLATFORM_DRIVER	ehci_hcd_ppc_of_driver
-diff -puN drivers/usb/host/ehci-ppc-soc.c~usb-remove-code-associated-with-config_ppc_merge /dev/null
---- a/drivers/usb/host/ehci-ppc-soc.c
-+++ /dev/null
-@@ -1,201 +0,0 @@
--/*
-- * EHCI HCD (Host Controller Driver) for USB.
-- *
-- * (C) Copyright 2006-2007 Stefan Roese <sr@denx.de>, DENX Software Engineering
-- *
-- * Bus Glue for PPC On-Chip EHCI driver
-- * Tested on AMCC 440EPx
-- *
-- * Based on "ehci-au1xxx.c" by K.Boge <karsten.boge@amd.com>
-- *
-- * This file is licenced under the GPL.
-- */
--
--#include <linux/platform_device.h>
--
--extern int usb_disabled(void);
--
--/* called during probe() after chip reset completes */
--static int ehci_ppc_soc_setup(struct usb_hcd *hcd)
--{
--	struct ehci_hcd	*ehci = hcd_to_ehci(hcd);
--	int		retval;
--
--	retval = ehci_halt(ehci);
--	if (retval)
--		return retval;
--
--	retval = ehci_init(hcd);
--	if (retval)
--		return retval;
--
--	ehci->sbrn = 0x20;
--	return ehci_reset(ehci);
--}
--
--/**
-- * usb_ehci_ppc_soc_probe - initialize PPC-SoC-based HCDs
-- * Context: !in_interrupt()
-- *
-- * Allocates basic resources for this USB host controller, and
-- * then invokes the start() method for the HCD associated with it
-- * through the hotplug entry's driver_data.
-- *
-- */
--int usb_ehci_ppc_soc_probe(const struct hc_driver *driver,
--			   struct usb_hcd **hcd_out,
--			   struct platform_device *dev)
--{
--	int retval;
--	struct usb_hcd *hcd;
--	struct ehci_hcd *ehci;
--
--	if (dev->resource[1].flags != IORESOURCE_IRQ) {
--		pr_debug("resource[1] is not IORESOURCE_IRQ");
--		retval = -ENOMEM;
--	}
--	hcd = usb_create_hcd(driver, &dev->dev, "PPC-SOC EHCI");
--	if (!hcd)
--		return -ENOMEM;
--	hcd->rsrc_start = dev->resource[0].start;
--	hcd->rsrc_len = dev->resource[0].end - dev->resource[0].start + 1;
--
--	if (!request_mem_region(hcd->rsrc_start, hcd->rsrc_len, hcd_name)) {
--		pr_debug("request_mem_region failed");
--		retval = -EBUSY;
--		goto err1;
--	}
--
--	hcd->regs = ioremap(hcd->rsrc_start, hcd->rsrc_len);
--	if (!hcd->regs) {
--		pr_debug("ioremap failed");
--		retval = -ENOMEM;
--		goto err2;
--	}
--
--	ehci = hcd_to_ehci(hcd);
--	ehci->big_endian_mmio = 1;
--	ehci->big_endian_desc = 1;
--	ehci->caps = hcd->regs;
--	ehci->regs = hcd->regs + HC_LENGTH(ehci_readl(ehci, &ehci->caps->hc_capbase));
--
--	/* cache this readonly data; minimize chip reads */
--	ehci->hcs_params = ehci_readl(ehci, &ehci->caps->hcs_params);
--
--#if defined(CONFIG_440EPX)
--	/*
--	 * 440EPx Errata USBH_3
--	 * Fix: Enable Break Memory Transfer (BMT) in INSNREG3
--	 */
--	out_be32((void *)((ulong)(&ehci->regs->command) + 0x8c), (1 << 0));
--	ehci_dbg(ehci, "Break Memory Transfer (BMT) has beed enabled!\n");
--#endif
--
--	retval = usb_add_hcd(hcd, dev->resource[1].start, IRQF_DISABLED);
--	if (retval == 0)
--		return retval;
--
--	iounmap(hcd->regs);
--err2:
--	release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
--err1:
--	usb_put_hcd(hcd);
--	return retval;
--}
--
--/* may be called without controller electrically present */
--/* may be called with controller, bus, and devices active */
--
--/**
-- * usb_ehci_hcd_ppc_soc_remove - shutdown processing for PPC-SoC-based HCDs
-- * @dev: USB Host Controller being removed
-- * Context: !in_interrupt()
-- *
-- * Reverses the effect of usb_ehci_hcd_ppc_soc_probe(), first invoking
-- * the HCD's stop() method.  It is always called from a thread
-- * context, normally "rmmod", "apmd", or something similar.
-- *
-- */
--void usb_ehci_ppc_soc_remove(struct usb_hcd *hcd, struct platform_device *dev)
--{
--	usb_remove_hcd(hcd);
--	iounmap(hcd->regs);
--	release_mem_region(hcd->rsrc_start, hcd->rsrc_len);
--	usb_put_hcd(hcd);
--}
--
--static const struct hc_driver ehci_ppc_soc_hc_driver = {
--	.description = hcd_name,
--	.product_desc = "PPC-SOC EHCI",
--	.hcd_priv_size = sizeof(struct ehci_hcd),
--
--	/*
--	 * generic hardware linkage
--	 */
--	.irq = ehci_irq,
--	.flags = HCD_MEMORY | HCD_USB2,
--
--	/*
--	 * basic lifecycle operations
--	 */
--	.reset = ehci_ppc_soc_setup,
--	.start = ehci_run,
--	.stop = ehci_stop,
--	.shutdown = ehci_shutdown,
--
--	/*
--	 * managing i/o requests and associated device resources
--	 */
--	.urb_enqueue = ehci_urb_enqueue,
--	.urb_dequeue = ehci_urb_dequeue,
--	.endpoint_disable = ehci_endpoint_disable,
--
--	/*
--	 * scheduling support
--	 */
--	.get_frame_number = ehci_get_frame,
--
--	/*
--	 * root hub support
--	 */
--	.hub_status_data = ehci_hub_status_data,
--	.hub_control = ehci_hub_control,
--	.bus_suspend = ehci_bus_suspend,
--	.bus_resume = ehci_bus_resume,
--	.relinquish_port = ehci_relinquish_port,
--	.port_handed_over = ehci_port_handed_over,
--};
--
--static int ehci_hcd_ppc_soc_drv_probe(struct platform_device *pdev)
--{
--	struct usb_hcd *hcd = NULL;
--	int ret;
--
--	pr_debug("In ehci_hcd_ppc_soc_drv_probe\n");
--
--	if (usb_disabled())
--		return -ENODEV;
--
--	/* FIXME we only want one one probe() not two */
--	ret = usb_ehci_ppc_soc_probe(&ehci_ppc_soc_hc_driver, &hcd, pdev);
--	return ret;
--}
--
--static int ehci_hcd_ppc_soc_drv_remove(struct platform_device *pdev)
--{
--	struct usb_hcd *hcd = platform_get_drvdata(pdev);
--
--	/* FIXME we only want one one remove() not two */
--	usb_ehci_ppc_soc_remove(hcd, pdev);
--	return 0;
--}
--
--MODULE_ALIAS("platform:ppc-soc-ehci");
--static struct platform_driver ehci_ppc_soc_driver = {
--	.probe = ehci_hcd_ppc_soc_drv_probe,
--	.remove = ehci_hcd_ppc_soc_drv_remove,
--	.shutdown = usb_hcd_platform_shutdown,
--	.driver = {
--		.name = "ppc-soc-ehci",
--	}
--};
-diff -puN drivers/usb/host/ehci.h~usb-remove-code-associated-with-config_ppc_merge drivers/usb/host/ehci.h
---- a/drivers/usb/host/ehci.h~usb-remove-code-associated-with-config_ppc_merge
-+++ a/drivers/usb/host/ehci.h
-@@ -604,16 +604,7 @@ ehci_port_speed(struct ehci_hcd *ehci, u
- /*
-  * Big-endian read/write functions are arch-specific.
-  * Other arches can be added if/when they're needed.
-- *
-- * REVISIT: arch/powerpc now has readl/writel_be, so the
-- * definition below can die once the 4xx support is
-- * finally ported over.
-  */
--#if defined(CONFIG_PPC) && !defined(CONFIG_PPC_MERGE)
--#define readl_be(addr)		in_be32((__force unsigned *)addr)
--#define writel_be(val, addr)	out_be32((__force unsigned *)addr, val)
--#endif
--
- #if defined(CONFIG_ARM) && defined(CONFIG_ARCH_IXP4XX)
- #define readl_be(addr)		__raw_readl((__force unsigned *)addr)
- #define writel_be(val, addr)	__raw_writel(val, (__force unsigned *)addr)
-diff -puN drivers/usb/host/ohci.h~usb-remove-code-associated-with-config_ppc_merge drivers/usb/host/ohci.h
---- a/drivers/usb/host/ohci.h~usb-remove-code-associated-with-config_ppc_merge
-+++ a/drivers/usb/host/ohci.h
-@@ -540,15 +540,7 @@ static inline struct usb_hcd *ohci_to_hc
-  * Big-endian read/write functions are arch-specific.
-  * Other arches can be added if/when they're needed.
-  *
-- * REVISIT: arch/powerpc now has readl/writel_be, so the
-- * definition below can die once the STB04xxx support is
-- * finally ported over.
-  */
--#if defined(CONFIG_PPC) && !defined(CONFIG_PPC_MERGE)
--#define readl_be(addr)		in_be32((__force unsigned *)addr)
--#define writel_be(val, addr)	out_be32((__force unsigned *)addr, val)
--#endif
+ config RTC_DRV_CMOS
+ 	tristate "PC-style 'CMOS'"
+-	depends on X86 || ALPHA || ARM || M32R || ATARI || PPC || MIPS || SPARC
++	depends on X86 || ALPHA || ARM || M32R || ATARI || PPC || MIPS || SPARC64
+ 	default y if X86
+ 	help
+ 	  Say "yes" here to get direct support for the real time clock
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+git-powerpc.patch
+git-sparc.patch
+git-x86.patch
+git-xtensa.patch
+git-ftrace.patch
+git-pci.patch
+git-hid.patch
+git-v4l-dvb.patch
+git-nfsd.patch
+git-dlm.patch
+git-async_tx.patch
+git-net.patch
+git-mtd.patch
+git-sound.patch
+git-sound-rejects.patch
+git-input.patch
+git-block.patch
+git-battery.patch
+git-mfd.patch
+git-drm.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
+drivers-media-video-tda9840c-unbreak.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
+misdn-misc-timerdev-fixes-fix.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry.patch
+drivers-media-video-cafe_ccicc-needs-mmh.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+eeepc-laptop-use-standard-interfaces-fix-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
+make-taint-bit-reliable-v3-fix.patch
+kernel-sysc-improve-code-generation.patch
+compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
+drivers-hwmon-applesmcc-remove-unneeded-casts.patch
+allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
+serial-make-uart_ports-ioport-unsigned-long-fix.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
+ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
+tty-fix-echo-tab-erase-and-locking-fix.patch
+applicomc-fix-apparently-broken-code-in-do_ac_read.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+w1-be-able-to-manually-add-and-remove-slaves-fix.patch
+w1-new-driver-ds2431-chip-fix.patch
+gru-driver-minor-updates-fix.patch
+drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+x86-sysfs-kill-owner-field-from-attribute-fix.patch
+x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
+
