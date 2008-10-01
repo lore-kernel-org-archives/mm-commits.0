@@ -1,572 +1,373 @@
 From: akpm@linux-foundation.org
-Subject: - fix-a-race-condtion-of-oops_in_progress.patch removed from -mm tree
-Date: Wed, 01 Oct 2008 14:39:05 -0700
-Message-ID: <200810012139.m91Ld5FA005302__6259.04043340615$1222897259$gmane$org@imap1.linux-foundation.org>
+Subject: - hwmon-add-support-for-max1618-in-max1619-driver.patch removed from -mm tree
+Date: Wed, 01 Oct 2008 14:43:02 -0700
+Message-ID: <200810012143.m91Lh2wI005493@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54038 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54340 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750769AbYJAVjf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:39:35 -0400
+	by vger.kernel.org with ESMTP id S1752378AbYJAVni (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:43:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
+To: tobias@himmer-online.de, bigeasy@linutronix.de, fishor@mail.ru, khali@linux-fr.org, mhoffman@lightlink.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix a race accessing oops_in_progress
+     hwmon: add support for MAX1618 in MAX1619 driver
 has been removed from the -mm tree.  Its filename was
-     fix-a-race-condtion-of-oops_in_progress.patch
+     hwmon-add-support-for-max1618-in-max1619-driver.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because jdelvare-hwmon-hwmon-max1619-convert-macros-to-inline-functions.patch broke it
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix a race accessing oops_in_progress
-From: Huang Ying <ying.huang@intel.com>
+Subject: hwmon: add support for MAX1618 in MAX1619 driver
+From: Tobias Himmer <tobias@himmer-online.de>
 
-Fix a race condition accessing oops_in_progress.  Which may be changed on
-multiple CPU simultaneously, but it is changed via non-atomic operation
-++/--.  This patch changes the definition of oops_in_process from int to
-atomic_t, and accessing method to atomic operations.
+The difference between MAX1619 and MAX1618 is that the latter has only one
+measurement register.
 
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Cc: <linux-arch@vger.kernel.org>
+Tested-by: Sebastian Siewior <bigeasy@linutronix.de>
+Signed-off-by: Tobias Himmer <tobias@himmer-online.de>
+Cc: Alexey Fisher <fishor@mail.ru>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/traps.c            |   14 +++++++-------
- arch/cris/arch-v32/kernel/time.c        |    4 ++--
- arch/cris/kernel/traps.c                |    6 +++---
- arch/cris/mm/fault.c                    |    6 +++---
- arch/ia64/kernel/mca.c                  |    6 +++---
- arch/mn10300/mm/fault.c                 |    4 ++--
- arch/parisc/kernel/traps.c              |    4 ++--
- arch/s390/kernel/setup.c                |    6 +++---
- arch/s390/mm/fault.c                    |    4 ++--
- drivers/char/vt.c                       |    2 +-
- drivers/mtd/mtdoops.c                   |    2 +-
- drivers/parisc/led.c                    |    2 +-
- drivers/serial/8250.c                   |    2 +-
- drivers/serial/cpm_uart/cpm_uart_core.c |    2 +-
- drivers/serial/sunhv.c                  |    4 ++--
- drivers/serial/sunsab.c                 |    2 +-
- drivers/serial/sunsu.c                  |    2 +-
- drivers/serial/sunzilog.c               |    2 +-
- drivers/serial/uartlite.c               |    4 ++--
- drivers/video/aty/radeonfb.h            |    2 +-
- include/linux/console.h                 |    3 ++-
- include/linux/kernel.h                  |    4 +++-
- kernel/printk.c                         |    8 ++++----
- kernel/sched.c                          |    2 +-
- lib/bust_spinlocks.c                    |    4 ++--
- 25 files changed, 52 insertions(+), 49 deletions(-)
+ drivers/hwmon/Kconfig   |    5 -
+ drivers/hwmon/max1619.c |  183 +++++++++++++++++++++++++-------------
+ 2 files changed, 128 insertions(+), 60 deletions(-)
 
-diff -puN arch/blackfin/kernel/traps.c~fix-a-race-condtion-of-oops_in_progress arch/blackfin/kernel/traps.c
---- a/arch/blackfin/kernel/traps.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/arch/blackfin/kernel/traps.c
-@@ -183,7 +183,7 @@ done:
- asmlinkage void double_fault_c(struct pt_regs *fp)
+diff -puN drivers/hwmon/Kconfig~hwmon-add-support-for-max1618-in-max1619-driver drivers/hwmon/Kconfig
+--- a/drivers/hwmon/Kconfig~hwmon-add-support-for-max1618-in-max1619-driver
++++ a/drivers/hwmon/Kconfig
+@@ -548,10 +548,11 @@ config SENSORS_MAX1111
+ 	  will be called max1111.
+ 
+ config SENSORS_MAX1619
+-	tristate "Maxim MAX1619 sensor chip"
++	tristate "Maxim MAX1619 / MAX1618 sensor chip"
+ 	depends on I2C
+ 	help
+-	  If you say yes here you get support for MAX1619 sensor chip.
++	  If you say yes here you get support for MAX1619 and MAX1618
++	  sensor chips.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called max1619.
+diff -puN drivers/hwmon/max1619.c~hwmon-add-support-for-max1618-in-max1619-driver drivers/hwmon/max1619.c
+--- a/drivers/hwmon/max1619.c~hwmon-add-support-for-max1618-in-max1619-driver
++++ a/drivers/hwmon/max1619.c
+@@ -3,12 +3,15 @@
+  *             monitoring
+  * Copyright (C) 2003-2004 Alexey Fisher <fishor@mail.ru>
+  *                         Jean Delvare <khali@linux-fr.org>
++ *                         Tobias Himmer <tobias@himmer-online.de>
+  *
+  * Based on the lm90 driver. The MAX1619 is a sensor chip made by Maxim.
+- * It reports up to two temperatures (its own plus up to
+- * one external one). Complete datasheet can be
+- * obtained from Maxim's website at:
++ * It reports up to two temperatures (its own plus up to one external one).
++ * This driver will also work on the MAX1618, a stripped down version with
++ * only one (external) temperature source.
++ * Complete datasheets can be obtained from Maxim's website at:
+  *   http://pdfserv.maxim-ic.com/en/ds/MAX1619.pdf
++ *   http://pdfserv.maxim-ic.com/en/ds/MAX1618.pdf
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -44,7 +47,7 @@ static const unsigned short normal_i2c[]
+  * Insmod parameters
+  */
+ 
+-I2C_CLIENT_INSMOD_1(max1619);
++I2C_CLIENT_INSMOD_2(max1619, max1618);
+ 
+ /*
+  * The MAX1619 registers
+@@ -93,6 +96,7 @@ static struct max1619_data *max1619_upda
+ 
+ static const struct i2c_device_id max1619_id[] = {
+ 	{ "max1619", max1619 },
++	{ "max1618", max1618 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, max1619_id);
+@@ -116,35 +120,50 @@ static struct i2c_driver max1619_driver 
+ struct max1619_data {
+ 	struct device *hwmon_dev;
+ 	struct mutex update_lock;
++	const struct attribute_group *group;
++	kernel_ulong_t kind; /* max1619 or max1618 */
+ 	char valid; /* zero until following fields are valid */
+ 	unsigned long last_updated; /* in jiffies */
+ 
+ 	/* registers values */
+-	u8 temp_input1; /* local */
+-	u8 temp_input2, temp_low2, temp_high2; /* remote */
+-	u8 temp_crit2;
+-	u8 temp_hyst2;
+-	u8 alarms; 
++	u8 local;
++	u8 remote;
++	u8 remote_low, remote_high;
++	u8 remote_crit, remote_hyst;
++	u8 alarms;
+ };
+ 
+ /*
+  * Sysfs stuff
+  */
+ 
++static ssize_t show_temp1_input(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct max1619_data *data = max1619_update_device(dev);
++	return sprintf(buf, "%d\n", TEMP_FROM_REG((data->kind == max1618) ?
++						data->remote : data->local));
++}
++
++static ssize_t show_temp2_input(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct max1619_data *data = max1619_update_device(dev);
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->remote));
++}
++
+ #define show_temp(value) \
+ static ssize_t show_##value(struct device *dev, struct device_attribute *attr, char *buf) \
+ { \
+ 	struct max1619_data *data = max1619_update_device(dev); \
+ 	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->value)); \
+ }
+-show_temp(temp_input1);
+-show_temp(temp_input2);
+-show_temp(temp_low2);
+-show_temp(temp_high2);
+-show_temp(temp_crit2);
+-show_temp(temp_hyst2);
++show_temp(remote_low);
++show_temp(remote_high);
++show_temp(remote_crit);
++show_temp(remote_hyst);
+ 
+-#define set_temp2(value, reg) \
++#define set_temp(value, reg) \
+ static ssize_t set_##value(struct device *dev, struct device_attribute *attr, const char *buf, \
+ 	size_t count) \
+ { \
+@@ -158,11 +177,10 @@ static ssize_t set_##value(struct device
+ 	mutex_unlock(&data->update_lock); \
+ 	return count; \
+ }
+-
+-set_temp2(temp_low2, MAX1619_REG_W_REMOTE_LOW);
+-set_temp2(temp_high2, MAX1619_REG_W_REMOTE_HIGH);
+-set_temp2(temp_crit2, MAX1619_REG_W_REMOTE_CRIT);
+-set_temp2(temp_hyst2, MAX1619_REG_W_TCRIT_HYST);
++set_temp(remote_low, MAX1619_REG_W_REMOTE_LOW);
++set_temp(remote_high, MAX1619_REG_W_REMOTE_HIGH);
++set_temp(remote_crit, MAX1619_REG_W_REMOTE_CRIT);
++set_temp(remote_hyst, MAX1619_REG_W_TCRIT_HYST);
+ 
+ static ssize_t show_alarms(struct device *dev, struct device_attribute *attr, char *buf)
  {
- 	console_verbose();
--	oops_in_progress = 1;
-+	atomic_set(&oops_in_progress, 1);
- 	printk(KERN_EMERG "\n" KERN_EMERG "Double Fault\n");
- 	dump_bfin_process(fp);
- 	dump_bfin_mem(fp);
-@@ -221,11 +221,11 @@ asmlinkage void trap_c(struct pt_regs *f
- #endif
- 	){
- 		console_verbose();
--		oops_in_progress = 1;
-+		atomic_set(&oops_in_progress, 1);
- 	} else if (current) {
- 		if (current->mm == NULL) {
- 			console_verbose();
--			oops_in_progress = 1;
-+			atomic_set(&oops_in_progress, 1);
+@@ -178,22 +196,50 @@ static ssize_t show_alarm(struct device 
+ 	return sprintf(buf, "%d\n", (data->alarms >> bitnr) & 1);
+ }
+ 
+-static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input1, NULL);
+-static DEVICE_ATTR(temp2_input, S_IRUGO, show_temp_input2, NULL);
+-static DEVICE_ATTR(temp2_min, S_IWUSR | S_IRUGO, show_temp_low2,
+-	set_temp_low2);
+-static DEVICE_ATTR(temp2_max, S_IWUSR | S_IRUGO, show_temp_high2,
+-	set_temp_high2);
+-static DEVICE_ATTR(temp2_crit, S_IWUSR | S_IRUGO, show_temp_crit2,
+-	set_temp_crit2);
+-static DEVICE_ATTR(temp2_crit_hyst, S_IWUSR | S_IRUGO, show_temp_hyst2,
+-	set_temp_hyst2);
++/* These are for both - MAX1619 and MAX1618 */
++static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp1_input, NULL);
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
++
++/* These are just for MAX1619 */
++static DEVICE_ATTR(temp2_input, S_IRUGO, show_temp2_input, NULL);
++static DEVICE_ATTR(temp2_min, S_IWUSR | S_IRUGO, show_remote_low,
++		   set_remote_low);
++static DEVICE_ATTR(temp2_max, S_IWUSR | S_IRUGO, show_remote_high,
++		   set_remote_high);
++static DEVICE_ATTR(temp2_crit, S_IWUSR | S_IRUGO, show_remote_crit,
++		   set_remote_crit);
++static DEVICE_ATTR(temp2_crit_hyst, S_IWUSR | S_IRUGO, show_remote_hyst,
++		   set_remote_hyst);
+ static SENSOR_DEVICE_ATTR(temp2_crit_alarm, S_IRUGO, show_alarm, NULL, 1);
+ static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_alarm, NULL, 2);
+ static SENSOR_DEVICE_ATTR(temp2_min_alarm, S_IRUGO, show_alarm, NULL, 3);
+ static SENSOR_DEVICE_ATTR(temp2_max_alarm, S_IRUGO, show_alarm, NULL, 4);
+ 
++/* These are just for MAX1618 */
++static DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_remote_low,
++		   set_remote_low);
++static DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_remote_high,
++		   set_remote_high);
++static SENSOR_DEVICE_ATTR(temp1_fault, S_IRUGO, show_alarm, NULL, 2);
++static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, show_alarm, NULL, 3);
++static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 4);
++
++static struct attribute *max1618_attributes[] = {
++	&dev_attr_temp1_input.attr,
++	&dev_attr_temp1_min.attr,
++	&dev_attr_temp1_max.attr,
++
++	&dev_attr_alarms.attr,
++	&sensor_dev_attr_temp1_fault.dev_attr.attr,
++	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
++	NULL
++};
++
++static const struct attribute_group max1618_group = {
++	.attrs = max1618_attributes,
++};
++
+ static struct attribute *max1619_attributes[] = {
+ 	&dev_attr_temp1_input.attr,
+ 	&dev_attr_temp2_input.attr,
+@@ -256,14 +302,24 @@ static int max1619_detect(struct i2c_cli
+ 
+ 	if (kind <= 0) { /* identification */
+ 		u8 man_id, chip_id;
+-	
++
+ 		man_id = i2c_smbus_read_byte_data(new_client,
+ 			 MAX1619_REG_R_MAN_ID);
+ 		chip_id = i2c_smbus_read_byte_data(new_client,
+ 			  MAX1619_REG_R_CHIP_ID);
+-		
+-		if ((man_id == 0x4D) && (chip_id == 0x04))
+-			kind = max1619;
++
++		if (man_id == 0x4D) {
++			switch (chip_id) {
++			case 0x04:
++				kind = max1619;
++				strlcpy(info->type, "max1619", I2C_NAME_SIZE);
++				break;
++			case 0x02:
++				kind = max1618;
++				strlcpy(info->type, "max1618", I2C_NAME_SIZE);
++				break;
++			}
++		}
+ 
+ 		if (kind <= 0) { /* identification failed */
+ 			dev_info(&adapter->dev,
+@@ -273,8 +329,6 @@ static int max1619_detect(struct i2c_cli
  		}
  	}
  
-@@ -510,7 +510,7 @@ asmlinkage void trap_c(struct pt_regs *f
- #endif
- 			dump_bfin_trace_buffer();
- 
--		if (oops_in_progress) {
-+		if (atomic_read(&oops_in_progress)) {
- 			/* Dump the current kernel stack */
- 			printk(KERN_NOTICE "\n" KERN_NOTICE "Kernel Stack\n");
- 			show_stack(current, NULL);
-@@ -870,7 +870,7 @@ void dump_bfin_process(struct pt_regs *f
- 	 * stack all the time, so do this until we fix that */
- 	unsigned int context = bfin_read_IPEND();
- 
--	if (oops_in_progress)
-+	if (atomic_read(&oops_in_progress))
- 		printk(KERN_EMERG "Kernel OOPS in progress\n");
- 
- 	if (context & 0x0020 && (fp->seqstat & SEQSTAT_EXCAUSE) == VEC_HWERR)
-@@ -952,7 +952,7 @@ void dump_bfin_mem(struct pt_regs *fp)
- 
- 	/* Hardware error interrupts can be deferred */
- 	if (unlikely(sti && (fp->seqstat & SEQSTAT_EXCAUSE) == VEC_HWERR &&
--	    oops_in_progress)){
-+	    atomic_read(&oops_in_progress))) {
- 		printk(KERN_NOTICE "Looks like this was a deferred error - sorry\n");
- #ifndef CONFIG_DEBUG_HWERR
- 		printk(KERN_NOTICE "The remaining message may be meaningless\n"
-@@ -1141,7 +1141,7 @@ void panic_cplb_error(int cplb_panic, st
- 		break;
- 	}
- 
--	oops_in_progress = 1;
-+	atomic_set(&oops_in_progress, 1);
- 
- 	dump_bfin_process(fp);
- 	dump_bfin_mem(fp);
-diff -puN arch/cris/arch-v32/kernel/time.c~fix-a-race-condtion-of-oops_in_progress arch/cris/arch-v32/kernel/time.c
---- a/arch/cris/arch-v32/kernel/time.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/arch/cris/arch-v32/kernel/time.c
-@@ -170,7 +170,7 @@ handle_watchdog_bite(struct pt_regs* reg
- #if defined(CONFIG_ETRAX_WATCHDOG)
- 	extern int cause_of_death;
- 
--	oops_in_progress = 1;
-+	atomic_set(&oops_in_progress, 1);
- 	printk(KERN_WARNING "Watchdog bite\n");
- 
- 	/* Check if forced restart or unexpected watchdog */
-@@ -191,7 +191,7 @@ handle_watchdog_bite(struct pt_regs* reg
- 	stop_watchdog();
- 	printk(KERN_WARNING "Oops: bitten by watchdog\n");
- 	show_registers(regs);
--	oops_in_progress = 0;
-+	atomic_set(&oops_in_progress, 0);
- #ifndef CONFIG_ETRAX_WATCHDOG_NICE_DOGGY
- 	reset_watchdog();
- #endif
-diff -puN arch/cris/kernel/traps.c~fix-a-race-condtion-of-oops_in_progress arch/cris/kernel/traps.c
---- a/arch/cris/kernel/traps.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/arch/cris/kernel/traps.c
-@@ -164,10 +164,10 @@ void
- oops_nmi_handler(struct pt_regs *regs)
- {
- 	stop_watchdog();
--	oops_in_progress = 1;
-+	atomic_set(&oops_in_progress, 1);
- 	printk("NMI!\n");
- 	show_registers(regs);
--	oops_in_progress = 0;
-+	atomic_set(&oops_in_progress, 0);
+-	strlcpy(info->type, "max1619", I2C_NAME_SIZE);
+-
+ 	return 0;
  }
  
- static int __init
-@@ -223,7 +223,7 @@ die_if_kernel(const char *str, struct pt
+@@ -298,7 +352,15 @@ static int max1619_probe(struct i2c_clie
+ 	max1619_init_client(new_client);
  
- 	show_registers(regs);
+ 	/* Register sysfs hooks */
+-	if ((err = sysfs_create_group(&new_client->dev.kobj, &max1619_group)))
++	if (id->driver_data == max1618) {
++		data->group = &max1618_group;
++		data->kind = max1618;
++	} else {
++		data->group = &max1619_group;
++		data->kind = max1619;
++	}
++	err = sysfs_create_group(&new_client->dev.kobj, data->group);
++	if (err)
+ 		goto exit_free;
  
--	oops_in_progress = 0;
-+	atomic_set(&oops_in_progress, 0);
+ 	data->hwmon_dev = hwmon_device_register(&new_client->dev);
+@@ -310,7 +372,7 @@ static int max1619_probe(struct i2c_clie
+ 	return 0;
  
- #ifdef CONFIG_ETRAX_WATCHDOG_NICE_DOGGY
- 	reset_watchdog();
-diff -puN arch/cris/mm/fault.c~fix-a-race-condtion-of-oops_in_progress arch/cris/mm/fault.c
---- a/arch/cris/mm/fault.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/arch/cris/mm/fault.c
-@@ -223,8 +223,8 @@ do_page_fault(unsigned long address, str
- 	 * terminate things with extreme prejudice.
- 	 */
+ exit_remove_files:
+-	sysfs_remove_group(&new_client->dev.kobj, &max1619_group);
++	sysfs_remove_group(&new_client->dev.kobj, data->group);
+ exit_free:
+ 	kfree(data);
+ exit:
+@@ -337,7 +399,7 @@ static int max1619_remove(struct i2c_cli
+ 	struct max1619_data *data = i2c_get_clientdata(client);
  
--	if (!oops_in_progress) {
--		oops_in_progress = 1;
-+	if (!atomic_read(&oops_in_progress)) {
-+		atomic_set(&oops_in_progress, 1);
- 		if ((unsigned long) (address) < PAGE_SIZE)
- 			printk(KERN_ALERT "Unable to handle kernel NULL "
- 				"pointer dereference");
-@@ -233,7 +233,7 @@ do_page_fault(unsigned long address, str
- 				" at virtual address %08lx\n", address);
+ 	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &max1619_group);
++	sysfs_remove_group(&client->dev.kobj, data->group);
  
- 		die_if_kernel("Oops", regs, (writeaccess << 1) | protection);
--		oops_in_progress = 0;
-+		atomic_set(&oops_in_progress, 0);
+ 	kfree(data);
+ 	return 0;
+@@ -352,21 +414,25 @@ static struct max1619_data *max1619_upda
+ 
+ 	if (time_after(jiffies, data->last_updated + HZ * 2) || !data->valid) {
+ 		dev_dbg(&client->dev, "Updating max1619 data.\n");
+-		data->temp_input1 = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_LOCAL_TEMP);
+-		data->temp_input2 = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_REMOTE_TEMP);
+-		data->temp_high2 = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_REMOTE_HIGH);
+-		data->temp_low2 = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_REMOTE_LOW);
+-		data->temp_crit2 = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_REMOTE_CRIT);
+-		data->temp_hyst2 = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_TCRIT_HYST);
+-		data->alarms = i2c_smbus_read_byte_data(client,
+-					MAX1619_REG_R_STATUS);
+-
++		switch (data->kind) {
++		default:
++			data->local = i2c_smbus_read_byte_data(
++				client, MAX1619_REG_R_LOCAL_TEMP);
++			data->remote_crit = i2c_smbus_read_byte_data(
++				client, MAX1619_REG_R_REMOTE_CRIT);
++			data->remote_hyst = i2c_smbus_read_byte_data(
++				client, MAX1619_REG_R_TCRIT_HYST);
++		/* fallthrough */
++		case max1618:
++			data->remote = i2c_smbus_read_byte_data(
++				client, MAX1619_REG_R_REMOTE_TEMP);
++			data->remote_high = i2c_smbus_read_byte_data(
++				client, MAX1619_REG_R_REMOTE_HIGH);
++			data->remote_low = i2c_smbus_read_byte_data(
++				client, MAX1619_REG_R_REMOTE_LOW);
++			data->alarms = i2c_smbus_read_byte_data(
++				client, MAX1619_REG_R_STATUS);
++		}
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
  	}
- 
- 	do_exit(SIGKILL);
-diff -puN arch/ia64/kernel/mca.c~fix-a-race-condtion-of-oops_in_progress arch/ia64/kernel/mca.c
---- a/arch/ia64/kernel/mca.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/arch/ia64/kernel/mca.c
-@@ -187,7 +187,7 @@ static unsigned long mlogbuf_timestamp =
- 
- static int loglevel_save = -1;
- #define BREAK_LOGLEVEL(__console_loglevel)		\
--	oops_in_progress = 1;				\
-+	atomic_set(&oops_in_progress, 1);		\
- 	if (loglevel_save < 0)				\
- 		loglevel_save = __console_loglevel;	\
- 	__console_loglevel = 15;
-@@ -198,7 +198,7 @@ static int loglevel_save = -1;
- 		loglevel_save = -1;			\
- 	}						\
- 	mlogbuf_finished = 0;				\
--	oops_in_progress = 0;
-+	atomic_set(&oops_in_progress, 0);
- 
- /*
-  * Push messages into buffer, print them later if not urgent.
-@@ -215,7 +215,7 @@ void ia64_mca_printk(const char *fmt, ..
- 	va_end(args);
- 
- 	/* Copy the output into mlogbuf */
--	if (oops_in_progress) {
-+	if (atomic_read(&oops_in_progress)) {
- 		/* mlogbuf was abandoned, use printk directly instead. */
- 		printk(temp_buf);
- 	} else {
-diff -puN arch/mn10300/mm/fault.c~fix-a-race-condtion-of-oops_in_progress arch/mn10300/mm/fault.c
---- a/arch/mn10300/mm/fault.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/arch/mn10300/mm/fault.c
-@@ -39,7 +39,7 @@
- void bust_spinlocks(int yes)
- {
- 	if (yes) {
--		oops_in_progress = 1;
-+		atomic_set(&oops_in_progress, 1);
- #ifdef CONFIG_SMP
- 		/* Many serial drivers do __global_cli() */
- 		global_irq_lock = 0;
-@@ -49,7 +49,7 @@ void bust_spinlocks(int yes)
- #ifdef CONFIG_VT
- 		unblank_screen();
- #endif
--		oops_in_progress = 0;
-+		atomic_set(&oops_in_progress, 0);
- 		/*
- 		 * OK, the message is on the console.  Now we call printk()
- 		 * without oops_in_progress set so that printk will give klogd
-diff -puN arch/parisc/kernel/traps.c~fix-a-race-condtion-of-oops_in_progress arch/parisc/kernel/traps.c
---- a/arch/parisc/kernel/traps.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/arch/parisc/kernel/traps.c
-@@ -246,7 +246,7 @@ void die_if_kernel(char *str, struct pt_
- 		return;
- 	}
- 
--	oops_in_progress = 1;
-+	atomic_set(&oops_in_progress, 1);
- 
- 	/* Amuse the user in a SPARC fashion */
- 	if (err) printk(
-@@ -438,7 +438,7 @@ void parisc_terminate(char *msg, struct 
- {
- 	static DEFINE_SPINLOCK(terminate_lock);
- 
--	oops_in_progress = 1;
-+	atomic_set(&oops_in_progress, 1);
- 
- 	set_eiem(0);
- 	local_irq_disable();
-diff -puN arch/s390/kernel/setup.c~fix-a-race-condtion-of-oops_in_progress arch/s390/kernel/setup.c
---- a/arch/s390/kernel/setup.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/arch/s390/kernel/setup.c
-@@ -240,7 +240,7 @@ static inline void setup_zfcpdump(unsign
- 
- void machine_restart(char *command)
- {
--	if ((!in_interrupt() && !in_atomic()) || oops_in_progress)
-+	if ((!in_interrupt() && !in_atomic()) || atomic_read(&oops_in_progress))
- 		/*
- 		 * Only unblank the console if we are called in enabled
- 		 * context or a bust_spinlocks cleared the way for us.
-@@ -251,7 +251,7 @@ void machine_restart(char *command)
- 
- void machine_halt(void)
- {
--	if (!in_interrupt() || oops_in_progress)
-+	if (!in_interrupt() || atomic_read(&oops_in_progress))
- 		/*
- 		 * Only unblank the console if we are called in enabled
- 		 * context or a bust_spinlocks cleared the way for us.
-@@ -262,7 +262,7 @@ void machine_halt(void)
- 
- void machine_power_off(void)
- {
--	if (!in_interrupt() || oops_in_progress)
-+	if (!in_interrupt() || atomic_read(&oops_in_progress))
- 		/*
- 		 * Only unblank the console if we are called in enabled
- 		 * context or a bust_spinlocks cleared the way for us.
-diff -puN arch/s390/mm/fault.c~fix-a-race-condtion-of-oops_in_progress arch/s390/mm/fault.c
---- a/arch/s390/mm/fault.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/arch/s390/mm/fault.c
-@@ -81,11 +81,11 @@ static inline int notify_page_fault(stru
- void bust_spinlocks(int yes)
- {
- 	if (yes) {
--		oops_in_progress = 1;
-+		atomic_set(&oops_in_progress, 1);
- 	} else {
- 		int loglevel_save = console_loglevel;
- 		console_unblank();
--		oops_in_progress = 0;
-+		atomic_set(&oops_in_progress, 0);
- 		/*
- 		 * OK, the message is on the console.  Now we call printk()
- 		 * without oops_in_progress set so that printk will give klogd
-diff -puN drivers/char/vt.c~fix-a-race-condtion-of-oops_in_progress drivers/char/vt.c
---- a/drivers/char/vt.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/drivers/char/vt.c
-@@ -3660,7 +3660,7 @@ void do_unblank_screen(int leaving_gfx)
- 	 * context for the sake of the low level drivers, except in the special
- 	 * case of oops_in_progress
- 	 */
--	if (!oops_in_progress)
-+	if (!atomic_read(&oops_in_progress))
- 		might_sleep();
- 
- 	WARN_CONSOLE_UNLOCKED();
-diff -puN drivers/mtd/mtdoops.c~fix-a-race-condtion-of-oops_in_progress drivers/mtd/mtdoops.c
---- a/drivers/mtd/mtdoops.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/drivers/mtd/mtdoops.c
-@@ -341,7 +341,7 @@ mtdoops_console_write(struct console *co
- 	struct mtd_info *mtd = cxt->mtd;
- 	unsigned long flags;
- 
--	if (!oops_in_progress) {
-+	if (!atomic_read(&oops_in_progress)) {
- 		mtdoops_console_sync();
- 		return;
- 	}
-diff -puN drivers/parisc/led.c~fix-a-race-condtion-of-oops_in_progress drivers/parisc/led.c
---- a/drivers/parisc/led.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/drivers/parisc/led.c
-@@ -464,7 +464,7 @@ static void led_work_func (struct work_s
- 	if (likely(led_diskio))   currentleds |= led_get_diskio_activity();
- 
- 	/* blink all LEDs twice a second if we got an Oops (HPMC) */
--	if (unlikely(oops_in_progress)) 
-+	if (unlikely(atomic_read(&oops_in_progress)))
- 		currentleds = (count_HZ<=(HZ/2)) ? 0 : 0xff;
- 
- 	if (currentleds != lastleds)
-diff -puN drivers/serial/8250.c~fix-a-race-condtion-of-oops_in_progress drivers/serial/8250.c
---- a/drivers/serial/8250.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/drivers/serial/8250.c
-@@ -2612,7 +2612,7 @@ serial8250_console_write(struct console 
- 	if (up->port.sysrq) {
- 		/* serial8250_handle_port() already took the lock */
- 		locked = 0;
--	} else if (oops_in_progress) {
-+	} else if (atomic_read(&oops_in_progress)) {
- 		locked = spin_trylock(&up->port.lock);
- 	} else
- 		spin_lock(&up->port.lock);
-diff -puN drivers/serial/cpm_uart/cpm_uart_core.c~fix-a-race-condtion-of-oops_in_progress drivers/serial/cpm_uart/cpm_uart_core.c
---- a/drivers/serial/cpm_uart/cpm_uart_core.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/drivers/serial/cpm_uart/cpm_uart_core.c
-@@ -1120,7 +1120,7 @@ static void cpm_uart_console_write(struc
- 	cbd_t __iomem *bdp, *bdbase;
- 	unsigned char *cp;
- 	unsigned long flags;
--	int nolock = oops_in_progress;
-+	int nolock = atomic_read(&oops_in_progress);
- 
- 	if (unlikely(nolock)) {
- 		local_irq_save(flags);
-diff -puN drivers/serial/sunhv.c~fix-a-race-condtion-of-oops_in_progress drivers/serial/sunhv.c
---- a/drivers/serial/sunhv.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/drivers/serial/sunhv.c
-@@ -435,7 +435,7 @@ static void sunhv_console_write_paged(st
- 	local_irq_save(flags);
- 	if (port->sysrq) {
- 		locked = 0;
--	} else if (oops_in_progress) {
-+	} else if (atomic_read(&oops_in_progress)) {
- 		locked = spin_trylock(&port->lock);
- 	} else
- 		spin_lock(&port->lock);
-@@ -494,7 +494,7 @@ static void sunhv_console_write_bychar(s
- 	local_irq_save(flags);
- 	if (port->sysrq) {
- 		locked = 0;
--	} else if (oops_in_progress) {
-+	} else if (atomic_read(&oops_in_progress)) {
- 		locked = spin_trylock(&port->lock);
- 	} else
- 		spin_lock(&port->lock);
-diff -puN drivers/serial/sunsab.c~fix-a-race-condtion-of-oops_in_progress drivers/serial/sunsab.c
---- a/drivers/serial/sunsab.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/drivers/serial/sunsab.c
-@@ -852,7 +852,7 @@ static void sunsab_console_write(struct 
- 	local_irq_save(flags);
- 	if (up->port.sysrq) {
- 		locked = 0;
--	} else if (oops_in_progress) {
-+	} else if (atomic_read(&oops_in_progress)) {
- 		locked = spin_trylock(&up->port.lock);
- 	} else
- 		spin_lock(&up->port.lock);
-diff -puN drivers/serial/sunsu.c~fix-a-race-condtion-of-oops_in_progress drivers/serial/sunsu.c
---- a/drivers/serial/sunsu.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/drivers/serial/sunsu.c
-@@ -1296,7 +1296,7 @@ static void sunsu_console_write(struct c
- 	local_irq_save(flags);
- 	if (up->port.sysrq) {
- 		locked = 0;
--	} else if (oops_in_progress) {
-+	} else if (atomic_read(&oops_in_progress)) {
- 		locked = spin_trylock(&up->port.lock);
- 	} else
- 		spin_lock(&up->port.lock);
-diff -puN drivers/serial/sunzilog.c~fix-a-race-condtion-of-oops_in_progress drivers/serial/sunzilog.c
---- a/drivers/serial/sunzilog.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/drivers/serial/sunzilog.c
-@@ -1154,7 +1154,7 @@ sunzilog_console_write(struct console *c
- 	local_irq_save(flags);
- 	if (up->port.sysrq) {
- 		locked = 0;
--	} else if (oops_in_progress) {
-+	} else if (atomic_read(&oops_in_progress)) {
- 		locked = spin_trylock(&up->port.lock);
- 	} else
- 		spin_lock(&up->port.lock);
-diff -puN drivers/serial/uartlite.c~fix-a-race-condtion-of-oops_in_progress drivers/serial/uartlite.c
---- a/drivers/serial/uartlite.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/drivers/serial/uartlite.c
-@@ -368,9 +368,9 @@ static void ulite_console_write(struct c
- 	unsigned int ier;
- 	int locked = 1;
- 
--	if (oops_in_progress) {
-+	if (atomic_read(&oops_in_progress))
- 		locked = spin_trylock_irqsave(&port->lock, flags);
--	} else
-+	else
- 		spin_lock_irqsave(&port->lock, flags);
- 
- 	/* save and disable interrupt */
-diff -puN drivers/video/aty/radeonfb.h~fix-a-race-condtion-of-oops_in_progress drivers/video/aty/radeonfb.h
---- a/drivers/video/aty/radeonfb.h~fix-a-race-condtion-of-oops_in_progress
-+++ a/drivers/video/aty/radeonfb.h
-@@ -380,7 +380,7 @@ struct radeonfb_info {
-  */
- static inline void _radeon_msleep(struct radeonfb_info *rinfo, unsigned long ms)
- {
--	if (rinfo->no_schedule || oops_in_progress)
-+	if (rinfo->no_schedule || atomic_read(&oops_in_progress))
- 		mdelay(ms);
- 	else
- 		msleep(ms);
-diff -puN include/linux/console.h~fix-a-race-condtion-of-oops_in_progress include/linux/console.h
---- a/include/linux/console.h~fix-a-race-condtion-of-oops_in_progress
-+++ a/include/linux/console.h
-@@ -142,7 +142,8 @@ void vcs_remove_sysfs(struct tty_struct 
- 
- /* Some debug stub to catch some of the obvious races in the VT code */
- #if 1
--#define WARN_CONSOLE_UNLOCKED()	WARN_ON(!is_console_locked() && !oops_in_progress)
-+#define WARN_CONSOLE_UNLOCKED()	\
-+	WARN_ON(!is_console_locked() && !atomic_read(&oops_in_progress))
- #else
- #define WARN_CONSOLE_UNLOCKED()
- #endif
-diff -puN include/linux/kernel.h~fix-a-race-condtion-of-oops_in_progress include/linux/kernel.h
---- a/include/linux/kernel.h~fix-a-race-condtion-of-oops_in_progress
-+++ a/include/linux/kernel.h
-@@ -19,6 +19,7 @@
- #include <linux/dynamic_printk.h>
- #include <asm/byteorder.h>
- #include <asm/bug.h>
-+#include <asm/atomic_def.h>
- 
- extern const char linux_banner[];
- extern const char linux_proc_banner[];
-@@ -256,7 +257,8 @@ static inline void console_verbose(void)
- 
- extern void bust_spinlocks(int yes);
- extern void wake_up_klogd(void);
--extern int oops_in_progress;		/* If set, an oops, panic(), BUG() or die() is in progress */
-+/* If set, an oops, panic(), BUG() or die() is in progress */
-+extern atomic_t oops_in_progress;
- extern int panic_timeout;
- extern int panic_on_oops;
- extern int panic_on_unrecovered_nmi;
-diff -puN kernel/printk.c~fix-a-race-condtion-of-oops_in_progress kernel/printk.c
---- a/kernel/printk.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/kernel/printk.c
-@@ -64,7 +64,7 @@ int console_printk[4] = {
-  * Low level drivers may need that to know if they can schedule in
-  * their unblank() callback or not. So let's export it.
-  */
--int oops_in_progress;
-+atomic_t oops_in_progress;
- EXPORT_SYMBOL(oops_in_progress);
- 
- /*
-@@ -248,7 +248,7 @@ int log_buf_copy(char *dest, int idx, in
- 	int ret, max;
- 	bool took_lock = false;
- 
--	if (!oops_in_progress) {
-+	if (!atomic_read(&oops_in_progress)) {
- 		spin_lock_irq(&logbuf_lock);
- 		took_lock = true;
- 	}
-@@ -688,7 +688,7 @@ asmlinkage int vprintk(const char *fmt, 
- 		 * recursion and return - but flag the recursion so that
- 		 * it can be printed at the next appropriate moment:
- 		 */
--		if (!oops_in_progress) {
-+		if (!atomic_read(&oops_in_progress)) {
- 			recursion_bug = 1;
- 			goto out_restore_irqs;
- 		}
-@@ -1067,7 +1067,7 @@ void console_unblank(void)
- 	 * console_unblank can no longer be called in interrupt context unless
- 	 * oops_in_progress is set to 1..
- 	 */
--	if (oops_in_progress) {
-+	if (atomic_read(&oops_in_progress)) {
- 		if (down_trylock(&console_sem) != 0)
- 			return;
- 	} else
-diff -puN kernel/sched.c~fix-a-race-condtion-of-oops_in_progress kernel/sched.c
---- a/kernel/sched.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/kernel/sched.c
-@@ -8238,7 +8238,7 @@ void __might_sleep(char *file, int line)
- 	static unsigned long prev_jiffy;	/* ratelimiting */
- 
- 	if ((in_atomic() || irqs_disabled()) &&
--	    system_state == SYSTEM_RUNNING && !oops_in_progress) {
-+	    system_state == SYSTEM_RUNNING && !atomic_read(&oops_in_progress)) {
- 		if (time_before(jiffies, prev_jiffy + HZ) && prev_jiffy)
- 			return;
- 		prev_jiffy = jiffies;
-diff -puN lib/bust_spinlocks.c~fix-a-race-condtion-of-oops_in_progress lib/bust_spinlocks.c
---- a/lib/bust_spinlocks.c~fix-a-race-condtion-of-oops_in_progress
-+++ a/lib/bust_spinlocks.c
-@@ -17,12 +17,12 @@
- void __attribute__((weak)) bust_spinlocks(int yes)
- {
- 	if (yes) {
--		++oops_in_progress;
-+		atomic_inc(&oops_in_progress);
- 	} else {
- #ifdef CONFIG_VT
- 		unblank_screen();
- #endif
--		if (--oops_in_progress == 0)
-+		if (atomic_dec_and_test(&oops_in_progress))
- 			wake_up_klogd();
- 	}
+@@ -386,9 +452,10 @@ static void __exit sensors_max1619_exit(
+ 	i2c_del_driver(&max1619_driver);
  }
+ 
+-MODULE_AUTHOR("Alexey Fisher <fishor@mail.ru> and "
+-	"Jean Delvare <khali@linux-fr.org>");
+-MODULE_DESCRIPTION("MAX1619 sensor driver");
++MODULE_AUTHOR("Alexey Fisher <fishor@mail.ru>, "
++	"Jean Delvare <khali@linux-fr.org>, "
++	"Tobias Himmer <tobias@himmer-online.de>");
++MODULE_DESCRIPTION("MAX1619 / MAX1618 sensor driver");
+ MODULE_LICENSE("GPL");
+ 
+ module_init(sensors_max1619_init);
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from tobias@himmer-online.de are
 
-git-ftrace.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
-fix-a-race-condtion-of-oops_in_progress.patch
+hwmon-add-support-for-max1618-in-max1619-driver.patch
 
