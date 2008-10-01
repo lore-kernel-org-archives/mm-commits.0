@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + git-v4l-dvb-git-rejects.patch added to -mm tree
-Date: Wed, 01 Oct 2008 15:18:50 -0700
-Message-ID: <200810012218.m91MIoXi007090@imap1.linux-foundation.org>
+Subject: + git-acpi-git-rejects.patch added to -mm tree
+Date: Wed, 01 Oct 2008 15:19:46 -0700
+Message-ID: <200810012219.m91MJklL007106@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39308 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50075 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752003AbYJAWSw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 18:18:52 -0400
+	by vger.kernel.org with ESMTP id S1752561AbYJAWTs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 18:19:48 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m91MIorL000505
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m91MJkaM000541
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 1 Oct 2008 15:18:51 -0700
+	for <mm-commits@vger.kernel.org>; Wed, 1 Oct 2008 15:19:47 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +19,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-v4l-dvb-git-rejects
+     git-acpi-git-rejects
 has been added to the -mm tree.  Its filename is
-     git-v4l-dvb-git-rejects.patch
+     git-acpi-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,86 +37,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-v4l-dvb-git-rejects
+Subject: git-acpi-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/Kconfig |   63 ----------------------------------
- 1 file changed, 63 deletions(-)
+ drivers/misc/acer-wmi.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/media/video/Kconfig~git-v4l-dvb-git-rejects drivers/media/video/Kconfig
---- a/drivers/media/video/Kconfig~git-v4l-dvb-git-rejects
-+++ a/drivers/media/video/Kconfig
-@@ -956,67 +956,4 @@ config USB_S2255
+diff -puN drivers/misc/acer-wmi.c~git-acpi-git-rejects drivers/misc/acer-wmi.c
+--- a/drivers/misc/acer-wmi.c~git-acpi-git-rejects
++++ a/drivers/misc/acer-wmi.c
+@@ -1249,15 +1249,12 @@ static int __init acer_wmi_init(void)
+ 		return -ENODEV;
+ 	}
  
- endif # V4L_USB_DRIVERS
- 
--<<<<<<< HEAD:drivers/media/video/Kconfig
--config SOC_CAMERA
--	tristate "SoC camera support"
--	depends on VIDEO_V4L2 && HAS_DMA
--	select VIDEOBUF_GEN
--	help
--	  SoC Camera is a common API to several cameras, not connecting
--	  over a bus like PCI or USB. For example some i2c camera connected
--	  directly to the data bus of an SoC.
--
--config SOC_CAMERA_MT9M001
--	tristate "mt9m001 support"
--	depends on SOC_CAMERA && I2C
--	select GPIO_PCA953X if MT9M001_PCA9536_SWITCH
--	help
--	  This driver supports MT9M001 cameras from Micron, monochrome
--	  and colour models.
--
--config MT9M001_PCA9536_SWITCH
--	bool "pca9536 datawidth switch for mt9m001"
--	depends on SOC_CAMERA_MT9M001 && GENERIC_GPIO
--	help
--	  Select this if your MT9M001 camera uses a PCA9536 I2C GPIO
--	  extender to switch between 8 and 10 bit datawidth modes
--
--config SOC_CAMERA_MT9V022
--	tristate "mt9v022 support"
--	depends on SOC_CAMERA && I2C
--	select GPIO_PCA953X if MT9V022_PCA9536_SWITCH
--	help
--	  This driver supports MT9V022 cameras from Micron
--
--config MT9V022_PCA9536_SWITCH
--	bool "pca9536 datawidth switch for mt9v022"
--	depends on SOC_CAMERA_MT9V022 && GENERIC_GPIO
--	help
--	  Select this if your MT9V022 camera uses a PCA9536 I2C GPIO
--	  extender to switch between 8 and 10 bit datawidth modes
--
--config SOC_CAMERA_PLATFORM
--	tristate "platform camera support"
--	depends on SOC_CAMERA
--	help
--	  This is a generic SoC camera platform driver, useful for testing
--
--config VIDEO_PXA27x
--	tristate "PXA27x Quick Capture Interface driver"
--	depends on VIDEO_DEV && PXA27x
--	select SOC_CAMERA
--	select VIDEOBUF_DMA_SG
--	---help---
--	  This is a v4l2 driver for the PXA27x Quick Capture Interface
--
--config VIDEO_SH_MOBILE_CEU
--	tristate "SuperH Mobile CEU Interface driver"
--	depends on VIDEO_DEV && HAS_DMA
--	select SOC_CAMERA
--	select VIDEOBUF_DMA_CONTIG
--	---help---
--	  This is a v4l2 driver for the SuperH Mobile CEU Interface
--
+-<<<<<<< HEAD:drivers/misc/acer-wmi.c
+ 	set_quirks();
 -=======
-->>>>>>> FETCH_HEAD:drivers/media/video/Kconfig
- endif # VIDEO_CAPTURE_DRIVERS
+ 	if (!acpi_video_backlight_support() && has_cap(ACER_CAP_BRIGHTNESS)) {
+ 		interface->capability &= ~ACER_CAP_BRIGHTNESS;
+ 		printk(ACER_INFO "Brightness must be controlled by "
+ 		       "generic video driver\n");
+ 	}
+->>>>>>> FETCH_HEAD:drivers/misc/acer-wmi.c
+ 
+ 	if (platform_driver_register(&acer_platform_driver)) {
+ 		printk(ACER_ERR "Unable to register platform driver.\n");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -131,6 +79,7 @@ git-pci.patch
 git-hid.patch
 git-v4l-dvb.patch
 git-v4l-dvb-git-rejects.patch
+git-acpi-git-rejects.patch
 git-nfsd.patch
 git-dlm.patch
 git-async_tx.patch
