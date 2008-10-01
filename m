@@ -1,109 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - m32r-remove-the-unused-nohighmem-option.patch removed from -mm tree
-Date: Wed, 01 Oct 2008 14:50:27 -0700
-Message-ID: <200810012150.m91LoR1P005840@imap1.linux-foundation.org>
+Subject: - sys_paccept-disable-paccept-until-api-design-is-resolved.patch removed from -mm tree
+Date: Wed, 01 Oct 2008 14:49:59 -0700
+Message-ID: <200810012149.m91LnxUJ005806@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37855 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39861 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753740AbYJAVu5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:50:57 -0400
+	by vger.kernel.org with ESMTP id S1753710AbYJAVuv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:50:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, rpjday@crashcourse.ca, takata@linux-m32r.org, mm-commits@vger.kernel.org
+To: mtk.manpages@googlemail.com, alan@redhat.com, davem@davemloft.net, davidel@xmailserver.org, drepper@redhat.com, hch@lst.de, jakub@redhat.com, mtk.manpages@gmail.com, oleg@tv-sign.ru
 
 
 The patch titled
-     m32r: remove the unused NOHIGHMEM option
+     sys_paccept: disable paccept() until API design is resolved
 has been removed from the -mm tree.  Its filename was
-     m32r-remove-the-unused-nohighmem-option.patch
+     sys_paccept-disable-paccept-until-api-design-is-resolved.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m32r: remove the unused NOHIGHMEM option
-From: Adrian Bunk <bunk@kernel.org>
+Subject: sys_paccept: disable paccept() until API design is resolved
+From: Michael Kerrisk <mtk.manpages@googlemail.com>
 
-Remove the unused NOHIGHMEM option.
+The reasons for disabling paccept() are as follows:
 
-Reviewed-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+* The API is more complex than needed.  There is AFAICS no demonstrated
+  use case that the sigset argument of this syscall serves that couldn't
+  equally be served by the use of pselect/ppoll/epoll_pwait + traditional
+  accept().  Roland seems to concur with this opinion
+  (http://thread.gmane.org/gmane.linux.kernel/723953/focus=732255).  I
+  have (more than once) asked Ulrich to explain otherwise
+  (http://thread.gmane.org/gmane.linux.kernel/723952/focus=731018), but he
+  does not respond, so one is left to assume that he doesn't know of such
+  a case.
+
+* The use of a sigset argument is not consistent with other I/O APIs
+  that can block on a single file descriptor (e.g., read(), recv(),
+  connect()).
+
+* The behavior of paccept() when interrupted by a signal is IMO strange:
+  the kernel restarts the system call if SA_RESTART was set for the
+  handler.  I think that it should not do this -- that it should behave
+  consistently with paccept()/ppoll()/epoll_pwait(), which never restart,
+  regardless of SA_RESTART.  The reasoning here is that the very purpose
+  of paccept() is to wait for a connection or a signal, and that
+  restarting in the latter case is probably never useful.  (Note: Roland
+  disagrees on this point, believing that rather paccept() should be
+  consistent with accept() in its behavior wrt EINTR
+  (http://thread.gmane.org/gmane.linux.kernel/723953/focus=732255).)
+
+I believe that instead, a simpler API, consistent with Ulrich's other
+recent additions, is preferable:
+
+accept4(int fd, struct sockaddr *sa, socklen_t *salen, ind flags);
+
+(This simpler API was originally proposed by Ulrich:
+http://thread.gmane.org/gmane.linux.network/92072)
+
+If this simpler API is added, then if we later decide that the sigset
+argument really is required, then a suitable bit in 'flags' could be added
+to indicate the presence of the sigset argument.
+
+At this point, I am hoping we either will get a counter-argument from
+Ulrich about why we really do need paccept()'s sigset argument, or that he
+will resubmit the original accept4() patch.
+
+Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Alan Cox <alan@redhat.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Jakub Jelinek <jakub@redhat.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/Kconfig |    4 ----
- 1 file changed, 4 deletions(-)
+ net/socket.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/m32r/Kconfig~m32r-remove-the-unused-nohighmem-option arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~m32r-remove-the-unused-nohighmem-option
-+++ a/arch/m32r/Kconfig
-@@ -213,10 +213,6 @@ config MEMORY_SIZE
- 	default "01000000" if PLAT_M32104UT
- 	default "00800000" if PLAT_OAKS32R
+diff -puN net/socket.c~sys_paccept-disable-paccept-until-api-design-is-resolved net/socket.c
+--- a/net/socket.c~sys_paccept-disable-paccept-until-api-design-is-resolved
++++ a/net/socket.c
+@@ -1511,6 +1511,7 @@ out_fd:
+ 	goto out_put;
+ }
  
--config NOHIGHMEM
--	bool
--	default y
--
- config ARCH_DISCONTIGMEM_ENABLE
- 	bool "Internal RAM Support"
- 	depends on CHIP_M32700 || CHIP_M32102 || CHIP_VDEC2 || CHIP_OPSP || CHIP_M32104
++#if 0
+ #ifdef HAVE_SET_RESTORE_SIGMASK
+ asmlinkage long sys_paccept(int fd, struct sockaddr __user *upeer_sockaddr,
+ 			    int __user *upeer_addrlen,
+@@ -1564,6 +1565,7 @@ asmlinkage long sys_paccept(int fd, stru
+ 	return do_accept(fd, upeer_sockaddr, upeer_addrlen, flags);
+ }
+ #endif
++#endif
+ 
+ asmlinkage long sys_accept(int fd, struct sockaddr __user *upeer_sockaddr,
+ 			   int __user *upeer_addrlen)
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from mtk.manpages@googlemail.com are
 
-git-powerpc.patch
-git-sparc.patch
-git-x86.patch
-git-xtensa.patch
-git-v4l-dvb.patch
-git-net.patch
-git-crypto.patch
-git-drm.patch
-git-security-testing.patch
-the-overdue-eepro100-removal.patch
-parisc-lib-make-code-static.patch
-drivers-parisc-make-code-static.patch
-if-0-ses_match_host.patch
-scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
-drivers-scsi-a2091c-make-2-functions-static.patch
-drivers-scsi-a3000c-make-2-functions-static.patch
-fs_mbcache-dont-needlessly-make-it-built-in.patch
-misdn-dsp_cmxc-fix-size-checks.patch
-asm-h8300-mdh-remove-cvs-keyword.patch
-alpha-miata-remove-dead-url.patch
-uml-remove-the-dead-tty_log-code.patch
-include-linux-kernelh-userspace-header-cleanup.patch
-maintainers-remove-hga-framebuffer-driver-entry.patch
-include-linux-mounth-remove-cvs-keyword.patch
-kernel-dmac-remove-a-cvs-keyword.patch
-binfmt_somc-add-module_license.patch
-make-probe_serial_gsc-static.patch
-pnp-remove-printk-with-outdated-version.patch
-telephony-remove-cvs-keywords.patch
-reiserfs-procfsc-remove-cvs-keywords.patch
-quota-remove-cvs-keywords.patch
-make-ptrace_untrace-static.patch
-fs-partitions-acornc-remove-dead-code.patch
-parport-remove-cvs-keywords.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-ipc-semc-make-free_un-static.patch
-make-fs-proc-proc_sysctlc-grab_header-static.patch
-make-hp_wmi_notify-static.patch
-make-kprobesc-kretprobe_table_lock-static.patch
-acpi-use-bcd2bin-bin2bcd.patch
-alpha-use-bcd2bin-bin2bcd.patch
-cris-use-bcd2bin-bin2bcd.patch
-drivers-rtc-use-bcd2bin-bin2bcd.patch
-rtc-use-bcd2bin-bin2bcd.patch
-mips-use-bcd2bin-bin2bcd.patch
-mn10300-use-bcd2bin-bin2bcd.patch
-i2c-use-bcd2bin-bin2bcd.patch
-drivers-scsi-sr_vendorc-use-bcd2bin.patch
-remove-the-obsolete-bcdbin-binbcd-macros.patch
-include-linux-bcdh-remove-comments.patch
-reiser4.patch
+git-block.patch
+rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
+rlimit-permit-setting-rlimit_nofile-to-rlim_infinity-fix.patch
+coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
 
