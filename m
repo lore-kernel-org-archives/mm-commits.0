@@ -1,69 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - dmatest-properly-handle-duplicate-dma-channels.patch removed from -mm tree
-Date: Wed, 01 Oct 2008 14:50:38 -0700
-Message-ID: <200810012150.m91Locbf005858@imap1.linux-foundation.org>
+Subject: - m32r-remove-the-unused-nohighmem-option.patch removed from -mm tree
+Date: Wed, 01 Oct 2008 14:50:27 -0700
+Message-ID: <200810012150.m91LoR1P005840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59489 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37855 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753675AbYJAVuq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:50:46 -0400
+	by vger.kernel.org with ESMTP id S1753740AbYJAVu5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:50:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: timur@freescale.com, dan.j.williams@intel.com, haavard.skinnemoen@atmel.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, rpjday@crashcourse.ca, takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dmatest: properly handle duplicate DMA channels
+     m32r: remove the unused NOHIGHMEM option
 has been removed from the -mm tree.  Its filename was
-     dmatest-properly-handle-duplicate-dma-channels.patch
+     m32r-remove-the-unused-nohighmem-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dmatest: properly handle duplicate DMA channels
-From: Timur Tabi <timur@freescale.com>
+Subject: m32r: remove the unused NOHIGHMEM option
+From: Adrian Bunk <bunk@kernel.org>
 
-Update the the dmatest driver so that it handles duplicate DMA channels
-properly.
+Remove the unused NOHIGHMEM option.
 
-When a DMA client is notified of an available DMA channel, it must check
-if it has already allocated resources for that channel.  If so, it should
-return DMA_DUP.  This can happen, for example, if a DMA driver calls
-dma_async_device_register() more than once.
-
-Signed-off-by: Timur Tabi <timur@freescale.com>
-Cc: "Williams, Dan J" <dan.j.williams@intel.com>
-Acked-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Reviewed-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/dmatest.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ arch/m32r/Kconfig |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/dma/dmatest.c~dmatest-properly-handle-duplicate-dma-channels drivers/dma/dmatest.c
---- a/drivers/dma/dmatest.c~dmatest-properly-handle-duplicate-dma-channels
-+++ a/drivers/dma/dmatest.c
-@@ -325,6 +325,11 @@ static enum dma_state_client dmatest_add
- 	struct dmatest_thread	*thread;
- 	unsigned int		i;
+diff -puN arch/m32r/Kconfig~m32r-remove-the-unused-nohighmem-option arch/m32r/Kconfig
+--- a/arch/m32r/Kconfig~m32r-remove-the-unused-nohighmem-option
++++ a/arch/m32r/Kconfig
+@@ -213,10 +213,6 @@ config MEMORY_SIZE
+ 	default "01000000" if PLAT_M32104UT
+ 	default "00800000" if PLAT_OAKS32R
  
-+	/* Have we already been told about this channel? */
-+	list_for_each_entry(dtc, &dmatest_channels, node)
-+		if (dtc->chan == chan)
-+			return DMA_DUP;
-+
- 	dtc = kmalloc(sizeof(struct dmatest_chan), GFP_ATOMIC);
- 	if (!dtc) {
- 		pr_warning("dmatest: No memory for %s\n", chan->dev.bus_id);
+-config NOHIGHMEM
+-	bool
+-	default y
+-
+ config ARCH_DISCONTIGMEM_ENABLE
+ 	bool "Internal RAM Support"
+ 	depends on CHIP_M32700 || CHIP_M32102 || CHIP_VDEC2 || CHIP_OPSP || CHIP_M32104
 _
 
-Patches currently in -mm which might be from timur@freescale.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-origin.patch
 git-powerpc.patch
-git-async_tx.patch
-git-sound.patch
+git-sparc.patch
+git-x86.patch
+git-xtensa.patch
+git-v4l-dvb.patch
+git-net.patch
+git-crypto.patch
+git-drm.patch
+git-security-testing.patch
+the-overdue-eepro100-removal.patch
+parisc-lib-make-code-static.patch
+drivers-parisc-make-code-static.patch
+if-0-ses_match_host.patch
+scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
+drivers-scsi-a2091c-make-2-functions-static.patch
+drivers-scsi-a3000c-make-2-functions-static.patch
+fs_mbcache-dont-needlessly-make-it-built-in.patch
+misdn-dsp_cmxc-fix-size-checks.patch
+asm-h8300-mdh-remove-cvs-keyword.patch
+alpha-miata-remove-dead-url.patch
+uml-remove-the-dead-tty_log-code.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+maintainers-remove-hga-framebuffer-driver-entry.patch
+include-linux-mounth-remove-cvs-keyword.patch
+kernel-dmac-remove-a-cvs-keyword.patch
+binfmt_somc-add-module_license.patch
+make-probe_serial_gsc-static.patch
+pnp-remove-printk-with-outdated-version.patch
+telephony-remove-cvs-keywords.patch
+reiserfs-procfsc-remove-cvs-keywords.patch
+quota-remove-cvs-keywords.patch
+make-ptrace_untrace-static.patch
+fs-partitions-acornc-remove-dead-code.patch
+parport-remove-cvs-keywords.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+ipc-semc-make-free_un-static.patch
+make-fs-proc-proc_sysctlc-grab_header-static.patch
+make-hp_wmi_notify-static.patch
+make-kprobesc-kretprobe_table_lock-static.patch
+acpi-use-bcd2bin-bin2bcd.patch
+alpha-use-bcd2bin-bin2bcd.patch
+cris-use-bcd2bin-bin2bcd.patch
+drivers-rtc-use-bcd2bin-bin2bcd.patch
+rtc-use-bcd2bin-bin2bcd.patch
+mips-use-bcd2bin-bin2bcd.patch
+mn10300-use-bcd2bin-bin2bcd.patch
+i2c-use-bcd2bin-bin2bcd.patch
+drivers-scsi-sr_vendorc-use-bcd2bin.patch
+remove-the-obsolete-bcdbin-binbcd-macros.patch
+include-linux-bcdh-remove-comments.patch
+reiser4.patch
 
