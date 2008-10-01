@@ -1,73 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: + git-sound-rejects.patch added to -mm tree
-Date: Wed, 01 Oct 2008 13:48:04 -0700
-Message-ID: <200810012048.m91Km4ps003243@imap1.linux-foundation.org>
+Subject: - fix-x86-sparse_irq-needs-spin_lock-in-allocations.patch removed from -mm tree
+Date: Wed, 01 Oct 2008 14:05:35 -0700
+Message-ID: <200810012105.m91L5ZKL003930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51061 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42789 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753236AbYJAUsH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 16:48:07 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m91Km4qx023375
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 1 Oct 2008 13:48:05 -0700
+	by vger.kernel.org with ESMTP id S1752649AbYJAVFw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:05:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mingo@elte.hu, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-sound-rejects
-has been added to the -mm tree.  Its filename is
-     git-sound-rejects.patch
+     fix "x86: sparse_irq needs spin_lock in allocations"
+has been removed from the -mm tree.  Its filename was
+     fix-x86-sparse_irq-needs-spin_lock-in-allocations.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-sound-rejects
+Subject: fix "x86: sparse_irq needs spin_lock in allocations"
 From: Andrew Morton <akpm@linux-foundation.org>
 
+kernel/irq/handle.c:117: warning: 'sparse_irq_lock' defined but not used
+
+caused by
+
+commit a532e19680ada3b8579b81e67e76d3ebd19c340f
+Author: Yinghai Lu <yhlu.kernel@gmail.com>
+Date:   Wed Aug 20 20:46:25 2008 -0700
+
+    x86: sparse_irq needs spin_lock in allocations
+    
+    Suresh Siddha noticed that we should have a spinlock around it.
+    
+    Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
+    Signed-off-by: Ingo Molnar <mingo@elte.hu>
+
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/soc/pxa/pxa2xx-ac97.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ kernel/irq/handle.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN sound/soc/pxa/pxa2xx-ac97.c~git-sound-rejects sound/soc/pxa/pxa2xx-ac97.c
---- a/sound/soc/pxa/pxa2xx-ac97.c~git-sound-rejects
-+++ a/sound/soc/pxa/pxa2xx-ac97.c
-@@ -90,16 +90,13 @@ static struct pxa2xx_pcm_dma_params pxa2
- static int pxa2xx_ac97_suspend(struct platform_device *pdev,
- 	struct snd_soc_dai *dai)
- {
--	GCR |= GCR_ACLINK_OFF;
--	clk_disable(ac97_clk);
--	return 0;
-+	return pxa2xx_ac97_hw_suspend();
+diff -puN kernel/irq/handle.c~fix-x86-sparse_irq-needs-spin_lock-in-allocations kernel/irq/handle.c
+--- a/kernel/irq/handle.c~fix-x86-sparse_irq-needs-spin_lock-in-allocations
++++ a/kernel/irq/handle.c
+@@ -111,12 +111,11 @@ static void init_kstat_irqs(struct irq_d
+ 	}
  }
  
- static int pxa2xx_ac97_resume(struct platform_device *pdev,
- 	struct snd_soc_dai *dai)
- {
--	clk_enable(ac97_clk);
--	return 0;
-+	return pxa2xx_ac97_hw_resume();
- }
- 
- #else
++#ifdef CONFIG_HAVE_SPARSE_IRQ
+ /*
+  * Protect the sparse_irqs_free freelist:
+  */
+ static DEFINE_SPINLOCK(sparse_irq_lock);
+-
+-#ifdef CONFIG_HAVE_SPARSE_IRQ
+ static struct irq_desc *sparse_irqs_free;
+ struct irq_desc *sparse_irqs;
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,11 +88,8 @@ git-sound-rejects.patch
 git-input.patch
 git-block.patch
 git-battery.patch
-git-kmemcheck.patch
 git-mfd.patch
 git-drm.patch
-git-sparseirq.patch
-git-bdev.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
 fix-x86-sparse_irq-needs-spin_lock-in-allocations.patch
