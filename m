@@ -1,63 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - forcedeth-fix-take-phy-out-of-reset-during-power-up.patch removed from -mm tree
-Date: Wed, 01 Oct 2008 14:52:50 -0700
-Message-ID: <200810012152.m91LqoNw006084@imap1.linux-foundation.org>
+Subject: - drivers-net-atl1e-dont-take-the-mdio_lock-in-atl1e_probe.patch removed from -mm tree
+Date: Wed, 01 Oct 2008 14:52:33 -0700
+Message-ID: <200810012152.m91LqXau006063@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54153 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56333 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754053AbYJAVxd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:53:33 -0400
+	by vger.kernel.org with ESMTP id S1754017AbYJAVx2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:53:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aabdulla@nvidia.com, jgarzik@pobox.com, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: matthew@wil.cx, jeff@garzik.org, jie.yang@atheros.com, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     forcedeth fix: take phy out of reset during power up
+     drivers/net/atl1e/: don't take the mdio_lock in atl1e_probe
 has been removed from the -mm tree.  Its filename was
-     forcedeth-fix-take-phy-out-of-reset-during-power-up.patch
+     drivers-net-atl1e-dont-take-the-mdio_lock-in-atl1e_probe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: forcedeth fix: take phy out of reset during power up
-From: Ayaz Abdulla <aabdulla@nvidia.com>
+Subject: drivers/net/atl1e/: don't take the mdio_lock in atl1e_probe
+From: Matthew Wilcox <matthew@wil.cx>
 
-Add the phy reset bit into the power up mask which is used during power
-up.  Certain BIOSes will place the phy in reset and therefore the driver
-must take the phy out of reset when it loads.
+Lockdep warns about the mdio_lock taken with interrupts enabled then later
+taken from interrupt context.  Initially, I considered changing these to
+spin_lock_irq/spin_unlock_irq, but then I looked at atl1e_phy_init() and
+saw that it calls msleep().  Sleeping while holding a spinlock is not
+allowed either.
 
-Signed-off-by: Ayaz Abdulla <aabdulla@nvidia.com>
-Cc: Jeff Garzik <jgarzik@pobox.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+In the probe path, we haven't registered the interrupt handler, so it
+can't poke at this card yet.  It's before we call register_netdev(), so I
+don't think any other threads can reach this card either.  If I'm right,
+we don't need a spinlock at all.
+
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Acked-by: Jie Yang <jie.yang@atheros.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/atl1e/atl1e_main.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-fix-take-phy-out-of-reset-during-power-up drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-fix-take-phy-out-of-reset-during-power-up
-+++ a/drivers/net/forcedeth.c
-@@ -337,7 +337,7 @@ enum {
- 	NvRegMSIXIrqStatus = 0x3f0,
+diff -puN drivers/net/atl1e/atl1e_main.c~drivers-net-atl1e-dont-take-the-mdio_lock-in-atl1e_probe drivers/net/atl1e/atl1e_main.c
+--- a/drivers/net/atl1e/atl1e_main.c~drivers-net-atl1e-dont-take-the-mdio_lock-in-atl1e_probe
++++ a/drivers/net/atl1e/atl1e_main.c
+@@ -2390,9 +2390,7 @@ static int __devinit atl1e_probe(struct 
+ 	}
  
- 	NvRegPowerState2 = 0x600,
--#define NVREG_POWERSTATE2_POWERUP_MASK		0x0F11
-+#define NVREG_POWERSTATE2_POWERUP_MASK		0x0F15
- #define NVREG_POWERSTATE2_POWERUP_REV_A3	0x0001
- #define NVREG_POWERSTATE2_PHY_RESET		0x0004
- };
+ 	/* Init GPHY as early as possible due to power saving issue  */
+-	spin_lock(&adapter->mdio_lock);
+ 	atl1e_phy_init(&adapter->hw);
+-	spin_unlock(&adapter->mdio_lock);
+ 	/* reset the controller to
+ 	 * put the device in a known good starting state */
+ 	err = atl1e_reset_hw(&adapter->hw);
 _
 
-Patches currently in -mm which might be from aabdulla@nvidia.com are
+Patches currently in -mm which might be from matthew@wil.cx are
 
+git-nfsd.patch
+git-scsi.patch
 git-net.patch
-forcedeth-power-down-phy-when-interface-is-down.patch
-forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
-forcedeth-add-pci_enable_device-to-nv_resume.patch
-forcdeth-increase-max_interrupt_work.patch
+parisc-lib-make-code-static.patch
+drivers-parisc-make-code-static.patch
+compat-generic-compat-get-settimeofday.patch
+binfmt_somc-add-module_license.patch
+make-sure-nobodys-leaking-resources.patch
 
