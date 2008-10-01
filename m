@@ -1,102 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-doc-allow-structs-whose-members-are-all-private.patch removed from -mm tree
-Date: Wed, 01 Oct 2008 14:49:49 -0700
-Message-ID: <200810012149.m91LnnPJ005721@imap1.linux-foundation.org>
+Subject: - drivers-infiniband-hw-drop-code-after-return.patch removed from -mm tree
+Date: Wed, 01 Oct 2008 14:50:25 -0700
+Message-ID: <200810012150.m91LoPHd005837@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60127 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55117 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753640AbYJAVuo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:50:44 -0400
+	by vger.kernel.org with ESMTP id S1753758AbYJAVu6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:50:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, hch@infradead.org, roland@redhat.com, mm-commits@vger.kernel.org
+To: julia@diku.dk, richard.genoud@gmail.com, rolandd@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel-doc: allow structs whose members are all private
+     drivers/infiniband/hw: drop code after return
 has been removed from the -mm tree.  Its filename was
-     kernel-doc-allow-structs-whose-members-are-all-private.patch
+     drivers-infiniband-hw-drop-code-after-return.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-doc: allow structs whose members are all private
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: drivers/infiniband/hw: drop code after return
+From: Julia Lawall <julia@diku.dk>
 
-Struct members may be marked as private by using
-	/* private: */
-before them, as noted in Documentation/kernel-doc-nano-HOWTO.txt
+The break after the return serves no purpose.
 
-Fix kernel-doc to handle structs whose members are all private;
-otherwise invalid XML is generated:
-
-xmlto: input does not validate (status 3)
-linux-2.6.27-rc6-git4/Documentation/DocBook/debugobjects.xml:146: element variablelist: validity error : Element variablelist content does not follow the DTD, expecting ((title , titleabbrev?)? , varlistentry+), got ()
-Document linux-2.6.27-rc6-git4/Documentation/DocBook/debugobjects.xml does not validate
-make[1]: *** [Documentation/DocBook/debugobjects.html] Error 3
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Reported-by: Roland McGrath <roland@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Reviewed-by: Richard Genoud <richard.genoud@gmail.com>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/infiniband/hw/amso1100/c2_provider.c |    1 -
+ drivers/infiniband/hw/nes/nes_verbs.c        |    3 ---
+ 2 files changed, 4 deletions(-)
 
-diff -puN scripts/kernel-doc~kernel-doc-allow-structs-whose-members-are-all-private scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-allow-structs-whose-members-are-all-private
-+++ a/scripts/kernel-doc
-@@ -781,6 +781,7 @@ sub output_struct_xml(%) {
-     print " <refsect1>\n";
-     print "  <title>Members</title>\n";
+diff -puN drivers/infiniband/hw/amso1100/c2_provider.c~drivers-infiniband-hw-drop-code-after-return drivers/infiniband/hw/amso1100/c2_provider.c
+--- a/drivers/infiniband/hw/amso1100/c2_provider.c~drivers-infiniband-hw-drop-code-after-return
++++ a/drivers/infiniband/hw/amso1100/c2_provider.c
+@@ -272,7 +272,6 @@ static struct ib_qp *c2_create_qp(struct
+ 		pr_debug("%s: Invalid QP type: %d\n", __func__,
+ 			init_attr->qp_type);
+ 		return ERR_PTR(-EINVAL);
+-		break;
+ 	}
  
-+    if ($#{$args{'parameterlist'}} >= 0) {
-     print "  <variablelist>\n";
-     foreach $parameter (@{$args{'parameterlist'}}) {
-       ($parameter =~ /^#/) && next;
-@@ -798,6 +799,9 @@ sub output_struct_xml(%) {
-       print "    </varlistentry>\n";
-     }
-     print "  </variablelist>\n";
-+    } else {
-+	print " <para>\n  None\n </para>\n";
-+    }
-     print " </refsect1>\n";
+ 	if (err) {
+diff -puN drivers/infiniband/hw/nes/nes_verbs.c~drivers-infiniband-hw-drop-code-after-return drivers/infiniband/hw/nes/nes_verbs.c
+--- a/drivers/infiniband/hw/nes/nes_verbs.c~drivers-infiniband-hw-drop-code-after-return
++++ a/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -1467,7 +1467,6 @@ static struct ib_qp *nes_create_qp(struc
+ 		default:
+ 			nes_debug(NES_DBG_QP, "Invalid QP type: %d\n", init_attr->qp_type);
+ 			return ERR_PTR(-EINVAL);
+-			break;
+ 	}
  
-     output_section_xml(@_);
+ 	/* update the QP table */
+@@ -2498,7 +2497,6 @@ static struct ib_mr *nes_reg_user_mr(str
+ 			nes_debug(NES_DBG_MR, "Leaving, ibmr=%p", ibmr);
+ 
+ 			return ibmr;
+-			break;
+ 		case IWNES_MEMREG_TYPE_QP:
+ 		case IWNES_MEMREG_TYPE_CQ:
+ 			nespbl = kzalloc(sizeof(*nespbl), GFP_KERNEL);
+@@ -2572,7 +2570,6 @@ static struct ib_mr *nes_reg_user_mr(str
+ 			nesmr->ibmr.lkey = -1;
+ 			nesmr->mode = req.reg_type;
+ 			return &nesmr->ibmr;
+-			break;
+ 	}
+ 
+ 	return ERR_PTR(-ENOSYS);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
-git-x86.patch
-git-ftrace.patch
-git-hid.patch
-git-acpi.patch
+git-v4l-dvb.patch
+git-infiniband.patch
+git-ieee1394.patch
+git-async_tx.patch
 git-net.patch
+git-mtd.patch
 git-sound.patch
+git-cpufreq.patch
+git-gfs2.patch
+git-ubifs.patch
 git-block.patch
-git-slab.patch
-git-drm.patch
-git-security-testing.patch
-git-fastboot.patch
-mfd-ucb1400-sound-driver-uses-depends-on-ac97_bus.patch
-fb-metronome-printk-format-warning.patch
-toshiba_acpi-depends-on-input.patch
-genksyms-track-symbol-checksum-changes.patch
-genksyms-allow-to-ignore-symbol-checksum-changes.patch
-lkdtm-fix-for-config_scsi=n.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-drivers-net-hp-plusc-fix-build-error.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-eeepc-laptop-use-standard-interfaces-fix.patch
-eeepc-laptop-use-standard-interfaces-fix-fix.patch
-dontdiff-more-updates-to-be-closer-to-gitignore.patch
-w1-documentation-w1-masters-ds2490-update.patch
-configure-out-aio-support-fix.patch
-profile-likely-unlikely-macros.patch
+drivers-media-common-tuners-drop-code-after-return-or-goto.patch
+drivers-scsi-use-div_round_up.patch
+drivers-scsi-megaraid-use-div_round_up.patch
+fs-namespacec-drop-code-after-return.patch
+drivers-misc-use-div_round_up.patch
+drivers-net-xen-netfrontc-use-div_round_up.patch
+fs-reiserfs-use-an-is_err-test-rather-than-a-null-test.patch
 
