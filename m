@@ -1,461 +1,301 @@
 From: akpm@linux-foundation.org
-Subject: - nec-fix-rmmod-platform-driver-improvements.patch removed from -mm tree
-Date: Wed, 01 Oct 2008 14:52:39 -0700
-Message-ID: <200810012152.m91Lqdk7006072@imap1.linux-foundation.org>
+Subject: + git-x86-git-rejects.patch added to -mm tree
+Date: Wed, 01 Oct 2008 15:12:38 -0700
+Message-ID: <200810012212.m91MCcoa006851@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49834 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37953 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753958AbYJAVyN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:54:13 -0400
+	by vger.kernel.org with ESMTP id S1753856AbYJAWNI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 18:13:08 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m91MCc0i032537
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 1 Oct 2008 15:12:39 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@fries.net, alan@lxorguk.ukuu.org.uk, anemo@mba.ocn.ne.jp, jeff@garzik.org, p_gortmaker@yahoo.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     ne.c: fix rmmod, platform driver improvements
-has been removed from the -mm tree.  Its filename was
-     nec-fix-rmmod-platform-driver-improvements.patch
+     git-x86-git-rejects
+has been added to the -mm tree.  Its filename is
+     git-x86-git-rejects.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ne.c: fix rmmod, platform driver improvements
-From: David Fries <david@fries.net>
+Subject: git-x86-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Removing the module would cause a kernel oops as platform_driver_probe
-failed to detect a device and unregistered the platform driver on module
-init, and cleanup_module would unregister the already unregistered driver.
-The suspend and resume functions weren't being called.
 
-platform_driver support was added earlier, but without any
-platform_device_register* calls I don't think it was being used.  Now all
-devices are registered using platform_device_register_simple and pointers
-are kept to unregister the ones that the probe failed for or unregister
-all devices on module shutdown.  init_module no longer calls ne_init to
-reduce confusion (and multiple unregister paths that caused the rmmod
-oops).  With the devices now registered they are added to the platform
-driver and get suspend and resume events.
-
-netif_device_detach(dev) was added before unregister_netdev(dev) when
-removing the region as occationally I would see a race condition where the
-device was still being used in unregister_netdev.
-
-Signed-off-by: David Fries <david@fries.net>
-Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ne.c |  272 +++++++++++++++++++++++++++------------------
- 1 file changed, 164 insertions(+), 108 deletions(-)
+ arch/x86/kernel/cpu/common.c |    6 ------
+ arch/x86/kernel/process_32.c |    7 -------
+ arch/x86/kernel/process_64.c |    4 ----
+ arch/x86/kernel/setup.c      |    3 ---
+ include/asm-x86/cpufeature.h |    3 ---
+ include/asm-x86/idle.h       |    4 ----
+ 6 files changed, 27 deletions(-)
 
-diff -puN drivers/net/ne.c~nec-fix-rmmod-platform-driver-improvements drivers/net/ne.c
---- a/drivers/net/ne.c~nec-fix-rmmod-platform-driver-improvements
-+++ a/drivers/net/ne.c
-@@ -64,6 +64,25 @@ static const char version2[] =
+diff -puN arch/x86/kernel/cpu/common.c~git-x86-git-rejects arch/x86/kernel/cpu/common.c
+--- a/arch/x86/kernel/cpu/common.c~git-x86-git-rejects
++++ a/arch/x86/kernel/cpu/common.c
+@@ -552,18 +552,12 @@ void __init early_cpu_init(void)
+  * The NOPL instruction is supposed to exist on all CPUs with
+  * family >= 6; unfortunately, that's not true in practice because
+  * of early VIA chips and (more importantly) broken virtualizers that
+-<<<<<<< HEAD:arch/x86/kernel/cpu/common.c
+- * are not easy to detect.  In the latter case it doesn't even *fail*
+- * reliably, so probing for it doesn't even work.  Disable it completely
+- * unless we can find a reliable way to detect all the broken cases.
+-=======
+  * are not easy to detect.  Hence, probe for it based on first
+  * principles.
+  *
+  * Note: no 64-bit chip is known to lack these, but put the code here
+  * for consistency with 32 bits, and to make it utterly trivial to
+  * diagnose the problem should it ever surface.
+->>>>>>> FETCH_HEAD:arch/x86/kernel/cpu/common.c
+  */
+ static void __cpuinit detect_nopl(struct cpuinfo_x86 *c)
+ {
+diff -puN arch/x86/kernel/process_32.c~git-x86-git-rejects arch/x86/kernel/process_32.c
+--- a/arch/x86/kernel/process_32.c~git-x86-git-rejects
++++ a/arch/x86/kernel/process_32.c
+@@ -55,12 +55,9 @@
+ #include <asm/tlbflush.h>
+ #include <asm/cpu.h>
+ #include <asm/kdebug.h>
+-<<<<<<< HEAD:arch/x86/kernel/process_32.c
+ #include <asm/idle.h>
+-=======
+ #include <asm/syscalls.h>
+ #include <asm/smp.h>
+->>>>>>> FETCH_HEAD:arch/x86/kernel/process_32.c
  
- /* Do we support clones that don't adhere to 14,15 of the SAprom ? */
- #define SUPPORT_NE_BAD_CLONES
-+/* 0xbad = bad sig or no reset ack */
-+#define BAD 0xbad
-+
-+#define MAX_NE_CARDS	4	/* Max number of NE cards per module */
-+static struct platform_device *pdev_ne[MAX_NE_CARDS];
-+static int io[MAX_NE_CARDS];
-+static int irq[MAX_NE_CARDS];
-+static int bad[MAX_NE_CARDS];
-+
-+#ifdef MODULE
-+module_param_array(io, int, NULL, 0);
-+module_param_array(irq, int, NULL, 0);
-+module_param_array(bad, int, NULL, 0);
-+MODULE_PARM_DESC(io, "I/O base address(es),required");
-+MODULE_PARM_DESC(irq, "IRQ number(s)");
-+MODULE_PARM_DESC(bad, "Accept card(s) with bad signatures");
-+MODULE_DESCRIPTION("NE1000/NE2000 ISA/PnP Ethernet driver");
-+MODULE_LICENSE("GPL");
-+#endif /* MODULE */
+ asmlinkage void ret_from_fork(void) __asm__("ret_from_fork");
  
- /* Do we perform extra sanity checks on stuff ? */
- /* #define NE_SANITY_CHECK */
-@@ -74,6 +93,10 @@ static const char version2[] =
- /* Do we have a non std. amount of memory? (in units of 256 byte pages) */
- /* #define PACKETBUF_MEMSIZE	0x40 */
- 
-+/* This is set up so that no ISA autoprobe takes place. We can't guarantee
-+that the ne2k probe is the last 8390 based probe to take place (as it
-+is at boot) and so the probe will get confused by any other 8390 cards.
-+ISA device autoprobes on a running machine are not recommended anyway. */
- #if !defined(MODULE) && (defined(CONFIG_ISA) || defined(CONFIG_M32R))
- /* Do we need a portlist for the ISA auto-probe ? */
- #define NEEDS_PORTLIST
-@@ -192,8 +215,13 @@ static int __init do_ne_probe(struct net
- #endif
- 
- 	/* First check any supplied i/o locations. User knows best. <cough> */
--	if (base_addr > 0x1ff)	/* Check a single specified location. */
--		return ne_probe1(dev, base_addr);
-+	if (base_addr > 0x1ff) {	/* Check a single specified location. */
-+		int ret = ne_probe1(dev, base_addr);
-+		if (ret)
-+			printk(KERN_WARNING "ne.c: No NE*000 card found at "
-+				"i/o = %#lx\n", base_addr);
-+		return ret;
-+	}
- 	else if (base_addr != 0)	/* Don't probe at all. */
- 		return -ENXIO;
- 
-@@ -214,28 +242,6 @@ static int __init do_ne_probe(struct net
- 	return -ENODEV;
+@@ -78,7 +75,6 @@ unsigned long thread_saved_pc(struct tas
+ 	return ((unsigned long *)tsk->thread.sp)[3];
  }
  
--#ifndef MODULE
--struct net_device * __init ne_probe(int unit)
--{
--	struct net_device *dev = alloc_eip_netdev();
--	int err;
--
--	if (!dev)
--		return ERR_PTR(-ENOMEM);
--
--	sprintf(dev->name, "eth%d", unit);
--	netdev_boot_setup_check(dev);
--
--	err = do_ne_probe(dev);
--	if (err)
--		goto out;
--	return dev;
--out:
--	free_netdev(dev);
--	return ERR_PTR(err);
--}
+-<<<<<<< HEAD:arch/x86/kernel/process_32.c
+ #ifdef CONFIG_HOTPLUG_CPU
+ #include <asm/nmi.h>
+ 
+@@ -115,9 +111,6 @@ static inline void play_dead(void)
+ 	wbinvd_halt();
+ }
+ #else
+-=======
+-#ifndef CONFIG_SMP
+->>>>>>> FETCH_HEAD:arch/x86/kernel/process_32.c
+ static inline void play_dead(void)
+ {
+ 	BUG();
+diff -puN arch/x86/kernel/process_64.c~git-x86-git-rejects arch/x86/kernel/process_64.c
+--- a/arch/x86/kernel/process_64.c~git-x86-git-rejects
++++ a/arch/x86/kernel/process_64.c
+@@ -86,7 +86,6 @@ void exit_idle(void)
+ 	__exit_idle();
+ }
+ 
+-<<<<<<< HEAD:arch/x86/kernel/process_64.c
+ #ifdef CONFIG_HOTPLUG_CPU
+ DECLARE_PER_CPU(int, cpu_state);
+ 
+@@ -106,9 +105,6 @@ static inline void play_dead(void)
+ 	wbinvd_halt();
+ }
+ #else
+-=======
+-#ifndef CONFIG_SMP
+->>>>>>> FETCH_HEAD:arch/x86/kernel/process_64.c
+ static inline void play_dead(void)
+ {
+ 	BUG();
+diff -puN arch/x86/kernel/setup.c~git-x86-git-rejects arch/x86/kernel/setup.c
+--- a/arch/x86/kernel/setup.c~git-x86-git-rejects
++++ a/arch/x86/kernel/setup.c
+@@ -909,12 +909,9 @@ void __init setup_arch(char **cmdline_p)
+ #else
+ 	num_physpages = max_pfn;
+ 
+-<<<<<<< HEAD:arch/x86/kernel/setup.c
+-=======
+ 	check_efer();
+  	if (cpu_has_x2apic)
+  		check_x2apic();
+->>>>>>> FETCH_HEAD:arch/x86/kernel/setup.c
+ 
+ 	/* How many end-of-memory variables you have, grandma! */
+ 	/* need this before calling reserve_initrd */
+diff -puN include/asm-x86/cpufeature.h~git-x86-git-rejects include/asm-x86/cpufeature.h
+--- a/include/asm-x86/cpufeature.h~git-x86-git-rejects
++++ a/include/asm-x86/cpufeature.h
+@@ -89,11 +89,8 @@
+ #define X86_FEATURE_LFENCE_RDTSC (3*32+18) /* "" Lfence synchronizes RDTSC */
+ #define X86_FEATURE_11AP	(3*32+19) /* "" Bad local APIC aka 11AP */
+ #define X86_FEATURE_NOPL	(3*32+20) /* The NOPL (0F 1F) instructions */
+-<<<<<<< HEAD:include/asm-x86/cpufeature.h
+ #define X86_FEATURE_AMDC1E	(3*32+21) /* AMD C1E detected */
+-=======
+ #define X86_FEATURE_XTOPOLOGY	(3*32+21) /* cpu topology enum extensions */
+->>>>>>> FETCH_HEAD:include/asm-x86/cpufeature.h
+ 
+ /* Intel-defined CPU features, CPUID level 0x00000001 (ecx), word 4 */
+ #define X86_FEATURE_XMM3	(4*32+ 0) /* "pni" SSE-3 */
+diff -puN include/asm-x86/idle.h~git-x86-git-rejects include/asm-x86/idle.h
+--- a/include/asm-x86/idle.h~git-x86-git-rejects
++++ a/include/asm-x86/idle.h
+@@ -10,10 +10,6 @@ void idle_notifier_register(struct notif
+ void enter_idle(void);
+ void exit_idle(void);
+ 
+-<<<<<<< HEAD:include/asm-x86/idle.h
+ void c1e_remove_cpu(int cpu);
+ 
 -#endif
--
- static int __init ne_probe_isapnp(struct net_device *dev)
- {
- 	int i;
-@@ -329,7 +335,7 @@ static int __init ne_probe1(struct net_d
- 	   with an otherwise unused dev->mem_end value of "0xBAD" will
- 	   cause the driver to skip these parts of the probe. */
- 
--	bad_card = ((dev->base_addr != 0) && (dev->mem_end == 0xbad));
-+	bad_card = ((dev->base_addr != 0) && (dev->mem_end == BAD));
- 
- 	/* Reset card. Who knows what dain-bramaged state it was left in. */
- 
-@@ -806,39 +812,84 @@ retry:
- static int __init ne_drv_probe(struct platform_device *pdev)
- {
- 	struct net_device *dev;
-+	int err, this_dev = pdev->id;
- 	struct resource *res;
--	int err, irq;
--
--	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
--	irq = platform_get_irq(pdev, 0);
--	if (!res || irq < 0)
--		return -ENODEV;
- 
- 	dev = alloc_eip_netdev();
- 	if (!dev)
- 		return -ENOMEM;
--	dev->irq = irq;
--	dev->base_addr = res->start;
-+
-+	/* ne.c doesn't populate resources in platform_device, but
-+	 * rbtx4927_ne_init and rbtx4938_ne_init do register devices
-+	 * with resources.
-+	 */
-+	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
-+	if (res) {
-+		dev->base_addr = res->start;
-+		dev->irq = platform_get_irq(pdev, 0);
-+	} else {
-+		if (this_dev < 0 || this_dev >= MAX_NE_CARDS)
-+			return -EINVAL;
-+		dev->base_addr = io[this_dev];
-+		dev->irq = irq[this_dev];
-+		dev->mem_end = bad[this_dev];
-+	}
- 	err = do_ne_probe(dev);
- 	if (err) {
- 		free_netdev(dev);
- 		return err;
- 	}
- 	platform_set_drvdata(pdev, dev);
-+
-+	/* Update with any values found by probing, don't update if
-+	 * resources were specified.
-+	 */
-+	if (!res) {
-+		io[this_dev] = dev->base_addr;
-+		irq[this_dev] = dev->irq;
-+	}
- 	return 0;
- }
- 
--static int __exit ne_drv_remove(struct platform_device *pdev)
-+static int ne_drv_remove(struct platform_device *pdev)
- {
- 	struct net_device *dev = platform_get_drvdata(pdev);
- 
--	unregister_netdev(dev);
--	free_irq(dev->irq, dev);
--	release_region(dev->base_addr, NE_IO_EXTENT);
--	free_netdev(dev);
-+	if (dev) {
-+		struct pnp_dev *idev = (struct pnp_dev *)ei_status.priv;
-+		netif_device_detach(dev);
-+		unregister_netdev(dev);
-+		if (idev)
-+			pnp_device_detach(idev);
-+		/* Careful ne_drv_remove can be called twice, once from
-+		 * the platform_driver.remove and again when the
-+		 * platform_device is being removed.
-+		 */
-+		ei_status.priv = 0;
-+		free_irq(dev->irq, dev);
-+		release_region(dev->base_addr, NE_IO_EXTENT);
-+		free_netdev(dev);
-+		platform_set_drvdata(pdev, NULL);
-+	}
- 	return 0;
- }
- 
-+/* Remove unused devices or all if true. */
-+static void ne_loop_rm_unreg(int all)
-+{
-+	int this_dev;
-+	struct platform_device *pdev;
-+	for (this_dev = 0; this_dev < MAX_NE_CARDS; this_dev++) {
-+		pdev = pdev_ne[this_dev];
-+		/* No network device == unused */
-+		if (pdev && (!platform_get_drvdata(pdev) || all)) {
-+			ne_drv_remove(pdev);
-+			platform_device_unregister(pdev);
-+			pdev_ne[this_dev] = NULL;
-+		}
-+	}
-+}
-+
- #ifdef CONFIG_PM
- static int ne_drv_suspend(struct platform_device *pdev, pm_message_t state)
- {
-@@ -866,7 +917,7 @@ static int ne_drv_resume(struct platform
- #endif
- 
- static struct platform_driver ne_driver = {
--	.remove		= __exit_p(ne_drv_remove),
-+	.remove		= ne_drv_remove,
- 	.suspend	= ne_drv_suspend,
- 	.resume		= ne_drv_resume,
- 	.driver		= {
-@@ -875,91 +926,96 @@ static struct platform_driver ne_driver 
- 	},
- };
- 
--static int __init ne_init(void)
-+static void __init ne_add_devices(void)
- {
--	return platform_driver_probe(&ne_driver, ne_drv_probe);
-+	int this_dev;
-+	struct platform_device *pdev;
-+
-+	for (this_dev = 0; this_dev < MAX_NE_CARDS; this_dev++) {
-+		if (pdev_ne[this_dev])
-+			continue;
-+		pdev = platform_device_register_simple(
-+			DRV_NAME, this_dev, NULL, 0);
-+		if (IS_ERR(pdev))
-+			continue;
-+		pdev_ne[this_dev] = pdev;
-+	}
- }
- 
--static void __exit ne_exit(void)
-+#ifdef MODULE
-+int __init init_module()
- {
--	platform_driver_unregister(&ne_driver);
-+	int retval;
-+	ne_add_devices();
-+	retval = platform_driver_probe(&ne_driver, ne_drv_probe);
-+	if (retval) {
-+		if (io[0] == 0)
-+			printk(KERN_NOTICE "ne.c: You must supply \"io=0xNNN\""
-+				" value(s) for ISA cards.\n");
-+		ne_loop_rm_unreg(1);
-+		return retval;
-+	}
-+
-+	/* Unregister unused platform_devices. */
-+	ne_loop_rm_unreg(0);
-+	return retval;
- }
-+#else /* MODULE */
-+static int __init ne_init(void)
-+{
-+	int retval = platform_driver_probe(&ne_driver, ne_drv_probe);
- 
--#ifdef MODULE
--#define MAX_NE_CARDS	4	/* Max number of NE cards per module */
--static struct net_device *dev_ne[MAX_NE_CARDS];
--static int io[MAX_NE_CARDS];
--static int irq[MAX_NE_CARDS];
--static int bad[MAX_NE_CARDS];	/* 0xbad = bad sig or no reset ack */
-+	/* Unregister unused platform_devices. */
-+	ne_loop_rm_unreg(0);
-+	return retval;
-+}
-+module_init(ne_init);
- 
--module_param_array(io, int, NULL, 0);
--module_param_array(irq, int, NULL, 0);
--module_param_array(bad, int, NULL, 0);
--MODULE_PARM_DESC(io, "I/O base address(es),required");
--MODULE_PARM_DESC(irq, "IRQ number(s)");
--MODULE_PARM_DESC(bad, "Accept card(s) with bad signatures");
--MODULE_DESCRIPTION("NE1000/NE2000 ISA/PnP Ethernet driver");
--MODULE_LICENSE("GPL");
-+struct net_device * __init ne_probe(int unit)
-+{
-+	int this_dev;
-+	struct net_device *dev;
- 
--/* This is set up so that no ISA autoprobe takes place. We can't guarantee
--that the ne2k probe is the last 8390 based probe to take place (as it
--is at boot) and so the probe will get confused by any other 8390 cards.
--ISA device autoprobes on a running machine are not recommended anyway. */
-+	/* Find an empty slot, that is no net_device and zero io port. */
-+	this_dev = 0;
-+	while ((pdev_ne[this_dev] && platform_get_drvdata(pdev_ne[this_dev])) ||
-+		io[this_dev]) {
-+		if (++this_dev == MAX_NE_CARDS)
-+			return ERR_PTR(-ENOMEM);
-+	}
- 
--int __init init_module(void)
--{
--	int this_dev, found = 0;
--	int plat_found = !ne_init();
-+	/* Get irq, io from kernel command line */
-+	dev = alloc_eip_netdev();
-+	if (!dev)
-+		return ERR_PTR(-ENOMEM);
- 
-+	sprintf(dev->name, "eth%d", unit);
-+	netdev_boot_setup_check(dev);
-+
-+	io[this_dev] = dev->base_addr;
-+	irq[this_dev] = dev->irq;
-+	bad[this_dev] = dev->mem_end;
-+
-+	free_netdev(dev);
-+
-+	ne_add_devices();
-+
-+	/* return the first device found */
- 	for (this_dev = 0; this_dev < MAX_NE_CARDS; this_dev++) {
--		struct net_device *dev = alloc_eip_netdev();
--		if (!dev)
--			break;
--		dev->irq = irq[this_dev];
--		dev->mem_end = bad[this_dev];
--		dev->base_addr = io[this_dev];
--		if (do_ne_probe(dev) == 0) {
--			dev_ne[found++] = dev;
--			continue;
-+		if (pdev_ne[this_dev]) {
-+			dev = platform_get_drvdata(pdev_ne[this_dev]);
-+			if (dev)
-+				return dev;
- 		}
--		free_netdev(dev);
--		if (found || plat_found)
--			break;
--		if (io[this_dev] != 0)
--			printk(KERN_WARNING "ne.c: No NE*000 card found at i/o = %#x\n", io[this_dev]);
--		else
--			printk(KERN_NOTICE "ne.c: You must supply \"io=0xNNN\" value(s) for ISA cards.\n");
--		return -ENXIO;
- 	}
--	if (found || plat_found)
--		return 0;
--	return -ENODEV;
--}
- 
--static void cleanup_card(struct net_device *dev)
--{
--	struct pnp_dev *idev = (struct pnp_dev *)ei_status.priv;
--	if (idev)
--		pnp_device_detach(idev);
--	free_irq(dev->irq, dev);
--	release_region(dev->base_addr, NE_IO_EXTENT);
-+	return ERR_PTR(-ENODEV);
- }
-+#endif /* MODULE */
- 
--void __exit cleanup_module(void)
-+static void __exit ne_exit(void)
- {
--	int this_dev;
--
--	ne_exit();
--	for (this_dev = 0; this_dev < MAX_NE_CARDS; this_dev++) {
--		struct net_device *dev = dev_ne[this_dev];
--		if (dev) {
--			unregister_netdev(dev);
--			cleanup_card(dev);
--			free_netdev(dev);
--		}
--	}
-+	platform_driver_unregister(&ne_driver);
-+	ne_loop_rm_unreg(1);
- }
--#else /* MODULE */
--module_init(ne_init);
- module_exit(ne_exit);
--#endif /* MODULE */
+-=======
+ #endif /* ASM_X86__IDLE_H */
+->>>>>>> FETCH_HEAD:include/asm-x86/idle.h
 _
 
-Patches currently in -mm which might be from david@fries.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+git-powerpc.patch
+git-sparc.patch
+git-x86.patch
+git-x86-git-rejects.patch
+git-xtensa.patch
+git-ftrace.patch
+git-pci.patch
+git-hid.patch
+git-v4l-dvb.patch
+git-nfsd.patch
+git-dlm.patch
+git-async_tx.patch
 git-net.patch
-w1-fix-deadlocks-and-remove-w1_control_thread.patch
-w1-abort-search-early-on-on-exit.patch
-w1-dont-delay-search-start.patch
-w1-w1_process-block-or-sleep.patch
-w1-feature-enable-hardware-strong-pullup.patch
-w1-feature-w1_thermc-use-strong-pullup-and-documentation.patch
-w1-be-able-to-manually-add-and-remove-slaves.patch
+git-mtd.patch
+git-sound.patch
+git-sound-rejects.patch
+git-input.patch
+git-block.patch
+git-battery.patch
+git-mfd.patch
+git-drm.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
+drivers-media-video-tda9840c-unbreak.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
+misdn-misc-timerdev-fixes-fix.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry.patch
+drivers-media-video-cafe_ccicc-needs-mmh.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+eeepc-laptop-use-standard-interfaces-fix-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
+make-taint-bit-reliable-v3-fix.patch
+kernel-sysc-improve-code-generation.patch
+compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
+drivers-hwmon-applesmcc-remove-unneeded-casts.patch
+allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
+serial-make-uart_ports-ioport-unsigned-long-fix.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
+ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
+tty-fix-echo-tab-erase-and-locking-fix.patch
+applicomc-fix-apparently-broken-code-in-do_ac_read.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
 w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-recode-w1_slave_found-logic.patch
-w1-new-module-parameter-search_count.patch
-w1-document-add-remove-search_count-and-pullup.patch
-w1-w1_slave_read_id-read-bug-use-device_attribute.patch
-w1-w1_therm-fix-user-buffer-overflow-and-cat.patch
-w1-w1_family-remove-unused-variable-need_exit.patch
-w1-w1_therm-consistent-mutex-access-code-cleanup.patch
-w1-w1_intc-use-first-available-master-number.patch
-w1-w1c-s-printk-dev_dbg.patch
-w1-w1_ioc-reset-comments-and-msleep.patch
-w1-ds1wmc-msleep-for-reset.patch
-w1-ds2490c-correct-print-message.patch
-w1-ds2490c-add-support-for-strong-pullup.patch
-w1-ds2490c-ds_write_bit-grouping-error-disable-readback.patch
-w1-ds2490c-disable-bit-read-and-write.patch
-w1-ds2490c-simplify-and-fix-ds_touch_bit.patch
-w1-ds2490c-ds_dump_status-rework.patch
-w1-ds2490c-ds_reset-remove-ds_wait_status.patch
-w1-ds2490c-reset-ds2490-in-init.patch
-w1-ds2490c-magic-number-work.patch
-w1-ds2490c-ds_write_block-remove-extra-ds_wait_status.patch
-w1-documentation-w1-masters-ds2490-update.patch
-w1-ds2490c-optimize-ds_set_pullup.patch
+w1-new-driver-ds2431-chip-fix.patch
+gru-driver-minor-updates-fix.patch
+drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+x86-sysfs-kill-owner-field-from-attribute-fix.patch
+x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
