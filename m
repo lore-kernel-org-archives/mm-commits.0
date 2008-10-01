@@ -1,71 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - fix-x86-sparse_irq-needs-spin_lock-in-allocations.patch removed from -mm tree
-Date: Wed, 01 Oct 2008 14:05:35 -0700
-Message-ID: <200810012105.m91L5ZKL003930@imap1.linux-foundation.org>
+Subject: - zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch removed from -mm tree
+Date: Wed, 01 Oct 2008 14:05:46 -0700
+Message-ID: <200810012105.m91L5k8X003935@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42789 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55066 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752649AbYJAVFw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:05:52 -0400
+	by vger.kernel.org with ESMTP id S1754054AbYJAVGL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:06:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@sgi.com, mingo@elte.hu, travis@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix "x86: sparse_irq needs spin_lock in allocations"
+     Zero based percpu: use VMLINUX_SYMBOL in include/asm-generic/vmlinux.lds.h
 has been removed from the -mm tree.  Its filename was
-     fix-x86-sparse_irq-needs-spin_lock-in-allocations.patch
+     zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix "x86: sparse_irq needs spin_lock in allocations"
+Subject: Zero based percpu: use VMLINUX_SYMBOL in include/asm-generic/vmlinux.lds.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/irq/handle.c:117: warning: 'sparse_irq_lock' defined but not used
+might be wrong or incomplete or whatever...
 
-caused by
-
-commit a532e19680ada3b8579b81e67e76d3ebd19c340f
-Author: Yinghai Lu <yhlu.kernel@gmail.com>
-Date:   Wed Aug 20 20:46:25 2008 -0700
-
-    x86: sparse_irq needs spin_lock in allocations
-    
-    Suresh Siddha noticed that we should have a spinlock around it.
-    
-    Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
-    Signed-off-by: Ingo Molnar <mingo@elte.hu>
-
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Mike Travis <travis@sgi.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/handle.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/asm-generic/vmlinux.lds.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/irq/handle.c~fix-x86-sparse_irq-needs-spin_lock-in-allocations kernel/irq/handle.c
---- a/kernel/irq/handle.c~fix-x86-sparse_irq-needs-spin_lock-in-allocations
-+++ a/kernel/irq/handle.c
-@@ -111,12 +111,11 @@ static void init_kstat_irqs(struct irq_d
- 	}
- }
- 
-+#ifdef CONFIG_HAVE_SPARSE_IRQ
- /*
-  * Protect the sparse_irqs_free freelist:
-  */
- static DEFINE_SPINLOCK(sparse_irq_lock);
--
--#ifdef CONFIG_HAVE_SPARSE_IRQ
- static struct irq_desc *sparse_irqs_free;
- struct irq_desc *sparse_irqs;
- #endif
+diff -puN include/asm-generic/vmlinux.lds.h~zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -422,15 +422,15 @@
+ #define PERCPU(align)							\
+ 	. = ALIGN(align);						\
+ 	percpu : { } :percpu						\
+-	__per_cpu_load = .;						\
+-	.data.percpu 0 : AT(__per_cpu_load - LOAD_OFFSET) {		\
++	VMLINUX_SYMBOL(__per_cpu_load) = .;				\
++	.data.percpu 0 : AT(VMLINUX_SYMBOL(__per_cpu_load) - LOAD_OFFSET) { \
+ 		*(.data.percpu.first)					\
+ 		*(.data.percpu.shared_aligned)				\
+ 		*(.data.percpu)						\
+ 		*(.data.percpu.page_aligned)				\
+-		____per_cpu_size = .;					\
++		VMLINUX_SYMBOL(____per_cpu_size) = .;			\
+ 	}								\
+-	. = __per_cpu_load + ____per_cpu_size;				\
++	. = VMLINUX_SYMBOL(__per_cpu_load) + VMLINUX_SYMBOL(____per_cpu_size); \
+ 	data : { } :data
+ #else
+ #define PERCPU(align)							\
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -92,7 +86,6 @@ git-mfd.patch
 git-drm.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
-fix-x86-sparse_irq-needs-spin_lock-in-allocations.patch
 zero-based-percpu-use-vmlinux_symbol-in-include-asm-generic-vmlinuxldsh.patch
 arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
 drivers-media-video-tda9840c-unbreak.patch
