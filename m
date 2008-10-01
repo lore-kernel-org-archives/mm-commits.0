@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + git-acpi-git-rejects.patch added to -mm tree
-Date: Wed, 01 Oct 2008 15:19:46 -0700
-Message-ID: <200810012219.m91MJklL007106@imap1.linux-foundation.org>
+Subject: + git-pcmcia-git-rejects.patch added to -mm tree
+Date: Wed, 01 Oct 2008 15:20:44 -0700
+Message-ID: <200810012220.m91MKimG007216@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50075 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48264 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752561AbYJAWTs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 18:19:48 -0400
+	by vger.kernel.org with ESMTP id S1753038AbYJAWUq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 18:20:46 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m91MJkaM000541
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m91MKihs000629
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 1 Oct 2008 15:19:47 -0700
+	for <mm-commits@vger.kernel.org>; Wed, 1 Oct 2008 15:20:45 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +19,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-acpi-git-rejects
+     git-pcmcia-git-rejects
 has been added to the -mm tree.  Its filename is
-     git-acpi-git-rejects.patch
+     git-pcmcia-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,34 +37,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-acpi-git-rejects
+Subject: git-pcmcia-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/acer-wmi.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/pcmcia/ds.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/misc/acer-wmi.c~git-acpi-git-rejects drivers/misc/acer-wmi.c
---- a/drivers/misc/acer-wmi.c~git-acpi-git-rejects
-+++ a/drivers/misc/acer-wmi.c
-@@ -1249,15 +1249,12 @@ static int __init acer_wmi_init(void)
- 		return -ENODEV;
- 	}
+diff -puN drivers/pcmcia/ds.c~git-pcmcia-git-rejects drivers/pcmcia/ds.c
+--- a/drivers/pcmcia/ds.c~git-pcmcia-git-rejects
++++ a/drivers/pcmcia/ds.c
+@@ -394,7 +394,6 @@ static int pcmcia_device_probe(struct de
+ 	p_drv = to_pcmcia_drv(dev->driver);
+ 	s = p_dev->socket;
  
--<<<<<<< HEAD:drivers/misc/acer-wmi.c
- 	set_quirks();
+-<<<<<<< HEAD:drivers/pcmcia/ds.c
+ 	/* The PCMCIA code passes the match data in via dev->driver_data
+ 	 * which is an ugly hack. Once the driver probe is called it may
+ 	 * and often will overwrite the match data so we must save it first
+@@ -407,11 +406,7 @@ static int pcmcia_device_probe(struct de
+ 	 */
+ 	did = p_dev->dev.driver_data;
+ 
+-	ds_dbg(1, "trying to bind %s to %s\n", p_dev->dev.bus_id,
+-	       p_drv->drv.name);
 -=======
- 	if (!acpi_video_backlight_support() && has_cap(ACER_CAP_BRIGHTNESS)) {
- 		interface->capability &= ~ACER_CAP_BRIGHTNESS;
- 		printk(ACER_INFO "Brightness must be controlled by "
- 		       "generic video driver\n");
- 	}
-->>>>>>> FETCH_HEAD:drivers/misc/acer-wmi.c
+ 	ds_dev_dbg(1, dev, "trying to bind to %s\n", p_drv->drv.name);
+->>>>>>> FETCH_HEAD:drivers/pcmcia/ds.c
  
- 	if (platform_driver_register(&acer_platform_driver)) {
- 		printk(ACER_ERR "Unable to register platform driver.\n");
+ 	if ((!p_drv->probe) || (!p_dev->function_config) ||
+ 	    (!try_module_get(p_drv->owner))) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -89,6 +93,7 @@ git-sound.patch
 git-sound-rejects.patch
 git-input.patch
 git-block.patch
+git-pcmcia-git-rejects.patch
 git-battery.patch
 git-mfd.patch
 git-drm.patch
