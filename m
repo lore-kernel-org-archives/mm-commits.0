@@ -1,74 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-net-atl1e-dont-take-the-mdio_lock-in-atl1e_probe.patch removed from -mm tree
-Date: Wed, 01 Oct 2008 14:52:33 -0700
-Message-ID: <200810012152.m91LqXau006063@imap1.linux-foundation.org>
+Subject: - drivers-net-mlx4-allocc-needs-mmh.patch removed from -mm tree
+Date: Wed, 01 Oct 2008 14:52:35 -0700
+Message-ID: <200810012152.m91LqZK9006066@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56333 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44964 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754017AbYJAVx2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:53:28 -0400
+	by vger.kernel.org with ESMTP id S1754019AbYJAVxc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:53:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthew@wil.cx, jeff@garzik.org, jie.yang@atheros.com, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, jeff@garzik.org, rdreier@cisco.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/net/atl1e/: don't take the mdio_lock in atl1e_probe
+     drivers/net/mlx4/alloc.c needs mm.h
 has been removed from the -mm tree.  Its filename was
-     drivers-net-atl1e-dont-take-the-mdio_lock-in-atl1e_probe.patch
+     drivers-net-mlx4-allocc-needs-mmh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/atl1e/: don't take the mdio_lock in atl1e_probe
-From: Matthew Wilcox <matthew@wil.cx>
+Subject: drivers/net/mlx4/alloc.c needs mm.h
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Lockdep warns about the mdio_lock taken with interrupts enabled then later
-taken from interrupt context.  Initially, I considered changing these to
-spin_lock_irq/spin_unlock_irq, but then I looked at atl1e_phy_init() and
-saw that it calls msleep().  Sleeping while holding a spinlock is not
-allowed either.
+sparc32 allmodconfig with linux-next:
 
-In the probe path, we haven't registered the interrupt handler, so it
-can't poke at this card yet.  It's before we call register_netdev(), so I
-don't think any other threads can reach this card either.  If I'm right,
-we don't need a spinlock at all.
+drivers/net/mlx4/alloc.c: In function 'mlx4_buf_alloc':
+drivers/net/mlx4/alloc.c:164: error: 'PAGE_KERNEL' undeclared (first use in this function)
+drivers/net/mlx4/alloc.c:164: error: (Each undeclared identifier is reported only once
+drivers/net/mlx4/alloc.c:164: error: for each function it appears in.)
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Acked-by: Jie Yang <jie.yang@atheros.com>
+this is due to some header shuffle in linux-next.  I didn't look to see what
+it was.  I'd sugges that this patch be merged ahead of a linux-next merge to
+avoid bisection breaks.
+
+We strictly only need asm/pgtable.h, but going direct to asm includes always
+seems grubby.
+
 Cc: Jeff Garzik <jeff@garzik.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Acked-by: Roland Dreier <rdreier@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/atl1e/atl1e_main.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/net/mlx4/alloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/atl1e/atl1e_main.c~drivers-net-atl1e-dont-take-the-mdio_lock-in-atl1e_probe drivers/net/atl1e/atl1e_main.c
---- a/drivers/net/atl1e/atl1e_main.c~drivers-net-atl1e-dont-take-the-mdio_lock-in-atl1e_probe
-+++ a/drivers/net/atl1e/atl1e_main.c
-@@ -2390,9 +2390,7 @@ static int __devinit atl1e_probe(struct 
- 	}
+diff -puN drivers/net/mlx4/alloc.c~drivers-net-mlx4-allocc-needs-mmh drivers/net/mlx4/alloc.c
+--- a/drivers/net/mlx4/alloc.c~drivers-net-mlx4-allocc-needs-mmh
++++ a/drivers/net/mlx4/alloc.c
+@@ -33,6 +33,7 @@
  
- 	/* Init GPHY as early as possible due to power saving issue  */
--	spin_lock(&adapter->mdio_lock);
- 	atl1e_phy_init(&adapter->hw);
--	spin_unlock(&adapter->mdio_lock);
- 	/* reset the controller to
- 	 * put the device in a known good starting state */
- 	err = atl1e_reset_hw(&adapter->hw);
+ #include <linux/errno.h>
+ #include <linux/slab.h>
++#include <linux/mm.h>
+ #include <linux/bitmap.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/vmalloc.h>
 _
 
-Patches currently in -mm which might be from matthew@wil.cx are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+git-powerpc.patch
+git-sparc.patch
+git-x86.patch
+git-xtensa.patch
+git-ftrace.patch
+git-pci.patch
+git-hid.patch
+git-v4l-dvb.patch
 git-nfsd.patch
-git-scsi.patch
+git-dlm.patch
+git-async_tx.patch
 git-net.patch
-parisc-lib-make-code-static.patch
-drivers-parisc-make-code-static.patch
-compat-generic-compat-get-settimeofday.patch
-binfmt_somc-add-module_license.patch
-make-sure-nobodys-leaking-resources.patch
+git-mtd.patch
+git-sound.patch
+git-sound-rejects.patch
+git-input.patch
+git-block.patch
+git-battery.patch
+git-mfd.patch
+git-drm.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
+drivers-media-video-tda9840c-unbreak.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
+misdn-misc-timerdev-fixes-fix.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry.patch
+drivers-media-video-cafe_ccicc-needs-mmh.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+eeepc-laptop-use-standard-interfaces-fix-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
+make-taint-bit-reliable-v3-fix.patch
+kernel-sysc-improve-code-generation.patch
+compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
+drivers-hwmon-applesmcc-remove-unneeded-casts.patch
+allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
+serial-make-uart_ports-ioport-unsigned-long-fix.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
+ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
+tty-fix-echo-tab-erase-and-locking-fix.patch
+applicomc-fix-apparently-broken-code-in-do_ac_read.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+w1-be-able-to-manually-add-and-remove-slaves-fix.patch
+w1-new-driver-ds2431-chip-fix.patch
+gru-driver-minor-updates-fix.patch
+drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+x86-sysfs-kill-owner-field-from-attribute-fix.patch
+x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
