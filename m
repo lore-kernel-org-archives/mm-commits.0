@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - m32r-dont-offer-config_isa.patch removed from -mm tree
-Date: Wed, 01 Oct 2008 14:50:30 -0700
-Message-ID: <200810012150.m91LoU4B005845@imap1.linux-foundation.org>
+Subject: - m32r-export-__ndelay.patch removed from -mm tree
+Date: Wed, 01 Oct 2008 14:50:34 -0700
+Message-ID: <200810012150.m91LoYu3005852@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36974 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53613 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753721AbYJAVu4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753717AbYJAVu4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:50:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,46 +14,45 @@ To: bunk@kernel.org, takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     m32r: don't offer CONFIG_ISA
+     m32r: export __ndelay
 has been removed from the -mm tree.  Its filename was
-     m32r-dont-offer-config_isa.patch
+     m32r-export-__ndelay.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: m32r: don't offer CONFIG_ISA
+Subject: m32r: export __ndelay
 From: Adrian Bunk <bunk@kernel.org>
 
-As far as I know no M32R hardware actually has ISA slots.
+ERROR: "__ndelay" [drivers/spi/spi_bitbang.ko] undefined!
 
-And ISA drivers don't compile on M32R.
-
+Reported-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/Kconfig |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ arch/m32r/lib/delay.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/m32r/Kconfig~m32r-dont-offer-config_isa arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~m32r-dont-offer-config_isa
-+++ a/arch/m32r/Kconfig
-@@ -403,11 +403,7 @@ config PCI_DIRECT
- source "drivers/pci/Kconfig"
+diff -puN arch/m32r/lib/delay.c~m32r-export-__ndelay arch/m32r/lib/delay.c
+--- a/arch/m32r/lib/delay.c~m32r-export-__ndelay
++++ a/arch/m32r/lib/delay.c
+@@ -6,6 +6,7 @@
+  */
  
- config ISA
--	bool "ISA support"
--	help
--	  Find out whether you have ISA slots on your motherboard.  ISA is the
--	  name of a bus system, i.e. the way the CPU talks to the other stuff
--	  inside your box.  If you have ISA, say Y, otherwise N.
-+	bool
- 
- source "drivers/pcmcia/Kconfig"
- 
+ #include <linux/param.h>
++#include <linux/module.h>
+ #ifdef CONFIG_SMP
+ #include <linux/sched.h>
+ #include <asm/current.h>
+@@ -121,3 +122,4 @@ void __ndelay(unsigned long nsecs)
+ {
+ 	__const_udelay(nsecs * 0x00005);  /* 2**32 / 1000000000 (rounded up) */
+ }
++EXPORT_SYMBOL(__ndelay);
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
