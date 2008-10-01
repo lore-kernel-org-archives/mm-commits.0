@@ -1,132 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-net-skfp-pmfc-use-offsetof-macro.patch removed from -mm tree
-Date: Wed, 01 Oct 2008 14:52:31 -0700
-Message-ID: <200810012152.m91LqVUV006060@imap1.linux-foundation.org>
+Subject: - nec-fix-suspend-and-resume-for-isa-pnp-cards.patch removed from -mm tree
+Date: Wed, 01 Oct 2008 14:52:41 -0700
+Message-ID: <200810012152.m91LqfLL006075@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40764 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37517 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753958AbYJAVxj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:53:39 -0400
+	by vger.kernel.org with ESMTP id S1754145AbYJAVxl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:53:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tiwai@suse.de, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: david@fries.net, alan@lxorguk.ukuu.org.uk, anemo@mba.ocn.ne.jp, jeff@garzik.org, p_gortmaker@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/net/skfp/pmf.c: Use offsetof() macro
+     ne.c: fix suspend and resume for ISA PnP cards
 has been removed from the -mm tree.  Its filename was
-     drivers-net-skfp-pmfc-use-offsetof-macro.patch
+     nec-fix-suspend-and-resume-for-isa-pnp-cards.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/skfp/pmf.c: Use offsetof() macro
-From: Takashi Iwai <tiwai@suse.de>
+Subject: ne.c: fix suspend and resume for ISA PnP cards
+From: David Fries <david@fries.net>
 
-Self-baked macros cause bunch of compile warnings like below:
+A call to pnp_stop_dev and pnp_start_dev now shuts down and initializes
+plug and play devices for suspend and resume.
 
-  CC [M]  drivers/net/skfp/pmf.o
-  CC      net/ipv4/fib_semantics.o
-drivers/net/skfp/pmf.c:86: warning: cast from pointer to integer of different size
-drivers/net/skfp/pmf.c:87: warning: cast from pointer to integer of different size
-...
-
-Use the standard offsetof() macro instead.
-
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
-Acked-by: Alan Cox <alan@redhat.com>
+Signed-off-by: David Fries <david@fries.net>
+Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Paul Gortmaker <p_gortmaker@yahoo.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/skfp/pmf.c |   29 +++++++++++------------------
- 1 file changed, 11 insertions(+), 18 deletions(-)
+ drivers/net/ne.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/skfp/pmf.c~drivers-net-skfp-pmfc-use-offsetof-macro drivers/net/skfp/pmf.c
---- a/drivers/net/skfp/pmf.c~drivers-net-skfp-pmfc-use-offsetof-macro
-+++ a/drivers/net/skfp/pmf.c
-@@ -44,17 +44,10 @@ static SMbuf *smt_build_pmf_response(str
- 				     int set, int local);
- static int port_to_mib(struct s_smc *smc, int p);
+diff -puN drivers/net/ne.c~nec-fix-suspend-and-resume-for-isa-pnp-cards drivers/net/ne.c
+--- a/drivers/net/ne.c~nec-fix-suspend-and-resume-for-isa-pnp-cards
++++ a/drivers/net/ne.c
+@@ -895,8 +895,12 @@ static int ne_drv_suspend(struct platfor
+ {
+ 	struct net_device *dev = platform_get_drvdata(pdev);
  
--#define MOFFSS(e)	((int)&(((struct fddi_mib *)0)->e))
--#define MOFFSA(e)	((int) (((struct fddi_mib *)0)->e))
--
--#define MOFFMS(e)	((int)&(((struct fddi_mib_m *)0)->e))
--#define MOFFMA(e)	((int) (((struct fddi_mib_m *)0)->e))
--
--#define MOFFAS(e)	((int)&(((struct fddi_mib_a *)0)->e))
--#define MOFFAA(e)	((int) (((struct fddi_mib_a *)0)->e))
--
--#define MOFFPS(e)	((int)&(((struct fddi_mib_p *)0)->e))
--#define MOFFPA(e)	((int) (((struct fddi_mib_p *)0)->e))
-+#define MOFFSS(e)	offsetof(struct fddi_mib, e)
-+#define MOFFMS(e)	offsetof(struct fddi_mib_m, e)
-+#define MOFFAS(e)	offsetof(struct fddi_mib_a, e)
-+#define MOFFPS(e)	offsetof(struct fddi_mib_p, e)
+-	if (netif_running(dev))
++	if (netif_running(dev)) {
++		struct pnp_dev *idev = (struct pnp_dev *)ei_status.priv;
+ 		netif_device_detach(dev);
++		if (idev)
++			pnp_stop_dev(idev);
++	}
+ 	return 0;
+ }
  
+@@ -905,6 +909,9 @@ static int ne_drv_resume(struct platform
+ 	struct net_device *dev = platform_get_drvdata(pdev);
  
- #define AC_G	0x01		/* Get */
-@@ -87,8 +80,8 @@ static const struct s_p_tab {
- 	{ SMT_P100D,AC_G,	MOFFSS(fddiSMTOpVersionId),	"S"	} ,
- 	{ SMT_P100E,AC_G,	MOFFSS(fddiSMTHiVersionId),	"S"	} ,
- 	{ SMT_P100F,AC_G,	MOFFSS(fddiSMTLoVersionId),	"S"	} ,
--	{ SMT_P1010,AC_G,	MOFFSA(fddiSMTManufacturerData), "D" } ,
--	{ SMT_P1011,AC_GR,	MOFFSA(fddiSMTUserData),	"D"	} ,
-+	{ SMT_P1010,AC_G,	MOFFSS(fddiSMTManufacturerData), "D" } ,
-+	{ SMT_P1011,AC_GR,	MOFFSS(fddiSMTUserData),	"D"	} ,
- 	{ SMT_P1012,AC_G,	MOFFSS(fddiSMTMIBVersionId),	"S"	} ,
- 
- 	/* StationConfigGrp */
-@@ -103,7 +96,7 @@ static const struct s_p_tab {
- 	{ SMT_P101D,AC_GR,	MOFFSS(fddiSMTTT_Notify),	"wS"	} ,
- 	{ SMT_P101E,AC_GR,	MOFFSS(fddiSMTStatRptPolicy),	"bB"	} ,
- 	{ SMT_P101F,AC_GR,	MOFFSS(fddiSMTTrace_MaxExpiration),"lL"	} ,
--	{ SMT_P1020,AC_G,	MOFFSA(fddiSMTPORTIndexes),	"II"	} ,
-+	{ SMT_P1020,AC_G,	MOFFSS(fddiSMTPORTIndexes),	"II"	} ,
- 	{ SMT_P1021,AC_G,	MOFFSS(fddiSMTMACIndexes),	"I"	} ,
- 	{ SMT_P1022,AC_G,	MOFFSS(fddiSMTBypassPresent),	"F"	} ,
- 
-@@ -117,8 +110,8 @@ static const struct s_p_tab {
- 
- 	/* MIBOperationGrp */
- 	{ SMT_P1032,AC_GROUP	} ,
--	{ SMT_P1033,AC_G,	MOFFSA(fddiSMTTimeStamp),"P"		} ,
--	{ SMT_P1034,AC_G,	MOFFSA(fddiSMTTransitionTimeStamp),"P"	} ,
-+	{ SMT_P1033,AC_G,	MOFFSS(fddiSMTTimeStamp),"P"		} ,
-+	{ SMT_P1034,AC_G,	MOFFSS(fddiSMTTransitionTimeStamp),"P"	} ,
- 	/* NOTE : SMT_P1035 is already swapped ! SMT_P_SETCOUNT */
- 	{ SMT_P1035,AC_G,	MOFFSS(fddiSMTSetCount),"4P"		} ,
- 	{ SMT_P1036,AC_G,	MOFFSS(fddiSMTLastSetStationId),"8"	} ,
-@@ -129,7 +122,7 @@ static const struct s_p_tab {
- 	 * PRIVATE EXTENSIONS
- 	 * only accessible locally to get/set passwd
- 	 */
--	{ SMT_P10F0,AC_GR,	MOFFSA(fddiPRPMFPasswd),	"8"	} ,
-+	{ SMT_P10F0,AC_GR,	MOFFSS(fddiPRPMFPasswd),	"8"	} ,
- 	{ SMT_P10F1,AC_GR,	MOFFSS(fddiPRPMFStation),	"8"	} ,
- #ifdef	ESS
- 	{ SMT_P10F2,AC_GR,	MOFFSS(fddiESSPayload),		"lL"	} ,
-@@ -245,7 +238,7 @@ static const struct s_p_tab {
- 	{ SMT_P400E,AC_GR,	MOFFPS(fddiPORTConnectionPolicies),"bB"	} ,
- 	{ SMT_P400F,AC_G,	MOFFPS(fddiPORTMacIndicated),	"2"	} ,
- 	{ SMT_P4010,AC_G,	MOFFPS(fddiPORTCurrentPath),	"E"	} ,
--	{ SMT_P4011,AC_GR,	MOFFPA(fddiPORTRequestedPaths),	"l4"	} ,
-+	{ SMT_P4011,AC_GR,	MOFFPS(fddiPORTRequestedPaths),	"l4"	} ,
- 	{ SMT_P4012,AC_G,	MOFFPS(fddiPORTMACPlacement),	"S"	} ,
- 	{ SMT_P4013,AC_G,	MOFFPS(fddiPORTAvailablePaths),	"B"	} ,
- 	{ SMT_P4016,AC_G,	MOFFPS(fddiPORTPMDClass),	"E"	} ,
+ 	if (netif_running(dev)) {
++		struct pnp_dev *idev = (struct pnp_dev *)ei_status.priv;
++		if (idev)
++			pnp_start_dev(idev);
+ 		ne_reset_8390(dev);
+ 		NS8390p_init(dev, 1);
+ 		netif_device_attach(dev);
 _
 
-Patches currently in -mm which might be from tiwai@suse.de are
+Patches currently in -mm which might be from david@fries.net are
 
-origin.patch
-git-powerpc.patch
-git-nfsd.patch
 git-net.patch
-git-sound.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+w1-fix-deadlocks-and-remove-w1_control_thread.patch
+w1-abort-search-early-on-on-exit.patch
+w1-dont-delay-search-start.patch
+w1-w1_process-block-or-sleep.patch
+w1-feature-enable-hardware-strong-pullup.patch
+w1-feature-w1_thermc-use-strong-pullup-and-documentation.patch
+w1-be-able-to-manually-add-and-remove-slaves.patch
+w1-be-able-to-manually-add-and-remove-slaves-fix.patch
+w1-recode-w1_slave_found-logic.patch
+w1-new-module-parameter-search_count.patch
+w1-document-add-remove-search_count-and-pullup.patch
+w1-w1_slave_read_id-read-bug-use-device_attribute.patch
+w1-w1_therm-fix-user-buffer-overflow-and-cat.patch
+w1-w1_family-remove-unused-variable-need_exit.patch
+w1-w1_therm-consistent-mutex-access-code-cleanup.patch
+w1-w1_intc-use-first-available-master-number.patch
+w1-w1c-s-printk-dev_dbg.patch
+w1-w1_ioc-reset-comments-and-msleep.patch
+w1-ds1wmc-msleep-for-reset.patch
+w1-ds2490c-correct-print-message.patch
+w1-ds2490c-add-support-for-strong-pullup.patch
+w1-ds2490c-ds_write_bit-grouping-error-disable-readback.patch
+w1-ds2490c-disable-bit-read-and-write.patch
+w1-ds2490c-simplify-and-fix-ds_touch_bit.patch
+w1-ds2490c-ds_dump_status-rework.patch
+w1-ds2490c-ds_reset-remove-ds_wait_status.patch
+w1-ds2490c-reset-ds2490-in-init.patch
+w1-ds2490c-magic-number-work.patch
+w1-ds2490c-ds_write_block-remove-extra-ds_wait_status.patch
+w1-documentation-w1-masters-ds2490-update.patch
+w1-ds2490c-optimize-ds_set_pullup.patch
 
