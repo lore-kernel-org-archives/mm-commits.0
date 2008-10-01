@@ -1,120 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: - misdn-misc-timerdev-fixes.patch removed from -mm tree
-Date: Wed, 01 Oct 2008 14:51:13 -0700
-Message-ID: <200810012151.m91LpD9x005909@imap1.linux-foundation.org>
+Subject: - sundance-set-carrier-status-on-link-change-events.patch removed from -mm tree
+Date: Wed, 01 Oct 2008 14:51:15 -0700
+Message-ID: <200810012151.m91LpFZL005912@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52625 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52333 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753815AbYJAVvV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:51:21 -0400
+	by vger.kernel.org with ESMTP id S1753811AbYJAVvR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:51:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, kkeil@suse.de, mm-commits@vger.kernel.org
+To: dbn.lists@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mISDN: misc timerdev fixes
+     sundance: set carrier status on link change events
 has been removed from the -mm tree.  Its filename was
-     misdn-misc-timerdev-fixes.patch
+     sundance-set-carrier-status-on-link-change-events.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mISDN: misc timerdev fixes
-From: Andi Kleen <andi@firstfloor.org>
+Subject: sundance: set carrier status on link change events
+From: Dan Nicholson <dbn.lists@gmail.com>
 
-- Remove noop VFS stubs. The VFS does that on a NULL pointer anyways.
-- Fix timer handler prototype to be correct
-- Comment ugly SMP race I didn't fix.
+Check if the link is available when a changed interrupt has been received and
+set the carrier status appropriately.  The code is copied nearly verbatim from
+the dl2k module.  The link status could be used in more places in the driver,
+but this is enough to get the carrier status reported to userspace.  Fixes
+kernel bug #7487:
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Karsten Keil <kkeil@suse.de>
+    http://bugzilla.kernel.org/show_bug.cgi?id=7487
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Dan Nicholson <dbn.lists@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/mISDN/timerdev.c |   22 ++++++----------------
- 1 file changed, 6 insertions(+), 16 deletions(-)
+ drivers/net/sundance.c |   95 +++++++++++++++++++++++++--------------
+ 1 file changed, 62 insertions(+), 33 deletions(-)
 
-diff -puN drivers/isdn/mISDN/timerdev.c~misdn-misc-timerdev-fixes drivers/isdn/mISDN/timerdev.c
---- a/drivers/isdn/mISDN/timerdev.c~misdn-misc-timerdev-fixes
-+++ a/drivers/isdn/mISDN/timerdev.c
-@@ -124,18 +124,6 @@ mISDN_read(struct file *filep, char *buf
- 	return ret;
+diff -puN drivers/net/sundance.c~sundance-set-carrier-status-on-link-change-events drivers/net/sundance.c
+--- a/drivers/net/sundance.c~sundance-set-carrier-status-on-link-change-events
++++ a/drivers/net/sundance.c
+@@ -409,6 +409,7 @@ static int  change_mtu(struct net_device
+ static int  eeprom_read(void __iomem *ioaddr, int location);
+ static int  mdio_read(struct net_device *dev, int phy_id, int location);
+ static void mdio_write(struct net_device *dev, int phy_id, int location, int value);
++static int  mdio_wait_link(struct net_device *dev, int wait);
+ static int  netdev_open(struct net_device *dev);
+ static void check_duplex(struct net_device *dev);
+ static void netdev_timer(unsigned long data);
+@@ -785,6 +786,24 @@ static void mdio_write(struct net_device
+ 	return;
  }
  
--static loff_t
--mISDN_llseek(struct file *filep, loff_t offset, int orig)
--{
--	return -ESPIPE;
--}
--
--static ssize_t
--mISDN_write(struct file *filep, const char *buf, size_t count, loff_t *off)
--{
--	return -EOPNOTSUPP;
--}
--
- static unsigned int
- mISDN_poll(struct file *filep, poll_table *wait)
++static int mdio_wait_link(struct net_device *dev, int wait)
++{
++	int bmsr;
++	int phy_id;
++	struct netdev_private *np;
++
++	np = netdev_priv(dev);
++	phy_id = np->phys[0];
++
++	do {
++		bmsr = mdio_read(dev, phy_id, MII_BMSR);
++		if (bmsr & 0x0004)
++			return 0;
++		mdelay(1);
++	} while (--wait > 0);
++	return -1;
++}
++
+ static int netdev_open(struct net_device *dev)
  {
-@@ -157,8 +145,9 @@ mISDN_poll(struct file *filep, poll_tabl
- }
+ 	struct netdev_private *np = netdev_priv(dev);
+@@ -1393,41 +1412,51 @@ static void netdev_error(struct net_devi
+ 	int speed;
  
- static void
--dev_expire_timer(struct mISDNtimer *timer)
-+dev_expire_timer(unsigned long data)
- {
-+	struct mISDNtimer *timer = (void *)data;
- 	u_long			flags;
+ 	if (intr_status & LinkChange) {
+-		if (np->an_enable) {
+-			mii_advertise = mdio_read (dev, np->phys[0], MII_ADVERTISE);
+-			mii_lpa= mdio_read (dev, np->phys[0], MII_LPA);
+-			mii_advertise &= mii_lpa;
+-			printk (KERN_INFO "%s: Link changed: ", dev->name);
+-			if (mii_advertise & ADVERTISE_100FULL) {
+-				np->speed = 100;
+-				printk ("100Mbps, full duplex\n");
+-			} else if (mii_advertise & ADVERTISE_100HALF) {
+-				np->speed = 100;
+-				printk ("100Mbps, half duplex\n");
+-			} else if (mii_advertise & ADVERTISE_10FULL) {
+-				np->speed = 10;
+-				printk ("10Mbps, full duplex\n");
+-			} else if (mii_advertise & ADVERTISE_10HALF) {
+-				np->speed = 10;
+-				printk ("10Mbps, half duplex\n");
+-			} else
+-				printk ("\n");
++		if (mdio_wait_link(dev, 10) == 0) {
++			printk(KERN_INFO "%s: Link up\n", dev->name);
++			if (np->an_enable) {
++				mii_advertise = mdio_read(dev, np->phys[0],
++							   MII_ADVERTISE);
++				mii_lpa = mdio_read(dev, np->phys[0], MII_LPA);
++				mii_advertise &= mii_lpa;
++				printk(KERN_INFO "%s: Link changed: ",
++					dev->name);
++				if (mii_advertise & ADVERTISE_100FULL) {
++					np->speed = 100;
++					printk("100Mbps, full duplex\n");
++				} else if (mii_advertise & ADVERTISE_100HALF) {
++					np->speed = 100;
++					printk("100Mbps, half duplex\n");
++				} else if (mii_advertise & ADVERTISE_10FULL) {
++					np->speed = 10;
++					printk("10Mbps, full duplex\n");
++				} else if (mii_advertise & ADVERTISE_10HALF) {
++					np->speed = 10;
++					printk("10Mbps, half duplex\n");
++				} else
++					printk("\n");
  
- 	spin_lock_irqsave(&timer->dev->lock, flags);
-@@ -191,7 +180,7 @@ misdn_add_timer(struct mISDNtimerdev *de
- 		spin_unlock_irqrestore(&dev->lock, flags);
- 		timer->dev = dev;
- 		timer->tl.data = (long)timer;
--		timer->tl.function = (void *) dev_expire_timer;
-+		timer->tl.function = dev_expire_timer;
- 		init_timer(&timer->tl);
- 		timer->tl.expires = jiffies + ((HZ * (u_long)timeout) / 1000);
- 		add_timer(&timer->tl);
-@@ -211,6 +200,9 @@ misdn_del_timer(struct mISDNtimerdev *de
- 	list_for_each_entry(timer, &dev->pending, list) {
- 		if (timer->id == id) {
- 			list_del_init(&timer->list);
-+			/* RED-PEN AK: race -- timer can be still running on
-+			 * other CPU. Needs reference count I think
-+ 		 	 */
- 			del_timer(&timer->tl);
- 			ret = timer->id;
- 			kfree(timer);
-@@ -268,9 +260,7 @@ mISDN_ioctl(struct inode *inode, struct 
- }
- 
- static struct file_operations mISDN_fops = {
--	.llseek		= mISDN_llseek,
- 	.read		= mISDN_read,
--	.write		= mISDN_write,
- 	.poll		= mISDN_poll,
- 	.ioctl		= mISDN_ioctl,
- 	.open		= mISDN_open,
++			} else {
++				mii_ctl = mdio_read(dev, np->phys[0], MII_BMCR);
++				speed = (mii_ctl & BMCR_SPEED100) ? 100 : 10;
++				np->speed = speed;
++				printk(KERN_INFO "%s: Link changed: %dMbps ,",
++					dev->name, speed);
++				printk("%s duplex.\n",
++					(mii_ctl & BMCR_FULLDPLX) ?
++						"full" : "half");
++			}
++			check_duplex(dev);
++			if (np->flowctrl && np->mii_if.full_duplex) {
++				iowrite16(ioread16(ioaddr + MulticastFilter1+2) | 0x0200,
++					ioaddr + MulticastFilter1+2);
++				iowrite16(ioread16(ioaddr + MACCtrl0) | EnbFlowCtrl,
++					ioaddr + MACCtrl0);
++			}
++			netif_carrier_on(dev);
+ 		} else {
+-			mii_ctl = mdio_read (dev, np->phys[0], MII_BMCR);
+-			speed = (mii_ctl & BMCR_SPEED100) ? 100 : 10;
+-			np->speed = speed;
+-			printk (KERN_INFO "%s: Link changed: %dMbps ,",
+-				dev->name, speed);
+-			printk ("%s duplex.\n", (mii_ctl & BMCR_FULLDPLX) ?
+-				"full" : "half");
+-		}
+-		check_duplex (dev);
+-		if (np->flowctrl && np->mii_if.full_duplex) {
+-			iowrite16(ioread16(ioaddr + MulticastFilter1+2) | 0x0200,
+-				ioaddr + MulticastFilter1+2);
+-			iowrite16(ioread16(ioaddr + MACCtrl0) | EnbFlowCtrl,
+-				ioaddr + MACCtrl0);
++			printk(KERN_INFO "%s: Link down\n", dev->name);
++			netif_carrier_off(dev);
+ 		}
+ 	}
+ 	if (intr_status & StatsMax) {
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from dbn.lists@gmail.com are
 
-git-x86.patch
-git-pci.patch
-acpi-toshiba_acpic-fix-sparse-signedness-mismatch-warnings.patch
-acpi-compal-laptop-use-rfkill-switch-subsystem.patch
-misdn-misc-timerdev-fixes-fix.patch
-make-taint-bit-reliable-v3.patch
-make-taint-bit-reliable-v3-fix.patch
-rtc-cmos-strongly-avoid-hpet-emulation.patch
-pnp-make-the-resource-type-an-unsigned-long.patch
-pnp-make-the-resource-type-an-unsigned-long-fix.patch
-coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
-acpi-use-bcd2bin-bin2bcd.patch
-profile-likely-unlikely-macros.patch
+git-net.patch
 
