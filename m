@@ -1,130 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - misdn-endian-annotations-for-struct-zt.patch removed from -mm tree
-Date: Wed, 01 Oct 2008 14:51:09 -0700
-Message-ID: <200810012151.m91Lp9tW005903@imap1.linux-foundation.org>
+Subject: - misdn-misc-timerdev-fixes.patch removed from -mm tree
+Date: Wed, 01 Oct 2008 14:51:13 -0700
+Message-ID: <200810012151.m91LpD9x005909@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46766 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52625 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753811AbYJAVvO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:51:14 -0400
+	by vger.kernel.org with ESMTP id S1753815AbYJAVvV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:51:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, kkeil@suse.de, mm-commits@vger.kernel.org
+To: andi@firstfloor.org, ak@linux.intel.com, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mISDN: endian annotations for struct zt
+     mISDN: misc timerdev fixes
 has been removed from the -mm tree.  Its filename was
-     misdn-endian-annotations-for-struct-zt.patch
+     misdn-misc-timerdev-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mISDN: endian annotations for struct zt
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: mISDN: misc timerdev fixes
+From: Andi Kleen <andi@firstfloor.org>
 
-Found two possible bugs where the z1 value was used directly without
-byteswapping.
+- Remove noop VFS stubs. The VFS does that on a NULL pointer anyways.
+- Fix timer handler prototype to be correct
+- Comment ugly SMP race I didn't fix.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/mISDN/hfc_pci.h |    4 ++--
- drivers/isdn/hardware/mISDN/hfcpci.c  |    9 ++++-----
- 2 files changed, 6 insertions(+), 7 deletions(-)
+ drivers/isdn/mISDN/timerdev.c |   22 ++++++----------------
+ 1 file changed, 6 insertions(+), 16 deletions(-)
 
-diff -puN drivers/isdn/hardware/mISDN/hfc_pci.h~misdn-endian-annotations-for-struct-zt drivers/isdn/hardware/mISDN/hfc_pci.h
---- a/drivers/isdn/hardware/mISDN/hfc_pci.h~misdn-endian-annotations-for-struct-zt
-+++ a/drivers/isdn/hardware/mISDN/hfc_pci.h
-@@ -183,8 +183,8 @@
- #define D_FREG_MASK  0xF
+diff -puN drivers/isdn/mISDN/timerdev.c~misdn-misc-timerdev-fixes drivers/isdn/mISDN/timerdev.c
+--- a/drivers/isdn/mISDN/timerdev.c~misdn-misc-timerdev-fixes
++++ a/drivers/isdn/mISDN/timerdev.c
+@@ -124,18 +124,6 @@ mISDN_read(struct file *filep, char *buf
+ 	return ret;
+ }
  
- struct zt {
--	unsigned short z1;  /* Z1 pointer 16 Bit */
--	unsigned short z2;  /* Z2 pointer 16 Bit */
-+	__le16 z1;  /* Z1 pointer 16 Bit */
-+	__le16 z2;  /* Z2 pointer 16 Bit */
- };
- 
- struct dfifo {
-diff -puN drivers/isdn/hardware/mISDN/hfcpci.c~misdn-endian-annotations-for-struct-zt drivers/isdn/hardware/mISDN/hfcpci.c
---- a/drivers/isdn/hardware/mISDN/hfcpci.c~misdn-endian-annotations-for-struct-zt
-+++ a/drivers/isdn/hardware/mISDN/hfcpci.c
-@@ -366,8 +366,7 @@ static void hfcpci_clear_fifo_tx(struct 
- 	bzt->f2 = MAX_B_FRAMES;
- 	bzt->f1 = bzt->f2;	/* init F pointers to remain constant */
- 	bzt->za[MAX_B_FRAMES].z1 = cpu_to_le16(B_FIFO_SIZE + B_SUB_VAL - 1);
--	bzt->za[MAX_B_FRAMES].z2 = cpu_to_le16(
--	    le16_to_cpu(bzt->za[MAX_B_FRAMES].z1 - 1));
-+	bzt->za[MAX_B_FRAMES].z2 = cpu_to_le16(B_FIFO_SIZE + B_SUB_VAL - 2);
- 	if (fifo_state)
- 		hc->hw.fifo_en |= fifo_state;
- 	Write_hfc(hc, HFCPCI_FIFO_EN, hc->hw.fifo_en);
-@@ -482,7 +481,7 @@ receive_dmsg(struct hfc_pci *hc)
- 			df->f2 = ((df->f2 + 1) & MAX_D_FRAMES) |
- 			    (MAX_D_FRAMES + 1);	/* next buffer */
- 			df->za[df->f2 & D_FREG_MASK].z2 =
--			    cpu_to_le16((zp->z2 + rcnt) & (D_FIFO_SIZE - 1));
-+			    cpu_to_le16((le16_to_cpu(zp->z2) + rcnt) & (D_FIFO_SIZE - 1));
- 		} else {
- 			dch->rx_skb = mI_alloc_skb(rcnt - 3, GFP_ATOMIC);
- 			if (!dch->rx_skb) {
-@@ -526,7 +525,7 @@ receive_dmsg(struct hfc_pci *hc)
- int
- hfcpci_empty_fifo_trans(struct bchannel *bch, struct bzfifo *bz, u_char *bdata)
+-static loff_t
+-mISDN_llseek(struct file *filep, loff_t offset, int orig)
+-{
+-	return -ESPIPE;
+-}
+-
+-static ssize_t
+-mISDN_write(struct file *filep, const char *buf, size_t count, loff_t *off)
+-{
+-	return -EOPNOTSUPP;
+-}
+-
+ static unsigned int
+ mISDN_poll(struct file *filep, poll_table *wait)
  {
--	unsigned short	*z1r, *z2r;
-+	 __le16 *z1r, *z2r;
- 	int		new_z2, fcnt, maxlen;
- 	u_char		*ptr, *ptr1;
+@@ -157,8 +145,9 @@ mISDN_poll(struct file *filep, poll_tabl
+ }
  
-@@ -724,7 +723,7 @@ hfcpci_fill_fifo(struct bchannel *bch)
- 	struct bzfifo	*bz;
- 	u_char		*bdata;
- 	u_char		new_f1, *src, *dst;
--	unsigned short	*z1t, *z2t;
-+	__le16 *z1t, *z2t;
+ static void
+-dev_expire_timer(struct mISDNtimer *timer)
++dev_expire_timer(unsigned long data)
+ {
++	struct mISDNtimer *timer = (void *)data;
+ 	u_long			flags;
  
- 	if ((bch->debug & DEBUG_HW_BCHANNEL) && !(bch->debug & DEBUG_HW_BFIFO))
- 		printk(KERN_DEBUG "%s\n", __func__);
+ 	spin_lock_irqsave(&timer->dev->lock, flags);
+@@ -191,7 +180,7 @@ misdn_add_timer(struct mISDNtimerdev *de
+ 		spin_unlock_irqrestore(&dev->lock, flags);
+ 		timer->dev = dev;
+ 		timer->tl.data = (long)timer;
+-		timer->tl.function = (void *) dev_expire_timer;
++		timer->tl.function = dev_expire_timer;
+ 		init_timer(&timer->tl);
+ 		timer->tl.expires = jiffies + ((HZ * (u_long)timeout) / 1000);
+ 		add_timer(&timer->tl);
+@@ -211,6 +200,9 @@ misdn_del_timer(struct mISDNtimerdev *de
+ 	list_for_each_entry(timer, &dev->pending, list) {
+ 		if (timer->id == id) {
+ 			list_del_init(&timer->list);
++			/* RED-PEN AK: race -- timer can be still running on
++			 * other CPU. Needs reference count I think
++ 		 	 */
+ 			del_timer(&timer->tl);
+ 			ret = timer->id;
+ 			kfree(timer);
+@@ -268,9 +260,7 @@ mISDN_ioctl(struct inode *inode, struct 
+ }
+ 
+ static struct file_operations mISDN_fops = {
+-	.llseek		= mISDN_llseek,
+ 	.read		= mISDN_read,
+-	.write		= mISDN_write,
+ 	.poll		= mISDN_poll,
+ 	.ioctl		= mISDN_ioctl,
+ 	.open		= mISDN_open,
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
-fbcon-fix-monochrome-color-value-calculation.patch
-git-avr32.patch
-git-powerpc.patch
 git-x86.patch
-git-xtensa.patch
-git-hid.patch
-git-v4l-dvb.patch
-git-xfs.patch
-git-net.patch
-git-sound.patch
-git-block.patch
-git-pcmcia.patch
-git-battery.patch
+git-pci.patch
 acpi-toshiba_acpic-fix-sparse-signedness-mismatch-warnings.patch
-cifs-remove-global_extern-macro.patch
-input-ads7846c-sparse-lock-annotation.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-include-replace-__function__-with-__func__.patch
-misc-replace-__function__-with-__func__.patch
-befs-annotate-fs32-on-tests-for-superblock-endianness.patch
-char-moxac-sparse-annotation.patch
-byteorder-add-new-headers-for-make-headers-install.patch
-byteorder-use-generic-c-version-for-value-byteswapping.patch
-lib-pull-base-guessing-logic-to-helper-function.patch
-lib-trivial-whitespace-tidy.patch
-lib-remove-defining-macros-for-strict_strto.patch
+acpi-compal-laptop-use-rfkill-switch-subsystem.patch
+misdn-misc-timerdev-fixes-fix.patch
+make-taint-bit-reliable-v3.patch
+make-taint-bit-reliable-v3-fix.patch
+rtc-cmos-strongly-avoid-hpet-emulation.patch
+pnp-make-the-resource-type-an-unsigned-long.patch
+pnp-make-the-resource-type-an-unsigned-long-fix.patch
+coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
+acpi-use-bcd2bin-bin2bcd.patch
+profile-likely-unlikely-macros.patch
 
