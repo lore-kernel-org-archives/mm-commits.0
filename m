@@ -1,79 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - gianfar-free-iounmap-memory-after-an-error-in-mii-bus-initialization.patch removed from -mm tree
-Date: Wed, 01 Oct 2008 14:52:47 -0700
-Message-ID: <200810012152.m91LqlR5006081@imap1.linux-foundation.org>
+Subject: - r8169-fix-rxmissed-register-access.patch removed from -mm tree
+Date: Wed, 01 Oct 2008 14:52:43 -0700
+Message-ID: <200810012152.m91LqhVP006078@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53440 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34357 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754059AbYJAVyB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:54:01 -0400
+	by vger.kernel.org with ESMTP id S1753241AbYJAVyZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 17:54:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: afleming@freescale.com, danielm77@spray.se, jeff@garzik.org, mm-commits@vger.kernel.org
+To: romieu@fr.zoreil.com, edward_hsu@realtek.com.tw, ivecera@redhat.com, jeff@garzik.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gianfar: free/iounmap memory after an error in mii bus initialization
+     r8169: fix RxMissed register access
 has been removed from the -mm tree.  Its filename was
-     gianfar-free-iounmap-memory-after-an-error-in-mii-bus-initialization.patch
+     r8169-fix-rxmissed-register-access.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gianfar: free/iounmap memory after an error in mii bus initialization
-From: Andy Fleming <afleming@freescale.com>
+Subject: r8169: fix RxMissed register access
+From: Francois Romieu <romieu@fr.zoreil.com>
 
-Recent changes to MII bus initialization code added exit points which
-didn't free or iounmap the bus before returning.
+- the register is defined for the 8169 chipset only and there is
+  no 8169 beyond RTL_GIGA_MAC_VER_06.
+- only the lower 3 bytes of the register are valid
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=11372.
+Fixes:
+1. http://bugzilla.kernel.org/show_bug.cgi?id=10180
+2. http://bugzilla.kernel.org/show_bug.cgi?id=11062 (bits of)
 
-Signed-off-by: Andy Fleming <afleming@freescale.com>
-Reported-by: Daniel Marjamki <danielm77@spray.se>
+Tested by Hermann Gausterer and Adam Huffman.
+
+Signed-off-by: Francois Romieu <romieu@fr.zoreil.com>
+Cc: Edward Hsu <edward_hsu@realtek.com.tw>
 Cc: Jeff Garzik <jeff@garzik.org>
+Tested-by: Ivan Vecera <ivecera@redhat.com>
+Cc: <stable@kernel.org>		[2.6.25.x, 2.6.26.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/gianfar_mii.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ drivers/net/r8169.c |   25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
-diff -puN drivers/net/gianfar_mii.c~gianfar-free-iounmap-memory-after-an-error-in-mii-bus-initialization drivers/net/gianfar_mii.c
---- a/drivers/net/gianfar_mii.c~gianfar-free-iounmap-memory-after-an-error-in-mii-bus-initialization
-+++ a/drivers/net/gianfar_mii.c
-@@ -211,19 +211,21 @@ static int gfar_mdio_probe(struct device
- 	gfar_write(&enet_regs->tbipa, 0);
- 	for (i = PHY_MAX_ADDR; i > 0; i--) {
- 		u32 phy_id;
--		int r;
+diff -puN drivers/net/r8169.c~r8169-fix-rxmissed-register-access drivers/net/r8169.c
+--- a/drivers/net/r8169.c~r8169-fix-rxmissed-register-access
++++ a/drivers/net/r8169.c
+@@ -2286,8 +2286,6 @@ static void rtl_hw_start_8168(struct net
  
--		r = get_phy_id(new_bus, i, &phy_id);
--		if (r)
--			return r;
-+		err = get_phy_id(new_bus, i, &phy_id);
-+		if (err)
-+			goto bus_register_fail;
+ 	RTL_R8(IntrMask);
  
- 		if (phy_id == 0xffffffff)
- 			break;
+-	RTL_W32(RxMissed, 0);
+-
+ 	rtl_set_rx_mode(dev);
+ 
+ 	RTL_W8(ChipCmd, CmdTxEnb | CmdRxEnb);
+@@ -2412,8 +2410,6 @@ static void rtl_hw_start_8101(struct net
+ 
+ 	RTL_R8(IntrMask);
+ 
+-	RTL_W32(RxMissed, 0);
+-
+ 	rtl_set_rx_mode(dev);
+ 
+ 	RTL_W8(ChipCmd, CmdTxEnb | CmdRxEnb);
+@@ -3191,6 +3187,17 @@ static int rtl8169_poll(struct napi_stru
+ 	return work_done;
+ }
+ 
++static void rtl8169_rx_missed(struct net_device *dev, void __iomem *ioaddr)
++{
++	struct rtl8169_private *tp = netdev_priv(dev);
++
++	if (tp->mac_version > RTL_GIGA_MAC_VER_06)
++		return;
++
++	dev->stats.rx_missed_errors += (RTL_R32(RxMissed) & 0xffffff);
++	RTL_W32(RxMissed, 0);
++}
++
+ static void rtl8169_down(struct net_device *dev)
+ {
+ 	struct rtl8169_private *tp = netdev_priv(dev);
+@@ -3208,9 +3215,7 @@ core_down:
+ 
+ 	rtl8169_asic_down(ioaddr);
+ 
+-	/* Update the error counts. */
+-	dev->stats.rx_missed_errors += RTL_R32(RxMissed);
+-	RTL_W32(RxMissed, 0);
++	rtl8169_rx_missed(dev, ioaddr);
+ 
+ 	spin_unlock_irq(&tp->lock);
+ 
+@@ -3332,8 +3337,7 @@ static struct net_device_stats *rtl8169_
+ 
+ 	if (netif_running(dev)) {
+ 		spin_lock_irqsave(&tp->lock, flags);
+-		dev->stats.rx_missed_errors += RTL_R32(RxMissed);
+-		RTL_W32(RxMissed, 0);
++		rtl8169_rx_missed(dev, ioaddr);
+ 		spin_unlock_irqrestore(&tp->lock, flags);
  	}
  
- 	/* The bus is full.  We don't support using 31 PHYs, sorry */
--	if (i == 0)
--		return -EBUSY;
-+	if (i == 0) {
-+		err = -EBUSY;
-+
-+		goto bus_register_fail;
-+	}
+@@ -3358,8 +3362,7 @@ static int rtl8169_suspend(struct pci_de
  
- 	gfar_write(&enet_regs->tbipa, i);
+ 	rtl8169_asic_down(ioaddr);
+ 
+-	dev->stats.rx_missed_errors += RTL_R32(RxMissed);
+-	RTL_W32(RxMissed, 0);
++	rtl8169_rx_missed(dev, ioaddr);
+ 
+ 	spin_unlock_irq(&tp->lock);
  
 _
 
-Patches currently in -mm which might be from afleming@freescale.com are
+Patches currently in -mm which might be from romieu@fr.zoreil.com are
 
 git-net.patch
 
