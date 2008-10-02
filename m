@@ -1,102 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: + usb-improve-ehci_watchdogs-side-effect-in-cpu-power-management.patch added to -mm tree
-Date: Thu, 02 Oct 2008 16:57:01 -0700
-Message-ID: <200810022357.m92Nv1dH001020@imap1.linux-foundation.org>
+Subject: - setlocalversion-dont-include-svn-change-count.patch removed from -mm tree
+Date: Thu, 02 Oct 2008 16:57:34 -0700
+Message-ID: <200810022357.m92NvYrx001049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43405 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52904 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753929AbYJBX5J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 19:57:09 -0400
+	by vger.kernel.org with ESMTP id S1755487AbYJBX5m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 19:57:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: yi.y.yang@intel.com, david-b@pacbell.net, greg@kroah.com, stern@rowland.harvard.edu
+To: vapier@gentoo.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: improve ehci_watchdog's side effect in CPU power management
-has been added to the -mm tree.  Its filename is
-     usb-improve-ehci_watchdogs-side-effect-in-cpu-power-management.patch
+     setlocalversion: dont include svn change count
+has been removed from the -mm tree.  Its filename was
+     setlocalversion-dont-include-svn-change-count.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: improve ehci_watchdog's side effect in CPU power management
-From: Yi Yang <yi.y.yang@intel.com>
+Subject: setlocalversion: dont include svn change count
+From: Mike Frysinger <vapier@gentoo.org>
 
-ehci_watchdog will wake up CPU very frequently so that CPU stays at C3
-very short, average residence time is about 50 ms on Aspire One, but we
-expect it should be about 1 second or more, so this kind of periodic timer
-is very bad for power saving.
+The number of pending changes is pretty useless, so encoding it into the
+version is just annoying by the constant shuffle in corresponding modules.
 
-We can't remove this timer because of some bad USB controller chipset, but
-at least we should reduce its side effect to as low as possible.
-
-This patch can make CPU stay at C3 longer, average residence time is about
-twice as long as original.
-
-Signed-off-by: Yi Yang <yi.y.yang@intel.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/ehci.h |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ scripts/setlocalversion |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/host/ehci.h~usb-improve-ehci_watchdogs-side-effect-in-cpu-power-management drivers/usb/host/ehci.h
---- a/drivers/usb/host/ehci.h~usb-improve-ehci_watchdogs-side-effect-in-cpu-power-management
-+++ a/drivers/usb/host/ehci.h
-@@ -181,14 +181,16 @@ timer_action (struct ehci_hcd *ehci, enu
- 	 * the async ring; just the I/O watchdog.  Note that if a
- 	 * SHRINK were pending, OFF would never be requested.
- 	 */
--	if (timer_pending(&ehci->watchdog)
--			&& ((BIT(TIMER_ASYNC_SHRINK) | BIT(TIMER_ASYNC_OFF))
--				& ehci->actions))
--		return;
-+	enum ehci_timer_action oldactions = ehci->actions;
+diff -puN scripts/setlocalversion~setlocalversion-dont-include-svn-change-count scripts/setlocalversion
+--- a/scripts/setlocalversion~setlocalversion-dont-include-svn-change-count
++++ a/scripts/setlocalversion
+@@ -55,7 +55,7 @@ if rev=`svn info 2>/dev/null | grep '^Re
  
- 	if (!test_and_set_bit (action, &ehci->actions)) {
- 		unsigned long t;
- 
-+		if (timer_pending(&ehci->watchdog)
-+			&& ((BIT(TIMER_ASYNC_SHRINK) | BIT(TIMER_ASYNC_OFF))
-+				& oldactions))
-+			return;
-+
- 		switch (action) {
- 		case TIMER_IO_WATCHDOG:
- 			t = EHCI_IO_JIFFIES;
-@@ -204,7 +206,7 @@ timer_action (struct ehci_hcd *ehci, enu
- 			t = DIV_ROUND_UP(EHCI_SHRINK_FRAMES * HZ, 1000) + 1;
- 			break;
- 		}
--		mod_timer(&ehci->watchdog, t + jiffies);
-+		mod_timer(&ehci->watchdog, round_jiffies(t + jiffies));
- 	}
- }
- 
+ 	# Are there uncommitted changes?
+ 	if [ $changes != 0 ]; then
+-		printf -- '-svn%s%s%s' "$rev" -dirty "$changes"
++		printf -- '-svn%s%s%s' "$rev" -dirty
+ 	else
+ 		printf -- '-svn%s' "$rev"
+ 	fi
 _
 
-Patches currently in -mm which might be from yi.y.yang@intel.com are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
-git-acpi.patch
-usb-improve-ehci_watchdogs-side-effect-in-cpu-power-management.patch
-lib-pull-base-guessing-logic-to-helper-function.patch
-lib-trivial-whitespace-tidy.patch
-lib-remove-defining-macros-for-strict_strto.patch
+setlocalversion-dont-include-svn-change-count.patch
 
