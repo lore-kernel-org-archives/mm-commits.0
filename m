@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-fix-recursive-notifier-and-locking-when-fbdev-console-is-blanked.patch added to -mm tree
-Date: Thu, 02 Oct 2008 15:44:12 -0700
-Message-ID: <200810022244.m92MiDWi030445@imap1.linux-foundation.org>
+Subject: + afs-convert-to-new-aops.patch added to -mm tree
+Date: Thu, 02 Oct 2008 15:59:09 -0700
+Message-ID: <200810022259.m92Mx9M5031046@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42950 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60360 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752923AbYJBWop (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 18:44:45 -0400
+	by vger.kernel.org with ESMTP id S1753321AbYJBW74 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 18:59:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, dbaryshkov@gmail.com
+Cc: npiggin@suse.de, dhowells@redhat.com
 
 
 The patch titled
-     fbdev: fix recursive notifier and locking when fbdev console is blanked
+     afs: convert to new aops
 has been added to the -mm tree.  Its filename is
-     fbdev-fix-recursive-notifier-and-locking-when-fbdev-console-is-blanked.patch
+     afs-convert-to-new-aops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,137 +33,289 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: fix recursive notifier and locking when fbdev console is blanked
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: afs: convert to new aops
+From: Nick Piggin <npiggin@suse.de>
 
-Fix infinite recursive notifier in the fbdev layer.  This causes recursive
-locking.  Dmitry Baryshkov found the problem and confirmed that the patch
-fixes the bug.
+Cannot assume writes will fully complete, so this conversion goes the easy
+way and always brings the page uptodate before the write.
 
-After doing
-# echo 1 > /sys/class/graphics/fb0/blank
-I got the following in my kernel log:
-
-=============================================
-[ INFO: possible recursive locking detected ]
-2.6.27-rc6-00086-gda63874-dirty #97
----------------------------------------------
-echo/1564 is trying to acquire lock:
- ((fb_notifier_list).rwsem){..--}, at: [<c005a384>] __blocking_notifier_call_chain+0x38/0x6c
-
-but task is already holding lock:
- ((fb_notifier_list).rwsem){..--}, at: [<c005a384>] __blocking_notifier_call_chain+0x38/0x6c
-
-other info that might help us debug this:
-2 locks held by echo/1564:
- #0:  (&buffer->mutex){--..}, at: [<c00ddde0>] sysfs_write_file+0x30/0x80
- #1:  ((fb_notifier_list).rwsem){..--}, at: [<c005a384>] __blocking_notifier_call_chain+0x38/0x6c
-
-stack backtrace:
-[<c0029fe4>] (dump_stack+0x0/0x14) from [<c0060ce0>] (print_deadlock_bug+0xa4/0xd0)
-[<c0060c3c>] (print_deadlock_bug+0x0/0xd0) from [<c0060e54>] (check_deadlock+0x148/0x17c)
- r6:c397a1e0 r5:c397a530 r4:c04fcf98
-[<c0060d0c>] (check_deadlock+0x0/0x17c) from [<c00637e8>] (validate_chain+0x3c4/0x4f0)
-[<c0063424>] (validate_chain+0x0/0x4f0) from [<c0063efc>] (__lock_acquire+0x5e8/0x6b4)
-[<c0063914>] (__lock_acquire+0x0/0x6b4) from [<c006402c>] (lock_acquire+0x64/0x78)
-[<c0063fc8>] (lock_acquire+0x0/0x78) from [<c0316ca8>] (down_read+0x4c/0x60)
- r7:00000009 r6:ffffffff r5:c0427a40 r4:c005a384
-[<c0316c5c>] (down_read+0x0/0x60) from [<c005a384>] (__blocking_notifier_call_chain+0x38/0x6c)
- r5:c0427a40 r4:c0427a74
-[<c005a34c>] (__blocking_notifier_call_chain+0x0/0x6c) from [<c005a3d8>] (blocking_notifier_call_chain+0x20/0x28)
- r8:00000009 r7:c086d640 r6:c3967940 r5:00000000 r4:c38984b8
-[<c005a3b8>] (blocking_notifier_call_chain+0x0/0x28) from [<c014baa0>] (fb_notifier_call_chain+0x1c/0x24)
-[<c014ba84>] (fb_notifier_call_chain+0x0/0x24) from [<c014c18c>] (fb_blank+0x64/0x70)
-[<c014c128>] (fb_blank+0x0/0x70) from [<c0155978>] (fbcon_blank+0x114/0x1bc)
- r5:00000001 r4:c38984b8
-[<c0155864>] (fbcon_blank+0x0/0x1bc) from [<c0170ea8>] (do_blank_screen+0x1e0/0x2a0)
-[<c0170cc8>] (do_blank_screen+0x0/0x2a0) from [<c0154024>] (fbcon_fb_blanked+0x74/0x94)
- r5:c3967940 r4:00000001
-[<c0153fb0>] (fbcon_fb_blanked+0x0/0x94) from [<c0154228>] (fbcon_event_notify+0x100/0x12c)
- r5:fffffffe r4:c39bc194
-[<c0154128>] (fbcon_event_notify+0x0/0x12c) from [<c005a0d4>] (notifier_call_chain+0x38/0x7c)
-[<c005a09c>] (notifier_call_chain+0x0/0x7c) from [<c005a3a0>] (__blocking_notifier_call_chain+0x54/0x6c)
- r8:c3b51ea0 r7:00000009 r6:ffffffff r5:c0427a40 r4:c0427a74
-[<c005a34c>] (__blocking_notifier_call_chain+0x0/0x6c) from [<c005a3d8>] (blocking_notifier_call_chain+0x20/0x28)
- r8:00000001 r7:c3a7e000 r6:00000000 r5:00000000 r4:c38984b8
-[<c005a3b8>] (blocking_notifier_call_chain+0x0/0x28) from [<c014baa0>] (fb_notifier_call_chain+0x1c/0x24)
-[<c014ba84>] (fb_notifier_call_chain+0x0/0x24) from [<c014c18c>] (fb_blank+0x64/0x70)
-[<c014c128>] (fb_blank+0x0/0x70) from [<c014e450>] (store_blank+0x54/0x7c)
- r5:c38984b8 r4:c3b51ec4
-[<c014e3fc>] (store_blank+0x0/0x7c) from [<c017981c>] (dev_attr_store+0x28/0x2c)
- r8:00000001 r7:c042bf80 r6:c39eba10 r5:c3967c30 r4:c38e0140
-[<c01797f4>] (dev_attr_store+0x0/0x2c) from [<c00ddaac>] (flush_write_buffer+0x54/0x68)
-[<c00dda58>] (flush_write_buffer+0x0/0x68) from [<c00dde08>] (sysfs_write_file+0x58/0x80)
- r8:c3b51f78 r7:c3bcb070 r6:c39eba10 r5:00000001 r4:00000001
-[<c00dddb0>] (sysfs_write_file+0x0/0x80) from [<c009de04>] (vfs_write+0xb8/0x148)
-[<c009dd4c>] (vfs_write+0x0/0x148) from [<c009e384>] (sys_write+0x44/0x70)
- r7:00000004 r6:c3bcb070 r5:00000000 r4:00000000
-[<c009e340>] (sys_write+0x0/0x70) from [<c0025d00>] (ret_fast_syscall+0x0/0x2c)
- r6:4001b000 r5:00000001 r4:401dc658
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Reported-by: Dmitry Baryshkov <dbaryshkov@gmail.com>
-Testted-by: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fbcon.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/afs/file.c     |    4 -
+ fs/afs/internal.h |    8 ++
+ fs/afs/write.c    |  131 ++++++++++++++------------------------------
+ 3 files changed, 51 insertions(+), 92 deletions(-)
 
-diff -puN drivers/video/console/fbcon.c~fbdev-fix-recursive-notifier-and-locking-when-fbdev-console-is-blanked drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~fbdev-fix-recursive-notifier-and-locking-when-fbdev-console-is-blanked
-+++ a/drivers/video/console/fbcon.c
-@@ -2400,11 +2400,15 @@ static int fbcon_blank(struct vc_data *v
+diff -puN fs/afs/file.c~afs-convert-to-new-aops fs/afs/file.c
+--- a/fs/afs/file.c~afs-convert-to-new-aops
++++ a/fs/afs/file.c
+@@ -50,8 +50,8 @@ const struct address_space_operations af
+ 	.launder_page	= afs_launder_page,
+ 	.releasepage	= afs_releasepage,
+ 	.invalidatepage	= afs_invalidatepage,
+-	.prepare_write	= afs_prepare_write,
+-	.commit_write	= afs_commit_write,
++	.write_begin	= afs_write_begin,
++	.write_end	= afs_write_end,
+ 	.writepage	= afs_writepage,
+ 	.writepages	= afs_writepages,
+ };
+diff -puN fs/afs/internal.h~afs-convert-to-new-aops fs/afs/internal.h
+--- a/fs/afs/internal.h~afs-convert-to-new-aops
++++ a/fs/afs/internal.h
+@@ -728,8 +728,12 @@ extern int afs_volume_release_fileserver
+  */
+ extern int afs_set_page_dirty(struct page *);
+ extern void afs_put_writeback(struct afs_writeback *);
+-extern int afs_prepare_write(struct file *, struct page *, unsigned, unsigned);
+-extern int afs_commit_write(struct file *, struct page *, unsigned, unsigned);
++extern int afs_write_begin(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned flags,
++			struct page **pagep, void **fsdata);
++extern int afs_write_end(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned copied,
++			struct page *page, void *fsdata);
+ extern int afs_writepage(struct page *, struct writeback_control *);
+ extern int afs_writepages(struct address_space *, struct writeback_control *);
+ extern int afs_write_inode(struct inode *, int);
+diff -puN fs/afs/write.c~afs-convert-to-new-aops fs/afs/write.c
+--- a/fs/afs/write.c~afs-convert-to-new-aops
++++ a/fs/afs/write.c
+@@ -84,15 +84,23 @@ void afs_put_writeback(struct afs_writeb
+  * partly or wholly fill a page that's under preparation for writing
+  */
+ static int afs_fill_page(struct afs_vnode *vnode, struct key *key,
+-			 unsigned start, unsigned len, struct page *page)
++			loff_t pos, unsigned len, struct page *page)
+ {
++	loff_t i_size;
++	unsigned eof;
+ 	int ret;
  
-  	if (!fbcon_is_inactive(vc, info)) {
- 		if (ops->blank_state != blank) {
-+			int ret = 1;
+-	_enter(",,%u,%u", start, len);
++	_enter(",,%llu,%u", (unsigned long long)pos, len);
+ 
+-	ASSERTCMP(start + len, <=, PAGE_SIZE);
++	ASSERTCMP(len, <=, PAGE_CACHE_SIZE);
+ 
+-	ret = afs_vnode_fetch_data(vnode, key, start, len, page);
++	i_size = i_size_read(&vnode->vfs_inode);
++	if (pos + len > i_size)
++		eof = i_size;
++	else
++		eof = PAGE_CACHE_SIZE;
 +
- 			ops->blank_state = blank;
- 			fbcon_cursor(vc, blank ? CM_ERASE : CM_DRAW);
- 			ops->cursor_flash = (!blank);
++	ret = afs_vnode_fetch_data(vnode, key, 0, eof, page);
+ 	if (ret < 0) {
+ 		if (ret == -ENOENT) {
+ 			_debug("got NOENT from server"
+@@ -107,109 +115,55 @@ static int afs_fill_page(struct afs_vnod
+ }
  
--			if (fb_blank(info, blank))
-+			if (info->fbops->fb_blank)
-+				ret = info->fbops->fb_blank(blank, info);
-+			if (ret)
- 				fbcon_generic_blank(vc, info, blank);
+ /*
+- * prepare a page for being written to
+- */
+-static int afs_prepare_page(struct afs_vnode *vnode, struct page *page,
+-			    struct key *key, unsigned offset, unsigned to)
+-{
+-	unsigned eof, tail, start, stop, len;
+-	loff_t i_size, pos;
+-	void *p;
+-	int ret;
+-
+-	_enter("");
+-
+-	if (offset == 0 && to == PAGE_SIZE)
+-		return 0;
+-
+-	p = kmap_atomic(page, KM_USER0);
+-
+-	i_size = i_size_read(&vnode->vfs_inode);
+-	pos = (loff_t) page->index << PAGE_SHIFT;
+-	if (pos >= i_size) {
+-		/* partial write, page beyond EOF */
+-		_debug("beyond");
+-		if (offset > 0)
+-			memset(p, 0, offset);
+-		if (to < PAGE_SIZE)
+-			memset(p + to, 0, PAGE_SIZE - to);
+-		kunmap_atomic(p, KM_USER0);
+-		return 0;
+-	}
+-
+-	if (i_size - pos >= PAGE_SIZE) {
+-		/* partial write, page entirely before EOF */
+-		_debug("before");
+-		tail = eof = PAGE_SIZE;
+-	} else {
+-		/* partial write, page overlaps EOF */
+-		eof = i_size - pos;
+-		_debug("overlap %u", eof);
+-		tail = max(eof, to);
+-		if (tail < PAGE_SIZE)
+-			memset(p + tail, 0, PAGE_SIZE - tail);
+-		if (offset > eof)
+-			memset(p + eof, 0, PAGE_SIZE - eof);
+-	}
+-
+-	kunmap_atomic(p, KM_USER0);
+-
+-	ret = 0;
+-	if (offset > 0 || eof > to) {
+-		/* need to fill one or two bits that aren't going to be written
+-		 * (cover both fillers in one read if there are two) */
+-		start = (offset > 0) ? 0 : to;
+-		stop = (eof > to) ? eof : offset;
+-		len = stop - start;
+-		_debug("wr=%u-%u av=0-%u rd=%u@%u",
+-		       offset, to, eof, start, len);
+-		ret = afs_fill_page(vnode, key, start, len, page);
+-	}
+-
+-	_leave(" = %d", ret);
+-	return ret;
+-}
+-
+-/*
+  * prepare to perform part of a write to a page
+- * - the caller holds the page locked, preventing it from being written out or
+- *   modified by anyone else
+  */
+-int afs_prepare_write(struct file *file, struct page *page,
+-		      unsigned offset, unsigned to)
++int afs_write_begin(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned flags,
++			struct page **pagep, void **fsdata)
+ {
++	struct page *page;
+ 	struct afs_writeback *candidate, *wb;
+ 	struct afs_vnode *vnode = AFS_FS_I(file->f_dentry->d_inode);
+ 	struct key *key = file->private_data;
+-	pgoff_t index;
++	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
++	unsigned from = pos & (PAGE_CACHE_SIZE - 1);
++	unsigned to = from + len;
+ 	int ret;
+ 
+ 	_enter("{%x:%u},{%lx},%u,%u",
+-	       vnode->fid.vid, vnode->fid.vnode, page->index, offset, to);
++	       vnode->fid.vid, vnode->fid.vnode, index, from, to);
+ 
+ 	candidate = kzalloc(sizeof(*candidate), GFP_KERNEL);
+ 	if (!candidate)
+ 		return -ENOMEM;
+ 	candidate->vnode = vnode;
+-	candidate->first = candidate->last = page->index;
+-	candidate->offset_first = offset;
++	candidate->first = candidate->last = index;
++	candidate->offset_first = from;
+ 	candidate->to_last = to;
+ 	candidate->usage = 1;
+ 	candidate->state = AFS_WBACK_PENDING;
+ 	init_waitqueue_head(&candidate->waitq);
+ 
++	page = __grab_cache_page(mapping, index);
++	if (!page) {
++		kfree(candidate);
++		return -ENOMEM;
++	}
++	*pagep = page;
++	/* page won't leak in error case: it eventually gets cleaned off LRU */
++
+ 	if (!PageUptodate(page)) {
+ 		_debug("not up to date");
+-		ret = afs_prepare_page(vnode, page, key, offset, to);
++		ret = afs_fill_page(vnode, key, pos, len, page);
+ 		if (ret < 0) {
+ 			kfree(candidate);
+ 			_leave(" = %d [prep]", ret);
+ 			return ret;
  		}
++		SetPageUptodate(page);
+ 	}
  
+ try_again:
+-	index = page->index;
+ 	spin_lock(&vnode->writeback_lock);
+ 
+ 	/* see if this page is already pending a writeback under a suitable key
+@@ -242,8 +196,8 @@ try_again:
+ subsume_in_current_wb:
+ 	_debug("subsume");
+ 	ASSERTRANGE(wb->first, <=, index, <=, wb->last);
+-	if (index == wb->first && offset < wb->offset_first)
+-		wb->offset_first = offset;
++	if (index == wb->first && from < wb->offset_first)
++		wb->offset_first = from;
+ 	if (index == wb->last && to > wb->to_last)
+ 		wb->to_last = to;
+ 	spin_unlock(&vnode->writeback_lock);
+@@ -289,17 +243,17 @@ flush_conflicting_wb:
+ /*
+  * finalise part of a write to a page
+  */
+-int afs_commit_write(struct file *file, struct page *page,
+-		     unsigned offset, unsigned to)
++int afs_write_end(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned copied,
++			struct page *page, void *fsdata)
+ {
+ 	struct afs_vnode *vnode = AFS_FS_I(file->f_dentry->d_inode);
+ 	loff_t i_size, maybe_i_size;
+ 
+-	_enter("{%x:%u},{%lx},%u,%u",
+-	       vnode->fid.vid, vnode->fid.vnode, page->index, offset, to);
++	_enter("{%x:%u},{%lx}",
++	       vnode->fid.vid, vnode->fid.vnode, page->index);
+ 
+-	maybe_i_size = (loff_t) page->index << PAGE_SHIFT;
+-	maybe_i_size += to;
++	maybe_i_size = pos + copied;
+ 
+ 	i_size = i_size_read(&vnode->vfs_inode);
+ 	if (maybe_i_size > i_size) {
+@@ -310,12 +264,13 @@ int afs_commit_write(struct file *file, 
+ 		spin_unlock(&vnode->writeback_lock);
+ 	}
+ 
+-	SetPageUptodate(page);
+ 	set_page_dirty(page);
+ 	if (PageDirty(page))
+ 		_debug("dirtied");
++	unlock_page(page);
++	page_cache_release(page);
+ 
+-	return 0;
++	return copied;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-fbdev-fix-recursive-notifier-and-locking-when-fbdev-console-is-blanked.patch
-git-arm.patch
-git-sparc.patch
+inotify-fix-lock-ordering-wrt-do_page_faults-mmap_sem.patch
+mm-tiny-shmem-nommu-fix.patch
 git-x86.patch
-git-sound.patch
-fb-metronome-printk-format-warning.patch
-mm-rewrite-vmap-layer-fix-fix-fix-fix.patch
-fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
-neofb-reduce-panning-function.patch
-viafb-accelc-accelh-update.patch
-viafb-viafbdevc-update.patch
-fbdev-kconfig-update.patch
-fbdev-kconfig-update-fix.patch
-neofb-kill-some-redundant-code.patch
-vga16fb-remove-open_lock-mutex.patch
-neofb-remove-open_lock-mutex.patch
-tdfxfb-do-not-make-changes-to-default-tdfx_fix.patch
-intelfb-support-945gme-as-used-in-asus-eee-901.patch
-cirrusfb-remove-information-about-memory-size-during-mode-change.patch
-cirrusfb-simplify-clock-calculation.patch
-cirrusfb-remove-24-bpp-mode.patch
-cirrusfb-drop-device-pointers-from-cirrusfb_info.patch
-cirrusfb-use-modedb-and-add-mode_option-parameter-2nd-rev.patch
-cirrusfb-add-__devinit-attribute-to-probing-functions.patch
-cirrusfb-eliminate-crt-registers-from-global-structure.patch
-cirrusfb-eliminate-crt-registers-from-global-structure-fix-up-debug-printk-types.patch
-cirrusfb-drop-clock-fields-from-cirrusfb_regs-structure.patch
-cirrusfb-add-noaccel-module-parameter.patch
-cirrusfb-fix-16bpp-modes.patch
-cirrusfb-do-not-change-mclk-for-alpine-chips.patch
-atmel_lcdfb-disallow-setting-larger-resolution-than-the-framebuffer-memory-can-handle.patch
-vgacon-vgacon_scrolldelta-simplification.patch
+git-cifs.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmstat-mlocked-pages-statistics.patch
+mm-pagecache-insertion-fewer-atomics.patch
+mm-unlockless-reclaim.patch
+mm-page-lock-use-lock-bitops.patch
+fs-buffer-lock-use-lock-bitops.patch
+mm-page-allocator-minor-speedup.patch
+mm-rewrite-vmap-layer.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+afs-convert-to-new-aops.patch
+reiser4.patch
+likeliness-accounting-change-and-cleanup.patch
 
