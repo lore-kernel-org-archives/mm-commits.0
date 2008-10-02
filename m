@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-host-use-an-is_err-test-rather-than-a-null-test.patch added to -mm tree
-Date: Thu, 02 Oct 2008 00:18:34 -0700
-Message-ID: <200810020718.m927IYVW026181@imap1.linux-foundation.org>
+Subject: + mm-handle-initialising-compound-pages-at-orders-greater-than-max_order.patch added to -mm tree
+Date: Thu, 02 Oct 2008 14:30:13 -0700
+Message-ID: <200810022130.m92LUDVO027409@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51572 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43306 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753514AbYJBHSk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 03:18:40 -0400
+	by vger.kernel.org with ESMTP id S1754369AbYJBVaz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 17:30:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: brunel@diku.dk, julia@diku.dk
+Cc: apw@shadowen.org, kniht@linux.vnet.ibm.com, mel@csn.ul.ie
 
 
 The patch titled
-     drivers/usb/host: use an IS_ERR test rather than a NULL test
+     mm: handle initialising compound pages at orders greater than MAX_ORDER
 has been added to the -mm tree.  Its filename is
-     drivers-usb-host-use-an-is_err-test-rather-than-a-null-test.patch
+     mm-handle-initialising-compound-pages-at-orders-greater-than-max_order.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,70 +33,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/host: use an IS_ERR test rather than a NULL test
-From: Julien Brunel <brunel@diku.dk>
+Subject: mm: handle initialising compound pages at orders greater than MAX_ORDER
+From: Andy Whitcroft <apw@shadowen.org>
 
-In case of error, the function isp1760_register returns an ERR
-pointer, but never returns a NULL pointer. So after a call to this
-function, a NULL test should be replaced by an IS_ERR test. Moreover,
-we have noticed that:
+When we initialise a compound page we initialise the page flags and head
+page pointer for all base pages spanned by that page.  When we initialise
+a gigantic page (a page of order greater than or equal to MAX_ORDER) we
+have to initialise more than MAX_ORDER_NR_PAGES pages.  Currently we
+assume that all elements of the mem_map in this page are contigious in
+memory.  However this is only guarenteed out to MAX_ORDER_NR_PAGES pages,
+and with SPARSEMEM enabled they will not be contigious.  This leads us to
+walk off the end of the first section and scribble on everything which
+follows, BAD.
 
-(1) the result of isp1760_register is assigned through the function
-    pci_set_drvdata without an error test,
+When we reach a MAX_ORDER_NR_PAGES boundary we much locate the next
+section of the mem_map.  As gigantic pages can only be maximally aligned
+we know this will occur at exact multiple of MAX_ORDER_NR_PAGES pages from
+the start of the page.
 
-(2) if the call to isp1760_register fails, the current function
-    (isp1761_pci_probe) returns 0, and if it succeeds, it returns -ENOMEM,
-    which seems odd.
+This is a bug fix for the gigantic page support in hugetlbfs.
 
-Thus, we suggest to move the test before the call to pci_set_drvdata to
-correct (1), and to turn it into a non IS_ERR test to correct (2).
+Credit to Mel Gorman for spotting the issue.
 
-The semantic match that finds this problem is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@bad_null_test@
-expression x,E;
-statement S1, S2;
-@@
-x =  isp1760_register(...)
-... when != x = E
-* if (x == NULL)
-S1 else S2
-// </smpl>
-
-Signed-off-by: Julien Brunel <brunel@diku.dk>
-Signed-off-by: Julia Lawall <julia@diku.dk>
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Jon Tollefson <kniht@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/isp1760-if.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN drivers/usb/host/isp1760-if.c~drivers-usb-host-use-an-is_err-test-rather-than-a-null-test drivers/usb/host/isp1760-if.c
---- a/drivers/usb/host/isp1760-if.c~drivers-usb-host-use-an-is_err-test-rather-than-a-null-test
-+++ a/drivers/usb/host/isp1760-if.c
-@@ -232,9 +232,10 @@ static int __devinit isp1761_pci_probe(s
- 	hcd = isp1760_register(pci_mem_phy0, length, dev->irq,
- 		IRQF_SHARED | IRQF_DISABLED, &dev->dev, dev_name(&dev->dev),
- 		devflags);
--	pci_set_drvdata(dev, hcd);
--	if (!hcd)
-+	if (!IS_ERR(hcd)) {
-+		pci_set_drvdata(dev, hcd);
- 		return 0;
-+	}
- clean:
- 	status = -ENODEV;
- 	iounmap(iobase);
+diff -puN mm/page_alloc.c~mm-handle-initialising-compound-pages-at-orders-greater-than-max_order mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-handle-initialising-compound-pages-at-orders-greater-than-max_order
++++ a/mm/page_alloc.c
+@@ -268,13 +268,14 @@ void prep_compound_page(struct page *pag
+ {
+ 	int i;
+ 	int nr_pages = 1 << order;
++	struct page *p = page + 1;
+ 
+ 	set_compound_page_dtor(page, free_compound_page);
+ 	set_compound_order(page, order);
+ 	__SetPageHead(page);
+-	for (i = 1; i < nr_pages; i++) {
+-		struct page *p = page + i;
+-
++	for (i = 1; i < nr_pages; i++, p++) {
++		if (unlikely((i & (MAX_ORDER_NR_PAGES - 1)) == 0))
++			p = pfn_to_page(page_to_pfn(page) + i);
+ 		__SetPageTail(p);
+ 		p->first_page = page;
+ 	}
+@@ -284,6 +285,7 @@ static void destroy_compound_page(struct
+ {
+ 	int i;
+ 	int nr_pages = 1 << order;
++	struct page *p = page + 1;
+ 
+ 	if (unlikely(compound_order(page) != order))
+ 		bad_page(page);
+@@ -291,8 +293,9 @@ static void destroy_compound_page(struct
+ 	if (unlikely(!PageHead(page)))
+ 			bad_page(page);
+ 	__ClearPageHead(page);
+-	for (i = 1; i < nr_pages; i++) {
+-		struct page *p = page + i;
++	for (i = 1; i < nr_pages; i++, p++) {
++		if (unlikely((i & (MAX_ORDER_NR_PAGES - 1)) == 0))
++			p = pfn_to_page(page_to_pfn(page) + i);
+ 
+ 		if (unlikely(!PageTail(p) |
+ 				(p->first_page != page)))
 _
 
-Patches currently in -mm which might be from brunel@diku.dk are
+Patches currently in -mm which might be from apw@shadowen.org are
 
-git-sound.patch
-git-gfs2.patch
-git-ubifs.patch
-drivers-usb-host-use-an-is_err-test-rather-than-a-null-test.patch
+mm-handle-initialising-compound-pages-at-orders-greater-than-max_order.patch
+mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
+checkpatch-square-brackets-exemption-for-array-slices-in-braces.patch
+checkpatch-values-double-ampersand-may-be-unary.patch
+checkpatch-conditional-indent-labels-have-different-indent-rules.patch
+checkpatch-switch-indent-allow-plain-return.patch
+checkpatch-add-tests-for-the-attribute-matcher.patch
+checkpatch-____cacheline_aligned-et-al-are-modifiers.patch
+checkpatch-complex-macros-fix-up-extension-handling.patch
+checkpatch-fix-up-comment-checks-search-to-scan-the-entire-block.patch
+checkpatch-include-asm-checks-should-be-anchored.patch
+checkpatch-reduce-warnings-for-include-of-asm-fooh-to-check-from-arch-barc.patch
+checkpatch-report-any-absolute-references-to-kernel-source-files.patch
+checkpatch-report-the-real-first-line-of-all-suspect-indents.patch
+checkpatch-suspect-indent-skip-over-preprocessor-label-and-blank-lines.patch
+checkpatch-%lx-tests-should-hand-%%-as-a-literal.patch
+checkpatch-report-the-correct-lines-for-single-statement-blocks.patch
+checkpatch-perform-indent-checks-on-perl.patch
+checkpatch-version-022.patch
+checkpatch-case-default-checks-should-only-check-changed-lines.patch
 checkpatch-suppress-errors-triggered-by-short-patch.patch
-fs-reiserfs-use-an-is_err-test-rather-than-a-null-test.patch
+checkpatch-handle-comment-quote-nesting-correctly.patch
+checkpatch-check-line-endings-in-text-format-files.patch
+checkpatch-suspect-indent-count-condition-lines-correctly.patch
+checkpatch-ensure-we-only-apply-checks-to-the-lines-within-hunks.patch
+checkpatch-version-023.patch
+page-owner-tracking-leak-detector.patch
 
