@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-pcmcia-git-rejects.patch added to -mm tree
-Date: Wed, 01 Oct 2008 15:20:44 -0700
-Message-ID: <200810012220.m91MKimG007216@imap1.linux-foundation.org>
+Subject: + git-timers-fix-printk-errors-clean-up.patch added to -mm tree
+Date: Wed, 01 Oct 2008 17:47:28 -0700
+Message-ID: <200810020047.m920lU0v012792@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48264 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41759 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753038AbYJAWUq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 18:20:46 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m91MKihs000629
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 1 Oct 2008 15:20:45 -0700
+	by vger.kernel.org with ESMTP id S1751807AbYJBAs2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 20:48:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, yhlu.kernel@gmail.com
 
 
 The patch titled
-     git-pcmcia-git-rejects
+     git-timers: fix printk errors, clean up
 has been added to the -mm tree.  Its filename is
-     git-pcmcia-git-rejects.patch
+     git-timers-fix-printk-errors-clean-up.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,38 +33,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-pcmcia-git-rejects
+Subject: git-timers: fix printk errors, clean up
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Fix these:
+
+kernel/resource.c: In function '__reserve_region_with_split':
+kernel/resource.c:564: warning: format '%llx' expects type 'long long unsigned int', but argument 3 has type 'resource_size_t'
+kernel/resource.c:564: warning: format '%llx' expects type 'long long unsigned int', but argument 4 has type 'resource_size_t'
+kernel/resource.c:564: warning: format '%llx' expects type 'long long unsigned int', but argument 6 has type 'resource_size_t'
+kernel/resource.c:564: warning: format '%llx' expects type 'long long unsigned int', but argument 7 has type 'resource_size_t'
+
+and use __func__ and lay the code out better so it's
+less-than-totally-revolting in an 80-col display.
+
+Should be folded into
+
+commit 268364a0f48aee2f851f9d1ef8a6cda0f3039ef1
+Author: Yinghai Lu <yhlu.kernel@gmail.com>
+Date:   Thu Sep 4 21:02:44 2008 +0200
+
+    IO resources: add reserve_region_with_split()
+
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/ds.c |    5 -----
- 1 file changed, 5 deletions(-)
+ kernel/resource.c |   48 ++++++++++++++++++++++++--------------------
+ 1 file changed, 27 insertions(+), 21 deletions(-)
 
-diff -puN drivers/pcmcia/ds.c~git-pcmcia-git-rejects drivers/pcmcia/ds.c
---- a/drivers/pcmcia/ds.c~git-pcmcia-git-rejects
-+++ a/drivers/pcmcia/ds.c
-@@ -394,7 +394,6 @@ static int pcmcia_device_probe(struct de
- 	p_drv = to_pcmcia_drv(dev->driver);
- 	s = p_dev->socket;
+diff -puN kernel/resource.c~git-timers-fix-printk-errors-clean-up kernel/resource.c
+--- a/kernel/resource.c~git-timers-fix-printk-errors-clean-up
++++ a/kernel/resource.c
+@@ -558,31 +558,37 @@ static void __init __reserve_region_with
+ 		break;
+ 	}
  
--<<<<<<< HEAD:drivers/pcmcia/ds.c
- 	/* The PCMCIA code passes the match data in via dev->driver_data
- 	 * which is an ugly hack. Once the driver probe is called it may
- 	 * and often will overwrite the match data so we must save it first
-@@ -407,11 +406,7 @@ static int pcmcia_device_probe(struct de
- 	 */
- 	did = p_dev->dev.driver_data;
+-	if (!res) {
+-		printk(KERN_DEBUG "    __reserve_region_with_split: (%s) [%llx, %llx], res: (%s) [%llx, %llx]\n",
+-			 conflict->name, conflict->start, conflict->end,
+-			 name, start, end);
++	if (res)
++		return;
  
--	ds_dbg(1, "trying to bind %s to %s\n", p_dev->dev.bus_id,
--	       p_drv->drv.name);
--=======
- 	ds_dev_dbg(1, dev, "trying to bind to %s\n", p_drv->drv.name);
-->>>>>>> FETCH_HEAD:drivers/pcmcia/ds.c
+-		/* failed, split and try again */
++	printk(KERN_DEBUG "   %s: (%s) [%llx, %llx], res: (%s) [%llx, %llx]\n",
++		__func__, conflict->name,
++		(unsigned long long)conflict->start,
++		(unsigned long long)conflict->end,
++		name,
++		(unsigned long long)start,
++		(unsigned long long)end);
  
- 	if ((!p_drv->probe) || (!p_dev->function_config) ||
- 	    (!try_module_get(p_drv->owner))) {
+-		/* conflict coverred whole area */
+-		if (conflict->start <= start && conflict->end >= end)
+-			return;
++	/* failed, split and try again */
+ 
+-		if (conflict->start > start)
+-			__reserve_region_with_split(root, start, conflict->start-1, name);
+-		if (!(conflict->flags & IORESOURCE_BUSY)) {
+-			resource_size_t common_start, common_end;
+-
+-			common_start = max(conflict->start, start);
+-			common_end = min(conflict->end, end);
+-			if (common_start < common_end)
+-				__reserve_region_with_split(root, common_start, common_end, name);
+-		}
+-		if (conflict->end < end)
+-			__reserve_region_with_split(root, conflict->end+1, end, name);
++	/* conflict coverred whole area */
++	if (conflict->start <= start && conflict->end >= end)
++		return;
++
++	if (conflict->start > start)
++		__reserve_region_with_split(root, start, conflict->start-1,
++						name);
++	if (!(conflict->flags & IORESOURCE_BUSY)) {
++		resource_size_t common_start, common_end;
++
++		common_start = max(conflict->start, start);
++		common_end = min(conflict->end, end);
++		if (common_start < common_end)
++			__reserve_region_with_split(root, common_start,
++						common_end, name);
+ 	}
+-
++	if (conflict->end < end)
++		__reserve_region_with_split(root, conflict->end+1, end, name);
+ }
+ 
+ void reserve_region_with_split(struct resource *root,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -196,4 +253,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+git-timers-fix-printk-errors-clean-up.patch
 
