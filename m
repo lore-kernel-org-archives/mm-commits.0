@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-timers-fix-printk-errors-clean-up.patch added to -mm tree
-Date: Wed, 01 Oct 2008 17:47:28 -0700
-Message-ID: <200810020047.m920lU0v012792@imap1.linux-foundation.org>
+Subject: + memory-hotplug-missing-zone-lock-in-test_pages_isolated.patch added to -mm tree
+Date: Wed, 01 Oct 2008 22:38:31 -0700
+Message-ID: <200810020538.m925cVJS022581@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41759 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40594 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751807AbYJBAs2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Oct 2008 20:48:28 -0400
+	by vger.kernel.org with ESMTP id S1751978AbYJBFjd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 01:39:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, yhlu.kernel@gmail.com
+Cc: gerald.schaefer@de.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     git-timers: fix printk errors, clean up
+     memory hotplug: missing zone->lock in test_pages_isolated()
 has been added to the -mm tree.  Its filename is
-     git-timers-fix-printk-errors-clean-up.patch
+     memory-hotplug-missing-zone-lock-in-test_pages_isolated.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,225 +33,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-timers: fix printk errors, clean up
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memory hotplug: missing zone->lock in test_pages_isolated()
+From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 
-Fix these:
+__test_page_isolated_in_pageblock() in mm/page_isolation.c has a comment
+saying that the caller must hold zone->lock. But the only caller of that
+function, test_pages_isolated(), does not hold zone->lock and the lock is
+also not acquired anywhere before. This patch adds the missing zone->lock
+to test_pages_isolated().
 
-kernel/resource.c: In function '__reserve_region_with_split':
-kernel/resource.c:564: warning: format '%llx' expects type 'long long unsigned int', but argument 3 has type 'resource_size_t'
-kernel/resource.c:564: warning: format '%llx' expects type 'long long unsigned int', but argument 4 has type 'resource_size_t'
-kernel/resource.c:564: warning: format '%llx' expects type 'long long unsigned int', but argument 6 has type 'resource_size_t'
-kernel/resource.c:564: warning: format '%llx' expects type 'long long unsigned int', but argument 7 has type 'resource_size_t'
+We reproducibly run into BUG_ON(!PageBuddy(page)) in __offline_isolated_pages()
+during memory hotplug stress test, see trace below. This patch fixes that
+problem, it would be good if we could have it in 2.6.27.
 
-and use __func__ and lay the code out better so it's
-less-than-totally-revolting in an 80-col display.
+kernel BUG at /home/autobuild/BUILD/linux-2.6.26-20080909/mm/page_alloc.c:4561!
+illegal operation: 0001 [#1] PREEMPT SMP
+Modules linked in: dm_multipath sunrpc bonding qeth_l3 dm_mod qeth ccwgroup vmur
+CPU: 1 Not tainted 2.6.26-29.x.20080909-s390default #1
+Process memory_loop_all (pid: 10025, task: 2f444028, ksp: 2b10dd28)
+Krnl PSW : 040c0000 801727ea (__offline_isolated_pages+0x18e/0x1c4)
+ R:0 T:1 IO:0 EX:0 Key:0 M:1 W:0 P:0 AS:0 CC:0 PM:0
+Krnl GPRS: 00000000 7e27fc00 00000000 7e27fc00
+ 00000000 00000400 00014000 7e27fc01
+ 00606f00 7e27fc00 00013fe0 2b10dd28
+ 00000005 80172662 801727b2 2b10dd28
+Krnl Code: 801727de: 5810900c l %r1,12(%r9)
+ 801727e2: a7f4ffb3 brc 15,80172748
+ 801727e6: a7f40001 brc 15,801727e8
+ >801727ea: a7f4ffbc brc 15,80172762
+ 801727ee: a7f40001 brc 15,801727f0
+ 801727f2: a7f4ffaf brc 15,80172750
+ 801727f6: 0707 bcr 0,%r7
+ 801727f8: 0017 unknown
+Call Trace:
+([<0000000000172772>] __offline_isolated_pages+0x116/0x1c4)
+ [<00000000001953a2>] offline_isolated_pages_cb+0x22/0x34
+ [<000000000013164c>] walk_memory_resource+0xcc/0x11c
+ [<000000000019520e>] offline_pages+0x36a/0x498
+ [<00000000001004d6>] remove_memory+0x36/0x44
+ [<000000000028fb06>] memory_block_change_state+0x112/0x150
+ [<000000000028ffb8>] store_mem_state+0x90/0xe4
+ [<0000000000289c00>] sysdev_store+0x34/0x40
+ [<00000000001ee048>] sysfs_write_file+0xd0/0x178
+ [<000000000019b1a8>] vfs_write+0x74/0x118
+ [<000000000019b9ae>] sys_write+0x46/0x7c
+ [<000000000011160e>] sysc_do_restart+0x12/0x16
+ [<0000000077f3e8ca>] 0x77f3e8ca
 
-Should be folded into
-
-commit 268364a0f48aee2f851f9d1ef8a6cda0f3039ef1
-Author: Yinghai Lu <yhlu.kernel@gmail.com>
-Date:   Thu Sep 4 21:02:44 2008 +0200
-
-    IO resources: add reserve_region_with_split()
-
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |   48 ++++++++++++++++++++++++--------------------
- 1 file changed, 27 insertions(+), 21 deletions(-)
+ mm/page_isolation.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN kernel/resource.c~git-timers-fix-printk-errors-clean-up kernel/resource.c
---- a/kernel/resource.c~git-timers-fix-printk-errors-clean-up
-+++ a/kernel/resource.c
-@@ -558,31 +558,37 @@ static void __init __reserve_region_with
- 		break;
- 	}
+diff -puN mm/page_isolation.c~memory-hotplug-missing-zone-lock-in-test_pages_isolated mm/page_isolation.c
+--- a/mm/page_isolation.c~memory-hotplug-missing-zone-lock-in-test_pages_isolated
++++ a/mm/page_isolation.c
+@@ -114,8 +114,10 @@ __test_page_isolated_in_pageblock(unsign
  
--	if (!res) {
--		printk(KERN_DEBUG "    __reserve_region_with_split: (%s) [%llx, %llx], res: (%s) [%llx, %llx]\n",
--			 conflict->name, conflict->start, conflict->end,
--			 name, start, end);
-+	if (res)
-+		return;
+ int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn)
+ {
+-	unsigned long pfn;
++	unsigned long pfn, flags;
+ 	struct page *page;
++	struct zone *zone;
++	int ret;
  
--		/* failed, split and try again */
-+	printk(KERN_DEBUG "   %s: (%s) [%llx, %llx], res: (%s) [%llx, %llx]\n",
-+		__func__, conflict->name,
-+		(unsigned long long)conflict->start,
-+		(unsigned long long)conflict->end,
-+		name,
-+		(unsigned long long)start,
-+		(unsigned long long)end);
- 
--		/* conflict coverred whole area */
--		if (conflict->start <= start && conflict->end >= end)
--			return;
-+	/* failed, split and try again */
- 
--		if (conflict->start > start)
--			__reserve_region_with_split(root, start, conflict->start-1, name);
--		if (!(conflict->flags & IORESOURCE_BUSY)) {
--			resource_size_t common_start, common_end;
--
--			common_start = max(conflict->start, start);
--			common_end = min(conflict->end, end);
--			if (common_start < common_end)
--				__reserve_region_with_split(root, common_start, common_end, name);
--		}
--		if (conflict->end < end)
--			__reserve_region_with_split(root, conflict->end+1, end, name);
-+	/* conflict coverred whole area */
-+	if (conflict->start <= start && conflict->end >= end)
-+		return;
-+
-+	if (conflict->start > start)
-+		__reserve_region_with_split(root, start, conflict->start-1,
-+						name);
-+	if (!(conflict->flags & IORESOURCE_BUSY)) {
-+		resource_size_t common_start, common_end;
-+
-+		common_start = max(conflict->start, start);
-+		common_end = min(conflict->end, end);
-+		if (common_start < common_end)
-+			__reserve_region_with_split(root, common_start,
-+						common_end, name);
- 	}
--
-+	if (conflict->end < end)
-+		__reserve_region_with_split(root, conflict->end+1, end, name);
+ 	pfn = start_pfn;
+ 	/*
+@@ -131,7 +133,9 @@ int test_pages_isolated(unsigned long st
+ 	if (pfn < end_pfn)
+ 		return -EBUSY;
+ 	/* Check all pages are free or Marked as ISOLATED */
+-	if (__test_page_isolated_in_pageblock(start_pfn, end_pfn))
+-		return 0;
+-	return -EBUSY;
++	zone = page_zone(pfn_to_page(pfn));
++	spin_lock_irqsave(&zone->lock, flags);
++	ret = __test_page_isolated_in_pageblock(start_pfn, end_pfn);
++	spin_unlock_irqrestore(&zone->lock, flags);
++	return ret ? 0 : -EBUSY;
  }
- 
- void reserve_region_with_split(struct resource *root,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
 
-git-powerpc.patch
-git-sparc.patch
-git-x86.patch
-git-x86-git-rejects.patch
-git-xtensa.patch
-git-ftrace.patch
-git-pci.patch
-git-hid.patch
-git-v4l-dvb.patch
-git-v4l-dvb-git-rejects.patch
-git-acpi-git-rejects.patch
-git-nfsd.patch
-git-dlm.patch
-git-async_tx.patch
-git-net.patch
-git-mtd.patch
-git-sound.patch
-git-sound-rejects.patch
-git-input.patch
-git-block.patch
-git-pcmcia-git-rejects.patch
-git-battery.patch
-git-mfd.patch
-git-drm.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-drivers-media-video-tda9840c-unbreak.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
-misdn-misc-timerdev-fixes-fix.patch
-drivers-net-sfc-falconc-fix-min-warnings.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry.patch
-drivers-media-video-cafe_ccicc-needs-mmh.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-eeepc-laptop-use-standard-interfaces-fix-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
-make-taint-bit-reliable-v3-fix.patch
-kernel-sysc-improve-code-generation.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-drivers-hwmon-applesmcc-remove-unneeded-casts.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
-serial-make-uart_ports-ioport-unsigned-long-fix.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
-ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-tty-fix-echo-tab-erase-and-locking-fix.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-new-driver-ds2431-chip-fix.patch
-gru-driver-minor-updates-fix.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
-git-timers-fix-printk-errors-clean-up.patch
+memory-hotplug-missing-zone-lock-in-test_pages_isolated.patch
 
