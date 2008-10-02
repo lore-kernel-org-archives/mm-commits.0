@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-gdthc-use-unaligned-access-helpers.patch added to -mm tree
-Date: Wed, 01 Oct 2008 23:09:09 -0700
-Message-ID: <200810020609.m926995l023617@imap1.linux-foundation.org>
+Subject: + pnp-create-device-attributes-via-default-device-attributes.patch added to -mm tree
+Date: Wed, 01 Oct 2008 23:11:06 -0700
+Message-ID: <200810020611.m926B6wL023723@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43771 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41995 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751552AbYJBGJU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 02:09:20 -0400
+	by vger.kernel.org with ESMTP id S1752318AbYJBGLX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 02:11:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, James.Bottomley@HansenPartnership.com, bharrosh@panasas.com
+Cc: dmoseley@mvista.com, bjorn.helgaas@hp.com, greg@kroah.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     scsi: gdth.c use unaligned access helpers
+     PNP: create device attributes via default device attributes
 has been added to the -mm tree.  Its filename is
-     scsi-gdthc-use-unaligned-access-helpers.patch
+     pnp-create-device-attributes-via-default-device-attributes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,104 +33,119 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: gdth.c use unaligned access helpers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: PNP: create device attributes via default device attributes
+From: Drew Moseley <dmoseley@mvista.com>
 
-Remove two now unnecessary local vars.
+This creates the attributes before the uevent is sent.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Boaz Harrosh <bharrosh@panasas.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Drew Moseley <dmoseley@mvista.com>
+Acked-by: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/gdth.c |   23 ++++++++++-------------
- 1 file changed, 10 insertions(+), 13 deletions(-)
+ drivers/pnp/base.h      |    2 +-
+ drivers/pnp/core.c      |   10 +---------
+ drivers/pnp/driver.c    |    1 +
+ drivers/pnp/interface.c |   37 ++++++++-----------------------------
+ 4 files changed, 11 insertions(+), 39 deletions(-)
 
-diff -puN drivers/scsi/gdth.c~scsi-gdthc-use-unaligned-access-helpers drivers/scsi/gdth.c
---- a/drivers/scsi/gdth.c~scsi-gdthc-use-unaligned-access-helpers
-+++ a/drivers/scsi/gdth.c
-@@ -131,6 +131,7 @@
- #include <asm/system.h>
- #include <asm/io.h>
- #include <asm/uaccess.h>
-+#include <asm/unaligned.h>
- #include <linux/spinlock.h>
- #include <linux/blkdev.h>
- #include <linux/scatterlist.h>
-@@ -2429,8 +2430,8 @@ static int gdth_fill_cache_cmd(gdth_ha_s
+diff -puN drivers/pnp/base.h~pnp-create-device-attributes-via-default-device-attributes drivers/pnp/base.h
+--- a/drivers/pnp/base.h~pnp-create-device-attributes-via-default-device-attributes
++++ a/drivers/pnp/base.h
+@@ -4,6 +4,7 @@
+  */
+ 
+ extern spinlock_t pnp_lock;
++extern struct device_attribute pnp_interface_attrs[];
+ void *pnp_alloc(long size);
+ 
+ int pnp_register_protocol(struct pnp_protocol *protocol);
+@@ -16,7 +17,6 @@ struct pnp_card *pnp_alloc_card(struct p
+ 
+ int pnp_add_device(struct pnp_dev *dev);
+ struct pnp_id *pnp_add_id(struct pnp_dev *dev, char *id);
+-int pnp_interface_attach_device(struct pnp_dev *dev);
+ 
+ int pnp_add_card(struct pnp_card *card);
+ void pnp_remove_card(struct pnp_card *card);
+diff -puN drivers/pnp/core.c~pnp-create-device-attributes-via-default-device-attributes drivers/pnp/core.c
+--- a/drivers/pnp/core.c~pnp-create-device-attributes-via-default-device-attributes
++++ a/drivers/pnp/core.c
+@@ -159,21 +159,13 @@ struct pnp_dev *pnp_alloc_dev(struct pnp
+ 
+ int __pnp_add_device(struct pnp_dev *dev)
  {
-     register gdth_cmd_str *cmdp;
-     struct gdth_cmndinfo *cmndinfo = gdth_cmnd_priv(scp);
--    ulong32 cnt, blockcnt;
--    ulong64 no, blockno;
-+    ulong32 blockcnt;
-+    ulong64 blockno;
-     int i, cmd_index, read_write, sgcnt, mode64;
+-	int ret;
+-
+ 	pnp_fixup_device(dev);
+ 	dev->status = PNP_READY;
+ 	spin_lock(&pnp_lock);
+ 	list_add_tail(&dev->global_list, &pnp_global);
+ 	list_add_tail(&dev->protocol_list, &dev->protocol->devices);
+ 	spin_unlock(&pnp_lock);
+-
+-	ret = device_register(&dev->dev);
+-	if (ret)
+-		return ret;
+-
+-	pnp_interface_attach_device(dev);
+-	return 0;
++	return device_register(&dev->dev);
+ }
  
-     cmdp = ha->pccb;
-@@ -2498,19 +2499,15 @@ static int gdth_fill_cache_cmd(gdth_ha_s
+ /*
+diff -puN drivers/pnp/driver.c~pnp-create-device-attributes-via-default-device-attributes drivers/pnp/driver.c
+--- a/drivers/pnp/driver.c~pnp-create-device-attributes-via-default-device-attributes
++++ a/drivers/pnp/driver.c
+@@ -205,6 +205,7 @@ struct bus_type pnp_bus_type = {
+ 	.remove  = pnp_device_remove,
+ 	.suspend = pnp_bus_suspend,
+ 	.resume  = pnp_bus_resume,
++	.dev_attrs = pnp_interface_attrs,
+ };
  
-     if (read_write) {
-         if (scp->cmd_len == 16) {
--            memcpy(&no, &scp->cmnd[2], sizeof(ulong64));
--            blockno = be64_to_cpu(no);
--            memcpy(&cnt, &scp->cmnd[10], sizeof(ulong32));
--            blockcnt = be32_to_cpu(cnt);
-+		blockno = get_unaligned_be64(&scp->cmnd[2]);
-+		blockcnt = get_unaligned_be32(&scp->cmnd[10]);
-         } else if (scp->cmd_len == 10) {
--            memcpy(&no, &scp->cmnd[2], sizeof(ulong32));
--            blockno = be32_to_cpu(no);
--            memcpy(&cnt, &scp->cmnd[7], sizeof(ushort));
--            blockcnt = be16_to_cpu(cnt);
-+		blockno = get_unaligned_be32(&scp->cmnd[2]);
-+		blockcnt = get_unaligned_be16(&scp->cmnd[7]);
-         } else {
--            memcpy(&no, &scp->cmnd[0], sizeof(ulong32));
--            blockno = be32_to_cpu(no) & 0x001fffffUL;
--            blockcnt= scp->cmnd[4]==0 ? 0x100 : scp->cmnd[4];
-+		blockno = get_unaligned_be32(&scp->cmnd[2]);
-+		blockno &= 0x001fffffUL;
-+		blockcnt = scp->cmnd[4] == 0 ? 0x100 : scp->cmnd[4];
-         }
-         if (mode64) {
-             cmdp->u.cache64.BlockNo = blockno;
-_
-
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
-
-fbcon-fix-monochrome-color-value-calculation.patch
-git-avr32.patch
-git-powerpc.patch
-git-x86.patch
-git-xtensa.patch
-git-hid.patch
-git-v4l-dvb.patch
-git-xfs.patch
-git-net.patch
-git-sound.patch
-git-block.patch
-git-pcmcia.patch
-git-battery.patch
-acpi-toshiba_acpic-fix-sparse-signedness-mismatch-warnings.patch
-cifs-remove-global_extern-macro.patch
-input-ads7846c-sparse-lock-annotation.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-include-replace-__function__-with-__func__.patch
-misc-replace-__function__-with-__func__.patch
-befs-annotate-fs32-on-tests-for-superblock-endianness.patch
-char-moxac-sparse-annotation.patch
-byteorder-add-new-headers-for-make-headers-install.patch
-byteorder-use-generic-c-version-for-value-byteswapping.patch
-lib-pull-base-guessing-logic-to-helper-function.patch
-lib-trivial-whitespace-tidy.patch
-lib-remove-defining-macros-for-strict_strto.patch
-
+ int pnp_register_driver(struct pnp_driver *drv)
+diff -puN drivers/pnp/interface.c~pnp-create-device-attributes-via-default-device-attributes drivers/pnp/interface.c
+--- a/drivers/pnp/interface.c~pnp-create-device-attributes-via-default-device-attributes
++++ a/drivers/pnp/interface.c
+@@ -243,8 +243,6 @@ static ssize_t pnp_show_options(struct d
+ 	return ret;
+ }
+ 
+-static DEVICE_ATTR(options, S_IRUGO, pnp_show_options, NULL);
+-
+ static ssize_t pnp_show_current_resources(struct device *dmdev,
+ 					  struct device_attribute *attr,
+ 					  char *buf)
+@@ -420,9 +418,6 @@ done:
+ 	return count;
+ }
+ 
+-static DEVICE_ATTR(resources, S_IRUGO | S_IWUSR,
+-		   pnp_show_current_resources, pnp_set_current_resources);
+-
+ static ssize_t pnp_show_current_ids(struct device *dmdev,
+ 				    struct device_attribute *attr, char *buf)
+ {
+@@ -437,27 +432,11 @@ static ssize_t pnp_show_current_ids(stru
+ 	return (str - buf);
+ }
+ 
+-static DEVICE_ATTR(id, S_IRUGO, pnp_show_current_ids, NULL);
+-
+-int pnp_interface_attach_device(struct pnp_dev *dev)
+-{
+-	int rc = device_create_file(&dev->dev, &dev_attr_options);
+-
+-	if (rc)
+-		goto err;
+-	rc = device_create_file(&dev->dev, &dev_attr_resources);
+-	if (rc)
+-		goto err_opt;
+-	rc = device_create_file(&dev->dev, &dev_attr_id);
+-	if (rc)
+-		goto err_res;
+-
+-	return 0;
