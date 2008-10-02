@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usb-add-nikon-d300-to-unusual_devsh.patch added to -mm tree
-Date: Thu, 02 Oct 2008 15:41:55 -0700
-Message-ID: <200810022241.m92Mftst030319@imap1.linux-foundation.org>
+Subject: + fbdev-fix-recursive-notifier-and-locking-when-fbdev-console-is-blanked.patch added to -mm tree
+Date: Thu, 02 Oct 2008 15:44:12 -0700
+Message-ID: <200810022244.m92MiDWi030445@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48167 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42950 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752995AbYJBWmH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 18:42:07 -0400
+	by vger.kernel.org with ESMTP id S1752923AbYJBWop (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 18:44:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lxtwin@homecall.co.uk, greg@kroah.com
+Cc: krzysztof.h1@wp.pl, dbaryshkov@gmail.com
 
 
 The patch titled
-     usb: add Nikon D300 to unusual_devs.h
+     fbdev: fix recursive notifier and locking when fbdev console is blanked
 has been added to the -mm tree.  Its filename is
-     usb-add-nikon-d300-to-unusual_devsh.patch
+     fbdev-fix-recursive-notifier-and-locking-when-fbdev-console-is-blanked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,137 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: add Nikon D300 to unusual_devs.h
-From: Paul Ready <lxtwin@homecall.co.uk>
+Subject: fbdev: fix recursive notifier and locking when fbdev console is blanked
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=11685
+Fix infinite recursive notifier in the fbdev layer.  This causes recursive
+locking.  Dmitry Baryshkov found the problem and confirmed that the patch
+fixes the bug.
 
-When A Nikon D300 camera is connected to a system it is seen in
-/proc/bus/pci/devices but is not accessible.
+After doing
+# echo 1 > /sys/class/graphics/fb0/blank
+I got the following in my kernel log:
 
-This is seen in the above file:
+=============================================
+[ INFO: possible recursive locking detected ]
+2.6.27-rc6-00086-gda63874-dirty #97
+---------------------------------------------
+echo/1564 is trying to acquire lock:
+ ((fb_notifier_list).rwsem){..--}, at: [<c005a384>] __blocking_notifier_call_chain+0x38/0x6c
 
-T:  Bus=01 Lev=01 Prnt=01 Port=05 Cnt=03 Dev#= 11 Spd=480 MxCh= 0
-D:  Ver= 2.00 Cls=00(>ifc ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
-P:  Vendor=04b0 ProdID=041a Rev= 1.03
-S:  Manufacturer=NIKON
-S:  Product=NIKON DSC D300
-S:  SerialNumber=000008014379
-C:* #Ifs= 1 Cfg#= 1 Atr=c0 MxPwr=  2mA
-I:* If#= 0 Alt= 0 #EPs= 3 Cls=06(still) Sub=01 Prot=01 Driver=usbfs
-E:  Ad=81(I) Atr=02(Bulk) MxPS= 512 Ivl=0ms
-E:  Ad=02(O) Atr=02(Bulk) MxPS= 512 Ivl=0ms
-E:  Ad=83(I) Atr=03(Int.) MxPS=   8 Ivl=32ms
+but task is already holding lock:
+ ((fb_notifier_list).rwsem){..--}, at: [<c005a384>] __blocking_notifier_call_chain+0x38/0x6c
 
-Cc: Greg KH <greg@kroah.com>
+other info that might help us debug this:
+2 locks held by echo/1564:
+ #0:  (&buffer->mutex){--..}, at: [<c00ddde0>] sysfs_write_file+0x30/0x80
+ #1:  ((fb_notifier_list).rwsem){..--}, at: [<c005a384>] __blocking_notifier_call_chain+0x38/0x6c
+
+stack backtrace:
+[<c0029fe4>] (dump_stack+0x0/0x14) from [<c0060ce0>] (print_deadlock_bug+0xa4/0xd0)
+[<c0060c3c>] (print_deadlock_bug+0x0/0xd0) from [<c0060e54>] (check_deadlock+0x148/0x17c)
+ r6:c397a1e0 r5:c397a530 r4:c04fcf98
+[<c0060d0c>] (check_deadlock+0x0/0x17c) from [<c00637e8>] (validate_chain+0x3c4/0x4f0)
+[<c0063424>] (validate_chain+0x0/0x4f0) from [<c0063efc>] (__lock_acquire+0x5e8/0x6b4)
+[<c0063914>] (__lock_acquire+0x0/0x6b4) from [<c006402c>] (lock_acquire+0x64/0x78)
+[<c0063fc8>] (lock_acquire+0x0/0x78) from [<c0316ca8>] (down_read+0x4c/0x60)
+ r7:00000009 r6:ffffffff r5:c0427a40 r4:c005a384
+[<c0316c5c>] (down_read+0x0/0x60) from [<c005a384>] (__blocking_notifier_call_chain+0x38/0x6c)
+ r5:c0427a40 r4:c0427a74
+[<c005a34c>] (__blocking_notifier_call_chain+0x0/0x6c) from [<c005a3d8>] (blocking_notifier_call_chain+0x20/0x28)
+ r8:00000009 r7:c086d640 r6:c3967940 r5:00000000 r4:c38984b8
+[<c005a3b8>] (blocking_notifier_call_chain+0x0/0x28) from [<c014baa0>] (fb_notifier_call_chain+0x1c/0x24)
+[<c014ba84>] (fb_notifier_call_chain+0x0/0x24) from [<c014c18c>] (fb_blank+0x64/0x70)
+[<c014c128>] (fb_blank+0x0/0x70) from [<c0155978>] (fbcon_blank+0x114/0x1bc)
+ r5:00000001 r4:c38984b8
+[<c0155864>] (fbcon_blank+0x0/0x1bc) from [<c0170ea8>] (do_blank_screen+0x1e0/0x2a0)
+[<c0170cc8>] (do_blank_screen+0x0/0x2a0) from [<c0154024>] (fbcon_fb_blanked+0x74/0x94)
+ r5:c3967940 r4:00000001
+[<c0153fb0>] (fbcon_fb_blanked+0x0/0x94) from [<c0154228>] (fbcon_event_notify+0x100/0x12c)
+ r5:fffffffe r4:c39bc194
+[<c0154128>] (fbcon_event_notify+0x0/0x12c) from [<c005a0d4>] (notifier_call_chain+0x38/0x7c)
+[<c005a09c>] (notifier_call_chain+0x0/0x7c) from [<c005a3a0>] (__blocking_notifier_call_chain+0x54/0x6c)
+ r8:c3b51ea0 r7:00000009 r6:ffffffff r5:c0427a40 r4:c0427a74
+[<c005a34c>] (__blocking_notifier_call_chain+0x0/0x6c) from [<c005a3d8>] (blocking_notifier_call_chain+0x20/0x28)
+ r8:00000001 r7:c3a7e000 r6:00000000 r5:00000000 r4:c38984b8
+[<c005a3b8>] (blocking_notifier_call_chain+0x0/0x28) from [<c014baa0>] (fb_notifier_call_chain+0x1c/0x24)
+[<c014ba84>] (fb_notifier_call_chain+0x0/0x24) from [<c014c18c>] (fb_blank+0x64/0x70)
+[<c014c128>] (fb_blank+0x0/0x70) from [<c014e450>] (store_blank+0x54/0x7c)
+ r5:c38984b8 r4:c3b51ec4
+[<c014e3fc>] (store_blank+0x0/0x7c) from [<c017981c>] (dev_attr_store+0x28/0x2c)
+ r8:00000001 r7:c042bf80 r6:c39eba10 r5:c3967c30 r4:c38e0140
+[<c01797f4>] (dev_attr_store+0x0/0x2c) from [<c00ddaac>] (flush_write_buffer+0x54/0x68)
+[<c00dda58>] (flush_write_buffer+0x0/0x68) from [<c00dde08>] (sysfs_write_file+0x58/0x80)
+ r8:c3b51f78 r7:c3bcb070 r6:c39eba10 r5:00000001 r4:00000001
+[<c00dddb0>] (sysfs_write_file+0x0/0x80) from [<c009de04>] (vfs_write+0xb8/0x148)
+[<c009dd4c>] (vfs_write+0x0/0x148) from [<c009e384>] (sys_write+0x44/0x70)
+ r7:00000004 r6:c3bcb070 r5:00000000 r4:00000000
+[<c009e340>] (sys_write+0x0/0x70) from [<c0025d00>] (ret_fast_syscall+0x0/0x2c)
+ r6:4001b000 r5:00000001 r4:401dc658
+
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Reported-by: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Testted-by: Dmitry Baryshkov <dbaryshkov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/unusual_devs.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/video/console/fbcon.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/storage/unusual_devs.h~usb-add-nikon-d300-to-unusual_devsh drivers/usb/storage/unusual_devs.h
---- a/drivers/usb/storage/unusual_devs.h~usb-add-nikon-d300-to-unusual_devsh
-+++ a/drivers/usb/storage/unusual_devs.h
-@@ -120,6 +120,13 @@ UNUSUAL_DEV(  0x0411, 0x001c, 0x0113, 0x
- 		US_SC_DEVICE, US_PR_DEVICE, NULL,
- 		US_FL_FIX_INQUIRY ),
+diff -puN drivers/video/console/fbcon.c~fbdev-fix-recursive-notifier-and-locking-when-fbdev-console-is-blanked drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbdev-fix-recursive-notifier-and-locking-when-fbdev-console-is-blanked
++++ a/drivers/video/console/fbcon.c
+@@ -2400,11 +2400,15 @@ static int fbcon_blank(struct vc_data *v
  
-+/* Reported by paul ready <lxtwin@homecall.co.uk> */
-+UNUSUAL_DEV(  0x04b0, 0x0419, 0x0100, 0x0200,
-+		"NIKON",
-+		"NIKON DSC D300",
-+		US_SC_DEVICE, US_PR_DEVICE, NULL,
-+		US_FL_FIX_INQUIRY),
+  	if (!fbcon_is_inactive(vc, info)) {
+ 		if (ops->blank_state != blank) {
++			int ret = 1;
 +
- /* Submitted by Ernestas Vaiciukevicius <ernisv@gmail.com> */
- UNUSUAL_DEV(  0x0419, 0x0100, 0x0100, 0x0100,
- 		"Samsung Info. Systems America, Inc.",
+ 			ops->blank_state = blank;
+ 			fbcon_cursor(vc, blank ? CM_ERASE : CM_DRAW);
+ 			ops->cursor_flash = (!blank);
+ 
+-			if (fb_blank(info, blank))
++			if (info->fbops->fb_blank)
++				ret = info->fbops->fb_blank(blank, info);
++			if (ret)
+ 				fbcon_generic_blank(vc, info, blank);
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from lxtwin@homecall.co.uk are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-usb-add-nikon-d300-to-unusual_devsh.patch
+fbdev-fix-recursive-notifier-and-locking-when-fbdev-console-is-blanked.patch
+git-arm.patch
+git-sparc.patch
+git-x86.patch
+git-sound.patch
+fb-metronome-printk-format-warning.patch
+mm-rewrite-vmap-layer-fix-fix-fix-fix.patch
+fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
+neofb-reduce-panning-function.patch
+viafb-accelc-accelh-update.patch
+viafb-viafbdevc-update.patch
+fbdev-kconfig-update.patch
+fbdev-kconfig-update-fix.patch
+neofb-kill-some-redundant-code.patch
+vga16fb-remove-open_lock-mutex.patch
+neofb-remove-open_lock-mutex.patch
+tdfxfb-do-not-make-changes-to-default-tdfx_fix.patch
+intelfb-support-945gme-as-used-in-asus-eee-901.patch
+cirrusfb-remove-information-about-memory-size-during-mode-change.patch
+cirrusfb-simplify-clock-calculation.patch
+cirrusfb-remove-24-bpp-mode.patch
+cirrusfb-drop-device-pointers-from-cirrusfb_info.patch
+cirrusfb-use-modedb-and-add-mode_option-parameter-2nd-rev.patch
+cirrusfb-add-__devinit-attribute-to-probing-functions.patch
+cirrusfb-eliminate-crt-registers-from-global-structure.patch
+cirrusfb-eliminate-crt-registers-from-global-structure-fix-up-debug-printk-types.patch
+cirrusfb-drop-clock-fields-from-cirrusfb_regs-structure.patch
+cirrusfb-add-noaccel-module-parameter.patch
+cirrusfb-fix-16bpp-modes.patch
+cirrusfb-do-not-change-mclk-for-alpine-chips.patch
+atmel_lcdfb-disallow-setting-larger-resolution-than-the-framebuffer-memory-can-handle.patch
+vgacon-vgacon_scrolldelta-simplification.patch
 
