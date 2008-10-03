@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-convert-to-use-new-aops-update.patch added to -mm tree
-Date: Thu, 02 Oct 2008 17:51:12 -0700
-Message-ID: <200810030051.m930pCX7003071@imap1.linux-foundation.org>
+Subject: + cxgb3-fix-race-in-eeh.patch added to -mm tree
+Date: Thu, 02 Oct 2008 18:00:19 -0700
+Message-ID: <200810030100.m9310JHp003408@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41348 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44672 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753780AbYJCAvw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 20:51:52 -0400
+	by vger.kernel.org with ESMTP id S1753060AbYJCBAY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 21:00:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pbadari@us.ibm.com, mhalcrow@us.ibm.com, npiggin@suse.de
+Cc: divy@chelsio.com
 
 
 The patch titled
-     ecryptfs-convert-to-use-new-aops update
+     cxgb3: fix race in EEH
 has been added to the -mm tree.  Its filename is
-     ecryptfs-convert-to-use-new-aops-update.patch
+     cxgb3-fix-race-in-eeh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,103 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ecryptfs-convert-to-use-new-aops update
-From: Badari Pulavarty <pbadari@us.ibm.com>
+Subject: cxgb3: fix race in EEH
+From: Divy Le Ray <divy@chelsio.com>
 
-By mistake, I sent out the version without updated comments.
-Arguments to write_begin/write_ends needs comment update.
+A SGE queue set timer might access registers while in EEH recovery,
+triggering an EEH error loop.  Stop all timers early in EEH process.
 
-Cc: Nick Piggin <npiggin@suse.de>
-Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Signed-off-by: Divy Le Ray <divy@chelsio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/mmap.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ drivers/net/cxgb3/adapter.h    |    1 +
+ drivers/net/cxgb3/cxgb3_main.c |    5 +++++
+ drivers/net/cxgb3/sge.c        |   21 ++++++++++++++++++---
+ 3 files changed, 24 insertions(+), 3 deletions(-)
 
-diff -puN fs/ecryptfs/mmap.c~ecryptfs-convert-to-use-new-aops-update fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~ecryptfs-convert-to-use-new-aops-update
-+++ a/fs/ecryptfs/mmap.c
-@@ -268,8 +268,11 @@ out:
-  * ecryptfs_write_begin
-  * @file: The eCryptfs file
-  * @mapping: The eCryptfs object
-- * @from: The start byte from which we will write
-- * @to: The end byte to which we will write
-+ * @pos: The file offset at which to start writing
-+ * @len: Length of the write
-+ * @flags: Various flags
-+ * @pagep: Pointer to return the page
-+ * @fsdata: Pointer to return fs data (unused)
+diff -puN drivers/net/cxgb3/adapter.h~cxgb3-fix-race-in-eeh drivers/net/cxgb3/adapter.h
+--- a/drivers/net/cxgb3/adapter.h~cxgb3-fix-race-in-eeh
++++ a/drivers/net/cxgb3/adapter.h
+@@ -284,6 +284,7 @@ void t3_os_link_changed(struct adapter *
+ 
+ void t3_sge_start(struct adapter *adap);
+ void t3_sge_stop(struct adapter *adap);
++void t3_stop_sge_timers(struct adapter *adap);
+ void t3_free_sge_resources(struct adapter *adap);
+ void t3_sge_err_intr_handler(struct adapter *adapter);
+ irq_handler_t t3_intr_handler(struct adapter *adap, int polling);
+diff -puN drivers/net/cxgb3/cxgb3_main.c~cxgb3-fix-race-in-eeh drivers/net/cxgb3/cxgb3_main.c
+--- a/drivers/net/cxgb3/cxgb3_main.c~cxgb3-fix-race-in-eeh
++++ a/drivers/net/cxgb3/cxgb3_main.c
+@@ -479,6 +479,7 @@ static int setup_sge_qsets(struct adapte
+ 							     irq_idx,
+ 				&adap->params.sge.qset[qset_idx], ntxq, dev);
+ 			if (err) {
++				t3_stop_sge_timers(adap);
+ 				t3_free_sge_resources(adap);
+ 				return err;
+ 			}
+@@ -2449,6 +2450,9 @@ static pci_ers_result_t t3_io_error_dete
+ 	    test_bit(OFFLOAD_DEVMAP_BIT, &adapter->open_device_map))
+ 		offload_close(&adapter->tdev);
+ 
++	/* Stop SGE timers */
++	t3_stop_sge_timers(adapter);
++
+ 	adapter->flags &= ~FULL_INIT_DONE;
+ 
+ 	pci_disable_device(pdev);
+@@ -2801,6 +2805,7 @@ static void __devexit remove_one(struct 
+ 		    if (test_bit(i, &adapter->registered_device_map))
+ 			unregister_netdev(adapter->port[i]);
+ 
++		t3_stop_sge_timers(adapter);
+ 		t3_free_sge_resources(adapter);
+ 		cxgb_disable_msi(adapter);
+ 
+diff -puN drivers/net/cxgb3/sge.c~cxgb3-fix-race-in-eeh drivers/net/cxgb3/sge.c
+--- a/drivers/net/cxgb3/sge.c~cxgb3-fix-race-in-eeh
++++ a/drivers/net/cxgb3/sge.c
+@@ -603,9 +603,6 @@ static void t3_free_qset(struct adapter 
+ 	int i;
+ 	struct pci_dev *pdev = adapter->pdev;
+ 
+-	if (q->tx_reclaim_timer.function)
+-		del_timer_sync(&q->tx_reclaim_timer);
+-
+ 	for (i = 0; i < SGE_RXQ_PER_SET; ++i)
+ 		if (q->fl[i].desc) {
+ 			spin_lock_irq(&adapter->sge.reg_lock);
+@@ -3009,6 +3006,24 @@ err:
+ }
+ 
+ /**
++ *	t3_stop_sge_timers - stop SGE timer call backs
++ *	@adap: the adapter
++ *
++ *	Stops each SGE queue set's timer call back
++ */
++void t3_stop_sge_timers(struct adapter *adap)
++{
++	int i;
++
++	for (i = 0; i < SGE_QSETS; ++i) {
++		struct sge_qset *q = &adap->sge.qs[i];
++
++		if (q->tx_reclaim_timer.function)
++			del_timer_sync(&q->tx_reclaim_timer);
++	}
++}
++
++/**
+  *	t3_free_sge_resources - free SGE resources
+  *	@adap: the adapter
   *
-  * This function must zero any hole we create
-  *
-@@ -456,8 +459,11 @@ int ecryptfs_write_inode_size_to_metadat
-  * ecryptfs_write_end
-  * @file: The eCryptfs file object
-  * @mapping: The eCryptfs object
-- * @pos, len: Ignored (we rotate the page IV on each write)
-+ * @pos: The file position
-+ * @len: The length of the data (unused)
-+ * @copied: The amount of data copied
-  * @page: The eCryptfs page
-+ * @fsdata: The fsdata (unused)
-  *
-  * This is where we encrypt the data and pass the encrypted data to
-  * the lower filesystem.  In OpenPGP-compatible mode, we operate on
 _
 
-Patches currently in -mm which might be from pbadari@us.ibm.com are
+Patches currently in -mm which might be from divy@chelsio.com are
 
-git-cifs.patch
-mm-cleanup-to-make-remove_memory-arch-neutral.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-ecryptfs-convert-to-use-new-aops.patch
-ecryptfs-convert-to-use-new-aops-update.patch
+git-net.patch
+cxgb3-fix-race-in-eeh.patch
 
