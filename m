@@ -1,102 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - mm-make-do_move_pages-complexity-linear-fix.patch removed from -mm tree
-Date: Fri, 03 Oct 2008 06:09:29 -0700
-Message-ID: <200810031309.m93D9T9b028893@imap1.linux-foundation.org>
+Subject: - usb-add-nikon-d300-to-unusual_devsh.patch removed from -mm tree
+Date: Fri, 03 Oct 2008 11:12:41 -0700
+Message-ID: <200810031812.m93ICfuO009248@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51373 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33306 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750936AbYJCNJk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 09:09:40 -0400
+	by vger.kernel.org with ESMTP id S1752700AbYJCSM7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 14:12:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Brice.Goglin@inria.fr, Nathalie.Furmento@labri.fr, cl@linux-foundation.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: lxtwin@homecall.co.uk, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: make do_move_pages() complexity linear
+     usb: add Nikon D300 to unusual_devs.h
 has been removed from the -mm tree.  Its filename was
-     mm-make-do_move_pages-complexity-linear-fix.patch
+     usb-add-nikon-d300-to-unusual_devsh.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make do_move_pages() complexity linear
-From: Brice Goglin <Brice.Goglin@inria.fr>
+Subject: usb: add Nikon D300 to unusual_devs.h
+From: Paul Ready <lxtwin@homecall.co.uk>
 
-> +/*
-> + * Allocate a page on the node given as a page_to_node in private.
-> + * Increase private to point to the next page_to_node so that the
-> + * next iteration does not have to traverse the whole pm array.
-> + */
->  static struct page *new_page_node(struct page *p, unsigned long private,
->  		int **result)
->  {
-> -	struct page_to_node *pm = (struct page_to_node *)private;
-> +	struct page_to_node **pmptr = (struct page_to_node **)private;
-> +	struct page_to_node *pm = *pmptr;
->  
->  	while (pm->node != MAX_NUMNODES && pm->page != p)
->  		pm++;
->  
-> +	/* prepare for the next iteration */
-> +	*pmptr = pm + 1;
-> +
->   
-	
-Actually, this "pm+1" breaks the case where migrate_pages() calls
-unmap_and_move() multiple times on the same page. In this case, we need
-the while loop to look at pm instead of pm+1 first. So we can't cache
-pm+1 in private, but caching pm is ok. There will be 1 while loop
-instead of 0 in the regular case. Updated patch (with more comments)
-coming soon.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=11685
 
-Signed-off-by: Brice Goglin <Brice.Goglin@inria.fr>
-Signed-off-by: Nathalie Furmento <Nathalie.Furmento@labri.fr>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
+When A Nikon D300 camera is connected to a system it is seen in
+/proc/bus/pci/devices but is not accessible.
+
+This is seen in the above file:
+
+T:  Bus=01 Lev=01 Prnt=01 Port=05 Cnt=03 Dev#= 11 Spd=480 MxCh= 0
+D:  Ver= 2.00 Cls=00(>ifc ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
+P:  Vendor=04b0 ProdID=041a Rev= 1.03
+S:  Manufacturer=NIKON
+S:  Product=NIKON DSC D300
+S:  SerialNumber=000008014379
+C:* #Ifs= 1 Cfg#= 1 Atr=c0 MxPwr=  2mA
+I:* If#= 0 Alt= 0 #EPs= 3 Cls=06(still) Sub=01 Prot=01 Driver=usbfs
+E:  Ad=81(I) Atr=02(Bulk) MxPS= 512 Ivl=0ms
+E:  Ad=02(O) Atr=02(Bulk) MxPS= 512 Ivl=0ms
+E:  Ad=83(I) Atr=03(Int.) MxPS=   8 Ivl=32ms
+
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ drivers/usb/storage/unusual_devs.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/migrate.c~mm-make-do_move_pages-complexity-linear-fix mm/migrate.c
---- a/mm/migrate.c~mm-make-do_move_pages-complexity-linear-fix
-+++ a/mm/migrate.c
-@@ -839,8 +839,14 @@ struct page_to_node {
+diff -puN drivers/usb/storage/unusual_devs.h~usb-add-nikon-d300-to-unusual_devsh drivers/usb/storage/unusual_devs.h
+--- a/drivers/usb/storage/unusual_devs.h~usb-add-nikon-d300-to-unusual_devsh
++++ a/drivers/usb/storage/unusual_devs.h
+@@ -120,6 +120,13 @@ UNUSUAL_DEV(  0x0411, 0x001c, 0x0113, 0x
+ 		US_SC_DEVICE, US_PR_DEVICE, NULL,
+ 		US_FL_FIX_INQUIRY ),
  
- /*
-  * Allocate a page on the node given as a page_to_node in private.
-- * Increase private to point to the next page_to_node so that the
-- * next iteration does not have to traverse the whole pm array.
-+ *
-+ * Cache the _last used_ pm in private so that the next call may find the
-+ * target pm in very few while loops (usually 1) instead of scanning the
-+ * whole pm array.
-+ * We cannot cache the _next_ pm in private (to get 0 while loop in the
-+ * regular case) because it would break the case where new_page_node()
-+ * is called multiple times on the same page (when migrate_pages() tries
-+ * unmap_and_move() multiple times).
-  */
- static struct page *new_page_node(struct page *p, unsigned long private,
- 		int **result)
-@@ -851,8 +857,8 @@ static struct page *new_page_node(struct
- 	while (pm->node != MAX_NUMNODES && pm->page != p)
- 		pm++;
- 
--	/* prepare for the next iteration */
--	*pmptr = pm + 1;
-+	/* save the current pm to reduce the while loop in the next call */
-+	*pmptr = pm;
- 
- 	if (pm->node == MAX_NUMNODES)
- 		return NULL;
++/* Reported by paul ready <lxtwin@homecall.co.uk> */
++UNUSUAL_DEV(  0x04b0, 0x0419, 0x0100, 0x0200,
++		"NIKON",
++		"NIKON DSC D300",
++		US_SC_DEVICE, US_PR_DEVICE, NULL,
++		US_FL_FIX_INQUIRY),
++
+ /* Submitted by Ernestas Vaiciukevicius <ernisv@gmail.com> */
+ UNUSUAL_DEV(  0x0419, 0x0100, 0x0100, 0x0100,
+ 		"Samsung Info. Systems America, Inc.",
 _
 
-Patches currently in -mm which might be from Brice.Goglin@inria.fr are
+Patches currently in -mm which might be from lxtwin@homecall.co.uk are
 
-mm-make-do_move_pages-complexity-linear-fix.patch
+usb-add-nikon-d300-to-unusual_devsh.patch
 
