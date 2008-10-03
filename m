@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + cpualloc-make-the-per-cpu-reserve-configurable.patch added to -mm tree
-Date: Fri, 03 Oct 2008 00:34:24 -0700
-Message-ID: <200810030734.m937YOWH016744@imap1.linux-foundation.org>
+Subject: + cpualloc-use-cpu-allocator-instead-of-the-builtin-modules-per-cpu-allocator.patch added to -mm tree
+Date: Fri, 03 Oct 2008 00:34:34 -0700
+Message-ID: <200810030734.m937YYp3016760@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39498 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60634 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754260AbYJCHfG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 03:35:06 -0400
+	by vger.kernel.org with ESMTP id S1754520AbYJCHfN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 03:35:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: cl@linux-foundation.org, penberg@cs.helsinki.fi, rusty@rustcorp.com.au
 
 
 The patch titled
-     cpualloc: make the per cpu reserve configurable
+     cpualloc: use cpu allocator instead of the builtin modules per cpu allocator
 has been added to the -mm tree.  Its filename is
-     cpualloc-make-the-per-cpu-reserve-configurable.patch
+     cpualloc-use-cpu-allocator-instead-of-the-builtin-modules-per-cpu-allocator.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,18 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpualloc: make the per cpu reserve configurable
+Subject: cpualloc: use cpu allocator instead of the builtin modules per cpu allocator
 From: Christoph Lameter <cl@linux-foundation.org>
 
-The per cpu reserve from which loadable modules allocate their percpu
-sections is currently fixed at 8000 bytes.
-
-Add a new kernel parameter
-
-	percpu=<dynamically allocatable percpu bytes>
-
-The per cpu reserve area will be used in following patches by the per cpu
-allocator.
+Remove the builtin per cpu allocator from modules.c and use cpu_alloc instead.
 
 Signed-off-by: Christoph Lameter <cl@linux-foundation.org>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
@@ -52,78 +44,245 @@ Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    7 +++++++
- include/linux/percpu.h              |    3 ++-
- init/main.c                         |   13 +++++++++++++
- 3 files changed, 22 insertions(+), 1 deletion(-)
+ include/linux/module.h |    1 
+ kernel/module.c        |  173 ++-------------------------------------
+ 2 files changed, 12 insertions(+), 162 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~cpualloc-make-the-per-cpu-reserve-configurable Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~cpualloc-make-the-per-cpu-reserve-configurable
-+++ a/Documentation/kernel-parameters.txt
-@@ -1773,6 +1773,13 @@ and is between 256 and 4096 characters. 
- 			Format: { 0 | 1 }
- 			See arch/parisc/kernel/pdc_chassis.c
+diff -puN include/linux/module.h~cpualloc-use-cpu-allocator-instead-of-the-builtin-modules-per-cpu-allocator include/linux/module.h
+--- a/include/linux/module.h~cpualloc-use-cpu-allocator-instead-of-the-builtin-modules-per-cpu-allocator
++++ a/include/linux/module.h
+@@ -324,6 +324,7 @@ struct module
  
-+	percpu=		Configure the number of percpu bytes that can be
-+			dynamically allocated. This is used for per cpu
-+			variables of modules and other dynamic per cpu data
-+			structures. Creation of per cpu structures after boot
-+			may fail if this is set too low.
-+			Default is 8000 bytes.
+ 	/* Per-cpu data. */
+ 	void *percpu;
++	int percpu_size;
+ 
+ 	/* The command line arguments (may be mangled).  People like
+ 	   keeping pointers to this stuff */
+diff -puN kernel/module.c~cpualloc-use-cpu-allocator-instead-of-the-builtin-modules-per-cpu-allocator kernel/module.c
+--- a/kernel/module.c~cpualloc-use-cpu-allocator-instead-of-the-builtin-modules-per-cpu-allocator
++++ a/kernel/module.c
+@@ -339,121 +339,6 @@ static struct module *find_module(const 
+ 	return NULL;
+ }
+ 
+-#ifdef CONFIG_SMP
+-/* Number of blocks used and allocated. */
+-static unsigned int pcpu_num_used, pcpu_num_allocated;
+-/* Size of each block.  -ve means used. */
+-static int *pcpu_size;
+-
+-static int split_block(unsigned int i, unsigned short size)
+-{
+-	/* Reallocation required? */
+-	if (pcpu_num_used + 1 > pcpu_num_allocated) {
+-		int *new;
+-
+-		new = krealloc(pcpu_size, sizeof(new[0])*pcpu_num_allocated*2,
+-			       GFP_KERNEL);
+-		if (!new)
+-			return 0;
+-
+-		pcpu_num_allocated *= 2;
+-		pcpu_size = new;
+-	}
+-
+-	/* Insert a new subblock */
+-	memmove(&pcpu_size[i+1], &pcpu_size[i],
+-		sizeof(pcpu_size[0]) * (pcpu_num_used - i));
+-	pcpu_num_used++;
+-
+-	pcpu_size[i+1] -= size;
+-	pcpu_size[i] = size;
+-	return 1;
+-}
+-
+-static inline unsigned int block_size(int val)
+-{
+-	if (val < 0)
+-		return -val;
+-	return val;
+-}
+-
+-static void *percpu_modalloc(unsigned long size, unsigned long align,
+-			     const char *name)
+-{
+-	unsigned long extra;
+-	unsigned int i;
+-	void *ptr;
+-
+-	if (align > PAGE_SIZE) {
+-		printk(KERN_WARNING "%s: per-cpu alignment %li > %li\n",
+-		       name, align, PAGE_SIZE);
+-		align = PAGE_SIZE;
+-	}
+-
+-	ptr = __per_cpu_start;
+-	for (i = 0; i < pcpu_num_used; ptr += block_size(pcpu_size[i]), i++) {
+-		/* Extra for alignment requirement. */
+-		extra = ALIGN((unsigned long)ptr, align) - (unsigned long)ptr;
+-		BUG_ON(i == 0 && extra != 0);
+-
+-		if (pcpu_size[i] < 0 || pcpu_size[i] < extra + size)
+-			continue;
+-
+-		/* Transfer extra to previous block. */
+-		if (pcpu_size[i-1] < 0)
+-			pcpu_size[i-1] -= extra;
+-		else
+-			pcpu_size[i-1] += extra;
+-		pcpu_size[i] -= extra;
+-		ptr += extra;
+-
+-		/* Split block if warranted */
+-		if (pcpu_size[i] - size > sizeof(unsigned long))
+-			if (!split_block(i, size))
+-				return NULL;
+-
+-		/* Mark allocated */
+-		pcpu_size[i] = -pcpu_size[i];
+-		return ptr;
+-	}
+-
+-	printk(KERN_WARNING "Could not allocate %lu bytes percpu data\n",
+-	       size);
+-	return NULL;
+-}
+-
+-static void percpu_modfree(void *freeme)
+-{
+-	unsigned int i;
+-	void *ptr = __per_cpu_start + block_size(pcpu_size[0]);
+-
+-	/* First entry is core kernel percpu data. */
+-	for (i = 1; i < pcpu_num_used; ptr += block_size(pcpu_size[i]), i++) {
+-		if (ptr == freeme) {
+-			pcpu_size[i] = -pcpu_size[i];
+-			goto free;
+-		}
+-	}
+-	BUG();
+-
+- free:
+-	/* Merge with previous? */
+-	if (pcpu_size[i-1] >= 0) {
+-		pcpu_size[i-1] += pcpu_size[i];
+-		pcpu_num_used--;
+-		memmove(&pcpu_size[i], &pcpu_size[i+1],
+-			(pcpu_num_used - i) * sizeof(pcpu_size[0]));
+-		i--;
+-	}
+-	/* Merge with next? */
+-	if (i+1 < pcpu_num_used && pcpu_size[i+1] >= 0) {
+-		pcpu_size[i] += pcpu_size[i+1];
+-		pcpu_num_used--;
+-		memmove(&pcpu_size[i+1], &pcpu_size[i+2],
+-			(pcpu_num_used - (i+1)) * sizeof(pcpu_size[0]));
+-	}
+-}
+-
+ static unsigned int find_pcpusec(Elf_Ehdr *hdr,
+ 				 Elf_Shdr *sechdrs,
+ 				 const char *secstrings)
+@@ -469,48 +354,6 @@ static void percpu_modcopy(void *pcpudes
+ 		memcpy(pcpudest + per_cpu_offset(cpu), from, size);
+ }
+ 
+-static int percpu_modinit(void)
+-{
+-	pcpu_num_used = 2;
+-	pcpu_num_allocated = 2;
+-	pcpu_size = kmalloc(sizeof(pcpu_size[0]) * pcpu_num_allocated,
+-			    GFP_KERNEL);
+-	/* Static in-kernel percpu data (used). */
+-	pcpu_size[0] = -(__per_cpu_end-__per_cpu_start);
+-	/* Free room. */
+-	pcpu_size[1] = PERCPU_AREA_SIZE + pcpu_size[0];
+-	if (pcpu_size[1] < 0) {
+-		printk(KERN_ERR "No per-cpu room for modules.\n");
+-		pcpu_num_used = 1;
+-	}
+-
+-	return 0;
+-}
+-__initcall(percpu_modinit);
+-#else /* ... !CONFIG_SMP */
+-static inline void *percpu_modalloc(unsigned long size, unsigned long align,
+-				    const char *name)
+-{
+-	return NULL;
+-}
+-static inline void percpu_modfree(void *pcpuptr)
+-{
+-	BUG();
+-}
+-static inline unsigned int find_pcpusec(Elf_Ehdr *hdr,
+-					Elf_Shdr *sechdrs,
+-					const char *secstrings)
+-{
+-	return 0;
+-}
+-static inline void percpu_modcopy(void *pcpudst, const void *src,
+-				  unsigned long size)
+-{
+-	/* pcpusec should be 0, and size of that section should be 0. */
+-	BUG_ON(size != 0);
+-}
+-#endif /* CONFIG_SMP */
+-
+ #define MODINFO_ATTR(field)	\
+ static void setup_modinfo_##field(struct module *mod, const char *s)  \
+ {                                                                     \
+@@ -1439,7 +1282,7 @@ static void free_module(struct module *m
+ 	module_free(mod, mod->module_init);
+ 	kfree(mod->args);
+ 	if (mod->percpu)
+-		percpu_modfree(mod->percpu);
++		cpu_free(mod->percpu, mod->percpu_size);
+ 
+ 	/* Free lock-classes: */
+ 	lockdep_free_key_range(mod->module_core, mod->core_size);
+@@ -1870,6 +1713,7 @@ static noinline struct module *load_modu
+ 	unsigned int mcountindex;
+ 	struct module *mod;
+ 	long err = 0;
++	unsigned long percpu_size = 0;
+ 	void *percpu = NULL, *ptr = NULL; /* Stops spurious gcc warning */
+ 	void *mseg;
+ 	struct exception_table_entry *extable;
+@@ -2019,15 +1863,20 @@ static noinline struct module *load_modu
+ 
+ 	if (pcpuindex) {
+ 		/* We have a special allocation for this section. */
+-		percpu = percpu_modalloc(sechdrs[pcpuindex].sh_size,
+-					 sechdrs[pcpuindex].sh_addralign,
+-					 mod->name);
++		unsigned long align = sechdrs[pcpuindex].sh_addralign;
 +
- 	pf.		[PARIDE]
- 			See Documentation/paride.txt.
++		percpu_size = sechdrs[pcpuindex].sh_size;
++		percpu = cpu_alloc(percpu_size, GFP_KERNEL|__GFP_ZERO, align);
++		if (!percpu)
++			printk(KERN_WARNING "Could not allocate %lu bytes percpu data\n",
++	      							percpu_size);
+ 		if (!percpu) {
+ 			err = -ENOMEM;
+ 			goto free_mod;
+ 		}
+ 		sechdrs[pcpuindex].sh_flags &= ~(unsigned long)SHF_ALLOC;
+ 		mod->percpu = percpu;
++		mod->percpu_size = percpu_size;
+ 	}
  
-diff -puN include/linux/percpu.h~cpualloc-make-the-per-cpu-reserve-configurable include/linux/percpu.h
---- a/include/linux/percpu.h~cpualloc-make-the-per-cpu-reserve-configurable
-+++ a/include/linux/percpu.h
-@@ -41,6 +41,7 @@
- #define EXPORT_PER_CPU_SYMBOL(var) EXPORT_SYMBOL(per_cpu__##var)
- #define EXPORT_PER_CPU_SYMBOL_GPL(var) EXPORT_SYMBOL_GPL(per_cpu__##var)
- 
-+extern unsigned int percpu_reserve;
- /* Enough to cover all DEFINE_PER_CPUs in kernel, including modules. */
- #ifndef PERCPU_ENOUGH_ROOM
- #ifdef CONFIG_MODULES
-@@ -50,7 +51,7 @@
- #endif
- 
- #define PERCPU_ENOUGH_ROOM						\
--	(__per_cpu_end - __per_cpu_start + PERCPU_MODULE_RESERVE)
-+	(__per_cpu_end - __per_cpu_start + percpu_reserve)
- #endif	/* PERCPU_ENOUGH_ROOM */
- 
- /*
-diff -puN init/main.c~cpualloc-make-the-per-cpu-reserve-configurable init/main.c
---- a/init/main.c~cpualloc-make-the-per-cpu-reserve-configurable
-+++ a/init/main.c
-@@ -256,6 +256,16 @@ static int __init loglevel(char *str)
- 
- early_param("loglevel", loglevel);
- 
-+unsigned int percpu_reserve = PERCPU_MODULE_RESERVE;
-+
-+static int __init init_percpu_reserve(char *str)
-+{
-+	get_option(&str, &percpu_reserve);
-+	return 0;
-+}
-+
-+early_param("percpu", init_percpu_reserve);
-+
- /*
-  * Unknown boot options get handed to init, unless they look like
-  * failed parameters
-@@ -400,6 +410,9 @@ static void __init setup_per_cpu_areas(v
- 
- 	/* Copy section for each CPU (we discard the original) */
- 	size = ALIGN(PERCPU_ENOUGH_ROOM, PAGE_SIZE);
-+	printk(KERN_INFO "percpu area: %d bytes total, %d available.\n",
-+			size, size - (__per_cpu_end - __per_cpu_start));
-+
- 	ptr = alloc_bootmem_pages(size * nr_possible_cpus);
- 
- 	for_each_possible_cpu(i) {
+ 	/* Determine total sizes, and put offsets in sh_entsize.  For now
+@@ -2306,7 +2155,7 @@ static noinline struct module *load_modu
+ 	module_free(mod, mod->module_core);
+  free_percpu:
+ 	if (percpu)
+-		percpu_modfree(percpu);
++		cpu_free(percpu, percpu_size);
+  free_mod:
+ 	kfree(args);
+  free_hdr:
 _
 
 Patches currently in -mm which might be from cl@linux-foundation.org are
