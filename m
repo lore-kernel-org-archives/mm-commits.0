@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-fix-ghost-entries-under-sys-firmware-edd.patch added to -mm tree
-Date: Thu, 02 Oct 2008 23:34:31 -0700
-Message-ID: <200810030634.m936YVDC014640@imap1.linux-foundation.org>
+Subject: + fbdev-ignore-vesa-modes-if-framebuffer-does-not-support-them.patch added to -mm tree
+Date: Thu, 02 Oct 2008 23:40:19 -0700
+Message-ID: <200810030640.m936eJu2014857@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60244 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55302 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753288AbYJCGfD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 02:35:03 -0400
+	by vger.kernel.org with ESMTP id S1753549AbYJCGkY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 02:40:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arvidjaar@newmail.ru, Matt_Domsch@dell.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+Cc: spock@gentoo.org, hpa@zytor.com, krzysztof.h1@wp.pl
 
 
 The patch titled
-     x86: fix ghost entries under /sys/firmware/edd
+     fbdev: ignore VESA modes if framebuffer does not support them
 has been added to the -mm tree.  Its filename is
-     x86-fix-ghost-entries-under-sys-firmware-edd.patch
+     fbdev-ignore-vesa-modes-if-framebuffer-does-not-support-them.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: fix ghost entries under /sys/firmware/edd
-From: Andrey Borzenkov <arvidjaar@newmail.ru>
+Subject: fbdev: ignore VESA modes if framebuffer does not support them
+From: Michal Januszewski <spock@gentoo.org>
 
-Some BIOSes do not indicate error when trying to read from non- existing
-device.  Zero buffer before reading and check that we actually got some
-data.
+Currently, it is possible to set a graphics VESA mode at boot time via the
+vga= parameter even when no framebuffer driver supporting this is
+configured.  This could lead to the system booting with a black screen,
+without a usable console.
 
-This was fixed in different way for edd.S in
-http://marc.info/?l=linux-kernel&m=114087765422490&w=2, but lost again
-when edd.S was rewritten in C.
+Fix this problem by only allowing to set graphics modes at boot time if a
+supporting framebuffer driver is configured.
 
-hpa:
-
-   Right, I think that's a much better patch.
-
-   The really Right Thing[TM] to do is probably to pre-clear the buffer
-   and then look for the 0xaa55 signature at offset 510; it is required
-   for sector 0 to be a valid MBR-format partition table and hence for the
-   MBR *signature* to be valid.
-
-   I'll write that up tomorrow (I'm travelling today), or you can send
-   me a patch.
-
-akpm:
-
-   A patch in hand is worth...
-
-Signed-off-by: Andrey Borzenkov < arvidjaar@mail.ru>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Michal Januszewski <spock@gentoo.org>
+Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Matt Domsch <Matt_Domsch@dell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/boot/edd.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/x86/boot/video-vesa.c |    9 ++++-----
+ drivers/video/Kconfig      |   11 +++++++++++
+ 2 files changed, 15 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/boot/edd.c~x86-fix-ghost-entries-under-sys-firmware-edd arch/x86/boot/edd.c
---- a/arch/x86/boot/edd.c~x86-fix-ghost-entries-under-sys-firmware-edd
-+++ a/arch/x86/boot/edd.c
-@@ -60,11 +60,12 @@ static u32 read_mbr_sig(u8 devno, struct
- 	if (mbrbuf_end > (char *)(size_t)boot_params.hdr.heap_end_ptr)
- 		return -1;
+diff -puN arch/x86/boot/video-vesa.c~fbdev-ignore-vesa-modes-if-framebuffer-does-not-support-them arch/x86/boot/video-vesa.c
+--- a/arch/x86/boot/video-vesa.c~fbdev-ignore-vesa-modes-if-framebuffer-does-not-support-them
++++ a/arch/x86/boot/video-vesa.c
+@@ -88,14 +88,11 @@ static int vesa_probe(void)
+ 			   (vminfo.memory_layout == 4 ||
+ 			    vminfo.memory_layout == 6) &&
+ 			   vminfo.memory_planes == 1) {
+-#ifdef CONFIG_FB
++#ifdef CONFIG_FB_BOOT_VESA_SUPPORT
+ 			/* Graphics mode, color, linear frame buffer
+ 			   supported.  Only register the mode if
+ 			   if framebuffer is configured, however,
+-			   otherwise the user will be left without a screen.
+-			   We don't require CONFIG_FB_VESA, however, since
+-			   some of the other framebuffer drivers can use
+-			   this mode-setting, too. */
++			   otherwise the user will be left without a screen. */
+ 			mi = GET_HEAP(struct mode_info, 1);
+ 			mi->mode = mode + VIDEO_FIRST_VESA;
+ 			mi->depth = vminfo.bpp;
+@@ -133,10 +130,12 @@ static int vesa_set_mode(struct mode_inf
+ 	if ((vminfo.mode_attr & 0x15) == 0x05) {
+ 		/* It's a supported text mode */
+ 		is_graphic = 0;
++#ifdef CONFIG_FB_BOOT_VESA_SUPPORT
+ 	} else if ((vminfo.mode_attr & 0x99) == 0x99) {
+ 		/* It's a graphics mode with linear frame buffer */
+ 		is_graphic = 1;
+ 		vesa_mode |= 0x4000; /* Request linear frame buffer */
++#endif
+ 	} else {
+ 		return -1;	/* Invalid mode */
+ 	}
+diff -puN drivers/video/Kconfig~fbdev-ignore-vesa-modes-if-framebuffer-does-not-support-them drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fbdev-ignore-vesa-modes-if-framebuffer-does-not-support-them
++++ a/drivers/video/Kconfig
+@@ -76,6 +76,14 @@ config FB_DDC
+        select I2C
+        default n
  
-+	memset(mbrbuf_ptr, 0, sector_size);
- 	if (read_mbr(devno, mbrbuf_ptr))
- 		return -1;
- 
- 	*mbrsig = *(u32 *)&mbrbuf_ptr[EDD_MBR_SIG_OFFSET];
--	return 0;
-+	return -!*mbrsig;	/* treat zero signature as no sig */
- }
- 
- static int get_edd_info(u8 devno, struct edd_info *ei)
++config FB_BOOT_VESA_SUPPORT
++	bool
++	depends on FB
++	default n
++	---help---
++	  If true, at least one selected framebuffer driver can take advantage
++	  of VESA video modes set at an early boot stage via the vga= parameter.
++
+ config FB_CFB_FILLRECT
+ 	tristate
+ 	depends on FB
+@@ -681,6 +689,7 @@ config FB_VESA
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
++	select FB_BOOT_VESA_SUPPORT
+ 	help
+ 	  This is the frame buffer device driver for generic VESA 2.0
+ 	  compliant graphic cards. The older VESA 1.2 cards are not supported.
+@@ -1117,6 +1126,7 @@ config FB_INTEL
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
++	select FB_BOOT_VESA_SUPPORT
+ 	help
+ 	  This driver supports the on-board graphics built in to the Intel
+           830M/845G/852GM/855GM/865G/915G/915GM/945G/945GM/965G/965GM chipsets.
+@@ -1469,6 +1479,7 @@ config FB_SIS
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
++	select FB_BOOT_VESA_SUPPORT
+ 	help
+ 	  This is the frame buffer device driver for the SiS 300, 315, 330
+ 	  and 340 series as well as XGI V3XT, V5, V8, Z7 graphics chipsets.
 _
 
-Patches currently in -mm which might be from arvidjaar@newmail.ru are
+Patches currently in -mm which might be from spock@gentoo.org are
 
-git-x86.patch
-x86-fix-ghost-entries-under-sys-firmware-edd.patch
+uvesafb-dont-treat-mode-info-retrieval-failures-as-errors.patch
+maintainers-add-entry-for-uvesafb.patch
+fbdev-ignore-vesa-modes-if-framebuffer-does-not-support-them.patch
 
