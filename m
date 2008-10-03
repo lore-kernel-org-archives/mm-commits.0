@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cpualloc-make-the-per-cpu-reserve-configurable-fix.patch added to -mm tree
-Date: Fri, 03 Oct 2008 00:34:26 -0700
-Message-ID: <200810030734.m937YQpF016747@imap1.linux-foundation.org>
+Subject: + cpualloc-the-allocator.patch added to -mm tree
+Date: Fri, 03 Oct 2008 00:34:30 -0700
+Message-ID: <200810030734.m937YUtk016754@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59547 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57368 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754219AbYJCHfG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 03:35:06 -0400
+	by vger.kernel.org with ESMTP id S1754441AbYJCHfK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 03:35:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cl@linux-foundation.org, penberg@cs.helsinki.fi, rusty@rustcorp.com.au
+Cc: cl@linux-foundation.org, penberg@cs.helsinki.fi, rusty@rustcorp.com.au
 
 
 The patch titled
-     cpualloc-make-the-per-cpu-reserve-configurable-fix
+     cpualloc: the allocator
 has been added to the -mm tree.  Its filename is
-     cpualloc-make-the-per-cpu-reserve-configurable-fix.patch
+     cpualloc-the-allocator.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,161 +33,347 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpualloc-make-the-per-cpu-reserve-configurable-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cpualloc: the allocator
+From: Christoph Lameter <cl@linux-foundation.org>
 
-make 'em match.
+The per cpu allocator allows dynamic allocation of memory on all
+processors simultaneously.  A bitmap is used to track used areas.  The
+allocator implements tight packing to reduce the cache footprint and
+increase speed since cacheline contention is typically not a concern for
+memory mainly used by a single cpu.  Small objects will fill up gaps left
+by larger allocations that required alignments.
 
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+The size of the cpu_alloc area can be changed via the percpu=xxx kernel
+parameter.
+
+Signed-off-by: Christoph Lameter <cl@linux-foundation.org>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/percpu.h |   46 +++++++++
+ include/linux/vmstat.h |    2 
+ init/main.c            |    2 
+ mm/Makefile            |    2 
+ mm/cpu_alloc.c         |  185 +++++++++++++++++++++++++++++++++++++++
+ mm/vmstat.c            |    1 
+ 6 files changed, 236 insertions(+), 2 deletions(-)
 
-diff -puN init/main.c~cpualloc-make-the-per-cpu-reserve-configurable-fix init/main.c
---- a/init/main.c~cpualloc-make-the-per-cpu-reserve-configurable-fix
+diff -puN include/linux/percpu.h~cpualloc-the-allocator include/linux/percpu.h
+--- a/include/linux/percpu.h~cpualloc-the-allocator
++++ a/include/linux/percpu.h
+@@ -114,4 +114,50 @@ static inline void percpu_free(void *__p
+ #define free_percpu(ptr)	percpu_free((ptr))
+ #define per_cpu_ptr(ptr, cpu)	percpu_ptr((ptr), (cpu))
+ 
++
++/*
++ * cpu allocator definitions
++ *
++ * The cpu allocator allows allocating an instance of an object for each
++ * processor and the use of a single pointer to access all instances
++ * of the object. cpu_alloc provides optimized means for accessing the
++ * instance of the object belonging to the currently executing processor
++ * as well as special atomic operations on fields of objects of the
++ * currently executing processor.
++ *
++ * Cpu objects are typically small. The allocator packs them tightly
++ * to increase the chance on each access that a per cpu object is already
++ * cached. Alignments may be specified but the intent is to align the data
++ * properly due to cpu alignment constraints and not to avoid cacheline
++ * contention. Any holes left by aligning objects are filled up with smaller
++ * objects that are allocated later.
++ *
++ * Cpu data can be allocated using CPU_ALLOC. The resulting pointer is
++ * pointing to the instance of the variable in the per cpu area provided
++ * by the loader. It is generally an error to use the pointer directly
++ * unless we are booting the system.
++ *
++ * __GFP_ZERO may be passed as a flag to zero the allocated memory.
++ */
++
++/* Return a pointer to the instance of a object for a particular processor */
++#define CPU_PTR(__p, __cpu)	SHIFT_PERCPU_PTR((__p), per_cpu_offset(__cpu))
++
++/*
++ * Return a pointer to the instance of the object belonging to the processor
++ * running the current code.
++ */
++#define THIS_CPU(__p)	SHIFT_PERCPU_PTR((__p), my_cpu_offset)
++#define __THIS_CPU(__p)	SHIFT_PERCPU_PTR((__p), __my_cpu_offset)
++
++#define CPU_ALLOC(type, flags)	((typeof(type) *)cpu_alloc(sizeof(type), (flags), \
++							__alignof__(type)))
++#define CPU_FREE(pointer)	cpu_free((pointer), sizeof(*(pointer)))
++
++/*
++ * Raw calls
++ */
++void *cpu_alloc(unsigned long size, gfp_t flags, unsigned long align);
++void cpu_free(void *cpu_pointer, unsigned long size);
++
+ #endif /* __LINUX_PERCPU_H */
+diff -puN include/linux/vmstat.h~cpualloc-the-allocator include/linux/vmstat.h
+--- a/include/linux/vmstat.h~cpualloc-the-allocator
++++ a/include/linux/vmstat.h
+@@ -37,7 +37,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		FOR_ALL_ZONES(PGSCAN_KSWAPD),
+ 		FOR_ALL_ZONES(PGSCAN_DIRECT),
+ 		PGINODESTEAL, SLABS_SCANNED, KSWAPD_STEAL, KSWAPD_INODESTEAL,
+-		PAGEOUTRUN, ALLOCSTALL, PGROTATED,
++		PAGEOUTRUN, ALLOCSTALL, PGROTATED, CPU_BYTES,
+ #ifdef CONFIG_HUGETLB_PAGE
+ 		HTLB_BUDDY_PGALLOC, HTLB_BUDDY_PGALLOC_FAIL,
+ #endif
+diff -puN init/main.c~cpualloc-the-allocator init/main.c
+--- a/init/main.c~cpualloc-the-allocator
 +++ a/init/main.c
-@@ -410,7 +410,7 @@ static void __init setup_per_cpu_areas(v
+@@ -118,6 +118,7 @@ extern void time_init(void);
+ /* Default late time init is NULL. archs can override this later. */
+ void (*late_time_init)(void);
+ extern void softirq_init(void);
++extern void cpu_alloc_init(void);
  
- 	/* Copy section for each CPU (we discard the original) */
- 	size = ALIGN(PERCPU_ENOUGH_ROOM, PAGE_SIZE);
--	printk(KERN_INFO "percpu area: %d bytes total, %d available.\n",
-+	printk(KERN_INFO "percpu area: %lu bytes total, %lu available.\n",
- 			size, size - (__per_cpu_end - __per_cpu_start));
+ /* Untouched command line saved by arch-specific code. */
+ char __initdata boot_command_line[COMMAND_LINE_SIZE];
+@@ -586,6 +587,7 @@ asmlinkage void __init start_kernel(void
+ 	mm_init_owner(&init_mm, &init_task);
+ 	setup_command_line(command_line);
+ 	unwind_setup();
++	cpu_alloc_init();
+ 	setup_per_cpu_areas();
+ 	setup_nr_cpu_ids();
+ 	smp_prepare_boot_cpu();	/* arch-specific boot-cpu hooks */
+diff -puN mm/Makefile~cpualloc-the-allocator mm/Makefile
+--- a/mm/Makefile~cpualloc-the-allocator
++++ a/mm/Makefile
+@@ -11,7 +11,7 @@ obj-y			:= bootmem.o filemap.o mempool.o
+ 			   maccess.o page_alloc.o page-writeback.o pdflush.o \
+ 			   readahead.o swap.o truncate.o vmscan.o \
+ 			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
+-			   page_isolation.o mm_init.o $(mmu-y)
++			   page_isolation.o mm_init.o cpu_alloc.o $(mmu-y)
  
- 	ptr = alloc_bootmem_pages(size * nr_possible_cpus);
+ obj-$(CONFIG_PROC_PAGE_MONITOR) += pagewalk.o
+ obj-$(CONFIG_BOUNCE)	+= bounce.o
+diff -puN /dev/null mm/cpu_alloc.c
+--- /dev/null
++++ a/mm/cpu_alloc.c
+@@ -0,0 +1,185 @@
++/*
++ * Cpu allocator - Manage objects allocated for each processor
++ *
++ * (C) 2008 SGI, Christoph Lameter <cl@linux-foundation.org>
++ * 	Basic implementation with allocation and free from a dedicated per
++ * 	cpu area.
++ *
++ * The per cpu allocator allows a dynamic allocation of a piece of memory on
++ * every processor. A bitmap is used to track used areas.
++ * The allocator implements tight packing to reduce the cache footprint
++ * and increase speed since cacheline contention is typically not a concern
++ * for memory mainly used by a single cpu. Small objects will fill up gaps
++ * left by larger allocations that required alignments.
++ */
++#include <linux/mm.h>
++#include <linux/mmzone.h>
++#include <linux/module.h>
++#include <linux/percpu.h>
++#include <linux/bitmap.h>
++#include <asm/sections.h>
++#include <linux/bootmem.h>
++
++/*
++ * Basic allocation unit. A bit map is created to track the use of each
++ * UNIT_SIZE element in the cpu area.
++ */
++#define UNIT_TYPE int
++#define UNIT_SIZE sizeof(UNIT_TYPE)
++
++int units;	/* Actual available units */
++
++/*
++ * How many units are needed for an object of a given size
++ */
++static int size_to_units(unsigned long size)
++{
++	return DIV_ROUND_UP(size, UNIT_SIZE);
++}
++
++/*
++ * Lock to protect the bitmap and the meta data for the cpu allocator.
++ */
++static DEFINE_SPINLOCK(cpu_alloc_map_lock);
++static unsigned long *cpu_alloc_map;
++static int nr_units;		/* Number of available units */
++static int first_free;		/* First known free unit */
++
++/*
++ * Mark an object as used in the cpu_alloc_map
++ *
++ * Must hold cpu_alloc_map_lock
++ */
++static void set_map(int start, int length)
++{
++	while (length-- > 0)
++		__set_bit(start++, cpu_alloc_map);
++}
++
++/*
++ * Mark an area as freed.
++ *
++ * Must hold cpu_alloc_map_lock
++ */
++static void clear_map(int start, int length)
++{
++	while (length-- > 0)
++		__clear_bit(start++, cpu_alloc_map);
++}
++
++/*
++ * Allocate an object of a certain size
++ *
++ * Returns a special pointer that can be used with CPU_PTR to find the
++ * address of the object for a certain cpu.
++ */
++void *cpu_alloc(unsigned long size, gfp_t gfpflags, unsigned long align)
++{
++	unsigned long start;
++	int units = size_to_units(size);
++	void *ptr;
++	int first;
++	unsigned long flags;
++
++	if (!size)
++		return ZERO_SIZE_PTR;
++
++	WARN_ON(align > PAGE_SIZE);
++
++	if (align < UNIT_SIZE)
++		align = UNIT_SIZE;
++
++	spin_lock_irqsave(&cpu_alloc_map_lock, flags);
++
++	first = 1;
++	start = first_free;
++
++	for ( ; ; ) {
++
++		start = find_next_zero_bit(cpu_alloc_map, nr_units, start);
++		if (start >= nr_units)
++			goto out_of_memory;
++
++		if (first)
++			first_free = start;
++
++		/*
++		 * Check alignment and that there is enough space after
++		 * the starting unit.
++		 */
++		if (start % (align / UNIT_SIZE) == 0 &&
++			find_next_bit(cpu_alloc_map, nr_units, start + 1)
++					>= start + units)
++				break;
++		start++;
++		first = 0;
++	}
++
++	if (first)
++		first_free = start + units;
++
++	if (start + units > nr_units)
++		goto out_of_memory;
++
++	set_map(start, units);
++	__count_vm_events(CPU_BYTES, units * UNIT_SIZE);
++
++	spin_unlock_irqrestore(&cpu_alloc_map_lock, flags);
++
++	ptr = (int *)__per_cpu_end + start;
++
++	if (gfpflags & __GFP_ZERO) {
++		int cpu;
++
++		for_each_possible_cpu(cpu)
++			memset(CPU_PTR(ptr, cpu), 0, size);
++	}
++
++	return ptr;
++
++out_of_memory:
++	spin_unlock_irqrestore(&cpu_alloc_map_lock, flags);
++	return NULL;
++}
++EXPORT_SYMBOL(cpu_alloc);
++
++/*
++ * Free an object. The pointer must be a cpu pointer allocated
++ * via cpu_alloc.
++ */
++void cpu_free(void *start, unsigned long size)
++{
++	unsigned long units = size_to_units(size);
++	unsigned long index = (int *)start - (int *)__per_cpu_end;
++	unsigned long flags;
++
++	if (!start || start == ZERO_SIZE_PTR)
++		return;
++
++	if (WARN_ON(index >= nr_units))
++		return;
++
++	if (WARN_ON(!test_bit(index, cpu_alloc_map) ||
++		!test_bit(index + units - 1, cpu_alloc_map)))
++			return;
++
++	spin_lock_irqsave(&cpu_alloc_map_lock, flags);
++
++	clear_map(index, units);
++	__count_vm_events(CPU_BYTES, -units * UNIT_SIZE);
++
++	if (index < first_free)
++		first_free = index;
++
++	spin_unlock_irqrestore(&cpu_alloc_map_lock, flags);
++}
++EXPORT_SYMBOL(cpu_free);
++
++
++void __init cpu_alloc_init(void)
++{
++	nr_units = percpu_reserve / UNIT_SIZE;
++
++	cpu_alloc_map = alloc_bootmem(BITS_TO_LONGS(nr_units));
++}
++
+diff -puN mm/vmstat.c~cpualloc-the-allocator mm/vmstat.c
+--- a/mm/vmstat.c~cpualloc-the-allocator
++++ a/mm/vmstat.c
+@@ -677,6 +677,7 @@ static const char * const vmstat_text[] 
+ 	"allocstall",
+ 
+ 	"pgrotated",
++	"cpu_bytes",
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	"htlb_buddy_alloc_success",
+ 	"htlb_buddy_alloc_fail",
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from cl@linux-foundation.org are
 
-include-linux-stacktraceh-declare-struct-task_struct.patch
-git-powerpc.patch
-git-sparc.patch
+repeatable-slab-corruption-with-ltp-msgctl08.patch
 git-x86.patch
-git-x86-git-rejects.patch
-git-xtensa.patch
-git-ftrace.patch
-git-timers-fix-printk-errors-clean-up.patch
-git-pci.patch
-git-hid.patch
-git-v4l-dvb.patch
-git-v4l-dvb-git-rejects.patch
-git-acpi-git-rejects.patch
-git-nfsd.patch
-git-dlm.patch
-git-async_tx.patch
-git-net.patch
-git-mtd.patch
-git-sound.patch
-git-sound-rejects.patch
-git-input.patch
-git-block.patch
-git-pcmcia-git-rejects.patch
-git-battery.patch
-git-mfd.patch
-git-drm.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-drivers-media-video-tda9840c-unbreak.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
-misdn-misc-timerdev-fixes-fix.patch
-drivers-net-sfc-falconc-fix-min-warnings.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry.patch
-drivers-media-video-cafe_ccicc-needs-mmh.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-eeepc-laptop-use-standard-interfaces-fix-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
-make-taint-bit-reliable-v3-fix.patch
-kernel-sysc-improve-code-generation.patch
+git-slab.patch
+mm-make-do_move_pages-complexity-linear.patch
+mm-make-do_move_pages-complexity-linear-fix.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+cpualloc-make-the-per-cpu-reserve-configurable.patch
 cpualloc-make-the-per-cpu-reserve-configurable-fix.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-drivers-hwmon-applesmcc-remove-unneeded-casts.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
-serial-make-uart_ports-ioport-unsigned-long-fix.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanups.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
-ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-tty-fix-echo-tab-erase-and-locking-fix.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-new-driver-ds2431-chip-fix.patch
-gru-driver-minor-updates-fix.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
+cpualloc-percpu-rename-variables-percpu_enough_room-percpu_area_size.patch
+cpualloc-the-allocator.patch
+cpu_alloc-remove-useless-variable.patch
+cpualloc-use-cpu-allocator-instead-of-the-builtin-modules-per-cpu-allocator.patch
 reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
 page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
 slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
