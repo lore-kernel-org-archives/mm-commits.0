@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cpualloc-use-cpu-allocator-instead-of-the-builtin-modules-per-cpu-allocator.patch added to -mm tree
-Date: Fri, 03 Oct 2008 00:34:34 -0700
-Message-ID: <200810030734.m937YYp3016760@imap1.linux-foundation.org>
+Subject: + cpualloc-make-the-per-cpu-reserve-configurable-fix.patch added to -mm tree
+Date: Fri, 03 Oct 2008 00:34:26 -0700
+Message-ID: <200810030734.m937YQpF016747@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59547 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754520AbYJCHfN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 03:35:13 -0400
+	by vger.kernel.org with ESMTP id S1754219AbYJCHfG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 03:35:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cl@linux-foundation.org, penberg@cs.helsinki.fi, rusty@rustcorp.com.au
+Cc: akpm@linux-foundation.org, cl@linux-foundation.org, penberg@cs.helsinki.fi, rusty@rustcorp.com.au
 
 
 The patch titled
-     cpualloc: use cpu allocator instead of the builtin modules per cpu allocator
+     cpualloc-make-the-per-cpu-reserve-configurable-fix
 has been added to the -mm tree.  Its filename is
-     cpualloc-use-cpu-allocator-instead-of-the-builtin-modules-per-cpu-allocator.patch
+     cpualloc-make-the-per-cpu-reserve-configurable-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,273 +33,161 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpualloc: use cpu allocator instead of the builtin modules per cpu allocator
-From: Christoph Lameter <cl@linux-foundation.org>
+Subject: cpualloc-make-the-per-cpu-reserve-configurable-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove the builtin per cpu allocator from modules.c and use cpu_alloc instead.
+make 'em match.
 
-Signed-off-by: Christoph Lameter <cl@linux-foundation.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/module.h |    1 
- kernel/module.c        |  173 ++-------------------------------------
- 2 files changed, 12 insertions(+), 162 deletions(-)
+ init/main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/module.h~cpualloc-use-cpu-allocator-instead-of-the-builtin-modules-per-cpu-allocator include/linux/module.h
---- a/include/linux/module.h~cpualloc-use-cpu-allocator-instead-of-the-builtin-modules-per-cpu-allocator
-+++ a/include/linux/module.h
-@@ -324,6 +324,7 @@ struct module
+diff -puN init/main.c~cpualloc-make-the-per-cpu-reserve-configurable-fix init/main.c
+--- a/init/main.c~cpualloc-make-the-per-cpu-reserve-configurable-fix
++++ a/init/main.c
+@@ -410,7 +410,7 @@ static void __init setup_per_cpu_areas(v
  
- 	/* Per-cpu data. */
- 	void *percpu;
-+	int percpu_size;
+ 	/* Copy section for each CPU (we discard the original) */
+ 	size = ALIGN(PERCPU_ENOUGH_ROOM, PAGE_SIZE);
+-	printk(KERN_INFO "percpu area: %d bytes total, %d available.\n",
++	printk(KERN_INFO "percpu area: %lu bytes total, %lu available.\n",
+ 			size, size - (__per_cpu_end - __per_cpu_start));
  
- 	/* The command line arguments (may be mangled).  People like
- 	   keeping pointers to this stuff */
-diff -puN kernel/module.c~cpualloc-use-cpu-allocator-instead-of-the-builtin-modules-per-cpu-allocator kernel/module.c
---- a/kernel/module.c~cpualloc-use-cpu-allocator-instead-of-the-builtin-modules-per-cpu-allocator
-+++ a/kernel/module.c
-@@ -339,121 +339,6 @@ static struct module *find_module(const 
- 	return NULL;
- }
- 
--#ifdef CONFIG_SMP
--/* Number of blocks used and allocated. */
--static unsigned int pcpu_num_used, pcpu_num_allocated;
--/* Size of each block.  -ve means used. */
--static int *pcpu_size;
--
--static int split_block(unsigned int i, unsigned short size)
--{
--	/* Reallocation required? */
--	if (pcpu_num_used + 1 > pcpu_num_allocated) {
--		int *new;
--
--		new = krealloc(pcpu_size, sizeof(new[0])*pcpu_num_allocated*2,
--			       GFP_KERNEL);
--		if (!new)
--			return 0;
--
--		pcpu_num_allocated *= 2;
--		pcpu_size = new;
--	}
--
--	/* Insert a new subblock */
--	memmove(&pcpu_size[i+1], &pcpu_size[i],
--		sizeof(pcpu_size[0]) * (pcpu_num_used - i));
--	pcpu_num_used++;
--
--	pcpu_size[i+1] -= size;
--	pcpu_size[i] = size;
--	return 1;
--}
--
--static inline unsigned int block_size(int val)
--{
--	if (val < 0)
--		return -val;
--	return val;
--}
--
--static void *percpu_modalloc(unsigned long size, unsigned long align,
--			     const char *name)
--{
--	unsigned long extra;
--	unsigned int i;
--	void *ptr;
--
--	if (align > PAGE_SIZE) {
--		printk(KERN_WARNING "%s: per-cpu alignment %li > %li\n",
--		       name, align, PAGE_SIZE);
--		align = PAGE_SIZE;
--	}
--
--	ptr = __per_cpu_start;
--	for (i = 0; i < pcpu_num_used; ptr += block_size(pcpu_size[i]), i++) {
--		/* Extra for alignment requirement. */
--		extra = ALIGN((unsigned long)ptr, align) - (unsigned long)ptr;
--		BUG_ON(i == 0 && extra != 0);
--
--		if (pcpu_size[i] < 0 || pcpu_size[i] < extra + size)
--			continue;
--
--		/* Transfer extra to previous block. */
--		if (pcpu_size[i-1] < 0)
--			pcpu_size[i-1] -= extra;
--		else
--			pcpu_size[i-1] += extra;
--		pcpu_size[i] -= extra;
--		ptr += extra;
--
--		/* Split block if warranted */
--		if (pcpu_size[i] - size > sizeof(unsigned long))
--			if (!split_block(i, size))
--				return NULL;
--
--		/* Mark allocated */
--		pcpu_size[i] = -pcpu_size[i];
--		return ptr;
--	}
--
--	printk(KERN_WARNING "Could not allocate %lu bytes percpu data\n",
--	       size);
--	return NULL;
--}
--
--static void percpu_modfree(void *freeme)
--{
--	unsigned int i;
--	void *ptr = __per_cpu_start + block_size(pcpu_size[0]);
--
--	/* First entry is core kernel percpu data. */
--	for (i = 1; i < pcpu_num_used; ptr += block_size(pcpu_size[i]), i++) {
--		if (ptr == freeme) {
--			pcpu_size[i] = -pcpu_size[i];
--			goto free;
--		}
--	}
--	BUG();
--
-- free:
--	/* Merge with previous? */
--	if (pcpu_size[i-1] >= 0) {
--		pcpu_size[i-1] += pcpu_size[i];
--		pcpu_num_used--;
--		memmove(&pcpu_size[i], &pcpu_size[i+1],
--			(pcpu_num_used - i) * sizeof(pcpu_size[0]));
--		i--;
--	}
--	/* Merge with next? */
--	if (i+1 < pcpu_num_used && pcpu_size[i+1] >= 0) {
--		pcpu_size[i] += pcpu_size[i+1];
--		pcpu_num_used--;
--		memmove(&pcpu_size[i+1], &pcpu_size[i+2],
--			(pcpu_num_used - (i+1)) * sizeof(pcpu_size[0]));
--	}
--}
--
- static unsigned int find_pcpusec(Elf_Ehdr *hdr,
- 				 Elf_Shdr *sechdrs,
- 				 const char *secstrings)
-@@ -469,48 +354,6 @@ static void percpu_modcopy(void *pcpudes
- 		memcpy(pcpudest + per_cpu_offset(cpu), from, size);
- }
- 
--static int percpu_modinit(void)
--{
--	pcpu_num_used = 2;
--	pcpu_num_allocated = 2;
--	pcpu_size = kmalloc(sizeof(pcpu_size[0]) * pcpu_num_allocated,
--			    GFP_KERNEL);
--	/* Static in-kernel percpu data (used). */
--	pcpu_size[0] = -(__per_cpu_end-__per_cpu_start);
--	/* Free room. */
--	pcpu_size[1] = PERCPU_AREA_SIZE + pcpu_size[0];
--	if (pcpu_size[1] < 0) {
--		printk(KERN_ERR "No per-cpu room for modules.\n");
--		pcpu_num_used = 1;
--	}
--
--	return 0;
--}
--__initcall(percpu_modinit);
--#else /* ... !CONFIG_SMP */
--static inline void *percpu_modalloc(unsigned long size, unsigned long align,
--				    const char *name)
--{
--	return NULL;
--}
--static inline void percpu_modfree(void *pcpuptr)
--{
--	BUG();
--}
--static inline unsigned int find_pcpusec(Elf_Ehdr *hdr,
--					Elf_Shdr *sechdrs,
--					const char *secstrings)
--{
--	return 0;
--}
--static inline void percpu_modcopy(void *pcpudst, const void *src,
--				  unsigned long size)
--{
--	/* pcpusec should be 0, and size of that section should be 0. */
--	BUG_ON(size != 0);
--}
--#endif /* CONFIG_SMP */
--
- #define MODINFO_ATTR(field)	\
- static void setup_modinfo_##field(struct module *mod, const char *s)  \
- {                                                                     \
-@@ -1439,7 +1282,7 @@ static void free_module(struct module *m
- 	module_free(mod, mod->module_init);
- 	kfree(mod->args);
- 	if (mod->percpu)
--		percpu_modfree(mod->percpu);
-+		cpu_free(mod->percpu, mod->percpu_size);
- 
- 	/* Free lock-classes: */
- 	lockdep_free_key_range(mod->module_core, mod->core_size);
-@@ -1870,6 +1713,7 @@ static noinline struct module *load_modu
- 	unsigned int mcountindex;
- 	struct module *mod;
- 	long err = 0;
-+	unsigned long percpu_size = 0;
- 	void *percpu = NULL, *ptr = NULL; /* Stops spurious gcc warning */
- 	void *mseg;
- 	struct exception_table_entry *extable;
-@@ -2019,15 +1863,20 @@ static noinline struct module *load_modu
- 
- 	if (pcpuindex) {
- 		/* We have a special allocation for this section. */
--		percpu = percpu_modalloc(sechdrs[pcpuindex].sh_size,
--					 sechdrs[pcpuindex].sh_addralign,
--					 mod->name);
-+		unsigned long align = sechdrs[pcpuindex].sh_addralign;
-+
-+		percpu_size = sechdrs[pcpuindex].sh_size;
-+		percpu = cpu_alloc(percpu_size, GFP_KERNEL|__GFP_ZERO, align);
-+		if (!percpu)
-+			printk(KERN_WARNING "Could not allocate %lu bytes percpu data\n",
-+	      							percpu_size);
- 		if (!percpu) {
- 			err = -ENOMEM;
- 			goto free_mod;
- 		}
- 		sechdrs[pcpuindex].sh_flags &= ~(unsigned long)SHF_ALLOC;
- 		mod->percpu = percpu;
-+		mod->percpu_size = percpu_size;
- 	}
- 
- 	/* Determine total sizes, and put offsets in sh_entsize.  For now
-@@ -2306,7 +2155,7 @@ static noinline struct module *load_modu
- 	module_free(mod, mod->module_core);
-  free_percpu:
- 	if (percpu)
--		percpu_modfree(percpu);
-+		cpu_free(percpu, percpu_size);
-  free_mod:
- 	kfree(args);
-  free_hdr:
+ 	ptr = alloc_bootmem_pages(size * nr_possible_cpus);
 _
 
-Patches currently in -mm which might be from cl@linux-foundation.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-repeatable-slab-corruption-with-ltp-msgctl08.patch
+include-linux-stacktraceh-declare-struct-task_struct.patch
+git-powerpc.patch
+git-sparc.patch
 git-x86.patch
-git-slab.patch
-mm-make-do_move_pages-complexity-linear.patch
-mm-make-do_move_pages-complexity-linear-fix.patch
-vmscan-use-an-indexed-array-for-lru-variables.patch
-cpualloc-make-the-per-cpu-reserve-configurable.patch
+git-x86-git-rejects.patch
+git-xtensa.patch
+git-ftrace.patch
+git-timers-fix-printk-errors-clean-up.patch
+git-pci.patch
+git-hid.patch
+git-v4l-dvb.patch
+git-v4l-dvb-git-rejects.patch
+git-acpi-git-rejects.patch
+git-nfsd.patch
+git-dlm.patch
+git-async_tx.patch
+git-net.patch
+git-mtd.patch
+git-sound.patch
+git-sound-rejects.patch
+git-input.patch
+git-block.patch
+git-pcmcia-git-rejects.patch
+git-battery.patch
+git-mfd.patch
+git-drm.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
+drivers-media-video-tda9840c-unbreak.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
+misdn-misc-timerdev-fixes-fix.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry.patch
+drivers-media-video-cafe_ccicc-needs-mmh.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+eeepc-laptop-use-standard-interfaces-fix-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
+make-taint-bit-reliable-v3-fix.patch
+kernel-sysc-improve-code-generation.patch
 cpualloc-make-the-per-cpu-reserve-configurable-fix.patch
-cpualloc-percpu-rename-variables-percpu_enough_room-percpu_area_size.patch
-cpualloc-the-allocator.patch
-cpu_alloc-remove-useless-variable.patch
-cpualloc-use-cpu-allocator-instead-of-the-builtin-modules-per-cpu-allocator.patch
+compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
+drivers-hwmon-applesmcc-remove-unneeded-casts.patch
+allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
+serial-make-uart_ports-ioport-unsigned-long-fix.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanups.patch
+ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
+ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
+tty-fix-echo-tab-erase-and-locking-fix.patch
+applicomc-fix-apparently-broken-code-in-do_ac_read.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+w1-be-able-to-manually-add-and-remove-slaves-fix.patch
+w1-new-driver-ds2431-chip-fix.patch
+gru-driver-minor-updates-fix.patch
+drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+x86-sysfs-kill-owner-field-from-attribute-fix.patch
+x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
 reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
 page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
 slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
