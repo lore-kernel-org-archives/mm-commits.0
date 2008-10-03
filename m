@@ -1,153 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - inotify-fix-lock-ordering-wrt-do_page_faults-mmap_sem.patch removed from -mm tree
-Date: Fri, 03 Oct 2008 14:28:41 -0700
-Message-ID: <200810032128.m93LSfaE016633@imap1.linux-foundation.org>
+Subject: - platform-add-new-device-registration-helper.patch removed from -mm tree
+Date: Fri, 03 Oct 2008 14:29:02 -0700
+Message-ID: <200810032129.m93LT2uL016659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33769 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45819 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753245AbYJCV3C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 17:29:02 -0400
+	by vger.kernel.org with ESMTP id S1753212AbYJCV3F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 17:29:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nickpiggin@yahoo.com.au, a.p.zijlstra@chello.nl, daniel.blueman@gmail.com, mingo@elte.hu, npiggin@suse.de, mm-commits@vger.kernel.org
+To: dbaryshkov@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     inotify: fix lock ordering wrt do_page_fault's mmap_sem
+     platform: add new device registration helper
 has been removed from the -mm tree.  Its filename was
-     inotify-fix-lock-ordering-wrt-do_page_faults-mmap_sem.patch
+     platform-add-new-device-registration-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: inotify: fix lock ordering wrt do_page_fault's mmap_sem
-From: Nick Piggin <nickpiggin@yahoo.com.au>
+Subject: platform: add new device registration helper
+From: Dmitry Baryshkov <dbaryshkov@gmail.com>
 
-Fix inotify lock order reversal with mmap_sem due to holding locks over
-copy_to_user.
+Add a helper that registers simple platform_device w/o resources but with
+parent and device data.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Reported-by: "Daniel J Blueman" <daniel.blueman@gmail.com>
-Tested-by: "Daniel J Blueman" <daniel.blueman@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+This is usefull to cleanup platform code from code that registers such
+simple devices as leds-gpio, generic-bl, etc.
+
+Signed-off-by: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inotify_user.c            |   27 ++++++++++++++++++++-------
- include/asm-x86/uaccess_64.h |    1 +
- 2 files changed, 21 insertions(+), 7 deletions(-)
+ drivers/base/platform.c         |   47 ++++++++++++++++++++++++++++++
+ include/linux/platform_device.h |    2 +
+ 2 files changed, 49 insertions(+)
 
-diff -puN fs/inotify_user.c~inotify-fix-lock-ordering-wrt-do_page_faults-mmap_sem fs/inotify_user.c
---- a/fs/inotify_user.c~inotify-fix-lock-ordering-wrt-do_page_faults-mmap_sem
-+++ a/fs/inotify_user.c
-@@ -323,7 +323,7 @@ out:
+diff -puN drivers/base/platform.c~platform-add-new-device-registration-helper drivers/base/platform.c
+--- a/drivers/base/platform.c~platform-add-new-device-registration-helper
++++ a/drivers/base/platform.c
+@@ -391,6 +391,53 @@ error:
  }
+ EXPORT_SYMBOL_GPL(platform_device_register_simple);
  
- /*
-- * remove_kevent - cleans up and ultimately frees the given kevent
-+ * remove_kevent - cleans up the given kevent
-  *
-  * Caller must hold dev->ev_mutex.
-  */
-@@ -334,7 +334,13 @@ static void remove_kevent(struct inotify
- 
- 	dev->event_count--;
- 	dev->queue_size -= sizeof(struct inotify_event) + kevent->event.len;
-+}
- 
-+/*
-+ * free_kevent - frees the given kevent.
++/**
++ * platform_device_register_data
++ * @parent: parent device for the device we're adding
++ * @name: base name of the device we're adding
++ * @id: instance id
++ * @data: platform specific data for this platform device
++ * @size: size of platform specific data
++ *
++ * This function creates a simple platform device that requires minimal
++ * resource and memory management. Canned release function freeing memory
++ * allocated for the device allows drivers using such devices to be
++ * unloaded without waiting for the last reference to the device to be
++ * dropped.
 + */
-+static void free_kevent(struct inotify_kernel_event *kevent)
++struct platform_device *platform_device_register_data(
++		struct device *parent,
++		const char *name, int id,
++		const void *data, size_t size)
 +{
- 	kfree(kevent->name);
- 	kmem_cache_free(event_cachep, kevent);
- }
-@@ -350,6 +356,7 @@ static void inotify_dev_event_dequeue(st
- 		struct inotify_kernel_event *kevent;
- 		kevent = inotify_dev_get_event(dev);
- 		remove_kevent(dev, kevent);
-+		free_kevent(kevent);
- 	}
- }
- 
-@@ -433,17 +440,15 @@ static ssize_t inotify_read(struct file 
- 	dev = file->private_data;
- 
- 	while (1) {
--		int events;
- 
- 		prepare_to_wait(&dev->wq, &wait, TASK_INTERRUPTIBLE);
- 
- 		mutex_lock(&dev->ev_mutex);
--		events = !list_empty(&dev->events);
--		mutex_unlock(&dev->ev_mutex);
--		if (events) {
-+		if (!list_empty(&dev->events)) {
- 			ret = 0;
- 			break;
- 		}
-+		mutex_unlock(&dev->ev_mutex);
- 
- 		if (file->f_flags & O_NONBLOCK) {
- 			ret = -EAGAIN;
-@@ -462,7 +467,6 @@ static ssize_t inotify_read(struct file 
- 	if (ret)
- 		return ret;
- 
--	mutex_lock(&dev->ev_mutex);
- 	while (1) {
- 		struct inotify_kernel_event *kevent;
- 
-@@ -481,6 +485,13 @@ static ssize_t inotify_read(struct file 
- 			}
- 			break;
- 		}
-+		remove_kevent(dev, kevent);
++	struct platform_device *pdev;
++	int retval;
 +
-+		/*
-+		 * Must perform the copy_to_user outside the mutex in order
-+		 * to avoid a lock order reversal with mmap_sem.
-+		 */
-+		mutex_unlock(&dev->ev_mutex);
- 
- 		if (copy_to_user(buf, &kevent->event, event_size)) {
- 			ret = -EFAULT;
-@@ -498,7 +509,9 @@ static ssize_t inotify_read(struct file 
- 			count -= kevent->event.len;
- 		}
- 
--		remove_kevent(dev, kevent);
-+		free_kevent(kevent);
++	pdev = platform_device_alloc(name, id);
++	if (!pdev) {
++		retval = -ENOMEM;
++		goto error;
++	}
 +
-+		mutex_lock(&dev->ev_mutex);
- 	}
- 	mutex_unlock(&dev->ev_mutex);
++	pdev->dev.parent = parent;
++
++	if (size) {
++		retval = platform_device_add_data(pdev, data, size);
++		if (retval)
++			goto error;
++	}
++
++	retval = platform_device_add(pdev);
++	if (retval)
++		goto error;
++
++	return pdev;
++
++error:
++	platform_device_put(pdev);
++	return ERR_PTR(retval);
++}
++
+ static int platform_drv_probe(struct device *_dev)
+ {
+ 	struct platform_driver *drv = to_platform_driver(_dev->driver);
+diff -puN include/linux/platform_device.h~platform-add-new-device-registration-helper include/linux/platform_device.h
+--- a/include/linux/platform_device.h~platform-add-new-device-registration-helper
++++ a/include/linux/platform_device.h
+@@ -37,6 +37,8 @@ extern int platform_add_devices(struct p
  
-diff -puN include/asm-x86/uaccess_64.h~inotify-fix-lock-ordering-wrt-do_page_faults-mmap_sem include/asm-x86/uaccess_64.h
---- a/include/asm-x86/uaccess_64.h~inotify-fix-lock-ordering-wrt-do_page_faults-mmap_sem
-+++ a/include/asm-x86/uaccess_64.h
-@@ -7,6 +7,7 @@
- #include <linux/compiler.h>
- #include <linux/errno.h>
- #include <linux/prefetch.h>
-+#include <linux/lockdep.h>
- #include <asm/page.h>
+ extern struct platform_device *platform_device_register_simple(const char *, int id,
+ 					struct resource *, unsigned int);
++extern struct platform_device *platform_device_register_data(struct device *,
++		const char *, int, const void *, size_t);
  
- /*
+ extern struct platform_device *platform_device_alloc(const char *name, int id);
+ extern int platform_device_add_resources(struct platform_device *pdev, struct resource *res, unsigned int num);
 _
 
-Patches currently in -mm which might be from nickpiggin@yahoo.com.au are
+Patches currently in -mm which might be from dbaryshkov@gmail.com are
 
-origin.patch
-git-x86.patch
-ramfs-and-ram-disk-pages-are-unevictable.patch
-mm-rewrite-vmap-layer-fix-fix-fix-fix.patch
-powerpc-hugetlb-pgtable-cache-access-cleanup.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
+fbdev-fix-recursive-notifier-and-locking-when-fbdev-console-is-blanked.patch
+git-arm.patch
+git-sound.patch
+git-mmc.patch
+git-battery.patch
+git-mfd.patch
+make-gpiochip-label-const.patch
+gpio-max7301-fix-the-race-between-chip-addition-and-pins-reconfiguration.patch
 
