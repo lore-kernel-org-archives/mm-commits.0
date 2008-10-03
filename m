@@ -1,125 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - platform-add-new-device-registration-helper.patch removed from -mm tree
-Date: Fri, 03 Oct 2008 14:29:02 -0700
-Message-ID: <200810032129.m93LT2uL016659@imap1.linux-foundation.org>
+Subject: - drivers-usb-host-use-an-is_err-test-rather-than-a-null-test.patch removed from -mm tree
+Date: Fri, 03 Oct 2008 14:29:07 -0700
+Message-ID: <200810032129.m93LT7YS016665@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45819 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56894 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753212AbYJCV3F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 17:29:05 -0400
+	by vger.kernel.org with ESMTP id S1753251AbYJCV3N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 17:29:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbaryshkov@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: brunel@diku.dk, julia@diku.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     platform: add new device registration helper
+     drivers/usb/host: use an IS_ERR test rather than a NULL test
 has been removed from the -mm tree.  Its filename was
-     platform-add-new-device-registration-helper.patch
+     drivers-usb-host-use-an-is_err-test-rather-than-a-null-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: platform: add new device registration helper
-From: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Subject: drivers/usb/host: use an IS_ERR test rather than a NULL test
+From: Julien Brunel <brunel@diku.dk>
 
-Add a helper that registers simple platform_device w/o resources but with
-parent and device data.
+In case of error, the function isp1760_register returns an ERR
+pointer, but never returns a NULL pointer. So after a call to this
+function, a NULL test should be replaced by an IS_ERR test. Moreover,
+we have noticed that:
 
-This is usefull to cleanup platform code from code that registers such
-simple devices as leds-gpio, generic-bl, etc.
+(1) the result of isp1760_register is assigned through the function
+    pci_set_drvdata without an error test,
 
-Signed-off-by: Dmitry Baryshkov <dbaryshkov@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+(2) if the call to isp1760_register fails, the current function
+    (isp1761_pci_probe) returns 0, and if it succeeds, it returns -ENOMEM,
+    which seems odd.
+
+Thus, we suggest to move the test before the call to pci_set_drvdata to
+correct (1), and to turn it into a non IS_ERR test to correct (2).
+
+The semantic match that finds this problem is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@bad_null_test@
+expression x,E;
+statement S1, S2;
+@@
+x =  isp1760_register(...)
+... when != x = E
+* if (x == NULL)
+S1 else S2
+// </smpl>
+
+Signed-off-by: Julien Brunel <brunel@diku.dk>
+Signed-off-by: Julia Lawall <julia@diku.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/platform.c         |   47 ++++++++++++++++++++++++++++++
- include/linux/platform_device.h |    2 +
- 2 files changed, 49 insertions(+)
+ drivers/usb/host/isp1760-if.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/base/platform.c~platform-add-new-device-registration-helper drivers/base/platform.c
---- a/drivers/base/platform.c~platform-add-new-device-registration-helper
-+++ a/drivers/base/platform.c
-@@ -391,6 +391,53 @@ error:
- }
- EXPORT_SYMBOL_GPL(platform_device_register_simple);
- 
-+/**
-+ * platform_device_register_data
-+ * @parent: parent device for the device we're adding
-+ * @name: base name of the device we're adding
-+ * @id: instance id
-+ * @data: platform specific data for this platform device
-+ * @size: size of platform specific data
-+ *
-+ * This function creates a simple platform device that requires minimal
-+ * resource and memory management. Canned release function freeing memory
-+ * allocated for the device allows drivers using such devices to be
-+ * unloaded without waiting for the last reference to the device to be
-+ * dropped.
-+ */
-+struct platform_device *platform_device_register_data(
-+		struct device *parent,
-+		const char *name, int id,
-+		const void *data, size_t size)
-+{
-+	struct platform_device *pdev;
-+	int retval;
-+
-+	pdev = platform_device_alloc(name, id);
-+	if (!pdev) {
-+		retval = -ENOMEM;
-+		goto error;
+diff -puN drivers/usb/host/isp1760-if.c~drivers-usb-host-use-an-is_err-test-rather-than-a-null-test drivers/usb/host/isp1760-if.c
+--- a/drivers/usb/host/isp1760-if.c~drivers-usb-host-use-an-is_err-test-rather-than-a-null-test
++++ a/drivers/usb/host/isp1760-if.c
+@@ -232,9 +232,10 @@ static int __devinit isp1761_pci_probe(s
+ 	hcd = isp1760_register(pci_mem_phy0, length, dev->irq,
+ 		IRQF_SHARED | IRQF_DISABLED, &dev->dev, dev_name(&dev->dev),
+ 		devflags);
+-	pci_set_drvdata(dev, hcd);
+-	if (!hcd)
++	if (!IS_ERR(hcd)) {
++		pci_set_drvdata(dev, hcd);
+ 		return 0;
 +	}
-+
-+	pdev->dev.parent = parent;
-+
-+	if (size) {
-+		retval = platform_device_add_data(pdev, data, size);
-+		if (retval)
-+			goto error;
-+	}
-+
-+	retval = platform_device_add(pdev);
-+	if (retval)
-+		goto error;
-+
-+	return pdev;
-+
-+error:
-+	platform_device_put(pdev);
-+	return ERR_PTR(retval);
-+}
-+
- static int platform_drv_probe(struct device *_dev)
- {
- 	struct platform_driver *drv = to_platform_driver(_dev->driver);
-diff -puN include/linux/platform_device.h~platform-add-new-device-registration-helper include/linux/platform_device.h
---- a/include/linux/platform_device.h~platform-add-new-device-registration-helper
-+++ a/include/linux/platform_device.h
-@@ -37,6 +37,8 @@ extern int platform_add_devices(struct p
- 
- extern struct platform_device *platform_device_register_simple(const char *, int id,
- 					struct resource *, unsigned int);
-+extern struct platform_device *platform_device_register_data(struct device *,
-+		const char *, int, const void *, size_t);
- 
- extern struct platform_device *platform_device_alloc(const char *name, int id);
- extern int platform_device_add_resources(struct platform_device *pdev, struct resource *res, unsigned int num);
+ clean:
+ 	status = -ENODEV;
+ 	iounmap(iobase);
 _
 
-Patches currently in -mm which might be from dbaryshkov@gmail.com are
+Patches currently in -mm which might be from brunel@diku.dk are
 
-fbdev-fix-recursive-notifier-and-locking-when-fbdev-console-is-blanked.patch
-git-arm.patch
 git-sound.patch
-git-mmc.patch
-git-battery.patch
-git-mfd.patch
-make-gpiochip-label-const.patch
-gpio-max7301-fix-the-race-between-chip-addition-and-pins-reconfiguration.patch
+git-gfs2.patch
+git-ubifs.patch
+checkpatch-suppress-errors-triggered-by-short-patch.patch
+fs-reiserfs-use-an-is_err-test-rather-than-a-null-test.patch
 
