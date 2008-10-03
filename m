@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-export-busy-state-via-q-lld_busy_fn.patch added to -mm tree
-Date: Thu, 02 Oct 2008 17:33:29 -0700
-Message-ID: <200810030033.m930XTDr002444@imap1.linux-foundation.org>
+Subject: + omap-drivers-switch-to-standard-gpio-calls.patch added to -mm tree
+Date: Thu, 02 Oct 2008 17:34:37 -0700
+Message-ID: <200810030034.m930YbhC002460@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53193 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47229 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753727AbYJCAdq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 20:33:46 -0400
+	by vger.kernel.org with ESMTP id S1753774AbYJCAe4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 20:34:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: k-ueda@ct.jp.nec.com, James.Bottomley@HansenPartnership.com, j-nomura@ce.jp.nec.com, jens.axboe@oracle.com
+Cc: dbrownell@users.sourceforge.net, adaplas@gmail.com, dmitry.torokhov@gmail.com, dwmw2@infradead.org, tony@atomide.com
 
 
 The patch titled
-     scsi: export busy state via q->lld_busy_fn()
+     omap drivers: switch to standard GPIO calls
 has been added to the -mm tree.  Its filename is
-     scsi-export-busy-state-via-q-lld_busy_fn.patch
+     omap-drivers-switch-to-standard-gpio-calls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,154 +33,452 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: export busy state via q->lld_busy_fn()
-From: Kiyoshi Ueda <k-ueda@ct.jp.nec.com>
+Subject: omap drivers: switch to standard GPIO calls
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-This patch implements q->lld_busy_fn() for scsi mid layer to export its
-busy state.
+This updates most of the OMAP drivers which are in mainline to switch to
+using the cross-platform GPIO calls instead of the older OMAP-specific
+ones.
 
-Please note that it checks the cached information (sdev->lld_busy) for
-efficiency, instead of checking the actual state of sdev/starget/shost
-everytime.
+This is all fairly brainless/obvious stuff.  Probably the most interesting
+bit is to observe that the omap-keypad code seems to now have a portable
+core that could work with non-OMAP matrix keypads.  (That would improve
+with hardware IRQ debouncing enabled, of course...)
 
-So the care must be taken not to leave sdev->lld_busy = 1 for
-the following cases:
-    - when there is no request in the sdev queue
-    - when scsi can't dispatch I/Os anymore and needs to kill I/Os
-Otherwise, request stacking drivers may not submit any request,
-and then, nobody sets back lld_busy = 0 and that causes deadlock.
-
-OTOH, it has no major problem in setting sdev->lld_busy = 0 even when
-the starget/shost is actually busy, because newly submitted request
-will soon turn it to 1 in scsi_request_fn().
-
-Signed-off-by: Kiyoshi Ueda <k-ueda@ct.jp.nec.com>
-Signed-off-by: Jun'ichi Nomura <j-nomura@ce.jp.nec.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Antonino Daplas <adaplas@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi.c        |    4 ++--
- drivers/scsi/scsi_lib.c    |   20 +++++++++++++++++++-
- include/scsi/scsi_device.h |   13 +++++++++++++
- 3 files changed, 34 insertions(+), 3 deletions(-)
+ drivers/input/keyboard/omap-keypad.c |   27 +++---
+ drivers/mtd/nand/ams-delta.c         |    4 -
+ drivers/video/omap/lcd_inn1610.c     |   22 ++---
+ drivers/video/omap/lcd_osk.c         |   10 +-
+ drivers/video/omap/lcd_sx1.c         |   99 +++++++++++--------------
+ 5 files changed, 75 insertions(+), 87 deletions(-)
 
-diff -puN drivers/scsi/scsi.c~scsi-export-busy-state-via-q-lld_busy_fn drivers/scsi/scsi.c
---- a/drivers/scsi/scsi.c~scsi-export-busy-state-via-q-lld_busy_fn
-+++ a/drivers/scsi/scsi.c
-@@ -804,8 +804,6 @@ void scsi_finish_command(struct scsi_cmn
- 	struct scsi_driver *drv;
- 	unsigned int good_bytes;
- 
--	scsi_device_unbusy(sdev);
--
-         /*
-          * Clear the flags which say that the device/host is no longer
-          * capable of accepting new commands.  These are set in scsi_queue.c
-@@ -817,6 +815,8 @@ void scsi_finish_command(struct scsi_cmn
-         shost->host_blocked = 0;
-         sdev->device_blocked = 0;
- 
-+	scsi_device_unbusy(sdev);
+diff -puN drivers/input/keyboard/omap-keypad.c~omap-drivers-switch-to-standard-gpio-calls drivers/input/keyboard/omap-keypad.c
+--- a/drivers/input/keyboard/omap-keypad.c~omap-drivers-switch-to-standard-gpio-calls
++++ a/drivers/input/keyboard/omap-keypad.c
+@@ -72,12 +72,9 @@ static unsigned int *col_gpios;
+ static void set_col_gpio_val(struct omap_kp *omap_kp, u8 value)
+ {
+ 	int col;
+-	for (col = 0; col < omap_kp->cols; col++) {
+-		if (value & (1 << col))
+-			omap_set_gpio_dataout(col_gpios[col], 1);
+-		else
+-			omap_set_gpio_dataout(col_gpios[col], 0);
+-	}
 +
- 	/*
- 	 * If we have valid sense information, then some kind of recovery
- 	 * must have taken place.  Make a note of this.
-diff -puN drivers/scsi/scsi_lib.c~scsi-export-busy-state-via-q-lld_busy_fn drivers/scsi/scsi_lib.c
---- a/drivers/scsi/scsi_lib.c~scsi-export-busy-state-via-q-lld_busy_fn
-+++ a/drivers/scsi/scsi_lib.c
-@@ -470,6 +470,8 @@ void scsi_device_unbusy(struct scsi_devi
- 	spin_unlock(shost->host_lock);
- 	spin_lock(sdev->request_queue->queue_lock);
- 	sdev->device_busy--;
-+	if (sdev->device_busy < sdev->queue_depth && !sdev->device_blocked)
-+		sdev->lld_busy = 0;
- 	spin_unlock_irqrestore(sdev->request_queue->queue_lock, flags);
++	for (col = 0; col < omap_kp->cols; col++)
++		gpio_set_value(col_gpios[col], value & (1 << col));
  }
  
-@@ -1463,6 +1465,13 @@ static void scsi_softirq_done(struct req
+ static u8 get_row_gpio_val(struct omap_kp *omap_kp)
+@@ -86,7 +83,7 @@ static u8 get_row_gpio_val(struct omap_k
+ 	u8 value = 0;
+ 
+ 	for (row = 0; row < omap_kp->rows; row++) {
+-		if (omap_get_gpio_datain(row_gpios[row]))
++		if (gpio_get_value(row_gpios[row]))
+ 			value |= (1 << row);
  	}
+ 	return value;
+@@ -333,23 +330,23 @@ static int __init omap_kp_probe(struct p
+ 	if (cpu_is_omap24xx()) {
+ 		/* Cols: outputs */
+ 		for (col_idx = 0; col_idx < omap_kp->cols; col_idx++) {
+-			if (omap_request_gpio(col_gpios[col_idx]) < 0) {
++			if (gpio_request(col_gpios[col_idx], "omap_kp_col") < 0) {
+ 				printk(KERN_ERR "Failed to request"
+ 				       "GPIO%d for keypad\n",
+ 				       col_gpios[col_idx]);
+ 				goto err1;
+ 			}
+-			omap_set_gpio_direction(col_gpios[col_idx], 0);
++			gpio_direction_output(col_gpios[col_idx], 0);
+ 		}
+ 		/* Rows: inputs */
+ 		for (row_idx = 0; row_idx < omap_kp->rows; row_idx++) {
+-			if (omap_request_gpio(row_gpios[row_idx]) < 0) {
++			if (gpio_request(row_gpios[row_idx], "omap_kp_row") < 0) {
+ 				printk(KERN_ERR "Failed to request"
+ 				       "GPIO%d for keypad\n",
+ 				       row_gpios[row_idx]);
+ 				goto err2;
+ 			}
+-			omap_set_gpio_direction(row_gpios[row_idx], 1);
++			gpio_direction_input(row_gpios[row_idx]);
+ 		}
+ 	} else {
+ 		col_idx = 0;
+@@ -418,10 +415,10 @@ err3:
+ 	device_remove_file(&pdev->dev, &dev_attr_enable);
+ err2:
+ 	for (i = row_idx - 1; i >=0; i--)
+-		omap_free_gpio(row_gpios[i]);
++		gpio_free(row_gpios[i]);
+ err1:
+ 	for (i = col_idx - 1; i >=0; i--)
+-		omap_free_gpio(col_gpios[i]);
++		gpio_free(col_gpios[i]);
+ 
+ 	kfree(omap_kp);
+ 	input_free_device(input_dev);
+@@ -438,9 +435,9 @@ static int omap_kp_remove(struct platfor
+ 	if (cpu_is_omap24xx()) {
+ 		int i;
+ 		for (i = 0; i < omap_kp->cols; i++)
+-			omap_free_gpio(col_gpios[i]);
++			gpio_free(col_gpios[i]);
+ 		for (i = 0; i < omap_kp->rows; i++) {
+-			omap_free_gpio(row_gpios[i]);
++			gpio_free(row_gpios[i]);
+ 			free_irq(OMAP_GPIO_IRQ(row_gpios[i]), 0);
+ 		}
+ 	} else {
+diff -puN drivers/mtd/nand/ams-delta.c~omap-drivers-switch-to-standard-gpio-calls drivers/mtd/nand/ams-delta.c
+--- a/drivers/mtd/nand/ams-delta.c~omap-drivers-switch-to-standard-gpio-calls
++++ a/drivers/mtd/nand/ams-delta.c
+@@ -145,7 +145,7 @@ static void ams_delta_hwcontrol(struct m
+ 
+ static int ams_delta_nand_ready(struct mtd_info *mtd)
+ {
+-	return omap_get_gpio_datain(AMS_DELTA_GPIO_PIN_NAND_RB);
++	return gpio_get_value(AMS_DELTA_GPIO_PIN_NAND_RB);
  }
  
-+static int scsi_lld_busy(struct request_queue *q)
-+{
-+	struct scsi_device *sdev = q->queuedata;
-+
-+	return sdev ? sdev->lld_busy : 0;
-+}
-+
  /*
-  * Function:    scsi_request_fn()
-  *
-@@ -1505,9 +1514,14 @@ static void scsi_request_fn(struct reque
- 		 * accept it.
- 		 */
- 		req = elv_next_request(q);
--		if (!req || !scsi_dev_queue_ready(q, sdev))
-+		if (!req)
- 			break;
+@@ -185,7 +185,7 @@ static int __init ams_delta_init(void)
+ 	this->read_buf = ams_delta_read_buf;
+ 	this->verify_buf = ams_delta_verify_buf;
+ 	this->cmd_ctrl = ams_delta_hwcontrol;
+-	if (!omap_request_gpio(AMS_DELTA_GPIO_PIN_NAND_RB)) {
++	if (gpio_request(AMS_DELTA_GPIO_PIN_NAND_RB, "nand_rdy") == 0) {
+ 		this->dev_ready = ams_delta_nand_ready;
+ 	} else {
+ 		this->dev_ready = NULL;
+diff -puN drivers/video/omap/lcd_inn1610.c~omap-drivers-switch-to-standard-gpio-calls drivers/video/omap/lcd_inn1610.c
+--- a/drivers/video/omap/lcd_inn1610.c~omap-drivers-switch-to-standard-gpio-calls
++++ a/drivers/video/omap/lcd_inn1610.c
+@@ -32,43 +32,43 @@ static int innovator1610_panel_init(stru
+ {
+ 	int r = 0;
  
-+		if (!scsi_dev_queue_ready(q, sdev)) {
-+			sdev->lld_busy = 1;
-+			break;
-+		}
-+
- 		if (unlikely(!scsi_device_online(sdev))) {
- 			sdev_printk(KERN_ERR, sdev,
- 				    "rejecting I/O to offline device\n");
-@@ -1578,6 +1592,8 @@ static void scsi_request_fn(struct reque
- 		rtn = scsi_dispatch_cmd(cmd);
- 		spin_lock_irq(q->queue_lock);
- 		if(rtn) {
-+			sdev->lld_busy = 1;
-+
- 			/* we're refusing the command; because of
- 			 * the way locks get dropped, we need to 
- 			 * check here if plugging is required */
-@@ -1602,6 +1618,7 @@ static void scsi_request_fn(struct reque
- 	 * later time.
- 	 */
- 	spin_lock_irq(q->queue_lock);
-+	sdev->lld_busy = 1;
- 	blk_requeue_request(q, req);
- 	sdev->device_busy--;
- 	if(sdev->device_busy == 0)
-@@ -1685,6 +1702,7 @@ struct request_queue *scsi_alloc_queue(s
- 	blk_queue_prep_rq(q, scsi_prep_fn);
- 	blk_queue_softirq_done(q, scsi_softirq_done);
- 	blk_queue_rq_timed_out(q, scsi_times_out);
-+	blk_queue_lld_busy(q, scsi_lld_busy);
- 	return q;
+-	if (omap_request_gpio(14)) {
++	if (gpio_request(14, "lcd_en0")) {
+ 		pr_err(MODULE_NAME ": can't request GPIO 14\n");
+ 		r = -1;
+ 		goto exit;
+ 	}
+-	if (omap_request_gpio(15)) {
++	if (gpio_request(15, "lcd_en1")) {
+ 		pr_err(MODULE_NAME ": can't request GPIO 15\n");
+-		omap_free_gpio(14);
++		gpio_free(14);
+ 		r = -1;
+ 		goto exit;
+ 	}
+ 	/* configure GPIO(14, 15) as outputs */
+-	omap_set_gpio_direction(14, 0);
+-	omap_set_gpio_direction(15, 0);
++	gpio_direction_output(14, 0);
++	gpio_direction_output(15, 0);
+ exit:
+ 	return r;
  }
  
-diff -puN include/scsi/scsi_device.h~scsi-export-busy-state-via-q-lld_busy_fn include/scsi/scsi_device.h
---- a/include/scsi/scsi_device.h~scsi-export-busy-state-via-q-lld_busy_fn
-+++ a/include/scsi/scsi_device.h
-@@ -145,6 +145,19 @@ struct scsi_device {
- 	unsigned retry_hwerror:1;	/* Retry HARDWARE_ERROR */
- 	unsigned last_sector_bug:1;	/* do not use multisector accesses on
- 					   SD_LAST_BUGGY_SECTORS */
-+	unsigned lld_busy:1;		/* Exporting busy state for stacking
-+					 * drivers.
-+					 *
-+					 * 1 - There is one or more requests
-+					 *     in the device's queue,
-+					 *     and the device (or target/host)
-+					 *     can not dispatch any request
-+					 *     immediately.
-+					 * 0 - The device can dispatch
-+					 *     (or kill) requests immediately,
-+					 *     or there is no request in
-+					 *     the device's queue even though
-+					 *     target/host may busy. */
+ static void innovator1610_panel_cleanup(struct lcd_panel *panel)
+ {
+-	omap_free_gpio(15);
+-	omap_free_gpio(14);
++	gpio_free(15);
++	gpio_free(14);
+ }
  
- 	DECLARE_BITMAP(supported_events, SDEV_EVT_MAXBITS); /* supported events */
- 	struct list_head event_list;	/* asserted events */
+ static int innovator1610_panel_enable(struct lcd_panel *panel)
+ {
+ 	/* set GPIO14 and GPIO15 high */
+-	omap_set_gpio_dataout(14, 1);
+-	omap_set_gpio_dataout(15, 1);
++	gpio_set_value(14, 1);
++	gpio_set_value(15, 1);
+ 	return 0;
+ }
+ 
+ static void innovator1610_panel_disable(struct lcd_panel *panel)
+ {
+ 	/* set GPIO13, GPIO14 and GPIO15 low */
+-	omap_set_gpio_dataout(14, 0);
+-	omap_set_gpio_dataout(15, 0);
++	gpio_set_value(14, 0);
++	gpio_set_value(15, 0);
+ }
+ 
+ static unsigned long innovator1610_panel_get_caps(struct lcd_panel *panel)
+diff -puN drivers/video/omap/lcd_osk.c~omap-drivers-switch-to-standard-gpio-calls drivers/video/omap/lcd_osk.c
+--- a/drivers/video/omap/lcd_osk.c~omap-drivers-switch-to-standard-gpio-calls
++++ a/drivers/video/omap/lcd_osk.c
+@@ -29,6 +29,7 @@
+ 
+ static int osk_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
+ {
++	/* gpio2 was allocated in board init */
+ 	return 0;
+ }
+ 
+@@ -47,11 +48,8 @@ static int osk_panel_enable(struct lcd_p
+ 	/* Set PWL level */
+ 	omap_writeb(0xFF, OMAP_PWL_ENABLE);
+ 
+-	/* configure GPIO2 as output */
+-	omap_set_gpio_direction(2, 0);
+-
+-	/* set GPIO2 high */
+-	omap_set_gpio_dataout(2, 1);
++	/* set GPIO2 high (lcd power enabled) */
++	gpio_set_value(2, 1);
+ 
+ 	return 0;
+ }
+@@ -65,7 +63,7 @@ static void osk_panel_disable(struct lcd
+ 	omap_writeb(0x00, OMAP_PWL_CLK_ENABLE);
+ 
+ 	/* set GPIO2 low */
+-	omap_set_gpio_dataout(2, 0);
++	gpio_set_value(2, 0);
+ }
+ 
+ static unsigned long osk_panel_get_caps(struct lcd_panel *panel)
+diff -puN drivers/video/omap/lcd_sx1.c~omap-drivers-switch-to-standard-gpio-calls drivers/video/omap/lcd_sx1.c
+--- a/drivers/video/omap/lcd_sx1.c~omap-drivers-switch-to-standard-gpio-calls
++++ a/drivers/video/omap/lcd_sx1.c
+@@ -81,21 +81,21 @@ static void epson_sendbyte(int flag, uns
+ 	int i, shifter = 0x80;
+ 
+ 	if (!flag)
+-		omap_set_gpio_dataout(_A_LCD_SSC_A0, 0);
++		gpio_set_value(_A_LCD_SSC_A0, 0);
+ 	mdelay(2);
+-	omap_set_gpio_dataout(A_LCD_SSC_RD, 1);
++	gpio_set_value(A_LCD_SSC_RD, 1);
+ 
+-	omap_set_gpio_dataout(A_LCD_SSC_SD, flag);
++	gpio_set_value(A_LCD_SSC_SD, flag);
+ 
+ 	OMAP_MCBSP_WRITE(OMAP1510_MCBSP3_BASE, PCR0, 0x2200);
+ 	OMAP_MCBSP_WRITE(OMAP1510_MCBSP3_BASE, PCR0, 0x2202);
+ 	for (i = 0; i < 8; i++) {
+ 		OMAP_MCBSP_WRITE(OMAP1510_MCBSP3_BASE, PCR0, 0x2200);
+-		omap_set_gpio_dataout(A_LCD_SSC_SD, shifter & byte);
++		gpio_set_value(A_LCD_SSC_SD, shifter & byte);
+ 		OMAP_MCBSP_WRITE(OMAP1510_MCBSP3_BASE, PCR0, 0x2202);
+ 		shifter >>= 1;
+ 	}
+-	omap_set_gpio_dataout(_A_LCD_SSC_A0, 1);
++	gpio_set_value(_A_LCD_SSC_A0, 1);
+ }
+ 
+ static void init_system(void)
+@@ -107,25 +107,18 @@ static void init_system(void)
+ static void setup_GPIO(void)
+ {
+ 	/* new wave */
+-	omap_request_gpio(A_LCD_SSC_RD);
+-	omap_request_gpio(A_LCD_SSC_SD);
+-	omap_request_gpio(_A_LCD_RESET);
+-	omap_request_gpio(_A_LCD_SSC_CS);
+-	omap_request_gpio(_A_LCD_SSC_A0);
+-
+-	/* set all GPIOs to output */
+-	omap_set_gpio_direction(A_LCD_SSC_RD, 0);
+-	omap_set_gpio_direction(A_LCD_SSC_SD, 0);
+-	omap_set_gpio_direction(_A_LCD_RESET, 0);
+-	omap_set_gpio_direction(_A_LCD_SSC_CS, 0);
+-	omap_set_gpio_direction(_A_LCD_SSC_A0, 0);
+-
+-	/* set GPIO data */
+-	omap_set_gpio_dataout(A_LCD_SSC_RD, 1);
+-	omap_set_gpio_dataout(A_LCD_SSC_SD, 0);
+-	omap_set_gpio_dataout(_A_LCD_RESET, 0);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
+-	omap_set_gpio_dataout(_A_LCD_SSC_A0, 1);
++	gpio_request(A_LCD_SSC_RD, "lcd_ssc_rd");
++	gpio_request(A_LCD_SSC_SD, "lcd_ssc_sd");
++	gpio_request(_A_LCD_RESET, "lcd_reset");
++	gpio_request(_A_LCD_SSC_CS, "lcd_ssc_cs");
++	gpio_request(_A_LCD_SSC_A0, "lcd_ssc_a0");
++
++	/* set GPIOs to output, with initial data */
++	gpio_direction_output(A_LCD_SSC_RD, 1);
++	gpio_direction_output(A_LCD_SSC_SD, 0);
++	gpio_direction_output(_A_LCD_RESET, 0);
++	gpio_direction_output(_A_LCD_SSC_CS, 1);
++	gpio_direction_output(_A_LCD_SSC_A0, 1);
+ }
+ 
+ static void display_init(void)
+@@ -139,61 +132,61 @@ static void display_init(void)
+ 	mdelay(2);
+ 
+ 	/* reset LCD */
+-	omap_set_gpio_dataout(A_LCD_SSC_SD, 1);
++	gpio_set_value(A_LCD_SSC_SD, 1);
+ 	epson_sendbyte(0, 0x25);
+ 
+-	omap_set_gpio_dataout(_A_LCD_RESET, 0);
++	gpio_set_value(_A_LCD_RESET, 0);
+ 	mdelay(10);
+-	omap_set_gpio_dataout(_A_LCD_RESET, 1);
++	gpio_set_value(_A_LCD_RESET, 1);
+ 
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
+ 	mdelay(2);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	/* init LCD, phase 1 */
+ 	epson_sendbyte(0, 0xCA);
+ 	for (i = 0; i < 10; i++)
+ 		epson_sendbyte(1, INIT_1[i]);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	/* init LCD phase 2 */
+ 	epson_sendbyte(0, 0xCB);
+ 	for (i = 0; i < 125; i++)
+ 		epson_sendbyte(1, INIT_2[i]);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	/* init LCD phase 2a */
+ 	epson_sendbyte(0, 0xCC);
+ 	for (i = 0; i < 14; i++)
+ 		epson_sendbyte(1, INIT_3[i]);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	/* init LCD phase 3 */
+ 	epson_sendbyte(0, 0xBC);
+ 	epson_sendbyte(1, 0x08);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	/* init LCD phase 4 */
+ 	epson_sendbyte(0, 0x07);
+ 	epson_sendbyte(1, 0x05);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	/* init LCD phase 5 */
+ 	epson_sendbyte(0, 0x94);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	/* init LCD phase 6 */
+ 	epson_sendbyte(0, 0xC6);
+ 	epson_sendbyte(1, 0x80);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
+ 	mdelay(100); /* used to be 1000 */
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	/* init LCD phase 7 */
+ 	epson_sendbyte(0, 0x16);
+@@ -201,8 +194,8 @@ static void display_init(void)
+ 	epson_sendbyte(1, 0x00);
+ 	epson_sendbyte(1, 0xB1);
+ 	epson_sendbyte(1, 0x00);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	/* init LCD phase 8 */
+ 	epson_sendbyte(0, 0x76);
+@@ -210,12 +203,12 @@ static void display_init(void)
+ 	epson_sendbyte(1, 0x00);
+ 	epson_sendbyte(1, 0xDB);
+ 	epson_sendbyte(1, 0x00);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	/* init LCD phase 9 */
+ 	epson_sendbyte(0, 0xAF);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
+ }
+ 
+ static int sx1_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
+@@ -231,18 +224,18 @@ static void sx1_panel_disable(struct lcd
+ {
+ 	printk(KERN_INFO "SX1: LCD panel disable\n");
+ 	sx1_setmmipower(0);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
+ 
+ 	epson_sendbyte(0, 0x25);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	epson_sendbyte(0, 0xAE);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
+ 	mdelay(100);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	epson_sendbyte(0, 0x95);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
+ }
+ 
+ static int sx1_panel_enable(struct lcd_panel *panel)
 _
 
-Patches currently in -mm which might be from k-ueda@ct.jp.nec.com are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
-git-block.patch
-scsi-export-busy-state-via-q-lld_busy_fn.patch
+rtc-fix-kernel-panic-on-second-use-of-sigio-nofitication.patch
+orion_spi-fix-handling-of-default-transfer-speed.patch
+git-arm.patch
+git-avr32.patch
+git-x86.patch
+git-mtd.patch
+acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry.patch
+spi-simplify-spi_write_then_read.patch
+spi_s3c24xx-pin-configuration-updates.patch
+pxa2xx_spi-minor-cleanup.patch
+pxa2xx_spi-fix-chip_info-defaults-and-documentation.patch
+orion_spi-handle-88f6183-erratum.patch
+spi-core-and-gpio-expanders-use-subsys_init.patch
+rtc-ds1307-alarm-support-for-ds1337-ds1339.patch
+rtc-remove-some-nop-open-release-methods.patch
+legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
+rtc-file-close-consistently-disables-repeating-irqs.patch
+rtc-cmos-strongly-avoid-hpet-emulation.patch
+rtc-cmos-export-second-nvram-bank.patch
+make-gpiochip-label-const.patch
+gpio-i2c-expanders-use-subsys_init.patch
+gpiolib-gpio_to_irq-hooks.patch
+omap-drivers-switch-to-standard-gpio-calls.patch
 
