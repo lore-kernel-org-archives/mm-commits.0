@@ -1,200 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch removed from -mm tree
-Date: Fri, 03 Oct 2008 14:18:26 -0700
-Message-ID: <200810032118.m93LIQ5v016253@imap1.linux-foundation.org>
+Subject: - ext4-fix-11321-create-proc-ext4-stats-et-al-more-carefully.patch removed from -mm tree
+Date: Fri, 03 Oct 2008 14:20:42 -0700
+Message-ID: <200810032120.m93LKg9G016320@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35420 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49669 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752593AbYJCVTg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 17:19:36 -0400
+	by vger.kernel.org with ESMTP id S1752110AbYJCVVq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 17:21:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, hare@suse.de, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, adilger@sun.com, ralf.hildebrandt@charite.de, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/scsi/device_handler/scsi_dh_emc.c: suppress warning
+     ext4: create /proc/ext4/*/stats et al more carefully
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
+     ext4-fix-11321-create-proc-ext4-stats-et-al-more-carefully.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because that file no longer has a bdevname call in it
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/device_handler/scsi_dh_emc.c: suppress warning
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ext4: create /proc/ext4/*/stats et al more carefully
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-s390:
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=11321
 
-drivers/scsi/device_handler/scsi_dh_emc.c: In function 'parse_sp_info_reply':
-drivers/scsi/device_handler/scsi_dh_emc.c:179: warning: comparison is always false due to limited range of data type
+ext4 creates per-suberblock directory in /proc/ext4/ .  Name used as basis
+is taken from bdevname, which, surprise, can contain slash.
 
-because chars are unsigned, I assume.
+However, proc while allowing to use proc_create("a/b", parent) form of
+PDE creation, assumes that parent/a was already created.
 
-Cc: Hannes Reinecke <hare@suse.de>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+bdevname in question is 'cciss/c0d0p9', directory is not created and all
+this stuff goes directly into /proc (which is real bug).
+
+Warning comes when _second_ partition is mounted.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Reported-by: Ralf Hildebrandt <ralf.hildebrandt@charite.de>
+Tested-by: Ralf Hildebrandt <ralf.hildebrandt@charite.de>
+Cc: Andreas Dilger <adilger@sun.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/device_handler/scsi_dh_emc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext4/mballoc.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/scsi/device_handler/scsi_dh_emc.c~drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning drivers/scsi/device_handler/scsi_dh_emc.c
---- a/drivers/scsi/device_handler/scsi_dh_emc.c~drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning
-+++ a/drivers/scsi/device_handler/scsi_dh_emc.c
-@@ -176,7 +176,7 @@ static int parse_sp_info_reply(struct sc
- 		err = SCSI_DH_DEV_TEMP_BUSY;
- 		goto out;
+diff -puN fs/ext4/mballoc.c~ext4-fix-11321-create-proc-ext4-stats-et-al-more-carefully fs/ext4/mballoc.c
+--- a/fs/ext4/mballoc.c~ext4-fix-11321-create-proc-ext4-stats-et-al-more-carefully
++++ a/fs/ext4/mballoc.c
+@@ -2792,6 +2792,15 @@ static int ext4_mb_init_per_dev_proc(str
+ 		return -EINVAL;
  	}
--	if (csdev->buffer[4] < 0 || csdev->buffer[4] > 2) {
-+	if (csdev->buffer[4] & ~3) {
- 		/* Invalid buffer format */
- 		sdev_printk(KERN_NOTICE, sdev,
- 			    "%s: invalid VPD page 0xC0 format\n",
+ 	bdevname(sb->s_bdev, devname);
++	{
++		char *p = devname;
++
++		while (*p != '\0') {
++			if (*p == '/')
++				*p = '!';
++			p++;
++		}
++	}
+ 	sbi->s_mb_proc = proc_mkdir(devname, proc_root_ext4);
+ 
+ 	MB_PROC_HANDLER(EXT4_MB_STATS_NAME, stats);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-origin.patch
-include-linux-stacktraceh-declare-struct-task_struct.patch
-git-powerpc.patch
-git-sparc.patch
 git-x86.patch
-git-x86-git-rejects.patch
-git-xtensa.patch
-git-ftrace.patch
-git-sched.patch
-git-sched-rejects.patch
-git-stackprotector-rejects.patch
-git-timers-fix-printk-errors-clean-up.patch
-git-pci.patch
-git-hid.patch
-git-v4l-dvb.patch
-git-v4l-dvb-git-rejects.patch
-git-acpi-git-rejects.patch
-git-nfsd.patch
-git-dlm.patch
-git-scsi.patch
+git-xfs.patch
 git-ext4.patch
-git-ext4-vs-git-ocfs2.patch
-git-async_tx.patch
 git-net.patch
 git-mtd.patch
-git-vfs-vs-git-ext4.patch
-git-sound.patch
-git-sound-vs-git-arm.patch
-git-input.patch
-git-block.patch
-git-block-reject-fix.patch
-git-pcmcia-git-rejects.patch
-git-battery.patch
-git-battery-rejects.patch
-git-md-rejects.patch
-git-mfd.patch
-git-drm.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-drivers-media-video-tda9840c-unbreak.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
-misdn-misc-timerdev-fixes-fix.patch
-drivers-net-sfc-falconc-fix-min-warnings.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
-drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry.patch
-drivers-media-video-cafe_ccicc-needs-mmh.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-eeepc-laptop-use-standard-interfaces-fix-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
-make-taint-bit-reliable-v3-fix.patch
-kernel-sysc-improve-code-generation.patch
-cpualloc-make-the-per-cpu-reserve-configurable-fix.patch
-cpualloc-use-cpu-allocator-instead-of-the-builtin-modules-per-cpu-allocator-checkpatch-fixes.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-drivers-hwmon-applesmcc-remove-unneeded-casts.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
-serial-make-uart_ports-ioport-unsigned-long-fix.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanups.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
-ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-tty-fix-echo-tab-erase-and-locking-fix.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-new-driver-ds2431-chip-fix.patch
-gru-driver-minor-updates-fix.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+git-vfs.patch
+tags-skip-in-filenames.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+ext4-fix-11321-create-proc-ext4-stats-et-al-more-carefully.patch
+cpuset-use-seq_cpumask-seq_nodemask.patch
+compat_binfmt_elf-definition-tweak.patch
+proc-move-sysrq-trigger-out-of-fs-proc.patch
+proc-fix-return-value-of-proc_reg_open-in-too-late-case.patch
+proc-proc_sys_root-tweak.patch
+proc-remove-dummy-vmcore_open.patch
+proc-remove-unused-get_dma_list.patch
+sysctl-simplify-strategy.patch
+fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out.patch
+fs-kconfig-move-cifs-out.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+likely_prof-changed-to-use-proc_create.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
 
