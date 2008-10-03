@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-reject-fix.patch added to -mm tree
-Date: Fri, 03 Oct 2008 13:14:34 -0700
-Message-ID: <200810032014.m93KEYAl013709@imap1.linux-foundation.org>
+Subject: + git-battery-rejects.patch added to -mm tree
+Date: Fri, 03 Oct 2008 13:30:03 -0700
+Message-ID: <200810032030.m93KU3lh014375@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58938 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37762 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752344AbYJCUPG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 16:15:06 -0400
+	by vger.kernel.org with ESMTP id S1752534AbYJCUad (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 16:30:33 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m93KEYno005217
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m93KU3Ao006416
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 3 Oct 2008 13:14:35 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 3 Oct 2008 13:30:04 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +19,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-block-reject-fix
+     git-battery-rejects
 has been added to the -mm tree.  Its filename is
-     git-block-reject-fix.patch
+     git-battery-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,26 +37,26 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-block-reject-fix
+Subject: git-battery-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/power/Makefile |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/fs.h~git-block-reject-fix include/linux/fs.h
---- a/include/linux/fs.h~git-block-reject-fix
-+++ a/include/linux/fs.h
-@@ -225,6 +225,7 @@ extern int dir_notify_enable;
- #define BLKTRACESTOP _IO(0x12,117)
- #define BLKTRACETEARDOWN _IO(0x12,118)
- #define BLKDUMPUSEDBUFFERS _IO(0x12,119)
-+#define BLKDISCARD _IO(0x12,120)
- 
- #define BMAP_IOCTL 1		/* obsolete - kept for compatibility */
- #define FIBMAP	   _IO(0x00,1)	/* bmap access */
+diff -puN drivers/power/Makefile~git-battery-rejects drivers/power/Makefile
+--- a/drivers/power/Makefile~git-battery-rejects
++++ a/drivers/power/Makefile
+@@ -21,4 +21,5 @@ obj-$(CONFIG_BATTERY_DS2760)	+= ds2760_b
+ obj-$(CONFIG_BATTERY_PMU)	+= pmu_battery.o
+ obj-$(CONFIG_BATTERY_OLPC)	+= olpc_battery.o
+ obj-$(CONFIG_BATTERY_TOSA)	+= tosa_battery.o
+-obj-$(CONFIG_BATTERY_WM97XX)	+= wm97xx_battery.o
+\ No newline at end of file
++obj-$(CONFIG_BATTERY_WM97XX)	+= wm97xx_battery.o
++obj-$(CONFIG_BATTERY_BQ27x00)	+= bq27x00_battery.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,6 +94,7 @@ git-block.patch
 git-block-reject-fix.patch
 git-pcmcia-git-rejects.patch
 git-battery.patch
+git-battery-rejects.patch
 git-kmemcheck.patch
 git-mfd.patch
 git-drm.patch
