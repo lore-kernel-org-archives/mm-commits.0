@@ -1,43 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + git-sound-vs-git-arm.patch added to -mm tree
-Date: Fri, 03 Oct 2008 13:05:43 -0700
-Message-ID: <200810032005.m93K5hqV013353@imap1.linux-foundation.org>
+Subject: - git-sound-rejects.patch removed from -mm tree
+Date: Fri, 03 Oct 2008 13:05:46 -0700
+Message-ID: <200810032005.m93K5kcu013356@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53708 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55028 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751952AbYJCUGP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 16:06:15 -0400
+	by vger.kernel.org with ESMTP id S1753175AbYJCUGS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 16:06:18 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m93K5huf004609
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m93K5lex004620
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 3 Oct 2008 13:05:44 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 3 Oct 2008 13:05:48 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-sound-vs-git-arm
-has been added to the -mm tree.  Its filename is
-     git-sound-vs-git-arm.patch
+     git-sound-rejects
+has been removed from the -mm tree.  Its filename was
+     git-sound-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-sound-vs-git-arm
+Subject: git-sound-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -46,8 +36,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  sound/soc/pxa/pxa2xx-ac97.c |    7 ++-----
  1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN sound/soc/pxa/pxa2xx-ac97.c~git-sound-vs-git-arm sound/soc/pxa/pxa2xx-ac97.c
---- a/sound/soc/pxa/pxa2xx-ac97.c~git-sound-vs-git-arm
+diff -puN sound/soc/pxa/pxa2xx-ac97.c~git-sound-rejects sound/soc/pxa/pxa2xx-ac97.c
+--- a/sound/soc/pxa/pxa2xx-ac97.c~git-sound-rejects
 +++ a/sound/soc/pxa/pxa2xx-ac97.c
 @@ -90,16 +90,13 @@ static struct pxa2xx_pcm_dma_params pxa2
  static int pxa2xx_ac97_suspend(struct platform_device *pdev,
