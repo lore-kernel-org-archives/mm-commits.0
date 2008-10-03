@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hugepage-support-zero_page.patch added to -mm tree
-Date: Thu, 02 Oct 2008 17:13:46 -0700
-Message-ID: <200810030013.m930DlNx001704@imap1.linux-foundation.org>
+Subject: + coredump_filter-add-hugepage-dumping-v4.patch added to -mm tree
+Date: Thu, 02 Oct 2008 17:13:44 -0700
+Message-ID: <200810030013.m930DiMF001699@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35921 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42018 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753409AbYJCAOE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 20:14:04 -0400
+	by vger.kernel.org with ESMTP id S1753449AbYJCAOa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 20:14:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, agl@us.ibm.com, hidehiro.kawai.ez@hitachi.com, hugh@veritas.com, mel@skynet.ie
+Cc: kosaki.motohiro@jp.fujitsu.com, agl@us.ibm.com, hidehiro.kawai.ez@hitachi.com, hugh@veritas.com, wli@holomorphy.com
 
 
 The patch titled
-     hugepage: support ZERO_PAGE()
+     coredump_filter: add hugepage dumping
 has been added to the -mm tree.  Its filename is
-     hugepage-support-zero_page.patch
+     coredump_filter-add-hugepage-dumping-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,103 +33,204 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugepage: support ZERO_PAGE()
+Subject: coredump_filter: add hugepage dumping
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Presently hugepage doesn't use zero page at all because zero page is only
-used for coredumping and hugepage can't core dump.
+Presently hugepage's vma has a VM_RESERVED flag in order not to be
+swapped.  But a VM_RESERVED vma isn't core dumped because this flag is
+often used for some kernel vmas (e.g.  vmalloc, sound related).
 
-However we have now implemented hugepage coredumping.  Therefore we should
-implement the zero page of hugepage.
+Thus hugepages are never dumped and it can't be debugged easily.  Many
+developers want hugepages to be included into core-dump.
 
-Implementation note:
+However, We can't read generic VM_RESERVED area because this area is often
+IO mapping area.  then these area reading may change device state.  it is
+definitly undesiable side-effect.
 
-o Why do we only check VM_SHARED for zero page?
-  normal page checked as ..
+So adding a hugepage specific bit to the coredump filter is better.  It
+will be able to hugepage core dumping and doesn't cause any side-effect to
+any i/o devices.
 
-	static inline int use_zero_page(struct vm_area_struct *vma)
-	{
-	        if (vma->vm_flags & (VM_LOCKED | VM_SHARED))
-	                return 0;
+In additional, libhugetlb use hugetlb private mapping pages as anonymous
+page.  Then, hugepage private mapping pages should be core dumped by
+default.
 
-	        return !vma->vm_ops || !vma->vm_ops->fault;
+Then, /proc/[pid]/core_dump_filter has two new bits.
+
+ - bit 5 mean hugetlb private mapping pages are dumped or not. (default: yes)
+ - bit 6 mean hugetlb shared mapping pages are dumped or not.  (default: no)
+
+I tested by following method.
+
+% ulimit -c unlimited
+% ./crash_hugepage  50
+% ./crash_hugepage  50  -p
+% ls -lh
+% gdb ./crash_hugepage core
+%
+% echo 0x43 > /proc/self/coredump_filter
+% ./crash_hugepage  50
+% ./crash_hugepage  50  -p
+% ls -lh
+% gdb ./crash_hugepage core
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <string.h>
+
+#include "hugetlbfs.h"
+
+int main(int argc, char** argv){
+	char* p;
+	int ch;
+	int mmap_flags = MAP_SHARED;
+	int fd;
+	int nr_pages;
+
+	while((ch = getopt(argc, argv, "p")) != -1) {
+		switch (ch) {
+		case 'p':
+			mmap_flags &= ~MAP_SHARED;
+			mmap_flags |= MAP_PRIVATE;
+			break;
+		default:
+			/* nothing*/
+			break;
+		}
+	}
+	argc -= optind;
+	argv += optind;
+
+	if (argc == 0){
+		printf("need # of pages\n");
+		exit(1);
 	}
 
-First, hugepages are never mlock()ed.  We aren't concerned with VM_LOCKED.
+	nr_pages = atoi(argv[0]);
+	if (nr_pages < 2) {
+		printf("nr_pages must >2\n");
+		exit(1);
+	}
 
-Second, hugetlbfs is a pseudo filesystem, not a real filesystem and it
-doesn't have any file backing.  Thus ops->fault checking is meaningless.
+	fd = hugetlbfs_unlinked_fd();
+	p = mmap(NULL, nr_pages * gethugepagesize(),
+		 PROT_READ|PROT_WRITE, mmap_flags, fd, 0);
 
-o Why don't we use zero page if !pte.
+	sleep(2);
 
-!pte indicate {pud, pmd} doesn't exist or some error happened.  So we
-shouldn't return zero page if any error occurred.
+	*(p + gethugepagesize()) = 1; /* COW */
+	sleep(2);
+
+	/* crash! */
+	*(int*)0 = 1;
+
+	return 0;
+}
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Adam Litke <agl@us.ibm.com>
+Reviewed-by: Kawai Hidehiro <hidehiro.kawai.ez@hitachi.com>
 Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Kawai Hidehiro <hidehiro.kawai.ez@hitachi.com>
-Cc: Mel Gorman <mel@skynet.ie>
+Cc: William Irwin <wli@holomorphy.com>
+Cc: Adam Litke <agl@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   22 +++++++++++++++++++---
- 1 file changed, 19 insertions(+), 3 deletions(-)
+ Documentation/filesystems/proc.txt |   15 ++++++++++-----
+ fs/binfmt_elf.c                    |   12 ++++++++++--
+ include/linux/sched.h              |    7 +++++--
+ 3 files changed, 25 insertions(+), 9 deletions(-)
 
-diff -puN mm/hugetlb.c~hugepage-support-zero_page mm/hugetlb.c
---- a/mm/hugetlb.c~hugepage-support-zero_page
-+++ a/mm/hugetlb.c
-@@ -2071,6 +2071,14 @@ follow_huge_pud(struct mm_struct *mm, un
- 	return NULL;
- }
+diff -puN Documentation/filesystems/proc.txt~coredump_filter-add-hugepage-dumping-v4 Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~coredump_filter-add-hugepage-dumping-v4
++++ a/Documentation/filesystems/proc.txt
+@@ -2408,24 +2408,29 @@ will be dumped when the <pid> process is
+ of memory types. If a bit of the bitmask is set, memory segments of the
+ corresponding memory type are dumped, otherwise they are not dumped.
  
-+static int huge_zeropage_ok(pte_t *ptep, int write, int shared)
-+{
-+	if (!ptep || write || shared)
-+		return 0;
-+	else
-+		return huge_pte_none(huge_ptep_get(ptep));
-+}
+-The following 4 memory types are supported:
++The following 7 memory types are supported:
+   - (bit 0) anonymous private memory
+   - (bit 1) anonymous shared memory
+   - (bit 2) file-backed private memory
+   - (bit 3) file-backed shared memory
+   - (bit 4) ELF header pages in file-backed private memory areas (it is
+             effective only if the bit 2 is cleared)
++  - (bit 5) hugetlb private memory
++  - (bit 6) hugetlb shared memory
+ 
+   Note that MMIO pages such as frame buffer are never dumped and vDSO pages
+   are always dumped regardless of the bitmask status.
+ 
+-Default value of coredump_filter is 0x3; this means all anonymous memory
+-segments are dumped.
++  Note bit 0-4 doesn't effect any hugetlb memory. hugetlb memory are only
++  effected by bit 5-6.
 +
- int follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 			struct page **pages, struct vm_area_struct **vmas,
- 			unsigned long *position, int *length, int i,
-@@ -2080,6 +2088,8 @@ int follow_hugetlb_page(struct mm_struct
- 	unsigned long vaddr = *position;
- 	int remainder = *length;
- 	struct hstate *h = hstate_vma(vma);
-+	int zeropage_ok = 0;
-+	int shared = vma->vm_flags & VM_SHARED;
++Default value of coredump_filter is 0x23; this means all anonymous memory
++segments and hugetlb private memory are dumped.
  
- 	spin_lock(&mm->page_table_lock);
- 	while (vaddr < vma->vm_end && remainder) {
-@@ -2092,8 +2102,11 @@ int follow_hugetlb_page(struct mm_struct
- 		 * first, for the page indexing below to work.
- 		 */
- 		pte = huge_pte_offset(mm, vaddr & huge_page_mask(h));
-+		if (huge_zeropage_ok(pte, write, shared))
-+			zeropage_ok = 1;
+ If you don't want to dump all shared memory segments attached to pid 1234,
+-write 1 to the process's proc file.
++write 0x21 to the process's proc file.
  
--		if (!pte || huge_pte_none(huge_ptep_get(pte)) ||
-+		if (!pte ||
-+		    (huge_pte_none(huge_ptep_get(pte)) && !zeropage_ok) ||
- 		    (write && !pte_write(huge_ptep_get(pte)))) {
- 			int ret;
+-  $ echo 0x1 > /proc/1234/coredump_filter
++  $ echo 0x21 > /proc/1234/coredump_filter
  
-@@ -2113,8 +2126,11 @@ int follow_hugetlb_page(struct mm_struct
- 		page = pte_page(huge_ptep_get(pte));
- same_page:
- 		if (pages) {
--			get_page(page);
--			pages[i] = page + pfn_offset;
-+			if (zeropage_ok)
-+				pages[i] = ZERO_PAGE(0);
-+			else
-+				pages[i] = page + pfn_offset;
-+			get_page(pages[i]);
- 		}
+ When a new process is created, the process inherits the bitmask status from its
+ parent. It is useful to set up coredump_filter before the program runs.
+diff -puN fs/binfmt_elf.c~coredump_filter-add-hugepage-dumping-v4 fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~coredump_filter-add-hugepage-dumping-v4
++++ a/fs/binfmt_elf.c
+@@ -1156,16 +1156,24 @@ static int dump_seek(struct file *file, 
+ static unsigned long vma_dump_size(struct vm_area_struct *vma,
+ 				   unsigned long mm_flags)
+ {
++#define FILTER(type)	(mm_flags & (1UL << MMF_DUMP_##type))
++
+ 	/* The vma can be set up to tell us the answer directly.  */
+ 	if (vma->vm_flags & VM_ALWAYSDUMP)
+ 		goto whole;
  
- 		if (vmas)
++	/* Hugetlb memory check */
++	if (vma->vm_flags & VM_HUGETLB) {
++		if ((vma->vm_flags & VM_SHARED) && FILTER(HUGETLB_SHARED))
++			goto whole;
++		if (!(vma->vm_flags & VM_SHARED) && FILTER(HUGETLB_PRIVATE))
++			goto whole;
++	}
++
+ 	/* Do not dump I/O mapped devices or special mappings */
+ 	if (vma->vm_flags & (VM_IO | VM_RESERVED))
+ 		return 0;
+ 
+-#define FILTER(type)	(mm_flags & (1UL << MMF_DUMP_##type))
+-
+ 	/* By default, dump shared memory if mapped from an anonymous file. */
+ 	if (vma->vm_flags & VM_SHARED) {
+ 		if (vma->vm_file->f_path.dentry->d_inode->i_nlink == 0 ?
+diff -puN include/linux/sched.h~coredump_filter-add-hugepage-dumping-v4 include/linux/sched.h
+--- a/include/linux/sched.h~coredump_filter-add-hugepage-dumping-v4
++++ a/include/linux/sched.h
+@@ -403,12 +403,15 @@ extern int get_dumpable(struct mm_struct
+ #define MMF_DUMP_MAPPED_PRIVATE	4
+ #define MMF_DUMP_MAPPED_SHARED	5
+ #define MMF_DUMP_ELF_HEADERS	6
++#define MMF_DUMP_HUGETLB_PRIVATE 7
++#define MMF_DUMP_HUGETLB_SHARED  8
+ #define MMF_DUMP_FILTER_SHIFT	MMF_DUMPABLE_BITS
+-#define MMF_DUMP_FILTER_BITS	5
++#define MMF_DUMP_FILTER_BITS	7
+ #define MMF_DUMP_FILTER_MASK \
+ 	(((1 << MMF_DUMP_FILTER_BITS) - 1) << MMF_DUMP_FILTER_SHIFT)
+ #define MMF_DUMP_FILTER_DEFAULT \
+-	((1 << MMF_DUMP_ANON_PRIVATE) |	(1 << MMF_DUMP_ANON_SHARED))
++	((1 << MMF_DUMP_ANON_PRIVATE) |	(1 << MMF_DUMP_ANON_SHARED) |\
++	 (1 << MMF_DUMP_HUGETLB_PRIVATE))
+ 
+ struct sighand_struct {
+ 	atomic_t		count;
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
