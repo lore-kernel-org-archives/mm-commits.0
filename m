@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gpio-i2c-expanders-use-subsys_init.patch added to -mm tree
-Date: Thu, 02 Oct 2008 17:00:49 -0700
-Message-ID: <200810030000.m9300nWK001216@imap1.linux-foundation.org>
+Subject: + spi-core-and-gpio-expanders-use-subsys_init.patch added to -mm tree
+Date: Thu, 02 Oct 2008 17:02:53 -0700
+Message-ID: <200810030002.m9302raa001268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44356 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56273 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753323AbYJCABN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 20:01:13 -0400
+	by vger.kernel.org with ESMTP id S1753820AbYJCADC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 20:03:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbrownell@users.sourceforge.net, khali@linux-fr.org
+Cc: dbrownell@users.sourceforge.net
 
 
 The patch titled
-     gpio: i2c expanders use subsys_init
+     spi: core and gpio expanders use subsys_init
 has been added to the -mm tree.  Its filename is
-     gpio-i2c-expanders-use-subsys_init.patch
+     spi-core-and-gpio-expanders-use-subsys_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: i2c expanders use subsys_init
+Subject: spi: core and gpio expanders use subsys_init
 From: David Brownell <dbrownell@users.sourceforge.net>
 
-Make the I2C external GPIO expander drivers register themselves at
-subsys_initcall() time when they're statically linked.
+Make the SPI external GPIO expander drivers register themselves at
+subsys_initcall() time when they're statically linked, and make the SPI
+core do its driver model initialization earlier so that's safe.
 
-SOC-integrated GPIOs are available starting very early -- early in
-arch_initcall() at latest, but often even before initcalls start to run --
-so this improves consistency, so more subsystems can rely on GPIOs in
-their own subsys_initcall() code.
-
-(This isn't a theoretical problem.  This is one of several patches needed
-to resolve oopsing observed when statically linking kernels on a DaVinci
-EVM.  Its pcf857x GPIOs needed to be available well before some other
-drivers initialized.)
+SOC-integrated GPIOs are available starting very early -- often before
+initcalls start to run, or earily in arch_initcall() at latest -- so this
+improves consistency, letting more subsystems rely on GPIOs being usable
+by their own subsys_initcall() code.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/max732x.c |    5 ++++-
- drivers/gpio/pca953x.c |    5 ++++-
- drivers/gpio/pcf857x.c |    5 ++++-
- 3 files changed, 12 insertions(+), 3 deletions(-)
+ drivers/gpio/max7301.c  |    6 ++++--
+ drivers/gpio/mcp23s08.c |    5 ++++-
+ drivers/spi/spi.c       |    2 +-
+ 3 files changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN drivers/gpio/max732x.c~gpio-i2c-expanders-use-subsys_init drivers/gpio/max732x.c
---- a/drivers/gpio/max732x.c~gpio-i2c-expanders-use-subsys_init
-+++ a/drivers/gpio/max732x.c
-@@ -372,7 +372,10 @@ static int __init max732x_init(void)
+diff -puN drivers/gpio/max7301.c~spi-core-and-gpio-expanders-use-subsys_init drivers/gpio/max7301.c
+--- a/drivers/gpio/max7301.c~spi-core-and-gpio-expanders-use-subsys_init
++++ a/drivers/gpio/max7301.c
+@@ -325,13 +325,15 @@ static int __init max7301_init(void)
  {
- 	return i2c_add_driver(&max732x_driver);
+ 	return spi_register_driver(&max7301_driver);
  }
--module_init(max732x_init);
-+/* register after i2c postcore initcall and before
++/* register after spi postcore initcall and before
 + * subsys initcalls that may rely on these GPIOs
 + */
-+subsys_initcall(max732x_init);
++subsys_initcall(max7301_init);
  
- static void __exit max732x_exit(void)
+ static void __exit max7301_exit(void)
  {
-diff -puN drivers/gpio/pca953x.c~gpio-i2c-expanders-use-subsys_init drivers/gpio/pca953x.c
---- a/drivers/gpio/pca953x.c~gpio-i2c-expanders-use-subsys_init
-+++ a/drivers/gpio/pca953x.c
-@@ -289,7 +289,10 @@ static int __init pca953x_init(void)
- {
- 	return i2c_add_driver(&pca953x_driver);
+ 	spi_unregister_driver(&max7301_driver);
  }
--module_init(pca953x_init);
-+/* register after i2c postcore initcall and before
+-
+-module_init(max7301_init);
+ module_exit(max7301_exit);
+ 
+ MODULE_AUTHOR("Juergen Beisert");
+diff -puN drivers/gpio/mcp23s08.c~spi-core-and-gpio-expanders-use-subsys_init drivers/gpio/mcp23s08.c
+--- a/drivers/gpio/mcp23s08.c~spi-core-and-gpio-expanders-use-subsys_init
++++ a/drivers/gpio/mcp23s08.c
+@@ -419,7 +419,10 @@ static int __init mcp23s08_init(void)
+ {
+ 	return spi_register_driver(&mcp23s08_driver);
+ }
+-module_init(mcp23s08_init);
++/* register after spi postcore initcall and before
 + * subsys initcalls that may rely on these GPIOs
 + */
-+subsys_initcall(pca953x_init);
++subsys_initcall(mcp23s08_init);
  
- static void __exit pca953x_exit(void)
+ static void __exit mcp23s08_exit(void)
  {
-diff -puN drivers/gpio/pcf857x.c~gpio-i2c-expanders-use-subsys_init drivers/gpio/pcf857x.c
---- a/drivers/gpio/pcf857x.c~gpio-i2c-expanders-use-subsys_init
-+++ a/drivers/gpio/pcf857x.c
-@@ -351,7 +351,10 @@ static int __init pcf857x_init(void)
- {
- 	return i2c_add_driver(&pcf857x_driver);
- }
--module_init(pcf857x_init);
-+/* register after i2c postcore initcall and before
-+ * subsys initcalls that may rely on these GPIOs
-+ */
-+subsys_initcall(pcf857x_init);
+diff -puN drivers/spi/spi.c~spi-core-and-gpio-expanders-use-subsys_init drivers/spi/spi.c
+--- a/drivers/spi/spi.c~spi-core-and-gpio-expanders-use-subsys_init
++++ a/drivers/spi/spi.c
+@@ -738,5 +738,5 @@ err0:
+  * driver registration) _could_ be dynamically linked (modular) ... costs
+  * include needing to have boardinfo data structures be much more public.
+  */
+-subsys_initcall(spi_init);
++postcore_initcall(spi_init);
  
- static void __exit pcf857x_exit(void)
- {
 _
 
 Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
@@ -120,6 +116,7 @@ spi_s3c24xx-pin-configuration-updates.patch
 pxa2xx_spi-minor-cleanup.patch
 pxa2xx_spi-fix-chip_info-defaults-and-documentation.patch
 orion_spi-handle-88f6183-erratum.patch
+spi-core-and-gpio-expanders-use-subsys_init.patch
 rtc-ds1307-alarm-support-for-ds1337-ds1339.patch
 rtc-remove-some-nop-open-release-methods.patch
 legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
