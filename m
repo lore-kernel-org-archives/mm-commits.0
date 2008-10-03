@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hwmon-applesmc-lighter-wait-mechanism-drastic-improvement.patch added to -mm tree
-Date: Thu, 02 Oct 2008 23:28:35 -0700
-Message-ID: <200810030628.m936SZGk014404@imap1.linux-foundation.org>
+Subject: + x86-fix-ghost-entries-under-sys-firmware-edd.patch added to -mm tree
+Date: Thu, 02 Oct 2008 23:34:31 -0700
+Message-ID: <200810030634.m936YVDC014640@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39332 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753091AbYJCG3d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 02:29:33 -0400
+	by vger.kernel.org with ESMTP id S1753288AbYJCGfD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 02:35:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rydberg@euromail.se, bob@mcelrath.org, khali@linux-fr.org, mhoffman@lightlink.com, nicolas@boichat.ch
+Cc: arvidjaar@newmail.ru, Matt_Domsch@dell.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     hwmon: applesmc: lighter wait mechanism, drastic improvement
+     x86: fix ghost entries under /sys/firmware/edd
 has been added to the -mm tree.  Its filename is
-     hwmon-applesmc-lighter-wait-mechanism-drastic-improvement.patch
+     x86-fix-ghost-entries-under-sys-firmware-edd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,103 +33,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: applesmc: lighter wait mechanism, drastic improvement
-From: Henrik Rydberg <rydberg@euromail.se>
+Subject: x86: fix ghost entries under /sys/firmware/edd
+From: Andrey Borzenkov <arvidjaar@newmail.ru>
 
-The read fail ratio is sensitive to the delay between the first byte
-written and the first byte read; apparently the sensors cannot be rushed. 
-Increasing the minimum wait time, without changing the total wait time,
-improves the fail ratio from a 8% chance that any of the sensors fails in
-one read, down to 0.4%, on a Macbook Air.  On a Macbook Pro 3,1, the
-effect is even more apparent.  By reducing the number of status polls, the
-ratio is further improved to below 0.1%.  Finally, increasing the total
-wait time brings the fail ratio down to virtually zero.
+Some BIOSes do not indicate error when trying to read from non- existing
+device.  Zero buffer before reading and check that we actually got some
+data.
 
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
-Tested-by: Bob McElrath <bob@mcelrath.org>
-Cc: Nicolas Boichat <nicolas@boichat.ch>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: Jean Delvare <khali@linux-fr.org>
+This was fixed in different way for edd.S in
+http://marc.info/?l=linux-kernel&m=114087765422490&w=2, but lost again
+when edd.S was rewritten in C.
+
+hpa:
+
+   Right, I think that's a much better patch.
+
+   The really Right Thing[TM] to do is probably to pre-clear the buffer
+   and then look for the 0xaa55 signature at offset 510; it is required
+   for sector 0 to be a valid MBR-format partition table and hence for the
+   MBR *signature* to be valid.
+
+   I'll write that up tomorrow (I'm travelling today), or you can send
+   me a patch.
+
+akpm:
+
+   A patch in hand is worth...
+
+Signed-off-by: Andrey Borzenkov < arvidjaar@mail.ru>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Matt Domsch <Matt_Domsch@dell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/applesmc.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ arch/x86/boot/edd.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-lighter-wait-mechanism-drastic-improvement drivers/hwmon/applesmc.c
---- a/drivers/hwmon/applesmc.c~hwmon-applesmc-lighter-wait-mechanism-drastic-improvement
-+++ a/drivers/hwmon/applesmc.c
-@@ -49,6 +49,9 @@
+diff -puN arch/x86/boot/edd.c~x86-fix-ghost-entries-under-sys-firmware-edd arch/x86/boot/edd.c
+--- a/arch/x86/boot/edd.c~x86-fix-ghost-entries-under-sys-firmware-edd
++++ a/arch/x86/boot/edd.c
+@@ -60,11 +60,12 @@ static u32 read_mbr_sig(u8 devno, struct
+ 	if (mbrbuf_end > (char *)(size_t)boot_params.hdr.heap_end_ptr)
+ 		return -1;
  
- #define APPLESMC_MAX_DATA_LENGTH 32
++	memset(mbrbuf_ptr, 0, sector_size);
+ 	if (read_mbr(devno, mbrbuf_ptr))
+ 		return -1;
  
-+#define APPLESMC_MIN_WAIT	0x0040
-+#define APPLESMC_MAX_WAIT	0x8000
-+
- #define APPLESMC_STATUS_MASK	0x0f
- #define APPLESMC_READ_CMD	0x10
- #define APPLESMC_WRITE_CMD	0x11
-@@ -172,25 +175,25 @@ static unsigned int key_at_index;
- static struct workqueue_struct *applesmc_led_wq;
+ 	*mbrsig = *(u32 *)&mbrbuf_ptr[EDD_MBR_SIG_OFFSET];
+-	return 0;
++	return -!*mbrsig;	/* treat zero signature as no sig */
+ }
  
- /*
-- * __wait_status - Wait up to 10ms for the status port to get a certain value
-+ * __wait_status - Wait up to 32ms for the status port to get a certain value
-  * (masked with 0x0f), returning zero if the value is obtained.  Callers must
-  * hold applesmc_lock.
-  */
- static int __wait_status(u8 val)
- {
--	unsigned int i;
-+	int us;
- 
- 	val = val & APPLESMC_STATUS_MASK;
- 
--	for (i = 0; i < 1000; i++) {
-+	for (us = APPLESMC_MIN_WAIT; us < APPLESMC_MAX_WAIT; us <<= 1) {
-+		udelay(us);
- 		if ((inb(APPLESMC_CMD_PORT) & APPLESMC_STATUS_MASK) == val) {
- 			if (debug)
- 				printk(KERN_DEBUG
--						"Waited %d us for status %x\n",
--						i*10, val);
-+					"Waited %d us for status %x\n",
-+					2 * us - APPLESMC_MIN_WAIT, val);
- 			return 0;
- 		}
--		udelay(10);
- 	}
- 
- 	printk(KERN_WARNING "applesmc: wait status failed: %x != %x\n",
-@@ -206,13 +209,12 @@ static int __wait_status(u8 val)
-  */
- static int send_command(u8 cmd)
- {
--	int i;
--	for (i = 0; i < 1000; i++) {
-+	int us;
-+	for (us = APPLESMC_MIN_WAIT; us < APPLESMC_MAX_WAIT; us <<= 1) {
- 		outb(cmd, APPLESMC_CMD_PORT);
--		udelay(5);
-+		udelay(us);
- 		if ((inb(APPLESMC_CMD_PORT) & APPLESMC_STATUS_MASK) == 0x0c)
- 			return 0;
--		udelay(5);
- 	}
- 	printk(KERN_WARNING "applesmc: command failed: %x -> %x\n",
- 		cmd, inb(APPLESMC_CMD_PORT));
+ static int get_edd_info(u8 devno, struct edd_info *ei)
 _
 
-Patches currently in -mm which might be from rydberg@euromail.se are
+Patches currently in -mm which might be from arvidjaar@newmail.ru are
 
-input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
-hwmon-applesmc-specified-number-of-bytes-to-read-should-match-actual.patch
-hwmon-applesmc-fix-the-wait-status-failed-c-=-8-problem.patch
-hwmon-applesmc-prolong-status-wait.patch
-hwmon-applesmc-allow-for-variable-alv0-and-alv1-package-length.patch
-hwmon-applesmc-add-support-for-macbook-air.patch
-drivers-hwmon-applesmcc-remove-unneeded-casts.patch
-hwmon-applesmc-add-support-for-macbook-pro-4.patch
-hwmon-applesmc-add-support-for-macbook-pro-3.patch
-hwmon-applesmc-lighter-wait-mechanism-drastic-improvement.patch
+git-x86.patch
+x86-fix-ghost-entries-under-sys-firmware-edd.patch
 
