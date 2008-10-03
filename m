@@ -1,63 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - git-sound-rejects.patch removed from -mm tree
-Date: Fri, 03 Oct 2008 13:05:46 -0700
-Message-ID: <200810032005.m93K5kcu013356@imap1.linux-foundation.org>
+Subject: + git-block-reject-fix.patch added to -mm tree
+Date: Fri, 03 Oct 2008 13:14:34 -0700
+Message-ID: <200810032014.m93KEYAl013709@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55028 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58938 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753175AbYJCUGS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 16:06:18 -0400
+	by vger.kernel.org with ESMTP id S1752344AbYJCUPG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 16:15:06 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m93K5lex004620
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m93KEYno005217
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 3 Oct 2008 13:05:48 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 3 Oct 2008 13:14:35 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-sound-rejects
-has been removed from the -mm tree.  Its filename was
-     git-sound-rejects.patch
+     git-block-reject-fix
+has been added to the -mm tree.  Its filename is
+     git-block-reject-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-sound-rejects
+Subject: git-block-reject-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/soc/pxa/pxa2xx-ac97.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ include/linux/fs.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN sound/soc/pxa/pxa2xx-ac97.c~git-sound-rejects sound/soc/pxa/pxa2xx-ac97.c
---- a/sound/soc/pxa/pxa2xx-ac97.c~git-sound-rejects
-+++ a/sound/soc/pxa/pxa2xx-ac97.c
-@@ -90,16 +90,13 @@ static struct pxa2xx_pcm_dma_params pxa2
- static int pxa2xx_ac97_suspend(struct platform_device *pdev,
- 	struct snd_soc_dai *dai)
- {
--	GCR |= GCR_ACLINK_OFF;
--	clk_disable(ac97_clk);
--	return 0;
-+	return pxa2xx_ac97_hw_suspend();
- }
+diff -puN include/linux/fs.h~git-block-reject-fix include/linux/fs.h
+--- a/include/linux/fs.h~git-block-reject-fix
++++ a/include/linux/fs.h
+@@ -225,6 +225,7 @@ extern int dir_notify_enable;
+ #define BLKTRACESTOP _IO(0x12,117)
+ #define BLKTRACETEARDOWN _IO(0x12,118)
+ #define BLKDUMPUSEDBUFFERS _IO(0x12,119)
++#define BLKDISCARD _IO(0x12,120)
  
- static int pxa2xx_ac97_resume(struct platform_device *pdev,
- 	struct snd_soc_dai *dai)
- {
--	clk_enable(ac97_clk);
--	return 0;
-+	return pxa2xx_ac97_hw_resume();
- }
- 
- #else
+ #define BMAP_IOCTL 1		/* obsolete - kept for compatibility */
+ #define FIBMAP	   _IO(0x00,1)	/* bmap access */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,9 +89,9 @@ git-mtd.patch
 git-vfs-vs-git-ext4.patch
 git-sound.patch
 git-sound-vs-git-arm.patch
-git-sound-rejects.patch
 git-input.patch
 git-block.patch
+git-block-reject-fix.patch
 git-pcmcia-git-rejects.patch
 git-battery.patch
 git-kmemcheck.patch
