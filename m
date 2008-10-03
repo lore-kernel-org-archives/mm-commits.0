@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + git-stackprotector-rejects.patch added to -mm tree
-Date: Fri, 03 Oct 2008 12:54:43 -0700
-Message-ID: <200810031954.m93Jshp8012906@imap1.linux-foundation.org>
+Subject: + git-vfs-vs-git-ext4.patch added to -mm tree
+Date: Fri, 03 Oct 2008 13:03:40 -0700
+Message-ID: <200810032003.m93K3eZj013322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34095 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41778 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754161AbYJCTyp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 15:54:45 -0400
+	by vger.kernel.org with ESMTP id S1752156AbYJCUEM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 16:04:12 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m93JshdU003842
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m93K3eDi004481
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 3 Oct 2008 12:54:44 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 3 Oct 2008 13:03:41 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +19,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-stackprotector-rejects
+     git-vfs-vs-git-ext4
 has been added to the -mm tree.  Its filename is
-     git-stackprotector-rejects.patch
+     git-vfs-vs-git-ext4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,26 +37,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-stackprotector-rejects
+Subject: git-vfs-vs-git-ext4
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ext4/namei.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN kernel/fork.c~git-stackprotector-rejects kernel/fork.c
---- a/kernel/fork.c~git-stackprotector-rejects
-+++ a/kernel/fork.c
-@@ -48,6 +48,7 @@
- #include <linux/memcontrol.h>
- #include <linux/profile.h>
- #include <linux/rmap.h>
-+#include <linux/magic.h>
- #include <linux/acct.h>
- #include <linux/tsacct_kern.h>
- #include <linux/cn_proc.h>
+diff -puN fs/ext4/namei.c~git-vfs-vs-git-ext4 fs/ext4/namei.c
+--- a/fs/ext4/namei.c~git-vfs-vs-git-ext4
++++ a/fs/ext4/namei.c
+@@ -1061,8 +1061,6 @@ static struct dentry *ext4_lookup(struct
+ struct dentry *ext4_get_parent(struct dentry *child)
+ {
+ 	unsigned long ino;
+-	struct dentry *parent;
+-	struct inode *inode;
+ 	static const struct qstr dotdot = {
+ 		.name = "..",
+ 		.len = 2,
+@@ -1071,7 +1069,6 @@ struct dentry *ext4_get_parent(struct de
+ 	struct buffer_head *bh;
+ 
+ 	bh = ext4_find_entry(child->d_inode, &dotdot, &de);
+-	inode = NULL;
+ 	if (!bh)
+ 		return ERR_PTR(-ENOENT);
+ 	ino = le32_to_cpu(de->inode);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,7 +81,6 @@ git-ftrace.patch
 git-sched.patch
 git-sched-rejects.patch
 git-stackprotector-rejects.patch
-git-timers.patch
 git-timers-fix-printk-errors-clean-up.patch
 git-pci.patch
 git-hid.patch
@@ -80,14 +88,14 @@ git-v4l-dvb.patch
 git-v4l-dvb-git-rejects.patch
 git-acpi-git-rejects.patch
 git-nfsd.patch
-git-kvm.patch
 git-dlm.patch
 git-scsi.patch
 git-ext4.patch
+git-ext4-vs-git-ocfs2.patch
 git-async_tx.patch
 git-net.patch
 git-mtd.patch
-git-wireless.patch
+git-vfs-vs-git-ext4.patch
 git-sound.patch
 git-sound-rejects.patch
 git-input.patch
