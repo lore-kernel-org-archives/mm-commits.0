@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gpiolib-gpio_to_irq-hooks.patch added to -mm tree
-Date: Thu, 02 Oct 2008 17:03:53 -0700
-Message-ID: <200810030003.m9303rDA001361@imap1.linux-foundation.org>
+Subject: + hugepage-support-zero_page.patch added to -mm tree
+Date: Thu, 02 Oct 2008 17:13:46 -0700
+Message-ID: <200810030013.m930DlNx001704@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52073 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35921 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753338AbYJCAEC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 20:04:02 -0400
+	by vger.kernel.org with ESMTP id S1753409AbYJCAOE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 20:14:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbrownell@users.sourceforge.net
+Cc: kosaki.motohiro@jp.fujitsu.com, agl@us.ibm.com, hidehiro.kawai.ez@hitachi.com, hugh@veritas.com, mel@skynet.ie
 
 
 The patch titled
-     gpiolib: gpio_to_irq() hooks
+     hugepage: support ZERO_PAGE()
 has been added to the -mm tree.  Its filename is
-     gpiolib-gpio_to_irq-hooks.patch
+     hugepage-support-zero_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,131 +33,141 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiolib: gpio_to_irq() hooks
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: hugepage: support ZERO_PAGE()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Add a new gpiolib mechanism: gpio_chip instances can provide mappings
-between their (input) GPIOs and any associated IRQs.  This makes it easier
-for platforms to support IRQs that are provided by board-specific external
-chips instead of as part of their core (such as SOC-integrated GPIOs).
+Presently hugepage doesn't use zero page at all because zero page is only
+used for coredumping and hugepage can't core dump.
 
-Also update the irq_to_gpio() description, saying to avoid it because it's
-not always supported.
+However we have now implemented hugepage coredumping.  Therefore we should
+implement the zero page of hugepage.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Implementation note:
+
+o Why do we only check VM_SHARED for zero page?
+  normal page checked as ..
+
+	static inline int use_zero_page(struct vm_area_struct *vma)
+	{
+	        if (vma->vm_flags & (VM_LOCKED | VM_SHARED))
+	                return 0;
+
+	        return !vma->vm_ops || !vma->vm_ops->fault;
+	}
+
+First, hugepages are never mlock()ed.  We aren't concerned with VM_LOCKED.
+
+Second, hugetlbfs is a pseudo filesystem, not a real filesystem and it
+doesn't have any file backing.  Thus ops->fault checking is meaningless.
+
+o Why don't we use zero page if !pte.
+
+!pte indicate {pud, pmd} doesn't exist or some error happened.  So we
+shouldn't return zero page if any error occurred.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Kawai Hidehiro <hidehiro.kawai.ez@hitachi.com>
+Cc: Mel Gorman <mel@skynet.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/gpio.txt     |    5 +++--
- drivers/gpio/gpiolib.c     |   18 ++++++++++++++++++
- include/asm-generic/gpio.h |    7 +++++++
- 3 files changed, 28 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |   22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/gpio.txt~gpiolib-gpio_to_irq-hooks Documentation/gpio.txt
---- a/Documentation/gpio.txt~gpiolib-gpio_to_irq-hooks
-+++ a/Documentation/gpio.txt
-@@ -264,7 +264,7 @@ map between them using calls like:
- 	/* map GPIO numbers to IRQ numbers */
- 	int gpio_to_irq(unsigned gpio);
- 
--	/* map IRQ numbers to GPIO numbers */
-+	/* map IRQ numbers to GPIO numbers (avoid using this) */
- 	int irq_to_gpio(unsigned irq);
- 
- Those return either the corresponding number in the other namespace, or
-@@ -284,7 +284,8 @@ system wakeup capabilities.
- 
- Non-error values returned from irq_to_gpio() would most commonly be used
- with gpio_get_value(), for example to initialize or update driver state
--when the IRQ is edge-triggered.
-+when the IRQ is edge-triggered.  Note that some platforms don't support
-+this reverse mapping, so you should avoid using it.
- 
- 
- Emulating Open Drain Signals
-diff -puN drivers/gpio/gpiolib.c~gpiolib-gpio_to_irq-hooks drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpiolib-gpio_to_irq-hooks
-+++ a/drivers/gpio/gpiolib.c
-@@ -1010,6 +1010,24 @@ int __gpio_cansleep(unsigned gpio)
+diff -puN mm/hugetlb.c~hugepage-support-zero_page mm/hugetlb.c
+--- a/mm/hugetlb.c~hugepage-support-zero_page
++++ a/mm/hugetlb.c
+@@ -2071,6 +2071,14 @@ follow_huge_pud(struct mm_struct *mm, un
+ 	return NULL;
  }
- EXPORT_SYMBOL_GPL(__gpio_cansleep);
  
-+/**
-+ * __gpio_to_irq() - return the IRQ corresponding to a GPIO
-+ * @gpio: gpio whose IRQ will be returned (already requested)
-+ * Context: any
-+ *
-+ * This is used directly or indirectly to implement gpio_to_irq().
-+ * It returns the number of the IRQ signaled by this (input) GPIO,
-+ * or a negative errno.
-+ */
-+int __gpio_to_irq(unsigned gpio)
++static int huge_zeropage_ok(pte_t *ptep, int write, int shared)
 +{
-+	struct gpio_chip	*chip;
-+
-+	chip = gpio_to_chip(gpio);
-+	return chip->to_irq ? chip->to_irq(chip, gpio - chip->base) : -ENXIO;
++	if (!ptep || write || shared)
++		return 0;
++	else
++		return huge_pte_none(huge_ptep_get(ptep));
 +}
-+EXPORT_SYMBOL_GPL(__gpio_to_irq);
 +
+ int follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			struct page **pages, struct vm_area_struct **vmas,
+ 			unsigned long *position, int *length, int i,
+@@ -2080,6 +2088,8 @@ int follow_hugetlb_page(struct mm_struct
+ 	unsigned long vaddr = *position;
+ 	int remainder = *length;
+ 	struct hstate *h = hstate_vma(vma);
++	int zeropage_ok = 0;
++	int shared = vma->vm_flags & VM_SHARED;
  
+ 	spin_lock(&mm->page_table_lock);
+ 	while (vaddr < vma->vm_end && remainder) {
+@@ -2092,8 +2102,11 @@ int follow_hugetlb_page(struct mm_struct
+ 		 * first, for the page indexing below to work.
+ 		 */
+ 		pte = huge_pte_offset(mm, vaddr & huge_page_mask(h));
++		if (huge_zeropage_ok(pte, write, shared))
++			zeropage_ok = 1;
  
- /* There's no value in making it easy to inline GPIO calls that may sleep.
-diff -puN include/asm-generic/gpio.h~gpiolib-gpio_to_irq-hooks include/asm-generic/gpio.h
---- a/include/asm-generic/gpio.h~gpiolib-gpio_to_irq-hooks
-+++ a/include/asm-generic/gpio.h
-@@ -40,6 +40,8 @@ struct module;
-  *	returns either the value actually sensed, or zero
-  * @direction_output: configures signal "offset" as output, or returns error
-  * @set: assigns output value for signal "offset"
-+ * @to_irq: optional hook supporting non-static gpio_to_irq() mappings;
-+ *	implementation may not sleep
-  * @dbg_show: optional routine to show contents in debugfs; default code
-  *	will be used when this is omitted, but custom code can show extra
-  *	state (such as pullup/pulldown configuration).
-@@ -73,6 +75,10 @@ struct gpio_chip {
- 						unsigned offset, int value);
- 	void			(*set)(struct gpio_chip *chip,
- 						unsigned offset, int value);
-+
-+	int			(*to_irq)(struct gpio_chip *chip,
-+						unsigned offset);
-+
- 	void			(*dbg_show)(struct seq_file *s,
- 						struct gpio_chip *chip);
- 	int			base;
-@@ -112,6 +118,7 @@ extern void __gpio_set_value(unsigned gp
+-		if (!pte || huge_pte_none(huge_ptep_get(pte)) ||
++		if (!pte ||
++		    (huge_pte_none(huge_ptep_get(pte)) && !zeropage_ok) ||
+ 		    (write && !pte_write(huge_ptep_get(pte)))) {
+ 			int ret;
  
- extern int __gpio_cansleep(unsigned gpio);
+@@ -2113,8 +2126,11 @@ int follow_hugetlb_page(struct mm_struct
+ 		page = pte_page(huge_ptep_get(pte));
+ same_page:
+ 		if (pages) {
+-			get_page(page);
+-			pages[i] = page + pfn_offset;
++			if (zeropage_ok)
++				pages[i] = ZERO_PAGE(0);
++			else
++				pages[i] = page + pfn_offset;
++			get_page(pages[i]);
+ 		}
  
-+extern int __gpio_to_irq(unsigned gpio);
- 
- #ifdef CONFIG_GPIO_SYSFS
- 
+ 		if (vmas)
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-rtc-fix-kernel-panic-on-second-use-of-sigio-nofitication.patch
-orion_spi-fix-handling-of-default-transfer-speed.patch
-git-arm.patch
-git-avr32.patch
-git-x86.patch
-git-mtd.patch
-acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry.patch
-spi-simplify-spi_write_then_read.patch
-spi_s3c24xx-pin-configuration-updates.patch
-pxa2xx_spi-minor-cleanup.patch
-pxa2xx_spi-fix-chip_info-defaults-and-documentation.patch
-orion_spi-handle-88f6183-erratum.patch
-spi-core-and-gpio-expanders-use-subsys_init.patch
-rtc-ds1307-alarm-support-for-ds1337-ds1339.patch
-rtc-remove-some-nop-open-release-methods.patch
-legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
-rtc-file-close-consistently-disables-repeating-irqs.patch
-rtc-cmos-strongly-avoid-hpet-emulation.patch
-rtc-cmos-export-second-nvram-bank.patch
-make-gpiochip-label-const.patch
-gpio-i2c-expanders-use-subsys_init.patch
-gpiolib-gpio_to_irq-hooks.patch
+mm-do_generic_file_read-never-gets-a-null-filp-argument.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-infrastructure-nommu-fix.patch
+unevictable-lru-infrastructure-remember-pages-active-state.patch
+unevictable-lru-infrastructure-defer-vm-event-counting.patch
+unevictable-infrastructure-lru-add-event-counting-with-statistics.patch
+unevictable-lru-page-statistics.patch
+shm_locked-pages-are-unevictable.patch
+shm_locked-pages-are-unevictable-add-event-counts-to-list-scan.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+doc-unevictable-lru-and-mlocked-pages-documentation-update-2.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-__mlock_vma_pages_range-comment-block.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-backout-locked_vm-adjustment-during-mmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-return-value-for-munmap-mlock-vma-race.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-update-locked_vm-on-munmap-of-mlocked-region.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch
+swap-cull-unevictable-pages-in-fault-path.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+vmscam-kill-unused-lru-functions.patch
+mlock-revert-mainline-handling-of-mlock-error-return.patch
+mlock-make-mlock-error-return-posixly-correct.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-unlockless-reclaim.patch
+coredump_filter-add-hugepage-dumping-v4.patch
+hugepage-support-zero_page.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
