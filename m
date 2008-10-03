@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + git-vfs-vs-git-ext4.patch added to -mm tree
-Date: Fri, 03 Oct 2008 13:03:40 -0700
-Message-ID: <200810032003.m93K3eZj013322@imap1.linux-foundation.org>
+Subject: + git-sound-vs-git-arm.patch added to -mm tree
+Date: Fri, 03 Oct 2008 13:05:43 -0700
+Message-ID: <200810032005.m93K5hqV013353@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41778 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53708 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752156AbYJCUEM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 16:04:12 -0400
+	by vger.kernel.org with ESMTP id S1751952AbYJCUGP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 16:06:15 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m93K3eDi004481
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m93K5huf004609
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 3 Oct 2008 13:03:41 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 3 Oct 2008 13:05:44 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +19,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-vfs-vs-git-ext4
+     git-sound-vs-git-arm
 has been added to the -mm tree.  Its filename is
-     git-vfs-vs-git-ext4.patch
+     git-sound-vs-git-arm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,35 +37,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-vfs-vs-git-ext4
+Subject: git-sound-vs-git-arm
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/namei.c |    3 ---
- 1 file changed, 3 deletions(-)
+ sound/soc/pxa/pxa2xx-ac97.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN fs/ext4/namei.c~git-vfs-vs-git-ext4 fs/ext4/namei.c
---- a/fs/ext4/namei.c~git-vfs-vs-git-ext4
-+++ a/fs/ext4/namei.c
-@@ -1061,8 +1061,6 @@ static struct dentry *ext4_lookup(struct
- struct dentry *ext4_get_parent(struct dentry *child)
+diff -puN sound/soc/pxa/pxa2xx-ac97.c~git-sound-vs-git-arm sound/soc/pxa/pxa2xx-ac97.c
+--- a/sound/soc/pxa/pxa2xx-ac97.c~git-sound-vs-git-arm
++++ a/sound/soc/pxa/pxa2xx-ac97.c
+@@ -90,16 +90,13 @@ static struct pxa2xx_pcm_dma_params pxa2
+ static int pxa2xx_ac97_suspend(struct platform_device *pdev,
+ 	struct snd_soc_dai *dai)
  {
- 	unsigned long ino;
--	struct dentry *parent;
--	struct inode *inode;
- 	static const struct qstr dotdot = {
- 		.name = "..",
- 		.len = 2,
-@@ -1071,7 +1069,6 @@ struct dentry *ext4_get_parent(struct de
- 	struct buffer_head *bh;
+-	GCR |= GCR_ACLINK_OFF;
+-	clk_disable(ac97_clk);
+-	return 0;
++	return pxa2xx_ac97_hw_suspend();
+ }
  
- 	bh = ext4_find_entry(child->d_inode, &dotdot, &de);
--	inode = NULL;
- 	if (!bh)
- 		return ERR_PTR(-ENOENT);
- 	ino = le32_to_cpu(de->inode);
+ static int pxa2xx_ac97_resume(struct platform_device *pdev,
+ 	struct snd_soc_dai *dai)
+ {
+-	clk_enable(ac97_clk);
+-	return 0;
++	return pxa2xx_ac97_hw_resume();
+ }
+ 
+ #else
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,6 +99,7 @@ git-net.patch
 git-mtd.patch
 git-vfs-vs-git-ext4.patch
 git-sound.patch
+git-sound-vs-git-arm.patch
 git-sound-rejects.patch
 git-input.patch
 git-block.patch
