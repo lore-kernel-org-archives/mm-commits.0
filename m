@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + coredump_filter-add-hugepage-dumping-v4.patch added to -mm tree
-Date: Thu, 02 Oct 2008 17:13:44 -0700
-Message-ID: <200810030013.m930DiMF001699@imap1.linux-foundation.org>
+Subject: + mm-make-do_move_pages-complexity-linear-fix.patch added to -mm tree
+Date: Thu, 02 Oct 2008 17:23:15 -0700
+Message-ID: <200810030023.m930NF2G002083@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42018 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52245 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753449AbYJCAOa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 20:14:30 -0400
+	by vger.kernel.org with ESMTP id S1753625AbYJCAX6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 20:23:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, agl@us.ibm.com, hidehiro.kawai.ez@hitachi.com, hugh@veritas.com, wli@holomorphy.com
+Cc: Brice.Goglin@inria.fr, Nathalie.Furmento@labri.fr, cl@linux-foundation.org, mel@csn.ul.ie
 
 
 The patch titled
-     coredump_filter: add hugepage dumping
+     mm: make do_move_pages() complexity linear
 has been added to the -mm tree.  Its filename is
-     coredump_filter-add-hugepage-dumping-v4.patch
+     mm-make-do_move_pages-complexity-linear-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,242 +33,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: coredump_filter: add hugepage dumping
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mm: make do_move_pages() complexity linear
+From: Brice Goglin <Brice.Goglin@inria.fr>
 
-Presently hugepage's vma has a VM_RESERVED flag in order not to be
-swapped.  But a VM_RESERVED vma isn't core dumped because this flag is
-often used for some kernel vmas (e.g.  vmalloc, sound related).
+> +/*
+> + * Allocate a page on the node given as a page_to_node in private.
+> + * Increase private to point to the next page_to_node so that the
+> + * next iteration does not have to traverse the whole pm array.
+> + */
+>  static struct page *new_page_node(struct page *p, unsigned long private,
+>  		int **result)
+>  {
+> -	struct page_to_node *pm = (struct page_to_node *)private;
+> +	struct page_to_node **pmptr = (struct page_to_node **)private;
+> +	struct page_to_node *pm = *pmptr;
+>  
+>  	while (pm->node != MAX_NUMNODES && pm->page != p)
+>  		pm++;
+>  
+> +	/* prepare for the next iteration */
+> +	*pmptr = pm + 1;
+> +
+>   
+	
+Actually, this "pm+1" breaks the case where migrate_pages() calls
+unmap_and_move() multiple times on the same page. In this case, we need
+the while loop to look at pm instead of pm+1 first. So we can't cache
+pm+1 in private, but caching pm is ok. There will be 1 while loop
+instead of 0 in the regular case. Updated patch (with more comments)
+coming soon.
 
-Thus hugepages are never dumped and it can't be debugged easily.  Many
-developers want hugepages to be included into core-dump.
-
-However, We can't read generic VM_RESERVED area because this area is often
-IO mapping area.  then these area reading may change device state.  it is
-definitly undesiable side-effect.
-
-So adding a hugepage specific bit to the coredump filter is better.  It
-will be able to hugepage core dumping and doesn't cause any side-effect to
-any i/o devices.
-
-In additional, libhugetlb use hugetlb private mapping pages as anonymous
-page.  Then, hugepage private mapping pages should be core dumped by
-default.
-
-Then, /proc/[pid]/core_dump_filter has two new bits.
-
- - bit 5 mean hugetlb private mapping pages are dumped or not. (default: yes)
- - bit 6 mean hugetlb shared mapping pages are dumped or not.  (default: no)
-
-I tested by following method.
-
-% ulimit -c unlimited
-% ./crash_hugepage  50
-% ./crash_hugepage  50  -p
-% ls -lh
-% gdb ./crash_hugepage core
-%
-% echo 0x43 > /proc/self/coredump_filter
-% ./crash_hugepage  50
-% ./crash_hugepage  50  -p
-% ls -lh
-% gdb ./crash_hugepage core
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#include <string.h>
-
-#include "hugetlbfs.h"
-
-int main(int argc, char** argv){
-	char* p;
-	int ch;
-	int mmap_flags = MAP_SHARED;
-	int fd;
-	int nr_pages;
-
-	while((ch = getopt(argc, argv, "p")) != -1) {
-		switch (ch) {
-		case 'p':
-			mmap_flags &= ~MAP_SHARED;
-			mmap_flags |= MAP_PRIVATE;
-			break;
-		default:
-			/* nothing*/
-			break;
-		}
-	}
-	argc -= optind;
-	argv += optind;
-
-	if (argc == 0){
-		printf("need # of pages\n");
-		exit(1);
-	}
-
-	nr_pages = atoi(argv[0]);
-	if (nr_pages < 2) {
-		printf("nr_pages must >2\n");
-		exit(1);
-	}
-
-	fd = hugetlbfs_unlinked_fd();
-	p = mmap(NULL, nr_pages * gethugepagesize(),
-		 PROT_READ|PROT_WRITE, mmap_flags, fd, 0);
-
-	sleep(2);
-
-	*(p + gethugepagesize()) = 1; /* COW */
-	sleep(2);
-
-	/* crash! */
-	*(int*)0 = 1;
-
-	return 0;
-}
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Kawai Hidehiro <hidehiro.kawai.ez@hitachi.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: William Irwin <wli@holomorphy.com>
-Cc: Adam Litke <agl@us.ibm.com>
+Signed-off-by: Brice Goglin <Brice.Goglin@inria.fr>
+Signed-off-by: Nathalie Furmento <Nathalie.Furmento@labri.fr>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   15 ++++++++++-----
- fs/binfmt_elf.c                    |   12 ++++++++++--
- include/linux/sched.h              |    7 +++++--
- 3 files changed, 25 insertions(+), 9 deletions(-)
+ mm/migrate.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~coredump_filter-add-hugepage-dumping-v4 Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~coredump_filter-add-hugepage-dumping-v4
-+++ a/Documentation/filesystems/proc.txt
-@@ -2408,24 +2408,29 @@ will be dumped when the <pid> process is
- of memory types. If a bit of the bitmask is set, memory segments of the
- corresponding memory type are dumped, otherwise they are not dumped.
+diff -puN mm/migrate.c~mm-make-do_move_pages-complexity-linear-fix mm/migrate.c
+--- a/mm/migrate.c~mm-make-do_move_pages-complexity-linear-fix
++++ a/mm/migrate.c
+@@ -839,8 +839,14 @@ struct page_to_node {
  
--The following 4 memory types are supported:
-+The following 7 memory types are supported:
-   - (bit 0) anonymous private memory
-   - (bit 1) anonymous shared memory
-   - (bit 2) file-backed private memory
-   - (bit 3) file-backed shared memory
-   - (bit 4) ELF header pages in file-backed private memory areas (it is
-             effective only if the bit 2 is cleared)
-+  - (bit 5) hugetlb private memory
-+  - (bit 6) hugetlb shared memory
+ /*
+  * Allocate a page on the node given as a page_to_node in private.
+- * Increase private to point to the next page_to_node so that the
+- * next iteration does not have to traverse the whole pm array.
++ *
++ * Cache the _last used_ pm in private so that the next call may find the
++ * target pm in very few while loops (usually 1) instead of scanning the
++ * whole pm array.
++ * We cannot cache the _next_ pm in private (to get 0 while loop in the
++ * regular case) because it would break the case where new_page_node()
++ * is called multiple times on the same page (when migrate_pages() tries
++ * unmap_and_move() multiple times).
+  */
+ static struct page *new_page_node(struct page *p, unsigned long private,
+ 		int **result)
+@@ -851,8 +857,8 @@ static struct page *new_page_node(struct
+ 	while (pm->node != MAX_NUMNODES && pm->page != p)
+ 		pm++;
  
-   Note that MMIO pages such as frame buffer are never dumped and vDSO pages
-   are always dumped regardless of the bitmask status.
+-	/* prepare for the next iteration */
+-	*pmptr = pm + 1;
++	/* save the current pm to reduce the while loop in the next call */
++	*pmptr = pm;
  
--Default value of coredump_filter is 0x3; this means all anonymous memory
--segments are dumped.
-+  Note bit 0-4 doesn't effect any hugetlb memory. hugetlb memory are only
-+  effected by bit 5-6.
-+
-+Default value of coredump_filter is 0x23; this means all anonymous memory
-+segments and hugetlb private memory are dumped.
- 
- If you don't want to dump all shared memory segments attached to pid 1234,
--write 1 to the process's proc file.
-+write 0x21 to the process's proc file.
- 
--  $ echo 0x1 > /proc/1234/coredump_filter
-+  $ echo 0x21 > /proc/1234/coredump_filter
- 
- When a new process is created, the process inherits the bitmask status from its
- parent. It is useful to set up coredump_filter before the program runs.
-diff -puN fs/binfmt_elf.c~coredump_filter-add-hugepage-dumping-v4 fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~coredump_filter-add-hugepage-dumping-v4
-+++ a/fs/binfmt_elf.c
-@@ -1156,16 +1156,24 @@ static int dump_seek(struct file *file, 
- static unsigned long vma_dump_size(struct vm_area_struct *vma,
- 				   unsigned long mm_flags)
- {
-+#define FILTER(type)	(mm_flags & (1UL << MMF_DUMP_##type))
-+
- 	/* The vma can be set up to tell us the answer directly.  */
- 	if (vma->vm_flags & VM_ALWAYSDUMP)
- 		goto whole;
- 
-+	/* Hugetlb memory check */
-+	if (vma->vm_flags & VM_HUGETLB) {
-+		if ((vma->vm_flags & VM_SHARED) && FILTER(HUGETLB_SHARED))
-+			goto whole;
-+		if (!(vma->vm_flags & VM_SHARED) && FILTER(HUGETLB_PRIVATE))
-+			goto whole;
-+	}
-+
- 	/* Do not dump I/O mapped devices or special mappings */
- 	if (vma->vm_flags & (VM_IO | VM_RESERVED))
- 		return 0;
- 
--#define FILTER(type)	(mm_flags & (1UL << MMF_DUMP_##type))
--
- 	/* By default, dump shared memory if mapped from an anonymous file. */
- 	if (vma->vm_flags & VM_SHARED) {
- 		if (vma->vm_file->f_path.dentry->d_inode->i_nlink == 0 ?
-diff -puN include/linux/sched.h~coredump_filter-add-hugepage-dumping-v4 include/linux/sched.h
---- a/include/linux/sched.h~coredump_filter-add-hugepage-dumping-v4
-+++ a/include/linux/sched.h
-@@ -403,12 +403,15 @@ extern int get_dumpable(struct mm_struct
- #define MMF_DUMP_MAPPED_PRIVATE	4
- #define MMF_DUMP_MAPPED_SHARED	5
- #define MMF_DUMP_ELF_HEADERS	6
-+#define MMF_DUMP_HUGETLB_PRIVATE 7
-+#define MMF_DUMP_HUGETLB_SHARED  8
- #define MMF_DUMP_FILTER_SHIFT	MMF_DUMPABLE_BITS
--#define MMF_DUMP_FILTER_BITS	5
-+#define MMF_DUMP_FILTER_BITS	7
- #define MMF_DUMP_FILTER_MASK \
- 	(((1 << MMF_DUMP_FILTER_BITS) - 1) << MMF_DUMP_FILTER_SHIFT)
- #define MMF_DUMP_FILTER_DEFAULT \
--	((1 << MMF_DUMP_ANON_PRIVATE) |	(1 << MMF_DUMP_ANON_SHARED))
-+	((1 << MMF_DUMP_ANON_PRIVATE) |	(1 << MMF_DUMP_ANON_SHARED) |\
-+	 (1 << MMF_DUMP_HUGETLB_PRIVATE))
- 
- struct sighand_struct {
- 	atomic_t		count;
+ 	if (pm->node == MAX_NUMNODES)
+ 		return NULL;
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from Brice.Goglin@inria.fr are
 
-mm-do_generic_file_read-never-gets-a-null-filp-argument.patch
-vmscan-use-an-indexed-array-for-lru-variables.patch
-swap-use-an-array-for-the-lru-pagevecs.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-vmscan-second-chance-replacement-for-anonymous-pages.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-infrastructure-nommu-fix.patch
-unevictable-lru-infrastructure-remember-pages-active-state.patch
-unevictable-lru-infrastructure-defer-vm-event-counting.patch
-unevictable-infrastructure-lru-add-event-counting-with-statistics.patch
-unevictable-lru-page-statistics.patch
-shm_locked-pages-are-unevictable.patch
-shm_locked-pages-are-unevictable-add-event-counts-to-list-scan.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-doc-unevictable-lru-and-mlocked-pages-documentation-update-2.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-__mlock_vma_pages_range-comment-block.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-backout-locked_vm-adjustment-during-mmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-return-value-for-munmap-mlock-vma-race.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-update-locked_vm-on-munmap-of-mlocked-region.patch
-vmstat-mlocked-pages-statistics.patch
-vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch
-swap-cull-unevictable-pages-in-fault-path.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-vmscam-kill-unused-lru-functions.patch
-mlock-revert-mainline-handling-of-mlock-error-return.patch
-mlock-make-mlock-error-return-posixly-correct.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-unlockless-reclaim.patch
-coredump_filter-add-hugepage-dumping-v4.patch
-hugepage-support-zero_page.patch
-mm-more-likely-reclaim-madv_sequential-mappings.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
+mm-make-do_move_pages-complexity-linear.patch
+mm-make-do_move_pages-complexity-linear-fix.patch
 
