@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + git-sched-rejects.patch added to -mm tree
-Date: Fri, 03 Oct 2008 12:54:00 -0700
-Message-ID: <200810031954.m93Js0Yl012872@imap1.linux-foundation.org>
+Subject: + git-stackprotector-rejects.patch added to -mm tree
+Date: Fri, 03 Oct 2008 12:54:43 -0700
+Message-ID: <200810031954.m93Jshp8012906@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51160 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34095 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750718AbYJCTyD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 15:54:03 -0400
+	by vger.kernel.org with ESMTP id S1754161AbYJCTyp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 15:54:45 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m93Js03w003756
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m93JshdU003842
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 3 Oct 2008 12:54:01 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 3 Oct 2008 12:54:44 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +19,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-sched-rejects
+     git-stackprotector-rejects
 has been added to the -mm tree.  Its filename is
-     git-sched-rejects.patch
+     git-stackprotector-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,36 +37,26 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-sched-rejects
+Subject: git-stackprotector-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/fork.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/sched.c~git-sched-rejects kernel/sched.c
---- a/kernel/sched.c~git-sched-rejects
-+++ a/kernel/sched.c
-@@ -2300,7 +2300,7 @@ out_activate:
- 
- out_running:
- 	trace_sched_wakeup(rq, p);
--	check_preempt_curr(rq, p);
-+	check_preempt_curr(rq, p, sync);
- 
- 	p->state = TASK_RUNNING;
- #ifdef CONFIG_SMP
-@@ -2433,7 +2433,7 @@ void wake_up_new_task(struct task_struct
- 		inc_nr_running(rq);
- 	}
- 	trace_sched_wakeup_new(rq, p);
--	check_preempt_curr(rq, p);
-+	check_preempt_curr(rq, p, 0);
- #ifdef CONFIG_SMP
- 	if (p->sched_class->task_wake_up)
- 		p->sched_class->task_wake_up(rq, p);
+diff -puN kernel/fork.c~git-stackprotector-rejects kernel/fork.c
+--- a/kernel/fork.c~git-stackprotector-rejects
++++ a/kernel/fork.c
+@@ -48,6 +48,7 @@
+ #include <linux/memcontrol.h>
+ #include <linux/profile.h>
+ #include <linux/rmap.h>
++#include <linux/magic.h>
+ #include <linux/acct.h>
+ #include <linux/tsacct_kern.h>
+ #include <linux/cn_proc.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,6 +71,7 @@ git-xtensa.patch
 git-ftrace.patch
 git-sched.patch
 git-sched-rejects.patch
+git-stackprotector-rejects.patch
 git-timers.patch
 git-timers-fix-printk-errors-clean-up.patch
 git-pci.patch
