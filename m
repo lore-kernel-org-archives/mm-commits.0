@@ -1,91 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - usb-improve-ehci_watchdogs-side-effect-in-cpu-power-management.patch removed from -mm tree
-Date: Fri, 03 Oct 2008 14:29:10 -0700
-Message-ID: <200810032129.m93LTArg016669@imap1.linux-foundation.org>
+Subject: - scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch removed from -mm tree
+Date: Fri, 03 Oct 2008 14:29:04 -0700
+Message-ID: <200810032129.m93LT439016662@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60796 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40963 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753261AbYJCV3V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 17:29:21 -0400
+	by vger.kernel.org with ESMTP id S1753255AbYJCV3R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 17:29:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yi.y.yang@intel.com, david-b@pacbell.net, greg@kroah.com, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: bunk@kernel.org, James.Bottomley@HansenPartnership.com, rpjday@crashcourse.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: improve ehci_watchdog's side effect in CPU power management
+     scsi: remove the unused SCSI_QLOGIC_FC_FIRMWARE option
 has been removed from the -mm tree.  Its filename was
-     usb-improve-ehci_watchdogs-side-effect-in-cpu-power-management.patch
+     scsi-remove-the-unused-scsi_qlogic_fc_firmware-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: improve ehci_watchdog's side effect in CPU power management
-From: Yi Yang <yi.y.yang@intel.com>
+Subject: scsi: remove the unused SCSI_QLOGIC_FC_FIRMWARE option
+From: Adrian Bunk <bunk@kernel.org>
 
-ehci_watchdog will wake up CPU very frequently so that CPU stays at C3
-very short, average residence time is about 50 ms on Aspire One, but we
-expect it should be about 1 second or more, so this kind of periodic timer
-is very bad for power saving.
+This option was forgotten when the SCSI_QLOGIC_FC driver was removed.
 
-We can't remove this timer because of some bad USB controller chipset, but
-at least we should reduce its side effect to as low as possible.
-
-This patch can make CPU stay at C3 longer, average residence time is about
-twice as long as original.
-
-Signed-off-by: Yi Yang <yi.y.yang@intel.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <greg@kroah.com>
+Reported-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/ehci.h |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ drivers/scsi/Kconfig |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN drivers/usb/host/ehci.h~usb-improve-ehci_watchdogs-side-effect-in-cpu-power-management drivers/usb/host/ehci.h
---- a/drivers/usb/host/ehci.h~usb-improve-ehci_watchdogs-side-effect-in-cpu-power-management
-+++ a/drivers/usb/host/ehci.h
-@@ -181,14 +181,16 @@ timer_action (struct ehci_hcd *ehci, enu
- 	 * the async ring; just the I/O watchdog.  Note that if a
- 	 * SHRINK were pending, OFF would never be requested.
- 	 */
--	if (timer_pending(&ehci->watchdog)
--			&& ((BIT(TIMER_ASYNC_SHRINK) | BIT(TIMER_ASYNC_OFF))
--				& ehci->actions))
--		return;
-+	enum ehci_timer_action oldactions = ehci->actions;
+diff -puN drivers/scsi/Kconfig~scsi-remove-the-unused-scsi_qlogic_fc_firmware-option drivers/scsi/Kconfig
+--- a/drivers/scsi/Kconfig~scsi-remove-the-unused-scsi_qlogic_fc_firmware-option
++++ a/drivers/scsi/Kconfig
+@@ -1336,14 +1336,6 @@ config SCSI_QLOGIC_FAS
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called qlogicfas.
  
- 	if (!test_and_set_bit (action, &ehci->actions)) {
- 		unsigned long t;
- 
-+		if (timer_pending(&ehci->watchdog)
-+			&& ((BIT(TIMER_ASYNC_SHRINK) | BIT(TIMER_ASYNC_OFF))
-+				& oldactions))
-+			return;
-+
- 		switch (action) {
- 		case TIMER_IO_WATCHDOG:
- 			t = EHCI_IO_JIFFIES;
-@@ -204,7 +206,7 @@ timer_action (struct ehci_hcd *ehci, enu
- 			t = DIV_ROUND_UP(EHCI_SHRINK_FRAMES * HZ, 1000) + 1;
- 			break;
- 		}
--		mod_timer(&ehci->watchdog, t + jiffies);
-+		mod_timer(&ehci->watchdog, round_jiffies(t + jiffies));
- 	}
- }
- 
+-config SCSI_QLOGIC_FC_FIRMWARE
+-	bool "Include loadable firmware in driver"
+-	depends on SCSI_QLOGIC_FC
+-  	help
+-	  Say Y to include ISP2X00 Fabric Initiator/Target Firmware, with
+-	  expanded LUN addressing and FcTape (FCP-2) support, in the
+-	  qlogicfc driver. This is required on some platforms.
+-
+ config SCSI_QLOGIC_1280
+ 	tristate "Qlogic QLA 1240/1x80/1x160 SCSI support"
+ 	depends on PCI && SCSI
 _
 
-Patches currently in -mm which might be from yi.y.yang@intel.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-git-acpi.patch
-lib-pull-base-guessing-logic-to-helper-function.patch
-lib-trivial-whitespace-tidy.patch
-lib-remove-defining-macros-for-strict_strto.patch
+git-powerpc.patch
+git-sparc.patch
+git-x86.patch
+git-xtensa.patch
+git-v4l-dvb.patch
+git-scsi.patch
+git-net.patch
+git-crypto.patch
+git-drm.patch
+git-security-testing.patch
+the-overdue-eepro100-removal.patch
+parisc-lib-make-code-static.patch
+drivers-parisc-make-code-static.patch
+if-0-ses_match_host.patch
+drivers-scsi-a2091c-make-2-functions-static.patch
+drivers-scsi-a3000c-make-2-functions-static.patch
+fs_mbcache-dont-needlessly-make-it-built-in.patch
+misdn-dsp_cmxc-fix-size-checks.patch
+asm-h8300-mdh-remove-cvs-keyword.patch
+alpha-miata-remove-dead-url.patch
+uml-remove-the-dead-tty_log-code.patch
+include-linux-kernelh-userspace-header-cleanup.patch
+maintainers-remove-hga-framebuffer-driver-entry.patch
+include-linux-mounth-remove-cvs-keyword.patch
+kernel-dmac-remove-a-cvs-keyword.patch
+binfmt_somc-add-module_license.patch
+make-probe_serial_gsc-static.patch
+pnp-remove-printk-with-outdated-version.patch
+telephony-remove-cvs-keywords.patch
+reiserfs-procfsc-remove-cvs-keywords.patch
+quota-remove-cvs-keywords.patch
+make-ptrace_untrace-static.patch
+fs-partitions-acornc-remove-dead-code.patch
+parport-remove-cvs-keywords.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+ipc-semc-make-free_un-static.patch
+make-fs-proc-proc_sysctlc-grab_header-static.patch
+make-hp_wmi_notify-static.patch
+make-kprobesc-kretprobe_table_lock-static.patch
+acpi-use-bcd2bin-bin2bcd.patch
+alpha-use-bcd2bin-bin2bcd.patch
+cris-use-bcd2bin-bin2bcd.patch
+drivers-rtc-use-bcd2bin-bin2bcd.patch
+rtc-use-bcd2bin-bin2bcd.patch
+mips-use-bcd2bin-bin2bcd.patch
+mn10300-use-bcd2bin-bin2bcd.patch
+i2c-use-bcd2bin-bin2bcd.patch
+drivers-scsi-sr_vendorc-use-bcd2bin.patch
+remove-the-obsolete-bcdbin-binbcd-macros.patch
+include-linux-bcdh-remove-comments.patch
+reiser4.patch
 
