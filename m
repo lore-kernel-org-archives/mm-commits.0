@@ -1,113 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-do_move_pages-complexity-linear-fix.patch added to -mm tree
-Date: Thu, 02 Oct 2008 17:23:15 -0700
-Message-ID: <200810030023.m930NF2G002083@imap1.linux-foundation.org>
+Subject: - cifs-fix-range-check.patch removed from -mm tree
+Date: Thu, 02 Oct 2008 17:14:27 -0700
+Message-ID: <200810030014.m930ERsX001722@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52245 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38179 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753625AbYJCAX6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 20:23:58 -0400
+	by vger.kernel.org with ESMTP id S1753503AbYJCAZO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Oct 2008 20:25:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: Brice.Goglin@inria.fr, Nathalie.Furmento@labri.fr, cl@linux-foundation.org, mel@csn.ul.ie
+To: dhowells@redhat.com, sfrench@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: make do_move_pages() complexity linear
-has been added to the -mm tree.  Its filename is
-     mm-make-do_move_pages-complexity-linear-fix.patch
+     cifs: fix range check
+has been removed from the -mm tree.  Its filename was
+     cifs-fix-range-check.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make do_move_pages() complexity linear
-From: Brice Goglin <Brice.Goglin@inria.fr>
+Subject: cifs: fix range check
+From: David Howells <dhowells@redhat.com>
 
-> +/*
-> + * Allocate a page on the node given as a page_to_node in private.
-> + * Increase private to point to the next page_to_node so that the
-> + * next iteration does not have to traverse the whole pm array.
-> + */
->  static struct page *new_page_node(struct page *p, unsigned long private,
->  		int **result)
->  {
-> -	struct page_to_node *pm = (struct page_to_node *)private;
-> +	struct page_to_node **pmptr = (struct page_to_node **)private;
-> +	struct page_to_node *pm = *pmptr;
->  
->  	while (pm->node != MAX_NUMNODES && pm->page != p)
->  		pm++;
->  
-> +	/* prepare for the next iteration */
-> +	*pmptr = pm + 1;
-> +
->   
-	
-Actually, this "pm+1" breaks the case where migrate_pages() calls
-unmap_and_move() multiple times on the same page. In this case, we need
-the while loop to look at pm instead of pm+1 first. So we can't cache
-pm+1 in private, but caching pm is ok. There will be 1 while loop
-instead of 0 in the regular case. Updated patch (with more comments)
-coming soon.
+Fix the CIFS range check to always use a big enough size variable that the
+compiler won't moan about comparing it to ULONG_MAX/8 on a 64-bit platform.
 
-Signed-off-by: Brice Goglin <Brice.Goglin@inria.fr>
-Signed-off-by: Nathalie Furmento <Nathalie.Furmento@labri.fr>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ fs/cifs/asn1.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~mm-make-do_move_pages-complexity-linear-fix mm/migrate.c
---- a/mm/migrate.c~mm-make-do_move_pages-complexity-linear-fix
-+++ a/mm/migrate.c
-@@ -839,8 +839,14 @@ struct page_to_node {
+diff -puN fs/cifs/asn1.c~cifs-fix-range-check fs/cifs/asn1.c
+--- a/fs/cifs/asn1.c~cifs-fix-range-check
++++ a/fs/cifs/asn1.c
+@@ -394,8 +394,8 @@ asn1_oid_decode(struct asn1_ctx *ctx,
+ 		unsigned char *eoc, unsigned long **oid, unsigned int *len)
+ {
+ 	unsigned long subid;
+-	unsigned int size;
+ 	unsigned long *optr;
++	size_t size;
  
- /*
-  * Allocate a page on the node given as a page_to_node in private.
-- * Increase private to point to the next page_to_node so that the
-- * next iteration does not have to traverse the whole pm array.
-+ *
-+ * Cache the _last used_ pm in private so that the next call may find the
-+ * target pm in very few while loops (usually 1) instead of scanning the
-+ * whole pm array.
-+ * We cannot cache the _next_ pm in private (to get 0 while loop in the
-+ * regular case) because it would break the case where new_page_node()
-+ * is called multiple times on the same page (when migrate_pages() tries
-+ * unmap_and_move() multiple times).
-  */
- static struct page *new_page_node(struct page *p, unsigned long private,
- 		int **result)
-@@ -851,8 +857,8 @@ static struct page *new_page_node(struct
- 	while (pm->node != MAX_NUMNODES && pm->page != p)
- 		pm++;
+ 	size = eoc - ctx->pointer + 1;
  
--	/* prepare for the next iteration */
--	*pmptr = pm + 1;
-+	/* save the current pm to reduce the while loop in the next call */
-+	*pmptr = pm;
- 
- 	if (pm->node == MAX_NUMNODES)
- 		return NULL;
 _
 
-Patches currently in -mm which might be from Brice.Goglin@inria.fr are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-mm-make-do_move_pages-complexity-linear.patch
-mm-make-do_move_pages-complexity-linear-fix.patch
+origin.patch
+mm-tiny-shmem-nommu-fix.patch
+git-v4l-dvb.patch
+git-xfs.patch
+git-mtd.patch
+git-cifs.patch
+git-drm.patch
+git-security-testing.patch
+cifs-fix-range-check.patch
+uclinux-fix-gzip-header-parsing-in-binfmt_flatc.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
+binfmt_elf_fdpic-support-auxvec-base-platform-string.patch
+binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack.patch
+binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch
+sysctl-simplify-strategy.patch
+afs-convert-to-new-aops.patch
+mn10300-use-bcd2bin-bin2bcd.patch
+mutex-subsystem-synchro-test-module.patch
 
