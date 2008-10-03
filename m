@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + git-battery-rejects.patch added to -mm tree
-Date: Fri, 03 Oct 2008 13:30:03 -0700
-Message-ID: <200810032030.m93KU3lh014375@imap1.linux-foundation.org>
+Subject: + git-md-rejects.patch added to -mm tree
+Date: Fri, 03 Oct 2008 13:30:47 -0700
+Message-ID: <200810032030.m93KUl4O014382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37762 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40103 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752534AbYJCUad (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 16:30:33 -0400
+	by vger.kernel.org with ESMTP id S1752389AbYJCUbV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 16:31:21 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m93KU3Ao006416
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m93KUlUv006473
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 3 Oct 2008 13:30:04 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 3 Oct 2008 13:30:48 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +19,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-battery-rejects
+     git-md-rejects
 has been added to the -mm tree.  Its filename is
-     git-battery-rejects.patch
+     git-md-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,26 +37,26 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-battery-rejects
+Subject: git-md-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/Makefile |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/md/linear.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/power/Makefile~git-battery-rejects drivers/power/Makefile
---- a/drivers/power/Makefile~git-battery-rejects
-+++ a/drivers/power/Makefile
-@@ -21,4 +21,5 @@ obj-$(CONFIG_BATTERY_DS2760)	+= ds2760_b
- obj-$(CONFIG_BATTERY_PMU)	+= pmu_battery.o
- obj-$(CONFIG_BATTERY_OLPC)	+= olpc_battery.o
- obj-$(CONFIG_BATTERY_TOSA)	+= tosa_battery.o
--obj-$(CONFIG_BATTERY_WM97XX)	+= wm97xx_battery.o
-\ No newline at end of file
-+obj-$(CONFIG_BATTERY_WM97XX)	+= wm97xx_battery.o
-+obj-$(CONFIG_BATTERY_BQ27x00)	+= bq27x00_battery.o
+diff -puN drivers/md/linear.c~git-md-rejects drivers/md/linear.c
+--- a/drivers/md/linear.c~git-md-rejects
++++ a/drivers/md/linear.c
+@@ -307,7 +307,6 @@ static int linear_make_request (struct r
+ 	const int rw = bio_data_dir(bio);
+ 	mddev_t *mddev = q->queuedata;
+ 	dev_info_t *tmp_dev;
+-	sector_t block;
+ 	int cpu;
+ 
+ 	if (unlikely(bio_barrier(bio))) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,6 +95,7 @@ git-block-reject-fix.patch
 git-pcmcia-git-rejects.patch
 git-battery.patch
 git-battery-rejects.patch
+git-md-rejects.patch
 git-kmemcheck.patch
 git-mfd.patch
 git-drm.patch
