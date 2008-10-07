@@ -1,105 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-dont-create-empty-filenames-in-sys-firmware-acpi-tables.patch removed from -mm tree
-Date: Mon, 06 Oct 2008 23:46:54 -0700
-Message-ID: <200810070646.m976ksxu028618@imap1.linux-foundation.org>
+Subject: - dm-fix-null-pointer-exception.patch removed from -mm tree
+Date: Tue, 07 Oct 2008 13:35:39 -0700
+Message-ID: <200810072035.m97KZdse031950@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59614 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44844 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751294AbYJGGrm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Oct 2008 02:47:42 -0400
+	by vger.kernel.org with ESMTP id S1755062AbYJGUha (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Oct 2008 16:37:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nokos@gmx.net, len.brown@intel.com, ming.m.lin@intel.com, robert.moore@intel.com, rui.zhang@intel.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: raspl@linux.vnet.ibm.com, agk@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: don't create empty filenames in /sys/firmware/acpi/tables
+     dm: fix null pointer exception
 has been removed from the -mm tree.  Its filename was
-     acpi-dont-create-empty-filenames-in-sys-firmware-acpi-tables.patch
+     dm-fix-null-pointer-exception.patch
 
 This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: don't create empty filenames in /sys/firmware/acpi/tables
-From: Peter Gruber <nokos@gmx.net>
+Subject: dm: fix null pointer exception
+From: Stefan Raspl <raspl@linux.vnet.ibm.com>
 
-Taken from http://bugzilla.kernel.org/show_bug.cgi?id=11539
+needs a changelog.
 
-Since commit bc45b1d39a925b56796bebf8a397a0491489d85c acpi tables are
-allowed to have an empty signature and /sys/firmware/acpi/tables uses the
-signature as filename.  Applications using naive recursion through /sys
-loop forever.  A possible solution would be: (replacing the zero length
-filename with the string "NULL")
-
-Cc: Bob Moore <robert.moore@intel.com>
-Cc: Lin Ming <ming.m.lin@intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Acked-by: Zhang Rui <rui.zhang@intel.com>
-Cc: <stable@kernel.org>		[2.6.26.x]
+Signed-off-by: Stefan Raspl <raspl@linux.vnet.ibm.com>
+Cc: Alasdair G Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/system.c |   25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ drivers/md/dm-table.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/system.c~acpi-dont-create-empty-filenames-in-sys-firmware-acpi-tables drivers/acpi/system.c
---- a/drivers/acpi/system.c~acpi-dont-create-empty-filenames-in-sys-firmware-acpi-tables
-+++ a/drivers/acpi/system.c
-@@ -78,9 +78,15 @@ static ssize_t acpi_table_show(struct ko
- 	    container_of(bin_attr, struct acpi_table_attr, attr);
- 	struct acpi_table_header *table_header = NULL;
- 	acpi_status status;
-+	char name[ACPI_NAME_SIZE];
-+
-+	if (strncmp(table_attr->name, "NULL", 4))
-+		memcpy(name, table_attr->name, ACPI_NAME_SIZE);
-+	else
-+		memcpy(name, "\0\0\0\0", 4);
+diff -puN drivers/md/dm-table.c~dm-fix-null-pointer-exception drivers/md/dm-table.c
+--- a/drivers/md/dm-table.c~dm-fix-null-pointer-exception
++++ a/drivers/md/dm-table.c
+@@ -941,7 +941,8 @@ int dm_table_any_congested(struct dm_tab
  
- 	status =
--	    acpi_get_table(table_attr->name, table_attr->instance,
-+	    acpi_get_table(name, table_attr->instance,
- 			   &table_header);
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
-@@ -95,21 +101,24 @@ static void acpi_table_attr_init(struct 
- 	struct acpi_table_header *header = NULL;
- 	struct acpi_table_attr *attr = NULL;
- 
--	memcpy(table_attr->name, table_header->signature, ACPI_NAME_SIZE);
-+	if (table_header->signature[0] != '\0')
-+		memcpy(table_attr->name, table_header->signature,
-+			ACPI_NAME_SIZE);
-+	else
-+		memcpy(table_attr->name, "NULL", 4);
- 
- 	list_for_each_entry(attr, &acpi_table_attr_list, node) {
--		if (!memcmp(table_header->signature, attr->name,
--			    ACPI_NAME_SIZE))
-+		if (!memcmp(table_attr->name, attr->name, ACPI_NAME_SIZE))
- 			if (table_attr->instance < attr->instance)
- 				table_attr->instance = attr->instance;
+ 	list_for_each_entry(dd, devices, list) {
+ 		struct request_queue *q = bdev_get_queue(dd->dm_dev.bdev);
+-		r |= bdi_congested(&q->backing_dev_info, bdi_bits);
++		if (q)
++			r |= bdi_congested(&q->backing_dev_info, bdi_bits);
  	}
- 	table_attr->instance++;
  
- 	if (table_attr->instance > 1 || (table_attr->instance == 1 &&
--					 !acpi_get_table(table_header->
--							 signature, 2,
--							 &header)))
--		sprintf(table_attr->name + 4, "%d", table_attr->instance);
-+					!acpi_get_table
-+					(table_header->signature, 2, &header)))
-+		sprintf(table_attr->name + ACPI_NAME_SIZE, "%d",
-+			table_attr->instance);
+ 	return r;
+@@ -955,7 +956,8 @@ void dm_table_unplug_all(struct dm_table
+ 	list_for_each_entry(dd, devices, list) {
+ 		struct request_queue *q = bdev_get_queue(dd->dm_dev.bdev);
  
- 	table_attr->attr.size = 0;
- 	table_attr->attr.read = acpi_table_show;
+-		blk_unplug(q);
++		if (q)
++			blk_unplug(q);
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from nokos@gmx.net are
+Patches currently in -mm which might be from raspl@linux.vnet.ibm.com are
 
-acpi-dont-create-empty-filenames-in-sys-firmware-acpi-tables.patch
+git-scsi.patch
+dm-fix-null-pointer-exception.patch
 
