@@ -1,170 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-git-rejects.patch removed from -mm tree
-Date: Tue, 07 Oct 2008 15:07:48 -0700
-Message-ID: <200810072207.m97M7m7c004621@imap1.linux-foundation.org>
+Subject: + mm-vmallocc-revert-git-tip-change.patch added to -mm tree
+Date: Tue, 07 Oct 2008 16:07:45 -0700
+Message-ID: <200810072307.m97N7jOS007793@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34657 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58490 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754050AbYJGWIL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Oct 2008 18:08:11 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m97M7pHh021391
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 7 Oct 2008 15:07:52 -0700
+	by vger.kernel.org with ESMTP id S1754288AbYJGXIC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Oct 2008 19:08:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     git-x86-git-rejects
-has been removed from the -mm tree.  Its filename was
-     git-x86-git-rejects.patch
+     mm/vmalloc.c: revert git-tip change
+has been added to the -mm tree.  Its filename is
+     mm-vmallocc-revert-git-tip-change.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86-git-rejects
+Subject: mm/vmalloc.c: revert git-tip change
 From: Andrew Morton <akpm@linux-foundation.org>
 
+It causes me a massive reject and undesirably links one tree with the other.
 
+Please try not to trash my stuff too much.
+
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/common.c |    6 ------
- arch/x86/kernel/process_32.c |    7 -------
- arch/x86/kernel/process_64.c |    4 ----
- arch/x86/kernel/setup.c      |    3 ---
- include/asm-x86/cpufeature.h |    3 ---
- include/asm-x86/idle.h       |    4 ----
- 6 files changed, 27 deletions(-)
+ mm/vmalloc.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/common.c~git-x86-git-rejects arch/x86/kernel/cpu/common.c
---- a/arch/x86/kernel/cpu/common.c~git-x86-git-rejects
-+++ a/arch/x86/kernel/cpu/common.c
-@@ -552,18 +552,12 @@ void __init early_cpu_init(void)
-  * The NOPL instruction is supposed to exist on all CPUs with
-  * family >= 6; unfortunately, that's not true in practice because
-  * of early VIA chips and (more importantly) broken virtualizers that
--<<<<<<< HEAD:arch/x86/kernel/cpu/common.c
-- * are not easy to detect.  In the latter case it doesn't even *fail*
-- * reliably, so probing for it doesn't even work.  Disable it completely
-- * unless we can find a reliable way to detect all the broken cases.
--=======
-  * are not easy to detect.  Hence, probe for it based on first
-  * principles.
-  *
-  * Note: no 64-bit chip is known to lack these, but put the code here
-  * for consistency with 32 bits, and to make it utterly trivial to
-  * diagnose the problem should it ever surface.
-->>>>>>> FETCH_HEAD:arch/x86/kernel/cpu/common.c
-  */
- static void __cpuinit detect_nopl(struct cpuinfo_x86 *c)
- {
-diff -puN arch/x86/kernel/process_32.c~git-x86-git-rejects arch/x86/kernel/process_32.c
---- a/arch/x86/kernel/process_32.c~git-x86-git-rejects
-+++ a/arch/x86/kernel/process_32.c
-@@ -55,12 +55,9 @@
- #include <asm/tlbflush.h>
- #include <asm/cpu.h>
- #include <asm/kdebug.h>
--<<<<<<< HEAD:arch/x86/kernel/process_32.c
- #include <asm/idle.h>
--=======
- #include <asm/syscalls.h>
- #include <asm/smp.h>
-->>>>>>> FETCH_HEAD:arch/x86/kernel/process_32.c
+diff -puN mm/vmalloc.c~mm-vmallocc-revert-git-tip-change mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmallocc-revert-git-tip-change
++++ a/mm/vmalloc.c
+@@ -180,13 +180,6 @@ struct page *vmalloc_to_page(const void 
+ 	pmd_t *pmd;
+ 	pte_t *ptep, pte;
  
- asmlinkage void ret_from_fork(void) __asm__("ret_from_fork");
- 
-@@ -78,7 +75,6 @@ unsigned long thread_saved_pc(struct tas
- 	return ((unsigned long *)tsk->thread.sp)[3];
- }
- 
--<<<<<<< HEAD:arch/x86/kernel/process_32.c
- #ifdef CONFIG_HOTPLUG_CPU
- #include <asm/nmi.h>
- 
-@@ -115,9 +111,6 @@ static inline void play_dead(void)
- 	wbinvd_halt();
- }
- #else
--=======
--#ifndef CONFIG_SMP
-->>>>>>> FETCH_HEAD:arch/x86/kernel/process_32.c
- static inline void play_dead(void)
- {
- 	BUG();
-diff -puN arch/x86/kernel/process_64.c~git-x86-git-rejects arch/x86/kernel/process_64.c
---- a/arch/x86/kernel/process_64.c~git-x86-git-rejects
-+++ a/arch/x86/kernel/process_64.c
-@@ -86,7 +86,6 @@ void exit_idle(void)
- 	__exit_idle();
- }
- 
--<<<<<<< HEAD:arch/x86/kernel/process_64.c
- #ifdef CONFIG_HOTPLUG_CPU
- DECLARE_PER_CPU(int, cpu_state);
- 
-@@ -106,9 +105,6 @@ static inline void play_dead(void)
- 	wbinvd_halt();
- }
- #else
--=======
--#ifndef CONFIG_SMP
-->>>>>>> FETCH_HEAD:arch/x86/kernel/process_64.c
- static inline void play_dead(void)
- {
- 	BUG();
-diff -puN arch/x86/kernel/setup.c~git-x86-git-rejects arch/x86/kernel/setup.c
---- a/arch/x86/kernel/setup.c~git-x86-git-rejects
-+++ a/arch/x86/kernel/setup.c
-@@ -909,12 +909,9 @@ void __init setup_arch(char **cmdline_p)
- #else
- 	num_physpages = max_pfn;
- 
--<<<<<<< HEAD:arch/x86/kernel/setup.c
--=======
- 	check_efer();
-  	if (cpu_has_x2apic)
-  		check_x2apic();
-->>>>>>> FETCH_HEAD:arch/x86/kernel/setup.c
- 
- 	/* How many end-of-memory variables you have, grandma! */
- 	/* need this before calling reserve_initrd */
-diff -puN include/asm-x86/cpufeature.h~git-x86-git-rejects include/asm-x86/cpufeature.h
---- a/include/asm-x86/cpufeature.h~git-x86-git-rejects
-+++ a/include/asm-x86/cpufeature.h
-@@ -89,11 +89,8 @@
- #define X86_FEATURE_LFENCE_RDTSC (3*32+18) /* "" Lfence synchronizes RDTSC */
- #define X86_FEATURE_11AP	(3*32+19) /* "" Bad local APIC aka 11AP */
- #define X86_FEATURE_NOPL	(3*32+20) /* The NOPL (0F 1F) instructions */
--<<<<<<< HEAD:include/asm-x86/cpufeature.h
- #define X86_FEATURE_AMDC1E	(3*32+21) /* AMD C1E detected */
--=======
- #define X86_FEATURE_XTOPOLOGY	(3*32+21) /* cpu topology enum extensions */
-->>>>>>> FETCH_HEAD:include/asm-x86/cpufeature.h
- 
- /* Intel-defined CPU features, CPUID level 0x00000001 (ecx), word 4 */
- #define X86_FEATURE_XMM3	(4*32+ 0) /* "pni" SSE-3 */
-diff -puN include/asm-x86/idle.h~git-x86-git-rejects include/asm-x86/idle.h
---- a/include/asm-x86/idle.h~git-x86-git-rejects
-+++ a/include/asm-x86/idle.h
-@@ -10,10 +10,6 @@ void idle_notifier_register(struct notif
- void enter_idle(void);
- void exit_idle(void);
- 
--<<<<<<< HEAD:include/asm-x86/idle.h
- void c1e_remove_cpu(int cpu);
- 
--#endif
--=======
- #endif /* ASM_X86__IDLE_H */
-->>>>>>> FETCH_HEAD:include/asm-x86/idle.h
-diff -puN include/asm-x86/statfs.h~git-x86-git-rejects include/asm-x86/statfs.h
+-	/*
+-	 * XXX we might need to change this if we add VIRTUAL_BUG_ON for
+-	 * architectures that do not vmalloc module space
+-	 */
+-	VIRTUAL_BUG_ON(!is_vmalloc_addr(vmalloc_addr) &&
+-			!is_module_address(addr));
+-
+ 	if (!pgd_none(*pgd)) {
+ 		pud = pud_offset(pgd, addr);
+ 		if (!pud_none(*pud)) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -175,14 +74,9 @@ git-tip.patch
 git-tip-rejects.patch
 git-powerpc.patch
 git-sparc.patch
-git-x86-git-rejects.patch
 git-xtensa.patch
-git-tip-core.patch
-git-ftrace.patch
-git-sched.patch
 git-sched-rejects.patch
 git-stackprotector-rejects.patch
-git-timers.patch
 git-timers-fix-printk-errors-clean-up.patch
 git-pci.patch
 git-hid.patch
@@ -190,15 +84,14 @@ git-v4l-dvb.patch
 git-v4l-dvb-git-rejects.patch
 git-acpi-git-rejects.patch
 git-nfsd.patch
-git-kvm.patch
 git-dlm.patch
 git-scsi.patch
+git-tests-fixup.patch
 git-ext4.patch
 git-ext4-vs-git-ocfs2.patch
 git-async_tx.patch
 git-net.patch
 git-mtd.patch
-git-wireless.patch
 git-vfs-vs-git-ext4.patch
 git-sound.patch
 git-sound-vs-git-arm.patch
@@ -208,17 +101,13 @@ git-block-reject-fix.patch
 git-pcmcia-git-rejects.patch
 git-battery.patch
 git-battery-rejects.patch
+git-slab-rejects.patch
 git-md-rejects.patch
-git-kmemcheck.patch
 git-mfd.patch
 git-drm.patch
-git-sparseirq.patch
-git-scsi-post-merge.patch
-git-bdev.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
 arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-drivers-media-video-tda9840c-unbreak.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
@@ -228,7 +117,6 @@ drivers-net-sfc-falconc-fix-min-warnings.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
 drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
-drivers-media-video-cafe_ccicc-needs-mmh.patch
 mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
 mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
 mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
@@ -245,6 +133,7 @@ mmap-handle-mlocked-pages-during-map-remap-unmap.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
 vmscan-unevictable-lru-scan-sysctl.patch
 mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-vmallocc-revert-git-tip-change.patch
 mm-rewrite-vmap-layer-fix.patch
 mm-rewrite-vmap-layer-fix-fix.patch
 mm-rewrite-vmap-layer-fix-fix-fix.patch
