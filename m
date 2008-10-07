@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmallocc-revert-git-tip-change.patch added to -mm tree
-Date: Tue, 07 Oct 2008 16:07:45 -0700
-Message-ID: <200810072307.m97N7jOS007793@imap1.linux-foundation.org>
+Subject: + revert-mm-vmallocc-revert-git-tip-change.patch added to -mm tree
+Date: Tue, 07 Oct 2008 16:08:41 -0700
+Message-ID: <200810072308.m97N8f1t007816@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58490 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35534 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754288AbYJGXIC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Oct 2008 19:08:02 -0400
+	by vger.kernel.org with ESMTP id S1754462AbYJGXIz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Oct 2008 19:08:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     mm/vmalloc.c: revert git-tip change
+     revert mm-vmallocc-revert-git-tip-change
 has been added to the -mm tree.  Its filename is
-     mm-vmallocc-revert-git-tip-change.patch
+     revert-mm-vmallocc-revert-git-tip-change.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/vmalloc.c: revert git-tip change
+Subject: revert mm-vmallocc-revert-git-tip-change
 From: Andrew Morton <akpm@linux-foundation.org>
 
-It causes me a massive reject and undesirably links one tree with the other.
-
-Please try not to trash my stuff too much.
+Put it back again.
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    7 -------
- 1 file changed, 7 deletions(-)
+ mm/vmalloc.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/vmalloc.c~mm-vmallocc-revert-git-tip-change mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmallocc-revert-git-tip-change
+diff -puN mm/vmalloc.c~revert-mm-vmallocc-revert-git-tip-change mm/vmalloc.c
+--- a/mm/vmalloc.c~revert-mm-vmallocc-revert-git-tip-change
 +++ a/mm/vmalloc.c
-@@ -180,13 +180,6 @@ struct page *vmalloc_to_page(const void 
- 	pmd_t *pmd;
- 	pte_t *ptep, pte;
+@@ -184,6 +184,13 @@ struct page *vmalloc_to_page(const void 
+ 	struct page *page = NULL;
+ 	pgd_t *pgd = pgd_offset_k(addr);
  
--	/*
--	 * XXX we might need to change this if we add VIRTUAL_BUG_ON for
--	 * architectures that do not vmalloc module space
--	 */
--	VIRTUAL_BUG_ON(!is_vmalloc_addr(vmalloc_addr) &&
--			!is_module_address(addr));
--
++	/*
++	 * XXX we might need to change this if we add VIRTUAL_BUG_ON for
++	 * architectures that do not vmalloc module space
++	 */
++	VIRTUAL_BUG_ON(!is_vmalloc_addr(vmalloc_addr) &&
++			!is_module_address(addr));
++
  	if (!pgd_none(*pgd)) {
- 		pud = pud_offset(pgd, addr);
+ 		pud_t *pud = pud_offset(pgd, addr);
  		if (!pud_none(*pud)) {
 _
 
@@ -137,6 +135,7 @@ mm-vmallocc-revert-git-tip-change.patch
 mm-rewrite-vmap-layer-fix.patch
 mm-rewrite-vmap-layer-fix-fix.patch
 mm-rewrite-vmap-layer-fix-fix-fix.patch
+revert-mm-vmallocc-revert-git-tip-change.patch
 h8300-generic_bug-support-checkpatch-fixes.patch
 pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
 container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
