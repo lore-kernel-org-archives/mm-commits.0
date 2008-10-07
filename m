@@ -1,67 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: + revert-mm-vmallocc-revert-git-tip-change.patch added to -mm tree
-Date: Tue, 07 Oct 2008 16:08:41 -0700
-Message-ID: <200810072308.m97N8f1t007816@imap1.linux-foundation.org>
+Subject: - cpualloc-make-the-per-cpu-reserve-configurable-fix.patch removed from -mm tree
+Date: Tue, 07 Oct 2008 16:35:25 -0700
+Message-ID: <200810072335.m97NZPBY009251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35534 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44086 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754462AbYJGXIz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Oct 2008 19:08:55 -0400
+	by vger.kernel.org with ESMTP id S1754300AbYJGXff (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Oct 2008 19:35:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu
+To: akpm@linux-foundation.org, cl@linux-foundation.org, penberg@cs.helsinki.fi, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert mm-vmallocc-revert-git-tip-change
-has been added to the -mm tree.  Its filename is
-     revert-mm-vmallocc-revert-git-tip-change.patch
+     cpualloc-make-the-per-cpu-reserve-configurable-fix
+has been removed from the -mm tree.  Its filename was
+     cpualloc-make-the-per-cpu-reserve-configurable-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it got shat on
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert mm-vmallocc-revert-git-tip-change
+Subject: cpualloc-make-the-per-cpu-reserve-configurable-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Put it back again.
+make 'em match.
 
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ init/main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~revert-mm-vmallocc-revert-git-tip-change mm/vmalloc.c
---- a/mm/vmalloc.c~revert-mm-vmallocc-revert-git-tip-change
-+++ a/mm/vmalloc.c
-@@ -184,6 +184,13 @@ struct page *vmalloc_to_page(const void 
- 	struct page *page = NULL;
- 	pgd_t *pgd = pgd_offset_k(addr);
+diff -puN init/main.c~cpualloc-make-the-per-cpu-reserve-configurable-fix init/main.c
+--- a/init/main.c~cpualloc-make-the-per-cpu-reserve-configurable-fix
++++ a/init/main.c
+@@ -417,7 +417,7 @@ static void __init setup_per_cpu_areas(v
+ 	da_size = per_cpu_dyn_array_size(&align);
+ 	align = max_t(unsigned long, PAGE_SIZE, align);
+ 	size = ALIGN(old_size + da_size, align);
+-	printk(KERN_INFO "percpu area: %d bytes total, %d available.\n",
++	printk(KERN_INFO "percpu area: %lu bytes total, %lu available.\n",
+ 			size, size - (__per_cpu_end - __per_cpu_start));
+ 	ptr = alloc_bootmem_pages(size * nr_possible_cpus);
  
-+	/*
-+	 * XXX we might need to change this if we add VIRTUAL_BUG_ON for
-+	 * architectures that do not vmalloc module space
-+	 */
-+	VIRTUAL_BUG_ON(!is_vmalloc_addr(vmalloc_addr) &&
-+			!is_module_address(addr));
-+
- 	if (!pgd_none(*pgd)) {
- 		pud_t *pud = pud_offset(pgd, addr);
- 		if (!pud_none(*pud)) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
