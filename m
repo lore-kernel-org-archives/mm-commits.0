@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-accept-any-sized-le-be-type.patch added to -mm tree
-Date: Wed, 08 Oct 2008 15:23:43 -0700
-Message-ID: <200810082223.m98MNhuT013613@imap1.linux-foundation.org>
+Subject: + checkpatch-pull-out-known-acceptable-typedefs.patch added to -mm tree
+Date: Wed, 08 Oct 2008 15:23:45 -0700
+Message-ID: <200810082223.m98MNjNv013616@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35472 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56133 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755274AbYJHWXw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 18:23:52 -0400
+	by vger.kernel.org with ESMTP id S1755113AbYJHWXy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 18:23:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: accept any sized le/be type
+     checkpatch: pull out known acceptable typedefs
 has been added to the -mm tree.  Its filename is
-     checkpatch-accept-any-sized-le-be-type.patch
+     checkpatch-pull-out-known-acceptable-typedefs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: accept any sized le/be type
+Subject: checkpatch: pull out known acceptable typedefs
 From: Andy Whitcroft <apw@shadowen.org>
 
-We are likely going to have 24 bit types.  Expand the type matcher to
-match any size.
+Within the type checker we have a number of common kernel types which must
+be implemented as typedefs.  Pull those out so that we can use the same
+expressions to trigger exclusions.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-accept-any-sized-le-be-type scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-accept-any-sized-le-be-type
+diff -puN scripts/checkpatch.pl~checkpatch-pull-out-known-acceptable-typedefs scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-pull-out-known-acceptable-typedefs
 +++ a/scripts/checkpatch.pl
-@@ -159,7 +159,7 @@ our @typeList = (
+@@ -146,6 +146,11 @@ our $UTF8	= qr {
+ 	|  \xF4[\x80-\x8F][\x80-\xBF]{2}     # plane 16
+ }x;
+ 
++our $typeTypedefs = qr{(?x:
++	(?:__)?(?:u|s|be|le)(?:\d|\d\d)|
++	atomic_t
++)};
++
+ our @typeList = (
+ 	qr{void},
+ 	qr{(?:unsigned\s+)?char},
+@@ -159,7 +164,6 @@ our @typeList = (
  	qr{float},
  	qr{double},
  	qr{bool},
--	qr{(?:__)?(?:u|s|be|le)(?:8|16|32|64)},
-+	qr{(?:__)?(?:u|s|be|le)(?:\d|\d\d)},
+-	qr{(?:__)?(?:u|s|be|le)(?:\d|\d\d)},
  	qr{struct\s+$Ident},
  	qr{union\s+$Ident},
  	qr{enum\s+$Ident},
+@@ -179,6 +183,7 @@ sub build_types {
+ 			(?:$Modifier\s+|const\s+)*
+ 			(?:
+ 				(?:typeof|__typeof__)\s*\(\s*\**\s*$Ident\s*\)|
++				(?:$typeTypedefs\b)|
+ 				(?:${all}\b)
+ 			)
+ 			(?:\s+$Modifier|\s+const)*
+@@ -1589,6 +1594,7 @@ sub process {
+ 		if ($line =~ /\btypedef\s/ &&
+ 		    $line !~ /\btypedef\s+$Type\s+\(\s*\*?$Ident\s*\)\s*\(/ &&
+ 		    $line !~ /\btypedef\s+$Type\s+$Ident\s*\(/ &&
++		    $line !~ /\b$typeTypedefs\b/ &&
+ 		    $line !~ /\b__bitwise(?:__|)\b/) {
+ 			WARN("do not add new typedefs\n" . $herecurr);
+ 		}
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
