@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + alsa-sigmatel-stac92hd71b7-low-hp-volume.patch added to -mm tree
-Date: Wed, 08 Oct 2008 14:50:14 -0700
-Message-ID: <200810082150.m98LoEaR011820@imap1.linux-foundation.org>
+Subject: + signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock.patch added to -mm tree
+Date: Wed, 08 Oct 2008 14:51:53 -0700
+Message-ID: <200810082151.m98LprCW011935@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32969 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58267 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753851AbYJHVuu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 17:50:50 -0400
+	by vger.kernel.org with ESMTP id S1753559AbYJHVwt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 17:52:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: klaasdc@gmail.com, tiwai@suse.de
+Cc: laijs@cn.fujitsu.com, adobriyan@gmail.com, oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     alsa: Sigmatel stac92hd71b7 low HP volume
+     signal, procfs: lock_task_sighand() do not need rcu_read_lock()
 has been added to the -mm tree.  Its filename is
-     alsa-sigmatel-stac92hd71b7-low-hp-volume.patch
+     signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,115 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alsa: Sigmatel stac92hd71b7 low HP volume
-From: Klaas De Craemer <klaasdc@gmail.com>
+Subject: signal, procfs: lock_task_sighand() do not need rcu_read_lock()
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
 
-Fix an issue on Dell E6500 notebooks with the Sigmatel stac92hd71b7 codec.
+lock_task_sighand() make sure task->sighand is being protected, so we do
+not need rcu_read_lock().  exec() will get task->sighand->siglock before
+change task->sighand!
 
-In the default snd-hda-intel configuration, the sound going to the
-headphone jack goes comes directly from the DAC, resulting in very low
-volume output.  The patch changes the codec's widget connections so that
-the internal mixer is put in between and sets its input amplifiers to the
-maximum value.  The output to the internal speaker port has been left
-untouched.  I have tested this and it gives a much better output.
+But code using rcu_read_lock() _just_ to protect lock_task_sighand() only
+appear in procfs.  (and some code in procfs use lock_task_sighand()
+without such redundant protection.)
 
-Cc: Takashi Iwai <tiwai@suse.de>
+Other subsystem may put lock_task_sighand() into rcu_read_lock() critical
+region, but these rcu_read_lock() are used for protecting
+"for_each_process()", "find_task_by_vpid()" etc.  , not for protecting
+lock_task_sighand().
+
+Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/patch_sigmatel.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ fs/proc/array.c      |    2 --
+ fs/proc/base.c       |    9 +--------
+ kernel/sched_debug.c |    2 --
+ 3 files changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN sound/pci/hda/patch_sigmatel.c~alsa-sigmatel-stac92hd71b7-low-hp-volume sound/pci/hda/patch_sigmatel.c
---- a/sound/pci/hda/patch_sigmatel.c~alsa-sigmatel-stac92hd71b7-low-hp-volume
-+++ a/sound/pci/hda/patch_sigmatel.c
-@@ -855,6 +855,22 @@ static struct hda_verb stac92hd83xxx_cor
- 	{ 0x01, AC_VERB_SET_EAPD, 1 << 2},
- };
+diff -puN fs/proc/array.c~signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock fs/proc/array.c
+--- a/fs/proc/array.c~signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock
++++ a/fs/proc/array.c
+@@ -261,7 +261,6 @@ static inline void task_sig(struct seq_f
+ 	sigemptyset(&ignored);
+ 	sigemptyset(&caught);
  
-+static struct hda_verb stac92hd71b7_core_init[] = {
-+	/* set master volume and direct control */
-+	{ 0x28, AC_VERB_SET_VOLUME_KNOB_CONTROL, 0xff},
-+	/* connect headphone jack to mixer */
-+	{ 0x0a, AC_VERB_SET_CONNECT_SEL, 0x02},
-+	/* unmute right and left channels for nodes 0x0a, 0xd, 0x0f */
-+	{ 0x0a, AC_VERB_SET_AMP_GAIN_MUTE, AMP_IN_UNMUTE(0)},
-+	{ 0x0d, AC_VERB_SET_AMP_GAIN_MUTE, AMP_IN_UNMUTE(0)},
-+	{ 0x0f, AC_VERB_SET_AMP_GAIN_MUTE, AMP_IN_UNMUTE(0)},
-+
-+	/* Increase mixer volume for the two dac's */
-+	{ 0x17, 0x370, 0x7f },
-+	{ 0x17, 0x371, 0x7f },
-+	{}
-+};
-+
- static struct hda_verb stac92hd71bxx_core_init[] = {
- 	/* set master volume and direct control */
- 	{ 0x28, AC_VERB_SET_VOLUME_KNOB_CONTROL, 0xff},
-@@ -4354,6 +4370,10 @@ again:
- 		spec->init = stac92hd71bxx_core_init;
- 		codec->slave_dig_outs = stac92hd71bxx_slave_dig_outs;
- 		break;
-+	case 0x111d76b2: /* Dell E6500 stac92hd71b7 configuration */
-+		spec->mixer = stac92hd71bxx_mixer;
-+		spec->init = stac92hd71b7_core_init;
-+		break;
- 	case 0x111d7608: /* 5 Port with Analog Mixer */
- 		if ((codec->revision_id & 0xf) == 0 ||
- 				(codec->revision_id & 0xf) == 1) {
+-	rcu_read_lock();
+ 	if (lock_task_sighand(p, &flags)) {
+ 		pending = p->pending.signal;
+ 		shpending = p->signal->shared_pending.signal;
+@@ -272,7 +271,6 @@ static inline void task_sig(struct seq_f
+ 		qlim = p->signal->rlim[RLIMIT_SIGPENDING].rlim_cur;
+ 		unlock_task_sighand(p, &flags);
+ 	}
+-	rcu_read_unlock();
+ 
+ 	seq_printf(m, "Threads:\t%d\n", num_threads);
+ 	seq_printf(m, "SigQ:\t%lu/%lu\n", qsize, qlim);
+diff -puN fs/proc/base.c~signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock fs/proc/base.c
+--- a/fs/proc/base.c~signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock
++++ a/fs/proc/base.c
+@@ -164,7 +164,6 @@ static struct fs_struct *get_fs_struct(s
+ 
+ static int get_nr_threads(struct task_struct *tsk)
+ {
+-	/* Must be called with the rcu_read_lock held */
+ 	unsigned long flags;
+ 	int count = 0;
+ 
+@@ -471,14 +470,10 @@ static int proc_pid_limits(struct task_s
+ 
+ 	struct rlimit rlim[RLIM_NLIMITS];
+ 
+-	rcu_read_lock();
+-	if (!lock_task_sighand(task,&flags)) {
+-		rcu_read_unlock();
++	if (!lock_task_sighand(task, &flags))
+ 		return 0;
+-	}
+ 	memcpy(rlim, task->signal->rlim, sizeof(struct rlimit) * RLIM_NLIMITS);
+ 	unlock_task_sighand(task, &flags);
+-	rcu_read_unlock();
+ 
+ 	/*
+ 	 * print the file header
+@@ -3088,9 +3083,7 @@ static int proc_task_getattr(struct vfsm
+ 	generic_fillattr(inode, stat);
+ 
+ 	if (p) {
+-		rcu_read_lock();
+ 		stat->nlink += get_nr_threads(p);
+-		rcu_read_unlock();
+ 		put_task_struct(p);
+ 	}
+ 
+diff -puN kernel/sched_debug.c~signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock kernel/sched_debug.c
+--- a/kernel/sched_debug.c~signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock
++++ a/kernel/sched_debug.c
+@@ -333,12 +333,10 @@ void proc_sched_show_task(struct task_st
+ 	unsigned long flags;
+ 	int num_threads = 1;
+ 
+-	rcu_read_lock();
+ 	if (lock_task_sighand(p, &flags)) {
+ 		num_threads = atomic_read(&p->signal->count);
+ 		unlock_task_sighand(p, &flags);
+ 	}
+-	rcu_read_unlock();
+ 
+ 	SEQ_printf(m, "%s (%d, #threads: %d)\n", p->comm, p->pid, num_threads);
+ 	SEQ_printf(m,
 _
 
-Patches currently in -mm which might be from klaasdc@gmail.com are
+Patches currently in -mm which might be from laijs@cn.fujitsu.com are
 
-alsa-sigmatel-stac92hd71b7-low-hp-volume.patch
+git-tip.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-cgroups-eliminate-race-in-css_set-refcounting.patch
+cgroups-convert-tasks-file-to-use-a-seq_file-with-shared-pid-array.patch
+devcgroup-remove-spin_lock.patch
+signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock.patch
 
