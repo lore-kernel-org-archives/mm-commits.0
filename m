@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-version-024.patch added to -mm tree
-Date: Wed, 08 Oct 2008 15:23:59 -0700
-Message-ID: <200810082223.m98MNxXJ013639@imap1.linux-foundation.org>
+Subject: + tpm-update-char-dev-bkl-pushdown.patch added to -mm tree
+Date: Wed, 08 Oct 2008 15:44:41 -0700
+Message-ID: <200810082244.m98MifwL014688@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55244 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35869 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755335AbYJHWYI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 18:24:08 -0400
+	by vger.kernel.org with ESMTP id S1754746AbYJHWov (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 18:44:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: apw@shadowen.org
+Cc: srajiv@linux.vnet.ibm.com, serue@us.ibm.com, zohar@linux.vnet.ibm.com
 
 
 The patch titled
-     checkpatch: version: 0.24
+     tpm: update char dev BKL pushdown
 has been added to the -mm tree.  Its filename is
-     checkpatch-version-024.patch
+     tpm-update-char-dev-bkl-pushdown.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,69 +33,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: version: 0.24
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: tpm: update char dev BKL pushdown
+From: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
 
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Remove the BKL calls from the TPM driver, which were added in the overall
+misc-char-dev-BKL-pushdown.patch, as they are not needed.
+
+Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Signed-off-by: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/tpm/tpm.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-version-024 scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-version-024
-+++ a/scripts/checkpatch.pl
-@@ -9,7 +9,7 @@ use strict;
- my $P = $0;
- $P =~ s@.*/@@g;
+diff -puN drivers/char/tpm/tpm.c~tpm-update-char-dev-bkl-pushdown drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~tpm-update-char-dev-bkl-pushdown
++++ a/drivers/char/tpm/tpm.c
+@@ -961,13 +961,16 @@ EXPORT_SYMBOL_GPL(tpm_store_cancel);
  
--my $V = '0.23';
-+my $V = '0.24';
+ /*
+  * Device file system interface to the TPM
++ *
++ * It's assured that the chip will be opened just once,
++ * by the check of is_open variable, which is protected
++ * by driver_lock.
+  */
+ int tpm_open(struct inode *inode, struct file *file)
+ {
+ 	int rc = 0, minor = iminor(inode);
+ 	struct tpm_chip *chip = NULL, *pos;
  
- use Getopt::Long qw(:config no_auto_abbrev);
+-	lock_kernel();
+ 	spin_lock(&driver_lock);
  
+ 	list_for_each_entry(pos, &tpm_chip_list, list) {
+@@ -997,19 +1000,16 @@ int tpm_open(struct inode *inode, struct
+ 	if (chip->data_buffer == NULL) {
+ 		chip->num_opens--;
+ 		put_device(chip->dev);
+-		unlock_kernel();
+ 		return -ENOMEM;
+ 	}
+ 
+ 	atomic_set(&chip->data_pending, 0);
+ 
+ 	file->private_data = chip;
+-	unlock_kernel();
+ 	return 0;
+ 
+ err_out:
+ 	spin_unlock(&driver_lock);
+-	unlock_kernel();
+ 	return rc;
+ }
+ EXPORT_SYMBOL_GPL(tpm_open);
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from srajiv@linux.vnet.ibm.com are
 
-mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
-checkpatch-square-brackets-exemption-for-array-slices-in-braces.patch
-checkpatch-values-double-ampersand-may-be-unary.patch
-checkpatch-conditional-indent-labels-have-different-indent-rules.patch
-checkpatch-switch-indent-allow-plain-return.patch
-checkpatch-add-tests-for-the-attribute-matcher.patch
-checkpatch-____cacheline_aligned-et-al-are-modifiers.patch
-checkpatch-complex-macros-fix-up-extension-handling.patch
-checkpatch-fix-up-comment-checks-search-to-scan-the-entire-block.patch
-checkpatch-include-asm-checks-should-be-anchored.patch
-checkpatch-reduce-warnings-for-include-of-asm-fooh-to-check-from-arch-barc.patch
-checkpatch-report-any-absolute-references-to-kernel-source-files.patch
-checkpatch-report-the-real-first-line-of-all-suspect-indents.patch
-checkpatch-suspect-indent-skip-over-preprocessor-label-and-blank-lines.patch
-checkpatch-%lx-tests-should-hand-%%-as-a-literal.patch
-checkpatch-report-the-correct-lines-for-single-statement-blocks.patch
-checkpatch-perform-indent-checks-on-perl.patch
-checkpatch-version-022.patch
-checkpatch-case-default-checks-should-only-check-changed-lines.patch
-checkpatch-suppress-errors-triggered-by-short-patch.patch
-checkpatch-handle-comment-quote-nesting-correctly.patch
-checkpatch-check-line-endings-in-text-format-files.patch
-checkpatch-suspect-indent-count-condition-lines-correctly.patch
-checkpatch-ensure-we-only-apply-checks-to-the-lines-within-hunks.patch
-checkpatch-version-023.patch
-checkpatch-do-is-not-a-possible-type.patch
-checkpatch-labels-are-not-possible-types.patch
-checkpatch-handle-do-without-braces-if-we-have-enough-context.patch
-checkpatch-macros-which-define-structure-members-are-not-complex.patch
-checkpatch-accept-any-sized-le-be-type.patch
-checkpatch-pull-out-known-acceptable-typedefs.patch
-checkpatch-suspect-code-indent-must-stop-at-else-elif.patch
-checkpatch-complex-macros-checks-miss-square-brackets.patch
-checkpatch-define_-macros-are-real-definitions-for-exports.patch
-checkpatch-trailing-statements-ensure-we-report-the-end-of-the-line.patch
-checkpatch-suspect-indent-handle-macro-continuation.patch
-checkpatch-allow-for-comments-either-side-of-a-brace-on-case.patch
-checkpatch-version-024.patch
-page-owner-tracking-leak-detector.patch
+tpm-include-moderated-for-non-subscribers-notation-in-maintainers.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+tpm-update-char-dev-bkl-pushdown.patch
+tpm-num_opens-to-is_open-variable-change.patch
+tpm-rcu-locking.patch
+tpm-addition-of-pnp_remove.patch
+tpm-fixed-tpm_release-timing.patch
 
