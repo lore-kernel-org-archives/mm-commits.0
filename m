@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-suspect-indent-handle-macro-continuation.patch added to -mm tree
-Date: Wed, 08 Oct 2008 15:23:55 -0700
-Message-ID: <200810082223.m98MNtHN013633@imap1.linux-foundation.org>
+Subject: + checkpatch-define_-macros-are-real-definitions-for-exports.patch added to -mm tree
+Date: Wed, 08 Oct 2008 15:23:51 -0700
+Message-ID: <200810082223.m98MNpjR013627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47508 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46962 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755307AbYJHWYE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 18:24:04 -0400
+	by vger.kernel.org with ESMTP id S1755286AbYJHWYA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 18:24:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: suspect indent handle macro continuation
+     checkpatch: DEFINE_ macros are real definitions for exports
 has been added to the -mm tree.  Its filename is
-     checkpatch-suspect-indent-handle-macro-continuation.patch
+     checkpatch-define_-macros-are-real-definitions-for-exports.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: suspect indent handle macro continuation
+Subject: checkpatch: DEFINE_ macros are real definitions for exports
 From: Andy Whitcroft <apw@shadowen.org>
 
-When ignoring a macro in the middle of a conditional, we need to ignore
-the macro start and any continuation lines.
+When we want to confirm an export is directly after its definition we need
+to allow for DEFINE_ style macros.  Add these to the execeptions. 
+Refactor the exceptions.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-suspect-indent-handle-macro-continuation scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-suspect-indent-handle-macro-continuation
+diff -puN scripts/checkpatch.pl~checkpatch-define_-macros-are-real-definitions-for-exports scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-define_-macros-are-real-definitions-for-exports
 +++ a/scripts/checkpatch.pl
-@@ -1465,6 +1465,7 @@ sub process {
+@@ -1573,13 +1573,14 @@ sub process {
+ 		if (($line =~ /EXPORT_SYMBOL.*\((.*)\)/) ||
+ 		    ($line =~ /EXPORT_UNUSED_SYMBOL.*\((.*)\)/)) {
+ 			my $name = $1;
+-			if (($prevline !~ /^}/) &&
+-			   ($prevline !~ /^\+}/) &&
+-			   ($prevline !~ /^ }/) &&
+-			   ($prevline !~ /^.DECLARE_$Ident\(\Q$name\E\)/) &&
+-			   ($prevline !~ /^.LIST_HEAD\(\Q$name\E\)/) &&
+-			   ($prevline !~ /^.$Type\s*\(\s*\*\s*\Q$name\E\s*\)\s*\(/) &&
+-			   ($prevline !~ /\b\Q$name\E(?:\s+$Attribute)?\s*(?:;|=|\[)/)) {
++			if ($prevline !~ /(?:
++				^.}|
++				^.DEFINE_$Ident\(\Q$name\E\)|
++				^.DECLARE_$Ident\(\Q$name\E\)|
++				^.LIST_HEAD\(\Q$name\E\)|
++				^.$Type\s*\(\s*\*\s*\Q$name\E\s*\)\s*\(|
++				\b\Q$name\E(?:\s+$Attribute)?\s*(?:;|=|\[)
++			    )/x) {
+ 				WARN("EXPORT_SYMBOL(foo); should immediately follow its function/variable\n" . $herecurr);
  			}
- 
- 			my $cond_ptr = -1;
-+			$continuation = 0;
- 			while ($cond_ptr != $cond_lines) {
- 				$cond_ptr = $cond_lines;
- 
-@@ -1478,9 +1479,11 @@ sub process {
- 				#  1) blank lines, they should be at 0,
- 				#  2) preprocessor lines, and
- 				#  3) labels.
--				if ($s =~ /^\s*?\n/ ||
-+				if ($continuation ||
-+				    $s =~ /^\s*?\n/ ||
- 				    $s =~ /^\s*#\s*?/ ||
- 				    $s =~ /^\s*$Ident\s*:/) {
-+					$continuation = ($s =~ /^.*?\\\n/) ? 1 : 0;
- 					$s =~ s/^.*?\n//;
- 					$cond_lines++;
- 				}
+ 		}
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
