@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock.patch added to -mm tree
-Date: Wed, 08 Oct 2008 14:51:53 -0700
-Message-ID: <200810082151.m98LprCW011935@imap1.linux-foundation.org>
+Subject: + block-mark-bio_split_pool-static.patch added to -mm tree
+Date: Wed, 08 Oct 2008 14:54:27 -0700
+Message-ID: <200810082154.m98LsRue012059@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58267 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48402 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753559AbYJHVwt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 17:52:49 -0400
+	by vger.kernel.org with ESMTP id S1754107AbYJHVzs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 17:55:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: laijs@cn.fujitsu.com, adobriyan@gmail.com, oleg@tv-sign.ru, roland@redhat.com
+Cc: crquan@gmail.com, jens.axboe@oracle.com, neilb@suse.de
 
 
 The patch titled
-     signal, procfs: lock_task_sighand() do not need rcu_read_lock()
+     block: mark bio_split_pool static
 has been added to the -mm tree.  Its filename is
-     signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock.patch
+     block-mark-bio_split_pool-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,115 +33,138 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signal, procfs: lock_task_sighand() do not need rcu_read_lock()
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: block: mark bio_split_pool static
+From: Denis ChengRq <crquan@gmail.com>
 
-lock_task_sighand() make sure task->sighand is being protected, so we do
-not need rcu_read_lock().  exec() will get task->sighand->siglock before
-change task->sighand!
+Since all bio_split calls refer the same single bio_split_pool, the
+bio_split function can use bio_split_pool directly instead of the
+mempool_t parameter;
 
-But code using rcu_read_lock() _just_ to protect lock_task_sighand() only
-appear in procfs.  (and some code in procfs use lock_task_sighand()
-without such redundant protection.)
+Then the mempool_t parameter can be removed from bio_split param list, and
+bio_split_pool is only referred in fs/bio.c file, can be marked static.
 
-Other subsystem may put lock_task_sighand() into rcu_read_lock() critical
-region, but these rcu_read_lock() are used for protecting
-"for_each_process()", "find_task_by_vpid()" etc.  , not for protecting
-lock_task_sighand().
-
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Denis ChengRq <crquan@gmail.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c      |    2 --
- fs/proc/base.c       |    9 +--------
- kernel/sched_debug.c |    2 --
- 3 files changed, 1 insertion(+), 12 deletions(-)
+ drivers/block/pktcdvd.c |    2 +-
+ drivers/md/linear.c     |    2 +-
+ drivers/md/raid0.c      |    2 +-
+ drivers/md/raid10.c     |    2 +-
+ fs/bio.c                |    9 ++++-----
+ include/linux/bio.h     |    4 +---
+ 6 files changed, 9 insertions(+), 12 deletions(-)
 
-diff -puN fs/proc/array.c~signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock fs/proc/array.c
---- a/fs/proc/array.c~signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock
-+++ a/fs/proc/array.c
-@@ -261,7 +261,6 @@ static inline void task_sig(struct seq_f
- 	sigemptyset(&ignored);
- 	sigemptyset(&caught);
+diff -puN drivers/block/pktcdvd.c~block-mark-bio_split_pool-static drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~block-mark-bio_split_pool-static
++++ a/drivers/block/pktcdvd.c
+@@ -2543,7 +2543,7 @@ static int pkt_make_request(struct reque
+ 		if (last_zone != zone) {
+ 			BUG_ON(last_zone != zone + pd->settings.size);
+ 			first_sectors = last_zone - bio->bi_sector;
+-			bp = bio_split(bio, bio_split_pool, first_sectors);
++			bp = bio_split(bio, first_sectors);
+ 			BUG_ON(!bp);
+ 			pkt_make_request(q, &bp->bio1);
+ 			pkt_make_request(q, &bp->bio2);
+diff -puN drivers/md/linear.c~block-mark-bio_split_pool-static drivers/md/linear.c
+--- a/drivers/md/linear.c~block-mark-bio_split_pool-static
++++ a/drivers/md/linear.c
+@@ -343,7 +343,7 @@ static int linear_make_request (struct r
+ 		 * split it.
+ 		 */
+ 		struct bio_pair *bp;
+-		bp = bio_split(bio, bio_split_pool,
++		bp = bio_split(bio,
+ 			       tmp_dev->start_sector + tmp_dev->num_sectors
+ 			       - bio->bi_sector);
+ 		if (linear_make_request(q, &bp->bio1))
+diff -puN drivers/md/raid0.c~block-mark-bio_split_pool-static drivers/md/raid0.c
+--- a/drivers/md/raid0.c~block-mark-bio_split_pool-static
++++ a/drivers/md/raid0.c
+@@ -422,7 +422,7 @@ static int raid0_make_request (struct re
+ 		/* This is a one page bio that upper layers
+ 		 * refuse to split for us, so we need to split it.
+ 		 */
+-		bp = bio_split(bio, bio_split_pool, chunk_sects - (bio->bi_sector & (chunk_sects - 1)) );
++		bp = bio_split(bio, chunk_sects - (bio->bi_sector & (chunk_sects - 1)));
+ 		if (raid0_make_request(q, &bp->bio1))
+ 			generic_make_request(&bp->bio1);
+ 		if (raid0_make_request(q, &bp->bio2))
+diff -puN drivers/md/raid10.c~block-mark-bio_split_pool-static drivers/md/raid10.c
+--- a/drivers/md/raid10.c~block-mark-bio_split_pool-static
++++ a/drivers/md/raid10.c
+@@ -817,7 +817,7 @@ static int make_request(struct request_q
+ 		/* This is a one page bio that upper layers
+ 		 * refuse to split for us, so we need to split it.
+ 		 */
+-		bp = bio_split(bio, bio_split_pool,
++		bp = bio_split(bio,
+ 			       chunk_sects - (bio->bi_sector & (chunk_sects - 1)) );
+ 		if (make_request(q, &bp->bio1))
+ 			generic_make_request(&bp->bio1);
+diff -puN fs/bio.c~block-mark-bio_split_pool-static fs/bio.c
+--- a/fs/bio.c~block-mark-bio_split_pool-static
++++ a/fs/bio.c
+@@ -30,7 +30,7 @@
  
--	rcu_read_lock();
- 	if (lock_task_sighand(p, &flags)) {
- 		pending = p->pending.signal;
- 		shpending = p->signal->shared_pending.signal;
-@@ -272,7 +271,6 @@ static inline void task_sig(struct seq_f
- 		qlim = p->signal->rlim[RLIMIT_SIGPENDING].rlim_cur;
- 		unlock_task_sighand(p, &flags);
- 	}
--	rcu_read_unlock();
+ static struct kmem_cache *bio_slab __read_mostly;
  
- 	seq_printf(m, "Threads:\t%d\n", num_threads);
- 	seq_printf(m, "SigQ:\t%lu/%lu\n", qsize, qlim);
-diff -puN fs/proc/base.c~signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock fs/proc/base.c
---- a/fs/proc/base.c~signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock
-+++ a/fs/proc/base.c
-@@ -164,7 +164,6 @@ static struct fs_struct *get_fs_struct(s
+-mempool_t *bio_split_pool __read_mostly;
++static mempool_t *bio_split_pool __read_mostly;
  
- static int get_nr_threads(struct task_struct *tsk)
+ /*
+  * if you change this list, also change bvec_alloc or things will
+@@ -1256,9 +1256,9 @@ static void bio_pair_end_2(struct bio *b
+  * split a bio - only worry about a bio with a single page
+  * in it's iovec
+  */
+-struct bio_pair *bio_split(struct bio *bi, mempool_t *pool, int first_sectors)
++struct bio_pair *bio_split(struct bio *bi, int first_sectors)
  {
--	/* Must be called with the rcu_read_lock held */
- 	unsigned long flags;
- 	int count = 0;
+-	struct bio_pair *bp = mempool_alloc(pool, GFP_NOIO);
++	struct bio_pair *bp = mempool_alloc(bio_split_pool, GFP_NOIO);
  
-@@ -471,14 +470,10 @@ static int proc_pid_limits(struct task_s
+ 	if (!bp)
+ 		return bp;
+@@ -1292,7 +1292,7 @@ struct bio_pair *bio_split(struct bio *b
+ 	bp->bio2.bi_end_io = bio_pair_end_2;
  
- 	struct rlimit rlim[RLIM_NLIMITS];
+ 	bp->bio1.bi_private = bi;
+-	bp->bio2.bi_private = pool;
++	bp->bio2.bi_private = bio_split_pool;
  
--	rcu_read_lock();
--	if (!lock_task_sighand(task,&flags)) {
--		rcu_read_unlock();
-+	if (!lock_task_sighand(task, &flags))
- 		return 0;
--	}
- 	memcpy(rlim, task->signal->rlim, sizeof(struct rlimit) * RLIM_NLIMITS);
- 	unlock_task_sighand(task, &flags);
--	rcu_read_unlock();
+ 	if (bio_integrity(bi))
+ 		bio_integrity_split(bi, bp, first_sectors);
+@@ -1455,7 +1455,6 @@ EXPORT_SYMBOL(bio_map_kern);
+ EXPORT_SYMBOL(bio_copy_kern);
+ EXPORT_SYMBOL(bio_pair_release);
+ EXPORT_SYMBOL(bio_split);
+-EXPORT_SYMBOL(bio_split_pool);
+ EXPORT_SYMBOL(bio_copy_user);
+ EXPORT_SYMBOL(bio_uncopy_user);
+ EXPORT_SYMBOL(bioset_create);
+diff -puN include/linux/bio.h~block-mark-bio_split_pool-static include/linux/bio.h
+--- a/include/linux/bio.h~block-mark-bio_split_pool-static
++++ a/include/linux/bio.h
+@@ -300,9 +300,7 @@ struct bio_pair {
+ 	atomic_t			cnt;
+ 	int				error;
+ };
+-extern struct bio_pair *bio_split(struct bio *bi, mempool_t *pool,
+-				  int first_sectors);
+-extern mempool_t *bio_split_pool;
++extern struct bio_pair *bio_split(struct bio *bi, int first_sectors);
+ extern void bio_pair_release(struct bio_pair *dbio);
  
- 	/*
- 	 * print the file header
-@@ -3088,9 +3083,7 @@ static int proc_task_getattr(struct vfsm
- 	generic_fillattr(inode, stat);
- 
- 	if (p) {
--		rcu_read_lock();
- 		stat->nlink += get_nr_threads(p);
--		rcu_read_unlock();
- 		put_task_struct(p);
- 	}
- 
-diff -puN kernel/sched_debug.c~signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock kernel/sched_debug.c
---- a/kernel/sched_debug.c~signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock
-+++ a/kernel/sched_debug.c
-@@ -333,12 +333,10 @@ void proc_sched_show_task(struct task_st
- 	unsigned long flags;
- 	int num_threads = 1;
- 
--	rcu_read_lock();
- 	if (lock_task_sighand(p, &flags)) {
- 		num_threads = atomic_read(&p->signal->count);
- 		unlock_task_sighand(p, &flags);
- 	}
--	rcu_read_unlock();
- 
- 	SEQ_printf(m, "%s (%d, #threads: %d)\n", p->comm, p->pid, num_threads);
- 	SEQ_printf(m,
+ extern struct bio_set *bioset_create(int, int);
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from crquan@gmail.com are
 
-git-tip.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-cgroups-eliminate-race-in-css_set-refcounting.patch
-cgroups-convert-tasks-file-to-use-a-seq_file-with-shared-pid-array.patch
-devcgroup-remove-spin_lock.patch
-signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock.patch
+git-net.patch
+block-mark-bio_split_pool-static.patch
+fs-block_devc-__read_mostly-improvement-and-sb_is_blkdev_sb-utilization.patch
 
