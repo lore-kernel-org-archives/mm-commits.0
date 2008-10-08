@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-complex-macros-checks-miss-square-brackets.patch added to -mm tree
-Date: Wed, 08 Oct 2008 15:23:49 -0700
-Message-ID: <200810082223.m98MNnxH013622@imap1.linux-foundation.org>
+Subject: + checkpatch-trailing-statements-ensure-we-report-the-end-of-the-line.patch added to -mm tree
+Date: Wed, 08 Oct 2008 15:23:53 -0700
+Message-ID: <200810082223.m98MNsum013630@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42888 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43678 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755289AbYJHWX6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 18:23:58 -0400
+	by vger.kernel.org with ESMTP id S1755307AbYJHWYC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 18:24:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: complex macros checks miss square brackets
+     checkpatch: trailing statements ensure we report the end of the line
 has been added to the -mm tree.  Its filename is
-     checkpatch-complex-macros-checks-miss-square-brackets.patch
+     checkpatch-trailing-statements-ensure-we-report-the-end-of-the-line.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: complex macros checks miss square brackets
+Subject: checkpatch: trailing statements ensure we report the end of the line
 From: Andy Whitcroft <apw@shadowen.org>
 
-We are missing 'simple' values which include square brackets.  Refactor to
-ensure we handle nesting correctly and detect these simple forms.
+When reporting some complex trailing statements we report only the
+starting line of the error, that tends to imply the shown line is in error
+and confuse the reader.  As we do know where the actual error is report
+that line too with an appropriate gap marker where applicable.
+
+    #ERROR: trailing statements should be on next line
+    #1: FILE: Z202.c:1:
+    +       for (pbh = page_buffers(bh->b_page); pbh != bh;
+    +               pbh = pbh->b_this_page, key++);
+    #ERROR: trailing statements should be on next line
+    #4: FILE: Z202.c:4:
+    +       for (pbh = page_buffers(bh->b_page);
+    [...]
+    +               pbh = pbh->b_this_page, key++);
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-complex-macros-checks-miss-square-brackets scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-complex-macros-checks-miss-square-brackets
+diff -puN scripts/checkpatch.pl~checkpatch-trailing-statements-ensure-we-report-the-end-of-the-line scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-trailing-statements-ensure-we-report-the-end-of-the-line
 +++ a/scripts/checkpatch.pl
-@@ -2142,9 +2142,10 @@ sub process {
- 			$dstat =~ s/\s*$//s;
- 
- 			# Flatten any parentheses and braces
--			while ($dstat =~ s/\([^\(\)]*\)/1/) {
--			}
--			while ($dstat =~ s/\{[^\{\}]*\}/1/) {
-+			while ($dstat =~ s/\([^\(\)]*\)/1/ ||
-+			       $dstat =~ s/\{[^\{\}]*\}/1/ ||
-+			       $dstat =~ s/\[[^\{\}]*\]/1/)
-+			{
+@@ -2001,7 +2001,16 @@ sub process {
+ 			if (length($c) && $s !~ /^\s*{?\s*\\*\s*$/ &&
+ 			    $c !~ /}\s*while\s*/)
+ 			{
+-				ERROR("trailing statements should be on next line\n" . $herecurr);
++				# Find out how long the conditional actually is.
++				my @newlines = ($c =~ /\n/gs);
++				my $cond_lines = 1 + $#newlines;
++
++				my $stat_real = raw_line($linenr, $cond_lines);
++				if (defined($stat_real) && $cond_lines > 1) {
++					$stat_real = "[...]\n$stat_real";
++				}
++
++				ERROR("trailing statements should be on next line\n" . $herecurr . $stat_real);
  			}
+ 		}
  
- 			my $exceptions = qr{
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
