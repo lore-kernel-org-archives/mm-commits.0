@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-suspect-code-indent-must-stop-at-else-elif.patch added to -mm tree
-Date: Wed, 08 Oct 2008 15:23:47 -0700
-Message-ID: <200810082223.m98MNmIG013619@imap1.linux-foundation.org>
+Subject: + checkpatch-version-024.patch added to -mm tree
+Date: Wed, 08 Oct 2008 15:23:59 -0700
+Message-ID: <200810082223.m98MNxXJ013639@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56706 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755276AbYJHWX4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 18:23:56 -0400
+	by vger.kernel.org with ESMTP id S1755335AbYJHWYI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 18:24:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: suspect code indent must stop at #else/#elif
+     checkpatch: version: 0.24
 has been added to the -mm tree.  Its filename is
-     checkpatch-suspect-code-indent-must-stop-at-else-elif.patch
+     checkpatch-version-024.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: suspect code indent must stop at #else/#elif
+Subject: checkpatch: version: 0.24
 From: Andy Whitcroft <apw@shadowen.org>
-
-When we hit and #else or #elif we know we are meeting an alternative piece
-of code.  All bets are off on indent if we did not see the open of the
-control so stop checking.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-suspect-code-indent-must-stop-at-else-elif scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-suspect-code-indent-must-stop-at-else-elif
+diff -puN scripts/checkpatch.pl~checkpatch-version-024 scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-version-024
 +++ a/scripts/checkpatch.pl
-@@ -1468,6 +1468,12 @@ sub process {
- 			while ($cond_ptr != $cond_lines) {
- 				$cond_ptr = $cond_lines;
+@@ -9,7 +9,7 @@ use strict;
+ my $P = $0;
+ $P =~ s@.*/@@g;
  
-+				# If we see an #else/#elif then the code
-+				# is not linear.
-+				if ($s =~ /^\s*\#\s*(?:else|elif)/) {
-+					$check = 0;
-+				}
-+
- 				# Ignore:
- 				#  1) blank lines, they should be at 0,
- 				#  2) preprocessor lines, and
+-my $V = '0.23';
++my $V = '0.24';
+ 
+ use Getopt::Long qw(:config no_auto_abbrev);
+ 
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
