@@ -1,79 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: + tpm-fixed-tpm_release-timing.patch added to -mm tree
-Date: Wed, 08 Oct 2008 15:45:21 -0700
-Message-ID: <200810082245.m98MjLux014723@imap1.linux-foundation.org>
+Subject: - forcedeth-add-pci_enable_device-to-nv_resume.patch removed from -mm tree
+Date: Wed, 08 Oct 2008 15:46:30 -0700
+Message-ID: <200810082246.m98MkUDf014823@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46101 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58594 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754916AbYJHWqF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 18:46:05 -0400
+	by vger.kernel.org with ESMTP id S1754995AbYJHWrI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 18:47:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: srajiv@linux.vnet.ibm.com, corbet@lwn.net, serue@us.ibm.com, zohar@linux.vnet.ibm.com
+To: simon@fire.lp0.eu, aabdulla@nvidia.com, davem@davemloft.net, jgarzik@redhat.com, ranma+kernel@tdiedrich.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tpm: Fixed tpm_release() timing
-has been added to the -mm tree.  Its filename is
-     tpm-fixed-tpm_release-timing.patch
+     forcedeth: add pci_enable_device() to nv_resume()
+has been removed from the -mm tree.  Its filename was
+     forcedeth-add-pci_enable_device-to-nv_resume.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tpm: Fixed tpm_release() timing
-From: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
+Subject: forcedeth: add pci_enable_device() to nv_resume()
+From: Simon Arlott <simon@fire.lp0.eu>
 
-As pointed out by Jonathan Corbet, the timer must be deleted before
-flushing the work queue in order to avoid a job being submitted after the
-chip had been released.
+My NIC stops working after resuming from standby, it's not receiving any
+interrupts.
 
-Signed-off-by: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
-Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+Commit 25d90810ff49d2a63475776f24c74c6bb49b045f ([netdrvr] forcedeth:
+reorder suspend/resume code) introduces pci_disable_device to nv_suspend,
+but there's no corresponding pci_enable_device in nv_resume - so I added
+one (copied from e1000).  This results in interrupts being re-enabled
+after suspend.
+
+However, the NIC (10de:0373) still doesn't work after resume.
+
+Cc: Tobias Diedrich <ranma+kernel@tdiedrich.de>
+Cc: Jeff Garzik <jgarzik@redhat.com>
+Cc: Ayaz Abdulla <aabdulla@nvidia.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/forcedeth.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/char/tpm/tpm.c~tpm-fixed-tpm_release-timing drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~tpm-fixed-tpm_release-timing
-+++ a/drivers/char/tpm/tpm.c
-@@ -1011,9 +1011,9 @@ int tpm_release(struct inode *inode, str
- {
- 	struct tpm_chip *chip = file->private_data;
+diff -puN drivers/net/forcedeth.c~forcedeth-add-pci_enable_device-to-nv_resume drivers/net/forcedeth.c
+--- a/drivers/net/forcedeth.c~forcedeth-add-pci_enable_device-to-nv_resume
++++ a/drivers/net/forcedeth.c
+@@ -5968,6 +5968,13 @@ static int nv_resume(struct pci_dev *pde
  
-+	del_singleshot_timer_sync(&chip->user_read_timer);
- 	flush_scheduled_work();
- 	file->private_data = NULL;
--	del_singleshot_timer_sync(&chip->user_read_timer);
- 	atomic_set(&chip->data_pending, 0);
- 	kfree(chip->data_buffer);
- 	clear_bit(0, &chip->is_open);
+ 	pci_set_power_state(pdev, PCI_D0);
+ 	pci_restore_state(pdev);
++	rc = pci_enable_device(pdev);
++	if (rc) {
++		printk(KERN_ERR "forcedeth: Cannot enable PCI device from suspend\n");
++		return rc;
++	}
++	pci_set_master(pdev);
++
+ 	/* ack any pending wake events, disable PME */
+ 	pci_enable_wake(pdev, PCI_D0, 0);
+ 
 _
 
-Patches currently in -mm which might be from srajiv@linux.vnet.ibm.com are
+Patches currently in -mm which might be from simon@fire.lp0.eu are
 
-tpm-include-moderated-for-non-subscribers-notation-in-maintainers.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-tpm-update-char-dev-bkl-pushdown.patch
-tpm-num_opens-to-is_open-variable-change.patch
-tpm-rcu-locking.patch
-tpm-addition-of-pnp_remove.patch
-tpm-addition-of-pnp_remove-checkpatch-fixes.patch
-tpm-fixed-tpm_release-timing.patch
+forcedeth-add-pci_enable_device-to-nv_resume.patch
 
