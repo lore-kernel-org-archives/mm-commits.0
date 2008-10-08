@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-macros-which-define-structure-members-are-not-complex.patch added to -mm tree
-Date: Wed, 08 Oct 2008 15:23:41 -0700
-Message-ID: <200810082223.m98MNfDt013610@imap1.linux-foundation.org>
+Subject: + checkpatch-labels-are-not-possible-types.patch added to -mm tree
+Date: Wed, 08 Oct 2008 15:23:37 -0700
+Message-ID: <200810082223.m98MNbtS013602@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56423 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41474 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755256AbYJHWXu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 18:23:50 -0400
+	by vger.kernel.org with ESMTP id S1755009AbYJHWXq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 18:23:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: macros which define structure members are not complex
+     checkpatch: labels are not possible types
 has been added to the -mm tree.  Its filename is
-     checkpatch-macros-which-define-structure-members-are-not-complex.patch
+     checkpatch-labels-are-not-possible-types.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: macros which define structure members are not complex
+Subject: checkpatch: labels are not possible types
 From: Andy Whitcroft <apw@shadowen.org>
 
-We often see macros which define structure members, these are not complex
-and necessarily do not have braces or brackets.  For example:
-
-    #define _PLIST_HEAD_INIT(head)                      \
-        .prio_list = LIST_HEAD_INIT((head).prio_list),  \
-        .node_list = LIST_HEAD_INIT((head).node_list)
+A label is not a candidate for a possible type.  Exclude them.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-macros-which-define-structure-members-are-not-complex scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-macros-which-define-structure-members-are-not-complex
+diff -puN scripts/checkpatch.pl~checkpatch-labels-are-not-possible-types scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-labels-are-not-possible-types
 +++ a/scripts/checkpatch.pl
-@@ -2155,6 +2155,7 @@ sub process {
- 				if ($dstat ne '' &&
- 				    $dstat !~ /^(?:$Ident|-?$Constant)$/ &&
- 				    $dstat !~ /$exceptions/ &&
-+				    $dstat !~ /^\.$Ident\s*=/ &&
- 				    $dstat =~ /$Operators/)
- 				{
- 					ERROR("Macros with complex values should be enclosed in parenthesis\n" . "$here\n$ctx\n");
+@@ -1324,7 +1324,7 @@ sub process {
+ 				possible($type, "A:" . $s);
+ 
+ 			# definitions in global scope can only start with types
+-			} elsif ($s =~ /^.(?:$Storage\s+)?(?:$Inline\s+)?(?:const\s+)?($Ident)\b/s) {
++			} elsif ($s =~ /^.(?:$Storage\s+)?(?:$Inline\s+)?(?:const\s+)?($Ident)\b\s*(?!:)/s) {
+ 				possible($1, "B:" . $s);
+ 			}
+ 
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
