@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-allow-for-comments-either-side-of-a-brace-on-case.patch added to -mm tree
-Date: Wed, 08 Oct 2008 15:23:57 -0700
-Message-ID: <200810082223.m98MNvhk013636@imap1.linux-foundation.org>
+Subject: + checkpatch-suspect-code-indent-must-stop-at-else-elif.patch added to -mm tree
+Date: Wed, 08 Oct 2008 15:23:47 -0700
+Message-ID: <200810082223.m98MNmIG013619@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48479 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56706 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755325AbYJHWYG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 18:24:06 -0400
+	by vger.kernel.org with ESMTP id S1755276AbYJHWX4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 18:23:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: allow for comments either side of a brace on case
+     checkpatch: suspect code indent must stop at #else/#elif
 has been added to the -mm tree.  Its filename is
-     checkpatch-allow-for-comments-either-side-of-a-brace-on-case.patch
+     checkpatch-suspect-code-indent-must-stop-at-else-elif.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: allow for comments either side of a brace on case
+Subject: checkpatch: suspect code indent must stop at #else/#elif
 From: Andy Whitcroft <apw@shadowen.org>
 
-When specifying case we may have comments and/or braces at the end without
-actually having a 'statement'.  Allow for these to occur in any order.
+When we hit and #else or #elif we know we are meeting an alternative piece
+of code.  All bets are off on indent if we did not see the open of the
+control so stop checking.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-allow-for-comments-either-side-of-a-brace-on-case scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-allow-for-comments-either-side-of-a-brace-on-case
+diff -puN scripts/checkpatch.pl~checkpatch-suspect-code-indent-must-stop-at-else-elif scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-suspect-code-indent-must-stop-at-else-elif
 +++ a/scripts/checkpatch.pl
-@@ -2043,7 +2043,7 @@ sub process {
- # case and default should not have general statements after them
- 		if ($line =~ /^.\s*(?:case\s*.*|default\s*):/g &&
- 		    $line !~ /\G(?:
--			(?:\s*{)?(?:\s*$;*)(?:\s*\\)?\s*$|
-+			(?:\s*$;*)(?:\s*{)?(?:\s*$;*)(?:\s*\\)?\s*$|
- 			\s*return\s+
- 		    )/xg)
- 		{
+@@ -1468,6 +1468,12 @@ sub process {
+ 			while ($cond_ptr != $cond_lines) {
+ 				$cond_ptr = $cond_lines;
+ 
++				# If we see an #else/#elif then the code
++				# is not linear.
++				if ($s =~ /^\s*\#\s*(?:else|elif)/) {
++					$check = 0;
++				}
++
+ 				# Ignore:
+ 				#  1) blank lines, they should be at 0,
+ 				#  2) preprocessor lines, and
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
