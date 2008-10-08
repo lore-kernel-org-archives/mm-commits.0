@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-labels-are-not-possible-types.patch added to -mm tree
-Date: Wed, 08 Oct 2008 15:23:37 -0700
-Message-ID: <200810082223.m98MNbtS013602@imap1.linux-foundation.org>
+Subject: + checkpatch-accept-any-sized-le-be-type.patch added to -mm tree
+Date: Wed, 08 Oct 2008 15:23:43 -0700
+Message-ID: <200810082223.m98MNhuT013613@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41474 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35472 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755009AbYJHWXq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 18:23:46 -0400
+	by vger.kernel.org with ESMTP id S1755274AbYJHWXw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Oct 2008 18:23:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: apw@shadowen.org
 
 
 The patch titled
-     checkpatch: labels are not possible types
+     checkpatch: accept any sized le/be type
 has been added to the -mm tree.  Its filename is
-     checkpatch-labels-are-not-possible-types.patch
+     checkpatch-accept-any-sized-le-be-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: labels are not possible types
+Subject: checkpatch: accept any sized le/be type
 From: Andy Whitcroft <apw@shadowen.org>
 
-A label is not a candidate for a possible type.  Exclude them.
+We are likely going to have 24 bit types.  Expand the type matcher to
+match any size.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -45,18 +46,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  scripts/checkpatch.pl |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-labels-are-not-possible-types scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-labels-are-not-possible-types
+diff -puN scripts/checkpatch.pl~checkpatch-accept-any-sized-le-be-type scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-accept-any-sized-le-be-type
 +++ a/scripts/checkpatch.pl
-@@ -1324,7 +1324,7 @@ sub process {
- 				possible($type, "A:" . $s);
- 
- 			# definitions in global scope can only start with types
--			} elsif ($s =~ /^.(?:$Storage\s+)?(?:$Inline\s+)?(?:const\s+)?($Ident)\b/s) {
-+			} elsif ($s =~ /^.(?:$Storage\s+)?(?:$Inline\s+)?(?:const\s+)?($Ident)\b\s*(?!:)/s) {
- 				possible($1, "B:" . $s);
- 			}
- 
+@@ -159,7 +159,7 @@ our @typeList = (
+ 	qr{float},
+ 	qr{double},
+ 	qr{bool},
+-	qr{(?:__)?(?:u|s|be|le)(?:8|16|32|64)},
++	qr{(?:__)?(?:u|s|be|le)(?:\d|\d\d)},
+ 	qr{struct\s+$Ident},
+ 	qr{union\s+$Ident},
+ 	qr{enum\s+$Ident},
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
