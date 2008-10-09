@@ -1,100 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - timekeeping-fix-rounding-problem-during-clock-update.patch removed from -mm tree
-Date: Thu, 09 Oct 2008 15:27:10 -0700
-Message-ID: <200810092227.m99MRAfK005930@imap1.linux-foundation.org>
+Subject: - x86-fix-ghost-entries-under-sys-firmware-edd.patch removed from -mm tree
+Date: Thu, 09 Oct 2008 15:26:57 -0700
+Message-ID: <200810092226.m99MQv7N005908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54652 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40758 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750825AbYJIW1f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 18:27:35 -0400
+	by vger.kernel.org with ESMTP id S1750964AbYJIW1y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 18:27:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zippel@linux-m68k.org, johnstul@us.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: arvidjaar@newmail.ru, Matt_Domsch@dell.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     timekeeping: fix rounding problem during clock update
+     x86: fix ghost entries under /sys/firmware/edd
 has been removed from the -mm tree.  Its filename was
-     timekeeping-fix-rounding-problem-during-clock-update.patch
+     x86-fix-ghost-entries-under-sys-firmware-edd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: timekeeping: fix rounding problem during clock update
-From: Roman Zippel <zippel@linux-m68k.org>
+Subject: x86: fix ghost entries under /sys/firmware/edd
+From: Andrey Borzenkov <arvidjaar@newmail.ru>
 
-Due to a rounding problem during a clock update it's possible for readers
-to observe the clock jumping back by 1nsec.  The following simplified
-example demonstrates the problem:
+Some BIOSes do not indicate error when trying to read from non- existing
+device.  Zero buffer before reading and check that we actually got some
+data.
 
-cycle	xtime
-0	0
-1000	999999.6
-2000	1999999.2
-3000	2999998.8
-...
+This was fixed in different way for edd.S in
+http://marc.info/?l=linux-kernel&m=114087765422490&w=2, but lost again
+when edd.S was rewritten in C.
 
-1500 =	1499999.4
-=	0.0 + 1499999.4
-=	999999.6 + 499999.8
+hpa:
 
-When reading the clock only the full nanosecond part is used, while
-timekeeping internally keeps nanosecond fractions.  If the clock is now
-updated at cycle 1500 here, a nanosecond is missing due to the truncation.
+   Right, I think that's a much better patch.
 
-The simple fix is to round up the xtime value during the update, this also
-changes the distance to the reference time, but the adjustment will
-automatically take care that it stays under control.
+   The really Right Thing[TM] to do is probably to pre-clear the buffer
+   and then look for the 0xaa55 signature at offset 510; it is required
+   for sector 0 to be a valid MBR-format partition table and hence for the
+   MBR *signature* to be valid.
 
-Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
+   I'll write that up tomorrow (I'm travelling today), or you can send
+   me a patch.
+
+akpm:
+
+   A patch in hand is worth...
+
+Signed-off-by: Andrey Borzenkov < arvidjaar@mail.ru>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Matt Domsch <Matt_Domsch@dell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/timekeeping.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ arch/x86/boot/edd.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/time/timekeeping.c~timekeeping-fix-rounding-problem-during-clock-update kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~timekeeping-fix-rounding-problem-during-clock-update
-+++ a/kernel/time/timekeeping.c
-@@ -487,7 +487,7 @@ void update_wall_time(void)
- #else
- 	offset = clock->cycle_interval;
- #endif
--	clock->xtime_nsec += (s64)xtime.tv_nsec << clock->shift;
-+	clock->xtime_nsec = (s64)xtime.tv_nsec << clock->shift;
+diff -puN arch/x86/boot/edd.c~x86-fix-ghost-entries-under-sys-firmware-edd arch/x86/boot/edd.c
+--- a/arch/x86/boot/edd.c~x86-fix-ghost-entries-under-sys-firmware-edd
++++ a/arch/x86/boot/edd.c
+@@ -60,11 +60,12 @@ static u32 read_mbr_sig(u8 devno, struct
+ 	if (mbrbuf_end > (char *)(size_t)boot_params.hdr.heap_end_ptr)
+ 		return -1;
  
- 	/* normally this loop will run just once, however in the
- 	 * case of lost or late ticks, it will accumulate correctly.
-@@ -518,9 +518,12 @@ void update_wall_time(void)
- 	/* correct the clock when NTP error is too big */
- 	clocksource_adjust(offset);
++	memset(mbrbuf_ptr, 0, sector_size);
+ 	if (read_mbr(devno, mbrbuf_ptr))
+ 		return -1;
  
--	/* store full nanoseconds into xtime */
--	xtime.tv_nsec = (s64)clock->xtime_nsec >> clock->shift;
-+	/* store full nanoseconds into xtime after rounding it up and
-+	 * add the remainder to the error difference.
-+	 */
-+	xtime.tv_nsec = ((s64)clock->xtime_nsec >> clock->shift) + 1;
- 	clock->xtime_nsec -= (s64)xtime.tv_nsec << clock->shift;
-+	clock->error += clock->xtime_nsec << (NTP_SCALE_SHIFT - clock->shift);
+ 	*mbrsig = *(u32 *)&mbrbuf_ptr[EDD_MBR_SIG_OFFSET];
+-	return 0;
++	return -!*mbrsig;	/* treat zero signature as no sig */
+ }
  
- 	update_xtime_cache(cyc2ns(clock, offset));
- 
+ static int get_edd_info(u8 devno, struct edd_info *ei)
 _
 
-Patches currently in -mm which might be from zippel@linux-m68k.org are
+Patches currently in -mm which might be from arvidjaar@newmail.ru are
 
 git-tip.patch
-hfsplus-quieten-down-mounting-hfsplus-journaled-fs-read-only.patch
-hfsplus-fix-buffer-overflow-with-a-corrupted-image.patch
-hfsplus-check-read_mapping_page-return-value.patch
-hfsplus-fix-another-bug-when-reading-a-corrupted-image.patch
-hfs-fix-namelength-memory-corruption.patch
-hfsplus-check-hfs_bnode_find-return-value.patch
-hfsplus-missing-o_largefile-check.patch
 
