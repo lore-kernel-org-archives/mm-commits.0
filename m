@@ -1,74 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-rejects.patch removed from -mm tree
-Date: Thu, 09 Oct 2008 13:47:08 -0700
-Message-ID: <200810092047.m99Kl8rf031868@imap1.linux-foundation.org>
+Subject: + git-net-conflicts.patch added to -mm tree
+Date: Thu, 09 Oct 2008 13:46:48 -0700
+Message-ID: <200810092046.m99Kkm5d031845@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50290 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46400 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753728AbYJIUrh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 16:47:37 -0400
+	by vger.kernel.org with ESMTP id S1753397AbYJIUrV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 16:47:21 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m99Kl85p012291
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m99Kkn3j012266
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 9 Oct 2008 13:47:09 -0700
+	for <mm-commits@vger.kernel.org>; Thu, 9 Oct 2008 13:46:50 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-net-rejects
-has been removed from the -mm tree.  Its filename was
-     git-net-rejects.patch
+     git-net-conflicts
+has been added to the -mm tree.  Its filename is
+     git-net-conflicts.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-net-rejects
+Subject: git-net-conflicts
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000e/ich8lan.c |    3 ---
- drivers/net/e1000e/netdev.c  |    3 ---
- 2 files changed, 6 deletions(-)
+ include/net/inet_sock.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/e1000e/ich8lan.c~git-net-rejects drivers/net/e1000e/ich8lan.c
---- a/drivers/net/e1000e/ich8lan.c~git-net-rejects
-+++ a/drivers/net/e1000e/ich8lan.c
-@@ -424,13 +424,10 @@ static s32 e1000_acquire_swflag_ich8lan(
- 
- 	if (!timeout) {
- 		hw_dbg(hw, "FW or HW has locked the resource for too long.\n");
--<<<<<<< HEAD:drivers/net/e1000e/ich8lan.c
- 		nvm_owner = -1;
- 		mutex_unlock(&nvm_mutex);
--=======
- 		extcnf_ctrl &= ~E1000_EXTCNF_CTRL_SWFLAG;
- 		ew32(EXTCNF_CTRL, extcnf_ctrl);
-->>>>>>> FETCH_HEAD:drivers/net/e1000e/ich8lan.c
- 		return -E1000_ERR_CONFIG;
- 	}
- 
-diff -puN drivers/net/e1000e/netdev.c~git-net-rejects drivers/net/e1000e/netdev.c
---- a/drivers/net/e1000e/netdev.c~git-net-rejects
-+++ a/drivers/net/e1000e/netdev.c
-@@ -4908,11 +4908,8 @@ static int __devinit e1000_probe(struct 
- 
- 	INIT_WORK(&adapter->reset_task, e1000_reset_task);
- 	INIT_WORK(&adapter->watchdog_task, e1000_watchdog_task);
--<<<<<<< HEAD:drivers/net/e1000e/netdev.c
- 	INIT_WORK(&adapter->downshift_task, e1000e_downshift_workaround);
- 	INIT_WORK(&adapter->update_phy_task, e1000e_update_phy_task);
--=======
-->>>>>>> FETCH_HEAD:drivers/net/e1000e/netdev.c
- 
- 	/* Initialize link parameters. User can change them with ethtool */
- 	adapter->hw.mac.autoneg = 1;
+diff -puN drivers/net/wireless/ath9k/core.h~git-net-conflicts drivers/net/wireless/ath9k/core.h
+diff -puN include/net/inet_sock.h~git-net-conflicts include/net/inet_sock.h
+--- a/include/net/inet_sock.h~git-net-conflicts
++++ a/include/net/inet_sock.h
+@@ -74,7 +74,8 @@ struct inet_request_sock {
+ 					sack_ok	   : 1,
+ 					wscale_ok  : 1,
+ 					ecn_ok	   : 1,
+-					acked	   : 1;
++					acked	   : 1,
++					no_srccheck: 1;
+ 	});
+ 	struct ip_options	*opt;
+ };
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
