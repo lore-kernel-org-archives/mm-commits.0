@@ -1,52 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - git-stackprotector-rejects.patch removed from -mm tree
-Date: Thu, 09 Oct 2008 00:29:38 -0700
-Message-ID: <200810090729.m997Tcge013440@imap1.linux-foundation.org>
+Subject: + usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix.patch added to -mm tree
+Date: Thu, 09 Oct 2008 00:43:56 -0700
+Message-ID: <200810090743.m997hu6C014313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34511 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48875 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756047AbYJIH3l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 03:29:41 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m997Tdq0017506
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 9 Oct 2008 00:29:40 -0700
+	by vger.kernel.org with ESMTP id S1750997AbYJIHoS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 03:44:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, greg@kroah.com, jikos@jikos.cz, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     git-stackprotector-rejects
-has been removed from the -mm tree.  Its filename was
-     git-stackprotector-rejects.patch
+     usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix
+has been added to the -mm tree.  Its filename is
+     usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-stackprotector-rejects
+Subject: usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Also add missing newline.
+
+Cc: Greg KH <greg@kroah.com>
+Cc: Jiri Kosina <jikos@jikos.cz>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/hid/usbhid/hid-core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/fork.c~git-stackprotector-rejects kernel/fork.c
---- a/kernel/fork.c~git-stackprotector-rejects
-+++ a/kernel/fork.c
-@@ -48,6 +48,7 @@
- #include <linux/memcontrol.h>
- #include <linux/profile.h>
- #include <linux/rmap.h>
-+#include <linux/magic.h>
- #include <linux/acct.h>
- #include <linux/tsacct_kern.h>
- #include <linux/cn_proc.h>
+diff -puN drivers/hid/usbhid/hid-core.c~usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix drivers/hid/usbhid/hid-core.c
+--- a/drivers/hid/usbhid/hid-core.c~usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix
++++ a/drivers/hid/usbhid/hid-core.c
+@@ -428,7 +428,7 @@ void usbhid_submit_report(struct hid_dev
+ 		usbhid->out[usbhid->outhead].raw_report = kmalloc(len, GFP_ATOMIC);
+ 		if (!usbhid->out[usbhid->outhead].raw_report) {
+ 			spin_unlock_irqrestore(&usbhid->outlock, flags);
+-			warn("output queueing failed");
++			printk(KERN_WARNING "output queueing failed\n");
+ 			return;
+ 		}
+ 		hid_output_report(report, usbhid->out[usbhid->outhead].raw_report);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -57,7 +69,6 @@ git-tip-rejects.patch
 git-powerpc.patch
 git-sparc.patch
 git-xtensa.patch
-git-stackprotector-rejects.patch
 git-timers-fix-printk-errors-clean-up.patch
 git-pci.patch
 git-hid.patch
@@ -87,6 +98,7 @@ git-slab-rejects.patch
 git-md-rejects.patch
 git-mfd.patch
 git-drm.patch
+usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
 arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
