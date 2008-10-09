@@ -1,84 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-rejects.patch added to -mm tree
-Date: Thu, 09 Oct 2008 00:20:55 -0700
-Message-ID: <200810090720.m997KtHH012929@imap1.linux-foundation.org>
+Subject: - git-sched-rejects.patch removed from -mm tree
+Date: Thu, 09 Oct 2008 00:29:06 -0700
+Message-ID: <200810090729.m997T66C013414@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43173 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41102 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752753AbYJIHU6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 03:20:58 -0400
+	by vger.kernel.org with ESMTP id S1755432AbYJIH3J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 03:29:09 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m997KtHn017098
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m997T7en017425
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 9 Oct 2008 00:20:56 -0700
+	for <mm-commits@vger.kernel.org>; Thu, 9 Oct 2008 00:29:08 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-rejects
-has been added to the -mm tree.  Its filename is
-     git-net-rejects.patch
+     git-sched-rejects
+has been removed from the -mm tree.  Its filename was
+     git-sched-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-net-rejects
+Subject: git-sched-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000e/ich8lan.c |    3 ---
- drivers/net/e1000e/netdev.c  |    3 ---
- 2 files changed, 6 deletions(-)
+ kernel/sched.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/e1000e/ich8lan.c~git-net-rejects drivers/net/e1000e/ich8lan.c
---- a/drivers/net/e1000e/ich8lan.c~git-net-rejects
-+++ a/drivers/net/e1000e/ich8lan.c
-@@ -424,13 +424,10 @@ static s32 e1000_acquire_swflag_ich8lan(
+diff -puN kernel/sched.c~git-sched-rejects kernel/sched.c
+--- a/kernel/sched.c~git-sched-rejects
++++ a/kernel/sched.c
+@@ -2300,7 +2300,7 @@ out_activate:
  
- 	if (!timeout) {
- 		hw_dbg(hw, "FW or HW has locked the resource for too long.\n");
--<<<<<<< HEAD:drivers/net/e1000e/ich8lan.c
- 		nvm_owner = -1;
- 		mutex_unlock(&nvm_mutex);
--=======
- 		extcnf_ctrl &= ~E1000_EXTCNF_CTRL_SWFLAG;
- 		ew32(EXTCNF_CTRL, extcnf_ctrl);
-->>>>>>> FETCH_HEAD:drivers/net/e1000e/ich8lan.c
- 		return -E1000_ERR_CONFIG;
+ out_running:
+ 	trace_sched_wakeup(rq, p);
+-	check_preempt_curr(rq, p);
++	check_preempt_curr(rq, p, sync);
+ 
+ 	p->state = TASK_RUNNING;
+ #ifdef CONFIG_SMP
+@@ -2433,7 +2433,7 @@ void wake_up_new_task(struct task_struct
+ 		inc_nr_running(rq);
  	}
- 
-diff -puN drivers/net/e1000e/netdev.c~git-net-rejects drivers/net/e1000e/netdev.c
---- a/drivers/net/e1000e/netdev.c~git-net-rejects
-+++ a/drivers/net/e1000e/netdev.c
-@@ -4908,11 +4908,8 @@ static int __devinit e1000_probe(struct 
- 
- 	INIT_WORK(&adapter->reset_task, e1000_reset_task);
- 	INIT_WORK(&adapter->watchdog_task, e1000_watchdog_task);
--<<<<<<< HEAD:drivers/net/e1000e/netdev.c
- 	INIT_WORK(&adapter->downshift_task, e1000e_downshift_workaround);
- 	INIT_WORK(&adapter->update_phy_task, e1000e_update_phy_task);
--=======
-->>>>>>> FETCH_HEAD:drivers/net/e1000e/netdev.c
- 
- 	/* Initialize link parameters. User can change them with ethtool */
- 	adapter->hw.mac.autoneg = 1;
+ 	trace_sched_wakeup_new(rq, p);
+-	check_preempt_curr(rq, p);
++	check_preempt_curr(rq, p, 0);
+ #ifdef CONFIG_SMP
+ 	if (p->sched_class->task_wake_up)
+ 		p->sched_class->task_wake_up(rq, p);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
