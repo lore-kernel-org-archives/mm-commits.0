@@ -1,65 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds.patch removed from -mm tree
-Date: Thu, 09 Oct 2008 15:27:14 -0700
-Message-ID: <200810092227.m99MRESU005938@imap1.linux-foundation.org>
+Subject: - acpi-suspend-enable-acpi-during-resume-if-sci_en-is-not-set.patch removed from -mm tree
+Date: Thu, 09 Oct 2008 15:26:53 -0700
+Message-ID: <200810092226.m99MQrG8005905@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60687 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46229 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750816AbYJIW12 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 18:27:28 -0400
+	by vger.kernel.org with ESMTP id S1750754AbYJIW1P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 18:27:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard@rsk.demon.co.uk, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hrtimer: reorder struct hrtimer to save 8 bytes on 64 bit builds
+     acpi suspend: enable ACPI during resume if SCI_EN is not set
 has been removed from the -mm tree.  Its filename was
-     hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds.patch
+     acpi-suspend-enable-acpi-during-resume-if-sci_en-is-not-set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hrtimer: reorder struct hrtimer to save 8 bytes on 64 bit builds
-From: Richard Kennedy <richard@rsk.demon.co.uk>
+Subject: acpi suspend: enable ACPI during resume if SCI_EN is not set
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-reorder struct hrtimer to save 8 bytes on 64 bit builds when
-CONFIG_TIMER_STATS selected.  (also removes 8 bytes from signal_struct)
+On some machines, like for example MSI Wind U100, the BIOS doesn't enable
+ACPI before returning control to the OS, which sometimes causes resume to
+fail.  This is against the ACPI specification, which clearly states that
+"When the platform is waking from an S1, S2 or S3 state, OSPM assumes the
+hardware is already in the ACPI mode and will not issue an ACPI_ENABLE",
+but it won't hurt to check the SCI_EN bit and enable ACPI during resume
+from S3 if this bit is not set.
 
-Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Fortunately, we already have acpi_enable() for that, so use it in the
+resume code path, before executing _BFS, in analogy with the
+resume-from-hibernation code path.
+
+NOTE: We aren't supposed to set SCI_EN directly, because it's owned by the
+hardware.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hrtimer.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/sleep/main.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/hrtimer.h~hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds include/linux/hrtimer.h
---- a/include/linux/hrtimer.h~hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds
-+++ a/include/linux/hrtimer.h
-@@ -116,12 +116,12 @@ struct hrtimer {
- 	enum hrtimer_restart		(*function)(struct hrtimer *);
- 	struct hrtimer_clock_base	*base;
- 	unsigned long			state;
--	enum hrtimer_cb_mode		cb_mode;
- 	struct list_head		cb_entry;
-+	enum hrtimer_cb_mode		cb_mode;
- #ifdef CONFIG_TIMER_STATS
-+	int				start_pid;
- 	void				*start_site;
- 	char				start_comm[16];
--	int				start_pid;
- #endif
- };
+diff -puN drivers/acpi/sleep/main.c~acpi-suspend-enable-acpi-during-resume-if-sci_en-is-not-set drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c~acpi-suspend-enable-acpi-during-resume-if-sci_en-is-not-set
++++ a/drivers/acpi/sleep/main.c
+@@ -233,6 +233,8 @@ static int acpi_suspend_enter(suspend_st
+ 		break;
+ 	}
+ 
++	/* If ACPI is not enabled by the BIOS, we need to enable it here. */
++	acpi_enable();
+ 	/* Reprogram control registers and execute _BFS */
+ 	acpi_leave_sleep_state_prep(acpi_state);
  
 _
 
-Patches currently in -mm which might be from richard@rsk.demon.co.uk are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 git-tip.patch
-git-nfs.patch
-libata-reorder-ata_device-to-remove-8-bytes-of-padding-on-64-bits.patch
+git-net-current.patch
+git-pci.patch
+git-acpi.patch
+git-net.patch
+skge-adapt-skge-to-use-reworked-pci-pm.patch
+e100-adapt-to-the-reworked-pci-pm.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+container-freezer-make-refrigerator-always-available.patch
+container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-cleanup-comment.patch
+container-freezer-skip-frozen-cgroups-during-power-management-resume.patch
+vsprintf-use-new-vsprintf-symbolic-function-pointer-format.patch
+shrink_slab-handle-bad-shrinkers.patch
 
