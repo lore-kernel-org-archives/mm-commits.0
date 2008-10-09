@@ -1,87 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - alsa-sigmatel-stac92hd71b7-low-hp-volume.patch removed from -mm tree
-Date: Wed, 08 Oct 2008 22:56:57 -0700
-Message-ID: <200810090556.m995uvGF007658@imap1.linux-foundation.org>
+Subject: + usb-usb-remove-warn-macro-from-usbh-vs-git-hid.patch added to -mm tree
+Date: Thu, 09 Oct 2008 00:03:54 -0700
+Message-ID: <200810090703.m9973s8a011892@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39264 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48348 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756079AbYJIF5E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 01:57:04 -0400
+	by vger.kernel.org with ESMTP id S1751319AbYJIHEj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 03:04:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: klaasdc@gmail.com, tiwai@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kosaki.motohiro@jp.fujitsu.com, greg@kroah.com, jikos@jikos.cz
 
 
 The patch titled
-     alsa: Sigmatel stac92hd71b7 low HP volume
-has been removed from the -mm tree.  Its filename was
-     alsa-sigmatel-stac92hd71b7-low-hp-volume.patch
+     usb-usb-remove-warn-macro-from-usbh vs git-hid
+has been added to the -mm tree.  Its filename is
+     usb-usb-remove-warn-macro-from-usbh-vs-git-hid.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alsa: Sigmatel stac92hd71b7 low HP volume
-From: Klaas De Craemer <klaasdc@gmail.com>
+Subject: usb-usb-remove-warn-macro-from-usbh vs git-hid
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Fix an issue on Dell E6500 notebooks with the Sigmatel stac92hd71b7 codec.
+fix following buiild error
 
-In the default snd-hda-intel configuration, the sound going to the
-headphone jack goes comes directly from the DAC, resulting in very low
-volume output.  The patch changes the codec's widget connections so that
-the internal mixer is put in between and sets its input amplifiers to the
-maximum value.  The output to the internal speaker port has been left
-untouched.  I have tested this and it gives a much better output.
+-------------------------
+  CC [M]  drivers/hid/usbhid/hid-core.o
+drivers/hid/usbhid/hid-core.c: In function 'usbhid_submit_report':
+drivers/hid/usbhid/hid-core.c:417: error: incompatible type for argument 1 of 'dev_driver_string'
+drivers/hid/usbhid/hid-core.c:417: error: incompatible type for argument 1 of 'dev_name'
+drivers/hid/usbhid/hid-core.c:436: error: incompatible type for argument 1 of 'dev_driver_string'
+drivers/hid/usbhid/hid-core.c:436: error: incompatible type for argument 1 of 'dev_name'
+drivers/hid/usbhid/hid-core.c: In function 'usbhid_init_reports':
+drivers/hid/usbhid/hid-core.c:568: error: incompatible type for argument 1 of 'dev_driver_string'
+drivers/hid/usbhid/hid-core.c:568: error: incompatible type for argument 1 of 'dev_name'
+make[3]: *** [drivers/hid/usbhid/hid-core.o] Error 1
+make[2]: *** [drivers/hid/usbhid] Error 2
+make[1]: *** [drivers/hid] Error 2
+make: *** [drivers] Error 2
+-------------------
 
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Jiri Kosina <jikos@jikos.cz>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/patch_sigmatel.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ drivers/hid/usbhid/hid-core.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN sound/pci/hda/patch_sigmatel.c~alsa-sigmatel-stac92hd71b7-low-hp-volume sound/pci/hda/patch_sigmatel.c
---- a/sound/pci/hda/patch_sigmatel.c~alsa-sigmatel-stac92hd71b7-low-hp-volume
-+++ a/sound/pci/hda/patch_sigmatel.c
-@@ -855,6 +855,22 @@ static struct hda_verb stac92hd83xxx_cor
- 	{ 0x01, AC_VERB_SET_EAPD, 1 << 2},
- };
+diff -puN drivers/hid/usbhid/hid-core.c~usb-usb-remove-warn-macro-from-usbh-vs-git-hid drivers/hid/usbhid/hid-core.c
+--- a/drivers/hid/usbhid/hid-core.c~usb-usb-remove-warn-macro-from-usbh-vs-git-hid
++++ a/drivers/hid/usbhid/hid-core.c
+@@ -421,7 +421,7 @@ void usbhid_submit_report(struct hid_dev
  
-+static struct hda_verb stac92hd71b7_core_init[] = {
-+	/* set master volume and direct control */
-+	{ 0x28, AC_VERB_SET_VOLUME_KNOB_CONTROL, 0xff},
-+	/* connect headphone jack to mixer */
-+	{ 0x0a, AC_VERB_SET_CONNECT_SEL, 0x02},
-+	/* unmute right and left channels for nodes 0x0a, 0xd, 0x0f */
-+	{ 0x0a, AC_VERB_SET_AMP_GAIN_MUTE, AMP_IN_UNMUTE(0)},
-+	{ 0x0d, AC_VERB_SET_AMP_GAIN_MUTE, AMP_IN_UNMUTE(0)},
-+	{ 0x0f, AC_VERB_SET_AMP_GAIN_MUTE, AMP_IN_UNMUTE(0)},
-+
-+	/* Increase mixer volume for the two dac's */
-+	{ 0x17, 0x370, 0x7f },
-+	{ 0x17, 0x371, 0x7f },
-+	{}
-+};
-+
- static struct hda_verb stac92hd71bxx_core_init[] = {
- 	/* set master volume and direct control */
- 	{ 0x28, AC_VERB_SET_VOLUME_KNOB_CONTROL, 0xff},
-@@ -4354,6 +4370,10 @@ again:
- 		spec->init = stac92hd71bxx_core_init;
- 		codec->slave_dig_outs = stac92hd71bxx_slave_dig_outs;
- 		break;
-+	case 0x111d76b2: /* Dell E6500 stac92hd71b7 configuration */
-+		spec->mixer = stac92hd71bxx_mixer;
-+		spec->init = stac92hd71b7_core_init;
-+		break;
- 	case 0x111d7608: /* 5 Port with Analog Mixer */
- 		if ((codec->revision_id & 0xf) == 0 ||
- 				(codec->revision_id & 0xf) == 1) {
+ 		if ((head = (usbhid->outhead + 1) & (HID_OUTPUT_FIFO_SIZE - 1)) == usbhid->outtail) {
+ 			spin_unlock_irqrestore(&usbhid->outlock, flags);
+-			dev_warn(hid->dev, "output queue full\n");
++			dev_warn(&hid->dev, "output queue full\n");
+ 			return;
+ 		}
+ 
+@@ -447,7 +447,7 @@ void usbhid_submit_report(struct hid_dev
+ 
+ 	if ((head = (usbhid->ctrlhead + 1) & (HID_CONTROL_FIFO_SIZE - 1)) == usbhid->ctrltail) {
+ 		spin_unlock_irqrestore(&usbhid->ctrllock, flags);
+-		dev_warn(hid->dev, "control queue full\n");
++		dev_warn(&hid->dev, "control queue full\n");
+ 		return;
+ 	}
+ 
+@@ -588,7 +588,7 @@ void usbhid_init_reports(struct hid_devi
+ 	}
+ 
+ 	if (err)
+-		dev_warn(hid->dev, "timeout initializing reports\n");
++		dev_warn(&hid->dev, "timeout initializing reports\n");
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from klaasdc@gmail.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-alsa-sigmatel-stac92hd71b7-low-hp-volume.patch
+usb-usb-remove-warn-macro-from-usbh-vs-git-hid.patch
+mm-do_generic_file_read-never-gets-a-null-filp-argument.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-infrastructure-nommu-fix.patch
+unevictable-lru-infrastructure-remember-pages-active-state.patch
+unevictable-lru-infrastructure-defer-vm-event-counting.patch
+unevictable-infrastructure-lru-add-event-counting-with-statistics.patch
+unevictable-lru-page-statistics.patch
+shm_locked-pages-are-unevictable.patch
+shm_locked-pages-are-unevictable-add-event-counts-to-list-scan.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+doc-unevictable-lru-and-mlocked-pages-documentation-update-2.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-__mlock_vma_pages_range-comment-block.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-backout-locked_vm-adjustment-during-mmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-return-value-for-munmap-mlock-vma-race.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-update-locked_vm-on-munmap-of-mlocked-region.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch
+swap-cull-unevictable-pages-in-fault-path.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+vmscam-kill-unused-lru-functions.patch
+mlock-revert-mainline-handling-of-mlock-error-return.patch
+mlock-make-mlock-error-return-posixly-correct.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-unlockless-reclaim.patch
+coredump_filter-add-hugepage-dumping-v4.patch
+hugepage-support-zero_page.patch
+add-config_core_dump_default_elf_headers.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
