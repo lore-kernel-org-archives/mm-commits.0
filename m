@@ -1,166 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - add-phys_addr_t-for-holding-physical-addresses.patch removed from -mm tree
-Date: Thu, 09 Oct 2008 15:28:47 -0700
-Message-ID: <200810092228.m99MSlMx006109@imap1.linux-foundation.org>
+Subject: - ftrace-warn-on-failure-to-disable-mcount-callers.patch removed from -mm tree
+Date: Thu, 09 Oct 2008 15:28:28 -0700
+Message-ID: <200810092228.m99MSS6o006082@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54513 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55082 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752403AbYJIW37 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 18:29:59 -0400
+	by vger.kernel.org with ESMTP id S1751981AbYJIW3p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 18:29:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, benh@kernel.crashing.org, ehabkost@redhat.com, jeremy.fitzhardinge@citrix.com, mingo@elte.hu, paulus@samba.org, takata@linux-m32r.org, tglx@linutronix.de, mm-commits@
+To: rostedt@goodmis.org, mingo@elte.hu, srostedt@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add phys_addr_t for holding physical addresses
+     ftrace: warn on failure to disable mcount callers
 has been removed from the -mm tree.  Its filename was
-     add-phys_addr_t-for-holding-physical-addresses.patch
+     ftrace-warn-on-failure-to-disable-mcount-callers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add phys_addr_t for holding physical addresses
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: ftrace: warn on failure to disable mcount callers
+From: Steven Rostedt <rostedt@goodmis.org>
 
-Add a kernel-wide "phys_addr_t" which is guaranteed to be able to hold
-any physical address.  By default it equals the word size of the
-architecture, but a 32-bit architecture can set ARCH_PHYS_ADDR_T_64BIT
-if it needs a 64-bit phys_addr_t.
+With the recent updates to ftrace, there should not be any failures when
+modifying the code. If there is, then we need to warn about it.
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+This patch has a cleaned up version of the code that I used to discover
+that the weak symbols were causing failures.
+
+Signed-off-by: Steven Rostedt <srostedt@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Eduardo Habkost <ehabkost@redhat.com>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig             |    3 +++
- arch/powerpc/include/asm/types.h |    7 -------
- arch/x86/Kconfig                 |    3 +++
- include/asm-x86/page_32.h        |    2 --
- include/asm-x86/page_64.h        |    1 -
- include/linux/types.h            |    6 ++++++
- mm/Kconfig                       |    3 +++
- 7 files changed, 15 insertions(+), 10 deletions(-)
+ kernel/trace/ftrace.c |   27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-diff -puN arch/powerpc/Kconfig~add-phys_addr_t-for-holding-physical-addresses arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~add-phys_addr_t-for-holding-physical-addresses
-+++ a/arch/powerpc/Kconfig
-@@ -22,6 +22,9 @@ config WORD_SIZE
- config PPC_MERGE
- 	def_bool y
+diff -puN kernel/trace/ftrace.c~ftrace-warn-on-failure-to-disable-mcount-callers kernel/trace/ftrace.c
+--- a/kernel/trace/ftrace.c~ftrace-warn-on-failure-to-disable-mcount-callers
++++ a/kernel/trace/ftrace.c
+@@ -583,6 +583,16 @@ static void ftrace_shutdown_replenish(vo
+ 	ftrace_pages->next = (void *)get_zeroed_page(GFP_KERNEL);
+ }
  
-+config ARCH_PHYS_ADDR_T_64BIT
-+       def_bool PPC64 || PHYS_64BIT
++static void print_ip_ins(const char *fmt, unsigned char *p)
++{
++	int i;
 +
- config MMU
- 	bool
- 	default y
-diff -puN arch/powerpc/include/asm/types.h~add-phys_addr_t-for-holding-physical-addresses arch/powerpc/include/asm/types.h
---- a/arch/powerpc/include/asm/types.h~add-phys_addr_t-for-holding-physical-addresses
-+++ a/arch/powerpc/include/asm/types.h
-@@ -48,13 +48,6 @@ typedef struct {
- 
- typedef __vector128 vector128;
- 
--/* Physical address used by some IO functions */
--#if defined(CONFIG_PPC64) || defined(CONFIG_PHYS_64BIT)
--typedef u64 phys_addr_t;
--#else
--typedef u32 phys_addr_t;
--#endif
--
- #ifdef __powerpc64__
- typedef u64 dma_addr_t;
- #else
-diff -puN arch/x86/Kconfig~add-phys_addr_t-for-holding-physical-addresses arch/x86/Kconfig
---- a/arch/x86/Kconfig~add-phys_addr_t-for-holding-physical-addresses
-+++ a/arch/x86/Kconfig
-@@ -976,6 +976,9 @@ config X86_PAE
- 	  has the cost of more pagetable lookup overhead, and also
- 	  consumes more pagetable space per process.
- 
-+config ARCH_PHYS_ADDR_T_64BIT
-+       def_bool X86_64 || X86_PAE
++	printk(KERN_CONT "%s", fmt);
 +
- # Common NUMA Features
- config NUMA
- 	bool "Numa Memory Allocation and Scheduler Support (EXPERIMENTAL)"
-diff -puN include/asm-x86/page_32.h~add-phys_addr_t-for-holding-physical-addresses include/asm-x86/page_32.h
---- a/include/asm-x86/page_32.h~add-phys_addr_t-for-holding-physical-addresses
-+++ a/include/asm-x86/page_32.h
-@@ -33,7 +33,6 @@ typedef u64	pmdval_t;
- typedef u64	pudval_t;
- typedef u64	pgdval_t;
- typedef u64	pgprotval_t;
--typedef u64	phys_addr_t;
- 
- typedef union {
- 	struct {
-@@ -54,7 +53,6 @@ typedef unsigned long	pmdval_t;
- typedef unsigned long	pudval_t;
- typedef unsigned long	pgdval_t;
- typedef unsigned long	pgprotval_t;
--typedef unsigned long	phys_addr_t;
- 
- typedef union {
- 	pteval_t pte;
-diff -puN include/asm-x86/page_64.h~add-phys_addr_t-for-holding-physical-addresses include/asm-x86/page_64.h
---- a/include/asm-x86/page_64.h~add-phys_addr_t-for-holding-physical-addresses
-+++ a/include/asm-x86/page_64.h
-@@ -79,7 +79,6 @@ typedef unsigned long	pmdval_t;
- typedef unsigned long	pudval_t;
- typedef unsigned long	pgdval_t;
- typedef unsigned long	pgprotval_t;
--typedef unsigned long	phys_addr_t;
- 
- typedef struct page *pgtable_t;
- 
-diff -puN include/linux/types.h~add-phys_addr_t-for-holding-physical-addresses include/linux/types.h
---- a/include/linux/types.h~add-phys_addr_t-for-holding-physical-addresses
-+++ a/include/linux/types.h
-@@ -197,6 +197,12 @@ typedef u64 resource_size_t;
- typedef u32 resource_size_t;
- #endif
- 
-+#ifdef CONFIG_PHYS_ADDR_T_64BIT
-+typedef u64 phys_addr_t;
-+#else
-+typedef u32 phys_addr_t;
-+#endif
++	for (i = 0; i < MCOUNT_INSN_SIZE; i++)
++		printk(KERN_CONT "%s%02x", i ? ":" : "", p[i]);
++}
 +
- struct ustat {
- 	__kernel_daddr_t	f_tfree;
- 	__kernel_ino_t		f_tinode;
-diff -puN mm/Kconfig~add-phys_addr_t-for-holding-physical-addresses mm/Kconfig
---- a/mm/Kconfig~add-phys_addr_t-for-holding-physical-addresses
-+++ a/mm/Kconfig
-@@ -187,6 +187,9 @@ config RESOURCES_64BIT
- 	help
- 	  This option allows memory and IO resources to be 64 bit.
+ static int
+ ftrace_code_disable(struct dyn_ftrace *rec)
+ {
+@@ -597,6 +607,23 @@ ftrace_code_disable(struct dyn_ftrace *r
  
-+config PHYS_ADDR_T_64BIT
-+	def_bool 64BIT || ARCH_PHYS_ADDR_T_64BIT
+ 	failed = ftrace_modify_code(ip, call, nop);
+ 	if (failed) {
++		switch (failed) {
++		case 1:
++			WARN_ON_ONCE(1);
++			pr_info("ftrace faulted on modifying ");
++			print_ip_sym(ip);
++			break;
++		case 2:
++			WARN_ON_ONCE(1);
++			pr_info("ftrace failed to modify ");
++			print_ip_sym(ip);
++			print_ip_ins(" expected: ", call);
++			print_ip_ins(" actual: ", (unsigned char *)ip);
++			print_ip_ins(" replace: ", nop);
++			printk(KERN_CONT "\n");
++			break;
++		}
 +
- config ZONE_DMA_FLAG
- 	int
- 	default "0" if !ZONE_DMA
+ 		rec->flags |= FTRACE_FL_FAILED;
+ 		return 0;
+ 	}
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
 git-tip.patch
-git-block.patch
-mm-rewrite-vmap-layer.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-drivers-net-xen-netfrontc-use-div_round_up.patch
 
