@@ -1,92 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - ftrace-warn-on-failure-to-disable-mcount-callers.patch removed from -mm tree
-Date: Thu, 09 Oct 2008 15:28:28 -0700
-Message-ID: <200810092228.m99MSS6o006082@imap1.linux-foundation.org>
+Subject: - make-pfn_phys-explicitly-return-phys_addr_t.patch removed from -mm tree
+Date: Thu, 09 Oct 2008 15:28:51 -0700
+Message-ID: <200810092228.m99MSpxS006114@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55082 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46980 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751981AbYJIW3p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 18:29:45 -0400
+	by vger.kernel.org with ESMTP id S1751991AbYJIW36 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 18:29:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rostedt@goodmis.org, mingo@elte.hu, srostedt@redhat.com, mm-commits@vger.kernel.org
+To: jeremy@goop.org, benh@kernel.crashing.org, ehabkost@redhat.com, jeremy.fitzhardinge@citrix.com, mingo@elte.hu, paulus@samba.org, takata@linux-m32r.org, tglx@linutronix.de, mm-commits@
 
 
 The patch titled
-     ftrace: warn on failure to disable mcount callers
+     make PFN_PHYS explicitly return phys_addr_t
 has been removed from the -mm tree.  Its filename was
-     ftrace-warn-on-failure-to-disable-mcount-callers.patch
+     make-pfn_phys-explicitly-return-phys_addr_t.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ftrace: warn on failure to disable mcount callers
-From: Steven Rostedt <rostedt@goodmis.org>
+Subject: make PFN_PHYS explicitly return phys_addr_t
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-With the recent updates to ftrace, there should not be any failures when
-modifying the code. If there is, then we need to warn about it.
+PFN_PHYS, as its name suggests, turns a pfn into a physical address.
+However, it is a macro which just operates on its argument without
+modifying its type.  pfns are typed unsigned long, but an unsigned
+long may not be long enough to hold a physical address (32-bit systems
+with more than 32 bits of physcial address).
 
-This patch has a cleaned up version of the code that I used to discover
-that the weak symbols were causing failures.
+Make sure we cast to phys_addr_t to return a complete result.
 
-Signed-off-by: Steven Rostedt <srostedt@redhat.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: Eduardo Habkost <ehabkost@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/ftrace.c |   27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ arch/m32r/mm/discontig.c   |    4 ++--
+ include/asm-x86/xen/page.h |    4 ++--
+ include/linux/pfn.h        |    6 +++++-
+ 3 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN kernel/trace/ftrace.c~ftrace-warn-on-failure-to-disable-mcount-callers kernel/trace/ftrace.c
---- a/kernel/trace/ftrace.c~ftrace-warn-on-failure-to-disable-mcount-callers
-+++ a/kernel/trace/ftrace.c
-@@ -583,6 +583,16 @@ static void ftrace_shutdown_replenish(vo
- 	ftrace_pages->next = (void *)get_zeroed_page(GFP_KERNEL);
+diff -puN arch/m32r/mm/discontig.c~make-pfn_phys-explicitly-return-phys_addr_t arch/m32r/mm/discontig.c
+--- a/arch/m32r/mm/discontig.c~make-pfn_phys-explicitly-return-phys_addr_t
++++ a/arch/m32r/mm/discontig.c
+@@ -111,9 +111,9 @@ unsigned long __init setup_memory(void)
+ 				initrd_start, INITRD_SIZE);
+ 		} else {
+ 			printk("initrd extends beyond end of memory "
+-				"(0x%08lx > 0x%08lx)\ndisabling initrd\n",
++				"(0x%08lx > 0x%08llx)\ndisabling initrd\n",
+ 				INITRD_START + INITRD_SIZE,
+-				PFN_PHYS(max_low_pfn));
++			        (unsigned long long)PFN_PHYS(max_low_pfn));
+ 
+ 			initrd_start = 0;
+ 		}
+diff -puN include/asm-x86/xen/page.h~make-pfn_phys-explicitly-return-phys_addr_t include/asm-x86/xen/page.h
+--- a/include/asm-x86/xen/page.h~make-pfn_phys-explicitly-return-phys_addr_t
++++ a/include/asm-x86/xen/page.h
+@@ -76,13 +76,13 @@ static inline unsigned long mfn_to_pfn(u
+ static inline xmaddr_t phys_to_machine(xpaddr_t phys)
+ {
+ 	unsigned offset = phys.paddr & ~PAGE_MASK;
+-	return XMADDR(PFN_PHYS((u64)pfn_to_mfn(PFN_DOWN(phys.paddr))) | offset);
++	return XMADDR(PFN_PHYS(pfn_to_mfn(PFN_DOWN(phys.paddr))) | offset);
  }
  
-+static void print_ip_ins(const char *fmt, unsigned char *p)
-+{
-+	int i;
-+
-+	printk(KERN_CONT "%s", fmt);
-+
-+	for (i = 0; i < MCOUNT_INSN_SIZE; i++)
-+		printk(KERN_CONT "%s%02x", i ? ":" : "", p[i]);
-+}
-+
- static int
- ftrace_code_disable(struct dyn_ftrace *rec)
+ static inline xpaddr_t machine_to_phys(xmaddr_t machine)
  {
-@@ -597,6 +607,23 @@ ftrace_code_disable(struct dyn_ftrace *r
+ 	unsigned offset = machine.maddr & ~PAGE_MASK;
+-	return XPADDR(PFN_PHYS((u64)mfn_to_pfn(PFN_DOWN(machine.maddr))) | offset);
++	return XPADDR(PFN_PHYS(mfn_to_pfn(PFN_DOWN(machine.maddr))) | offset);
+ }
  
- 	failed = ftrace_modify_code(ip, call, nop);
- 	if (failed) {
-+		switch (failed) {
-+		case 1:
-+			WARN_ON_ONCE(1);
-+			pr_info("ftrace faulted on modifying ");
-+			print_ip_sym(ip);
-+			break;
-+		case 2:
-+			WARN_ON_ONCE(1);
-+			pr_info("ftrace failed to modify ");
-+			print_ip_sym(ip);
-+			print_ip_ins(" expected: ", call);
-+			print_ip_ins(" actual: ", (unsigned char *)ip);
-+			print_ip_ins(" replace: ", nop);
-+			printk(KERN_CONT "\n");
-+			break;
-+		}
+ /*
+diff -puN include/linux/pfn.h~make-pfn_phys-explicitly-return-phys_addr_t include/linux/pfn.h
+--- a/include/linux/pfn.h~make-pfn_phys-explicitly-return-phys_addr_t
++++ a/include/linux/pfn.h
+@@ -1,9 +1,13 @@
+ #ifndef _LINUX_PFN_H_
+ #define _LINUX_PFN_H_
+ 
++#ifndef __ASSEMBLY__
++#include <linux/types.h>
++#endif
 +
- 		rec->flags |= FTRACE_FL_FAILED;
- 		return 0;
- 	}
+ #define PFN_ALIGN(x)	(((unsigned long)(x) + (PAGE_SIZE - 1)) & PAGE_MASK)
+ #define PFN_UP(x)	(((x) + PAGE_SIZE-1) >> PAGE_SHIFT)
+ #define PFN_DOWN(x)	((x) >> PAGE_SHIFT)
+-#define PFN_PHYS(x)	((x) << PAGE_SHIFT)
++#define PFN_PHYS(x)	((phys_addr_t)(x) << PAGE_SHIFT)
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from jeremy@goop.org are
 
 git-tip.patch
+git-block.patch
+mm-rewrite-vmap-layer.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+drivers-net-xen-netfrontc-use-div_round_up.patch
 
