@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + markers-make-marker_synchronize_unregister-a-macro.patch added to -mm tree
-Date: Thu, 09 Oct 2008 16:11:47 -0700
-Message-ID: <200810092326.m99NQEKw009787@imap1.linux-foundation.org>
+Subject: + git-slab-versus-git-tip.patch added to -mm tree
+Date: Thu, 09 Oct 2008 16:36:46 -0700
+Message-ID: <200810092351.m99NpBsX011284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60377 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33199 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750891AbYJIX0k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 19:26:40 -0400
+	by vger.kernel.org with ESMTP id S1750984AbYJIXv2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 19:51:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mathieu.desnoyers@polymtl.ca, mingo@elte.hu
+Cc: akpm@linux-foundation.org, mingo@elte.hu, penberg@cs.helsinki.fi
 
 
 The patch titled
-     markers: make marker_synchronize_unregister() a macro
+     git-slab versus git-tip
 has been added to the -mm tree.  Its filename is
-     markers-make-marker_synchronize_unregister-a-macro.patch
+     git-slab-versus-git-tip.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: markers: make marker_synchronize_unregister() a macro
+Subject: git-slab versus git-tip
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386 allnoconfig:
-
-In file included from include/linux/kmemtrace.h:13,
+In file included from include/linux/rcupdate.h:39,
+                 from include/linux/marker.h:16,
+                 from include/linux/kmemtrace.h:13,
                  from include/linux/slub_def.h:13,
                  from include/linux/slab.h:184,
-                 from include/linux/percpu.h:5,
-                 from include/linux/rcupdate.h:39,
-                 from include/linux/sem.h:81,
-                 from include/linux/syscalls.h:62,
-                 from init/noinitramfs.c:23:
-include/linux/marker.h: In function 'marker_synchronize_unregister':
-include/linux/marker.h:171: error: implicit declaration of function 'synchronize_sched'
+                 from include/asm/pgtable_32.h:21,
+                 from include/asm/pgtable.h:394,
+                 from include/linux/mm.h:40,
+                 from arch/x86/mm/pgtable.c:1:
+include/linux/percpu.h: In function '__percpu_alloc_mask':
+include/linux/percpu.h:108: error: implicit declaration of function 'kzalloc'
+include/linux/percpu.h:108: warning: return makes pointer from integer without a cast
+In file included from include/asm/pgtable_32.h:21,
+                 from include/asm/pgtable.h:394,
+                 from include/linux/mm.h:40,
+                 from arch/x86/mm/pgtable.c:1:
+include/linux/slab.h: At top level:
+include/linux/slab.h:336: error: conflicting types for 'kzalloc'
+include/linux/percpu.h:108: error: previous implicit declaration of 'kzalloc' was here
 
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/marker.h |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/linux/percpu.h |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/marker.h~markers-make-marker_synchronize_unregister-a-macro include/linux/marker.h
---- a/include/linux/marker.h~markers-make-marker_synchronize_unregister-a-macro
-+++ a/include/linux/marker.h
-@@ -165,10 +165,9 @@ extern void *marker_get_private_data(con
-  * marker_synchronize_unregister must be called between the last marker probe
-  * unregistration and the end of module exit to make sure there is no caller
-  * executing a probe when it is freed.
-+ *
-+ * This is a macro to simplify include dependencies.
-  */
--static inline void marker_synchronize_unregister(void)
--{
--	synchronize_sched();
--}
-+#define marker_synchronize_unregister() synchronize_sched()
+diff -puN include/linux/percpu.h~git-slab-versus-git-tip include/linux/percpu.h
+--- a/include/linux/percpu.h~git-slab-versus-git-tip
++++ a/include/linux/percpu.h
+@@ -103,15 +103,12 @@ extern void percpu_free(void *__pdata);
  
- #endif
+ #define percpu_ptr(ptr, cpu) ({ (void)(cpu); (ptr); })
+ 
+-static __always_inline void *__percpu_alloc_mask(size_t size, gfp_t gfp, cpumask_t *mask)
+-{
+-	return kzalloc(size, gfp);
+-}
+-
+-static inline void percpu_free(void *__pdata)
+-{
+-	kfree(__pdata);
+-}
++/*
++ * __percpu_alloc_mask() and percpu_free() are macros to simplify header
++ * dependencies
++ */
++#define __percpu_alloc_mask(size, gfp, maskp) kzalloc(size, gfp)
++#define percpu_free(pdata) kfree(pdata)
+ 
+ #endif /* CONFIG_SMP */
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mm-remove-the-might_sleep-from-lock_page.patch
 git-tip.patch
+markers-make-marker_synchronize_unregister-a-macro.patch
 git-powerpc.patch
 git-sparc.patch
 git-xtensa.patch
@@ -107,6 +123,7 @@ git-block-reject-fix.patch
 git-pcmcia-git-rejects.patch
 git-battery.patch
 git-battery-rejects.patch
+git-slab-versus-git-tip.patch
 git-slab-rejects.patch
 git-md-rejects.patch
 git-mfd.patch
@@ -210,5 +227,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-markers-make-marker_synchronize_unregister-a-macro.patch
 
