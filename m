@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usb-usb-remove-warn-macro-from-usbh-vs-git-hid.patch added to -mm tree
-Date: Thu, 09 Oct 2008 00:03:54 -0700
-Message-ID: <200810090703.m9973s8a011892@imap1.linux-foundation.org>
+Subject: + fix-buid-error-of-autodetect_raid.patch added to -mm tree
+Date: Thu, 09 Oct 2008 00:07:21 -0700
+Message-ID: <200810090707.m9977LjD012048@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48348 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56613 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751319AbYJIHEj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 03:04:39 -0400
+	by vger.kernel.org with ESMTP id S1757132AbYJIHIO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 03:08:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, greg@kroah.com, jikos@jikos.cz
+Cc: kosaki.motohiro@jp.fujitsu.com, arjan@linux.intel.com, mingo@elte.hu
 
 
 The patch titled
-     usb-usb-remove-warn-macro-from-usbh vs git-hid
+     fix buid error of autodetect_raid()
 has been added to the -mm tree.  Its filename is
-     usb-usb-remove-warn-macro-from-usbh-vs-git-hid.patch
+     fix-buid-error-of-autodetect_raid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,70 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb-usb-remove-warn-macro-from-usbh vs git-hid
+Subject: fix buid error of autodetect_raid()
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-fix following buiild error
+Patch against: mmotm 02 Oct
+Applied after: git-fastboot.patch
 
--------------------------
-  CC [M]  drivers/hid/usbhid/hid-core.o
-drivers/hid/usbhid/hid-core.c: In function 'usbhid_submit_report':
-drivers/hid/usbhid/hid-core.c:417: error: incompatible type for argument 1 of 'dev_driver_string'
-drivers/hid/usbhid/hid-core.c:417: error: incompatible type for argument 1 of 'dev_name'
-drivers/hid/usbhid/hid-core.c:436: error: incompatible type for argument 1 of 'dev_driver_string'
-drivers/hid/usbhid/hid-core.c:436: error: incompatible type for argument 1 of 'dev_name'
-drivers/hid/usbhid/hid-core.c: In function 'usbhid_init_reports':
-drivers/hid/usbhid/hid-core.c:568: error: incompatible type for argument 1 of 'dev_driver_string'
-drivers/hid/usbhid/hid-core.c:568: error: incompatible type for argument 1 of 'dev_name'
-make[3]: *** [drivers/hid/usbhid/hid-core.o] Error 1
-make[2]: *** [drivers/hid/usbhid] Error 2
-make[1]: *** [drivers/hid] Error 2
-make: *** [drivers] Error 2
--------------------
+fix following build error
+
+>  CC      init/do_mounts_md.o
+>init/do_mounts_md.c: In function 'autodetect_raid':
+>init/do_mounts_md.c:278: error: implicit declaration of function 'msleep'
+>make[1]: *** [init/do_mounts_md.o] Error 1
+>make: *** [init] Error 2
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Jiri Kosina <jikos@jikos.cz>
-Cc: Greg KH <greg@kroah.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/usbhid/hid-core.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ init/do_mounts_md.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/hid/usbhid/hid-core.c~usb-usb-remove-warn-macro-from-usbh-vs-git-hid drivers/hid/usbhid/hid-core.c
---- a/drivers/hid/usbhid/hid-core.c~usb-usb-remove-warn-macro-from-usbh-vs-git-hid
-+++ a/drivers/hid/usbhid/hid-core.c
-@@ -421,7 +421,7 @@ void usbhid_submit_report(struct hid_dev
+diff -puN init/do_mounts_md.c~fix-buid-error-of-autodetect_raid init/do_mounts_md.c
+--- a/init/do_mounts_md.c~fix-buid-error-of-autodetect_raid
++++ a/init/do_mounts_md.c
+@@ -1,5 +1,6 @@
  
- 		if ((head = (usbhid->outhead + 1) & (HID_OUTPUT_FIFO_SIZE - 1)) == usbhid->outtail) {
- 			spin_unlock_irqrestore(&usbhid->outlock, flags);
--			dev_warn(hid->dev, "output queue full\n");
-+			dev_warn(&hid->dev, "output queue full\n");
- 			return;
- 		}
+ #include <linux/raid/md.h>
++#include <linux/delay.h>
  
-@@ -447,7 +447,7 @@ void usbhid_submit_report(struct hid_dev
+ #include "do_mounts.h"
  
- 	if ((head = (usbhid->ctrlhead + 1) & (HID_CONTROL_FIFO_SIZE - 1)) == usbhid->ctrltail) {
- 		spin_unlock_irqrestore(&usbhid->ctrllock, flags);
--		dev_warn(hid->dev, "control queue full\n");
-+		dev_warn(&hid->dev, "control queue full\n");
- 		return;
- 	}
- 
-@@ -588,7 +588,7 @@ void usbhid_init_reports(struct hid_devi
- 	}
- 
- 	if (err)
--		dev_warn(hid->dev, "timeout initializing reports\n");
-+		dev_warn(&hid->dev, "timeout initializing reports\n");
- }
- 
- /*
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
+fix-buid-error-of-autodetect_raid.patch
 usb-usb-remove-warn-macro-from-usbh-vs-git-hid.patch
 mm-do_generic_file_read-never-gets-a-null-filp-argument.patch
 vmscan-use-an-indexed-array-for-lru-variables.patch
