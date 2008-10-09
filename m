@@ -1,121 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - git-timers-fix-printk-errors-clean-up.patch removed from -mm tree
-Date: Thu, 09 Oct 2008 13:35:11 -0700
-Message-ID: <200810092035.m99KZBm2031144@imap1.linux-foundation.org>
+Subject: - git-acpi-git-rejects.patch removed from -mm tree
+Date: Thu, 09 Oct 2008 13:37:09 -0700
+Message-ID: <200810092037.m99Kb98k031232@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41116 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39401 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751416AbYJIUfh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 16:35:37 -0400
+	by vger.kernel.org with ESMTP id S1756080AbYJIUhL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 16:37:11 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m99Kb9Le011595
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 9 Oct 2008 13:37:10 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-timers: fix printk errors, clean up
+     git-acpi-git-rejects
 has been removed from the -mm tree.  Its filename was
-     git-timers-fix-printk-errors-clean-up.patch
+     git-acpi-git-rejects.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-timers: fix printk errors, clean up
+Subject: git-acpi-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix these:
-
-kernel/resource.c: In function '__reserve_region_with_split':
-kernel/resource.c:564: warning: format '%llx' expects type 'long long unsigned int', but argument 3 has type 'resource_size_t'
-kernel/resource.c:564: warning: format '%llx' expects type 'long long unsigned int', but argument 4 has type 'resource_size_t'
-kernel/resource.c:564: warning: format '%llx' expects type 'long long unsigned int', but argument 6 has type 'resource_size_t'
-kernel/resource.c:564: warning: format '%llx' expects type 'long long unsigned int', but argument 7 has type 'resource_size_t'
-
-and use __func__ and lay the code out better so it's
-less-than-totally-revolting in an 80-col display.
-
-Should be folded into
-
-commit 268364a0f48aee2f851f9d1ef8a6cda0f3039ef1
-Author: Yinghai Lu <yhlu.kernel@gmail.com>
-Date:   Thu Sep 4 21:02:44 2008 +0200
-
-    IO resources: add reserve_region_with_split()
-
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |   48 ++++++++++++++++++++++++--------------------
- 1 file changed, 27 insertions(+), 21 deletions(-)
+ drivers/misc/acer-wmi.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN kernel/resource.c~git-timers-fix-printk-errors-clean-up kernel/resource.c
---- a/kernel/resource.c~git-timers-fix-printk-errors-clean-up
-+++ a/kernel/resource.c
-@@ -558,31 +558,37 @@ static void __init __reserve_region_with
- 		break;
+diff -puN drivers/misc/acer-wmi.c~git-acpi-git-rejects drivers/misc/acer-wmi.c
+--- a/drivers/misc/acer-wmi.c~git-acpi-git-rejects
++++ a/drivers/misc/acer-wmi.c
+@@ -1249,15 +1249,12 @@ static int __init acer_wmi_init(void)
+ 		return -ENODEV;
  	}
  
--	if (!res) {
--		printk(KERN_DEBUG "    __reserve_region_with_split: (%s) [%llx, %llx], res: (%s) [%llx, %llx]\n",
--			 conflict->name, conflict->start, conflict->end,
--			 name, start, end);
-+	if (res)
-+		return;
- 
--		/* failed, split and try again */
-+	printk(KERN_DEBUG "   %s: (%s) [%llx, %llx], res: (%s) [%llx, %llx]\n",
-+		__func__, conflict->name,
-+		(unsigned long long)conflict->start,
-+		(unsigned long long)conflict->end,
-+		name,
-+		(unsigned long long)start,
-+		(unsigned long long)end);
- 
--		/* conflict coverred whole area */
--		if (conflict->start <= start && conflict->end >= end)
--			return;
-+	/* failed, split and try again */
- 
--		if (conflict->start > start)
--			__reserve_region_with_split(root, start, conflict->start-1, name);
--		if (!(conflict->flags & IORESOURCE_BUSY)) {
--			resource_size_t common_start, common_end;
--
--			common_start = max(conflict->start, start);
--			common_end = min(conflict->end, end);
--			if (common_start < common_end)
--				__reserve_region_with_split(root, common_start, common_end, name);
--		}
--		if (conflict->end < end)
--			__reserve_region_with_split(root, conflict->end+1, end, name);
-+	/* conflict coverred whole area */
-+	if (conflict->start <= start && conflict->end >= end)
-+		return;
-+
-+	if (conflict->start > start)
-+		__reserve_region_with_split(root, start, conflict->start-1,
-+						name);
-+	if (!(conflict->flags & IORESOURCE_BUSY)) {
-+		resource_size_t common_start, common_end;
-+
-+		common_start = max(conflict->start, start);
-+		common_end = min(conflict->end, end);
-+		if (common_start < common_end)
-+			__reserve_region_with_split(root, common_start,
-+						common_end, name);
+-<<<<<<< HEAD:drivers/misc/acer-wmi.c
+ 	set_quirks();
+-=======
+ 	if (!acpi_video_backlight_support() && has_cap(ACER_CAP_BRIGHTNESS)) {
+ 		interface->capability &= ~ACER_CAP_BRIGHTNESS;
+ 		printk(ACER_INFO "Brightness must be controlled by "
+ 		       "generic video driver\n");
  	}
--
-+	if (conflict->end < end)
-+		__reserve_region_with_split(root, conflict->end+1, end, name);
- }
+->>>>>>> FETCH_HEAD:drivers/misc/acer-wmi.c
  
- void reserve_region_with_split(struct resource *root,
+ 	if (platform_driver_register(&acer_platform_driver)) {
+ 		printk(ACER_ERR "Unable to register platform driver.\n");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -125,7 +64,6 @@ git-tip.patch
 git-powerpc.patch
 git-sparc.patch
 git-xtensa.patch
-git-timers-fix-printk-errors-clean-up.patch
 git-pci.patch
 git-hid.patch
 git-v4l-dvb.patch
