@@ -1,86 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - x86-fix-ghost-entries-under-sys-firmware-edd.patch removed from -mm tree
-Date: Thu, 09 Oct 2008 15:26:57 -0700
-Message-ID: <200810092226.m99MQv7N005908@imap1.linux-foundation.org>
+Subject: - net-add-net-poll-support-for-atl2-driver.patch removed from -mm tree
+Date: Thu, 09 Oct 2008 15:28:14 -0700
+Message-ID: <200810092228.m99MSEKY006055@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40758 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46396 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750964AbYJIW1y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 18:27:54 -0400
+	by vger.kernel.org with ESMTP id S1751194AbYJIW2R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 18:28:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arvidjaar@newmail.ru, Matt_Domsch@dell.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: kexin.hao@windriver.com, jacliburn@bellsouth.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: fix ghost entries under /sys/firmware/edd
+     net: add net poll support for atl2 driver
 has been removed from the -mm tree.  Its filename was
-     x86-fix-ghost-entries-under-sys-firmware-edd.patch
+     net-add-net-poll-support-for-atl2-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: fix ghost entries under /sys/firmware/edd
-From: Andrey Borzenkov <arvidjaar@newmail.ru>
+Subject: net: add net poll support for atl2 driver
+From: Kevin Hao <kexin.hao@windriver.com>
 
-Some BIOSes do not indicate error when trying to read from non- existing
-device.  Zero buffer before reading and check that we actually got some
-data.
+Add netconsole support for Atheros L2 10/100 network device.
 
-This was fixed in different way for edd.S in
-http://marc.info/?l=linux-kernel&m=114087765422490&w=2, but lost again
-when edd.S was rewritten in C.
-
-hpa:
-
-   Right, I think that's a much better patch.
-
-   The really Right Thing[TM] to do is probably to pre-clear the buffer
-   and then look for the 0xaa55 signature at offset 510; it is required
-   for sector 0 to be a valid MBR-format partition table and hence for the
-   MBR *signature* to be valid.
-
-   I'll write that up tomorrow (I'm travelling today), or you can send
-   me a patch.
-
-akpm:
-
-   A patch in hand is worth...
-
-Signed-off-by: Andrey Borzenkov < arvidjaar@mail.ru>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Matt Domsch <Matt_Domsch@dell.com>
+Signed-off-by: Kevin Hao <kexin.hao@windriver.com>
+Acked-by: Jay Cliburn <jacliburn@bellsouth.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/boot/edd.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/atlx/atl2.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN arch/x86/boot/edd.c~x86-fix-ghost-entries-under-sys-firmware-edd arch/x86/boot/edd.c
---- a/arch/x86/boot/edd.c~x86-fix-ghost-entries-under-sys-firmware-edd
-+++ a/arch/x86/boot/edd.c
-@@ -60,11 +60,12 @@ static u32 read_mbr_sig(u8 devno, struct
- 	if (mbrbuf_end > (char *)(size_t)boot_params.hdr.heap_end_ptr)
- 		return -1;
- 
-+	memset(mbrbuf_ptr, 0, sector_size);
- 	if (read_mbr(devno, mbrbuf_ptr))
- 		return -1;
- 
- 	*mbrsig = *(u32 *)&mbrbuf_ptr[EDD_MBR_SIG_OFFSET];
--	return 0;
-+	return -!*mbrsig;	/* treat zero signature as no sig */
+diff -puN drivers/net/atlx/atl2.c~net-add-net-poll-support-for-atl2-driver drivers/net/atlx/atl2.c
+--- a/drivers/net/atlx/atl2.c~net-add-net-poll-support-for-atl2-driver
++++ a/drivers/net/atlx/atl2.c
+@@ -1329,6 +1329,15 @@ static void atl2_setup_pcicmd(struct pci
+ 	pci_write_config_dword(pdev, REG_PM_CTRLSTAT, 0);
  }
  
- static int get_edd_info(u8 devno, struct edd_info *ei)
++#ifdef CONFIG_NET_POLL_CONTROLLER
++static void atl2_poll_controller(struct net_device *netdev)
++{
++	disable_irq(netdev->irq);
++	atl2_intr(netdev->irq, netdev);
++	enable_irq(netdev->irq);
++}
++#endif
++
+ /*
+  * atl2_probe - Device Initialization Routine
+  * @pdev: PCI device information struct
+@@ -1412,6 +1421,9 @@ static int __devinit atl2_probe(struct p
+ 	netdev->do_ioctl = &atl2_ioctl;
+ 	atl2_set_ethtool_ops(netdev);
+ 
++#ifdef CONFIG_NET_POLL_CONTROLLER
++	netdev->poll_controller = atl2_poll_controller;
++#endif
+ #ifdef HAVE_TX_TIMEOUT
+ 	netdev->tx_timeout = &atl2_tx_timeout;
+ 	netdev->watchdog_timeo = 5 * HZ;
 _
 
-Patches currently in -mm which might be from arvidjaar@newmail.ru are
+Patches currently in -mm which might be from kexin.hao@windriver.com are
 
 git-tip.patch
+git-net.patch
 
