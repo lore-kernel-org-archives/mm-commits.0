@@ -1,353 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: - git-tip-rejects.patch removed from -mm tree
-Date: Thu, 09 Oct 2008 13:30:42 -0700
-Message-ID: <200810092030.m99KUgFI030864@imap1.linux-foundation.org>
+Subject: - git-timers-fix-printk-errors-clean-up.patch removed from -mm tree
+Date: Thu, 09 Oct 2008 13:35:11 -0700
+Message-ID: <200810092035.m99KZBm2031144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36458 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41116 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753728AbYJIUap (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 16:30:45 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m99KUh7T011273
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 9 Oct 2008 13:30:44 -0700
+	by vger.kernel.org with ESMTP id S1751416AbYJIUfh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 16:35:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86-git-rejects
+     git-timers: fix printk errors, clean up
 has been removed from the -mm tree.  Its filename was
-     git-tip-rejects.patch
+     git-timers-fix-printk-errors-clean-up.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86-git-rejects
+Subject: git-timers: fix printk errors, clean up
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Fix these:
 
+kernel/resource.c: In function '__reserve_region_with_split':
+kernel/resource.c:564: warning: format '%llx' expects type 'long long unsigned int', but argument 3 has type 'resource_size_t'
+kernel/resource.c:564: warning: format '%llx' expects type 'long long unsigned int', but argument 4 has type 'resource_size_t'
+kernel/resource.c:564: warning: format '%llx' expects type 'long long unsigned int', but argument 6 has type 'resource_size_t'
+kernel/resource.c:564: warning: format '%llx' expects type 'long long unsigned int', but argument 7 has type 'resource_size_t'
+
+and use __func__ and lay the code out better so it's
+less-than-totally-revolting in an 80-col display.
+
+Should be folded into
+
+commit 268364a0f48aee2f851f9d1ef8a6cda0f3039ef1
+Author: Yinghai Lu <yhlu.kernel@gmail.com>
+Date:   Thu Sep 4 21:02:44 2008 +0200
+
+    IO resources: add reserve_region_with_split()
+
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/common.c |    6 ----
- arch/x86/kernel/process_32.c |   43 ---------------------------------
- arch/x86/kernel/process_64.c |    4 ---
- arch/x86/kernel/setup.c      |    3 --
- drivers/pci/intel-iommu.c    |    3 --
- drivers/pci/probe.c          |   23 -----------------
- include/asm-x86/cpufeature.h |    3 --
- include/asm-x86/idle.h       |    4 ---
- lib/swiotlb.c                |    5 ---
- lib/vsprintf.c               |   13 ---------
- 10 files changed, 107 deletions(-)
+ kernel/resource.c |   48 ++++++++++++++++++++++++--------------------
+ 1 file changed, 27 insertions(+), 21 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/common.c~git-tip-rejects arch/x86/kernel/cpu/common.c
---- a/arch/x86/kernel/cpu/common.c~git-tip-rejects
-+++ a/arch/x86/kernel/cpu/common.c
-@@ -552,18 +552,12 @@ void __init early_cpu_init(void)
-  * The NOPL instruction is supposed to exist on all CPUs with
-  * family >= 6; unfortunately, that's not true in practice because
-  * of early VIA chips and (more importantly) broken virtualizers that
--<<<<<<< HEAD:arch/x86/kernel/cpu/common.c
-- * are not easy to detect.  In the latter case it doesn't even *fail*
-- * reliably, so probing for it doesn't even work.  Disable it completely
-- * unless we can find a reliable way to detect all the broken cases.
--=======
-  * are not easy to detect.  Hence, probe for it based on first
-  * principles.
-  *
-  * Note: no 64-bit chip is known to lack these, but put the code here
-  * for consistency with 32 bits, and to make it utterly trivial to
-  * diagnose the problem should it ever surface.
-->>>>>>> FETCH_HEAD:arch/x86/kernel/cpu/common.c
-  */
- static void __cpuinit detect_nopl(struct cpuinfo_x86 *c)
- {
-diff -puN arch/x86/kernel/process_32.c~git-tip-rejects arch/x86/kernel/process_32.c
---- a/arch/x86/kernel/process_32.c~git-tip-rejects
-+++ a/arch/x86/kernel/process_32.c
-@@ -55,12 +55,8 @@
- #include <asm/tlbflush.h>
- #include <asm/cpu.h>
- #include <asm/kdebug.h>
--<<<<<<< HEAD:arch/x86/kernel/process_32.c
--#include <asm/idle.h>
--=======
- #include <asm/syscalls.h>
- #include <asm/smp.h>
-->>>>>>> FETCH_HEAD:arch/x86/kernel/process_32.c
- 
- asmlinkage void ret_from_fork(void) __asm__("ret_from_fork");
- 
-@@ -78,46 +74,7 @@ unsigned long thread_saved_pc(struct tas
- 	return ((unsigned long *)tsk->thread.sp)[3];
- }
- 
--<<<<<<< HEAD:arch/x86/kernel/process_32.c
--#ifdef CONFIG_HOTPLUG_CPU
--#include <asm/nmi.h>
--
--static void cpu_exit_clear(void)
--{
--	int cpu = raw_smp_processor_id();
--
--	idle_task_exit();
--
--	cpu_uninit();
--	irq_ctx_exit(cpu);
--
--	cpu_clear(cpu, cpu_callout_map);
--	cpu_clear(cpu, cpu_callin_map);
--
--	numa_remove_cpu(cpu);
--	c1e_remove_cpu(cpu);
--}
--
--/* We don't actually take CPU down, just spin without interrupts. */
--static inline void play_dead(void)
--{
--	/* This must be done before dead CPU ack */
--	cpu_exit_clear();
--	mb();
--	/* Ack it */
--	__get_cpu_var(cpu_state) = CPU_DEAD;
--
--	/*
--	 * With physical CPU hotplug, we should halt the cpu
--	 */
--	local_irq_disable();
--	/* mask all interrupts, flush any and all caches, and halt */
--	wbinvd_halt();
--}
--#else
--=======
- #ifndef CONFIG_SMP
-->>>>>>> FETCH_HEAD:arch/x86/kernel/process_32.c
- static inline void play_dead(void)
- {
- 	BUG();
-diff -puN arch/x86/kernel/process_64.c~git-tip-rejects arch/x86/kernel/process_64.c
---- a/arch/x86/kernel/process_64.c~git-tip-rejects
-+++ a/arch/x86/kernel/process_64.c
-@@ -87,7 +87,6 @@ void exit_idle(void)
- 	__exit_idle();
- }
- 
--<<<<<<< HEAD:arch/x86/kernel/process_64.c
- #ifdef CONFIG_HOTPLUG_CPU
- DECLARE_PER_CPU(int, cpu_state);
- 
-@@ -107,9 +106,6 @@ static inline void play_dead(void)
- 	wbinvd_halt();
- }
- #else
--=======
--#ifndef CONFIG_SMP
-->>>>>>> FETCH_HEAD:arch/x86/kernel/process_64.c
- static inline void play_dead(void)
- {
- 	BUG();
-diff -puN arch/x86/kernel/setup.c~git-tip-rejects arch/x86/kernel/setup.c
---- a/arch/x86/kernel/setup.c~git-tip-rejects
-+++ a/arch/x86/kernel/setup.c
-@@ -909,12 +909,9 @@ void __init setup_arch(char **cmdline_p)
- #else
- 	num_physpages = max_pfn;
- 
--<<<<<<< HEAD:arch/x86/kernel/setup.c
--=======
- 	check_efer();
-  	if (cpu_has_x2apic)
-  		check_x2apic();
-->>>>>>> FETCH_HEAD:arch/x86/kernel/setup.c
- 
- 	/* How many end-of-memory variables you have, grandma! */
- 	/* need this before calling reserve_initrd */
-diff -puN include/asm-x86/cpufeature.h~git-tip-rejects include/asm-x86/cpufeature.h
---- a/include/asm-x86/cpufeature.h~git-tip-rejects
-+++ a/include/asm-x86/cpufeature.h
-@@ -89,11 +89,8 @@
- #define X86_FEATURE_LFENCE_RDTSC (3*32+18) /* "" Lfence synchronizes RDTSC */
- #define X86_FEATURE_11AP	(3*32+19) /* "" Bad local APIC aka 11AP */
- #define X86_FEATURE_NOPL	(3*32+20) /* The NOPL (0F 1F) instructions */
--<<<<<<< HEAD:include/asm-x86/cpufeature.h
- #define X86_FEATURE_AMDC1E	(3*32+21) /* AMD C1E detected */
--=======
- #define X86_FEATURE_XTOPOLOGY	(3*32+21) /* cpu topology enum extensions */
-->>>>>>> FETCH_HEAD:include/asm-x86/cpufeature.h
- 
- /* Intel-defined CPU features, CPUID level 0x00000001 (ecx), word 4 */
- #define X86_FEATURE_XMM3	(4*32+ 0) /* "pni" SSE-3 */
-diff -puN include/asm-x86/idle.h~git-tip-rejects include/asm-x86/idle.h
---- a/include/asm-x86/idle.h~git-tip-rejects
-+++ a/include/asm-x86/idle.h
-@@ -10,10 +10,6 @@ void idle_notifier_register(struct notif
- void enter_idle(void);
- void exit_idle(void);
- 
--<<<<<<< HEAD:include/asm-x86/idle.h
- void c1e_remove_cpu(int cpu);
- 
--#endif
--=======
- #endif /* ASM_X86__IDLE_H */
-->>>>>>> FETCH_HEAD:include/asm-x86/idle.h
-diff -puN include/asm-x86/statfs.h~git-tip-rejects include/asm-x86/statfs.h
-diff -puN drivers/pci/intel-iommu.c~git-tip-rejects drivers/pci/intel-iommu.c
---- a/drivers/pci/intel-iommu.c~git-tip-rejects
-+++ a/drivers/pci/intel-iommu.c
-@@ -2238,7 +2238,6 @@ static void __init iommu_exit_mempool(vo
- 
- }
- 
--<<<<<<< HEAD:drivers/pci/intel-iommu.c
- static int blacklist_iommu(const struct dmi_system_id *id)
- {
- 	printk(KERN_INFO "%s detected; disabling IOMMU\n",
-@@ -2271,8 +2270,6 @@ void __init detect_intel_iommu(void)
- 	}
- }
- 
--=======
-->>>>>>> FETCH_HEAD:drivers/pci/intel-iommu.c
- static void __init init_no_remapping_devices(void)
- {
- 	struct dmar_drhd_unit *drhd;
-diff -puN drivers/pci/probe.c~git-tip-rejects drivers/pci/probe.c
---- a/drivers/pci/probe.c~git-tip-rejects
-+++ a/drivers/pci/probe.c
-@@ -305,12 +305,8 @@ static int __pci_read_base(struct pci_de
- 			res->start = l64;
- 			res->end = l64 + sz64;
- 			printk(KERN_DEBUG "PCI: %s reg %x 64bit mmio: [%llx, %llx]\n",
--<<<<<<< HEAD:drivers/pci/probe.c
- 				pci_name(dev), pos, (unsigned long long)res->start,
- 				(unsigned long long)res->end);
--=======
--				 pci_name(dev), pos, res->start, res->end);
-->>>>>>> FETCH_HEAD:drivers/pci/probe.c
- 		}
- 	} else {
- 		sz = pci_size(l, sz, mask);
-@@ -321,14 +317,8 @@ static int __pci_read_base(struct pci_de
- 		res->start = l;
- 		res->end = l + sz;
- 		printk(KERN_DEBUG "PCI: %s reg %x %s: [%llx, %llx]\n", pci_name(dev),
--<<<<<<< HEAD:drivers/pci/probe.c
- 			pos, (res->flags & IORESOURCE_IO) ? "io port":"32bit mmio",
- 			(unsigned long long)res->start, (unsigned long long)res->end);
--=======
--			 pos, (res->flags & IORESOURCE_IO) ? "io port":"32bit mmio",
--			 res->start, res->end);
--
-->>>>>>> FETCH_HEAD:drivers/pci/probe.c
+diff -puN kernel/resource.c~git-timers-fix-printk-errors-clean-up kernel/resource.c
+--- a/kernel/resource.c~git-timers-fix-printk-errors-clean-up
++++ a/kernel/resource.c
+@@ -558,31 +558,37 @@ static void __init __reserve_region_with
+ 		break;
  	}
  
-  out:
-@@ -400,12 +390,8 @@ void __devinit pci_read_bridge_bases(str
- 		if (!res->end)
- 			res->end = limit + 0xfff;
- 		printk(KERN_DEBUG "PCI: bridge %s io port: [%llx, %llx]\n",
--<<<<<<< HEAD:drivers/pci/probe.c
- 			pci_name(dev), (unsigned long long) res->start,
- 			(unsigned long long) res->end);
--=======
--				 pci_name(dev), res->start, res->end);
-->>>>>>> FETCH_HEAD:drivers/pci/probe.c
- 	}
+-	if (!res) {
+-		printk(KERN_DEBUG "    __reserve_region_with_split: (%s) [%llx, %llx], res: (%s) [%llx, %llx]\n",
+-			 conflict->name, conflict->start, conflict->end,
+-			 name, start, end);
++	if (res)
++		return;
  
- 	res = child->resource[1];
-@@ -418,12 +404,8 @@ void __devinit pci_read_bridge_bases(str
- 		res->start = base;
- 		res->end = limit + 0xfffff;
- 		printk(KERN_DEBUG "PCI: bridge %s 32bit mmio: [%llx, %llx]\n",
--<<<<<<< HEAD:drivers/pci/probe.c
- 			pci_name(dev), (unsigned long long) res->start,
- 			(unsigned long long) res->end);
--=======
--				 pci_name(dev), res->start, res->end);
-->>>>>>> FETCH_HEAD:drivers/pci/probe.c
- 	}
+-		/* failed, split and try again */
++	printk(KERN_DEBUG "   %s: (%s) [%llx, %llx], res: (%s) [%llx, %llx]\n",
++		__func__, conflict->name,
++		(unsigned long long)conflict->start,
++		(unsigned long long)conflict->end,
++		name,
++		(unsigned long long)start,
++		(unsigned long long)end);
  
- 	res = child->resource[2];
-@@ -460,13 +442,8 @@ void __devinit pci_read_bridge_bases(str
- 		res->start = base;
- 		res->end = limit + 0xfffff;
- 		printk(KERN_DEBUG "PCI: bridge %s %sbit mmio pref: [%llx, %llx]\n",
--<<<<<<< HEAD:drivers/pci/probe.c
- 			pci_name(dev), (res->flags & PCI_PREF_RANGE_TYPE_64) ? "64" : "32",
- 			(unsigned long long) res->start, (unsigned long long) res->end);
--=======
--				 pci_name(dev), (res->flags & PCI_PREF_RANGE_TYPE_64)?"64":"32",
--				 res->start, res->end);
-->>>>>>> FETCH_HEAD:drivers/pci/probe.c
- 	}
- }
+-		/* conflict coverred whole area */
+-		if (conflict->start <= start && conflict->end >= end)
+-			return;
++	/* failed, split and try again */
  
-diff -puN lib/swiotlb.c~git-tip-rejects lib/swiotlb.c
---- a/lib/swiotlb.c~git-tip-rejects
-+++ a/lib/swiotlb.c
-@@ -488,14 +488,9 @@ swiotlb_alloc_coherent(struct device *hw
- 		 * swiotlb_map_single(), which will grab memory from
- 		 * the lowest available address range.
- 		 */
--<<<<<<< HEAD:lib/swiotlb.c
- 		dma_addr_t handle;
- 		handle = swiotlb_map_single(hwdev, NULL, size, DMA_FROM_DEVICE);
- 		if (swiotlb_dma_mapping_error(hwdev, handle))
--=======
--		ret = map_single(hwdev, NULL, size, DMA_FROM_DEVICE);
--		if (!ret)
-->>>>>>> FETCH_HEAD:lib/swiotlb.c
- 			return NULL;
- 	}
- 
-diff -puN lib/vsprintf.c~git-tip-rejects lib/vsprintf.c
---- a/lib/vsprintf.c~git-tip-rejects
-+++ a/lib/vsprintf.c
-@@ -514,19 +514,6 @@ static char *string(char *buf, char *end
- 	return buf;
- }
- 
--<<<<<<< HEAD:lib/vsprintf.c
--=======
--void *dereference_function_descriptor(void *ptr)
--{
--#if defined(CONFIG_IA64) || defined(CONFIG_PPC64)
--	void *p;
--	if (!probe_kernel_address(ptr, p))
--		ptr = p;
--#endif
--	return ptr;
--}
+-		if (conflict->start > start)
+-			__reserve_region_with_split(root, start, conflict->start-1, name);
+-		if (!(conflict->flags & IORESOURCE_BUSY)) {
+-			resource_size_t common_start, common_end;
 -
-->>>>>>> FETCH_HEAD:lib/vsprintf.c
- static char *symbol_string(char *buf, char *end, void *ptr, int field_width, int precision, int flags)
- {
- 	unsigned long value = (unsigned long) ptr;
+-			common_start = max(conflict->start, start);
+-			common_end = min(conflict->end, end);
+-			if (common_start < common_end)
+-				__reserve_region_with_split(root, common_start, common_end, name);
+-		}
+-		if (conflict->end < end)
+-			__reserve_region_with_split(root, conflict->end+1, end, name);
++	/* conflict coverred whole area */
++	if (conflict->start <= start && conflict->end >= end)
++		return;
++
++	if (conflict->start > start)
++		__reserve_region_with_split(root, start, conflict->start-1,
++						name);
++	if (!(conflict->flags & IORESOURCE_BUSY)) {
++		resource_size_t common_start, common_end;
++
++		common_start = max(conflict->start, start);
++		common_end = min(conflict->end, end);
++		if (common_start < common_end)
++			__reserve_region_with_split(root, common_start,
++						common_end, name);
+ 	}
+-
++	if (conflict->end < end)
++		__reserve_region_with_split(root, conflict->end+1, end, name);
+ }
+ 
+ void reserve_region_with_split(struct resource *root,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mm-remove-the-might_sleep-from-lock_page.patch
 git-tip.patch
-git-tip-rejects.patch
 git-powerpc.patch
-git-4xx.patch
-git-galak.patch
 git-sparc.patch
-git-x86.patch
 git-xtensa.patch
-git-tip-core.patch
-git-ftrace.patch
-git-genirq.patch
-git-sched.patch
-git-timers.patch
 git-timers-fix-printk-errors-clean-up.patch
 git-pci.patch
 git-hid.patch
