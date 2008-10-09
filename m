@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-ext4-vs-git-ocfs2.patch added to -mm tree
-Date: Fri, 03 Oct 2008 13:01:04 -0700
-Message-ID: <200810032001.m93K14Vf013241@imap1.linux-foundation.org>
+Subject: + markers-make-marker_synchronize_unregister-a-macro.patch added to -mm tree
+Date: Thu, 09 Oct 2008 16:11:47 -0700
+Message-ID: <200810092326.m99NQEKw009787@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53334 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60377 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752836AbYJCUBh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Oct 2008 16:01:37 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m93K14Ek004318
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 3 Oct 2008 13:01:05 -0700
+	by vger.kernel.org with ESMTP id S1750891AbYJIX0k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 19:26:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, mathieu.desnoyers@polymtl.ca, mingo@elte.hu
 
 
 The patch titled
-     git-ext4-vs-git-ocfs2
+     markers: make marker_synchronize_unregister() a macro
 has been added to the -mm tree.  Its filename is
-     git-ext4-vs-git-ocfs2.patch
+     markers-make-marker_synchronize_unregister-a-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,78 +27,94 @@ Before you just go and hit "reply", please:
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-ext4-vs-git-ocfs2
+Subject: markers: make marker_synchronize_unregister() a macro
 From: Andrew Morton <akpm@linux-foundation.org>
 
+i386 allnoconfig:
+
+In file included from include/linux/kmemtrace.h:13,
+                 from include/linux/slub_def.h:13,
+                 from include/linux/slab.h:184,
+                 from include/linux/percpu.h:5,
+                 from include/linux/rcupdate.h:39,
+                 from include/linux/sem.h:81,
+                 from include/linux/syscalls.h:62,
+                 from init/noinitramfs.c:23:
+include/linux/marker.h: In function 'marker_synchronize_unregister':
+include/linux/marker.h:171: error: implicit declaration of function 'synchronize_sched'
+
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/extent_map.h |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/marker.h |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/extent_map.h~git-ext4-vs-git-ocfs2 fs/ocfs2/extent_map.h
---- a/fs/ocfs2/extent_map.h~git-ext4-vs-git-ocfs2
-+++ a/fs/ocfs2/extent_map.h
-@@ -53,4 +53,7 @@ int ocfs2_extent_map_get_blocks(struct i
- int ocfs2_xattr_get_clusters(struct inode *inode, u32 v_cluster,
- 			     u32 *p_cluster, u32 *num_clusters,
- 			     struct ocfs2_extent_list *el);
-+int ocfs2_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
-+		 u64 map_start, u64 map_len);
-+
- #endif  /* _EXTENT_MAP_H */
+diff -puN include/linux/marker.h~markers-make-marker_synchronize_unregister-a-macro include/linux/marker.h
+--- a/include/linux/marker.h~markers-make-marker_synchronize_unregister-a-macro
++++ a/include/linux/marker.h
+@@ -165,10 +165,9 @@ extern void *marker_get_private_data(con
+  * marker_synchronize_unregister must be called between the last marker probe
+  * unregistration and the end of module exit to make sure there is no caller
+  * executing a probe when it is freed.
++ *
++ * This is a macro to simplify include dependencies.
+  */
+-static inline void marker_synchronize_unregister(void)
+-{
+-	synchronize_sched();
+-}
++#define marker_synchronize_unregister() synchronize_sched()
+ 
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
-include-linux-stacktraceh-declare-struct-task_struct.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+git-tip.patch
 git-powerpc.patch
 git-sparc.patch
-git-x86.patch
-git-x86-git-rejects.patch
 git-xtensa.patch
-git-ftrace.patch
-git-sched.patch
-git-sched-rejects.patch
-git-stackprotector-rejects.patch
-git-timers-fix-printk-errors-clean-up.patch
 git-pci.patch
 git-hid.patch
 git-v4l-dvb.patch
 git-v4l-dvb-git-rejects.patch
-git-acpi-git-rejects.patch
+git-nfs.patch
 git-nfsd.patch
 git-dlm.patch
 git-scsi.patch
+git-tests-fixup.patch
 git-ext4.patch
 git-ext4-vs-git-ocfs2.patch
 git-async_tx.patch
 git-net.patch
+git-net-conflicts.patch
 git-mtd.patch
-git-wireless.patch
+git-vfs-vs-git-ext4.patch
 git-sound.patch
-git-sound-rejects.patch
+git-sound-vs-git-arm.patch
 git-input.patch
 git-block.patch
+git-block-reject-fix.patch
 git-pcmcia-git-rejects.patch
 git-battery.patch
-git-kmemcheck.patch
+git-battery-rejects.patch
+git-slab-rejects.patch
+git-md-rejects.patch
 git-mfd.patch
 git-drm.patch
-git-sparseirq.patch
-git-scsi-post-merge.patch
-git-bdev.patch
+usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
 arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-drivers-media-video-tda9840c-unbreak.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
@@ -110,11 +122,8 @@ libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
 misdn-misc-timerdev-fixes-fix.patch
 drivers-net-sfc-falconc-fix-min-warnings.patch
 backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-drivers-scsi-device_handler-scsi_dh_emcc-suppress-warning.patch
 drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
-acpi-cope-with-pnpacpi-tables-missing-an-rtc-entry.patch
-drivers-media-video-cafe_ccicc-needs-mmh.patch
 mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
 mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
 mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
@@ -131,9 +140,11 @@ mmap-handle-mlocked-pages-during-map-remap-unmap.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
 vmscan-unevictable-lru-scan-sysctl.patch
 mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-vmallocc-revert-git-tip-change.patch
 mm-rewrite-vmap-layer-fix.patch
 mm-rewrite-vmap-layer-fix-fix.patch
 mm-rewrite-vmap-layer-fix-fix-fix.patch
+revert-mm-vmallocc-revert-git-tip-change.patch
 h8300-generic_bug-support-checkpatch-fixes.patch
 pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
 container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
@@ -144,8 +155,6 @@ separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
 separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
 make-taint-bit-reliable-v3-fix.patch
 kernel-sysc-improve-code-generation.patch
-cpualloc-make-the-per-cpu-reserve-configurable-fix.patch
-cpualloc-use-cpu-allocator-instead-of-the-builtin-modules-per-cpu-allocator-checkpatch-fixes.patch
 compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
 hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
 hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
@@ -171,9 +180,9 @@ ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
 cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
 memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
 message-queues-increase-range-limits-checkpatch-fixes.patch
-tty-fix-echo-tab-erase-and-locking-fix.patch
 applicomc-fix-apparently-broken-code-in-do_ac_read.patch
 drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+tpm-addition-of-pnp_remove-checkpatch-fixes.patch
 w1-be-able-to-manually-add-and-remove-slaves-fix.patch
 w1-new-driver-ds2431-chip-fix.patch
 gru-driver-minor-updates-fix.patch
@@ -201,4 +210,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+markers-make-marker_synchronize_unregister-a-macro.patch
 
