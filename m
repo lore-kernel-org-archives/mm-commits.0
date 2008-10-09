@@ -1,60 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - git-acpi-git-rejects.patch removed from -mm tree
-Date: Thu, 09 Oct 2008 13:37:09 -0700
-Message-ID: <200810092037.m99Kb98k031232@imap1.linux-foundation.org>
+Subject: - git-net-rejects.patch removed from -mm tree
+Date: Thu, 09 Oct 2008 13:47:08 -0700
+Message-ID: <200810092047.m99Kl8rf031868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39401 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50290 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756080AbYJIUhL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 16:37:11 -0400
+	by vger.kernel.org with ESMTP id S1753728AbYJIUrh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 16:47:37 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m99Kb9Le011595
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m99Kl85p012291
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 9 Oct 2008 13:37:10 -0700
+	for <mm-commits@vger.kernel.org>; Thu, 9 Oct 2008 13:47:09 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-acpi-git-rejects
+     git-net-rejects
 has been removed from the -mm tree.  Its filename was
-     git-acpi-git-rejects.patch
+     git-net-rejects.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-acpi-git-rejects
+Subject: git-net-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/acer-wmi.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/net/e1000e/ich8lan.c |    3 ---
+ drivers/net/e1000e/netdev.c  |    3 ---
+ 2 files changed, 6 deletions(-)
 
-diff -puN drivers/misc/acer-wmi.c~git-acpi-git-rejects drivers/misc/acer-wmi.c
---- a/drivers/misc/acer-wmi.c~git-acpi-git-rejects
-+++ a/drivers/misc/acer-wmi.c
-@@ -1249,15 +1249,12 @@ static int __init acer_wmi_init(void)
- 		return -ENODEV;
- 	}
+diff -puN drivers/net/e1000e/ich8lan.c~git-net-rejects drivers/net/e1000e/ich8lan.c
+--- a/drivers/net/e1000e/ich8lan.c~git-net-rejects
++++ a/drivers/net/e1000e/ich8lan.c
+@@ -424,13 +424,10 @@ static s32 e1000_acquire_swflag_ich8lan(
  
--<<<<<<< HEAD:drivers/misc/acer-wmi.c
- 	set_quirks();
+ 	if (!timeout) {
+ 		hw_dbg(hw, "FW or HW has locked the resource for too long.\n");
+-<<<<<<< HEAD:drivers/net/e1000e/ich8lan.c
+ 		nvm_owner = -1;
+ 		mutex_unlock(&nvm_mutex);
 -=======
- 	if (!acpi_video_backlight_support() && has_cap(ACER_CAP_BRIGHTNESS)) {
- 		interface->capability &= ~ACER_CAP_BRIGHTNESS;
- 		printk(ACER_INFO "Brightness must be controlled by "
- 		       "generic video driver\n");
+ 		extcnf_ctrl &= ~E1000_EXTCNF_CTRL_SWFLAG;
+ 		ew32(EXTCNF_CTRL, extcnf_ctrl);
+->>>>>>> FETCH_HEAD:drivers/net/e1000e/ich8lan.c
+ 		return -E1000_ERR_CONFIG;
  	}
-->>>>>>> FETCH_HEAD:drivers/misc/acer-wmi.c
  
- 	if (platform_driver_register(&acer_platform_driver)) {
- 		printk(ACER_ERR "Unable to register platform driver.\n");
+diff -puN drivers/net/e1000e/netdev.c~git-net-rejects drivers/net/e1000e/netdev.c
+--- a/drivers/net/e1000e/netdev.c~git-net-rejects
++++ a/drivers/net/e1000e/netdev.c
+@@ -4908,11 +4908,8 @@ static int __devinit e1000_probe(struct 
+ 
+ 	INIT_WORK(&adapter->reset_task, e1000_reset_task);
+ 	INIT_WORK(&adapter->watchdog_task, e1000_watchdog_task);
+-<<<<<<< HEAD:drivers/net/e1000e/netdev.c
+ 	INIT_WORK(&adapter->downshift_task, e1000e_downshift_workaround);
+ 	INIT_WORK(&adapter->update_phy_task, e1000e_update_phy_task);
+-=======
+->>>>>>> FETCH_HEAD:drivers/net/e1000e/netdev.c
+ 
+ 	/* Initialize link parameters. User can change them with ethtool */
+ 	adapter->hw.mac.autoneg = 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,9 +83,7 @@ git-hid.patch
 git-v4l-dvb.patch
 git-v4l-dvb-git-rejects.patch
 git-nfs.patch
-git-acpi-git-rejects.patch
 git-nfsd.patch
-git-kvm.patch
 git-dlm.patch
 git-scsi.patch
 git-tests-fixup.patch
@@ -79,6 +91,7 @@ git-ext4.patch
 git-ext4-vs-git-ocfs2.patch
 git-async_tx.patch
 git-net.patch
+git-net-conflicts.patch
 git-net-rejects.patch
 git-mtd.patch
 git-wireless.patch
