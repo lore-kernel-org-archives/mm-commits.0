@@ -1,94 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: + git-slab-versus-git-tip.patch added to -mm tree
-Date: Thu, 09 Oct 2008 16:36:46 -0700
-Message-ID: <200810092351.m99NpBsX011284@imap1.linux-foundation.org>
+Subject: - git-slab-rejects.patch removed from -mm tree
+Date: Thu, 09 Oct 2008 16:49:49 -0700
+Message-ID: <200810100004.m9A04EOh012123@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33199 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46603 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750984AbYJIXv2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 19:51:28 -0400
+	by vger.kernel.org with ESMTP id S1756446AbYJJAEg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 20:04:36 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m9A04F3G026491
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 9 Oct 2008 17:04:16 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, penberg@cs.helsinki.fi
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-slab versus git-tip
-has been added to the -mm tree.  Its filename is
-     git-slab-versus-git-tip.patch
+     git-slab-rejects
+has been removed from the -mm tree.  Its filename was
+     git-slab-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-slab versus git-tip
+Subject: git-slab-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/linux/rcupdate.h:39,
-                 from include/linux/marker.h:16,
-                 from include/linux/kmemtrace.h:13,
-                 from include/linux/slub_def.h:13,
-                 from include/linux/slab.h:184,
-                 from include/asm/pgtable_32.h:21,
-                 from include/asm/pgtable.h:394,
-                 from include/linux/mm.h:40,
-                 from arch/x86/mm/pgtable.c:1:
-include/linux/percpu.h: In function '__percpu_alloc_mask':
-include/linux/percpu.h:108: error: implicit declaration of function 'kzalloc'
-include/linux/percpu.h:108: warning: return makes pointer from integer without a cast
-In file included from include/asm/pgtable_32.h:21,
-                 from include/asm/pgtable.h:394,
-                 from include/linux/mm.h:40,
-                 from arch/x86/mm/pgtable.c:1:
-include/linux/slab.h: At top level:
-include/linux/slab.h:336: error: conflicting types for 'kzalloc'
-include/linux/percpu.h:108: error: previous implicit declaration of 'kzalloc' was here
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu.h |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ mm/Makefile |    1 +
+ mm/slab.c   |    1 +
+ mm/slub.c   |    1 +
+ 3 files changed, 3 insertions(+)
 
-diff -puN include/linux/percpu.h~git-slab-versus-git-tip include/linux/percpu.h
---- a/include/linux/percpu.h~git-slab-versus-git-tip
-+++ a/include/linux/percpu.h
-@@ -103,15 +103,12 @@ extern void percpu_free(void *__pdata);
- 
- #define percpu_ptr(ptr, cpu) ({ (void)(cpu); (ptr); })
- 
--static __always_inline void *__percpu_alloc_mask(size_t size, gfp_t gfp, cpumask_t *mask)
--{
--	return kzalloc(size, gfp);
--}
--
--static inline void percpu_free(void *__pdata)
--{
--	kfree(__pdata);
--}
-+/*
-+ * __percpu_alloc_mask() and percpu_free() are macros to simplify header
-+ * dependencies
-+ */
-+#define __percpu_alloc_mask(size, gfp, maskp) kzalloc(size, gfp)
-+#define percpu_free(pdata) kfree(pdata)
- 
- #endif /* CONFIG_SMP */
- 
+diff -puN mm/Makefile~git-slab-rejects mm/Makefile
+--- a/mm/Makefile~git-slab-rejects
++++ a/mm/Makefile
+@@ -24,6 +24,7 @@ obj-$(CONFIG_SPARSEMEM_VMEMMAP) += spars
+ obj-$(CONFIG_SHMEM) += shmem.o
+ obj-$(CONFIG_TMPFS_POSIX_ACL) += shmem_acl.o
+ obj-$(CONFIG_TINY_SHMEM) += tiny-shmem.o
++obj-$(CONFIG_KMEMTRACE) += kmemtrace.o
+ obj-$(CONFIG_SLOB) += slob.o
+ obj-$(CONFIG_MMU_NOTIFIER) += mmu_notifier.o
+ obj-$(CONFIG_SLAB) += slab.o
+diff -puN mm/slab.c~git-slab-rejects mm/slab.c
+--- a/mm/slab.c~git-slab-rejects
++++ a/mm/slab.c
+@@ -99,6 +99,7 @@
+ #include	<linux/notifier.h>
+ #include	<linux/kallsyms.h>
+ #include	<linux/cpu.h>
++#include	<linux/kmemtrace.h>
+ #include	<linux/sysctl.h>
+ #include	<linux/module.h>
+ #include	<linux/rcupdate.h>
+diff -puN mm/slub.c~git-slab-rejects mm/slub.c
+--- a/mm/slub.c~git-slab-rejects
++++ a/mm/slub.c
+@@ -17,6 +17,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/cpu.h>
+ #include <linux/cpuset.h>
++#include <linux/kmemtrace.h>
+ #include <linux/mempolicy.h>
+ #include <linux/ctype.h>
+ #include <linux/debugobjects.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
