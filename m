@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-buid-error-of-autodetect_raid.patch added to -mm tree
-Date: Thu, 09 Oct 2008 00:07:21 -0700
-Message-ID: <200810090707.m9977LjD012048@imap1.linux-foundation.org>
+Subject: + fix-buid-error-of-md-raid.patch added to -mm tree
+Date: Thu, 09 Oct 2008 00:08:07 -0700
+Message-ID: <200810090708.m99787DN012175@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56613 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59612 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757132AbYJIHIO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 03:08:14 -0400
+	by vger.kernel.org with ESMTP id S1755432AbYJIHJT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 03:09:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, arjan@linux.intel.com, mingo@elte.hu
+Cc: kosaki.motohiro@jp.fujitsu.com, maan@systemlinux.org, neilb@suse.de
 
 
 The patch titled
-     fix buid error of autodetect_raid()
+     fix buid error of md raid
 has been added to the -mm tree.  Its filename is
-     fix-buid-error-of-autodetect_raid.patch
+     fix-buid-error-of-md-raid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix buid error of autodetect_raid()
+Subject: fix buid error of md raid
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
 Patch against: mmotm 02 Oct
-Applied after: git-fastboot.patch
+Applied after: git-md.patch
 
 fix following build error
 
->  CC      init/do_mounts_md.o
->init/do_mounts_md.c: In function 'autodetect_raid':
->init/do_mounts_md.c:278: error: implicit declaration of function 'msleep'
->make[1]: *** [init/do_mounts_md.o] Error 1
->make: *** [init] Error 2
+--------------------
+  CC      drivers/md/raid1.o
+drivers/md/raid1.c: In function 'sync_request':
+drivers/md/raid1.c:1759: error: implicit declaration of function 'msleep_interruptible'
+make[2]: *** [drivers/md/raid1.o] Error 1
+make[1]: *** [drivers/md] Error 2
+make: *** [drivers] Error 2
+
+  CC      drivers/md/raid10.o
+drivers/md/raid10.c: In function 'sync_request':
+drivers/md/raid10.c:1749: error: implicit declaration of function 'msleep_interruptible'
+make[2]: *** [drivers/md/raid10.o] Error 1
+
+  CC      drivers/md/md.o
+drivers/md/md.c: In function 'md_do_sync':
+drivers/md/md.c:5914: error: implicit declaration of function 'msleep'
+drivers/md/md.c: In function 'md_notify_reboot':
+drivers/md/md.c:6265: error: implicit declaration of function 'mdelay'
+make[2]: *** [drivers/md/md.o] Error 1
+make[1]: *** [drivers/md] Error 2
+make: *** [drivers] Error 2
+----------------------
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Andre Noll <maan@systemlinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts_md.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/md/md.c     |    1 +
+ drivers/md/raid1.c  |    1 +
+ drivers/md/raid10.c |    1 +
+ 3 files changed, 3 insertions(+)
 
-diff -puN init/do_mounts_md.c~fix-buid-error-of-autodetect_raid init/do_mounts_md.c
---- a/init/do_mounts_md.c~fix-buid-error-of-autodetect_raid
-+++ a/init/do_mounts_md.c
-@@ -1,5 +1,6 @@
- 
- #include <linux/raid/md.h>
+diff -puN drivers/md/md.c~fix-buid-error-of-md-raid drivers/md/md.c
+--- a/drivers/md/md.c~fix-buid-error-of-md-raid
++++ a/drivers/md/md.c
+@@ -44,6 +44,7 @@
+ #include <linux/random.h>
+ #include <linux/reboot.h>
+ #include <linux/file.h>
 +#include <linux/delay.h>
  
- #include "do_mounts.h"
+ #define MAJOR_NR MD_MAJOR
  
+diff -puN drivers/md/raid1.c~fix-buid-error-of-md-raid drivers/md/raid1.c
+--- a/drivers/md/raid1.c~fix-buid-error-of-md-raid
++++ a/drivers/md/raid1.c
+@@ -34,6 +34,7 @@
+ #include "dm-bio-list.h"
+ #include <linux/raid/raid1.h>
+ #include <linux/raid/bitmap.h>
++#include <linux/delay.h>
+ 
+ #define DEBUG 0
+ #if DEBUG
+diff -puN drivers/md/raid10.c~fix-buid-error-of-md-raid drivers/md/raid10.c
+--- a/drivers/md/raid10.c~fix-buid-error-of-md-raid
++++ a/drivers/md/raid10.c
+@@ -21,6 +21,7 @@
+ #include "dm-bio-list.h"
+ #include <linux/raid/raid10.h>
+ #include <linux/raid/bitmap.h>
++#include <linux/delay.h>
+ 
+ /*
+  * RAID10 provides a combination of RAID0 and RAID1 functionality.
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 fix-buid-error-of-autodetect_raid.patch
+fix-buid-error-of-md-raid.patch
 usb-usb-remove-warn-macro-from-usbh-vs-git-hid.patch
 mm-do_generic_file_read-never-gets-a-null-filp-argument.patch
 vmscan-use-an-indexed-array-for-lru-variables.patch
