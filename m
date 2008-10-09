@@ -1,68 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - add-better-resolution-to-initcall_debug-timings.patch removed from -mm tree
-Date: Thu, 09 Oct 2008 15:23:30 -0700
-Message-ID: <200810092223.m99MNUwQ005701@imap1.linux-foundation.org>
+Subject: - hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds.patch removed from -mm tree
+Date: Thu, 09 Oct 2008 15:27:14 -0700
+Message-ID: <200810092227.m99MRESU005938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45834 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60687 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750722AbYJIWXg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 18:23:36 -0400
+	by vger.kernel.org with ESMTP id S1750816AbYJIW12 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 18:27:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tim.bird@am.sony.com, mm-commits@vger.kernel.org
+To: richard@rsk.demon.co.uk, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add better resolution to initcall_debug timings
+     hrtimer: reorder struct hrtimer to save 8 bytes on 64 bit builds
 has been removed from the -mm tree.  Its filename was
-     add-better-resolution-to-initcall_debug-timings.patch
+     hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds.patch
 
-This patch was dropped because I dumped it on Ingo
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add better resolution to initcall_debug timings
-From: Tim Bird <tim.bird@am.sony.com>
+Subject: hrtimer: reorder struct hrtimer to save 8 bytes on 64 bit builds
+From: Richard Kennedy <richard@rsk.demon.co.uk>
 
-Change the time resolution for initcall_debug to microseconds, from
-milliseconds.  This is handy to determine which initcalls you want to work
-on for faster booting.
+reorder struct hrtimer to save 8 bytes on 64 bit builds when
+CONFIG_TIMER_STATS selected.  (also removes 8 bytes from signal_struct)
 
-One one of my test machines, over 90% of the initcalls are less than a
-millisecond and (without this patch) these are all reported as 0 msecs. 
-Working on the 900 us ones is more important than the 4 us ones.
-
-With 'quiet' on the kernel command line, this adds no significant overhead
-to kernel boot time.
-
-Signed-off-by: Tim Bird <tim.bird@am.sony.com>
+Signed-off-by: Richard Kennedy <richard@rsk.demon.co.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    4 ++--
+ include/linux/hrtimer.h |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN init/main.c~add-better-resolution-to-initcall_debug-timings init/main.c
---- a/init/main.c~add-better-resolution-to-initcall_debug-timings
-+++ a/init/main.c
-@@ -733,9 +733,9 @@ int do_one_initcall(initcall_t fn)
- 		t1 = ktime_get();
- 		delta = ktime_sub(t1, t0);
+diff -puN include/linux/hrtimer.h~hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds include/linux/hrtimer.h
+--- a/include/linux/hrtimer.h~hrtimer-reorder-struct-hrtimer-to-save-8-bytes-on-64-bit-builds
++++ a/include/linux/hrtimer.h
+@@ -116,12 +116,12 @@ struct hrtimer {
+ 	enum hrtimer_restart		(*function)(struct hrtimer *);
+ 	struct hrtimer_clock_base	*base;
+ 	unsigned long			state;
+-	enum hrtimer_cb_mode		cb_mode;
+ 	struct list_head		cb_entry;
++	enum hrtimer_cb_mode		cb_mode;
+ #ifdef CONFIG_TIMER_STATS
++	int				start_pid;
+ 	void				*start_site;
+ 	char				start_comm[16];
+-	int				start_pid;
+ #endif
+ };
  
--		printk("initcall %pF returned %d after %Ld msecs\n",
-+		printk("initcall %pF returned %d after %Ld usecs\n",
- 			fn, result,
--			(unsigned long long) delta.tv64 >> 20);
-+			(unsigned long long) delta.tv64 >> 10);
- 	}
- 
- 	msgbuf[0] = 0;
 _
 
-Patches currently in -mm which might be from tim.bird@am.sony.com are
+Patches currently in -mm which might be from richard@rsk.demon.co.uk are
 
 git-tip.patch
-add-better-resolution-to-initcall_debug-timings.patch
+git-nfs.patch
+libata-reorder-ata_device-to-remove-8-bytes-of-padding-on-64-bits.patch
 
