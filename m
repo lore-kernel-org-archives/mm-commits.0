@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 10 Oct 2008 12:53:23 -0700
-Message-ID: <200810101953.m9AJrNGR028258@imap1.linux-foundation.org>
+Subject: + vmscan-split-lru-lists-into-anon-file-sets-adjust-quicklists-field-of-proc-meminfo.patch added to -mm tree
+Date: Fri, 10 Oct 2008 12:55:03 -0700
+Message-ID: <200810101955.m9AJt3Bm028381@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39635 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35894 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761345AbYJJTxb (ORCPT
+	by vger.kernel.org with ESMTP id S1762366AbYJJTzl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Oct 2008 15:53:31 -0400
+	Fri, 10 Oct 2008 15:55:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Brice.Goglin@inria.fr, Nathalie.Furmento@labri.fr, cl@linux-foundation.org
+Cc: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, lee.schermerhorn@hp.com, riel@redhat.com
 
 
 The patch titled
-     mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes
+     ] adjust Quicklists field of /proc/meminfo
 has been added to the -mm tree.  Its filename is
-     mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes.patch
+     vmscan-split-lru-lists-into-anon-file-sets-adjust-quicklists-field-of-proc-meminfo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,237 +34,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ] adjust Quicklists field of /proc/meminfo
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-WARNING: line over 80 characters
-#52: FILE: mm/migrate.c:813:
-+	struct page_to_node *pm = (struct page_to_node *) radix_tree_lookup(root, (unsigned long) p);
+vmscan-split-lru-lists-into-anon-file-sets.patch changed /proc/meminfo output length,
+but only Quicklists: field doesn't.
+(because quicklists field added after than split-lru)
 
-WARNING: line over 80 characters
-#99: FILE: mm/migrate.c:881:
-+		 * Insert pp in the radix-tree so that new_page_node() can find it
+example:
 
-WARNING: line over 80 characters
-#101: FILE: mm/migrate.c:883:
-+		 * There cannot be any duplicate since isolate_lru_page() would fail
+$ cat /proc/meminfo
 
-WARNING: line over 80 characters
-#124: FILE: mm/migrate.c:912:
-+		err = migrate_pages(&pagelist, new_page_node, (unsigned long) &pmroot);
+  MemTotal:        7994624 kB
+  MemFree:           21376 kB
+(snip)
+  SUnreclaim:        78912 kB
+  PageTables:      1233472 kB
+  Quicklists:       7808 kB
+  NFS_Unstable:          0 kB
 
-WARNING: line over 80 characters
-#130: FILE: mm/migrate.c:918:
-+	/* empty the radix-tree now that new_page_node() will not be called anymore */
+this patch fix it.
 
-ERROR: space required before the open parenthesis '('
-#131: FILE: mm/migrate.c:919:
-+	for(pp = pm; pp->node != MAX_NUMNODES; pp++)
-
-total: 1 errors, 5 warnings, 93 lines checked
-
-./patches/mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Brice Goglin <Brice.Goglin@inria.fr>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Nathalie Furmento <Nathalie.Furmento@labri.fr>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ fs/proc/proc_misc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes mm/migrate.c
---- a/mm/migrate.c~mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes
-+++ a/mm/migrate.c
-@@ -810,7 +810,9 @@ static struct page *new_page_node(struct
- 		int **result)
- {
- 	struct radix_tree_root *root = (struct radix_tree_root *) private;
--	struct page_to_node *pm = (struct page_to_node *) radix_tree_lookup(root, (unsigned long) p);
-+	struct page_to_node *pm;
-+
-+	pm = (struct page_to_node *)radix_tree_lookup(root, (unsigned long)p);
- 
- 	if (!pm)
- 		return NULL;
-@@ -878,10 +880,10 @@ static int do_move_pages(struct mm_struc
- 			goto put_and_set;
- 
- 		/*
--		 * Insert pp in the radix-tree so that new_page_node() can find it
--		 * while only knowing the page.
--		 * There cannot be any duplicate since isolate_lru_page() would fail
--		 * below anyway.
-+		 * Insert pp in the radix-tree so that new_page_node() can find
-+		 * it * while only knowing the page.
-+		 * There cannot be any duplicate since isolate_lru_page() would
-+		 * fail below anyway.
- 		 */
- 		err = radix_tree_insert(&pmroot, (unsigned long) page, pp);
- 		if (err < 0) {
-@@ -909,14 +911,18 @@ set_status:
- 	}
- 
- 	if (!list_empty(&pagelist))
--		err = migrate_pages(&pagelist, new_page_node, (unsigned long) &pmroot);
-+		err = migrate_pages(&pagelist, new_page_node,
-+				(unsigned long)&pmroot);
- 	else
- 		err = -ENOENT;
- 
- 	up_read(&mm->mmap_sem);
- 
--	/* empty the radix-tree now that new_page_node() will not be called anymore */
--	for(pp = pm; pp->node != MAX_NUMNODES; pp++)
-+	/*
-+	 * Empty the radix-tree now that new_page_node() will not be called
-+	 * any more.
-+	 */
-+	for (pp = pm; pp->node != MAX_NUMNODES; pp++)
- 		if (pp->page)
- 			radix_tree_delete(&pmroot, (unsigned long) pp->page);
- 
+diff -puN fs/proc/proc_misc.c~vmscan-split-lru-lists-into-anon-file-sets-adjust-quicklists-field-of-proc-meminfo fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~vmscan-split-lru-lists-into-anon-file-sets-adjust-quicklists-field-of-proc-meminfo
++++ a/fs/proc/proc_misc.c
+@@ -194,7 +194,7 @@ static int meminfo_read_proc(char *page,
+ 		"SUnreclaim:     %8lu kB\n"
+ 		"PageTables:     %8lu kB\n"
+ #ifdef CONFIG_QUICKLIST
+-		"Quicklists:   %8lu kB\n"
++		"Quicklists:     %8lu kB\n"
+ #endif
+ 		"NFS_Unstable:   %8lu kB\n"
+ 		"Bounce:         %8lu kB\n"
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-mm-remove-the-might_sleep-from-lock_page.patch
 git-tip.patch
-markers-make-marker_synchronize_unregister-a-macro.patch
-git-powerpc.patch
-git-sparc.patch
-git-xtensa.patch
-git-pci.patch
-git-hid.patch
-git-v4l-dvb.patch
-git-v4l-dvb-git-rejects.patch
-git-nfs.patch
-git-nfsd.patch
-git-dlm.patch
-git-scsi.patch
-git-tests-fixup.patch
-git-ext4.patch
-git-ext4-vs-git-ocfs2.patch
-git-async_tx.patch
-git-net.patch
-git-net-conflicts.patch
-git-mtd.patch
-git-vfs-vs-git-ext4.patch
-git-sound.patch
-git-sound-vs-git-arm.patch
-git-input.patch
-git-block.patch
-git-block-reject-fix.patch
-git-pcmcia-git-rejects.patch
-git-battery.patch
-git-battery-rejects.patch
-git-slab-versus-git-tip.patch
-git-mfd.patch
-git-drm.patch
-revert-usb-usb-remove-info-macro-from-usbh.patch
-revert-usb-usb-remove-warn-macro-from-usbh.patch
-fix-ttydev-tty-usbserial-kref.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
-misdn-misc-timerdev-fixes-fix.patch
-drivers-net-sfc-falconc-fix-min-warnings.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
+mm-do_generic_file_read-never-gets-a-null-filp-argument.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
 vmscan-split-lru-lists-into-anon-file-sets.patch
+vmscan-split-lru-lists-into-anon-file-sets-adjust-quicklists-field-of-proc-meminfo.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
 unevictable-lru-infrastructure.patch
+unevictable-lru-infrastructure-nommu-fix.patch
+unevictable-lru-infrastructure-remember-pages-active-state.patch
+unevictable-lru-infrastructure-defer-vm-event-counting.patch
+unevictable-infrastructure-lru-add-event-counting-with-statistics.patch
 unevictable-lru-page-statistics.patch
+shm_locked-pages-are-unevictable.patch
+shm_locked-pages-are-unevictable-add-event-counts-to-list-scan.patch
 mlock-mlocked-pages-are-unevictable.patch
 mlock-mlocked-pages-are-unevictable-fix.patch
+doc-unevictable-lru-and-mlocked-pages-documentation-update-2.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-__mlock_vma_pages_range-comment-block.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-backout-locked_vm-adjustment-during-mmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-return-value-for-munmap-mlock-vma-race.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-update-locked_vm-on-munmap-of-mlocked-region.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch
+swap-cull-unevictable-pages-in-fault-path.patch
 vmscan-unevictable-lru-scan-sysctl.patch
+vmscam-kill-unused-lru-functions.patch
+mlock-revert-mainline-handling-of-mlock-error-return.patch
+mlock-make-mlock-error-return-posixly-correct.patch
 mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-vmallocc-revert-git-tip-change.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-revert-mm-vmallocc-revert-git-tip-change.patch
-mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-eeepc-laptop-use-standard-interfaces-fix-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
-make-taint-bit-reliable-v3-fix.patch
-kernel-sysc-improve-code-generation.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-drivers-hwmon-applesmcc-remove-unneeded-casts.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
-serial-make-uart_ports-ioport-unsigned-long-fix.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanups.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
-ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-tpm-addition-of-pnp_remove-checkpatch-fixes.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-new-driver-ds2431-chip-fix.patch
-gru-driver-minor-updates-fix.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+mm-unlockless-reclaim.patch
+coredump_filter-add-hugepage-dumping-v4.patch
+hugepage-support-zero_page.patch
+add-config_core_dump_default_elf_headers.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
