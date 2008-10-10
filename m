@@ -1,180 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path.patch removed from -mm tree
-Date: Fri, 10 Oct 2008 15:14:39 -0700
-Message-ID: <200810102214.m9AMEdmC009063@imap1.linux-foundation.org>
+Subject: - hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path-fix.patch removed from -mm tree
+Date: Fri, 10 Oct 2008 15:14:43 -0700
+Message-ID: <200810102214.m9AMEhV5009074@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47325 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53128 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753805AbYJJWOx (ORCPT
+	by vger.kernel.org with ESMTP id S1754508AbYJJWPM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Oct 2008 18:14:53 -0400
+	Fri, 10 Oct 2008 18:15:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@shadowen.org, mel@csn.ul.ie, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, apw@shadowen.org, mel@csn.ul.ie, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: pull gigantic page initialisation out of the default path
+     hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path-fix
 has been removed from the -mm tree.  Its filename was
-     hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path.patch
+     hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path-fix.patch
 
 This patch was dropped because its predecessor patch is still being wibbled about
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: pull gigantic page initialisation out of the default path
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-As we can determine exactly when a gigantic page is in use we can optimise
-the common regular page cases by pulling out gigantic page initialisation
-into its own function.  As gigantic pages are never released to buddy we
-do not need a destructor.  This effectivly reverts the previous change
-to the main buddy allocator.  It also adds a paranoid check to ensure we
-never release gigantic pages from hugetlbfs to the main buddy.
-
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c    |    4 +++-
- mm/internal.h   |    1 +
- mm/page_alloc.c |   26 +++++++++++++++++++-------
- 3 files changed, 23 insertions(+), 8 deletions(-)
+ mm/page_alloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/hugetlb.c~hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path
-+++ a/mm/hugetlb.c
-@@ -455,6 +455,8 @@ static void update_and_free_page(struct 
- {
- 	int i;
- 
-+	BUG_ON(h->order >= MAX_ORDER);
-+
- 	h->nr_huge_pages--;
- 	h->nr_huge_pages_node[page_to_nid(page)]--;
- 	for (i = 0; i < pages_per_huge_page(h); i++) {
-@@ -979,7 +981,7 @@ static void __init gather_bootmem_preall
- 		struct hstate *h = m->hstate;
- 		__ClearPageReserved(page);
- 		WARN_ON(page_count(page) != 1);
--		prep_compound_page(page, h->order);
-+		prep_compound_gigantic_page(page, h->order);
- 		prep_new_huge_page(h, page, page_to_nid(page));
+diff -puN mm/page_alloc.c~hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path-fix
++++ a/mm/page_alloc.c
+@@ -280,6 +280,7 @@ void prep_compound_page(struct page *pag
  	}
  }
-diff -puN mm/internal.h~hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path mm/internal.h
---- a/mm/internal.h~hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path
-+++ a/mm/internal.h
-@@ -17,6 +17,7 @@ void free_pgtables(struct mmu_gather *tl
- 		unsigned long floor, unsigned long ceiling);
  
- extern void prep_compound_page(struct page *page, unsigned long order);
-+extern void prep_compound_gigantic_page(struct page *page, unsigned long order);
- 
- static inline void set_page_count(struct page *page, int v)
- {
-diff -puN mm/page_alloc.c~hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path mm/page_alloc.c
---- a/mm/page_alloc.c~hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path
-+++ a/mm/page_alloc.c
-@@ -268,14 +268,28 @@ void prep_compound_page(struct page *pag
++#ifdef CONFIG_HUGETLBFS
+ void prep_compound_gigantic_page(struct page *page, unsigned long order)
  {
  	int i;
- 	int nr_pages = 1 << order;
-+
-+	set_compound_page_dtor(page, free_compound_page);
-+	set_compound_order(page, order);
-+	__SetPageHead(page);
-+	for (i = 1; i < nr_pages; i++) {
-+		struct page *p = page + i;
-+
-+		__SetPageTail(p);
-+		p->first_page = page;
-+	}
-+}
-+
-+void prep_compound_gigantic_page(struct page *page, unsigned long order)
-+{
-+	int i;
-+	int nr_pages = 1 << order;
- 	struct page *p = page + 1;
- 
- 	set_compound_page_dtor(page, free_compound_page);
- 	set_compound_order(page, order);
- 	__SetPageHead(page);
--	for (i = 1; i < nr_pages; i++, p++) {
--		if (unlikely((i & (MAX_ORDER_NR_PAGES - 1)) == 0))
--			p = pfn_to_page(page_to_pfn(page) + i);
-+	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
- 		__SetPageTail(p);
+@@ -294,6 +295,7 @@ void prep_compound_gigantic_page(struct 
  		p->first_page = page;
  	}
-@@ -285,7 +299,6 @@ static void destroy_compound_page(struct
+ }
++#endif
+ 
+ static void destroy_compound_page(struct page *page, unsigned long order)
  {
- 	int i;
- 	int nr_pages = 1 << order;
--	struct page *p = page + 1;
- 
- 	if (unlikely(compound_order(page) != order))
- 		bad_page(page);
-@@ -293,9 +306,8 @@ static void destroy_compound_page(struct
- 	if (unlikely(!PageHead(page)))
- 			bad_page(page);
- 	__ClearPageHead(page);
--	for (i = 1; i < nr_pages; i++, p++) {
--		if (unlikely((i & (MAX_ORDER_NR_PAGES - 1)) == 0))
--			p = pfn_to_page(page_to_pfn(page) + i);
-+	for (i = 1; i < nr_pages; i++) {
-+		struct page *p = page + i;
- 
- 		if (unlikely(!PageTail(p) |
- 				(p->first_page != page)))
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
-hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+git-tip.patch
+markers-make-marker_synchronize_unregister-a-macro.patch
+git-powerpc.patch
+git-sparc.patch
+git-xtensa.patch
+git-pci.patch
+git-hid.patch
+git-v4l-dvb.patch
+git-v4l-dvb-git-rejects.patch
+git-nfs.patch
+git-nfsd.patch
+git-dlm.patch
+git-scsi.patch
+git-tests-fixup.patch
+git-ext4.patch
+git-ext4-vs-git-ocfs2.patch
+git-async_tx.patch
+git-net.patch
+git-net-conflicts.patch
+git-mtd.patch
+git-vfs-vs-git-ext4.patch
+git-sound.patch
+git-sound-vs-git-arm.patch
+git-input.patch
+git-block.patch
+git-block-reject-fix.patch
+git-pcmcia-git-rejects.patch
+git-battery.patch
+git-battery-rejects.patch
+git-slab-versus-git-tip.patch
+git-mfd.patch
+git-drm.patch
+revert-usb-usb-remove-info-macro-from-usbh.patch
+revert-usb-usb-remove-warn-macro-from-usbh.patch
+fix-ttydev-tty-usbserial-kref.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
+misdn-misc-timerdev-fixes-fix.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-vmallocc-revert-git-tip-change.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+revert-mm-vmallocc-revert-git-tip-change.patch
+memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
 hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path-fix.patch
-checkpatch-square-brackets-exemption-for-array-slices-in-braces.patch
-checkpatch-values-double-ampersand-may-be-unary.patch
-checkpatch-conditional-indent-labels-have-different-indent-rules.patch
-checkpatch-switch-indent-allow-plain-return.patch
-checkpatch-add-tests-for-the-attribute-matcher.patch
-checkpatch-____cacheline_aligned-et-al-are-modifiers.patch
-checkpatch-complex-macros-fix-up-extension-handling.patch
-checkpatch-fix-up-comment-checks-search-to-scan-the-entire-block.patch
-checkpatch-include-asm-checks-should-be-anchored.patch
-checkpatch-reduce-warnings-for-include-of-asm-fooh-to-check-from-arch-barc.patch
-checkpatch-report-any-absolute-references-to-kernel-source-files.patch
-checkpatch-report-the-real-first-line-of-all-suspect-indents.patch
-checkpatch-suspect-indent-skip-over-preprocessor-label-and-blank-lines.patch
-checkpatch-%lx-tests-should-hand-%%-as-a-literal.patch
-checkpatch-report-the-correct-lines-for-single-statement-blocks.patch
-checkpatch-perform-indent-checks-on-perl.patch
-checkpatch-version-022.patch
-checkpatch-case-default-checks-should-only-check-changed-lines.patch
-checkpatch-suppress-errors-triggered-by-short-patch.patch
-checkpatch-handle-comment-quote-nesting-correctly.patch
-checkpatch-check-line-endings-in-text-format-files.patch
-checkpatch-suspect-indent-count-condition-lines-correctly.patch
-checkpatch-ensure-we-only-apply-checks-to-the-lines-within-hunks.patch
-checkpatch-version-023.patch
-checkpatch-do-is-not-a-possible-type.patch
-checkpatch-labels-are-not-possible-types.patch
-checkpatch-handle-do-without-braces-if-we-have-enough-context.patch
-checkpatch-macros-which-define-structure-members-are-not-complex.patch
-checkpatch-accept-any-sized-le-be-type.patch
-checkpatch-pull-out-known-acceptable-typedefs.patch
-checkpatch-suspect-code-indent-must-stop-at-else-elif.patch
-checkpatch-complex-macros-checks-miss-square-brackets.patch
-checkpatch-define_-macros-are-real-definitions-for-exports.patch
-checkpatch-trailing-statements-ensure-we-report-the-end-of-the-line.patch
-checkpatch-suspect-indent-handle-macro-continuation.patch
-checkpatch-allow-for-comments-either-side-of-a-brace-on-case.patch
-checkpatch-version-024.patch
+mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+eeepc-laptop-use-standard-interfaces-fix-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh.patch
+make-taint-bit-reliable-v3-fix.patch
+kernel-sysc-improve-code-generation.patch
+compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
+drivers-hwmon-applesmcc-remove-unneeded-casts.patch
+allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
+serial-make-uart_ports-ioport-unsigned-long-fix.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanups.patch
+ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
+ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
+applicomc-fix-apparently-broken-code-in-do_ac_read.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+tpm-addition-of-pnp_remove-checkpatch-fixes.patch
+w1-be-able-to-manually-add-and-remove-slaves-fix.patch
+w1-new-driver-ds2431-chip-fix.patch
+gru-driver-minor-updates-fix.patch
+drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+x86-sysfs-kill-owner-field-from-attribute-fix.patch
+x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
 page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
