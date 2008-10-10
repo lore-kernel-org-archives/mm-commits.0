@@ -1,78 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch removed from -mm tree
-Date: Fri, 10 Oct 2008 14:36:56 -0700
-Message-ID: <200810102136.m9ALauPV005296@imap1.linux-foundation.org>
+Subject: - separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch removed from -mm tree
+Date: Fri, 10 Oct 2008 14:36:52 -0700
+Message-ID: <200810102136.m9ALaqVj005290@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37795 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51408 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760247AbYJJVhC (ORCPT
+	by vger.kernel.org with ESMTP id S1759559AbYJJVhC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 10 Oct 2008 17:37:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, linux-arch@vger.kernel.org, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lethal@linux-sh.org, linux-arch@vger.kernel.org, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix
+     separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix
 has been removed from the -mm tree.  Its filename was
-     separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
+     separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
 
 This patch was dropped because it was folded into separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix
+Subject: separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: <linux-arch@vger.kernel.org>
 Cc: Huang Ying <ying.huang@intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/atomic_32.h  |    4 ++--
- arch/sparc/include/asm/atomic_64.h  |    2 +-
- arch/sparc/include/asm/atomic_def.h |    8 ++++++++
- 3 files changed, 11 insertions(+), 3 deletions(-)
+ arch/sh/include/asm/atomic.h     |    2 +-
+ arch/sh/include/asm/atomic_def.h |    8 ++++++++
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN arch/sparc/include/asm/atomic_32.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix arch/sparc/include/asm/atomic_32.h
---- a/arch/sparc/include/asm/atomic_32.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix
-+++ a/arch/sparc/include/asm/atomic_32.h
-@@ -13,10 +13,10 @@
- 
- #include <linux/types.h>
- 
--typedef struct { volatile int counter; } atomic_t;
--
- #ifdef __KERNEL__
- 
-+#include <asm/atomic_def.h>
-+
- #define ATOMIC_INIT(i)  { (i) }
- 
- extern int __atomic_add_return(int, atomic_t *);
-diff -puN arch/sparc/include/asm/atomic_64.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix arch/sparc/include/asm/atomic_64.h
---- a/arch/sparc/include/asm/atomic_64.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix
-+++ a/arch/sparc/include/asm/atomic_64.h
-@@ -9,8 +9,8 @@
- 
- #include <linux/types.h>
- #include <asm/system.h>
-+#include <asm/atomic_def.h>
+diff -puN arch/sh/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix arch/sh/include/asm/atomic.h
+--- a/arch/sh/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix
++++ a/arch/sh/include/asm/atomic.h
+@@ -7,7 +7,7 @@
+  *
+  */
  
 -typedef struct { volatile int counter; } atomic_t;
- typedef struct { volatile __s64 counter; } atomic64_t;
++#include <asm/atomic_def.h>
  
- #define ATOMIC_INIT(i)		{ (i) }
-diff -puN /dev/null arch/sparc/include/asm/atomic_def.h
+ #define ATOMIC_INIT(i)	( (atomic_t) { (i) } )
+ 
+diff -puN /dev/null arch/sh/include/asm/atomic_def.h
 --- /dev/null
-+++ a/arch/sparc/include/asm/atomic_def.h
++++ a/arch/sh/include/asm/atomic_def.h
 @@ -0,0 +1,8 @@
-+#ifndef _ATOMIC_DEF_H
-+#define _ATOMIC_DEF_H
++#ifndef _ASM_IA64_ATOMIC_DEF_H
++#define _ASM_IA64_ATOMIC_DEF_H
 +
 +typedef struct {
 +	volatile int counter;
@@ -161,6 +143,7 @@ container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
 container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
 eeepc-laptop-use-standard-interfaces-fix-fix.patch
 separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
 separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
 make-taint-bit-reliable-v3-fix.patch
 kernel-sysc-improve-code-generation.patch
