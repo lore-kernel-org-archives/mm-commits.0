@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + init-mainc-section-mismatch-warning-fix.patch added to -mm tree
-Date: Fri, 10 Oct 2008 15:43:37 -0700
-Message-ID: <200810102243.m9AMhbZx011874@imap1.linux-foundation.org>
+Subject: + kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch added to -mm tree
+Date: Fri, 10 Oct 2008 16:02:07 -0700
+Message-ID: <200810102302.m9AN2774013854@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50251 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35770 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751543AbYJJWnu (ORCPT
+	by vger.kernel.org with ESMTP id S1753933AbYJJXCu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Oct 2008 18:43:50 -0400
+	Fri, 10 Oct 2008 19:02:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rakib.mullick@gmail.com, mingo@elte.hu
+Cc: ashutosh@chelsio.com, ashutosh.naik@gmail.com, rusty@rustcorp.com.au, sam@ravnborg.org
 
 
 The patch titled
-     init/main.c: fix section mismatch warning
+     kbuild: prevent modpost from looking for a .cmd file for a static library linked into a module
 has been added to the -mm tree.  Its filename is
-     init-mainc-section-mismatch-warning-fix.patch
+     kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init/main.c: fix section mismatch warning
-From: "Rakib Mullick" <rakib.mullick@gmail.com>
+Subject: kbuild: prevent modpost from looking for a .cmd file for a static library linked into a module
+From: "Ashutosh Naik" <ashutosh@chelsio.com>
 
- LD      init/built-in.o
-WARNING: init/built-in.o(.text+0x207): Section mismatch in reference
-from the function init_post() to the function
-.init.text:prepare_namespace()
-The function init_post() references
-the function __init prepare_namespace().
-This is often because init_post lacks a __init
-annotation or the annotation of prepare_namespace is wrong.
+This patch prevents modpost to look for a .cmd file when a module is
+linked with a static library
 
-init_post() has only one callsite and that is an __init function.
-
-So by correctly marking init_post() as __init, we no longer care whether
-or not it gets inlined into its __init caller.
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Md.Rakib H. Mullick <rakib.mullick@gmail.com>
+Signed-off-by: Ashutosh Naik <ashutosh.naik@gmail.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ scripts/mod/sumversion.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN init/main.c~init-mainc-section-mismatch-warning-fix init/main.c
---- a/init/main.c~init-mainc-section-mismatch-warning-fix
-+++ a/init/main.c
-@@ -858,10 +858,7 @@ static void run_init_process(char *init_
- 	kernel_execve(init_filename, argv_init, envp_init);
+diff -puN scripts/mod/sumversion.c~kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module scripts/mod/sumversion.c
+--- a/scripts/mod/sumversion.c~kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module
++++ a/scripts/mod/sumversion.c
+@@ -290,6 +290,15 @@ static int parse_file(const char *fname,
+ 	release_file(file, len);
+ 	return 1;
  }
++/* Check whether the file is a static library or not */
++static int is_static_library(const char *objfile)
++{
++	int len = strlen(objfile);
++	if((objfile[len -2]=='.') && (objfile[len - 1]=='a'))
++		return 1;
++	else
++		return 0;
++}
  
--/* This is a non __init function. Force it to be noinline otherwise gcc
-- * makes it inline to init() and it becomes part of init.text section
-- */
--static int noinline init_post(void)
-+static int __init init_post(void)
- {
- 	int retry_count = 1;
- 	free_initmem();
+ /* We have dir/file.o.  Open dir/.file.o.cmd, look for deps_ line to
+  * figure out source file. */
+@@ -420,7 +429,7 @@ void get_src_version(const char *modname
+ 	while ((fname = strsep(&sources, " ")) != NULL) {
+ 		if (!*fname)
+ 			continue;
+-		if (!parse_source_files(fname, &md))
++		if (!(is_static_library(fname)) && !parse_source_files(fname, &md))
+ 			goto release;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from rakib.mullick@gmail.com are
+Patches currently in -mm which might be from ashutosh@chelsio.com are
 
-init-mainc-section-mismatch-warning-fix.patch
-cpusetc-remove-extra-variable.patch
+kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch
 
