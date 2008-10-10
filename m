@@ -1,204 +1,829 @@
 From: akpm@linux-foundation.org
-Subject: - separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch removed from -mm tree
-Date: Fri, 10 Oct 2008 14:36:52 -0700
-Message-ID: <200810102136.m9ALaqVj005290@imap1.linux-foundation.org>
+Subject: + separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update.patch added to -mm tree
+Date: Fri, 10 Oct 2008 14:44:01 -0700
+Message-ID: <200810102144.m9ALi1qJ006019@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51408 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53694 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759559AbYJJVhC (ORCPT
+	by vger.kernel.org with ESMTP id S1764657AbYJJVob (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Oct 2008 17:37:02 -0400
+	Fri, 10 Oct 2008 17:44:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lethal@linux-sh.org, linux-arch@vger.kernel.org, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ying.huang@intel.com
 
 
 The patch titled
-     separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix
-has been removed from the -mm tree.  Its filename was
-     separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
+     separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
+has been added to the -mm tree.  Its filename is
+     separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update.patch
 
-This patch was dropped because it was folded into separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
+From: Huang Ying <ying.huang@intel.com>
 
-Cc: <linux-arch@vger.kernel.org>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/atomic.h     |    2 +-
- arch/sh/include/asm/atomic_def.h |    8 ++++++++
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ arch/alpha/include/asm/atomic.h           |    2 +-
+ arch/alpha/include/asm/atomic_types.h     |   13 +++++++++++++
+ arch/arm/include/asm/atomic.h             |    2 +-
+ arch/arm/include/asm/atomic_types.h       |    6 ++++++
+ arch/avr32/include/asm/atomic.h           |    2 +-
+ arch/avr32/include/asm/atomic_types.h     |    6 ++++++
+ arch/blackfin/include/asm/atomic.h        |    2 +-
+ arch/blackfin/include/asm/atomic_types.h  |    8 ++++++++
+ arch/h8300/include/asm/atomic.h           |    2 +-
+ arch/h8300/include/asm/atomic_types.h     |    6 ++++++
+ arch/ia64/include/asm/atomic.h            |    2 +-
+ arch/ia64/include/asm/atomic_types.h      |   11 +++++++++++
+ arch/m68knommu/include/asm/atomic.h       |    2 +-
+ arch/m68knommu/include/asm/atomic_types.h |    6 ++++++
+ arch/mips/include/asm/atomic.h            |    2 +-
+ arch/mips/include/asm/atomic_types.h      |    6 ++++++
+ arch/powerpc/include/asm/atomic.h         |    2 +-
+ arch/powerpc/include/asm/atomic_types.h   |    6 ++++++
+ arch/s390/include/asm/atomic.h            |    2 +-
+ arch/s390/include/asm/atomic_types.h      |    8 ++++++++
+ arch/sh/include/asm/atomic.h              |    2 +-
+ arch/sh/include/asm/atomic_def.h          |    8 --------
+ arch/sh/include/asm/atomic_types.h        |    8 ++++++++
+ arch/sparc/include/asm/atomic_32.h        |    2 +-
+ arch/sparc/include/asm/atomic_64.h        |    2 +-
+ arch/sparc/include/asm/atomic_def.h       |    8 --------
+ arch/sparc/include/asm/atomic_types.h     |    8 ++++++++
+ include/asm-alpha/atomic_def.h            |   13 -------------
+ include/asm-arm/atomic_def.h              |    6 ------
+ include/asm-avr32/atomic_def.h            |    6 ------
+ include/asm-blackfin/atomic_def.h         |    8 --------
+ include/asm-cris/atomic.h                 |    2 +-
+ include/asm-cris/atomic_def.h             |    6 ------
+ include/asm-cris/atomic_types.h           |    6 ++++++
+ include/asm-frv/atomic.h                  |    2 +-
+ include/asm-frv/atomic_def.h              |    8 --------
+ include/asm-frv/atomic_types.h            |    8 ++++++++
+ include/asm-h8300/atomic_def.h            |    6 ------
+ include/asm-ia64/atomic_def.h             |   11 -----------
+ include/asm-m32r/atomic.h                 |    2 +-
+ include/asm-m32r/atomic_def.h             |   11 -----------
+ include/asm-m32r/atomic_types.h           |   11 +++++++++++
+ include/asm-m68k/atomic.h                 |    2 +-
+ include/asm-m68k/atomic_def.h             |    6 ------
+ include/asm-m68k/atomic_types.h           |    6 ++++++
+ include/asm-m68knommu/atomic_def.h        |    6 ------
+ include/asm-mips/atomic.h                 |    6 ------
+ include/asm-mn10300/atomic.h              |    2 +-
+ include/asm-mn10300/atomic_def.h          |   13 -------------
+ include/asm-mn10300/atomic_types.h        |   13 +++++++++++++
+ include/asm-powerpc/atomic_def.h          |    6 ------
+ include/asm-s390/atomic_def.h             |    8 --------
+ include/asm-um/atomic_def.h               |    6 ------
+ include/asm-um/atomic_types.h             |    6 ++++++
+ include/asm-x86/atomic_32.h               |    2 +-
+ include/asm-x86/atomic_64.h               |    2 +-
+ include/asm-x86/atomic_def.h              |   13 -------------
+ include/asm-x86/atomic_types.h            |   13 +++++++++++++
+ include/asm-xtensa/atomic.h               |    2 +-
+ include/asm-xtensa/atomic_def.h           |    6 ------
+ include/asm-xtensa/atomic_types.h         |    6 ++++++
+ 61 files changed, 182 insertions(+), 182 deletions(-)
 
-diff -puN arch/sh/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix arch/sh/include/asm/atomic.h
---- a/arch/sh/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix
+diff -puN arch/alpha/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update arch/alpha/include/asm/atomic.h
+--- a/arch/alpha/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/arch/alpha/include/asm/atomic.h
+@@ -3,7 +3,7 @@
+ 
+ #include <asm/barrier.h>
+ #include <asm/system.h>
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ /*
+  * Atomic operations that C can't guarantee us.  Useful for
+diff -puN /dev/null arch/alpha/include/asm/atomic_types.h
+--- /dev/null
++++ a/arch/alpha/include/asm/atomic_types.h
+@@ -0,0 +1,13 @@
++#ifndef _ALPHA_ATOMIC_TYPES_H
++#define _ALPHA_ATOMIC_TYPES_H
++
++
++/*
++ * Counter is volatile to make sure gcc doesn't try to be clever
++ * and move things around on us. We need to use _exactly_ the address
++ * the user gave us, not some alias that contains the same information.
++ */
++typedef struct { volatile int counter; } atomic_t;
++typedef struct { volatile long counter; } atomic64_t;
++
++#endif
+diff -puN arch/arm/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update arch/arm/include/asm/atomic.h
+--- a/arch/arm/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/arch/arm/include/asm/atomic.h
+@@ -13,7 +13,7 @@
+ 
+ #include <linux/compiler.h>
+ #include <asm/system.h>
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ #define ATOMIC_INIT(i)	{ (i) }
+ 
+diff -puN /dev/null arch/arm/include/asm/atomic_types.h
+--- /dev/null
++++ a/arch/arm/include/asm/atomic_types.h
+@@ -0,0 +1,6 @@
++#ifndef __ASM_ARM_ATOMIC_TYPES_H
++#define __ASM_ARM_ATOMIC_TYPES_H
++
++typedef struct { volatile int counter; } atomic_t;
++
++#endif
+diff -puN arch/avr32/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update arch/avr32/include/asm/atomic.h
+--- a/arch/avr32/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/arch/avr32/include/asm/atomic.h
+@@ -15,7 +15,7 @@
+ #define __ASM_AVR32_ATOMIC_H
+ 
+ #include <asm/system.h>
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ #define ATOMIC_INIT(i)  { (i) }
+ 
+diff -puN /dev/null arch/avr32/include/asm/atomic_types.h
+--- /dev/null
++++ a/arch/avr32/include/asm/atomic_types.h
+@@ -0,0 +1,6 @@
++#ifndef __ASM_AVR32_ATOMIC_TYPES_H
++#define __ASM_AVR32_ATOMIC_TYPES_H
++
++typedef struct { volatile int counter; } atomic_t;
++
++#endif
+diff -puN arch/blackfin/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update arch/blackfin/include/asm/atomic.h
+--- a/arch/blackfin/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/arch/blackfin/include/asm/atomic.h
+@@ -2,7 +2,7 @@
+ #define __ARCH_BLACKFIN_ATOMIC__
+ 
+ #include <asm/system.h>	/* local_irq_XXX() */
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ /*
+  * Atomic operations that C can't guarantee us.  Useful for
+diff -puN /dev/null arch/blackfin/include/asm/atomic_types.h
+--- /dev/null
++++ a/arch/blackfin/include/asm/atomic_types.h
+@@ -0,0 +1,8 @@
++#ifndef __ARCH_BLACKFIN_ATOMIC_TYPES__
++#define __ARCH_BLACKFIN_ATOMIC_TYPES__
++
++typedef struct {
++	int counter;
++} atomic_t;
++
++#endif
+diff -puN arch/h8300/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update arch/h8300/include/asm/atomic.h
+--- a/arch/h8300/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/arch/h8300/include/asm/atomic.h
+@@ -1,7 +1,7 @@
+ #ifndef __ARCH_H8300_ATOMIC__
+ #define __ARCH_H8300_ATOMIC__
+ 
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ /*
+  * Atomic operations that C can't guarantee us.  Useful for
+diff -puN /dev/null arch/h8300/include/asm/atomic_types.h
+--- /dev/null
++++ a/arch/h8300/include/asm/atomic_types.h
+@@ -0,0 +1,6 @@
++#ifndef __ARCH_H8300_ATOMIC_TYPES__
++#define __ARCH_H8300_ATOMIC_TYPES__
++
++typedef struct { int counter; } atomic_t;
++
++#endif
+diff -puN arch/ia64/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update arch/ia64/include/asm/atomic.h
+--- a/arch/ia64/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/arch/ia64/include/asm/atomic.h
+@@ -16,7 +16,7 @@
+ 
+ #include <asm/intrinsics.h>
+ #include <asm/system.h>
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ #define ATOMIC_INIT(i)		((atomic_t) { (i) })
+ #define ATOMIC64_INIT(i)	((atomic64_t) { (i) })
+diff -puN /dev/null arch/ia64/include/asm/atomic_types.h
+--- /dev/null
++++ a/arch/ia64/include/asm/atomic_types.h
+@@ -0,0 +1,11 @@
++#ifndef _ASM_IA64_ATOMIC_TYPES_H
++#define _ASM_IA64_ATOMIC_TYPES_H
++
++/*
++ * On IA-64, counter must always be volatile to ensure that that the
++ * memory accesses are ordered.
++ */
++typedef struct { volatile __s32 counter; } atomic_t;
++typedef struct { volatile __s64 counter; } atomic64_t;
++
++#endif
+diff -puN arch/m68knommu/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update arch/m68knommu/include/asm/atomic.h
+--- a/arch/m68knommu/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/arch/m68knommu/include/asm/atomic.h
+@@ -2,7 +2,7 @@
+ #define __ARCH_M68KNOMMU_ATOMIC__
+ 
+ #include <asm/system.h>
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ /*
+  * Atomic operations that C can't guarantee us.  Useful for
+diff -puN /dev/null arch/m68knommu/include/asm/atomic_types.h
+--- /dev/null
++++ a/arch/m68knommu/include/asm/atomic_types.h
+@@ -0,0 +1,6 @@
++#ifndef __ARCH_M68KNOMMU_ATOMIC_TYPES__
++#define __ARCH_M68KNOMMU_ATOMIC_TYPES__
++
++typedef struct { int counter; } atomic_t;
++
++#endif
+diff -puN arch/mips/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update arch/mips/include/asm/atomic.h
+--- a/arch/mips/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/arch/mips/include/asm/atomic.h
+@@ -19,7 +19,7 @@
+ #include <asm/cpu-features.h>
+ #include <asm/war.h>
+ #include <asm/system.h>
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ #define ATOMIC_INIT(i)    { (i) }
+ 
+diff -puN /dev/null arch/mips/include/asm/atomic_types.h
+--- /dev/null
++++ a/arch/mips/include/asm/atomic_types.h
+@@ -0,0 +1,6 @@
++#ifndef _ASM_ATOMIC_TYPES_H
++#define _ASM_ATOMIC_TYPES_H
++
++typedef struct { volatile int counter; } atomic_t;
++
++#endif
+diff -puN arch/powerpc/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update arch/powerpc/include/asm/atomic.h
+--- a/arch/powerpc/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/arch/powerpc/include/asm/atomic.h
+@@ -5,7 +5,7 @@
+  * PowerPC atomic operations
+  */
+ 
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ #ifdef __KERNEL__
+ #include <linux/compiler.h>
+diff -puN /dev/null arch/powerpc/include/asm/atomic_types.h
+--- /dev/null
++++ a/arch/powerpc/include/asm/atomic_types.h
+@@ -0,0 +1,6 @@
++#ifndef _ASM_POWERPC_ATOMIC_TYPES_H_
++#define _ASM_POWERPC_ATOMIC_TYPES_H_
++
++typedef struct { int counter; } atomic_t;
++
++#endif
+diff -puN arch/s390/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update arch/s390/include/asm/atomic.h
+--- a/arch/s390/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/arch/s390/include/asm/atomic.h
+@@ -2,7 +2,7 @@
+ #define __ARCH_S390_ATOMIC__
+ 
+ #include <linux/compiler.h>
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ /*
+  *  include/asm-s390/atomic.h
+diff -puN /dev/null arch/s390/include/asm/atomic_types.h
+--- /dev/null
++++ a/arch/s390/include/asm/atomic_types.h
+@@ -0,0 +1,8 @@
++#ifndef __ARCH_S390_ATOMIC_TYPES__
++#define __ARCH_S390_ATOMIC_TYPES__
++
++typedef struct {
++	int counter;
++} __attribute__ ((aligned (4))) atomic_t;
++
++#endif
+diff -puN arch/sh/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update arch/sh/include/asm/atomic.h
+--- a/arch/sh/include/asm/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
 +++ a/arch/sh/include/asm/atomic.h
 @@ -7,7 +7,7 @@
   *
   */
  
--typedef struct { volatile int counter; } atomic_t;
-+#include <asm/atomic_def.h>
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
  
  #define ATOMIC_INIT(i)	( (atomic_t) { (i) } )
  
-diff -puN /dev/null arch/sh/include/asm/atomic_def.h
+diff -puN arch/sh/include/asm/atomic_def.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/arch/sh/include/asm/atomic_def.h
++++ /dev/null
+@@ -1,8 +0,0 @@
+-#ifndef _ASM_IA64_ATOMIC_DEF_H
+-#define _ASM_IA64_ATOMIC_DEF_H
+-
+-typedef struct {
+-	volatile int counter;
+-} atomic_t;
+-
+-#endif
+diff -puN /dev/null arch/sh/include/asm/atomic_types.h
 --- /dev/null
-+++ a/arch/sh/include/asm/atomic_def.h
++++ a/arch/sh/include/asm/atomic_types.h
 @@ -0,0 +1,8 @@
-+#ifndef _ASM_IA64_ATOMIC_DEF_H
-+#define _ASM_IA64_ATOMIC_DEF_H
++#ifndef _ASM_IA64_ATOMIC_TYPES_H
++#define _ASM_IA64_ATOMIC_TYPES_H
 +
 +typedef struct {
 +	volatile int counter;
 +} atomic_t;
 +
 +#endif
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm-remove-the-might_sleep-from-lock_page.patch
-git-tip.patch
-markers-make-marker_synchronize_unregister-a-macro.patch
-git-powerpc.patch
-git-sparc.patch
-git-xtensa.patch
-git-pci.patch
-git-hid.patch
-git-v4l-dvb.patch
-git-v4l-dvb-git-rejects.patch
-git-nfs.patch
-git-nfsd.patch
-git-dlm.patch
-git-scsi.patch
-git-tests-fixup.patch
-git-ext4.patch
-git-ext4-vs-git-ocfs2.patch
-git-async_tx.patch
-git-net.patch
-git-net-conflicts.patch
-git-mtd.patch
-git-vfs-vs-git-ext4.patch
-git-sound.patch
-git-sound-vs-git-arm.patch
-git-input.patch
-git-block.patch
-git-block-reject-fix.patch
-git-pcmcia-git-rejects.patch
-git-battery.patch
-git-battery-rejects.patch
-git-slab-versus-git-tip.patch
-git-mfd.patch
-git-drm.patch
-revert-usb-usb-remove-info-macro-from-usbh.patch
-revert-usb-usb-remove-warn-macro-from-usbh.patch
-fix-ttydev-tty-usbserial-kref.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
-misdn-misc-timerdev-fixes-fix.patch
-drivers-net-sfc-falconc-fix-min-warnings.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-vmallocc-revert-git-tip-change.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-revert-mm-vmallocc-revert-git-tip-change.patch
-memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
-mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-eeepc-laptop-use-standard-interfaces-fix-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
-make-taint-bit-reliable-v3-fix.patch
-kernel-sysc-improve-code-generation.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-drivers-hwmon-applesmcc-remove-unneeded-casts.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
-serial-make-uart_ports-ioport-unsigned-long-fix.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanups.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
-ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-tpm-addition-of-pnp_remove-checkpatch-fixes.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-new-driver-ds2431-chip-fix.patch
-gru-driver-minor-updates-fix.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
-
+diff -puN arch/sparc/include/asm/atomic_32.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update arch/sparc/include/asm/atomic_32.h
+--- a/arch/sparc/include/asm/atomic_32.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/arch/sparc/include/asm/atomic_32.h
+@@ -15,7 +15,7 @@
+ 
+ #ifdef __KERNEL__
+ 
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ #define ATOMIC_INIT(i)  { (i) }
+ 
+diff -puN arch/sparc/include/asm/atomic_64.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update arch/sparc/include/asm/atomic_64.h
+--- a/arch/sparc/include/asm/atomic_64.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/arch/sparc/include/asm/atomic_64.h
+@@ -9,7 +9,7 @@
+ 
+ #include <linux/types.h>
+ #include <asm/system.h>
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ typedef struct { volatile __s64 counter; } atomic64_t;
+ 
+diff -puN arch/sparc/include/asm/atomic_def.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/arch/sparc/include/asm/atomic_def.h
++++ /dev/null
+@@ -1,8 +0,0 @@
+-#ifndef _ATOMIC_DEF_H
+-#define _ATOMIC_DEF_H
+-
+-typedef struct {
+-	volatile int counter;
+-} atomic_t;
+-
+-#endif
+diff -puN /dev/null arch/sparc/include/asm/atomic_types.h
+--- /dev/null
++++ a/arch/sparc/include/asm/atomic_types.h
+@@ -0,0 +1,8 @@
++#ifndef _ATOMIC_TYPES_H
++#define _ATOMIC_TYPES_H
++
++typedef struct {
++	volatile int counter;
++} atomic_t;
++
++#endif
+diff -puN include/asm-alpha/atomic_def.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/include/asm-alpha/atomic_def.h
++++ /dev/null
+@@ -1,13 +0,0 @@
+-#ifndef _ALPHA_ATOMIC_DEF_H
+-#define _ALPHA_ATOMIC_DEF_H
+-
+-
+-/*
+- * Counter is volatile to make sure gcc doesn't try to be clever
+- * and move things around on us. We need to use _exactly_ the address
+- * the user gave us, not some alias that contains the same information.
+- */
+-typedef struct { volatile int counter; } atomic_t;
+-typedef struct { volatile long counter; } atomic64_t;
+-
+-#endif
+diff -puN include/asm-arm/atomic_def.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/include/asm-arm/atomic_def.h
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#ifndef __ASM_ARM_ATOMIC_DEF_H
+-#define __ASM_ARM_ATOMIC_DEF_H
+-
+-typedef struct { volatile int counter; } atomic_t;
+-
+-#endif
+diff -puN include/asm-avr32/atomic_def.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/include/asm-avr32/atomic_def.h
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#ifndef __ASM_AVR32_ATOMIC_DEF_H
+-#define __ASM_AVR32_ATOMIC_DEF_H
+-
+-typedef struct { volatile int counter; } atomic_t;
+-
+-#endif
+diff -puN include/asm-blackfin/atomic_def.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/include/asm-blackfin/atomic_def.h
++++ /dev/null
+@@ -1,8 +0,0 @@
+-#ifndef __ARCH_BLACKFIN_ATOMIC_DEF__
+-#define __ARCH_BLACKFIN_ATOMIC_DEF__
+-
+-typedef struct {
+-	int counter;
+-} atomic_t;
+-
+-#endif
+diff -puN include/asm-cris/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update include/asm-cris/atomic.h
+--- a/include/asm-cris/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/include/asm-cris/atomic.h
+@@ -7,7 +7,7 @@
+ 
+ #include <asm/system.h>
+ #include <asm/arch/atomic.h>
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ /*
+  * Atomic operations that C can't guarantee us.  Useful for
+diff -puN include/asm-cris/atomic_def.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/include/asm-cris/atomic_def.h
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#ifndef __ASM_CRIS_ATOMIC_DEF__
+-#define __ASM_CRIS_ATOMIC_DEF__
+-
+-typedef struct { volatile int counter; } atomic_t;
+-
+-#endif
+diff -puN /dev/null include/asm-cris/atomic_types.h
+--- /dev/null
++++ a/include/asm-cris/atomic_types.h
+@@ -0,0 +1,6 @@
++#ifndef __ASM_CRIS_ATOMIC_TYPES__
++#define __ASM_CRIS_ATOMIC_TYPES__
++
++typedef struct { volatile int counter; } atomic_t;
++
++#endif
+diff -puN include/asm-frv/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update include/asm-frv/atomic.h
+--- a/include/asm-frv/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/include/asm-frv/atomic.h
+@@ -17,7 +17,7 @@
+ #include <linux/types.h>
+ #include <asm/spr-regs.h>
+ #include <asm/system.h>
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ #ifdef CONFIG_SMP
+ #error not SMP safe
+diff -puN include/asm-frv/atomic_def.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/include/asm-frv/atomic_def.h
++++ /dev/null
+@@ -1,8 +0,0 @@
+-#ifndef _ASM_ATOMIC_DEF_H
+-#define _ASM_ATOMIC_DEF_H
+-
+-typedef struct {
+-	int counter;
+-} atomic_t;
+-
+-#endif
+diff -puN /dev/null include/asm-frv/atomic_types.h
+--- /dev/null
++++ a/include/asm-frv/atomic_types.h
+@@ -0,0 +1,8 @@
++#ifndef _ASM_ATOMIC_TYPES_H
++#define _ASM_ATOMIC_TYPES_H
++
++typedef struct {
++	int counter;
++} atomic_t;
++
++#endif
+diff -puN include/asm-h8300/atomic_def.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/include/asm-h8300/atomic_def.h
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#ifndef __ARCH_H8300_ATOMIC_DEF__
+-#define __ARCH_H8300_ATOMIC_DEF__
+-
+-typedef struct { int counter; } atomic_t;
+-
+-#endif
+diff -puN include/asm-ia64/atomic_def.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/include/asm-ia64/atomic_def.h
++++ /dev/null
+@@ -1,11 +0,0 @@
+-#ifndef _ASM_IA64_ATOMIC_DEF_H
+-#define _ASM_IA64_ATOMIC_DEF_H
+-
+-/*
+- * On IA-64, counter must always be volatile to ensure that that the
+- * memory accesses are ordered.
+- */
+-typedef struct { volatile __s32 counter; } atomic_t;
+-typedef struct { volatile __s64 counter; } atomic64_t;
+-
+-#endif
+diff -puN include/asm-m32r/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update include/asm-m32r/atomic.h
+--- a/include/asm-m32r/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/include/asm-m32r/atomic.h
+@@ -11,7 +11,7 @@
+ 
+ #include <asm/assembler.h>
+ #include <asm/system.h>
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ /*
+  * Atomic operations that C can't guarantee us.  Useful for
+diff -puN include/asm-m32r/atomic_def.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/include/asm-m32r/atomic_def.h
++++ /dev/null
+@@ -1,11 +0,0 @@
+-#ifndef _ASM_M32R_ATOMIC_DEF_H
+-#define _ASM_M32R_ATOMIC_DEF_H
+-
+-/*
+- * Make sure gcc doesn't try to be clever and move things around
+- * on us. We need to use _exactly_ the address the user gave us,
+- * not some alias that contains the same information.
+- */
+-typedef struct { volatile int counter; } atomic_t;
+-
+-#endif
+diff -puN /dev/null include/asm-m32r/atomic_types.h
+--- /dev/null
++++ a/include/asm-m32r/atomic_types.h
+@@ -0,0 +1,11 @@
++#ifndef _ASM_M32R_ATOMIC_TYPES_H
++#define _ASM_M32R_ATOMIC_TYPES_H
++
++/*
++ * Make sure gcc doesn't try to be clever and move things around
++ * on us. We need to use _exactly_ the address the user gave us,
++ * not some alias that contains the same information.
++ */
++typedef struct { volatile int counter; } atomic_t;
++
++#endif
+diff -puN include/asm-m68k/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update include/asm-m68k/atomic.h
+--- a/include/asm-m68k/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/include/asm-m68k/atomic.h
+@@ -3,7 +3,7 @@
+ 
+ 
+ #include <asm/system.h>
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ /*
+  * Atomic operations that C can't guarantee us.  Useful for
+diff -puN include/asm-m68k/atomic_def.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/include/asm-m68k/atomic_def.h
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#ifndef __ARCH_M68K_ATOMIC_DEF__
+-#define __ARCH_M68K_ATOMIC_DEF__
+-
+-typedef struct { int counter; } atomic_t;
+-
+-#endif
+diff -puN /dev/null include/asm-m68k/atomic_types.h
+--- /dev/null
++++ a/include/asm-m68k/atomic_types.h
+@@ -0,0 +1,6 @@
++#ifndef __ARCH_M68K_ATOMIC_TYPES__
++#define __ARCH_M68K_ATOMIC_TYPES__
++
++typedef struct { int counter; } atomic_t;
++
++#endif
+diff -puN include/asm-m68knommu/atomic_def.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/include/asm-m68knommu/atomic_def.h
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#ifndef __ARCH_M68KNOMMU_ATOMIC_DEF__
+-#define __ARCH_M68KNOMMU_ATOMIC_DEF__
+-
+-typedef struct { int counter; } atomic_t;
+-
+-#endif
+diff -puN include/asm-mips/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/include/asm-mips/atomic.h
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#ifndef _ASM_ATOMIC_DEF_H
+-#define _ASM_ATOMIC_DEF_H
+-
+-typedef struct { volatile int counter; } atomic_t;
+-
+-#endif
+diff -puN include/asm-mn10300/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update include/asm-mn10300/atomic.h
+--- a/include/asm-mn10300/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/include/asm-mn10300/atomic.h
+@@ -11,7 +11,7 @@
+ #ifndef _ASM_ATOMIC_H
+ #define _ASM_ATOMIC_H
+ 
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ #ifdef CONFIG_SMP
+ #error not SMP safe
+diff -puN include/asm-mn10300/atomic_def.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/include/asm-mn10300/atomic_def.h
++++ /dev/null
+@@ -1,13 +0,0 @@
+-#ifndef _ASM_ATOMIC_DEF_H
+-#define _ASM_ATOMIC_DEF_H
+-
+-/*
+- * Make sure gcc doesn't try to be clever and move things around
+- * on us. We need to use _exactly_ the address the user gave us,
+- * not some alias that contains the same information.
+- */
+-typedef struct {
+-	int	counter;
+-} atomic_t;
+-
+-#endif
+diff -puN /dev/null include/asm-mn10300/atomic_types.h
+--- /dev/null
++++ a/include/asm-mn10300/atomic_types.h
+@@ -0,0 +1,13 @@
++#ifndef _ASM_ATOMIC_TYPES_H
++#define _ASM_ATOMIC_TYPES_H
++
++/*
++ * Make sure gcc doesn't try to be clever and move things around
++ * on us. We need to use _exactly_ the address the user gave us,
++ * not some alias that contains the same information.
++ */
++typedef struct {
++	int	counter;
++} atomic_t;
++
++#endif
+diff -puN include/asm-powerpc/atomic_def.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/include/asm-powerpc/atomic_def.h
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#ifndef _ASM_POWERPC_ATOMIC_DEF_H_
+-#define _ASM_POWERPC_ATOMIC_DEF_H_
+-
+-typedef struct { int counter; } atomic_t;
+-
+-#endif
+diff -puN include/asm-s390/atomic_def.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/include/asm-s390/atomic_def.h
++++ /dev/null
+@@ -1,8 +0,0 @@
+-#ifndef __ARCH_S390_ATOMIC_DEF__
+-#define __ARCH_S390_ATOMIC_DEF__
+-
+-typedef struct {
+-	int counter;
+-} __attribute__ ((aligned (4))) atomic_t;
+-
+-#endif
+diff -puN include/asm-um/atomic_def.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/include/asm-um/atomic_def.h
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#ifndef __UM_ATOMIC_DEF_H
+-#define __UM_ATOMIC_DEF_H
+-
+-#include "asm/arch/atomic_def.h"
+-
+-#endif
+diff -puN /dev/null include/asm-um/atomic_types.h
+--- /dev/null
++++ a/include/asm-um/atomic_types.h
+@@ -0,0 +1,6 @@
++#ifndef __UM_ATOMIC_TYPES_H
++#define __UM_ATOMIC_TYPES_H
++
++#include "asm/arch/atomic_types.h"
++
++#endif
+diff -puN include/asm-x86/atomic_32.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update include/asm-x86/atomic_32.h
+--- a/include/asm-x86/atomic_32.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/include/asm-x86/atomic_32.h
+@@ -4,7 +4,7 @@
+ #include <linux/compiler.h>
+ #include <asm/processor.h>
+ #include <asm/cmpxchg.h>
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ /*
+  * Atomic operations that C can't guarantee us.  Useful for
+diff -puN include/asm-x86/atomic_64.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update include/asm-x86/atomic_64.h
+--- a/include/asm-x86/atomic_64.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/include/asm-x86/atomic_64.h
+@@ -3,7 +3,7 @@
+ 
+ #include <asm/alternative.h>
+ #include <asm/cmpxchg.h>
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ /* atomic_t should be 32 bit signed type */
+ 
+diff -puN include/asm-x86/atomic_def.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/include/asm-x86/atomic_def.h
++++ /dev/null
+@@ -1,13 +0,0 @@
+-#ifndef __ARCH_X86_ATOMIC_DEF__
+-#define __ARCH_X86_ATOMIC_DEF__
+-
+-/*
+- * Make sure gcc doesn't try to be clever and move things around
+- * on us. We need to use _exactly_ the address the user gave us,
+- * not some alias that contains the same information.
+- */
+-typedef struct {
+-	int counter;
+-} atomic_t;
+-
+-#endif
+diff -puN /dev/null include/asm-x86/atomic_types.h
+--- /dev/null
++++ a/include/asm-x86/atomic_types.h
+@@ -0,0 +1,13 @@
++#ifndef __ARCH_X86_ATOMIC_TYPES__
++#define __ARCH_X86_ATOMIC_TYPES__
++
++/*
++ * Make sure gcc doesn't try to be clever and move things around
++ * on us. We need to use _exactly_ the address the user gave us,
++ * not some alias that contains the same information.
++ */
++typedef struct {
++	int counter;
++} atomic_t;
++
++#endif
+diff -puN include/asm-xtensa/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update include/asm-xtensa/atomic.h
+--- a/include/asm-xtensa/atomic.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update
++++ a/include/asm-xtensa/atomic.h
+@@ -14,7 +14,7 @@
+ #define _XTENSA_ATOMIC_H
+ 
+ #include <linux/stringify.h>
+-#include <asm/atomic_def.h>
++#include <asm/atomic_types.h>
+ 
+ #ifdef __KERNEL__
+ #include <asm/processor.h>
+diff -puN include/asm-xtensa/atomic_def.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-update /dev/null
+--- a/include/asm-xtensa/atomic_def.h
++++ /dev/null
+@@ -1,6 +0,0 @@
+-#ifndef _XTENSA_ATOMIC_DEF_H
+-#define _XTENSA_ATOMIC_DEF_H
+-
+-typedef struct { volatile int counter; } atomic_t;
