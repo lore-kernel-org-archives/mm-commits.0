@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vmscan-split-lru-lists-into-anon-file-sets-adjust-quicklists-field-of-proc-meminfo.patch added to -mm tree
-Date: Fri, 10 Oct 2008 12:55:03 -0700
-Message-ID: <200810101955.m9AJt3Bm028381@imap1.linux-foundation.org>
+Subject: + vmscan-split-lru-lists-into-anon-file-sets-adjust-hugepage-related-field-of-proc-meminfo.patch added to -mm tree
+Date: Fri, 10 Oct 2008 12:56:18 -0700
+Message-ID: <200810101956.m9AJuIDL028540@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35894 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57294 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762366AbYJJTzl (ORCPT
+	by vger.kernel.org with ESMTP id S1758490AbYJJT4z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Oct 2008 15:55:41 -0400
+	Fri, 10 Oct 2008 15:56:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, lee.schermerhorn@hp
 
 
 The patch titled
-     ] adjust Quicklists field of /proc/meminfo
+     adjust hugepage related field of /proc/meminfo
 has been added to the -mm tree.  Its filename is
-     vmscan-split-lru-lists-into-anon-file-sets-adjust-quicklists-field-of-proc-meminfo.patch
+     vmscan-split-lru-lists-into-anon-file-sets-adjust-hugepage-related-field-of-proc-meminfo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,26 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ] adjust Quicklists field of /proc/meminfo
+Subject: adjust hugepage related field of /proc/meminfo
 From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-vmscan-split-lru-lists-into-anon-file-sets.patch changed /proc/meminfo output length,
-but only Quicklists: field doesn't.
-(because quicklists field added after than split-lru)
+adjust hugepage related field in /proc/meminfo.
+(because vmscan-split-lru-lists-into-anon-file-sets.patch changed
+length of other field)
 
-example:
+before:
 
-$ cat /proc/meminfo
+CommitLimit:     6028800 kB
+Committed_AS:    8685888 kB
+VmallocTotal:   17592177655808 kB
+VmallocUsed:       28544 kB
+VmallocChunk:   17592177626816 kB
+HugePages_Total:     0
+HugePages_Free:      0
+HugePages_Rsvd:      0
+HugePages_Surp:      0
+Hugepagesize:    262144 kB
 
-  MemTotal:        7994624 kB
-  MemFree:           21376 kB
-(snip)
-  SUnreclaim:        78912 kB
-  PageTables:      1233472 kB
-  Quicklists:       7808 kB
-  NFS_Unstable:          0 kB
+after:
 
-this patch fix it.
+CommitLimit:     6028800 kB
+Committed_AS:    8685888 kB
+VmallocTotal:   17592177655808 kB
+VmallocUsed:       28544 kB
+VmallocChunk:   17592177626816 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:     262144 kB
 
 Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Christoph Lameter <cl@linux-foundation.org>
@@ -62,21 +74,29 @@ Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/proc/proc_misc.c~vmscan-split-lru-lists-into-anon-file-sets-adjust-quicklists-field-of-proc-meminfo fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~vmscan-split-lru-lists-into-anon-file-sets-adjust-quicklists-field-of-proc-meminfo
-+++ a/fs/proc/proc_misc.c
-@@ -194,7 +194,7 @@ static int meminfo_read_proc(char *page,
- 		"SUnreclaim:     %8lu kB\n"
- 		"PageTables:     %8lu kB\n"
- #ifdef CONFIG_QUICKLIST
--		"Quicklists:   %8lu kB\n"
-+		"Quicklists:     %8lu kB\n"
- #endif
- 		"NFS_Unstable:   %8lu kB\n"
- 		"Bounce:         %8lu kB\n"
+diff -puN mm/hugetlb.c~vmscan-split-lru-lists-into-anon-file-sets-adjust-hugepage-related-field-of-proc-meminfo mm/hugetlb.c
+--- a/mm/hugetlb.c~vmscan-split-lru-lists-into-anon-file-sets-adjust-hugepage-related-field-of-proc-meminfo
++++ a/mm/hugetlb.c
+@@ -1459,11 +1459,11 @@ int hugetlb_report_meminfo(char *buf)
+ {
+ 	struct hstate *h = &default_hstate;
+ 	return sprintf(buf,
+-			"HugePages_Total: %5lu\n"
+-			"HugePages_Free:  %5lu\n"
+-			"HugePages_Rsvd:  %5lu\n"
+-			"HugePages_Surp:  %5lu\n"
+-			"Hugepagesize:    %5lu kB\n",
++			"HugePages_Total:   %5lu\n"
++			"HugePages_Free:    %5lu\n"
++			"HugePages_Rsvd:    %5lu\n"
++			"HugePages_Surp:    %5lu\n"
++			"Hugepagesize:   %8lu kB\n",
+ 			h->nr_huge_pages,
+ 			h->free_huge_pages,
+ 			h->resv_huge_pages,
 _
 
 Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
@@ -87,6 +107,7 @@ vmscan-use-an-indexed-array-for-lru-variables.patch
 swap-use-an-array-for-the-lru-pagevecs.patch
 vmscan-split-lru-lists-into-anon-file-sets.patch
 vmscan-split-lru-lists-into-anon-file-sets-adjust-quicklists-field-of-proc-meminfo.patch
+vmscan-split-lru-lists-into-anon-file-sets-adjust-hugepage-related-field-of-proc-meminfo.patch
 vmscan-second-chance-replacement-for-anonymous-pages.patch
 unevictable-lru-infrastructure.patch
 unevictable-lru-infrastructure-nommu-fix.patch
