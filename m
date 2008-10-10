@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch added to -mm tree
-Date: Thu, 09 Oct 2008 21:01:32 -0700
-Message-ID: <200810100415.m9A4FwBk026854@imap1.linux-foundation.org>
+Subject: + fix-ttydev-tty-usbserial-kref.patch added to -mm tree
+Date: Thu, 09 Oct 2008 21:19:11 -0700
+Message-ID: <200810100433.m9A4Xa4Q027864@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59610 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40655 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750870AbYJJEQn (ORCPT
+	by vger.kernel.org with ESMTP id S1750870AbYJJEeS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Oct 2008 00:16:43 -0400
+	Fri, 10 Oct 2008 00:34:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hare@suse.de, lenb@kernel.org, pavel@suse.cz
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
+     fix ttydev-tty-usbserial-kref
 has been added to the -mm tree.  Its filename is
-     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch
+     fix-ttydev-tty-usbserial-kref.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
+Subject: fix ttydev-tty-usbserial-kref
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Hannes Reinecke <hare@suse.de>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Pavel Machek <pavel@suse.cz>
+drivers/usb/serial/keyspan_pda.c: In function 'keyspan_pda_rx_interrupt':       drivers/usb/serial/keyspan_pda.c:269: error: label at end of compound statement
+
+Might be a local merging snafu
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/panasonic-laptop.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/serial/keyspan_pda.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/misc/panasonic-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/misc/panasonic-laptop.c
---- a/drivers/misc/panasonic-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
-+++ a/drivers/misc/panasonic-laptop.c
-@@ -645,7 +645,7 @@ static int acpi_pcc_hotkey_add(struct ac
- 	pcc->device = device;
- 	pcc->handle = device->handle;
- 	pcc->num_sifr = num_sifr;
--	acpi_driver_data(device) = pcc;
-+	device->driver_data = pcc;
- 	strcpy(acpi_device_name(device), ACPI_PCC_DEVICE_NAME);
- 	strcpy(acpi_device_class(device), ACPI_PCC_CLASS);
+diff -puN drivers/usb/serial/keyspan_pda.c~fix-ttydev-tty-usbserial-kref drivers/usb/serial/keyspan_pda.c
+--- a/drivers/usb/serial/keyspan_pda.c~fix-ttydev-tty-usbserial-kref
++++ a/drivers/usb/serial/keyspan_pda.c
+@@ -266,6 +266,7 @@ exit:
+ 			"%s - usb_submit_urb failed with result %d\n",
+ 			__func__, retval);
+ out:
++	return;
+ }
+ 
  
 _
 
@@ -97,6 +98,7 @@ git-mfd.patch
 git-drm.patch
 revert-usb-usb-remove-info-macro-from-usbh.patch
 revert-usb-usb-remove-warn-macro-from-usbh.patch
+fix-ttydev-tty-usbserial-kref.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
 acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch
