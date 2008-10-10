@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path-fix.patch added to -mm tree
-Date: Fri, 10 Oct 2008 14:54:31 -0700
-Message-ID: <200810102154.m9ALsVdD007066@imap1.linux-foundation.org>
+Subject: + remove-andrew-mortons-old-email-accounts-fix.patch added to -mm tree
+Date: Fri, 10 Oct 2008 15:07:18 -0700
+Message-ID: <200810102207.m9AM7IVQ008379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58900 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48506 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759278AbYJJVyw (ORCPT
+	by vger.kernel.org with ESMTP id S1753040AbYJJWHX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Oct 2008 17:54:52 -0400
+	Fri, 10 Oct 2008 18:07:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, apw@shadowen.org, mel@csn.ul.ie, nickpiggin@yahoo.com.au
+Cc: francois.cami@free.fr
 
 
 The patch titled
-     hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path-fix
+     Remove Andrew Morton's andrewm@uow.edu.au
 has been added to the -mm tree.  Its filename is
-     hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path-fix.patch
+     remove-andrew-mortons-old-email-accounts-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,174 +34,167 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Remove Andrew Morton's andrewm@uow.edu.au
+From: FD Cami <francois.cami@free.fr>
 
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Remove Andrew Morton's andrewm@uow.edu.au email address.
+I totally missed that one on my first pass.
+
+Signed-off-by: Francois Cami <francois.cami@free.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/networking/cs89x0.txt |    2 +-
+ Documentation/networking/vortex.txt |    2 +-
+ drivers/char/vt.c                   |    2 +-
+ drivers/net/3c509.c                 |    2 +-
+ drivers/net/cs89x0.c                |   13 ++++++-------
+ drivers/parport/ChangeLog           |    2 +-
+ kernel/printk.c                     |    2 +-
+ kernel/workqueue.c                  |    2 +-
+ 8 files changed, 13 insertions(+), 14 deletions(-)
 
-diff -puN mm/page_alloc.c~hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path-fix mm/page_alloc.c
---- a/mm/page_alloc.c~hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path-fix
-+++ a/mm/page_alloc.c
-@@ -280,6 +280,7 @@ void prep_compound_page(struct page *pag
- 	}
- }
+diff -puN Documentation/networking/cs89x0.txt~remove-andrew-mortons-old-email-accounts-fix Documentation/networking/cs89x0.txt
+--- a/Documentation/networking/cs89x0.txt~remove-andrew-mortons-old-email-accounts-fix
++++ a/Documentation/networking/cs89x0.txt
+@@ -3,7 +3,7 @@ NOTE
+ ----
  
-+#ifdef CONFIG_HUGETLBFS
- void prep_compound_gigantic_page(struct page *page, unsigned long order)
- {
- 	int i;
-@@ -294,6 +295,7 @@ void prep_compound_gigantic_page(struct 
- 		p->first_page = page;
- 	}
- }
-+#endif
+ This document was contributed by Cirrus Logic for kernel 2.2.5.  This version
+-has been updated for 2.3.48 by Andrew Morton <andrewm@uow.edu.au>
++has been updated for 2.3.48 by Andrew Morton.
  
- static void destroy_compound_page(struct page *page, unsigned long order)
- {
+ Cirrus make a copy of this driver available at their website, as
+ described below.  In general, you should use the driver version which
+diff -puN Documentation/networking/vortex.txt~remove-andrew-mortons-old-email-accounts-fix Documentation/networking/vortex.txt
+--- a/Documentation/networking/vortex.txt~remove-andrew-mortons-old-email-accounts-fix
++++ a/Documentation/networking/vortex.txt
+@@ -1,5 +1,5 @@
+ Documentation/networking/vortex.txt
+-Andrew Morton <andrewm@uow.edu.au>
++Andrew Morton
+ 30 April 2000
+ 
+ 
+diff -puN drivers/char/vt.c~remove-andrew-mortons-old-email-accounts-fix drivers/char/vt.c
+--- a/drivers/char/vt.c~remove-andrew-mortons-old-email-accounts-fix
++++ a/drivers/char/vt.c
+@@ -59,7 +59,7 @@
+  * by Martin Mares <mj@atrey.karlin.mff.cuni.cz>, July 1998
+  *
+  * Removed old-style timers, introduced console_timer, made timer
+- * deletion SMP-safe.  17Jun00, Andrew Morton <andrewm@uow.edu.au>
++ * deletion SMP-safe.  17Jun00, Andrew Morton
+  *
+  * Removed console_lock, enabled interrupts across all console operations
+  * 13 March 2001, Andrew Morton
+diff -puN drivers/net/3c509.c~remove-andrew-mortons-old-email-accounts-fix drivers/net/3c509.c
+--- a/drivers/net/3c509.c~remove-andrew-mortons-old-email-accounts-fix
++++ a/drivers/net/3c509.c
+@@ -40,7 +40,7 @@
+ 		v1.14 10/15/97 Avoided waiting..discard message for fast machines -djb
+ 		v1.15 1/31/98 Faster recovery for Tx errors. -djb
+ 		v1.16 2/3/98 Different ID port handling to avoid sound cards. -djb
+-		v1.18 12Mar2001 Andrew Morton <andrewm@uow.edu.au>
++		v1.18 12Mar2001 Andrew Morton
+ 			- Avoid bogus detect of 3c590's (Andrzej Krzysztofowicz)
+ 			- Reviewed against 1.18 from scyld.com
+ 		v1.18a 17Nov2001 Jeff Garzik <jgarzik@pobox.com>
+diff -puN drivers/net/cs89x0.c~remove-andrew-mortons-old-email-accounts-fix drivers/net/cs89x0.c
+--- a/drivers/net/cs89x0.c~remove-andrew-mortons-old-email-accounts-fix
++++ a/drivers/net/cs89x0.c
+@@ -36,8 +36,7 @@
+ 
+   Alan Cox          : Removed 1.2 support, added 2.1 extra counters.
+ 
+-  Andrew Morton     : andrewm@uow.edu.au
+-                    : Kernel 2.3.48
++  Andrew Morton     : Kernel 2.3.48
+                     : Handle kmalloc() failures
+                     : Other resource allocation fixes
+                     : Add SMP locks
+@@ -49,7 +48,7 @@
+                     : Fixed an out-of-mem bug in dma_rx()
+                     : Updated Documentation/networking/cs89x0.txt
+ 
+-  Andrew Morton     : andrewm@uow.edu.au / Kernel 2.3.99-pre1
++  Andrew Morton     : Kernel 2.3.99-pre1
+                     : Use skb_reserve to longword align IP header (two places)
+                     : Remove a delay loop from dma_rx()
+                     : Replace '100' with HZ
+@@ -57,11 +56,11 @@
+                     : Added 'cs89x0_dma=N' kernel boot option
+                     : Correctly initialise lp->lock in non-module compile
+ 
+-  Andrew Morton     : andrewm@uow.edu.au / Kernel 2.3.99-pre4-1
++  Andrew Morton     : Kernel 2.3.99-pre4-1
+                     : MOD_INC/DEC race fix (see
+                     : http://www.uwsg.indiana.edu/hypermail/linux/kernel/0003.3/1532.html)
+ 
+-  Andrew Morton     : andrewm@uow.edu.au / Kernel 2.4.0-test7-pre2
++  Andrew Morton     : Kernel 2.4.0-test7-pre2
+                     : Enhanced EEPROM support to cover more devices,
+                     :   abstracted IRQ mapping to support CONFIG_ARCH_CLPS7500 arch
+                     :   (Jason Gunthorpe <jgg@ualberta.ca>)
+@@ -156,7 +155,7 @@
+ #include "cs89x0.h"
+ 
+ static char version[] __initdata =
+-"cs89x0.c: v2.4.3-pre1 Russell Nelson <nelson@crynwr.com>, Andrew Morton <andrewm@uow.edu.au>\n";
++"cs89x0.c: v2.4.3-pre1 Russell Nelson <nelson@crynwr.com>, Andrew Morton\n";
+ 
+ #define DRV_NAME "cs89x0"
+ 
+@@ -1877,7 +1876,7 @@ MODULE_PARM_DESC(dmasize , "(ignored)");
+ MODULE_PARM_DESC(use_dma , "(ignored)");
+ #endif
+ 
+-MODULE_AUTHOR("Mike Cruse, Russwll Nelson <nelson@crynwr.com>, Andrew Morton <andrewm@uow.edu.au>");
++MODULE_AUTHOR("Mike Cruse, Russwll Nelson <nelson@crynwr.com>, Andrew Morton");
+ MODULE_LICENSE("GPL");
+ 
+ 
+diff -puN drivers/parport/ChangeLog~remove-andrew-mortons-old-email-accounts-fix drivers/parport/ChangeLog
+--- a/drivers/parport/ChangeLog~remove-andrew-mortons-old-email-accounts-fix
++++ a/drivers/parport/ChangeLog
+@@ -311,7 +311,7 @@
+ 	* ieee1284_ops.c (parport_ieee1284_read_nibble): Reset nAutoFd
+ 	on timeout.  Matches 2.2.x behaviour.
+ 
+-2001-03-02  Andrew Morton <andrewm@uow.edu.au>
++2001-03-02  Andrew Morton
+ 
+ 	* parport_pc.c (registered_parport): New static variable.
+ 	(parport_pc_find_ports): Set it when we register PCI driver.
+diff -puN kernel/printk.c~remove-andrew-mortons-old-email-accounts-fix kernel/printk.c
+--- a/kernel/printk.c~remove-andrew-mortons-old-email-accounts-fix
++++ a/kernel/printk.c
+@@ -13,7 +13,7 @@
+  * Fixed SMP synchronization, 08/08/99, Manfred Spraul
+  *     manfred@colorfullife.com
+  * Rewrote bits to get rid of console_lock
+- *	01Mar01 Andrew Morton <andrewm@uow.edu.au>
++ *	01Mar01 Andrew Morton
+  */
+ 
+ #include <linux/kernel.h>
+diff -puN kernel/workqueue.c~remove-andrew-mortons-old-email-accounts-fix kernel/workqueue.c
+--- a/kernel/workqueue.c~remove-andrew-mortons-old-email-accounts-fix
++++ a/kernel/workqueue.c
+@@ -9,7 +9,7 @@
+  * Derived from the taskqueue/keventd code by:
+  *
+  *   David Woodhouse <dwmw2@infradead.org>
+- *   Andrew Morton <andrewm@uow.edu.au>
++ *   Andrew Morton
+  *   Kai Petzke <wpp@marie.physik.tu-berlin.de>
+  *   Theodore Ts'o <tytso@mit.edu>
+  *
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from francois.cami@free.fr are
 
-mm-remove-the-might_sleep-from-lock_page.patch
-git-tip.patch
-markers-make-marker_synchronize_unregister-a-macro.patch
-git-powerpc.patch
-git-sparc.patch
-git-xtensa.patch
-git-pci.patch
-git-hid.patch
-git-v4l-dvb.patch
-git-v4l-dvb-git-rejects.patch
-git-nfs.patch
-git-nfsd.patch
-git-dlm.patch
-git-scsi.patch
-git-tests-fixup.patch
-git-ext4.patch
-git-ext4-vs-git-ocfs2.patch
-git-async_tx.patch
-git-net.patch
-git-net-conflicts.patch
-git-mtd.patch
-git-vfs-vs-git-ext4.patch
-git-sound.patch
-git-sound-vs-git-arm.patch
-git-input.patch
-git-block.patch
-git-block-reject-fix.patch
-git-pcmcia-git-rejects.patch
-git-battery.patch
-git-battery-rejects.patch
-git-slab-versus-git-tip.patch
-git-mfd.patch
-git-drm.patch
-revert-usb-usb-remove-info-macro-from-usbh.patch
-revert-usb-usb-remove-warn-macro-from-usbh.patch
-fix-ttydev-tty-usbserial-kref.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
-misdn-misc-timerdev-fixes-fix.patch
-drivers-net-sfc-falconc-fix-min-warnings.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-vmallocc-revert-git-tip-change.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-revert-mm-vmallocc-revert-git-tip-change.patch
-memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
-hugetlb-pull-gigantic-page-initialisation-out-of-the-default-path-fix.patch
-mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-eeepc-laptop-use-standard-interfaces-fix-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh.patch
-make-taint-bit-reliable-v3-fix.patch
-kernel-sysc-improve-code-generation.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-drivers-hwmon-applesmcc-remove-unneeded-casts.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
-serial-make-uart_ports-ioport-unsigned-long-fix.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanups.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
-ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-tpm-addition-of-pnp_remove-checkpatch-fixes.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-new-driver-ds2431-chip-fix.patch
-gru-driver-minor-updates-fix.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+remove-andrew-mortons-old-email-accounts.patch
+remove-andrew-mortons-old-email-accounts-fix.patch
+remove-andrew-mortons-http-wwwzipcomau-akpm.patch
 
