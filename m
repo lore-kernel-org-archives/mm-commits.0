@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-move-charge-swapin-under-lock.patch added to -mm tree
-Date: Fri, 10 Oct 2008 16:49:06 -0700
-Message-ID: <200810102349.m9ANn6Fs018336@imap1.linux-foundation.org>
+Subject: + memcg-optimize-per-cpu-statistics.patch added to -mm tree
+Date: Fri, 10 Oct 2008 16:49:16 -0700
+Message-ID: <200810102349.m9ANnGpv018355@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33848 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57137 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752111AbYJJXuE (ORCPT
+	by vger.kernel.org with ESMTP id S1753474AbYJJXuN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Oct 2008 19:50:04 -0400
+	Fri, 10 Oct 2008 19:50:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, nishimura@mxp.nes
 
 
 The patch titled
-     memcg: move charge swapin under lock
+     memcg: optimize per-cpu statistics
 has been added to the -mm tree.  Its filename is
-     memcg-move-charge-swapin-under-lock.patch
+     memcg-optimize-per-cpu-statistics.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: move charge swapin under lock
+Subject: memcg: optimize per-cpu statistics
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-While page-cache's charge/uncharge is done under page_lock(), swap-cache
-isn't.  (anonymous page is charged when it's newly allocated.)
+Some obvious optimization to memcg.
 
-This patch moves do_swap_page()'s charge() call under lock.  I don't see
-any bad problem *now* but this fix will be good for future for avoiding
-unnecessary racy state.
+I found mem_cgroup_charge_statistics() is a little big (in object) and
+does unnecessary address calclation.  This patch is for optimization to
+reduce the size of this function.
+
+And res_counter_charge() is 'likely' to succeed.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN mm/memory.c~memcg-move-charge-swapin-under-lock mm/memory.c
---- a/mm/memory.c~memcg-move-charge-swapin-under-lock
-+++ a/mm/memory.c
-@@ -2326,16 +2326,17 @@ static int do_swap_page(struct mm_struct
- 		count_vm_event(PGMAJFAULT);
+diff -puN mm/memcontrol.c~memcg-optimize-per-cpu-statistics mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-optimize-per-cpu-statistics
++++ a/mm/memcontrol.c
+@@ -66,11 +66,10 @@ struct mem_cgroup_stat {
+ /*
+  * For accounting under irq disable, no need for increment preempt count.
+  */
+-static void __mem_cgroup_stat_add_safe(struct mem_cgroup_stat *stat,
++static inline void __mem_cgroup_stat_add_safe(struct mem_cgroup_stat_cpu *stat,
+ 		enum mem_cgroup_stat_index idx, int val)
+ {
+-	int cpu = smp_processor_id();
+-	stat->cpustat[cpu].count[idx] += val;
++	stat->count[idx] += val;
+ }
+ 
+ static s64 mem_cgroup_read_stat(struct mem_cgroup_stat *stat,
+@@ -190,18 +189,21 @@ static void mem_cgroup_charge_statistics
+ {
+ 	int val = (charge)? 1 : -1;
+ 	struct mem_cgroup_stat *stat = &mem->stat;
++	struct mem_cgroup_stat_cpu *cpustat;
+ 
+ 	VM_BUG_ON(!irqs_disabled());
++
++	cpustat = &stat->cpustat[smp_processor_id()];
+ 	if (flags & PAGE_CGROUP_FLAG_CACHE)
+-		__mem_cgroup_stat_add_safe(stat, MEM_CGROUP_STAT_CACHE, val);
++		__mem_cgroup_stat_add_safe(cpustat, MEM_CGROUP_STAT_CACHE, val);
+ 	else
+-		__mem_cgroup_stat_add_safe(stat, MEM_CGROUP_STAT_RSS, val);
++		__mem_cgroup_stat_add_safe(cpustat, MEM_CGROUP_STAT_RSS, val);
+ 
+ 	if (charge)
+-		__mem_cgroup_stat_add_safe(stat,
++		__mem_cgroup_stat_add_safe(cpustat,
+ 				MEM_CGROUP_STAT_PGPGIN_COUNT, 1);
+ 	else
+-		__mem_cgroup_stat_add_safe(stat,
++		__mem_cgroup_stat_add_safe(cpustat,
+ 				MEM_CGROUP_STAT_PGPGOUT_COUNT, 1);
+ }
+ 
+@@ -558,7 +560,7 @@ static int mem_cgroup_charge_common(stru
+ 		css_get(&memcg->css);
  	}
  
-+	mark_page_accessed(page);
-+
-+	lock_page(page);
-+	delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
-+
- 	if (mem_cgroup_charge(page, mm, GFP_KERNEL)) {
--		delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
- 		ret = VM_FAULT_OOM;
-+		unlock_page(page);
- 		goto out;
- 	}
+-	while (res_counter_charge(&mem->res, PAGE_SIZE)) {
++	while (unlikely(res_counter_charge(&mem->res, PAGE_SIZE))) {
+ 		if (!(gfp_mask & __GFP_WAIT))
+ 			goto out;
  
--	mark_page_accessed(page);
--	lock_page(page);
--	delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
--
- 	/*
- 	 * Back out if somebody else already faulted in this pte.
- 	 */
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
