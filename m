@@ -1,54 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix.patch removed from -mm tree
-Date: Thu, 09 Oct 2008 17:16:56 -0700
-Message-ID: <200810100031.m9A0VLFE013825@imap1.linux-foundation.org>
+Subject: - git-md-rejects.patch removed from -mm tree
+Date: Thu, 09 Oct 2008 19:55:53 -0700
+Message-ID: <200810100310.m9A3AK42023085@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49917 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39315 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757668AbYJJAbf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 20:31:35 -0400
+	by vger.kernel.org with ESMTP id S1751539AbYJJDKd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 23:10:33 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m9A3AN93003274
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 9 Oct 2008 20:10:25 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, jikos@jikos.cz, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix
+     git-md-rejects
 has been removed from the -mm tree.  Its filename was
-     usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix.patch
+     git-md-rejects.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix
+Subject: git-md-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Also add missing newline.
-
-Cc: Greg KH <greg@kroah.com>
-Cc: Jiri Kosina <jikos@jikos.cz>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/usbhid/hid-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/linear.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/hid/usbhid/hid-core.c~usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix drivers/hid/usbhid/hid-core.c
---- a/drivers/hid/usbhid/hid-core.c~usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix
-+++ a/drivers/hid/usbhid/hid-core.c
-@@ -428,7 +428,7 @@ void usbhid_submit_report(struct hid_dev
- 		usbhid->out[usbhid->outhead].raw_report = kmalloc(len, GFP_ATOMIC);
- 		if (!usbhid->out[usbhid->outhead].raw_report) {
- 			spin_unlock_irqrestore(&usbhid->outlock, flags);
--			warn("output queueing failed");
-+			printk(KERN_WARNING "output queueing failed\n");
- 			return;
- 		}
- 		hid_output_report(report, usbhid->out[usbhid->outhead].raw_report);
+diff -puN drivers/md/linear.c~git-md-rejects drivers/md/linear.c
+--- a/drivers/md/linear.c~git-md-rejects
++++ a/drivers/md/linear.c
+@@ -307,7 +307,6 @@ static int linear_make_request (struct r
+ 	const int rw = bio_data_dir(bio);
+ 	mddev_t *mddev = q->queuedata;
+ 	dev_info_t *tmp_dev;
+-	sector_t block;
+ 	int cpu;
+ 
+ 	if (unlikely(bio_barrier(bio))) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -89,8 +87,6 @@ git-mfd.patch
 git-drm.patch
 revert-usb-usb-remove-info-macro-from-usbh.patch
 revert-usb-usb-remove-warn-macro-from-usbh.patch
-usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix.patch
-usb-usb-remove-info-macro-from-usbh-more-borkage.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
 arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
