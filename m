@@ -1,76 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - git-slab-rejects.patch removed from -mm tree
-Date: Thu, 09 Oct 2008 16:49:49 -0700
-Message-ID: <200810100004.m9A04EOh012123@imap1.linux-foundation.org>
+Subject: + usb-usb-remove-info-macro-from-usbh-more-borkage.patch added to -mm tree
+Date: Thu, 09 Oct 2008 17:00:42 -0700
+Message-ID: <200810100015.m9A0F7DO012841@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46603 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54875 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756446AbYJJAEg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 20:04:36 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m9A04F3G026491
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 9 Oct 2008 17:04:16 -0700
+	by vger.kernel.org with ESMTP id S1751984AbYJJAPL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 20:15:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     git-slab-rejects
-has been removed from the -mm tree.  Its filename was
-     git-slab-rejects.patch
+     usb-usb-remove-info-macro-from-usbh-more-borkage
+has been added to the -mm tree.  Its filename is
+     usb-usb-remove-info-macro-from-usbh-more-borkage.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-slab-rejects
+Subject: usb-usb-remove-info-macro-from-usbh-more-borkage
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Makefile |    1 +
- mm/slab.c   |    1 +
- mm/slub.c   |    1 +
- 3 files changed, 3 insertions(+)
+ drivers/hid/usbhid/hid-core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/Makefile~git-slab-rejects mm/Makefile
---- a/mm/Makefile~git-slab-rejects
-+++ a/mm/Makefile
-@@ -24,6 +24,7 @@ obj-$(CONFIG_SPARSEMEM_VMEMMAP) += spars
- obj-$(CONFIG_SHMEM) += shmem.o
- obj-$(CONFIG_TMPFS_POSIX_ACL) += shmem_acl.o
- obj-$(CONFIG_TINY_SHMEM) += tiny-shmem.o
-+obj-$(CONFIG_KMEMTRACE) += kmemtrace.o
- obj-$(CONFIG_SLOB) += slob.o
- obj-$(CONFIG_MMU_NOTIFIER) += mmu_notifier.o
- obj-$(CONFIG_SLAB) += slab.o
-diff -puN mm/slab.c~git-slab-rejects mm/slab.c
---- a/mm/slab.c~git-slab-rejects
-+++ a/mm/slab.c
-@@ -99,6 +99,7 @@
- #include	<linux/notifier.h>
- #include	<linux/kallsyms.h>
- #include	<linux/cpu.h>
-+#include	<linux/kmemtrace.h>
- #include	<linux/sysctl.h>
- #include	<linux/module.h>
- #include	<linux/rcupdate.h>
-diff -puN mm/slub.c~git-slab-rejects mm/slub.c
---- a/mm/slub.c~git-slab-rejects
-+++ a/mm/slub.c
-@@ -17,6 +17,7 @@
- #include <linux/seq_file.h>
- #include <linux/cpu.h>
- #include <linux/cpuset.h>
-+#include <linux/kmemtrace.h>
- #include <linux/mempolicy.h>
- #include <linux/ctype.h>
- #include <linux/debugobjects.h>
+diff -puN drivers/hid/usbhid/hid-core.c~usb-usb-remove-info-macro-from-usbh-more-borkage drivers/hid/usbhid/hid-core.c
+--- a/drivers/hid/usbhid/hid-core.c~usb-usb-remove-info-macro-from-usbh-more-borkage
++++ a/drivers/hid/usbhid/hid-core.c
+@@ -455,7 +455,7 @@ void usbhid_submit_report(struct hid_dev
+ 		usbhid->ctrl[usbhid->ctrlhead].raw_report = kmalloc(len, GFP_ATOMIC);
+ 		if (!usbhid->ctrl[usbhid->ctrlhead].raw_report) {
+ 			spin_unlock_irqrestore(&usbhid->ctrllock, flags);
+-			warn("control queueing failed");
++			printk(KERN_WARNING "control queueing failed\n");
+ 			return;
+ 		}
+ 		hid_output_report(report, usbhid->ctrl[usbhid->ctrlhead].raw_report);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,7 +90,6 @@ git-pcmcia-git-rejects.patch
 git-battery.patch
 git-battery-rejects.patch
 git-slab-versus-git-tip.patch
-git-slab-rejects.patch
 git-md-rejects.patch
 git-mfd.patch
 git-drm.patch
@@ -209,4 +192,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+usb-usb-remove-info-macro-from-usbh-more-borkage.patch
 
