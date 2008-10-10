@@ -1,50 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - usb-usb-remove-info-macro-from-usbh-more-borkage.patch removed from -mm tree
-Date: Thu, 09 Oct 2008 17:17:03 -0700
-Message-ID: <200810100031.m9A0VSPX013830@imap1.linux-foundation.org>
+Subject: - usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix.patch removed from -mm tree
+Date: Thu, 09 Oct 2008 17:16:56 -0700
+Message-ID: <200810100031.m9A0VLFE013825@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43438 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49917 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753211AbYJJAbb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 20:31:31 -0400
+	by vger.kernel.org with ESMTP id S1757668AbYJJAbf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 20:31:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, jikos@jikos.cz, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb-usb-remove-info-macro-from-usbh-more-borkage
+     usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix
 has been removed from the -mm tree.  Its filename was
-     usb-usb-remove-info-macro-from-usbh-more-borkage.patch
+     usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb-usb-remove-info-macro-from-usbh-more-borkage
+Subject: usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Also add missing newline.
+
 Cc: Greg KH <greg@kroah.com>
+Cc: Jiri Kosina <jikos@jikos.cz>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  drivers/hid/usbhid/hid-core.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/hid/usbhid/hid-core.c~usb-usb-remove-info-macro-from-usbh-more-borkage drivers/hid/usbhid/hid-core.c
---- a/drivers/hid/usbhid/hid-core.c~usb-usb-remove-info-macro-from-usbh-more-borkage
+diff -puN drivers/hid/usbhid/hid-core.c~usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix drivers/hid/usbhid/hid-core.c
+--- a/drivers/hid/usbhid/hid-core.c~usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix
 +++ a/drivers/hid/usbhid/hid-core.c
-@@ -455,7 +455,7 @@ void usbhid_submit_report(struct hid_dev
- 		usbhid->ctrl[usbhid->ctrlhead].raw_report = kmalloc(len, GFP_ATOMIC);
- 		if (!usbhid->ctrl[usbhid->ctrlhead].raw_report) {
- 			spin_unlock_irqrestore(&usbhid->ctrllock, flags);
--			warn("control queueing failed");
-+			printk(KERN_WARNING "control queueing failed\n");
+@@ -428,7 +428,7 @@ void usbhid_submit_report(struct hid_dev
+ 		usbhid->out[usbhid->outhead].raw_report = kmalloc(len, GFP_ATOMIC);
+ 		if (!usbhid->out[usbhid->outhead].raw_report) {
+ 			spin_unlock_irqrestore(&usbhid->outlock, flags);
+-			warn("output queueing failed");
++			printk(KERN_WARNING "output queueing failed\n");
  			return;
  		}
- 		hid_output_report(report, usbhid->ctrl[usbhid->ctrlhead].raw_report);
+ 		hid_output_report(report, usbhid->out[usbhid->outhead].raw_report);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,6 +89,7 @@ git-mfd.patch
 git-drm.patch
 revert-usb-usb-remove-info-macro-from-usbh.patch
 revert-usb-usb-remove-warn-macro-from-usbh.patch
+usb-usb-remove-warn-macro-from-usbh-vs-git-hid-fix.patch
 usb-usb-remove-info-macro-from-usbh-more-borkage.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
