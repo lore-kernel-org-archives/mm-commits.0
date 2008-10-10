@@ -1,122 +1,221 @@
 From: akpm@linux-foundation.org
-Subject: + remove-andrew-mortons-http-wwwzipcomau-akpm.patch added to -mm tree
-Date: Fri, 10 Oct 2008 14:27:36 -0700
-Message-ID: <200810102127.m9ALRaHp004237@imap1.linux-foundation.org>
+Subject: - separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch removed from -mm tree
+Date: Fri, 10 Oct 2008 14:36:56 -0700
+Message-ID: <200810102136.m9ALauPV005296@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44202 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37795 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760085AbYJJV1k (ORCPT
+	by vger.kernel.org with ESMTP id S1760247AbYJJVhC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Oct 2008 17:27:40 -0400
+	Fri, 10 Oct 2008 17:37:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: francois.cami@free.fr
+To: akpm@linux-foundation.org, davem@davemloft.net, linux-arch@vger.kernel.org, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove Andrew Morton's http://www.zip.com.au/~akpm/
-has been added to the -mm tree.  Its filename is
-     remove-andrew-mortons-http-wwwzipcomau-akpm.patch
+     separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix
+has been removed from the -mm tree.  Its filename was
+     separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Remove Andrew Morton's http://www.zip.com.au/~akpm/
-From: FD Cami <francois.cami@free.fr>
+Subject: separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove Andrew Morton's http://www.zip.com.au/~akpm/ urls, update to new
-ones when necessary, delete references otherwise.
-
-There are still instances of that living in:
-Documentation/zh_CN/HOWTO
-Documentation/zh_CN/SubmittingPatches
-Documentation/ko_KR/HOWTO
-Documentation/ja_JP/SubmittingPatches
-
-Signed-off-by: Francois Cami <francois.cami@free.fr>
+Cc: <linux-arch@vger.kernel.org>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/HOWTO                 |    4 ++--
- Documentation/SubmittingPatches     |    4 ++--
- Documentation/filesystems/ext3.txt  |    3 +--
- Documentation/networking/vortex.txt |    5 -----
- 4 files changed, 5 insertions(+), 11 deletions(-)
+ arch/sparc/include/asm/atomic_32.h  |    4 ++--
+ arch/sparc/include/asm/atomic_64.h  |    2 +-
+ arch/sparc/include/asm/atomic_def.h |    8 ++++++++
+ 3 files changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/HOWTO~remove-andrew-mortons-http-wwwzipcomau-akpm Documentation/HOWTO
---- a/Documentation/HOWTO~remove-andrew-mortons-http-wwwzipcomau-akpm
-+++ a/Documentation/HOWTO
-@@ -112,7 +112,7 @@ required reading:
+diff -puN arch/sparc/include/asm/atomic_32.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix arch/sparc/include/asm/atomic_32.h
+--- a/arch/sparc/include/asm/atomic_32.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix
++++ a/arch/sparc/include/asm/atomic_32.h
+@@ -13,10 +13,10 @@
  
-     Other excellent descriptions of how to create patches properly are:
- 	"The Perfect Patch"
--		http://www.zip.com.au/~akpm/linux/patches/stuff/tpp.txt
-+		http://userweb.kernel.org/~akpm/stuff/tpp.txt
- 	"Linux kernel patch submission format"
- 		http://linux.yyz.us/patch-format.html
+ #include <linux/types.h>
  
-@@ -620,7 +620,7 @@ all time.  It should describe the patch 
- For more details on what this should all look like, please see the
- ChangeLog section of the document:
-   "The Perfect Patch"
--      http://www.zip.com.au/~akpm/linux/patches/stuff/tpp.txt
-+      http://userweb.kernel.org/~akpm/stuff/tpp.txt
- 
- 
- 
-diff -puN Documentation/SubmittingPatches~remove-andrew-mortons-http-wwwzipcomau-akpm Documentation/SubmittingPatches
---- a/Documentation/SubmittingPatches~remove-andrew-mortons-http-wwwzipcomau-akpm
-+++ a/Documentation/SubmittingPatches
-@@ -77,7 +77,7 @@ Quilt:
- http://savannah.nongnu.org/projects/quilt
- 
- Andrew Morton's patch scripts:
--http://www.zip.com.au/~akpm/linux/patches/
-+http://userweb.kernel.org/~akpm/stuff/patch-scripts.tar.gz
- Instead of these scripts, quilt is the recommended patch management
- tool (see above).
- 
-@@ -653,7 +653,7 @@ SECTION 3 - REFERENCES
- ----------------------
- 
- Andrew Morton, "The perfect patch" (tpp).
--  <http://www.zip.com.au/~akpm/linux/patches/stuff/tpp.txt>
-+  <http://userweb.kernel.org/~akpm/stuff/tpp.txt>
- 
- Jeff Garzik, "Linux kernel patch submission format".
-   <http://linux.yyz.us/patch-format.html>
-diff -puN Documentation/filesystems/ext3.txt~remove-andrew-mortons-http-wwwzipcomau-akpm Documentation/filesystems/ext3.txt
---- a/Documentation/filesystems/ext3.txt~remove-andrew-mortons-http-wwwzipcomau-akpm
-+++ a/Documentation/filesystems/ext3.txt
-@@ -193,6 +193,5 @@ kernel source:	<file:fs/ext3/>
- programs: 	http://e2fsprogs.sourceforge.net/
- 		http://ext2resize.sourceforge.net
- 
--useful links:	http://www.zip.com.au/~akpm/linux/ext3/ext3-usage.html
--		http://www-106.ibm.com/developerworks/linux/library/l-fs7/
-+useful links:	http://www-106.ibm.com/developerworks/linux/library/l-fs7/
- 		http://www-106.ibm.com/developerworks/linux/library/l-fs8/
-diff -puN Documentation/networking/vortex.txt~remove-andrew-mortons-http-wwwzipcomau-akpm Documentation/networking/vortex.txt
---- a/Documentation/networking/vortex.txt~remove-andrew-mortons-http-wwwzipcomau-akpm
-+++ a/Documentation/networking/vortex.txt
-@@ -305,11 +305,6 @@ Donald's wake-on-LAN page:
- 
- 	ftp://ftp.3com.com/pub/nic/3c90x/3c90xx2.exe
- 
--Driver updates and a detailed changelog for the modifications which
--were made for the 2.3/2,4 series kernel is available at
+-typedef struct { volatile int counter; } atomic_t;
 -
--     http://www.zip.com.au/~akpm/linux/#3c59x-bc
+ #ifdef __KERNEL__
+ 
++#include <asm/atomic_def.h>
++
+ #define ATOMIC_INIT(i)  { (i) }
+ 
+ extern int __atomic_add_return(int, atomic_t *);
+diff -puN arch/sparc/include/asm/atomic_64.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix arch/sparc/include/asm/atomic_64.h
+--- a/arch/sparc/include/asm/atomic_64.h~separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix
++++ a/arch/sparc/include/asm/atomic_64.h
+@@ -9,8 +9,8 @@
+ 
+ #include <linux/types.h>
+ #include <asm/system.h>
++#include <asm/atomic_def.h>
+ 
+-typedef struct { volatile int counter; } atomic_t;
+ typedef struct { volatile __s64 counter; } atomic64_t;
+ 
+ #define ATOMIC_INIT(i)		{ (i) }
+diff -puN /dev/null arch/sparc/include/asm/atomic_def.h
+--- /dev/null
++++ a/arch/sparc/include/asm/atomic_def.h
+@@ -0,0 +1,8 @@
++#ifndef _ATOMIC_DEF_H
++#define _ATOMIC_DEF_H
++
++typedef struct {
++	volatile int counter;
++} atomic_t;
++
++#endif
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm-remove-the-might_sleep-from-lock_page.patch
+git-tip.patch
+markers-make-marker_synchronize_unregister-a-macro.patch
+git-powerpc.patch
+git-sparc.patch
+git-xtensa.patch
+git-pci.patch
+git-hid.patch
+git-v4l-dvb.patch
+git-v4l-dvb-git-rejects.patch
+git-nfs.patch
+git-nfsd.patch
+git-dlm.patch
+git-scsi.patch
+git-tests-fixup.patch
+git-ext4.patch
+git-ext4-vs-git-ocfs2.patch
+git-async_tx.patch
+git-net.patch
+git-net-conflicts.patch
+git-mtd.patch
+git-vfs-vs-git-ext4.patch
+git-sound.patch
+git-sound-vs-git-arm.patch
+git-input.patch
+git-block.patch
+git-block-reject-fix.patch
+git-pcmcia-git-rejects.patch
+git-battery.patch
+git-battery-rejects.patch
+git-slab-versus-git-tip.patch
+git-mfd.patch
+git-drm.patch
+revert-usb-usb-remove-info-macro-from-usbh.patch
+revert-usb-usb-remove-warn-macro-from-usbh.patch
+fix-ttydev-tty-usbserial-kref.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
+misdn-misc-timerdev-fixes-fix.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-vmallocc-revert-git-tip-change.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+revert-mm-vmallocc-revert-git-tip-change.patch
+memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
+mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+eeepc-laptop-use-standard-interfaces-fix-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh-fix-fix.patch
+make-taint-bit-reliable-v3-fix.patch
+kernel-sysc-improve-code-generation.patch
+compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
+drivers-hwmon-applesmcc-remove-unneeded-casts.patch
+allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
+serial-make-uart_ports-ioport-unsigned-long-fix.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanups.patch
+ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
+ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
+applicomc-fix-apparently-broken-code-in-do_ac_read.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+tpm-addition-of-pnp_remove-checkpatch-fixes.patch
+w1-be-able-to-manually-add-and-remove-slaves-fix.patch
+w1-new-driver-ds2431-chip-fix.patch
+gru-driver-minor-updates-fix.patch
+drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+x86-sysfs-kill-owner-field-from-attribute-fix.patch
+x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
+
