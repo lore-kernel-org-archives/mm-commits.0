@@ -1,52 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - git-md-rejects.patch removed from -mm tree
-Date: Thu, 09 Oct 2008 19:55:53 -0700
-Message-ID: <200810100310.m9A3AK42023085@imap1.linux-foundation.org>
+Subject: + acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch added to -mm tree
+Date: Thu, 09 Oct 2008 21:01:32 -0700
+Message-ID: <200810100415.m9A4FwBk026854@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39315 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59610 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751539AbYJJDKd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Oct 2008 23:10:33 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m9A3AN93003274
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 9 Oct 2008 20:10:25 -0700
+	by vger.kernel.org with ESMTP id S1750870AbYJJEQn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Fri, 10 Oct 2008 00:16:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, hare@suse.de, lenb@kernel.org, pavel@suse.cz
 
 
 The patch titled
-     git-md-rejects
-has been removed from the -mm tree.  Its filename was
-     git-md-rejects.patch
+     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
+has been added to the -mm tree.  Its filename is
+     acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-md-rejects
+Subject: acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Hannes Reinecke <hare@suse.de>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/linear.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/misc/panasonic-laptop.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/md/linear.c~git-md-rejects drivers/md/linear.c
---- a/drivers/md/linear.c~git-md-rejects
-+++ a/drivers/md/linear.c
-@@ -307,7 +307,6 @@ static int linear_make_request (struct r
- 	const int rw = bio_data_dir(bio);
- 	mddev_t *mddev = q->queuedata;
- 	dev_info_t *tmp_dev;
--	sector_t block;
- 	int cpu;
+diff -puN drivers/misc/panasonic-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix drivers/misc/panasonic-laptop.c
+--- a/drivers/misc/panasonic-laptop.c~acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix
++++ a/drivers/misc/panasonic-laptop.c
+@@ -645,7 +645,7 @@ static int acpi_pcc_hotkey_add(struct ac
+ 	pcc->device = device;
+ 	pcc->handle = device->handle;
+ 	pcc->num_sifr = num_sifr;
+-	acpi_driver_data(device) = pcc;
++	device->driver_data = pcc;
+ 	strcpy(acpi_device_name(device), ACPI_PCC_DEVICE_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_PCC_CLASS);
  
- 	if (unlikely(bio_barrier(bio))) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,13 +93,13 @@ git-pcmcia-git-rejects.patch
 git-battery.patch
 git-battery-rejects.patch
 git-slab-versus-git-tip.patch
-git-md-rejects.patch
 git-mfd.patch
 git-drm.patch
 revert-usb-usb-remove-info-macro-from-usbh.patch
 revert-usb-usb-remove-warn-macro-from-usbh.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
+acpi-catch-calls-of-acpi_driver_data-on-pointer-of-wrong-type-fix.patch
 arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
@@ -140,7 +151,6 @@ serial-make-uart_ports-ioport-unsigned-long-fix.patch
 autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
 autofs4-add-miscellaneous-device-for-ioctls-fix.patch
 autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-fix-3.patch
 rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
 fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
 viafb-viafbmodes-viafbtxt-fix-fix.patch
