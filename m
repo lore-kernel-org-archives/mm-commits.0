@@ -1,99 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - vm-dont-run-touch_buffer-during-buffercache-lookups.patch removed from -mm tree
-Date: Fri, 10 Oct 2008 15:17:28 -0700
-Message-ID: <200810102217.m9AMHTe5009368@imap1.linux-foundation.org>
+Subject: - vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch removed from -mm tree
+Date: Fri, 10 Oct 2008 15:17:25 -0700
+Message-ID: <200810102217.m9AMHQ8N009365@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60350 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35705 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754504AbYJJWRb (ORCPT
+	by vger.kernel.org with ESMTP id S1754177AbYJJWRl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Oct 2008 18:17:31 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m9AMHTVQ008838
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 10 Oct 2008 15:17:30 -0700
+	Fri, 10 Oct 2008 18:17:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mbligh@mbligh.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     VM: don't run touch_buffer() during buffercache lookups
+     vmscan: give referenced, active and unmapped pages a second trip around the LRU
 has been removed from the -mm tree.  Its filename was
-     vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+     vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 
 This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: VM: don't run touch_buffer() during buffercache lookups
+Subject: vmscan: give referenced, active and unmapped pages a second trip around the LRU
 From: Andrew Morton <akpm@linux-foundation.org>
 
-When userspace reads a directory or a number of inodes it is very common for
-the filesystem to be asked to access the same metadata block multiple times in
-quick succession.  Each lookup will run touch_buffer().
+Martin spotted this.
 
-As a consequence of this, large amounts of blockdev pagecache end up nailed on
-the VM's active list, marked as referenced.  These pages will cause other
-active pages to be evicted: mapped executables, swapout, etc.
+In the original rmap conversion in 2.5.32 we broke aging of pagecache pages on
+the active list: we deactivate these pages even if they had PG_referenced set.
 
-This is probably wrong.  The core problem here is that the kernel is treating
-that sudden burst of accesses to the dirents and inodes as multiple touches. 
-Really we should be treating them as a single touch.
+We should instead clear PG_referenced and give these pages another trip around
+the active list.
 
-So as an experiment, just remove that touch_buffer() call.
+We have basically no way of working out whether or not this change will
+benefit or worsen anything.
 
-We don't have any tests to determine the effects of this, and nobody will
-bother setting one up, so ho hum, this remains in -mm for ever.
-
-
-This change is probably a bit too aggressive - as a followup, filesystems
-should be taught to run touch_buffer() or mark_page_accessed() against this
-pagecache on each "independent" access.
-
-The problem is, how to determine when they are "independent"?  Perhaps "the
-access was to the first inode in the block" and "the access was to the first
-directory entry in the block" would suffice.  The fs could then implement
-use-once via:
-
-	if (first inode in block) {
-		page = find_get_page(...);
-		if (page)
-			mark_page_accessed(page);
-		put_page(page);
-	}
-
-I don't think there's any point in doing this until we have some decent
-testcases.
-
-AFACIT ext2 has never run mark_page_accessed() against its directory
-pagecache, so there is no practical way in which ext2 directories _ever_ find
-their way onto the inactive list.  Nobody appears to have noticed this.
-
-touch_buffer() is unused after this patch, but let's retain it for the above
-reasons.  I guess we'll need a new probe_buffer() thing to be able to
-implement the above use-once algorithm for bh-based metadata.
-
+Cc: Martin Bligh <mbligh@mbligh.org>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/vmscan.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/buffer.c~vm-dont-run-touch_buffer-during-buffercache-lookups fs/buffer.c
---- a/fs/buffer.c~vm-dont-run-touch_buffer-during-buffercache-lookups
-+++ a/fs/buffer.c
-@@ -1381,8 +1381,6 @@ __find_get_block(struct block_device *bd
- 		if (bh)
- 			bh_lru_install(bh);
+diff -puN mm/vmscan.c~vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru
++++ a/mm/vmscan.c
+@@ -1183,6 +1183,9 @@ static void shrink_active_list(unsigned 
+ 				list_add(&page->lru, &l_active);
+ 				continue;
+ 			}
++		} else if (TestClearPageReferenced(page)) {
++			list_add(&page->lru, &l_active);
++			continue;
+ 		}
+ 		list_add(&page->lru, &l_inactive);
  	}
--	if (bh)
--		touch_buffer(bh);
- 	return bh;
- }
- EXPORT_SYMBOL(__find_get_block);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -149,6 +114,7 @@ scsi-dpt_i2o-is-bust-on-ia64.patch
 mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
 mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
 mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 vmscan-move-isolate_lru_page-to-vmscanc.patch
 define-page_file_cache-function.patch
