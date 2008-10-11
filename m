@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + edac-i5000-fix-thermal-issues.patch added to -mm tree
-Date: Fri, 10 Oct 2008 19:43:55 -0700
-Message-ID: <200810110243.m9B2htu5002094@imap1.linux-foundation.org>
+Subject: + rtc-ds1672-new-style-driver.patch added to -mm tree
+Date: Fri, 10 Oct 2008 19:45:47 -0700
+Message-ID: <200810110245.m9B2jlOS002245@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59619 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59863 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753753AbYJKCof (ORCPT
+	by vger.kernel.org with ESMTP id S1754644AbYJKCqe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Oct 2008 22:44:35 -0400
+	Fri, 10 Oct 2008 22:46:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aris@redhat.com, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com
+Cc: alessandro.zummo@towertech.it, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     edac i5000: fix thermal issues
+     rtc-ds1672 new style driver
 has been added to the -mm tree.  Its filename is
-     edac-i5000-fix-thermal-issues.patch
+     rtc-ds1672-new-style-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,212 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac i5000: fix thermal issues
-From: Aristeu Rozanski <aris@redhat.com>
+Subject: rtc-ds1672 new style driver
+From: Alessandro Zummo <alessandro.zummo@towertech.it>
 
-Make the Thermal messages (temperature got past Tmid) be displayed only
-once because:
+New style conversion and reformatting as per indent --linux-style
 
-1) it's the BIOS job to configure and handle the memory throttling
-2) if the BIOS is broken or is aware about the condition, flooding the
-   system logs won't help anything.
-3) According to the specification update for Intel 5000 MCHs, all the
-   revisions of this MCH have problems on the thermal sensors, making
-   not automatic (a.k.a. intelligent thermal throttling) impossible.
-
-Signed-off-by: Aristeu Rozanski <aris@redhat.com>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i5000_edac.c |   17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-ds1672.c |  114 +++++++++++--------------------------
+ 1 file changed, 34 insertions(+), 80 deletions(-)
 
-diff -puN drivers/edac/i5000_edac.c~edac-i5000-fix-thermal-issues drivers/edac/i5000_edac.c
---- a/drivers/edac/i5000_edac.c~edac-i5000-fix-thermal-issues
-+++ a/drivers/edac/i5000_edac.c
-@@ -511,8 +511,23 @@ static void i5000_process_fatal_error_in
- 				"retry";
- 		break;
- 	case FERR_FAT_M3ERR:
-+		{
-+		static int done;
-+
-+		/*
-+		 * This error is generated to inform that the intelligent
-+		 * throttling is disabled and the temperature passed the
-+		 * specified middle point. Since this is something the BIOS
-+		 * should take care of, we'll warn only once to avoid
-+		 * worthlessly flooding the log.
-+		 */
-+		if (done)
-+			return;
-+		done++;
-+
- 		specific = ">Tmid Thermal event with intelligent "
--				"throttling disabled";
-+			   "throttling disabled";
-+		}
- 		break;
- 	}
+diff -puN drivers/rtc/rtc-ds1672.c~rtc-ds1672-new-style-driver drivers/rtc/rtc-ds1672.c
+--- a/drivers/rtc/rtc-ds1672.c~rtc-ds1672-new-style-driver
++++ a/drivers/rtc/rtc-ds1672.c
+@@ -9,17 +9,10 @@
+  * published by the Free Software Foundation.
+  */
  
-_
-
-Patches currently in -mm which might be from aris@redhat.com are
-
-git-tip.patch
-git-security-testing.patch
-edac-i5000-fix-error-messages.patch
-edac-i5000-fix-thermal-issues.patch
-tpm-include-moderated-for-non-subscribers-notation-in-maintainers.patch
-
+-#include <linux/module.h>
+ #include <linux/i2c.h>
+ #include <linux/rtc.h>
+ 
+-#define DRV_VERSION "0.3"
+-
+-/* Addresses to scan: none. This chip cannot be detected. */
+-static const unsigned short normal_i2c[] = { I2C_CLIENT_END };
+-
+-/* Insmod parameters */
+-I2C_CLIENT_INSMOD;
++#define DRV_VERSION "0.4"
+ 
+ /* Registers */
+ 
+@@ -29,8 +22,7 @@ I2C_CLIENT_INSMOD;
+ 
+ #define DS1672_REG_CONTROL_EOSC	0x80
+ 
+-/* Prototypes */
+-static int ds1672_probe(struct i2c_adapter *adapter, int address, int kind);
++static struct i2c_driver ds1672_driver;
+ 
+ /*
+  * In the routines that deal directly with the ds1672 hardware, we use
+@@ -44,8 +36,8 @@ static int ds1672_get_datetime(struct i2
+ 	unsigned char buf[4];
+ 
+ 	struct i2c_msg msgs[] = {
+-		{ client->addr, 0, 1, &addr },		/* setup read ptr */
+-		{ client->addr, I2C_M_RD, 4, buf },	/* read date */
++		{client->addr, 0, 1, &addr},	/* setup read ptr */
++		{client->addr, I2C_M_RD, 4, buf},	/* read date */
+ 	};
+ 
+ 	/* read date registers */
+@@ -80,7 +72,7 @@ static int ds1672_set_mmss(struct i2c_cl
+ 	buf[2] = (secs & 0x0000FF00) >> 8;
+ 	buf[3] = (secs & 0x00FF0000) >> 16;
+ 	buf[4] = (secs & 0xFF000000) >> 24;
+-	buf[5] = 0;	/* set control reg to enable counting */
++	buf[5] = 0;		/* set control reg to enable counting */
+ 
+ 	xfer = i2c_master_send(client, buf, 6);
+ 	if (xfer != 6) {
+@@ -127,8 +119,8 @@ static int ds1672_get_control(struct i2c
+ 	unsigned char addr = DS1672_REG_CONTROL;
+ 
+ 	struct i2c_msg msgs[] = {
+-		{ client->addr, 0, 1, &addr },		/* setup read ptr */
+-		{ client->addr, I2C_M_RD, 1, status },	/* read control */
++		{client->addr, 0, 1, &addr},	/* setup read ptr */
++		{client->addr, I2C_M_RD, 1, status},	/* read control */
+ 	};
+ 
+ 	/* read control register */
+@@ -141,7 +133,8 @@ static int ds1672_get_control(struct i2c
+ }
+ 
+ /* following are the sysfs callback functions */
+-static ssize_t show_control(struct device *dev, struct device_attribute *attr, char *buf)
++static ssize_t show_control(struct device *dev, struct device_attribute *attr,
++			    char *buf)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	u8 control;
+@@ -152,85 +145,46 @@ static ssize_t show_control(struct devic
+ 		return err;
+ 
+ 	return sprintf(buf, "%s\n", (control & DS1672_REG_CONTROL_EOSC)
+-					? "disabled" : "enabled");
++		       ? "disabled" : "enabled");
+ }
++
+ static DEVICE_ATTR(control, S_IRUGO, show_control, NULL);
+ 
+ static const struct rtc_class_ops ds1672_rtc_ops = {
+-	.read_time	= ds1672_rtc_read_time,
+-	.set_time	= ds1672_rtc_set_time,
+-	.set_mmss	= ds1672_rtc_set_mmss,
++	.read_time = ds1672_rtc_read_time,
++	.set_time = ds1672_rtc_set_time,
++	.set_mmss = ds1672_rtc_set_mmss,
+ };
+ 
+-static int ds1672_attach(struct i2c_adapter *adapter)
+-{
+-	return i2c_probe(adapter, &addr_data, ds1672_probe);
+-}
+-
+-static int ds1672_detach(struct i2c_client *client)
++static int ds1672_remove(struct i2c_client *client)
+ {
+-	int err;
+ 	struct rtc_device *rtc = i2c_get_clientdata(client);
+ 
+- 	if (rtc)
++	if (rtc)
+ 		rtc_device_unregister(rtc);
+ 
+-	if ((err = i2c_detach_client(client)))
+-		return err;
+-
+-	kfree(client);
+-
+ 	return 0;
+ }
+ 
+-static struct i2c_driver ds1672_driver = {
+-	.driver		= {
+-		.name	= "ds1672",
+-	},
+-	.id		= I2C_DRIVERID_DS1672,
+-	.attach_adapter = &ds1672_attach,
+-	.detach_client	= &ds1672_detach,
+-};
+-
+-static int ds1672_probe(struct i2c_adapter *adapter, int address, int kind)
++static int ds1672_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
+ {
+ 	int err = 0;
+ 	u8 control;
+-	struct i2c_client *client;
+ 	struct rtc_device *rtc;
+ 
+-	dev_dbg(&adapter->dev, "%s\n", __func__);
+-
+-	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
+-		err = -ENODEV;
+-		goto exit;
+-	}
+-
+-	if (!(client = kzalloc(sizeof(struct i2c_client), GFP_KERNEL))) {
+-		err = -ENOMEM;
+-		goto exit;
+-	}
++	dev_dbg(&client->dev, "%s\n", __func__);
+ 
+-	/* I2C client */
+-	client->addr = address;
+-	client->driver = &ds1672_driver;
+-	client->adapter	= adapter;
+-
+-	strlcpy(client->name, ds1672_driver.driver.name, I2C_NAME_SIZE);
+-
+-	/* Inform the i2c layer */
+-	if ((err = i2c_attach_client(client)))
+-		goto exit_kfree;
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
++		return -ENODEV;
+ 
+ 	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
+ 
+ 	rtc = rtc_device_register(ds1672_driver.driver.name, &client->dev,
+-				&ds1672_rtc_ops, THIS_MODULE);
++				  &ds1672_rtc_ops, THIS_MODULE);
+ 
+-	if (IS_ERR(rtc)) {
+-		err = PTR_ERR(rtc);
+-		goto exit_detach;
+-	}
++	if (IS_ERR(rtc))
++		return PTR_ERR(rtc);
+ 
+ 	i2c_set_clientdata(client, rtc);
+ 
+@@ -241,7 +195,7 @@ static int ds1672_probe(struct i2c_adapt
+ 
+ 	if (control & DS1672_REG_CONTROL_EOSC)
+ 		dev_warn(&client->dev, "Oscillator not enabled. "
+-					"Set time to enable.\n");
++			 "Set time to enable.\n");
+ 
+ 	/* Register sysfs hooks */
+ 	err = device_create_file(&client->dev, &dev_attr_control);
+@@ -250,19 +204,19 @@ static int ds1672_probe(struct i2c_adapt
+ 
+ 	return 0;
+ 
+-exit_devreg:
++ exit_devreg:
+ 	rtc_device_unregister(rtc);
+-
+-exit_detach:
+-	i2c_detach_client(client);
+-
+-exit_kfree:
+-	kfree(client);
