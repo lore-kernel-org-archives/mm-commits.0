@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix-fix.patch added to -mm tree
-Date: Sat, 11 Oct 2008 14:28:02 -0700
-Message-ID: <200810112128.m9BLS2se011500@imap1.linux-foundation.org>
+Date: Sat, 11 Oct 2008 16:32:35 -0700
+Message-ID: <200810112332.m9BNWZrH023085@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43996 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51896 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754085AbYJKV2w (ORCPT
+	by vger.kernel.org with ESMTP id S1753939AbYJKXdR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 11 Oct 2008 17:28:52 -0400
+	Sat, 11 Oct 2008 19:33:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -41,26 +41,25 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    7 -------
- 1 file changed, 7 deletions(-)
+ mm/vmscan.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
 diff -puN mm/vmscan.c~vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix-fix mm/vmscan.c
 --- a/mm/vmscan.c~vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix-fix
 +++ a/mm/vmscan.c
-@@ -1107,13 +1107,6 @@ static void shrink_active_list(unsigned 
- 	 * to the inactive list.  This helps balance scan pressure between
- 	 * file and anonymous pages in get_scan_ratio.
-  	 */
--
--	/*
--	 * Count referenced pages from currently used mappings as
--	 * rotated, even though they are moved to the inactive list.
--	 * This helps balance scan pressure between file and anonymous
--	 * pages in get_scan_ratio.
--	 */
- 	zone->recent_rotated[!!file] += pgmoved;
+@@ -1103,12 +1103,6 @@ static void shrink_active_list(unsigned 
+ 	}
  
  	/*
+-	 * Count the referenced pages as rotated, even when they are moved
+-	 * to the inactive list.  This helps balance scan pressure between
+-	 * file and anonymous pages in get_scan_ratio.
+- 	 */
+-
+-	/*
+ 	 * Count referenced pages from currently used mappings as
+ 	 * rotated, even though they are moved to the inactive list.
+ 	 * This helps balance scan pressure between file and anonymous
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
