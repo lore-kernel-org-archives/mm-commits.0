@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-max6900-new-style-driver.patch added to -mm tree
-Date: Fri, 10 Oct 2008 19:45:39 -0700
-Message-ID: <200810110245.m9B2jdDs002238@imap1.linux-foundation.org>
+Subject: + gpiolib-request-free-hooks.patch added to -mm tree
+Date: Fri, 10 Oct 2008 19:47:09 -0700
+Message-ID: <200810110247.m9B2l9MQ002427@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51602 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42679 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754669AbYJKCqp (ORCPT
+	by vger.kernel.org with ESMTP id S1754717AbYJKCrv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 10 Oct 2008 22:46:45 -0400
+	Fri, 10 Oct 2008 22:47:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alessandro.zummo@towertech.it, a.zummo@towertech.it, dale@farnsworth.org, david-b@pacbell.net
+Cc: dbrownell@users.sourceforge.net, magnus.damm@gmail.com
 
 
 The patch titled
-     rtc-max6900 new style driver
+     gpiolib: request/free hooks
 has been added to the -mm tree.  Its filename is
-     rtc-max6900-new-style-driver.patch
+     gpiolib-request-free-hooks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,378 +34,273 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-max6900 new style driver
-From: Alessandro Zummo <alessandro.zummo@towertech.it>
+Subject: gpiolib: request/free hooks
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-New style conversion and reformatting as per indent --linux-style
+Add a new internal mechanism to gpiolib to support low power
+operations by letting gpio_chip instances see when their GPIOs
+are in use.  When no GPIOs are active, chips may be able to
+enter lower powered runtime states by disabling clocks and/or
+power domains.
 
-Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Dale Farnsworth <dale@farnsworth.org>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: "Magnus Damm" <magnus.damm@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-max6900.c |  223 +++++++++++-------------------------
- 1 file changed, 69 insertions(+), 154 deletions(-)
+ Documentation/gpio.txt     |    4 +
+ drivers/gpio/gpiolib.c     |   91 ++++++++++++++++++++++++++++++-----
+ include/asm-generic/gpio.h |    9 +++
+ 3 files changed, 91 insertions(+), 13 deletions(-)
 
-diff -puN drivers/rtc/rtc-max6900.c~rtc-max6900-new-style-driver drivers/rtc/rtc-max6900.c
---- a/drivers/rtc/rtc-max6900.c~rtc-max6900-new-style-driver
-+++ a/drivers/rtc/rtc-max6900.c
-@@ -17,19 +17,18 @@
- #include <linux/rtc.h>
- #include <linux/delay.h>
+diff -puN Documentation/gpio.txt~gpiolib-request-free-hooks Documentation/gpio.txt
+--- a/Documentation/gpio.txt~gpiolib-request-free-hooks
++++ a/Documentation/gpio.txt
+@@ -240,6 +240,10 @@ signal, or (b) something wrongly believe
+ needed to manage a signal that's in active use.  That is, requesting a
+ GPIO can serve as a kind of lock.
  
--#define DRV_NAME "max6900"
--#define DRV_VERSION "0.1"
-+#define DRV_VERSION "0.2"
- 
- /*
-  * register indices
++Some platforms may also use knowledge about what GPIOs are active for
++power management, such as by powering down unused chip sectors and, more
++easily, gating off unused clocks.
++
+ These two calls are optional because not not all current Linux platforms
+ offer such functionality in their GPIO support; a valid implementation
+ could return success for all gpio_request() calls.  Unlike the other calls,
+diff -puN drivers/gpio/gpiolib.c~gpiolib-request-free-hooks drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpiolib-request-free-hooks
++++ a/drivers/gpio/gpiolib.c
+@@ -67,17 +67,28 @@ static inline void desc_set_label(struct
+  * when setting direction, and otherwise illegal.  Until board setup code
+  * and drivers use explicit requests everywhere (which won't happen when
+  * those calls have no teeth) we can't avoid autorequesting.  This nag
+- * message should motivate switching to explicit requests...
++ * message should motivate switching to explicit requests... so should
++ * the weaker cleanup after faults, compared to gpio_request().
   */
--#define MAX6900_REG_SC			0	/* seconds	00-59 */
--#define MAX6900_REG_MN			1	/* minutes	00-59 */
--#define MAX6900_REG_HR			2	/* hours	00-23 */
--#define MAX6900_REG_DT			3	/* day of month	00-31 */
--#define MAX6900_REG_MO			4	/* month	01-12 */
--#define MAX6900_REG_DW			5	/* day of week	 1-7  */
--#define MAX6900_REG_YR			6	/* year		00-99 */
-+#define MAX6900_REG_SC			0	/* seconds      00-59 */
-+#define MAX6900_REG_MN			1	/* minutes      00-59 */
-+#define MAX6900_REG_HR			2	/* hours        00-23 */
-+#define MAX6900_REG_DT			3	/* day of month 00-31 */
-+#define MAX6900_REG_MO			4	/* month        01-12 */
-+#define MAX6900_REG_DW			5	/* day of week   1-7  */
-+#define MAX6900_REG_YR			6	/* year         00-99 */
- #define MAX6900_REG_CT			7	/* control */
- 						/* register 8 is undocumented */
- #define MAX6900_REG_CENTURY		9	/* century */
-@@ -39,7 +38,6 @@
- 
- #define MAX6900_REG_CT_WP		(1 << 7)	/* Write Protect */
- 
--
- /*
-  * register read/write commands
-  */
-@@ -52,16 +50,7 @@
- 
- #define MAX6900_IDLE_TIME_AFTER_WRITE	3	/* specification says 2.5 mS */
- 
--#define MAX6900_I2C_ADDR		0xa0
--
--static const unsigned short normal_i2c[] = {
--	MAX6900_I2C_ADDR >> 1,
--	I2C_CLIENT_END
--};
--
--I2C_CLIENT_INSMOD;			/* defines addr_data */
--
--static int max6900_probe(struct i2c_adapter *adapter, int addr, int kind);
-+static struct i2c_driver max6900_driver;
- 
- static int max6900_i2c_read_regs(struct i2c_client *client, u8 *buf)
+-static void gpio_ensure_requested(struct gpio_desc *desc)
++static int gpio_ensure_requested(struct gpio_desc *desc, unsigned offset)
  {
-@@ -69,36 +58,35 @@ static int max6900_i2c_read_regs(struct 
- 	u8 reg_century_read[1] = { MAX6900_REG_CENTURY_READ };
- 	struct i2c_msg msgs[4] = {
- 		{
--			.addr	= client->addr,
--			.flags	= 0, /* write */
--			.len	= sizeof(reg_burst_read),
--			.buf	= reg_burst_read
--		},
-+		 .addr = client->addr,
-+		 .flags = 0,	/* write */
-+		 .len = sizeof(reg_burst_read),
-+		 .buf = reg_burst_read}
-+		,
- 		{
--			.addr	= client->addr,
--			.flags	= I2C_M_RD,
--			.len	= MAX6900_BURST_LEN,
--			.buf	= buf
--		},
-+		 .addr = client->addr,
-+		 .flags = I2C_M_RD,
-+		 .len = MAX6900_BURST_LEN,
-+		 .buf = buf}
-+		,
- 		{
--			.addr	= client->addr,
--			.flags	= 0, /* write */
--			.len	= sizeof(reg_century_read),
--			.buf	= reg_century_read
--		},
-+		 .addr = client->addr,
-+		 .flags = 0,	/* write */
-+		 .len = sizeof(reg_century_read),
-+		 .buf = reg_century_read}
-+		,
- 		{
--			.addr	= client->addr,
--			.flags	= I2C_M_RD,
--			.len	= sizeof(buf[MAX6900_REG_CENTURY]),
--			.buf	= &buf[MAX6900_REG_CENTURY]
--		}
-+		 .addr = client->addr,
-+		 .flags = I2C_M_RD,
-+		 .len = sizeof(buf[MAX6900_REG_CENTURY]),
-+		 .buf = &buf[MAX6900_REG_CENTURY]
-+		 }
- 	};
- 	int rc;
- 
- 	rc = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
- 	if (rc != ARRAY_SIZE(msgs)) {
--		dev_err(&client->dev, "%s: register read failed\n",
--			__func__);
-+		dev_err(&client->dev, "%s: register read failed\n", __func__);
- 		return -EIO;
+ 	if (test_and_set_bit(FLAG_REQUESTED, &desc->flags) == 0) {
+-		pr_warning("GPIO-%d autorequested\n", (int)(desc - gpio_desc));
++		struct gpio_chip *chip = desc->chip;
++		int gpio = chip->base + offset;
++
++		if (!try_module_get(chip->owner)) {
++			pr_err("GPIO-%d: module can't be gotten \n", gpio);
++			clear_bit(FLAG_REQUESTED, &desc->flags);
++			/* lose */
++			return -EIO;
++		}
++		pr_warning("GPIO-%d autorequested\n", gpio);
+ 		desc_set_label(desc, "[auto]");
+-		if (!try_module_get(desc->chip->owner))
+-			pr_err("GPIO-%d: module can't be gotten \n",
+-					(int)(desc - gpio_desc));
++		/* caller must chip->request() w/o spinlock */
++		if (chip->request)
++			return 1;
  	}
- 	return 0;
-@@ -109,20 +97,18 @@ static int max6900_i2c_write_regs(struct
- 	u8 i2c_century_buf[1 + 1] = { MAX6900_REG_CENTURY_WRITE };
- 	struct i2c_msg century_msgs[1] = {
- 		{
--			.addr	= client->addr,
--			.flags	= 0, /* write */
--			.len	= sizeof(i2c_century_buf),
--			.buf	= i2c_century_buf
--		}
-+		 .addr = client->addr,
-+		 .flags = 0,	/* write */
-+		 .len = sizeof(i2c_century_buf),
-+		 .buf = i2c_century_buf}
- 	};
- 	u8 i2c_burst_buf[MAX6900_BURST_LEN + 1] = { MAX6900_REG_BURST_WRITE };
- 	struct i2c_msg burst_msgs[1] = {
- 		{
--			.addr	= client->addr,
--			.flags	= 0, /* write */
--			.len	= sizeof(i2c_burst_buf),
--			.buf	= i2c_burst_buf
--		}
-+		 .addr = client->addr,
-+		 .flags = 0,	/* write */
-+		 .len = sizeof(i2c_burst_buf),
-+		 .buf = i2c_burst_buf}
- 	};
- 	int rc;
- 
-@@ -133,10 +119,12 @@ static int max6900_i2c_write_regs(struct
- 	 * bit as part of the burst write.
- 	 */
- 	i2c_century_buf[1] = buf[MAX6900_REG_CENTURY];
-+
- 	rc = i2c_transfer(client->adapter, century_msgs,
- 			  ARRAY_SIZE(century_msgs));
- 	if (rc != ARRAY_SIZE(century_msgs))
- 		goto write_failed;
-+
- 	msleep(MAX6900_IDLE_TIME_AFTER_WRITE);
- 
- 	memcpy(&i2c_burst_buf[1], buf, MAX6900_BURST_LEN);
-@@ -148,45 +136,11 @@ static int max6900_i2c_write_regs(struct
- 
- 	return 0;
- 
--write_failed:
--	dev_err(&client->dev, "%s: register write failed\n",
--		__func__);
-+ write_failed:
-+	dev_err(&client->dev, "%s: register write failed\n", __func__);
- 	return -EIO;
- }
- 
--static int max6900_i2c_validate_client(struct i2c_client *client)
--{
--	u8 regs[MAX6900_REG_LEN];
--	u8 zero_mask[] = {
--		0x80,	/* seconds */
--		0x80,	/* minutes */
--		0x40,	/* hours */
--		0xc0,	/* day of month */
--		0xe0,	/* month */
--		0xf8,	/* day of week */
--		0x00,	/* year */
--		0x7f,	/* control */
--	};
--	int i;
--	int rc;
--	int reserved;
--
--	reserved = i2c_smbus_read_byte_data(client, MAX6900_REG_RESERVED_READ);
--	if (reserved != 0x07)
--		return -ENODEV;
--
--	rc = max6900_i2c_read_regs(client, regs);
--	if (rc < 0)
--		return rc;
--
--	for (i = 0; i < ARRAY_SIZE(zero_mask); ++i) {
--		if (regs[i] & zero_mask[i])
--			return -ENODEV;
--	}
--
--	return 0;
--}
--
- static int max6900_i2c_read_time(struct i2c_client *client, struct rtc_time *tm)
- {
- 	int rc;
-@@ -202,7 +156,7 @@ static int max6900_i2c_read_time(struct 
- 	tm->tm_mday = BCD2BIN(regs[MAX6900_REG_DT]);
- 	tm->tm_mon = BCD2BIN(regs[MAX6900_REG_MO]) - 1;
- 	tm->tm_year = BCD2BIN(regs[MAX6900_REG_YR]) +
--		      BCD2BIN(regs[MAX6900_REG_CENTURY]) * 100 - 1900;
-+	    BCD2BIN(regs[MAX6900_REG_CENTURY]) * 100 - 1900;
- 	tm->tm_wday = BCD2BIN(regs[MAX6900_REG_DW]);
- 
- 	return 0;
-@@ -211,7 +165,7 @@ static int max6900_i2c_read_time(struct 
- static int max6900_i2c_clear_write_protect(struct i2c_client *client)
- {
- 	int rc;
--	rc = i2c_smbus_write_byte_data (client, MAX6900_REG_CONTROL_WRITE, 0);
-+	rc = i2c_smbus_write_byte_data(client, MAX6900_REG_CONTROL_WRITE, 0);
- 	if (rc < 0) {
- 		dev_err(&client->dev, "%s: control register write failed\n",
- 			__func__);
-@@ -220,8 +174,8 @@ static int max6900_i2c_clear_write_prote
- 	return 0;
- }
- 
--static int max6900_i2c_set_time(struct i2c_client *client,
--				struct rtc_time const *tm)
-+static int
-+max6900_i2c_set_time(struct i2c_client *client, struct rtc_time const *tm)
- {
- 	u8 regs[MAX6900_REG_LEN];
- 	int rc;
-@@ -258,89 +212,49 @@ static int max6900_rtc_set_time(struct d
- 	return max6900_i2c_set_time(to_i2c_client(dev), tm);
- }
- 
--static int max6900_attach_adapter(struct i2c_adapter *adapter)
--{
--	return i2c_probe(adapter, &addr_data, max6900_probe);
--}
--
--static int max6900_detach_client(struct i2c_client *client)
-+static int max6900_remove(struct i2c_client *client)
- {
--	struct rtc_device *const rtc = i2c_get_clientdata(client);
-+	struct rtc_device *rtc = i2c_get_clientdata(client);
- 
- 	if (rtc)
- 		rtc_device_unregister(rtc);
- 
--	return i2c_detach_client(client);
 +	return 0;
  }
  
--static struct i2c_driver max6900_driver = {
--	.driver		= {
--		.name	= DRV_NAME,
--	},
--	.id		= I2C_DRIVERID_MAX6900,
--	.attach_adapter = max6900_attach_adapter,
--	.detach_client	= max6900_detach_client,
--};
--
- static const struct rtc_class_ops max6900_rtc_ops = {
--	.read_time	= max6900_rtc_read_time,
--	.set_time	= max6900_rtc_set_time,
-+	.read_time = max6900_rtc_read_time,
-+	.set_time = max6900_rtc_set_time,
- };
- 
--static int max6900_probe(struct i2c_adapter *adapter, int addr, int kind)
-+static int
-+max6900_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ /* caller holds gpio_lock *OR* gpio is marked as requested */
+@@ -752,6 +763,7 @@ EXPORT_SYMBOL_GPL(gpiochip_remove);
+ int gpio_request(unsigned gpio, const char *label)
  {
--	int rc = 0;
--	struct i2c_client *client = NULL;
--	struct rtc_device *rtc = NULL;
--
--	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
--		rc = -ENODEV;
--		goto failout;
--	}
-+	struct rtc_device *rtc;
+ 	struct gpio_desc	*desc;
++	struct gpio_chip	*chip;
+ 	int			status = -EINVAL;
+ 	unsigned long		flags;
  
--	client = kzalloc(sizeof(struct i2c_client), GFP_KERNEL);
--	if (client == NULL) {
--		rc = -ENOMEM;
--		goto failout;
--	}
--
--	client->addr = addr;
--	client->adapter = adapter;
--	client->driver = &max6900_driver;
--	strlcpy(client->name, DRV_NAME, I2C_NAME_SIZE);
--
--	if (kind < 0) {
--		rc = max6900_i2c_validate_client(client);
--		if (rc < 0)
--			goto failout;
--	}
--
--	rc = i2c_attach_client(client);
--	if (rc < 0)
--		goto failout;
-+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
-+		return -ENODEV;
+@@ -760,14 +772,15 @@ int gpio_request(unsigned gpio, const ch
+ 	if (!gpio_is_valid(gpio))
+ 		goto done;
+ 	desc = &gpio_desc[gpio];
+-	if (desc->chip == NULL)
++	chip = desc->chip;
++	if (chip == NULL)
+ 		goto done;
  
--	dev_info(&client->dev,
--		 "chip found, driver version " DRV_VERSION "\n");
-+	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
+-	if (!try_module_get(desc->chip->owner))
++	if (!try_module_get(chip->owner))
+ 		goto done;
  
- 	rtc = rtc_device_register(max6900_driver.driver.name,
--				  &client->dev,
--				  &max6900_rtc_ops, THIS_MODULE);
--	if (IS_ERR(rtc)) {
--		rc = PTR_ERR(rtc);
--		goto failout_detach;
--	}
-+				  &client->dev, &max6900_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc))
-+		return PTR_ERR(rtc);
+ 	/* NOTE:  gpio_request() can be called in early boot,
+-	 * before IRQs are enabled.
++	 * before IRQs are enabled, for non-sleeping (SOC) GPIOs.
+ 	 */
  
- 	i2c_set_clientdata(client, rtc);
- 
- 	return 0;
--
--failout_detach:
--	i2c_detach_client(client);
--failout:
--	kfree(client);
--	return rc;
- }
- 
-+static struct i2c_driver max6900_driver = {
-+	.driver = {
-+		   .name = "rtc-max6900",
-+		   },
-+	.probe = max6900_probe,
-+	.remove = max6900_remove,
-+};
+ 	if (test_and_set_bit(FLAG_REQUESTED, &desc->flags) == 0) {
+@@ -775,7 +788,20 @@ int gpio_request(unsigned gpio, const ch
+ 		status = 0;
+ 	} else {
+ 		status = -EBUSY;
+-		module_put(desc->chip->owner);
++		module_put(chip->owner);
++	}
 +
- static int __init max6900_init(void)
++	if (chip->request) {
++		/* chip->request may sleep */
++		spin_unlock_irqrestore(&gpio_lock, flags);
++		status = chip->request(chip, gpio - chip->base);
++		spin_lock_irqsave(&gpio_lock, flags);
++
++		if (status < 0) {
++			desc_set_label(desc, NULL);
++			module_put(chip->owner);
++			clear_bit(FLAG_REQUESTED, &desc->flags);
++		}
+ 	}
+ 
+ done:
+@@ -791,6 +817,7 @@ void gpio_free(unsigned gpio)
  {
- 	return i2c_add_driver(&max6900_driver);
-@@ -352,6 +266,7 @@ static void __exit max6900_exit(void)
- }
+ 	unsigned long		flags;
+ 	struct gpio_desc	*desc;
++	struct gpio_chip	*chip;
  
- MODULE_DESCRIPTION("Maxim MAX6900 RTC driver");
-+MODULE_AUTHOR("Dale Farnsworth <dale@farnsworth.org>");
- MODULE_LICENSE("GPL");
- MODULE_VERSION(DRV_VERSION);
+ 	might_sleep();
  
+@@ -804,9 +831,17 @@ void gpio_free(unsigned gpio)
+ 	spin_lock_irqsave(&gpio_lock, flags);
+ 
+ 	desc = &gpio_desc[gpio];
+-	if (desc->chip && test_and_clear_bit(FLAG_REQUESTED, &desc->flags)) {
++	chip = desc->chip;
++	if (chip && test_bit(FLAG_REQUESTED, &desc->flags)) {
++		if (chip->free) {
++			spin_unlock_irqrestore(&gpio_lock, flags);
++			might_sleep_if(extra_checks && chip->can_sleep);
++			chip->free(chip, gpio - chip->base);
++			spin_lock_irqsave(&gpio_lock, flags);
++		}
+ 		desc_set_label(desc, NULL);
+ 		module_put(desc->chip->owner);
++		clear_bit(FLAG_REQUESTED, &desc->flags);
+ 	} else
+ 		WARN_ON(extra_checks);
+ 
+@@ -871,7 +906,9 @@ int gpio_direction_input(unsigned gpio)
+ 	gpio -= chip->base;
+ 	if (gpio >= chip->ngpio)
+ 		goto fail;
+-	gpio_ensure_requested(desc);
++	status = gpio_ensure_requested(desc, gpio);
++	if (status < 0)
++		goto fail;
+ 
+ 	/* now we know the gpio is valid and chip won't vanish */
+ 
+@@ -879,9 +916,22 @@ int gpio_direction_input(unsigned gpio)
+ 
+ 	might_sleep_if(extra_checks && chip->can_sleep);
+ 
++	if (status) {
++		status = chip->request(chip, gpio);
++		if (status < 0) {
++			pr_debug("GPIO-%d: chip request fail, %d\n",
++				chip->base + gpio, status);
++			/* and it's not available to anyone else ...
++			 * gpio_request() is the fully clean solution.
++			 */
++			goto lose;
++		}
++	}
++
+ 	status = chip->direction_input(chip, gpio);
+ 	if (status == 0)
+ 		clear_bit(FLAG_IS_OUT, &desc->flags);
++lose:
+ 	return status;
+ fail:
+ 	spin_unlock_irqrestore(&gpio_lock, flags);
+@@ -909,7 +959,9 @@ int gpio_direction_output(unsigned gpio,
+ 	gpio -= chip->base;
+ 	if (gpio >= chip->ngpio)
+ 		goto fail;
+-	gpio_ensure_requested(desc);
++	status = gpio_ensure_requested(desc, gpio);
++	if (status < 0)
++		goto fail;
+ 
+ 	/* now we know the gpio is valid and chip won't vanish */
+ 
+@@ -917,9 +969,22 @@ int gpio_direction_output(unsigned gpio,
+ 
+ 	might_sleep_if(extra_checks && chip->can_sleep);
+ 
++	if (status) {
++		status = chip->request(chip, gpio);
++		if (status < 0) {
++			pr_debug("GPIO-%d: chip request fail, %d\n",
++				chip->base + gpio, status);
++			/* and it's not available to anyone else ...
++			 * gpio_request() is the fully clean solution.
++			 */
++			goto lose;
++		}
++	}
++
+ 	status = chip->direction_output(chip, gpio, value);
+ 	if (status == 0)
+ 		set_bit(FLAG_IS_OUT, &desc->flags);
++lose:
+ 	return status;
+ fail:
+ 	spin_unlock_irqrestore(&gpio_lock, flags);
+diff -puN include/asm-generic/gpio.h~gpiolib-request-free-hooks include/asm-generic/gpio.h
+--- a/include/asm-generic/gpio.h~gpiolib-request-free-hooks
++++ a/include/asm-generic/gpio.h
+@@ -35,6 +35,10 @@ struct module;
+  * @label: for diagnostics
+  * @dev: optional device providing the GPIOs
+  * @owner: helps prevent removal of modules exporting active GPIOs
++ * @request: optional hook for chip-specific activation, such as
++ *	enabling module power and clock; may sleep
++ * @free: optional hook for chip-specific deactivation, such as
++ *	disabling module power and clock; may sleep
+  * @direction_input: configures signal "offset" as input, or returns error
+  * @get: returns value for signal "offset"; for output signals this
+  *	returns either the value actually sensed, or zero
+@@ -67,6 +71,11 @@ struct gpio_chip {
+ 	struct device		*dev;
+ 	struct module		*owner;
+ 
++	int			(*request)(struct gpio_chip *chip,
++						unsigned offset);
++	void			(*free)(struct gpio_chip *chip,
++						unsigned offset);
++
+ 	int			(*direction_input)(struct gpio_chip *chip,
+ 						unsigned offset);
+ 	int			(*get)(struct gpio_chip *chip,
 _
 
-Patches currently in -mm which might be from alessandro.zummo@towertech.it are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
-rtc-max6900-new-style-driver.patch
-rtc-ds1672-new-style-driver.patch
+git-tip.patch
+git-arm.patch
+git-avr32.patch
+git-net.patch
+git-mtd.patch
+git-input.patch
+git-mfd.patch
+spi-simplify-spi_write_then_read.patch
+spi_s3c24xx-pin-configuration-updates.patch
+pxa2xx_spi-minor-cleanup.patch
+pxa2xx_spi-fix-chip_info-defaults-and-documentation.patch
+orion_spi-handle-88f6183-erratum.patch
+spi-core-and-gpio-expanders-use-subsys_init.patch
+rtc-ds1307-alarm-support-for-ds1337-ds1339.patch
+rtc-remove-some-nop-open-release-methods.patch
+legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
+rtc-file-close-consistently-disables-repeating-irqs.patch
+rtc-cmos-strongly-avoid-hpet-emulation.patch
+rtc-cmos-export-second-nvram-bank.patch
+make-gpiochip-label-const.patch
+gpio-i2c-expanders-use-subsys_init.patch
+gpiolib-gpio_to_irq-hooks.patch
+omap-drivers-switch-to-standard-gpio-calls.patch
+gpiolib-request-free-hooks.patch
 
