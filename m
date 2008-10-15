@@ -1,89 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - gru-driver-minor-updates-fix.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 16:59:55 -0700
-Message-ID: <200810152359.m9FNxtjQ024793@imap1.linux-foundation.org>
+Subject: - configure-out-aio-support-fix.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 16:59:31 -0700
+Message-ID: <200810152359.m9FNxWQu024745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41633 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57969 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752670AbYJOX77 (ORCPT
+	by vger.kernel.org with ESMTP id S1751736AbYJPAAJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 19:59:59 -0400
+	Wed, 15 Oct 2008 20:00:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, steiner@sgi.com, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mpm@selenic.com, thomas.petazzoni@free-electrons.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gru-driver-minor-updates-fix
+     aio: fix sysctl build error
 has been removed from the -mm tree.  Its filename was
-     gru-driver-minor-updates-fix.patch
+     configure-out-aio-support-fix.patch
 
-This patch was dropped because it was folded into gru-driver-minor-updates.patch
+This patch was dropped because it was folded into configure-out-aio-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gru-driver-minor-updates-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: aio: fix sysctl build error
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Jcak cnat tpye.
+Put aio_nr sysctl inside ifdef CONFIG_AIO block to fix this build error:
 
-Cc: Jack Steiner <steiner@sgi.com>
+kernel/built-in.o:(.data+0x2a2c): undefined reference to `aio_nr'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grufault.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ kernel/sysctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/misc/sgi-gru/grufault.c~gru-driver-minor-updates-fix drivers/misc/sgi-gru/grufault.c
---- a/drivers/misc/sgi-gru/grufault.c~gru-driver-minor-updates-fix
-+++ a/drivers/misc/sgi-gru/grufault.c
-@@ -214,16 +214,14 @@ static int non_atomic_pte_lookup(struct 
- }
- 
- /*
-- *
-  * atomic_pte_lookup
-  *
-  * Convert a user virtual address to a physical address
-  * Only supports Intel large pages (2MB only) on x86_64.
-  *	ZZZ - hugepage support is incomplete
-  *
-- * NOTE; mmap_sem is already held on entry to this function. This
-- * guarantees existence of the apge tables.
-- *
-+ * NOTE: mmap_sem is already held on entry to this function. This
-+ * guarantees existence of the page tables.
-  */
- static int atomic_pte_lookup(struct vm_area_struct *vma, unsigned long vaddr,
- 	int write, unsigned long *paddr, int *pageshift)
+diff -puN kernel/sysctl.c~configure-out-aio-support-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~configure-out-aio-support-fix
++++ a/kernel/sysctl.c
+@@ -1336,6 +1336,7 @@ static struct ctl_table fs_table[] = {
+ 		.extra2		= &two,
+ 	},
+ #endif
++#ifdef CONFIG_AIO
+ 	{
+ 		.procname	= "aio-nr",
+ 		.data		= &aio_nr,
+@@ -1343,7 +1344,6 @@ static struct ctl_table fs_table[] = {
+ 		.mode		= 0444,
+ 		.proc_handler	= &proc_doulongvec_minmax,
+ 	},
+-#ifdef CONFIG_AIO
+ 	{
+ 		.procname	= "aio-max-nr",
+ 		.data		= &aio_max_nr,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation.patch
-make-taint-bit-reliable-v3.patch
-kernel-sysc-improve-code-generation.patch
-compat-generic-compat-get-settimeofday.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc.patch
-autofs4-track-uid-and-gid-of-last-mount-requester.patch
-autofs4-add-miscellaneous-device-for-ioctls.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip.patch
-viafb-accelc-accelh.patch
-viafb-dvic-dvih-globalc-and-globalh.patch
-viafb-hwc-hwh.patch
-viafb-viafbdevc-viafbdevh.patch
-fbdev-kconfig-update.patch
-fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves.patch
-w1-new-driver-ds2431-chip.patch
-gru-driver-minor-updates.patch
-gru-driver-minor-updates-fix.patch
+eeepc-laptop-use-standard-interfaces-fix.patch
+dontdiff-more-updates-to-be-closer-to-gitignore.patch
+documentation-explain-memory-barriers.patch
+taint-fix-kernel-doc.patch
+framebuffer-fix-carminefb-section-mismatch.patch
+docbook-update-procfs-credits.patch
+w1-documentation-w1-masters-ds2490-update.patch
+configure-out-aio-support.patch
+configure-out-aio-support-fix.patch
 
