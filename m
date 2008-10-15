@@ -1,159 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - misdn-misc-timerdev-fixes-fix.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 14:13:38 -0700
-Message-ID: <200810152113.m9FLDcpc005590@imap1.linux-foundation.org>
+Subject: - acpi-fix-fadt-parsing-v3.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 14:13:58 -0700
+Message-ID: <200810152113.m9FLDwU5005651@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52581 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55906 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753217AbYJOVOc (ORCPT
+	by vger.kernel.org with ESMTP id S1753358AbYJOVOl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 17:14:32 -0400
+	Wed, 15 Oct 2008 17:14:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, hch@lst.de, kkeil@suse.de, mm-commits@vger.kernel.org
+To: jbeulich@novell.com, lenb@kernel.org, robert.moore@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     misdn: use nonseekable_open()
+     ACPI: fix FADT parsing
 has been removed from the -mm tree.  Its filename was
-     misdn-misc-timerdev-fixes-fix.patch
+     acpi-fix-fadt-parsing-v3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: misdn: use nonseekable_open()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ACPI: fix FADT parsing
+From: "Jan Beulich" <jbeulich@novell.com>
 
-The driver just sets ->llseek to NULL.  It should also clear FMODE_LSEEK to
-tell the VFS that seeks are not supported.
+The (1.0 inherited) separate length fields in the FADT are byte granular. 
+Further, PM1a/b may have distinct lengths (if using the v2 fields was
+okay) and may live in distinct address spaces.  acpi_tb_convert_fadt()
+should account for all of these conditions.
 
-Pointed out by Christoph Hellwig.
+Apart from these changes I'm puzzled by the fact that, not just for
+acpi_gbl_xpm1{a,b}_enable, acpi_hw_low_level_{read,write}() get an
+explicit size passed rather than using the size found in the passed GAS. 
+What happens on a platform that defines PM1{a,b} wider than 16 bits?  Of
+course, acpi_hw_low_level_{read,write}() at present are entirely
+un-prepared to deal with sizes other than 8, 16, or 32, not to speak of a
+non-zero bit_offset or access_width...
 
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Karsten Keil <kkeil@suse.de>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/mISDN/timerdev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/tables/tbfadt.c |   32 +++++++++++++++++++++++++-------
+ 1 file changed, 25 insertions(+), 7 deletions(-)
 
-diff -puN drivers/isdn/mISDN/timerdev.c~misdn-misc-timerdev-fixes-fix drivers/isdn/mISDN/timerdev.c
---- a/drivers/isdn/mISDN/timerdev.c~misdn-misc-timerdev-fixes-fix
-+++ a/drivers/isdn/mISDN/timerdev.c
-@@ -61,7 +61,7 @@ mISDN_open(struct inode *ino, struct fil
- 	init_waitqueue_head(&dev->wait);
- 	filep->private_data = dev;
- 	__module_get(THIS_MODULE);
--	return 0;
-+	return nonseekable_open(ino, filep);
- }
+diff -puN drivers/acpi/tables/tbfadt.c~acpi-fix-fadt-parsing-v3 drivers/acpi/tables/tbfadt.c
+--- a/drivers/acpi/tables/tbfadt.c~acpi-fix-fadt-parsing-v3
++++ a/drivers/acpi/tables/tbfadt.c
+@@ -50,7 +50,7 @@ ACPI_MODULE_NAME("tbfadt")
+ /* Local prototypes */
+ static void inline
+ acpi_tb_init_generic_address(struct acpi_generic_address *generic_address,
+-			     u8 bit_width, u64 address);
++			     u8 byte_width, u64 address);
  
- static int
+ static void acpi_tb_convert_fadt(void);
+ 
+@@ -111,7 +111,7 @@ static struct acpi_fadt_info fadt_info_t
+  * FUNCTION:    acpi_tb_init_generic_address
+  *
+  * PARAMETERS:  generic_address     - GAS struct to be initialized
+- *              bit_width           - Width of this register
++ *              byte_width          - Width of this register
+  *              Address             - Address of the register
+  *
+  * RETURN:      None
+@@ -124,7 +124,7 @@ static struct acpi_fadt_info fadt_info_t
+ 
+ static void inline
+ acpi_tb_init_generic_address(struct acpi_generic_address *generic_address,
+-			     u8 bit_width, u64 address)
++			     u8 byte_width, u64 address)
+ {
+ 
+ 	/*
+@@ -136,7 +136,7 @@ acpi_tb_init_generic_address(struct acpi
+ 	/* All other fields are byte-wide */
+ 
+ 	generic_address->space_id = ACPI_ADR_SPACE_SYSTEM_IO;
+-	generic_address->bit_width = bit_width;
++	generic_address->bit_width = byte_width << 3;
+ 	generic_address->bit_offset = 0;
+ 	generic_address->access_width = 0;
+ }
+@@ -342,9 +342,20 @@ static void acpi_tb_convert_fadt(void)
+ 	 * useful to calculate them once, here.
+ 	 *
+ 	 * The PM event blocks are split into two register blocks, first is the
+-	 * PM Status Register block, followed immediately by the PM Enable Register
+-	 * block. Each is of length (pm1_event_length/2)
++	 * PM Status Register block, followed immediately by the PM Enable
++	 * Register block. Each is of length (xpm1x_event_block.bit_width/2).
++	 *
++	 * On various systems the v2 fields (and particularly the bit widths)
++	 * cannot be relied upon, though. Hence resort to using the v1 length
++	 * here (and warn about the inconsistency).
+ 	 */
++	if (acpi_gbl_FADT.xpm1a_event_block.bit_width
++	    != acpi_gbl_FADT.pm1_event_length * 8)
++		printk(KERN_WARNING "FADT: "
++		       "X_PM1a_EVT_BLK.bit_width (%u) does not match"
++		       " PM1_EVT_LEN (%u)\n",
++		       acpi_gbl_FADT.xpm1a_event_block.bit_width,
++		       acpi_gbl_FADT.pm1_event_length);
+ 	pm1_register_length = (u8) ACPI_DIV_2(acpi_gbl_FADT.pm1_event_length);
+ 
+ 	/* The PM1A register block is required */
+@@ -360,13 +371,20 @@ static void acpi_tb_convert_fadt(void)
+ 	/* The PM1B register block is optional, ignore if not present */
+ 
+ 	if (acpi_gbl_FADT.xpm1b_event_block.address) {
++		if (acpi_gbl_FADT.xpm1b_event_block.bit_width
++		    != acpi_gbl_FADT.pm1_event_length * 8)
++			printk(KERN_WARNING "FADT: "
++			       "X_PM1b_EVT_BLK.bit_width (%u) does not match"
++			       " PM1_EVT_LEN (%u)\n",
++			       acpi_gbl_FADT.xpm1b_event_block.bit_width,
++			       acpi_gbl_FADT.pm1_event_length);
+ 		acpi_tb_init_generic_address(&acpi_gbl_xpm1b_enable,
+ 					     pm1_register_length,
+ 					     (acpi_gbl_FADT.xpm1b_event_block.
+ 					      address + pm1_register_length));
+ 		/* Don't forget to copy space_id of the GAS */
+ 		acpi_gbl_xpm1b_enable.space_id =
+-		    acpi_gbl_FADT.xpm1a_event_block.space_id;
++		    acpi_gbl_FADT.xpm1b_event_block.space_id;
+ 
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jbeulich@novell.com are
 
 origin.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-git-tests-git-rejects.patch
 git-acpi.patch
-git-acpi-git-rejects.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module-checkpatch-fixes.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-drivers-net-sfc-falconc-fix-min-warnings.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check-fix.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix-fix.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-vmallocc-revert-git-tip-change.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-revert-mm-vmallocc-revert-git-tip-change.patch
-memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
-mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh.patch
-make-taint-bit-reliable-v3-fix.patch
-kernel-sysc-improve-code-generation.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-drivers-hwmon-applesmcc-remove-unneeded-casts.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanups.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
-ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-new-driver-ds2431-chip-fix.patch
-gru-driver-minor-updates-fix.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+adjust-init-section-definitions.patch
+kconfig-eliminate-def_bool-n-constructs.patch
 
