@@ -1,73 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: - mn10300-mei-are-renaming-themselves-to-panasonic.patch removed from -mm tree
-Date: Mon, 13 Oct 2008 05:05:00 -0700
-Message-ID: <200810131204.m9DC4ehh013325@imap1.linux-foundation.org>
+Subject: - markers-make-marker_synchronize_unregister-a-macro.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 13:05:58 -0700
+Message-ID: <200810152005.m9FK5xOG030467@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37612 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34590 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756756AbYJMMF2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752483AbYJOUGW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 13 Oct 2008 08:05:28 -0400
+	Wed, 15 Oct 2008 16:06:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mathieu.desnoyers@polymtl.ca, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     MN10300: MEI are renaming themselves to Panasonic
+     markers: make marker_synchronize_unregister() a macro
 has been removed from the -mm tree.  Its filename was
-     mn10300-mei-are-renaming-themselves-to-panasonic.patch
+     markers-make-marker_synchronize_unregister-a-macro.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: MN10300: MEI are renaming themselves to Panasonic
-From: David Howells <dhowells@redhat.com>
+Subject: markers: make marker_synchronize_unregister() a macro
+From: Andrew Morton <akpm@linux-foundation.org>
 
-MEI are renaming themselves to Panasonic, so update the MAINTAINERS record
-for the MN10300 arch.
+i386 allnoconfig:
 
-Signed-off-by: David Howells <dhowells@redhat.com>
+In file included from include/linux/kmemtrace.h:13,
+                 from include/linux/slub_def.h:13,
+                 from include/linux/slab.h:184,
+                 from include/linux/percpu.h:5,
+                 from include/linux/rcupdate.h:39,
+                 from include/linux/sem.h:81,
+                 from include/linux/syscalls.h:62,
+                 from init/noinitramfs.c:23:
+include/linux/marker.h: In function 'marker_synchronize_unregister':
+include/linux/marker.h:171: error: implicit declaration of function 'synchronize_sched'
+
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/marker.h |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN MAINTAINERS~mn10300-mei-are-renaming-themselves-to-panasonic MAINTAINERS
---- a/MAINTAINERS~mn10300-mei-are-renaming-themselves-to-panasonic
-+++ a/MAINTAINERS
-@@ -2796,7 +2796,7 @@ L:	linux-mm@kvack.org
- L:	linux-kernel@vger.kernel.org
- S:	Maintained
+diff -puN include/linux/marker.h~markers-make-marker_synchronize_unregister-a-macro include/linux/marker.h
+--- a/include/linux/marker.h~markers-make-marker_synchronize_unregister-a-macro
++++ a/include/linux/marker.h
+@@ -165,10 +165,9 @@ extern void *marker_get_private_data(con
+  * marker_synchronize_unregister must be called between the last marker probe
+  * unregistration and the end of module exit to make sure there is no caller
+  * executing a probe when it is freed.
++ *
++ * This is a macro to simplify include dependencies.
+  */
+-static inline void marker_synchronize_unregister(void)
+-{
+-	synchronize_sched();
+-}
++#define marker_synchronize_unregister() synchronize_sched()
  
--MEI MN10300/AM33 PORT
-+PANASONIC MN10300/AM33 PORT
- P:	David Howells
- M:	dhowells@redhat.com
- P:	Koichi Yasutake
+ #endif
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-git-tip.patch
-git-v4l-dvb.patch
-git-xfs.patch
-git-mtd.patch
-git-cifs.patch
-git-drm.patch
-git-security-testing.patch
-uclinux-fix-gzip-header-parsing-in-binfmt_flatc.patch
-mn10300-mei-are-renaming-themselves-to-panasonic.patch
-binfmt_elf_fdpic-support-auxvec-base-platform-string.patch
-binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack.patch
-binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch
-sysctl-simplify-strategy.patch
-afs-convert-to-new-aops.patch
-afs-convert-to-new-aops-update.patch
-mn10300-use-bcd2bin-bin2bcd.patch
-mutex-subsystem-synchro-test-module.patch
+origin.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+markers-make-marker_synchronize_unregister-a-macro.patch
+fix-ttydev-tty-usbserial-kref.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+arch-x86-kernel-early_printkc-remove-unused-enable_debug_console.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module-checkpatch-fixes.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
+misdn-misc-timerdev-fixes-fix.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+git-backlight.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+vmscan-fix-pagecache-reclaim-referenced-bit-check-fix.patch
+vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix.patch
+vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix-fix.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-vmallocc-revert-git-tip-change.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+revert-mm-vmallocc-revert-git-tip-change.patch
+memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
+mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+eeepc-laptop-use-standard-interfaces-fix-fix.patch
+separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh.patch
+make-taint-bit-reliable-v3-fix.patch
+kernel-sysc-improve-code-generation.patch
+compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
+drivers-hwmon-applesmcc-remove-unneeded-casts.patch
+allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
+serial-make-uart_ports-ioport-unsigned-long-fix.patch
+autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix.patch
+autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanups.patch
+ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
+ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
+applicomc-fix-apparently-broken-code-in-do_ac_read.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+tpm-addition-of-pnp_remove-checkpatch-fixes.patch
+w1-be-able-to-manually-add-and-remove-slaves-fix.patch
+w1-new-driver-ds2431-chip-fix.patch
+gru-driver-minor-updates-fix.patch
+drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+x86-sysfs-kill-owner-field-from-attribute-fix.patch
+x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
