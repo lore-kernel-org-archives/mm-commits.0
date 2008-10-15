@@ -1,107 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - w1-new-driver-ds2431-chip-fix.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 16:58:52 -0700
-Message-ID: <200810152358.m9FNwq95024656@imap1.linux-foundation.org>
+Subject: - gru-driver-minor-updates-fix.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 16:59:55 -0700
+Message-ID: <200810152359.m9FNxtjQ024793@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33661 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41633 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752549AbYJOX7m (ORCPT
+	by vger.kernel.org with ESMTP id S1752670AbYJOX77 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 19:59:42 -0400
+	Wed, 15 Oct 2008 19:59:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bernhard.weirich@riedel.net, bgardner@wabtec.com, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, steiner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     w1-new-driver-ds2431-chip-fix
+     gru-driver-minor-updates-fix
 has been removed from the -mm tree.  Its filename was
-     w1-new-driver-ds2431-chip-fix.patch
+     gru-driver-minor-updates-fix.patch
 
-This patch was dropped because it was folded into w1-new-driver-ds2431-chip.patch
+This patch was dropped because it was folded into gru-driver-minor-updates.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1-new-driver-ds2431-chip-fix
+Subject: gru-driver-minor-updates-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ben Gardner <bgardner@wabtec.com>
-Cc: Bernhard Weirich <bernhard.weirich@riedel.net>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Jcak cnat tpye.
+
+Cc: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/w1_ds2431.c |   16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+ drivers/misc/sgi-gru/grufault.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/w1/slaves/w1_ds2431.c~w1-new-driver-ds2431-chip-fix drivers/w1/slaves/w1_ds2431.c
---- a/drivers/w1/slaves/w1_ds2431.c~w1-new-driver-ds2431-chip-fix
-+++ a/drivers/w1/slaves/w1_ds2431.c
-@@ -1,5 +1,5 @@
+diff -puN drivers/misc/sgi-gru/grufault.c~gru-driver-minor-updates-fix drivers/misc/sgi-gru/grufault.c
+--- a/drivers/misc/sgi-gru/grufault.c~gru-driver-minor-updates-fix
++++ a/drivers/misc/sgi-gru/grufault.c
+@@ -214,16 +214,14 @@ static int non_atomic_pte_lookup(struct 
+ }
+ 
  /*
-- *	w1_DS2431.c - w1 family 2d (DS2431) driver
-+ * w1_ds2431.c - w1 family 2d (DS2431) driver
+- *
+  * atomic_pte_lookup
   *
-  * Copyright (c) 2008 Bernhard Weirich <bernhard.weirich@riedel.net>
+  * Convert a user virtual address to a physical address
+  * Only supports Intel large pages (2MB only) on x86_64.
+  *	ZZZ - hugepage support is incomplete
   *
-@@ -41,7 +41,7 @@
- #define W1_F2D_READ_RETRIES		10
- #define W1_F2D_READ_MAXLEN		8
- 
--/**
-+/*
-  * Check the file size bounds and adjusts count as needed.
-  * This would not be needed if the file size didn't reset to 0 after a write.
+- * NOTE; mmap_sem is already held on entry to this function. This
+- * guarantees existence of the apge tables.
+- *
++ * NOTE: mmap_sem is already held on entry to this function. This
++ * guarantees existence of the page tables.
   */
-@@ -56,7 +56,7 @@ static inline size_t w1_f2d_fix_count(lo
- 	return count;
- }
- 
--/**
-+/*
-  * Read a block from W1 ROM two times and compares the results.
-  * If they are equal they are returned, otherwise the read
-  * is repeated W1_F2D_READ_RETRIES times.
-@@ -88,8 +88,6 @@ static int w1_f2d_readblock(struct w1_sl
- 
- 		if (!memcmp(cmp, buf, count))
- 			return 0;
--
--
- 	} while (--tries);
- 
- 	dev_err(&sl->dev, "proof reading failed %d times\n",
-@@ -98,7 +96,6 @@ static int w1_f2d_readblock(struct w1_sl
- 	return -1;
- }
- 
--
- static ssize_t w1_f2d_read_bin(struct kobject *kobj,
- 			       struct bin_attribute *bin_attr,
- 			       char *buf, loff_t off, size_t count)
-@@ -134,7 +131,7 @@ static ssize_t w1_f2d_read_bin(struct ko
- 	return count;
- }
- 
--/**
-+/*
-  * Writes to the scratchpad and reads it back for verification.
-  * Then copies the scratchpad to EEPROM.
-  * The data must be aligned at W1_F2D_SCRATCH_SIZE bytes and
-@@ -279,10 +276,7 @@ static struct bin_attribute w1_f2d_bin_a
- 
- static int w1_f2d_add_slave(struct w1_slave *sl)
- {
--	int err;
--	err = sysfs_create_bin_file(&sl->dev.kobj, &w1_f2d_bin_attr);
--
--	return err;
-+	return sysfs_create_bin_file(&sl->dev.kobj, &w1_f2d_bin_attr);
- }
- 
- static void w1_f2d_remove_slave(struct w1_slave *sl)
+ static int atomic_pte_lookup(struct vm_area_struct *vma, unsigned long vaddr,
+ 	int write, unsigned long *paddr, int *pageshift)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -128,6 +84,6 @@ applicomc-fix-apparently-broken-code-in-do_ac_read.patch
 drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
 w1-be-able-to-manually-add-and-remove-slaves.patch
 w1-new-driver-ds2431-chip.patch
-w1-new-driver-ds2431-chip-fix.patch
+gru-driver-minor-updates.patch
 gru-driver-minor-updates-fix.patch
 
