@@ -1,91 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: - tpm-num_opens-to-is_open-variable-change.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 14:14:19 -0700
-Message-ID: <200810152114.m9FLEJHX005746@imap1.linux-foundation.org>
+Subject: - tpm-addition-of-pnp_remove.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 14:14:23 -0700
+Message-ID: <200810152114.m9FLENiC005752@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53535 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45646 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753976AbYJOV0b (ORCPT
+	by vger.kernel.org with ESMTP id S1753777AbYJOV0a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 17:26:31 -0400
+	Wed, 15 Oct 2008 17:26:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: srajiv@linux.vnet.ibm.com, serue@us.ibm.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: srajiv@linux.vnet.ibm.com, bjorn.helgaas@hp.com, serue@us.ibm.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tpm: num_opens to is_open variable change
+     tpm: addition of pnp_remove()
 has been removed from the -mm tree.  Its filename was
-     tpm-num_opens-to-is_open-variable-change.patch
+     tpm-addition-of-pnp_remove.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tpm: num_opens to is_open variable change
+Subject: tpm: addition of pnp_remove()
 From: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
 
-Renames num_open to is_open, as only one process can open the file at a time.
+The tpm_dev_release function is only called for platform devices, not pnp
+devices, so we implemented the .remove function for pnp ones.  Since it's
+code is very similar to the one inside tpm_dev_release, we've created a
+helper function tpm_dev_vendor_release, which is called by both.
 
 Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Signed-off-by: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
 Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm.c |    7 +++----
- drivers/char/tpm/tpm.h |    2 +-
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ drivers/char/tpm/tpm.c     |   22 ++++++++++++++++------
+ drivers/char/tpm/tpm.h     |    1 +
+ drivers/char/tpm/tpm_tis.c |   14 +++++++++++++-
+ 3 files changed, 30 insertions(+), 7 deletions(-)
 
-diff -puN drivers/char/tpm/tpm.c~tpm-num_opens-to-is_open-variable-change drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~tpm-num_opens-to-is_open-variable-change
+diff -puN drivers/char/tpm/tpm.c~tpm-addition-of-pnp_remove drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~tpm-addition-of-pnp_remove
 +++ a/drivers/char/tpm/tpm.c
-@@ -985,20 +985,19 @@ int tpm_open(struct inode *inode, struct
- 		goto err_out;
- 	}
+@@ -1140,23 +1140,33 @@ int tpm_pm_resume(struct device *dev)
+ }
+ EXPORT_SYMBOL_GPL(tpm_pm_resume);
  
--	if (chip->num_opens) {
-+	if (test_and_set_bit(0, &chip->is_open)) {
- 		dev_dbg(chip->dev, "Another process owns this TPM\n");
- 		rc = -EBUSY;
- 		goto err_out;
- 	}
++/* In case vendor provided release function, call it too.*/
++
++void tpm_dev_vendor_release(struct tpm_chip *chip)
++{
++	if (chip->vendor.release)
++	 	chip->vendor.release(chip->dev);
++
++	clear_bit(chip->dev_num, dev_mask);
++	kfree(chip->vendor.miscdev.name);
++}
++EXPORT_SYMBOL_GPL(tpm_dev_vendor_release);
++
++
+ /*
+  * Once all references to platform device are down to 0,
+  * release all allocated structures.
+- * In case vendor provided release function, call it too.
+  */
+ static void tpm_dev_release(struct device *dev)
+ {
+ 	struct tpm_chip *chip = dev_get_drvdata(dev);
  
--	chip->num_opens++;
- 	get_device(chip->dev);
+-	if (chip->vendor.release)
+-		chip->vendor.release(dev);
+-	chip->release(dev);
++	tpm_dev_vendor_release(chip);
  
- 	spin_unlock(&driver_lock);
+-	clear_bit(chip->dev_num, dev_mask);
+-	kfree(chip->vendor.miscdev.name);
++	chip->release(dev);
+ 	kfree(chip);
+ }
++EXPORT_SYMBOL_GPL(tpm_dev_release);
  
- 	chip->data_buffer = kmalloc(TPM_BUFSIZE * sizeof(u8), GFP_KERNEL);
- 	if (chip->data_buffer == NULL) {
--		chip->num_opens--;
-+		clear_bit(0, &chip->is_open);
- 		put_device(chip->dev);
- 		return -ENOMEM;
- 	}
-@@ -1023,7 +1022,7 @@ int tpm_release(struct inode *inode, str
- 	file->private_data = NULL;
- 	del_singleshot_timer_sync(&chip->user_read_timer);
- 	atomic_set(&chip->data_pending, 0);
--	chip->num_opens--;
-+	clear_bit(0, &chip->is_open);
- 	put_device(chip->dev);
- 	kfree(chip->data_buffer);
- 	spin_unlock(&driver_lock);
-diff -puN drivers/char/tpm/tpm.h~tpm-num_opens-to-is_open-variable-change drivers/char/tpm/tpm.h
---- a/drivers/char/tpm/tpm.h~tpm-num_opens-to-is_open-variable-change
+ /*
+  * Called from tpm_<specific>.c probe function only for devices 
+diff -puN drivers/char/tpm/tpm.h~tpm-addition-of-pnp_remove drivers/char/tpm/tpm.h
+--- a/drivers/char/tpm/tpm.h~tpm-addition-of-pnp_remove
 +++ a/drivers/char/tpm/tpm.h
-@@ -90,7 +90,7 @@ struct tpm_chip {
- 	struct device *dev;	/* Device stuff */
+@@ -132,6 +132,7 @@ extern struct tpm_chip* tpm_register_har
+ 				 const struct tpm_vendor_specific *);
+ extern int tpm_open(struct inode *, struct file *);
+ extern int tpm_release(struct inode *, struct file *);
++extern void tpm_dev_vendor_release(struct tpm_chip *);
+ extern ssize_t tpm_write(struct file *, const char __user *, size_t,
+ 			 loff_t *);
+ extern ssize_t tpm_read(struct file *, char __user *, size_t, loff_t *);
+diff -puN drivers/char/tpm/tpm_tis.c~tpm-addition-of-pnp_remove drivers/char/tpm/tpm_tis.c
+--- a/drivers/char/tpm/tpm_tis.c~tpm-addition-of-pnp_remove
++++ a/drivers/char/tpm/tpm_tis.c
+@@ -630,12 +630,23 @@ static struct pnp_device_id tpm_pnp_tbl[
+ 	{"", 0}			/* Terminator */
+ };
  
- 	int dev_num;		/* /dev/tpm# */
--	int num_opens;		/* only one allowed */
-+	unsigned long is_open;	/* only one allowed */
- 	int time_expired;
++static __devexit void tpm_tis_pnp_remove(struct pnp_dev *dev)
++{
++	struct tpm_chip *chip = pnp_get_drvdata(dev);
++
++	tpm_dev_vendor_release(chip);
++
++	kfree(chip);
++}
++
++
+ static struct pnp_driver tis_pnp_driver = {
+ 	.name = "tpm_tis",
+ 	.id_table = tpm_pnp_tbl,
+ 	.probe = tpm_tis_pnp_init,
+ 	.suspend = tpm_tis_pnp_suspend,
+ 	.resume = tpm_tis_pnp_resume,
++	.remove = tpm_tis_pnp_remove,
+ };
  
- 	/* Data passed to and from the tpm via the read/write calls */
+ #define TIS_HID_USR_IDX sizeof(tpm_pnp_tbl)/sizeof(struct pnp_device_id) -2
+@@ -683,6 +694,7 @@ static void __exit cleanup_tis(void)
+ 	spin_lock(&tis_lock);
+ 	list_for_each_entry_safe(i, j, &tis_chips, list) {
+ 		chip = to_tpm_chip(i);
++		tpm_remove_hardware(chip->dev);
+ 		iowrite32(~TPM_GLOBAL_INT_ENABLE &
+ 			  ioread32(chip->vendor.iobase +
+ 				   TPM_INT_ENABLE(chip->vendor.
+@@ -694,9 +706,9 @@ static void __exit cleanup_tis(void)
+ 			free_irq(chip->vendor.irq, chip);
+ 		iounmap(i->iobase);
+ 		list_del(&i->list);
+-		tpm_remove_hardware(chip->dev);
+ 	}
+ 	spin_unlock(&tis_lock);
++
+ 	if (force) {
+ 		platform_device_unregister(pdev);
+ 		driver_unregister(&tis_drv);
 _
 
 Patches currently in -mm which might be from srajiv@linux.vnet.ibm.com are
