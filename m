@@ -1,88 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 16:46:42 -0700
-Message-ID: <200810152346.m9FNkgwm023185@imap1.linux-foundation.org>
+Subject: - rtc-ds1374-wakeup-support-update.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 16:50:51 -0700
+Message-ID: <200810152350.m9FNoqAu023677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47751 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33997 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753253AbYJOXqq (ORCPT
+	by vger.kernel.org with ESMTP id S1752656AbYJOXvP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 19:46:46 -0400
+	Wed, 15 Oct 2008 19:51:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, raven@themaw.net, mm-commits@vger.kernel.org
+To: marc.pignat@hevs.ch, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     autofs4-add-miscellaneous-device-for-ioctls-fix-2
+     rtc: DS1374 wakeup support (update)
 has been removed from the -mm tree.  Its filename was
-     autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
+     rtc-ds1374-wakeup-support-update.patch
 
-This patch was dropped because it was folded into autofs4-add-miscellaneous-device-for-ioctls.patch
+This patch was dropped because it was folded into rtc-ds1374-wakup-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4-add-miscellaneous-device-for-ioctls-fix-2
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc: DS1374 wakeup support (update)
+From: Marc Pignat <marc.pignat@hevs.ch>
 
-fs/autofs4/dev-ioctl.c: In function 'autofs_dev_ioctl_fd_install':
-fs/autofs4/dev-ioctl.c:272: error: dereferencing pointer to incomplete type
-fs/autofs4/dev-ioctl.c:273: error: implicit declaration of function 'files_fdtable'
-fs/autofs4/dev-ioctl.c:273: warning: assignment makes pointer from integer without a cast
-fs/autofs4/dev-ioctl.c:274: error: dereferencing pointer to incomplete type
-fs/autofs4/dev-ioctl.c:275: error: dereferencing pointer to incomplete type
-fs/autofs4/dev-ioctl.c:276: error: dereferencing pointer to incomplete type
-fs/autofs4/dev-ioctl.c:277: error: dereferencing pointer to incomplete type
-fs/autofs4/dev-ioctl.c:276: error: invalid lvalue in asm output 0
-fs/autofs4/dev-ioctl.c:276: error: memory input 2 is not directly addressable
+Changes since v1:
+ * patch against 2.6.27-rc1
+ * removed device_init_wakeup(...) calls, they should be handled in i2c-core.c
 
-Cc: Ian Kent <raven@themaw.net>
+Signed-off-by: Marc Pignat <marc.pignat@hevs.ch>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/dev-ioctl.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rtc/rtc-ds1374.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN fs/autofs4/dev-ioctl.c~autofs4-add-miscellaneous-device-for-ioctls-fix-2 fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs4-add-miscellaneous-device-for-ioctls-fix-2
-+++ a/fs/autofs4/dev-ioctl.c
-@@ -15,6 +15,7 @@
- #include <linux/namei.h>
- #include <linux/fcntl.h>
- #include <linux/file.h>
-+#include <linux/fdtable.h>
- #include <linux/sched.h>
- #include <linux/compat.h>
- #include <linux/syscalls.h>
+diff -puN drivers/rtc/rtc-ds1374.c~rtc-ds1374-wakeup-support-update drivers/rtc/rtc-ds1374.c
+--- a/drivers/rtc/rtc-ds1374.c~rtc-ds1374-wakeup-support-update
++++ a/drivers/rtc/rtc-ds1374.c
+@@ -388,7 +388,6 @@ static int ds1374_probe(struct i2c_clien
+ 			dev_err(&client->dev, "unable to request IRQ\n");
+ 			goto out_free;
+ 		}
+-		device_init_wakeup(&client->dev, 1);
+ 	}
+ 
+ 	ds1374->rtc = rtc_device_register(client->name, &client->dev,
+@@ -402,10 +401,9 @@ static int ds1374_probe(struct i2c_clien
+ 	return 0;
+ 
+ out_irq:
+-	if (client->irq > 0) {
+-		device_init_wakeup(&client->dev, 0);
++	if (client->irq > 0)
+ 		free_irq(client->irq, client);
+-	}
++
+ out_free:
+ 	i2c_set_clientdata(client, NULL);
+ 	kfree(ds1374);
+@@ -421,7 +419,6 @@ static int __devexit ds1374_remove(struc
+ 		ds1374->exiting = 1;
+ 		mutex_unlock(&ds1374->mutex);
+ 
+-		device_init_wakeup(&client->dev, 0);
+ 		free_irq(client->irq, client);
+ 		flush_scheduled_work();
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from marc.pignat@hevs.ch are
 
-origin.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation.patch
-make-taint-bit-reliable-v3.patch
-kernel-sysc-improve-code-generation.patch
-compat-generic-compat-get-settimeofday.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc.patch
-autofs4-track-uid-and-gid-of-last-mount-requester.patch
-autofs4-add-miscellaneous-device-for-ioctls.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanups.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-new-driver-ds2431-chip-fix.patch
-gru-driver-minor-updates-fix.patch
+rtc-ds1374-wakup-support.patch
+rtc-ds1374-wakeup-support-update.patch
 
