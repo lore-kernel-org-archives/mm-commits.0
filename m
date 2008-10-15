@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + byteorder-provide-swabbh-generically-in-asm-byteorderh.patch added to -mm tree
-Date: Wed, 15 Oct 2008 15:02:56 -0700
-Message-ID: <200810152202.m9FM2uO3011171@imap1.linux-foundation.org>
+Subject: + byteorder-remove-direct-includes-of-linux-byteorder-swabh.patch added to -mm tree
+Date: Wed, 15 Oct 2008 15:04:21 -0700
+Message-ID: <200810152204.m9FM4LB4011352@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45275 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36019 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752670AbYJOWD2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752509AbYJOWF0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 18:03:28 -0400
+	Wed, 15 Oct 2008 18:05:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com
+Cc: harvey.harrison@gmail.com, mchehab@infradead.org, paulmck@us.ibm.com
 
 
 The patch titled
-     byteorder: provide swabb.h generically in asm/byteorder.h
+     byteorder: remove direct includes of linux/byteorder/swab[b].h
 has been added to the -mm tree.  Its filename is
-     byteorder-provide-swabbh-generically-in-asm-byteorderh.patch
+     byteorder-remove-direct-includes-of-linux-byteorder-swabh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: provide swabb.h generically in asm/byteorder.h
+Subject: byteorder: remove direct includes of linux/byteorder/swab[b].h
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-This is needed during the transition to the new byteorder headers as the
-swabb.h functionality will be provided from asm/byteorder.h in the new
-version.  To avoid breakage on arches still using the old implementation,
-provide swabb.h from asm/byteorder.h as well.
+A consolidated implementation will provide this generically through
+asm/byteorder, remove direct includes to avoid breakage when the
+changeover to the new implementation occurs.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/byteorder/Kbuild          |    1 +
- include/linux/byteorder/big_endian.h    |    1 +
- include/linux/byteorder/little_endian.h |    1 +
- 3 files changed, 3 insertions(+)
+ drivers/media/dvb/ttpci/av7110.c       |    2 +-
+ drivers/media/video/cx18/cx18-driver.h |    1 +
+ drivers/media/video/ivtv/ivtv-driver.h |    1 +
+ kernel/rcupreempt.c                    |    2 +-
+ tests/rcutorture.c                     |    3 ++-
+ 5 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/byteorder/Kbuild~byteorder-provide-swabbh-generically-in-asm-byteorderh include/linux/byteorder/Kbuild
---- a/include/linux/byteorder/Kbuild~byteorder-provide-swabbh-generically-in-asm-byteorderh
-+++ a/include/linux/byteorder/Kbuild
-@@ -1,3 +1,4 @@
- unifdef-y += big_endian.h
- unifdef-y += little_endian.h
- unifdef-y += swab.h
-+unifdef-y += swabb.h
-diff -puN include/linux/byteorder/big_endian.h~byteorder-provide-swabbh-generically-in-asm-byteorderh include/linux/byteorder/big_endian.h
---- a/include/linux/byteorder/big_endian.h~byteorder-provide-swabbh-generically-in-asm-byteorderh
-+++ a/include/linux/byteorder/big_endian.h
-@@ -10,6 +10,7 @@
+diff -puN drivers/media/dvb/ttpci/av7110.c~byteorder-remove-direct-includes-of-linux-byteorder-swabh drivers/media/dvb/ttpci/av7110.c
+--- a/drivers/media/dvb/ttpci/av7110.c~byteorder-remove-direct-includes-of-linux-byteorder-swabh
++++ a/drivers/media/dvb/ttpci/av7110.c
+@@ -36,7 +36,6 @@
+ #include <linux/fs.h>
+ #include <linux/timer.h>
+ #include <linux/poll.h>
+-#include <linux/byteorder/swabb.h>
+ #include <linux/smp_lock.h>
  
- #include <linux/types.h>
- #include <linux/byteorder/swab.h>
-+#include <linux/byteorder/swabb.h>
+ #include <linux/kernel.h>
+@@ -52,6 +51,7 @@
+ #include <linux/i2c.h>
+ #include <linux/kthread.h>
+ #include <asm/unaligned.h>
++#include <asm/byteorder.h>
  
- #define __constant_htonl(x) ((__force __be32)(__u32)(x))
- #define __constant_ntohl(x) ((__force __u32)(__be32)(x))
-diff -puN include/linux/byteorder/little_endian.h~byteorder-provide-swabbh-generically-in-asm-byteorderh include/linux/byteorder/little_endian.h
---- a/include/linux/byteorder/little_endian.h~byteorder-provide-swabbh-generically-in-asm-byteorderh
-+++ a/include/linux/byteorder/little_endian.h
-@@ -10,6 +10,7 @@
+ #include <asm/system.h>
  
- #include <linux/types.h>
- #include <linux/byteorder/swab.h>
-+#include <linux/byteorder/swabb.h>
+diff -puN drivers/media/video/cx18/cx18-driver.h~byteorder-remove-direct-includes-of-linux-byteorder-swabh drivers/media/video/cx18/cx18-driver.h
+--- a/drivers/media/video/cx18/cx18-driver.h~byteorder-remove-direct-includes-of-linux-byteorder-swabh
++++ a/drivers/media/video/cx18/cx18-driver.h
+@@ -41,6 +41,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/workqueue.h>
+ #include <linux/mutex.h>
++#include <asm/byteorder.h>
  
- #define __constant_htonl(x) ((__force __be32)___constant_swab32((x)))
- #define __constant_ntohl(x) ___constant_swab32((__force __be32)(x))
+ #include <linux/dvb/video.h>
+ #include <linux/dvb/audio.h>
+diff -puN drivers/media/video/ivtv/ivtv-driver.h~byteorder-remove-direct-includes-of-linux-byteorder-swabh drivers/media/video/ivtv/ivtv-driver.h
+--- a/drivers/media/video/ivtv/ivtv-driver.h~byteorder-remove-direct-includes-of-linux-byteorder-swabh
++++ a/drivers/media/video/ivtv/ivtv-driver.h
+@@ -55,6 +55,7 @@
+ #include <linux/mutex.h>
+ #include <asm/uaccess.h>
+ #include <asm/system.h>
++#include <asm/byteorder.h>
+ 
+ #include <linux/dvb/video.h>
+ #include <linux/dvb/audio.h>
+diff -puN kernel/rcupreempt.c~byteorder-remove-direct-includes-of-linux-byteorder-swabh kernel/rcupreempt.c
+--- a/kernel/rcupreempt.c~byteorder-remove-direct-includes-of-linux-byteorder-swabh
++++ a/kernel/rcupreempt.c
+@@ -54,9 +54,9 @@
+ #include <linux/cpu.h>
+ #include <linux/random.h>
+ #include <linux/delay.h>
+-#include <linux/byteorder/swabb.h>
+ #include <linux/cpumask.h>
+ #include <linux/rcupreempt_trace.h>
++#include <asm/byteorder.h>
+ 
+ /*
+  * PREEMPT_RCU data structures.
+diff -puN /dev/null /dev/null
+diff -puN tests/rcutorture.c~byteorder-remove-direct-includes-of-linux-byteorder-swabh tests/rcutorture.c
+--- a/tests/rcutorture.c~byteorder-remove-direct-includes-of-linux-byteorder-swabh
++++ a/tests/rcutorture.c
+@@ -42,11 +42,12 @@
+ #include <linux/freezer.h>
+ #include <linux/cpu.h>
+ #include <linux/delay.h>
+-#include <linux/byteorder/swabb.h>
+ #include <linux/stat.h>
+ #include <linux/srcu.h>
+ #include <linux/slab.h>
+ 
++#include <asm/byteorder.h>
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Paul E. McKenney <paulmck@us.ibm.com> and "
+               "Josh Triplett <josh@freedesktop.org>");
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
