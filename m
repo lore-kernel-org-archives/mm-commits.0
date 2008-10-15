@@ -1,55 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 16:42:00 -0700
-Message-ID: <200810152342.m9FNg1oH022572@imap1.linux-foundation.org>
+Subject: - make-taint-bit-reliable-v3-fix.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 16:42:43 -0700
+Message-ID: <200810152342.m9FNghhH022659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52993 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59824 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752840AbYJOXm2 (ORCPT
+	by vger.kernel.org with ESMTP id S1753998AbYJOXm7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 19:42:28 -0400
+	Wed, 15 Oct 2008 19:42:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, pavel@suse.cz, rjw@sisk.pl, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andi@firstfloor.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup
+     make-taint-bit-reliable-v3-fix
 has been removed from the -mm tree.  Its filename was
-     pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+     make-taint-bit-reliable-v3-fix.patch
 
-This patch was dropped because it was folded into pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation.patch
+This patch was dropped because it was folded into make-taint-bit-reliable-v3.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup
+Subject: make-taint-bit-reliable-v3-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Pavel Machek <pavel@suse.cz>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Remove unneeded include.
+
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmod.h |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/panic.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/kmod.h~pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup include/linux/kmod.h
---- a/include/linux/kmod.h~pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup
-+++ a/include/linux/kmod.h
-@@ -99,9 +99,7 @@ struct file;
- extern int call_usermodehelper_pipe(char *path, char *argv[], char *envp[],
- 				    struct file **filp);
+diff -puN kernel/panic.c~make-taint-bit-reliable-v3-fix kernel/panic.c
+--- a/kernel/panic.c~make-taint-bit-reliable-v3-fix
++++ a/kernel/panic.c
+@@ -21,7 +21,6 @@
+ #include <linux/debug_locks.h>
+ #include <linux/random.h>
+ #include <linux/kallsyms.h>
+-#include <linux/log2.h>
  
--#ifdef CONFIG_PM_SLEEP
- extern int usermodehelper_disable(void);
- extern void usermodehelper_enable(void);
--#endif
- 
- #endif /* __LINUX_KMOD_H__ */
+ int panic_on_oops;
+ static unsigned long tainted_mask;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -58,7 +56,7 @@ origin.patch
 mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
 h8300-generic_bug-support-checkpatch-fixes.patch
 pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
+make-taint-bit-reliable-v3.patch
 make-taint-bit-reliable-v3-fix.patch
 kernel-sysc-improve-code-generation.patch
 compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
