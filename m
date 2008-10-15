@@ -1,77 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - markers-make-marker_synchronize_unregister-a-macro.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 13:05:58 -0700
-Message-ID: <200810152005.m9FK5xOG030467@imap1.linux-foundation.org>
+Subject: - fix-ttydev-tty-usbserial-kref.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 13:06:16 -0700
+Message-ID: <200810152006.m9FK6Gw2030508@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34590 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50882 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752483AbYJOUGW (ORCPT
+	by vger.kernel.org with ESMTP id S1753230AbYJOUGb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 16:06:22 -0400
+	Wed, 15 Oct 2008 16:06:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mathieu.desnoyers@polymtl.ca, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     markers: make marker_synchronize_unregister() a macro
+     fix ttydev-tty-usbserial-kref
 has been removed from the -mm tree.  Its filename was
-     markers-make-marker_synchronize_unregister-a-macro.patch
+     fix-ttydev-tty-usbserial-kref.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: markers: make marker_synchronize_unregister() a macro
+Subject: fix ttydev-tty-usbserial-kref
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386 allnoconfig:
+drivers/usb/serial/keyspan_pda.c: In function 'keyspan_pda_rx_interrupt':       drivers/usb/serial/keyspan_pda.c:269: error: label at end of compound statement
 
-In file included from include/linux/kmemtrace.h:13,
-                 from include/linux/slub_def.h:13,
-                 from include/linux/slab.h:184,
-                 from include/linux/percpu.h:5,
-                 from include/linux/rcupdate.h:39,
-                 from include/linux/sem.h:81,
-                 from include/linux/syscalls.h:62,
-                 from init/noinitramfs.c:23:
-include/linux/marker.h: In function 'marker_synchronize_unregister':
-include/linux/marker.h:171: error: implicit declaration of function 'synchronize_sched'
+Might be a local merging snafu
 
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/marker.h |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/usb/serial/keyspan_pda.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/marker.h~markers-make-marker_synchronize_unregister-a-macro include/linux/marker.h
---- a/include/linux/marker.h~markers-make-marker_synchronize_unregister-a-macro
-+++ a/include/linux/marker.h
-@@ -165,10 +165,9 @@ extern void *marker_get_private_data(con
-  * marker_synchronize_unregister must be called between the last marker probe
-  * unregistration and the end of module exit to make sure there is no caller
-  * executing a probe when it is freed.
-+ *
-+ * This is a macro to simplify include dependencies.
-  */
--static inline void marker_synchronize_unregister(void)
--{
--	synchronize_sched();
--}
-+#define marker_synchronize_unregister() synchronize_sched()
+diff -puN drivers/usb/serial/keyspan_pda.c~fix-ttydev-tty-usbserial-kref drivers/usb/serial/keyspan_pda.c
+--- a/drivers/usb/serial/keyspan_pda.c~fix-ttydev-tty-usbserial-kref
++++ a/drivers/usb/serial/keyspan_pda.c
+@@ -266,6 +266,7 @@ exit:
+ 			"%s - usb_submit_urb failed with result %d\n",
+ 			__func__, retval);
+ out:
++	return;
+ }
  
- #endif
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 mm-remove-the-might_sleep-from-lock_page.patch
-markers-make-marker_synchronize_unregister-a-macro.patch
 fix-ttydev-tty-usbserial-kref.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
