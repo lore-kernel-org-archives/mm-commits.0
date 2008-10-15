@@ -1,212 +1,429 @@
 From: akpm@linux-foundation.org
-Subject: + git-acpi-git-rejects.patch added to -mm tree
-Date: Wed, 15 Oct 2008 13:48:18 -0700
-Message-ID: <200810152048.m9FKmIAm002700@imap1.linux-foundation.org>
+Subject: - rtc-cmos-strongly-avoid-hpet-emulation.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 13:55:28 -0700
+Message-ID: <200810152055.m9FKtSI5003542@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46516 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53635 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751969AbYJOUsU (ORCPT
+	by vger.kernel.org with ESMTP id S1752585AbYJOU5I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 16:48:20 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m9FKmIMD009974
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 15 Oct 2008 13:48:19 -0700
+	Wed, 15 Oct 2008 16:57:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: dbrownell@users.sourceforge.net, andi@firstfloor.org, mjg59@srcf.ucam.org, shaohua.li@intel.com, stsp@aknet.ru, yakui.zhao@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-acpi-git-rejects
-has been added to the -mm tree.  Its filename is
-     git-acpi-git-rejects.patch
+     rtc-cmos: strongly avoid "HPET emulation"
+has been removed from the -mm tree.  Its filename was
+     rtc-cmos-strongly-avoid-hpet-emulation.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because of rejects
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-acpi-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc-cmos: strongly avoid "HPET emulation"
+From: David Brownell <dbrownell@users.sourceforge.net>
 
+Add a new mechanism to the rtc-cmos platform glue: an irq_handler_t can
+now "filter" the interrupts.
+
+Update rtc-cmos to use that mechanism where it's been set up, instead of
+"HPET emulation".  http://bugzilla.kernel.org/show_bug.cgi?id=11153 shows
+the problem: that emulation makes update interrupts misbehave wildly, and
+thus makes NTP synch tools malfunction.
+
+Make ACPI glue always set this using ACPI "events".  That seems to work
+even if HPET isn't set up for "legacy replacement mode", which reroutes
+RTC irqs to SCI.  In the future, ACPI might need to blacklist some boards
+where ACPI event handling doesn't work as well as "real" IRQs, yet booting
+"hpet=disable" isn't OK.  For now we work around such problems by leaving
+ACPI RTC event code disabled most of the time.
+
+(This already works around at least two bugs in the ACPI event handling,
+or is it BIOS code?, and I don't have a good handle on what other
+surprises may lurk there.  Should the RTC just request_irq(SCI,
+IRQF_SHARED, ...), in case of boards that don't expose this particular
+ACPI event?  If so, how can it know the SCI irq?)
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: David Shaohua Li <shaohua.li@intel.com>
+Cc: Zhao Yakui <yakui.zhao@intel.com>
+Cc: Stas Sergeev <stsp@aknet.ru>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS          |   10 ----------
- drivers/acpi/Kconfig |    3 ---
- drivers/pnp/Makefile |    3 ---
- 3 files changed, 16 deletions(-)
+ drivers/acpi/glue.c         |   27 ++++++---
+ drivers/rtc/rtc-cmos.c      |  102 +++++++++++++++++++++++++---------
+ include/linux/mc146818rtc.h |    1 
+ 3 files changed, 97 insertions(+), 33 deletions(-)
 
-diff -puN MAINTAINERS~git-acpi-git-rejects MAINTAINERS
---- a/MAINTAINERS~git-acpi-git-rejects
-+++ a/MAINTAINERS
-@@ -3167,19 +3167,9 @@ M:	olof@lixom.net
- L:	i2c@lm-sensors.org
- S:	Maintained
+diff -puN drivers/acpi/glue.c~rtc-cmos-strongly-avoid-hpet-emulation drivers/acpi/glue.c
+--- a/drivers/acpi/glue.c~rtc-cmos-strongly-avoid-hpet-emulation
++++ a/drivers/acpi/glue.c
+@@ -11,6 +11,8 @@
+ #include <linux/device.h>
+ #include <linux/rwsem.h>
+ #include <linux/acpi.h>
++#include <linux/interrupt.h>
++
  
--<<<<<<< HEAD:MAINTAINERS
--PANASONIC MN10300/AM33 PORT
--P:	David Howells
--M:	dhowells@redhat.com
--P:	Koichi Yasutake
--M:	yasutake.koichi@jp.panasonic.com
--L:	linux-am33-list@redhat.com (moderated for non-subscribers)
--W:	ftp://ftp.redhat.com/pub/redhat/gnupro/AM33/
--=======
- PANASONIC LAPTOP ACPI EXTRAS DRIVER
- P:	Harald Welte
- M:	laforge@gnumonks.org
-->>>>>>> FETCH_HEAD:MAINTAINERS
- S:	Maintained
+ #define ACPI_GLUE_DEBUG	0
+ #if ACPI_GLUE_DEBUG
+@@ -301,14 +303,29 @@ arch_initcall(init_acpi_device_notify);
  
- PARALLEL PORT SUPPORT
-diff -puN drivers/acpi/Kconfig~git-acpi-git-rejects drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~git-acpi-git-rejects
-+++ a/drivers/acpi/Kconfig
-@@ -253,12 +253,9 @@ config ACPI_ASUS
- config ACPI_TOSHIBA
- 	tristate "Toshiba Laptop Extras"
- 	depends on X86 && INPUT
--<<<<<<< HEAD:drivers/acpi/Kconfig
- 	select INPUT_POLLDEV
- 	select NET
- 	select RFKILL
--=======
-->>>>>>> FETCH_HEAD:drivers/acpi/Kconfig
- 	select BACKLIGHT_CLASS_DEVICE
- 	---help---
- 	  This driver adds support for access to certain system settings
-diff -puN drivers/pnp/Makefile~git-acpi-git-rejects drivers/pnp/Makefile
---- a/drivers/pnp/Makefile~git-acpi-git-rejects
-+++ a/drivers/pnp/Makefile
-@@ -7,7 +7,6 @@ obj-y		:= core.o card.o driver.o resourc
- obj-$(CONFIG_PNPACPI)		+= pnpacpi/
- obj-$(CONFIG_PNPBIOS)		+= pnpbios/
- obj-$(CONFIG_ISAPNP)		+= isapnp/
--<<<<<<< HEAD:drivers/pnp/Makefile
+ #if defined(CONFIG_RTC_DRV_CMOS) || defined(CONFIG_RTC_DRV_CMOS_MODULE)
  
- # pnp_system_init goes after pnpacpi/pnpbios init
- obj-y				+= system.o
-@@ -15,5 +14,3 @@ obj-y				+= system.o
- ifeq ($(CONFIG_PNP_DEBUG),y)
- EXTRA_CFLAGS += -DDEBUG
- endif
--=======
-->>>>>>> FETCH_HEAD:drivers/pnp/Makefile
+-#ifdef CONFIG_PM
++static irq_handler_t handler;
++static void *irq_context;
++
+ static u32 rtc_handler(void *context)
+ {
++	/* Handler will clear status at the IRQ chip; this matters most
++	 * when RTC irqs are routed through ACPI because of HPET.
++	 */
++	if (handler)
++		handler(0, irq_context);
++	else
++		acpi_disable_event(ACPI_EVENT_RTC, 0);
++
+ 	acpi_clear_event(ACPI_EVENT_RTC);
+-	acpi_disable_event(ACPI_EVENT_RTC, 0);
+ 	return ACPI_INTERRUPT_HANDLED;
+ }
+ 
++static void rtc_set_filter(irq_handler_t h, void *c)
++{
++	handler = h;
++	irq_context = c;
++}
++
+ static inline void rtc_wake_setup(void)
+ {
+ 	acpi_install_fixed_event_handler(ACPI_EVENT_RTC, rtc_handler, NULL);
+@@ -330,11 +347,6 @@ static void rtc_wake_off(struct device *
+ {
+ 	acpi_disable_event(ACPI_EVENT_RTC, 0);
+ }
+-#else
+-#define rtc_wake_setup()	do{}while(0)
+-#define rtc_wake_on		NULL
+-#define rtc_wake_off		NULL
+-#endif
+ 
+ /* Every ACPI platform has a mc146818 compatible "cmos rtc".  Here we find
+  * its device node and pass extra config data.  This helps its driver use
+@@ -378,6 +390,7 @@ static int __init acpi_rtc_init(void)
+ 
+ 	if (dev) {
+ 		rtc_wake_setup();
++		rtc_info.set_filter = rtc_set_filter;
+ 		rtc_info.wake_on = rtc_wake_on;
+ 		rtc_info.wake_off = rtc_wake_off;
+ 
+diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-strongly-avoid-hpet-emulation drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-cmos-strongly-avoid-hpet-emulation
++++ a/drivers/rtc/rtc-cmos.c
+@@ -45,6 +45,7 @@ struct cmos_rtc {
+ 	int			irq;
+ 	struct resource		*iomem;
+ 
++	void			(*set_filter)(irq_handler_t h, void *c);
+ 	void			(*wake_on)(struct device *);
+ 	void			(*wake_off)(struct device *);
+ 
+@@ -55,6 +56,7 @@ struct cmos_rtc {
+ 	u8			day_alrm;
+ 	u8			mon_alrm;
+ 	u8			century;
++	bool			hpet_emulation;
+ };
+ 
+ /* both platform and pnp busses use positive numbers for valid irqs */
+@@ -84,11 +86,14 @@ static inline int is_intr(u8 rtc_intr)
+  * other (better) use.
+  *
+  * When that broken mode is in use, platform glue provides a partial
+- * emulation of hardware RTC IRQ facilities using HPET #1.  We don't
+- * want to use HPET for anything except those IRQs though...
++ * emulation of hardware RTC IRQ facilities using HPET comparator #1.
++ * We'll use that if we have no choice, but normally we can just let
++ * ACPI filter the real RTC interrupts through to us.
+  */
+ #ifdef CONFIG_HPET_EMULATE_RTC
+ #include <asm/hpet.h>
++#define IRQ_FILTER_TYPE		"ACPI"	/* all but certainly */
++
+ #else
+ 
+ static inline int is_hpet_enabled(void)
+@@ -98,6 +103,7 @@ static inline int is_hpet_enabled(void)
+ 
+ static inline int hpet_mask_rtc_irq_bit(unsigned long mask)
+ {
++	/* we "know":  won't touch hardware in emulation */
+ 	return 0;
+ }
+ 
+@@ -109,11 +115,13 @@ static inline int hpet_set_rtc_irq_bit(u
+ static inline int
+ hpet_set_alarm_time(unsigned char hrs, unsigned char min, unsigned char sec)
+ {
++	/* we "know":  won't touch hardware in emulation */
+ 	return 0;
+ }
+ 
+ static inline int hpet_set_periodic_freq(unsigned long freq)
+ {
++	/* we "know":  won't touch hardware in emulation */
+ 	return 0;
+ }
+ 
+@@ -139,6 +147,8 @@ static inline int hpet_unregister_irq_ha
+ 	return 0;
+ }
+ 
++#define IRQ_FILTER_TYPE		"filtered"
++
+ #endif
+ 
+ /*----------------------------------------------------------------*/
+@@ -244,7 +254,7 @@ static void cmos_checkintr(struct cmos_r
+ 	 */
+ 	rtc_intr = CMOS_READ(RTC_INTR_FLAGS);
+ 
+-	if (is_hpet_enabled())
++	if (cmos->hpet_emulation)
+ 		return;
+ 
+ 	rtc_intr &= (rtc_control & RTC_IRQMASK) | RTC_IRQF;
+@@ -262,9 +272,15 @@ static void cmos_irq_enable(struct cmos_
+ 	rtc_control = CMOS_READ(RTC_CONTROL);
+ 	cmos_checkintr(cmos, rtc_control);
+ 
++	/* enable filtering whenever IRQs are enabled */
++	if (!(rtc_control & RTC_IRQMASK) && cmos->set_filter)
++		cmos->wake_on(cmos->dev);
++
+ 	rtc_control |= mask;
+ 	CMOS_WRITE(rtc_control, RTC_CONTROL);
+-	hpet_set_rtc_irq_bit(mask);
++
++	if (cmos->hpet_emulation)
++		hpet_set_rtc_irq_bit(mask);
+ 
+ 	cmos_checkintr(cmos, rtc_control);
+ }
+@@ -278,6 +294,10 @@ static void cmos_irq_disable(struct cmos
+ 	CMOS_WRITE(rtc_control, RTC_CONTROL);
+ 	hpet_mask_rtc_irq_bit(mask);
+ 
++	/* disable filtering when IRQs are disabled */
++	if (!(rtc_control & RTC_IRQMASK) && cmos->set_filter)
++		cmos->wake_off(cmos->dev);
++
+ 	cmos_checkintr(cmos, rtc_control);
+ }
+ 
+@@ -450,7 +470,7 @@ static int cmos_procfs(struct device *de
+ 			"batt_status\t: %s\n",
+ 			(rtc_control & RTC_PIE) ? "yes" : "no",
+ 			(rtc_control & RTC_UIE) ? "yes" : "no",
+-			is_hpet_enabled() ? "yes" : "no",
++			cmos->hpet_emulation ? "yes" : "no",
+ 			// (rtc_control & RTC_SQWE) ? "yes" : "no",
+ 			// (rtc_control & RTC_DM_BINARY) ? "no" : "yes",
+ 			(rtc_control & RTC_DST_EN) ? "yes" : "no",
+@@ -567,7 +587,7 @@ static irqreturn_t cmos_interrupt(int ir
+ 	 */
+ 	irqstat = CMOS_READ(RTC_INTR_FLAGS);
+ 	rtc_control = CMOS_READ(RTC_CONTROL);
+-	if (is_hpet_enabled())
++	if (cmos_rtc.hpet_emulation)
+ 		irqstat = (unsigned long)irq & 0xF0;
+ 	irqstat &= (rtc_control & RTC_IRQMASK) | RTC_IRQF;
+ 
+@@ -663,6 +683,18 @@ cmos_do_probe(struct device *dev, struct
+ 		if (info->wake_on && info->wake_off) {
+ 			cmos_rtc.wake_on = info->wake_on;
+ 			cmos_rtc.wake_off = info->wake_off;
++
++			/* We really want to avoid "HPET emulation".  Since
++			 * the real RTC IRQs get routed to SCI, and thence
++			 * through ACPI, let ACPI deliver those IRQs to us.
++			 *
++			 * Some flakey-board issues -- spurious IRQs, and
++			 * nonfunctional ACPI interrupts -- are reasons to
++			 * avoid the simpler solution of always using ACPI
++			 * routing, when available.
++			 */
++			if (is_hpet_enabled())
++				cmos_rtc.set_filter = info->set_filter;
+ 		}
+ 	}
+ 
+@@ -706,7 +738,9 @@ cmos_do_probe(struct device *dev, struct
+ 		goto cleanup1;
+ 	}
+ 
+-	if (is_valid_irq(rtc_irq)) {
++	if (cmos_rtc.set_filter)
++		cmos_rtc.set_filter(cmos_interrupt, cmos_rtc.rtc);
++	else if (is_valid_irq(rtc_irq)) {
+ 		irq_handler_t rtc_cmos_int_handler;
+ 
+ 		if (is_hpet_enabled()) {
+@@ -719,6 +753,7 @@ cmos_do_probe(struct device *dev, struct
+ 						" failed in rtc_init().");
+ 				goto cleanup1;
+ 			}
++			cmos_rtc.hpet_emulation = true;
+ 		} else
+ 			rtc_cmos_int_handler = cmos_interrupt;
+ 
+@@ -729,8 +764,10 @@ cmos_do_probe(struct device *dev, struct
+ 			dev_dbg(dev, "IRQ %d is already in use\n", rtc_irq);
+ 			goto cleanup1;
+ 		}
++
++		if (cmos_rtc.hpet_emulation)
++			hpet_rtc_timer_init();
+ 	}
+-	hpet_rtc_timer_init();
+ 
+ 	/* export at least the first block of NVRAM */
+ 	nvram.size = address_space - NVRAM_OFFSET;
+@@ -740,23 +777,29 @@ cmos_do_probe(struct device *dev, struct
+ 		goto cleanup2;
+ 	}
+ 
+-	pr_info("%s: alarms up to one %s%s%s\n",
++	pr_info("%s: alarms up to one %s%s, %s irqs\n",
+ 			cmos_rtc.rtc->dev.bus_id,
+-			is_valid_irq(rtc_irq)
+-				?  (cmos_rtc.mon_alrm
+-					? "year"
+-					: (cmos_rtc.day_alrm
+-						? "month" : "day"))
+-				: "no",
++			cmos_rtc.mon_alrm
++				? "year"
++				: (cmos_rtc.day_alrm
++					? "month" : "day"),
+ 			cmos_rtc.century ? ", y3k" : "",
+-			is_hpet_enabled() ? ", hpet irqs" : "");
++			cmos_rtc.set_filter
++				? IRQ_FILTER_TYPE
++				: (is_valid_irq(rtc_irq)
++					? (cmos_rtc.hpet_emulation
++						? "hpet" : "native")
++					: "no"));
+ 
+ 	return 0;
+ 
+ cleanup2:
+-	if (is_valid_irq(rtc_irq))
++	if (cmos_rtc.set_filter)
++		cmos_rtc.set_filter(NULL, NULL);
++	else if (is_valid_irq(rtc_irq))
+ 		free_irq(rtc_irq, cmos_rtc.rtc);
+ cleanup1:
++	hpet_unregister_irq_handler(cmos_interrupt);
+ 	cmos_rtc.dev = NULL;
+ 	rtc_device_unregister(cmos_rtc.rtc);
+ cleanup0:
+@@ -780,7 +823,9 @@ static void __exit cmos_do_remove(struct
+ 
+ 	sysfs_remove_bin_file(&dev->kobj, &nvram);
+ 
+-	if (is_valid_irq(cmos->irq)) {
++	if (cmos_rtc.set_filter)
++		cmos_rtc.set_filter(NULL, NULL);
++	else if (is_valid_irq(cmos->irq)) {
+ 		free_irq(cmos->irq, cmos->rtc);
+ 		hpet_unregister_irq_handler(cmos_interrupt);
+ 	}
+@@ -823,9 +868,11 @@ static int cmos_suspend(struct device *d
+ 
+ 	if (tmp & RTC_AIE) {
+ 		cmos->enabled_wake = 1;
+-		if (cmos->wake_on)
+-			cmos->wake_on(dev);
+-		else
++		if (cmos->wake_on) {
++			/* already enabled if filtering is in use */
++			if (!cmos->set_filter)
++				cmos->wake_on(dev);
++		} else
+ 			enable_irq_wake(cmos->irq);
+ 	}
+ 
+@@ -858,9 +905,11 @@ static int cmos_resume(struct device *de
+ 		unsigned char	mask;
+ 
+ 		if (cmos->enabled_wake) {
+-			if (cmos->wake_off)
+-				cmos->wake_off(dev);
+-			else
++			if (cmos->wake_off) {
++				/* leave enabled if filtering is in use */
++				if (!cmos->set_filter)
++					cmos->wake_off(dev);
++			} else
+ 				disable_irq_wake(cmos->irq);
+ 			cmos->enabled_wake = 0;
+ 		}
+@@ -868,11 +917,12 @@ static int cmos_resume(struct device *de
+ 		spin_lock_irq(&rtc_lock);
+ 		do {
+ 			CMOS_WRITE(tmp, RTC_CONTROL);
+-			hpet_set_rtc_irq_bit(tmp & RTC_IRQMASK);
++			if (cmos->hpet_emulation)
++				hpet_set_rtc_irq_bit(tmp & RTC_IRQMASK);
+ 
+ 			mask = CMOS_READ(RTC_INTR_FLAGS);
+ 			mask &= (tmp & RTC_IRQMASK) | RTC_IRQF;
+-			if (!is_hpet_enabled() || !is_intr(mask))
++			if (!cmos->hpet_emulation || !is_intr(mask))
+ 				break;
+ 
+ 			/* force one-shot behavior if HPET blocked
+diff -puN include/linux/mc146818rtc.h~rtc-cmos-strongly-avoid-hpet-emulation include/linux/mc146818rtc.h
+--- a/include/linux/mc146818rtc.h~rtc-cmos-strongly-avoid-hpet-emulation
++++ a/include/linux/mc146818rtc.h
+@@ -28,6 +28,7 @@ extern spinlock_t rtc_lock;		/* serializ
+  * a separate wakeup alarm used by some almost-clone chips.
+  */
+ struct cmos_rtc_board_info {
++	void	(*set_filter)(irq_handler_t handler, void *context);
+ 	void	(*wake_on)(struct device *dev);
+ 	void	(*wake_off)(struct device *dev);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 origin.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-git-tests-git-rejects.patch
-git-acpi.patch
-git-acpi-git-rejects.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module-checkpatch-fixes.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-drivers-net-sfc-falconc-fix-min-warnings.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check-fix.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix-fix.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mlock-mlocked-pages-are-unevictable-fix.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-vmallocc-revert-git-tip-change.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-revert-mm-vmallocc-revert-git-tip-change.patch
-memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
-mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh.patch
-make-taint-bit-reliable-v3-fix.patch
-kernel-sysc-improve-code-generation.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-drivers-hwmon-applesmcc-remove-unneeded-casts.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanups.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
-ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-tpm-addition-of-pnp_remove-checkpatch-fixes.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-new-driver-ds2431-chip-fix.patch
-gru-driver-minor-updates-fix.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+spi-simplify-spi_write_then_read.patch
+spi_s3c24xx-pin-configuration-updates.patch
+pxa2xx_spi-minor-cleanup.patch
+pxa2xx_spi-fix-chip_info-defaults-and-documentation.patch
+orion_spi-handle-88f6183-erratum.patch
+spi-core-and-gpio-expanders-use-subsys_init.patch
+rtc-ds1307-alarm-support-for-ds1337-ds1339.patch
+rtc-remove-some-nop-open-release-methods.patch
+legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
+rtc-file-close-consistently-disables-repeating-irqs.patch
+rtc-cmos-strongly-avoid-hpet-emulation.patch
+rtc-cmos-export-second-nvram-bank.patch
+make-gpiochip-label-const.patch
+gpio-i2c-expanders-use-subsys_init.patch
+gpiolib-gpio_to_irq-hooks.patch
+omap-drivers-switch-to-standard-gpio-calls.patch
+gpiolib-request-free-hooks.patch
 
