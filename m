@@ -1,117 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanups.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 16:55:08 -0700
-Message-ID: <200810152355.m9FNt86s024264@imap1.linux-foundation.org>
+Subject: - afs-convert-to-new-aops-update.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 16:57:27 -0700
+Message-ID: <200810152357.m9FNvRUN024518@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53259 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33218 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753809AbYJOX4b (ORCPT
+	by vger.kernel.org with ESMTP id S1752367AbYJOX6N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 19:56:31 -0400
+	Wed, 15 Oct 2008 19:58:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, geert@linux-m68k.org, kristoffer.ericson@gmail.com, krzysztof.h1@poczta.fm, varenet@parisc-linux.org, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanu=
-ps
+     afs-convert-to-new-aops update
 has been removed from the -mm tree.  Its filename was
-     fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanu=
-ps.patch
+     afs-convert-to-new-aops-update.patch
 
-This patch was dropped because it was folded into fbdev-allow-more-chip=
--revisions-in-epson-s1d13-video-driver.patch
+This patch was dropped because it was folded into afs-convert-to-new-aops.patch
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cl=
-eanups
-=46rom: Andrew Morton <akpm@linux-foundation.org>
+Subject: afs-convert-to-new-aops update
+From: David Howells <dhowells@redhat.com>
 
-- add trailing comma in table (so later alteratoins are cleaner)
+David sent a secretly different version.
 
-- remove unneeded parentheses
-
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Kristoffer Ericson <kristoffer.ericson@gmail.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Thibaut Var=E8ne <varenet@parisc-linux.org>
+Cc: Nick Piggin <npiggin@suse.de>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s1d13xxxfb.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/afs/write.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/video/s1d13xxxfb.c~fbdev-allow-more-chip-revisions-in=
--epson-s1d13-video-driver-cleanups drivers/video/s1d13xxxfb.c
---- a/drivers/video/s1d13xxxfb.c~fbdev-allow-more-chip-revisions-in-eps=
-on-s1d13-video-driver-cleanups
-+++ a/drivers/video/s1d13xxxfb.c
-@@ -51,8 +51,8 @@
- #endif
-=20
- static const int __devinitconst s1d13xxxfb_revisions[] =3D {
--	S1D13506_CHIP_REV,/* Rev.4 on HP Jornada 7xx S1D13506 */
--	S1D13806_CHIP_REV /* Rev.7 on .. */
-+	S1D13506_CHIP_REV,	/* Rev.4 on HP Jornada 7xx S1D13506 */
-+	S1D13806_CHIP_REV,	/* Rev.7 on .. */
- };
-=20
- /*
-@@ -623,9 +623,9 @@ s1d13xxxfb_probe(struct platform_device=20
- 	}
-=20
- 	if (!ret)
--		printk(KERN_INFO PFX "chip revision %i\n", (revision));
-+		printk(KERN_INFO PFX "chip revision %i\n", revision);
- 	else {
--		printk(KERN_INFO PFX "unknown chip revision %i\n", (revision));
-+		printk(KERN_INFO PFX "unknown chip revision %i\n", revision);
- 		goto bail;
- 	}
-=20
+diff -puN fs/afs/write.c~afs-convert-to-new-aops-update fs/afs/write.c
+--- a/fs/afs/write.c~afs-convert-to-new-aops-update
++++ a/fs/afs/write.c
+@@ -84,7 +84,7 @@ void afs_put_writeback(struct afs_writeb
+  * partly or wholly fill a page that's under preparation for writing
+  */
+ static int afs_fill_page(struct afs_vnode *vnode, struct key *key,
+-			loff_t pos, unsigned len, struct page *page)
++			 loff_t pos, unsigned len, struct page *page)
+ {
+ 	loff_t i_size;
+ 	unsigned eof;
+@@ -118,16 +118,16 @@ static int afs_fill_page(struct afs_vnod
+  * prepare to perform part of a write to a page
+  */
+ int afs_write_begin(struct file *file, struct address_space *mapping,
+-			loff_t pos, unsigned len, unsigned flags,
+-			struct page **pagep, void **fsdata)
++		    loff_t pos, unsigned len, unsigned flags,
++		    struct page **pagep, void **fsdata)
+ {
+-	struct page *page;
+ 	struct afs_writeback *candidate, *wb;
+ 	struct afs_vnode *vnode = AFS_FS_I(file->f_dentry->d_inode);
++	struct page *page;
+ 	struct key *key = file->private_data;
+-	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
+ 	unsigned from = pos & (PAGE_CACHE_SIZE - 1);
+ 	unsigned to = from + len;
++	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
+ 	int ret;
+ 
+ 	_enter("{%x:%u},{%lx},%u,%u",
+@@ -244,8 +244,8 @@ flush_conflicting_wb:
+  * finalise part of a write to a page
+  */
+ int afs_write_end(struct file *file, struct address_space *mapping,
+-			loff_t pos, unsigned len, unsigned copied,
+-			struct page *page, void *fsdata)
++		  loff_t pos, unsigned len, unsigned copied,
++		  struct page *page, void *fsdata)
+ {
+ 	struct afs_vnode *vnode = AFS_FS_I(file->f_dentry->d_inode);
+ 	loff_t i_size, maybe_i_size;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org =
-are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation.pat=
-ch
-make-taint-bit-reliable-v3.patch
-kernel-sysc-improve-code-generation.patch
-compat-generic-compat-get-settimeofday.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc.patch
-autofs4-track-uid-and-gid-of-last-mount-requester.patch
-autofs4-add-miscellaneous-device-for-ioctls.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip.patch
-viafb-accelc-accelh.patch
-viafb-dvic-dvih-globalc-and-globalh.patch
-viafb-hwc-hwh.patch
-viafb-viafbdevc-viafbdevh.patch
-fbdev-kconfig-update.patch
-fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver.patch
-fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanups.pa=
-tch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch=
--fixes.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-new-driver-ds2431-chip-fix.patch
-gru-driver-minor-updates-fix.patch
+uclinux-fix-gzip-header-parsing-in-binfmt_flatc.patch
+binfmt_elf_fdpic-support-auxvec-base-platform-string.patch
+binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack.patch
+binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch
+sysctl-simplify-strategy.patch
+afs-convert-to-new-aops.patch
+afs-convert-to-new-aops-update.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
