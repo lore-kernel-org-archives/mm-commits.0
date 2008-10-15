@@ -1,47 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - viafb-accelc-accelh-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 16:52:40 -0700
-Message-ID: <200810152352.m9FNqfeo023893@imap1.linux-foundation.org>
+Subject: - viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 16:53:05 -0700
+Message-ID: <200810152353.m9FNr54E023952@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35571 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49345 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753714AbYJOXxO (ORCPT
+	by vger.kernel.org with ESMTP id S1753459AbYJOXxc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 19:53:14 -0400
+	Wed, 15 Oct 2008 19:53:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, JosephChan@via.com.tw, geert@linux-m68k.org, josephchan@via.com.tw, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb-accelc-accelh-checkpatch-fixes
+     viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     viafb-accelc-accelh-checkpatch-fixes.patch
+     viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into viafb-accelc-accelh.patch
+This patch was dropped because it was folded into viafb-dvic-dvih-globalc-and-globalh.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb-accelc-accelh-checkpatch-fixes
+Subject: viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: open brace '{' following function declarations go on the next line
-#222: FILE: drivers/video/via/accel.c:204:
-+void viafb_show_hw_cursor(struct fb_info *info, int Status) {
-
 WARNING: suspect code indent for conditional statements
-#249: FILE: drivers/video/via/accel.c:231:
-+	while (!(MMIO_IN32(VIA_REG_STATUS) & VIA_VR_QUEUE_BUSY)
+#121: FILE: drivers/video/via/dvi.c:100:
++	if (check_tmds_chip(VT1632_DEVICE_ID_REG, VT1632_DEVICE_ID) != FAIL) {
 
-WARNING: suspect code indent for conditional statements
-#253: FILE: drivers/video/via/accel.c:235:
-+	while ((MMIO_IN32(VIA_REG_STATUS) &
+total: 0 errors, 1 warnings, 894 lines checked
 
-total: 1 errors, 2 warnings, 421 lines checked
-
-./patches/viafb-accelc-accelh.patch has style problems, please review.  If any of these errors
+./patches/viafb-dvic-dvih-globalc-and-globalh.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
@@ -54,51 +46,23 @@ Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/accel.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ drivers/video/via/dvi.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/via/accel.c~viafb-accelc-accelh-checkpatch-fixes drivers/video/via/accel.c
---- a/drivers/video/via/accel.c~viafb-accelc-accelh-checkpatch-fixes
-+++ a/drivers/video/via/accel.c
-@@ -201,7 +201,8 @@ void viafb_hw_cursor_init(void)
- 	MMIO_OUT32(VIA_REG_CURSOR_FG, 0x0);
- }
+diff -puN drivers/video/via/dvi.c~viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes drivers/video/via/dvi.c
+--- a/drivers/video/via/dvi.c~viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes
++++ a/drivers/video/via/dvi.c
+@@ -98,7 +98,9 @@ int viafb_tmds_trasmitter_identify(void)
+ 		tmds_chip_info.tmds_chip_slave_addr = VT1632_TMDS_I2C_ADDR;
+ 	viaparinfo->chip_info->tmds_chip_info.i2c_port = I2CPORTINDEX;
+ 	if (check_tmds_chip(VT1632_DEVICE_ID_REG, VT1632_DEVICE_ID) != FAIL) {
+-	/*Currently only support 12bits,dual edge,add 24bits mode later */
++		/*
++		 * Currently only support 12bits,dual edge,add 24bits mode later
++		 */
+ 		tmds_register_write(0x08, 0x3b);
  
--void viafb_show_hw_cursor(struct fb_info *info, int Status) {
-+void viafb_show_hw_cursor(struct fb_info *info, int Status)
-+{
- 	u32 temp;
- 	u32 iga_path = ((struct viafb_par *)(info->par))->iga_path;
- 
-@@ -222,20 +223,21 @@ void viafb_show_hw_cursor(struct fb_info
- 	default:
- 		temp &= 0x7FFFFFFF;
- 	}
--	MMIO_OUT32(VIA_REG_CURSOR_MODE, temp); }
-+	MMIO_OUT32(VIA_REG_CURSOR_MODE, temp);
-+}
- 
- int viafb_wait_engine_idle(void)
- {
- 	int loop = 0;
- 
--	while (!(MMIO_IN32(VIA_REG_STATUS) & VIA_VR_QUEUE_BUSY)
--	       && (loop++ < MAXLOOP))
--	       cpu_relax();
-+	while (!(MMIO_IN32(VIA_REG_STATUS) & VIA_VR_QUEUE_BUSY) &&
-+			(loop++ < MAXLOOP))
-+		cpu_relax();
- 
- 	while ((MMIO_IN32(VIA_REG_STATUS) &
--		(VIA_CMD_RGTR_BUSY | VIA_2D_ENG_BUSY | VIA_3D_ENG_BUSY)) &&
--	       (loop++ < MAXLOOP))
--	       cpu_relax();
-+		    (VIA_CMD_RGTR_BUSY | VIA_2D_ENG_BUSY | VIA_3D_ENG_BUSY)) &&
-+		    (loop++ < MAXLOOP))
-+		cpu_relax();
- 
- 	return loop >= MAXLOOP;
- }
+ 		DEBUG_MSG(KERN_INFO "\n VT1632 TMDS ! \n");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -115,7 +79,7 @@ autofs4-track-uid-and-gid-of-last-mount-requester.patch
 autofs4-add-miscellaneous-device-for-ioctls.patch
 rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip.patch
 viafb-accelc-accelh.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh.patch
 viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
 viafb-hwc-hwh-checkpatch-fixes.patch
 viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
