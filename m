@@ -1,154 +1,333 @@
 From: akpm@linux-foundation.org
-Subject: - tpm-addition-of-pnp_remove.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 14:14:23 -0700
-Message-ID: <200810152114.m9FLENiC005752@imap1.linux-foundation.org>
+Subject: - serial-mpc52xx_uart-remove-code-associated-with-config_ppc_merge.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 14:13:46 -0700
+Message-ID: <200810152113.m9FLDkDF005617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45646 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51046 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753777AbYJOV0a (ORCPT
+	by vger.kernel.org with ESMTP id S1753570AbYJOV1H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 17:26:30 -0400
+	Wed, 15 Oct 2008 17:27:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: srajiv@linux.vnet.ibm.com, bjorn.helgaas@hp.com, serue@us.ibm.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: galak@kernel.crashing.org, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, jirislaby@gmail.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tpm: addition of pnp_remove()
+     serial/mpc52xx_uart: remove code associated with !CONFIG_PPC_MERGE
 has been removed from the -mm tree.  Its filename was
-     tpm-addition-of-pnp_remove.patch
+     serial-mpc52xx_uart-remove-code-associated-with-config_ppc_merge.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tpm: addition of pnp_remove()
-From: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
+Subject: serial/mpc52xx_uart: remove code associated with !CONFIG_PPC_MERGE
+From: Kumar Gala <galak@kernel.crashing.org>
 
-The tpm_dev_release function is only called for platform devices, not pnp
-devices, so we implemented the .remove function for pnp ones.  Since it's
-code is very similar to the one inside tpm_dev_release, we've created a
-helper function tpm_dev_vendor_release, which is called by both.
+Now that arch/ppc is gone we don't need CONFIG_PPC_MERGE anymore
+remove the dead code associated with !CONFIG_PPC_MERGE.
 
-Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Signed-off-by: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Kumar Gala <galak@kernel.crashing.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm.c     |   22 ++++++++++++++++------
- drivers/char/tpm/tpm.h     |    1 +
- drivers/char/tpm/tpm_tis.c |   14 +++++++++++++-
- 3 files changed, 30 insertions(+), 7 deletions(-)
+ drivers/serial/mpc52xx_uart.c |  181 --------------------------------
+ 1 file changed, 1 insertion(+), 180 deletions(-)
 
-diff -puN drivers/char/tpm/tpm.c~tpm-addition-of-pnp_remove drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~tpm-addition-of-pnp_remove
-+++ a/drivers/char/tpm/tpm.c
-@@ -1140,23 +1140,33 @@ int tpm_pm_resume(struct device *dev)
- }
- EXPORT_SYMBOL_GPL(tpm_pm_resume);
+diff -puN drivers/serial/mpc52xx_uart.c~serial-mpc52xx_uart-remove-code-associated-with-config_ppc_merge drivers/serial/mpc52xx_uart.c
+--- a/drivers/serial/mpc52xx_uart.c~serial-mpc52xx_uart-remove-code-associated-with-config_ppc_merge
++++ a/drivers/serial/mpc52xx_uart.c
+@@ -72,13 +72,8 @@
+ #include <linux/console.h>
+ #include <linux/delay.h>
+ #include <linux/io.h>
+-
+-#if defined(CONFIG_PPC_MERGE)
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
+-#else
+-#include <linux/platform_device.h>
+-#endif
  
-+/* In case vendor provided release function, call it too.*/
+ #include <asm/mpc52xx.h>
+ #include <asm/mpc512x.h>
+@@ -107,12 +102,11 @@ static struct uart_port mpc52xx_uart_por
+ 	 *        it's cleared, then a memset(...,0,...) should be added to
+ 	 *        the console_init
+ 	 */
+-#if defined(CONFIG_PPC_MERGE)
 +
-+void tpm_dev_vendor_release(struct tpm_chip *chip)
-+{
-+	if (chip->vendor.release)
-+	 	chip->vendor.release(chip->dev);
-+
-+	clear_bit(chip->dev_num, dev_mask);
-+	kfree(chip->vendor.miscdev.name);
-+}
-+EXPORT_SYMBOL_GPL(tpm_dev_vendor_release);
-+
-+
- /*
-  * Once all references to platform device are down to 0,
-  * release all allocated structures.
-- * In case vendor provided release function, call it too.
-  */
- static void tpm_dev_release(struct device *dev)
+ /* lookup table for matching device nodes to index numbers */
+ static struct device_node *mpc52xx_uart_nodes[MPC52xx_PSC_MAXNUM];
+ 
+ static void mpc52xx_uart_of_enumerate(void);
+-#endif
+ 
+ 
+ #define PSC(port) ((struct mpc52xx_psc __iomem *)((port)->membase))
+@@ -255,17 +249,12 @@ static void mpc52xx_psc_cw_restore_ints(
+ /* Search for bus-frequency property in this node or a parent */
+ static unsigned long mpc52xx_getuartclk(void *p)
  {
- 	struct tpm_chip *chip = dev_get_drvdata(dev);
- 
--	if (chip->vendor.release)
--		chip->vendor.release(dev);
--	chip->release(dev);
-+	tpm_dev_vendor_release(chip);
- 
--	clear_bit(chip->dev_num, dev_mask);
--	kfree(chip->vendor.miscdev.name);
-+	chip->release(dev);
- 	kfree(chip);
+-#if defined(CONFIG_PPC_MERGE)
+ 	/*
+ 	 * 5200 UARTs have a / 32 prescaler
+ 	 * but the generic serial code assumes 16
+ 	 * so return ipb freq / 2
+ 	 */
+ 	return mpc52xx_find_ipb_freq(p) / 2;
+-#else
+-	pr_debug("unexpected call to mpc52xx_getuartclk with arch/ppc\n");
+-	return NULL;
+-#endif
  }
-+EXPORT_SYMBOL_GPL(tpm_dev_release);
  
- /*
-  * Called from tpm_<specific>.c probe function only for devices 
-diff -puN drivers/char/tpm/tpm.h~tpm-addition-of-pnp_remove drivers/char/tpm/tpm.h
---- a/drivers/char/tpm/tpm.h~tpm-addition-of-pnp_remove
-+++ a/drivers/char/tpm/tpm.h
-@@ -132,6 +132,7 @@ extern struct tpm_chip* tpm_register_har
- 				 const struct tpm_vendor_specific *);
- extern int tpm_open(struct inode *, struct file *);
- extern int tpm_release(struct inode *, struct file *);
-+extern void tpm_dev_vendor_release(struct tpm_chip *);
- extern ssize_t tpm_write(struct file *, const char __user *, size_t,
- 			 loff_t *);
- extern ssize_t tpm_read(struct file *, char __user *, size_t, loff_t *);
-diff -puN drivers/char/tpm/tpm_tis.c~tpm-addition-of-pnp_remove drivers/char/tpm/tpm_tis.c
---- a/drivers/char/tpm/tpm_tis.c~tpm-addition-of-pnp_remove
-+++ a/drivers/char/tpm/tpm_tis.c
-@@ -630,12 +630,23 @@ static struct pnp_device_id tpm_pnp_tbl[
- 	{"", 0}			/* Terminator */
+ static struct psc_ops mpc52xx_psc_ops = {
+@@ -886,10 +875,6 @@ mpc52xx_console_get_options(struct uart_
+ 
+ 	/* CT{U,L}R are write-only ! */
+ 	*baud = CONFIG_SERIAL_MPC52xx_CONSOLE_BAUD;
+-#if !defined(CONFIG_PPC_MERGE)
+-	if (__res.bi_baudrate)
+-		*baud = __res.bi_baudrate;
+-#endif
+ 
+ 	/* Parse them */
+ 	switch (mr1 & MPC52xx_PSC_MODE_BITS_MASK) {
+@@ -946,42 +931,6 @@ mpc52xx_console_write(struct console *co
+ 	psc_ops->cw_restore_ints(port);
+ }
+ 
+-#if !defined(CONFIG_PPC_MERGE)
+-static int __init
+-mpc52xx_console_setup(struct console *co, char *options)
+-{
+-	struct uart_port *port = &mpc52xx_uart_ports[co->index];
+-
+-	int baud = CONFIG_SERIAL_MPC52xx_CONSOLE_BAUD;
+-	int bits = 8;
+-	int parity = 'n';
+-	int flow = 'n';
+-
+-	if (co->index < 0 || co->index >= MPC52xx_PSC_MAXNUM)
+-		return -EINVAL;
+-
+-	/* Basic port init. Needed since we use some uart_??? func before
+-	 * real init for early access */
+-	spin_lock_init(&port->lock);
+-	port->uartclk	= __res.bi_ipbfreq / 2; /* Look at CTLR doc */
+-	port->ops	= &mpc52xx_uart_ops;
+-	port->mapbase	= MPC52xx_PA(MPC52xx_PSCx_OFFSET(co->index+1));
+-
+-	/* We ioremap ourself */
+-	port->membase = ioremap(port->mapbase, MPC52xx_PSC_SIZE);
+-	if (port->membase == NULL)
+-		return -EINVAL;
+-
+-	/* Setup the port parameters accoding to options */
+-	if (options)
+-		uart_parse_options(options, &baud, &parity, &bits, &flow);
+-	else
+-		mpc52xx_console_get_options(port, &baud, &parity, &bits, &flow);
+-
+-	return uart_set_options(port, co, baud, parity, bits, flow);
+-}
+-
+-#else
+ 
+ static int __init
+ mpc52xx_console_setup(struct console *co, char *options)
+@@ -1053,7 +1002,6 @@ mpc52xx_console_setup(struct console *co
+ 
+ 	return uart_set_options(port, co, baud, parity, bits, flow);
+ }
+-#endif /* defined(CONFIG_PPC_MERGE) */
+ 
+ 
+ static struct uart_driver mpc52xx_uart_driver;
+@@ -1072,9 +1020,7 @@ static struct console mpc52xx_console = 
+ static int __init
+ mpc52xx_console_init(void)
+ {
+-#if defined(CONFIG_PPC_MERGE)
+ 	mpc52xx_uart_of_enumerate();
+-#endif
+ 	register_console(&mpc52xx_console);
+ 	return 0;
+ }
+@@ -1100,115 +1046,6 @@ static struct uart_driver mpc52xx_uart_d
+ 	.cons		= MPC52xx_PSC_CONSOLE,
  };
  
-+static __devexit void tpm_tis_pnp_remove(struct pnp_dev *dev)
-+{
-+	struct tpm_chip *chip = pnp_get_drvdata(dev);
-+
-+	tpm_dev_vendor_release(chip);
-+
-+	kfree(chip);
-+}
-+
-+
- static struct pnp_driver tis_pnp_driver = {
- 	.name = "tpm_tis",
- 	.id_table = tpm_pnp_tbl,
- 	.probe = tpm_tis_pnp_init,
- 	.suspend = tpm_tis_pnp_suspend,
- 	.resume = tpm_tis_pnp_resume,
-+	.remove = tpm_tis_pnp_remove,
+-
+-#if !defined(CONFIG_PPC_MERGE)
+-/* ======================================================================== */
+-/* Platform Driver                                                          */
+-/* ======================================================================== */
+-
+-static int __devinit
+-mpc52xx_uart_probe(struct platform_device *dev)
+-{
+-	struct resource *res = dev->resource;
+-
+-	struct uart_port *port = NULL;
+-	int i, idx, ret;
+-
+-	/* Check validity & presence */
+-	idx = dev->id;
+-	if (idx < 0 || idx >= MPC52xx_PSC_MAXNUM)
+-		return -EINVAL;
+-
+-	if (!mpc52xx_match_psc_function(idx, "uart"))
+-		return -ENODEV;
+-
+-	/* Init the port structure */
+-	port = &mpc52xx_uart_ports[idx];
+-
+-	spin_lock_init(&port->lock);
+-	port->uartclk	= __res.bi_ipbfreq / 2; /* Look at CTLR doc */
+-	port->fifosize	= 512;
+-	port->iotype	= UPIO_MEM;
+-	port->flags	= UPF_BOOT_AUTOCONF |
+-			  (uart_console(port) ? 0 : UPF_IOREMAP);
+-	port->line	= idx;
+-	port->ops	= &mpc52xx_uart_ops;
+-	port->dev	= &dev->dev;
+-
+-	/* Search for IRQ and mapbase */
+-	for (i = 0 ; i < dev->num_resources ; i++, res++) {
+-		if (res->flags & IORESOURCE_MEM)
+-			port->mapbase = res->start;
+-		else if (res->flags & IORESOURCE_IRQ)
+-			port->irq = res->start;
+-	}
+-	if (!port->irq || !port->mapbase)
+-		return -EINVAL;
+-
+-	/* Add the port to the uart sub-system */
+-	ret = uart_add_one_port(&mpc52xx_uart_driver, port);
+-	if (!ret)
+-		platform_set_drvdata(dev, (void *)port);
+-
+-	return ret;
+-}
+-
+-static int
+-mpc52xx_uart_remove(struct platform_device *dev)
+-{
+-	struct uart_port *port = (struct uart_port *) platform_get_drvdata(dev);
+-
+-	platform_set_drvdata(dev, NULL);
+-
+-	if (port)
+-		uart_remove_one_port(&mpc52xx_uart_driver, port);
+-
+-	return 0;
+-}
+-
+-#ifdef CONFIG_PM
+-static int
+-mpc52xx_uart_suspend(struct platform_device *dev, pm_message_t state)
+-{
+-	struct uart_port *port = (struct uart_port *) platform_get_drvdata(dev);
+-
+-	if (port)
+-		uart_suspend_port(&mpc52xx_uart_driver, port);
+-
+-	return 0;
+-}
+-
+-static int
+-mpc52xx_uart_resume(struct platform_device *dev)
+-{
+-	struct uart_port *port = (struct uart_port *) platform_get_drvdata(dev);
+-
+-	if (port)
+-		uart_resume_port(&mpc52xx_uart_driver, port);
+-
+-	return 0;
+-}
+-#endif
+-
+-/* work with hotplug and coldplug */
+-MODULE_ALIAS("platform:mpc52xx-psc");
+-
+-static struct platform_driver mpc52xx_uart_platform_driver = {
+-	.probe		= mpc52xx_uart_probe,
+-	.remove		= mpc52xx_uart_remove,
+-#ifdef CONFIG_PM
+-	.suspend	= mpc52xx_uart_suspend,
+-	.resume		= mpc52xx_uart_resume,
+-#endif
+-	.driver		= {
+-		.owner	= THIS_MODULE,
+-		.name	= "mpc52xx-psc",
+-	},
+-};
+-#endif /* !defined(CONFIG_PPC_MERGE) */
+-
+-
+-#if defined(CONFIG_PPC_MERGE)
+ /* ======================================================================== */
+ /* OF Platform Driver                                                       */
+ /* ======================================================================== */
+@@ -1402,7 +1239,6 @@ static struct of_platform_driver mpc52xx
+ 		.name	= "mpc52xx-psc-uart",
+ 	},
  };
+-#endif /* defined(CONFIG_PPC_MERGE) */
  
- #define TIS_HID_USR_IDX sizeof(tpm_pnp_tbl)/sizeof(struct pnp_device_id) -2
-@@ -683,6 +694,7 @@ static void __exit cleanup_tis(void)
- 	spin_lock(&tis_lock);
- 	list_for_each_entry_safe(i, j, &tis_chips, list) {
- 		chip = to_tpm_chip(i);
-+		tpm_remove_hardware(chip->dev);
- 		iowrite32(~TPM_GLOBAL_INT_ENABLE &
- 			  ioread32(chip->vendor.iobase +
- 				   TPM_INT_ENABLE(chip->vendor.
-@@ -694,9 +706,9 @@ static void __exit cleanup_tis(void)
- 			free_irq(chip->vendor.irq, chip);
- 		iounmap(i->iobase);
- 		list_del(&i->list);
--		tpm_remove_hardware(chip->dev);
+ 
+ /* ======================================================================== */
+@@ -1423,7 +1259,6 @@ mpc52xx_uart_init(void)
+ 		return ret;
  	}
- 	spin_unlock(&tis_lock);
-+
- 	if (force) {
- 		platform_device_unregister(pdev);
- 		driver_unregister(&tis_drv);
+ 
+-#if defined(CONFIG_PPC_MERGE)
+ 	mpc52xx_uart_of_enumerate();
+ 
+ 	ret = of_register_platform_driver(&mpc52xx_uart_of_driver);
+@@ -1433,16 +1268,6 @@ mpc52xx_uart_init(void)
+ 		uart_unregister_driver(&mpc52xx_uart_driver);
+ 		return ret;
+ 	}
+-#else
+-	psc_ops = &mpc52xx_psc_ops;
+-	ret = platform_driver_register(&mpc52xx_uart_platform_driver);
+-	if (ret) {
+-		printk(KERN_ERR "%s: platform_driver_register failed (%i)\n",
+-		       __FILE__, ret);
+-		uart_unregister_driver(&mpc52xx_uart_driver);
+-		return ret;
+-	}
+-#endif
+ 
+ 	return 0;
+ }
+@@ -1450,11 +1275,7 @@ mpc52xx_uart_init(void)
+ static void __exit
+ mpc52xx_uart_exit(void)
+ {
+-#if defined(CONFIG_PPC_MERGE)
+ 	of_unregister_platform_driver(&mpc52xx_uart_of_driver);
+-#else
+-	platform_driver_unregister(&mpc52xx_uart_platform_driver);
+-#endif
+ 	uart_unregister_driver(&mpc52xx_uart_driver);
+ }
+ 
 _
 
-Patches currently in -mm which might be from srajiv@linux.vnet.ibm.com are
+Patches currently in -mm which might be from galak@kernel.crashing.org are
 
 origin.patch
-tpm-include-moderated-for-non-subscribers-notation-in-maintainers.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+mpc52xx_psc_spi-remove-code-associated-with-config_ppc_merge.patch
+rtc-use-config_ppc-instead-of-config_ppc_merge.patch
 
