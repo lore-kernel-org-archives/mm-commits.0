@@ -1,117 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 14:13:30 -0700
-Message-ID: <200810152113.m9FLDUQt005576@imap1.linux-foundation.org>
+Subject: - pata_sil680-convert-config_ppc_merge-to-config_ppc.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 14:13:36 -0700
+Message-ID: <200810152113.m9FLDa4d005586@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44411 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56311 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751338AbYJOVOT (ORCPT
+	by vger.kernel.org with ESMTP id S1753157AbYJOVOW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 17:14:19 -0400
+	Wed, 15 Oct 2008 17:14:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sonic.zhang@analog.com, cooloney@kernel.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: galak@kernel.crashing.org, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, jeff@garzik.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     libata: blackfin Pata Driver: Add proper PM operation into ATAPI driver
+     pata_sil680: convert CONFIG_PPC_MERGE to CONFIG_PPC
 has been removed from the -mm tree.  Its filename was
-     libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver.patch
+     pata_sil680-convert-config_ppc_merge-to-config_ppc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: libata: blackfin Pata Driver: Add proper PM operation into ATAPI driver
-From: Sonic Zhang <sonic.zhang@analog.com>
+Subject: pata_sil680: convert CONFIG_PPC_MERGE to CONFIG_PPC
+From: Kumar Gala <galak@kernel.crashing.org>
 
-[akpm@linux-foundation.org: remove ifdefs, make things static]
-Signed-off-by: Sonic Zhang <sonic.zhang@analog.com>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Now that arch/ppc is dead CONFIG_PPC_MERGE is always defined for all
+powerpc platforms and we want to get rid of CONFIG_PPC_MERGE use
+CONFIG_PPC instead.
+
+Signed-off-by: Kumar Gala <galak@kernel.crashing.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_bf54x.c |   34 +++++++++++++++++++++++++++-------
- 1 file changed, 27 insertions(+), 7 deletions(-)
+ drivers/ata/pata_sil680.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/ata/pata_bf54x.c~libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver drivers/ata/pata_bf54x.c
---- a/drivers/ata/pata_bf54x.c~libata-blackfin-pata-driver-add-proper-pm-operation-into-atapi-driver
-+++ a/drivers/ata/pata_bf54x.c
-@@ -1632,6 +1632,8 @@ static int __devinit bfin_atapi_probe(st
- 		return -ENODEV;
- 	}
+diff -puN drivers/ata/pata_sil680.c~pata_sil680-convert-config_ppc_merge-to-config_ppc drivers/ata/pata_sil680.c
+--- a/drivers/ata/pata_sil680.c~pata_sil680-convert-config_ppc_merge-to-config_ppc
++++ a/drivers/ata/pata_sil680.c
+@@ -230,7 +230,7 @@ static u8 sil680_init_chip(struct pci_de
+ 		tmpbyte & 1, tmpbyte & 0x30);
  
-+	dev_set_drvdata(&pdev->dev, host);
-+
- 	return 0;
- }
- 
-@@ -1648,6 +1650,7 @@ static int __devexit bfin_atapi_remove(s
- 	struct ata_host *host = dev_get_drvdata(dev);
- 
- 	ata_host_detach(host);
-+	dev_set_drvdata(&pdev->dev, NULL);
- 
- 	peripheral_free_list(atapi_io_port);
- 
-@@ -1655,27 +1658,44 @@ static int __devexit bfin_atapi_remove(s
- }
- 
- #ifdef CONFIG_PM
--int bfin_atapi_suspend(struct platform_device *pdev, pm_message_t state)
-+static int bfin_atapi_suspend(struct platform_device *pdev, pm_message_t state)
- {
--	return 0;
-+	struct ata_host *host = dev_get_drvdata(&pdev->dev);
-+	if (host)
-+		return ata_host_suspend(host, state);
-+	else
-+		return 0;
- }
- 
--int bfin_atapi_resume(struct platform_device *pdev)
-+static int bfin_atapi_resume(struct platform_device *pdev)
- {
-+	struct ata_host *host = dev_get_drvdata(&pdev->dev);
-+	int ret;
-+
-+	if (host) {
-+		ret = bfin_reset_controller(host);
-+		if (ret) {
-+			printk(KERN_ERR DRV_NAME ": Error during HW init\n");
-+			return ret;
-+		}
-+		ata_host_resume(host);
-+	}
-+
- 	return 0;
- }
-+#else
-+#define bfin_atapi_suspend NULL
-+#define bfin_atapi_resume NULL
+ 	*try_mmio = 0;
+-#ifdef CONFIG_PPC_MERGE
++#ifdef CONFIG_PPC
+ 	if (machine_is(cell))
+ 		*try_mmio = (tmpbyte & 1) || pci_resource_start(pdev, 5);
  #endif
- 
- static struct platform_driver bfin_atapi_driver = {
- 	.probe			= bfin_atapi_probe,
- 	.remove			= __devexit_p(bfin_atapi_remove),
-+	.suspend		= bfin_atapi_suspend,
-+	.resume			= bfin_atapi_resume,
- 	.driver = {
- 		.name		= DRV_NAME,
- 		.owner		= THIS_MODULE,
--#ifdef CONFIG_PM
--		.suspend	= bfin_atapi_suspend,
--		.resume		= bfin_atapi_resume,
--#endif
- 	},
- };
- 
 _
 
-Patches currently in -mm which might be from sonic.zhang@analog.com are
+Patches currently in -mm which might be from galak@kernel.crashing.org are
 
 origin.patch
+mpc52xx_psc_spi-remove-code-associated-with-config_ppc_merge.patch
+rtc-use-config_ppc-instead-of-config_ppc_merge.patch
 
