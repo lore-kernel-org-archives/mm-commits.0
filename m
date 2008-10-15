@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-notify_cpu_starting-compile-fixlet.patch added to -mm tree
-Date: Wed, 15 Oct 2008 15:12:46 -0700
-Message-ID: <200810152212.m9FMCkbb012299@imap1.linux-foundation.org>
+Subject: + memory-hotplug-release-memory-regions-in-pages_per_section-chunks.patch added to -mm tree
+Date: Wed, 15 Oct 2008 15:16:42 -0700
+Message-ID: <200810152216.m9FMGg3V012748@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53481 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49649 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753672AbYJOWMy (ORCPT
+	by vger.kernel.org with ESMTP id S1752367AbYJOWRd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 18:12:54 -0400
+	Wed, 15 Oct 2008 18:17:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, ink@jurassic.park.msu.ru, rth@twiddle.net
+Cc: nfont@austin.ibm.com, pbadari@us.ibm.com, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     alpha: notify_cpu_starting() compile fixlet
+     memory hotplug: release memory regions in PAGES_PER_SECTION chunks
 has been added to the -mm tree.  Its filename is
-     alpha-notify_cpu_starting-compile-fixlet.patch
+     memory-hotplug-release-memory-regions-in-pages_per_section-chunks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: notify_cpu_starting() compile fixlet
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: memory hotplug: release memory regions in PAGES_PER_SECTION chunks
+From: Nathan Fontenot <nfont@austin.ibm.com>
 
-arch/alpha/kernel/smp.c:153: error: implicit declaration of function 'notify_cpu_starting'
+During hotplug memory remove, memory regions should be released on a
+PAGES_PER_SECTION size chunks.  This mirrors the code in add_memory where
+resources are requested on a PAGES_PER_SECTION size.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Attempting to release the entire memory region fails because there is not
+a single resource for the total number of pages being removed.  Instead
+the resources for the pages are split in PAGES_PER_SECTION size chunks as
+requested during memory add.
+
+Signed-off-by: Nathan Fontenot <nfont@austin.ibm.com>
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
+Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/smp.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memory_hotplug.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/alpha/kernel/smp.c~alpha-notify_cpu_starting-compile-fixlet arch/alpha/kernel/smp.c
---- a/arch/alpha/kernel/smp.c~alpha-notify_cpu_starting-compile-fixlet
-+++ a/arch/alpha/kernel/smp.c
-@@ -27,6 +27,7 @@
- #include <linux/cache.h>
- #include <linux/profile.h>
- #include <linux/bitops.h>
-+#include <linux/cpu.h>
+diff -puN mm/memory_hotplug.c~memory-hotplug-release-memory-regions-in-pages_per_section-chunks mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-release-memory-regions-in-pages_per_section-chunks
++++ a/mm/memory_hotplug.c
+@@ -324,11 +324,11 @@ int __remove_pages(struct zone *zone, un
+ 	BUG_ON(phys_start_pfn & ~PAGE_SECTION_MASK);
+ 	BUG_ON(nr_pages % PAGES_PER_SECTION);
  
- #include <asm/hwrpb.h>
- #include <asm/ptrace.h>
-_
-
-Patches currently in -mm which might be from adobriyan@gmail.com are
-
-origin.patch
-tags-skip-in-filenames.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-alpha-notify_cpu_starting-compile-fixlet.patch
-cpuset-use-seq_cpumask-seq_nodemask.patch
-compat_binfmt_elf-definition-tweak.patch
-proc-move-sysrq-trigger-out-of-fs-proc.patch
-sysctl-simplify-strategy.patch
-fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out.patch
-fs-kconfig-move-cifs-out.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
-
+-	release_mem_region(phys_start_pfn << PAGE_SHIFT, nr_pages * PAGE_SIZE);
