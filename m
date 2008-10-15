@@ -1,71 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - compat-generic-compat-get-settimeofday-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 16:44:09 -0700
-Message-ID: <200810152344.m9FNi981022849@imap1.linux-foundation.org>
+Subject: - allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 16:44:53 -0700
+Message-ID: <200810152344.m9FNis3t022925@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47970 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36001 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752483AbYJOXoV (ORCPT
+	by vger.kernel.org with ESMTP id S1753157AbYJOXo6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 19:44:21 -0400
+	Wed, 15 Oct 2008 19:44:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hch@lst.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kirill@shutemov.name, viro@zeniv.linux.org.uk, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     compat-generic-compat-get-settimeofday-checkpatch-fixes
+     allow-recursion-in-binfmt_script-and-binfmt_misc-fix
 has been removed from the -mm tree.  Its filename was
-     compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
+     allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
 
-This patch was dropped because it was folded into compat-generic-compat-get-settimeofday.patch
+This patch was dropped because it was folded into allow-recursion-in-binfmt_script-and-binfmt_misc.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: compat-generic-compat-get-settimeofday-checkpatch-fixes
+Subject: allow-recursion-in-binfmt_script-and-binfmt_misc-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#628: FILE: arch/sparc64/kernel/systbls.S:44:
-+	.word sys32_getgroups, compat_sys_gettimeofday, sys32_getrusage, sys_nis_syscall, sys_getcwd
-
-WARNING: line over 80 characters
-#629: FILE: arch/sparc64/kernel/systbls.S:45:
-+/*120*/	.word compat_sys_readv, compat_sys_writev, compat_sys_settimeofday, sys_fchown16, sys_fchmod
-
-ERROR: code indent should use tabs where possible
-#806: FILE: kernel/compat.c:75:
-+ ^Iif (tv) {$
-
-total: 1 errors, 2 warnings, 693 lines checked
-
-./patches/compat-generic-compat-get-settimeofday.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/compat.c |    2 +-
+ include/linux/binfmts.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/compat.c~compat-generic-compat-get-settimeofday-checkpatch-fixes kernel/compat.c
---- a/kernel/compat.c~compat-generic-compat-get-settimeofday-checkpatch-fixes
-+++ a/kernel/compat.c
-@@ -72,7 +72,7 @@ asmlinkage long compat_sys_settimeofday(
- 	struct timespec kts;
- 	struct timezone ktz;
- 
-- 	if (tv) {
-+	if (tv) {
- 		if (compat_get_timeval(&kts, tv))
- 			return -EFAULT;
- 	}
+diff -puN include/linux/binfmts.h~allow-recursion-in-binfmt_script-and-binfmt_misc-fix include/linux/binfmts.h
+--- a/include/linux/binfmts.h~allow-recursion-in-binfmt_script-and-binfmt_misc-fix
++++ a/include/linux/binfmts.h
+@@ -39,7 +39,7 @@ struct linux_binprm{
+ #ifdef __alpha__
+ 	unsigned int taso:1;
+ #endif
+-	unsigned char recursion_depth;
++	unsigned int recursion_depth;
+ 	struct file * file;
+ 	int e_uid, e_gid;
+ 	kernel_cap_t cap_post_exec_permitted;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,7 +60,7 @@ pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation.patch
 make-taint-bit-reliable-v3.patch
 kernel-sysc-improve-code-generation.patch
 compat-generic-compat-get-settimeofday.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
+allow-recursion-in-binfmt_script-and-binfmt_misc.patch
 allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
 autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
 autofs4-add-miscellaneous-device-for-ioctls-fix.patch
