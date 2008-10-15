@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + byteorder-remove-direct-includes-of-linux-byteorder-swabh.patch added to -mm tree
-Date: Wed, 15 Oct 2008 15:04:21 -0700
-Message-ID: <200810152204.m9FM4LB4011352@imap1.linux-foundation.org>
+Subject: + alpha-notify_cpu_starting-compile-fixlet.patch added to -mm tree
+Date: Wed, 15 Oct 2008 15:12:46 -0700
+Message-ID: <200810152212.m9FMCkbb012299@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36019 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53481 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752509AbYJOWF0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753672AbYJOWMy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 18:05:26 -0400
+	Wed, 15 Oct 2008 18:12:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, mchehab@infradead.org, paulmck@us.ibm.com
+Cc: adobriyan@gmail.com, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     byteorder: remove direct includes of linux/byteorder/swab[b].h
+     alpha: notify_cpu_starting() compile fixlet
 has been added to the -mm tree.  Its filename is
-     byteorder-remove-direct-includes-of-linux-byteorder-swabh.patch
+     alpha-notify_cpu_starting-compile-fixlet.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,126 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: byteorder: remove direct includes of linux/byteorder/swab[b].h
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: alpha: notify_cpu_starting() compile fixlet
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-A consolidated implementation will provide this generically through
-asm/byteorder, remove direct includes to avoid breakage when the
-changeover to the new implementation occurs.
+arch/alpha/kernel/smp.c:153: error: implicit declaration of function 'notify_cpu_starting'
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/ttpci/av7110.c       |    2 +-
- drivers/media/video/cx18/cx18-driver.h |    1 +
- drivers/media/video/ivtv/ivtv-driver.h |    1 +
- kernel/rcupreempt.c                    |    2 +-
- tests/rcutorture.c                     |    3 ++-
- 5 files changed, 6 insertions(+), 3 deletions(-)
+ arch/alpha/kernel/smp.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/media/dvb/ttpci/av7110.c~byteorder-remove-direct-includes-of-linux-byteorder-swabh drivers/media/dvb/ttpci/av7110.c
---- a/drivers/media/dvb/ttpci/av7110.c~byteorder-remove-direct-includes-of-linux-byteorder-swabh
-+++ a/drivers/media/dvb/ttpci/av7110.c
-@@ -36,7 +36,6 @@
- #include <linux/fs.h>
- #include <linux/timer.h>
- #include <linux/poll.h>
--#include <linux/byteorder/swabb.h>
- #include <linux/smp_lock.h>
+diff -puN arch/alpha/kernel/smp.c~alpha-notify_cpu_starting-compile-fixlet arch/alpha/kernel/smp.c
+--- a/arch/alpha/kernel/smp.c~alpha-notify_cpu_starting-compile-fixlet
++++ a/arch/alpha/kernel/smp.c
+@@ -27,6 +27,7 @@
+ #include <linux/cache.h>
+ #include <linux/profile.h>
+ #include <linux/bitops.h>
++#include <linux/cpu.h>
  
- #include <linux/kernel.h>
-@@ -52,6 +51,7 @@
- #include <linux/i2c.h>
- #include <linux/kthread.h>
- #include <asm/unaligned.h>
-+#include <asm/byteorder.h>
- 
- #include <asm/system.h>
- 
-diff -puN drivers/media/video/cx18/cx18-driver.h~byteorder-remove-direct-includes-of-linux-byteorder-swabh drivers/media/video/cx18/cx18-driver.h
---- a/drivers/media/video/cx18/cx18-driver.h~byteorder-remove-direct-includes-of-linux-byteorder-swabh
-+++ a/drivers/media/video/cx18/cx18-driver.h
-@@ -41,6 +41,7 @@
- #include <linux/pagemap.h>
- #include <linux/workqueue.h>
- #include <linux/mutex.h>
-+#include <asm/byteorder.h>
- 
- #include <linux/dvb/video.h>
- #include <linux/dvb/audio.h>
-diff -puN drivers/media/video/ivtv/ivtv-driver.h~byteorder-remove-direct-includes-of-linux-byteorder-swabh drivers/media/video/ivtv/ivtv-driver.h
---- a/drivers/media/video/ivtv/ivtv-driver.h~byteorder-remove-direct-includes-of-linux-byteorder-swabh
-+++ a/drivers/media/video/ivtv/ivtv-driver.h
-@@ -55,6 +55,7 @@
- #include <linux/mutex.h>
- #include <asm/uaccess.h>
- #include <asm/system.h>
-+#include <asm/byteorder.h>
- 
- #include <linux/dvb/video.h>
- #include <linux/dvb/audio.h>
-diff -puN kernel/rcupreempt.c~byteorder-remove-direct-includes-of-linux-byteorder-swabh kernel/rcupreempt.c
---- a/kernel/rcupreempt.c~byteorder-remove-direct-includes-of-linux-byteorder-swabh
-+++ a/kernel/rcupreempt.c
-@@ -54,9 +54,9 @@
- #include <linux/cpu.h>
- #include <linux/random.h>
- #include <linux/delay.h>
--#include <linux/byteorder/swabb.h>
- #include <linux/cpumask.h>
- #include <linux/rcupreempt_trace.h>
-+#include <asm/byteorder.h>
- 
- /*
-  * PREEMPT_RCU data structures.
-diff -puN /dev/null /dev/null
-diff -puN tests/rcutorture.c~byteorder-remove-direct-includes-of-linux-byteorder-swabh tests/rcutorture.c
---- a/tests/rcutorture.c~byteorder-remove-direct-includes-of-linux-byteorder-swabh
-+++ a/tests/rcutorture.c
-@@ -42,11 +42,12 @@
- #include <linux/freezer.h>
- #include <linux/cpu.h>
- #include <linux/delay.h>
--#include <linux/byteorder/swabb.h>
- #include <linux/stat.h>
- #include <linux/srcu.h>
- #include <linux/slab.h>
- 
-+#include <asm/byteorder.h>
-+
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Paul E. McKenney <paulmck@us.ibm.com> and "
-               "Josh Triplett <josh@freedesktop.org>");
+ #include <asm/hwrpb.h>
+ #include <asm/ptrace.h>
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
-git-acpi.patch
-cifs-remove-global_extern-macro.patch
-input-ads7846c-sparse-lock-annotation.patch
-scsi-replace-__inline-with-inline.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-scsi-remove-private-implementation-of-get_unaligned_be32.patch
-usb-avoid-needless-address-taking-of-function-parameters.patch
-mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
-olpc-olpc_batteryc-sparse-endian-annotations.patch
-include-replace-__function__-with-__func__.patch
-misc-replace-__function__-with-__func__.patch
-befs-annotate-fs32-on-tests-for-superblock-endianness.patch
-char-moxac-sparse-annotation.patch
-byteorder-add-new-headers-for-make-headers-install.patch
-byteorder-use-generic-c-version-for-value-byteswapping.patch
-byteorder-provide-swabbh-generically-in-asm-byteorderh.patch
-byteorder-remove-direct-includes-of-linux-byteorder-swabh.patch
-lib-pull-base-guessing-logic-to-helper-function.patch
-lib-trivial-whitespace-tidy.patch
-lib-remove-defining-macros-for-strict_strto.patch
+tags-skip-in-filenames.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+alpha-notify_cpu_starting-compile-fixlet.patch
+cpuset-use-seq_cpumask-seq_nodemask.patch
+compat_binfmt_elf-definition-tweak.patch
+proc-move-sysrq-trigger-out-of-fs-proc.patch
+sysctl-simplify-strategy.patch
+fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out.patch
+fs-kconfig-move-cifs-out.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+likely_prof-changed-to-use-proc_create.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
 
