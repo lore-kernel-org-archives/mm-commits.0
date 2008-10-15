@@ -1,81 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-ds1374-wakeup-support-update.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 16:50:51 -0700
-Message-ID: <200810152350.m9FNoqAu023677@imap1.linux-foundation.org>
+Subject: - rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 16:51:08 -0700
+Message-ID: <200810152351.m9FNp9cg023716@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33997 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42939 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752656AbYJOXvP (ORCPT
+	by vger.kernel.org with ESMTP id S1753465AbYJOXvW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 19:51:15 -0400
+	Wed, 15 Oct 2008 19:51:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marc.pignat@hevs.ch, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, denzzzhome@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: DS1374 wakeup support (update)
+     rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-ds1374-wakeup-support-update.patch
+     rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
 
-This patch was dropped because it was folded into rtc-ds1374-wakup-support.patch
+This patch was dropped because it was folded into rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: DS1374 wakeup support (update)
-From: Marc Pignat <marc.pignat@hevs.ch>
+Subject: rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Changes since v1:
- * patch against 2.6.27-rc1
- * removed device_init_wakeup(...) calls, they should be handled in i2c-core.c
+These are going away.
 
-Signed-off-by: Marc Pignat <marc.pignat@hevs.ch>
-Cc: David Brownell <david-b@pacbell.net>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Dennis Aberilla <denzzzhome@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1374.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-ds3234.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1374.c~rtc-ds1374-wakeup-support-update drivers/rtc/rtc-ds1374.c
---- a/drivers/rtc/rtc-ds1374.c~rtc-ds1374-wakeup-support-update
-+++ a/drivers/rtc/rtc-ds1374.c
-@@ -388,7 +388,6 @@ static int ds1374_probe(struct i2c_clien
- 			dev_err(&client->dev, "unable to request IRQ\n");
- 			goto out_free;
- 		}
--		device_init_wakeup(&client->dev, 1);
- 	}
+diff -puN drivers/rtc/rtc-ds3234.c~rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix drivers/rtc/rtc-ds3234.c
+--- a/drivers/rtc/rtc-ds3234.c~rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix
++++ a/drivers/rtc/rtc-ds3234.c
+@@ -119,13 +119,13 @@ static int ds3234_get_datetime(struct de
+ 		return status;
  
- 	ds1374->rtc = rtc_device_register(client->name, &client->dev,
-@@ -402,10 +401,9 @@ static int ds1374_probe(struct i2c_clien
+ 	/* Seconds, Minutes, Hours, Day, Date, Month, Year */
+-	dt->tm_sec	= BCD2BIN(chip->buf[1]);
+-	dt->tm_min	= BCD2BIN(chip->buf[2]);
+-	dt->tm_hour	= BCD2BIN(chip->buf[3] & 0x3f);
+-	dt->tm_wday	= BCD2BIN(chip->buf[4]) - 1; /* 0 = Sun */
+-	dt->tm_mday	= BCD2BIN(chip->buf[5]);
+-	dt->tm_mon	= BCD2BIN(chip->buf[6] & 0x1f) - 1; /* 0 = Jan */
+-	dt->tm_year 	= BCD2BIN(chip->buf[7] & 0xff) + 100; /* Assume 20YY */
++	dt->tm_sec	= bcd2bin(chip->buf[1]);
++	dt->tm_min	= bcd2bin(chip->buf[2]);
++	dt->tm_hour	= bcd2bin(chip->buf[3] & 0x3f);
++	dt->tm_wday	= bcd2bin(chip->buf[4]) - 1; /* 0 = Sun */
++	dt->tm_mday	= bcd2bin(chip->buf[5]);
++	dt->tm_mon	= bcd2bin(chip->buf[6] & 0x1f) - 1; /* 0 = Jan */
++	dt->tm_year 	= bcd2bin(chip->buf[7] & 0xff) + 100; /* Assume 20YY */
+ 
+ #ifdef DS3234_DEBUG
+ 	dev_dbg(dev, "\n%s : Read RTC values\n", __func__);
+@@ -154,22 +154,22 @@ static int ds3234_set_datetime(struct de
+ 	dev_dbg(dev, "tm_year: %i\n", dt->tm_year);
+ #endif
+ 
+-	ds3234_set_reg(dev, DS3234_REG_SECONDS, BIN2BCD(dt->tm_sec));
+-	ds3234_set_reg(dev, DS3234_REG_MINUTES, BIN2BCD(dt->tm_min));
+-	ds3234_set_reg(dev, DS3234_REG_HOURS, BIN2BCD(dt->tm_hour) & 0x3f);
++	ds3234_set_reg(dev, DS3234_REG_SECONDS, bin2bcd(dt->tm_sec));
++	ds3234_set_reg(dev, DS3234_REG_MINUTES, bin2bcd(dt->tm_min));
++	ds3234_set_reg(dev, DS3234_REG_HOURS, bin2bcd(dt->tm_hour) & 0x3f);
+ 
+ 	/* 0 = Sun */
+-	ds3234_set_reg(dev, DS3234_REG_DAY, BIN2BCD(dt->tm_wday + 1));
+-	ds3234_set_reg(dev, DS3234_REG_DATE, BIN2BCD(dt->tm_mday));
++	ds3234_set_reg(dev, DS3234_REG_DAY, bin2bcd(dt->tm_wday + 1));
++	ds3234_set_reg(dev, DS3234_REG_DATE, bin2bcd(dt->tm_mday));
+ 
+ 	/* 0 = Jan */
+-	ds3234_set_reg(dev, DS3234_REG_MONTH, BIN2BCD(dt->tm_mon + 1));
++	ds3234_set_reg(dev, DS3234_REG_MONTH, bin2bcd(dt->tm_mon + 1));
+ 
+ 	/* Assume 20YY although we just want to make sure not to go negative. */
+ 	if (dt->tm_year > 100)
+ 		dt->tm_year -= 100;
+ 
+-	ds3234_set_reg(dev, DS3234_REG_YEAR, BIN2BCD(dt->tm_year));
++	ds3234_set_reg(dev, DS3234_REG_YEAR, bin2bcd(dt->tm_year));
+ 
  	return 0;
- 
- out_irq:
--	if (client->irq > 0) {
--		device_init_wakeup(&client->dev, 0);
-+	if (client->irq > 0)
- 		free_irq(client->irq, client);
--	}
-+
- out_free:
- 	i2c_set_clientdata(client, NULL);
- 	kfree(ds1374);
-@@ -421,7 +419,6 @@ static int __devexit ds1374_remove(struc
- 		ds1374->exiting = 1;
- 		mutex_unlock(&ds1374->mutex);
- 
--		device_init_wakeup(&client->dev, 0);
- 		free_irq(client->irq, client);
- 		flush_scheduled_work();
- 	}
+ }
 _
 
-Patches currently in -mm which might be from marc.pignat@hevs.ch are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rtc-ds1374-wakup-support.patch
-rtc-ds1374-wakeup-support-update.patch
+origin.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+h8300-generic_bug-support-checkpatch-fixes.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation.patch
+make-taint-bit-reliable-v3.patch
+kernel-sysc-improve-code-generation.patch
+compat-generic-compat-get-settimeofday.patch
+allow-recursion-in-binfmt_script-and-binfmt_misc.patch
+autofs4-track-uid-and-gid-of-last-mount-requester.patch
+autofs4-add-miscellaneous-device-for-ioctls.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+viafb-viafbmodes-viafbtxt-fix-fix.patch
+viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update-fix.patch
+fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanups.patch
+ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
+applicomc-fix-apparently-broken-code-in-do_ac_read.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+w1-be-able-to-manually-add-and-remove-slaves-fix.patch
+w1-new-driver-ds2431-chip-fix.patch
+gru-driver-minor-updates-fix.patch
 
