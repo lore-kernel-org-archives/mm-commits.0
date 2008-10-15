@@ -1,135 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 16:53:39 -0700
-Message-ID: <200810152353.m9FNreXr024007@imap1.linux-foundation.org>
+Subject: - fbdev-kconfig-update-fix.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 16:53:59 -0700
+Message-ID: <200810152353.m9FNrx27024041@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60451 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44763 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753855AbYJOXyf (ORCPT
+	by vger.kernel.org with ESMTP id S1753685AbYJOXzO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 19:54:35 -0400
+	Wed, 15 Oct 2008 19:55:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, JosephChan@via.com.tw, geert@linux-m68k.org, jirislaby@gmail.com, josephchan@via.com.tw, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, geert@linux-m68k.org, krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb-viafbdevc-viafbdevh-checkpatch-fixes
+     fbdev-kconfig-update-fix
 has been removed from the -mm tree.  Its filename was
-     viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+     fbdev-kconfig-update-fix.patch
 
-This patch was dropped because it was folded into viafb-viafbdevc-viafbdevh.patch
+This patch was dropped because it was folded into fbdev-kconfig-update.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb-viafbdevc-viafbdevh-checkpatch-fixes
+Subject: fbdev-kconfig-update-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: suspect code indent for conditional statements
-#306: FILE: drivers/video/via/viafbdev.c:285:
-+	if (UNICHROME_CLE266 == viaparinfo->chip_info->gfx_chip_name) {
-
-WARNING: suspect code indent for conditional statements
-#408: FILE: drivers/video/via/viafbdev.c:387:
-+	if (UNICHROME_CLE266 == viaparinfo->chip_info->gfx_chip_name) {
-
-WARNING: suspect code indent for conditional statements
-#585: FILE: drivers/video/via/viafbdev.c:564:
-+		if (copy_to_user(argp, viaparinfo->chip_info,
-
-WARNING: suspect code indent for conditional statements
-#782: FILE: drivers/video/via/viafbdev.c:761:
-+		if (copy_from_user
-
-WARNING: suspect code indent for conditional statements
-#1377: FILE: drivers/video/via/viafbdev.c:1356:
-+	if ((active_dev.samm == STATE_OFF)
-
-total: 0 errors, 5 warnings, 2675 lines checked
-
-./patches/viafb-viafbdevc-viafbdevh.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+fix text
 
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: Joseph Chan <JosephChan@via.com.tw>
-Cc: Joseph Chan <josephchan@via.com.tw>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/viafbdev.c |   26 +++++++++++++++-----------
- 1 file changed, 15 insertions(+), 11 deletions(-)
+ drivers/video/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/via/viafbdev.c~viafb-viafbdevc-viafbdevh-checkpatch-fixes drivers/video/via/viafbdev.c
---- a/drivers/video/via/viafbdev.c~viafb-viafbdevc-viafbdevh-checkpatch-fixes
-+++ a/drivers/video/via/viafbdev.c
-@@ -283,7 +283,9 @@ unsigned blue, unsigned transp, struct f
- 	if (regno >= cmap_entries)
- 		return 1;
- 	if (UNICHROME_CLE266 == viaparinfo->chip_info->gfx_chip_name) {
--	/* Read PCI bus 0,dev 0,function 0,index 0xF6 to get chip rev. */
-+		/*
-+		 * Read PCI bus 0,dev 0,function 0,index 0xF6 to get chip rev.
-+		 */
- 		outl(0x80000000 | (0xf6 & ~3), (unsigned long)0xCF8);
- 		rev = (inl((unsigned long)0xCFC) >> ((0xf6 & 3) * 8)) & 0xff;
- 	}
-@@ -385,7 +387,10 @@ static int viafb_setcmap(struct fb_cmap 
- 	if (len > 256)
- 		return 1;
- 	if (UNICHROME_CLE266 == viaparinfo->chip_info->gfx_chip_name) {
--	/* Read PCI bus 0, dev 0, function 0, index 0xF6 to get chip rev. */
-+		/*
-+		 * Read PCI bus 0, dev 0, function 0, index 0xF6 to get chip
-+		 * rev.
-+		 */
- 		outl(0x80000000 | (0xf6 & ~3), (unsigned long)0xCF8);
- 		rev = (inl((unsigned long)0xCFC) >> ((0xf6 & 3) * 8)) & 0xff;
- 	}
-@@ -562,8 +567,8 @@ static int viafb_ioctl(struct fb_info *i
- 	switch (cmd) {
- 	case VIAFB_GET_CHIP_INFO:
- 		if (copy_to_user(argp, viaparinfo->chip_info,
--		sizeof(struct chip_information)))
--		return -EFAULT;
-+				sizeof(struct chip_information)))
-+			return -EFAULT;
- 		break;
- 	case VIAFB_GET_INFO_SIZE:
- 		return put_user(viainfo_size, argp);
-@@ -758,10 +763,10 @@ static int viafb_ioctl(struct fb_info *i
- 		viafb_gamma_table = kmalloc(256 * sizeof(u32), GFP_KERNEL);
- 		if (!viafb_gamma_table)
- 			return -ENOMEM;
--		if (copy_from_user
--		    (viafb_gamma_table, argp, sizeof(viafb_gamma_table))) {
--		    kfree(viafb_gamma_table);
--		    return -EFAULT;
-+		if (copy_from_user(viafb_gamma_table, argp,
-+				sizeof(viafb_gamma_table))) {
-+			kfree(viafb_gamma_table);
-+			return -EFAULT;
- 		}
- 		viafb_set_gamma_table(viafb_bpp, viafb_gamma_table);
- 		kfree(viafb_gamma_table);
-@@ -1353,9 +1358,8 @@ static void viafb_set_device(struct devi
- 		viafb_refresh = active_dev.refresh;
- 	if (active_dev.refresh1 != 0)
- 		viafb_refresh1 = active_dev.refresh1;
--	if ((active_dev.samm == STATE_OFF)
--	    || (active_dev.samm == STATE_ON))
--	    viafb_SAMM_ON = active_dev.samm;
-+	if ((active_dev.samm == STATE_OFF) || (active_dev.samm == STATE_ON))
-+		viafb_SAMM_ON = active_dev.samm;
- 	viafb_primary_dev = active_dev.primary_dev;
- 
- 	viafb_set_start_addr();
+diff -puN drivers/video/Kconfig~fbdev-kconfig-update-fix drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fbdev-kconfig-update-fix
++++ a/drivers/video/Kconfig
+@@ -256,7 +256,7 @@ config FB_PM2
+ 	help
+ 	  This is the frame buffer device driver for cards based on
+ 	  the 3D Labs Permedia, Permedia 2 and Permedia 2V chips.
+-	  The driver was tested on following cards are:
++	  The driver was tested on the following cards:
+ 		Diamond FireGL 1000 PRO AGP
+ 		ELSA Gloria Synergy PCI
+ 		Appian Jeronimo PRO (both heads) PCI
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -149,7 +68,7 @@ viafb-accelc-accelh.patch
 viafb-dvic-dvih-globalc-and-globalh.patch
 viafb-hwc-hwh.patch
 viafb-viafbdevc-viafbdevh.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
+fbdev-kconfig-update.patch
 fbdev-kconfig-update-fix.patch
 fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanups.patch
 ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
