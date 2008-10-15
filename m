@@ -1,333 +1,198 @@
 From: akpm@linux-foundation.org
-Subject: - serial-mpc52xx_uart-remove-code-associated-with-config_ppc_merge.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 14:13:46 -0700
-Message-ID: <200810152113.m9FLDkDF005617@imap1.linux-foundation.org>
+Subject: - mm-page-allocator-minor-speedup.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 14:31:26 -0700
+Message-ID: <200810152131.m9FLVQar007676@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51046 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34189 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753570AbYJOV1H (ORCPT
+	by vger.kernel.org with ESMTP id S1753540AbYJOVcQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 17:27:07 -0400
+	Wed, 15 Oct 2008 17:32:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: galak@kernel.crashing.org, alan@lxorguk.ukuu.org.uk, benh@kernel.crashing.org, jirislaby@gmail.com, paulus@samba.org, mm-commits@vger.kernel.org
+To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial/mpc52xx_uart: remove code associated with !CONFIG_PPC_MERGE
+     mm: page allocator minor speedup
 has been removed from the -mm tree.  Its filename was
-     serial-mpc52xx_uart-remove-code-associated-with-config_ppc_merge.patch
+     mm-page-allocator-minor-speedup.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial/mpc52xx_uart: remove code associated with !CONFIG_PPC_MERGE
-From: Kumar Gala <galak@kernel.crashing.org>
+Subject: mm: page allocator minor speedup
+From: Nick Piggin <npiggin@suse.de>
 
-Now that arch/ppc is gone we don't need CONFIG_PPC_MERGE anymore
-remove the dead code associated with !CONFIG_PPC_MERGE.
+Now that we don't put a ZERO_PAGE in the pagetables any more, and the
+"remove PageReserved from core mm" patch has had a long time to mature,
+let's remove the page reserved logic from the allocator.
 
-Signed-off-by: Kumar Gala <galak@kernel.crashing.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+This saves several branches and about 100 bytes in some important paths.
+
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/mpc52xx_uart.c |  181 --------------------------------
- 1 file changed, 1 insertion(+), 180 deletions(-)
+ include/linux/page-flags.h |    6 +++---
+ mm/page_alloc.c            |   31 +++++--------------------------
+ 2 files changed, 8 insertions(+), 29 deletions(-)
 
-diff -puN drivers/serial/mpc52xx_uart.c~serial-mpc52xx_uart-remove-code-associated-with-config_ppc_merge drivers/serial/mpc52xx_uart.c
---- a/drivers/serial/mpc52xx_uart.c~serial-mpc52xx_uart-remove-code-associated-with-config_ppc_merge
-+++ a/drivers/serial/mpc52xx_uart.c
-@@ -72,13 +72,8 @@
- #include <linux/console.h>
- #include <linux/delay.h>
- #include <linux/io.h>
--
--#if defined(CONFIG_PPC_MERGE)
- #include <linux/of.h>
- #include <linux/of_platform.h>
--#else
--#include <linux/platform_device.h>
--#endif
+diff -puN include/linux/page-flags.h~mm-page-allocator-minor-speedup include/linux/page-flags.h
+--- a/include/linux/page-flags.h~mm-page-allocator-minor-speedup
++++ a/include/linux/page-flags.h
+@@ -377,7 +377,7 @@ static inline void __ClearPageTail(struc
+ #define PAGE_FLAGS	(1 << PG_lru   | 1 << PG_private   | 1 << PG_locked | \
+ 			 1 << PG_buddy | 1 << PG_writeback | \
+ 			 1 << PG_slab  | 1 << PG_swapcache | 1 << PG_active | \
+-			 __PG_UNEVICTABLE | __PG_MLOCKED)
++			 __PG_UNEVICTABLE | __PG_MLOCKED | 1 << PG_reserved)
  
- #include <asm/mpc52xx.h>
- #include <asm/mpc512x.h>
-@@ -107,12 +102,11 @@ static struct uart_port mpc52xx_uart_por
- 	 *        it's cleared, then a memset(...,0,...) should be added to
- 	 *        the console_init
- 	 */
--#if defined(CONFIG_PPC_MERGE)
-+
- /* lookup table for matching device nodes to index numbers */
- static struct device_node *mpc52xx_uart_nodes[MPC52xx_PSC_MAXNUM];
+ /*
+  * Flags checked in bad_page().  Pages on the free list should not have
+@@ -390,7 +390,7 @@ static inline void __ClearPageTail(struc
+  * Flags checked when a page is freed.  Pages being freed should not have
+  * these flags set.  It they are, there is a problem.
+  */
+-#define PAGE_FLAGS_CHECK_AT_FREE (PAGE_FLAGS | 1 << PG_reserved)
++#define PAGE_FLAGS_CHECK_AT_FREE (PAGE_FLAGS)
  
- static void mpc52xx_uart_of_enumerate(void);
--#endif
+ /*
+  * Flags checked when a page is prepped for return by the page allocator.
+@@ -398,7 +398,7 @@ static inline void __ClearPageTail(struc
+  * is a problem.
+  */
+ #define PAGE_FLAGS_CHECK_AT_PREP (PAGE_FLAGS | \
+-		1 << PG_reserved | 1 << PG_dirty | 1 << PG_swapbacked)
++		1 << PG_dirty | 1 << PG_swapbacked)
  
+ #endif /* !__GENERATING_BOUNDS_H */
+ #endif	/* PAGE_FLAGS_H */
+diff -puN mm/page_alloc.c~mm-page-allocator-minor-speedup mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page-allocator-minor-speedup
++++ a/mm/page_alloc.c
+@@ -449,7 +449,7 @@ static inline void __free_one_page(struc
+ 	zone->free_area[order].nr_free++;
+ }
  
- #define PSC(port) ((struct mpc52xx_psc __iomem *)((port)->membase))
-@@ -255,17 +249,12 @@ static void mpc52xx_psc_cw_restore_ints(
- /* Search for bus-frequency property in this node or a parent */
- static unsigned long mpc52xx_getuartclk(void *p)
+-static inline int free_pages_check(struct page *page)
++static inline void free_pages_check(struct page *page)
  {
--#if defined(CONFIG_PPC_MERGE)
- 	/*
- 	 * 5200 UARTs have a / 32 prescaler
- 	 * but the generic serial code assumes 16
- 	 * so return ipb freq / 2
- 	 */
- 	return mpc52xx_find_ipb_freq(p) / 2;
--#else
--	pr_debug("unexpected call to mpc52xx_getuartclk with arch/ppc\n");
--	return NULL;
--#endif
+ 	free_page_mlock(page);
+ 	if (unlikely(page_mapcount(page) |
+@@ -462,12 +462,6 @@ static inline int free_pages_check(struc
+ 		__ClearPageDirty(page);
+ 	if (PageSwapBacked(page))
+ 		__ClearPageSwapBacked(page);
+-	/*
+-	 * For now, we report if PG_reserved was found set, but do not
+-	 * clear it, and do not free the page.  But we shall soon need
+-	 * to do more, for when the ZERO_PAGE count wraps negative.
+-	 */
+-	return PageReserved(page);
  }
  
- static struct psc_ops mpc52xx_psc_ops = {
-@@ -886,10 +875,6 @@ mpc52xx_console_get_options(struct uart_
- 
- 	/* CT{U,L}R are write-only ! */
- 	*baud = CONFIG_SERIAL_MPC52xx_CONSOLE_BAUD;
--#if !defined(CONFIG_PPC_MERGE)
--	if (__res.bi_baudrate)
--		*baud = __res.bi_baudrate;
--#endif
- 
- 	/* Parse them */
- 	switch (mr1 & MPC52xx_PSC_MODE_BITS_MASK) {
-@@ -946,42 +931,6 @@ mpc52xx_console_write(struct console *co
- 	psc_ops->cw_restore_ints(port);
- }
- 
--#if !defined(CONFIG_PPC_MERGE)
--static int __init
--mpc52xx_console_setup(struct console *co, char *options)
--{
--	struct uart_port *port = &mpc52xx_uart_ports[co->index];
--
--	int baud = CONFIG_SERIAL_MPC52xx_CONSOLE_BAUD;
--	int bits = 8;
--	int parity = 'n';
--	int flow = 'n';
--
--	if (co->index < 0 || co->index >= MPC52xx_PSC_MAXNUM)
--		return -EINVAL;
--
--	/* Basic port init. Needed since we use some uart_??? func before
--	 * real init for early access */
--	spin_lock_init(&port->lock);
--	port->uartclk	= __res.bi_ipbfreq / 2; /* Look at CTLR doc */
--	port->ops	= &mpc52xx_uart_ops;
--	port->mapbase	= MPC52xx_PA(MPC52xx_PSCx_OFFSET(co->index+1));
--
--	/* We ioremap ourself */
--	port->membase = ioremap(port->mapbase, MPC52xx_PSC_SIZE);
--	if (port->membase == NULL)
--		return -EINVAL;
--
--	/* Setup the port parameters accoding to options */
--	if (options)
--		uart_parse_options(options, &baud, &parity, &bits, &flow);
--	else
--		mpc52xx_console_get_options(port, &baud, &parity, &bits, &flow);
--
--	return uart_set_options(port, co, baud, parity, bits, flow);
--}
--
--#else
- 
- static int __init
- mpc52xx_console_setup(struct console *co, char *options)
-@@ -1053,7 +1002,6 @@ mpc52xx_console_setup(struct console *co
- 
- 	return uart_set_options(port, co, baud, parity, bits, flow);
- }
--#endif /* defined(CONFIG_PPC_MERGE) */
- 
- 
- static struct uart_driver mpc52xx_uart_driver;
-@@ -1072,9 +1020,7 @@ static struct console mpc52xx_console = 
- static int __init
- mpc52xx_console_init(void)
+ /*
+@@ -512,12 +506,9 @@ static void __free_pages_ok(struct page 
  {
--#if defined(CONFIG_PPC_MERGE)
- 	mpc52xx_uart_of_enumerate();
--#endif
- 	register_console(&mpc52xx_console);
- 	return 0;
- }
-@@ -1100,115 +1046,6 @@ static struct uart_driver mpc52xx_uart_d
- 	.cons		= MPC52xx_PSC_CONSOLE,
- };
+ 	unsigned long flags;
+ 	int i;
+-	int reserved = 0;
  
+ 	for (i = 0 ; i < (1 << order) ; ++i)
+-		reserved += free_pages_check(page + i);
+-	if (reserved)
+-		return;
++		free_pages_check(page + i);
+ 
+ 	if (!PageHighMem(page)) {
+ 		debug_check_no_locks_freed(page_address(page),PAGE_SIZE<<order);
+@@ -596,7 +587,7 @@ static inline void expand(struct zone *z
+ /*
+  * This page is about to be returned from the page allocator
+  */
+-static int prep_new_page(struct page *page, int order, gfp_t gfp_flags)
++static void prep_new_page(struct page *page, int order, gfp_t gfp_flags)
+ {
+ 	if (unlikely(page_mapcount(page) |
+ 		(page->mapping != NULL)  |
+@@ -605,13 +596,6 @@ static int prep_new_page(struct page *pa
+ 		(page->flags & PAGE_FLAGS_CHECK_AT_PREP)))
+ 		bad_page(page);
+ 
+-	/*
+-	 * For now, we report if PG_reserved was found set, but do not
+-	 * clear it, and do not allocate the page: as a safety net.
+-	 */
+-	if (PageReserved(page))
+-		return 1;
 -
--#if !defined(CONFIG_PPC_MERGE)
--/* ======================================================================== */
--/* Platform Driver                                                          */
--/* ======================================================================== */
--
--static int __devinit
--mpc52xx_uart_probe(struct platform_device *dev)
--{
--	struct resource *res = dev->resource;
--
--	struct uart_port *port = NULL;
--	int i, idx, ret;
--
--	/* Check validity & presence */
--	idx = dev->id;
--	if (idx < 0 || idx >= MPC52xx_PSC_MAXNUM)
--		return -EINVAL;
--
--	if (!mpc52xx_match_psc_function(idx, "uart"))
--		return -ENODEV;
--
--	/* Init the port structure */
--	port = &mpc52xx_uart_ports[idx];
--
--	spin_lock_init(&port->lock);
--	port->uartclk	= __res.bi_ipbfreq / 2; /* Look at CTLR doc */
--	port->fifosize	= 512;
--	port->iotype	= UPIO_MEM;
--	port->flags	= UPF_BOOT_AUTOCONF |
--			  (uart_console(port) ? 0 : UPF_IOREMAP);
--	port->line	= idx;
--	port->ops	= &mpc52xx_uart_ops;
--	port->dev	= &dev->dev;
--
--	/* Search for IRQ and mapbase */
--	for (i = 0 ; i < dev->num_resources ; i++, res++) {
--		if (res->flags & IORESOURCE_MEM)
--			port->mapbase = res->start;
--		else if (res->flags & IORESOURCE_IRQ)
--			port->irq = res->start;
--	}
--	if (!port->irq || !port->mapbase)
--		return -EINVAL;
--
--	/* Add the port to the uart sub-system */
--	ret = uart_add_one_port(&mpc52xx_uart_driver, port);
--	if (!ret)
--		platform_set_drvdata(dev, (void *)port);
--
--	return ret;
--}
--
--static int
--mpc52xx_uart_remove(struct platform_device *dev)
--{
--	struct uart_port *port = (struct uart_port *) platform_get_drvdata(dev);
--
--	platform_set_drvdata(dev, NULL);
--
--	if (port)
--		uart_remove_one_port(&mpc52xx_uart_driver, port);
+ 	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_reclaim |
+ 			1 << PG_referenced | 1 << PG_arch_1 |
+ 			1 << PG_owner_priv_1 | 1 << PG_mappedtodisk
+@@ -630,8 +614,6 @@ static int prep_new_page(struct page *pa
+ 
+ 	if (order && (gfp_flags & __GFP_COMP))
+ 		prep_compound_page(page, order);
 -
 -	return 0;
--}
--
--#ifdef CONFIG_PM
--static int
--mpc52xx_uart_suspend(struct platform_device *dev, pm_message_t state)
--{
--	struct uart_port *port = (struct uart_port *) platform_get_drvdata(dev);
--
--	if (port)
--		uart_suspend_port(&mpc52xx_uart_driver, port);
--
--	return 0;
--}
--
--static int
--mpc52xx_uart_resume(struct platform_device *dev)
--{
--	struct uart_port *port = (struct uart_port *) platform_get_drvdata(dev);
--
--	if (port)
--		uart_resume_port(&mpc52xx_uart_driver, port);
--
--	return 0;
--}
--#endif
--
--/* work with hotplug and coldplug */
--MODULE_ALIAS("platform:mpc52xx-psc");
--
--static struct platform_driver mpc52xx_uart_platform_driver = {
--	.probe		= mpc52xx_uart_probe,
--	.remove		= mpc52xx_uart_remove,
--#ifdef CONFIG_PM
--	.suspend	= mpc52xx_uart_suspend,
--	.resume		= mpc52xx_uart_resume,
--#endif
--	.driver		= {
--		.owner	= THIS_MODULE,
--		.name	= "mpc52xx-psc",
--	},
--};
--#endif /* !defined(CONFIG_PPC_MERGE) */
--
--
--#if defined(CONFIG_PPC_MERGE)
- /* ======================================================================== */
- /* OF Platform Driver                                                       */
- /* ======================================================================== */
-@@ -1402,7 +1239,6 @@ static struct of_platform_driver mpc52xx
- 		.name	= "mpc52xx-psc-uart",
- 	},
- };
--#endif /* defined(CONFIG_PPC_MERGE) */
- 
- 
- /* ======================================================================== */
-@@ -1423,7 +1259,6 @@ mpc52xx_uart_init(void)
- 		return ret;
- 	}
- 
--#if defined(CONFIG_PPC_MERGE)
- 	mpc52xx_uart_of_enumerate();
- 
- 	ret = of_register_platform_driver(&mpc52xx_uart_of_driver);
-@@ -1433,16 +1268,6 @@ mpc52xx_uart_init(void)
- 		uart_unregister_driver(&mpc52xx_uart_driver);
- 		return ret;
- 	}
--#else
--	psc_ops = &mpc52xx_psc_ops;
--	ret = platform_driver_register(&mpc52xx_uart_platform_driver);
--	if (ret) {
--		printk(KERN_ERR "%s: platform_driver_register failed (%i)\n",
--		       __FILE__, ret);
--		uart_unregister_driver(&mpc52xx_uart_driver);
--		return ret;
--	}
--#endif
- 
- 	return 0;
- }
-@@ -1450,11 +1275,7 @@ mpc52xx_uart_init(void)
- static void __exit
- mpc52xx_uart_exit(void)
- {
--#if defined(CONFIG_PPC_MERGE)
- 	of_unregister_platform_driver(&mpc52xx_uart_of_driver);
--#else
--	platform_driver_unregister(&mpc52xx_uart_platform_driver);
--#endif
- 	uart_unregister_driver(&mpc52xx_uart_driver);
  }
  
+ /*
+@@ -980,8 +962,7 @@ static void free_hot_cold_page(struct pa
+ 
+ 	if (PageAnon(page))
+ 		page->mapping = NULL;
+-	if (free_pages_check(page))
+-		return;
++	free_pages_check(page);
+ 
+ 	if (!PageHighMem(page)) {
+ 		debug_check_no_locks_freed(page_address(page), PAGE_SIZE);
+@@ -1049,7 +1030,6 @@ static struct page *buffered_rmqueue(str
+ 	int cpu;
+ 	int migratetype = allocflags_to_migratetype(gfp_flags);
+ 
+-again:
+ 	cpu  = get_cpu();
+ 	if (likely(order == 0)) {
+ 		struct per_cpu_pages *pcp;
+@@ -1097,8 +1077,7 @@ again:
+ 	put_cpu();
+ 
+ 	VM_BUG_ON(bad_range(zone, page));
+-	if (prep_new_page(page, order, gfp_flags))
+-		goto again;
++	prep_new_page(page, order, gfp_flags);
+ 	return page;
+ 
+ failed:
 _
 
-Patches currently in -mm which might be from galak@kernel.crashing.org are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
-mpc52xx_psc_spi-remove-code-associated-with-config_ppc_merge.patch
-rtc-use-config_ppc-instead-of-config_ppc_merge.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+mlock-mlocked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmstat-mlocked-pages-statistics.patch
+mm-pagecache-insertion-fewer-atomics.patch
+mm-unlockless-reclaim.patch
+mm-page-lock-use-lock-bitops.patch
+fs-buffer-lock-use-lock-bitops.patch
+mm-page-allocator-minor-speedup.patch
+mm-rewrite-vmap-layer.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+ecryptfs-convert-to-use-new-aops.patch
+ecryptfs-convert-to-use-new-aops-update.patch
+afs-convert-to-new-aops.patch
+afs-convert-to-new-aops-update.patch
+reiser4.patch
+likeliness-accounting-change-and-cleanup.patch
 
