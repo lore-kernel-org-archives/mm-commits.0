@@ -1,39 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: - viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 16:53:05 -0700
-Message-ID: <200810152353.m9FNr54E023952@imap1.linux-foundation.org>
+Subject: - viafb-hwc-hwh-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 16:53:21 -0700
+Message-ID: <200810152353.m9FNrLrB023975@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49345 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59048 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753459AbYJOXxc (ORCPT
+	by vger.kernel.org with ESMTP id S1754716AbYJOXyB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 19:53:32 -0400
+	Wed, 15 Oct 2008 19:54:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, JosephChan@via.com.tw, geert@linux-m68k.org, josephchan@via.com.tw, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes
+     viafb-hwc-hwh-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+     viafb-hwc-hwh-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into viafb-dvic-dvih-globalc-and-globalh.patch
+This patch was dropped because it was folded into viafb-hwc-hwh.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes
+Subject: viafb-hwc-hwh-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
+ERROR: trailing statements should be on next line
+#1022: FILE: drivers/video/via/hw.c:1004:
++	while ((i < NUM_TOTAL_MODETABLE)
+
+ERROR: trailing statements should be on next line
+#1041: FILE: drivers/video/via/hw.c:1023:
++	while ((i < NUM_TOTAL_CEA_MODES)
+
 WARNING: suspect code indent for conditional statements
-#121: FILE: drivers/video/via/dvi.c:100:
-+	if (check_tmds_chip(VT1632_DEVICE_ID_REG, VT1632_DEVICE_ID) != FAIL) {
+#1048: FILE: drivers/video/via/hw.c:1030:
++		while ((i < NUM_TOTAL_MODETABLE)
 
-total: 0 errors, 1 warnings, 894 lines checked
+total: 2 errors, 1 warnings, 3796 lines checked
 
-./patches/viafb-dvic-dvih-globalc-and-globalh.patch has style problems, please review.  If any of these errors
+./patches/viafb-hwc-hwh.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
@@ -46,23 +54,50 @@ Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/dvi.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/video/via/hw.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/via/dvi.c~viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes drivers/video/via/dvi.c
---- a/drivers/video/via/dvi.c~viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes
-+++ a/drivers/video/via/dvi.c
-@@ -98,7 +98,9 @@ int viafb_tmds_trasmitter_identify(void)
- 		tmds_chip_info.tmds_chip_slave_addr = VT1632_TMDS_I2C_ADDR;
- 	viaparinfo->chip_info->tmds_chip_info.i2c_port = I2CPORTINDEX;
- 	if (check_tmds_chip(VT1632_DEVICE_ID_REG, VT1632_DEVICE_ID) != FAIL) {
--	/*Currently only support 12bits,dual edge,add 24bits mode later */
-+		/*
-+		 * Currently only support 12bits,dual edge,add 24bits mode later
-+		 */
- 		tmds_register_write(0x08, 0x3b);
+diff -puN drivers/video/via/hw.c~viafb-hwc-hwh-checkpatch-fixes drivers/video/via/hw.c
+--- a/drivers/video/via/hw.c~viafb-hwc-hwh-checkpatch-fixes
++++ a/drivers/video/via/hw.c
+@@ -1001,9 +1001,10 @@ static int search_mode_setting(int ModeI
+ {
+ 	int i = 0;
  
- 		DEBUG_MSG(KERN_INFO "\n VT1632 TMDS ! \n");
+-	while ((i < NUM_TOTAL_MODETABLE)
+-	       && (ModeInfoIndex != CLE266Modes[i].ModeIndex)) i++;
+-	if ((i >= NUM_TOTAL_MODETABLE))
++	while ((i < NUM_TOTAL_MODETABLE) &&
++			(ModeInfoIndex != CLE266Modes[i].ModeIndex))
++		i++;
++	if (i >= NUM_TOTAL_MODETABLE)
+ 		i = 0;
+ 	return i;
+ 
+@@ -1020,17 +1021,18 @@ struct VideoModeTable *viafb_get_cea_mod
+ {
+ 	struct VideoModeTable *TmpTbl = NULL;
+ 	int i = 0;
+-	while ((i < NUM_TOTAL_CEA_MODES)
+-	       && (Index != CEA_HDMI_Modes[i].ModeIndex)) i++;
++	while ((i < NUM_TOTAL_CEA_MODES) &&
++			(Index != CEA_HDMI_Modes[i].ModeIndex))
++		i++;
+ 	if ((i < NUM_TOTAL_CEA_MODES))
+ 		TmpTbl = &CEA_HDMI_Modes[i];
+ 	 else {
+ 		/*Still use general timing if don't find CEA timing */
+ 		i = 0;
+-		while ((i < NUM_TOTAL_MODETABLE)
+-		       && (Index != CLE266Modes[i].ModeIndex))
++		while ((i < NUM_TOTAL_MODETABLE) &&
++				(Index != CLE266Modes[i].ModeIndex))
+ 		       i++;
+-		if ((i >= NUM_TOTAL_MODETABLE))
++		if (i >= NUM_TOTAL_MODETABLE)
+ 			i = 0;
+ 		TmpTbl = &CLE266Modes[i];
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,7 +115,7 @@ autofs4-add-miscellaneous-device-for-ioctls.patch
 rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip.patch
 viafb-accelc-accelh.patch
 viafb-dvic-dvih-globalc-and-globalh.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh.patch
 viafb-hwc-hwh-checkpatch-fixes.patch
 viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
 fbdev-kconfig-update-fix.patch
