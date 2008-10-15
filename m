@@ -1,124 +1,374 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 16:51:08 -0700
-Message-ID: <200810152351.m9FNp9cg023716@imap1.linux-foundation.org>
+Subject: - viafb-accelc-accelh-update.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 16:52:44 -0700
+Message-ID: <200810152352.m9FNqiB5023904@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42939 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51750 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753465AbYJOXvW (ORCPT
+	by vger.kernel.org with ESMTP id S1753234AbYJOXwr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 19:51:22 -0400
+	Wed, 15 Oct 2008 19:52:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, denzzzhome@yahoo.com, mm-commits@vger.kernel.org
+To: JosephChan@via.com.tw, josephchan@via.com.tw, krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix
+     viafb: accel.c & accel.h (update)
 has been removed from the -mm tree.  Its filename was
-     rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
+     viafb-accelc-accelh-update.patch
 
-This patch was dropped because it was folded into rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip.patch
+This patch was dropped because it was folded into viafb-accelc-accelh.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: viafb: accel.c & accel.h (update)
+From: <JosephChan@via.com.tw>
 
-These are going away.
+Remove the marco MMIO_OUT32, and replace it with writel() function.
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Dennis Aberilla <denzzzhome@yahoo.com>
+Signed-off-by: Joseph Chan <josephchan@via.com.tw>
+Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds3234.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ drivers/video/via/accel.c |  202 +++++++++++++++++++++---------------
+ drivers/video/via/accel.h |   11 -
+ 2 files changed, 119 insertions(+), 94 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds3234.c~rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix drivers/rtc/rtc-ds3234.c
---- a/drivers/rtc/rtc-ds3234.c~rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix
-+++ a/drivers/rtc/rtc-ds3234.c
-@@ -119,13 +119,13 @@ static int ds3234_get_datetime(struct de
- 		return status;
+diff -puN drivers/video/via/accel.c~viafb-accelc-accelh-update drivers/video/via/accel.c
+--- a/drivers/video/via/accel.c~viafb-accelc-accelh-update
++++ a/drivers/video/via/accel.c
+@@ -38,44 +38,44 @@ void viafb_init_2d_engine(void)
+ 	u32 dwVQLen, dwVQStartL, dwVQEndL, dwVQStartEndH;
  
- 	/* Seconds, Minutes, Hours, Day, Date, Month, Year */
--	dt->tm_sec	= BCD2BIN(chip->buf[1]);
--	dt->tm_min	= BCD2BIN(chip->buf[2]);
--	dt->tm_hour	= BCD2BIN(chip->buf[3] & 0x3f);
--	dt->tm_wday	= BCD2BIN(chip->buf[4]) - 1; /* 0 = Sun */
--	dt->tm_mday	= BCD2BIN(chip->buf[5]);
--	dt->tm_mon	= BCD2BIN(chip->buf[6] & 0x1f) - 1; /* 0 = Jan */
--	dt->tm_year 	= BCD2BIN(chip->buf[7] & 0xff) + 100; /* Assume 20YY */
-+	dt->tm_sec	= bcd2bin(chip->buf[1]);
-+	dt->tm_min	= bcd2bin(chip->buf[2]);
-+	dt->tm_hour	= bcd2bin(chip->buf[3] & 0x3f);
-+	dt->tm_wday	= bcd2bin(chip->buf[4]) - 1; /* 0 = Sun */
-+	dt->tm_mday	= bcd2bin(chip->buf[5]);
-+	dt->tm_mon	= bcd2bin(chip->buf[6] & 0x1f) - 1; /* 0 = Jan */
-+	dt->tm_year 	= bcd2bin(chip->buf[7] & 0xff) + 100; /* Assume 20YY */
+ 	/* init 2D engine regs to reset 2D engine */
+-	MMIO_OUT32(VIA_REG_GEMODE, 0x0);
+-	MMIO_OUT32(VIA_REG_SRCPOS, 0x0);
+-	MMIO_OUT32(VIA_REG_DSTPOS, 0x0);
+-	MMIO_OUT32(VIA_REG_DIMENSION, 0x0);
+-	MMIO_OUT32(VIA_REG_PATADDR, 0x0);
+-	MMIO_OUT32(VIA_REG_FGCOLOR, 0x0);
+-	MMIO_OUT32(VIA_REG_BGCOLOR, 0x0);
+-	MMIO_OUT32(VIA_REG_CLIPTL, 0x0);
+-	MMIO_OUT32(VIA_REG_CLIPBR, 0x0);
+-	MMIO_OUT32(VIA_REG_OFFSET, 0x0);
+-	MMIO_OUT32(VIA_REG_KEYCONTROL, 0x0);
+-	MMIO_OUT32(VIA_REG_SRCBASE, 0x0);
+-	MMIO_OUT32(VIA_REG_DSTBASE, 0x0);
+-	MMIO_OUT32(VIA_REG_PITCH, 0x0);
+-	MMIO_OUT32(VIA_REG_MONOPAT1, 0x0);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_GEMODE);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_SRCPOS);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_DSTPOS);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_DIMENSION);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_PATADDR);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_FGCOLOR);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_BGCOLOR);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_CLIPTL);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_CLIPBR);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_OFFSET);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_KEYCONTROL);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_SRCBASE);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_DSTBASE);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_PITCH);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_MONOPAT1);
  
- #ifdef DS3234_DEBUG
- 	dev_dbg(dev, "\n%s : Read RTC values\n", __func__);
-@@ -154,22 +154,22 @@ static int ds3234_set_datetime(struct de
- 	dev_dbg(dev, "tm_year: %i\n", dt->tm_year);
- #endif
+ 	/* Init AGP and VQ regs */
+ 	switch (viaparinfo->chip_info->gfx_chip_name) {
+ 	case UNICHROME_K8M890:
+ 	case UNICHROME_P4M900:
+-		MMIO_OUT32(VIA_REG_CR_TRANSET, 0x00100000);
+-		MMIO_OUT32(VIA_REG_CR_TRANSPACE, 0x680A0000);
+-		MMIO_OUT32(VIA_REG_CR_TRANSPACE, 0x02000000);
++		writel(0x00100000, viaparinfo->io_virt + VIA_REG_CR_TRANSET);
++		writel(0x680A0000, viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
++		writel(0x02000000, viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
+ 		break;
  
--	ds3234_set_reg(dev, DS3234_REG_SECONDS, BIN2BCD(dt->tm_sec));
--	ds3234_set_reg(dev, DS3234_REG_MINUTES, BIN2BCD(dt->tm_min));
--	ds3234_set_reg(dev, DS3234_REG_HOURS, BIN2BCD(dt->tm_hour) & 0x3f);
-+	ds3234_set_reg(dev, DS3234_REG_SECONDS, bin2bcd(dt->tm_sec));
-+	ds3234_set_reg(dev, DS3234_REG_MINUTES, bin2bcd(dt->tm_min));
-+	ds3234_set_reg(dev, DS3234_REG_HOURS, bin2bcd(dt->tm_hour) & 0x3f);
+ 	default:
+-		MMIO_OUT32(VIA_REG_TRANSET, 0x00100000);
+-		MMIO_OUT32(VIA_REG_TRANSPACE, 0x00000000);
+-		MMIO_OUT32(VIA_REG_TRANSPACE, 0x00333004);
+-		MMIO_OUT32(VIA_REG_TRANSPACE, 0x60000000);
+-		MMIO_OUT32(VIA_REG_TRANSPACE, 0x61000000);
+-		MMIO_OUT32(VIA_REG_TRANSPACE, 0x62000000);
+-		MMIO_OUT32(VIA_REG_TRANSPACE, 0x63000000);
+-		MMIO_OUT32(VIA_REG_TRANSPACE, 0x64000000);
+-		MMIO_OUT32(VIA_REG_TRANSPACE, 0x7D000000);
++		writel(0x00100000, viaparinfo->io_virt + VIA_REG_TRANSET);
++		writel(0x00000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
++		writel(0x00333004, viaparinfo->io_virt + VIA_REG_TRANSPACE);
++		writel(0x60000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
++		writel(0x61000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
++		writel(0x62000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
++		writel(0x63000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
++		writel(0x64000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
++		writel(0x7D000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
  
- 	/* 0 = Sun */
--	ds3234_set_reg(dev, DS3234_REG_DAY, BIN2BCD(dt->tm_wday + 1));
--	ds3234_set_reg(dev, DS3234_REG_DATE, BIN2BCD(dt->tm_mday));
-+	ds3234_set_reg(dev, DS3234_REG_DAY, bin2bcd(dt->tm_wday + 1));
-+	ds3234_set_reg(dev, DS3234_REG_DATE, bin2bcd(dt->tm_mday));
+-		MMIO_OUT32(VIA_REG_TRANSET, 0xFE020000);
+-		MMIO_OUT32(VIA_REG_TRANSPACE, 0x00000000);
++		writel(0xFE020000, viaparinfo->io_virt + VIA_REG_TRANSET);
++		writel(0x00000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
+ 		break;
+ 	}
+ 	if (viaparinfo->VQ_start != 0) {
+@@ -104,37 +104,64 @@ void viafb_init_2d_engine(void)
+ 		switch (viaparinfo->chip_info->gfx_chip_name) {
+ 		case UNICHROME_K8M890:
+ 		case UNICHROME_P4M900:
+-			MMIO_OUT32(VIA_REG_CR_TRANSET, 0x00100000);
+-			MMIO_OUT32(VIA_REG_CR_TRANSPACE, dwVQStartEndH);
+-			MMIO_OUT32(VIA_REG_CR_TRANSPACE, dwVQStartL);
+-			MMIO_OUT32(VIA_REG_CR_TRANSPACE, dwVQEndL);
+-			MMIO_OUT32(VIA_REG_CR_TRANSPACE, dwVQLen);
+-			MMIO_OUT32(VIA_REG_CR_TRANSPACE, 0x74301001);
+-			MMIO_OUT32(VIA_REG_CR_TRANSPACE, 0x00000000);
++			writel(0x00100000,
++				viaparinfo->io_virt + VIA_REG_CR_TRANSET);
++			writel(dwVQStartEndH,
++				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
++			writel(dwVQStartL,
++				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
++			writel(dwVQEndL,
++				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
++			writel(dwVQLen,
++				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
++			writel(0x74301001,
++				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
++			writel(0x00000000,
++				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
+ 			break;
+ 		default:
+-			MMIO_OUT32(VIA_REG_TRANSET, 0x00FE0000);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x080003FE);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x0A00027C);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x0B000260);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x0C000274);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x0D000264);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x0E000000);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x0F000020);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x1000027E);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x110002FE);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x200F0060);
+-
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x00000006);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x40008C0F);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x44000000);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x45080C04);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x46800408);
+-
+-			MMIO_OUT32(VIA_REG_TRANSPACE, dwVQStartEndH);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, dwVQStartL);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, dwVQEndL);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, dwVQLen);
++			writel(0x00FE0000,
++				viaparinfo->io_virt + VIA_REG_TRANSET);
++			writel(0x080003FE,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x0A00027C,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x0B000260,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x0C000274,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x0D000264,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x0E000000,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x0F000020,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x1000027E,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x110002FE,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x200F0060,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++
++			writel(0x00000006,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x40008C0F,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x44000000,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x45080C04,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x46800408,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++
++			writel(dwVQStartEndH,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(dwVQStartL,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(dwVQEndL,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(dwVQLen,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
+ 			break;
+ 		}
+ 	} else {
+@@ -142,38 +169,46 @@ void viafb_init_2d_engine(void)
+ 		switch (viaparinfo->chip_info->gfx_chip_name) {
+ 		case UNICHROME_K8M890:
+ 		case UNICHROME_P4M900:
+-			MMIO_OUT32(VIA_REG_CR_TRANSET, 0x00100000);
+-			MMIO_OUT32(VIA_REG_CR_TRANSPACE, 0x74301000);
++			writel(0x00100000,
++				viaparinfo->io_virt + VIA_REG_CR_TRANSET);
++			writel(0x74301000,
++				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
+ 			break;
+ 		default:
+-			MMIO_OUT32(VIA_REG_TRANSET, 0x00FE0000);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x00000004);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x40008C0F);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x44000000);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x45080C04);
+-			MMIO_OUT32(VIA_REG_TRANSPACE, 0x46800408);
++			writel(0x00FE0000,
++				viaparinfo->io_virt + VIA_REG_TRANSET);
++			writel(0x00000004,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x40008C0F,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x44000000,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x45080C04,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x46800408,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
+ 			break;
+ 		}
+ 	}
  
- 	/* 0 = Jan */
--	ds3234_set_reg(dev, DS3234_REG_MONTH, BIN2BCD(dt->tm_mon + 1));
-+	ds3234_set_reg(dev, DS3234_REG_MONTH, bin2bcd(dt->tm_mon + 1));
+ 	viafb_set_2d_color_depth(viaparinfo->bpp);
  
- 	/* Assume 20YY although we just want to make sure not to go negative. */
- 	if (dt->tm_year > 100)
- 		dt->tm_year -= 100;
+-	MMIO_OUT32(VIA_REG_SRCBASE, 0x0);
+-	MMIO_OUT32(VIA_REG_DSTBASE, 0x0);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_SRCBASE);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_DSTBASE);
  
--	ds3234_set_reg(dev, DS3234_REG_YEAR, BIN2BCD(dt->tm_year));
-+	ds3234_set_reg(dev, DS3234_REG_YEAR, bin2bcd(dt->tm_year));
- 
- 	return 0;
+-	MMIO_OUT32(VIA_REG_PITCH,
+-		   VIA_PITCH_ENABLE |
++	writel(VIA_PITCH_ENABLE |
+ 		   (((viaparinfo->hres *
+ 		      viaparinfo->bpp >> 3) >> 3) | (((viaparinfo->hres *
+ 						   viaparinfo->
+-						   bpp >> 3) >> 3) << 16)));
++						   bpp >> 3) >> 3) << 16)),
++					viaparinfo->io_virt + VIA_REG_PITCH);
  }
+ 
+ void viafb_set_2d_color_depth(int bpp)
+ {
+ 	u32 dwGEMode;
+ 
+-	dwGEMode = MMIO_IN32(0x04) & 0xFFFFFCFF;
++	dwGEMode = readl(viaparinfo->io_virt + 0x04) & 0xFFFFFCFF;
+ 
+ 	switch (bpp) {
+ 	case 16:
+@@ -188,17 +223,18 @@ void viafb_set_2d_color_depth(int bpp)
+ 	}
+ 
+ 	/* Set BPP and Pitch */
+-	MMIO_OUT32(VIA_REG_GEMODE, dwGEMode);
++	writel(dwGEMode, viaparinfo->io_virt + VIA_REG_GEMODE);
+ }
+ 
+ void viafb_hw_cursor_init(void)
+ {
+ 	/* Set Cursor Image Base Address */
+-	MMIO_OUT32(VIA_REG_CURSOR_MODE, viaparinfo->cursor_start);
+-	MMIO_OUT32(VIA_REG_CURSOR_POS, 0x0);
+-	MMIO_OUT32(VIA_REG_CURSOR_ORG, 0x0);
+-	MMIO_OUT32(VIA_REG_CURSOR_BG, 0x0);
+-	MMIO_OUT32(VIA_REG_CURSOR_FG, 0x0);
++	writel(viaparinfo->cursor_start,
++		viaparinfo->io_virt + VIA_REG_CURSOR_MODE);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_CURSOR_POS);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_CURSOR_ORG);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_CURSOR_BG);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_CURSOR_FG);
+ }
+ 
+ void viafb_show_hw_cursor(struct fb_info *info, int Status)
+@@ -206,7 +242,7 @@ void viafb_show_hw_cursor(struct fb_info
+ 	u32 temp;
+ 	u32 iga_path = ((struct viafb_par *)(info->par))->iga_path;
+ 
+-	temp = MMIO_IN32(VIA_REG_CURSOR_MODE);
++	temp = readl(viaparinfo->io_virt + VIA_REG_CURSOR_MODE);
+ 	switch (Status) {
+ 	case HW_Cursor_ON:
+ 		temp |= 0x1;
+@@ -223,18 +259,18 @@ void viafb_show_hw_cursor(struct fb_info
+ 	default:
+ 		temp &= 0x7FFFFFFF;
+ 	}
+-	MMIO_OUT32(VIA_REG_CURSOR_MODE, temp);
++	writel(temp, viaparinfo->io_virt + VIA_REG_CURSOR_MODE);
+ }
+ 
+ int viafb_wait_engine_idle(void)
+ {
+ 	int loop = 0;
+ 
+-	while (!(MMIO_IN32(VIA_REG_STATUS) & VIA_VR_QUEUE_BUSY) &&
+-			(loop++ < MAXLOOP))
++	while (!(readl(viaparinfo->io_virt + VIA_REG_STATUS) &
++			VIA_VR_QUEUE_BUSY) && (loop++ < MAXLOOP))
+ 		cpu_relax();
+ 
+-	while ((MMIO_IN32(VIA_REG_STATUS) &
++	while ((readl(viaparinfo->io_virt + VIA_REG_STATUS) &
+ 		    (VIA_CMD_RGTR_BUSY | VIA_2D_ENG_BUSY | VIA_3D_ENG_BUSY)) &&
+ 		    (loop++ < MAXLOOP))
+ 		cpu_relax();
+diff -puN drivers/video/via/accel.h~viafb-accelc-accelh-update drivers/video/via/accel.h
+--- a/drivers/video/via/accel.h~viafb-accelc-accelh-update
++++ a/drivers/video/via/accel.h
+@@ -31,17 +31,6 @@
+ #define MMIO_SR_READ                (MMIO_VGABASE + 0x3C4)
+ #define MMIO_SR_WRITE               (MMIO_VGABASE + 0x3C5)
+ 
+-#define VIA_MMIO 1
+-
+-#if VIA_MMIO
+-#define MMIO_OUT32(reg, val) writel(val, viaparinfo->io_virt + reg)
+-#define MMIO_IN32(reg)      readl(viaparinfo->io_virt + reg)
+-
+-#else
+-#define MMIO_OUT32(reg, val) outl(val, reg)
+-#define MMIO_IN32(reg)      inl(reg)
+-#endif
+-
+ /* HW Cursor Status Define */
+ #define HW_Cursor_ON    0
+ #define HW_Cursor_OFF   1
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from JosephChan@via.com.tw are
 
-origin.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation.patch
-make-taint-bit-reliable-v3.patch
-kernel-sysc-improve-code-generation.patch
-compat-generic-compat-get-settimeofday.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc.patch
-autofs4-track-uid-and-gid-of-last-mount-requester.patch
-autofs4-add-miscellaneous-device-for-ioctls.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
+viafb-viafbmodes-viafbtxt.patch
+viafb-makefile-kconfig.patch
+viafb-accelc-accelh.patch
+viafb-accelc-accelh-update.patch
+viafb-chiph-debugh.patch
+viafb-dvic-dvih-globalc-and-globalh.patch
 viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
+viafb-hwc-hwh.patch
 viafb-hwc-hwh-checkpatch-fixes.patch
+viafb-ifacec-ifaceh-ioctlc-ioctlh.patch
+viafb-lcdc-lcdh-lcdtblh.patch
+viafb-makefile-shareh.patch
+viafb-tbl1636c-tbl1636h-tbldpasettingc-tbldpasettingh.patch
+viafb-viafbdevc-viafbdevh.patch
 viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanups.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-new-driver-ds2431-chip-fix.patch
-gru-driver-minor-updates-fix.patch
+viafb-viafbdevc-update.patch
+viafb-via_i2cc-via_i2ch-viamodec-viamodeh.patch
+viafb-via_utilityc-via_utilityh-vt1636c-vt1636h.patch
+viafb-maintainers-entry.patch
 
