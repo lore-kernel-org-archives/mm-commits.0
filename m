@@ -1,224 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 15:17:08 -0700
-Message-ID: <200810152217.m9FMH849012794@imap1.linux-foundation.org>
+Subject: + fbcon_set_all_vcs-fix-kernel-crash-when-switching-the-rotated-consoles.patch added to -mm tree
+Date: Wed, 15 Oct 2008 15:18:40 -0700
+Message-ID: <200810152218.m9FMIfRv012931@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57823 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41454 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752367AbYJOWRp (ORCPT
+	by vger.kernel.org with ESMTP id S1753698AbYJOWTb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 18:17:45 -0400
+	Wed, 15 Oct 2008 18:19:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Brice.Goglin@inria.fr, Nathalie.Furmento@labri.fr, cl@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: oleg@tv-sign.ru, krzysztof.h1@poczta.fm, stable@kernel.org
 
 
 The patch titled
-     mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes.patch
+     fbcon_set_all_vcs: fix kernel crash when switching the rotated consoles
+has been added to the -mm tree.  Its filename is
+     fbcon_set_all_vcs-fix-kernel-crash-when-switching-the-rotated-consoles.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fbcon_set_all_vcs: fix kernel crash when switching the rotated consoles
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-WARNING: line over 80 characters
-#52: FILE: mm/migrate.c:813:
-+	struct page_to_node *pm = (struct page_to_node *) radix_tree_lookup(root, (unsigned long) p);
+echo 3 >> /sys/class/graphics/fbcon/rotate_all, then switch to another
+console. Result:
 
-WARNING: line over 80 characters
-#99: FILE: mm/migrate.c:881:
-+		 * Insert pp in the radix-tree so that new_page_node() can find it
+	BUG: unable to handle kernel paging request at ffffc20005d00000
+	IP: [bitfill_aligned+149/265] bitfill_aligned+0x95/0x109
+	PGD 7e228067 PUD 7e229067 PMD 7bc1f067 PTE 0
+	Oops: 0002 [1] SMP
+	CPU 1
+	Modules linked in: [...a lot...]
+	Pid: 10, comm: events/1 Not tainted 2.6.26.5-45.fc9.x86_64 #1
+	RIP: 0010:[bitfill_aligned+149/265]  [bitfill_aligned+149/265] bitfill_aligned+0x95/0x109
+	RSP: 0018:ffff81007d811bc8  EFLAGS: 00010216
+	RAX: ffffc20005d00000 RBX: 0000000000000000 RCX: 0000000000000400
+	RDX: 0000000000000000 RSI: ffffc20005d00000 RDI: ffffffffffffffff
+	RBP: ffff81007d811be0 R08: 0000000000000400 R09: 0000000000000040
+	R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000010000
+	R13: ffffffff811632f0 R14: 0000000000000006 R15: ffff81007cb85400
+	FS:  0000000000000000(0000) GS:ffff81007e004780(0000) knlGS:0000000000000000
+	CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
+	CR2: ffffc20005d00000 CR3: 0000000000201000 CR4: 00000000000006e0
+	DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+	DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+	Process events/1 (pid: 10, threadinfo ffff81007d810000, task ffff81007d808000)
+	Stack:  ffff81007c9d75a0 0000000000000000 0000000000000000 ffff81007d811c80
+	 ffffffff81163a61 ffff810000000000 ffffffff8115f9c8 0000001000000000
+	 0000000100aaaaaa 000000007cd0d4a0 fffffd8a00000800 0001000000000000
+	Call Trace:
+	 [cfb_fillrect+523/798] cfb_fillrect+0x20b/0x31e
+	 [soft_cursor+416/436] ? soft_cursor+0x1a0/0x1b4
+	 [ccw_clear_margins+205/263] ccw_clear_margins+0xcd/0x107
+	 [fbcon_clear_margins+59/61] fbcon_clear_margins+0x3b/0x3d
+	 [fbcon_switch+1291/1466] fbcon_switch+0x50b/0x5ba
+	 [redraw_screen+261/481] redraw_screen+0x105/0x1e1
+	 [ccw_cursor+0/1869] ? ccw_cursor+0x0/0x74d
+	 [complete_change_console+48/190] complete_change_console+0x30/0xbe
+	 [change_console+115/120] change_console+0x73/0x78
+	 [console_callback+0/292] ? console_callback+0x0/0x124
+	 [console_callback+97/292] console_callback+0x61/0x124
+	 [schedule_delayed_work+25/30] ? schedule_delayed_work+0x19/0x1e
+	 [run_workqueue+139/282] run_workqueue+0x8b/0x11a
+	 [worker_thread+221/238] worker_thread+0xdd/0xee
+	 [autoremove_wake_function+0/56] ? autoremove_wake_function+0x0/0x38
+	 [worker_thread+0/238] ? worker_thread+0x0/0xee
+	 [kthread+73/118] kthread+0x49/0x76
+	 [child_rip+10/18] child_rip+0xa/0x12
+	 [kthread+0/118] ? kthread+0x0/0x76
+	 [child_rip+0/18] ? child_rip+0x0/0x12
 
-WARNING: line over 80 characters
-#101: FILE: mm/migrate.c:883:
-+		 * There cannot be any duplicate since isolate_lru_page() would fail
+Because fbcon_set_all_vcs()->FBCON_SWAP() uses display->rotate == 0 instead
+of fbcon_ops->rotate, and vc_resize() has no effect because it is called with
+new_cols/rows == ->vc_cols/rows.
 
-WARNING: line over 80 characters
-#124: FILE: mm/migrate.c:912:
-+		err = migrate_pages(&pagelist, new_page_node, (unsigned long) &pmroot);
+Tested on 2.6.26.5-45.fc9.x86_64, but
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git seems to
+have the same problem.
 
-WARNING: line over 80 characters
-#130: FILE: mm/migrate.c:918:
-+	/* empty the radix-tree now that new_page_node() will not be called anymore */
-
-ERROR: space required before the open parenthesis '('
-#131: FILE: mm/migrate.c:919:
-+	for(pp = pm; pp->node != MAX_NUMNODES; pp++)
-
-total: 1 errors, 5 warnings, 93 lines checked
-
-./patches/mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Brice Goglin <Brice.Goglin@inria.fr>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Nathalie Furmento <Nathalie.Furmento@labri.fr>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: <stable@kernel.org>	[2.6.27.x, 2.6.26.x, maybe 2.6.25.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ drivers/video/console/fbcon.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/migrate.c~mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes mm/migrate.c
---- a/mm/migrate.c~mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes
-+++ a/mm/migrate.c
-@@ -810,7 +810,9 @@ static struct page *new_page_node(struct
- 		int **result)
- {
- 	struct radix_tree_root *root = (struct radix_tree_root *) private;
--	struct page_to_node *pm = (struct page_to_node *) radix_tree_lookup(root, (unsigned long) p);
-+	struct page_to_node *pm;
-+
-+	pm = (struct page_to_node *)radix_tree_lookup(root, (unsigned long)p);
- 
- 	if (!pm)
- 		return NULL;
-@@ -878,10 +880,10 @@ static int do_move_pages(struct mm_struc
- 			goto put_and_set;
- 
- 		/*
--		 * Insert pp in the radix-tree so that new_page_node() can find it
--		 * while only knowing the page.
--		 * There cannot be any duplicate since isolate_lru_page() would fail
--		 * below anyway.
-+		 * Insert pp in the radix-tree so that new_page_node() can find
-+		 * it * while only knowing the page.
-+		 * There cannot be any duplicate since isolate_lru_page() would
-+		 * fail below anyway.
- 		 */
- 		err = radix_tree_insert(&pmroot, (unsigned long) page, pp);
- 		if (err < 0) {
-@@ -909,14 +911,18 @@ set_status:
- 	}
- 
- 	if (!list_empty(&pagelist))
--		err = migrate_pages(&pagelist, new_page_node, (unsigned long) &pmroot);
-+		err = migrate_pages(&pagelist, new_page_node,
-+				(unsigned long)&pmroot);
- 	else
- 		err = -ENOENT;
- 
- 	up_read(&mm->mmap_sem);
- 
--	/* empty the radix-tree now that new_page_node() will not be called anymore */
--	for(pp = pm; pp->node != MAX_NUMNODES; pp++)
-+	/*
-+	 * Empty the radix-tree now that new_page_node() will not be called
-+	 * any more.
-+	 */
-+	for (pp = pm; pp->node != MAX_NUMNODES; pp++)
- 		if (pp->page)
- 			radix_tree_delete(&pmroot, (unsigned long) pp->page);
- 
+diff -puN drivers/video/console/fbcon.c~fbcon_set_all_vcs-fix-kernel-crash-when-switching-the-rotated-consoles drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbcon_set_all_vcs-fix-kernel-crash-when-switching-the-rotated-consoles
++++ a/drivers/video/console/fbcon.c
+@@ -2977,8 +2977,8 @@ static void fbcon_set_all_vcs(struct fb_
+ 		p = &fb_display[vc->vc_num];
+ 		set_blitting_type(vc, info);
+ 		var_to_display(p, &info->var, info);
+-		cols = FBCON_SWAP(p->rotate, info->var.xres, info->var.yres);
+-		rows = FBCON_SWAP(p->rotate, info->var.yres, info->var.xres);
++		cols = FBCON_SWAP(ops->rotate, info->var.xres, info->var.yres);
++		rows = FBCON_SWAP(ops->rotate, info->var.yres, info->var.xres);
+ 		cols /= vc->vc_font.width;
+ 		rows /= vc->vc_font.height;
+ 		vc_resize(vc, cols, rows);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-git-tests-git-rejects.patch
-git-acpi.patch
-git-acpi-git-rejects.patch
-drivers-mfd-ucb1400_corec-needs-gpio.patch
-drivers-mfd-ucb1400_corec-further-unbork.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module-checkpatch-fixes.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-drivers-net-sfc-falconc-fix-min-warnings.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check-fix.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix-fix.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-vmallocc-revert-git-tip-change.patch
-mm-rewrite-vmap-layer-fix.patch
-mm-rewrite-vmap-layer-fix-fix.patch
-mm-rewrite-vmap-layer-fix-fix-fix.patch
-revert-mm-vmallocc-revert-git-tip-change.patch
-memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
-mm-use-a-radix-tree-to-make-do_move_pages-complexity-linear-checkpatch-fixes.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation-cleanup.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-separate-atomic_t-declaration-from-asm-atomich-into-asm-atomic_defh.patch
-make-taint-bit-reliable-v3-fix.patch
-kernel-sysc-improve-code-generation.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-drivers-hwmon-applesmcc-remove-unneeded-casts.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanups.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
-ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-new-driver-ds2431-chip-fix.patch
-gru-driver-minor-updates-fix.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+posix-timers-simplify-de_thread-exit_itimers-path.patch
+fbcon_set_all_vcs-fix-kernel-crash-when-switching-the-rotated-consoles.patch
+make-ptrace_untrace-static.patch
+coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
+add-config_core_dump_default_elf_headers.patch
+kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
+pid_ns-de_thread-kill-the-now-unneeded-child_reaper-change.patch
+pid_ns-kill-the-now-unused-task_child_reaper.patch
 
