@@ -1,137 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 14:14:07 -0700
-Message-ID: <200810152114.m9FLE7CV005704@imap1.linux-foundation.org>
+Subject: - tpm-fixed-tpm_release-timing.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 14:14:27 -0700
+Message-ID: <200810152114.m9FLER4U005762@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48916 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57101 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753464AbYJOVPB (ORCPT
+	by vger.kernel.org with ESMTP id S1753287AbYJOVPA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 17:15:01 -0400
+	Wed, 15 Oct 2008 17:15:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laijs@cn.fujitsu.com, adobriyan@gmail.com, oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: srajiv@linux.vnet.ibm.com, corbet@lwn.net, serue@us.ibm.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signal, procfs: lock_task_sighand() do not need rcu_read_lock()
+     tpm: Fixed tpm_release() timing
 has been removed from the -mm tree.  Its filename was
-     signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock.patch
+     tpm-fixed-tpm_release-timing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signal, procfs: lock_task_sighand() do not need rcu_read_lock()
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: tpm: Fixed tpm_release() timing
+From: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
 
-lock_task_sighand() make sure task->sighand is being protected, so we do
-not need rcu_read_lock().  exec() will get task->sighand->siglock before
-change task->sighand!
+As pointed out by Jonathan Corbet, the timer must be deleted before
+flushing the work queue in order to avoid a job being submitted after the
+chip had been released.
 
-But code using rcu_read_lock() _just_ to protect lock_task_sighand() only
-appear in procfs.  (and some code in procfs use lock_task_sighand()
-without such redundant protection.)
-
-Other subsystem may put lock_task_sighand() into rcu_read_lock() critical
-region, but these rcu_read_lock() are used for protecting
-"for_each_process()", "find_task_by_vpid()" etc.  , not for protecting
-lock_task_sighand().
-
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
+Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c      |    2 --
- fs/proc/base.c       |    9 +--------
- kernel/sched_debug.c |    2 --
- 3 files changed, 1 insertion(+), 12 deletions(-)
+ drivers/char/tpm/tpm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/array.c~signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock fs/proc/array.c
---- a/fs/proc/array.c~signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock
-+++ a/fs/proc/array.c
-@@ -261,7 +261,6 @@ static inline void task_sig(struct seq_f
- 	sigemptyset(&ignored);
- 	sigemptyset(&caught);
- 
--	rcu_read_lock();
- 	if (lock_task_sighand(p, &flags)) {
- 		pending = p->pending.signal;
- 		shpending = p->signal->shared_pending.signal;
-@@ -272,7 +271,6 @@ static inline void task_sig(struct seq_f
- 		qlim = p->signal->rlim[RLIMIT_SIGPENDING].rlim_cur;
- 		unlock_task_sighand(p, &flags);
- 	}
--	rcu_read_unlock();
- 
- 	seq_printf(m, "Threads:\t%d\n", num_threads);
- 	seq_printf(m, "SigQ:\t%lu/%lu\n", qsize, qlim);
-diff -puN fs/proc/base.c~signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock fs/proc/base.c
---- a/fs/proc/base.c~signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock
-+++ a/fs/proc/base.c
-@@ -164,7 +164,6 @@ static struct fs_struct *get_fs_struct(s
- 
- static int get_nr_threads(struct task_struct *tsk)
+diff -puN drivers/char/tpm/tpm.c~tpm-fixed-tpm_release-timing drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~tpm-fixed-tpm_release-timing
++++ a/drivers/char/tpm/tpm.c
+@@ -1011,9 +1011,9 @@ int tpm_release(struct inode *inode, str
  {
--	/* Must be called with the rcu_read_lock held */
- 	unsigned long flags;
- 	int count = 0;
+ 	struct tpm_chip *chip = file->private_data;
  
-@@ -471,14 +470,10 @@ static int proc_pid_limits(struct task_s
- 
- 	struct rlimit rlim[RLIM_NLIMITS];
- 
--	rcu_read_lock();
--	if (!lock_task_sighand(task,&flags)) {
--		rcu_read_unlock();
-+	if (!lock_task_sighand(task, &flags))
- 		return 0;
--	}
- 	memcpy(rlim, task->signal->rlim, sizeof(struct rlimit) * RLIM_NLIMITS);
- 	unlock_task_sighand(task, &flags);
--	rcu_read_unlock();
- 
- 	/*
- 	 * print the file header
-@@ -3088,9 +3083,7 @@ static int proc_task_getattr(struct vfsm
- 	generic_fillattr(inode, stat);
- 
- 	if (p) {
--		rcu_read_lock();
- 		stat->nlink += get_nr_threads(p);
--		rcu_read_unlock();
- 		put_task_struct(p);
- 	}
- 
-diff -puN kernel/sched_debug.c~signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock kernel/sched_debug.c
---- a/kernel/sched_debug.c~signal-procfs-lock_task_sighand-do-not-need-rcu_read_lock
-+++ a/kernel/sched_debug.c
-@@ -333,12 +333,10 @@ void proc_sched_show_task(struct task_st
- 	unsigned long flags;
- 	int num_threads = 1;
- 
--	rcu_read_lock();
- 	if (lock_task_sighand(p, &flags)) {
- 		num_threads = atomic_read(&p->signal->count);
- 		unlock_task_sighand(p, &flags);
- 	}
--	rcu_read_unlock();
- 
- 	SEQ_printf(m, "%s (%d, #threads: %d)\n", p->comm, p->pid, num_threads);
- 	SEQ_printf(m,
++	del_singleshot_timer_sync(&chip->user_read_timer);
+ 	flush_scheduled_work();
+ 	file->private_data = NULL;
+-	del_singleshot_timer_sync(&chip->user_read_timer);
+ 	atomic_set(&chip->data_pending, 0);
+ 	kfree(chip->data_buffer);
+ 	clear_bit(0, &chip->is_open);
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from srajiv@linux.vnet.ibm.com are
 
 origin.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-cgroups-eliminate-race-in-css_set-refcounting.patch
-cgroups-convert-tasks-file-to-use-a-seq_file-with-shared-pid-array.patch
-devcgroup-remove-spin_lock.patch
+tpm-include-moderated-for-non-subscribers-notation-in-maintainers.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
 
