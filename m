@@ -1,81 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - make-taint-bit-reliable-v3-fix.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 16:42:43 -0700
-Message-ID: <200810152342.m9FNghhH022659@imap1.linux-foundation.org>
+Subject: - rlimit-permit-setting-rlimit_nofile-to-rlim_infinity-fix.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 16:43:14 -0700
+Message-ID: <200810152343.m9FNhE6M022726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59824 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50007 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753998AbYJOXm7 (ORCPT
+	by vger.kernel.org with ESMTP id S1752953AbYJOXnd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 19:42:59 -0400
+	Wed, 15 Oct 2008 19:43:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: vonsch@gmail.com, mtk.manpages@googlemail.com, schwab@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make-taint-bit-reliable-v3-fix
+     rlimit-permit-setting-rlimit_nofile-to-rlim_infinity-fix
 has been removed from the -mm tree.  Its filename was
-     make-taint-bit-reliable-v3-fix.patch
+     rlimit-permit-setting-rlimit_nofile-to-rlim_infinity-fix.patch
 
-This patch was dropped because it was folded into make-taint-bit-reliable-v3.patch
+This patch was dropped because it was folded into rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make-taint-bit-reliable-v3-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rlimit-permit-setting-rlimit_nofile-to-rlim_infinity-fix
+From: Adam Tkac <vonsch@gmail.com>
 
-Remove unneeded include.
+When cur > max && cur != INF after adjustment EINVAL is returned.  (cur
+can be also set to max but it seems like bad solution for me)
 
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Andreas Schwab <schwab@suse.de>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    1 -
- 1 file changed, 1 deletion(-)
+ kernel/sys.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN kernel/panic.c~make-taint-bit-reliable-v3-fix kernel/panic.c
---- a/kernel/panic.c~make-taint-bit-reliable-v3-fix
-+++ a/kernel/panic.c
-@@ -21,7 +21,6 @@
- #include <linux/debug_locks.h>
- #include <linux/random.h>
- #include <linux/kallsyms.h>
--#include <linux/log2.h>
+diff -puN kernel/sys.c~rlimit-permit-setting-rlimit_nofile-to-rlim_infinity-fix kernel/sys.c
+--- a/kernel/sys.c~rlimit-permit-setting-rlimit_nofile-to-rlim_infinity-fix
++++ a/kernel/sys.c
+@@ -1526,12 +1526,11 @@ asmlinkage long sys_setrlimit(unsigned i
+ 		return -EINVAL;
+ 	if (copy_from_user(&new_rlim, rlim, sizeof(*rlim)))
+ 		return -EFAULT;
+-	if (new_rlim.rlim_cur > new_rlim.rlim_max)
+-		return -EINVAL;
+ 	old_rlim = current->signal->rlim + resource;
+ 	if ((new_rlim.rlim_max > old_rlim->rlim_max) &&
+ 	    !capable(CAP_SYS_RESOURCE))
+ 		return -EPERM;
++
+ 	if (resource == RLIMIT_NOFILE) {
+ 		if (new_rlim.rlim_max == RLIM_INFINITY)
+ 			new_rlim.rlim_max = sysctl_nr_open;
+@@ -1541,6 +1540,9 @@ asmlinkage long sys_setrlimit(unsigned i
+ 			return -EPERM;
+ 	}
  
- int panic_on_oops;
- static unsigned long tainted_mask;
++	if (new_rlim.rlim_cur > new_rlim.rlim_max)
++		return -EINVAL;
++
+ 	retval = security_task_setrlimit(resource, &new_rlim);
+ 	if (retval)
+ 		return retval;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vonsch@gmail.com are
 
-origin.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation.patch
-make-taint-bit-reliable-v3.patch
-make-taint-bit-reliable-v3-fix.patch
-kernel-sysc-improve-code-generation.patch
-compat-generic-compat-get-settimeofday-checkpatch-fixes.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc-fix.patch
-autofs4-track-uid-and-gid-of-last-mount-requester-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix.patch
-autofs4-add-miscellaneous-device-for-ioctls-fix-2.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip-fix.patch
-viafb-viafbmodes-viafbtxt-fix-fix.patch
-viafb-accelc-accelh-checkpatch-fixes.patch
-viafb-dvic-dvih-globalc-and-globalh-checkpatch-fixes.patch
-viafb-hwc-hwh-checkpatch-fixes.patch
-viafb-viafbdevc-viafbdevh-checkpatch-fixes.patch
-fbdev-kconfig-update-fix.patch
-fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver-cleanups.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption-checkpatch-fixes.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-new-driver-ds2431-chip-fix.patch
-gru-driver-minor-updates-fix.patch
+rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
+rlimit-permit-setting-rlimit_nofile-to-rlim_infinity-fix.patch
 
