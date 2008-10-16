@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + git-acpi-remove-idle-from-drivers-makefile.patch added to -mm tree
-Date: Wed, 15 Oct 2008 23:18:36 -0700
-Message-ID: <200810160618.m9G6IaHO006293@imap1.linux-foundation.org>
+Subject: - git-acpi-remove-idle-from-drivers-makefile.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 23:27:31 -0700
+Message-ID: <200810160627.m9G6RVo2007480@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57436 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35648 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756691AbYJPGTO (ORCPT
+	by vger.kernel.org with ESMTP id S1752105AbYJPG2I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 02:19:14 -0400
+	Thu, 16 Oct 2008 02:28:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andrew.d.henroid@intel.com, len.brown@intel.com, sfr@canb.auug.org.au, venkatesh.pallipadi@intel.com
+To: akpm@linux-foundation.org, andrew.d.henroid@intel.com, len.brown@intel.com, sfr@canb.auug.org.au, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      git-acpi: remove idle/ from drivers/Makefile
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      git-acpi-remove-idle-from-drivers-makefile.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -97,6 +87,7 @@ mm-remove-the-might_sleep-from-lock_page.patch
 git-tests-git-rejects.patch
 git-acpi.patch
 git-acpi-git-rejects.patch
+git-acpi-remove-idle-from-drivers-makefile.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
 arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
@@ -168,5 +159,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-git-acpi-remove-idle-from-drivers-makefile.patch
 
