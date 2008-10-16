@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + gpiolib-fix-oops-in-gpio_get_value_cansleep.patch added to -mm tree
-Date: Thu, 16 Oct 2008 16:17:23 -0700
-Message-ID: <200810162317.m9GNHNZv004639@imap1.linux-foundation.org>
+Subject: + serial_txx9-use-%lx-for-iobase.patch added to -mm tree
+Date: Thu, 16 Oct 2008 16:23:16 -0700
+Message-ID: <200810162323.m9GNNGeA005423@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56765 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48115 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757176AbYJPXXs (ORCPT
+	by vger.kernel.org with ESMTP id S1756304AbYJPXYR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 19:23:48 -0400
+	Thu, 16 Oct 2008 19:24:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbrownell@users.sourceforge.net, avorontsov@ru.mvista.com
+Cc: anemo@mba.ocn.ne.jp, alan@lxorguk.ukuu.org.uk, joy@entuzijast.net
 
 
 The patch titled
-     gpiolib: fix oops in gpio_get_value_cansleep()
+     serial_txx9: use %lx for iobase
 has been added to the -mm tree.  Its filename is
-     gpiolib-fix-oops-in-gpio_get_value_cansleep.patch
+     serial_txx9-use-%lx-for-iobase.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiolib: fix oops in gpio_get_value_cansleep()
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: serial_txx9: use %lx for iobase
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
 
-We can get the following oops from gpio_get_value_cansleep() when a GPIO
-controller doesn't provide a get() callback:
+Fix a warning caused by commit 0c8946d97ae7d2d6691f8290a10faa63453b63f8
+(serial: Make uart_port's ioport "unsigned long".)
 
- Unable to handle kernel paging request for instruction fetch
- Faulting instruction address: 0x00000000
- Oops: Kernel access of bad area, sig: 11 [#1]
- [...]
- NIP [00000000] 0x0
- LR [c0182fb0] gpio_get_value_cansleep+0x40/0x50
- Call Trace:
- [c7b79e80] [c0183f28] gpio_value_show+0x5c/0x94
- [c7b79ea0] [c01a584c] dev_attr_show+0x30/0x7c
- [c7b79eb0] [c00d6b48] fill_read_buffer+0x68/0xe0
- [c7b79ed0] [c00d6c54] sysfs_read_file+0x94/0xbc
- [c7b79ef0] [c008f24c] vfs_read+0xb4/0x16c
- [c7b79f10] [c008f580] sys_read+0x4c/0x90
- [c7b79f40] [c0013a14] ret_from_syscall+0x0/0x38
-
-It's OK to request the value of *any* GPIO; most GPIOs are bidirectional,
-so configuring them as outputs just enables an output driver and doesn't
-disable the input logic.
-
-So the problem is that gpio_get_value_cansleep() isn't making the same
-sanity check that gpio_get_value() does: making sure this GPIO isn't one
-of the atypical "no input logic" cases.
-
-Reported-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Josip Rodin <joy@entuzijast.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpiolib.c |    2 +-
+ drivers/serial/serial_txx9.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpio/gpiolib.c~gpiolib-fix-oops-in-gpio_get_value_cansleep drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpiolib-fix-oops-in-gpio_get_value_cansleep
-+++ a/drivers/gpio/gpiolib.c
-@@ -1105,7 +1105,7 @@ int gpio_get_value_cansleep(unsigned gpi
- 
- 	might_sleep_if(extra_checks);
- 	chip = gpio_to_chip(gpio);
--	return chip->get(chip, gpio - chip->base);
-+	return chip->get ? chip->get(chip, gpio - chip->base) : 0;
- }
- EXPORT_SYMBOL_GPL(gpio_get_value_cansleep);
- 
+diff -puN drivers/serial/serial_txx9.c~serial_txx9-use-%lx-for-iobase drivers/serial/serial_txx9.c
+--- a/drivers/serial/serial_txx9.c~serial_txx9-use-%lx-for-iobase
++++ a/drivers/serial/serial_txx9.c
+@@ -1039,7 +1039,7 @@ static int __devinit serial_txx9_probe(s
+ 		ret = serial_txx9_register_port(&port);
+ 		if (ret < 0) {
+ 			dev_err(&dev->dev, "unable to register port at index %d "
+-				"(IO%x MEM%llx IRQ%d): %d\n", i,
++				"(IO%lx MEM%llx IRQ%d): %d\n", i,
+ 				p->iobase, (unsigned long long)p->mapbase,
+ 				p->irq, ret);
+ 		}
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
 origin.patch
-spi-simplify-spi_write_then_read.patch
-spi_s3c24xx-pin-configuration-updates.patch
-pxa2xx_spi-minor-cleanup.patch
-pxa2xx_spi-fix-chip_info-defaults-and-documentation.patch
-orion_spi-handle-88f6183-erratum.patch
-spi-core-and-gpio-expanders-use-subsys_init.patch
-rtc-ds1307-alarm-support-for-ds1337-ds1339.patch
-rtc-remove-some-nop-open-release-methods.patch
-legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
 rtc-file-close-consistently-disables-repeating-irqs.patch
-make-gpiochip-label-const.patch
-gpio-i2c-expanders-use-subsys_init.patch
-gpiolib-gpio_to_irq-hooks.patch
-omap-drivers-switch-to-standard-gpio-calls.patch
-gpiolib-request-free-hooks.patch
-rtc-cmos-export-second-nvram-bank.patch
-gpio-modify-sysfs-gpio-export-so-that-value-displays-as-0-or-1.patch
-gpiolib-fix-oops-in-gpio_get_value_cansleep.patch
+rtc-rtc-m41t80c-add-support-for-the-st-m41t65-rtc.patch
+serial_txx9-use-%lx-for-iobase.patch
 
