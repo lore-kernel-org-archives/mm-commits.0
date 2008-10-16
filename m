@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fat-i_blocks-warning-fix.patch added to -mm tree
-Date: Thu, 16 Oct 2008 15:07:56 -0700
-Message-ID: <200810162207.m9GM7u7u028147@imap1.linux-foundation.org>
+Subject: + vfs-add-__d_instantiate-helper.patch added to -mm tree
+Date: Thu, 16 Oct 2008 15:30:03 -0700
+Message-ID: <200810162230.m9GMU3uO030909@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41272 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40982 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756822AbYJPWH7 (ORCPT
+	by vger.kernel.org with ESMTP id S1756517AbYJPWam (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 18:07:59 -0400
+	Thu, 16 Oct 2008 18:30:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hirofumi@mail.parknet.co.jp
+Cc: hirofumi@mail.parknet.co.jp, hch@lst.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     fat: i_blocks warning fix
+     vfs: add __d_instantiate() helper
 has been added to the -mm tree.  Its filename is
-     fat-i_blocks-warning-fix.patch
+     vfs-add-__d_instantiate-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,120 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fat: i_blocks warning fix
+Subject: vfs: add __d_instantiate() helper
 From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-blkcnt_t type depends on CONFIG_LSF. Use unsigned long long always for
-printk().  But lazy to type it, so add "llu" and use it.
+This adds __d_instantiate() for users which is already taking
+dcache_lock, and replace with it.
+
+The part of d_add_ci() isn't equivalent. But it should be needed
+fsnotify_d_instantiate() actually, because the path is to add the
+inode to negative dentry.  fsnotify_d_instantiate() should be called
+after change from negative to positive.
 
 Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/dir.c    |    2 +-
- fs/fat/fat.h    |    3 +++
- fs/fat/fatent.c |    5 ++---
- fs/fat/misc.c   |    5 +++--
- 4 files changed, 9 insertions(+), 6 deletions(-)
+ fs/dcache.c |   31 ++++++++++++++++---------------
+ 1 file changed, 16 insertions(+), 15 deletions(-)
 
-diff -puN fs/fat/dir.c~fat-i_blocks-warning-fix fs/fat/dir.c
---- a/fs/fat/dir.c~fat-i_blocks-warning-fix
-+++ a/fs/fat/dir.c
-@@ -86,7 +86,7 @@ next:
- 	*bh = sb_bread(sb, phys);
- 	if (*bh == NULL) {
- 		printk(KERN_ERR "FAT: Directory bread(block %llu) failed\n",
--		       (unsigned long long)phys);
-+		       (llu)phys);
- 		/* skip this block */
- 		*pos = (iblock + 1) << sb->s_blocksize_bits;
- 		goto next;
-diff -puN fs/fat/fat.h~fat-i_blocks-warning-fix fs/fat/fat.h
---- a/fs/fat/fat.h~fat-i_blocks-warning-fix
-+++ a/fs/fat/fat.h
-@@ -323,4 +323,7 @@ extern int fat_sync_bhs(struct buffer_he
- int fat_cache_init(void);
- void fat_cache_destroy(void);
- 
-+/* helper for printk */
-+typedef unsigned long long	llu;
-+
- #endif /* !_FAT_H */
-diff -puN fs/fat/fatent.c~fat-i_blocks-warning-fix fs/fat/fatent.c
---- a/fs/fat/fatent.c~fat-i_blocks-warning-fix
-+++ a/fs/fat/fatent.c
-@@ -93,8 +93,7 @@ static int fat12_ent_bread(struct super_
- err_brelse:
- 	brelse(bhs[0]);
- err:
--	printk(KERN_ERR "FAT: FAT read failed (blocknr %llu)\n",
--	       (unsigned long long)blocknr);
-+	printk(KERN_ERR "FAT: FAT read failed (blocknr %llu)\n", (llu)blocknr);
- 	return -EIO;
+diff -puN fs/dcache.c~vfs-add-__d_instantiate-helper fs/dcache.c
+--- a/fs/dcache.c~vfs-add-__d_instantiate-helper
++++ a/fs/dcache.c
+@@ -981,6 +981,15 @@ struct dentry *d_alloc_name(struct dentr
+ 	return d_alloc(parent, &q);
  }
  
-@@ -107,7 +106,7 @@ static int fat_ent_bread(struct super_bl
- 	fatent->bhs[0] = sb_bread(sb, blocknr);
- 	if (!fatent->bhs[0]) {
- 		printk(KERN_ERR "FAT: FAT read failed (blocknr %llu)\n",
--		       (unsigned long long)blocknr);
-+		       (llu)blocknr);
- 		return -EIO;
++/* the caller must hold dcache_lock */
++static void __d_instantiate(struct dentry *dentry, struct inode *inode)
++{
++	if (inode)
++		list_add(&dentry->d_alias, &inode->i_dentry);
++	dentry->d_inode = inode;
++	fsnotify_d_instantiate(dentry, inode);
++}
++
+ /**
+  * d_instantiate - fill in inode information for a dentry
+  * @entry: dentry to complete
+@@ -1000,10 +1009,7 @@ void d_instantiate(struct dentry *entry,
+ {
+ 	BUG_ON(!list_empty(&entry->d_alias));
+ 	spin_lock(&dcache_lock);
+-	if (inode)
+-		list_add(&entry->d_alias, &inode->i_dentry);
+-	entry->d_inode = inode;
+-	fsnotify_d_instantiate(entry, inode);
++	__d_instantiate(entry, inode);
+ 	spin_unlock(&dcache_lock);
+ 	security_d_instantiate(entry, inode);
+ }
+@@ -1033,7 +1039,7 @@ static struct dentry *__d_instantiate_un
+ 	unsigned int hash = entry->d_name.hash;
+ 
+ 	if (!inode) {
+-		entry->d_inode = NULL;
++		__d_instantiate(entry, NULL);
+ 		return NULL;
  	}
- 	fatent->nr_bhs = 1;
-diff -puN fs/fat/misc.c~fat-i_blocks-warning-fix fs/fat/misc.c
---- a/fs/fat/misc.c~fat-i_blocks-warning-fix
-+++ a/fs/fat/misc.c
-@@ -124,8 +124,9 @@ int fat_chain_add(struct inode *inode, i
- 			mark_inode_dirty(inode);
+ 
+@@ -1052,9 +1058,7 @@ static struct dentry *__d_instantiate_un
+ 		return alias;
  	}
- 	if (new_fclus != (inode->i_blocks >> (sbi->cluster_bits - 9))) {
--		fat_fs_panic(sb, "clusters badly computed (%d != %lu)",
--			new_fclus, inode->i_blocks >> (sbi->cluster_bits - 9));
-+		fat_fs_panic(sb, "clusters badly computed (%d != %llu)",
-+			     new_fclus,
-+			     (llu)(inode->i_blocks >> (sbi->cluster_bits - 9)));
- 		fat_cache_inval_inode(inode);
+ 
+-	list_add(&entry->d_alias, &inode->i_dentry);
+-	entry->d_inode = inode;
+-	fsnotify_d_instantiate(entry, inode);
++	__d_instantiate(entry, inode);
+ 	return NULL;
+ }
+ 
+@@ -1213,10 +1217,8 @@ struct dentry *d_splice_alias(struct ino
+ 			d_move(new, dentry);
+ 			iput(inode);
+ 		} else {
+-			/* d_instantiate takes dcache_lock, so we do it by hand */
+-			list_add(&dentry->d_alias, &inode->i_dentry);
+-			dentry->d_inode = inode;
+-			fsnotify_d_instantiate(dentry, inode);
++			/* already taking dcache_lock, so d_add() by hand */
++			__d_instantiate(dentry, inode);
+ 			spin_unlock(&dcache_lock);
+ 			security_d_instantiate(dentry, inode);
+ 			d_rehash(dentry);
+@@ -1299,8 +1301,7 @@ struct dentry *d_add_ci(struct dentry *d
+ 		 * d_instantiate() by hand because it takes dcache_lock which
+ 		 * we already hold.
+ 		 */
+-		list_add(&found->d_alias, &inode->i_dentry);
+-		found->d_inode = inode;
++		__d_instantiate(found, inode);
+ 		spin_unlock(&dcache_lock);
+ 		security_d_instantiate(found, inode);
+ 		return found;
+@@ -1833,7 +1834,7 @@ struct dentry *d_materialise_unique(stru
+ 
+ 	if (!inode) {
+ 		actual = dentry;
+-		dentry->d_inode = NULL;
++		__d_instantiate(dentry, NULL);
+ 		goto found_lock;
  	}
- 	inode->i_blocks += nr_cluster << (sbi->cluster_bits - 9);
+ 
 _
 
 Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
 origin.patch
+vfs-replace-parent-==-dentry-d_parent-by-is_root.patch
+vfs-add-d_ancestor.patch
+vfs-add-__d_instantiate-helper.patch
+vfs-remove-unnecessary-fsnotify_d_instantiate.patch
+vfs-remove-lookup_parent-from-non-lookup_parent-lookup.patch
+vfs-add-lookup_rename_target-intent.patch
 fat-document-additional-vfat-mount-options.patch
 fat-move-fs-vfat-and-fs-msdos-to-fs-fat.patch
 fat-split-include-msdos_fsh.patch
