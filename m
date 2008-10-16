@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-rework-do_pages_move-to-work-on-page_sized-chunks.patch added to -mm tree
-Date: Thu, 16 Oct 2008 13:47:41 -0700
-Message-ID: <200810162047.m9GKlfBV017235@imap1.linux-foundation.org>
+Subject: + acpi-fix-possible-null-ptr-dereference-in-acpi-code.patch added to -mm tree
+Date: Thu, 16 Oct 2008 13:50:58 -0700
+Message-ID: <200810162050.m9GKowUd017599@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40754 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48317 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754903AbYJPUrt (ORCPT
+	by vger.kernel.org with ESMTP id S1755014AbYJPUvn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 16:47:49 -0400
+	Thu, 16 Oct 2008 16:51:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Brice.Goglin@inria.fr, Nathalie.Furmento@labri.fr, cl@linux-foundation.org, nickpiggin@yahoo.com.au
+Cc: donald.d.dugger@intel.com, astarikovskiy@suse.de, bjorn.helgaas@hp.com, lenb@kernel.org
 
 
 The patch titled
-     mm: rework do_pages_move() to work on page_sized chunks
+     acpi: fix possible NULL ptr dereference in ACPI code
 has been added to the -mm tree.  Its filename is
-     mm-rework-do_pages_move-to-work-on-page_sized-chunks.patch
+     acpi-fix-possible-null-ptr-dereference-in-acpi-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,147 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: rework do_pages_move() to work on page_sized chunks
-From: Brice Goglin <Brice.Goglin@inria.fr>
+Subject: acpi: fix possible NULL ptr dereference in ACPI code
+From: Don Dugger <donald.d.dugger@intel.com>
 
-Rework do_pages_move() to work by page-sized chunks of struct page_to_node
-that are passed to do_move_page_to_node_array().  We now only have to
-allocate a single page instead a possibly very large vmalloc area to store
-all page_to_node entries.
+Code in file `drivers/acpi/pci_link.c' is attempting to evaluate the _DIS
+method to disable a link.  Unfortunately, the method code unconditionally
+uses the last argument as a pointer on success so passing a NULL could
+wind up dereferencing 0.  This patch just passes an appropriate pointer to
+avoid this issue.
 
-As a result, new_page_node() will now have a very small lookup, hidding
-much of the overall sys_move_pages() overhead.
-
-Signed-off-by: Brice Goglin <Brice.Goglin@inria.fr>
-Signed-off-by: Nathalie Furmento <Nathalie.Furmento@labri.fr>
-Acked-by: Christoph Lameter <cl@linux-foundation.org>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Don Dugger <donald.d.dugger@intel.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   81 +++++++++++++++++++++++++++----------------------
- 1 file changed, 45 insertions(+), 36 deletions(-)
+ drivers/acpi/pci_link.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/migrate.c~mm-rework-do_pages_move-to-work-on-page_sized-chunks mm/migrate.c
---- a/mm/migrate.c~mm-rework-do_pages_move-to-work-on-page_sized-chunks
-+++ a/mm/migrate.c
-@@ -917,41 +917,43 @@ static int do_pages_move(struct mm_struc
- 			 const int __user *nodes,
- 			 int __user *status, int flags)
+diff -puN drivers/acpi/pci_link.c~acpi-fix-possible-null-ptr-dereference-in-acpi-code drivers/acpi/pci_link.c
+--- a/drivers/acpi/pci_link.c~acpi-fix-possible-null-ptr-dereference-in-acpi-code
++++ a/drivers/acpi/pci_link.c
+@@ -671,6 +671,7 @@ int acpi_pci_link_free_irq(acpi_handle h
  {
--	struct page_to_node *pm = NULL;
-+	struct page_to_node *pm;
- 	nodemask_t task_nodes;
--	int err = 0;
--	int i;
-+	unsigned long chunk_nr_pages;
-+	unsigned long chunk_start;
-+	int err;
+ 	struct acpi_device *device = NULL;
+ 	struct acpi_pci_link *link = NULL;
++	union acpi_operand_object *dummy;
+ 	acpi_status result;
  
- 	task_nodes = cpuset_mems_allowed(task);
  
--	/* Limit nr_pages so that the multiplication may not overflow */
--	if (nr_pages >= ULONG_MAX / sizeof(struct page_to_node) - 1) {
--		err = -E2BIG;
-+	err = -ENOMEM;
-+	pm = kmalloc(PAGE_SIZE, GFP_KERNEL);
-+	if (!pm)
- 		goto out;
--	}
--
--	pm = vmalloc((nr_pages + 1) * sizeof(struct page_to_node));
--	if (!pm) {
--		err = -ENOMEM;
--		goto out;
--	}
--
- 	/*
--	 * Get parameters from user space and initialize the pm
--	 * array. Return various errors if the user did something wrong.
-+	 * Store a chunk of page_to_node array in a page,
-+	 * but keep the last one as a marker
- 	 */
--	for (i = 0; i < nr_pages; i++) {
--		const void __user *p;
--
--		err = -EFAULT;
--		if (get_user(p, pages + i))
--			goto out_pm;
-+	chunk_nr_pages = PAGE_SIZE/sizeof(struct page_to_node) - 1;
+@@ -709,7 +710,7 @@ int acpi_pci_link_free_irq(acpi_handle h
+ 			  acpi_device_bid(link->device)));
  
--		pm[i].addr = (unsigned long)p;
--		if (nodes) {
-+	for (chunk_start = 0;
-+	     chunk_start < nr_pages;
-+	     chunk_start += chunk_nr_pages) {
-+		int j;
-+
-+		if (chunk_start + chunk_nr_pages > nr_pages)
-+			chunk_nr_pages = nr_pages - chunk_start;
-+
-+		/* fill the chunk pm with addrs and nodes from user-space */
-+		for (j = 0; j < chunk_nr_pages; j++) {
-+			const void __user *p;
- 			int node;
+ 	if (link->refcnt == 0) {
+-		acpi_ut_evaluate_object(link->device->handle, "_DIS", 0, NULL);
++		acpi_ut_evaluate_object(link->device->handle, "_DIS", 0, &dummy);
+ 	}
+ 	mutex_unlock(&acpi_link_lock);
+ 	return (link->irq.active);
+@@ -721,6 +722,7 @@ int acpi_pci_link_free_irq(acpi_handle h
  
--			if (get_user(node, nodes + i))
-+			err = -EFAULT;
-+			if (get_user(p, pages + j + chunk_start))
-+				goto out_pm;
-+			pm[j].addr = (unsigned long) p;
-+
-+			if (get_user(node, nodes + j + chunk_start))
- 				goto out_pm;
+ static int acpi_pci_link_add(struct acpi_device *device)
+ {
++	union acpi_operand_object *dummy;
+ 	int result = 0;
+ 	struct acpi_pci_link *link = NULL;
+ 	int i = 0;
+@@ -773,7 +775,7 @@ static int acpi_pci_link_add(struct acpi
  
- 			err = -ENODEV;
-@@ -962,22 +964,29 @@ static int do_pages_move(struct mm_struc
- 			if (!node_isset(node, task_nodes))
- 				goto out_pm;
+       end:
+ 	/* disable all links -- to be activated on use */
+-	acpi_ut_evaluate_object(device->handle, "_DIS", 0, NULL);
++	acpi_ut_evaluate_object(device->handle, "_DIS", 0, &dummy);
+ 	mutex_unlock(&acpi_link_lock);
  
--			pm[i].node = node;
--		} else
--			pm[i].node = 0;	/* anything to not match MAX_NUMNODES */
--	}
--	/* End marker */
--	pm[nr_pages].node = MAX_NUMNODES;
-+			pm[j].node = node;
-+		}
-+
-+		/* End marker for this chunk */
-+		pm[chunk_nr_pages].node = MAX_NUMNODES;
-+
-+		/* Migrate this chunk */
-+		err = do_move_page_to_node_array(mm, pm,
-+						 flags & MPOL_MF_MOVE_ALL);
-+		if (err < 0)
-+			goto out_pm;
- 
--	err = do_move_page_to_node_array(mm, pm, flags & MPOL_MF_MOVE_ALL);
--	if (err >= 0)
- 		/* Return status information */
--		for (i = 0; i < nr_pages; i++)
--			if (put_user(pm[i].status, status + i))
-+		for (j = 0; j < chunk_nr_pages; j++)
-+			if (put_user(pm[j].status, status + j + chunk_start)) {
- 				err = -EFAULT;
-+				goto out_pm;
-+			}
-+	}
-+	err = 0;
- 
- out_pm:
--	vfree(pm);
-+	kfree(pm);
- out:
- 	return err;
- }
+ 	if (result)
 _
 
-Patches currently in -mm which might be from Brice.Goglin@inria.fr are
+Patches currently in -mm which might be from donald.d.dugger@intel.com are
 
-mm-stop-returning-enoent-from-sys_move_pages-if-nothing-got-migrated.patch
-mm-dont-vmalloc-a-huge-page_to_node-array-for-do_pages_stat.patch
-mm-extract-do_pages_move-out-of-sys_move_pages.patch
-mm-rework-do_pages_move-to-work-on-page_sized-chunks.patch
-mm-move_pages-no-need-to-set-pp-page-to-zero_page0-by-default.patch
+acpi-fix-possible-null-ptr-dereference-in-acpi-code.patch
 
