@@ -1,946 +1,780 @@
 From: akpm@linux-foundation.org
-Subject: + input-ad7879-touchscreen-driver.patch added to -mm tree
-Date: Thu, 16 Oct 2008 16:32:44 -0700
-Message-ID: <200810162332.m9GNWiWR006608@imap1.linux-foundation.org>
+Subject: mmotm 2008-10-16-16-42 uploaded
+Date: Thu, 16 Oct 2008 16:42:30 -0700
+Message-ID: <200810162342.m9GNgVS8007881@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36426 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42626 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753018AbYJPXdM (ORCPT
+	by vger.kernel.org with ESMTP id S1751322AbYJPXnF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 19:33:12 -0400
+	Thu, 16 Oct 2008 19:43:05 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m9GNgVeE007890
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 16 Oct 2008 16:42:32 -0700
+Received: from localhost.localdomain (localhost [127.0.0.1])
+	by imap1.linux-foundation.org (8.13.5.20060308/8.13.5/Debian-3ubuntu1.1) with ESMTP id m9GNgVS8007881
+	for <mm-commits@vger.kernel.org>; Thu, 16 Oct 2008 16:42:31 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: michael.hennerich@analog.com, cooloney@kernel.org, dtor@mail.ru
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org
 
+The mm-of-the-moment snapshot 2008-10-16-16-42 has been uploaded to
 
-The patch titled
-     input: AD7879 Touchscreen driver
-has been added to the -mm tree.  Its filename is
-     input-ad7879-touchscreen-driver.patch
+   http://userweb.kernel.org/~akpm/mmotm/
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
-
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
-
-------------------------------------------------------
-Subject: input: AD7879 Touchscreen driver
-From: Michael Hennerich <michael.hennerich@analog.com>
-
-Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Michael Hennerich <michael.hennerich@analog.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/input/touchscreen/Kconfig  |   27 
- drivers/input/touchscreen/Makefile |    1 
- drivers/input/touchscreen/ad7879.c |  794 +++++++++++++++++++++++++++
- include/linux/spi/ad7879.h         |   35 +
- 4 files changed, 857 insertions(+)
-
-diff -puN drivers/input/touchscreen/Kconfig~input-ad7879-touchscreen-driver drivers/input/touchscreen/Kconfig
---- a/drivers/input/touchscreen/Kconfig~input-ad7879-touchscreen-driver
-+++ a/drivers/input/touchscreen/Kconfig
-@@ -42,6 +42,33 @@ config TOUCHSCREEN_AD7877
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ad7877.
- 
-+config TOUCHSCREEN_AD7879
-+	tristate "AD7879 based touchscreens"
-+	depends on SPI_MASTER || I2C
-+	help
-+	  Say Y here if you have a touchscreen interface using the
-+	  AD7879(-1) controller, and your board-specific initialization
-+	  code includes that in its table of SPI/I2C devices.
-+
-+	  If unsure, say N (but it's safe to say "Y").
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called ad7879.
-+
-+choice
-+	prompt "Interface Selection"
-+	depends on TOUCHSCREEN_AD7879
-+
-+config TOUCHSCREEN_AD7879_I2C
-+	bool "AD7879-1 I2C"
-+	depends on I2C
-+
-+config TOUCHSCREEN_AD7879_SPI
-+	bool "AD7879 SPI"
-+	depends on SPI_MASTER
-+endchoice
-+
-+
- config TOUCHSCREEN_BITSY
- 	tristate "Compaq iPAQ H3600 (Bitsy) touchscreen"
- 	depends on SA1100_BITSY
-diff -puN drivers/input/touchscreen/Makefile~input-ad7879-touchscreen-driver drivers/input/touchscreen/Makefile
---- a/drivers/input/touchscreen/Makefile~input-ad7879-touchscreen-driver
-+++ a/drivers/input/touchscreen/Makefile
-@@ -7,6 +7,7 @@
- wm97xx-ts-y := wm97xx-core.o
- 
- obj-$(CONFIG_TOUCHSCREEN_AD7877)	+= ad7877.o
-+obj-$(CONFIG_TOUCHSCREEN_AD7879)	+= ad7879.o
- obj-$(CONFIG_TOUCHSCREEN_ADS7846)	+= ads7846.o
- obj-$(CONFIG_TOUCHSCREEN_ATMEL_TSADCC)	+= atmel_tsadcc.o
- obj-$(CONFIG_TOUCHSCREEN_BITSY)		+= h3600_ts_input.o
-diff -puN /dev/null drivers/input/touchscreen/ad7879.c
---- /dev/null
-+++ a/drivers/input/touchscreen/ad7879.c
-@@ -0,0 +1,794 @@
-+/*
-+ * File:        drivers/input/touchscreen/ad7879.c
-+ *
-+ *		Copyright (C) 2008 Michael Hennerich, Analog Devices Inc.
-+ *
-+ * Description:	AD7879 based touchscreen, and GPIO driver (I2C/SPI Interface)
-+ *
-+ * Bugs:        Enter bugs at http://blackfin.uclinux.org/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, see the file COPYING, or write
-+ * to the Free Software Foundation, Inc.,
-+ * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-+ *
-+ * History:
-+ * Copyright (c) 2005 David Brownell
-+ * Copyright (c) 2006 Nokia Corporation
-+ * Various changes: Imre Deak <imre.deak@nokia.com>
-+ *
-+ * Using code from:
-+ *  - corgi_ts.c
-+ *	Copyright (C) 2004-2005 Richard Purdie
-+ *  - omap_ts.[hc], ads7846.h, ts_osk.c
-+ *	Copyright (C) 2002 MontaVista Software
-+ *	Copyright (C) 2004 Texas Instruments
-+ *	Copyright (C) 2005 Dirk Behme
-+ *  - ad7877.c
-+ * 	Copyright (C) 2006-2008 Analog Devices Inc.
-+ */
-+
-+#include <linux/device.h>
-+#include <linux/init.h>
-+#include <linux/delay.h>
-+#include <linux/input.h>
-+#include <linux/interrupt.h>
-+#include <linux/irq.h>
-+#include <linux/slab.h>
-+#include <linux/workqueue.h>
-+#include <linux/spi/spi.h>
-+#include <linux/i2c.h>
-+
-+#include <linux/spi/ad7879.h>
-+
-+#define AD7879_REG_ZEROS		0
-+#define AD7879_REG_CTRL1		1
-+#define AD7879_REG_CTRL2		2
-+#define AD7879_REG_CTRL3		3
-+#define AD7879_REG_AUX1HIGH		4
-+#define AD7879_REG_AUX1LOW		5
-+#define AD7879_REG_TEMP1HIGH		6
-+#define AD7879_REG_TEMP1LOW		7
-+#define AD7879_REG_XPLUS		8
-+#define AD7879_REG_YPLUS		9
-+#define AD7879_REG_Z1			10
-+#define AD7879_REG_Z2			11
-+#define AD7879_REG_AUXVBAT		12
-+#define AD7879_REG_TEMP			13
-+#define AD7879_REG_REVID		14
-+
-+/* Control REG 1 */
-+#define AD7879_TMR(x)			((x & 0xFF) << 0)
-+#define AD7879_ACQ(x)			((x & 0x3) << 8)
-+#define AD7879_MODE_NOC  		(0 << 10)	/* Do not convert */
-+#define AD7879_MODE_SCC  		(1 << 10)	/* Single channel conversion */
-+#define AD7879_MODE_SEQ0 		(2 << 10)	/* Sequence 0 in Slave Mode */
-+#define AD7879_MODE_SEQ1 		(3 << 10)	/* Sequence 1 in Master Mode */
-+#define AD7879_MODE_INT 		(1 << 15)	/* PENIRQ disabled INT enabled */
-+
-+/* Control REG 2 */
-+#define AD7879_FCD(x)			((x & 0x3) << 0)
-+#define AD7879_RESET			(1 << 4)
-+#define AD7879_MFS(x)			((x & 0x3) << 5)
-+#define AD7879_AVG(x)			((x & 0x3) << 7)
-+#define	AD7879_SER			(1 << 9)	/* non-differential */
-+#define	AD7879_DFR			(0 << 9)	/* differential */
-+#define AD7879_GPIOPOL			(1 << 10)
-+#define AD7879_GPIODIR			(1 << 11)
-+#define AD7879_GPIO_DATA		(1 << 12)
-+#define AD7879_GPIO_EN			(1 << 13)
-+#define AD7879_PM(x)			((x & 0x3) << 14)
-+#define AD7879_PM_SHUTDOWN		(0)
-+#define AD7879_PM_DYN			(1)
-+#define AD7879_PM_FULLON		(2)
-+
-+/* Control REG 3 */
-+#define AD7879_TEMPMASK_BIT		(1<<15)
-+#define AD7879_AUXVBATMASK_BIT		(1<<14)
-+#define AD7879_INTMODE_BIT		(1<<13)
-+#define AD7879_GPIOALERTMASK_BIT	(1<<12)
-+#define AD7879_AUXLOW_BIT		(1<<11)
-+#define AD7879_AUXHIGH_BIT		(1<<10)
-+#define AD7879_TEMPLOW_BIT		(1<<9)
-+#define AD7879_TEMPHIGH_BIT		(1<<8)
-+#define AD7879_YPLUS_BIT		(1<<7)
-+#define AD7879_XPLUS_BIT		(1<<6)
-+#define AD7879_Z1_BIT			(1<<5)
-+#define AD7879_Z2_BIT			(1<<4)
-+#define AD7879_AUX_BIT			(1<<3)
-+#define AD7879_VBAT_BIT			(1<<2)
-+#define AD7879_TEMP_BIT			(1<<1)
-+
-+enum {
-+	AD7879_SEQ_XPOS  = 0,
-+	AD7879_SEQ_YPOS  = 1,
-+	AD7879_SEQ_Z1    = 2,
-+	AD7879_SEQ_Z2    = 3,
-+	AD7879_NR_SENSE  = 4,
-+};
-+
-+#define	MAX_12BIT			((1<<12)-1)
-+#define	TS_PEN_UP_TIMEOUT		msecs_to_jiffies(50)
-+
-+#if defined(CONFIG_TOUCHSCREEN_AD7879_SPI)
-+#define AD7879_DEVID		0x7A
-+typedef struct spi_device	bus_device;
-+#elif defined(CONFIG_TOUCHSCREEN_AD7879_I2C)
-+#define AD7879_DEVID		0x79
-+typedef struct i2c_client	bus_device;
-+#endif
-+
-+struct ad7879 {
-+	bus_device 		*bus;
-+	struct input_dev	*input;
-+	struct work_struct	work;
-+	struct timer_list	timer;
-+	spinlock_t		lock;
-+
-+#ifdef CONFIG_TOUCHSCREEN_AD7879_SPI
-+	struct spi_message	msg;
-+	struct spi_transfer	xfer[AD7879_NR_SENSE + 1];
-+	u16			cmd;
-+#endif
-+	u16 			conversion_data[AD7879_NR_SENSE];
-+	char			phys[32];
-+	u8			first_conversion_delay;
-+	u8			acquisition_time;
-+	u8			averaging;
-+	u8			pen_down_acc_interval;
-+	u8			median;
-+	u16			x_plate_ohms;
-+	u16			pressure_max;
-+	u16			gpio_init;
-+	u16			cmd_crtl1;
-+	u16			cmd_crtl2;
-+	u16			cmd_crtl3;
-+	unsigned		disabled:1;	/* P: lock */
-+	unsigned		gpio:1;
-+};
-+
-+static int ad7879_read(bus_device *, u8);
-+static int ad7879_write(bus_device *, u8, u16);
-+static void ad7879_collect(struct ad7879 *);
-+
-+static void ad7879_report(struct ad7879 *ts)
-+{
-+	struct input_dev	*input_dev = ts->input;
-+	unsigned		Rt;
-+	u16			x, y, z1, z2;
-+
-+	x = ts->conversion_data[AD7879_SEQ_XPOS] & MAX_12BIT;
-+	y = ts->conversion_data[AD7879_SEQ_YPOS] & MAX_12BIT;
-+	z1 = ts->conversion_data[AD7879_SEQ_Z1] & MAX_12BIT;
-+	z2 = ts->conversion_data[AD7879_SEQ_Z2] & MAX_12BIT;
-+
-+	/*
-+	 * The samples processed here are already preprocessed by the AD7879.
-+	 * The preprocessing function consists of a median and an averaging filter.
-+	 * The combination of these two techniques provides a robust solution,
-+	 * discarding the spurious noise in the signal and keeping only the data of interest.
-+	 * The size of both filters is programmable. (dev.platform_data, see linux/spi/ad7879.h)
-+	 * Other user-programmable conversion controls include variable acquisition time,
-+	 * and first conversion delay. Up to 16 averages can be taken per conversion.
-+	 */
-+
-+	if (likely(x && z1)) {
-+		/* compute touch pressure resistance using equation #1 */
-+		Rt = (z2 - z1) * x * ts->x_plate_ohms;
-+		Rt /= z1;
-+		Rt = (Rt + 2047) >> 12;
-+	} else
-+		Rt = 0;
-+
-+	if (Rt) {
-+		input_report_abs(input_dev, ABS_X, x);
-+		input_report_abs(input_dev, ABS_Y, y);
-+		input_report_abs(input_dev, ABS_PRESSURE, Rt);
-+		input_sync(input_dev);
-+	}
-+}
-+
-+static void ad7879_work(struct work_struct *work)
-+{
-+	struct ad7879 *ts = container_of(work, struct ad7879, work);
-+
-+	/* use keventd context to read the result registers */
-+	ad7879_collect(ts);
-+	ad7879_report(ts);
-+	mod_timer(&ts->timer, jiffies + TS_PEN_UP_TIMEOUT);
-+}
-+
-+static void ad7879_ts_event_release(struct ad7879 *ts)
-+{
-+	struct input_dev *input_dev = ts->input;
-+
-+	input_report_abs(input_dev, ABS_PRESSURE, 0);
-+	input_sync(input_dev);
-+}
-+
-+static void ad7879_timer(unsigned long handle)
-+{
-+	struct ad7879	*ts = (void *)handle;
-+
-+	ad7879_ts_event_release(ts);
-+}
-+
-+static irqreturn_t ad7879_irq(int irq, void *handle)
-+{
-+	struct ad7879 *ts = handle;
-+
-+	/* The repeated conversion sequencer controlled by TMR kicked off too fast.
-+	 * We ignore the last and process the sample sequence currently in the queue.
-+	 * It can't be older than 9.4ms
-+	 */
-+
-+	if (!work_pending(&ts->work))
-+		schedule_work(&ts->work);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static void ad7879_disable(struct ad7879 *ts)
-+{
-+	unsigned long flags;
-+
-+	if (ts->disabled)
-+		return;
-+
-+	spin_lock_irqsave(&ts->lock, flags);
-+	ts->disabled = 1;
-+	disable_irq(ts->bus->irq);
-+	spin_unlock_irqrestore(&ts->lock, flags);
-+
-+	cancel_work_sync(&ts->work);
-+
-+	if (del_timer_sync(&ts->timer))
-+		ad7879_ts_event_release(ts);
-+
-+	/* we know the chip's in lowpower mode since we always
-+	 * leave it that way after every request
-+	 */
-+}
-+
-+static void ad7879_enable(struct ad7879 *ts)
-+{
-+	unsigned long flags;
-+
-+	if (!ts->disabled)
-+		return;
-+
-+	spin_lock_irqsave(&ts->lock, flags);
-+	ts->disabled = 0;
-+	enable_irq(ts->bus->irq);
-+	spin_unlock_irqrestore(&ts->lock, flags);
-+}
-+
-+static ssize_t ad7879_disable_show(struct device *dev,
-+				     struct device_attribute *attr, char *buf)
-+{
-+	struct ad7879 *ts = dev_get_drvdata(dev);
-+
-+	return sprintf(buf, "%u\n", ts->disabled);
-+}
-+
-+static ssize_t ad7879_disable_store(struct device *dev,
-+				     struct device_attribute *attr,
-+				     const char *buf, size_t count)
-+{
-+	struct ad7879 *ts = dev_get_drvdata(dev);
-+	unsigned long val;
-+	int ret;
-+
-+	ret = strict_strtoul(buf, 10, &val);
-+
-+	if (ret)
-+		return ret;
-+
-+	if (val)
-+		ad7879_disable(ts);
-+	else
-+		ad7879_enable(ts);
-+
-+	return count;
-+}
-+
-+static DEVICE_ATTR(disable, 0664, ad7879_disable_show, ad7879_disable_store);
-+
-+static ssize_t ad7879_gpio_show(struct device *dev,
-+				     struct device_attribute *attr, char *buf)
-+{
-+	struct ad7879 *ts = dev_get_drvdata(dev);
-+
-+	return sprintf(buf, "%u\n", ts->gpio);
-+}
-+
-+static ssize_t ad7879_gpio_store(struct device *dev,
-+				     struct device_attribute *attr,
-+				     const char *buf, size_t count)
-+{
-+	struct ad7879 *ts = dev_get_drvdata(dev);
-+	unsigned long val;
-+	int ret;
-+
-+	ret = strict_strtoul(buf, 10, &val);
-+	if (ret)
-+		return ret;
-+
-+	ts->gpio = !!val;
-+
-+	ret = ad7879_write(ts->bus, AD7879_REG_CTRL2,
-+			ts->gpio ? ts->cmd_crtl2 & ~AD7879_GPIO_DATA
-+			: ts->cmd_crtl2 | AD7879_GPIO_DATA);
-+
-+	if (ret)
-+		return ret;
-+
-+	return count;
-+}
-+
-+static DEVICE_ATTR(gpio, 0664, ad7879_gpio_show, ad7879_gpio_store);
-+
-+static struct attribute *ad7879_attributes[] = {
-+	&dev_attr_disable.attr,
-+	&dev_attr_gpio.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group ad7879_attr_group = {
-+	.attrs = ad7879_attributes,
-+};
-+
-+static void ad7879_setup(bus_device *bus, struct ad7879 *ts)
-+{
-+	ts->cmd_crtl3 = AD7879_YPLUS_BIT |
-+			AD7879_XPLUS_BIT |
-+			AD7879_Z2_BIT |
-+			AD7879_Z1_BIT |
-+			AD7879_TEMPMASK_BIT |
-+			AD7879_AUXVBATMASK_BIT |
-+			AD7879_GPIOALERTMASK_BIT;
-+
-+	ts->cmd_crtl2 = AD7879_PM(AD7879_PM_DYN) | AD7879_DFR |
-+			AD7879_AVG(ts->averaging) |
-+			AD7879_MFS(ts->median) |
-+			AD7879_FCD(ts->first_conversion_delay) |
-+			ts->gpio_init;
-+
-+	ts->cmd_crtl1 = AD7879_MODE_INT | AD7879_MODE_SEQ1 |
-+			AD7879_ACQ(ts->acquisition_time) |
-+			AD7879_TMR(ts->pen_down_acc_interval);
-+
-+	ad7879_write(bus, AD7879_REG_CTRL2, ts->cmd_crtl2);
-+	ad7879_write(bus, AD7879_REG_CTRL3, ts->cmd_crtl3);
-+	ad7879_write(bus, AD7879_REG_CTRL1, ts->cmd_crtl1);
-+}
-+
-+static int __devinit ad7879_construct(bus_device *bus, struct ad7879 *ts)
-+{
-+	struct input_dev *input_dev;
-+	struct ad7879_platform_data *pdata = bus->dev.platform_data;
-+	int err;
-+	u16 revid;
-+
-+	if (!bus->irq) {
-+		dev_err(&bus->dev, "no IRQ?\n");
-+		return -ENODEV;
-+	}
-+
-+	if (!pdata) {
-+		dev_err(&bus->dev, "no platform data?\n");
-+		return -ENODEV;
-+	}
-+
-+	input_dev = input_allocate_device();
-+	if (!input_dev)
-+		return -ENOMEM;
-+
-+	ts->input = input_dev;
-+
-+	setup_timer(&ts->timer, ad7879_timer, (unsigned long) ts);
-+	INIT_WORK(&ts->work, ad7879_work);
-+	spin_lock_init(&ts->lock);
-+
-+	ts->x_plate_ohms = pdata->x_plate_ohms ? : 400;
-+	ts->pressure_max = pdata->pressure_max ? : ~0;
-+
-+	ts->first_conversion_delay = pdata->first_conversion_delay;
-+	ts->acquisition_time = pdata->acquisition_time;
-+	ts->averaging = pdata->averaging;
-+	ts->pen_down_acc_interval = pdata->pen_down_acc_interval;
-+	ts->median = pdata->median;
-+
-+	if (pdata->gpio_output)
-+		ts->gpio_init = AD7879_GPIO_EN |
-+				(pdata->gpio_default ? 0 : AD7879_GPIO_DATA);
-+	else
-+		ts->gpio_init = AD7879_GPIO_EN | AD7879_GPIODIR;
-+
-+	snprintf(ts->phys, sizeof(ts->phys), "%s/inputX", bus->dev.bus_id);
-+
-+	input_dev->name = "AD7879 Touchscreen";
-+	input_dev->phys = ts->phys;
-+	input_dev->dev.parent = &bus->dev;
-+
-+	__set_bit(EV_ABS, input_dev->evbit);
-+	__set_bit(ABS_X, input_dev->absbit);
-+	__set_bit(ABS_Y, input_dev->absbit);
-+	__set_bit(ABS_PRESSURE, input_dev->absbit);
-+
-+	input_set_abs_params(input_dev, ABS_X,
-+			pdata->x_min ? : 0,
-+			pdata->x_max ? : MAX_12BIT,
-+			0, 0);
-+	input_set_abs_params(input_dev, ABS_Y,
-+			pdata->y_min ? : 0,
-+			pdata->y_max ? : MAX_12BIT,
-+			0, 0);
-+	input_set_abs_params(input_dev, ABS_PRESSURE,
-+			pdata->pressure_min, pdata->pressure_max, 0, 0);
-+
-+	err = ad7879_write(bus, AD7879_REG_CTRL2, AD7879_RESET);
-+
-+	if (err < 0) {
-+		dev_err(&bus->dev, "Failed to write %s\n", input_dev->name);
-+		goto err_free_mem;
-+	}
-+
-+	revid = ad7879_read(bus, AD7879_REG_REVID);
-+
-+	if ((revid & 0xFF) != AD7879_DEVID) {
-+		dev_err(&bus->dev, "Failed to probe %s\n", input_dev->name);
-+		err = -ENODEV;
-+		goto err_free_mem;
-+	}
-+
-+	ad7879_setup(bus, ts);
-+
-+	err = request_irq(bus->irq, ad7879_irq, IRQF_TRIGGER_FALLING |
-+		IRQF_SAMPLE_RANDOM, bus->dev.driver->name, ts);
-+
-+	if (err) {
-+		dev_err(&bus->dev, "irq %d busy?\n", bus->irq);
-+		goto err_free_mem;
-+	}
-+
-+	err = sysfs_create_group(&bus->dev.kobj, &ad7879_attr_group);
-+	if (err)
-+		goto err_free_irq;
-+
-+	err = input_register_device(input_dev);
-+	if (err)
-+		goto err_remove_attr;
-+
-+	dev_info(&bus->dev, "Rev.%d touchscreen, irq %d\n",
-+		revid >> 8, bus->irq);
-+
-+	return 0;
-+
-+err_remove_attr:
-+	sysfs_remove_group(&bus->dev.kobj, &ad7879_attr_group);
-+err_free_irq:
-+	free_irq(bus->irq, ts);
-+err_free_mem:
-+	input_free_device(input_dev);
-+
-+	return err;
-+}
-+
-+static int __devexit ad7879_destruct(bus_device *bus, struct ad7879 *ts)
-+{
-+	ad7879_disable(ts);
-+	ad7879_write(ts->bus, AD7879_REG_CTRL2,
-+			AD7879_PM(AD7879_PM_SHUTDOWN));
-+	sysfs_remove_group(&ts->bus->dev.kobj, &ad7879_attr_group);
-+	free_irq(ts->bus->irq, ts);
-+	input_unregister_device(ts->input);
-+	dev_dbg(&bus->dev, "unregistered touchscreen\n");
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+static int ad7879_suspend(bus_device *bus, pm_message_t message)
-+{
-+	struct ad7879 *ts = dev_get_drvdata(&bus->dev);
-+
-+	ad7879_disable(ts);
-+	ad7879_write(bus, AD7879_REG_CTRL2,
-+			AD7879_PM(AD7879_PM_SHUTDOWN));
-+
-+	return 0;
-+}
-+
-+static int ad7879_resume(bus_device *bus)
-+{
-+	struct ad7879 *ts = dev_get_drvdata(&bus->dev);
-+
-+	ad7879_setup(bus, ts);
-+	ad7879_enable(ts);
-+
-+	return 0;
-+}
-+#else
-+#define ad7879_suspend NULL
-+#define ad7879_resume  NULL
-+#endif
-+
-+#if defined(CONFIG_TOUCHSCREEN_AD7879_SPI)
-+#define MAX_SPI_FREQ_HZ		5000000
-+#define AD7879_CMD_MAGIC	0xE000
-+#define AD7879_CMD_READ		(1 << 10)
-+#define AD7879_WRITECMD(reg)  	(AD7879_CMD_MAGIC | (reg & 0xF))
-+#define AD7879_READCMD(reg)  	(AD7879_CMD_MAGIC | AD7879_CMD_READ | (reg & 0xF))
-+
-+struct ser_req {
-+	u16			command;
-+	u16			data;
-+	struct spi_message	msg;
-+	struct spi_transfer	xfer[2];
-+};
-+
-+/*
-+ * ad7879_read/write are only used for initial setup and for sysfs controls.
-+ * The main traffic is done in ad7879_collect().
-+ */
-+
-+static int ad7879_read(struct spi_device *spi, u8 reg)
-+{
-+	struct ser_req *req = kzalloc(sizeof *req, GFP_KERNEL);
-+	int status, ret;
-+
-+	if (!req)
-+		return -ENOMEM;
-+
-+	spi_message_init(&req->msg);
-+
-+	req->command = (u16) AD7879_READCMD(reg);
-+	req->xfer[0].tx_buf = &req->command;
-+	req->xfer[0].len = 2;
-+
-+	req->xfer[1].rx_buf = &req->data;
-+	req->xfer[1].len = 2;
-+
-+	spi_message_add_tail(&req->xfer[0], &req->msg);
-+	spi_message_add_tail(&req->xfer[1], &req->msg);
-+
-+	status = spi_sync(spi, &req->msg);
-+
-+	if (status == 0)
-+		status = req->msg.status;
-+
-+	ret = status ? status : req->data;
-+	kfree(req);
-+
-+	return ret;
-+}
-+
-+static int ad7879_write(struct spi_device *spi, u8 reg, u16 val)
-+{
-+	struct ser_req *req = kzalloc(sizeof *req, GFP_KERNEL);
-+	int status;
-+
-+	if (!req)
-+		return -ENOMEM;
-+
-+	spi_message_init(&req->msg);
-+
-+	req->command = (u16) AD7879_WRITECMD(reg);
-+	req->xfer[0].tx_buf = &req->command;
-+	req->xfer[0].len = 2;
-+
-+	req->data = val;
-+	req->xfer[1].tx_buf = &req->data;
-+	req->xfer[1].len = 2;
-+
-+	spi_message_add_tail(&req->xfer[0], &req->msg);
-+	spi_message_add_tail(&req->xfer[1], &req->msg);
-+
-+	status = spi_sync(spi, &req->msg);
-+
-+	if (status == 0)
-+		status = req->msg.status;
-+
-+	kfree(req);
-+
-+	return status;
-+}
-+
-+static void ad7879_collect(struct ad7879 *ts)
-+{
-+	int status = spi_sync(ts->bus, &ts->msg);
-+	if (status)
-+		dev_err(&ts->bus->dev, "spi_sync --> %d\n", status);
-+}
-+
-+static void ad7879_setup_ts_def_msg(struct ad7879 *ts)
-+{
-+	struct spi_message *m;
-+	int i;
-+
-+	ts->cmd = (u16) AD7879_READCMD(AD7879_REG_XPLUS);
-+
-+	m = &ts->msg;
-+	spi_message_init(m);
-+	ts->xfer[0].tx_buf = &ts->cmd;
-+	ts->xfer[0].len = 2;
-+
-+	spi_message_add_tail(&ts->xfer[0], m);
-+
-+	for (i = 0; i < AD7879_NR_SENSE; i++) {
-+		ts->xfer[i + 1].rx_buf = &ts->conversion_data[i];
-+		ts->xfer[i + 1].len = 2;
-+		spi_message_add_tail(&ts->xfer[i + 1], m);
-+	}
-+}
-+
-+static int __devinit ad7879_probe(struct spi_device *spi)
-+{
-+	struct ad7879 *ts;
-+	int ret;
-+
-+	/* don't exceed max specified SPI CLK frequency */
-+	if (spi->max_speed_hz > MAX_SPI_FREQ_HZ) {
-+		dev_err(&spi->dev, "SPI CLK %d Hz?\n", spi->max_speed_hz);
-+		return -EINVAL;
-+	}
-+
-+	ts = kzalloc(sizeof(struct ad7879), GFP_KERNEL);
-+	if (!ts)
-+		return -ENOMEM;
-+
-+	dev_set_drvdata(&spi->dev, ts);
-+	ts->bus = spi;
-+
-+	ad7879_setup_ts_def_msg(ts);
-+
-+	ret = ad7879_construct(spi, ts);
-+	if (!ret)
-+		return ret;
-+
-+	dev_set_drvdata(&spi->dev, NULL);
-+	kfree(ts);
-+
-+	return ret;
-+}
-+
-+static int __devexit ad7879_remove(struct spi_device *spi)
-+{
-+	struct ad7879 *ts = dev_get_drvdata(&spi->dev);
-+
-+	ad7879_destruct(spi, ts);
-+	dev_set_drvdata(&spi->dev, NULL);
-+	kfree(ts);
-+	return 0;
-+}
-+
-+static struct spi_driver ad7879_driver = {
-+	.driver = {
-+		.name	= "ad7879",
-+		.bus	= &spi_bus_type,
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= ad7879_probe,
-+	.remove		= __devexit_p(ad7879_remove),
-+	.suspend	= ad7879_suspend,
-+	.resume		= ad7879_resume,
-+};
-+
-+static int __init ad7879_init(void)
-+{
-+	return spi_register_driver(&ad7879_driver);
-+}
-+module_init(ad7879_init);
-+
-+static void __exit ad7879_exit(void)
-+{
-+	spi_unregister_driver(&ad7879_driver);
-+}
-+module_exit(ad7879_exit);
-+
-+#elif defined(CONFIG_TOUCHSCREEN_AD7879_I2C)
-+
-+/* All registers are word-sized.
-+ * AD7879 uses a high-byte first convention.
-+ */
-+static int ad7879_read(struct i2c_client *client, u8 reg)
-+{
-+	return swab16(i2c_smbus_read_word_data(client, reg));
-+}
-+
-+static int ad7879_write(struct i2c_client *client, u8 reg, u16 val)
-+{
-+	return i2c_smbus_write_word_data(client, reg, swab16(val));
-+}
-+
-+static void ad7879_collect(struct ad7879 *ts)
-+{
-+	int i;
-+	for (i = 0; i < AD7879_NR_SENSE; i++)
-+		ts->conversion_data[i] =
-+			ad7879_read(ts->bus, AD7879_REG_XPLUS + i);
-+}
-+
-+static int __devinit ad7879_probe(struct i2c_client *client,
-+					const struct i2c_device_id *id)
-+{
-+	struct ad7879 *ts;
-+	int ret;
-+
-+	if (!i2c_check_functionality(client->adapter,
-+					I2C_FUNC_SMBUS_WORD_DATA)) {
-+		dev_err(&client->dev, "SMBUS Word Data not Supported\n");
-+		return -EIO;
-+	}
-+
-+	ts = kzalloc(sizeof(struct ad7879), GFP_KERNEL);
-+	if (!ts)
-+		return -ENOMEM;
-+
-+	i2c_set_clientdata(client, ts);
-+	ts->bus = client;
-+
-+	ret = ad7879_construct(client, ts);
-+	if (!ret)
-+		return ret;
-+
-+	i2c_set_clientdata(client, NULL);
-+	kfree(ts);
-+
-+	return ret;
-+}
-+
-+static int __devexit ad7879_remove(struct i2c_client *client)
-+{
-+	struct ad7879 *ts = dev_get_drvdata(&client->dev);
-+
-+	ad7879_destruct(client, ts);
-+	i2c_set_clientdata(client, NULL);
-+	kfree(ts);
-+	return 0;
-+}
-+static const struct i2c_device_id ad7979_id[] = {
-+	{ "ad7879", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, ad7979_id);
-+
-+static struct i2c_driver ad7879_driver = {
-+	.driver = {
-+		.name	= "ad7879",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= ad7879_probe,
-+	.remove		= __devexit_p(ad7879_remove),
-+	.suspend	= ad7879_suspend,
-+	.resume		= ad7879_resume,
-+	.id_table 	= ad7979_id,
-+};
-+
-+static int __init ad7879_init(void)
-+{
-+	return i2c_add_driver(&ad7879_driver);
-+}
-+module_init(ad7879_init);
-+
-+static void __exit ad7879_exit(void)
-+{
-+	i2c_del_driver(&ad7879_driver);
-+}
-+module_exit(ad7879_exit);
-+#endif
-+
-+MODULE_AUTHOR("Michael Hennerich <hennerich@blackfin.uclinux.org>");
-+MODULE_DESCRIPTION("AD7879(-1) touchscreen Driver");
-+MODULE_LICENSE("GPL");
-diff -puN /dev/null include/linux/spi/ad7879.h
---- /dev/null
-+++ a/include/linux/spi/ad7879.h
-@@ -0,0 +1,35 @@
-+/* linux/spi/ad7879.h */
-+
-+/* Touchscreen characteristics vary between boards and models.  The
-+ * platform_data for the device's "struct device" holds this information.
-+ *
-+ * It's OK if the min/max values are zero.
-+ */
-+struct ad7879_platform_data {
-+	u16	model;			/* 7879 */
-+	u16	x_plate_ohms;
-+	u16	x_min, x_max;
-+	u16	y_min, y_max;
-+	u16	pressure_min, pressure_max;
-+
-+	/* [0..255] 0=OFF Starts at 1=550us and goes
-+	 * all the way to 9.440ms in steps of 35us.
-+	 */
-+	u8	pen_down_acc_interval;
-+	/* [0..15] Starts at 0=128us and goes all the
-+	 * way to 4.096ms in steps of 128us.
-+	 */
-+	u8	first_conversion_delay;
-+	/* [0..3] 0 = 2us, 1 = 4us, 2 = 8us, 3 = 16us */
-+	u8	acquisition_time;
-+	/* [0..3] Average X middle samples 0 = 2, 1 = 4, 2 = 8, 3 = 16 */
-+	u8	averaging;
-+	/* [0..3] Perform X measurements 0 = OFF,
-+	 * 1 = 4, 2 = 8, 3 = 16 (median > averaging)
-+	 */
-+	u8	median;
-+	/* 1 = AUX/VBAT/GPIO set to GPIO Output */
-+	u8	gpio_output;
-+	/* Initial GPIO pin state (valid if gpio_output = 1) */
-+	u8	gpio_default;
-+};
-_
-
-Patches currently in -mm which might be from michael.hennerich@analog.com are
+It contains the following patches against 2.6.27:
 
 origin.patch
+introduce-generic-header-file-for-the-software-io-tlb.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+hugetlb-handle-updating-of-accessed-and-dirty-in-hugetlb_fault.patch
+mm-do_generic_file_read-never-gets-a-null-filp-argument.patch
+uclinux-fix-gzip-header-parsing-in-binfmt_flatc.patch
+h8300-update-timer-handler-delete-files.patch
+h8300-update-timer-handler-new-files.patch
+h8300-update-timer-handler-misc-update.patch
+h8300-generic_bug-support.patch
+asm-h8300-mdh-remove-cvs-keyword.patch
+alpha-miata-remove-dead-url.patch
+alpha-notify_cpu_starting-compile-fixlet.patch
+pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation.patch
+pm-document-use-of-rtc-in-pm_trace.patch
+uml-remove-the-dead-tty_log-code.patch
+olpc-olpc_batteryc-sparse-endian-annotations.patch
+include-replace-__function__-with-__func__.patch
+misc-replace-__function__-with-__func__.patch
+include-linux-mounth-remove-cvs-keyword.patch
+kernel-dmac-remove-a-cvs-keyword.patch
+inith-remove-long-dead-__setup_null_param-macro.patch
+drivers-misc-use-div_round_up.patch
+eeepc-laptop-use-standard-interfaces-fix.patch
+fix-documentation-filesystems-ramfs-rootfs-initramfstxt.patch
+nubus-fix-mis-indented-statement.patch
+identify_ramdisk_image-correct-typo-about-return-value-in-comment.patch
+fix-random-typos.patch
+vsprintf-use-new-vsprintf-symbolic-function-pointer-format.patch
+wait-kill-is_sync_wait.patch
+kconfig-eliminate-def_bool-n-constructs.patch
+initramfs-add-option-to-preserve-mtime-from-initramfs-cpio-images.patch
+make-taint-bit-reliable-v3.patch
+sysrq-add-enable_mask-in-sysrq_moom_op.patch
+rlimit-permit-setting-rlimit_nofile-to-rlim_infinity.patch
+profiling-dynamically-enable-readprofile-at-runtime.patch
+doc-typo-in-documentation-filesystems-nfsroottxt.patch
+dontdiff-more-updates-to-be-closer-to-gitignore.patch
+utsname-completely-overwrite-prior-information.patch
+kernel-sysc-improve-code-generation.patch
+fix-count-compat_count-bounds-checking.patch
+fix-typo-in-the-firmware_in_kernel-help.patch
+at91-atmel_pwm-only-available-for-certain-at91-processors.patch
+epoll-drop-unnecessary-test.patch
+kernel-kallsymsc-fix-double-return.patch
+documentation-explain-memory-barriers.patch
+remove-andrew-mortons-old-email-accounts.patch
+remove-andrew-mortons-http-wwwzipcomau-akpm.patch
+taint-fix-kernel-doc.patch
+document-panic_on_unrecovered_nmi-sysctl.patch
+submittingpatches-add-a-reference-to-andis-ols-paper.patch
+add-kerneldoc-documentation-for-new-printk-format-extensions.patch
+change-comment-in-include-linux-clkh.patch
+compat-move-cp_compat_stat-to-common-code.patch
+compat-generic-compat-get-settimeofday.patch
+x86-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
+sparc64-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
+powerpc-rename-iommu_num_pages-function-to-iommu_nr_pages.patch
+introduce-generic-iommu_num_pages-function.patch
+x86-convert-gart-driver-to-generic-iommu_num_pages-function.patch
+x86-amd-iommu-convert-driver-to-generic-iommu_num_pages-function.patch
+x86-convert-calgary-iommu-driver-to-generic-iommu_num_pages-function.patch
+powerpc-use-iommu_num_pages-function-in-iommu-code.patch
+alpha-use-iommu_num_pages-function-in-iommu-code.patch
+sparc64-use-iommu_num_pages-function-in-iommu-code.patch
+checkpatch-square-brackets-exemption-for-array-slices-in-braces.patch
+checkpatch-values-double-ampersand-may-be-unary.patch
+checkpatch-conditional-indent-labels-have-different-indent-rules.patch
+checkpatch-switch-indent-allow-plain-return.patch
+checkpatch-add-tests-for-the-attribute-matcher.patch
+checkpatch-____cacheline_aligned-et-al-are-modifiers.patch
+checkpatch-complex-macros-fix-up-extension-handling.patch
+checkpatch-fix-up-comment-checks-search-to-scan-the-entire-block.patch
+checkpatch-include-asm-checks-should-be-anchored.patch
+checkpatch-reduce-warnings-for-include-of-asm-fooh-to-check-from-arch-barc.patch
+checkpatch-report-any-absolute-references-to-kernel-source-files.patch
+checkpatch-report-the-real-first-line-of-all-suspect-indents.patch
+checkpatch-suspect-indent-skip-over-preprocessor-label-and-blank-lines.patch
+checkpatch-%lx-tests-should-hand-%%-as-a-literal.patch
+checkpatch-report-the-correct-lines-for-single-statement-blocks.patch
+checkpatch-perform-indent-checks-on-perl.patch
+checkpatch-version-022.patch
+checkpatch-case-default-checks-should-only-check-changed-lines.patch
+checkpatch-suppress-errors-triggered-by-short-patch.patch
+checkpatch-handle-comment-quote-nesting-correctly.patch
+checkpatch-check-line-endings-in-text-format-files.patch
+checkpatch-suspect-indent-count-condition-lines-correctly.patch
+checkpatch-ensure-we-only-apply-checks-to-the-lines-within-hunks.patch
+checkpatch-version-023.patch
+checkpatch-do-is-not-a-possible-type.patch
+checkpatch-labels-are-not-possible-types.patch
+checkpatch-handle-do-without-braces-if-we-have-enough-context.patch
+checkpatch-macros-which-define-structure-members-are-not-complex.patch
+checkpatch-accept-any-sized-le-be-type.patch
+checkpatch-pull-out-known-acceptable-typedefs.patch
+checkpatch-suspect-code-indent-must-stop-at-else-elif.patch
+checkpatch-complex-macros-checks-miss-square-brackets.patch
+checkpatch-define_-macros-are-real-definitions-for-exports.patch
+checkpatch-trailing-statements-ensure-we-report-the-end-of-the-line.patch
+checkpatch-suspect-indent-handle-macro-continuation.patch
+checkpatch-allow-for-comments-either-side-of-a-brace-on-case.patch
+checkpatch-version-024.patch
+binfmt_somc-add-module_license.patch
+alpha-introduce-field-taso-into-struct-linux_binprm.patch
+allow-recursion-in-binfmt_script-and-binfmt_misc.patch
+mpc52xx_psc_spi-remove-code-associated-with-config_ppc_merge.patch
+spi-simplify-spi_write_then_read.patch
+spi_s3c24xx-pin-configuration-updates.patch
+pxa2xx_spi-minor-cleanup.patch
+pxa2xx_spi-fix-chip_info-defaults-and-documentation.patch
+orion_spi-handle-88f6183-erratum.patch
+spi-core-and-gpio-expanders-use-subsys_init.patch
+i2o-fix-32-64bit-dma-locking.patch
+ecryptfs-remove-retry-loop-in-ecryptfs_readdir.patch
+ecryptfs-convert-to-use-new-aops.patch
+ecryptfs-remove-netlink-transport.patch
+autofs4-cleanup-autofs-mount-type-usage.patch
+autofs4-track-uid-and-gid-of-last-mount-requester.patch
+autofs4-devicer-node-ioctl-docoumentation.patch
+autofs4-add-miscellaneous-device-for-ioctls.patch
+rtc-pcf8563-remove-client-validation.patch
+rtc-ds1374-wakup-support.patch
+rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip.patch
+rtc-ds1307-alarm-support-for-ds1337-ds1339.patch
+rtc-remove-some-nop-open-release-methods.patch
+legacy-rtc-remove-needless-confusing-hpet_rtc_irq-option.patch
+rtc-rtc-rs5c372-smbus-conversion-support.patch
+rtc-rtc-rs5c372-add-support-for-ricoh-r2025s-d-rtc.patch
+rtc-file-close-consistently-disables-repeating-irqs.patch
+rtc-use-config_ppc-instead-of-config_ppc_merge.patch
+rtc-rtc-m41t80c-add-support-for-the-st-m41t65-rtc.patch
+rtc-at91rm9200-remove-now-unneeded-code.patch
+rtc-max6900-new-style-driver.patch
+rtc-ds1672-new-style-driver.patch
+make-gpiochip-label-const.patch
+gpio-max7301-fix-the-race-between-chip-addition-and-pins-reconfiguration.patch
+gpio_free-might-sleep-generic-part.patch
+gpio-i2c-expanders-use-subsys_init.patch
+gpiolib-gpio_to_irq-hooks.patch
+omap-drivers-switch-to-standard-gpio-calls.patch
+gpiolib-request-free-hooks.patch
+radeonfb-revert-fix-radeon-ddc-regression.patch
+neofb-reduce-panning-function.patch
+viafb-viafbmodes-viafbtxt.patch
+viafb-makefile-kconfig.patch
+viafb-accelc-accelh.patch
+viafb-chiph-debugh.patch
+viafb-dvic-dvih-globalc-and-globalh.patch
+viafb-hwc-hwh.patch
+viafb-ifacec-ifaceh-ioctlc-ioctlh.patch
+viafb-lcdc-lcdh-lcdtblh.patch
+viafb-makefile-shareh.patch
+viafb-tbl1636c-tbl1636h-tbldpasettingc-tbldpasettingh.patch
+viafb-viafbdevc-viafbdevh.patch
+viafb-viafbdevc-update.patch
+viafb-via_i2cc-via_i2ch-viamodec-viamodeh.patch
+viafb-via_utilityc-via_utilityh-vt1636c-vt1636h.patch
+viafb-maintainers-entry.patch
+fbdev-kconfig-update.patch
+neofb-kill-some-redundant-code.patch
+vga16fb-remove-open_lock-mutex.patch
+neofb-remove-open_lock-mutex.patch
+tdfxfb-do-not-make-changes-to-default-tdfx_fix.patch
+intelfb-support-945gme-as-used-in-asus-eee-901.patch
+cirrusfb-remove-information-about-memory-size-during-mode-change.patch
+cirrusfb-simplify-clock-calculation.patch
+cirrusfb-remove-24-bpp-mode.patch
+cirrusfb-drop-device-pointers-from-cirrusfb_info.patch
+cirrusfb-use-modedb-and-add-mode_option-parameter-2nd-rev.patch
+cirrusfb-add-__devinit-attribute-to-probing-functions.patch
+cirrusfb-eliminate-crt-registers-from-global-structure.patch
+cirrusfb-drop-clock-fields-from-cirrusfb_regs-structure.patch
+cirrusfb-add-noaccel-module-parameter.patch
+cirrusfb-fix-16bpp-modes.patch
+cirrusfb-do-not-change-mclk-for-alpine-chips.patch
+atmel_lcdfb-disallow-setting-larger-resolution-than-the-framebuffer-memory-can-handle.patch
+efifb-imacfb-consolidation-hardware-support.patch
+radeonfb-misc-cleanup-of-engine-and-dst-cache-handling.patch
+radeonfb-accelerate-imageblit-and-other-improvements.patch
+uvesafb-document-mode-to-mode_option-parameter-change.patch
+uvesafb-dont-treat-mode-info-retrieval-failures-as-errors.patch
+maintainers-add-entry-for-uvesafb.patch
+fbmon-fix-edid-parser-to-detect-interlace-modes.patch
+vgacon-optimize-scrolling.patch
+vgacon-vgacon_scrolldelta-simplification.patch
+fbdev-ignore-vesa-modes-if-framebuffer-does-not-support-them.patch
+fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver.patch
+matroxfb-support-g200ev-chip.patch
+framebuffer-fix-carminefb-section-mismatch.patch
+fbdev-epson-s1d1-framebuffer-maintainer.patch
+fbdev-add-new-tmio-framebuffer-driver.patch
+fbcon_set_all_vcs-fix-kernel-crash-when-switching-the-rotated-consoles.patch
+pnp-remove-printk-with-outdated-version.patch
+pnp-make-the-resource-type-an-unsigned-long.patch
+telephony-remove-cvs-keywords.patch
+ext2-fix-ext2-block-reservation-early-enospc-issue.patch
+ext2-avoid-printk-floods-in-the-face-of-directory-corruption.patch
+befs-annotate-fs32-on-tests-for-superblock-endianness.patch
+hfsplus-quieten-down-mounting-hfsplus-journaled-fs-read-only.patch
+hfsplus-fix-buffer-overflow-with-a-corrupted-image.patch
+hfsplus-check-read_mapping_page-return-value.patch
+hfs-fix-namelength-memory-corruption.patch
+reiserfs-procfsc-remove-cvs-keywords.patch
+fs-reiserfs-use-an-is_err-test-rather-than-a-null-test.patch
+quota-remove-cvs-keywords.patch
+docbook-update-procfs-credits.patch
+binfmt_elf_fdpic-support-auxvec-base-platform-string.patch
+binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack.patch
+binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch
+compat_binfmt_elf-definition-tweak.patch
+char-ds1286-eliminate-busy-waiting.patch
+applicomc-fix-apparently-broken-code-in-do_ac_read.patch
+char-moxac-sparse-annotation.patch
+firmware-use-dev_printk-when-possible.patch
+fs-partitions-acornc-remove-dead-code.patch
+block-sanitize-invalid-partition-table-entries.patch
+proc-move-sysrq-trigger-out-of-fs-proc.patch
+sysctl-simplify-strategy.patch
+pid_ns-de_thread-kill-the-now-unneeded-child_reaper-change.patch
+pid_ns-kill-the-now-unused-task_child_reaper.patch
+make-i82443bxgx_edac-coexist-with-intel_agp.patch
+edac-mpc85xx-add-support-for-mpc8572.patch
+edac-i5000-fix-error-messages.patch
+edac-i5000-fix-thermal-issues.patch
+afs-convert-to-new-aops.patch
+parport-remove-cvs-keywords.patch
+tpm-correct-tpm-timeouts-to-jiffies-conversion.patch
+tpm-work-around-bug-in-broadcom-bcm0102-chipset.patch
+tpm-include-moderated-for-non-subscribers-notation-in-maintainers.patch
+drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+w1-fix-deadlocks-and-remove-w1_control_thread.patch
+w1-abort-search-early-on-on-exit.patch
+w1-dont-delay-search-start.patch
+w1-w1_process-block-or-sleep.patch
+w1-feature-enable-hardware-strong-pullup.patch
+w1-feature-w1_thermc-use-strong-pullup-and-documentation.patch
+w1-be-able-to-manually-add-and-remove-slaves.patch
+w1-recode-w1_slave_found-logic.patch
+w1-new-module-parameter-search_count.patch
+w1-document-add-remove-search_count-and-pullup.patch
+w1-w1_slave_read_id-read-bug-use-device_attribute.patch
+w1-w1_therm-fix-user-buffer-overflow-and-cat.patch
+w1-w1_family-remove-unused-variable-need_exit.patch
+w1-w1_therm-consistent-mutex-access-code-cleanup.patch
+w1-w1_intc-use-first-available-master-number.patch
+w1-w1c-s-printk-dev_dbg.patch
+w1-w1_ioc-reset-comments-and-msleep.patch
+w1-ds1wmc-msleep-for-reset.patch
+w1-ds2490c-correct-print-message.patch
+w1-ds2490c-add-support-for-strong-pullup.patch
+w1-ds2490c-ds_write_bit-grouping-error-disable-readback.patch
+w1-ds2490c-disable-bit-read-and-write.patch
+w1-ds2490c-simplify-and-fix-ds_touch_bit.patch
+w1-ds2490c-ds_dump_status-rework.patch
+w1-ds2490c-ds_reset-remove-ds_wait_status.patch
+w1-ds2490c-reset-ds2490-in-init.patch
+w1-ds2490c-magic-number-work.patch
+w1-ds2490c-ds_write_block-remove-extra-ds_wait_status.patch
+w1-documentation-w1-masters-ds2490-update.patch
+w1-ds2490c-optimize-ds_set_pullup.patch
+w1-new-driver-ds2431-chip.patch
+configure-out-aio-support.patch
+gru-driver-minor-updates.patch
+resources-tidy-__request_region.patch
+resource-add-resource_type-and-ioresource_type_bits.patch
+ipc-semc-make-free_un-static.patch
+make-hp_wmi_notify-static.patch
+make-kprobesc-kretprobe_table_lock-static.patch
+drivers-net-xen-netfrontc-use-div_round_up.patch
+mailmap-add-mark-brown.patch
+rtc-rtc-ds1286-and-rtc-m48t35-need-linux-ioh.patch
+mfd-wm8350-dont-export-static-functions.patch
+tpm-dont-export-static-functions.patch
+serial_txx9-use-%lx-for-iobase.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+repeatable-slab-corruption-with-ltp-msgctl08.patch
+git-sh.patch
+git-parisc.patch
+git-tests.patch
+git-tests-git-rejects.patch
+git-acpi.patch
+git-acpi-git-rejects.patch
+revert-i7300_idle-driver-v155.patch
+git-vfs.patch
+git-vfs-git-rejects.patch
+drivers-i2c-busses-i2c-s3c2410c-correct-use-of-and.patch
+rr-module-remove_config_kmod_from_drivers.patch
+rr-module-remove_config_kmod_from_fs.patch
+rr-module-remove_config_kmod_from_net.patch
+rr-module-remove-kmodc-config_kmod-comment.patch
+rr-module-remove_config_kmod.patch
+rr-module-compile-time-prefix-length-check.patch
+rr-module_param-fix-duplicate-prefixes.patch
+rr-module-core_param.patch
+rr-misc-make-initcall_debug-a-module_param.patch
+mfd-ucb1400-sound-driver-uses-depends-on-ac97_bus.patch
+drivers-mfd-ucb1400_corec-needs-gpio.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+fujitsu-laptop-fix-section-mismatch-warning.patch
+acpi-compal-laptop-use-rfkill-switch-subsystem.patch
+acpi-compal-laptop-use-rfkill-switch-subsystem-fix.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+x86-remove-init_mm-export-as-planned-for-2626.patch
+x86-use-dev_printk-in-quirk-message.patch
+x86_64-add-memory-hotremove-config-option.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+x86-use-common-header-for-software-io-tlb.patch
+agp-follow-lspci-device-vendor-style.patch
+agp-reduce-extraneous-pci-posting-reads-during-intel-agp-initialization.patch
+gpio_free-might-sleep-arm-architecture.patch
+cifs-remove-global_extern-macro.patch
+pcmcia-pccard-deadlock-fix.patch
+sysfs-fix-return-values-for-sysdev_store_ulongint.patch
+drivers-base-sysc-update-comments.patch
+anysee-initialize-anysee_usb_mutex-statically.patch
+dvb-input-data-pointer-of-cx24116_writeregn-should-be-const.patch
+dvb-input-data-pointer-of-cx24116_writeregn-should-be-const-checkpatch-fixes.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+ia64-fix-the-difference-between-node_mem_map-and-node_start_pfn.patch
+ia64-use-common-header-for-software-io-tlb.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 input-touchscreen-driver-add-support-ad7877-touchscreen-driver.patch
 input-touchscreen-driver-add-support-ad7877-touchscreen-driver-try-5.patch
+input-ads7846c-sparse-lock-annotation.patch
+serio_raw-add-support-for-translated-serio_i8042xl-ports.patch
+input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
+i8042-add-blue-fb5601-to-noloop-execption-table.patch
 input-ad7879-touchscreen-driver.patch
-
+genksyms-track-symbol-checksum-changes.patch
+genksyms-allow-to-ignore-symbol-checksum-changes.patch
+lkdtm-fix-for-config_scsi=n.patch
+scripts-package-dont-break-if-%_smp_mflags-isnt-set.patch
+scripts-package-allow-custom-options-to-rpm.patch
+scripts-checksyscallssh-fix-for-non-gnu-sed.patch
+adjust-init-section-definitions.patch
+tags-skip-in-filenames.patch
+kbuild-fix-kbuild_extra_symbols.patch
+kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module.patch
+kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module-checkpatch-fixes.patch
+leds-avoid-needless-strlen-for-attributes.patch
+leds-wrap-use-default-on-trigger-for-power-led.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+leds-pca955x-mark-pca955x_led_set-static.patch
+leds-pca9532-mark-pca9532_event-static.patch
+leds-make-the-default-trigger-name-const.patch
+leds-driver-for-hp-harddisk-protection-led.patch
+leds-driver-for-hp-harddisk-protection-led-fix.patch
+m32r-kernel-smpbootc-must-include-linux-cpuh.patch
+drivers-rtc-rtc-ds1286c-is-borked.patch
+drivers-rtc-rtc-m48t35c-is-borked-too.patch
+mmc-fix-clock-off-in-pxa255-270.patch
+mtd-remove-unused-mtd-parameter-in-of_mtd_parse_partitions.patch
+forcedeth-power-down-phy-when-interface-is-down.patch
+forcedeth-fix-mac-address-detection-on-network-card-regression-in-2623.patch
+skge-adapt-skge-to-use-reworked-pci-pm.patch
+the-overdue-eepro100-removal.patch
+forcdeth-increase-max_interrupt_work.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+e100-adapt-to-the-reworked-pci-pm.patch
+ibm_newemac-fix-new-mal-feature-handling.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+3x59x-fix-pci-resource-management.patch
+smc-ultra-get-rid-of-eth%d-message.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+gpio_free-might-sleep-blackfin-architecture.patch
+parisc-lib-make-code-static.patch
+drivers-parisc-make-code-static.patch
+piix3-warn-softer-about-enabling-passive-release.patch
+drivers-pci-hotplug-cpqphp_ctrlc-convert-to.patch
+mutex-improve-header-comment-to-be-actually-informative-about-the-api.patch
+aic7xxx-introduce-dont_generate_debug_code-keyword-in-aicasm-parser.patch
+aic7xxx-update-reg-files.patch
+aic7xxx-update-_shipped-files.patch
+if-0-ses_match_host.patch
+scsi-replace-__inline-with-inline.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+ipr-use-memory_read_from_buffer.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+drivers-scsi-a2091c-make-2-functions-static.patch
+drivers-scsi-a3000c-make-2-functions-static.patch
+drivers-scsi-use-div_round_up.patch
+drivers-scsi-megaraid-use-div_round_up.patch
+drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+gdth-fix-section-mismatch-warnings.patch
+esp-fix-section-mismatch-warning.patch
+scsi-remove-private-implementation-of-get_unaligned_be32.patch
+drivers-scsi-sun3x_espc-convert-to.patch
+scsi-fix-bad-use-of-udelay-in-atp870uc.patch
+cciss-fix-sysfs-regression.patch
+usb-protect-hcdh-from-multiple-inclusions.patch
+drivers-usb-host-pci-quirksc-wait-for-ehci-handoff-far-too-long-in-quirk_usb_disable_ehci.patch
+usb-add-nikon-d300-camera-to-unusual_devs.patch
+usb-avoid-needless-address-taking-of-function-parameters.patch
+rtl8187-support-of-belkin-f5d7050rev5000de.patch
+fs_mbcache-dont-needlessly-make-it-built-in.patch
+vfs-make-security_inode_setattr-calling-consistent.patch
+vfs-fix-vfs_rename_dir-for-fs_rename_does_d_move-filesystems.patch
+include-linux-fsh-put-declarations-in-__kernel__.patch
+fs-namespacec-drop-code-after-return.patch
+introduce-new-lsm-hooks-where-vfsmount-is-available.patch
+introduce-new-lsm-hooks-where-vfsmount-is-available-update.patch
+fs-block_devc-__read_mostly-improvement-and-sb_is_blkdev_sb-utilization.patch
+i_version-remount-support.patch
+vfs-replace-parent-==-dentry-d_parent-by-is_root.patch
+vfs-add-d_ancestor.patch
+vfs-add-__d_instantiate-helper.patch
+vfs-remove-unnecessary-fsnotify_d_instantiate.patch
+vfs-remove-lookup_parent-from-non-lookup_parent-lookup.patch
+vfs-add-lookup_rename_target-intent.patch
+pika-warp-appliance-watchdog-timer.patch
+orinoco-fix-unsafe-locking-in-orinoco_cs_resume.patch
+mm.patch
+wm97xx-fix-module-build-error-with-battery-driver.patch
+make-do_mounts_md-use-of-msleep-more-robust.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+posix-timers-simplify-de_thread-exit_itimers-path.patch
+mm-cleanup-to-make-remove_memory-arch-neutral.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
+vmscan-free-swap-space-on-swap-in-activation.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+vmscan-split-lru-lists-into-anon-file-sets-memcg-fix-handling-of-shmem-migrationv2.patch
+vmscan-split-lru-lists-into-anon-file-sets-adjust-quicklists-field-of-proc-meminfo.patch
+vmscan-split-lru-lists-into-anon-file-sets-adjust-hugepage-related-field-of-proc-meminfo.patch
+vmscan-split-lru-lists-into-anon-file-sets-fix-style-issue-of-get_scan_ratio.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
+vmscan-fix-pagecache-reclaim-referenced-bit-check.patch
+vmscan-fix-pagecache-reclaim-referenced-bit-check-fix.patch
+vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix.patch
+vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix-fix.patch
+vmscan-add-newly-swapped-in-pages-to-the-inactive-list.patch
+more-aggressively-use-lumpy-reclaim.patch
+pageflag-helpers-for-configed-out-flags.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-infrastructure-nommu-fix.patch
+unevictable-lru-infrastructure-remember-pages-active-state.patch
+unevictable-lru-infrastructure-defer-vm-event-counting.patch
+unevictable-infrastructure-lru-add-event-counting-with-statistics.patch
+unevictable-lru-page-statistics.patch
+ramfs-and-ram-disk-pages-are-unevictable.patch
+shm_locked-pages-are-unevictable.patch
+shm_locked-pages-are-unevictable-add-event-counts-to-list-scan.patch
+mlock-mlocked-pages-are-unevictable.patch
+doc-unevictable-lru-and-mlocked-pages-documentation.patch
+doc-unevictable-lru-and-mlocked-pages-documentation-update.patch
+doc-unevictable-lru-and-mlocked-pages-documentation-update-2.patch
+mlock-downgrade-mmap-sem-while-populating-mlocked-regions.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-__mlock_vma_pages_range-comment-block.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-backout-locked_vm-adjustment-during-mmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-return-value-for-munmap-mlock-vma-race.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-update-locked_vm-on-munmap-of-mlocked-region.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch
+swap-cull-unevictable-pages-in-fault-path.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-count-attempts-to-free-mlocked-page-2.patch
+vmscam-kill-unused-lru-functions.patch
+vmscan-dont-accumulate-scan-pressure-on-unrelated-lists.patch
+mlock-revert-mainline-handling-of-mlock-error-return.patch
+mlock-make-mlock-error-return-posixly-correct.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-pagecache-insertion-fewer-atomics.patch
+mm-unlockless-reclaim.patch
+mm-page-lock-use-lock-bitops.patch
+fs-buffer-lock-use-lock-bitops.patch
+mmapc-deinline-a-few-functions.patch
+mm-vmallocc-revert-git-tip-change.patch
+mm-rewrite-vmap-layer.patch
+mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix-fix.patch
+revert-mm-vmallocc-revert-git-tip-change.patch
+mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
+mm-print-out-meminit-for-memmap.patch
+coredump_filter-add-hugepage-dumping-v4.patch
+hugepage-support-zero_page.patch
+setup_per_zone_pages_min-take-zone-lock-instead-of-zone-lru_lock.patch
+memory_probe-fix-wrong-sysfs-file-attribute.patch
+memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
+documentation-clarify-dirty_ratio-and-dirty_background_ratio-description-v2.patch
+memory-hotplug-release-memory-regions-in-pages_per_section-chunks.patch
+mm-stop-returning-enoent-from-sys_move_pages-if-nothing-got-migrated.patch
+mm-dont-vmalloc-a-huge-page_to_node-array-for-do_pages_stat.patch
+mm-extract-do_pages_move-out-of-sys_move_pages.patch
+mm-rework-do_pages_move-to-work-on-page_sized-chunks.patch
+mm-move_pages-no-need-to-set-pp-page-to-zero_page0-by-default.patch
+frv-provide-dma_map_page-for-nommu-and-fix-comments.patch
+frv-switch-unaligned-access-to-the-packed-struct-implementation.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+container-freezer-make-refrigerator-always-available.patch
+container-freezer-implement-freezer-cgroup-subsystem.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-cleanup-comment.patch
+container-freezer-skip-frozen-cgroups-during-power-management-resume.patch
+container-freezer-prevent-frozen-tasks-or-cgroups-from-changing.patch
+container-freezer-make-freezer-state-names-less-generic.patch
+container-freezer-rename-check_if_frozen.patch
+container-freezer-document-the-cgroup-freezer-subsystem.patch
+arch-m68k-bvme6000-rtcc-remove-duplicated-include.patch
+uml-fix-a-compile-error.patch
+fix-documentation-of-sysrq-q.patch
+hp-wmi-additional-keycode-or-typo.patch
+kernel-configsc-remove-useless-comments.patch
+fix-vma-display-mismatch-between-proc-pid-mapssmaps.patch
+intel-iommu-typo-fix-and-correct-word-in-the-comment.patch
+hwmon-pc87360-separate-alarm-files-define-some-constants.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-define-ldni_max-const.patch
+hwmon-pc87360-separate-alarm-files-add-dev_dbg-help.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
+hwmon-applesmc-specified-number-of-bytes-to-read-should-match-actual.patch
+hwmon-applesmc-fix-the-wait-status-failed-c-=-8-problem.patch
+hwmon-applesmc-prolong-status-wait.patch
+hwmon-applesmc-allow-for-variable-alv0-and-alv1-package-length.patch
+hwmon-applesmc-add-support-for-macbook-air.patch
+drivers-hwmon-applesmcc-remove-unneeded-casts.patch
+hwmon-applesmc-add-support-for-macbook-pro-4.patch
+hwmon-applesmc-add-support-for-macbook-pro-3.patch
+hwmon-applesmc-lighter-wait-mechanism-drastic-improvement.patch
+char-sx-remove-bogus-iomap.patch
+make-probe_serial_gsc-static.patch
+altix-serial-fix.patch
+max3100-spi-uart-driver.patch
+max3100-spi-uart-driver-fix.patch
+mfd-drivers-mfd-wm8350-corec-doesnt-work-on-x86.patch
+kprobes-indirectly-call-kprobe_target.patch
+kprobes-add-tests-for-register_kprobes.patch
+rtc-cmos-export-second-nvram-bank.patch
+gpio-modify-sysfs-gpio-export-so-that-value-displays-as-0-or-1.patch
+gpiolib-fix-oops-in-gpio_get_value_cansleep.patch
+spi-add-spi-over-gpio-driver.patch
+mmc-add-gpio-based-mmc-sd-driver.patch
+fb-push-down-the-bkl-in-the-ioctl-handler.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+fb-convert-lock-unlock_kernel-into-local-fb-mutex.patch
+fb-convert-lock-unlock_kernel-into-local-fb-mutex-fix.patch
+add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs.patch
+intelfb-support-i854.patch
+md-check-for-memory-allocation-failure-in-faulty-personality.patch
+phonedev-remove-bkl.patch
+jbd-abort-when-failed-to-log-metadata-buffers.patch
+jbd-fix-error-handling-for-checkpoint-io.patch
+ext3-add-checks-for-errors-from-jbd.patch
+jbd-dont-dirty-original-metadata-buffer-on-abort.patch
+ext3-dont-try-to-resize-if-there-are-no-reserved-gdt-blocks-left.patch
+ext3-fix-ext3-block-reservation-early-enospc-issue.patch
+jbd-test-bh_write_eio-to-detect-errors-on-metadata-buffers.patch
+ext3-add-an-option-to-control-error-handling-on-file-data.patch
+jbd-ordered-data-integrity-fix.patch
+ext3-fix-ext3_dx_readdir-hash-collision-handling.patch
+ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
+ext3-truncate-block-allocated-on-a-failed-ext3_write_begin.patch
+ext3-avoid-printk-floods-in-the-face-of-directory-corruption.patch
+jbd-abort-instead-of-waiting-for-nonexistent-transactions.patch
+hfsplus-missing-o_largefile-check.patch
+hfsplus-fix-possible-deadlock-when-handling-corrupted-extents.patch
+fat-document-additional-vfat-mount-options.patch
+fat-move-fs-vfat-and-fs-msdos-to-fs-fat.patch
+fat-split-include-msdos_fsh.patch
+fat-fix-and-cleanup-timestamp-conversion.patch
+fat-use-generic_file_llseek-for-directory.patch
+fat-cleanup-fat_parse_long-error-handling.patch
+fat-improve-fat_hash.patch
+fat-fix-fat_ent_update_ptr-for-fat12.patch
+fat-use-fat_detach-in-fat_clear_inode.patch
+vfat-fix-vfat_find-error-path-in-vfat_lookup.patch
+fat-fix-cleanup-dcache-handling-for-vfat.patch
+fat-kill-d_invalidate-in-vfat_lookup.patch
+fat-cleanup-msdos_lookup.patch
+fat-cleanup-fat-attribute-stuff.patch
+fat-fix-attr_ro-in-the-case-of-umask-s_wugo-==-0.patch
+fat-fix-attr_ro-for-directory.patch
+fat-fix-_fat_bmap-race.patch
+fat-add-printf-attribute-to-fat_fs_panic.patch
+fat-mmu_private-race-fix.patch
+fat-i_pos-race-fix.patch
+fat-i_blocks-warning-fix.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-cgroups-eliminate-race-in-css_set-refcounting.patch
+cgroups-convert-tasks-file-to-use-a-seq_file-with-shared-pid-array.patch
+cgroups-fix-declaration-of-cgroup_mm_owner_callbacks.patch
+devcgroup-use-kmemdup.patch
+devcgroup-remove-unused-variable.patch
+devcgroup-remove-spin_lock.patch
+memcg-move-charge-swapin-under-lock.patch
+memcg-make-page-mapping-null-before-uncharge.patch
+memcg-avoid-accounting-special-pages.patch
+memcg-optimize-per-cpu-statistics.patch
+memcg-atomic-ops-for-page_cgroup-flags.patch
+memcg-allocate-all-page_cgroup-at-boot.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-setup-the-memrlimit-controller-mm_owner-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-fix-task_lock-recursive-locking-v2.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
+cpusetc-remove-extra-variable.patch
+seq_file-dont-call-bitmap_scnprintf_len.patch
+seq_file-add-seq_cpumask_list-seq_nodemask_list.patch
+cpuset-use-seq_mask_-to-print-masks.patch
+bitmask-remove-bitmap_scnprintf_len.patch
+genirq-null-struct-irq_descs-member-name-in-dynamic_irq_cleanup.patch
+make-ptrace_untrace-static.patch
+coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
+add-config_core_dump_default_elf_headers.patch
+kthread_bind-use-wait_task_inactivetask_uninterruptible.patch
+kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore.patch
+kdump-update-elfcorehdr-documentation-to-reflect-supported-architectures.patch
+kdump-use-is_kdump_kernel-in-sba_init.patch
+kdump-add-is_vmcore_usable-and-vmcore_unusable.patch
+kdump-add-is_vmcore_usable-and-vmcore_unusable-update.patch
+kdump-use-is_vmcore_usable-and-vmcore_unusable-in-reserve_elfcorehdr.patch
+kdump-ia64-always-reserve-elfcore-header-memory-in-crash-kernel.patch
+kdump-add-vmlistaddr-to-vmcoreinfo-for-x86-vmalloc-translation.patch
+message-queues-increase-range-limits.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
+pc8736x_gpio-add-support-for-pc87365-chips.patch
+hpet-remove-the-bkl.patch
+relay-reset-consumed.patch
+trace-code-and-documentation.patch
+trace-code-and-documentation-merging-documentation-tracetxt-with-documentation-filesystems-relaytxt.patch
+trace-sample.patch
+rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements.patch
+rename-lib-trace-files-to-kernel-relay_debugfs-and-enhancements-fix.patch
+edac-cell-fix-incorrect-edac_mode.patch
+mm-more-likely-reclaim-madv_sequential-mappings.patch
+powerpc-hugetlb-pgtable-cache-access-cleanup.patch
+byteorder-add-new-headers-for-make-headers-install.patch
+byteorder-use-generic-c-version-for-value-byteswapping.patch
+byteorder-provide-swabbh-generically-in-asm-byteorderh.patch
+byteorder-remove-direct-includes-of-linux-byteorder-swabh.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+acpi-use-bcd2bin-bin2bcd.patch
+alpha-use-bcd2bin-bin2bcd.patch
+cris-use-bcd2bin-bin2bcd.patch
+drivers-rtc-use-bcd2bin-bin2bcd.patch
+rtc-use-bcd2bin-bin2bcd.patch
+drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+mips-use-bcd2bin-bin2bcd.patch
+mn10300-use-bcd2bin-bin2bcd.patch
+i2c-use-bcd2bin-bin2bcd.patch
+drivers-scsi-sr_vendorc-use-bcd2bin.patch
+remove-the-obsolete-bcdbin-binbcd-macros.patch
+include-linux-bcdh-remove-comments.patch
+fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out.patch
+fs-kconfig-move-cifs-out.patch
+x86-sysfs-kill-owner-field-from-attribute.patch
+x86-sysfs-kill-owner-field-from-attribute-fix.patch
+x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
+nilfs2-add-document.patch
+nilfs2-disk-format-and-userland-interface.patch
+nilfs2-add-inode-and-other-major-structures.patch
+nilfs2-integrated-block-mapping.patch
+nilfs2-b-tree-based-block-mapping.patch
+nilfs2-direct-block-mapping.patch
+nilfs2-b-tree-node-cache.patch
+nilfs2-buffer-and-page-operations.patch
+nilfs2-meta-data-file.patch
+nilfs2-persistent-object-allocator.patch
+nilfs2-disk-address-translator.patch
+nilfs2-inode-map-file.patch
+nilfs2-checkpoint-file.patch
+nilfs2-segment-usage-file.patch
+nilfs2-inode-operations.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-file-operations.patch
+nilfs2-directory-entry-operations.patch
+nilfs2-pathname-operations.patch
+nilfs2-pathname-operations-fix.patch
+nilfs2-operations-for-the_nilfs-core-object.patch
+nilfs2-super-block-operations.patch
+nilfs2-segment-buffer.patch
+nilfs2-segment-constructor.patch
+nilfs2-recovery-functions.patch
+nilfs2-another-dat-for-garbage-collection.patch
+nilfs2-block-cache-for-garbage-collection.patch
+nilfs2-ioctl-operations.patch
+nilfs2-update-makefile-and-kconfig.patch
+reiser4-vfs-add-super_operationssync_inodes-2.patch
+reiser4-export-remove_from_page_cache.patch
+reiser4-export-find_get_pages.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-fix-handling-enospc-cryptcompress.patch
+reiser4-fix-handling-enospc-unix_file.patch
+reiser4-fix-kill_hook_internal.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-compile-warning-cleanups.patch
+reiser4-use-wake_up_process-instead-of-wake_up-when-possible.patch
+reiser4-track-upstream-changes.patch
+make-sure-nobodys-leaking-resources.patch
+journal_add_journal_head-debug.patch
+page-owner-tracking-leak-detector.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+releasing-resources-with-children.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+detect-atomic-counter-underflows.patch
+mm-debug-dump-pageframes-on-bad_page.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
+shrink_slab-handle-bad-shrinkers.patch
+keep-track-of-network-interface-renaming.patch
+workaround-for-a-pci-restoring-bug.patch
+prio_tree-debugging-patch.patch
+single_open-seq_release-leak-diagnostics.patch
+add-a-refcount-check-in-dput.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+likely_prof-changed-to-use-proc_create.patch
+likeliness-accounting-change-and-cleanup.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
+likely_prof-update-to-test_and_set_bit_lock-clear_bit_unlock.patch
+likely-profiling-disable-ftrace.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
