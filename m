@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-remove-unnecessary-fsnotify_d_instantiate.patch added to -mm tree
-Date: Thu, 16 Oct 2008 15:30:05 -0700
-Message-ID: <200810162230.m9GMU5de030912@imap1.linux-foundation.org>
+Subject: + vfs-remove-lookup_parent-from-non-lookup_parent-lookup.patch added to -mm tree
+Date: Thu, 16 Oct 2008 15:30:07 -0700
+Message-ID: <200810162230.m9GMU71L030921@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46131 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43219 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755868AbYJPWas (ORCPT
+	by vger.kernel.org with ESMTP id S1756078AbYJPWas (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Thu, 16 Oct 2008 18:30:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hirofumi@mail.parknet.co.jp, hch@lst.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     vfs: remove unnecessary fsnotify_d_instantiate()
+     vfs: remove LOOKUP_PARENT from non LOOKUP_PARENT lookup
 has been added to the -mm tree.  Its filename is
-     vfs-remove-unnecessary-fsnotify_d_instantiate.patch
+     vfs-remove-lookup_parent-from-non-lookup_parent-lookup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: remove unnecessary fsnotify_d_instantiate()
+Subject: vfs: remove LOOKUP_PARENT from non LOOKUP_PARENT lookup
 From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-This calls d_move(), so fsnotify_d_instantiate() is unnecessary like
-rename path.
+lookup_hash() with LOOKUP_PARENT is bogus. And this prepares to add
+new intent on those path.
+
+The user of LOOKUP_PARENT intent is nfs only, and it checks whether
+nd->flags has LOOKUP_CREATE or LOOKUP_OPEN, so the result is same.
 
 Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -46,20 +49,61 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/namei.c |   27 ++++++++++++++++++---------
+ 1 file changed, 18 insertions(+), 9 deletions(-)
 
-diff -puN fs/dcache.c~vfs-remove-unnecessary-fsnotify_d_instantiate fs/dcache.c
---- a/fs/dcache.c~vfs-remove-unnecessary-fsnotify_d_instantiate
-+++ a/fs/dcache.c
-@@ -1210,7 +1210,6 @@ struct dentry *d_splice_alias(struct ino
- 		new = __d_find_alias(inode, 1);
- 		if (new) {
- 			BUG_ON(!(new->d_flags & DCACHE_DISCONNECTED));
--			fsnotify_d_instantiate(new, inode);
- 			spin_unlock(&dcache_lock);
- 			security_d_instantiate(new, inode);
- 			d_rehash(dentry);
+diff -puN fs/namei.c~vfs-remove-lookup_parent-from-non-lookup_parent-lookup fs/namei.c
+--- a/fs/namei.c~vfs-remove-lookup_parent-from-non-lookup_parent-lookup
++++ a/fs/namei.c
+@@ -2186,16 +2186,19 @@ static long do_rmdir(int dfd, const char
+ 		return error;
+ 
+ 	switch(nd.last_type) {
+-		case LAST_DOTDOT:
+-			error = -ENOTEMPTY;
+-			goto exit1;
+-		case LAST_DOT:
+-			error = -EINVAL;
+-			goto exit1;
+-		case LAST_ROOT:
+-			error = -EBUSY;
+-			goto exit1;
++	case LAST_DOTDOT:
++		error = -ENOTEMPTY;
++		goto exit1;
++	case LAST_DOT:
++		error = -EINVAL;
++		goto exit1;
++	case LAST_ROOT:
++		error = -EBUSY;
++		goto exit1;
+ 	}
++
++	nd.flags &= ~LOOKUP_PARENT;
++
+ 	mutex_lock_nested(&nd.path.dentry->d_inode->i_mutex, I_MUTEX_PARENT);
+ 	dentry = lookup_hash(&nd);
+ 	error = PTR_ERR(dentry);
+@@ -2277,6 +2280,9 @@ static long do_unlinkat(int dfd, const c
+ 	error = -EISDIR;
+ 	if (nd.last_type != LAST_NORM)
+ 		goto exit1;
++
++	nd.flags &= ~LOOKUP_PARENT;
++
+ 	mutex_lock_nested(&nd.path.dentry->d_inode->i_mutex, I_MUTEX_PARENT);
+ 	dentry = lookup_hash(&nd);
+ 	error = PTR_ERR(dentry);
+@@ -2676,6 +2682,9 @@ asmlinkage long sys_renameat(int olddfd,
+ 	if (newnd.last_type != LAST_NORM)
+ 		goto exit2;
+ 
++	oldnd.flags &= ~LOOKUP_PARENT;
++	newnd.flags &= ~LOOKUP_PARENT;
++
+ 	trap = lock_rename(new_dir, old_dir);
+ 
+ 	old_dentry = lookup_hash(&oldnd);
 _
 
 Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
