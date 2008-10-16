@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-pci-hotplug-cpqphp_ctrlc-convert-to.patch added to -mm tree
-Date: Thu, 16 Oct 2008 14:41:22 -0700
-Message-ID: <200810162141.m9GLfM5f024720@imap1.linux-foundation.org>
+Subject: + drivers-scsi-sun3x_espc-convert-to.patch added to -mm tree
+Date: Thu, 16 Oct 2008 14:44:08 -0700
+Message-ID: <200810162144.m9GLi8Tj025071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49832 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46956 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756935AbYJPVl2 (ORCPT
+	by vger.kernel.org with ESMTP id S1753992AbYJPVow (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 17:41:28 -0400
+	Thu, 16 Oct 2008 17:44:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, jbarnes@virtuousgeek.org, willy@linux.intel.com
+Cc: julia@diku.dk, sammy@sammy.net, tsbogend@alpha.franken.de
 
 
 The patch titled
-     drivers/pci/hotplug/cpqphp_ctrl.c: Convert && to ||
+     drivers/scsi/sun3x_esp.c: Convert && to ||
 has been added to the -mm tree.  Its filename is
-     drivers-pci-hotplug-cpqphp_ctrlc-convert-to.patch
+     drivers-scsi-sun3x_espc-convert-to.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/pci/hotplug/cpqphp_ctrl.c: Convert && to ||
+Subject: drivers/scsi/sun3x_esp.c: Convert && to ||
 From: Julia Lawall <julia@diku.dk>
 
 The pattern !E && !E->fld is nonsensical.  The patch below updates this
@@ -55,26 +55,35 @@ identifier fld;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Reviewed-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Acked-By: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Acked-By: Sam Creasey <sammy@sammy.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/cpqphp_ctrl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/sun3x_esp.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pci/hotplug/cpqphp_ctrl.c~drivers-pci-hotplug-cpqphp_ctrlc-convert-to drivers/pci/hotplug/cpqphp_ctrl.c
---- a/drivers/pci/hotplug/cpqphp_ctrl.c~drivers-pci-hotplug-cpqphp_ctrlc-convert-to
-+++ a/drivers/pci/hotplug/cpqphp_ctrl.c
-@@ -1139,7 +1139,7 @@ static u8 set_controller_speed(struct co
- 	for(slot = ctrl->slot; slot; slot = slot->next) {
- 		if (slot->device == (hp_slot + ctrl->slot_device_offset)) 
- 			continue;
--		if (!slot->hotplug_slot && !slot->hotplug_slot->info) 
-+		if (!slot->hotplug_slot || !slot->hotplug_slot->info)
- 			continue;
- 		if (slot->hotplug_slot->info->adapter_status == 0) 
- 			continue;
+diff -puN drivers/scsi/sun3x_esp.c~drivers-scsi-sun3x_espc-convert-to drivers/scsi/sun3x_esp.c
+--- a/drivers/scsi/sun3x_esp.c~drivers-scsi-sun3x_espc-convert-to
++++ a/drivers/scsi/sun3x_esp.c
+@@ -213,7 +213,7 @@ static int __devinit esp_sun3x_probe(str
+ 	esp->ops = &sun3x_esp_ops;
+ 
+ 	res = platform_get_resource(dev, IORESOURCE_MEM, 0);
+-	if (!res && !res->start)
++	if (!res || !res->start)
+ 		goto fail_unlink;
+ 
+ 	esp->regs = ioremap_nocache(res->start, 0x20);
+@@ -221,7 +221,7 @@ static int __devinit esp_sun3x_probe(str
+ 		goto fail_unmap_regs;
+ 
+ 	res = platform_get_resource(dev, IORESOURCE_MEM, 1);
+-	if (!res && !res->start)
++	if (!res || !res->start)
+ 		goto fail_unmap_regs;
+ 
+ 	esp->dma_regs = ioremap_nocache(res->start, 0x10);
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
@@ -87,5 +96,6 @@ drivers-i2c-busses-i2c-s3c2410c-correct-use-of-and.patch
 drivers-pci-hotplug-cpqphp_ctrlc-convert-to.patch
 drivers-scsi-use-div_round_up.patch
 drivers-scsi-megaraid-use-div_round_up.patch
+drivers-scsi-sun3x_espc-convert-to.patch
 fs-namespacec-drop-code-after-return.patch
 
