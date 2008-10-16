@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-fix-a-compile-error.patch added to -mm tree
-Date: Thu, 16 Oct 2008 16:16:01 -0700
-Message-ID: <200810162316.m9GNG1G3004404@imap1.linux-foundation.org>
+Subject: + kernel-configsc-remove-useless-comments.patch added to -mm tree
+Date: Thu, 16 Oct 2008 16:20:50 -0700
+Message-ID: <200810162320.m9GNKoKW005093@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35717 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39578 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757963AbYJPXQl (ORCPT
+	by vger.kernel.org with ESMTP id S1756043AbYJPXVK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 19:16:41 -0400
+	Thu, 16 Oct 2008 19:21:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wangcong@zeuux.org, jdike@addtoit.com, stable@kernel.org
+Cc: wangcong@zeuux.org, rdunlap@xenotime.net
 
 
 The patch titled
-     uml: fix a compile error
+     kernel/configs.c: remove useless comments
 has been added to the -mm tree.  Its filename is
-     uml-fix-a-compile-error.patch
+     kernel-configsc-remove-useless-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: fix a compile error
+Subject: kernel/configs.c: remove useless comments
 From: WANG Cong <wangcong@zeuux.org>
 
-Fix
-
-arch/um/sys-i386/signal.c: In function 'copy_sc_from_user':
-arch/um/sys-i386/signal.c:182: warning: dereferencing 'void *' pointer
-arch/um/sys-i386/signal.c:182: error: request for member '_fxsr_env' in something not a structure or union
+These comments are useless, remove them.
 
 Signed-off-by: WANG Cong <wangcong@zeuux.org>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: <stable@kernel.org>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/sys-i386/signal.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/configs.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN arch/um/sys-i386/signal.c~uml-fix-a-compile-error arch/um/sys-i386/signal.c
---- a/arch/um/sys-i386/signal.c~uml-fix-a-compile-error
-+++ a/arch/um/sys-i386/signal.c
-@@ -179,7 +179,8 @@ static int copy_sc_from_user(struct pt_r
- 	if (have_fpx_regs) {
- 		struct user_fxsr_struct fpx;
+diff -puN kernel/configs.c~kernel-configsc-remove-useless-comments kernel/configs.c
+--- a/kernel/configs.c~kernel-configsc-remove-useless-comments
++++ a/kernel/configs.c
+@@ -54,9 +54,6 @@
  
--		err = copy_from_user(&fpx, &sc.fpstate->_fxsr_env[0],
-+		err = copy_from_user(&fpx,
-+			&((struct _fpstate __user *)sc.fpstate)->_fxsr_env[0],
- 				     sizeof(struct user_fxsr_struct));
- 		if (err)
- 			return 1;
-_
-
-Patches currently in -mm which might be from wangcong@zeuux.org are
-
-kernel-kallsymsc-fix-double-return.patch
-uml-fix-a-compile-error.patch
-
+ #ifdef CONFIG_IKCONFIG_PROC
+ 
+-/**************************************************/
+-/* globals and useful constants                   */
+-
+ static ssize_t
+ ikconfig_read_current(struct file *file, char __user *buf,
+ 		      size_t len, loff_t * offset)
+@@ -71,9 +68,6 @@ static const struct file_operations ikco
+ 	.read = ikconfig_read_current,
+ };
+ 
+-/***************************************************/
+-/* ikconfig_init: start up everything we need to */
+-
+ static int __init ikconfig_init(void)
+ {
+ 	struct proc_dir_entry *entry;
+@@ -89,9 +83,6 @@ static int __init ikconfig_init(void)
+ 	return 0;
+ }
+ 
+-/***************************************************/
+-/* ikconfig_cleanup: clean up our mess           */
