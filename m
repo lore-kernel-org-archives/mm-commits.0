@@ -1,38 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: - git-acpi-remove-idle-from-drivers-makefile.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 23:27:31 -0700
-Message-ID: <200810160627.m9G6RVo2007480@imap1.linux-foundation.org>
+Subject: + revert-i7300_idle-driver-v155.patch added to -mm tree
+Date: Wed, 15 Oct 2008 23:28:35 -0700
+Message-ID: <200810160628.m9G6SZf9007593@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35648 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41695 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752105AbYJPG2I (ORCPT
+	by vger.kernel.org with ESMTP id S1751231AbYJPG3K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 02:28:08 -0400
+	Thu, 16 Oct 2008 02:29:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andrew.d.henroid@intel.com, len.brown@intel.com, sfr@canb.auug.org.au, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, andrew.d.henroid@intel.com, len.brown@intel.com, sfr@canb.auug.org.au, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     git-acpi: remove idle/ from drivers/Makefile
-has been removed from the -mm tree.  Its filename was
-     git-acpi-remove-idle-from-drivers-makefile.patch
+     revert "i7300_idle driver v1.55"
+has been added to the -mm tree.  Its filename is
+     revert-i7300_idle-driver-v155.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-acpi: remove idle/ from drivers/Makefile
+Subject: revert "i7300_idle driver v1.55"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-That directory doesn't exist - it breaks `make clean'.
-
-I assume that Len forgot to check something in?
-
-Please tell me when that gets fixed, because this patch will still apply
-on my tree.
+revert this partially-applied git-acpi patch.  It breaks lots of things.
 
 Cc: Andy Henroid <andrew.d.henroid@intel.com>
 Cc: Len Brown <len.brown@intel.com>
@@ -42,11 +47,62 @@ Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/Makefile |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS                  |    6 ------
+ arch/x86/Kconfig             |    2 --
+ arch/x86/kernel/process_64.c |    7 -------
+ drivers/Makefile             |    1 -
+ drivers/dma/ioat_dma.c       |    3 ---
+ include/asm-x86/idle.h       |    1 -
+ include/linux/pci_ids.h      |    1 -
+ 7 files changed, 21 deletions(-)
 
-diff -puN drivers/Makefile~git-acpi-remove-idle-from-drivers-makefile drivers/Makefile
---- a/drivers/Makefile~git-acpi-remove-idle-from-drivers-makefile
+diff -puN MAINTAINERS~revert-i7300_idle-driver-v155 MAINTAINERS
+--- a/MAINTAINERS~revert-i7300_idle-driver-v155
++++ a/MAINTAINERS
+@@ -2103,12 +2103,6 @@ L:	linux-ide@vger.kernel.org
+ L:	linux-scsi@vger.kernel.org
+ S:	Orphan
+ 
+-IDLE-I7300
+-P:	Andy Henroid
+-M:	andrew.d.henroid@intel.com
+-L:	linux-pm@lists.linux-foundation.org
+-S:	Supported
+-
+ IEEE 1394 SUBSYSTEM (drivers/ieee1394)
+ P:	Ben Collins
+ M:	ben.collins@ubuntu.com
+diff -puN arch/x86/Kconfig~revert-i7300_idle-driver-v155 arch/x86/Kconfig
+--- a/arch/x86/Kconfig~revert-i7300_idle-driver-v155
++++ a/arch/x86/Kconfig
+@@ -1643,8 +1643,6 @@ source "arch/x86/kernel/cpu/cpufreq/Kcon
+ 
+ source "drivers/cpuidle/Kconfig"
+ 
+-source "drivers/idle/Kconfig"
+-
+ endmenu
+ 
+ 
+diff -puN arch/x86/kernel/process_64.c~revert-i7300_idle-driver-v155 arch/x86/kernel/process_64.c
+--- a/arch/x86/kernel/process_64.c~revert-i7300_idle-driver-v155
++++ a/arch/x86/kernel/process_64.c
+@@ -63,13 +63,6 @@ void idle_notifier_register(struct notif
+ {
+ 	atomic_notifier_chain_register(&idle_notifier, n);
+ }
+-EXPORT_SYMBOL_GPL(idle_notifier_register);
+-
+-void idle_notifier_unregister(struct notifier_block *n)
+-{
+-	atomic_notifier_chain_unregister(&idle_notifier, n);
+-}
+-EXPORT_SYMBOL_GPL(idle_notifier_unregister);
+ 
+ void enter_idle(void)
+ {
+diff -puN drivers/Makefile~revert-i7300_idle-driver-v155 drivers/Makefile
+--- a/drivers/Makefile~revert-i7300_idle-driver-v155
 +++ a/drivers/Makefile
 @@ -82,7 +82,6 @@ obj-$(CONFIG_EISA)		+= eisa/
  obj-y				+= lguest/
@@ -56,6 +112,41 @@ diff -puN drivers/Makefile~git-acpi-remove-idle-from-drivers-makefile drivers/Ma
  obj-$(CONFIG_MMC)		+= mmc/
  obj-$(CONFIG_MEMSTICK)		+= memstick/
  obj-$(CONFIG_NEW_LEDS)		+= leds/
+diff -puN drivers/dma/ioat_dma.c~revert-i7300_idle-driver-v155 drivers/dma/ioat_dma.c
+--- a/drivers/dma/ioat_dma.c~revert-i7300_idle-driver-v155
++++ a/drivers/dma/ioat_dma.c
+@@ -171,9 +171,6 @@ static int ioat_dma_enumerate_channels(s
+ 	xfercap_scale = readb(device->reg_base + IOAT_XFERCAP_OFFSET);
+ 	xfercap = (xfercap_scale == 0 ? -1 : (1UL << xfercap_scale));
+ 
+-#if CONFIG_I7300_IDLE_IOAT_CHANNEL
+-	device->common.chancnt--;
+-#endif
+ 	for (i = 0; i < device->common.chancnt; i++) {
+ 		ioat_chan = kzalloc(sizeof(*ioat_chan), GFP_KERNEL);
+ 		if (!ioat_chan) {
+diff -puN include/asm-x86/idle.h~revert-i7300_idle-driver-v155 include/asm-x86/idle.h
+--- a/include/asm-x86/idle.h~revert-i7300_idle-driver-v155
++++ a/include/asm-x86/idle.h
+@@ -6,7 +6,6 @@
+ 
+ struct notifier_block;
+ void idle_notifier_register(struct notifier_block *n);
+-void idle_notifier_unregister(struct notifier_block *n);
+ 
+ void enter_idle(void);
+ void exit_idle(void);
+diff -puN include/linux/pci_ids.h~revert-i7300_idle-driver-v155 include/linux/pci_ids.h
+--- a/include/linux/pci_ids.h~revert-i7300_idle-driver-v155
++++ a/include/linux/pci_ids.h
+@@ -2451,7 +2451,6 @@
+ #define PCI_DEVICE_ID_INTEL_MCH_PC1	0x359a
+ #define PCI_DEVICE_ID_INTEL_E7525_MCH	0x359e
+ #define PCI_DEVICE_ID_INTEL_IOAT_CNB	0x360b
+-#define PCI_DEVICE_ID_INTEL_FBD_CNB	0x360c
+ #define PCI_DEVICE_ID_INTEL_ICH10_0	0x3a14
+ #define PCI_DEVICE_ID_INTEL_ICH10_1	0x3a16
+ #define PCI_DEVICE_ID_INTEL_ICH10_2	0x3a18
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,7 +178,6 @@ mm-remove-the-might_sleep-from-lock_page.patch
 git-tests-git-rejects.patch
 git-acpi.patch
 git-acpi-git-rejects.patch
-git-acpi-remove-idle-from-drivers-makefile.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
 arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
@@ -159,4 +249,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+revert-i7300_idle-driver-v155.patch
 
