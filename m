@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-stop-returning-enoent-from-sys_move_pages-if-nothing-got-migrated.patch added to -mm tree
-Date: Thu, 16 Oct 2008 13:47:33 -0700
-Message-ID: <200810162047.m9GKlXsj017220@imap1.linux-foundation.org>
+Subject: + mm-dont-vmalloc-a-huge-page_to_node-array-for-do_pages_stat.patch added to -mm tree
+Date: Thu, 16 Oct 2008 13:47:35 -0700
+Message-ID: <200810162047.m9GKlZ6R017223@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37504 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53726 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754821AbYJPUrj (ORCPT
+	by vger.kernel.org with ESMTP id S1754883AbYJPUrl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 16:47:39 -0400
+	Thu, 16 Oct 2008 16:47:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: Brice.Goglin@inria.fr, cl@linux-foundation.org, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     mm: stop returning -ENOENT from sys_move_pages() if nothing got migrated
+     mm: don't vmalloc a huge page_to_node array for do_pages_stat()
 has been added to the -mm tree.  Its filename is
-     mm-stop-returning-enoent-from-sys_move_pages-if-nothing-got-migrated.patch
+     mm-dont-vmalloc-a-huge-page_to_node-array-for-do_pages_stat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: stop returning -ENOENT from sys_move_pages() if nothing got migrated
+Subject: mm: don't vmalloc a huge page_to_node array for do_pages_stat()
 From: Brice Goglin <Brice.Goglin@inria.fr>
 
-A patchset reworking sys_move_pages().  It removes the possibly large
-vmalloc by using multiple chunks when migrating large buffers.  It also
-dramatically increases the throughput for large buffers since the lookup
-in new_page_node() is now limited to a single chunk, causing the quadratic
-complexity to have a much slower impact.  There is no need to use any
-radix-tree-like structure to improve this lookup.
-
-sys_move_pages() duration on a 4-quadcore-opteron 2347HE (1.9Gz),
-migrating between nodes #2 and #3:
-
-	length		move_pages (us)		move_pages+patch (us)
-	4kB		126			98
-	40kB		198			168
-	400kB		963			937
-	4MB		12503			11930
-	40MB		246867			11848
-
-Patches #1 and #4 are the important ones:
-1) stop returning -ENOENT from sys_move_pages() if nothing got migrated
-2) don't vmalloc a huge page_to_node array for do_pages_stat()
-3) extract do_pages_move() out of sys_move_pages()
-4) rework do_pages_move() to work on page_sized chunks
-5) move_pages: no need to set pp->page to ZERO_PAGE(0) by default
-
-
-
-This patch:
-
-There is no point in returning -ENOENT from sys_move_pages() if all pages
-were already on the right node, while we return 0 if only 1 page was not. 
-Most application don't know where their pages are allocated, so it's not
-an error to try to migrate them anyway.
-
-Just return 0 and let the status array in user-space be checked if the
-application needs details.
-
-It will make the upcoming chunked-move_pages() support much easier.
+do_pages_stat() does not need any page_to_node entry for real.  Just pass
+the pointers to the user-space page address array and to the user-space
+status array, and have do_pages_stat() traverse the former and fill the
+latter directly.
 
 Signed-off-by: Brice Goglin <Brice.Goglin@inria.fr>
 Acked-by: Christoph Lameter <cl@linux-foundation.org>
@@ -81,32 +48,86 @@ Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/migrate.c |   40 +++++++++++++++++++++++++---------------
+ 1 file changed, 25 insertions(+), 15 deletions(-)
 
-diff -puN mm/migrate.c~mm-stop-returning-enoent-from-sys_move_pages-if-nothing-got-migrated mm/migrate.c
---- a/mm/migrate.c~mm-stop-returning-enoent-from-sys_move_pages-if-nothing-got-migrated
+diff -puN mm/migrate.c~mm-dont-vmalloc-a-huge-page_to_node-array-for-do_pages_stat mm/migrate.c
+--- a/mm/migrate.c~mm-dont-vmalloc-a-huge-page_to_node-array-for-do_pages_stat
 +++ a/mm/migrate.c
-@@ -896,11 +896,10 @@ set_status:
- 		pp->status = err;
+@@ -906,25 +906,33 @@ set_status:
+ }
+ 
+ /*
+- * Determine the nodes of a list of pages. The addr in the pm array
+- * must have been set to the virtual address of which we want to determine
+- * the node number.
++ * Determine the nodes of an array of pages and store it in an array of status.
+  */
+-static int do_pages_stat(struct mm_struct *mm, struct page_to_node *pm)
++static int do_pages_stat(struct mm_struct *mm, unsigned long nr_pages,
++			 const void __user * __user *pages,
++			 int __user *status)
+ {
++	unsigned long i;
++	int err;
++
+ 	down_read(&mm->mmap_sem);
+ 
+-	for ( ; pm->node != MAX_NUMNODES; pm++) {
++	for (i = 0; i < nr_pages; i++) {
++		const void __user *p;
++		unsigned long addr;
+ 		struct vm_area_struct *vma;
+ 		struct page *page;
+-		int err;
+ 
+ 		err = -EFAULT;
+-		vma = find_vma(mm, pm->addr);
++		if (get_user(p, pages+i))
++			goto out;
++		addr = (unsigned long) p;
++
++		vma = find_vma(mm, addr);
+ 		if (!vma)
+ 			goto set_status;
+ 
+-		page = follow_page(vma, pm->addr, 0);
++		page = follow_page(vma, addr, 0);
+ 
+ 		err = PTR_ERR(page);
+ 		if (IS_ERR(page))
+@@ -937,11 +945,13 @@ static int do_pages_stat(struct mm_struc
+ 
+ 		err = page_to_nid(page);
+ set_status:
+-		pm->status = err;
++		put_user(err, status+i);
  	}
- 
 +	err = 0;
- 	if (!list_empty(&pagelist))
- 		err = migrate_pages(&pagelist, new_page_node,
- 				(unsigned long)pm);
--	else
--		err = -ENOENT;
  
++out:
  	up_read(&mm->mmap_sem);
- 	return err;
-_
-
-Patches currently in -mm which might be from Brice.Goglin@inria.fr are
-
-mm-stop-returning-enoent-from-sys_move_pages-if-nothing-got-migrated.patch
-mm-dont-vmalloc-a-huge-page_to_node-array-for-do_pages_stat.patch
-mm-extract-do_pages_move-out-of-sys_move_pages.patch
-mm-rework-do_pages_move-to-work-on-page_sized-chunks.patch
-mm-move_pages-no-need-to-set-pp-page-to-zero_page0-by-default.patch
-
+-	return 0;
++	return err;
+ }
+ 
+ /*
+@@ -997,6 +1007,10 @@ asmlinkage long sys_move_pages(pid_t pid
+  	if (err)
+  		goto out2;
+ 
++	if (!nodes) {
++		err = do_pages_stat(mm, nr_pages, pages, status);
++		goto out2;
++	}
+ 
+ 	task_nodes = cpuset_mems_allowed(task);
+ 
+@@ -1045,11 +1059,7 @@ asmlinkage long sys_move_pages(pid_t pid
+ 	/* End marker */
+ 	pm[nr_pages].node = MAX_NUMNODES;
+ 
+-	if (nodes)
+-		err = do_move_pages(mm, pm, flags & MPOL_MF_MOVE_ALL);
+-	else
+-		err = do_pages_stat(mm, pm);
