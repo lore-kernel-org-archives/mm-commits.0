@@ -1,76 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - 8250-serial-add-oxcb950-chip.patch removed from -mm tree
-Date: Thu, 16 Oct 2008 15:58:54 -0700
-Message-ID: <200810162258.m9GMwsV0002205@imap1.linux-foundation.org>
+Subject: + tpm-dont-export-static-functions.patch added to -mm tree
+Date: Thu, 16 Oct 2008 15:59:41 -0700
+Message-ID: <200810162259.m9GMxfop002314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38305 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34892 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756450AbYJPW7Y (ORCPT
+	by vger.kernel.org with ESMTP id S1756896AbYJPXAf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 18:59:24 -0400
+	Thu, 16 Oct 2008 19:00:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andre.przywara@amd.com, robert.richter@amd.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sfr@canb.auug.org.au, jmorris@namei.org, srajiv@linux.vnet.ibm.com
 
 
 The patch titled
-     8250 serial: add OXCB950 chip
-has been removed from the -mm tree.  Its filename was
-     8250-serial-add-oxcb950-chip.patch
+     tpm: don't export static functions
+has been added to the -mm tree.  Its filename is
+     tpm-dont-export-static-functions.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 8250 serial: add OXCB950 chip
-From: Andre Przywara <andre.przywara@amd.com>
+Subject: tpm: don't export static functions
+From: Stephen Rothwell <sfr@canb.auug.org.au>
 
-Add the OXCB950 chip to the 8250 PCI driver.
+Today's linux-next build (powerpc_allyesconfig) failed like this:
 
-Chip: Oxford Semiconductor OXCB950 for PCI Cardbus interface
-http://www.transdimension.com/products/serial/OXCB950.html
+drivers/char/tpm/tpm.c:1162: error: __ksymtab_tpm_dev_release causes a section type conflict
 
-on this card:
-ExSys EX-1370 1 port high-speed serial card for ExpressCard/34 slot
+Caused by commit 253115b71fa06330bd58afbe01ccaf763a8a0cf1 ("The
+tpm_dev_release function is only called for platform devices, not pnp")
+which exported a static function.
 
-Signed-off-by: Robert Richter <robert.richter@amd.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |    3 +++
- include/linux/pci_ids.h   |    1 +
- 2 files changed, 4 insertions(+)
+ drivers/char/tpm/tpm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/8250_pci.c~8250-serial-add-oxcb950-chip drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~8250-serial-add-oxcb950-chip
-+++ a/drivers/serial/8250_pci.c
-@@ -2293,6 +2293,9 @@ static struct pci_device_id serial_pci_t
- 	{	PCI_VENDOR_ID_OXSEMI, 0x950a,
- 		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
- 		pbn_b0_2_1130000 },
-+	{	PCI_VENDOR_ID_OXSEMI, PCI_DEVICE_ID_OXSEMI_C950,
-+		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-+		pbn_b0_1_921600 },
- 	{	PCI_VENDOR_ID_OXSEMI, PCI_DEVICE_ID_OXSEMI_16PCI954,
- 		PCI_ANY_ID, PCI_ANY_ID, 0, 0,
- 		pbn_b0_4_115200 },
-diff -puN include/linux/pci_ids.h~8250-serial-add-oxcb950-chip include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~8250-serial-add-oxcb950-chip
-+++ a/include/linux/pci_ids.h
-@@ -1945,6 +1945,7 @@
- #define PCI_VENDOR_ID_OXSEMI		0x1415
- #define PCI_DEVICE_ID_OXSEMI_12PCI840	0x8403
- #define PCI_DEVICE_ID_OXSEMI_16PCI954	0x9501
-+#define PCI_DEVICE_ID_OXSEMI_C950	0x950B
- #define PCI_DEVICE_ID_OXSEMI_16PCI95N	0x9511
- #define PCI_DEVICE_ID_OXSEMI_16PCI954PP	0x9513
- #define PCI_DEVICE_ID_OXSEMI_16PCI952	0x9521
+diff -puN drivers/char/tpm/tpm.c~tpm-dont-export-static-functions drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~tpm-dont-export-static-functions
++++ a/drivers/char/tpm/tpm.c
+@@ -1157,7 +1157,7 @@ EXPORT_SYMBOL_GPL(tpm_dev_vendor_release
+  * Once all references to platform device are down to 0,
+  * release all allocated structures.
+  */
+-static void tpm_dev_release(struct device *dev)
++void tpm_dev_release(struct device *dev)
+ {
+ 	struct tpm_chip *chip = dev_get_drvdata(dev);
+ 
 _
 
-Patches currently in -mm which might be from andre.przywara@amd.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-8250-serial-add-oxcb950-chip.patch
+origin.patch
+revert-i7300_idle-driver-v155.patch
+make-do_mounts_md-use-of-msleep-more-robust.patch
+tpm-dont-export-static-functions.patch
 
