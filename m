@@ -1,98 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-m48t35c-is-borked-too.patch added to -mm tree
-Date: Wed, 15 Oct 2008 18:07:18 -0700
-Message-ID: <200810160121.m9G1LoQs002178@imap1.linux-foundation.org>
+Subject: - vmscan-set-try_to_release_pages-gfp_mask-to-0.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 19:53:41 -0700
+Message-ID: <200810160253.m9G2rgN2013142@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45541 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35024 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752828AbYJPBWK (ORCPT
+	by vger.kernel.org with ESMTP id S1752893AbYJPCxv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 21:22:10 -0400
+	Wed, 15 Oct 2008 22:53:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alessandro.zummo@towertech.it, ralf@linux-mips.org, tsbogend@alpha.franken.de
+To: hifumi.hisashi@oss.ntt.co.jp, cmm@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/rtc/rtc-m48t35.c is borked too
-has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-m48t35c-is-borked-too.patch
+     vmscan: set try_to_release_page's gfp_mask to 0
+has been removed from the -mm tree.  Its filename was
+     vmscan-set-try_to_release_pages-gfp_mask-to-0.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-m48t35.c is borked too
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vmscan: set try_to_release_page's gfp_mask to 0
+From: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
 
-drivers/rtc/rtc-m48t35.c: In function 'm48t35_read_time':
-drivers/rtc/rtc-m48t35.c:59: error: implicit declaration of function 'readb'
-drivers/rtc/rtc-m48t35.c:60: error: implicit declaration of function 'writeb'
-drivers/rtc/rtc-m48t35.c: In function 'm48t35_probe':
-drivers/rtc/rtc-m48t35.c:168: error: implicit declaration of function 'ioremap'
-drivers/rtc/rtc-m48t35.c:168: warning: assignment makes pointer from integer without a cast
-drivers/rtc/rtc-m48t35.c:188: error: implicit declaration of function 'iounmap'
+shrink_page_list() passes a gfp_mask to try_to_release_page.  When
+shrink_page_list is called from kswapd or buddy system, gfp_mask is set
+and (gfp_mask & __GFP_WAIT) and (gfp_mask & __GFP_FS) check is positive. 
+releasepage of jbd/jbd2(ext3/4, ocfs2) and XFS use this parameter.
 
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+If try_to_free_page fails due to bh busy in jbd/jbd2, jbd/jbd2 lets a
+thread wait for committing transaction.  I think this has big performance
+impacts for vmscan.  So I modified shrink_page_list not to pass gfp_mask
+to try_to_release_page in ordered to improve vmscan performance.
+
+Signed-off-by: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Cc: Mingming Cao <cmm@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-m48t35.c~drivers-rtc-rtc-m48t35c-is-borked-too drivers/rtc/rtc-m48t35.c
-diff -puN drivers/rtc/Kconfig~drivers-rtc-rtc-m48t35c-is-borked-too drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~drivers-rtc-rtc-m48t35c-is-borked-too
-+++ a/drivers/rtc/Kconfig
-@@ -422,6 +422,7 @@ config RTC_DRV_M48T86
- 
- config RTC_DRV_M48T35
- 	tristate "ST M48T35"
-+	depends on MIPS
- 	help
- 	  If you say Y here you will get support for the
- 	  ST M48T35 RTC chip.
+diff -puN mm/vmscan.c~vmscan-set-try_to_release_pages-gfp_mask-to-0 mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-set-try_to_release_pages-gfp_mask-to-0
++++ a/mm/vmscan.c
+@@ -663,7 +663,7 @@ static unsigned long shrink_page_list(st
+ 		 * Otherwise, leave the page on the LRU so it is swappable.
+ 		 */
+ 		if (PagePrivate(page)) {
+-			if (!try_to_release_page(page, sc->gfp_mask))
++			if (!try_to_release_page(page, 0))
+ 				goto activate_locked;
+ 			if (!mapping && page_count(page) == 1) {
+ 				unlock_page(page);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hifumi.hisashi@oss.ntt.co.jp are
 
-origin.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-h8300-generic_bug-support-checkpatch-fixes.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation.patch
-make-taint-bit-reliable-v3.patch
-kernel-sysc-improve-code-generation.patch
-compat-generic-compat-get-settimeofday.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc.patch
-autofs4-track-uid-and-gid-of-last-mount-requester.patch
-autofs4-add-miscellaneous-device-for-ioctls.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip.patch
-viafb-accelc-accelh.patch
-viafb-dvic-dvih-globalc-and-globalh.patch
-viafb-hwc-hwh.patch
-viafb-viafbdevc-viafbdevh.patch
-fbdev-kconfig-update.patch
-fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves.patch
-w1-new-driver-ds2431-chip.patch
-gru-driver-minor-updates.patch
-drivers-rtc-rtc-ds1286c-is-borked.patch
-drivers-rtc-rtc-m48t35c-is-borked-too.patch
+vmscan-set-try_to_release_pages-gfp_mask-to-0.patch
 
