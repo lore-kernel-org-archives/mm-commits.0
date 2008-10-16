@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-ds1286c-is-borked.patch added to -mm tree
-Date: Wed, 15 Oct 2008 18:05:57 -0700
-Message-ID: <200810160120.m9G1KTpL002031@imap1.linux-foundation.org>
+Subject: + drivers-rtc-rtc-m48t35c-is-borked-too.patch added to -mm tree
+Date: Wed, 15 Oct 2008 18:07:18 -0700
+Message-ID: <200810160121.m9G1LoQs002178@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43581 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45541 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752706AbYJPBUt (ORCPT
+	by vger.kernel.org with ESMTP id S1752828AbYJPBWK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 21:20:49 -0400
+	Wed, 15 Oct 2008 21:22:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, alessandro.zummo@towertech.it, ralf@linux-mips.or
 
 
 The patch titled
-     drivers/rtc/rtc-ds1286.c is borked
+     drivers/rtc/rtc-m48t35.c is borked too
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-ds1286c-is-borked.patch
+     drivers-rtc-rtc-m48t35c-is-borked-too.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,17 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/rtc/rtc-ds1286.c is borked
+Subject: drivers/rtc/rtc-m48t35.c is borked too
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/rtc/rtc-ds1286.c: In function 'ds1286_rtc_read':
-drivers/rtc/rtc-ds1286.c:33: error: implicit declaration of function '__raw_readl'
-drivers/rtc/rtc-ds1286.c: In function 'ds1286_rtc_write':
-drivers/rtc/rtc-ds1286.c:38: error: implicit declaration of function '__raw_writel'
-drivers/rtc/rtc-ds1286.c: In function 'ds1286_probe':
-drivers/rtc/rtc-ds1286.c:345: error: implicit declaration of function 'ioremap'
-drivers/rtc/rtc-ds1286.c:345: warning: assignment makes pointer from integer without a cast
-drivers/rtc/rtc-ds1286.c:365: error: implicit declaration of function 'iounmap'
+drivers/rtc/rtc-m48t35.c: In function 'm48t35_read_time':
+drivers/rtc/rtc-m48t35.c:59: error: implicit declaration of function 'readb'
+drivers/rtc/rtc-m48t35.c:60: error: implicit declaration of function 'writeb'
+drivers/rtc/rtc-m48t35.c: In function 'm48t35_probe':
+drivers/rtc/rtc-m48t35.c:168: error: implicit declaration of function 'ioremap'
+drivers/rtc/rtc-m48t35.c:168: warning: assignment makes pointer from integer without a cast
+drivers/rtc/rtc-m48t35.c:188: error: implicit declaration of function 'iounmap'
 
 Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 Cc: Alessandro Zummo <alessandro.zummo@towertech.it>
@@ -55,17 +54,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/rtc/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/rtc/Kconfig~drivers-rtc-rtc-ds1286c-is-borked drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~drivers-rtc-rtc-ds1286c-is-borked
+diff -puN drivers/rtc/rtc-m48t35.c~drivers-rtc-rtc-m48t35c-is-borked-too drivers/rtc/rtc-m48t35.c
+diff -puN drivers/rtc/Kconfig~drivers-rtc-rtc-m48t35c-is-borked-too drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~drivers-rtc-rtc-m48t35c-is-borked-too
 +++ a/drivers/rtc/Kconfig
-@@ -363,6 +363,7 @@ config RTC_DRV_DS1216
+@@ -422,6 +422,7 @@ config RTC_DRV_M48T86
  
- config RTC_DRV_DS1286
- 	tristate "Dallas DS1286"
+ config RTC_DRV_M48T35
+ 	tristate "ST M48T35"
 +	depends on MIPS
  	help
- 	  If you say yes here you get support for the Dallas DS1286 RTC chips.
- 
+ 	  If you say Y here you will get support for the
+ 	  ST M48T35 RTC chip.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,4 +94,5 @@ w1-be-able-to-manually-add-and-remove-slaves.patch
 w1-new-driver-ds2431-chip.patch
 gru-driver-minor-updates.patch
 drivers-rtc-rtc-ds1286c-is-borked.patch
+drivers-rtc-rtc-m48t35c-is-borked-too.patch
 
