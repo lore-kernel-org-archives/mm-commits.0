@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fat-fix-fat_ent_update_ptr-for-fat12.patch added to -mm tree
-Date: Thu, 16 Oct 2008 15:07:30 -0700
-Message-ID: <200810162207.m9GM7U1B028067@imap1.linux-foundation.org>
+Subject: + vfat-fix-vfat_find-error-path-in-vfat_lookup.patch added to -mm tree
+Date: Thu, 16 Oct 2008 15:07:34 -0700
+Message-ID: <200810162207.m9GM7Y7V028079@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58336 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36822 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756252AbYJPWHd (ORCPT
+	by vger.kernel.org with ESMTP id S1756277AbYJPWHh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 18:07:33 -0400
+	Thu, 16 Oct 2008 18:07:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     fat: Fix fat_ent_update_ptr() for FAT12
+     vfat: Fix vfat_find() error path in vfat_lookup()
 has been added to the -mm tree.  Its filename is
-     fat-fix-fat_ent_update_ptr-for-fat12.patch
+     vfat-fix-vfat_find-error-path-in-vfat_lookup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fat: Fix fat_ent_update_ptr() for FAT12
+Subject: vfat: Fix vfat_find() error path in vfat_lookup()
 From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-This fixes the missing update for bhs/nr_bhs in case the caller
-accessed from block boundary to first block of boundary.
+Current vfat_lookup() creates negetive dentry blindly if vfat_find()
+returned a error. It's wrong. If the error isn't -ENOENT, just return
+error.
 
 Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/fatent.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ fs/fat/namei_vfat.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN fs/fat/fatent.c~fat-fix-fat_ent_update_ptr-for-fat12 fs/fat/fatent.c
---- a/fs/fat/fatent.c~fat-fix-fat_ent_update_ptr-for-fat12
-+++ a/fs/fat/fatent.c
-@@ -317,10 +317,20 @@ static inline int fat_ent_update_ptr(str
- 	/* Is this fatent's blocks including this entry? */
- 	if (!fatent->nr_bhs || bhs[0]->b_blocknr != blocknr)
- 		return 0;
--	/* Does this entry need the next block? */
--	if (sbi->fat_bits == 12 && (offset + 1) >= sb->s_blocksize) {
--		if (fatent->nr_bhs != 2 || bhs[1]->b_blocknr != (blocknr + 1))
--			return 0;
-+	if (sbi->fat_bits == 12) {
-+		if ((offset + 1) < sb->s_blocksize) {
-+			/* This entry is on bhs[0]. */
-+			if (fatent->nr_bhs == 2) {
-+				brelse(bhs[1]);
-+				fatent->nr_bhs = 1;
-+			}
-+		} else {
-+			/* This entry needs the next block. */
-+			if (fatent->nr_bhs != 2)
-+				return 0;
-+			if (bhs[1]->b_blocknr != (blocknr + 1))
-+				return 0;
+diff -puN fs/fat/namei_vfat.c~vfat-fix-vfat_find-error-path-in-vfat_lookup fs/fat/namei_vfat.c
+--- a/fs/fat/namei_vfat.c~vfat-fix-vfat_find-error-path-in-vfat_lookup
++++ a/fs/fat/namei_vfat.c
+@@ -683,7 +683,7 @@ static struct dentry *vfat_lookup(struct
+ {
+ 	struct super_block *sb = dir->i_sb;
+ 	struct fat_slot_info sinfo;
+-	struct inode *inode = NULL;
++	struct inode *inode;
+ 	struct dentry *alias;
+ 	int err, table;
+ 
+@@ -693,14 +693,18 @@ static struct dentry *vfat_lookup(struct
+ 
+ 	err = vfat_find(dir, &dentry->d_name, &sinfo);
+ 	if (err) {
+-		table++;
++		if (err == -ENOENT) {
++			table++;
++			inode = NULL;
++			goto out;
 +		}
+ 		goto error;
  	}
- 	ops->ent_set_ptr(fatent, offset);
- 	return 1;
+ 	inode = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
+ 	brelse(sinfo.bh);
+ 	if (IS_ERR(inode)) {
+-		unlock_super(sb);
+-		return ERR_CAST(inode);
++		err = PTR_ERR(inode);
++		goto error;
+ 	}
+ 	alias = d_find_alias(inode);
+ 	if (alias) {
+@@ -713,7 +717,7 @@ static struct dentry *vfat_lookup(struct
+ 		}
+ 
+ 	}
+-error:
++out:
+ 	unlock_super(sb);
+ 	dentry->d_op = &vfat_dentry_ops[table];
+ 	dentry->d_time = dentry->d_parent->d_inode->i_version;
+@@ -723,6 +727,10 @@ error:
+ 		dentry->d_time = dentry->d_parent->d_inode->i_version;
+ 	}
+ 	return dentry;
++
++error:
++	unlock_super(sb);
++	return ERR_PTR(err);
+ }
+ 
+ static int vfat_create(struct inode *dir, struct dentry *dentry, int mode,
 _
 
 Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
