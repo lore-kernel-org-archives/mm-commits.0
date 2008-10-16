@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-fix-sysfs-regression.patch added to -mm tree
-Date: Thu, 16 Oct 2008 14:53:05 -0700
-Message-ID: <200810162153.m9GLr5U0026217@imap1.linux-foundation.org>
+Subject: + make-do_mounts_md-use-of-msleep-more-robust.patch added to -mm tree
+Date: Thu, 16 Oct 2008 15:01:25 -0700
+Message-ID: <200810162201.m9GM1Pvx027253@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53444 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34345 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755345AbYJPVxS (ORCPT
+	by vger.kernel.org with ESMTP id S1755586AbYJPWBe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 17:53:18 -0400
+	Thu, 16 Oct 2008 18:01:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mike.miller@hp.com, jens.axboe@oracle.com
+Cc: sfr@canb.auug.org.au
 
 
 The patch titled
-     cciss: fix sysfs regression
+     make do_mounts_md() use of msleep ()more robust
 has been added to the -mm tree.  Its filename is
-     cciss-fix-sysfs-regression.patch
+     make-do_mounts_md-use-of-msleep-more-robust.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: fix sysfs regression
-From: Mike Miller <mike.miller@hp.com>
+Subject: make do_mounts_md() use of msleep ()more robust
+From: Stephen Rothwell <sfr@canb.auug.org.au>
 
-Fix a broken symlink in sysfs.
+Commit 589f800bb12c5cd6c9167bbf9bf3cb70cd8e422c ("fastboot: make the raid
+autodetect code wait for all devices to init") added a call to msleep to
+do_mounts_md.c but the declaration of that was only included implicitly
+through linux/raid/md.h.  Make the include of linux/delay.h explicit.
 
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    1 +
+ init/do_mounts_md.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/block/cciss.c~cciss-fix-sysfs-regression drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-fix-sysfs-regression
-+++ a/drivers/block/cciss.c
-@@ -1365,6 +1365,7 @@ static void cciss_add_disk(ctlr_info_t *
- 	disk->first_minor = drv_index << NWD_SHIFT;
- 	disk->fops = &cciss_fops;
- 	disk->private_data = &h->drv[drv_index];
-+	disk->driverfs_dev = &h->pdev->dev;
+diff -puN init/do_mounts_md.c~make-do_mounts_md-use-of-msleep-more-robust init/do_mounts_md.c
+--- a/init/do_mounts_md.c~make-do_mounts_md-use-of-msleep-more-robust
++++ a/init/do_mounts_md.c
+@@ -1,4 +1,5 @@
  
- 	/* Set up queue information */
- 	blk_queue_bounce_limit(disk->queue, h->pdev->dma_mask);
++#include <linux/delay.h>
+ #include <linux/raid/md.h>
+ 
+ #include "do_mounts.h"
 _
 
-Patches currently in -mm which might be from mike.miller@hp.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
 origin.patch
-cciss-fix-sysfs-regression.patch
+revert-i7300_idle-driver-v155.patch
+make-do_mounts_md-use-of-msleep-more-robust.patch
 
