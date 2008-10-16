@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-sun3x_espc-convert-to.patch added to -mm tree
-Date: Thu, 16 Oct 2008 14:44:08 -0700
-Message-ID: <200810162144.m9GLi8Tj025071@imap1.linux-foundation.org>
+Subject: + cciss-fix-sysfs-regression.patch added to -mm tree
+Date: Thu, 16 Oct 2008 14:53:05 -0700
+Message-ID: <200810162153.m9GLr5U0026217@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46956 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53444 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753992AbYJPVow (ORCPT
+	by vger.kernel.org with ESMTP id S1755345AbYJPVxS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 17:44:52 -0400
+	Thu, 16 Oct 2008 17:53:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, sammy@sammy.net, tsbogend@alpha.franken.de
+Cc: mike.miller@hp.com, jens.axboe@oracle.com
 
 
 The patch titled
-     drivers/scsi/sun3x_esp.c: Convert && to ||
+     cciss: fix sysfs regression
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-sun3x_espc-convert-to.patch
+     cciss-fix-sysfs-regression.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/sun3x_esp.c: Convert && to ||
-From: Julia Lawall <julia@diku.dk>
+Subject: cciss: fix sysfs regression
+From: Mike Miller <mike.miller@hp.com>
 
-The pattern !E && !E->fld is nonsensical.  The patch below updates this
-according to the assumption that && should be ||.  But perhaps another
-solution was intended.
+Fix a broken symlink in sysfs.
 
-The semantic patch that makes this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@disable and_comm@
-expression E;
-identifier fld;
-@@
-
-- !E && !E->fld
-+ !E || !E->fld
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Acked-By: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Acked-By: Sam Creasey <sammy@sammy.net>
+Signed-off-by: Mike Miller <mike.miller@hp.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sun3x_esp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/cciss.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/scsi/sun3x_esp.c~drivers-scsi-sun3x_espc-convert-to drivers/scsi/sun3x_esp.c
---- a/drivers/scsi/sun3x_esp.c~drivers-scsi-sun3x_espc-convert-to
-+++ a/drivers/scsi/sun3x_esp.c
-@@ -213,7 +213,7 @@ static int __devinit esp_sun3x_probe(str
- 	esp->ops = &sun3x_esp_ops;
+diff -puN drivers/block/cciss.c~cciss-fix-sysfs-regression drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-fix-sysfs-regression
++++ a/drivers/block/cciss.c
+@@ -1365,6 +1365,7 @@ static void cciss_add_disk(ctlr_info_t *
+ 	disk->first_minor = drv_index << NWD_SHIFT;
+ 	disk->fops = &cciss_fops;
+ 	disk->private_data = &h->drv[drv_index];
++	disk->driverfs_dev = &h->pdev->dev;
  
- 	res = platform_get_resource(dev, IORESOURCE_MEM, 0);
--	if (!res && !res->start)
-+	if (!res || !res->start)
- 		goto fail_unlink;
- 
- 	esp->regs = ioremap_nocache(res->start, 0x20);
-@@ -221,7 +221,7 @@ static int __devinit esp_sun3x_probe(str
- 		goto fail_unmap_regs;
- 
- 	res = platform_get_resource(dev, IORESOURCE_MEM, 1);
--	if (!res && !res->start)
-+	if (!res || !res->start)
- 		goto fail_unmap_regs;
- 
- 	esp->dma_regs = ioremap_nocache(res->start, 0x10);
+ 	/* Set up queue information */
+ 	blk_queue_bounce_limit(disk->queue, h->pdev->dma_mask);
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from mike.miller@hp.com are
 
 origin.patch
-drivers-misc-use-div_round_up.patch
-fs-reiserfs-use-an-is_err-test-rather-than-a-null-test.patch
-drivers-net-xen-netfrontc-use-div_round_up.patch
-drivers-i2c-busses-i2c-s3c2410c-correct-use-of-and.patch
-drivers-pci-hotplug-cpqphp_ctrlc-convert-to.patch
-drivers-scsi-use-div_round_up.patch
-drivers-scsi-megaraid-use-div_round_up.patch
-drivers-scsi-sun3x_espc-convert-to.patch
-fs-namespacec-drop-code-after-return.patch
+cciss-fix-sysfs-regression.patch
 
