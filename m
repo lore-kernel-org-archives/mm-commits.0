@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + frv-provide-dma_map_page-for-nommu-and-fix-comments.patch added to -mm tree
-Date: Thu, 16 Oct 2008 14:02:54 -0700
-Message-ID: <200810162102.m9GL2s9b019610@imap1.linux-foundation.org>
+Subject: + frv-switch-unaligned-access-to-the-packed-struct-implementation.patch added to -mm tree
+Date: Thu, 16 Oct 2008 14:03:23 -0700
+Message-ID: <200810162103.m9GL3NP4019746@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40743 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40877 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755384AbYJPVDO (ORCPT
+	by vger.kernel.org with ESMTP id S1754257AbYJPVDf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 17:03:14 -0400
+	Thu, 16 Oct 2008 17:03:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com
+Cc: harvey.harrison@gmail.com, dhowells@redhat.com
 
 
 The patch titled
-     frv: provide dma_map_page() for NOMMU and fix comments
+     frv: switch unaligned access to the packed-struct implementation
 has been added to the -mm tree.  Its filename is
-     frv-provide-dma_map_page-for-nommu-and-fix-comments.patch
+     frv-switch-unaligned-access-to-the-packed-struct-implementation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,121 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: provide dma_map_page() for NOMMU and fix comments
-From: David Howells <dhowells@redhat.com>
+Subject: frv: switch unaligned access to the packed-struct implementation
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Provide dma_map_page() for the NOMMU-mode FRV arch.
+Switch unaligned access to the packed-struct implementation for BE
+accesses as this reduces the size of the kernel a little.  LE still uses
+the byte shift.
 
-Also do some fixing on the comments attached to the various DMA functions
-for both MMU and NOMMU mode FRV code.
-
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/mb93090-mb00/pci-dma-nommu.c |   23 ++++++++++++++++++++---
- arch/frv/mb93090-mb00/pci-dma.c       |   11 +++++++++--
- 2 files changed, 29 insertions(+), 5 deletions(-)
+ include/asm-frv/unaligned.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/frv/mb93090-mb00/pci-dma-nommu.c~frv-provide-dma_map_page-for-nommu-and-fix-comments arch/frv/mb93090-mb00/pci-dma-nommu.c
---- a/arch/frv/mb93090-mb00/pci-dma-nommu.c~frv-provide-dma_map_page-for-nommu-and-fix-comments
-+++ a/arch/frv/mb93090-mb00/pci-dma-nommu.c
-@@ -111,7 +111,7 @@ EXPORT_SYMBOL(dma_free_coherent);
-  * The 32-bit bus address to use is returned.
-  *
-  * Once the device is given the dma address, the device owns this memory
-- * until either pci_unmap_single or pci_dma_sync_single is performed.
-+ * until either dma_unmap_single or pci_dma_sync_single is performed.
-  */
- dma_addr_t dma_map_single(struct device *dev, void *ptr, size_t size,
- 			  enum dma_data_direction direction)
-@@ -129,7 +129,7 @@ EXPORT_SYMBOL(dma_map_single);
- /*
-  * Map a set of buffers described by scatterlist in streaming
-  * mode for DMA.  This is the scather-gather version of the
-- * above pci_map_single interface.  Here the scatter gather list
-+ * above dma_map_single interface.  Here the scatter gather list
-  * elements are each tagged with the appropriate dma address
-  * and length.  They are obtained via sg_dma_{address,length}(SG).
-  *
-@@ -139,7 +139,7 @@ EXPORT_SYMBOL(dma_map_single);
-  *       The routine returns the number of addr/length pairs actually
-  *       used, at most nents.
-  *
-- * Device ownership issues as mentioned above for pci_map_single are
-+ * Device ownership issues as mentioned above for dma_map_single are
-  * the same here.
-  */
- int dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
-@@ -158,3 +158,20 @@ int dma_map_sg(struct device *dev, struc
- }
+diff -puN include/asm-frv/unaligned.h~frv-switch-unaligned-access-to-the-packed-struct-implementation include/asm-frv/unaligned.h
+--- a/include/asm-frv/unaligned.h~frv-switch-unaligned-access-to-the-packed-struct-implementation
++++ a/include/asm-frv/unaligned.h
+@@ -13,7 +13,7 @@
+ #define _ASM_UNALIGNED_H
  
- EXPORT_SYMBOL(dma_map_sg);
-+
-+/*
-+ * Map a single page of the indicated size for DMA in streaming mode.
-+ * The 32-bit bus address to use is returned.
-+ *
-+ * Device ownership issues as mentioned above for dma_map_single are
-+ * the same here.
-+ */
-+dma_addr_t dma_map_page(struct device *dev, struct page *page, unsigned long offset,
-+			size_t size, enum dma_data_direction direction)
-+{
-+	BUG_ON(direction == DMA_NONE);
-+	flush_dcache_page(page);
-+	return (dma_addr_t) page_to_phys(page) + offset;
-+}
-+
-+EXPORT_SYMBOL(dma_map_page);
-diff -puN arch/frv/mb93090-mb00/pci-dma.c~frv-provide-dma_map_page-for-nommu-and-fix-comments arch/frv/mb93090-mb00/pci-dma.c
---- a/arch/frv/mb93090-mb00/pci-dma.c~frv-provide-dma_map_page-for-nommu-and-fix-comments
-+++ a/arch/frv/mb93090-mb00/pci-dma.c
-@@ -61,7 +61,7 @@ EXPORT_SYMBOL(dma_map_single);
- /*
-  * Map a set of buffers described by scatterlist in streaming
-  * mode for DMA.  This is the scather-gather version of the
-- * above pci_map_single interface.  Here the scatter gather list
-+ * above dma_map_single interface.  Here the scatter gather list
-  * elements are each tagged with the appropriate dma address
-  * and length.  They are obtained via sg_dma_{address,length}(SG).
-  *
-@@ -71,7 +71,7 @@ EXPORT_SYMBOL(dma_map_single);
-  *       The routine returns the number of addr/length pairs actually
-  *       used, at most nents.
-  *
-- * Device ownership issues as mentioned above for pci_map_single are
-+ * Device ownership issues as mentioned above for dma_map_single are
-  * the same here.
-  */
- int dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
-@@ -105,6 +105,13 @@ int dma_map_sg(struct device *dev, struc
+ #include <linux/unaligned/le_byteshift.h>
+-#include <linux/unaligned/be_byteshift.h>
++#include <linux/unaligned/be_struct.h>
+ #include <linux/unaligned/generic.h>
  
- EXPORT_SYMBOL(dma_map_sg);
- 
-+/*
-+ * Map a single page of the indicated size for DMA in streaming mode.
-+ * The 32-bit bus address to use is returned.
-+ *
-+ * Device ownership issues as mentioned above for dma_map_single are
-+ * the same here.
-+ */
- dma_addr_t dma_map_page(struct device *dev, struct page *page, unsigned long offset,
- 			size_t size, enum dma_data_direction direction)
- {
+ #define get_unaligned	__get_unaligned_be
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-uclinux-fix-gzip-header-parsing-in-binfmt_flatc.patch
-binfmt_elf_fdpic-support-auxvec-base-platform-string.patch
-binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack.patch
-binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch
-sysctl-simplify-strategy.patch
-afs-convert-to-new-aops.patch
-frv-provide-dma_map_page-for-nommu-and-fix-comments.patch
+olpc-olpc_batteryc-sparse-endian-annotations.patch
+include-replace-__function__-with-__func__.patch
+misc-replace-__function__-with-__func__.patch
+befs-annotate-fs32-on-tests-for-superblock-endianness.patch
+char-moxac-sparse-annotation.patch
+git-acpi.patch
+cifs-remove-global_extern-macro.patch
+input-ads7846c-sparse-lock-annotation.patch
+scsi-replace-__inline-with-inline.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+scsi-remove-private-implementation-of-get_unaligned_be32.patch
+usb-avoid-needless-address-taking-of-function-parameters.patch
+mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
 frv-switch-unaligned-access-to-the-packed-struct-implementation.patch
-mn10300-use-bcd2bin-bin2bcd.patch
-mutex-subsystem-synchro-test-module.patch
+byteorder-add-new-headers-for-make-headers-install.patch
+byteorder-use-generic-c-version-for-value-byteswapping.patch
+byteorder-provide-swabbh-generically-in-asm-byteorderh.patch
+byteorder-remove-direct-includes-of-linux-byteorder-swabh.patch
 
