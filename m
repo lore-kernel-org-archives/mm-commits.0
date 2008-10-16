@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-replace-parent-==-dentry-d_parent-by-is_root.patch added to -mm tree
-Date: Thu, 16 Oct 2008 15:29:59 -0700
-Message-ID: <200810162229.m9GMTx5K030886@imap1.linux-foundation.org>
+Subject: + vfs-add-lookup_rename_target-intent.patch added to -mm tree
+Date: Thu, 16 Oct 2008 15:30:09 -0700
+Message-ID: <200810162230.m9GMU9go030944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45225 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39260 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756490AbYJPWal (ORCPT
+	by vger.kernel.org with ESMTP id S1755071AbYJPWay (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 18:30:41 -0400
+	Thu, 16 Oct 2008 18:30:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hirofumi@mail.parknet.co.jp, hch@lst.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     vfs: replace parent == dentry->d_parent by IS_ROOT()
+     vfs: add LOOKUP_RENAME_TARGET intent
 has been added to the -mm tree.  Its filename is
-     vfs-replace-parent-==-dentry-d_parent-by-is_root.patch
+     vfs-add-lookup_rename_target-intent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,8 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: replace parent == dentry->d_parent by IS_ROOT()
+Subject: vfs: add LOOKUP_RENAME_TARGET intent
 From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+
+This adds LOOKUP_RENAME_TARGET intent for lookup of rename destination.
+
+LOOKUP_RENAME_TARGET is going to be used like LOOKUP_CREATE.  But since
+the destination of rename() can be existing directory entry, so it has a
+tells it to user of this intent.
 
 Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -43,87 +49,32 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c |   21 ++++++++++++---------
- fs/namei.c  |    4 ++--
- 2 files changed, 14 insertions(+), 11 deletions(-)
+ fs/namei.c            |    1 +
+ include/linux/namei.h |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN fs/dcache.c~vfs-replace-parent-==-dentry-d_parent-by-is_root fs/dcache.c
---- a/fs/dcache.c~vfs-replace-parent-==-dentry-d_parent-by-is_root
-+++ a/fs/dcache.c
-@@ -174,9 +174,12 @@ static struct dentry *d_kill(struct dent
- 	dentry_stat.nr_dentry--;	/* For d_free, below */
- 	/*drops the locks, at that point nobody can reach this dentry */
- 	dentry_iput(dentry);
--	parent = dentry->d_parent;
-+	if (IS_ROOT(dentry))
-+		parent = NULL;
-+	else
-+		parent = dentry->d_parent;
- 	d_free(dentry);
--	return dentry == parent ? NULL : parent;
-+	return parent;
- }
- 
- /* 
-@@ -666,11 +669,12 @@ static void shrink_dcache_for_umount_sub
- 				BUG();
- 			}
- 
--			parent = dentry->d_parent;
--			if (parent == dentry)
-+			if (IS_ROOT(dentry))
- 				parent = NULL;
--			else
-+			else {
-+				parent = dentry->d_parent;
- 				atomic_dec(&parent->d_count);
-+			}
- 
- 			list_del(&dentry->d_u.d_child);
- 			detached++;
-@@ -1723,7 +1727,7 @@ static int d_isparent(struct dentry *p1,
- {
- 	struct dentry *p;
- 
--	for (p = p2; p->d_parent != p; p = p->d_parent) {
-+	for (p = p2; !IS_ROOT(p); p = p->d_parent) {
- 		if (p->d_parent == p1)
- 			return 1;
- 	}
-@@ -2168,10 +2172,9 @@ int is_subdir(struct dentry * new_dentry
- 		seq = read_seqbegin(&rename_lock);
- 		for (;;) {
- 			if (new_dentry != old_dentry) {
--				struct dentry * parent = new_dentry->d_parent;
--				if (parent == new_dentry)
-+				if (IS_ROOT(new_dentry))
- 					break;
--				new_dentry = parent;
-+				new_dentry = new_dentry->d_parent;
- 				continue;
- 			}
- 			result = 1;
-diff -puN fs/namei.c~vfs-replace-parent-==-dentry-d_parent-by-is_root fs/namei.c
---- a/fs/namei.c~vfs-replace-parent-==-dentry-d_parent-by-is_root
+diff -puN fs/namei.c~vfs-add-lookup_rename_target-intent fs/namei.c
+--- a/fs/namei.c~vfs-add-lookup_rename_target-intent
 +++ a/fs/namei.c
-@@ -1454,7 +1454,7 @@ struct dentry *lock_rename(struct dentry
+@@ -2684,6 +2684,7 @@ asmlinkage long sys_renameat(int olddfd,
  
- 	mutex_lock(&p1->d_inode->i_sb->s_vfs_rename_mutex);
+ 	oldnd.flags &= ~LOOKUP_PARENT;
+ 	newnd.flags &= ~LOOKUP_PARENT;
++	newnd.flags |= LOOKUP_RENAME_TARGET;
  
--	for (p = p1; p->d_parent != p; p = p->d_parent) {
-+	for (p = p1; !IS_ROOT(p); p = p->d_parent) {
- 		if (p->d_parent == p2) {
- 			mutex_lock_nested(&p2->d_inode->i_mutex, I_MUTEX_PARENT);
- 			mutex_lock_nested(&p1->d_inode->i_mutex, I_MUTEX_CHILD);
-@@ -1462,7 +1462,7 @@ struct dentry *lock_rename(struct dentry
- 		}
- 	}
+ 	trap = lock_rename(new_dir, old_dir);
  
--	for (p = p2; p->d_parent != p; p = p->d_parent) {
-+	for (p = p2; !IS_ROOT(p); p = p->d_parent) {
- 		if (p->d_parent == p1) {
- 			mutex_lock_nested(&p1->d_inode->i_mutex, I_MUTEX_PARENT);
- 			mutex_lock_nested(&p2->d_inode->i_mutex, I_MUTEX_CHILD);
+diff -puN include/linux/namei.h~vfs-add-lookup_rename_target-intent include/linux/namei.h
+--- a/include/linux/namei.h~vfs-add-lookup_rename_target-intent
++++ a/include/linux/namei.h
+@@ -54,6 +54,7 @@ enum {LAST_NORM, LAST_ROOT, LAST_DOT, LA
+ #define LOOKUP_OPEN		0x0100
+ #define LOOKUP_CREATE		0x0200
+ #define LOOKUP_EXCL		0x0400
++#define LOOKUP_RENAME_TARGET	0x0800
+ 
+ extern int user_path_at(int, const char __user *, unsigned, struct path *);
+ 
 _
 
 Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
