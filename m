@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + m32r-kernel-smpbootc-must-include-linux-cpuh.patch added to -mm tree
-Date: Thu, 16 Oct 2008 12:45:11 -0700
-Message-ID: <200810161945.m9GJjB1d009397@imap1.linux-foundation.org>
+Date: Thu, 16 Oct 2008 12:45:39 -0700
+Message-ID: <200810161945.m9GJjede009442@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49221 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59182 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753587AbYJPTpU (ORCPT
+	by vger.kernel.org with ESMTP id S1754497AbYJPTqB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 15:45:20 -0400
+	Thu, 16 Oct 2008 15:46:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, takata@linux-m32r.org
 
 
 The patch titled
@@ -41,6 +41,7 @@ arch/m32r/kernel/smpboot.c: In function 'smp_online':
 arch/m32r/kernel/smpboot.c:501: error: implicit declaration of function 'notify_cpu_starting'
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
