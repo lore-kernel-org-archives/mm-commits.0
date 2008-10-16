@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fat-fix-attr_ro-for-directory.patch added to -mm tree
-Date: Thu, 16 Oct 2008 15:07:46 -0700
-Message-ID: <200810162207.m9GM7kf3028112@imap1.linux-foundation.org>
+Subject: + fat-mmu_private-race-fix.patch added to -mm tree
+Date: Thu, 16 Oct 2008 15:07:52 -0700
+Message-ID: <200810162207.m9GM7q5l028131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34853 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38451 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755713AbYJPWHu (ORCPT
+	by vger.kernel.org with ESMTP id S1756688AbYJPWHz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 18:07:50 -0400
+	Thu, 16 Oct 2008 18:07:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     fat: Fix ATTR_RO for directory
+     fat: mmu_private race fix
 has been added to the -mm tree.  Its filename is
-     fat-fix-attr_ro-for-directory.patch
+     fat-mmu_private-race-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,195 +34,125 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fat: Fix ATTR_RO for directory
+Subject: fat: mmu_private race fix
 From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-FAT has the ATTR_RO (read-only) attribute. But on Windows, the ATTR_RO
-of the directory will be just ignored actually, and is used by only
-applications as flag. E.g. it's setted for the customized folder by
-Explorer.
+mmu_private is 64bits value, hence it's not atomic to update.
 
-http://msdn2.microsoft.com/en-us/library/aa969337.aspx
+So, the access rule for mmu_private is we must hold ->i_mutex.  But,
+fat_get_block() path doesn't follow the rule on non-allocation path.
 
-This adds "rodir" option. If user specified it, ATTR_RO is used as
-read-only flag even if it's the directory. Otherwise, inode->i_mode
-is not used to hold ATTR_RO (i.e. fat_mode_can_save_ro() returns 0).
+This fixes by using i_size instead if non-allocation path.
 
 Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/vfat.txt |    8 ++++++++
- fs/fat/fat.h                       |   14 ++++++++++----
- fs/fat/file.c                      |   16 ++++++++++++----
- fs/fat/inode.c                     |   17 +++++++++++++----
- 4 files changed, 43 insertions(+), 12 deletions(-)
+ fs/fat/cache.c |   23 ++++++++++++++++++-----
+ fs/fat/dir.c   |    2 +-
+ fs/fat/fat.h   |    6 ++++--
+ fs/fat/inode.c |    4 ++--
+ 4 files changed, 25 insertions(+), 10 deletions(-)
 
-diff -puN Documentation/filesystems/vfat.txt~fat-fix-attr_ro-for-directory Documentation/filesystems/vfat.txt
---- a/Documentation/filesystems/vfat.txt~fat-fix-attr_ro-for-directory
-+++ a/Documentation/filesystems/vfat.txt
-@@ -124,6 +124,14 @@ sys_immutable -- If set, ATTR_SYS attrib
- flush         -- If set, the filesystem will try to flush to disk more
- 		 early than normal. Not set by default.
- 
-+rodir	      -- FAT has the ATTR_RO (read-only) attribute. But on Windows,
-+		 the ATTR_RO of the directory will be just ignored actually,
-+		 and is used by only applications as flag. E.g. it's setted
-+		 for the customized folder.
-+
-+		 If you want to use ATTR_RO as read-only flag even for
-+		 the directory, set this option.
-+
- <bool>: 0,1,yes,no,true,false
- 
- TODO
-diff -puN fs/fat/fat.h~fat-fix-attr_ro-for-directory fs/fat/fat.h
---- a/fs/fat/fat.h~fat-fix-attr_ro-for-directory
-+++ a/fs/fat/fat.h
-@@ -38,7 +38,8 @@ struct fat_mount_options {
- 		 flush:1,	  /* write things quickly */
- 		 nocase:1,	  /* Does this need case conversion? 0=need case conversion*/
- 		 usefree:1,	  /* Use free_clusters for FAT32 */
--		 tz_utc:1;	  /* Filesystem timestamps are in UTC */
-+		 tz_utc:1,	  /* Filesystem timestamps are in UTC */
-+		 rodir:1;	  /* allow ATTR_RO for directory */
- };
- 
- #define FAT_HASH_BITS	8
-@@ -120,15 +121,20 @@ static inline struct msdos_inode_info *M
- /*
-  * If ->i_mode can't hold S_IWUGO (i.e. ATTR_RO), we use ->i_attrs to
-  * save ATTR_RO instead of ->i_mode.
-+ *
-+ * If it's directory and !sbi->options.rodir, ATTR_RO isn't read-only
-+ * bit, it's just used as flag for app.
-  */
- static inline int fat_mode_can_hold_ro(struct inode *inode)
- {
- 	struct msdos_sb_info *sbi = MSDOS_SB(inode->i_sb);
- 	mode_t mask;
- 
--	if (S_ISDIR(inode->i_mode))
-+	if (S_ISDIR(inode->i_mode)) {
-+		if (!sbi->options.rodir)
-+			return 0;
- 		mask = ~sbi->options.fs_dmask;
--	else
-+	} else
- 		mask = ~sbi->options.fs_fmask;
- 
- 	if (!(mask & S_IWUGO))
-@@ -140,7 +146,7 @@ static inline int fat_mode_can_hold_ro(s
- static inline mode_t fat_make_mode(struct msdos_sb_info *sbi,
- 				   u8 attrs, mode_t mode)
- {
--	if (attrs & ATTR_RO)
-+	if (attrs & ATTR_RO && !((attrs & ATTR_DIR) && !sbi->options.rodir))
- 		mode &= ~S_IWUGO;
- 
- 	if (attrs & ATTR_DIR)
-diff -puN fs/fat/file.c~fat-fix-attr_ro-for-directory fs/fat/file.c
---- a/fs/fat/file.c~fat-fix-attr_ro-for-directory
-+++ a/fs/fat/file.c
-@@ -282,11 +282,18 @@ static int fat_sanitize_mode(const struc
- 	/*
- 	 * Of the r and x bits, all (subject to umask) must be present. Of the
- 	 * w bits, either all (subject to umask) or none must be present.
-+	 *
-+	 * If fat_mode_can_hold_ro(inode) is false, can't change w bits.
- 	 */
- 	if ((perm & (S_IRUGO | S_IXUGO)) != (inode->i_mode & (S_IRUGO|S_IXUGO)))
- 		return -EPERM;
--	if ((perm & S_IWUGO) && ((perm & S_IWUGO) != (S_IWUGO & ~mask)))
--		return -EPERM;
-+	if (fat_mode_can_hold_ro(inode)) {
-+		if ((perm & S_IWUGO) && ((perm & S_IWUGO) != (S_IWUGO & ~mask)))
-+			return -EPERM;
-+	} else {
-+		if ((perm & S_IWUGO) != (S_IWUGO & ~mask))
-+			return -EPERM;
-+	}
- 
- 	*mode_ptr &= S_IFMT | perm;
- 
-@@ -316,8 +323,8 @@ int fat_setattr(struct dentry *dentry, s
- {
- 	struct msdos_sb_info *sbi = MSDOS_SB(dentry->d_sb);
- 	struct inode *inode = dentry->d_inode;
--	int error = 0;
- 	unsigned int ia_valid;
-+	int error;
- 
- 	/*
- 	 * Expand the file. Since inode_setattr() updates ->i_size
-@@ -371,7 +378,8 @@ int fat_setattr(struct dentry *dentry, s
- 			attr->ia_valid &= ~ATTR_MODE;
- 	}
- 
--	error = inode_setattr(inode, attr);
-+	if (attr->ia_valid)
-+		error = inode_setattr(inode, attr);
- out:
- 	return error;
+diff -puN fs/fat/cache.c~fat-mmu_private-race-fix fs/fat/cache.c
+--- a/fs/fat/cache.c~fat-mmu_private-race-fix
++++ a/fs/fat/cache.c
+@@ -293,10 +293,12 @@ static int fat_bmap_cluster(struct inode
  }
-diff -puN fs/fat/inode.c~fat-fix-attr_ro-for-directory fs/fat/inode.c
---- a/fs/fat/inode.c~fat-fix-attr_ro-for-directory
-+++ a/fs/fat/inode.c
-@@ -797,8 +797,10 @@ static int fat_show_options(struct seq_f
- 			seq_puts(m, ",uni_xlate");
- 		if (!opts->numtail)
- 			seq_puts(m, ",nonumtail");
-+		if (opts->rodir)
-+			seq_puts(m, ",rodir");
+ 
+ int fat_bmap(struct inode *inode, sector_t sector, sector_t *phys,
+-	     unsigned long *mapped_blocks)
++	     unsigned long *mapped_blocks, int create)
+ {
+ 	struct super_block *sb = inode->i_sb;
+ 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
++	const unsigned long blocksize = sb->s_blocksize;
++	const unsigned char blocksize_bits = sb->s_blocksize_bits;
+ 	sector_t last_block;
+ 	int cluster, offset;
+ 
+@@ -309,10 +311,21 @@ int fat_bmap(struct inode *inode, sector
+ 		}
+ 		return 0;
  	}
--	if (sbi->options.flush)
-+	if (opts->flush)
- 		seq_puts(m, ",flush");
- 	if (opts->tz_utc)
- 		seq_puts(m, ",tz=UTC");
-@@ -814,7 +816,7 @@ enum {
- 	Opt_charset, Opt_shortname_lower, Opt_shortname_win95,
- 	Opt_shortname_winnt, Opt_shortname_mixed, Opt_utf8_no, Opt_utf8_yes,
- 	Opt_uni_xl_no, Opt_uni_xl_yes, Opt_nonumtail_no, Opt_nonumtail_yes,
--	Opt_obsolate, Opt_flush, Opt_tz_utc, Opt_err,
-+	Opt_obsolate, Opt_flush, Opt_tz_utc, Opt_rodir, Opt_err,
- };
- 
- static const match_table_t fat_tokens = {
-@@ -886,6 +888,7 @@ static const match_table_t vfat_tokens =
- 	{Opt_nonumtail_yes, "nonumtail=yes"},
- 	{Opt_nonumtail_yes, "nonumtail=true"},
- 	{Opt_nonumtail_yes, "nonumtail"},
-+	{Opt_rodir, "rodir"},
- 	{Opt_err, NULL}
- };
- 
-@@ -905,10 +908,13 @@ static int parse_options(char *options, 
- 	opts->allow_utime = -1;
- 	opts->codepage = fat_default_codepage;
- 	opts->iocharset = fat_default_iocharset;
--	if (is_vfat)
-+	if (is_vfat) {
- 		opts->shortname = VFAT_SFN_DISPLAY_LOWER|VFAT_SFN_CREATE_WIN95;
--	else
-+		opts->rodir = 0;
-+	} else {
- 		opts->shortname = 0;
-+		opts->rodir = 1;
+-	last_block = (MSDOS_I(inode)->mmu_private + (sb->s_blocksize - 1))
+-		>> sb->s_blocksize_bits;
+-	if (sector >= last_block)
+-		return 0;
++
++	last_block = (i_size_read(inode) + (blocksize - 1)) >> blocksize_bits;
++	if (sector >= last_block) {
++		if (!create)
++			return 0;
++
++		/*
++		 * ->mmu_private can access on only allocation path.
++		 * (caller must hold ->i_mutex)
++		 */
++		last_block = (MSDOS_I(inode)->mmu_private + (blocksize - 1))
++			>> blocksize_bits;
++		if (sector >= last_block)
++			return 0;
 +	}
- 	opts->name_check = 'n';
- 	opts->quiet = opts->showexec = opts->sys_immutable = opts->dotsOK =  0;
- 	opts->utf8 = opts->unicode_xlate = 0;
-@@ -1059,6 +1065,9 @@ static int parse_options(char *options, 
- 		case Opt_nonumtail_yes:		/* empty or 1 or yes or true */
- 			opts->numtail = 0;	/* negated option */
- 			break;
-+		case Opt_rodir:
-+			opts->rodir = 1;
-+			break;
  
- 		/* obsolete mount options */
- 		case Opt_obsolate:
+ 	cluster = sector >> (sbi->cluster_bits - sb->s_blocksize_bits);
+ 	offset  = sector & (sbi->sec_per_clus - 1);
+diff -puN fs/fat/dir.c~fat-mmu_private-race-fix fs/fat/dir.c
+--- a/fs/fat/dir.c~fat-mmu_private-race-fix
++++ a/fs/fat/dir.c
+@@ -77,7 +77,7 @@ next:
+ 
+ 	*bh = NULL;
+ 	iblock = *pos >> sb->s_blocksize_bits;
+-	err = fat_bmap(dir, iblock, &phys, &mapped_blocks);
++	err = fat_bmap(dir, iblock, &phys, &mapped_blocks, 0);
+ 	if (err || !phys)
+ 		return -1;	/* beyond EOF or error */
+ 
+diff -puN fs/fat/fat.h~fat-mmu_private-race-fix fs/fat/fat.h
+--- a/fs/fat/fat.h~fat-mmu_private-race-fix
++++ a/fs/fat/fat.h
+@@ -91,7 +91,9 @@ struct msdos_inode_info {
+ 	/* for avoiding the race between fat_free() and fat_get_cluster() */
+ 	unsigned int cache_valid_id;
+ 
+-	loff_t mmu_private;
++	/* NOTE: mmu_private is 64bits, so must hold ->i_mutex to access */
++	loff_t mmu_private;	/* physically allocated size */
++
+ 	int i_start;		/* first cluster or 0 */
+ 	int i_logstart;		/* logical first cluster */
+ 	int i_attrs;		/* unused attribute bits */
+@@ -222,7 +224,7 @@ extern void fat_cache_inval_inode(struct
+ extern int fat_get_cluster(struct inode *inode, int cluster,
+ 			   int *fclus, int *dclus);
+ extern int fat_bmap(struct inode *inode, sector_t sector, sector_t *phys,
+-		    unsigned long *mapped_blocks);
++		    unsigned long *mapped_blocks, int create);
+ 
+ /* fat/dir.c */
+ extern const struct file_operations fat_dir_operations;
+diff -puN fs/fat/inode.c~fat-mmu_private-race-fix fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-mmu_private-race-fix
++++ a/fs/fat/inode.c
+@@ -64,7 +64,7 @@ static inline int __fat_get_block(struct
+ 	sector_t phys;
+ 	int err, offset;
+ 
+-	err = fat_bmap(inode, iblock, &phys, &mapped_blocks);
++	err = fat_bmap(inode, iblock, &phys, &mapped_blocks, create);
+ 	if (err)
+ 		return err;
+ 	if (phys) {
+@@ -94,7 +94,7 @@ static inline int __fat_get_block(struct
+ 	*max_blocks = min(mapped_blocks, *max_blocks);
+ 	MSDOS_I(inode)->mmu_private += *max_blocks << sb->s_blocksize_bits;
+ 
+-	err = fat_bmap(inode, iblock, &phys, &mapped_blocks);
++	err = fat_bmap(inode, iblock, &phys, &mapped_blocks, create);
+ 	if (err)
+ 		return err;
+ 
 _
 
 Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
