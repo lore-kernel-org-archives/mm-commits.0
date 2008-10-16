@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-compal-laptop-use-rfkill-switch-subsystem-fix.patch added to -mm tree
-Date: Thu, 16 Oct 2008 15:32:42 -0700
-Message-ID: <200810162232.m9GMWgBm031309@imap1.linux-foundation.org>
+Subject: + kdump-add-vmlistaddr-to-vmcoreinfo-for-x86-vmalloc-translation.patch added to -mm tree
+Date: Thu, 16 Oct 2008 15:37:25 -0700
+Message-ID: <200810162237.m9GMbQ3Y031883@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60840 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33102 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755071AbYJPWdY (ORCPT
+	by vger.kernel.org with ESMTP id S1755401AbYJPWh5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 18:33:24 -0400
+	Thu, 16 Oct 2008 18:37:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, cezary.jackiewicz@gmail.com
+Cc: oomichi@mxs.nes.nec.co.jp
 
 
 The patch titled
-     compal-laptop: depends on RKFILL
+     kdump: add vmlist.addr to vmcoreinfo for x86 vmalloc translation.
 has been added to the -mm tree.  Its filename is
-     acpi-compal-laptop-use-rfkill-switch-subsystem-fix.patch
+     kdump-add-vmlistaddr-to-vmcoreinfo-for-x86-vmalloc-translation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: compal-laptop: depends on RKFILL
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: kdump: add vmlist.addr to vmcoreinfo for x86 vmalloc translation.
+From: "Ken'ichi Ohmichi" <oomichi@mxs.nes.nec.co.jp>
 
-compal-laptop uses rfkill_*() so needs to depend on RFKILL
-(or select it).
+Add the symbols 'vmlist' and offset 'vm_struct.addr' to the vmcoreinfo[1]
+data for i386 vmalloc translation.
 
-drivers/built-in.o: In function `compal_rfkill':
-compal-laptop.c:(.init.text+0x9ac3): undefined reference to `rfkill_allocate'
-compal-laptop.c:(.init.text+0x9afa): undefined reference to `rfkill_register'
-compal-laptop.c:(.init.text+0x9b17): undefined reference to `rfkill_free'
-drivers/built-in.o: In function `compal_cleanup':
-compal-laptop.c:(.exit.text+0x912): undefined reference to `rfkill_unregister'
-compal-laptop.c:(.exit.text+0x92a): undefined reference to `rfkill_unregister'
+makedumpfile[2] needs VMALLOC_START value for distinguishing a vmalloc
+address or not, because it should choose suitable translation method.  If
+applying this patch, makedumpfile will be able to take VMALLOC_START value
+from 'vmlist.addr'.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
+vmcoreinfo[1]:
+The vmcoreinfo data has the minimum debugging information only for dump
+filtering. makedumpfile[2] uses it to distinguish unnecessary pages and
+creates a small dumpfile.
+
+makedumpfile[2]:
+dump filtering command
+https://sourceforge.net/projects/makedumpfile/
+
+Signed-off-by: Ken'ichi Ohmichi <oomichi@mxs.nes.nec.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/kexec.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/misc/Kconfig~acpi-compal-laptop-use-rfkill-switch-subsystem-fix drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~acpi-compal-laptop-use-rfkill-switch-subsystem-fix
-+++ a/drivers/misc/Kconfig
-@@ -263,6 +263,7 @@ config COMPAL_LAPTOP
- 	depends on X86
- 	depends on ACPI_EC
- 	depends on BACKLIGHT_CLASS_DEVICE
-+	depends on RFKILL
- 	---help---
- 	  This is a driver for laptops built by Compal:
+diff -puN kernel/kexec.c~kdump-add-vmlistaddr-to-vmcoreinfo-for-x86-vmalloc-translation kernel/kexec.c
+--- a/kernel/kexec.c~kdump-add-vmlistaddr-to-vmcoreinfo-for-x86-vmalloc-translation
++++ a/kernel/kexec.c
+@@ -1371,6 +1371,7 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_SYMBOL(node_online_map);
+ 	VMCOREINFO_SYMBOL(swapper_pg_dir);
+ 	VMCOREINFO_SYMBOL(_stext);
++	VMCOREINFO_SYMBOL(vmlist);
  
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+ 	VMCOREINFO_SYMBOL(mem_map);
+@@ -1406,6 +1407,7 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_OFFSET(free_area, free_list);
+ 	VMCOREINFO_OFFSET(list_head, next);
+ 	VMCOREINFO_OFFSET(list_head, prev);
++	VMCOREINFO_OFFSET(vm_struct, addr);
+ 	VMCOREINFO_LENGTH(zone.free_area, MAX_ORDER);
+ 	VMCOREINFO_LENGTH(free_area.free_list, MIGRATE_TYPES);
+ 	VMCOREINFO_NUMBER(NR_FREE_PAGES);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from oomichi@mxs.nes.nec.co.jp are
 
-origin.patch
-eeepc-laptop-use-standard-interfaces-fix.patch
-dontdiff-more-updates-to-be-closer-to-gitignore.patch
-documentation-explain-memory-barriers.patch
-taint-fix-kernel-doc.patch
-framebuffer-fix-carminefb-section-mismatch.patch
-docbook-update-procfs-credits.patch
-w1-documentation-w1-masters-ds2490-update.patch
-configure-out-aio-support.patch
-git-acpi.patch
-mfd-ucb1400-sound-driver-uses-depends-on-ac97_bus.patch
-fujitsu-laptop-fix-section-mismatch-warning.patch
-acpi-compal-laptop-use-rfkill-switch-subsystem-fix.patch
-genksyms-track-symbol-checksum-changes.patch
-genksyms-allow-to-ignore-symbol-checksum-changes.patch
-lkdtm-fix-for-config_scsi=n.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-gdth-fix-section-mismatch-warnings.patch
-esp-fix-section-mismatch-warning.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-memory_probe-fix-wrong-sysfs-file-attribute.patch
-memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
-profile-likely-unlikely-macros.patch
+ia64-fix-the-difference-between-node_mem_map-and-node_start_pfn.patch
+kdump-add-vmlistaddr-to-vmcoreinfo-for-x86-vmalloc-translation.patch
 
