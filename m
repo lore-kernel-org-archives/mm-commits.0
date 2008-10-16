@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fat-cleanup-msdos_lookup.patch added to -mm tree
-Date: Thu, 16 Oct 2008 15:07:40 -0700
-Message-ID: <200810162207.m9GM7eSW028096@imap1.linux-foundation.org>
+Subject: + fat-fix-fat_ent_update_ptr-for-fat12.patch added to -mm tree
+Date: Thu, 16 Oct 2008 15:07:30 -0700
+Message-ID: <200810162207.m9GM7U1B028067@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56746 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58336 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756452AbYJPWHn (ORCPT
+	by vger.kernel.org with ESMTP id S1756252AbYJPWHd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 18:07:43 -0400
+	Thu, 16 Oct 2008 18:07:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     fat: Cleanup msdos_lookup()
+     fat: Fix fat_ent_update_ptr() for FAT12
 has been added to the -mm tree.  Its filename is
-     fat-cleanup-msdos_lookup.patch
+     fat-fix-fat_ent_update_ptr-for-fat12.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fat: Cleanup msdos_lookup()
+Subject: fat: Fix fat_ent_update_ptr() for FAT12
 From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-Use same style with vfat_lookup().
+This fixes the missing update for bhs/nr_bhs in case the caller
+accessed from block boundary to first block of boundary.
 
 Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/namei_msdos.c |   38 +++++++++++++++++++++-----------------
- 1 file changed, 21 insertions(+), 17 deletions(-)
+ fs/fat/fatent.c |   18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN fs/fat/namei_msdos.c~fat-cleanup-msdos_lookup fs/fat/namei_msdos.c
---- a/fs/fat/namei_msdos.c~fat-cleanup-msdos_lookup
-+++ a/fs/fat/namei_msdos.c
-@@ -203,33 +203,37 @@ static struct dentry *msdos_lookup(struc
- {
- 	struct super_block *sb = dir->i_sb;
- 	struct fat_slot_info sinfo;
--	struct inode *inode = NULL;
--	int res;
--
--	dentry->d_op = &msdos_dentry_operations;
-+	struct inode *inode;
-+	int err;
- 
- 	lock_super(sb);
--	res = msdos_find(dir, dentry->d_name.name, dentry->d_name.len, &sinfo);
--	if (res == -ENOENT)
--		goto add;
--	if (res < 0)
--		goto out;
-+
-+	err = msdos_find(dir, dentry->d_name.name, dentry->d_name.len, &sinfo);
-+	if (err) {
-+		if (err == -ENOENT) {
-+			inode = NULL;
-+			goto out;
+diff -puN fs/fat/fatent.c~fat-fix-fat_ent_update_ptr-for-fat12 fs/fat/fatent.c
+--- a/fs/fat/fatent.c~fat-fix-fat_ent_update_ptr-for-fat12
++++ a/fs/fat/fatent.c
+@@ -317,10 +317,20 @@ static inline int fat_ent_update_ptr(str
+ 	/* Is this fatent's blocks including this entry? */
+ 	if (!fatent->nr_bhs || bhs[0]->b_blocknr != blocknr)
+ 		return 0;
+-	/* Does this entry need the next block? */
+-	if (sbi->fat_bits == 12 && (offset + 1) >= sb->s_blocksize) {
+-		if (fatent->nr_bhs != 2 || bhs[1]->b_blocknr != (blocknr + 1))
+-			return 0;
++	if (sbi->fat_bits == 12) {
++		if ((offset + 1) < sb->s_blocksize) {
++			/* This entry is on bhs[0]. */
++			if (fatent->nr_bhs == 2) {
++				brelse(bhs[1]);
++				fatent->nr_bhs = 1;
++			}
++		} else {
++			/* This entry needs the next block. */
++			if (fatent->nr_bhs != 2)
++				return 0;
++			if (bhs[1]->b_blocknr != (blocknr + 1))
++				return 0;
 +		}
-+		goto error;
-+	}
-+
- 	inode = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
- 	brelse(sinfo.bh);
- 	if (IS_ERR(inode)) {
--		res = PTR_ERR(inode);
--		goto out;
-+		err = PTR_ERR(inode);
-+		goto error;
  	}
--add:
--	res = 0;
-+out:
-+	unlock_super(sb);
-+	dentry->d_op = &msdos_dentry_operations;
- 	dentry = d_splice_alias(inode, dentry);
- 	if (dentry)
- 		dentry->d_op = &msdos_dentry_operations;
--out:
-+	return dentry;
-+
-+error:
- 	unlock_super(sb);
--	if (!res)
--		return dentry;
--	return ERR_PTR(res);
-+	return ERR_PTR(err);
- }
- 
- /***** Creates a directory entry (name is already formatted). */
+ 	ops->ent_set_ptr(fatent, offset);
+ 	return 1;
 _
 
 Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
