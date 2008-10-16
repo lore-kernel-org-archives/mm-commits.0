@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fat-fix-cleanup-dcache-handling-for-vfat.patch added to -mm tree
-Date: Thu, 16 Oct 2008 15:07:36 -0700
-Message-ID: <200810162207.m9GM7aU2028082@imap1.linux-foundation.org>
+Subject: + fat-fix-attr_ro-in-the-case-of-umask-s_wugo-==-0.patch added to -mm tree
+Date: Thu, 16 Oct 2008 15:07:44 -0700
+Message-ID: <200810162207.m9GM7iGo028108@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49738 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53219 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756273AbYJPWHk (ORCPT
+	by vger.kernel.org with ESMTP id S1756584AbYJPWHs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 18:07:40 -0400
+	Thu, 16 Oct 2008 18:07:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     fat: Fix/Cleanup dcache handling for vfat
+     fat: Fix ATTR_RO in the case of (~umask & S_WUGO) == 0
 has been added to the -mm tree.  Its filename is
-     fat-fix-cleanup-dcache-handling-for-vfat.patch
+     fat-fix-attr_ro-in-the-case-of-umask-s_wugo-==-0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,233 +34,103 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fat: Fix/Cleanup dcache handling for vfat
+Subject: fat: Fix ATTR_RO in the case of (~umask & S_WUGO) == 0
 From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-- Add comments for handling dcache of vfat.
+If inode->i_mode doesn't have S_WUGO, current code assumes it means
+ATTR_RO.  However, if (~[ufd]mask & S_WUGO) == 0, inode->i_mode can't
+hold S_WUGO. Therefore the updated directory entry will always have
+ATTR_RO.
 
-- Separate case-sensitive case and case-insensitive to
-  vfat_revalidate() and vfat_ci_revalidate().
+This adds fat_mode_can_hold_ro() to check it. And if inode->i_mode
+can't hold, uses -i_attrs to hold ATTR_RO instead.
 
-  vfat_revalidate() doesn't need to drop case-insensitive negative
-  dentry on creation path.
+With this, we don't set ATTR_RO unless users change it via ioctl() if
+(~[ufd]mask & S_WUGO) == 0.
 
-- Current code is missing to set ->d_revalidate to the negative dentry
-  created by unlink/etc..
-
-  This sets ->d_revalidate always, and returns 1 for positive
-  dentry. Now, we don't need to change ->d_op dynamically anymore,
-  so this just uses sb->s_root->d_op to set ->d_op.
-
-- d_find_alias() may return DCACHE_DISCONNECTED dentry. It's not
-  the interesting dentry there. This checks it.
-
-- Add missing LOOKUP_PARENT check. We don't need to drop the valid
-  negative dentry for (LOOKUP_CREATE | LOOKUP_PARENT) lookup.
-
-- For consistent filename on creation path, this drops negative dentry
-  if we can't see intent.
+And on FAT_IOCTL_GET_ATTRIBUTES path, this adds ->i_mutex to it for
+not returning the partially updated attributes by FAT_IOCTL_SET_ATTRIBUTES
+to userland.
 
 Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/namei_vfat.c |  124 +++++++++++++++++++++++++++---------------
- 1 file changed, 80 insertions(+), 44 deletions(-)
+ fs/fat/fat.h  |   33 +++++++++++++++++++++++++++++----
+ fs/fat/file.c |    7 ++++++-
+ 2 files changed, 35 insertions(+), 5 deletions(-)
 
-diff -puN fs/fat/namei_vfat.c~fat-fix-cleanup-dcache-handling-for-vfat fs/fat/namei_vfat.c
---- a/fs/fat/namei_vfat.c~fat-fix-cleanup-dcache-handling-for-vfat
-+++ a/fs/fat/namei_vfat.c
-@@ -24,27 +24,67 @@
- #include <linux/namei.h>
- #include "fat.h"
+diff -puN fs/fat/fat.h~fat-fix-attr_ro-in-the-case-of-umask-s_wugo-==-0 fs/fat/fat.h
+--- a/fs/fat/fat.h~fat-fix-attr_ro-in-the-case-of-umask-s_wugo-==-0
++++ a/fs/fat/fat.h
+@@ -117,6 +117,25 @@ static inline struct msdos_inode_info *M
+ 	return container_of(inode, struct msdos_inode_info, vfs_inode);
+ }
  
--static int vfat_revalidate(struct dentry *dentry, struct nameidata *nd)
 +/*
-+ * If new entry was created in the parent, it could create the 8.3
-+ * alias (the shortname of logname).  So, the parent may have the
-+ * negative-dentry which matches the created 8.3 alias.
-+ *
-+ * If it happened, the negative dentry isn't actually negative
-+ * anymore.  So, drop it.
++ * If ->i_mode can't hold S_IWUGO (i.e. ATTR_RO), we use ->i_attrs to
++ * save ATTR_RO instead of ->i_mode.
 + */
-+static int vfat_revalidate_shortname(struct dentry *dentry)
- {
- 	int ret = 1;
--
--	if (!dentry->d_inode &&
--	    nd && !(nd->flags & LOOKUP_CONTINUE) && (nd->flags & LOOKUP_CREATE))
--		/*
--		 * negative dentry is dropped, in order to make sure
--		 * to use the name which a user desires if this is
--		 * create path.
--		 */
-+	spin_lock(&dentry->d_lock);
-+	if (dentry->d_time != dentry->d_parent->d_inode->i_version)
- 		ret = 0;
--	else {
--		spin_lock(&dentry->d_lock);
--		if (dentry->d_time != dentry->d_parent->d_inode->i_version)
--			ret = 0;
--		spin_unlock(&dentry->d_lock);
--	}
-+	spin_unlock(&dentry->d_lock);
- 	return ret;
- }
- 
-+static int vfat_revalidate(struct dentry *dentry, struct nameidata *nd)
++static inline int fat_mode_can_hold_ro(struct inode *inode)
 +{
-+	/* This is not negative dentry. Always valid. */
-+	if (dentry->d_inode)
-+		return 1;
-+	return vfat_revalidate_shortname(dentry);
-+}
++	struct msdos_sb_info *sbi = MSDOS_SB(inode->i_sb);
++	mode_t mask;
 +
-+static int vfat_revalidate_ci(struct dentry *dentry, struct nameidata *nd)
-+{
-+	/*
-+	 * This is not negative dentry. Always valid.
-+	 *
-+	 * Note, rename() to existing directory entry will have ->d_inode,
-+	 * and will use existing name which isn't specified name by user.
-+	 *
-+	 * We may be able to drop this positive dentry here. But dropping
-+	 * positive dentry isn't good idea. So it's unsupported like
-+	 * rename("filename", "FILENAME") for now.
-+	 */
-+	if (dentry->d_inode)
-+		return 1;
++	if (S_ISDIR(inode->i_mode))
++		mask = ~sbi->options.fs_dmask;
++	else
++		mask = ~sbi->options.fs_fmask;
 +
-+	/*
-+	 * This may be nfsd (or something), anyway, we can't see the
-+	 * intent of this. So, since this can be for creation, drop it.
-+	 */
-+	if (!nd)
++	if (!(mask & S_IWUGO))
 +		return 0;
-+
-+	/*
-+	 * Drop the negative dentry, in order to make sure to use the
-+	 * case sensitive name which is specified by user if this is
-+	 * for creation.
-+	 */
-+	if (!(nd->flags & (LOOKUP_CONTINUE | LOOKUP_PARENT))) {
-+		if (nd->flags & LOOKUP_CREATE)
-+			return 0;
-+	}
-+
-+	return vfat_revalidate_shortname(dentry);
++	return 1;
 +}
 +
- /* returns the length of a struct qstr, ignoring trailing dots */
- static unsigned int vfat_striptail_len(struct qstr *qstr)
+ /* Convert attribute bits and a mask to the UNIX mode. */
+ static inline mode_t fat_make_mode(struct msdos_sb_info *sbi,
+ 				   u8 attrs, mode_t mode)
+@@ -133,14 +152,20 @@ static inline mode_t fat_make_mode(struc
+ /* Return the FAT attribute byte for this inode */
+ static inline u8 fat_make_attrs(struct inode *inode)
  {
-@@ -126,25 +166,16 @@ static int vfat_cmp(struct dentry *dentr
- 	return 1;
+-	return ((inode->i_mode & S_IWUGO) ? ATTR_NONE : ATTR_RO) |
+-		(S_ISDIR(inode->i_mode) ? ATTR_DIR : ATTR_NONE) |
+-		MSDOS_I(inode)->i_attrs;
++	u8 attrs = MSDOS_I(inode)->i_attrs;
++	if (S_ISDIR(inode->i_mode))
++		attrs |= ATTR_DIR;
++	if (fat_mode_can_hold_ro(inode) && !(inode->i_mode & S_IWUGO))
++		attrs |= ATTR_RO;
++	return attrs;
  }
  
--static struct dentry_operations vfat_dentry_ops[4] = {
--	{
--		.d_hash		= vfat_hashi,
--		.d_compare	= vfat_cmpi,
--	},
--	{
--		.d_revalidate	= vfat_revalidate,
--		.d_hash		= vfat_hashi,
--		.d_compare	= vfat_cmpi,
--	},
--	{
--		.d_hash		= vfat_hash,
--		.d_compare	= vfat_cmp,
--	},
--	{
--		.d_revalidate	= vfat_revalidate,
--		.d_hash		= vfat_hash,
--		.d_compare	= vfat_cmp,
--	}
-+static struct dentry_operations vfat_ci_dentry_ops = {
-+	.d_revalidate	= vfat_revalidate_ci,
-+	.d_hash		= vfat_hashi,
-+	.d_compare	= vfat_cmpi,
-+};
-+
-+static struct dentry_operations vfat_dentry_ops = {
-+	.d_revalidate	= vfat_revalidate,
-+	.d_hash		= vfat_hash,
-+	.d_compare	= vfat_cmp,
- };
- 
- /* Characters that are undesirable in an MS-DOS file name */
-@@ -685,29 +716,35 @@ static struct dentry *vfat_lookup(struct
- 	struct fat_slot_info sinfo;
- 	struct inode *inode;
- 	struct dentry *alias;
--	int err, table;
-+	int err;
- 
- 	lock_super(sb);
--	table = (MSDOS_SB(sb)->options.name_check == 's') ? 2 : 0;
--	dentry->d_op = &vfat_dentry_ops[table];
- 
- 	err = vfat_find(dir, &dentry->d_name, &sinfo);
- 	if (err) {
- 		if (err == -ENOENT) {
--			table++;
- 			inode = NULL;
- 			goto out;
- 		}
- 		goto error;
- 	}
-+
- 	inode = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
- 	brelse(sinfo.bh);
- 	if (IS_ERR(inode)) {
- 		err = PTR_ERR(inode);
- 		goto error;
- 	}
-+
- 	alias = d_find_alias(inode);
--	if (alias) {
-+	if (alias && !(alias->d_flags & DCACHE_DISCONNECTED)) {
-+		/*
-+		 * This inode has non DCACHE_DISCONNECTED dentry. This
-+		 * means, the user did ->lookup() by an another name
-+		 * (longname vs 8.3 alias of it) in past.
-+		 *
-+		 * Switch to new one for reason of locality if possible.
-+		 */
- 		if (d_invalidate(alias) == 0)
- 			dput(alias);
- 		else {
-@@ -715,15 +752,14 @@ static struct dentry *vfat_lookup(struct
- 			unlock_super(sb);
- 			return alias;
- 		}
--
- 	}
- out:
- 	unlock_super(sb);
--	dentry->d_op = &vfat_dentry_ops[table];
-+	dentry->d_op = sb->s_root->d_op;
- 	dentry->d_time = dentry->d_parent->d_inode->i_version;
- 	dentry = d_splice_alias(inode, dentry);
- 	if (dentry) {
--		dentry->d_op = &vfat_dentry_ops[table];
-+		dentry->d_op = sb->s_root->d_op;
- 		dentry->d_time = dentry->d_parent->d_inode->i_version;
- 	}
- 	return dentry;
-@@ -1022,9 +1058,9 @@ static int vfat_fill_super(struct super_
- 		return res;
- 
- 	if (MSDOS_SB(sb)->options.name_check != 's')
--		sb->s_root->d_op = &vfat_dentry_ops[0];
-+		sb->s_root->d_op = &vfat_ci_dentry_ops;
- 	else
--		sb->s_root->d_op = &vfat_dentry_ops[2];
-+		sb->s_root->d_op = &vfat_dentry_ops;
- 
- 	return 0;
+ static inline void fat_save_attrs(struct inode *inode, u8 attrs)
+ {
+-	MSDOS_I(inode)->i_attrs = attrs & ATTR_UNUSED;
++	if (fat_mode_can_hold_ro(inode))
++		MSDOS_I(inode)->i_attrs = attrs & ATTR_UNUSED;
++	else
++		MSDOS_I(inode)->i_attrs = attrs & (ATTR_UNUSED | ATTR_RO);
  }
+ 
+ static inline unsigned char fat_checksum(const __u8 *name)
+diff -puN fs/fat/file.c~fat-fix-attr_ro-in-the-case-of-umask-s_wugo-==-0 fs/fat/file.c
+--- a/fs/fat/file.c~fat-fix-attr_ro-in-the-case-of-umask-s_wugo-==-0
++++ a/fs/fat/file.c
+@@ -27,7 +27,12 @@ int fat_generic_ioctl(struct inode *inod
+ 	switch (cmd) {
+ 	case FAT_IOCTL_GET_ATTRIBUTES:
+ 	{
+-		u32 attr = fat_make_attrs(inode);
++		u32 attr;
++
++		mutex_lock(&inode->i_mutex);
++		attr = fat_make_attrs(inode);
++		mutex_unlock(&inode->i_mutex);
++
+ 		return put_user(attr, user_attr);
+ 	}
+ 	case FAT_IOCTL_SET_ATTRIBUTES:
 _
 
 Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
