@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + revert-i7300_idle-driver-v155.patch added to -mm tree
-Date: Wed, 15 Oct 2008 23:28:35 -0700
-Message-ID: <200810160628.m9G6SZf9007593@imap1.linux-foundation.org>
+Subject: + git-vfs-git-rejects.patch added to -mm tree
+Date: Wed, 15 Oct 2008 23:59:15 -0700
+Message-ID: <200810160659.m9G6xFUt011379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41695 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44104 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751231AbYJPG3K (ORCPT
+	by vger.kernel.org with ESMTP id S1754910AbYJPG7S (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 02:29:10 -0400
+	Thu, 16 Oct 2008 02:59:18 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m9G6xFOX016516
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 15 Oct 2008 23:59:16 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andrew.d.henroid@intel.com, len.brown@intel.com, sfr@canb.auug.org.au, venkatesh.pallipadi@intel.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     revert "i7300_idle driver v1.55"
+     git-vfs-git-rejects
 has been added to the -mm tree.  Its filename is
-     revert-i7300_idle-driver-v155.patch
+     git-vfs-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,119 +38,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "i7300_idle driver v1.55"
+Subject: git-vfs-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-revert this partially-applied git-acpi patch.  It breaks lots of things.
-
-Cc: Andy Henroid <andrew.d.henroid@intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                  |    6 ------
- arch/x86/Kconfig             |    2 --
- arch/x86/kernel/process_64.c |    7 -------
- drivers/Makefile             |    1 -
- drivers/dma/ioat_dma.c       |    3 ---
- include/asm-x86/idle.h       |    1 -
- include/linux/pci_ids.h      |    1 -
- 7 files changed, 21 deletions(-)
+ fs/ext4/namei.c |   16 +---------------
+ 1 file changed, 1 insertion(+), 15 deletions(-)
 
-diff -puN MAINTAINERS~revert-i7300_idle-driver-v155 MAINTAINERS
---- a/MAINTAINERS~revert-i7300_idle-driver-v155
-+++ a/MAINTAINERS
-@@ -2103,12 +2103,6 @@ L:	linux-ide@vger.kernel.org
- L:	linux-scsi@vger.kernel.org
- S:	Orphan
- 
--IDLE-I7300
--P:	Andy Henroid
--M:	andrew.d.henroid@intel.com
--L:	linux-pm@lists.linux-foundation.org
--S:	Supported
--
- IEEE 1394 SUBSYSTEM (drivers/ieee1394)
- P:	Ben Collins
- M:	ben.collins@ubuntu.com
-diff -puN arch/x86/Kconfig~revert-i7300_idle-driver-v155 arch/x86/Kconfig
---- a/arch/x86/Kconfig~revert-i7300_idle-driver-v155
-+++ a/arch/x86/Kconfig
-@@ -1643,8 +1643,6 @@ source "arch/x86/kernel/cpu/cpufreq/Kcon
- 
- source "drivers/cpuidle/Kconfig"
- 
--source "drivers/idle/Kconfig"
--
- endmenu
- 
- 
-diff -puN arch/x86/kernel/process_64.c~revert-i7300_idle-driver-v155 arch/x86/kernel/process_64.c
---- a/arch/x86/kernel/process_64.c~revert-i7300_idle-driver-v155
-+++ a/arch/x86/kernel/process_64.c
-@@ -63,13 +63,6 @@ void idle_notifier_register(struct notif
+diff -puN fs/ext4/namei.c~git-vfs-git-rejects fs/ext4/namei.c
+--- a/fs/ext4/namei.c~git-vfs-git-rejects
++++ a/fs/ext4/namei.c
+@@ -1061,19 +1061,6 @@ static struct dentry *ext4_lookup(struct
+ struct dentry *ext4_get_parent(struct dentry *child)
  {
- 	atomic_notifier_chain_register(&idle_notifier, n);
- }
--EXPORT_SYMBOL_GPL(idle_notifier_register);
+ 	unsigned long ino;
+-<<<<<<< HEAD:fs/ext4/namei.c
+-	struct dentry *parent;
+-	struct inode *inode;
+-	static const struct qstr dotdot = {
+-		.name = "..",
+-		.len = 2,
+-	};
+-	struct ext4_dir_entry_2 * de;
+-	struct buffer_head *bh;
 -
--void idle_notifier_unregister(struct notifier_block *n)
--{
--	atomic_notifier_chain_unregister(&idle_notifier, n);
--}
--EXPORT_SYMBOL_GPL(idle_notifier_unregister);
+-	bh = ext4_find_entry(child->d_inode, &dotdot, &de);
+-	inode = NULL;
+-=======
+ 	struct dentry dotdot;
+ 	struct ext4_dir_entry_2 * de;
+ 	struct buffer_head *bh;
+@@ -1082,8 +1069,7 @@ struct dentry *ext4_get_parent(struct de
+ 	dotdot.d_name.len = 2;
+ 	dotdot.d_parent = child; /* confusing, isn't it! */
  
- void enter_idle(void)
- {
-diff -puN drivers/Makefile~revert-i7300_idle-driver-v155 drivers/Makefile
---- a/drivers/Makefile~revert-i7300_idle-driver-v155
-+++ a/drivers/Makefile
-@@ -82,7 +82,6 @@ obj-$(CONFIG_EISA)		+= eisa/
- obj-y				+= lguest/
- obj-$(CONFIG_CPU_FREQ)		+= cpufreq/
- obj-$(CONFIG_CPU_IDLE)		+= cpuidle/
--obj-y				+= idle/
- obj-$(CONFIG_MMC)		+= mmc/
- obj-$(CONFIG_MEMSTICK)		+= memstick/
- obj-$(CONFIG_NEW_LEDS)		+= leds/
-diff -puN drivers/dma/ioat_dma.c~revert-i7300_idle-driver-v155 drivers/dma/ioat_dma.c
---- a/drivers/dma/ioat_dma.c~revert-i7300_idle-driver-v155
-+++ a/drivers/dma/ioat_dma.c
-@@ -171,9 +171,6 @@ static int ioat_dma_enumerate_channels(s
- 	xfercap_scale = readb(device->reg_base + IOAT_XFERCAP_OFFSET);
- 	xfercap = (xfercap_scale == 0 ? -1 : (1UL << xfercap_scale));
- 
--#if CONFIG_I7300_IDLE_IOAT_CHANNEL
--	device->common.chancnt--;
--#endif
- 	for (i = 0; i < device->common.chancnt; i++) {
- 		ioat_chan = kzalloc(sizeof(*ioat_chan), GFP_KERNEL);
- 		if (!ioat_chan) {
-diff -puN include/asm-x86/idle.h~revert-i7300_idle-driver-v155 include/asm-x86/idle.h
---- a/include/asm-x86/idle.h~revert-i7300_idle-driver-v155
-+++ a/include/asm-x86/idle.h
-@@ -6,7 +6,6 @@
- 
- struct notifier_block;
- void idle_notifier_register(struct notifier_block *n);
--void idle_notifier_unregister(struct notifier_block *n);
- 
- void enter_idle(void);
- void exit_idle(void);
-diff -puN include/linux/pci_ids.h~revert-i7300_idle-driver-v155 include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~revert-i7300_idle-driver-v155
-+++ a/include/linux/pci_ids.h
-@@ -2451,7 +2451,6 @@
- #define PCI_DEVICE_ID_INTEL_MCH_PC1	0x359a
- #define PCI_DEVICE_ID_INTEL_E7525_MCH	0x359e
- #define PCI_DEVICE_ID_INTEL_IOAT_CNB	0x360b
--#define PCI_DEVICE_ID_INTEL_FBD_CNB	0x360c
- #define PCI_DEVICE_ID_INTEL_ICH10_0	0x3a14
- #define PCI_DEVICE_ID_INTEL_ICH10_1	0x3a16
- #define PCI_DEVICE_ID_INTEL_ICH10_2	0x3a18
+-	bh = ext4_find_entry(&dotdot, &de);
+->>>>>>> FETCH_HEAD:fs/ext4/namei.c
++	bh = ext4_find_entry(child->d_inode, &dotdot.d_name, &de);
+ 	if (!bh)
+ 		return ERR_PTR(-ENOENT);
+ 	ino = le32_to_cpu(de->inode);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -178,6 +111,8 @@ mm-remove-the-might_sleep-from-lock_page.patch
 git-tests-git-rejects.patch
 git-acpi.patch
 git-acpi-git-rejects.patch
+revert-i7300_idle-driver-v155.patch
+git-vfs-git-rejects.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
 arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
@@ -249,5 +184,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-revert-i7300_idle-driver-v155.patch
 
