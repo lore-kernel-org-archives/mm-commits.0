@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fat-i_pos-race-fix.patch added to -mm tree
-Date: Thu, 16 Oct 2008 15:07:54 -0700
-Message-ID: <200810162207.m9GM7snd028144@imap1.linux-foundation.org>
+Subject: + fat-fix-_fat_bmap-race.patch added to -mm tree
+Date: Thu, 16 Oct 2008 15:07:48 -0700
+Message-ID: <200810162207.m9GM7mpO028115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41942 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39802 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756693AbYJPWH5 (ORCPT
+	by vger.kernel.org with ESMTP id S1756598AbYJPWHv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 18:07:57 -0400
+	Thu, 16 Oct 2008 18:07:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     fat: ->i_pos race fix
+     fat: Fix _fat_bmap() race
 has been added to the -mm tree.  Its filename is
-     fat-i_pos-race-fix.patch
+     fat-fix-_fat_bmap-race.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fat: ->i_pos race fix
+Subject: fat: Fix _fat_bmap() race
 From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-i_pos is 64bits value, hence it's not atomic to update.
+fat_get_cluster() assumes the requested blocknr isn't truncated during
+read. _fat_bmap() doesn't follow this rule.
 
-Important place is fat_write_inode() only, other places without lock
-are just for printk().
-
-This adds lock for "BITS_PER_LONG == 32" kernel.
+This protects it by ->i_mutex.
 
 Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/inode.c |   21 +++++++++++++++++++--
- 1 file changed, 19 insertions(+), 2 deletions(-)
+ fs/fat/inode.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN fs/fat/inode.c~fat-i_pos-race-fix fs/fat/inode.c
---- a/fs/fat/inode.c~fat-i_pos-race-fix
+diff -puN fs/fat/inode.c~fat-fix-_fat_bmap-race fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-fix-_fat_bmap-race
 +++ a/fs/fat/inode.c
-@@ -542,6 +542,20 @@ static int fat_statfs(struct dentry *den
- 	return 0;
+@@ -199,7 +199,14 @@ static ssize_t fat_direct_IO(int rw, str
+ 
+ static sector_t _fat_bmap(struct address_space *mapping, sector_t block)
+ {
+-	return generic_block_bmap(mapping, block, fat_get_block);
++	sector_t blocknr;
++
++	/* fat_get_cluster() assumes the requested blocknr isn't truncated. */
++	mutex_lock(&mapping->host->i_mutex);
++	blocknr = generic_block_bmap(mapping, block, fat_get_block);
++	mutex_unlock(&mapping->host->i_mutex);
++
++	return blocknr;
  }
  
-+static inline loff_t fat_i_pos_read(struct msdos_sb_info *sbi,
-+				    struct inode *inode)
-+{
-+	loff_t i_pos;
-+#if BITS_PER_LONG == 32
-+	spin_lock(&sbi->inode_hash_lock);
-+#endif
-+	i_pos = MSDOS_I(inode)->i_pos;
-+#if BITS_PER_LONG == 32
-+	spin_unlock(&sbi->inode_hash_lock);
-+#endif
-+	return i_pos;
-+}
-+
- static int fat_write_inode(struct inode *inode, int wait)
- {
- 	struct super_block *sb = inode->i_sb;
-@@ -551,9 +565,12 @@ static int fat_write_inode(struct inode 
- 	loff_t i_pos;
- 	int err;
- 
-+	if (inode->i_ino == MSDOS_ROOT_INO)
-+		return 0;
-+
- retry:
--	i_pos = MSDOS_I(inode)->i_pos;
--	if (inode->i_ino == MSDOS_ROOT_INO || !i_pos)
-+	i_pos = fat_i_pos_read(sbi, inode);
-+	if (!i_pos)
- 		return 0;
- 
- 	bh = sb_bread(sb, i_pos >> sbi->dir_per_block_bits);
+ static const struct address_space_operations fat_aops = {
 _
 
 Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
