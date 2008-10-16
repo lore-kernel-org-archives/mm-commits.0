@@ -1,77 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - w1-be-able-to-manually-add-and-remove-slaves-fix.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 16:58:06 -0700
-Message-ID: <200810152358.m9FNw6pp024589@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch added to -mm tree
+Date: Wed, 15 Oct 2008 17:51:09 -0700
+Message-ID: <200810160105.m9G15h8R032723@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45194 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37131 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753861AbYJPAKS (ORCPT
+	by vger.kernel.org with ESMTP id S1752706AbYJPBF7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Oct 2008 20:10:18 -0400
+	Wed, 15 Oct 2008 21:05:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     w1-be-able-to-manually-add-and-remove-slaves-fix
-has been removed from the -mm tree.  Its filename was
-     w1-be-able-to-manually-add-and-remove-slaves-fix.patch
+     arch/x86/kernel/setup.c: omit dmi_low_memory_corruption() when it is unneeded
+has been added to the -mm tree.  Its filename is
+     arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
 
-This patch was dropped because it was folded into w1-be-able-to-manually-add-and-remove-slaves.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1-be-able-to-manually-add-and-remove-slaves-fix
+Subject: arch/x86/kernel/setup.c: omit dmi_low_memory_corruption() when it is unneeded
 From: Andrew Morton <akpm@linux-foundation.org>
 
-s390:
+x86_64 allnoconfig:
 
-drivers/w1/w1.c: In function 'w1_atoreg_num':
-drivers/w1/w1.c:401: warning: format '%012llx' expects type 'long long unsigned int *', but argument 4 has type 'u64 *'
-drivers/w1/w1.c:401: warning: format '%012llx' expects type 'long long unsigned int *', but argument 4 has type 'u64 *'
+arch/x86/kernel/setup.c:736: warning: 'dmi_low_memory_corruption' defined but not used
 
-We cannot pass uncast u64 into scanf() or printf() functions - we don't know
-what type it is!
-
-Cc: David Fries <david@fries.net>
-Cc: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ arch/x86/kernel/setup.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN drivers/w1/w1.c~w1-be-able-to-manually-add-and-remove-slaves-fix drivers/w1/w1.c
---- a/drivers/w1/w1.c~w1-be-able-to-manually-add-and-remove-slaves-fix
-+++ a/drivers/w1/w1.c
-@@ -398,9 +398,10 @@ static int w1_atoreg_num(struct device *
- 	struct w1_reg_num *rn)
- {
- 	unsigned int family;
--	u64 id;
-+	unsigned long long id;
- 	int i;
- 	u64 rn64_le;
-+
- 	/* The CRC value isn't read from the user because the sysfs directory
- 	 * doesn't include it and most messages from the bus search don't
- 	 * print it either.  It would be unreasonable for the user to then
-@@ -424,10 +425,10 @@ static int w1_atoreg_num(struct device *
- 	rn64_le = cpu_to_le64(*(u64 *)rn);
- 	rn->crc = w1_calc_crc8((u8 *)&rn64_le, 7);
- 
--	#if 0
-+#if 0
- 	dev_info(dev, "With CRC device is %02x.%012llx.%02x.\n",
- 		  rn->family, (unsigned long long)rn->id, rn->crc);
--	#endif
-+#endif
- 
- 	return 0;
+diff -puN arch/x86/kernel/setup.c~arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded arch/x86/kernel/setup.c
+--- a/arch/x86/kernel/setup.c~arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded
++++ a/arch/x86/kernel/setup.c
+@@ -732,6 +732,7 @@ void start_periodic_check_for_corruption
  }
+ #endif
+ 
++#ifdef CONFIG_X86_RESERVE_LOW_64K
+ static int __init dmi_low_memory_corruption(const struct dmi_system_id *d)
+ {
+ 	printk(KERN_NOTICE
+@@ -746,7 +747,6 @@ static int __init dmi_low_memory_corrupt
+ 
+ /* List of systems that have known low memory corruption BIOS problems */
+ static struct dmi_system_id __initdata bad_bios_dmi_table[] = {
+-#ifdef CONFIG_X86_RESERVE_LOW_64K
+ 	{
+ 		.callback = dmi_low_memory_corruption,
+ 		.ident = "AMI BIOS",
+@@ -761,10 +761,19 @@ static struct dmi_system_id __initdata b
+ 			DMI_MATCH(DMI_BIOS_VENDOR, "Phoenix Technologies, LTD"),
+ 		},
+ 	},
+-#endif
+ 	{}
+ };
+ 
++static inline void handle_bad_bios_dmi_table(void)
++{
++	dmi_check_system(bad_bios_dmi_table);
++}
++#else
++static inline void handle_bad_bios_dmi_table(void)
++{
++}
++#endif
++
+ /*
+  * Determine if we were loaded by an EFI loader.  If so, then we have also been
+  * passed the efi memmap, systab, etc., so we should use these data structures
+@@ -901,7 +910,7 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 	dmi_scan_machine();
+ 
+-	dmi_check_system(bad_bios_dmi_table);
++	handle_bad_bios_dmi_table();
+ 
+ #ifdef CONFIG_X86_32
+ 	probe_roms();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,7 +122,7 @@ ext2-avoid-printk-floods-in-the-face-of-directory-corruption.patch
 applicomc-fix-apparently-broken-code-in-do_ac_read.patch
 drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
 w1-be-able-to-manually-add-and-remove-slaves.patch
-w1-be-able-to-manually-add-and-remove-slaves-fix.patch
-w1-new-driver-ds2431-chip-fix.patch
-gru-driver-minor-updates-fix.patch
+w1-new-driver-ds2431-chip.patch
+gru-driver-minor-updates.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
 
