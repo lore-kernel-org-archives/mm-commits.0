@@ -1,106 +1,348 @@
 From: akpm@linux-foundation.org
-Subject: - hfsplus-check-hfs_bnode_find-return-value.patch removed from -mm tree
-Date: Wed, 15 Oct 2008 22:57:11 -0700
-Message-ID: <200810160557.m9G5vBHp003536@imap1.linux-foundation.org>
+Subject: - rtc-bunch-of-drivers-fix-no-irq-case-handing.patch removed from -mm tree
+Date: Wed, 15 Oct 2008 23:13:25 -0700
+Message-ID: <200810160613.m9G6DPBB005640@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34229 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48059 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751226AbYJPF52 (ORCPT
+	by vger.kernel.org with ESMTP id S1756461AbYJPGOf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 01:57:28 -0400
+	Thu, 16 Oct 2008 02:14:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: snakebyte@gmx.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: avorontsov@ru.mvista.com, a.zummo@towertech.it, david-b@pacbell.net, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hfsplus: check hfs_bnode_find return value
+     rtc: bunch of drivers: fix 'no irq' case handing
 has been removed from the -mm tree.  Its filename was
-     hfsplus-check-hfs_bnode_find-return-value.patch
+     rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hfsplus: check hfs_bnode_find return value
-From: Eric Sesterhenn <snakebyte@gmx.de>
+Subject: rtc: bunch of drivers: fix 'no irq' case handing
+From: Anton Vorontsov <avorontsov@ru.mvista.com>
 
-Another bug triggered with a corrupted image, this time running fsx on it.
+This patch fixes bunch of irq checking misuses.  Most drivers were getting
+irq via platform_get_irq(), which returns -ENXIO or r->start.  Platforms
+may specify r->start = 0 to emphasize 'no irq' case, and drivers should
+handle this correctly.
 
-[ 8898.458022] BUG: unable to handle kernel paging request at fffffff8
-[ 8898.458022] IP: [<c023028c>] hfs_bnode_split+0x216/0x280
-[ 8898.458022] *pde = 00008067 *pte = 00000000
-[ 8898.458022] Oops: 0002 [#1] PREEMPT DEBUG_PAGEALLOC
-[ 8898.458022] Modules linked in:
-[ 8898.458022]
-[ 8898.458022] Pid: 30558, comm: fsx Not tainted (2.6.27-rc4-00131-g83097ac-dirty #33)
-[ 8898.458022] EIP: 0060:[<c023028c>] EFLAGS: 00010246 CPU: 0
-[ 8898.458022] EIP is at hfs_bnode_split+0x216/0x280
-[ 8898.458022] EAX: 00000002 EBX: fffffff4 ECX: 00000000 EDX: c6b48be6
-[ 8898.458022] ESI: c6ac25a0 EDI: c6ac26c0 EBP: c6b48c00 ESP: c6b48bc4
-[ 8898.458022]  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
-[ 8898.458022] Process fsx (pid: 30558, ti=c6b48000 task=c6a06700 task.ti=c6b48000)
-[ 8898.458022] Stack: c6a93950 00000010 00000fd8 00000fb8 00000830 000007ac 00000000 00000822
-[ 8898.458022]        00000fb8 00000200 01ff0000 00001000 00000fb8 c6ac26c0 00000fb6 c6b48c4c
-[ 8898.458022]        c02303ca 000000f8 c6b48c68 c6b48e70 0000000f c6ac26c0 c6a93950 00000000
-[ 8898.458022] Call Trace:
-[ 8898.458022]  [<c02303ca>] ? hfsplus_brec_insert+0xd4/0x2bc
-[ 8898.458022]  [<c022d7be>] ? hfsplus_create_cat+0x30c/0x38f
-[ 8898.458022]  [<c013dc3a>] ? trace_hardirqs_on+0xb/0xd
-[ 8898.458022]  [<c017cd20>] ? check_bytes_and_report+0x21/0x8f
-[ 8898.458022]  [<c017d8a3>] ? __slab_alloc+0xb1/0x503
-[ 8898.458022]  [<c017dfc5>] ? kmem_cache_alloc+0x4e/0xba
-[ 8898.458022]  [<c06ade04>] ? sub_preempt_count+0x9d/0xab
-[ 8898.458022]  [<c013dc3a>] ? trace_hardirqs_on+0xb/0xd
-[ 8898.458022]  [<c06abe19>] ? _spin_unlock+0x27/0x3c
-[ 8898.458022]  [<c019ad34>] ? __mark_inode_dirty+0x12f/0x137
-[ 8898.458022]  [<c06ade04>] ? sub_preempt_count+0x9d/0xab
-[ 8898.458022]  [<c06abe19>] ? _spin_unlock+0x27/0x3c
-[ 8898.458022]  [<c022e3db>] ? hfsplus_create+0x35/0x7a
-[ 8898.458022]  [<c01889ee>] ? vfs_create+0xa6/0x114
-[ 8898.458022]  [<c018ac61>] ? do_filp_open+0x1ad/0x62f
-[ 8898.458022]  [<c06abe19>] ? _spin_unlock+0x27/0x3c
-[ 8898.458022]  [<c0193632>] ? alloc_fd+0xbf/0xc9
-[ 8898.458022]  [<c06ade04>] ? sub_preempt_count+0x9d/0xab
-[ 8898.458022]  [<c0193632>] ? alloc_fd+0xbf/0xc9
-[ 8898.458022]  [<c0180249>] ? do_sys_open+0x42/0xb8
-[ 8898.458022]  [<c0180301>] ? sys_open+0x1e/0x26
-[ 8898.458022]  [<c01038bd>] ? sysenter_do_call+0x12/0x31
-[ 8898.458022]  =======================
-[ 8898.458022] Code: c2 89 f8 66 89 55 f0 8d 55 e6 e8 63 ed ff ff 8b 56 0c 83 c4 14 85 d2 74 3f 8b 45 c4 e8 f5 f1 ff ff 31 c9 8d 55 e6 89 c3 8b 46 08 <89> 43 04 89 d8 6a 0e e8 1d ee ff ff 8b 43 04 8d 55 e6 0f c8 31
-[ 8898.458022] EIP: [<c023028c>] hfs_bnode_split+0x216/0x280 SS:ESP 0068:c6b48bc4
-[ 8898.458022] ---[ end trace 552e26de6e943a04 ]---
+rtc-cmos.c is special.  It is using PNP and platform bindings.  Hopefully
+nobody is using PNP IRQ 0 for RTC.  So the changes should be safe.
 
-Problem is caused by not checking and propagating the return valie of
-hfs_bnode_find()
+Also, rtc-sh.c was using platform_get_irq, and stored a result into an
+unsigned type, then was checking for < 0.  This is fixed now.
 
-Signed-off-by: Eric Sesterhenn <snakebyte@gmx.de>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/brec.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/rtc/rtc-at32ap700x.c |    2 +-
+ drivers/rtc/rtc-cmos.c       |    4 ++--
+ drivers/rtc/rtc-ds1511.c     |   18 +++++++++---------
+ drivers/rtc/rtc-ds1553.c     |   14 +++++++-------
+ drivers/rtc/rtc-m48t59.c     |    2 +-
+ drivers/rtc/rtc-sh.c         |   10 ++++++----
+ drivers/rtc/rtc-stk17ta8.c   |   14 +++++++-------
+ 7 files changed, 33 insertions(+), 31 deletions(-)
 
-diff -puN fs/hfsplus/brec.c~hfsplus-check-hfs_bnode_find-return-value fs/hfsplus/brec.c
---- a/fs/hfsplus/brec.c~hfsplus-check-hfs_bnode_find-return-value
-+++ a/fs/hfsplus/brec.c
-@@ -304,6 +304,8 @@ static struct hfs_bnode *hfs_bnode_split
- 	/* update next bnode header */
- 	if (new_node->next) {
- 		struct hfs_bnode *next_node = hfs_bnode_find(tree, new_node->next);
-+		if (IS_ERR(next_node))
-+			return next_node;
- 		next_node->prev = new_node->this;
- 		hfs_bnode_read(next_node, &node_desc, 0, sizeof(node_desc));
- 		node_desc.prev = cpu_to_be32(next_node->prev);
+diff -puN drivers/rtc/rtc-at32ap700x.c~rtc-bunch-of-drivers-fix-no-irq-case-handing drivers/rtc/rtc-at32ap700x.c
+--- a/drivers/rtc/rtc-at32ap700x.c~rtc-bunch-of-drivers-fix-no-irq-case-handing
++++ a/drivers/rtc/rtc-at32ap700x.c
+@@ -222,7 +222,7 @@ static int __init at32_rtc_probe(struct 
+ 	}
+ 
+ 	irq = platform_get_irq(pdev, 0);
+-	if (irq < 0) {
++	if (irq <= 0) {
+ 		dev_dbg(&pdev->dev, "could not get irq\n");
+ 		ret = -ENXIO;
+ 		goto out;
+diff -puN drivers/rtc/rtc-cmos.c~rtc-bunch-of-drivers-fix-no-irq-case-handing drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-bunch-of-drivers-fix-no-irq-case-handing
++++ a/drivers/rtc/rtc-cmos.c
+@@ -57,8 +57,8 @@ struct cmos_rtc {
+ 	u8			century;
+ };
+ 
+-/* both platform and pnp busses use negative numbers for invalid irqs */
+-#define is_valid_irq(n)		((n) >= 0)
++/* both platform and pnp busses use positive numbers for valid irqs */
++#define is_valid_irq(n)		((n) > 0)
+ 
+ static const char driver_name[] = "rtc_cmos";
+ 
+diff -puN drivers/rtc/rtc-ds1511.c~rtc-bunch-of-drivers-fix-no-irq-case-handing drivers/rtc/rtc-ds1511.c
+--- a/drivers/rtc/rtc-ds1511.c~rtc-bunch-of-drivers-fix-no-irq-case-handing
++++ a/drivers/rtc/rtc-ds1511.c
+@@ -326,9 +326,9 @@ ds1511_rtc_set_alarm(struct device *dev,
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 
+-	if (pdata->irq < 0) {
++	if (pdata->irq <= 0)
+ 		return -EINVAL;
+-	}
++
+ 	pdata->alrm_mday = alrm->time.tm_mday;
+ 	pdata->alrm_hour = alrm->time.tm_hour;
+ 	pdata->alrm_min = alrm->time.tm_min;
+@@ -346,9 +346,9 @@ ds1511_rtc_read_alarm(struct device *dev
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 
+-	if (pdata->irq < 0) {
++	if (pdata->irq <= 0)
+ 		return -EINVAL;
+-	}
++
+ 	alrm->time.tm_mday = pdata->alrm_mday < 0 ? 0 : pdata->alrm_mday;
+ 	alrm->time.tm_hour = pdata->alrm_hour < 0 ? 0 : pdata->alrm_hour;
+ 	alrm->time.tm_min = pdata->alrm_min < 0 ? 0 : pdata->alrm_min;
+@@ -385,7 +385,7 @@ ds1511_rtc_release(struct device *dev)
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 
+-	if (pdata->irq >= 0) {
++	if (pdata->irq > 0) {
+ 		pdata->irqen = 0;
+ 		ds1511_rtc_update_alarm(pdata);
+ 	}
+@@ -397,7 +397,7 @@ ds1511_rtc_ioctl(struct device *dev, uns
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 
+-	if (pdata->irq < 0) {
++	if (pdata->irq <= 0) {
+ 		return -ENOIOCTLCMD; /* fall back into rtc-dev's emulation */
+ 	}
+ 	switch (cmd) {
+@@ -559,7 +559,7 @@ ds1511_rtc_probe(struct platform_device 
+ 	 * if the platform has an interrupt in mind for this device,
+ 	 * then by all means, set it
+ 	 */
+-	if (pdata->irq >= 0) {
++	if (pdata->irq > 0) {
+ 		rtc_read(RTC_CMD1);
+ 		if (request_irq(pdata->irq, ds1511_interrupt,
+ 			IRQF_DISABLED | IRQF_SHARED, pdev->name, pdev) < 0) {
+@@ -586,7 +586,7 @@ ds1511_rtc_probe(struct platform_device 
+ 	if (pdata->rtc) {
+ 		rtc_device_unregister(pdata->rtc);
+ 	}
+-	if (pdata->irq >= 0) {
++	if (pdata->irq > 0) {
+ 		free_irq(pdata->irq, pdev);
+ 	}
+ 	if (ds1511_base) {
+@@ -609,7 +609,7 @@ ds1511_rtc_remove(struct platform_device
+ 	sysfs_remove_bin_file(&pdev->dev.kobj, &ds1511_nvram_attr);
+ 	rtc_device_unregister(pdata->rtc);
+ 	pdata->rtc = NULL;
+-	if (pdata->irq >= 0) {
++	if (pdata->irq > 0) {
+ 		/*
+ 		 * disable the alarm interrupt
+ 		 */
+diff -puN drivers/rtc/rtc-ds1553.c~rtc-bunch-of-drivers-fix-no-irq-case-handing drivers/rtc/rtc-ds1553.c
+--- a/drivers/rtc/rtc-ds1553.c~rtc-bunch-of-drivers-fix-no-irq-case-handing
++++ a/drivers/rtc/rtc-ds1553.c
+@@ -162,7 +162,7 @@ static int ds1553_rtc_set_alarm(struct d
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 
+-	if (pdata->irq < 0)
++	if (pdata->irq <= 0)
+ 		return -EINVAL;
+ 	pdata->alrm_mday = alrm->time.tm_mday;
+ 	pdata->alrm_hour = alrm->time.tm_hour;
+@@ -179,7 +179,7 @@ static int ds1553_rtc_read_alarm(struct 
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 
+-	if (pdata->irq < 0)
++	if (pdata->irq <= 0)
+ 		return -EINVAL;
+ 	alrm->time.tm_mday = pdata->alrm_mday < 0 ? 0 : pdata->alrm_mday;
+ 	alrm->time.tm_hour = pdata->alrm_hour < 0 ? 0 : pdata->alrm_hour;
+@@ -212,7 +212,7 @@ static void ds1553_rtc_release(struct de
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 
+-	if (pdata->irq >= 0) {
++	if (pdata->irq > 0) {
+ 		pdata->irqen = 0;
+ 		ds1553_rtc_update_alarm(pdata);
+ 	}
+@@ -224,7 +224,7 @@ static int ds1553_rtc_ioctl(struct devic
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 
+-	if (pdata->irq < 0)
++	if (pdata->irq <= 0)
+ 		return -ENOIOCTLCMD; /* fall back into rtc-dev's emulation */
+ 	switch (cmd) {
+ 	case RTC_AIE_OFF:
+@@ -339,7 +339,7 @@ static int __devinit ds1553_rtc_probe(st
+ 	if (readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_BLF)
+ 		dev_warn(&pdev->dev, "voltage-low detected.\n");
+ 
+-	if (pdata->irq >= 0) {
++	if (pdata->irq > 0) {
+ 		writeb(0, ioaddr + RTC_INTERRUPTS);
+ 		if (request_irq(pdata->irq, ds1553_rtc_interrupt,
+ 				IRQF_DISABLED | IRQF_SHARED,
+@@ -365,7 +365,7 @@ static int __devinit ds1553_rtc_probe(st
+  out:
+ 	if (pdata->rtc)
+ 		rtc_device_unregister(pdata->rtc);
+-	if (pdata->irq >= 0)
++	if (pdata->irq > 0)
+ 		free_irq(pdata->irq, pdev);
+ 	if (ioaddr)
+ 		iounmap(ioaddr);
+@@ -381,7 +381,7 @@ static int __devexit ds1553_rtc_remove(s
+ 
+ 	sysfs_remove_bin_file(&pdev->dev.kobj, &ds1553_nvram_attr);
+ 	rtc_device_unregister(pdata->rtc);
+-	if (pdata->irq >= 0) {
++	if (pdata->irq > 0) {
+ 		writeb(0, pdata->ioaddr + RTC_INTERRUPTS);
+ 		free_irq(pdata->irq, pdev);
+ 	}
+diff -puN drivers/rtc/rtc-m48t59.c~rtc-bunch-of-drivers-fix-no-irq-case-handing drivers/rtc/rtc-m48t59.c
+--- a/drivers/rtc/rtc-m48t59.c~rtc-bunch-of-drivers-fix-no-irq-case-handing
++++ a/drivers/rtc/rtc-m48t59.c
+@@ -425,7 +425,7 @@ static int __devinit m48t59_rtc_probe(st
+ 	 * the mode without IRQ.
+ 	 */
+ 	m48t59->irq = platform_get_irq(pdev, 0);
+-	if (m48t59->irq < 0)
++	if (m48t59->irq <= 0)
+ 		m48t59->irq = NO_IRQ;
+ 
+ 	if (m48t59->irq != NO_IRQ) {
+diff -puN drivers/rtc/rtc-sh.c~rtc-bunch-of-drivers-fix-no-irq-case-handing drivers/rtc/rtc-sh.c
+--- a/drivers/rtc/rtc-sh.c~rtc-bunch-of-drivers-fix-no-irq-case-handing
++++ a/drivers/rtc/rtc-sh.c
+@@ -89,7 +89,9 @@ struct sh_rtc {
+ 	void __iomem *regbase;
+ 	unsigned long regsize;
+ 	struct resource *res;
+-	unsigned int alarm_irq, periodic_irq, carry_irq;
++	int alarm_irq;
++	int periodic_irq;
++	int carry_irq;
+ 	struct rtc_device *rtc_dev;
+ 	spinlock_t lock;
+ 	unsigned long capabilities;	/* See asm-sh/rtc.h for cap bits */
+@@ -585,7 +587,7 @@ static int __devinit sh_rtc_probe(struct
+ 
+ 	/* get periodic/carry/alarm irqs */
+ 	ret = platform_get_irq(pdev, 0);
+-	if (unlikely(ret < 0)) {
++	if (unlikely(ret <= 0)) {
+ 		ret = -ENOENT;
+ 		dev_err(&pdev->dev, "No IRQ for period\n");
+ 		goto err_badres;
+@@ -593,7 +595,7 @@ static int __devinit sh_rtc_probe(struct
+ 	rtc->periodic_irq = ret;
+ 
+ 	ret = platform_get_irq(pdev, 1);
+-	if (unlikely(ret < 0)) {
++	if (unlikely(ret <= 0)) {
+ 		ret = -ENOENT;
+ 		dev_err(&pdev->dev, "No IRQ for carry\n");
+ 		goto err_badres;
+@@ -601,7 +603,7 @@ static int __devinit sh_rtc_probe(struct
+ 	rtc->carry_irq = ret;
+ 
+ 	ret = platform_get_irq(pdev, 2);
+-	if (unlikely(ret < 0)) {
++	if (unlikely(ret <= 0)) {
+ 		ret = -ENOENT;
+ 		dev_err(&pdev->dev, "No IRQ for alarm\n");
+ 		goto err_badres;
+diff -puN drivers/rtc/rtc-stk17ta8.c~rtc-bunch-of-drivers-fix-no-irq-case-handing drivers/rtc/rtc-stk17ta8.c
+--- a/drivers/rtc/rtc-stk17ta8.c~rtc-bunch-of-drivers-fix-no-irq-case-handing
++++ a/drivers/rtc/rtc-stk17ta8.c
+@@ -170,7 +170,7 @@ static int stk17ta8_rtc_set_alarm(struct
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 
+-	if (pdata->irq < 0)
++	if (pdata->irq <= 0)
+ 		return -EINVAL;
+ 	pdata->alrm_mday = alrm->time.tm_mday;
+ 	pdata->alrm_hour = alrm->time.tm_hour;
+@@ -187,7 +187,7 @@ static int stk17ta8_rtc_read_alarm(struc
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 
+-	if (pdata->irq < 0)
++	if (pdata->irq <= 0)
+ 		return -EINVAL;
+ 	alrm->time.tm_mday = pdata->alrm_mday < 0 ? 0 : pdata->alrm_mday;
+ 	alrm->time.tm_hour = pdata->alrm_hour < 0 ? 0 : pdata->alrm_hour;
+@@ -220,7 +220,7 @@ static void stk17ta8_rtc_release(struct 
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 
+-	if (pdata->irq >= 0) {
++	if (pdata->irq > 0) {
+ 		pdata->irqen = 0;
+ 		stk17ta8_rtc_update_alarm(pdata);
+ 	}
+@@ -232,7 +232,7 @@ static int stk17ta8_rtc_ioctl(struct dev
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
+ 
+-	if (pdata->irq < 0)
++	if (pdata->irq <= 0)
+ 		return -ENOIOCTLCMD; /* fall back into rtc-dev's emulation */
+ 	switch (cmd) {
+ 	case RTC_AIE_OFF:
+@@ -342,7 +342,7 @@ static int __init stk17ta8_rtc_probe(str
+ 	if (readb(ioaddr + RTC_FLAGS) & RTC_FLAGS_PF)
+ 		dev_warn(&pdev->dev, "voltage-low detected.\n");
+ 
+-	if (pdata->irq >= 0) {
++	if (pdata->irq > 0) {
+ 		writeb(0, ioaddr + RTC_INTERRUPTS);
+ 		if (request_irq(pdata->irq, stk17ta8_rtc_interrupt,
+ 				IRQF_DISABLED | IRQF_SHARED,
+@@ -368,7 +368,7 @@ static int __init stk17ta8_rtc_probe(str
+  out:
+ 	if (pdata->rtc)
+ 		rtc_device_unregister(pdata->rtc);
+-	if (pdata->irq >= 0)
++	if (pdata->irq > 0)
+ 		free_irq(pdata->irq, pdev);
+ 	if (ioaddr)
+ 		iounmap(ioaddr);
+@@ -384,7 +384,7 @@ static int __devexit stk17ta8_rtc_remove
+ 
+ 	sysfs_remove_bin_file(&pdev->dev.kobj, &stk17ta8_nvram_attr);
+ 	rtc_device_unregister(pdata->rtc);
+-	if (pdata->irq >= 0) {
++	if (pdata->irq > 0) {
+ 		writeb(0, pdata->ioaddr + RTC_INTERRUPTS);
+ 		free_irq(pdata->irq, pdev);
+ 	}
+diff -puN drivers/rtc/rtc-vr41xx.c~rtc-bunch-of-drivers-fix-no-irq-case-handing drivers/rtc/rtc-vr41xx.c
 _
 
-Patches currently in -mm which might be from snakebyte@gmx.de are
+Patches currently in -mm which might be from avorontsov@ru.mvista.com are
 
-hfsplus-fix-buffer-overflow-with-a-corrupted-image.patch
-hfsplus-check-read_mapping_page-return-value.patch
-hfs-fix-namelength-memory-corruption.patch
+origin.patch
+usb-protect-hcdh-from-multiple-inclusions.patch
+rtc-bunch-of-drivers-fix-no-irq-case-handing.patch
 
