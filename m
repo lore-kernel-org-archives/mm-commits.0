@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + agp-reduce-extraneous-pci-posting-reads-during-intel-agp-initialization.patch added to -mm tree
-Date: Thu, 16 Oct 2008 13:54:43 -0700
-Message-ID: <200810162054.m9GKsh2s018059@imap1.linux-foundation.org>
+Subject: + intel-iommu-typo-fix-and-correct-word-in-the-comment.patch added to -mm tree
+Date: Thu, 16 Oct 2008 14:00:47 -0700
+Message-ID: <200810162100.m9GL0lZU018999@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57376 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42595 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752656AbYJPUz2 (ORCPT
+	by vger.kernel.org with ESMTP id S1755028AbYJPVAv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 16:55:28 -0400
+	Thu, 16 Oct 2008 17:00:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: keithp@keithp.com, airlied@linux.ie
+Cc: 2ameya@gmail.com, anil.s.keshavamurthy@intel.com, ashok.raj@intel.com, shaohua.li@intel.com
 
 
 The patch titled
-     agp: reduce extraneous PCI posting reads during Intel AGP initialization
+     intel-iommu: typo fix and correct word in the comment
 has been added to the -mm tree.  Its filename is
-     agp-reduce-extraneous-pci-posting-reads-during-intel-agp-initialization.patch
+     intel-iommu-typo-fix-and-correct-word-in-the-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: agp: reduce extraneous PCI posting reads during Intel AGP initialization
-From: Keith Packard <keithp@keithp.com>
+Subject: intel-iommu: typo fix and correct word in the comment
+From: "Ameya Palande" <2ameya@gmail.com>
 
-Instead of doing a posting read after each GTT entry update, do a single
-on= e at the end of the writes.  This should reduce boot time a tiny
-amount by avoiding a lot of extra uncached reads.
+Fix for a typo and and replacing incorrect word in the comment.
 
-Signed-off-by: Keith Packard <keithp@keithp.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Ameya Palande <2ameya@gmail.com>
+Cc: "Ashok Raj" <ashok.raj@intel.com>
+Cc: "Shaohua Li" <shaohua.li@intel.com>
+Cc: "Anil S Keshavamurthy" <anil.s.keshavamurthy@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/intel-agp.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/pci/intel-iommu.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/agp/intel-agp.c~agp-reduce-extraneous-pci-posting-reads-during-intel-agp-initialization drivers/char/agp/intel-agp.c
---- a/drivers/char/agp/intel-agp.c~agp-reduce-extraneous-pci-posting-reads-during-intel-agp-initialization
-+++ a/drivers/char/agp/intel-agp.c
-@@ -214,8 +214,8 @@ static int intel_i810_configure(void)
- 	if (agp_bridge->driver->needs_scratch_page) {
- 		for (i = 0; i < current_size->num_entries; i++) {
- 			writel(agp_bridge->scratch_page, intel_private.registers+I810_PTE_BASE+(i*4));
--			readl(intel_private.registers+I810_PTE_BASE+(i*4));	/* PCI posting. */
- 		}
-+		readl(intel_private.registers+I810_PTE_BASE+((i-1)*4));	/* PCI posting. */
- 	}
- 	global_cache_flush();
+diff -puN drivers/pci/intel-iommu.c~intel-iommu-typo-fix-and-correct-word-in-the-comment drivers/pci/intel-iommu.c
+--- a/drivers/pci/intel-iommu.c~intel-iommu-typo-fix-and-correct-word-in-the-comment
++++ a/drivers/pci/intel-iommu.c
+@@ -563,7 +563,7 @@ static int __iommu_flush_context(struct 
+ 
+ 	spin_unlock_irqrestore(&iommu->register_lock, flag);
+ 
+-	/* flush context entry will implictly flush write buffer */
++	/* flush context entry will implicitly flush write buffer */
  	return 0;
-@@ -773,8 +773,8 @@ static int intel_i830_configure(void)
- 	if (agp_bridge->driver->needs_scratch_page) {
- 		for (i = intel_private.gtt_entries; i < current_size->num_entries; i++) {
- 			writel(agp_bridge->scratch_page, intel_private.registers+I810_PTE_BASE+(i*4));
--			readl(intel_private.registers+I810_PTE_BASE+(i*4));	/* PCI Posting. */
- 		}
-+		readl(intel_private.registers+I810_PTE_BASE+((i-1)*4));	/* PCI Posting. */
- 	}
+ }
  
- 	global_cache_flush();
-@@ -989,8 +989,8 @@ static int intel_i915_configure(void)
- 	if (agp_bridge->driver->needs_scratch_page) {
- 		for (i = intel_private.gtt_entries; i < current_size->num_entries; i++) {
- 			writel(agp_bridge->scratch_page, intel_private.gtt+i);
--			readl(intel_private.gtt+i);	/* PCI Posting. */
- 		}
-+		readl(intel_private.gtt+i-1);	/* PCI Posting. */
- 	}
+@@ -656,7 +656,7 @@ static int __iommu_flush_iotlb(struct in
+ 	if (DMA_TLB_IAIG(val) != DMA_TLB_IIRG(type))
+ 		pr_debug("IOMMU: tlb flush request %Lx, actual %Lx\n",
+ 			DMA_TLB_IIRG(type), DMA_TLB_IAIG(val));
+-	/* flush context entry will implictly flush write buffer */
++	/* flush iotlb entry will implicitly flush write buffer */
+ 	return 0;
+ }
  
- 	global_cache_flush();
 _
 
-Patches currently in -mm which might be from keithp@keithp.com are
+Patches currently in -mm which might be from 2ameya@gmail.com are
 
-agp-reduce-extraneous-pci-posting-reads-during-intel-agp-initialization.patch
-intelfb-support-i854.patch
+intel-iommu-typo-fix-and-correct-word-in-the-comment.patch
 
