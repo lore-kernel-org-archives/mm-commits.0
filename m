@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pc8736x_gpio-add-support-for-pc87365-chips.patch added to -mm tree
-Date: Thu, 16 Oct 2008 12:07:20 -0700
-Message-ID: <200810161907.m9GJ7Ktx004536@imap1.linux-foundation.org>
+Subject: + fix-documentation-of-sysrq-q.patch added to -mm tree
+Date: Thu, 16 Oct 2008 12:08:07 -0700
+Message-ID: <200810161908.m9GJ87rs004626@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45189 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33318 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755931AbYJPTH1 (ORCPT
+	by vger.kernel.org with ESMTP id S1756103AbYJPTIm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 15:07:27 -0400
+	Thu, 16 Oct 2008 15:08:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andre@bitwigglers.org, jim.cromie@gmail.com
+Cc: andi@firstfloor.org, ak@linux.intel.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     pc8736x_gpio: add support for PC87365 chips
+     Fix documentation of sysrq-q
 has been added to the -mm tree.  Its filename is
-     pc8736x_gpio-add-support-for-pc87365-chips.patch
+     fix-documentation-of-sysrq-q.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pc8736x_gpio: add support for PC87365 chips
-From: Andre Haupt <andre@bitwigglers.org>
+Subject: Fix documentation of sysrq-q
+From: Andi Kleen <andi@firstfloor.org>
 
-This is only compile tested, because I do not own appropriate hardware.
+I fell into the trap recently that it only dumps hrtimers instead of
+all timers. Fix the documentation.
 
-Signed-off-by: Andre Haupt <andre@bitwigglers.org>
-Cc: Jim Cromie <jim.cromie@gmail.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/pc8736x_gpio.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ Documentation/sysrq.txt |    3 ++-
+ drivers/char/sysrq.c    |    2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/pc8736x_gpio.c~pc8736x_gpio-add-support-for-pc87365-chips drivers/char/pc8736x_gpio.c
---- a/drivers/char/pc8736x_gpio.c~pc8736x_gpio-add-support-for-pc87365-chips
-+++ a/drivers/char/pc8736x_gpio.c
-@@ -41,7 +41,8 @@ static u8 pc8736x_gpio_shadow[4];
- #define SIO_BASE2       0x4E	/* alt command-reg to check */
+diff -puN Documentation/sysrq.txt~fix-documentation-of-sysrq-q Documentation/sysrq.txt
+--- a/Documentation/sysrq.txt~fix-documentation-of-sysrq-q
++++ a/Documentation/sysrq.txt
+@@ -95,7 +95,8 @@ On all -  write a character to /proc/sys
  
- #define SIO_SID		0x20	/* SuperI/O ID Register */
--#define SIO_SID_VALUE	0xe9	/* Expected value in SuperI/O ID Register */
-+#define SIO_SID_PC87365	0xe5	/* Expected value in ID Register for PC87365 */
-+#define SIO_SID_PC87366	0xe9	/* Expected value in ID Register for PC87366 */
+ 'p'     - Will dump the current registers and flags to your console.
  
- #define SIO_CF1		0x21	/* chip config, bit0 is chip enable */
+-'q'     - Will dump a list of all running timers.
++'q'     - Will dump a list of all running hrtimers.
++	  WARNING: Does not cover any other timers
  
-@@ -91,13 +92,17 @@ static inline int superio_inb(int addr)
+ 'r'     - Turns off keyboard raw mode and sets it to XLATE.
  
- static int pc8736x_superio_present(void)
- {
-+	int id;
-+
- 	/* try the 2 possible values, read a hardware reg to verify */
- 	superio_cmd = SIO_BASE1;
--	if (superio_inb(SIO_SID) == SIO_SID_VALUE)
-+	id = superio_inb(SIO_SID);
-+	if (id == SIO_SID_PC87365 || id == SIO_SID_PC87366)
- 		return superio_cmd;
+diff -puN drivers/char/sysrq.c~fix-documentation-of-sysrq-q drivers/char/sysrq.c
+--- a/drivers/char/sysrq.c~fix-documentation-of-sysrq-q
++++ a/drivers/char/sysrq.c
+@@ -168,7 +168,7 @@ static void sysrq_handle_show_timers(int
+ static struct sysrq_key_op sysrq_show_timers_op = {
+ 	.handler	= sysrq_handle_show_timers,
+ 	.help_msg	= "show-all-timers(Q)",
+-	.action_msg	= "Show Pending Timers",
++	.action_msg	= "Show pending hrtimers (no others)",
+ };
  
- 	superio_cmd = SIO_BASE2;
--	if (superio_inb(SIO_SID) == SIO_SID_VALUE)
-+	id = superio_inb(SIO_SID);
-+	if (id == SIO_SID_PC87365 || id == SIO_SID_PC87366)
- 		return superio_cmd;
- 
- 	return 0;
+ static void sysrq_handle_mountro(int key, struct tty_struct *tty)
 _
 
-Patches currently in -mm which might be from andre@bitwigglers.org are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
-pc8736x_gpio-add-support-for-pc87365-chips.patch
+origin.patch
+make-taint-bit-reliable-v3.patch
+taint-fix-kernel-doc.patch
+submittingpatches-add-a-reference-to-andis-ols-paper.patch
+add-kerneldoc-documentation-for-new-printk-format-extensions.patch
+pnp-make-the-resource-type-an-unsigned-long.patch
+acpi-compal-laptop-use-rfkill-switch-subsystem.patch
+fix-documentation-of-sysrq-q.patch
+coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
+add-config_core_dump_default_elf_headers.patch
+acpi-use-bcd2bin-bin2bcd.patch
+profile-likely-unlikely-macros.patch
 
