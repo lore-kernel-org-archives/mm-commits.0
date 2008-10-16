@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-remove-lookup_parent-from-non-lookup_parent-lookup.patch added to -mm tree
-Date: Thu, 16 Oct 2008 15:30:07 -0700
-Message-ID: <200810162230.m9GMU71L030921@imap1.linux-foundation.org>
+Subject: + vfs-replace-parent-==-dentry-d_parent-by-is_root.patch added to -mm tree
+Date: Thu, 16 Oct 2008 15:29:59 -0700
+Message-ID: <200810162229.m9GMTx5K030886@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43219 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45225 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756078AbYJPWas (ORCPT
+	by vger.kernel.org with ESMTP id S1756490AbYJPWal (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 18:30:48 -0400
+	Thu, 16 Oct 2008 18:30:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hirofumi@mail.parknet.co.jp, hch@lst.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     vfs: remove LOOKUP_PARENT from non LOOKUP_PARENT lookup
+     vfs: replace parent == dentry->d_parent by IS_ROOT()
 has been added to the -mm tree.  Its filename is
-     vfs-remove-lookup_parent-from-non-lookup_parent-lookup.patch
+     vfs-replace-parent-==-dentry-d_parent-by-is_root.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,8 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: remove LOOKUP_PARENT from non LOOKUP_PARENT lookup
+Subject: vfs: replace parent == dentry->d_parent by IS_ROOT()
 From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-
-lookup_hash() with LOOKUP_PARENT is bogus. And this prepares to add
-new intent on those path.
-
-The user of LOOKUP_PARENT intent is nfs only, and it checks whether
-nd->flags has LOOKUP_CREATE or LOOKUP_OPEN, so the result is same.
 
 Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -49,61 +43,87 @@ Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |   27 ++++++++++++++++++---------
- 1 file changed, 18 insertions(+), 9 deletions(-)
+ fs/dcache.c |   21 ++++++++++++---------
+ fs/namei.c  |    4 ++--
+ 2 files changed, 14 insertions(+), 11 deletions(-)
 
-diff -puN fs/namei.c~vfs-remove-lookup_parent-from-non-lookup_parent-lookup fs/namei.c
---- a/fs/namei.c~vfs-remove-lookup_parent-from-non-lookup_parent-lookup
-+++ a/fs/namei.c
-@@ -2186,16 +2186,19 @@ static long do_rmdir(int dfd, const char
- 		return error;
+diff -puN fs/dcache.c~vfs-replace-parent-==-dentry-d_parent-by-is_root fs/dcache.c
+--- a/fs/dcache.c~vfs-replace-parent-==-dentry-d_parent-by-is_root
++++ a/fs/dcache.c
+@@ -174,9 +174,12 @@ static struct dentry *d_kill(struct dent
+ 	dentry_stat.nr_dentry--;	/* For d_free, below */
+ 	/*drops the locks, at that point nobody can reach this dentry */
+ 	dentry_iput(dentry);
+-	parent = dentry->d_parent;
++	if (IS_ROOT(dentry))
++		parent = NULL;
++	else
++		parent = dentry->d_parent;
+ 	d_free(dentry);
+-	return dentry == parent ? NULL : parent;
++	return parent;
+ }
  
- 	switch(nd.last_type) {
--		case LAST_DOTDOT:
--			error = -ENOTEMPTY;
--			goto exit1;
--		case LAST_DOT:
--			error = -EINVAL;
--			goto exit1;
--		case LAST_ROOT:
--			error = -EBUSY;
--			goto exit1;
-+	case LAST_DOTDOT:
-+		error = -ENOTEMPTY;
-+		goto exit1;
-+	case LAST_DOT:
-+		error = -EINVAL;
-+		goto exit1;
-+	case LAST_ROOT:
-+		error = -EBUSY;
-+		goto exit1;
+ /* 
+@@ -666,11 +669,12 @@ static void shrink_dcache_for_umount_sub
+ 				BUG();
+ 			}
+ 
+-			parent = dentry->d_parent;
+-			if (parent == dentry)
++			if (IS_ROOT(dentry))
+ 				parent = NULL;
+-			else
++			else {
++				parent = dentry->d_parent;
+ 				atomic_dec(&parent->d_count);
++			}
+ 
+ 			list_del(&dentry->d_u.d_child);
+ 			detached++;
+@@ -1723,7 +1727,7 @@ static int d_isparent(struct dentry *p1,
+ {
+ 	struct dentry *p;
+ 
+-	for (p = p2; p->d_parent != p; p = p->d_parent) {
++	for (p = p2; !IS_ROOT(p); p = p->d_parent) {
+ 		if (p->d_parent == p1)
+ 			return 1;
  	}
-+
-+	nd.flags &= ~LOOKUP_PARENT;
-+
- 	mutex_lock_nested(&nd.path.dentry->d_inode->i_mutex, I_MUTEX_PARENT);
- 	dentry = lookup_hash(&nd);
- 	error = PTR_ERR(dentry);
-@@ -2277,6 +2280,9 @@ static long do_unlinkat(int dfd, const c
- 	error = -EISDIR;
- 	if (nd.last_type != LAST_NORM)
- 		goto exit1;
-+
-+	nd.flags &= ~LOOKUP_PARENT;
-+
- 	mutex_lock_nested(&nd.path.dentry->d_inode->i_mutex, I_MUTEX_PARENT);
- 	dentry = lookup_hash(&nd);
- 	error = PTR_ERR(dentry);
-@@ -2676,6 +2682,9 @@ asmlinkage long sys_renameat(int olddfd,
- 	if (newnd.last_type != LAST_NORM)
- 		goto exit2;
+@@ -2168,10 +2172,9 @@ int is_subdir(struct dentry * new_dentry
+ 		seq = read_seqbegin(&rename_lock);
+ 		for (;;) {
+ 			if (new_dentry != old_dentry) {
+-				struct dentry * parent = new_dentry->d_parent;
+-				if (parent == new_dentry)
++				if (IS_ROOT(new_dentry))
+ 					break;
+-				new_dentry = parent;
++				new_dentry = new_dentry->d_parent;
+ 				continue;
+ 			}
+ 			result = 1;
+diff -puN fs/namei.c~vfs-replace-parent-==-dentry-d_parent-by-is_root fs/namei.c
+--- a/fs/namei.c~vfs-replace-parent-==-dentry-d_parent-by-is_root
++++ a/fs/namei.c
+@@ -1454,7 +1454,7 @@ struct dentry *lock_rename(struct dentry
  
-+	oldnd.flags &= ~LOOKUP_PARENT;
-+	newnd.flags &= ~LOOKUP_PARENT;
-+
- 	trap = lock_rename(new_dir, old_dir);
+ 	mutex_lock(&p1->d_inode->i_sb->s_vfs_rename_mutex);
  
- 	old_dentry = lookup_hash(&oldnd);
+-	for (p = p1; p->d_parent != p; p = p->d_parent) {
++	for (p = p1; !IS_ROOT(p); p = p->d_parent) {
+ 		if (p->d_parent == p2) {
+ 			mutex_lock_nested(&p2->d_inode->i_mutex, I_MUTEX_PARENT);
+ 			mutex_lock_nested(&p1->d_inode->i_mutex, I_MUTEX_CHILD);
+@@ -1462,7 +1462,7 @@ struct dentry *lock_rename(struct dentry
+ 		}
+ 	}
+ 
+-	for (p = p2; p->d_parent != p; p = p->d_parent) {
++	for (p = p2; !IS_ROOT(p); p = p->d_parent) {
+ 		if (p->d_parent == p1) {
+ 			mutex_lock_nested(&p1->d_inode->i_mutex, I_MUTEX_PARENT);
+ 			mutex_lock_nested(&p2->d_inode->i_mutex, I_MUTEX_CHILD);
 _
 
 Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
