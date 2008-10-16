@@ -1,86 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - cpuset-use-seq_cpumask-seq_nodemask.patch removed from -mm tree
-Date: Thu, 16 Oct 2008 12:54:59 -0700
-Message-ID: <200810161954.m9GJsx8A010587@imap1.linux-foundation.org>
+Subject: + gpio-modify-sysfs-gpio-export-so-that-value-displays-as-0-or-1.patch added to -mm tree
+Date: Thu, 16 Oct 2008 12:59:43 -0700
+Message-ID: <200810161959.m9GJxhcm011236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36583 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53477 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752258AbYJPTzd (ORCPT
+	by vger.kernel.org with ESMTP id S1753753AbYJPUAJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 15:55:33 -0400
+	Thu, 16 Oct 2008 16:00:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, pj@sgi.com, travis@sgi.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sfalco@harris.com, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     cpuset: use seq_cpumask(), seq_nodemask()
-has been removed from the -mm tree.  Its filename was
-     cpuset-use-seq_cpumask-seq_nodemask.patch
+     gpio: modify sysfs gpio export so that "value" displays as 0 or 1
+has been added to the -mm tree.  Its filename is
+     gpio-modify-sysfs-gpio-export-so-that-value-displays-as-0-or-1.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset: use seq_cpumask(), seq_nodemask()
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: gpio: modify sysfs gpio export so that "value" displays as 0 or 1
+From: "Steven A. Falco" <sfalco@harris.com>
 
--ENOCHANGELOG
+gpiolib can export GPIOs to userspace via sysfs.  This patch modifies the
+gpio_value_show() so that any non-zero value is explicitly printed as "1",
+rather than whatever numerical value the lower-level driver returns.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Steve Falco <sfalco@harris.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/gpio/gpiolib.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/cpuset.c~cpuset-use-seq_cpumask-seq_nodemask kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-use-seq_cpumask-seq_nodemask
-+++ a/kernel/cpuset.c
-@@ -2444,16 +2444,14 @@ const struct file_operations proc_cpuset
- void cpuset_task_status_allowed(struct seq_file *m, struct task_struct *task)
- {
- 	seq_printf(m, "Cpus_allowed:\t");
--	m->count += cpumask_scnprintf(m->buf + m->count, m->size - m->count,
--					task->cpus_allowed);
-+	seq_cpumask(m, &task->cpus_allowed);
- 	seq_printf(m, "\n");
- 	seq_printf(m, "Cpus_allowed_list:\t");
- 	m->count += cpulist_scnprintf(m->buf + m->count, m->size - m->count,
- 					task->cpus_allowed);
- 	seq_printf(m, "\n");
- 	seq_printf(m, "Mems_allowed:\t");
--	m->count += nodemask_scnprintf(m->buf + m->count, m->size - m->count,
--					task->mems_allowed);
-+	seq_nodemask(m, &task->mems_allowed);
- 	seq_printf(m, "\n");
- 	seq_printf(m, "Mems_allowed_list:\t");
- 	m->count += nodelist_scnprintf(m->buf + m->count, m->size - m->count,
+diff -puN drivers/gpio/gpiolib.c~gpio-modify-sysfs-gpio-export-so-that-value-displays-as-0-or-1 drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpio-modify-sysfs-gpio-export-so-that-value-displays-as-0-or-1
++++ a/drivers/gpio/gpiolib.c
+@@ -248,7 +248,7 @@ static ssize_t gpio_value_show(struct de
+ 	if (!test_bit(FLAG_EXPORT, &desc->flags))
+ 		status = -EIO;
+ 	else
+-		status = sprintf(buf, "%d\n", gpio_get_value_cansleep(gpio));
++		status = sprintf(buf, "%d\n", !!gpio_get_value_cansleep(gpio));
+ 
+ 	mutex_unlock(&sysfs_lock);
+ 	return status;
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from sfalco@harris.com are
 
 origin.patch
-alpha-notify_cpu_starting-compile-fixlet.patch
-compat_binfmt_elf-definition-tweak.patch
-proc-move-sysrq-trigger-out-of-fs-proc.patch
-sysctl-simplify-strategy.patch
-git-vfs.patch
-tags-skip-in-filenames.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-seq_file-dont-call-bitmap_scnprintf_len.patch
-seq_file-add-seq_cpumask_list-seq_nodemask_list.patch
-cpuset-use-seq_mask_-to-print-masks.patch
-bitmask-remove-bitmap_scnprintf_len.patch
-cpuset-use-seq_cpumask-seq_nodemask.patch
-fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out.patch
-fs-kconfig-move-cifs-out.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
+rtc-rtc-m41t80c-add-support-for-the-st-m41t65-rtc.patch
+gpio-modify-sysfs-gpio-export-so-that-value-displays-as-0-or-1.patch
 
