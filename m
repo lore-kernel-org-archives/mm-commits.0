@@ -1,78 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - wm97xx-fix-module-build-error-with-battery-driver.patch removed from -mm tree
-Date: Thu, 16 Oct 2008 18:08:26 -0700
-Message-ID: <200810170108.m9H18QQR018620@imap1.linux-foundation.org>
+Subject: + memcg-allocate-all-page_cgroup-at-boot-fixpatch.patch added to -mm tree
+Date: Thu, 16 Oct 2008 18:57:47 -0700
+Message-ID: <200810170157.m9H1vlw0024506@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39811 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34238 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751029AbYJQBJm (ORCPT
+	by vger.kernel.org with ESMTP id S1751340AbYJQB5y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 16 Oct 2008 21:09:42 -0400
+	Thu, 16 Oct 2008 21:57:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: herbert@gondor.apana.org.au, broonie@opensource.wolfsonmicro.com, cbouatmailru@gmail.com, marek.vasut@gmail.com, rmk+kernel@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     wm97xx: fix module build error with battery driver
-has been removed from the -mm tree.  Its filename was
-     wm97xx-fix-module-build-error-with-battery-driver.patch
+     memcg-allocate-all-page_cgroup-at-boot-fix.patch
+has been added to the -mm tree.  Its filename is
+     memcg-allocate-all-page_cgroup-at-boot-fixpatch.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wm97xx: fix module build error with battery driver
-From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: memcg-allocate-all-page_cgroup-at-boot-fix.patch
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-I had
+compile fix to memcg-allocate-all-page_cgroup-at-boot.patch
 
-CONFIG_TOUCHSCREEN_WM97XX=m
-CONFIG_BATTERY_WM97XX=y
-
-and the build failed with
-
-drivers/built-in.o: In function `wm97xx_bat_get_property':
-wm97xx_battery.c:(.text+0x76144): undefined reference to `wm97xx_read_aux_adc'
-wm97xx_battery.c:(.text+0x761ff): undefined reference to `wm97xx_read_aux_adc'
-make: *** [.tmp_vmlinux1] Error 1
-
-which is quite understandable.
-
-Since the battery driver appears to be a fully functional module
-this patch changes the Makefile to let it be built as such.
-
-Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Marek Vasut <marek.vasut@gmail.com>
-Cc: Anton Vorontsov <cbouatmailru@gmail.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/Makefile |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/Makefile |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/power/Makefile~wm97xx-fix-module-build-error-with-battery-driver drivers/power/Makefile
---- a/drivers/power/Makefile~wm97xx-fix-module-build-error-with-battery-driver
-+++ a/drivers/power/Makefile
-@@ -21,4 +21,8 @@ obj-$(CONFIG_BATTERY_DS2760)	+= ds2760_b
- obj-$(CONFIG_BATTERY_PMU)	+= pmu_battery.o
- obj-$(CONFIG_BATTERY_OLPC)	+= olpc_battery.o
- obj-$(CONFIG_BATTERY_TOSA)	+= tosa_battery.o
--obj-$(CONFIG_BATTERY_WM97XX)	+= wm97xx_battery.o
-\ No newline at end of file
-+
-+ifeq ($(CONFIG_BATTERY_WM97XX),y)
-+obj-$(CONFIG_TOUCHSCREEN_WM97XX) += wm97xx_battery.o
-+endif
-+
+diff -puN mm/Makefile~memcg-allocate-all-page_cgroup-at-boot-fixpatch mm/Makefile
+--- a/mm/Makefile~memcg-allocate-all-page_cgroup-at-boot-fixpatch
++++ a/mm/Makefile
+@@ -33,5 +33,4 @@ obj-$(CONFIG_FS_XIP) += filemap_xip.o
+ obj-$(CONFIG_MIGRATION) += migrate.o
+ obj-$(CONFIG_SMP) += allocpercpu.o
+ obj-$(CONFIG_QUICKLIST) += quicklist.o
+-obj-$(CONFIG_CGROUP_MEM_RES_CTLR) += memcontrol.o
+-
++obj-$(CONFIG_CGROUP_MEM_RES_CTLR) += memcontrol.o page_cgroup.o
 _
 
-Patches currently in -mm which might be from herbert@gondor.apana.org.au are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-origin.patch
-wm97xx-fix-module-build-error-with-battery-driver.patch
+memrlimit-cgroup-mm-owner-callback-changes-to-add-task-info.patch
+drivers-mfd-ucb1400_corec-further-unbork.patch
+vmscan-split-lru-lists-into-anon-file-sets-memcg-fix-handling-of-shmem-migrationv2.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-infrastructure-remember-pages-active-state.patch
+unevictable-lru-infrastructure-defer-vm-event-counting.patch
+unevictable-infrastructure-lru-add-event-counting-with-statistics.patch
+shm_locked-pages-are-unevictable-add-event-counts-to-list-scan.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch
+mm-rewrite-vmap-layer-fix-fix.patch
+mm-rewrite-vmap-layer-fix-fix-fix.patch
+setup_per_zone_pages_min-take-zone-lock-instead-of-zone-lru_lock.patch
+documentation-clarify-dirty_ratio-and-dirty_background_ratio-description-v2.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-cgroups-eliminate-race-in-css_set-refcounting.patch
+cgroups-convert-tasks-file-to-use-a-seq_file-with-shared-pid-array.patch
+memcg-move-charge-swapin-under-lock.patch
+memcg-make-page-mapping-null-before-uncharge.patch
+memcg-avoid-accounting-special-pages.patch
+memcg-optimize-per-cpu-statistics.patch
+memcg-atomic-ops-for-page_cgroup-flags.patch
+memcg-allocate-all-page_cgroup-at-boot.patch
+memcg-allocate-all-page_cgroup-at-boot-fixpatch.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-setup-the-memrlimit-controller-mm_owner-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
 
