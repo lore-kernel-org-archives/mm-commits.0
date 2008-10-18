@@ -1,74 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - leds-make-the-default-trigger-name-const.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:20:59 -0700
-Message-ID: <200810182320.m9INKxlH029868@imap1.linux-foundation.org>
+Subject: - rtc-rtc-ds1286-and-rtc-m48t35-need-linux-ioh.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:20:41 -0700
+Message-ID: <200810182320.m9INKf7A029808@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59855 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34289 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751972AbYJRXVN (ORCPT
+	by vger.kernel.org with ESMTP id S1751968AbYJRXVH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:21:13 -0400
+	Sat, 18 Oct 2008 19:21:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tpiepho@freescale.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, ralf@linux-mips.org, tsbogend@alpha.franken.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     leds: make the default trigger name const
+     rtc: rtc-ds1286 and rtc-m48t35 need <linux/io.h>
 has been removed from the -mm tree.  Its filename was
-     leds-make-the-default-trigger-name-const.patch
+     rtc-rtc-ds1286-and-rtc-m48t35-need-linux-ioh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: make the default trigger name const
-From: Trent Piepho <tpiepho@freescale.com>
+Subject: rtc: rtc-ds1286 and rtc-m48t35 need <linux/io.h>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-The default_trigger fields of struct gpio_led and thus struct led_classdev
-are pretty much always assigned from a string literal, which means the
-string can't be modified.  Which is fine, since there is no reason to
-modify the string and in fact it never is.
+With m68k allmodconfig, I get:
 
-But they should be marked const to prevent such code from being added, to
-prevent warnings if -Wwrite-strings is used, when assigned from a constant
-string other than a string literal (which produces a warning under current
-kernel compiler flags), and for general good coding practices.
+| drivers/rtc/rtc-ds1286.c: In function 'ds1286_rtc_read':
+| drivers/rtc/rtc-ds1286.c:33: error: implicit declaration of function '__raw_readl'
+| drivers/rtc/rtc-ds1286.c: In function 'ds1286_rtc_write':
+| drivers/rtc/rtc-ds1286.c:38: error: implicit declaration of function '__raw_writel'
+| drivers/rtc/rtc-ds1286.c: In function 'ds1286_probe':
+| drivers/rtc/rtc-ds1286.c:345: error: implicit declaration of function 'ioremap'
+| drivers/rtc/rtc-ds1286.c:345: warning: assignment makes pointer from integer without a cast
+| drivers/rtc/rtc-ds1286.c:365: error: implicit declaration of function 'iounmap'
 
-Signed-off-by: Trent Piepho <tpiepho@freescale.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+and
+
+| drivers/rtc/rtc-m48t35.c: In function 'm48t35_read_time':
+| drivers/rtc/rtc-m48t35.c:59: error: implicit declaration of function 'readb'
+| drivers/rtc/rtc-m48t35.c:60: error: implicit declaration of function 'writeb'
+| drivers/rtc/rtc-m48t35.c: In function 'm48t35_probe':
+| drivers/rtc/rtc-m48t35.c:168: error: implicit declaration of function 'ioremap'
+| drivers/rtc/rtc-m48t35.c:168: warning: assignment makes pointer from integer without a cast
+| drivers/rtc/rtc-m48t35.c:188: error: implicit declaration of function 'iounmap'
+
+Include <linux/io.h> to get access to the I/O API.
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/leds.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-ds1286.c |    1 +
+ drivers/rtc/rtc-m48t35.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN include/linux/leds.h~leds-make-the-default-trigger-name-const include/linux/leds.h
---- a/include/linux/leds.h~leds-make-the-default-trigger-name-const
-+++ a/include/linux/leds.h
-@@ -123,7 +123,7 @@ extern void ledtrig_ide_activity(void);
-  */
- struct led_info {
- 	const char	*name;
--	char		*default_trigger;
-+	const char	*default_trigger;
- 	int		flags;
- };
+diff -puN drivers/rtc/rtc-ds1286.c~rtc-rtc-ds1286-and-rtc-m48t35-need-linux-ioh drivers/rtc/rtc-ds1286.c
+--- a/drivers/rtc/rtc-ds1286.c~rtc-rtc-ds1286-and-rtc-m48t35-need-linux-ioh
++++ a/drivers/rtc/rtc-ds1286.c
+@@ -17,6 +17,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/bcd.h>
+ #include <linux/ds1286.h>
++#include <linux/io.h>
  
-@@ -135,7 +135,7 @@ struct led_platform_data {
- /* For the leds-gpio driver */
- struct gpio_led {
- 	const char *name;
--	char *default_trigger;
-+	const char *default_trigger;
- 	unsigned 	gpio;
- 	u8 		active_low;
- };
+ #define DRV_VERSION		"1.0"
+ 
+diff -puN drivers/rtc/rtc-m48t35.c~rtc-rtc-ds1286-and-rtc-m48t35-need-linux-ioh drivers/rtc/rtc-m48t35.c
+--- a/drivers/rtc/rtc-m48t35.c~rtc-rtc-ds1286-and-rtc-m48t35-need-linux-ioh
++++ a/drivers/rtc/rtc-m48t35.c
+@@ -18,6 +18,7 @@
+ #include <linux/rtc.h>
+ #include <linux/platform_device.h>
+ #include <linux/bcd.h>
++#include <linux/io.h>
+ 
+ #define DRV_VERSION		"1.0"
+ 
 _
 
-Patches currently in -mm which might be from tpiepho@freescale.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
+arch-m68k-bvme6000-rtcc-remove-duplicated-include.patch
 
