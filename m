@@ -1,99 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - mlock-make-mlock-error-return-posixly-correct-fix.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:39:41 -0700
-Message-ID: <200810182339.m9INdfuj032554@imap1.linux-foundation.org>
+Subject: - memory_probe-fix-wrong-sysfs-file-attribute-fix.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:40:15 -0700
+Message-ID: <200810182340.m9INeFm7032642@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37334 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54454 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751056AbYJRXjq (ORCPT
+	by vger.kernel.org with ESMTP id S1750958AbYJRXk3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:39:46 -0400
+	Sat, 18 Oct 2008 19:40:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, randy.dunlap@oracle.com, shaohua.li@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mlock-make-mlock-error-return-posixly-correct-fix
+     memory_probe-fix-wrong-sysfs-file-attribute-fix
 has been removed from the -mm tree.  Its filename was
-     mlock-make-mlock-error-return-posixly-correct-fix.patch
+     memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
 
-This patch was dropped because it was folded into mlock-make-mlock-error-return-posixly-correct.patch
+This patch was dropped because it was folded into memory_probe-fix-wrong-sysfs-file-attribute.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlock-make-mlock-error-return-posixly-correct-fix
+Subject: memory_probe-fix-wrong-sysfs-file-attribute-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/mlock.c: In function 'mlock_fixup':
-mm/mlock.c:468: error: implicit declaration of function '__mlock_posix_error_return'
+Use S_IWUSR as suggested by Randy.
 
-Documentation/SubmitChecklist considered useful...
-
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   30 ++++++++++++++++++------------
- 1 file changed, 18 insertions(+), 12 deletions(-)
+ drivers/base/memory.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/mlock.c~mlock-make-mlock-error-return-posixly-correct-fix mm/mlock.c
---- a/mm/mlock.c~mlock-make-mlock-error-return-posixly-correct-fix
-+++ a/mm/mlock.c
-@@ -143,18 +143,6 @@ static void munlock_vma_page(struct page
- 	}
- }
- 
--/*
-- * convert get_user_pages() return value to posix mlock() error
-- */
--static int __mlock_posix_error_return(long retval)
--{
--	if (retval == -EFAULT)
--		retval = -ENOMEM;
--	else if (retval == -ENOMEM)
--		retval = -EAGAIN;
--	return retval;
--}
--
- /**
-  * __mlock_vma_pages_range() -  mlock/munlock a range of pages in the vma.
-  * @vma:   target vma
-@@ -268,6 +256,18 @@ static long __mlock_vma_pages_range(stru
- 	return ret;	/* count entire vma as locked_vm */
- }
- 
-+/*
-+ * convert get_user_pages() return value to posix mlock() error
-+ */
-+static int __mlock_posix_error_return(long retval)
-+{
-+	if (retval == -EFAULT)
-+		retval = -ENOMEM;
-+	else if (retval == -ENOMEM)
-+		retval = -EAGAIN;
-+	return retval;
-+}
+diff -puN drivers/base/memory.c~memory_probe-fix-wrong-sysfs-file-attribute-fix drivers/base/memory.c
+--- a/drivers/base/memory.c~memory_probe-fix-wrong-sysfs-file-attribute-fix
++++ a/drivers/base/memory.c
+@@ -21,6 +21,8 @@
+ #include <linux/memory_hotplug.h>
+ #include <linux/mm.h>
+ #include <linux/mutex.h>
++#include <linux/stat.h>
 +
- #else /* CONFIG_UNEVICTABLE_LRU */
+ #include <asm/atomic.h>
+ #include <asm/uaccess.h>
  
- /*
-@@ -281,6 +281,12 @@ static long __mlock_vma_pages_range(stru
- 		return make_pages_present(start, end);
- 	return 0;
+@@ -325,7 +327,7 @@ memory_probe_store(struct class *class, 
+ 
+ 	return count;
  }
-+
-+static inline int __mlock_posix_error_return(long retval)
-+{
-+	return 0;
-+}
-+
- #endif /* CONFIG_UNEVICTABLE_LRU */
+-static CLASS_ATTR(probe, 0200, NULL, memory_probe_store);
++static CLASS_ATTR(probe, S_IWUSR, NULL, memory_probe_store);
  
- /**
+ static int memory_probe_init(void)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -109,8 +73,8 @@ mlock-mlocked-pages-are-unevictable.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap.patch
 vmscan-unevictable-lru-scan-sysctl.patch
 mlock-make-mlock-error-return-posixly-correct.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
 mm-rewrite-vmap-layer.patch
+memory_probe-fix-wrong-sysfs-file-attribute.patch
 memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
 container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
 container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
