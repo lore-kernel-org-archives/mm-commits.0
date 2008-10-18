@@ -1,183 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - w1-ds2490c-optimize-ds_set_pullup.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:20:20 -0700
-Message-ID: <200810182320.m9INKKAA029742@imap1.linux-foundation.org>
+Subject: - w1-ds2490c-magic-number-work.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:20:17 -0700
+Message-ID: <200810182320.m9INKHXd029713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35901 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49658 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751925AbYJRXUj (ORCPT
+	by vger.kernel.org with ESMTP id S1751923AbYJRXUh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:20:39 -0400
+	Sat, 18 Oct 2008 19:20:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     W1: ds2490.c optimize ds_set_pullup
+     W1: ds2490.c magic number work
 has been removed from the -mm tree.  Its filename was
-     w1-ds2490c-optimize-ds_set_pullup.patch
+     w1-ds2490c-magic-number-work.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: W1: ds2490.c optimize ds_set_pullup
+Subject: W1: ds2490.c magic number work
 From: David Fries <david@fries.net>
 
-Optimize the ds_set_pullup function.  For a strong pullup to be sent the
-ds2490 has to have both the strong pullup mode enabled, and the specific
-write operation has to have the SPU bit enabled.  Previously the write
-always had the SPU bit enabled and both the duration and model was set
-when a strong pullup was requested.  Now the strong pullup mode is enabled
-at initialization time, the delay is updated only when the value changes,
-and the write SPU bit is set only when a strong pullup is required.  This
-removes two or three bus transactions per strong pullup request.
+This replaces some magic numbers with marcos and corrects one marco.
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds2490.c |   64 +++++++++++++++++++++++-----------
- 1 file changed, 45 insertions(+), 19 deletions(-)
+ drivers/w1/masters/ds2490.c |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-optimize-ds_set_pullup drivers/w1/masters/ds2490.c
---- a/drivers/w1/masters/ds2490.c~w1-ds2490c-optimize-ds_set_pullup
+diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-magic-number-work drivers/w1/masters/ds2490.c
+--- a/drivers/w1/masters/ds2490.c~w1-ds2490c-magic-number-work
 +++ a/drivers/w1/masters/ds2490.c
-@@ -141,6 +141,10 @@ struct ds_device
- 	 * 0: pullup not active, else duration in milliseconds
- 	 */
- 	int			spu_sleep;
-+	/* spu_bit contains COMM_SPU or 0 depending on if the strong pullup
-+	 * should be active or not for writes.
-+	 */
-+	u16			spu_bit;
+@@ -88,7 +88,7 @@
+ #define COMM_DT				0x2000
+ #define COMM_SPU			0x1000
+ #define COMM_F				0x0800
+-#define COMM_NTP			0x0400
++#define COMM_NTF			0x0400
+ #define COMM_ICP			0x0200
+ #define COMM_RST			0x0100
  
- 	struct w1_bus_master	master;
- };
-@@ -311,6 +315,25 @@ static void ds_dump_status(struct ds_dev
- 	}
- }
- 
-+static void ds_reset_device(struct ds_device *dev)
-+{
-+	ds_send_control_cmd(dev, CTL_RESET_DEVICE, 0);
-+	/* Always allow strong pullup which allow individual writes to use
-+	 * the strong pullup.
-+	 */
-+	if (ds_send_control_mode(dev, MOD_PULSE_EN, PULSE_SPUE))
-+		printk(KERN_ERR "ds_reset_device: "
-+			"Error allowing strong pullup\n");
-+	/* Chip strong pullup time was cleared. */
-+	if (dev->spu_sleep) {
-+		/* lower 4 bits are 0, see ds_set_pullup */
-+		u8 del = dev->spu_sleep>>4;
-+		if (ds_send_control(dev, COMM_SET_DURATION | COMM_IM, del))
-+			printk(KERN_ERR "ds_reset_device: "
-+				"Error setting duration\n");
-+	}
-+}
-+
- static int ds_recv_data(struct ds_device *dev, unsigned char *buf, int size)
- {
- 	int count, err;
-@@ -444,7 +467,7 @@ static int ds_wait_status(struct ds_devi
+@@ -440,7 +440,7 @@ static int ds_wait_status(struct ds_devi
+ 			printk("\n");
+ 		}
+ #endif
+-	} while(!(buf[0x08] & 0x20) && !(err < 0) && ++count < 100);
++	} while (!(buf[0x08] & ST_IDLE) && !(err < 0) && ++count < 100);
  
  	if (err >= 16 && st->status & ST_EPOF) {
  		printk(KERN_INFO "Resetting device after ST_EPOF.\n");
--		ds_send_control_cmd(dev, CTL_RESET_DEVICE, 0);
-+		ds_reset_device(dev);
- 		/* Always dump the device status. */
- 		count = 101;
- 	}
-@@ -509,24 +532,26 @@ static int ds_set_speed(struct ds_device
- 
- static int ds_set_pullup(struct ds_device *dev, int delay)
+@@ -470,8 +470,16 @@ static int ds_reset(struct ds_device *de
  {
--	int err;
-+	int err = 0;
- 	u8 del = 1 + (u8)(delay >> 4);
-+	/* Just storing delay would not get the trunication and roundup. */
-+	int ms = del<<4;
+ 	int err;
  
--	dev->spu_sleep = 0;
--	err = ds_send_control_mode(dev, MOD_PULSE_EN, delay ? PULSE_SPUE : 0);
--	if (err)
-+	/* Enable spu_bit if a delay is set. */
-+	dev->spu_bit = delay ? COMM_SPU : 0;
-+	/* If delay is zero, it has already been disabled, if the time is
-+	 * the same as the hardware was last programmed to, there is also
-+	 * nothing more to do.  Compare with the recalculated value ms
-+	 * rather than del or delay which can have a different value.
+-	//err = ds_send_control(dev, COMM_1_WIRE_RESET | COMM_F | COMM_IM | COMM_SE, SPEED_FLEXIBLE);
+-	err = ds_send_control(dev, 0x43, SPEED_NORMAL);
++	/* Other potentionally interesting flags for reset.
++	 *
++	 * COMM_NTF: Return result register feedback.  This could be used to
++	 * detect some conditions such as short, alarming presence, or
++	 * detect if a new device was detected.
++	 *
++	 * COMM_SE which allows SPEED_NORMAL, SPEED_FLEXIBLE, SPEED_OVERDRIVE:
++	 * Select the data transfer rate.
 +	 */
-+	if (delay == 0 || ms == dev->spu_sleep)
- 		return err;
- 
--	if (delay) {
--		err = ds_send_control(dev, COMM_SET_DURATION | COMM_IM, del);
--		if (err)
--			return err;
-+	err = ds_send_control(dev, COMM_SET_DURATION | COMM_IM, del);
-+	if (err)
-+		return err;
- 
--		/* Just storing delay would not get the trunication and
--		 * roundup.
--		 */
--		dev->spu_sleep = del<<4;
--	}
-+	dev->spu_sleep = ms;
- 
- 	return err;
- }
-@@ -577,11 +602,11 @@ static int ds_write_byte(struct ds_devic
- 	struct ds_status st;
- 	u8 rbyte;
- 
--	err = ds_send_control(dev, COMM_BYTE_IO | COMM_IM | COMM_SPU, byte);
-+	err = ds_send_control(dev, COMM_BYTE_IO | COMM_IM | dev->spu_bit, byte);
++	err = ds_send_control(dev, COMM_1_WIRE_RESET | COMM_IM, SPEED_NORMAL);
  	if (err)
  		return err;
  
--	if (dev->spu_sleep)
-+	if (dev->spu_bit)
- 		msleep(dev->spu_sleep);
- 
- 	err = ds_wait_status(dev, &st);
-@@ -648,11 +673,11 @@ static int ds_write_block(struct ds_devi
- 	if (err < 0)
- 		return err;
- 
--	err = ds_send_control(dev, COMM_BLOCK_IO | COMM_IM | COMM_SPU, len);
-+	err = ds_send_control(dev, COMM_BLOCK_IO | COMM_IM | dev->spu_bit, len);
- 	if (err)
- 		return err;
- 
--	if (dev->spu_sleep)
-+	if (dev->spu_bit)
- 		msleep(dev->spu_sleep);
- 
- 	ds_wait_status(dev, &st);
-@@ -849,7 +874,7 @@ static int ds_w1_init(struct ds_device *
- 	 * the input buffer.  This will cause the next read to fail
- 	 * see the note in ds_recv_data.
- 	 */
--	ds_send_control_cmd(dev, CTL_RESET_DEVICE, 0);
-+	ds_reset_device(dev);
- 
- 	dev->master.data	= dev;
- 	dev->master.touch_bit	= &ds9490r_touch_bit;
-@@ -892,6 +917,7 @@ static int ds_probe(struct usb_interface
- 		return -ENOMEM;
- 	}
- 	dev->spu_sleep = 0;
-+	dev->spu_bit = 0;
- 	dev->udev = usb_get_dev(udev);
- 	if (!dev->udev) {
- 		err = -ENOMEM;
 _
 
 Patches currently in -mm which might be from david@fries.net are
