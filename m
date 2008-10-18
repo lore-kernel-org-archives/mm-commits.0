@@ -1,97 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - vmscan-fix-pagecache-reclaim-referenced-bit-check-fix.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:34:16 -0700
-Message-ID: <200810182334.m9INYGMA031765@imap1.linux-foundation.org>
+Subject: - unevictable-lru-infrastructure-defer-vm-event-counting.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:35:15 -0700
+Message-ID: <200810182335.m9INZFqh031899@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34339 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44731 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750886AbYJRXeh (ORCPT
+	by vger.kernel.org with ESMTP id S1751388AbYJRXgK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:34:37 -0400
+	Sat, 18 Oct 2008 19:36:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: lee.schermerhorn@hp.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan-fix-pagecache-reclaim-referenced-bit-check-fix
+     unevictable lru:  defer vm event counting
 has been removed from the -mm tree.  Its filename was
-     vmscan-fix-pagecache-reclaim-referenced-bit-check-fix.patch
+     unevictable-lru-infrastructure-defer-vm-event-counting.patch
 
-This patch was dropped because it was folded into vmscan-fix-pagecache-reclaim-referenced-bit-check.patch
+This patch was dropped because it was folded into unevictable-lru-infrastructure.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan-fix-pagecache-reclaim-referenced-bit-check-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: unevictable lru:  defer vm event counting
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
+Fix to unevictable-lru-infrastructure.patch
+
+NORECL_* events are not defined this early in the series.  Remove the
+event counting from this patch and add in with unevictable lru statistics
+[subsequent patch].
+
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Rik van Riel <riel@redhat.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ mm/vmscan.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-fix-pagecache-reclaim-referenced-bit-check-fix mm/vmscan.c
---- a/mm/vmscan.c~vmscan-fix-pagecache-reclaim-referenced-bit-check-fix
+diff -puN mm/vmscan.c~unevictable-lru-infrastructure-defer-vm-event-counting mm/vmscan.c
+--- a/mm/vmscan.c~unevictable-lru-infrastructure-defer-vm-event-counting
 +++ a/mm/vmscan.c
-@@ -1095,14 +1095,13 @@ static void shrink_active_list(unsigned 
- 		cond_resched();
- 		page = lru_to_page(&l_hold);
- 		list_del(&page->lru);
-+
-+		/* page_referenced clears PageReferenced */
-+		if (page_mapping_inuse(page) &&
-+		    page_referenced(page, 0, sc->mem_cgroup))
-+			pgmoved++;
-+
- 		list_add(&page->lru, &l_inactive);
--		if (!page_mapping_inuse(page)) {
--			/*
--			 * Bypass use-once, make the next access count. See
--			 * mark_page_accessed and shrink_page_list.
--			 */
--			SetPageReferenced(page);
--		}
+@@ -533,7 +533,6 @@ void putback_lru_page(struct page *page)
+ {
+ 	int lru;
+ 	int active = !!TestClearPageActive(page);
+-	int was_unevictable = PageUnevictable(page);
+ 
+ 	VM_BUG_ON(PageLRU(page));
+ 
+@@ -575,11 +574,6 @@ redo:
+ 		 */
  	}
  
- 	/*
+- /*	if (was_unevictable && lru != LRU_UNEVICTABLE)
+-		count_vm_event(NORECL_PGRESCUED);
+-	else if (!was_unevictable && lru == LRU_UNEVICTABLE)
+-		count_vm_event(NORECL_PGCULLED);	*/
+-
+ 	put_page(page);		/* drop ref from isolate */
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lee.schermerhorn@hp.com are
 
-origin.patch
-mm-cleanup-to-make-remove_memory-arch-neutral.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
 define-page_file_cache-function.patch
 vmscan-split-lru-lists-into-anon-file-sets.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check-fix.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix-fix.patch
+pageflag-helpers-for-configed-out-flags.patch
 unevictable-lru-infrastructure.patch
+unevictable-lru-infrastructure-defer-vm-event-counting.patch
+unevictable-infrastructure-lru-add-event-counting-with-statistics.patch
 unevictable-lru-page-statistics.patch
+ramfs-and-ram-disk-pages-are-unevictable.patch
+shm_locked-pages-are-unevictable.patch
+shm_locked-pages-are-unevictable-add-event-counts-to-list-scan.patch
 mlock-mlocked-pages-are-unevictable.patch
+doc-unevictable-lru-and-mlocked-pages-documentation.patch
+doc-unevictable-lru-and-mlocked-pages-documentation-update.patch
+doc-unevictable-lru-and-mlocked-pages-documentation-update-2.patch
+mlock-downgrade-mmap-sem-while-populating-mlocked-regions.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-__mlock_vma_pages_range-comment-block.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-backout-locked_vm-adjustment-during-mmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-return-value-for-munmap-mlock-vma-race.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-update-locked_vm-on-munmap-of-mlocked-region.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch
+swap-cull-unevictable-pages-in-fault-path.patch
 vmscan-unevictable-lru-scan-sysctl.patch
+mlock-count-attempts-to-free-mlocked-page-2.patch
+mlock-revert-mainline-handling-of-mlock-error-return.patch
+mlock-make-mlock-error-return-posixly-correct.patch
 mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer.patch
-memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-drivers-hwmon-applesmcc-remove-unneeded-casts.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
 
