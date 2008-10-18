@@ -1,90 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: - mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:10:21 -0700
-Message-ID: <200810182310.m9INALjs027519@imap1.linux-foundation.org>
+Subject: - introduce-generic-header-file-for-the-software-io-tlb.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:10:14 -0700
+Message-ID: <200810182310.m9INAERL027487@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59519 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40795 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751040AbYJRXKa (ORCPT
+	by vger.kernel.org with ESMTP id S1750878AbYJRXKg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:10:30 -0400
+	Sat, 18 Oct 2008 19:10:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, elendil@planet.nl, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: joerg.roedel@amd.com, mingo@elte.hu, tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/page_alloc.c:free_area_init_nodes() fix inappropriate use of enum
+     introduce generic header file for the software IO/TLB
 has been removed from the -mm tree.  Its filename was
-     mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
+     introduce-generic-header-file-for-the-software-io-tlb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/page_alloc.c:free_area_init_nodes() fix inappropriate use of enum
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: introduce generic header file for the software IO/TLB
+From: Joerg Roedel <joerg.roedel@amd.com>
 
-Local variable `i' is a) misleadingly-named for an `enum zone_type' and b)
-used for indexing zones as well as nodes as well as node_maps.
+A series of patches introduce a generic header file for the software
+IO/TLB implementation in lib/swiotlb.c.  Currently each architecture using
+this code defines the prototypes itself.  The prototypes are moved to
+include/linux/swiotlb.h and this file is included in architecture specific
+code for X86 and IA64.
 
-Make it an `int'.
+This patch:
 
-Reported-by: Frans Pop <elendil@planet.nl>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Create include/linux/swiotlb.h file which contains all function prototypes
+for the lib/swiotlb.c file.
+
+(akpm: the dependent patches will be trickled through arch trees)
+
+Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/swiotlb.h |   83 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 83 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum
-+++ a/mm/page_alloc.c
-@@ -3952,7 +3952,7 @@ static void check_for_regular_memory(pg_
- void __init free_area_init_nodes(unsigned long *max_zone_pfn)
- {
- 	unsigned long nid;
--	enum zone_type i;
-+	int i;
- 
- 	/* Sort early_node_map as initialisation assumes it is sorted */
- 	sort_node_map();
+diff -puN /dev/null include/linux/swiotlb.h
+--- /dev/null
++++ a/include/linux/swiotlb.h
+@@ -0,0 +1,83 @@
++#ifndef __LINUX_SWIOTLB_H
++#define __LINUX_SWIOTLB_H
++
++#include <linux/types.h>
++
++struct device;
++struct dma_attrs;
++struct scatterlist;
++
++extern void
++swiotlb_init(void);
++
++extern void
++*swiotlb_alloc_coherent(struct device *hwdev, size_t size,
++			dma_addr_t *dma_handle, gfp_t flags);
++
++extern void
++swiotlb_free_coherent(struct device *hwdev, size_t size,
++		      void *vaddr, dma_addr_t dma_handle);
++
++extern dma_addr_t
++swiotlb_map_single(struct device *hwdev, void *ptr, size_t size, int dir);
++
++extern void
++swiotlb_unmap_single(struct device *hwdev, dma_addr_t dev_addr,
++		     size_t size, int dir);
++
++extern dma_addr_t
++swiotlb_map_single_attrs(struct device *hwdev, void *ptr, size_t size,
++			 int dir, struct dma_attrs *attrs);
++
++extern void
++swiotlb_unmap_single_attrs(struct device *hwdev, dma_addr_t dev_addr,
++			   size_t size, int dir, struct dma_attrs *attrs);
++
++extern int
++swiotlb_map_sg(struct device *hwdev, struct scatterlist *sg, int nents,
++	       int direction);
++
++extern void
++swiotlb_unmap_sg(struct device *hwdev, struct scatterlist *sg, int nents,
++		 int direction);
++
++extern int
++swiotlb_map_sg_attrs(struct device *hwdev, struct scatterlist *sgl, int nelems,
++		     int dir, struct dma_attrs *attrs);
++
++extern void
++swiotlb_unmap_sg_attrs(struct device *hwdev, struct scatterlist *sgl,
++		       int nelems, int dir, struct dma_attrs *attrs);
++
++extern void
++swiotlb_sync_single_for_cpu(struct device *hwdev, dma_addr_t dev_addr,
++			    size_t size, int dir);
++
++extern void
++swiotlb_sync_sg_for_cpu(struct device *hwdev, struct scatterlist *sg,
++			int nelems, int dir);
++
++extern void
++swiotlb_sync_single_for_device(struct device *hwdev, dma_addr_t dev_addr,
++			       size_t size, int dir);
++
++extern void
++swiotlb_sync_sg_for_device(struct device *hwdev, struct scatterlist *sg,
++			   int nelems, int dir);
++
++extern void
++swiotlb_sync_single_range_for_cpu(struct device *hwdev, dma_addr_t dev_addr,
++				  unsigned long offset, size_t size, int dir);
++
++extern void
++swiotlb_sync_single_range_for_device(struct device *hwdev, dma_addr_t dev_addr,
++				     unsigned long offset, size_t size,
++				     int dir);
++
++extern int
++swiotlb_dma_mapping_error(struct device *hwdev, dma_addr_t dma_addr);
++
++extern int
++swiotlb_dma_supported(struct device *hwdev, u64 mask);
++
++#endif /* __LINUX_SWIOTLB_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joerg.roedel@amd.com are
 
 origin.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check-fix.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix-fix.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer.patch
-memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-drivers-hwmon-applesmcc-remove-unneeded-casts.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
 
