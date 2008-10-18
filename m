@@ -1,116 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - w1-w1_intc-use-first-available-master-number.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:20:02 -0700
-Message-ID: <200810182320.m9INK2rT029641@imap1.linux-foundation.org>
+Subject: - w1-w1c-s-printk-dev_dbg.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:20:03 -0700
+Message-ID: <200810182320.m9INK3ux029646@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37197 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36055 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751896AbYJRXUV (ORCPT
+	by vger.kernel.org with ESMTP id S1751902AbYJRXUW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:20:21 -0400
+	Sat, 18 Oct 2008 19:20:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     W1: w1_int.c use first available master number
+     W1: w1.c s/printk/dev_dbg/
 has been removed from the -mm tree.  Its filename was
-     w1-w1_intc-use-first-available-master-number.patch
+     w1-w1c-s-printk-dev_dbg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: W1: w1_int.c use first available master number
+Subject: W1: w1.c s/printk/dev_dbg/
 From: David Fries <david@fries.net>
 
-Follow the example of other devices (like the joystick device).  Pick the
-first available id for each detected device.  Currently for USB devices,
-suspending and resuming would cause the number to increment.
+s/printk/dev_dbg/
 
 Signed-off-by: David Fries <david@fries.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1_int.c |   32 ++++++++++++++++++++++++++------
- 1 file changed, 26 insertions(+), 6 deletions(-)
+ drivers/w1/w1.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/w1/w1_int.c~w1-w1_intc-use-first-available-master-number drivers/w1/w1_int.c
---- a/drivers/w1/w1_int.c~w1-w1_intc-use-first-available-master-number
-+++ a/drivers/w1/w1_int.c
-@@ -29,7 +29,6 @@
- #include "w1_netlink.h"
- #include "w1_int.h"
- 
--static u32 w1_ids = 1;
- static int w1_search_count = -1; /* Default is continual scan */
- module_param_named(search_count, w1_search_count, int, 0);
- 
-@@ -102,9 +101,10 @@ static void w1_free_dev(struct w1_master
- 
- int w1_add_master_device(struct w1_bus_master *master)
+diff -puN drivers/w1/w1.c~w1-w1c-s-printk-dev_dbg drivers/w1/w1.c
+--- a/drivers/w1/w1.c~w1-w1c-s-printk-dev_dbg
++++ a/drivers/w1/w1.c
+@@ -81,10 +81,10 @@ static void w1_slave_release(struct devi
  {
--	struct w1_master *dev;
-+	struct w1_master *dev, *entry;
- 	int retval = 0;
- 	struct w1_netlink_msg msg;
-+	int id, found;
+ 	struct w1_slave *sl = dev_to_w1_slave(dev);
  
-         /* validate minimum functionality */
-         if (!(master->touch_bit && master->reset_bus) &&
-@@ -126,13 +126,33 @@ int w1_add_master_device(struct w1_bus_m
- 		master->set_pullup = NULL;
- 	}
+-	printk("%s: Releasing %s.\n", __func__, sl->name);
++	dev_dbg(dev, "%s: Releasing %s.\n", __func__, sl->name);
  
--	dev = w1_alloc_dev(w1_ids++, w1_max_slave_count, w1_max_slave_ttl, &w1_master_driver, &w1_master_device);
--	if (!dev)
-+	/* Lock until the device is added (or not) to w1_masters. */
-+	mutex_lock(&w1_mlock);
-+	/* Search for the first available id (starting at 1). */
-+	id = 0;
-+	do {
-+		++id;
-+		found = 0;
-+		list_for_each_entry(entry, &w1_masters, w1_master_entry) {
-+			if (entry->id == id) {
-+				found = 1;
-+				break;
-+			}
-+		}
-+	} while (found);
-+
-+	dev = w1_alloc_dev(id, w1_max_slave_count, w1_max_slave_ttl,
-+		&w1_master_driver, &w1_master_device);
-+	if (!dev) {
-+		mutex_unlock(&w1_mlock);
- 		return -ENOMEM;
-+	}
+ 	while (atomic_read(&sl->refcnt)) {
+-		printk("Waiting for %s to become free: refcnt=%d.\n",
++		dev_dbg(dev, "Waiting for %s to become free: refcnt=%d.\n",
+ 				sl->name, atomic_read(&sl->refcnt));
+ 		if (msleep_interruptible(1000))
+ 			flush_signals(current);
+@@ -920,7 +920,7 @@ void w1_search(struct w1_master *dev, u8
+ 			rn |= (tmp64 << i);
  
- 	retval =  w1_create_master_attributes(dev);
--	if (retval)
-+	if (retval) {
-+		mutex_unlock(&w1_mlock);
- 		goto err_out_free_dev;
-+	}
- 
- 	memcpy(dev->bus_master, master, sizeof(struct w1_bus_master));
- 
-@@ -144,10 +164,10 @@ int w1_add_master_device(struct w1_bus_m
- 		dev_err(&dev->dev,
- 			 "Failed to create new kernel thread. err=%d\n",
- 			 retval);
-+		mutex_unlock(&w1_mlock);
- 		goto err_out_rm_attr;
- 	}
- 
--	mutex_lock(&w1_mlock);
- 	list_add(&dev->w1_master_entry, &w1_masters);
- 	mutex_unlock(&w1_mlock);
- 
+ 			if (kthread_should_stop()) {
+-				printk(KERN_INFO "Abort w1_search (exiting)\n");
++				dev_dbg(&dev->dev, "Abort w1_search\n");
+ 				return;
+ 			}
+ 		}
 _
 
 Patches currently in -mm which might be from david@fries.net are
