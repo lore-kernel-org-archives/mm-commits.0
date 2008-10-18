@@ -1,207 +1,324 @@
 From: akpm@linux-foundation.org
-Subject: - ext2-avoid-printk-floods-in-the-face-of-directory-corruption.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:18:22 -0700
-Message-ID: <200810182318.m9INIMeH029263@imap1.linux-foundation.org>
+Subject: - edac-i5000-fix-error-messages.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:19:24 -0700
+Message-ID: <200810182319.m9INJOBW029473@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35857 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37986 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751818AbYJRXTr (ORCPT
+	by vger.kernel.org with ESMTP id S1751868AbYJRXTu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:19:47 -0400
+	Sat, 18 Oct 2008 19:19:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sandeen@redhat.com, eugeneteo@kernel.sg, tytso@mit.edu, mm-commits@vger.kernel.org
+To: aris@redhat.com, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext2: avoid printk floods in the face of directory corruption
+     edac i5000: fix error messages
 has been removed from the -mm tree.  Its filename was
-     ext2-avoid-printk-floods-in-the-face-of-directory-corruption.patch
+     edac-i5000-fix-error-messages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext2: avoid printk floods in the face of directory corruption
-From: Eric Sandeen <sandeen@redhat.com>
+Subject: edac i5000: fix error messages
+From: Aristeu Rozanski <aris@redhat.com>
 
-A very large directory with many read failures (either due to storage
-problems, or due to invalid size & blocks from corruption) will generate a
-printk storm as the filesystem continues to try to read all the blocks. 
-This flood of messages can tie up the box until it is complete - which may
-be a very long time, especially for very large corrupted values.
+Update the i5000_edac messages, making everything pass through the EDAC
+(so the log controls will work) and being more specific about the errors. 
+Also, it makes the miscellaneous errors optional and disabled by default.
 
-This is fixed by only reporting the corruption once each time we try to
-read the directory.
+As I didn't found anywhere information about M23ERR-M26ERR
+(FERR_NF_THERMAL) on FERR_NF_FBD, I'm removing them.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Eric Sandeen <sandeen@redhat.com>
-Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Eugene Teo <eugeneteo@kernel.sg>
+Signed-off-by: Aristeu Rozanski <aris@redhat.com>
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/dir.c |   60 ++++++++++++++++++++++++++++--------------------
- 1 file changed, 35 insertions(+), 25 deletions(-)
+ drivers/edac/i5000_edac.c |  181 +++++++++++++++++++++++-------------
+ 1 file changed, 119 insertions(+), 62 deletions(-)
 
-diff -puN fs/ext2/dir.c~ext2-avoid-printk-floods-in-the-face-of-directory-corruption fs/ext2/dir.c
---- a/fs/ext2/dir.c~ext2-avoid-printk-floods-in-the-face-of-directory-corruption
-+++ a/fs/ext2/dir.c
-@@ -103,7 +103,7 @@ static int ext2_commit_chunk(struct page
- 	return err;
- }
+diff -puN drivers/edac/i5000_edac.c~edac-i5000-fix-error-messages drivers/edac/i5000_edac.c
+--- a/drivers/edac/i5000_edac.c~edac-i5000-fix-error-messages
++++ a/drivers/edac/i5000_edac.c
+@@ -119,6 +119,7 @@
+ #define			FERR_NF_UNCORRECTABLE	(FERR_NF_M12ERR | \
+ 							FERR_NF_M11ERR | \
+ 							FERR_NF_M10ERR | \
++							FERR_NF_M9ERR | \
+ 							FERR_NF_M8ERR | \
+ 							FERR_NF_M7ERR | \
+ 							FERR_NF_M6ERR | \
+@@ -301,6 +302,9 @@ static char *numcol_toString[] = {
+ };
+ #endif
  
--static void ext2_check_page(struct page *page)
-+static void ext2_check_page(struct page *page, int quiet)
- {
- 	struct inode *dir = page->mapping->host;
- 	struct super_block *sb = dir->i_sb;
-@@ -146,10 +146,10 @@ out:
- 	/* Too bad, we had an error */
- 
- Ebadsize:
--	ext2_error(sb, "ext2_check_page",
--		"size of directory #%lu is not a multiple of chunk size",
--		dir->i_ino
--	);
-+	if (!quiet)
-+		ext2_error(sb, __func__,
-+			"size of directory #%lu is not a multiple "
-+			"of chunk size", dir->i_ino);
- 	goto fail;
- Eshort:
- 	error = "rec_len is smaller than minimal";
-@@ -166,32 +166,36 @@ Espan:
- Einumber:
- 	error = "inode out of bounds";
- bad_entry:
--	ext2_error (sb, "ext2_check_page", "bad entry in directory #%lu: %s - "
--		"offset=%lu, inode=%lu, rec_len=%d, name_len=%d",
--		dir->i_ino, error, (page->index<<PAGE_CACHE_SHIFT)+offs,
--		(unsigned long) le32_to_cpu(p->inode),
--		rec_len, p->name_len);
-+	if (!quiet)
-+		ext2_error(sb, __func__, "bad entry in directory #%lu: : %s - "
-+			"offset=%lu, inode=%lu, rec_len=%d, name_len=%d",
-+			dir->i_ino, error, (page->index<<PAGE_CACHE_SHIFT)+offs,
-+			(unsigned long) le32_to_cpu(p->inode),
-+			rec_len, p->name_len);
- 	goto fail;
- Eend:
--	p = (ext2_dirent *)(kaddr + offs);
--	ext2_error (sb, "ext2_check_page",
--		"entry in directory #%lu spans the page boundary"
--		"offset=%lu, inode=%lu",
--		dir->i_ino, (page->index<<PAGE_CACHE_SHIFT)+offs,
--		(unsigned long) le32_to_cpu(p->inode));
-+	if (!quiet) {
-+		p = (ext2_dirent *)(kaddr + offs);
-+		ext2_error(sb, "ext2_check_page",
-+			"entry in directory #%lu spans the page boundary"
-+			"offset=%lu, inode=%lu",
-+			dir->i_ino, (page->index<<PAGE_CACHE_SHIFT)+offs,
-+			(unsigned long) le32_to_cpu(p->inode));
-+	}
- fail:
- 	SetPageChecked(page);
- 	SetPageError(page);
- }
- 
--static struct page * ext2_get_page(struct inode *dir, unsigned long n)
-+static struct page * ext2_get_page(struct inode *dir, unsigned long n,
-+				   int quiet)
- {
- 	struct address_space *mapping = dir->i_mapping;
- 	struct page *page = read_mapping_page(mapping, n, NULL);
- 	if (!IS_ERR(page)) {
- 		kmap(page);
- 		if (!PageChecked(page))
--			ext2_check_page(page);
-+			ext2_check_page(page, quiet);
- 		if (PageError(page))
- 			goto fail;
- 	}
-@@ -292,7 +296,7 @@ ext2_readdir (struct file * filp, void *
- 	for ( ; n < npages; n++, offset = 0) {
- 		char *kaddr, *limit;
- 		ext2_dirent *de;
--		struct page *page = ext2_get_page(inode, n);
-+		struct page *page = ext2_get_page(inode, n, 0);
- 
- 		if (IS_ERR(page)) {
- 			ext2_error(sb, __func__,
-@@ -361,6 +365,7 @@ struct ext2_dir_entry_2 * ext2_find_entr
- 	struct page *page = NULL;
- 	struct ext2_inode_info *ei = EXT2_I(dir);
- 	ext2_dirent * de;
-+	int dir_has_error = 0;
- 
- 	if (npages == 0)
- 		goto out;
-@@ -374,7 +379,7 @@ struct ext2_dir_entry_2 * ext2_find_entr
- 	n = start;
- 	do {
- 		char *kaddr;
--		page = ext2_get_page(dir, n);
-+		page = ext2_get_page(dir, n, dir_has_error);
- 		if (!IS_ERR(page)) {
- 			kaddr = page_address(page);
- 			de = (ext2_dirent *) kaddr;
-@@ -391,7 +396,9 @@ struct ext2_dir_entry_2 * ext2_find_entr
- 				de = ext2_next_entry(de);
- 			}
- 			ext2_put_page(page);
--		}
-+		} else
-+			dir_has_error = 1;
++/* enables the report of miscellaneous messages as CE errors - default off */
++static int misc_messages;
 +
- 		if (++n >= npages)
- 			n = 0;
- 		/* next page is past the blocks we've got */
-@@ -414,7 +421,7 @@ found:
- 
- struct ext2_dir_entry_2 * ext2_dotdot (struct inode *dir, struct page **p)
+ /* Enumeration of supported devices */
+ enum i5000_chips {
+ 	I5000P = 0,
+@@ -466,7 +470,8 @@ static void i5000_process_fatal_error_in
+ 					struct i5000_error_info *info,
+ 					int handle_errors)
  {
--	struct page *page = ext2_get_page(dir, 0);
-+	struct page *page = ext2_get_page(dir, 0, 0);
- 	ext2_dirent *de = NULL;
+-	char msg[EDAC_MC_LABEL_LEN + 1 + 90];
++	char msg[EDAC_MC_LABEL_LEN + 1 + 160];
++	char *specific = NULL;
+ 	u32 allErrors;
+ 	int branch;
+ 	int channel;
+@@ -480,11 +485,6 @@ static void i5000_process_fatal_error_in
+ 	if (!allErrors)
+ 		return;		/* if no error, return now */
  
- 	if (!IS_ERR(page)) {
-@@ -487,7 +494,7 @@ int ext2_add_link (struct dentry *dentry
- 	for (n = 0; n <= npages; n++) {
- 		char *dir_end;
+-	/* ONLY ONE of the possible error bits will be set, as per the docs */
+-	i5000_mc_printk(mci, KERN_ERR,
+-			"FATAL ERRORS Found!!! 1st FATAL Err Reg= 0x%x\n",
+-			allErrors);
+-
+ 	branch = EXTRACT_FBDCHAN_INDX(info->ferr_fat_fbd);
+ 	channel = branch;
  
--		page = ext2_get_page(dir, n);
-+		page = ext2_get_page(dir, n, 0);
- 		err = PTR_ERR(page);
- 		if (IS_ERR(page))
- 			goto out;
-@@ -655,14 +662,17 @@ int ext2_empty_dir (struct inode * inode
+@@ -501,28 +501,27 @@ static void i5000_process_fatal_error_in
+ 		rdwr ? "Write" : "Read", ras, cas);
+ 
+ 	/* Only 1 bit will be on */
+-	if (allErrors & FERR_FAT_M1ERR) {
+-		i5000_mc_printk(mci, KERN_ERR,
+-				"Alert on non-redundant retry or fast "
+-				"reset timeout\n");
+-
+-	} else if (allErrors & FERR_FAT_M2ERR) {
+-		i5000_mc_printk(mci, KERN_ERR,
+-				"Northbound CRC error on non-redundant "
+-				"retry\n");
+-
+-	} else if (allErrors & FERR_FAT_M3ERR) {
+-		i5000_mc_printk(mci, KERN_ERR,
+-				">Tmid Thermal event with intelligent "
+-				"throttling disabled\n");
++	switch (allErrors) {
++	case FERR_FAT_M1ERR:
++		specific = "Alert on non-redundant retry or fast "
++				"reset timeout";
++		break;
++	case FERR_FAT_M2ERR:
++		specific = "Northbound CRC error on non-redundant "
++				"retry";
++		break;
++	case FERR_FAT_M3ERR:
++		specific = ">Tmid Thermal event with intelligent "
++				"throttling disabled";
++		break;
+ 	}
+ 
+ 	/* Form out message */
+ 	snprintf(msg, sizeof(msg),
+ 		 "(Branch=%d DRAM-Bank=%d RDWR=%s RAS=%d CAS=%d "
+-		 "FATAL Err=0x%x)",
++		 "FATAL Err=0x%x (%s))",
+ 		 branch >> 1, bank, rdwr ? "Write" : "Read", ras, cas,
+-		 allErrors);
++		 allErrors, specific);
+ 
+ 	/* Call the helper to output message */
+ 	edac_mc_handle_fbd_ue(mci, rank, channel, channel + 1, msg);
+@@ -539,7 +538,8 @@ static void i5000_process_nonfatal_error
+ 					struct i5000_error_info *info,
+ 					int handle_errors)
  {
- 	struct page *page = NULL;
- 	unsigned long i, npages = dir_pages(inode);
-+	int dir_has_error = 0;
+-	char msg[EDAC_MC_LABEL_LEN + 1 + 90];
++	char msg[EDAC_MC_LABEL_LEN + 1 + 170];
++	char *specific = NULL;
+ 	u32 allErrors;
+ 	u32 ue_errors;
+ 	u32 ce_errors;
+@@ -557,10 +557,6 @@ static void i5000_process_nonfatal_error
+ 		return;		/* if no error, return now */
  
- 	for (i = 0; i < npages; i++) {
- 		char *kaddr;
- 		ext2_dirent * de;
--		page = ext2_get_page(inode, i);
-+		page = ext2_get_page(inode, i, dir_has_error);
+ 	/* ONLY ONE of the possible error bits will be set, as per the docs */
+-	i5000_mc_printk(mci, KERN_WARNING,
+-			"NON-FATAL ERRORS Found!!! 1st NON-FATAL Err "
+-			"Reg= 0x%x\n", allErrors);
+-
+ 	ue_errors = allErrors & FERR_NF_UNCORRECTABLE;
+ 	if (ue_errors) {
+ 		debugf0("\tUncorrected bits= 0x%x\n", ue_errors);
+@@ -579,12 +575,47 @@ static void i5000_process_nonfatal_error
+ 			rank, channel, channel + 1, branch >> 1, bank,
+ 			rdwr ? "Write" : "Read", ras, cas);
  
--		if (IS_ERR(page))
-+		if (IS_ERR(page)) {
-+			dir_has_error = 1;
- 			continue;
++		switch (ue_errors) {
++		case FERR_NF_M12ERR:
++			specific = "Non-Aliased Uncorrectable Patrol Data ECC";
++			break;
++		case FERR_NF_M11ERR:
++			specific = "Non-Aliased Uncorrectable Spare-Copy "
++					"Data ECC";
++			break;
++		case FERR_NF_M10ERR:
++			specific = "Non-Aliased Uncorrectable Mirrored Demand "
++					"Data ECC";
++			break;
++		case FERR_NF_M9ERR:
++			specific = "Non-Aliased Uncorrectable Non-Mirrored "
++					"Demand Data ECC";
++			break;
++		case FERR_NF_M8ERR:
++			specific = "Aliased Uncorrectable Patrol Data ECC";
++			break;
++		case FERR_NF_M7ERR:
++			specific = "Aliased Uncorrectable Spare-Copy Data ECC";
++			break;
++		case FERR_NF_M6ERR:
++			specific = "Aliased Uncorrectable Mirrored Demand "
++					"Data ECC";
++			break;
++		case FERR_NF_M5ERR:
++			specific = "Aliased Uncorrectable Non-Mirrored Demand "
++					"Data ECC";
++			break;
++		case FERR_NF_M4ERR:
++			specific = "Uncorrectable Data ECC on Replay";
++			break;
 +		}
++
+ 		/* Form out message */
+ 		snprintf(msg, sizeof(msg),
+ 			 "(Branch=%d DRAM-Bank=%d RDWR=%s RAS=%d "
+-			 "CAS=%d, UE Err=0x%x)",
++			 "CAS=%d, UE Err=0x%x (%s))",
+ 			 branch >> 1, bank, rdwr ? "Write" : "Read", ras, cas,
+-			 ue_errors);
++			 ue_errors, specific);
  
- 		kaddr = page_address(page);
- 		de = (ext2_dirent *)kaddr;
+ 		/* Call the helper to output message */
+ 		edac_mc_handle_fbd_ue(mci, rank, channel, channel + 1, msg);
+@@ -616,51 +647,74 @@ static void i5000_process_nonfatal_error
+ 			rank, channel, branch >> 1, bank,
+ 			rdwr ? "Write" : "Read", ras, cas);
+ 
++		switch (ce_errors) {
++		case FERR_NF_M17ERR:
++			specific = "Correctable Non-Mirrored Demand Data ECC";
++			break;
++		case FERR_NF_M18ERR:
++			specific = "Correctable Mirrored Demand Data ECC";
++			break;
++		case FERR_NF_M19ERR:
++			specific = "Correctable Spare-Copy Data ECC";
++			break;
++		case FERR_NF_M20ERR:
++			specific = "Correctable Patrol Data ECC";
++			break;
++		}
++
+ 		/* Form out message */
+ 		snprintf(msg, sizeof(msg),
+ 			 "(Branch=%d DRAM-Bank=%d RDWR=%s RAS=%d "
+-			 "CAS=%d, CE Err=0x%x)", branch >> 1, bank,
+-			 rdwr ? "Write" : "Read", ras, cas, ce_errors);
++			 "CAS=%d, CE Err=0x%x (%s))", branch >> 1, bank,
++			 rdwr ? "Write" : "Read", ras, cas, ce_errors,
++			 specific);
+ 
+ 		/* Call the helper to output message */
+ 		edac_mc_handle_fbd_ce(mci, rank, channel, msg);
+ 	}
+ 
+-	/* See if any of the thermal errors have fired */
+-	misc_errors = allErrors & FERR_NF_THERMAL;
+-	if (misc_errors) {
+-		i5000_printk(KERN_WARNING, "\tTHERMAL Error, bits= 0x%x\n",
+-			misc_errors);
+-	}
+-
+-	/* See if any of the thermal errors have fired */
+-	misc_errors = allErrors & FERR_NF_NON_RETRY;
+-	if (misc_errors) {
+-		i5000_printk(KERN_WARNING, "\tNON-Retry  Errors, bits= 0x%x\n",
+-			misc_errors);
+-	}
++	if (!misc_messages)
++		return;
+ 
+-	/* See if any of the thermal errors have fired */
+-	misc_errors = allErrors & FERR_NF_NORTH_CRC;
++	misc_errors = allErrors & (FERR_NF_NON_RETRY | FERR_NF_NORTH_CRC |
++				   FERR_NF_SPD_PROTOCOL | FERR_NF_DIMM_SPARE);
+ 	if (misc_errors) {
+-		i5000_printk(KERN_WARNING,
+-			"\tNORTHBOUND CRC  Error, bits= 0x%x\n",
+-			misc_errors);
+-	}
++		switch (misc_errors) {
++		case FERR_NF_M13ERR:
++			specific = "Non-Retry or Redundant Retry FBD Memory "
++					"Alert or Redundant Fast Reset Timeout";
++			break;
++		case FERR_NF_M14ERR:
++			specific = "Non-Retry or Redundant Retry FBD "
++					"Configuration Alert";
++			break;
++		case FERR_NF_M15ERR:
++			specific = "Non-Retry or Redundant Retry FBD "
++					"Northbound CRC error on read data";
++			break;
++		case FERR_NF_M21ERR:
++			specific = "FBD Northbound CRC error on "
++					"FBD Sync Status";
++			break;
++		case FERR_NF_M22ERR:
++			specific = "SPD protocol error";
++			break;
++		case FERR_NF_M27ERR:
++			specific = "DIMM-spare copy started";
++			break;
++		case FERR_NF_M28ERR:
++			specific = "DIMM-spare copy completed";
++			break;
++		}
++		branch = EXTRACT_FBDCHAN_INDX(info->ferr_nf_fbd);
+ 
+-	/* See if any of the thermal errors have fired */
+-	misc_errors = allErrors & FERR_NF_SPD_PROTOCOL;
+-	if (misc_errors) {
+-		i5000_printk(KERN_WARNING,
+-			"\tSPD Protocol  Error, bits= 0x%x\n",
+-			misc_errors);
+-	}
++		/* Form out message */
++		snprintf(msg, sizeof(msg),
++			 "(Branch=%d Err=%#x (%s))", branch >> 1,
++			 misc_errors, specific);
+ 
+-	/* See if any of the thermal errors have fired */
+-	misc_errors = allErrors & FERR_NF_DIMM_SPARE;
+-	if (misc_errors) {
+-		i5000_printk(KERN_WARNING, "\tDIMM-Spare  Error, bits= 0x%x\n",
+-			misc_errors);
++		/* Call the helper to output message */
++		edac_mc_handle_fbd_ce(mci, 0, 0, msg);
+ 	}
+ }
+ 
+@@ -1497,3 +1551,6 @@ MODULE_DESCRIPTION("MC Driver for Intel 
+ 
+ module_param(edac_op_state, int, 0444);
+ MODULE_PARM_DESC(edac_op_state, "EDAC Error Reporting state: 0=Poll,1=NMI");
++module_param(misc_messages, int, 0444);
++MODULE_PARM_DESC(misc_messages, "Log miscellaneous non fatal messages");
++
 _
 
-Patches currently in -mm which might be from sandeen@redhat.com are
+Patches currently in -mm which might be from aris@redhat.com are
 
 origin.patch
-ext3-avoid-printk-floods-in-the-face-of-directory-corruption.patch
 
