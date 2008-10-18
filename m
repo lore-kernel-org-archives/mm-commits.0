@@ -1,66 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - message-queues-increase-range-limits-checkpatch-fixes.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:53:40 -0700
-Message-ID: <200810182353.m9INreFk002126@imap1.linux-foundation.org>
+Subject: - x86-sysfs-kill-owner-field-from-attribute-fix.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:54:14 -0700
+Message-ID: <200810182354.m9INsEOB002194@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58753 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36667 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751899AbYJRXyr (ORCPT
+	by vger.kernel.org with ESMTP id S1751957AbYJRXzu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:54:47 -0400
+	Sat, 18 Oct 2008 19:55:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Nadia.Derbey@bull.net, joe.korty@ccur.com, manfred@colorfullife.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, greg@kroah.com, htejun@gmail.com, jens.axboe@oracle.com, khali@linux-fr.org, lenb@kernel.org, mingo@elte.hu, para
 
 
 The patch titled
-     message-queues-increase-range-limits-checkpatch-fixes
+     x86-sysfs-kill-owner-field-from-attribute-fix
 has been removed from the -mm tree.  Its filename was
-     message-queues-increase-range-limits-checkpatch-fixes.patch
+     x86-sysfs-kill-owner-field-from-attribute-fix.patch
 
-This patch was dropped because it was folded into message-queues-increase-range-limits.patch
+This patch was dropped because it was folded into x86-sysfs-kill-owner-field-from-attribute.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: message-queues-increase-range-limits-checkpatch-fixes
+Subject: x86-sysfs-kill-owner-field-from-attribute-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: Macros with complex values should be enclosed in parenthesis
-#55: FILE: ipc/mqueue.c:62:
-+#define MAX_MSGSIZEMAX	8192*128	/* max value for msgsize_max */
-
-total: 1 errors, 0 warnings, 39 lines checked
-
-./patches/message-queues-increase-range-limits.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Joe Korty <joe.korty@ccur.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Nadia Derbey <Nadia.Derbey@bull.net>
+Cc: "Parag Warudkar" <parag.lkml@gmail.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Parag Warudkar <parag.lkml@gmail.com>
+Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    2 +-
+ include/linux/sysfs.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/mqueue.c~message-queues-increase-range-limits-checkpatch-fixes ipc/mqueue.c
---- a/ipc/mqueue.c~message-queues-increase-range-limits-checkpatch-fixes
-+++ a/ipc/mqueue.c
-@@ -59,7 +59,7 @@
- #define MIN_MSGMAX	1		/* min value for msg_max */
- #define MAX_MSGMAX	HARD_MSGMAX	/* max value for msg_max */
- #define MIN_MSGSIZEMAX	128		/* min value for msgsize_max */
--#define MAX_MSGSIZEMAX	8192*128	/* max value for msgsize_max */
-+#define MAX_MSGSIZEMAX	(8192*128)	/* max value for msgsize_max */
- 
- struct ext_wait_queue {		/* queue of sleeping tasks */
- 	struct task_struct *task;
+diff -puN include/linux/sysfs.h~x86-sysfs-kill-owner-field-from-attribute-fix include/linux/sysfs.h
+--- a/include/linux/sysfs.h~x86-sysfs-kill-owner-field-from-attribute-fix
++++ a/include/linux/sysfs.h
+@@ -27,7 +27,7 @@ struct module;
+  */
+ struct attribute {
+ 	const char		*name;
+-#if !defined(CONFIG_X86_64) && !defined(CONFIG_X86_32)
++#ifndef CONFIG_X86
+ 	struct module		*owner;
+ #endif
+ 	mode_t			mode;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,8 +83,8 @@ fb-push-down-the-bkl-in-the-ioctl-handler.patch
 ext3-fix-ext3_dx_readdir-hash-collision-handling.patch
 cgroups-fix-probable-race-with-put_css_set-and-find_css_set.patch
 message-queues-increase-range-limits.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
 drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+x86-sysfs-kill-owner-field-from-attribute.patch
 x86-sysfs-kill-owner-field-from-attribute-fix.patch
 x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
 
