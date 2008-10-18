@@ -1,95 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:41:40 -0700
-Message-ID: <200810182341.m9INfe79000374@imap1.linux-foundation.org>
+Subject: - container-freezer-implement-freezer-cgroup-subsystem-cleanup-comment.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:41:53 -0700
+Message-ID: <200810182341.m9INfrsr000412@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33208 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59351 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751431AbYJRXmf (ORCPT
+	by vger.kernel.org with ESMTP id S1751483AbYJRXnE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:42:35 -0400
+	Sat, 18 Oct 2008 19:43:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clg@fr.ibm.com, matthltc@us.ibm.com, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: matthltc@us.ibm.com, clg@fr.ibm.com, pavel@suse.cz, rjw@sisk.pl, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes
+     container freezer: cleanup comment.
 has been removed from the -mm tree.  Its filename was
-     container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+     container-freezer-implement-freezer-cgroup-subsystem-cleanup-comment.patch
 
 This patch was dropped because it was folded into container-freezer-implement-freezer-cgroup-subsystem.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: container freezer: cleanup comment.
+From: Matt Helsley <matthltc@us.ibm.com>
 
-ERROR: code indent should use tabs where possible
-#382: FILE: kernel/cgroup_freezer.c:216:
-+    ^I^I^Istruct seq_file *m)$
+Make this comment clearer.
 
-total: 1 errors, 0 warnings, 449 lines checked
-
-./patches/container-freezer-implement-freezer-cgroup-subsystem.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+Signed-off-by: Matt Helsley <matthltc@us.ibm.com>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@suse.cz>
 Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Matt Helsley <matthltc@us.ibm.com>
 Cc: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup_freezer.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/cgroup_freezer.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/cgroup_freezer.c~container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes kernel/cgroup_freezer.c
---- a/kernel/cgroup_freezer.c~container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes
+diff -puN kernel/cgroup_freezer.c~container-freezer-implement-freezer-cgroup-subsystem-cleanup-comment kernel/cgroup_freezer.c
+--- a/kernel/cgroup_freezer.c~container-freezer-implement-freezer-cgroup-subsystem-cleanup-comment
 +++ a/kernel/cgroup_freezer.c
-@@ -213,7 +213,7 @@ static void check_if_frozen(struct cgrou
+@@ -61,8 +61,8 @@ int cgroup_frozen(struct task_struct *ta
  }
  
- static int freezer_read(struct cgroup *cgroup, struct cftype *cft,
--    			struct seq_file *m)
-+			struct seq_file *m)
- {
- 	struct freezer *freezer;
- 	enum freezer_state state;
+ /*
+- * Buffer size for freezer state is limited by cgroups write_string()
+- * interface. See cgroups code for the current size.
++ * cgroups_write_string() limits the size of freezer state strings to
++ * CGROUP_LOCAL_BUFFER_SIZE
+  */
+ static const char *freezer_state_strs[] = {
+ 	"RUNNING",
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from matthltc@us.ibm.com are
 
-origin.patch
-mm-cleanup-to-make-remove_memory-arch-neutral.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct.patch
-mm-rewrite-vmap-layer.patch
-memory_probe-fix-wrong-sysfs-file-attribute.patch
 container-freezer-add-tif_freeze-flag-to-all-architectures.patch
+container-freezer-make-refrigerator-always-available.patch
 container-freezer-implement-freezer-cgroup-subsystem.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-drivers-hwmon-applesmcc-remove-unneeded-casts.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
+container-freezer-implement-freezer-cgroup-subsystem-cleanup-comment.patch
+container-freezer-skip-frozen-cgroups-during-power-management-resume.patch
+container-freezer-prevent-frozen-tasks-or-cgroups-from-changing.patch
+container-freezer-make-freezer-state-names-less-generic.patch
+container-freezer-rename-check_if_frozen.patch
+container-freezer-document-the-cgroup-freezer-subsystem.patch
 
