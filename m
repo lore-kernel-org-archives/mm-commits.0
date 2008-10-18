@@ -1,118 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:19:40 -0700
-Message-ID: <200810182319.m9INJeaV029528@imap1.linux-foundation.org>
+Subject: - binfmt_elf_fdpic-support-auxvec-base-platform-string.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:18:50 -0700
+Message-ID: <200810182318.m9INIols029350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58732 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55705 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751518AbYJRXTq (ORCPT
+	by vger.kernel.org with ESMTP id S1751816AbYJRXTr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:19:46 -0400
+	Sat, 18 Oct 2008 19:19:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, danielm77@spray.se, debora@linux.vnet.ibm.com, srajiv@linux.vnet.ibm.com, tpm@selhorst.net, mm-commits@vger.kernel.org
+To: lethal@linux-sh.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/tpm/tpm.c: fix error-path memory leak
+     binfmt_elf_fdpic: support auxvec base platform string
 has been removed from the -mm tree.  Its filename was
-     drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
+     binfmt_elf_fdpic-support-auxvec-base-platform-string.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/tpm/tpm.c: fix error-path memory leak
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: binfmt_elf_fdpic: support auxvec base platform string
+From: Paul Mundt <lethal@linux-sh.org>
 
-tpm_register_hardware() leaks devname on an error path.
+Commit 483fad1c3fa1060d7e6710e84a065ad514571739 introduces
+AT_BASE_PLATFORM, but only implements it for binfmt_elf. Given that
+AT_VECTOR_SIZE_BASE is unconditionally enlarged for us, and it's only
+optionally added in for the platforms that set ELF_BASE_PLATFORM, wire
+it up for binfmt_elf_fdpic, too.
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=11425
-
-Reported-by: Daniel Marjamki <danielm77@spray.se>
-Cc: Debora Velarde <debora@linux.vnet.ibm.com>
-Cc: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
-Cc: Marcel Selhorst <tpm@selhorst.net>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tpm/tpm.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ fs/binfmt_elf_fdpic.c |   50 ++++++++++++++++++++++++++++++++++------
+ 1 file changed, 43 insertions(+), 7 deletions(-)
 
-diff -puN drivers/char/tpm/tpm.c~drivers-char-tpm-tpmc-fix-error-patch-memory-leak drivers/char/tpm/tpm.c
---- a/drivers/char/tpm/tpm.c~drivers-char-tpm-tpmc-fix-error-patch-memory-leak
-+++ a/drivers/char/tpm/tpm.c
-@@ -1187,11 +1187,8 @@ struct tpm_chip *tpm_register_hardware(s
- 	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
- 	devname = kmalloc(DEVNAME_SIZE, GFP_KERNEL);
- 
--	if (chip == NULL || devname == NULL) {
--		kfree(chip);
--		kfree(devname);
--		return NULL;
--	}
-+	if (chip == NULL || devname == NULL)
-+		goto out_free;
- 
- 	mutex_init(&chip->buffer_mutex);
- 	mutex_init(&chip->tpm_mutex);
-@@ -1208,8 +1205,7 @@ struct tpm_chip *tpm_register_hardware(s
- 
- 	if (chip->dev_num >= TPM_NUM_DEVICES) {
- 		dev_err(dev, "No available tpm device numbers\n");
--		kfree(chip);
--		return NULL;
-+		goto out_free;
- 	} else if (chip->dev_num == 0)
- 		chip->vendor.miscdev.minor = TPM_MINOR;
- 	else
-@@ -1250,6 +1246,11 @@ struct tpm_chip *tpm_register_hardware(s
- 	spin_unlock(&driver_lock);
- 
- 	return chip;
-+
-+out_free:
-+	kfree(chip);
-+	kfree(devname);
-+	return NULL;
+diff -puN fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-support-auxvec-base-platform-string fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-support-auxvec-base-platform-string
++++ a/fs/binfmt_elf_fdpic.c
+@@ -455,6 +455,16 @@ error_kill:
  }
- EXPORT_SYMBOL_GPL(tpm_register_hardware);
  
+ /*****************************************************************************/
++
++#ifndef ELF_BASE_PLATFORM
++/*
++ * AT_BASE_PLATFORM indicates the "real" hardware/microarchitecture.
++ * If the arch defines ELF_BASE_PLATFORM (in asm/elf.h), the value
++ * will be copied to the user stack in the same manner as AT_PLATFORM.
++ */
++#define ELF_BASE_PLATFORM NULL
++#endif
++
+ /*
+  * present useful information to the program
+  */
+@@ -466,8 +476,8 @@ static int create_elf_fdpic_tables(struc
+ 	unsigned long sp, csp, nitems;
+ 	elf_caddr_t __user *argv, *envp;
+ 	size_t platform_len = 0, len;
+-	char *k_platform;
+-	char __user *u_platform, *p;
++	char *k_platform, *k_base_platform;
++	char __user *u_platform, *u_base_platform, *p;
+ 	long hwcap;
+ 	int loop;
+ 	int nr;	/* reset for each csp adjustment */
+@@ -483,11 +493,14 @@ static int create_elf_fdpic_tables(struc
+ 		return -EFAULT;
+ #endif
+ 
+-	/* get hold of platform and hardware capabilities masks for the machine
+-	 * we are running on.  In some cases (Sparc), this info is impossible
+-	 * to get, in others (i386) it is merely difficult.
+-	 */
+ 	hwcap = ELF_HWCAP;
++
++	/*
++	 * If this architecture has a platform capability string, copy it
++	 * to userspace.  In some cases (Sparc), this info is impossible
++	 * for userspace to get any other way, in others (i386) it is
++	 * merely difficult.
++	 */
+ 	k_platform = ELF_PLATFORM;
+ 	u_platform = NULL;
+ 
+@@ -499,6 +512,21 @@ static int create_elf_fdpic_tables(struc
+ 			return -EFAULT;
+ 	}
+ 
++	/*
++	 * If this architecture has a "base" platform capability
++	 * string, copy it to userspace.
++	 */
++	k_base_platform = ELF_BASE_PLATFORM;
++	u_base_platform = NULL;
++
++	if (k_base_platform) {
++		platform_len = strlen(k_base_platform) + 1;
++		sp -= platform_len;
++		u_base_platform = (char __user *) sp;
++		if (__copy_to_user(u_base_platform, k_base_platform, platform_len) != 0)
++			return -EFAULT;
++	}
++
+ #if defined(__i386__) && defined(CONFIG_SMP)
+ 	/* in some cases (e.g. Hyper-Threading), we want to avoid L1 evictions
+ 	 * by the processes running on the same package. One thing we can do is
+@@ -543,7 +571,8 @@ static int create_elf_fdpic_tables(struc
+ 	/* force 16 byte _final_ alignment here for generality */
+ #define DLINFO_ITEMS 13
+ 
+-	nitems = 1 + DLINFO_ITEMS + (k_platform ? 1 : 0) + AT_VECTOR_SIZE_ARCH;
++	nitems = 1 + DLINFO_ITEMS + (k_platform ? 1 : 0) +
++		(k_base_platform ? 1 : 0) + AT_VECTOR_SIZE_ARCH;
+ 
+ 	csp = sp;
+ 	sp -= nitems * 2 * sizeof(unsigned long);
+@@ -575,6 +604,13 @@ static int create_elf_fdpic_tables(struc
+ 			    (elf_addr_t) (unsigned long) u_platform);
+ 	}
+ 
++	if (k_base_platform) {
++		nr = 0;
++		csp -= 2 * sizeof(unsigned long);
++		NEW_AUX_ENT(AT_BASE_PLATFORM,
++			    (elf_addr_t) (unsigned long) u_base_platform);
++	}
++
+ 	nr = 0;
+ 	csp -= DLINFO_ITEMS * 2 * sizeof(unsigned long);
+ 	NEW_AUX_ENT(AT_HWCAP,	hwcap);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
 origin.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check-fix.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix-fix.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-rewrite-vmap-layer.patch
-memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
-container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
-container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-drivers-hwmon-applesmcc-remove-unneeded-casts.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
-ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-message-queues-increase-range-limits-checkpatch-fixes.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
+kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore.patch
 
