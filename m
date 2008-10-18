@@ -1,122 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 15:33:18 -0700
-Message-ID: <200810182233.m9IMXIgO022632@imap1.linux-foundation.org>
+Subject: - mm-rewrite-vmap-layer-fix-fix.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 15:58:57 -0700
+Message-ID: <200810182258.m9IMwvS5025968@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57053 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36459 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750837AbYJRWd1 (ORCPT
+	by vger.kernel.org with ESMTP id S1750878AbYJRW7N (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 18:33:27 -0400
+	Sat, 18 Oct 2008 18:59:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, martin.petersen@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jeremy@goop.org, kamezawa.hiroyu@jp.fujitsu.com, npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/scsi/sd.h: use inlined C functions, not macros
+     mm-rewrite-vmap-layer-fix-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
+     mm-rewrite-vmap-layer-fix-fix.patch
 
-This patch was dropped because something else got merged instead which broek it and I can't be bothered fixing it
+This patch was dropped because it was folded into mm-rewrite-vmap-layer.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/sd.h: use inlined C functions, not macros
+Subject: mm-rewrite-vmap-layer-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix this:
+whoops
 
-drivers/scsi/sd.c: In function `sd_done':
-drivers/scsi/sd.c:1092: warning: statement with no effect
-
-By switching to proper, typechecked C-language inlined stubs.  I really don't
-know how to wean kernel developers off their macro addiction.
-
-
-Also, consistently fill in the argument names in the
-CONFIG_BLK_DEV_INTEGRITY=y declarations - it's good for readability.
-
-Cc: Martin K. Petersen <martin.petersen@oracle.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sd.h |   34 ++++++++++++++++++++++++++--------
- 1 file changed, 26 insertions(+), 8 deletions(-)
+ init/main.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/scsi/sd.h~drivers-scsi-sdh-use-inlined-c-functions-not-macros drivers/scsi/sd.h
---- a/drivers/scsi/sd.h~drivers-scsi-sdh-use-inlined-c-functions-not-macros
-+++ a/drivers/scsi/sd.h
-@@ -99,17 +99,35 @@ struct sd_dif_tuple {
- 
- #if defined(CONFIG_BLK_DEV_INTEGRITY)
- 
--extern void sd_dif_op(struct scsi_cmnd *, unsigned int, unsigned int);
--extern void sd_dif_config_host(struct scsi_disk *);
--extern int sd_dif_prepare(struct request *rq, sector_t, unsigned int);
--extern void sd_dif_complete(struct scsi_cmnd *, unsigned int);
-+extern void sd_dif_op(struct scsi_cmnd *scmd, unsigned int dif,
-+			unsigned int dix);
-+extern void sd_dif_config_host(struct scsi_disk *sdkp);
-+extern int sd_dif_prepare(struct request *rq, sector_t hw_sector,
-+			unsigned int sector_sz);
-+extern void sd_dif_complete(struct scsi_cmnd *scmd, unsigned int good_bytes);
- 
- #else /* CONFIG_BLK_DEV_INTEGRITY */
- 
--#define sd_dif_op(a, b, c)			do { } while (0)
--#define sd_dif_config_host(a)			do { } while (0)
--#define sd_dif_prepare(a, b, c)			(0)
--#define sd_dif_complete(a, b)			(0)
-+static inline void sd_dif_op(struct scsi_cmnd *scmd, unsigned int dif,
-+			unsigned int dix)
-+{
-+}
-+
-+static inline void sd_dif_config_host(struct scsi_disk *sdkp)
-+{
-+}
-+
-+static inline int sd_dif_prepare(struct request *rq, sector_t hw_sector,
-+			unsigned int sector_sz)
-+{
-+	return 0;
-+}
-+
-+static inline int sd_dif_complete(struct scsi_cmnd *scmd,
-+				unsigned int good_bytes)
-+{
-+	return 0;
-+}
- 
- #endif /* CONFIG_BLK_DEV_INTEGRITY */
- 
+diff -puN init/main.c~mm-rewrite-vmap-layer-fix-fix init/main.c
+--- a/init/main.c~mm-rewrite-vmap-layer-fix-fix
++++ a/init/main.c
+@@ -659,6 +659,7 @@ asmlinkage void __init start_kernel(void
+ 		initrd_start = 0;
+ 	}
+ #endif
++	vmalloc_init();
+ 	vfs_caches_init_early();
+ 	cpuset_init_early();
+ 	mem_init();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-linux-next.patch
-linux-next-git-rejects.patch
-revert-i7300_idle-driver-v155.patch
-arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module-checkpatch-fixes.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-leds-driver-for-hp-harddisk-protection-led-fix.patch
-drivers-rtc-rtc-ds1286c-is-borked.patch
-drivers-rtc-rtc-m48t35c-is-borked-too.patch
-drivers-net-sfc-falconc-fix-min-warnings.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-drivers-scsi-sdh-use-inlined-c-functions-not-macros.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
 mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
 vmscan-move-isolate_lru_page-to-vmscanc.patch
 define-page_file_cache-function.patch
 vmscan-split-lru-lists-into-anon-file-sets.patch
@@ -130,8 +68,7 @@ mmap-handle-mlocked-pages-during-map-remap-unmap.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
 vmscan-unevictable-lru-scan-sysctl.patch
 mlock-make-mlock-error-return-posixly-correct-fix.patch
-mm-vmallocc-revert-git-tip-change.patch
-mm-rewrite-vmap-layer-fix.patch
+mm-rewrite-vmap-layer.patch
 mm-rewrite-vmap-layer-fix-fix.patch
 mm-rewrite-vmap-layer-fix-fix-fix.patch
 revert-mm-vmallocc-revert-git-tip-change.patch
