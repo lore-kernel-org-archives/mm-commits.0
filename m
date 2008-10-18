@@ -1,97 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:18:52 -0700
-Message-ID: <200810182318.m9INIqxp029356@imap1.linux-foundation.org>
+Subject: - tpm-correct-tpm-timeouts-to-jiffies-conversion.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:19:32 -0700
+Message-ID: <200810182319.m9INJWnN029501@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51849 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42642 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751856AbYJRXTu (ORCPT
+	by vger.kernel.org with ESMTP id S1751855AbYJRXTt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:19:50 -0400
+	Sat, 18 Oct 2008 19:19:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lethal@linux-sh.org, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: marcin_obara@users.sourceforge.net, jirislaby@gmail.com, kjhall@us.ibm.com, tpm@selhorst.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     binfmt_elf_fdpic: wire up AT_EXECFD, AT_EXECFN, AT_SECURE
+     tpm: correct tpm timeouts to jiffies conversion
 has been removed from the -mm tree.  Its filename was
-     binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch
+     tpm-correct-tpm-timeouts-to-jiffies-conversion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: binfmt_elf_fdpic: wire up AT_EXECFD, AT_EXECFN, AT_SECURE
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: tpm: correct tpm timeouts to jiffies conversion
+From: Marcin Obara <marcin_obara@users.sourceforge.net>
 
-These auxvec entries are the only ones left unhandled out of the current
-base implementation. This syncs up binfmt_elf_fdpic with linux/auxvec.h
-and current binfmt_elf.
+This patch fixes timeouts conversion to jiffies, by replacing
+msecs_to_jiffies() calls with usecs_to_jiffies().  According to TCG TPM
+Specification Version 1.2 Revision 103 (pages 166, 167) TPM timeouts and
+durations are returned in microseconds (usec) not in miliseconds (msec).
 
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Acked-by: David Howells <dhowells@redhat.com>
+This fixes a long hang while loading TPM driver, if TPM chip starts in
+"Idle" state instead of "Ready" state.  Without this patch - 'modprobe'
+may hang for 30 seconds or more.
+
+Signed-off-by: Marcin Obara <marcin_obara@users.sourceforge.net>
+Cc: Marcel Selhorst <tpm@selhorst.net>
+Cc: Kylene Jo Hall <kjhall@us.ibm.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf_fdpic.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ drivers/char/tpm/tpm.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -25,6 +25,7 @@
- #include <linux/fcntl.h>
- #include <linux/slab.h>
- #include <linux/pagemap.h>
-+#include <linux/security.h>
- #include <linux/highmem.h>
- #include <linux/highuid.h>
- #include <linux/personality.h>
-@@ -560,11 +561,14 @@ static int create_elf_fdpic_tables(struc
- 	}
+diff -puN drivers/char/tpm/tpm.c~tpm-correct-tpm-timeouts-to-jiffies-conversion drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~tpm-correct-tpm-timeouts-to-jiffies-conversion
++++ a/drivers/char/tpm/tpm.c
+@@ -525,19 +525,19 @@ void tpm_get_timeouts(struct tpm_chip *c
+ 	timeout =
+ 	    be32_to_cpu(*((__be32 *) (data + TPM_GET_CAP_RET_UINT32_1_IDX)));
+ 	if (timeout)
+-		chip->vendor.timeout_a = msecs_to_jiffies(timeout);
++		chip->vendor.timeout_a = usecs_to_jiffies(timeout);
+ 	timeout =
+ 	    be32_to_cpu(*((__be32 *) (data + TPM_GET_CAP_RET_UINT32_2_IDX)));
+ 	if (timeout)
+-		chip->vendor.timeout_b = msecs_to_jiffies(timeout);
++		chip->vendor.timeout_b = usecs_to_jiffies(timeout);
+ 	timeout =
+ 	    be32_to_cpu(*((__be32 *) (data + TPM_GET_CAP_RET_UINT32_3_IDX)));
+ 	if (timeout)
+-		chip->vendor.timeout_c = msecs_to_jiffies(timeout);
++		chip->vendor.timeout_c = usecs_to_jiffies(timeout);
+ 	timeout =
+ 	    be32_to_cpu(*((__be32 *) (data + TPM_GET_CAP_RET_UINT32_4_IDX)));
+ 	if (timeout)
+-		chip->vendor.timeout_d = msecs_to_jiffies(timeout);
++		chip->vendor.timeout_d = usecs_to_jiffies(timeout);
  
- 	/* force 16 byte _final_ alignment here for generality */
--#define DLINFO_ITEMS 13
-+#define DLINFO_ITEMS 15
+ duration:
+ 	memcpy(data, tpm_cap, sizeof(tpm_cap));
+@@ -554,15 +554,15 @@ duration:
+ 		return;
  
- 	nitems = 1 + DLINFO_ITEMS + (k_platform ? 1 : 0) +
- 		(k_base_platform ? 1 : 0) + AT_VECTOR_SIZE_ARCH;
- 
-+	if (bprm->interp_flags & BINPRM_FLAGS_EXECFD)
-+		nitems++;
-+
- 	csp = sp;
- 	sp -= nitems * 2 * sizeof(unsigned long);
- 	sp -= (bprm->envc + 1) * sizeof(char *);	/* envv[] */
-@@ -602,6 +606,12 @@ static int create_elf_fdpic_tables(struc
- 			    (elf_addr_t) (unsigned long) u_base_platform);
- 	}
- 
-+	if (bprm->interp_flags & BINPRM_FLAGS_EXECFD) {
-+		nr = 0;
-+		csp -= 2 * sizeof(unsigned long);
-+		NEW_AUX_ENT(AT_EXECFD, bprm->interp_data);
-+	}
-+
- 	nr = 0;
- 	csp -= DLINFO_ITEMS * 2 * sizeof(unsigned long);
- 	NEW_AUX_ENT(AT_HWCAP,	hwcap);
-@@ -617,6 +627,8 @@ static int create_elf_fdpic_tables(struc
- 	NEW_AUX_ENT(AT_EUID,	(elf_addr_t) current->euid);
- 	NEW_AUX_ENT(AT_GID,	(elf_addr_t) current->gid);
- 	NEW_AUX_ENT(AT_EGID,	(elf_addr_t) current->egid);
-+	NEW_AUX_ENT(AT_SECURE,	security_bprm_secureexec(bprm));
-+	NEW_AUX_ENT(AT_EXECFN,	bprm->exec);
- 
- #ifdef ARCH_DLINFO
- 	nr = 0;
+ 	chip->vendor.duration[TPM_SHORT] =
+-	    msecs_to_jiffies(be32_to_cpu
++	    usecs_to_jiffies(be32_to_cpu
+ 			     (*((__be32 *) (data +
+ 					    TPM_GET_CAP_RET_UINT32_1_IDX))));
+ 	chip->vendor.duration[TPM_MEDIUM] =
+-	    msecs_to_jiffies(be32_to_cpu
++	    usecs_to_jiffies(be32_to_cpu
+ 			     (*((__be32 *) (data +
+ 					    TPM_GET_CAP_RET_UINT32_2_IDX))));
+ 	chip->vendor.duration[TPM_LONG] =
+-	    msecs_to_jiffies(be32_to_cpu
++	    usecs_to_jiffies(be32_to_cpu
+ 			     (*((__be32 *) (data +
+ 					    TPM_GET_CAP_RET_UINT32_3_IDX))));
+ }
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from marcin_obara@users.sourceforge.net are
 
 origin.patch
-kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore.patch
 
