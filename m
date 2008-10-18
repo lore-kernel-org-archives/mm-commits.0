@@ -1,59 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - w1-w1_therm-consistent-mutex-access-code-cleanup.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:20:01 -0700
-Message-ID: <200810182320.m9INK1N4029614@imap1.linux-foundation.org>
+Subject: - ipc-semc-make-free_un-static.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:20:33 -0700
+Message-ID: <200810182320.m9INKXuZ029780@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35499 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54053 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751897AbYJRXUU (ORCPT
+	by vger.kernel.org with ESMTP id S1751927AbYJRXUm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:20:20 -0400
+	Sat, 18 Oct 2008 19:20:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     W1: w1_therm consistent mutex access code cleanup
+     ipc/sem.c: make free_un() static
 has been removed from the -mm tree.  Its filename was
-     w1-w1_therm-consistent-mutex-access-code-cleanup.patch
+     ipc-semc-make-free_un-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: W1: w1_therm consistent mutex access code cleanup
-From: David Fries <david@fries.net>
+Subject: ipc/sem.c: make free_un() static
+From: Adrian Bunk <bunk@kernel.org>
 
-sl->master->mutex and dev->mutex refer to the same mutex variable, but be
-consistent and use the same set of pointers for the lock and unlock calls.
- It is less confusing (and one less pointer dereference this way).
-
-Signed-off-by: David Fries <david@fries.net>
-Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/w1_therm.c |    2 +-
+ ipc/sem.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/w1/slaves/w1_therm.c~w1-w1_therm-consistent-mutex-access-code-cleanup drivers/w1/slaves/w1_therm.c
---- a/drivers/w1/slaves/w1_therm.c~w1-w1_therm-consistent-mutex-access-code-cleanup
-+++ a/drivers/w1/slaves/w1_therm.c
-@@ -171,7 +171,7 @@ static ssize_t w1_therm_read(struct devi
- 	int i, max_trying = 10;
- 	ssize_t c = PAGE_SIZE;
+diff -puN ipc/sem.c~ipc-semc-make-free_un-static ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-make-free_un-static
++++ a/ipc/sem.c
+@@ -504,7 +504,7 @@ static int count_semzcnt (struct sem_arr
+ 	return semzcnt;
+ }
  
--	mutex_lock(&sl->master->mutex);
-+	mutex_lock(&dev->mutex);
- 
- 	memset(rom, 0, sizeof(rom));
- 
+-void free_un(struct rcu_head *head)
++static void free_un(struct rcu_head *head)
+ {
+ 	struct sem_undo *un = container_of(head, struct sem_undo, rcu);
+ 	kfree(un);
 _
 
-Patches currently in -mm which might be from david@fries.net are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
+make-probe_serial_gsc-static.patch
+make-ptrace_untrace-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+acpi-use-bcd2bin-bin2bcd.patch
+alpha-use-bcd2bin-bin2bcd.patch
+cris-use-bcd2bin-bin2bcd.patch
+drivers-rtc-use-bcd2bin-bin2bcd.patch
+rtc-use-bcd2bin-bin2bcd.patch
+mips-use-bcd2bin-bin2bcd.patch
+mn10300-use-bcd2bin-bin2bcd.patch
+i2c-use-bcd2bin-bin2bcd.patch
+drivers-scsi-sr_vendorc-use-bcd2bin.patch
+remove-the-obsolete-bcdbin-binbcd-macros.patch
+include-linux-bcdh-remove-comments.patch
 
