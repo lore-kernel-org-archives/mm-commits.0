@@ -1,270 +1,450 @@
 From: akpm@linux-foundation.org
-Subject: - gpiolib-request-free-hooks.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:16:08 -0700
-Message-ID: <200810182316.m9ING8F5028761@imap1.linux-foundation.org>
+Subject: - omap-drivers-switch-to-standard-gpio-calls.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:16:04 -0700
+Message-ID: <200810182316.m9ING4tx028742@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46896 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36456 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751122AbYJRXQS (ORCPT
+	by vger.kernel.org with ESMTP id S1751645AbYJRXQS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 18 Oct 2008 19:16:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbrownell@users.sourceforge.net, magnus.damm@gmail.com, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, adaplas@gmail.com, dmitry.torokhov@gmail.com, dwmw2@infradead.org, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpiolib: request/free hooks
+     omap drivers: switch to standard GPIO calls
 has been removed from the -mm tree.  Its filename was
-     gpiolib-request-free-hooks.patch
+     omap-drivers-switch-to-standard-gpio-calls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiolib: request/free hooks
+Subject: omap drivers: switch to standard GPIO calls
 From: David Brownell <dbrownell@users.sourceforge.net>
 
-Add a new internal mechanism to gpiolib to support low power
-operations by letting gpio_chip instances see when their GPIOs
-are in use.  When no GPIOs are active, chips may be able to
-enter lower powered runtime states by disabling clocks and/or
-power domains.
+This updates most of the OMAP drivers which are in mainline to switch to
+using the cross-platform GPIO calls instead of the older OMAP-specific
+ones.
+
+This is all fairly brainless/obvious stuff.  Probably the most interesting
+bit is to observe that the omap-keypad code seems to now have a portable
+core that could work with non-OMAP matrix keypads.  (That would improve
+with hardware IRQ debouncing enabled, of course...)
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: "Magnus Damm" <magnus.damm@gmail.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Antonino Daplas <adaplas@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/gpio.txt     |    4 +
- drivers/gpio/gpiolib.c     |   91 ++++++++++++++++++++++++++++++-----
- include/asm-generic/gpio.h |    9 +++
- 3 files changed, 91 insertions(+), 13 deletions(-)
+ drivers/input/keyboard/omap-keypad.c |   27 +++---
+ drivers/mtd/nand/ams-delta.c         |    4 -
+ drivers/video/omap/lcd_inn1610.c     |   22 ++---
+ drivers/video/omap/lcd_osk.c         |   10 +-
+ drivers/video/omap/lcd_sx1.c         |   99 +++++++++++--------------
+ 5 files changed, 75 insertions(+), 87 deletions(-)
 
-diff -puN Documentation/gpio.txt~gpiolib-request-free-hooks Documentation/gpio.txt
---- a/Documentation/gpio.txt~gpiolib-request-free-hooks
-+++ a/Documentation/gpio.txt
-@@ -240,6 +240,10 @@ signal, or (b) something wrongly believe
- needed to manage a signal that's in active use.  That is, requesting a
- GPIO can serve as a kind of lock.
- 
-+Some platforms may also use knowledge about what GPIOs are active for
-+power management, such as by powering down unused chip sectors and, more
-+easily, gating off unused clocks.
-+
- These two calls are optional because not not all current Linux platforms
- offer such functionality in their GPIO support; a valid implementation
- could return success for all gpio_request() calls.  Unlike the other calls,
-diff -puN drivers/gpio/gpiolib.c~gpiolib-request-free-hooks drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpiolib-request-free-hooks
-+++ a/drivers/gpio/gpiolib.c
-@@ -67,17 +67,28 @@ static inline void desc_set_label(struct
-  * when setting direction, and otherwise illegal.  Until board setup code
-  * and drivers use explicit requests everywhere (which won't happen when
-  * those calls have no teeth) we can't avoid autorequesting.  This nag
-- * message should motivate switching to explicit requests...
-+ * message should motivate switching to explicit requests... so should
-+ * the weaker cleanup after faults, compared to gpio_request().
-  */
--static void gpio_ensure_requested(struct gpio_desc *desc)
-+static int gpio_ensure_requested(struct gpio_desc *desc, unsigned offset)
+diff -puN drivers/input/keyboard/omap-keypad.c~omap-drivers-switch-to-standard-gpio-calls drivers/input/keyboard/omap-keypad.c
+--- a/drivers/input/keyboard/omap-keypad.c~omap-drivers-switch-to-standard-gpio-calls
++++ a/drivers/input/keyboard/omap-keypad.c
+@@ -72,12 +72,9 @@ static unsigned int *col_gpios;
+ static void set_col_gpio_val(struct omap_kp *omap_kp, u8 value)
  {
- 	if (test_and_set_bit(FLAG_REQUESTED, &desc->flags) == 0) {
--		pr_warning("GPIO-%d autorequested\n", (int)(desc - gpio_desc));
-+		struct gpio_chip *chip = desc->chip;
-+		int gpio = chip->base + offset;
+ 	int col;
+-	for (col = 0; col < omap_kp->cols; col++) {
+-		if (value & (1 << col))
+-			omap_set_gpio_dataout(col_gpios[col], 1);
+-		else
+-			omap_set_gpio_dataout(col_gpios[col], 0);
+-	}
 +
-+		if (!try_module_get(chip->owner)) {
-+			pr_err("GPIO-%d: module can't be gotten \n", gpio);
-+			clear_bit(FLAG_REQUESTED, &desc->flags);
-+			/* lose */
-+			return -EIO;
-+		}
-+		pr_warning("GPIO-%d autorequested\n", gpio);
- 		desc_set_label(desc, "[auto]");
--		if (!try_module_get(desc->chip->owner))
--			pr_err("GPIO-%d: module can't be gotten \n",
--					(int)(desc - gpio_desc));
-+		/* caller must chip->request() w/o spinlock */
-+		if (chip->request)
-+			return 1;
- 	}
-+	return 0;
++	for (col = 0; col < omap_kp->cols; col++)
++		gpio_set_value(col_gpios[col], value & (1 << col));
  }
  
- /* caller holds gpio_lock *OR* gpio is marked as requested */
-@@ -752,6 +763,7 @@ EXPORT_SYMBOL_GPL(gpiochip_remove);
- int gpio_request(unsigned gpio, const char *label)
- {
- 	struct gpio_desc	*desc;
-+	struct gpio_chip	*chip;
- 	int			status = -EINVAL;
- 	unsigned long		flags;
+ static u8 get_row_gpio_val(struct omap_kp *omap_kp)
+@@ -86,7 +83,7 @@ static u8 get_row_gpio_val(struct omap_k
+ 	u8 value = 0;
  
-@@ -760,14 +772,15 @@ int gpio_request(unsigned gpio, const ch
- 	if (!gpio_is_valid(gpio))
- 		goto done;
- 	desc = &gpio_desc[gpio];
--	if (desc->chip == NULL)
-+	chip = desc->chip;
-+	if (chip == NULL)
- 		goto done;
- 
--	if (!try_module_get(desc->chip->owner))
-+	if (!try_module_get(chip->owner))
- 		goto done;
- 
- 	/* NOTE:  gpio_request() can be called in early boot,
--	 * before IRQs are enabled.
-+	 * before IRQs are enabled, for non-sleeping (SOC) GPIOs.
- 	 */
- 
- 	if (test_and_set_bit(FLAG_REQUESTED, &desc->flags) == 0) {
-@@ -775,7 +788,20 @@ int gpio_request(unsigned gpio, const ch
- 		status = 0;
- 	} else {
- 		status = -EBUSY;
--		module_put(desc->chip->owner);
-+		module_put(chip->owner);
-+	}
-+
-+	if (chip->request) {
-+		/* chip->request may sleep */
-+		spin_unlock_irqrestore(&gpio_lock, flags);
-+		status = chip->request(chip, gpio - chip->base);
-+		spin_lock_irqsave(&gpio_lock, flags);
-+
-+		if (status < 0) {
-+			desc_set_label(desc, NULL);
-+			module_put(chip->owner);
-+			clear_bit(FLAG_REQUESTED, &desc->flags);
-+		}
+ 	for (row = 0; row < omap_kp->rows; row++) {
+-		if (omap_get_gpio_datain(row_gpios[row]))
++		if (gpio_get_value(row_gpios[row]))
+ 			value |= (1 << row);
  	}
+ 	return value;
+@@ -333,23 +330,23 @@ static int __init omap_kp_probe(struct p
+ 	if (cpu_is_omap24xx()) {
+ 		/* Cols: outputs */
+ 		for (col_idx = 0; col_idx < omap_kp->cols; col_idx++) {
+-			if (omap_request_gpio(col_gpios[col_idx]) < 0) {
++			if (gpio_request(col_gpios[col_idx], "omap_kp_col") < 0) {
+ 				printk(KERN_ERR "Failed to request"
+ 				       "GPIO%d for keypad\n",
+ 				       col_gpios[col_idx]);
+ 				goto err1;
+ 			}
+-			omap_set_gpio_direction(col_gpios[col_idx], 0);
++			gpio_direction_output(col_gpios[col_idx], 0);
+ 		}
+ 		/* Rows: inputs */
+ 		for (row_idx = 0; row_idx < omap_kp->rows; row_idx++) {
+-			if (omap_request_gpio(row_gpios[row_idx]) < 0) {
++			if (gpio_request(row_gpios[row_idx], "omap_kp_row") < 0) {
+ 				printk(KERN_ERR "Failed to request"
+ 				       "GPIO%d for keypad\n",
+ 				       row_gpios[row_idx]);
+ 				goto err2;
+ 			}
+-			omap_set_gpio_direction(row_gpios[row_idx], 1);
++			gpio_direction_input(row_gpios[row_idx]);
+ 		}
+ 	} else {
+ 		col_idx = 0;
+@@ -418,10 +415,10 @@ err3:
+ 	device_remove_file(&pdev->dev, &dev_attr_enable);
+ err2:
+ 	for (i = row_idx - 1; i >=0; i--)
+-		omap_free_gpio(row_gpios[i]);
++		gpio_free(row_gpios[i]);
+ err1:
+ 	for (i = col_idx - 1; i >=0; i--)
+-		omap_free_gpio(col_gpios[i]);
++		gpio_free(col_gpios[i]);
  
- done:
-@@ -791,6 +817,7 @@ void gpio_free(unsigned gpio)
+ 	kfree(omap_kp);
+ 	input_free_device(input_dev);
+@@ -438,9 +435,9 @@ static int omap_kp_remove(struct platfor
+ 	if (cpu_is_omap24xx()) {
+ 		int i;
+ 		for (i = 0; i < omap_kp->cols; i++)
+-			omap_free_gpio(col_gpios[i]);
++			gpio_free(col_gpios[i]);
+ 		for (i = 0; i < omap_kp->rows; i++) {
+-			omap_free_gpio(row_gpios[i]);
++			gpio_free(row_gpios[i]);
+ 			free_irq(OMAP_GPIO_IRQ(row_gpios[i]), 0);
+ 		}
+ 	} else {
+diff -puN drivers/mtd/nand/ams-delta.c~omap-drivers-switch-to-standard-gpio-calls drivers/mtd/nand/ams-delta.c
+--- a/drivers/mtd/nand/ams-delta.c~omap-drivers-switch-to-standard-gpio-calls
++++ a/drivers/mtd/nand/ams-delta.c
+@@ -145,7 +145,7 @@ static void ams_delta_hwcontrol(struct m
+ 
+ static int ams_delta_nand_ready(struct mtd_info *mtd)
  {
- 	unsigned long		flags;
- 	struct gpio_desc	*desc;
-+	struct gpio_chip	*chip;
+-	return omap_get_gpio_datain(AMS_DELTA_GPIO_PIN_NAND_RB);
++	return gpio_get_value(AMS_DELTA_GPIO_PIN_NAND_RB);
+ }
  
- 	might_sleep();
+ /*
+@@ -185,7 +185,7 @@ static int __init ams_delta_init(void)
+ 	this->read_buf = ams_delta_read_buf;
+ 	this->verify_buf = ams_delta_verify_buf;
+ 	this->cmd_ctrl = ams_delta_hwcontrol;
+-	if (!omap_request_gpio(AMS_DELTA_GPIO_PIN_NAND_RB)) {
++	if (gpio_request(AMS_DELTA_GPIO_PIN_NAND_RB, "nand_rdy") == 0) {
+ 		this->dev_ready = ams_delta_nand_ready;
+ 	} else {
+ 		this->dev_ready = NULL;
+diff -puN drivers/video/omap/lcd_inn1610.c~omap-drivers-switch-to-standard-gpio-calls drivers/video/omap/lcd_inn1610.c
+--- a/drivers/video/omap/lcd_inn1610.c~omap-drivers-switch-to-standard-gpio-calls
++++ a/drivers/video/omap/lcd_inn1610.c
+@@ -32,43 +32,43 @@ static int innovator1610_panel_init(stru
+ {
+ 	int r = 0;
  
-@@ -804,9 +831,17 @@ void gpio_free(unsigned gpio)
- 	spin_lock_irqsave(&gpio_lock, flags);
+-	if (omap_request_gpio(14)) {
++	if (gpio_request(14, "lcd_en0")) {
+ 		pr_err(MODULE_NAME ": can't request GPIO 14\n");
+ 		r = -1;
+ 		goto exit;
+ 	}
+-	if (omap_request_gpio(15)) {
++	if (gpio_request(15, "lcd_en1")) {
+ 		pr_err(MODULE_NAME ": can't request GPIO 15\n");
+-		omap_free_gpio(14);
++		gpio_free(14);
+ 		r = -1;
+ 		goto exit;
+ 	}
+ 	/* configure GPIO(14, 15) as outputs */
+-	omap_set_gpio_direction(14, 0);
+-	omap_set_gpio_direction(15, 0);
++	gpio_direction_output(14, 0);
++	gpio_direction_output(15, 0);
+ exit:
+ 	return r;
+ }
  
- 	desc = &gpio_desc[gpio];
--	if (desc->chip && test_and_clear_bit(FLAG_REQUESTED, &desc->flags)) {
-+	chip = desc->chip;
-+	if (chip && test_bit(FLAG_REQUESTED, &desc->flags)) {
-+		if (chip->free) {
-+			spin_unlock_irqrestore(&gpio_lock, flags);
-+			might_sleep_if(extra_checks && chip->can_sleep);
-+			chip->free(chip, gpio - chip->base);
-+			spin_lock_irqsave(&gpio_lock, flags);
-+		}
- 		desc_set_label(desc, NULL);
- 		module_put(desc->chip->owner);
-+		clear_bit(FLAG_REQUESTED, &desc->flags);
- 	} else
- 		WARN_ON(extra_checks);
+ static void innovator1610_panel_cleanup(struct lcd_panel *panel)
+ {
+-	omap_free_gpio(15);
+-	omap_free_gpio(14);
++	gpio_free(15);
++	gpio_free(14);
+ }
  
-@@ -871,7 +906,9 @@ int gpio_direction_input(unsigned gpio)
- 	gpio -= chip->base;
- 	if (gpio >= chip->ngpio)
- 		goto fail;
--	gpio_ensure_requested(desc);
-+	status = gpio_ensure_requested(desc, gpio);
-+	if (status < 0)
-+		goto fail;
+ static int innovator1610_panel_enable(struct lcd_panel *panel)
+ {
+ 	/* set GPIO14 and GPIO15 high */
+-	omap_set_gpio_dataout(14, 1);
+-	omap_set_gpio_dataout(15, 1);
++	gpio_set_value(14, 1);
++	gpio_set_value(15, 1);
+ 	return 0;
+ }
  
- 	/* now we know the gpio is valid and chip won't vanish */
+ static void innovator1610_panel_disable(struct lcd_panel *panel)
+ {
+ 	/* set GPIO13, GPIO14 and GPIO15 low */
+-	omap_set_gpio_dataout(14, 0);
+-	omap_set_gpio_dataout(15, 0);
++	gpio_set_value(14, 0);
++	gpio_set_value(15, 0);
+ }
  
-@@ -879,9 +916,22 @@ int gpio_direction_input(unsigned gpio)
+ static unsigned long innovator1610_panel_get_caps(struct lcd_panel *panel)
+diff -puN drivers/video/omap/lcd_osk.c~omap-drivers-switch-to-standard-gpio-calls drivers/video/omap/lcd_osk.c
+--- a/drivers/video/omap/lcd_osk.c~omap-drivers-switch-to-standard-gpio-calls
++++ a/drivers/video/omap/lcd_osk.c
+@@ -29,6 +29,7 @@
  
- 	might_sleep_if(extra_checks && chip->can_sleep);
+ static int osk_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
+ {
++	/* gpio2 was allocated in board init */
+ 	return 0;
+ }
  
-+	if (status) {
-+		status = chip->request(chip, gpio);
-+		if (status < 0) {
-+			pr_debug("GPIO-%d: chip request fail, %d\n",
-+				chip->base + gpio, status);
-+			/* and it's not available to anyone else ...
-+			 * gpio_request() is the fully clean solution.
-+			 */
-+			goto lose;
-+		}
-+	}
+@@ -47,11 +48,8 @@ static int osk_panel_enable(struct lcd_p
+ 	/* Set PWL level */
+ 	omap_writeb(0xFF, OMAP_PWL_ENABLE);
+ 
+-	/* configure GPIO2 as output */
+-	omap_set_gpio_direction(2, 0);
+-
+-	/* set GPIO2 high */
+-	omap_set_gpio_dataout(2, 1);
++	/* set GPIO2 high (lcd power enabled) */
++	gpio_set_value(2, 1);
+ 
+ 	return 0;
+ }
+@@ -65,7 +63,7 @@ static void osk_panel_disable(struct lcd
+ 	omap_writeb(0x00, OMAP_PWL_CLK_ENABLE);
+ 
+ 	/* set GPIO2 low */
+-	omap_set_gpio_dataout(2, 0);
++	gpio_set_value(2, 0);
+ }
+ 
+ static unsigned long osk_panel_get_caps(struct lcd_panel *panel)
+diff -puN drivers/video/omap/lcd_sx1.c~omap-drivers-switch-to-standard-gpio-calls drivers/video/omap/lcd_sx1.c
+--- a/drivers/video/omap/lcd_sx1.c~omap-drivers-switch-to-standard-gpio-calls
++++ a/drivers/video/omap/lcd_sx1.c
+@@ -81,21 +81,21 @@ static void epson_sendbyte(int flag, uns
+ 	int i, shifter = 0x80;
+ 
+ 	if (!flag)
+-		omap_set_gpio_dataout(_A_LCD_SSC_A0, 0);
++		gpio_set_value(_A_LCD_SSC_A0, 0);
+ 	mdelay(2);
+-	omap_set_gpio_dataout(A_LCD_SSC_RD, 1);
++	gpio_set_value(A_LCD_SSC_RD, 1);
+ 
+-	omap_set_gpio_dataout(A_LCD_SSC_SD, flag);
++	gpio_set_value(A_LCD_SSC_SD, flag);
+ 
+ 	OMAP_MCBSP_WRITE(OMAP1510_MCBSP3_BASE, PCR0, 0x2200);
+ 	OMAP_MCBSP_WRITE(OMAP1510_MCBSP3_BASE, PCR0, 0x2202);
+ 	for (i = 0; i < 8; i++) {
+ 		OMAP_MCBSP_WRITE(OMAP1510_MCBSP3_BASE, PCR0, 0x2200);
+-		omap_set_gpio_dataout(A_LCD_SSC_SD, shifter & byte);
++		gpio_set_value(A_LCD_SSC_SD, shifter & byte);
+ 		OMAP_MCBSP_WRITE(OMAP1510_MCBSP3_BASE, PCR0, 0x2202);
+ 		shifter >>= 1;
+ 	}
+-	omap_set_gpio_dataout(_A_LCD_SSC_A0, 1);
++	gpio_set_value(_A_LCD_SSC_A0, 1);
+ }
+ 
+ static void init_system(void)
+@@ -107,25 +107,18 @@ static void init_system(void)
+ static void setup_GPIO(void)
+ {
+ 	/* new wave */
+-	omap_request_gpio(A_LCD_SSC_RD);
+-	omap_request_gpio(A_LCD_SSC_SD);
+-	omap_request_gpio(_A_LCD_RESET);
+-	omap_request_gpio(_A_LCD_SSC_CS);
+-	omap_request_gpio(_A_LCD_SSC_A0);
+-
+-	/* set all GPIOs to output */
+-	omap_set_gpio_direction(A_LCD_SSC_RD, 0);
+-	omap_set_gpio_direction(A_LCD_SSC_SD, 0);
+-	omap_set_gpio_direction(_A_LCD_RESET, 0);
+-	omap_set_gpio_direction(_A_LCD_SSC_CS, 0);
+-	omap_set_gpio_direction(_A_LCD_SSC_A0, 0);
+-
+-	/* set GPIO data */
+-	omap_set_gpio_dataout(A_LCD_SSC_RD, 1);
+-	omap_set_gpio_dataout(A_LCD_SSC_SD, 0);
+-	omap_set_gpio_dataout(_A_LCD_RESET, 0);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
+-	omap_set_gpio_dataout(_A_LCD_SSC_A0, 1);
++	gpio_request(A_LCD_SSC_RD, "lcd_ssc_rd");
++	gpio_request(A_LCD_SSC_SD, "lcd_ssc_sd");
++	gpio_request(_A_LCD_RESET, "lcd_reset");
++	gpio_request(_A_LCD_SSC_CS, "lcd_ssc_cs");
++	gpio_request(_A_LCD_SSC_A0, "lcd_ssc_a0");
 +
- 	status = chip->direction_input(chip, gpio);
- 	if (status == 0)
- 		clear_bit(FLAG_IS_OUT, &desc->flags);
-+lose:
- 	return status;
- fail:
- 	spin_unlock_irqrestore(&gpio_lock, flags);
-@@ -909,7 +959,9 @@ int gpio_direction_output(unsigned gpio,
- 	gpio -= chip->base;
- 	if (gpio >= chip->ngpio)
- 		goto fail;
--	gpio_ensure_requested(desc);
-+	status = gpio_ensure_requested(desc, gpio);
-+	if (status < 0)
-+		goto fail;
++	/* set GPIOs to output, with initial data */
++	gpio_direction_output(A_LCD_SSC_RD, 1);
++	gpio_direction_output(A_LCD_SSC_SD, 0);
++	gpio_direction_output(_A_LCD_RESET, 0);
++	gpio_direction_output(_A_LCD_SSC_CS, 1);
++	gpio_direction_output(_A_LCD_SSC_A0, 1);
+ }
  
- 	/* now we know the gpio is valid and chip won't vanish */
+ static void display_init(void)
+@@ -139,61 +132,61 @@ static void display_init(void)
+ 	mdelay(2);
  
-@@ -917,9 +969,22 @@ int gpio_direction_output(unsigned gpio,
+ 	/* reset LCD */
+-	omap_set_gpio_dataout(A_LCD_SSC_SD, 1);
++	gpio_set_value(A_LCD_SSC_SD, 1);
+ 	epson_sendbyte(0, 0x25);
  
- 	might_sleep_if(extra_checks && chip->can_sleep);
+-	omap_set_gpio_dataout(_A_LCD_RESET, 0);
++	gpio_set_value(_A_LCD_RESET, 0);
+ 	mdelay(10);
+-	omap_set_gpio_dataout(_A_LCD_RESET, 1);
++	gpio_set_value(_A_LCD_RESET, 1);
  
-+	if (status) {
-+		status = chip->request(chip, gpio);
-+		if (status < 0) {
-+			pr_debug("GPIO-%d: chip request fail, %d\n",
-+				chip->base + gpio, status);
-+			/* and it's not available to anyone else ...
-+			 * gpio_request() is the fully clean solution.
-+			 */
-+			goto lose;
-+		}
-+	}
-+
- 	status = chip->direction_output(chip, gpio, value);
- 	if (status == 0)
- 		set_bit(FLAG_IS_OUT, &desc->flags);
-+lose:
- 	return status;
- fail:
- 	spin_unlock_irqrestore(&gpio_lock, flags);
-diff -puN include/asm-generic/gpio.h~gpiolib-request-free-hooks include/asm-generic/gpio.h
---- a/include/asm-generic/gpio.h~gpiolib-request-free-hooks
-+++ a/include/asm-generic/gpio.h
-@@ -35,6 +35,10 @@ struct module;
-  * @label: for diagnostics
-  * @dev: optional device providing the GPIOs
-  * @owner: helps prevent removal of modules exporting active GPIOs
-+ * @request: optional hook for chip-specific activation, such as
-+ *	enabling module power and clock; may sleep
-+ * @free: optional hook for chip-specific deactivation, such as
-+ *	disabling module power and clock; may sleep
-  * @direction_input: configures signal "offset" as input, or returns error
-  * @get: returns value for signal "offset"; for output signals this
-  *	returns either the value actually sensed, or zero
-@@ -67,6 +71,11 @@ struct gpio_chip {
- 	struct device		*dev;
- 	struct module		*owner;
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
+ 	mdelay(2);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
  
-+	int			(*request)(struct gpio_chip *chip,
-+						unsigned offset);
-+	void			(*free)(struct gpio_chip *chip,
-+						unsigned offset);
-+
- 	int			(*direction_input)(struct gpio_chip *chip,
- 						unsigned offset);
- 	int			(*get)(struct gpio_chip *chip,
+ 	/* init LCD, phase 1 */
+ 	epson_sendbyte(0, 0xCA);
+ 	for (i = 0; i < 10; i++)
+ 		epson_sendbyte(1, INIT_1[i]);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	/* init LCD phase 2 */
+ 	epson_sendbyte(0, 0xCB);
+ 	for (i = 0; i < 125; i++)
+ 		epson_sendbyte(1, INIT_2[i]);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	/* init LCD phase 2a */
+ 	epson_sendbyte(0, 0xCC);
+ 	for (i = 0; i < 14; i++)
+ 		epson_sendbyte(1, INIT_3[i]);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	/* init LCD phase 3 */
+ 	epson_sendbyte(0, 0xBC);
+ 	epson_sendbyte(1, 0x08);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	/* init LCD phase 4 */
+ 	epson_sendbyte(0, 0x07);
+ 	epson_sendbyte(1, 0x05);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	/* init LCD phase 5 */
+ 	epson_sendbyte(0, 0x94);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	/* init LCD phase 6 */
+ 	epson_sendbyte(0, 0xC6);
+ 	epson_sendbyte(1, 0x80);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
+ 	mdelay(100); /* used to be 1000 */
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	/* init LCD phase 7 */
+ 	epson_sendbyte(0, 0x16);
+@@ -201,8 +194,8 @@ static void display_init(void)
+ 	epson_sendbyte(1, 0x00);
+ 	epson_sendbyte(1, 0xB1);
+ 	epson_sendbyte(1, 0x00);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	/* init LCD phase 8 */
+ 	epson_sendbyte(0, 0x76);
+@@ -210,12 +203,12 @@ static void display_init(void)
+ 	epson_sendbyte(1, 0x00);
+ 	epson_sendbyte(1, 0xDB);
+ 	epson_sendbyte(1, 0x00);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	/* init LCD phase 9 */
+ 	epson_sendbyte(0, 0xAF);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
+ }
+ 
+ static int sx1_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
+@@ -231,18 +224,18 @@ static void sx1_panel_disable(struct lcd
+ {
+ 	printk(KERN_INFO "SX1: LCD panel disable\n");
+ 	sx1_setmmipower(0);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
+ 
+ 	epson_sendbyte(0, 0x25);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	epson_sendbyte(0, 0xAE);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
+ 	mdelay(100);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 0);
++	gpio_set_value(_A_LCD_SSC_CS, 0);
+ 
+ 	epson_sendbyte(0, 0x95);
+-	omap_set_gpio_dataout(_A_LCD_SSC_CS, 1);
++	gpio_set_value(_A_LCD_SSC_CS, 1);
+ }
+ 
+ static int sx1_panel_enable(struct lcd_panel *panel)
 _
 
 Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
