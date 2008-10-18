@@ -1,112 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - remove-andrew-mortons-http-wwwzipcomau-akpm.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:12:24 -0700
-Message-ID: <200810182312.m9INCO5h027987@imap1.linux-foundation.org>
+Subject: - document-panic_on_unrecovered_nmi-sysctl.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:12:28 -0700
+Message-ID: <200810182312.m9INCSgT028000@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41955 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55818 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751295AbYJRXMb (ORCPT
+	by vger.kernel.org with ESMTP id S1751307AbYJRXMd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:12:31 -0400
+	Sat, 18 Oct 2008 19:12:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: francois.cami@free.fr, mm-commits@vger.kernel.org
+To: bwalle@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove Andrew Morton's http://www.zip.com.au/~akpm/
+     Document panic_on_unrecovered_nmi sysctl
 has been removed from the -mm tree.  Its filename was
-     remove-andrew-mortons-http-wwwzipcomau-akpm.patch
+     document-panic_on_unrecovered_nmi-sysctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Remove Andrew Morton's http://www.zip.com.au/~akpm/
-From: FD Cami <francois.cami@free.fr>
+Subject: Document panic_on_unrecovered_nmi sysctl
+From: Bernhard Walle <bwalle@suse.de>
 
-Remove Andrew Morton's http://www.zip.com.au/~akpm/ urls, update to new
-ones when necessary, delete references otherwise.
+This adds "panic_on_unrecovered_nmi" sysctl to
+Documentation/filesystems/proc.txt. The text is mainly taken from
+http://readlist.com/lists/vger.kernel.org/linux-kernel/43/217998.html.
 
-There are still instances of that living in:
-Documentation/zh_CN/HOWTO
-Documentation/zh_CN/SubmittingPatches
-Documentation/ko_KR/HOWTO
-Documentation/ja_JP/SubmittingPatches
-
-Signed-off-by: Francois Cami <francois.cami@free.fr>
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/HOWTO                 |    4 ++--
- Documentation/SubmittingPatches     |    4 ++--
- Documentation/filesystems/ext3.txt  |    3 +--
- Documentation/networking/vortex.txt |    5 -----
- 4 files changed, 5 insertions(+), 11 deletions(-)
+ Documentation/filesystems/proc.txt |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN Documentation/HOWTO~remove-andrew-mortons-http-wwwzipcomau-akpm Documentation/HOWTO
---- a/Documentation/HOWTO~remove-andrew-mortons-http-wwwzipcomau-akpm
-+++ a/Documentation/HOWTO
-@@ -112,7 +112,7 @@ required reading:
+diff -puN Documentation/filesystems/proc.txt~document-panic_on_unrecovered_nmi-sysctl Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~document-panic_on_unrecovered_nmi-sysctl
++++ a/Documentation/filesystems/proc.txt
+@@ -1321,6 +1321,18 @@ debugging information is displayed on co
+ NMI switch that most IA32 servers have fires unknown NMI up, for example.
+ If a system hangs up, try pressing the NMI switch.
  
-     Other excellent descriptions of how to create patches properly are:
- 	"The Perfect Patch"
--		http://www.zip.com.au/~akpm/linux/patches/stuff/tpp.txt
-+		http://userweb.kernel.org/~akpm/stuff/tpp.txt
- 	"Linux kernel patch submission format"
- 		http://linux.yyz.us/patch-format.html
++panic_on_unrecovered_nmi
++------------------------
++
++The default Linux behaviour on an NMI of either memory or unknown is to continue
++operation. For many environments such as scientific computing it is preferable
++that the box is taken out and the error dealt with than an uncorrected
++parity/ECC error get propogated.
++
++A small number of systems do generate NMI's for bizarre random reasons such as
++power management so the default is off. That sysctl works like the existing
++panic controls already in that directory.
++
+ nmi_watchdog
+ ------------
  
-@@ -620,7 +620,7 @@ all time.  It should describe the patch 
- For more details on what this should all look like, please see the
- ChangeLog section of the document:
-   "The Perfect Patch"
--      http://www.zip.com.au/~akpm/linux/patches/stuff/tpp.txt
-+      http://userweb.kernel.org/~akpm/stuff/tpp.txt
- 
- 
- 
-diff -puN Documentation/SubmittingPatches~remove-andrew-mortons-http-wwwzipcomau-akpm Documentation/SubmittingPatches
---- a/Documentation/SubmittingPatches~remove-andrew-mortons-http-wwwzipcomau-akpm
-+++ a/Documentation/SubmittingPatches
-@@ -77,7 +77,7 @@ Quilt:
- http://savannah.nongnu.org/projects/quilt
- 
- Andrew Morton's patch scripts:
--http://www.zip.com.au/~akpm/linux/patches/
-+http://userweb.kernel.org/~akpm/stuff/patch-scripts.tar.gz
- Instead of these scripts, quilt is the recommended patch management
- tool (see above).
- 
-@@ -653,7 +653,7 @@ SECTION 3 - REFERENCES
- ----------------------
- 
- Andrew Morton, "The perfect patch" (tpp).
--  <http://www.zip.com.au/~akpm/linux/patches/stuff/tpp.txt>
-+  <http://userweb.kernel.org/~akpm/stuff/tpp.txt>
- 
- Jeff Garzik, "Linux kernel patch submission format".
-   <http://linux.yyz.us/patch-format.html>
-diff -puN Documentation/filesystems/ext3.txt~remove-andrew-mortons-http-wwwzipcomau-akpm Documentation/filesystems/ext3.txt
---- a/Documentation/filesystems/ext3.txt~remove-andrew-mortons-http-wwwzipcomau-akpm
-+++ a/Documentation/filesystems/ext3.txt
-@@ -193,6 +193,5 @@ kernel source:	<file:fs/ext3/>
- programs: 	http://e2fsprogs.sourceforge.net/
- 		http://ext2resize.sourceforge.net
- 
--useful links:	http://www.zip.com.au/~akpm/linux/ext3/ext3-usage.html
--		http://www-106.ibm.com/developerworks/linux/library/l-fs7/
-+useful links:	http://www-106.ibm.com/developerworks/linux/library/l-fs7/
- 		http://www-106.ibm.com/developerworks/linux/library/l-fs8/
-diff -puN Documentation/networking/vortex.txt~remove-andrew-mortons-http-wwwzipcomau-akpm Documentation/networking/vortex.txt
---- a/Documentation/networking/vortex.txt~remove-andrew-mortons-http-wwwzipcomau-akpm
-+++ a/Documentation/networking/vortex.txt
-@@ -305,11 +305,6 @@ Donald's wake-on-LAN page:
- 
- 	ftp://ftp.3com.com/pub/nic/3c90x/3c90xx2.exe
- 
--Driver updates and a detailed changelog for the modifications which
--were made for the 2.3/2,4 series kernel is available at
--
--     http://www.zip.com.au/~akpm/linux/#3c59x-bc
+_
+
+Patches currently in -mm which might be from bwalle@suse.de are
+
+origin.patch
+
