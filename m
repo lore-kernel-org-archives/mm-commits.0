@@ -1,145 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - doc-unevictable-lru-and-mlocked-pages-documentation-update-2.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:37:05 -0700
-Message-ID: <200810182337.m9INb59L032221@imap1.linux-foundation.org>
+Subject: - mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-__mlock_vma_pages_range-comment-block.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:37:32 -0700
+Message-ID: <200810182337.m9INbWWB032280@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49579 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44701 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751280AbYJRXhW (ORCPT
+	by vger.kernel.org with ESMTP id S1751280AbYJRXhg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:37:22 -0400
+	Sat, 18 Oct 2008 19:37:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Lee.Schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: lee.schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Cleanup/rework Unevictable LRU and Mlocked Pages documentation
+     mlock: fix __mlock_vma_pages_range comment block
 has been removed from the -mm tree.  Its filename was
-     doc-unevictable-lru-and-mlocked-pages-documentation-update-2.patch
+     mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-__mlock_vma_pages_range-comment-block.patch
 
-This patch was dropped because it was folded into doc-unevictable-lru-and-mlocked-pages-documentation.patch
+This patch was dropped because it was folded into mmap-handle-mlocked-pages-during-map-remap-unmap.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Cleanup/rework Unevictable LRU and Mlocked Pages documentation
-From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Subject: mlock: fix __mlock_vma_pages_range comment block
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-Cleanup and rework of Documentation/vm/unevictable-lru.txt:
+__mlock_vma_pages_range comment block needs updating:
+ - it fails to mention the mlock parameter
+ - no longer requires that mmap_sem be held for write.
 
-+ typos and such pointed out by Randy Dunlap
-+ rework rationale for use of LRU list based on discussion with
-  Christoph Lameter
-+ a few other area of rewording suggested by the rationale rework.
+following patch fixes it.
 
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/unevictable-lru.txt |   62 ++++++++++++++-----------
- 1 file changed, 35 insertions(+), 27 deletions(-)
+ mm/mlock.c |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/vm/unevictable-lru.txt~doc-unevictable-lru-and-mlocked-pages-documentation-update-2 Documentation/vm/unevictable-lru.txt
---- a/Documentation/vm/unevictable-lru.txt~doc-unevictable-lru-and-mlocked-pages-documentation-update-2
-+++ a/Documentation/vm/unevictable-lru.txt
-@@ -38,32 +38,36 @@ The Unevictable LRU List
+diff -puN mm/mlock.c~mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-__mlock_vma_pages_range-comment-block mm/mlock.c
+--- a/mm/mlock.c~mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-__mlock_vma_pages_range-comment-block
++++ a/mm/mlock.c
+@@ -112,12 +112,20 @@ static void munlock_vma_page(struct page
+ 	}
+ }
  
- The Unevictable LRU infrastructure consists of an additional, per-zone, LRU list
- called the "unevictable" list and an associated page flag, PG_unevictable, to
--indicate that the page is being managed on the unevictable list.  The PG_unevictable
--flag is analogous to, and mutually exclusive with, the PG_active flag in that
--it indicates on which LRU list a page resides when PG_lru is set.  The
--unevictable LRU list is source configurable based on the UNEVICTABLE_LRU Kconfig
--option.
--
--Why maintain unevictable pages on an additional LRU list?  Primarily because
--we want to be able to migrate unevictable pages between nodes--for memory
--deframentation, workload management and memory hotplug.  The linux kernel can
--only migrate pages that it can successfully isolate from the lru lists.
--Therefore, we want to keep the unevictable pages on an lru-like list, where
--they can be found by isolate_lru_page().
--
--Secondarily, the Linux memory management subsystem has well established
--protocols for managing pages on the LRU.  Vmscan is based on LRU lists.
--LRU list exist per zone, and we want to maintain pages relative to their
--"home zone".  All of these make the use of an additional list, parallel to
--the LRU active and inactive lists, a natural mechanism to employ.  Note,
--however, that the unevictable list does not differentiate between file backed
--and swap backed [anon] pages.  This differentiation is only important while
--the pages are, in fact, evictable.
-+indicate that the page is being managed on the unevictable list.  The
-+PG_unevictable flag is analogous to, and mutually exclusive with, the PG_active
-+flag in that it indicates on which LRU list a page resides when PG_lru is set.
-+The unevictable LRU list is source configurable based on the UNEVICTABLE_LRU
-+Kconfig option.
-+
-+The Unevictable LRU infrastructure maintains unevictable pages on an additional
-+LRU list for a few reasons:
-+
-+1) We get to "treat unevictable pages just like we treat other pages in the
-+   system, which means we get to use the same code to manipulate them, the
-+   same code to isolate them (for migrate, etc.), the same code to keep track
-+   of the statistics, etc..." [Rik van Riel]
-+
-+2) We want to be able to migrate unevictable pages between nodes--for memory
-+   defragmentation, workload management and memory hotplug.  The linux kernel
-+   can only migrate pages that it can successfully isolate from the lru lists.
-+   If we were to maintain pages elsewise than on an lru-like list, where they
-+   can be found by isolate_lru_page(), we would prevent their migration, unless
-+   we reworked migration code to find the unevictable pages.
-+
-+
-+The unevictable LRU list does not differentiate between file backed and swap
-+backed [anon] pages.  This differentiation is only important while the pages
-+are, in fact, evictable.
- 
- The unevictable LRU list benefits from the "arrayification" of the per-zone
- LRU lists and statistics originally proposed and posted by Christoph Lameter.
- 
--Note that the unevictable list does not use the lru pagevec mechanism. Rather,
-+The unevictable list does not use the lru pagevec mechanism. Rather,
- unevictable pages are placed directly on the page's zone's unevictable
- list under the zone lru_lock.  The reason for this is to prevent stranding
- of pages on the unevictable list when one task has the page isolated from the
-@@ -156,14 +160,18 @@ Mlocked Page:  Prior Work
- 
- The "Unevictable Mlocked Pages" infrastructure is based on work originally
- posted by Nick Piggin in an RFC patch entitled "mm: mlocked pages off LRU".
--Nick's posted his patch as an alternative to a patch posted by Christoph
-+Nick posted his patch as an alternative to a patch posted by Christoph
- Lameter to achieve the same objective--hiding mlocked pages from vmscan.
- In Nick's patch, he used one of the struct page lru list link fields as a count
- of VM_LOCKED vmas that map the page.  This use of the link field for a count
--prevent the management of the pages on an LRU list.  When Nick's patch was
--integrated with the Unevictable LRU work, the count was replaced by walking the
--reverse map to determine whether any VM_LOCKED vmas mapped the page.  More on
--this below.
-+prevented the management of the pages on an LRU list.  Thus, mlocked pages were
-+not migratable as isolate_lru_page() could not find them and the lru list link
-+field was not available to the migration subsystem.  Nick resolved this by
-+putting mlocked pages back on the lru list before attempting to isolate them,
-+thus abandoning the count of VM_LOCKED vmas.  When Nick's patch was integrated
-+with the Unevictable LRU work, the count was replaced by walking the reverse
-+map to determine whether any VM_LOCKED vmas mapped the page.  More on this
-+below.
- 
- 
- Mlocked Pages:  Basic Management
+-/*
+- * mlock a range of pages in the vma.
++/**
++ * __mlock_vma_pages_range() -  mlock/munlock a range of pages in the vma.
++ * @vma:   target vma
++ * @start: start address
++ * @end:   end address
++ * @mlock: 0 indicate munlock, otherwise mlock.
++ *
++ * If @mlock == 0, unlock an mlocked range;
++ * else mlock the range of pages.  This takes care of making the pages present ,
++ * too.
+  *
+- * This takes care of making the pages present too.
++ * return 0 on success, negative error code on error.
+  *
+- * vma->vm_mm->mmap_sem must be held for write.
++ * vma->vm_mm->mmap_sem must be held for at least read.
+  */
+ static int __mlock_vma_pages_range(struct vm_area_struct *vma,
+ 				   unsigned long start, unsigned long end,
 _
 
-Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
+Patches currently in -mm which might be from lee.schermerhorn@hp.com are
 
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-vmscan-free-swap-space-on-swap-in-activation.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+define-page_file_cache-function.patch
 vmscan-split-lru-lists-into-anon-file-sets.patch
+pageflag-helpers-for-configed-out-flags.patch
 unevictable-lru-infrastructure.patch
+unevictable-infrastructure-lru-add-event-counting-with-statistics.patch
 unevictable-lru-page-statistics.patch
 ramfs-and-ram-disk-pages-are-unevictable.patch
 shm_locked-pages-are-unevictable.patch
+mlock-mlocked-pages-are-unevictable.patch
 doc-unevictable-lru-and-mlocked-pages-documentation.patch
-doc-unevictable-lru-and-mlocked-pages-documentation-update-2.patch
+mlock-downgrade-mmap-sem-while-populating-mlocked-regions.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-__mlock_vma_pages_range-comment-block.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-backout-locked_vm-adjustment-during-mmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-return-value-for-munmap-mlock-vma-race.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-update-locked_vm-on-munmap-of-mlocked-region.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch
+swap-cull-unevictable-pages-in-fault-path.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-count-attempts-to-free-mlocked-page-2.patch
+mlock-revert-mainline-handling-of-mlock-error-return.patch
+mlock-make-mlock-error-return-posixly-correct.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
 
