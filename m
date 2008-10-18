@@ -1,63 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - memory_probe-fix-wrong-sysfs-file-attribute-fix.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:40:15 -0700
-Message-ID: <200810182340.m9INeFm7032642@imap1.linux-foundation.org>
+Subject: - container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:40:53 -0700
+Message-ID: <200810182340.m9INerhG032735@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54454 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39315 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750958AbYJRXk3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751006AbYJRXlK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:40:29 -0400
+	Sat, 18 Oct 2008 19:41:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, randy.dunlap@oracle.com, shaohua.li@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clg@fr.ibm.com, matthltc@us.ibm.com, nigel@tuxonice.net, pavel@suse.cz, rjw@sisk.pl, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory_probe-fix-wrong-sysfs-file-attribute-fix
+     container-freezer-add-tif_freeze-flag-to-all-architectures-fix
 has been removed from the -mm tree.  Its filename was
-     memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
+     container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
 
-This patch was dropped because it was folded into memory_probe-fix-wrong-sysfs-file-attribute.patch
+This patch was dropped because it was folded into container-freezer-add-tif_freeze-flag-to-all-architectures.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory_probe-fix-wrong-sysfs-file-attribute-fix
+Subject: container-freezer-add-tif_freeze-flag-to-all-architectures-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Use S_IWUSR as suggested by Randy.
-
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Matt Helsley <matthltc@us.ibm.com>
+Cc: Nigel Cunningham <nigel@tuxonice.net>
+Cc: Pavel Machek <pavel@suse.cz>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/sparc/include/asm/thread_info_32.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/memory.c~memory_probe-fix-wrong-sysfs-file-attribute-fix drivers/base/memory.c
---- a/drivers/base/memory.c~memory_probe-fix-wrong-sysfs-file-attribute-fix
-+++ a/drivers/base/memory.c
-@@ -21,6 +21,8 @@
- #include <linux/memory_hotplug.h>
- #include <linux/mm.h>
- #include <linux/mutex.h>
-+#include <linux/stat.h>
-+
- #include <asm/atomic.h>
- #include <asm/uaccess.h>
+diff -puN arch/sparc/include/asm/thread_info_32.h~container-freezer-add-tif_freeze-flag-to-all-architectures-fix arch/sparc/include/asm/thread_info_32.h
+--- a/arch/sparc/include/asm/thread_info_32.h~container-freezer-add-tif_freeze-flag-to-all-architectures-fix
++++ a/arch/sparc/include/asm/thread_info_32.h
+@@ -149,7 +149,7 @@ BTFIXUPDEF_CALL(void, free_thread_info, 
+ #define _TIF_DO_NOTIFY_RESUME_MASK	(_TIF_NOTIFY_RESUME | \
+ 					 _TIF_SIGPENDING | \
+ 					 _TIF_RESTORE_SIGMASK)
+-#define TIF_FREEZE		(1<<TIF_FREEZE)
++#define _TIF_FREEZE		(1<<TIF_FREEZE)
  
-@@ -325,7 +327,7 @@ memory_probe_store(struct class *class, 
+ #endif /* __KERNEL__ */
  
- 	return count;
- }
--static CLASS_ATTR(probe, 0200, NULL, memory_probe_store);
-+static CLASS_ATTR(probe, S_IWUSR, NULL, memory_probe_store);
- 
- static int memory_probe_init(void)
- {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,7 +68,7 @@ vmscan-unevictable-lru-scan-sysctl.patch
 mlock-make-mlock-error-return-posixly-correct.patch
 mm-rewrite-vmap-layer.patch
 memory_probe-fix-wrong-sysfs-file-attribute.patch
-memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures.patch
 container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
 container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
 container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
