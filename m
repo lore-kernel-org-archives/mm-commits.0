@@ -1,346 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:41:43 -0700
-Message-ID: <200810182341.m9INfhkP000377@imap1.linux-foundation.org>
+Subject: - container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:41:40 -0700
+Message-ID: <200810182341.m9INfe79000374@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42947 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33208 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751453AbYJRXmF (ORCPT
+	by vger.kernel.org with ESMTP id S1751431AbYJRXmf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:42:05 -0400
+	Sat, 18 Oct 2008 19:42:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthltc@us.ibm.com, clg@fr.ibm.com, pavel@suse.cz, rjw@sisk.pl, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clg@fr.ibm.com, matthltc@us.ibm.com, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     container freezer: fix freezer Kconfig
+     container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig.patch
+     container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into container-freezer-implement-freezer-cgroup-subsystem.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: container freezer: fix freezer Kconfig
-From: Matt Helsley <matthltc@us.ibm.com>
+Subject: container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/power/Kconfig is not sourced from all architectures but the freezer
-code should be available to all architectures for the cgroup freezer
-subsystem.  Sourcing a new kernel/Kconfig.freezer has the added advantage
-of keeping the config definition close to its use in the kernel/Makefile.
+ERROR: code indent should use tabs where possible
+#382: FILE: kernel/cgroup_freezer.c:216:
++    ^I^I^Istruct seq_file *m)$
 
-Signed-off-by: Matt Helsley <matthltc@us.ibm.com>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@suse.cz>
+total: 1 errors, 0 warnings, 449 lines checked
+
+./patches/container-freezer-implement-freezer-cgroup-subsystem.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Cedric Le Goater <clg@fr.ibm.com>
+Cc: Matt Helsley <matthltc@us.ibm.com>
 Cc: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig     |    1 +
- arch/arm/Kconfig       |    2 ++
- arch/avr32/Kconfig     |    2 ++
- arch/blackfin/Kconfig  |    3 +++
- arch/cris/Kconfig      |    2 ++
- arch/frv/Kconfig       |    2 ++
- arch/h8300/Kconfig     |    2 ++
- arch/ia64/Kconfig      |    2 ++
- arch/m32r/Kconfig      |    2 ++
- arch/m68k/Kconfig      |    2 ++
- arch/m68knommu/Kconfig |    2 ++
- arch/mips/Kconfig      |    2 ++
- arch/mn10300/Kconfig   |    2 ++
- arch/parisc/Kconfig    |    2 ++
- arch/powerpc/Kconfig   |    2 ++
- arch/s390/Kconfig      |    2 ++
- arch/sh/Kconfig        |    2 ++
- arch/sparc/Kconfig     |    2 ++
- arch/sparc64/Kconfig   |    1 +
- arch/um/Kconfig        |    2 ++
- arch/x86/Kconfig       |    1 +
- arch/xtensa/Kconfig    |    1 +
- kernel/Kconfig.freezer |    2 ++
- kernel/power/Kconfig   |    3 ---
- 24 files changed, 43 insertions(+), 3 deletions(-)
+ kernel/cgroup_freezer.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/alpha/Kconfig
-@@ -72,6 +72,7 @@ config ARCH_SUPPORTS_AOUT
- 	def_bool y
- 
- source "init/Kconfig"
-+source "kernel/Kconfig.freezer"
- 
- 
- menu "System setup"
-diff -puN arch/arm/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/arm/Kconfig
---- a/arch/arm/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/arm/Kconfig
-@@ -195,6 +195,8 @@ config VECTORS_BASE
- 
- source "init/Kconfig"
- 
-+source "kernel/Kconfig.freezer"
-+
- menu "System Type"
- 
- choice
-diff -puN arch/avr32/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/avr32/Kconfig
---- a/arch/avr32/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/avr32/Kconfig
-@@ -72,6 +72,8 @@ config GENERIC_BUG
- 
- source "init/Kconfig"
- 
-+source "kernel/Kconfig.freezer"
-+
- menu "System Type and features"
- 
- source "kernel/time/Kconfig"
-diff -puN arch/blackfin/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/blackfin/Kconfig
---- a/arch/blackfin/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/blackfin/Kconfig
-@@ -64,8 +64,11 @@ config HARDWARE_PM
- 	depends on OPROFILE
- 
- source "init/Kconfig"
-+
- source "kernel/Kconfig.preempt"
- 
-+source "kernel/Kconfig.freezer"
-+
- menu "Blackfin Processor Options"
- 
- comment "Processor and Board Settings"
-diff -puN arch/cris/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/cris/Kconfig
---- a/arch/cris/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/cris/Kconfig
-@@ -62,6 +62,8 @@ config HZ
- 
- source "init/Kconfig"
- 
-+source "kernel/Kconfig.freezer"
-+
- menu "General setup"
- 
- source "fs/Kconfig.binfmt"
-diff -puN arch/frv/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/frv/Kconfig
---- a/arch/frv/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/frv/Kconfig
-@@ -66,6 +66,8 @@ mainmenu "Fujitsu FR-V Kernel Configurat
- 
- source "init/Kconfig"
- 
-+source "kernel/Kconfig.freezer"
-+
- 
- menu "Fujitsu FR-V system setup"
- 
-diff -puN arch/h8300/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/h8300/Kconfig
---- a/arch/h8300/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/h8300/Kconfig
-@@ -93,6 +93,8 @@ config HZ
- 
- source "init/Kconfig"
- 
-+source "kernel/Kconfig.freezer"
-+
- source "arch/h8300/Kconfig.cpu"
- 
- menu "Executable file formats"
-diff -puN arch/ia64/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/ia64/Kconfig
-@@ -7,6 +7,8 @@ mainmenu "IA-64 Linux Kernel Configurati
- 
- source "init/Kconfig"
- 
-+source "kernel/Kconfig.freezer"
-+
- menu "Processor type and features"
- 
- config IA64
-diff -puN arch/m32r/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/m32r/Kconfig
-@@ -45,6 +45,8 @@ config HZ
- 
- source "init/Kconfig"
- 
-+source "kernel/Kconfig.freezer"
-+
- 
- menu "Processor type and features"
- 
-diff -puN arch/m68k/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/m68k/Kconfig
---- a/arch/m68k/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/m68k/Kconfig
-@@ -64,6 +64,8 @@ mainmenu "Linux/68k Kernel Configuration
- 
- source "init/Kconfig"
- 
-+source "kernel/Kconfig.freezer"
-+
- menu "Platform dependent setup"
- 
- config EISA
-diff -puN arch/m68knommu/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/m68knommu/Kconfig
---- a/arch/m68knommu/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/m68knommu/Kconfig
-@@ -78,6 +78,8 @@ config ARCH_SUPPORTS_AOUT
- 
- source "init/Kconfig"
- 
-+source "kernel/Kconfig.freezer"
-+
- menu "Processor type and features"
- 
- choice
-diff -puN arch/mips/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/mips/Kconfig
---- a/arch/mips/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/mips/Kconfig
-@@ -1895,6 +1895,8 @@ config PROBE_INITRD_HEADER
- 	  add initrd or initramfs image to the kernel image.
- 	  Otherwise, say N.
- 
-+source "kernel/Kconfig.freezer"
-+
- menu "Bus options (PCI, PCMCIA, EISA, ISA, TC)"
- 
- config HW_HAS_EISA
-diff -puN arch/mn10300/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/mn10300/Kconfig
---- a/arch/mn10300/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/mn10300/Kconfig
-@@ -71,6 +71,8 @@ mainmenu "Matsushita MN10300/AM33 Kernel
- 
- source "init/Kconfig"
- 
-+source "kernel/Kconfig.freezer"
-+
- 
- menu "Matsushita MN10300 system setup"
- 
-diff -puN arch/parisc/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/parisc/Kconfig
---- a/arch/parisc/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/parisc/Kconfig
-@@ -93,6 +93,8 @@ config ARCH_MAY_HAVE_PC_FDC
- 
- source "init/Kconfig"
- 
-+source "kernel/Kconfig.freezer"
-+
- 
- menu "Processor type and features"
- 
-diff -puN arch/powerpc/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/powerpc/Kconfig
-@@ -227,6 +227,8 @@ config PPC_OF_PLATFORM_PCI
- 
- source "init/Kconfig"
- 
-+source "kernel/Kconfig.freezer"
-+
- source "arch/powerpc/sysdev/Kconfig"
- source "arch/powerpc/platforms/Kconfig"
- 
-diff -puN arch/s390/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/s390/Kconfig
---- a/arch/s390/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/s390/Kconfig
-@@ -78,6 +78,8 @@ config S390
- 
- source "init/Kconfig"
- 
-+source "kernel/Kconfig.freezer"
-+
- menu "Base setup"
- 
- comment "Processor type and features"
-diff -puN arch/sh/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/sh/Kconfig
---- a/arch/sh/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/sh/Kconfig
-@@ -109,6 +109,8 @@ config IO_TRAPPED
- 
- source "init/Kconfig"
- 
-+source "kernel/Kconfig.freezer"
-+
- menu "System type"
- 
- #
-diff -puN arch/sparc/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/sparc/Kconfig
-@@ -37,6 +37,8 @@ config HZ
- 
- source "init/Kconfig"
- 
-+source "kernel/Kconfig.freezer"
-+
- menu "General machine setup"
- 
- config SMP
-diff -puN arch/sparc64/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/sparc64/Kconfig
---- a/arch/sparc64/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/sparc64/Kconfig
-@@ -96,6 +96,7 @@ config GENERIC_HARDIRQS_NO__DO_IRQ
- 	def_bool y
- 
- source "init/Kconfig"
-+source "kernel/Kconfig.freezer"
- 
- menu "Processor type and features"
- 
-diff -puN arch/um/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/um/Kconfig
---- a/arch/um/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/um/Kconfig
-@@ -229,6 +229,8 @@ endmenu
- 
- source "init/Kconfig"
- 
-+source "kernel/Kconfig.freezer"
-+
- source "drivers/block/Kconfig"
- 
- source "arch/um/Kconfig.char"
-diff -puN arch/x86/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/x86/Kconfig
---- a/arch/x86/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/x86/Kconfig
-@@ -208,6 +208,7 @@ config X86_TRAMPOLINE
- config KTIME_SCALAR
- 	def_bool X86_32
- source "init/Kconfig"
-+source "kernel/Kconfig.freezer"
- 
- menu "Processor type and features"
- 
-diff -puN arch/xtensa/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig arch/xtensa/Kconfig
---- a/arch/xtensa/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/arch/xtensa/Kconfig
-@@ -55,6 +55,7 @@ config HZ
- 	default 100
- 
- source "init/Kconfig"
-+source "kernel/Kconfig.freezer"
- 
- menu "Processor type and features"
- 
-diff -puN /dev/null kernel/Kconfig.freezer
---- /dev/null
-+++ a/kernel/Kconfig.freezer
-@@ -0,0 +1,2 @@
-+config FREEZER
-+	def_bool PM_SLEEP || CGROUP_FREEZER
-diff -puN kernel/power/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig kernel/power/Kconfig
---- a/kernel/power/Kconfig~container-freezer-implement-freezer-cgroup-subsystem-fix-freezer-kconfig
-+++ a/kernel/power/Kconfig
-@@ -85,9 +85,6 @@ config PM_SLEEP
- 	depends on SUSPEND || HIBERNATION || XEN_SAVE_RESTORE
- 	default y
- 
--config FREEZER
--	def_bool PM_SLEEP || CGROUP_FREEZER
+diff -puN kernel/cgroup_freezer.c~container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes kernel/cgroup_freezer.c
+--- a/kernel/cgroup_freezer.c~container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes
++++ a/kernel/cgroup_freezer.c
+@@ -213,7 +213,7 @@ static void check_if_frozen(struct cgrou
+ }
+ 
+ static int freezer_read(struct cgroup *cgroup, struct cftype *cft,
+-    			struct seq_file *m)
++			struct seq_file *m)
+ {
+ 	struct freezer *freezer;
+ 	enum freezer_state state;
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+mm-cleanup-to-make-remove_memory-arch-neutral.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct.patch
+mm-rewrite-vmap-layer.patch
+memory_probe-fix-wrong-sysfs-file-attribute.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures.patch
+container-freezer-implement-freezer-cgroup-subsystem.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
+drivers-hwmon-applesmcc-remove-unneeded-casts.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
+drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+x86-sysfs-kill-owner-field-from-attribute-fix.patch
+x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
+
