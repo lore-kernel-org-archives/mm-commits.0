@@ -1,1139 +1,501 @@
 From: akpm@linux-foundation.org
-Subject: - viafb-viafbmodes-viafbtxt.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:16:15 -0700
-Message-ID: <200810182316.m9INGFuu028782@imap1.linux-foundation.org>
+Subject: - viafb-accelc-accelh.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:16:21 -0700
+Message-ID: <200810182316.m9INGLLE028794@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36953 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45099 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751142AbYJRXQj (ORCPT
+	by vger.kernel.org with ESMTP id S1751167AbYJRXQk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:16:39 -0400
+	Sat, 18 Oct 2008 19:16:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: JosephChan@via.com.tw, geert@linux-m68k.org, josephchan@via.com.tw, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb: viafb.modes, viafb.txt
+     viafb: accel.c, accel.h
 has been removed from the -mm tree.  Its filename was
-     viafb-viafbmodes-viafbtxt.patch
+     viafb-accelc-accelh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: viafb.modes, viafb.txt
+Subject: viafb: accel.c, accel.h
 From: Joseph Chan <JosephChan@via.com.tw>
 
-Correct via_fb_ to viafb_ and remove the Kconfig part in viafb.txt.
+2D and HW cursor stuff of viafb driver.
 
-viafb.modes: supported mode table
-viafb.txt: documentation of viafb driver
-
+[akpm@linux-foundation.org: coding-style fixes]
 Signed-off-by: Joseph Chan <josephchan@via.com.tw>
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fb/viafb.modes |  870 +++++++++++++++++++++++++++++++++
- Documentation/fb/viafb.txt   |  214 ++++++++
- 2 files changed, 1084 insertions(+)
+ drivers/video/via/accel.c |  279 ++++++++++++++++++++++++++++++++++++
+ drivers/video/via/accel.h |  169 +++++++++++++++++++++
+ 2 files changed, 448 insertions(+)
 
-diff -puN /dev/null Documentation/fb/viafb.modes
+diff -puN /dev/null drivers/video/via/accel.c
 --- /dev/null
-+++ a/Documentation/fb/viafb.modes
-@@ -0,0 +1,870 @@
-+#
-+#
-+#   These data are based on the CRTC parameters in
-+#
-+#       VIA Integration Graphics Chip
-+#       (C) 2004 VIA Technologies Inc.
-+#
++++ a/drivers/video/via/accel.c
+@@ -0,0 +1,279 @@
++/*
++ * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
++ * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
 +
-+#
-+#   640x480, 60 Hz, Non-Interlaced (25.175 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      640     480
-+#   Scan Frequency      31.469 kHz  59.94 Hz
-+#   Sync Width      3.813 us    0.064 ms
-+#               12 chars    2 lines
-+#   Front Porch     0.636 us    0.318  ms
-+#               2 chars     10 lines
-+#   Back Porch      1.907 us    1.048  ms
-+#               6 chars     33 lines
-+#   Active Time     25.422 us   15.253 ms
-+#               80 chars    480 lines
-+#   Blank Time      6.356 us    1.430 ms
-+#               20 chars    45 lines
-+#   Polarity        negative    negative
-+#
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public
++ * License as published by the Free Software Foundation;
++ * either version 2, or (at your option) any later version.
 +
-+mode "640x480-60"
-+# D: 25.175 MHz, H: 31.469 kHz, V: 59.94 Hz
-+    geometry 640 480 640 480 32
-+    timings 39722 48 16 33 10 96 2 endmode mode "480x640-60"
-+# D: 24.823 MHz, H: 39.780 kHz, V: 60.00 Hz
-+    geometry 480 640 480 640 32 timings 39722 72 24 19 1 48 3 endmode
-+#
-+#   640x480, 75 Hz, Non-Interlaced (31.50 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      640     480
-+#   Scan Frequency      37.500 kHz  75.00 Hz
-+#   Sync Width      2.032 us    0.080 ms
-+#               8 chars     3 lines
-+#   Front Porch     0.508 us    0.027 ms
-+#               2 chars     1 lines
-+#   Back Porch      3.810 us    0.427 ms
-+#               15 chars    16 lines
-+#   Active Time     20.317 us   12.800 ms
-+#               80 chars    480 lines
-+#   Blank Time      6.349 us    0.533 ms
-+#               25 chars    20 lines
-+#   Polarity        negative    negative
-+#
-+    mode "640x480-75"
-+# D: 31.50 MHz, H: 37.500 kHz, V: 75.00 Hz
-+    geometry 640 480 640 480 32 timings 31747 120 16 16 1 64 3 endmode
-+#
-+#   640x480, 85 Hz, Non-Interlaced (36.000 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      640     480
-+#   Scan Frequency  43.269 kHz  85.00 Hz
-+#   Sync Width      1.556 us    0.069 ms
-+#               7 chars     3 lines
-+#   Front Porch     1.556 us    0.023 ms
-+#               7 chars     1 lines
-+#   Back Porch      2.222 us    0.578 ms
-+#               10 chars    25 lines
-+#   Active Time     17.778 us   11.093 ms
-+#               80 chars    480 lines
-+#   Blank Time      5.333 us    0.670 ms
-+#               24 chars    29 lines
-+#   Polarity        negative    negative
-+#
-+    mode "640x480-85"
-+# D: 36.000 MHz, H: 43.269 kHz, V: 85.00 Hz
-+    geometry 640 480 640 480 32 timings 27777 80 56 25 1 56 3 endmode
-+#
-+#   640x480, 100 Hz, Non-Interlaced (43.163 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      640     480
-+#   Scan Frequency      50.900 kHz  100.00 Hz
-+#   Sync Width      1.483 us    0.058 ms
-+#               8 chars     3 lines
-+#   Front Porch     0.927 us    0.019 ms
-+#               5 chars     1 lines
-+#   Back Porch      2.409 us    0.475 ms
-+#               13 chars    25 lines
-+#   Active Time     14.827 us   9.430 ms
-+#               80 chars    480 lines
-+#   Blank Time      4.819 us    0.570 ms
-+#               26 chars    29 lines
-+#   Polarity        positive    positive
-+#
-+    mode "640x480-100"
-+# D: 43.163 MHz, H: 50.900 kHz, V: 100.00 Hz
-+    geometry 640 480 640 480 32 timings 23168 104 40 25 1 64 3 endmode
-+#
-+#   640x480, 120 Hz, Non-Interlaced (52.406 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      640     480
-+#   Scan Frequency      61.800 kHz  120.00 Hz
-+#   Sync Width      1.221 us    0.048 ms
-+#               8 chars         3 lines
-+#   Front Porch     0.763 us    0.016 ms
-+#               5 chars     1 lines
-+#   Back Porch      1.984 us    0.496 ms
-+#               13 chars    31 lines
-+#   Active Time     12.212 us   7.767 ms
-+#               80 chars    480 lines
-+#   Blank Time      3.969 us    0.566 ms
-+#               26 chars    35 lines
-+#   Polarity        positive    positive
-+#
-+    mode "640x480-120"
-+# D: 52.406 MHz, H: 61.800 kHz, V: 120.00 Hz
-+    geometry 640 480 640 480 32 timings 19081 104 40 31 1 64 3 endmode
-+#
-+#   720x480, 60 Hz, Non-Interlaced (26.880 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      720     480
-+#   Scan Frequency      30.000 kHz  60.241 Hz
-+#   Sync Width      2.679 us    0.099 ms
-+#               9 chars     3 lines
-+#   Front Porch     0.595 us    0.033 ms
-+#               2 chars     1 lines
-+#   Back Porch      3.274 us    0.462 ms
-+#               11 chars    14 lines
-+#   Active Time     26.786 us   16.000 ms
-+#               90 chars    480 lines
-+#   Blank Time      6.548 us    0.600 ms
-+#               22 chars    18 lines
-+#   Polarity        positive    positive
-+#
-+    mode "720x480-60"
-+# D: 26.880 MHz, H: 30.000 kHz, V: 60.24 Hz
-+    geometry 720 480 720 480 32 timings 37202 88 16 14 1 72 3 endmode
-+#
-+#   800x480, 60 Hz, Non-Interlaced (29.581 MHz dotclock)
-+#
-+#               Horizontal    Vertical
-+#   Resolution      800         480
-+#   Scan Frequency  29.892 kHz  60.00 Hz
-+#   Sync Width      2.704 us    100.604 us
-+#                   10 chars    3 lines
-+#   Front Porch     0.541 us    33.535 us
-+#                   2 chars     1 lines
-+#   Back Porch      3.245 us    435.949 us
-+#                   12 chars    13 lines
-+#   Active Time     27.044 us   16.097 ms
-+#                   100 chars   480 lines
-+#   Blank Time      6.491 us    0.570 ms
-+#                   24 chars    17 lines
-+#   Polarity        positive    positive
-+#
-+    mode "800x480-60"
-+# D: 29.500 MHz, H: 29.738 kHz, V: 60.00 Hz
-+    geometry 800 480 800 480 32 timings 33805 96 24 10 3 72 7 endmode
-+#
-+#   720x576, 60 Hz, Non-Interlaced (32.668 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      720     576
-+#   Scan Frequency      35.820 kHz  60.00 Hz
-+#   Sync Width      2.204 us    0.083 ms
-+#               9 chars     3 lines
-+#   Front Porch     0.735 us    0.027 ms
-+#               3 chars     1 lines
-+#   Back Porch      2.939 us    0.459 ms
-+#               12 chars    17 lines
-+#   Active Time     22.040 us   16.080 ms
-+#               90 chars    476 lines
-+#   Blank Time      5.877 us    0.586 ms
-+#               24 chars    21 lines
-+#   Polarity        positive    positive
-+#
-+    mode "720x576-60"
-+# D: 32.668 MHz, H: 35.820 kHz, V: 60.00 Hz
-+    geometry 720 576 720 576 32 timings 30611 96 24 17 1 72 3 endmode
-+#
-+#   800x600, 60 Hz, Non-Interlaced (40.00 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      800     600
-+#   Scan Frequency      37.879 kHz  60.32 Hz
-+#   Sync Width      3.200 us    0.106 ms
-+#               16 chars    4 lines
-+#   Front Porch     1.000 us    0.026 ms
-+#               5 chars     1 lines
-+#   Back Porch      2.200 us    0.607 ms
-+#               11 chars    23 lines
-+#   Active Time     20.000 us   15.840 ms
-+#               100 chars   600 lines
-+#   Blank Time      6.400 us    0.739 ms
-+#               32 chars    28 lines
-+#   Polarity        positive    positive
-+#
-+    mode "800x600-60"
-+# D: 40.00 MHz, H: 37.879 kHz, V: 60.32 Hz
-+    geometry 800 600 800 600 32
-+    timings 25000 88 40 23 1 128 4 hsync high vsync high endmode
-+#
-+#   800x600, 75 Hz, Non-Interlaced (49.50 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      800     600
-+#   Scan Frequency      46.875 kHz  75.00 Hz
-+#   Sync Width      1.616 us    0.064 ms
-+#               10 chars    3 lines
-+#   Front Porch     0.323 us    0.021 ms
-+#               2 chars     1 lines
-+#   Back Porch      3.232 us    0.448 ms
-+#               20 chars    21 lines
-+#   Active Time     16.162 us   12.800 ms
-+#               100 chars   600 lines
-+#   Blank Time      5.172 us    0.533 ms
-+#               32 chars    25 lines
-+#   Polarity        positive    positive
-+#
-+    mode "800x600-75"
-+# D: 49.50 MHz, H: 46.875 kHz, V: 75.00 Hz
-+    geometry 800 600 800 600 32
-+    timings 20203 160 16 21 1 80 3 hsync high vsync high endmode
-+#
-+#   800x600, 85 Hz, Non-Interlaced (56.25 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      800     600
-+#   Scan Frequency      53.674 kHz  85.061 Hz
-+#   Sync Width      1.138 us    0.056 ms
-+#               8 chars     3 lines
-+#   Front Porch     0.569 us    0.019 ms
-+#               4 chars     1 lines
-+#   Back Porch      2.702 us    0.503 ms
-+#               19 chars    27 lines
-+#   Active Time     14.222 us   11.179 ms
-+#               100 chars   600 lines
-+#   Blank Time      4.409 us    0.578 ms
-+#               31 chars    31 lines
-+#   Polarity        positive    positive
-+#
-+    mode "800x600-85"
-+# D: 56.25 MHz, H: 53.674 kHz, V: 85.061 Hz
-+    geometry 800 600 800 600 32
-+    timings 17777 152 32 27 1 64 3 hsync high vsync high endmode
-+#
-+#   800x600, 100 Hz, Non-Interlaced (67.50 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      800     600
-+#   Scan Frequency      62.500 kHz  100.00 Hz
-+#   Sync Width      0.948 us    0.064 ms
-+#               8 chars     4 lines
-+#   Front Porch     0.000 us    0.112 ms
-+#               0 chars     7 lines
-+#   Back Porch      3.200 us    0.224 ms
-+#               27 chars    14 lines
-+#   Active Time     11.852 us   9.600 ms
-+#               100 chars   600 lines
-+#   Blank Time      4.148 us    0.400 ms
-+#               35 chars    25 lines
-+#   Polarity        positive    positive
-+#
-+    mode "800x600-100"
-+# D: 67.50 MHz, H: 62.500 kHz, V: 100.00 Hz
-+    geometry 800 600 800 600 32
-+    timings 14667 216 0 14 7 64 4 hsync high vsync high endmode
-+#
-+#   800x600, 120 Hz, Non-Interlaced (83.950 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      800     600
-+#   Scan Frequency  77.160 kHz  120.00 Hz
-+#   Sync Width      1.048 us    0.039 ms
-+#               11 chars    3 lines
-+#   Front Porch     0.667 us    0.013 ms
-+#               7 chars     1 lines
-+#   Back Porch      1.715 us    0.507 ms
-+#               18 chars    39 lines
-+#   Active Time     9.529 us    7.776 ms
-+#               100 chars   600 lines
-+#   Blank Time      3.431 us    0.557 ms
-+#               36 chars    43 lines
-+#   Polarity        positive    positive
-+#
-+    mode "800x600-120"
-+# D: 83.950 MHz, H: 77.160 kHz, V: 120.00 Hz
-+    geometry 800 600 800 600 32
-+    timings 11912 144 56 39 1 88 3 hsync high vsync high endmode
-+#
-+#   848x480, 60 Hz, Non-Interlaced (31.490 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      848     480
-+#   Scan Frequency  29.820 kHz  60.00 Hz
-+#   Sync Width      2.795 us    0.099 ms
-+#               11 chars    3 lines
-+#   Front Porch     0.508 us    0.033 ms
-+#               2 chars     1 lines
-+#   Back Porch      3.303 us    0.429 ms
-+#               13 chars    13 lines
-+#   Active Time     26.929 us   16.097 ms
-+#               106 chars   480 lines
-+#   Blank Time      6.605 us    0.570 ms
-+#               26 chars    17 lines
-+#   Polarity        positive    positive
-+#
-+    mode "848x480-60"
-+# D: 31.500 MHz, H: 29.830 kHz, V: 60.00 Hz
-+    geometry 848 480 848 480 32
-+    timings 31746 104 24 12 3 80 5 hsync high vsync high endmode
-+#
-+#   856x480, 60 Hz, Non-Interlaced (31.728 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      856     480
-+#   Scan Frequency  29.820 kHz  60.00 Hz
-+#   Sync Width      2.774 us    0.099 ms
-+#               11 chars    3 lines
-+#   Front Porch     0.504 us    0.033 ms
-+#               2 chars     1 lines
-+#   Back Porch      3.728 us    0.429 ms
-+#               13 chars    13 lines
-+#   Active Time     26.979 us   16.097 ms
-+#               107 chars   480 lines
-+#   Blank Time      6.556 us    0.570 ms
-+#               26 chars    17 lines
-+#   Polarity        positive    positive
-+#
-+    mode "856x480-60"
-+# D: 31.728 MHz, H: 29.820 kHz, V: 60.00 Hz
-+    geometry 856 480 856 480 32
-+    timings 31518 104 16 13 1 88 3
-+    hsync high vsync high endmode mode "960x600-60"
-+# D: 45.250 MHz, H: 37.212 kHz, V: 60.00 Hz
-+    geometry 960 600 960 600 32 timings 22099 128 32 15 3 96 6 endmode
-+#
-+#   1000x600, 60 Hz, Non-Interlaced (48.068 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1000     600
-+#   Scan Frequency  37.320 kHz  60.00 Hz
-+#   Sync Width      2.164 us    0.080 ms
-+#               13 chars    3 lines
-+#   Front Porch     0.832 us    0.027 ms
-+#               5 chars     1 lines
-+#   Back Porch      2.996 us    0.483 ms
-+#               18 chars    18 lines
-+#   Active Time     20.804 us   16.077 ms
-+#               125 chars   600 lines
-+#   Blank Time      5.991 us    0.589 ms
-+#               36 chars    22 lines
-+#   Polarity        negative    positive
-+#
-+    mode "1000x600-60"
-+# D: 48.068 MHz, H: 37.320 kHz, V: 60.00 Hz
-+    geometry 1000 600 1000 600 32
-+    timings 20834 144 40 18 1 104 3 endmode mode "1024x576-60"
-+# D: 46.996 MHz, H: 35.820 kHz, V: 60.00 Hz
-+    geometry 1024 576 1024 576 32
-+    timings 21278 144 40 17 1 104 3 endmode mode "1024x600-60"
-+# D: 48.964 MHz, H: 37.320 kHz, V: 60.00 Hz
-+    geometry 1024 600 1024 600 32
-+    timings 20461 144 40 18 1 104 3 endmode mode "1088x612-60"
-+# D: 52.952 MHz, H: 38.040 kHz, V: 60.00 Hz
-+    geometry 1088 612 1088 612 32 timings 18877 152 48 16 3 104 5 endmode
-+#
-+#   1024x512, 60 Hz, Non-Interlaced (41.291 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1024    512
-+#   Scan Frequency  31.860 kHz  60.00 Hz
-+#   Sync Width      2.519 us    0.094 ms
-+#               13 chars    3 lines
-+#   Front Porch     0.775 us    0.031 ms
-+#               4 chars     1 lines
-+#   Back Porch      3.294 us    0.465 ms
-+#               17 chars    15 lines
-+#   Active Time     24.800 us   16.070 ms
-+#               128 chars   512 lines
-+#   Blank Time      6.587 us    0.596 ms
-+#               34 chars    19 lines
-+#   Polarity        positive    positive
-+#
-+    mode "1024x512-60"
-+# D: 41.291 MHz, H: 31.860 kHz, V: 60.00 Hz
-+    geometry 1024 512 1024 512 32
-+    timings 24218 126 32 15 1 104 3 hsync high vsync high endmode
-+#
-+#   1024x600, 60 Hz, Non-Interlaced (48.875 MHz dotclock)
-+#
-+#                     Horizontal  Vertical
-+#   Resolution          1024        768
-+#   Scan Frequency      37.252 kHz  60.00 Hz
-+#   Sync Width          2.128 us    80.532us
-+#                       13 chars    3 lines
-+#   Front Porch        0.818 us     26.844 us
-+#                       5 chars     1 lines
-+#   Back Porch          2.946 us    483.192 us
-+#                       18 chars    18 lines
-+#   Active Time         20.951 us   16.697 ms
-+#                       128 chars   622 lines
-+#   Blank Time          5.893 us    0.591 ms
-+#                       36 chars    22 lines
-+#   Polarity            negative    positive
-+#
-+#mode "1024x600-60"
-+#     # D: 48.875 MHz, H: 37.252 kHz, V: 60.00 Hz
-+#     geometry 1024 600 1024 600 32
-+#    timings 20460  144 40 18 1 104  3
-+# endmode
-+#
-+#   1024x768, 60 Hz, Non-Interlaced (65.00 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1024        768
-+#   Scan Frequency      48.363 kHz  60.00 Hz
-+#   Sync Width      2.092 us    0.124 ms
-+#               17 chars    6 lines
-+#   Front Porch     0.369 us    0.062 ms
-+#               3 chars     3 lines
-+#   Back Porch      2.462 us    0.601 ms
-+#               20 chars    29 lines
-+#   Active Time     15.754 us   15.880 ms
-+#               128 chars   768 lines
-+#   Blank Time      4.923 us    0.786 ms
-+#               40 chars    38 lines
-+#   Polarity        negative    negative
-+#
-+    mode "1024x768-60"
-+# D: 65.00 MHz, H: 48.363 kHz, V: 60.00 Hz
-+    geometry 1024 768 1024 768 32 timings 15385 160 24 29 3 136 6 endmode
-+#
-+#   1024x768, 75 Hz, Non-Interlaced (78.75 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1024        768
-+#   Scan Frequency      60.023 kHz  75.03 Hz
-+#   Sync Width      1.219 us    0.050 ms
-+#               12 chars    3 lines
-+#   Front Porch     0.203 us    0.017 ms
-+#               2 chars     1 lines
-+#   Back Porch      2.235 us    0.466 ms
-+#               22 chars    28 lines
-+#   Active Time     13.003 us   12.795 ms
-+#               128 chars   768 lines
-+#   Blank Time      3.657 us    0.533 ms
-+#               36 chars    32 lines
-+#   Polarity        positive    positive
-+#
-+    mode "1024x768-75"
-+# D: 78.75 MHz, H: 60.023 kHz, V: 75.03 Hz
-+    geometry 1024 768 1024 768 32
-+    timings 12699 176 16 28 1 96 3 hsync high vsync high endmode
-+#
-+#   1024x768, 85 Hz, Non-Interlaced (94.50 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1024        768
-+#   Scan Frequency  68.677 kHz  85.00 Hz
-+#   Sync Width      1.016 us    0.044 ms
-+#               12 chars    3 lines
-+#   Front Porch     0.508 us    0.015 ms
-+#               6 chars     1 lines
-+#   Back Porch      2.201 us    0.524 ms
-+#               26 chars    36 lines
-+#   Active Time     10.836 us   11.183 ms
-+#               128 chars   768 lines
-+#   Blank Time      3.725 us    0.582 ms
-+#               44 chars    40 lines
-+#   Polarity        positive    positive
-+#
-+    mode "1024x768-85"
-+# D: 94.50 MHz, H: 68.677 kHz, V: 85.00 Hz
-+    geometry 1024 768 1024 768 32
-+    timings 10582 208 48 36 1 96 3 hsync high vsync high endmode
-+#
-+#   1024x768, 100 Hz, Non-Interlaced (110.0 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1024        768
-+#   Scan Frequency      79.023 kHz  99.78 Hz
-+#   Sync Width      0.800 us    0.101 ms
-+#               11 chars    8 lines
-+#   Front Porch     0.000 us    0.000 ms
-+#               0 chars     0 lines
-+#   Back Porch      2.545 us    0.202 ms
-+#               35 chars    16 lines
-+#   Active Time     9.309 us    9.719 ms
-+#               128 chars   768 lines
-+#   Blank Time      3.345 us    0.304 ms
-+#               46 chars    24 lines
-+#   Polarity        negative    negative
-+#
-+    mode "1024x768-100"
-+# D: 113.3 MHz, H: 79.023 kHz, V: 99.78 Hz
-+    geometry 1024 768 1024 768 32
-+    timings 8825 280 0 16 0 88 8 endmode mode "1152x720-60"
-+# D: 66.750 MHz, H: 44.859 kHz, V: 60.00 Hz
-+    geometry 1152 720 1152 720 32 timings 14981 168 56 19 3 112 6 endmode
-+#
-+#   1152x864, 75 Hz, Non-Interlaced (110.0 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1152        864
-+#   Scan Frequency      75.137 kHz  74.99 Hz
-+#   Sync Width      1.309 us    0.106 ms
-+#               18 chars    8 lines
-+#   Front Porch     0.245 us    0.599 ms
-+#               3 chars     45 lines
-+#   Back Porch      1.282 us    1.132 ms
-+#               18 chars    85 lines
-+#   Active Time     10.473 us   11.499 ms
-+#               144 chars   864 lines
-+#   Blank Time      2.836 us    1.837 ms
-+#               39 chars    138 lines
-+#   Polarity        positive    positive
-+#
-+    mode "1152x864-75"
-+# D: 110.0 MHz, H: 75.137 kHz, V: 74.99 Hz
-+    geometry 1152 864 1152 864 32
-+    timings 9259 144 24 85 45 144 8
-+    hsync high vsync high endmode mode "1200x720-60"
-+# D: 70.184 MHz, H: 44.760 kHz, V: 60.00 Hz
-+    geometry 1200 720 1200 720 32
-+    timings 14253 184 28 22 1 128 3 endmode mode "1280x600-60"
-+# D: 61.503 MHz, H: 37.320 kHz, V: 60.00 Hz
-+    geometry 1280 600 1280 600 32
-+    timings 16260 184 28 18 1 128 3 endmode mode "1280x720-50"
-+# D: 60.466 MHz, H: 37.050 kHz, V: 50.00 Hz
-+    geometry 1280 720 1280 720 32
-+    timings 16538 176 48 17 1 128 3 endmode mode "1280x768-50"
-+# D: 65.178 MHz, H: 39.550 kHz, V: 50.00 Hz
-+    geometry 1280 768 1280 768 32 timings 15342 184 28 19 1 128 3 endmode
-+#
-+#   1280x768, 60 Hz, Non-Interlaced (80.136 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1280    768
-+#   Scan Frequency  47.700 kHz  60.00 Hz
-+#   Sync Width      1.697 us    0.063 ms
-+#               17 chars    3 lines
-+#   Front Porch     0.799 us    0.021 ms
-+#               8 chars     1 lines
-+#   Back Porch      2.496 us    0.483 ms
-+#               25 chars    23 lines
-+#   Active Time     15.973 us   16.101 ms
-+#               160 chars   768 lines
-+#   Blank Time      4.992 us    0.566 ms
-+#               50 chars    27 lines
-+#   Polarity        positive    positive
-+#
-+    mode "1280x768-60"
-+# D: 80.13 MHz, H: 47.700 kHz, V: 60.00 Hz
-+    geometry 1280 768 1280 768 32
-+    timings 12480 200 48 23 1 126 3 hsync high vsync high endmode
-+#
-+#   1280x800, 60 Hz, Non-Interlaced (83.375 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1280    800
-+#   Scan Frequency  49.628 kHz  60.00 Hz
-+#   Sync Width      1.631 us    60.450 us
-+#                   17 chars    3 lines
-+#   Front Porch     0.768 us    20.15 us
-+#                   8 chars     1 lines
-+#   Back Porch      2.399 us    0.483 ms
-+#                   25 chars    24 lines
-+#   Active Time     15.352 us   16.120 ms
-+#                   160 chars   800 lines
-+#   Blank Time      4.798 us    0.564 ms
-+#                   50 chars    28 lines
-+#   Polarity        negtive    positive
-+#
-+    mode "1280x800-60"
-+# D: 83.500 MHz, H: 49.702 kHz, V: 60.00 Hz
-+    geometry 1280 800 1280 800 32 timings 11994 200 72 22 3 128 6 endmode
-+#
-+#   1280x960, 60 Hz, Non-Interlaced (108.00 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1280    960
-+#   Scan Frequency  60.000 kHz  60.00 Hz
-+#   Sync Width      1.037 us    0.050 ms
-+#               14 chars    3 lines
-+#   Front Porch     0.889 us    0.017 ms
-+#               12 chars    1 lines
-+#   Back Porch      2.889 us    0.600 ms
-+#               39 chars    36 lines
-+#   Active Time     11.852 us   16.000 ms
-+#               160 chars   960 lines
-+#   Blank Time      4.815 us    0.667 ms
-+#               65 chars    40 lines
-+#   Polarity        positive    positive
-+#
-+    mode "1280x960-60"
-+# D: 108.00 MHz, H: 60.000 kHz, V: 60.00 Hz
-+    geometry 1280 960 1280 960 32
-+    timings 9259 312 96 36 1 112 3 hsync high vsync high endmode
-+#
-+#   1280x1024, 60 Hz, Non-Interlaced (108.00 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1280        1024
-+#   Scan Frequency      63.981 kHz  60.02 Hz
-+#   Sync Width      1.037 us    0.047 ms
-+#               14 chars    3 lines
-+#   Front Porch     0.444 us    0.015 ms
-+#               6 chars     1 lines
-+#   Back Porch      2.297 us    0.594 ms
-+#               31 chars    38 lines
-+#   Active Time     11.852 us   16.005 ms
-+#               160 chars   1024 lines
-+#   Blank Time      3.778 us    0.656 ms
-+#               51 chars    42 lines
-+#   Polarity        positive    positive
-+#
-+    mode "1280x1024-60"
-+# D: 108.00 MHz, H: 63.981 kHz, V: 60.02 Hz
-+    geometry 1280 1024 1280 1024 32
-+    timings 9260 248 48 38 1 112 3 hsync high vsync high endmode
-+#
-+#   1280x1024, 75 Hz, Non-Interlaced (135.00 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1280        1024
-+#   Scan Frequency      79.976 kHz  75.02 Hz
-+#   Sync Width      1.067 us    0.038 ms
-+#               18 chars    3 lines
-+#   Front Porch     0.119 us    0.012 ms
-+#               2 chars     1 lines
-+#   Back Porch      1.837 us    0.475 ms
-+#               31 chars    38 lines
-+#   Active Time     9.481 us    12.804 ms
-+#               160 chars   1024 lines
-+#   Blank Time      3.022 us    0.525 ms
-+#               51 chars    42 lines
-+#   Polarity        positive    positive
-+#
-+    mode "1280x1024-75"
-+# D: 135.00 MHz, H: 79.976 kHz, V: 75.02 Hz
-+    geometry 1280 1024 1280 1024 32
-+    timings 7408 248 16 38 1 144 3 hsync high vsync high endmode
-+#
-+#   1280x1024, 85 Hz, Non-Interlaced (157.50 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1280        1024
-+#   Scan Frequency  91.146 kHz  85.02 Hz
-+#   Sync Width      1.016 us    0.033 ms
-+#               20 chars    3 lines
-+#   Front Porch     0.406 us    0.011 ms
-+#               8 chars     1 lines
-+#   Back Porch      1.422 us    0.483 ms
-+#               28 chars    44 lines
-+#   Active Time     8.127 us    11.235 ms
-+#               160 chars   1024 lines
-+#   Blank Time      2.844 us    0.527 ms
-+#               56 chars    48 lines
-+#   Polarity        positive    positive
-+#
-+    mode "1280x1024-85"
-+# D: 157.50 MHz, H: 91.146 kHz, V: 85.02 Hz
-+    geometry 1280 1024 1280 1024 32
-+    timings 6349 224 64 44 1 160 3
-+    hsync high vsync high endmode mode "1440x900-60"
-+# D: 106.500 MHz, H: 55.935 kHz, V: 60.00 Hz
-+    geometry 1440 900 1440 900 32
-+    timings 9390 232 80 25 3 152 6
-+    hsync high vsync high endmode mode "1440x900-75"
-+# D: 136.750 MHz, H: 70.635 kHz, V: 75.00 Hz
-+    geometry 1440 900 1440 900 32
-+    timings 7315 248 96 33 3 152 6 hsync high vsync high endmode
-+#
-+#   1440x1050, 60 Hz, Non-Interlaced (125.10 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1440        1050
-+#   Scan Frequency      65.220 kHz  60.00 Hz
-+#   Sync Width      1.204 us    0.046 ms
-+#               19 chars    3 lines
-+#   Front Porch     0.760 us    0.015 ms
-+#               12 chars    1 lines
-+#   Back Porch      1.964 us    0.495 ms
-+#               31 chars    33 lines
-+#   Active Time     11.405 us   16.099 ms
-+#               180 chars   1050 lines
-+#   Blank Time      3.928 us    0.567 ms
-+#               62 chars    37 lines
-+#   Polarity        positive    positive
-+#
-+    mode "1440x1050-60"
-+# D: 125.10 MHz, H: 65.220 kHz, V: 60.00 Hz
-+    geometry 1440 1050 1440 1050 32
-+    timings 7993 248 96 33 1 152 3
-+    hsync high vsync high endmode mode "1600x900-60"
-+# D: 118.250 MHz, H: 55.990 kHz, V: 60.00 Hz
-+    geometry 1600 900 1600 900 32
-+    timings 8415 256 88 26 3 168 5 endmode mode "1600x1024-60"
-+# D: 136.358 MHz, H: 63.600 kHz, V: 60.00 Hz
-+    geometry 1600 1024 1600 1024 32 timings 7315 272 104 32 1 168 3 endmode
-+#
-+#   1600x1200, 60 Hz, Non-Interlaced (156.00 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1600        1200
-+#   Scan Frequency      76.200 kHz  60.00 Hz
-+#   Sync Width      1.026 us    0.105 ms
-+#               20 chars    8 lines
-+#   Front Porch     0.205 us    0.131 ms
-+#               4 chars     10 lines
-+#   Back Porch      1.636 us    0.682 ms
-+#               32 chars    52 lines
-+#   Active Time     10.256 us   15.748 ms
-+#               200 chars   1200 lines
-+#   Blank Time      2.872 us    0.866 ms
-+#               56 chars    66 lines
-+#   Polarity        negative    negative
-+#
-+    mode "1600x1200-60"
-+# D: 156.00 MHz, H: 76.200 kHz, V: 60.00 Hz
-+    geometry 1600 1200 1600 1200 32 timings 6172 256 32 52 10 160 8 endmode
-+#
-+#   1600x1200, 75 Hz, Non-Interlaced (202.50 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1600        1200
-+#   Scan Frequency  93.750 kHz  75.00 Hz
-+#   Sync Width      0.948 us    0.032 ms
-+#               24 chars    3 lines
-+#   Front Porch     0.316 us    0.011 ms
-+#               8 chars     1 lines
-+#   Back Porch      1.501 us    0.491 ms
-+#               38 chars    46 lines
-+#   Active Time     7.901 us    12.800 ms
-+#               200 chars   1200 lines
-+#   Blank Time      2.765 us    0.533 ms
-+#               70 chars    50 lines
-+#   Polarity    positive    positive
-+#
-+    mode "1600x1200-75"
-+# D: 202.50 MHz, H: 93.750 kHz, V: 75.00 Hz
-+    geometry 1600 1200 1600 1200 32
-+    timings 4938 304 64 46 1 192 3
-+    hsync high vsync high endmode mode "1680x1050-60"
-+# D: 146.250 MHz, H: 65.290 kHz, V: 59.954 Hz
-+    geometry 1680 1050 1680 1050 32
-+    timings 6814 280 104 30 3 176 6
-+    hsync high vsync high endmode mode "1680x1050-75"
-+# D: 187.000 MHz, H: 82.306 kHz, V: 74.892 Hz
-+    geometry 1680 1050 1680 1050 32
-+    timings 5348 296 120 40 3 176 6
-+    hsync high vsync high endmode mode "1792x1344-60"
-+# D: 202.975 MHz, H: 83.460 kHz, V: 60.00 Hz
-+    geometry 1792 1344 1792 1344 32
-+    timings 4902 320 128 43 1 192 3
-+    hsync high vsync high endmode mode "1856x1392-60"
-+# D: 218.571 MHz, H: 86.460 kHz, V: 60.00 Hz
-+    geometry 1856 1392 1856 1392 32
-+    timings 4577 336 136 45 1 200 3
-+    hsync high vsync high endmode mode "1920x1200-60"
-+# D: 193.250 MHz, H: 74.556 kHz, V: 60.00 Hz
-+    geometry 1920 1200 1920 1200 32
-+    timings 5173 336 136 36 3 200 6
-+    hsync high vsync high endmode mode "1920x1440-60"
-+# D: 234.000 MHz, H:90.000 kHz, V: 60.00 Hz
-+    geometry 1920 1440 1920 1440 32
-+    timings 4274 344 128 56 1 208 3
-+    hsync high vsync high endmode mode "1920x1440-75"
-+# D: 297.000 MHz, H:112.500 kHz, V: 75.00 Hz
-+    geometry 1920 1440 1920 1440 32
-+    timings 3367 352 144 56 1 224 3
-+    hsync high vsync high endmode mode "2048x1536-60"
-+# D: 267.250 MHz, H: 95.446 kHz, V: 60.00 Hz
-+    geometry 2048 1536 2048 1536 32
-+    timings 3742 376 152 49 3 224 4 hsync high vsync high endmode
-+#
-+#   1280x720, 60 Hz, Non-Interlaced (74.481 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1280        720
-+#   Scan Frequency      44.760 kHz  60.00 Hz
-+#   Sync Width      1.826 us    67.024 ms
-+#               17 chars    3 lines
-+#   Front Porch     0.752 us    22.341 ms
-+#               7 chars     1 lines
-+#   Back Porch      2.578 us    491.510 ms
-+#               24 chars    22 lines
-+#   Active Time     17.186 us   16.086 ms
-+#               160 chars   720 lines
-+#   Blank Time      5.156 us    0.581 ms
-+#               48 chars    26 lines
-+#   Polarity        negative    negative
-+#
-+    mode "1280x720-60"
-+# D: 74.481 MHz, H: 44.760 kHz, V: 60.00 Hz
-+    geometry 1280 720 1280 720 32 timings 13426 192 64 22 1 136 3 endmode
-+#
-+#   1920x1080, 60 Hz, Non-Interlaced (172.798 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1920        1080
-+#   Scan Frequency      67.080 kHz  60.00 Hz
-+#   Sync Width      1.204 us    44.723 ms
-+#               26 chars    3 lines
-+#   Front Porch     0.694 us    14.908 ms
-+#               15 chars     1 lines
-+#   Back Porch      1.898 us    506.857 ms
-+#               41 chars    34 lines
-+#   Active Time     11.111 us   16.100 ms
-+#               240 chars   1080 lines
-+#   Blank Time      3.796 us    0.566 ms
-+#               82 chars    38 lines
-+#   Polarity        negative    negative
-+#
-+    mode "1920x1080-60"
-+# D: 74.481 MHz, H: 67.080 kHz, V: 60.00 Hz
-+    geometry 1920 1080 1920 1080 32 timings 5787 328 120 34 1 208 3 endmode
-+#
-+#   1400x1050, 60 Hz, Non-Interlaced (122.61 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1400        1050
-+#   Scan Frequency      65.218 kHz  59.99 Hz
-+#   Sync Width      1.037 us    0.047 ms
-+#               19 chars    3 lines
-+#   Front Porch     0.444 us    0.015 ms
-+#               11 chars     1 lines
-+#   Back Porch      1.185 us    0.188 ms
-+#               30 chars    33 lines
-+#   Active Time     12.963 us   16.411 ms
-+#               175 chars   1050 lines
-+#   Blank Time      2.667 us    0.250 ms
-+#               60 chars    37 lines
-+#   Polarity        negative    positive
-+#
-+    mode "1400x1050-60"
-+# D: 122.750 MHz, H: 65.317 kHz, V: 59.99 Hz
-+    geometry 1400 1050 1408 1050 32
-+    timings 8214 232 88 32 3 144 4 endmode mode "1400x1050-75"
-+# D: 156.000 MHz, H: 82.278 kHz, V: 74.867 Hz
-+    geometry 1400 1050 1408 1050 32 timings 6410 248 104 42 3 144 4 endmode
-+#
-+#   1366x768, 60 Hz, Non-Interlaced (85.86 MHz dotclock)
-+#
-+#               Horizontal  Vertical
-+#   Resolution      1366        768
-+#   Scan Frequency      47.700 kHz  60.00 Hz
-+#   Sync Width      1.677 us    0.063 ms
-+#               18 chars    3 lines
-+#   Front Porch     0.839 us    0.021 ms
-+#               9 chars     1 lines
-+#   Back Porch      2.516 us    0.482 ms
-+#               27 chars    23 lines
-+#   Active Time     15.933 us   16.101 ms
-+#               171 chars   768 lines
-+#   Blank Time      5.031 us    0.566 ms
-+#               54 chars    27 lines
-+#   Polarity        negative    positive
-+#
-+    mode "1360x768-60"
-+# D: 84.750 MHz, H: 47.720 kHz, V: 60.00 Hz
-+    geometry 1360 768 1360 768 32
-+    timings 11799 208 72 22 3 136 5 endmode mode "1366x768-60"
-+# D: 85.86 MHz, H: 47.700 kHz, V: 60.00 Hz
-+    geometry 1366 768 1366 768 32
-+    timings 11647 216 72 23 1 144 3 endmode mode "1366x768-50"
-+# D: 69,924 MHz, H: 39.550 kHz, V: 50.00 Hz
-+    geometry 1366 768 1366 768 32 timings 14301 200 56 19 1 144 3 endmode
-diff -puN /dev/null Documentation/fb/viafb.txt
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
++ * the implied warranty of MERCHANTABILITY or FITNESS FOR
++ * A PARTICULAR PURPOSE.See the GNU General Public License
++ * for more details.
++
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
++ */
++#include "global.h"
++
++void viafb_init_accel(void)
++{
++	viaparinfo->fbmem_free -= CURSOR_SIZE;
++	viaparinfo->cursor_start = viaparinfo->fbmem_free;
++	viaparinfo->fbmem_used += CURSOR_SIZE;
++
++	/* Reverse 8*1024 memory space for cursor image */
++	viaparinfo->fbmem_free -= (CURSOR_SIZE + VQ_SIZE);
++	viaparinfo->VQ_start = viaparinfo->fbmem_free;
++	viaparinfo->VQ_end = viaparinfo->VQ_start + VQ_SIZE - 1;
++	viaparinfo->fbmem_used += (CURSOR_SIZE + VQ_SIZE); }
++
++void viafb_init_2d_engine(void)
++{
++	u32 dwVQStartAddr, dwVQEndAddr;
++	u32 dwVQLen, dwVQStartL, dwVQEndL, dwVQStartEndH;
++
++	/* init 2D engine regs to reset 2D engine */
++	writel(0x0, viaparinfo->io_virt + VIA_REG_GEMODE);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_SRCPOS);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_DSTPOS);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_DIMENSION);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_PATADDR);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_FGCOLOR);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_BGCOLOR);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_CLIPTL);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_CLIPBR);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_OFFSET);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_KEYCONTROL);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_SRCBASE);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_DSTBASE);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_PITCH);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_MONOPAT1);
++
++	/* Init AGP and VQ regs */
++	switch (viaparinfo->chip_info->gfx_chip_name) {
++	case UNICHROME_K8M890:
++	case UNICHROME_P4M900:
++		writel(0x00100000, viaparinfo->io_virt + VIA_REG_CR_TRANSET);
++		writel(0x680A0000, viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
++		writel(0x02000000, viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
++		break;
++
++	default:
++		writel(0x00100000, viaparinfo->io_virt + VIA_REG_TRANSET);
++		writel(0x00000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
++		writel(0x00333004, viaparinfo->io_virt + VIA_REG_TRANSPACE);
++		writel(0x60000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
++		writel(0x61000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
++		writel(0x62000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
++		writel(0x63000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
++		writel(0x64000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
++		writel(0x7D000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
++
++		writel(0xFE020000, viaparinfo->io_virt + VIA_REG_TRANSET);
++		writel(0x00000000, viaparinfo->io_virt + VIA_REG_TRANSPACE);
++		break;
++	}
++	if (viaparinfo->VQ_start != 0) {
++		/* Enable VQ */
++		dwVQStartAddr = viaparinfo->VQ_start;
++		dwVQEndAddr = viaparinfo->VQ_end;
++
++		dwVQStartL = 0x50000000 | (dwVQStartAddr & 0xFFFFFF);
++		dwVQEndL = 0x51000000 | (dwVQEndAddr & 0xFFFFFF);
++		dwVQStartEndH = 0x52000000 |
++			((dwVQStartAddr & 0xFF000000) >> 24) |
++			((dwVQEndAddr & 0xFF000000) >> 16);
++		dwVQLen = 0x53000000 | (VQ_SIZE >> 3);
++		switch (viaparinfo->chip_info->gfx_chip_name) {
++		case UNICHROME_K8M890:
++		case UNICHROME_P4M900:
++			dwVQStartL |= 0x20000000;
++			dwVQEndL |= 0x20000000;
++			dwVQStartEndH |= 0x20000000;
++			dwVQLen |= 0x20000000;
++			break;
++		default:
++			break;
++		}
++
++		switch (viaparinfo->chip_info->gfx_chip_name) {
++		case UNICHROME_K8M890:
++		case UNICHROME_P4M900:
++			writel(0x00100000,
++				viaparinfo->io_virt + VIA_REG_CR_TRANSET);
++			writel(dwVQStartEndH,
++				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
++			writel(dwVQStartL,
++				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
++			writel(dwVQEndL,
++				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
++			writel(dwVQLen,
++				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
++			writel(0x74301001,
++				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
++			writel(0x00000000,
++				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
++			break;
++		default:
++			writel(0x00FE0000,
++				viaparinfo->io_virt + VIA_REG_TRANSET);
++			writel(0x080003FE,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x0A00027C,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x0B000260,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x0C000274,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x0D000264,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x0E000000,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x0F000020,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x1000027E,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x110002FE,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x200F0060,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++
++			writel(0x00000006,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x40008C0F,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x44000000,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x45080C04,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x46800408,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++
++			writel(dwVQStartEndH,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(dwVQStartL,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(dwVQEndL,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(dwVQLen,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			break;
++		}
++	} else {
++		/* Disable VQ */
++		switch (viaparinfo->chip_info->gfx_chip_name) {
++		case UNICHROME_K8M890:
++		case UNICHROME_P4M900:
++			writel(0x00100000,
++				viaparinfo->io_virt + VIA_REG_CR_TRANSET);
++			writel(0x74301000,
++				viaparinfo->io_virt + VIA_REG_CR_TRANSPACE);
++			break;
++		default:
++			writel(0x00FE0000,
++				viaparinfo->io_virt + VIA_REG_TRANSET);
++			writel(0x00000004,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x40008C0F,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x44000000,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x45080C04,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			writel(0x46800408,
++				viaparinfo->io_virt + VIA_REG_TRANSPACE);
++			break;
++		}
++	}
++
++	viafb_set_2d_color_depth(viaparinfo->bpp);
++
++	writel(0x0, viaparinfo->io_virt + VIA_REG_SRCBASE);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_DSTBASE);
++
++	writel(VIA_PITCH_ENABLE |
++		   (((viaparinfo->hres *
++		      viaparinfo->bpp >> 3) >> 3) | (((viaparinfo->hres *
++						   viaparinfo->
++						   bpp >> 3) >> 3) << 16)),
++					viaparinfo->io_virt + VIA_REG_PITCH);
++}
++
++void viafb_set_2d_color_depth(int bpp)
++{
++	u32 dwGEMode;
++
++	dwGEMode = readl(viaparinfo->io_virt + 0x04) & 0xFFFFFCFF;
++
++	switch (bpp) {
++	case 16:
++		dwGEMode |= VIA_GEM_16bpp;
++		break;
++	case 32:
++		dwGEMode |= VIA_GEM_32bpp;
++		break;
++	default:
++		dwGEMode |= VIA_GEM_8bpp;
++		break;
++	}
++
++	/* Set BPP and Pitch */
++	writel(dwGEMode, viaparinfo->io_virt + VIA_REG_GEMODE);
++}
++
++void viafb_hw_cursor_init(void)
++{
++	/* Set Cursor Image Base Address */
++	writel(viaparinfo->cursor_start,
++		viaparinfo->io_virt + VIA_REG_CURSOR_MODE);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_CURSOR_POS);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_CURSOR_ORG);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_CURSOR_BG);
++	writel(0x0, viaparinfo->io_virt + VIA_REG_CURSOR_FG);
++}
++
++void viafb_show_hw_cursor(struct fb_info *info, int Status)
++{
++	u32 temp;
++	u32 iga_path = ((struct viafb_par *)(info->par))->iga_path;
++
++	temp = readl(viaparinfo->io_virt + VIA_REG_CURSOR_MODE);
++	switch (Status) {
++	case HW_Cursor_ON:
++		temp |= 0x1;
++		break;
++	case HW_Cursor_OFF:
++		temp &= 0xFFFFFFFE;
++		break;
++	}
++	switch (iga_path) {
++	case IGA2:
++		temp |= 0x80000000;
++		break;
++	case IGA1:
++	default:
++		temp &= 0x7FFFFFFF;
++	}
++	writel(temp, viaparinfo->io_virt + VIA_REG_CURSOR_MODE);
++}
++
++int viafb_wait_engine_idle(void)
++{
++	int loop = 0;
++
++	while (!(readl(viaparinfo->io_virt + VIA_REG_STATUS) &
++			VIA_VR_QUEUE_BUSY) && (loop++ < MAXLOOP))
++		cpu_relax();
++
++	while ((readl(viaparinfo->io_virt + VIA_REG_STATUS) &
++		    (VIA_CMD_RGTR_BUSY | VIA_2D_ENG_BUSY | VIA_3D_ENG_BUSY)) &&
++		    (loop++ < MAXLOOP))
++		cpu_relax();
++
++	return loop >= MAXLOOP;
++}
+diff -puN /dev/null drivers/video/via/accel.h
 --- /dev/null
-+++ a/Documentation/fb/viafb.txt
-@@ -0,0 +1,214 @@
++++ a/drivers/video/via/accel.h
+@@ -0,0 +1,169 @@
++/*
++ * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
++ * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
 +
-+        VIA Integration Graphic Chip Console Framebuffer Driver
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public
++ * License as published by the Free Software Foundation;
++ * either version 2, or (at your option) any later version.
 +
-+[Platform]
-+-----------------------
-+    The console framebuffer driver is for graphics chips of
-+    VIA UniChrome Family(CLE266, PM800 / CN400 / CN300,
-+                        P4M800CE / P4M800Pro / CN700 / VN800,
-+                        CX700 / VX700, K8M890, P4M890,
-+                        CN896 / P4M900, VX800)
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
++ * the implied warranty of MERCHANTABILITY or FITNESS FOR
++ * A PARTICULAR PURPOSE.See the GNU General Public License
++ * for more details.
 +
-+[Driver features]
-+------------------------
-+    Device: CRT, LCD, DVI
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
++ */
 +
-+    Support viafb_mode:
-+        CRT:
-+            640x480(60, 75, 85, 100, 120 Hz), 720x480(60 Hz),
-+            720x576(60 Hz), 800x600(60, 75, 85, 100, 120 Hz),
-+            848x480(60 Hz), 856x480(60 Hz), 1024x512(60 Hz),
-+            1024x768(60, 75, 85, 100 Hz), 1152x864(75 Hz),
-+            1280x768(60 Hz), 1280x960(60 Hz), 1280x1024(60, 75, 85 Hz),
-+            1440x1050(60 Hz), 1600x1200(60, 75 Hz), 1280x720(60 Hz),
-+            1920x1080(60 Hz), 1400x1050(60 Hz), 800x480(60 Hz)
++#ifndef __ACCEL_H__
++#define __ACCEL_H__
 +
-+    color depth: 8 bpp, 16 bpp, 32 bpp supports.
++#define FB_ACCEL_VIA_UNICHROME  50
 +
-+    Support 2D hardware accelerator.
++/* MMIO Base Address Definition */
++#define MMIO_VGABASE                0x8000
++#define MMIO_CR_READ                (MMIO_VGABASE + 0x3D4)
++#define MMIO_CR_WRITE               (MMIO_VGABASE + 0x3D5)
++#define MMIO_SR_READ                (MMIO_VGABASE + 0x3C4)
++#define MMIO_SR_WRITE               (MMIO_VGABASE + 0x3C5)
 +
-+[Using the viafb module]
-+-- -- --------------------
-+    Start viafb with default settings:
-+        #modprobe viafb
++/* HW Cursor Status Define */
++#define HW_Cursor_ON    0
++#define HW_Cursor_OFF   1
 +
-+    Start viafb with with user options:
-+        #modprobe viafb viafb_mode=800x600 viafb_bpp=16 viafb_refresh=60
-+                  viafb_active_dev=CRT+DVI viafb_dvi_port=DVP1
-+                  viafb_mode1=1024x768 viafb_bpp=16 viafb_refresh1=60
-+                  viafb_SAMM_ON=1
++#define CURSOR_SIZE     (8 * 1024)
++#define VQ_SIZE         (256 * 1024)
 +
-+    viafb_mode:
-+        640x480 (default)
-+        720x480
-+        800x600
-+        1024x768
-+        ......
++#define VIA_MMIO_BLTBASE        0x200000
++#define VIA_MMIO_BLTSIZE        0x200000
 +
-+    viafb_bpp:
-+        8, 16, 32 (default:32)
++/* Defines for 2D registers */
++#define VIA_REG_GECMD           0x000
++#define VIA_REG_GEMODE          0x004
++#define VIA_REG_SRCPOS          0x008
++#define VIA_REG_DSTPOS          0x00C
++/* width and height */
++#define VIA_REG_DIMENSION       0x010
++#define VIA_REG_PATADDR         0x014
++#define VIA_REG_FGCOLOR         0x018
++#define VIA_REG_BGCOLOR         0x01C
++/* top and left of clipping */
++#define VIA_REG_CLIPTL          0x020
++/* bottom and right of clipping */
++#define VIA_REG_CLIPBR          0x024
++#define VIA_REG_OFFSET          0x028
++/* color key control */
++#define VIA_REG_KEYCONTROL      0x02C
++#define VIA_REG_SRCBASE         0x030
++#define VIA_REG_DSTBASE         0x034
++/* pitch of src and dst */
++#define VIA_REG_PITCH           0x038
++#define VIA_REG_MONOPAT0        0x03C
++#define VIA_REG_MONOPAT1        0x040
++/* from 0x100 to 0x1ff */
++#define VIA_REG_COLORPAT        0x100
 +
-+    viafb_refresh:
-+        60, 75, 85, 100, 120 (default:60)
++/* VIA_REG_PITCH(0x38): Pitch Setting */
++#define VIA_PITCH_ENABLE        0x80000000
 +
-+    viafb_lcd_dsp_method:
-+        0 : expansion (default)
-+        1 : centering
++/* defines for VIA HW cursor registers */
++#define VIA_REG_CURSOR_MODE     0x2D0
++#define VIA_REG_CURSOR_POS      0x2D4
++#define VIA_REG_CURSOR_ORG      0x2D8
++#define VIA_REG_CURSOR_BG       0x2DC
++#define VIA_REG_CURSOR_FG       0x2E0
 +
-+    viafb_lcd_mode:
-+        0 : LCD panel with LSB data format input (default)
-+        1 : LCD panel with MSB data format input
++/* VIA_REG_GEMODE(0x04): GE mode */
++#define VIA_GEM_8bpp            0x00000000
++#define VIA_GEM_16bpp           0x00000100
++#define VIA_GEM_32bpp           0x00000300
 +
-+    viafb_lcd_panel_id:
-+        0 : Resolution: 640x480, Channel: single, Dithering: Enable
-+        1 : Resolution: 800x600, Channel: single, Dithering: Enable
-+        2 : Resolution: 1024x768, Channel: single, Dithering: Enable (default)
-+        3 : Resolution: 1280x768, Channel: single, Dithering: Enable
-+        4 : Resolution: 1280x1024, Channel: dual, Dithering: Enable
-+        5 : Resolution: 1400x1050, Channel: dual, Dithering: Enable
-+        6 : Resolution: 1600x1200, Channel: dual, Dithering: Enable
++/* VIA_REG_GECMD(0x00): 2D Engine Command  */
++#define VIA_GEC_NOOP            0x00000000
++#define VIA_GEC_BLT             0x00000001
++#define VIA_GEC_LINE            0x00000005
 +
-+        8 : Resolution: 800x480, Channel: single, Dithering: Enable
-+        9 : Resolution: 1024x768, Channel: dual, Dithering: Enable
-+        10: Resolution: 1024x768, Channel: single, Dithering: Disable
-+        11: Resolution: 1024x768, Channel: dual, Dithering: Disable
-+        12: Resolution: 1280x768, Channel: single, Dithering: Disable
-+        13: Resolution: 1280x1024, Channel: dual, Dithering: Disable
-+        14: Resolution: 1400x1050, Channel: dual, Dithering: Disable
-+        15: Resolution: 1600x1200, Channel: dual, Dithering: Disable
-+        16: Resolution: 1366x768, Channel: single, Dithering: Disable
-+        17: Resolution: 1024x600, Channel: single, Dithering: Enable
-+        18: Resolution: 1280x768, Channel: dual, Dithering: Enable
-+        19: Resolution: 1280x800, Channel: single, Dithering: Enable
++/* Rotate Command */
++#define VIA_GEC_ROT             0x00000008
 +
-+    viafb_accel:
-+        0 : No 2D Hardware Acceleration
-+        1 : 2D Hardware Acceleration (default)
++#define VIA_GEC_SRC_XY          0x00000000
++#define VIA_GEC_SRC_LINEAR      0x00000010
++#define VIA_GEC_DST_XY          0x00000000
++#define VIA_GEC_DST_LINRAT      0x00000020
 +
-+    viafb_SAMM_ON:
-+        0 : viafb_SAMM_ON disable (default)
-+        1 : viafb_SAMM_ON enable
++#define VIA_GEC_SRC_FB          0x00000000
++#define VIA_GEC_SRC_SYS         0x00000040
++#define VIA_GEC_DST_FB          0x00000000
++#define VIA_GEC_DST_SYS         0x00000080
 +
-+    viafb_mode1: (secondary display device)
-+        640x480 (default)
-+        720x480
-+        800x600
-+        1024x768
-+        ... ...
++/* source is mono */
++#define VIA_GEC_SRC_MONO        0x00000100
++/* pattern is mono */
++#define VIA_GEC_PAT_MONO        0x00000200
++/* mono src is opaque */
++#define VIA_GEC_MSRC_OPAQUE     0x00000000
++/* mono src is transparent */
++#define VIA_GEC_MSRC_TRANS      0x00000400
++/* pattern is in frame buffer */
++#define VIA_GEC_PAT_FB          0x00000000
++/* pattern is from reg setting */
++#define VIA_GEC_PAT_REG         0x00000800
 +
-+    viafb_bpp1: (secondary display device)
-+        8, 16, 32 (default:32)
++#define VIA_GEC_CLIP_DISABLE    0x00000000
++#define VIA_GEC_CLIP_ENABLE     0x00001000
 +
-+    viafb_refresh1: (secondary display device)
-+        60, 75, 85, 100, 120 (default:60)
++#define VIA_GEC_FIXCOLOR_PAT    0x00002000
 +
-+    viafb_active_dev:
-+        This option is used to specify active devices.(CRT, DVI, CRT+LCD...)
-+        DVI stands for DVI or HDMI, E.g., If you want to enable HDMI,
-+        set viafb_active_dev=DVI. In SAMM case, the previous of
-+        viafb_active_dev is primary device, and the following is
-+        secondary device.
++#define VIA_GEC_INCX            0x00000000
++#define VIA_GEC_DECY            0x00004000
++#define VIA_GEC_INCY            0x00000000
++#define VIA_GEC_DECX            0x00008000
++/* mono pattern is opaque */
++#define VIA_GEC_MPAT_OPAQUE     0x00000000
++/* mono pattern is transparent */
++#define VIA_GEC_MPAT_TRANS      0x00010000
 +
-+        For example:
-+        To enable one device, such as DVI only, we can use:
-+            modprobe viafb viafb_active_dev=DVI
-+        To enable two devices, such as CRT+DVI:
-+            modprobe viafb viafb_active_dev=CRT+DVI;
++#define VIA_GEC_MONO_UNPACK     0x00000000
++#define VIA_GEC_MONO_PACK       0x00020000
++#define VIA_GEC_MONO_DWORD      0x00000000
++#define VIA_GEC_MONO_WORD       0x00040000
++#define VIA_GEC_MONO_BYTE       0x00080000
 +
-+        For DuoView case, we can use:
-+            modprobe viafb viafb_active_dev=CRT+DVI
-+            OR
-+            modprobe viafb viafb_active_dev=DVI+CRT...
++#define VIA_GEC_LASTPIXEL_ON    0x00000000
++#define VIA_GEC_LASTPIXEL_OFF   0x00100000
++#define VIA_GEC_X_MAJOR         0x00000000
++#define VIA_GEC_Y_MAJOR         0x00200000
++#define VIA_GEC_QUICK_START     0x00800000
 +
-+        For SAMM case:
-+        If CRT is primary and DVI is secondary, we should use:
-+            modprobe viafb viafb_active_dev=CRT+DVI viafb_SAMM_ON=1...
-+        If DVI is primary and CRT is secondary, we should use:
-+            modprobe viafb viafb_active_dev=DVI+CRT viafb_SAMM_ON=1...
++/* defines for VIA 3D registers */
++#define VIA_REG_STATUS          0x400
++#define VIA_REG_CR_TRANSET      0x41C
++#define VIA_REG_CR_TRANSPACE	0x420
++#define VIA_REG_TRANSET         0x43C
++#define VIA_REG_TRANSPACE       0x440
 +
-+    viafb_display_hardware_layout:
-+        This option is used to specify display hardware layout for CX700 chip.
-+        1 : LCD only
-+        2 : DVI only
-+        3 : LCD+DVI (default)
-+        4 : LCD1+LCD2 (internal + internal)
-+        16: LCD1+ExternalLCD2 (internal + external)
++/* VIA_REG_STATUS(0x400): Engine Status */
 +
-+    viafb_second_size:
-+        This option is used to set second device memory size(MB) in SAMM case.
-+        The minimal size is 16.
++/* Command Regulator is busy */
++#define VIA_CMD_RGTR_BUSY       0x00000080
++/* 2D Engine is busy */
++#define VIA_2D_ENG_BUSY         0x00000002
++/* 3D Engine is busy */
++#define VIA_3D_ENG_BUSY         0x00000001
++/* Virtual Queue is busy */
++#define VIA_VR_QUEUE_BUSY       0x00020000
 +
-+    viafb_platform_epia_dvi:
-+        This option is used to enable DVI on EPIA - M
-+        0 : No DVI on EPIA - M (default)
-+        1 : DVI on EPIA - M
++#define MAXLOOP                 0xFFFFFF
 +
-+    viafb_bus_width:
-+        When using 24 - Bit Bus Width Digital Interface,
-+        this option should be set.
-+        12: 12-Bit LVDS or 12-Bit TMDS (default)
-+        24: 24-Bit LVDS or 24-Bit TMDS
++void viafb_init_accel(void);
++void viafb_init_2d_engine(void);
++void set_2d_color_depth(int);
++void viafb_hw_cursor_init(void);
++void viafb_show_hw_cursor(struct fb_info *info, int Status); int
++viafb_wait_engine_idle(void); void viafb_set_2d_color_depth(int bpp);
 +
-+    viafb_device_lcd_dualedge:
-+        When using Dual Edge Panel, this option should be set.
-+        0 : No Dual Edge Panel (default)
-+        1 : Dual Edge Panel
-+
-+    viafb_video_dev:
-+        This option is used to specify video output devices(CRT, DVI, LCD) for
-+        duoview case.
-+        For example:
-+        To output video on DVI, we should use:
-+            modprobe viafb viafb_video_dev=DVI...
-+
-+    viafb_lcd_port:
-+        This option is used to specify LCD output port,
-+        available values are "DVP0" "DVP1" "DFP_HIGHLOW" "DFP_HIGH" "DFP_LOW".
-+        for external LCD + external DVI on CX700(External LCD is on DVP0),
-+        we should use:
-+            modprobe viafb viafb_lcd_port=DVP0...
-+
-+Notes:
-+    1. CRT may not display properly for DuoView CRT & DVI display at
-+       the "640x480" PAL mode with DVI overscan enabled.
-+    2. SAMM stands for single adapter multi monitors. It is different from
-+       multi-head since SAMM support multi monitor at driver layers, thus fbcon
-+       layer doesn't even know about it; SAMM's second screen doesn't have a
-+       device node file, thus a user mode application can't access it directly.
-+       When SAMM is enabled, viafb_mode and viafb_mode1, viafb_bpp and
-+       viafb_bpp1, viafb_refresh and viafb_refresh1 can be different.
-+    3. When console is depending on viafbinfo1, dynamically change resolution
-+       and bpp, need to call VIAFB specified ioctl interface VIAFB_SET_DEVICE
-+       instead of calling common ioctl function FBIOPUT_VSCREENINFO since
-+       viafb doesn't support multi-head well, or it will cause screen crush.
-+    4. VX800 2D accelerator hasn't been supported in this driver yet. When
-+       using driver on VX800, the driver will disable the acceleration
-+       function as default.
-+
-+
-+[Configure viafb with "fbset" tool]
-+-----------------------------------
-+    "fbset" is an inbox utility of Linux.
-+    1. Inquire current viafb information, type,
-+           # fbset -i
-+
-+    2. Set various resolutions and viafb_refresh rates,
-+           # fbset <resolution-vertical_sync>
-+
-+       example,
-+           # fbset "1024x768-75"
-+       or
-+           # fbset -g 1024 768 1024 768 32
-+       Check the file "/etc/fb.modes" to find display modes available.
-+
-+    3. Set the color depth,
-+           # fbset -depth <value>
-+
-+       example,
-+           # fbset -depth 16
-+
-+[Bootup with viafb]:
-+--------------------
-+    Add the following line to your grub.conf:
-+    append = "video=viafb:viafb_mode=1024x768,viafb_bpp=32,viafb_refresh=85"
-+
++#endif /* __ACCEL_H__ */
 _
 
 Patches currently in -mm which might be from JosephChan@via.com.tw are
