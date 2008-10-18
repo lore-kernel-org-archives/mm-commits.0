@@ -1,94 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-net-xen-netfrontc-use-div_round_up.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:20:39 -0700
-Message-ID: <200810182320.m9INKd9m029805@imap1.linux-foundation.org>
+Subject: - resource-add-resource_type-and-ioresource_type_bits.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:20:31 -0700
+Message-ID: <200810182320.m9INKVEs029775@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56345 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56895 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751912AbYJRXUo (ORCPT
+	by vger.kernel.org with ESMTP id S1751962AbYJRXVE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:20:44 -0400
+	Sat, 18 Oct 2008 19:21:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, jeremy@goop.org, mm-commits@vger.kernel.org
+To: damm@igel.co.jp, ben-linux@fluff.org, khali@linux-fr.org, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/net/xen-netfront.c: Use DIV_ROUND_UP
+     resource: add resource_type() and IORESOURCE_TYPE_BITS
 has been removed from the -mm tree.  Its filename was
-     drivers-net-xen-netfrontc-use-div_round_up.patch
+     resource-add-resource_type-and-ioresource_type_bits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/xen-netfront.c: Use DIV_ROUND_UP
-From: Julia Lawall <julia@diku.dk>
+Subject: resource: add resource_type() and IORESOURCE_TYPE_BITS
+From: Magnus Damm <damm@igel.co.jp>
 
-The kernel.h macro DIV_ROUND_UP performs the computation (((n) + (d) - 1) /
-(d)) but is perhaps more readable.
+Add resource_type() and IORESOURCE_TYPE_BITS.  They make it easier to add
+more resource types without having to rewrite tons of code.
 
-An extract of the semantic patch that makes this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@haskernel@
-@@
-
-#include <linux/kernel.h>
-
-@depends on haskernel@
-expression n,d;
-@@
-
-(
-- (n + d - 1) / d
-+ DIV_ROUND_UP(n,d)
-|
-- (n + (d - 1)) / d
-+ DIV_ROUND_UP(n,d)
-)
-
-@depends on haskernel@
-expression n,d;
-@@
-
-- DIV_ROUND_UP((n),d)
-+ DIV_ROUND_UP(n,d)
-
-@depends on haskernel@
-expression n,d;
-@@
-
-- DIV_ROUND_UP(n,(d))
-+ DIV_ROUND_UP(n,d)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Acked-by: Jeremy Fitzhardinge <jeremy@goop.org>
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/xen-netfront.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/base/platform.c |   31 +++++++++++++++++--------------
+ include/linux/ioport.h  |    7 ++++++-
+ 2 files changed, 23 insertions(+), 15 deletions(-)
 
-diff -puN drivers/net/xen-netfront.c~drivers-net-xen-netfrontc-use-div_round_up drivers/net/xen-netfront.c
---- a/drivers/net/xen-netfront.c~drivers-net-xen-netfrontc-use-div_round_up
-+++ a/drivers/net/xen-netfront.c
-@@ -471,7 +471,7 @@ static int xennet_start_xmit(struct sk_b
- 	unsigned int offset = offset_in_page(data);
- 	unsigned int len = skb_headlen(skb);
+diff -puN drivers/base/platform.c~resource-add-resource_type-and-ioresource_type_bits drivers/base/platform.c
+--- a/drivers/base/platform.c~resource-add-resource_type-and-ioresource_type_bits
++++ a/drivers/base/platform.c
+@@ -42,10 +42,8 @@ struct resource *platform_get_resource(s
+ 	for (i = 0; i < dev->num_resources; i++) {
+ 		struct resource *r = &dev->resource[i];
  
--	frags += (offset + len + PAGE_SIZE - 1) / PAGE_SIZE;
-+	frags += DIV_ROUND_UP(offset + len, PAGE_SIZE);
- 	if (unlikely(frags > MAX_SKB_FRAGS + 1)) {
- 		printk(KERN_ALERT "xennet: skb rides the rocket: %d frags\n",
- 		       frags);
+-		if ((r->flags & (IORESOURCE_IO|IORESOURCE_MEM|
+-				 IORESOURCE_IRQ|IORESOURCE_DMA)) == type)
+-			if (num-- == 0)
+-				return r;
++		if (type == resource_type(r) && num-- == 0)
++			return r;
+ 	}
+ 	return NULL;
+ }
+@@ -78,10 +76,8 @@ struct resource *platform_get_resource_b
+ 	for (i = 0; i < dev->num_resources; i++) {
+ 		struct resource *r = &dev->resource[i];
+ 
+-		if ((r->flags & (IORESOURCE_IO|IORESOURCE_MEM|
+-				 IORESOURCE_IRQ|IORESOURCE_DMA)) == type)
+-			if (!strcmp(r->name, name))
+-				return r;
++		if (type == resource_type(r) && !strcmp(r->name, name))
++			return r;
+ 	}
+ 	return NULL;
+ }
+@@ -259,9 +255,9 @@ int platform_device_add(struct platform_
+ 
+ 		p = r->parent;
+ 		if (!p) {
+-			if (r->flags & IORESOURCE_MEM)
++			if (resource_type(r) == IORESOURCE_MEM)
+ 				p = &iomem_resource;
+-			else if (r->flags & IORESOURCE_IO)
++			else if (resource_type(r) == IORESOURCE_IO)
+ 				p = &ioport_resource;
+ 		}
+ 
+@@ -282,9 +278,14 @@ int platform_device_add(struct platform_
+ 		return ret;
+ 
+  failed:
+-	while (--i >= 0)
+-		if (pdev->resource[i].flags & (IORESOURCE_MEM|IORESOURCE_IO))
+-			release_resource(&pdev->resource[i]);
++	while (--i >= 0) {
++		struct resource *r = &pdev->resource[i];
++		unsigned long type = resource_type(r);
++
++		if (type == IORESOURCE_MEM || type == IORESOURCE_IO)
++			release_resource(r);
++	}
++
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(platform_device_add);
+@@ -306,7 +307,9 @@ void platform_device_del(struct platform
+ 
+ 		for (i = 0; i < pdev->num_resources; i++) {
+ 			struct resource *r = &pdev->resource[i];
+-			if (r->flags & (IORESOURCE_MEM|IORESOURCE_IO))
++			unsigned long type = resource_type(r);
++
++			if (type == IORESOURCE_MEM || type == IORESOURCE_IO)
+ 				release_resource(r);
+ 		}
+ 	}
+diff -puN include/linux/ioport.h~resource-add-resource_type-and-ioresource_type_bits include/linux/ioport.h
+--- a/include/linux/ioport.h~resource-add-resource_type-and-ioresource_type_bits
++++ a/include/linux/ioport.h
+@@ -34,7 +34,8 @@ struct resource_list {
+  */
+ #define IORESOURCE_BITS		0x000000ff	/* Bus-specific bits */
+ 
+-#define IORESOURCE_IO		0x00000100	/* Resource type */
++#define IORESOURCE_TYPE_BITS	0x00000f00	/* Resource type */
++#define IORESOURCE_IO		0x00000100
+ #define IORESOURCE_MEM		0x00000200
+ #define IORESOURCE_IRQ		0x00000400
+ #define IORESOURCE_DMA		0x00000800
+@@ -126,6 +127,10 @@ static inline resource_size_t resource_s
+ {
+ 	return res->end - res->start + 1;
+ }
++static inline unsigned long resource_type(struct resource *res)
++{
++	return res->flags & IORESOURCE_TYPE_BITS;
++}
+ 
+ /* Convenience shorthand with allocation */
+ #define request_region(start,n,name)	__request_region(&ioport_resource, (start), (n), (name))
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from damm@igel.co.jp are
 
 origin.patch
 
