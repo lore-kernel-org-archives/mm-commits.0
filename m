@@ -1,76 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - identify_ramdisk_image-correct-typo-about-return-value-in-comment.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:11:26 -0700
-Message-ID: <200810182311.m9INBQ7t027736@imap1.linux-foundation.org>
+Subject: - fix-documentation-filesystems-ramfs-rootfs-initramfstxt.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:11:20 -0700
+Message-ID: <200810182311.m9INBKeQ027712@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46465 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48280 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751171AbYJRXLb (ORCPT
+	by vger.kernel.org with ESMTP id S1751194AbYJRXL1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:11:31 -0400
+	Sat, 18 Oct 2008 19:11:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Geert.Uytterhoeven@sonycom.com, mm-commits@vger.kernel.org
+To: fransmeulenbroeks@gmail.com, rob@landley.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     identify_ramdisk_image(): correct typo about return value in comment
+     Fix Documentation/filesystems/ramfs-rootfs-initramfs.txt
 has been removed from the -mm tree.  Its filename was
-     identify_ramdisk_image-correct-typo-about-return-value-in-comment.patch
+     fix-documentation-filesystems-ramfs-rootfs-initramfstxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: identify_ramdisk_image(): correct typo about return value in comment
-From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Subject: Fix Documentation/filesystems/ramfs-rootfs-initramfs.txt
+From: frans <fransmeulenbroeks@gmail.com>
 
-identify_ramdisk_image() returns 0 (not -1) if a gzipped ramdisk is found:
+First a file hello.c is created, then the file hello2.c is compiled. 
+Change this to hello.c
 
-	if (buf[0] == 037 && ((buf[1] == 0213) || (buf[1] == 0236))) {
-		printk(KERN_NOTICE
-		       "RAMDISK: Compressed image found at block %d\n",
-		       start_block);
-		nblocks = 0;
-		^^^^^^^^^^^
-		goto done;
-	}
-
-	...
-
-done:
-	sys_lseek(fd, start_block * BLOCK_SIZE, 0);
-	kfree(buf);
-	return nblocks;
-	^^^^^^^^^^^^^^
-
-Hence correct the typo in the comment, which has existed since the
-addition of compressed ramdisk support in 1.3.48.
-
-Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Signed-off-by: Rob Landley <rob@landley.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts_rd.c |    2 +-
+ Documentation/filesystems/ramfs-rootfs-initramfs.txt |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/do_mounts_rd.c~identify_ramdisk_image-correct-typo-about-return-value-in-comment init/do_mounts_rd.c
---- a/init/do_mounts_rd.c~identify_ramdisk_image-correct-typo-about-return-value-in-comment
-+++ a/init/do_mounts_rd.c
-@@ -71,7 +71,7 @@ identify_ramdisk_image(int fd, int start
- 	sys_read(fd, buf, size);
- 
- 	/*
--	 * If it matches the gzip magic numbers, return -1
-+	 * If it matches the gzip magic numbers, return 0
- 	 */
- 	if (buf[0] == 037 && ((buf[1] == 0213) || (buf[1] == 0236))) {
- 		printk(KERN_NOTICE
+diff -puN Documentation/filesystems/ramfs-rootfs-initramfs.txt~fix-documentation-filesystems-ramfs-rootfs-initramfstxt Documentation/filesystems/ramfs-rootfs-initramfs.txt
+--- a/Documentation/filesystems/ramfs-rootfs-initramfs.txt~fix-documentation-filesystems-ramfs-rootfs-initramfstxt
++++ a/Documentation/filesystems/ramfs-rootfs-initramfs.txt
+@@ -263,7 +263,7 @@ User Mode Linux, like so:
+     sleep(999999999);
+   }
+   EOF
+-  gcc -static hello2.c -o init
++  gcc -static hello.c -o init
+   echo init | cpio -o -H newc | gzip > test.cpio.gz
+   # Testing external initramfs using the initrd loading mechanism.
+   qemu -kernel /boot/vmlinuz -initrd test.cpio.gz /dev/zero
 _
 
-Patches currently in -mm which might be from Geert.Uytterhoeven@sonycom.com are
+Patches currently in -mm which might be from fransmeulenbroeks@gmail.com are
 
 origin.patch
 
