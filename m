@@ -1,70 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - eeepc-laptop-use-standard-interfaces-fix.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:11:17 -0700
-Message-ID: <200810182311.m9INBH0h027709@imap1.linux-foundation.org>
+Subject: - remove-andrew-mortons-http-wwwzipcomau-akpm.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:12:24 -0700
+Message-ID: <200810182312.m9INCO5h027987@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39041 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41955 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751252AbYJRXMS (ORCPT
+	by vger.kernel.org with ESMTP id S1751295AbYJRXMb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:12:18 -0400
+	Sat, 18 Oct 2008 19:12:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, corentincj@iksaif.net, hmh@hmh.eng.br, mjg@redhat.com, sziwan@users.sourceforge.net, mm-commits@vger.kernel.org
+To: francois.cami@free.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eeepc: depends on RFKILL
+     Remove Andrew Morton's http://www.zip.com.au/~akpm/
 has been removed from the -mm tree.  Its filename was
-     eeepc-laptop-use-standard-interfaces-fix.patch
+     remove-andrew-mortons-http-wwwzipcomau-akpm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eeepc: depends on RFKILL
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Remove Andrew Morton's http://www.zip.com.au/~akpm/
+From: FD Cami <francois.cami@free.fr>
 
-EEEPC_LAPTOP uses RFKILL, so the former should depend on RFKILL.
-Build errors happen when EEEPC_LAPTOP=y and RFKILL=m.
+Remove Andrew Morton's http://www.zip.com.au/~akpm/ urls, update to new
+ones when necessary, delete references otherwise.
 
-eeepc-laptop.c:(.text+0xd5a7b): undefined reference to `rfkill_allocate'
-eeepc-laptop.c:(.text+0xd5b04): undefined reference to `rfkill_register'
-eeepc-laptop.c:(.text+0xd5b48): undefined reference to `rfkill_allocate'
-eeepc-laptop.c:(.text+0xd5bd4): undefined reference to `rfkill_register'
-eeepc-laptop.c:(.text+0xd5ece): undefined reference to `rfkill_unregister'
-eeepc-laptop.c:(.text+0xd5ef6): undefined reference to `rfkill_unregister'
-make[1]: *** [.tmp_vmlinux1] Error 1
+There are still instances of that living in:
+Documentation/zh_CN/HOWTO
+Documentation/zh_CN/SubmittingPatches
+Documentation/ko_KR/HOWTO
+Documentation/ja_JP/SubmittingPatches
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Corentin Chary <corentincj@iksaif.net>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Karol Kozimor <sziwan@users.sourceforge.net>
+Signed-off-by: Francois Cami <francois.cami@free.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/HOWTO                 |    4 ++--
+ Documentation/SubmittingPatches     |    4 ++--
+ Documentation/filesystems/ext3.txt  |    3 +--
+ Documentation/networking/vortex.txt |    5 -----
+ 4 files changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN drivers/misc/Kconfig~eeepc-laptop-use-standard-interfaces-fix drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~eeepc-laptop-use-standard-interfaces-fix
-+++ a/drivers/misc/Kconfig
-@@ -409,6 +409,7 @@ config EEEPC_LAPTOP
- 	depends on BACKLIGHT_CLASS_DEVICE
- 	depends on HWMON
- 	depends on EXPERIMENTAL
-+	depends on RFKILL
- 	---help---
- 	  This driver supports the Fn-Fx keys on Eee PC laptops.
- 	  It also adds the ability to switch camera/wlan on/off.
-_
-
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
-
-origin.patch
-memory_probe-fix-wrong-sysfs-file-attribute.patch
-memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
-
+diff -puN Documentation/HOWTO~remove-andrew-mortons-http-wwwzipcomau-akpm Documentation/HOWTO
+--- a/Documentation/HOWTO~remove-andrew-mortons-http-wwwzipcomau-akpm
++++ a/Documentation/HOWTO
+@@ -112,7 +112,7 @@ required reading:
+ 
+     Other excellent descriptions of how to create patches properly are:
+ 	"The Perfect Patch"
+-		http://www.zip.com.au/~akpm/linux/patches/stuff/tpp.txt
++		http://userweb.kernel.org/~akpm/stuff/tpp.txt
+ 	"Linux kernel patch submission format"
+ 		http://linux.yyz.us/patch-format.html
+ 
+@@ -620,7 +620,7 @@ all time.  It should describe the patch 
+ For more details on what this should all look like, please see the
+ ChangeLog section of the document:
+   "The Perfect Patch"
+-      http://www.zip.com.au/~akpm/linux/patches/stuff/tpp.txt
++      http://userweb.kernel.org/~akpm/stuff/tpp.txt
+ 
+ 
+ 
+diff -puN Documentation/SubmittingPatches~remove-andrew-mortons-http-wwwzipcomau-akpm Documentation/SubmittingPatches
+--- a/Documentation/SubmittingPatches~remove-andrew-mortons-http-wwwzipcomau-akpm
++++ a/Documentation/SubmittingPatches
+@@ -77,7 +77,7 @@ Quilt:
+ http://savannah.nongnu.org/projects/quilt
+ 
+ Andrew Morton's patch scripts:
+-http://www.zip.com.au/~akpm/linux/patches/
++http://userweb.kernel.org/~akpm/stuff/patch-scripts.tar.gz
+ Instead of these scripts, quilt is the recommended patch management
+ tool (see above).
+ 
+@@ -653,7 +653,7 @@ SECTION 3 - REFERENCES
+ ----------------------
+ 
+ Andrew Morton, "The perfect patch" (tpp).
+-  <http://www.zip.com.au/~akpm/linux/patches/stuff/tpp.txt>
++  <http://userweb.kernel.org/~akpm/stuff/tpp.txt>
+ 
+ Jeff Garzik, "Linux kernel patch submission format".
+   <http://linux.yyz.us/patch-format.html>
+diff -puN Documentation/filesystems/ext3.txt~remove-andrew-mortons-http-wwwzipcomau-akpm Documentation/filesystems/ext3.txt
+--- a/Documentation/filesystems/ext3.txt~remove-andrew-mortons-http-wwwzipcomau-akpm
++++ a/Documentation/filesystems/ext3.txt
+@@ -193,6 +193,5 @@ kernel source:	<file:fs/ext3/>
+ programs: 	http://e2fsprogs.sourceforge.net/
+ 		http://ext2resize.sourceforge.net
+ 
+-useful links:	http://www.zip.com.au/~akpm/linux/ext3/ext3-usage.html
+-		http://www-106.ibm.com/developerworks/linux/library/l-fs7/
++useful links:	http://www-106.ibm.com/developerworks/linux/library/l-fs7/
+ 		http://www-106.ibm.com/developerworks/linux/library/l-fs8/
+diff -puN Documentation/networking/vortex.txt~remove-andrew-mortons-http-wwwzipcomau-akpm Documentation/networking/vortex.txt
+--- a/Documentation/networking/vortex.txt~remove-andrew-mortons-http-wwwzipcomau-akpm
++++ a/Documentation/networking/vortex.txt
+@@ -305,11 +305,6 @@ Donald's wake-on-LAN page:
+ 
+ 	ftp://ftp.3com.com/pub/nic/3c90x/3c90xx2.exe
+ 
+-Driver updates and a detailed changelog for the modifications which
+-were made for the 2.3/2,4 series kernel is available at
+-
+-     http://www.zip.com.au/~akpm/linux/#3c59x-bc
