@@ -1,118 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - wait-kill-is_sync_wait.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:11:35 -0700
-Message-ID: <200810182311.m9INBZZG027763@imap1.linux-foundation.org>
+Subject: - doc-typo-in-documentation-filesystems-nfsroottxt.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:11:53 -0700
+Message-ID: <200810182311.m9INBrQf027812@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35053 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48028 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751220AbYJRXLx (ORCPT
+	by vger.kernel.org with ESMTP id S1751219AbYJRXL5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:11:53 -0400
+	Sat, 18 Oct 2008 19:11:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mcdonald.shane@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wait: kill is_sync_wait()
+     doc: typo in Documentation/filesystems/nfsroot.txt
 has been removed from the -mm tree.  Its filename was
-     wait-kill-is_sync_wait.patch
+     doc-typo-in-documentation-filesystems-nfsroottxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wait: kill is_sync_wait()
-From: Tejun Heo <tj@kernel.org>
+Subject: doc: typo in Documentation/filesystems/nfsroot.txt
+From: Shane McDonald <mcdonald.shane@gmail.com>
 
-is_sync_wait() is used to distinguish between sync and async waits. 
-Basically sync waits are the ones initialized with init_waitqueue_entry()
-and async ones with init_waitqueue_func_entry().  The sync/async
-distinction is used only in prepare_to_wait[_exclusive]() and its only
-function is to skip setting the current task state if the wait is async. 
-This has a few problems.
+Add a missing word to the explanation of the purpose of the zdisk and
+bzdisk make targets.
 
-* No one uses it.  None of func_entry users use prepare_to_wait()
-  functions, so the code path never gets executed.
-
-* The distinction is bogus.  Maybe back when func_entry is used only
-  by aio but it's now also used by epoll and in future possibly by 9p
-  and poll/select.
-
-* Taking @state as argument and ignoring it silenly depending on how
-  @wait is initialized is just a bad error-prone API.
-
-* It prevents func_entry waits from using wait->private for no good
-  reason.
-
-This patch kills is_sync_wait() and the associated code paths from
-prepare_to_wait[_exclusive]().  As there was no user of these code paths,
-this patch doesn't cause any behavior difference.
-
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Shane McDonald <mcdonald.shane@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/wait.h |    9 ---------
- kernel/wait.c        |   14 ++------------
- 2 files changed, 2 insertions(+), 21 deletions(-)
+ Documentation/filesystems/nfsroot.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/wait.h~wait-kill-is_sync_wait include/linux/wait.h
---- a/include/linux/wait.h~wait-kill-is_sync_wait
-+++ a/include/linux/wait.h
-@@ -108,15 +108,6 @@ static inline int waitqueue_active(wait_
- 	return !list_empty(&q->task_list);
- }
+diff -puN Documentation/filesystems/nfsroot.txt~doc-typo-in-documentation-filesystems-nfsroottxt Documentation/filesystems/nfsroot.txt
+--- a/Documentation/filesystems/nfsroot.txt~doc-typo-in-documentation-filesystems-nfsroottxt
++++ a/Documentation/filesystems/nfsroot.txt
+@@ -169,7 +169,7 @@ They depend on various facilities being 
+ 3.1)  Booting from a floppy using syslinux
  
--/*
-- * Used to distinguish between sync and async io wait context:
-- * sync i/o typically specifies a NULL wait queue entry or a wait
-- * queue entry bound to a task (current task) to wake up.
-- * aio specifies a wait queue entry with an async notification
-- * callback routine, not associated with any task.
-- */
--#define is_sync_wait(wait)	(!(wait) || ((wait)->private))
--
- extern void add_wait_queue(wait_queue_head_t *q, wait_queue_t *wait);
- extern void add_wait_queue_exclusive(wait_queue_head_t *q, wait_queue_t *wait);
- extern void remove_wait_queue(wait_queue_head_t *q, wait_queue_t *wait);
-diff -puN kernel/wait.c~wait-kill-is_sync_wait kernel/wait.c
---- a/kernel/wait.c~wait-kill-is_sync_wait
-+++ a/kernel/wait.c
-@@ -72,12 +72,7 @@ prepare_to_wait(wait_queue_head_t *q, wa
- 	spin_lock_irqsave(&q->lock, flags);
- 	if (list_empty(&wait->task_list))
- 		__add_wait_queue(q, wait);
--	/*
--	 * don't alter the task state if this is just going to
--	 * queue an async wait queue callback
--	 */
--	if (is_sync_wait(wait))
--		set_current_state(state);
-+	set_current_state(state);
- 	spin_unlock_irqrestore(&q->lock, flags);
- }
- EXPORT_SYMBOL(prepare_to_wait);
-@@ -91,12 +86,7 @@ prepare_to_wait_exclusive(wait_queue_hea
- 	spin_lock_irqsave(&q->lock, flags);
- 	if (list_empty(&wait->task_list))
- 		__add_wait_queue_tail(q, wait);
--	/*
--	 * don't alter the task state if this is just going to
-- 	 * queue an async wait queue callback
--	 */
--	if (is_sync_wait(wait))
--		set_current_state(state);
-+	set_current_state(state);
- 	spin_unlock_irqrestore(&q->lock, flags);
- }
- EXPORT_SYMBOL(prepare_to_wait_exclusive);
+ 	When building kernels, an easy way to create a boot floppy that uses
+-	syslinux is to use the zdisk or bzdisk make targets which use
++	syslinux is to use the zdisk or bzdisk make targets which use zimage
+       	and bzimage images respectively. Both targets accept the
+      	FDARGS parameter which can be used to set the kernel command line.
+ 
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from mcdonald.shane@gmail.com are
 
 origin.patch
 
