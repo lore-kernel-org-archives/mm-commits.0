@@ -1,78 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - fs-reiserfs-use-an-is_err-test-rather-than-a-null-test.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:18:43 -0700
-Message-ID: <200810182318.m9INIh5j029325@imap1.linux-foundation.org>
+Subject: - quota-remove-cvs-keywords.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:18:46 -0700
+Message-ID: <200810182318.m9INIk25029338@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43416 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54856 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752069AbYJRXS6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752186AbYJRXS6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 18 Oct 2008 19:18:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: brunel@diku.dk, jack@ucw.cz, jeffm@suse.com, julia@diku.dk, mm-commits@vger.kernel.org
+To: bunk@kernel.org, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/reiserfs: use an IS_ERR test rather than a NULL test
+     quota: remove CVS keywords
 has been removed from the -mm tree.  Its filename was
-     fs-reiserfs-use-an-is_err-test-rather-than-a-null-test.patch
+     quota-remove-cvs-keywords.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/reiserfs: use an IS_ERR test rather than a NULL test
-From: Julien Brunel <brunel@diku.dk>
+Subject: quota: remove CVS keywords
+From: Adrian Bunk <bunk@kernel.org>
 
-In case of error, the function open_xa_dir returns an ERR pointer, but
-never returns a NULL pointer.  So a NULL test that comes after an IS_ERR
-test should be deleted.
+Remove CVS keywords that weren't updated for a long time from comments.
 
-The semantic match that finds this problem is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@match_bad_null_test@
-expression x, E;
-statement S1,S2;
-@@
-x = open_xa_dir(...)
-... when != x = E
-(
-*  if (x == NULL && ...) S1 else S2
-|
-*  if (x == NULL || ...) S1 else S2
-)
-// </smpl>
-
-Signed-off-by: Julien Brunel <brunel@diku.dk>
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Jan Kara <jack@ucw.cz>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/xattr.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/dquot.c               |    2 --
+ include/linux/quota.h    |    2 --
+ include/linux/quotaops.h |    3 ---
+ 3 files changed, 7 deletions(-)
 
-diff -puN fs/reiserfs/xattr.c~fs-reiserfs-use-an-is_err-test-rather-than-a-null-test fs/reiserfs/xattr.c
---- a/fs/reiserfs/xattr.c~fs-reiserfs-use-an-is_err-test-rather-than-a-null-test
-+++ a/fs/reiserfs/xattr.c
-@@ -155,7 +155,7 @@ static struct dentry *get_xa_file_dentry
- 	xadir = open_xa_dir(inode, flags);
- 	if (IS_ERR(xadir)) {
- 		return ERR_CAST(xadir);
--	} else if (xadir && !xadir->d_inode) {
-+	} else if (!xadir->d_inode) {
- 		dput(xadir);
- 		return ERR_PTR(-ENODATA);
- 	}
+diff -puN fs/dquot.c~quota-remove-cvs-keywords fs/dquot.c
+--- a/fs/dquot.c~quota-remove-cvs-keywords
++++ a/fs/dquot.c
+@@ -9,8 +9,6 @@
+  * implementation is based on one of the several variants of the LINUX
+  * inode-subsystem with added complexity of the diskquota system.
+  * 
+- * Version: $Id: dquot.c,v 6.3 1996/11/17 18:35:34 mvw Exp mvw $
+- * 
+  * Author:	Marco van Wieringen <mvw@planets.elm.net>
+  *
+  * Fixes:   Dmitry Gorodchanin <pgmdsg@ibi.com>, 11 Feb 96
+diff -puN include/linux/quota.h~quota-remove-cvs-keywords include/linux/quota.h
+--- a/include/linux/quota.h~quota-remove-cvs-keywords
++++ a/include/linux/quota.h
+@@ -28,8 +28,6 @@
+  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+  * SUCH DAMAGE.
+- *
+- * Version: $Id: quota.h,v 2.0 1996/11/17 16:48:14 mvw Exp mvw $
+  */
+ 
+ #ifndef _LINUX_QUOTA_
+diff -puN include/linux/quotaops.h~quota-remove-cvs-keywords include/linux/quotaops.h
+--- a/include/linux/quotaops.h~quota-remove-cvs-keywords
++++ a/include/linux/quotaops.h
+@@ -3,9 +3,6 @@
+  * macros expand to the right source-code.
+  *
+  * Author:  Marco van Wieringen <mvw@planets.elm.net>
+- *
+- * Version: $Id: quotaops.h,v 1.2 1998/01/15 16:22:26 ecd Exp $
+- *
+  */
+ #ifndef _LINUX_QUOTAOPS_
+ #define _LINUX_QUOTAOPS_
 _
 
-Patches currently in -mm which might be from brunel@diku.dk are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
+make-probe_serial_gsc-static.patch
+make-ptrace_untrace-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+acpi-use-bcd2bin-bin2bcd.patch
+alpha-use-bcd2bin-bin2bcd.patch
+cris-use-bcd2bin-bin2bcd.patch
+drivers-rtc-use-bcd2bin-bin2bcd.patch
+rtc-use-bcd2bin-bin2bcd.patch
+mips-use-bcd2bin-bin2bcd.patch
+mn10300-use-bcd2bin-bin2bcd.patch
+i2c-use-bcd2bin-bin2bcd.patch
+drivers-scsi-sr_vendorc-use-bcd2bin.patch
+remove-the-obsolete-bcdbin-binbcd-macros.patch
+include-linux-bcdh-remove-comments.patch
 
