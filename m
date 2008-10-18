@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:46:12 -0700
-Message-ID: <200810182346.m9INkCDi001031@imap1.linux-foundation.org>
+Subject: - hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:46:53 -0700
+Message-ID: <200810182346.m9INksbx001114@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36824 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44642 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751692AbYJRXqZ (ORCPT
+	by vger.kernel.org with ESMTP id S1750992AbYJRXrF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:46:25 -0400
+	Sat, 18 Oct 2008 19:47:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jim.cromie@gmail.com, khali@linux-fr.org, mhoffman@lightlink.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup
+     hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup
 has been removed from the -mm tree.  Its filename was
-     hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+     hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
 
-This patch was dropped because it was folded into hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms.patch
+This patch was dropped because it was folded into hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup
+Subject: hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
@@ -33,33 +33,65 @@ Cc: Jim Cromie <jim.cromie@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/pc87360.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/hwmon/pc87360.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/hwmon/pc87360.c~hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup drivers/hwmon/pc87360.c
---- a/drivers/hwmon/pc87360.c~hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup
+diff -puN drivers/hwmon/pc87360.c~hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup drivers/hwmon/pc87360.c
+--- a/drivers/hwmon/pc87360.c~hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup
 +++ a/drivers/hwmon/pc87360.c
-@@ -498,16 +498,16 @@ static struct sensor_device_attribute in
-    register (sec 11.5.12), not the vin event status registers (sec
-    11.5.2) that (legacy) show_in_alarm() resds (via data->in_alarms) */
+@@ -849,24 +849,24 @@ static DEVICE_ATTR(alarms_temp, S_IRUGO,
+    register (sec 12.3.7), not the temp event status registers (sec
+    12.3.2) that show_temp_alarm() reads (via data->temp_alarms) */
  
--static ssize_t show_in_min_alarm(struct device *dev, struct device_attribute
--			     *devattr, char *buf)
-+static ssize_t show_in_min_alarm(struct device *dev,
+-static ssize_t show_temp_min_alarm(struct device *dev, struct device_attribute
+-				   *devattr, char *buf)
++static ssize_t show_temp_min_alarm(struct device *dev,
 +			struct device_attribute *devattr, char *buf)
  {
  	struct pc87360_data *data = pc87360_update_device(dev);
  	unsigned nr = to_sensor_dev_attr(devattr)->index;
  
- 	return sprintf(buf, "%u\n", !!(data->in_status[nr] & CHAN_ALM_MIN));
+ 	return sprintf(buf, "%u\n", !!(data->temp_status[nr] & CHAN_ALM_MIN));
  }
--static ssize_t show_in_max_alarm(struct device *dev, struct device_attribute
--			     *devattr, char *buf)
-+static ssize_t show_in_max_alarm(struct device *dev,
+-static ssize_t show_temp_max_alarm(struct device *dev, struct device_attribute
+-				   *devattr, char *buf)
++static ssize_t show_temp_max_alarm(struct device *dev,
 +			struct device_attribute *devattr, char *buf)
  {
  	struct pc87360_data *data = pc87360_update_device(dev);
  	unsigned nr = to_sensor_dev_attr(devattr)->index;
+ 
+ 	return sprintf(buf, "%u\n", !!(data->temp_status[nr] & CHAN_ALM_MAX));
+ }
+-static ssize_t show_temp_crit_alarm(struct device *dev, struct device_attribute
+-				   *devattr, char *buf)
++static ssize_t show_temp_crit_alarm(struct device *dev,
++			struct device_attribute *devattr, char *buf)
+ {
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+ 	unsigned nr = to_sensor_dev_attr(devattr)->index;
+@@ -891,8 +891,8 @@ static struct sensor_device_attribute te
+ };
+ 
+ #define TEMP_FAULT	0x40	/* open diode */
+-static ssize_t show_temp_fault(struct device *dev, struct device_attribute
+-			       *devattr, char *buf)
++static ssize_t show_temp_fault(struct device *dev,
++			struct device_attribute *devattr, char *buf)
+ {
+ 	struct pc87360_data *data = pc87360_update_device(dev);
+ 	unsigned nr = to_sensor_dev_attr(devattr)->index;
+@@ -928,8 +928,8 @@ static const struct attribute_group pc87
+ 	.attrs = pc8736x_temp_attr_array,
+ };
+ 
+-static ssize_t show_name(struct device *dev, struct device_attribute
+-			 *devattr, char *buf)
++static ssize_t show_name(struct device *dev,
++			struct device_attribute *devattr, char *buf)
+ {
+ 	struct pc87360_data *data = dev_get_drvdata(dev);
+ 	return sprintf(buf, "%s\n", data->name);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,7 +112,7 @@ memory_probe-fix-wrong-sysfs-file-attribute.patch
 container-freezer-add-tif_freeze-flag-to-all-architectures.patch
 container-freezer-implement-freezer-cgroup-subsystem.patch
 hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms.patch
 hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
 hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
 drivers-hwmon-applesmcc-remove-unneeded-casts.patch
