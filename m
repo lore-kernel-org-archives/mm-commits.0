@@ -1,236 +1,373 @@
 From: akpm@linux-foundation.org
-Subject: - w1-ds2490c-add-support-for-strong-pullup.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:20:08 -0700
-Message-ID: <200810182320.m9INK8P3029674@imap1.linux-foundation.org>
+Subject: - w1-new-driver-ds2431-chip.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:20:21 -0700
+Message-ID: <200810182320.m9INKL7E029745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44965 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37749 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751374AbYJRXZW (ORCPT
+	by vger.kernel.org with ESMTP id S1751377AbYJRXZk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:25:22 -0400
+	Sat, 18 Oct 2008 19:25:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
+To: bernhard.weirich@riedel.net, bgardner@wabtec.com, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     W1: ds2490.c add support for strong pullup
+     w1: new driver. DS2431 chip
 has been removed from the -mm tree.  Its filename was
-     w1-ds2490c-add-support-for-strong-pullup.patch
+     w1-new-driver-ds2431-chip.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: W1: ds2490.c add support for strong pullup
-From: David Fries <david@fries.net>
+Subject: w1: new driver. DS2431 chip
+From: Bernhard Weirich <bernhard.weirich@riedel.net>
 
-Add strong pullup support for ds2490 driver, also drop mdelay(750), which
-busy waits, usage in favour of msleep for long delays.  Now with msleep
-only being called when the strong pullup is active, one wire bus
-operations are only taking minimal system overhead.
-
-The new set_pullup will only enable the strong pullup when requested,
-which is expected to be the only write operation that will benefit from a
-strong pullup.
-
-Signed-off-by: David Fries <david@fries.net>
+[akpm@linux-foundation.org: minor fixlets and cleanups]
+Signed-off-by: Bernhard Weirich <bernhard.weirich@riedel.net>
 Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: Ben Gardner <bgardner@wabtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/ds2490.c |   76 +++++++++++++++++-----------------
- 1 file changed, 38 insertions(+), 38 deletions(-)
+ drivers/w1/slaves/w1_ds2431.c |  312 ++++++++++++++++++++++++++++++++
+ drivers/w1/w1_family.h        |    1 
+ 2 files changed, 313 insertions(+)
 
-diff -puN drivers/w1/masters/ds2490.c~w1-ds2490c-add-support-for-strong-pullup drivers/w1/masters/ds2490.c
---- a/drivers/w1/masters/ds2490.c~w1-ds2490c-add-support-for-strong-pullup
-+++ a/drivers/w1/masters/ds2490.c
-@@ -98,11 +98,6 @@
- #define BRANCH_MAIN			0xCC
- #define BRANCH_AUX			0x33
- 
--/*
-- * Duration of the strong pull-up pulse in milliseconds.
-- */
--#define PULLUP_PULSE_DURATION		750
--
- /* Status flags */
- #define ST_SPUA				0x01  /* Strong Pull-up is active */
- #define ST_PRGA				0x02  /* 12V programming pulse is being generated */
-@@ -131,6 +126,11 @@ struct ds_device
- 
- 	int			ep[NUM_EP];
- 
-+	/* Strong PullUp
-+	 * 0: pullup not active, else duration in milliseconds
-+	 */
-+	int			spu_sleep;
+diff -puN /dev/null drivers/w1/slaves/w1_ds2431.c
+--- /dev/null
++++ a/drivers/w1/slaves/w1_ds2431.c
+@@ -0,0 +1,312 @@
++/*
++ * w1_ds2431.c - w1 family 2d (DS2431) driver
++ *
++ * Copyright (c) 2008 Bernhard Weirich <bernhard.weirich@riedel.net>
++ *
++ * Heavily inspired by w1_DS2433 driver from Ben Gardner <bgardner@wabtec.com>
++ *
++ * This source code is licensed under the GNU General Public License,
++ * Version 2. See the file COPYING for more details.
++ */
 +
- 	struct w1_bus_master	master;
- };
- 
-@@ -192,7 +192,7 @@ static int ds_send_control_cmd(struct ds
- 
- 	return err;
- }
--#if 0
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/device.h>
++#include <linux/types.h>
++#include <linux/delay.h>
 +
- static int ds_send_control_mode(struct ds_device *dev, u16 value, u16 index)
- {
- 	int err;
-@@ -207,7 +207,7 @@ static int ds_send_control_mode(struct d
- 
- 	return err;
- }
--#endif
++#include "../w1.h"
++#include "../w1_int.h"
++#include "../w1_family.h"
 +
- static int ds_send_control(struct ds_device *dev, u16 value, u16 index)
- {
- 	int err;
-@@ -294,14 +294,6 @@ static int ds_recv_status(struct ds_devi
- 		if (count < 0)
- 			return err;
- 	}
--#if 0
--	if (st->status & ST_IDLE) {
--		printk(KERN_INFO "Resetting pulse after ST_IDLE.\n");
--		err = ds_start_pulse(dev, PULLUP_PULSE_DURATION);
--		if (err)
--			return err;
--	}
--#endif
- 
- 	return err;
- }
-@@ -472,32 +464,26 @@ static int ds_set_speed(struct ds_device
- }
- #endif  /*  0  */
- 
--static int ds_start_pulse(struct ds_device *dev, int delay)
-+static int ds_set_pullup(struct ds_device *dev, int delay)
- {
- 	int err;
- 	u8 del = 1 + (u8)(delay >> 4);
--	struct ds_status st;
--
--#if 0
--	err = ds_stop_pulse(dev, 10);
--	if (err)
--		return err;
--
--	err = ds_send_control_mode(dev, MOD_PULSE_EN, PULSE_SPUE);
--	if (err)
--		return err;
--#endif
--	err = ds_send_control(dev, COMM_SET_DURATION | COMM_IM, del);
--	if (err)
--		return err;
- 
--	err = ds_send_control(dev, COMM_PULSE | COMM_IM | COMM_F, 0);
-+	dev->spu_sleep = 0;
-+	err = ds_send_control_mode(dev, MOD_PULSE_EN, delay ? PULSE_SPUE : 0);
- 	if (err)
- 		return err;
- 
--	mdelay(delay);
-+	if (delay) {
-+		err = ds_send_control(dev, COMM_SET_DURATION | COMM_IM, del);
-+		if (err)
-+			return err;
- 
--	ds_wait_status(dev, &st);
-+		/* Just storing delay would not get the trunication and
-+		 * roundup.
-+		 */
-+		dev->spu_sleep = del<<4;
-+	}
- 
- 	return err;
- }
-@@ -558,6 +544,9 @@ static int ds_write_byte(struct ds_devic
- 	if (err)
- 		return err;
- 
-+	if (dev->spu_sleep)
-+		msleep(dev->spu_sleep);
++#define W1_F2D_EEPROM_SIZE		128
++#define W1_F2D_PAGE_COUNT		4
++#define W1_F2D_PAGE_BITS		5
++#define W1_F2D_PAGE_SIZE		(1<<W1_F2D_PAGE_BITS)
++#define W1_F2D_PAGE_MASK		0x1F
 +
- 	err = ds_wait_status(dev, &st);
- 	if (err)
- 		return err;
-@@ -566,8 +555,6 @@ static int ds_write_byte(struct ds_devic
- 	if (err < 0)
- 		return err;
- 
--	ds_start_pulse(dev, PULLUP_PULSE_DURATION);
--
- 	return !(byte == rbyte);
- }
- 
-@@ -603,7 +590,7 @@ static int ds_read_block(struct ds_devic
- 	if (err < 0)
- 		return err;
- 
--	err = ds_send_control(dev, COMM_BLOCK_IO | COMM_IM | COMM_SPU, len);
-+	err = ds_send_control(dev, COMM_BLOCK_IO | COMM_IM, len);
- 	if (err)
- 		return err;
- 
-@@ -630,14 +617,15 @@ static int ds_write_block(struct ds_devi
- 	if (err)
- 		return err;
- 
-+	if (dev->spu_sleep)
-+		msleep(dev->spu_sleep);
++#define W1_F2D_SCRATCH_BITS  3
++#define W1_F2D_SCRATCH_SIZE  (1<<W1_F2D_SCRATCH_BITS)
++#define W1_F2D_SCRATCH_MASK  (W1_F2D_SCRATCH_SIZE-1)
 +
- 	ds_wait_status(dev, &st);
- 
- 	err = ds_recv_data(dev, buf, len);
- 	if (err < 0)
- 		return err;
- 
--	ds_start_pulse(dev, PULLUP_PULSE_DURATION);
--
- 	return !(err == len);
- }
- 
-@@ -803,6 +791,16 @@ static u8 ds9490r_reset(void *data)
- 	return 0;
- }
- 
-+static u8 ds9490r_set_pullup(void *data, int delay)
++#define W1_F2D_READ_EEPROM	0xF0
++#define W1_F2D_WRITE_SCRATCH	0x0F
++#define W1_F2D_READ_SCRATCH	0xAA
++#define W1_F2D_COPY_SCRATCH	0x55
++
++
++#define W1_F2D_TPROG_MS		11
++
++#define W1_F2D_READ_RETRIES		10
++#define W1_F2D_READ_MAXLEN		8
++
++/*
++ * Check the file size bounds and adjusts count as needed.
++ * This would not be needed if the file size didn't reset to 0 after a write.
++ */
++static inline size_t w1_f2d_fix_count(loff_t off, size_t count, size_t size)
 +{
-+	struct ds_device *dev = data;
++	if (off > size)
++		return 0;
 +
-+	if (ds_set_pullup(dev, delay))
-+		return 1;
++	if ((off + count) > size)
++		return size - off;
++
++	return count;
++}
++
++/*
++ * Read a block from W1 ROM two times and compares the results.
++ * If they are equal they are returned, otherwise the read
++ * is repeated W1_F2D_READ_RETRIES times.
++ *
++ * count must not exceed W1_F2D_READ_MAXLEN.
++ */
++static int w1_f2d_readblock(struct w1_slave *sl, int off, int count, char *buf)
++{
++	u8 wrbuf[3];
++	u8 cmp[W1_F2D_READ_MAXLEN];
++	int tries = W1_F2D_READ_RETRIES;
++
++	do {
++		wrbuf[0] = W1_F2D_READ_EEPROM;
++		wrbuf[1] = off & 0xff;
++		wrbuf[2] = off >> 8;
++
++		if (w1_reset_select_slave(sl))
++			return -1;
++
++		w1_write_block(sl->master, wrbuf, 3);
++		w1_read_block(sl->master, buf, count);
++
++		if (w1_reset_select_slave(sl))
++			return -1;
++
++		w1_write_block(sl->master, wrbuf, 3);
++		w1_read_block(sl->master, cmp, count);
++
++		if (!memcmp(cmp, buf, count))
++			return 0;
++	} while (--tries);
++
++	dev_err(&sl->dev, "proof reading failed %d times\n",
++			W1_F2D_READ_RETRIES);
++
++	return -1;
++}
++
++static ssize_t w1_f2d_read_bin(struct kobject *kobj,
++			       struct bin_attribute *bin_attr,
++			       char *buf, loff_t off, size_t count)
++{
++	struct w1_slave *sl = kobj_to_w1_slave(kobj);
++	int todo = count;
++
++	count = w1_f2d_fix_count(off, count, W1_F2D_EEPROM_SIZE);
++	if (count == 0)
++		return 0;
++
++	mutex_lock(&sl->master->mutex);
++
++	/* read directly from the EEPROM in chunks of W1_F2D_READ_MAXLEN */
++	while (todo > 0) {
++		int block_read;
++
++		if (todo >= W1_F2D_READ_MAXLEN)
++			block_read = W1_F2D_READ_MAXLEN;
++		else
++			block_read = todo;
++
++		if (w1_f2d_readblock(sl, off, block_read, buf) < 0)
++			count = -EIO;
++
++		todo -= W1_F2D_READ_MAXLEN;
++		buf += W1_F2D_READ_MAXLEN;
++		off += W1_F2D_READ_MAXLEN;
++	}
++
++	mutex_unlock(&sl->master->mutex);
++
++	return count;
++}
++
++/*
++ * Writes to the scratchpad and reads it back for verification.
++ * Then copies the scratchpad to EEPROM.
++ * The data must be aligned at W1_F2D_SCRATCH_SIZE bytes and
++ * must be W1_F2D_SCRATCH_SIZE bytes long.
++ * The master must be locked.
++ *
++ * @param sl	The slave structure
++ * @param addr	Address for the write
++ * @param len   length must be <= (W1_F2D_PAGE_SIZE - (addr & W1_F2D_PAGE_MASK))
++ * @param data	The data to write
++ * @return	0=Success -1=failure
++ */
++static int w1_f2d_write(struct w1_slave *sl, int addr, int len, const u8 *data)
++{
++	int tries = W1_F2D_READ_RETRIES;
++	u8 wrbuf[4];
++	u8 rdbuf[W1_F2D_SCRATCH_SIZE + 3];
++	u8 es = (addr + len - 1) % W1_F2D_SCRATCH_SIZE;
++
++retry:
++
++	/* Write the data to the scratchpad */
++	if (w1_reset_select_slave(sl))
++		return -1;
++
++	wrbuf[0] = W1_F2D_WRITE_SCRATCH;
++	wrbuf[1] = addr & 0xff;
++	wrbuf[2] = addr >> 8;
++
++	w1_write_block(sl->master, wrbuf, 3);
++	w1_write_block(sl->master, data, len);
++
++	/* Read the scratchpad and verify */
++	if (w1_reset_select_slave(sl))
++		return -1;
++
++	w1_write_8(sl->master, W1_F2D_READ_SCRATCH);
++	w1_read_block(sl->master, rdbuf, len + 3);
++
++	/* Compare what was read against the data written */
++	if ((rdbuf[0] != wrbuf[1]) || (rdbuf[1] != wrbuf[2]) ||
++	    (rdbuf[2] != es) || (memcmp(data, &rdbuf[3], len) != 0)) {
++
++		if (--tries)
++			goto retry;
++
++		dev_err(&sl->dev,
++			"could not write to eeprom, scratchpad compare failed %d times\n",
++			W1_F2D_READ_RETRIES);
++
++		return -1;
++	}
++
++	/* Copy the scratchpad to EEPROM */
++	if (w1_reset_select_slave(sl))
++		return -1;
++
++	wrbuf[0] = W1_F2D_COPY_SCRATCH;
++	wrbuf[3] = es;
++	w1_write_block(sl->master, wrbuf, 4);
++
++	/* Sleep for tprog ms to wait for the write to complete */
++	msleep(W1_F2D_TPROG_MS);
++
++	/* Reset the bus to wake up the EEPROM  */
++	w1_reset_bus(sl->master);
 +
 +	return 0;
 +}
 +
- static int ds_w1_init(struct ds_device *dev)
- {
- 	memset(&dev->master, 0, sizeof(struct w1_bus_master));
-@@ -816,6 +814,7 @@ static int ds_w1_init(struct ds_device *
- 	dev->master.read_block	= &ds9490r_read_block;
- 	dev->master.write_block	= &ds9490r_write_block;
- 	dev->master.reset_bus	= &ds9490r_reset;
-+	dev->master.set_pullup	= &ds9490r_set_pullup;
++static ssize_t w1_f2d_write_bin(struct kobject *kobj,
++				struct bin_attribute *bin_attr,
++				char *buf, loff_t off, size_t count)
++{
++	struct w1_slave *sl = kobj_to_w1_slave(kobj);
++	int addr, len;
++	int copy;
++
++	count = w1_f2d_fix_count(off, count, W1_F2D_EEPROM_SIZE);
++	if (count == 0)
++		return 0;
++
++	mutex_lock(&sl->master->mutex);
++
++	/* Can only write data in blocks of the size of the scratchpad */
++	addr = off;
++	len = count;
++	while (len > 0) {
++
++		/* if len too short or addr not aligned */
++		if (len < W1_F2D_SCRATCH_SIZE || addr & W1_F2D_SCRATCH_MASK) {
++			char tmp[W1_F2D_SCRATCH_SIZE];
++
++			/* read the block and update the parts to be written */
++			if (w1_f2d_readblock(sl, addr & ~W1_F2D_SCRATCH_MASK,
++					W1_F2D_SCRATCH_SIZE, tmp)) {
++				count = -EIO;
++				goto out_up;
++			}
++
++			/* copy at most to the boundary of the PAGE or len */
++			copy = W1_F2D_SCRATCH_SIZE -
++				(addr & W1_F2D_SCRATCH_MASK);
++
++			if (copy > len)
++				copy = len;
++
++			memcpy(&tmp[addr & W1_F2D_SCRATCH_MASK], buf, copy);
++			if (w1_f2d_write(sl, addr & ~W1_F2D_SCRATCH_MASK,
++					W1_F2D_SCRATCH_SIZE, tmp) < 0) {
++				count = -EIO;
++				goto out_up;
++			}
++		} else {
++
++			copy = W1_F2D_SCRATCH_SIZE;
++			if (w1_f2d_write(sl, addr, copy, buf) < 0) {
++				count = -EIO;
++				goto out_up;
++			}
++		}
++		buf += copy;
++		addr += copy;
++		len -= copy;
++	}
++
++out_up:
++	mutex_unlock(&sl->master->mutex);
++
++	return count;
++}
++
++static struct bin_attribute w1_f2d_bin_attr = {
++	.attr = {
++		.name = "eeprom",
++		.mode = S_IRUGO | S_IWUSR,
++	},
++	.size = W1_F2D_EEPROM_SIZE,
++	.read = w1_f2d_read_bin,
++	.write = w1_f2d_write_bin,
++};
++
++static int w1_f2d_add_slave(struct w1_slave *sl)
++{
++	return sysfs_create_bin_file(&sl->dev.kobj, &w1_f2d_bin_attr);
++}
++
++static void w1_f2d_remove_slave(struct w1_slave *sl)
++{
++	sysfs_remove_bin_file(&sl->dev.kobj, &w1_f2d_bin_attr);
++}
++
++static struct w1_family_ops w1_f2d_fops = {
++	.add_slave      = w1_f2d_add_slave,
++	.remove_slave   = w1_f2d_remove_slave,
++};
++
++static struct w1_family w1_family_2d = {
++	.fid = W1_EEPROM_DS2431,
++	.fops = &w1_f2d_fops,
++};
++
++static int __init w1_f2d_init(void)
++{
++	return w1_register_family(&w1_family_2d);
++}
++
++static void __exit w1_f2d_fini(void)
++{
++	w1_unregister_family(&w1_family_2d);
++}
++
++module_init(w1_f2d_init);
++module_exit(w1_f2d_fini);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Bernhard Weirich <bernhard.weirich@riedel.net>");
++MODULE_DESCRIPTION("w1 family 2d driver for DS2431, 1kb EEPROM");
+diff -puN drivers/w1/w1_family.h~w1-new-driver-ds2431-chip drivers/w1/w1_family.h
+--- a/drivers/w1/w1_family.h~w1-new-driver-ds2431-chip
++++ a/drivers/w1/w1_family.h
+@@ -33,6 +33,7 @@
+ #define W1_THERM_DS1822  	0x22
+ #define W1_EEPROM_DS2433  	0x23
+ #define W1_THERM_DS18B20 	0x28
++#define W1_EEPROM_DS2431	0x2D
+ #define W1_FAMILY_DS2760	0x30
  
- 	return w1_add_master_device(&dev->master);
- }
-@@ -839,6 +838,7 @@ static int ds_probe(struct usb_interface
- 		printk(KERN_INFO "Failed to allocate new DS9490R structure.\n");
- 		return -ENOMEM;
- 	}
-+	dev->spu_sleep = 0;
- 	dev->udev = usb_get_dev(udev);
- 	if (!dev->udev) {
- 		err = -ENOMEM;
+ #define MAXNAMELEN		32
 _
 
-Patches currently in -mm which might be from david@fries.net are
+Patches currently in -mm which might be from bernhard.weirich@riedel.net are
 
 origin.patch
 
