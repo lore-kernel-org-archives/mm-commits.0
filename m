@@ -1,95 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - orinoco-fix-unsafe-locking-in-orinoco_cs_resume.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:21:10 -0700
-Message-ID: <200810182321.m9INLAeN029908@imap1.linux-foundation.org>
+Subject: - frv-provide-dma_map_page-for-nommu-and-fix-comments.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:21:14 -0700
+Message-ID: <200810182321.m9INLE6I029913@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58023 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60861 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752001AbYJRXVh (ORCPT
+	by vger.kernel.org with ESMTP id S1751996AbYJRXV2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:21:37 -0400
+	Sat, 18 Oct 2008 19:21:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arvidjaar@mail.ru, hermes@gibson.dropbear.id.au, kilroyd@googlemail.com, linville@tuxdriver.com, proski@gnu.org, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     orinoco: fix unsafe locking in orinoco_cs_resume()
+     frv: provide dma_map_page() for NOMMU and fix comments
 has been removed from the -mm tree.  Its filename was
-     orinoco-fix-unsafe-locking-in-orinoco_cs_resume.patch
+     frv-provide-dma_map_page-for-nommu-and-fix-comments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: orinoco: fix unsafe locking in orinoco_cs_resume()
-From: Andrey Borzenkov <arvidjaar@mail.ru>
+Subject: frv: provide dma_map_page() for NOMMU and fix comments
+From: David Howells <dhowells@redhat.com>
 
-Fix a lockdep warning.  Unfortunately it is rather hard to trigger on
-purpose.
+Provide dma_map_page() for the NOMMU-mode FRV arch.
 
-[ 6972.562035] =================================
-[ 6972.562040] [ INFO: inconsistent lock state ]
-[ 6972.562048] 2.6.27-1avb #17
-[ 6972.562053] ---------------------------------
-[ 6972.562060] inconsistent {in-hardirq-W} -> {hardirq-on-W} usage.
-[ 6972.562068] pm-suspend/17062 [HC0[0]:SC0[0]:HE1:SE1] takes:
-[ 6972.562076]  (&priv->lock){++..}, at: [<dfd4f05b>] orinoco_cs_resume+0x5b/0xd0 [orinoco_cs]
-[ 6972.562122] {in-hardirq-W} state was registered at:
-[ 6972.562128]   [<c013ea6b>] __lock_acquire+0x6cb/0x1640
-[ 6972.562171]   [<c013fa3c>] lock_acquire+0x5c/0x80
-[ 6972.562181]   [<c02f6e39>] _spin_lock_irqsave+0x49/0x80
-[ 6972.562210]   [<dfd6425d>] orinoco_interrupt+0x4d/0x16d0 [orinoco]
-[ 6972.562257]   [<c015a2b1>] handle_IRQ_event+0x31/0x60
-[ 6972.562278]   [<c015b73e>] handle_level_irq+0x6e/0xe0
-[ 6972.562291]   [<c0104b20>] do_IRQ+0xb0/0x130
-[ 6972.562313]   [<ffffffff>] 0xffffffff
+Also do some fixing on the comments attached to the various DMA functions
+for both MMU and NOMMU mode FRV code.
 
-Signed-off-by: Andrey Borzenkov <arvidjaar@mail.ru>
-Acked-by: Dave <kilroyd@googlemail.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: Pavel Roskin <proski@gnu.org>
-Cc: David Gibson <hermes@gibson.dropbear.id.au>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/orinoco_cs.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/frv/mb93090-mb00/pci-dma-nommu.c |   23 ++++++++++++++++++++---
+ arch/frv/mb93090-mb00/pci-dma.c       |   11 +++++++++--
+ 2 files changed, 29 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/wireless/orinoco_cs.c~orinoco-fix-unsafe-locking-in-orinoco_cs_resume drivers/net/wireless/orinoco_cs.c
---- a/drivers/net/wireless/orinoco_cs.c~orinoco-fix-unsafe-locking-in-orinoco_cs_resume
-+++ a/drivers/net/wireless/orinoco_cs.c
-@@ -378,6 +378,7 @@ static int orinoco_cs_resume(struct pcmc
- 	struct orinoco_private *priv = netdev_priv(dev);
- 	struct orinoco_pccard *card = priv->card;
- 	int err = 0;
-+	unsigned long flags;
+diff -puN arch/frv/mb93090-mb00/pci-dma-nommu.c~frv-provide-dma_map_page-for-nommu-and-fix-comments arch/frv/mb93090-mb00/pci-dma-nommu.c
+--- a/arch/frv/mb93090-mb00/pci-dma-nommu.c~frv-provide-dma_map_page-for-nommu-and-fix-comments
++++ a/arch/frv/mb93090-mb00/pci-dma-nommu.c
+@@ -111,7 +111,7 @@ EXPORT_SYMBOL(dma_free_coherent);
+  * The 32-bit bus address to use is returned.
+  *
+  * Once the device is given the dma address, the device owns this memory
+- * until either pci_unmap_single or pci_dma_sync_single is performed.
++ * until either dma_unmap_single or pci_dma_sync_single is performed.
+  */
+ dma_addr_t dma_map_single(struct device *dev, void *ptr, size_t size,
+ 			  enum dma_data_direction direction)
+@@ -129,7 +129,7 @@ EXPORT_SYMBOL(dma_map_single);
+ /*
+  * Map a set of buffers described by scatterlist in streaming
+  * mode for DMA.  This is the scather-gather version of the
+- * above pci_map_single interface.  Here the scatter gather list
++ * above dma_map_single interface.  Here the scatter gather list
+  * elements are each tagged with the appropriate dma address
+  * and length.  They are obtained via sg_dma_{address,length}(SG).
+  *
+@@ -139,7 +139,7 @@ EXPORT_SYMBOL(dma_map_single);
+  *       The routine returns the number of addr/length pairs actually
+  *       used, at most nents.
+  *
+- * Device ownership issues as mentioned above for pci_map_single are
++ * Device ownership issues as mentioned above for dma_map_single are
+  * the same here.
+  */
+ int dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
+@@ -158,3 +158,20 @@ int dma_map_sg(struct device *dev, struc
+ }
  
- 	if (! test_bit(0, &card->hard_reset_in_progress)) {
- 		err = orinoco_reinit_firmware(dev);
-@@ -387,7 +388,7 @@ static int orinoco_cs_resume(struct pcmc
- 			return -EIO;
- 		}
+ EXPORT_SYMBOL(dma_map_sg);
++
++/*
++ * Map a single page of the indicated size for DMA in streaming mode.
++ * The 32-bit bus address to use is returned.
++ *
++ * Device ownership issues as mentioned above for dma_map_single are
++ * the same here.
++ */
++dma_addr_t dma_map_page(struct device *dev, struct page *page, unsigned long offset,
++			size_t size, enum dma_data_direction direction)
++{
++	BUG_ON(direction == DMA_NONE);
++	flush_dcache_page(page);
++	return (dma_addr_t) page_to_phys(page) + offset;
++}
++
++EXPORT_SYMBOL(dma_map_page);
+diff -puN arch/frv/mb93090-mb00/pci-dma.c~frv-provide-dma_map_page-for-nommu-and-fix-comments arch/frv/mb93090-mb00/pci-dma.c
+--- a/arch/frv/mb93090-mb00/pci-dma.c~frv-provide-dma_map_page-for-nommu-and-fix-comments
++++ a/arch/frv/mb93090-mb00/pci-dma.c
+@@ -61,7 +61,7 @@ EXPORT_SYMBOL(dma_map_single);
+ /*
+  * Map a set of buffers described by scatterlist in streaming
+  * mode for DMA.  This is the scather-gather version of the
+- * above pci_map_single interface.  Here the scatter gather list
++ * above dma_map_single interface.  Here the scatter gather list
+  * elements are each tagged with the appropriate dma address
+  * and length.  They are obtained via sg_dma_{address,length}(SG).
+  *
+@@ -71,7 +71,7 @@ EXPORT_SYMBOL(dma_map_single);
+  *       The routine returns the number of addr/length pairs actually
+  *       used, at most nents.
+  *
+- * Device ownership issues as mentioned above for pci_map_single are
++ * Device ownership issues as mentioned above for dma_map_single are
+  * the same here.
+  */
+ int dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
+@@ -105,6 +105,13 @@ int dma_map_sg(struct device *dev, struc
  
--		spin_lock(&priv->lock);
-+		spin_lock_irqsave(&priv->lock, flags);
+ EXPORT_SYMBOL(dma_map_sg);
  
- 		netif_device_attach(dev);
- 		priv->hw_unavailable--;
-@@ -399,7 +400,7 @@ static int orinoco_cs_resume(struct pcmc
- 				       dev->name, err);
- 		}
- 
--		spin_unlock(&priv->lock);
-+		spin_unlock_irqrestore(&priv->lock, flags);
- 	}
- 
- 	return err;
++/*
++ * Map a single page of the indicated size for DMA in streaming mode.
++ * The 32-bit bus address to use is returned.
++ *
++ * Device ownership issues as mentioned above for dma_map_single are
++ * the same here.
++ */
+ dma_addr_t dma_map_page(struct device *dev, struct page *page, unsigned long offset,
+ 			size_t size, enum dma_data_direction direction)
+ {
 _
 
-Patches currently in -mm which might be from arvidjaar@mail.ru are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
+mn10300-use-bcd2bin-bin2bcd.patch
 
