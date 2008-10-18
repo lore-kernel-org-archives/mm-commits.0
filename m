@@ -1,80 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:50:16 -0700
-Message-ID: <200810182350.m9INoG3X001590@imap1.linux-foundation.org>
+Subject: - ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:51:26 -0700
+Message-ID: <200810182351.m9INpQSx001752@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34050 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34129 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751771AbYJRXvO (ORCPT
+	by vger.kernel.org with ESMTP id S1751735AbYJRXwV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:51:14 -0400
+	Sat, 18 Oct 2008 19:52:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adaplas@pol.net, alan@lxorguk.ukuu.org.uk, alan@redhat.com, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, eugene@ibrix.com, msnitzer@ibrix.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes
+     ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+     ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into fb-push-down-the-bkl-in-the-ioctl-handler.patch
+This patch was dropped because it was folded into ext3-fix-ext3_dx_readdir-hash-collision-handling.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes
+Subject: ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: suspect code indent for conditional statements
-#134: FILE: drivers/video/fbmem.c:1088:
-+		else if (con2fb.console < 1 || con2fb.console > MAX_NR_CONSOLES)
+ERROR: code indent should use tabs where possible
+#37: FILE: fs/ext3/dir.c:453:
++                if (call_filldir(filp, dirent, filldir, info->extra_fname))$
 
-ERROR: space prohibited after that '-' (ctx:WxW)
-#154: FILE: drivers/video/fbmem.c:1102:
-+			ret = - EFAULT;
- 			      ^
+ERROR: code indent should use tabs where possible
+#38: FILE: fs/ext3/dir.c:454:
++                        goto finished;$
 
-total: 1 errors, 1 warnings, 217 lines checked
+ERROR: code indent should use tabs where possible
+#40: FILE: fs/ext3/dir.c:456:
++                info->extra_fname = NULL;$
 
-./patches/fb-push-down-the-bkl-in-the-ioctl-handler.patch has style problems, please review.  If any of these errors
+ERROR: code indent should use tabs where possible
+#41: FILE: fs/ext3/dir.c:457:
++                info->curr_node = rb_next(info->curr_node);$
+
+ERROR: code indent should use tabs where possible
+#42: FILE: fs/ext3/dir.c:458:
++                if (!info->curr_node) {$
+
+ERROR: code indent should use tabs where possible
+#43: FILE: fs/ext3/dir.c:459:
++                        if (info->next_hash == ~0) {$
+
+ERROR: code indent should use tabs where possible
+#44: FILE: fs/ext3/dir.c:460:
++                                filp->f_pos = EXT3_HTREE_EOF;$
+
+ERROR: code indent should use tabs where possible
+#45: FILE: fs/ext3/dir.c:461:
++                                goto finished;$
+
+ERROR: code indent should use tabs where possible
+#46: FILE: fs/ext3/dir.c:462:
++                        }$
+
+ERROR: code indent should use tabs where possible
+#47: FILE: fs/ext3/dir.c:463:
++                        info->curr_hash = info->next_hash;$
+
+ERROR: code indent should use tabs where possible
+#48: FILE: fs/ext3/dir.c:464:
++                        info->curr_minor_hash = 0;$
+
+ERROR: code indent should use tabs where possible
+#49: FILE: fs/ext3/dir.c:465:
++                }$
+
+ERROR: code indent should use tabs where possible
+#50: FILE: fs/ext3/dir.c:466:
++        } else if (!info->curr_node)$
+
+total: 13 errors, 0 warnings, 34 lines checked
+
+./patches/ext3-fix-ext3_dx_readdir-hash-collision-handling.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Alan Cox <alan@redhat.com>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Eugene Dashevsky <eugene@ibrix.com>
+Cc: Mike Snitzer <msnitzer@ibrix.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmem.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ext3/dir.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN drivers/video/fbmem.c~fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes
-+++ a/drivers/video/fbmem.c
-@@ -1077,7 +1077,7 @@ fb_ioctl(struct file *file, unsigned int
- 		if (copy_from_user(&con2fb, argp, sizeof(con2fb)))
- 			ret = -EFAULT;
- 		else if (con2fb.console < 1 || con2fb.console > MAX_NR_CONSOLES)
--		    ret = -EINVAL;
-+			ret = -EINVAL;
- 		else {
- 			con2fb.framebuffer = -1;
- 			event.info = info;
-@@ -1090,7 +1090,7 @@ fb_ioctl(struct file *file, unsigned int
- 		break;
- 	case FBIOPUT_CON2FBMAP:
- 		if (copy_from_user(&con2fb, argp, sizeof(con2fb))) {
--			ret = - EFAULT;
-+			ret = -EFAULT;
- 			break;
- 		}
- 		if (con2fb.console < 1 || con2fb.console > MAX_NR_CONSOLES) {
+diff -puN fs/ext3/dir.c~ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes fs/ext3/dir.c
+--- a/fs/ext3/dir.c~ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes
++++ a/fs/ext3/dir.c
+@@ -450,20 +450,20 @@ static int ext3_dx_readdir(struct file *
+ 	 * chain, return them first.
+ 	 */
+ 	if (info->extra_fname) {
+-                if (call_filldir(filp, dirent, filldir, info->extra_fname))
+-                        goto finished;
++		if (call_filldir(filp, dirent, filldir, info->extra_fname))
++			goto finished;
+ 
+-                info->extra_fname = NULL;
+-                info->curr_node = rb_next(info->curr_node);
+-                if (!info->curr_node) {
+-                        if (info->next_hash == ~0) {
+-                                filp->f_pos = EXT3_HTREE_EOF;
+-                                goto finished;
+-                        }
+-                        info->curr_hash = info->next_hash;
+-                        info->curr_minor_hash = 0;
+-                }
+-        } else if (!info->curr_node)
++		info->extra_fname = NULL;
++		info->curr_node = rb_next(info->curr_node);
++		if (!info->curr_node) {
++			if (info->next_hash == ~0) {
++				filp->f_pos = EXT3_HTREE_EOF;
++				goto finished;
++			}
++			info->curr_hash = info->next_hash;
++			info->curr_minor_hash = 0;
++		}
++	} else if (!info->curr_node)
+ 		info->curr_node = rb_first(&info->root);
+ 
+ 	while (1) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,7 +157,7 @@ hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms.patch
 hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms.patch
 drivers-hwmon-applesmcc-remove-unneeded-casts.patch
 fb-push-down-the-bkl-in-the-ioctl-handler.patch
-fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+ext3-fix-ext3_dx_readdir-hash-collision-handling.patch
 ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
 cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
 message-queues-increase-range-limits-checkpatch-fixes.patch
