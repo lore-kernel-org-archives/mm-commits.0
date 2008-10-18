@@ -1,25 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - unevictable-infrastructure-lru-add-event-counting-with-statistics.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:35:22 -0700
-Message-ID: <200810182335.m9INZN8q031938@imap1.linux-foundation.org>
+Subject: + unevictable-infrastructure-lru-add-event-counting-with-statistics.patch added to -mm tree
+Date: Sat, 18 Oct 2008 16:36:30 -0700
+Message-ID: <200810182336.m9INaUYI032076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49696 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35869 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751054AbYJRXgJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751054AbYJRXgs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:36:09 -0400
+	Sat, 18 Oct 2008 19:36:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lee.schermerhorn@hp.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: lee.schermerhorn@hp.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
 
 
 The patch titled
      unevictable lru:  add event counting with statistics
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      unevictable-infrastructure-lru-add-event-counting-with-statistics.patch
 
-This patch was dropped because it was folded into unevictable-lru-infrastructure.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -72,7 +82,7 @@ diff -puN include/linux/vmstat.h~unevictable-infrastructure-lru-add-event-counti
 diff -puN mm/vmscan.c~unevictable-infrastructure-lru-add-event-counting-with-statistics mm/vmscan.c
 --- a/mm/vmscan.c~unevictable-infrastructure-lru-add-event-counting-with-statistics
 +++ a/mm/vmscan.c
-@@ -533,6 +533,7 @@ void putback_lru_page(struct page *page)
+@@ -484,6 +484,7 @@ void putback_lru_page(struct page *page)
  {
  	int lru;
  	int active = !!TestClearPageActive(page);
@@ -80,7 +90,7 @@ diff -puN mm/vmscan.c~unevictable-infrastructure-lru-add-event-counting-with-sta
  
  	VM_BUG_ON(PageLRU(page));
  
-@@ -574,6 +575,11 @@ redo:
+@@ -525,6 +526,11 @@ redo:
  		 */
  	}
  
