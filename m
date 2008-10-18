@@ -1,63 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - hfs-fix-namelength-memory-corruption.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:18:39 -0700
-Message-ID: <200810182318.m9INId1G029317@imap1.linux-foundation.org>
+Subject: - compat_binfmt_elf-definition-tweak.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:18:53 -0700
+Message-ID: <200810182318.m9INIrpS029361@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42335 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53005 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752169AbYJRXSz (ORCPT
+	by vger.kernel.org with ESMTP id S1752181AbYJRXSz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 18 Oct 2008 19:18:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: snakebyte@gmx.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hfs: fix namelength memory corruption
+     COMPAT_BINFMT_ELF definition tweak
 has been removed from the -mm tree.  Its filename was
-     hfs-fix-namelength-memory-corruption.patch
+     compat_binfmt_elf-definition-tweak.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hfs: fix namelength memory corruption
-From: Eric Sesterhenn <snakebyte@gmx.de>
+Subject: COMPAT_BINFMT_ELF definition tweak
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Fix a stack corruption caused by a corrupted hfs filesystem.  If the
-catalog name length is corrupted the memcpy overwrites the catalog btree
-structure.  Since the field is limited to HFS_NAMELEN bytes in the
-structure and the file format, we throw an error if it is too long.
+Don't repeat BINFMT_ELF definition, simply multiply COMPAT and BINFMT_ELF.
 
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Signed-off-by: Eric Sesterhenn <snakebyte@gmx.de>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/catalog.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/Kconfig.binfmt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/hfs/catalog.c~hfs-fix-namelength-memory-corruption fs/hfs/catalog.c
---- a/fs/hfs/catalog.c~hfs-fix-namelength-memory-corruption
-+++ a/fs/hfs/catalog.c
-@@ -190,6 +190,10 @@ int hfs_cat_find_brec(struct super_block
+diff -puN fs/Kconfig.binfmt~compat_binfmt_elf-definition-tweak fs/Kconfig.binfmt
+--- a/fs/Kconfig.binfmt~compat_binfmt_elf-definition-tweak
++++ a/fs/Kconfig.binfmt
+@@ -25,7 +25,7 @@ config BINFMT_ELF
  
- 	fd->search_key->cat.ParID = rec.thread.ParID;
- 	len = fd->search_key->cat.CName.len = rec.thread.CName.len;
-+	if (len > HFS_NAMELEN) {
-+		printk(KERN_ERR "hfs: bad catalog namelength\n");
-+		return -EIO;
-+	}
- 	memcpy(fd->search_key->cat.CName.name, rec.thread.CName.name, len);
- 	return hfs_brec_find(fd);
- }
+ config COMPAT_BINFMT_ELF
+ 	bool
+-	depends on COMPAT && MMU
++	depends on COMPAT && BINFMT_ELF
+ 
+ config BINFMT_ELF_FDPIC
+ 	bool "Kernel support for FDPIC ELF binaries"
 _
 
-Patches currently in -mm which might be from snakebyte@gmx.de are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
-hfsplus-fix-possible-deadlock-when-handling-corrupted-extents.patch
+seq_file-dont-call-bitmap_scnprintf_len.patch
+seq_file-add-seq_cpumask_list-seq_nodemask_list.patch
+cpuset-use-seq_mask_-to-print-masks.patch
+bitmask-remove-bitmap_scnprintf_len.patch
+fs-kconfig-move-ext2-ext3-ext4-jbd-jbd2-out.patch
+fs-kconfig-move-cifs-out.patch
 
