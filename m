@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - checkpatch-%lx-tests-should-hand-%%-as-a-literal.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:13:34 -0700
-Message-ID: <200810182313.m9INDYtd028210@imap1.linux-foundation.org>
+Subject: - checkpatch-report-the-correct-lines-for-single-statement-blocks.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:13:36 -0700
+Message-ID: <200810182313.m9INDaUD028227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48793 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39539 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751416AbYJRXNr (ORCPT
+	by vger.kernel.org with ESMTP id S1751413AbYJRXNr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 18 Oct 2008 19:13:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,42 +15,45 @@ To: apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch: %Lx tests should hand %% as a literal
+     checkpatch: report the correct lines for single statement blocks
 has been removed from the -mm tree.  Its filename was
-     checkpatch-%lx-tests-should-hand-%%-as-a-literal.patch
+     checkpatch-report-the-correct-lines-for-single-statement-blocks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: %Lx tests should hand %% as a literal
+Subject: checkpatch: report the correct lines for single statement blocks
 From: Andy Whitcroft <apw@shadowen.org>
 
-Ensure that we handle literal %'s correctly when adjacent to a %Lx.
-
-	%Lx	bad
-	%%Lx	good
-	%%%Lx	bad
+Report the correct lines for single statement blocks.  Currently we are
+reporting the right number of lines, but not skipping the negative lines.
 
 Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/checkpatch.pl |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-%lx-tests-should-hand-%%-as-a-literal scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-%lx-tests-should-hand-%%-as-a-literal
+diff -puN scripts/checkpatch.pl~checkpatch-report-the-correct-lines-for-single-statement-blocks scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-report-the-correct-lines-for-single-statement-blocks
 +++ a/scripts/checkpatch.pl
-@@ -2392,6 +2392,7 @@ sub process {
- 		my $string;
- 		while ($line =~ /(?:^|")([X\t]*)(?:"|$)/g) {
- 			$string = substr($rawline, $-[1], $+[1] - $-[1]);
-+			$string =~ s/%%/__/g;
- 			if ($string =~ /(?<!%)%L[udi]/) {
- 				WARN("\%Ld/%Lu are not-standard C, use %lld/%llu\n" . $herecurr);
- 				last;
+@@ -2214,10 +2214,10 @@ sub process {
+ 			}
+ 			if ($level == 0 && $block =~ /^\s*\{/ && !$allowed) {
+ 				my $herectx = $here . "\n";;
+-				my $end = $linenr + statement_rawlines($block) - 1;
++				my $cnt = statement_rawlines($block);
+ 
+-				for (my $ln = $linenr - 1; $ln < $end; $ln++) {
+-					$herectx .= $rawlines[$ln] . "\n";;
++				for (my $n = 0; $n < $cnt; $n++) {
++					$herectx .= raw_line($linenr, $n) . "\n";;
+ 				}
+ 
+ 				WARN("braces {} are not necessary for single statement blocks\n" . $herectx);
 _
 
 Patches currently in -mm which might be from apw@shadowen.org are
