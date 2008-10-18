@@ -1,58 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - revert-mm-vmallocc-revert-git-tip-change.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 15:59:17 -0700
-Message-ID: <200810182259.m9IMxHWe026015@imap1.linux-foundation.org>
+Subject: - mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:10:21 -0700
+Message-ID: <200810182310.m9INALjs027519@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57922 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59519 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750878AbYJRW7b (ORCPT
+	by vger.kernel.org with ESMTP id S1751040AbYJRXKa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 18:59:31 -0400
+	Sat, 18 Oct 2008 19:10:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, elendil@planet.nl, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert mm-vmallocc-revert-git-tip-change
+     mm/page_alloc.c:free_area_init_nodes() fix inappropriate use of enum
 has been removed from the -mm tree.  Its filename was
-     revert-mm-vmallocc-revert-git-tip-change.patch
+     mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
 
-This patch was dropped because it was folded into mm-rewrite-vmap-layer.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert mm-vmallocc-revert-git-tip-change
+Subject: mm/page_alloc.c:free_area_init_nodes() fix inappropriate use of enum
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Put it back again.
+Local variable `i' is a) misleadingly-named for an `enum zone_type' and b)
+used for indexing zones as well as nodes as well as node_maps.
 
-Cc: Ingo Molnar <mingo@elte.hu>
+Make it an `int'.
+
+Reported-by: Frans Pop <elendil@planet.nl>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~revert-mm-vmallocc-revert-git-tip-change mm/vmalloc.c
---- a/mm/vmalloc.c~revert-mm-vmallocc-revert-git-tip-change
-+++ a/mm/vmalloc.c
-@@ -184,6 +184,13 @@ struct page *vmalloc_to_page(const void 
- 	struct page *page = NULL;
- 	pgd_t *pgd = pgd_offset_k(addr);
+diff -puN mm/page_alloc.c~mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum
++++ a/mm/page_alloc.c
+@@ -3952,7 +3952,7 @@ static void check_for_regular_memory(pg_
+ void __init free_area_init_nodes(unsigned long *max_zone_pfn)
+ {
+ 	unsigned long nid;
+-	enum zone_type i;
++	int i;
  
-+	/*
-+	 * XXX we might need to change this if we add VIRTUAL_BUG_ON for
-+	 * architectures that do not vmalloc module space
-+	 */
-+	VIRTUAL_BUG_ON(!is_vmalloc_addr(vmalloc_addr) &&
-+			!is_module_address(addr));
-+
- 	if (!pgd_none(*pgd)) {
- 		pud_t *pud = pud_offset(pgd, addr);
- 		if (!pud_none(*pud)) {
+ 	/* Sort early_node_map as initialisation assumes it is sorted */
+ 	sort_node_map();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,7 +72,6 @@ mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjust
 vmscan-unevictable-lru-scan-sysctl.patch
 mlock-make-mlock-error-return-posixly-correct-fix.patch
 mm-rewrite-vmap-layer.patch
-revert-mm-vmallocc-revert-git-tip-change.patch
 memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
 container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
 container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
@@ -82,34 +80,11 @@ hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
 hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
 hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
 drivers-hwmon-applesmcc-remove-unneeded-casts.patch
-mfd-drivers-mfd-wm8350-corec-doesnt-work-on-x86.patch
 fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
 ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
 cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
 message-queues-increase-range-limits-checkpatch-fixes.patch
 drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
 x86-sysfs-kill-owner-field-from-attribute-fix.patch
 x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
