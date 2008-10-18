@@ -1,61 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - make-gpiochip-label-const.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:15:48 -0700
-Message-ID: <200810182315.m9INFmoM028689@imap1.linux-foundation.org>
+Subject: - hugetlb-handle-updating-of-accessed-and-dirty-in-hugetlb_fault.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:10:24 -0700
+Message-ID: <200810182310.m9INAOFY027534@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37123 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42674 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751208AbYJRXPz (ORCPT
+	by vger.kernel.org with ESMTP id S1751155AbYJRXP5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:15:55 -0400
+	Sat, 18 Oct 2008 19:15:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbaryshkov@gmail.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: david@gibson.dropbear.id.au, agl@us.ibm.com, hugh@veritas.com, wli@holomorphy.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio: make gpiochip label const
+     hugetlb: handle updating of ACCESSED and DIRTY in hugetlb_fault()
 has been removed from the -mm tree.  Its filename was
-     make-gpiochip-label-const.patch
+     hugetlb-handle-updating-of-accessed-and-dirty-in-hugetlb_fault.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: make gpiochip label const
-From: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Subject: hugetlb: handle updating of ACCESSED and DIRTY in hugetlb_fault()
+From: David Gibson <david@gibson.dropbear.id.au>
 
-Mark gpiochip label as a const char pointer.  Fixes things like
+The page fault path for normal pages, if the fault is neither a no-page
+fault nor a write-protect fault, will update the DIRTY and ACCESSED bits
+in the page table appropriately.
 
-arch/arm/common/scoop.c: In function `scoop_probe':
-arch/arm/common/scoop.c:250: warning: assignment discards qualifiers from pointer target type
+The hugepage fault path, however, does not do this, handling only no-page
+or write-protect type faults.  It assumes that either the ACCESSED and
+DIRTY bits are irrelevant for hugepages (usually true, since they are
+never swapped) or that they are handled by the arch code.
 
-Signed-off-by: Dmitry Baryshkov <dbaryshkov@gmail.com>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+This is inconvenient for some software-loaded TLB architectures, where the
+_PAGE_ACCESSED (_PAGE_DIRTY) bits need to be set to enable read (write)
+access to the page at the TLB miss.  This could be worked around in the
+arch TLB miss code, but the TLB miss fast path can be made simple more
+easily if the hugetlb_fault() path handles this, as the normal page fault
+path does.
+
+Signed-off-by: David Gibson <david@gibson.dropbear.id.au>
+Cc: William Lee Irwin III <wli@holomorphy.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Adam Litke <agl@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/gpio.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |   23 ++++++++++++++++++-----
+ 1 file changed, 18 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-generic/gpio.h~make-gpiochip-label-const include/asm-generic/gpio.h
---- a/include/asm-generic/gpio.h~make-gpiochip-label-const
-+++ a/include/asm-generic/gpio.h
-@@ -61,7 +61,7 @@ struct module;
-  * is calculated by subtracting @base from the gpio number.
-  */
- struct gpio_chip {
--	char			*label;
-+	const char		*label;
- 	struct device		*dev;
- 	struct module		*owner;
+diff -puN mm/hugetlb.c~hugetlb-handle-updating-of-accessed-and-dirty-in-hugetlb_fault mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-handle-updating-of-accessed-and-dirty-in-hugetlb_fault
++++ a/mm/hugetlb.c
+@@ -2008,7 +2008,7 @@ int hugetlb_fault(struct mm_struct *mm, 
+ 	entry = huge_ptep_get(ptep);
+ 	if (huge_pte_none(entry)) {
+ 		ret = hugetlb_no_page(mm, vma, address, ptep, write_access);
+-		goto out_unlock;
++		goto out_mutex;
+ 	}
  
+ 	ret = 0;
+@@ -2024,7 +2024,7 @@ int hugetlb_fault(struct mm_struct *mm, 
+ 	if (write_access && !pte_write(entry)) {
+ 		if (vma_needs_reservation(h, vma, address) < 0) {
+ 			ret = VM_FAULT_OOM;
+-			goto out_unlock;
++			goto out_mutex;
+ 		}
+ 
+ 		if (!(vma->vm_flags & VM_SHARED))
+@@ -2034,10 +2034,23 @@ int hugetlb_fault(struct mm_struct *mm, 
+ 
+ 	spin_lock(&mm->page_table_lock);
+ 	/* Check for a racing update before calling hugetlb_cow */
+-	if (likely(pte_same(entry, huge_ptep_get(ptep))))
+-		if (write_access && !pte_write(entry))
++	if (unlikely(!pte_same(entry, huge_ptep_get(ptep))))
++		goto out_page_table_lock;
++
++
++	if (write_access) {
++		if (!pte_write(entry)) {
+ 			ret = hugetlb_cow(mm, vma, address, ptep, entry,
+ 							pagecache_page);
++			goto out_page_table_lock;
++		}
++		entry = pte_mkdirty(entry);
++	}
++	entry = pte_mkyoung(entry);
++	if (huge_ptep_set_access_flags(vma, address, ptep, entry, write_access))
++		update_mmu_cache(vma, address, entry);
++
++out_page_table_lock:
+ 	spin_unlock(&mm->page_table_lock);
+ 
+ 	if (pagecache_page) {
+@@ -2045,7 +2058,7 @@ int hugetlb_fault(struct mm_struct *mm, 
+ 		put_page(pagecache_page);
+ 	}
+ 
+-out_unlock:
++out_mutex:
+ 	mutex_unlock(&hugetlb_instantiation_mutex);
+ 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from dbaryshkov@gmail.com are
+Patches currently in -mm which might be from david@gibson.dropbear.id.au are
 
 origin.patch
-add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs.patch
 
