@@ -1,67 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - uvesafb-document-mode-to-mode_option-parameter-change.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:17:43 -0700
-Message-ID: <200810182317.m9INHhaB029139@imap1.linux-foundation.org>
+Subject: - fbmon-fix-edid-parser-to-detect-interlace-modes.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:17:50 -0700
+Message-ID: <200810182317.m9INHo4j029164@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46287 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46860 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751796AbYJRXRs (ORCPT
+	by vger.kernel.org with ESMTP id S1751814AbYJRXRz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:17:48 -0400
+	Sat, 18 Oct 2008 19:17:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpagano@gentoo.org, khc@pm.waw.pl, mm-commits@vger.kernel.org
+To: jon.dufresne@gmail.com, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uvesafb: document mode to mode_option parameter change
+     fbmon: fix EDID parser to detect interlace modes
 has been removed from the -mm tree.  Its filename was
-     uvesafb-document-mode-to-mode_option-parameter-change.patch
+     fbmon-fix-edid-parser-to-detect-interlace-modes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uvesafb: document mode to mode_option parameter change
-From: Mike Pagano <mpagano@gentoo.org>
+Subject: fbmon: fix EDID parser to detect interlace modes
+From: "Jon Dufresne" <jon.dufresne@gmail.com>
 
-Document the change from the old "mode" parameter to the "mode_option"
-parameter.
+The current EDID parser in the linux kernel ignores interlace modes.  The
+patch looks for the edid interlace flag and adjusts the vertical
+resolution if it is found.
 
-Signed-off-by: Mike Pagano <mpagano@gentoo.org>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>
+Signed-off-by: Jon Dufresne <jon.dufresne@gmail.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fb/uvesafb.txt |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/fbmon.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/fb/uvesafb.txt~uvesafb-document-mode-to-mode_option-parameter-change Documentation/fb/uvesafb.txt
---- a/Documentation/fb/uvesafb.txt~uvesafb-document-mode-to-mode_option-parameter-change
-+++ a/Documentation/fb/uvesafb.txt
-@@ -52,7 +52,7 @@ are either given on the kernel command l
+diff -puN drivers/video/fbmon.c~fbmon-fix-edid-parser-to-detect-interlace-modes drivers/video/fbmon.c
+--- a/drivers/video/fbmon.c~fbmon-fix-edid-parser-to-detect-interlace-modes
++++ a/drivers/video/fbmon.c
+@@ -564,7 +564,13 @@ static void get_detailed_timing(unsigned
+ 		mode->sync |= FB_SYNC_VERT_HIGH_ACT;
+ 	mode->refresh = PIXEL_CLOCK/((H_ACTIVE + H_BLANKING) *
+ 				     (V_ACTIVE + V_BLANKING));
+-	mode->vmode = 0;
++	if (INTERLACED) {
++		mode->yres *= 2;
++		mode->upper_margin *= 2;
++		mode->lower_margin *= 2;
++		mode->vsync_len *= 2;
++		mode->vmode |= FB_VMODE_INTERLACED;
++	}
+ 	mode->flag = FB_MODE_IS_DETAILED;
  
-  video=uvesafb:1024x768-32,mtrr:3,ywrap (compiled into the kernel)
- 
-- # modprobe uvesafb mode=1024x768-32 mtrr=3 scroll=ywrap  (module)
-+ # modprobe uvesafb mode_option=1024x768-32 mtrr=3 scroll=ywrap  (module)
- 
- Accepted options:
- 
-@@ -105,7 +105,7 @@ vtotal:n
- <mode>  The mode you want to set, in the standard modedb format.  Refer to
-         modedb.txt for a detailed description.  When uvesafb is compiled as
-         a module, the mode string should be provided as a value of the
--        'mode' option.
-+        'mode_option' option.
- 
- vbemode:x
-         Force the use of VBE mode x.  The mode will only be set if it's
+ 	DPRINTK("      %d MHz ",  PIXEL_CLOCK/1000000);
 _
 
-Patches currently in -mm which might be from mpagano@gentoo.org are
+Patches currently in -mm which might be from jon.dufresne@gmail.com are
 
 origin.patch
 
