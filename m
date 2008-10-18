@@ -1,147 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - hfsplus-fix-buffer-overflow-with-a-corrupted-image.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:18:33 -0700
-Message-ID: <200810182318.m9INIXf9029295@imap1.linux-foundation.org>
+Subject: - hfs-fix-namelength-memory-corruption.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:18:39 -0700
+Message-ID: <200810182318.m9INId1G029317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55503 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42335 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752071AbYJRXSy (ORCPT
+	by vger.kernel.org with ESMTP id S1752169AbYJRXSz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:18:54 -0400
+	Sat, 18 Oct 2008 19:18:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: snakebyte@gmx.de, penberg@cs.helsinki.fi, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: snakebyte@gmx.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hfsplus: fix Buffer overflow with a corrupted image
+     hfs: fix namelength memory corruption
 has been removed from the -mm tree.  Its filename was
-     hfsplus-fix-buffer-overflow-with-a-corrupted-image.patch
+     hfs-fix-namelength-memory-corruption.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hfsplus: fix Buffer overflow with a corrupted image
+Subject: hfs: fix namelength memory corruption
 From: Eric Sesterhenn <snakebyte@gmx.de>
 
-When an hfsplus image gets corrupted it might happen that the catalog
-namelength field gets b0rked.  If we mount such an image the memcpy() in
-hfsplus_cat_build_key_uni() writes more than the 255 that fit in the name
-field.  Depending on the size of the overwritten data, we either only get
-memory corruption or also trigger an oops like this:
+Fix a stack corruption caused by a corrupted hfs filesystem.  If the
+catalog name length is corrupted the memcpy overwrites the catalog btree
+structure.  Since the field is limited to HFS_NAMELEN bytes in the
+structure and the file format, we throw an error if it is too long.
 
-[  221.628020] BUG: unable to handle kernel paging request at c82b0000
-[  221.629066] IP: [<c022d4b1>] hfsplus_find_cat+0x10d/0x151
-[  221.629066] *pde = 0ea29163 *pte = 082b0160
-[  221.629066] Oops: 0002 [#1] PREEMPT DEBUG_PAGEALLOC
-[  221.629066] Modules linked in:
-[  221.629066]
-[  221.629066] Pid: 4845, comm: mount Not tainted (2.6.27-rc4-00123-gd3ee1b4-dirty #28)
-[  221.629066] EIP: 0060:[<c022d4b1>] EFLAGS: 00010206 CPU: 0
-[  221.629066] EIP is at hfsplus_find_cat+0x10d/0x151
-[  221.629066] EAX: 00000029 EBX: 00016210 ECX: 000042c2 EDX: 00000002
-[  221.629066] ESI: c82d70ca EDI: c82b0000 EBP: c82d1bcc ESP: c82d199c
-[  221.629066]  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
-[  221.629066] Process mount (pid: 4845, ti=c82d1000 task=c8224060 task.ti=c82d1000)
-[  221.629066] Stack: c080b3c4 c82aa8f8 c82d19c2 00016210 c080b3be c82d1bd4 c82aa8f0 00000300
-[  221.629066]        01000000 750008b1 74006e00 74006900 65006c00 c82d6400 c013bd35 c8224060
-[  221.629066]        00000036 00000046 c82d19f0 00000082 c8224548 c8224060 00000036 c0d653cc
-[  221.629066] Call Trace:
-[  221.629066]  [<c013bd35>] ? trace_hardirqs_off+0xb/0xd
-[  221.629066]  [<c013bca3>] ? trace_hardirqs_off_caller+0x14/0x9b
-[  221.629066]  [<c013bd35>] ? trace_hardirqs_off+0xb/0xd
-[  221.629066]  [<c013bca3>] ? trace_hardirqs_off_caller+0x14/0x9b
-[  221.629066]  [<c013bd35>] ? trace_hardirqs_off+0xb/0xd
-[  221.629066]  [<c0107aa3>] ? native_sched_clock+0x82/0x96
-[  221.629066]  [<c01302d2>] ? __kernel_text_address+0x1b/0x27
-[  221.629066]  [<c010487a>] ? dump_trace+0xca/0xd6
-[  221.629066]  [<c0109e32>] ? save_stack_address+0x0/0x2c
-[  221.629066]  [<c0109eaf>] ? save_stack_trace+0x1c/0x3a
-[  221.629066]  [<c013b571>] ? save_trace+0x37/0x8d
-[  221.629066]  [<c013b62e>] ? add_lock_to_list+0x67/0x8d
-[  221.629066]  [<c013ea1c>] ? validate_chain+0x8a4/0x9f4
-[  221.629066]  [<c013553d>] ? down+0xc/0x2f
-[  221.629066]  [<c013f1f6>] ? __lock_acquire+0x68a/0x6e0
-[  221.629066]  [<c013bd35>] ? trace_hardirqs_off+0xb/0xd
-[  221.629066]  [<c013bca3>] ? trace_hardirqs_off_caller+0x14/0x9b
-[  221.629066]  [<c013bd35>] ? trace_hardirqs_off+0xb/0xd
-[  221.629066]  [<c0107aa3>] ? native_sched_clock+0x82/0x96
-[  221.629066]  [<c013da5d>] ? mark_held_locks+0x43/0x5a
-[  221.629066]  [<c013dc3a>] ? trace_hardirqs_on+0xb/0xd
-[  221.629066]  [<c013dbf4>] ? trace_hardirqs_on_caller+0xf4/0x12f
-[  221.629066]  [<c06abec8>] ? _spin_unlock_irqrestore+0x42/0x58
-[  221.629066]  [<c013555c>] ? down+0x2b/0x2f
-[  221.629066]  [<c022aa68>] ? hfsplus_iget+0xa0/0x154
-[  221.629066]  [<c022b0b9>] ? hfsplus_fill_super+0x280/0x447
-[  221.629066]  [<c0107aa3>] ? native_sched_clock+0x82/0x96
-[  221.629066]  [<c013bca3>] ? trace_hardirqs_off_caller+0x14/0x9b
-[  221.629066]  [<c013bca3>] ? trace_hardirqs_off_caller+0x14/0x9b
-[  221.629066]  [<c013f1f6>] ? __lock_acquire+0x68a/0x6e0
-[  221.629066]  [<c041c9e4>] ? string+0x2b/0x74
-[  221.629066]  [<c041cd16>] ? vsnprintf+0x2e9/0x512
-[  221.629066]  [<c010487a>] ? dump_trace+0xca/0xd6
-[  221.629066]  [<c0109eaf>] ? save_stack_trace+0x1c/0x3a
-[  221.629066]  [<c0109eaf>] ? save_stack_trace+0x1c/0x3a
-[  221.629066]  [<c013b571>] ? save_trace+0x37/0x8d
-[  221.629066]  [<c013b62e>] ? add_lock_to_list+0x67/0x8d
-[  221.629066]  [<c013ea1c>] ? validate_chain+0x8a4/0x9f4
-[  221.629066]  [<c01354d3>] ? up+0xc/0x2f
-[  221.629066]  [<c013f1f6>] ? __lock_acquire+0x68a/0x6e0
-[  221.629066]  [<c013bd35>] ? trace_hardirqs_off+0xb/0xd
-[  221.629066]  [<c013bca3>] ? trace_hardirqs_off_caller+0x14/0x9b
-[  221.629066]  [<c013bd35>] ? trace_hardirqs_off+0xb/0xd
-[  221.629066]  [<c0107aa3>] ? native_sched_clock+0x82/0x96
-[  221.629066]  [<c041cfb7>] ? snprintf+0x1b/0x1d
-[  221.629066]  [<c01ba466>] ? disk_name+0x25/0x67
-[  221.629066]  [<c0183960>] ? get_sb_bdev+0xcd/0x10b
-[  221.629066]  [<c016ad92>] ? kstrdup+0x2a/0x4c
-[  221.629066]  [<c022a7b3>] ? hfsplus_get_sb+0x13/0x15
-[  221.629066]  [<c022ae39>] ? hfsplus_fill_super+0x0/0x447
-[  221.629066]  [<c0183583>] ? vfs_kern_mount+0x3b/0x76
-[  221.629066]  [<c0183602>] ? do_kern_mount+0x32/0xba
-[  221.629066]  [<c01960d4>] ? do_new_mount+0x46/0x74
-[  221.629066]  [<c0196277>] ? do_mount+0x175/0x193
-[  221.629066]  [<c013dbf4>] ? trace_hardirqs_on_caller+0xf4/0x12f
-[  221.629066]  [<c01663b2>] ? __get_free_pages+0x1e/0x24
-[  221.629066]  [<c06ac07b>] ? lock_kernel+0x19/0x8c
-[  221.629066]  [<c01962e6>] ? sys_mount+0x51/0x9b
-[  221.629066]  [<c01962f9>] ? sys_mount+0x64/0x9b
-[  221.629066]  [<c01038bd>] ? sysenter_do_call+0x12/0x31
-[  221.629066]  =======================
-[  221.629066] Code: 89 c2 c1 e2 08 c1 e8 08 09 c2 8b 85 e8 fd ff ff 66 89 50 06 89 c7 53 83 c7 08 56 57 68 c4 b3 80 c0 e8 8c 5c ef ff 89 d9 c1 e9 02 <f3> a5 89 d9 83 e1 03 74 02 f3 a4 83 c3 06 8b 95 e8 fd ff ff 0f
-[  221.629066] EIP: [<c022d4b1>] hfsplus_find_cat+0x10d/0x151 SS:ESP 0068:c82d199c
-[  221.629066] ---[ end trace e417a1d67f0d0066 ]---
-
-Since hfsplus_cat_build_key_uni() returns void and only has one callsite,
-the check is performed at the callsite.
-
-Signed-off-by: Eric Sesterhenn <snakebyte@gmx.de>
-Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Eric Sesterhenn <snakebyte@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/catalog.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/hfs/catalog.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/hfsplus/catalog.c~hfsplus-fix-buffer-overflow-with-a-corrupted-image fs/hfsplus/catalog.c
---- a/fs/hfsplus/catalog.c~hfsplus-fix-buffer-overflow-with-a-corrupted-image
-+++ a/fs/hfsplus/catalog.c
-@@ -168,6 +168,11 @@ int hfsplus_find_cat(struct super_block 
- 		return -EIO;
- 	}
+diff -puN fs/hfs/catalog.c~hfs-fix-namelength-memory-corruption fs/hfs/catalog.c
+--- a/fs/hfs/catalog.c~hfs-fix-namelength-memory-corruption
++++ a/fs/hfs/catalog.c
+@@ -190,6 +190,10 @@ int hfs_cat_find_brec(struct super_block
  
-+	if (be16_to_cpu(tmp.thread.nodeName.length) > 255) {
-+		printk(KERN_ERR "hfs: catalog name length corrupted\n");
+ 	fd->search_key->cat.ParID = rec.thread.ParID;
+ 	len = fd->search_key->cat.CName.len = rec.thread.CName.len;
++	if (len > HFS_NAMELEN) {
++		printk(KERN_ERR "hfs: bad catalog namelength\n");
 +		return -EIO;
 +	}
-+
- 	hfsplus_cat_build_key_uni(fd->search_key, be32_to_cpu(tmp.thread.parentID),
- 				 &tmp.thread.nodeName);
+ 	memcpy(fd->search_key->cat.CName.name, rec.thread.CName.name, len);
  	return hfs_brec_find(fd);
+ }
 _
 
 Patches currently in -mm which might be from snakebyte@gmx.de are
