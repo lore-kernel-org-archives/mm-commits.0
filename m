@@ -1,92 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: - dvb-input-data-pointer-of-cx24116_writeregn-should-be-const-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 17 Oct 2008 22:29:12 -0700
-Message-ID: <200810180529.m9I5TCIH018190@imap1.linux-foundation.org>
+Subject: - git-tests-git-rejects.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 15:27:07 -0700
+Message-ID: <200810182227.m9IMR82o021849@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44035 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36466 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750871AbYJRF3X (ORCPT
+	by vger.kernel.org with ESMTP id S1750933AbYJRW1M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 01:29:23 -0400
+	Sat, 18 Oct 2008 18:27:12 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m9IMRAZ3010401
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sat, 18 Oct 2008 15:27:11 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Geert.Uytterhoeven@sonycom.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dvb-input-data-pointer-of-cx24116_writeregn-should-be-const-checkpatch-fixes
+     git-tests-git-rejects
 has been removed from the -mm tree.  Its filename was
-     dvb-input-data-pointer-of-cx24116_writeregn-should-be-const-checkpatch-fixes.patch
+     git-tests-git-rejects.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dvb-input-data-pointer-of-cx24116_writeregn-should-be-const-checkpatch-fixes
+Subject: git-tests-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "foo* bar" should be "foo *bar"
-#24: FILE: drivers/media/dvb/frontends/cx24116.c:203:
-+static int cx24116_writeregN(struct cx24116_state* state, int reg,
-
-total: 1 errors, 0 warnings, 9 lines checked
-
-./patches/dvb-input-data-pointer-of-cx24116_writeregn-should-be-const.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/frontends/cx24116.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/Kconfig.debug |  112 --------------------------------------------
+ 1 file changed, 112 deletions(-)
 
-diff -puN drivers/media/dvb/frontends/cx24116.c~dvb-input-data-pointer-of-cx24116_writeregn-should-be-const-checkpatch-fixes drivers/media/dvb/frontends/cx24116.c
---- a/drivers/media/dvb/frontends/cx24116.c~dvb-input-data-pointer-of-cx24116_writeregn-should-be-const-checkpatch-fixes
-+++ a/drivers/media/dvb/frontends/cx24116.c
-@@ -200,7 +200,7 @@ static int cx24116_writereg(struct cx241
- }
+diff -puN lib/Kconfig.debug~git-tests-git-rejects lib/Kconfig.debug
+--- a/lib/Kconfig.debug~git-tests-git-rejects
++++ a/lib/Kconfig.debug
+@@ -558,118 +558,6 @@ config BOOT_PRINTK_DELAY
+ 	  BOOT_PRINTK_DELAY also may cause DETECT_SOFTLOCKUP to detect
+ 	  what it believes to be lockup conditions.
  
- /* Bulk byte writes to a single I2C address, for 32k firmware load */
--static int cx24116_writeregN(struct cx24116_state* state, int reg,
-+static int cx24116_writeregN(struct cx24116_state *state, int reg,
- 			     const u8 *data, u16 len)
- {
- 	int ret = -EREMOTEIO;
+-<<<<<<< HEAD:lib/Kconfig.debug
+-config RCU_TORTURE_TEST
+-	tristate "torture tests for RCU"
+-	depends on DEBUG_KERNEL
+-	default n
+-	help
+-	  This option provides a kernel module that runs torture tests
+-	  on the RCU infrastructure.  The kernel module may be built
+-	  after the fact on the running kernel to be tested, if desired.
+-
+-	  Say Y here if you want RCU torture tests to be built into
+-	  the kernel.
+-	  Say M if you want the RCU torture tests to build as a module.
+-	  Say N if you are unsure.
+-
+-config RCU_TORTURE_TEST_RUNNABLE
+-	bool "torture tests for RCU runnable by default"
+-	depends on RCU_TORTURE_TEST = y
+-	default n
+-	help
+-	  This option provides a way to build the RCU torture tests
+-	  directly into the kernel without them starting up at boot
+-	  time.  You can use /proc/sys/kernel/rcutorture_runnable
+-	  to manually override this setting.  This /proc file is
+-	  available only when the RCU torture tests have been built
+-	  into the kernel.
+-
+-	  Say Y here if you want the RCU torture tests to start during
+-	  boot (you probably don't).
+-	  Say N here if you want the RCU torture tests to start only
+-	  after being manually enabled via /proc.
+-
+-config RCU_CPU_STALL_DETECTOR
+-	bool "Check for stalled CPUs delaying RCU grace periods"
+-	depends on CLASSIC_RCU
+-	default n
+-	help
+-	  This option causes RCU to printk information on which
+-	  CPUs are delaying the current grace period, but only when
+-	  the grace period extends for excessive time periods.
+-
+-	  Say Y if you want RCU to perform such checks.
+-
+-	  Say N if you are unsure.
+-
+-config KPROBES_SANITY_TEST
+-	bool "Kprobes sanity tests"
+-	depends on DEBUG_KERNEL
+-	depends on KPROBES
+-	default n
+-	help
+-	  This option provides for testing basic kprobes functionality on
+-	  boot. A sample kprobe, jprobe and kretprobe are inserted and
+-	  verified for functionality.
+-
+-	  Say N if you are unsure.
+-
+-config BACKTRACE_SELF_TEST
+-	tristate "Self test for the backtrace code"
+-	depends on DEBUG_KERNEL
+-	default n
+-	help
+-	  This option provides a kernel module that can be used to test
+-	  the kernel stack backtrace code. This option is not useful
+-	  for distributions or general kernels, but only for kernel
+-	  developers working on architecture code.
+-
+-	  Note that if you want to also test saved backtraces, you will
+-	  have to enable STACKTRACE as well.
+-
+-	  Say N if you are unsure.
+-
+-config DEBUG_BLOCK_EXT_DEVT
+-        bool "Force extended block device numbers and spread them"
+-	depends on DEBUG_KERNEL
+-	depends on BLOCK
+-	default n
+-	help
+-	  Conventionally, block device numbers are allocated from
+-	  predetermined contiguous area.  However, extended block area
+-	  may introduce non-contiguous block device numbers.  This
+-	  option forces most block device numbers to be allocated from
+-	  the extended space and spreads them to discover kernel or
+-	  userland code paths which assume predetermined contiguous
+-	  device number allocation.
+-
+-	  Note that turning on this debug option shuffles all the
+-	  device numbers for all IDE and SCSI devices including libata
+-	  ones, so root partition specified using device number
+-	  directly (via rdev or root=MAJ:MIN) won't work anymore.
+-	  Textual device names (root=/dev/sdXn) will continue to work.
+-
+-	  Say N if you are unsure.
+-
+-config LKDTM
+-	tristate "Linux Kernel Dump Test Tool Module"
+-	depends on DEBUG_KERNEL
+-	depends on KPROBES
+-	depends on BLOCK
+-	default n
+-	help
+-	This module enables testing of the different dumping mechanisms by
+-	inducing system failures at predefined crash points.
+-	If you don't need it: say N
+-	Choose M here to compile this code as a module. The module will be
+-	called lkdtm.
+-
+-	Documentation on how to use the module can be found in
+-	drivers/misc/lkdtm.c
+-
+-=======
+->>>>>>> FETCH_HEAD:lib/Kconfig.debug
+ config FAULT_INJECTION
+ 	bool "Fault-injection framework"
+ 	depends on DEBUG_KERNEL
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-page_allocc-free_area_init_nodes-fix-inappropriate-use-of-enum.patch
-h8300-generic_bug-support.patch
-pm-rework-disabling-of-user-mode-helpers-during-suspend-hibernation.patch
-make-taint-bit-reliable-v3.patch
-kernel-sysc-improve-code-generation.patch
-compat-generic-compat-get-settimeofday.patch
-allow-recursion-in-binfmt_script-and-binfmt_misc.patch
-autofs4-track-uid-and-gid-of-last-mount-requester.patch
-autofs4-add-miscellaneous-device-for-ioctls.patch
-rtc-add-device-driver-for-dallas-ds3234-spi-rtc-chip.patch
-viafb-accelc-accelh.patch
-viafb-dvic-dvih-globalc-and-globalh.patch
-viafb-hwc-hwh.patch
-viafb-viafbdevc-viafbdevh.patch
-fbdev-kconfig-update.patch
-fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver.patch
-ext2-avoid-printk-floods-in-the-face-of-directory-corruption.patch
-applicomc-fix-apparently-broken-code-in-do_ac_read.patch
-drivers-char-tpm-tpmc-fix-error-patch-memory-leak.patch
-w1-be-able-to-manually-add-and-remove-slaves.patch
-w1-new-driver-ds2431-chip.patch
-gru-driver-minor-updates.patch
 mm-remove-the-might_sleep-from-lock_page.patch
+linux-next.patch
+linux-next-git-rejects.patch
 git-tests-git-rejects.patch
 git-acpi.patch
 git-acpi-git-rejects.patch
@@ -95,7 +175,6 @@ git-vfs-git-rejects.patch
 drivers-mfd-ucb1400_corec-needs-gpio.patch
 drivers-mfd-ucb1400_corec-further-unbork.patch
 arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
-dvb-input-data-pointer-of-cx24116_writeregn-should-be-const-checkpatch-fixes.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module-checkpatch-fixes.patch
