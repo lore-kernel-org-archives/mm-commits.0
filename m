@@ -1,55 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - fs-partitions-acornc-remove-dead-code.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:19:04 -0700
-Message-ID: <200810182319.m9INJ4J4029407@imap1.linux-foundation.org>
+Subject: - parport-remove-cvs-keywords.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:19:30 -0700
+Message-ID: <200810182319.m9INJURH029498@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42099 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58871 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751298AbYJRXTP (ORCPT
+	by vger.kernel.org with ESMTP id S1751822AbYJRXTj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:19:15 -0400
+	Sat, 18 Oct 2008 19:19:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, rpjday@crashcourse.ca, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/partitions/acorn.c: remove dead code
+     parport: remove CVS keywords
 has been removed from the -mm tree.  Its filename was
-     fs-partitions-acornc-remove-dead-code.patch
+     parport-remove-cvs-keywords.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/partitions/acorn.c: remove dead code
+Subject: parport: remove CVS keywords
 From: Adrian Bunk <bunk@kernel.org>
 
-I missed this when I did the arm26 removal.
+Remove CVS keywords that weren't updated for a long time from comments.
 
-Reported-by: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/acorn.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ drivers/parport/ieee1284.c |    2 +-
+ drivers/parport/probe.c    |    2 +-
+ drivers/parport/share.c    |    2 +-
+ include/linux/parport.h    |    2 --
+ 4 files changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN fs/partitions/acorn.c~fs-partitions-acornc-remove-dead-code fs/partitions/acorn.c
---- a/fs/partitions/acorn.c~fs-partitions-acornc-remove-dead-code
-+++ a/fs/partitions/acorn.c
-@@ -275,16 +275,6 @@ adfspart_check_ADFS(struct parsed_partit
- 	id = data[0x1fc] & 15;
- 	put_dev_sector(sect);
- 
--#ifdef CONFIG_BLK_DEV_MFM
--	if (MAJOR(bdev->bd_dev) == MFM_ACORN_MAJOR) {
--		extern void xd_set_geometry(struct block_device *,
--			unsigned char, unsigned char, unsigned int);
--		xd_set_geometry(bdev, dr->secspertrack, heads, 1);
--		invalidate_bh_lrus();
--		truncate_inode_pages(bdev->bd_inode->i_mapping, 0);
--	}
--#endif
+diff -puN drivers/parport/ieee1284.c~parport-remove-cvs-keywords drivers/parport/ieee1284.c
+--- a/drivers/parport/ieee1284.c~parport-remove-cvs-keywords
++++ a/drivers/parport/ieee1284.c
+@@ -1,4 +1,4 @@
+-/* $Id: parport_ieee1284.c,v 1.4 1997/10/19 21:37:21 philip Exp $
++/*
+  * IEEE-1284 implementation for parport.
+  *
+  * Authors: Phil Blundell <philb@gnu.org>
+diff -puN drivers/parport/probe.c~parport-remove-cvs-keywords drivers/parport/probe.c
+--- a/drivers/parport/probe.c~parport-remove-cvs-keywords
++++ a/drivers/parport/probe.c
+@@ -1,4 +1,4 @@
+-/* $Id: parport_probe.c,v 1.1 1999/07/03 08:56:17 davem Exp $
++/*
+  * Parallel port device probing code
+  *
+  * Authors:    Carsten Gross, carsten@sol.wohnheim.uni-ulm.de
+diff -puN drivers/parport/share.c~parport-remove-cvs-keywords drivers/parport/share.c
+--- a/drivers/parport/share.c~parport-remove-cvs-keywords
++++ a/drivers/parport/share.c
+@@ -1,4 +1,4 @@
+-/* $Id: parport_share.c,v 1.15 1998/01/11 12:06:17 philip Exp $
++/*
+  * Parallel-port resource manager code.
+  * 
+  * Authors: David Campbell <campbell@tirian.che.curtin.edu.au>
+diff -puN include/linux/parport.h~parport-remove-cvs-keywords include/linux/parport.h
+--- a/include/linux/parport.h~parport-remove-cvs-keywords
++++ a/include/linux/parport.h
+@@ -1,5 +1,3 @@
+-/* $Id: parport.h,v 1.1 1998/05/17 10:57:52 andrea Exp andrea $ */
