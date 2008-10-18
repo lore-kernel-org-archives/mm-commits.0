@@ -1,34 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: - viafb-makefile-shareh.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:16:38 -0700
-Message-ID: <200810182316.m9INGcLO028848@imap1.linux-foundation.org>
+Subject: - viafb-via_i2cc-via_i2ch-viamodec-viamodeh.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:16:48 -0700
+Message-ID: <200810182316.m9INGmSY028885@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50737 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33622 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751195AbYJRXQ5 (ORCPT
+	by vger.kernel.org with ESMTP id S1751219AbYJRXRI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:16:57 -0400
+	Sat, 18 Oct 2008 19:17:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: JosephChan@via.com.tw, geert@linux-m68k.org, josephchan@via.com.tw, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb: Makefile, share.h
+     viafb: via_i2c.c, via_i2c.h, viamode.c, viamode.h
 has been removed from the -mm tree.  Its filename was
-     viafb-makefile-shareh.patch
+     viafb-via_i2cc-via_i2ch-viamodec-viamodeh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: Makefile, share.h
+Subject: viafb: via_i2c.c, via_i2c.h, viamode.c, viamode.h
 From: Joseph Chan <JosephChan@via.com.tw>
 
-Makefile for drivers/video/via/
-share.h: shared macro for viafb
+via_i2c.c, via_i2c.h: Implement i2c specification.
+viamode.c, viamode.c: all support modes information.
 
 Signed-off-by: Joseph Chan <josephchan@via.com.tw>
 Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
@@ -36,25 +36,16 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/Makefile |    7 
- drivers/video/via/share.h  | 1105 +++++++++++++++++++++++++++++++++++
- 2 files changed, 1112 insertions(+)
+ drivers/video/via/via_i2c.c |  177 +++++
+ drivers/video/via/via_i2c.h |   46 +
+ drivers/video/via/viamode.c | 1086 ++++++++++++++++++++++++++++++++++
+ drivers/video/via/viamode.h |  177 +++++
+ 4 files changed, 1486 insertions(+)
 
-diff -puN /dev/null drivers/video/via/Makefile
+diff -puN /dev/null drivers/video/via/via_i2c.c
 --- /dev/null
-+++ a/drivers/video/via/Makefile
-@@ -0,0 +1,7 @@
-+#
-+# Makefile for the VIA framebuffer driver (for Linux Kernel 2.6)
-+#
-+
-+obj-$(CONFIG_FB_VIA) += viafb.o
-+
-+viafb-y	:=viafbdev.o hw.o iface.o  via_i2c.o dvi.o lcd.o ioctl.o accel.o via_utility.o vt1636.o global.o tblDPASetting.o viamode.o tbl1636.o
-diff -puN /dev/null drivers/video/via/share.h
---- /dev/null
-+++ a/drivers/video/via/share.h
-@@ -0,0 +1,1105 @@
++++ a/drivers/video/via/via_i2c.c
+@@ -0,0 +1,177 @@
 +/*
 + * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
 + * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
@@ -76,1090 +67,1483 @@ diff -puN /dev/null drivers/video/via/share.h
 + * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 + */
 +
-+#ifndef __SHARE_H__
-+#define __SHARE_H__
-+
-+/* Define Return Value */
-+#define FAIL        -1
-+#define OK          1
-+
-+#ifndef NULL
-+#define NULL 0
-+#endif
-+
-+/* Define Bit Field */
-+#define BIT0    0x01
-+#define BIT1    0x02
-+#define BIT2    0x04
-+#define BIT3    0x08
-+#define BIT4    0x10
-+#define BIT5    0x20
-+#define BIT6    0x40
-+#define BIT7    0x80
-+
-+/* Video Memory Size */
-+#define VIDEO_MEMORY_SIZE_16M    0x1000000
-+
-+/* Definition Mode Index
-+*/
-+#define     VIA_RES_640X480                 	0
-+#define     VIA_RES_800X600                 	1
-+#define     VIA_RES_1024X768                	2
-+#define     VIA_RES_1152X864                	3
-+#define     VIA_RES_1280X1024               	4
-+#define     VIA_RES_1600X1200               	5
-+#define     VIA_RES_1440X1050               	6
-+#define     VIA_RES_1280X768                	7
-+#define     VIA_RES_1280X960                	8
-+#define     VIA_RES_1920X1440               	9
-+#define     VIA_RES_848X480                 	10
-+#define     VIA_RES_1400X1050               	11
-+#define     VIA_RES_720X480                 	12
-+#define     VIA_RES_720X576                 	13
-+#define     VIA_RES_1024X512                	14
-+#define     VIA_RES_856X480                 	15
-+#define     VIA_RES_1024X576                	16
-+#define     VIA_RES_640X400                 	17
-+#define     VIA_RES_1280X720                	18
-+#define     VIA_RES_1920X1080               	19
-+#define     VIA_RES_800X480                 	20
-+#define     VIA_RES_1368X768                	21
-+#define     VIA_RES_1024X600                	22
-+#define     VIA_RES_1280X800                	23
-+#define     VIA_RES_1680X1050               	24
-+#define     VIA_RES_960X600			25
-+#define     VIA_RES_1000X600               	26
-+#define     VIA_RES_1088X612               	27
-+#define     VIA_RES_1152X720               	28
-+#define     VIA_RES_1200X720               	29
-+#define     VIA_RES_1280X600               	30
-+#define     VIA_RES_1360X768               	31
-+#define     VIA_RES_1366X768               	32
-+#define     VIA_RES_1440X900               	33
-+#define     VIA_RES_1600X900               	34
-+#define     VIA_RES_1600X1024              	35
-+#define     VIA_RES_1792X1344              	36
-+#define     VIA_RES_1856X1392              	37
-+#define     VIA_RES_1920X1200              	38
-+#define     VIA_RES_2048X1536              	39
-+#define     VIA_RES_480X640                  	40
-+
-+/*Reduce Blanking*/
-+#define     VIA_RES_1360X768_RB          	131
-+#define     VIA_RES_1440X900_RB          	133
-+#define     VIA_RES_1400X1050_RB        	111
-+#define     VIA_RES_1600X900_RB          	134
-+#define     VIA_RES_1680X1050_RB        	124
-+#define     VIA_RES_1920X1080_RB        	119
-+#define     VIA_RES_1920X1200_RB        	138
-+
-+#define     VIA_RES_INVALID                 	255
-+
-+/* standard VGA IO port
-+*/
-+#define VIARMisc    0x3CC
-+#define VIAWMisc    0x3C2
-+#define VIAStatus   0x3DA
-+#define VIACR       0x3D4
-+#define VIASR       0x3C4
-+#define VIAGR       0x3CE
-+#define VIAAR       0x3C0
-+
-+#define StdCR       0x19
-+#define StdSR       0x04
-+#define StdGR       0x09
-+#define StdAR       0x14
-+
-+#define PatchCR     11
-+
-+/* Display path */
-+#define IGA1        1
-+#define IGA2        2
-+#define IGA1_IGA2   3
-+
-+/* Define Color Depth  */
-+#define MODE_8BPP       1
-+#define MODE_16BPP      2
-+#define MODE_32BPP      4
-+
-+#define GR20    0x20
-+#define GR21    0x21
-+#define GR22    0x22
-+
-+/* Sequencer Registers */
-+#define SR01    0x01
-+#define SR10    0x10
-+#define SR12    0x12
-+#define SR15    0x15
-+#define SR16    0x16
-+#define SR17    0x17
-+#define SR18    0x18
-+#define SR1B    0x1B
-+#define SR1A    0x1A
-+#define SR1C    0x1C
-+#define SR1D    0x1D
-+#define SR1E    0x1E
-+#define SR1F    0x1F
-+#define SR20    0x20
-+#define SR21    0x21
-+#define SR22    0x22
-+#define SR2A    0x2A
-+#define SR2D    0x2D
-+#define SR2E    0x2E
-+
-+#define SR30    0x30
-+#define SR39    0x39
-+#define SR3D    0x3D
-+#define SR3E    0x3E
-+#define SR3F    0x3F
-+#define SR40    0x40
-+#define SR43    0x43
-+#define SR44    0x44
-+#define SR45    0x45
-+#define SR46    0x46
-+#define SR47    0x47
-+#define SR48    0x48
-+#define SR49    0x49
-+#define SR4A    0x4A
-+#define SR4B    0x4B
-+#define SR4C    0x4C
-+#define SR52    0x52
-+#define SR5E    0x5E
-+#define SR65    0x65
-+
-+/* CRT Controller Registers */
-+#define CR00    0x00
-+#define CR01    0x01
-+#define CR02    0x02
-+#define CR03    0x03
-+#define CR04    0x04
-+#define CR05    0x05
-+#define CR06    0x06
-+#define CR07    0x07
-+#define CR08    0x08
-+#define CR09    0x09
-+#define CR0A    0x0A
-+#define CR0B    0x0B
-+#define CR0C    0x0C
-+#define CR0D    0x0D
-+#define CR0E    0x0E
-+#define CR0F    0x0F
-+#define CR10    0x10
-+#define CR11    0x11
-+#define CR12    0x12
-+#define CR13    0x13
-+#define CR14    0x14
-+#define CR15    0x15
-+#define CR16    0x16
-+#define CR17    0x17
-+#define CR18    0x18
-+
-+/* Extend CRT Controller Registers */
-+#define CR30    0x30
-+#define CR31    0x31
-+#define CR32    0x32
-+#define CR33    0x33
-+#define CR34    0x34
-+#define CR35    0x35
-+#define CR36    0x36
-+#define CR37    0x37
-+#define CR38    0x38
-+#define CR39    0x39
-+#define CR3A    0x3A
-+#define CR3B    0x3B
-+#define CR3C    0x3C
-+#define CR3D    0x3D
-+#define CR3E    0x3E
-+#define CR3F    0x3F
-+#define CR40    0x40
-+#define CR41    0x41
-+#define CR42    0x42
-+#define CR43    0x43
-+#define CR44    0x44
-+#define CR45    0x45
-+#define CR46    0x46
-+#define CR47    0x47
-+#define CR48    0x48
-+#define CR49    0x49
-+#define CR4A    0x4A
-+#define CR4B    0x4B
-+#define CR4C    0x4C
-+#define CR4D    0x4D
-+#define CR4E    0x4E
-+#define CR4F    0x4F
-+#define CR50    0x50
-+#define CR51    0x51
-+#define CR52    0x52
-+#define CR53    0x53
-+#define CR54    0x54
-+#define CR55    0x55
-+#define CR56    0x56
-+#define CR57    0x57
-+#define CR58    0x58
-+#define CR59    0x59
-+#define CR5A    0x5A
-+#define CR5B    0x5B
-+#define CR5C    0x5C
-+#define CR5D    0x5D
-+#define CR5E    0x5E
-+#define CR5F    0x5F
-+#define CR60    0x60
-+#define CR61    0x61
-+#define CR62    0x62
-+#define CR63    0x63
-+#define CR64    0x64
-+#define CR65    0x65
-+#define CR66    0x66
-+#define CR67    0x67
-+#define CR68    0x68
-+#define CR69    0x69
-+#define CR6A    0x6A
-+#define CR6B    0x6B
-+#define CR6C    0x6C
-+#define CR6D    0x6D
-+#define CR6E    0x6E
-+#define CR6F    0x6F
-+#define CR70    0x70
-+#define CR71    0x71
-+#define CR72    0x72
-+#define CR73    0x73
-+#define CR74    0x74
-+#define CR75    0x75
-+#define CR76    0x76
-+#define CR77    0x77
-+#define CR78    0x78
-+#define CR79    0x79
-+#define CR7A    0x7A
-+#define CR7B    0x7B
-+#define CR7C    0x7C
-+#define CR7D    0x7D
-+#define CR7E    0x7E
-+#define CR7F    0x7F
-+#define CR80    0x80
-+#define CR81    0x81
-+#define CR82    0x82
-+#define CR83    0x83
-+#define CR84    0x84
-+#define CR85    0x85
-+#define CR86    0x86
-+#define CR87    0x87
-+#define CR88    0x88
-+#define CR89    0x89
-+#define CR8A    0x8A
-+#define CR8B    0x8B
-+#define CR8C    0x8C
-+#define CR8D    0x8D
-+#define CR8E    0x8E
-+#define CR8F    0x8F
-+#define CR90    0x90
-+#define CR91    0x91
-+#define CR92    0x92
-+#define CR93    0x93
-+#define CR94    0x94
-+#define CR95    0x95
-+#define CR96    0x96
-+#define CR97    0x97
-+#define CR98    0x98
-+#define CR99    0x99
-+#define CR9A    0x9A
-+#define CR9B    0x9B
-+#define CR9C    0x9C
-+#define CR9D    0x9D
-+#define CR9E    0x9E
-+#define CR9F    0x9F
-+#define CRA0    0xA0
-+#define CRA1    0xA1
-+#define CRA2    0xA2
-+#define CRA3    0xA3
-+#define CRD2    0xD2
-+#define CRD3    0xD3
-+#define CRD4    0xD4
-+
-+/* LUT Table*/
-+#define LUT_DATA             0x3C9	/* DACDATA */
-+#define LUT_INDEX_READ       0x3C7	/* DACRX */
-+#define LUT_INDEX_WRITE      0x3C8	/* DACWX */
-+#define DACMASK              0x3C6
-+
-+/* Definition Device */
-+#define DEVICE_CRT  0x01
-+#define DEVICE_DVI  0x03
-+#define DEVICE_LCD  0x04
-+
-+/* Device output interface */
-+#define INTERFACE_NONE          0x00
-+#define INTERFACE_ANALOG_RGB    0x01
-+#define INTERFACE_DVP0          0x02
-+#define INTERFACE_DVP1          0x03
-+#define INTERFACE_DFP_HIGH      0x04
-+#define INTERFACE_DFP_LOW       0x05
-+#define INTERFACE_DFP           0x06
-+#define INTERFACE_LVDS0         0x07
-+#define INTERFACE_LVDS1         0x08
-+#define INTERFACE_LVDS0LVDS1    0x09
-+#define INTERFACE_TMDS          0x0A
-+
-+#define HW_LAYOUT_LCD_ONLY      0x01
-+#define HW_LAYOUT_DVI_ONLY      0x02
-+#define HW_LAYOUT_LCD_DVI       0x03
-+#define HW_LAYOUT_LCD1_LCD2     0x04
-+#define HW_LAYOUT_LCD_EXTERNAL_LCD2 0x10
-+
-+/* Definition Refresh Rate */
-+#define REFRESH_50      50
-+#define REFRESH_60      60
-+#define REFRESH_75      75
-+#define REFRESH_85      85
-+#define REFRESH_100     100
-+#define REFRESH_120     120
-+
-+/* Definition Sync Polarity*/
-+#define NEGATIVE        1
-+#define POSITIVE        0
-+
-+/*480x640@60 Sync Polarity (GTF)
-+*/
-+#define M480X640_R60_HSP        NEGATIVE
-+#define M480X640_R60_VSP        POSITIVE
-+
-+/*640x480@60 Sync Polarity (VESA Mode)
-+*/
-+#define M640X480_R60_HSP        NEGATIVE
-+#define M640X480_R60_VSP        NEGATIVE
-+
-+/*640x480@75 Sync Polarity (VESA Mode)
-+*/
-+#define M640X480_R75_HSP        NEGATIVE
-+#define M640X480_R75_VSP        NEGATIVE
-+
-+/*640x480@85 Sync Polarity (VESA Mode)
-+*/
-+#define M640X480_R85_HSP        NEGATIVE
-+#define M640X480_R85_VSP        NEGATIVE
-+
-+/*640x480@100 Sync Polarity (GTF Mode)
-+*/
-+#define M640X480_R100_HSP       NEGATIVE
-+#define M640X480_R100_VSP       POSITIVE
-+
-+/*640x480@120 Sync Polarity (GTF Mode)
-+*/
-+#define M640X480_R120_HSP       NEGATIVE
-+#define M640X480_R120_VSP       POSITIVE
-+
-+/*720x480@60 Sync Polarity  (GTF Mode)
-+*/
-+#define M720X480_R60_HSP        NEGATIVE
-+#define M720X480_R60_VSP        POSITIVE
-+
-+/*720x576@60 Sync Polarity  (GTF Mode)
-+*/
-+#define M720X576_R60_HSP        NEGATIVE
-+#define M720X576_R60_VSP        POSITIVE
-+
-+/*800x600@60 Sync Polarity (VESA Mode)
-+*/
-+#define M800X600_R60_HSP        POSITIVE
-+#define M800X600_R60_VSP        POSITIVE
-+
-+/*800x600@75 Sync Polarity (VESA Mode)
-+*/
-+#define M800X600_R75_HSP        POSITIVE
-+#define M800X600_R75_VSP        POSITIVE
-+
-+/*800x600@85 Sync Polarity (VESA Mode)
-+*/
-+#define M800X600_R85_HSP        POSITIVE
-+#define M800X600_R85_VSP        POSITIVE
-+
-+/*800x600@100 Sync Polarity (GTF Mode)
-+*/
-+#define M800X600_R100_HSP       NEGATIVE
-+#define M800X600_R100_VSP       POSITIVE
-+
-+/*800x600@120 Sync Polarity (GTF Mode)
-+*/
-+#define M800X600_R120_HSP       NEGATIVE
-+#define M800X600_R120_VSP       POSITIVE
-+
-+/*800x480@60 Sync Polarity  (CVT Mode)
-+*/
-+#define M800X480_R60_HSP        NEGATIVE
-+#define M800X480_R60_VSP        POSITIVE
-+
-+/*848x480@60 Sync Polarity  (CVT Mode)
-+*/
-+#define M848X480_R60_HSP        NEGATIVE
-+#define M848X480_R60_VSP        POSITIVE
-+
-+/*852x480@60 Sync Polarity  (GTF Mode)
-+*/
-+#define M852X480_R60_HSP        NEGATIVE
-+#define M852X480_R60_VSP        POSITIVE
-+
-+/*1024x512@60 Sync Polarity (GTF Mode)
-+*/
-+#define M1024X512_R60_HSP       NEGATIVE
-+#define M1024X512_R60_VSP       POSITIVE
-+
-+/*1024x600@60 Sync Polarity (GTF Mode)
-+*/
-+#define M1024X600_R60_HSP       NEGATIVE
-+#define M1024X600_R60_VSP       POSITIVE
-+
-+/*1024x768@60 Sync Polarity (VESA Mode)
-+*/
-+#define M1024X768_R60_HSP       NEGATIVE
-+#define M1024X768_R60_VSP       NEGATIVE
-+
-+/*1024x768@75 Sync Polarity (VESA Mode)
-+*/
-+#define M1024X768_R75_HSP       POSITIVE
-+#define M1024X768_R75_VSP       POSITIVE
-+
-+/*1024x768@85 Sync Polarity (VESA Mode)
-+*/
-+#define M1024X768_R85_HSP       POSITIVE
-+#define M1024X768_R85_VSP       POSITIVE
-+
-+/*1024x768@100 Sync Polarity (GTF Mode)
-+*/
-+#define M1024X768_R100_HSP      NEGATIVE
-+#define M1024X768_R100_VSP      POSITIVE
-+
-+/*1152x864@75 Sync Polarity (VESA Mode)
-+*/
-+#define M1152X864_R75_HSP       POSITIVE
-+#define M1152X864_R75_VSP       POSITIVE
-+
-+/*1280x720@60 Sync Polarity  (GTF Mode)
-+*/
-+#define M1280X720_R60_HSP       NEGATIVE
-+#define M1280X720_R60_VSP       POSITIVE
-+
-+/* 1280x768@50 Sync Polarity  (GTF Mode) */
-+#define M1280X768_R50_HSP       NEGATIVE
-+#define M1280X768_R50_VSP       POSITIVE
-+
-+/*1280x768@60 Sync Polarity  (GTF Mode)
-+*/
-+#define M1280X768_R60_HSP       NEGATIVE
-+#define M1280X768_R60_VSP       POSITIVE
-+
-+/*1280x800@60 Sync Polarity  (CVT Mode)
-+*/
-+#define M1280X800_R60_HSP       NEGATIVE
-+#define M1280X800_R60_VSP       POSITIVE
-+
-+/*1280x960@60 Sync Polarity (VESA Mode)
-+*/
-+#define M1280X960_R60_HSP       POSITIVE
-+#define M1280X960_R60_VSP       POSITIVE
-+
-+/*1280x1024@60 Sync Polarity (VESA Mode)
-+*/
-+#define M1280X1024_R60_HSP      POSITIVE
-+#define M1280X1024_R60_VSP      POSITIVE
-+
-+/* 1360x768@60 Sync Polarity (CVT Mode) */
-+#define M1360X768_R60_HSP       POSITIVE
-+#define M1360X768_R60_VSP       POSITIVE
-+
-+/* 1360x768@60 Sync Polarity (CVT Reduce Blanking Mode) */
-+#define M1360X768_RB_R60_HSP       POSITIVE
-+#define M1360X768_RB_R60_VSP       NEGATIVE
-+
-+/* 1368x768@50 Sync Polarity (GTF Mode) */
-+#define M1368X768_R50_HSP       NEGATIVE
-+#define M1368X768_R50_VSP       POSITIVE
-+
-+/* 1368x768@60 Sync Polarity (VESA Mode) */
-+#define M1368X768_R60_HSP       NEGATIVE
-+#define M1368X768_R60_VSP       POSITIVE
-+
-+/*1280x1024@75 Sync Polarity (VESA Mode)
-+*/
-+#define M1280X1024_R75_HSP      POSITIVE
-+#define M1280X1024_R75_VSP      POSITIVE
-+
-+/*1280x1024@85 Sync Polarity (VESA Mode)
-+*/
-+#define M1280X1024_R85_HSP      POSITIVE
-+#define M1280X1024_R85_VSP      POSITIVE
-+
-+/*1440x1050@60 Sync Polarity (GTF Mode)
-+*/
-+#define M1440X1050_R60_HSP      NEGATIVE
-+#define M1440X1050_R60_VSP      POSITIVE
-+
-+/*1600x1200@60 Sync Polarity (VESA Mode)
-+*/
-+#define M1600X1200_R60_HSP      POSITIVE
-+#define M1600X1200_R60_VSP      POSITIVE
-+
-+/*1600x1200@75 Sync Polarity (VESA Mode)
-+*/
-+#define M1600X1200_R75_HSP      POSITIVE
-+#define M1600X1200_R75_VSP      POSITIVE
-+
-+/* 1680x1050@60 Sync Polarity (CVT Mode) */
-+#define M1680x1050_R60_HSP      NEGATIVE
-+#define M1680x1050_R60_VSP      NEGATIVE
-+
-+/* 1680x1050@60 Sync Polarity (CVT Reduce Blanking Mode) */
-+#define M1680x1050_RB_R60_HSP      POSITIVE
-+#define M1680x1050_RB_R60_VSP      NEGATIVE
-+
-+/* 1680x1050@75 Sync Polarity (CVT Mode) */
-+#define M1680x1050_R75_HSP      NEGATIVE
-+#define M1680x1050_R75_VSP      POSITIVE
-+
-+/*1920x1080@60 Sync Polarity (CVT Mode)
-+*/
-+#define M1920X1080_R60_HSP      NEGATIVE
-+#define M1920X1080_R60_VSP      POSITIVE
-+
-+/* 1920x1080@60 Sync Polarity (CVT Reduce Blanking Mode) */
-+#define M1920X1080_RB_R60_HSP  POSITIVE
-+#define M1920X1080_RB_R60_VSP  NEGATIVE
-+
-+/*1920x1440@60 Sync Polarity (VESA Mode)
-+*/
-+#define M1920X1440_R60_HSP      NEGATIVE
-+#define M1920X1440_R60_VSP      POSITIVE
-+
-+/*1920x1440@75 Sync Polarity (VESA Mode)
-+*/
-+#define M1920X1440_R75_HSP      NEGATIVE
-+#define M1920X1440_R75_VSP      POSITIVE
-+
-+#if 0
-+/* 1400x1050@60 Sync Polarity (VESA Mode) */
-+#define M1400X1050_R60_HSP      NEGATIVE
-+#define M1400X1050_R60_VSP      NEGATIVE
-+#endif
-+
-+/* 1400x1050@60 Sync Polarity (CVT Mode) */
-+#define M1400X1050_R60_HSP      NEGATIVE
-+#define M1400X1050_R60_VSP      POSITIVE
-+
-+/* 1400x1050@60 Sync Polarity (CVT Reduce Blanking Mode) */
-+#define M1400X1050_RB_R60_HSP      POSITIVE
-+#define M1400X1050_RB_R60_VSP      NEGATIVE
-+
-+/* 1400x1050@75 Sync Polarity (CVT Mode) */
-+#define M1400X1050_R75_HSP      NEGATIVE
-+#define M1400X1050_R75_VSP      POSITIVE
-+
-+/* 960x600@60 Sync Polarity (CVT Mode) */
-+#define M960X600_R60_HSP        NEGATIVE
-+#define M960X600_R60_VSP        POSITIVE
-+
-+/* 1000x600@60 Sync Polarity (GTF Mode) */
-+#define M1000X600_R60_HSP       NEGATIVE
-+#define M1000X600_R60_VSP       POSITIVE
-+
-+/* 1024x576@60 Sync Polarity (GTF Mode) */
-+#define M1024X576_R60_HSP       NEGATIVE
-+#define M1024X576_R60_VSP       POSITIVE
-+
-+/*1024x600@60 Sync Polarity (GTF Mode)*/
-+#define M1024X600_R60_HSP       NEGATIVE
-+#define M1024X600_R60_VSP       POSITIVE
-+
-+/* 1088x612@60 Sync Polarity (CVT Mode) */
-+#define M1088X612_R60_HSP       NEGATIVE
-+#define M1088X612_R60_VSP       POSITIVE
-+
-+/* 1152x720@60 Sync Polarity (CVT Mode) */
-+#define M1152X720_R60_HSP       NEGATIVE
-+#define M1152X720_R60_VSP       POSITIVE
-+
-+/* 1200x720@60 Sync Polarity (GTF Mode) */
-+#define M1200X720_R60_HSP       NEGATIVE
-+#define M1200X720_R60_VSP       POSITIVE
-+
-+/* 1280x600@60 Sync Polarity (GTF Mode) */
-+#define M1280x600_R60_HSP       NEGATIVE
-+#define M1280x600_R60_VSP       POSITIVE
-+
-+/* 1280x720@50 Sync Polarity  (GTF Mode) */
-+#define M1280X720_R50_HSP       NEGATIVE
-+#define M1280X720_R50_VSP       POSITIVE
-+
-+/* 1280x720@60 Sync Polarity  (CEA Mode) */
-+#define M1280X720_CEA_R60_HSP       POSITIVE
-+#define M1280X720_CEA_R60_VSP       POSITIVE
-+
-+/* 1440x900@60 Sync Polarity (CVT Mode) */
-+#define M1440X900_R60_HSP       NEGATIVE
-+#define M1440X900_R60_VSP       POSITIVE
-+
-+/* 1440x900@75 Sync Polarity (CVT Mode) */
-+#define M1440X900_R75_HSP       NEGATIVE
-+#define M1440X900_R75_VSP       POSITIVE
-+
-+/* 1440x900@60 Sync Polarity (CVT Reduce Blanking Mode) */
-+#define M1440X900_RB_R60_HSP       POSITIVE
-+#define M1440X900_RB_R60_VSP       NEGATIVE
-+
-+/* 1600x900@60 Sync Polarity (CVT Mode) */
-+#define M1600X900_R60_HSP       NEGATIVE
-+#define M1600X900_R60_VSP       POSITIVE
-+
-+/* 1600x900@60 Sync Polarity (CVT Reduce Blanking Mode) */
-+#define M1600X900_RB_R60_HSP       POSITIVE
-+#define M1600X900_RB_R60_VSP       NEGATIVE
-+
-+/* 1600x1024@60 Sync Polarity (GTF Mode) */
-+#define M1600X1024_R60_HSP      NEGATIVE
-+#define M1600X1024_R60_VSP      POSITIVE
-+
-+/* 1792x1344@60 Sync Polarity (DMT Mode) */
-+#define M1792x1344_R60_HSP      NEGATIVE
-+#define M1792x1344_R60_VSP      POSITIVE
-+
-+/* 1856x1392@60 Sync Polarity (DMT Mode) */
-+#define M1856x1392_R60_HSP      NEGATIVE
-+#define M1856x1392_R60_VSP      POSITIVE
-+
-+/* 1920x1200@60 Sync Polarity (CVT Mode) */
-+#define M1920X1200_R60_HSP      NEGATIVE
-+#define M1920X1200_R60_VSP      POSITIVE
-+
-+/* 1920x1200@60 Sync Polarity (CVT Reduce Blanking Mode) */
-+#define M1920X1200_RB_R60_HSP  POSITIVE
-+#define M1920X1200_RB_R60_VSP  NEGATIVE
-+
-+/* 1920x1080@60 Sync Polarity  (CEA Mode) */
-+#define M1920X1080_CEA_R60_HSP       POSITIVE
-+#define M1920X1080_CEA_R60_VSP       POSITIVE
-+
-+/* 2048x1536@60 Sync Polarity (CVT Mode) */
-+#define M2048x1536_R60_HSP      NEGATIVE
-+#define M2048x1536_R60_VSP      POSITIVE
-+
-+/* define PLL index: */
-+#define CLK_25_175M     25175000
-+#define CLK_26_880M     26880000
-+#define CLK_29_581M     29581000
-+#define CLK_31_490M     31490000
-+#define CLK_31_500M     31500000
-+#define CLK_31_728M     31728000
-+#define CLK_32_668M     32688000
-+#define CLK_36_000M     36000000
-+#define CLK_40_000M     40000000
-+#define CLK_41_291M     41291000
-+#define CLK_43_163M     43163000
-+#define CLK_45_250M     45250000	/* 45.46MHz */
-+#define CLK_46_000M     46000000
-+#define CLK_46_996M     46996000
-+#define CLK_48_000M     48000000
-+#define CLK_48_875M     48875000
-+#define CLK_49_500M     49500000
-+#define CLK_52_406M     52406000
-+#define CLK_52_977M     52977000
-+#define CLK_56_250M     56250000
-+#define CLK_60_466M     60466000
-+#define CLK_61_500M     61500000
-+#define CLK_65_000M     65000000
-+#define CLK_65_178M     65178000
-+#define CLK_66_750M     66750000	/* 67.116MHz */
-+#define CLK_68_179M     68179000
-+#define CLK_69_924M     69924000
-+#define CLK_70_159M     70159000
-+#define CLK_72_000M     72000000
-+#define CLK_74_270M     74270000
-+#define CLK_78_750M     78750000
-+#define CLK_80_136M     80136000
-+#define CLK_83_375M     83375000
-+#define CLK_83_950M     83950000
-+#define CLK_84_750M     84750000	/* 84.537Mhz */
-+#define CLK_85_860M     85860000
-+#define CLK_88_750M     88750000
-+#define CLK_94_500M     94500000
-+#define CLK_97_750M     97750000
-+#define CLK_101_000M    101000000
-+#define CLK_106_500M    106500000
-+#define CLK_108_000M    108000000
-+#define CLK_113_309M    113309000
-+#define CLK_118_840M    118840000
-+#define CLK_119_000M    119000000
-+#define CLK_121_750M    121750000	/* 121.704MHz */
-+#define CLK_125_104M    125104000
-+#define CLK_133_308M    133308000
-+#define CLK_135_000M    135000000
-+#define CLK_136_700M    136700000
-+#define CLK_138_400M    138400000
-+#define CLK_146_760M    146760000
-+#define CLK_148_500M    148500000
-+
-+#define CLK_153_920M    153920000
-+#define CLK_156_000M    156000000
-+#define CLK_157_500M    157500000
-+#define CLK_162_000M    162000000
-+#define CLK_187_000M    187000000
-+#define CLK_193_295M    193295000
-+#define CLK_202_500M    202500000
-+#define CLK_204_000M    204000000
-+#define CLK_218_500M    218500000
-+#define CLK_234_000M    234000000
-+#define CLK_267_250M    267250000
-+#define CLK_297_500M    297500000
-+#define CLK_74_481M     74481000
-+#define CLK_172_798M    172798000
-+#define CLK_122_614M    122614000
-+
-+/* CLE266 PLL value
-+*/
-+#define CLE266_PLL_25_175M     0x0000C763
-+#define CLE266_PLL_26_880M     0x0000440F
-+#define CLE266_PLL_29_581M     0x00008421
-+#define CLE266_PLL_31_490M     0x00004721
-+#define CLE266_PLL_31_500M     0x0000C3B5
-+#define CLE266_PLL_31_728M     0x0000471F
-+#define CLE266_PLL_32_668M     0x0000C449
-+#define CLE266_PLL_36_000M     0x0000C5E5
-+#define CLE266_PLL_40_000M     0x0000C459
-+#define CLE266_PLL_41_291M     0x00004417
-+#define CLE266_PLL_43_163M     0x0000C579
-+#define CLE266_PLL_45_250M     0x0000C57F	/* 45.46MHz */
-+#define CLE266_PLL_46_000M     0x0000875A
-+#define CLE266_PLL_46_996M     0x0000C4E9
-+#define CLE266_PLL_48_000M     0x00001443
-+#define CLE266_PLL_48_875M     0x00001D63
-+#define CLE266_PLL_49_500M     0x00008653
-+#define CLE266_PLL_52_406M     0x0000C475
-+#define CLE266_PLL_52_977M     0x00004525
-+#define CLE266_PLL_56_250M     0x000047B7
-+#define CLE266_PLL_60_466M     0x0000494C
-+#define CLE266_PLL_61_500M     0x00001456
-+#define CLE266_PLL_65_000M     0x000086ED
-+#define CLE266_PLL_65_178M     0x0000855B
-+#define CLE266_PLL_66_750M     0x0000844B	/* 67.116MHz */
-+#define CLE266_PLL_68_179M     0x00000413
-+#define CLE266_PLL_69_924M     0x00001153
-+#define CLE266_PLL_70_159M     0x00001462
-+#define CLE266_PLL_72_000M     0x00001879
-+#define CLE266_PLL_74_270M     0x00004853
-+#define CLE266_PLL_78_750M     0x00004321
-+#define CLE266_PLL_80_136M     0x0000051C
-+#define CLE266_PLL_83_375M     0x0000C25D
-+#define CLE266_PLL_83_950M     0x00000729
-+#define CLE266_PLL_84_750M     0x00008576	/* 84.537MHz */
-+#define CLE266_PLL_85_860M     0x00004754
-+#define CLE266_PLL_88_750M     0x0000051F
-+#define CLE266_PLL_94_500M     0x00000521
-+#define CLE266_PLL_97_750M     0x00004652
-+#define CLE266_PLL_101_000M    0x0000497F
-+#define CLE266_PLL_106_500M    0x00008477	/* 106.491463 MHz */
-+#define CLE266_PLL_108_000M    0x00008479
-+#define CLE266_PLL_113_309M    0x00000C5F
-+#define CLE266_PLL_118_840M    0x00004553
-+#define CLE266_PLL_119_000M    0x00000D6C
-+#define CLE266_PLL_121_750M    0x00004555	/* 121.704MHz */
-+#define CLE266_PLL_125_104M    0x000006B5
-+#define CLE266_PLL_133_308M    0x0000465F
-+#define CLE266_PLL_135_000M    0x0000455E
-+#define CLE266_PLL_136_700M    0x00000C73
-+#define CLE266_PLL_138_400M    0x00000957
-+#define CLE266_PLL_146_760M    0x00004567
-+#define CLE266_PLL_148_500M    0x00000853
-+#define CLE266_PLL_153_920M    0x00000856
-+#define CLE266_PLL_156_000M    0x0000456D
-+#define CLE266_PLL_157_500M    0x000005B7
-+#define CLE266_PLL_162_000M    0x00004571
-+#define CLE266_PLL_187_000M    0x00000976
-+#define CLE266_PLL_193_295M    0x0000086C
-+#define CLE266_PLL_202_500M    0x00000763
-+#define CLE266_PLL_204_000M    0x00000764
-+#define CLE266_PLL_218_500M    0x0000065C
-+#define CLE266_PLL_234_000M    0x00000662
-+#define CLE266_PLL_267_250M    0x00000670
-+#define CLE266_PLL_297_500M    0x000005E6
-+#define CLE266_PLL_74_481M     0x0000051A
-+#define CLE266_PLL_172_798M    0x00004579
-+#define CLE266_PLL_122_614M    0x0000073C
-+
-+/* K800 PLL value
-+*/
-+#define K800_PLL_25_175M     0x00539001
-+#define K800_PLL_26_880M     0x001C8C80
-+#define K800_PLL_29_581M     0x00409080
-+#define K800_PLL_31_490M     0x006F9001
-+#define K800_PLL_31_500M     0x008B9002
-+#define K800_PLL_31_728M     0x00AF9003
-+#define K800_PLL_32_668M     0x00909002
-+#define K800_PLL_36_000M     0x009F9002
-+#define K800_PLL_40_000M     0x00578C02
-+#define K800_PLL_41_291M     0x00438C01
-+#define K800_PLL_43_163M     0x00778C03
-+#define K800_PLL_45_250M     0x007D8C83	/* 45.46MHz */
-+#define K800_PLL_46_000M     0x00658C02
-+#define K800_PLL_46_996M     0x00818C83
-+#define K800_PLL_48_000M     0x00848C83
-+#define K800_PLL_48_875M     0x00508C81
-+#define K800_PLL_49_500M     0x00518C01
-+#define K800_PLL_52_406M     0x00738C02
-+#define K800_PLL_52_977M     0x00928C83
-+#define K800_PLL_56_250M     0x007C8C02
-+#define K800_PLL_60_466M     0x00A78C83
-+#define K800_PLL_61_500M     0x00AA8C83
-+#define K800_PLL_65_000M     0x006B8C01
-+#define K800_PLL_65_178M     0x00B48C83
-+#define K800_PLL_66_750M     0x00948C82	/* 67.116MHz */
-+#define K800_PLL_68_179M     0x00708C01
-+#define K800_PLL_69_924M     0x00C18C83
-+#define K800_PLL_70_159M     0x00C28C83
-+#define K800_PLL_72_000M     0x009F8C82
-+#define K800_PLL_74_270M     0x00ce0c03
-+#define K800_PLL_78_750M     0x00408801
-+#define K800_PLL_80_136M     0x00428801
-+#define K800_PLL_83_375M     0x005B0882
-+#define K800_PLL_83_950M     0x00738803
-+#define K800_PLL_84_750M     0x00748883	/* 84.477MHz */
-+#define K800_PLL_85_860M     0x00768883
-+#define K800_PLL_88_750M     0x007A8883
-+#define K800_PLL_94_500M     0x00828803
-+#define K800_PLL_97_750M     0x00878883
-+#define K800_PLL_101_000M    0x008B8883
-+#define K800_PLL_106_500M    0x00758882	/* 106.491463 MHz */
-+#define K800_PLL_108_000M    0x00778882
-+#define K800_PLL_113_309M    0x005D8881
-+#define K800_PLL_118_840M    0x00A48883
-+#define K800_PLL_119_000M    0x00838882
-+#define K800_PLL_121_750M    0x00A88883	/* 121.704MHz */
-+#define K800_PLL_125_104M    0x00688801
-+#define K800_PLL_133_308M    0x005D8801
-+#define K800_PLL_135_000M    0x001A4081
-+#define K800_PLL_136_700M    0x00BD8883
-+#define K800_PLL_138_400M    0x00728881
-+#define K800_PLL_146_760M    0x00CC8883
-+#define K800_PLL_148_500M    0x00ce0803
-+#define K800_PLL_153_920M    0x00548482
-+#define K800_PLL_156_000M    0x006B8483
-+#define K800_PLL_157_500M    0x00142080
-+#define K800_PLL_162_000M    0x006F8483
-+#define K800_PLL_187_000M    0x00818483
-+#define K800_PLL_193_295M    0x004F8481
-+#define K800_PLL_202_500M    0x00538481
-+#define K800_PLL_204_000M    0x008D8483
-+#define K800_PLL_218_500M    0x00978483
-+#define K800_PLL_234_000M    0x00608401
-+#define K800_PLL_267_250M    0x006E8481
-+#define K800_PLL_297_500M    0x00A48402
-+#define K800_PLL_74_481M     0x007B8C81
-+#define K800_PLL_172_798M    0x00778483
-+#define K800_PLL_122_614M    0x00878882
-+
-+/* PLL for VT3324 */
-+#define CX700_25_175M     0x008B1003
-+#define CX700_26_719M     0x00931003
-+#define CX700_26_880M     0x00941003
-+#define CX700_29_581M     0x00A49003
-+#define CX700_31_490M     0x00AE1003
-+#define CX700_31_500M     0x00AE1003
-+#define CX700_31_728M     0x00AF1003
-+#define CX700_32_668M     0x00B51003
-+#define CX700_36_000M     0x00C81003
-+#define CX700_40_000M     0x006E0C03
-+#define CX700_41_291M     0x00710C03
-+#define CX700_43_163M     0x00770C03
-+#define CX700_45_250M     0x007D0C03	/* 45.46MHz */
-+#define CX700_46_000M     0x007F0C03
-+#define CX700_46_996M     0x00818C83
-+#define CX700_48_000M     0x00840C03
-+#define CX700_48_875M     0x00508C81
-+#define CX700_49_500M     0x00880C03
-+#define CX700_52_406M     0x00730C02
-+#define CX700_52_977M     0x00920C03
-+#define CX700_56_250M     0x009B0C03
-+#define CX700_60_466M     0x00460C00
-+#define CX700_61_500M     0x00AA0C03
-+#define CX700_65_000M     0x006B0C01
-+#define CX700_65_178M     0x006B0C01
-+#define CX700_66_750M     0x00940C02	/*67.116MHz */
-+#define CX700_68_179M     0x00BC0C03
-+#define CX700_69_924M     0x00C10C03
-+#define CX700_70_159M     0x00C20C03
-+#define CX700_72_000M     0x009F0C02
-+#define CX700_74_270M     0x00CE0C03
-+#define CX700_74_481M     0x00CE0C03
-+#define CX700_78_750M     0x006C0803
-+#define CX700_80_136M     0x006E0803
-+#define CX700_83_375M     0x005B0882
-+#define CX700_83_950M     0x00730803
-+#define CX700_84_750M     0x00740803	/* 84.537Mhz */
-+#define CX700_85_860M     0x00760803
-+#define CX700_88_750M     0x00AC8885
-+#define CX700_94_500M     0x00820803
-+#define CX700_97_750M     0x00870803
-+#define CX700_101_000M    0x008B0803
-+#define CX700_106_500M    0x00750802
-+#define CX700_108_000M    0x00950803
-+#define CX700_113_309M    0x005D0801
-+#define CX700_118_840M    0x00A40803
-+#define CX700_119_000M    0x00830802
-+#define CX700_121_750M    0x00420800	/* 121.704MHz */
-+#define CX700_125_104M    0x00AD0803
-+#define CX700_133_308M    0x00930802
-+#define CX700_135_000M    0x00950802
-+#define CX700_136_700M    0x00BD0803
-+#define CX700_138_400M    0x00720801
-+#define CX700_146_760M    0x00CC0803
-+#define CX700_148_500M    0x00a40802
-+#define CX700_153_920M    0x00540402
-+#define CX700_156_000M    0x006B0403
-+#define CX700_157_500M    0x006C0403
-+#define CX700_162_000M    0x006F0403
-+#define CX700_172_798M    0x00770403
-+#define CX700_187_000M    0x00810403
-+#define CX700_193_295M    0x00850403
-+#define CX700_202_500M    0x008C0403
-+#define CX700_204_000M    0x008D0403
-+#define CX700_218_500M    0x00970403
-+#define CX700_234_000M    0x00600401
-+#define CX700_267_250M    0x00B90403
-+#define CX700_297_500M    0x00CE0403
-+#define CX700_122_614M    0x00870802
-+
-+/* Definition CRTC Timing Index */
-+#define H_TOTAL_INDEX               0
-+#define H_ADDR_INDEX                1
-+#define H_BLANK_START_INDEX         2
-+#define H_BLANK_END_INDEX           3
-+#define H_SYNC_START_INDEX          4
-+#define H_SYNC_END_INDEX            5
-+#define V_TOTAL_INDEX               6
-+#define V_ADDR_INDEX                7
-+#define V_BLANK_START_INDEX         8
-+#define V_BLANK_END_INDEX           9
-+#define V_SYNC_START_INDEX          10
-+#define V_SYNC_END_INDEX            11
-+#define H_TOTAL_SHADOW_INDEX        12
-+#define H_BLANK_END_SHADOW_INDEX    13
-+#define V_TOTAL_SHADOW_INDEX        14
-+#define V_ADDR_SHADOW_INDEX         15
-+#define V_BLANK_SATRT_SHADOW_INDEX  16
-+#define V_BLANK_END_SHADOW_INDEX    17
-+#define V_SYNC_SATRT_SHADOW_INDEX   18
-+#define V_SYNC_END_SHADOW_INDEX     19
-+
-+/* Definition Video Mode Pixel Clock (picoseconds)
-+*/
-+#define RES_480X640_60HZ_PIXCLOCK    39722
-+#define RES_640X480_60HZ_PIXCLOCK    39722
-+#define RES_640X480_75HZ_PIXCLOCK    31747
-+#define RES_640X480_85HZ_PIXCLOCK    27777
-+#define RES_640X480_100HZ_PIXCLOCK   23168
-+#define RES_640X480_120HZ_PIXCLOCK   19081
-+#define RES_720X480_60HZ_PIXCLOCK    37020
-+#define RES_720X576_60HZ_PIXCLOCK    30611
-+#define RES_800X600_60HZ_PIXCLOCK    25000
-+#define RES_800X600_75HZ_PIXCLOCK    20203
-+#define RES_800X600_85HZ_PIXCLOCK    17777
-+#define RES_800X600_100HZ_PIXCLOCK   14667
-+#define RES_800X600_120HZ_PIXCLOCK   11912
-+#define RES_800X480_60HZ_PIXCLOCK    33805
-+#define RES_848X480_60HZ_PIXCLOCK    31756
-+#define RES_856X480_60HZ_PIXCLOCK    31518
-+#define RES_1024X512_60HZ_PIXCLOCK   24218
-+#define RES_1024X600_60HZ_PIXCLOCK   20460
-+#define RES_1024X768_60HZ_PIXCLOCK   15385
-+#define RES_1024X768_75HZ_PIXCLOCK   12699
-+#define RES_1024X768_85HZ_PIXCLOCK   10582
-+#define RES_1024X768_100HZ_PIXCLOCK  8825
-+#define RES_1152X864_75HZ_PIXCLOCK   9259
-+#define RES_1280X768_60HZ_PIXCLOCK   12480
-+#define RES_1280X800_60HZ_PIXCLOCK   11994
-+#define RES_1280X960_60HZ_PIXCLOCK   9259
-+#define RES_1280X1024_60HZ_PIXCLOCK  9260
-+#define RES_1280X1024_75HZ_PIXCLOCK  7408
-+#define RES_1280X768_85HZ_PIXCLOCK   6349
-+#define RES_1440X1050_60HZ_PIXCLOCK  7993
-+#define RES_1600X1200_60HZ_PIXCLOCK  6172
-+#define RES_1600X1200_75HZ_PIXCLOCK  4938
-+#define RES_1280X720_60HZ_PIXCLOCK   13426
-+#define RES_1920X1080_60HZ_PIXCLOCK  5787
-+#define RES_1400X1050_60HZ_PIXCLOCK  8214
-+#define RES_1400X1050_75HZ_PIXCLOCK  6410
-+#define RES_1368X768_60HZ_PIXCLOCK   11647
-+#define RES_960X600_60HZ_PIXCLOCK      22099
-+#define RES_1000X600_60HZ_PIXCLOCK    20834
-+#define RES_1024X576_60HZ_PIXCLOCK    21278
-+#define RES_1088X612_60HZ_PIXCLOCK    18877
-+#define RES_1152X720_60HZ_PIXCLOCK    14981
-+#define RES_1200X720_60HZ_PIXCLOCK    14253
-+#define RES_1280X600_60HZ_PIXCLOCK    16260
-+#define RES_1280X720_50HZ_PIXCLOCK    16538
-+#define RES_1280X768_50HZ_PIXCLOCK    15342
-+#define RES_1366X768_50HZ_PIXCLOCK    14301
-+#define RES_1366X768_60HZ_PIXCLOCK    11646
-+#define RES_1360X768_60HZ_PIXCLOCK    11799
-+#define RES_1440X900_60HZ_PIXCLOCK    9390
-+#define RES_1440X900_75HZ_PIXCLOCK    7315
-+#define RES_1600X900_60HZ_PIXCLOCK    8415
-+#define RES_1600X1024_60HZ_PIXCLOCK   7315
-+#define RES_1680X1050_60HZ_PIXCLOCK   6814
-+#define RES_1680X1050_75HZ_PIXCLOCK   5348
-+#define RES_1792X1344_60HZ_PIXCLOCK   4902
-+#define RES_1856X1392_60HZ_PIXCLOCK   4577
-+#define RES_1920X1200_60HZ_PIXCLOCK   5173
-+#define RES_1920X1440_60HZ_PIXCLOCK   4274
-+#define RES_1920X1440_75HZ_PIXCLOCK   3367
-+#define RES_2048X1536_60HZ_PIXCLOCK   3742
-+
-+#define RES_1360X768_RB_60HZ_PIXCLOCK 13889
-+#define RES_1400X1050_RB_60HZ_PIXCLOCK 9901
-+#define RES_1440X900_RB_60HZ_PIXCLOCK   11268
-+#define RES_1600X900_RB_60HZ_PIXCLOCK   10230
-+#define RES_1680X1050_RB_60HZ_PIXCLOCK 8403
-+#define RES_1920X1080_RB_60HZ_PIXCLOCK 7225
-+#define RES_1920X1200_RB_60HZ_PIXCLOCK 6497
-+
-+/* LCD display method
-+*/
-+#define     LCD_EXPANDSION              0x00
-+#define     LCD_CENTERING               0x01
-+
-+/* LCD mode
-+*/
-+#define     LCD_OPENLDI               0x00
-+#define     LCD_SPWG                  0x01
-+
-+/* Define display timing
-+*/
-+struct display_timing {
-+	u16 hor_total;
-+	u16 hor_addr;
-+	u16 hor_blank_start;
-+	u16 hor_blank_end;
-+	u16 hor_sync_start;
-+	u16 hor_sync_end;
-+	u16 ver_total;
-+	u16 ver_addr;
-+	u16 ver_blank_start;
-+	u16 ver_blank_end;
-+	u16 ver_sync_start;
-+	u16 ver_sync_end;
++#include "global.h"
++
++static void via_i2c_setscl(void *data, int state)
++{
++	u8 val;
++	struct via_i2c_stuff *via_i2c_chan = (struct via_i2c_stuff *)data;
++
++	val = viafb_read_reg(VIASR, via_i2c_chan->i2c_port) & 0xF0;
++	if (state)
++		val |= 0x20;
++	else
++		val &= ~0x20;
++	switch (via_i2c_chan->i2c_port) {
++	case I2CPORTINDEX:
++		val |= 0x01;
++		break;
++	case GPIOPORTINDEX:
++		val |= 0x80;
++		break;
++	default:
++		DEBUG_MSG("via_i2c: specify wrong i2c port.\n");
++	}
++	viafb_write_reg(via_i2c_chan->i2c_port, VIASR, val);
++}
++
++static int via_i2c_getscl(void *data)
++{
++	struct via_i2c_stuff *via_i2c_chan = (struct via_i2c_stuff *)data;
++
++	if (viafb_read_reg(VIASR, via_i2c_chan->i2c_port) & 0x08)
++		return 1;
++	return 0;
++}
++
++static int via_i2c_getsda(void *data)
++{
++	struct via_i2c_stuff *via_i2c_chan = (struct via_i2c_stuff *)data;
++
++	if (viafb_read_reg(VIASR, via_i2c_chan->i2c_port) & 0x04)
++		return 1;
++	return 0;
++}
++
++static void via_i2c_setsda(void *data, int state)
++{
++	u8 val;
++	struct via_i2c_stuff *via_i2c_chan = (struct via_i2c_stuff *)data;
++
++	val = viafb_read_reg(VIASR, via_i2c_chan->i2c_port) & 0xF0;
++	if (state)
++		val |= 0x10;
++	else
++		val &= ~0x10;
++	switch (via_i2c_chan->i2c_port) {
++	case I2CPORTINDEX:
++		val |= 0x01;
++		break;
++	case GPIOPORTINDEX:
++		val |= 0x40;
++		break;
++	default:
++		DEBUG_MSG("via_i2c: specify wrong i2c port.\n");
++	}
++	viafb_write_reg(via_i2c_chan->i2c_port, VIASR, val);
++}
++
++int viafb_i2c_readbyte(u8 slave_addr, u8 index, u8 *pdata)
++{
++	u8 mm1[] = {0x00};
++	struct i2c_msg msgs[2];
++
++	*pdata = 0;
++	msgs[0].flags = 0;
++	msgs[1].flags = I2C_M_RD;
++	msgs[0].addr = msgs[1].addr = slave_addr / 2;
++	mm1[0] = index;
++	msgs[0].len = 1; msgs[1].len = 1;
++	msgs[0].buf = mm1; msgs[1].buf = pdata;
++	i2c_transfer(&viaparinfo->i2c_stuff.adapter, msgs, 2);
++
++	return 0;
++}
++
++int viafb_i2c_writebyte(u8 slave_addr, u8 index, u8 data)
++{
++	u8 msg[2] = { index, data };
++	struct i2c_msg msgs;
++
++	msgs.flags = 0;
++	msgs.addr = slave_addr / 2;
++	msgs.len = 2;
++	msgs.buf = msg;
++	return i2c_transfer(&viaparinfo->i2c_stuff.adapter, &msgs, 1);
++}
++
++int viafb_i2c_readbytes(u8 slave_addr, u8 index, u8 *buff, int buff_len)
++{
++	u8 mm1[] = {0x00};
++	struct i2c_msg msgs[2];
++
++	msgs[0].flags = 0;
++	msgs[1].flags = I2C_M_RD;
++	msgs[0].addr = msgs[1].addr = slave_addr / 2;
++	mm1[0] = index;
++	msgs[0].len = 1; msgs[1].len = buff_len;
++	msgs[0].buf = mm1; msgs[1].buf = buff;
++	i2c_transfer(&viaparinfo->i2c_stuff.adapter, msgs, 2);
++	return 0;
++}
++
++int viafb_create_i2c_bus(void *viapar)
++{
++	int ret;
++	struct viafb_par *par = (struct viafb_par *)viapar;
++
++	strcpy(par->i2c_stuff.adapter.name, "via_i2c");
++	par->i2c_stuff.i2c_port = 0x0;
++	par->i2c_stuff.adapter.owner = THIS_MODULE;
++	par->i2c_stuff.adapter.id = 0x01FFFF;
++	par->i2c_stuff.adapter.class = 0;
++	par->i2c_stuff.adapter.algo_data = &par->i2c_stuff.algo;
++	par->i2c_stuff.adapter.dev.parent = NULL;
++	par->i2c_stuff.algo.setsda = via_i2c_setsda;
++	par->i2c_stuff.algo.setscl = via_i2c_setscl;
++	par->i2c_stuff.algo.getsda = via_i2c_getsda;
++	par->i2c_stuff.algo.getscl = via_i2c_getscl;
++	par->i2c_stuff.algo.udelay = 40;
++	par->i2c_stuff.algo.timeout = 20;
++	par->i2c_stuff.algo.data = &par->i2c_stuff;
++
++	i2c_set_adapdata(&par->i2c_stuff.adapter, &par->i2c_stuff);
++
++	/* Raise SCL and SDA */
++	par->i2c_stuff.i2c_port = I2CPORTINDEX;
++	via_i2c_setsda(&par->i2c_stuff, 1);
++	via_i2c_setscl(&par->i2c_stuff, 1);
++
++	par->i2c_stuff.i2c_port = GPIOPORTINDEX;
++	via_i2c_setsda(&par->i2c_stuff, 1);
++	via_i2c_setscl(&par->i2c_stuff, 1);
++	udelay(20);
++
++	ret = i2c_bit_add_bus(&par->i2c_stuff.adapter);
++	if (ret == 0)
++		DEBUG_MSG("I2C bus %s registered.\n",
++		par->i2c_stuff.adapter.name);
++	else
++		DEBUG_MSG("Failed to register I2C bus %s.\n",
++			par->i2c_stuff.adapter.name);
++	return ret;
++}
++
++void viafb_delete_i2c_buss(void *par)
++{
++	i2c_del_adapter(&((struct viafb_par *)par)->i2c_stuff.adapter);
++}
+diff -puN /dev/null drivers/video/via/via_i2c.h
+--- /dev/null
++++ a/drivers/video/via/via_i2c.h
+@@ -0,0 +1,46 @@
++/*
++ * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
++ * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
++
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public
++ * License as published by the Free Software Foundation;
++ * either version 2, or (at your option) any later version.
++
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
++ * the implied warranty of MERCHANTABILITY or FITNESS FOR
++ * A PARTICULAR PURPOSE.See the GNU General Public License
++ * for more details.
++
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
++ */
++#ifndef __VIA_I2C_H__
++#define __VIA_I2C_H__
++
++#include <linux/i2c.h>
++#include <linux/i2c-algo-bit.h>
++
++struct via_i2c_stuff {
++	u16 i2c_port;			/* GPIO or I2C port */
++	struct i2c_adapter adapter;
++	struct i2c_algo_bit_data algo;
 +};
 +
-+struct crt_mode_table {
-+	int refresh_rate;
-+	unsigned long clk;
-+	int h_sync_polarity;
-+	int v_sync_polarity;
-+	struct display_timing crtc;
++#define I2CPORT           0x3c4
++#define I2CPORTINDEX      0x31
++#define GPIOPORT          0x3C4
++#define GPIOPORTINDEX     0x2C
++#define I2C_BUS             1
++#define GPIO_BUS            2
++#define DELAYPORT           0x3C3
++
++int viafb_i2c_readbyte(u8 slave_addr, u8 index, u8 *pdata);
++int viafb_i2c_writebyte(u8 slave_addr, u8 index, u8 data);
++int viafb_i2c_readbytes(u8 slave_addr, u8 index, u8 *buff, int buff_len);
++int viafb_create_i2c_bus(void *par);
++void viafb_delete_i2c_buss(void *par);
++#endif /* __VIA_I2C_H__ */
+diff -puN /dev/null drivers/video/via/viamode.c
+--- /dev/null
++++ a/drivers/video/via/viamode.c
+@@ -0,0 +1,1086 @@
++/*
++ * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
++ * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
++
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public
++ * License as published by the Free Software Foundation;
++ * either version 2, or (at your option) any later version.
++
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
++ * the implied warranty of MERCHANTABILITY or FITNESS FOR
++ * A PARTICULAR PURPOSE.See the GNU General Public License
++ * for more details.
++
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
++ */
++
++#include "global.h"
++struct res_map_refresh res_map_refresh_tbl[] = {
++/*hres, vres, vclock, vmode_refresh*/
++	{480, 640, RES_480X640_60HZ_PIXCLOCK, 60},
++	{640, 480, RES_640X480_60HZ_PIXCLOCK, 60},
++	{640, 480, RES_640X480_75HZ_PIXCLOCK, 75},
++	{640, 480, RES_640X480_85HZ_PIXCLOCK, 85},
++	{640, 480, RES_640X480_100HZ_PIXCLOCK, 100},
++	{640, 480, RES_640X480_120HZ_PIXCLOCK, 120},
++	{720, 480, RES_720X480_60HZ_PIXCLOCK, 60},
++	{720, 576, RES_720X576_60HZ_PIXCLOCK, 60},
++	{800, 480, RES_800X480_60HZ_PIXCLOCK, 60},
++	{800, 600, RES_800X600_60HZ_PIXCLOCK, 60},
++	{800, 600, RES_800X600_75HZ_PIXCLOCK, 75},
++	{800, 600, RES_800X600_85HZ_PIXCLOCK, 85},
++	{800, 600, RES_800X600_100HZ_PIXCLOCK, 100},
++	{800, 600, RES_800X600_120HZ_PIXCLOCK, 120},
++	{848, 480, RES_848X480_60HZ_PIXCLOCK, 60},
++	{856, 480, RES_856X480_60HZ_PIXCLOCK, 60},
++	{1024, 512, RES_1024X512_60HZ_PIXCLOCK, 60},
++	{1024, 600, RES_1024X600_60HZ_PIXCLOCK, 60},
++	{1024, 768, RES_1024X768_60HZ_PIXCLOCK, 60},
++	{1024, 768, RES_1024X768_75HZ_PIXCLOCK, 75},
++	{1024, 768, RES_1024X768_85HZ_PIXCLOCK, 85},
++	{1024, 768, RES_1024X768_100HZ_PIXCLOCK, 100},
++/*  {1152,864, RES_1152X864_70HZ_PIXCLOCK,  70},*/
++	{1152, 864, RES_1152X864_75HZ_PIXCLOCK, 75},
++	{1280, 768, RES_1280X768_60HZ_PIXCLOCK, 60},
++	{1280, 800, RES_1280X800_60HZ_PIXCLOCK, 60},
++	{1280, 960, RES_1280X960_60HZ_PIXCLOCK, 60},
++	{1280, 1024, RES_1280X1024_60HZ_PIXCLOCK, 60},
++	{1280, 1024, RES_1280X1024_75HZ_PIXCLOCK, 75},
++	{1280, 1024, RES_1280X768_85HZ_PIXCLOCK, 85},
++	{1440, 1050, RES_1440X1050_60HZ_PIXCLOCK, 60},
++	{1600, 1200, RES_1600X1200_60HZ_PIXCLOCK, 60},
++	{1600, 1200, RES_1600X1200_75HZ_PIXCLOCK, 75},
++	{1280, 720, RES_1280X720_60HZ_PIXCLOCK, 60},
++	{1920, 1080, RES_1920X1080_60HZ_PIXCLOCK, 60},
++	{1400, 1050, RES_1400X1050_60HZ_PIXCLOCK, 60},
++	{1400, 1050, RES_1400X1050_75HZ_PIXCLOCK, 75},
++	{1368, 768, RES_1368X768_60HZ_PIXCLOCK, 60},
++	{960, 600, RES_960X600_60HZ_PIXCLOCK, 60},
++	{1000, 600, RES_1000X600_60HZ_PIXCLOCK, 60},
++	{1024, 576, RES_1024X576_60HZ_PIXCLOCK, 60},
++	{1088, 612, RES_1088X612_60HZ_PIXCLOCK, 60},
++	{1152, 720, RES_1152X720_60HZ_PIXCLOCK, 60},
++	{1200, 720, RES_1200X720_60HZ_PIXCLOCK, 60},
++	{1280, 600, RES_1280X600_60HZ_PIXCLOCK, 60},
++	{1280, 720, RES_1280X720_50HZ_PIXCLOCK, 50},
++	{1280, 768, RES_1280X768_50HZ_PIXCLOCK, 50},
++	{1360, 768, RES_1360X768_60HZ_PIXCLOCK, 60},
++	{1366, 768, RES_1366X768_50HZ_PIXCLOCK, 50},
++	{1366, 768, RES_1366X768_60HZ_PIXCLOCK, 60},
++	{1440, 900, RES_1440X900_60HZ_PIXCLOCK, 60},
++	{1440, 900, RES_1440X900_75HZ_PIXCLOCK, 75},
++	{1600, 900, RES_1600X900_60HZ_PIXCLOCK, 60},
++	{1600, 1024, RES_1600X1024_60HZ_PIXCLOCK, 60},
++	{1680, 1050, RES_1680X1050_60HZ_PIXCLOCK, 60},
++	{1680, 1050, RES_1680X1050_75HZ_PIXCLOCK, 75},
++	{1792, 1344, RES_1792X1344_60HZ_PIXCLOCK, 60},
++	{1856, 1392, RES_1856X1392_60HZ_PIXCLOCK, 60},
++	{1920, 1200, RES_1920X1200_60HZ_PIXCLOCK, 60},
++	{1920, 1440, RES_1920X1440_60HZ_PIXCLOCK, 60},
++	{1920, 1440, RES_1920X1440_75HZ_PIXCLOCK, 75},
++	{2048, 1536, RES_2048X1536_60HZ_PIXCLOCK, 60}
 +};
 +
-+struct io_reg {
-+	int port;
-+	u8 index;
-+	u8 mask;
-+	u8 value;
++struct io_reg CN400_ModeXregs[] = { {VIASR, SR10, 0xFF, 0x01},
++{VIASR, SR15, 0x02, 0x02},
++{VIASR, SR16, 0xBF, 0x08},
++{VIASR, SR17, 0xFF, 0x1F},
++{VIASR, SR18, 0xFF, 0x4E},
++{VIASR, SR1A, 0xFB, 0x08},
++{VIASR, SR1E, 0x0F, 0x01},
++{VIASR, SR2A, 0xFF, 0x00},
++{VIACR, CR0A, 0xFF, 0x1E},	/* Cursor Start                        */
++{VIACR, CR0B, 0xFF, 0x00},	/* Cursor End                          */
++{VIACR, CR0E, 0xFF, 0x00},	/* Cursor Location High                */
++{VIACR, CR0F, 0xFF, 0x00},	/* Cursor Localtion Low                */
++{VIACR, CR32, 0xFF, 0x00},
++{VIACR, CR33, 0xFF, 0x00},
++{VIACR, CR34, 0xFF, 0x00},
++{VIACR, CR35, 0xFF, 0x00},
++{VIACR, CR36, 0x08, 0x00},
++{VIACR, CR62, 0xFF, 0x00},	/* Secondary Display Starting Address  */
++{VIACR, CR63, 0xFF, 0x00},	/* Secondary Display Starting Address  */
++{VIACR, CR64, 0xFF, 0x00},	/* Secondary Display Starting Address  */
++{VIACR, CR69, 0xFF, 0x00},
++{VIACR, CR6A, 0xFF, 0x40},
++{VIACR, CR6B, 0xFF, 0x00},
++{VIACR, CR6C, 0xFF, 0x00},
++{VIACR, CR7A, 0xFF, 0x01},	/* LCD Scaling Parameter 1             */
++{VIACR, CR7B, 0xFF, 0x02},	/* LCD Scaling Parameter 2             */
++{VIACR, CR7C, 0xFF, 0x03},	/* LCD Scaling Parameter 3             */
++{VIACR, CR7D, 0xFF, 0x04},	/* LCD Scaling Parameter 4             */
++{VIACR, CR7E, 0xFF, 0x07},	/* LCD Scaling Parameter 5             */
++{VIACR, CR7F, 0xFF, 0x0A},	/* LCD Scaling Parameter 6             */
++{VIACR, CR80, 0xFF, 0x0D},	/* LCD Scaling Parameter 7             */
++{VIACR, CR81, 0xFF, 0x13},	/* LCD Scaling Parameter 8             */
++{VIACR, CR82, 0xFF, 0x16},	/* LCD Scaling Parameter 9             */
++{VIACR, CR83, 0xFF, 0x19},	/* LCD Scaling Parameter 10            */
++{VIACR, CR84, 0xFF, 0x1C},	/* LCD Scaling Parameter 11            */
++{VIACR, CR85, 0xFF, 0x1D},	/* LCD Scaling Parameter 12            */
++{VIACR, CR86, 0xFF, 0x1E},	/* LCD Scaling Parameter 13            */
++{VIACR, CR87, 0xFF, 0x1F},	/* LCD Scaling Parameter 14            */
++{VIACR, CR88, 0xFF, 0x40},	/* LCD Panel Type                      */
++{VIACR, CR89, 0xFF, 0x00},	/* LCD Timing Control 0                */
++{VIACR, CR8A, 0xFF, 0x88},	/* LCD Timing Control 1                */
++{VIACR, CR8B, 0xFF, 0x69},	/* LCD Power Sequence Control 0        */
++{VIACR, CR8C, 0xFF, 0x57},	/* LCD Power Sequence Control 1        */
++{VIACR, CR8D, 0xFF, 0x00},	/* LCD Power Sequence Control 2        */
++{VIACR, CR8E, 0xFF, 0x7B},	/* LCD Power Sequence Control 3        */
++{VIACR, CR8F, 0xFF, 0x03},	/* LCD Power Sequence Control 4        */
++{VIACR, CR90, 0xFF, 0x30},	/* LCD Power Sequence Control 5        */
++{VIACR, CR91, 0xFF, 0xA0},	/* 24/12 bit LVDS Data off             */
++{VIACR, CR96, 0xFF, 0x00},
++{VIACR, CR97, 0xFF, 0x00},
++{VIACR, CR99, 0xFF, 0x00},
++{VIACR, CR9B, 0xFF, 0x00}
 +};
 +
-+#endif /* __SHARE_H__ */
++/* Video Mode Table for VT3314 chipset*/
++/* Common Setting for Video Mode */
++struct io_reg CN700_ModeXregs[] = { {VIASR, SR10, 0xFF, 0x01},
++{VIASR, SR15, 0x02, 0x02},
++{VIASR, SR16, 0xBF, 0x08},
++{VIASR, SR17, 0xFF, 0x1F},
++{VIASR, SR18, 0xFF, 0x4E},
++{VIASR, SR1A, 0xFB, 0x82},
++{VIASR, SR1B, 0xFF, 0xF0},
++{VIASR, SR1F, 0xFF, 0x00},
++{VIASR, SR1E, 0xFF, 0x01},
++{VIASR, SR22, 0xFF, 0x1F},
++{VIASR, SR2A, 0x0F, 0x00},
++{VIASR, SR2E, 0xFF, 0xFF},
++{VIASR, SR3F, 0xFF, 0xFF},
++{VIASR, SR40, 0xF7, 0x00},
++{VIASR, CR30, 0xFF, 0x04},
++{VIACR, CR32, 0xFF, 0x00},
++{VIACR, CR33, 0x7F, 0x00},
++{VIACR, CR34, 0xFF, 0x00},
++{VIACR, CR35, 0xFF, 0x00},
++{VIACR, CR36, 0xFF, 0x31},
++{VIACR, CR41, 0xFF, 0x80},
++{VIACR, CR42, 0xFF, 0x00},
++{VIACR, CR55, 0x80, 0x00},
++{VIACR, CR5D, 0x80, 0x00},	/*Horizontal Retrace Start bit[11] should be 0*/
++{VIACR, CR62, 0xFF, 0x00},	/* Secondary Display Starting Address */
++{VIACR, CR63, 0xFF, 0x00},	/* Secondary Display Starting Address */
++{VIACR, CR64, 0xFF, 0x00},	/* Secondary Display Starting Address */
++{VIACR, CR68, 0xFF, 0x67},	/* Default FIFO For IGA2 */
++{VIACR, CR69, 0xFF, 0x00},
++{VIACR, CR6A, 0xFD, 0x40},
++{VIACR, CR6B, 0xFF, 0x00},
++{VIACR, CR6C, 0xFF, 0x00},
++{VIACR, CR77, 0xFF, 0x00},	/* LCD scaling Factor */
++{VIACR, CR78, 0xFF, 0x00},	/* LCD scaling Factor */
++{VIACR, CR79, 0xFF, 0x00},	/* LCD scaling Factor */
++{VIACR, CR9F, 0x03, 0x00},	/* LCD scaling Factor */
++{VIACR, CR7A, 0xFF, 0x01},	/* LCD Scaling Parameter 1 */
++{VIACR, CR7B, 0xFF, 0x02},	/* LCD Scaling Parameter 2 */
++{VIACR, CR7C, 0xFF, 0x03},	/* LCD Scaling Parameter 3 */
++{VIACR, CR7D, 0xFF, 0x04},	/* LCD Scaling Parameter 4 */
++{VIACR, CR7E, 0xFF, 0x07},	/* LCD Scaling Parameter 5 */
++{VIACR, CR7F, 0xFF, 0x0A},	/* LCD Scaling Parameter 6 */
++{VIACR, CR80, 0xFF, 0x0D},	/* LCD Scaling Parameter 7 */
++{VIACR, CR81, 0xFF, 0x13},	/* LCD Scaling Parameter 8 */
++{VIACR, CR82, 0xFF, 0x16},	/* LCD Scaling Parameter 9 */
++{VIACR, CR83, 0xFF, 0x19},	/* LCD Scaling Parameter 10 */
++{VIACR, CR84, 0xFF, 0x1C},	/* LCD Scaling Parameter 11 */
++{VIACR, CR85, 0xFF, 0x1D},	/* LCD Scaling Parameter 12 */
++{VIACR, CR86, 0xFF, 0x1E},	/* LCD Scaling Parameter 13 */
++{VIACR, CR87, 0xFF, 0x1F},	/* LCD Scaling Parameter 14 */
++{VIACR, CR88, 0xFF, 0x40},	/* LCD Panel Type */
++{VIACR, CR89, 0xFF, 0x00},	/* LCD Timing Control 0 */
++{VIACR, CR8A, 0xFF, 0x88},	/* LCD Timing Control 1 */
++{VIACR, CR8B, 0xFF, 0x5D},	/* LCD Power Sequence Control 0 */
++{VIACR, CR8C, 0xFF, 0x2B},	/* LCD Power Sequence Control 1 */
++{VIACR, CR8D, 0xFF, 0x6F},	/* LCD Power Sequence Control 2 */
++{VIACR, CR8E, 0xFF, 0x2B},	/* LCD Power Sequence Control 3 */
++{VIACR, CR8F, 0xFF, 0x01},	/* LCD Power Sequence Control 4 */
++{VIACR, CR90, 0xFF, 0x01},	/* LCD Power Sequence Control 5 */
++{VIACR, CR91, 0xFF, 0xA0},	/* 24/12 bit LVDS Data off */
++{VIACR, CR96, 0xFF, 0x00},
++{VIACR, CR97, 0xFF, 0x00},
++{VIACR, CR99, 0xFF, 0x00},
++{VIACR, CR9B, 0xFF, 0x00},
++{VIACR, CR9D, 0xFF, 0x80},
++{VIACR, CR9E, 0xFF, 0x80}
++};
++
++struct io_reg KM400_ModeXregs[] = {
++	{VIASR, SR10, 0xFF, 0x01},	/* Unlock Register                 */
++	{VIASR, SR16, 0xFF, 0x08},	/* Display FIFO threshold Control  */
++	{VIASR, SR17, 0xFF, 0x1F},	/* Display FIFO Control            */
++	{VIASR, SR18, 0xFF, 0x4E},	/* GFX PREQ threshold              */
++	{VIASR, SR1A, 0xFF, 0x0a},	/* GFX PREQ threshold              */
++	{VIASR, SR1F, 0xFF, 0x00},	/* Memory Control 0                */
++	{VIASR, SR1B, 0xFF, 0xF0},	/* Power Management Control 0      */
++	{VIASR, SR1E, 0xFF, 0x01},	/* Power Management Control        */
++	{VIASR, SR20, 0xFF, 0x00},	/* Sequencer Arbiter Control 0     */
++	{VIASR, SR21, 0xFF, 0x00},	/* Sequencer Arbiter Control 1     */
++	{VIASR, SR22, 0xFF, 0x1F},	/* Display Arbiter Control 1       */
++	{VIASR, SR2A, 0xFF, 0x00},	/* Power Management Control 5      */
++	{VIASR, SR2D, 0xFF, 0xFF},	/* Power Management Control 1      */
++	{VIASR, SR2E, 0xFF, 0xFF},	/* Power Management Control 2      */
++	{VIACR, CR0A, 0xFF, 0x1E},	/* Cursor Start                    */
++	{VIACR, CR0B, 0xFF, 0x00},	/* Cursor End                      */
++	{VIACR, CR0E, 0xFF, 0x00},	/* Cursor Location High            */
++	{VIACR, CR0F, 0xFF, 0x00},	/* Cursor Localtion Low            */
++	{VIACR, CR33, 0xFF, 0x00},
++	{VIACR, CR55, 0x80, 0x00},
++	{VIACR, CR5D, 0x80, 0x00},
++	{VIACR, CR36, 0xFF, 0x01},	/* Power Mangement 3                  */
++	{VIACR, CR62, 0xFF, 0x00},	/* Secondary Display Starting Address */
++	{VIACR, CR63, 0xFF, 0x00},	/* Secondary Display Starting Address */
++	{VIACR, CR64, 0xFF, 0x00},	/* Secondary Display Starting Address */
++	{VIACR, CR68, 0xFF, 0x67},	/* Default FIFO For IGA2              */
++	{VIACR, CR6A, 0x20, 0x20},	/* Extended FIFO On                   */
++	{VIACR, CR7A, 0xFF, 0x01},	/* LCD Scaling Parameter 1            */
++	{VIACR, CR7B, 0xFF, 0x02},	/* LCD Scaling Parameter 2            */
++	{VIACR, CR7C, 0xFF, 0x03},	/* LCD Scaling Parameter 3            */
++	{VIACR, CR7D, 0xFF, 0x04},	/* LCD Scaling Parameter 4            */
++	{VIACR, CR7E, 0xFF, 0x07},	/* LCD Scaling Parameter 5            */
++	{VIACR, CR7F, 0xFF, 0x0A},	/* LCD Scaling Parameter 6            */
++	{VIACR, CR80, 0xFF, 0x0D},	/* LCD Scaling Parameter 7            */
++	{VIACR, CR81, 0xFF, 0x13},	/* LCD Scaling Parameter 8            */
++	{VIACR, CR82, 0xFF, 0x16},	/* LCD Scaling Parameter 9            */
++	{VIACR, CR83, 0xFF, 0x19},	/* LCD Scaling Parameter 10           */
++	{VIACR, CR84, 0xFF, 0x1C},	/* LCD Scaling Parameter 11           */
++	{VIACR, CR85, 0xFF, 0x1D},	/* LCD Scaling Parameter 12           */
++	{VIACR, CR86, 0xFF, 0x1E},	/* LCD Scaling Parameter 13           */
++	{VIACR, CR87, 0xFF, 0x1F},	/* LCD Scaling Parameter 14           */
++	{VIACR, CR88, 0xFF, 0x40},	/* LCD Panel Type                     */
++	{VIACR, CR89, 0xFF, 0x00},	/* LCD Timing Control 0               */
++	{VIACR, CR8A, 0xFF, 0x88},	/* LCD Timing Control 1               */
++	{VIACR, CR8B, 0xFF, 0x2D},	/* LCD Power Sequence Control 0       */
++	{VIACR, CR8C, 0xFF, 0x2D},	/* LCD Power Sequence Control 1       */
++	{VIACR, CR8D, 0xFF, 0xC8},	/* LCD Power Sequence Control 2       */
++	{VIACR, CR8E, 0xFF, 0x36},	/* LCD Power Sequence Control 3       */
++	{VIACR, CR8F, 0xFF, 0x00},	/* LCD Power Sequence Control 4       */
++	{VIACR, CR90, 0xFF, 0x10},	/* LCD Power Sequence Control 5       */
++	{VIACR, CR91, 0xFF, 0xA0},	/* 24/12 bit LVDS Data off            */
++	{VIACR, CR96, 0xFF, 0x03},	/* DVP0        ; DVP0 Clock Skew */
++	{VIACR, CR97, 0xFF, 0x03},	/* DFP high    ; DFPH Clock Skew */
++	{VIACR, CR99, 0xFF, 0x03},	/* DFP low           ; DFPL Clock Skew*/
++	{VIACR, CR9B, 0xFF, 0x07}	/* DVI on DVP1       ; DVP1 Clock Skew*/
++};
++
++/* For VT3324: Common Setting for Video Mode */
++struct io_reg CX700_ModeXregs[] = { {VIASR, SR10, 0xFF, 0x01},
++{VIASR, SR15, 0x02, 0x02},
++{VIASR, SR16, 0xBF, 0x08},
++{VIASR, SR17, 0xFF, 0x1F},
++{VIASR, SR18, 0xFF, 0x4E},
++{VIASR, SR1A, 0xFB, 0x08},
++{VIASR, SR1B, 0xFF, 0xF0},
++{VIASR, SR1E, 0xFF, 0x01},
++{VIASR, SR2A, 0xFF, 0x00},
++{VIASR, SR2D, 0xFF, 0xFF},	/* VCK and LCK PLL power on.           */
++{VIACR, CR0A, 0xFF, 0x1E},	/* Cursor Start                        */
++{VIACR, CR0B, 0xFF, 0x00},	/* Cursor End                          */
++{VIACR, CR0E, 0xFF, 0x00},	/* Cursor Location High                */
++{VIACR, CR0F, 0xFF, 0x00},	/* Cursor Localtion Low                */
++{VIACR, CR32, 0xFF, 0x00},
++{VIACR, CR33, 0xFF, 0x00},
++{VIACR, CR34, 0xFF, 0x00},
++{VIACR, CR35, 0xFF, 0x00},
++{VIACR, CR36, 0x08, 0x00},
++{VIACR, CR47, 0xC8, 0x00},	/* Clear VCK Plus. */
++{VIACR, CR62, 0xFF, 0x00},	/* Secondary Display Starting Address  */
++{VIACR, CR63, 0xFF, 0x00},	/* Secondary Display Starting Address  */
++{VIACR, CR64, 0xFF, 0x00},	/* Secondary Display Starting Address  */
++{VIACR, CRA3, 0xFF, 0x00},	/* Secondary Display Starting Address  */
++{VIACR, CR69, 0xFF, 0x00},
++{VIACR, CR6A, 0xFF, 0x40},
++{VIACR, CR6B, 0xFF, 0x00},
++{VIACR, CR6C, 0xFF, 0x00},
++{VIACR, CR7A, 0xFF, 0x01},	/* LCD Scaling Parameter 1             */
++{VIACR, CR7B, 0xFF, 0x02},	/* LCD Scaling Parameter 2             */
++{VIACR, CR7C, 0xFF, 0x03},	/* LCD Scaling Parameter 3             */
++{VIACR, CR7D, 0xFF, 0x04},	/* LCD Scaling Parameter 4             */
++{VIACR, CR7E, 0xFF, 0x07},	/* LCD Scaling Parameter 5             */
++{VIACR, CR7F, 0xFF, 0x0A},	/* LCD Scaling Parameter 6             */
++{VIACR, CR80, 0xFF, 0x0D},	/* LCD Scaling Parameter 7             */
++{VIACR, CR81, 0xFF, 0x13},	/* LCD Scaling Parameter 8             */
++{VIACR, CR82, 0xFF, 0x16},	/* LCD Scaling Parameter 9             */
++{VIACR, CR83, 0xFF, 0x19},	/* LCD Scaling Parameter 10            */
++{VIACR, CR84, 0xFF, 0x1C},	/* LCD Scaling Parameter 11            */
++{VIACR, CR85, 0xFF, 0x1D},	/* LCD Scaling Parameter 12            */
++{VIACR, CR86, 0xFF, 0x1E},	/* LCD Scaling Parameter 13            */
++{VIACR, CR87, 0xFF, 0x1F},	/* LCD Scaling Parameter 14            */
++{VIACR, CR88, 0xFF, 0x40},	/* LCD Panel Type                      */
++{VIACR, CR89, 0xFF, 0x00},	/* LCD Timing Control 0                */
++{VIACR, CR8A, 0xFF, 0x88},	/* LCD Timing Control 1                */
++{VIACR, CRD4, 0xFF, 0x81},	/* Second power sequence control       */
++{VIACR, CR8B, 0xFF, 0x5D},	/* LCD Power Sequence Control 0        */
++{VIACR, CR8C, 0xFF, 0x2B},	/* LCD Power Sequence Control 1        */
++{VIACR, CR8D, 0xFF, 0x6F},	/* LCD Power Sequence Control 2        */
++{VIACR, CR8E, 0xFF, 0x2B},	/* LCD Power Sequence Control 3        */
++{VIACR, CR8F, 0xFF, 0x01},	/* LCD Power Sequence Control 4        */
++{VIACR, CR90, 0xFF, 0x01},	/* LCD Power Sequence Control 5        */
++{VIACR, CR91, 0xFF, 0x80},	/* 24/12 bit LVDS Data off             */
++{VIACR, CR96, 0xFF, 0x00},
++{VIACR, CR97, 0xFF, 0x00},
++{VIACR, CR99, 0xFF, 0x00},
++{VIACR, CR9B, 0xFF, 0x00},
++{VIACR, CRD2, 0xFF, 0xFF}	/* TMDS/LVDS control register.         */
++};
++
++/* For VT3353: Common Setting for Video Mode */
++struct io_reg VX800_ModeXregs[] = { {VIASR, SR10, 0xFF, 0x01},
++{VIASR, SR15, 0x02, 0x02},
++{VIASR, SR16, 0xBF, 0x08},
++{VIASR, SR17, 0xFF, 0x1F},
++{VIASR, SR18, 0xFF, 0x4E},
++{VIASR, SR1A, 0xFB, 0x08},
++{VIASR, SR1B, 0xFF, 0xF0},
++{VIASR, SR1E, 0xFF, 0x01},
++{VIASR, SR2A, 0xFF, 0x00},
++{VIASR, SR2D, 0xFF, 0xFF},	/* VCK and LCK PLL power on.           */
++{VIACR, CR0A, 0xFF, 0x1E},	/* Cursor Start                        */
++{VIACR, CR0B, 0xFF, 0x00},	/* Cursor End                          */
++{VIACR, CR0E, 0xFF, 0x00},	/* Cursor Location High                */
++{VIACR, CR0F, 0xFF, 0x00},	/* Cursor Localtion Low                */
++{VIACR, CR32, 0xFF, 0x00},
++{VIACR, CR33, 0xFF, 0x00},
++{VIACR, CR34, 0xFF, 0x00},
++{VIACR, CR35, 0xFF, 0x00},
++{VIACR, CR36, 0x08, 0x00},
++{VIACR, CR47, 0xC8, 0x00},	/* Clear VCK Plus. */
++{VIACR, CR62, 0xFF, 0x00},	/* Secondary Display Starting Address  */
++{VIACR, CR63, 0xFF, 0x00},	/* Secondary Display Starting Address  */
++{VIACR, CR64, 0xFF, 0x00},	/* Secondary Display Starting Address  */
++{VIACR, CRA3, 0xFF, 0x00},	/* Secondary Display Starting Address  */
++{VIACR, CR69, 0xFF, 0x00},
++{VIACR, CR6A, 0xFF, 0x40},
++{VIACR, CR6B, 0xFF, 0x00},
++{VIACR, CR6C, 0xFF, 0x00},
++{VIACR, CR7A, 0xFF, 0x01},	/* LCD Scaling Parameter 1             */
++{VIACR, CR7B, 0xFF, 0x02},	/* LCD Scaling Parameter 2             */
++{VIACR, CR7C, 0xFF, 0x03},	/* LCD Scaling Parameter 3             */
++{VIACR, CR7D, 0xFF, 0x04},	/* LCD Scaling Parameter 4             */
++{VIACR, CR7E, 0xFF, 0x07},	/* LCD Scaling Parameter 5             */
++{VIACR, CR7F, 0xFF, 0x0A},	/* LCD Scaling Parameter 6             */
++{VIACR, CR80, 0xFF, 0x0D},	/* LCD Scaling Parameter 7             */
++{VIACR, CR81, 0xFF, 0x13},	/* LCD Scaling Parameter 8             */
++{VIACR, CR82, 0xFF, 0x16},	/* LCD Scaling Parameter 9             */
++{VIACR, CR83, 0xFF, 0x19},	/* LCD Scaling Parameter 10            */
++{VIACR, CR84, 0xFF, 0x1C},	/* LCD Scaling Parameter 11            */
++{VIACR, CR85, 0xFF, 0x1D},	/* LCD Scaling Parameter 12            */
++{VIACR, CR86, 0xFF, 0x1E},	/* LCD Scaling Parameter 13            */
++{VIACR, CR87, 0xFF, 0x1F},	/* LCD Scaling Parameter 14            */
++{VIACR, CR88, 0xFF, 0x40},	/* LCD Panel Type                      */
++{VIACR, CR89, 0xFF, 0x00},	/* LCD Timing Control 0                */
++{VIACR, CR8A, 0xFF, 0x88},	/* LCD Timing Control 1                */
++{VIACR, CRD4, 0xFF, 0x81},	/* Second power sequence control       */
++{VIACR, CR8B, 0xFF, 0x5D},	/* LCD Power Sequence Control 0        */
++{VIACR, CR8C, 0xFF, 0x2B},	/* LCD Power Sequence Control 1        */
++{VIACR, CR8D, 0xFF, 0x6F},	/* LCD Power Sequence Control 2        */
++{VIACR, CR8E, 0xFF, 0x2B},	/* LCD Power Sequence Control 3        */
++{VIACR, CR8F, 0xFF, 0x01},	/* LCD Power Sequence Control 4        */
++{VIACR, CR90, 0xFF, 0x01},	/* LCD Power Sequence Control 5        */
++{VIACR, CR91, 0xFF, 0x80},	/* 24/12 bit LVDS Data off             */
++{VIACR, CR96, 0xFF, 0x00},
++{VIACR, CR97, 0xFF, 0x00},
++{VIACR, CR99, 0xFF, 0x00},
++{VIACR, CR9B, 0xFF, 0x00},
++{VIACR, CRD2, 0xFF, 0xFF}	/* TMDS/LVDS control register.         */
++};
++
++/* Video Mode Table */
++/* Common Setting for Video Mode */
++struct io_reg CLE266_ModeXregs[] = { {VIASR, SR1E, 0xF0, 0x00},
++{VIASR, SR2A, 0x0F, 0x00},
++{VIASR, SR15, 0x02, 0x02},
++{VIASR, SR16, 0xBF, 0x08},
++{VIASR, SR17, 0xFF, 0x1F},
++{VIASR, SR18, 0xFF, 0x4E},
++{VIASR, SR1A, 0xFB, 0x08},
++
++{VIACR, CR32, 0xFF, 0x00},
++{VIACR, CR34, 0xFF, 0x00},
++{VIACR, CR35, 0xFF, 0x00},
++{VIACR, CR36, 0x08, 0x00},
++{VIACR, CR6A, 0xFF, 0x80},
++{VIACR, CR6A, 0xFF, 0xC0},
++
++{VIACR, CR55, 0x80, 0x00},
++{VIACR, CR5D, 0x80, 0x00},
++
++{VIAGR, GR20, 0xFF, 0x00},
++{VIAGR, GR21, 0xFF, 0x00},
++{VIAGR, GR22, 0xFF, 0x00},
++	/* LCD Parameters */
++{VIACR, CR7A, 0xFF, 0x01},	/* LCD Parameter 1 */
++{VIACR, CR7B, 0xFF, 0x02},	/* LCD Parameter 2 */
++{VIACR, CR7C, 0xFF, 0x03},	/* LCD Parameter 3 */
++{VIACR, CR7D, 0xFF, 0x04},	/* LCD Parameter 4 */
++{VIACR, CR7E, 0xFF, 0x07},	/* LCD Parameter 5 */
++{VIACR, CR7F, 0xFF, 0x0A},	/* LCD Parameter 6 */
++{VIACR, CR80, 0xFF, 0x0D},	/* LCD Parameter 7 */
++{VIACR, CR81, 0xFF, 0x13},	/* LCD Parameter 8 */
++{VIACR, CR82, 0xFF, 0x16},	/* LCD Parameter 9 */
++{VIACR, CR83, 0xFF, 0x19},	/* LCD Parameter 10 */
++{VIACR, CR84, 0xFF, 0x1C},	/* LCD Parameter 11 */
++{VIACR, CR85, 0xFF, 0x1D},	/* LCD Parameter 12 */
++{VIACR, CR86, 0xFF, 0x1E},	/* LCD Parameter 13 */
++{VIACR, CR87, 0xFF, 0x1F},	/* LCD Parameter 14 */
++
++};
++
++/* Mode:1024X768 */
++struct io_reg PM1024x768[] = { {VIASR, 0x16, 0xBF, 0x0C},
++{VIASR, 0x18, 0xFF, 0x4C}
++};
++
++struct patch_table res_patch_table[] = {
++	{VIA_RES_1024X768, ARRAY_SIZE(PM1024x768), PM1024x768}
++};
++
++/* struct VPITTable {
++	unsigned char  Misc;
++	unsigned char  SR[StdSR];
++	unsigned char  CR[StdCR];
++	unsigned char  GR[StdGR];
++	unsigned char  AR[StdAR];
++ };*/
++
++struct VPITTable VPIT = {
++	/* Msic */
++	0xC7,
++	/* Sequencer */
++	{0x01, 0x0F, 0x00, 0x0E},
++	/* Graphic Controller */
++	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x0F, 0xFF},
++	/* Attribute Controller */
++	{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
++	 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
++	 0x01, 0x00, 0x0F, 0x00}
++};
++
++/********************/
++/* Mode Table       */
++/********************/
++
++/* 480x640 */
++struct crt_mode_table CRTM480x640[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_25_175M, M480X640_R60_HSP, M480X640_R60_VSP,
++	 {624, 480, 480, 144, 504, 48, 663, 640, 640, 23, 641, 3} }	/* GTF*/
++};
++
++/* 640x480*/
++struct crt_mode_table CRTM640x480[] = {
++	/*r_rate,vclk,hsp,vsp */
++	/*HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_25_175M, M640X480_R60_HSP, M640X480_R60_VSP,
++	 {800, 640, 648, 144, 656, 96, 525, 480, 480, 45, 490, 2} },
++	{REFRESH_75, CLK_31_500M, M640X480_R75_HSP, M640X480_R75_VSP,
++	 {840, 640, 640, 200, 656, 64, 500, 480, 480, 20, 481, 3} },
++	{REFRESH_85, CLK_36_000M, M640X480_R85_HSP, M640X480_R85_VSP,
++	 {832, 640, 640, 192, 696, 56, 509, 480, 480, 29, 481, 3} },
++	{REFRESH_100, CLK_43_163M, M640X480_R100_HSP, M640X480_R100_VSP,
++	 {848, 640, 640, 208, 680, 64, 509, 480, 480, 29, 481, 3} }, /*GTF*/
++	    {REFRESH_120, CLK_52_406M, M640X480_R120_HSP,
++	     M640X480_R120_VSP,
++	     {848, 640, 640, 208, 680, 64, 515, 480, 480, 35, 481,
++	      3} } /*GTF*/
++};
++
++/*720x480 (GTF)*/
++struct crt_mode_table CRTM720x480[] = {
++	/*r_rate,vclk,hsp,vsp      */
++	/*HT, HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_26_880M, M720X480_R60_HSP, M720X480_R60_VSP,
++	 {896, 720, 720, 176, 736, 72, 497, 480, 480, 17, 481, 3} }
++
++};
++
++/*720x576 (GTF)*/
++struct crt_mode_table CRTM720x576[] = {
++	/*r_rate,vclk,hsp,vsp */
++	/*HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_32_668M, M720X576_R60_HSP, M720X576_R60_VSP,
++	 {912, 720, 720, 192, 744, 72, 597, 576, 576, 21, 577, 3} }
++};
++
++/* 800x480 (CVT) */
++struct crt_mode_table CRTM800x480[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_29_581M, M800X480_R60_HSP, M800X480_R60_VSP,
++	 {992, 800, 800, 192, 824, 72, 500, 480, 480, 20, 483, 7} }
++};
++
++/* 800x600*/
++struct crt_mode_table CRTM800x600[] = {
++	/*r_rate,vclk,hsp,vsp     */
++	/*HT,   HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_40_000M, M800X600_R60_HSP, M800X600_R60_VSP,
++	 {1056, 800, 800, 256, 840, 128, 628, 600, 600, 28, 601, 4} },
++	{REFRESH_75, CLK_49_500M, M800X600_R75_HSP, M800X600_R75_VSP,
++	 {1056, 800, 800, 256, 816, 80, 625, 600, 600, 25, 601, 3} },
++	{REFRESH_85, CLK_56_250M, M800X600_R85_HSP, M800X600_R85_VSP,
++	 {1048, 800, 800, 248, 832, 64, 631, 600, 600, 31, 601, 3} },
++	{REFRESH_100, CLK_68_179M, M800X600_R100_HSP, M800X600_R100_VSP,
++	 {1072, 800, 800, 272, 848, 88, 636, 600, 600, 36, 601, 3} },
++	{REFRESH_120, CLK_83_950M, M800X600_R120_HSP,
++		  M800X600_R120_VSP,
++		  {1088, 800, 800, 288, 856, 88, 643, 600, 600, 43, 601,
++		   3} }
++};
++
++/* 848x480 (CVT) */
++struct crt_mode_table CRTM848x480[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_31_500M, M848X480_R60_HSP, M848X480_R60_VSP,
++	 {1056, 848, 848, 208, 872, 80, 500, 480, 480, 20, 483, 5} }
++};
++
++/*856x480 (GTF) convert to 852x480*/
++struct crt_mode_table CRTM852x480[] = {
++	/*r_rate,vclk,hsp,vsp     */
++	/*HT,   HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_31_728M, M852X480_R60_HSP, M852X480_R60_VSP,
++	{1064, 856, 856, 208, 872, 88, 497, 480, 480, 17, 481, 3} }
++};
++
++/*1024x512 (GTF)*/
++struct crt_mode_table CRTM1024x512[] = {
++	/*r_rate,vclk,hsp,vsp     */
++	/*HT,   HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_41_291M, M1024X512_R60_HSP, M1024X512_R60_VSP,
++	 {1296, 1024, 1024, 272, 1056, 104, 531, 512, 512, 19, 513, 3} }
++
++};
++
++/* 1024x600*/
++struct crt_mode_table CRTM1024x600[] = {
++	/*r_rate,vclk,hsp,vsp */
++	/*HT,  HA,   HBS,  HBE, HSS,  HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_48_875M, M1024X600_R60_HSP, M1024X600_R60_VSP,
++	 {1312, 1024, 1024, 288, 1064, 104, 622, 600, 600, 22, 601, 3} },
++};
++
++/* 1024x768*/
++struct crt_mode_table CRTM1024x768[] = {
++	/*r_rate,vclk,hsp,vsp */
++	/*HT,  HA,   HBS,  HBE, HSS,  HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_65_000M, M1024X768_R60_HSP, M1024X768_R60_VSP,
++	{1344, 1024, 1024, 320, 1048, 136, 806, 768, 768, 38, 771, 6} },
++	{REFRESH_75, CLK_78_750M, M1024X768_R75_HSP, M1024X768_R75_VSP,
++	{1312, 1024, 1024, 288, 1040, 96, 800, 768, 768, 32, 769, 3} },
++	{REFRESH_85, CLK_94_500M, M1024X768_R85_HSP, M1024X768_R85_VSP,
++	{1376, 1024, 1024, 352, 1072, 96, 808, 768, 768, 40, 769, 3} },
++	{REFRESH_100, CLK_113_309M, M1024X768_R100_HSP, M1024X768_R100_VSP,
++	{1392, 1024, 1024, 368, 1096, 112, 814, 768, 768, 46, 769, 3} }
++};
++
++/* 1152x864*/
++struct crt_mode_table CRTM1152x864[] = {
++	/*r_rate,vclk,hsp,vsp      */
++	/*HT,  HA,   HBS,  HBE, HSS,  HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_75, CLK_108_000M, M1152X864_R75_HSP, M1152X864_R75_VSP,
++	 {1600, 1152, 1152, 448, 1216, 128, 900, 864, 864, 36, 865, 3} }
++
++};
++
++/* 1280x720 (HDMI 720P)*/
++struct crt_mode_table CRTM1280x720[] = {
++	/*r_rate,vclk,hsp,vsp */
++	/*HT,  HA,   HBS,  HBE, HSS,  HSE, VT,  VA,  VBS, VBE, VSS, VSE      */
++	{REFRESH_60, CLK_74_481M, M1280X720_R60_HSP, M1280X720_R60_VSP,
++	 {1648, 1280, 1280, 368, 1392, 40, 750, 720, 720, 30, 725, 5} },
++	{REFRESH_50, CLK_60_466M, M1280X720_R50_HSP, M1280X720_R50_VSP,
++	 {1632, 1280, 1280, 352, 1328, 128, 741, 720, 720, 21, 721, 3} }
++};
++
++/*1280x768 (GTF)*/
++struct crt_mode_table CRTM1280x768[] = {
++	/*r_rate,vclk,hsp,vsp     */
++	/*HT,  HA,   HBS,  HBE, HSS,  HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_80_136M, M1280X768_R60_HSP, M1280X768_R60_VSP,
++	 {1680, 1280, 1280, 400, 1344, 136, 795, 768, 768, 27, 769, 3} },
++	{REFRESH_50, CLK_65_178M, M1280X768_R50_HSP, M1280X768_R50_VSP,
++	 {1648, 1280, 1280, 368, 1336, 128, 791, 768, 768, 23, 769, 3} }
++};
++
++/* 1280x800 (CVT) */
++struct crt_mode_table CRTM1280x800[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_83_375M, M1280X800_R60_HSP, M1280X800_R60_VSP,
++	 {1680, 1280, 1280, 400, 1352, 128, 831, 800, 800, 31, 803, 6} }
++};
++
++/*1280x960*/
++struct crt_mode_table CRTM1280x960[] = {
++	/*r_rate,vclk,hsp,vsp */
++	/*HT,  HA,   HBS,  HBE, HSS,  HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_108_000M, M1280X960_R60_HSP, M1280X960_R60_VSP,
++	 {1800, 1280, 1280, 520, 1376, 112, 1000, 960, 960, 40, 961, 3} }
++};
++
++/* 1280x1024*/
++struct crt_mode_table CRTM1280x1024[] = {
++	/*r_rate,vclk,,hsp,vsp */
++	/*HT,  HA,   HBS,  HBE, HSS,  HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_108_000M, M1280X1024_R60_HSP, M1280X1024_R60_VSP,
++	 {1688, 1280, 1280, 408, 1328, 112, 1066, 1024, 1024, 42, 1025,
++	  3} },
++	{REFRESH_75, CLK_135_000M, M1280X1024_R75_HSP, M1280X1024_R75_VSP,
++	 {1688, 1280, 1280, 408, 1296, 144, 1066, 1024, 1024, 42, 1025,
++	  3} },
++	{REFRESH_85, CLK_157_500M, M1280X1024_R85_HSP, M1280X1024_R85_VSP,
++	 {1728, 1280, 1280, 448, 1344, 160, 1072, 1024, 1024, 48, 1025, 3} }
++};
++
++/* 1368x768 (GTF) */
++struct crt_mode_table CRTM1368x768[] = {
++	/* r_rate,  vclk, hsp, vsp */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_85_860M, M1368X768_R60_HSP, M1368X768_R60_VSP,
++	 {1800, 1368, 1368, 432, 1440, 144, 795, 768, 768, 27, 769, 3} }
++};
++
++/*1440x1050 (GTF)*/
++struct crt_mode_table CRTM1440x1050[] = {
++	/*r_rate,vclk,hsp,vsp      */
++	/*HT,  HA,   HBS,  HBE, HSS,  HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_125_104M, M1440X1050_R60_HSP, M1440X1050_R60_VSP,
++	 {1936, 1440, 1440, 496, 1536, 152, 1077, 1040, 1040, 37, 1041, 3} }
++};
++
++/* 1600x1200*/
++struct crt_mode_table CRTM1600x1200[] = {
++	/*r_rate,vclk,hsp,vsp */
++	/*HT,  HA,   HBS,  HBE, HSS,  HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_162_000M, M1600X1200_R60_HSP, M1600X1200_R60_VSP,
++	 {2160, 1600, 1600, 560, 1664, 192, 1250, 1200, 1200, 50, 1201,
++	  3} },
++	{REFRESH_75, CLK_202_500M, M1600X1200_R75_HSP, M1600X1200_R75_VSP,
++	 {2160, 1600, 1600, 560, 1664, 192, 1250, 1200, 1200, 50, 1201, 3} }
++
++};
++
++/* 1680x1050 (CVT) */
++struct crt_mode_table CRTM1680x1050[] = {
++	/* r_rate,          vclk,              hsp,             vsp  */
++	/* HT,  HA,  HBS, HBE, HSS, HSE,    VT,  VA,  VBS, VBE,  VSS, VSE */
++	{REFRESH_60, CLK_146_760M, M1680x1050_R60_HSP, M1680x1050_R60_VSP,
++	 {2240, 1680, 1680, 560, 1784, 176, 1089, 1050, 1050, 39, 1053,
++	  6} },
++	{REFRESH_75, CLK_187_000M, M1680x1050_R75_HSP, M1680x1050_R75_VSP,
++	 {2272, 1680, 1680, 592, 1800, 176, 1099, 1050, 1050, 49, 1053, 6} }
++};
++
++/* 1680x1050 (CVT Reduce Blanking) */
++struct crt_mode_table CRTM1680x1050_RB[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE,    VT,  VA,  VBS, VBE,  VSS, VSE */
++	{REFRESH_60, CLK_119_000M, M1680x1050_RB_R60_HSP,
++	 M1680x1050_RB_R60_VSP,
++	 {1840, 1680, 1680, 160, 1728, 32, 1080, 1050, 1050, 30, 1053, 6} }
++};
++
++/* 1920x1080 (CVT)*/
++struct crt_mode_table CRTM1920x1080[] = {
++	/*r_rate,vclk,hsp,vsp */
++	/*HT,  HA,   HBS,  HBE, HSS,  HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_172_798M, M1920X1080_R60_HSP, M1920X1080_R60_VSP,
++	 {2576, 1920, 1920, 656, 2048, 200, 1120, 1080, 1080, 40, 1083, 5} }
++};
++
++/* 1920x1080 (CVT with Reduce Blanking) */
++struct crt_mode_table CRTM1920x1080_RB[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_138_400M, M1920X1080_RB_R60_HSP,
++	 M1920X1080_RB_R60_VSP,
++	 {2080, 1920, 1920, 160, 1968, 32, 1111, 1080, 1080, 31, 1083, 5} }
++};
++
++/* 1920x1440*/
++struct crt_mode_table CRTM1920x1440[] = {
++	/*r_rate,vclk,hsp,vsp */
++	/*HT,  HA,   HBS,  HBE, HSS,  HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_234_000M, M1920X1440_R60_HSP, M1920X1440_R60_VSP,
++	 {2600, 1920, 1920, 680, 2048, 208, 1500, 1440, 1440, 60, 1441,
++	  3} },
++	{REFRESH_75, CLK_297_500M, M1920X1440_R75_HSP, M1920X1440_R75_VSP,
++	 {2640, 1920, 1920, 720, 2064, 224, 1500, 1440, 1440, 60, 1441, 3} }
++};
++
++/* 1400x1050 (CVT) */
++struct crt_mode_table CRTM1400x1050[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE,  HSS, HSE,   VT,  VA,  VBS, VBE,  VSS, VSE */
++	{REFRESH_60, CLK_121_750M, M1400X1050_R60_HSP, M1400X1050_R60_VSP,
++	 {1864, 1400, 1400, 464, 1488, 144, 1089, 1050, 1050, 39, 1053,
++	  4} },
++	{REFRESH_75, CLK_156_000M, M1400X1050_R75_HSP, M1400X1050_R75_VSP,
++	 {1896, 1400, 1400, 496, 1504, 144, 1099, 1050, 1050, 49, 1053, 4} }
++};
++
++/* 1400x1050 (CVT Reduce Blanking) */
++struct crt_mode_table CRTM1400x1050_RB[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE,  HSS, HSE,   VT,  VA,  VBS, VBE,  VSS, VSE */
++	{REFRESH_60, CLK_101_000M, M1400X1050_RB_R60_HSP,
++	 M1400X1050_RB_R60_VSP,
++	 {1560, 1400, 1400, 160, 1448, 32, 1080, 1050, 1050, 30, 1053, 4} }
++};
++
++/* 960x600 (CVT) */
++struct crt_mode_table CRTM960x600[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_45_250M, M960X600_R60_HSP, M960X600_R60_VSP,
++	 {1216, 960, 960, 256, 992, 96, 624, 600, 600, 24, 603, 6} }
++};
++
++/* 1000x600 (GTF) */
++struct crt_mode_table CRTM1000x600[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_48_000M, M1000X600_R60_HSP, M1000X600_R60_VSP,
++	 {1288, 1000, 1000, 288, 1040, 104, 622, 600, 600, 22, 601, 3} }
++};
++
++/* 1024x576 (GTF) */
++struct crt_mode_table CRTM1024x576[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_46_996M, M1024X576_R60_HSP, M1024X576_R60_VSP,
++	 {1312, 1024, 1024, 288, 1064, 104, 597, 576, 576, 21, 577, 3} }
++};
++
++/* 1088x612 (CVT) */
++struct crt_mode_table CRTM1088x612[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_52_977M, M1088X612_R60_HSP, M1088X612_R60_VSP,
++	 {1392, 1088, 1088, 304, 1136, 104, 636, 612, 612, 24, 615, 5} }
++};
++
++/* 1152x720 (CVT) */
++struct crt_mode_table CRTM1152x720[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_66_750M, M1152X720_R60_HSP, M1152X720_R60_VSP,
++	 {1488, 1152, 1152, 336, 1208, 112, 748, 720, 720, 28, 723, 6} }
++};
++
++/* 1200x720 (GTF) */
++struct crt_mode_table CRTM1200x720[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_70_159M, M1200X720_R60_HSP, M1200X720_R60_VSP,
++	 {1568, 1200, 1200, 368, 1256, 128, 746, 720, 720, 26, 721, 3} }
++};
++
++/* 1280x600 (GTF) */
++struct crt_mode_table CRTM1280x600[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE,  HSS, HSE, VT,  VA,  VBS, VBE,  VSS, VSE */
++	{REFRESH_60, CLK_61_500M, M1280x600_R60_HSP, M1280x600_R60_VSP,
++	 {1648, 1280, 1280, 368, 1336, 128, 622, 600, 600, 22, 601, 3} }
++};
++
++/* 1360x768 (CVT) */
++struct crt_mode_table CRTM1360x768[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_84_750M, M1360X768_R60_HSP, M1360X768_R60_VSP,
++	 {1776, 1360, 1360, 416, 1432, 136, 798, 768, 768, 30, 771, 5} }
++};
++
++/* 1360x768 (CVT Reduce Blanking) */
++struct crt_mode_table CRTM1360x768_RB[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_72_000M, M1360X768_RB_R60_HSP,
++	 M1360X768_RB_R60_VSP,
++	 {1520, 1360, 1360, 160, 1408, 32, 790, 768, 768, 22, 771, 5} }
++};
++
++/* 1366x768 (GTF) */
++struct crt_mode_table CRTM1366x768[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_85_860M, M1368X768_R60_HSP, M1368X768_R60_VSP,
++	 {1800, 1368, 1368, 432, 1440, 144, 795, 768, 768, 27, 769, 3} },
++	{REFRESH_50, CLK_69_924M, M1368X768_R50_HSP, M1368X768_R50_VSP,
++	 {1768, 1368, 1368, 400, 1424, 144, 791, 768, 768, 23, 769, 3} }
++};
++
++/* 1440x900 (CVT) */
++struct crt_mode_table CRTM1440x900[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_106_500M, M1440X900_R60_HSP, M1440X900_R60_VSP,
++	 {1904, 1440, 1440, 464, 1520, 152, 934, 900, 900, 34, 903, 6} },
++	{REFRESH_75, CLK_136_700M, M1440X900_R75_HSP, M1440X900_R75_VSP,
++	 {1936, 1440, 1440, 496, 1536, 152, 942, 900, 900, 42, 903, 6} }
++};
++
++/* 1440x900 (CVT Reduce Blanking) */
++struct crt_mode_table CRTM1440x900_RB[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_88_750M, M1440X900_RB_R60_HSP,
++	 M1440X900_RB_R60_VSP,
++	 {1600, 1440, 1440, 160, 1488, 32, 926, 900, 900, 26, 903, 6} }
++};
++
++/* 1600x900 (CVT) */
++struct crt_mode_table CRTM1600x900[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_118_840M, M1600X900_R60_HSP, M1600X900_R60_VSP,
++	 {2112, 1600, 1600, 512, 1688, 168, 934, 900, 900, 34, 903, 5} }
++};
++
++/* 1600x900 (CVT Reduce Blanking) */
++struct crt_mode_table CRTM1600x900_RB[] = {
++	/* r_rate,        vclk,           hsp,        vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_97_750M, M1600X900_RB_R60_HSP,
++	 M1600X900_RB_R60_VSP,
++	 {1760, 1600, 1600, 160, 1648, 32, 926, 900, 900, 26, 903, 5} }
++};
++
++/* 1600x1024 (GTF) */
++struct crt_mode_table CRTM1600x1024[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE,  HSS, HSE,   VT,  VA,  VBS, VBE,  VSS, VSE */
++	{REFRESH_60, CLK_136_700M, M1600X1024_R60_HSP, M1600X1024_R60_VSP,
++	 {2144, 1600, 1600, 544, 1704, 168, 1060, 1024, 1024, 36, 1025, 3} }
++};
++
++/* 1792x1344 (DMT) */
++struct crt_mode_table CRTM1792x1344[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE,  HSS, HSE,   VT,  VA,  VBS, VBE,  VSS, VSE */
++	{REFRESH_60, CLK_204_000M, M1792x1344_R60_HSP, M1792x1344_R60_VSP,
++	 {2448, 1792, 1792, 656, 1920, 200, 1394, 1344, 1344, 50, 1345, 3} }
++};
++
++/* 1856x1392 (DMT) */
++struct crt_mode_table CRTM1856x1392[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE,  HSS, HSE,   VT,  VA,  VBS, VBE,  VSS, VSE */
++	{REFRESH_60, CLK_218_500M, M1856x1392_R60_HSP, M1856x1392_R60_VSP,
++	 {2528, 1856, 1856, 672, 1952, 224, 1439, 1392, 1392, 47, 1393, 3} }
++};
++
++/* 1920x1200 (CVT) */
++struct crt_mode_table CRTM1920x1200[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_193_295M, M1920X1200_R60_HSP, M1920X1200_R60_VSP,
++	 {2592, 1920, 1920, 672, 2056, 200, 1245, 1200, 1200, 45, 1203, 6} }
++};
++
++/* 1920x1200 (CVT with Reduce Blanking) */
++struct crt_mode_table CRTM1920x1200_RB[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE, HSS, HSE, VT,  VA,  VBS, VBE, VSS, VSE */
++	{REFRESH_60, CLK_153_920M, M1920X1200_RB_R60_HSP,
++	 M1920X1200_RB_R60_VSP,
++	 {2080, 1920, 1920, 160, 1968, 32, 1235, 1200, 1200, 35, 1203, 6} }
++};
++
++/* 2048x1536 (CVT) */
++struct crt_mode_table CRTM2048x1536[] = {
++	/* r_rate,          vclk,              hsp,             vsp   */
++	/* HT,  HA,  HBS, HBE,  HSS, HSE,   VT,  VA,  VBS, VBE,  VSS, VSE */
++	{REFRESH_60, CLK_267_250M, M2048x1536_R60_HSP, M2048x1536_R60_VSP,
++	 {2800, 2048, 2048, 752, 2200, 224, 1592, 1536, 1536, 56, 1539, 4} }
++};
++
++/* Video Mode Table */
++/* struct VideoModeTable {*/
++/*  int                               ModeIndex;*/
++/*  struct crt_mode_table             *crtc;*/
++/*  int                               mode_array;*/
++/* };*/
++struct VideoModeTable CLE266Modes[] = {
++	/* Display : 480x640 (GTF) */
++	{VIA_RES_480X640, CRTM480x640, ARRAY_SIZE(CRTM480x640)},
++
++	/* Display : 640x480 */
++	{VIA_RES_640X480, CRTM640x480, ARRAY_SIZE(CRTM640x480)},
++
++	/* Display : 720x480 (GTF) */
++	{VIA_RES_720X480, CRTM720x480, ARRAY_SIZE(CRTM720x480)},
++
++	/* Display : 720x576 (GTF) */
++	{VIA_RES_720X576, CRTM720x576, ARRAY_SIZE(CRTM720x576)},
++
++	/* Display : 800x600 */
++	{VIA_RES_800X600, CRTM800x600, ARRAY_SIZE(CRTM800x600)},
++
++	/* Display : 800x480 (CVT) */
++	{VIA_RES_800X480, CRTM800x480, ARRAY_SIZE(CRTM800x480)},
++
++	/* Display : 848x480 (CVT) */
++	{VIA_RES_848X480, CRTM848x480, ARRAY_SIZE(CRTM848x480)},
++
++	/* Display : 852x480 (GTF) */
++	{VIA_RES_856X480, CRTM852x480, ARRAY_SIZE(CRTM852x480)},
++
++	/* Display : 1024x512 (GTF) */
++	{VIA_RES_1024X512, CRTM1024x512, ARRAY_SIZE(CRTM1024x512)},
++
++	/* Display : 1024x600 */
++	{VIA_RES_1024X600, CRTM1024x600, ARRAY_SIZE(CRTM1024x600)},
++
++	/* Display : 1024x576 (GTF) */
++	/*{ VIA_RES_1024X576, CRTM1024x576, ARRAY_SIZE(CRTM1024x576)}, */
++
++	/* Display : 1024x768 */
++	{VIA_RES_1024X768, CRTM1024x768, ARRAY_SIZE(CRTM1024x768)},
++
++	/* Display : 1152x864 */
++	{VIA_RES_1152X864, CRTM1152x864, ARRAY_SIZE(CRTM1152x864)},
++
++	/* Display : 1280x768 (GTF) */
++	{VIA_RES_1280X768, CRTM1280x768, ARRAY_SIZE(CRTM1280x768)},
++
++	/* Display : 960x600 (CVT) */
++	{VIA_RES_960X600, CRTM960x600, ARRAY_SIZE(CRTM960x600)},
++
++	/* Display : 1000x600 (GTF) */
++	{VIA_RES_1000X600, CRTM1000x600, ARRAY_SIZE(CRTM1000x600)},
++
++	/* Display : 1024x576 (GTF) */
++	{VIA_RES_1024X576, CRTM1024x576, ARRAY_SIZE(CRTM1024x576)},
++
++	/* Display : 1088x612 (GTF) */
++	{VIA_RES_1088X612, CRTM1088x612, ARRAY_SIZE(CRTM1088x612)},
++
++	/* Display : 1152x720 (CVT) */
++	{VIA_RES_1152X720, CRTM1152x720, ARRAY_SIZE(CRTM1152x720)},
++
++	/* Display : 1200x720 (GTF) */
++	{VIA_RES_1200X720, CRTM1200x720, ARRAY_SIZE(CRTM1200x720)},
++
++	/* Display : 1280x600 (GTF) */
++	{VIA_RES_1280X600, CRTM1280x600, ARRAY_SIZE(CRTM1280x600)},
++
++	/* Display : 1280x800 (CVT) */
++	{VIA_RES_1280X800, CRTM1280x800, ARRAY_SIZE(CRTM1280x800)},
++
++	/* Display : 1280x800 (GTF) */
++	/*{ M1280x800, CRTM1280x800, ARRAY_SIZE(CRTM1280x800)}, */
++
++	/* Display : 1280x960 */
++	{VIA_RES_1280X960, CRTM1280x960, ARRAY_SIZE(CRTM1280x960)},
++
++	/* Display : 1280x1024 */
++	{VIA_RES_1280X1024, CRTM1280x1024, ARRAY_SIZE(CRTM1280x1024)},
++
++	/* Display : 1360x768 (CVT) */
++	{VIA_RES_1360X768, CRTM1360x768, ARRAY_SIZE(CRTM1360x768)},
++
++	/* Display : 1360x768 (CVT Reduce Blanking) */
++	{VIA_RES_1360X768_RB, CRTM1360x768_RB,
++	 ARRAY_SIZE(CRTM1360x768_RB)},
++
++	/* Display : 1366x768 */
++	{VIA_RES_1366X768, CRTM1366x768, ARRAY_SIZE(CRTM1366x768)},
++
++	/* Display : 1368x768 (GTF) */
++	/*{ M1368x768,CRTM1368x768,ARRAY_SIZE(CRTM1368x768)}, */
++	/* Display : 1368x768 (GTF) */
++	{VIA_RES_1368X768, CRTM1368x768, ARRAY_SIZE(CRTM1368x768)},
++
++	/* Display : 1440x900 (CVT) */
++	{VIA_RES_1440X900, CRTM1440x900, ARRAY_SIZE(CRTM1440x900)},
++
++	/* Display : 1440x900 (CVT Reduce Blanking) */
++	{VIA_RES_1440X900_RB, CRTM1440x900_RB,
++	 ARRAY_SIZE(CRTM1440x900_RB)},
++
++	/* Display : 1440x1050 (GTF) */
++	{VIA_RES_1440X1050, CRTM1440x1050, ARRAY_SIZE(CRTM1440x1050)},
++
++	/* Display : 1400x1050 (CVT Reduce Blanking) */
++	{VIA_RES_1400X1050_RB, CRTM1400x1050_RB,
++	 ARRAY_SIZE(CRTM1400x1050_RB)},
++
++	/* Display : 1600x900 (CVT) */
++	{VIA_RES_1600X900, CRTM1600x900, ARRAY_SIZE(CRTM1600x900)},
++
++	/* Display : 1600x900 (CVT Reduce Blanking) */
++	{VIA_RES_1600X900_RB, CRTM1600x900_RB,
++	 ARRAY_SIZE(CRTM1600x900_RB)},
++
++	/* Display : 1600x1024 (GTF) */
++	{VIA_RES_1600X1024, CRTM1600x1024, ARRAY_SIZE(CRTM1600x1024)},
++
++	/* Display : 1600x1200 */
++	{VIA_RES_1600X1200, CRTM1600x1200, ARRAY_SIZE(CRTM1600x1200)},
++
++	/* Display : 1680x1050 (CVT) */
++	{VIA_RES_1680X1050, CRTM1680x1050, ARRAY_SIZE(CRTM1680x1050)},
++
++	/* Display : 1680x1050 (CVT Reduce Blanking) */
++	{VIA_RES_1680X1050_RB, CRTM1680x1050_RB,
++	 ARRAY_SIZE(CRTM1680x1050_RB)},
++
++	/* Display : 1792x1344 (DMT) */
++	{VIA_RES_1792X1344, CRTM1792x1344, ARRAY_SIZE(CRTM1792x1344)},
++
++	/* Display : 1856x1392 (DMT) */
++	{VIA_RES_1856X1392, CRTM1856x1392, ARRAY_SIZE(CRTM1856x1392)},
++
++	/* Display : 1920x1440 */
++	{VIA_RES_1920X1440, CRTM1920x1440, ARRAY_SIZE(CRTM1920x1440)},
++
++	/* Display : 2048x1536 */
++	{VIA_RES_2048X1536, CRTM2048x1536, ARRAY_SIZE(CRTM2048x1536)},
++
++	/* Display : 1280x720 */
++	{VIA_RES_1280X720, CRTM1280x720, ARRAY_SIZE(CRTM1280x720)},
++
++	/* Display : 1920x1080 (CVT) */
++	{VIA_RES_1920X1080, CRTM1920x1080, ARRAY_SIZE(CRTM1920x1080)},
++
++	/* Display : 1920x1080 (CVT Reduce Blanking) */
++	{VIA_RES_1920X1080_RB, CRTM1920x1080_RB,
++	 ARRAY_SIZE(CRTM1920x1080_RB)},
++
++	/* Display : 1920x1200 (CVT) */
++	{VIA_RES_1920X1200, CRTM1920x1200, ARRAY_SIZE(CRTM1920x1200)},
++
++	/* Display : 1920x1200 (CVT Reduce Blanking) */
++	{VIA_RES_1920X1200_RB, CRTM1920x1200_RB,
++	 ARRAY_SIZE(CRTM1920x1200_RB)},
++
++	/* Display : 1400x1050 (CVT) */
++	{VIA_RES_1400X1050, CRTM1400x1050, ARRAY_SIZE(CRTM1400x1050)}
++};
++struct crt_mode_table CEAM1280x720[] = {
++	{REFRESH_60, CLK_74_270M, M1280X720_CEA_R60_HSP,
++	 M1280X720_CEA_R60_VSP,
++	 /* HT,    HA,   HBS,  HBE,  HSS, HSE,  VT,   VA,  VBS, VBE, VSS, VSE */
++	 {1650, 1280, 1280, 370, 1390, 40, 750, 720, 720, 30, 725, 5} }
++};
++struct crt_mode_table CEAM1920x1080[] = {
++	{REFRESH_60, CLK_148_500M, M1920X1080_CEA_R60_HSP,
++	 M1920X1080_CEA_R60_VSP,
++	 /* HT,    HA,   HBS,  HBE,  HSS, HSE,  VT,  VA, VBS, VBE,  VSS, VSE */
++	 {2200, 1920, 1920, 300, 2008, 44, 1125, 1080, 1080, 45, 1084, 5} }
++};
++struct VideoModeTable CEA_HDMI_Modes[] = {
++	/* Display : 1280x720 */
++	{VIA_RES_1280X720, CEAM1280x720, ARRAY_SIZE(CEAM1280x720)},
++	{VIA_RES_1920X1080, CEAM1920x1080, ARRAY_SIZE(CEAM1920x1080)}
++};
+diff -puN /dev/null drivers/video/via/viamode.h
+--- /dev/null
++++ a/drivers/video/via/viamode.h
+@@ -0,0 +1,177 @@
++/*
++ * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
++ * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
++
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public
++ * License as published by the Free Software Foundation;
++ * either version 2, or (at your option) any later version.
++
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
++ * the implied warranty of MERCHANTABILITY or FITNESS FOR
++ * A PARTICULAR PURPOSE.See the GNU General Public License
++ * for more details.
++
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
++ */
++
++#ifndef __VIAMODE_H__
++#define __VIAMODE_H__
++
++#include "global.h"
++
++struct VPITTable {
++	unsigned char Misc;
++	unsigned char SR[StdSR];
++	unsigned char GR[StdGR];
++	unsigned char AR[StdAR];
++};
++
++struct VideoModeTable {
++	int ModeIndex;
++	struct crt_mode_table *crtc;
++	int mode_array;
++};
++
++struct patch_table {
++	int mode_index;
++	int table_length;
++	struct io_reg *io_reg_table;
++};
++
++struct res_map_refresh {
++	int hres;
++	int vres;
++	int pixclock;
++	int vmode_refresh;
++};
++
++#define NUM_TOTAL_RES_MAP_REFRESH ARRAY_SIZE(res_map_refresh_tbl)
++#define NUM_TOTAL_CEA_MODES  ARRAY_SIZE(CEA_HDMI_Modes)
++#define NUM_TOTAL_CN400_ModeXregs ARRAY_SIZE(CN400_ModeXregs)
++#define NUM_TOTAL_CN700_ModeXregs ARRAY_SIZE(CN700_ModeXregs)
++#define NUM_TOTAL_KM400_ModeXregs ARRAY_SIZE(KM400_ModeXregs)
++#define NUM_TOTAL_CX700_ModeXregs ARRAY_SIZE(CX700_ModeXregs)
++#define NUM_TOTAL_VX800_ModeXregs ARRAY_SIZE(VX800_ModeXregs)
++#define NUM_TOTAL_CLE266_ModeXregs ARRAY_SIZE(CLE266_ModeXregs)
++#define NUM_TOTAL_PATCH_MODE ARRAY_SIZE(res_patch_table)
++#define NUM_TOTAL_MODETABLE ARRAY_SIZE(CLE266Modes)
++
++/********************/
++/* Mode Table       */
++/********************/
++
++/* 480x640 */
++extern struct crt_mode_table CRTM480x640[1];
++/* 640x480*/
++extern struct crt_mode_table CRTM640x480[5];
++/*720x480 (GTF)*/
++extern struct crt_mode_table CRTM720x480[1];
++/*720x576 (GTF)*/
++extern struct crt_mode_table CRTM720x576[1];
++/* 800x480 (CVT) */
++extern struct crt_mode_table CRTM800x480[1];
++/* 800x600*/
++extern struct crt_mode_table CRTM800x600[5];
++/* 848x480 (CVT) */
++extern struct crt_mode_table CRTM848x480[1];
++/*856x480 (GTF) convert to 852x480*/
++extern struct crt_mode_table CRTM852x480[1];
++/*1024x512 (GTF)*/
++extern struct crt_mode_table CRTM1024x512[1];
++/* 1024x600*/
++extern struct crt_mode_table CRTM1024x600[1];
++/* 1024x768*/
++extern struct crt_mode_table CRTM1024x768[4];
++/* 1152x864*/
++extern struct crt_mode_table CRTM1152x864[1];
++/* 1280x720 (HDMI 720P)*/
++extern struct crt_mode_table CRTM1280x720[2];
++/*1280x768 (GTF)*/
++extern struct crt_mode_table CRTM1280x768[2];
++/* 1280x800 (CVT) */
++extern struct crt_mode_table CRTM1280x800[1];
++/*1280x960*/
++extern struct crt_mode_table CRTM1280x960[1];
++/* 1280x1024*/
++extern struct crt_mode_table CRTM1280x1024[3];
++/* 1368x768 (GTF) */
++extern struct crt_mode_table CRTM1368x768[1];
++/*1440x1050 (GTF)*/
++extern struct crt_mode_table CRTM1440x1050[1];
++/* 1600x1200*/
++extern struct crt_mode_table CRTM1600x1200[2];
++/* 1680x1050 (CVT) */
++extern struct crt_mode_table CRTM1680x1050[2];
++/* 1680x1050 (CVT Reduce Blanking) */
++extern struct crt_mode_table CRTM1680x1050_RB[1];
++/* 1920x1080 (CVT)*/
++extern struct crt_mode_table CRTM1920x1080[1];
++/* 1920x1080 (CVT with Reduce Blanking) */
++extern struct crt_mode_table CRTM1920x1080_RB[1];
++/* 1920x1440*/
++extern struct crt_mode_table CRTM1920x1440[2];
++/* 1400x1050 (CVT) */
++extern struct crt_mode_table CRTM1400x1050[2];
++/* 1400x1050 (CVT Reduce Blanking) */
++extern struct crt_mode_table CRTM1400x1050_RB[1];
++/* 960x600 (CVT) */
++extern struct crt_mode_table CRTM960x600[1];
++/* 1000x600 (GTF) */
++extern struct crt_mode_table CRTM1000x600[1];
++/* 1024x576 (GTF) */
++extern struct crt_mode_table CRTM1024x576[1];
++/* 1088x612 (CVT) */
++extern struct crt_mode_table CRTM1088x612[1];
++/* 1152x720 (CVT) */
++extern struct crt_mode_table CRTM1152x720[1];
++/* 1200x720 (GTF) */
++extern struct crt_mode_table CRTM1200x720[1];
++/* 1280x600 (GTF) */
++extern struct crt_mode_table CRTM1280x600[1];
++/* 1360x768 (CVT) */
++extern struct crt_mode_table CRTM1360x768[1];
++/* 1360x768 (CVT Reduce Blanking) */
++extern struct crt_mode_table CRTM1360x768_RB[1];
++/* 1366x768 (GTF) */
++extern struct crt_mode_table CRTM1366x768[2];
++/* 1440x900 (CVT) */
++extern struct crt_mode_table CRTM1440x900[2];
++/* 1440x900 (CVT Reduce Blanking) */
++extern struct crt_mode_table CRTM1440x900_RB[1];
++/* 1600x900 (CVT) */
++extern struct crt_mode_table CRTM1600x900[1];
++/* 1600x900 (CVT Reduce Blanking) */
++extern struct crt_mode_table CRTM1600x900_RB[1];
++/* 1600x1024 (GTF) */
++extern struct crt_mode_table CRTM1600x1024[1];
++/* 1792x1344 (DMT) */
++extern struct crt_mode_table CRTM1792x1344[1];
++/* 1856x1392 (DMT) */
++extern struct crt_mode_table CRTM1856x1392[1];
++/* 1920x1200 (CVT) */
++extern struct crt_mode_table CRTM1920x1200[1];
++/* 1920x1200 (CVT with Reduce Blanking) */
++extern struct crt_mode_table CRTM1920x1200_RB[1];
++/* 2048x1536 (CVT) */
++extern struct crt_mode_table CRTM2048x1536[1];
++extern struct VideoModeTable CLE266Modes[47];
++extern struct crt_mode_table CEAM1280x720[1];
++extern struct crt_mode_table CEAM1920x1080[1];
++extern struct VideoModeTable CEA_HDMI_Modes[2];
++
++extern struct res_map_refresh res_map_refresh_tbl[61];
++extern struct io_reg CN400_ModeXregs[52];
++extern struct io_reg CN700_ModeXregs[66];
++extern struct io_reg KM400_ModeXregs[55];
++extern struct io_reg CX700_ModeXregs[58];
++extern struct io_reg VX800_ModeXregs[58];
++extern struct io_reg CLE266_ModeXregs[32];
++extern struct io_reg PM1024x768[2];
++extern struct patch_table res_patch_table[1];
++extern struct VPITTable VPIT;
++#endif /* __VIAMODE_H__ */
 _
 
 Patches currently in -mm which might be from JosephChan@via.com.tw are
