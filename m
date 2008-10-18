@@ -1,56 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - documentation-explain-memory-barriers.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:12:20 -0700
-Message-ID: <200810182312.m9INCKmW027969@imap1.linux-foundation.org>
+Subject: - submittingpatches-add-a-reference-to-andis-ols-paper.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:12:30 -0700
+Message-ID: <200810182312.m9INCUFg028003@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59350 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34336 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751296AbYJRXMc (ORCPT
+	by vger.kernel.org with ESMTP id S1751298AbYJRXMh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:12:32 -0400
+	Sat, 18 Oct 2008 19:12:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: andi@firstfloor.org, ak@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     documentation: explain memory barriers
+     SubmittingPatches: add a reference to Andi's OLS paper
 has been removed from the -mm tree.  Its filename was
-     documentation-explain-memory-barriers.patch
+     submittingpatches-add-a-reference-to-andis-ols-paper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: documentation: explain memory barriers
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: SubmittingPatches: add a reference to Andi's OLS paper
+From: Andi Kleen <andi@firstfloor.org>
 
-We want all uses of memory barriers to be explained in the source code.
+For this year's OLS I wrote a paper on successfull strategies to submit
+difficult kernel patches.  Add a reference to it to SubmittingPatches.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/SubmitChecklist |    3 +++
- 1 file changed, 3 insertions(+)
+ Documentation/SubmittingPatches |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN Documentation/SubmitChecklist~documentation-explain-memory-barriers Documentation/SubmitChecklist
---- a/Documentation/SubmitChecklist~documentation-explain-memory-barriers
-+++ a/Documentation/SubmitChecklist
-@@ -85,3 +85,6 @@ kernel patches.
- 23: Tested after it has been merged into the -mm patchset to make sure
-     that it still works with all of the other queued patches and various
-     changes in the VM, VFS, and other subsystems.
+diff -puN Documentation/SubmittingPatches~submittingpatches-add-a-reference-to-andis-ols-paper Documentation/SubmittingPatches
+--- a/Documentation/SubmittingPatches~submittingpatches-add-a-reference-to-andis-ols-paper
++++ a/Documentation/SubmittingPatches
+@@ -672,4 +672,9 @@ Kernel Documentation/CodingStyle:
+ 
+ Linus Torvalds's mail on the canonical patch format:
+   <http://lkml.org/lkml/2005/4/7/183>
 +
-+24: All memory barriers {e.g., barrier(), rmb(), wmb()} need a comment in the
-+    source code that explains the logic of what they are doing and why.
++Andi Kleen, "On submitting kernel patches"
++  Some strategies to get difficult or controversal changes in.
++  http://halobates.de/on-submitting-patches.pdf
++
+ --
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
 origin.patch
-memory_probe-fix-wrong-sysfs-file-attribute.patch
-memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
+fix-documentation-of-sysrq-q.patch
+coredump-format_corename-dont-append-%pid-if-multi-threaded.patch
+add-config_core_dump_default_elf_headers.patch
+acpi-use-bcd2bin-bin2bcd.patch
 
