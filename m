@@ -1,132 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:17:58 -0700
-Message-ID: <200810182317.m9INHwVK029194@imap1.linux-foundation.org>
+Subject: - hfsplus-check-read_mapping_page-return-value.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:18:36 -0700
+Message-ID: <200810182318.m9INIa08029314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32828 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57457 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750991AbYJRXSx (ORCPT
+	by vger.kernel.org with ESMTP id S1752036AbYJRXSx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 18 Oct 2008 19:18:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kristoffer.ericson@gmail.com, Kristoffer.Ericson@gmail.com, geert@linux-m68k.org, krzysztof.h1@poczta.fm, varenet@parisc-linux.org, mm-commits@vger.kernel.org
+To: snakebyte@gmx.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: allow more chip revisions in Epson s1d13... video driver
+     hfsplus: check read_mapping_page() return value
 has been removed from the -mm tree.  Its filename was
-     fbdev-allow-more-chip-revisions-in-epson-s1d13-video-driver.patch
+     hfsplus-check-read_mapping_page-return-value.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: allow more chip revisions in Epson s1d13... video drive=
-r
-=46rom: Kristoffer Ericson <kristoffer.ericson@gmail.com>
+Subject: hfsplus: check read_mapping_page() return value
+From: Eric Sesterhenn <snakebyte@gmx.de>
 
-The Epson s1d13xxx hardware is common in many handhelds, but our driver=
- is
-currently locked to a single chip revision.  This patch adds an array o=
-f
-known to work revisions (which can be extended).
+W		hile testing more corrupted images with hfsplus, i came across
+one which triggered the following bug:
 
-[akpm@linux-foundation.org: cleanups]
-Signed-off-by: Kristoffer Ericson <Kristoffer.Ericson@gmail.com>
-Acked-by: Thibaut Var=E8ne <varenet@parisc-linux.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
+[15840.675016] BUG: unable to handle kernel paging request at fffffffb
+[15840.675016] IP: [<c0116a4f>] kmap+0x15/0x56
+[15840.675016] *pde = 00008067 *pte = 00000000
+[15840.675016] Oops: 0000 [#1] PREEMPT DEBUG_PAGEALLOC
+[15840.675016] Modules linked in:
+[15840.675016]
+[15840.675016] Pid: 11575, comm: ln Not tainted (2.6.27-rc4-00123-gd3ee1b4-dirty #29)
+[15840.675016] EIP: 0060:[<c0116a4f>] EFLAGS: 00010202 CPU: 0
+[15840.675016] EIP is at kmap+0x15/0x56
+[15840.675016] EAX: 00000246 EBX: fffffffb ECX: 00000000 EDX: cab919c0
+[15840.675016] ESI: 000007dd EDI: cab0bcf4 EBP: cab0bc98 ESP: cab0bc94
+[15840.675016]  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
+[15840.675016] Process ln (pid: 11575, ti=cab0b000 task=cab919c0 task.ti=cab0b000)
+[15840.675016] Stack: 00000000 cab0bcdc c0231cfb 00000000 cab0bce0 00000800 ca9290c0 fffffffb
+[15840.675016]        cab145d0 cab919c0 cab15998 22222222 22222222 22222222 00000001 cab15960
+[15840.675016]        000007dd cab0bcf4 cab0bd04 c022cb3a cab0bcf4 cab15a6c ca9290c0 00000000
+[15840.675016] Call Trace:
+[15840.675016]  [<c0231cfb>] ? hfsplus_block_allocate+0x6f/0x2d3
+[15840.675016]  [<c022cb3a>] ? hfsplus_file_extend+0xc4/0x1db
+[15840.675016]  [<c022ce41>] ? hfsplus_get_block+0x8c/0x19d
+[15840.675016]  [<c06adde4>] ? sub_preempt_count+0x9d/0xab
+[15840.675016]  [<c019ece6>] ? __block_prepare_write+0x147/0x311
+[15840.675016]  [<c0161934>] ? __grab_cache_page+0x52/0x73
+[15840.675016]  [<c019ef4f>] ? block_write_begin+0x79/0xd5
+[15840.675016]  [<c022cdb5>] ? hfsplus_get_block+0x0/0x19d
+[15840.675016]  [<c019f22a>] ? cont_write_begin+0x27f/0x2af
+[15840.675016]  [<c022cdb5>] ? hfsplus_get_block+0x0/0x19d
+[15840.675016]  [<c0139ebe>] ? tick_program_event+0x28/0x4c
+[15840.675016]  [<c013bd35>] ? trace_hardirqs_off+0xb/0xd
+[15840.675016]  [<c022b723>] ? hfsplus_write_begin+0x2d/0x32
+[15840.675016]  [<c022cdb5>] ? hfsplus_get_block+0x0/0x19d
+[15840.675016]  [<c0161988>] ? pagecache_write_begin+0x33/0x107
+[15840.675016]  [<c01879e5>] ? __page_symlink+0x3c/0xae
+[15840.675016]  [<c019ad34>] ? __mark_inode_dirty+0x12f/0x137
+[15840.675016]  [<c0187a70>] ? page_symlink+0x19/0x1e
+[15840.675016]  [<c022e6eb>] ? hfsplus_symlink+0x41/0xa6
+[15840.675016]  [<c01886a9>] ? vfs_symlink+0x99/0x101
+[15840.675016]  [<c018a2f6>] ? sys_symlinkat+0x6b/0xad
+[15840.675016]  [<c018a348>] ? sys_symlink+0x10/0x12
+[15840.675016]  [<c01038bd>] ? sysenter_do_call+0x12/0x31
+[15840.675016]  =======================
+[15840.675016] Code: 00 00 75 10 83 3d 88 2f ec c0 02 75 07 89 d0 e8 12 56 05 00 5d c3 55 ba 06 00 00 00 89 e5 53 89 c3 b8 3d eb 7e c0 e8 16 74 00 00 <8b> 03 c1 e8 1e 69 c0 d8 02 00 00 05 b8 69 8e c0 2b 80 c4 02 00
+[15840.675016] EIP: [<c0116a4f>] kmap+0x15/0x56 SS:ESP 0068:cab0bc94
+[15840.675016] ---[ end trace 4fea40dad6b70e5f ]---
+
+This happens because the return value of read_mapping_page() is passed on
+to kmap unchecked.  The bug is triggered after the first
+read_mapping_page() in hfsplus_block_allocate(), this patch fixes all
+three usages in this functions but leaves the ones further down in the
+file unchanged.
+
+Signed-off-by: Eric Sesterhenn <snakebyte@gmx.de>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/s1d13xxxfb.c |   23 +++++++++++++++++++----
- include/video/s1d13xxxfb.h |    3 ++-
- 2 files changed, 21 insertions(+), 5 deletions(-)
+ fs/hfsplus/bitmap.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN drivers/video/s1d13xxxfb.c~fbdev-allow-more-chip-revisions-in=
--epson-s1d13-video-driver drivers/video/s1d13xxxfb.c
---- a/drivers/video/s1d13xxxfb.c~fbdev-allow-more-chip-revisions-in-eps=
-on-s1d13-video-driver
-+++ a/drivers/video/s1d13xxxfb.c
-@@ -50,6 +50,11 @@
- #define dbg(fmt, args...) do { } while (0)
- #endif
-=20
-+static const int __devinitconst s1d13xxxfb_revisions[] =3D {
-+	S1D13506_CHIP_REV,	/* Rev.4 on HP Jornada 7xx S1D13506 */
-+	S1D13806_CHIP_REV,	/* Rev.7 on .. */
-+};
-+
- /*
-  * Here we define the default struct fb_fix_screeninfo
-  */
-@@ -538,6 +543,7 @@ s1d13xxxfb_probe(struct platform_device=20
- 	struct fb_info *info;
- 	struct s1d13xxxfb_pdata *pdata =3D NULL;
- 	int ret =3D 0;
-+	int i;
- 	u8 revision;
-=20
- 	dbg("probe called: device is %p\n", pdev);
-@@ -607,10 +613,19 @@ s1d13xxxfb_probe(struct platform_device=20
- 		goto bail;
- 	}
-=20
--	revision =3D s1d13xxxfb_readreg(default_par, S1DREG_REV_CODE);
--	if ((revision >> 2) !=3D S1D_CHIP_REV) {
--		printk(KERN_INFO PFX "chip not found: %i\n", (revision >> 2));
--		ret =3D -ENODEV;
-+	revision =3D s1d13xxxfb_readreg(default_par, S1DREG_REV_CODE) >> 2;
-+
-+	ret =3D -ENODEV;
-+
-+	for (i =3D 0; i < ARRAY_SIZE(s1d13xxxfb_revisions); i++) {
-+		if (revision =3D=3D s1d13xxxfb_revisions[i])
-+			ret =3D 0;
+diff -puN fs/hfsplus/bitmap.c~hfsplus-check-read_mapping_page-return-value fs/hfsplus/bitmap.c
+--- a/fs/hfsplus/bitmap.c~hfsplus-check-read_mapping_page-return-value
++++ a/fs/hfsplus/bitmap.c
+@@ -32,6 +32,10 @@ int hfsplus_block_allocate(struct super_
+ 	mutex_lock(&HFSPLUS_SB(sb).alloc_file->i_mutex);
+ 	mapping = HFSPLUS_SB(sb).alloc_file->i_mapping;
+ 	page = read_mapping_page(mapping, offset / PAGE_CACHE_BITS, NULL);
++	if (IS_ERR(page)) {
++		start = size;
++		goto out;
 +	}
-+
-+	if (!ret)
-+		printk(KERN_INFO PFX "chip revision %i\n", revision);
-+	else {
-+		printk(KERN_INFO PFX "unknown chip revision %i\n", revision);
- 		goto bail;
- 	}
-=20
-diff -puN include/video/s1d13xxxfb.h~fbdev-allow-more-chip-revisions-in=
--epson-s1d13-video-driver include/video/s1d13xxxfb.h
---- a/include/video/s1d13xxxfb.h~fbdev-allow-more-chip-revisions-in-eps=
-on-s1d13-video-driver
-+++ a/include/video/s1d13xxxfb.h
-@@ -14,7 +14,8 @@
- #define	S1D13XXXFB_H
-=20
- #define S1D_PALETTE_SIZE		256
--#define S1D_CHIP_REV			7	/* expected chip revision number for s1d13806=
- */
-+#define S1D13506_CHIP_REV		4	/* expected chip revision number for s1d1=
-3506 */
-+#define S1D13806_CHIP_REV		7	/* expected chip revision number for s1d1=
-3806 */
- #define S1D_FBID			"S1D13806"
- #define S1D_DEVICENAME			"s1d13806fb"
-=20
+ 	pptr = kmap(page);
+ 	curr = pptr + (offset & (PAGE_CACHE_BITS - 1)) / 32;
+ 	i = offset % 32;
+@@ -73,6 +77,10 @@ int hfsplus_block_allocate(struct super_
+ 			break;
+ 		page = read_mapping_page(mapping, offset / PAGE_CACHE_BITS,
+ 					 NULL);
++		if (IS_ERR(page)) {
++			start = size;
++			goto out;
++		}
+ 		curr = pptr = kmap(page);
+ 		if ((size ^ offset) / PAGE_CACHE_BITS)
+ 			end = pptr + PAGE_CACHE_BITS / 32;
+@@ -120,6 +128,10 @@ found:
+ 		offset += PAGE_CACHE_BITS;
+ 		page = read_mapping_page(mapping, offset / PAGE_CACHE_BITS,
+ 					 NULL);
++		if (IS_ERR(page)) {
++			start = size;
++			goto out;
++		}
+ 		pptr = kmap(page);
+ 		curr = pptr;
+ 		end = pptr + PAGE_CACHE_BITS / 32;
 _
 
-Patches currently in -mm which might be from kristoffer.ericson@gmail.c=
-om are
+Patches currently in -mm which might be from snakebyte@gmx.de are
 
 origin.patch
+hfsplus-fix-possible-deadlock-when-handling-corrupted-extents.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
