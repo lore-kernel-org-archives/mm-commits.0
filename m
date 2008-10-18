@@ -1,73 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - checkpatch-add-tests-for-the-attribute-matcher.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:13:16 -0700
-Message-ID: <200810182313.m9INDGt2028161@imap1.linux-foundation.org>
+Subject: - x86-convert-calgary-iommu-driver-to-generic-iommu_num_pages-function.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:12:58 -0700
+Message-ID: <200810182312.m9INCwMC028093@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60401 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47899 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751374AbYJRXNY (ORCPT
+	by vger.kernel.org with ESMTP id S1751370AbYJRXNX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:13:24 -0400
+	Sat, 18 Oct 2008 19:13:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apw@shadowen.org, mm-commits@vger.kernel.org
+To: joerg.roedel@amd.com, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     checkpatch: add tests for the attribute matcher
+     x86: convert Calgary IOMMU driver to generic iommu_num_pages function
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-tests-for-the-attribute-matcher.patch
+     x86-convert-calgary-iommu-driver-to-generic-iommu_num_pages-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: checkpatch: add tests for the attribute matcher
-From: Andy Whitcroft <apw@shadowen.org>
+Subject: x86: convert Calgary IOMMU driver to generic iommu_num_pages function
+From: Joerg Roedel <joerg.roedel@amd.com>
 
-Add support for direct testing of the attribute matcher, add basic tests
-for it.
-
-Signed-off-by: Andy Whitcroft <apw@shadowen.org>
+Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Acked-by: Muli Ben-Yehuda <muli@il.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ arch/x86/kernel/pci-calgary_64.c |   18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-tests-for-the-attribute-matcher scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-tests-for-the-attribute-matcher
-+++ a/scripts/checkpatch.pl
-@@ -66,6 +66,7 @@ if ($#ARGV < 0) {
- my $dbg_values = 0;
- my $dbg_possible = 0;
- my $dbg_type = 0;
-+my $dbg_attr = 0;
- for my $key (keys %debug) {
- 	eval "\${dbg_$key} = '$debug{$key}';"
- }
-@@ -1367,6 +1368,15 @@ sub process {
- 			}
- 			next;
- 		}
-+# TEST: allow direct testing of the attribute matcher.
-+		if ($dbg_attr) {
-+			if ($line =~ /^.\s*$Attribute\s*$/) {
-+				ERROR("TEST: is attr\n" . $herecurr);
-+			} elsif ($dbg_attr > 1 && $line =~ /^.+($Attribute)/) {
-+				ERROR("TEST: is not attr ($1 is)\n". $herecurr);
-+			}
-+			next;
-+		}
+diff -puN arch/x86/kernel/pci-calgary_64.c~x86-convert-calgary-iommu-driver-to-generic-iommu_num_pages-function arch/x86/kernel/pci-calgary_64.c
+--- a/arch/x86/kernel/pci-calgary_64.c~x86-convert-calgary-iommu-driver-to-generic-iommu_num_pages-function
++++ a/arch/x86/kernel/pci-calgary_64.c
+@@ -217,16 +217,6 @@ static inline unsigned long verify_bit_r
  
- # check for initialisation to aggregates open brace on the next line
- 		if ($prevline =~ /$Declare\s*$Ident\s*=\s*$/ &&
+ #endif /* CONFIG_IOMMU_DEBUG */
+ 
+-static inline unsigned int num_dma_pages(unsigned long dma, unsigned int dmalen)
+-{
+-	unsigned int npages;
+-
+-	npages = PAGE_ALIGN(dma + dmalen) - (dma & PAGE_MASK);
+-	npages >>= PAGE_SHIFT;
+-
+-	return npages;
+-}
+-
+ static inline int translation_enabled(struct iommu_table *tbl)
+ {
+ 	/* only PHBs with translation enabled have an IOMMU table */
+@@ -408,7 +398,7 @@ static void calgary_unmap_sg(struct devi
+ 		if (dmalen == 0)
+ 			break;
+ 
+-		npages = num_dma_pages(dma, dmalen);
++		npages = iommu_num_pages(dma, dmalen, PAGE_SIZE);
+ 		iommu_free(tbl, dma, npages);
+ 	}
+ }
+@@ -427,7 +417,7 @@ static int calgary_map_sg(struct device 
+ 		BUG_ON(!sg_page(s));
+ 
+ 		vaddr = (unsigned long) sg_virt(s);
+-		npages = num_dma_pages(vaddr, s->length);
++		npages = iommu_num_pages(vaddr, s->length, PAGE_SIZE);
+ 
+ 		entry = iommu_range_alloc(dev, tbl, npages);
+ 		if (entry == bad_dma_address) {
+@@ -464,7 +454,7 @@ static dma_addr_t calgary_map_single(str
+ 	struct iommu_table *tbl = find_iommu_table(dev);
+ 
+ 	uaddr = (unsigned long)vaddr;
+-	npages = num_dma_pages(uaddr, size);
++	npages = iommu_num_pages(uaddr, size, PAGE_SIZE);
+ 
+ 	return iommu_alloc(dev, tbl, vaddr, npages, direction);
+ }
+@@ -475,7 +465,7 @@ static void calgary_unmap_single(struct 
+ 	struct iommu_table *tbl = find_iommu_table(dev);
+ 	unsigned int npages;
+ 
+-	npages = num_dma_pages(dma_handle, size);
++	npages = iommu_num_pages(dma_handle, size, PAGE_SIZE);
+ 	iommu_free(tbl, dma_handle, npages);
+ }
+ 
 _
 
-Patches currently in -mm which might be from apw@shadowen.org are
+Patches currently in -mm which might be from joerg.roedel@amd.com are
 
 origin.patch
-mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
 
