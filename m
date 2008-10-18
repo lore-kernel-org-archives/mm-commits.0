@@ -1,102 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - x86-convert-calgary-iommu-driver-to-generic-iommu_num_pages-function.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:12:58 -0700
-Message-ID: <200810182312.m9INCwMC028093@imap1.linux-foundation.org>
+Subject: - checkpatch-complex-macros-fix-up-extension-handling.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:13:20 -0700
+Message-ID: <200810182313.m9INDKsO028167@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47899 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60122 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751370AbYJRXNX (ORCPT
+	by vger.kernel.org with ESMTP id S1751388AbYJRXN2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:13:23 -0400
+	Sat, 18 Oct 2008 19:13:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joerg.roedel@amd.com, fujita.tomonori@lab.ntt.co.jp, mingo@elte.hu, muli@il.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: convert Calgary IOMMU driver to generic iommu_num_pages function
+     checkpatch: complex macros -- fix up extension handling
 has been removed from the -mm tree.  Its filename was
-     x86-convert-calgary-iommu-driver-to-generic-iommu_num_pages-function.patch
+     checkpatch-complex-macros-fix-up-extension-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: convert Calgary IOMMU driver to generic iommu_num_pages function
-From: Joerg Roedel <joerg.roedel@amd.com>
+Subject: checkpatch: complex macros -- fix up extension handling
+From: Andy Whitcroft <apw@shadowen.org>
 
-Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Acked-by: Muli Ben-Yehuda <muli@il.ibm.com>
+Only pull in new extension lines where the current contents ends with a \.
+
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/pci-calgary_64.c |   18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/pci-calgary_64.c~x86-convert-calgary-iommu-driver-to-generic-iommu_num_pages-function arch/x86/kernel/pci-calgary_64.c
---- a/arch/x86/kernel/pci-calgary_64.c~x86-convert-calgary-iommu-driver-to-generic-iommu_num_pages-function
-+++ a/arch/x86/kernel/pci-calgary_64.c
-@@ -217,16 +217,6 @@ static inline unsigned long verify_bit_r
- 
- #endif /* CONFIG_IOMMU_DEBUG */
- 
--static inline unsigned int num_dma_pages(unsigned long dma, unsigned int dmalen)
--{
--	unsigned int npages;
--
--	npages = PAGE_ALIGN(dma + dmalen) - (dma & PAGE_MASK);
--	npages >>= PAGE_SHIFT;
--
--	return npages;
--}
--
- static inline int translation_enabled(struct iommu_table *tbl)
- {
- 	/* only PHBs with translation enabled have an IOMMU table */
-@@ -408,7 +398,7 @@ static void calgary_unmap_sg(struct devi
- 		if (dmalen == 0)
- 			break;
- 
--		npages = num_dma_pages(dma, dmalen);
-+		npages = iommu_num_pages(dma, dmalen, PAGE_SIZE);
- 		iommu_free(tbl, dma, npages);
- 	}
- }
-@@ -427,7 +417,7 @@ static int calgary_map_sg(struct device 
- 		BUG_ON(!sg_page(s));
- 
- 		vaddr = (unsigned long) sg_virt(s);
--		npages = num_dma_pages(vaddr, s->length);
-+		npages = iommu_num_pages(vaddr, s->length, PAGE_SIZE);
- 
- 		entry = iommu_range_alloc(dev, tbl, npages);
- 		if (entry == bad_dma_address) {
-@@ -464,7 +454,7 @@ static dma_addr_t calgary_map_single(str
- 	struct iommu_table *tbl = find_iommu_table(dev);
- 
- 	uaddr = (unsigned long)vaddr;
--	npages = num_dma_pages(uaddr, size);
-+	npages = iommu_num_pages(uaddr, size, PAGE_SIZE);
- 
- 	return iommu_alloc(dev, tbl, vaddr, npages, direction);
- }
-@@ -475,7 +465,7 @@ static void calgary_unmap_single(struct 
- 	struct iommu_table *tbl = find_iommu_table(dev);
- 	unsigned int npages;
- 
--	npages = num_dma_pages(dma_handle, size);
-+	npages = iommu_num_pages(dma_handle, size, PAGE_SIZE);
- 	iommu_free(tbl, dma_handle, npages);
- }
- 
+diff -puN scripts/checkpatch.pl~checkpatch-complex-macros-fix-up-extension-handling scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-complex-macros-fix-up-extension-handling
++++ a/scripts/checkpatch.pl
+@@ -1977,8 +1977,8 @@ sub process {
+ 			# Extract the remainder of the define (if any) and
+ 			# rip off surrounding spaces, and trailing \'s.
+ 			$rest = '';
+-			while ($off != 0 || ($cnt > 0 && $rest =~ /(?:^|\\)\s*$/)) {
+-				#print "ADDING $off <" . substr($lines[$ln - 1], $off) . ">\n";
++			while ($off != 0 || ($cnt > 0 && $rest =~ /\\\s*$/)) {
++				#print "ADDING cnt<$cnt> $off <" . substr($lines[$ln - 1], $off) . "> rest<$rest>\n";
+ 				if ($off != 0 || $lines[$ln - 1] !~ /^-/) {
+ 					$rest .= substr($lines[$ln - 1], $off) . "\n";
+ 					$cnt--;
 _
 
-Patches currently in -mm which might be from joerg.roedel@amd.com are
+Patches currently in -mm which might be from apw@shadowen.org are
 
 origin.patch
+mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
 
