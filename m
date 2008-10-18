@@ -1,83 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-generic-iommu_num_pages-function.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:12:51 -0700
-Message-ID: <200810182312.m9INCppX028065@imap1.linux-foundation.org>
+Subject: - checkpatch-switch-indent-allow-plain-return.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:13:14 -0700
+Message-ID: <200810182313.m9INDEQH028147@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36464 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58210 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751322AbYJRXNQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751359AbYJRXNW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:13:16 -0400
+	Sat, 18 Oct 2008 19:13:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joerg.roedel@amd.com, airlied@linux.ie, benh@kernel.crashing.org, davem@davemloft.net, fujita.tomonori@lab.ntt.co.jp, ink@jurassic.park.msu.ru, mingo@elte.hu, muli@il.ibm.com, paulus@
+To: apw@shadowen.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     introduce generic iommu_num_pages function
+     checkpatch: switch indent allow plain return
 has been removed from the -mm tree.  Its filename was
-     introduce-generic-iommu_num_pages-function.patch
+     checkpatch-switch-indent-allow-plain-return.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: introduce generic iommu_num_pages function
-From: Joerg Roedel <joerg.roedel@amd.com>
+Subject: checkpatch: switch indent allow plain return
+From: Andy Whitcroft <apw@shadowen.org>
 
-This patch introduces the generic iommu_num_pages function. It can be used by
-a given memory area.
+It is a common and sane idiom to allow a single return on the end of a
+case statement:
 
-Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Muli Ben-Yehuda <muli@il.ibm.com>
-Cc: Dave Airlie <airlied@linux.ie>
+	switch (...) {
+	case foo:	return bar;
+	}
+
+Add an exception for this.
+
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/iommu-helper.h |    3 +++
- lib/iommu-helper.c           |    9 +++++++++
- 2 files changed, 12 insertions(+)
+ scripts/checkpatch.pl |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/iommu-helper.h~introduce-generic-iommu_num_pages-function include/linux/iommu-helper.h
---- a/include/linux/iommu-helper.h~introduce-generic-iommu_num_pages-function
-+++ a/include/linux/iommu-helper.h
-@@ -23,4 +23,7 @@ extern unsigned long iommu_area_alloc(un
- extern void iommu_area_free(unsigned long *map, unsigned long start,
- 			    unsigned int nr);
+diff -puN scripts/checkpatch.pl~checkpatch-switch-indent-allow-plain-return scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-switch-indent-allow-plain-return
++++ a/scripts/checkpatch.pl
+@@ -1295,7 +1295,11 @@ sub process {
+ 			}
+ 		}
+ 		if ($line =~ /^.\s*(?:case\s*.*|default\s*):/g &&
+-		    $line !~ /\G(?:\s*{)?(?:\s*$;*)(?:\s*\\)?\s*$/g) {
++		    $line !~ /\G(?:
++			(?:\s*{)?(?:\s*$;*)(?:\s*\\)?\s*$|
++			\s*return\s+
++		    )/xg)
++		{
+ 			ERROR("trailing statements should be on next line\n" . $herecurr);
+ 		}
  
-+extern unsigned long iommu_num_pages(unsigned long addr, unsigned long len,
-+				     unsigned long io_page_size);
-+
- #endif
-diff -puN lib/iommu-helper.c~introduce-generic-iommu_num_pages-function lib/iommu-helper.c
---- a/lib/iommu-helper.c~introduce-generic-iommu_num_pages-function
-+++ a/lib/iommu-helper.c
-@@ -79,3 +79,12 @@ void iommu_area_free(unsigned long *map,
- 	}
- }
- EXPORT_SYMBOL(iommu_area_free);
-+
-+unsigned long iommu_num_pages(unsigned long addr, unsigned long len,
-+			      unsigned long io_page_size)
-+{
-+	unsigned long size = (addr & (io_page_size - 1)) + len;
-+
-+	return DIV_ROUND_UP(size, io_page_size);
-+}
-+EXPORT_SYMBOL(iommu_num_pages);
 _
 
-Patches currently in -mm which might be from joerg.roedel@amd.com are
+Patches currently in -mm which might be from apw@shadowen.org are
 
 origin.patch
+mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
 
