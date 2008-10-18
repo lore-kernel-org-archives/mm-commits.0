@@ -1,85 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: - radeonfb-revert-fix-radeon-ddc-regression.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:16:11 -0700
-Message-ID: <200810182316.m9INGBfL028764@imap1.linux-foundation.org>
+Subject: - rtc-rtc-m41t80c-add-support-for-the-st-m41t65-rtc.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:15:37 -0700
+Message-ID: <200810182315.m9INFbq1028657@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54581 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55682 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751503AbYJRXQV (ORCPT
+	by vger.kernel.org with ESMTP id S1751135AbYJRXQD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:16:21 -0400
+	Sat, 18 Oct 2008 19:16:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: sfalco@harris.com, a.zummo@towertech.it, anemo@mba.ocn.ne.jp, david-b@pacbell.net, macro@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     radeonfb: revert "Fix radeon DDC regression"
+     rtc: rtc-m41t80.c: add support for the ST M41T65 RTC
 has been removed from the -mm tree.  Its filename was
-     radeonfb-revert-fix-radeon-ddc-regression.patch
+     rtc-rtc-m41t80c-add-support-for-the-st-m41t65-rtc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: radeonfb: revert "Fix radeon DDC regression"
-From: Jean Delvare <khali@linux-fr.org>
+Subject: rtc: rtc-m41t80.c: add support for the ST M41T65 RTC
+From: "Steven A. Falco" <sfalco@harris.com>
 
-The bug was in fb_ddc and was fixed by commit
-b64d70825abbf706bbe80be1b11b09514b71f45e (fb_ddc: fix DDC lines quirk) so
-the workaround in radeonfb can be removed now.
+Add support for M41T65 Real Time Clock chip.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+The main differences I see between the M41T65 and M41T80 are that:
+
+1) The M41T65 watchdog timer has three bits controlling resolution
+   (versus two for the M41T80).
+
+2) There is no register 0x13 for controlling square-wave output.
+
+Signed-off-by: Steven A. Falco <sfalco@harris.com>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
+Acked-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/radeon_i2c.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/rtc/Kconfig      |   14 +++++------
+ drivers/rtc/rtc-m41t80.c |   45 +++++++++++++++++++++++++++----------
+ 2 files changed, 41 insertions(+), 18 deletions(-)
 
-diff -puN drivers/video/aty/radeon_i2c.c~radeonfb-revert-fix-radeon-ddc-regression drivers/video/aty/radeon_i2c.c
---- a/drivers/video/aty/radeon_i2c.c~radeonfb-revert-fix-radeon-ddc-regression
-+++ a/drivers/video/aty/radeon_i2c.c
-@@ -139,12 +139,8 @@ void radeon_delete_i2c_busses(struct rad
- int radeon_probe_i2c_connector(struct radeonfb_info *rinfo, int conn,
- 			       u8 **out_edid)
- {
--	u32 reg = rinfo->i2c[conn-1].ddc_reg;
- 	u8 *edid;
+diff -puN drivers/rtc/Kconfig~rtc-rtc-m41t80c-add-support-for-the-st-m41t65-rtc drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-rtc-m41t80c-add-support-for-the-st-m41t65-rtc
++++ a/drivers/rtc/Kconfig
+@@ -220,22 +220,22 @@ config RTC_DRV_PCF8583
+ 	  will be called rtc-pcf8583.
  
--	OUTREG(reg, INREG(reg) &
--			~(VGA_DDC_DATA_OUTPUT | VGA_DDC_CLK_OUTPUT));
+ config RTC_DRV_M41T80
+-	tristate "ST M41T80/81/82/83/84/85/87"
++	tristate "ST M41T65/M41T80/81/82/83/84/85/87"
+ 	help
+-	  If you say Y here you will get support for the
+-	  ST M41T80 RTC chips series. Currently following chips are
+-	  supported: M41T80, M41T81, M41T82, M41T83, M41ST84, M41ST85
+-	  and M41ST87.
++	  If you say Y here you will get support for the ST M41T60
++	  and M41T80 RTC chips series. Currently, the following chips are
++	  supported: M41T65, M41T80, M41T81, M41T82, M41T83, M41ST84,
++	  M41ST85, and M41ST87.
+ 
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-m41t80.
+ 
+ config RTC_DRV_M41T80_WDT
+-	bool "ST M41T80 series RTC watchdog timer"
++	bool "ST M41T65/M41T80 series RTC watchdog timer"
+ 	depends on RTC_DRV_M41T80
+ 	help
+ 	  If you say Y here you will get support for the
+-	  watchdog timer in ST M41T80 RTC chips series.
++	  watchdog timer in the ST M41T60 and M41T80 RTC chips series.
+ 
+ config RTC_DRV_TWL92330
+ 	boolean "TI TWL92330/Menelaus"
+diff -puN drivers/rtc/rtc-m41t80.c~rtc-rtc-m41t80c-add-support-for-the-st-m41t65-rtc drivers/rtc/rtc-m41t80.c
+--- a/drivers/rtc/rtc-m41t80.c~rtc-rtc-m41t80c-add-support-for-the-st-m41t65-rtc
++++ a/drivers/rtc/rtc-m41t80.c
+@@ -56,21 +56,27 @@
+ #define M41T80_ALHOUR_HT	(1 << 6)	/* HT: Halt Update Bit */
+ #define M41T80_FLAGS_AF		(1 << 6)	/* AF: Alarm Flag Bit */
+ #define M41T80_FLAGS_BATT_LOW	(1 << 4)	/* BL: Battery Low Bit */
 -
- 	edid = fb_ddc_read(&rinfo->i2c[conn-1].adapter);
+-#define M41T80_FEATURE_HT	(1 << 0)
+-#define M41T80_FEATURE_BL	(1 << 1)
++#define M41T80_WATCHDOG_RB2	(1 << 7)	/* RB: Watchdog resolution */
++#define M41T80_WATCHDOG_RB1	(1 << 1)	/* RB: Watchdog resolution */
++#define M41T80_WATCHDOG_RB0	(1 << 0)	/* RB: Watchdog resolution */
++
++#define M41T80_FEATURE_HT	(1 << 0)	/* Halt feature */
++#define M41T80_FEATURE_BL	(1 << 1)	/* Battery low indicator */
++#define M41T80_FEATURE_SQ	(1 << 2)	/* Squarewave feature */
++#define M41T80_FEATURE_WD	(1 << 3)	/* Extra watchdog resolution */
  
- 	if (out_edid)
+ #define DRV_VERSION "0.05"
+ 
+ static const struct i2c_device_id m41t80_id[] = {
+-	{ "m41t80", 0 },
+-	{ "m41t81", M41T80_FEATURE_HT },
+-	{ "m41t81s", M41T80_FEATURE_HT | M41T80_FEATURE_BL },
+-	{ "m41t82", M41T80_FEATURE_HT | M41T80_FEATURE_BL },
+-	{ "m41t83", M41T80_FEATURE_HT | M41T80_FEATURE_BL },
+-	{ "m41st84", M41T80_FEATURE_HT | M41T80_FEATURE_BL },
+-	{ "m41st85", M41T80_FEATURE_HT | M41T80_FEATURE_BL },
+-	{ "m41st87", M41T80_FEATURE_HT | M41T80_FEATURE_BL },
++	{ "m41t65", M41T80_FEATURE_HT | M41T80_FEATURE_WD },
++	{ "m41t80", M41T80_FEATURE_SQ },
++	{ "m41t81", M41T80_FEATURE_HT | M41T80_FEATURE_SQ},
++	{ "m41t81s", M41T80_FEATURE_HT | M41T80_FEATURE_BL | M41T80_FEATURE_SQ },
++	{ "m41t82", M41T80_FEATURE_HT | M41T80_FEATURE_BL | M41T80_FEATURE_SQ },
++	{ "m41t83", M41T80_FEATURE_HT | M41T80_FEATURE_BL | M41T80_FEATURE_SQ },
++	{ "m41st84", M41T80_FEATURE_HT | M41T80_FEATURE_BL | M41T80_FEATURE_SQ },
++	{ "m41st85", M41T80_FEATURE_HT | M41T80_FEATURE_BL | M41T80_FEATURE_SQ },
++	{ "m41st87", M41T80_FEATURE_HT | M41T80_FEATURE_BL | M41T80_FEATURE_SQ },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, m41t80_id);
+@@ -386,8 +392,12 @@ static ssize_t m41t80_sysfs_show_sqwfreq
+ 				struct device_attribute *attr, char *buf)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
++	struct m41t80_data *clientdata = i2c_get_clientdata(client);
+ 	int val;
+ 
++	if (!(clientdata->features & M41T80_FEATURE_SQ))
++		return -EINVAL;
++
+ 	val = i2c_smbus_read_byte_data(client, M41T80_REG_SQW);
+ 	if (val < 0)
+ 		return -EIO;
+@@ -408,9 +418,13 @@ static ssize_t m41t80_sysfs_set_sqwfreq(
+ 				const char *buf, size_t count)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
++	struct m41t80_data *clientdata = i2c_get_clientdata(client);
+ 	int almon, sqw;
+ 	int val = simple_strtoul(buf, NULL, 0);
+ 
++	if (!(clientdata->features & M41T80_FEATURE_SQ))
++		return -EINVAL;
++
+ 	if (val) {
+ 		if (!is_power_of_2(val))
+ 			return -EINVAL;
+@@ -499,6 +513,8 @@ static void wdt_ping(void)
+ 			.buf	= i2c_data,
+ 		},
+ 	};
++	struct m41t80_data *clientdata = i2c_get_clientdata(save_client);
++
+ 	i2c_data[0] = 0x09;		/* watchdog register */
+ 
+ 	if (wdt_margin > 31)
+@@ -509,6 +525,13 @@ static void wdt_ping(void)
+ 		 */
+ 		i2c_data[1] = wdt_margin<<2 | 0x82;
+ 
++	/*
++	 * M41T65 has three bits for watchdog resolution.  Don't set bit 7, as
++	 * that would be an invalid resolution.
++	 */
++	if (clientdata->features & M41T80_FEATURE_WD)
++		i2c_data[1] &= ~M41T80_WATCHDOG_RB2;
++
+ 	i2c_transfer(save_client->adapter, msgs1, 1);
+ }
+ 
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from sfalco@harris.com are
 
 origin.patch
-hwmon-pc87360-separate-alarm-files-define-some-constants.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
-hwmon-pc87360-separate-alarm-files-define-ldni_max-const.patch
-hwmon-pc87360-separate-alarm-files-add-dev_dbg-help.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
-hwmon-applesmc-specified-number-of-bytes-to-read-should-match-actual.patch
-hwmon-applesmc-fix-the-wait-status-failed-c-=-8-problem.patch
-hwmon-applesmc-prolong-status-wait.patch
-hwmon-applesmc-allow-for-variable-alv0-and-alv1-package-length.patch
-hwmon-applesmc-add-support-for-macbook-air.patch
-drivers-hwmon-applesmcc-remove-unneeded-casts.patch
-hwmon-applesmc-add-support-for-macbook-pro-4.patch
-hwmon-applesmc-add-support-for-macbook-pro-3.patch
-hwmon-applesmc-lighter-wait-mechanism-drastic-improvement.patch
-i2c-use-bcd2bin-bin2bcd.patch
-x86-sysfs-kill-owner-field-from-attribute.patch
-x86-sysfs-kill-owner-field-from-attribute-fix.patch
-x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
+gpio-modify-sysfs-gpio-export-so-that-value-displays-as-0-or-1.patch
 
