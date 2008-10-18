@@ -1,73 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - parport-remove-cvs-keywords.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:19:30 -0700
-Message-ID: <200810182319.m9INJURH029498@imap1.linux-foundation.org>
+Subject: - binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:18:52 -0700
+Message-ID: <200810182318.m9INIqxp029356@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58871 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51849 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751822AbYJRXTj (ORCPT
+	by vger.kernel.org with ESMTP id S1751856AbYJRXTu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:19:39 -0400
+	Sat, 18 Oct 2008 19:19:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mm-commits@vger.kernel.org
+To: lethal@linux-sh.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     parport: remove CVS keywords
+     binfmt_elf_fdpic: wire up AT_EXECFD, AT_EXECFN, AT_SECURE
 has been removed from the -mm tree.  Its filename was
-     parport-remove-cvs-keywords.patch
+     binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parport: remove CVS keywords
-From: Adrian Bunk <bunk@kernel.org>
+Subject: binfmt_elf_fdpic: wire up AT_EXECFD, AT_EXECFN, AT_SECURE
+From: Paul Mundt <lethal@linux-sh.org>
 
-Remove CVS keywords that weren't updated for a long time from comments.
+These auxvec entries are the only ones left unhandled out of the current
+base implementation. This syncs up binfmt_elf_fdpic with linux/auxvec.h
+and current binfmt_elf.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/ieee1284.c |    2 +-
- drivers/parport/probe.c    |    2 +-
- drivers/parport/share.c    |    2 +-
- include/linux/parport.h    |    2 --
- 4 files changed, 3 insertions(+), 5 deletions(-)
+ fs/binfmt_elf_fdpic.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN drivers/parport/ieee1284.c~parport-remove-cvs-keywords drivers/parport/ieee1284.c
---- a/drivers/parport/ieee1284.c~parport-remove-cvs-keywords
-+++ a/drivers/parport/ieee1284.c
-@@ -1,4 +1,4 @@
--/* $Id: parport_ieee1284.c,v 1.4 1997/10/19 21:37:21 philip Exp $
-+/*
-  * IEEE-1284 implementation for parport.
-  *
-  * Authors: Phil Blundell <philb@gnu.org>
-diff -puN drivers/parport/probe.c~parport-remove-cvs-keywords drivers/parport/probe.c
---- a/drivers/parport/probe.c~parport-remove-cvs-keywords
-+++ a/drivers/parport/probe.c
-@@ -1,4 +1,4 @@
--/* $Id: parport_probe.c,v 1.1 1999/07/03 08:56:17 davem Exp $
-+/*
-  * Parallel port device probing code
-  *
-  * Authors:    Carsten Gross, carsten@sol.wohnheim.uni-ulm.de
-diff -puN drivers/parport/share.c~parport-remove-cvs-keywords drivers/parport/share.c
---- a/drivers/parport/share.c~parport-remove-cvs-keywords
-+++ a/drivers/parport/share.c
-@@ -1,4 +1,4 @@
--/* $Id: parport_share.c,v 1.15 1998/01/11 12:06:17 philip Exp $
-+/*
-  * Parallel-port resource manager code.
-  * 
-  * Authors: David Campbell <campbell@tirian.che.curtin.edu.au>
-diff -puN include/linux/parport.h~parport-remove-cvs-keywords include/linux/parport.h
---- a/include/linux/parport.h~parport-remove-cvs-keywords
-+++ a/include/linux/parport.h
-@@ -1,5 +1,3 @@
--/* $Id: parport.h,v 1.1 1998/05/17 10:57:52 andrea Exp andrea $ */
+diff -puN fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-wire-up-at_execfd-at_execfn-at_secure
++++ a/fs/binfmt_elf_fdpic.c
+@@ -25,6 +25,7 @@
+ #include <linux/fcntl.h>
+ #include <linux/slab.h>
+ #include <linux/pagemap.h>
++#include <linux/security.h>
+ #include <linux/highmem.h>
+ #include <linux/highuid.h>
+ #include <linux/personality.h>
+@@ -560,11 +561,14 @@ static int create_elf_fdpic_tables(struc
+ 	}
+ 
+ 	/* force 16 byte _final_ alignment here for generality */
+-#define DLINFO_ITEMS 13
++#define DLINFO_ITEMS 15
+ 
+ 	nitems = 1 + DLINFO_ITEMS + (k_platform ? 1 : 0) +
+ 		(k_base_platform ? 1 : 0) + AT_VECTOR_SIZE_ARCH;
+ 
++	if (bprm->interp_flags & BINPRM_FLAGS_EXECFD)
++		nitems++;
++
+ 	csp = sp;
+ 	sp -= nitems * 2 * sizeof(unsigned long);
+ 	sp -= (bprm->envc + 1) * sizeof(char *);	/* envv[] */
+@@ -602,6 +606,12 @@ static int create_elf_fdpic_tables(struc
+ 			    (elf_addr_t) (unsigned long) u_base_platform);
+ 	}
+ 
++	if (bprm->interp_flags & BINPRM_FLAGS_EXECFD) {
++		nr = 0;
++		csp -= 2 * sizeof(unsigned long);
++		NEW_AUX_ENT(AT_EXECFD, bprm->interp_data);
++	}
++
+ 	nr = 0;
+ 	csp -= DLINFO_ITEMS * 2 * sizeof(unsigned long);
+ 	NEW_AUX_ENT(AT_HWCAP,	hwcap);
+@@ -617,6 +627,8 @@ static int create_elf_fdpic_tables(struc
+ 	NEW_AUX_ENT(AT_EUID,	(elf_addr_t) current->euid);
+ 	NEW_AUX_ENT(AT_GID,	(elf_addr_t) current->gid);
+ 	NEW_AUX_ENT(AT_EGID,	(elf_addr_t) current->egid);
++	NEW_AUX_ENT(AT_SECURE,	security_bprm_secureexec(bprm));
++	NEW_AUX_ENT(AT_EXECFN,	bprm->exec);
+ 
+ #ifdef ARCH_DLINFO
+ 	nr = 0;
+_
+
+Patches currently in -mm which might be from lethal@linux-sh.org are
+
+origin.patch
+kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore.patch
+
