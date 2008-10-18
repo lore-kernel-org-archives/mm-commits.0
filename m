@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:34:19 -0700
-Message-ID: <200810182334.m9INYJdg031778@imap1.linux-foundation.org>
+Subject: - vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix-fix.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:34:21 -0700
+Message-ID: <200810182334.m9INYLjX031781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53345 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51232 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751183AbYJRXeh (ORCPT
+	by vger.kernel.org with ESMTP id S1750982AbYJRXeh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 18 Oct 2008 19:34:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,91 +15,41 @@ To: akpm@linux-foundation.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix
+     vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix-fix
 has been removed from the -mm tree.  Its filename was
-     vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix.patch
+     vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix-fix.patch
 
 This patch was dropped because it was folded into vmscan-fix-pagecache-reclaim-referenced-bit-check.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix
+Subject: vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   37 +++++++++----------------------------
- 1 file changed, 9 insertions(+), 28 deletions(-)
+ mm/vmscan.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN mm/vmscan.c~vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix mm/vmscan.c
---- a/mm/vmscan.c~vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix
+diff -puN mm/vmscan.c~vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix-fix mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix-fix
 +++ a/mm/vmscan.c
-@@ -1064,7 +1064,6 @@ static void shrink_active_list(unsigned 
- 	int pgdeactivate = 0;
- 	unsigned long pgscanned;
- 	LIST_HEAD(l_hold);	/* The pages which were snipped off */
--	LIST_HEAD(l_active);
- 	LIST_HEAD(l_inactive);
- 	struct page *page;
- 	struct pagevec pvec;
-@@ -1108,13 +1107,20 @@ static void shrink_active_list(unsigned 
- 	 * to the inactive list.  This helps balance scan pressure between
- 	 * file and anonymous pages in get_scan_ratio.
-  	 */
-+
-+	/*
-+	 * Count referenced pages from currently used mappings as
-+	 * rotated, even though they are moved to the inactive list.
-+	 * This helps balance scan pressure between file and anonymous
-+	 * pages in get_scan_ratio.
-+	 */
- 	zone->recent_rotated[!!file] += pgmoved;
+@@ -1103,12 +1103,6 @@ static void shrink_active_list(unsigned 
+ 	}
  
  	/*
--	 * Now put the pages back on the appropriate [file or anon] inactive
--	 * and active lists.
-+	 * Move the pages to the [file or anon] inactive list.
- 	 */
- 	pagevec_init(&pvec, 1);
-+
- 	pgmoved = 0;
- 	lru = LRU_BASE + file * LRU_FILE;
- 	spin_lock_irq(&zone->lru_lock);
-@@ -1147,31 +1153,6 @@ static void shrink_active_list(unsigned 
- 		pagevec_strip(&pvec);
- 		spin_lock_irq(&zone->lru_lock);
- 	}
+-	 * Count the referenced pages as rotated, even when they are moved
+-	 * to the inactive list.  This helps balance scan pressure between
+-	 * file and anonymous pages in get_scan_ratio.
+- 	 */
 -
--	pgmoved = 0;
--	lru = LRU_ACTIVE + file * LRU_FILE;
--	while (!list_empty(&l_active)) {
--		page = lru_to_page(&l_active);
--		prefetchw_prev_lru_page(page, &l_active, flags);
--		VM_BUG_ON(PageLRU(page));
--		SetPageLRU(page);
--		VM_BUG_ON(!PageActive(page));
--
--		list_move(&page->lru, &zone->lru[lru].list);
--		mem_cgroup_move_lists(page, true);
--		pgmoved++;
--		if (!pagevec_add(&pvec, page)) {
--			__mod_zone_page_state(zone, NR_LRU_BASE + lru, pgmoved);
--			pgmoved = 0;
--			spin_unlock_irq(&zone->lru_lock);
--			if (vm_swap_full())
--				pagevec_swap_free(&pvec);
--			__pagevec_release(&pvec);
--			spin_lock_irq(&zone->lru_lock);
--		}
--	}
--	__mod_zone_page_state(zone, NR_LRU_BASE + lru, pgmoved);
--
- 	__count_zone_vm_events(PGREFILL, zone, pgscanned);
- 	__count_vm_events(PGDEACTIVATE, pgdeactivate);
- 	spin_unlock_irq(&zone->lru_lock);
+-	/*
+ 	 * Count referenced pages from currently used mappings as
+ 	 * rotated, even though they are moved to the inactive list.
+ 	 * This helps balance scan pressure between file and anonymous
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -110,7 +60,6 @@ vmscan-move-isolate_lru_page-to-vmscanc.patch
 define-page_file_cache-function.patch
 vmscan-split-lru-lists-into-anon-file-sets.patch
 vmscan-fix-pagecache-reclaim-referenced-bit-check.patch
-vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix.patch
 vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix-fix.patch
 unevictable-lru-infrastructure.patch
 unevictable-lru-page-statistics.patch
