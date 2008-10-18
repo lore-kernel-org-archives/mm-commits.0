@@ -1,183 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:39:06 -0700
-Message-ID: <200810182339.m9INd6lj032477@imap1.linux-foundation.org>
+Subject: - mlock-make-mlock-error-return-posixly-correct-fix.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:39:41 -0700
+Message-ID: <200810182339.m9INdfuj032554@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33195 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37334 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750899AbYJRXjX (ORCPT
+	by vger.kernel.org with ESMTP id S1751056AbYJRXjq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:39:23 -0400
+	Sat, 18 Oct 2008 19:39:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lee.schermerhorn@hp.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mlocked-pages: add event counting with statistics
+     mlock-make-mlock-error-return-posixly-correct-fix
 has been removed from the -mm tree.  Its filename was
-     vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch
+     mlock-make-mlock-error-return-posixly-correct-fix.patch
 
-This patch was dropped because it was folded into vmstat-mlocked-pages-statistics.patch
+This patch was dropped because it was folded into mlock-make-mlock-error-return-posixly-correct.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlocked-pages: add event counting with statistics
-From: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Subject: mlock-make-mlock-error-return-posixly-correct-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix to vmstat-mlocked-pages-statistics.patch
+mm/mlock.c: In function 'mlock_fixup':
+mm/mlock.c:468: error: implicit declaration of function '__mlock_posix_error_return'
 
-Define mlocked pages vm events in the mlocked pages
-statistics patch.  Makes for easier incremental patching.
+Documentation/SubmitChecklist considered useful...
 
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Kosaki Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    4 ++++
- mm/internal.h          |    4 +++-
- mm/mlock.c             |   33 +++++++++++++++++++++++++--------
- mm/vmstat.c            |    4 ++++
- 4 files changed, 36 insertions(+), 9 deletions(-)
+ mm/mlock.c |   30 ++++++++++++++++++------------
+ 1 file changed, 18 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/vmstat.h~vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics include/linux/vmstat.h
---- a/include/linux/vmstat.h~vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics
-+++ a/include/linux/vmstat.h
-@@ -45,6 +45,10 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		UNEVICTABLE_PGCULLED,	/* culled to noreclaim list */
- 		UNEVICTABLE_PGSCANNED,	/* scanned for reclaimability */
- 		UNEVICTABLE_PGRESCUED,	/* rescued from noreclaim list */
-+		UNEVICTABLE_PGMLOCKED,
-+		UNEVICTABLE_PGMUNLOCKED,
-+		UNEVICTABLE_PGCLEARED,	/* on COW, page truncate */
-+		UNEVICTABLE_PGSTRANDED,	/* unable to isolate on unlock */
- #endif
- 		NR_VM_EVENT_ITEMS
- };
-diff -puN mm/internal.h~vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics mm/internal.h
---- a/mm/internal.h~vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics
-+++ a/mm/internal.h
-@@ -101,8 +101,10 @@ static inline int is_mlocked_vma(struct 
- 	if (likely((vma->vm_flags & (VM_LOCKED | VM_SPECIAL)) != VM_LOCKED))
- 		return 0;
- 
--	if (!TestSetPageMlocked(page))
-+	if (!TestSetPageMlocked(page)) {
- 		inc_zone_page_state(page, NR_MLOCK);
-+		count_vm_event(UNEVICTABLE_PGMLOCKED);
-+	}
- 	return 1;
- }
- 
-diff -puN mm/mlock.c~vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics mm/mlock.c
---- a/mm/mlock.c~vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics
+diff -puN mm/mlock.c~mlock-make-mlock-error-return-posixly-correct-fix mm/mlock.c
+--- a/mm/mlock.c~mlock-make-mlock-error-return-posixly-correct-fix
 +++ a/mm/mlock.c
-@@ -61,6 +61,7 @@ void __clear_page_mlock(struct page *pag
- 	}
- 
- 	dec_zone_page_state(page, NR_MLOCK);
-+	count_vm_event(UNEVICTABLE_PGCLEARED);
- 	if (!isolate_lru_page(page)) {
- 		putback_lru_page(page);
- 	} else {
-@@ -70,6 +71,9 @@ void __clear_page_mlock(struct page *pag
- 		lru_add_drain_all();
- 		if (!isolate_lru_page(page))
- 			putback_lru_page(page);
-+		else if (PageUnevictable(page))
-+			count_vm_event(UNEVICTABLE_PGSTRANDED);
-+
+@@ -143,18 +143,6 @@ static void munlock_vma_page(struct page
  	}
  }
  
-@@ -83,6 +87,7 @@ void mlock_vma_page(struct page *page)
- 
- 	if (!TestSetPageMlocked(page)) {
- 		inc_zone_page_state(page, NR_MLOCK);
-+		count_vm_event(UNEVICTABLE_PGMLOCKED);
- 		if (!isolate_lru_page(page))
- 			putback_lru_page(page);
- 	}
-@@ -113,16 +118,28 @@ static void munlock_vma_page(struct page
- 	if (TestClearPageMlocked(page)) {
- 		dec_zone_page_state(page, NR_MLOCK);
- 		if (!isolate_lru_page(page)) {
--			try_to_munlock(page);	/* maybe relock the page */
-+			int ret = try_to_munlock(page);
-+			/*
-+			 * did try_to_unlock() succeed or punt?
-+			 */
-+			if (ret == SWAP_SUCCESS || ret == SWAP_AGAIN)
-+				count_vm_event(UNEVICTABLE_PGMUNLOCKED);
-+
- 			putback_lru_page(page);
-+		} else {
-+			/*
-+			 * We lost the race.  let try_to_unmap() deal
-+			 * with it.  At least we get the page state and
-+			 * mlock stats right.  However, page is still on
-+			 * the noreclaim list.  We'll fix that up when
-+			 * the page is eventually freed or we scan the
-+			 * noreclaim list.
-+			 */
-+			if (PageUnevictable(page))
-+				count_vm_event(UNEVICTABLE_PGSTRANDED);
-+			else
-+				count_vm_event(UNEVICTABLE_PGMUNLOCKED);
- 		}
--		/*
--		 * Else we lost the race.  let try_to_unmap() deal with it.
--		 * At least we get the page state and mlock stats right.
--		 * However, page is still on the noreclaim list.  We'll fix
--		 * that up when the page is eventually freed or we scan the
--		 * noreclaim list.
--		 */
- 	}
+-/*
+- * convert get_user_pages() return value to posix mlock() error
+- */
+-static int __mlock_posix_error_return(long retval)
+-{
+-	if (retval == -EFAULT)
+-		retval = -ENOMEM;
+-	else if (retval == -ENOMEM)
+-		retval = -EAGAIN;
+-	return retval;
+-}
+-
+ /**
+  * __mlock_vma_pages_range() -  mlock/munlock a range of pages in the vma.
+  * @vma:   target vma
+@@ -268,6 +256,18 @@ static long __mlock_vma_pages_range(stru
+ 	return ret;	/* count entire vma as locked_vm */
  }
  
-diff -puN mm/vmstat.c~vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics mm/vmstat.c
---- a/mm/vmstat.c~vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics
-+++ a/mm/vmstat.c
-@@ -685,6 +685,10 @@ static const char * const vmstat_text[] 
- 	"unevictable_pgs_culled",
- 	"unevictable_pgs_scanned",
- 	"unevictable_pgs_rescued",
-+	"unevictable_pgs_mlocked",
-+	"unevictable_pgs_munlocked",
-+	"unevictable_pgs_cleared",
-+	"unevictable_pgs_stranded",
- #endif
- #endif
- };
++/*
++ * convert get_user_pages() return value to posix mlock() error
++ */
++static int __mlock_posix_error_return(long retval)
++{
++	if (retval == -EFAULT)
++		retval = -ENOMEM;
++	else if (retval == -ENOMEM)
++		retval = -EAGAIN;
++	return retval;
++}
++
+ #else /* CONFIG_UNEVICTABLE_LRU */
+ 
+ /*
+@@ -281,6 +281,12 @@ static long __mlock_vma_pages_range(stru
+ 		return make_pages_present(start, end);
+ 	return 0;
+ }
++
++static inline int __mlock_posix_error_return(long retval)
++{
++	return 0;
++}
++
+ #endif /* CONFIG_UNEVICTABLE_LRU */
+ 
+ /**
 _
 
-Patches currently in -mm which might be from lee.schermerhorn@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vmscan-use-an-indexed-array-for-lru-variables.patch
+origin.patch
+mm-cleanup-to-make-remove_memory-arch-neutral.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
 define-page_file_cache-function.patch
 vmscan-split-lru-lists-into-anon-file-sets.patch
-pageflag-helpers-for-configed-out-flags.patch
 unevictable-lru-infrastructure.patch
-unevictable-infrastructure-lru-add-event-counting-with-statistics.patch
 unevictable-lru-page-statistics.patch
-ramfs-and-ram-disk-pages-are-unevictable.patch
-shm_locked-pages-are-unevictable.patch
 mlock-mlocked-pages-are-unevictable.patch
-doc-unevictable-lru-and-mlocked-pages-documentation.patch
-mlock-downgrade-mmap-sem-while-populating-mlocked-regions.patch
 mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmstat-mlocked-pages-statistics.patch
-vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch
-swap-cull-unevictable-pages-in-fault-path.patch
 vmscan-unevictable-lru-scan-sysctl.patch
-mlock-count-attempts-to-free-mlocked-page-2.patch
-mlock-revert-mainline-handling-of-mlock-error-return.patch
 mlock-make-mlock-error-return-posixly-correct.patch
 mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-rewrite-vmap-layer.patch
+memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
+drivers-hwmon-applesmcc-remove-unneeded-casts.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
+drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+x86-sysfs-kill-owner-field-from-attribute-fix.patch
+x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
 
