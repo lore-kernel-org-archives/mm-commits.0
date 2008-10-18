@@ -1,117 +1,193 @@
 From: akpm@linux-foundation.org
-Subject: - block-sanitize-invalid-partition-table-entries.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:19:06 -0700
-Message-ID: <200810182319.m9INJ6FS029426@imap1.linux-foundation.org>
+Subject: - w1-w1_therm-fix-user-buffer-overflow-and-cat.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:19:58 -0700
+Message-ID: <200810182319.m9INJwmW029608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35958 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43228 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751855AbYJRXUI (ORCPT
+	by vger.kernel.org with ESMTP id S1751895AbYJRXUS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:20:08 -0400
+	Sat, 18 Oct 2008 19:20:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kay.sievers@vrfy.org, herton@mandriva.com.br, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: david@fries.net, johnpol@2ka.mipt.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     block: sanitize invalid partition table entries
+     W1: w1_therm fix user buffer overflow and cat
 has been removed from the -mm tree.  Its filename was
-     block-sanitize-invalid-partition-table-entries.patch
+     w1-w1_therm-fix-user-buffer-overflow-and-cat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block: sanitize invalid partition table entries
-From: Kay Sievers <kay.sievers@vrfy.org>
+Subject: W1: w1_therm fix user buffer overflow and cat
+From: David Fries <david@fries.net>
 
-We currently follow blindly what the partition table lies about the
-disk, and let the kernel create block devices which can not be accessed.
-Trying to identify the device leads to kernel logs full of:
-  sdb: rw=0, want=73392, limit=28800
-  attempt to access beyond end of device
+Fixed data reading bug by replacing binary attribute with device one.
 
-Here is an example of a broken partition table, where sda2 starts
-behind the end of the disk, and sdb3 is larger than the entire disk:
-  Disk /dev/sdb: 14 MB, 14745600 bytes
-  1 heads, 29 sectors/track, 993 cylinders, total 28800 sectors
-     Device Boot      Start         End      Blocks   Id  System
-  /dev/sdb1              29        7800        3886   83  Linux
-  /dev/sdb2           37801       45601        3900+  83  Linux
-  /dev/sdb3           15602       73402       28900+  83  Linux
-  /dev/sdb4           23403       28796        2697   83  Linux
+Switching the sysfs read from bin_attribute to device_attribute.  The data
+is far under PAGE_SIZE so the binary interface isn't required.  As the
+device_attribute interface will make one call to w1_therm_read per file
+open and buffer, the result is, the following problems go away.
 
-The kernel creates these completely invalid devices, which can not be
-accessed, or may lead to other unpredictable failures:
-  grep . /sys/class/block/sdb*/{start,size}
-  /sys/class/block/sdb/size:28800
-  /sys/class/block/sdb1/start:29
-  /sys/class/block/sdb1/size:7772
-  /sys/class/block/sdb2/start:37801
-  /sys/class/block/sdb2/size:7801
-  /sys/class/block/sdb3/start:15602
-  /sys/class/block/sdb3/size:57801
-  /sys/class/block/sdb4/start:23403
-  /sys/class/block/sdb4/size:5394
+buffer overflow:
+	Execute a short read on w1_slave and w1_therm_read_bin would still
+	return the full string size worth of data clobbering the user space
+	buffer when it returned.  Switching to device_attribute avoids the
+	buffer overflow problems.  With the snprintf formatted output dealing
+	with short reads without doing a conversion per read would have
+	been difficult.
+bad behavior:
+	`cat w1_slave` would cause two temperature conversions to take place.
+	Previously the code assumed W1_SLAVE_DATA_SIZE would be returned with
+	each read.  It would not return 0 unless the offset was less
+	than W1_SLAVE_DATA_SIZE.  The result was the first read did a
+	temperature conversion, filled the buffer and returned, the
+	offset in the second read would be less than
+	W1_SLAVE_DATA_SIZE and also fill the buffer and return, the
+	third read would finnally have a big enough offset to return 0
+	and cause cat to stop.  Now w1_therm_read will be called at
+	most once per open.
 
-With this patch, we ignore partitions which start behind the end of the disk,
-and limit partitions to the end of the disk if they pretend to be larger:
-  grep . /sys/class/block/sdb*/{start,size}
-  /sys/class/block/sdb/size:28800
-  /sys/class/block/sdb1/start:29
-  /sys/class/block/sdb1/size:7772
-  /sys/class/block/sdb3/start:15602
-  /sys/class/block/sdb3/size:13198
-  /sys/class/block/sdb4/start:23403
-  /sys/class/block/sdb4/size:5394
-
-These warnings are printed to the kernel log:
-  sdb: p2 ignored, start 37801 is behind the end of the disk
-  sdb: p3 size 57801 limited to end of disk
-
-Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: David Fries <david@fries.net>
+Signed-off-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/partitions/check.c |   17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+ drivers/w1/slaves/w1_therm.c |   55 ++++++++++++---------------------
+ drivers/w1/w1.h              |    1 
+ 2 files changed, 20 insertions(+), 36 deletions(-)
 
-diff -puN fs/partitions/check.c~block-sanitize-invalid-partition-table-entries fs/partitions/check.c
---- a/fs/partitions/check.c~block-sanitize-invalid-partition-table-entries
-+++ a/fs/partitions/check.c
-@@ -538,10 +538,23 @@ int rescan_partitions(struct gendisk *di
- 		sector_t from = state->parts[p].from;
- 		if (!size)
- 			continue;
-+		if (from >= get_capacity(disk)) {
-+			printk(KERN_WARNING
-+			       "%s: p%d ignored, start %llu is behind the end of the disk\n",
-+			       disk->disk_name, p, (unsigned long long) from);
-+			continue;
-+		}
- 		if (from + size > get_capacity(disk)) {
-+			/*
-+			 * we can not ignore partitions of broken tables
-+			 * created by for example camera firmware, but we
-+			 * limit them to the end of the disk to avoid
-+			 * creating invalid block devices
-+			 */
- 			printk(KERN_WARNING
--				"%s: p%d exceeds device capacity\n",
--				disk->disk_name, p);
-+			       "%s: p%d size %llu limited to end of disk\n",
-+			       disk->disk_name, p, (unsigned long long) size);
-+			size = get_capacity(disk) - from;
- 		}
- 		res = add_partition(disk, p, from, size, state->parts[p].flags);
- 		if (res) {
+diff -puN drivers/w1/slaves/w1_therm.c~w1-w1_therm-fix-user-buffer-overflow-and-cat drivers/w1/slaves/w1_therm.c
+--- a/drivers/w1/slaves/w1_therm.c~w1-w1_therm-fix-user-buffer-overflow-and-cat
++++ a/drivers/w1/slaves/w1_therm.c
+@@ -50,26 +50,20 @@ static u8 bad_roms[][9] = {
+ 				{}
+ 			};
+ 
+-static ssize_t w1_therm_read_bin(struct kobject *, struct bin_attribute *,
+-				 char *, loff_t, size_t);
++static ssize_t w1_therm_read(struct device *device,
++	struct device_attribute *attr, char *buf);
+ 
+-static struct bin_attribute w1_therm_bin_attr = {
+-	.attr = {
+-		.name = "w1_slave",
+-		.mode = S_IRUGO,
+-	},
+-	.size = W1_SLAVE_DATA_SIZE,
+-	.read = w1_therm_read_bin,
+-};
++static struct device_attribute w1_therm_attr =
++	__ATTR(w1_slave, S_IRUGO, w1_therm_read, NULL);
+ 
+ static int w1_therm_add_slave(struct w1_slave *sl)
+ {
+-	return sysfs_create_bin_file(&sl->dev.kobj, &w1_therm_bin_attr);
++	return device_create_file(&sl->dev, &w1_therm_attr);
+ }
+ 
+ static void w1_therm_remove_slave(struct w1_slave *sl)
+ {
+-	sysfs_remove_bin_file(&sl->dev.kobj, &w1_therm_bin_attr);
++	device_remove_file(&sl->dev, &w1_therm_attr);
+ }
+ 
+ static struct w1_family_ops w1_therm_fops = {
+@@ -168,30 +162,19 @@ static int w1_therm_check_rom(u8 rom[9])
+ 	return 0;
+ }
+ 
+-static ssize_t w1_therm_read_bin(struct kobject *kobj,
+-				 struct bin_attribute *bin_attr,
+-				 char *buf, loff_t off, size_t count)
++static ssize_t w1_therm_read(struct device *device,
++	struct device_attribute *attr, char *buf)
+ {
+-	struct w1_slave *sl = kobj_to_w1_slave(kobj);
++	struct w1_slave *sl = dev_to_w1_slave(device);
+ 	struct w1_master *dev = sl->master;
+ 	u8 rom[9], crc, verdict;
+ 	int i, max_trying = 10;
++	ssize_t c = PAGE_SIZE;
+ 
+ 	mutex_lock(&sl->master->mutex);
+ 
+-	if (off > W1_SLAVE_DATA_SIZE) {
+-		count = 0;
+-		goto out;
+-	}
+-	if (off + count > W1_SLAVE_DATA_SIZE) {
+-		count = 0;
+-		goto out;
+-	}
+-
+-	memset(buf, 0, count);
+ 	memset(rom, 0, sizeof(rom));
+ 
+-	count = 0;
+ 	verdict = 0;
+ 	crc = 0;
+ 
+@@ -211,7 +194,9 @@ static ssize_t w1_therm_read_bin(struct 
+ 
+ 				w1_write_8(dev, W1_READ_SCRATCHPAD);
+ 				if ((count = w1_read_block(dev, rom, 9)) != 9) {
+-					dev_warn(&dev->dev, "w1_read_block() returned %d instead of 9.\n", count);
++					dev_warn(device, "w1_read_block() "
++						"returned %u instead of 9.\n",
++						count);
+ 				}
+ 
+ 				crc = w1_calc_crc8(rom, 8);
+@@ -226,22 +211,22 @@ static ssize_t w1_therm_read_bin(struct 
+ 	}
+ 
+ 	for (i = 0; i < 9; ++i)
+-		count += sprintf(buf + count, "%02x ", rom[i]);
+-	count += sprintf(buf + count, ": crc=%02x %s\n",
++		c -= snprintf(buf + PAGE_SIZE - c, c, "%02x ", rom[i]);
++	c -= snprintf(buf + PAGE_SIZE - c, c, ": crc=%02x %s\n",
+ 			   crc, (verdict) ? "YES" : "NO");
+ 	if (verdict)
+ 		memcpy(sl->rom, rom, sizeof(sl->rom));
+ 	else
+-		dev_warn(&dev->dev, "18S20 doesn't respond to CONVERT_TEMP.\n");
++		dev_warn(device, "18S20 doesn't respond to CONVERT_TEMP.\n");
+ 
+ 	for (i = 0; i < 9; ++i)
+-		count += sprintf(buf + count, "%02x ", sl->rom[i]);
++		c -= snprintf(buf + PAGE_SIZE - c, c, "%02x ", sl->rom[i]);
+ 
+-	count += sprintf(buf + count, "t=%d\n", w1_convert_temp(rom, sl->family->fid));
+-out:
++	c -= snprintf(buf + PAGE_SIZE - c, c, "t=%d\n",
++		w1_convert_temp(rom, sl->family->fid));
+ 	mutex_unlock(&dev->mutex);
+ 
+-	return count;
++	return PAGE_SIZE - c;
+ }
+ 
+ static int __init w1_therm_init(void)
+diff -puN drivers/w1/w1.h~w1-w1_therm-fix-user-buffer-overflow-and-cat drivers/w1/w1.h
+--- a/drivers/w1/w1.h~w1-w1_therm-fix-user-buffer-overflow-and-cat
++++ a/drivers/w1/w1.h
+@@ -46,7 +46,6 @@ struct w1_reg_num
+ #include "w1_family.h"
+ 
+ #define W1_MAXNAMELEN		32
+-#define W1_SLAVE_DATA_SIZE	128
+ 
+ #define W1_SEARCH		0xF0
+ #define W1_ALARM_SEARCH		0xEC
 _
 
-Patches currently in -mm which might be from kay.sievers@vrfy.org are
+Patches currently in -mm which might be from david@fries.net are
 
 origin.patch
 
