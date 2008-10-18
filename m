@@ -1,302 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - afs-convert-to-new-aops.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:19:28 -0700
-Message-ID: <200810182319.m9INJSYX029495@imap1.linux-foundation.org>
+Subject: - edac-mpc85xx-add-support-for-mpc8572.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:19:21 -0700
+Message-ID: <200810182319.m9INJLDm029468@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32957 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49503 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751826AbYJRXTx (ORCPT
+	by vger.kernel.org with ESMTP id S1751328AbYJRXTg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:19:53 -0400
+	Sat, 18 Oct 2008 19:19:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: akilkenny@xes-inc.com, djiang@mvista.com, dougthompson@xmission.com, ncase@xes-inc.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     afs: convert to new aops
+     edac mpc85xx: add support for mpc8572
 has been removed from the -mm tree.  Its filename was
-     afs-convert-to-new-aops.patch
+     edac-mpc85xx-add-support-for-mpc8572.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: afs: convert to new aops
-From: Nick Piggin <npiggin@suse.de>
+Subject: edac mpc85xx: add support for mpc8572
+From: Andrew Kilkenny <akilkenny@xes-inc.com>
 
-Cannot assume writes will fully complete, so this conversion goes the easy
-way and always brings the page uptodate before the write.
+This adds support for the dual-core MPC8572 processor.  We have
+to support making SPR changes on each core.  Also, since we can
+have multiple memory controllers sharing an interrupt, flag the
+interrupts with IRQF_SHARED.
 
-[dhowells@redhat.com: style tweaks]
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Andrew Kilkenny <akilkenny@xes-inc.com>
+Signed-off-by: Nate Case <ncase@xes-inc.com>
+Acked-by: Dave Jiang <djiang@mvista.com>
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/file.c     |    4 -
- fs/afs/internal.h |    8 ++
- fs/afs/write.c    |  131 ++++++++++++++------------------------------
- 3 files changed, 51 insertions(+), 92 deletions(-)
+ drivers/edac/mpc85xx_edac.c |   33 ++++++++++++++++++++++++++-------
+ 1 file changed, 26 insertions(+), 7 deletions(-)
 
-diff -puN fs/afs/file.c~afs-convert-to-new-aops fs/afs/file.c
---- a/fs/afs/file.c~afs-convert-to-new-aops
-+++ a/fs/afs/file.c
-@@ -50,8 +50,8 @@ const struct address_space_operations af
- 	.launder_page	= afs_launder_page,
- 	.releasepage	= afs_releasepage,
- 	.invalidatepage	= afs_invalidatepage,
--	.prepare_write	= afs_prepare_write,
--	.commit_write	= afs_commit_write,
-+	.write_begin	= afs_write_begin,
-+	.write_end	= afs_write_end,
- 	.writepage	= afs_writepage,
- 	.writepages	= afs_writepages,
+diff -puN drivers/edac/mpc85xx_edac.c~edac-mpc85xx-add-support-for-mpc8572 drivers/edac/mpc85xx_edac.c
+--- a/drivers/edac/mpc85xx_edac.c~edac-mpc85xx-add-support-for-mpc8572
++++ a/drivers/edac/mpc85xx_edac.c
+@@ -17,6 +17,7 @@
+ #include <linux/io.h>
+ #include <linux/mod_devicetable.h>
+ #include <linux/edac.h>
++#include <linux/smp.h>
+ 
+ #include <linux/of_platform.h>
+ #include <linux/of_device.h>
+@@ -40,7 +41,7 @@ static u32 orig_pci_err_en;
+ #endif
+ 
+ static u32 orig_l2_err_disable;
+-static u32 orig_hid1;
++static u32 orig_hid1[2];
+ 
+ /************************ MC SYSFS parts ***********************************/
+ 
+@@ -647,6 +648,9 @@ static struct of_device_id mpc85xx_l2_er
+ 	{
+ 	 .compatible = "fsl,8568-l2-cache-controller",
+ 	 },
++	{
++	 .compatible = "fsl,mpc8572-l2-cache-controller",
++	 },
+ 	{},
  };
-diff -puN fs/afs/internal.h~afs-convert-to-new-aops fs/afs/internal.h
---- a/fs/afs/internal.h~afs-convert-to-new-aops
-+++ a/fs/afs/internal.h
-@@ -728,8 +728,12 @@ extern int afs_volume_release_fileserver
-  */
- extern int afs_set_page_dirty(struct page *);
- extern void afs_put_writeback(struct afs_writeback *);
--extern int afs_prepare_write(struct file *, struct page *, unsigned, unsigned);
--extern int afs_commit_write(struct file *, struct page *, unsigned, unsigned);
-+extern int afs_write_begin(struct file *file, struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned flags,
-+			struct page **pagep, void **fsdata);
-+extern int afs_write_end(struct file *file, struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned copied,
-+			struct page *page, void *fsdata);
- extern int afs_writepage(struct page *, struct writeback_control *);
- extern int afs_writepages(struct address_space *, struct writeback_control *);
- extern int afs_write_inode(struct inode *, int);
-diff -puN fs/afs/write.c~afs-convert-to-new-aops fs/afs/write.c
---- a/fs/afs/write.c~afs-convert-to-new-aops
-+++ a/fs/afs/write.c
-@@ -84,15 +84,23 @@ void afs_put_writeback(struct afs_writeb
-  * partly or wholly fill a page that's under preparation for writing
-  */
- static int afs_fill_page(struct afs_vnode *vnode, struct key *key,
--			 unsigned start, unsigned len, struct page *page)
-+			 loff_t pos, unsigned len, struct page *page)
- {
-+	loff_t i_size;
-+	unsigned eof;
- 	int ret;
  
--	_enter(",,%u,%u", start, len);
-+	_enter(",,%llu,%u", (unsigned long long)pos, len);
+@@ -912,7 +916,8 @@ static int __devinit mpc85xx_mc_err_prob
+ 		/* register interrupts */
+ 		pdata->irq = irq_of_parse_and_map(op->node, 0);
+ 		res = devm_request_irq(&op->dev, pdata->irq,
+-				       mpc85xx_mc_isr, IRQF_DISABLED,
++				       mpc85xx_mc_isr,
++					IRQF_DISABLED | IRQF_SHARED,
+ 				       "[EDAC] MC err", mci);
+ 		if (res < 0) {
+ 			printk(KERN_ERR "%s: Unable to request irq %d for "
+@@ -980,6 +985,9 @@ static struct of_device_id mpc85xx_mc_er
+ 	{
+ 	 .compatible = "fsl,8568-memory-controller",
+ 	 },
++	{
++	 .compatible = "fsl,mpc8572-memory-controller",
++	 },
+ 	{},
+ };
  
--	ASSERTCMP(start + len, <=, PAGE_SIZE);
-+	ASSERTCMP(len, <=, PAGE_CACHE_SIZE);
+@@ -995,6 +1003,14 @@ static struct of_platform_driver mpc85xx
+ 		   },
+ };
  
--	ret = afs_vnode_fetch_data(vnode, key, start, len, page);
-+	i_size = i_size_read(&vnode->vfs_inode);
-+	if (pos + len > i_size)
-+		eof = i_size;
-+	else
-+		eof = PAGE_CACHE_SIZE;
 +
-+	ret = afs_vnode_fetch_data(vnode, key, 0, eof, page);
- 	if (ret < 0) {
- 		if (ret == -ENOENT) {
- 			_debug("got NOENT from server"
-@@ -107,109 +115,55 @@ static int afs_fill_page(struct afs_vnod
++static void __init mpc85xx_mc_clear_rfxe(void *data)
++{
++	orig_hid1[smp_processor_id()] = mfspr(SPRN_HID1);
++	mtspr(SPRN_HID1, (orig_hid1[smp_processor_id()] & ~0x20000));
++}
++
++
+ static int __init mpc85xx_mc_init(void)
+ {
+ 	int res = 0;
+@@ -1030,19 +1046,22 @@ static int __init mpc85xx_mc_init(void)
+ 	 * need to clear HID1[RFXE] to disable machine check int
+ 	 * so we can catch it
+ 	 */
+-	if (edac_op_state == EDAC_OPSTATE_INT) {
+-		orig_hid1 = mfspr(SPRN_HID1);
+-		mtspr(SPRN_HID1, (orig_hid1 & ~0x20000));
+-	}
++	if (edac_op_state == EDAC_OPSTATE_INT)
++		on_each_cpu(mpc85xx_mc_clear_rfxe, NULL, 0);
+ 
+ 	return 0;
  }
  
- /*
-- * prepare a page for being written to
-- */
--static int afs_prepare_page(struct afs_vnode *vnode, struct page *page,
--			    struct key *key, unsigned offset, unsigned to)
--{
--	unsigned eof, tail, start, stop, len;
--	loff_t i_size, pos;
--	void *p;
--	int ret;
--
--	_enter("");
--
--	if (offset == 0 && to == PAGE_SIZE)
--		return 0;
--
--	p = kmap_atomic(page, KM_USER0);
--
--	i_size = i_size_read(&vnode->vfs_inode);
--	pos = (loff_t) page->index << PAGE_SHIFT;
--	if (pos >= i_size) {
--		/* partial write, page beyond EOF */
--		_debug("beyond");
--		if (offset > 0)
--			memset(p, 0, offset);
--		if (to < PAGE_SIZE)
--			memset(p + to, 0, PAGE_SIZE - to);
--		kunmap_atomic(p, KM_USER0);
--		return 0;
--	}
--
--	if (i_size - pos >= PAGE_SIZE) {
--		/* partial write, page entirely before EOF */
--		_debug("before");
--		tail = eof = PAGE_SIZE;
--	} else {
--		/* partial write, page overlaps EOF */
--		eof = i_size - pos;
--		_debug("overlap %u", eof);
--		tail = max(eof, to);
--		if (tail < PAGE_SIZE)
--			memset(p + tail, 0, PAGE_SIZE - tail);
--		if (offset > eof)
--			memset(p + eof, 0, PAGE_SIZE - eof);
--	}
--
--	kunmap_atomic(p, KM_USER0);
--
--	ret = 0;
--	if (offset > 0 || eof > to) {
--		/* need to fill one or two bits that aren't going to be written
--		 * (cover both fillers in one read if there are two) */
--		start = (offset > 0) ? 0 : to;
--		stop = (eof > to) ? eof : offset;
--		len = stop - start;
--		_debug("wr=%u-%u av=0-%u rd=%u@%u",
--		       offset, to, eof, start, len);
--		ret = afs_fill_page(vnode, key, start, len, page);
--	}
--
--	_leave(" = %d", ret);
--	return ret;
--}
--
--/*
-  * prepare to perform part of a write to a page
-- * - the caller holds the page locked, preventing it from being written out or
-- *   modified by anyone else
-  */
--int afs_prepare_write(struct file *file, struct page *page,
--		      unsigned offset, unsigned to)
-+int afs_write_begin(struct file *file, struct address_space *mapping,
-+		    loff_t pos, unsigned len, unsigned flags,
-+		    struct page **pagep, void **fsdata)
- {
- 	struct afs_writeback *candidate, *wb;
- 	struct afs_vnode *vnode = AFS_FS_I(file->f_dentry->d_inode);
-+	struct page *page;
- 	struct key *key = file->private_data;
--	pgoff_t index;
-+	unsigned from = pos & (PAGE_CACHE_SIZE - 1);
-+	unsigned to = from + len;
-+	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
- 	int ret;
+ module_init(mpc85xx_mc_init);
  
- 	_enter("{%x:%u},{%lx},%u,%u",
--	       vnode->fid.vid, vnode->fid.vnode, page->index, offset, to);
-+	       vnode->fid.vid, vnode->fid.vnode, index, from, to);
- 
- 	candidate = kzalloc(sizeof(*candidate), GFP_KERNEL);
- 	if (!candidate)
- 		return -ENOMEM;
- 	candidate->vnode = vnode;
--	candidate->first = candidate->last = page->index;
--	candidate->offset_first = offset;
-+	candidate->first = candidate->last = index;
-+	candidate->offset_first = from;
- 	candidate->to_last = to;
- 	candidate->usage = 1;
- 	candidate->state = AFS_WBACK_PENDING;
- 	init_waitqueue_head(&candidate->waitq);
- 
-+	page = __grab_cache_page(mapping, index);
-+	if (!page) {
-+		kfree(candidate);
-+		return -ENOMEM;
-+	}
-+	*pagep = page;
-+	/* page won't leak in error case: it eventually gets cleaned off LRU */
++static void __exit mpc85xx_mc_restore_hid1(void *data)
++{
++	mtspr(SPRN_HID1, orig_hid1[smp_processor_id()]);
++}
 +
- 	if (!PageUptodate(page)) {
- 		_debug("not up to date");
--		ret = afs_prepare_page(vnode, page, key, offset, to);
-+		ret = afs_fill_page(vnode, key, pos, len, page);
- 		if (ret < 0) {
- 			kfree(candidate);
- 			_leave(" = %d [prep]", ret);
- 			return ret;
- 		}
-+		SetPageUptodate(page);
- 	}
- 
- try_again:
--	index = page->index;
- 	spin_lock(&vnode->writeback_lock);
- 
- 	/* see if this page is already pending a writeback under a suitable key
-@@ -242,8 +196,8 @@ try_again:
- subsume_in_current_wb:
- 	_debug("subsume");
- 	ASSERTRANGE(wb->first, <=, index, <=, wb->last);
--	if (index == wb->first && offset < wb->offset_first)
--		wb->offset_first = offset;
-+	if (index == wb->first && from < wb->offset_first)
-+		wb->offset_first = from;
- 	if (index == wb->last && to > wb->to_last)
- 		wb->to_last = to;
- 	spin_unlock(&vnode->writeback_lock);
-@@ -289,17 +243,17 @@ flush_conflicting_wb:
- /*
-  * finalise part of a write to a page
-  */
--int afs_commit_write(struct file *file, struct page *page,
--		     unsigned offset, unsigned to)
-+int afs_write_end(struct file *file, struct address_space *mapping,
-+		  loff_t pos, unsigned len, unsigned copied,
-+		  struct page *page, void *fsdata)
+ static void __exit mpc85xx_mc_exit(void)
  {
- 	struct afs_vnode *vnode = AFS_FS_I(file->f_dentry->d_inode);
- 	loff_t i_size, maybe_i_size;
- 
--	_enter("{%x:%u},{%lx},%u,%u",
--	       vnode->fid.vid, vnode->fid.vnode, page->index, offset, to);
-+	_enter("{%x:%u},{%lx}",
-+	       vnode->fid.vid, vnode->fid.vnode, page->index);
- 
--	maybe_i_size = (loff_t) page->index << PAGE_SHIFT;
--	maybe_i_size += to;
-+	maybe_i_size = pos + copied;
- 
- 	i_size = i_size_read(&vnode->vfs_inode);
- 	if (maybe_i_size > i_size) {
-@@ -310,12 +264,13 @@ int afs_commit_write(struct file *file, 
- 		spin_unlock(&vnode->writeback_lock);
- 	}
- 
--	SetPageUptodate(page);
- 	set_page_dirty(page);
- 	if (PageDirty(page))
- 		_debug("dirtied");
-+	unlock_page(page);
-+	page_cache_release(page);
- 
--	return 0;
-+	return copied;
- }
- 
- /*
+-	mtspr(SPRN_HID1, orig_hid1);
++	on_each_cpu(mpc85xx_mc_restore_hid1, NULL, 0);
+ #ifdef CONFIG_PCI
+ 	of_unregister_platform_driver(&mpc85xx_pci_err_driver);
+ #endif
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akilkenny@xes-inc.com are
 
 origin.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmstat-mlocked-pages-statistics.patch
-mm-pagecache-insertion-fewer-atomics.patch
-mm-unlockless-reclaim.patch
-mm-page-lock-use-lock-bitops.patch
-fs-buffer-lock-use-lock-bitops.patch
-mm-rewrite-vmap-layer.patch
 
