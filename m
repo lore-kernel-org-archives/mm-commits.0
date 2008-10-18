@@ -1,106 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - gpio-i2c-expanders-use-subsys_init.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:15:56 -0700
-Message-ID: <200810182315.m9INFuuE028726@imap1.linux-foundation.org>
+Subject: - radeonfb-revert-fix-radeon-ddc-regression.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:16:11 -0700
+Message-ID: <200810182316.m9INGBfL028764@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56892 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54581 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751690AbYJRXQO (ORCPT
+	by vger.kernel.org with ESMTP id S1751503AbYJRXQV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:16:14 -0400
+	Sat, 18 Oct 2008 19:16:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dbrownell@users.sourceforge.net, khali@linux-fr.org, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, benh@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio: i2c expanders use subsys_init
+     radeonfb: revert "Fix radeon DDC regression"
 has been removed from the -mm tree.  Its filename was
-     gpio-i2c-expanders-use-subsys_init.patch
+     radeonfb-revert-fix-radeon-ddc-regression.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio: i2c expanders use subsys_init
-From: David Brownell <dbrownell@users.sourceforge.net>
+Subject: radeonfb: revert "Fix radeon DDC regression"
+From: Jean Delvare <khali@linux-fr.org>
 
-Make the I2C external GPIO expander drivers register themselves at
-subsys_initcall() time when they're statically linked.
+The bug was in fb_ddc and was fixed by commit
+b64d70825abbf706bbe80be1b11b09514b71f45e (fb_ddc: fix DDC lines quirk) so
+the workaround in radeonfb can be removed now.
 
-SOC-integrated GPIOs are available starting very early -- early in
-arch_initcall() at latest, but often even before initcalls start to run --
-so this improves consistency, so more subsystems can rely on GPIOs in
-their own subsys_initcall() code.
-
-(This isn't a theoretical problem.  This is one of several patches needed
-to resolve oopsing observed when statically linking kernels on a DaVinci
-EVM.  Its pcf857x GPIOs needed to be available well before some other
-drivers initialized.)
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/max732x.c |    5 ++++-
- drivers/gpio/pca953x.c |    5 ++++-
- drivers/gpio/pcf857x.c |    5 ++++-
- 3 files changed, 12 insertions(+), 3 deletions(-)
+ drivers/video/aty/radeon_i2c.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/gpio/max732x.c~gpio-i2c-expanders-use-subsys_init drivers/gpio/max732x.c
---- a/drivers/gpio/max732x.c~gpio-i2c-expanders-use-subsys_init
-+++ a/drivers/gpio/max732x.c
-@@ -372,7 +372,10 @@ static int __init max732x_init(void)
+diff -puN drivers/video/aty/radeon_i2c.c~radeonfb-revert-fix-radeon-ddc-regression drivers/video/aty/radeon_i2c.c
+--- a/drivers/video/aty/radeon_i2c.c~radeonfb-revert-fix-radeon-ddc-regression
++++ a/drivers/video/aty/radeon_i2c.c
+@@ -139,12 +139,8 @@ void radeon_delete_i2c_busses(struct rad
+ int radeon_probe_i2c_connector(struct radeonfb_info *rinfo, int conn,
+ 			       u8 **out_edid)
  {
- 	return i2c_add_driver(&max732x_driver);
- }
--module_init(max732x_init);
-+/* register after i2c postcore initcall and before
-+ * subsys initcalls that may rely on these GPIOs
-+ */
-+subsys_initcall(max732x_init);
+-	u32 reg = rinfo->i2c[conn-1].ddc_reg;
+ 	u8 *edid;
  
- static void __exit max732x_exit(void)
- {
-diff -puN drivers/gpio/pca953x.c~gpio-i2c-expanders-use-subsys_init drivers/gpio/pca953x.c
---- a/drivers/gpio/pca953x.c~gpio-i2c-expanders-use-subsys_init
-+++ a/drivers/gpio/pca953x.c
-@@ -289,7 +289,10 @@ static int __init pca953x_init(void)
- {
- 	return i2c_add_driver(&pca953x_driver);
- }
--module_init(pca953x_init);
-+/* register after i2c postcore initcall and before
-+ * subsys initcalls that may rely on these GPIOs
-+ */
-+subsys_initcall(pca953x_init);
+-	OUTREG(reg, INREG(reg) &
+-			~(VGA_DDC_DATA_OUTPUT | VGA_DDC_CLK_OUTPUT));
+-
+ 	edid = fb_ddc_read(&rinfo->i2c[conn-1].adapter);
  
- static void __exit pca953x_exit(void)
- {
-diff -puN drivers/gpio/pcf857x.c~gpio-i2c-expanders-use-subsys_init drivers/gpio/pcf857x.c
---- a/drivers/gpio/pcf857x.c~gpio-i2c-expanders-use-subsys_init
-+++ a/drivers/gpio/pcf857x.c
-@@ -351,7 +351,10 @@ static int __init pcf857x_init(void)
- {
- 	return i2c_add_driver(&pcf857x_driver);
- }
--module_init(pcf857x_init);
-+/* register after i2c postcore initcall and before
-+ * subsys initcalls that may rely on these GPIOs
-+ */
-+subsys_initcall(pcf857x_init);
- 
- static void __exit pcf857x_exit(void)
- {
+ 	if (out_edid)
 _
 
-Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
 origin.patch
-rtc-cmos-export-second-nvram-bank.patch
-gpio-modify-sysfs-gpio-export-so-that-value-displays-as-0-or-1.patch
-gpiolib-fix-oops-in-gpio_get_value_cansleep.patch
+hwmon-pc87360-separate-alarm-files-define-some-constants.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-define-ldni_max-const.patch
+hwmon-pc87360-separate-alarm-files-add-dev_dbg-help.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
+hwmon-applesmc-specified-number-of-bytes-to-read-should-match-actual.patch
+hwmon-applesmc-fix-the-wait-status-failed-c-=-8-problem.patch
+hwmon-applesmc-prolong-status-wait.patch
+hwmon-applesmc-allow-for-variable-alv0-and-alv1-package-length.patch
+hwmon-applesmc-add-support-for-macbook-air.patch
+drivers-hwmon-applesmcc-remove-unneeded-casts.patch
+hwmon-applesmc-add-support-for-macbook-pro-4.patch
+hwmon-applesmc-add-support-for-macbook-pro-3.patch
+hwmon-applesmc-lighter-wait-mechanism-drastic-improvement.patch
+i2c-use-bcd2bin-bin2bcd.patch
+x86-sysfs-kill-owner-field-from-attribute.patch
+x86-sysfs-kill-owner-field-from-attribute-fix.patch
+x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
 
