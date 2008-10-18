@@ -1,122 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: + unevictable-infrastructure-lru-add-event-counting-with-statistics.patch added to -mm tree
-Date: Sat, 18 Oct 2008 16:36:30 -0700
-Message-ID: <200810182336.m9INaUYI032076@imap1.linux-foundation.org>
+Subject: - shm_locked-pages-are-unevictable-add-event-counts-to-list-scan.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:36:43 -0700
+Message-ID: <200810182336.m9INahq2032097@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35869 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56802 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751054AbYJRXgs (ORCPT
+	by vger.kernel.org with ESMTP id S1751355AbYJRXgz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:36:48 -0400
+	Sat, 18 Oct 2008 19:36:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: lee.schermerhorn@hp.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
+To: lee.schermerhorn@hp.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     unevictable lru:  add event counting with statistics
-has been added to the -mm tree.  Its filename is
-     unevictable-infrastructure-lru-add-event-counting-with-statistics.patch
+     unevictable lru: add event counts to list scan
+has been removed from the -mm tree.  Its filename was
+     shm_locked-pages-are-unevictable-add-event-counts-to-list-scan.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into shm_locked-pages-are-unevictable.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unevictable lru:  add event counting with statistics
+Subject: unevictable lru: add event counts to list scan
 From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-Fix to unevictable-lru-page-statistics.patch
+Fix to shm_locked-pages-are-unevictable.patch
 
-Add unevictable lru infrastructure vm events to the statistics patch.
-Rename the "NORECL_" and "noreclaim_" symbols and text strings to
-"UNEVICTABLE_" and "unevictable_", respectively.
+More breaking up of the single unevictable lru/mlocked pages vm events
+patch.
 
-Currently, both the infrastructure and the mlocked pages event are
-added by a single patch later in the series.  This makes it difficult
-to add or rework the incremental patches.  The events actually "belong"
-with the stats, so pull them up to here.
-
-Also, restore the event counting to putback_lru_page().  This was removed
-from previous patch in series where it was "misplaced".  The actual events
-weren't defined that early.
+Add the vm events counting to the unevictable lru list scanning for
+shm_unlock().
 
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Rik van Riel <riel@redhat.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Kosaki Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    5 +++++
- mm/vmscan.c            |    6 ++++++
- mm/vmstat.c            |    5 +++++
- 3 files changed, 16 insertions(+)
+ mm/vmscan.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN include/linux/vmstat.h~unevictable-infrastructure-lru-add-event-counting-with-statistics include/linux/vmstat.h
---- a/include/linux/vmstat.h~unevictable-infrastructure-lru-add-event-counting-with-statistics
-+++ a/include/linux/vmstat.h
-@@ -41,6 +41,11 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- #ifdef CONFIG_HUGETLB_PAGE
- 		HTLB_BUDDY_PGALLOC, HTLB_BUDDY_PGALLOC_FAIL,
- #endif
-+#ifdef CONFIG_UNEVICTABLE_LRU
-+		UNEVICTABLE_PGCULLED,	/* culled to noreclaim list */
-+		UNEVICTABLE_PGSCANNED,	/* scanned for reclaimability */
-+		UNEVICTABLE_PGRESCUED,	/* rescued from noreclaim list */
-+#endif
- 		NR_VM_EVENT_ITEMS
- };
- 
-diff -puN mm/vmscan.c~unevictable-infrastructure-lru-add-event-counting-with-statistics mm/vmscan.c
---- a/mm/vmscan.c~unevictable-infrastructure-lru-add-event-counting-with-statistics
+diff -puN mm/vmscan.c~shm_locked-pages-are-unevictable-add-event-counts-to-list-scan mm/vmscan.c
+--- a/mm/vmscan.c~shm_locked-pages-are-unevictable-add-event-counts-to-list-scan
 +++ a/mm/vmscan.c
-@@ -484,6 +484,7 @@ void putback_lru_page(struct page *page)
- {
- 	int lru;
- 	int active = !!TestClearPageActive(page);
-+	int was_unevictable = PageUnevictable(page);
+@@ -2458,6 +2458,7 @@ retry:
+ 		__dec_zone_state(zone, NR_UNEVICTABLE);
+ 		list_move(&page->lru, &zone->lru[l].list);
+ 		__inc_zone_state(zone, NR_INACTIVE_ANON + l);
++		__count_vm_event(UNEVICTABLE_PGRESCUED);
+ 	} else {
+ 		/*
+ 		 * rotate unevictable list
+@@ -2491,6 +2492,7 @@ void scan_mapping_unevictable_pages(stru
+ 	while (next < end &&
+ 		pagevec_lookup(&pvec, mapping, next, PAGEVEC_SIZE)) {
+ 		int i;
++		int pg_scanned = 0;
  
- 	VM_BUG_ON(PageLRU(page));
+ 		zone = NULL;
  
-@@ -525,6 +526,11 @@ redo:
- 		 */
+@@ -2499,6 +2501,7 @@ void scan_mapping_unevictable_pages(stru
+ 			pgoff_t page_index = page->index;
+ 			struct zone *pagezone = page_zone(page);
+ 
++			pg_scanned++;
+ 			if (page_index > next)
+ 				next = page_index;
+ 			next++;
+@@ -2516,6 +2519,8 @@ void scan_mapping_unevictable_pages(stru
+ 		if (zone)
+ 			spin_unlock_irq(&zone->lru_lock);
+ 		pagevec_release(&pvec);
++
++		count_vm_events(UNEVICTABLE_PGSCANNED, pg_scanned);
  	}
  
-+	if (was_unevictable && lru != LRU_UNEVICTABLE)
-+		count_vm_event(UNEVICTABLE_PGRESCUED);
-+	else if (!was_unevictable && lru == LRU_UNEVICTABLE)
-+		count_vm_event(UNEVICTABLE_PGCULLED);
-+
- 	put_page(page);		/* drop ref from isolate */
  }
- 
-diff -puN mm/vmstat.c~unevictable-infrastructure-lru-add-event-counting-with-statistics mm/vmstat.c
---- a/mm/vmstat.c~unevictable-infrastructure-lru-add-event-counting-with-statistics
-+++ a/mm/vmstat.c
-@@ -677,6 +677,11 @@ static const char * const vmstat_text[] 
- 	"htlb_buddy_alloc_success",
- 	"htlb_buddy_alloc_fail",
- #endif
-+#ifdef CONFIG_UNEVICTABLE_LRU
-+	"unevictable_pgs_culled",
-+	"unevictable_pgs_scanned",
-+	"unevictable_pgs_rescued",
-+#endif
- #endif
- };
- 
 _
 
 Patches currently in -mm which might be from lee.schermerhorn@hp.com are
