@@ -1,73 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: - orion_spi-handle-88f6183-erratum.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:14:43 -0700
-Message-ID: <200810182314.m9INEhmT028448@imap1.linux-foundation.org>
+Subject: - spi-simplify-spi_write_then_read.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:14:32 -0700
+Message-ID: <200810182314.m9INEWY6028415@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55107 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41197 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751609AbYJRXOw (ORCPT
+	by vger.kernel.org with ESMTP id S1751596AbYJRXOk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:14:52 -0400
+	Sat, 18 Oct 2008 19:14:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: buytenh@wantstofly.org, buytenh@marvell.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: vernoninhand@gmail.com, Vernon.Sauder@gmail.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     orion_spi: handle 88F6183 erratum
+     spi: simplify spi_write_then_read()
 has been removed from the -mm tree.  Its filename was
-     orion_spi-handle-88f6183-erratum.patch
+     spi-simplify-spi_write_then_read.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: orion_spi: handle 88F6183 erratum
-From: Lennert Buytenhek <buytenh@wantstofly.org>
+Subject: spi: simplify spi_write_then_read()
+From: Vernon Sauder <vernoninhand@gmail.com>
 
-Add support to orion_spi for the 88F6183 ARM SoC by adding code to work
-around a 6183-specific erratum.
+Modify spi_write_then_read() to use one transfer.  This speeds up all
+callers, and is a minor code shrink.
 
-Signed-off-by: Lennert Buytenhek <buytenh@marvell.com>
+Signed-off-by: Vernon Sauder <Vernon.Sauder@gmail.com>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/orion_spi.c       |    5 +++++
- include/linux/spi/orion_spi.h |    1 +
- 2 files changed, 6 insertions(+)
+ drivers/spi/spi.c |   22 ++++++++--------------
+ 1 file changed, 8 insertions(+), 14 deletions(-)
 
-diff -puN drivers/spi/orion_spi.c~orion_spi-handle-88f6183-erratum drivers/spi/orion_spi.c
---- a/drivers/spi/orion_spi.c~orion_spi-handle-88f6183-erratum
-+++ a/drivers/spi/orion_spi.c
-@@ -364,6 +364,11 @@ static int orion_spi_setup(struct spi_de
+diff -puN drivers/spi/spi.c~spi-simplify-spi_write_then_read drivers/spi/spi.c
+--- a/drivers/spi/spi.c~spi-simplify-spi_write_then_read
++++ a/drivers/spi/spi.c
+@@ -660,7 +660,7 @@ int spi_write_then_read(struct spi_devic
+ 
+ 	int			status;
+ 	struct spi_message	message;
+-	struct spi_transfer	x[2];
++	struct spi_transfer	x;
+ 	u8			*local_buf;
+ 
+ 	/* Use preallocated DMA-safe buffer.  We can't avoid copying here,
+@@ -671,15 +671,9 @@ int spi_write_then_read(struct spi_devic
  		return -EINVAL;
- 	}
  
-+	/* Fix ac timing if required.   */
-+	if (orion_spi->spi_info->enable_clock_fix)
-+		orion_spi_setbits(orion_spi, ORION_SPI_IF_CONFIG_REG,
-+				  (1 << 14));
-+
- 	if (spi->bits_per_word == 0)
- 		spi->bits_per_word = 8;
+ 	spi_message_init(&message);
+-	memset(x, 0, sizeof x);
+-	if (n_tx) {
+-		x[0].len = n_tx;
+-		spi_message_add_tail(&x[0], &message);
+-	}
+-	if (n_rx) {
+-		x[1].len = n_rx;
+-		spi_message_add_tail(&x[1], &message);
+-	}
++	memset(&x, 0, sizeof x);
++	x.len = n_tx + n_rx;
++	spi_message_add_tail(&x, &message);
  
-diff -puN include/linux/spi/orion_spi.h~orion_spi-handle-88f6183-erratum include/linux/spi/orion_spi.h
---- a/include/linux/spi/orion_spi.h~orion_spi-handle-88f6183-erratum
-+++ a/include/linux/spi/orion_spi.h
-@@ -11,6 +11,7 @@
+ 	/* ... unless someone else is using the pre-allocated buffer */
+ 	if (!mutex_trylock(&lock)) {
+@@ -690,15 +684,15 @@ int spi_write_then_read(struct spi_devic
+ 		local_buf = buf;
  
- struct orion_spi_info {
- 	u32	tclk;		/* no <linux/clk.h> support yet */
-+	u32	enable_clock_fix;
- };
+ 	memcpy(local_buf, txbuf, n_tx);
+-	x[0].tx_buf = local_buf;
+-	x[1].rx_buf = local_buf + n_tx;
++	x.tx_buf = local_buf;
++	x.rx_buf = local_buf;
  
+ 	/* do the i/o */
+ 	status = spi_sync(spi, &message);
+ 	if (status == 0)
+-		memcpy(rxbuf, x[1].rx_buf, n_rx);
++		memcpy(rxbuf, x.rx_buf + n_tx, n_rx);
  
+-	if (x[0].tx_buf == buf)
++	if (x.tx_buf == buf)
+ 		mutex_unlock(&lock);
+ 	else
+ 		kfree(local_buf);
 _
 
-Patches currently in -mm which might be from buytenh@wantstofly.org are
+Patches currently in -mm which might be from vernoninhand@gmail.com are
 
 origin.patch
 
