@@ -1,98 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - quota-remove-cvs-keywords.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:18:46 -0700
-Message-ID: <200810182318.m9INIk25029338@imap1.linux-foundation.org>
+Subject: - applicomc-fix-apparently-broken-code-in-do_ac_read.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:18:57 -0700
+Message-ID: <200810182318.m9INIvA8029385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54856 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36259 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752186AbYJRXS6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751518AbYJRXTP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:18:58 -0400
+	Sat, 18 Oct 2008 19:19:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, jack@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, dwmw2@infradead.org, jbarnes@virtuousgeek.org, jirislaby@gmail.com, zrakamar@cs.ubc.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quota: remove CVS keywords
+     applicom.c: fix apparently-broken code in do_ac_read()
 has been removed from the -mm tree.  Its filename was
-     quota-remove-cvs-keywords.patch
+     applicomc-fix-apparently-broken-code-in-do_ac_read.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota: remove CVS keywords
-From: Adrian Bunk <bunk@kernel.org>
+Subject: applicom.c: fix apparently-broken code in do_ac_read()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Remove CVS keywords that weren't updated for a long time from comments.
+The code sciblles overa local pointer whereas it appears to be trying to
+write to the memory at which that pointer points.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Jan Kara <jack@suse.cz>
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=11397
+
+Nobody we know can test this change.
+
+Reported-by: Zvonimir Rakamaric <zrakamar@cs.ubc.ca>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dquot.c               |    2 --
- include/linux/quota.h    |    2 --
- include/linux/quotaops.h |    3 ---
- 3 files changed, 7 deletions(-)
+ drivers/char/applicom.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/dquot.c~quota-remove-cvs-keywords fs/dquot.c
---- a/fs/dquot.c~quota-remove-cvs-keywords
-+++ a/fs/dquot.c
-@@ -9,8 +9,6 @@
-  * implementation is based on one of the several variants of the LINUX
-  * inode-subsystem with added complexity of the diskquota system.
-  * 
-- * Version: $Id: dquot.c,v 6.3 1996/11/17 18:35:34 mvw Exp mvw $
-- * 
-  * Author:	Marco van Wieringen <mvw@planets.elm.net>
-  *
-  * Fixes:   Dmitry Gorodchanin <pgmdsg@ibi.com>, 11 Feb 96
-diff -puN include/linux/quota.h~quota-remove-cvs-keywords include/linux/quota.h
---- a/include/linux/quota.h~quota-remove-cvs-keywords
-+++ a/include/linux/quota.h
-@@ -28,8 +28,6 @@
-  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-  * SUCH DAMAGE.
-- *
-- * Version: $Id: quota.h,v 2.0 1996/11/17 16:48:14 mvw Exp mvw $
-  */
- 
- #ifndef _LINUX_QUOTA_
-diff -puN include/linux/quotaops.h~quota-remove-cvs-keywords include/linux/quotaops.h
---- a/include/linux/quotaops.h~quota-remove-cvs-keywords
-+++ a/include/linux/quotaops.h
-@@ -3,9 +3,6 @@
-  * macros expand to the right source-code.
-  *
-  * Author:  Marco van Wieringen <mvw@planets.elm.net>
-- *
-- * Version: $Id: quotaops.h,v 1.2 1998/01/15 16:22:26 ecd Exp $
-- *
-  */
- #ifndef _LINUX_QUOTAOPS_
- #define _LINUX_QUOTAOPS_
+diff -puN drivers/char/applicom.c~applicomc-fix-apparently-broken-code-in-do_ac_read drivers/char/applicom.c
+--- a/drivers/char/applicom.c~applicomc-fix-apparently-broken-code-in-do_ac_read
++++ a/drivers/char/applicom.c
+@@ -478,7 +478,7 @@ static int do_ac_read(int IndexCard, cha
+ 		struct st_ram_io *st_loc, struct mailbox *mailbox)
+ {
+ 	void __iomem *from = apbs[IndexCard].RamIO + RAM_TO_PC;
+-	unsigned char *to = (unsigned char *)&mailbox;
++	unsigned char *to = (unsigned char *)mailbox;
+ #ifdef DEBUG
+ 	int c;
+ #endif
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-make-probe_serial_gsc-static.patch
-make-ptrace_untrace-static.patch
-make-mm-rmapc-anon_vma_cachep-static.patch
-acpi-use-bcd2bin-bin2bcd.patch
-alpha-use-bcd2bin-bin2bcd.patch
-cris-use-bcd2bin-bin2bcd.patch
-drivers-rtc-use-bcd2bin-bin2bcd.patch
-rtc-use-bcd2bin-bin2bcd.patch
-mips-use-bcd2bin-bin2bcd.patch
-mn10300-use-bcd2bin-bin2bcd.patch
-i2c-use-bcd2bin-bin2bcd.patch
-drivers-scsi-sr_vendorc-use-bcd2bin.patch
-remove-the-obsolete-bcdbin-binbcd-macros.patch
-include-linux-bcdh-remove-comments.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+define-page_file_cache-function.patch
+vmscan-split-lru-lists-into-anon-file-sets.patch
+vmscan-fix-pagecache-reclaim-referenced-bit-check-fix.patch
+vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix.patch
+vmscan-fix-pagecache-reclaim-referenced-bit-check-fix-fix-fix.patch
+unevictable-lru-infrastructure.patch
+unevictable-lru-page-statistics.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-rewrite-vmap-layer.patch
+memory_probe-fix-wrong-sysfs-file-attribute-fix.patch
+container-freezer-add-tif_freeze-flag-to-all-architectures-fix.patch
+container-freezer-implement-freezer-cgroup-subsystem-checkpatch-fixes.patch
+container-freezer-implement-freezer-cgroup-subsystem-uninline-thaw_process-fix.patch
+hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms-cleanup.patch
+hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms-cleanup.patch
+drivers-hwmon-applesmcc-remove-unneeded-casts.patch
+fb-push-down-the-bkl-in-the-ioctl-handler-checkpatch-fixes.patch
+ext3-fix-ext3_dx_readdir-hash-collision-handling-checkpatch-fixes.patch
+cgroups-fix-probable-race-with-put_css_set-and-find_css_set-fix.patch
+message-queues-increase-range-limits-checkpatch-fixes.patch
+drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
+x86-sysfs-kill-owner-field-from-attribute-fix.patch
+x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
 
