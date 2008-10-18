@@ -1,235 +1,400 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-ds1672-new-style-driver.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:15:46 -0700
-Message-ID: <200810182315.m9INFkEX028686@imap1.linux-foundation.org>
+Subject: - rtc-max6900-new-style-driver.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:15:43 -0700
+Message-ID: <200810182315.m9INFh3V028667@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57190 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49670 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751690AbYJRXP6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751617AbYJRXQK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:15:58 -0400
+	Sat, 18 Oct 2008 19:16:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alessandro.zummo@towertech.it, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: alessandro.zummo@towertech.it, a.zummo@towertech.it, dale@farnsworth.org, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-ds1672 new style driver
+     rtc-max6900 new style driver
 has been removed from the -mm tree.  Its filename was
-     rtc-ds1672-new-style-driver.patch
+     rtc-max6900-new-style-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-ds1672 new style driver
+Subject: rtc-max6900 new style driver
 From: Alessandro Zummo <alessandro.zummo@towertech.it>
 
 New style conversion and reformatting as per indent --linux-style
 
 Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Dale Farnsworth <dale@farnsworth.org>
 Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1672.c |  114 +++++++++++--------------------------
- 1 file changed, 34 insertions(+), 80 deletions(-)
+ drivers/rtc/rtc-max6900.c |  223 +++++++++++-------------------------
+ 1 file changed, 69 insertions(+), 154 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1672.c~rtc-ds1672-new-style-driver drivers/rtc/rtc-ds1672.c
---- a/drivers/rtc/rtc-ds1672.c~rtc-ds1672-new-style-driver
-+++ a/drivers/rtc/rtc-ds1672.c
-@@ -9,17 +9,10 @@
-  * published by the Free Software Foundation.
-  */
- 
--#include <linux/module.h>
- #include <linux/i2c.h>
+diff -puN drivers/rtc/rtc-max6900.c~rtc-max6900-new-style-driver drivers/rtc/rtc-max6900.c
+--- a/drivers/rtc/rtc-max6900.c~rtc-max6900-new-style-driver
++++ a/drivers/rtc/rtc-max6900.c
+@@ -17,19 +17,18 @@
  #include <linux/rtc.h>
+ #include <linux/delay.h>
  
--#define DRV_VERSION "0.3"
--
--/* Addresses to scan: none. This chip cannot be detected. */
--static const unsigned short normal_i2c[] = { I2C_CLIENT_END };
--
--/* Insmod parameters */
--I2C_CLIENT_INSMOD;
-+#define DRV_VERSION "0.4"
- 
- /* Registers */
- 
-@@ -29,8 +22,7 @@ I2C_CLIENT_INSMOD;
- 
- #define DS1672_REG_CONTROL_EOSC	0x80
- 
--/* Prototypes */
--static int ds1672_probe(struct i2c_adapter *adapter, int address, int kind);
-+static struct i2c_driver ds1672_driver;
+-#define DRV_NAME "max6900"
+-#define DRV_VERSION "0.1"
++#define DRV_VERSION "0.2"
  
  /*
-  * In the routines that deal directly with the ds1672 hardware, we use
-@@ -44,8 +36,8 @@ static int ds1672_get_datetime(struct i2
- 	unsigned char buf[4];
+  * register indices
+  */
+-#define MAX6900_REG_SC			0	/* seconds	00-59 */
+-#define MAX6900_REG_MN			1	/* minutes	00-59 */
+-#define MAX6900_REG_HR			2	/* hours	00-23 */
+-#define MAX6900_REG_DT			3	/* day of month	00-31 */
+-#define MAX6900_REG_MO			4	/* month	01-12 */
+-#define MAX6900_REG_DW			5	/* day of week	 1-7  */
+-#define MAX6900_REG_YR			6	/* year		00-99 */
++#define MAX6900_REG_SC			0	/* seconds      00-59 */
++#define MAX6900_REG_MN			1	/* minutes      00-59 */
++#define MAX6900_REG_HR			2	/* hours        00-23 */
++#define MAX6900_REG_DT			3	/* day of month 00-31 */
++#define MAX6900_REG_MO			4	/* month        01-12 */
++#define MAX6900_REG_DW			5	/* day of week   1-7  */
++#define MAX6900_REG_YR			6	/* year         00-99 */
+ #define MAX6900_REG_CT			7	/* control */
+ 						/* register 8 is undocumented */
+ #define MAX6900_REG_CENTURY		9	/* century */
+@@ -39,7 +38,6 @@
  
- 	struct i2c_msg msgs[] = {
--		{ client->addr, 0, 1, &addr },		/* setup read ptr */
--		{ client->addr, I2C_M_RD, 4, buf },	/* read date */
-+		{client->addr, 0, 1, &addr},	/* setup read ptr */
-+		{client->addr, I2C_M_RD, 4, buf},	/* read date */
- 	};
+ #define MAX6900_REG_CT_WP		(1 << 7)	/* Write Protect */
  
- 	/* read date registers */
-@@ -80,7 +72,7 @@ static int ds1672_set_mmss(struct i2c_cl
- 	buf[2] = (secs & 0x0000FF00) >> 8;
- 	buf[3] = (secs & 0x00FF0000) >> 16;
- 	buf[4] = (secs & 0xFF000000) >> 24;
--	buf[5] = 0;	/* set control reg to enable counting */
-+	buf[5] = 0;		/* set control reg to enable counting */
+-
+ /*
+  * register read/write commands
+  */
+@@ -52,16 +50,7 @@
  
- 	xfer = i2c_master_send(client, buf, 6);
- 	if (xfer != 6) {
-@@ -127,8 +119,8 @@ static int ds1672_get_control(struct i2c
- 	unsigned char addr = DS1672_REG_CONTROL;
+ #define MAX6900_IDLE_TIME_AFTER_WRITE	3	/* specification says 2.5 mS */
  
- 	struct i2c_msg msgs[] = {
--		{ client->addr, 0, 1, &addr },		/* setup read ptr */
--		{ client->addr, I2C_M_RD, 1, status },	/* read control */
-+		{client->addr, 0, 1, &addr},	/* setup read ptr */
-+		{client->addr, I2C_M_RD, 1, status},	/* read control */
- 	};
+-#define MAX6900_I2C_ADDR		0xa0
+-
+-static const unsigned short normal_i2c[] = {
+-	MAX6900_I2C_ADDR >> 1,
+-	I2C_CLIENT_END
+-};
+-
+-I2C_CLIENT_INSMOD;			/* defines addr_data */
+-
+-static int max6900_probe(struct i2c_adapter *adapter, int addr, int kind);
++static struct i2c_driver max6900_driver;
  
- 	/* read control register */
-@@ -141,7 +133,8 @@ static int ds1672_get_control(struct i2c
- }
- 
- /* following are the sysfs callback functions */
--static ssize_t show_control(struct device *dev, struct device_attribute *attr, char *buf)
-+static ssize_t show_control(struct device *dev, struct device_attribute *attr,
-+			    char *buf)
+ static int max6900_i2c_read_regs(struct i2c_client *client, u8 *buf)
  {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	u8 control;
-@@ -152,85 +145,46 @@ static ssize_t show_control(struct devic
- 		return err;
+@@ -69,36 +58,35 @@ static int max6900_i2c_read_regs(struct 
+ 	u8 reg_century_read[1] = { MAX6900_REG_CENTURY_READ };
+ 	struct i2c_msg msgs[4] = {
+ 		{
+-			.addr	= client->addr,
+-			.flags	= 0, /* write */
+-			.len	= sizeof(reg_burst_read),
+-			.buf	= reg_burst_read
+-		},
++		 .addr = client->addr,
++		 .flags = 0,	/* write */
++		 .len = sizeof(reg_burst_read),
++		 .buf = reg_burst_read}
++		,
+ 		{
+-			.addr	= client->addr,
+-			.flags	= I2C_M_RD,
+-			.len	= MAX6900_BURST_LEN,
+-			.buf	= buf
+-		},
++		 .addr = client->addr,
++		 .flags = I2C_M_RD,
++		 .len = MAX6900_BURST_LEN,
++		 .buf = buf}
++		,
+ 		{
+-			.addr	= client->addr,
+-			.flags	= 0, /* write */
+-			.len	= sizeof(reg_century_read),
+-			.buf	= reg_century_read
+-		},
++		 .addr = client->addr,
++		 .flags = 0,	/* write */
++		 .len = sizeof(reg_century_read),
++		 .buf = reg_century_read}
++		,
+ 		{
+-			.addr	= client->addr,
+-			.flags	= I2C_M_RD,
+-			.len	= sizeof(buf[MAX6900_REG_CENTURY]),
+-			.buf	= &buf[MAX6900_REG_CENTURY]
+-		}
++		 .addr = client->addr,
++		 .flags = I2C_M_RD,
++		 .len = sizeof(buf[MAX6900_REG_CENTURY]),
++		 .buf = &buf[MAX6900_REG_CENTURY]
++		 }
+ 	};
+ 	int rc;
  
- 	return sprintf(buf, "%s\n", (control & DS1672_REG_CONTROL_EOSC)
--					? "disabled" : "enabled");
-+		       ? "disabled" : "enabled");
- }
+ 	rc = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
+ 	if (rc != ARRAY_SIZE(msgs)) {
+-		dev_err(&client->dev, "%s: register read failed\n",
+-			__func__);
++		dev_err(&client->dev, "%s: register read failed\n", __func__);
+ 		return -EIO;
+ 	}
+ 	return 0;
+@@ -109,20 +97,18 @@ static int max6900_i2c_write_regs(struct
+ 	u8 i2c_century_buf[1 + 1] = { MAX6900_REG_CENTURY_WRITE };
+ 	struct i2c_msg century_msgs[1] = {
+ 		{
+-			.addr	= client->addr,
+-			.flags	= 0, /* write */
+-			.len	= sizeof(i2c_century_buf),
+-			.buf	= i2c_century_buf
+-		}
++		 .addr = client->addr,
++		 .flags = 0,	/* write */
++		 .len = sizeof(i2c_century_buf),
++		 .buf = i2c_century_buf}
+ 	};
+ 	u8 i2c_burst_buf[MAX6900_BURST_LEN + 1] = { MAX6900_REG_BURST_WRITE };
+ 	struct i2c_msg burst_msgs[1] = {
+ 		{
+-			.addr	= client->addr,
+-			.flags	= 0, /* write */
+-			.len	= sizeof(i2c_burst_buf),
+-			.buf	= i2c_burst_buf
+-		}
++		 .addr = client->addr,
++		 .flags = 0,	/* write */
++		 .len = sizeof(i2c_burst_buf),
++		 .buf = i2c_burst_buf}
+ 	};
+ 	int rc;
+ 
+@@ -133,10 +119,12 @@ static int max6900_i2c_write_regs(struct
+ 	 * bit as part of the burst write.
+ 	 */
+ 	i2c_century_buf[1] = buf[MAX6900_REG_CENTURY];
 +
- static DEVICE_ATTR(control, S_IRUGO, show_control, NULL);
+ 	rc = i2c_transfer(client->adapter, century_msgs,
+ 			  ARRAY_SIZE(century_msgs));
+ 	if (rc != ARRAY_SIZE(century_msgs))
+ 		goto write_failed;
++
+ 	msleep(MAX6900_IDLE_TIME_AFTER_WRITE);
  
- static const struct rtc_class_ops ds1672_rtc_ops = {
--	.read_time	= ds1672_rtc_read_time,
--	.set_time	= ds1672_rtc_set_time,
--	.set_mmss	= ds1672_rtc_set_mmss,
-+	.read_time = ds1672_rtc_read_time,
-+	.set_time = ds1672_rtc_set_time,
-+	.set_mmss = ds1672_rtc_set_mmss,
- };
+ 	memcpy(&i2c_burst_buf[1], buf, MAX6900_BURST_LEN);
+@@ -148,45 +136,11 @@ static int max6900_i2c_write_regs(struct
  
--static int ds1672_attach(struct i2c_adapter *adapter)
+ 	return 0;
+ 
+-write_failed:
+-	dev_err(&client->dev, "%s: register write failed\n",
+-		__func__);
++ write_failed:
++	dev_err(&client->dev, "%s: register write failed\n", __func__);
+ 	return -EIO;
+ }
+ 
+-static int max6900_i2c_validate_client(struct i2c_client *client)
 -{
--	return i2c_probe(adapter, &addr_data, ds1672_probe);
+-	u8 regs[MAX6900_REG_LEN];
+-	u8 zero_mask[] = {
+-		0x80,	/* seconds */
+-		0x80,	/* minutes */
+-		0x40,	/* hours */
+-		0xc0,	/* day of month */
+-		0xe0,	/* month */
+-		0xf8,	/* day of week */
+-		0x00,	/* year */
+-		0x7f,	/* control */
+-	};
+-	int i;
+-	int rc;
+-	int reserved;
+-
+-	reserved = i2c_smbus_read_byte_data(client, MAX6900_REG_RESERVED_READ);
+-	if (reserved != 0x07)
+-		return -ENODEV;
+-
+-	rc = max6900_i2c_read_regs(client, regs);
+-	if (rc < 0)
+-		return rc;
+-
+-	for (i = 0; i < ARRAY_SIZE(zero_mask); ++i) {
+-		if (regs[i] & zero_mask[i])
+-			return -ENODEV;
+-	}
+-
+-	return 0;
 -}
 -
--static int ds1672_detach(struct i2c_client *client)
-+static int ds1672_remove(struct i2c_client *client)
+ static int max6900_i2c_read_time(struct i2c_client *client, struct rtc_time *tm)
  {
--	int err;
- 	struct rtc_device *rtc = i2c_get_clientdata(client);
+ 	int rc;
+@@ -202,7 +156,7 @@ static int max6900_i2c_read_time(struct 
+ 	tm->tm_mday = BCD2BIN(regs[MAX6900_REG_DT]);
+ 	tm->tm_mon = BCD2BIN(regs[MAX6900_REG_MO]) - 1;
+ 	tm->tm_year = BCD2BIN(regs[MAX6900_REG_YR]) +
+-		      BCD2BIN(regs[MAX6900_REG_CENTURY]) * 100 - 1900;
++	    BCD2BIN(regs[MAX6900_REG_CENTURY]) * 100 - 1900;
+ 	tm->tm_wday = BCD2BIN(regs[MAX6900_REG_DW]);
  
-- 	if (rtc)
-+	if (rtc)
- 		rtc_device_unregister(rtc);
- 
--	if ((err = i2c_detach_client(client)))
--		return err;
--
--	kfree(client);
--
+ 	return 0;
+@@ -211,7 +165,7 @@ static int max6900_i2c_read_time(struct 
+ static int max6900_i2c_clear_write_protect(struct i2c_client *client)
+ {
+ 	int rc;
+-	rc = i2c_smbus_write_byte_data (client, MAX6900_REG_CONTROL_WRITE, 0);
++	rc = i2c_smbus_write_byte_data(client, MAX6900_REG_CONTROL_WRITE, 0);
+ 	if (rc < 0) {
+ 		dev_err(&client->dev, "%s: control register write failed\n",
+ 			__func__);
+@@ -220,8 +174,8 @@ static int max6900_i2c_clear_write_prote
  	return 0;
  }
  
--static struct i2c_driver ds1672_driver = {
+-static int max6900_i2c_set_time(struct i2c_client *client,
+-				struct rtc_time const *tm)
++static int
++max6900_i2c_set_time(struct i2c_client *client, struct rtc_time const *tm)
+ {
+ 	u8 regs[MAX6900_REG_LEN];
+ 	int rc;
+@@ -258,89 +212,49 @@ static int max6900_rtc_set_time(struct d
+ 	return max6900_i2c_set_time(to_i2c_client(dev), tm);
+ }
+ 
+-static int max6900_attach_adapter(struct i2c_adapter *adapter)
+-{
+-	return i2c_probe(adapter, &addr_data, max6900_probe);
+-}
+-
+-static int max6900_detach_client(struct i2c_client *client)
++static int max6900_remove(struct i2c_client *client)
+ {
+-	struct rtc_device *const rtc = i2c_get_clientdata(client);
++	struct rtc_device *rtc = i2c_get_clientdata(client);
+ 
+ 	if (rtc)
+ 		rtc_device_unregister(rtc);
+ 
+-	return i2c_detach_client(client);
++	return 0;
+ }
+ 
+-static struct i2c_driver max6900_driver = {
 -	.driver		= {
--		.name	= "ds1672",
+-		.name	= DRV_NAME,
 -	},
--	.id		= I2C_DRIVERID_DS1672,
--	.attach_adapter = &ds1672_attach,
--	.detach_client	= &ds1672_detach,
+-	.id		= I2C_DRIVERID_MAX6900,
+-	.attach_adapter = max6900_attach_adapter,
+-	.detach_client	= max6900_detach_client,
 -};
 -
--static int ds1672_probe(struct i2c_adapter *adapter, int address, int kind)
-+static int ds1672_probe(struct i2c_client *client,
-+			const struct i2c_device_id *id)
- {
- 	int err = 0;
- 	u8 control;
--	struct i2c_client *client;
- 	struct rtc_device *rtc;
+ static const struct rtc_class_ops max6900_rtc_ops = {
+-	.read_time	= max6900_rtc_read_time,
+-	.set_time	= max6900_rtc_set_time,
++	.read_time = max6900_rtc_read_time,
++	.set_time = max6900_rtc_set_time,
+ };
  
--	dev_dbg(&adapter->dev, "%s\n", __func__);
+-static int max6900_probe(struct i2c_adapter *adapter, int addr, int kind)
++static int
++max6900_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ {
+-	int rc = 0;
+-	struct i2c_client *client = NULL;
+-	struct rtc_device *rtc = NULL;
 -
 -	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
--		err = -ENODEV;
--		goto exit;
+-		rc = -ENODEV;
+-		goto failout;
 -	}
--
--	if (!(client = kzalloc(sizeof(struct i2c_client), GFP_KERNEL))) {
--		err = -ENOMEM;
--		goto exit;
--	}
-+	dev_dbg(&client->dev, "%s\n", __func__);
++	struct rtc_device *rtc;
  
--	/* I2C client */
--	client->addr = address;
--	client->driver = &ds1672_driver;
--	client->adapter	= adapter;
+-	client = kzalloc(sizeof(struct i2c_client), GFP_KERNEL);
+-	if (client == NULL) {
+-		rc = -ENOMEM;
+-		goto failout;
+-	}
 -
--	strlcpy(client->name, ds1672_driver.driver.name, I2C_NAME_SIZE);
+-	client->addr = addr;
+-	client->adapter = adapter;
+-	client->driver = &max6900_driver;
+-	strlcpy(client->name, DRV_NAME, I2C_NAME_SIZE);
 -
--	/* Inform the i2c layer */
--	if ((err = i2c_attach_client(client)))
--		goto exit_kfree;
+-	if (kind < 0) {
+-		rc = max6900_i2c_validate_client(client);
+-		if (rc < 0)
+-			goto failout;
+-	}
+-
+-	rc = i2c_attach_client(client);
+-	if (rc < 0)
+-		goto failout;
 +	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
 +		return -ENODEV;
  
- 	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
+-	dev_info(&client->dev,
+-		 "chip found, driver version " DRV_VERSION "\n");
++	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
  
- 	rtc = rtc_device_register(ds1672_driver.driver.name, &client->dev,
--				&ds1672_rtc_ops, THIS_MODULE);
-+				  &ds1672_rtc_ops, THIS_MODULE);
- 
+ 	rtc = rtc_device_register(max6900_driver.driver.name,
+-				  &client->dev,
+-				  &max6900_rtc_ops, THIS_MODULE);
 -	if (IS_ERR(rtc)) {
--		err = PTR_ERR(rtc);
--		goto exit_detach;
+-		rc = PTR_ERR(rtc);
+-		goto failout_detach;
 -	}
++				  &client->dev, &max6900_rtc_ops, THIS_MODULE);
 +	if (IS_ERR(rtc))
 +		return PTR_ERR(rtc);
  
  	i2c_set_clientdata(client, rtc);
  
-@@ -241,7 +195,7 @@ static int ds1672_probe(struct i2c_adapt
- 
- 	if (control & DS1672_REG_CONTROL_EOSC)
- 		dev_warn(&client->dev, "Oscillator not enabled. "
--					"Set time to enable.\n");
-+			 "Set time to enable.\n");
- 
- 	/* Register sysfs hooks */
- 	err = device_create_file(&client->dev, &dev_attr_control);
-@@ -250,19 +204,19 @@ static int ds1672_probe(struct i2c_adapt
- 
  	return 0;
- 
--exit_devreg:
-+ exit_devreg:
- 	rtc_device_unregister(rtc);
 -
--exit_detach:
+-failout_detach:
 -	i2c_detach_client(client);
--
--exit_kfree:
+-failout:
 -	kfree(client);
+-	return rc;
+ }
+ 
++static struct i2c_driver max6900_driver = {
++	.driver = {
++		   .name = "rtc-max6900",
++		   },
++	.probe = max6900_probe,
++	.remove = max6900_remove,
++};
++
+ static int __init max6900_init(void)
+ {
+ 	return i2c_add_driver(&max6900_driver);
+@@ -352,6 +266,7 @@ static void __exit max6900_exit(void)
+ }
+ 
+ MODULE_DESCRIPTION("Maxim MAX6900 RTC driver");
++MODULE_AUTHOR("Dale Farnsworth <dale@farnsworth.org>");
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION(DRV_VERSION);
+ 
+_
+
+Patches currently in -mm which might be from alessandro.zummo@towertech.it are
+
+origin.patch
+
