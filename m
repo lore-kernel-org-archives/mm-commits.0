@@ -1,286 +1,276 @@
 From: akpm@linux-foundation.org
-Subject: - viafb-chiph-debugh.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:16:24 -0700
-Message-ID: <200810182316.m9INGOSu028799@imap1.linux-foundation.org>
+Subject: - gpiolib-request-free-hooks.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:16:08 -0700
+Message-ID: <200810182316.m9ING8F5028761@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39254 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46896 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751665AbYJRXQo (ORCPT
+	by vger.kernel.org with ESMTP id S1751122AbYJRXQS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:16:44 -0400
+	Sat, 18 Oct 2008 19:16:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: JosephChan@via.com.tw, geert@linux-m68k.org, josephchan@via.com.tw, krzysztof.h1@poczta.fm, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, magnus.damm@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb: chip.h, debug.h
+     gpiolib: request/free hooks
 has been removed from the -mm tree.  Its filename was
-     viafb-chiph-debugh.patch
+     gpiolib-request-free-hooks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: chip.h, debug.h
-From: Joseph Chan <JosephChan@via.com.tw>
+Subject: gpiolib: request/free hooks
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Header file of information about via chipsets and debug function.
+Add a new internal mechanism to gpiolib to support low power
+operations by letting gpio_chip instances see when their GPIOs
+are in use.  When no GPIOs are active, chips may be able to
+enter lower powered runtime states by disabling clocks and/or
+power domains.
 
-Signed-off-by: Joseph Chan <josephchan@via.com.tw>
-Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: "Magnus Damm" <magnus.damm@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/chip.h  |  190 ++++++++++++++++++++++++++++++++++++
- drivers/video/via/debug.h |   41 +++++++
- 2 files changed, 231 insertions(+)
+ Documentation/gpio.txt     |    4 +
+ drivers/gpio/gpiolib.c     |   91 ++++++++++++++++++++++++++++++-----
+ include/asm-generic/gpio.h |    9 +++
+ 3 files changed, 91 insertions(+), 13 deletions(-)
 
-diff -puN /dev/null drivers/video/via/chip.h
---- /dev/null
-+++ a/drivers/video/via/chip.h
-@@ -0,0 +1,190 @@
-+/*
-+ * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
-+ * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
+diff -puN Documentation/gpio.txt~gpiolib-request-free-hooks Documentation/gpio.txt
+--- a/Documentation/gpio.txt~gpiolib-request-free-hooks
++++ a/Documentation/gpio.txt
+@@ -240,6 +240,10 @@ signal, or (b) something wrongly believe
+ needed to manage a signal that's in active use.  That is, requesting a
+ GPIO can serve as a kind of lock.
+ 
++Some platforms may also use knowledge about what GPIOs are active for
++power management, such as by powering down unused chip sectors and, more
++easily, gating off unused clocks.
 +
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public
-+ * License as published by the Free Software Foundation;
-+ * either version 2, or (at your option) any later version.
+ These two calls are optional because not not all current Linux platforms
+ offer such functionality in their GPIO support; a valid implementation
+ could return success for all gpio_request() calls.  Unlike the other calls,
+diff -puN drivers/gpio/gpiolib.c~gpiolib-request-free-hooks drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpiolib-request-free-hooks
++++ a/drivers/gpio/gpiolib.c
+@@ -67,17 +67,28 @@ static inline void desc_set_label(struct
+  * when setting direction, and otherwise illegal.  Until board setup code
+  * and drivers use explicit requests everywhere (which won't happen when
+  * those calls have no teeth) we can't avoid autorequesting.  This nag
+- * message should motivate switching to explicit requests...
++ * message should motivate switching to explicit requests... so should
++ * the weaker cleanup after faults, compared to gpio_request().
+  */
+-static void gpio_ensure_requested(struct gpio_desc *desc)
++static int gpio_ensure_requested(struct gpio_desc *desc, unsigned offset)
+ {
+ 	if (test_and_set_bit(FLAG_REQUESTED, &desc->flags) == 0) {
+-		pr_warning("GPIO-%d autorequested\n", (int)(desc - gpio_desc));
++		struct gpio_chip *chip = desc->chip;
++		int gpio = chip->base + offset;
 +
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
-+ * the implied warranty of MERCHANTABILITY or FITNESS FOR
-+ * A PARTICULAR PURPOSE.See the GNU General Public License
-+ * for more details.
++		if (!try_module_get(chip->owner)) {
++			pr_err("GPIO-%d: module can't be gotten \n", gpio);
++			clear_bit(FLAG_REQUESTED, &desc->flags);
++			/* lose */
++			return -EIO;
++		}
++		pr_warning("GPIO-%d autorequested\n", gpio);
+ 		desc_set_label(desc, "[auto]");
+-		if (!try_module_get(desc->chip->owner))
+-			pr_err("GPIO-%d: module can't be gotten \n",
+-					(int)(desc - gpio_desc));
++		/* caller must chip->request() w/o spinlock */
++		if (chip->request)
++			return 1;
+ 	}
++	return 0;
+ }
+ 
+ /* caller holds gpio_lock *OR* gpio is marked as requested */
+@@ -752,6 +763,7 @@ EXPORT_SYMBOL_GPL(gpiochip_remove);
+ int gpio_request(unsigned gpio, const char *label)
+ {
+ 	struct gpio_desc	*desc;
++	struct gpio_chip	*chip;
+ 	int			status = -EINVAL;
+ 	unsigned long		flags;
+ 
+@@ -760,14 +772,15 @@ int gpio_request(unsigned gpio, const ch
+ 	if (!gpio_is_valid(gpio))
+ 		goto done;
+ 	desc = &gpio_desc[gpio];
+-	if (desc->chip == NULL)
++	chip = desc->chip;
++	if (chip == NULL)
+ 		goto done;
+ 
+-	if (!try_module_get(desc->chip->owner))
++	if (!try_module_get(chip->owner))
+ 		goto done;
+ 
+ 	/* NOTE:  gpio_request() can be called in early boot,
+-	 * before IRQs are enabled.
++	 * before IRQs are enabled, for non-sleeping (SOC) GPIOs.
+ 	 */
+ 
+ 	if (test_and_set_bit(FLAG_REQUESTED, &desc->flags) == 0) {
+@@ -775,7 +788,20 @@ int gpio_request(unsigned gpio, const ch
+ 		status = 0;
+ 	} else {
+ 		status = -EBUSY;
+-		module_put(desc->chip->owner);
++		module_put(chip->owner);
++	}
 +
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc.,
-+ * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-+ */
-+#ifndef __CHIP_H__
-+#define __CHIP_H__
++	if (chip->request) {
++		/* chip->request may sleep */
++		spin_unlock_irqrestore(&gpio_lock, flags);
++		status = chip->request(chip, gpio - chip->base);
++		spin_lock_irqsave(&gpio_lock, flags);
 +
-+#include "global.h"
++		if (status < 0) {
++			desc_set_label(desc, NULL);
++			module_put(chip->owner);
++			clear_bit(FLAG_REQUESTED, &desc->flags);
++		}
+ 	}
+ 
+ done:
+@@ -791,6 +817,7 @@ void gpio_free(unsigned gpio)
+ {
+ 	unsigned long		flags;
+ 	struct gpio_desc	*desc;
++	struct gpio_chip	*chip;
+ 
+ 	might_sleep();
+ 
+@@ -804,9 +831,17 @@ void gpio_free(unsigned gpio)
+ 	spin_lock_irqsave(&gpio_lock, flags);
+ 
+ 	desc = &gpio_desc[gpio];
+-	if (desc->chip && test_and_clear_bit(FLAG_REQUESTED, &desc->flags)) {
++	chip = desc->chip;
++	if (chip && test_bit(FLAG_REQUESTED, &desc->flags)) {
++		if (chip->free) {
++			spin_unlock_irqrestore(&gpio_lock, flags);
++			might_sleep_if(extra_checks && chip->can_sleep);
++			chip->free(chip, gpio - chip->base);
++			spin_lock_irqsave(&gpio_lock, flags);
++		}
+ 		desc_set_label(desc, NULL);
+ 		module_put(desc->chip->owner);
++		clear_bit(FLAG_REQUESTED, &desc->flags);
+ 	} else
+ 		WARN_ON(extra_checks);
+ 
+@@ -871,7 +906,9 @@ int gpio_direction_input(unsigned gpio)
+ 	gpio -= chip->base;
+ 	if (gpio >= chip->ngpio)
+ 		goto fail;
+-	gpio_ensure_requested(desc);
++	status = gpio_ensure_requested(desc, gpio);
++	if (status < 0)
++		goto fail;
+ 
+ 	/* now we know the gpio is valid and chip won't vanish */
+ 
+@@ -879,9 +916,22 @@ int gpio_direction_input(unsigned gpio)
+ 
+ 	might_sleep_if(extra_checks && chip->can_sleep);
+ 
++	if (status) {
++		status = chip->request(chip, gpio);
++		if (status < 0) {
++			pr_debug("GPIO-%d: chip request fail, %d\n",
++				chip->base + gpio, status);
++			/* and it's not available to anyone else ...
++			 * gpio_request() is the fully clean solution.
++			 */
++			goto lose;
++		}
++	}
 +
-+/***************************************/
-+/* Definition Graphic Chip Information */
-+/***************************************/
+ 	status = chip->direction_input(chip, gpio);
+ 	if (status == 0)
+ 		clear_bit(FLAG_IS_OUT, &desc->flags);
++lose:
+ 	return status;
+ fail:
+ 	spin_unlock_irqrestore(&gpio_lock, flags);
+@@ -909,7 +959,9 @@ int gpio_direction_output(unsigned gpio,
+ 	gpio -= chip->base;
+ 	if (gpio >= chip->ngpio)
+ 		goto fail;
+-	gpio_ensure_requested(desc);
++	status = gpio_ensure_requested(desc, gpio);
++	if (status < 0)
++		goto fail;
+ 
+ 	/* now we know the gpio is valid and chip won't vanish */
+ 
+@@ -917,9 +969,22 @@ int gpio_direction_output(unsigned gpio,
+ 
+ 	might_sleep_if(extra_checks && chip->can_sleep);
+ 
++	if (status) {
++		status = chip->request(chip, gpio);
++		if (status < 0) {
++			pr_debug("GPIO-%d: chip request fail, %d\n",
++				chip->base + gpio, status);
++			/* and it's not available to anyone else ...
++			 * gpio_request() is the fully clean solution.
++			 */
++			goto lose;
++		}
++	}
 +
-+#define     PCI_VIA_VENDOR_ID       0x1106
+ 	status = chip->direction_output(chip, gpio, value);
+ 	if (status == 0)
+ 		set_bit(FLAG_IS_OUT, &desc->flags);
++lose:
+ 	return status;
+ fail:
+ 	spin_unlock_irqrestore(&gpio_lock, flags);
+diff -puN include/asm-generic/gpio.h~gpiolib-request-free-hooks include/asm-generic/gpio.h
+--- a/include/asm-generic/gpio.h~gpiolib-request-free-hooks
++++ a/include/asm-generic/gpio.h
+@@ -35,6 +35,10 @@ struct module;
+  * @label: for diagnostics
+  * @dev: optional device providing the GPIOs
+  * @owner: helps prevent removal of modules exporting active GPIOs
++ * @request: optional hook for chip-specific activation, such as
++ *	enabling module power and clock; may sleep
++ * @free: optional hook for chip-specific deactivation, such as
++ *	disabling module power and clock; may sleep
+  * @direction_input: configures signal "offset" as input, or returns error
+  * @get: returns value for signal "offset"; for output signals this
+  *	returns either the value actually sensed, or zero
+@@ -67,6 +71,11 @@ struct gpio_chip {
+ 	struct device		*dev;
+ 	struct module		*owner;
+ 
++	int			(*request)(struct gpio_chip *chip,
++						unsigned offset);
++	void			(*free)(struct gpio_chip *chip,
++						unsigned offset);
 +
-+/* Define VIA Graphic Chip Name */
-+#define     UNICHROME_CLE266        1
-+#define     UNICHROME_CLE266_DID    0x3122
-+#define     CLE266_REVISION_AX      0x0A
-+#define     CLE266_REVISION_CX      0x0C
-+
-+#define     UNICHROME_K400          2
-+#define     UNICHROME_K400_DID      0x7205
-+
-+#define     UNICHROME_K800          3
-+#define     UNICHROME_K800_DID      0x3108
-+
-+#define     UNICHROME_PM800         4
-+#define     UNICHROME_PM800_DID     0x3118
-+
-+#define     UNICHROME_CN700         5
-+#define     UNICHROME_CN700_DID     0x3344
-+
-+#define     UNICHROME_CX700         6
-+#define     UNICHROME_CX700_DID     0x3157
-+#define     CX700_REVISION_700      0x0
-+#define     CX700_REVISION_700M     0x1
-+#define     CX700_REVISION_700M2    0x2
-+
-+#define     UNICHROME_CN750         7
-+#define     UNICHROME_CN750_DID     0x3225
-+
-+#define     UNICHROME_K8M890        8
-+#define     UNICHROME_K8M890_DID    0x3230
-+
-+#define     UNICHROME_P4M890        9
-+#define     UNICHROME_P4M890_DID    0x3343
-+
-+#define     UNICHROME_P4M900        10
-+#define     UNICHROME_P4M900_DID    0x3371
-+
-+#define     UNICHROME_VX800         11
-+#define     UNICHROME_VX800_DID     0x1122
-+
-+/**************************************************/
-+/* Definition TMDS Trasmitter Information         */
-+/**************************************************/
-+
-+/* Definition TMDS Trasmitter Index */
-+#define     NON_TMDS_TRANSMITTER    0x00
-+#define     VT1632_TMDS             0x01
-+#define     INTEGRATED_TMDS         0x42
-+
-+/* Definition TMDS Trasmitter I2C Slave Address */
-+#define     VT1632_TMDS_I2C_ADDR    0x10
-+
-+/**************************************************/
-+/* Definition LVDS Trasmitter Information         */
-+/**************************************************/
-+
-+/* Definition LVDS Trasmitter Index */
-+#define     NON_LVDS_TRANSMITTER    0x00
-+#define     VT1631_LVDS             0x01
-+#define     VT1636_LVDS             0x0E
-+#define     INTEGRATED_LVDS         0x41
-+
-+/* Definition Digital Transmitter Mode */
-+#define     TX_DATA_12_BITS         0x01
-+#define     TX_DATA_24_BITS         0x02
-+#define     TX_DATA_DDR_MODE        0x04
-+#define     TX_DATA_SDR_MODE        0x08
-+
-+/* Definition LVDS Trasmitter I2C Slave Address */
-+#define     VT1631_LVDS_I2C_ADDR    0x70
-+#define     VT3271_LVDS_I2C_ADDR    0x80
-+#define     VT1636_LVDS_I2C_ADDR    0x80
-+
-+struct tmds_chip_information {
-+	int tmds_chip_name;
-+	int tmds_chip_slave_addr;
-+	int dvi_panel_id;
-+	int data_mode;
-+	int output_interface;
-+	int i2c_port;
-+	int device_type;
-+};
-+
-+struct lvds_chip_information {
-+	int lvds_chip_name;
-+	int lvds_chip_slave_addr;
-+	int data_mode;
-+	int output_interface;
-+	int i2c_port;
-+};
-+
-+struct chip_information {
-+	int gfx_chip_name;
-+	int gfx_chip_revision;
-+	int chip_on_slot;
-+	struct tmds_chip_information tmds_chip_info;
-+	struct lvds_chip_information lvds_chip_info;
-+	struct lvds_chip_information lvds_chip_info2;
-+};
-+
-+struct crt_setting_information {
-+	int iga_path;
-+	int h_active;
-+	int v_active;
-+	int bpp;
-+	int refresh_rate;
-+};
-+
-+struct tmds_setting_information {
-+	int iga_path;
-+	int h_active;
-+	int v_active;
-+	int bpp;
-+	int refresh_rate;
-+	int get_dvi_size_method;
-+	int max_pixel_clock;
-+	int dvi_panel_size;
-+	int dvi_panel_hres;
-+	int dvi_panel_vres;
-+	int native_size;
-+};
-+
-+struct lvds_setting_information {
-+	int iga_path;
-+	int h_active;
-+	int v_active;
-+	int bpp;
-+	int refresh_rate;
-+	int get_lcd_size_method;
-+	int lcd_panel_id;
-+	int lcd_panel_size;
-+	int lcd_panel_hres;
-+	int lcd_panel_vres;
-+	int display_method;
-+	int device_lcd_dualedge;
-+	int LCDDithering;
-+	int lcd_mode;
-+	u32 vclk;		/*panel mode clock value */
-+};
-+
-+struct GFX_DPA_SETTING {
-+	int ClkRangeIndex;
-+	u8 DVP0;		/* CR96[3:0] */
-+	u8 DVP0DataDri_S1;	/* SR2A[5]   */
-+	u8 DVP0DataDri_S;	/* SR1B[1]   */
-+	u8 DVP0ClockDri_S1;	/* SR2A[4]   */
-+	u8 DVP0ClockDri_S;	/* SR1E[2]   */
-+	u8 DVP1;		/* CR9B[3:0] */
-+	u8 DVP1Driving;		/* SR65[3:0], Data and Clock driving */
-+	u8 DFPHigh;		/* CR97[3:0] */
-+	u8 DFPLow;		/* CR99[3:0] */
-+
-+};
-+
-+struct VT1636_DPA_SETTING {
-+	int PanelSizeID;
-+	u8 CLK_SEL_ST1;
-+	u8 CLK_SEL_ST2;
-+};
-+#endif /* __CHIP_H__ */
-diff -puN /dev/null drivers/video/via/debug.h
---- /dev/null
-+++ a/drivers/video/via/debug.h
-@@ -0,0 +1,41 @@
-+/*
-+ * Copyright 1998-2008 VIA Technologies, Inc. All Rights Reserved.
-+ * Copyright 2001-2008 S3 Graphics, Inc. All Rights Reserved.
-+
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public
-+ * License as published by the Free Software Foundation;
-+ * either version 2, or (at your option) any later version.
-+
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTIES OR REPRESENTATIONS; without even
-+ * the implied warranty of MERCHANTABILITY or FITNESS FOR
-+ * A PARTICULAR PURPOSE.See the GNU General Public License
-+ * for more details.
-+
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc.,
-+ * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-+ */
-+#ifndef __DEBUG_H__
-+#define __DEBUG_H__
-+
-+#ifndef VIAFB_DEBUG
-+#define VIAFB_DEBUG 0
-+#endif
-+
-+#if VIAFB_DEBUG
-+#define DEBUG_MSG(f, a...)   printk(f, ## a)
-+#else
-+#define DEBUG_MSG(f, a...)
-+#endif
-+
-+#define VIAFB_WARN 0
-+#if VIAFB_WARN
-+#define WARN_MSG(f, a...)   printk(f, ## a)
-+#else
-+#define WARN_MSG(f, a...)
-+#endif
-+
-+#endif /* __DEBUG_H__ */
+ 	int			(*direction_input)(struct gpio_chip *chip,
+ 						unsigned offset);
+ 	int			(*get)(struct gpio_chip *chip,
 _
 
-Patches currently in -mm which might be from JosephChan@via.com.tw are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 origin.patch
+rtc-cmos-export-second-nvram-bank.patch
+gpio-modify-sysfs-gpio-export-so-that-value-displays-as-0-or-1.patch
+gpiolib-fix-oops-in-gpio_get_value_cansleep.patch
 
