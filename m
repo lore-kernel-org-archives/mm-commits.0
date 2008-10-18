@@ -1,228 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-convert-to-use-new-aops.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:14:54 -0700
-Message-ID: <200810182314.m9INEst0028485@imap1.linux-foundation.org>
+Subject: - spi_s3c24xx-pin-configuration-updates.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:14:34 -0700
+Message-ID: <200810182314.m9INEY1f028420@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43245 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52612 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751629AbYJRXPE (ORCPT
+	by vger.kernel.org with ESMTP id S1751671AbYJRXPF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:15:04 -0400
+	Sat, 18 Oct 2008 19:15:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pbadari@us.ibm.com, mhalcrow@us.ibm.com, npiggin@suse.de, shaggy@austin.ibm.com, mm-commits@vger.kernel.org
+To: ben-linux@fluff.org, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ecryptfs: convert to use new aops
+     spi_s3c24xx: pin configuration updates
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-convert-to-use-new-aops.patch
+     spi_s3c24xx-pin-configuration-updates.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ecryptfs: convert to use new aops
-From: Badari Pulavarty <pbadari@us.ibm.com>
+Subject: spi_s3c24xx: pin configuration updates
+From: Ben Dooks <ben-linux@fluff.org>
 
-Convert ecryptfs to use write_begin/write_end
+Add a pin configuration callback for the s3c24xx SPI driver, as there are
+several options depending on the channel and the chip in use.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
-Acked-by: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Dave Kleikamp <shaggy@austin.ibm.com>
+This is needed as the controller may not have been setup by the initial
+bootloader and the fact that the SPI controller gets reset over
+suspend/resume into slave mode but the GPIO function registers do not.
+
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/mmap.c |   81 ++++++++++++++++++++++++++-----------------
- 1 file changed, 50 insertions(+), 31 deletions(-)
+ arch/arm/mach-s3c2410/include/mach/spi.h |    1 +
+ drivers/spi/spi_s3c24xx.c                |    6 ++++++
+ 2 files changed, 7 insertions(+)
 
-diff -puN fs/ecryptfs/mmap.c~ecryptfs-convert-to-use-new-aops fs/ecryptfs/mmap.c
---- a/fs/ecryptfs/mmap.c~ecryptfs-convert-to-use-new-aops
-+++ a/fs/ecryptfs/mmap.c
-@@ -265,22 +265,34 @@ out:
- }
+diff -puN arch/arm/mach-s3c2410/include/mach/spi.h~spi_s3c24xx-pin-configuration-updates arch/arm/mach-s3c2410/include/mach/spi.h
+--- a/arch/arm/mach-s3c2410/include/mach/spi.h~spi_s3c24xx-pin-configuration-updates
++++ a/arch/arm/mach-s3c2410/include/mach/spi.h
+@@ -18,6 +18,7 @@ struct s3c2410_spi_info {
+ 	unsigned int		 num_cs;	/* total chipselects */
+ 	int			 bus_num;       /* bus number to use. */
  
- /**
-- * ecryptfs_prepare_write
-+ * ecryptfs_write_begin
-  * @file: The eCryptfs file
-- * @page: The eCryptfs page
-- * @from: The start byte from which we will write
-- * @to: The end byte to which we will write
-+ * @mapping: The eCryptfs object
-+ * @pos: The file offset at which to start writing
-+ * @len: Length of the write
-+ * @flags: Various flags
-+ * @pagep: Pointer to return the page
-+ * @fsdata: Pointer to return fs data (unused)
-  *
-  * This function must zero any hole we create
-  *
-  * Returns zero on success; non-zero otherwise
-  */
--static int ecryptfs_prepare_write(struct file *file, struct page *page,
--				  unsigned from, unsigned to)
-+static int ecryptfs_write_begin(struct file *file,
-+			struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned flags,
-+			struct page **pagep, void **fsdata)
- {
-+	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
-+	struct page *page;
- 	loff_t prev_page_end_size;
- 	int rc = 0;
- 
-+	page = __grab_cache_page(mapping, index);
-+	if (!page)
-+		return -ENOMEM;
-+	*pagep = page;
-+
- 	if (!PageUptodate(page)) {
- 		struct ecryptfs_crypt_stat *crypt_stat =
- 			&ecryptfs_inode_to_private(
-@@ -289,8 +301,7 @@ static int ecryptfs_prepare_write(struct
- 		if (!(crypt_stat->flags & ECRYPTFS_ENCRYPTED)
- 		    || (crypt_stat->flags & ECRYPTFS_NEW_FILE)) {
- 			rc = ecryptfs_read_lower_page_segment(
--				page, page->index, 0, PAGE_CACHE_SIZE,
--				page->mapping->host);
-+				page, index, 0, PAGE_CACHE_SIZE, mapping->host);
- 			if (rc) {
- 				printk(KERN_ERR "%s: Error attemping to read "
- 				       "lower page segment; rc = [%d]\n",
-@@ -316,8 +327,8 @@ static int ecryptfs_prepare_write(struct
- 				SetPageUptodate(page);
- 			} else {
- 				rc = ecryptfs_read_lower_page_segment(
--					page, page->index, 0, PAGE_CACHE_SIZE,
--					page->mapping->host);
-+					page, index, 0, PAGE_CACHE_SIZE,
-+					mapping->host);
- 				if (rc) {
- 					printk(KERN_ERR "%s: Error reading "
- 					       "page; rc = [%d]\n",
-@@ -339,10 +350,10 @@ static int ecryptfs_prepare_write(struct
- 			SetPageUptodate(page);
- 		}
- 	}
--	prev_page_end_size = ((loff_t)page->index << PAGE_CACHE_SHIFT);
-+	prev_page_end_size = ((loff_t)index << PAGE_CACHE_SHIFT);
- 	/* If creating a page or more of holes, zero them out via truncate.
- 	 * Note, this will increase i_size. */
--	if (page->index != 0) {
-+	if (index != 0) {
- 		if (prev_page_end_size > i_size_read(page->mapping->host)) {
- 			rc = ecryptfs_truncate(file->f_path.dentry,
- 					       prev_page_end_size);
-@@ -357,8 +368,8 @@ static int ecryptfs_prepare_write(struct
- 	}
- 	/* Writing to a new page, and creating a small hole from start
- 	 * of page?  Zero it out. */
--	if ((i_size_read(page->mapping->host) == prev_page_end_size)
--	    && (from != 0))
-+	if ((i_size_read(mapping->host) == prev_page_end_size)
-+	    && (pos != 0))
- 		zero_user(page, 0, PAGE_CACHE_SIZE);
- out:
- 	return rc;
-@@ -445,21 +456,28 @@ int ecryptfs_write_inode_size_to_metadat
- }
- 
- /**
-- * ecryptfs_commit_write
-+ * ecryptfs_write_end
-  * @file: The eCryptfs file object
-+ * @mapping: The eCryptfs object
-+ * @pos: The file position
-+ * @len: The length of the data (unused)
-+ * @copied: The amount of data copied
-  * @page: The eCryptfs page
-- * @from: Ignored (we rotate the page IV on each write)
-- * @to: Ignored
-+ * @fsdata: The fsdata (unused)
-  *
-  * This is where we encrypt the data and pass the encrypted data to
-  * the lower filesystem.  In OpenPGP-compatible mode, we operate on
-  * entire underlying packets.
-  */
--static int ecryptfs_commit_write(struct file *file, struct page *page,
--				 unsigned from, unsigned to)
-+static int ecryptfs_write_end(struct file *file,
-+			struct address_space *mapping,
-+			loff_t pos, unsigned len, unsigned copied,
-+			struct page *page, void *fsdata)
- {
--	loff_t pos;
--	struct inode *ecryptfs_inode = page->mapping->host;
-+	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
-+	unsigned from = pos & (PAGE_CACHE_SIZE - 1);
-+	unsigned to = from + copied;
-+	struct inode *ecryptfs_inode = mapping->host;
- 	struct ecryptfs_crypt_stat *crypt_stat =
- 		&ecryptfs_inode_to_private(file->f_path.dentry->d_inode)->crypt_stat;
- 	int rc;
-@@ -471,25 +489,22 @@ static int ecryptfs_commit_write(struct 
- 	} else
- 		ecryptfs_printk(KERN_DEBUG, "Not a new file\n");
- 	ecryptfs_printk(KERN_DEBUG, "Calling fill_zeros_to_end_of_page"
--			"(page w/ index = [0x%.16x], to = [%d])\n", page->index,
--			to);
-+			"(page w/ index = [0x%.16x], to = [%d])\n", index, to);
- 	/* Fills in zeros if 'to' goes beyond inode size */
- 	rc = fill_zeros_to_end_of_page(page, to);
- 	if (rc) {
- 		ecryptfs_printk(KERN_WARNING, "Error attempting to fill "
--				"zeros in page with index = [0x%.16x]\n",
--				page->index);
-+			"zeros in page with index = [0x%.16x]\n", index);
- 		goto out;
- 	}
- 	rc = ecryptfs_encrypt_page(page);
- 	if (rc) {
- 		ecryptfs_printk(KERN_WARNING, "Error encrypting page (upper "
--				"index [0x%.16x])\n", page->index);
-+				"index [0x%.16x])\n", index);
- 		goto out;
- 	}
--	pos = (((loff_t)page->index) << PAGE_CACHE_SHIFT) + to;
--	if (pos > i_size_read(ecryptfs_inode)) {
--		i_size_write(ecryptfs_inode, pos);
-+	if (pos + copied > i_size_read(ecryptfs_inode)) {
-+		i_size_write(ecryptfs_inode, pos + copied);
- 		ecryptfs_printk(KERN_DEBUG, "Expanded file size to "
- 				"[0x%.16x]\n", i_size_read(ecryptfs_inode));
- 	}
-@@ -497,7 +512,11 @@ static int ecryptfs_commit_write(struct 
- 	if (rc)
- 		printk(KERN_ERR "Error writing inode size to metadata; "
- 		       "rc = [%d]\n", rc);
-+	else
-+		rc = copied;
- out:
-+	unlock_page(page);
-+	page_cache_release(page);
- 	return rc;
- }
- 
-@@ -518,7 +537,7 @@ static sector_t ecryptfs_bmap(struct add
- struct address_space_operations ecryptfs_aops = {
- 	.writepage = ecryptfs_writepage,
- 	.readpage = ecryptfs_readpage,
--	.prepare_write = ecryptfs_prepare_write,
--	.commit_write = ecryptfs_commit_write,
-+	.write_begin = ecryptfs_write_begin,
-+	.write_end = ecryptfs_write_end,
- 	.bmap = ecryptfs_bmap,
++	void (*gpio_setup)(struct s3c2410_spi_info *spi, int enable);
+ 	void (*set_cs)(struct s3c2410_spi_info *spi, int cs, int pol);
  };
+ 
+diff -puN drivers/spi/spi_s3c24xx.c~spi_s3c24xx-pin-configuration-updates drivers/spi/spi_s3c24xx.c
+--- a/drivers/spi/spi_s3c24xx.c~spi_s3c24xx-pin-configuration-updates
++++ a/drivers/spi/spi_s3c24xx.c
+@@ -247,6 +247,9 @@ static void s3c24xx_spi_initialsetup(str
+ 	writeb(0xff, hw->regs + S3C2410_SPPRE);
+ 	writeb(SPPIN_DEFAULT, hw->regs + S3C2410_SPPIN);
+ 	writeb(SPCON_DEFAULT, hw->regs + S3C2410_SPCON);
++
++	if (hw->pdata && hw->pdata->gpio_setup)
++		hw->pdata->gpio_setup(hw->pdata, 1);
+ }
+ 
+ static int __init s3c24xx_spi_probe(struct platform_device *pdev)
+@@ -412,6 +415,9 @@ static int s3c24xx_spi_suspend(struct pl
+ {
+ 	struct s3c24xx_spi *hw = platform_get_drvdata(pdev);
+ 
++	if (hw->pdata && hw->pdata->gpio_setup)
++		hw->pdata->gpio_setup(hw->pdata, 0);
++
+ 	clk_disable(hw->clk);
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from pbadari@us.ibm.com are
+Patches currently in -mm which might be from ben-linux@fluff.org are
 
 origin.patch
-mm-cleanup-to-make-remove_memory-arch-neutral.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix.patch
-memory-hotplug-release-memory-regions-in-pages_per_section-chunks.patch
 
