@@ -1,97 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - gpio_free-might-sleep-generic-part.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:15:53 -0700
-Message-ID: <200810182315.m9INFrUf028700@imap1.linux-foundation.org>
+Subject: - neofb-reduce-panning-function.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:16:13 -0700
+Message-ID: <200810182316.m9INGDYR028769@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60765 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56781 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751560AbYJRXQM (ORCPT
+	by vger.kernel.org with ESMTP id S1750954AbYJRXQP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:16:12 -0400
+	Sat, 18 Oct 2008 19:16:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ukleinek@informatik.uni-freiburg.de, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: krzysztof.h1@wp.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpio_free might sleep, generic part
+     neofb: reduce panning function
 has been removed from the -mm tree.  Its filename was
-     gpio_free-might-sleep-generic-part.patch
+     neofb-reduce-panning-function.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpio_free might sleep, generic part
-=46rom: Uwe Kleine-K=F6nig <ukleinek@informatik.uni-freiburg.de>
+Subject: neofb: reduce panning function
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-According to the documentation gpio_free should only be called from tas=
-k
-context only.  To make this more explicit add a might sleep to all
-implementations.
+Reduce panning function by deleting checks done by higher layer and
+folding remaining function into the called one.
 
-This is the generic part which changes gpiolib and the fallback
-implementation only.
-
-Signed-off-by: Uwe Kleine-K=F6nig <ukleinek@informatik.uni-freiburg.de>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpiolib.c |    2 ++
- include/linux/gpio.h   |    3 +++
- 2 files changed, 5 insertions(+)
+ drivers/video/neofb.c |   35 +++++------------------------------
+ 1 file changed, 5 insertions(+), 30 deletions(-)
 
-diff -puN drivers/gpio/gpiolib.c~gpio_free-might-sleep-generic-part dri=
-vers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpio_free-might-sleep-generic-part
-+++ a/drivers/gpio/gpiolib.c
-@@ -792,6 +792,8 @@ void gpio_free(unsigned gpio)
- 	unsigned long		flags;
- 	struct gpio_desc	*desc;
-=20
-+	might_sleep();
-+
- 	if (!gpio_is_valid(gpio)) {
- 		WARN_ON(extra_checks);
- 		return;
-diff -puN include/linux/gpio.h~gpio_free-might-sleep-generic-part inclu=
-de/linux/gpio.h
---- a/include/linux/gpio.h~gpio_free-might-sleep-generic-part
-+++ a/include/linux/gpio.h
-@@ -8,6 +8,7 @@
-=20
- #else
-=20
-+#include <linux/kernel.h>
- #include <linux/types.h>
- #include <linux/errno.h>
-=20
-@@ -32,6 +33,8 @@ static inline int gpio_request(unsigned=20
-=20
- static inline void gpio_free(unsigned gpio)
- {
-+	might_sleep();
-+
- 	/* GPIO can never have been requested */
- 	WARN_ON(1);
+diff -puN drivers/video/neofb.c~neofb-reduce-panning-function drivers/video/neofb.c
+--- a/drivers/video/neofb.c~neofb-reduce-panning-function
++++ a/drivers/video/neofb.c
+@@ -1186,8 +1186,11 @@ static int neofb_set_par(struct fb_info 
+ 	return 0;
  }
-_
-
-Patches currently in -mm which might be from ukleinek@informatik.uni-fr=
-eiburg.de are
-
-origin.patch
-
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 
+-static void neofb_update_start(struct fb_info *info,
+-			       struct fb_var_screeninfo *var)
++/*
++ *    Pan or Wrap the Display
++ */
++static int neofb_pan_display(struct fb_var_screeninfo *var,
++			     struct fb_info *info)
+ {
+ 	struct neofb_par *par = info->par;
+ 	struct vgastate *state = &par->state;
+@@ -1216,35 +1219,7 @@ static void neofb_update_start(struct fb
+ 	vga_wgfx(state->vgabase, 0x0E, (((Base >> 16) & 0x0f) | (oldExtCRTDispAddr & 0xf0)));
+ 
+ 	neoLock(state);
+-}
+-
+-/*
+- *    Pan or Wrap the Display
+- */
+-static int neofb_pan_display(struct fb_var_screeninfo *var,
+-			     struct fb_info *info)
+-{
+-	u_int y_bottom;
+-
+-	y_bottom = var->yoffset;
+-
+-	if (!(var->vmode & FB_VMODE_YWRAP))
+-		y_bottom += var->yres;
+-
+-	if (var->xoffset > (var->xres_virtual - var->xres))
+-		return -EINVAL;
+-	if (y_bottom > info->var.yres_virtual)
+-		return -EINVAL;
+-
+-	neofb_update_start(info, var);
