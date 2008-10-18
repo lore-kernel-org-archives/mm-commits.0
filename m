@@ -1,93 +1,302 @@
 From: akpm@linux-foundation.org
-Subject: - binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:18:51 -0700
-Message-ID: <200810182318.m9INIphK029353@imap1.linux-foundation.org>
+Subject: - afs-convert-to-new-aops.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:19:28 -0700
+Message-ID: <200810182319.m9INJSYX029495@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51969 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32957 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751848AbYJRXTt (ORCPT
+	by vger.kernel.org with ESMTP id S1751826AbYJRXTx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:19:49 -0400
+	Sat, 18 Oct 2008 19:19:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lethal@linux-sh.org, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: npiggin@suse.de, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     binfmt_elf_fdpic: convert initial stack alignment to arch_align_stack()
+     afs: convert to new aops
 has been removed from the -mm tree.  Its filename was
-     binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack.patch
+     afs-convert-to-new-aops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: binfmt_elf_fdpic: convert initial stack alignment to arch_align_stack()
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: afs: convert to new aops
+From: Nick Piggin <npiggin@suse.de>
 
-binfmt_elf_fdpic seems to have grabbed a hard-coded hack from an ancient
-version of binfmt_elf in order to try and fix up initial stack alignment
-on multi-threaded x86, which while in addition to being unused, was also
-pushed down beyond the first set of operations on the stack pointer,
-negating the entire purpose.
+Cannot assume writes will fully complete, so this conversion goes the easy
+way and always brings the page uptodate before the write.
 
-These days, we have an architecture independent arch_align_stack(), so we
-switch to using that instead. Move the initial alignment up before the
-initial stores while we're at it.
-
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Signed-off-by: David Howells <dhowells@redhat.com>
+[dhowells@redhat.com: style tweaks]
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf_fdpic.c |   25 ++++++++-----------------
- 1 file changed, 8 insertions(+), 17 deletions(-)
+ fs/afs/file.c     |    4 -
+ fs/afs/internal.h |    8 ++
+ fs/afs/write.c    |  131 ++++++++++++++------------------------------
+ 3 files changed, 51 insertions(+), 92 deletions(-)
 
-diff -puN fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-convert-initial-stack-alignment-to-arch_align_stack
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -466,7 +466,8 @@ error_kill:
- #endif
+diff -puN fs/afs/file.c~afs-convert-to-new-aops fs/afs/file.c
+--- a/fs/afs/file.c~afs-convert-to-new-aops
++++ a/fs/afs/file.c
+@@ -50,8 +50,8 @@ const struct address_space_operations af
+ 	.launder_page	= afs_launder_page,
+ 	.releasepage	= afs_releasepage,
+ 	.invalidatepage	= afs_invalidatepage,
+-	.prepare_write	= afs_prepare_write,
+-	.commit_write	= afs_commit_write,
++	.write_begin	= afs_write_begin,
++	.write_end	= afs_write_end,
+ 	.writepage	= afs_writepage,
+ 	.writepages	= afs_writepages,
+ };
+diff -puN fs/afs/internal.h~afs-convert-to-new-aops fs/afs/internal.h
+--- a/fs/afs/internal.h~afs-convert-to-new-aops
++++ a/fs/afs/internal.h
+@@ -728,8 +728,12 @@ extern int afs_volume_release_fileserver
+  */
+ extern int afs_set_page_dirty(struct page *);
+ extern void afs_put_writeback(struct afs_writeback *);
+-extern int afs_prepare_write(struct file *, struct page *, unsigned, unsigned);
+-extern int afs_commit_write(struct file *, struct page *, unsigned, unsigned);
++extern int afs_write_begin(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned flags,
++			struct page **pagep, void **fsdata);
++extern int afs_write_end(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned copied,
++			struct page *page, void *fsdata);
+ extern int afs_writepage(struct page *, struct writeback_control *);
+ extern int afs_writepages(struct address_space *, struct writeback_control *);
+ extern int afs_write_inode(struct inode *, int);
+diff -puN fs/afs/write.c~afs-convert-to-new-aops fs/afs/write.c
+--- a/fs/afs/write.c~afs-convert-to-new-aops
++++ a/fs/afs/write.c
+@@ -84,15 +84,23 @@ void afs_put_writeback(struct afs_writeb
+  * partly or wholly fill a page that's under preparation for writing
+  */
+ static int afs_fill_page(struct afs_vnode *vnode, struct key *key,
+-			 unsigned start, unsigned len, struct page *page)
++			 loff_t pos, unsigned len, struct page *page)
+ {
++	loff_t i_size;
++	unsigned eof;
+ 	int ret;
+ 
+-	_enter(",,%u,%u", start, len);
++	_enter(",,%llu,%u", (unsigned long long)pos, len);
+ 
+-	ASSERTCMP(start + len, <=, PAGE_SIZE);
++	ASSERTCMP(len, <=, PAGE_CACHE_SIZE);
+ 
+-	ret = afs_vnode_fetch_data(vnode, key, start, len, page);
++	i_size = i_size_read(&vnode->vfs_inode);
++	if (pos + len > i_size)
++		eof = i_size;
++	else
++		eof = PAGE_CACHE_SIZE;
++
++	ret = afs_vnode_fetch_data(vnode, key, 0, eof, page);
+ 	if (ret < 0) {
+ 		if (ret == -ENOENT) {
+ 			_debug("got NOENT from server"
+@@ -107,109 +115,55 @@ static int afs_fill_page(struct afs_vnod
+ }
  
  /*
-- * present useful information to the program
-+ * present useful information to the program by shovelling it onto the new
-+ * process's stack
+- * prepare a page for being written to
+- */
+-static int afs_prepare_page(struct afs_vnode *vnode, struct page *page,
+-			    struct key *key, unsigned offset, unsigned to)
+-{
+-	unsigned eof, tail, start, stop, len;
+-	loff_t i_size, pos;
+-	void *p;
+-	int ret;
+-
+-	_enter("");
+-
+-	if (offset == 0 && to == PAGE_SIZE)
+-		return 0;
+-
+-	p = kmap_atomic(page, KM_USER0);
+-
+-	i_size = i_size_read(&vnode->vfs_inode);
+-	pos = (loff_t) page->index << PAGE_SHIFT;
+-	if (pos >= i_size) {
+-		/* partial write, page beyond EOF */
+-		_debug("beyond");
+-		if (offset > 0)
+-			memset(p, 0, offset);
+-		if (to < PAGE_SIZE)
+-			memset(p + to, 0, PAGE_SIZE - to);
+-		kunmap_atomic(p, KM_USER0);
+-		return 0;
+-	}
+-
+-	if (i_size - pos >= PAGE_SIZE) {
+-		/* partial write, page entirely before EOF */
+-		_debug("before");
+-		tail = eof = PAGE_SIZE;
+-	} else {
+-		/* partial write, page overlaps EOF */
+-		eof = i_size - pos;
+-		_debug("overlap %u", eof);
+-		tail = max(eof, to);
+-		if (tail < PAGE_SIZE)
+-			memset(p + tail, 0, PAGE_SIZE - tail);
+-		if (offset > eof)
+-			memset(p + eof, 0, PAGE_SIZE - eof);
+-	}
+-
+-	kunmap_atomic(p, KM_USER0);
+-
+-	ret = 0;
+-	if (offset > 0 || eof > to) {
+-		/* need to fill one or two bits that aren't going to be written
+-		 * (cover both fillers in one read if there are two) */
+-		start = (offset > 0) ? 0 : to;
+-		stop = (eof > to) ? eof : offset;
+-		len = stop - start;
+-		_debug("wr=%u-%u av=0-%u rd=%u@%u",
+-		       offset, to, eof, start, len);
+-		ret = afs_fill_page(vnode, key, start, len, page);
+-	}
+-
+-	_leave(" = %d", ret);
+-	return ret;
+-}
+-
+-/*
+  * prepare to perform part of a write to a page
+- * - the caller holds the page locked, preventing it from being written out or
+- *   modified by anyone else
   */
- static int create_elf_fdpic_tables(struct linux_binprm *bprm,
- 				   struct mm_struct *mm,
-@@ -482,9 +483,13 @@ static int create_elf_fdpic_tables(struc
- 	int loop;
- 	int nr;	/* reset for each csp adjustment */
+-int afs_prepare_write(struct file *file, struct page *page,
+-		      unsigned offset, unsigned to)
++int afs_write_begin(struct file *file, struct address_space *mapping,
++		    loff_t pos, unsigned len, unsigned flags,
++		    struct page **pagep, void **fsdata)
+ {
+ 	struct afs_writeback *candidate, *wb;
+ 	struct afs_vnode *vnode = AFS_FS_I(file->f_dentry->d_inode);
++	struct page *page;
+ 	struct key *key = file->private_data;
+-	pgoff_t index;
++	unsigned from = pos & (PAGE_CACHE_SIZE - 1);
++	unsigned to = from + len;
++	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
+ 	int ret;
  
--	/* we're going to shovel a whole load of stuff onto the stack */
- #ifdef CONFIG_MMU
--	sp = bprm->p;
-+	/* In some cases (e.g. Hyper-Threading), we want to avoid L1 evictions
-+	 * by the processes running on the same package. One thing we can do is
-+	 * to shuffle the initial stack for them, so we give the architecture
-+	 * an opportunity to do so here.
-+	 */
-+	sp = arch_align_stack(bprm->p);
- #else
- 	sp = mm->start_stack;
+ 	_enter("{%x:%u},{%lx},%u,%u",
+-	       vnode->fid.vid, vnode->fid.vnode, page->index, offset, to);
++	       vnode->fid.vid, vnode->fid.vnode, index, from, to);
  
-@@ -527,20 +532,6 @@ static int create_elf_fdpic_tables(struc
- 			return -EFAULT;
+ 	candidate = kzalloc(sizeof(*candidate), GFP_KERNEL);
+ 	if (!candidate)
+ 		return -ENOMEM;
+ 	candidate->vnode = vnode;
+-	candidate->first = candidate->last = page->index;
+-	candidate->offset_first = offset;
++	candidate->first = candidate->last = index;
++	candidate->offset_first = from;
+ 	candidate->to_last = to;
+ 	candidate->usage = 1;
+ 	candidate->state = AFS_WBACK_PENDING;
+ 	init_waitqueue_head(&candidate->waitq);
+ 
++	page = __grab_cache_page(mapping, index);
++	if (!page) {
++		kfree(candidate);
++		return -ENOMEM;
++	}
++	*pagep = page;
++	/* page won't leak in error case: it eventually gets cleaned off LRU */
++
+ 	if (!PageUptodate(page)) {
+ 		_debug("not up to date");
+-		ret = afs_prepare_page(vnode, page, key, offset, to);
++		ret = afs_fill_page(vnode, key, pos, len, page);
+ 		if (ret < 0) {
+ 			kfree(candidate);
+ 			_leave(" = %d [prep]", ret);
+ 			return ret;
+ 		}
++		SetPageUptodate(page);
  	}
  
--#if defined(__i386__) && defined(CONFIG_SMP)
--	/* in some cases (e.g. Hyper-Threading), we want to avoid L1 evictions
--	 * by the processes running on the same package. One thing we can do is
--	 * to shuffle the initial stack for them.
--	 *
--	 * the conditionals here are unneeded, but kept in to make the code
--	 * behaviour the same as pre change unless we have hyperthreaded
--	 * processors. This keeps Mr Marcelo Person happier but should be
--	 * removed for 2.5
--	 */
--	if (smp_num_siblings > 1)
--		sp = sp - ((current->pid % 64) << 7);
--#endif
+ try_again:
+-	index = page->index;
+ 	spin_lock(&vnode->writeback_lock);
+ 
+ 	/* see if this page is already pending a writeback under a suitable key
+@@ -242,8 +196,8 @@ try_again:
+ subsume_in_current_wb:
+ 	_debug("subsume");
+ 	ASSERTRANGE(wb->first, <=, index, <=, wb->last);
+-	if (index == wb->first && offset < wb->offset_first)
+-		wb->offset_first = offset;
++	if (index == wb->first && from < wb->offset_first)
++		wb->offset_first = from;
+ 	if (index == wb->last && to > wb->to_last)
+ 		wb->to_last = to;
+ 	spin_unlock(&vnode->writeback_lock);
+@@ -289,17 +243,17 @@ flush_conflicting_wb:
+ /*
+  * finalise part of a write to a page
+  */
+-int afs_commit_write(struct file *file, struct page *page,
+-		     unsigned offset, unsigned to)
++int afs_write_end(struct file *file, struct address_space *mapping,
++		  loff_t pos, unsigned len, unsigned copied,
++		  struct page *page, void *fsdata)
+ {
+ 	struct afs_vnode *vnode = AFS_FS_I(file->f_dentry->d_inode);
+ 	loff_t i_size, maybe_i_size;
+ 
+-	_enter("{%x:%u},{%lx},%u,%u",
+-	       vnode->fid.vid, vnode->fid.vnode, page->index, offset, to);
++	_enter("{%x:%u},{%lx}",
++	       vnode->fid.vid, vnode->fid.vnode, page->index);
+ 
+-	maybe_i_size = (loff_t) page->index << PAGE_SHIFT;
+-	maybe_i_size += to;
++	maybe_i_size = pos + copied;
+ 
+ 	i_size = i_size_read(&vnode->vfs_inode);
+ 	if (maybe_i_size > i_size) {
+@@ -310,12 +264,13 @@ int afs_commit_write(struct file *file, 
+ 		spin_unlock(&vnode->writeback_lock);
+ 	}
+ 
+-	SetPageUptodate(page);
+ 	set_page_dirty(page);
+ 	if (PageDirty(page))
+ 		_debug("dirtied");
++	unlock_page(page);
++	page_cache_release(page);
+ 
+-	return 0;
++	return copied;
+ }
+ 
+ /*
+_
+
+Patches currently in -mm which might be from npiggin@suse.de are
+
+origin.patch
+vmscan-move-isolate_lru_page-to-vmscanc.patch
+mlock-mlocked-pages-are-unevictable.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+vmstat-mlocked-pages-statistics.patch
+mm-pagecache-insertion-fewer-atomics.patch
+mm-unlockless-reclaim.patch
+mm-page-lock-use-lock-bitops.patch
+fs-buffer-lock-use-lock-bitops.patch
+mm-rewrite-vmap-layer.patch
+
