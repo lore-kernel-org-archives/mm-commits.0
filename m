@@ -1,109 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - vmscan-split-lru-lists-into-anon-file-sets-memcg-fix-handling-of-shmem-migrationv2.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:31:58 -0700
-Message-ID: <200810182331.m9INVw7d031413@imap1.linux-foundation.org>
+Subject: - vmscan-split-lru-lists-into-anon-file-sets-adjust-hugepage-related-field-of-proc-meminfo.patch removed from -mm tree
+Date: Sat, 18 Oct 2008 16:32:04 -0700
+Message-ID: <200810182332.m9INW4vE031493@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40122 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35522 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750928AbYJRXcO (ORCPT
+	by vger.kernel.org with ESMTP id S1751415AbYJRXcV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:32:14 -0400
+	Sat, 18 Oct 2008 19:32:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nishimura@mxp.nes.nec.co.jp, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, cl@linux-foundation.org, lee.schermerhorn@hp.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: fix handling of shmem migration
+     adjust hugepage related field of /proc/meminfo
 has been removed from the -mm tree.  Its filename was
-     vmscan-split-lru-lists-into-anon-file-sets-memcg-fix-handling-of-shmem-migrationv2.patch
+     vmscan-split-lru-lists-into-anon-file-sets-adjust-hugepage-related-field-of-proc-meminfo.patch
 
 This patch was dropped because it was folded into vmscan-split-lru-lists-into-anon-file-sets.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix handling of shmem migration
-From: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Subject: adjust hugepage related field of /proc/meminfo
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Before this patch, if migrating shmem/tmpfs pages, newpage would be
-charged with PAGE_CGROUP_FLAG_FILE set, while oldpage has been charged
-without the flag.
+adjust hugepage related field in /proc/meminfo.
+(because vmscan-split-lru-lists-into-anon-file-sets.patch changed
+length of other field)
 
-The problem here is mem_cgroup_move_lists doesn't clear(or set) the
-PAGE_CGROUP_FLAG_FILE flag, so pc->flags of the newpage remains
-PAGE_CGROUP_FLAG_FILE set even when the pc is moved to another lru(anon)
-by mem_cgroup_move_lists.  And this leads to incorrect MEM_CGROUP_ZSTAT.
+before:
 
-In my test, I see an underflow of MEM_CGROUP_ZSTAT(active_file).  As a
-result, mem_cgroup_calc_reclaim returns very huge number and causes soft
-lockup on page reclaim.
+CommitLimit:     6028800 kB
+Committed_AS:    8685888 kB
+VmallocTotal:   17592177655808 kB
+VmallocUsed:       28544 kB
+VmallocChunk:   17592177626816 kB
+HugePages_Total:     0
+HugePages_Free:      0
+HugePages_Rsvd:      0
+HugePages_Surp:      0
+Hugepagesize:    262144 kB
 
-I'm not sure if mem_cgroup_move_lists should handle PAGE_CGROUP_FLAG_FILE
-or not(I suppose it should be used to move between active <-> inactive,
-not anon <-> file), I added MEM_CGROUP_CHARGE_TYPE_SHMEM for precharge at
-shmem's page migration.
+after:
 
-Signed-off-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+CommitLimit:     6028800 kB
+Committed_AS:    8685888 kB
+VmallocTotal:   17592177655808 kB
+VmallocUsed:       28544 kB
+VmallocChunk:   17592177626816 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:     262144 kB
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/memcontrol.c~vmscan-split-lru-lists-into-anon-file-sets-memcg-fix-handling-of-shmem-migrationv2 mm/memcontrol.c
---- a/mm/memcontrol.c~vmscan-split-lru-lists-into-anon-file-sets-memcg-fix-handling-of-shmem-migrationv2
-+++ a/mm/memcontrol.c
-@@ -178,6 +178,7 @@ enum charge_type {
- 	MEM_CGROUP_CHARGE_TYPE_CACHE = 0,
- 	MEM_CGROUP_CHARGE_TYPE_MAPPED,
- 	MEM_CGROUP_CHARGE_TYPE_FORCE,	/* used by force_empty */
-+	MEM_CGROUP_CHARGE_TYPE_SHMEM,	/* used by page migration of shmem */
- };
- 
- /*
-@@ -575,8 +576,10 @@ static int mem_cgroup_charge_common(stru
- 			pc->flags |= PAGE_CGROUP_FLAG_FILE;
- 		else
- 			pc->flags |= PAGE_CGROUP_FLAG_ACTIVE;
--	} else
-+	} else if (ctype == MEM_CGROUP_CHARGE_TYPE_MAPPED)
- 		pc->flags = PAGE_CGROUP_FLAG_ACTIVE;
-+	else /* MEM_CGROUP_CHARGE_TYPE_SHMEM */
-+		pc->flags = PAGE_CGROUP_FLAG_CACHE | PAGE_CGROUP_FLAG_ACTIVE;
- 
- 	lock_page_cgroup(page);
- 	if (unlikely(page_get_page_cgroup(page))) {
-@@ -735,8 +738,12 @@ int mem_cgroup_prepare_migration(struct 
- 	if (pc) {
- 		mem = pc->mem_cgroup;
- 		css_get(&mem->css);
--		if (pc->flags & PAGE_CGROUP_FLAG_CACHE)
--			ctype = MEM_CGROUP_CHARGE_TYPE_CACHE;
-+		if (pc->flags & PAGE_CGROUP_FLAG_CACHE) {
-+			if (page_is_file_cache(page))
-+				ctype = MEM_CGROUP_CHARGE_TYPE_CACHE;
-+			else
-+				ctype = MEM_CGROUP_CHARGE_TYPE_SHMEM;
-+		}
- 	}
- 	unlock_page_cgroup(page);
- 	if (mem) {
+diff -puN mm/hugetlb.c~vmscan-split-lru-lists-into-anon-file-sets-adjust-hugepage-related-field-of-proc-meminfo mm/hugetlb.c
+--- a/mm/hugetlb.c~vmscan-split-lru-lists-into-anon-file-sets-adjust-hugepage-related-field-of-proc-meminfo
++++ a/mm/hugetlb.c
+@@ -1459,11 +1459,11 @@ int hugetlb_report_meminfo(char *buf)
+ {
+ 	struct hstate *h = &default_hstate;
+ 	return sprintf(buf,
+-			"HugePages_Total: %5lu\n"
+-			"HugePages_Free:  %5lu\n"
+-			"HugePages_Rsvd:  %5lu\n"
+-			"HugePages_Surp:  %5lu\n"
+-			"Hugepagesize:    %5lu kB\n",
++			"HugePages_Total:   %5lu\n"
++			"HugePages_Free:    %5lu\n"
++			"HugePages_Rsvd:    %5lu\n"
++			"HugePages_Surp:    %5lu\n"
++			"Hugepagesize:   %8lu kB\n",
+ 			h->nr_huge_pages,
+ 			h->free_huge_pages,
+ 			h->resv_huge_pages,
 _
 
-Patches currently in -mm which might be from nishimura@mxp.nes.nec.co.jp are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
+origin.patch
+vmscan-use-an-indexed-array-for-lru-variables.patch
+swap-use-an-array-for-the-lru-pagevecs.patch
 vmscan-split-lru-lists-into-anon-file-sets.patch
-vmscan-split-lru-lists-into-anon-file-sets-memcg-fix-handling-of-shmem-migrationv2.patch
+vmscan-split-lru-lists-into-anon-file-sets-adjust-hugepage-related-field-of-proc-meminfo.patch
+vmscan-split-lru-lists-into-anon-file-sets-fix-style-issue-of-get_scan_ratio.patch
+vmscan-second-chance-replacement-for-anonymous-pages.patch
 unevictable-lru-infrastructure.patch
-memcg-move-charge-swapin-under-lock.patch
-memcg-make-page-mapping-null-before-uncharge.patch
-memcg-avoid-accounting-special-pages.patch
-memcg-optimize-per-cpu-statistics.patch
-memcg-atomic-ops-for-page_cgroup-flags.patch
-memcg-allocate-all-page_cgroup-at-boot.patch
+unevictable-lru-infrastructure-nommu-fix.patch
+unevictable-lru-infrastructure-remember-pages-active-state.patch
+unevictable-lru-infrastructure-defer-vm-event-counting.patch
+unevictable-infrastructure-lru-add-event-counting-with-statistics.patch
+unevictable-lru-page-statistics.patch
+shm_locked-pages-are-unevictable.patch
+shm_locked-pages-are-unevictable-add-event-counts-to-list-scan.patch
+mlock-mlocked-pages-are-unevictable.patch
+doc-unevictable-lru-and-mlocked-pages-documentation-update-2.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-__mlock_vma_pages_range-comment-block.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-backout-locked_vm-adjustment-during-mmap.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-resubmit-locked_vm-adjustment-as-separate-patch-fix.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-fix-return-value-for-munmap-mlock-vma-race.patch
+mmap-handle-mlocked-pages-during-map-remap-unmap-mlock-update-locked_vm-on-munmap-of-mlocked-region.patch
+vmstat-mlocked-pages-statistics.patch
+vmstat-mlocked-pages-statistics-mlocked-pages-add-event-counting-with-statistics.patch
+swap-cull-unevictable-pages-in-fault-path.patch
+vmscan-unevictable-lru-scan-sysctl.patch
+vmscam-kill-unused-lru-functions.patch
+mlock-revert-mainline-handling-of-mlock-error-return.patch
+mlock-make-mlock-error-return-posixly-correct.patch
+mlock-make-mlock-error-return-posixly-correct-fix.patch
+mm-unlockless-reclaim.patch
+coredump_filter-add-hugepage-dumping-v4.patch
+hugepage-support-zero_page.patch
+documentation-clarify-dirty_ratio-and-dirty_background_ratio-description-v2.patch
+add-config_core_dump_default_elf_headers.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
