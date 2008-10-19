@@ -1,92 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - x86-sysfs-kill-owner-field-from-attribute-fix-3.patch removed from -mm tree
-Date: Sat, 18 Oct 2008 16:54:19 -0700
-Message-ID: <200810182354.m9INsJlw002213@imap1.linux-foundation.org>
+Subject: - mm-more-likely-reclaim-madv_sequential-mappings.patch removed from -mm tree
+Date: Sun, 19 Oct 2008 10:04:08 -0700
+Message-ID: <200810191704.m9JH48Ze027659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42903 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34404 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751991AbYJRX4Q (ORCPT
+	by vger.kernel.org with ESMTP id S1750704AbYJSREf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 18 Oct 2008 19:56:16 -0400
+	Sun, 19 Oct 2008 13:04:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, greg@kroah.com, htejun@gmail.com, jens.axboe@oracle.com, khali@linux-fr.org, lenb@kernel.org, mingo@elte.hu, para
+To: hannes@saeurebad.de, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-sysfs-kill-owner-field-from-attribute-fix-3
+     mm: more likely reclaim MADV_SEQUENTIAL mappings
 has been removed from the -mm tree.  Its filename was
-     x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
+     mm-more-likely-reclaim-madv_sequential-mappings.patch
 
-This patch was dropped because it was folded into x86-sysfs-kill-owner-field-from-attribute.patch
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-sysfs-kill-owner-field-from-attribute-fix-3
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: more likely reclaim MADV_SEQUENTIAL mappings
+From: Johannes Weiner <hannes@saeurebad.de>
 
-OK, this needs to be a two-phase thing.
+File pages accessed only once through sequential-read mappings between
+fault and scan time are perfect candidates for reclaim.
 
-Cc: "Parag Warudkar" <parag.lkml@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Greg KH <greg@kroah.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Parag Warudkar <parag.lkml@gmail.com>
-Cc: Roland Dreier <rolandd@cisco.com>
-Cc: Tejun Heo <htejun@gmail.com>
+This patch makes page_referenced() ignore these singular references and
+the pages stay on the inactive list where they likely fall victim to the
+next reclaim phase.
+
+Already activated pages are still treated normally.  If they were accessed
+multiple times and therefor promoted to the active list, we probably want
+to keep them.
+
+Benchmarks show that big (relative to the system's memory) MADV_SEQUENTIAL
+mappings read sequentially cause much less kernel activity.  Especially
+less LRU moving-around because we never activate read-once pages in the
+first place just to demote them again.
+
+And leaving these perfect reclaim candidates on the inactive list makes
+it more likely for the real working set to survive the next reclaim
+scan.
+
+Benchmark graphs and the test-application can be found here:
+
+	http://hannes.saeurebad.de/madvseq/
+
+Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: "KOSAKI Motohiro" <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysfs.h |    2 --
- 1 file changed, 2 deletions(-)
+ mm/rmap.c |   20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/sysfs.h~x86-sysfs-kill-owner-field-from-attribute-fix-3 include/linux/sysfs.h
---- a/include/linux/sysfs.h~x86-sysfs-kill-owner-field-from-attribute-fix-3
-+++ a/include/linux/sysfs.h
-@@ -27,9 +27,7 @@ struct module;
-  */
- struct attribute {
- 	const char		*name;
--#ifndef CONFIG_X86
- 	struct module		*owner;
--#endif
- 	mode_t			mode;
- };
+diff -puN mm/rmap.c~mm-more-likely-reclaim-madv_sequential-mappings mm/rmap.c
+--- a/mm/rmap.c~mm-more-likely-reclaim-madv_sequential-mappings
++++ a/mm/rmap.c
+@@ -327,8 +327,18 @@ static int page_referenced_one(struct pa
+ 		goto out_unmap;
+ 	}
  
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-mm-cleanup-to-make-remove_memory-arch-neutral.patch
-vmscan-move-isolate_lru_page-to-vmscanc.patch
-define-page_file_cache-function.patch
-vmscan-split-lru-lists-into-anon-file-sets.patch
-unevictable-lru-infrastructure.patch
-unevictable-lru-page-statistics.patch
-mlock-mlocked-pages-are-unevictable.patch
-mmap-handle-mlocked-pages-during-map-remap-unmap.patch
-vmscan-unevictable-lru-scan-sysctl.patch
-mlock-make-mlock-error-return-posixly-correct.patch
-mm-rewrite-vmap-layer.patch
-memory_probe-fix-wrong-sysfs-file-attribute.patch
-container-freezer-add-tif_freeze-flag-to-all-architectures.patch
-container-freezer-implement-freezer-cgroup-subsystem.patch
-hwmon-pc87360-separate-alarm-files-add-in-min-max-alarms.patch
-hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms.patch
-hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms.patch
-drivers-hwmon-applesmcc-remove-unneeded-casts.patch
-fb-push-down-the-bkl-in-the-ioctl-handler.patch
-ext3-fix-ext3_dx_readdir-hash-collision-handling.patch
-cgroups-fix-probable-race-with-put_css_set-and-find_css_set.patch
-message-queues-increase-range-limits.patch
-drivers-rtc-rtc-bq4802c-dont-use-bin_2_bcd-and-bcd_2_bin.patch
-x86-sysfs-kill-owner-field-from-attribute.patch
-x86-sysfs-kill-owner-field-from-attribute-fix-3.patch
-
+-	if (ptep_clear_flush_young_notify(vma, address, pte))
+-		referenced++;
++	if (ptep_clear_flush_young_notify(vma, address, pte)) {
++		/*
++		 * If there was just one sequential access to the
++		 * page, ignore it.  Otherwise, mark_page_accessed()
++		 * will have promoted the page to the active list and
++		 * it should be kept.
++		 */
++		if (VM_SequentialReadHint(vma) && !PageActive(page))
++			ClearPageReferenced(page);
++		else
++			referenced++;
++	}
+ 
+ 	/* Pretend the page is referenced if the task has the
+ 	   swap token and is in the middle of a page fault. */
+@@ -449,9 +459,6 @@ int page_referenced(struct page *page, i
+ {
+ 	int referenced = 0;
+ 
+-	if (TestClearPageReferenced(page))
+-		referenced++;
