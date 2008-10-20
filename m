@@ -1,315 +1,266 @@
 From: akpm@linux-foundation.org
-Subject: - container-freezer-add-tif_freeze-flag-to-all-architectures.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:34:15 -0700
-Message-ID: <200810202034.m9KKYFkP010813@imap1.linux-foundation.org>
+Subject: - kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:37:02 -0700
+Message-ID: <200810202037.m9KKb2lH011521@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54725 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34815 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754345AbYJTUr0 (ORCPT
+	by vger.kernel.org with ESMTP id S1754429AbYJTUsJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:47:26 -0400
+	Mon, 20 Oct 2008 16:48:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthltc@us.ibm.com, clg@fr.ibm.com, nigel@tuxonice.net, pavel@suse.cz, rjw@sisk.pl, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: vgoyal@redhat.com, ebiederm@xmission.com, horms@verge.net.au, lethal@linux-sh.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     container freezer: add TIF_FREEZE flag to all architectures
+     kdump: make elfcorehdr_addr independent of CONFIG_PROC_VMCORE
 has been removed from the -mm tree.  Its filename was
-     container-freezer-add-tif_freeze-flag-to-all-architectures.patch
+     kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: container freezer: add TIF_FREEZE flag to all architectures
-From: Matt Helsley <matthltc@us.ibm.com>
+Subject: kdump: make elfcorehdr_addr independent of CONFIG_PROC_VMCORE
+From: Vivek Goyal <vgoyal@redhat.com>
 
-This patch series introduces a cgroup subsystem that utilizes the swsusp
-freezer to freeze a group of tasks.  It's immediately useful for batch job
-management scripts.  It should also be useful in the future for
-implementing container checkpoint/restart.
+o elfcorehdr_addr is used by not only the code under CONFIG_PROC_VMCORE
+  but also by the code which is not inside CONFIG_PROC_VMCORE.  For
+  example, is_kdump_kernel() is used by powerpc code to determine if
+  kernel is booting after a panic then use previous kernel's TCE table. 
+  So even if CONFIG_PROC_VMCORE is not set in second kernel, one should be
+  able to correctly determine that we are booting after a panic and setup
+  calgary iommu accordingly.
 
-The freezer subsystem in the container filesystem defines a cgroup file
-named freezer.state.  Reading freezer.state will return the current state
-of the cgroup.  Writing "FROZEN" to the state file will freeze all tasks
-in the cgroup.  Subsequently writing "RUNNING" will unfreeze the tasks in
-the cgroup.  
+o So remove the assumption that elfcorehdr_addr is under
+  CONFIG_PROC_VMCORE.
 
-* Examples of usage :
+o Move definition of elfcorehdr_addr to arch dependent crash files. 
+  (Unfortunately crash dump does not have an arch independent file
+  otherwise that would have been the best place).
 
-   # mkdir /containers/freezer
-   # mount -t cgroup -ofreezer freezer  /containers
-   # mkdir /containers/0
-   # echo $some_pid > /containers/0/tasks
+o kexec.c is not the right place as one can Have CRASH_DUMP enabled in
+  second kernel without KEXEC being enabled.
 
-to get status of the freezer subsystem :
+o I don't see sh setup code parsing the command line for
+  elfcorehdr_addr.  I am wondering how does vmcore interface work on sh. 
+  Anyway, I am atleast defining elfcoredhr_addr so that compilation is not
+  broken on sh.
 
-   # cat /containers/0/freezer.state
-   RUNNING
-
-to freeze all tasks in the container :
-
-   # echo FROZEN > /containers/0/freezer.state
-   # cat /containers/0/freezer.state
-   FREEZING
-   # cat /containers/0/freezer.state
-   FROZEN
-
-to unfreeze all tasks in the container :
-
-   # echo RUNNING > /containers/0/freezer.state
-   # cat /containers/0/freezer.state
-   RUNNING
-
-
-
-This patch:
-
-The first step in making the refrigerator() available to all
-architectures, even for those without power management.
-
-The purpose of such a change is to be able to use the refrigerator() in a
-new control group subsystem which will implement a control group freezer.
-
-[akpm@linux-foundation.org: fix sparc]
-Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
-Signed-off-by: Matt Helsley <matthltc@us.ibm.com>
-Acked-by: Pavel Machek <pavel@suse.cz>
-Acked-by: Serge E. Hallyn <serue@us.ibm.com>
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Nigel Cunningham <nigel@tuxonice.net>
-Tested-by: Matt Helsley <matthltc@us.ibm.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: Simon Horman <horms@verge.net.au>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/thread_info.h     |    2 ++
- arch/avr32/include/asm/thread_info.h     |    1 +
- arch/h8300/include/asm/thread_info.h     |    2 ++
- arch/m68knommu/include/asm/thread_info.h |    2 ++
- arch/s390/include/asm/thread_info.h      |    2 ++
- arch/sparc/include/asm/thread_info_32.h  |    2 ++
- arch/sparc/include/asm/thread_info_64.h  |    2 ++
- include/asm-cris/thread_info.h           |    2 ++
- include/asm-m68k/thread_info.h           |    1 +
- include/asm-parisc/thread_info.h         |    2 ++
- include/asm-um/thread_info.h             |    2 ++
- include/asm-xtensa/thread_info.h         |    2 ++
- 12 files changed, 22 insertions(+)
+ arch/ia64/kernel/crash_dump.c    |    4 ++++
+ arch/ia64/kernel/setup.c         |    9 ++++++++-
+ arch/powerpc/kernel/crash_dump.c |   10 ++++++++--
+ arch/sh/kernel/crash_dump.c      |    3 +++
+ arch/x86/kernel/crash_dump_32.c  |    3 +++
+ arch/x86/kernel/crash_dump_64.c  |    3 +++
+ arch/x86/kernel/setup.c          |    8 +++++++-
+ fs/proc/vmcore.c                 |    3 ---
+ include/linux/crash_dump.h       |   14 ++++++++++----
+ 9 files changed, 46 insertions(+), 11 deletions(-)
 
-diff -puN arch/alpha/include/asm/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures arch/alpha/include/asm/thread_info.h
---- a/arch/alpha/include/asm/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures
-+++ a/arch/alpha/include/asm/thread_info.h
-@@ -74,12 +74,14 @@ register struct thread_info *__current_t
- #define TIF_UAC_SIGBUS		7
- #define TIF_MEMDIE		8
- #define TIF_RESTORE_SIGMASK	9	/* restore signal mask in do_signal */
-+#define TIF_FREEZE		16	/* is freezing for suspend */
+diff -puN arch/ia64/kernel/crash_dump.c~kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore arch/ia64/kernel/crash_dump.c
+--- a/arch/ia64/kernel/crash_dump.c~kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore
++++ a/arch/ia64/kernel/crash_dump.c
+@@ -8,10 +8,14 @@
  
- #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
- #define _TIF_SIGPENDING		(1<<TIF_SIGPENDING)
- #define _TIF_NEED_RESCHED	(1<<TIF_NEED_RESCHED)
- #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
- #define _TIF_RESTORE_SIGMASK	(1<<TIF_RESTORE_SIGMASK)
-+#define _TIF_FREEZE		(1<<TIF_FREEZE)
+ #include <linux/errno.h>
+ #include <linux/types.h>
++#include <linux/crash_dump.h>
  
- /* Work to do on interrupt/exception return.  */
- #define _TIF_WORK_MASK		(_TIF_SIGPENDING | _TIF_NEED_RESCHED)
-diff -puN arch/avr32/include/asm/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures arch/avr32/include/asm/thread_info.h
---- a/arch/avr32/include/asm/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures
-+++ a/arch/avr32/include/asm/thread_info.h
-@@ -96,6 +96,7 @@ static inline struct thread_info *curren
- #define _TIF_MEMDIE		(1 << TIF_MEMDIE)
- #define _TIF_RESTORE_SIGMASK	(1 << TIF_RESTORE_SIGMASK)
- #define _TIF_CPU_GOING_TO_SLEEP (1 << TIF_CPU_GOING_TO_SLEEP)
-+#define _TIF_FREEZE		(1 << TIF_FREEZE)
+ #include <asm/page.h>
+ #include <asm/uaccess.h>
  
- /* Note: The masks below must never span more than 16 bits! */
++/* Stores the physical address of elf header of crash image. */
++unsigned long long elfcorehdr_addr = ELFCORE_ADDR_MAX;
++
+ /**
+  * copy_oldmem_page - copy one page from "oldmem"
+  * @pfn: page frame number to be copied
+diff -puN arch/ia64/kernel/setup.c~kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore arch/ia64/kernel/setup.c
+--- a/arch/ia64/kernel/setup.c~kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore
++++ a/arch/ia64/kernel/setup.c
+@@ -478,7 +478,12 @@ static __init int setup_nomca(char *s)
+ }
+ early_param("nomca", setup_nomca);
  
-diff -puN arch/h8300/include/asm/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures arch/h8300/include/asm/thread_info.h
---- a/arch/h8300/include/asm/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures
-+++ a/arch/h8300/include/asm/thread_info.h
-@@ -89,6 +89,7 @@ static inline struct thread_info *curren
- 					   TIF_NEED_RESCHED */
- #define TIF_MEMDIE		4
- #define TIF_RESTORE_SIGMASK	5	/* restore signal mask in do_signal() */
-+#define TIF_FREEZE		16	/* is freezing for suspend */
+-#ifdef CONFIG_PROC_VMCORE
++/*
++ * Note: elfcorehdr_addr is not just limited to vmcore. It is also used by
++ * is_kdump_kernel() to determine if we are booting after a panic. Hence
++ * ifdef it under CONFIG_CRASH_DUMP and not CONFIG_PROC_VMCORE.
++ */
++#ifdef CONFIG_CRASH_DUMP
+ /* elfcorehdr= specifies the location of elf core header
+  * stored by the crashed kernel.
+  */
+@@ -491,7 +496,9 @@ static int __init parse_elfcorehdr(char 
+ 	return 0;
+ }
+ early_param("elfcorehdr", parse_elfcorehdr);
++#endif
  
- /* as above, but as bit values */
- #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
-@@ -96,6 +97,7 @@ static inline struct thread_info *curren
- #define _TIF_NEED_RESCHED	(1<<TIF_NEED_RESCHED)
- #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
- #define _TIF_RESTORE_SIGMASK	(1<<TIF_RESTORE_SIGMASK)
-+#define _TIF_FREEZE		(1<<TIF_FREEZE)
- 
- #define _TIF_WORK_MASK		0x0000FFFE	/* work to do on interrupt/exception return */
- 
-diff -puN arch/m68knommu/include/asm/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures arch/m68knommu/include/asm/thread_info.h
---- a/arch/m68knommu/include/asm/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures
-+++ a/arch/m68knommu/include/asm/thread_info.h
-@@ -84,12 +84,14 @@ static inline struct thread_info *curren
- #define TIF_POLLING_NRFLAG	3	/* true if poll_idle() is polling
- 					   TIF_NEED_RESCHED */
- #define TIF_MEMDIE		4
-+#define TIF_FREEZE		16	/* is freezing for suspend */
- 
- /* as above, but as bit values */
- #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
- #define _TIF_SIGPENDING		(1<<TIF_SIGPENDING)
- #define _TIF_NEED_RESCHED	(1<<TIF_NEED_RESCHED)
- #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
-+#define _TIF_FREEZE		(1<<TIF_FREEZE)
- 
- #define _TIF_WORK_MASK		0x0000FFFE	/* work to do on interrupt/exception return */
- 
-diff -puN arch/s390/include/asm/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures arch/s390/include/asm/thread_info.h
---- a/arch/s390/include/asm/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures
-+++ a/arch/s390/include/asm/thread_info.h
-@@ -99,6 +99,7 @@ static inline struct thread_info *curren
- #define TIF_31BIT		18	/* 32bit process */ 
- #define TIF_MEMDIE		19
- #define TIF_RESTORE_SIGMASK	20	/* restore signal mask in do_signal() */
-+#define TIF_FREEZE		21	/* thread is freezing for suspend */
- 
- #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
- #define _TIF_NOTIFY_RESUME	(1<<TIF_NOTIFY_RESUME)
-@@ -112,6 +113,7 @@ static inline struct thread_info *curren
- #define _TIF_USEDFPU		(1<<TIF_USEDFPU)
- #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
- #define _TIF_31BIT		(1<<TIF_31BIT)
-+#define _TIF_FREEZE		(1<<TIF_FREEZE)
- 
- #endif /* __KERNEL__ */
- 
-diff -puN arch/sparc/include/asm/thread_info_32.h~container-freezer-add-tif_freeze-flag-to-all-architectures arch/sparc/include/asm/thread_info_32.h
---- a/arch/sparc/include/asm/thread_info_32.h~container-freezer-add-tif_freeze-flag-to-all-architectures
-+++ a/arch/sparc/include/asm/thread_info_32.h
-@@ -135,6 +135,7 @@ BTFIXUPDEF_CALL(void, free_thread_info, 
- #define TIF_POLLING_NRFLAG	9	/* true if poll_idle() is polling
- 					 * TIF_NEED_RESCHED */
- #define TIF_MEMDIE		10
-+#define TIF_FREEZE		11	/* is freezing for suspend */
- 
- /* as above, but as bit values */
- #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
-@@ -148,6 +149,7 @@ BTFIXUPDEF_CALL(void, free_thread_info, 
- #define _TIF_DO_NOTIFY_RESUME_MASK	(_TIF_NOTIFY_RESUME | \
- 					 _TIF_SIGPENDING | \
- 					 _TIF_RESTORE_SIGMASK)
-+#define _TIF_FREEZE		(1<<TIF_FREEZE)
- 
- #endif /* __KERNEL__ */
- 
-diff -puN arch/sparc/include/asm/thread_info_64.h~container-freezer-add-tif_freeze-flag-to-all-architectures arch/sparc/include/asm/thread_info_64.h
---- a/arch/sparc/include/asm/thread_info_64.h~container-freezer-add-tif_freeze-flag-to-all-architectures
-+++ a/arch/sparc/include/asm/thread_info_64.h
-@@ -237,6 +237,7 @@ register struct thread_info *current_thr
- #define TIF_ABI_PENDING		12
- #define TIF_MEMDIE		13
- #define TIF_POLLING_NRFLAG	14
-+#define TIF_FREEZE		15	/* is freezing for suspend */
- 
- #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
- #define _TIF_NOTIFY_RESUME	(1<<TIF_NOTIFY_RESUME)
-@@ -249,6 +250,7 @@ register struct thread_info *current_thr
- #define _TIF_SYSCALL_AUDIT	(1<<TIF_SYSCALL_AUDIT)
- #define _TIF_ABI_PENDING	(1<<TIF_ABI_PENDING)
- #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
-+#define _TIF_FREEZE		(1<<TIF_FREEZE)
- 
- #define _TIF_USER_WORK_MASK	((0xff << TI_FLAG_WSAVED_SHIFT) | \
- 				 _TIF_DO_NOTIFY_RESUME_MASK | \
-diff -puN include/asm-cris/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures include/asm-cris/thread_info.h
---- a/include/asm-cris/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures
-+++ a/include/asm-cris/thread_info.h
-@@ -88,6 +88,7 @@ struct thread_info {
- #define TIF_RESTORE_SIGMASK	9	/* restore signal mask in do_signal() */
- #define TIF_POLLING_NRFLAG	16	/* true if poll_idle() is polling TIF_NEED_RESCHED */
- #define TIF_MEMDIE		17
-+#define TIF_FREEZE		18	/* is freezing for suspend */
- 
- #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
- #define _TIF_NOTIFY_RESUME	(1<<TIF_NOTIFY_RESUME)
-@@ -95,6 +96,7 @@ struct thread_info {
- #define _TIF_NEED_RESCHED	(1<<TIF_NEED_RESCHED)
- #define _TIF_RESTORE_SIGMASK	(1<<TIF_RESTORE_SIGMASK)
- #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
-+#define _TIF_FREEZE		(1<<TIF_FREEZE)
- 
- #define _TIF_WORK_MASK		0x0000FFFE	/* work to do on interrupt/exception return */
- #define _TIF_ALLWORK_MASK	0x0000FFFF	/* work to do on any return to u-space */
-diff -puN include/asm-m68k/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures include/asm-m68k/thread_info.h
---- a/include/asm-m68k/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures
-+++ a/include/asm-m68k/thread_info.h
-@@ -52,5 +52,6 @@ struct thread_info {
- #define TIF_DELAYED_TRACE	14	/* single step a syscall */
- #define TIF_SYSCALL_TRACE	15	/* syscall trace active */
- #define TIF_MEMDIE		16
-+#define TIF_FREEZE		17	/* thread is freezing for suspend */
- 
- #endif	/* _ASM_M68K_THREAD_INFO_H */
-diff -puN include/asm-parisc/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures include/asm-parisc/thread_info.h
---- a/include/asm-parisc/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures
-+++ a/include/asm-parisc/thread_info.h
-@@ -58,6 +58,7 @@ struct thread_info {
- #define TIF_32BIT               4       /* 32 bit binary */
- #define TIF_MEMDIE		5
- #define TIF_RESTORE_SIGMASK	6	/* restore saved signal mask */
-+#define TIF_FREEZE		7	/* is freezing for suspend */
- 
- #define _TIF_SYSCALL_TRACE	(1 << TIF_SYSCALL_TRACE)
- #define _TIF_SIGPENDING		(1 << TIF_SIGPENDING)
-@@ -65,6 +66,7 @@ struct thread_info {
- #define _TIF_POLLING_NRFLAG	(1 << TIF_POLLING_NRFLAG)
- #define _TIF_32BIT		(1 << TIF_32BIT)
- #define _TIF_RESTORE_SIGMASK	(1 << TIF_RESTORE_SIGMASK)
-+#define _TIF_FREEZE		(1 << TIF_FREEZE)
- 
- #define _TIF_USER_WORK_MASK     (_TIF_SIGPENDING | \
-                                  _TIF_NEED_RESCHED | _TIF_RESTORE_SIGMASK)
-diff -puN include/asm-um/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures include/asm-um/thread_info.h
---- a/include/asm-um/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures
-+++ a/include/asm-um/thread_info.h
-@@ -69,6 +69,7 @@ static inline struct thread_info *curren
- #define TIF_MEMDIE	 	5
- #define TIF_SYSCALL_AUDIT	6
- #define TIF_RESTORE_SIGMASK	7
-+#define TIF_FREEZE		16	/* is freezing for suspend */
- 
- #define _TIF_SYSCALL_TRACE	(1 << TIF_SYSCALL_TRACE)
- #define _TIF_SIGPENDING		(1 << TIF_SIGPENDING)
-@@ -77,5 +78,6 @@ static inline struct thread_info *curren
- #define _TIF_MEMDIE		(1 << TIF_MEMDIE)
- #define _TIF_SYSCALL_AUDIT	(1 << TIF_SYSCALL_AUDIT)
- #define _TIF_RESTORE_SIGMASK	(1 << TIF_RESTORE_SIGMASK)
-+#define _TIF_FREEZE		(1 << TIF_FREEZE)
- 
++#ifdef CONFIG_PROC_VMCORE
+ int __init reserve_elfcorehdr(unsigned long *start, unsigned long *end)
+ {
+ 	unsigned long length;
+diff -puN arch/powerpc/kernel/crash_dump.c~kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore arch/powerpc/kernel/crash_dump.c
+--- a/arch/powerpc/kernel/crash_dump.c~kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore
++++ a/arch/powerpc/kernel/crash_dump.c
+@@ -27,6 +27,9 @@
+ #define DBG(fmt...)
  #endif
-diff -puN include/asm-xtensa/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures include/asm-xtensa/thread_info.h
---- a/include/asm-xtensa/thread_info.h~container-freezer-add-tif_freeze-flag-to-all-architectures
-+++ a/include/asm-xtensa/thread_info.h
-@@ -134,6 +134,7 @@ static inline struct thread_info *curren
- #define TIF_MEMDIE		5
- #define TIF_RESTORE_SIGMASK	6	/* restore signal mask in do_signal() */
- #define TIF_POLLING_NRFLAG	16	/* true if poll_idle() is polling TIF_NEED_RESCHED */
-+#define TIF_FREEZE		17	/* is freezing for suspend */
  
- #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
- #define _TIF_SIGPENDING		(1<<TIF_SIGPENDING)
-@@ -142,6 +143,7 @@ static inline struct thread_info *curren
- #define _TIF_IRET		(1<<TIF_IRET)
- #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
- #define _TIF_RESTORE_SIGMASK	(1<<TIF_RESTORE_SIGMASK)
-+#define _TIF_FREEZE		(1<<TIF_FREEZE)
++/* Stores the physical address of elf header of crash image. */
++unsigned long long elfcorehdr_addr = ELFCORE_ADDR_MAX;
++
+ void __init reserve_kdump_trampoline(void)
+ {
+ 	lmb_reserve(0, KDUMP_RESERVE_LIMIT);
+@@ -66,7 +69,11 @@ void __init setup_kdump_trampoline(void)
+ 	DBG(" <- setup_kdump_trampoline()\n");
+ }
  
- #define _TIF_WORK_MASK		0x0000FFFE	/* work to do on interrupt/exception return */
- #define _TIF_ALLWORK_MASK	0x0000FFFF	/* work to do on any return to u-space */
+-#ifdef CONFIG_PROC_VMCORE
++/*
++ * Note: elfcorehdr_addr is not just limited to vmcore. It is also used by
++ * is_kdump_kernel() to determine if we are booting after a panic. Hence
++ * ifdef it under CONFIG_CRASH_DUMP and not CONFIG_PROC_VMCORE.
++ */
+ static int __init parse_elfcorehdr(char *p)
+ {
+ 	if (p)
+@@ -75,7 +82,6 @@ static int __init parse_elfcorehdr(char 
+ 	return 1;
+ }
+ __setup("elfcorehdr=", parse_elfcorehdr);
+-#endif
+ 
+ static int __init parse_savemaxmem(char *p)
+ {
+diff -puN arch/sh/kernel/crash_dump.c~kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore arch/sh/kernel/crash_dump.c
+--- a/arch/sh/kernel/crash_dump.c~kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore
++++ a/arch/sh/kernel/crash_dump.c
+@@ -10,6 +10,9 @@
+ #include <linux/io.h>
+ #include <asm/uaccess.h>
+ 
++/* Stores the physical address of elf header of crash image. */
++unsigned long long elfcorehdr_addr = ELFCORE_ADDR_MAX;
++
+ /**
+  * copy_oldmem_page - copy one page from "oldmem"
+  * @pfn: page frame number to be copied
+diff -puN arch/x86/kernel/crash_dump_32.c~kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore arch/x86/kernel/crash_dump_32.c
+--- a/arch/x86/kernel/crash_dump_32.c~kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore
++++ a/arch/x86/kernel/crash_dump_32.c
+@@ -13,6 +13,9 @@
+ 
+ static void *kdump_buf_page;
+ 
++/* Stores the physical address of elf header of crash image. */
++unsigned long long elfcorehdr_addr = ELFCORE_ADDR_MAX;
++
+ /**
+  * copy_oldmem_page - copy one page from "oldmem"
+  * @pfn: page frame number to be copied
+diff -puN arch/x86/kernel/crash_dump_64.c~kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore arch/x86/kernel/crash_dump_64.c
+--- a/arch/x86/kernel/crash_dump_64.c~kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore
++++ a/arch/x86/kernel/crash_dump_64.c
+@@ -10,6 +10,9 @@
+ #include <linux/uaccess.h>
+ #include <linux/io.h>
+ 
++/* Stores the physical address of elf header of crash image. */
++unsigned long long elfcorehdr_addr = ELFCORE_ADDR_MAX;
++
+ /**
+  * copy_oldmem_page - copy one page from "oldmem"
+  * @pfn: page frame number to be copied
+diff -puN arch/x86/kernel/setup.c~kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore arch/x86/kernel/setup.c
+--- a/arch/x86/kernel/setup.c~kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore
++++ a/arch/x86/kernel/setup.c
+@@ -561,7 +561,13 @@ static void __init reserve_standard_io_r
+ 
+ }
+ 
+-#ifdef CONFIG_PROC_VMCORE
++/*
++ * Note: elfcorehdr_addr is not just limited to vmcore. It is also used by
++ * is_kdump_kernel() to determine if we are booting after a panic. Hence
++ * ifdef it under CONFIG_CRASH_DUMP and not CONFIG_PROC_VMCORE.
++ */
++
++#ifdef CONFIG_CRASH_DUMP
+ /* elfcorehdr= specifies the location of elf core header
+  * stored by the crashed kernel. This option will be passed
+  * by kexec loader to the capture kernel.
+diff -puN fs/proc/vmcore.c~kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore
++++ a/fs/proc/vmcore.c
+@@ -32,9 +32,6 @@ static size_t elfcorebuf_sz;
+ /* Total size of vmcore file. */
+ static u64 vmcore_size;
+ 
+-/* Stores the physical address of elf header of crash image. */
+-unsigned long long elfcorehdr_addr = ELFCORE_ADDR_MAX;
+-
+ struct proc_dir_entry *proc_vmcore = NULL;
+ 
+ /* Reads a page from the oldmem device from given offset. */
+diff -puN include/linux/crash_dump.h~kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore include/linux/crash_dump.h
+--- a/include/linux/crash_dump.h~kdump-make-elfcorehdr_addr-independent-of-config_proc_vmcore
++++ a/include/linux/crash_dump.h
+@@ -9,11 +9,7 @@
+ 
+ #define ELFCORE_ADDR_MAX	(-1ULL)
+ 
+-#ifdef CONFIG_PROC_VMCORE
+ extern unsigned long long elfcorehdr_addr;
+-#else
+-static const unsigned long long elfcorehdr_addr = ELFCORE_ADDR_MAX;
+-#endif
+ 
+ extern ssize_t copy_oldmem_page(unsigned long, char *, size_t,
+ 						unsigned long, int);
+@@ -28,6 +24,16 @@ extern struct proc_dir_entry *proc_vmcor
+ 
+ #define vmcore_elf_check_arch(x) (elf_check_arch(x) || vmcore_elf_check_arch_cross(x))
+ 
++/*
++ * is_kdump_kernel() checks whether this kernel is booting after a panic of
++ * previous kernel or not. This is determined by checking if previous kernel
++ * has passed the elf core header address on command line.
++ *
++ * This is not just a test if CONFIG_CRASH_DUMP is enabled or not. It will
++ * return 1 if CONFIG_CRASH_DUMP=y and if kernel is booting after a panic of
++ * previous kernel.
++ */
++
+ static inline int is_kdump_kernel(void)
+ {
+ 	return (elfcorehdr_addr != ELFCORE_ADDR_MAX) ? 1 : 0;
 _
 
-Patches currently in -mm which might be from matthltc@us.ibm.com are
+Patches currently in -mm which might be from vgoyal@redhat.com are
 
 origin.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
 
