@@ -1,121 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - message-queues-increase-range-limits.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:37:17 -0700
-Message-ID: <200810202037.m9KKbHFs011582@imap1.linux-foundation.org>
+Subject: - mm-page-lock-use-lock-bitops.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:33:35 -0700
+Message-ID: <200810202033.m9KKXZFs010668@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50438 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43111 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754067AbYJTUim (ORCPT
+	by vger.kernel.org with ESMTP id S1754032AbYJTUeN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:38:42 -0400
+	Mon, 20 Oct 2008 16:34:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe.korty@ccur.com, Nadia.Derbey@bull.net, manfred@colorfullife.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: npiggin@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     message queues: increase range limits
+     mm: page lock use lock bitops
 has been removed from the -mm tree.  Its filename was
-     message-queues-increase-range-limits.patch
+     mm-page-lock-use-lock-bitops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: message queues: increase range limits
-From: Joe Korty <joe.korty@ccur.com>
+Subject: mm: page lock use lock bitops
+From: Nick Piggin <npiggin@suse.de>
 
-Increase the range of various posix message queue limits.
+trylock_page, unlock_page open and close a critical section. Hence,
+we can use the lock bitops to get the desired memory ordering.
 
-Posix gives the message queue user the ability to 'trade off' the maximum
-size of messages with the number of possible messages that can be 'in
-flight'.  Linux currently makes this trade off more restrictive than it
-needs to be.
+Also, mark trylock as likely to succeed (and remove the annotation from
+callers).
 
-In particular, the maximum message size today can be made no smaller than
-8192.  This greatly restricts those applications that would like to have
-the ability to post large numbers of very small messages.
-
-So this task lowers the limit that the maximum message size can be set to,
-from 8192 to 128.  It also lowers the limit that the maximum #number of
-messages in flight can be set to, from 10 to 1.
-
-With these changes the message queue user can make better trade offs
-between #messages and message size, in order to get everything to fit
-within the setrlimit(RLIMIT_MSGQUEUE) limit for that particular user.
-
-This patch also applies the values in
-
-	/proc/sys/fs/mqueue/msg_max
-	/proc/sys/fs/mqueue/msgsize_max
-
-as the defaults for the max #messages allowed and the max message size
-allowed, respectively, for those applications that do not supply these. 
-Previously, the defaults were hardwired to 10 and 8192, respectively.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Joe Korty <joe.korty@ccur.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Nadia Derbey <Nadia.Derbey@bull.net>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |   20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+ include/linux/pagemap.h |    2 +-
+ mm/filemap.c            |   13 +++++--------
+ mm/swapfile.c           |    2 +-
+ 3 files changed, 7 insertions(+), 10 deletions(-)
 
-diff -puN ipc/mqueue.c~message-queues-increase-range-limits ipc/mqueue.c
---- a/ipc/mqueue.c~message-queues-increase-range-limits
-+++ a/ipc/mqueue.c
-@@ -52,6 +52,14 @@
- #define HARD_MSGMAX 	(131072/sizeof(void*))
- #define DFLT_MSGSIZEMAX 8192	/* max message size */
+diff -puN include/linux/pagemap.h~mm-page-lock-use-lock-bitops include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-page-lock-use-lock-bitops
++++ a/include/linux/pagemap.h
+@@ -311,7 +311,7 @@ static inline void __clear_page_locked(s
  
-+/*
-+ * Define the ranges various user-specified maximum values can
-+ * be set to.
-+ */
-+#define MIN_MSGMAX	1		/* min value for msg_max */
-+#define MAX_MSGMAX	HARD_MSGMAX	/* max value for msg_max */
-+#define MIN_MSGSIZEMAX	128		/* min value for msgsize_max */
-+#define MAX_MSGSIZEMAX	(8192*128)	/* max value for msgsize_max */
+ static inline int trylock_page(struct page *page)
+ {
+-	return !test_and_set_bit(PG_locked, &page->flags);
++	return (likely(!test_and_set_bit_lock(PG_locked, &page->flags)));
+ }
  
- struct ext_wait_queue {		/* queue of sleeping tasks */
- 	struct task_struct *task;
-@@ -134,8 +142,8 @@ static struct inode *mqueue_get_inode(st
- 			info->qsize = 0;
- 			info->user = NULL;	/* set when all is ok */
- 			memset(&info->attr, 0, sizeof(info->attr));
--			info->attr.mq_maxmsg = DFLT_MSGMAX;
--			info->attr.mq_msgsize = DFLT_MSGSIZEMAX;
-+			info->attr.mq_maxmsg = msg_max;
-+			info->attr.mq_msgsize = msgsize_max;
- 			if (attr) {
- 				info->attr.mq_maxmsg = attr->mq_maxmsg;
- 				info->attr.mq_msgsize = attr->mq_msgsize;
-@@ -1191,11 +1199,11 @@ static struct file_system_type mqueue_fs
- 	.kill_sb = kill_litter_super,
- };
- 
--static int msg_max_limit_min = DFLT_MSGMAX;
--static int msg_max_limit_max = HARD_MSGMAX;
-+static int msg_max_limit_min = MIN_MSGMAX;
-+static int msg_max_limit_max = MAX_MSGMAX;
- 
--static int msg_maxsize_limit_min = DFLT_MSGSIZEMAX;
--static int msg_maxsize_limit_max = INT_MAX;
-+static int msg_maxsize_limit_min = MIN_MSGSIZEMAX;
-+static int msg_maxsize_limit_max = MAX_MSGSIZEMAX;
- 
- static ctl_table mq_sysctls[] = {
- 	{
+ /*
+diff -puN mm/filemap.c~mm-page-lock-use-lock-bitops mm/filemap.c
+--- a/mm/filemap.c~mm-page-lock-use-lock-bitops
++++ a/mm/filemap.c
+@@ -573,17 +573,14 @@ EXPORT_SYMBOL(wait_on_page_bit);
+  * mechananism between PageLocked pages and PageWriteback pages is shared.
+  * But that's OK - sleepers in wait_on_page_writeback() just go back to sleep.
+  *
+- * The first mb is necessary to safely close the critical section opened by the
+- * test_and_set_bit() to lock the page; the second mb is necessary to enforce
+- * ordering between the clear_bit and the read of the waitqueue (to avoid SMP
+- * races with a parallel wait_on_page_locked()).
++ * The mb is necessary to enforce ordering between the clear_bit and the read
++ * of the waitqueue (to avoid SMP races with a parallel wait_on_page_locked()).
+  */
+ void unlock_page(struct page *page)
+ {
+-	smp_mb__before_clear_bit();
+-	if (!test_and_clear_bit(PG_locked, &page->flags))
+-		BUG();
+-	smp_mb__after_clear_bit(); 
++	VM_BUG_ON(!PageLocked(page));
++	clear_bit_unlock(PG_locked, &page->flags);
++	smp_mb__after_clear_bit();
+ 	wake_up_page(page, PG_locked);
+ }
+ EXPORT_SYMBOL(unlock_page);
+diff -puN mm/swapfile.c~mm-page-lock-use-lock-bitops mm/swapfile.c
+--- a/mm/swapfile.c~mm-page-lock-use-lock-bitops
++++ a/mm/swapfile.c
+@@ -422,7 +422,7 @@ void free_swap_and_cache(swp_entry_t ent
+ 	if (p) {
+ 		if (swap_entry_free(p, swp_offset(entry)) == 1) {
+ 			page = find_get_page(&swapper_space, entry.val);
+-			if (page && unlikely(!trylock_page(page))) {
++			if (page && !trylock_page(page)) {
+ 				page_cache_release(page);
+ 				page = NULL;
+ 			}
 _
 
-Patches currently in -mm which might be from joe.korty@ccur.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
 linux-next.patch
-forcdeth-increase-max_interrupt_work.patch
+reiser4.patch
+likeliness-accounting-change-and-cleanup.patch
 
