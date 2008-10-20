@@ -1,77 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - fix-documentation-of-sysrq-q.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:34:39 -0700
-Message-ID: <200810202034.m9KKYdd7010897@imap1.linux-foundation.org>
+Subject: - make-ptrace_untrace-static.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:36:51 -0700
+Message-ID: <200810202036.m9KKapaR011473@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38090 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33047 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753575AbYJTUf1 (ORCPT
+	by vger.kernel.org with ESMTP id S1754725AbYJTUrm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:35:27 -0400
+	Mon, 20 Oct 2008 16:47:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andi@firstfloor.org, ak@linux.intel.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: bunk@kernel.org, oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix documentation of sysrq-q
+     make ptrace_untrace() static
 has been removed from the -mm tree.  Its filename was
-     fix-documentation-of-sysrq-q.patch
+     make-ptrace_untrace-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix documentation of sysrq-q
-From: Andi Kleen <andi@firstfloor.org>
+Subject: make ptrace_untrace() static
+From: Adrian Bunk <bunk@kernel.org>
 
-I fell into the trap recently that it only dumps hrtimers instead of
-all timers. Fix the documentation.
+ptrace_untrace() can now become static.
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysrq.txt |    3 ++-
- drivers/char/sysrq.c    |    2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ include/linux/ptrace.h |    1 -
+ kernel/ptrace.c        |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN Documentation/sysrq.txt~fix-documentation-of-sysrq-q Documentation/sysrq.txt
---- a/Documentation/sysrq.txt~fix-documentation-of-sysrq-q
-+++ a/Documentation/sysrq.txt
-@@ -95,7 +95,8 @@ On all -  write a character to /proc/sys
- 
- 'p'     - Will dump the current registers and flags to your console.
- 
--'q'     - Will dump a list of all running timers.
-+'q'     - Will dump a list of all running hrtimers.
-+	  WARNING: Does not cover any other timers
- 
- 'r'     - Turns off keyboard raw mode and sets it to XLATE.
- 
-diff -puN drivers/char/sysrq.c~fix-documentation-of-sysrq-q drivers/char/sysrq.c
---- a/drivers/char/sysrq.c~fix-documentation-of-sysrq-q
-+++ a/drivers/char/sysrq.c
-@@ -168,7 +168,7 @@ static void sysrq_handle_show_timers(int
- static struct sysrq_key_op sysrq_show_timers_op = {
- 	.handler	= sysrq_handle_show_timers,
- 	.help_msg	= "show-all-timers(Q)",
--	.action_msg	= "Show Pending Timers",
-+	.action_msg	= "Show pending hrtimers (no others)",
- };
- 
- static void sysrq_handle_mountro(int key, struct tty_struct *tty)
+diff -puN include/linux/ptrace.h~make-ptrace_untrace-static include/linux/ptrace.h
+--- a/include/linux/ptrace.h~make-ptrace_untrace-static
++++ a/include/linux/ptrace.h
+@@ -94,7 +94,6 @@ extern void ptrace_notify(int exit_code)
+ extern void __ptrace_link(struct task_struct *child,
+ 			  struct task_struct *new_parent);
+ extern void __ptrace_unlink(struct task_struct *child);
+-extern void ptrace_untrace(struct task_struct *child);
+ #define PTRACE_MODE_READ   1
+ #define PTRACE_MODE_ATTACH 2
+ /* Returns 0 on success, -errno on denial. */
+diff -puN kernel/ptrace.c~make-ptrace_untrace-static kernel/ptrace.c
+--- a/kernel/ptrace.c~make-ptrace_untrace-static
++++ a/kernel/ptrace.c
+@@ -45,7 +45,7 @@ void __ptrace_link(struct task_struct *c
+  * TASK_TRACED, resume it now.
+  * Requires that irqs be disabled.
+  */
+-void ptrace_untrace(struct task_struct *child)
++static void ptrace_untrace(struct task_struct *child)
+ {
+ 	spin_lock(&child->sighand->siglock);
+ 	if (task_is_traced(child)) {
 _
 
-Patches currently in -mm which might be from andi@firstfloor.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
 linux-next.patch
-acpi-compal-laptop-use-rfkill-switch-subsystem.patch
-sysfs-fix-return-values-for-sysdev_store_ulongint.patch
-profile-likely-unlikely-macros.patch
+m32r-kernel-smpbootc-must-include-linux-cpuh.patch
+the-overdue-eepro100-removal.patch
+parisc-lib-make-code-static.patch
+drivers-parisc-make-code-static.patch
+if-0-ses_match_host.patch
+drivers-scsi-a2091c-make-2-functions-static.patch
+drivers-scsi-a3000c-make-2-functions-static.patch
+fs_mbcache-dont-needlessly-make-it-built-in.patch
+reiser4.patch
 
