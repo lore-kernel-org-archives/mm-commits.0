@@ -1,218 +1,195 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-fix-probable-race-with-put_css_set-and-find_css_set.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:36:13 -0700
-Message-ID: <200810202036.m9KKaDDA011325@imap1.linux-foundation.org>
+Subject: - rtc-cmos-export-second-nvram-bank.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:35:32 -0700
+Message-ID: <200810202035.m9KKZWMB011168@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34799 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45661 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753795AbYJTUhA (ORCPT
+	by vger.kernel.org with ESMTP id S1753737AbYJTUg3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:37:00 -0400
+	Mon, 20 Oct 2008 16:36:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laijs@cn.fujitsu.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, bjorn.helgaas@hp.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: fix probable race with put_css_set[_taskexit] and find_css_set
+     rtc-cmos: export second NVRAM bank
 has been removed from the -mm tree.  Its filename was
-     cgroups-fix-probable-race-with-put_css_set-and-find_css_set.patch
+     rtc-cmos-export-second-nvram-bank.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: fix probable race with put_css_set[_taskexit] and find_css_set
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: rtc-cmos: export second NVRAM bank
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-put_css_set_taskexit may be called when find_css_set is called on other
-cpu.  And the race will occur:
+Teach rtc-cmos about the second bank of registers found on most modern x86
+systems, giving access to 128 bytes more NVRAM.
 
-put_css_set_taskexit side                    find_css_set side
+This version only sees that extra NVRAM when both register banks are
+provided as part of *one* PNP resource.  Since BIOS on some systems
+presents them using two IO resources, and nothing merges them, this can't
+always show all the NVRAM.  (We're supposed to be able to use PNP id
+PNP0b01 too, but BIOS tables doesn't often seem to use that particular
+option.)
 
-                                        |
-atomic_dec_and_test(&kref->refcount)    |
-    /* kref->refcount = 0 */            |
-....................................................................
-                                        |  read_lock(&css_set_lock)
-                                        |  find_existing_css_set
-                                        |  get_css_set
-                                        |  read_unlock(&css_set_lock);
-....................................................................
-__release_css_set                       |
-....................................................................
-                                        | /* use a released css_set */
-                                        |
-
-[put_css_set is the same. But in the current code, all put_css_set are
-put into cgroup mutex critical region as the same as find_css_set.]
-
-[akpm@linux-foundation.org: repair comments]
-[menage@google.com: eliminate race in css_set refcounting]
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Signed-off-by: Paul Menage <menage@google.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |    3 --
- kernel/cgroup.c        |   43 ++++++++++++++++++---------------------
- kernel/cgroup_debug.c  |    4 +--
- 3 files changed, 23 insertions(+), 27 deletions(-)
+ drivers/rtc/rtc-cmos.c |   70 +++++++++++++++++++++++++++++++++++----
+ 1 file changed, 63 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroups-fix-probable-race-with-put_css_set-and-find_css_set include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroups-fix-probable-race-with-put_css_set-and-find_css_set
-+++ a/include/linux/cgroup.h
-@@ -9,7 +9,6 @@
-  */
+diff -puN drivers/rtc/rtc-cmos.c~rtc-cmos-export-second-nvram-bank drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-cmos-export-second-nvram-bank
++++ a/drivers/rtc/rtc-cmos.c
+@@ -143,6 +143,43 @@ static inline int hpet_unregister_irq_ha
  
- #include <linux/sched.h>
--#include <linux/kref.h>
- #include <linux/cpumask.h>
- #include <linux/nodemask.h>
- #include <linux/rcupdate.h>
-@@ -149,7 +148,7 @@ struct cgroup {
- struct css_set {
+ /*----------------------------------------------------------------*/
  
- 	/* Reference count */
--	struct kref ref;
-+	atomic_t refcount;
- 
- 	/*
- 	 * List running through all cgroup groups in the same hash
-diff -puN kernel/cgroup.c~cgroups-fix-probable-race-with-put_css_set-and-find_css_set kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-fix-probable-race-with-put_css_set-and-find_css_set
-+++ a/kernel/cgroup.c
-@@ -241,7 +241,6 @@ static void unlink_css_set(struct css_se
- 	struct cg_cgroup_link *link;
- 	struct cg_cgroup_link *saved_link;
- 
--	write_lock(&css_set_lock);
- 	hlist_del(&cg->hlist);
- 	css_set_count--;
- 
-@@ -251,16 +250,25 @@ static void unlink_css_set(struct css_se
- 		list_del(&link->cgrp_link_list);
- 		kfree(link);
- 	}
--
--	write_unlock(&css_set_lock);
- }
- 
--static void __release_css_set(struct kref *k, int taskexit)
-+static void __put_css_set(struct css_set *cg, int taskexit)
++#ifdef RTC_PORT
++
++/* Most newer x86 systems have two register banks, the first used
++ * for RTC and NVRAM and the second only for NVRAM.  Caller must
++ * own rtc_lock ... and we won't worry about access during NMI.
++ */
++#define can_bank2	true
++
++static inline unsigned char cmos_read_bank2(unsigned char addr)
++{
++	outb(addr, RTC_PORT(2));
++	return inb(RTC_PORT(3));
++}
++
++static inline void cmos_write_bank2(unsigned char val, unsigned char addr)
++{
++	outb(addr, RTC_PORT(2));
++	outb(val, RTC_PORT(2));
++}
++
++#else
++
++#define can_bank2	false
++
++static inline unsigned char cmos_read_bank2(unsigned char addr)
++{
++	return 0;
++}
++
++static inline void cmos_write_bank2(unsigned char val, unsigned char addr)
++{
++}
++
++#endif
++
++/*----------------------------------------------------------------*/
++
+ static int cmos_read_time(struct device *dev, struct rtc_time *t)
  {
- 	int i;
--	struct css_set *cg = container_of(k, struct css_set, ref);
--
-+	/*
-+	 * Ensure that the refcount doesn't hit zero while any readers
-+	 * can see it. Similar to atomic_dec_and_lock(), but for an
-+	 * rwlock
-+	 */
-+	if (atomic_add_unless(&cg->refcount, -1, 1))
-+		return;
-+	write_lock(&css_set_lock);
-+	if (!atomic_dec_and_test(&cg->refcount)) {
-+		write_unlock(&css_set_lock);
-+		return;
+ 	/* REVISIT:  if the clock has a "century" register, use
+@@ -491,12 +528,21 @@ cmos_nvram_read(struct kobject *kobj, st
+ 
+ 	if (unlikely(off >= attr->size))
+ 		return 0;
++	if (unlikely(off < 0))
++		return -EINVAL;
+ 	if ((off + count) > attr->size)
+ 		count = attr->size - off;
+ 
++	off += NVRAM_OFFSET;
+ 	spin_lock_irq(&rtc_lock);
+-	for (retval = 0, off += NVRAM_OFFSET; count--; retval++, off++)
+-		*buf++ = CMOS_READ(off);
++	for (retval = 0; count; count--, off++, retval++) {
++		if (off < 128)
++			*buf++ = CMOS_READ(off);
++		else if (can_bank2)
++			*buf++ = cmos_read_bank2(off);
++		else
++			break;
 +	}
- 	unlink_css_set(cg);
-+	write_unlock(&css_set_lock);
+ 	spin_unlock_irq(&rtc_lock);
  
- 	rcu_read_lock();
- 	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
-@@ -276,32 +284,22 @@ static void __release_css_set(struct kre
- 	kfree(cg);
- }
+ 	return retval;
+@@ -512,6 +558,8 @@ cmos_nvram_write(struct kobject *kobj, s
+ 	cmos = dev_get_drvdata(container_of(kobj, struct device, kobj));
+ 	if (unlikely(off >= attr->size))
+ 		return -EFBIG;
++	if (unlikely(off < 0))
++		return -EINVAL;
+ 	if ((off + count) > attr->size)
+ 		count = attr->size - off;
  
--static void release_css_set(struct kref *k)
--{
--	__release_css_set(k, 0);
--}
--
--static void release_css_set_taskexit(struct kref *k)
--{
--	__release_css_set(k, 1);
--}
--
- /*
-  * refcounted get/put for css_set objects
-  */
- static inline void get_css_set(struct css_set *cg)
- {
--	kref_get(&cg->ref);
-+	atomic_inc(&cg->refcount);
- }
+@@ -520,15 +568,20 @@ cmos_nvram_write(struct kobject *kobj, s
+ 	 * here.  If userspace is smart enough to know what fields of
+ 	 * NVRAM to update, updating checksums is also part of its job.
+ 	 */
++	off += NVRAM_OFFSET;
+ 	spin_lock_irq(&rtc_lock);
+-	for (retval = 0, off += NVRAM_OFFSET; count--; retval++, off++) {
++	for (retval = 0; count; count--, off++, retval++) {
+ 		/* don't trash RTC registers */
+ 		if (off == cmos->day_alrm
+ 				|| off == cmos->mon_alrm
+ 				|| off == cmos->century)
+ 			buf++;
+-		else
++		else if (off < 128)
+ 			CMOS_WRITE(*buf++, off);
++		else if (can_bank2)
++			cmos_write_bank2(*buf++, off);
++		else
++			break;
+ 	}
+ 	spin_unlock_irq(&rtc_lock);
  
- static inline void put_css_set(struct css_set *cg)
- {
--	kref_put(&cg->ref, release_css_set);
-+	__put_css_set(cg, 0);
- }
+@@ -631,8 +684,8 @@ cmos_do_probe(struct device *dev, struct
  
- static inline void put_css_set_taskexit(struct css_set *cg)
- {
--	kref_put(&cg->ref, release_css_set_taskexit);
-+	__put_css_set(cg, 1);
- }
+ 	/* Heuristic to deduce NVRAM size ... do what the legacy NVRAM
+ 	 * driver did, but don't reject unknown configs.   Old hardware
+-	 * won't address 128 bytes, and for now we ignore the way newer
+-	 * chips can address 256 bytes (using two more i/o ports).
++	 * won't address 128 bytes.  Newer chips have multiple banks,
++	 * though they may not be listed in one I/O resource.
+ 	 */
+ #if	defined(CONFIG_ATARI)
+ 	address_space = 64;
+@@ -642,6 +695,8 @@ cmos_do_probe(struct device *dev, struct
+ #warning Assuming 128 bytes of RTC+NVRAM address space, not 64 bytes.
+ 	address_space = 128;
+ #endif
++	if (can_bank2 && ports->end > (ports->start + 1))
++		address_space = 256;
  
- /*
-@@ -427,7 +425,7 @@ static struct css_set *find_css_set(
- 		return NULL;
+ 	/* For ACPI systems extension info comes from the FADT.  On others,
+ 	 * board specific setup provides it as appropriate.  Systems where
+@@ -740,7 +795,7 @@ cmos_do_probe(struct device *dev, struct
+ 		goto cleanup2;
  	}
  
--	kref_init(&res->ref);
-+	atomic_set(&res->refcount, 1);
- 	INIT_LIST_HEAD(&res->cg_links);
- 	INIT_LIST_HEAD(&res->tasks);
- 	INIT_HLIST_NODE(&res->hlist);
-@@ -1728,7 +1726,7 @@ int cgroup_task_count(const struct cgrou
+-	pr_info("%s: alarms up to one %s%s%s\n",
++	pr_info("%s: alarms up to one %s%s, %zd bytes nvram, %s irqs\n",
+ 			cmos_rtc.rtc->dev.bus_id,
+ 			is_valid_irq(rtc_irq)
+ 				?  (cmos_rtc.mon_alrm
+@@ -749,6 +804,7 @@ cmos_do_probe(struct device *dev, struct
+ 						? "month" : "day"))
+ 				: "no",
+ 			cmos_rtc.century ? ", y3k" : "",
++			nvram.size,
+ 			is_hpet_enabled() ? ", hpet irqs" : "");
  
- 	read_lock(&css_set_lock);
- 	list_for_each_entry(link, &cgrp->css_sets, cgrp_link_list) {
--		count += atomic_read(&link->cg->ref.refcount);
-+		count += atomic_read(&link->cg->refcount);
- 	}
- 	read_unlock(&css_set_lock);
- 	return count;
-@@ -2495,8 +2493,7 @@ static void __init cgroup_init_subsys(st
- int __init cgroup_init_early(void)
- {
- 	int i;
--	kref_init(&init_css_set.ref);
--	kref_get(&init_css_set.ref);
-+	atomic_set(&init_css_set.refcount, 1);
- 	INIT_LIST_HEAD(&init_css_set.cg_links);
- 	INIT_LIST_HEAD(&init_css_set.tasks);
- 	INIT_HLIST_NODE(&init_css_set.hlist);
-diff -puN kernel/cgroup_debug.c~cgroups-fix-probable-race-with-put_css_set-and-find_css_set kernel/cgroup_debug.c
---- a/kernel/cgroup_debug.c~cgroups-fix-probable-race-with-put_css_set-and-find_css_set
-+++ a/kernel/cgroup_debug.c
-@@ -57,7 +57,7 @@ static u64 current_css_set_refcount_read
- 	u64 count;
- 
- 	rcu_read_lock();
--	count = atomic_read(&current->cgroups->ref.refcount);
-+	count = atomic_read(&current->cgroups->refcount);
- 	rcu_read_unlock();
- 	return count;
- }
-@@ -90,7 +90,7 @@ static struct cftype files[] =  {
- 	{
- 		.name = "releasable",
- 		.read_u64 = releasable_read,
--	}
-+	},
- };
- 
- static int debug_populate(struct cgroup_subsys *ss, struct cgroup *cont)
+ 	return 0;
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 origin.patch
 linux-next.patch
