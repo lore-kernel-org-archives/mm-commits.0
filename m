@@ -1,100 +1,189 @@
 From: akpm@linux-foundation.org
-Subject: - mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:33:47 -0700
-Message-ID: <200810202033.m9KKXlIV010705@imap1.linux-foundation.org>
+Subject: - unevictable-lru-page-statistics.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:32:54 -0700
+Message-ID: <200810202032.m9KKWse2010506@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41129 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60106 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754617AbYJTUe0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752133AbYJTUkT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:34:26 -0400
+	Mon, 20 Oct 2008 16:40:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, apw@shadowen.org, mm-commits@vger.kernel.org
+To: Lee.Schermerhorn@hp.com, h-shimamoto@ct.jp.nec.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: hugetlb.c make functions static, use NULL rather than 0
+     Unevictable LRU Page Statistics
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlbc-make-functions-static-use-null-rather-than-0.patch
+     unevictable-lru-page-statistics.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: hugetlb.c make functions static, use NULL rather than 0
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: Unevictable LRU Page Statistics
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-mm/hugetlb.c:265:17: warning: symbol 'resv_map_alloc' was not declared. Should it be static?
-mm/hugetlb.c:277:6: warning: symbol 'resv_map_release' was not declared. Should it be static?
-mm/hugetlb.c:292:9: warning: Using plain integer as NULL pointer
-mm/hugetlb.c:1750:5: warning: symbol 'unmap_ref_private' was not declared. Should it be static?
+Report unevictable pages per zone and system wide.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Acked-by: Andy Whitcroft <apw@shadowen.org>
+Kosaki Motohiro added support for memory controller unevictable
+statistics.
+
+[riel@redhat.com: fix printk in show_free_areas()]
+[akpm@linux-foundation.org: fix units in /proc/vmstats]
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Debugged-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ drivers/base/node.c |    6 ++++++
+ fs/proc/proc_misc.c |    6 ++++++
+ mm/memcontrol.c     |    6 ++++++
+ mm/page_alloc.c     |   18 ++++++++++++++++--
+ mm/vmstat.c         |    3 +++
+ 5 files changed, 37 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlbc-make-functions-static-use-null-rather-than-0 mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbc-make-functions-static-use-null-rather-than-0
-+++ a/mm/hugetlb.c
-@@ -262,7 +262,7 @@ struct resv_map {
- 	struct list_head regions;
- };
+diff -puN drivers/base/node.c~unevictable-lru-page-statistics drivers/base/node.c
+--- a/drivers/base/node.c~unevictable-lru-page-statistics
++++ a/drivers/base/node.c
+@@ -70,6 +70,9 @@ static ssize_t node_read_meminfo(struct 
+ 		       "Node %d Inactive(anon): %8lu kB\n"
+ 		       "Node %d Active(file):   %8lu kB\n"
+ 		       "Node %d Inactive(file): %8lu kB\n"
++#ifdef CONFIG_UNEVICTABLE_LRU
++		       "Node %d Noreclaim:      %8lu kB\n"
++#endif
+ #ifdef CONFIG_HIGHMEM
+ 		       "Node %d HighTotal:      %8lu kB\n"
+ 		       "Node %d HighFree:       %8lu kB\n"
+@@ -99,6 +102,9 @@ static ssize_t node_read_meminfo(struct 
+ 		       nid, K(node_page_state(nid, NR_INACTIVE_ANON)),
+ 		       nid, K(node_page_state(nid, NR_ACTIVE_FILE)),
+ 		       nid, K(node_page_state(nid, NR_INACTIVE_FILE)),
++#ifdef CONFIG_UNEVICTABLE_LRU
++		       nid, K(node_page_state(nid, NR_UNEVICTABLE)),
++#endif
+ #ifdef CONFIG_HIGHMEM
+ 		       nid, K(i.totalhigh),
+ 		       nid, K(i.freehigh),
+diff -puN fs/proc/proc_misc.c~unevictable-lru-page-statistics fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~unevictable-lru-page-statistics
++++ a/fs/proc/proc_misc.c
+@@ -174,6 +174,9 @@ static int meminfo_read_proc(char *page,
+ 		"Inactive(anon): %8lu kB\n"
+ 		"Active(file):   %8lu kB\n"
+ 		"Inactive(file): %8lu kB\n"
++#ifdef CONFIG_UNEVICTABLE_LRU
++		"Unevictable:    %8lu kB\n"
++#endif
+ #ifdef CONFIG_HIGHMEM
+ 		"HighTotal:      %8lu kB\n"
+ 		"HighFree:       %8lu kB\n"
+@@ -212,6 +215,9 @@ static int meminfo_read_proc(char *page,
+ 		K(pages[LRU_INACTIVE_ANON]),
+ 		K(pages[LRU_ACTIVE_FILE]),
+ 		K(pages[LRU_INACTIVE_FILE]),
++#ifdef CONFIG_UNEVICTABLE_LRU
++		K(pages[LRU_UNEVICTABLE]),
++#endif
+ #ifdef CONFIG_HIGHMEM
+ 		K(i.totalhigh),
+ 		K(i.freehigh),
+diff -puN mm/memcontrol.c~unevictable-lru-page-statistics mm/memcontrol.c
+--- a/mm/memcontrol.c~unevictable-lru-page-statistics
++++ a/mm/memcontrol.c
+@@ -1006,6 +1006,7 @@ static int mem_control_stat_show(struct 
+ 	{
+ 		unsigned long active_anon, inactive_anon;
+ 		unsigned long active_file, inactive_file;
++		unsigned long unevictable;
  
--struct resv_map *resv_map_alloc(void)
-+static struct resv_map *resv_map_alloc(void)
- {
- 	struct resv_map *resv_map = kmalloc(sizeof(*resv_map), GFP_KERNEL);
- 	if (!resv_map)
-@@ -274,7 +274,7 @@ struct resv_map *resv_map_alloc(void)
- 	return resv_map;
+ 		inactive_anon = mem_cgroup_get_all_zonestat(mem_cont,
+ 						LRU_INACTIVE_ANON);
+@@ -1015,10 +1016,15 @@ static int mem_control_stat_show(struct 
+ 						LRU_INACTIVE_FILE);
+ 		active_file = mem_cgroup_get_all_zonestat(mem_cont,
+ 						LRU_ACTIVE_FILE);
++		unevictable = mem_cgroup_get_all_zonestat(mem_cont,
++							LRU_UNEVICTABLE);
++
+ 		cb->fill(cb, "active_anon", (active_anon) * PAGE_SIZE);
+ 		cb->fill(cb, "inactive_anon", (inactive_anon) * PAGE_SIZE);
+ 		cb->fill(cb, "active_file", (active_file) * PAGE_SIZE);
+ 		cb->fill(cb, "inactive_file", (inactive_file) * PAGE_SIZE);
++		cb->fill(cb, "unevictable", unevictable * PAGE_SIZE);
++
+ 	}
+ 	return 0;
  }
+diff -puN mm/page_alloc.c~unevictable-lru-page-statistics mm/page_alloc.c
+--- a/mm/page_alloc.c~unevictable-lru-page-statistics
++++ a/mm/page_alloc.c
+@@ -1864,13 +1864,21 @@ void show_free_areas(void)
+ 		}
+ 	}
  
--void resv_map_release(struct kref *ref)
-+static void resv_map_release(struct kref *ref)
- {
- 	struct resv_map *resv_map = container_of(ref, struct resv_map, refs);
- 
-@@ -289,7 +289,7 @@ static struct resv_map *vma_resv_map(str
- 	if (!(vma->vm_flags & VM_SHARED))
- 		return (struct resv_map *)(get_vma_private_data(vma) &
- 							~HPAGE_RESV_MASK);
--	return 0;
-+	return NULL;
- }
- 
- static void set_vma_resv_map(struct vm_area_struct *vma, struct resv_map *map)
-@@ -1747,10 +1747,8 @@ void unmap_hugepage_range(struct vm_area
-  * from other VMAs and let the children be SIGKILLed if they are faulting the
-  * same region.
-  */
--int unmap_ref_private(struct mm_struct *mm,
--					struct vm_area_struct *vma,
--					struct page *page,
--					unsigned long address)
-+static int unmap_ref_private(struct mm_struct *mm, struct vm_area_struct *vma,
-+				struct page *page, unsigned long address)
- {
- 	struct vm_area_struct *iter_vma;
- 	struct address_space *mapping;
+-	printk("Active_anon:%lu active_file:%lu inactive_anon%lu\n"
+-		" inactive_file:%lu dirty:%lu writeback:%lu unstable:%lu\n"
++	printk("Active_anon:%lu active_file:%lu inactive_anon:%lu\n"
++		" inactive_file:%lu"
++//TODO:  check/adjust line lengths
++#ifdef CONFIG_UNEVICTABLE_LRU
++		" unevictable:%lu"
++#endif
++		" dirty:%lu writeback:%lu unstable:%lu\n"
+ 		" free:%lu slab:%lu mapped:%lu pagetables:%lu bounce:%lu\n",
+ 		global_page_state(NR_ACTIVE_ANON),
+ 		global_page_state(NR_ACTIVE_FILE),
+ 		global_page_state(NR_INACTIVE_ANON),
+ 		global_page_state(NR_INACTIVE_FILE),
++#ifdef CONFIG_UNEVICTABLE_LRU
++		global_page_state(NR_UNEVICTABLE),
++#endif
+ 		global_page_state(NR_FILE_DIRTY),
+ 		global_page_state(NR_WRITEBACK),
+ 		global_page_state(NR_UNSTABLE_NFS),
+@@ -1897,6 +1905,9 @@ void show_free_areas(void)
+ 			" inactive_anon:%lukB"
+ 			" active_file:%lukB"
+ 			" inactive_file:%lukB"
++#ifdef CONFIG_UNEVICTABLE_LRU
++			" unevictable:%lukB"
++#endif
+ 			" present:%lukB"
+ 			" pages_scanned:%lu"
+ 			" all_unreclaimable? %s"
+@@ -1910,6 +1921,9 @@ void show_free_areas(void)
+ 			K(zone_page_state(zone, NR_INACTIVE_ANON)),
+ 			K(zone_page_state(zone, NR_ACTIVE_FILE)),
+ 			K(zone_page_state(zone, NR_INACTIVE_FILE)),
++#ifdef CONFIG_UNEVICTABLE_LRU
++			K(zone_page_state(zone, NR_UNEVICTABLE)),
++#endif
+ 			K(zone->present_pages),
+ 			zone->pages_scanned,
+ 			(zone_is_all_unreclaimable(zone) ? "yes" : "no")
+diff -puN mm/vmstat.c~unevictable-lru-page-statistics mm/vmstat.c
+--- a/mm/vmstat.c~unevictable-lru-page-statistics
++++ a/mm/vmstat.c
+@@ -623,6 +623,9 @@ static const char * const vmstat_text[] 
+ 	"nr_active_anon",
+ 	"nr_inactive_file",
+ 	"nr_active_file",
++#ifdef CONFIG_UNEVICTABLE_LRU
++	"nr_unevictable",
++#endif
+ 	"nr_anon_pages",
+ 	"nr_mapped",
+ 	"nr_file_pages",
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
 
 origin.patch
-linux-next.patch
-cifs-remove-global_extern-macro.patch
-input-ads7846c-sparse-lock-annotation.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-scsi-gdthc-use-unaligned-access-helpers.patch
-scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
-scsi-remove-private-implementation-of-get_unaligned_be32.patch
-usb-avoid-needless-address-taking-of-function-parameters.patch
 
