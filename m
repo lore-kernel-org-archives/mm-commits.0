@@ -1,60 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - serial_txx9-use-%lx-for-iobase.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:32:21 -0700
-Message-ID: <200810202032.m9KKWLDo010384@imap1.linux-foundation.org>
+Subject: - tpm-dont-export-static-functions.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:32:18 -0700
+Message-ID: <200810202032.m9KKWIRZ010350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49271 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40609 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750998AbYJTUdU (ORCPT
+	by vger.kernel.org with ESMTP id S1752747AbYJTUdZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:33:20 -0400
+	Mon, 20 Oct 2008 16:33:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, alan@lxorguk.ukuu.org.uk, joy@entuzijast.net, mm-commits@vger.kernel.org
+To: sfr@canb.auug.org.au, jmorris@namei.org, srajiv@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial_txx9: use %lx for iobase
+     tpm: don't export static functions
 has been removed from the -mm tree.  Its filename was
-     serial_txx9-use-%lx-for-iobase.patch
+     tpm-dont-export-static-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial_txx9: use %lx for iobase
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: tpm: don't export static functions
+From: Stephen Rothwell <sfr@canb.auug.org.au>
 
-Fix a warning caused by commit 0c8946d97ae7d2d6691f8290a10faa63453b63f8
-(serial: Make uart_port's ioport "unsigned long".)
+Today's linux-next build (powerpc_allyesconfig) failed like this:
 
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Josip Rodin <joy@entuzijast.net>
+drivers/char/tpm/tpm.c:1162: error: __ksymtab_tpm_dev_release causes a section type conflict
+
+Caused by commit 253115b71fa06330bd58afbe01ccaf763a8a0cf1 ("The
+tpm_dev_release function is only called for platform devices, not pnp")
+which exported a static function.
+
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Rajiv Andrade <srajiv@linux.vnet.ibm.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_txx9.c |    2 +-
+ drivers/char/tpm/tpm.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/serial/serial_txx9.c~serial_txx9-use-%lx-for-iobase drivers/serial/serial_txx9.c
---- a/drivers/serial/serial_txx9.c~serial_txx9-use-%lx-for-iobase
-+++ a/drivers/serial/serial_txx9.c
-@@ -1039,7 +1039,7 @@ static int __devinit serial_txx9_probe(s
- 		ret = serial_txx9_register_port(&port);
- 		if (ret < 0) {
- 			dev_err(&dev->dev, "unable to register port at index %d "
--				"(IO%x MEM%llx IRQ%d): %d\n", i,
-+				"(IO%lx MEM%llx IRQ%d): %d\n", i,
- 				p->iobase, (unsigned long long)p->mapbase,
- 				p->irq, ret);
- 		}
+diff -puN drivers/char/tpm/tpm.c~tpm-dont-export-static-functions drivers/char/tpm/tpm.c
+--- a/drivers/char/tpm/tpm.c~tpm-dont-export-static-functions
++++ a/drivers/char/tpm/tpm.c
+@@ -1157,7 +1157,7 @@ EXPORT_SYMBOL_GPL(tpm_dev_vendor_release
+  * Once all references to platform device are down to 0,
+  * release all allocated structures.
+  */
+-static void tpm_dev_release(struct device *dev)
++void tpm_dev_release(struct device *dev)
+ {
+ 	struct tpm_chip *chip = dev_get_drvdata(dev);
+ 
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
 origin.patch
 linux-next.patch
+revert-i7300_idle-driver-v155.patch
+make-do_mounts_md-use-of-msleep-more-robust.patch
 
