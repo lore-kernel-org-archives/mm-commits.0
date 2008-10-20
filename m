@@ -1,66 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - make-probe_serial_gsc-static.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:35:27 -0700
-Message-ID: <200810202035.m9KKZRvO011154@imap1.linux-foundation.org>
+Subject: - kernel-configsc-remove-useless-comments.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:34:45 -0700
+Message-ID: <200810202034.m9KKYjt2010923@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52971 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49248 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753109AbYJTUpl (ORCPT
+	by vger.kernel.org with ESMTP id S1754120AbYJTUqf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:45:41 -0400
+	Mon, 20 Oct 2008 16:46:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mm-commits@vger.kernel.org
+To: wangcong@zeuux.org, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make probe_serial_gsc() static
+     kernel/configs.c: remove useless comments
 has been removed from the -mm tree.  Its filename was
-     make-probe_serial_gsc-static.patch
+     kernel-configsc-remove-useless-comments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make probe_serial_gsc() static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: kernel/configs.c: remove useless comments
+From: WANG Cong <wangcong@zeuux.org>
 
-This patch makes the needlessly global probe_serial_gsc() static.
+These comments are useless, remove them.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: WANG Cong <wangcong@zeuux.org>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_gsc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/configs.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN drivers/serial/8250_gsc.c~make-probe_serial_gsc-static drivers/serial/8250_gsc.c
---- a/drivers/serial/8250_gsc.c~make-probe_serial_gsc-static
-+++ a/drivers/serial/8250_gsc.c
-@@ -111,7 +111,7 @@ static struct parisc_driver serial_drive
- 	.probe		= serial_init_chip,
+diff -puN kernel/configs.c~kernel-configsc-remove-useless-comments kernel/configs.c
+--- a/kernel/configs.c~kernel-configsc-remove-useless-comments
++++ a/kernel/configs.c
+@@ -54,9 +54,6 @@
+ 
+ #ifdef CONFIG_IKCONFIG_PROC
+ 
+-/**************************************************/
+-/* globals and useful constants                   */
+-
+ static ssize_t
+ ikconfig_read_current(struct file *file, char __user *buf,
+ 		      size_t len, loff_t * offset)
+@@ -71,9 +68,6 @@ static const struct file_operations ikco
+ 	.read = ikconfig_read_current,
  };
  
--int __init probe_serial_gsc(void)
-+static int __init probe_serial_gsc(void)
+-/***************************************************/
+-/* ikconfig_init: start up everything we need to */
+-
+ static int __init ikconfig_init(void)
  {
- 	register_parisc_driver(&lasi_driver);
- 	register_parisc_driver(&serial_driver);
-_
-
-Patches currently in -mm which might be from bunk@kernel.org are
-
-origin.patch
-linux-next.patch
-m32r-kernel-smpbootc-must-include-linux-cpuh.patch
-the-overdue-eepro100-removal.patch
-parisc-lib-make-code-static.patch
-drivers-parisc-make-code-static.patch
-if-0-ses_match_host.patch
-drivers-scsi-a2091c-make-2-functions-static.patch
-drivers-scsi-a3000c-make-2-functions-static.patch
-fs_mbcache-dont-needlessly-make-it-built-in.patch
-reiser4.patch
-
+ 	struct proc_dir_entry *entry;
+@@ -89,9 +83,6 @@ static int __init ikconfig_init(void)
+ 	return 0;
+ }
+ 
+-/***************************************************/
+-/* ikconfig_cleanup: clean up our mess           */
