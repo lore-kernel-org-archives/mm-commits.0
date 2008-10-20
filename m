@@ -1,99 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - seq_file-add-seq_cpumask_list-seq_nodemask_list.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:36:45 -0700
-Message-ID: <200810202036.m9KKajsW011445@imap1.linux-foundation.org>
+Subject: - ramfs-and-ram-disk-pages-are-unevictable.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:32:56 -0700
+Message-ID: <200810202032.m9KKWuGW010517@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44354 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33569 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753857AbYJTUhm (ORCPT
+	by vger.kernel.org with ESMTP id S1753453AbYJTUdo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:37:42 -0400
+	Mon, 20 Oct 2008 16:33:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laijs@cn.fujitsu.com, adobriyan@gmail.com, menage@google.com, pj@sgi.com, mm-commits@vger.kernel.org
+To: Lee.Schermerhorn@hp.com, lee.schermerhorn@hp.com, nickpiggin@yahoo.com.au, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     seq_file: add seq_cpumask_list(), seq_nodemask_list()
+     Ramfs and Ram Disk pages are unevictable
 has been removed from the -mm tree.  Its filename was
-     seq_file-add-seq_cpumask_list-seq_nodemask_list.patch
+     ramfs-and-ram-disk-pages-are-unevictable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: seq_file: add seq_cpumask_list(), seq_nodemask_list()
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: Ramfs and Ram Disk pages are unevictable
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-seq_cpumask_list(), seq_nodemask_list() are very like seq_cpumask(),
-seq_nodemask(), but they print human readable string.
+Christoph Lameter pointed out that ram disk pages also clutter the LRU
+lists.  When vmscan finds them dirty and tries to clean them, the ram disk
+writeback function just redirties the page so that it goes back onto the
+active list.  Round and round she goes...
 
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Paul Jackson <pj@sgi.com>
+With the ram disk driver [rd.c] replaced by the newer 'brd.c', this is no
+longer the case, as ram disk pages are no longer maintained on the lru. 
+[This makes them unmigratable for defrag or memory hot remove, but that
+can be addressed by a separate patch series.] However, the ramfs pages
+behave like ram disk pages used to, so:
+
+Define new address_space flag [shares address_space flags member with
+mapping's gfp mask] to indicate that the address space contains all
+unevictable pages.  This will provide for efficient testing of ramfs pages
+in page_evictable().
+
+Also provide wrapper functions to set/test the unevictable state to
+minimize #ifdefs in ramfs driver and any other users of this facility.
+
+Set the unevictable state on address_space structures for new ramfs
+inodes.  Test the unevictable state in page_evictable() to cull
+unevictable pages.
+
+These changes depend on [CONFIG_]UNEVICTABLE_LRU.
+
+[riel@redhat.com: undo the brd.c part]
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Debugged-by: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c            |   16 ++++++++++++++++
- include/linux/seq_file.h |   13 +++++++++++++
- 2 files changed, 29 insertions(+)
+ fs/ramfs/inode.c        |    1 +
+ include/linux/pagemap.h |   22 ++++++++++++++++++++++
+ mm/vmscan.c             |    5 +++++
+ 3 files changed, 28 insertions(+)
 
-diff -puN fs/seq_file.c~seq_file-add-seq_cpumask_list-seq_nodemask_list fs/seq_file.c
---- a/fs/seq_file.c~seq_file-add-seq_cpumask_list-seq_nodemask_list
-+++ a/fs/seq_file.c
-@@ -465,6 +465,22 @@ int seq_bitmap(struct seq_file *m, unsig
+diff -puN fs/ramfs/inode.c~ramfs-and-ram-disk-pages-are-unevictable fs/ramfs/inode.c
+--- a/fs/ramfs/inode.c~ramfs-and-ram-disk-pages-are-unevictable
++++ a/fs/ramfs/inode.c
+@@ -61,6 +61,7 @@ struct inode *ramfs_get_inode(struct sup
+ 		inode->i_mapping->a_ops = &ramfs_aops;
+ 		inode->i_mapping->backing_dev_info = &ramfs_backing_dev_info;
+ 		mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER);
++		mapping_set_unevictable(inode->i_mapping);
+ 		inode->i_atime = inode->i_mtime = inode->i_ctime = CURRENT_TIME;
+ 		switch (mode & S_IFMT) {
+ 		default:
+diff -puN include/linux/pagemap.h~ramfs-and-ram-disk-pages-are-unevictable include/linux/pagemap.h
+--- a/include/linux/pagemap.h~ramfs-and-ram-disk-pages-are-unevictable
++++ a/include/linux/pagemap.h
+@@ -32,6 +32,28 @@ static inline void mapping_set_error(str
+ 	}
  }
- EXPORT_SYMBOL(seq_bitmap);
  
-+int seq_bitmap_list(struct seq_file *m, unsigned long *bits,
-+		unsigned int nr_bits)
-+{
-+	if (m->count < m->size) {
-+		int len = bitmap_scnlistprintf(m->buf + m->count,
-+				m->size - m->count, bits, nr_bits);
-+		if (m->count + len < m->size) {
-+			m->count += len;
-+			return 0;
-+		}
-+	}
-+	m->count = m->size;
-+	return -1;
-+}
-+EXPORT_SYMBOL(seq_bitmap_list);
++#ifdef CONFIG_UNEVICTABLE_LRU
++#define AS_UNEVICTABLE	(__GFP_BITS_SHIFT + 2)	/* e.g., ramdisk, SHM_LOCK */
 +
- static void *single_start(struct seq_file *p, loff_t *pos)
++static inline void mapping_set_unevictable(struct address_space *mapping)
++{
++	set_bit(AS_UNEVICTABLE, &mapping->flags);
++}
++
++static inline int mapping_unevictable(struct address_space *mapping)
++{
++	if (mapping && (mapping->flags & AS_UNEVICTABLE))
++		return 1;
++	return 0;
++}
++#else
++static inline void mapping_set_unevictable(struct address_space *mapping) { }
++static inline int mapping_unevictable(struct address_space *mapping)
++{
++	return 0;
++}
++#endif
++
+ static inline gfp_t mapping_gfp_mask(struct address_space * mapping)
  {
- 	return NULL + (*pos == 0);
-diff -puN include/linux/seq_file.h~seq_file-add-seq_cpumask_list-seq_nodemask_list include/linux/seq_file.h
---- a/include/linux/seq_file.h~seq_file-add-seq_cpumask_list-seq_nodemask_list
-+++ a/include/linux/seq_file.h
-@@ -60,6 +60,19 @@ static inline int seq_nodemask(struct se
- 	return seq_bitmap(m, mask->bits, MAX_NUMNODES);
- }
+ 	return (__force gfp_t)mapping->flags & __GFP_BITS_MASK;
+diff -puN mm/vmscan.c~ramfs-and-ram-disk-pages-are-unevictable mm/vmscan.c
+--- a/mm/vmscan.c~ramfs-and-ram-disk-pages-are-unevictable
++++ a/mm/vmscan.c
+@@ -2332,11 +2332,16 @@ int zone_reclaim(struct zone *zone, gfp_
+  * lists vs unevictable list.
+  *
+  * Reasons page might not be evictable:
++ * (1) page's mapping marked unevictable
++ *
+  * TODO - later patches
+  */
+ int page_evictable(struct page *page, struct vm_area_struct *vma)
+ {
  
-+int seq_bitmap_list(struct seq_file *m, unsigned long *bits,
-+		unsigned int nr_bits);
++	if (mapping_unevictable(page_mapping(page)))
++		return 0;
 +
-+static inline int seq_cpumask_list(struct seq_file *m, cpumask_t *mask)
-+{
-+	return seq_bitmap_list(m, mask->bits, NR_CPUS);
-+}
-+
-+static inline int seq_nodemask_list(struct seq_file *m, nodemask_t *mask)
-+{
-+	return seq_bitmap_list(m, mask->bits, MAX_NUMNODES);
-+}
-+
- int single_open(struct file *, int (*)(struct seq_file *, void *), void *);
- int single_release(struct inode *, struct file *);
- void *__seq_open_private(struct file *, const struct seq_operations *, int);
+ 	/* TODO:  test page [!]evictable conditions */
+ 
+ 	return 1;
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
 
 origin.patch
-linux-next.patch
 
