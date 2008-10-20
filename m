@@ -1,82 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: - hwmon-applesmc-add-support-for-macbook-pro-4.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:35:17 -0700
-Message-ID: <200810202035.m9KKZH9Z011120@imap1.linux-foundation.org>
+Subject: - mm-cleanup-to-make-remove_memory-arch-neutral.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:32:24 -0700
+Message-ID: <200810202032.m9KKWOb8010394@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51731 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49742 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754648AbYJTUrD (ORCPT
+	by vger.kernel.org with ESMTP id S1753541AbYJTUeC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:47:03 -0400
+	Mon, 20 Oct 2008 16:34:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rydberg@euromail.se, khali@linux-fr.org, mhoffman@lightlink.com, nicolas@boichat.ch, rkoktarianto@gmail.com, mm-commits@vger.kernel.org
+To: pbadari@us.ibm.com, benh@kernel.crashing.org, garyhade@us.ibm.com, heiko.carstens@de.ibm.com, mel@csn.ul.ie, paulus@samba.org, schwidefsky@de.ibm.com, tony.luck@intel.com, y-goto@jp.fu
 
 
 The patch titled
-     hwmon: applesmc: Add support for Macbook Pro 4
+     mm: cleanup to make remove_memory() arch-neutral
 has been removed from the -mm tree.  Its filename was
-     hwmon-applesmc-add-support-for-macbook-pro-4.patch
+     mm-cleanup-to-make-remove_memory-arch-neutral.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: applesmc: Add support for Macbook Pro 4
-From: Henrik Rydberg <rydberg@euromail.se>
+Subject: mm: cleanup to make remove_memory() arch-neutral
+From: Badari Pulavarty <pbadari@us.ibm.com>
 
-Adds temperature sensor support for the Macbook Pro 4.
+There is nothing architecture specific about remove_memory(). 
+remove_memory() function is common for all architectures which support
+hotplug memory remove.  Instead of duplicating it in every architecture,
+collapse them into arch neutral function.
 
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
-Cc: Nicolas Boichat <nicolas@boichat.ch>
-Cc: Riki Oktarianto <rkoktarianto@gmail.com>
-Cc: Mark M. Hoffman <mhoffman@lightlink.com>
-Cc: Jean Delvare <khali@linux-fr.org>
+[akpm@linux-foundation.org: fix the export]
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Gary Hade <garyhade@us.ibm.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/applesmc.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/ia64/mm/init.c   |   17 -----------------
+ arch/powerpc/mm/mem.c |   17 -----------------
+ arch/s390/mm/init.c   |   11 -----------
+ mm/memory_hotplug.c   |   12 +++++++++++-
+ 4 files changed, 11 insertions(+), 46 deletions(-)
 
-diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-add-support-for-macbook-pro-4 drivers/hwmon/applesmc.c
---- a/drivers/hwmon/applesmc.c~hwmon-applesmc-add-support-for-macbook-pro-4
-+++ a/drivers/hwmon/applesmc.c
-@@ -107,6 +107,9 @@ static const char* temperature_sensors_s
- /* Set 7: Macbook Air */
- 	{ "TB0T", "TB1S", "TB1T", "TB2S", "TB2T", "TC0D", "TC0P", "TCFP",
- 	  "TTF0", "TW0P", "Th0H", "Tp0P", "TpFP", "Ts0P", "Ts0S", NULL },
-+/* Set 8: Macbook Pro 4,1 (Penryn) */
-+	{ "TB0T", "TC0D", "TC0P", "TG0D", "TG0H", "TTF0", "TW0P", "Th0H",
-+	  "Th1H", "Th2H", "Tm0P", "Ts0P", NULL },
- };
+diff -puN arch/ia64/mm/init.c~mm-cleanup-to-make-remove_memory-arch-neutral arch/ia64/mm/init.c
+--- a/arch/ia64/mm/init.c~mm-cleanup-to-make-remove_memory-arch-neutral
++++ a/arch/ia64/mm/init.c
+@@ -700,23 +700,6 @@ int arch_add_memory(int nid, u64 start, 
  
- /* List of keys used to read/write fan speeds */
-@@ -1264,6 +1267,8 @@ static __initdata struct dmi_match_data 
- 	{ .accelerometer = 1, .light = 0, .temperature_set = 6 },
- /* MacBook Air: accelerometer, backlight and temperature set 7 */
- 	{ .accelerometer = 1, .light = 1, .temperature_set = 7 },
-+/* MacBook Pro 4: accelerometer, backlight and temperature set 8 */
-+	{ .accelerometer = 1, .light = 1, .temperature_set = 8 },
- };
+ 	return ret;
+ }
+-#ifdef CONFIG_MEMORY_HOTREMOVE
+-int remove_memory(u64 start, u64 size)
+-{
+-	unsigned long start_pfn, end_pfn;
+-	unsigned long timeout = 120 * HZ;
+-	int ret;
+-	start_pfn = start >> PAGE_SHIFT;
+-	end_pfn = start_pfn + (size >> PAGE_SHIFT);
+-	ret = offline_pages(start_pfn, end_pfn, timeout);
+-	if (ret)
+-		goto out;
+-	/* we can free mem_map at this point */
+-out:
+-	return ret;
+-}
+-EXPORT_SYMBOL_GPL(remove_memory);
+-#endif /* CONFIG_MEMORY_HOTREMOVE */
+ #endif
  
- /* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
-@@ -1273,6 +1278,10 @@ static __initdata struct dmi_system_id a
- 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
- 	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir") },
- 		&applesmc_dmi_data[7]},
-+	{ applesmc_dmi_match, "Apple MacBook Pro 4", {
-+	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
-+	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro4") },
-+		&applesmc_dmi_data[8]},
- 	{ applesmc_dmi_match, "Apple MacBook Pro", {
- 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
- 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBookPro") },
+ /*
+diff -puN arch/powerpc/mm/mem.c~mm-cleanup-to-make-remove_memory-arch-neutral arch/powerpc/mm/mem.c
+--- a/arch/powerpc/mm/mem.c~mm-cleanup-to-make-remove_memory-arch-neutral
++++ a/arch/powerpc/mm/mem.c
+@@ -134,23 +134,6 @@ int arch_add_memory(int nid, u64 start, 
+ 
+ 	return __add_pages(zone, start_pfn, nr_pages);
+ }
+-
+-#ifdef CONFIG_MEMORY_HOTREMOVE
+-int remove_memory(u64 start, u64 size)
+-{
+-	unsigned long start_pfn, end_pfn;
+-	int ret;
+-
+-	start_pfn = start >> PAGE_SHIFT;
+-	end_pfn = start_pfn + (size >> PAGE_SHIFT);
+-	ret = offline_pages(start_pfn, end_pfn, 120 * HZ);
+-	if (ret)
+-		goto out;
+-	/* Arch-specific calls go here - next patch */
+-out:
+-	return ret;
+-}
+-#endif /* CONFIG_MEMORY_HOTREMOVE */
+ #endif /* CONFIG_MEMORY_HOTPLUG */
+ 
+ /*
+diff -puN arch/s390/mm/init.c~mm-cleanup-to-make-remove_memory-arch-neutral arch/s390/mm/init.c
+--- a/arch/s390/mm/init.c~mm-cleanup-to-make-remove_memory-arch-neutral
++++ a/arch/s390/mm/init.c
+@@ -189,14 +189,3 @@ int arch_add_memory(int nid, u64 start, 
+ 	return rc;
+ }
+ #endif /* CONFIG_MEMORY_HOTPLUG */
+-
+-#ifdef CONFIG_MEMORY_HOTREMOVE
+-int remove_memory(u64 start, u64 size)
+-{
+-	unsigned long start_pfn, end_pfn;
+-
+-	start_pfn = PFN_DOWN(start);
+-	end_pfn = start_pfn + PFN_DOWN(size);
+-	return offline_pages(start_pfn, end_pfn, 120 * HZ);
+-}
+-#endif /* CONFIG_MEMORY_HOTREMOVE */
+diff -puN mm/memory_hotplug.c~mm-cleanup-to-make-remove_memory-arch-neutral mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-cleanup-to-make-remove_memory-arch-neutral
++++ a/mm/memory_hotplug.c
+@@ -26,6 +26,7 @@
+ #include <linux/delay.h>
+ #include <linux/migrate.h>
+ #include <linux/page-isolation.h>
++#include <linux/pfn.h>
+ 
+ #include <asm/tlbflush.h>
+ 
+@@ -849,10 +850,19 @@ failed_removal:
+ 
+ 	return ret;
+ }
++
++int remove_memory(u64 start, u64 size)
++{
++	unsigned long start_pfn, end_pfn;
++
++	start_pfn = PFN_DOWN(start);
++	end_pfn = start_pfn + PFN_DOWN(size);
++	return offline_pages(start_pfn, end_pfn, 120 * HZ);
++}
+ #else
+ int remove_memory(u64 start, u64 size)
+ {
+ 	return -EINVAL;
+ }
+-EXPORT_SYMBOL_GPL(remove_memory);
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
++EXPORT_SYMBOL_GPL(remove_memory);
 _
 
-Patches currently in -mm which might be from rydberg@euromail.se are
+Patches currently in -mm which might be from pbadari@us.ibm.com are
 
 origin.patch
-input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
 
