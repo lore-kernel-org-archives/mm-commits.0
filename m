@@ -1,180 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - hwmon-pc87360-separate-alarm-files-define-some-constants.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:34:49 -0700
-Message-ID: <200810202034.m9KKYnRd010940@imap1.linux-foundation.org>
+Subject: - hwmon-applesmc-allow-for-variable-alv0-and-alv1-package-length.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:35:11 -0700
+Message-ID: <200810202035.m9KKZBkj011097@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38767 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48077 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754596AbYJTUqz (ORCPT
+	by vger.kernel.org with ESMTP id S1754659AbYJTUrD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:46:55 -0400
+	Mon, 20 Oct 2008 16:47:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jim.cromie@gmail.com, khali@linux-fr.org, mhoffman@lightlink.com, mm-commits@vger.kernel.org
+To: rydberg@euromail.se, khali@linux-fr.org, mhoffman@lightlink.com, nicolas@boichat.ch, rkoktarianto@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwmon/pc87360 separate alarm files: define some constants
+     hwmon: applesmc: allow for variable ALV0 and ALV1 package length
 has been removed from the -mm tree.  Its filename was
-     hwmon-pc87360-separate-alarm-files-define-some-constants.patch
+     hwmon-applesmc-allow-for-variable-alv0-and-alv1-package-length.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon/pc87360 separate alarm files: define some constants
-From: Jim Cromie <jim.cromie@gmail.com>
+Subject: hwmon: applesmc: allow for variable ALV0 and ALV1 package length
+From: Henrik Rydberg <rydberg@euromail.se>
 
-Bring hwmon/pc87360 into agreement with
-Documentation/hwmon/sysfs-interface.
+On some recent Macbooks, the package length for the light sensors ALV0 and
+ALV1 has changed from 6 to 10.  This patch allows for a variable package
+length encompassing both variants.
 
-Patchset adds separate limit alarms for voltages and temps, it also adds
-temp[123]_fault files.  On my Soekris, temps 1,2 are unused/unconnected,
-so temp[123]_fault = 1,1,0 respectively.  This agrees with
-/usr/bin/sensors, which has always shown them as OPEN.  Temps 4,5,6 are
-thermistor based, and dont have a fault bit in their status register.
-
-
-This patch:
-
-2 different kinds of constants added:
-- CHAN_ALM_* constants for (later) vin, temp alarm callbacks.
-- CHAN_* conversion constants, used in _init_device, partly for RW1C bits
-
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Cc: Nicolas Boichat <nicolas@boichat.ch>
+Cc: Riki Oktarianto <rkoktarianto@gmail.com>
+Cc: Mark M. Hoffman <mhoffman@lightlink.com>
 Cc: Jean Delvare <khali@linux-fr.org>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/pc87360.c |   33 ++++++++++++++++++++++-----------
- 1 file changed, 22 insertions(+), 11 deletions(-)
+ drivers/hwmon/applesmc.c |   20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-diff -puN drivers/hwmon/pc87360.c~hwmon-pc87360-separate-alarm-files-define-some-constants drivers/hwmon/pc87360.c
---- a/drivers/hwmon/pc87360.c~hwmon-pc87360-separate-alarm-files-define-some-constants
-+++ a/drivers/hwmon/pc87360.c
-@@ -489,6 +489,11 @@ static struct sensor_device_attribute in
- 	SENSOR_ATTR(in10_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 10),
- };
+diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-allow-for-variable-alv0-and-alv1-package-length drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~hwmon-applesmc-allow-for-variable-alv0-and-alv1-package-length
++++ a/drivers/hwmon/applesmc.c
+@@ -57,8 +57,8 @@
  
-+/* (temp & vin) channel status register alarm bits (pdf sec.11.5.12) */
-+#define CHAN_ALM_MIN	0x02	/* min limit crossed */
-+#define CHAN_ALM_MAX	0x04	/* max limit exceeded */
-+#define TEMP_ALM_CRIT	0x08	/* temp crit exceeded (temp only) */
-+
- #define VIN_UNIT_ATTRS(X) \
- 	&in_input[X].dev_attr.attr,	\
- 	&in_status[X].dev_attr.attr,	\
-@@ -1131,6 +1136,12 @@ static void pc87360_write_value(struct p
- 	mutex_unlock(&(data->lock));
- }
+ #define KEY_COUNT_KEY		"#KEY" /* r-o ui32 */
  
-+/* (temp & vin) channel conversion status register flags (pdf sec.11.5.12) */
-+#define CHAN_CNVRTD	0x80	/* new data ready */
-+#define CHAN_ENA	0x01	/* enabled channel (temp or vin) */
-+#define CHAN_ALM_ENA	0x10	/* propagate to alarms-reg ?? (chk val!) */
-+#define CHAN_READY	(CHAN_ENA|CHAN_CNVRTD) /* sample ready mask */
-+
- static void pc87360_init_device(struct platform_device *pdev,
- 				int use_thermistors)
+-#define LIGHT_SENSOR_LEFT_KEY	"ALV0" /* r-o {alv (6 bytes) */
+-#define LIGHT_SENSOR_RIGHT_KEY	"ALV1" /* r-o {alv (6 bytes) */
++#define LIGHT_SENSOR_LEFT_KEY	"ALV0" /* r-o {alv (6-10 bytes) */
++#define LIGHT_SENSOR_RIGHT_KEY	"ALV1" /* r-o {alv (6-10 bytes) */
+ #define BACKLIGHT_KEY		"LKSB" /* w-o {lkb (2 bytes) */
+ 
+ #define CLAMSHELL_KEY		"MSLD" /* r-o ui8 (unused) */
+@@ -543,17 +543,27 @@ out:
+ static ssize_t applesmc_light_show(struct device *dev,
+ 				struct device_attribute *attr, char *sysfsbuf)
  {
-@@ -1156,7 +1167,7 @@ static void pc87360_init_device(struct p
- 			/* Forcibly enable voltage channel */
- 			reg = pc87360_read_value(data, LD_IN, i,
- 						 PC87365_REG_IN_STATUS);
--			if (!(reg & 0x01)) {
-+			if (!(reg & CHAN_ENA)) {
- 				dev_dbg(&pdev->dev, "Forcibly "
- 					"enabling in%d\n", i);
- 				pc87360_write_value(data, LD_IN, i,
-@@ -1171,7 +1182,7 @@ static void pc87360_init_device(struct p
- 	for (i = 11; i < data->innr; i++) {
- 		reg = pc87360_read_value(data, LD_IN, i,
- 					 PC87365_REG_TEMP_STATUS);
--		use_thermistors = use_thermistors || (reg & 0x01);
-+		use_thermistors = use_thermistors || (reg & CHAN_ENA);
- 	}
++	static int data_length;
+ 	int ret;
+ 	u8 left = 0, right = 0;
+-	u8 buffer[6];
++	u8 buffer[10], query[6];
  
- 	i = use_thermistors ? 2 : 0;
-@@ -1180,7 +1191,7 @@ static void pc87360_init_device(struct p
- 			/* Forcibly enable temperature channel */
- 			reg = pc87360_read_value(data, LD_TEMP, i,
- 						 PC87365_REG_TEMP_STATUS);
--			if (!(reg & 0x01)) {
-+			if (!(reg & CHAN_ENA)) {
- 				dev_dbg(&pdev->dev, "Forcibly "
- 					"enabling temp%d\n", i+1);
- 				pc87360_write_value(data, LD_TEMP, i,
-@@ -1197,7 +1208,7 @@ static void pc87360_init_device(struct p
- 				   diodes */
- 				reg = pc87360_read_value(data, LD_TEMP,
- 				      (i-11)/2, PC87365_REG_TEMP_STATUS);
--				if (reg & 0x01) {
-+				if (reg & CHAN_ENA) {
- 					dev_dbg(&pdev->dev, "Skipping "
- 						"temp%d, pin already in use "
- 						"by temp%d\n", i-7, (i-11)/2);
-@@ -1207,7 +1218,7 @@ static void pc87360_init_device(struct p
- 				/* Forcibly enable thermistor channel */
- 				reg = pc87360_read_value(data, LD_IN, i,
- 							 PC87365_REG_IN_STATUS);
--				if (!(reg & 0x01)) {
-+				if (!(reg & CHAN_ENA)) {
- 					dev_dbg(&pdev->dev, "Forcibly "
- 						"enabling temp%d\n", i-7);
- 					pc87360_write_value(data, LD_IN, i,
-@@ -1221,7 +1232,7 @@ static void pc87360_init_device(struct p
- 	if (data->innr) {
- 		reg = pc87360_read_value(data, LD_IN, NO_BANK,
- 					 PC87365_REG_IN_CONFIG);
--		if (reg & 0x01) {
-+		if (reg & CHAN_ENA) {
- 			dev_dbg(&pdev->dev, "Forcibly "
- 				"enabling monitoring (VLM)\n");
- 			pc87360_write_value(data, LD_IN, NO_BANK,
-@@ -1233,7 +1244,7 @@ static void pc87360_init_device(struct p
- 	if (data->tempnr) {
- 		reg = pc87360_read_value(data, LD_TEMP, NO_BANK,
- 					 PC87365_REG_TEMP_CONFIG);
--		if (reg & 0x01) {
-+		if (reg & CHAN_ENA) {
- 			dev_dbg(&pdev->dev, "Forcibly enabling "
- 				"monitoring (TMS)\n");
- 			pc87360_write_value(data, LD_TEMP, NO_BANK,
-@@ -1336,11 +1347,11 @@ static struct pc87360_data *pc87360_upda
- 			pc87360_write_value(data, LD_IN, i,
- 					    PC87365_REG_IN_STATUS,
- 					    data->in_status[i]);
--			if ((data->in_status[i] & 0x81) == 0x81) {
-+			if ((data->in_status[i] & CHAN_READY) == CHAN_READY) {
- 				data->in[i] = pc87360_read_value(data, LD_IN,
- 					      i, PC87365_REG_IN);
- 			}
--			if (data->in_status[i] & 0x01) {
-+			if (data->in_status[i] & CHAN_ENA) {
- 				data->in_min[i] = pc87360_read_value(data,
- 						  LD_IN, i,
- 						  PC87365_REG_IN_MIN);
-@@ -1373,12 +1384,12 @@ static struct pc87360_data *pc87360_upda
- 			pc87360_write_value(data, LD_TEMP, i,
- 					    PC87365_REG_TEMP_STATUS,
- 					    data->temp_status[i]);
--			if ((data->temp_status[i] & 0x81) == 0x81) {
-+			if ((data->temp_status[i] & CHAN_READY) == CHAN_READY) {
- 				data->temp[i] = pc87360_read_value(data,
- 						LD_TEMP, i,
- 						PC87365_REG_TEMP);
- 			}
--			if (data->temp_status[i] & 0x01) {
-+			if (data->temp_status[i] & CHAN_ENA) {
- 				data->temp_min[i] = pc87360_read_value(data,
- 						    LD_TEMP, i,
- 						    PC87365_REG_TEMP_MIN);
+ 	mutex_lock(&applesmc_lock);
+ 
+-	ret = applesmc_read_key(LIGHT_SENSOR_LEFT_KEY, buffer, 6);
++	if (!data_length) {
++		ret = applesmc_get_key_type(LIGHT_SENSOR_LEFT_KEY, query);
++		if (ret)
++			goto out;
++		data_length = clamp_val(query[0], 0, 10);
++		printk(KERN_INFO "applesmc: light sensor data length set to "
++			"%d\n", data_length);
++	}
++
++	ret = applesmc_read_key(LIGHT_SENSOR_LEFT_KEY, buffer, data_length);
+ 	left = buffer[2];
+ 	if (ret)
+ 		goto out;
+-	ret = applesmc_read_key(LIGHT_SENSOR_RIGHT_KEY, buffer, 6);
++	ret = applesmc_read_key(LIGHT_SENSOR_RIGHT_KEY, buffer, data_length);
+ 	right = buffer[2];
+ 
+ out:
 _
 
-Patches currently in -mm which might be from jim.cromie@gmail.com are
+Patches currently in -mm which might be from rydberg@euromail.se are
 
 origin.patch
+input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
 
