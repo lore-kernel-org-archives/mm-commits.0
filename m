@@ -1,100 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - mm-stop-returning-enoent-from-sys_move_pages-if-nothing-got-migrated.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:34:08 -0700
-Message-ID: <200810202034.m9KKY83u010780@imap1.linux-foundation.org>
+Subject: - scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:38:16 -0700
+Message-ID: <200810202038.m9KKcGGA011833@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48504 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46574 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755211AbYJTUeo (ORCPT
+	by vger.kernel.org with ESMTP id S1753955AbYJTUjI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:34:44 -0400
+	Mon, 20 Oct 2008 16:39:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Brice.Goglin@inria.fr, cl@linux-foundation.org, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, hare@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: stop returning -ENOENT from sys_move_pages() if nothing got migrated
+     scsi: aic79xx_core fix shadowed variables, add statics
 has been removed from the -mm tree.  Its filename was
-     mm-stop-returning-enoent-from-sys_move_pages-if-nothing-got-migrated.patch
+     scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: stop returning -ENOENT from sys_move_pages() if nothing got migrated
-From: Brice Goglin <Brice.Goglin@inria.fr>
+Subject: scsi: aic79xx_core fix shadowed variables, add statics
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-A patchset reworking sys_move_pages().  It removes the possibly large
-vmalloc by using multiple chunks when migrating large buffers.  It also
-dramatically increases the throughput for large buffers since the lookup
-in new_page_node() is now limited to a single chunk, causing the quadratic
-complexity to have a much slower impact.  There is no need to use any
-radix-tree-like structure to improve this lookup.
+Redeclared within different if/else blocks, safe to reuse the
+original from beginning of function.
+drivers/scsi/aic7xxx/aic79xx_core.c:2475:10: warning: symbol 'scbid' shadows an earlier one
+drivers/scsi/aic7xxx/aic79xx_core.c:2399:10: originally declared here
+drivers/scsi/aic7xxx/aic79xx_core.c:2586:10: warning: symbol 'scbid' shadows an earlier one
+drivers/scsi/aic7xxx/aic79xx_core.c:2399:10: originally declared here
+drivers/scsi/aic7xxx/aic79xx_core.c:2587:15: warning: symbol 'scb' shadows an earlier one
+drivers/scsi/aic7xxx/aic79xx_core.c:2393:13: originally declared here
 
-sys_move_pages() duration on a 4-quadcore-opteron 2347HE (1.9Gz),
-migrating between nodes #2 and #3:
+Use caminfo for the outer declaration, the redeclared version is
+iterating over all initiator/target pairs (devices) which.
+drivers/scsi/aic7xxx/aic79xx_core.c:8857:23: warning: symbol 'devinfo' shadows an earlier one
+drivers/scsi/aic7xxx/aic79xx_core.c:8711:21: originally declared here
 
-	length		move_pages (us)		move_pages+patch (us)
-	4kB		126			98
-	40kB		198			168
-	400kB		963			937
-	4MB		12503			11930
-	40MB		246867			11848
+Forward declaration was already marked static, make the definition match.
+drivers/scsi/aic7xxx/aic79xx_core.c:3693:1: warning: symbol 'ahd_devlimited_syncrate' was not declared. Should it be static?
 
-Patches #1 and #4 are the important ones:
-1) stop returning -ENOENT from sys_move_pages() if nothing got migrated
-2) don't vmalloc a huge page_to_node array for do_pages_stat()
-3) extract do_pages_move() out of sys_move_pages()
-4) rework do_pages_move() to work on page_sized chunks
-5) move_pages: no need to set pp->page to ZERO_PAGE(0) by default
-
-
-
-This patch:
-
-There is no point in returning -ENOENT from sys_move_pages() if all pages
-were already on the right node, while we return 0 if only 1 page was not. 
-Most application don't know where their pages are allocated, so it's not
-an error to try to migrate them anyway.
-
-Just return 0 and let the status array in user-space be checked if the
-application needs details.
-
-It will make the upcoming chunked-move_pages() support much easier.
-
-Signed-off-by: Brice Goglin <Brice.Goglin@inria.fr>
-Acked-by: Christoph Lameter <cl@linux-foundation.org>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/scsi/aic7xxx/aic79xx_core.c |   13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-diff -puN mm/migrate.c~mm-stop-returning-enoent-from-sys_move_pages-if-nothing-got-migrated mm/migrate.c
---- a/mm/migrate.c~mm-stop-returning-enoent-from-sys_move_pages-if-nothing-got-migrated
-+++ a/mm/migrate.c
-@@ -896,11 +896,10 @@ set_status:
- 		pp->status = err;
+diff -puN drivers/scsi/aic7xxx/aic79xx_core.c~scsi-aic79xx_core-fix-shadowed-variables-add-statics drivers/scsi/aic7xxx/aic79xx_core.c
+--- a/drivers/scsi/aic7xxx/aic79xx_core.c~scsi-aic79xx_core-fix-shadowed-variables-add-statics
++++ a/drivers/scsi/aic7xxx/aic79xx_core.c
+@@ -2472,8 +2472,6 @@ ahd_handle_scsiint(struct ahd_softc *ahd
+ 		if ((ahd->bugs & AHD_CLRLQO_AUTOCLR_BUG) != 0)
+ 			ahd_outb(ahd, CLRLQOINT1, 0);
+ 	} else if ((status & SELTO) != 0) {
+-		u_int  scbid;
+-
+ 		/* Stop the selection */
+ 		ahd_outb(ahd, SCSISEQ0, 0);
+ 
+@@ -2583,9 +2581,6 @@ ahd_handle_scsiint(struct ahd_softc *ahd
+ 		case BUSFREE_DFF0:
+ 		case BUSFREE_DFF1:
+ 		{
+-			u_int	scbid;
+-			struct	scb *scb;
+-
+ 			mode = busfreetime == BUSFREE_DFF0
+ 			     ? AHD_MODE_DFF0 : AHD_MODE_DFF1;
+ 			ahd_set_modes(ahd, mode, mode);
+@@ -3689,7 +3684,7 @@ ahd_free_tstate(struct ahd_softc *ahd, u
+  * by the capabilities of the bus connectivity of and sync settings for
+  * the target.
+  */
+-void
++static void
+ ahd_devlimited_syncrate(struct ahd_softc *ahd,
+ 			struct ahd_initiator_tinfo *tinfo,
+ 			u_int *period, u_int *ppr_options, role_t role)
+@@ -8708,7 +8703,7 @@ ahd_reset_current_bus(struct ahd_softc *
+ int
+ ahd_reset_channel(struct ahd_softc *ahd, char channel, int initiate_reset)
+ {
+-	struct	ahd_devinfo devinfo;
++	struct	ahd_devinfo caminfo;
+ 	u_int	initiator;
+ 	u_int	target;
+ 	u_int	max_scsiid;
+@@ -8729,7 +8724,7 @@ ahd_reset_channel(struct ahd_softc *ahd,
+ 
+ 	ahd->pending_device = NULL;
+ 
+-	ahd_compile_devinfo(&devinfo,
++	ahd_compile_devinfo(&caminfo,
+ 			    CAM_TARGET_WILDCARD,
+ 			    CAM_TARGET_WILDCARD,
+ 			    CAM_LUN_WILDCARD,
+@@ -8868,7 +8863,7 @@ ahd_reset_channel(struct ahd_softc *ahd,
  	}
  
-+	err = 0;
- 	if (!list_empty(&pagelist))
- 		err = migrate_pages(&pagelist, new_page_node,
- 				(unsigned long)pm);
--	else
--		err = -ENOENT;
+ 	/* Notify the XPT that a bus reset occurred */
+-	ahd_send_async(ahd, devinfo.channel, CAM_TARGET_WILDCARD,
++	ahd_send_async(ahd, caminfo.channel, CAM_TARGET_WILDCARD,
+ 		       CAM_LUN_WILDCARD, AC_BUS_RESET);
  
- 	up_read(&mm->mmap_sem);
- 	return err;
+ 	ahd_restart(ahd);
 _
 
-Patches currently in -mm which might be from Brice.Goglin@inria.fr are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-mm-rework-do_pages_move-to-work-on-page_sized-chunks.patch
-mm-move_pages-no-need-to-set-pp-page-to-zero_page0-by-default.patch
+linux-next.patch
+cifs-remove-global_extern-macro.patch
+input-ads7846c-sparse-lock-annotation.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+scsi-remove-private-implementation-of-get_unaligned_be32.patch
+usb-avoid-needless-address-taking-of-function-parameters.patch
 
