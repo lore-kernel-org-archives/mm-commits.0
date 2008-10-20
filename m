@@ -1,273 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - swap-use-an-array-for-the-lru-pagevecs.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:32:32 -0700
-Message-ID: <200810202032.m9KKWWI0010420@imap1.linux-foundation.org>
+Subject: - make-mm-rmapc-anon_vma_cachep-static.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:37:33 -0700
+Message-ID: <200810202037.m9KKbX1k011657@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38269 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42619 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753306AbYJTUdn (ORCPT
+	by vger.kernel.org with ESMTP id S1754753AbYJTUrl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:33:43 -0400
+	Mon, 20 Oct 2008 16:47:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     swap: use an array for the LRU pagevecs
+     make mm/rmap.c:anon_vma_cachep static
 has been removed from the -mm tree.  Its filename was
-     swap-use-an-array-for-the-lru-pagevecs.patch
+     make-mm-rmapc-anon_vma_cachep-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: swap: use an array for the LRU pagevecs
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: make mm/rmap.c:anon_vma_cachep static
+From: Adrian Bunk <bunk@kernel.org>
 
-Turn the pagevecs into an array just like the LRUs.  This significantly
-cleans up the source code and reduces the size of the kernel by about 13kB
-after all the LRU lists have been created further down in the split VM
-patch series.
+This patch makes the needlessly global anon_vma_cachep static.
 
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagevec.h |   13 +++++-
- include/linux/swap.h    |   18 +++++++-
- mm/migrate.c            |   11 -----
- mm/swap.c               |   79 ++++++++++++--------------------------
- 4 files changed, 55 insertions(+), 66 deletions(-)
+ include/linux/rmap.h |   12 ------------
+ mm/rmap.c            |   12 +++++++++++-
+ 2 files changed, 11 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/pagevec.h~swap-use-an-array-for-the-lru-pagevecs include/linux/pagevec.h
---- a/include/linux/pagevec.h~swap-use-an-array-for-the-lru-pagevecs
-+++ a/include/linux/pagevec.h
-@@ -23,8 +23,7 @@ struct pagevec {
- void __pagevec_release(struct pagevec *pvec);
- void __pagevec_release_nonlru(struct pagevec *pvec);
- void __pagevec_free(struct pagevec *pvec);
--void __pagevec_lru_add(struct pagevec *pvec);
--void __pagevec_lru_add_active(struct pagevec *pvec);
-+void ____pagevec_lru_add(struct pagevec *pvec, enum lru_list lru);
- void pagevec_strip(struct pagevec *pvec);
- unsigned pagevec_lookup(struct pagevec *pvec, struct address_space *mapping,
- 		pgoff_t start, unsigned nr_pages);
-@@ -81,6 +80,16 @@ static inline void pagevec_free(struct p
- 		__pagevec_free(pvec);
- }
+diff -puN include/linux/rmap.h~make-mm-rmapc-anon_vma_cachep-static include/linux/rmap.h
+--- a/include/linux/rmap.h~make-mm-rmapc-anon_vma_cachep-static
++++ a/include/linux/rmap.h
+@@ -39,18 +39,6 @@ struct anon_vma {
  
-+static inline void __pagevec_lru_add(struct pagevec *pvec)
-+{
-+	____pagevec_lru_add(pvec, LRU_INACTIVE);
-+}
-+
-+static inline void __pagevec_lru_add_active(struct pagevec *pvec)
-+{
-+	____pagevec_lru_add(pvec, LRU_ACTIVE);
-+}
-+
- static inline void pagevec_lru_add(struct pagevec *pvec)
- {
- 	if (pagevec_count(pvec))
-diff -puN include/linux/swap.h~swap-use-an-array-for-the-lru-pagevecs include/linux/swap.h
---- a/include/linux/swap.h~swap-use-an-array-for-the-lru-pagevecs
-+++ a/include/linux/swap.h
-@@ -171,8 +171,8 @@ extern unsigned int nr_free_pagecache_pa
+ #ifdef CONFIG_MMU
  
- 
- /* linux/mm/swap.c */
--extern void lru_cache_add(struct page *);
--extern void lru_cache_add_active(struct page *);
-+extern void __lru_cache_add(struct page *, enum lru_list lru);
-+extern void lru_cache_add_lru(struct page *, enum lru_list lru);
- extern void activate_page(struct page *);
- extern void mark_page_accessed(struct page *);
- extern void lru_add_drain(void);
-@@ -180,6 +180,20 @@ extern int lru_add_drain_all(void);
- extern void rotate_reclaimable_page(struct page *page);
- extern void swap_setup(void);
- 
-+/**
-+ * lru_cache_add: add a page to the page lists
-+ * @page: the page to add
-+ */
-+static inline void lru_cache_add(struct page *page)
-+{
-+	__lru_cache_add(page, LRU_INACTIVE);
-+}
-+
-+static inline void lru_cache_add_active(struct page *page)
-+{
-+	__lru_cache_add(page, LRU_ACTIVE);
-+}
-+
- /* linux/mm/vmscan.c */
- extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
- 					gfp_t gfp_mask);
-diff -puN mm/migrate.c~swap-use-an-array-for-the-lru-pagevecs mm/migrate.c
---- a/mm/migrate.c~swap-use-an-array-for-the-lru-pagevecs
-+++ a/mm/migrate.c
-@@ -55,16 +55,7 @@ int migrate_prep(void)
- 
- static inline void move_to_lru(struct page *page)
- {
--	if (PageActive(page)) {
--		/*
--		 * lru_cache_add_active checks that
--		 * the PG_active bit is off.
--		 */
--		ClearPageActive(page);
--		lru_cache_add_active(page);
--	} else {
--		lru_cache_add(page);
--	}
-+	lru_cache_add_lru(page, page_lru(page));
- 	put_page(page);
- }
- 
-diff -puN mm/swap.c~swap-use-an-array-for-the-lru-pagevecs mm/swap.c
---- a/mm/swap.c~swap-use-an-array-for-the-lru-pagevecs
-+++ a/mm/swap.c
-@@ -34,8 +34,7 @@
- /* How many pages do we try to swap or page in/out together? */
- int page_cluster;
- 
--static DEFINE_PER_CPU(struct pagevec, lru_add_pvecs);
--static DEFINE_PER_CPU(struct pagevec, lru_add_active_pvecs);
-+static DEFINE_PER_CPU(struct pagevec[NR_LRU_LISTS], lru_add_pvecs);
- static DEFINE_PER_CPU(struct pagevec, lru_rotate_pvecs);
- 
- /*
-@@ -186,28 +185,29 @@ void mark_page_accessed(struct page *pag
- 
- EXPORT_SYMBOL(mark_page_accessed);
- 
--/**
-- * lru_cache_add: add a page to the page lists
-- * @page: the page to add
-- */
--void lru_cache_add(struct page *page)
-+void __lru_cache_add(struct page *page, enum lru_list lru)
- {
--	struct pagevec *pvec = &get_cpu_var(lru_add_pvecs);
-+	struct pagevec *pvec = &get_cpu_var(lru_add_pvecs)[lru];
- 
- 	page_cache_get(page);
- 	if (!pagevec_add(pvec, page))
--		__pagevec_lru_add(pvec);
-+		____pagevec_lru_add(pvec, lru);
- 	put_cpu_var(lru_add_pvecs);
- }
- 
--void lru_cache_add_active(struct page *page)
-+/**
-+ * lru_cache_add_lru - add a page to a page list
-+ * @page: the page to be added to the LRU.
-+ * @lru: the LRU list to which the page is added.
-+ */
-+void lru_cache_add_lru(struct page *page, enum lru_list lru)
- {
--	struct pagevec *pvec = &get_cpu_var(lru_add_active_pvecs);
-+	if (PageActive(page)) {
-+		ClearPageActive(page);
-+	}
- 
--	page_cache_get(page);
--	if (!pagevec_add(pvec, page))
--		__pagevec_lru_add_active(pvec);
--	put_cpu_var(lru_add_active_pvecs);
-+	VM_BUG_ON(PageLRU(page) || PageActive(page));
-+	__lru_cache_add(page, lru);
- }
- 
- /*
-@@ -217,15 +217,15 @@ void lru_cache_add_active(struct page *p
-  */
- static void drain_cpu_pagevecs(int cpu)
- {
-+	struct pagevec *pvecs = per_cpu(lru_add_pvecs, cpu);
- 	struct pagevec *pvec;
-+	int lru;
- 
--	pvec = &per_cpu(lru_add_pvecs, cpu);
--	if (pagevec_count(pvec))
--		__pagevec_lru_add(pvec);
+-extern struct kmem_cache *anon_vma_cachep;
 -
--	pvec = &per_cpu(lru_add_active_pvecs, cpu);
--	if (pagevec_count(pvec))
--		__pagevec_lru_add_active(pvec);
-+	for_each_lru(lru) {
-+		pvec = &pvecs[lru - LRU_BASE];
-+		if (pagevec_count(pvec))
-+			____pagevec_lru_add(pvec, lru);
-+	}
- 
- 	pvec = &per_cpu(lru_rotate_pvecs, cpu);
- 	if (pagevec_count(pvec)) {
-@@ -380,7 +380,7 @@ void __pagevec_release_nonlru(struct pag
-  * Add the passed pages to the LRU, then drop the caller's refcount
-  * on them.  Reinitialises the caller's pagevec.
-  */
--void __pagevec_lru_add(struct pagevec *pvec)
-+void ____pagevec_lru_add(struct pagevec *pvec, enum lru_list lru)
- {
- 	int i;
- 	struct zone *zone = NULL;
-@@ -397,7 +397,9 @@ void __pagevec_lru_add(struct pagevec *p
- 		}
- 		VM_BUG_ON(PageLRU(page));
- 		SetPageLRU(page);
--		add_page_to_inactive_list(zone, page);
-+		if (is_active_lru(lru))
-+			SetPageActive(page);
-+		add_page_to_lru_list(zone, page, lru);
- 	}
- 	if (zone)
- 		spin_unlock_irq(&zone->lru_lock);
-@@ -405,34 +407,7 @@ void __pagevec_lru_add(struct pagevec *p
- 	pagevec_reinit(pvec);
- }
- 
--EXPORT_SYMBOL(__pagevec_lru_add);
--
--void __pagevec_lru_add_active(struct pagevec *pvec)
+-static inline struct anon_vma *anon_vma_alloc(void)
 -{
--	int i;
--	struct zone *zone = NULL;
--
--	for (i = 0; i < pagevec_count(pvec); i++) {
--		struct page *page = pvec->pages[i];
--		struct zone *pagezone = page_zone(page);
--
--		if (pagezone != zone) {
--			if (zone)
--				spin_unlock_irq(&zone->lru_lock);
--			zone = pagezone;
--			spin_lock_irq(&zone->lru_lock);
--		}
--		VM_BUG_ON(PageLRU(page));
--		SetPageLRU(page);
--		VM_BUG_ON(PageActive(page));
--		SetPageActive(page);
--		add_page_to_active_list(zone, page);
--	}
--	if (zone)
--		spin_unlock_irq(&zone->lru_lock);
--	release_pages(pvec->pages, pvec->nr, pvec->cold);
--	pagevec_reinit(pvec);
+-	return kmem_cache_alloc(anon_vma_cachep, GFP_KERNEL);
 -}
-+EXPORT_SYMBOL(____pagevec_lru_add);
+-
+-static inline void anon_vma_free(struct anon_vma *anon_vma)
+-{
+-	kmem_cache_free(anon_vma_cachep, anon_vma);
+-}
+-
+ static inline void anon_vma_lock(struct vm_area_struct *vma)
+ {
+ 	struct anon_vma *anon_vma = vma->anon_vma;
+diff -puN mm/rmap.c~make-mm-rmapc-anon_vma_cachep-static mm/rmap.c
+--- a/mm/rmap.c~make-mm-rmapc-anon_vma_cachep-static
++++ a/mm/rmap.c
+@@ -55,7 +55,17 @@
  
- /*
-  * Try to drop buffers from the pages in a pagevec
+ #include "internal.h"
+ 
+-struct kmem_cache *anon_vma_cachep;
++static struct kmem_cache *anon_vma_cachep;
++
++static inline struct anon_vma *anon_vma_alloc(void)
++{
++	return kmem_cache_alloc(anon_vma_cachep, GFP_KERNEL);
++}
++
++static inline void anon_vma_free(struct anon_vma *anon_vma)
++{
++	kmem_cache_free(anon_vma_cachep, anon_vma);
++}
+ 
+ /* This must be called under the mmap_sem. */
+ int anon_vma_prepare(struct vm_area_struct *vma)
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
 linux-next.patch
+m32r-kernel-smpbootc-must-include-linux-cpuh.patch
+the-overdue-eepro100-removal.patch
+parisc-lib-make-code-static.patch
+drivers-parisc-make-code-static.patch
+if-0-ses_match_host.patch
+drivers-scsi-a2091c-make-2-functions-static.patch
+drivers-scsi-a3000c-make-2-functions-static.patch
+fs_mbcache-dont-needlessly-make-it-built-in.patch
+reiser4.patch
 
