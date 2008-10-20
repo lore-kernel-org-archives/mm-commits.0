@@ -1,178 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: - devcgroup-remove-spin_lock.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:36:26 -0700
-Message-ID: <200810202036.m9KKaQet011376@imap1.linux-foundation.org>
+Subject: - drivers-hwmon-applesmcc-remove-unneeded-casts.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:35:15 -0700
+Message-ID: <200810202035.m9KKZFAi011113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41370 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35226 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754631AbYJTUq6 (ORCPT
+	by vger.kernel.org with ESMTP id S1754258AbYJTUrD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:46:58 -0400
+	Mon, 20 Oct 2008 16:47:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laijs@cn.fujitsu.com, jmorris@namei.org, menage@google.com, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, khali@linux-fr.org, mhoffman@lightlink.com, nicolas@boichat.ch, rkoktarianto@gmail.com, rydberg@euromail.se, mm-commits@vger.kernel.org
 
 
 The patch titled
-     devcgroup: remove spin_lock()
+     drivers/hwmon/applesmc.c: remove unneeded casts
 has been removed from the -mm tree.  Its filename was
-     devcgroup-remove-spin_lock.patch
+     drivers-hwmon-applesmcc-remove-unneeded-casts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devcgroup: remove spin_lock()
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: drivers/hwmon/applesmc.c: remove unneeded casts
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Since we introduced rcu for read side, spin_lock is used only for update. 
-But we always hold cgroup_lock() when update, so spin_lock() is not need.
+dmi_system_id.driver_data is already void*.
 
-Additional cleanup:
-1) include linux/rcupdate.h explicitly
-2) remove unused variable cur_devcgroup in devcgroup_update_access()
-
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Acked-by: "Serge E. Hallyn" <serue@us.ibm.com>
-Cc: Paul Menage <menage@google.com>
-Cc: James Morris <jmorris@namei.org>
+Cc: Henrik Rydberg <rydberg@euromail.se>
+Cc: Nicolas Boichat <nicolas@boichat.ch>
+Cc: Riki Oktarianto <rkoktarianto@gmail.com>
+Cc: Mark M. Hoffman <mhoffman@lightlink.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/device_cgroup.c |   34 +++++-----------------------------
- 1 file changed, 5 insertions(+), 29 deletions(-)
+ drivers/hwmon/applesmc.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN security/device_cgroup.c~devcgroup-remove-spin_lock security/device_cgroup.c
---- a/security/device_cgroup.c~devcgroup-remove-spin_lock
-+++ a/security/device_cgroup.c
-@@ -1,5 +1,5 @@
- /*
-- * dev_cgroup.c - device cgroup subsystem
-+ * device_cgroup.c - device cgroup subsystem
-  *
-  * Copyright 2007 IBM Corp
-  */
-@@ -10,6 +10,7 @@
- #include <linux/list.h>
- #include <linux/uaccess.h>
- #include <linux/seq_file.h>
-+#include <linux/rcupdate.h>
- 
- #define ACC_MKNOD 1
- #define ACC_READ  2
-@@ -22,18 +23,8 @@
- 
- /*
-  * whitelist locking rules:
-- * cgroup_lock() cannot be taken under dev_cgroup->lock.
-- * dev_cgroup->lock can be taken with or without cgroup_lock().
-- *
-- * modifications always require cgroup_lock
-- * modifications to a list which is visible require the
-- *   dev_cgroup->lock *and* cgroup_lock()
-- * walking the list requires dev_cgroup->lock or cgroup_lock().
-- *
-- * reasoning: dev_whitelist_copy() needs to kmalloc, so needs
-- *   a mutex, which the cgroup_lock() is.  Since modifying
-- *   a visible list requires both locks, either lock can be
-- *   taken for walking the list.
-+ * hold cgroup_lock() for update/read.
-+ * hold rcu_read_lock() for read.
-  */
- 
- struct dev_whitelist_item {
-@@ -47,7 +38,6 @@ struct dev_whitelist_item {
- struct dev_cgroup {
- 	struct cgroup_subsys_state css;
- 	struct list_head whitelist;
--	spinlock_t lock;
+diff -puN drivers/hwmon/applesmc.c~drivers-hwmon-applesmcc-remove-unneeded-casts drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~drivers-hwmon-applesmcc-remove-unneeded-casts
++++ a/drivers/hwmon/applesmc.c
+@@ -1272,35 +1272,35 @@ static __initdata struct dmi_system_id a
+ 	{ applesmc_dmi_match, "Apple MacBook Air", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir") },
+-		(void*)&applesmc_dmi_data[7]},
++		&applesmc_dmi_data[7]},
+ 	{ applesmc_dmi_match, "Apple MacBook Pro", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBookPro") },
+-		(void*)&applesmc_dmi_data[0]},
++		&applesmc_dmi_data[0]},
+ 	{ applesmc_dmi_match, "Apple MacBook (v2)", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBook2") },
+-		(void*)&applesmc_dmi_data[1]},
++		&applesmc_dmi_data[1]},
+ 	{ applesmc_dmi_match, "Apple MacBook (v3)", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBook3") },
+-		(void*)&applesmc_dmi_data[6]},
++		&applesmc_dmi_data[6]},
+ 	{ applesmc_dmi_match, "Apple MacBook", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBook") },
+-		(void*)&applesmc_dmi_data[2]},
++		&applesmc_dmi_data[2]},
+ 	{ applesmc_dmi_match, "Apple Macmini", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME,"Macmini") },
+-		(void*)&applesmc_dmi_data[3]},
++		&applesmc_dmi_data[3]},
+ 	{ applesmc_dmi_match, "Apple MacPro2", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacPro2") },
+-		(void*)&applesmc_dmi_data[4]},
++		&applesmc_dmi_data[4]},
+ 	{ applesmc_dmi_match, "Apple iMac", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME,"iMac") },
+-		(void*)&applesmc_dmi_data[5]},
++		&applesmc_dmi_data[5]},
+ 	{ .ident = NULL }
  };
  
- static inline struct dev_cgroup *css_to_devcgroup(struct cgroup_subsys_state *s)
-@@ -103,7 +93,6 @@ free_and_exit:
- /* Stupid prototype - don't bother combining existing entries */
- /*
-  * called under cgroup_lock()
-- * since the list is visible to other tasks, we need the spinlock also
-  */
- static int dev_whitelist_add(struct dev_cgroup *dev_cgroup,
- 			struct dev_whitelist_item *wh)
-@@ -114,7 +103,6 @@ static int dev_whitelist_add(struct dev_
- 	if (!whcopy)
- 		return -ENOMEM;
- 
--	spin_lock(&dev_cgroup->lock);
- 	list_for_each_entry(walk, &dev_cgroup->whitelist, list) {
- 		if (walk->type != wh->type)
- 			continue;
-@@ -130,7 +118,6 @@ static int dev_whitelist_add(struct dev_
- 
- 	if (whcopy != NULL)
- 		list_add_tail_rcu(&whcopy->list, &dev_cgroup->whitelist);
--	spin_unlock(&dev_cgroup->lock);
- 	return 0;
- }
- 
-@@ -144,14 +131,12 @@ static void whitelist_item_free(struct r
- 
- /*
-  * called under cgroup_lock()
-- * since the list is visible to other tasks, we need the spinlock also
-  */
- static void dev_whitelist_rm(struct dev_cgroup *dev_cgroup,
- 			struct dev_whitelist_item *wh)
- {
- 	struct dev_whitelist_item *walk, *tmp;
- 
--	spin_lock(&dev_cgroup->lock);
- 	list_for_each_entry_safe(walk, tmp, &dev_cgroup->whitelist, list) {
- 		if (walk->type == DEV_ALL)
- 			goto remove;
-@@ -169,7 +154,6 @@ remove:
- 			call_rcu(&walk->rcu, whitelist_item_free);
- 		}
- 	}
--	spin_unlock(&dev_cgroup->lock);
- }
- 
- /*
-@@ -209,7 +193,6 @@ static struct cgroup_subsys_state *devcg
- 		}
- 	}
- 
--	spin_lock_init(&dev_cgroup->lock);
- 	return &dev_cgroup->css;
- }
- 
-@@ -325,15 +308,11 @@ static int parent_has_perm(struct dev_cg
- {
- 	struct cgroup *pcg = childcg->css.cgroup->parent;
- 	struct dev_cgroup *parent;
--	int ret;
- 
- 	if (!pcg)
- 		return 1;
- 	parent = cgroup_to_devcgroup(pcg);
--	spin_lock(&parent->lock);
--	ret = may_access_whitelist(parent, wh);
--	spin_unlock(&parent->lock);
--	return ret;
-+	return may_access_whitelist(parent, wh);
- }
- 
- /*
-@@ -352,7 +331,6 @@ static int parent_has_perm(struct dev_cg
- static int devcgroup_update_access(struct dev_cgroup *devcgroup,
- 				   int filetype, const char *buffer)
- {
--	struct dev_cgroup *cur_devcgroup;
- 	const char *b;
- 	char *endp;
- 	int count;
-@@ -361,8 +339,6 @@ static int devcgroup_update_access(struc
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
- 
--	cur_devcgroup = task_devcgroup(current);
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+linux-next.patch
+linux-next-git-rejects.patch
+revert-i7300_idle-driver-v155.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module-checkpatch-fixes.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+leds-driver-for-hp-harddisk-protection-led-fix.patch
+drivers-rtc-rtc-ds1286c-is-borked.patch
+drivers-rtc-rtc-m48t35c-is-borked-too.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+mfd-drivers-mfd-wm8350-corec-doesnt-work-on-x86.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
+
