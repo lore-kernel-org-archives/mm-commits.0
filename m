@@ -1,88 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - container-freezer-rename-check_if_frozen.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:34:30 -0700
-Message-ID: <200810202034.m9KKYUNa010859@imap1.linux-foundation.org>
+Subject: - devcgroup-remove-unused-variable.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:36:24 -0700
+Message-ID: <200810202036.m9KKaOws011365@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40371 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50046 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753511AbYJTUq1 (ORCPT
+	by vger.kernel.org with ESMTP id S1754227AbYJTUqu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:46:27 -0400
+	Mon, 20 Oct 2008 16:46:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthltc@us.ibm.com, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, menage@google.com, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     container freezer: rename check_if_frozen()
+     devcgroup: remove unused variable
 has been removed from the -mm tree.  Its filename was
-     container-freezer-rename-check_if_frozen.patch
+     devcgroup-remove-unused-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: container freezer: rename check_if_frozen()
-From: Matt Helsley <matthltc@us.ibm.com>
+Subject: devcgroup: remove unused variable
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-check_if_frozen() sounds like it should return something when in fact it's
-just updating the freezer state.
-
-Signed-off-by: Matt Helsley <matthltc@us.ibm.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup_freezer.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ security/device_cgroup.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/cgroup_freezer.c~container-freezer-rename-check_if_frozen kernel/cgroup_freezer.c
---- a/kernel/cgroup_freezer.c~container-freezer-rename-check_if_frozen
-+++ a/kernel/cgroup_freezer.c
-@@ -201,8 +201,8 @@ static void freezer_fork(struct cgroup_s
- /*
-  * caller must hold freezer->lock
-  */
--static void check_if_frozen(struct cgroup *cgroup,
--			     struct freezer *freezer)
-+static void update_freezer_state(struct cgroup *cgroup,
-+				 struct freezer *freezer)
- {
- 	struct cgroup_iter it;
- 	struct task_struct *task;
-@@ -222,6 +222,10 @@ static void check_if_frozen(struct cgrou
- 	 */
- 	if (nfrozen == ntotal)
- 		freezer->state = CGROUP_FROZEN;
-+	else if (nfrozen > 0)
-+		freezer->state = CGROUP_FREEZING;
-+	else
-+		freezer->state = CGROUP_THAWED;
- 	cgroup_iter_end(cgroup, &it);
- }
+diff -puN security/device_cgroup.c~devcgroup-remove-unused-variable security/device_cgroup.c
+--- a/security/device_cgroup.c~devcgroup-remove-unused-variable
++++ a/security/device_cgroup.c
+@@ -355,7 +355,7 @@ static int devcgroup_update_access(struc
+ 	struct dev_cgroup *cur_devcgroup;
+ 	const char *b;
+ 	char *endp;
+-	int retval = 0, count;
++	int count;
+ 	struct dev_whitelist_item wh;
  
-@@ -240,7 +244,7 @@ static int freezer_read(struct cgroup *c
- 	if (state == CGROUP_FREEZING) {
- 		/* We change from FREEZING to FROZEN lazily if the cgroup was
- 		 * only partially frozen when we exitted write. */
--		check_if_frozen(cgroup, freezer);
-+		update_freezer_state(cgroup, freezer);
- 		state = freezer->state;
+ 	if (!capable(CAP_SYS_ADMIN))
+@@ -432,7 +432,6 @@ static int devcgroup_update_access(struc
  	}
- 	spin_unlock_irq(&freezer->lock);
-@@ -301,7 +305,7 @@ static int freezer_change_state(struct c
  
- 	freezer = cgroup_freezer(cgroup);
- 	spin_lock_irq(&freezer->lock);
--	check_if_frozen(cgroup, freezer); /* may update freezer->state */
-+	update_freezer_state(cgroup, freezer);
- 	if (goal_state == freezer->state)
- 		goto out;
- 	switch (freezer->state) {
+ handle:
+-	retval = 0;
+ 	switch (filetype) {
+ 	case DEVCG_ALLOW:
+ 		if (!parent_has_perm(devcgroup, &wh))
 _
 
-Patches currently in -mm which might be from matthltc@us.ibm.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-setup-the-memrlimit-controller-mm_owner-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
 
