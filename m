@@ -1,89 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-fix-declaration-of-cgroup_mm_owner_callbacks.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:36:19 -0700
-Message-ID: <200810202036.m9KKaJ0E011345@imap1.linux-foundation.org>
+Subject: - mmapc-deinline-a-few-functions.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:33:39 -0700
+Message-ID: <200810202033.m9KKXdgG010674@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51714 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45114 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754162AbYJTUqo (ORCPT
+	by vger.kernel.org with ESMTP id S1754192AbYJTUeR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:46:44 -0400
+	Mon, 20 Oct 2008 16:34:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: vda.linux@googlemail.com, hugh@veritas.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: fix declaration of cgroup_mm_owner_callbacks
+     mmap.c: deinline a few functions
 has been removed from the -mm tree.  Its filename was
-     cgroups-fix-declaration-of-cgroup_mm_owner_callbacks.patch
+     mmapc-deinline-a-few-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: fix declaration of cgroup_mm_owner_callbacks
-From: Paul Menage <menage@google.com>
+Subject: mmap.c: deinline a few functions
+From: Denys Vlasenko <vda.linux@googlemail.com>
 
-The choice of real/dummy declaration for cgroup_mm_owner_callbacks()
-shouldn't be based on CONFIG_MM_OWNER, but on CONFIG_CGROUPS.  Otherwise
-kernel/exit.c fails to compile when something other than a cgroups
-controller selects CONFIG_MM_OWNER
+__vma_link_file and expand_downwards functions are not small, yeat they
+are marked inline.  They probably had one callsite sometime in the past,
+but now they have more.  In order to prevent similar thing, I also
+deinlined expand_upwards, despite it having only pne callsite.  Nowadays
+gcc auto-inlines such static functions anyway.  In find_extend_vma, I
+removed one extra level of indirection.
 
-Signed-off-by: Paul Menage <menage@google.com>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Patch is deliberately generated with -U $BIGNUM to make
+it easier to see that functions are big.
+
+Result:
+
+# size */*/mmap.o */vmlinux
+   text    data     bss     dec     hex filename
+   9514     188      16    9718    25f6 0.org/mm/mmap.o
+   9237     188      16    9441    24e1 deinline/mm/mmap.o
+6124402  858996  389480 7372878  70804e 0.org/vmlinux
+6124113  858996  389480 7372589  707f2d deinline/vmlinux
+
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ mm/mmap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroups-fix-declaration-of-cgroup_mm_owner_callbacks include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroups-fix-declaration-of-cgroup_mm_owner_callbacks
-+++ a/include/linux/cgroup.h
-@@ -403,6 +403,9 @@ void cgroup_iter_end(struct cgroup *cgrp
- int cgroup_scan_tasks(struct cgroup_scanner *scan);
- int cgroup_attach_task(struct cgroup *, struct task_struct *);
- 
-+void cgroup_mm_owner_callbacks(struct task_struct *old,
-+			       struct task_struct *new);
-+
- #else /* !CONFIG_CGROUPS */
- 
- static inline int cgroup_init_early(void) { return 0; }
-@@ -421,15 +424,9 @@ static inline int cgroupstats_build(stru
- 	return -EINVAL;
+diff -puN mm/mmap.c~mmapc-deinline-a-few-functions mm/mmap.c
+--- a/mm/mmap.c~mmapc-deinline-a-few-functions
++++ a/mm/mmap.c
+@@ -410,7 +410,7 @@ void __vma_link_rb(struct mm_struct *mm,
+ 	rb_insert_color(&vma->vm_rb, &mm->mm_rb);
  }
  
-+static inline void cgroup_mm_owner_callbacks(struct task_struct *old,
-+					     struct task_struct *new) {}
-+
- #endif /* !CONFIG_CGROUPS */
+-static inline void __vma_link_file(struct vm_area_struct *vma)
++static void __vma_link_file(struct vm_area_struct *vma)
+ {
+ 	struct file * file;
  
--#ifdef CONFIG_MM_OWNER
--extern void
--cgroup_mm_owner_callbacks(struct task_struct *old, struct task_struct *new);
--#else /* !CONFIG_MM_OWNER */
--static inline void
--cgroup_mm_owner_callbacks(struct task_struct *old, struct task_struct *new)
--{
--}
--#endif /* CONFIG_MM_OWNER */
- #endif /* _LINUX_CGROUP_H */
+@@ -1591,7 +1591,7 @@ static int acct_stack_growth(struct vm_a
+  * vma is the last one with address > vma->vm_end.  Have to extend vma.
+  */
+ #ifndef CONFIG_IA64
+-static inline
++static
+ #endif
+ int expand_upwards(struct vm_area_struct *vma, unsigned long address)
+ {
+@@ -1641,7 +1641,7 @@ int expand_upwards(struct vm_area_struct
+ /*
+  * vma is the first one with address < vma->vm_start.  Have to extend vma.
+  */
+-static inline int expand_downwards(struct vm_area_struct *vma,
++static int expand_downwards(struct vm_area_struct *vma,
+ 				   unsigned long address)
+ {
+ 	int error;
+@@ -1703,7 +1703,7 @@ find_extend_vma(struct mm_struct *mm, un
+ 	vma = find_vma_prev(mm, addr, &prev);
+ 	if (vma && (vma->vm_start <= addr))
+ 		return vma;
+-	if (!prev || expand_stack(prev, addr))
++	if (expand_stack(prev, addr))
+ 		return NULL;
+ 	if (prev->vm_flags & VM_LOCKED) {
+ 		if (mlock_vma_pages_range(prev, addr, prev->vm_end) < 0)
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from vda.linux@googlemail.com are
 
 origin.patch
-memrlimit-add-memrlimit-controller-documentation.patch
-memrlimit-setup-the-memrlimit-controller.patch
-memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
-memrlimit-improve-error-handling.patch
-memrlimit-improve-error-handling-update.patch
-memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
-add-a-refcount-check-in-dput.patch
+linux-next.patch
 
