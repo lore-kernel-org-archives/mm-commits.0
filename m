@@ -1,79 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - kdump-add-vmlistaddr-to-vmcoreinfo-for-x86-vmalloc-translation.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:37:14 -0700
-Message-ID: <200810202037.m9KKbEqf011570@imap1.linux-foundation.org>
+Subject: - byteorder-use-generic-c-version-for-value-byteswapping.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:37:27 -0700
+Message-ID: <200810202037.m9KKbR9N011638@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36818 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41741 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752449AbYJTUqf (ORCPT
+	by vger.kernel.org with ESMTP id S1754131AbYJTUqj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:46:35 -0400
+	Mon, 20 Oct 2008 16:46:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oomichi@mxs.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kdump: add vmlist.addr to vmcoreinfo for x86 vmalloc translation.
+     byteorder: use generic C version for value byteswapping
 has been removed from the -mm tree.  Its filename was
-     kdump-add-vmlistaddr-to-vmcoreinfo-for-x86-vmalloc-translation.patch
+     byteorder-use-generic-c-version-for-value-byteswapping.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kdump: add vmlist.addr to vmcoreinfo for x86 vmalloc translation.
-From: "Ken'ichi Ohmichi" <oomichi@mxs.nes.nec.co.jp>
+Subject: byteorder: use generic C version for value byteswapping
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Add the symbols 'vmlist' and offset 'vm_struct.addr' to the vmcoreinfo[1]
-data for i386 vmalloc translation.
+This makes the new implementation of the byteorder helpers match the old
+in how it degraded when an arch-defined version was not available:
 
-makedumpfile[2] needs VMALLOC_START value for distinguishing a vmalloc
-address or not, because it should choose suitable translation method.  If
-applying this patch, makedumpfile will be able to take VMALLOC_START value
-from 'vmlist.addr'.
+1) swab()
+	- look for arch defined
+	- if not, use generic c version
 
-vmcoreinfo[1]:
-The vmcoreinfo data has the minimum debugging information only for dump
-filtering. makedumpfile[2] uses it to distinguish unnecessary pages and
-creates a small dumpfile.
+2) swabp()
+	- look for arch-defined
+	- if not, deref pointer and use swab()
 
-makedumpfile[2]:
-dump filtering command
-https://sourceforge.net/projects/makedumpfile/
+3) swabs()
+	- look for arch defined
+	- if not, use swabp
 
-Signed-off-by: Ken'ichi Ohmichi <oomichi@mxs.nes.nec.co.jp>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/swab.h |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN kernel/kexec.c~kdump-add-vmlistaddr-to-vmcoreinfo-for-x86-vmalloc-translation kernel/kexec.c
---- a/kernel/kexec.c~kdump-add-vmlistaddr-to-vmcoreinfo-for-x86-vmalloc-translation
-+++ a/kernel/kexec.c
-@@ -1371,6 +1371,7 @@ static int __init crash_save_vmcoreinfo_
- 	VMCOREINFO_SYMBOL(node_online_map);
- 	VMCOREINFO_SYMBOL(swapper_pg_dir);
- 	VMCOREINFO_SYMBOL(_stext);
-+	VMCOREINFO_SYMBOL(vmlist);
- 
- #ifndef CONFIG_NEED_MULTIPLE_NODES
- 	VMCOREINFO_SYMBOL(mem_map);
-@@ -1406,6 +1407,7 @@ static int __init crash_save_vmcoreinfo_
- 	VMCOREINFO_OFFSET(free_area, free_list);
- 	VMCOREINFO_OFFSET(list_head, next);
- 	VMCOREINFO_OFFSET(list_head, prev);
-+	VMCOREINFO_OFFSET(vm_struct, addr);
- 	VMCOREINFO_LENGTH(zone.free_area, MAX_ORDER);
- 	VMCOREINFO_LENGTH(free_area.free_list, MIGRATE_TYPES);
- 	VMCOREINFO_NUMBER(NR_FREE_PAGES);
+diff -puN include/linux/swab.h~byteorder-use-generic-c-version-for-value-byteswapping include/linux/swab.h
+--- a/include/linux/swab.h~byteorder-use-generic-c-version-for-value-byteswapping
++++ a/include/linux/swab.h
+@@ -47,8 +47,6 @@ static inline __attribute_const__ __u16 
+ {
+ #ifdef __arch_swab16
+ 	return __arch_swab16(val);
+-#elif defined(__arch_swab16p)
+-	return __arch_swab16p(&val);
+ #else
+ 	return __const_swab16(val);
+ #endif
+@@ -58,8 +56,6 @@ static inline __attribute_const__ __u32 
+ {
+ #ifdef __arch_swab32
+ 	return __arch_swab32(val);
+-#elif defined(__arch_swab32p)
+-	return __arch_swab32p(&val);
+ #else
+ 	return __const_swab32(val);
+ #endif
+@@ -69,8 +65,6 @@ static inline __attribute_const__ __u64 
+ {
+ #ifdef __arch_swab64
+ 	return __arch_swab64(val);
+-#elif defined(__arch_swab64p)
+-	return __arch_swab64p(&val);
+ #elif defined(__SWAB_64_THRU_32__)
+ 	__u32 h = val >> 32;
+ 	__u32 l = val & ((1ULL << 32) - 1);
+@@ -84,8 +78,6 @@ static inline __attribute_const__ __u32 
+ {
+ #ifdef __arch_swahw32
+ 	return __arch_swahw32(val);
+-#elif defined(__arch_swahw32p)
+-	return __arch_swahw32p(&val);
+ #else
+ 	return __const_swahw32(val);
+ #endif
+@@ -95,8 +87,6 @@ static inline __attribute_const__ __u32 
+ {
+ #ifdef __arch_swahb32
+ 	return __arch_swahb32(val);
+-#elif defined(__arch_swahb32p)
+-	return __arch_swahb32p(&val);
+ #else
+ 	return __const_swahb32(val);
+ #endif
 _
 
-Patches currently in -mm which might be from oomichi@mxs.nes.nec.co.jp are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-ia64-fix-the-difference-between-node_mem_map-and-node_start_pfn.patch
+linux-next.patch
+cifs-remove-global_extern-macro.patch
+input-ads7846c-sparse-lock-annotation.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+scsi-remove-private-implementation-of-get_unaligned_be32.patch
+usb-avoid-needless-address-taking-of-function-parameters.patch
 
