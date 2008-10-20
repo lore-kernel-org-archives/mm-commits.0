@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-acpi-fix-breakage-of-resume-on-64-bit-up-systems-with-smp-kernel.patch added to -mm tree
-Date: Mon, 20 Oct 2008 14:49:43 -0700
-Message-ID: <200810202149.m9KLnh8L024404@imap1.linux-foundation.org>
+Subject: + gitignore-updates.patch added to -mm tree
+Date: Mon, 20 Oct 2008 14:51:22 -0700
+Message-ID: <200810202151.m9KLpMcd024758@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47651 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54183 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751045AbYJTVub (ORCPT
+	by vger.kernel.org with ESMTP id S1751167AbYJTVvx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 17:50:31 -0400
+	Mon, 20 Oct 2008 17:51:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, ajw1980@gmail.com, lenb@kernel.org, mingo@elte.hu, pavel@suse.cz, stable@kernel.org, tglx@linutronix.de
+Cc: adobriyan@gmail.com
 
 
 The patch titled
-     x86 acpi: fix breakage of resume on 64-bit UP systems with SMP kernel
+     .gitignore updates
 has been added to the -mm tree.  Its filename is
-     x86-acpi-fix-breakage-of-resume-on-64-bit-up-systems-with-smp-kernel.patch
+     gitignore-updates.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86 acpi: fix breakage of resume on 64-bit UP systems with SMP kernel
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: .gitignore updates
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-We are now using per CPU GDT tables in head_64.S and the original
-early_gdt_descr.address is invalidated after boot by
-setup_per_cpu_areas().  This breaks resume from suspend to RAM on x86_64
-UP systems using SMP kernels, because this part of head_64.S is also
-executed during the resume and the invalid GDT address causes the system
-to crash.  It doesn't break on 'true' SMP systems, because
-early_gdt_descr.address is modified every time native_cpu_up() runs. 
-However, during resume it should point to the GDT of the boot CPU rather
-than to another CPU's GDT.
-
-For this reason, during suspend to RAM always make early_gdt_descr.address
-point to the boot CPU's GDT.
-
-This fixes http://bugzilla.kernel.org/show_bug.cgi?id=11568, which is a
-regression from 2.6.26.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Reported-and-tested-by: Andy Wettstein <ajw1980@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Len Brown <lenb@kernel.org>
-Acked-by: Pavel Machek <pavel@suse.cz>
-Cc: <stable@kernel.org>		[2.6.27.x]
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/acpi/sleep.c |    3 +++
- 1 file changed, 3 insertions(+)
+ Documentation/accounting/.gitignore   |    1 +
+ Documentation/auxdisplay/.gitignore   |    1 +
+ Documentation/connector/.gitignore    |    1 +
+ Documentation/ia64/.gitignore         |    1 +
+ Documentation/networking/.gitignore   |    1 +
+ Documentation/pcmcia/.gitignore       |    1 +
+ Documentation/spi/.gitignore          |    2 ++
+ Documentation/video4linux/.gitignore  |    1 +
+ Documentation/vm/.gitignore           |    1 +
+ Documentation/watchdog/src/.gitignore |    2 ++
+ arch/x86/boot/compressed/.gitignore   |    2 ++
+ x86/kernel/cpu/.gitignore             |    0 
+ 12 files changed, 14 insertions(+)
 
-diff -puN arch/x86/kernel/acpi/sleep.c~x86-acpi-fix-breakage-of-resume-on-64-bit-up-systems-with-smp-kernel arch/x86/kernel/acpi/sleep.c
---- a/arch/x86/kernel/acpi/sleep.c~x86-acpi-fix-breakage-of-resume-on-64-bit-up-systems-with-smp-kernel
-+++ a/arch/x86/kernel/acpi/sleep.c
-@@ -10,6 +10,7 @@
- #include <linux/dmi.h>
- #include <linux/cpumask.h>
- #include <asm/segment.h>
-+#include <asm/desc.h>
- 
- #include "realmode/wakeup.h"
- #include "sleep.h"
-@@ -98,6 +99,8 @@ int acpi_save_state_mem(void)
- 	header->trampoline_segment = setup_trampoline() >> 4;
- #ifdef CONFIG_SMP
- 	stack_start.sp = temp_stack + sizeof(temp_stack);
-+	early_gdt_descr.address =
-+			(unsigned long)get_cpu_gdt_table(smp_processor_id());
- #endif
- 	initial_code = (unsigned long)wakeup_long64;
- 	saved_magic = 0x123456789abcdef0;
+diff -puN /dev/null Documentation/accounting/.gitignore
+--- /dev/null
++++ a/Documentation/accounting/.gitignore
+@@ -0,0 +1 @@
++getdelays
+diff -puN /dev/null Documentation/auxdisplay/.gitignore
+--- /dev/null
++++ a/Documentation/auxdisplay/.gitignore
+@@ -0,0 +1 @@
++cfag12864b-example
+diff -puN /dev/null Documentation/connector/.gitignore
+--- /dev/null
++++ a/Documentation/connector/.gitignore
+@@ -0,0 +1 @@
++ucon
+diff -puN /dev/null Documentation/ia64/.gitignore
+--- /dev/null
++++ a/Documentation/ia64/.gitignore
+@@ -0,0 +1 @@
++aliasing-test
+diff -puN /dev/null Documentation/networking/.gitignore
+--- /dev/null
++++ a/Documentation/networking/.gitignore
+@@ -0,0 +1 @@
++ifenslave
+diff -puN /dev/null Documentation/pcmcia/.gitignore
+--- /dev/null
++++ a/Documentation/pcmcia/.gitignore
+@@ -0,0 +1 @@
++crc32hash
+diff -puN /dev/null Documentation/spi/.gitignore
+--- /dev/null
++++ a/Documentation/spi/.gitignore
+@@ -0,0 +1,2 @@
++spidev_fdx
++spidev_test
+diff -puN /dev/null Documentation/video4linux/.gitignore
+--- /dev/null
++++ a/Documentation/video4linux/.gitignore
+@@ -0,0 +1 @@
++v4lgrab
+diff -puN /dev/null Documentation/vm/.gitignore
+--- /dev/null
++++ a/Documentation/vm/.gitignore
+@@ -0,0 +1 @@
++slabinfo
+diff -puN /dev/null Documentation/watchdog/src/.gitignore
+--- /dev/null
++++ a/Documentation/watchdog/src/.gitignore
+@@ -0,0 +1,2 @@
++watchdog-simple
++watchdog-test
+diff -puN arch/x86/boot/compressed/.gitignore~gitignore-updates arch/x86/boot/compressed/.gitignore
+--- a/arch/x86/boot/compressed/.gitignore~gitignore-updates
++++ a/arch/x86/boot/compressed/.gitignore
+@@ -1 +1,3 @@
+ relocs
++vmlinux.bin.all
++vmlinux.relocs
+diff -puN arch/x86/kernel/cpu/.gitignore~gitignore-updates arch/x86/kernel/cpu/.gitignore
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
+gitignore-updates.patch
 linux-next.patch
-x86-acpi-fix-breakage-of-resume-on-64-bit-up-systems-with-smp-kernel.patch
-skge-adapt-skge-to-use-reworked-pci-pm.patch
-e100-adapt-to-the-reworked-pci-pm.patch
-shrink_slab-handle-bad-shrinkers.patch
+tags-skip-in-filenames.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+mm-report-the-pagesize-backing-a-vma-in-proc-pid-smaps.patch
+mm-report-the-mmu-pagesize-in-proc-pid-smaps.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+likely_prof-changed-to-use-proc_create.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
 
