@@ -1,116 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: - mm-pagecache-insertion-fewer-atomics.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:33:31 -0700
-Message-ID: <200810202033.m9KKXVhB010647@imap1.linux-foundation.org>
+Subject: - memcg-avoid-accounting-special-pages.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:36:32 -0700
+Message-ID: <200810202036.m9KKaWMG011397@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51384 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55382 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753742AbYJTUel (ORCPT
+	by vger.kernel.org with ESMTP id S1752086AbYJTUha (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:34:41 -0400
+	Mon, 20 Oct 2008 16:37:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: pagecache insertion fewer atomics
+     memcg: avoid accounting special pages
 has been removed from the -mm tree.  Its filename was
-     mm-pagecache-insertion-fewer-atomics.patch
+     memcg-avoid-accounting-special-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: pagecache insertion fewer atomics
-From: Nick Piggin <npiggin@suse.de>
+Subject: memcg: avoid accounting special pages
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Setting and clearing the page locked when inserting it into swapcache /
-pagecache when it has no other references can use non-atomic page flags
-operations because no other CPU may be operating on it at this time.
+There are not-on-LRU pages which can be mapped and they are not worth to
+be accounted.  (becasue we can't shrink them and need dirty codes to
+handle specical case) We'd like to make use of usual objrmap/radix-tree's
+protcol and don't want to account out-of-vm's control pages.
 
-This saves one atomic operation when inserting a page into pagecache.
+When special_mapping_fault() is called, page->mapping is tend to be NULL
+and it's charged as Anonymous page.  insert_page() also handles some
+special pages from drivers.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+This patch is for avoiding to account special pages.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |   14 +++++++-------
- mm/swap_state.c         |    4 ++--
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ Documentation/controllers/memory.txt |   24 ++++++++++++++++--------
+ mm/memory.c                          |   25 +++++++++++--------------
+ mm/rmap.c                            |    4 ++--
+ 3 files changed, 29 insertions(+), 24 deletions(-)
 
-diff -puN include/linux/pagemap.h~mm-pagecache-insertion-fewer-atomics include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-pagecache-insertion-fewer-atomics
-+++ a/include/linux/pagemap.h
-@@ -299,14 +299,14 @@ extern int __lock_page_killable(struct p
- extern void __lock_page_nosync(struct page *page);
- extern void unlock_page(struct page *page);
+diff -puN Documentation/controllers/memory.txt~memcg-avoid-accounting-special-pages Documentation/controllers/memory.txt
+--- a/Documentation/controllers/memory.txt~memcg-avoid-accounting-special-pages
++++ a/Documentation/controllers/memory.txt
+@@ -112,14 +112,22 @@ the per cgroup LRU.
  
--static inline void set_page_locked(struct page *page)
-+static inline void __set_page_locked(struct page *page)
- {
--	set_bit(PG_locked, &page->flags);
-+	__set_bit(PG_locked, &page->flags);
+ 2.2.1 Accounting details
+ 
+-All mapped pages (RSS) and unmapped user pages (Page Cache) are accounted.
+-RSS pages are accounted at the time of page_add_*_rmap() unless they've already
+-been accounted for earlier. A file page will be accounted for as Page Cache;
+-it's mapped into the page tables of a process, duplicate accounting is carefully
+-avoided. Page Cache pages are accounted at the time of add_to_page_cache().
+-The corresponding routines that remove a page from the page tables or removes
+-a page from Page Cache is used to decrement the accounting counters of the
+-cgroup.
++All mapped anon pages (RSS) and cache pages (Page Cache) are accounted.
++(some pages which never be reclaimable and will not be on global LRU
++ are not accounted. we just accounts pages under usual vm management.)
++
++RSS pages are accounted at page_fault unless they've already been accounted
++for earlier. A file page will be accounted for as Page Cache when it's
++inserted into inode (radix-tree). While it's mapped into the page tables of
++processes, duplicate accounting is carefully avoided.
++
++A RSS page is unaccounted when it's fully unmapped. A PageCache page is
++unaccounted when it's removed from radix-tree.
++
++At page migration, accounting information is kept.
++
++Note: we just account pages-on-lru because our purpose is to control amount
++of used pages. not-on-lru pages are tend to be out-of-control from vm view.
+ 
+ 2.3 Shared Page Accounting
+ 
+diff -puN mm/memory.c~memcg-avoid-accounting-special-pages mm/memory.c
+--- a/mm/memory.c~memcg-avoid-accounting-special-pages
++++ a/mm/memory.c
+@@ -1323,18 +1323,14 @@ static int insert_page(struct vm_area_st
+ 	pte_t *pte;
+ 	spinlock_t *ptl;
+ 
+-	retval = mem_cgroup_charge(page, mm, GFP_KERNEL);
+-	if (retval)
+-		goto out;
+-
+ 	retval = -EINVAL;
+ 	if (PageAnon(page))
+-		goto out_uncharge;
++		goto out;
+ 	retval = -ENOMEM;
+ 	flush_dcache_page(page);
+ 	pte = get_locked_pte(mm, addr, &ptl);
+ 	if (!pte)
+-		goto out_uncharge;
++		goto out;
+ 	retval = -EBUSY;
+ 	if (!pte_none(*pte))
+ 		goto out_unlock;
+@@ -1350,8 +1346,6 @@ static int insert_page(struct vm_area_st
+ 	return retval;
+ out_unlock:
+ 	pte_unmap_unlock(pte, ptl);
+-out_uncharge:
+-	mem_cgroup_uncharge_page(page);
+ out:
+ 	return retval;
  }
+@@ -2463,6 +2457,7 @@ static int __do_fault(struct mm_struct *
+ 	struct page *page;
+ 	pte_t entry;
+ 	int anon = 0;
++	int charged = 0;
+ 	struct page *dirty_page = NULL;
+ 	struct vm_fault vmf;
+ 	int ret;
+@@ -2503,6 +2498,12 @@ static int __do_fault(struct mm_struct *
+ 				ret = VM_FAULT_OOM;
+ 				goto out;
+ 			}
++			if (mem_cgroup_charge(page, mm, GFP_KERNEL)) {
++				ret = VM_FAULT_OOM;
++				page_cache_release(page);
++				goto out;
++			}
++			charged = 1;
+ 			/*
+ 			 * Don't let another task, with possibly unlocked vma,
+ 			 * keep the mlocked page.
+@@ -2543,11 +2544,6 @@ static int __do_fault(struct mm_struct *
  
--static inline void clear_page_locked(struct page *page)
-+static inline void __clear_page_locked(struct page *page)
- {
--	clear_bit(PG_locked, &page->flags);
-+	__clear_bit(PG_locked, &page->flags);
- }
+ 	}
  
- static inline int trylock_page(struct page *page)
-@@ -438,17 +438,17 @@ extern void __remove_from_page_cache(str
+-	if (mem_cgroup_charge(page, mm, GFP_KERNEL)) {
+-		ret = VM_FAULT_OOM;
+-		goto out;
+-	}
+-
+ 	page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
  
- /*
-  * Like add_to_page_cache_locked, but used to add newly allocated pages:
-- * the page is new, so we can just run set_page_locked() against it.
-+ * the page is new, so we can just run __set_page_locked() against it.
-  */
- static inline int add_to_page_cache(struct page *page,
- 		struct address_space *mapping, pgoff_t offset, gfp_t gfp_mask)
- {
- 	int error;
- 
--	set_page_locked(page);
-+	__set_page_locked(page);
- 	error = add_to_page_cache_locked(page, mapping, offset, gfp_mask);
- 	if (unlikely(error))
--		clear_page_locked(page);
-+		__clear_page_locked(page);
- 	return error;
- }
- 
-diff -puN mm/swap_state.c~mm-pagecache-insertion-fewer-atomics mm/swap_state.c
---- a/mm/swap_state.c~mm-pagecache-insertion-fewer-atomics
-+++ a/mm/swap_state.c
-@@ -303,7 +303,7 @@ struct page *read_swap_cache_async(swp_e
- 		 * re-using the just freed swap entry for an existing page.
- 		 * May fail (-ENOMEM) if radix-tree node allocation failed.
- 		 */
--		set_page_locked(new_page);
-+		__set_page_locked(new_page);
- 		SetPageSwapBacked(new_page);
- 		err = add_to_swap_cache(new_page, entry, gfp_mask & GFP_KERNEL);
- 		if (likely(!err)) {
-@@ -315,7 +315,7 @@ struct page *read_swap_cache_async(swp_e
- 			return new_page;
+ 	/*
+@@ -2585,7 +2581,8 @@ static int __do_fault(struct mm_struct *
+ 		/* no need to invalidate: a not-present page won't be cached */
+ 		update_mmu_cache(vma, address, entry);
+ 	} else {
+-		mem_cgroup_uncharge_page(page);
++		if (charged)
++			mem_cgroup_uncharge_page(page);
+ 		if (anon)
+ 			page_cache_release(page);
+ 		else
+diff -puN mm/rmap.c~memcg-avoid-accounting-special-pages mm/rmap.c
+--- a/mm/rmap.c~memcg-avoid-accounting-special-pages
++++ a/mm/rmap.c
+@@ -705,8 +705,8 @@ void page_remove_rmap(struct page *page,
+ 			page_clear_dirty(page);
+ 			set_page_dirty(page);
  		}
- 		ClearPageSwapBacked(new_page);
--		clear_page_locked(new_page);
-+		__clear_page_locked(new_page);
- 		swap_free(entry);
- 	} while (err != -ENOMEM);
- 
-_
-
-Patches currently in -mm which might be from npiggin@suse.de are
-
-origin.patch
-linux-next.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
-
