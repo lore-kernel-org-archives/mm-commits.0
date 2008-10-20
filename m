@@ -1,349 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: - fs-kconfig-move-cifs-out.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:38:04 -0700
-Message-ID: <200810202038.m9KKc4hw011785@imap1.linux-foundation.org>
+Subject: - hugepage-support-zero_page.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:33:56 -0700
+Message-ID: <200810202033.m9KKXu1s010736@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49997 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33613 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754301AbYJTUqx (ORCPT
+	by vger.kernel.org with ESMTP id S1754725AbYJTUrI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:46:53 -0400
+	Mon, 20 Oct 2008 16:47:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, sfrench@us.ibm.com, mm-commits@vger.kernel.org
+To: kosaki.motohiro@jp.fujitsu.com, agl@us.ibm.com, hidehiro.kawai.ez@hitachi.com, hugh@veritas.com, mel@skynet.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/Kconfig: move CIFS out
+     hugepage: support ZERO_PAGE()
 has been removed from the -mm tree.  Its filename was
-     fs-kconfig-move-cifs-out.patch
+     hugepage-support-zero_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/Kconfig: move CIFS out
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: hugepage: support ZERO_PAGE()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Steven French <sfrench@us.ibm.com>
+Presently hugepage doesn't use zero page at all because zero page is only
+used for coredumping and hugepage can't core dump.
+
+However we have now implemented hugepage coredumping.  Therefore we should
+implement the zero page of hugepage.
+
+Implementation note:
+
+o Why do we only check VM_SHARED for zero page?
+  normal page checked as ..
+
+	static inline int use_zero_page(struct vm_area_struct *vma)
+	{
+	        if (vma->vm_flags & (VM_LOCKED | VM_SHARED))
+	                return 0;
+
+	        return !vma->vm_ops || !vma->vm_ops->fault;
+	}
+
+First, hugepages are never mlock()ed.  We aren't concerned with VM_LOCKED.
+
+Second, hugetlbfs is a pseudo filesystem, not a real filesystem and it
+doesn't have any file backing.  Thus ops->fault checking is meaningless.
+
+o Why don't we use zero page if !pte.
+
+!pte indicate {pud, pmd} doesn't exist or some error happened.  So we
+shouldn't return zero page if any error occurred.
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Adam Litke <agl@us.ibm.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Kawai Hidehiro <hidehiro.kawai.ez@hitachi.com>
+Cc: Mel Gorman <mel@skynet.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig      |  143 ----------------------------------------------
- fs/cifs/Kconfig |  142 +++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 143 insertions(+), 142 deletions(-)
+ mm/hugetlb.c |   22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
-diff -puN fs/Kconfig~fs-kconfig-move-cifs-out fs/Kconfig
---- a/fs/Kconfig~fs-kconfig-move-cifs-out
-+++ a/fs/Kconfig
-@@ -1861,148 +1861,7 @@ config SMB_NLS_REMOTE
+diff -puN mm/hugetlb.c~hugepage-support-zero_page mm/hugetlb.c
+--- a/mm/hugetlb.c~hugepage-support-zero_page
++++ a/mm/hugetlb.c
+@@ -2071,6 +2071,14 @@ follow_huge_pud(struct mm_struct *mm, un
+ 	return NULL;
+ }
  
- 	  smbmount from samba 2.2.0 or later supports this.
++static int huge_zeropage_ok(pte_t *ptep, int write, int shared)
++{
++	if (!ptep || write || shared)
++		return 0;
++	else
++		return huge_pte_none(huge_ptep_get(ptep));
++}
++
+ int follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			struct page **pages, struct vm_area_struct **vmas,
+ 			unsigned long *position, int *length, int i,
+@@ -2080,6 +2088,8 @@ int follow_hugetlb_page(struct mm_struct
+ 	unsigned long vaddr = *position;
+ 	int remainder = *length;
+ 	struct hstate *h = hstate_vma(vma);
++	int zeropage_ok = 0;
++	int shared = vma->vm_flags & VM_SHARED;
  
--config CIFS
--	tristate "CIFS support (advanced network filesystem, SMBFS successor)"
--	depends on INET
--	select NLS
--	help
--	  This is the client VFS module for the Common Internet File System
--	  (CIFS) protocol which is the successor to the Server Message Block 
--	  (SMB) protocol, the native file sharing mechanism for most early
--	  PC operating systems.  The CIFS protocol is fully supported by 
--	  file servers such as Windows 2000 (including Windows 2003, NT 4  
--	  and Windows XP) as well by Samba (which provides excellent CIFS
--	  server support for Linux and many other operating systems). Limited
--	  support for OS/2 and Windows ME and similar servers is provided as
--	  well.
--
--	  The cifs module provides an advanced network file system
--	  client for mounting to CIFS compliant servers.  It includes
--	  support for DFS (hierarchical name space), secure per-user
--	  session establishment via Kerberos or NTLM or NTLMv2,
--	  safe distributed caching (oplock), optional packet
--	  signing, Unicode and other internationalization improvements.
--	  If you need to mount to Samba or Windows from this machine, say Y.
--
--config CIFS_STATS
--        bool "CIFS statistics"
--        depends on CIFS
--        help
--          Enabling this option will cause statistics for each server share
--	  mounted by the cifs client to be displayed in /proc/fs/cifs/Stats
--
--config CIFS_STATS2
--	bool "Extended statistics"
--	depends on CIFS_STATS
--	help
--	  Enabling this option will allow more detailed statistics on SMB
--	  request timing to be displayed in /proc/fs/cifs/DebugData and also
--	  allow optional logging of slow responses to dmesg (depending on the
--	  value of /proc/fs/cifs/cifsFYI, see fs/cifs/README for more details).
--	  These additional statistics may have a minor effect on performance
--	  and memory utilization.
--
--	  Unless you are a developer or are doing network performance analysis
--	  or tuning, say N.
--
--config CIFS_WEAK_PW_HASH
--	bool "Support legacy servers which use weaker LANMAN security"
--	depends on CIFS
--	help
--	  Modern CIFS servers including Samba and most Windows versions
--	  (since 1997) support stronger NTLM (and even NTLMv2 and Kerberos)
--	  security mechanisms. These hash the password more securely
--	  than the mechanisms used in the older LANMAN version of the
--	  SMB protocol but LANMAN based authentication is needed to
--	  establish sessions with some old SMB servers.
--
--	  Enabling this option allows the cifs module to mount to older
--	  LANMAN based servers such as OS/2 and Windows 95, but such
--	  mounts may be less secure than mounts using NTLM or more recent
--	  security mechanisms if you are on a public network.  Unless you
--	  have a need to access old SMB servers (and are on a private
--	  network) you probably want to say N.  Even if this support
--	  is enabled in the kernel build, LANMAN authentication will not be
--	  used automatically. At runtime LANMAN mounts are disabled but
--	  can be set to required (or optional) either in
--	  /proc/fs/cifs (see fs/cifs/README for more detail) or via an
--	  option on the mount command. This support is disabled by
--	  default in order to reduce the possibility of a downgrade
--	  attack.
--
--	  If unsure, say N.
--
--config CIFS_UPCALL
--	  bool "Kerberos/SPNEGO advanced session setup"
--	  depends on CIFS && KEYS
--	  help
--	    Enables an upcall mechanism for CIFS which accesses
--	    userspace helper utilities to provide SPNEGO packaged (RFC 4178)
--	    Kerberos tickets which are needed to mount to certain secure servers
--	    (for which more secure Kerberos authentication is required). If
--	    unsure, say N.
--
--config CIFS_XATTR
--        bool "CIFS extended attributes"
--        depends on CIFS
--        help
--          Extended attributes are name:value pairs associated with inodes by
--          the kernel or by users (see the attr(5) manual page, or visit
--          <http://acl.bestbits.at/> for details).  CIFS maps the name of
--          extended attributes beginning with the user namespace prefix
--          to SMB/CIFS EAs. EAs are stored on Windows servers without the
--          user namespace prefix, but their names are seen by Linux cifs clients
--          prefaced by the user namespace prefix. The system namespace
--          (used by some filesystems to store ACLs) is not supported at
--          this time.
--
--          If unsure, say N.
--
--config CIFS_POSIX
--        bool "CIFS POSIX Extensions"
--        depends on CIFS_XATTR
--        help
--          Enabling this option will cause the cifs client to attempt to
--	  negotiate a newer dialect with servers, such as Samba 3.0.5
--	  or later, that optionally can handle more POSIX like (rather
--	  than Windows like) file behavior.  It also enables
--	  support for POSIX ACLs (getfacl and setfacl) to servers
--	  (such as Samba 3.10 and later) which can negotiate
--	  CIFS POSIX ACL support.  If unsure, say N.
--
--config CIFS_DEBUG2
--	bool "Enable additional CIFS debugging routines"
--	depends on CIFS
--	help
--	   Enabling this option adds a few more debugging routines
--	   to the cifs code which slightly increases the size of
--	   the cifs module and can cause additional logging of debug
--	   messages in some error paths, slowing performance. This
--	   option can be turned off unless you are debugging
--	   cifs problems.  If unsure, say N.
--
--config CIFS_EXPERIMENTAL
--	  bool "CIFS Experimental Features (EXPERIMENTAL)"
--	  depends on CIFS && EXPERIMENTAL
--	  help
--	    Enables cifs features under testing. These features are
--	    experimental and currently include DFS support and directory 
--	    change notification ie fcntl(F_DNOTIFY), as well as the upcall
--	    mechanism which will be used for Kerberos session negotiation
--	    and uid remapping.  Some of these features also may depend on 
--	    setting a value of 1 to the pseudo-file /proc/fs/cifs/Experimental
--	    (which is disabled by default). See the file fs/cifs/README 
--	    for more details.  If unsure, say N.
--
--config CIFS_DFS_UPCALL
--	  bool "DFS feature support (EXPERIMENTAL)"
--	  depends on CIFS_EXPERIMENTAL
--	  depends on KEYS
--	  help
--	    Enables an upcall mechanism for CIFS which contacts userspace
--	    helper utilities to provide server name resolution (host names to
--	    IP addresses) which is needed for implicit mounts of DFS junction
--	    points. If unsure, say N.
-+source "fs/cifs/Kconfig"
+ 	spin_lock(&mm->page_table_lock);
+ 	while (vaddr < vma->vm_end && remainder) {
+@@ -2092,8 +2102,11 @@ int follow_hugetlb_page(struct mm_struct
+ 		 * first, for the page indexing below to work.
+ 		 */
+ 		pte = huge_pte_offset(mm, vaddr & huge_page_mask(h));
++		if (huge_zeropage_ok(pte, write, shared))
++			zeropage_ok = 1;
  
- config NCP_FS
- 	tristate "NCP file system support (to mount NetWare volumes)"
-diff -puN /dev/null fs/cifs/Kconfig
---- /dev/null
-+++ a/fs/cifs/Kconfig
-@@ -0,0 +1,142 @@
-+config CIFS
-+	tristate "CIFS support (advanced network filesystem, SMBFS successor)"
-+	depends on INET
-+	select NLS
-+	help
-+	  This is the client VFS module for the Common Internet File System
-+	  (CIFS) protocol which is the successor to the Server Message Block
-+	  (SMB) protocol, the native file sharing mechanism for most early
-+	  PC operating systems.  The CIFS protocol is fully supported by
-+	  file servers such as Windows 2000 (including Windows 2003, NT 4
-+	  and Windows XP) as well by Samba (which provides excellent CIFS
-+	  server support for Linux and many other operating systems). Limited
-+	  support for OS/2 and Windows ME and similar servers is provided as
-+	  well.
-+
-+	  The cifs module provides an advanced network file system
-+	  client for mounting to CIFS compliant servers.  It includes
-+	  support for DFS (hierarchical name space), secure per-user
-+	  session establishment via Kerberos or NTLM or NTLMv2,
-+	  safe distributed caching (oplock), optional packet
-+	  signing, Unicode and other internationalization improvements.
-+	  If you need to mount to Samba or Windows from this machine, say Y.
-+
-+config CIFS_STATS
-+        bool "CIFS statistics"
-+        depends on CIFS
-+        help
-+          Enabling this option will cause statistics for each server share
-+	  mounted by the cifs client to be displayed in /proc/fs/cifs/Stats
-+
-+config CIFS_STATS2
-+	bool "Extended statistics"
-+	depends on CIFS_STATS
-+	help
-+	  Enabling this option will allow more detailed statistics on SMB
-+	  request timing to be displayed in /proc/fs/cifs/DebugData and also
-+	  allow optional logging of slow responses to dmesg (depending on the
-+	  value of /proc/fs/cifs/cifsFYI, see fs/cifs/README for more details).
-+	  These additional statistics may have a minor effect on performance
-+	  and memory utilization.
-+
-+	  Unless you are a developer or are doing network performance analysis
-+	  or tuning, say N.
-+
-+config CIFS_WEAK_PW_HASH
-+	bool "Support legacy servers which use weaker LANMAN security"
-+	depends on CIFS
-+	help
-+	  Modern CIFS servers including Samba and most Windows versions
-+	  (since 1997) support stronger NTLM (and even NTLMv2 and Kerberos)
-+	  security mechanisms. These hash the password more securely
-+	  than the mechanisms used in the older LANMAN version of the
-+	  SMB protocol but LANMAN based authentication is needed to
-+	  establish sessions with some old SMB servers.
-+
-+	  Enabling this option allows the cifs module to mount to older
-+	  LANMAN based servers such as OS/2 and Windows 95, but such
-+	  mounts may be less secure than mounts using NTLM or more recent
-+	  security mechanisms if you are on a public network.  Unless you
-+	  have a need to access old SMB servers (and are on a private
-+	  network) you probably want to say N.  Even if this support
-+	  is enabled in the kernel build, LANMAN authentication will not be
-+	  used automatically. At runtime LANMAN mounts are disabled but
-+	  can be set to required (or optional) either in
-+	  /proc/fs/cifs (see fs/cifs/README for more detail) or via an
-+	  option on the mount command. This support is disabled by
-+	  default in order to reduce the possibility of a downgrade
-+	  attack.
-+
-+	  If unsure, say N.
-+
-+config CIFS_UPCALL
-+	  bool "Kerberos/SPNEGO advanced session setup"
-+	  depends on CIFS && KEYS
-+	  help
-+	    Enables an upcall mechanism for CIFS which accesses
-+	    userspace helper utilities to provide SPNEGO packaged (RFC 4178)
-+	    Kerberos tickets which are needed to mount to certain secure servers
-+	    (for which more secure Kerberos authentication is required). If
-+	    unsure, say N.
-+
-+config CIFS_XATTR
-+        bool "CIFS extended attributes"
-+        depends on CIFS
-+        help
-+          Extended attributes are name:value pairs associated with inodes by
-+          the kernel or by users (see the attr(5) manual page, or visit
-+          <http://acl.bestbits.at/> for details).  CIFS maps the name of
-+          extended attributes beginning with the user namespace prefix
-+          to SMB/CIFS EAs. EAs are stored on Windows servers without the
-+          user namespace prefix, but their names are seen by Linux cifs clients
-+          prefaced by the user namespace prefix. The system namespace
-+          (used by some filesystems to store ACLs) is not supported at
-+          this time.
-+
-+          If unsure, say N.
-+
-+config CIFS_POSIX
-+        bool "CIFS POSIX Extensions"
-+        depends on CIFS_XATTR
-+        help
-+          Enabling this option will cause the cifs client to attempt to
-+	  negotiate a newer dialect with servers, such as Samba 3.0.5
-+	  or later, that optionally can handle more POSIX like (rather
-+	  than Windows like) file behavior.  It also enables
-+	  support for POSIX ACLs (getfacl and setfacl) to servers
-+	  (such as Samba 3.10 and later) which can negotiate
-+	  CIFS POSIX ACL support.  If unsure, say N.
-+
-+config CIFS_DEBUG2
-+	bool "Enable additional CIFS debugging routines"
-+	depends on CIFS
-+	help
-+	   Enabling this option adds a few more debugging routines
-+	   to the cifs code which slightly increases the size of
-+	   the cifs module and can cause additional logging of debug
-+	   messages in some error paths, slowing performance. This
-+	   option can be turned off unless you are debugging
-+	   cifs problems.  If unsure, say N.
-+
-+config CIFS_EXPERIMENTAL
-+	  bool "CIFS Experimental Features (EXPERIMENTAL)"
-+	  depends on CIFS && EXPERIMENTAL
-+	  help
-+	    Enables cifs features under testing. These features are
-+	    experimental and currently include DFS support and directory
-+	    change notification ie fcntl(F_DNOTIFY), as well as the upcall
-+	    mechanism which will be used for Kerberos session negotiation
-+	    and uid remapping.  Some of these features also may depend on
-+	    setting a value of 1 to the pseudo-file /proc/fs/cifs/Experimental
-+	    (which is disabled by default). See the file fs/cifs/README
-+	    for more details.  If unsure, say N.
-+
-+config CIFS_DFS_UPCALL
-+	  bool "DFS feature support (EXPERIMENTAL)"
-+	  depends on CIFS_EXPERIMENTAL
-+	  depends on KEYS
-+	  help
-+	    Enables an upcall mechanism for CIFS which contacts userspace
-+	    helper utilities to provide server name resolution (host names to
-+	    IP addresses) which is needed for implicit mounts of DFS junction
-+	    points. If unsure, say N.
+-		if (!pte || huge_pte_none(huge_ptep_get(pte)) ||
++		if (!pte ||
++		    (huge_pte_none(huge_ptep_get(pte)) && !zeropage_ok) ||
+ 		    (write && !pte_write(huge_ptep_get(pte)))) {
+ 			int ret;
+ 
+@@ -2113,8 +2126,11 @@ int follow_hugetlb_page(struct mm_struct
+ 		page = pte_page(huge_ptep_get(pte));
+ same_page:
+ 		if (pages) {
+-			get_page(page);
+-			pages[i] = page + pfn_offset;
++			if (zeropage_ok)
++				pages[i] = ZERO_PAGE(0);
++			else
++				pages[i] = page + pfn_offset;
++			get_page(pages[i]);
+ 		}
+ 
+ 		if (vmas)
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
 linux-next.patch
-tags-skip-in-filenames.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
 
