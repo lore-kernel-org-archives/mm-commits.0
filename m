@@ -1,65 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: - container-freezer-skip-frozen-cgroups-during-power-management-resume.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:34:26 -0700
-Message-ID: <200810202034.m9KKYQCm010853@imap1.linux-foundation.org>
+Subject: - include-linux-bcdh-remove-comments.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:38:02 -0700
+Message-ID: <200810202038.m9KKc2KW011776@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44181 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43988 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753628AbYJTUff (ORCPT
+	by vger.kernel.org with ESMTP id S1753754AbYJTUqQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:35:35 -0400
+	Mon, 20 Oct 2008 16:46:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthltc@us.ibm.com, clg@fr.ibm.com, rjw@sisk.pl, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     container freezer: skip frozen cgroups during power management resume
+     include/linux/bcd.h: remove comments
 has been removed from the -mm tree.  Its filename was
-     container-freezer-skip-frozen-cgroups-during-power-management-resume.patch
+     include-linux-bcdh-remove-comments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: container freezer: skip frozen cgroups during power management resume
-From: Matt Helsley <matthltc@us.ibm.com>
+Subject: include/linux/bcd.h: remove comments
+From: Adrian Bunk <bunk@kernel.org>
 
-When a system is resumed after a suspend, it will also unfreeze frozen
-cgroups.
+- the macros are gone
+- there's no more code in this file,
+  LGPL + GPL = GPL,
+  and the code that was moved to lib/bcd.c is anyway trivial
 
-This patchs modifies the resume sequence to skip the tasks which are part
-of a frozen control group.
-
-Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
-Signed-off-by: Matt Helsley <matthltc@us.ibm.com>
-Acked-by: Serge E. Hallyn <serue@us.ibm.com>
-Tested-by: Matt Helsley <matthltc@us.ibm.com>
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/process.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/bcd.h |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN kernel/power/process.c~container-freezer-skip-frozen-cgroups-during-power-management-resume kernel/power/process.c
---- a/kernel/power/process.c~container-freezer-skip-frozen-cgroups-during-power-management-resume
-+++ a/kernel/power/process.c
-@@ -135,6 +135,9 @@ static void thaw_tasks(bool nosig_only)
- 		if (nosig_only && should_send_signal(p))
- 			continue;
- 
-+		if (cgroup_frozen(p))
-+			continue;
-+
- 		thaw_process(p);
- 	} while_each_thread(g, p);
- 	read_unlock(&tasklist_lock);
-_
-
-Patches currently in -mm which might be from matthltc@us.ibm.com are
-
-origin.patch
-
+diff -puN include/linux/bcd.h~include-linux-bcdh-remove-comments include/linux/bcd.h
+--- a/include/linux/bcd.h~include-linux-bcdh-remove-comments
++++ a/include/linux/bcd.h
+@@ -1,12 +1,3 @@
+-/* Permission is hereby granted to copy, modify and redistribute this code
+- * in terms of the GNU Library General Public License, Version 2 or later,
+- * at your option.
+- */
+-
+-/* macros to translate to/from binary and binary-coded decimal (frequently
+- * found in RTC chips).
+- */
