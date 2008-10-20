@@ -1,109 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - add-config_core_dump_default_elf_headers.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:36:57 -0700
-Message-ID: <200810202036.m9KKavY4011500@imap1.linux-foundation.org>
+Subject: - drivers-scsi-sr_vendorc-use-bcd2bin.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:37:58 -0700
+Message-ID: <200810202037.m9KKbwuf011755@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36337 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57597 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755186AbYJTUrw (ORCPT
+	by vger.kernel.org with ESMTP id S1754177AbYJTUqp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:47:52 -0400
+	Mon, 20 Oct 2008 16:46:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, davej@redhat.com, hidehiro.kawai.ez@hitachi.com, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, mtk.manpages@googlema
+To: bunk@kernel.org, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS
+     drivers/scsi/sr_vendor.c: use bcd2bin
 has been removed from the -mm tree.  Its filename was
-     add-config_core_dump_default_elf_headers.patch
+     drivers-scsi-sr_vendorc-use-bcd2bin.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS
-From: Roland McGrath <roland@redhat.com>
+Subject: drivers/scsi/sr_vendor.c: use bcd2bin
+From: Adrian Bunk <bunk@kernel.org>
 
-This adds a kconfig option to change the /proc/PID/coredump_filter default.
-Fedora has been carrying a trivial patch to change the hard-wired value for
-this default, since Fedora 8.  The default default can't change safely
-because there are old GDB versions out there (all before 6.7) that are
-confused by the core dump files created by the MMF_DUMP_ELF_HEADERS setting.
+Change sr_vendor.c to use the new bcd2bin function instead of the obsolete
+BCD2BIN macro.
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Kawai Hidehiro <hidehiro.kawai.ez@hitachi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: David Jones <davej@redhat.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig.binfmt     |   22 ++++++++++++++++++++++
- include/linux/sched.h |    8 +++++++-
- 2 files changed, 29 insertions(+), 1 deletion(-)
+ drivers/scsi/sr_vendor.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/Kconfig.binfmt~add-config_core_dump_default_elf_headers fs/Kconfig.binfmt
---- a/fs/Kconfig.binfmt~add-config_core_dump_default_elf_headers
-+++ a/fs/Kconfig.binfmt
-@@ -40,6 +40,28 @@ config BINFMT_ELF_FDPIC
- 
- 	  It is also possible to run FDPIC ELF binaries on MMU linux also.
- 
-+config CORE_DUMP_DEFAULT_ELF_HEADERS
-+	bool "Write ELF core dumps with partial segments"
-+	default n
-+	depends on BINFMT_ELF
-+	help
-+	  ELF core dump files describe each memory mapping of the crashed
-+	  process, and can contain or omit the memory contents of each one.
-+	  The contents of an unmodified text mapping are omitted by default.
-+
-+	  For an unmodified text mapping of an ELF object, including just
-+	  the first page of the file in a core dump makes it possible to
-+	  identify the build ID bits in the file, without paying the i/o
-+	  cost and disk space to dump all the text.  However, versions of
-+	  GDB before 6.7 are confused by ELF core dump files in this format.
-+
-+	  The core dump behavior can be controlled per process using
-+	  the /proc/PID/coredump_filter pseudo-file; this setting is
-+	  inherited.  See Documentation/filesystems/proc.txt for details.
-+
-+	  This config option changes the default setting of coredump_filter
-+	  seen at boot time.  If unsure, say N.
-+
- config BINFMT_FLAT
- 	bool "Kernel support for flat binaries"
- 	depends on !MMU && (!FRV || BROKEN)
-diff -puN include/linux/sched.h~add-config_core_dump_default_elf_headers include/linux/sched.h
---- a/include/linux/sched.h~add-config_core_dump_default_elf_headers
-+++ a/include/linux/sched.h
-@@ -411,7 +411,13 @@ extern int get_dumpable(struct mm_struct
- 	(((1 << MMF_DUMP_FILTER_BITS) - 1) << MMF_DUMP_FILTER_SHIFT)
- #define MMF_DUMP_FILTER_DEFAULT \
- 	((1 << MMF_DUMP_ANON_PRIVATE) |	(1 << MMF_DUMP_ANON_SHARED) |\
--	 (1 << MMF_DUMP_HUGETLB_PRIVATE))
-+	 (1 << MMF_DUMP_HUGETLB_PRIVATE) | MMF_DUMP_MASK_DEFAULT_ELF)
-+
-+#ifdef CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS
-+# define MMF_DUMP_MASK_DEFAULT_ELF	(1 << MMF_DUMP_ELF_HEADERS)
-+#else
-+# define MMF_DUMP_MASK_DEFAULT_ELF	0
-+#endif
- 
- struct sighand_struct {
- 	atomic_t		count;
+diff -puN drivers/scsi/sr_vendor.c~drivers-scsi-sr_vendorc-use-bcd2bin drivers/scsi/sr_vendor.c
+--- a/drivers/scsi/sr_vendor.c~drivers-scsi-sr_vendorc-use-bcd2bin
++++ a/drivers/scsi/sr_vendor.c
+@@ -223,9 +223,9 @@ int sr_cd_check(struct cdrom_device_info
+ 				no_multi = 1;
+ 				break;
+ 			}
+-			min = BCD2BIN(buffer[15]);
+-			sec = BCD2BIN(buffer[16]);
+-			frame = BCD2BIN(buffer[17]);
++			min = bcd2bin(buffer[15]);
++			sec = bcd2bin(buffer[16]);
++			frame = bcd2bin(buffer[17]);
+ 			sector = min * CD_SECS * CD_FRAMES + sec * CD_FRAMES + frame;
+ 			break;
+ 		}
+@@ -252,9 +252,9 @@ int sr_cd_check(struct cdrom_device_info
+ 			}
+ 			if (rc != 0)
+ 				break;
+-			min = BCD2BIN(buffer[1]);
+-			sec = BCD2BIN(buffer[2]);
+-			frame = BCD2BIN(buffer[3]);
++			min = bcd2bin(buffer[1]);
++			sec = bcd2bin(buffer[2]);
++			frame = bcd2bin(buffer[3]);
+ 			sector = min * CD_SECS * CD_FRAMES + sec * CD_FRAMES + frame;
+ 			if (sector)
+ 				sector -= CD_MSF_OFFSET;
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
 linux-next.patch
-posix-timers-simplify-de_thread-exit_itimers-path.patch
+m32r-kernel-smpbootc-must-include-linux-cpuh.patch
+the-overdue-eepro100-removal.patch
+parisc-lib-make-code-static.patch
+drivers-parisc-make-code-static.patch
+if-0-ses_match_host.patch
+drivers-scsi-a2091c-make-2-functions-static.patch
+drivers-scsi-a3000c-make-2-functions-static.patch
+fs_mbcache-dont-needlessly-make-it-built-in.patch
+reiser4.patch
 
