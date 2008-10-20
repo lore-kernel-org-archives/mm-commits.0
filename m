@@ -1,327 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: - mips-use-bcd2bin-bin2bcd.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:37:51 -0700
-Message-ID: <200810202037.m9KKbpaj011729@imap1.linux-foundation.org>
+Subject: - hwmon-pc87360-separate-alarm-files-define-some-constants.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:34:49 -0700
+Message-ID: <200810202034.m9KKYnRd010940@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57016 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38767 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754603AbYJTUqz (ORCPT
+	by vger.kernel.org with ESMTP id S1754596AbYJTUqz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 20 Oct 2008 16:46:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: jim.cromie@gmail.com, khali@linux-fr.org, mhoffman@lightlink.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mips: use bcd2bin/bin2bcd
+     hwmon/pc87360 separate alarm files: define some constants
 has been removed from the -mm tree.  Its filename was
-     mips-use-bcd2bin-bin2bcd.patch
+     hwmon-pc87360-separate-alarm-files-define-some-constants.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mips: use bcd2bin/bin2bcd
-From: Adrian Bunk <bunk@kernel.org>
+Subject: hwmon/pc87360 separate alarm files: define some constants
+From: Jim Cromie <jim.cromie@gmail.com>
 
-Changes mips to use the new bcd2bin/bin2bcd functions instead of the
-obsolete BCD_TO_BIN/BIN_TO_BCD/BCD2BIN/BIN2BCD macros.
+Bring hwmon/pc87360 into agreement with
+Documentation/hwmon/sysfs-interface.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Patchset adds separate limit alarms for voltages and temps, it also adds
+temp[123]_fault files.  On my Soekris, temps 1,2 are unused/unconnected,
+so temp[123]_fault = 1,1,0 respectively.  This agrees with
+/usr/bin/sensors, which has always shown them as OPEN.  Temps 4,5,6 are
+thermistor based, and dont have a fault bit in their status register.
+
+
+This patch:
+
+2 different kinds of constants added:
+- CHAN_ALM_* constants for (later) vin, temp alarm callbacks.
+- CHAN_* conversion constants, used in _init_device, partly for RW1C bits
+
+Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/dec/time.c                   |   18 ++++++-------
- arch/mips/include/asm/mc146818-time.h  |   18 ++++++-------
- arch/mips/pmc-sierra/yosemite/setup.c  |   30 +++++++++++------------
- arch/mips/sibyte/swarm/rtc_m41t81.c    |   26 +++++++++----------
- arch/mips/sibyte/swarm/rtc_xicor1241.c |   26 +++++++++----------
- 5 files changed, 59 insertions(+), 59 deletions(-)
+ drivers/hwmon/pc87360.c |   33 ++++++++++++++++++++++-----------
+ 1 file changed, 22 insertions(+), 11 deletions(-)
 
-diff -puN arch/mips/dec/time.c~mips-use-bcd2bin-bin2bcd arch/mips/dec/time.c
---- a/arch/mips/dec/time.c~mips-use-bcd2bin-bin2bcd
-+++ a/arch/mips/dec/time.c
-@@ -45,12 +45,12 @@ unsigned long read_persistent_clock(void
- 	spin_unlock_irqrestore(&rtc_lock, flags);
+diff -puN drivers/hwmon/pc87360.c~hwmon-pc87360-separate-alarm-files-define-some-constants drivers/hwmon/pc87360.c
+--- a/drivers/hwmon/pc87360.c~hwmon-pc87360-separate-alarm-files-define-some-constants
++++ a/drivers/hwmon/pc87360.c
+@@ -489,6 +489,11 @@ static struct sensor_device_attribute in
+ 	SENSOR_ATTR(in10_max, S_IWUSR | S_IRUGO, show_in_max, set_in_max, 10),
+ };
  
- 	if (!(CMOS_READ(RTC_CONTROL) & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--		sec = BCD2BIN(sec);
--		min = BCD2BIN(min);
--		hour = BCD2BIN(hour);
--		day = BCD2BIN(day);
--		mon = BCD2BIN(mon);
--		year = BCD2BIN(year);
-+		sec = bcd2bin(sec);
-+		min = bcd2bin(min);
-+		hour = bcd2bin(hour);
-+		day = bcd2bin(day);
-+		mon = bcd2bin(mon);
-+		year = bcd2bin(year);
++/* (temp & vin) channel status register alarm bits (pdf sec.11.5.12) */
++#define CHAN_ALM_MIN	0x02	/* min limit crossed */
++#define CHAN_ALM_MAX	0x04	/* max limit exceeded */
++#define TEMP_ALM_CRIT	0x08	/* temp crit exceeded (temp only) */
++
+ #define VIN_UNIT_ATTRS(X) \
+ 	&in_input[X].dev_attr.attr,	\
+ 	&in_status[X].dev_attr.attr,	\
+@@ -1131,6 +1136,12 @@ static void pc87360_write_value(struct p
+ 	mutex_unlock(&(data->lock));
+ }
+ 
++/* (temp & vin) channel conversion status register flags (pdf sec.11.5.12) */
++#define CHAN_CNVRTD	0x80	/* new data ready */
++#define CHAN_ENA	0x01	/* enabled channel (temp or vin) */
++#define CHAN_ALM_ENA	0x10	/* propagate to alarms-reg ?? (chk val!) */
++#define CHAN_READY	(CHAN_ENA|CHAN_CNVRTD) /* sample ready mask */
++
+ static void pc87360_init_device(struct platform_device *pdev,
+ 				int use_thermistors)
+ {
+@@ -1156,7 +1167,7 @@ static void pc87360_init_device(struct p
+ 			/* Forcibly enable voltage channel */
+ 			reg = pc87360_read_value(data, LD_IN, i,
+ 						 PC87365_REG_IN_STATUS);
+-			if (!(reg & 0x01)) {
++			if (!(reg & CHAN_ENA)) {
+ 				dev_dbg(&pdev->dev, "Forcibly "
+ 					"enabling in%d\n", i);
+ 				pc87360_write_value(data, LD_IN, i,
+@@ -1171,7 +1182,7 @@ static void pc87360_init_device(struct p
+ 	for (i = 11; i < data->innr; i++) {
+ 		reg = pc87360_read_value(data, LD_IN, i,
+ 					 PC87365_REG_TEMP_STATUS);
+-		use_thermistors = use_thermistors || (reg & 0x01);
++		use_thermistors = use_thermistors || (reg & CHAN_ENA);
  	}
  
- 	year += real_year - 72 + 2000;
-@@ -83,7 +83,7 @@ int rtc_mips_set_mmss(unsigned long nowt
- 
- 	cmos_minutes = CMOS_READ(RTC_MINUTES);
- 	if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
--		cmos_minutes = BCD2BIN(cmos_minutes);
-+		cmos_minutes = bcd2bin(cmos_minutes);
- 
- 	/*
- 	 * since we're only adjusting minutes and seconds,
-@@ -99,8 +99,8 @@ int rtc_mips_set_mmss(unsigned long nowt
- 
- 	if (abs(real_minutes - cmos_minutes) < 30) {
- 		if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--			real_seconds = BIN2BCD(real_seconds);
--			real_minutes = BIN2BCD(real_minutes);
-+			real_seconds = bin2bcd(real_seconds);
-+			real_minutes = bin2bcd(real_minutes);
- 		}
- 		CMOS_WRITE(real_seconds, RTC_SECONDS);
- 		CMOS_WRITE(real_minutes, RTC_MINUTES);
-diff -puN arch/mips/include/asm/mc146818-time.h~mips-use-bcd2bin-bin2bcd arch/mips/include/asm/mc146818-time.h
---- a/arch/mips/include/asm/mc146818-time.h~mips-use-bcd2bin-bin2bcd
-+++ a/arch/mips/include/asm/mc146818-time.h
-@@ -44,7 +44,7 @@ static inline int mc146818_set_rtc_mmss(
- 
- 	cmos_minutes = CMOS_READ(RTC_MINUTES);
- 	if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD)
--		BCD_TO_BIN(cmos_minutes);
-+		cmos_minutes = bcd2bin(cmos_minutes);
- 
- 	/*
- 	 * since we're only adjusting minutes and seconds,
-@@ -60,8 +60,8 @@ static inline int mc146818_set_rtc_mmss(
- 
- 	if (abs(real_minutes - cmos_minutes) < 30) {
- 		if (!(save_control & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--			BIN_TO_BCD(real_seconds);
--			BIN_TO_BCD(real_minutes);
-+			real_seconds = bin2bcd(real_seconds);
-+			real_minutes = bin2bcd(real_minutes);
- 		}
- 		CMOS_WRITE(real_seconds, RTC_SECONDS);
- 		CMOS_WRITE(real_minutes, RTC_MINUTES);
-@@ -103,12 +103,12 @@ static inline unsigned long mc146818_get
- 	} while (sec != CMOS_READ(RTC_SECONDS));
- 
- 	if (!(CMOS_READ(RTC_CONTROL) & RTC_DM_BINARY) || RTC_ALWAYS_BCD) {
--		BCD_TO_BIN(sec);
--		BCD_TO_BIN(min);
--		BCD_TO_BIN(hour);
--		BCD_TO_BIN(day);
--		BCD_TO_BIN(mon);
--		BCD_TO_BIN(year);
-+		sec = bcd2bin(sec);
-+		min = bcd2bin(min);
-+		hour = bcd2bin(hour);
-+		day = bcd2bin(day);
-+		mon = bcd2bin(mon);
-+		year = bcd2bin(year);
- 	}
- 	spin_unlock_irqrestore(&rtc_lock, flags);
- 	year = mc146818_decode_year(year);
-diff -puN arch/mips/pmc-sierra/yosemite/setup.c~mips-use-bcd2bin-bin2bcd arch/mips/pmc-sierra/yosemite/setup.c
---- a/arch/mips/pmc-sierra/yosemite/setup.c~mips-use-bcd2bin-bin2bcd
-+++ a/arch/mips/pmc-sierra/yosemite/setup.c
-@@ -79,14 +79,14 @@ unsigned long read_persistent_clock(void
- 	/* Stop the update to the time */
- 	m48t37_base->control = 0x40;
- 
--	year = BCD2BIN(m48t37_base->year);
--	year += BCD2BIN(m48t37_base->century) * 100;
-+	year = bcd2bin(m48t37_base->year);
-+	year += bcd2bin(m48t37_base->century) * 100;
- 
--	month = BCD2BIN(m48t37_base->month);
--	day = BCD2BIN(m48t37_base->date);
--	hour = BCD2BIN(m48t37_base->hour);
--	min = BCD2BIN(m48t37_base->min);
--	sec = BCD2BIN(m48t37_base->sec);
-+	month = bcd2bin(m48t37_base->month);
-+	day = bcd2bin(m48t37_base->date);
-+	hour = bcd2bin(m48t37_base->hour);
-+	min = bcd2bin(m48t37_base->min);
-+	sec = bcd2bin(m48t37_base->sec);
- 
- 	/* Start the update to the time again */
- 	m48t37_base->control = 0x00;
-@@ -113,22 +113,22 @@ int rtc_mips_set_time(unsigned long tim)
- 	m48t37_base->control = 0x80;
- 
- 	/* year */
--	m48t37_base->year = BIN2BCD(tm.tm_year % 100);
--	m48t37_base->century = BIN2BCD(tm.tm_year / 100);
-+	m48t37_base->year = bin2bcd(tm.tm_year % 100);
-+	m48t37_base->century = bin2bcd(tm.tm_year / 100);
- 
- 	/* month */
--	m48t37_base->month = BIN2BCD(tm.tm_mon);
-+	m48t37_base->month = bin2bcd(tm.tm_mon);
- 
- 	/* day */
--	m48t37_base->date = BIN2BCD(tm.tm_mday);
-+	m48t37_base->date = bin2bcd(tm.tm_mday);
- 
- 	/* hour/min/sec */
--	m48t37_base->hour = BIN2BCD(tm.tm_hour);
--	m48t37_base->min = BIN2BCD(tm.tm_min);
--	m48t37_base->sec = BIN2BCD(tm.tm_sec);
-+	m48t37_base->hour = bin2bcd(tm.tm_hour);
-+	m48t37_base->min = bin2bcd(tm.tm_min);
-+	m48t37_base->sec = bin2bcd(tm.tm_sec);
- 
- 	/* day of week -- not really used, but let's keep it up-to-date */
--	m48t37_base->day = BIN2BCD(tm.tm_wday + 1);
-+	m48t37_base->day = bin2bcd(tm.tm_wday + 1);
- 
- 	/* disable writing */
- 	m48t37_base->control = 0x00;
-diff -puN arch/mips/sibyte/swarm/rtc_m41t81.c~mips-use-bcd2bin-bin2bcd arch/mips/sibyte/swarm/rtc_m41t81.c
---- a/arch/mips/sibyte/swarm/rtc_m41t81.c~mips-use-bcd2bin-bin2bcd
-+++ a/arch/mips/sibyte/swarm/rtc_m41t81.c
-@@ -156,32 +156,32 @@ int m41t81_set_time(unsigned long t)
- 	 */
- 
- 	spin_lock_irqsave(&rtc_lock, flags);
--	tm.tm_sec = BIN2BCD(tm.tm_sec);
-+	tm.tm_sec = bin2bcd(tm.tm_sec);
- 	m41t81_write(M41T81REG_SC, tm.tm_sec);
- 
--	tm.tm_min = BIN2BCD(tm.tm_min);
-+	tm.tm_min = bin2bcd(tm.tm_min);
- 	m41t81_write(M41T81REG_MN, tm.tm_min);
- 
--	tm.tm_hour = BIN2BCD(tm.tm_hour);
-+	tm.tm_hour = bin2bcd(tm.tm_hour);
- 	tm.tm_hour = (tm.tm_hour & 0x3f) | (m41t81_read(M41T81REG_HR) & 0xc0);
- 	m41t81_write(M41T81REG_HR, tm.tm_hour);
- 
- 	/* tm_wday starts from 0 to 6 */
- 	if (tm.tm_wday == 0) tm.tm_wday = 7;
--	tm.tm_wday = BIN2BCD(tm.tm_wday);
-+	tm.tm_wday = bin2bcd(tm.tm_wday);
- 	m41t81_write(M41T81REG_DY, tm.tm_wday);
- 
--	tm.tm_mday = BIN2BCD(tm.tm_mday);
-+	tm.tm_mday = bin2bcd(tm.tm_mday);
- 	m41t81_write(M41T81REG_DT, tm.tm_mday);
- 
- 	/* tm_mon starts from 0, *ick* */
- 	tm.tm_mon ++;
--	tm.tm_mon = BIN2BCD(tm.tm_mon);
-+	tm.tm_mon = bin2bcd(tm.tm_mon);
- 	m41t81_write(M41T81REG_MO, tm.tm_mon);
- 
- 	/* we don't do century, everything is beyond 2000 */
- 	tm.tm_year %= 100;
--	tm.tm_year = BIN2BCD(tm.tm_year);
-+	tm.tm_year = bin2bcd(tm.tm_year);
- 	m41t81_write(M41T81REG_YR, tm.tm_year);
- 	spin_unlock_irqrestore(&rtc_lock, flags);
- 
-@@ -209,12 +209,12 @@ unsigned long m41t81_get_time(void)
- 	year = m41t81_read(M41T81REG_YR);
- 	spin_unlock_irqrestore(&rtc_lock, flags);
- 
--	sec = BCD2BIN(sec);
--	min = BCD2BIN(min);
--	hour = BCD2BIN(hour);
--	day = BCD2BIN(day);
--	mon = BCD2BIN(mon);
--	year = BCD2BIN(year);
-+	sec = bcd2bin(sec);
-+	min = bcd2bin(min);
-+	hour = bcd2bin(hour);
-+	day = bcd2bin(day);
-+	mon = bcd2bin(mon);
-+	year = bcd2bin(year);
- 
- 	year += 2000;
- 
-diff -puN arch/mips/sibyte/swarm/rtc_xicor1241.c~mips-use-bcd2bin-bin2bcd arch/mips/sibyte/swarm/rtc_xicor1241.c
---- a/arch/mips/sibyte/swarm/rtc_xicor1241.c~mips-use-bcd2bin-bin2bcd
-+++ a/arch/mips/sibyte/swarm/rtc_xicor1241.c
-@@ -124,18 +124,18 @@ int xicor_set_time(unsigned long t)
- 	xicor_write(X1241REG_SR, X1241REG_SR_WEL | X1241REG_SR_RWEL);
- 
- 	/* trivial ones */
--	tm.tm_sec = BIN2BCD(tm.tm_sec);
-+	tm.tm_sec = bin2bcd(tm.tm_sec);
- 	xicor_write(X1241REG_SC, tm.tm_sec);
- 
--	tm.tm_min = BIN2BCD(tm.tm_min);
-+	tm.tm_min = bin2bcd(tm.tm_min);
- 	xicor_write(X1241REG_MN, tm.tm_min);
- 
--	tm.tm_mday = BIN2BCD(tm.tm_mday);
-+	tm.tm_mday = bin2bcd(tm.tm_mday);
- 	xicor_write(X1241REG_DT, tm.tm_mday);
- 
- 	/* tm_mon starts from 0, *ick* */
- 	tm.tm_mon ++;
--	tm.tm_mon = BIN2BCD(tm.tm_mon);
-+	tm.tm_mon = bin2bcd(tm.tm_mon);
- 	xicor_write(X1241REG_MO, tm.tm_mon);
- 
- 	/* year is split */
-@@ -148,7 +148,7 @@ int xicor_set_time(unsigned long t)
- 	tmp = xicor_read(X1241REG_HR);
- 	if (tmp & X1241REG_HR_MIL) {
- 		/* 24 hour format */
--		tm.tm_hour = BIN2BCD(tm.tm_hour);
-+		tm.tm_hour = bin2bcd(tm.tm_hour);
- 		tmp = (tmp & ~0x3f) | (tm.tm_hour & 0x3f);
- 	} else {
- 		/* 12 hour format, with 0x2 for pm */
-@@ -157,7 +157,7 @@ int xicor_set_time(unsigned long t)
- 			tmp |= 0x20;
- 			tm.tm_hour -= 12;
- 		}
--		tm.tm_hour = BIN2BCD(tm.tm_hour);
-+		tm.tm_hour = bin2bcd(tm.tm_hour);
- 		tmp |= tm.tm_hour;
- 	}
- 	xicor_write(X1241REG_HR, tmp);
-@@ -191,13 +191,13 @@ unsigned long xicor_get_time(void)
- 	y2k = xicor_read(X1241REG_Y2K);
- 	spin_unlock_irqrestore(&rtc_lock, flags);
- 
--	sec = BCD2BIN(sec);
--	min = BCD2BIN(min);
--	hour = BCD2BIN(hour);
--	day = BCD2BIN(day);
--	mon = BCD2BIN(mon);
--	year = BCD2BIN(year);
--	y2k = BCD2BIN(y2k);
-+	sec = bcd2bin(sec);
-+	min = bcd2bin(min);
-+	hour = bcd2bin(hour);
-+	day = bcd2bin(day);
-+	mon = bcd2bin(mon);
-+	year = bcd2bin(year);
-+	y2k = bcd2bin(y2k);
- 
- 	year += (y2k * 100);
- 
+ 	i = use_thermistors ? 2 : 0;
+@@ -1180,7 +1191,7 @@ static void pc87360_init_device(struct p
+ 			/* Forcibly enable temperature channel */
+ 			reg = pc87360_read_value(data, LD_TEMP, i,
+ 						 PC87365_REG_TEMP_STATUS);
+-			if (!(reg & 0x01)) {
++			if (!(reg & CHAN_ENA)) {
+ 				dev_dbg(&pdev->dev, "Forcibly "
+ 					"enabling temp%d\n", i+1);
+ 				pc87360_write_value(data, LD_TEMP, i,
+@@ -1197,7 +1208,7 @@ static void pc87360_init_device(struct p
+ 				   diodes */
+ 				reg = pc87360_read_value(data, LD_TEMP,
+ 				      (i-11)/2, PC87365_REG_TEMP_STATUS);
+-				if (reg & 0x01) {
++				if (reg & CHAN_ENA) {
+ 					dev_dbg(&pdev->dev, "Skipping "
+ 						"temp%d, pin already in use "
+ 						"by temp%d\n", i-7, (i-11)/2);
+@@ -1207,7 +1218,7 @@ static void pc87360_init_device(struct p
+ 				/* Forcibly enable thermistor channel */
+ 				reg = pc87360_read_value(data, LD_IN, i,
+ 							 PC87365_REG_IN_STATUS);
+-				if (!(reg & 0x01)) {
++				if (!(reg & CHAN_ENA)) {
+ 					dev_dbg(&pdev->dev, "Forcibly "
+ 						"enabling temp%d\n", i-7);
+ 					pc87360_write_value(data, LD_IN, i,
+@@ -1221,7 +1232,7 @@ static void pc87360_init_device(struct p
+ 	if (data->innr) {
+ 		reg = pc87360_read_value(data, LD_IN, NO_BANK,
+ 					 PC87365_REG_IN_CONFIG);
+-		if (reg & 0x01) {
++		if (reg & CHAN_ENA) {
+ 			dev_dbg(&pdev->dev, "Forcibly "
+ 				"enabling monitoring (VLM)\n");
+ 			pc87360_write_value(data, LD_IN, NO_BANK,
+@@ -1233,7 +1244,7 @@ static void pc87360_init_device(struct p
+ 	if (data->tempnr) {
+ 		reg = pc87360_read_value(data, LD_TEMP, NO_BANK,
+ 					 PC87365_REG_TEMP_CONFIG);
+-		if (reg & 0x01) {
++		if (reg & CHAN_ENA) {
+ 			dev_dbg(&pdev->dev, "Forcibly enabling "
+ 				"monitoring (TMS)\n");
+ 			pc87360_write_value(data, LD_TEMP, NO_BANK,
+@@ -1336,11 +1347,11 @@ static struct pc87360_data *pc87360_upda
+ 			pc87360_write_value(data, LD_IN, i,
+ 					    PC87365_REG_IN_STATUS,
+ 					    data->in_status[i]);
+-			if ((data->in_status[i] & 0x81) == 0x81) {
++			if ((data->in_status[i] & CHAN_READY) == CHAN_READY) {
+ 				data->in[i] = pc87360_read_value(data, LD_IN,
+ 					      i, PC87365_REG_IN);
+ 			}
+-			if (data->in_status[i] & 0x01) {
++			if (data->in_status[i] & CHAN_ENA) {
+ 				data->in_min[i] = pc87360_read_value(data,
+ 						  LD_IN, i,
+ 						  PC87365_REG_IN_MIN);
+@@ -1373,12 +1384,12 @@ static struct pc87360_data *pc87360_upda
+ 			pc87360_write_value(data, LD_TEMP, i,
+ 					    PC87365_REG_TEMP_STATUS,
+ 					    data->temp_status[i]);
+-			if ((data->temp_status[i] & 0x81) == 0x81) {
++			if ((data->temp_status[i] & CHAN_READY) == CHAN_READY) {
+ 				data->temp[i] = pc87360_read_value(data,
+ 						LD_TEMP, i,
+ 						PC87365_REG_TEMP);
+ 			}
+-			if (data->temp_status[i] & 0x01) {
++			if (data->temp_status[i] & CHAN_ENA) {
+ 				data->temp_min[i] = pc87360_read_value(data,
+ 						    LD_TEMP, i,
+ 						    PC87365_REG_TEMP_MIN);
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from jim.cromie@gmail.com are
 
 origin.patch
-linux-next.patch
-m32r-kernel-smpbootc-must-include-linux-cpuh.patch
-the-overdue-eepro100-removal.patch
-parisc-lib-make-code-static.patch
-drivers-parisc-make-code-static.patch
-if-0-ses_match_host.patch
-drivers-scsi-a2091c-make-2-functions-static.patch
-drivers-scsi-a3000c-make-2-functions-static.patch
-fs_mbcache-dont-needlessly-make-it-built-in.patch
-reiser4.patch
 
