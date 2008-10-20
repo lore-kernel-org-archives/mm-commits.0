@@ -1,84 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + viafb-removed-duplicated-includes.patch added to -mm tree
-Date: Mon, 20 Oct 2008 14:44:53 -0700
-Message-ID: <200810202144.m9KLirCZ023511@imap1.linux-foundation.org>
+Subject: - char-sx-remove-bogus-iomap.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:35:24 -0700
+Message-ID: <200810202035.m9KKZOFJ011143@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41230 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32884 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753036AbYJTVo4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752372AbYJTUlF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 17:44:56 -0400
+	Mon, 20 Oct 2008 16:41:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: weiyi.huang@gmail.com, josephchan@via.com.tw
+To: jirislaby@gmail.com, R.E.Wolff@BitWizard.nl, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     viafb: removed duplicated #include's
-has been added to the -mm tree.  Its filename is
-     viafb-removed-duplicated-includes.patch
+     Char: sx, remove bogus iomap
+has been removed from the -mm tree.  Its filename was
+     char-sx-remove-bogus-iomap.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: viafb: removed duplicated #include's
-From: Huang Weiyi <weiyi.huang@gmail.com>
+Subject: Char: sx, remove bogus iomap
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Removed duplicated #include's in drivers/video/via/global.h.
-  debug.h
-  viafbdev.h
-  viamode.h
+readl/writel are not expected to accept iomap return value. Replace
+bogus mapping by standard ioremap.
 
-Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
-Cc: Joseph Chan <josephchan@via.com.tw>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: <R.E.Wolff@BitWizard.nl>
+Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/via/global.h |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/char/sx.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/via/global.h~viafb-removed-duplicated-includes drivers/video/via/global.h
---- a/drivers/video/via/global.h~viafb-removed-duplicated-includes
-+++ a/drivers/video/via/global.h
-@@ -38,7 +38,6 @@
- #include "iface.h"
- #include "viafbdev.h"
- #include "chip.h"
--#include "debug.h"
- #include "accel.h"
- #include "share.h"
- #include "dvi.h"
-@@ -48,12 +47,10 @@
+diff -puN drivers/char/sx.c~char-sx-remove-bogus-iomap drivers/char/sx.c
+--- a/drivers/char/sx.c~char-sx-remove-bogus-iomap
++++ a/drivers/char/sx.c
+@@ -2504,7 +2504,7 @@ static void __devexit sx_remove_card(str
+ 		del_timer(&board->timer);
+ 		if (pdev) {
+ #ifdef CONFIG_PCI
+-			pci_iounmap(pdev, board->base2);
++			iounmap(board->base2);
+ 			pci_release_region(pdev, IS_CF_BOARD(board) ? 3 : 2);
+ #endif
+ 		} else {
+@@ -2677,7 +2677,7 @@ static int __devinit sx_pci_probe(struct
+ 	}
+ 	board->hw_base = pci_resource_start(pdev, reg);
+ 	board->base2 =
+-	board->base = pci_iomap(pdev, reg, WINDOW_LEN(board));
++	board->base = ioremap_nocache(board->hw_base, WINDOW_LEN(board));
+ 	if (!board->base) {
+ 		dev_err(&pdev->dev, "ioremap failed\n");
+ 		goto err_reg;
+@@ -2703,7 +2703,7 @@ static int __devinit sx_pci_probe(struct
  
- #include "lcd.h"
- #include "ioctl.h"
--#include "viamode.h"
- #include "via_utility.h"
- #include "vt1636.h"
- #include "tblDPASetting.h"
- #include "tbl1636.h"
--#include "viafbdev.h"
- 
- /* External struct*/
- 
+ 	return 0;
+ err_unmap:
+-	pci_iounmap(pdev, board->base2);
++	iounmap(board->base2);
+ err_reg:
+ 	pci_release_region(pdev, reg);
+ err_flag:
 _
 
-Patches currently in -mm which might be from weiyi.huang@gmail.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-viafb-removed-duplicated-includes.patch
 linux-next.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
