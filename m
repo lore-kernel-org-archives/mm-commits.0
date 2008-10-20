@@ -1,933 +1,665 @@
 From: akpm@linux-foundation.org
-Subject: - mmc-add-gpio-based-mmc-sd-driver.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:55:33 -0700
-Message-ID: <200810202055.m9KKtXYV014909@imap1.linux-foundation.org>
+Subject: - doc-unevictable-lru-and-mlocked-pages-documentation.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:33:05 -0700
+Message-ID: <200810202033.m9KKX5XL010555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33086 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37726 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752418AbYJTU4W (ORCPT
+	by vger.kernel.org with ESMTP id S1753453AbYJTUd4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:56:22 -0400
+	Mon, 20 Oct 2008 16:33:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mb@bu3sch.de, david-b@pacbell.net, drzeus-list@drzeus.cx, mm-commits@vger.kernel.org
+To: lee.schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: add GPIO-based MMC/SD driver
+     doc: unevictable LRU and mlocked pages documentation
 has been removed from the -mm tree.  Its filename was
-     mmc-add-gpio-based-mmc-sd-driver.patch
+     doc-unevictable-lru-and-mlocked-pages-documentation.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: add GPIO-based MMC/SD driver
-From: Michael Buesch <mb@bu3sch.de>
+Subject: doc: unevictable LRU and mlocked pages documentation
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-This driver hooks up the mmc_spi and spi_gpio modules so that MMC/SD cards
-can be used on a GPIO based bus by bitbanging the SPI protocol in
-software.
+Documentation for unevictable lru list and its usage.
 
-This driver provides a sysfs interface to dynamically create and destroy
-GPIO-based MMC/SD card interfaces.  It also provides a platform device
-interface API.  See Documentation/gpiommc.txt for details.
-
-Signed-off-by: Michael Buesch <mb@bu3sch.de>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Pierre Ossman <drzeus-list@drzeus.cx>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/configfs-gpiommc |    9 
- Documentation/gpiommc.txt                  |   97 ++
- MAINTAINERS                                |    5 
- drivers/mmc/host/Kconfig                   |   25 
- drivers/mmc/host/Makefile                  |    2 
- drivers/mmc/host/gpiommc.c                 |  622 +++++++++++++++++++
- include/linux/mmc/gpiommc.h                |   71 ++
- 7 files changed, 830 insertions(+), 1 deletion(-)
+ Documentation/vm/unevictable-lru.txt |  615 +++++++++++++++++++++++++
+ 1 file changed, 615 insertions(+)
 
-diff -puN /dev/null Documentation/gpiommc.txt
+diff -puN /dev/null Documentation/vm/unevictable-lru.txt
 --- /dev/null
-+++ a/Documentation/gpiommc.txt
-@@ -0,0 +1,97 @@
-+GPIOMMC - Driver for an MMC/SD card on a bitbanging GPIO SPI bus
-+================================================================
++++ a/Documentation/vm/unevictable-lru.txt
+@@ -0,0 +1,615 @@
++
++This document describes the Linux memory management "Unevictable LRU"
++infrastructure and the use of this infrastructure to manage several types
++of "unevictable" pages.  The document attempts to provide the overall
++rationale behind this mechanism and the rationale for some of the design
++decisions that drove the implementation.  The latter design rationale is
++discussed in the context of an implementation description.  Admittedly, one
++can obtain the implementation details--the "what does it do?"--by reading the
++code.  One hopes that the descriptions below add value by provide the answer
++to "why does it do that?".
++
++Unevictable LRU Infrastructure:
++
++The Unevictable LRU adds an additional LRU list to track unevictable pages
++and to hide these pages from vmscan.  This mechanism is based on a patch by
++Larry Woodman of Red Hat to address several scalability problems with page
++reclaim in Linux.  The problems have been observed at customer sites on large
++memory x86_64 systems.  For example, a non-numal x86_64 platform with 128GB
++of main memory will have over 32 million 4k pages in a single zone.  When a
++large fraction of these pages are not evictable for any reason [see below],
++vmscan will spend a lot of time scanning the LRU lists looking for the small
++fraction of pages that are evictable.  This can result in a situation where
++all cpus are spending 100% of their time in vmscan for hours or days on end,
++with the system completely unresponsive.
++
++The Unevictable LRU infrastructure addresses the following classes of
++unevictable pages:
++
+++ page owned by ramfs
+++ page mapped into SHM_LOCKed shared memory regions
+++ page mapped into VM_LOCKED [mlock()ed] vmas
++
++The infrastructure might be able to handle other conditions that make pages
++unevictable, either by definition or by circumstance, in the future.
++
++
++The Unevictable LRU List
++
++The Unevictable LRU infrastructure consists of an additional, per-zone, LRU list
++called the "unevictable" list and an associated page flag, PG_unevictable, to
++indicate that the page is being managed on the unevictable list.  The
++PG_unevictable flag is analogous to, and mutually exclusive with, the PG_active
++flag in that it indicates on which LRU list a page resides when PG_lru is set.
++The unevictable LRU list is source configurable based on the UNEVICTABLE_LRU
++Kconfig option.
++
++The Unevictable LRU infrastructure maintains unevictable pages on an additional
++LRU list for a few reasons:
++
++1) We get to "treat unevictable pages just like we treat other pages in the
++   system, which means we get to use the same code to manipulate them, the
++   same code to isolate them (for migrate, etc.), the same code to keep track
++   of the statistics, etc..." [Rik van Riel]
++
++2) We want to be able to migrate unevictable pages between nodes--for memory
++   defragmentation, workload management and memory hotplug.  The linux kernel
++   can only migrate pages that it can successfully isolate from the lru lists.
++   If we were to maintain pages elsewise than on an lru-like list, where they
++   can be found by isolate_lru_page(), we would prevent their migration, unless
++   we reworked migration code to find the unevictable pages.
++
++
++The unevictable LRU list does not differentiate between file backed and swap
++backed [anon] pages.  This differentiation is only important while the pages
++are, in fact, evictable.
++
++The unevictable LRU list benefits from the "arrayification" of the per-zone
++LRU lists and statistics originally proposed and posted by Christoph Lameter.
++
++The unevictable list does not use the lru pagevec mechanism. Rather,
++unevictable pages are placed directly on the page's zone's unevictable
++list under the zone lru_lock.  The reason for this is to prevent stranding
++of pages on the unevictable list when one task has the page isolated from the
++lru and other tasks are changing the "evictability" state of the page.
++
++
++Unevictable LRU and Memory Controller Interaction
++
++The memory controller data structure automatically gets a per zone unevictable
++lru list as a result of the "arrayification" of the per-zone LRU lists.  The
++memory controller tracks the movement of pages to and from the unevictable list.
++When a memory control group comes under memory pressure, the controller will
++not attempt to reclaim pages on the unevictable list.  This has a couple of
++effects.  Because the pages are "hidden" from reclaim on the unevictable list,
++the reclaim process can be more efficient, dealing only with pages that have
++a chance of being reclaimed.  On the other hand, if too many of the pages
++charged to the control group are unevictable, the evictable portion of the
++working set of the tasks in the control group may not fit into the available
++memory.  This can cause the control group to thrash or to oom-kill tasks.
++
++
++Unevictable LRU:  Detecting Unevictable Pages
++
++The function page_evictable(page, vma) in vmscan.c determines whether a
++page is evictable or not.  For ramfs pages and pages in SHM_LOCKed regions,
++page_evictable() tests a new address space flag, AS_UNEVICTABLE, in the page's
++address space using a wrapper function.  Wrapper functions are used to set,
++clear and test the flag to reduce the requirement for #ifdef's throughout the
++source code.  AS_UNEVICTABLE is set on ramfs inode/mapping when it is created.
++This flag remains for the life of the inode.
++
++For shared memory regions, AS_UNEVICTABLE is set when an application
++successfully SHM_LOCKs the region and is removed when the region is
++SHM_UNLOCKed.  Note that shmctl(SHM_LOCK, ...) does not populate the page
++tables for the region as does, for example, mlock().   So, we make no special
++effort to push any pages in the SHM_LOCKed region to the unevictable list.
++Vmscan will do this when/if it encounters the pages during reclaim.  On
++SHM_UNLOCK, shmctl() scans the pages in the region and "rescues" them from the
++unevictable list if no other condition keeps them unevictable.  If a SHM_LOCKed
++region is destroyed, the pages are also "rescued" from the unevictable list in
++the process of freeing them.
++
++page_evictable() detects mlock()ed pages by testing an additional page flag,
++PG_mlocked via the PageMlocked() wrapper.  If the page is NOT mlocked, and a
++non-NULL vma is supplied, page_evictable() will check whether the vma is
++VM_LOCKED via is_mlocked_vma().  is_mlocked_vma() will SetPageMlocked() and
++update the appropriate statistics if the vma is VM_LOCKED.  This method allows
++efficient "culling" of pages in the fault path that are being faulted in to
++VM_LOCKED vmas.
++
++
++Unevictable Pages and Vmscan [shrink_*_list()]
++
++If unevictable pages are culled in the fault path, or moved to the unevictable
++list at mlock() or mmap() time, vmscan will never encounter the pages until
++they have become evictable again, for example, via munlock() and have been
++"rescued" from the unevictable list.  However, there may be situations where we
++decide, for the sake of expediency, to leave a unevictable page on one of the
++regular active/inactive LRU lists for vmscan to deal with.  Vmscan checks for
++such pages in all of the shrink_{active|inactive|page}_list() functions and
++will "cull" such pages that it encounters--that is, it diverts those pages to
++the unevictable list for the zone being scanned.
++
++There may be situations where a page is mapped into a VM_LOCKED vma, but the
++page is not marked as PageMlocked.  Such pages will make it all the way to
++shrink_page_list() where they will be detected when vmscan walks the reverse
++map in try_to_unmap().  If try_to_unmap() returns SWAP_MLOCK, shrink_page_list()
++will cull the page at that point.
++
++Note that for anonymous pages, shrink_page_list() attempts to add the page to
++the swap cache before it tries to unmap the page.  To avoid this unnecessary
++consumption of swap space, shrink_page_list() calls try_to_munlock() to check
++whether any VM_LOCKED vmas map the page without attempting to unmap the page.
++If try_to_munlock() returns SWAP_MLOCK, shrink_page_list() will cull the page
++without consuming swap space.  try_to_munlock() will be described below.
++
++To "cull" an unevictable page, vmscan simply puts the page back on the lru
++list using putback_lru_page()--the inverse operation to isolate_lru_page()--
++after dropping the page lock.  Because the condition which makes the page
++unevictable may change once the page is unlocked, putback_lru_page() will
++recheck the unevictable state of a page that it places on the unevictable lru
++list.  If the page has become unevictable, putback_lru_page() removes it from
++the list and retries, including the page_unevictable() test.  Because such a
++race is a rare event and movement of pages onto the unevictable list should be
++rare, these extra evictabilty checks should not occur in the majority of calls
++to putback_lru_page().
++
++
++Mlocked Page:  Prior Work
++
++The "Unevictable Mlocked Pages" infrastructure is based on work originally
++posted by Nick Piggin in an RFC patch entitled "mm: mlocked pages off LRU".
++Nick posted his patch as an alternative to a patch posted by Christoph
++Lameter to achieve the same objective--hiding mlocked pages from vmscan.
++In Nick's patch, he used one of the struct page lru list link fields as a count
++of VM_LOCKED vmas that map the page.  This use of the link field for a count
++prevented the management of the pages on an LRU list.  Thus, mlocked pages were
++not migratable as isolate_lru_page() could not find them and the lru list link
++field was not available to the migration subsystem.  Nick resolved this by
++putting mlocked pages back on the lru list before attempting to isolate them,
++thus abandoning the count of VM_LOCKED vmas.  When Nick's patch was integrated
++with the Unevictable LRU work, the count was replaced by walking the reverse
++map to determine whether any VM_LOCKED vmas mapped the page.  More on this
++below.
++
++
++Mlocked Pages:  Basic Management
++
++Mlocked pages--pages mapped into a VM_LOCKED vma--represent one class of
++unevictable pages.  When such a page has been "noticed" by the memory
++management subsystem, the page is marked with the PG_mlocked [PageMlocked()]
++flag.  A PageMlocked() page will be placed on the unevictable LRU list when
++it is added to the LRU.   Pages can be "noticed" by memory management in
++several places:
++
++1) in the mlock()/mlockall() system call handlers.
++2) in the mmap() system call handler when mmap()ing a region with the
++   MAP_LOCKED flag, or mmap()ing a region in a task that has called
++   mlockall() with the MCL_FUTURE flag.  Both of these conditions result
++   in the VM_LOCKED flag being set for the vma.
++3) in the fault path, if mlocked pages are "culled" in the fault path,
++   and when a VM_LOCKED stack segment is expanded.
++4) as mentioned above, in vmscan:shrink_page_list() with attempting to
++   reclaim a page in a VM_LOCKED vma--via try_to_unmap() or try_to_munlock().
++
++Mlocked pages become unlocked and rescued from the unevictable list when:
++
++1) mapped in a range unlocked via the munlock()/munlockall() system calls.
++2) munmapped() out of the last VM_LOCKED vma that maps the page, including
++   unmapping at task exit.
++3) when the page is truncated from the last VM_LOCKED vma of an mmap()ed file.
++4) before a page is COWed in a VM_LOCKED vma.
++
++
++Mlocked Pages:  mlock()/mlockall() System Call Handling
++
++Both [do_]mlock() and [do_]mlockall() system call handlers call mlock_fixup()
++for each vma in the range specified by the call.  In the case of mlockall(),
++this is the entire active address space of the task.  Note that mlock_fixup()
++is used for both mlock()ing and munlock()ing a range of memory.  A call to
++mlock() an already VM_LOCKED vma, or to munlock() a vma that is not VM_LOCKED
++is treated as a no-op--mlock_fixup() simply returns.
++
++If the vma passes some filtering described in "Mlocked Pages:  Filtering Vmas"
++below, mlock_fixup() will attempt to merge the vma with its neighbors or split
++off a subset of the vma if the range does not cover the entire vma.  Once the
++vma has been merged or split or neither, mlock_fixup() will call
++__mlock_vma_pages_range() to fault in the pages via get_user_pages() and
++to mark the pages as mlocked via mlock_vma_page().
++
++Note that the vma being mlocked might be mapped with PROT_NONE.  In this case,
++get_user_pages() will be unable to fault in the pages.  That's OK.  If pages
++do end up getting faulted into this VM_LOCKED vma, we'll handle them in the
++fault path or in vmscan.
++
++Also note that a page returned by get_user_pages() could be truncated or
++migrated out from under us, while we're trying to mlock it.  To detect
++this, __mlock_vma_pages_range() tests the page_mapping after acquiring
++the page lock.  If the page is still associated with its mapping, we'll
++go ahead and call mlock_vma_page().  If the mapping is gone, we just
++unlock the page and move on.  Worse case, this results in page mapped
++in a VM_LOCKED vma remaining on a normal LRU list without being
++PageMlocked().  Again, vmscan will detect and cull such pages.
++
++mlock_vma_page(), called with the page locked [N.B., not "mlocked"], will
++TestSetPageMlocked() for each page returned by get_user_pages().  We use
++TestSetPageMlocked() because the page might already be mlocked by another
++task/vma and we don't want to do extra work.  We especially do not want to
++count an mlocked page more than once in the statistics.  If the page was
++already mlocked, mlock_vma_page() is done.
++
++If the page was NOT already mlocked, mlock_vma_page() attempts to isolate the
++page from the LRU, as it is likely on the appropriate active or inactive list
++at that time.  If the isolate_lru_page() succeeds, mlock_vma_page() will
++putback the page--putback_lru_page()--which will notice that the page is now
++mlocked and divert the page to the zone's unevictable LRU list.  If
++mlock_vma_page() is unable to isolate the page from the LRU, vmscan will handle
++it later if/when it attempts to reclaim the page.
++
++
++Mlocked Pages:  Filtering Special Vmas
++
++mlock_fixup() filters several classes of "special" vmas:
++
++1) vmas with VM_IO|VM_PFNMAP set are skipped entirely.  The pages behind
++   these mappings are inherently pinned, so we don't need to mark them as
++   mlocked.  In any case, most of the pages have no struct page in which to
++   so mark the page.  Because of this, get_user_pages() will fail for these
++   vmas, so there is no sense in attempting to visit them.
++
++2) vmas mapping hugetlbfs page are already effectively pinned into memory.
++   We don't need nor want to mlock() these pages.  However, to preserve the
++   prior behavior of mlock()--before the unevictable/mlock changes--mlock_fixup()
++   will call make_pages_present() in the hugetlbfs vma range to allocate the
++   huge pages and populate the ptes.
++
++3) vmas with VM_DONTEXPAND|VM_RESERVED are generally user space mappings of
++   kernel pages, such as the vdso page, relay channel pages, etc.  These pages
++   are inherently unevictable and are not managed on the LRU lists.
++   mlock_fixup() treats these vmas the same as hugetlbfs vmas.  It calls
++   make_pages_present() to populate the ptes.
++
++Note that for all of these special vmas, mlock_fixup() does not set the
++VM_LOCKED flag.  Therefore, we won't have to deal with them later during
++munlock() or munmap()--for example, at task exit.  Neither does mlock_fixup()
++account these vmas against the task's "locked_vm".
++
++Mlocked Pages:  Downgrading the Mmap Semaphore.
++
++mlock_fixup() must be called with the mmap semaphore held for write, because
++it may have to merge or split vmas.  However, mlocking a large region of
++memory can take a long time--especially if vmscan must reclaim pages to
++satisfy the regions requirements.  Faulting in a large region with the mmap
++semaphore held for write can hold off other faults on the address space, in
++the case of a multi-threaded task.  It can also hold off scans of the task's
++address space via /proc.  While testing under heavy load, it was observed that
++the ps(1) command could be held off for many minutes while a large segment was
++mlock()ed down.
++
++To address this issue, and to make the system more responsive during mlock()ing
++of large segments, mlock_fixup() downgrades the mmap semaphore to read mode
++during the call to __mlock_vma_pages_range().  This works fine.  However, the
++callers of mlock_fixup() expect the semaphore to be returned in write mode.
++So, mlock_fixup() "upgrades" the semphore to write mode.  Linux does not
++support an atomic upgrade_sem() call, so mlock_fixup() must drop the semaphore
++and reacquire it in write mode.  In a multi-threaded task, it is possible for
++the task memory map to change while the semaphore is dropped.  Therefore,
++mlock_fixup() looks up the vma at the range start address after reacquiring
++the semaphore in write mode and verifies that it still covers the original
++range.  If not, mlock_fixup() returns an error [-EAGAIN].  All callers of
++mlock_fixup() have been changed to deal with this new error condition.
++
++Note:  when munlocking a region, all of the pages should already be resident--
++unless we have racing threads mlocking() and munlocking() regions.  So,
++unlocking should not have to wait for page allocations nor faults  of any kind.
++Therefore mlock_fixup() does not downgrade the semaphore for munlock().
++
++
++Mlocked Pages:  munlock()/munlockall() System Call Handling
++
++The munlock() and munlockall() system calls are handled by the same functions--
++do_mlock[all]()--as the mlock() and mlockall() system calls with the unlock
++vs lock operation indicated by an argument.  So, these system calls are also
++handled by mlock_fixup().  Again, if called for an already munlock()ed vma,
++mlock_fixup() simply returns.  Because of the vma filtering discussed above,
++VM_LOCKED will not be set in any "special" vmas.  So, these vmas will be
++ignored for munlock.
++
++If the vma is VM_LOCKED, mlock_fixup() again attempts to merge or split off
++the specified range.  The range is then munlocked via the function
++__mlock_vma_pages_range()--the same function used to mlock a vma range--
++passing a flag to indicate that munlock() is being performed.
++
++Because the vma access protections could have been changed to PROT_NONE after
++faulting in and mlocking some pages, get_user_pages() was unreliable for visiting
++these pages for munlocking.  Because we don't want to leave pages mlocked(),
++get_user_pages() was enhanced to accept a flag to ignore the permissions when
++fetching the pages--all of which should be resident as a result of previous
++mlock()ing.
++
++For munlock(), __mlock_vma_pages_range() unlocks individual pages by calling
++munlock_vma_page().  munlock_vma_page() unconditionally clears the PG_mlocked
++flag using TestClearPageMlocked().  As with mlock_vma_page(), munlock_vma_page()
++use the Test*PageMlocked() function to handle the case where the page might
++have already been unlocked by another task.  If the page was mlocked,
++munlock_vma_page() updates that zone statistics for the number of mlocked
++pages.  Note, however, that at this point we haven't checked whether the page
++is mapped by other VM_LOCKED vmas.
++
++We can't call try_to_munlock(), the function that walks the reverse map to check
++for other VM_LOCKED vmas, without first isolating the page from the LRU.
++try_to_munlock() is a variant of try_to_unmap() and thus requires that the page
++not be on an lru list.  [More on these below.]  However, the call to
++isolate_lru_page() could fail, in which case we couldn't try_to_munlock().
++So, we go ahead and clear PG_mlocked up front, as this might be the only chance
++we have.  If we can successfully isolate the page, we go ahead and
++try_to_munlock(), which will restore the PG_mlocked flag and update the zone
++page statistics if it finds another vma holding the page mlocked.  If we fail
++to isolate the page, we'll have left a potentially mlocked page on the LRU.
++This is fine, because we'll catch it later when/if vmscan tries to reclaim the
++page.  This should be relatively rare.
++
++Mlocked Pages:  Migrating Them...
++
++A page that is being migrated has been isolated from the lru lists and is
++held locked across unmapping of the page, updating the page's mapping
++[address_space] entry and copying the contents and state, until the
++page table entry has been replaced with an entry that refers to the new
++page.  Linux supports migration of mlocked pages and other unevictable
++pages.  This involves simply moving the PageMlocked and PageUnevictable states
++from the old page to the new page.
++
++Note that page migration can race with mlocking or munlocking of the same
++page.  This has been discussed from the mlock/munlock perspective in the
++respective sections above.  Both processes [migration, m[un]locking], hold
++the page locked.  This provides the first level of synchronization.  Page
++migration zeros out the page_mapping of the old page before unlocking it,
++so m[un]lock can skip these pages by testing the page mapping under page
++lock.
++
++When completing page migration, we place the new and old pages back onto the
++lru after dropping the page lock.  The "unneeded" page--old page on success,
++new page on failure--will be freed when the reference count held by the
++migration process is released.  To ensure that we don't strand pages on the
++unevictable list because of a race between munlock and migration, page
++migration uses the putback_lru_page() function to add migrated pages back to
++the lru.
++
++
++Mlocked Pages:  mmap(MAP_LOCKED) System Call Handling
++
++In addition the the mlock()/mlockall() system calls, an application can request
++that a region of memory be mlocked using the MAP_LOCKED flag with the mmap()
++call.  Furthermore, any mmap() call or brk() call that expands the heap by a
++task that has previously called mlockall() with the MCL_FUTURE flag will result
++in the newly mapped memory being mlocked.  Before the unevictable/mlock changes,
++the kernel simply called make_pages_present() to allocate pages and populate
++the page table.
++
++To mlock a range of memory under the unevictable/mlock infrastructure, the
++mmap() handler and task address space expansion functions call
++mlock_vma_pages_range() specifying the vma and the address range to mlock.
++mlock_vma_pages_range() filters vmas like mlock_fixup(), as described above in
++"Mlocked Pages:  Filtering Vmas".  It will clear the VM_LOCKED flag, which will
++have already been set by the caller, in filtered vmas.  Thus these vma's need
++not be visited for munlock when the region is unmapped.
++
++For "normal" vmas, mlock_vma_pages_range() calls __mlock_vma_pages_range() to
++fault/allocate the pages and mlock them.  Again, like mlock_fixup(),
++mlock_vma_pages_range() downgrades the mmap semaphore to read mode before
++attempting to fault/allocate and mlock the pages; and "upgrades" the semaphore
++back to write mode before returning.
++
++The callers of mlock_vma_pages_range() will have already added the memory
++range to be mlocked to the task's "locked_vm".  To account for filtered vmas,
++mlock_vma_pages_range() returns the number of pages NOT mlocked.  All of the
++callers then subtract a non-negative return value from the task's locked_vm.
++A negative return value represent an error--for example, from get_user_pages()
++attempting to fault in a vma with PROT_NONE access.  In this case, we leave
++the memory range accounted as locked_vm, as the protections could be changed
++later and pages allocated into that region.
++
++
++Mlocked Pages:  munmap()/exit()/exec() System Call Handling
++
++When unmapping an mlocked region of memory, whether by an explicit call to
++munmap() or via an internal unmap from exit() or exec() processing, we must
++munlock the pages if we're removing the last VM_LOCKED vma that maps the pages.
++Before the unevictable/mlock changes, mlocking did not mark the pages in any way,
++so unmapping them required no processing.
++
++To munlock a range of memory under the unevictable/mlock infrastructure, the
++munmap() hander and task address space tear down function call
++munlock_vma_pages_all().  The name reflects the observation that one always
++specifies the entire vma range when munlock()ing during unmap of a region.
++Because of the vma filtering when mlocking() regions, only "normal" vmas that
++actually contain mlocked pages will be passed to munlock_vma_pages_all().
++
++munlock_vma_pages_all() clears the VM_LOCKED vma flag and, like mlock_fixup()
++for the munlock case, calls __munlock_vma_pages_range() to walk the page table
++for the vma's memory range and munlock_vma_page() each resident page mapped by
++the vma.  This effectively munlocks the page, only if this is the last
++VM_LOCKED vma that maps the page.
++
++
++Mlocked Page:  try_to_unmap()
++
++[Note:  the code changes represented by this section are really quite small
++compared to the text to describe what happening and why, and to discuss the
++implications.]
++
++Pages can, of course, be mapped into multiple vmas.  Some of these vmas may
++have VM_LOCKED flag set.  It is possible for a page mapped into one or more
++VM_LOCKED vmas not to have the PG_mlocked flag set and therefore reside on one
++of the active or inactive LRU lists.  This could happen if, for example, a
++task in the process of munlock()ing the page could not isolate the page from
++the LRU.  As a result, vmscan/shrink_page_list() might encounter such a page
++as described in "Unevictable Pages and Vmscan [shrink_*_list()]".  To
++handle this situation, try_to_unmap() has been enhanced to check for VM_LOCKED
++vmas while it is walking a page's reverse map.
++
++try_to_unmap() is always called, by either vmscan for reclaim or for page
++migration, with the argument page locked and isolated from the LRU.  BUG_ON()
++assertions enforce this requirement.  Separate functions handle anonymous and
++mapped file pages, as these types of pages have different reverse map
++mechanisms.
++
++	try_to_unmap_anon()
++
++To unmap anonymous pages, each vma in the list anchored in the anon_vma must be
++visited--at least until a VM_LOCKED vma is encountered.  If the page is being
++unmapped for migration, VM_LOCKED vmas do not stop the process because mlocked
++pages are migratable.  However, for reclaim, if the page is mapped into a
++VM_LOCKED vma, the scan stops.  try_to_unmap() attempts to acquire the mmap
++semphore of the mm_struct to which the vma belongs in read mode.  If this is
++successful, try_to_unmap() will mlock the page via mlock_vma_page()--we
++wouldn't have gotten to try_to_unmap() if the page were already mlocked--and
++will return SWAP_MLOCK, indicating that the page is unevictable.  If the
++mmap semaphore cannot be acquired, we are not sure whether the page is really
++unevictable or not.  In this case, try_to_unmap() will return SWAP_AGAIN.
++
++	try_to_unmap_file() -- linear mappings
++
++Unmapping of a mapped file page works the same, except that the scan visits
++all vmas that maps the page's index/page offset in the page's mapping's
++reverse map priority search tree.  It must also visit each vma in the page's
++mapping's non-linear list, if the list is non-empty.  As for anonymous pages,
++on encountering a VM_LOCKED vma for a mapped file page, try_to_unmap() will
++attempt to acquire the associated mm_struct's mmap semaphore to mlock the page,
++returning SWAP_MLOCK if this is successful, and SWAP_AGAIN, if not.
++
++	try_to_unmap_file() -- non-linear mappings
++
++If a page's mapping contains a non-empty non-linear mapping vma list, then
++try_to_un{map|lock}() must also visit each vma in that list to determine
++whether the page is mapped in a VM_LOCKED vma.  Again, the scan must visit
++all vmas in the non-linear list to ensure that the pages is not/should not be
++mlocked.  If a VM_LOCKED vma is found in the list, the scan could terminate.
++However, there is no easy way to determine whether the page is actually mapped
++in a given vma--either for unmapping or testing whether the VM_LOCKED vma
++actually pins the page.
++
++So, try_to_unmap_file() handles non-linear mappings by scanning a certain
++number of pages--a "cluster"--in each non-linear vma associated with the page's
++mapping, for each file mapped page that vmscan tries to unmap.  If this happens
++to unmap the page we're trying to unmap, try_to_unmap() will notice this on
++return--(page_mapcount(page) == 0)--and return SWAP_SUCCESS.  Otherwise, it
++will return SWAP_AGAIN, causing vmscan to recirculate this page.  We take
++advantage of the cluster scan in try_to_unmap_cluster() as follows:
++
++For each non-linear vma, try_to_unmap_cluster() attempts to acquire the mmap
++semaphore of the associated mm_struct for read without blocking.  If this
++attempt is successful and the vma is VM_LOCKED, try_to_unmap_cluster() will
++retain the mmap semaphore for the scan; otherwise it drops it here.  Then,
++for each page in the cluster, if we're holding the mmap semaphore for a locked
++vma, try_to_unmap_cluster() calls mlock_vma_page() to mlock the page.  This
++call is a no-op if the page is already locked, but will mlock any pages in
++the non-linear mapping that happen to be unlocked.  If one of the pages so
++mlocked is the page passed in to try_to_unmap(), try_to_unmap_cluster() will
++return SWAP_MLOCK, rather than the default SWAP_AGAIN.  This will allow vmscan
++to cull the page, rather than recirculating it on the inactive list.  Again,
++if try_to_unmap_cluster() cannot acquire the vma's mmap sem, it returns
++SWAP_AGAIN, indicating that the page is mapped by a VM_LOCKED vma, but
++couldn't be mlocked.
++
++
++Mlocked pages:  try_to_munlock() Reverse Map Scan
++
++TODO/FIXME:  a better name might be page_mlocked()--analogous to the
++page_referenced() reverse map walker--especially if we continue to call this
++from shrink_page_list().  See related TODO/FIXME below.
++
++When munlock_vma_page()--see "Mlocked Pages:  munlock()/munlockall() System
++Call Handling" above--tries to munlock a page, or when shrink_page_list()
++encounters an anonymous page that is not yet in the swap cache, they need to
++determine whether or not the page is mapped by any VM_LOCKED vma, without
++actually attempting to unmap all ptes from the page.  For this purpose, the
++unevictable/mlock infrastructure introduced a variant of try_to_unmap() called
++try_to_munlock().
++
++try_to_munlock() calls the same functions as try_to_unmap() for anonymous and
++mapped file pages with an additional argument specifing unlock versus unmap
++processing.  Again, these functions walk the respective reverse maps looking
++for VM_LOCKED vmas.  When such a vma is found for anonymous pages and file
++pages mapped in linear VMAs, as in the try_to_unmap() case, the functions
++attempt to acquire the associated mmap semphore, mlock the page via
++mlock_vma_page() and return SWAP_MLOCK.  This effectively undoes the
++pre-clearing of the page's PG_mlocked done by munlock_vma_page() and informs
++shrink_page_list() that the anonymous page should be culled rather than added
++to the swap cache in preparation for a try_to_unmap() that will almost
++certainly fail.
++
++If try_to_unmap() is unable to acquire a VM_LOCKED vma's associated mmap
++semaphore, it will return SWAP_AGAIN.  This will allow shrink_page_list()
++to recycle the page on the inactive list and hope that it has better luck
++with the page next time.
++
++For file pages mapped into non-linear vmas, the try_to_munlock() logic works
++slightly differently.  On encountering a VM_LOCKED non-linear vma that might
++map the page, try_to_munlock() returns SWAP_AGAIN without actually mlocking
++the page.  munlock_vma_page() will just leave the page unlocked and let
++vmscan deal with it--the usual fallback position.
++
++Note that try_to_munlock()'s reverse map walk must visit every vma in a pages'
++reverse map to determine that a page is NOT mapped into any VM_LOCKED vma.
++However, the scan can terminate when it encounters a VM_LOCKED vma and can
++successfully acquire the vma's mmap semphore for read and mlock the page.
++Although try_to_munlock() can be called many [very many!] times when
++munlock()ing a large region or tearing down a large address space that has been
++mlocked via mlockall(), overall this is a fairly rare event.  In addition,
++although shrink_page_list() calls try_to_munlock() for every anonymous page that
++it handles that is not yet in the swap cache, on average anonymous pages will
++have very short reverse map lists.
++
++Mlocked Page:  Page Reclaim in shrink_*_list()
++
++shrink_active_list() culls any obviously unevictable pages--i.e.,
++!page_evictable(page, NULL)--diverting these to the unevictable lru
++list.  However, shrink_active_list() only sees unevictable pages that
++made it onto the active/inactive lru lists.  Note that these pages do not
++have PageUnevictable set--otherwise, they would be on the unevictable list and
++shrink_active_list would never see them.
++
++Some examples of these unevictable pages on the LRU lists are:
++
++1) ramfs pages that have been placed on the lru lists when first allocated.
++
++2) SHM_LOCKed shared memory pages.  shmctl(SHM_LOCK) does not attempt to
++   allocate or fault in the pages in the shared memory region.  This happens
++   when an application accesses the page the first time after SHM_LOCKing
++   the segment.
++
++3) Mlocked pages that could not be isolated from the lru and moved to the
++   unevictable list in mlock_vma_page().
++
++3) Pages mapped into multiple VM_LOCKED vmas, but try_to_munlock() couldn't
++   acquire the vma's mmap semaphore to test the flags and set PageMlocked.
++   munlock_vma_page() was forced to let the page back on to the normal
++   LRU list for vmscan to handle.
++
++shrink_inactive_list() also culls any unevictable pages that it finds
++on the inactive lists, again diverting them to the appropriate zone's unevictable
++lru list.  shrink_inactive_list() should only see SHM_LOCKed pages that became
++SHM_LOCKed after shrink_active_list() had moved them to the inactive list, or
++pages mapped into VM_LOCKED vmas that munlock_vma_page() couldn't isolate from
++the lru to recheck via try_to_munlock().  shrink_inactive_list() won't notice
++the latter, but will pass on to shrink_page_list().
++
++shrink_page_list() again culls obviously unevictable pages that it could
++encounter for similar reason to shrink_inactive_list().  As already discussed,
++shrink_page_list() proactively looks for anonymous pages that should have
++PG_mlocked set but don't--these would not be detected by page_evictable()--to
++avoid adding them to the swap cache unnecessarily.  File pages mapped into
++VM_LOCKED vmas but without PG_mlocked set will make it all the way to
++try_to_unmap().  shrink_page_list() will divert them to the unevictable list when
++try_to_unmap() returns SWAP_MLOCK, as discussed above.
++
++TODO/FIXME:  If we can enhance the swap cache to reliably remove entries
++with page_count(page) > 2, as long as all ptes are mapped to the page and
++not the swap entry, we can probably remove the call to try_to_munlock() in
++shrink_page_list() and just remove the page from the swap cache when
++try_to_unmap() returns SWAP_MLOCK.   Currently, remove_exclusive_swap_page()
++doesn't seem to allow that.
 +
-+The gpiommc module hooks up the mmc_spi and spi_gpio modules for running an
-+MMC or SD card on GPIO pins.
-+
-+Two interfaces for registering a new MMC/SD card device are provided:
-+A static platform-device based mechanism and a dynamic configfs based interface.
-+
-+
-+Registering devices via platform-device
-+=======================================
-+
-+The platform-device interface is used for registering MMC/SD devices that are
-+part of the hardware platform. This is most useful only for embedded machines
-+with MMC/SD devices statically connected to the platform GPIO bus.
-+
-+The data structures are declared in <linux/mmc/gpiommc.h>.
-+
-+To register a new device, define an instance of struct gpiommc_platform_data.
-+This structure holds any information about how the device is hooked up to the
-+GPIO pins and what hardware modes the device supports. See the docbook-style
-+documentation in the header file for more information on the struct fields.
-+
-+Then allocate a new instance of a platform device by doing:
-+
-+	pdev = platform_device_alloc(GPIOMMC_PLATDEV_NAME, gpiommc_next_id());
-+
-+This will allocate the platform device data structures and hook it up to the
-+gpiommc driver.
-+Then add the gpiommc_platform_data to the platform device.
-+
-+	err = platform_device_add_data(pdev, pdata, sizeof(struct gpiommc_platform_data));
-+
-+You may free the local instance of struct gpiommc_platform_data now. (So the
-+struct may be allocated on the stack, too).
-+Now simply register the platform device.
-+
-+	err = platform_device_add(pdev);
-+
-+Done. The gpiommc probe routine will be invoked now and you should see a kernel
-+log message for the added device.
-+
-+
-+Registering devices via configfs
-+================================
-+
-+MMC/SD cards connected via GPIO often are a pretty dynamic thing, as for example
-+selfmade hacks for soldering an MMC/SD card to standard GPIO pins on embedded
-+hardware are a common situation.
-+So we provide a dynamic interface to conveniently handle adding and removing
-+devices from userspace, without the need to recompile the kernel.
-+
-+The "gpiommc" subdirectory at the configfs mountpoint is used for handling
-+the dynamic configuration.
-+
-+To create a new device, it must first be allocated with mkdir.
-+The following command will allocate a device named "my_mmc":
-+	mkdir /config/gpiommc/my_mmc
-+
-+There are several configuration files available in the new
-+/config/gpiommc/my_mmc/ directory:
-+
-+gpio_data_in			= The SPI data-IN GPIO pin number.
-+gpio_data_out			= The SPI data-OUT GPIO pin number.
-+gpio_clock			= The SPI Clock GPIO pin number.
-+gpio_chipselect			= The SPI Chipselect GPIO pin number.
-+gpio_chipselect_activelow	= Boolean. If 0, Chipselect is active-HIGH.
-+				  If 1, Chipselect is active-LOW.
-+spi_mode			= The SPI data mode. Can be 0-3.
-+spi_delay			= Enable all delays in the lowlevel bitbanging.
-+max_bus_speed			= The maximum SPI bus speed. In Hertz.
-+
-+register			= Not a configuration parameter.
-+				  Used to register the configured card
-+				  with the kernel.
-+
-+The device must first get configured and then registered by writing "1" to
-+the "register" file.
-+The configuration parameters "gpio_data_in", "gpio_data_out", "gpio_clock"
-+and "gpio_chipselect" are essential and _must_ be configured before writing
-+"1" to the "register" file. The registration will fail, otherwise.
-+
-+The default values for the other parameters are:
-+gpio_chipselect_activelow	= 1		(CS active-LOW)
-+spi_mode			= 0		(SPI_MODE_0)
-+spi_delay			= 1		(enabled)
-+max_bus_speed			= 5000000	(5 Mhz)
-+
-+Configuration values can not be changed after registration. To unregister
-+the device, write a "0" to the "register" file. The configuration can be
-+changed again after unregistering.
-+
-+To completely remove the device, simply rmdir the directory
-+(/config/gpiommc/my_mmc in this example).
-+There's no need to first unregister the device before removing it. That will
-+be done automatically.
-diff -puN MAINTAINERS~mmc-add-gpio-based-mmc-sd-driver MAINTAINERS
---- a/MAINTAINERS~mmc-add-gpio-based-mmc-sd-driver
-+++ a/MAINTAINERS
-@@ -1846,6 +1846,11 @@ L:	gigaset307x-common@lists.sourceforge.
- W:	http://gigaset307x.sourceforge.net/
- S:	Maintained
- 
-+GPIOMMC DRIVER
-+P:	Michael Buesch
-+M:	mb@bu3sch.de
-+S:	Maintained
-+
- HARDWARE MONITORING
- L:	lm-sensors@lm-sensors.org
- W:	http://www.lm-sensors.org/
-diff -puN drivers/mmc/host/Kconfig~mmc-add-gpio-based-mmc-sd-driver drivers/mmc/host/Kconfig
---- a/drivers/mmc/host/Kconfig~mmc-add-gpio-based-mmc-sd-driver
-+++ a/drivers/mmc/host/Kconfig
-@@ -153,6 +153,31 @@ config MMC_SPI
- 
- 	  If unsure, or if your system has no SPI master driver, say N.
- 
-+config GPIOMMC
-+	tristate "MMC/SD over GPIO-based SPI"
-+	depends on MMC && MMC_SPI && SPI_GPIO
-+	help
-+	  This driver hooks up the mmc_spi and spi_gpio modules so that
-+	  MMC/SD cards can be used on a GPIO based bus by bitbanging
-+	  the SPI protocol in software.
-+
-+	  This driver provides a configfs interface to dynamically create
-+	  and destroy GPIO-based MMC/SD card devices. It also provides
-+	  a platform device interface API.
-+	  See Documentation/gpiommc.txt for details.
-+
-+	  The module will be called gpiommc.
-+
-+	  If unsure, say N.
-+
-+config GPIOMMC_CONFIGFS
-+	bool
-+	depends on GPIOMMC && CONFIGFS_FS
-+	default y
-+	help
-+	  This option automatically enables configfs support for gpiommc
-+	  if configfs is available.
-+
- config MMC_S3C
- 	tristate "Samsung S3C SD/MMC Card Interface support"
- 	depends on ARCH_S3C2410 && MMC
-diff -puN drivers/mmc/host/Makefile~mmc-add-gpio-based-mmc-sd-driver drivers/mmc/host/Makefile
---- a/drivers/mmc/host/Makefile~mmc-add-gpio-based-mmc-sd-driver
-+++ a/drivers/mmc/host/Makefile
-@@ -22,4 +22,4 @@ obj-$(CONFIG_MMC_SPI)		+= mmc_spi.o
- obj-$(CONFIG_MMC_S3C)   	+= s3cmci.o
- obj-$(CONFIG_MMC_SDRICOH_CS)	+= sdricoh_cs.o
- obj-$(CONFIG_MMC_TMIO)		+= tmio_mmc.o
--
-+obj-$(CONFIG_GPIOMMC)		+= gpiommc.o
-diff -puN /dev/null drivers/mmc/host/gpiommc.c
---- /dev/null
-+++ a/drivers/mmc/host/gpiommc.c
-@@ -0,0 +1,622 @@
-+/*
-+ * Driver an MMC/SD card on a bitbanging GPIO SPI bus.
-+ * This module hooks up the mmc_spi and spi_gpio modules and also
-+ * provides a configfs interface.
-+ *
-+ * Copyright 2008 Michael Buesch <mb@bu3sch.de>
-+ *
-+ * Licensed under the GNU/GPL. See COPYING for details.
-+ */
-+
-+#include <linux/mmc/gpiommc.h>
-+#include <linux/platform_device.h>
-+#include <linux/list.h>
-+#include <linux/mutex.h>
-+#include <linux/spi/spi_gpio.h>
-+#include <linux/configfs.h>
-+#include <linux/gpio.h>
-+#include <asm/atomic.h>
-+
-+
-+#define PFX				"gpio-mmc: "
-+
-+
-+struct gpiommc_device {
-+	struct platform_device *pdev;
-+	struct platform_device *spi_pdev;
-+	struct spi_board_info boardinfo;
-+};
-+
-+
-+MODULE_DESCRIPTION("GPIO based MMC driver");
-+MODULE_AUTHOR("Michael Buesch");
-+MODULE_LICENSE("GPL");
-+
-+
-+static int gpiommc_boardinfo_setup(struct spi_board_info *bi,
-+				   struct spi_master *master,
-+				   void *data)
-+{
-+	struct gpiommc_device *d = data;
-+	struct gpiommc_platform_data *pdata = d->pdev->dev.platform_data;
-+
-+	/* Bind the SPI master to the MMC-SPI host driver. */
-+	strlcpy(bi->modalias, "mmc_spi", sizeof(bi->modalias));
-+
-+	bi->max_speed_hz = pdata->max_bus_speed;
-+	bi->bus_num = master->bus_num;
-+	bi->mode = pdata->mode;
-+
-+	return 0;
-+}
-+
-+static int gpiommc_probe(struct platform_device *pdev)
-+{
-+	struct gpiommc_platform_data *mmc_pdata = pdev->dev.platform_data;
-+	struct spi_gpio_platform_data spi_pdata;
-+	struct gpiommc_device *d;
-+	int err;
-+
-+	err = -ENXIO;
-+	if (!mmc_pdata)
-+		goto error;
-+
-+#ifdef CONFIG_MMC_SPI_MODULE
-+	err = request_module("mmc_spi");
-+	if (err) {
-+		printk(KERN_WARNING PFX
-+		       "Failed to request mmc_spi module.\n");
-+	}
-+#endif /* CONFIG_MMC_SPI_MODULE */
-+
-+	/* Allocate the GPIO-MMC device */
-+	err = -ENOMEM;
-+	d = kzalloc(sizeof(*d), GFP_KERNEL);
-+	if (!d)
-+		goto error;
-+	d->pdev = pdev;
-+
-+	/* Create the SPI-GPIO device */
-+	d->spi_pdev = platform_device_alloc(SPI_GPIO_PLATDEV_NAME,
-+					    spi_gpio_next_id());
-+	if (!d->spi_pdev)
-+		goto err_free_d;
-+
-+	memset(&spi_pdata, 0, sizeof(spi_pdata));
-+	spi_pdata.pin_clk = mmc_pdata->pins.gpio_clk;
-+	spi_pdata.pin_miso = mmc_pdata->pins.gpio_do;
-+	spi_pdata.pin_mosi = mmc_pdata->pins.gpio_di;
-+	spi_pdata.pin_cs = mmc_pdata->pins.gpio_cs;
-+	spi_pdata.cs_activelow = mmc_pdata->pins.cs_activelow;
-+	spi_pdata.no_spi_delay = mmc_pdata->no_spi_delay;
-+	spi_pdata.boardinfo_setup = gpiommc_boardinfo_setup;
-+	spi_pdata.boardinfo_setup_data = d;
-+
-+	err = platform_device_add_data(d->spi_pdev, &spi_pdata,
-+				       sizeof(spi_pdata));
-+	if (err)
-+		goto err_free_pdev;
-+	err = platform_device_add(d->spi_pdev);
-+	if (err)
-+		goto err_free_pdata;
-+	platform_set_drvdata(pdev, d);
-+
-+	printk(KERN_INFO PFX "MMC-Card \"%s\" "
-+	       "attached to GPIO pins di=%u, do=%u, clk=%u, cs=%u\n",
-+	       mmc_pdata->name, mmc_pdata->pins.gpio_di,
-+	       mmc_pdata->pins.gpio_do,
-+	       mmc_pdata->pins.gpio_clk,
-+	       mmc_pdata->pins.gpio_cs);
-+
-+	return 0;
-+
-+err_free_pdata:
-+	kfree(d->spi_pdev->dev.platform_data);
-+	d->spi_pdev->dev.platform_data = NULL;
-+err_free_pdev:
-+	platform_device_put(d->spi_pdev);
-+err_free_d:
-+	kfree(d);
-+error:
-+	return err;
-+}
-+
-+static int gpiommc_remove(struct platform_device *pdev)
-+{
-+	struct gpiommc_device *d = platform_get_drvdata(pdev);
-+	struct gpiommc_platform_data *pdata = d->pdev->dev.platform_data;
-+
-+	platform_device_unregister(d->spi_pdev);
-+	printk(KERN_INFO PFX "GPIO based MMC-Card \"%s\" removed\n",
-+	       pdata->name);
-+	platform_device_put(d->spi_pdev);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_GPIOMMC_CONFIGFS
-+
-+/* A device that was created through configfs */
-+struct gpiommc_configfs_device {
-+	struct config_item item;
-+	/* The platform device, after registration. */
-+	struct platform_device *pdev;
-+	/* The configuration */
-+	struct gpiommc_platform_data pdata;
-+	/* Mutex to protect this structure */
-+	struct mutex mutex;
-+};
-+
-+#define GPIO_INVALID	-1
-+
-+static inline bool gpiommc_is_registered(struct gpiommc_configfs_device *dev)
-+{
-+	return (dev->pdev != NULL);
-+}
-+
-+static inline struct gpiommc_configfs_device *ci_to_gpiommc(struct config_item *item)
-+{
-+	return item ? container_of(item, struct gpiommc_configfs_device, item) : NULL;
-+}
-+
-+static struct configfs_attribute gpiommc_attr_DI = {
-+	.ca_owner = THIS_MODULE,
-+	.ca_name = "gpio_data_in",
-+	.ca_mode = S_IRUGO | S_IWUSR,
-+};
-+
-+static struct configfs_attribute gpiommc_attr_DO = {
-+	.ca_owner = THIS_MODULE,
-+	.ca_name = "gpio_data_out",
-+	.ca_mode = S_IRUGO | S_IWUSR,
-+};
-+
-+static struct configfs_attribute gpiommc_attr_CLK = {
-+	.ca_owner = THIS_MODULE,
-+	.ca_name = "gpio_clock",
-+	.ca_mode = S_IRUGO | S_IWUSR,
-+};
-+
-+static struct configfs_attribute gpiommc_attr_CS = {
-+	.ca_owner = THIS_MODULE,
-+	.ca_name = "gpio_chipselect",
-+	.ca_mode = S_IRUGO | S_IWUSR,
-+};
-+
-+static struct configfs_attribute gpiommc_attr_CS_activelow = {
-+	.ca_owner = THIS_MODULE,
-+	.ca_name = "gpio_chipselect_activelow",
-+	.ca_mode = S_IRUGO | S_IWUSR,
-+};
-+
-+static struct configfs_attribute gpiommc_attr_spimode = {
-+	.ca_owner = THIS_MODULE,
-+	.ca_name = "spi_mode",
-+	.ca_mode = S_IRUGO | S_IWUSR,
-+};
-+
-+static struct configfs_attribute gpiommc_attr_spidelay = {
-+	.ca_owner = THIS_MODULE,
-+	.ca_name = "spi_delay",
-+	.ca_mode = S_IRUGO | S_IWUSR,
-+};
-+
-+static struct configfs_attribute gpiommc_attr_max_bus_speed = {
-+	.ca_owner = THIS_MODULE,
-+	.ca_name = "max_bus_speed",
-+	.ca_mode = S_IRUGO | S_IWUSR,
-+};
-+
-+static struct configfs_attribute gpiommc_attr_register = {
-+	.ca_owner = THIS_MODULE,
-+	.ca_name = "register",
-+	.ca_mode = S_IRUGO | S_IWUSR,
-+};
-+
-+static struct configfs_attribute *gpiommc_config_attrs[] = {
-+	&gpiommc_attr_DI,
-+	&gpiommc_attr_DO,
-+	&gpiommc_attr_CLK,
-+	&gpiommc_attr_CS,
-+	&gpiommc_attr_CS_activelow,
-+	&gpiommc_attr_spimode,
-+	&gpiommc_attr_spidelay,
-+	&gpiommc_attr_max_bus_speed,
-+	&gpiommc_attr_register,
-+	NULL,
-+};
-+
-+static ssize_t gpiommc_config_attr_show(struct config_item *item,
-+					struct configfs_attribute *attr,
-+					char *page)
-+{
-+	struct gpiommc_configfs_device *dev = ci_to_gpiommc(item);
-+	ssize_t count = 0;
-+	unsigned int gpio;
-+	int err = 0;
-+
-+	mutex_lock(&dev->mutex);
-+
-+	if (attr == &gpiommc_attr_DI) {
-+		gpio = dev->pdata.pins.gpio_di;
-+		if (gpio == GPIO_INVALID)
-+			count = snprintf(page, PAGE_SIZE, "not configured\n");
-+		else
-+			count = snprintf(page, PAGE_SIZE, "%u\n", gpio);
-+		goto out;
-+	}
-+	if (attr == &gpiommc_attr_DO) {
-+		gpio = dev->pdata.pins.gpio_do;
-+		if (gpio == GPIO_INVALID)
-+			count = snprintf(page, PAGE_SIZE, "not configured\n");
-+		else
-+			count = snprintf(page, PAGE_SIZE, "%u\n", gpio);
-+		goto out;
-+	}
-+	if (attr == &gpiommc_attr_CLK) {
-+		gpio = dev->pdata.pins.gpio_clk;
-+		if (gpio == GPIO_INVALID)
-+			count = snprintf(page, PAGE_SIZE, "not configured\n");
-+		else
-+			count = snprintf(page, PAGE_SIZE, "%u\n", gpio);
-+		goto out;
-+	}
-+	if (attr == &gpiommc_attr_CS) {
-+		gpio = dev->pdata.pins.gpio_cs;
-+		if (gpio == GPIO_INVALID)
-+			count = snprintf(page, PAGE_SIZE, "not configured\n");
-+		else
-+			count = snprintf(page, PAGE_SIZE, "%u\n", gpio);
-+		goto out;
-+	}
-+	if (attr == &gpiommc_attr_CS_activelow) {
-+		count = snprintf(page, PAGE_SIZE, "%u\n",
-+				 dev->pdata.pins.cs_activelow);
-+		goto out;
-+	}
-+	if (attr == &gpiommc_attr_spimode) {
-+		count = snprintf(page, PAGE_SIZE, "%u\n",
-+				 dev->pdata.mode);
-+		goto out;
-+	}
-+	if (attr == &gpiommc_attr_spidelay) {
-+		count = snprintf(page, PAGE_SIZE, "%u\n",
-+				 !dev->pdata.no_spi_delay);
-+		goto out;
-+	}
-+	if (attr == &gpiommc_attr_max_bus_speed) {
-+		count = snprintf(page, PAGE_SIZE, "%u\n",
-+				 dev->pdata.max_bus_speed);
-+		goto out;
-+	}
-+	if (attr == &gpiommc_attr_register) {
-+		count = snprintf(page, PAGE_SIZE, "%u\n",
-+				 gpiommc_is_registered(dev));
-+		goto out;
-+	}
-+	WARN_ON(1);
-+	err = -ENOSYS;
-+out:
-+	mutex_unlock(&dev->mutex);
-+
-+	return err ? err : count;
-+}
-+
-+static int gpiommc_do_register(struct gpiommc_configfs_device *dev,
-+			       const char *name)
-+{
-+	int err;
-+
-+	if (gpiommc_is_registered(dev))
-+		return 0;
-+
-+	if (!gpio_is_valid(dev->pdata.pins.gpio_di) ||
-+	    !gpio_is_valid(dev->pdata.pins.gpio_do) ||
-+	    !gpio_is_valid(dev->pdata.pins.gpio_clk) ||
-+	    !gpio_is_valid(dev->pdata.pins.gpio_cs)) {
-+		printk(KERN_ERR PFX
-+		       "configfs: Invalid GPIO pin number(s)\n");
-+		return -EINVAL;
-+	}
-+
-+	strlcpy(dev->pdata.name, name,
-+		sizeof(dev->pdata.name));
-+
-+	dev->pdev = platform_device_alloc(GPIOMMC_PLATDEV_NAME,
-+					  gpiommc_next_id());
-+	if (!dev->pdev)
-+		return -ENOMEM;
-+	err = platform_device_add_data(dev->pdev, &dev->pdata,
-+				       sizeof(dev->pdata));
-+	if (err) {
-+		platform_device_put(dev->pdev);
-+		return err;
-+	}
-+	err = platform_device_add(dev->pdev);
-+	if (err) {
-+		platform_device_put(dev->pdev);
-+		return err;
-+	}
-+
-+	return 0;
-+}
-+
-+static void gpiommc_do_unregister(struct gpiommc_configfs_device *dev)
-+{
-+	if (!gpiommc_is_registered(dev))
-+		return;
-+
-+	platform_device_unregister(dev->pdev);
-+	dev->pdev = NULL;
-+}
-+
-+static ssize_t gpiommc_config_attr_store(struct config_item *item,
-+					 struct configfs_attribute *attr,
-+					 const char *page, size_t count)
-+{
-+	struct gpiommc_configfs_device *dev = ci_to_gpiommc(item);
-+	int err = -EINVAL;
-+	unsigned long data;
-+
-+	mutex_lock(&dev->mutex);
-+
-+	if (attr == &gpiommc_attr_register) {
-+		err = strict_strtoul(page, 10, &data);
-+		if (err)
-+			goto out;
-+		err = -EINVAL;
-+		if (data == 1)
-+			err = gpiommc_do_register(dev, item->ci_name);
-+		if (data == 0) {
-+			gpiommc_do_unregister(dev);
-+			err = 0;
-+		}
-+		goto out;
-+	}
-+
-+	if (gpiommc_is_registered(dev)) {
-+		/* The rest of the config parameters can only be set
-+		 * as long as the device is not registered, yet. */
-+		err = -EBUSY;
-+		goto out;
-+	}
-+
-+	if (attr == &gpiommc_attr_DI) {
-+		err = strict_strtoul(page, 10, &data);
-+		if (err)
-+			goto out;
-+		err = -EINVAL;
-+		if (!gpio_is_valid(data))
-+			goto out;
-+		dev->pdata.pins.gpio_di = data;
-+		err = 0;
-+		goto out;
-+	}
-+	if (attr == &gpiommc_attr_DO) {
-+		err = strict_strtoul(page, 10, &data);
-+		if (err)
-+			goto out;
-+		err = -EINVAL;
-+		if (!gpio_is_valid(data))
-+			goto out;
-+		dev->pdata.pins.gpio_do = data;
-+		err = 0;
-+		goto out;
-+	}
-+	if (attr == &gpiommc_attr_CLK) {
-+		err = strict_strtoul(page, 10, &data);
-+		if (err)
-+			goto out;
-+		err = -EINVAL;
-+		if (!gpio_is_valid(data))
-+			goto out;
-+		dev->pdata.pins.gpio_clk = data;
-+		err = 0;
-+		goto out;
-+	}
-+	if (attr == &gpiommc_attr_CS) {
-+		err = strict_strtoul(page, 10, &data);
-+		if (err)
-+			goto out;
-+		err = -EINVAL;
-+		if (!gpio_is_valid(data))
-+			goto out;
-+		dev->pdata.pins.gpio_cs = data;
-+		err = 0;
-+		goto out;
-+	}
-+	if (attr == &gpiommc_attr_CS_activelow) {
-+		err = strict_strtoul(page, 10, &data);
-+		if (err)
-+			goto out;
-+		err = -EINVAL;
-+		if (data != 0 && data != 1)
-+			goto out;
-+		dev->pdata.pins.cs_activelow = data;
-+		err = 0;
-+		goto out;
-+	}
-+	if (attr == &gpiommc_attr_spimode) {
-+		err = strict_strtoul(page, 10, &data);
-+		if (err)
-+			goto out;
-+		err = -EINVAL;
-+		switch (data) {
-+		case 0:
-+			dev->pdata.mode = SPI_MODE_0;
-+			break;
-+		case 1:
-+			dev->pdata.mode = SPI_MODE_1;
-+			break;
-+		case 2:
-+			dev->pdata.mode = SPI_MODE_2;
-+			break;
-+		case 3:
-+			dev->pdata.mode = SPI_MODE_3;
-+			break;
-+		default:
-+			goto out;
-+		}
-+		err = 0;
-+		goto out;
-+	}
-+	if (attr == &gpiommc_attr_spidelay) {
-+		err = strict_strtoul(page, 10, &data);
-+		if (err)
-+			goto out;
-+		err = -EINVAL;
-+		if (data != 0 && data != 1)
-+			goto out;
-+		dev->pdata.no_spi_delay = !data;
-+		err = 0;
-+		goto out;
-+	}
-+	if (attr == &gpiommc_attr_max_bus_speed) {
-+		err = strict_strtoul(page, 10, &data);
-+		if (err)
-+			goto out;
-+		err = -EINVAL;
-+		if (data > UINT_MAX)
-+			goto out;
-+		dev->pdata.max_bus_speed = data;
-+		err = 0;
-+		goto out;
-+	}
-+	WARN_ON(1);
-+	err = -ENOSYS;
-+out:
-+	mutex_unlock(&dev->mutex);
-+
-+	return err ? err : count;
-+}
-+
-+static void gpiommc_config_item_release(struct config_item *item)
-+{
-+	struct gpiommc_configfs_device *dev = ci_to_gpiommc(item);
-+
-+	kfree(dev);
-+}
-+
-+static struct configfs_item_operations gpiommc_config_item_ops = {
-+	.release		= gpiommc_config_item_release,
-+	.show_attribute		= gpiommc_config_attr_show,
-+	.store_attribute	= gpiommc_config_attr_store,
-+};
-+
-+static struct config_item_type gpiommc_dev_ci_type = {
-+	.ct_item_ops	= &gpiommc_config_item_ops,
-+	.ct_attrs	= gpiommc_config_attrs,
-+	.ct_owner	= THIS_MODULE,
-+};
-+
-+static int gpiommc_make_item(struct config_group *group,
-+			     const char *name,
-+			     struct config_item **new_item)
-+{
-+	struct gpiommc_configfs_device *dev;
-+
-+	if (strlen(name) > GPIOMMC_MAX_NAMELEN) {
-+		printk(KERN_ERR PFX "configfs: device name too long\n");
-+		return -E2BIG;
-+	}
-+
-+	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-+	if (!dev)
-+		return -ENOMEM;
-+
-+	mutex_init(&dev->mutex);
-+	config_item_init_type_name(&dev->item, name,
-+				   &gpiommc_dev_ci_type);
-+
-+	/* Assign default configuration */
-+	dev->pdata.pins.gpio_di = GPIO_INVALID;
-+	dev->pdata.pins.gpio_do = GPIO_INVALID;
-+	dev->pdata.pins.gpio_clk = GPIO_INVALID;
-+	dev->pdata.pins.gpio_cs = GPIO_INVALID;
-+	dev->pdata.pins.cs_activelow = 1;
-+	dev->pdata.mode = SPI_MODE_0;
-+	dev->pdata.no_spi_delay = 0;
-+	dev->pdata.max_bus_speed = 5000000; /* 5 MHz */
-+
-+	*new_item = &(dev->item);
-+
-+	return 0;
-+}
-+
-+static void gpiommc_drop_item(struct config_group *group,
-+			      struct config_item *item)
-+{
-+	struct gpiommc_configfs_device *dev = ci_to_gpiommc(item);
-+
-+	gpiommc_do_unregister(dev);
-+	kfree(dev);
-+}
-+
-+static struct configfs_group_operations gpiommc_ct_group_ops = {
-+	.make_item	= gpiommc_make_item,
-+	.drop_item	= gpiommc_drop_item,
-+};
-+
-+static struct config_item_type gpiommc_ci_type = {
-+	.ct_group_ops	= &gpiommc_ct_group_ops,
-+	.ct_owner	= THIS_MODULE,
-+};
-+
-+static struct configfs_subsystem gpiommc_subsys = {
-+	.su_group = {
-+		.cg_item = {
-+			.ci_namebuf = GPIOMMC_PLATDEV_NAME,
-+			.ci_type = &gpiommc_ci_type,
-+		},
-+	},
-+	.su_mutex = __MUTEX_INITIALIZER(gpiommc_subsys.su_mutex),
-+};
-+
-+#endif /* CONFIG_GPIOMMC_CONFIGFS */
-+
-+static struct platform_driver gpiommc_plat_driver = {
-+	.probe	= gpiommc_probe,
-+	.remove	= gpiommc_remove,
-+	.driver	= {
-+		.name	= GPIOMMC_PLATDEV_NAME,
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
-+int gpiommc_next_id(void)
-+{
-+	static atomic_t counter = ATOMIC_INIT(-1);
-+
-+	return atomic_inc_return(&counter);
-+}
-+EXPORT_SYMBOL(gpiommc_next_id);
-+
-+static int __init gpiommc_modinit(void)
-+{
-+	int err;
-+
-+	err = platform_driver_register(&gpiommc_plat_driver);
-+	if (err)
-+		return err;
-+
-+#ifdef CONFIG_GPIOMMC_CONFIGFS
-+	config_group_init(&gpiommc_subsys.su_group);
-+	err = configfs_register_subsystem(&gpiommc_subsys);
-+	if (err) {
-+		platform_driver_unregister(&gpiommc_plat_driver);
-+		return err;
-+	}
-+#endif /* CONFIG_GPIOMMC_CONFIGFS */
-+
-+	return 0;
-+}
-+module_init(gpiommc_modinit);
-+
-+static void __exit gpiommc_modexit(void)
-+{
-+#ifdef CONFIG_GPIOMMC_CONFIGFS
-+	configfs_unregister_subsystem(&gpiommc_subsys);
-+#endif
-+	platform_driver_unregister(&gpiommc_plat_driver);
-+}
-+module_exit(gpiommc_modexit);
-diff -puN /dev/null include/linux/mmc/gpiommc.h
---- /dev/null
-+++ a/include/linux/mmc/gpiommc.h
-@@ -0,0 +1,71 @@
-+/*
-+ * Device driver for MMC/SD cards driven over a GPIO bus.
-+ *
-+ * Copyright (c) 2008 Michael Buesch
-+ *
-+ * Licensed under the GNU/GPL version 2.
-+ */
-+#ifndef LINUX_GPIOMMC_H_
-+#define LINUX_GPIOMMC_H_
-+
-+#include <linux/types.h>
-+
-+
-+#define GPIOMMC_MAX_NAMELEN		15
-+#define GPIOMMC_MAX_NAMELEN_STR		__stringify(GPIOMMC_MAX_NAMELEN)
-+
-+/**
-+ * struct gpiommc_pins - Hardware pin assignments
-+ *
-+ * @gpio_di: The GPIO number of the DATA IN pin
-+ * @gpio_do: The GPIO number of the DATA OUT pin
-+ * @gpio_clk: The GPIO number of the CLOCK pin
-+ * @gpio_cs: The GPIO number of the CHIPSELECT pin
-+ * @cs_activelow: If true, the chip is considered selected if @gpio_cs is low.
-+ */
-+struct gpiommc_pins {
-+	unsigned int gpio_di;
-+	unsigned int gpio_do;
-+	unsigned int gpio_clk;
-+	unsigned int gpio_cs;
-+	bool cs_activelow;
-+};
-+
-+/**
-+ * struct gpiommc_platform_data - Platform data for a MMC-over-SPI-GPIO device.
-+ *
-+ * @name: The unique name string of the device.
-+ * @pins: The hardware pin assignments.
-+ * @mode: The hardware mode. This is either SPI_MODE_0,
-+ *        SPI_MODE_1, SPI_MODE_2 or SPI_MODE_3. See the SPI documentation.
-+ * @no_spi_delay: Do not use delays in the lowlevel SPI bitbanging code.
-+ *                This is not standards compliant, but may be required for some
-+ *                embedded machines to gain reasonable speed.
-+ * @max_bus_speed: The maximum speed of the SPI bus, in Hertz.
-+ */
-+struct gpiommc_platform_data {
-+	char name[GPIOMMC_MAX_NAMELEN + 1];
-+	struct gpiommc_pins pins;
-+	u8 mode;
-+	bool no_spi_delay;
-+	unsigned int max_bus_speed;
-+};
-+
-+/**
-+ * GPIOMMC_PLATDEV_NAME - The platform device name string.
-+ *
-+ * The name string that has to be used for platform_device_alloc
-+ * when allocating a gpiommc device.
-+ */
-+#define GPIOMMC_PLATDEV_NAME	"gpiommc"
-+
-+/**
-+ * gpiommc_next_id - Get another platform device ID number.
-+ *
-+ * This returns the next platform device ID number that has to be used
-+ * for platform_device_alloc. The ID is opaque and should not be used for
-+ * anything else.
-+ */
-+int gpiommc_next_id(void);
-+
-+#endif /* LINUX_GPIOMMC_H_ */
-diff -puN /dev/null Documentation/ABI/testing/configfs-gpiommc
---- /dev/null
-+++ a/Documentation/ABI/testing/configfs-gpiommc
-@@ -0,0 +1,9 @@
-+What:		/config/gpiommc/
-+Date:		July 2008
-+Contact:	Michael Buesch <mb@bu3sch.de>
-+Description:
-+		The /config/gpiommc/ directory consists of a group of
-+		user-managable subdirectories for the dynamic registration
-+		and removal of GPIO based MMC/SD cards.
-+		Complete documentation is available in:
-+		Documentation/gpiommc.txt
++
 _
 
-Patches currently in -mm which might be from mb@bu3sch.de are
+Patches currently in -mm which might be from lee.schermerhorn@hp.com are
 
 origin.patch
-mmc-add-gpio-based-mmc-sd-driver.patch
 
