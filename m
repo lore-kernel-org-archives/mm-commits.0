@@ -1,168 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-avoid-accounting-special-pages.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:36:32 -0700
-Message-ID: <200810202036.m9KKaWMG011397@imap1.linux-foundation.org>
+Subject: - vmscan-fix-pagecache-reclaim-referenced-bit-check.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:32:42 -0700
+Message-ID: <200810202032.m9KKWg2j010459@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55382 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48279 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752086AbYJTUha (ORCPT
+	by vger.kernel.org with ESMTP id S1753737AbYJTUgl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:37:30 -0400
+	Mon, 20 Oct 2008 16:36:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: avoid accounting special pages
+     vmscan: fix pagecache reclaim referenced bit check
 has been removed from the -mm tree.  Its filename was
-     memcg-avoid-accounting-special-pages.patch
+     vmscan-fix-pagecache-reclaim-referenced-bit-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: avoid accounting special pages
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: vmscan: fix pagecache reclaim referenced bit check
+From: Rik van Riel <riel@redhat.com>
 
-There are not-on-LRU pages which can be mapped and they are not worth to
-be accounted.  (becasue we can't shrink them and need dirty codes to
-handle specical case) We'd like to make use of usual objrmap/radix-tree's
-protcol and don't want to account out-of-vm's control pages.
+Moving referenced pages back to the head of the active list creates a huge
+scalability problem, because by the time a large memory system finally
+runs out of free memory, every single page in the system will have been
+referenced.
 
-When special_mapping_fault() is called, page->mapping is tend to be NULL
-and it's charged as Anonymous page.  insert_page() also handles some
-special pages from drivers.
+Not only do we not have the time to scan every single page on the active
+list, but since they have will all have the referenced bit set, that bit
+conveys no useful information.
 
-This patch is for avoiding to account special pages.
+A more scalable solution is to just move every page that hits the end of
+the active list to the inactive list.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+We clear the referenced bit off of mapped pages, which need just one
+reference to be moved back onto the active list.
+
+Unmapped pages will be moved back to the active list after two references
+(see mark_page_accessed).  We preserve the PG_referenced flag on unmapped
+pages to preserve accesses that were made while the page was on the active
+list.
+
+Signed-off-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/controllers/memory.txt |   24 ++++++++++++++++--------
- mm/memory.c                          |   25 +++++++++++--------------
- mm/rmap.c                            |    4 ++--
- 3 files changed, 29 insertions(+), 24 deletions(-)
+ mm/vmscan.c |   45 +++++++++++++--------------------------------
+ 1 file changed, 13 insertions(+), 32 deletions(-)
 
-diff -puN Documentation/controllers/memory.txt~memcg-avoid-accounting-special-pages Documentation/controllers/memory.txt
---- a/Documentation/controllers/memory.txt~memcg-avoid-accounting-special-pages
-+++ a/Documentation/controllers/memory.txt
-@@ -112,14 +112,22 @@ the per cgroup LRU.
- 
- 2.2.1 Accounting details
- 
--All mapped pages (RSS) and unmapped user pages (Page Cache) are accounted.
--RSS pages are accounted at the time of page_add_*_rmap() unless they've already
--been accounted for earlier. A file page will be accounted for as Page Cache;
--it's mapped into the page tables of a process, duplicate accounting is carefully
--avoided. Page Cache pages are accounted at the time of add_to_page_cache().
--The corresponding routines that remove a page from the page tables or removes
--a page from Page Cache is used to decrement the accounting counters of the
--cgroup.
-+All mapped anon pages (RSS) and cache pages (Page Cache) are accounted.
-+(some pages which never be reclaimable and will not be on global LRU
-+ are not accounted. we just accounts pages under usual vm management.)
-+
-+RSS pages are accounted at page_fault unless they've already been accounted
-+for earlier. A file page will be accounted for as Page Cache when it's
-+inserted into inode (radix-tree). While it's mapped into the page tables of
-+processes, duplicate accounting is carefully avoided.
-+
-+A RSS page is unaccounted when it's fully unmapped. A PageCache page is
-+unaccounted when it's removed from radix-tree.
-+
-+At page migration, accounting information is kept.
-+
-+Note: we just account pages-on-lru because our purpose is to control amount
-+of used pages. not-on-lru pages are tend to be out-of-control from vm view.
- 
- 2.3 Shared Page Accounting
- 
-diff -puN mm/memory.c~memcg-avoid-accounting-special-pages mm/memory.c
---- a/mm/memory.c~memcg-avoid-accounting-special-pages
-+++ a/mm/memory.c
-@@ -1323,18 +1323,14 @@ static int insert_page(struct vm_area_st
- 	pte_t *pte;
- 	spinlock_t *ptl;
- 
--	retval = mem_cgroup_charge(page, mm, GFP_KERNEL);
--	if (retval)
--		goto out;
--
- 	retval = -EINVAL;
- 	if (PageAnon(page))
--		goto out_uncharge;
-+		goto out;
- 	retval = -ENOMEM;
- 	flush_dcache_page(page);
- 	pte = get_locked_pte(mm, addr, &ptl);
- 	if (!pte)
--		goto out_uncharge;
-+		goto out;
- 	retval = -EBUSY;
- 	if (!pte_none(*pte))
- 		goto out_unlock;
-@@ -1350,8 +1346,6 @@ static int insert_page(struct vm_area_st
- 	return retval;
- out_unlock:
- 	pte_unmap_unlock(pte, ptl);
--out_uncharge:
--	mem_cgroup_uncharge_page(page);
- out:
- 	return retval;
- }
-@@ -2463,6 +2457,7 @@ static int __do_fault(struct mm_struct *
+diff -puN mm/vmscan.c~vmscan-fix-pagecache-reclaim-referenced-bit-check mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-fix-pagecache-reclaim-referenced-bit-check
++++ a/mm/vmscan.c
+@@ -1064,7 +1064,6 @@ static void shrink_active_list(unsigned 
+ 	int pgdeactivate = 0;
+ 	unsigned long pgscanned;
+ 	LIST_HEAD(l_hold);	/* The pages which were snipped off */
+-	LIST_HEAD(l_active);
+ 	LIST_HEAD(l_inactive);
  	struct page *page;
- 	pte_t entry;
- 	int anon = 0;
-+	int charged = 0;
- 	struct page *dirty_page = NULL;
- 	struct vm_fault vmf;
- 	int ret;
-@@ -2503,6 +2498,12 @@ static int __do_fault(struct mm_struct *
- 				ret = VM_FAULT_OOM;
- 				goto out;
- 			}
-+			if (mem_cgroup_charge(page, mm, GFP_KERNEL)) {
-+				ret = VM_FAULT_OOM;
-+				page_cache_release(page);
-+				goto out;
-+			}
-+			charged = 1;
- 			/*
- 			 * Don't let another task, with possibly unlocked vma,
- 			 * keep the mlocked page.
-@@ -2543,11 +2544,6 @@ static int __do_fault(struct mm_struct *
- 
+ 	struct pagevec pvec;
+@@ -1095,21 +1094,28 @@ static void shrink_active_list(unsigned 
+ 		cond_resched();
+ 		page = lru_to_page(&l_hold);
+ 		list_del(&page->lru);
++
++		/* page_referenced clears PageReferenced */
++		if (page_mapping_inuse(page) &&
++		    page_referenced(page, 0, sc->mem_cgroup))
++			pgmoved++;
++
+ 		list_add(&page->lru, &l_inactive);
  	}
  
--	if (mem_cgroup_charge(page, mm, GFP_KERNEL)) {
--		ret = VM_FAULT_OOM;
--		goto out;
--	}
--
- 	page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
+ 	/*
+-	 * Count the referenced pages as rotated, even when they are moved
+-	 * to the inactive list.  This helps balance scan pressure between
+-	 * file and anonymous pages in get_scan_ratio.
+- 	 */
++	 * Count referenced pages from currently used mappings as
++	 * rotated, even though they are moved to the inactive list.
++	 * This helps balance scan pressure between file and anonymous
++	 * pages in get_scan_ratio.
++	 */
+ 	zone->recent_rotated[!!file] += pgmoved;
  
  	/*
-@@ -2585,7 +2581,8 @@ static int __do_fault(struct mm_struct *
- 		/* no need to invalidate: a not-present page won't be cached */
- 		update_mmu_cache(vma, address, entry);
- 	} else {
--		mem_cgroup_uncharge_page(page);
-+		if (charged)
-+			mem_cgroup_uncharge_page(page);
- 		if (anon)
- 			page_cache_release(page);
- 		else
-diff -puN mm/rmap.c~memcg-avoid-accounting-special-pages mm/rmap.c
---- a/mm/rmap.c~memcg-avoid-accounting-special-pages
-+++ a/mm/rmap.c
-@@ -705,8 +705,8 @@ void page_remove_rmap(struct page *page,
- 			page_clear_dirty(page);
- 			set_page_dirty(page);
- 		}
+-	 * Now put the pages back on the appropriate [file or anon] inactive
+-	 * and active lists.
++	 * Move the pages to the [file or anon] inactive list.
+ 	 */
+ 	pagevec_init(&pvec, 1);
++
+ 	pgmoved = 0;
+ 	lru = LRU_BASE + file * LRU_FILE;
+ 	spin_lock_irq(&zone->lru_lock);
+@@ -1142,31 +1148,6 @@ static void shrink_active_list(unsigned 
+ 		pagevec_strip(&pvec);
+ 		spin_lock_irq(&zone->lru_lock);
+ 	}
+-
+-	pgmoved = 0;
+-	lru = LRU_ACTIVE + file * LRU_FILE;
+-	while (!list_empty(&l_active)) {
+-		page = lru_to_page(&l_active);
+-		prefetchw_prev_lru_page(page, &l_active, flags);
+-		VM_BUG_ON(PageLRU(page));
+-		SetPageLRU(page);
+-		VM_BUG_ON(!PageActive(page));
+-
+-		list_move(&page->lru, &zone->lru[lru].list);
+-		mem_cgroup_move_lists(page, true);
+-		pgmoved++;
+-		if (!pagevec_add(&pvec, page)) {
+-			__mod_zone_page_state(zone, NR_LRU_BASE + lru, pgmoved);
+-			pgmoved = 0;
+-			spin_unlock_irq(&zone->lru_lock);
+-			if (vm_swap_full())
+-				pagevec_swap_free(&pvec);
+-			__pagevec_release(&pvec);
+-			spin_lock_irq(&zone->lru_lock);
+-		}
+-	}
+-	__mod_zone_page_state(zone, NR_LRU_BASE + lru, pgmoved);
