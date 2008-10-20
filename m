@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + w1-export-w1_read_8-function.patch added to -mm tree
-Date: Mon, 20 Oct 2008 16:06:34 -0700
-Message-ID: <200810202306.m9KN6Y0b006288@imap1.linux-foundation.org>
+Subject: + epoll-avoid-double-inserts-in-case-of-efault.patch added to -mm tree
+Date: Mon, 20 Oct 2008 16:40:05 -0700
+Message-ID: <200810202340.m9KNe50N012434@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60700 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51054 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751261AbYJTXGz (ORCPT
+	by vger.kernel.org with ESMTP id S1751113AbYJTXkR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 19:06:55 -0400
+	Mon, 20 Oct 2008 19:40:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: madhu.cr@ti.com, johnpol@2ka.mipt.ru
+Cc: davidel@xmailserver.org, a.beregalov@gmail.com, tglx@linutronix.de
 
 
 The patch titled
-     w1: export w1_read_8 function
+     epoll avoid double-inserts in case of EFAULT
 has been added to the -mm tree.  Its filename is
-     w1-export-w1_read_8-function.patch
+     epoll-avoid-double-inserts-in-case-of-efault.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: w1: export w1_read_8 function
-From: Madhusudhan Chikkature <madhu.cr@ti.com>
+Subject: epoll avoid double-inserts in case of EFAULT
+From: Davide Libenzi <davidel@xmailserver.org>
 
-Export the w1_read_8 function for use of drivers.  The OMAP HDQ
-driver(drivers/w1/masters/omap_hdq.c) uses this function.
+First Episode:
 
-Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
-Acked-by: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Thomas found that there is an unnecessary (always true) test in
+ep_send_events(). The callback never inserts into ->rdllink while the
+send loop is performed, and also does the ~EP_PRIVATE_BITS test. Given
+we're holding the mutex during this time, the conditions tested inside the
+loop are always true.
+This patch drops the test done inside the re-insertion loop.
+
+Second Episode:
+
+The test "!ep_is_linked(&epi->rdllink)" wasn't there because we inserts
+into ->rdllink, but because the send-events loop might terminate before
+the whole list is scanned (-EFAULT). In such cases, when the loop
+terminates early, and when a (leftover) file received an event while we're
+performing the lockless loop, we need such test to avoid to double insert
+the epoll items. The list_splice() done a few steps below, will correctly
+re-insert the ones that were left on "txlist".
+This should be the reason for the thread "2.6.27-05178-g2e532d6: list_add
+corruption" from Alexander Beregalov.
+
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alexander Beregalov <a.beregalov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/w1.h    |    1 +
- drivers/w1/w1_io.c |    3 ++-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ fs/eventpoll.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN drivers/w1/w1.h~w1-export-w1_read_8-function drivers/w1/w1.h
---- a/drivers/w1/w1.h~w1-export-w1_read_8-function
-+++ a/drivers/w1/w1.h
-@@ -206,6 +206,7 @@ void w1_slave_detach(struct w1_slave *sl
- 
- u8 w1_triplet(struct w1_master *dev, int bdir);
- void w1_write_8(struct w1_master *, u8);
-+u8 w1_read_8(struct w1_master *);
- int w1_reset_bus(struct w1_master *);
- u8 w1_calc_crc8(u8 *, int);
- void w1_write_block(struct w1_master *, const u8 *, int);
-diff -puN drivers/w1/w1_io.c~w1-export-w1_read_8-function drivers/w1/w1_io.c
---- a/drivers/w1/w1_io.c~w1-export-w1_read_8-function
-+++ a/drivers/w1/w1_io.c
-@@ -217,7 +217,7 @@ u8 w1_triplet(struct w1_master *dev, int
-  * @param dev     the master device
-  * @return        the byte read
-  */
--static u8 w1_read_8(struct w1_master * dev)
-+u8 w1_read_8(struct w1_master * dev)
- {
- 	int i;
- 	u8 res = 0;
-@@ -230,6 +230,7 @@ static u8 w1_read_8(struct w1_master * d
- 
- 	return res;
- }
-+EXPORT_SYMBOL_GPL(w1_read_8);
- 
- /**
-  * Writes a series of bytes.
+diff -puN fs/eventpoll.c~epoll-avoid-double-inserts-in-case-of-efault fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-avoid-double-inserts-in-case-of-efault
++++ a/fs/eventpoll.c
+@@ -930,8 +930,15 @@ errxit:
+ 	 * inside the main ready-list here.
+ 	 */
+ 	for (nepi = ep->ovflist; (epi = nepi) != NULL;
+-	     nepi = epi->next, epi->next = EP_UNACTIVE_PTR)
+-		list_add_tail(&epi->rdllink, &ep->rdllist);
++	     nepi = epi->next, epi->next = EP_UNACTIVE_PTR) {
++		/*
++		 * If the above loop quit with errors, the epoll item might still
++		 * be linked to "txlist", and the list_splice() done below will
++		 * take care of those cases.
++		 */
++		if (!ep_is_linked(&epi->rdllink))
++			list_add_tail(&epi->rdllink, &ep->rdllist);
++	}
+ 	/*
+ 	 * We need to set back ep->ovflist to EP_UNACTIVE_PTR, so that after
+ 	 * releasing the lock, events will be queued in the normal way inside
 _
 
-Patches currently in -mm which might be from madhu.cr@ti.com are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
-w1-export-w1_read_8-function.patch
-hdq-driver-for-omap2430-3430.patch
-hdq-bq27000-hdq-slave-interface-driver.patch
-hdq-documentation-for-omap-hdq.patch
+origin.patch
+epoll-avoid-double-inserts-in-case-of-efault.patch
+linux-next.patch
 
