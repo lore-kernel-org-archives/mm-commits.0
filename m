@@ -1,67 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - jbd-abort-when-failed-to-log-metadata-buffers.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:35:48 -0700
-Message-ID: <200810202035.m9KKZmDF011224__14992.9193001755$1224542906$gmane$org@imap1.linux-foundation.org>
+Subject: - cpusetc-remove-extra-variable.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:36:41 -0700
+Message-ID: <200810202036.m9KKafqm011433@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36870 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57993 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753616AbYJTUg1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752310AbYJTUhd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:36:27 -0400
+	Mon, 20 Oct 2008 16:37:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidehiro.kawai.ez@hitachi.com, jack@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: rakib.mullick@gmail.com, pj@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd: abort when failed to log metadata buffers
+     cpuset.c: remove extra variable
 has been removed from the -mm tree.  Its filename was
-     jbd-abort-when-failed-to-log-metadata-buffers.patch
+     cpusetc-remove-extra-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: abort when failed to log metadata buffers
-From: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Subject: cpuset.c: remove extra variable
+From: "Rakib Mullick" <rakib.mullick@gmail.com>
 
-If we failed to write metadata buffers to the journal space and succeeded
-to write the commit record, stale data can be written back to the
-filesystem as metadata in the recovery phase.
+Remove the use of int cpus_nonempty variable from 'update_flag' function.
 
-To avoid this, when we failed to write out metadata buffers, abort the
-journal before writing the commit record.
-
-Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Acked-by: Jan Kara <jack@suse.cz>
-Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Md.Rakib H. Mullick <rakib.mullick@gmail.com>
+Acked-by: Paul Jackson <pj@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/commit.c |    3 +++
- 1 file changed, 3 insertions(+)
+ kernel/cpuset.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/jbd/commit.c~jbd-abort-when-failed-to-log-metadata-buffers fs/jbd/commit.c
---- a/fs/jbd/commit.c~jbd-abort-when-failed-to-log-metadata-buffers
-+++ a/fs/jbd/commit.c
-@@ -762,6 +762,9 @@ wait_for_iobuf:
- 		/* AKPM: bforget here */
- 	}
+diff -puN kernel/cpuset.c~cpusetc-remove-extra-variable kernel/cpuset.c
+--- a/kernel/cpuset.c~cpusetc-remove-extra-variable
++++ a/kernel/cpuset.c
+@@ -1172,7 +1172,7 @@ static int update_flag(cpuset_flagbits_t
+ {
+ 	struct cpuset trialcs;
+ 	int err;
+-	int cpus_nonempty, balance_flag_changed;
++	int balance_flag_changed;
  
-+	if (err)
-+		journal_abort(journal, err);
-+
- 	jbd_debug(3, "JBD: commit phase 6\n");
+ 	trialcs = *cs;
+ 	if (turning_on)
+@@ -1184,7 +1184,6 @@ static int update_flag(cpuset_flagbits_t
+ 	if (err < 0)
+ 		return err;
  
- 	if (journal_write_commit_record(journal, commit_transaction))
+-	cpus_nonempty = !cpus_empty(trialcs.cpus_allowed);
+ 	balance_flag_changed = (is_sched_load_balance(cs) !=
+ 		 			is_sched_load_balance(&trialcs));
+ 
+@@ -1192,7 +1191,7 @@ static int update_flag(cpuset_flagbits_t
+ 	cs->flags = trialcs.flags;
+ 	mutex_unlock(&callback_mutex);
+ 
+-	if (cpus_nonempty && balance_flag_changed)
++	if (!cpus_empty(trialcs.cpus_allowed) && balance_flag_changed)
+ 		async_rebuild_sched_domains();
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
+Patches currently in -mm which might be from rakib.mullick@gmail.com are
 
 origin.patch
-jbd-fix-error-handling-for-checkpoint-io.patch
-ext3-add-checks-for-errors-from-jbd.patch
-jbd-test-bh_write_eio-to-detect-errors-on-metadata-buffers.patch
 
