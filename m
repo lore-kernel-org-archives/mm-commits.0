@@ -1,133 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - hwmon-applesmc-fix-the-wait-status-failed-c-=-8-problem.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:35:06 -0700
-Message-ID: <200810202035.m9KKZ6HF011080@imap1.linux-foundation.org>
+Subject: - mlock-revert-mainline-handling-of-mlock-error-return.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:33:27 -0700
+Message-ID: <200810202033.m9KKXRXZ010631@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34542 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39678 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753587AbYJTUf4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753687AbYJTUgj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:35:56 -0400
+	Mon, 20 Oct 2008 16:36:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rydberg@euromail.se, khali@linux-fr.org, mhoffman@lightlink.com, nicolas@boichat.ch, rkoktarianto@gmail.com, mm-commits@vger.kernel.org
+To: lee.schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwmon: applesmc: fix the 'wait status failed: c != 8' problem
+     mlock: revert mainline handling of mlock error return
 has been removed from the -mm tree.  Its filename was
-     hwmon-applesmc-fix-the-wait-status-failed-c-=-8-problem.patch
+     mlock-revert-mainline-handling-of-mlock-error-return.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon: applesmc: fix the 'wait status failed: c != 8' problem
-From: Henrik Rydberg <rydberg@euromail.se>
+Subject: mlock: revert mainline handling of mlock error return
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-On many Macbooks since mid 2007, the Pro, C2D and Air models, applesmc
-fails to read some or all SMC ports.  This problem has various effects,
-such as flooded logfiles, malfunctioning temperature sensors,
-accelerometers failing to initialize, and difficulties getting backlight
-functionality to work properly.
+This change is intended to make mlock() error returns correct. 
+make_page_present() is a lower level function used by more than mlock(). 
+Subsequent patch[es] will add this error return fixup in an mlock specific
+path.
 
-The root of the problem seems to be the command protocol.  The current
-code sends out a command byte, then repeatedly polls for an ack before
-continuing to send or recieve data.  From experiments leading to this
-patch, it seems the command protocol never quite worked or changed so that
-one now sends a command byte, waits a little bit, polls for an ack, and if
-it fails, repeats the whole thing by sending the command byte again.
-
-This patch implements a send_command function according to the new
-interpretation of the protocol, and should work also for earlier models.
-
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
-Cc: Nicolas Boichat <nicolas@boichat.ch>
-Cc: Riki Oktarianto <rkoktarianto@gmail.com>
-Cc: Mark M. Hoffman <mhoffman@lightlink.com>
-Cc: Jean Delvare <khali@linux-fr.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/applesmc.c |   32 ++++++++++++++++++++++++--------
- 1 file changed, 24 insertions(+), 8 deletions(-)
+ mm/memory.c |   14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
 
-diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-fix-the-wait-status-failed-c-=-8-problem drivers/hwmon/applesmc.c
---- a/drivers/hwmon/applesmc.c~hwmon-applesmc-fix-the-wait-status-failed-c-=-8-problem
-+++ a/drivers/hwmon/applesmc.c
-@@ -191,6 +191,26 @@ static int __wait_status(u8 val)
+diff -puN mm/memory.c~mlock-revert-mainline-handling-of-mlock-error-return mm/memory.c
+--- a/mm/memory.c~mlock-revert-mainline-handling-of-mlock-error-return
++++ a/mm/memory.c
+@@ -2819,19 +2819,9 @@ int make_pages_present(unsigned long add
+ 	len = DIV_ROUND_UP(end, PAGE_SIZE) - addr/PAGE_SIZE;
+ 	ret = get_user_pages(current, current->mm, addr,
+ 			len, write, 0, NULL, NULL);
+-	if (ret < 0) {
+-		/*
+-		   SUS require strange return value to mlock
+-		    - invalid addr generate to ENOMEM.
+-		    - out of memory should generate EAGAIN.
+-		*/
+-		if (ret == -EFAULT)
+-			ret = -ENOMEM;
+-		else if (ret == -ENOMEM)
+-			ret = -EAGAIN;
++	if (ret < 0)
+ 		return ret;
+-	}
+-	return ret == len ? 0 : -ENOMEM;
++	return ret == len ? 0 : -1;
  }
  
- /*
-+ * special treatment of command port - on newer macbooks, it seems necessary
-+ * to resend the command byte before polling the status again. Callers must
-+ * hold applesmc_lock.
-+ */
-+static int send_command(u8 cmd)
-+{
-+	int i;
-+	for (i = 0; i < 1000; i++) {
-+		outb(cmd, APPLESMC_CMD_PORT);
-+		udelay(5);
-+		if ((inb(APPLESMC_CMD_PORT) & APPLESMC_STATUS_MASK) == 0x0c)
-+			return 0;
-+		udelay(5);
-+	}
-+	printk(KERN_WARNING "applesmc: command failed: %x -> %x\n",
-+		cmd, inb(APPLESMC_CMD_PORT));
-+	return -EIO;
-+}
-+
-+/*
-  * applesmc_read_key - reads len bytes from a given key, and put them in buffer.
-  * Returns zero on success or a negative error on failure. Callers must
-  * hold applesmc_lock.
-@@ -205,8 +225,7 @@ static int applesmc_read_key(const char*
- 		return -EINVAL;
- 	}
- 
--	outb(APPLESMC_READ_CMD, APPLESMC_CMD_PORT);
--	if (__wait_status(0x0c))
-+	if (send_command(APPLESMC_READ_CMD))
- 		return -EIO;
- 
- 	for (i = 0; i < 4; i++) {
-@@ -249,8 +268,7 @@ static int applesmc_write_key(const char
- 		return -EINVAL;
- 	}
- 
--	outb(APPLESMC_WRITE_CMD, APPLESMC_CMD_PORT);
--	if (__wait_status(0x0c))
-+	if (send_command(APPLESMC_WRITE_CMD))
- 		return -EIO;
- 
- 	for (i = 0; i < 4; i++) {
-@@ -284,8 +302,7 @@ static int applesmc_get_key_at_index(int
- 	readkey[2] = index >> 8;
- 	readkey[3] = index;
- 
--	outb(APPLESMC_GET_KEY_BY_INDEX_CMD, APPLESMC_CMD_PORT);
--	if (__wait_status(0x0c))
-+	if (send_command(APPLESMC_GET_KEY_BY_INDEX_CMD))
- 		return -EIO;
- 
- 	for (i = 0; i < 4; i++) {
-@@ -315,8 +332,7 @@ static int applesmc_get_key_type(char* k
- {
- 	int i;
- 
--	outb(APPLESMC_GET_KEY_TYPE_CMD, APPLESMC_CMD_PORT);
--	if (__wait_status(0x0c))
-+	if (send_command(APPLESMC_GET_KEY_TYPE_CMD))
- 		return -EIO;
- 
- 	for (i = 0; i < 4; i++) {
+ #if !defined(__HAVE_ARCH_GATE_AREA)
 _
 
-Patches currently in -mm which might be from rydberg@euromail.se are
+Patches currently in -mm which might be from lee.schermerhorn@hp.com are
 
 origin.patch
-input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
 
