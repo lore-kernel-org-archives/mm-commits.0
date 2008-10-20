@@ -1,78 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - seq_file-dont-call-bitmap_scnprintf_len.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:36:43 -0700
-Message-ID: <200810202036.m9KKahVx011438@imap1.linux-foundation.org>
+Subject: - devcgroup-use-kmemdup.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:36:22 -0700
+Message-ID: <200810202036.m9KKaMNs011356@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40811 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44107 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754251AbYJTUq7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751518AbYJTUg5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:46:59 -0400
+	Mon, 20 Oct 2008 16:36:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laijs@cn.fujitsu.com, adobriyan@gmail.com, menage@google.com, pj@sgi.com, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, menage@google.com, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     seq_file: don't call bitmap_scnprintf_len()
+     devcgroup: use kmemdup()
 has been removed from the -mm tree.  Its filename was
-     seq_file-dont-call-bitmap_scnprintf_len.patch
+     devcgroup-use-kmemdup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: seq_file: don't call bitmap_scnprintf_len()
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: devcgroup: use kmemdup()
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-"m->count + len < m->size" is true commonly, so bitmap_scnprintf()
-is commonly called. this fix saves a call to bitmap_scnprintf_len().
+This saves 40 bytes on my x86_32 box.
 
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
 Cc: Paul Menage <menage@google.com>
-Cc: Paul Jackson <pj@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ security/device_cgroup.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN fs/seq_file.c~seq_file-dont-call-bitmap_scnprintf_len fs/seq_file.c
---- a/fs/seq_file.c~seq_file-dont-call-bitmap_scnprintf_len
-+++ a/fs/seq_file.c
-@@ -452,17 +452,18 @@ int seq_dentry(struct seq_file *m, struc
+diff -puN security/device_cgroup.c~devcgroup-use-kmemdup security/device_cgroup.c
+--- a/security/device_cgroup.c~devcgroup-use-kmemdup
++++ a/security/device_cgroup.c
+@@ -84,13 +84,9 @@ static int dev_whitelist_copy(struct lis
+ 	struct dev_whitelist_item *wh, *tmp, *new;
  
- int seq_bitmap(struct seq_file *m, unsigned long *bits, unsigned int nr_bits)
- {
--	size_t len = bitmap_scnprintf_len(nr_bits);
--
--	if (m->count + len < m->size) {
--		bitmap_scnprintf(m->buf + m->count, m->size - m->count,
--				 bits, nr_bits);
--		m->count += len;
--		return 0;
-+	if (m->count < m->size) {
-+		int len = bitmap_scnprintf(m->buf + m->count,
-+				m->size - m->count, bits, nr_bits);
-+		if (m->count + len < m->size) {
-+			m->count += len;
-+			return 0;
-+		}
+ 	list_for_each_entry(wh, orig, list) {
+-		new = kmalloc(sizeof(*wh), GFP_KERNEL);
++		new = kmemdup(wh, sizeof(*wh), GFP_KERNEL);
+ 		if (!new)
+ 			goto free_and_exit;
+-		new->major = wh->major;
+-		new->minor = wh->minor;
+-		new->type = wh->type;
+-		new->access = wh->access;
+ 		list_add_tail(&new->list, dest);
  	}
- 	m->count = m->size;
- 	return -1;
- }
-+EXPORT_SYMBOL(seq_bitmap);
  
- static void *single_start(struct seq_file *p, loff_t *pos)
+@@ -114,11 +110,10 @@ static int dev_whitelist_add(struct dev_
  {
+ 	struct dev_whitelist_item *whcopy, *walk;
+ 
+-	whcopy = kmalloc(sizeof(*whcopy), GFP_KERNEL);
++	whcopy = kmemdup(wh, sizeof(*wh), GFP_KERNEL);
+ 	if (!whcopy)
+ 		return -ENOMEM;
+ 
+-	memcpy(whcopy, wh, sizeof(*whcopy));
+ 	spin_lock(&dev_cgroup->lock);
+ 	list_for_each_entry(walk, &dev_cgroup->whitelist, list) {
+ 		if (walk->type != wh->type)
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
-linux-next.patch
+memrlimit-add-memrlimit-controller-documentation.patch
+memrlimit-setup-the-memrlimit-controller.patch
+memrlimit-setup-the-memrlimit-controller-mm_owner-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
+memrlimit-improve-error-handling.patch
+memrlimit-improve-error-handling-update.patch
+memrlimit-handle-attach_task-failure-add-can_attach-callback.patch
 
