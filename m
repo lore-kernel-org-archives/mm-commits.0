@@ -1,269 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - vmscan-move-isolate_lru_page-to-vmscanc.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:32:28 -0700
-Message-ID: <200810202032.m9KKWSWQ010406@imap1.linux-foundation.org>
+Subject: - mlock-downgrade-mmap-sem-while-populating-mlocked-regions.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:33:07 -0700
+Message-ID: <200810202033.m9KKX7gT010558@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41074 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57259 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753395AbYJTUdo (ORCPT
+	by vger.kernel.org with ESMTP id S1753395AbYJTUdt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:33:44 -0400
+	Mon, 20 Oct 2008 16:33:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, Lee.Schermerhorn@hp.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: lee.schermerhorn@hp.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmscan: move isolate_lru_page() to vmscan.c
+     mlock: downgrade mmap sem while populating mlocked regions
 has been removed from the -mm tree.  Its filename was
-     vmscan-move-isolate_lru_page-to-vmscanc.patch
+     mlock-downgrade-mmap-sem-while-populating-mlocked-regions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmscan: move isolate_lru_page() to vmscan.c
-From: Nick Piggin <npiggin@suse.de>
+Subject: mlock: downgrade mmap sem while populating mlocked regions
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-On large memory systems, the VM can spend way too much time scanning
-through pages that it cannot (or should not) evict from memory.  Not only
-does it use up CPU time, but it also provokes lock contention and can
-leave large systems under memory presure in a catatonic state.
+We need to hold the mmap_sem for write to initiatate mlock()/munlock()
+because we may need to merge/split vmas.  However, this can lead to very
+long lock hold times attempting to fault in a large memory region to mlock
+it into memory.  This can hold off other faults against the mm
+[multithreaded tasks] and other scans of the mm, such as via /proc.  To
+alleviate this, downgrade the mmap_sem to read mode during the population
+of the region for locking.  This is especially the case if we need to
+reclaim memory to lock down the region.  We [probably?] don't need to do
+this for unlocking as all of the pages should be resident--they're already
+mlocked.
 
-This patch series improves VM scalability by:
+Now, the caller's of the mlock functions [mlock_fixup() and
+mlock_vma_pages_range()] expect the mmap_sem to be returned in write mode.
+ Changing all callers appears to be way too much effort at this point. 
+So, restore write mode before returning.  Note that this opens a window
+where the mmap list could change in a multithreaded process.  So, at least
+for mlock_fixup(), where we could be called in a loop over multiple vmas,
+we check that a vma still exists at the start address and that vma still
+covers the page range [start,end).  If not, we return an error, -EAGAIN,
+and let the caller deal with it.
 
-1) putting filesystem backed, swap backed and unevictable pages
-   onto their own LRUs, so the system only scans the pages that it
-   can/should evict from memory
+Return -EAGAIN from mlock_vma_pages_range() function and mlock_fixup() if
+the vma at 'start' disappears or changes so that the page range
+[start,end) is no longer contained in the vma.  Again, let the caller deal
+with it.  Looks like only sys_remap_file_pages() [via mmap_region()]
+should actually care.
 
-2) switching to two handed clock replacement for the anonymous LRUs,
-   so the number of pages that need to be scanned when the system
-   starts swapping is bound to a reasonable number
+With this patch, I no longer see processes like ps(1) blocked for seconds
+or minutes at a time waiting for a large [multiple gigabyte] region to be
+locked down.  However, I occassionally see delays while unlocking or
+unmapping a large mlocked region.  Should we also downgrade the mmap_sem
+for the unlock path?
 
-3) keeping unevictable pages off the LRU completely, so the
-   VM does not waste CPU time scanning them. ramfs, ramdisk,
-   SHM_LOCKED shared memory segments and mlock()ed VMA pages
-   are keept on the unevictable list.
-
-
-This patch:
-
-isolate_lru_page logically belongs to be in vmscan.c than migrate.c.
-
-It is tough, because we don't need that function without memory migration
-so there is a valid argument to have it in migrate.c.  However a
-subsequent patch needs to make use of it in the core mm, so we can happily
-move it to vmscan.c.
-
-Also, make the function a little more generic by not requiring that it
-adds an isolated page to a given list.  Callers can do that.
-
-	Note that we now have '__isolate_lru_page()', that does
-	something quite different, visible outside of vmscan.c
-	for use with memory controller.  Methinks we need to
-	rationalize these names/purposes.	--lts
-
-[akpm@linux-foundation.org: fix mm/memory_hotplug.c build]
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Rik van Riel <riel@redhat.com>
-Signed-off-by: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    3 --
- mm/internal.h           |    2 +
- mm/memory_hotplug.c     |    3 +-
- mm/mempolicy.c          |    9 +++++--
- mm/migrate.c            |   34 ++--------------------------
- mm/vmscan.c             |   45 ++++++++++++++++++++++++++++++++++++++
- 6 files changed, 59 insertions(+), 37 deletions(-)
+ mm/mlock.c |   46 +++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 43 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/migrate.h~vmscan-move-isolate_lru_page-to-vmscanc include/linux/migrate.h
---- a/include/linux/migrate.h~vmscan-move-isolate_lru_page-to-vmscanc
-+++ a/include/linux/migrate.h
-@@ -7,7 +7,6 @@
- typedef struct page *new_page_t(struct page *, unsigned long private, int **);
+diff -puN mm/mlock.c~mlock-downgrade-mmap-sem-while-populating-mlocked-regions mm/mlock.c
+--- a/mm/mlock.c~mlock-downgrade-mmap-sem-while-populating-mlocked-regions
++++ a/mm/mlock.c
+@@ -318,6 +318,7 @@ static void __munlock_vma_pages_range(st
+ int mlock_vma_pages_range(struct vm_area_struct *vma,
+ 			unsigned long start, unsigned long end)
+ {
++	struct mm_struct *mm = vma->vm_mm;
+ 	int nr_pages = (end - start) / PAGE_SIZE;
+ 	BUG_ON(!(vma->vm_flags & VM_LOCKED));
  
- #ifdef CONFIG_MIGRATION
--extern int isolate_lru_page(struct page *p, struct list_head *pagelist);
- extern int putback_lru_pages(struct list_head *l);
- extern int migrate_page(struct address_space *,
- 			struct page *, struct page *);
-@@ -21,8 +20,6 @@ extern int migrate_vmas(struct mm_struct
- 		const nodemask_t *from, const nodemask_t *to,
- 		unsigned long flags);
- #else
--static inline int isolate_lru_page(struct page *p, struct list_head *list)
--					{ return -ENOSYS; }
- static inline int putback_lru_pages(struct list_head *l) { return 0; }
- static inline int migrate_pages(struct list_head *l, new_page_t x,
- 		unsigned long private) { return -ENOSYS; }
-diff -puN mm/internal.h~vmscan-move-isolate_lru_page-to-vmscanc mm/internal.h
---- a/mm/internal.h~vmscan-move-isolate_lru_page-to-vmscanc
-+++ a/mm/internal.h
-@@ -39,6 +39,8 @@ static inline void __put_page(struct pag
- 	atomic_dec(&page->_count);
- }
+@@ -329,8 +330,19 @@ int mlock_vma_pages_range(struct vm_area
  
-+extern int isolate_lru_page(struct page *page);
+ 	if (!((vma->vm_flags & (VM_DONTEXPAND | VM_RESERVED)) ||
+ 			is_vm_hugetlb_page(vma) ||
+-			vma == get_gate_vma(current)))
+-		return __mlock_vma_pages_range(vma, start, end);
++			vma == get_gate_vma(current))) {
++		downgrade_write(&mm->mmap_sem);
++		nr_pages = __mlock_vma_pages_range(vma, start, end);
 +
- extern void __free_pages_bootmem(struct page *page, unsigned int order);
++		up_read(&mm->mmap_sem);
++		/* vma can change or disappear */
++		down_write(&mm->mmap_sem);
++		vma = find_vma(mm, start);
++		/* non-NULL vma must contain @start, but need to check @end */
++		if (!vma ||  end > vma->vm_end)
++			return -EAGAIN;
++		return nr_pages;
++	}
  
- /*
-diff -puN mm/memory_hotplug.c~vmscan-move-isolate_lru_page-to-vmscanc mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~vmscan-move-isolate_lru_page-to-vmscanc
-+++ a/mm/memory_hotplug.c
-@@ -658,8 +658,9 @@ do_migrate_range(unsigned long start_pfn
- 		 * We can skip free pages. And we can only deal with pages on
- 		 * LRU.
- 		 */
--		ret = isolate_lru_page(page, &source);
-+		ret = isolate_lru_page(page);
- 		if (!ret) { /* Success */
-+			list_add_tail(&page->lru, &source);
- 			move_pages--;
- 		} else {
- 			/* Becasue we don't have big zone->lock. we should
-diff -puN mm/mempolicy.c~vmscan-move-isolate_lru_page-to-vmscanc mm/mempolicy.c
---- a/mm/mempolicy.c~vmscan-move-isolate_lru_page-to-vmscanc
-+++ a/mm/mempolicy.c
-@@ -93,6 +93,8 @@
- #include <asm/tlbflush.h>
- #include <asm/uaccess.h>
- 
-+#include "internal.h"
-+
- /* Internal flags */
- #define MPOL_MF_DISCONTIG_OK (MPOL_MF_INTERNAL << 0)	/* Skip checks for continuous vmas */
- #define MPOL_MF_INVERT (MPOL_MF_INTERNAL << 1)		/* Invert check for nodemask */
-@@ -762,8 +764,11 @@ static void migrate_page_add(struct page
  	/*
- 	 * Avoid migrating a page that is shared with others.
- 	 */
--	if ((flags & MPOL_MF_MOVE_ALL) || page_mapcount(page) == 1)
--		isolate_lru_page(page, pagelist);
-+	if ((flags & MPOL_MF_MOVE_ALL) || page_mapcount(page) == 1) {
-+		if (!isolate_lru_page(page)) {
-+			list_add_tail(&page->lru, pagelist);
-+		}
+ 	 * User mapped kernel pages or huge pages:
+@@ -424,13 +436,41 @@ success:
+ 	vma->vm_flags = newflags;
+ 
+ 	if (lock) {
++		/*
++		 * mmap_sem is currently held for write.  Downgrade the write
++		 * lock to a read lock so that other faults, mmap scans, ...
++		 * while we fault in all pages.
++		 */
++		downgrade_write(&mm->mmap_sem);
++
+ 		ret = __mlock_vma_pages_range(vma, start, end);
+ 		if (ret > 0) {
+ 			mm->locked_vm -= ret;
+ 			ret = 0;
+ 		}
+-	} else
++		/*
++		 * Need to reacquire mmap sem in write mode, as our callers
++		 * expect this.  We have no support for atomically upgrading
++		 * a sem to write, so we need to check for ranges while sem
++		 * is unlocked.
++		 */
++		up_read(&mm->mmap_sem);
++		/* vma can change or disappear */
++		down_write(&mm->mmap_sem);
++		*prev = find_vma(mm, start);
++		/* non-NULL *prev must contain @start, but need to check @end */
++		if (!(*prev) || end > (*prev)->vm_end)
++			ret = -EAGAIN;
++	} else {
++		/*
++		 * TODO:  for unlocking, pages will already be resident, so
++		 * we don't need to wait for allocations/reclaim/pagein, ...
++		 * However, unlocking a very large region can still take a
++		 * while.  Should we downgrade the semaphore for both lock
++		 * AND unlock ?
++		 */
+ 		__munlock_vma_pages_range(vma, start, end);
 +	}
- }
  
- static struct page *new_node_page(struct page *page, unsigned long node, int **x)
-diff -puN mm/migrate.c~vmscan-move-isolate_lru_page-to-vmscanc mm/migrate.c
---- a/mm/migrate.c~vmscan-move-isolate_lru_page-to-vmscanc
-+++ a/mm/migrate.c
-@@ -37,36 +37,6 @@
- #define lru_to_page(_head) (list_entry((_head)->prev, struct page, lru))
- 
- /*
-- * Isolate one page from the LRU lists. If successful put it onto
-- * the indicated list with elevated page count.
-- *
-- * Result:
-- *  -EBUSY: page not on LRU list
-- *  0: page removed from LRU list and added to the specified list.
-- */
--int isolate_lru_page(struct page *page, struct list_head *pagelist)
--{
--	int ret = -EBUSY;
--
--	if (PageLRU(page)) {
--		struct zone *zone = page_zone(page);
--
--		spin_lock_irq(&zone->lru_lock);
--		if (PageLRU(page) && get_page_unless_zero(page)) {
--			ret = 0;
--			ClearPageLRU(page);
--			if (PageActive(page))
--				del_page_from_active_list(zone, page);
--			else
--				del_page_from_inactive_list(zone, page);
--			list_add_tail(&page->lru, pagelist);
--		}
--		spin_unlock_irq(&zone->lru_lock);
--	}
--	return ret;
--}
--
--/*
-  * migrate_prep() needs to be called before we start compiling a list of pages
-  * to be migrated using isolate_lru_page().
-  */
-@@ -914,7 +884,9 @@ static int do_move_pages(struct mm_struc
- 				!migrate_all)
- 			goto put_and_set;
- 
--		err = isolate_lru_page(page, &pagelist);
-+		err = isolate_lru_page(page);
-+		if (!err)
-+			list_add_tail(&page->lru, &pagelist);
- put_and_set:
- 		/*
- 		 * Either remove the duplicate refcount from
-diff -puN mm/vmscan.c~vmscan-move-isolate_lru_page-to-vmscanc mm/vmscan.c
---- a/mm/vmscan.c~vmscan-move-isolate_lru_page-to-vmscanc
-+++ a/mm/vmscan.c
-@@ -844,6 +844,51 @@ static unsigned long clear_active_flags(
- 	return nr_active;
- }
- 
-+/**
-+ * isolate_lru_page - tries to isolate a page from its LRU list
-+ * @page: page to isolate from its LRU list
-+ *
-+ * Isolates a @page from an LRU list, clears PageLRU and adjusts the
-+ * vmstat statistic corresponding to whatever LRU list the page was on.
-+ *
-+ * Returns 0 if the page was removed from an LRU list.
-+ * Returns -EBUSY if the page was not on an LRU list.
-+ *
-+ * The returned page will have PageLRU() cleared.  If it was found on
-+ * the active list, it will have PageActive set.  That flag may need
-+ * to be cleared by the caller before letting the page go.
-+ *
-+ * The vmstat statistic corresponding to the list on which the page was
-+ * found will be decremented.
-+ *
-+ * Restrictions:
-+ * (1) Must be called with an elevated refcount on the page. This is a
-+ *     fundamentnal difference from isolate_lru_pages (which is called
-+ *     without a stable reference).
-+ * (2) the lru_lock must not be held.
-+ * (3) interrupts must be enabled.
-+ */
-+int isolate_lru_page(struct page *page)
-+{
-+	int ret = -EBUSY;
-+
-+	if (PageLRU(page)) {
-+		struct zone *zone = page_zone(page);
-+
-+		spin_lock_irq(&zone->lru_lock);
-+		if (PageLRU(page) && get_page_unless_zero(page)) {
-+			ret = 0;
-+			ClearPageLRU(page);
-+			if (PageActive(page))
-+				del_page_from_active_list(zone, page);
-+			else
-+				del_page_from_inactive_list(zone, page);
-+		}
-+		spin_unlock_irq(&zone->lru_lock);
-+	}
-+	return ret;
-+}
-+
- /*
-  * shrink_inactive_list() is a helper for shrink_zone().  It returns the number
-  * of reclaimed pages
+ out:
+ 	*prev = vma;
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from lee.schermerhorn@hp.com are
 
 origin.patch
-linux-next.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
 
