@@ -1,72 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - bitmask-remove-bitmap_scnprintf_len.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:36:49 -0700
-Message-ID: <200810202036.m9KKanvu011462@imap1.linux-foundation.org>
+Subject: - hwmon-applesmc-add-support-for-macbook-pro-3.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:35:19 -0700
+Message-ID: <200810202035.m9KKZJef011123@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41453 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60681 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754448AbYJTUqy (ORCPT
+	by vger.kernel.org with ESMTP id S1754422AbYJTUrD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:46:54 -0400
+	Mon, 20 Oct 2008 16:47:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laijs@cn.fujitsu.com, adobriyan@gmail.com, menage@google.com, pj@sgi.com, mm-commits@vger.kernel.org
+To: rydberg@euromail.se, khali@linux-fr.org, mhoffman@lightlink.com, nicolas@boichat.ch, rkoktarianto@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bitmask: remove bitmap_scnprintf_len()
+     hwmon: applesmc: Add support for Macbook Pro 3
 has been removed from the -mm tree.  Its filename was
-     bitmask-remove-bitmap_scnprintf_len.patch
+     hwmon-applesmc-add-support-for-macbook-pro-3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitmask: remove bitmap_scnprintf_len()
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: hwmon: applesmc: Add support for Macbook Pro 3
+From: Henrik Rydberg <rydberg@euromail.se>
 
-bitmap_scnprintf_len() is not used now, so we remove it.
+Add temperature sensor support for Macbook Pro 3.
 
-Otherwise we have to maintain it and make its return
-value always equal to bitmap_scnprintf()'s return value.
-
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Paul Jackson <pj@sgi.com>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Cc: Nicolas Boichat <nicolas@boichat.ch>
+Cc: Riki Oktarianto <rkoktarianto@gmail.com>
+Cc: Mark M. Hoffman <mhoffman@lightlink.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h |    1 -
- lib/bitmap.c           |   11 -----------
- 2 files changed, 12 deletions(-)
+ drivers/hwmon/applesmc.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN include/linux/bitmap.h~bitmask-remove-bitmap_scnprintf_len include/linux/bitmap.h
---- a/include/linux/bitmap.h~bitmask-remove-bitmap_scnprintf_len
-+++ a/include/linux/bitmap.h
-@@ -110,7 +110,6 @@ extern int __bitmap_weight(const unsigne
+diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-add-support-for-macbook-pro-3 drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~hwmon-applesmc-add-support-for-macbook-pro-3
++++ a/drivers/hwmon/applesmc.c
+@@ -110,6 +110,9 @@ static const char* temperature_sensors_s
+ /* Set 8: Macbook Pro 4,1 (Penryn) */
+ 	{ "TB0T", "TC0D", "TC0P", "TG0D", "TG0H", "TTF0", "TW0P", "Th0H",
+ 	  "Th1H", "Th2H", "Tm0P", "Ts0P", NULL },
++/* Set 9: Macbook Pro 3,1 (Santa Rosa) */
++	{ "TALP", "TB0T", "TC0D", "TC0P", "TG0D", "TG0H", "TTF0", "TW0P",
++	  "Th0H", "Th1H", "Th2H", "Tm0P", "Ts0P", NULL },
+ };
  
- extern int bitmap_scnprintf(char *buf, unsigned int len,
- 			const unsigned long *src, int nbits);
--extern int bitmap_scnprintf_len(unsigned int nr_bits);
- extern int __bitmap_parse(const char *buf, unsigned int buflen, int is_user,
- 			unsigned long *dst, int nbits);
- extern int bitmap_parse_user(const char __user *ubuf, unsigned int ulen,
-diff -puN lib/bitmap.c~bitmask-remove-bitmap_scnprintf_len lib/bitmap.c
---- a/lib/bitmap.c~bitmask-remove-bitmap_scnprintf_len
-+++ a/lib/bitmap.c
-@@ -316,17 +316,6 @@ int bitmap_scnprintf(char *buf, unsigned
- EXPORT_SYMBOL(bitmap_scnprintf);
+ /* List of keys used to read/write fan speeds */
+@@ -1269,6 +1272,8 @@ static __initdata struct dmi_match_data 
+ 	{ .accelerometer = 1, .light = 1, .temperature_set = 7 },
+ /* MacBook Pro 4: accelerometer, backlight and temperature set 8 */
+ 	{ .accelerometer = 1, .light = 1, .temperature_set = 8 },
++/* MacBook Pro 3: accelerometer, backlight and temperature set 9 */
++	{ .accelerometer = 1, .light = 1, .temperature_set = 9 },
+ };
  
- /**
-- * bitmap_scnprintf_len - return buffer length needed to convert
-- * bitmap to an ASCII hex string
-- * @nr_bits: number of bits to be converted
-- */
--int bitmap_scnprintf_len(unsigned int nr_bits)
--{
--	unsigned int nr_nibbles = ALIGN(nr_bits, 4) / 4;
--	return nr_nibbles + ALIGN(nr_nibbles, CHUNKSZ / 4) / (CHUNKSZ / 4) - 1;
--}
+ /* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
+@@ -1282,6 +1287,10 @@ static __initdata struct dmi_system_id a
+ 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro4") },
+ 		&applesmc_dmi_data[8]},
++	{ applesmc_dmi_match, "Apple MacBook Pro 3", {
++	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
++	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro3") },
++		&applesmc_dmi_data[9]},
+ 	{ applesmc_dmi_match, "Apple MacBook Pro", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBookPro") },
+_
+
+Patches currently in -mm which might be from rydberg@euromail.se are
+
+origin.patch
+input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
+
