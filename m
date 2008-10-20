@@ -1,373 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - container-freezer-make-refrigerator-always-available.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:34:19 -0700
-Message-ID: <200810202034.m9KKYJ5h010816@imap1.linux-foundation.org>
+Subject: - gpiolib-fix-oops-in-gpio_get_value_cansleep.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:35:38 -0700
+Message-ID: <200810202035.m9KKZcws011188@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32818 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53387 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753558AbYJTUf2 (ORCPT
+	by vger.kernel.org with ESMTP id S1753736AbYJTUgr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:35:28 -0400
+	Mon, 20 Oct 2008 16:36:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthltc@us.ibm.com, clg@fr.ibm.com, rjw@sisk.pl, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: dbrownell@users.sourceforge.net, avorontsov@ru.mvista.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     container freezer: make refrigerator always available
+     gpiolib: fix oops in gpio_get_value_cansleep()
 has been removed from the -mm tree.  Its filename was
-     container-freezer-make-refrigerator-always-available.patch
+     gpiolib-fix-oops-in-gpio_get_value_cansleep.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: container freezer: make refrigerator always available
-From: Matt Helsley <matthltc@us.ibm.com>
+Subject: gpiolib: fix oops in gpio_get_value_cansleep()
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Now that the TIF_FREEZE flag is available in all architectures, extract
-the refrigerator() and freeze_task() from kernel/power/process.c and make
-it available to all.
+We can get the following oops from gpio_get_value_cansleep() when a GPIO
+controller doesn't provide a get() callback:
 
-The refrigerator() can now be used in a control group subsystem
-implementing a control group freezer.
+ Unable to handle kernel paging request for instruction fetch
+ Faulting instruction address: 0x00000000
+ Oops: Kernel access of bad area, sig: 11 [#1]
+ [...]
+ NIP [00000000] 0x0
+ LR [c0182fb0] gpio_get_value_cansleep+0x40/0x50
+ Call Trace:
+ [c7b79e80] [c0183f28] gpio_value_show+0x5c/0x94
+ [c7b79ea0] [c01a584c] dev_attr_show+0x30/0x7c
+ [c7b79eb0] [c00d6b48] fill_read_buffer+0x68/0xe0
+ [c7b79ed0] [c00d6c54] sysfs_read_file+0x94/0xbc
+ [c7b79ef0] [c008f24c] vfs_read+0xb4/0x16c
+ [c7b79f10] [c008f580] sys_read+0x4c/0x90
+ [c7b79f40] [c0013a14] ret_from_syscall+0x0/0x38
 
-Signed-off-by: Cedric Le Goater <clg@fr.ibm.com>
-Signed-off-by: Matt Helsley <matthltc@us.ibm.com>
-Acked-by: Serge E. Hallyn <serue@us.ibm.com>
-Tested-by: Matt Helsley <matthltc@us.ibm.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+It's OK to request the value of *any* GPIO; most GPIOs are bidirectional,
+so configuring them as outputs just enables an output driver and doesn't
+disable the input logic.
+
+So the problem is that gpio_get_value_cansleep() isn't making the same
+sanity check that gpio_get_value() does: making sure this GPIO isn't one
+of the atypical "no input logic" cases.
+
+Reported-by: Anton Vorontsov <avorontsov@ru.mvista.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: <stable@kernel.org>		[2.6.27.x, 2.6.26.x, 2.6.25.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/freezer.h |   14 +++-
- kernel/Makefile         |    1 
- kernel/freezer.c        |  122 ++++++++++++++++++++++++++++++++++++++
- kernel/power/Kconfig    |    3 
- kernel/power/process.c  |  116 ------------------------------------
- 5 files changed, 137 insertions(+), 119 deletions(-)
+ drivers/gpio/gpiolib.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/freezer.h~container-freezer-make-refrigerator-always-available include/linux/freezer.h
---- a/include/linux/freezer.h~container-freezer-make-refrigerator-always-available
-+++ a/include/linux/freezer.h
-@@ -6,7 +6,7 @@
- #include <linux/sched.h>
- #include <linux/wait.h>
+diff -puN drivers/gpio/gpiolib.c~gpiolib-fix-oops-in-gpio_get_value_cansleep drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpiolib-fix-oops-in-gpio_get_value_cansleep
++++ a/drivers/gpio/gpiolib.c
+@@ -1105,7 +1105,7 @@ int gpio_get_value_cansleep(unsigned gpi
  
--#ifdef CONFIG_PM_SLEEP
-+#ifdef CONFIG_FREEZER
- /*
-  * Check if a process has been frozen
-  */
-@@ -39,6 +39,11 @@ static inline void clear_freeze_flag(str
- 	clear_tsk_thread_flag(p, TIF_FREEZE);
+ 	might_sleep_if(extra_checks);
+ 	chip = gpio_to_chip(gpio);
+-	return chip->get(chip, gpio - chip->base);
++	return chip->get ? chip->get(chip, gpio - chip->base) : 0;
  }
+ EXPORT_SYMBOL_GPL(gpio_get_value_cansleep);
  
-+static inline bool should_send_signal(struct task_struct *p)
-+{
-+	return !(p->flags & PF_FREEZER_NOSIG);
-+}
-+
- /*
-  * Wake up a frozen process
-  *
-@@ -75,6 +80,9 @@ static inline int try_to_freeze(void)
- 		return 0;
- }
- 
-+extern bool freeze_task(struct task_struct *p, bool sig_only);
-+extern void cancel_freezing(struct task_struct *p);
-+
- /*
-  * The PF_FREEZER_SKIP flag should be set by a vfork parent right before it
-  * calls wait_for_completion(&vfork) and reset right after it returns from this
-@@ -166,7 +174,7 @@ static inline void set_freezable_with_si
- 	} while (try_to_freeze());					\
- 	__retval;							\
- })
--#else /* !CONFIG_PM_SLEEP */
-+#else /* !CONFIG_FREEZER */
- static inline int frozen(struct task_struct *p) { return 0; }
- static inline int freezing(struct task_struct *p) { return 0; }
- static inline void set_freeze_flag(struct task_struct *p) {}
-@@ -191,6 +199,6 @@ static inline void set_freezable_with_si
- #define wait_event_freezable_timeout(wq, condition, timeout)		\
- 		wait_event_interruptible_timeout(wq, condition, timeout)
- 
--#endif /* !CONFIG_PM_SLEEP */
-+#endif /* !CONFIG_FREEZER */
- 
- #endif	/* FREEZER_H_INCLUDED */
-diff -puN kernel/Makefile~container-freezer-make-refrigerator-always-available kernel/Makefile
---- a/kernel/Makefile~container-freezer-make-refrigerator-always-available
-+++ a/kernel/Makefile
-@@ -24,6 +24,7 @@ CFLAGS_REMOVE_sched_clock.o = -pg
- CFLAGS_REMOVE_sched.o = -mno-spe -pg
- endif
- 
-+obj-$(CONFIG_FREEZER) += freezer.o
- obj-$(CONFIG_PROFILING) += profile.o
- obj-$(CONFIG_SYSCTL_SYSCALL_CHECK) += sysctl_check.o
- obj-$(CONFIG_STACKTRACE) += stacktrace.o
-diff -puN /dev/null kernel/freezer.c
---- /dev/null
-+++ a/kernel/freezer.c
-@@ -0,0 +1,122 @@
-+/*
-+ * kernel/freezer.c - Function to freeze a process
-+ *
-+ * Originally from kernel/power/process.c
-+ */
-+
-+#include <linux/interrupt.h>
-+#include <linux/suspend.h>
-+#include <linux/module.h>
-+#include <linux/syscalls.h>
-+#include <linux/freezer.h>
-+
-+/*
-+ * freezing is complete, mark current process as frozen
-+ */
-+static inline void frozen_process(void)
-+{
-+	if (!unlikely(current->flags & PF_NOFREEZE)) {
-+		current->flags |= PF_FROZEN;
-+		wmb();
-+	}
-+	clear_freeze_flag(current);
-+}
-+
-+/* Refrigerator is place where frozen processes are stored :-). */
-+void refrigerator(void)
-+{
-+	/* Hmm, should we be allowed to suspend when there are realtime
-+	   processes around? */
-+	long save;
-+
-+	task_lock(current);
-+	if (freezing(current)) {
-+		frozen_process();
-+		task_unlock(current);
-+	} else {
-+		task_unlock(current);
-+		return;
-+	}
-+	save = current->state;
-+	pr_debug("%s entered refrigerator\n", current->comm);
-+
-+	spin_lock_irq(&current->sighand->siglock);
-+	recalc_sigpending(); /* We sent fake signal, clean it up */
-+	spin_unlock_irq(&current->sighand->siglock);
-+
-+	for (;;) {
-+		set_current_state(TASK_UNINTERRUPTIBLE);
-+		if (!frozen(current))
-+			break;
-+		schedule();
-+	}
-+	pr_debug("%s left refrigerator\n", current->comm);
-+	__set_current_state(save);
-+}
-+EXPORT_SYMBOL(refrigerator);
-+
-+static void fake_signal_wake_up(struct task_struct *p)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&p->sighand->siglock, flags);
-+	signal_wake_up(p, 0);
-+	spin_unlock_irqrestore(&p->sighand->siglock, flags);
-+}
-+
-+/**
-+ *	freeze_task - send a freeze request to given task
-+ *	@p: task to send the request to
-+ *	@sig_only: if set, the request will only be sent if the task has the
-+ *		PF_FREEZER_NOSIG flag unset
-+ *	Return value: 'false', if @sig_only is set and the task has
-+ *		PF_FREEZER_NOSIG set or the task is frozen, 'true', otherwise
-+ *
-+ *	The freeze request is sent by setting the tasks's TIF_FREEZE flag and
-+ *	either sending a fake signal to it or waking it up, depending on whether
-+ *	or not it has PF_FREEZER_NOSIG set.  If @sig_only is set and the task
-+ *	has PF_FREEZER_NOSIG set (ie. it is a typical kernel thread), its
-+ *	TIF_FREEZE flag will not be set.
-+ */
-+bool freeze_task(struct task_struct *p, bool sig_only)
-+{
-+	/*
-+	 * We first check if the task is freezing and next if it has already
-+	 * been frozen to avoid the race with frozen_process() which first marks
-+	 * the task as frozen and next clears its TIF_FREEZE.
-+	 */
-+	if (!freezing(p)) {
-+		rmb();
-+		if (frozen(p))
-+			return false;
-+
-+		if (!sig_only || should_send_signal(p))
-+			set_freeze_flag(p);
-+		else
-+			return false;
-+	}
-+
-+	if (should_send_signal(p)) {
-+		if (!signal_pending(p))
-+			fake_signal_wake_up(p);
-+	} else if (sig_only) {
-+		return false;
-+	} else {
-+		wake_up_state(p, TASK_INTERRUPTIBLE);
-+	}
-+
-+	return true;
-+}
-+
-+void cancel_freezing(struct task_struct *p)
-+{
-+	unsigned long flags;
-+
-+	if (freezing(p)) {
-+		pr_debug("  clean up: %s\n", p->comm);
-+		clear_freeze_flag(p);
-+		spin_lock_irqsave(&p->sighand->siglock, flags);
-+		recalc_sigpending_and_wake(p);
-+		spin_unlock_irqrestore(&p->sighand->siglock, flags);
-+	}
-+}
-diff -puN kernel/power/Kconfig~container-freezer-make-refrigerator-always-available kernel/power/Kconfig
---- a/kernel/power/Kconfig~container-freezer-make-refrigerator-always-available
-+++ a/kernel/power/Kconfig
-@@ -85,6 +85,9 @@ config PM_SLEEP
- 	depends on SUSPEND || HIBERNATION || XEN_SAVE_RESTORE
- 	default y
- 
-+config FREEZER
-+	def_bool PM_SLEEP
-+
- config SUSPEND
- 	bool "Suspend to RAM and standby"
- 	depends on PM && ARCH_SUSPEND_POSSIBLE
-diff -puN kernel/power/process.c~container-freezer-make-refrigerator-always-available kernel/power/process.c
---- a/kernel/power/process.c~container-freezer-make-refrigerator-always-available
-+++ a/kernel/power/process.c
-@@ -28,121 +28,6 @@ static inline int freezeable(struct task
- 	return 1;
- }
- 
--/*
-- * freezing is complete, mark current process as frozen
-- */
--static inline void frozen_process(void)
--{
--	if (!unlikely(current->flags & PF_NOFREEZE)) {
--		current->flags |= PF_FROZEN;
--		wmb();
--	}
--	clear_freeze_flag(current);
--}
--
--/* Refrigerator is place where frozen processes are stored :-). */
--void refrigerator(void)
--{
--	/* Hmm, should we be allowed to suspend when there are realtime
--	   processes around? */
--	long save;
--
--	task_lock(current);
--	if (freezing(current)) {
--		frozen_process();
--		task_unlock(current);
--	} else {
--		task_unlock(current);
--		return;
--	}
--	save = current->state;
--	pr_debug("%s entered refrigerator\n", current->comm);
--
--	spin_lock_irq(&current->sighand->siglock);
--	recalc_sigpending(); /* We sent fake signal, clean it up */
--	spin_unlock_irq(&current->sighand->siglock);
--
--	for (;;) {
--		set_current_state(TASK_UNINTERRUPTIBLE);
--		if (!frozen(current))
--			break;
--		schedule();
--	}
--	pr_debug("%s left refrigerator\n", current->comm);
--	__set_current_state(save);
--}
--
--static void fake_signal_wake_up(struct task_struct *p)
--{
--	unsigned long flags;
--
--	spin_lock_irqsave(&p->sighand->siglock, flags);
--	signal_wake_up(p, 0);
--	spin_unlock_irqrestore(&p->sighand->siglock, flags);
--}
--
--static inline bool should_send_signal(struct task_struct *p)
--{
--	return !(p->flags & PF_FREEZER_NOSIG);
--}
--
--/**
-- *	freeze_task - send a freeze request to given task
-- *	@p: task to send the request to
-- *	@sig_only: if set, the request will only be sent if the task has the
-- *		PF_FREEZER_NOSIG flag unset
-- *	Return value: 'false', if @sig_only is set and the task has
-- *		PF_FREEZER_NOSIG set or the task is frozen, 'true', otherwise
-- *
-- *	The freeze request is sent by setting the tasks's TIF_FREEZE flag and
-- *	either sending a fake signal to it or waking it up, depending on whether
-- *	or not it has PF_FREEZER_NOSIG set.  If @sig_only is set and the task
-- *	has PF_FREEZER_NOSIG set (ie. it is a typical kernel thread), its
-- *	TIF_FREEZE flag will not be set.
-- */
--static bool freeze_task(struct task_struct *p, bool sig_only)
--{
--	/*
--	 * We first check if the task is freezing and next if it has already
--	 * been frozen to avoid the race with frozen_process() which first marks
--	 * the task as frozen and next clears its TIF_FREEZE.
--	 */
--	if (!freezing(p)) {
--		rmb();
--		if (frozen(p))
--			return false;
--
--		if (!sig_only || should_send_signal(p))
--			set_freeze_flag(p);
--		else
--			return false;
--	}
--
--	if (should_send_signal(p)) {
--		if (!signal_pending(p))
--			fake_signal_wake_up(p);
--	} else if (sig_only) {
--		return false;
--	} else {
--		wake_up_state(p, TASK_INTERRUPTIBLE);
--	}
--
--	return true;
--}
--
--static void cancel_freezing(struct task_struct *p)
--{
--	unsigned long flags;
--
--	if (freezing(p)) {
--		pr_debug("  clean up: %s\n", p->comm);
--		clear_freeze_flag(p);
--		spin_lock_irqsave(&p->sighand->siglock, flags);
--		recalc_sigpending_and_wake(p);
--		spin_unlock_irqrestore(&p->sighand->siglock, flags);
--	}
--}
+_
+
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
+
+origin.patch
+linux-next.patch
+
