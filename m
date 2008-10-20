@@ -1,139 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - mlock-make-mlock-error-return-posixly-correct.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:33:29 -0700
-Message-ID: <200810202033.m9KKXTke010634@imap1.linux-foundation.org>
+Subject: - hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:35:00 -0700
+Message-ID: <200810202035.m9KKZ0d0010980@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46861 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49203 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753488AbYJTUeE (ORCPT
+	by vger.kernel.org with ESMTP id S1753677AbYJTUfk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:34:04 -0400
+	Mon, 20 Oct 2008 16:35:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lee.schermerhorn@hp.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: jim.cromie@gmail.com, khali@linux-fr.org, mhoffman@lightlink.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mlock: make mlock error return Posixly Correct
+     hwmon/pc87360 separate alarm files: add therm-min/max/crit-alarms
 has been removed from the -mm tree.  Its filename was
-     mlock-make-mlock-error-return-posixly-correct.patch
+     hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mlock: make mlock error return Posixly Correct
-From: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Subject: hwmon/pc87360 separate alarm files: add therm-min/max/crit-alarms
+From: Jim Cromie <jim.cromie@gmail.com>
 
-Rework Posix error return for mlock().
+Adds therm-min/max/crit-alarm callbacks, sensor-device-attribute
+declarations, and refs to those new decls in the macro used to initialize
+the therm_group (of sysfs files)
 
-Posix requires error code for mlock*() system calls for some conditions
-that differ from what kernel low level functions, such as
-get_user_pages(), return for those conditions.  For more info, see:
+The thermistors use voltage channels to measure; so they don't have a
+fault-alarm, but unlike the other voltages, they do have an overtemp,
+which we call crit (by convention).
 
-http://marc.info/?l=linux-kernel&m=121750892930775&w=2
-
-This patch provides the same translation of get_user_pages()
-error codes to posix specified error codes in the context
-of the mlock rework for unevictable lru.
-
-[akpm@linux-foundation.org: fix build]
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+[akpm@linux-foundation.org: cleanup]
+Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- mm/mlock.c  |   33 +++++++++++++++++++++++++++------
- 2 files changed, 28 insertions(+), 7 deletions(-)
+ drivers/hwmon/pc87360.c |   58 +++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 57 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory.c~mlock-make-mlock-error-return-posixly-correct mm/memory.c
---- a/mm/memory.c~mlock-make-mlock-error-return-posixly-correct
-+++ a/mm/memory.c
-@@ -2821,7 +2821,7 @@ int make_pages_present(unsigned long add
- 			len, write, 0, NULL, NULL);
- 	if (ret < 0)
- 		return ret;
--	return ret == len ? 0 : -1;
-+	return ret == len ? 0 : -EFAULT;
- }
+diff -puN drivers/hwmon/pc87360.c~hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms drivers/hwmon/pc87360.c
+--- a/drivers/hwmon/pc87360.c~hwmon-pc87360-separate-alarm-files-add-therm-min-max-crit-alarms
++++ a/drivers/hwmon/pc87360.c
+@@ -714,12 +714,68 @@ static struct sensor_device_attribute th
+ 		    show_therm_crit, set_therm_crit, 2+11),
+ };
  
- #if !defined(__HAVE_ARCH_GATE_AREA)
-diff -puN mm/mlock.c~mlock-make-mlock-error-return-posixly-correct mm/mlock.c
---- a/mm/mlock.c~mlock-make-mlock-error-return-posixly-correct
-+++ a/mm/mlock.c
-@@ -248,11 +248,24 @@ static long __mlock_vma_pages_range(stru
- 			addr += PAGE_SIZE;	/* for next get_user_pages() */
- 			nr_pages--;
- 		}
-+		ret = 0;
- 	}
- 
- 	lru_add_drain_all();	/* to update stats */
- 
--	return 0;	/* count entire vma as locked_vm */
-+	return ret;	/* count entire vma as locked_vm */
++/* show_therm_min/max_alarm() reads data from the per-channel voltage
++   status register (sec 11.5.12) */
++
++static ssize_t show_therm_min_alarm(struct device *dev,
++				struct device_attribute *devattr, char *buf)
++{
++	struct pc87360_data *data = pc87360_update_device(dev);
++	unsigned nr = to_sensor_dev_attr(devattr)->index;
++
++	return sprintf(buf, "%u\n", !!(data->in_status[nr] & CHAN_ALM_MIN));
++}
++static ssize_t show_therm_max_alarm(struct device *dev,
++				struct device_attribute *devattr, char *buf)
++{
++	struct pc87360_data *data = pc87360_update_device(dev);
++	unsigned nr = to_sensor_dev_attr(devattr)->index;
++
++	return sprintf(buf, "%u\n", !!(data->in_status[nr] & CHAN_ALM_MAX));
++}
++static ssize_t show_therm_crit_alarm(struct device *dev,
++				struct device_attribute *devattr, char *buf)
++{
++	struct pc87360_data *data = pc87360_update_device(dev);
++	unsigned nr = to_sensor_dev_attr(devattr)->index;
++
++	return sprintf(buf, "%u\n", !!(data->in_status[nr] & TEMP_ALM_CRIT));
 +}
 +
-+/*
-+ * convert get_user_pages() return value to posix mlock() error
-+ */
-+static int __mlock_posix_error_return(long retval)
-+{
-+	if (retval == -EFAULT)
-+		retval = -ENOMEM;
-+	else if (retval == -ENOMEM)
-+		retval = -EAGAIN;
-+	return retval;
- }
- 
- #else /* CONFIG_UNEVICTABLE_LRU */
-@@ -265,9 +278,15 @@ static long __mlock_vma_pages_range(stru
- 				   int mlock)
- {
- 	if (mlock && (vma->vm_flags & VM_LOCKED))
--		make_pages_present(start, end);
-+		return make_pages_present(start, end);
-+	return 0;
-+}
++static struct sensor_device_attribute therm_min_alarm[] = {
++	SENSOR_ATTR(temp4_min_alarm, S_IRUGO,
++		    show_therm_min_alarm, NULL, 0+11),
++	SENSOR_ATTR(temp5_min_alarm, S_IRUGO,
++		    show_therm_min_alarm, NULL, 1+11),
++	SENSOR_ATTR(temp6_min_alarm, S_IRUGO,
++		    show_therm_min_alarm, NULL, 2+11),
++};
++static struct sensor_device_attribute therm_max_alarm[] = {
++	SENSOR_ATTR(temp4_max_alarm, S_IRUGO,
++		    show_therm_max_alarm, NULL, 0+11),
++	SENSOR_ATTR(temp5_max_alarm, S_IRUGO,
++		    show_therm_max_alarm, NULL, 1+11),
++	SENSOR_ATTR(temp6_max_alarm, S_IRUGO,
++		    show_therm_max_alarm, NULL, 2+11),
++};
++static struct sensor_device_attribute therm_crit_alarm[] = {
++	SENSOR_ATTR(temp4_crit_alarm, S_IRUGO,
++		    show_therm_crit_alarm, NULL, 0+11),
++	SENSOR_ATTR(temp5_crit_alarm, S_IRUGO,
++		    show_therm_crit_alarm, NULL, 1+11),
++	SENSOR_ATTR(temp6_crit_alarm, S_IRUGO,
++		    show_therm_crit_alarm, NULL, 2+11),
++};
 +
-+static inline int __mlock_posix_error_return(long retval)
-+{
- 	return 0;
- }
-+
- #endif /* CONFIG_UNEVICTABLE_LRU */
+ #define THERM_UNIT_ATTRS(X) \
+ 	&therm_input[X].dev_attr.attr,	\
+ 	&therm_status[X].dev_attr.attr,	\
+ 	&therm_min[X].dev_attr.attr,	\
+ 	&therm_max[X].dev_attr.attr,	\
+-	&therm_crit[X].dev_attr.attr
++	&therm_crit[X].dev_attr.attr,	\
++	&therm_min_alarm[X].dev_attr.attr, \
++	&therm_max_alarm[X].dev_attr.attr, \
++	&therm_crit_alarm[X].dev_attr.attr
  
- /**
-@@ -434,10 +453,7 @@ success:
- 		downgrade_write(&mm->mmap_sem);
- 
- 		ret = __mlock_vma_pages_range(vma, start, end, 1);
--		if (ret > 0) {
--			mm->locked_vm -= ret;
--			ret = 0;
--		}
-+
- 		/*
- 		 * Need to reacquire mmap sem in write mode, as our callers
- 		 * expect this.  We have no support for atomically upgrading
-@@ -451,6 +467,11 @@ success:
- 		/* non-NULL *prev must contain @start, but need to check @end */
- 		if (!(*prev) || end > (*prev)->vm_end)
- 			ret = -ENOMEM;
-+		else if (ret > 0) {
-+			mm->locked_vm -= ret;
-+			ret = 0;
-+		} else
-+			ret = __mlock_posix_error_return(ret); /* translate if needed */
- 	} else {
- 		/*
- 		 * TODO:  for unlocking, pages will already be resident, so
+ static struct attribute * pc8736x_therm_attr_array[] = {
+ 	THERM_UNIT_ATTRS(0),
 _
 
-Patches currently in -mm which might be from lee.schermerhorn@hp.com are
+Patches currently in -mm which might be from jim.cromie@gmail.com are
 
 origin.patch
 
