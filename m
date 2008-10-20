@@ -1,70 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - mm-print-out-meminit-for-memmap.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:33:50 -0700
-Message-ID: <200810202033.m9KKXoJP010708@imap1.linux-foundation.org>
+Subject: - hwmon-applesmc-specified-number-of-bytes-to-read-should-match-actual.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:35:02 -0700
+Message-ID: <200810202035.m9KKZ2VY011063@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44922 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48419 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753579AbYJTUe1 (ORCPT
+	by vger.kernel.org with ESMTP id S1754342AbYJTUrD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:34:27 -0400
+	Mon, 20 Oct 2008 16:47:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yhlu.kernel@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: rydberg@euromail.se, khali@linux-fr.org, mhoffman@lightlink.com, nicolas@boichat.ch, rkoktarianto@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: print out meminit for memmap
+     hwmon: applesmc: specified number of bytes to read should match actual
 has been removed from the -mm tree.  Its filename was
-     mm-print-out-meminit-for-memmap.patch
+     hwmon-applesmc-specified-number-of-bytes-to-read-should-match-actual.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: print out meminit for memmap
-From: Yinghai Lu <yhlu.kernel@gmail.com>
+Subject: hwmon: applesmc: specified number of bytes to read should match actual
+From: Henrik Rydberg <rydberg@euromail.se>
 
-Improve debuggability of memory setup problems.
+At one single place in the code, the specified number of bytes to read and
+the actual number of bytes read differ by one.  This one-liner patch fixes
+that inconsistency.
 
-Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Cc: Nicolas Boichat <nicolas@boichat.ch>
+Cc: Riki Oktarianto <rkoktarianto@gmail.com>
+Cc: Mark M. Hoffman <mhoffman@lightlink.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/hwmon/applesmc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-print-out-meminit-for-memmap mm/page_alloc.c
---- a/mm/page_alloc.c~mm-print-out-meminit-for-memmap
-+++ a/mm/page_alloc.c
-@@ -3457,8 +3457,8 @@ static void __paginginit free_area_init_
- 			PAGE_ALIGN(size * sizeof(struct page)) >> PAGE_SHIFT;
- 		if (realsize >= memmap_pages) {
- 			realsize -= memmap_pages;
--			mminit_dprintk(MMINIT_TRACE, "memmap_init",
--				"%s zone: %lu pages used for memmap\n",
-+			printk(KERN_DEBUG
-+				"  %s zone: %lu pages used for memmap\n",
- 				zone_names[j], memmap_pages);
- 		} else
- 			printk(KERN_WARNING
-@@ -3468,8 +3468,7 @@ static void __paginginit free_area_init_
- 		/* Account for reserved pages */
- 		if (j == 0 && realsize > dma_reserve) {
- 			realsize -= dma_reserve;
--			mminit_dprintk(MMINIT_TRACE, "memmap_init",
--					"%s zone: %lu pages reserved\n",
-+			printk(KERN_DEBUG "  %s zone: %lu pages reserved\n",
- 					zone_names[0], dma_reserve);
- 		}
+diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-specified-number-of-bytes-to-read-should-match-actual drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~hwmon-applesmc-specified-number-of-bytes-to-read-should-match-actual
++++ a/drivers/hwmon/applesmc.c
+@@ -325,7 +325,7 @@ static int applesmc_get_key_type(char* k
+ 			return -EIO;
+ 	}
  
+-	outb(5, APPLESMC_DATA_PORT);
++	outb(6, APPLESMC_DATA_PORT);
+ 
+ 	for (i = 0; i < 6; i++) {
+ 		if (__wait_status(0x05))
 _
 
-Patches currently in -mm which might be from yhlu.kernel@gmail.com are
+Patches currently in -mm which might be from rydberg@euromail.se are
 
 origin.patch
-linux-next.patch
+input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
 
