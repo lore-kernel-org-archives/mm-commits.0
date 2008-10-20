@@ -1,86 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-fix-ext3_dx_readdir-hash-collision-handling.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:36:01 -0700
-Message-ID: <200810202036.m9KKa1RL011274@imap1.linux-foundation.org>
+Subject: - jbd-abort-when-failed-to-log-metadata-buffers.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:35:48 -0700
+Message-ID: <200810202035.m9KKZmDF011224__14992.9193001755$1224542906$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32879 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36870 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753746AbYJTUgx (ORCPT
+	by vger.kernel.org with ESMTP id S1753616AbYJTUg1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:36:53 -0400
+	Mon, 20 Oct 2008 16:36:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eugene@ibrix.com, msnitzer@ibrix.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: hidehiro.kawai.ez@hitachi.com, jack@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: fix ext3_dx_readdir hash collision handling
+     jbd: abort when failed to log metadata buffers
 has been removed from the -mm tree.  Its filename was
-     ext3-fix-ext3_dx_readdir-hash-collision-handling.patch
+     jbd-abort-when-failed-to-log-metadata-buffers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: fix ext3_dx_readdir hash collision handling
-From: Eugene Dashevsky <eugene@ibrix.com>
+Subject: jbd: abort when failed to log metadata buffers
+From: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
 
-This fixes a bug where readdir() would return a directory entry twice
-if there was a hash collision in an hash tree indexed directory.
+If we failed to write metadata buffers to the journal space and succeeded
+to write the commit record, stale data can be written back to the
+filesystem as metadata in the recovery phase.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Eugene Dashevsky <eugene@ibrix.com>
-Signed-off-by: Mike Snitzer <msnitzer@ibrix.com>
-Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+To avoid this, when we failed to write out metadata buffers, abort the
+journal before writing the commit record.
+
+Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Acked-by: Jan Kara <jack@suse.cz>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/dir.c |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ fs/jbd/commit.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/ext3/dir.c~ext3-fix-ext3_dx_readdir-hash-collision-handling fs/ext3/dir.c
---- a/fs/ext3/dir.c~ext3-fix-ext3_dx_readdir-hash-collision-handling
-+++ a/fs/ext3/dir.c
-@@ -410,7 +410,7 @@ static int call_filldir(struct file * fi
- 				get_dtype(sb, fname->file_type));
- 		if (error) {
- 			filp->f_pos = curr_pos;
--			info->extra_fname = fname->next;
-+			info->extra_fname = fname;
- 			return error;
- 		}
- 		fname = fname->next;
-@@ -449,11 +449,21 @@ static int ext3_dx_readdir(struct file *
- 	 * If there are any leftover names on the hash collision
- 	 * chain, return them first.
- 	 */
--	if (info->extra_fname &&
--	    call_filldir(filp, dirent, filldir, info->extra_fname))
--		goto finished;
-+	if (info->extra_fname) {
-+		if (call_filldir(filp, dirent, filldir, info->extra_fname))
-+			goto finished;
+diff -puN fs/jbd/commit.c~jbd-abort-when-failed-to-log-metadata-buffers fs/jbd/commit.c
+--- a/fs/jbd/commit.c~jbd-abort-when-failed-to-log-metadata-buffers
++++ a/fs/jbd/commit.c
+@@ -762,6 +762,9 @@ wait_for_iobuf:
+ 		/* AKPM: bforget here */
+ 	}
  
--	if (!info->curr_node)
-+		info->extra_fname = NULL;
-+		info->curr_node = rb_next(info->curr_node);
-+		if (!info->curr_node) {
-+			if (info->next_hash == ~0) {
-+				filp->f_pos = EXT3_HTREE_EOF;
-+				goto finished;
-+			}
-+			info->curr_hash = info->next_hash;
-+			info->curr_minor_hash = 0;
-+		}
-+	} else if (!info->curr_node)
- 		info->curr_node = rb_first(&info->root);
++	if (err)
++		journal_abort(journal, err);
++
+ 	jbd_debug(3, "JBD: commit phase 6\n");
  
- 	while (1) {
+ 	if (journal_write_commit_record(journal, commit_transaction))
 _
 
-Patches currently in -mm which might be from eugene@ibrix.com are
+Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
 
 origin.patch
+jbd-fix-error-handling-for-checkpoint-io.patch
+ext3-add-checks-for-errors-from-jbd.patch
+jbd-test-bh_write_eio-to-detect-errors-on-metadata-buffers.patch
 
