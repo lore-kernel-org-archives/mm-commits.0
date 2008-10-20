@@ -1,62 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - hfsplus-missing-o_largefile-check.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:36:09 -0700
-Message-ID: <200810202036.m9KKa96L011308@imap1.linux-foundation.org>
+Subject: - add-config_core_dump_default_elf_headers.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:36:57 -0700
+Message-ID: <200810202036.m9KKavY4011500@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52342 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36337 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755213AbYJTUrw (ORCPT
+	by vger.kernel.org with ESMTP id S1755186AbYJTUrw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 20 Oct 2008 16:47:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, did447@gmail.com, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: roland@redhat.com, alan@lxorguk.ukuu.org.uk, andi@firstfloor.org, davej@redhat.com, hidehiro.kawai.ez@hitachi.com, kosaki.motohiro@jp.fujitsu.com, mingo@elte.hu, mtk.manpages@googlema
 
 
 The patch titled
-     hfsplus: missing O_LARGEFILE check
+     add CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS
 has been removed from the -mm tree.  Its filename was
-     hfsplus-missing-o_largefile-check.patch
+     add-config_core_dump_default_elf_headers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hfsplus: missing O_LARGEFILE check
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: add CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS
+From: Roland McGrath <roland@redhat.com>
 
-hfsplus: O_LARGEFILE checking is missing
+This adds a kconfig option to change the /proc/PID/coredump_filter default.
+Fedora has been carrying a trivial patch to change the hard-wired value for
+this default, since Fedora 8.  The default default can't change safely
+because there are old GDB versions out there (all before 6.7) that are
+confused by the core dump files created by the MMF_DUMP_ELF_HEADERS setting.
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=8490
-
-Reported-by: didier <did447@gmail.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Kawai Hidehiro <hidehiro.kawai.ez@hitachi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: David Jones <davej@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/inode.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/Kconfig.binfmt     |   22 ++++++++++++++++++++++
+ include/linux/sched.h |    8 +++++++-
+ 2 files changed, 29 insertions(+), 1 deletion(-)
 
-diff -puN fs/hfsplus/inode.c~hfsplus-missing-o_largefile-check fs/hfsplus/inode.c
---- a/fs/hfsplus/inode.c~hfsplus-missing-o_largefile-check
-+++ a/fs/hfsplus/inode.c
-@@ -254,6 +254,8 @@ static int hfsplus_file_open(struct inod
- {
- 	if (HFSPLUS_IS_RSRC(inode))
- 		inode = HFSPLUS_I(inode).rsrc_inode;
-+	if (!(file->f_flags & O_LARGEFILE) && i_size_read(inode) > MAX_NON_LFS)
-+		return -EOVERFLOW;
- 	atomic_inc(&HFSPLUS_I(inode).opencnt);
- 	return 0;
- }
+diff -puN fs/Kconfig.binfmt~add-config_core_dump_default_elf_headers fs/Kconfig.binfmt
+--- a/fs/Kconfig.binfmt~add-config_core_dump_default_elf_headers
++++ a/fs/Kconfig.binfmt
+@@ -40,6 +40,28 @@ config BINFMT_ELF_FDPIC
+ 
+ 	  It is also possible to run FDPIC ELF binaries on MMU linux also.
+ 
++config CORE_DUMP_DEFAULT_ELF_HEADERS
++	bool "Write ELF core dumps with partial segments"
++	default n
++	depends on BINFMT_ELF
++	help
++	  ELF core dump files describe each memory mapping of the crashed
++	  process, and can contain or omit the memory contents of each one.
++	  The contents of an unmodified text mapping are omitted by default.
++
++	  For an unmodified text mapping of an ELF object, including just
++	  the first page of the file in a core dump makes it possible to
++	  identify the build ID bits in the file, without paying the i/o
++	  cost and disk space to dump all the text.  However, versions of
++	  GDB before 6.7 are confused by ELF core dump files in this format.
++
++	  The core dump behavior can be controlled per process using
++	  the /proc/PID/coredump_filter pseudo-file; this setting is
++	  inherited.  See Documentation/filesystems/proc.txt for details.
++
++	  This config option changes the default setting of coredump_filter
++	  seen at boot time.  If unsure, say N.
++
+ config BINFMT_FLAT
+ 	bool "Kernel support for flat binaries"
+ 	depends on !MMU && (!FRV || BROKEN)
+diff -puN include/linux/sched.h~add-config_core_dump_default_elf_headers include/linux/sched.h
+--- a/include/linux/sched.h~add-config_core_dump_default_elf_headers
++++ a/include/linux/sched.h
+@@ -411,7 +411,13 @@ extern int get_dumpable(struct mm_struct
+ 	(((1 << MMF_DUMP_FILTER_BITS) - 1) << MMF_DUMP_FILTER_SHIFT)
+ #define MMF_DUMP_FILTER_DEFAULT \
+ 	((1 << MMF_DUMP_ANON_PRIVATE) |	(1 << MMF_DUMP_ANON_SHARED) |\
+-	 (1 << MMF_DUMP_HUGETLB_PRIVATE))
++	 (1 << MMF_DUMP_HUGETLB_PRIVATE) | MMF_DUMP_MASK_DEFAULT_ELF)
++
++#ifdef CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS
++# define MMF_DUMP_MASK_DEFAULT_ELF	(1 << MMF_DUMP_ELF_HEADERS)
++#else
++# define MMF_DUMP_MASK_DEFAULT_ELF	0
++#endif
+ 
+ struct sighand_struct {
+ 	atomic_t		count;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from roland@redhat.com are
 
 origin.patch
 linux-next.patch
-max3100-spi-uart-driver.patch
-max3100-spi-uart-driver-fix.patch
+posix-timers-simplify-de_thread-exit_itimers-path.patch
 
