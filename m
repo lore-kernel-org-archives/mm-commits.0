@@ -1,79 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: + mm-increase-the-default-mlock-limit-from-32k-to-64k.patch added to -mm tree
-Date: Mon, 20 Oct 2008 14:31:40 -0700
-Message-ID: <200810202131.m9KLVe8R020985@imap1.linux-foundation.org>
+Subject: - mfd-drivers-mfd-wm8350-corec-doesnt-work-on-x86.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 14:32:12 -0700
+Message-ID: <200810202132.m9KLWCV0021080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57222 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53686 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753035AbYJTVbq (ORCPT
+	by vger.kernel.org with ESMTP id S1753234AbYJTVcU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 17:31:46 -0400
+	Mon, 20 Oct 2008 17:32:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: garloff@suse.de, npiggin@suse.de
+To: akpm@linux-foundation.org, sameo@openedhand.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: increase the default mlock limit from 32k to 64k
-has been added to the -mm tree.  Its filename is
-     mm-increase-the-default-mlock-limit-from-32k-to-64k.patch
+     mfd: drivers/mfd/wm8350-core.c doesn't work on x86
+has been removed from the -mm tree.  Its filename was
+     mfd-drivers-mfd-wm8350-corec-doesnt-work-on-x86.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: increase the default mlock limit from 32k to 64k
-From: Kurt Garloff <garloff@suse.de>
+Subject: mfd: drivers/mfd/wm8350-core.c doesn't work on x86
+From: Andrew Morton <akpm@linux-foundation.org>
 
-By default, non-privileged tasks can only mlock() a small amount of
-memory to avoid a DoS attack by ordinary users.  The Linux kernel
-defaulted to 32k (on a 4k page size system) to accommodate the needs of
-gpg.
+drivers/mfd/wm8350-core.c: In function 'wm8350_device_init':
+drivers/mfd/wm8350-core.c:1220: error: 'NO_IRQ' undeclared (first use in this function)
+drivers/mfd/wm8350-core.c:1220: error: (Each undeclared identifier is reported only once
+drivers/mfd/wm8350-core.c:1220: error: for each function it appears in.)
 
-However, newer gpg2 needs 64k in various circumstances and otherwise
-fails miserably, see bnc#329675.
-
-Change the default to 64k, and make it more agnostic to PAGE_SIZE.
-
-Signed-off-by: Kurt Garloff <garloff@suse.de>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Samuel Ortiz <sameo@openedhand.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/resource.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mfd/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/resource.h~mm-increase-the-default-mlock-limit-from-32k-to-64k include/linux/resource.h
---- a/include/linux/resource.h~mm-increase-the-default-mlock-limit-from-32k-to-64k
-+++ a/include/linux/resource.h
-@@ -59,10 +59,10 @@ struct rlimit {
- #define _STK_LIM	(8*1024*1024)
+diff -puN drivers/mfd/Kconfig~mfd-drivers-mfd-wm8350-corec-doesnt-work-on-x86 drivers/mfd/Kconfig
+--- a/drivers/mfd/Kconfig~mfd-drivers-mfd-wm8350-corec-doesnt-work-on-x86
++++ a/drivers/mfd/Kconfig
+@@ -116,6 +116,7 @@ config MFD_WM8350_CONFIG_MODE_3
  
- /*
-- * GPG wants 32kB of mlocked memory, to make sure pass phrases
-+ * GPG2 wants 64kB of mlocked memory, to make sure pass phrases
-  * and other sensitive information are never written to disk.
-  */
--#define MLOCK_LIMIT	(8 * PAGE_SIZE)
-+#define MLOCK_LIMIT	((PAGE_SIZE > 64*1024) ? PAGE_SIZE : 64*1024)
- 
- /*
-  * Due to binary compatibility, the actual resource numbers
+ config MFD_WM8350_I2C
+ 	tristate "Support Wolfson Microelectronics WM8350 with I2C"
++	depends on !X86
+ 	select MFD_WM8350
+ 	depends on I2C
+ 	help
 _
 
-Patches currently in -mm which might be from garloff@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-increase-the-default-mlock-limit-from-32k-to-64k.patch
+origin.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+linux-next.patch
+linux-next-git-rejects.patch
+git-tests-git-rejects.patch
+revert-i7300_idle-driver-v155.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module-checkpatch-fixes.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+leds-driver-for-hp-harddisk-protection-led-fix.patch
+drivers-rtc-rtc-ds1286c-is-borked.patch
+drivers-rtc-rtc-m48t35c-is-borked-too.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+mfd-drivers-mfd-wm8350-corec-doesnt-work-on-x86.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
