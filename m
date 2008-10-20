@@ -1,67 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-move-charge-swapin-under-lock.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:36:28 -0700
-Message-ID: <200810202036.m9KKaSED011380@imap1.linux-foundation.org>
+Subject: + mm-rework-do_pages_move-to-work-on-page_sized-chunks-update.patch added to -mm tree
+Date: Mon, 20 Oct 2008 15:04:55 -0700
+Message-ID: <200810202204.m9KM4tcI027257@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41933 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41605 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754691AbYJTUrg (ORCPT
+	by vger.kernel.org with ESMTP id S1752059AbYJTWFG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:47:36 -0400
+	Mon, 20 Oct 2008 18:05:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, nishimura@mxp.nes.nec.co.jp, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: Brice.Goglin@inria.fr, Nathalie.Furmento@labri.fr, cl@linux-foundation.org, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     memcg: move charge swapin under lock
-has been removed from the -mm tree.  Its filename was
-     memcg-move-charge-swapin-under-lock.patch
+     mm-rework-do_pages_move-to-work-on-page_sized-chunks update
+has been added to the -mm tree.  Its filename is
+     mm-rework-do_pages_move-to-work-on-page_sized-chunks-update.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: move charge swapin under lock
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: mm-rework-do_pages_move-to-work-on-page_sized-chunks update
+From: Brice Goglin <Brice.Goglin@inria.fr>
 
-While page-cache's charge/uncharge is done under page_lock(), swap-cache
-isn't.  (anonymous page is charged when it's newly allocated.)
-
-This patch moves do_swap_page()'s charge() call under lock.  I don't see
-any bad problem *now* but this fix will be good for future for avoiding
-unnecessary racy state.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Daisuke Nishimura <nishimura@mxp.nes.nec.co.jp>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Brice Goglin <Brice.Goglin@inria.fr>
+Signed-off-by: Nathalie Furmento <Nathalie.Furmento@labri.fr>
+Acked-by: Christoph Lameter <cl@linux-foundation.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/migrate.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memory.c~memcg-move-charge-swapin-under-lock mm/memory.c
---- a/mm/memory.c~memcg-move-charge-swapin-under-lock
-+++ a/mm/memory.c
-@@ -2326,16 +2326,17 @@ static int do_swap_page(struct mm_struct
- 		count_vm_event(PGMAJFAULT);
- 	}
+diff -puN mm/migrate.c~mm-rework-do_pages_move-to-work-on-page_sized-chunks-update mm/migrate.c
+--- a/mm/migrate.c~mm-rework-do_pages_move-to-work-on-page_sized-chunks-update
++++ a/mm/migrate.c
+@@ -931,14 +931,14 @@ static int do_pages_move(struct mm_struc
+ 	task_nodes = cpuset_mems_allowed(task);
  
-+	mark_page_accessed(page);
-+
-+	lock_page(page);
-+	delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
-+
- 	if (mem_cgroup_charge(page, mm, GFP_KERNEL)) {
--		delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
- 		ret = VM_FAULT_OOM;
-+		unlock_page(page);
+ 	err = -ENOMEM;
+-	pm = kmalloc(PAGE_SIZE, GFP_KERNEL);
++	pm = (struct page_to_node *)__get_free_page(GFP_KERNEL);
+ 	if (!pm)
  		goto out;
- 	}
+ 	/*
+ 	 * Store a chunk of page_to_node array in a page,
+ 	 * but keep the last one as a marker
+ 	 */
+-	chunk_nr_pages = PAGE_SIZE/sizeof(struct page_to_node) - 1;
++	chunk_nr_pages = (PAGE_SIZE / sizeof(struct page_to_node)) - 1;
  
--	mark_page_accessed(page);
--	lock_page(page);
--	delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
+ 	for (chunk_start = 0;
+ 	     chunk_start < nr_pages;
+@@ -991,7 +991,7 @@ static int do_pages_move(struct mm_struc
+ 	err = 0;
+ 
+ out_pm:
+-	kfree(pm);
++	free_page((unsigned long)pm);
+ out:
+ 	return err;
+ }
+_
+
+Patches currently in -mm which might be from Brice.Goglin@inria.fr are
+
+origin.patch
+mm-rework-do_pages_move-to-work-on-page_sized-chunks.patch
+mm-rework-do_pages_move-to-work-on-page_sized-chunks-update.patch
+mm-move_pages-no-need-to-set-pp-page-to-zero_page0-by-default.patch
+
