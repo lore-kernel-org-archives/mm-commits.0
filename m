@@ -1,169 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: - hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:34:54 -0700
-Message-ID: <200810202034.m9KKYspE010963@imap1.linux-foundation.org>
+Subject: - hwmon-applesmc-fix-the-wait-status-failed-c-=-8-problem.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:35:06 -0700
+Message-ID: <200810202035.m9KKZ6HF011080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50096 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34542 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753635AbYJTUfg (ORCPT
+	by vger.kernel.org with ESMTP id S1753587AbYJTUf4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:35:36 -0400
+	Mon, 20 Oct 2008 16:35:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jim.cromie@gmail.com, khali@linux-fr.org, mhoffman@lightlink.com, mm-commits@vger.kernel.org
+To: rydberg@euromail.se, khali@linux-fr.org, mhoffman@lightlink.com, nicolas@boichat.ch, rkoktarianto@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hwmon/pc87360 separate alarm files: add temp-min/max/crit/fault-alarms
+     hwmon: applesmc: fix the 'wait status failed: c != 8' problem
 has been removed from the -mm tree.  Its filename was
-     hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms.patch
+     hwmon-applesmc-fix-the-wait-status-failed-c-=-8-problem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hwmon/pc87360 separate alarm files: add temp-min/max/crit/fault-alarms
-From: Jim Cromie <jim.cromie@gmail.com>
+Subject: hwmon: applesmc: fix the 'wait status failed: c != 8' problem
+From: Henrik Rydberg <rydberg@euromail.se>
 
-Adds temp-min/max/crit/fault-alarm callbacks, sensor-device-attribute
-declarations, and refs to those new decls in the macro used to initialize
-the temp_group (of sysfs files)
+On many Macbooks since mid 2007, the Pro, C2D and Air models, applesmc
+fails to read some or all SMC ports.  This problem has various effects,
+such as flooded logfiles, malfunctioning temperature sensors,
+accelerometers failing to initialize, and difficulties getting backlight
+functionality to work properly.
 
-[akpm@linux-foundation.org: cleanups]
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+The root of the problem seems to be the command protocol.  The current
+code sends out a command byte, then repeatedly polls for an ack before
+continuing to send or recieve data.  From experiments leading to this
+patch, it seems the command protocol never quite worked or changed so that
+one now sends a command byte, waits a little bit, polls for an ack, and if
+it fails, repeats the whole thing by sending the command byte again.
+
+This patch implements a send_command function according to the new
+interpretation of the protocol, and should work also for earlier models.
+
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Cc: Nicolas Boichat <nicolas@boichat.ch>
+Cc: Riki Oktarianto <rkoktarianto@gmail.com>
+Cc: Mark M. Hoffman <mhoffman@lightlink.com>
 Cc: Jean Delvare <khali@linux-fr.org>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/pc87360.c |   84 ++++++++++++++++++++++++++++++++++++--
- 1 file changed, 80 insertions(+), 4 deletions(-)
+ drivers/hwmon/applesmc.c |   32 ++++++++++++++++++++++++--------
+ 1 file changed, 24 insertions(+), 8 deletions(-)
 
-diff -puN drivers/hwmon/pc87360.c~hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms drivers/hwmon/pc87360.c
---- a/drivers/hwmon/pc87360.c~hwmon-pc87360-separate-alarm-files-add-temp-min-max-crit-fault-alarms
-+++ a/drivers/hwmon/pc87360.c
-@@ -845,12 +845,76 @@ static ssize_t show_temp_alarms(struct d
+diff -puN drivers/hwmon/applesmc.c~hwmon-applesmc-fix-the-wait-status-failed-c-=-8-problem drivers/hwmon/applesmc.c
+--- a/drivers/hwmon/applesmc.c~hwmon-applesmc-fix-the-wait-status-failed-c-=-8-problem
++++ a/drivers/hwmon/applesmc.c
+@@ -191,6 +191,26 @@ static int __wait_status(u8 val)
  }
- static DEVICE_ATTR(alarms_temp, S_IRUGO, show_temp_alarms, NULL);
  
-+/* show_temp_min/max_alarm() reads data from the per-channel status
-+   register (sec 12.3.7), not the temp event status registers (sec
-+   12.3.2) that show_temp_alarm() reads (via data->temp_alarms) */
-+
-+static ssize_t show_temp_min_alarm(struct device *dev,
-+			struct device_attribute *devattr, char *buf)
+ /*
++ * special treatment of command port - on newer macbooks, it seems necessary
++ * to resend the command byte before polling the status again. Callers must
++ * hold applesmc_lock.
++ */
++static int send_command(u8 cmd)
 +{
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	unsigned nr = to_sensor_dev_attr(devattr)->index;
-+
-+	return sprintf(buf, "%u\n", !!(data->temp_status[nr] & CHAN_ALM_MIN));
-+}
-+static ssize_t show_temp_max_alarm(struct device *dev,
-+			struct device_attribute *devattr, char *buf)
-+{
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	unsigned nr = to_sensor_dev_attr(devattr)->index;
-+
-+	return sprintf(buf, "%u\n", !!(data->temp_status[nr] & CHAN_ALM_MAX));
-+}
-+static ssize_t show_temp_crit_alarm(struct device *dev,
-+			struct device_attribute *devattr, char *buf)
-+{
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	unsigned nr = to_sensor_dev_attr(devattr)->index;
-+
-+	return sprintf(buf, "%u\n", !!(data->temp_status[nr] & TEMP_ALM_CRIT));
++	int i;
++	for (i = 0; i < 1000; i++) {
++		outb(cmd, APPLESMC_CMD_PORT);
++		udelay(5);
++		if ((inb(APPLESMC_CMD_PORT) & APPLESMC_STATUS_MASK) == 0x0c)
++			return 0;
++		udelay(5);
++	}
++	printk(KERN_WARNING "applesmc: command failed: %x -> %x\n",
++		cmd, inb(APPLESMC_CMD_PORT));
++	return -EIO;
 +}
 +
-+static struct sensor_device_attribute temp_min_alarm[] = {
-+	SENSOR_ATTR(temp1_min_alarm, S_IRUGO, show_temp_min_alarm, NULL, 0),
-+	SENSOR_ATTR(temp2_min_alarm, S_IRUGO, show_temp_min_alarm, NULL, 1),
-+	SENSOR_ATTR(temp3_min_alarm, S_IRUGO, show_temp_min_alarm, NULL, 2),
-+};
-+static struct sensor_device_attribute temp_max_alarm[] = {
-+	SENSOR_ATTR(temp1_max_alarm, S_IRUGO, show_temp_max_alarm, NULL, 0),
-+	SENSOR_ATTR(temp2_max_alarm, S_IRUGO, show_temp_max_alarm, NULL, 1),
-+	SENSOR_ATTR(temp3_max_alarm, S_IRUGO, show_temp_max_alarm, NULL, 2),
-+};
-+static struct sensor_device_attribute temp_crit_alarm[] = {
-+	SENSOR_ATTR(temp1_crit_alarm, S_IRUGO, show_temp_crit_alarm, NULL, 0),
-+	SENSOR_ATTR(temp2_crit_alarm, S_IRUGO, show_temp_crit_alarm, NULL, 1),
-+	SENSOR_ATTR(temp3_crit_alarm, S_IRUGO, show_temp_crit_alarm, NULL, 2),
-+};
-+
-+#define TEMP_FAULT	0x40	/* open diode */
-+static ssize_t show_temp_fault(struct device *dev,
-+			struct device_attribute *devattr, char *buf)
-+{
-+	struct pc87360_data *data = pc87360_update_device(dev);
-+	unsigned nr = to_sensor_dev_attr(devattr)->index;
-+
-+	return sprintf(buf, "%u\n", !!(data->temp_status[nr] & TEMP_FAULT));
-+}
-+static struct sensor_device_attribute temp_fault[] = {
-+	SENSOR_ATTR(temp1_fault, S_IRUGO, show_temp_fault, NULL, 0),
-+	SENSOR_ATTR(temp2_fault, S_IRUGO, show_temp_fault, NULL, 1),
-+	SENSOR_ATTR(temp3_fault, S_IRUGO, show_temp_fault, NULL, 2),
-+};
-+
- #define TEMP_UNIT_ATTRS(X) \
- 	&temp_input[X].dev_attr.attr,	\
- 	&temp_status[X].dev_attr.attr,	\
- 	&temp_min[X].dev_attr.attr,	\
- 	&temp_max[X].dev_attr.attr,	\
--	&temp_crit[X].dev_attr.attr
-+	&temp_crit[X].dev_attr.attr,	\
-+	&temp_min_alarm[X].dev_attr.attr, \
-+	&temp_max_alarm[X].dev_attr.attr, \
-+	&temp_crit_alarm[X].dev_attr.attr, \
-+	&temp_fault[X].dev_attr.attr
++/*
+  * applesmc_read_key - reads len bytes from a given key, and put them in buffer.
+  * Returns zero on success or a negative error on failure. Callers must
+  * hold applesmc_lock.
+@@ -205,8 +225,7 @@ static int applesmc_read_key(const char*
+ 		return -EINVAL;
+ 	}
  
- static struct attribute * pc8736x_temp_attr_array[] = {
- 	TEMP_UNIT_ATTRS(0),
-@@ -864,8 +928,8 @@ static const struct attribute_group pc87
- 	.attrs = pc8736x_temp_attr_array,
- };
+-	outb(APPLESMC_READ_CMD, APPLESMC_CMD_PORT);
+-	if (__wait_status(0x0c))
++	if (send_command(APPLESMC_READ_CMD))
+ 		return -EIO;
  
--static ssize_t show_name(struct device *dev, struct device_attribute
--			 *devattr, char *buf)
-+static ssize_t show_name(struct device *dev,
-+			struct device_attribute *devattr, char *buf)
+ 	for (i = 0; i < 4; i++) {
+@@ -249,8 +268,7 @@ static int applesmc_write_key(const char
+ 		return -EINVAL;
+ 	}
+ 
+-	outb(APPLESMC_WRITE_CMD, APPLESMC_CMD_PORT);
+-	if (__wait_status(0x0c))
++	if (send_command(APPLESMC_WRITE_CMD))
+ 		return -EIO;
+ 
+ 	for (i = 0; i < 4; i++) {
+@@ -284,8 +302,7 @@ static int applesmc_get_key_at_index(int
+ 	readkey[2] = index >> 8;
+ 	readkey[3] = index;
+ 
+-	outb(APPLESMC_GET_KEY_BY_INDEX_CMD, APPLESMC_CMD_PORT);
+-	if (__wait_status(0x0c))
++	if (send_command(APPLESMC_GET_KEY_BY_INDEX_CMD))
+ 		return -EIO;
+ 
+ 	for (i = 0; i < 4; i++) {
+@@ -315,8 +332,7 @@ static int applesmc_get_key_type(char* k
  {
- 	struct pc87360_data *data = dev_get_drvdata(dev);
- 	return sprintf(buf, "%s\n", data->name);
-@@ -1086,7 +1150,15 @@ static int __devinit pc87360_probe(struc
- 			    || (err = device_create_file(dev,
- 					&temp_crit[i].dev_attr))
- 			    || (err = device_create_file(dev,
--					&temp_status[i].dev_attr)))
-+					&temp_status[i].dev_attr))
-+			    || (err = device_create_file(dev,
-+					&temp_min_alarm[i].dev_attr))
-+			    || (err = device_create_file(dev,
-+					&temp_max_alarm[i].dev_attr))
-+			    || (err = device_create_file(dev,
-+					&temp_crit_alarm[i].dev_attr))
-+			    || (err = device_create_file(dev,
-+					&temp_fault[i].dev_attr)))
- 				goto ERROR3;
- 		}
- 		if ((err = device_create_file(dev, &dev_attr_alarms_temp)))
-@@ -1192,6 +1264,10 @@ static void pc87360_write_value(struct p
- #define CHAN_ALM_ENA	0x10	/* propagate to alarms-reg ?? (chk val!) */
- #define CHAN_READY	(CHAN_ENA|CHAN_CNVRTD) /* sample ready mask */
+ 	int i;
  
-+#define TEMP_OTS_OE	0x20	/* OTS Output Enable */
-+#define VIN_RW1C_MASK	(CHAN_READY|CHAN_ALM_MAX|CHAN_ALM_MIN)   /* 0x87 */
-+#define TEMP_RW1C_MASK	(VIN_RW1C_MASK|TEMP_ALM_CRIT|TEMP_FAULT) /* 0xCF */
-+
- static void pc87360_init_device(struct platform_device *pdev,
- 				int use_thermistors)
- {
+-	outb(APPLESMC_GET_KEY_TYPE_CMD, APPLESMC_CMD_PORT);
+-	if (__wait_status(0x0c))
++	if (send_command(APPLESMC_GET_KEY_TYPE_CMD))
+ 		return -EIO;
+ 
+ 	for (i = 0; i < 4; i++) {
 _
 
-Patches currently in -mm which might be from jim.cromie@gmail.com are
+Patches currently in -mm which might be from rydberg@euromail.se are
 
 origin.patch
+input-mousedev-distinguish-a-moving-finger-from-a-tapping-finger.patch
 
