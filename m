@@ -1,74 +1,230 @@
 From: akpm@linux-foundation.org
-Subject: - fs-buffer-lock-use-lock-bitops.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:33:37 -0700
-Message-ID: <200810202033.m9KKXbTs010671@imap1.linux-foundation.org>
+Subject: - mm-extract-do_pages_move-out-of-sys_move_pages.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:34:13 -0700
+Message-ID: <200810202034.m9KKYDwN010798@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42824 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58855 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753628AbYJTUeK (ORCPT
+	by vger.kernel.org with ESMTP id S1754090AbYJTUo5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:34:10 -0400
+	Mon, 20 Oct 2008 16:44:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, mm-commits@vger.kernel.org
+To: Brice.Goglin@inria.fr, cl@linux-foundation.org, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs: buffer lock use lock bitops
+     mm: extract do_pages_move() out of sys_move_pages()
 has been removed from the -mm tree.  Its filename was
-     fs-buffer-lock-use-lock-bitops.patch
+     mm-extract-do_pages_move-out-of-sys_move_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs: buffer lock use lock bitops
-From: Nick Piggin <npiggin@suse.de>
+Subject: mm: extract do_pages_move() out of sys_move_pages()
+From: Brice Goglin <Brice.Goglin@inria.fr>
 
-trylock_buffer and unlock_buffer open and close a critical section. 
-Hence, we can use the lock bitops to get the desired memory ordering.
+To prepare the chunking, move the sys_move_pages() code that is used when
+nodes!=NULL into do_pages_move().  And rename do_move_pages() into
+do_move_page_to_node_array().
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Brice Goglin <Brice.Goglin@inria.fr>
+Acked-by: Christoph Lameter <cl@linux-foundation.org>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |    3 +--
- include/linux/buffer_head.h |    2 +-
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ mm/migrate.c |  152 +++++++++++++++++++++++++++----------------------
+ 1 file changed, 86 insertions(+), 66 deletions(-)
 
-diff -puN fs/buffer.c~fs-buffer-lock-use-lock-bitops fs/buffer.c
---- a/fs/buffer.c~fs-buffer-lock-use-lock-bitops
-+++ a/fs/buffer.c
-@@ -76,8 +76,7 @@ EXPORT_SYMBOL(__lock_buffer);
- 
- void unlock_buffer(struct buffer_head *bh)
+diff -puN mm/migrate.c~mm-extract-do_pages_move-out-of-sys_move_pages mm/migrate.c
+--- a/mm/migrate.c~mm-extract-do_pages_move-out-of-sys_move_pages
++++ a/mm/migrate.c
+@@ -826,9 +826,11 @@ static struct page *new_page_node(struct
+  * Move a set of pages as indicated in the pm array. The addr
+  * field must be set to the virtual address of the page to be moved
+  * and the node number must contain a valid target node.
++ * The pm array ends with node = MAX_NUMNODES.
+  */
+-static int do_move_pages(struct mm_struct *mm, struct page_to_node *pm,
+-				int migrate_all)
++static int do_move_page_to_node_array(struct mm_struct *mm,
++				      struct page_to_node *pm,
++				      int migrate_all)
  {
--	smp_mb__before_clear_bit();
--	clear_buffer_locked(bh);
-+	clear_bit_unlock(BH_Lock, &bh->b_state);
- 	smp_mb__after_clear_bit();
- 	wake_up_bit(&bh->b_state, BH_Lock);
- }
-diff -puN include/linux/buffer_head.h~fs-buffer-lock-use-lock-bitops include/linux/buffer_head.h
---- a/include/linux/buffer_head.h~fs-buffer-lock-use-lock-bitops
-+++ a/include/linux/buffer_head.h
-@@ -322,7 +322,7 @@ static inline void wait_on_buffer(struct
- 
- static inline int trylock_buffer(struct buffer_head *bh)
- {
--	return likely(!test_and_set_bit(BH_Lock, &bh->b_state));
-+	return likely(!test_and_set_bit_lock(BH_Lock, &bh->b_state));
+ 	int err;
+ 	struct page_to_node *pp;
+@@ -906,6 +908,81 @@ set_status:
  }
  
- static inline void lock_buffer(struct buffer_head *bh)
-_
-
-Patches currently in -mm which might be from npiggin@suse.de are
-
-origin.patch
-linux-next.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
-
+ /*
++ * Migrate an array of page address onto an array of nodes and fill
++ * the corresponding array of status.
++ */
++static int do_pages_move(struct mm_struct *mm, struct task_struct *task,
++			 unsigned long nr_pages,
++			 const void __user * __user *pages,
++			 const int __user *nodes,
++			 int __user *status, int flags)
++{
++	struct page_to_node *pm = NULL;
++	nodemask_t task_nodes;
++	int err = 0;
++	int i;
++
++	task_nodes = cpuset_mems_allowed(task);
++
++	/* Limit nr_pages so that the multiplication may not overflow */
++	if (nr_pages >= ULONG_MAX / sizeof(struct page_to_node) - 1) {
++		err = -E2BIG;
++		goto out;
++	}
++
++	pm = vmalloc((nr_pages + 1) * sizeof(struct page_to_node));
++	if (!pm) {
++		err = -ENOMEM;
++		goto out;
++	}
++
++	/*
++	 * Get parameters from user space and initialize the pm
++	 * array. Return various errors if the user did something wrong.
++	 */
++	for (i = 0; i < nr_pages; i++) {
++		const void __user *p;
++
++		err = -EFAULT;
++		if (get_user(p, pages + i))
++			goto out_pm;
++
++		pm[i].addr = (unsigned long)p;
++		if (nodes) {
++			int node;
++
++			if (get_user(node, nodes + i))
++				goto out_pm;
++
++			err = -ENODEV;
++			if (!node_state(node, N_HIGH_MEMORY))
++				goto out_pm;
++
++			err = -EACCES;
++			if (!node_isset(node, task_nodes))
++				goto out_pm;
++
++			pm[i].node = node;
++		} else
++			pm[i].node = 0;	/* anything to not match MAX_NUMNODES */
++	}
++	/* End marker */
++	pm[nr_pages].node = MAX_NUMNODES;
++
++	err = do_move_page_to_node_array(mm, pm, flags & MPOL_MF_MOVE_ALL);
++	if (err >= 0)
++		/* Return status information */
++		for (i = 0; i < nr_pages; i++)
++			if (put_user(pm[i].status, status + i))
++				err = -EFAULT;
++
++out_pm:
++	vfree(pm);
++out:
++	return err;
++}
++
++/*
+  * Determine the nodes of an array of pages and store it in an array of status.
+  */
+ static int do_pages_stat(struct mm_struct *mm, unsigned long nr_pages,
+@@ -963,12 +1040,9 @@ asmlinkage long sys_move_pages(pid_t pid
+ 			const int __user *nodes,
+ 			int __user *status, int flags)
+ {
+-	int err = 0;
+-	int i;
+ 	struct task_struct *task;
+-	nodemask_t task_nodes;
+ 	struct mm_struct *mm;
+-	struct page_to_node *pm = NULL;
++	int err;
+ 
+ 	/* Check flags */
+ 	if (flags & ~(MPOL_MF_MOVE|MPOL_MF_MOVE_ALL))
+@@ -1000,75 +1074,21 @@ asmlinkage long sys_move_pages(pid_t pid
+ 	    (current->uid != task->suid) && (current->uid != task->uid) &&
+ 	    !capable(CAP_SYS_NICE)) {
+ 		err = -EPERM;
+-		goto out2;
++		goto out;
+ 	}
+ 
+  	err = security_task_movememory(task);
+  	if (err)
+- 		goto out2;
++		goto out;
+ 
+-	if (!nodes) {
++	if (nodes) {
++		err = do_pages_move(mm, task, nr_pages, pages, nodes, status,
++				    flags);
++	} else {
+ 		err = do_pages_stat(mm, nr_pages, pages, status);
+-		goto out2;
+-	}
+-
+-	task_nodes = cpuset_mems_allowed(task);
+-
+-	/* Limit nr_pages so that the multiplication may not overflow */
+-	if (nr_pages >= ULONG_MAX / sizeof(struct page_to_node) - 1) {
+-		err = -E2BIG;
+-		goto out2;
+ 	}
+ 
+-	pm = vmalloc((nr_pages + 1) * sizeof(struct page_to_node));
+-	if (!pm) {
+-		err = -ENOMEM;
+-		goto out2;
+-	}
+-
+-	/*
+-	 * Get parameters from user space and initialize the pm
+-	 * array. Return various errors if the user did something wrong.
+-	 */
+-	for (i = 0; i < nr_pages; i++) {
+-		const void __user *p;
+-
+-		err = -EFAULT;
+-		if (get_user(p, pages + i))
+-			goto out;
+-
+-		pm[i].addr = (unsigned long)p;
+-		if (nodes) {
+-			int node;
+-
+-			if (get_user(node, nodes + i))
+-				goto out;
+-
+-			err = -ENODEV;
+-			if (!node_state(node, N_HIGH_MEMORY))
+-				goto out;
+-
+-			err = -EACCES;
+-			if (!node_isset(node, task_nodes))
+-				goto out;
+-
+-			pm[i].node = node;
+-		} else
+-			pm[i].node = 0;	/* anything to not match MAX_NUMNODES */
+-	}
+-	/* End marker */
+-	pm[nr_pages].node = MAX_NUMNODES;
+-
+-	err = do_move_pages(mm, pm, flags & MPOL_MF_MOVE_ALL);
+-	if (err >= 0)
+-		/* Return status information */
+-		for (i = 0; i < nr_pages; i++)
+-			if (put_user(pm[i].status, status + i))
+-				err = -EFAULT;
