@@ -1,80 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - char-sx-remove-bogus-iomap.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:35:24 -0700
-Message-ID: <200810202035.m9KKZOFJ011143@imap1.linux-foundation.org>
+Subject: + x86-acpi-fix-breakage-of-resume-on-64-bit-up-systems-with-smp-kernel.patch added to -mm tree
+Date: Mon, 20 Oct 2008 14:49:43 -0700
+Message-ID: <200810202149.m9KLnh8L024404@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32884 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752372AbYJTUlF (ORCPT
+	by vger.kernel.org with ESMTP id S1751045AbYJTVub (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:41:05 -0400
+	Mon, 20 Oct 2008 17:50:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, R.E.Wolff@BitWizard.nl, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rjw@sisk.pl, ajw1980@gmail.com, lenb@kernel.org, mingo@elte.hu, pavel@suse.cz, stable@kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Char: sx, remove bogus iomap
-has been removed from the -mm tree.  Its filename was
-     char-sx-remove-bogus-iomap.patch
+     x86 acpi: fix breakage of resume on 64-bit UP systems with SMP kernel
+has been added to the -mm tree.  Its filename is
+     x86-acpi-fix-breakage-of-resume-on-64-bit-up-systems-with-smp-kernel.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: sx, remove bogus iomap
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: x86 acpi: fix breakage of resume on 64-bit UP systems with SMP kernel
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-readl/writel are not expected to accept iomap return value. Replace
-bogus mapping by standard ioremap.
+We are now using per CPU GDT tables in head_64.S and the original
+early_gdt_descr.address is invalidated after boot by
+setup_per_cpu_areas().  This breaks resume from suspend to RAM on x86_64
+UP systems using SMP kernels, because this part of head_64.S is also
+executed during the resume and the invalid GDT address causes the system
+to crash.  It doesn't break on 'true' SMP systems, because
+early_gdt_descr.address is modified every time native_cpu_up() runs. 
+However, during resume it should point to the GDT of the boot CPU rather
+than to another CPU's GDT.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: <R.E.Wolff@BitWizard.nl>
-Acked-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+For this reason, during suspend to RAM always make early_gdt_descr.address
+point to the boot CPU's GDT.
+
+This fixes http://bugzilla.kernel.org/show_bug.cgi?id=11568, which is a
+regression from 2.6.26.
+
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Reported-and-tested-by: Andy Wettstein <ajw1980@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Len Brown <lenb@kernel.org>
+Acked-by: Pavel Machek <pavel@suse.cz>
+Cc: <stable@kernel.org>		[2.6.27.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/sx.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/x86/kernel/acpi/sleep.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/char/sx.c~char-sx-remove-bogus-iomap drivers/char/sx.c
---- a/drivers/char/sx.c~char-sx-remove-bogus-iomap
-+++ a/drivers/char/sx.c
-@@ -2504,7 +2504,7 @@ static void __devexit sx_remove_card(str
- 		del_timer(&board->timer);
- 		if (pdev) {
- #ifdef CONFIG_PCI
--			pci_iounmap(pdev, board->base2);
-+			iounmap(board->base2);
- 			pci_release_region(pdev, IS_CF_BOARD(board) ? 3 : 2);
- #endif
- 		} else {
-@@ -2677,7 +2677,7 @@ static int __devinit sx_pci_probe(struct
- 	}
- 	board->hw_base = pci_resource_start(pdev, reg);
- 	board->base2 =
--	board->base = pci_iomap(pdev, reg, WINDOW_LEN(board));
-+	board->base = ioremap_nocache(board->hw_base, WINDOW_LEN(board));
- 	if (!board->base) {
- 		dev_err(&pdev->dev, "ioremap failed\n");
- 		goto err_reg;
-@@ -2703,7 +2703,7 @@ static int __devinit sx_pci_probe(struct
+diff -puN arch/x86/kernel/acpi/sleep.c~x86-acpi-fix-breakage-of-resume-on-64-bit-up-systems-with-smp-kernel arch/x86/kernel/acpi/sleep.c
+--- a/arch/x86/kernel/acpi/sleep.c~x86-acpi-fix-breakage-of-resume-on-64-bit-up-systems-with-smp-kernel
++++ a/arch/x86/kernel/acpi/sleep.c
+@@ -10,6 +10,7 @@
+ #include <linux/dmi.h>
+ #include <linux/cpumask.h>
+ #include <asm/segment.h>
++#include <asm/desc.h>
  
- 	return 0;
- err_unmap:
--	pci_iounmap(pdev, board->base2);
-+	iounmap(board->base2);
- err_reg:
- 	pci_release_region(pdev, reg);
- err_flag:
+ #include "realmode/wakeup.h"
+ #include "sleep.h"
+@@ -98,6 +99,8 @@ int acpi_save_state_mem(void)
+ 	header->trampoline_segment = setup_trampoline() >> 4;
+ #ifdef CONFIG_SMP
+ 	stack_start.sp = temp_stack + sizeof(temp_stack);
++	early_gdt_descr.address =
++			(unsigned long)get_cpu_gdt_table(smp_processor_id());
+ #endif
+ 	initial_code = (unsigned long)wakeup_long64;
+ 	saved_magic = 0x123456789abcdef0;
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from rjw@sisk.pl are
 
 origin.patch
 linux-next.patch
-reiser4.patch
+x86-acpi-fix-breakage-of-resume-on-64-bit-up-systems-with-smp-kernel.patch
+skge-adapt-skge-to-use-reworked-pci-pm.patch
+e100-adapt-to-the-reworked-pci-pm.patch
 shrink_slab-handle-bad-shrinkers.patch
 
