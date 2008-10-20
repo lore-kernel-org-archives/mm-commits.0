@@ -1,79 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - cpuset-use-seq_mask_-to-print-masks.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 13:36:47 -0700
-Message-ID: <200810202036.m9KKal5v011457@imap1.linux-foundation.org>
+Subject: - mlock-count-attempts-to-free-mlocked-page-2.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 13:33:20 -0700
+Message-ID: <200810202033.m9KKXKus010597@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40005 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60751 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752310AbYJTUhl (ORCPT
+	by vger.kernel.org with ESMTP id S1753978AbYJTUiT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 16:37:41 -0400
+	Mon, 20 Oct 2008 16:38:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laijs@cn.fujitsu.com, adobriyan@gmail.com, menage@google.com, pj@sgi.com, mm-commits@vger.kernel.org
+To: lee.schermerhorn@hp.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpuset: use seq_*mask_* to print masks
+     mlock: count attempts to free mlocked page
 has been removed from the -mm tree.  Its filename was
-     cpuset-use-seq_mask_-to-print-masks.patch
+     mlock-count-attempts-to-free-mlocked-page-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpuset: use seq_*mask_* to print masks
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: mlock: count attempts to free mlocked page
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-1) seq_file excepts that m->count == m->size when it's buf is full,
-   so current code will causes bugs when buf is overflow.
+Allow free of mlock()ed pages.  This shouldn't happen, but during
+developement, it occasionally did.
 
-2) There is not too good that cpuset accesses struct seq_file's
-   fields directly.
+This patch allows us to survive that condition, while keeping the
+statistics and events correct for debug.
 
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-by: Paul Menage <menage@google.com>
-Cc: Paul Jackson <pj@sgi.com>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ include/linux/vmstat.h |    1 +
+ mm/internal.h          |   17 +++++++++++++++++
+ mm/page_alloc.c        |    1 +
+ mm/vmstat.c            |    1 +
+ 4 files changed, 20 insertions(+)
 
-diff -puN kernel/cpuset.c~cpuset-use-seq_mask_-to-print-masks kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-use-seq_mask_-to-print-masks
-+++ a/kernel/cpuset.c
-@@ -2436,19 +2436,15 @@ const struct file_operations proc_cpuset
- void cpuset_task_status_allowed(struct seq_file *m, struct task_struct *task)
- {
- 	seq_printf(m, "Cpus_allowed:\t");
--	m->count += cpumask_scnprintf(m->buf + m->count, m->size - m->count,
--					task->cpus_allowed);
-+	seq_cpumask(m, &task->cpus_allowed);
- 	seq_printf(m, "\n");
- 	seq_printf(m, "Cpus_allowed_list:\t");
--	m->count += cpulist_scnprintf(m->buf + m->count, m->size - m->count,
--					task->cpus_allowed);
-+	seq_cpumask_list(m, &task->cpus_allowed);
- 	seq_printf(m, "\n");
- 	seq_printf(m, "Mems_allowed:\t");
--	m->count += nodemask_scnprintf(m->buf + m->count, m->size - m->count,
--					task->mems_allowed);
-+	seq_nodemask(m, &task->mems_allowed);
- 	seq_printf(m, "\n");
- 	seq_printf(m, "Mems_allowed_list:\t");
--	m->count += nodelist_scnprintf(m->buf + m->count, m->size - m->count,
--					task->mems_allowed);
-+	seq_nodemask_list(m, &task->mems_allowed);
- 	seq_printf(m, "\n");
+diff -puN include/linux/vmstat.h~mlock-count-attempts-to-free-mlocked-page-2 include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mlock-count-attempts-to-free-mlocked-page-2
++++ a/include/linux/vmstat.h
+@@ -49,6 +49,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		UNEVICTABLE_PGMUNLOCKED,
+ 		UNEVICTABLE_PGCLEARED,	/* on COW, page truncate */
+ 		UNEVICTABLE_PGSTRANDED,	/* unable to isolate on unlock */
++		UNEVICTABLE_MLOCKFREED,
+ #endif
+ 		NR_VM_EVENT_ITEMS
+ };
+diff -puN mm/internal.h~mlock-count-attempts-to-free-mlocked-page-2 mm/internal.h
+--- a/mm/internal.h~mlock-count-attempts-to-free-mlocked-page-2
++++ a/mm/internal.h
+@@ -146,6 +146,22 @@ static inline void mlock_migrate_page(st
+ 	}
  }
+ 
++/*
++ * free_page_mlock() -- clean up attempts to free and mlocked() page.
++ * Page should not be on lru, so no need to fix that up.
++ * free_pages_check() will verify...
++ */
++static inline void free_page_mlock(struct page *page)
++{
++	if (unlikely(TestClearPageMlocked(page))) {
++		unsigned long flags;
++
++		local_irq_save(flags);
++		__dec_zone_page_state(page, NR_MLOCK);
++		__count_vm_event(UNEVICTABLE_MLOCKFREED);
++		local_irq_restore(flags);
++	}
++}
+ 
+ #else /* CONFIG_UNEVICTABLE_LRU */
+ static inline int is_mlocked_vma(struct vm_area_struct *v, struct page *p)
+@@ -155,6 +171,7 @@ static inline int is_mlocked_vma(struct 
+ static inline void clear_page_mlock(struct page *page) { }
+ static inline void mlock_vma_page(struct page *page) { }
+ static inline void mlock_migrate_page(struct page *new, struct page *old) { }
++static inline void free_page_mlock(struct page *page) { }
+ 
+ #endif /* CONFIG_UNEVICTABLE_LRU */
+ 
+diff -puN mm/page_alloc.c~mlock-count-attempts-to-free-mlocked-page-2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mlock-count-attempts-to-free-mlocked-page-2
++++ a/mm/page_alloc.c
+@@ -454,6 +454,7 @@ static inline void __free_one_page(struc
+ 
+ static inline int free_pages_check(struct page *page)
+ {
++	free_page_mlock(page);
+ 	if (unlikely(page_mapcount(page) |
+ 		(page->mapping != NULL)  |
+ 		(page_get_page_cgroup(page) != NULL) |
+diff -puN mm/vmstat.c~mlock-count-attempts-to-free-mlocked-page-2 mm/vmstat.c
+--- a/mm/vmstat.c~mlock-count-attempts-to-free-mlocked-page-2
++++ a/mm/vmstat.c
+@@ -689,6 +689,7 @@ static const char * const vmstat_text[] 
+ 	"unevictable_pgs_munlocked",
+ 	"unevictable_pgs_cleared",
+ 	"unevictable_pgs_stranded",
++	"unevictable_pgs_mlockfreed",
+ #endif
+ #endif
+ };
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from lee.schermerhorn@hp.com are
 
 origin.patch
-linux-next.patch
 
