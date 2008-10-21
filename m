@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-fix-regression-firmware-not-displayed-in-procfs-again-and-again.patch added to -mm tree
-Date: Tue, 21 Oct 2008 15:44:13 -0700
-Message-ID: <200810212244.m9LMiDO4005620@imap1.linux-foundation.org>
+Subject: + fs-remove-prepare_write-commit_write-fix.patch added to -mm tree
+Date: Tue, 21 Oct 2008 15:59:11 -0700
+Message-ID: <200810212259.m9LMxBLA008296@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41279 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39520 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751597AbYJUWpd (ORCPT
+	by vger.kernel.org with ESMTP id S1751352AbYJUW77 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 18:45:33 -0400
+	Tue, 21 Oct 2008 18:59:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mike.miller@hp.com, fujita.tomonori@lab.ntt.co.jp, jens.axboe@oracle.com, stable@kernel.org
+Cc: akpm@linux-foundation.org, hch@lst.de, npiggin@suse.de
 
 
 The patch titled
-     cciss: fix regression firmware not displayed in procfs
+     fs-remove-prepare_write-commit_write-fix
 has been added to the -mm tree.  Its filename is
-     cciss-fix-regression-firmware-not-displayed-in-procfs-again-and-again.patch
+     fs-remove-prepare_write-commit_write-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: fix regression firmware not displayed in procfs
-From: Mike Miller <mike.miller@hp.com>
+Subject: fs-remove-prepare_write-commit_write-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This regression was introduced by commit
-6ae5ce8e8d4de666f31286808d2285aa6a50fa40 ("cciss: remove redundant code").
+Schedule simple_prepare_write() for unexporting.
 
-This patch fixes a regression where the controller firmware version is not
-displayed in procfs.  The previous patch would be called anytime something
-changed.  This will get called only once for each controller.
-
-Signed-off-by: Mike Miller <mike.miller@hp.com>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: <stable@kernel.org>		[2.6.27.x]
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |   23 ++++++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
+ fs/libfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/cciss.c~cciss-fix-regression-firmware-not-displayed-in-procfs-again-and-again drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-fix-regression-firmware-not-displayed-in-procfs-again-and-again
-+++ a/drivers/block/cciss.c
-@@ -3403,7 +3403,8 @@ static int __devinit cciss_init_one(stru
- 	int i;
- 	int j = 0;
- 	int rc;
--	int dac;
-+	int dac, return_code;
-+	InquiryData_struct *inq_buff = NULL;
- 
- 	i = alloc_cciss_hba();
- 	if (i < 0)
-@@ -3509,6 +3510,25 @@ static int __devinit cciss_init_one(stru
- 	/* Turn the interrupts on so we can service requests */
- 	hba[i]->access.set_intr_mask(hba[i], CCISS_INTR_ON);
- 
-+	/* Get the firmware version */
-+	inq_buff = kzalloc(sizeof(InquiryData_struct), GFP_KERNEL);
-+	if (inq_buff == NULL) {
-+		printk(KERN_ERR "cciss: out of memory\n");
-+		goto clean4;
-+	}
-+
-+	return_code = sendcmd_withirq(CISS_INQUIRY, i, inq_buff,
-+		sizeof(InquiryData_struct), 0, 0 , 0, TYPE_CMD);
-+	if (return_code == IO_OK) {
-+		hba[i]->firm_ver[0] = inq_buff->data_byte[32];
-+		hba[i]->firm_ver[1] = inq_buff->data_byte[33];
-+		hba[i]->firm_ver[2] = inq_buff->data_byte[34];
-+		hba[i]->firm_ver[3] = inq_buff->data_byte[35];
-+	} else {	 /* send command failed */
-+		printk(KERN_WARNING "cciss: unable to determine firmware"
-+			" version of controller\n");
-+	}
-+
- 	cciss_procinit(i);
- 
- 	hba[i]->cciss_max_sectors = 2048;
-@@ -3519,6 +3539,7 @@ static int __devinit cciss_init_one(stru
- 	return 1;
- 
- clean4:
-+	kfree(inq_buff);
- #ifdef CONFIG_CISS_SCSI_TAPE
- 	kfree(hba[i]->scsi_rejects.complete);
- #endif
+diff -puN fs/libfs.c~fs-remove-prepare_write-commit_write-fix fs/libfs.c
+--- a/fs/libfs.c~fs-remove-prepare_write-commit_write-fix
++++ a/fs/libfs.c
+@@ -836,7 +836,7 @@ EXPORT_SYMBOL(simple_getattr);
+ EXPORT_SYMBOL(simple_link);
+ EXPORT_SYMBOL(simple_lookup);
+ EXPORT_SYMBOL(simple_pin_fs);
+-EXPORT_SYMBOL(simple_prepare_write);
++EXPORT_UNUSED_SYMBOL(simple_prepare_write);
+ EXPORT_SYMBOL(simple_readpage);
+ EXPORT_SYMBOL(simple_release_fs);
+ EXPORT_SYMBOL(simple_rename);
 _
 
-Patches currently in -mm which might be from mike.miller@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-cciss-fix-regression-firmware-not-displayed-in-procfs-again-and-again.patch
+epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
+freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
+fs-remove-prepare_write-commit_write-fix.patch
+mm-write_cache_pages-writepage-error-fix.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+linux-next.patch
+linux-next-git-rejects.patch
+git-tests-git-rejects.patch
+revert-i7300_idle-driver-v155.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module-checkpatch-fixes.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+leds-driver-for-hp-harddisk-protection-led-fix.patch
+drivers-rtc-rtc-ds1286c-is-borked.patch
+drivers-rtc-rtc-m48t35c-is-borked-too.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+init-properly-placing-noinline-keyword.patch
+spi_gpio-driver-cleanups.patch
+ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes.patch
+w1-export-w1_read_8-function-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
