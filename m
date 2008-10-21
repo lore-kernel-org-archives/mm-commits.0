@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-use-pci_ioremap_bar-in-drivers-edac.patch added to -mm tree
-Date: Tue, 21 Oct 2008 14:16:43 -0700
-Message-ID: <200810212116.m9LLGhxl021671@imap1.linux-foundation.org>
+Subject: + pci-use-pci_ioremap_bar-in-drivers-video.patch added to -mm tree
+Date: Tue, 21 Oct 2008 14:16:45 -0700
+Message-ID: <200810212116.m9LLGj8j021682@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49304 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51192 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752356AbYJUVQr (ORCPT
+	by vger.kernel.org with ESMTP id S1751464AbYJUVRA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 17:16:47 -0400
+	Tue, 21 Oct 2008 17:17:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arjan@linux.intel.com, norsk5@yahoo.com
+Cc: arjan@linux.intel.com, krzysztof.h1@poczta.fm
 
 
 The patch titled
-     pci: use pci_ioremap_bar() in drivers/edac
+     pci: use pci_ioremap_bar() in drivers/video
 has been added to the -mm tree.  Its filename is
-     pci-use-pci_ioremap_bar-in-drivers-edac.patch
+     pci-use-pci_ioremap_bar-in-drivers-video.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,153 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: use pci_ioremap_bar() in drivers/edac
+Subject: pci: use pci_ioremap_bar() in drivers/video
 From: Arjan van de Ven <arjan@linux.intel.com>
 
-Use the newly introduced pci_ioremap_bar() function in drivers/edac. 
+Use the newly introduced pci_ioremap_bar() function in drivers/video. 
 pci_ioremap_bar() just takes a pci device and a bar number, with the goal
 of making it really hard to get wrong, while also having a central place
 to stick sanity checks.
 
 Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Doug Thompson <norsk5@yahoo.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/i82875p_edac.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/video/aty/aty128fb.c     |    2 +-
+ drivers/video/cyber2000fb.c      |    3 +--
+ drivers/video/geode/gx1fb_core.c |    3 +--
+ drivers/video/geode/gxfb_core.c  |    8 +++-----
+ drivers/video/geode/lxfb_core.c  |    9 +++------
+ drivers/video/gxt4500.c          |    4 ++--
+ 6 files changed, 11 insertions(+), 18 deletions(-)
 
-diff -puN drivers/edac/i82875p_edac.c~pci-use-pci_ioremap_bar-in-drivers-edac drivers/edac/i82875p_edac.c
---- a/drivers/edac/i82875p_edac.c~pci-use-pci_ioremap_bar-in-drivers-edac
-+++ a/drivers/edac/i82875p_edac.c
-@@ -312,9 +312,7 @@ static int i82875p_setup_overfl_dev(stru
- 	}
+diff -puN drivers/video/aty/aty128fb.c~pci-use-pci_ioremap_bar-in-drivers-video drivers/video/aty/aty128fb.c
+--- a/drivers/video/aty/aty128fb.c~pci-use-pci_ioremap_bar-in-drivers-video
++++ a/drivers/video/aty/aty128fb.c
+@@ -2051,7 +2051,7 @@ static int __devinit aty128_probe(struct
  
- 	/* cache is irrelevant for PCI bus reads/writes */
--	window = ioremap_nocache(pci_resource_start(dev, 0),
--				 pci_resource_len(dev, 0));
+ 	/* Virtualize mmio region */
+ 	info->fix.mmio_start = reg_addr;
+-	par->regbase = ioremap(reg_addr, pci_resource_len(pdev, 2));
++	par->regbase = pci_ioremap_bar(pdev, 2);
+ 	if (!par->regbase)
+ 		goto err_free_info;
+ 
+diff -puN drivers/video/cyber2000fb.c~pci-use-pci_ioremap_bar-in-drivers-video drivers/video/cyber2000fb.c
+--- a/drivers/video/cyber2000fb.c~pci-use-pci_ioremap_bar-in-drivers-video
++++ a/drivers/video/cyber2000fb.c
+@@ -1583,8 +1583,7 @@ cyberpro_pci_probe(struct pci_dev *dev, 
+ 		goto failed_release;
+ 
+ 	cfb->dev = dev;
+-	cfb->region = ioremap(pci_resource_start(dev, 0),
+-			      pci_resource_len(dev, 0));
++	cfb->region = pci_ioremap_bar(dev, 0);
+ 	if (!cfb->region)
+ 		goto failed_ioremap;
+ 
+diff -puN drivers/video/geode/gx1fb_core.c~pci-use-pci_ioremap_bar-in-drivers-video drivers/video/geode/gx1fb_core.c
+--- a/drivers/video/geode/gx1fb_core.c~pci-use-pci_ioremap_bar-in-drivers-video
++++ a/drivers/video/geode/gx1fb_core.c
+@@ -217,8 +217,7 @@ static int __init gx1fb_map_video_memory
+ 	ret = pci_request_region(dev, 0, "gx1fb (video)");
+ 	if (ret < 0)
+ 		return ret;
+-	par->vid_regs = ioremap(pci_resource_start(dev, 0),
+-				pci_resource_len(dev, 0));
++	par->vid_regs = pci_ioremap_bar(dev, 0);
+ 	if (!par->vid_regs)
+ 		return -ENOMEM;
+ 
+diff -puN drivers/video/geode/gxfb_core.c~pci-use-pci_ioremap_bar-in-drivers-video drivers/video/geode/gxfb_core.c
+--- a/drivers/video/geode/gxfb_core.c~pci-use-pci_ioremap_bar-in-drivers-video
++++ a/drivers/video/geode/gxfb_core.c
+@@ -242,23 +242,21 @@ static int __init gxfb_map_video_memory(
+ 	ret = pci_request_region(dev, 3, "gxfb (video processor)");
+ 	if (ret < 0)
+ 		return ret;
+-	par->vid_regs = ioremap(pci_resource_start(dev, 3),
+-				pci_resource_len(dev, 3));
++	par->vid_regs = pci_ioremap_bar(dev, 3);
+ 	if (!par->vid_regs)
+ 		return -ENOMEM;
+ 
+ 	ret = pci_request_region(dev, 2, "gxfb (display controller)");
+ 	if (ret < 0)
+ 		return ret;
+-	par->dc_regs = ioremap(pci_resource_start(dev, 2), pci_resource_len(dev, 2));
++	par->dc_regs = pci_ioremap_bar(dev, 2);
+ 	if (!par->dc_regs)
+ 		return -ENOMEM;
+ 
+ 	ret = pci_request_region(dev, 1, "gxfb (graphics processor)");
+ 	if (ret < 0)
+ 		return ret;
+-	par->gp_regs = ioremap(pci_resource_start(dev, 1),
+-	pci_resource_len(dev, 1));
++	par->gp_regs = pci_ioremap_bar(dev, 1);
+ 
+ 	if (!par->gp_regs)
+ 		return -ENOMEM;
+diff -puN drivers/video/geode/lxfb_core.c~pci-use-pci_ioremap_bar-in-drivers-video drivers/video/geode/lxfb_core.c
+--- a/drivers/video/geode/lxfb_core.c~pci-use-pci_ioremap_bar-in-drivers-video
++++ a/drivers/video/geode/lxfb_core.c
+@@ -379,20 +379,17 @@ static int __init lxfb_map_video_memory(
+ 	if (info->screen_base == NULL)
+ 		return ret;
+ 
+-	par->gp_regs = ioremap(pci_resource_start(dev, 1),
+-				pci_resource_len(dev, 1));
++	par->gp_regs = pci_ioremap_bar(dev, 1);
+ 
+ 	if (par->gp_regs == NULL)
+ 		return ret;
+ 
+-	par->dc_regs = ioremap(pci_resource_start(dev, 2),
+-			       pci_resource_len(dev, 2));
++	par->dc_regs = pci_ioremap_bar(dev, 2);
+ 
+ 	if (par->dc_regs == NULL)
+ 		return ret;
+ 
+-	par->vp_regs = ioremap(pci_resource_start(dev, 3),
+-			       pci_resource_len(dev, 3));
++	par->vp_regs = pci_ioremap_bar(dev, 3);
+ 
+ 	if (par->vp_regs == NULL)
+ 		return ret;
+diff -puN drivers/video/gxt4500.c~pci-use-pci_ioremap_bar-in-drivers-video drivers/video/gxt4500.c
+--- a/drivers/video/gxt4500.c~pci-use-pci_ioremap_bar-in-drivers-video
++++ a/drivers/video/gxt4500.c
+@@ -648,7 +648,7 @@ static int __devinit gxt4500_probe(struc
+ 	info->pseudo_palette = par->pseudo_palette;
+ 
+ 	info->fix.mmio_start = reg_phys;
+-	par->regs = ioremap(reg_phys, pci_resource_len(pdev, 0));
++	par->regs = pci_ioremap_bar(pdev, 0);
+ 	if (!par->regs) {
+ 		dev_err(&pdev->dev, "gxt4500: cannot map registers\n");
+ 		goto err_free_all;
+@@ -656,7 +656,7 @@ static int __devinit gxt4500_probe(struc
+ 
+ 	info->fix.smem_start = fb_phys;
+ 	info->fix.smem_len = pci_resource_len(pdev, 1);
+-	info->screen_base = ioremap(fb_phys, pci_resource_len(pdev, 1));
++	info->screen_base = pci_ioremap_bar(pdev, 1);
+ 	if (!info->screen_base) {
+ 		dev_err(&pdev->dev, "gxt4500: cannot map framebuffer\n");
+ 		goto err_unmap_regs;
+_
+
+Patches currently in -mm which might be from arjan@linux.intel.com are
+
+origin.patch
+linux-next.patch
+mutex-improve-header-comment-to-be-actually-informative-about-the-api.patch
+pci-use-pci_ioremap_bar-in-drivers-misc.patch
+pci-use-pci_ioremap_bar-in-drivers-mmc.patch
+pci-use-pci_ioremap_bar-in-drivers-edac.patch
+pci-use-pci_ioremap_bar-in-drivers-video.patch
+pci-use-pci_ioremap_bar-in-drivers-serial.patch
+
