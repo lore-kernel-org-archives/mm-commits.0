@@ -1,113 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: - memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 17:19:24 -0700
-Message-ID: <200810210019.m9L0JOrW019680@imap1.linux-foundation.org>
+Subject: - memrlimit-add-memrlimit-controller-accounting-and-control-fix-task_lock-recursive-locking-v2.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 17:19:36 -0700
+Message-ID: <200810210019.m9L0Jbdj019723@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36334 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752134AbYJUATb (ORCPT
+	by vger.kernel.org with ESMTP id S1752257AbYJUATp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 20:19:31 -0400
+	Mon, 20 Oct 2008 20:19:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: righi.andrea@gmail.com, balbir@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes
+     memrlimit: fix task_lock() recursive locking
 has been removed from the -mm tree.  Its filename was
-     memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
+     memrlimit-add-memrlimit-controller-accounting-and-control-fix-task_lock-recursive-locking-v2.patch
 
 This patch was dropped because it was folded into memrlimit-add-memrlimit-controller-accounting-and-control.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memrlimit: fix task_lock() recursive locking
+From: Andrea Righi <righi.andrea@gmail.com>
 
-ERROR: need consistent spacing around '<<' (ctx:WxV)
-#47: FILE: mm/memrlimitcgroup.c:225:
-+				mm->total_vm <<PAGE_SHIFT);
- 				             ^
+cgroup_mm_owner_callbacks() can be called with task_lock() held in
+mm_update_next_owner(), and all the .mm_owner_changed callbacks seem to
+be *always* called with task_lock() held.
 
-total: 1 errors, 0 warnings, 29 lines checked
+Actually, memrlimit is using task_lock() via get_task_mm() in
+memrlimit_cgroup_mm_owner_changed(), raising the following recursive locking
+trace:
 
-./patches/memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+[ 5346.421365] =============================================
+[ 5346.421374] [ INFO: possible recursive locking detected ]
+[ 5346.421381] 2.6.27-rc5-mm1 #20
+[ 5346.421385] ---------------------------------------------
+[ 5346.421391] interbench/10530 is trying to acquire lock:
+[ 5346.421396]  (&p->alloc_lock){--..}, at: [<ffffffff8023b034>] get_task_mm+0x24/0x70
+[ 5346.421417]
+[ 5346.421418] but task is already holding lock:
+[ 5346.421423]  (&p->alloc_lock){--..}, at: [<ffffffff8023db98>] mm_update_next_owner+0x148/0x230
+[ 5346.421438]
+[ 5346.421440] other info that might help us debug this:
+[ 5346.421446] 2 locks held by interbench/10530:
+[ 5346.421450]  #0:  (&mm->mmap_sem){----}, at: [<ffffffff8023db90>] mm_update_next_owner+0x140/0x230
+[ 5346.421467]  #1:  (&p->alloc_lock){--..}, at: [<ffffffff8023db98>] mm_update_next_owner+0x148/0x230
+[ 5346.421483]
+[ 5346.421485] stack backtrace:
+[ 5346.421491] Pid: 10530, comm: interbench Not tainted 2.6.27-rc5-mm1 #20
+[ 5346.421496] Call Trace:
+[ 5346.421507]  [<ffffffff80263383>] validate_chain+0xb03/0x10d0
+[ 5346.421515]  [<ffffffff80263c05>] __lock_acquire+0x2b5/0x9c0
+[ 5346.421522]  [<ffffffff80262cc2>] validate_chain+0x442/0x10d0
+[ 5346.421530]  [<ffffffff802643aa>] lock_acquire+0x9a/0xe0
+[ 5346.421537]  [<ffffffff8023b034>] get_task_mm+0x24/0x70
+[ 5346.421546]  [<ffffffff804757c7>] _spin_lock+0x37/0x70
+[ 5346.421553]  [<ffffffff8023b034>] get_task_mm+0x24/0x70
+[ 5346.421560]  [<ffffffff8023b034>] get_task_mm+0x24/0x70
+[ 5346.421569]  [<ffffffff802b91f8>] memrlimit_cgroup_mm_owner_changed+0x18/0x90
+[ 5346.421579]  [<ffffffff80278b03>] cgroup_mm_owner_callbacks+0x93/0xc0
+[ 5346.421587]  [<ffffffff8023dc36>] mm_update_next_owner+0x1e6/0x230
+[ 5346.421595]  [<ffffffff8023dd72>] exit_mm+0xf2/0x120
+[ 5346.421602]  [<ffffffff8023f547>] do_exit+0x167/0x930
+[ 5346.421610]  [<ffffffff8047604a>] _spin_unlock_irq+0x2a/0x50
+[ 5346.421618]  [<ffffffff8023fd46>] do_group_exit+0x36/0xa0
+[ 5346.421626]  [<ffffffff8020b7cb>] system_call_fastpath+0x16/0x1b
 
-Please run checkpatch prior to sending patches
+Since we hold task_lock(), we know that p->mm cannot change and we don't have
+to worry about incrementing mm_users. So, just use p->mm directly and
+check that we've not picked a kernel thread.
 
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com> and
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
+Signed-off-by: Andrea Righi <righi.andrea@gmail.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memrlimitcgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/cgroup.c      |    3 ++-
+ mm/memrlimitcgroup.c |   10 ++++------
+ 2 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN mm/memrlimitcgroup.c~memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes mm/memrlimitcgroup.c
---- a/mm/memrlimitcgroup.c~memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes
+diff -puN kernel/cgroup.c~memrlimit-add-memrlimit-controller-accounting-and-control-fix-task_lock-recursive-locking-v2 kernel/cgroup.c
+--- a/kernel/cgroup.c~memrlimit-add-memrlimit-controller-accounting-and-control-fix-task_lock-recursive-locking-v2
++++ a/kernel/cgroup.c
+@@ -2792,7 +2792,8 @@ void cgroup_fork_callbacks(struct task_s
+  * invoke this routine, since it assigns the mm->owner the first time
+  * and does not change it.
+  *
+- * The callbacks are invoked with mmap_sem held in read mode.
++ * The callbacks are invoked with task_lock held and mmap_sem held in read
++ * mode.
+  */
+ void cgroup_mm_owner_callbacks(struct task_struct *old, struct task_struct *new)
+ {
+diff -puN mm/memrlimitcgroup.c~memrlimit-add-memrlimit-controller-accounting-and-control-fix-task_lock-recursive-locking-v2 mm/memrlimitcgroup.c
+--- a/mm/memrlimitcgroup.c~memrlimit-add-memrlimit-controller-accounting-and-control-fix-task_lock-recursive-locking-v2
 +++ a/mm/memrlimitcgroup.c
-@@ -222,7 +222,7 @@ static void memrlimit_cgroup_mm_owner_ch
- 	if (old_cgrp) {
- 		old_memrcg = memrlimit_cgroup_from_cgrp(old_cgrp);
- 		res_counter_uncharge(&old_memrcg->as_res,
--				mm->total_vm <<PAGE_SHIFT);
-+				mm->total_vm << PAGE_SHIFT);
+@@ -196,7 +196,7 @@ out:
+ }
+ 
+ /*
+- * This callback is called with mmap_sem held
++ * This callback is called with mmap_sem and task_lock held
+  */
+ static void memrlimit_cgroup_mm_owner_changed(struct cgroup_subsys *ss,
+ 						struct cgroup *old_cgrp,
+@@ -204,9 +204,9 @@ static void memrlimit_cgroup_mm_owner_ch
+ 						struct task_struct *p)
+ {
+ 	struct memrlimit_cgroup *memrcg, *old_memrcg;
+-	struct mm_struct *mm = get_task_mm(p);
++	struct mm_struct *mm = p->mm;
+ 
+-	BUG_ON(!mm);
++	BUG_ON(!mm || (p->flags & PF_KTHREAD));
+ 
+ 	/*
+ 	 * If we don't have a new cgroup, we just uncharge from the old one.
+@@ -216,7 +216,7 @@ static void memrlimit_cgroup_mm_owner_ch
+ 		memrcg = memrlimit_cgroup_from_cgrp(cgrp);
+ 		if (res_counter_charge(&memrcg->as_res,
+ 				mm->total_vm << PAGE_SHIFT))
+-			goto out;
++			return;
  	}
- out:
- 	mmput(mm);
+ 
+ 	if (old_cgrp) {
+@@ -224,8 +224,6 @@ static void memrlimit_cgroup_mm_owner_ch
+ 		res_counter_uncharge(&old_memrcg->as_res,
+ 				mm->total_vm << PAGE_SHIFT);
+ 	}
+-out:
+-	mmput(mm);
+ }
+ 
+ struct cgroup_subsys memrlimit_cgroup_subsys = {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from righi.andrea@gmail.com are
 
 origin.patch
-epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
-mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-linux-next-git-rejects.patch
-git-tests-git-rejects.patch
-revert-i7300_idle-driver-v155.patch
-arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module-checkpatch-fixes.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-leds-driver-for-hp-harddisk-protection-led-fix.patch
-drivers-rtc-rtc-ds1286c-is-borked.patch
-drivers-rtc-rtc-m48t35c-is-borked-too.patch
-drivers-net-sfc-falconc-fix-min-warnings.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-init-properly-placing-noinline-keyword.patch
 memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
-w1-export-w1_read_8-function-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+memrlimit-add-memrlimit-controller-accounting-and-control-fix-task_lock-recursive-locking-v2.patch
 
