@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_cgroup-needs-linux-vmalloch-for-vmalloc_node-vfree.patch added to -mm tree
-Date: Mon, 20 Oct 2008 20:48:26 -0700
-Message-ID: <200810210348.m9L3mQal024770@imap1.linux-foundation.org>
+Subject: + profiling-fix-up-config_proc_fs=n-build.patch added to -mm tree
+Date: Tue, 21 Oct 2008 09:17:06 -0700
+Message-ID: <200810211617.m9LGH6lG031207@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47464 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55575 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753425AbYJUDtE (ORCPT
+	by vger.kernel.org with ESMTP id S1751891AbYJUQRK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 23:49:04 -0400
+	Tue, 21 Oct 2008 12:17:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org, kamezawa.hiroyu@jp.fujitsu.com
+Cc: lethal@linux-sh.org
 
 
 The patch titled
-     mm: page_cgroup needs linux/vmalloc.h for vmalloc_node()/vfree().
+     profiling: fix up CONFIG_PROC_FS=n build
 has been added to the -mm tree.  Its filename is
-     mm-page_cgroup-needs-linux-vmalloch-for-vmalloc_node-vfree.patch
+     profiling-fix-up-config_proc_fs=n-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: page_cgroup needs linux/vmalloc.h for vmalloc_node()/vfree().
+Subject: profiling: fix up CONFIG_PROC_FS=n build
 From: Paul Mundt <lethal@linux-sh.org>
 
-mm/page_cgroup.c: In function 'init_section_page_cgroup':
-mm/page_cgroup.c:111: error: implicit declaration of function 'vmalloc_node'
-mm/page_cgroup.c:111: warning: assignment makes pointer from integer without a cast
-mm/page_cgroup.c: In function '__free_page_cgroup':
-mm/page_cgroup.c:140: error: implicit declaration of function 'vfree'
+In the case where procfs is disabled, create_proc_profile() does not
+exist. Stub it in with the others.
 
 Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_cgroup.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/profile.h |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_cgroup.c~mm-page_cgroup-needs-linux-vmalloch-for-vmalloc_node-vfree mm/page_cgroup.c
---- a/mm/page_cgroup.c~mm-page_cgroup-needs-linux-vmalloch-for-vmalloc_node-vfree
-+++ a/mm/page_cgroup.c
-@@ -5,6 +5,7 @@
- #include <linux/page_cgroup.h>
- #include <linux/hash.h>
- #include <linux/memory.h>
-+#include <linux/vmalloc.h>
+diff -puN include/linux/profile.h~profiling-fix-up-config_proc_fs=n-build include/linux/profile.h
+--- a/include/linux/profile.h~profiling-fix-up-config_proc_fs=n-build
++++ a/include/linux/profile.h
+@@ -19,10 +19,16 @@ struct notifier_block;
  
- static void __meminit
- __init_page_cgroup(struct page_cgroup *pc, unsigned long pfn)
+ #if defined(CONFIG_PROFILING) && defined(CONFIG_PROC_FS)
+ void create_prof_cpu_mask(struct proc_dir_entry *de);
++int create_proc_profile(void);
+ #else
+ static inline void create_prof_cpu_mask(struct proc_dir_entry *de)
+ {
+ }
++
++static inline int create_proc_profile(void)
++{
++	return 0;
++}
+ #endif
+ 
+ enum profile_type {
+@@ -37,7 +43,6 @@ extern int prof_on __read_mostly;
+ /* init basic kernel profiler */
+ int profile_init(void);
+ int profile_setup(char *str);
+-int create_proc_profile(void);
+ void profile_tick(int type);
+ 
+ /*
 _
 
 Patches currently in -mm which might be from lethal@linux-sh.org are
 
 origin.patch
 mm-page_cgroup-needs-linux-vmalloch-for-vmalloc_node-vfree.patch
+profiling-fix-up-config_proc_fs=n-build.patch
 mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
 
