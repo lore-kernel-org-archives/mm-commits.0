@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + freezer_cg-use-thaw_process-in-unfreeze_cgroup.patch added to -mm tree
-Date: Tue, 21 Oct 2008 13:58:26 -0700
-Message-ID: <200810212058.m9LKwQt1018401@imap1.linux-foundation.org>
+Subject: + freezer_cg-simplify-freezer_change_state.patch added to -mm tree
+Date: Tue, 21 Oct 2008 13:58:30 -0700
+Message-ID: <200810212058.m9LKwUsW018423@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44000 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59804 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752469AbYJUU6g (ORCPT
+	by vger.kernel.org with ESMTP id S1752000AbYJUU6l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 16:58:36 -0400
+	Tue, 21 Oct 2008 16:58:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: lizf@cn.fujitsu.com, clg@fr.ibm.com
 
 
 The patch titled
-     freezer_cg: use thaw_process() in unfreeze_cgroup()
+     freezer_cg: simplify freezer_change_state()
 has been added to the -mm tree.  Its filename is
-     freezer_cg-use-thaw_process-in-unfreeze_cgroup.patch
+     freezer_cg-simplify-freezer_change_state.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: freezer_cg: use thaw_process() in unfreeze_cgroup()
+Subject: freezer_cg: simplify freezer_change_state()
 From: Li Zefan <lizf@cn.fujitsu.com>
 
-Don't duplicate the implementation of thaw_process().
+Just call unfreeze_cgroup() if goal_state == THAWED, and call
+try_to_freeze_cgroup() if goal_state == FROZEN.
+
+No behavior has been changed.
 
 Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Cedric Le Goater <clg@fr.ibm.com>
+Acked-by: Cedric Le Goater <clg@fr.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup_freezer.c |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ kernel/cgroup_freezer.c |   19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
 
-diff -puN kernel/cgroup_freezer.c~freezer_cg-use-thaw_process-in-unfreeze_cgroup kernel/cgroup_freezer.c
---- a/kernel/cgroup_freezer.c~freezer_cg-use-thaw_process-in-unfreeze_cgroup
+diff -puN kernel/cgroup_freezer.c~freezer_cg-simplify-freezer_change_state kernel/cgroup_freezer.c
+--- a/kernel/cgroup_freezer.c~freezer_cg-simplify-freezer_change_state
 +++ a/kernel/cgroup_freezer.c
-@@ -275,25 +275,18 @@ static int try_to_freeze_cgroup(struct c
- 	return num_cant_freeze_now ? -EBUSY : 0;
- }
+@@ -296,27 +296,22 @@ static int freezer_change_state(struct c
+ 	int retval = 0;
  
--static int unfreeze_cgroup(struct cgroup *cgroup, struct freezer *freezer)
-+static void unfreeze_cgroup(struct cgroup *cgroup, struct freezer *freezer)
- {
- 	struct cgroup_iter it;
- 	struct task_struct *task;
- 
- 	cgroup_iter_start(cgroup, &it);
- 	while ((task = cgroup_iter_next(cgroup, &it))) {
--		int do_wake;
--
--		task_lock(task);
--		do_wake = __thaw_process(task);
--		task_unlock(task);
--		if (do_wake)
--			wake_up_process(task);
-+		thaw_process(task);
- 	}
- 	cgroup_iter_end(cgroup, &it);
--	freezer->state = CGROUP_THAWED;
- 
--	return 0;
-+	freezer->state = CGROUP_THAWED;
- }
- 
- static int freezer_change_state(struct cgroup *cgroup,
-@@ -320,7 +313,7 @@ static int freezer_change_state(struct c
- 		}
- 		/* state == FREEZING and goal_state == THAWED, so unfreeze */
- 	case CGROUP_FROZEN:
--		retval = unfreeze_cgroup(cgroup, freezer);
+ 	freezer = cgroup_freezer(cgroup);
++
+ 	spin_lock_irq(&freezer->lock);
++
+ 	update_freezer_state(cgroup, freezer);
+ 	if (goal_state == freezer->state)
+ 		goto out;
+-	switch (freezer->state) {
++
++	switch (goal_state) {
+ 	case CGROUP_THAWED:
+-		retval = try_to_freeze_cgroup(cgroup, freezer);
 +		unfreeze_cgroup(cgroup, freezer);
  		break;
- 	default:
+-	case CGROUP_FREEZING:
+-		if (goal_state == CGROUP_FROZEN) {
+-			/* Userspace is retrying after
+-			 * "/bin/echo FROZEN > freezer.state" returned -EBUSY */
+-			retval = try_to_freeze_cgroup(cgroup, freezer);
+-			break;
+-		}
+-		/* state == FREEZING and goal_state == THAWED, so unfreeze */
+ 	case CGROUP_FROZEN:
+-		unfreeze_cgroup(cgroup, freezer);
++		retval = try_to_freeze_cgroup(cgroup, freezer);
  		break;
+ 	default:
+-		break;
++		BUG();
+ 	}
+ out:
+ 	spin_unlock_irq(&freezer->lock);
 _
 
 Patches currently in -mm which might be from lizf@cn.fujitsu.com are
