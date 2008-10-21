@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + export-tiny-shmem_file_setup-for-drm-gem.patch added to -mm tree
-Date: Tue, 21 Oct 2008 13:51:49 -0700
-Message-ID: <200810212051.m9LKpnki017252@imap1.linux-foundation.org>
+Subject: + freezer_cg-use-thaw_process-in-unfreeze_cgroup.patch added to -mm tree
+Date: Tue, 21 Oct 2008 13:58:26 -0700
+Message-ID: <200810212058.m9LKwQt1018401@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35304 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44000 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751149AbYJUUwU (ORCPT
+	by vger.kernel.org with ESMTP id S1752469AbYJUU6g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 16:52:20 -0400
+	Tue, 21 Oct 2008 16:58:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hugh@veritas.com, airlied@redhat.com, mpm@selenic.com
+Cc: lizf@cn.fujitsu.com, clg@fr.ibm.com
 
 
 The patch titled
-     Export tiny shmem_file_setup for DRM-GEM
+     freezer_cg: use thaw_process() in unfreeze_cgroup()
 has been added to the -mm tree.  Its filename is
-     export-tiny-shmem_file_setup-for-drm-gem.patch
+     freezer_cg-use-thaw_process-in-unfreeze_cgroup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Export tiny shmem_file_setup for DRM-GEM
-From: Hugh Dickins <hugh@veritas.com>
+Subject: freezer_cg: use thaw_process() in unfreeze_cgroup()
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-We're trying to keep the !CONFIG_SHMEM tiny-shmem.c (using ramfs without
-swap) in synch with CONFIG_SHMEM shmem.c (and mpm is preparing patches to
-combine them).  I was glad to see EXPORT_SYMBOL_GPL(shmem_file_setup) go
-into shmem.c, but why not support DRM-GEM when !CONFIG_SHMEM too?  But
-caution says still depend on MMU, since !CONFIG_MMU is..  different.
+Don't duplicate the implementation of thaw_process().
 
-Signed-off-by: Hugh Dickins <hugh@veritas.com>
-Acked-by: Matt Mackall <mpm@selenic.com>
-Acked-by: Dave Airlie <airlied@redhat.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Cedric Le Goater <clg@fr.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/Kconfig |    2 +-
- mm/tiny-shmem.c         |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ kernel/cgroup_freezer.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN drivers/gpu/drm/Kconfig~export-tiny-shmem_file_setup-for-drm-gem drivers/gpu/drm/Kconfig
---- a/drivers/gpu/drm/Kconfig~export-tiny-shmem_file_setup-for-drm-gem
-+++ a/drivers/gpu/drm/Kconfig
-@@ -6,7 +6,7 @@
- #
- menuconfig DRM
- 	tristate "Direct Rendering Manager (XFree86 4.1.0 and higher DRI support)"
--	depends on (AGP || AGP=n) && PCI && !EMULATED_CMPXCHG && SHMEM
-+	depends on (AGP || AGP=n) && PCI && !EMULATED_CMPXCHG && MMU
- 	help
- 	  Kernel-level support for the Direct Rendering Infrastructure (DRI)
- 	  introduced in XFree86 4.0. If you say Y here, you need to select
-diff -puN mm/tiny-shmem.c~export-tiny-shmem_file_setup-for-drm-gem mm/tiny-shmem.c
---- a/mm/tiny-shmem.c~export-tiny-shmem_file_setup-for-drm-gem
-+++ a/mm/tiny-shmem.c
-@@ -95,6 +95,7 @@ put_dentry:
- put_memory:
- 	return ERR_PTR(error);
+diff -puN kernel/cgroup_freezer.c~freezer_cg-use-thaw_process-in-unfreeze_cgroup kernel/cgroup_freezer.c
+--- a/kernel/cgroup_freezer.c~freezer_cg-use-thaw_process-in-unfreeze_cgroup
++++ a/kernel/cgroup_freezer.c
+@@ -275,25 +275,18 @@ static int try_to_freeze_cgroup(struct c
+ 	return num_cant_freeze_now ? -EBUSY : 0;
  }
-+EXPORT_SYMBOL_GPL(shmem_file_setup);
  
- /**
-  * shmem_zero_setup - setup a shared anonymous mapping
+-static int unfreeze_cgroup(struct cgroup *cgroup, struct freezer *freezer)
++static void unfreeze_cgroup(struct cgroup *cgroup, struct freezer *freezer)
+ {
+ 	struct cgroup_iter it;
+ 	struct task_struct *task;
+ 
+ 	cgroup_iter_start(cgroup, &it);
+ 	while ((task = cgroup_iter_next(cgroup, &it))) {
+-		int do_wake;
+-
+-		task_lock(task);
+-		do_wake = __thaw_process(task);
+-		task_unlock(task);
+-		if (do_wake)
+-			wake_up_process(task);
++		thaw_process(task);
+ 	}
+ 	cgroup_iter_end(cgroup, &it);
+-	freezer->state = CGROUP_THAWED;
+ 
+-	return 0;
++	freezer->state = CGROUP_THAWED;
+ }
+ 
+ static int freezer_change_state(struct cgroup *cgroup,
+@@ -320,7 +313,7 @@ static int freezer_change_state(struct c
+ 		}
+ 		/* state == FREEZING and goal_state == THAWED, so unfreeze */
+ 	case CGROUP_FROZEN:
+-		retval = unfreeze_cgroup(cgroup, freezer);
++		unfreeze_cgroup(cgroup, freezer);
+ 		break;
+ 	default:
+ 		break;
 _
 
-Patches currently in -mm which might be from hugh@veritas.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
-export-tiny-shmem_file_setup-for-drm-gem.patch
-prio_tree-debugging-patch.patch
+freezer_cg-fix-improper-bug_on-causing-oops.patch
+freezer_cg-remove-redundant-check-in-freezer_can_attach.patch
+freezer_cg-use-thaw_process-in-unfreeze_cgroup.patch
+freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
+freezer_cg-simplify-freezer_change_state.patch
+cgroups-tiny-cleanups.patch
 
