@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + mm-write_cache_pages-writepage-error-fix.patch added to -mm tree
-Date: Tue, 21 Oct 2008 14:55:53 -0700
-Message-ID: <200810212155.m9LLtrHF029164@imap1.linux-foundation.org>
+Date: Tue, 21 Oct 2008 15:06:02 -0700
+Message-ID: <200810212206.m9LM62tA031009@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42608 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48303 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750873AbYJUVz6 (ORCPT
+	by vger.kernel.org with ESMTP id S1751575AbYJUWGg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 17:55:58 -0400
+	Tue, 21 Oct 2008 18:06:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de
+Cc: npiggin@suse.de, matthew@wil.cx
 
 
 The patch titled
@@ -51,6 +51,7 @@ This is a data interity bug.
 
 [akpm@linux-foundation.org: fix all the other done=1 cases too]
 Signed-off-by: Nick Piggin <npiggin@suse.de>
+Cc: Matthew Wilcox <matthew@wil.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -101,7 +102,7 @@ diff -puN mm/page-writeback.c~mm-write_cache_pages-writepage-error-fix mm/page-w
  			if (!wbc->range_cyclic && page->index > end) {
 -				done = 1;
  				unlock_page(page);
-+				goto bale;
++				goto bail;
  				continue;
  			}
  
@@ -110,11 +111,11 @@ diff -puN mm/page-writeback.c~mm-write_cache_pages-writepage-error-fix mm/page-w
  			}
  			if (ret || (--nr_to_write <= 0))
 -				done = 1;
-+				goto bale;
++				goto bail;
  			if (wbc->nonblocking && bdi_write_congested(bdi)) {
  				wbc->encountered_congestion = 1;
 -				done = 1;
-+				goto bale;
++				goto bail;
  			}
  		}
  		pagevec_release(&pvec);
@@ -131,7 +132,7 @@ diff -puN mm/page-writeback.c~mm-write_cache_pages-writepage-error-fix mm/page-w
  
 +out:
  	return ret;
-+bale:
++bail:
 +	pagevec_release(&pvec);
 +	goto out;
  }
@@ -151,10 +152,4 @@ mm-invoke-oom-killer-from-page-fault.patch
 mm-invoke-oom-killer-from-page-fault-fix.patch
 reiser4.patch
 likeliness-accounting-change-and-cleanup.patch
-mm-write_cache_pages-integrity-fix.patch
-mm-do_sync_mapping_range-integrity-fix.patch
-mm-write_cache_pages-cyclic-fix.patch
-mm-write_cache_pages-cleanups.patch
-mm-write_cache_pages-optimise-page-cleaning.patch
-mm-write_cache_pages-terminate-quickly.patch
 
