@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dont-mark_page_accessed-in-fault-path.patch added to -mm tree
-Date: Tue, 21 Oct 2008 14:37:14 -0700
-Message-ID: <200810212137.m9LLbEoV025690@imap1.linux-foundation.org>
+Subject: + mm-invoke-oom-killer-from-page-fault-fix.patch added to -mm tree
+Date: Tue, 21 Oct 2008 14:40:55 -0700
+Message-ID: <200810212140.m9LLetgv026367@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35492 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59536 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752061AbYJUVhY (ORCPT
+	by vger.kernel.org with ESMTP id S1751561AbYJUVlq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 17:37:24 -0400
+	Tue, 21 Oct 2008 17:41:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, hannes@saeurebad.de
+Cc: akpm@linux-foundation.org, jdike@addtoit.com, mingo@elte.hu, npiggin@suse.de, tglx@linutronix.de
 
 
 The patch titled
-     mm: don't mark_page_accessed in fault path
+     mm-invoke-oom-killer-from-page-fault-fix
 has been added to the -mm tree.  Its filename is
-     mm-dont-mark_page_accessed-in-fault-path.patch
+     mm-invoke-oom-killer-from-page-fault-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: don't mark_page_accessed in fault path
-From: Nick Piggin <npiggin@suse.de>
+Subject: mm-invoke-oom-killer-from-page-fault-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Doing a mark_page_accessed at fault-time, then doing SetPageReferenced at
-unmap-time if the pte is young has a number of problems.
-
-mark_page_accessed is supposed to be roughly the equivalent of a young pte
-for unmapped references. Unfortunately it doesn't come with any context:
-after being called, reclaim doesn't know who or why the page was touched.
-
-So calling mark_page_accessed not only adds extra lru or PG_referenced
-manipulations for pages that are already going to have pte_young ptes anyway,
-but it also adds these references which are difficult to work with from the
-context of vma specific references (eg. MADV_SEQUENTIAL pte_young may not
-wish to contribute to the page being referenced).
-
-Then, simply doing SetPageReferenced when zapping a pte and finding it is
-young, is not a really good solution either. SetPageReferenced does not
-correctly promote the page to the active list for example. So after removing
-mark_page_accessed from the fault path, several mmap()+touch+munmap() would
-have a very different result from several read(2) calls for example, which
-is not really desirable.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Acked-by: Johannes Weiner <hannes@saeurebad.de>
+Cc: Nick Piggin <npiggin@suse.de>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    1 -
- mm/memory.c  |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ mm/oom_kill.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~mm-dont-mark_page_accessed-in-fault-path mm/filemap.c
---- a/mm/filemap.c~mm-dont-mark_page_accessed-in-fault-path
-+++ a/mm/filemap.c
-@@ -1530,7 +1530,6 @@ retry_find:
- 	/*
- 	 * Found the page and have a reference on it.
- 	 */
--	mark_page_accessed(page);
- 	ra->prev_pos = (loff_t)page->index << PAGE_CACHE_SHIFT;
- 	vmf->page = page;
- 	return ret | VM_FAULT_LOCKED;
-diff -puN mm/memory.c~mm-dont-mark_page_accessed-in-fault-path mm/memory.c
---- a/mm/memory.c~mm-dont-mark_page_accessed-in-fault-path
-+++ a/mm/memory.c
-@@ -760,7 +760,7 @@ static unsigned long zap_pte_range(struc
- 				if (pte_dirty(ptent))
- 					set_page_dirty(page);
- 				if (pte_young(ptent))
--					SetPageReferenced(page);
-+					mark_page_accessed(page);
- 				file_rss--;
- 			}
- 			page_remove_rmap(page, vma);
+diff -puN mm/oom_kill.c~mm-invoke-oom-killer-from-page-fault-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-invoke-oom-killer-from-page-fault-fix
++++ a/mm/oom_kill.c
+@@ -511,7 +511,7 @@ void clear_zonelist_oom(struct zonelist 
+ /*
+  * Must be called with tasklist_lock held for read.
+  */
+-void __out_of_memory(gfp_t gfp_mask, int order)
++static void __out_of_memory(gfp_t gfp_mask, int order)
+ {
+ 	if (sysctl_oom_kill_allocating_task) {
+ 		oom_kill_process(current, gfp_mask, order, 0, NULL,
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-increase-the-default-mlock-limit-from-32k-to-64k.patch
-fs-remove-prepare_write-commit_write.patch
+epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
+freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-mm-dont-mark_page_accessed-in-fault-path.patch
+linux-next-git-rejects.patch
+git-tests-git-rejects.patch
+revert-i7300_idle-driver-v155.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module-checkpatch-fixes.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+leds-driver-for-hp-harddisk-protection-led-fix.patch
+drivers-rtc-rtc-ds1286c-is-borked.patch
+drivers-rtc-rtc-m48t35c-is-borked-too.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+init-properly-placing-noinline-keyword.patch
+spi_gpio-driver-cleanups.patch
+ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes.patch
+w1-export-w1_read_8-function-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
 reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
