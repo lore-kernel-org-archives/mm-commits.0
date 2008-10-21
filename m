@@ -1,36 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: - memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch removed from -mm tree
-Date: Mon, 20 Oct 2008 17:19:13 -0700
-Message-ID: <200810210019.m9L0JDs5019614@imap1.linux-foundation.org>
+Subject: - memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch removed from -mm tree
+Date: Mon, 20 Oct 2008 17:19:28 -0700
+Message-ID: <200810210019.m9L0JSbO019695@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50243 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43714 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752565AbYJUATq (ORCPT
+	by vger.kernel.org with ESMTP id S1752678AbYJUAT7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 20 Oct 2008 20:19:46 -0400
+	Mon, 20 Oct 2008 20:19:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, rientjes@google.com, skumar@linux.vnet.ibm.com, vgoyal@redhat.com
 
 
 The patch titled
-     Memory rlimit enhance mm_owner_changed callback to deal with exited owner
+     Memory rlimit: fix crash on fork
 has been removed from the -mm tree.  Its filename was
-     memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
+     memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
 
 This patch was dropped because it was folded into memrlimit-add-memrlimit-controller-accounting-and-control.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Memory rlimit enhance mm_owner_changed callback to deal with exited owner
+Subject: Memory rlimit: fix crash on fork
 From: Balbir Singh <balbir@linux.vnet.ibm.com>
 
-mm_owner_changed callback can also be called with new task set to NULL. 
-(race between try_to_unuse() and mm->owner exiting).  Surprisingly the
-order of cgroup arguments being passed was incorrect (proves that we did
-not run into mm_owner_changed callback at all).
+Remove changes from unmap_vmas(), don't call the remaining operations
+in exit_mmap() if mm->mmap is NULL.
+
+This patch fixes a crash that occurs when kernbench is set with memrlimit
+set to 500M on my x86_64 box. The root cause for the failure is
+
+1. We don't set mm->mmap to NULL for the process for which fork() failed
+2. mmput() dereferences vma (in unmap_vmas, vma->vm_mm).
+
+This patch fixes the problem by
+
+1. Initializing mm->mmap to NULL prior to failing dup_mmap()
+2. Check early if mm->mmap is NULL in exit_mmap() and return
 
 Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Sudhir Kumar <skumar@linux.vnet.ibm.com>
@@ -46,49 +55,65 @@ Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memrlimitcgroup.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ kernel/fork.c |   19 ++++++++++---------
+ mm/mmap.c     |    9 +++++++++
+ 2 files changed, 19 insertions(+), 9 deletions(-)
 
-diff -puN mm/memrlimitcgroup.c~memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner mm/memrlimitcgroup.c
---- a/mm/memrlimitcgroup.c~memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner
-+++ a/mm/memrlimitcgroup.c
-@@ -73,6 +73,12 @@ void memrlimit_cgroup_uncharge_as(struct
- {
- 	struct memrlimit_cgroup *memrcg;
+diff -puN kernel/fork.c~memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork kernel/fork.c
+--- a/kernel/fork.c~memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork
++++ a/kernel/fork.c
+@@ -274,15 +274,6 @@ static int dup_mmap(struct mm_struct *mm
+ 	 */
+ 	down_write_nested(&mm->mmap_sem, SINGLE_DEPTH_NESTING);
+ 
+-	/*
+-	 * Uncharging as a result of failure is done by mmput()
+-	 * in dup_mm()
+-	 */
+-	if (memrlimit_cgroup_charge_as(oldmm, oldmm->total_vm)) {
+-		retval = -ENOMEM;
+-		goto out;
+-	}
+-
+ 	mm->locked_vm = 0;
+ 	mm->mmap = NULL;
+ 	mm->mmap_cache = NULL;
+@@ -295,6 +286,16 @@ static int dup_mmap(struct mm_struct *mm
+ 	rb_parent = NULL;
+ 	pprev = &mm->mmap;
  
 +	/*
-+	 * Uncharge happened as a part of the mm_owner_changed callback
++	 * Called after mm->mmap is set to NULL, so that the routines
++	 * following this function understand that fork failed (read
++	 * mmput).
 +	 */
-+	if (!mm->owner)
++	if (memrlimit_cgroup_charge_as(oldmm, oldmm->total_vm)) {
++		retval = -ENOMEM;
++		goto out;
++	}
++
+ 	for (mpnt = oldmm->mmap; mpnt; mpnt = mpnt->vm_next) {
+ 		struct file *file;
+ 
+diff -puN mm/mmap.c~memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork mm/mmap.c
+--- a/mm/mmap.c~memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork
++++ a/mm/mmap.c
+@@ -2101,6 +2101,15 @@ void exit_mmap(struct mm_struct *mm)
+ 		}
+ 	}
+ 	vma = mm->mmap;
++
++	/*
++	 * In the case that dup_mm() failed, mm->mmap is NULL and
++	 * we never really setup the mm. We don't have much to do,
++	 * we might as well return early
++	 */
++	if (!vma)
 +		return;
 +
- 	memrcg = memrlimit_cgroup_from_task(mm->owner);
- 	res_counter_uncharge(&memrcg->as_res, (nr_pages << PAGE_SHIFT));
- }
-@@ -193,8 +199,8 @@ out:
-  * This callback is called with mmap_sem held
-  */
- static void memrlimit_cgroup_mm_owner_changed(struct cgroup_subsys *ss,
--						struct cgroup *cgrp,
- 						struct cgroup *old_cgrp,
-+						struct cgroup *cgrp,
- 						struct task_struct *p)
- {
- 	struct memrlimit_cgroup *memrcg, *old_memrcg;
-@@ -204,7 +210,12 @@ static void memrlimit_cgroup_mm_owner_ch
- 	memrcg = memrlimit_cgroup_from_cgrp(cgrp);
- 	old_memrcg = memrlimit_cgroup_from_cgrp(old_cgrp);
- 
--	if (res_counter_charge(&memrcg->as_res, (mm->total_vm << PAGE_SHIFT)))
-+	/*
-+	 * If we don't have a new cgroup, we just uncharge from the old one.
-+	 * It means that the task is going away
-+	 */
-+	if (memrcg &&
-+	    res_counter_charge(&memrcg->as_res, (mm->total_vm << PAGE_SHIFT)))
- 		goto out;
- 	res_counter_uncharge(&old_memrcg->as_res, (mm->total_vm << PAGE_SHIFT));
- out:
+ 	lru_add_drain();
+ 	flush_cache_mm(mm);
+ 	tlb = tlb_gather_mmu(mm, 1);
 _
 
 Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
@@ -98,9 +123,6 @@ linux-next.patch
 memrlimit-add-memrlimit-controller-documentation.patch
 memrlimit-setup-the-memrlimit-controller.patch
 memrlimit-add-memrlimit-controller-accounting-and-control.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-enhance-mm_owner_changed-callback-to-deal-with-exited-owner.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix.patch
-memrlimit-add-memrlimit-controller-accounting-and-control-mm_owner-fix-checkpatch-fixes.patch
 memrlimit-add-memrlimit-controller-accounting-and-control-memory-rlimit-fix-crash-on-fork.patch
 memrlimit-add-memrlimit-controller-accounting-and-control-fix-task_lock-recursive-locking-v2.patch
 memrlimit-improve-error-handling.patch
