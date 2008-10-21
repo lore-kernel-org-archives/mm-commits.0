@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-tiny-cleanups.patch added to -mm tree
-Date: Tue, 21 Oct 2008 12:13:32 -0700
-Message-ID: <200810211913.m9LJDWDO031234@imap1.linux-foundation.org>
+Subject: + byteorder-remove-direct-includes-of-linux-byteorder-swabh.patch added to -mm tree
+Date: Tue, 21 Oct 2008 13:12:54 -0700
+Message-ID: <200810212012.m9LKCslc009944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49702 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46056 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750746AbYJUTOM (ORCPT
+	by vger.kernel.org with ESMTP id S1750874AbYJUUM5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 15:14:12 -0400
+	Tue, 21 Oct 2008 16:12:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, menage@google.com
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     cgroups: tiny cleanups
+     byteorder: remove direct includes of linux/byteorder/swab[b].h
 has been added to the -mm tree.  Its filename is
-     cgroups-tiny-cleanups.patch
+     byteorder-remove-direct-includes-of-linux-byteorder-swabh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: tiny cleanups
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: byteorder: remove direct includes of linux/byteorder/swab[b].h
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-- remove 'private' field from struct subsys
-- remove cgroup_init_smp()
-- remove unused 'i' in cgroup_tasks_start()
+A consolidated implementation will provide this generically through
+asm/byteorder, remove direct includes to avoid breakage when the
+changeover to the new implementation occurs.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |    4 ----
- kernel/cgroup.c        |    1 -
- 2 files changed, 5 deletions(-)
+ kernel/rcutorture.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/cgroup.h~cgroups-tiny-cleanups include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroups-tiny-cleanups
-+++ a/include/linux/cgroup.h
-@@ -25,7 +25,6 @@ struct cgroup;
+diff -puN kernel/rcutorture.c~byteorder-remove-direct-includes-of-linux-byteorder-swabh kernel/rcutorture.c
+--- a/kernel/rcutorture.c~byteorder-remove-direct-includes-of-linux-byteorder-swabh
++++ a/kernel/rcutorture.c
+@@ -42,10 +42,10 @@
+ #include <linux/freezer.h>
+ #include <linux/cpu.h>
+ #include <linux/delay.h>
+-#include <linux/byteorder/swabb.h>
+ #include <linux/stat.h>
+ #include <linux/srcu.h>
+ #include <linux/slab.h>
++#include <asm/byteorder.h>
  
- extern int cgroup_init_early(void);
- extern int cgroup_init(void);
--extern void cgroup_init_smp(void);
- extern void cgroup_lock(void);
- extern bool cgroup_lock_live_group(struct cgroup *cgrp);
- extern void cgroup_unlock(void);
-@@ -348,8 +347,6 @@ struct cgroup_subsys {
- 	struct cgroupfs_root *root;
- 
- 	struct list_head sibling;
--
--	void *private;
- };
- 
- #define SUBSYS(_x) extern struct cgroup_subsys _x ## _subsys;
-@@ -410,7 +407,6 @@ void cgroup_mm_owner_callbacks(struct ta
- 
- static inline int cgroup_init_early(void) { return 0; }
- static inline int cgroup_init(void) { return 0; }
--static inline void cgroup_init_smp(void) {}
- static inline void cgroup_fork(struct task_struct *p) {}
- static inline void cgroup_fork_callbacks(struct task_struct *p) {}
- static inline void cgroup_post_fork(struct task_struct *p) {}
-diff -puN kernel/cgroup.c~cgroups-tiny-cleanups kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-tiny-cleanups
-+++ a/kernel/cgroup.c
-@@ -2107,7 +2107,6 @@ static void *cgroup_tasks_start(struct s
- 	down_read(&cgrp->pids_mutex);
- 	if (pid) {
- 		int end = cgrp->pids_length;
--		int i;
- 		while (index < end) {
- 			int mid = (index + end) / 2;
- 			if (cgrp->tasks_pids[mid] == pid) {
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Paul E. McKenney <paulmck@us.ibm.com> and "
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-cgroups-tiny-cleanups.patch
+byteorder-remove-direct-includes-of-linux-byteorder-swabh.patch
+linux-next.patch
+cifs-remove-global_extern-macro.patch
+input-ads7846c-sparse-lock-annotation.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+scsi-gdthc-use-unaligned-access-helpers.patch
+scsi-annotate-gdth_rdcap_data-gdth_rdcap16_data-endianness.patch
+scsi-remove-private-implementation-of-get_unaligned_be32.patch
+usb-avoid-needless-address-taking-of-function-parameters.patch
 
