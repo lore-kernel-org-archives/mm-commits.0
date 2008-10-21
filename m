@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 21 Oct 2008 14:14:38 -0700
-Message-ID: <200810212114.m9LLEcdU021327@imap1.linux-foundation.org>
+Subject: + pci-use-pci_ioremap_bar-in-drivers-misc.patch added to -mm tree
+Date: Tue, 21 Oct 2008 14:16:39 -0700
+Message-ID: <200810212116.m9LLGdRq021665@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41430 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42850 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752086AbYJUVPI (ORCPT
+	by vger.kernel.org with ESMTP id S1751028AbYJUVQn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 17:15:08 -0400
+	Tue, 21 Oct 2008 17:16:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, phillips@phunq.net, tytso@mit.edu
+Cc: arjan@linux.intel.com
 
 
 The patch titled
-     ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes
+     pci: use pci_ioremap_bar() in drivers/misc
 has been added to the -mm tree.  Its filename is
-     ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes.patch
+     pci-use-pci_ioremap_bar-in-drivers-misc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pci: use pci_ioremap_bar() in drivers/misc
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-WARNING: space prohibited between function name and open parenthesis '('
-#29: FILE: fs/ext3/hash.c:38:
-+static __u32 dx_hack_hash (const char *name, int len, int unsigned_flag)
+Use the newly introduced pci_ioremap_bar() function in drivers/misc. 
+pci_ioremap_bar() just takes a pci device and a bar number, with the goal
+of making it really hard to get wrong, while also having a central place
+to stick sanity checks.
 
-ERROR: code indent should use tabs where possible
-#33: FILE: fs/ext3/hash.c:41:
-+ ^Iconst unsigned char *ucp = (const unsigned char *) name;$
-
-total: 1 errors, 1 warnings, 189 lines checked
-
-./patches/ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Daniel Phillips <phillips@phunq.net>
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/hash.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/misc/ibmasm/module.c |    3 +--
+ drivers/misc/tifm_7xx1.c     |    3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/ext3/hash.c~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes fs/ext3/hash.c
---- a/fs/ext3/hash.c~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes
-+++ a/fs/ext3/hash.c
-@@ -35,10 +35,10 @@ static void TEA_transform(__u32 buf[4], 
+diff -puN drivers/misc/ibmasm/module.c~pci-use-pci_ioremap_bar-in-drivers-misc drivers/misc/ibmasm/module.c
+--- a/drivers/misc/ibmasm/module.c~pci-use-pci_ioremap_bar-in-drivers-misc
++++ a/drivers/misc/ibmasm/module.c
+@@ -104,8 +104,7 @@ static int __devinit ibmasm_init_one(str
+ 	}
  
+ 	sp->irq = pdev->irq;
+-	sp->base_address = ioremap(pci_resource_start(pdev, 0),
+-					pci_resource_len(pdev, 0));
++	sp->base_address = pci_ioremap_bar(pdev, 0);
+ 	if (!sp->base_address) {
+ 		dev_err(sp->dev, "Failed to ioremap pci memory\n");
+ 		result =  -ENODEV;
+diff -puN drivers/misc/tifm_7xx1.c~pci-use-pci_ioremap_bar-in-drivers-misc drivers/misc/tifm_7xx1.c
+--- a/drivers/misc/tifm_7xx1.c~pci-use-pci_ioremap_bar-in-drivers-misc
++++ a/drivers/misc/tifm_7xx1.c
+@@ -354,8 +354,7 @@ static int tifm_7xx1_probe(struct pci_de
+ 	fm->has_ms_pif = tifm_7xx1_has_ms_pif;
+ 	pci_set_drvdata(dev, fm);
  
- /* The old legacy hash */
--static __u32 dx_hack_hash (const char *name, int len, int unsigned_flag)
-+static __u32 dx_hack_hash(const char *name, int len, int unsigned_flag)
- {
- 	__u32 hash, hash0 = 0x12a3fe2d, hash1 = 0x37abe8f9;
-- 	const unsigned char *ucp = (const unsigned char *) name;
-+	const unsigned char *ucp = (const unsigned char *) name;
- 	const signed char *scp = (const signed char *) name;
- 	int c;
+-	fm->addr = ioremap(pci_resource_start(dev, 0),
+-			   pci_resource_len(dev, 0));
++	fm->addr = pci_ioremap_bar(dev, 0);
+ 	if (!fm->addr)
+ 		goto err_out_free;
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
 origin.patch
-epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
-freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
-mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-linux-next-git-rejects.patch
-git-tests-git-rejects.patch
-revert-i7300_idle-driver-v155.patch
-arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module-checkpatch-fixes.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-leds-driver-for-hp-harddisk-protection-led-fix.patch
-drivers-rtc-rtc-ds1286c-is-borked.patch
-drivers-rtc-rtc-m48t35c-is-borked-too.patch
-drivers-net-sfc-falconc-fix-min-warnings.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-init-properly-placing-noinline-keyword.patch
-spi_gpio-driver-cleanups.patch
-ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes.patch
-w1-export-w1_read_8-function-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+mutex-improve-header-comment-to-be-actually-informative-about-the-api.patch
+pci-use-pci_ioremap_bar-in-drivers-misc.patch
+pci-use-pci_ioremap_bar-in-drivers-mmc.patch
+pci-use-pci_ioremap_bar-in-drivers-edac.patch
+pci-use-pci_ioremap_bar-in-drivers-video.patch
+pci-use-pci_ioremap_bar-in-drivers-serial.patch
 
