@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch added to -mm tree
-Date: Tue, 21 Oct 2008 13:58:28 -0700
-Message-ID: <200810212058.m9LKwSbn018420@imap1.linux-foundation.org>
+Subject: + binfmt_elf_fdpic-update-for-cputime-changes.patch added to -mm tree
+Date: Tue, 21 Oct 2008 13:59:43 -0700
+Message-ID: <200810212059.m9LKxhpX018642@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49601 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40431 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752565AbYJUVAA (ORCPT
+	by vger.kernel.org with ESMTP id S1751949AbYJUVAh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 17:00:00 -0400
+	Tue, 21 Oct 2008 17:00:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clg@fr.ibm.com, lizf@cn.fujitsu.com
+Cc: lethal@linux-sh.org, adobriyan@gmail.com, fmayhar@google.com, mingo@elte.hu, roland@redhat.com
 
 
 The patch titled
-     freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix
+     binfmt_elf_fdpic: update for cputime changes
 has been added to the -mm tree.  Its filename is
-     freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
+     binfmt_elf_fdpic-update-for-cputime-changes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,116 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: binfmt_elf_fdpic: update for cputime changes
+From: Paul Mundt <lethal@linux-sh.org>
 
-Cc: Cedric Le Goater <clg@fr.ibm.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
+Commit f06febc96ba8e0af80bcc3eaec0a109e88275fac "timers: fix itimer/many
+thread hang" introduced a new task_cputime interface and subsequently
+only converted binfmt_elf over to it. This results in the build for
+binfmt_elf_fdpic blowing up given that p->signal->{u,s}time have
+disappeared from underneath us.
+
+Apply the same trivial fix from binfmt_elf to binfmt_elf_fdpic.
+
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+Cc: Frank Mayhar <fmayhar@google.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/freezer.h |    5 -----
- kernel/freezer.c        |   20 ++++++++++----------
- 2 files changed, 10 insertions(+), 15 deletions(-)
+ fs/binfmt_elf_fdpic.c |   19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/freezer.h~freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix include/linux/freezer.h
---- a/include/linux/freezer.h~freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix
-+++ a/include/linux/freezer.h
-@@ -44,11 +44,6 @@ static inline bool should_send_signal(st
- 	return !(p->flags & PF_FREEZER_NOSIG);
- }
- 
--/*
-- * Wake up a frozen process
-- */
--extern int __thaw_process(struct task_struct *p);
--
- /* Takes and releases task alloc lock using task_lock() */
- extern int thaw_process(struct task_struct *p);
- 
-diff -puN kernel/freezer.c~freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix kernel/freezer.c
---- a/kernel/freezer.c~freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix
-+++ a/kernel/freezer.c
-@@ -121,16 +121,7 @@ void cancel_freezing(struct task_struct 
- 	}
- }
- 
--/*
-- * Wake up a frozen process
-- *
-- * task_lock() is needed to prevent the race with refrigerator() which may
-- * occur if the freezing of tasks fails.  Namely, without the lock, if the
-- * freezing of tasks failed, thaw_tasks() might have run before a task in
-- * refrigerator() could call frozen_process(), in which case the task would be
-- * frozen and no one would thaw it.
-- */
--int __thaw_process(struct task_struct *p)
-+static int __thaw_process(struct task_struct *p)
- {
- 	if (frozen(p)) {
- 		p->flags &= ~PF_FROZEN;
-@@ -140,6 +131,15 @@ int __thaw_process(struct task_struct *p
- 	return 0;
- }
- 
-+/*
-+ * Wake up a frozen process
-+ *
-+ * task_lock() is needed to prevent the race with refrigerator() which may
-+ * occur if the freezing of tasks fails.  Namely, without the lock, if the
-+ * freezing of tasks failed, thaw_tasks() might have run before a task in
-+ * refrigerator() could call frozen_process(), in which case the task would be
-+ * frozen and no one would thaw it.
-+ */
- int thaw_process(struct task_struct *p)
- {
- 	task_lock(p);
+diff -puN fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-update-for-cputime-changes fs/binfmt_elf_fdpic.c
+--- a/fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-update-for-cputime-changes
++++ a/fs/binfmt_elf_fdpic.c
+@@ -1390,20 +1390,15 @@ static void fill_prstatus(struct elf_prs
+ 	prstatus->pr_pgrp = task_pgrp_vnr(p);
+ 	prstatus->pr_sid = task_session_vnr(p);
+ 	if (thread_group_leader(p)) {
++		struct task_cputime cputime;
++
+ 		/*
+-		 * This is the record for the group leader.  Add in the
+-		 * cumulative times of previous dead threads.  This total
+-		 * won't include the time of each live thread whose state
+-		 * is included in the core dump.  The final total reported
+-		 * to our parent process when it calls wait4 will include
+-		 * those sums as well as the little bit more time it takes
+-		 * this and each other thread to finish dying after the
+-		 * core dump synchronization phase.
++		 * This is the record for the group leader.  It shows the
++		 * group-wide total, not its individual thread total.
+ 		 */
+-		cputime_to_timeval(cputime_add(p->utime, p->signal->utime),
+-				   &prstatus->pr_utime);
+-		cputime_to_timeval(cputime_add(p->stime, p->signal->stime),
+-				   &prstatus->pr_stime);
++		thread_group_cputime(p, &cputime);
++		cputime_to_timeval(cputime.utime, &prstatus->pr_utime);
++		cputime_to_timeval(cputime.stime, &prstatus->pr_stime);
+ 	} else {
+ 		cputime_to_timeval(p->utime, &prstatus->pr_utime);
+ 		cputime_to_timeval(p->stime, &prstatus->pr_stime);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
 origin.patch
-epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
-freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
-mm-remove-the-might_sleep-from-lock_page.patch
-linux-next.patch
-linux-next-git-rejects.patch
-git-tests-git-rejects.patch
-revert-i7300_idle-driver-v155.patch
-arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
-tick-schedc-suppress-needless-timer-reprogramming.patch
-drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
-kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module-checkpatch-fixes.patch
-led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
-leds-driver-for-hp-harddisk-protection-led-fix.patch
-drivers-rtc-rtc-ds1286c-is-borked.patch
-drivers-rtc-rtc-m48t35c-is-borked-too.patch
-drivers-net-sfc-falconc-fix-min-warnings.patch
-backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-page_cgroup-needs-linux-vmalloch-for-vmalloc_node-vfree.patch
+profiling-fix-up-config_proc_fs=n-build.patch
+binfmt_elf_fdpic-update-for-cputime-changes.patch
 mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
-init-properly-placing-noinline-keyword.patch
-spi_gpio-driver-cleanups.patch
-w1-export-w1_read_8-function-checkpatch-fixes.patch
-nilfs2-inode-operations-fix.patch
-nilfs2-pathname-operations-fix.patch
-reiser4.patch
-reiser4-tree_lock-fixes.patch
-reiser4-tree_lock-fixes-fix.patch
-reiser4-semaphore-fix.patch
-slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
-reiser4-suid.patch
-reiser4-track-upstream-changes.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
