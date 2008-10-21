@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-invoke-oom-killer-from-page-fault.patch added to -mm tree
-Date: Tue, 21 Oct 2008 14:40:52 -0700
-Message-ID: <200810212140.m9LLeq1B026364@imap1.linux-foundation.org>
+Subject: + mm-write_cache_pages-writepage-error-fix.patch added to -mm tree
+Date: Tue, 21 Oct 2008 14:55:53 -0700
+Message-ID: <200810212155.m9LLtrHF029164@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53989 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42608 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752611AbYJUVl4 (ORCPT
+	by vger.kernel.org with ESMTP id S1750873AbYJUVz6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 17:41:56 -0400
+	Tue, 21 Oct 2008 17:55:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, jdike@addtoit.com, mingo@elte.hu, tglx@linutronix.de
+Cc: npiggin@suse.de
 
 
 The patch titled
-     mm: invoke oom-killer from page fault
+     mm: write_cache_pages() writepage error fix
 has been added to the -mm tree.  Its filename is
-     mm-invoke-oom-killer-from-page-fault.patch
+     mm-write_cache_pages-writepage-error-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,259 +34,127 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: invoke oom-killer from page fault
+Subject: mm: write_cache_pages() writepage error fix
 From: Nick Piggin <npiggin@suse.de>
 
-Rather than have the pagefault handler kill a process directly if it gets
-a VM_FAULT_OOM, have it call into the OOM killer.
+In write_cache_pages(), if ret signals a real error, but we still have
+some pages left in the pagevec, done would be set to 1, but the remaining
+pages would continue to be processed and ret will be overwritten in the
+process.  It could easily be overwritten with success, and thus success
+will be returned even if there is an error.  Thus the caller is told all
+writes succeeded, wheras in reality some did not.
 
-With increasingly sophisticated oom behaviour (cpusets, memory cgroups,
-oom killing throttling, oom priority adjustment or selective disabling,
-panic on oom, etc), it's silly to unconditionally kill the faulting
-process at page fault time.  Create a hook for pagefault oom path to call
-into instead.
+Fix this by bailing immediately if there is an error, and retaining the
+first error code.
 
-Only converted x86 and uml so far.
+This is a data interity bug.
 
+[akpm@linux-foundation.org: fix all the other done=1 cases too]
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/trap.c |   24 +++-------
- arch/x86/mm/fault.c   |   24 ++--------
- include/linux/mm.h    |    5 ++
- mm/oom_kill.c         |   94 +++++++++++++++++++++++++++-------------
- 4 files changed, 84 insertions(+), 63 deletions(-)
+ mm/page-writeback.c |   25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
-diff -puN arch/um/kernel/trap.c~mm-invoke-oom-killer-from-page-fault arch/um/kernel/trap.c
---- a/arch/um/kernel/trap.c~mm-invoke-oom-killer-from-page-fault
-+++ a/arch/um/kernel/trap.c
-@@ -64,11 +64,10 @@ good_area:
- 
- 	do {
- 		int fault;
--survive:
-+
- 		fault = handle_mm_fault(mm, vma, address, is_write);
- 		if (unlikely(fault & VM_FAULT_ERROR)) {
- 			if (fault & VM_FAULT_OOM) {
--				err = -ENOMEM;
- 				goto out_of_memory;
- 			} else if (fault & VM_FAULT_SIGBUS) {
- 				err = -EACCES;
-@@ -104,18 +103,14 @@ out:
- out_nosemaphore:
- 	return err;
- 
--/*
-- * We ran out of memory, or some other thing happened to us that made
-- * us unable to handle the page fault gracefully.
-- */
- out_of_memory:
--	if (is_global_init(current)) {
--		up_read(&mm->mmap_sem);
--		yield();
--		down_read(&mm->mmap_sem);
--		goto survive;
--	}
--	goto out;
-+	/*
-+	 * We ran out of memory, call the OOM killer, and return the userspace
-+	 * (which will retry the fault, or kill us if we got oom-killed).
-+	 */
-+	up_read(&mm->mmap_sem);
-+	pagefault_out_of_memory();
-+	return 0;
- }
- 
- static void bad_segv(struct faultinfo fi, unsigned long ip)
-@@ -214,9 +209,6 @@ unsigned long segv(struct faultinfo fi, 
- 		si.si_addr = (void __user *)address;
- 		current->thread.arch.faultinfo = fi;
- 		force_sig_info(SIGBUS, &si, current);
--	} else if (err == -ENOMEM) {
--		printk(KERN_INFO "VM: killing process %s\n", current->comm);
--		do_exit(SIGKILL);
- 	} else {
- 		BUG_ON(err != -EFAULT);
- 		si.si_signo = SIGSEGV;
-diff -puN arch/x86/mm/fault.c~mm-invoke-oom-killer-from-page-fault arch/x86/mm/fault.c
---- a/arch/x86/mm/fault.c~mm-invoke-oom-killer-from-page-fault
-+++ a/arch/x86/mm/fault.c
-@@ -680,7 +680,6 @@ void __kprobes do_page_fault(struct pt_r
- 	if (unlikely(in_atomic() || !mm))
- 		goto bad_area_nosemaphore;
- 
--again:
- 	/*
- 	 * When running in the kernel we expect faults to occur only to
- 	 * addresses in user space.  All other faults represent errors in the
-@@ -875,25 +874,14 @@ no_context:
- 	oops_end(flags, regs, SIGKILL);
- #endif
- 
--/*
-- * We ran out of memory, or some other thing happened to us that made
-- * us unable to handle the page fault gracefully.
-- */
- out_of_memory:
-+	/*
-+	 * We ran out of memory, call the OOM killer, and return the userspace
-+	 * (which will retry the fault, or kill us if we got oom-killed).
-+	 */
- 	up_read(&mm->mmap_sem);
--	if (is_global_init(tsk)) {
--		yield();
--		/*
--		 * Re-lookup the vma - in theory the vma tree might
--		 * have changed:
--		 */
--		goto again;
--	}
--
--	printk("VM: killing process %s\n", tsk->comm);
--	if (error_code & PF_USER)
--		do_group_exit(SIGKILL);
--	goto no_context;
-+	pagefault_out_of_memory();
-+	return;
- 
- do_sigbus:
- 	up_read(&mm->mmap_sem);
-diff -puN include/linux/mm.h~mm-invoke-oom-killer-from-page-fault include/linux/mm.h
---- a/include/linux/mm.h~mm-invoke-oom-killer-from-page-fault
-+++ a/include/linux/mm.h
-@@ -700,6 +700,11 @@ static inline int page_mapped(struct pag
- 
- #define VM_FAULT_ERROR	(VM_FAULT_OOM | VM_FAULT_SIGBUS)
- 
-+/*
-+ * Can be called by the pagefault handler when it gets a VM_FAULT_OOM.
-+ */
-+extern void pagefault_out_of_memory(void);
-+
- #define offset_in_page(p)	((unsigned long)(p) & ~PAGE_MASK)
- 
- extern void show_free_areas(void);
-diff -puN mm/oom_kill.c~mm-invoke-oom-killer-from-page-fault mm/oom_kill.c
---- a/mm/oom_kill.c~mm-invoke-oom-killer-from-page-fault
-+++ a/mm/oom_kill.c
-@@ -508,6 +508,69 @@ void clear_zonelist_oom(struct zonelist 
- 	spin_unlock(&zone_scan_mutex);
- }
- 
-+/*
-+ * Must be called with tasklist_lock held for read.
-+ */
-+void __out_of_memory(gfp_t gfp_mask, int order)
-+{
-+	if (sysctl_oom_kill_allocating_task) {
-+		oom_kill_process(current, gfp_mask, order, 0, NULL,
-+				"Out of memory (oom_kill_allocating_task)");
-+
-+	} else {
-+		unsigned long points;
-+		struct task_struct *p;
-+
-+retry:
-+		/*
-+		 * Rambo mode: Shoot down a process and hope it solves whatever
-+		 * issues we may have.
-+		 */
-+		p = select_bad_process(&points, NULL);
-+
-+		if (PTR_ERR(p) == -1UL)
-+			return;
-+
-+		/* Found nothing?!?! Either we hang forever, or we panic. */
-+		if (!p) {
-+			read_unlock(&tasklist_lock);
-+			panic("Out of memory and no killable processes...\n");
-+		}
-+
-+		if (oom_kill_process(p, gfp_mask, order, points, NULL,
-+				     "Out of memory"))
-+			goto retry;
-+	}
-+}
-+
-+/*
-+ * pagefault handler calls into here because it is out of memory but
-+ * doesn't know exactly how or why.
-+ */
-+void pagefault_out_of_memory(void)
-+{
-+	unsigned long freed = 0;
-+
-+	blocking_notifier_call_chain(&oom_notify_list, 0, &freed);
-+	if (freed > 0)
-+		/* Got some memory back in the last second. */
-+		return;
-+
-+	if (sysctl_panic_on_oom)
-+		panic("out of memory from page fault. panic_on_oom is selected.\n");
-+
-+	read_lock(&tasklist_lock);
-+	__out_of_memory(0, 0); /* unknown gfp_mask and order */
-+	read_unlock(&tasklist_lock);
-+
-+	/*
-+	 * Give "p" a good chance of killing itself before we
-+	 * retry to allocate memory unless "p" is current
-+	 */
-+	if (!test_thread_flag(TIF_MEMDIE))
-+		schedule_timeout_uninterruptible(1);
-+}
-+
- /**
-  * out_of_memory - kill the "best" process when we run out of memory
-  * @zonelist: zonelist pointer
-@@ -521,8 +584,6 @@ void clear_zonelist_oom(struct zonelist 
-  */
- void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask, int order)
+diff -puN mm/page-writeback.c~mm-write_cache_pages-writepage-error-fix mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-write_cache_pages-writepage-error-fix
++++ a/mm/page-writeback.c
+@@ -865,7 +865,6 @@ int write_cache_pages(struct address_spa
  {
--	struct task_struct *p;
--	unsigned long points = 0;
- 	unsigned long freed = 0;
- 	enum oom_constraint constraint;
+ 	struct backing_dev_info *bdi = mapping->backing_dev_info;
+ 	int ret = 0;
+-	int done = 0;
+ 	struct pagevec pvec;
+ 	int nr_pages;
+ 	pgoff_t index;
+@@ -891,10 +890,10 @@ int write_cache_pages(struct address_spa
+ 		scanned = 1;
+ 	}
+ retry:
+-	while (!done && (index <= end) &&
++	while ((index <= end) &&
+ 	       (nr_pages = pagevec_lookup_tag(&pvec, mapping, &index,
+-					      PAGECACHE_TAG_DIRTY,
+-					      min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1))) {
++				PAGECACHE_TAG_DIRTY,
++				min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1))) {
+ 		unsigned i;
  
-@@ -543,7 +604,7 @@ void out_of_memory(struct zonelist *zone
+ 		scanned = 1;
+@@ -903,9 +902,9 @@ retry:
  
- 	switch (constraint) {
- 	case CONSTRAINT_MEMORY_POLICY:
--		oom_kill_process(current, gfp_mask, order, points, NULL,
-+		oom_kill_process(current, gfp_mask, order, 0, NULL,
- 				"No available memory (MPOL_BIND)");
- 		break;
+ 			/*
+ 			 * At this point we hold neither mapping->tree_lock nor
+-			 * lock on the page itself: the page may be truncated or
+-			 * invalidated (changing page->mapping to NULL), or even
+-			 * swizzled back from swapper_space to tmpfs file
++			 * lock on the page itself: the page may be truncated
++			 * or invalidated (changing page->mapping to NULL), or
++			 * even swizzled back from swapper_space to tmpfs file
+ 			 * mapping
+ 			 */
+ 			lock_page(page);
+@@ -916,8 +915,8 @@ retry:
+ 			}
  
-@@ -552,35 +613,10 @@ void out_of_memory(struct zonelist *zone
- 			panic("out of memory. panic_on_oom is selected\n");
- 		/* Fall-through */
- 	case CONSTRAINT_CPUSET:
--		if (sysctl_oom_kill_allocating_task) {
--			oom_kill_process(current, gfp_mask, order, points, NULL,
--					"Out of memory (oom_kill_allocating_task)");
--			break;
--		}
--retry:
--		/*
--		 * Rambo mode: Shoot down a process and hope it solves whatever
--		 * issues we may have.
--		 */
--		p = select_bad_process(&points, NULL);
--
--		if (PTR_ERR(p) == -1UL)
--			goto out;
--
--		/* Found nothing?!?! Either we hang forever, or we panic. */
--		if (!p) {
--			read_unlock(&tasklist_lock);
--			panic("Out of memory and no killable processes...\n");
--		}
--
--		if (oom_kill_process(p, gfp_mask, order, points, NULL,
--				     "Out of memory"))
--			goto retry;
+ 			if (!wbc->range_cyclic && page->index > end) {
+-				done = 1;
+ 				unlock_page(page);
++				goto bale;
+ 				continue;
+ 			}
+ 
+@@ -937,16 +936,16 @@ retry:
+ 				ret = 0;
+ 			}
+ 			if (ret || (--nr_to_write <= 0))
+-				done = 1;
++				goto bale;
+ 			if (wbc->nonblocking && bdi_write_congested(bdi)) {
+ 				wbc->encountered_congestion = 1;
+-				done = 1;
++				goto bale;
+ 			}
+ 		}
+ 		pagevec_release(&pvec);
+ 		cond_resched();
+ 	}
+-	if (!scanned && !done) {
++	if (!scanned) {
+ 		/*
+ 		 * We hit the last page and there is more work to be done: wrap
+ 		 * back to the start of the file
+@@ -961,7 +960,11 @@ retry:
+ 		wbc->nr_to_write = nr_to_write;
+ 	}
+ 
++out:
+ 	return ret;
++bale:
++	pagevec_release(&pvec);
++	goto out;
+ }
+ EXPORT_SYMBOL(write_cache_pages);
+ 
+_
+
+Patches currently in -mm which might be from npiggin@suse.de are
+
+origin.patch
+mm-increase-the-default-mlock-limit-from-32k-to-64k.patch
+fs-remove-prepare_write-commit_write.patch
+mm-write_cache_pages-writepage-error-fix.patch
+linux-next.patch
+mm-dont-mark_page_accessed-in-fault-path.patch
+mm-invoke-oom-killer-from-page-fault.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+reiser4.patch
+likeliness-accounting-change-and-cleanup.patch
+mm-write_cache_pages-integrity-fix.patch
+mm-do_sync_mapping_range-integrity-fix.patch
+mm-write_cache_pages-cyclic-fix.patch
+mm-write_cache_pages-cleanups.patch
+mm-write_cache_pages-optimise-page-cleaning.patch
+mm-write_cache_pages-terminate-quickly.patch
+
