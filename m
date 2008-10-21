@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-remove-prepare_write-commit_write-fix.patch added to -mm tree
-Date: Tue, 21 Oct 2008 15:59:11 -0700
-Message-ID: <200810212259.m9LMxBLA008296@imap1.linux-foundation.org>
+Subject: + linux-next-fix-vfs-for-about-to-be-merged-ext3-patches.patch added to -mm tree
+Date: Tue, 21 Oct 2008 16:28:34 -0700
+Message-ID: <200810212328.m9LNSYIC013648@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39520 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57375 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751352AbYJUW77 (ORCPT
+	by vger.kernel.org with ESMTP id S1752006AbYJUX3P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 18:59:59 -0400
+	Tue, 21 Oct 2008 19:29:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hch@lst.de, npiggin@suse.de
+Cc: akpm@linux-foundation.org, hidehiro.kawai.ez@hitachi.com, sfr@canb.auug.org.au, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     fs-remove-prepare_write-commit_write-fix
+     linux-next: fix vfs for about-to-be-merged ext3 patches
 has been added to the -mm tree.  Its filename is
-     fs-remove-prepare_write-commit_write-fix.patch
+     linux-next-fix-vfs-for-about-to-be-merged-ext3-patches.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs-remove-prepare_write-commit_write-fix
+Subject: linux-next: fix vfs for about-to-be-merged ext3 patches
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Schedule simple_prepare_write() for unexporting.
+ext3-add-checks-for-errors-from-jbd.patch will break linux-next.
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Nick Piggin <npiggin@suse.de>
+Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/libfs.c |    2 +-
+ fs/ext3/super.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/libfs.c~fs-remove-prepare_write-commit_write-fix fs/libfs.c
---- a/fs/libfs.c~fs-remove-prepare_write-commit_write-fix
-+++ a/fs/libfs.c
-@@ -836,7 +836,7 @@ EXPORT_SYMBOL(simple_getattr);
- EXPORT_SYMBOL(simple_link);
- EXPORT_SYMBOL(simple_lookup);
- EXPORT_SYMBOL(simple_pin_fs);
--EXPORT_SYMBOL(simple_prepare_write);
-+EXPORT_UNUSED_SYMBOL(simple_prepare_write);
- EXPORT_SYMBOL(simple_readpage);
- EXPORT_SYMBOL(simple_release_fs);
- EXPORT_SYMBOL(simple_rename);
+diff -puN fs/ext3/super.c~linux-next-fix-vfs-for-about-to-be-merged-ext3-patches fs/ext3/super.c
+--- a/fs/ext3/super.c~linux-next-fix-vfs-for-about-to-be-merged-ext3-patches
++++ a/fs/ext3/super.c
+@@ -2836,7 +2836,7 @@ static int ext3_quota_on(struct super_bl
+ 		err = journal_flush(EXT3_SB(sb)->s_journal);
+ 		journal_unlock_updates(EXT3_SB(sb)->s_journal);
+ 		if (err) {
+-			path_put(&nd.path);
++			path_put(&path);
+ 			return err;
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,6 +72,7 @@ mm-write_cache_pages-writepage-error-fix.patch
 mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
 linux-next-git-rejects.patch
+linux-next-fix-vfs-for-about-to-be-merged-ext3-patches.patch
 git-tests-git-rejects.patch
 revert-i7300_idle-driver-v155.patch
 arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
