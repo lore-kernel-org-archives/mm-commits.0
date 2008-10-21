@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-write_cache_pages-writepage-error-fix.patch added to -mm tree
-Date: Tue, 21 Oct 2008 15:06:02 -0700
-Message-ID: <200810212206.m9LM62tA031009@imap1.linux-foundation.org>
+Subject: + bfs-check-that-filesystem-fits-on-the-blockdevice.patch added to -mm tree
+Date: Tue, 21 Oct 2008 15:15:41 -0700
+Message-ID: <200810212215.m9LMFfVa000312@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48303 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45733 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751575AbYJUWGg (ORCPT
+	by vger.kernel.org with ESMTP id S1753108AbYJUWPv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 18:06:36 -0400
+	Tue, 21 Oct 2008 18:15:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, matthew@wil.cx
+Cc: snakebyte@gmx.de, tigran@aivazian.fsnet.co.uk
 
 
 The patch titled
-     mm: write_cache_pages() writepage error fix
+     bfs: check that filesystem fits on the blockdevice
 has been added to the -mm tree.  Its filename is
-     mm-write_cache_pages-writepage-error-fix.patch
+     bfs-check-that-filesystem-fits-on-the-blockdevice.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: write_cache_pages() writepage error fix
-From: Nick Piggin <npiggin@suse.de>
+Subject: bfs: check that filesystem fits on the blockdevice
+From: Eric Sesterhenn <snakebyte@gmx.de>
 
-In write_cache_pages(), if ret signals a real error, but we still have
-some pages left in the pagevec, done would be set to 1, but the remaining
-pages would continue to be processed and ret will be overwritten in the
-process.  It could easily be overwritten with success, and thus success
-will be returned even if there is an error.  Thus the caller is told all
-writes succeeded, wheras in reality some did not.
+Since all sanity checks rely on the validity of s_start which gets only
+checked to be smaller than s_end, we should also check if s_end is sane. 
+Now we also try to retrieve the last block of the filesystem, which is
+computed by s_end.  If this fails, something is bogus.
 
-Fix this by bailing immediately if there is an error, and retaining the
-first error code.
+Signed-off-by: Eric Sesterhenn <snakebyte@gmx.de>
+Acked-by: Tigran Aivazian <tigran@aivazian.fsnet.co.uk>
 
-This is a data interity bug.
-
-[akpm@linux-foundation.org: fix all the other done=1 cases too]
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Matthew Wilcox <matthew@wil.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+ fs/bfs/inode.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN mm/page-writeback.c~mm-write_cache_pages-writepage-error-fix mm/page-writeback.c
---- a/mm/page-writeback.c~mm-write_cache_pages-writepage-error-fix
-+++ a/mm/page-writeback.c
-@@ -865,7 +865,6 @@ int write_cache_pages(struct address_spa
- {
- 	struct backing_dev_info *bdi = mapping->backing_dev_info;
- 	int ret = 0;
--	int done = 0;
- 	struct pagevec pvec;
- 	int nr_pages;
- 	pgoff_t index;
-@@ -891,10 +890,10 @@ int write_cache_pages(struct address_spa
- 		scanned = 1;
- 	}
- retry:
--	while (!done && (index <= end) &&
-+	while ((index <= end) &&
- 	       (nr_pages = pagevec_lookup_tag(&pvec, mapping, &index,
--					      PAGECACHE_TAG_DIRTY,
--					      min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1))) {
-+				PAGECACHE_TAG_DIRTY,
-+				min(end - index, (pgoff_t)PAGEVEC_SIZE-1) + 1))) {
- 		unsigned i;
- 
- 		scanned = 1;
-@@ -903,9 +902,9 @@ retry:
- 
- 			/*
- 			 * At this point we hold neither mapping->tree_lock nor
--			 * lock on the page itself: the page may be truncated or
--			 * invalidated (changing page->mapping to NULL), or even
--			 * swizzled back from swapper_space to tmpfs file
-+			 * lock on the page itself: the page may be truncated
-+			 * or invalidated (changing page->mapping to NULL), or
-+			 * even swizzled back from swapper_space to tmpfs file
- 			 * mapping
- 			 */
- 			lock_page(page);
-@@ -916,8 +915,8 @@ retry:
- 			}
- 
- 			if (!wbc->range_cyclic && page->index > end) {
--				done = 1;
- 				unlock_page(page);
-+				goto bail;
- 				continue;
- 			}
- 
-@@ -937,16 +936,16 @@ retry:
- 				ret = 0;
- 			}
- 			if (ret || (--nr_to_write <= 0))
--				done = 1;
-+				goto bail;
- 			if (wbc->nonblocking && bdi_write_congested(bdi)) {
- 				wbc->encountered_congestion = 1;
--				done = 1;
-+				goto bail;
- 			}
- 		}
- 		pagevec_release(&pvec);
- 		cond_resched();
- 	}
--	if (!scanned && !done) {
-+	if (!scanned) {
- 		/*
- 		 * We hit the last page and there is more work to be done: wrap
- 		 * back to the start of the file
-@@ -961,7 +960,11 @@ retry:
- 		wbc->nr_to_write = nr_to_write;
- 	}
- 
-+out:
- 	return ret;
-+bail:
-+	pagevec_release(&pvec);
-+	goto out;
- }
- EXPORT_SYMBOL(write_cache_pages);
- 
+diff -puN fs/bfs/inode.c~bfs-check-that-filesystem-fits-on-the-blockdevice fs/bfs/inode.c
+--- a/fs/bfs/inode.c~bfs-check-that-filesystem-fits-on-the-blockdevice
++++ a/fs/bfs/inode.c
+@@ -390,6 +390,18 @@ static int bfs_fill_super(struct super_b
+ 			- le32_to_cpu(bfs_sb->s_start)) >> BFS_BSIZE_BITS;
+ 	info->si_freei = 0;
+ 	info->si_lf_eblk = 0;
++
++	/* can we read the last block? */
++	bh = sb_bread(s, info->si_blocks - 1);
++	if (!bh) {
++		printf("Last block not available: %lu\n", info->si_blocks - 1);
++		iput(inode);
++		ret = -EIO;
++		kfree(info->si_imap);
++		goto out;
++	}
++	brelse(bh);
++
+ 	bh = NULL;
+ 	for (i = BFS_ROOT_INO; i <= info->si_lasti; i++) {
+ 		struct bfs_inode *di;
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from snakebyte@gmx.de are
 
 origin.patch
-mm-increase-the-default-mlock-limit-from-32k-to-64k.patch
-fs-remove-prepare_write-commit_write.patch
-mm-write_cache_pages-writepage-error-fix.patch
 linux-next.patch
-mm-dont-mark_page_accessed-in-fault-path.patch
-mm-invoke-oom-killer-from-page-fault.patch
-mm-invoke-oom-killer-from-page-fault-fix.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+bfs-add-some-basic-sanity-checks.patch
+bfs-check-that-filesystem-fits-on-the-blockdevice.patch
 
