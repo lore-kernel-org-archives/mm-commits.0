@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + binfmt_elf_fdpic-update-for-cputime-changes.patch added to -mm tree
-Date: Tue, 21 Oct 2008 13:59:43 -0700
-Message-ID: <200810212059.m9LKxhpX018642@imap1.linux-foundation.org>
+Subject: + ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms.patch added to -mm tree
+Date: Tue, 21 Oct 2008 14:04:35 -0700
+Message-ID: <200810212104.m9LL4Zli019561@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40431 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40548 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751949AbYJUVAh (ORCPT
+	by vger.kernel.org with ESMTP id S1751314AbYJUVFe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 17:00:37 -0400
+	Tue, 21 Oct 2008 17:05:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org, adobriyan@gmail.com, fmayhar@google.com, mingo@elte.hu, roland@redhat.com
+Cc: tytso@mit.edu, phillips@phunq.net
 
 
 The patch titled
-     binfmt_elf_fdpic: update for cputime changes
+     ext3: add support for non-native signed/unsigned htree hash algorithms
 has been added to the -mm tree.  Its filename is
-     binfmt_elf_fdpic-update-for-cputime-changes.patch
+     ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,250 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: binfmt_elf_fdpic: update for cputime changes
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: ext3: add support for non-native signed/unsigned htree hash algorithms
+From: "Theodore Ts'o" <tytso@mit.edu>
 
-Commit f06febc96ba8e0af80bcc3eaec0a109e88275fac "timers: fix itimer/many
-thread hang" introduced a new task_cputime interface and subsequently
-only converted binfmt_elf over to it. This results in the build for
-binfmt_elf_fdpic blowing up given that p->signal->{u,s}time have
-disappeared from underneath us.
+The original ext3 hash algorithms assumed that variables of type char were
+signed, as God and K&R intended.  Unfortunately, this assumption is not
+true on some architectures.  Userspace support for marking filesystems
+with non-native signed/unsigned chars was added two years ago, but the
+kernel-side support was never added (until now).
 
-Apply the same trivial fix from binfmt_elf to binfmt_elf_fdpic.
-
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Cc: Frank Mayhar <fmayhar@google.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Daniel Phillips <phillips@phunq.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf_fdpic.c |   19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+ fs/ext3/hash.c             |   42 +++++++++++++++++++++++++++--------
+ fs/ext3/namei.c            |    7 +++++
+ fs/ext3/super.c            |   15 ++++++++++++
+ include/linux/ext3_fs.h    |   28 ++++++++++++++++++++++-
+ include/linux/ext3_fs_sb.h |    1 
+ 5 files changed, 83 insertions(+), 10 deletions(-)
 
-diff -puN fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-update-for-cputime-changes fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~binfmt_elf_fdpic-update-for-cputime-changes
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -1390,20 +1390,15 @@ static void fill_prstatus(struct elf_prs
- 	prstatus->pr_pgrp = task_pgrp_vnr(p);
- 	prstatus->pr_sid = task_session_vnr(p);
- 	if (thread_group_leader(p)) {
-+		struct task_cputime cputime;
+diff -puN fs/ext3/hash.c~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms fs/ext3/hash.c
+--- a/fs/ext3/hash.c~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms
++++ a/fs/ext3/hash.c
+@@ -35,11 +35,20 @@ static void TEA_transform(__u32 buf[4], 
+ 
+ 
+ /* The old legacy hash */
+-static __u32 dx_hack_hash (const char *name, int len)
++static __u32 dx_hack_hash (const char *name, int len, int unsigned_flag)
+ {
+-	__u32 hash0 = 0x12a3fe2d, hash1 = 0x37abe8f9;
++	__u32 hash, hash0 = 0x12a3fe2d, hash1 = 0x37abe8f9;
++ 	const unsigned char *ucp = (const unsigned char *) name;
++	const signed char *scp = (const signed char *) name;
++	int c;
 +
- 		/*
--		 * This is the record for the group leader.  Add in the
--		 * cumulative times of previous dead threads.  This total
--		 * won't include the time of each live thread whose state
--		 * is included in the core dump.  The final total reported
--		 * to our parent process when it calls wait4 will include
--		 * those sums as well as the little bit more time it takes
--		 * this and each other thread to finish dying after the
--		 * core dump synchronization phase.
-+		 * This is the record for the group leader.  It shows the
-+		 * group-wide total, not its individual thread total.
- 		 */
--		cputime_to_timeval(cputime_add(p->utime, p->signal->utime),
--				   &prstatus->pr_utime);
--		cputime_to_timeval(cputime_add(p->stime, p->signal->stime),
--				   &prstatus->pr_stime);
-+		thread_group_cputime(p, &cputime);
-+		cputime_to_timeval(cputime.utime, &prstatus->pr_utime);
-+		cputime_to_timeval(cputime.stime, &prstatus->pr_stime);
- 	} else {
- 		cputime_to_timeval(p->utime, &prstatus->pr_utime);
- 		cputime_to_timeval(p->stime, &prstatus->pr_stime);
+ 	while (len--) {
+-		__u32 hash = hash1 + (hash0 ^ (*name++ * 7152373));
++		if (unsigned_flag)
++			c = (int) *ucp++;
++		else
++			c = (int) *scp++;
++
++		hash = hash1 + (hash0 ^ (c * 7152373));
+ 
+ 		if (hash & 0x80000000) hash -= 0x7fffffff;
+ 		hash1 = hash0;
+@@ -48,10 +57,13 @@ static __u32 dx_hack_hash (const char *n
+ 	return (hash0 << 1);
+ }
+ 
+-static void str2hashbuf(const char *msg, int len, __u32 *buf, int num)
++static void str2hashbuf(const char *msg, int len, __u32 *buf, int num,
++			int unsigned_flag)
+ {
+ 	__u32	pad, val;
+-	int	i;
++	int	i, c;
++	const unsigned char *ucp = (const unsigned char *) msg;
++	const signed char *scp = (const signed char *) msg;
+ 
+ 	pad = (__u32)len | ((__u32)len << 8);
+ 	pad |= pad << 16;
+@@ -62,7 +74,12 @@ static void str2hashbuf(const char *msg,
+ 	for (i=0; i < len; i++) {
+ 		if ((i % 4) == 0)
+ 			val = pad;
+-		val = msg[i] + (val << 8);
++		if (unsigned_flag)
++			c = (int) ucp[i];
++		else
++			c = (int) scp[i];
++
++		val = c + (val << 8);
+ 		if ((i % 4) == 3) {
+ 			*buf++ = val;
+ 			val = pad;
+@@ -95,6 +112,7 @@ int ext3fs_dirhash(const char *name, int
+ 	const char	*p;
+ 	int		i;
+ 	__u32		in[8], buf[4];
++	int		unsigned_flag = 0;
+ 
+ 	/* Initialize the default seed for the hash checksum functions */
+ 	buf[0] = 0x67452301;
+@@ -113,13 +131,17 @@ int ext3fs_dirhash(const char *name, int
+ 	}
+ 
+ 	switch (hinfo->hash_version) {
++	case DX_HASH_LEGACY_UNSIGNED:
++		unsigned_flag++;
+ 	case DX_HASH_LEGACY:
+-		hash = dx_hack_hash(name, len);
++		hash = dx_hack_hash(name, len, unsigned_flag);
+ 		break;
++	case DX_HASH_HALF_MD4_UNSIGNED:
++		unsigned_flag++;
+ 	case DX_HASH_HALF_MD4:
+ 		p = name;
+ 		while (len > 0) {
+-			str2hashbuf(p, len, in, 8);
++			str2hashbuf(p, len, in, 8, unsigned_flag);
+ 			half_md4_transform(buf, in);
+ 			len -= 32;
+ 			p += 32;
+@@ -127,10 +149,12 @@ int ext3fs_dirhash(const char *name, int
+ 		minor_hash = buf[2];
+ 		hash = buf[1];
+ 		break;
++	case DX_HASH_TEA_UNSIGNED:
++		unsigned_flag++;
+ 	case DX_HASH_TEA:
+ 		p = name;
+ 		while (len > 0) {
+-			str2hashbuf(p, len, in, 4);
++			str2hashbuf(p, len, in, 4, unsigned_flag);
+ 			TEA_transform(buf, in);
+ 			len -= 16;
+ 			p += 16;
+diff -puN fs/ext3/namei.c~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms fs/ext3/namei.c
+--- a/fs/ext3/namei.c~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms
++++ a/fs/ext3/namei.c
+@@ -368,6 +368,8 @@ dx_probe(struct qstr *entry, struct inod
+ 		goto fail;
+ 	}
+ 	hinfo->hash_version = root->info.hash_version;
++	if (hinfo->hash_version <= DX_HASH_TEA)
++		hinfo->hash_version += EXT3_SB(dir->i_sb)->s_hash_unsigned;
+ 	hinfo->seed = EXT3_SB(dir->i_sb)->s_hash_seed;
+ 	if (entry)
+ 		ext3fs_dirhash(entry->name, entry->len, hinfo);
+@@ -636,6 +638,9 @@ int ext3_htree_fill_tree(struct file *di
+ 	dir = dir_file->f_path.dentry->d_inode;
+ 	if (!(EXT3_I(dir)->i_flags & EXT3_INDEX_FL)) {
+ 		hinfo.hash_version = EXT3_SB(dir->i_sb)->s_def_hash_version;
++		if (hinfo.hash_version <= DX_HASH_TEA)
++			hinfo.hash_version +=
++				EXT3_SB(dir->i_sb)->s_hash_unsigned;
+ 		hinfo.seed = EXT3_SB(dir->i_sb)->s_hash_seed;
+ 		count = htree_dirblock_to_tree(dir_file, dir, 0, &hinfo,
+ 					       start_hash, start_minor_hash);
+@@ -1398,6 +1403,8 @@ static int make_indexed_dir(handle_t *ha
+ 
+ 	/* Initialize as for dx_probe */
+ 	hinfo.hash_version = root->info.hash_version;
++	if (hinfo.hash_version <= DX_HASH_TEA)
++		hinfo.hash_version += EXT3_SB(dir->i_sb)->s_hash_unsigned;
+ 	hinfo.seed = EXT3_SB(dir->i_sb)->s_hash_seed;
+ 	ext3fs_dirhash(name, namelen, &hinfo);
+ 	frame = frames;
+diff -puN fs/ext3/super.c~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms
++++ a/fs/ext3/super.c
+@@ -1740,6 +1740,21 @@ static int ext3_fill_super (struct super
+ 	for (i=0; i < 4; i++)
+ 		sbi->s_hash_seed[i] = le32_to_cpu(es->s_hash_seed[i]);
+ 	sbi->s_def_hash_version = es->s_def_hash_version;
++	i = le32_to_cpu(es->s_flags);
++	if (i & EXT2_FLAGS_UNSIGNED_HASH)
++		sbi->s_hash_unsigned = 3;
++	else if ((i & EXT2_FLAGS_SIGNED_HASH) == 0) {
++		char	c;
++
++		c = (char) 255;
++		if (((int) c) == -1) {
++			es->s_flags |= cpu_to_le32(EXT2_FLAGS_SIGNED_HASH);
++		} else {
++			es->s_flags |= cpu_to_le32(EXT2_FLAGS_UNSIGNED_HASH);
++			sbi->s_hash_unsigned = 3;
++		}
++		sb->s_dirt = 1;
++	}
+ 
+ 	if (sbi->s_blocks_per_group > blocksize * 8) {
+ 		printk (KERN_ERR
+diff -puN include/linux/ext3_fs.h~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms include/linux/ext3_fs.h
+--- a/include/linux/ext3_fs.h~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms
++++ a/include/linux/ext3_fs.h
+@@ -354,6 +354,13 @@ struct ext3_inode {
+ #define	EXT3_ORPHAN_FS			0x0004	/* Orphans being recovered */
+ 
+ /*
++ * Misc. filesystem flags
++ */
++#define EXT2_FLAGS_SIGNED_HASH		0x0001  /* Signed dirhash in use */
++#define EXT2_FLAGS_UNSIGNED_HASH	0x0002  /* Unsigned dirhash in use */
++#define EXT2_FLAGS_TEST_FILESYS		0x0004	/* to test development code */
++
++/*
+  * Mount flags
+  */
+ #define EXT3_MOUNT_CHECK		0x00001	/* Do mount-time checks */
+@@ -489,7 +496,23 @@ struct ext3_super_block {
+ 	__u16	s_reserved_word_pad;
+ 	__le32	s_default_mount_opts;
+ 	__le32	s_first_meta_bg;	/* First metablock block group */
+-	__u32	s_reserved[190];	/* Padding to the end of the block */
++	__le32	s_mkfs_time;		/* When the filesystem was created */
++	__le32	s_jnl_blocks[17];	/* Backup of the journal inode */
++	/* 64bit support valid if EXT4_FEATURE_COMPAT_64BIT */
++/*150*/	__le32	s_blocks_count_hi;	/* Blocks count */
++	__le32	s_r_blocks_count_hi;	/* Reserved blocks count */
++	__le32	s_free_blocks_count_hi;	/* Free blocks count */
++	__le16	s_min_extra_isize;	/* All inodes have at least # bytes */
++	__le16	s_want_extra_isize; 	/* New inodes should reserve # bytes */
++	__le32	s_flags;		/* Miscellaneous flags */
++	__le16  s_raid_stride;		/* RAID stride */
++	__le16  s_mmp_interval;         /* # seconds to wait in MMP checking */
++	__le64  s_mmp_block;            /* Block for multi-mount protection */
++	__le32  s_raid_stripe_width;    /* blocks on all data disks (N*stride)*/
++	__u8	s_log_groups_per_flex;  /* FLEX_BG group size */
++	__u8	s_reserved_char_pad2;
++	__le16  s_reserved_pad;
++	__u32   s_reserved[162];        /* Padding to the end of the block */
+ };
+ 
+ #ifdef __KERNEL__
+@@ -694,6 +717,9 @@ static inline __le16 ext3_rec_len_to_dis
+ #define DX_HASH_LEGACY		0
+ #define DX_HASH_HALF_MD4	1
+ #define DX_HASH_TEA		2
++#define DX_HASH_LEGACY_UNSIGNED	3
++#define DX_HASH_HALF_MD4_UNSIGNED	4
++#define DX_HASH_TEA_UNSIGNED		5
+ 
+ #ifdef __KERNEL__
+ 
+diff -puN include/linux/ext3_fs_sb.h~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms include/linux/ext3_fs_sb.h
+--- a/include/linux/ext3_fs_sb.h~ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms
++++ a/include/linux/ext3_fs_sb.h
+@@ -57,6 +57,7 @@ struct ext3_sb_info {
+ 	u32 s_next_generation;
+ 	u32 s_hash_seed[4];
+ 	int s_def_hash_version;
++	int s_hash_unsigned;	/* 3 if hash should be signed, 0 if not */
+ 	struct percpu_counter s_freeblocks_counter;
+ 	struct percpu_counter s_freeinodes_counter;
+ 	struct percpu_counter s_dirs_counter;
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from tytso@mit.edu are
 
 origin.patch
-mm-page_cgroup-needs-linux-vmalloch-for-vmalloc_node-vfree.patch
-profiling-fix-up-config_proc_fs=n-build.patch
-binfmt_elf_fdpic-update-for-cputime-changes.patch
-mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+linux-next.patch
+ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms.patch
 
