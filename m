@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bfs-add-some-basic-sanity-checks.patch added to -mm tree
-Date: Tue, 21 Oct 2008 15:15:38 -0700
-Message-ID: <200810212215.m9LMFdKt000300@imap1.linux-foundation.org>
+Subject: + vmcore-remove-saved_max_pfn-check.patch added to -mm tree
+Date: Tue, 21 Oct 2008 15:24:32 -0700
+Message-ID: <200810212224.m9LMOWSL001972@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53131 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34991 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753092AbYJUWPs (ORCPT
+	by vger.kernel.org with ESMTP id S1751179AbYJUWZj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 18:15:48 -0400
+	Tue, 21 Oct 2008 18:25:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: snakebyte@gmx.de, tigran@aivazian.fsnet.co.uk
+Cc: damm@igel.co.jp, ebiederm@xmission.com, horms@verge.net.au, vgoyal@redhat.com
 
 
 The patch titled
-     bfs: add some basic sanity checks
+     vmcore: remove saved_max_pfn check
 has been added to the -mm tree.  Its filename is
-     bfs-add-some-basic-sanity-checks.patch
+     vmcore-remove-saved_max_pfn-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,101 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bfs: add some basic sanity checks
-From: Eric Sesterhenn <snakebyte@gmx.de>
+Subject: vmcore: remove saved_max_pfn check
+From: Magnus Damm <damm@igel.co.jp>
 
-bfs_fill_super() already touches all inodes, so we can easily add some
-cheap sanity checks and check if the inode start and end blocks are
-smaller than the maximum number of blocks, the inode start block lies
-behind the end block or the file end offset is behind the end of the
-filesystem.  Also check if the start of data offset in the super block
-fits the filesystem.
+Remove the saved_max_pfn check from the /proc/vmcore function
+read_from_oldmem().  No need to verify, we should be able to just trust
+that "elfcorehdr=" is correctly passed to the crash kernel on the kernel
+command line like we do with other parameters.
 
-The added sanity checks catch softlockup issues early when we try to
-sb_bread() lots of blocks in a loop in bfs_readdir() and bfs_find_entry().
- In addition an oom issue in bfs_fill_super() is prevented by this when
-s_start is corrupted, which influences imap_len and we try to allocate a
-huge info->si_imap.
+The read_from_oldmem() function in fs/proc/vmcore.c is quite similar to
+read_from_oldmem() in drivers/char/mem.c, but only in the latter it makes
+sense to use saved_max_pfn.  For oldmem it is used to determine when to
+stop reading.  For vmcore we already have the elf header info pointing out
+the physical memory regions, no need to pass the end-of- old-memory twice.
 
-Signed-off-by: Eric Sesterhenn <snakebyte@gmx.de>
-Acked-by: Tigran Aivazian <tigran@aivazian.fsnet.co.uk>
+Removing the saved_max_pfn check from vmcore makes it possible for
+architectures to skip oldmem but still support crash dump through vmcore -
+without the need for the old saved_max_pfn cruft.
 
+Architectures that want to play safe can do the saved_max_pfn check in
+copy_oldmem_page().  Not sure why anyone would want to do that, but that's
+even safer than today - the saved_max_pfn check in vmcore removed by this
+patch only checks the first page.
+
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Acked-by: Simon Horman <horms@verge.net.au>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bfs/inode.c |   33 +++++++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+ fs/proc/vmcore.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/bfs/inode.c~bfs-add-some-basic-sanity-checks fs/bfs/inode.c
---- a/fs/bfs/inode.c~bfs-add-some-basic-sanity-checks
-+++ a/fs/bfs/inode.c
-@@ -213,6 +213,9 @@ static void bfs_put_super(struct super_b
- {
- 	struct bfs_sb_info *info = BFS_SB(s);
+diff -puN fs/proc/vmcore.c~vmcore-remove-saved_max_pfn-check fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~vmcore-remove-saved_max_pfn-check
++++ a/fs/proc/vmcore.c
+@@ -49,8 +49,6 @@ static ssize_t read_from_oldmem(char *bu
  
-+	if (!info)
-+		return;
-+
- 	brelse(info->si_sbh);
- 	mutex_destroy(&info->bfs_lock);
- 	kfree(info->si_imap);
-@@ -327,6 +330,7 @@ static int bfs_fill_super(struct super_b
- 	unsigned i, imap_len;
- 	struct bfs_sb_info *info;
- 	long ret = -EINVAL;
-+	unsigned long i_sblock, i_eblock, i_eoff, s_size;
+ 	offset = (unsigned long)(*ppos % PAGE_SIZE);
+ 	pfn = (unsigned long)(*ppos / PAGE_SIZE);
+-	if (pfn > saved_max_pfn)
+-		return -EINVAL;
  
- 	info = kzalloc(sizeof(*info), GFP_KERNEL);
- 	if (!info)
-@@ -350,6 +354,12 @@ static int bfs_fill_super(struct super_b
- 
- 	s->s_magic = BFS_MAGIC;
- 	info->si_sbh = bh;
-+
-+	if (le32_to_cpu(bfs_sb->s_start) > le32_to_cpu(bfs_sb->s_end)) {
-+		printf("Superblock is corrupted\n");
-+		goto out;
-+	}
-+
- 	info->si_lasti = (le32_to_cpu(bfs_sb->s_start) - BFS_BSIZE) /
- 					sizeof(struct bfs_inode)
- 					+ BFS_ROOT_INO - 1;
-@@ -397,6 +407,29 @@ static int bfs_fill_super(struct super_b
- 
- 		di = (struct bfs_inode *)bh->b_data + off;
- 
-+		/* test if filesystem is not corrupted */
-+
-+		i_eoff = le32_to_cpu(di->i_eoffset);
-+		i_sblock = le32_to_cpu(di->i_sblock);
-+		i_eblock = le32_to_cpu(di->i_eblock);
-+		s_size = le32_to_cpu(bfs_sb->s_end);
-+
-+		if (i_sblock > info->si_blocks ||
-+			i_eblock > info->si_blocks ||
-+			i_sblock > i_eblock ||
-+			i_eoff > s_size ||
-+			i_sblock * BFS_BSIZE > i_eoff) {
-+
-+			printf("Inode 0x%08x corrupted\n", i);
-+
-+			brelse(bh);
-+			s->s_root = NULL;
-+			kfree(info->si_imap);
-+			kfree(info);
-+			s->s_fs_info = NULL;
-+			return -EIO;
-+		}
-+
- 		if (!di->i_ino) {
- 			info->si_freei++;
- 			continue;
+ 	do {
+ 		if (count > (PAGE_SIZE - offset))
 _
 
-Patches currently in -mm which might be from snakebyte@gmx.de are
+Patches currently in -mm which might be from damm@igel.co.jp are
 
 origin.patch
-linux-next.patch
-bfs-add-some-basic-sanity-checks.patch
-bfs-check-that-filesystem-fits-on-the-blockdevice.patch
+spi_gpio-driver.patch
+spi_gpio-driver-cleanups.patch
+vmcore-remove-saved_max_pfn-check.patch
 
