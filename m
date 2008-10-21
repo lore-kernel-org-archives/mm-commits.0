@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-fix-vfs-for-about-to-be-merged-ext3-patches.patch added to -mm tree
-Date: Tue, 21 Oct 2008 16:28:34 -0700
-Message-ID: <200810212328.m9LNSYIC013648@imap1.linux-foundation.org>
+Subject: + linux-next-unbork-meminfo.patch added to -mm tree
+Date: Tue, 21 Oct 2008 16:53:09 -0700
+Message-ID: <200810220007.m9M07oXk020737@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57375 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57175 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752006AbYJUX3P (ORCPT
+	by vger.kernel.org with ESMTP id S1751179AbYJVAIA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 19:29:15 -0400
+	Tue, 21 Oct 2008 20:08:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hidehiro.kawai.ez@hitachi.com, sfr@canb.auug.org.au, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, adobriyan@gmail.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     linux-next: fix vfs for about-to-be-merged ext3 patches
+     linux-next-unbork-meminfo
 has been added to the -mm tree.  Its filename is
-     linux-next-fix-vfs-for-about-to-be-merged-ext3-patches.patch
+     linux-next-unbork-meminfo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -28,38 +28,139 @@ Before you just go and hit "reply", please:
 
 *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://userweb.kernel.org/~akpm/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next: fix vfs for about-to-be-merged ext3 patches
+Subject: linux-next-unbork-meminfo
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ext3-add-checks-for-errors-from-jbd.patch will break linux-next.
-
-Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/meminfo.c |   87 +++++++++++++++++++++++++++-----------------
+ 1 file changed, 54 insertions(+), 33 deletions(-)
 
-diff -puN fs/ext3/super.c~linux-next-fix-vfs-for-about-to-be-merged-ext3-patches fs/ext3/super.c
---- a/fs/ext3/super.c~linux-next-fix-vfs-for-about-to-be-merged-ext3-patches
-+++ a/fs/ext3/super.c
-@@ -2836,7 +2836,7 @@ static int ext3_quota_on(struct super_bl
- 		err = journal_flush(EXT3_SB(sb)->s_journal);
- 		journal_unlock_updates(EXT3_SB(sb)->s_journal);
- 		if (err) {
--			path_put(&nd.path);
-+			path_put(&path);
- 			return err;
- 		}
- 	}
+diff -puN fs/proc/meminfo.c~linux-next-unbork-meminfo fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~linux-next-unbork-meminfo
++++ a/fs/proc/meminfo.c
+@@ -26,6 +26,8 @@ static int meminfo_proc_show(struct seq_
+ 	unsigned long allowed;
+ 	struct vmalloc_info vmi;
+ 	long cached;
++	unsigned long pages[NR_LRU_LISTS];
++	int lru;
+ 
+ /*
+  * display in kilobytes.
+@@ -44,51 +46,70 @@ static int meminfo_proc_show(struct seq_
+ 
+ 	get_vmalloc_info(&vmi);
+ 
++	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
++		pages[lru] = global_page_state(NR_LRU_BASE + lru);
++
+ 	/*
+ 	 * Tagged format, for easy grepping and expansion.
+ 	 */
+ 	seq_printf(m,
+-		"MemTotal:     %8lu kB\n"
+-		"MemFree:      %8lu kB\n"
+-		"Buffers:      %8lu kB\n"
+-		"Cached:       %8lu kB\n"
+-		"SwapCached:   %8lu kB\n"
+-		"Active:       %8lu kB\n"
+-		"Inactive:     %8lu kB\n"
++		"MemTotal:       %8lu kB\n"
++		"MemFree:        %8lu kB\n"
++		"Buffers:        %8lu kB\n"
++		"Cached:         %8lu kB\n"
++		"SwapCached:     %8lu kB\n"
++		"Active:         %8lu kB\n"
++		"Inactive:       %8lu kB\n"
++		"Active(anon):   %8lu kB\n"
++		"Inactive(anon): %8lu kB\n"
++		"Active(file):   %8lu kB\n"
++		"Inactive(file): %8lu kB\n"
++#ifdef CONFIG_UNEVICTABLE_LRU
++		"Unevictable:    %8lu kB\n"
++		"Mlocked:        %8lu kB\n"
++#endif
+ #ifdef CONFIG_HIGHMEM
+-		"HighTotal:    %8lu kB\n"
+-		"HighFree:     %8lu kB\n"
+-		"LowTotal:     %8lu kB\n"
+-		"LowFree:      %8lu kB\n"
+-#endif
+-		"SwapTotal:    %8lu kB\n"
+-		"SwapFree:     %8lu kB\n"
+-		"Dirty:        %8lu kB\n"
+-		"Writeback:    %8lu kB\n"
+-		"AnonPages:    %8lu kB\n"
+-		"Mapped:       %8lu kB\n"
+-		"Slab:         %8lu kB\n"
+-		"SReclaimable: %8lu kB\n"
+-		"SUnreclaim:   %8lu kB\n"
+-		"PageTables:   %8lu kB\n"
++		"HighTotal:      %8lu kB\n"
++		"HighFree:       %8lu kB\n"
++		"LowTotal:       %8lu kB\n"
++		"LowFree:        %8lu kB\n"
++#endif
++		"SwapTotal:      %8lu kB\n"
++		"SwapFree:       %8lu kB\n"
++		"Dirty:          %8lu kB\n"
++		"Writeback:      %8lu kB\n"
++		"AnonPages:      %8lu kB\n"
++		"Mapped:         %8lu kB\n"
++		"Slab:           %8lu kB\n"
++		"SReclaimable:   %8lu kB\n"
++		"SUnreclaim:     %8lu kB\n"
++		"PageTables:     %8lu kB\n"
+ #ifdef CONFIG_QUICKLIST
+-		"Quicklists:   %8lu kB\n"
++		"Quicklists:     %8lu kB\n"
+ #endif
+-		"NFS_Unstable: %8lu kB\n"
+-		"Bounce:       %8lu kB\n"
+-		"WritebackTmp: %8lu kB\n"
+-		"CommitLimit:  %8lu kB\n"
+-		"Committed_AS: %8lu kB\n"
+-		"VmallocTotal: %8lu kB\n"
+-		"VmallocUsed:  %8lu kB\n"
+-		"VmallocChunk: %8lu kB\n",
++		"NFS_Unstable:   %8lu kB\n"
++		"Bounce:         %8lu kB\n"
++		"WritebackTmp:   %8lu kB\n"
++		"CommitLimit:    %8lu kB\n"
++		"Committed_AS:   %8lu kB\n"
++		"VmallocTotal:   %8lu kB\n"
++		"VmallocUsed:    %8lu kB\n"
++		"VmallocChunk:   %8lu kB\n",
+ 		K(i.totalram),
+ 		K(i.freeram),
+ 		K(i.bufferram),
+ 		K(cached),
+ 		K(total_swapcache_pages),
+-		K(global_page_state(NR_ACTIVE)),
+-		K(global_page_state(NR_INACTIVE)),
++		K(pages[LRU_ACTIVE_ANON]   + pages[LRU_ACTIVE_FILE]),
++		K(pages[LRU_INACTIVE_ANON] + pages[LRU_INACTIVE_FILE]),
++		K(pages[LRU_ACTIVE_ANON]),
++		K(pages[LRU_INACTIVE_ANON]),
++		K(pages[LRU_ACTIVE_FILE]),
++		K(pages[LRU_INACTIVE_FILE]),
++#ifdef CONFIG_UNEVICTABLE_LRU
++		K(pages[LRU_UNEVICTABLE]),
++		K(global_page_state(NR_MLOCK)),
++#endif
+ #ifdef CONFIG_HIGHMEM
+ 		K(i.totalhigh),
+ 		K(i.freehigh),
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,6 +173,7 @@ mm-write_cache_pages-writepage-error-fix.patch
 mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
 linux-next-git-rejects.patch
+linux-next-unbork-meminfo.patch
 linux-next-fix-vfs-for-about-to-be-merged-ext3-patches.patch
 git-tests-git-rejects.patch
 revert-i7300_idle-driver-v155.patch
