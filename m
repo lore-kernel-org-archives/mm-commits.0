@@ -1,156 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - linux-next-unbork-meminfo.patch removed from -mm tree
-Date: Wed, 22 Oct 2008 13:04:46 -0700
-Message-ID: <200810222004.m9MK4kes013146@imap1.linux-foundation.org>
+Subject: - why-does-this-keep-happening.patch removed from -mm tree
+Date: Wed, 22 Oct 2008 13:05:44 -0700
+Message-ID: <200810222005.m9MK5il3013311@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43357 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41671 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753308AbYJVUFW (ORCPT
+	by vger.kernel.org with ESMTP id S1752349AbYJVUG1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Oct 2008 16:05:22 -0400
+	Wed, 22 Oct 2008 16:06:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-unbork-meminfo
+     why does this keep happening?
 has been removed from the -mm tree.  Its filename was
-     linux-next-unbork-meminfo.patch
+     why-does-this-keep-happening.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-unbork-meminfo
+Subject: why does this keep happening?
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+arch/x86/kernel/io_apic_32.c: In function 'print_local_APIC':
+arch/x86/kernel/io_apic_32.c:1539: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'u64'
+arch/x86/kernel/io_apic_32.c:1540: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'u64'
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/meminfo.c |   87 +++++++++++++++++++++++++++-----------------
- 1 file changed, 54 insertions(+), 33 deletions(-)
+ arch/x86/kernel/io_apic_32.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/meminfo.c~linux-next-unbork-meminfo fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~linux-next-unbork-meminfo
-+++ a/fs/proc/meminfo.c
-@@ -26,6 +26,8 @@ static int meminfo_proc_show(struct seq_
- 	unsigned long allowed;
- 	struct vmalloc_info vmi;
- 	long cached;
-+	unsigned long pages[NR_LRU_LISTS];
-+	int lru;
+diff -puN arch/x86/kernel/io_apic_32.c~why-does-this-keep-happening arch/x86/kernel/io_apic_32.c
+--- a/arch/x86/kernel/io_apic_32.c~why-does-this-keep-happening
++++ a/arch/x86/kernel/io_apic_32.c
+@@ -1536,8 +1536,8 @@ __apicdebuginit(void) print_local_APIC(v
+ 	}
  
- /*
-  * display in kilobytes.
-@@ -44,51 +46,70 @@ static int meminfo_proc_show(struct seq_
+ 	icr = apic_icr_read();
+-	printk(KERN_DEBUG "... APIC ICR: %08x\n", icr);
+-	printk(KERN_DEBUG "... APIC ICR2: %08x\n", icr >> 32);
++	printk(KERN_DEBUG "... APIC ICR: %08x\n", (unsigned)icr);
++	printk(KERN_DEBUG "... APIC ICR2: %08x\n", upper_32_bits(icr));
  
- 	get_vmalloc_info(&vmi);
- 
-+	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
-+		pages[lru] = global_page_state(NR_LRU_BASE + lru);
-+
- 	/*
- 	 * Tagged format, for easy grepping and expansion.
- 	 */
- 	seq_printf(m,
--		"MemTotal:     %8lu kB\n"
--		"MemFree:      %8lu kB\n"
--		"Buffers:      %8lu kB\n"
--		"Cached:       %8lu kB\n"
--		"SwapCached:   %8lu kB\n"
--		"Active:       %8lu kB\n"
--		"Inactive:     %8lu kB\n"
-+		"MemTotal:       %8lu kB\n"
-+		"MemFree:        %8lu kB\n"
-+		"Buffers:        %8lu kB\n"
-+		"Cached:         %8lu kB\n"
-+		"SwapCached:     %8lu kB\n"
-+		"Active:         %8lu kB\n"
-+		"Inactive:       %8lu kB\n"
-+		"Active(anon):   %8lu kB\n"
-+		"Inactive(anon): %8lu kB\n"
-+		"Active(file):   %8lu kB\n"
-+		"Inactive(file): %8lu kB\n"
-+#ifdef CONFIG_UNEVICTABLE_LRU
-+		"Unevictable:    %8lu kB\n"
-+		"Mlocked:        %8lu kB\n"
-+#endif
- #ifdef CONFIG_HIGHMEM
--		"HighTotal:    %8lu kB\n"
--		"HighFree:     %8lu kB\n"
--		"LowTotal:     %8lu kB\n"
--		"LowFree:      %8lu kB\n"
--#endif
--		"SwapTotal:    %8lu kB\n"
--		"SwapFree:     %8lu kB\n"
--		"Dirty:        %8lu kB\n"
--		"Writeback:    %8lu kB\n"
--		"AnonPages:    %8lu kB\n"
--		"Mapped:       %8lu kB\n"
--		"Slab:         %8lu kB\n"
--		"SReclaimable: %8lu kB\n"
--		"SUnreclaim:   %8lu kB\n"
--		"PageTables:   %8lu kB\n"
-+		"HighTotal:      %8lu kB\n"
-+		"HighFree:       %8lu kB\n"
-+		"LowTotal:       %8lu kB\n"
-+		"LowFree:        %8lu kB\n"
-+#endif
-+		"SwapTotal:      %8lu kB\n"
-+		"SwapFree:       %8lu kB\n"
-+		"Dirty:          %8lu kB\n"
-+		"Writeback:      %8lu kB\n"
-+		"AnonPages:      %8lu kB\n"
-+		"Mapped:         %8lu kB\n"
-+		"Slab:           %8lu kB\n"
-+		"SReclaimable:   %8lu kB\n"
-+		"SUnreclaim:     %8lu kB\n"
-+		"PageTables:     %8lu kB\n"
- #ifdef CONFIG_QUICKLIST
--		"Quicklists:   %8lu kB\n"
-+		"Quicklists:     %8lu kB\n"
- #endif
--		"NFS_Unstable: %8lu kB\n"
--		"Bounce:       %8lu kB\n"
--		"WritebackTmp: %8lu kB\n"
--		"CommitLimit:  %8lu kB\n"
--		"Committed_AS: %8lu kB\n"
--		"VmallocTotal: %8lu kB\n"
--		"VmallocUsed:  %8lu kB\n"
--		"VmallocChunk: %8lu kB\n",
-+		"NFS_Unstable:   %8lu kB\n"
-+		"Bounce:         %8lu kB\n"
-+		"WritebackTmp:   %8lu kB\n"
-+		"CommitLimit:    %8lu kB\n"
-+		"Committed_AS:   %8lu kB\n"
-+		"VmallocTotal:   %8lu kB\n"
-+		"VmallocUsed:    %8lu kB\n"
-+		"VmallocChunk:   %8lu kB\n",
- 		K(i.totalram),
- 		K(i.freeram),
- 		K(i.bufferram),
- 		K(cached),
- 		K(total_swapcache_pages),
--		K(global_page_state(NR_ACTIVE)),
--		K(global_page_state(NR_INACTIVE)),
-+		K(pages[LRU_ACTIVE_ANON]   + pages[LRU_ACTIVE_FILE]),
-+		K(pages[LRU_INACTIVE_ANON] + pages[LRU_INACTIVE_FILE]),
-+		K(pages[LRU_ACTIVE_ANON]),
-+		K(pages[LRU_INACTIVE_ANON]),
-+		K(pages[LRU_ACTIVE_FILE]),
-+		K(pages[LRU_INACTIVE_FILE]),
-+#ifdef CONFIG_UNEVICTABLE_LRU
-+		K(pages[LRU_UNEVICTABLE]),
-+		K(global_page_state(NR_MLOCK)),
-+#endif
- #ifdef CONFIG_HIGHMEM
- 		K(i.totalhigh),
- 		K(i.freehigh),
+ 	v = apic_read(APIC_LVTT);
+ 	printk(KERN_DEBUG "... APIC LVTT: %08x\n", v);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -164,13 +66,9 @@ fs-remove-prepare_write-commit_write-fix.patch
 mm-write_cache_pages-writepage-error-fix.patch
 mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-linux-next-unbork-meminfo.patch
 linux-next-fix-vfs-for-about-to-be-merged-ext3-patches.patch
-git-sh.patch
 git-tests-git-rejects.patch
-git-acpi.patch
 revert-i7300_idle-driver-v155.patch
-git-tip.patch
 arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
 why-does-this-keep-happening.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
