@@ -1,88 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - x86-acpi-fix-breakage-of-resume-on-64-bit-up-systems-with-smp-kernel.patch removed from -mm tree
-Date: Wed, 22 Oct 2008 13:08:49 -0700
-Message-ID: <200810222008.m9MK8nvT013852@imap1.linux-foundation.org>
+Subject: - memcg-fix-page_cgroup-allocation-fix.patch removed from -mm tree
+Date: Wed, 22 Oct 2008 14:13:29 -0700
+Message-ID: <200810222113.m9MLDT4w025954@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35244 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34595 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753713AbYJVUJ0 (ORCPT
+	by vger.kernel.org with ESMTP id S1754224AbYJVVOB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Oct 2008 16:09:26 -0400
+	Wed, 22 Oct 2008 17:14:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, ajw1980@gmail.com, lenb@kernel.org, mingo@elte.hu, pavel@suse.cz, stable@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86 acpi: fix breakage of resume on 64-bit UP systems with SMP kernel
+     memcg-fix-page_cgroup-allocation-fix
 has been removed from the -mm tree.  Its filename was
-     x86-acpi-fix-breakage-of-resume-on-64-bit-up-systems-with-smp-kernel.patch
+     memcg-fix-page_cgroup-allocation-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into memcg-fix-page_cgroup-allocation.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86 acpi: fix breakage of resume on 64-bit UP systems with SMP kernel
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: memcg-fix-page_cgroup-allocation-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-We are now using per CPU GDT tables in head_64.S and the original
-early_gdt_descr.address is invalidated after boot by
-setup_per_cpu_areas().  This breaks resume from suspend to RAM on x86_64
-UP systems using SMP kernels, because this part of head_64.S is also
-executed during the resume and the invalid GDT address causes the system
-to crash.  It doesn't break on 'true' SMP systems, because
-early_gdt_descr.address is modified every time native_cpu_up() runs. 
-However, during resume it should point to the GDT of the boot CPU rather
-than to another CPU's GDT.
-
-For this reason, during suspend to RAM always make early_gdt_descr.address
-point to the boot CPU's GDT.
-
-This fixes http://bugzilla.kernel.org/show_bug.cgi?id=11568, which is a
-regression from 2.6.26.
-
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Reported-and-tested-by: Andy Wettstein <ajw1980@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Len Brown <lenb@kernel.org>
-Acked-by: Pavel Machek <pavel@suse.cz>
-Cc: <stable@kernel.org>		[2.6.27.x]
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/acpi/sleep.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/page_cgroup.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/x86/kernel/acpi/sleep.c~x86-acpi-fix-breakage-of-resume-on-64-bit-up-systems-with-smp-kernel arch/x86/kernel/acpi/sleep.c
---- a/arch/x86/kernel/acpi/sleep.c~x86-acpi-fix-breakage-of-resume-on-64-bit-up-systems-with-smp-kernel
-+++ a/arch/x86/kernel/acpi/sleep.c
-@@ -10,6 +10,7 @@
- #include <linux/dmi.h>
- #include <linux/cpumask.h>
- #include <asm/segment.h>
-+#include <asm/desc.h>
+diff -puN mm/page_cgroup.c~memcg-fix-page_cgroup-allocation-fix mm/page_cgroup.c
+--- a/mm/page_cgroup.c~memcg-fix-page_cgroup-allocation-fix
++++ a/mm/page_cgroup.c
+@@ -9,8 +9,6 @@
+ #include <linux/vmalloc.h>
+ #include <linux/cgroup.h>
  
- #include "realmode/wakeup.h"
- #include "sleep.h"
-@@ -98,6 +99,8 @@ int acpi_save_state_mem(void)
- 	header->trampoline_segment = setup_trampoline() >> 4;
- #ifdef CONFIG_SMP
- 	stack_start.sp = temp_stack + sizeof(temp_stack);
-+	early_gdt_descr.address =
-+			(unsigned long)get_cpu_gdt_table(smp_processor_id());
- #endif
- 	initial_code = (unsigned long)wakeup_long64;
- 	saved_magic = 0x123456789abcdef0;
+-extern struct cgroup_subsys mem_cgroup_subsys;
+-
+ static void __meminit
+ __init_page_cgroup(struct page_cgroup *pc, unsigned long pfn)
+ {
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+memcg-fix-page_cgroup-allocation.patch
+memcg-fix-page_cgroup-allocation-fix.patch
+memcg-fix-page_cgroup-allocation-fix-2.patch
+epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
+freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
+fs-remove-prepare_write-commit_write-fix.patch
+mm-write_cache_pages-writepage-error-fix.patch
+mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
-skge-adapt-skge-to-use-reworked-pci-pm.patch
-e100-adapt-to-the-reworked-pci-pm.patch
+linux-next-fix-vfs-for-about-to-be-merged-ext3-patches.patch
+git-tests-git-rejects.patch
+revert-i7300_idle-driver-v155.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module-checkpatch-fixes.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+leds-driver-for-hp-harddisk-protection-led-fix-fix-2.patch
+drivers-rtc-rtc-ds1286c-is-borked.patch
+drivers-rtc-rtc-m48t35c-is-borked-too.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+init-properly-placing-noinline-keyword.patch
+spi_gpio-driver-cleanups.patch
+add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix.patch
+ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes.patch
+devpts-fix-unused-function-warning.patch
+w1-export-w1_read_8-function-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
