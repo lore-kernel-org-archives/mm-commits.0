@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-super-block-operations-fix.patch added to -mm tree
-Date: Wed, 22 Oct 2008 15:06:42 -0700
-Message-ID: <200810222221.m9MMLPe7006643@imap1.linux-foundation.org>
+Subject: + pci-uninline-pci_ioremap_bar.patch added to -mm tree
+Date: Wed, 22 Oct 2008 16:54:34 -0700
+Message-ID: <200810230009.m9N09JbY027610@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50946 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37545 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752029AbYJVWV7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751318AbYJWAJy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Oct 2008 18:21:59 -0400
+	Wed, 22 Oct 2008 20:09:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, konishi.ryusuke@lab.ntt.co.jp
+Cc: akpm@linux-foundation.org, arjan@infradead.org, arjan@linux.intel.com, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     nilfs2-super-block-operations-fix
+     pci: uninline pci_ioremap_bar()
 has been added to the -mm tree.  Its filename is
-     nilfs2-super-block-operations-fix.patch
+     pci-uninline-pci_ioremap_bar.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nilfs2-super-block-operations-fix
+Subject: pci: uninline pci_ioremap_bar()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Update for linux-next changes.
+Fix the alpha build, too:
 
-Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+In file included from /usr/src/devel/arch/alpha/include/asm/core_mcpcia.h:9,
+                 from /usr/src/devel/arch/alpha/include/asm/io.h:226,
+                 from arch/alpha/kernel/asm-offsets.c:12:
+include/linux/pci.h: In function 'pci_ioremap_bar':
+include/linux/pci.h:1139: error: implicit declaration of function 'ioremap_nocache'
+include/linux/pci.h:1140: warning: return makes pointer from integer without a cast
+In file included from arch/alpha/kernel/asm-offsets.c:12:
+/usr/src/devel/arch/alpha/include/asm/io.h: At top level:
+/usr/src/devel/arch/alpha/include/asm/io.h:300: error: conflicting types for 'ioremap_nocache'
+include/linux/pci.h:1139: error: previous implicit declaration of 'ioremap_nocache' was here
+
+Repairs
+
+commit aa42d7c6138afdc54f74e971456a0fbfec16b77b
+Author: Arjan van de Ven <arjan@infradead.org>
+Date:   Sun Sep 28 16:36:11 2008 -0700
+
+    PCI: introduce an pci_ioremap(pdev, barnr) function
+
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/super.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/pci/pci.c   |   16 ++++++++++++++++
+ include/linux/pci.h |   15 +--------------
+ 2 files changed, 17 insertions(+), 14 deletions(-)
 
-diff -puN fs/nilfs2/super.c~nilfs2-super-block-operations-fix fs/nilfs2/super.c
---- a/fs/nilfs2/super.c~nilfs2-super-block-operations-fix
-+++ a/fs/nilfs2/super.c
-@@ -1125,7 +1125,7 @@ nilfs_get_sb(struct file_system_type *fs
- 	struct the_nilfs *nilfs = NULL;
- 	int err, need_to_close = 1;
+diff -puN drivers/pci/pci.c~pci-uninline-pci_ioremap_bar drivers/pci/pci.c
+--- a/drivers/pci/pci.c~pci-uninline-pci_ioremap_bar
++++ a/drivers/pci/pci.c
+@@ -56,6 +56,22 @@ unsigned char pci_bus_max_busnr(struct p
+ }
+ EXPORT_SYMBOL_GPL(pci_bus_max_busnr);
  
--	sd.bdev = open_bdev_excl(dev_name, flags, fs_type);
-+	sd.bdev = open_bdev_exclusive(dev_name, flags, fs_type);
- 	if (IS_ERR(sd.bdev))
- 		return PTR_ERR(sd.bdev);
++#ifdef CONFIG_HAS_IOMEM
++void *pci_ioremap_bar(struct pci_dev *pdev, int bar)
++{
++	/*
++	 * Make sure the BAR is actually a memory resource, not an IO resource
++	 */
++	if (!(pci_resource_flags(pdev, bar) & IORESOURCE_MEM)) {
++		WARN_ON(1);
++		return NULL;
++	}
++	return ioremap_nocache(pci_resource_start(pdev, bar),
++				     pci_resource_len(pdev, bar));
++}
++EXPORT_SYMBOL_GPL(pci_ioremap_bar);
++#endif
++
+ #if 0
+ /**
+  * pci_max_busnr - returns maximum PCI bus number
+diff -puN include/linux/pci.h~pci-uninline-pci_ioremap_bar include/linux/pci.h
+--- a/include/linux/pci.h~pci-uninline-pci_ioremap_bar
++++ a/include/linux/pci.h
+@@ -1126,20 +1126,7 @@ static inline void pci_mmcfg_early_init(
+ static inline void pci_mmcfg_late_init(void) { }
+ #endif
  
-@@ -1190,9 +1190,9 @@ nilfs_get_sb(struct file_system_type *fs
- 			  nilfs_set_bdev_super, &sd);
- 		deactivate_super(s);
- 		/*
--		 * Although deactivate_super() invokes close_bdev_excl() at
-+		 * Although deactivate_super() invokes close_bdev_exclusive() at
- 		 * kill_block_super().  Here, s is an existent mount; we need
--		 * one more close_bdev_excl() call.
-+		 * one more close_bdev_exclusive() call.
- 		 */
- 		s = s2;
- 		if (IS_ERR(s))
-@@ -1219,20 +1219,20 @@ nilfs_get_sb(struct file_system_type *fs
- 	up(&sd.bdev->bd_mount_sem);
- 	put_nilfs(nilfs);
- 	if (need_to_close)
--		close_bdev_excl(sd.bdev);
-+		close_bdev_exclusive(sd.bdev, flags);
- 	return simple_set_mnt(mnt, s);
+-#ifdef CONFIG_HAS_IOMEM
+-static inline void * pci_ioremap_bar(struct pci_dev *pdev, int bar)
+-{
+-	/*
+-	 * Make sure the BAR is actually a memory resource, not an IO resource
+-	 */
+-	if (!(pci_resource_flags(pdev, bar) & IORESOURCE_MEM)) {
+-		WARN_ON(1);
+-		return NULL;
+-	}
+-	return ioremap_nocache(pci_resource_start(pdev, bar),
+-				     pci_resource_len(pdev, bar));
+-}
+-#endif
++void *pci_ioremap_bar(struct pci_dev *pdev, int bar);
  
-  error_s:
- 	up(&sd.bdev->bd_mount_sem);
- 	if (nilfs)
- 		put_nilfs(nilfs);
--	close_bdev_excl(sd.bdev);
-+	close_bdev_exclusive(sd.bdev, flags);
- 	return PTR_ERR(s);
- 
-  failed_unlock:
- 	up(&sd.bdev->bd_mount_sem);
-  failed:
--	close_bdev_excl(sd.bdev);
-+	close_bdev_exclusive(sd.bdev, flags);
- 
- 	return err;
- 
-@@ -1244,7 +1244,7 @@ nilfs_get_sb(struct file_system_type *fs
- 	up_write(&s->s_umount);
- 	deactivate_super(s);
- 	/*
--	 * deactivate_super() invokes close_bdev_excl().
-+	 * deactivate_super() invokes close_bdev_exclusive().
- 	 * We must finish all post-cleaning before this call;
- 	 * put_nilfs() and unlocking bd_mount_sem need the block device.
- 	 */
+ #endif /* __KERNEL__ */
+ #endif /* LINUX_PCI_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -160,4 +175,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+pci-uninline-pci_ioremap_bar.patch
 
