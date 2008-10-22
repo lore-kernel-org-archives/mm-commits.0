@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-page_cgroup-allocation.patch added to -mm tree
-Date: Tue, 21 Oct 2008 18:38:17 -0700
-Message-ID: <200810220138.m9M1cHt3004324@imap1.linux-foundation.org>
+Subject: + memcg-fix-page_cgroup-allocation-fix.patch added to -mm tree
+Date: Tue, 21 Oct 2008 18:38:28 -0700
+Message-ID: <200810220138.m9M1cSfO004353@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60389 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36114 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751330AbYJVBiY (ORCPT
+	by vger.kernel.org with ESMTP id S1751261AbYJVBio (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 21:38:24 -0400
+	Tue, 21 Oct 2008 21:38:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com
+Cc: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com
 
 
 The patch titled
-     memcg: fix page_cgroup allocation
+     memcg-fix-page_cgroup-allocation-fix
 has been added to the -mm tree.  Its filename is
-     memcg-fix-page_cgroup-allocation.patch
+     memcg-fix-page_cgroup-allocation-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,161 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix page_cgroup allocation
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: memcg-fix-page_cgroup-allocation-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-page_cgroup_init() is called from mem_cgroup_init(). But at this
-point, we cannot call alloc_bootmem().
-(and this caused panic at boot.)
-
-This patch moves page_cgroup_init() to init/main.c.
-
-Time table is following:
-==
-  parse_args(). # we can trust mem_cgroup_subsys.disabled bit after this.
-  ....
-  cgroup_init_early()  # "early" init of cgroup.
-  ....
-  setup_arch()         # memmap is allocated.
-  ...
-  page_cgroup_init();
-  mem_init();   # we cannot call alloc_bootmem after this.
-  ....
-  cgroup_init() # mem_cgroup is initialized.
-==
-
-Before page_cgroup_init(), mem_map must be initialized. So,
-I added page_cgroup_init() to init/main.c directly.
-
-(*) maybe this is not very clean but
-    - cgroup_init_early() is too early
-    - in cgroup_init(), we have to use vmalloc instead of alloc_bootmem().
-    use of vmalloc area in x86-32 is important and we should avoid very large
-    vmalloc() in x86-32. So, we want to use alloc_bootmem() and added page_cgroup_init()
-    directly to init/main.c
-
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Tested-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c      |    2 ++
- mm/memcontrol.c  |    1 -
- mm/page_cgroup.c |   34 +++++++++++++++++++++++++++-------
- 3 files changed, 29 insertions(+), 8 deletions(-)
+ mm/page_cgroup.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN init/main.c~memcg-fix-page_cgroup-allocation init/main.c
---- a/init/main.c~memcg-fix-page_cgroup-allocation
-+++ a/init/main.c
-@@ -52,6 +52,7 @@
- #include <linux/key.h>
- #include <linux/unwind.h>
- #include <linux/buffer_head.h>
-+#include <linux/page_cgroup.h>
- #include <linux/debug_locks.h>
- #include <linux/debugobjects.h>
- #include <linux/lockdep.h>
-@@ -646,6 +647,7 @@ asmlinkage void __init start_kernel(void
- 	vmalloc_init();
- 	vfs_caches_init_early();
- 	cpuset_init_early();
-+	page_cgroup_init();
- 	mem_init();
- 	enable_debug_pagealloc();
- 	cpu_hotplug_init();
-diff -puN mm/memcontrol.c~memcg-fix-page_cgroup-allocation mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-page_cgroup-allocation
-+++ a/mm/memcontrol.c
-@@ -1088,7 +1088,6 @@ mem_cgroup_create(struct cgroup_subsys *
- 	int node;
- 
- 	if (unlikely((cont->parent) == NULL)) {
--		page_cgroup_init();
- 		mem = &init_mem_cgroup;
- 	} else {
- 		mem = mem_cgroup_alloc();
-diff -puN mm/page_cgroup.c~memcg-fix-page_cgroup-allocation mm/page_cgroup.c
---- a/mm/page_cgroup.c~memcg-fix-page_cgroup-allocation
+diff -puN mm/page_cgroup.c~memcg-fix-page_cgroup-allocation-fix mm/page_cgroup.c
+--- a/mm/page_cgroup.c~memcg-fix-page_cgroup-allocation-fix
 +++ a/mm/page_cgroup.c
-@@ -4,8 +4,12 @@
- #include <linux/bit_spinlock.h>
- #include <linux/page_cgroup.h>
- #include <linux/hash.h>
-+#include <linux/slab.h>
- #include <linux/memory.h>
+@@ -9,8 +9,6 @@
  #include <linux/vmalloc.h>
-+#include <linux/cgroup.h>
-+
-+extern struct cgroup_subsys mem_cgroup_subsys;
+ #include <linux/cgroup.h>
  
+-extern struct cgroup_subsys mem_cgroup_subsys;
+-
  static void __meminit
  __init_page_cgroup(struct page_cgroup *pc, unsigned long pfn)
-@@ -67,6 +71,9 @@ void __init page_cgroup_init(void)
- 
- 	int nid, fail;
- 
-+	if (mem_cgroup_subsys.disabled)
-+		return;
-+
- 	for_each_online_node(nid)  {
- 		fail = alloc_node_page_cgroup(nid);
- 		if (fail)
-@@ -107,9 +114,14 @@ int __meminit init_section_page_cgroup(u
- 	nid = page_to_nid(pfn_to_page(pfn));
- 
- 	table_size = sizeof(struct page_cgroup) * PAGES_PER_SECTION;
--	base = kmalloc_node(table_size, GFP_KERNEL, nid);
--	if (!base)
--		base = vmalloc_node(table_size, nid);
-+	if (slab_is_available()) {
-+		base = kmalloc_node(table_size, GFP_KERNEL, nid);
-+		if (!base)
-+			base = vmalloc_node(table_size, nid);
-+	} else {
-+		base = __alloc_bootmem_node_nopanic(NODE_DATA(nid), table_size,
-+				PAGE_SIZE, __pa(MAX_DMA_ADDRESS));
-+	}
- 
- 	if (!base) {
- 		printk(KERN_ERR "page cgroup allocation failure\n");
-@@ -136,11 +148,16 @@ void __free_page_cgroup(unsigned long pf
- 	if (!ms || !ms->page_cgroup)
- 		return;
- 	base = ms->page_cgroup + pfn;
--	ms->page_cgroup = NULL;
--	if (is_vmalloc_addr(base))
-+	if (is_vmalloc_addr(base)) {
- 		vfree(base);
--	else
--		kfree(base);
-+		ms->page_cgroup = NULL;
-+	} else {
-+		struct page *page = virt_to_page(base);
-+		if (!PageReserved(page)) { /* Is bootmem ? */
-+			kfree(base);
-+			ms->page_cgroup = NULL;
-+		}
-+	}
- }
- 
- int online_page_cgroup(unsigned long start_pfn,
-@@ -214,6 +231,9 @@ void __init page_cgroup_init(void)
- 	unsigned long pfn;
- 	int fail = 0;
- 
-+	if (mem_cgroup_subsys.disabled)
-+		return;
-+
- 	for (pfn = 0; !fail && pfn < max_pfn; pfn += PAGES_PER_SECTION) {
- 		if (!pfn_present(pfn))
- 			continue;
+ {
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-page_cgroup-needs-linux-vmalloch-for-vmalloc_node-vfree.patch
-memcg-fix-page_cgroup-allocation.patch
 memcg-fix-page_cgroup-allocation-fix.patch
+epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
+freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
+fs-remove-prepare_write-commit_write-fix.patch
+mm-write_cache_pages-writepage-error-fix.patch
+mm-remove-the-might_sleep-from-lock_page.patch
+linux-next.patch
+linux-next-git-rejects.patch
+linux-next-unbork-meminfo.patch
+linux-next-fix-vfs-for-about-to-be-merged-ext3-patches.patch
+git-tests-git-rejects.patch
+revert-i7300_idle-driver-v155.patch
+arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+why-does-this-keep-happening.patch
+tick-schedc-suppress-needless-timer-reprogramming.patch
+drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
+kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module-checkpatch-fixes.patch
+led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
+leds-driver-for-hp-harddisk-protection-led-fix.patch
+leds-driver-for-hp-harddisk-protection-led-fix-fix-2.patch
+drivers-rtc-rtc-ds1286c-is-borked.patch
+drivers-rtc-rtc-m48t35c-is-borked-too.patch
+drivers-net-sfc-falconc-fix-min-warnings.patch
+backlight-driver-for-tabletkiosk-sahara-touchit-213-tablet-pc.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+mm-cleanup-to-make-remove_memory-arch-neutral-fix-fix.patch
+mm-invoke-oom-killer-from-page-fault-fix.patch
+init-properly-placing-noinline-keyword.patch
+spi_gpio-driver-cleanups.patch
+add-new-framebuffer-driver-for-fujitsu-mb862xx-gdcs-fix.patch
+ext3-add-support-for-non-native-signed-unsigned-htree-hash-algorithms-checkpatch-fixes.patch
+devpts-fix-unused-function-warning.patch
+w1-export-w1_read_8-function-checkpatch-fixes.patch
+nilfs2-inode-operations-fix.patch
+nilfs2-pathname-operations-fix.patch
+reiser4.patch
+reiser4-tree_lock-fixes.patch
+reiser4-tree_lock-fixes-fix.patch
+reiser4-semaphore-fix.patch
+slb-drop-kmem-cache-argument-from-constructor-reiser4.patch
+reiser4-suid.patch
+reiser4-track-upstream-changes.patch
+reiser4-broke.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
