@@ -1,73 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-fix-page_cgroup-allocation-fix-2.patch removed from -mm tree
-Date: Wed, 22 Oct 2008 14:13:32 -0700
-Message-ID: <200810222113.m9MLDWms025960@imap1.linux-foundation.org>
+Subject: + nilfs2-super-block-operations-fix.patch added to -mm tree
+Date: Wed, 22 Oct 2008 15:06:42 -0700
+Message-ID: <200810222221.m9MMLPe7006643@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60301 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50946 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754181AbYJVVOH (ORCPT
+	by vger.kernel.org with ESMTP id S1752029AbYJVWV7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Oct 2008 17:14:07 -0400
+	Wed, 22 Oct 2008 18:21:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     memcg-fix-page_cgroup-allocation-fix-2
-has been removed from the -mm tree.  Its filename was
-     memcg-fix-page_cgroup-allocation-fix-2.patch
+     nilfs2-super-block-operations-fix
+has been added to the -mm tree.  Its filename is
+     nilfs2-super-block-operations-fix.patch
 
-This patch was dropped because it was folded into memcg-fix-page_cgroup-allocation.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg-fix-page_cgroup-allocation-fix-2
+Subject: nilfs2-super-block-operations-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-init/main.c: In function 'start_kernel':
-init/main.c:660: error: implicit declaration of function 'page_cgroup_init'
+Update for linux-next changes.
 
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_cgroup.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/nilfs2/super.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN init/main.c~memcg-fix-page_cgroup-allocation-fix-2 init/main.c
-diff -puN mm/memcontrol.c~memcg-fix-page_cgroup-allocation-fix-2 mm/memcontrol.c
-diff -puN mm/page_cgroup.c~memcg-fix-page_cgroup-allocation-fix-2 mm/page_cgroup.c
-diff -puN include/linux/page_cgroup.h~memcg-fix-page_cgroup-allocation-fix-2 include/linux/page_cgroup.h
---- a/include/linux/page_cgroup.h~memcg-fix-page_cgroup-allocation-fix-2
-+++ a/include/linux/page_cgroup.h
-@@ -99,5 +99,10 @@ static inline struct page_cgroup *lookup
- {
- 	return NULL;
- }
-+
-+static inline void page_cgroup_init(void)
-+{
-+}
-+
- #endif
- #endif
+diff -puN fs/nilfs2/super.c~nilfs2-super-block-operations-fix fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~nilfs2-super-block-operations-fix
++++ a/fs/nilfs2/super.c
+@@ -1125,7 +1125,7 @@ nilfs_get_sb(struct file_system_type *fs
+ 	struct the_nilfs *nilfs = NULL;
+ 	int err, need_to_close = 1;
+ 
+-	sd.bdev = open_bdev_excl(dev_name, flags, fs_type);
++	sd.bdev = open_bdev_exclusive(dev_name, flags, fs_type);
+ 	if (IS_ERR(sd.bdev))
+ 		return PTR_ERR(sd.bdev);
+ 
+@@ -1190,9 +1190,9 @@ nilfs_get_sb(struct file_system_type *fs
+ 			  nilfs_set_bdev_super, &sd);
+ 		deactivate_super(s);
+ 		/*
+-		 * Although deactivate_super() invokes close_bdev_excl() at
++		 * Although deactivate_super() invokes close_bdev_exclusive() at
+ 		 * kill_block_super().  Here, s is an existent mount; we need
+-		 * one more close_bdev_excl() call.
++		 * one more close_bdev_exclusive() call.
+ 		 */
+ 		s = s2;
+ 		if (IS_ERR(s))
+@@ -1219,20 +1219,20 @@ nilfs_get_sb(struct file_system_type *fs
+ 	up(&sd.bdev->bd_mount_sem);
+ 	put_nilfs(nilfs);
+ 	if (need_to_close)
+-		close_bdev_excl(sd.bdev);
++		close_bdev_exclusive(sd.bdev, flags);
+ 	return simple_set_mnt(mnt, s);
+ 
+  error_s:
+ 	up(&sd.bdev->bd_mount_sem);
+ 	if (nilfs)
+ 		put_nilfs(nilfs);
+-	close_bdev_excl(sd.bdev);
++	close_bdev_exclusive(sd.bdev, flags);
+ 	return PTR_ERR(s);
+ 
+  failed_unlock:
+ 	up(&sd.bdev->bd_mount_sem);
+  failed:
+-	close_bdev_excl(sd.bdev);
++	close_bdev_exclusive(sd.bdev, flags);
+ 
+ 	return err;
+ 
+@@ -1244,7 +1244,7 @@ nilfs_get_sb(struct file_system_type *fs
+ 	up_write(&s->s_umount);
+ 	deactivate_super(s);
+ 	/*
+-	 * deactivate_super() invokes close_bdev_excl().
++	 * deactivate_super() invokes close_bdev_exclusive().
+ 	 * We must finish all post-cleaning before this call;
+ 	 * put_nilfs() and unlocking bd_mount_sem need the block device.
+ 	 */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 memcg-fix-page_cgroup-allocation.patch
-memcg-fix-page_cgroup-allocation-fix-2.patch
 epoll-avoid-double-inserts-in-case-of-efault-checkpatch-fixes.patch
 freezer_cg-use-thaw_process-in-unfreeze_cgroup-fix.patch
 fs-remove-prepare_write-commit_write-fix.patch
 mm-write_cache_pages-writepage-error-fix.patch
 mm-remove-the-might_sleep-from-lock_page.patch
 linux-next.patch
+next-remove-localversion.patch
 linux-next-fix-vfs-for-about-to-be-merged-ext3-patches.patch
 git-tests-git-rejects.patch
 revert-i7300_idle-driver-v155.patch
@@ -91,6 +139,7 @@ devpts-fix-unused-function-warning.patch
 w1-export-w1_read_8-function-checkpatch-fixes.patch
 nilfs2-inode-operations-fix.patch
 nilfs2-pathname-operations-fix.patch
+nilfs2-super-block-operations-fix.patch
 reiser4.patch
 reiser4-tree_lock-fixes.patch
 reiser4-tree_lock-fixes-fix.patch
