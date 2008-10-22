@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + why-does-this-keep-happening.patch added to -mm tree
-Date: Tue, 21 Oct 2008 17:06:43 -0700
-Message-ID: <200810220021.m9M0LNvU023104@imap1.linux-foundation.org>
+Subject: + leds-driver-for-hp-harddisk-protection-led-fix-fix-2.patch added to -mm tree
+Date: Tue, 21 Oct 2008 17:09:59 -0700
+Message-ID: <200810220024.m9M0Oe2P023708@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58738 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34194 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751273AbYJVAVr (ORCPT
+	by vger.kernel.org with ESMTP id S1751508AbYJVAZF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 21 Oct 2008 20:21:47 -0400
+	Tue, 21 Oct 2008 20:25:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, burman.yan@gmail.com, eric.piel@tremplin-utc.net, pavel@suse.cz, rpurdie@rpsys.net, trenn@suse.de
 
 
 The patch titled
-     why does this keep happening?
+     leds-driver-for-hp-harddisk-protection-led-fix-fix-2
 has been added to the -mm tree.  Its filename is
-     why-does-this-keep-happening.patch
+     leds-driver-for-hp-harddisk-protection-led-fix-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: why does this keep happening?
+Subject: leds-driver-for-hp-harddisk-protection-led-fix-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/io_apic_32.c: In function 'print_local_APIC':
-arch/x86/kernel/io_apic_32.c:1539: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'u64'
-arch/x86/kernel/io_apic_32.c:1540: warning: format '%08x' expects type 'unsigned int', but argument 2 has type 'u64'
+drivers/leds/leds-hp-disk.c: In function 'hpled_acpi_write':
+drivers/leds/leds-hp-disk.c:59: warning: passing argument 4 of 'acpi_evaluate_integer' from incompatible pointer type
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Someone changed acpi_evaluate_integer()
+
+drivers/leds/leds-hp-disk.c: In function 'hpled_add':
+drivers/leds/leds-hp-disk.c:101: error: invalid lvalue in assignment
+
+I changed that!
+
+Cc: Eric Piel <eric.piel@tremplin-utc.net>
+Cc: Pavel Machek <pavel@suse.cz>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Yan Burman <burman.yan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/io_apic_32.c |    4 ++--
+ drivers/leds/leds-hp-disk.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/io_apic_32.c~why-does-this-keep-happening arch/x86/kernel/io_apic_32.c
---- a/arch/x86/kernel/io_apic_32.c~why-does-this-keep-happening
-+++ a/arch/x86/kernel/io_apic_32.c
-@@ -1536,8 +1536,8 @@ __apicdebuginit(void) print_local_APIC(v
- 	}
+diff -puN drivers/leds/leds-hp-disk.c~leds-driver-for-hp-harddisk-protection-led-fix-fix-2 drivers/leds/leds-hp-disk.c
+--- a/drivers/leds/leds-hp-disk.c~leds-driver-for-hp-harddisk-protection-led-fix-fix-2
++++ a/drivers/leds/leds-hp-disk.c
+@@ -49,7 +49,7 @@ static struct acpi_hpled adev;
  
- 	icr = apic_icr_read();
--	printk(KERN_DEBUG "... APIC ICR: %08x\n", icr);
--	printk(KERN_DEBUG "... APIC ICR2: %08x\n", icr >> 32);
-+	printk(KERN_DEBUG "... APIC ICR: %08x\n", (unsigned)icr);
-+	printk(KERN_DEBUG "... APIC ICR2: %08x\n", upper_32_bits(icr));
+ static acpi_status hpled_acpi_write(acpi_handle handle, int reg)
+ {
+-	unsigned long ret; /* Not used when writing */
++	unsigned long long ret; /* Not used when writing */
+ 	union acpi_object in_obj[1];
+ 	struct acpi_object_list args = { 1, in_obj };
  
- 	v = apic_read(APIC_LVTT);
- 	printk(KERN_DEBUG "... APIC LVTT: %08x\n", v);
+@@ -98,7 +98,7 @@ static int hpled_add(struct acpi_device 
+ 	adev.device = device;
+ 	strcpy(acpi_device_name(device), DRIVER_NAME);
+ 	strcpy(acpi_device_class(device), ACPI_MDPS_CLASS);
+-	acpi_driver_data(device) = &adev;
++	device->driver_data = &adev;
+ 
+ 	ret = led_classdev_register(NULL, &hpled_led);
+ 	return ret;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,11 +97,13 @@ linux-next-fix-vfs-for-about-to-be-merged-ext3-patches.patch
 git-tests-git-rejects.patch
 revert-i7300_idle-driver-v155.patch
 arch-x86-kernel-setupc-omit-dmi_low_memory_corruption-when-it-is-unneeded.patch
+why-does-this-keep-happening.patch
 tick-schedc-suppress-needless-timer-reprogramming.patch
 drivers-input-touchscreen-ucb1400_tsc-needs-gpio.patch
 kbuild-prevent-modpost-from-looking-for-a-cmd-file-for-a-static-library-linked-into-a-module-checkpatch-fixes.patch
 led-driver-for-leds-on-pcengines-alix2-and-alix3-boards.patch
 leds-driver-for-hp-harddisk-protection-led-fix.patch
+leds-driver-for-hp-harddisk-protection-led-fix-fix-2.patch
 drivers-rtc-rtc-ds1286c-is-borked.patch
 drivers-rtc-rtc-m48t35c-is-borked-too.patch
 drivers-net-sfc-falconc-fix-min-warnings.patch
@@ -118,5 +136,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-why-does-this-keep-happening.patch
 
